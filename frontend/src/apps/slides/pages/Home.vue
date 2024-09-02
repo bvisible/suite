@@ -27,72 +27,10 @@ import { ref, onMounted } from 'vue'
 
 import Logo from '@/icons/Logo.vue'
 import SlideshowIcon from '@/icons/SlideshowIcon.vue'
+import { setupZooming } from '@/utils/zoom'
 
 const containerRef = ref(null)
 const targetRef = ref(null)
-
-const startZoom = (target, transform, initialTransform) => {
-	let rect = target.getBoundingClientRect()
-	origin = {
-		x: transform.origin.x - rect.x,
-		y: transform.origin.y - rect.y,
-	}
-	let m = getMatrix(transform).multiply(initialTransform)
-	target.style.transform = m
-}
-
-const updateTransform = (target, transform, initialTransform) => {
-	let m = getMatrix(transform).multiply(initialTransform)
-	target.style.transform = m
-}
-
-const endZoom = (target, transform, initialTransform) => {
-	initialTransform = getMatrix(transform).multiply(initialTransform)
-	target.style.transform = initialTransform
-}
-
-const getMatrix = (transform) => {
-	return new DOMMatrix().scale(transform.scale || 1)
-}
-
-const setupZooming = (container, target) => {
-	let transform,
-		wheelTimeout = null
-
-	const handleZoom = (e) => {
-		e.preventDefault()
-
-		let initialTransform = new DOMMatrix()
-
-		if (!transform) {
-			transform = {
-				origin: { x: e.clientX, y: e.clientY },
-				scale: 1,
-			}
-			startZoom(target, transform, initialTransform)
-		}
-
-		if (e.ctrlKey) {
-			let zoom_factor = e.deltaY <= 0 ? (1 - e.deltaY) / 100 : 1 / (1 + e.deltaY / 100)
-			transform = {
-				origin: { x: e.clientX, y: e.clientY },
-				scale: transform.scale * zoom_factor,
-			}
-		}
-
-		updateTransform(target, transform, initialTransform)
-
-		if (wheelTimeout) window.clearTimeout(wheelTimeout)
-		wheelTimeout = setTimeout(() => {
-			endZoom(target, transform, initialTransform)
-			transform = null
-		}, 100)
-	}
-
-	container.addEventListener('wheel', handleZoom, {
-		passive: false,
-	})
-}
 
 onMounted(() => {
 	if (!containerRef.value || !targetRef.value) return
