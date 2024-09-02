@@ -27,13 +27,13 @@ import { ref, onMounted } from 'vue'
 
 import Logo from '@/icons/Logo.vue'
 import SlideshowIcon from '@/icons/SlideshowIcon.vue'
-import { setupZooming } from '@/utils/zoom'
+import { addPanAndZoom } from '@/utils/zoom'
 
 const containerRef = ref(null)
 const targetRef = ref(null)
 
 onMounted(() => {
 	if (!containerRef.value || !targetRef.value) return
-	setupZooming(containerRef.value, targetRef.value)
+	addPanAndZoom(containerRef.value, targetRef.value)
 })
 </script>

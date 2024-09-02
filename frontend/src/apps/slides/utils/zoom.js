@@ -1,10 +1,13 @@
 // co-efficient for how sensitive the zoom is to the mouse wheel
 const SCALE_SPEED = 0.5
 
+// co-efficient for how sensitive the pan is to the mouse wheel
+const TRANSLATE_SPEED = 0.5
+
 let target, origin, transform
 let initialTransform = new DOMMatrix()
 
-const startZoom = () => {
+const startPanOrZoom = () => {
 	let targetRect = target.getBoundingClientRect()
 	origin = {
 		x: transform.origin.x - targetRect.x,
@@ -20,14 +23,16 @@ const updateTransform = () => {
 	target.style.transform = m
 }
 
-const endZoom = () => {
+const endPanOrZoom = () => {
 	limitScale()
 	initialTransform = getMatrix(transform).multiply(initialTransform)
 	target.style.transform = initialTransform
 }
 
 const getMatrix = () => {
-	return new DOMMatrix().scale(transform.scale || 1)
+	return new DOMMatrix()
+		.translate(transform.translation.x, transform.translation.y)
+		.scale(transform.scale || 1)
 }
 
 const limitScale = () => {
@@ -41,27 +46,39 @@ const limitScale = () => {
 	}
 }
 
-const setupZooming = (containerElement, targetElement) => {
+const addPanAndZoom = (containerElement, targetElement) => {
 	target = targetElement
 	let wheelTimeout = null
 
-	const handleZoom = (e) => {
+	const handlePanAndZoom = (e) => {
 		e.preventDefault()
 
 		if (!transform) {
 			transform = {
 				origin: { x: e.clientX, y: e.clientY },
 				scale: 1,
+				translation: { x: 0, y: 0 },
 			}
-			startZoom()
+			startPanOrZoom()
 		}
 
 		if (e.ctrlKey) {
-			let dy = e.deltaY * SCALE_SPEED
-			let zoom_factor = e.deltaY <= 0 ? 1 - dy / 100 : 1 / (1 + dy / 100)
+			let zoom_factor = e.deltaY <= 0 ? 1 - e.deltaY / 100 : 1 / (1 + e.deltaY / 100)
 			transform = {
 				origin: { x: e.clientX, y: e.clientY },
 				scale: transform.scale * zoom_factor,
+				translation: transform.translation,
+			}
+		} else {
+			let dx = e.deltaX * TRANSLATE_SPEED
+			let dy = e.deltaY * TRANSLATE_SPEED
+			transform = {
+				origin: { x: e.clientX, y: e.clientY },
+				scale: transform.scale,
+				translation: {
+					x: transform.translation.x - dx,
+					y: transform.translation.y - dy,
+				},
 			}
 		}
 
@@ -69,14 +86,14 @@ const setupZooming = (containerElement, targetElement) => {
 
 		if (wheelTimeout) window.clearTimeout(wheelTimeout)
 		wheelTimeout = setTimeout(() => {
-			endZoom()
+			endPanOrZoom()
 			transform = null
 		}, 200)
 	}
 
-	containerElement.addEventListener('wheel', handleZoom, {
+	containerElement.addEventListener('wheel', handlePanAndZoom, {
 		passive: false,
 	})
 }
 
-export { setupZooming }
+export { addPanAndZoom }
