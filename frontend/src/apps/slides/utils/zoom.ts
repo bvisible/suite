@@ -1,17 +1,32 @@
+type Origin = {
+	x: number
+	y: number
+}
+
+type Transform = {
+	origin: Origin
+	scale: number
+	translation: {
+		x: number
+		y: number
+	}
+}
+
 // co-efficient for how sensitive the zoom is to the mouse wheel
 const SCALE_SPEED = 0.5
 
 // co-efficient for how sensitive the pan is to the mouse wheel
 const TRANSLATE_SPEED = 0.5
 
-let target, origin, transform
+let target: HTMLElement, origin: Origin, transform: Transform | null
 
 let initialMatrix = new DOMMatrix()
 let gestureMatrix = new DOMMatrix()
 
-let wheelTimeout = null
+let wheelTimeout: NodeJS.Timeout
 
 const setOrigin = () => {
+	if (!transform) return
 	// origin is the midpoint of the initial touch points
 	let targetRect = target.getBoundingClientRect()
 	origin = {
@@ -43,6 +58,7 @@ const endGesture = () => {
 }
 
 const limitScale = () => {
+	if (!transform) return
 	// previous scale for transformation matrix is length of hypotenuse of x and y components
 	let scale = Math.hypot(initialMatrix.a, initialMatrix.b)
 	let currentScale = transform.scale * scale
@@ -54,6 +70,7 @@ const limitScale = () => {
 }
 
 const limitTranslation = () => {
+	if (!transform) return
 	let nextX = transform.translation.x + initialMatrix.e
 	let nextY = transform.translation.y + initialMatrix.f
 
@@ -73,6 +90,7 @@ const limitTranslation = () => {
 }
 
 const setGestureMatrix = () => {
+	if (!transform) return
 	let matrix = new DOMMatrix()
 		.translate(origin.x, origin.y)
 		.translate(transform.translation.x, transform.translation.y)
@@ -86,7 +104,8 @@ const applyMatrix = () => {
 	target.style.transform = gestureMatrix.toString()
 }
 
-const setZoomTransform = (e) => {
+const setZoomTransform = (e: WheelEvent) => {
+	if (!transform) return
 	let dy = e.deltaY * SCALE_SPEED
 	let factor = e.deltaY <= 0 ? 1 - dy / 100 : 1 / (1 + dy / 100)
 	transform = {
@@ -96,7 +115,8 @@ const setZoomTransform = (e) => {
 	}
 }
 
-const setPanTransform = (e) => {
+const setPanTransform = (e: WheelEvent) => {
+	if (!transform) return
 	let dx = e.deltaX * TRANSLATE_SPEED
 	let dy = e.deltaY * TRANSLATE_SPEED
 	transform = {
@@ -109,7 +129,7 @@ const setPanTransform = (e) => {
 	}
 }
 
-const handlePanAndZoom = (e) => {
+const handlePanAndZoom = (e: WheelEvent) => {
 	e.preventDefault()
 
 	// initialize the transform object
@@ -129,7 +149,7 @@ const handlePanAndZoom = (e) => {
 	}
 
 	// incrementally update the transform object
-	updateGesture(e)
+	updateGesture()
 
 	if (wheelTimeout) window.clearTimeout(wheelTimeout)
 	wheelTimeout = setTimeout(() => {
@@ -139,7 +159,7 @@ const handlePanAndZoom = (e) => {
 	}, 200)
 }
 
-const addPanAndZoom = (containerElement, targetElement) => {
+const addPanAndZoom = (containerElement: HTMLElement, targetElement: HTMLElement) => {
 	target = targetElement
 	containerElement.addEventListener('wheel', handlePanAndZoom, {
 		passive: false,
