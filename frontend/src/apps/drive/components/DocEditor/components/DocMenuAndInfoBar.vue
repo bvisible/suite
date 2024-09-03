@@ -1,6 +1,6 @@
 <template>
   <div
-    class="transition-all duration-200 ease-in-out h-full border-l"
+    class="transition-all duration-200 ease-in-out h-full border-l overflow-y-auto"
     :class="
       showInfoSidebar
         ? 'sm:min-w-[352px] sm:max-w-[352px] min-w-full opacity-100'
@@ -35,8 +35,8 @@
               <GeneralAccess
                 v-if="
                   !$resources.generalAccess.loading &&
-                  (!!$resources.generalAccess.data.length ||
-                    !sharedWithList.length)
+                  (!!$resources.generalAccess.data?.length ||
+                    !sharedWithList?.length)
                 "
                 size="lg"
                 class="-mr-[3px] outline outline-white"
@@ -48,10 +48,10 @@
               >
                 <Avatar
                   v-for="user in sharedWithList.slice(0, 3)"
-                  :key="user.user_name"
+                  :key="user?.user_name"
                   size="lg"
-                  :label="user.full_name ? user.full_name : user.user_name"
-                  :image="user.user_image"
+                  :label="user?.full_name ? user?.full_name : user?.user_name"
+                  :image="user?.user_image"
                   class="-mr-[3px] outline outline-white"
                 />
 
@@ -156,21 +156,43 @@
 
       <!-- Comments -->
       <div v-if="tab === 5" class="px-5 py-4 border-b">
-        <span
-          class="inline-flex items-center gap-2.5 text-gray-800 font-medium text-lg w-full"
-        >
-          Comments
-        </span>
-        <OuterCommentVue
-          v-if="!!allComments.length"
-          :active-comments-instance="activeCommentsInstance"
-          :all-comments="allComments"
-          :focus-content="focusContent"
-          :is-comment-mode-on="showComments"
-          @set-comment="setComment"
+        <AnnotationList
+          v-if="allAnnotations"
+          :active-annotation="activeAnnotation"
+          :all-annotations="allAnnotations"
+          :show-annotations="showComments"
+          @set-active-annotation="setActiveAnnotation"
         />
-        <div v-else class="text-gray-600 text-sm my-5">
-          There are no comments for the current document
+      </div>
+
+      <!-- Versions -->
+      <div v-if="tab === 6" class="px-2 py-4 border-b">
+        <span
+          class="px-3 inline-flex items-center gap-2.5 text-gray-800 font-medium text-lg w-full"
+        >
+          Versions
+          <Button class="ml-auto" @click="generateSnapshot">New</Button>
+        </span>
+        <div v-if="!$resources.getversionList.loading">
+          <div
+            v-for="(version, i) in $resources.getversionList.data"
+            :key="version.name"
+            class="flex flex-col gap-y-1.5 p-2 m-2 hover:bg-gray-100 cursor-pointer rounded"
+            @click.stop="previewSnapshot(i)"
+          >
+            <span
+              :title="version.creation"
+              class="font-medium text-base text-gray-800"
+            >
+              {{ version.relativeTime }}
+            </span>
+            <span class="text-sm text-gray-700">
+              {{ version.snapshot_message }}
+            </span>
+          </div>
+        </div>
+        <div v-else class="text-gray-600 text-sm my-5 px-3">
+          No previous versions available for the current document
         </div>
       </div>
 
@@ -682,6 +704,8 @@
           Settings
         </span>
         <Switch v-model="settings.docSize" label="Small Text" />
+        <Switch v-model="settings.docSpellcheck" label="Spellcheck" />
+        <Switch v-model="settings.docSize" label="Highlight Check" />
         <Switch v-model="settings.docWidth" label="Full Width" />
         <span class="font-medium text-gray-700 text-base my-2.5 px-2.5">
           Default Font
@@ -809,6 +833,25 @@
     -->
     <InsertImage v-model="addImageDialog" :editor="editor" />
     <InsertVideo v-model="addVideoDialog" :editor="editor" />
+    <NewManualSnapshotDialog
+      v-if="newSnapshotDialog"
+      v-model="newSnapshotDialog"
+      @success="
+        (data) => {
+          storeSnapshot(data)
+        }
+      "
+    />
+    <SnapshotPreviewDialog
+      v-if="snapShotDialog"
+      v-model="snapShotDialog"
+      :snapshot-data="selectedSnapshot"
+      @success="
+        (data) => {
+          applySnapshot(selectedSnapshot)
+        }
+      "
+    />
   </div>
 </template>
 
@@ -828,8 +871,11 @@ import { formatMimeType } from "@/utils/format"
 import { getIconUrl } from "@/utils/getIconUrl"
 import { v4 as uuidv4 } from "uuid"
 import { defineAsyncComponent, markRaw } from "vue"
-import OuterCommentVue from "@/components/DocEditor/OuterComment.vue"
-import LineHeight from "./icons/line-height.vue"
+import OuterCommentVue from "@/components/DocEditor/components/OuterComment.vue"
+import LineHeight from "../icons/line-height.vue"
+import Info from "@/components/EspressoIcons/Info.vue"
+import Comment from "@/components/EspressoIcons/Comment.vue"
+
 import {
   Plus,
   Minus,
@@ -840,9 +886,9 @@ import {
   FileDown,
   ArrowDownUp,
   TextQuote,
-  Info,
   MessageCircle,
   FileText,
+  FileClock,
 } from "lucide-vue-next"
 import { Code } from "lucide-vue-next"
 import { Code2 } from "lucide-vue-next"
@@ -850,26 +896,32 @@ import { Table2Icon } from "lucide-vue-next"
 import "@fontsource/lora"
 import "@fontsource/geist-mono"
 import "@fontsource/nunito"
-import ColorInput from "./ColorInput.vue"
-import Bold from "./icons/Bold.vue"
-import Strikethrough from "./icons/StrikeThrough.vue"
-import Underline from "./icons/Underline.vue"
+import ColorInput from "../components/ColorInput.vue"
+import Bold from "../icons/Bold.vue"
+import Strikethrough from "../icons/StrikeThrough.vue"
+import Underline from "../icons/Underline.vue"
 import GeneralAccess from "@/components/GeneralAccess.vue"
-import Indent from "./icons/Indent.vue"
-import Outdent from "./icons/Outdent.vue"
-import Codeblock from "./icons/Codeblock.vue"
-import List from "./icons/List.vue"
-import OrderList from "./icons/OrderList.vue"
-import Check from "./icons/Check.vue"
-import Details from "./icons/Details.vue"
-import alignRight from "./icons/AlignRight.vue"
-import alignLeft from "./icons/AlignLeft.vue"
-import alignCenter from "./icons/AlignCenter.vue"
-import alignJustify from "./icons/AlignJustify.vue"
-import BlockQuote from "./icons/BlockQuote.vue"
-import Style from "./icons/Style.vue"
-import Image from "./icons/Image.vue"
-import Video from "./icons/Video.vue"
+import Indent from "../icons/Indent.vue"
+import Outdent from "../icons/Outdent.vue"
+import Codeblock from "../icons/Codeblock.vue"
+import List from "../icons/List.vue"
+import OrderList from "../icons/OrderList.vue"
+import Check from "../icons/Check.vue"
+import Details from "../icons/Details.vue"
+import alignRight from "../icons/AlignRight.vue"
+import alignLeft from "../icons/AlignLeft.vue"
+import alignCenter from "../icons/AlignCenter.vue"
+import alignJustify from "../icons/AlignJustify.vue"
+import BlockQuote from "../icons/BlockQuote.vue"
+import Style from "../icons/Style.vue"
+import Image from "../icons/Image.vue"
+import Video from "../icons/Video.vue"
+import { useTimeAgo } from "@vueuse/core"
+import * as Y from "yjs"
+import { TiptapTransformer } from "@hocuspocus/transformer"
+import { fromUint8Array, toUint8Array } from "js-base64"
+import { formatDate } from "../../../utils/format"
+import AnnotationList from "../components/AnnotationList.vue"
 
 export default {
   name: "DocMenuAndInfoBar",
@@ -881,9 +933,17 @@ export default {
     TagInput,
     Tag,
     OuterCommentVue,
+    Info,
+    Comment,
     Popover,
     InsertImage: defineAsyncComponent(() => import("./InsertImage.vue")),
     InsertVideo: defineAsyncComponent(() => import("./InsertVideo.vue")),
+    SnapshotPreviewDialog: defineAsyncComponent(() =>
+      import("./SnapshotPreviewDialog.vue")
+    ),
+    NewManualSnapshotDialog: defineAsyncComponent(() =>
+      import("./NewManualSnapshotDialog.vue")
+    ),
     LineHeight,
     Plus,
     Minus,
@@ -916,19 +976,28 @@ export default {
     FileUp,
     FileDown,
     ArrowDownUp,
-    Info,
     TextQuote,
     MessageCircle,
     FileText,
     Details,
     GeneralAccess,
+    AnnotationList,
   },
-  inject: ["editor"],
+  inject: ["editor", "document"],
+  emits: ["update:allComments", "update:activeAnnotation"],
   inheritAttrs: false,
   props: {
     settings: {
       type: Object,
       required: true,
+    },
+    allAnnotations: {
+      type: Object,
+      required: true,
+    },
+    activeAnnotation: {
+      type: String,
+      required: false,
     },
   },
   setup() {
@@ -966,7 +1035,12 @@ export default {
         },
         {
           name: "Comments",
-          icon: markRaw(MessageCircle),
+          icon: markRaw(Comment),
+          write: false,
+        },
+        {
+          name: "Versions",
+          icon: markRaw(FileClock),
           write: false,
         },
       ],
@@ -975,6 +1049,10 @@ export default {
       addImageDialog: false,
       addVideoDialog: false,
       addTag: false,
+      snapShotDialog: false,
+      selectedSnapshot: null,
+      stagedSnapshot: null,
+      newSnapshotDialog: false,
     }
   },
   computed: {
@@ -1063,8 +1141,29 @@ export default {
     this.emitter.on("addVideo", () => {
       this.addVideoDialog = true
     })
+    // document.vue debouncedWatch
+    this.emitter.on("triggerAutoSnapshot", () => {
+      this.autoSnapshot()
+    })
+  },
+  beforeUnmount() {
+    this.emitter.off("triggerAutoSnapshot")
   },
   methods: {
+    setActiveAnnotation(val) {
+      this.$emit("update:activeAnnotation", val.get("id"))
+      // focus the comment inside the editor. needs further testing
+      /*       let from = val.rangeStart
+      let to = val.rangeEnd
+      //const { node } = this.editor.view.domAtPos(this.editor.state.selection.anchor);
+      //if (node) {
+        // Use node.parentElement if domAtPos returns text node instead of a DOM element
+      //  (node.parentElement || node).scrollIntoView({ behavior: 'smooth'})
+        // scrollIntoView(false); false == dont focus ediotr 
+      //}
+      //focusCommentWithActiveId(activeCommentId)
+      //focusContentWithActiveId(activeCommentId) */
+    },
     switchTab(val) {
       if (this.$store.state.showInfo == false) {
         this.$store.commit("setShowInfo", !this.$store.state.showInfo)
@@ -1143,8 +1242,124 @@ export default {
         button.action(this.editor)
       }
     },
+    /* 
+      Imperative that we take the snapshot EXACTLY when the user clicks `New`
+      document state can change, so the sooner the better
+    */
+    autoSnapshot() {
+      this.stagedSnapshot = Y.snapshot(this.document)
+      this.$resources.storeVersion.submit({
+        entity_name: this.entity.name,
+        doc_name: this.entity.document,
+        snapshot_message: `Auto generated version by ${this.currentUserName}`,
+        snapshot_data: fromUint8Array(Y.encodeSnapshot(this.stagedSnapshot)),
+      })
+    },
+    generateSnapshot() {
+      this.newSnapshotDialog = true
+      this.stagedSnapshot = Y.snapshot(this.document)
+    },
+    storeSnapshot(message) {
+      this.$resources.storeVersion.submit({
+        entity_name: this.entity.name,
+        doc_name: this.entity.document,
+        snapshot_message: message,
+        snapshot_data: fromUint8Array(Y.encodeSnapshot(this.stagedSnapshot)),
+      })
+    },
+    previewSnapshot(index) {
+      let tempSnapshot = Y.decodeSnapshot(
+        this.$resources.getversionList.data[index].snapshot_data
+      )
+      let tempDoc = Y.createDocFromSnapshot(
+        this.document,
+        tempSnapshot,
+        new Y.Doc({ gc: false })
+      )
+      this.selectedSnapshot = Object.assign(
+        {},
+        this.$resources.getversionList.data[index]
+      )
+      this.selectedSnapshot.snapshot_data = tempDoc
+      this.snapShotDialog = true
+    },
+    applySnapshot(data) {
+      /* Simply generate the old snapshot state and write the new content */
+      const snapshotDoc = data.snapshot_data
+      const prosemirrorJSON = TiptapTransformer.fromYdoc(snapshotDoc).default // default pm fragment
+      // setContent is a transactional dispatch
+      // wipes `lastSaved` maybe
+      this.editor.commands.setContent(prosemirrorJSON, true)
+      this.$realtime.emit(
+        "document_version_change_emit",
+        "Drive Entity",
+        this.entity.name,
+        this.currentUserName,
+        this.currentUserImage,
+        this.$realtime.socket.id
+      )
+    },
+    revertState(data) {
+      // DO NOT USE
+      // find a way to reset the cursor position of all connected clients
+      const snapshotDoc = new Y.Doc({ gc: false })
+      Y.applyUpdate(snapshotDoc, Y.encodeStateAsUpdate(data.snapshot_data))
+      // state vectors
+      const currentStateVector = Y.encodeStateVector(this.document)
+      const snapshotStateVector = Y.encodeStateVector(snapshotDoc)
+
+      // pack all changes from snapshot till now
+      const changesSinceSnapshotUpdate = Y.encodeStateAsUpdate(
+        this.document,
+        snapshotStateVector
+      )
+
+      // apply them
+      const um = new Y.UndoManager(snapshotDoc.getXmlFragment("default")) // prosemirror default fragment
+      Y.applyUpdate(snapshotDoc, changesSinceSnapshotUpdate)
+
+      // revert  them
+      um.undo()
+
+      // apply the revert operation
+      const revertChangesSinceSnapshotUpdate = Y.encodeStateAsUpdate(
+        snapshotDoc,
+        currentStateVector
+      )
+      // propagate changes
+      Y.applyUpdate(this.document, revertChangesSinceSnapshotUpdate)
+    },
   },
   resources: {
+    storeVersion() {
+      return {
+        url: "drive.api.files.create_doc_version",
+        method: "POST",
+        debounce: 1000,
+        auto: false,
+        onSuccess() {
+          this.stagedSnapshot = null
+          this.$resources.getversionList.fetch()
+        },
+      }
+    },
+    getversionList() {
+      return {
+        url: "drive.api.files.get_doc_version_list",
+        method: "GET",
+        params: {
+          entity_name: this.entity.name,
+        },
+        auto: this.entity.write === 1 && this.tab === 6,
+        onSuccess(data) {
+          data.forEach((element) => {
+            element.relativeTime = useTimeAgo(element.creation)
+            element.creation = formatDate(element.creation)
+            element.snapshot_data = toUint8Array(element.snapshot_data)
+          })
+        },
+      }
+    },
     userList() {
       return {
         url: "drive.api.permissions.get_shared_with_list",
