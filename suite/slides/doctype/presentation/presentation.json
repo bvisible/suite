@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:title",
  "creation": "2024-09-03 19:11:55.640617",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -25,11 +24,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-03 19:11:55.640617",
+ "modified": "2024-09-04 19:24:18.439952",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
- "naming_rule": "By fieldname",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
