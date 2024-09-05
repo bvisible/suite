@@ -53,6 +53,39 @@
 
 			<!-- Slide (Dimensions: 16:9 ratio) -->
 			<div ref="targetRef" class="h-[450px] w-[800px] bg-white drop-shadow-lg"></div>
+
+			<!-- Slide Elements Panel -->
+			<div class="fixed right-0 z-20 flex h-[743px] w-fit border-l bg-white">
+				<div class="flex flex-col justify-between">
+					<div>
+						<Tooltip text="Text" hover-delay="1" placement="left">
+							<div class="cursor-pointer p-3">
+								<FeatherIcon name="type" class="h-4.5" color="#636363" />
+							</div>
+						</Tooltip>
+						<Tooltip text="Image" hover-delay="1" placement="left">
+							<div class="cursor-pointer p-3">
+								<FeatherIcon name="image" class="h-4.5" color="#636363" />
+							</div>
+						</Tooltip>
+						<Tooltip text="Video" hover-delay="1" placement="left">
+							<div class="cursor-pointer p-3">
+								<FeatherIcon name="film" class="h-4.5" color="#636363" />
+							</div>
+						</Tooltip>
+						<Tooltip text="Chart" hover-delay="1" placement="left">
+							<div class="cursor-pointer p-3">
+								<FeatherIcon name="pie-chart" class="h-4.5" color="#636363" />
+							</div>
+						</Tooltip>
+					</div>
+					<Tooltip text="Notes" hover-delay="1" placement="left">
+						<div class="cursor-pointer p-3">
+							<StickyNote size="18" strokeWidth="1.5" color="#636363" />
+						</div>
+					</Tooltip>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -61,10 +94,11 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { PanelLeftOpen, PanelLeftClose } from 'lucide-vue-next'
+import { Tooltip, call } from 'frappe-ui'
+
+import { PanelLeftOpen, PanelLeftClose, StickyNote } from 'lucide-vue-next'
 import Logo from '@/icons/Logo.vue'
 
-import { call } from 'frappe-ui'
 import { addPanAndZoom } from '@/utils/zoom'
 
 const route = useRoute()

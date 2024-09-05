@@ -78,13 +78,13 @@ const limitTranslation = () => {
 
 	// if target goes out of bounds from top or bottom
 	// reduce the translation on Y axis
-	let ylimit = scale < 1 ? 600 * scale : 600
+	let ylimit = scale < 1 ? 500 * scale : 500
 	if (nextY > ylimit) transform.translation.y = ylimit - initialMatrix.f
 	else if (nextY < -ylimit) transform.translation.y = -ylimit - initialMatrix.f
 
 	// if target goes out of bounds from top or bottom
 	// reduce the translation on X axis
-	let xlimit = scale < 1 ? 1150 * scale : 1150
+	let xlimit = scale < 1 ? 800 * scale : 800
 	if (nextX > xlimit) transform.translation.x = xlimit - initialMatrix.e
 	else if (nextX < -xlimit) transform.translation.x = -xlimit - initialMatrix.e
 }
