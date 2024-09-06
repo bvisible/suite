@@ -1,5 +1,5 @@
 <template>
-	<div class="w-5">
+	<div class="w-6">
 		<svg fill="none" viewBox="0 0 32 31" xmlns="http://www.w3.org/2000/svg">
 			<g clip-path="url(#clip0_8151_27249)">
 				<path
