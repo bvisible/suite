@@ -14,42 +14,7 @@
 
 		<div ref="containerRef" class="flex h-full items-center justify-center">
 			<!-- Slide Navigation Panel -->
-			<div
-				class="fixed z-20 h-[743px] w-44 overflow-y-auto border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
-				:class="showNavigator ? 'left-0' : '-left-44'"
-			>
-				<div class="flex flex-col gap-4 p-4">
-					<div
-						v-for="i in presentation?.slides.length"
-						:key="i"
-						class="h-20 cursor-pointer rounded border shadow-lg shadow-gray-100"
-						:class="activeSlide == i ? 'border-gray-500' : 'border-gray-300'"
-						@click="activeSlide = i"
-					>
-						<div class="p-1 text-xs text-gray-500">{{ i }}</div>
-					</div>
-
-					<div
-						class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-300 shadow-lg shadow-gray-100"
-					>
-						<FeatherIcon name="plus" class="h-3.5 text-gray-500" />
-					</div>
-				</div>
-			</div>
-
-			<!-- Slide Navigator Toggle -->
-			<div
-				class="fixed z-10 flex h-8 w-8 cursor-pointer items-center justify-center transition-all duration-500 ease-in-out"
-				:class="
-					showNavigator
-						? 'bottom-2 left-44'
-						: 'bottom-2 left-2 rounded bg-white shadow-md shadow-gray-400'
-				"
-				@click="showNavigator = !showNavigator"
-			>
-				<PanelLeftClose v-if="showNavigator" size="16" strokeWidth="1.5" />
-				<PanelLeftOpen v-else size="16" strokeWidth="1.5" />
-			</div>
+			<SlideNavigator :presentation="presentation" :activeSlide="activeSlide" />
 
 			<!-- Slide (Dimensions: 16:9 ratio) -->
 			<div ref="targetRef" class="h-[450px] w-[800px] bg-white drop-shadow-lg"></div>
@@ -96,8 +61,9 @@ import { useRoute } from 'vue-router'
 
 import { Tooltip, call } from 'frappe-ui'
 
-import { PanelLeftOpen, PanelLeftClose, StickyNote } from 'lucide-vue-next'
+import { StickyNote } from 'lucide-vue-next'
 import Logo from '@/icons/Logo.vue'
+import SlideNavigator from '@/components/SlideNavigator.vue'
 
 import { addPanAndZoom } from '@/utils/zoom'
 
