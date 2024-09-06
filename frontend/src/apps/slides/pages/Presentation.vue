@@ -7,14 +7,28 @@
 				<div class="font-semibold">Slides</div>
 			</div>
 
-			<span class="text-gray-700">{{ presentation?.title }}</span>
+			<input
+				ref="newTitleRef"
+				v-if="renameMode"
+				class="rounded-sm border-none py-1 text-base text-gray-700 focus:ring-gray-500"
+				v-model="newTitle"
+				@mouseleave="saveTitle"
+			/>
+			<span v-else class="text-gray-700" @click="enableRenameMode">
+				{{ presentation.data?.title }}
+			</span>
 
 			<Button variant="solid" label="Present" size="sm" />
 		</div>
 
 		<div ref="containerRef" class="flex h-full items-center justify-center">
 			<!-- Slide Navigation Panel -->
-			<SlideNavigator :presentation="presentation" :activeSlide="activeSlide" />
+			<SlideNavigator
+				v-if="presentation.data"
+				:slides="presentation.data.slides"
+				:activeSlide="activeSlide"
+				@addSlide="addSlide"
+			/>
 
 			<!-- Slide (Dimensions: 16:9 ratio) -->
 			<div ref="targetRef" class="h-[450px] w-[800px] bg-white drop-shadow-lg"></div>
@@ -56,10 +70,10 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, watch, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-import { Tooltip, call } from 'frappe-ui'
+import { Tooltip, call, createResource } from 'frappe-ui'
 
 import { StickyNote } from 'lucide-vue-next'
 import Logo from '@/icons/Logo.vue'
@@ -68,22 +82,61 @@ import SlideNavigator from '@/components/SlideNavigator.vue'
 import { addPanAndZoom } from '@/utils/zoom'
 
 const route = useRoute()
+const router = useRouter()
 
 const containerRef = ref(null)
 const targetRef = ref(null)
-const presentation = ref(null)
+const newTitleRef = ref(null)
+
+const presentation = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
+	makeParams: () => ({ name: route.params.name }),
+})
 
 const activeSlide = ref(1)
 const showNavigator = ref(false)
+
+const addSlide = async () => {
+	await call('frappe.client.insert', {
+		doc: {
+			doctype: 'Slide',
+			parenttype: 'Presentation',
+			parentfield: 'slides',
+			parent: route.params.name,
+		},
+	})
+	await presentation.reload()
+	activeSlide.value = presentation.data.slides.length
+}
+
+const renameMode = ref(false)
+const newTitle = ref('')
+
+const enableRenameMode = () => {
+	renameMode.value = true
+	newTitle.value = presentation.data.title
+	nextTick(() => newTitleRef.value.focus())
+}
+
+const saveTitle = async () => {
+	if (newTitle.value && newTitle.value != presentation.data.title) {
+		let nameSlug = await call(
+			'slides.slides.doctype.presentation.presentation.rename_presentation',
+			{
+				name: route.params.name,
+				new_name: newTitle.value,
+			},
+		)
+		await router.replace({ name: 'Presentation', params: { name: nameSlug } })
+	}
+	renameMode.value = false
+}
 
 watch(
 	() => route.params.name,
 	async () => {
 		if (!route.params.name) return
-		presentation.value = await call('frappe.client.get', {
-			doctype: 'Presentation',
-			name: route.params.name,
-		})
+		presentation.fetch()
 	},
 	{ immediate: true },
 )
