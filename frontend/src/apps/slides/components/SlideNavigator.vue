@@ -6,7 +6,7 @@
 	>
 		<div class="flex flex-col gap-4 p-4">
 			<div
-				v-for="i in presentation?.slides.length"
+				v-for="i in slides.length"
 				:key="i"
 				class="h-20 cursor-pointer rounded border shadow-lg shadow-gray-100"
 				:class="activeSlide == i ? 'border-gray-500' : 'border-gray-300'"
@@ -17,6 +17,7 @@
 
 			<div
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:bg-gray-50"
+				@click="$emit('addSlide')"
 			>
 				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
 			</div>
@@ -40,17 +41,24 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+
+import { call } from 'frappe-ui'
 
 import { PanelLeftOpen, PanelLeftClose } from 'lucide-vue-next'
 
-defineProps({
-	presentation: Object,
+const props = defineProps({
+	slides: Array,
 })
 
 const activeSlide = defineModel('activeSlide', {
 	type: Number,
 	default: 1,
 })
+
+defineEmits(['addSlide'])
+
+const route = useRoute()
 
 const showNavigator = ref(false)
 </script>
