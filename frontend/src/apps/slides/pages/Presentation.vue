@@ -21,9 +21,12 @@
 			<Button variant="solid" label="Present" size="sm" />
 		</div>
 
-		<div ref="containerRef" class="flex h-full items-center justify-center">
-			<!-- Slide Navigation Panel -->
-			<SlideNavigator
+		<div
+			ref="containerRef"
+			class="flex h-full items-center justify-center"
+			@click="(e) => clearFocus(e)"
+		>
+			<SlideNavigationPanel
 				v-if="presentation.data"
 				:slides="presentation.data.slides"
 				:activeSlide="activeSlide"
@@ -31,40 +34,13 @@
 			/>
 
 			<!-- Slide (Dimensions: 16:9 ratio) -->
-			<div ref="targetRef" class="h-[450px] w-[800px] bg-white drop-shadow-lg"></div>
+			<div
+				ref="targetRef"
+				class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
+				@click="(e) => focusOnElement(e)"
+			></div>
 
-			<!-- Slide Elements Panel -->
-			<div class="fixed right-0 z-20 flex h-[743px] w-fit border-l bg-white">
-				<div class="flex flex-col justify-between">
-					<div>
-						<Tooltip text="Text" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="type" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-						<Tooltip text="Image" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="image" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-						<Tooltip text="Video" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="film" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-						<Tooltip text="Chart" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="pie-chart" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-					</div>
-					<Tooltip text="Notes" hover-delay="1" placement="left">
-						<div class="cursor-pointer p-3">
-							<StickyNote size="18" strokeWidth="1.5" color="#636363" />
-						</div>
-					</Tooltip>
-				</div>
-			</div>
+			<SlideElementsPanel :activeElement="activeElement" />
 		</div>
 	</div>
 </template>
@@ -77,7 +53,8 @@ import { Tooltip, call, createResource } from 'frappe-ui'
 
 import { StickyNote } from 'lucide-vue-next'
 import Logo from '@/icons/Logo.vue'
-import SlideNavigator from '@/components/SlideNavigator.vue'
+import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
+import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 
 import { addPanAndZoom } from '@/utils/zoom'
 
@@ -145,6 +122,22 @@ onMounted(() => {
 	if (!containerRef.value || !targetRef.value) return
 	addPanAndZoom(containerRef.value, targetRef.value)
 })
+
+const activeElement = ref(null)
+
+const focusOnElement = (e) => {
+	if (e.target.classList.contains('slide')) {
+		activeElement.value = e.target
+		activeElement.value.classList.add('ring-[1.5px]', 'ring-[#808080]/50')
+	}
+}
+
+const clearFocus = (e) => {
+	if (!e.target.classList.contains('slide') && activeElement.value) {
+		activeElement.value.classList.remove('ring-[1.5px]', 'ring-[#808080]/50')
+		activeElement.value = null
+	}
+}
 </script>
 
 <style scoped>
