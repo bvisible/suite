@@ -4,8 +4,18 @@
 		<div class="flex flex-col justify-between">
 			<div>
 				<Tooltip text="Text" hover-delay="1" placement="left">
-					<div class="cursor-pointer p-4">
-						<FeatherIcon name="type" class="h-5" color="#636363" />
+					<div
+						class="cursor-pointer p-4"
+						:class="activeTab == 'text' ? 'bg-gray-100' : ''"
+						@click="addTextElement"
+					>
+						<FeatherIcon
+							name="type"
+							class="h-5"
+							:class="
+								activeTab == 'text' ? 'stroke-[1.8px] text-black' : 'text-[#636363]'
+							"
+						/>
 					</div>
 				</Tooltip>
 				<Tooltip text="Image" hover-delay="1" placement="left">
@@ -50,7 +60,7 @@
 
 	<!-- Element Properties Panel -->
 	<div
-		class="z-5 fixed flex h-[742px] w-[226px] flex-col bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
+		class="fixed z-20 flex h-[743px] w-[226px] flex-col bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
 		:class="activeElement ? 'right-13' : '-right-[174px]'"
 	>
 		<div v-if="activeTab == 'slide'">
@@ -61,6 +71,46 @@
 				<div
 					class="h-4 w-4 cursor-pointer rounded-sm border border-gray-700 bg-white shadow-sm"
 				></div>
+			</div>
+		</div>
+
+		<div v-else-if="activeTab == 'text'">
+			<div class="flex flex-col gap-4 border-b px-4 py-2">
+				<div class="flex items-center justify-between">
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="bold" class="h-4" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="italic" class="h-4" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="underline" class="h-4" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<Strikethrough size="16" strokeWidth="1.5" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<CaseUpper size="20" strokeWidth="1.5" />
+					</div>
+				</div>
+
+				<div class="flex items-center justify-between">
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="align-left" class="h-4.5" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="align-center" class="h-4.5" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="align-right" class="h-4.5" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="align-justify" class="h-4.5" />
+					</div>
+					<div class="cursor-pointer rounded-sm p-1">
+						<FeatherIcon name="list" class="h-4.5" />
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -76,7 +126,26 @@ const props = defineProps({
 	activeElement: HTMLElement,
 })
 
-const activeTab = computed(() =>
-	props.activeElement?.classList.contains('slide') ? 'slide' : null,
-)
+const activeTab = computed(() => {
+	if (props.activeElement?.classList.contains('textElement')) return 'text'
+	else if (props.activeElement?.classList.contains('slide')) return 'slide'
+	return null
+})
+
+const addTextElement = () => {
+	const text = document.createElement('div')
+	text.innerText = 'Text'
+	text.style.fontFamily = 'Arial'
+	text.style.fontSize = '16px'
+	text.style.margin = '14px'
+	text.style.color = '#000'
+	text.style.zIndex = '100'
+	text.style.top = '200px'
+	text.style.left = '350px'
+	text.style.position = 'absolute'
+	text.style.width = 'fit-content'
+	text.classList.add('textElement')
+
+	document.querySelector('.slide').appendChild(text)
+}
 </script>

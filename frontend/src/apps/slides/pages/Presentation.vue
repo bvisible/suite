@@ -24,7 +24,7 @@
 		<div
 			ref="containerRef"
 			class="flex h-full items-center justify-center"
-			@click="(e) => clearFocus(e)"
+			@click="(e) => e.target == containerRef && clearFocus(e)"
 		>
 			<SlideNavigationPanel
 				v-if="presentation.data"
@@ -109,6 +109,28 @@ const saveTitle = async () => {
 	renameMode.value = false
 }
 
+const activeElement = ref(null)
+
+const focusOnElement = (e) => {
+	e.stopPropagation()
+
+	if (activeElement.value == e.target) return
+
+	clearFocus({ target: activeElement.value })
+
+	if (e.target == targetRef.value || e.target.classList.contains('textElement')) {
+		activeElement.value = e.target
+		activeElement.value.classList.add('ring-[1.5px]', 'ring-[#808080]/50', 'cursor-pointer')
+	}
+}
+
+const clearFocus = (e) => {
+	if (activeElement.value) {
+		activeElement.value.classList.remove('ring-[1.5px]', 'ring-[#808080]/50', 'cursor-pointer')
+		activeElement.value = null
+	}
+}
+
 watch(
 	() => route.params.name,
 	async () => {
@@ -122,22 +144,6 @@ onMounted(() => {
 	if (!containerRef.value || !targetRef.value) return
 	addPanAndZoom(containerRef.value, targetRef.value)
 })
-
-const activeElement = ref(null)
-
-const focusOnElement = (e) => {
-	if (e.target.classList.contains('slide')) {
-		activeElement.value = e.target
-		activeElement.value.classList.add('ring-[1.5px]', 'ring-[#808080]/50')
-	}
-}
-
-const clearFocus = (e) => {
-	if (!e.target.classList.contains('slide') && activeElement.value) {
-		activeElement.value.classList.remove('ring-[1.5px]', 'ring-[#808080]/50')
-		activeElement.value = null
-	}
-}
 </script>
 
 <style scoped>
