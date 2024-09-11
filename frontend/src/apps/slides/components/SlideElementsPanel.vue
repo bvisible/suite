@@ -75,18 +75,42 @@
 		</div>
 
 		<div v-else-if="activeTab == 'text'">
-			<div class="flex flex-col gap-4 px-4 py-2">
+			<div class="flex flex-col gap-3 px-4 py-2">
 				<div class="flex items-center justify-between">
-					<div class="cursor-pointer rounded-sm p-1">
+					<div
+						class="cursor-pointer rounded-sm p-1"
+						:class="
+							activeElementStyle.fontWeight == 'bold' ? 'bg-gray-800 text-white' : ''
+						"
+					>
 						<FeatherIcon name="bold" class="h-4" />
 					</div>
-					<div class="cursor-pointer rounded-sm p-1">
+					<div
+						class="cursor-pointer rounded-sm p-1"
+						:class="
+							activeElementStyle.fontStyle == 'italic' ? 'bg-gray-800 text-white' : ''
+						"
+					>
 						<FeatherIcon name="italic" class="h-4" />
 					</div>
-					<div class="cursor-pointer rounded-sm p-1">
+					<div
+						class="cursor-pointer rounded-sm p-1"
+						:class="
+							activeElementStyle.fontDecoration == 'underline'
+								? 'bg-gray-800 text-white'
+								: ''
+						"
+					>
 						<FeatherIcon name="underline" class="h-4" />
 					</div>
-					<div class="cursor-pointer rounded-sm p-1">
+					<div
+						class="cursor-pointer rounded-sm p-1"
+						:class="
+							activeElementStyle.fontDecoration == 'strikethrough'
+								? 'bg-gray-800 text-white'
+								: ''
+						"
+					>
 						<Strikethrough size="16" strokeWidth="1.5" />
 					</div>
 					<div class="cursor-pointer rounded-sm p-1">
@@ -115,7 +139,13 @@
 
 			<div class="flex flex-col gap-4 border-y px-4 py-4">
 				<div class="text-2xs uppercase text-gray-600">Font</div>
-				<FormControl type="autocomplete" :options="textFonts" size="sm" variant="subtle" />
+				<FormControl
+					type="autocomplete"
+					:options="textFonts"
+					size="sm"
+					variant="subtle"
+					:modelValue="activeElementStyle.fontFamily"
+				/>
 
 				<div class="flex items-center justify-between">
 					<div class="flex h-7 w-3/5 rounded border bg-gray-100">
@@ -126,6 +156,7 @@
 							<input
 								type="number"
 								class="h-full w-12 border-none p-0 text-center text-xs font-semibold text-gray-800 focus:outline-none focus:ring-0"
+								:value="activeElementStyle.fontSize"
 							/>
 						</div>
 						<div class="flex w-10 cursor-pointer items-center justify-center rounded-r">
@@ -146,13 +177,11 @@ import { Tooltip, FormControl } from 'frappe-ui'
 import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 const props = defineProps({
-	activeElement: HTMLElement,
+	activeElement: Object,
 })
 
 const activeTab = computed(() => {
-	if (props.activeElement?.classList.contains('textElement')) return 'text'
-	else if (props.activeElement?.classList.contains('slide')) return 'slide'
-	return null
+	return props.activeElement?.type
 })
 
 const addTextElement = () => {
@@ -186,6 +215,12 @@ const textFonts = [
 		value: 'Helvetica',
 	},
 ]
+
+const styleProps = ['fontSize', 'fontWeight', 'fontFamily', 'fontStyle', 'textDecoration']
+
+const activeElementStyle = computed(() => {
+	return props.activeElement?.styles
+})
 </script>
 
 <style scoped>

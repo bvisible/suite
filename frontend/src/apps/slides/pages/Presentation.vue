@@ -24,21 +24,16 @@
 		<div
 			ref="containerRef"
 			class="flex h-full items-center justify-center"
-			@click="(e) => e.target == containerRef && clearFocus(e)"
+			@click="(e) => clearFocus(e)"
 		>
 			<SlideNavigationPanel
 				v-if="presentation.data"
 				:slides="presentation.data.slides"
-				:activeSlide="activeSlide"
+				v-model:activeSlide="activeSlide"
 				@addSlide="addSlide"
 			/>
 
-			<!-- Slide (Dimensions: 16:9 ratio) -->
-			<div
-				ref="targetRef"
-				class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
-				@click="(e) => focusOnElement(e)"
-			></div>
+			<Slide :slideElements="slideElements" v-model:activeElement="activeElement" />
 
 			<SlideElementsPanel :activeElement="activeElement" />
 		</div>
@@ -55,6 +50,7 @@ import { StickyNote } from 'lucide-vue-next'
 import Logo from '@/icons/Logo.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
+import Slide from '@/components/Slide.vue'
 
 import { addPanAndZoom } from '@/utils/zoom'
 
@@ -111,31 +107,38 @@ const saveTitle = async () => {
 
 const activeElement = ref(null)
 
-const focusOnElement = (e) => {
-	e.stopPropagation()
+const slideElements = ref([])
 
-	if (activeElement.value == e.target) return
+const renderSlide = () => {
+	if (!presentation.data) return
 
-	clearFocus({ target: activeElement.value })
+	slideElements.value = []
 
-	if (e.target == targetRef.value || e.target.classList.contains('textElement')) {
-		activeElement.value = e.target
-		activeElement.value.classList.add('ring-[1.5px]', 'ring-[#808080]/50', 'cursor-pointer')
-	}
+	let elements = presentation.data.slides[activeSlide.value - 1].elements
+	if (!elements) return
+	elements = JSON.parse(elements)
+
+	slideElements.value = elements
 }
 
 const clearFocus = (e) => {
-	if (activeElement.value) {
-		activeElement.value.classList.remove('ring-[1.5px]', 'ring-[#808080]/50', 'cursor-pointer')
-		activeElement.value = null
-	}
+	if (e.target == containerRef.value) activeElement.value = null
 }
 
 watch(
 	() => route.params.name,
 	async () => {
 		if (!route.params.name) return
-		presentation.fetch()
+		await presentation.fetch()
+		renderSlide()
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => activeSlide.value,
+	() => {
+		renderSlide()
 	},
 	{ immediate: true },
 )
