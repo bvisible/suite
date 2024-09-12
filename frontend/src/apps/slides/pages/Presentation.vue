@@ -22,7 +22,7 @@
 		</div>
 
 		<div
-			ref="containerRef"
+			ref="container"
 			class="flex h-full items-center justify-center"
 			@click="(e) => clearFocus(e)"
 		>
@@ -33,7 +33,11 @@
 				@addSlide="addSlide"
 			/>
 
-			<Slide :slideElements="slideElements" v-model:activeElement="activeElement" />
+			<Slide
+				ref="slide"
+				:slideElements="slideElements"
+				v-model:activeElement="activeElement"
+			/>
 
 			<SlideElementsPanel :activeElement="activeElement" />
 		</div>
@@ -41,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { Tooltip, call, createResource } from 'frappe-ui'
@@ -57,8 +61,8 @@ import { addPanAndZoom } from '@/utils/zoom'
 const route = useRoute()
 const router = useRouter()
 
-const containerRef = ref(null)
-const targetRef = ref(null)
+const containerRef = useTemplateRef('container')
+const slideRef = useTemplateRef('slide')
 const newTitleRef = ref(null)
 
 const presentation = createResource({
@@ -144,8 +148,8 @@ watch(
 )
 
 onMounted(() => {
-	if (!containerRef.value || !targetRef.value) return
-	addPanAndZoom(containerRef.value, targetRef.value)
+	if (!containerRef.value || !slideRef.value.targetRef) return
+	addPanAndZoom(containerRef.value, slideRef.value.targetRef)
 })
 </script>
 
