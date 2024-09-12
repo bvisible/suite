@@ -23,7 +23,7 @@ let target: HTMLElement, origin: Origin, transform: Transform | null
 let initialMatrix = new DOMMatrix()
 let gestureMatrix = new DOMMatrix()
 
-let wheelTimeout: NodeJS.Timeout
+let wheelTimeout: ReturnType<typeof setTimeout>
 
 const setOrigin = () => {
 	if (!transform) return

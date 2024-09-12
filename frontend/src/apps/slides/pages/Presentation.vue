@@ -63,7 +63,7 @@ const router = useRouter()
 
 const containerRef = useTemplateRef('container')
 const slideRef = useTemplateRef('slide')
-const newTitleRef = ref(null)
+const newTitleRef = useTemplateRef('newTitleRef')
 
 const presentation = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_presentation',

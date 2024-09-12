@@ -17,10 +17,12 @@ const elementStyle = computed(() => {
 		position: 'absolute',
 		top: props.element.y,
 		left: props.element.x,
+		fontFamily: styles.fontFamily,
 		fontSize: styles.fontSize + 'px',
 		fontWeight: styles.fontWeight,
 		fontStyle: styles.fontStyle,
 		textDecoration: styles.textDecoration,
+		textTransform: styles.textTransform,
 	}
 })
 </script>
