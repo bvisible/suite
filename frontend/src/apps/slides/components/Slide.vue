@@ -1,7 +1,7 @@
 <template>
 	<!-- Slide (Dimensions: 16:9 ratio) -->
 	<div
-		ref="targetRef"
+		ref="target"
 		class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
 		:class="
 			activeElement?.type == 'slide' ? 'cursor-pointer ring-[1.5px] ring-[#808080]/50' : ''
@@ -21,7 +21,14 @@
 </template>
 
 <script setup>
+import { useTemplateRef } from 'vue'
 import TextElement from '@/components/TextElement.vue'
+
+const targetRef = useTemplateRef('target')
+
+defineExpose({
+	targetRef,
+})
 
 defineProps({
 	slideElements: Array,
