@@ -1,5 +1,5 @@
 <template>
-	<div class="textElement" :style="elementStyle">
+	<div class="textElement" :style="elementStyle" :contenteditable="element.isContentEditable">
 		{{ element.content }}
 	</div>
 </template>
@@ -14,7 +14,8 @@ const props = defineProps({
 const elementStyle = computed(() => {
 	let styles = props.element.styles
 	return {
-		position: 'absolute',
+		position: 'fixed',
+		padding: '5px',
 		top: props.element.y,
 		left: props.element.x,
 		fontFamily: styles.fontFamily,
@@ -23,6 +24,8 @@ const elementStyle = computed(() => {
 		fontStyle: styles.fontStyle,
 		textDecoration: styles.textDecoration,
 		textTransform: styles.textTransform,
+		userSelect: props.element.styles.userSelect,
+		cursor: props.element.styles.cursor,
 	}
 })
 </script>

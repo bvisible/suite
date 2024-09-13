@@ -1,7 +1,7 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-[743px] w-44 overflow-y-auto border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
+		class="fixed z-20 h-[94.4%] w-44 overflow-y-auto border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 	>
 		<div class="flex flex-col gap-4 p-4">
