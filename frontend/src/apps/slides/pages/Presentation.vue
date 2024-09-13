@@ -12,7 +12,7 @@
 				v-if="renameMode"
 				class="rounded-sm border-none py-1 text-base text-gray-700 focus:ring-gray-500"
 				v-model="newTitle"
-				@mouseleave="saveTitle"
+				@blur="saveTitle"
 			/>
 			<span v-else class="text-gray-700" @click="enableRenameMode">
 				{{ presentation.data?.title }}
