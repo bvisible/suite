@@ -27,6 +27,8 @@ import { useDraggable, useElementBounding } from '@vueuse/core'
 import TextElement from '@/components/TextElement.vue'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
+import { activeElement } from '@/stores/slide'
+
 const targetRef = useTemplateRef('target')
 
 defineExpose({
@@ -35,11 +37,6 @@ defineExpose({
 
 defineProps({
 	slideElements: Array,
-})
-
-const activeElement = defineModel('activeElement', {
-	type: Object,
-	default: null,
 })
 
 const selectSlide = (e) => {
@@ -61,11 +58,9 @@ const selectElement = (e, element) => {
 	}
 }
 
+const { top: boundsTop, left: boundsLeft } = useElementBounding(targetRef)
+
 const makeElementDraggable = (el, element) => {
-	element.styles.cursor = 'grab'
-
-	const { top: boundsTop, left: boundsLeft } = useElementBounding(targetRef)
-
 	let initialX = el.getBoundingClientRect().left
 	let initialY = el.getBoundingClientRect().top
 
@@ -74,18 +69,18 @@ const makeElementDraggable = (el, element) => {
 		onStart: ({ x, y }, e) => {
 			if (element.isContentEditable) return
 			e.preventDefault()
-			element.styles.cursor = 'grabbing'
+			element.isDragging = true
 		},
 		onMove: ({ x, y }) => {
 			if (element.isContentEditable) return
-			element.x = `${x - unref(boundsLeft)}px`
-			element.y = `${y - unref(boundsTop)}px`
+			element.left = `${x - unref(boundsLeft)}px`
+			element.top = `${y - unref(boundsTop)}px`
 		},
 		onEnd: ({ x, y }) => {
 			if (element.isContentEditable) return
-			element.styles.cursor = 'grab'
-			element.x = `${x - unref(boundsLeft)}px`
-			element.y = `${y - unref(boundsTop)}px`
+			element.isDragging = false
+			element.left = `${x - unref(boundsLeft)}px`
+			element.top = `${y - unref(boundsTop)}px`
 		},
 	})
 }
@@ -93,14 +88,9 @@ const makeElementDraggable = (el, element) => {
 const makeElementEditable = (e, element) => {
 	e.stopPropagation()
 	element.isContentEditable = true
-	element.styles.userSelect = 'text'
-	element.styles.cursor = 'text'
-	e.target.focus()
 }
 
 const handleBlur = (e, element) => {
 	element.isContentEditable = false
-	element.styles.userSelect = 'none'
-	element.styles.cursor = 'grab'
 }
 </script>
