@@ -33,13 +33,9 @@
 				@addSlide="addSlide"
 			/>
 
-			<Slide
-				ref="slide"
-				:slideElements="slideElements"
-				v-model:activeElement="activeElement"
-			/>
+			<Slide ref="slide" :slideElements="slideElements" />
 
-			<SlideElementsPanel :activeElement="activeElement" />
+			<SlideElementsPanel />
 		</div>
 	</div>
 </template>
@@ -57,6 +53,7 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
 import { addPanAndZoom } from '@/utils/zoom'
+import { activeElement } from '@/stores/slide'
 
 const route = useRoute()
 const router = useRouter()
@@ -108,8 +105,6 @@ const saveTitle = async () => {
 	}
 	renameMode.value = false
 }
-
-const activeElement = ref(null)
 
 const slideElements = ref([])
 
