@@ -79,22 +79,14 @@
 				<div class="flex items-center justify-between">
 					<button
 						class="cursor-pointer rounded-sm p-1"
-						:class="
-							activeElement.styles.fontWeight == 'bold'
-								? 'bg-gray-800 text-white'
-								: ''
-						"
+						:class="activeElement.fontWeight == 'bold' ? 'bg-gray-800 text-white' : ''"
 						@click="toggleProperty('fontWeight')"
 					>
 						<FeatherIcon name="bold" class="h-4" />
 					</button>
 					<button
 						class="cursor-pointer rounded-sm p-1"
-						:class="
-							activeElement.styles.fontStyle == 'italic'
-								? 'bg-gray-800 text-white'
-								: ''
-						"
+						:class="activeElement.fontStyle == 'italic' ? 'bg-gray-800 text-white' : ''"
 						@click="toggleProperty('fontStyle')"
 					>
 						<FeatherIcon name="italic" class="h-4" />
@@ -102,7 +94,7 @@
 					<button
 						class="cursor-pointer rounded-sm p-1"
 						:class="
-							activeElement.styles.textDecoration?.includes('underline')
+							activeElement.textDecoration?.includes('underline')
 								? 'bg-gray-800 text-white'
 								: ''
 						"
@@ -113,7 +105,7 @@
 					<button
 						class="cursor-pointer rounded-sm p-1"
 						:class="
-							activeElement.styles.textDecoration?.includes('line-through')
+							activeElement.textDecoration?.includes('line-through')
 								? 'bg-gray-800 text-white'
 								: ''
 						"
@@ -124,7 +116,7 @@
 					<button
 						class="cursor-pointer rounded-sm p-1"
 						:class="
-							activeElement.styles.textTransform == 'uppercase'
+							activeElement.textTransform == 'uppercase'
 								? 'bg-gray-800 text-white'
 								: ''
 						"
@@ -154,14 +146,41 @@
 			</div>
 
 			<div class="flex flex-col gap-4 border-y px-4 py-4">
+				<div class="text-2xs uppercase text-gray-600">Transparency</div>
+				<div class="flex items-center justify-between">
+					<div class="relative my-4 me-6 h-[1.5px] w-full">
+						<div
+							id="opacityBar"
+							class="absolute top-0 h-full w-full rounded bg-gray-300"
+						></div>
+						<div
+							class="absolute top-0 h-full rounded bg-gray-900"
+							:style="{ width: activeElement.opacity + '%' }"
+						></div>
+						<div
+							id="opacityHandle"
+							class="absolute -top-[5px] h-3 w-3 cursor-pointer rounded-md border bg-gray-900"
+							:style="{ left: activeElement.opacity + '%' }"
+							@mousedown="handleDragStart"
+						></div>
+					</div>
+					<input
+						type="number"
+						class="h-7 w-10 rounded border border-gray-400 px-2 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
+						v-model="activeElement.opacity"
+					/>
+				</div>
+			</div>
+
+			<div class="flex flex-col gap-4 border-b px-4 py-4">
 				<div class="text-2xs uppercase text-gray-600">Font</div>
 				<FormControl
 					type="autocomplete"
 					:options="textFonts"
 					size="sm"
 					variant="subtle"
-					:modelValue="activeElement.styles.fontFamily"
-					@update:modelValue="(font) => (activeElement.styles.fontFamily = font.value)"
+					:modelValue="activeElement.fontFamily"
+					@update:modelValue="(font) => (activeElement.fontFamily = font.value)"
 				/>
 
 				<div class="flex items-center justify-between">
@@ -176,7 +195,7 @@
 							<input
 								type="number"
 								class="h-full w-12 border-none p-0 text-center text-xs font-semibold text-gray-800 focus:outline-none focus:ring-0"
-								:value="activeElement.styles.fontSize"
+								:value="activeElement.fontSize"
 								@input="(e) => changeFontSize(e)"
 							/>
 						</div>
@@ -190,21 +209,42 @@
 					<div class="h-6 w-6 cursor-pointer rounded border bg-black shadow-sm"></div>
 				</div>
 			</div>
+
+			<div class="flex flex-col gap-2 border-b px-4 py-4">
+				<div class="text-2xs uppercase text-gray-600">Spacing</div>
+				<div class="flex items-center justify-between">
+					<div class="text-sm text-gray-700">Line Height</div>
+					<FormControl
+						class="w-1/3"
+						type="number"
+						size="sm"
+						variant="subtle"
+						:modelValue="activeElement.lineHeight"
+					/>
+				</div>
+
+				<div class="flex items-center justify-between">
+					<div class="text-sm text-gray-700">Letter Spacing</div>
+					<FormControl
+						class="w-1/3"
+						type="number"
+						size="sm"
+						variant="subtle"
+						:modelValue="activeElement.letterSpacing"
+					/>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, useTemplateRef } from 'vue'
 
 import { Tooltip, FormControl } from 'frappe-ui'
 import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
 import { debounce } from '@/utils/debounce'
-
-const activeElement = defineModel('activeElement', {
-	type: Object,
-	default: null,
-})
+import { activeElement } from '@/stores/slide'
 
 const activeTab = computed(() => {
 	if (!activeElement.value) return null
@@ -229,12 +269,12 @@ const addTextElement = () => {
 }
 
 const textFonts = [
-	'Helvetica',
 	'Arial',
 	'Arial Black',
 	'Comic Sans MS',
 	'Courier New',
 	'Georgia',
+	'Helvetica',
 	'Impact',
 	'Lucida Console',
 	'Lucida Sans Unicode',
@@ -248,7 +288,7 @@ const textFonts = [
 const styleProps = ['fontSize', 'fontWeight', 'fontFamily', 'fontStyle', 'textDecoration']
 
 const toggleProperty = (property, textDecoration) => {
-	let oldStyle = activeElement.value.styles[property]
+	let oldStyle = activeElement.value[property]
 	let newStyle = ''
 
 	switch (property) {
@@ -266,20 +306,52 @@ const toggleProperty = (property, textDecoration) => {
 				? oldStyle.replace(textDecoration, '').trim()
 				: oldStyle + ' ' + textDecoration
 	}
-	activeElement.value.styles[property] = newStyle
+	activeElement.value[property] = newStyle
 }
 
 const updateFontSize = debounce((e) => {
-	activeElement.value.styles.fontSize = parseInt(e.target.value)
+	activeElement.value.fontSize = parseInt(e.target.value)
 }, 500)
 
 const changeFontSize = (e, direction) => {
 	if (!direction) updateFontSize(e)
 	else if (direction == 'increase') {
-		activeElement.value.styles.fontSize += 1
-	} else if (direction == 'decrease' && activeElement.value.styles.fontSize > 5) {
-		activeElement.value.styles.fontSize -= 1
+		activeElement.value.fontSize += 1
+	} else if (direction == 'decrease' && activeElement.value.fontSize > 5) {
+		activeElement.value.fontSize -= 1
 	}
+}
+
+const handleDragStart = (e) => {
+	e.preventDefault()
+	window.addEventListener('mousemove', handleDrag)
+	window.addEventListener('mouseup', handleDragEnd)
+}
+
+const handleDrag = (e) => {
+	e.preventDefault()
+	let opacityBar = document.getElementById('opacityBar')
+
+	if (e.clientX < opacityBar.getBoundingClientRect().left) {
+		activeElement.value.opacity = 0
+		return
+	} else if (e.clientX > opacityBar.getBoundingClientRect().right) {
+		activeElement.value.opacity = 100
+		return
+	}
+
+	let currentX = e.clientX
+	let opacity = Math.round(
+		((currentX - opacityBar.getBoundingClientRect().left) / opacityBar.offsetWidth) * 100,
+	)
+	opacity = Math.min(Math.max(opacity, 0), 100)
+	activeElement.value.opacity = opacity
+}
+
+const handleDragEnd = (e) => {
+	e.preventDefault()
+	window.removeEventListener('mousemove', handleDrag)
+	window.removeEventListener('mouseup', handleDragEnd)
 }
 </script>
 
