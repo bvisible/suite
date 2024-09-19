@@ -3,7 +3,7 @@
 	<div
 		ref="target"
 		class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
-		:class="activeElement?.type == 'slide' ? 'ring-[1.5px] ring-[#808080]/50' : ''"
+		:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 		v-if="slideElements"
 		@click="selectSlide"
 	>
