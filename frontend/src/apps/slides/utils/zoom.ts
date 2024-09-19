@@ -130,6 +130,8 @@ const setPanTransform = (e: WheelEvent) => {
 }
 
 const handlePanAndZoom = (e: WheelEvent) => {
+	if (e.composedPath().some((el) => (el as HTMLElement).id === 'slide-navigation-panel')) return
+
 	e.preventDefault()
 
 	// initialize the transform object

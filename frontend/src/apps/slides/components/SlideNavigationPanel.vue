@@ -1,7 +1,8 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-[94.4%] w-44 overflow-y-auto border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
+		id="slide-navigation-panel"
+		class="fixed z-20 h-[94.4%] w-44 border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out hover:overflow-y-auto"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 	>
 		<div class="flex flex-col gap-4 p-4">
@@ -40,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeMount, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { call } from 'frappe-ui'
@@ -61,4 +62,28 @@ defineEmits(['addSlide'])
 const route = useRoute()
 
 const showNavigator = ref(false)
+
+const updateActiveSlide = (e) => {
+	switch (e.key) {
+		case 'ArrowDown':
+			if (activeSlide.value < props.slides.length) {
+				activeSlide.value += 1
+			}
+			break
+
+		case 'ArrowUp':
+			if (activeSlide.value > 1) {
+				activeSlide.value -= 1
+			}
+			break
+	}
+}
+
+onBeforeMount(() => {
+	window.addEventListener('keydown', updateActiveSlide, null)
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('keydown', updateActiveSlide)
+})
 </script>

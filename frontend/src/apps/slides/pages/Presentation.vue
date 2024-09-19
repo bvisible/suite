@@ -113,7 +113,7 @@ const renderSlide = () => {
 
 	slideElements.value = []
 
-	let elements = presentation.data.slides[activeSlide.value - 1].elements
+	let elements = presentation.data.slides[activeSlide.value - 1]?.elements
 	if (!elements) return
 	elements = JSON.parse(elements)
 
@@ -147,20 +147,3 @@ onMounted(() => {
 	addPanAndZoom(containerRef.value, slideRef.value.targetRef)
 })
 </script>
-
-<style scoped>
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* width */
-::-webkit-scrollbar {
-	width: 5px;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-	background: #dcdcdc;
-	border-radius: 4px;
-}
-</style>
