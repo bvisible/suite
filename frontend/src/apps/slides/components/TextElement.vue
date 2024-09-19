@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="relative"
+		class="fixed"
 		:style="{
 			width: elementStyle.width,
 			left: elementStyle.left,
@@ -16,7 +16,11 @@
 		>
 			{{ element.content }}
 		</div>
-		<Resizer v-if="activeElement == element" :element="element" :isResizing="isResizing" />
+		<Resizer
+			v-if="isEqual(activeElement, element)"
+			:element="element"
+			:isResizing="isResizing"
+		/>
 	</div>
 </template>
 
@@ -25,6 +29,7 @@ import { computed, ref, unref, useTemplateRef } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 import Resizer from './Resizer.vue'
 import { activeElement } from '@/stores/slide'
+import { isEqual } from 'lodash'
 
 const props = defineProps({
 	active: Boolean,
@@ -45,8 +50,8 @@ const elementStyle = computed(() => ({
 	position: 'fixed',
 	width: element.value.width,
 	height: 'auto',
-	left: props.inSlideShow ? parseInt(element.value.left) * 2.29 + 'px' : element.value.left,
-	top: props.inSlideShow ? parseInt(element.value.top) * 2.81 + 'px' : element.value.top,
+	left: element.value.left,
+	top: element.value.top,
 	content: element.value.content,
 	fontFamily: element.value.fontFamily,
 	fontSize: element.value.fontSize + 'px',

@@ -4,39 +4,42 @@
 		ref="target"
 		class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
 		:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-		v-if="slideElements"
+		v-if="activeSlideElements"
 		@click="selectSlide"
 	>
 		<component
-			v-for="(element, index) in slideElements"
+			v-for="(element, index) in activeSlideElements"
 			:key="index"
 			:is="TextElement"
 			:element="element"
 			@click="handleSingleAndDoubleClick($event, selectElement, makeElementEditable, element)"
 			@blur="handleBlur($event, element)"
 			class="focus:outline-none focus:ring-[1.5px] focus:ring-[#808080]/50"
-			:class="activeElement == element ? 'ring-[1.5px] ring-[#808080]/50' : ''"
+			:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-[#808080]/50' : ''"
 		/>
 	</div>
 </template>
 
 <script setup>
-import { ref, unref, useTemplateRef } from 'vue'
+import { ref, unref, useTemplateRef, watch } from 'vue'
 import { useDraggable, useElementBounding } from '@vueuse/core'
 
 import TextElement from '@/components/TextElement.vue'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
-import { activeElement } from '@/stores/slide'
+import {
+	activeElement,
+	activeSlide,
+	activeSlideIndex,
+	presentation,
+	activeSlideElements,
+} from '@/stores/slide'
+import { isEqual } from 'lodash'
 
 const targetRef = useTemplateRef('target')
 
 defineExpose({
 	targetRef,
-})
-
-defineProps({
-	slideElements: Array,
 })
 
 const selectSlide = (e) => {
@@ -93,4 +96,13 @@ const makeElementEditable = (e, element) => {
 const handleBlur = (e, element) => {
 	element.isContentEditable = false
 }
+
+watch(
+	() => activeSlideIndex.value,
+	() => {
+		if (!activeSlide.value.elements) activeSlideElements.value = []
+		else activeSlideElements.value = JSON.parse(activeSlide.value.elements)
+	},
+	{ immediate: true },
+)
 </script>

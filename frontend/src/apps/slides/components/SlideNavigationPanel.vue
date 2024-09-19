@@ -7,18 +7,18 @@
 	>
 		<div class="flex flex-col gap-4 p-4">
 			<div
-				v-for="i in slides.length"
+				v-for="i in presentation.data.slides.length"
 				:key="i"
 				class="h-20 cursor-pointer rounded border shadow-lg shadow-gray-100"
-				:class="activeSlide == i ? 'border-gray-500' : 'border-gray-300'"
-				@click="activeSlide = i"
+				:class="activeSlideIndex == i ? 'border-gray-500' : 'border-gray-300'"
+				@click="activeSlideIndex = i"
 			>
 				<div class="p-1 text-xs text-gray-500">{{ i }}</div>
 			</div>
 
 			<div
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:bg-gray-50"
-				@click="$emit('addSlide')"
+				@click="addSlide"
 			>
 				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
 			</div>
@@ -47,17 +47,7 @@ import { useRoute } from 'vue-router'
 import { call } from 'frappe-ui'
 
 import { PanelLeftOpen, PanelLeftClose } from 'lucide-vue-next'
-
-const props = defineProps({
-	slides: Array,
-})
-
-const activeSlide = defineModel('activeSlide', {
-	type: Number,
-	default: 1,
-})
-
-defineEmits(['addSlide'])
+import { activeSlideIndex, presentation } from '@/stores/slide'
 
 const route = useRoute()
 
@@ -66,17 +56,30 @@ const showNavigator = ref(false)
 const updateActiveSlide = (e) => {
 	switch (e.key) {
 		case 'ArrowDown':
-			if (activeSlide.value < props.slides.length) {
-				activeSlide.value += 1
+			if (activeSlideIndex.value < presentation.data.slides.length) {
+				activeSlideIndex.value += 1
 			}
 			break
 
 		case 'ArrowUp':
-			if (activeSlide.value > 1) {
-				activeSlide.value -= 1
+			if (activeSlideIndex.value > 1) {
+				activeSlideIndex.value -= 1
 			}
 			break
 	}
+}
+
+const addSlide = async () => {
+	await call('frappe.client.insert', {
+		doc: {
+			doctype: 'Slide',
+			parenttype: 'Presentation',
+			parentfield: 'slides',
+			parent: route.params.name,
+		},
+	})
+	await presentation.reload()
+	activeSlideIndex.value = presentation.data.slides.length
 }
 
 onBeforeMount(() => {

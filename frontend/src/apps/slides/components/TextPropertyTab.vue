@@ -161,23 +161,6 @@ import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
 import { debounce } from '@/utils/debounce'
 import { activeElement } from '@/stores/slide'
 
-const addTextElement = () => {
-	const text = document.createElement('div')
-	text.innerText = 'Text'
-	text.style.fontFamily = 'Arial'
-	text.style.fontSize = '16px'
-	text.style.margin = '14px'
-	text.style.color = '#000'
-	text.style.zIndex = '100'
-	text.style.top = '200px'
-	text.style.left = '350px'
-	text.style.position = 'absolute'
-	text.style.width = 'fit-content'
-	text.classList.add('textElement')
-
-	document.querySelector('.slide').appendChild(text)
-}
-
 const textFonts = [
 	'Arial',
 	'Arial Black',

@@ -86,11 +86,24 @@ import { computed } from 'vue'
 import { Tooltip } from 'frappe-ui'
 import { StickyNote } from 'lucide-vue-next'
 
-import { activeElement } from '@/stores/slide'
+import { activeElement, activeSlideElements } from '@/stores/slide'
 import TextPropertyTab from './TextPropertyTab.vue'
 
 const activeTab = computed(() => {
 	if (!activeElement.value) return null
 	return activeElement.value.type
 })
+
+const addTextElement = () => {
+	let element = {
+		width: '50px',
+		left: '100px',
+		top: '100px',
+		fontSize: 20,
+		fontFamily: 'Arial',
+		opacity: 100,
+		content: 'Text',
+	}
+	activeSlideElements.value.push(element)
+}
 </script>
