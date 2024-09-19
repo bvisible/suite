@@ -25,15 +25,11 @@
 			ref="container"
 			class="flex h-full items-center justify-center"
 			@click="(e) => clearFocus(e)"
+			v-if="presentation.data"
 		>
-			<SlideNavigationPanel
-				v-if="presentation.data"
-				:slides="presentation.data.slides"
-				v-model:activeSlide="activeSlide"
-				@addSlide="addSlide"
-			/>
+			<SlideNavigationPanel />
 
-			<Slide ref="slide" :slideElements="slideElements" />
+			<Slide ref="slide" />
 
 			<SlideElementsPanel />
 		</div>
@@ -53,7 +49,7 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
 import { addPanAndZoom } from '@/utils/zoom'
-import { activeElement } from '@/stores/slide'
+import { activeElement, activeSlideIndex, name, presentation, activeSlide } from '@/stores/slide'
 
 const route = useRoute()
 const router = useRouter()
@@ -62,26 +58,7 @@ const containerRef = useTemplateRef('container')
 const slideRef = useTemplateRef('slide')
 const newTitleRef = useTemplateRef('newTitleRef')
 
-const presentation = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
-	makeParams: () => ({ name: route.params.name }),
-})
-
-const activeSlide = ref(1)
 const showNavigator = ref(false)
-
-const addSlide = async () => {
-	await call('frappe.client.insert', {
-		doc: {
-			doctype: 'Slide',
-			parenttype: 'Presentation',
-			parentfield: 'slides',
-			parent: route.params.name,
-		},
-	})
-	await presentation.reload()
-	activeSlide.value = presentation.data.slides.length
-}
 
 const renameMode = ref(false)
 const newTitle = ref('')
@@ -106,20 +83,6 @@ const saveTitle = async () => {
 	renameMode.value = false
 }
 
-const slideElements = ref([])
-
-const renderSlide = () => {
-	if (!presentation.data) return
-
-	slideElements.value = []
-
-	let elements = presentation.data.slides[activeSlide.value - 1]?.elements
-	if (!elements) return
-	elements = JSON.parse(elements)
-
-	slideElements.value = elements
-}
-
 const clearFocus = (e) => {
 	if (e.target == containerRef.value) activeElement.value = null
 }
@@ -128,16 +91,8 @@ watch(
 	() => route.params.name,
 	async () => {
 		if (!route.params.name) return
+		name.value = route.params.name
 		await presentation.fetch()
-		renderSlide()
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => activeSlide.value,
-	() => {
-		renderSlide()
 	},
 	{ immediate: true },
 )
