@@ -3,43 +3,35 @@
 		<div class="flex items-center justify-between">
 			<button
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.fontWeight == 'bold' ? 'bg-gray-800 text-white' : ''"
+				:class="activeElement.fontWeight == 'bold' ? 'bg-gray-200' : ''"
 				@click="toggleProperty('fontWeight')"
 			>
 				<FeatherIcon name="bold" class="h-4" />
 			</button>
 			<button
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.fontStyle == 'italic' ? 'bg-gray-800 text-white' : ''"
+				:class="activeElement.fontStyle == 'italic' ? 'bg-gray-200' : ''"
 				@click="toggleProperty('fontStyle')"
 			>
 				<FeatherIcon name="italic" class="h-4" />
 			</button>
 			<button
 				class="cursor-pointer rounded-sm p-1"
-				:class="
-					activeElement.textDecoration?.includes('underline')
-						? 'bg-gray-800 text-white'
-						: ''
-				"
+				:class="activeElement.textDecoration?.includes('underline') ? 'bg-gray-200' : ''"
 				@click="toggleProperty('textDecoration', 'underline')"
 			>
 				<FeatherIcon name="underline" class="h-4" />
 			</button>
 			<button
 				class="cursor-pointer rounded-sm p-1"
-				:class="
-					activeElement.textDecoration?.includes('line-through')
-						? 'bg-gray-800 text-white'
-						: ''
-				"
+				:class="activeElement.textDecoration?.includes('line-through') ? 'bg-gray-200' : ''"
 				@click="toggleProperty('textDecoration', 'line-through')"
 			>
 				<Strikethrough size="16" strokeWidth="1.5" />
 			</button>
 			<button
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textTransform == 'uppercase' ? 'bg-gray-800 text-white' : ''"
+				:class="activeElement.textTransform == 'uppercase' ? 'bg-gray-200' : ''"
 				@click="toggleProperty('textTransform')"
 			>
 				<CaseUpper size="20" strokeWidth="1.5" />
@@ -47,16 +39,32 @@
 		</div>
 
 		<div class="flex items-center justify-between">
-			<button class="cursor-pointer rounded-sm p-1">
+			<button
+				class="cursor-pointer rounded-sm p-1"
+				:class="activeElement.textAlign == 'left' ? 'bg-gray-200' : ''"
+				@click="activeElement.textAlign = 'left'"
+			>
 				<FeatherIcon name="align-left" class="h-4.5" />
 			</button>
-			<button class="cursor-pointer rounded-sm p-1">
+			<button
+				class="cursor-pointer rounded-sm p-1"
+				:class="activeElement.textAlign == 'center' ? 'bg-gray-200' : ''"
+				@click="activeElement.textAlign = 'center'"
+			>
 				<FeatherIcon name="align-center" class="h-4.5" />
 			</button>
-			<button class="cursor-pointer rounded-sm p-1">
+			<button
+				class="cursor-pointer rounded-sm p-1"
+				:class="activeElement.textAlign == 'right' ? 'bg-gray-200' : ''"
+				@click="activeElement.textAlign = 'right'"
+			>
 				<FeatherIcon name="align-right" class="h-4.5" />
 			</button>
-			<button class="cursor-pointer rounded-sm p-1">
+			<button
+				class="cursor-pointer rounded-sm p-1"
+				:class="activeElement.textAlign == 'justify' ? 'bg-gray-200' : ''"
+				@click="activeElement.textAlign = 'justify'"
+			>
 				<FeatherIcon name="align-justify" class="h-4.5" />
 			</button>
 			<button class="cursor-pointer rounded-sm p-1">
@@ -66,27 +74,12 @@
 	</div>
 
 	<div class="flex flex-col gap-4 border-y px-4 py-4">
-		<div class="text-2xs uppercase text-gray-600">Transparency</div>
-		<div class="flex items-center justify-between">
-			<div class="relative my-4 me-6 h-[1.5px] w-full">
-				<div id="opacityBar" class="absolute top-0 h-full w-full rounded bg-gray-300"></div>
-				<div
-					class="absolute top-0 h-full rounded bg-gray-900"
-					:style="{ width: activeElement.opacity + '%' }"
-				></div>
-				<div
-					id="opacityHandle"
-					class="absolute -top-[5px] h-3 w-3 cursor-pointer rounded-md border bg-gray-900"
-					:style="{ left: activeElement.opacity + '%' }"
-					@mousedown="handleDragStart"
-				></div>
-			</div>
-			<input
-				type="number"
-				class="h-7 w-10 rounded border border-gray-400 px-2 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
-				v-model="activeElement.opacity"
-			/>
-		</div>
+		<SliderInput
+			label="Transparency"
+			v-model="activeElement.opacity"
+			:rangeStart="0"
+			:rangeEnd="100"
+		/>
 	</div>
 
 	<div class="flex flex-col gap-4 border-b px-4 py-4">
@@ -160,6 +153,7 @@ import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 import { debounce } from '@/utils/debounce'
 import { activeElement } from '@/stores/slide'
+import SliderInput from './SliderInput.vue'
 
 const textFonts = [
 	'Arial',
@@ -214,44 +208,4 @@ const changeFontSize = (e, direction) => {
 		activeElement.value.fontSize -= 1
 	}
 }
-
-const handleDragStart = (e) => {
-	e.preventDefault()
-	window.addEventListener('mousemove', handleDrag)
-	window.addEventListener('mouseup', handleDragEnd)
-}
-
-const handleDrag = (e) => {
-	e.preventDefault()
-	let opacityBar = document.getElementById('opacityBar')
-
-	if (e.clientX < opacityBar.getBoundingClientRect().left) {
-		activeElement.value.opacity = 0
-		return
-	} else if (e.clientX > opacityBar.getBoundingClientRect().right) {
-		activeElement.value.opacity = 100
-		return
-	}
-
-	let currentX = e.clientX
-	let opacity = Math.round(
-		((currentX - opacityBar.getBoundingClientRect().left) / opacityBar.offsetWidth) * 100,
-	)
-	opacity = Math.min(Math.max(opacity, 0), 100)
-	activeElement.value.opacity = opacity
-}
-
-const handleDragEnd = (e) => {
-	e.preventDefault()
-	window.removeEventListener('mousemove', handleDrag)
-	window.removeEventListener('mouseup', handleDragEnd)
-}
 </script>
-
-<style scoped>
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
-}
-</style>

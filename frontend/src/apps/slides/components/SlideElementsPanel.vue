@@ -103,6 +103,7 @@ const addTextElement = () => {
 		fontFamily: 'Arial',
 		opacity: 100,
 		content: 'Text',
+		type: 'text',
 	}
 	activeSlideElements.value.push(element)
 }

@@ -69,6 +69,7 @@ const elementStyle = computed(() => ({
 	lineHeight: element.value.lineHeight + 'px',
 	letterSpacing: element.value.letterSpacing + 'px',
 	wordWrap: 'break-word',
+	textAlign: element.value.textAlign,
 }))
 
 const isResizing = ref(false)
