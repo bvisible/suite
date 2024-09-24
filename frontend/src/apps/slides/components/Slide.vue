@@ -12,8 +12,7 @@
 			:key="index"
 			:is="TextElement"
 			:element="element"
-			@click="handleSingleAndDoubleClick($event, selectElement, makeElementEditable, element)"
-			@blur="handleBlur($event, element)"
+			@click="selectElement($event, element)"
 			class="focus:outline-none focus:ring-[1.5px] focus:ring-[#808080]/50"
 			:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-[#808080]/50' : ''"
 		/>
@@ -25,7 +24,6 @@ import { onMounted, ref, unref, useTemplateRef, watch, onBeforeUnmount } from 'v
 import { useDraggable, useElementBounding } from '@vueuse/core'
 
 import TextElement from '@/components/TextElement.vue'
-import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
 import {
 	activeElement,
@@ -86,15 +84,6 @@ const makeElementDraggable = (el, element) => {
 			element.top = `${y - unref(boundsTop)}px`
 		},
 	})
-}
-
-const makeElementEditable = (e, element) => {
-	e.stopPropagation()
-	element.isContentEditable = true
-}
-
-const handleBlur = (e, element) => {
-	element.isContentEditable = false
 }
 
 const handleKeyDown = (event) => {
