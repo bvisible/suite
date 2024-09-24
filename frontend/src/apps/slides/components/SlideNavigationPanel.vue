@@ -2,7 +2,7 @@
 	<!-- Slide Navigation Panel -->
 	<div
 		id="slide-navigation-panel"
-		class="fixed z-20 h-[94.4%] w-44 border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out hover:overflow-y-auto"
+		class="fixed z-20 h-[94.2%] w-44 border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out hover:overflow-y-auto"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 	>
 		<div class="flex flex-col gap-4 p-4">

@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { ref, unref, useTemplateRef, watch } from 'vue'
+import { onMounted, ref, unref, useTemplateRef, watch, onBeforeUnmount } from 'vue'
 import { useDraggable, useElementBounding } from '@vueuse/core'
 
 import TextElement from '@/components/TextElement.vue'
@@ -97,12 +97,35 @@ const handleBlur = (e, element) => {
 	element.isContentEditable = false
 }
 
+const handleKeyDown = (event) => {
+	if (['Delete', 'Backspace'].includes(event.key)) {
+		if (activeElement.value) {
+			activeSlideElements.value = activeSlideElements.value.filter(
+				(el) => !isEqual(el, activeElement.value),
+			)
+			activeElement.value = null
+		}
+	}
+}
+
 watch(
 	() => activeSlideIndex.value,
-	() => {
+	(new_val, old_val) => {
+		if (old_val)
+			presentation.data.slides[old_val - 1].elements = JSON.stringify(
+				activeSlideElements.value,
+			)
 		if (!activeSlide.value.elements) activeSlideElements.value = []
 		else activeSlideElements.value = JSON.parse(activeSlide.value.elements)
 	},
 	{ immediate: true },
 )
+
+onMounted(() => {
+	window.addEventListener('keydown', handleKeyDown)
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
