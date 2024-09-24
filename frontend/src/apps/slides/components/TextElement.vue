@@ -13,6 +13,8 @@
 			class="textElement focus:outline-none focus:ring-[1.5px] focus:ring-[#808080]/50"
 			:style="elementStyle"
 			:contenteditable="element.isContentEditable"
+			@dblclick="makeElementEditable($event, element)"
+			@blur="handleBlur($event, element)"
 		>
 			{{ element.content }}
 		</div>
@@ -73,4 +75,13 @@ const elementStyle = computed(() => ({
 }))
 
 const isResizing = ref(false)
+
+const makeElementEditable = (e, element) => {
+	e.stopPropagation()
+	element.isContentEditable = true
+}
+
+const handleBlur = (e, element) => {
+	element.isContentEditable = false
+}
 </script>
