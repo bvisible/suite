@@ -1,6 +1,6 @@
 <template>
 	<!-- Slide Elements Panel -->
-	<div class="fixed right-0 z-20 flex h-[94.4%] w-fit border-l bg-white">
+	<div class="fixed right-0 z-20 flex h-[94.2%] w-fit border-l bg-white">
 		<div class="flex flex-col justify-between">
 			<div>
 				<Tooltip text="Text" hover-delay="1" placement="left">
@@ -60,7 +60,7 @@
 
 	<!-- Element Properties Panel -->
 	<div
-		class="z-5 fixed flex h-[94.4%] w-[226px] flex-col bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
+		class="z-5 fixed flex h-[94.2%] w-[226px] flex-col bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
 		:class="activeElement ? 'right-13' : '-right-[174px]'"
 	>
 		<div v-if="activeTab == 'slide'">
@@ -96,7 +96,7 @@ const activeTab = computed(() => {
 
 const addTextElement = () => {
 	let element = {
-		width: '50px',
+		width: '55px',
 		left: '100px',
 		top: '100px',
 		fontSize: 20,

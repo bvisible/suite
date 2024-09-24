@@ -10,7 +10,7 @@
 			<input
 				ref="newTitleRef"
 				v-if="renameMode"
-				class="rounded-sm border-none py-1 text-base text-gray-700 focus:ring-gray-500"
+				class="max-w-36 rounded-sm border-none py-1 text-base text-gray-700 focus:ring-gray-500"
 				v-model="newTitle"
 				@blur="saveTitle"
 			/>
@@ -18,7 +18,10 @@
 				{{ presentation.data?.title }}
 			</span>
 
-			<Button variant="solid" label="Present" size="sm" />
+			<div class="flex gap-2">
+				<Button label="Save" size="sm" @click="savePresentation" />
+				<Button variant="solid" label="Present" size="sm" />
+			</div>
 		</div>
 
 		<div
@@ -49,7 +52,14 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
 import { addPanAndZoom } from '@/utils/zoom'
-import { activeElement, activeSlideIndex, name, presentation, activeSlide } from '@/stores/slide'
+import {
+	activeElement,
+	activeSlideIndex,
+	name,
+	presentation,
+	activeSlide,
+	activeSlideElements,
+} from '@/stores/slide'
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +95,15 @@ const saveTitle = async () => {
 
 const clearFocus = (e) => {
 	if (e.target == containerRef.value) activeElement.value = null
+}
+
+const savePresentation = async () => {
+	presentation.data.slides[activeSlideIndex.value - 1].elements = JSON.stringify(
+		activeSlideElements.value,
+	)
+	await call('frappe.client.save', {
+		doc: presentation.data,
+	})
 }
 
 watch(
