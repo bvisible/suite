@@ -19,9 +19,16 @@
 					</div>
 				</Tooltip>
 				<Tooltip text="Image" hover-delay="1" placement="left">
-					<div class="cursor-pointer p-4">
-						<FeatherIcon name="image" class="h-5" color="#636363" />
-					</div>
+					<FileUploader
+						:fileTypes="['image/*']"
+						@success="(file) => addImageElement(file)"
+					>
+						<template #default="{ openFileSelector }">
+							<div class="cursor-pointer p-4" @click="openFileSelector">
+								<FeatherIcon name="image" class="h-5" color="#636363" />
+							</div>
+						</template>
+					</FileUploader>
 				</Tooltip>
 				<Tooltip text="Video" hover-delay="1" placement="left">
 					<div class="cursor-pointer p-4">
@@ -60,6 +67,7 @@
 
 	<!-- Element Properties Panel -->
 	<div
+		v-if="activeElement"
 		class="z-5 fixed flex h-[94.2%] w-[226px] flex-col bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
 		:class="activeElement ? 'right-13' : '-right-[174px]'"
 	>
@@ -74,19 +82,31 @@
 			</div>
 		</div>
 
-		<div v-else-if="activeTab == 'text'">
+		<div v-else class="flex flex-col gap-2 border-b px-4 py-4">
+			<SliderInput
+				label="Transparency"
+				v-model="activeElement.opacity"
+				:rangeStart="0"
+				:rangeEnd="100"
+			/>
+		</div>
+
+		<div v-if="activeTab == 'text'">
 			<TextPropertyTab />
 		</div>
+
+		<div v-if="activeTab == 'image'"></div>
 	</div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
-import { Tooltip } from 'frappe-ui'
+import { Tooltip, FileUploader } from 'frappe-ui'
 import { StickyNote } from 'lucide-vue-next'
 
 import { activeElement, activeSlideElements } from '@/stores/slide'
+import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 
 const activeTab = computed(() => {
@@ -104,6 +124,18 @@ const addTextElement = () => {
 		opacity: 100,
 		content: 'Text',
 		type: 'text',
+	}
+	activeSlideElements.value.push(element)
+}
+
+const addImageElement = (file) => {
+	let element = {
+		width: '300px',
+		left: '100px',
+		top: '100px',
+		opacity: 100,
+		type: 'image',
+		src: file.file_url,
 	}
 	activeSlideElements.value.push(element)
 }

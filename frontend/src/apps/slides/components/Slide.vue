@@ -4,18 +4,19 @@
 		ref="target"
 		class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
 		:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-		v-if="activeSlideElements"
 		@click="selectSlide"
 	>
-		<component
-			v-for="(element, index) in activeSlideElements"
-			:key="index"
-			:is="TextElement"
-			:element="element"
-			@click="selectElement($event, element)"
-			class="focus:outline-none focus:ring-[1.5px] focus:ring-[#808080]/50"
-			:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-[#808080]/50' : ''"
-		/>
+		<div v-if="activeSlideElements">
+			<component
+				v-for="(element, index) in activeSlideElements"
+				:key="index"
+				:is="getDynamicComponent(element.type)"
+				:element="element"
+				@click="selectElement($event, element)"
+				class="focus:outline-none focus:ring-[1.5px] focus:ring-blue-400"
+				:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
+			/>
+		</div>
 	</div>
 </template>
 
@@ -24,14 +25,9 @@ import { onMounted, ref, unref, useTemplateRef, watch, onBeforeUnmount } from 'v
 import { useDraggable, useElementBounding } from '@vueuse/core'
 
 import TextElement from '@/components/TextElement.vue'
+import ImageElement from '@/components/ImageElement.vue'
 
-import {
-	activeElement,
-	activeSlide,
-	activeSlideIndex,
-	presentation,
-	activeSlideElements,
-} from '@/stores/slide'
+import { activeElement, activeSlideIndex, presentation, activeSlideElements } from '@/stores/slide'
 import { isEqual } from 'lodash'
 
 const targetRef = useTemplateRef('target')
@@ -53,10 +49,8 @@ const selectElement = (e, element) => {
 	let el = e.target
 	if (activeElement.value == element) return
 
-	if (el.classList.contains('textElement')) {
-		activeElement.value = element
-		makeElementDraggable(el, element)
-	}
+	activeElement.value = element
+	makeElementDraggable(el, element)
 }
 
 const { top: boundsTop, left: boundsLeft } = useElementBounding(targetRef)
@@ -100,12 +94,25 @@ const handleKeyDown = (event) => {
 watch(
 	() => activeSlideIndex.value,
 	(new_val, old_val) => {
-		if (old_val)
+		if (!presentation.data) return
+		if (old_val && presentation.data.slides[old_val - 1])
 			presentation.data.slides[old_val - 1].elements = JSON.stringify(
 				activeSlideElements.value,
 			)
-		if (!activeSlide.value.elements) activeSlideElements.value = []
-		else activeSlideElements.value = JSON.parse(activeSlide.value.elements)
+		if (presentation.data.slides[new_val - 1]) {
+			activeSlideElements.value = JSON.parse(presentation.data.slides[new_val - 1].elements)
+		}
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => presentation.data,
+	() => {
+		if (!presentation.data) return
+		activeSlideElements.value = JSON.parse(
+			presentation.data.slides[activeSlideIndex.value - 1].elements,
+		)
 	},
 	{ immediate: true },
 )
@@ -117,4 +124,13 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	window.removeEventListener('keydown', handleKeyDown)
 })
+
+const getDynamicComponent = (type) => {
+	switch (type) {
+		case 'image':
+			return ImageElement
+		default:
+			return TextElement
+	}
+}
 </script>

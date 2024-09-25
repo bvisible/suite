@@ -168,4 +168,8 @@ const addPanAndZoom = (containerElement: HTMLElement, targetElement: HTMLElement
 	})
 }
 
-export { addPanAndZoom }
+const removePanAndZoom = (containerElement: HTMLElement) => {
+	containerElement.removeEventListener('wheel', handlePanAndZoom)
+}
+
+export { addPanAndZoom, removePanAndZoom }
