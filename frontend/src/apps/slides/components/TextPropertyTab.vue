@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col gap-3 px-4 py-2">
+	<div class="flex flex-col gap-3 border-b px-4 py-4">
 		<div class="flex items-center justify-between">
 			<button
 				class="cursor-pointer rounded-sm p-1"
@@ -73,16 +73,7 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-4 border-y px-4 py-4">
-		<SliderInput
-			label="Transparency"
-			v-model="activeElement.opacity"
-			:rangeStart="0"
-			:rangeEnd="100"
-		/>
-	</div>
-
-	<div class="flex flex-col gap-4 border-b px-4 py-4">
+	<div class="flex flex-col gap-3 border-b px-4 py-4">
 		<div class="text-2xs uppercase text-gray-600">Font</div>
 		<FormControl
 			type="autocomplete"
@@ -120,7 +111,7 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-2 border-b px-4 py-4">
+	<div class="flex flex-col gap-3 border-b px-4 py-4">
 		<div class="text-2xs uppercase text-gray-600">Spacing</div>
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-gray-700">Line Height</div>
@@ -153,7 +144,6 @@ import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 import { debounce } from '@/utils/debounce'
 import { activeElement } from '@/stores/slide'
-import SliderInput from './SliderInput.vue'
 
 const textFonts = [
 	'Arial',

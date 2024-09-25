@@ -28,7 +28,6 @@
 			ref="container"
 			class="flex h-full items-center justify-center"
 			@click="(e) => clearFocus(e)"
-			v-if="presentation.data"
 		>
 			<SlideNavigationPanel />
 
@@ -40,7 +39,15 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick, useTemplateRef } from 'vue'
+import {
+	ref,
+	watch,
+	onMounted,
+	nextTick,
+	useTemplateRef,
+	onBeforeMount,
+	onBeforeUnmount,
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { Tooltip, call, createResource } from 'frappe-ui'
@@ -51,13 +58,12 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
-import { addPanAndZoom } from '@/utils/zoom'
+import { addPanAndZoom, removePanAndZoom } from '@/utils/zoom'
 import {
 	activeElement,
 	activeSlideIndex,
 	name,
 	presentation,
-	activeSlide,
 	activeSlideElements,
 } from '@/stores/slide'
 
@@ -119,5 +125,10 @@ watch(
 onMounted(() => {
 	if (!containerRef.value || !slideRef.value.targetRef) return
 	addPanAndZoom(containerRef.value, slideRef.value.targetRef)
+})
+
+onBeforeUnmount(() => {
+	if (!containerRef.value) return
+	removePanAndZoom(containerRef.value)
 })
 </script>

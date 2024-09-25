@@ -22,6 +22,7 @@
 			v-if="isEqual(activeElement, element)"
 			:element="element"
 			:isResizing="isResizing"
+			:resizeHeight="false"
 		/>
 	</div>
 </template>

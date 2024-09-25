@@ -12,10 +12,6 @@ const presentation = createResource({
 
 const activeSlideIndex = ref(1)
 
-const activeSlide = computed(() => {
-	return presentation.data.slides[activeSlideIndex.value - 1]
-})
-
 const activeSlideElements = ref([])
 
-export { name, presentation, activeSlideIndex, activeSlide, activeElement, activeSlideElements }
+export { name, presentation, activeSlideIndex, activeElement, activeSlideElements }
