@@ -10,7 +10,7 @@
 	>
 		<div
 			ref="textElement"
-			class="textElement focus:outline-none focus:ring-[1.5px] focus:ring-[#808080]/50"
+			class="textElement focus:outline-none"
 			:style="elementStyle"
 			:contenteditable="element.isContentEditable"
 			@dblclick="makeElementEditable($event, element)"
@@ -73,6 +73,7 @@ const elementStyle = computed(() => ({
 	letterSpacing: element.value.letterSpacing + 'px',
 	wordWrap: 'break-word',
 	textAlign: element.value.textAlign,
+	color: element.value.color,
 }))
 
 const isResizing = ref(false)
@@ -84,5 +85,6 @@ const makeElementEditable = (e, element) => {
 
 const handleBlur = (e, element) => {
 	element.isContentEditable = false
+	element.content = e.target.innerText
 }
 </script>

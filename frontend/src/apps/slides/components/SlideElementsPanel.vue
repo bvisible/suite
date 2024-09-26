@@ -95,7 +95,16 @@
 			<TextPropertyTab />
 		</div>
 
-		<div v-if="activeTab == 'image'"></div>
+		<div v-if="activeTab == 'image'">
+			<div class="flex flex-col gap-3 border-b px-4 py-4">
+				<SliderInput
+					label="Border Radius"
+					v-model="activeElement.borderRadius"
+					:rangeStart="0"
+					:rangeEnd="100"
+				/>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -105,7 +114,7 @@ import { computed } from 'vue'
 import { Tooltip, FileUploader } from 'frappe-ui'
 import { StickyNote } from 'lucide-vue-next'
 
-import { activeElement, activeSlideElements } from '@/stores/slide'
+import { activeElement, activeSlideIndex, activeSlideElements, presentation } from '@/stores/slide'
 import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 
@@ -124,6 +133,10 @@ const addTextElement = () => {
 		opacity: 100,
 		content: 'Text',
 		type: 'text',
+		color:
+			presentation.data.slides[activeSlideIndex.value].background_color == '#ffffff'
+				? '#000000'
+				: '#ffffff',
 	}
 	activeSlideElements.value.push(element)
 }

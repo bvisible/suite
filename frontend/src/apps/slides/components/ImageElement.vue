@@ -44,5 +44,6 @@ const elementStyle = computed(() => ({
 	left: element.value.left,
 	top: element.value.top,
 	opacity: element.value.opacity / 100,
+	borderRadius: element.value.borderRadius + 'px',
 }))
 </script>
