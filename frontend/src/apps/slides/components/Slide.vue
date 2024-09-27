@@ -1,21 +1,36 @@
 <template>
 	<!-- Slide (Dimensions: 16:9 ratio) -->
 	<div
-		ref="target"
-		class="slide h-[450px] w-[800px] bg-white drop-shadow-lg"
-		:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-		@click="selectSlide"
+		class="slideContainer flex items-center justify-center"
+		:class="inSlideShow ? 'bg-black-900' : ''"
+		:style="{
+			width: '800px',
+			height: '450px',
+		}"
 	>
-		<div v-if="activeSlideElements">
-			<component
-				v-for="(element, index) in activeSlideElements"
-				:key="index"
-				:is="getDynamicComponent(element.type)"
-				:element="element"
-				@click="selectElement($event, element)"
-				class="focus:outline-none focus:ring-[1.5px] focus:ring-blue-400"
-				:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
-			/>
+		<div
+			ref="target"
+			class="slide h-[450px] w-[800px] drop-shadow-xl"
+			:style="{
+				backgroundColor:
+					(presentation.data &&
+						presentation.data.slides[activeSlideIndex - 1].background) ||
+					'white',
+			}"
+			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
+			@click="selectSlide"
+		>
+			<div v-if="activeSlideElements">
+				<component
+					v-for="(element, index) in activeSlideElements"
+					:key="index"
+					:is="getDynamicComponent(element.type)"
+					:element="element"
+					@click="selectElement($event, element)"
+					class="focus:outline-none focus:ring-[1.5px] focus:ring-blue-400"
+					:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
+				/>
+			</div>
 		</div>
 	</div>
 </template>
@@ -27,7 +42,13 @@ import { useDraggable, useElementBounding } from '@vueuse/core'
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 
-import { activeElement, activeSlideIndex, presentation, activeSlideElements } from '@/stores/slide'
+import {
+	activeElement,
+	activeSlideIndex,
+	presentation,
+	activeSlideElements,
+	inSlideShow,
+} from '@/stores/slide'
 import { isEqual } from 'lodash'
 
 const targetRef = useTemplateRef('target')
@@ -37,6 +58,7 @@ defineExpose({
 })
 
 const selectSlide = (e) => {
+	if (inSlideShow.value) return
 	e.stopPropagation()
 	if (e.target != targetRef.value) return
 	activeElement.value = {
@@ -45,6 +67,7 @@ const selectSlide = (e) => {
 }
 
 const selectElement = (e, element) => {
+	if (inSlideShow.value) return
 	e.stopPropagation()
 	let el = e.target
 	if (activeElement.value == element) return
@@ -62,17 +85,17 @@ const makeElementDraggable = (el, element) => {
 	useDraggable(el, {
 		initialValue: { x: initialX, y: initialY },
 		onStart: ({ x, y }, e) => {
-			if (element.isContentEditable) return
+			if (element.isContentEditable || inSlideShow.value) return
 			e.preventDefault()
 			element.isDragging = true
 		},
 		onMove: ({ x, y }) => {
-			if (element.isContentEditable) return
+			if (element.isContentEditable || inSlideShow.value) return
 			element.left = `${x - unref(boundsLeft)}px`
 			element.top = `${y - unref(boundsTop)}px`
 		},
 		onEnd: ({ x, y }) => {
-			if (element.isContentEditable) return
+			if (element.isContentEditable || inSlideShow.value) return
 			element.isDragging = false
 			element.left = `${x - unref(boundsLeft)}px`
 			element.top = `${y - unref(boundsTop)}px`
@@ -81,7 +104,7 @@ const makeElementDraggable = (el, element) => {
 }
 
 const handleKeyDown = (event) => {
-	if (['Delete', 'Backspace'].includes(event.key)) {
+	if (['Delete', 'Backspace'].includes(event.key) && !activeElement.value.isContentEditable) {
 		if (activeElement.value) {
 			activeSlideElements.value = activeSlideElements.value.filter(
 				(el) => !isEqual(el, activeElement.value),
@@ -100,7 +123,11 @@ watch(
 				activeSlideElements.value,
 			)
 		if (presentation.data.slides[new_val - 1]) {
-			activeSlideElements.value = JSON.parse(presentation.data.slides[new_val - 1].elements)
+			if (presentation.data.slides[new_val - 1].elements)
+				activeSlideElements.value = JSON.parse(
+					presentation.data.slides[new_val - 1].elements,
+				)
+			else activeSlideElements.value = []
 		}
 	},
 	{ immediate: true },

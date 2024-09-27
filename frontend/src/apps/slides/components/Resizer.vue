@@ -149,8 +149,10 @@ const resize = (e) => {
 	let newHeight = 0
 
 	if (currentResizer.value == 'left') {
+		if (e.offsetX == 0) return
 		newWidth = original_width - (e.pageX - original_mouse_x)
 		if (newWidth > 30) {
+			element.value.top = original_y + (e.pageY - original_mouse_y) + 'px'
 			element.value.left = original_x + (e.pageX - original_mouse_x) + 'px'
 			element.value.width = `${newWidth}px`
 		}
@@ -165,6 +167,7 @@ const resize = (e) => {
 			element.value.width = `${newWidth}px`
 		}
 	} else {
+		if (e.offsetX == 0) return
 		newHeight = original_height + (e.pageY - original_mouse_y)
 		newWidth = (newHeight * original_width) / original_height
 		if (newWidth > 30) {
