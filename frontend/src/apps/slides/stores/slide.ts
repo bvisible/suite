@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { createResource } from 'frappe-ui'
 
 const activeElement = ref(null)
@@ -14,4 +14,6 @@ const activeSlideIndex = ref(1)
 
 const activeSlideElements = ref([])
 
-export { name, presentation, activeSlideIndex, activeElement, activeSlideElements }
+const inSlideShow = ref(false)
+
+export { name, presentation, activeSlideIndex, activeElement, activeSlideElements, inSlideShow }

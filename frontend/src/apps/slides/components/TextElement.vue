@@ -31,7 +31,7 @@
 import { computed, ref, unref, useTemplateRef } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 import Resizer from './Resizer.vue'
-import { activeElement } from '@/stores/slide'
+import { activeElement, inSlideShow } from '@/stores/slide'
 import { isEqual } from 'lodash'
 
 const props = defineProps({
@@ -79,6 +79,7 @@ const elementStyle = computed(() => ({
 const isResizing = ref(false)
 
 const makeElementEditable = (e, element) => {
+	if (inSlideShow.value) return
 	e.stopPropagation()
 	element.isContentEditable = true
 }

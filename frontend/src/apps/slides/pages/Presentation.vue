@@ -20,7 +20,7 @@
 
 			<div class="flex gap-2">
 				<Button label="Save" size="sm" @click="savePresentation" />
-				<Button variant="solid" label="Present" size="sm" />
+				<Button variant="solid" label="Present" size="sm" @click="startSlideShow" />
 			</div>
 		</div>
 
@@ -65,6 +65,7 @@ import {
 	name,
 	presentation,
 	activeSlideElements,
+	inSlideShow,
 } from '@/stores/slide'
 
 const route = useRoute()
@@ -112,6 +113,18 @@ const savePresentation = async () => {
 	})
 }
 
+const startSlideShow = () => {
+	let elem = document.querySelector('.slideContainer')
+
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen()
+	} else if (elem.webkitRequestFullscreen) {
+		elem.webkitRequestFullscreen()
+	} else if (elem.msRequestFullscreen) {
+		elem.msRequestFullscreen()
+	}
+}
+
 watch(
 	() => route.params.name,
 	async () => {
@@ -122,7 +135,22 @@ watch(
 	{ immediate: true },
 )
 
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement ? true : false
+
+	if (document.fullscreenElement) {
+		activeElement.value = null
+		removePanAndZoom(containerRef.value)
+		slideRef.value.targetRef.style.transform = ''
+		slideRef.value.targetRef.style.transform = 'scale(1.8, 1.8)'
+	} else {
+		addPanAndZoom(containerRef.value, slideRef.value.targetRef)
+		slideRef.value.targetRef.style.transform = ''
+	}
+}
+
 onMounted(() => {
+	document.addEventListener('fullscreenchange', handleScreenChange)
 	if (!containerRef.value || !slideRef.value.targetRef) return
 	addPanAndZoom(containerRef.value, slideRef.value.targetRef)
 })
