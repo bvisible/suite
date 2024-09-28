@@ -50,6 +50,7 @@ import {
 	inSlideShow,
 } from '@/stores/slide'
 import { isEqual } from 'lodash'
+import html2canvas from 'html2canvas'
 
 const targetRef = useTemplateRef('target')
 
@@ -114,14 +115,23 @@ const handleKeyDown = (event) => {
 	}
 }
 
+const updateSlideThumbnail = (index) => {
+	html2canvas(targetRef.value).then((canvas) => {
+		let img = canvas.toDataURL('image/png')
+		presentation.data.slides[index].thumbnail = img
+	})
+}
+
 watch(
 	() => activeSlideIndex.value,
 	(new_val, old_val) => {
 		if (!presentation.data) return
-		if (old_val && presentation.data.slides[old_val - 1])
+		if (old_val && presentation.data.slides[old_val - 1]) {
 			presentation.data.slides[old_val - 1].elements = JSON.stringify(
 				activeSlideElements.value,
 			)
+			updateSlideThumbnail(old_val - 1)
+		}
 		if (presentation.data.slides[new_val - 1]) {
 			if (presentation.data.slides[new_val - 1].elements)
 				activeSlideElements.value = JSON.parse(
@@ -131,6 +141,13 @@ watch(
 		}
 	},
 	{ immediate: true },
+)
+
+watch(
+	() => activeElement.value,
+	() => {
+		updateSlideThumbnail(activeSlideIndex.value - 1)
+	},
 )
 
 watch(

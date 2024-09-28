@@ -7,18 +7,21 @@
 		v-if="presentation.data?.slides"
 	>
 		<div class="flex flex-col gap-4 p-4">
-			<div
+			<img
+				:src="presentation.data.slides[i - 1].thumbnail"
 				v-for="i in presentation.data.slides.length"
 				:key="i"
-				class="h-20 cursor-pointer rounded border shadow-lg shadow-gray-100"
-				:class="activeSlideIndex == i ? 'border-gray-500' : 'border-gray-300'"
+				class="h-20 cursor-pointer rounded"
+				:class="
+					activeSlideIndex == i
+						? 'ring-[1.8px] ring-blue-400 ring-offset-[0px]'
+						: 'border border-gray-300'
+				"
 				@click="activeSlideIndex = i"
-			>
-				<div class="p-1 text-xs text-gray-500">{{ i }}</div>
-			</div>
+			/>
 
 			<div
-				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:bg-gray-50"
+				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
 				@click="addSlide"
 			>
 				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
