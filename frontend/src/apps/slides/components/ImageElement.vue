@@ -36,6 +36,10 @@ const element = defineModel('element', {
 	default: null,
 })
 
+const boxShadow = computed(() => {
+	return `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`
+})
+
 const elementStyle = computed(() => ({
 	padding: '2px',
 	position: 'fixed',
@@ -45,5 +49,17 @@ const elementStyle = computed(() => ({
 	top: element.value.top,
 	opacity: element.value.opacity / 100,
 	borderRadius: element.value.borderRadius + 'px',
+	borderStyle: element.value.borderStyle || 'none',
+	borderColor: element.value.borderColor,
+	borderWidth: element.value.borderWidth + 'px',
+	boxShadow: boxShadow.value,
+	transform:
+		element.value.invertX && element.value.invertY
+			? 'scale(-1, -1)'
+			: element.value.invertX
+				? 'scale(-1, 1)'
+				: element.value.invertY
+					? 'scale(1, -1)'
+					: 'scale(1, 1)',
 }))
 </script>

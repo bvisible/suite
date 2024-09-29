@@ -113,7 +113,7 @@ const rightResizerRef = useTemplateRef('rightResizer')
 
 const startResize = (e) => {
 	e.preventDefault()
-	e.stopPropagation()
+	e.stopImmediatePropagation()
 	isResizing.value = true
 	currentResizer.value =
 		e.target == topResizerRef.value
@@ -137,14 +137,14 @@ const startResize = (e) => {
 
 const stopResize = (e) => {
 	e.preventDefault()
-	e.stopPropagation()
+	e.stopImmediatePropagation()
 	isResizing.value = false
 	window.removeEventListener('mousemove', resize)
 }
 
 const resize = (e) => {
 	e.preventDefault()
-	e.stopPropagation()
+	e.stopImmediatePropagation()
 	let newWidth = 0
 	let newHeight = 0
 
