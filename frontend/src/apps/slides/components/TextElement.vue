@@ -69,7 +69,7 @@ const elementStyle = computed(() => ({
 			? 'text'
 			: 'default',
 	opacity: element.value.opacity / 100,
-	lineHeight: element.value.lineHeight + 'px',
+	lineHeight: element.value.lineHeight,
 	letterSpacing: element.value.letterSpacing + 'px',
 	wordWrap: 'break-word',
 	textAlign: element.value.textAlign,
