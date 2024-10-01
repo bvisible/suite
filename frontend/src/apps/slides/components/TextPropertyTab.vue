@@ -1,5 +1,6 @@
 <template>
-	<div class="flex flex-col gap-3 border-b px-4 py-4">
+	<div class="flex flex-col gap-4 border-b px-4 py-4">
+		<div class="mb-1 text-2xs uppercase text-gray-900">Style</div>
 		<div class="flex items-center justify-between">
 			<button
 				class="cursor-pointer rounded-sm p-1"
@@ -73,8 +74,8 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-3 border-b px-4 py-4">
-		<div class="text-2xs uppercase text-gray-600">Font</div>
+	<div class="flex flex-col gap-4 border-b px-4 py-4">
+		<div class="mb-1 text-2xs uppercase text-gray-900">Font</div>
 		<FormControl
 			type="autocomplete"
 			:options="textFonts"
@@ -85,55 +86,41 @@
 		/>
 
 		<div class="flex items-center justify-between">
-			<div class="flex h-7 w-3/5 rounded border bg-gray-100">
-				<button
-					class="flex w-10 cursor-pointer items-center justify-center"
-					@click="(e) => changeFontSize(e, 'decrease')"
-				>
-					<FeatherIcon name="minus" class="h-3" strokeWidth="2" />
-				</button>
-				<div class="bg-white">
-					<input
-						type="number"
-						class="h-full w-12 border-none p-0 text-center text-xs font-semibold text-gray-800 focus:outline-none focus:ring-0"
-						:value="activeElement.fontSize"
-						@input="(e) => changeFontSize(e)"
-					/>
-				</div>
-				<button
-					class="flex w-10 cursor-pointer items-center justify-center rounded-r"
-					@click="(e) => changeFontSize(e, 'increase')"
-				>
-					<FeatherIcon name="plus" class="h-3" strokeWidth="2" />
-				</button>
+			<div class="text-sm text-gray-600">Size</div>
+			<div class="h-[30px] w-28">
+				<NumberInput
+					v-model="activeElement.fontSize"
+					suffix="px"
+					:rangeStart="5"
+					:rangeEnd="100"
+					:rangeStep="1"
+				/>
 			</div>
-			<div class="h-6 w-6 cursor-pointer rounded border bg-black shadow-sm"></div>
+		</div>
+
+		<div class="flex items-center justify-between">
+			<div class="text-sm text-gray-600">Colour</div>
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-3 border-b px-4 py-4">
-		<div class="text-2xs uppercase text-gray-600">Spacing</div>
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-700">Line Height</div>
-			<FormControl
-				class="w-1/3"
-				type="number"
-				size="sm"
-				variant="subtle"
-				:modelValue="activeElement.lineHeight"
-			/>
-		</div>
+	<div class="flex flex-col gap-4 border-b px-4 py-4">
+		<div class="mb-1 text-2xs uppercase text-gray-900">Spacing</div>
 
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-700">Letter Spacing</div>
-			<FormControl
-				class="w-1/3"
-				type="number"
-				size="sm"
-				variant="subtle"
-				:modelValue="activeElement.letterSpacing"
-			/>
-		</div>
+		<SliderInput
+			label="Line Height"
+			v-model="activeElement.lineHeight"
+			:rangeStart="0.1"
+			:rangeEnd="5.0"
+			:rangeStep="0.1"
+		/>
+
+		<SliderInput
+			label="Letter Spacing"
+			v-model="activeElement.letterSpacing"
+			:rangeStart="-10"
+			:rangeEnd="50"
+			:rangeStep="0.1"
+		/>
 	</div>
 </template>
 
@@ -144,6 +131,8 @@ import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 import { debounce } from '@/utils/debounce'
 import { activeElement } from '@/stores/slide'
+import SliderInput from './SliderInput.vue'
+import NumberInput from './NumberInput.vue'
 
 const textFonts = [
 	'Arial',
@@ -160,6 +149,7 @@ const textFonts = [
 	'Times New Roman',
 	'Trebuchet MS',
 	'Verdana',
+	'Inter',
 ]
 
 const styleProps = ['fontSize', 'fontWeight', 'fontFamily', 'fontStyle', 'textDecoration']
@@ -184,19 +174,6 @@ const toggleProperty = (property, textDecoration) => {
 				: oldStyle + ' ' + textDecoration
 	}
 	activeElement.value[property] = newStyle
-}
-
-const updateFontSize = debounce((e) => {
-	activeElement.value.fontSize = parseInt(e.target.value)
-}, 500)
-
-const changeFontSize = (e, direction) => {
-	if (!direction) updateFontSize(e)
-	else if (direction == 'increase') {
-		activeElement.value.fontSize += 1
-	} else if (direction == 'decrease' && activeElement.value.fontSize > 5) {
-		activeElement.value.fontSize -= 1
-	}
 }
 </script>
 
