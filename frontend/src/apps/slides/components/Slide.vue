@@ -4,24 +4,42 @@
 		class="slideContainer flex items-center justify-center"
 		:class="inSlideShow ? 'bg-black-900' : ''"
 		:style="{
-			width: '800px',
-			height: '450px',
+			width: '960px',
+			height: '540px',
 		}"
 	>
 		<div
 			ref="target"
-			class="slide h-[450px] w-[800px] drop-shadow-xl"
+			class="slide h-[540px] w-[960px] drop-shadow-xl"
 			:style="{
 				backgroundColor:
 					(presentation.data &&
 						presentation.data.slides[activeSlideIndex - 1].background) ||
 					'white',
+				cursor: inSlideShow ? 'none' : 'default',
 			}"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-			@click="selectSlide"
+			@dblclick="selectSlide"
 		>
 			<div v-if="activeSlideElements">
+				<TransitionGroup
+					v-if="inSlideShow"
+					tag="div"
+					@enter="handleEnter"
+					@leave="handleLeave"
+				>
+					<component
+						v-for="(element, index) in activeSlideElements"
+						:key="index"
+						:is="getDynamicComponent(element.type)"
+						:element="element"
+						@click="selectElement($event, element)"
+						class="focus:outline-none focus:ring-[1.5px] focus:ring-blue-400"
+						:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
+					/>
+				</TransitionGroup>
 				<component
+					v-else
 					v-for="(element, index) in activeSlideElements"
 					:key="index"
 					:is="getDynamicComponent(element.type)"
@@ -36,11 +54,22 @@
 </template>
 
 <script setup>
-import { onMounted, ref, unref, useTemplateRef, watch, onBeforeUnmount } from 'vue'
+import {
+	onMounted,
+	ref,
+	unref,
+	useTemplateRef,
+	watch,
+	onBeforeUnmount,
+	Transition,
+	TransitionGroup,
+	nextTick,
+} from 'vue'
 import { useDraggable, useElementBounding } from '@vueuse/core'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
+import VideoElement from '@/components/VideoElement.vue'
 
 import {
 	activeElement,
@@ -105,6 +134,7 @@ const makeElementDraggable = (el, element) => {
 }
 
 const handleKeyDown = (event) => {
+	if (document.activeElement.tagName == 'INPUT') return
 	if (['Delete', 'Backspace'].includes(event.key) && !activeElement.value.isContentEditable) {
 		if (activeElement.value) {
 			activeSlideElements.value = activeSlideElements.value.filter(
@@ -173,8 +203,28 @@ const getDynamicComponent = (type) => {
 	switch (type) {
 		case 'image':
 			return ImageElement
+		case 'video':
+			return VideoElement
 		default:
 			return TextElement
 	}
+}
+
+const handleEnter = (el, done) => {
+	el.style.opacity = 0
+	nextTick(() => {
+		el.style.transition = 'opacity 1s'
+		el.style.opacity = 1
+		done()
+	})
+}
+
+const handleLeave = (el, done) => {
+	el.style.opacity = 1
+	nextTick(() => {
+		el.style.transition = 'opacity 1s'
+		el.style.opacity = 0
+		done()
+	})
 }
 </script>
