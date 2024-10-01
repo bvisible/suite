@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed flex h-screen w-screen flex-col bg-gray-50">
+	<div class="fixed flex h-screen w-screen flex-col bg-gray-100">
 		<!-- Navbar -->
 		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-200">
 			<div class="flex items-center gap-2">
@@ -142,7 +142,7 @@ const handleScreenChange = () => {
 		activeElement.value = null
 		removePanAndZoom(containerRef.value)
 		slideRef.value.targetRef.style.transform = ''
-		slideRef.value.targetRef.style.transform = 'scale(1.8, 1.8)'
+		slideRef.value.targetRef.style.transform = 'scale(1.5, 1.5)'
 	} else {
 		addPanAndZoom(containerRef.value, slideRef.value.targetRef)
 		slideRef.value.targetRef.style.transform = ''
