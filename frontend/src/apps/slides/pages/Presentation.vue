@@ -3,7 +3,7 @@
 		<!-- Navbar -->
 		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
 			<div class="flex items-center gap-2">
-				<Logo />
+				<img src="../icons/slides.svg" class="h-7" />
 				<div class="select-none font-semibold">Slides</div>
 			</div>
 
