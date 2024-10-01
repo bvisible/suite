@@ -25,8 +25,8 @@
 				<TransitionGroup
 					v-if="inSlideShow"
 					tag="div"
-					@enter="handleEnter"
-					@leave="handleLeave"
+					@enter="handleSlideEnter"
+					@leave="handleSlideLeave"
 				>
 					<component
 						v-for="(element, index) in activeSlideElements"
@@ -210,21 +210,19 @@ const getDynamicComponent = (type) => {
 	}
 }
 
-const handleEnter = (el, done) => {
+const handleSlideEnter = (el, done) => {
 	el.style.opacity = 0
 	nextTick(() => {
 		el.style.transition = 'opacity 1s'
 		el.style.opacity = 1
-		done()
 	})
 }
 
-const handleLeave = (el, done) => {
+const handleSlideLeave = (el, done) => {
 	el.style.opacity = 1
 	nextTick(() => {
 		el.style.transition = 'opacity 1s'
 		el.style.opacity = 0
-		done()
 	})
 }
 </script>
