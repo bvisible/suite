@@ -14,7 +14,7 @@
 				class="h-20 cursor-pointer rounded"
 				:class="
 					activeSlideIndex == i
-						? 'ring-[1.8px] ring-blue-400 ring-offset-[0px]'
+						? 'ring-[2px] ring-blue-400 ring-offset-[2px]'
 						: 'border border-gray-300'
 				"
 				@click="activeSlideIndex = i"
