@@ -14,9 +14,8 @@
 			:style="{
 				backgroundColor:
 					(presentation.data &&
-						presentation.data.slides[activeSlideIndex - 1].background) ||
+						presentation.data.slides[activeSlideIndex - 1]?.background) ||
 					'white',
-				cursor: inSlideShow ? 'none' : 'default',
 			}"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@dblclick="selectSlide"
@@ -34,7 +33,7 @@
 						:is="getDynamicComponent(element.type)"
 						:element="element"
 						@click="selectElement($event, element)"
-						class="focus:outline-none focus:ring-[1.5px] focus:ring-blue-400"
+						class="focus:outline-none"
 						:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
 					/>
 				</TransitionGroup>
@@ -45,8 +44,7 @@
 					:is="getDynamicComponent(element.type)"
 					:element="element"
 					@click="selectElement($event, element)"
-					class="focus:outline-none focus:ring-[1.5px] focus:ring-blue-400"
-					:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
+					class="focus:outline-none"
 				/>
 			</div>
 		</div>
@@ -61,7 +59,6 @@ import {
 	useTemplateRef,
 	watch,
 	onBeforeUnmount,
-	Transition,
 	TransitionGroup,
 	nextTick,
 } from 'vue'
@@ -89,6 +86,7 @@ defineExpose({
 
 const selectSlide = (e) => {
 	if (inSlideShow.value) return
+	e.preventDefault()
 	e.stopPropagation()
 	if (e.target != targetRef.value) return
 	activeElement.value = {
@@ -183,7 +181,7 @@ watch(
 watch(
 	() => presentation.data,
 	() => {
-		if (!presentation.data) return
+		if (!presentation.data?.slides[activeSlideIndex.value - 1]?.elements) return
 		activeSlideElements.value = JSON.parse(
 			presentation.data.slides[activeSlideIndex.value - 1].elements,
 		)
