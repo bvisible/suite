@@ -1,24 +1,25 @@
 <template>
 	<div class="fixed flex h-screen w-screen flex-col bg-gray-100">
 		<!-- Navbar -->
-		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-200">
+		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
 			<div class="flex items-center gap-2">
 				<Logo />
-				<div class="font-semibold">Slides</div>
+				<div class="select-none font-semibold">Slides</div>
 			</div>
 
 			<input
+				spellcheck="false"
 				ref="newTitleRef"
 				v-if="renameMode"
-				class="max-w-36 rounded-sm border-none py-1 text-base text-gray-700 focus:ring-gray-500"
+				class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
 				v-model="newTitle"
 				@blur="saveTitle"
 			/>
-			<span v-else class="text-gray-700" @click="enableRenameMode">
+			<span v-else class="select-none font-semibold text-gray-700" @click="enableRenameMode">
 				{{ presentation.data?.title }}
 			</span>
 
-			<div class="flex gap-2">
+			<div class="flex select-none gap-2">
 				<Button label="Save" size="sm" @click="savePresentation" />
 				<Button variant="solid" label="Present" size="sm" @click="startSlideShow" />
 			</div>
@@ -105,6 +106,8 @@ const clearFocus = (e) => {
 }
 
 const savePresentation = async () => {
+	presentation.data.slides[activeSlideIndex.value - 1].background =
+		presentation.data.slides[activeSlideIndex.value - 1].background
 	presentation.data.slides[activeSlideIndex.value - 1].elements = JSON.stringify(
 		activeSlideElements.value,
 	)

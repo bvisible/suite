@@ -1,12 +1,12 @@
 <template>
-	<!-- Render Image Element -->
 	<div
 		class="fixed"
 		:style="{
-			width: elementStyle.width,
-			left: elementStyle.left,
-			height: unref(rect.height) + 'px',
-			top: elementStyle.top,
+			width: unref(rect.width) + 10 + 'px',
+			left: parseInt(elementStyle.left) - 5 + 'px',
+			height: unref(rect.height) + 10 + 'px',
+			top: parseInt(elementStyle.top) - 5 + 'px',
+			outline: isEqual(activeElement, element) ? '1px solid #70B6F0' : 'none',
 		}"
 	>
 		<img ref="imageElement" class="imageElement" :style="elementStyle" :src="element.src" />
@@ -41,7 +41,6 @@ const boxShadow = computed(() => {
 })
 
 const elementStyle = computed(() => ({
-	padding: '2px',
 	position: 'fixed',
 	width: element.value.width,
 	height: 'auto',
@@ -61,5 +60,7 @@ const elementStyle = computed(() => ({
 				: element.value.invertY
 					? 'scale(1, -1)'
 					: 'scale(1, 1)',
+	userSelect: 'none',
+	cursor: element.value.isDragging ? 'move' : 'default',
 }))
 </script>

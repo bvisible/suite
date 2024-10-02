@@ -3,11 +3,13 @@
 	<div
 		class="fixed"
 		:style="{
-			width: elementStyle.width,
-			left: elementStyle.left,
-			height: unref(rect.height) + 'px',
-			top: elementStyle.top,
+			width: unref(rect.width) + 10 + 'px',
+			left: parseInt(elementStyle.left) - 5 + 'px',
+			height: unref(rect.height) + 10 + 'px',
+			top: parseInt(elementStyle.top) - 5 + 'px',
+			outline: isEqual(activeElement, element) ? '1px solid #70B6F0' : 'none',
 		}"
+		@dblclick="handleVideoControls"
 	>
 		<video
 			ref="videoElement"
@@ -19,7 +21,7 @@
 			:playbackRate="element.playbackRate"
 		/>
 		<div
-			v-if="isEqual(activeElement, element) || inSlideShow"
+			v-if="isEqual(activeElement, element)"
 			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
 			@click="handleVideoControls"
 		>
@@ -57,12 +59,16 @@ const element = defineModel('element', {
 })
 
 const elementStyle = computed(() => ({
-	padding: '2px',
 	position: 'fixed',
 	width: element.value.width,
 	height: 'auto',
 	left: element.value.left,
 	top: element.value.top,
+	borderRadius: element.value.borderRadius + 'px',
+	borderStyle: element.value.borderStyle || 'none',
+	borderColor: element.value.borderColor,
+	borderWidth: element.value.borderWidth + 'px',
+	boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
 }))
 
 const handleVideoControls = (e) => {
