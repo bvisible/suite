@@ -6,6 +6,7 @@
 			left: elementStyle.left,
 			height: unref(rect.height) + 'px',
 			top: elementStyle.top,
+			outline: isEqual(activeElement, element) ? '1px solid #70B6F0' : 'none',
 		}"
 	>
 		<div

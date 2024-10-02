@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-4 border-b px-4 py-4">
-		<div class="mb-1 text-2xs uppercase text-gray-900">Style</div>
+		<div class="text-2xs font-semibold uppercase text-gray-700">Style</div>
 		<div class="flex items-center justify-between">
 			<button
 				class="cursor-pointer rounded-sm p-1"
@@ -75,7 +75,7 @@
 	</div>
 
 	<div class="flex flex-col gap-4 border-b px-4 py-4">
-		<div class="mb-1 text-2xs uppercase text-gray-900">Font</div>
+		<div class="text-2xs font-semibold uppercase text-gray-700">Font</div>
 		<FormControl
 			type="autocomplete"
 			:options="textFonts"
@@ -100,11 +100,12 @@
 
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-gray-600">Colour</div>
+			<ColorPicker v-model="activeElement.color" />
 		</div>
 	</div>
 
 	<div class="flex flex-col gap-4 border-b px-4 py-4">
-		<div class="mb-1 text-2xs uppercase text-gray-900">Spacing</div>
+		<div class="text-2xs font-semibold uppercase text-gray-700">Spacing</div>
 
 		<SliderInput
 			label="Line Height"
@@ -133,6 +134,7 @@ import { debounce } from '@/utils/debounce'
 import { activeElement } from '@/stores/slide'
 import SliderInput from './SliderInput.vue'
 import NumberInput from './NumberInput.vue'
+import ColorPicker from './ColorPicker.vue'
 
 const textFonts = [
 	'Arial',
