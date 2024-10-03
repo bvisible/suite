@@ -97,11 +97,10 @@ const selectSlide = (e) => {
 const selectElement = (e, element) => {
 	if (inSlideShow.value) return
 	e.stopPropagation()
-	let el = e.target
 	if (activeElement.value == element) return
 
 	activeElement.value = element
-	makeElementDraggable(el, element)
+	makeElementDraggable(e.target, element)
 }
 
 const { top: boundsTop, left: boundsLeft } = useElementBounding(targetRef)
@@ -113,17 +112,14 @@ const makeElementDraggable = (el, element) => {
 	useDraggable(el, {
 		initialValue: { x: initialX, y: initialY },
 		onStart: ({ x, y }, e) => {
-			if (element.isContentEditable || inSlideShow.value) return
 			e.preventDefault()
 			element.isDragging = true
 		},
 		onMove: ({ x, y }) => {
-			if (element.isContentEditable || inSlideShow.value) return
 			element.left = `${x - unref(boundsLeft)}px`
 			element.top = `${y - unref(boundsTop)}px`
 		},
 		onEnd: ({ x, y }) => {
-			if (element.isContentEditable || inSlideShow.value) return
 			element.isDragging = false
 			element.left = `${x - unref(boundsLeft)}px`
 			element.top = `${y - unref(boundsTop)}px`
