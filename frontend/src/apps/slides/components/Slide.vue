@@ -62,7 +62,7 @@ import {
 	TransitionGroup,
 	nextTick,
 } from 'vue'
-import { useDraggable, useElementBounding } from '@vueuse/core'
+import { useDragAndDrop } from '@/utils/drag'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
@@ -103,28 +103,8 @@ const selectElement = (e, element) => {
 	makeElementDraggable(e.target, element)
 }
 
-const { top: boundsTop, left: boundsLeft } = useElementBounding(targetRef)
-
 const makeElementDraggable = (el, element) => {
-	let initialX = el.getBoundingClientRect().left
-	let initialY = el.getBoundingClientRect().top
-
-	useDraggable(el, {
-		initialValue: { x: initialX, y: initialY },
-		onStart: ({ x, y }, e) => {
-			e.preventDefault()
-			element.isDragging = true
-		},
-		onMove: ({ x, y }) => {
-			element.left = `${x - unref(boundsLeft)}px`
-			element.top = `${y - unref(boundsTop)}px`
-		},
-		onEnd: ({ x, y }) => {
-			element.isDragging = false
-			element.left = `${x - unref(boundsLeft)}px`
-			element.top = `${y - unref(boundsTop)}px`
-		},
-	})
+	useDragAndDrop(el, element)
 }
 
 const handleKeyDown = (event) => {
