@@ -384,8 +384,8 @@ const getTextColor = () => {
 const addTextElement = () => {
 	let element = {
 		width: '85px',
-		left: 'calc(50% - 42.5px)',
-		top: 'calc(50% - 42.5px)',
+		left: '100',
+		top: '100',
 		fontSize: 50,
 		fontFamily: 'Inter',
 		fontWeight: 'bold',
