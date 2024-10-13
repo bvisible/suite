@@ -64,11 +64,6 @@ const elementStyle = computed(() => ({
 	textDecoration: element.value.textDecoration,
 	textTransform: element.value.textTransform,
 	userSelect: element.value.isContentEditable ? 'text' : 'none',
-	cursor: element.value.isDragging
-		? 'move'
-		: element.value.isContentEditable
-			? 'text'
-			: 'default',
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
 	letterSpacing: element.value.letterSpacing + 'px',

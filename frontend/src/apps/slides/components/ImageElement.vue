@@ -61,6 +61,5 @@ const elementStyle = computed(() => ({
 					? 'scale(1, -1)'
 					: 'scale(1, 1)',
 	userSelect: 'none',
-	cursor: element.value.isDragging ? 'move' : 'default',
 }))
 </script>
