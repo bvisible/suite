@@ -1,11 +1,14 @@
-import { ref } from 'vue'
+import { watch, ref } from 'vue'
 
-export const useDragAndDrop = (target, element) => {
+export const useDragAndDrop = () => {
 	const isDragging = ref(false)
 	const mouseX = ref(0)
 	const mouseY = ref(0)
+	const dragTarget = ref(null)
+	const dragPosition = ref({ x: 0, y: 0 })
 
 	const startDragging = (e) => {
+		e.preventDefault()
 		isDragging.value = true
 		mouseX.value = e.clientX
 		mouseY.value = e.clientY
@@ -14,12 +17,12 @@ export const useDragAndDrop = (target, element) => {
 	}
 
 	const drag = (e) => {
+		e.preventDefault()
 		if (isDragging.value) {
 			const dx = mouseX.value - e.clientX
 			const dy = mouseY.value - e.clientY
 
-			element.left = element.left - dx
-			element.top = element.top - dy
+			dragPosition.value = { x: dragPosition.value.x - dx, y: dragPosition.value.y - dy }
 
 			mouseX.value = e.clientX
 			mouseY.value = e.clientY
@@ -27,10 +30,20 @@ export const useDragAndDrop = (target, element) => {
 	}
 
 	const stopDragging = (e) => {
+		e.preventDefault()
 		isDragging.value = false
 		window.removeEventListener('mousemove', drag)
 		window.removeEventListener('mouseup', stopDragging)
 	}
 
-	target.addEventListener('mousedown', startDragging)
+	watch(
+		() => dragTarget.value,
+		(newVal, oldVal) => {
+			oldVal?.removeEventListener('mousedown', startDragging)
+			newVal?.addEventListener('mousedown', startDragging)
+		},
+		{ immediate: true },
+	)
+
+	return { dragTarget, dragPosition }
 }

@@ -84,6 +84,8 @@ defineExpose({
 	targetRef,
 })
 
+const { dragTarget, dragPosition } = useDragAndDrop()
+
 const selectSlide = (e) => {
 	if (inSlideShow.value) return
 	e.preventDefault()
@@ -100,11 +102,11 @@ const selectElement = (e, element) => {
 	if (activeElement.value == element) return
 
 	activeElement.value = element
-	makeElementDraggable(e.target, element)
-}
-
-const makeElementDraggable = (el, element) => {
-	useDragAndDrop(el, element)
+	dragTarget.value = e.target
+	dragPosition.value = {
+		x: element.left,
+		y: element.top,
+	}
 }
 
 const handleKeyDown = (event) => {
@@ -143,6 +145,16 @@ watch(
 				)
 			else activeSlideElements.value = []
 		}
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => dragPosition.value,
+	() => {
+		if (!activeElement.value) return
+		activeElement.value.left = dragPosition.value.x
+		activeElement.value.top = dragPosition.value.y
 	},
 	{ immediate: true },
 )
