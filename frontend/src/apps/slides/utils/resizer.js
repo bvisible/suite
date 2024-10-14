@@ -67,7 +67,13 @@ export const useResizer = () => {
 
 	watch(
 		() => resizeTarget.value,
-		(val) => {
+		(val, oldVal) => {
+			if (oldVal) {
+				const resizers = oldVal.querySelectorAll('.resizer')
+				resizers.forEach((resizer) => {
+					oldVal.removeChild(resizer)
+				})
+			}
 			if (val) {
 				const resizeHandles = ['left', 'right']
 				resizeHandles.forEach((handle) => {
