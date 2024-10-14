@@ -5,7 +5,7 @@ export const useDragAndDrop = () => {
 	const mouseX = ref(0)
 	const mouseY = ref(0)
 	const dragTarget = ref(null)
-	const dragPosition = ref({ x: 0, y: 0 })
+	const dragPosition = ref({ left: 0, top: 0 })
 
 	const startDragging = (e) => {
 		e.preventDefault()
@@ -22,7 +22,10 @@ export const useDragAndDrop = () => {
 			const dx = mouseX.value - e.clientX
 			const dy = mouseY.value - e.clientY
 
-			dragPosition.value = { x: dragPosition.value.x - dx, y: dragPosition.value.y - dy }
+			dragPosition.value = {
+				left: dragPosition.value.left - dx,
+				top: dragPosition.value.top - dy,
+			}
 
 			mouseX.value = e.clientX
 			mouseY.value = e.clientY

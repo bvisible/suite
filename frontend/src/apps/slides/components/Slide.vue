@@ -18,7 +18,7 @@
 					'white',
 			}"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-			@dblclick="selectSlide"
+			@click="selectSlide"
 		>
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -39,6 +39,7 @@
 				</TransitionGroup>
 				<component
 					v-else
+					ref="element"
 					v-for="(element, index) in activeSlideElements"
 					:key="index"
 					:is="getDynamicComponent(element.type)"
@@ -61,8 +62,10 @@ import {
 	onBeforeUnmount,
 	TransitionGroup,
 	nextTick,
+	computed,
 } from 'vue'
 import { useDragAndDrop } from '@/utils/drag'
+import { useResizer } from '@/utils/resizer'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
@@ -85,6 +88,7 @@ defineExpose({
 })
 
 const { dragTarget, dragPosition } = useDragAndDrop()
+const { resizeTarget, resizeDimensions } = useResizer()
 
 const selectSlide = (e) => {
 	if (inSlideShow.value) return
@@ -104,10 +108,36 @@ const selectElement = (e, element) => {
 	activeElement.value = element
 	dragTarget.value = e.target
 	dragPosition.value = {
-		x: element.left,
-		y: element.top,
+		left: activeElement.value.left,
+		top: activeElement.value.top,
+	}
+	addResizer(e)
+}
+
+const addResizer = (e) => {
+	if (inSlideShow.value) return
+	if (resizeTarget.value == e.target) return
+	if (e.target.classList.contains('resizer')) return
+	resizeTarget.value = e.target
+	resizeDimensions.value = {
+		width: activeElement.value.width,
+		height: activeElement.value.height,
+		left: activeElement.value.left,
+		top: activeElement.value.top,
 	}
 }
+
+watch(
+	() => resizeDimensions.value,
+	(val) => {
+		if (!activeElement.value) return
+		activeElement.value.width = val.width
+		activeElement.value.height = val.height
+		activeElement.value.left = val.left
+		activeElement.value.top = val.top
+	},
+	{ immediate: true },
+)
 
 const handleKeyDown = (event) => {
 	if (document.activeElement.tagName == 'INPUT') return
@@ -153,8 +183,14 @@ watch(
 	() => dragPosition.value,
 	() => {
 		if (!activeElement.value) return
-		activeElement.value.left = dragPosition.value.x
-		activeElement.value.top = dragPosition.value.y
+		activeElement.value.left = dragPosition.value.left
+		activeElement.value.top = dragPosition.value.top
+		resizeDimensions.value = {
+			width: activeElement.value.width,
+			height: activeElement.value.height,
+			left: activeElement.value.left,
+			top: activeElement.value.top,
+		}
 	},
 	{ immediate: true },
 )
@@ -212,3 +248,25 @@ const handleSlideLeave = (el, done) => {
 	})
 }
 </script>
+
+<style>
+.resizer {
+	position: absolute;
+	z-index: 100;
+	background-color: #70b6f0;
+	width: 4px;
+	height: 12px;
+	cursor: ew-resize;
+	border-radius: 10px;
+}
+
+.resizer-right {
+	right: -5px;
+	top: calc(50% - 6px);
+}
+
+.resizer-left {
+	left: -5px;
+	top: calc(50% - 6px);
+}
+</style>
