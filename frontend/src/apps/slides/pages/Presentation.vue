@@ -110,6 +110,8 @@ const savePresentation = async () => {
 		presentation.data.slides[activeSlideIndex.value - 1].background
 	presentation.data.slides[activeSlideIndex.value - 1].elements = JSON.stringify(
 		activeSlideElements.value,
+		null,
+		2,
 	)
 	await call('frappe.client.save', {
 		doc: presentation.data,
