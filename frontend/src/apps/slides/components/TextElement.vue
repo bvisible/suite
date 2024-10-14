@@ -1,30 +1,14 @@
 <template>
 	<div
-		class="fixed"
-		:style="{
-			width: elementStyle.width,
-			left: elementStyle.left,
-			height: unref(rect.height) + 'px',
-			top: elementStyle.top,
-			outline: isEqual(activeElement, element) ? '1px solid #70B6F0' : 'none',
-		}"
+		ref="textElement"
+		class="textElement focus:outline-none"
+		:style="elementStyle"
+		:contenteditable="element.isContentEditable"
+		@dblclick="makeElementEditable($event, element)"
+		@blur="handleBlur($event, element)"
+		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
 	>
-		<div
-			ref="textElement"
-			class="textElement focus:outline-none"
-			:style="elementStyle"
-			:contenteditable="element.isContentEditable"
-			@dblclick="makeElementEditable($event, element)"
-			@blur="handleBlur($event, element)"
-		>
-			{{ element.content }}
-		</div>
-		<Resizer
-			v-if="isEqual(activeElement, element)"
-			:element="element"
-			:isResizing="isResizing"
-			:resizeHeight="false"
-		/>
+		{{ element.content }}
 	</div>
 </template>
 
@@ -50,12 +34,11 @@ const el = useTemplateRef('textElement')
 const rect = useElementBounding(el)
 
 const elementStyle = computed(() => ({
-	padding: '5px',
 	position: 'fixed',
-	width: element.value.width,
+	width: `${element.value.width}px`,
 	height: 'auto',
-	left: element.value.left + 'px',
-	top: element.value.top + 'px',
+	left: `${element.value.left}px`,
+	top: `${element.value.top}px`,
 	content: element.value.content,
 	fontFamily: element.value.fontFamily,
 	fontSize: element.value.fontSize + 'px',
@@ -71,8 +54,6 @@ const elementStyle = computed(() => ({
 	textAlign: element.value.textAlign,
 	color: element.value.color,
 }))
-
-const isResizing = ref(false)
 
 const makeElementEditable = (e, element) => {
 	if (inSlideShow.value) return
