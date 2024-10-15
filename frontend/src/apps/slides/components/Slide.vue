@@ -88,16 +88,21 @@ defineExpose({
 })
 
 const { dragTarget, dragPosition } = useDragAndDrop()
-const { resizeTarget, resizeDimensions } = useResizer()
+const { isResizing, resizeTarget, resizeDimensions } = useResizer()
 
 const selectSlide = (e) => {
-	if (inSlideShow.value) return
+	if (inSlideShow.value || e.target != targetRef.value) return
+	if (isResizing.value) {
+		isResizing.value = false
+		return
+	}
 	e.preventDefault()
 	e.stopPropagation()
-	if (e.target != targetRef.value) return
 	activeElement.value = {
 		type: 'slide',
 	}
+	dragTarget.value = null
+	resizeTarget.value = null
 }
 
 const selectElement = (e, element) => {
