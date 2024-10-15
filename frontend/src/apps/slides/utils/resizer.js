@@ -87,5 +87,5 @@ export const useResizer = () => {
 		{ immediate: true },
 	)
 
-	return { resizeTarget, resizeDimensions }
+	return { isResizing, resizeTarget, resizeDimensions }
 }
