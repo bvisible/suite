@@ -1,20 +1,9 @@
 <template>
 	<div
-		class="fixed"
-		:style="{
-			width: unref(rect.width) + 10 + 'px',
-			left: parseInt(elementStyle.left) - 5 + 'px',
-			height: unref(rect.height) + 10 + 'px',
-			top: parseInt(elementStyle.top) - 5 + 'px',
-			outline: isEqual(activeElement, element) ? '1px solid #70B6F0' : 'none',
-		}"
+		:style="elementStyle"
+		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
 	>
-		<img ref="imageElement" class="imageElement" :style="elementStyle" :src="element.src" />
-		<Resizer
-			v-if="isEqual(activeElement, element)"
-			:element="element"
-			:isResizing="isResizing"
-		/>
+		<img ref="imageElement" class="imageElement" :src="element.src" />
 	</div>
 </template>
 
@@ -24,12 +13,6 @@ import Resizer from './Resizer.vue'
 import { useElementBounding } from '@vueuse/core'
 import { activeElement } from '@/stores/slide'
 import { isEqual } from 'lodash'
-
-const isResizing = ref(false)
-
-const el = useTemplateRef('imageElement')
-
-const rect = useElementBounding(el)
 
 const element = defineModel('element', {
 	type: Object,
@@ -42,10 +25,10 @@ const boxShadow = computed(() => {
 
 const elementStyle = computed(() => ({
 	position: 'fixed',
-	width: element.value.width,
+	width: `${element.value.width}px`,
 	height: 'auto',
-	left: element.value.left,
-	top: element.value.top,
+	left: `${element.value.left}px`,
+	top: `${element.value.top}px`,
 	opacity: element.value.opacity / 100,
 	borderRadius: element.value.borderRadius + 'px',
 	borderStyle: element.value.borderStyle || 'none',

@@ -1,11 +1,10 @@
 import { watch, ref } from 'vue'
 
-export const useDragAndDrop = () => {
+export const useDragAndDrop = (dragPosition) => {
 	const isDragging = ref(false)
 	const mouseX = ref(0)
 	const mouseY = ref(0)
 	const dragTarget = ref(null)
-	const dragPosition = ref({ left: 0, top: 0 })
 
 	const startDragging = (e) => {
 		e.preventDefault()
@@ -48,5 +47,5 @@ export const useDragAndDrop = () => {
 		{ immediate: true },
 	)
 
-	return { dragTarget, dragPosition }
+	return { dragTarget }
 }
