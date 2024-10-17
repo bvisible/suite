@@ -87,8 +87,11 @@ defineExpose({
 	targetRef,
 })
 
-const { dragTarget, dragPosition } = useDragAndDrop()
-const { isResizing, resizeTarget, resizeDimensions } = useResizer()
+const position = ref(null)
+const dimensions = ref(null)
+
+const { dragTarget } = useDragAndDrop(position)
+const { isResizing, resizeTarget } = useResizer(position, dimensions)
 
 const selectSlide = (e) => {
 	if (inSlideShow.value || e.target != targetRef.value) return
@@ -112,10 +115,6 @@ const selectElement = (e, element) => {
 
 	activeElement.value = element
 	dragTarget.value = e.target
-	dragPosition.value = {
-		left: activeElement.value.left,
-		top: activeElement.value.top,
-	}
 	addResizer(e)
 }
 
@@ -123,26 +122,8 @@ const addResizer = (e) => {
 	if (inSlideShow.value) return
 	if (resizeTarget.value == e.target) return
 	if (e.target.classList.contains('resizer')) return
-	resizeTarget.value = e.target
-	resizeDimensions.value = {
-		width: activeElement.value.width,
-		height: activeElement.value.height,
-		left: activeElement.value.left,
-		top: activeElement.value.top,
-	}
+	resizeTarget.value = activeElement.value.type == 'image' ? e.target.parentElement : e.target
 }
-
-watch(
-	() => resizeDimensions.value,
-	(val) => {
-		if (!activeElement.value) return
-		activeElement.value.width = val.width
-		activeElement.value.height = val.height
-		activeElement.value.left = val.left
-		activeElement.value.top = val.top
-	},
-	{ immediate: true },
-)
 
 const handleKeyDown = (event) => {
 	if (document.activeElement.tagName == 'INPUT') return
@@ -179,22 +160,6 @@ watch(
 					presentation.data.slides[new_val - 1].elements,
 				)
 			else activeSlideElements.value = []
-		}
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => dragPosition.value,
-	() => {
-		if (!activeElement.value) return
-		activeElement.value.left = dragPosition.value.left
-		activeElement.value.top = dragPosition.value.top
-		resizeDimensions.value = {
-			width: activeElement.value.width,
-			height: activeElement.value.height,
-			left: activeElement.value.left,
-			top: activeElement.value.top,
 		}
 	},
 	{ immediate: true },
@@ -252,10 +217,39 @@ const handleSlideLeave = (el, done) => {
 		el.style.opacity = 0
 	})
 }
+
+watch(
+	() => position.value,
+	() => {
+		if (!position.value) return
+		if (
+			activeElement.value &&
+			(position.value.top != activeElement.value.top ||
+				position.value.left != activeElement.value.left)
+		) {
+			let currentScale = targetRef.value.getBoundingClientRect().width / 960
+			activeElement.value.top = position.value.top / currentScale
+			activeElement.value.left = position.value.left / currentScale
+		}
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => dimensions.value,
+	() => {
+		if (!dimensions.value) return
+		if (activeElement.value && dimensions.value.width != activeElement.value.width) {
+			let currentScale = targetRef.value.getBoundingClientRect().width / 960
+			activeElement.value.width = dimensions.value.width / currentScale
+		}
+	},
+	{ immediate: true },
+)
 </script>
 
 <style>
-.resizer {
+.resizer-horizontal {
 	position: absolute;
 	z-index: 100;
 	background-color: #70b6f0;
@@ -273,5 +267,38 @@ const handleSlideLeave = (el, done) => {
 .resizer-left {
 	left: -5px;
 	top: calc(50% - 6px);
+}
+
+.resizer {
+	position: absolute;
+	z-index: 100;
+	background-color: #70b6f0;
+	width: 6px;
+	height: 6px;
+	border-radius: 10px;
+}
+
+.resizer-top-left {
+	top: -5px;
+	left: -5px;
+	cursor: nwse-resize;
+}
+
+.resizer-top-right {
+	top: -5px;
+	right: -5px;
+	cursor: nesw-resize;
+}
+
+.resizer-bottom-left {
+	bottom: -5px;
+	left: -5px;
+	cursor: nesw-resize;
+}
+
+.resizer-bottom-right {
+	bottom: -5px;
+	right: -5px;
+	cursor: nwse-resize;
 }
 </style>
