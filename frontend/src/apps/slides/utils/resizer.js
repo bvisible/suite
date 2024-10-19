@@ -1,9 +1,15 @@
-import { watch, ref } from 'vue'
+import { watch, ref, computed } from 'vue'
 
 export const useResizer = (position, resizeDimensions) => {
 	const resizeTarget = ref(null)
 	const isResizing = ref(false)
 	const currentResizer = ref(null)
+	const resizeMode = ref(null)
+	const resizeHandles = computed(() =>
+		resizeMode.value == 'both'
+			? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+			: ['left', 'right'],
+	)
 
 	let originalWidth = null
 	let originalHeight = null
@@ -40,56 +46,48 @@ export const useResizer = (position, resizeDimensions) => {
 	const resize = (e) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
+
 		const rect = resizeTarget.value.getBoundingClientRect()
 		const container = resizeTarget.value.parentElement.getBoundingClientRect()
 
-		let newTop = 0
-		let newLeft = 0
+		let newLeft = position.left
+		let newTop = position.top
+
 		let newWidth = 0
 		let newHeight = 0
 
-		if (currentResizer.value == 'resizer-left') {
-			if (e.offsetX == 0) return
-			newWidth = rect.width + (prevX - e.clientX)
-			newLeft = originalLeft + originalWidth - newWidth
-			resizeDimensions.value = { ...resizeDimensions.value, width: newWidth }
-			position.value = { ...position.value, left: newLeft }
-		} else if (currentResizer.value == 'resizer-right') {
-			newWidth = rect.width - (prevX - e.clientX)
-			resizeDimensions.value = { ...resizeDimensions.value, width: newWidth }
-		} else if (currentResizer.value == 'resizer-bottom-right') {
-			newWidth = rect.width - (prevX - e.clientX)
-			resizeDimensions.value = { width: newWidth }
-		} else if (currentResizer.value == 'resizer-top-right') {
-			let diffX = prevX - e.clientX
-			let diffY = prevY - e.clientY
-			if (diffX && diffY) {
+		let diffX = prevX - e.clientX
+		let diffY = prevY - e.clientY
+
+		if (!diffX) return
+
+		switch (currentResizer.value) {
+			case 'resizer-left':
+				newWidth = rect.width + diffX
+				newLeft = originalLeft + originalWidth - newWidth
+				break
+			case 'resizer-top-right':
 				newWidth = rect.width - diffX
 				newHeight = (newWidth * originalHeight) / originalWidth
 				newTop = originalBottom - newHeight
-
-				resizeDimensions.value = { ...resizeDimensions.value, width: newWidth }
-				position.value = { ...position.value, top: newTop }
-			}
-		} else if (currentResizer.value == 'resizer-bottom-left') {
-			newWidth = rect.width + (prevX - e.clientX)
-			newLeft = originalLeft + originalWidth - newWidth
-
-			resizeDimensions.value = { ...resizeDimensions.value, width: newWidth }
-			position.value = { ...position.value, left: newLeft }
-		} else if (currentResizer.value == 'resizer-top-left') {
-			let diffX = prevX - e.clientX
-			let diffY = prevY - e.clientY
-			if (diffX && diffY) {
+				break
+			case 'resizer-bottom-left':
+				newWidth = rect.width + diffX
+				newLeft = originalLeft + originalWidth - newWidth
+				break
+			case 'resizer-top-left':
 				newWidth = rect.width + diffX
 				newHeight = (newWidth * originalHeight) / originalWidth
-				newTop = originalBottom - newHeight
 				newLeft = originalLeft + originalWidth - newWidth
-
-				resizeDimensions.value = { ...resizeDimensions.value, width: newWidth }
-				position.value = { left: newLeft, top: newTop }
-			}
+				newTop = originalBottom - newHeight
+				break
+			default:
+				newWidth = rect.width - diffX
+				break
 		}
+
+		resizeDimensions.value = { width: newWidth }
+		position.value = { top: newTop, left: newLeft }
 
 		prevX = e.clientX
 		prevY = e.clientY
@@ -106,22 +104,16 @@ export const useResizer = (position, resizeDimensions) => {
 		() => resizeTarget.value,
 		(val, oldVal) => {
 			if (oldVal) {
-				const resizers = oldVal.querySelectorAll('div.resizer-horizontal, div.resizer')
+				const resizers = oldVal.querySelectorAll('div.resizer-both, div.resizer-width')
 				resizers.forEach((resizer) => {
 					oldVal.removeChild(resizer)
 				})
 			}
 			if (val) {
-				let resizerType = val.classList.contains('textElement')
-					? 'resizer-horizontal'
-					: 'resizer'
-				const resizeHandles =
-					resizerType == 'resizer-horizontal'
-						? ['left', 'right']
-						: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-				resizeHandles.forEach((handle) => {
+				console.log('resizeHandles.value', resizeHandles.value)
+				resizeHandles.value.forEach((handle) => {
 					const resizer = document.createElement('div')
-					resizer.classList.add(resizerType, `resizer-${handle}`)
+					resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
 					resizer.addEventListener('mousedown', startResize)
 					val.appendChild(resizer)
 				})
@@ -130,5 +122,5 @@ export const useResizer = (position, resizeDimensions) => {
 		{ immediate: true },
 	)
 
-	return { isResizing, resizeTarget }
+	return { isResizing, resizeTarget, resizeMode }
 }
