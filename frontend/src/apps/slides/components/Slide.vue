@@ -91,7 +91,7 @@ const position = ref(null)
 const dimensions = ref(null)
 
 const { dragTarget } = useDragAndDrop(position)
-const { isResizing, resizeTarget } = useResizer(position, dimensions)
+const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
 
 const selectSlide = (e) => {
 	if (inSlideShow.value || e.target != targetRef.value) return
@@ -119,10 +119,16 @@ const selectElement = (e, element) => {
 }
 
 const addResizer = (e) => {
-	if (inSlideShow.value) return
-	if (resizeTarget.value == e.target) return
+	if (inSlideShow.value || resizeTarget.value == e.target) return
 	if (e.target.classList.contains('resizer')) return
-	resizeTarget.value = activeElement.value.type == 'image' ? e.target.parentElement : e.target
+
+	if (activeElement.value.type == 'text') {
+		resizeTarget.value = e.target
+		resizeMode.value = 'width'
+	} else {
+		resizeTarget.value = e.target.parentElement
+		resizeMode.value = 'both'
+	}
 }
 
 const handleKeyDown = (event) => {
@@ -248,57 +254,4 @@ watch(
 )
 </script>
 
-<style>
-.resizer-horizontal {
-	position: absolute;
-	z-index: 100;
-	background-color: #70b6f0;
-	width: 4px;
-	height: 12px;
-	cursor: ew-resize;
-	border-radius: 10px;
-}
-
-.resizer-right {
-	right: -5px;
-	top: calc(50% - 6px);
-}
-
-.resizer-left {
-	left: -5px;
-	top: calc(50% - 6px);
-}
-
-.resizer {
-	position: absolute;
-	z-index: 100;
-	background-color: #70b6f0;
-	width: 6px;
-	height: 6px;
-	border-radius: 10px;
-}
-
-.resizer-top-left {
-	top: -5px;
-	left: -5px;
-	cursor: nwse-resize;
-}
-
-.resizer-top-right {
-	top: -5px;
-	right: -5px;
-	cursor: nesw-resize;
-}
-
-.resizer-bottom-left {
-	bottom: -5px;
-	left: -5px;
-	cursor: nesw-resize;
-}
-
-.resizer-bottom-right {
-	bottom: -5px;
-	right: -5px;
-	cursor: nwse-resize;
-}
-</style>
+<style src="../assets/styles/resizer.css"></style>
