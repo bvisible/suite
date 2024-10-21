@@ -110,23 +110,24 @@ const selectSlide = (e) => {
 
 const selectElement = (e, element) => {
 	if (inSlideShow.value) return
+	if (activeElement.value == element && isResizing.value) {
+		isResizing.value = false
+		return
+	}
+	e.preventDefault()
 	e.stopPropagation()
-	if (activeElement.value == element) return
 
 	activeElement.value = element
-	dragTarget.value = e.target
-	addResizer(e)
+	addDragAndResize(e.target)
 }
 
-const addResizer = (e) => {
-	if (inSlideShow.value || resizeTarget.value == e.target) return
-	if (e.target.classList.contains('resizer')) return
-
+const addDragAndResize = (el) => {
+	dragTarget.value = el
 	if (activeElement.value.type == 'text') {
-		resizeTarget.value = e.target
+		resizeTarget.value = el
 		resizeMode.value = 'width'
 	} else {
-		resizeTarget.value = e.target.parentElement
+		resizeTarget.value = el.parentElement
 		resizeMode.value = 'both'
 	}
 }
