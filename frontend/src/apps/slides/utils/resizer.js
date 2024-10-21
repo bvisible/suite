@@ -33,6 +33,9 @@ export const useResizer = (position, resizeDimensions) => {
 		let rect = resizeTarget.value.getBoundingClientRect()
 		let container = resizeTarget.value.parentElement.getBoundingClientRect()
 
+		position.value = { left: rect.left - container.left, top: rect.top - container.top }
+		resizeDimensions.value = { width: rect.width }
+
 		originalWidth = rect.width
 		originalHeight = rect.height
 
@@ -50,8 +53,8 @@ export const useResizer = (position, resizeDimensions) => {
 		const rect = resizeTarget.value.getBoundingClientRect()
 		const container = resizeTarget.value.parentElement.getBoundingClientRect()
 
-		let newLeft = position.left
-		let newTop = position.top
+		let newLeft = 0
+		let newTop = 0
 
 		let newWidth = 0
 		let newHeight = 0
@@ -65,15 +68,18 @@ export const useResizer = (position, resizeDimensions) => {
 			case 'resizer-left':
 				newWidth = rect.width + diffX
 				newLeft = originalLeft + originalWidth - newWidth
+				newTop = position.value.top
 				break
 			case 'resizer-top-right':
 				newWidth = rect.width - diffX
 				newHeight = (newWidth * originalHeight) / originalWidth
 				newTop = originalBottom - newHeight
+				newLeft = position.value.left
 				break
 			case 'resizer-bottom-left':
 				newWidth = rect.width + diffX
 				newLeft = originalLeft + originalWidth - newWidth
+				newTop = position.value.top
 				break
 			case 'resizer-top-left':
 				newWidth = rect.width + diffX
@@ -83,11 +89,13 @@ export const useResizer = (position, resizeDimensions) => {
 				break
 			default:
 				newWidth = rect.width - diffX
+				newLeft = position.value.left
+				newTop = position.value.top
 				break
 		}
 
 		resizeDimensions.value = { width: newWidth }
-		position.value = { top: newTop, left: newLeft }
+		position.value = { left: newLeft, top: newTop }
 
 		prevX = e.clientX
 		prevY = e.clientY
@@ -110,7 +118,6 @@ export const useResizer = (position, resizeDimensions) => {
 				})
 			}
 			if (val) {
-				console.log('resizeHandles.value', resizeHandles.value)
 				resizeHandles.value.forEach((handle) => {
 					const resizer = document.createElement('div')
 					resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
