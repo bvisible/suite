@@ -8,9 +8,7 @@
 </template>
 
 <script setup>
-import { ref, unref, useTemplateRef, computed } from 'vue'
-import Resizer from './Resizer.vue'
-import { useElementBounding } from '@vueuse/core'
+import { ref, useTemplateRef, computed } from 'vue'
 import { activeElement } from '@/stores/slide'
 import { isEqual } from 'lodash'
 

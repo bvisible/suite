@@ -13,15 +13,12 @@
 </template>
 
 <script setup>
-import { computed, ref, unref, useTemplateRef } from 'vue'
-import { useElementBounding } from '@vueuse/core'
-import Resizer from './Resizer.vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { activeElement, inSlideShow } from '@/stores/slide'
 import { isEqual } from 'lodash'
 
 const props = defineProps({
 	active: Boolean,
-	inSlideShow: Boolean,
 })
 
 const element = defineModel('element', {
@@ -30,8 +27,6 @@ const element = defineModel('element', {
 })
 
 const el = useTemplateRef('textElement')
-
-const rect = useElementBounding(el)
 
 const elementStyle = computed(() => ({
 	position: 'fixed',
