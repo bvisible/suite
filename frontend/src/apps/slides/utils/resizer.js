@@ -33,9 +33,6 @@ export const useResizer = (position, resizeDimensions) => {
 		let rect = resizeTarget.value.getBoundingClientRect()
 		let container = resizeTarget.value.parentElement.getBoundingClientRect()
 
-		position.value = { left: rect.left - container.left, top: rect.top - container.top }
-		resizeDimensions.value = { width: rect.width }
-
 		originalWidth = rect.width
 		originalHeight = rect.height
 

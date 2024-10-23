@@ -122,6 +122,12 @@ const selectElement = (e, element) => {
 }
 
 const addDragAndResize = (el) => {
+	let rect = el.getBoundingClientRect()
+	let container = targetRef.value.getBoundingClientRect()
+
+	position.value = { left: rect.left - container.left, top: rect.top - container.top }
+	dimensions.value = { width: rect.width }
+
 	dragTarget.value = el
 	if (activeElement.value.type == 'text') {
 		resizeTarget.value = el

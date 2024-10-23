@@ -1,21 +1,13 @@
 <template>
-	<!-- Render Video Element -->
 	<div
-		class="fixed"
-		:style="{
-			width: unref(rect.width) + 10 + 'px',
-			left: parseInt(elementStyle.left) - 5 + 'px',
-			height: unref(rect.height) + 10 + 'px',
-			top: parseInt(elementStyle.top) - 5 + 'px',
-			outline: isEqual(activeElement, element) ? '1px solid #70B6F0' : 'none',
-		}"
-		@dblclick="handleVideoControls"
+		:style="elementStyle"
+		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
 	>
 		<video
 			ref="videoElement"
 			class="videoElement"
-			:style="elementStyle"
 			:src="element.src"
+			:style="videoStyle"
 			:autoplay="element.autoPlay"
 			:loop="element.loop"
 			:playbackRate="element.playbackRate"
@@ -30,28 +22,16 @@
 				class="stroke-width-3 h-3 ps-[0.5px] text-white"
 			></FeatherIcon>
 		</div>
-		<Resizer
-			v-if="isEqual(activeElement, element)"
-			:element="element"
-			:isResizing="isResizing"
-		/>
 	</div>
 </template>
 
 <script setup>
-import { ref, unref, useTemplateRef, computed } from 'vue'
-import Resizer from './Resizer.vue'
-import { useElementBounding } from '@vueuse/core'
-import { activeElement, inSlideShow } from '@/stores/slide'
+import { ref, useTemplateRef, computed } from 'vue'
+import { activeElement } from '@/stores/slide'
 import { isEqual } from 'lodash'
-import { Feather } from 'lucide-vue-next'
-
-const isResizing = ref(false)
 
 const el = useTemplateRef('videoElement')
 const isPlaying = ref(false)
-
-const rect = useElementBounding(el)
 
 const element = defineModel('element', {
 	type: Object,
@@ -60,14 +40,17 @@ const element = defineModel('element', {
 
 const elementStyle = computed(() => ({
 	position: 'fixed',
-	width: element.value.width,
+	width: `${element.value.width}px`,
 	height: 'auto',
-	left: element.value.left,
-	top: element.value.top,
-	borderRadius: element.value.borderRadius + 'px',
+	left: `${element.value.left}px`,
+	top: `${element.value.top}px`,
+}))
+
+const videoStyle = computed(() => ({
+	borderRadius: `${element.value.borderRadius}px`,
 	borderStyle: element.value.borderStyle || 'none',
 	borderColor: element.value.borderColor,
-	borderWidth: element.value.borderWidth + 'px',
+	borderWidth: `${element.value.borderWidth}px`,
 	boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
 }))
 
