@@ -1,27 +1,21 @@
 <template>
+	<video
+		ref="videoElement"
+		:src="element.src"
+		:style="videoStyle"
+		:autoplay="element.autoPlay"
+		:loop="element.loop"
+		:playbackRate="element.playbackRate"
+	/>
 	<div
-		:style="elementStyle"
-		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
+		v-if="isEqual(activeElement, element)"
+		class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
+		@click="handleVideoControls"
 	>
-		<video
-			ref="videoElement"
-			class="videoElement"
-			:src="element.src"
-			:style="videoStyle"
-			:autoplay="element.autoPlay"
-			:loop="element.loop"
-			:playbackRate="element.playbackRate"
-		/>
-		<div
-			v-if="isEqual(activeElement, element)"
-			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
-			@click="handleVideoControls"
-		>
-			<FeatherIcon
-				:name="isPlaying ? 'pause' : 'play'"
-				class="stroke-width-3 h-3 ps-[0.5px] text-white"
-			></FeatherIcon>
-		</div>
+		<FeatherIcon
+			:name="isPlaying ? 'pause' : 'play'"
+			class="stroke-width-3 h-3 ps-[0.5px] text-white"
+		></FeatherIcon>
 	</div>
 </template>
 
@@ -37,14 +31,6 @@ const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
-
-const elementStyle = computed(() => ({
-	position: 'fixed',
-	width: `${element.value.width}px`,
-	height: 'auto',
-	left: `${element.value.left}px`,
-	top: `${element.value.top}px`,
-}))
 
 const videoStyle = computed(() => ({
 	borderRadius: `${element.value.borderRadius}px`,

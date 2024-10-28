@@ -1,38 +1,22 @@
 <template>
-	<div
-		:style="elementStyle"
-		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
-	>
-		<img ref="imageElement" class="imageElement" :src="element.src" />
-	</div>
+	<img :src="element.src" :style="ImageStyle" />
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed } from 'vue'
-import { activeElement } from '@/stores/slide'
-import { isEqual } from 'lodash'
+import { computed } from 'vue'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
-const boxShadow = computed(() => {
-	return `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`
-})
-
-const elementStyle = computed(() => ({
-	position: 'fixed',
-	width: `${element.value.width}px`,
-	height: 'auto',
-	left: `${element.value.left}px`,
-	top: `${element.value.top}px`,
+const imageStyle = computed(() => ({
 	opacity: element.value.opacity / 100,
 	borderRadius: element.value.borderRadius + 'px',
 	borderStyle: element.value.borderStyle || 'none',
 	borderColor: element.value.borderColor,
 	borderWidth: element.value.borderWidth + 'px',
-	boxShadow: boxShadow.value,
+	boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
 	transform:
 		element.value.invertX && element.value.invertY
 			? 'scale(-1, -1)'
