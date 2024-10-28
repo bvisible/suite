@@ -31,13 +31,11 @@ export const useResizer = (position, resizeDimensions) => {
 		prevY = e.clientY
 
 		let rect = resizeTarget.value.getBoundingClientRect()
-		let container = resizeTarget.value.parentElement.getBoundingClientRect()
 
 		originalWidth = rect.width
 		originalHeight = rect.height
-
-		originalBottom = rect.bottom - container.bottom
-		originalLeft = rect.left - container.left
+		originalBottom = rect.bottom
+		originalLeft = rect.left
 
 		window.addEventListener('mousemove', resize)
 		window.addEventListener('mouseup', stopResize, { once: true })
@@ -48,7 +46,6 @@ export const useResizer = (position, resizeDimensions) => {
 		e.stopImmediatePropagation()
 
 		const rect = resizeTarget.value.getBoundingClientRect()
-		const container = resizeTarget.value.parentElement.getBoundingClientRect()
 
 		let newLeft = 0
 		let newTop = 0
