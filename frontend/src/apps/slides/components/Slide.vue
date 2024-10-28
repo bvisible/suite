@@ -30,7 +30,7 @@
 					<component
 						v-for="(element, index) in activeSlideElements"
 						:key="index"
-						:is="getDynamicComponent(element.type)"
+						:is="SlideElement"
 						:element="element"
 						@click="selectElement($event, element)"
 						class="focus:outline-none"
@@ -42,7 +42,7 @@
 					ref="element"
 					v-for="(element, index) in activeSlideElements"
 					:key="index"
-					:is="getDynamicComponent(element.type)"
+					:is="SlideElement"
 					:element="element"
 					@click="selectElement($event, element)"
 					class="focus:outline-none"
@@ -67,9 +67,7 @@ import {
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
-import TextElement from '@/components/TextElement.vue'
-import ImageElement from '@/components/ImageElement.vue'
-import VideoElement from '@/components/VideoElement.vue'
+import SlideElement from '@/components/SlideElement.vue'
 
 import {
 	activeElement,
@@ -203,17 +201,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	window.removeEventListener('keydown', handleKeyDown)
 })
-
-const getDynamicComponent = (type) => {
-	switch (type) {
-		case 'image':
-			return ImageElement
-		case 'video':
-			return VideoElement
-		default:
-			return TextElement
-	}
-}
 
 const handleSlideEnter = (el, done) => {
 	el.style.opacity = 0

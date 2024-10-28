@@ -1,39 +1,24 @@
 <template>
 	<div
-		ref="textElement"
-		class="textElement focus:outline-none"
-		:style="elementStyle"
 		:contenteditable="element.isContentEditable"
+		:style="textStyle"
 		@dblclick="makeElementEditable($event, element)"
 		@blur="handleBlur($event, element)"
-		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
 	>
 		{{ element.content }}
 	</div>
 </template>
 
 <script setup>
-import { computed, ref, useTemplateRef } from 'vue'
-import { activeElement, inSlideShow } from '@/stores/slide'
-import { isEqual } from 'lodash'
-
-const props = defineProps({
-	active: Boolean,
-})
+import { computed } from 'vue'
+import { inSlideShow } from '@/stores/slide'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
-const el = useTemplateRef('textElement')
-
-const elementStyle = computed(() => ({
-	position: 'fixed',
-	width: `${element.value.width}px`,
-	height: 'auto',
-	left: `${element.value.left}px`,
-	top: `${element.value.top}px`,
+const textStyle = computed(() => ({
 	content: element.value.content,
 	fontFamily: element.value.fontFamily,
 	fontSize: element.value.fontSize + 'px',
