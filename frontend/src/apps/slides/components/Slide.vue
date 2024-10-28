@@ -121,10 +121,13 @@ const selectElement = (e, element) => {
 
 const addDragAndResize = (el) => {
 	let rect = el.getBoundingClientRect()
-	let container = targetRef.value.getBoundingClientRect()
-
-	position.value = { left: rect.left - container.left, top: rect.top - container.top }
-	dimensions.value = { width: rect.width }
+	position.value = {
+		top: rect.top,
+		left: rect.left,
+	}
+	dimensions.value = {
+		width: rect.width,
+	}
 
 	dragTarget.value = el
 	if (activeElement.value.type == 'text') {
@@ -222,15 +225,10 @@ watch(
 	() => position.value,
 	() => {
 		if (!position.value) return
-		if (
-			activeElement.value &&
-			(position.value.top != activeElement.value.top ||
-				position.value.left != activeElement.value.left)
-		) {
-			let currentScale = targetRef.value.getBoundingClientRect().width / 960
-			activeElement.value.top = position.value.top / currentScale
-			activeElement.value.left = position.value.left / currentScale
-		}
+		let container = targetRef.value.getBoundingClientRect()
+		let currentScale = container.width / 960
+		activeElement.value.left = (position.value.left - container.left) / currentScale
+		activeElement.value.top = (position.value.top - container.top) / currentScale
 	},
 	{ immediate: true },
 )
