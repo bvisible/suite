@@ -6,6 +6,7 @@
 		:style="{
 			width: '960px',
 			height: '540px',
+			cursor: isDragging ? 'move' : 'default',
 		}"
 	>
 		<div
@@ -88,7 +89,7 @@ defineExpose({
 const position = ref(null)
 const dimensions = ref(null)
 
-const { dragTarget } = useDragAndDrop(position)
+const { isDragging, dragTarget } = useDragAndDrop(position)
 const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
 
 const selectSlide = (e) => {

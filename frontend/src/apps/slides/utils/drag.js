@@ -47,5 +47,5 @@ export const useDragAndDrop = (dragPosition) => {
 		{ immediate: true },
 	)
 
-	return { dragTarget }
+	return { dragTarget, isDragging }
 }
