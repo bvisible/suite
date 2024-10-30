@@ -3,6 +3,8 @@ import { createResource } from 'frappe-ui'
 
 const activeElement = ref(null)
 
+const focusedElement = ref(null)
+
 const name = ref('')
 
 const presentation = createResource({
@@ -16,4 +18,12 @@ const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
 
-export { name, presentation, activeSlideIndex, activeElement, activeSlideElements, inSlideShow }
+export {
+	name,
+	presentation,
+	activeSlideIndex,
+	activeElement,
+	activeSlideElements,
+	inSlideShow,
+	focusedElement,
+}

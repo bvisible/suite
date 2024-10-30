@@ -6,6 +6,7 @@
 		:autoplay="element.autoPlay"
 		:loop="element.loop"
 		:playbackRate="element.playbackRate"
+		@click="(e) => setActiveElement(e, element)"
 	/>
 	<div
 		v-if="isEqual(activeElement, element)"
@@ -20,9 +21,11 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed } from 'vue'
+import { ref, useTemplateRef, computed, inject } from 'vue'
 import { activeElement } from '@/stores/slide'
 import { isEqual } from 'lodash'
+
+const setActiveElement = inject('setActiveElement')
 
 const el = useTemplateRef('videoElement')
 const isPlaying = ref(false)
