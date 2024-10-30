@@ -33,9 +33,6 @@
 						:key="index"
 						:is="SlideElement"
 						:element="element"
-						@click="selectElement($event, element)"
-						class="focus:outline-none"
-						:class="isEqual(activeElement, element) ? 'ring-[1.5px] ring-blue-400' : ''"
 					/>
 				</TransitionGroup>
 				<component
@@ -45,8 +42,6 @@
 					:key="index"
 					:is="SlideElement"
 					:element="element"
-					@click="selectElement($event, element)"
-					class="focus:outline-none"
 				/>
 			</div>
 		</div>
@@ -64,6 +59,7 @@ import {
 	TransitionGroup,
 	nextTick,
 	computed,
+	provide,
 } from 'vue'
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
@@ -72,6 +68,7 @@ import SlideElement from '@/components/SlideElement.vue'
 
 import {
 	activeElement,
+	focusedElement,
 	activeSlideIndex,
 	presentation,
 	activeSlideElements,
@@ -81,10 +78,6 @@ import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
 const targetRef = useTemplateRef('target')
-
-defineExpose({
-	targetRef,
-})
 
 const position = ref(null)
 const dimensions = ref(null)
@@ -103,11 +96,11 @@ const selectSlide = (e) => {
 	activeElement.value = {
 		type: 'slide',
 	}
-	dragTarget.value = null
-	resizeTarget.value = null
+	focusedElement.value = null
+	removeDragAndResize()
 }
 
-const selectElement = (e, element) => {
+const setActiveElement = (e, element) => {
 	if (inSlideShow.value) return
 	if (activeElement.value == element && isResizing.value) {
 		isResizing.value = false
@@ -117,6 +110,7 @@ const selectElement = (e, element) => {
 	e.stopPropagation()
 
 	activeElement.value = element
+	focusedElement.value = null
 	addDragAndResize(e.target)
 }
 
@@ -138,6 +132,13 @@ const addDragAndResize = (el) => {
 		resizeTarget.value = el.parentElement
 		resizeMode.value = 'both'
 	}
+}
+
+const removeDragAndResize = () => {
+	position.value = null
+	dimensions.value = null
+	dragTarget.value = null
+	resizeTarget.value = null
 }
 
 const handleKeyDown = (event) => {
@@ -245,6 +246,13 @@ watch(
 	},
 	{ immediate: true },
 )
+
+provide('setActiveElement', setActiveElement)
+provide('removeDragAndResize', removeDragAndResize)
+
+defineExpose({
+	targetRef,
+})
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
