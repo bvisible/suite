@@ -32,7 +32,12 @@
 		>
 			<SlideNavigationPanel />
 
-			<Slide ref="slide" />
+			<Slide
+				ref="slide"
+				:style="{
+					cursor: inSlideShow ? slideCursor : 'auto',
+				}"
+			/>
 
 			<SlideElementsPanel />
 		</div>
@@ -140,17 +145,33 @@ watch(
 	{ immediate: true },
 )
 
+const slideCursor = ref('auto')
+
+function resetCursorVisibility() {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 2000)
+}
+
 const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement ? true : false
+	inSlideShow.value = document.fullscreenElement
 
 	if (document.fullscreenElement) {
 		activeElement.value = null
 		removePanAndZoom(containerRef.value)
 		slideRef.value.targetRef.style.transform = ''
+		slideRef.value.targetRef.style.transformOrigin = ''
 		slideRef.value.targetRef.style.transform = 'scale(1.5, 1.5)'
+		slideRef.value.targetRef.addEventListener('mousemove', resetCursorVisibility)
 	} else {
 		addPanAndZoom(containerRef.value, slideRef.value.targetRef)
 		slideRef.value.targetRef.style.transform = ''
+		slideRef.value.targetRef.style.transformOrigin = ''
+		slideRef.value.targetRef.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
 
