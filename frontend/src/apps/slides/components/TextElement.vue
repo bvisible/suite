@@ -26,7 +26,7 @@ const element = defineModel('element', {
 const textStyle = computed(() => ({
 	content: element.value.content,
 	fontFamily: element.value.fontFamily,
-	fontSize: element.value.fontSize + 'px',
+	fontSize: `${element.value.fontSize}px`,
 	fontWeight: element.value.fontWeight,
 	fontStyle: element.value.fontStyle,
 	textDecoration: element.value.textDecoration,
@@ -34,7 +34,7 @@ const textStyle = computed(() => ({
 	userSelect: focusedElement.value == element.value ? 'text' : 'none',
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
-	letterSpacing: element.value.letterSpacing + 'px',
+	letterSpacing: `${element.value.letterSpacing}px`,
 	wordWrap: 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,

@@ -171,8 +171,12 @@ const toggleProperty = (property, textDecoration) => {
 			newStyle = oldStyle == 'uppercase' ? 'none' : 'uppercase'
 			break
 		default:
+			if (!oldStyle) {
+				newStyle = textDecoration
+				break
+			}
 			newStyle = oldStyle.includes(textDecoration)
-				? oldStyle.replace(textDecoration, '').trim()
+				? oldStyle.replace(textDecoration, '')
 				: oldStyle + ' ' + textDecoration
 	}
 	activeElement.value[property] = newStyle

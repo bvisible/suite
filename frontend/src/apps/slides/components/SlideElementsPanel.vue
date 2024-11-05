@@ -1,12 +1,13 @@
 <template>
 	<!-- Element Properties Panel -->
 	<div
+		v-if="activeElement"
 		class="fixed z-20 flex h-[94.2%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
 		:class="activeElement ? 'right-13' : '-right-[174px]'"
 		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
 	>
 		<div v-if="activeTab == 'slide'">
-			<div class="flex flex-col gap-4 border-b px-4 py-4">
+			<div class="border-b p-4">
 				<div class="flex items-center justify-between">
 					<div class="text-2xs font-semibold uppercase text-gray-700">Slide</div>
 					<div class="text-2xs font-semibold text-gray-700">
@@ -33,14 +34,22 @@
 					<div class="text-2xs font-semibold uppercase text-gray-700">Orientation</div>
 					<div
 						class="flex cursor-pointer items-center justify-between pb-2 pe-2"
-						@click="activeElement.invertX = !activeElement.invertX"
+						@click="
+							activeElement.invertX == 1
+								? (activeElement.invertX = -1)
+								: (activeElement.invertX = 1)
+						"
 					>
 						<div class="text-sm text-gray-600">Flip Horizontally</div>
 						<FlipHorizontal size="20" strokeWidth="1.2" />
 					</div>
 					<div
 						class="flex cursor-pointer items-center justify-between pb-2 pe-2"
-						@click="activeElement.invertY = !activeElement.invertY"
+						@click="
+							activeElement.invertY == 1
+								? (activeElement.invertY = -1)
+								: (activeElement.invertY = 1)
+						"
 					>
 						<div class="text-sm text-gray-600">Flip Vertically</div>
 						<FlipVertical size="20" strokeWidth="1.2" />
@@ -231,10 +240,7 @@
 				</div>
 			</div>
 
-			<div
-				v-if="activeElement && activeElement.type != 'video'"
-				class="flex flex-col gap-4 px-4 py-4"
-			>
+			<div v-if="activeElement && activeTab != 'video'" class="flex flex-col gap-4 px-4 py-4">
 				<div class="text-2xs font-semibold uppercase text-gray-700">Other</div>
 				<SliderInput
 					label="Opacity"
@@ -362,8 +368,6 @@ import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 import NumberInput from './NumberInput.vue'
 import ColorPicker from './ColorPicker.vue'
-
-const selectElement = inject('selectElement')
 
 const activeTab = computed(() => {
 	if (!activeElement.value) return null
