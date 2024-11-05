@@ -119,7 +119,7 @@ const updateHue = (e) => {
 	}
 	var percent = x / unref(colorRect.width)
 	hue = 360 - 360 * percent
-	hueCursorLeft.value = x - 6 + 'px'
+	hueCursorLeft.value = `${x - 6}px`
 	var color = tinycolor('hsl ' + hue + ' ' + saturation + ' ' + lightness)
 	color = color.toHslString()
 	currentHue.value = tinycolor('hsl ' + hue + ' 1 .5').toHslString()
@@ -162,8 +162,8 @@ const updateShade = (e) => {
 	lightness = (hsvValue / 2) * (2 - hsvSaturation)
 	saturation = (hsvValue * hsvSaturation) / (1 - Math.abs(2 * lightness - 1))
 
-	shadeCursorLeft.value = x - 6 + 'px'
-	shadeCursorTop.value = y - 6 + 'px'
+	shadeCursorLeft.value = `${x - 6}px`
+	shadeCursorTop.value = `${y - 6}px`
 
 	var color = tinycolor('hsl ' + hue + ' ' + saturation + ' ' + lightness)
 	color = color.toHslString()
@@ -192,7 +192,7 @@ const updateOpacity = (e) => {
 	var percent = x / unref(colorRect.width)
 	currentOpacity.value = percent
 	currentColor.value = tinycolor(currentColor.value).setAlpha(percent).toHslString()
-	opacityCursorLeft.value = x - 6 + 'px'
+	opacityCursorLeft.value = `${x - 6}px`
 }
 
 const endUpdateOpacity = (e) => {
