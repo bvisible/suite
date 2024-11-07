@@ -36,6 +36,7 @@ const setOrigin = () => {
 }
 
 const startGesture = () => {
+	target.style.transform = ''
 	setOrigin()
 	setGestureMatrix()
 	applyMatrix()
@@ -64,8 +65,8 @@ const limitScale = () => {
 	let currentScale = transform.scale * scale
 
 	// limit scale between 0.5 - 2
-	if (currentScale > 2 || currentScale < 0.5) {
-		transform.scale = Math.max(0.5, Math.min(2, currentScale)) / scale
+	if (currentScale > 5 || currentScale < 0.5) {
+		transform.scale = Math.max(0.5, Math.min(5, currentScale)) / scale
 	}
 }
 
@@ -101,6 +102,7 @@ const setGestureMatrix = () => {
 }
 
 const applyMatrix = () => {
+	target.style.transformOrigin = '0 0'
 	target.style.transform = gestureMatrix.toString()
 }
 
