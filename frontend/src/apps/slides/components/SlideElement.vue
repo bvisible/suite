@@ -12,13 +12,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { activeElement } from '@/stores/slide'
 import { isEqual } from 'lodash'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
+
+const isDragging = inject('isDragging')
 
 const element = defineModel('element', {
 	type: Object,
@@ -31,6 +33,7 @@ const elementStyle = computed(() => ({
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
+	cursor: isDragging.value ? 'move' : 'default',
 }))
 
 const getDynamicComponent = (type) => {
