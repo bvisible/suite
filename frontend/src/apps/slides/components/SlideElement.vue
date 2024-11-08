@@ -1,7 +1,11 @@
 <template>
 	<div
 		:style="elementStyle"
-		:class="isEqual(activeElement, element) ? 'outline outline-offset-2 outline-blue-400' : ''"
+		:class="
+			isEqual(activeElement, element)
+				? 'active outline outline-offset-2 outline-blue-400'
+				: ''
+		"
 	>
 		<component :is="getDynamicComponent(element.type)" :element="element" />
 	</div>

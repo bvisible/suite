@@ -141,16 +141,31 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
+const duplicateElement = (e) => {
+	e.preventDefault()
+	if (activeElement.value) {
+		let newElement = JSON.parse(JSON.stringify(activeElement.value))
+		newElement.top += 10
+		newElement.left += 10
+		activeSlideElements.value.push(newElement)
+		activeElement.value = newElement
+		nextTick(() => {
+			let el = document.querySelector('.active')
+			addDragAndResize(el)
+		})
+	}
+}
+
 const handleKeyDown = (event) => {
 	if (document.activeElement.tagName == 'INPUT') return
-	if (['Delete', 'Backspace'].includes(event.key) && !activeElement.value.isContentEditable) {
+	if (['Delete', 'Backspace'].includes(event.key) && !focusedElement.value) {
 		if (activeElement.value) {
 			activeSlideElements.value = activeSlideElements.value.filter(
 				(el) => !isEqual(el, activeElement.value),
 			)
 			activeElement.value = null
 		}
-	}
+	} else if (event.key == 'd' && event.metaKey) duplicateElement(event)
 }
 
 const updateSlideThumbnail = (index) => {
