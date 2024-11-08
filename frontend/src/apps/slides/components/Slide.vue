@@ -264,6 +264,7 @@ watch(
 
 provide('setActiveElement', setActiveElement)
 provide('removeDragAndResize', removeDragAndResize)
+provide('isDragging', isDragging)
 
 defineExpose({
 	targetRef,
