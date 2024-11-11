@@ -6,7 +6,6 @@
 		:style="{
 			width: '960px',
 			height: '540px',
-			cursor: isDragging ? 'move' : 'default',
 		}"
 	>
 		<div
@@ -19,7 +18,7 @@
 					'white',
 			}"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-			@click="selectSlide"
+			@click="handleSlideClick"
 		>
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -86,7 +85,6 @@ const { isDragging, dragTarget } = useDragAndDrop(position)
 const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
 
 const selectSlide = (e) => {
-	if (inSlideShow.value || e.target != targetRef.value) return
 	if (isResizing.value) {
 		isResizing.value = false
 		return
@@ -98,6 +96,14 @@ const selectSlide = (e) => {
 	}
 	focusedElement.value = null
 	removeDragAndResize()
+}
+
+const handleSlideClick = (e) => {
+	if (e.target != targetRef.value) return
+	if (inSlideShow.value) {
+		activeSlideIndex.value += 1
+		return
+	} else selectSlide(e)
 }
 
 const setActiveElement = (e, element) => {
