@@ -1,22 +1,19 @@
 <template>
 	<!-- Slide (Dimensions: 16:9 ratio) -->
 	<div
+		ref="slideContainer"
 		class="slideContainer flex items-center justify-center"
 		:class="inSlideShow ? 'bg-black-900' : ''"
 		:style="{
 			width: '960px',
 			height: '540px',
+			cursor: inSlideShow ? slideCursor : 'default',
 		}"
 	>
 		<div
 			ref="target"
-			class="slide h-[540px] w-[960px] drop-shadow-xl"
-			:style="{
-				backgroundColor:
-					(presentation.data &&
-						presentation.data.slides[activeSlideIndex - 1]?.background) ||
-					'white',
-			}"
+			class="h-[540px] w-[960px] drop-shadow-xl"
+			:style="slideStyles"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
 		>
@@ -51,19 +48,18 @@
 import {
 	onMounted,
 	ref,
-	unref,
 	useTemplateRef,
 	watch,
-	onBeforeUnmount,
 	TransitionGroup,
 	nextTick,
 	computed,
 	provide,
 } from 'vue'
-import { useDragAndDrop } from '@/utils/drag'
-import { useResizer } from '@/utils/resizer'
 
 import SlideElement from '@/components/SlideElement.vue'
+
+import { useDragAndDrop } from '@/utils/drag'
+import { useResizer } from '@/utils/resizer'
 
 import {
 	activeElement,
@@ -76,13 +72,29 @@ import {
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
+const zoom = defineModel('zoom')
+
+const slideContainerRef = useTemplateRef('slideContainer')
 const targetRef = useTemplateRef('target')
 
+const { transform, transformOrigin, allowPanAndZoom } = zoom.value
+
+const slideCursor = ref('auto')
 const position = ref(null)
 const dimensions = ref(null)
 
 const { isDragging, dragTarget } = useDragAndDrop(position)
 const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
+
+const slideStyles = computed(() => {
+	if (!presentation.data) return
+	return {
+		backgroundColor:
+			presentation.data.slides[activeSlideIndex.value - 1]?.background || 'white',
+		transform: transform.value,
+		transformOrigin: transformOrigin.value,
+	}
+})
 
 const selectSlide = (e) => {
 	if (isResizing.value) {
@@ -181,6 +193,49 @@ const updateSlideThumbnail = (index) => {
 	})
 }
 
+const handleSlideEnter = (el, done) => {
+	el.style.opacity = 0
+	nextTick(() => {
+		el.style.transition = 'opacity 1s'
+		el.style.opacity = 1
+	})
+}
+
+const handleSlideLeave = (el, done) => {
+	el.style.opacity = 1
+	nextTick(() => {
+		el.style.transition = 'opacity 1s'
+		el.style.opacity = 0
+	})
+}
+
+function resetCursorVisibility() {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 2000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		activeElement.value = null
+		transformOrigin.value = ''
+		transform.value = 'scale(1.5, 1.5)'
+		allowPanAndZoom.value = false
+		targetRef.value.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		transform.value = ''
+		transformOrigin.value = '0 0'
+		allowPanAndZoom.value = true
+		targetRef.value.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+
 watch(
 	() => activeSlideIndex.value,
 	(new_val, old_val) => {
@@ -220,30 +275,6 @@ watch(
 	{ immediate: true },
 )
 
-onMounted(() => {
-	window.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-	window.removeEventListener('keydown', handleKeyDown)
-})
-
-const handleSlideEnter = (el, done) => {
-	el.style.opacity = 0
-	nextTick(() => {
-		el.style.transition = 'opacity 1s'
-		el.style.opacity = 1
-	})
-}
-
-const handleSlideLeave = (el, done) => {
-	el.style.opacity = 1
-	nextTick(() => {
-		el.style.transition = 'opacity 1s'
-		el.style.opacity = 0
-	})
-}
-
 watch(
 	() => position.value,
 	() => {
@@ -268,13 +299,17 @@ watch(
 	{ immediate: true },
 )
 
-provide('setActiveElement', setActiveElement)
-provide('removeDragAndResize', removeDragAndResize)
-provide('isDragging', isDragging)
+onMounted(() => {
+	document.addEventListener('fullscreenchange', handleScreenChange)
+})
 
 defineExpose({
 	targetRef,
 })
+
+provide('setActiveElement', setActiveElement)
+provide('removeDragAndResize', removeDragAndResize)
+provide('isDragging', isDragging)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
