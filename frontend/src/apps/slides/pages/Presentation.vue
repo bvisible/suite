@@ -32,12 +32,7 @@
 		>
 			<SlideNavigationPanel />
 
-			<Slide
-				ref="slide"
-				:style="{
-					cursor: inSlideShow ? slideCursor : 'auto',
-				}"
-			/>
+			<Slide ref="slide" :zoom="zoom" />
 
 			<SlideElementsPanel />
 		</div>
@@ -45,43 +40,31 @@
 </template>
 
 <script setup>
-import {
-	ref,
-	watch,
-	onMounted,
-	nextTick,
-	useTemplateRef,
-	onBeforeMount,
-	onBeforeUnmount,
-} from 'vue'
+import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { Tooltip, call, createResource } from 'frappe-ui'
+import { call } from 'frappe-ui'
 
-import { StickyNote } from 'lucide-vue-next'
-import Logo from '@/icons/Logo.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
-import { addPanAndZoom, removePanAndZoom } from '@/utils/zoom'
+import { usePanAndZoom } from '@/utils/zoom'
 import {
 	activeElement,
 	activeSlideIndex,
 	name,
 	presentation,
 	activeSlideElements,
-	inSlideShow,
 } from '@/stores/slide'
 
 const route = useRoute()
 const router = useRouter()
+const zoom = usePanAndZoom()
 
 const containerRef = useTemplateRef('container')
 const slideRef = useTemplateRef('slide')
 const newTitleRef = useTemplateRef('newTitleRef')
-
-const showNavigator = ref(false)
 
 const renameMode = ref(false)
 const newTitle = ref('')
@@ -145,44 +128,13 @@ watch(
 	{ immediate: true },
 )
 
-const slideCursor = ref('auto')
-
-function resetCursorVisibility() {
-	let cursorTimer
-
-	slideCursor.value = 'auto'
-	clearTimeout(cursorTimer)
-	cursorTimer = setTimeout(() => {
-		slideCursor.value = 'none'
-	}, 2000)
-}
-
-const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement
-
-	if (document.fullscreenElement) {
-		activeElement.value = null
-		removePanAndZoom(containerRef.value)
-		slideRef.value.targetRef.style.transform = ''
-		slideRef.value.targetRef.style.transformOrigin = ''
-		slideRef.value.targetRef.style.transform = 'scale(1.5, 1.5)'
-		slideRef.value.targetRef.addEventListener('mousemove', resetCursorVisibility)
-	} else {
-		addPanAndZoom(containerRef.value, slideRef.value.targetRef)
-		slideRef.value.targetRef.style.transform = ''
-		slideRef.value.targetRef.style.transformOrigin = ''
-		slideRef.value.targetRef.removeEventListener('mousemove', resetCursorVisibility)
-	}
-}
-
 onMounted(() => {
-	document.addEventListener('fullscreenchange', handleScreenChange)
-	if (!containerRef.value || !slideRef.value.targetRef) return
-	addPanAndZoom(containerRef.value, slideRef.value.targetRef)
+	zoom.containerElement.value = containerRef.value
+	zoom.targetElement.value = slideRef.value.targetRef
+	zoom.allowPanAndZoom.value = true
 })
 
 onBeforeUnmount(() => {
-	if (!containerRef.value) return
-	removePanAndZoom(containerRef.value)
+	zoom.allowPanAndZoom.value = false
 })
 </script>
