@@ -126,9 +126,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, useTemplateRef } from 'vue'
 import { FormControl } from 'frappe-ui'
-import { StickyNote, Strikethrough, CaseUpper } from 'lucide-vue-next'
+import { Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 import { debounce } from '@/utils/debounce'
 import { activeElement } from '@/stores/slide'

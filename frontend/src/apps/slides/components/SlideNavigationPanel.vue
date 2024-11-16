@@ -2,7 +2,7 @@
 	<!-- Slide Navigation Panel -->
 	<div
 		id="slide-navigation-panel"
-		class="fixed z-20 h-[94.2%] w-44 select-none border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out hover:overflow-y-auto"
+		class="fixed z-20 h-[94.27%] w-44 select-none border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out hover:overflow-y-auto"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 		v-if="presentation.data?.slides"
 	>
@@ -48,15 +48,12 @@
 
 <script setup>
 import { ref, onBeforeMount, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
 import Draggable from 'vuedraggable'
 
 import { call } from 'frappe-ui'
 
 import { PanelLeftOpen, PanelLeftClose } from 'lucide-vue-next'
 import { activeSlideIndex, presentation } from '@/stores/slide'
-
-const route = useRoute()
 
 const showNavigator = ref(false)
 
@@ -82,7 +79,7 @@ const addSlide = async () => {
 			doctype: 'Slide',
 			parenttype: 'Presentation',
 			parentfield: 'slides',
-			parent: route.params.name,
+			parent: presentation.data.name,
 		},
 	})
 	await presentation.reload()

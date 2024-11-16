@@ -2,7 +2,7 @@
 	<!-- Element Properties Panel -->
 	<div
 		v-if="activeElement"
-		class="fixed z-20 flex h-[94.2%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
+		class="fixed z-20 flex h-[94.27%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
 		:class="activeElement ? 'right-13' : '-right-[174px]'"
 		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
 	>
@@ -253,7 +253,7 @@
 	</div>
 
 	<!-- Slide Elements Panel -->
-	<div class="fixed right-0 z-20 flex h-[94.2%] w-fit select-none border-l bg-white">
+	<div class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white">
 		<div class="flex flex-col justify-between">
 			<div>
 				<Tooltip text="Text" hover-delay="1" placement="left">
@@ -351,17 +351,11 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 
-import { Tooltip, FileUploader, FormControl, Switch } from 'frappe-ui'
-import {
-	FlipHorizontal,
-	FlipVertical,
-	Repeat2,
-	StickyNote,
-	TvMinimalPlay,
-	Undo,
-} from 'lucide-vue-next'
+import { Tooltip, FileUploader } from 'frappe-ui'
+
+import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
 import { activeElement, activeSlideIndex, activeSlideElements, presentation } from '@/stores/slide'
 import SliderInput from './SliderInput.vue'
