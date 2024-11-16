@@ -54,6 +54,7 @@ import {
 	nextTick,
 	computed,
 	provide,
+	onBeforeUnmount,
 } from 'vue'
 
 import SlideElement from '@/components/SlideElement.vue'
@@ -107,7 +108,6 @@ const selectSlide = (e) => {
 		type: 'slide',
 	}
 	focusedElement.value = null
-	removeDragAndResize()
 }
 
 const handleSlideClick = (e) => {
@@ -129,19 +129,9 @@ const setActiveElement = (e, element) => {
 
 	activeElement.value = element
 	focusedElement.value = null
-	addDragAndResize(e.target)
 }
 
 const addDragAndResize = (el) => {
-	let rect = el.getBoundingClientRect()
-	position.value = {
-		top: rect.top,
-		left: rect.left,
-	}
-	dimensions.value = {
-		width: rect.width,
-	}
-
 	dragTarget.value = el
 	if (activeElement.value.type == 'text') {
 		resizeTarget.value = el
@@ -167,10 +157,6 @@ const duplicateElement = (e) => {
 		newElement.left += 10
 		activeSlideElements.value.push(newElement)
 		activeElement.value = newElement
-		nextTick(() => {
-			let el = document.querySelector('.active')
-			addDragAndResize(el)
-		})
 	}
 }
 
@@ -260,6 +246,10 @@ watch(
 watch(
 	() => activeElement.value,
 	() => {
+		nextTick(() => {
+			removeDragAndResize()
+			addDragAndResize(document.querySelector('.active'))
+		})
 		updateSlideThumbnail(activeSlideIndex.value - 1)
 	},
 )
@@ -300,9 +290,14 @@ watch(
 )
 
 onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown)
+	document.removeEventListener('fullscreenchange', handleScreenChange)
+})
 defineExpose({
 	targetRef,
 })
