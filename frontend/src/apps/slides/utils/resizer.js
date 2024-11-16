@@ -37,6 +37,14 @@ export const useResizer = (position, resizeDimensions) => {
 		originalBottom = rect.bottom
 		originalLeft = rect.left
 
+		position.value = {
+			top: rect.top,
+			left: rect.left,
+		}
+		resizeDimensions.value = {
+			width: rect.width,
+		}
+
 		window.addEventListener('mousemove', resize)
 		window.addEventListener('mouseup', stopResize, { once: true })
 	}
