@@ -60,13 +60,13 @@ const showNavigator = ref(false)
 const updateActiveSlide = (e) => {
 	switch (e.key) {
 		case 'ArrowDown':
-			if (activeSlideIndex.value < presentation.data.slides.length) {
+			if (activeSlideIndex.value < presentation.data.slides.length - 1) {
 				activeSlideIndex.value += 1
 			}
 			break
 
 		case 'ArrowUp':
-			if (activeSlideIndex.value > 1) {
+			if (activeSlideIndex.value > 0) {
 				activeSlideIndex.value -= 1
 			}
 			break

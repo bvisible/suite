@@ -12,7 +12,7 @@ const presentation = createResource({
 	makeParams: () => ({ name: name.value }),
 })
 
-const activeSlideIndex = ref(1)
+const activeSlideIndex = ref(0)
 
 const activeSlideElements = ref([])
 
