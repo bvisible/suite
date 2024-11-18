@@ -38,6 +38,7 @@
 					:key="index"
 					:is="SlideElement"
 					:element="element"
+					:data-index="index"
 				/>
 			</div>
 		</div>
@@ -63,6 +64,7 @@ import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
 import {
+	currentDataIndex,
 	activeElement,
 	focusedElement,
 	activeSlideIndex,
@@ -70,7 +72,6 @@ import {
 	activeSlideElements,
 	inSlideShow,
 } from '@/stores/slide'
-import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
 const zoom = defineModel('zoom')
@@ -106,10 +107,17 @@ const selectSlide = (e) => {
 	activeElement.value = {
 		type: 'slide',
 	}
-	focusedElement.value = null
+	if (focusedElement.value) {
+		focusedElement.value.content = document.querySelector(
+			`[data-index="${currentDataIndex.value}"]`,
+		).innerText
+		focusedElement.value = null
+	}
+	currentDataIndex.value = null
 }
 
 const handleSlideClick = (e) => {
+	e.stopPropagation()
 	if (e.target != targetRef.value) return
 	if (inSlideShow.value) {
 		activeSlideIndex.value += 1
@@ -126,11 +134,20 @@ const setActiveElement = (e, element) => {
 	e.preventDefault()
 	e.stopPropagation()
 
+	if (focusedElement.value) {
+		focusedElement.value.content = document.querySelector(
+			`[data-index="${currentDataIndex.value}"]`,
+		).innerText
+		focusedElement.value = null
+	}
+
 	activeElement.value = element
-	focusedElement.value = null
+	currentDataIndex.value = activeSlideElements.value.indexOf(element)
 }
 
-const addDragAndResize = (el) => {
+const addDragAndResize = () => {
+	let el = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+	if (!el || !activeElement.value) return
 	dragTarget.value = el
 	if (activeElement.value.type == 'text') {
 		resizeTarget.value = el
@@ -156,6 +173,7 @@ const duplicateElement = (e) => {
 		newElement.left += 10
 		activeSlideElements.value.push(newElement)
 		activeElement.value = newElement
+		currentDataIndex.value = activeSlideElements.value.indexOf(newElement)
 	}
 }
 
@@ -163,15 +181,14 @@ const handleKeyDown = (event) => {
 	if (document.activeElement.tagName == 'INPUT') return
 	if (['Delete', 'Backspace'].includes(event.key) && !focusedElement.value) {
 		if (activeElement.value) {
-			activeSlideElements.value = activeSlideElements.value.filter(
-				(el) => !isEqual(el, activeElement.value),
-			)
+			activeSlideElements.value.splice(currentDataIndex.value, 1)
 			activeElement.value = null
 		}
 	} else if (event.key == 'd' && event.metaKey) duplicateElement(event)
 }
 
 const updateSlideThumbnail = (index) => {
+	if (!targetRef.value) return
 	html2canvas(targetRef.value).then((canvas) => {
 		let img = canvas.toDataURL('image/png')
 		presentation.data.slides[index].thumbnail = img
@@ -225,7 +242,10 @@ watch(
 	() => activeSlideIndex.value,
 	(new_val, old_val) => {
 		if (!presentation.data) return
-		if (old_val && presentation.data.slides[old_val]) {
+		activeElement.value = null
+		focusedElement.value = null
+		currentDataIndex.value = null
+		if (presentation.data.slides[old_val]) {
 			presentation.data.slides[old_val].elements = JSON.stringify(activeSlideElements.value)
 			updateSlideThumbnail(old_val)
 		}
@@ -241,11 +261,8 @@ watch(
 watch(
 	() => activeElement.value,
 	() => {
-		nextTick(() => {
-			removeDragAndResize()
-			addDragAndResize(document.querySelector('.active'))
-		})
-		updateSlideThumbnail(activeSlideIndex.value)
+		removeDragAndResize()
+		addDragAndResize()
 	},
 	{ immediate: true },
 )
@@ -294,6 +311,7 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
+
 defineExpose({
 	targetRef,
 })

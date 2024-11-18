@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="focus:outline-none"
-		:contenteditable="isEqual(focusedElement, element)"
+		:contenteditable="currentDataIndex == $attrs['data-index']"
 		:style="textStyle"
 		@click="selectElement"
 	>
@@ -10,10 +10,11 @@
 </template>
 
 <script setup>
-import { isEqual } from 'lodash'
-import { ref, computed, inject } from 'vue'
-import { activeElement, focusedElement, inSlideShow } from '@/stores/slide'
+import { ref, computed, inject, useAttrs } from 'vue'
+import { activeElement, focusedElement, inSlideShow, currentDataIndex } from '@/stores/slide'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
+
+const attrs = useAttrs()
 
 const setActiveElement = inject('setActiveElement')
 const removeDragAndResize = inject('removeDragAndResize')
@@ -47,14 +48,16 @@ const selectElement = (e) => {
 }
 
 const setActiveText = (e) => {
-	if (textStyle.value.userSelect == 'text') return
+	e.stopPropagation()
+	if (focusedElement.value == element.value) return
 	setActiveElement(e, element.value)
 }
 
 const setFocusElement = (e) => {
 	e.stopPropagation()
-	if (activeElement.value == element.value) removeDragAndResize()
-	activeElement.value = element.value
+	if (focusedElement.value == element.value) return
+	activeElement.value = null
 	focusedElement.value = element.value
+	currentDataIndex.value = attrs['data-index']
 }
 </script>
