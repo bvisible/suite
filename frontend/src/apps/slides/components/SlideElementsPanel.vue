@@ -11,15 +11,13 @@
 				<div class="flex items-center justify-between">
 					<div class="text-2xs font-semibold uppercase text-gray-700">Slide</div>
 					<div class="text-2xs font-semibold text-gray-700">
-						{{ activeSlideIndex + ' of ' + presentation.data.slides.length }}
+						{{ activeSlideIndex + 1 + ' of ' + presentation.data.slides.length }}
 					</div>
 				</div>
 
 				<div class="flex items-center justify-between">
 					<div class="text-sm text-gray-600">Background</div>
-					<ColorPicker
-						v-model="presentation.data.slides[activeSlideIndex - 1].background"
-					/>
+					<ColorPicker v-model="presentation.data.slides[activeSlideIndex].background" />
 				</div>
 			</div>
 		</div>
@@ -369,8 +367,8 @@ const activeTab = computed(() => {
 })
 
 const getTextColor = () => {
-	if (presentation.data.slides[activeSlideIndex.value - 1].background) {
-		let color = presentation.data.slides[activeSlideIndex.value - 1].background
+	if (presentation.data.slides[activeSlideIndex.value].background) {
+		let color = presentation.data.slides[activeSlideIndex.value].background
 		let r = parseInt(color.slice(1, 3), 16)
 		let g = parseInt(color.slice(3, 5), 16)
 		let b = parseInt(color.slice(5, 7), 16)

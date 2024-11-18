@@ -20,7 +20,6 @@
 			</span>
 
 			<div class="flex select-none gap-2">
-				<Button label="Save" size="sm" @click="savePresentation" />
 				<Button variant="solid" label="Present" size="sm" @click="startSlideShow" />
 			</div>
 		</div>
@@ -59,6 +58,8 @@ import {
 	activeSlideElements,
 } from '@/stores/slide'
 
+let autosaveInterval = null
+
 const route = useRoute()
 const router = useRouter()
 const zoom = usePanAndZoom()
@@ -95,19 +96,6 @@ const clearFocus = (e) => {
 	focusedElement.value = null
 }
 
-const savePresentation = async () => {
-	presentation.data.slides[activeSlideIndex.value - 1].background =
-		presentation.data.slides[activeSlideIndex.value - 1].background
-	presentation.data.slides[activeSlideIndex.value - 1].elements = JSON.stringify(
-		activeSlideElements.value,
-		null,
-		2,
-	)
-	await call('frappe.client.save', {
-		doc: presentation.data,
-	})
-}
-
 const startSlideShow = () => {
 	let elem = document.querySelector('.slideContainer')
 
@@ -118,6 +106,19 @@ const startSlideShow = () => {
 	} else if (elem.msRequestFullscreen) {
 		elem.msRequestFullscreen()
 	}
+}
+
+const saveChanges = async () => {
+	if (!presentation.data) return
+	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
+		activeSlideElements.value,
+		null,
+		2,
+	)
+	await call('frappe.client.save', {
+		doc: presentation.data,
+	})
+	await presentation.reload()
 }
 
 watch(
@@ -134,9 +135,11 @@ onMounted(() => {
 	zoom.containerElement.value = containerRef.value
 	zoom.targetElement.value = slideRef.value.targetRef
 	zoom.allowPanAndZoom.value = true
+	autosaveInterval = setInterval(saveChanges, 60000)
 })
 
 onBeforeUnmount(() => {
 	zoom.allowPanAndZoom.value = false
+	clearInterval(autosaveInterval)
 })
 </script>

@@ -90,20 +90,19 @@ const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions
 const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
-		backgroundColor:
-			presentation.data.slides[activeSlideIndex.value - 1]?.background || 'white',
+		backgroundColor: presentation.data.slides[activeSlideIndex.value]?.background || 'white',
 		transform: transform.value,
 		transformOrigin: transformOrigin.value,
 	}
 })
 
 const selectSlide = (e) => {
+	e.preventDefault()
+	e.stopPropagation()
 	if (isResizing.value) {
 		isResizing.value = false
 		return
 	}
-	e.preventDefault()
-	e.stopPropagation()
 	activeElement.value = {
 		type: 'slide',
 	}
@@ -226,17 +225,13 @@ watch(
 	() => activeSlideIndex.value,
 	(new_val, old_val) => {
 		if (!presentation.data) return
-		if (old_val && presentation.data.slides[old_val - 1]) {
-			presentation.data.slides[old_val - 1].elements = JSON.stringify(
-				activeSlideElements.value,
-			)
-			updateSlideThumbnail(old_val - 1)
+		if (old_val && presentation.data.slides[old_val]) {
+			presentation.data.slides[old_val].elements = JSON.stringify(activeSlideElements.value)
+			updateSlideThumbnail(old_val)
 		}
-		if (presentation.data.slides[new_val - 1]) {
-			if (presentation.data.slides[new_val - 1].elements)
-				activeSlideElements.value = JSON.parse(
-					presentation.data.slides[new_val - 1].elements,
-				)
+		if (presentation.data.slides[new_val]) {
+			if (presentation.data.slides[new_val].elements)
+				activeSlideElements.value = JSON.parse(presentation.data.slides[new_val].elements)
 			else activeSlideElements.value = []
 		}
 	},
@@ -250,16 +245,17 @@ watch(
 			removeDragAndResize()
 			addDragAndResize(document.querySelector('.active'))
 		})
-		updateSlideThumbnail(activeSlideIndex.value - 1)
+		updateSlideThumbnail(activeSlideIndex.value)
 	},
+	{ immediate: true },
 )
 
 watch(
 	() => presentation.data,
 	() => {
-		if (!presentation.data?.slides[activeSlideIndex.value - 1]?.elements) return
+		if (!presentation.data?.slides[activeSlideIndex.value]?.elements) return
 		activeSlideElements.value = JSON.parse(
-			presentation.data.slides[activeSlideIndex.value - 1].elements,
+			presentation.data.slides[activeSlideIndex.value].elements,
 		)
 	},
 	{ immediate: true },
