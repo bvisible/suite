@@ -2,19 +2,19 @@
 	<div
 		:style="elementStyle"
 		:class="
-			isEqual(activeElement, element)
-				? 'active outline outline-offset-2 outline-blue-400'
+			currentDataIndex == $attrs['data-index']
+				? 'outline outline-offset-2 outline-blue-400'
 				: ''
 		"
 	>
-		<component :is="getDynamicComponent(element.type)" :element="element" />
+		<component :is="getDynamicComponent(element.type)" :element="element" v-bind="$attrs" />
 	</div>
 </template>
 
 <script setup>
 import { computed, inject } from 'vue'
-import { activeElement } from '@/stores/slide'
-import { isEqual } from 'lodash'
+
+import { currentDataIndex } from '@/stores/slide'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'

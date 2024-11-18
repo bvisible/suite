@@ -13,11 +13,11 @@
 						:src="slide.thumbnail"
 						class="my-4 h-20 cursor-pointer rounded"
 						:class="
-							activeSlideIndex == slide.idx
+							activeSlideIndex == slide.idx - 1
 								? 'ring-2 ring-blue-400 ring-offset-1'
 								: 'border border-gray-300'
 						"
-						@click="activeSlideIndex = slide.idx"
+						@click="activeSlideIndex = slide.idx - 1"
 					/>
 				</template>
 			</Draggable>

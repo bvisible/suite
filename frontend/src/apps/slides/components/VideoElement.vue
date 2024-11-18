@@ -9,7 +9,7 @@
 			:playbackRate="element.playbackRate"
 		/>
 		<div
-			v-if="isEqual(activeElement, element)"
+			v-if="currentDataIndex == $attrs['data-index']"
 			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
 		>
 			<FeatherIcon
@@ -21,10 +21,10 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed, inject } from 'vue'
-import { activeElement, inSlideShow } from '@/stores/slide'
-import { isEqual } from 'lodash'
+import { ref, useTemplateRef, computed, inject, useAttrs } from 'vue'
+import { activeElement, currentDataIndex, inSlideShow } from '@/stores/slide'
 
+const attrs = useAttrs()
 const setActiveElement = inject('setActiveElement')
 
 const el = useTemplateRef('videoElement')
@@ -45,7 +45,7 @@ const videoStyle = computed(() => ({
 
 const handleVideoControls = (e) => {
 	e.stopPropagation()
-	if (inSlideShow.value || isEqual(activeElement.value, element.value)) {
+	if (inSlideShow.value || currentDataIndex.value != attrs['data-index']) {
 		const video = el.value
 		if (video.paused) {
 			isPlaying.value = true
