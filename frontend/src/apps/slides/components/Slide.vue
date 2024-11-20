@@ -18,13 +18,8 @@
 			@click="handleSlideClick"
 		>
 			<div
-				v-show="showVerticalLine"
-				class="absolute h-full w-[1px] bg-blue-400"
-				:style="{
-					position: 'fixed',
-					left: '50%',
-					transform: 'translateX(-50%)',
-				}"
+				v-if="showVerticalLine"
+				class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
 			></div>
 
 			<div v-if="activeSlideElements">
@@ -302,14 +297,14 @@ watch(
 		let activeDiv = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
 		activeDiv = activeDiv.getBoundingClientRect()
 
-		let rect = targetRef.value.getBoundingClientRect()
-		let centerX = rect.left + rect.width / 2
-		let centerY = rect.top + rect.height / 2
+		let slideRect = targetRef.value.getBoundingClientRect()
+		let centerX = slideRect.left + slideRect.width / 2
+		let centerY = slideRect.top + slideRect.height / 2
 
 		let centerOfElementX = position.value.left + activeDiv.width / 2
 		let centerOfElementY = position.value.top + activeDiv.height / 2
 
-		if (Math.abs(centerOfElementX - centerX) < 2) {
+		if (Math.abs(centerOfElementX - centerX) < 10) {
 			showVerticalLine.value = true
 		} else {
 			showVerticalLine.value = false
