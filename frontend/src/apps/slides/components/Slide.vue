@@ -307,6 +307,16 @@ const updateCenterAlignmentGuides = () => {
 }
 
 watch(
+	() => isDragging.value,
+	() => {
+		if (!isDragging.value) {
+			showVerticalCenter.value = false
+			showHorizontalCenter.value = false
+		}
+	},
+)
+
+watch(
 	() => position.value,
 	() => {
 		if (!position.value) return
