@@ -18,12 +18,12 @@
 			@click="handleSlideClick"
 		>
 			<div
-				v-if="showVerticalLine"
+				v-if="showVerticalCenter"
 				class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
 			></div>
 
 			<div
-				v-if="showHorizontalLine"
+				v-if="showHorizontalCenter"
 				class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 			></div>
 
@@ -288,29 +288,22 @@ watch(
 	{ immediate: true },
 )
 
-const showVerticalLine = ref(false)
-const showHorizontalLine = ref(false)
+const showVerticalCenter = ref(false)
+const showHorizontalCenter = ref(false)
 
-const updateVerticalLine = () => {
+const updateCenterAlignmentGuides = () => {
 	let activeDiv = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
 	activeDiv = activeDiv.getBoundingClientRect()
 
 	let slideRect = targetRef.value.getBoundingClientRect()
 	let centerX = slideRect.left + slideRect.width / 2
-	let centerOfElementX = position.value.left + activeDiv.width / 2
-
-	if (Math.abs(centerOfElementX - centerX) < 10) showVerticalLine.value = true
-}
-
-const updateHorizontalLine = () => {
-	let activeDiv = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
-	activeDiv = activeDiv.getBoundingClientRect()
-
-	let slideRect = targetRef.value.getBoundingClientRect()
 	let centerY = slideRect.top + slideRect.height / 2
+
+	let centerOfElementX = position.value.left + activeDiv.width / 2
 	let centerOfElementY = position.value.top + activeDiv.height / 2
 
-	if (Math.abs(centerOfElementY - centerY) < 10) showHorizontalLine.value = true
+	if (Math.abs(centerOfElementX - centerX) < 10) showVerticalCenter.value = true
+	if (Math.abs(centerOfElementY - centerY) < 10) showHorizontalCenter.value = true
 }
 
 watch(
@@ -322,8 +315,7 @@ watch(
 		activeElement.value.left = (position.value.left - container.left) / currentScale
 		activeElement.value.top = (position.value.top - container.top) / currentScale
 
-		updateVerticalLine()
-		updateHorizontalLine()
+		updateCenterAlignmentGuides()
 	},
 	{ immediate: true },
 )
