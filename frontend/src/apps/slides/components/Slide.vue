@@ -310,6 +310,28 @@ watch(
 	() => isDragging.value,
 	() => {
 		if (!isDragging.value) {
+			let activeDiv = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+			if (!activeDiv) return
+			activeDiv = activeDiv.getBoundingClientRect()
+
+			let slideRect = targetRef.value.getBoundingClientRect()
+			let centerX = slideRect.left + slideRect.width / 2
+			let centerY = slideRect.top + slideRect.height / 2
+
+			let centerOfElementX = position.value.left + activeElement.value.width / 2
+			let centerOfElementY = position.value.top + activeDiv.height / 2
+
+			if (Math.abs(centerOfElementX - centerX) < 10) {
+				position.value = {
+					...position.value,
+					left: centerX - activeElement.value.width / 2,
+				}
+			}
+
+			if (Math.abs(centerOfElementY - centerY) < 10) {
+				position.value = { ...position.value, top: centerY - activeDiv.height / 2 }
+			}
+
 			showVerticalCenter.value = false
 			showHorizontalCenter.value = false
 		}
