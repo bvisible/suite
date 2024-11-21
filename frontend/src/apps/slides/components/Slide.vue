@@ -18,12 +18,12 @@
 			@click="handleSlideClick"
 		>
 			<div
-				v-if="showVerticalCenter"
+				v-show="showVerticalCenter"
 				class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
 			></div>
 
 			<div
-				v-if="showHorizontalCenter"
+				v-show="showHorizontalCenter"
 				class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 			></div>
 
@@ -67,6 +67,7 @@ import {
 	provide,
 	onBeforeUnmount,
 } from 'vue'
+import { useElementBounding } from '@vueuse/core'
 
 import SlideElement from '@/components/SlideElement.vue'
 
@@ -291,45 +292,40 @@ watch(
 const showVerticalCenter = ref(false)
 const showHorizontalCenter = ref(false)
 
+const activeDiv = computed(() => {
+	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+})
+
+const slideRect = useElementBounding(targetRef)
+const activeRect = useElementBounding(activeDiv)
+
 const updateCenterAlignmentGuides = () => {
-	let activeDiv = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
-	activeDiv = activeDiv.getBoundingClientRect()
+	let centerX = slideRect.left.value + slideRect.width.value / 2
+	let centerY = slideRect.top.value + slideRect.height.value / 2
 
-	let slideRect = targetRef.value.getBoundingClientRect()
-	let centerX = slideRect.left + slideRect.width / 2
-	let centerY = slideRect.top + slideRect.height / 2
+	let centerOfElementX = position.value.left + activeRect.width.value / 2
+	let centerOfElementY = position.value.top + activeRect.height.value / 2
 
-	let centerOfElementX = position.value.left + activeDiv.width / 2
-	let centerOfElementY = position.value.top + activeDiv.height / 2
-
-	if (Math.abs(centerOfElementX - centerX) < 10) showVerticalCenter.value = true
-	if (Math.abs(centerOfElementY - centerY) < 10) showHorizontalCenter.value = true
+	showVerticalCenter.value = Math.abs(centerOfElementX - centerX) < 10
+	showHorizontalCenter.value = Math.abs(centerOfElementY - centerY) < 10
 }
 
 watch(
 	() => isDragging.value,
 	() => {
 		if (!isDragging.value) {
-			let activeDiv = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
-			if (!activeDiv) return
-			activeDiv = activeDiv.getBoundingClientRect()
+			let centerX = slideRect.left.value + slideRect.width.value / 2
+			let centerY = slideRect.top.value + slideRect.height.value / 2
 
-			let slideRect = targetRef.value.getBoundingClientRect()
-			let centerX = slideRect.left + slideRect.width / 2
-			let centerY = slideRect.top + slideRect.height / 2
-
-			let centerOfElementX = position.value.left + activeElement.value.width / 2
-			let centerOfElementY = position.value.top + activeDiv.height / 2
-
-			if (Math.abs(centerOfElementX - centerX) < 10) {
+			if (showVerticalCenter.value) {
 				position.value = {
 					...position.value,
-					left: centerX - activeElement.value.width / 2,
+					left: centerX - activeRect.width.value / 2,
 				}
 			}
 
-			if (Math.abs(centerOfElementY - centerY) < 10) {
-				position.value = { ...position.value, top: centerY - activeDiv.height / 2 }
+			if (showHorizontalCenter.value) {
+				position.value = { ...position.value, top: centerY - activeRect.height.value / 2 }
 			}
 
 			showVerticalCenter.value = false
@@ -342,10 +338,9 @@ watch(
 	() => position.value,
 	() => {
 		if (!position.value) return
-		let container = targetRef.value.getBoundingClientRect()
-		let currentScale = container.width / 960
-		activeElement.value.left = (position.value.left - container.left) / currentScale
-		activeElement.value.top = (position.value.top - container.top) / currentScale
+		let currentScale = slideRect.width.value / 960
+		activeElement.value.left = (position.value.left - slideRect.left.value) / currentScale
+		activeElement.value.top = (position.value.top - slideRect.top.value) / currentScale
 
 		updateCenterAlignmentGuides()
 	},
@@ -357,7 +352,7 @@ watch(
 	() => {
 		if (!dimensions.value) return
 		if (activeElement.value && dimensions.value.width != activeElement.value.width) {
-			let currentScale = targetRef.value.getBoundingClientRect().width / 960
+			let currentScale = slideRect.width.value / 960
 			activeElement.value.width = dimensions.value.width / currentScale
 		}
 	},
