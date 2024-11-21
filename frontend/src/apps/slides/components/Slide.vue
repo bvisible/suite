@@ -18,12 +18,12 @@
 			@click="handleSlideClick"
 		>
 			<div
-				v-show="showVerticalCenter"
+				v-show="isDragging && showVerticalCenter"
 				class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
 			></div>
 
 			<div
-				v-show="showHorizontalCenter"
+				v-show="isDragging && showHorizontalCenter"
 				class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 			></div>
 
