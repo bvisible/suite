@@ -26,7 +26,10 @@ const pairElement = computed(() => {
 	activeSlideElements.value.forEach((el, index) => {
 		if (index == currentDataIndex.value) return
 		let diffLeft = Math.abs(el.left - activeElement.value.left)
-		if (diffLeft < 5) {
+		let diffRight = Math.abs(
+			el.left + el.width - activeElement.value.left - activeElement.value.width,
+		)
+		if (diffLeft < 5 || diffRight < 5) {
 			element = el
 		}
 	})
