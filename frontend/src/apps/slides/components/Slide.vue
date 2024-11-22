@@ -27,7 +27,8 @@
 				class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 			></div>
 
-			<div :style="verticalGuideStyles"></div>
+			<div v-show="diffLeft < 5" :style="leftGuideStyles"></div>
+			<div v-show="diffRight < 5" :style="rightGuideStyles"></div>
 
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -297,10 +298,20 @@ const showHorizontalCenter = ref(false)
 
 const diffLeft = computed(() => {
 	if (!pairElement.value) return
-	return pairElement.value.left - activeElement.value.left
+	return Math.abs(pairElement.value.left - activeElement.value.left)
 })
 
-const verticalGuideStyles = computed(() => {
+const diffRight = computed(() => {
+	if (!pairElement.value) return
+	return Math.abs(
+		pairElement.value.left +
+			pairElement.value.width -
+			activeElement.value.left -
+			activeElement.value.width,
+	)
+})
+
+const leftGuideStyles = computed(() => {
 	if (!isDragging.value || !pairElement.value) return
 	let top = Math.min(pairElement.value.top, activeElement.value.top)
 	let height = Math.abs(pairElement.value.top - activeElement.value.top)
@@ -309,6 +320,23 @@ const verticalGuideStyles = computed(() => {
 		position: 'fixed',
 		borderWidth: '0 0 0 1px',
 		borderColor: '#70b6f0',
+		borderStyle: 'dashed',
+		height: `${height}px`,
+		left: `${left}px`,
+		top: `${top}px`,
+	}
+})
+
+const rightGuideStyles = computed(() => {
+	if (!isDragging.value || !pairElement.value) return
+	let top = Math.min(pairElement.value.top, activeElement.value.top)
+	let height = Math.abs(pairElement.value.top - activeElement.value.top)
+	let left = activeElement.value.left + activeElement.value.width + 5
+	return {
+		position: 'fixed',
+		borderWidth: '0 0 0 1px',
+		borderColor: '#70b6f0',
+		borderStyle: 'dashed',
 		height: `${height}px`,
 		left: `${left}px`,
 		top: `${top}px`,
