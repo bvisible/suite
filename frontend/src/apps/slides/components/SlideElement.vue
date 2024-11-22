@@ -1,11 +1,11 @@
 <template>
 	<div
 		:style="elementStyle"
-		:class="
-			currentDataIndex == $attrs['data-index']
-				? 'outline outline-offset-2 outline-blue-400'
-				: ''
-		"
+		:class="{
+			'outline outline-offset-4 outline-blue-400':
+				currentDataIndex == $attrs['data-index'] ||
+				(currentPairedDataIndex == $attrs['data-index'] && isDragging),
+		}"
 	>
 		<component :is="getDynamicComponent(element.type)" :element="element" v-bind="$attrs" />
 	</div>
@@ -14,7 +14,7 @@
 <script setup>
 import { computed, inject } from 'vue'
 
-import { currentDataIndex } from '@/stores/slide'
+import { currentDataIndex, currentPairedDataIndex } from '@/stores/slide'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'

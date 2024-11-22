@@ -3,6 +3,20 @@ import { createResource } from 'frappe-ui'
 
 const currentDataIndex = ref(null)
 
+const currentPairedDataIndex = computed(() => {
+	if (!activeElement.value) return
+	let i = null
+	activeSlideElements.value.forEach((element, index) => {
+		if (index == currentDataIndex.value) return
+		let diffLeft = Math.abs(element.left - activeElement.value.left)
+		let diffRight = Math.abs(
+			element.left + element.width - activeElement.value.left - activeElement.value.width,
+		)
+		if (diffLeft < 5 || diffRight < 5) i = index
+	})
+	return i
+})
+
 const activeElement = ref(null)
 
 const focusedElement = ref(null)
@@ -20,29 +34,13 @@ const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
 
-const pairElement = computed(() => {
-	if (!activeElement.value) return null
-	let element = null
-	activeSlideElements.value.forEach((el, index) => {
-		if (index == currentDataIndex.value) return
-		let diffLeft = Math.abs(el.left - activeElement.value.left)
-		let diffRight = Math.abs(
-			el.left + el.width - activeElement.value.left - activeElement.value.width,
-		)
-		if (diffLeft < 5 || diffRight < 5) {
-			element = el
-		}
-	})
-	return element
-})
-
 export {
 	currentDataIndex,
+	currentPairedDataIndex,
 	name,
 	presentation,
 	activeSlideIndex,
 	activeElement,
-	pairElement,
 	activeSlideElements,
 	inSlideShow,
 	focusedElement,
