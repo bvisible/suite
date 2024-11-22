@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { createResource } from 'frappe-ui'
 
 const currentDataIndex = ref(null)
@@ -20,12 +20,26 @@ const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
 
+const pairElement = computed(() => {
+	if (!activeElement.value) return null
+	let element = null
+	activeSlideElements.value.forEach((el, index) => {
+		if (index == currentDataIndex.value) return
+		let diffLeft = Math.abs(el.left - activeElement.value.left)
+		if (diffLeft < 5) {
+			element = el
+		}
+	})
+	return element
+})
+
 export {
 	currentDataIndex,
 	name,
 	presentation,
 	activeSlideIndex,
 	activeElement,
+	pairElement,
 	activeSlideElements,
 	inSlideShow,
 	focusedElement,

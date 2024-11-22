@@ -27,6 +27,8 @@
 				class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 			></div>
 
+			<div :style="verticalGuideStyles"></div>
+
 			<div v-if="activeSlideElements">
 				<TransitionGroup
 					v-if="inSlideShow"
@@ -77,6 +79,7 @@ import { useResizer } from '@/utils/resizer'
 import {
 	currentDataIndex,
 	activeElement,
+	pairElement,
 	focusedElement,
 	activeSlideIndex,
 	presentation,
@@ -291,6 +294,26 @@ watch(
 
 const showVerticalCenter = ref(false)
 const showHorizontalCenter = ref(false)
+
+const diffLeft = computed(() => {
+	if (!pairElement.value) return
+	return pairElement.value.left - activeElement.value.left
+})
+
+const verticalGuideStyles = computed(() => {
+	if (!isDragging.value || !pairElement.value) return
+	let top = Math.min(pairElement.value.top, activeElement.value.top)
+	let height = Math.abs(pairElement.value.top - activeElement.value.top)
+	let left = activeElement.value.left - 5
+	return {
+		position: 'fixed',
+		borderWidth: '0 0 0 1px',
+		borderColor: '#70b6f0',
+		height: `${height}px`,
+		left: `${left}px`,
+		top: `${top}px`,
+	}
+})
 
 const activeDiv = computed(() => {
 	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
