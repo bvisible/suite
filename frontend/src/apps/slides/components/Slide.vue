@@ -79,8 +79,8 @@ import { useResizer } from '@/utils/resizer'
 
 import {
 	currentDataIndex,
+	currentPairedDataIndex,
 	activeElement,
-	pairElement,
 	focusedElement,
 	activeSlideIndex,
 	presentation,
@@ -312,7 +312,7 @@ const diffRight = computed(() => {
 })
 
 const leftGuideStyles = computed(() => {
-	if (!isDragging.value || !pairElement.value) return
+	if (!pairElement.value) return
 	let top = Math.min(pairElement.value.top, activeElement.value.top)
 	let height = Math.abs(pairElement.value.top - activeElement.value.top)
 	let left = activeElement.value.left - 5
@@ -328,7 +328,7 @@ const leftGuideStyles = computed(() => {
 })
 
 const rightGuideStyles = computed(() => {
-	if (!isDragging.value || !pairElement.value) return
+	if (!pairElement.value) return
 	let top = Math.min(pairElement.value.top, activeElement.value.top)
 	let height = Math.abs(pairElement.value.top - activeElement.value.top)
 	let left = activeElement.value.left + activeElement.value.width + 5
@@ -349,6 +349,11 @@ const activeDiv = computed(() => {
 
 const slideRect = useElementBounding(targetRef)
 const activeRect = useElementBounding(activeDiv)
+
+const pairElement = computed(() => {
+	if (!isDragging.value || !currentPairedDataIndex.value) return
+	return activeSlideElements.value[currentPairedDataIndex.value]
+})
 
 const updateCenterAlignmentGuides = () => {
 	let centerX = slideRect.left.value + slideRect.width.value / 2
