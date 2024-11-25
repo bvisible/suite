@@ -293,6 +293,29 @@ watch(
 	{ immediate: true },
 )
 
+const activeDiv = computed(() => {
+	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+})
+
+const slideRect = useElementBounding(targetRef)
+const activeRect = useElementBounding(activeDiv)
+
+const pairElement = computed(() => {
+	if (!isDragging.value) return
+	return activeSlideElements.value[currentPairedDataIndex.value]
+})
+
+const snapToPairElement = () => {
+	if (!pairElement.value) return
+	if (diffLeft.value < 5) {
+		activeElement.value.left = pairElement.value.left
+	}
+	if (diffRight.value < 5) {
+		activeElement.value.left =
+			pairElement.value.left + pairElement.value.width - activeElement.value.width
+	}
+}
+
 const showVerticalCenter = ref(false)
 const showHorizontalCenter = ref(false)
 
@@ -331,7 +354,7 @@ const rightGuideStyles = computed(() => {
 	if (!pairElement.value) return
 	let top = Math.min(pairElement.value.top, activeElement.value.top)
 	let height = Math.abs(pairElement.value.top - activeElement.value.top)
-	let left = activeElement.value.left + activeElement.value.width + 5
+	let left = activeElement.value.left + activeElement.value.width + 4.5
 	return {
 		position: 'fixed',
 		borderWidth: '0 0 0 1px',
@@ -341,18 +364,6 @@ const rightGuideStyles = computed(() => {
 		left: `${left}px`,
 		top: `${top}px`,
 	}
-})
-
-const activeDiv = computed(() => {
-	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
-})
-
-const slideRect = useElementBounding(targetRef)
-const activeRect = useElementBounding(activeDiv)
-
-const pairElement = computed(() => {
-	if (!isDragging.value || !currentPairedDataIndex.value) return
-	return activeSlideElements.value[currentPairedDataIndex.value]
 })
 
 const updateCenterAlignmentGuides = () => {
@@ -399,6 +410,7 @@ watch(
 		activeElement.value.top = (position.value.top - slideRect.top.value) / currentScale
 
 		updateCenterAlignmentGuides()
+		snapToPairElement()
 	},
 	{ immediate: true },
 )
