@@ -27,8 +27,10 @@
 				class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 			></div>
 
-			<div v-show="diffLeft < 5" :style="leftGuideStyles"></div>
-			<div v-show="diffRight < 5" :style="rightGuideStyles"></div>
+			<div v-show="diffLeft < 10" :style="leftGuideStyles"></div>
+			<div v-show="diffRight < 10" :style="rightGuideStyles"></div>
+			<div v-show="diffTop < 10" :style="topGuideStyles"></div>
+			<div v-show="diffBottom < 10" :style="bottomGuideStyles"></div>
 
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -52,6 +54,7 @@
 					:is="SlideElement"
 					:element="element"
 					:data-index="index"
+					:currentPairedDataIndex="currentPairedDataIndex"
 				/>
 			</div>
 		</div>
@@ -79,7 +82,6 @@ import { useResizer } from '@/utils/resizer'
 
 import {
 	currentDataIndex,
-	currentPairedDataIndex,
 	activeElement,
 	focusedElement,
 	activeSlideIndex,
@@ -297,8 +299,32 @@ const activeDiv = computed(() => {
 	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
 })
 
+const pairedDiv = computed(() => {
+	return document.querySelector(`[data-index="${currentPairedDataIndex.value}"]`)
+})
+
+const currentPairedDataIndex = computed(() => {
+	if (!activeElement.value) return
+	let i = null
+	activeSlideElements.value.forEach((element, index) => {
+		if (index == currentDataIndex.value) return
+		let diffLeft = Math.abs(element.left - activeElement.value.left)
+		let diffRight = Math.abs(
+			element.left + element.width - activeElement.value.left - activeElement.value.width,
+		)
+		let diffTop = Math.abs(element.top - activeElement.value.top)
+		let elementDiv = document.querySelector(`[data-index="${index}"]`).getBoundingClientRect()
+		let diffBottom = Math.abs(
+			element.top + elementDiv.height - activeElement.value.top - activeRect.height.value,
+		)
+		if (diffLeft < 10 || diffRight < 10 || diffTop < 10 || diffBottom < 10) i = index
+	})
+	return i
+})
+
 const slideRect = useElementBounding(targetRef)
 const activeRect = useElementBounding(activeDiv)
+const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
 	if (!isDragging.value) return
@@ -307,12 +333,19 @@ const pairElement = computed(() => {
 
 const snapToPairElement = () => {
 	if (!pairElement.value) return
-	if (diffLeft.value < 5) {
+	if (diffLeft.value < 10) {
 		activeElement.value.left = pairElement.value.left
 	}
-	if (diffRight.value < 5) {
+	if (diffRight.value < 10) {
 		activeElement.value.left =
 			pairElement.value.left + pairElement.value.width - activeElement.value.width
+	}
+	if (diffTop.value < 10) {
+		activeElement.value.top = pairElement.value.top
+	}
+	if (diffBottom.value < 10) {
+		activeElement.value.top =
+			pairElement.value.top + pairedRect.height.value - activeRect.height.value
 	}
 }
 
@@ -334,35 +367,68 @@ const diffRight = computed(() => {
 	)
 })
 
+const diffTop = computed(() => {
+	if (!pairElement.value) return
+	return Math.abs(pairElement.value.top - activeElement.value.top)
+})
+
+const diffBottom = computed(() => {
+	if (!pairElement.value) return
+	return Math.abs(
+		pairElement.value.top +
+			pairedRect.height.value -
+			activeElement.value.top -
+			activeRect.height.value,
+	)
+})
+
+const guideStyles = {
+	position: 'fixed',
+	borderColor: '#70b6f0',
+	borderStyle: 'dashed',
+}
+
 const leftGuideStyles = computed(() => {
 	if (!pairElement.value) return
-	let top = Math.min(pairElement.value.top, activeElement.value.top)
-	let height = Math.abs(pairElement.value.top - activeElement.value.top)
-	let left = activeElement.value.left - 5
 	return {
-		position: 'fixed',
+		...guideStyles,
 		borderWidth: '0 0 0 1px',
-		borderColor: '#70b6f0',
-		borderStyle: 'dashed',
-		height: `${height}px`,
-		left: `${left}px`,
-		top: `${top}px`,
+		left: `${activeElement.value.left - 5}px`,
+		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
+		height: `${Math.abs(pairElement.value.top - activeElement.value.top)}px`,
 	}
 })
 
 const rightGuideStyles = computed(() => {
 	if (!pairElement.value) return
-	let top = Math.min(pairElement.value.top, activeElement.value.top)
-	let height = Math.abs(pairElement.value.top - activeElement.value.top)
-	let left = activeElement.value.left + activeElement.value.width + 4.5
 	return {
-		position: 'fixed',
+		...guideStyles,
 		borderWidth: '0 0 0 1px',
-		borderColor: '#70b6f0',
-		borderStyle: 'dashed',
-		height: `${height}px`,
-		left: `${left}px`,
-		top: `${top}px`,
+		left: `${activeElement.value.left + activeElement.value.width + 4.5}px`,
+		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
+		height: `${Math.abs(pairElement.value.top - activeElement.value.top)}px`,
+	}
+})
+
+const topGuideStyles = computed(() => {
+	if (!pairElement.value) return
+	return {
+		...guideStyles,
+		borderWidth: '1px 0 0 0',
+		top: `${activeElement.value.top - 5}px`,
+		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
+		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
+	}
+})
+
+const bottomGuideStyles = computed(() => {
+	if (!pairElement.value) return
+	return {
+		...guideStyles,
+		borderWidth: '1px 0 0 0',
+		top: `${activeElement.value.top + activeRect.height.value + 4.5}px`,
+		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
+		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
 })
 
