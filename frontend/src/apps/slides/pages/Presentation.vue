@@ -1,146 +1,188 @@
 <template>
-	<div class="fixed flex h-screen w-screen flex-col bg-gray-50">
+	<div class="fixed flex h-screen w-screen flex-col bg-gray-100">
 		<!-- Navbar -->
-		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-200">
+		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
 			<div class="flex items-center gap-2">
-				<Logo />
-				<div class="font-semibold">Slides</div>
+				<img src="../icons/slides.svg" class="h-7" />
+				<div class="select-none font-semibold">Slides</div>
 			</div>
 
-			<span class="text-gray-700">{{ presentation?.title }}</span>
+			<input
+				spellcheck="false"
+				ref="newTitleRef"
+				v-if="renameMode"
+				class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+				v-model="newTitle"
+				@blur="saveTitle"
+			/>
+			<span v-else class="select-none font-semibold text-gray-700" @click="enableRenameMode">
+				{{ presentation.data?.title }}
+			</span>
 
-			<Button variant="solid" label="Present" size="sm" />
+			<div class="flex select-none gap-2">
+				<Button label="Save" size="sm" @click="savePresentation" />
+				<Button variant="solid" label="Present" size="sm" @click="startSlideShow" />
+			</div>
 		</div>
 
-		<div ref="containerRef" class="flex h-full items-center justify-center">
-			<!-- Slide Navigation Panel -->
-			<div
-				class="fixed z-20 h-[743px] w-44 overflow-y-auto border-r bg-white shadow-xl shadow-gray-200 transition-all duration-500 ease-in-out"
-				:class="showNavigator ? 'left-0' : '-left-44'"
-			>
-				<div class="flex flex-col gap-4 p-4">
-					<div
-						v-for="i in presentation?.slides.length"
-						:key="i"
-						class="h-20 cursor-pointer rounded border shadow-lg shadow-gray-100"
-						:class="activeSlide == i ? 'border-gray-500' : 'border-gray-300'"
-						@click="activeSlide = i"
-					>
-						<div class="p-1 text-xs text-gray-500">{{ i }}</div>
-					</div>
+		<div
+			ref="container"
+			class="flex h-full items-center justify-center"
+			@click="(e) => clearFocus(e)"
+		>
+			<SlideNavigationPanel />
 
-					<div
-						class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-300 shadow-lg shadow-gray-100"
-					>
-						<FeatherIcon name="plus" class="h-3.5 text-gray-500" />
-					</div>
-				</div>
-			</div>
+			<Slide
+				ref="slide"
+				:style="{
+					cursor: inSlideShow ? slideCursor : 'auto',
+				}"
+			/>
 
-			<!-- Slide Navigator Toggle -->
-			<div
-				class="fixed z-10 flex h-8 w-8 cursor-pointer items-center justify-center transition-all duration-500 ease-in-out"
-				:class="
-					showNavigator
-						? 'bottom-2 left-44'
-						: 'bottom-2 left-2 rounded bg-white shadow-md shadow-gray-400'
-				"
-				@click="showNavigator = !showNavigator"
-			>
-				<PanelLeftClose v-if="showNavigator" size="16" strokeWidth="1.5" />
-				<PanelLeftOpen v-else size="16" strokeWidth="1.5" />
-			</div>
-
-			<!-- Slide (Dimensions: 16:9 ratio) -->
-			<div ref="targetRef" class="h-[450px] w-[800px] bg-white drop-shadow-lg"></div>
-
-			<!-- Slide Elements Panel -->
-			<div class="fixed right-0 z-20 flex h-[743px] w-fit border-l bg-white">
-				<div class="flex flex-col justify-between">
-					<div>
-						<Tooltip text="Text" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="type" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-						<Tooltip text="Image" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="image" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-						<Tooltip text="Video" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="film" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-						<Tooltip text="Chart" hover-delay="1" placement="left">
-							<div class="cursor-pointer p-3">
-								<FeatherIcon name="pie-chart" class="h-4.5" color="#636363" />
-							</div>
-						</Tooltip>
-					</div>
-					<Tooltip text="Notes" hover-delay="1" placement="left">
-						<div class="cursor-pointer p-3">
-							<StickyNote size="18" strokeWidth="1.5" color="#636363" />
-						</div>
-					</Tooltip>
-				</div>
-			</div>
+			<SlideElementsPanel />
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import {
+	ref,
+	watch,
+	onMounted,
+	nextTick,
+	useTemplateRef,
+	onBeforeMount,
+	onBeforeUnmount,
+} from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-import { Tooltip, call } from 'frappe-ui'
+import { Tooltip, call, createResource } from 'frappe-ui'
 
-import { PanelLeftOpen, PanelLeftClose, StickyNote } from 'lucide-vue-next'
+import { StickyNote } from 'lucide-vue-next'
 import Logo from '@/icons/Logo.vue'
+import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
+import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
+import Slide from '@/components/Slide.vue'
 
-import { addPanAndZoom } from '@/utils/zoom'
+import { addPanAndZoom, removePanAndZoom } from '@/utils/zoom'
+import {
+	activeElement,
+	activeSlideIndex,
+	name,
+	presentation,
+	activeSlideElements,
+	inSlideShow,
+} from '@/stores/slide'
 
 const route = useRoute()
+const router = useRouter()
 
-const containerRef = ref(null)
-const targetRef = ref(null)
-const presentation = ref(null)
+const containerRef = useTemplateRef('container')
+const slideRef = useTemplateRef('slide')
+const newTitleRef = useTemplateRef('newTitleRef')
 
-const activeSlide = ref(1)
 const showNavigator = ref(false)
+
+const renameMode = ref(false)
+const newTitle = ref('')
+
+const enableRenameMode = () => {
+	renameMode.value = true
+	newTitle.value = presentation.data.title
+	nextTick(() => newTitleRef.value.focus())
+}
+
+const saveTitle = async () => {
+	if (newTitle.value && newTitle.value != presentation.data.title) {
+		let nameSlug = await call(
+			'slides.slides.doctype.presentation.presentation.rename_presentation',
+			{
+				name: route.params.name,
+				new_name: newTitle.value,
+			},
+		)
+		await router.replace({ name: 'Presentation', params: { name: nameSlug } })
+	}
+	renameMode.value = false
+}
+
+const clearFocus = (e) => {
+	if (e.target == containerRef.value) activeElement.value = null
+}
+
+const savePresentation = async () => {
+	presentation.data.slides[activeSlideIndex.value - 1].background =
+		presentation.data.slides[activeSlideIndex.value - 1].background
+	presentation.data.slides[activeSlideIndex.value - 1].elements = JSON.stringify(
+		activeSlideElements.value,
+		null,
+		2,
+	)
+	await call('frappe.client.save', {
+		doc: presentation.data,
+	})
+}
+
+const startSlideShow = () => {
+	let elem = document.querySelector('.slideContainer')
+
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen()
+	} else if (elem.webkitRequestFullscreen) {
+		elem.webkitRequestFullscreen()
+	} else if (elem.msRequestFullscreen) {
+		elem.msRequestFullscreen()
+	}
+}
 
 watch(
 	() => route.params.name,
 	async () => {
 		if (!route.params.name) return
-		presentation.value = await call('frappe.client.get', {
-			doctype: 'Presentation',
-			name: route.params.name,
-		})
+		name.value = route.params.name
+		await presentation.fetch()
 	},
 	{ immediate: true },
 )
 
+const slideCursor = ref('auto')
+
+function resetCursorVisibility() {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 2000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		activeElement.value = null
+		removePanAndZoom(containerRef.value)
+		slideRef.value.targetRef.style.transform = ''
+		slideRef.value.targetRef.style.transformOrigin = ''
+		slideRef.value.targetRef.style.transform = 'scale(1.5, 1.5)'
+		slideRef.value.targetRef.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		addPanAndZoom(containerRef.value, slideRef.value.targetRef)
+		slideRef.value.targetRef.style.transform = ''
+		slideRef.value.targetRef.style.transformOrigin = ''
+		slideRef.value.targetRef.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+
 onMounted(() => {
-	if (!containerRef.value || !targetRef.value) return
-	addPanAndZoom(containerRef.value, targetRef.value)
+	document.addEventListener('fullscreenchange', handleScreenChange)
+	if (!containerRef.value || !slideRef.value.targetRef) return
+	addPanAndZoom(containerRef.value, slideRef.value.targetRef)
+})
+
+onBeforeUnmount(() => {
+	if (!containerRef.value) return
+	removePanAndZoom(containerRef.value)
 })
 </script>
-
-<style scoped>
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* width */
-::-webkit-scrollbar {
-	width: 5px;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-	background: #dcdcdc;
-	border-radius: 4px;
-}
-</style>
