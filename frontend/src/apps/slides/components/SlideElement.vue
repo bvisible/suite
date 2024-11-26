@@ -13,18 +13,13 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-
-import { currentDataIndex } from '@/stores/slide'
+import { currentDataIndex, currentPairedDataIndex } from '@/stores/slide'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
 const isDragging = inject('isDragging')
-
-const props = defineProps({
-	currentPairedDataIndex: Number,
-})
 
 const element = defineModel('element', {
 	type: Object,
