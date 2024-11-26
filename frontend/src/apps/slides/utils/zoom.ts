@@ -23,7 +23,7 @@ let target: HTMLElement, origin: Origin, transform: Transform | null
 let initialMatrix = new DOMMatrix()
 let gestureMatrix = new DOMMatrix()
 
-let wheelTimeout: NodeJS.Timeout
+let wheelTimeout: ReturnType<typeof setTimeout>
 
 const setOrigin = () => {
 	if (!transform) return
@@ -36,6 +36,7 @@ const setOrigin = () => {
 }
 
 const startGesture = () => {
+	target.style.transform = ''
 	setOrigin()
 	setGestureMatrix()
 	applyMatrix()
@@ -64,8 +65,8 @@ const limitScale = () => {
 	let currentScale = transform.scale * scale
 
 	// limit scale between 0.5 - 2
-	if (currentScale > 2 || currentScale < 0.5) {
-		transform.scale = Math.max(0.5, Math.min(2, currentScale)) / scale
+	if (currentScale > 5 || currentScale < 0.5) {
+		transform.scale = Math.max(0.5, Math.min(5, currentScale)) / scale
 	}
 }
 
@@ -101,6 +102,7 @@ const setGestureMatrix = () => {
 }
 
 const applyMatrix = () => {
+	target.style.transformOrigin = '0 0'
 	target.style.transform = gestureMatrix.toString()
 }
 
@@ -130,6 +132,8 @@ const setPanTransform = (e: WheelEvent) => {
 }
 
 const handlePanAndZoom = (e: WheelEvent) => {
+	if (e.composedPath().some((el) => (el as HTMLElement).id === 'slide-navigation-panel')) return
+
 	e.preventDefault()
 
 	// initialize the transform object
@@ -166,4 +170,8 @@ const addPanAndZoom = (containerElement: HTMLElement, targetElement: HTMLElement
 	})
 }
 
-export { addPanAndZoom }
+const removePanAndZoom = (containerElement: HTMLElement) => {
+	containerElement.removeEventListener('wheel', handlePanAndZoom)
+}
+
+export { addPanAndZoom, removePanAndZoom }
