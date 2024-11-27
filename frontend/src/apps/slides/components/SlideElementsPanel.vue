@@ -379,10 +379,10 @@ const getTextColor = () => {
 
 const addTextElement = () => {
 	let element = {
-		width: '85px',
-		left: '100',
-		top: '100',
-		fontSize: 50,
+		width: 65,
+		left: 100,
+		top: 100,
+		fontSize: 30,
 		fontFamily: 'Inter',
 		fontWeight: 'bold',
 		opacity: 100,
@@ -397,9 +397,9 @@ const addTextElement = () => {
 
 const addMediaElement = (file, type) => {
 	let element = {
-		width: '300px',
-		left: '200px',
-		top: '75px',
+		width: 300,
+		left: 200,
+		top: 75,
 		opacity: 100,
 		type: type,
 		src: file.file_url,
