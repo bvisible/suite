@@ -1,18 +1,18 @@
 <template>
 	<div
-		v-show="Math.abs(diffCenterX) < 10"
+		v-show="Math.abs(diffCenterX) < CENTER_PROXIMITY_THRESHOLD"
 		class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
 	></div>
 
 	<div
-		v-show="Math.abs(diffCenterY) < 10"
+		v-show="Math.abs(diffCenterY) < CENTER_PROXIMITY_THRESHOLD"
 		class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 	></div>
 
-	<div v-show="diffLeft < 10" :style="leftGuideStyles"></div>
-	<div v-show="diffRight < 10" :style="rightGuideStyles"></div>
-	<div v-show="diffTop < 10" :style="topGuideStyles"></div>
-	<div v-show="diffBottom < 10" :style="bottomGuideStyles"></div>
+	<div v-show="diffLeft < PROXIMITY_THRESHOLD" :style="leftGuideStyles"></div>
+	<div v-show="diffRight < PROXIMITY_THRESHOLD" :style="rightGuideStyles"></div>
+	<div v-show="diffTop < PROXIMITY_THRESHOLD" :style="topGuideStyles"></div>
+	<div v-show="diffBottom < PROXIMITY_THRESHOLD" :style="bottomGuideStyles"></div>
 </template>
 
 <script setup>
@@ -29,6 +29,9 @@ import { useElementBounding } from '@vueuse/core'
 const props = defineProps({
 	slideRect: Object,
 })
+
+const CENTER_PROXIMITY_THRESHOLD = 20
+const PROXIMITY_THRESHOLD = 10
 
 const activeDiv = computed(() => {
 	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
@@ -47,27 +50,27 @@ const pairElement = computed(() => {
 })
 
 const snapToCenter = () => {
-	if (Math.abs(diffCenterX.value) < 10) {
+	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
 		activeElement.value.left += diffCenterX.value
 	}
-	if (Math.abs(diffCenterY.value) < 10) {
+	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
 		activeElement.value.top += diffCenterY.value
 	}
 }
 
 const snapToPairElement = () => {
 	if (!pairElement.value) return
-	if (diffLeft.value < 10) {
+	if (diffLeft.value < PROXIMITY_THRESHOLD) {
 		activeElement.value.left = pairElement.value.left
 	}
-	if (diffRight.value < 10) {
+	if (diffRight.value < PROXIMITY_THRESHOLD) {
 		activeElement.value.left =
 			pairElement.value.left + pairElement.value.width - activeElement.value.width
 	}
-	if (diffTop.value < 10) {
+	if (diffTop.value < PROXIMITY_THRESHOLD) {
 		activeElement.value.top = pairElement.value.top
 	}
-	if (diffBottom.value < 10) {
+	if (diffBottom.value < PROXIMITY_THRESHOLD) {
 		activeElement.value.top =
 			pairElement.value.top + pairedRect.height.value - activeRect.height.value
 	}
@@ -182,7 +185,8 @@ const setCurrentPairedDataIndex = () => {
 		let diffBottom = Math.abs(
 			elementDiv.top + elementDiv.height - activeRect.top.value - activeRect.height.value,
 		)
-		if (diffLeft < 10 || diffRight < 10 || diffTop < 10 || diffBottom < 10) i = index
+		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD))
+			i = index
 	})
 	currentPairedDataIndex.value = i
 }
