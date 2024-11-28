@@ -131,7 +131,7 @@ const leftGuideStyles = computed(() => {
 	return {
 		...guideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${activeElement.value.left - 5}px`,
+		left: `${activeElement.value.left - 6.5}px`,
 		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
 		height: `${Math.abs(pairElement.value.top - activeElement.value.top)}px`,
 	}
@@ -142,7 +142,7 @@ const rightGuideStyles = computed(() => {
 	return {
 		...guideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${activeElement.value.left + activeElement.value.width + 4.5}px`,
+		left: `${activeElement.value.left + activeElement.value.width + 5.5}px`,
 		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
 		height: `${Math.abs(pairElement.value.top - activeElement.value.top)}px`,
 	}
@@ -153,7 +153,7 @@ const topGuideStyles = computed(() => {
 	return {
 		...guideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${activeElement.value.top - 5}px`,
+		top: `${activeElement.value.top - 6.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
 		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
@@ -164,7 +164,7 @@ const bottomGuideStyles = computed(() => {
 	let a = {
 		...guideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${pairedRect.top.value + pairedRect.height.value - props.slideRect.top.value + 4.5}px`,
+		top: `${pairedRect.top.value + pairedRect.height.value - props.slideRect.top.value + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
 		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
