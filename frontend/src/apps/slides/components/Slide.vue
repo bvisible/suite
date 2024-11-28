@@ -153,13 +153,8 @@ const addDragAndResize = () => {
 	let el = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
 	if (!el || !activeElement.value) return
 	dragTarget.value = el
-	if (activeElement.value.type == 'text') {
-		resizeTarget.value = el
-		resizeMode.value = 'width'
-	} else {
-		resizeTarget.value = el.parentElement
-		resizeMode.value = 'both'
-	}
+	resizeTarget.value = el
+	resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
 }
 
 const removeDragAndResize = () => {

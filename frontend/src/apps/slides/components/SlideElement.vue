@@ -1,29 +1,31 @@
 <template>
-	<div
-		:style="elementStyle"
-		:class="{
-			'outline outline-offset-4 outline-blue-400':
-				currentDataIndex == $attrs['data-index'] ||
-				(currentPairedDataIndex == $attrs['data-index'] && isDragging),
-		}"
-	>
+	<div :style="elementStyle">
 		<component :is="getDynamicComponent(element.type)" :element="element" v-bind="$attrs" />
 	</div>
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, useAttrs } from 'vue'
 import { currentDataIndex, currentPairedDataIndex } from '@/stores/slide'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
+const attrs = useAttrs()
+
 const isDragging = inject('isDragging')
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
+})
+
+const showOutline = computed(() => {
+	return (
+		currentDataIndex.value == attrs['data-index'] ||
+		(currentPairedDataIndex.value == attrs['data-index'] && isDragging.value)
+	)
 })
 
 const elementStyle = computed(() => ({
@@ -33,6 +35,8 @@ const elementStyle = computed(() => ({
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
 	cursor: isDragging.value ? 'move' : 'default',
+	outline: showOutline.value ? '#70B6F0 solid 2px' : 'none',
+	outlineOffset: '5px',
 }))
 
 const getDynamicComponent = (type) => {
