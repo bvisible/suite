@@ -12,7 +12,7 @@
 	>
 		<div
 			ref="target"
-			class="h-[540px] w-[960px] drop-shadow-xl"
+			class="slide h-[540px] w-[960px] drop-shadow-xl"
 			:style="slideStyles"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
