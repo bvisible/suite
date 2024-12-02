@@ -5,6 +5,8 @@
 		class="fixed z-20 h-[94.27%] w-44 select-none border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out hover:overflow-y-auto"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 		v-if="presentation.data?.slides"
+		@mouseenter="showCollapseShortcut = true"
+		@mouseleave="showCollapseShortcut = false"
 	>
 		<div class="flex flex-col px-4">
 			<Draggable v-model="presentation.data.slides" item-key="name" :force-fallback="true">
@@ -29,20 +31,27 @@
 				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
 			</div>
 		</div>
+
+		<div
+			v-if="showNavigator && showCollapseShortcut"
+			class="fixed -left-0.5 bottom-0 z-20 flex h-10 w-44 cursor-pointer items-center justify-between border-t bg-white p-4"
+			@click="showNavigator = !showNavigator"
+		>
+			<div class="text-2xs text-gray-500">Toggle</div>
+			<div class="flex h-5 w-1/3 items-center justify-center rounded-sm border bg-gray-100">
+				<div class="text-xs text-gray-500">⌘ + B</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- Slide Navigator Toggle -->
-	<div
-		class="fixed z-10 flex h-8 w-8 cursor-pointer items-center justify-center transition-all duration-500 ease-in-out"
-		:class="
-			showNavigator
-				? 'bottom-2 left-44'
-				: 'bottom-2 left-2 rounded bg-white shadow-md shadow-gray-400'
-		"
-		@click="showNavigator = !showNavigator"
-	>
-		<PanelLeftClose v-if="showNavigator" size="16" strokeWidth="1.5" />
-		<PanelLeftOpen v-else size="16" strokeWidth="1.5" />
+	<div v-if="!showNavigator">
+		<div
+			class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white drop-shadow-xl"
+			@click="showNavigator = !showNavigator"
+		>
+			<FeatherIcon name="chevron-left" class="h-3 pe-1" />
+		</div>
 	</div>
 </template>
 
@@ -52,10 +61,10 @@ import Draggable from 'vuedraggable'
 
 import { call } from 'frappe-ui'
 
-import { PanelLeftOpen, PanelLeftClose } from 'lucide-vue-next'
 import { activeSlideIndex, presentation } from '@/stores/slide'
 
-const showNavigator = ref(false)
+const showNavigator = ref(true)
+const showCollapseShortcut = ref(false)
 
 const updateActiveSlide = (e) => {
 	switch (e.key) {
@@ -70,6 +79,10 @@ const updateActiveSlide = (e) => {
 				activeSlideIndex.value -= 1
 			}
 			break
+	}
+
+	if (e.metaKey && e.key === 'b') {
+		showNavigator.value = !showNavigator.value
 	}
 }
 
