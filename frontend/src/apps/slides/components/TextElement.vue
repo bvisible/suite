@@ -11,12 +11,17 @@
 
 <script setup>
 import { ref, computed, inject, useAttrs } from 'vue'
-import { activeElement, focusedElement, inSlideShow, currentDataIndex } from '@/stores/slide'
+import {
+	activeElement,
+	focusedElement,
+	inSlideShow,
+	currentDataIndex,
+	setActiveElement,
+} from '@/stores/slide'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
 const attrs = useAttrs()
 
-const setActiveElement = inject('setActiveElement')
 const removeDragAndResize = inject('removeDragAndResize')
 
 const element = defineModel('element', {
@@ -50,7 +55,7 @@ const selectElement = (e) => {
 const setActiveText = (e) => {
 	e.stopPropagation()
 	if (focusedElement.value == element.value) return
-	setActiveElement(e, element.value)
+	setActiveElement(element.value)
 }
 
 const setFocusElement = (e) => {

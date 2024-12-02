@@ -349,13 +349,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 
 import { Tooltip, FileUploader } from 'frappe-ui'
 
 import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
-import { activeElement, activeSlideIndex, activeSlideElements, presentation } from '@/stores/slide'
+import {
+	activeElement,
+	activeSlideIndex,
+	activeSlideElements,
+	presentation,
+	currentDataIndex,
+	setActiveElement,
+} from '@/stores/slide'
 import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 import NumberInput from './NumberInput.vue'
@@ -400,6 +407,7 @@ const addTextElement = () => {
 		letterSpacing: 0,
 	}
 	activeSlideElements.value.push(element)
+	nextTick(() => setActiveElement(element))
 }
 
 const addMediaElement = (file, type) => {
@@ -425,6 +433,7 @@ const addMediaElement = (file, type) => {
 		element.playbackRate = 1
 	}
 	activeSlideElements.value.push(element)
+	nextTick(() => setActiveElement(element))
 }
 
 const hoverOption = ref(null)
