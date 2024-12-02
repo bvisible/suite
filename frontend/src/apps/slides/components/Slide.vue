@@ -17,7 +17,7 @@
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
 		>
-			<ElementAlignmentGuides :slideRect="slideRect" />
+			<ElementAlignmentGuides v-if="activeElement" :slideRect="slideRect" />
 
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -129,26 +129,6 @@ const handleSlideClick = (e) => {
 		activeSlideIndex.value += 1
 		return
 	} else selectSlide(e)
-}
-
-const setActiveElement = (e, element) => {
-	if (inSlideShow.value) return
-	if (activeElement.value == element && isResizing.value) {
-		isResizing.value = false
-		return
-	}
-	e.preventDefault()
-	e.stopPropagation()
-
-	if (focusedElement.value) {
-		focusedElement.value.content = document.querySelector(
-			`[data-index="${currentDataIndex.value}"]`,
-		).innerText
-		focusedElement.value = null
-	}
-
-	activeElement.value = element
-	currentDataIndex.value = activeSlideElements.value.indexOf(element)
 }
 
 const addDragAndResize = () => {
@@ -336,7 +316,6 @@ defineExpose({
 	targetRef,
 })
 
-provide('setActiveElement', setActiveElement)
 provide('removeDragAndResize', removeDragAndResize)
 provide('isDragging', isDragging)
 </script>

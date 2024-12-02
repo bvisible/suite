@@ -21,11 +21,10 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed, inject, useAttrs } from 'vue'
-import { activeElement, currentDataIndex, inSlideShow } from '@/stores/slide'
+import { ref, useTemplateRef, computed, useAttrs } from 'vue'
+import { activeElement, currentDataIndex, inSlideShow, setActiveElement } from '@/stores/slide'
 
 const attrs = useAttrs()
-const setActiveElement = inject('setActiveElement')
 
 const el = useTemplateRef('videoElement')
 const isPlaying = ref(false)
@@ -54,6 +53,6 @@ const handleVideoControls = (e) => {
 			isPlaying.value = false
 			video.pause()
 		}
-	} else setActiveElement(e, element.value)
+	} else setActiveElement(element.value)
 }
 </script>

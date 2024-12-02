@@ -1,11 +1,10 @@
 <template>
-	<img :src="element.src" :style="imageStyle" @click="(e) => setActiveElement(e, element)" />
+	<img :src="element.src" :style="imageStyle" @click="setActiveElement(element)" />
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
-
-const setActiveElement = inject('setActiveElement')
+import { computed } from 'vue'
+import { setActiveElement } from '@/stores/slide'
 
 const element = defineModel('element', {
 	type: Object,

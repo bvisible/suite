@@ -25,6 +25,20 @@ const inSlideShow = ref(false)
 const position = ref(null)
 const dimensions = ref(null)
 
+const setActiveElement = (element) => {
+	if (inSlideShow.value) return
+
+	if (focusedElement.value) {
+		focusedElement.value.content = document.querySelector(
+			`[data-index="${currentDataIndex.value}"]`,
+		).innerText
+		focusedElement.value = null
+	}
+
+	activeElement.value = element
+	currentDataIndex.value = activeSlideElements.value.indexOf(element)
+}
+
 export {
 	currentDataIndex,
 	currentPairedDataIndex,
@@ -37,4 +51,5 @@ export {
 	focusedElement,
 	position,
 	dimensions,
+	setActiveElement,
 }
