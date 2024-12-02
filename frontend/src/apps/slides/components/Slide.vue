@@ -17,7 +17,7 @@
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
 		>
-			<ElementAlignmentGuides v-if="isDragging" :slideRect="slideRect" />
+			<ElementAlignmentGuides :slideRect="slideRect" />
 
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -77,6 +77,7 @@ import {
 	inSlideShow,
 	position,
 	dimensions,
+	currentPairedDataIndex,
 } from '@/stores/slide'
 import html2canvas from 'html2canvas'
 
@@ -118,6 +119,7 @@ const selectSlide = (e) => {
 		focusedElement.value = null
 	}
 	currentDataIndex.value = null
+	currentPairedDataIndex.value = null
 }
 
 const handleSlideClick = (e) => {
@@ -155,6 +157,12 @@ const addDragAndResize = () => {
 	dragTarget.value = el
 	resizeTarget.value = el
 	resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
+
+	const elementRect = el.getBoundingClientRect()
+	position.value = {
+		top: elementRect.top,
+		left: elementRect.left,
+	}
 }
 
 const removeDragAndResize = () => {
@@ -184,6 +192,17 @@ const handleKeyDown = (event) => {
 			activeElement.value = null
 		}
 	} else if (event.key == 'd' && event.metaKey) duplicateElement(event)
+	else if (event.key == 'ArrowUp') {
+		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
+	} else if (event.key == 'ArrowDown') {
+		if (activeElement.value) position.value = { ...position.value, top: position.value.top + 1 }
+	} else if (event.key == 'ArrowLeft') {
+		if (activeElement.value)
+			position.value = { ...position.value, left: position.value.left - 1 }
+	} else if (event.key == 'ArrowRight') {
+		if (activeElement.value)
+			position.value = { ...position.value, left: position.value.left + 1 }
+	}
 }
 
 const updateSlideThumbnail = (index) => {
@@ -244,6 +263,7 @@ watch(
 		activeElement.value = null
 		focusedElement.value = null
 		currentDataIndex.value = null
+		currentPairedDataIndex.value = null
 		if (presentation.data.slides[old_val]) {
 			presentation.data.slides[old_val].elements = JSON.stringify(activeSlideElements.value)
 			updateSlideThumbnail(old_val)

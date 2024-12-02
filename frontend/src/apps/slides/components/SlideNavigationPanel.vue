@@ -66,26 +66,6 @@ import { activeSlideIndex, presentation } from '@/stores/slide'
 const showNavigator = ref(true)
 const showCollapseShortcut = ref(false)
 
-const updateActiveSlide = (e) => {
-	switch (e.key) {
-		case 'ArrowDown':
-			if (activeSlideIndex.value < presentation.data.slides.length - 1) {
-				activeSlideIndex.value += 1
-			}
-			break
-
-		case 'ArrowUp':
-			if (activeSlideIndex.value > 0) {
-				activeSlideIndex.value -= 1
-			}
-			break
-	}
-
-	if (e.metaKey && e.key === 'b') {
-		showNavigator.value = !showNavigator.value
-	}
-}
-
 const addSlide = async () => {
 	await call('frappe.client.insert', {
 		doc: {
@@ -98,14 +78,6 @@ const addSlide = async () => {
 	await presentation.reload()
 	activeSlideIndex.value = presentation.data.slides.length
 }
-
-onBeforeMount(() => {
-	window.addEventListener('keydown', updateActiveSlide, null)
-})
-
-onBeforeUnmount(() => {
-	window.removeEventListener('keydown', updateActiveSlide)
-})
 </script>
 
 <style scoped>
