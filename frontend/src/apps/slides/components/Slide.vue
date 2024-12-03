@@ -164,14 +164,16 @@ const duplicateElement = (e) => {
 	}
 }
 
+const deleteElement = (e) => {
+	if (!activeElement.value && !focusedElement.value) return
+	activeSlideElements.value.splice(currentDataIndex.value, 1)
+	selectSlide(e)
+}
+
 const handleKeyDown = (event) => {
 	if (document.activeElement.tagName == 'INPUT') return
-	if (['Delete', 'Backspace'].includes(event.key) && !focusedElement.value) {
-		if (activeElement.value) {
-			activeSlideElements.value.splice(currentDataIndex.value, 1)
-			activeElement.value = null
-		}
-	} else if (event.key == 'd' && event.metaKey) duplicateElement(event)
+	if (['Delete', 'Backspace'].includes(event.key)) deleteElement(event)
+	else if (event.key == 'd' && event.metaKey) duplicateElement(event)
 	else if (event.key == 'ArrowUp') {
 		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
 	} else if (event.key == 'ArrowDown') {
