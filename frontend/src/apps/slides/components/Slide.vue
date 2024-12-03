@@ -79,9 +79,9 @@ import {
 	dimensions,
 	currentPairedDataIndex,
 } from '@/stores/slide'
-import html2canvas from 'html2canvas'
 
 const zoom = defineModel('zoom')
+const emit = defineEmits(['changeSlide'])
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const targetRef = useTemplateRef('target')
@@ -175,9 +175,13 @@ const handleKeyDown = (event) => {
 	if (['Delete', 'Backspace'].includes(event.key)) deleteElement(event)
 	else if (event.key == 'd' && event.metaKey) duplicateElement(event)
 	else if (event.key == 'ArrowUp') {
-		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
+		if (activeElement.value && activeElement.value.type != 'slide')
+			position.value = { ...position.value, top: position.value.top - 1 }
+		else emit('changeSlide', activeSlideIndex.value - 1)
 	} else if (event.key == 'ArrowDown') {
-		if (activeElement.value) position.value = { ...position.value, top: position.value.top + 1 }
+		if (activeElement.value && activeElement.value.type != 'slide')
+			position.value = { ...position.value, top: position.value.top + 1 }
+		else emit('changeSlide', activeSlideIndex.value + 1)
 	} else if (event.key == 'ArrowLeft') {
 		if (activeElement.value)
 			position.value = { ...position.value, left: position.value.left - 1 }
@@ -185,14 +189,6 @@ const handleKeyDown = (event) => {
 		if (activeElement.value)
 			position.value = { ...position.value, left: position.value.left + 1 }
 	}
-}
-
-const updateSlideThumbnail = (index) => {
-	if (!targetRef.value) return
-	html2canvas(targetRef.value).then((canvas) => {
-		let img = canvas.toDataURL('image/png')
-		presentation.data.slides[index].thumbnail = img
-	})
 }
 
 const handleSlideEnter = (el, done) => {
@@ -237,27 +233,6 @@ const handleScreenChange = () => {
 		targetRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
-
-watch(
-	() => activeSlideIndex.value,
-	(new_val, old_val) => {
-		if (!presentation.data) return
-		activeElement.value = null
-		focusedElement.value = null
-		currentDataIndex.value = null
-		currentPairedDataIndex.value = null
-		if (presentation.data.slides[old_val]) {
-			presentation.data.slides[old_val].elements = JSON.stringify(activeSlideElements.value)
-			updateSlideThumbnail(old_val)
-		}
-		if (presentation.data.slides[new_val]) {
-			if (presentation.data.slides[new_val].elements)
-				activeSlideElements.value = JSON.parse(presentation.data.slides[new_val].elements)
-			else activeSlideElements.value = []
-		}
-	},
-	{ immediate: true },
-)
 
 watch(
 	() => activeElement.value,

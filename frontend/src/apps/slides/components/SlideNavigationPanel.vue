@@ -19,7 +19,7 @@
 								? 'ring-2 ring-blue-400 ring-offset-1'
 								: 'border border-gray-300'
 						"
-						@click="activeSlideIndex = slide.idx - 1"
+						@click="$emit('changeSlide', slide.idx - 1)"
 					/>
 				</template>
 			</Draggable>
@@ -62,6 +62,8 @@ import Draggable from 'vuedraggable'
 import { call } from 'frappe-ui'
 
 import { activeSlideIndex, presentation } from '@/stores/slide'
+
+const emit = defineEmits(['changeSlide'])
 
 const showNavigator = ref(true)
 const showCollapseShortcut = ref(false)
