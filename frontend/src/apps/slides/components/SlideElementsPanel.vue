@@ -254,7 +254,7 @@
 	<div class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white">
 		<div class="flex flex-col justify-between">
 			<div>
-				<Tooltip text="Text" hover-delay="1" placement="left">
+				<Tooltip text="Text" :hover-delay="1" placement="left">
 					<div
 						class="cursor-pointer p-4"
 						:class="activeTab == 'text' ? 'bg-gray-100' : ''"
@@ -269,7 +269,7 @@
 						/>
 					</div>
 				</Tooltip>
-				<Tooltip text="Image" hover-delay="1" placement="left">
+				<Tooltip text="Image" :hover-delay="1" placement="left">
 					<FileUploader
 						:fileTypes="['image/*']"
 						@success="(file) => addMediaElement(file, 'image')"
@@ -293,7 +293,7 @@
 						</template>
 					</FileUploader>
 				</Tooltip>
-				<Tooltip text="Video" hover-delay="1" placement="left">
+				<Tooltip text="Video" :hover-delay="1" placement="left">
 					<FileUploader
 						:fileTypes="['video/*']"
 						@success="(file) => addMediaElement(file, 'video')"
@@ -317,12 +317,12 @@
 						</template>
 					</FileUploader>
 				</Tooltip>
-				<Tooltip text="Chart" hover-delay="1" placement="left">
+				<Tooltip text="Chart" :hover-delay="1" placement="left">
 					<div class="cursor-pointer p-4">
 						<FeatherIcon name="pie-chart" class="h-5" color="#636363" />
 					</div>
 				</Tooltip>
-				<Tooltip text="Slide Properties" hover-delay="1" placement="left">
+				<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
 					<div
 						class="cursor-pointer p-4"
 						:class="activeTab == 'slide' ? 'bg-gray-100' : ''"
@@ -339,7 +339,7 @@
 					</div>
 				</Tooltip>
 			</div>
-			<Tooltip text="Notes" hover-delay="1" placement="left">
+			<Tooltip text="Notes" :hover-delay="1" placement="left">
 				<div class="cursor-pointer p-4">
 					<StickyNote size="20" strokeWidth="1.5" color="#636363" />
 				</div>
