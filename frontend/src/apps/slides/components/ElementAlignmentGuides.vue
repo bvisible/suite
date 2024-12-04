@@ -78,15 +78,15 @@ const snapToPairElement = () => {
 
 const diffCenterX = computed(() => {
 	if (!position.value) return
-	let centerX = props.slideRect.left.value + props.slideRect.width.value / 2
-	let centerOfElementX = position.value.left + activeRect.width.value / 2
+	const centerX = props.slideRect.width.value / 2
+	const centerOfElementX = activeElement.value.left + activeRect.width.value / 2
 	return centerX - centerOfElementX
 })
 
 const diffCenterY = computed(() => {
 	if (!position.value) return
-	let centerY = props.slideRect.top.value + props.slideRect.height.value / 2
-	let centerOfElementY = position.value.top + activeRect.height.value / 2
+	const centerY = props.slideRect.height.value / 2
+	const centerOfElementY = activeElement.value.top + activeRect.height.value / 2
 	return centerY - centerOfElementY
 })
 
@@ -161,14 +161,13 @@ const topGuideStyles = computed(() => {
 
 const bottomGuideStyles = computed(() => {
 	if (!pairElement.value) return
-	let a = {
+	return {
 		...guideStyles,
 		borderWidth: '1px 0 0 0',
 		top: `${pairedRect.top.value + pairedRect.height.value - props.slideRect.top.value + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
 		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
-	return a
 })
 
 const setCurrentPairedDataIndex = () => {
