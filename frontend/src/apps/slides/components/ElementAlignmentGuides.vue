@@ -51,14 +51,14 @@ const pairElement = computed(() => {
 
 const snapToCenter = () => {
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.left += diffCenterX.value
+		activeElement.value.left += (diffCenterX.value * 960) / props.slideRect.width.value
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.top += diffCenterY.value
+		activeElement.value.top += (diffCenterY.value * 960) / props.slideRect.width.value
 	}
 }
 
-const snapToPairElement = () => {
+const snapToPairedElement = () => {
 	if (!pairElement.value) return
 	if (diffLeft.value < PROXIMITY_THRESHOLD) {
 		activeElement.value.left = pairElement.value.left
@@ -78,15 +78,17 @@ const snapToPairElement = () => {
 
 const diffCenterX = computed(() => {
 	if (!position.value) return
-	const centerX = props.slideRect.width.value / 2
-	const centerOfElementX = activeElement.value.left + activeRect.width.value / 2
+	const rect = activeDiv.value.getBoundingClientRect()
+	const centerX = props.slideRect.width.value / 2 + props.slideRect.left.value
+	const centerOfElementX = rect.left + rect.width / 2
 	return centerX - centerOfElementX
 })
 
 const diffCenterY = computed(() => {
 	if (!position.value) return
-	const centerY = props.slideRect.height.value / 2
-	const centerOfElementY = activeElement.value.top + activeRect.height.value / 2
+	const rect = activeDiv.value.getBoundingClientRect()
+	const centerY = props.slideRect.height.value / 2 + props.slideRect.top.value
+	const centerOfElementY = rect.top + rect.height / 2
 	return centerY - centerOfElementY
 })
 
@@ -196,7 +198,7 @@ watch(
 		if (!position.value) return
 		setCurrentPairedDataIndex()
 		snapToCenter()
-		snapToPairElement()
+		snapToPairedElement()
 	},
 	{ immediate: true },
 )
