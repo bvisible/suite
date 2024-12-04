@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount, onMounted } from 'vue'
 import Draggable from 'vuedraggable'
 
 import { call } from 'frappe-ui'
@@ -80,6 +80,20 @@ const addSlide = async () => {
 	await presentation.reload()
 	activeSlideIndex.value = presentation.data.slides.length
 }
+
+const handleKeyDown = (e) => {
+	if (e.metaKey && e.key === 'b') {
+		showNavigator.value = !showNavigator.value
+	}
+}
+
+onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped>
