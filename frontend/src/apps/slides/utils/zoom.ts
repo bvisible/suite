@@ -19,8 +19,8 @@ export const usePanAndZoom = () => {
 	const containerElement = ref<HTMLElement | null>(null)
 	const allowPanAndZoom = ref()
 
-	const SCALE_SPEED = 0.5
-	const TRANSLATE_SPEED = 0.5
+	const SCALE_SPEED = 0.8
+	const TRANSLATE_SPEED = 0.8
 
 	let origin: Origin, transformObj: Transform | null
 
@@ -165,7 +165,7 @@ export const usePanAndZoom = () => {
 			// apply the final transformation
 			endGesture()
 			transformObj = null
-		}, 200)
+		}, 500)
 	}
 
 	const addPanAndZoom = () => {
@@ -192,5 +192,11 @@ export const usePanAndZoom = () => {
 		},
 	)
 
-	return { transform, transformOrigin, allowPanAndZoom, targetElement, containerElement }
+	return {
+		transform,
+		transformOrigin,
+		allowPanAndZoom,
+		targetElement,
+		containerElement,
+	}
 }
