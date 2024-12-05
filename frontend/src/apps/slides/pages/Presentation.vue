@@ -29,9 +29,9 @@
 			class="flex h-full items-center justify-center"
 			@click="(e) => clearFocus(e)"
 		>
-			<SlideNavigationPanel @changeSlide="(i) => changeSlide(i)" />
+			<SlideNavigationPanel />
 
-			<Slide ref="slide" :zoom="zoom" @changeSlide="(i) => changeSlide(i)" />
+			<Slide ref="slide" :zoom="zoom" />
 
 			<SlideElementsPanel />
 		</div>
@@ -59,7 +59,6 @@ import {
 	currentDataIndex,
 	currentPairedDataIndex,
 } from '@/stores/slide'
-import html2canvas from 'html2canvas'
 
 let autosaveInterval = null
 
@@ -122,34 +121,6 @@ const saveChanges = async () => {
 		doc: presentation.data,
 	})
 	await presentation.reload()
-}
-
-const updateSlideThumbnail = (slideDiv, index) => {
-	if (!slideDiv) return
-	html2canvas(slideDiv).then((canvas) => {
-		let img = canvas.toDataURL('image/png')
-		presentation.data.slides[index].thumbnail = img
-	})
-}
-
-const changeSlide = (index) => {
-	if (index < 0 || index >= presentation.data.slides.length) return
-	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
-		activeSlideElements.value,
-	)
-	if (activeElement.value?.type != 'slide') activeElement.value = null
-	focusedElement.value = null
-	currentDataIndex.value = null
-	currentPairedDataIndex.value = null
-	nextTick(() => {
-		updateSlideThumbnail(slideRef.value.targetRef, activeSlideIndex.value)
-		activeSlideIndex.value = index
-		if (presentation.data.slides[activeSlideIndex.value].elements)
-			activeSlideElements.value = JSON.parse(
-				presentation.data.slides[activeSlideIndex.value].elements,
-			)
-		else activeSlideElements.value = []
-	})
 }
 
 watch(
