@@ -19,14 +19,14 @@
 								? 'ring-2 ring-blue-400 ring-offset-1'
 								: 'border border-gray-300'
 						"
-						@click="$emit('changeSlide', slide.idx - 1)"
+						@click="changeSlide(slide.idx - 1)"
 					/>
 				</template>
 			</Draggable>
 
 			<div
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
-				@click="addSlide"
+				@click="insertSlide(presentation.data.slides.length)"
 			>
 				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
 			</div>
@@ -59,27 +59,10 @@
 import { ref, onBeforeUnmount, onMounted } from 'vue'
 import Draggable from 'vuedraggable'
 
-import { call } from 'frappe-ui'
-
-import { activeSlideIndex, presentation } from '@/stores/slide'
-
-const emit = defineEmits(['changeSlide'])
+import { activeSlideIndex, presentation, changeSlide, insertSlide } from '@/stores/slide'
 
 const showNavigator = ref(true)
 const showCollapseShortcut = ref(false)
-
-const addSlide = async () => {
-	await call('frappe.client.insert', {
-		doc: {
-			doctype: 'Slide',
-			parenttype: 'Presentation',
-			parentfield: 'slides',
-			parent: presentation.data.name,
-		},
-	})
-	await presentation.reload()
-	activeSlideIndex.value = presentation.data.slides.length
-}
 
 const handleKeyDown = (e) => {
 	if (e.metaKey && e.key === 'b') {
