@@ -1,5 +1,6 @@
-import { ref } from 'vue'
-import { createResource } from 'frappe-ui'
+import { ref, nextTick } from 'vue'
+import { createResource, call } from 'frappe-ui'
+import html2canvas from 'html2canvas'
 
 const currentDataIndex = ref(null)
 
@@ -39,6 +40,61 @@ const setActiveElement = (element) => {
 	currentDataIndex.value = activeSlideElements.value.indexOf(element)
 }
 
+const updateSlideThumbnail = (slideDiv, index) => {
+	if (!slideDiv) return
+	html2canvas(slideDiv).then((canvas) => {
+		let img = canvas.toDataURL('image/png')
+		presentation.data.slides[index].thumbnail = img
+	})
+}
+
+const changeSlide = (index) => {
+	if (index < 0 || index >= presentation.data.slides.length) return
+	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
+		activeSlideElements.value,
+	)
+	if (activeElement.value?.type != 'slide') activeElement.value = null
+	focusedElement.value = null
+	currentDataIndex.value = null
+	currentPairedDataIndex.value = null
+	nextTick(() => {
+		if (!inSlideShow.value) {
+			let slideRef = document.querySelector('.slide')
+			if (slideRef) {
+				updateSlideThumbnail(slideRef, activeSlideIndex.value)
+			}
+		}
+		activeSlideIndex.value = index
+		if (presentation.data.slides[activeSlideIndex.value].elements)
+			activeSlideElements.value = JSON.parse(
+				presentation.data.slides[activeSlideIndex.value].elements,
+			)
+		else activeSlideElements.value = []
+	})
+}
+
+const insertSlide = async () => {
+	await saveChanges()
+	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
+		name: name.value,
+		index: activeSlideIndex.value,
+	})
+	await presentation.reload()
+}
+
+const saveChanges = async () => {
+	if (!presentation.data) return
+	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
+		activeSlideElements.value,
+		null,
+		2,
+	)
+	await call('frappe.client.save', {
+		doc: presentation.data,
+	})
+	await presentation.reload()
+}
+
 export {
 	currentDataIndex,
 	currentPairedDataIndex,
@@ -52,4 +108,6 @@ export {
 	position,
 	dimensions,
 	setActiveElement,
+	changeSlide,
+	insertSlide,
 }

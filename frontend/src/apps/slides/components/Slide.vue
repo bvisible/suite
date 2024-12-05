@@ -78,10 +78,10 @@ import {
 	position,
 	dimensions,
 	currentPairedDataIndex,
+	changeSlide,
 } from '@/stores/slide'
 
 const zoom = defineModel('zoom')
-const emit = defineEmits(['changeSlide'])
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const targetRef = useTemplateRef('target')
@@ -177,11 +177,11 @@ const handleKeyDown = (event) => {
 	else if (event.key == 'ArrowUp') {
 		if (activeElement.value && activeElement.value.type != 'slide')
 			position.value = { ...position.value, top: position.value.top - 1 }
-		else emit('changeSlide', activeSlideIndex.value - 1)
+		else changeSlide(activeSlideIndex.value - 1)
 	} else if (event.key == 'ArrowDown') {
 		if (activeElement.value && activeElement.value.type != 'slide')
 			position.value = { ...position.value, top: position.value.top + 1 }
-		else emit('changeSlide', activeSlideIndex.value + 1)
+		else changeSlide(activeSlideIndex.value + 1)
 	} else if (event.key == 'ArrowLeft') {
 		if (activeElement.value)
 			position.value = { ...position.value, left: position.value.left - 1 }
