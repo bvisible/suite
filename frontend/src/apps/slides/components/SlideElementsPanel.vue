@@ -384,27 +384,35 @@ const guessTextColor = () => {
 	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
 }
 
-const getTextColor = () => {
+const addTextElement = () => {
 	const lastTextElement = activeSlideElements.value
 		.reverse()
 		.find((element) => element.type == 'text')
-	return lastTextElement?.color || guessTextColor()
-}
 
-const addTextElement = () => {
-	let element = {
-		width: 65,
+	const element = {
 		left: 100,
 		top: 100,
-		fontSize: 30,
-		fontFamily: 'Inter',
-		fontWeight: 'bold',
 		opacity: 100,
 		content: 'Text',
 		type: 'text',
-		color: getTextColor(),
-		lineHeight: 1,
-		letterSpacing: 0,
+	}
+
+	if (lastTextElement) {
+		element.width = lastTextElement.width
+		element.fontSize = lastTextElement.fontSize
+		element.fontFamily = lastTextElement.fontFamily
+		element.fontWeight = lastTextElement.fontWeight
+		element.color = lastTextElement.color
+		element.lineHeight = lastTextElement.lineHeight
+		element.letterSpacing = lastTextElement.letterSpacing
+	} else {
+		element.width = 65
+		element.fontSize = 30
+		element.fontFamily = 'Inter'
+		element.fontWeight = 'normal'
+		element.color = guessTextColor()
+		element.lineHeight = 1
+		element.letterSpacing = 0
 	}
 	activeSlideElements.value.push(element)
 	nextTick(() => setActiveElement(element))
