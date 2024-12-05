@@ -79,6 +79,7 @@ import {
 	dimensions,
 	currentPairedDataIndex,
 	changeSlide,
+	insertSlide,
 } from '@/stores/slide'
 
 const zoom = defineModel('zoom')

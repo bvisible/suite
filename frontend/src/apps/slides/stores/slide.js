@@ -73,15 +73,6 @@ const changeSlide = (index) => {
 	})
 }
 
-const insertSlide = async () => {
-	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
-		name: name.value,
-		index: activeSlideIndex.value,
-	})
-	await presentation.reload()
-}
-
 const saveChanges = async () => {
 	if (!presentation.data) return
 	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
@@ -91,6 +82,15 @@ const saveChanges = async () => {
 	)
 	await call('frappe.client.save', {
 		doc: presentation.data,
+	})
+	await presentation.reload()
+}
+
+const insertSlide = async (index) => {
+	await saveChanges()
+	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
+		name: name.value,
+		index: index,
 	})
 	await presentation.reload()
 }
@@ -110,4 +110,5 @@ export {
 	setActiveElement,
 	changeSlide,
 	insertSlide,
+	saveChanges,
 }
