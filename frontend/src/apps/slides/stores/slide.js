@@ -104,6 +104,15 @@ const deleteSlide = async () => {
 	await presentation.reload()
 }
 
+const duplicateSlide = async () => {
+	await saveChanges()
+	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
+		name: name.value,
+		index: activeSlideIndex.value,
+	})
+	await presentation.reload()
+}
+
 export {
 	currentDataIndex,
 	currentPairedDataIndex,
@@ -120,5 +129,6 @@ export {
 	changeSlide,
 	insertSlide,
 	deleteSlide,
+	duplicateSlide,
 	saveChanges,
 }

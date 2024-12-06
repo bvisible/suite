@@ -45,7 +45,12 @@
 
 				<div class="fixed -bottom-12 right-0 flex cursor-pointer items-center gap-4 p-3">
 					<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
-					<Copy size="14" strokeWidth="1.5" class="text-gray-800" />
+					<Copy
+						size="14"
+						strokeWidth="1.5"
+						class="text-gray-800"
+						@click="duplicateSlide"
+					/>
 					<SquarePlus
 						size="14"
 						strokeWidth="1.5"
@@ -92,6 +97,7 @@ import {
 	changeSlide,
 	insertSlide,
 	deleteSlide,
+	duplicateSlide,
 } from '@/stores/slide'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
