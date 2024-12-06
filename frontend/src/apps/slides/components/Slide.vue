@@ -179,7 +179,7 @@ const duplicateElement = (e) => {
 }
 
 const deleteElement = (e) => {
-	if (!activeElement.value && !focusedElement.value) return
+	if (!activeElement.value && focusedElement.value) return
 	activeSlideElements.value.splice(currentDataIndex.value, 1)
 	selectSlide(e)
 }
