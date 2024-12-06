@@ -42,6 +42,17 @@
 					:element="element"
 					:data-index="index"
 				/>
+
+				<div class="fixed -bottom-12 right-0 flex cursor-pointer items-center gap-4 p-3">
+					<Trash size="14" strokeWidth="1.5" class="text-gray-800" />
+					<Copy size="14" strokeWidth="1.5" class="text-gray-800" />
+					<SquarePlus
+						size="14"
+						strokeWidth="1.5"
+						class="text-gray-800"
+						@click="insertSlide(activeSlideIndex)"
+					/>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -81,6 +92,7 @@ import {
 	changeSlide,
 	insertSlide,
 } from '@/stores/slide'
+import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
 const zoom = defineModel('zoom')
 
