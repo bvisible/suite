@@ -20,21 +20,7 @@
 			<ElementAlignmentGuides v-if="activeElement" :slideRect="slideRect" />
 
 			<div v-if="activeSlideElements">
-				<TransitionGroup
-					v-if="inSlideShow"
-					tag="div"
-					@enter="handleSlideEnter"
-					@leave="handleSlideLeave"
-				>
-					<component
-						v-for="(element, index) in activeSlideElements"
-						:key="index"
-						:is="SlideElement"
-						:element="element"
-					/>
-				</TransitionGroup>
 				<component
-					v-else
 					ref="element"
 					v-for="(element, index) in activeSlideElements"
 					:key="index"
@@ -209,22 +195,6 @@ const handleKeyDown = (event) => {
 		if (activeElement.value)
 			position.value = { ...position.value, left: position.value.left + 1 }
 	}
-}
-
-const handleSlideEnter = (el, done) => {
-	el.style.opacity = 0
-	nextTick(() => {
-		el.style.transition = 'opacity 1s'
-		el.style.opacity = 1
-	})
-}
-
-const handleSlideLeave = (el, done) => {
-	el.style.opacity = 1
-	nextTick(() => {
-		el.style.transition = 'opacity 1s'
-		el.style.opacity = 0
-	})
 }
 
 function resetCursorVisibility() {
