@@ -1,6 +1,8 @@
 import { ref } from 'vue'
 import { createResource } from 'frappe-ui'
 
+const currentDataIndex = ref(null)
+
 const activeElement = ref(null)
 
 const focusedElement = ref(null)
@@ -12,13 +14,14 @@ const presentation = createResource({
 	makeParams: () => ({ name: name.value }),
 })
 
-const activeSlideIndex = ref(1)
+const activeSlideIndex = ref(0)
 
 const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
 
 export {
+	currentDataIndex,
 	name,
 	presentation,
 	activeSlideIndex,

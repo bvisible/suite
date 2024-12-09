@@ -1,30 +1,30 @@
 <template>
-	<video
-		ref="videoElement"
-		:src="element.src"
-		:style="videoStyle"
-		:autoplay="element.autoPlay"
-		:loop="element.loop"
-		:playbackRate="element.playbackRate"
-		@click="(e) => setActiveElement(e, element)"
-	/>
-	<div
-		v-if="isEqual(activeElement, element)"
-		class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
-		@click="handleVideoControls"
-	>
-		<FeatherIcon
-			:name="isPlaying ? 'pause' : 'play'"
-			class="stroke-width-3 h-3 ps-[0.5px] text-white"
-		></FeatherIcon>
+	<div @click="handleVideoControls">
+		<video
+			ref="videoElement"
+			:src="element.src"
+			:style="videoStyle"
+			:autoplay="inSlideShow ? element.autoPlay : false"
+			:loop="element.loop"
+			:playbackRate="element.playbackRate"
+		/>
+		<div
+			v-if="currentDataIndex == $attrs['data-index']"
+			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
+		>
+			<FeatherIcon
+				:name="isPlaying ? 'pause' : 'play'"
+				class="stroke-width-3 h-3 ps-[0.5px] text-white"
+			></FeatherIcon>
+		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed, inject } from 'vue'
-import { activeElement } from '@/stores/slide'
-import { isEqual } from 'lodash'
+import { ref, useTemplateRef, computed, inject, useAttrs } from 'vue'
+import { activeElement, currentDataIndex, inSlideShow } from '@/stores/slide'
 
+const attrs = useAttrs()
 const setActiveElement = inject('setActiveElement')
 
 const el = useTemplateRef('videoElement')
@@ -45,13 +45,15 @@ const videoStyle = computed(() => ({
 
 const handleVideoControls = (e) => {
 	e.stopPropagation()
-	const video = el.value
-	if (video.paused) {
-		isPlaying.value = true
-		video.play()
-	} else {
-		isPlaying.value = false
-		video.pause()
-	}
+	if (inSlideShow.value || currentDataIndex.value != attrs['data-index']) {
+		const video = el.value
+		if (video.paused) {
+			isPlaying.value = true
+			video.play()
+		} else {
+			isPlaying.value = false
+			video.pause()
+		}
+	} else setActiveElement(e, element.value)
 }
 </script>

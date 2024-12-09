@@ -2,7 +2,7 @@
 	<!-- Slide Navigation Panel -->
 	<div
 		id="slide-navigation-panel"
-		class="fixed z-20 h-[94.2%] w-44 select-none border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out hover:overflow-y-auto"
+		class="fixed z-20 h-[94.27%] w-44 select-none border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out hover:overflow-y-auto"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 		v-if="presentation.data?.slides"
 	>
@@ -13,11 +13,11 @@
 						:src="slide.thumbnail"
 						class="my-4 h-20 cursor-pointer rounded"
 						:class="
-							activeSlideIndex == slide.idx
+							activeSlideIndex == slide.idx - 1
 								? 'ring-2 ring-blue-400 ring-offset-1'
 								: 'border border-gray-300'
 						"
-						@click="activeSlideIndex = slide.idx"
+						@click="activeSlideIndex = slide.idx - 1"
 					/>
 				</template>
 			</Draggable>
@@ -48,7 +48,6 @@
 
 <script setup>
 import { ref, onBeforeMount, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
 import Draggable from 'vuedraggable'
 
 import { call } from 'frappe-ui'
@@ -56,20 +55,18 @@ import { call } from 'frappe-ui'
 import { PanelLeftOpen, PanelLeftClose } from 'lucide-vue-next'
 import { activeSlideIndex, presentation } from '@/stores/slide'
 
-const route = useRoute()
-
 const showNavigator = ref(false)
 
 const updateActiveSlide = (e) => {
 	switch (e.key) {
 		case 'ArrowDown':
-			if (activeSlideIndex.value < presentation.data.slides.length) {
+			if (activeSlideIndex.value < presentation.data.slides.length - 1) {
 				activeSlideIndex.value += 1
 			}
 			break
 
 		case 'ArrowUp':
-			if (activeSlideIndex.value > 1) {
+			if (activeSlideIndex.value > 0) {
 				activeSlideIndex.value -= 1
 			}
 			break
@@ -82,7 +79,7 @@ const addSlide = async () => {
 			doctype: 'Slide',
 			parenttype: 'Presentation',
 			parentfield: 'slides',
-			parent: route.params.name,
+			parent: presentation.data.name,
 		},
 	})
 	await presentation.reload()

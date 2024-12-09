@@ -1,25 +1,21 @@
 <template>
 	<!-- Slide (Dimensions: 16:9 ratio) -->
 	<div
+		ref="slideContainer"
 		class="slideContainer flex items-center justify-center"
 		:class="inSlideShow ? 'bg-black-900' : ''"
 		:style="{
 			width: '960px',
 			height: '540px',
-			cursor: isDragging ? 'move' : 'default',
+			cursor: inSlideShow ? slideCursor : 'default',
 		}"
 	>
 		<div
 			ref="target"
-			class="slide h-[540px] w-[960px] drop-shadow-xl"
-			:style="{
-				backgroundColor:
-					(presentation.data &&
-						presentation.data.slides[activeSlideIndex - 1]?.background) ||
-					'white',
-			}"
+			class="h-[540px] w-[960px] drop-shadow-xl"
+			:style="slideStyles"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-			@click="selectSlide"
+			@click="handleSlideClick"
 		>
 			<div v-if="activeSlideElements">
 				<TransitionGroup
@@ -42,6 +38,7 @@
 					:key="index"
 					:is="SlideElement"
 					:element="element"
+					:data-index="index"
 				/>
 			</div>
 		</div>
@@ -52,21 +49,22 @@
 import {
 	onMounted,
 	ref,
-	unref,
 	useTemplateRef,
 	watch,
-	onBeforeUnmount,
 	TransitionGroup,
 	nextTick,
 	computed,
 	provide,
+	onBeforeUnmount,
 } from 'vue'
-import { useDragAndDrop } from '@/utils/drag'
-import { useResizer } from '@/utils/resizer'
 
 import SlideElement from '@/components/SlideElement.vue'
 
+import { useDragAndDrop } from '@/utils/drag'
+import { useResizer } from '@/utils/resizer'
+
 import {
+	currentDataIndex,
 	activeElement,
 	focusedElement,
 	activeSlideIndex,
@@ -74,30 +72,57 @@ import {
 	activeSlideElements,
 	inSlideShow,
 } from '@/stores/slide'
-import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
+const zoom = defineModel('zoom')
+
+const slideContainerRef = useTemplateRef('slideContainer')
 const targetRef = useTemplateRef('target')
 
+const { transform, transformOrigin, allowPanAndZoom } = zoom.value
+
+const slideCursor = ref('auto')
 const position = ref(null)
 const dimensions = ref(null)
 
 const { isDragging, dragTarget } = useDragAndDrop(position)
 const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
 
+const slideStyles = computed(() => {
+	if (!presentation.data) return
+	return {
+		backgroundColor: presentation.data.slides[activeSlideIndex.value]?.background || 'white',
+		transform: transform.value,
+		transformOrigin: transformOrigin.value,
+	}
+})
+
 const selectSlide = (e) => {
-	if (inSlideShow.value || e.target != targetRef.value) return
+	e.preventDefault()
+	e.stopPropagation()
 	if (isResizing.value) {
 		isResizing.value = false
 		return
 	}
-	e.preventDefault()
-	e.stopPropagation()
 	activeElement.value = {
 		type: 'slide',
 	}
-	focusedElement.value = null
-	removeDragAndResize()
+	if (focusedElement.value) {
+		focusedElement.value.content = document.querySelector(
+			`[data-index="${currentDataIndex.value}"]`,
+		).innerText
+		focusedElement.value = null
+	}
+	currentDataIndex.value = null
+}
+
+const handleSlideClick = (e) => {
+	e.stopPropagation()
+	if (e.target != targetRef.value) return
+	if (inSlideShow.value) {
+		activeSlideIndex.value += 1
+		return
+	} else selectSlide(e)
 }
 
 const setActiveElement = (e, element) => {
@@ -109,21 +134,20 @@ const setActiveElement = (e, element) => {
 	e.preventDefault()
 	e.stopPropagation()
 
+	if (focusedElement.value) {
+		focusedElement.value.content = document.querySelector(
+			`[data-index="${currentDataIndex.value}"]`,
+		).innerText
+		focusedElement.value = null
+	}
+
 	activeElement.value = element
-	focusedElement.value = null
-	addDragAndResize(e.target)
+	currentDataIndex.value = activeSlideElements.value.indexOf(element)
 }
 
-const addDragAndResize = (el) => {
-	let rect = el.getBoundingClientRect()
-	position.value = {
-		top: rect.top,
-		left: rect.left,
-	}
-	dimensions.value = {
-		width: rect.width,
-	}
-
+const addDragAndResize = () => {
+	let el = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+	if (!el || !activeElement.value) return
 	dragTarget.value = el
 	if (activeElement.value.type == 'text') {
 		resizeTarget.value = el
@@ -141,71 +165,35 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
-const handleKeyDown = (event) => {
-	if (document.activeElement.tagName == 'INPUT') return
-	if (['Delete', 'Backspace'].includes(event.key) && !activeElement.value.isContentEditable) {
-		if (activeElement.value) {
-			activeSlideElements.value = activeSlideElements.value.filter(
-				(el) => !isEqual(el, activeElement.value),
-			)
-			activeElement.value = null
-		}
+const duplicateElement = (e) => {
+	e.preventDefault()
+	if (activeElement.value) {
+		let newElement = JSON.parse(JSON.stringify(activeElement.value))
+		newElement.top += 10
+		newElement.left += 10
+		activeSlideElements.value.push(newElement)
+		activeElement.value = newElement
+		currentDataIndex.value = activeSlideElements.value.indexOf(newElement)
 	}
 }
 
+const handleKeyDown = (event) => {
+	if (document.activeElement.tagName == 'INPUT') return
+	if (['Delete', 'Backspace'].includes(event.key) && !focusedElement.value) {
+		if (activeElement.value) {
+			activeSlideElements.value.splice(currentDataIndex.value, 1)
+			activeElement.value = null
+		}
+	} else if (event.key == 'd' && event.metaKey) duplicateElement(event)
+}
+
 const updateSlideThumbnail = (index) => {
+	if (!targetRef.value) return
 	html2canvas(targetRef.value).then((canvas) => {
 		let img = canvas.toDataURL('image/png')
 		presentation.data.slides[index].thumbnail = img
 	})
 }
-
-watch(
-	() => activeSlideIndex.value,
-	(new_val, old_val) => {
-		if (!presentation.data) return
-		if (old_val && presentation.data.slides[old_val - 1]) {
-			presentation.data.slides[old_val - 1].elements = JSON.stringify(
-				activeSlideElements.value,
-			)
-			updateSlideThumbnail(old_val - 1)
-		}
-		if (presentation.data.slides[new_val - 1]) {
-			if (presentation.data.slides[new_val - 1].elements)
-				activeSlideElements.value = JSON.parse(
-					presentation.data.slides[new_val - 1].elements,
-				)
-			else activeSlideElements.value = []
-		}
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => activeElement.value,
-	() => {
-		updateSlideThumbnail(activeSlideIndex.value - 1)
-	},
-)
-
-watch(
-	() => presentation.data,
-	() => {
-		if (!presentation.data?.slides[activeSlideIndex.value - 1]?.elements) return
-		activeSlideElements.value = JSON.parse(
-			presentation.data.slides[activeSlideIndex.value - 1].elements,
-		)
-	},
-	{ immediate: true },
-)
-
-onMounted(() => {
-	window.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-	window.removeEventListener('keydown', handleKeyDown)
-})
 
 const handleSlideEnter = (el, done) => {
 	el.style.opacity = 0
@@ -222,6 +210,73 @@ const handleSlideLeave = (el, done) => {
 		el.style.opacity = 0
 	})
 }
+
+function resetCursorVisibility() {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 2000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		activeElement.value = null
+		transformOrigin.value = ''
+		transform.value = 'scale(1.5, 1.5)'
+		allowPanAndZoom.value = false
+		targetRef.value.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		transform.value = ''
+		transformOrigin.value = '0 0'
+		allowPanAndZoom.value = true
+		targetRef.value.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+
+watch(
+	() => activeSlideIndex.value,
+	(new_val, old_val) => {
+		if (!presentation.data) return
+		activeElement.value = null
+		focusedElement.value = null
+		currentDataIndex.value = null
+		if (presentation.data.slides[old_val]) {
+			presentation.data.slides[old_val].elements = JSON.stringify(activeSlideElements.value)
+			updateSlideThumbnail(old_val)
+		}
+		if (presentation.data.slides[new_val]) {
+			if (presentation.data.slides[new_val].elements)
+				activeSlideElements.value = JSON.parse(presentation.data.slides[new_val].elements)
+			else activeSlideElements.value = []
+		}
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => activeElement.value,
+	() => {
+		removeDragAndResize()
+		addDragAndResize()
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => presentation.data,
+	() => {
+		if (!presentation.data?.slides[activeSlideIndex.value]?.elements) return
+		activeSlideElements.value = JSON.parse(
+			presentation.data.slides[activeSlideIndex.value].elements,
+		)
+	},
+	{ immediate: true },
+)
 
 watch(
 	() => position.value,
@@ -247,12 +302,23 @@ watch(
 	{ immediate: true },
 )
 
-provide('setActiveElement', setActiveElement)
-provide('removeDragAndResize', removeDragAndResize)
+onMounted(() => {
+	document.addEventListener('keydown', handleKeyDown)
+	document.addEventListener('fullscreenchange', handleScreenChange)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('keydown', handleKeyDown)
+	document.removeEventListener('fullscreenchange', handleScreenChange)
+})
 
 defineExpose({
 	targetRef,
 })
+
+provide('setActiveElement', setActiveElement)
+provide('removeDragAndResize', removeDragAndResize)
+provide('isDragging', isDragging)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>

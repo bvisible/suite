@@ -2,7 +2,7 @@
 	<!-- Element Properties Panel -->
 	<div
 		v-if="activeElement"
-		class="fixed z-20 flex h-[94.2%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
+		class="fixed z-20 flex h-[94.27%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
 		:class="activeElement ? 'right-13' : '-right-[174px]'"
 		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
 	>
@@ -11,15 +11,13 @@
 				<div class="flex items-center justify-between">
 					<div class="text-2xs font-semibold uppercase text-gray-700">Slide</div>
 					<div class="text-2xs font-semibold text-gray-700">
-						{{ activeSlideIndex + ' of ' + presentation.data.slides.length }}
+						{{ activeSlideIndex + 1 + ' of ' + presentation.data.slides.length }}
 					</div>
 				</div>
 
 				<div class="flex items-center justify-between">
 					<div class="text-sm text-gray-600">Background</div>
-					<ColorPicker
-						v-model="presentation.data.slides[activeSlideIndex - 1].background"
-					/>
+					<ColorPicker v-model="presentation.data.slides[activeSlideIndex].background" />
 				</div>
 			</div>
 		</div>
@@ -253,7 +251,7 @@
 	</div>
 
 	<!-- Slide Elements Panel -->
-	<div class="fixed right-0 z-20 flex h-[94.2%] w-fit select-none border-l bg-white">
+	<div class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white">
 		<div class="flex flex-col justify-between">
 			<div>
 				<Tooltip text="Text" hover-delay="1" placement="left">
@@ -351,17 +349,11 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 
-import { Tooltip, FileUploader, FormControl, Switch } from 'frappe-ui'
-import {
-	FlipHorizontal,
-	FlipVertical,
-	Repeat2,
-	StickyNote,
-	TvMinimalPlay,
-	Undo,
-} from 'lucide-vue-next'
+import { Tooltip, FileUploader } from 'frappe-ui'
+
+import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
 import { activeElement, activeSlideIndex, activeSlideElements, presentation } from '@/stores/slide'
 import SliderInput from './SliderInput.vue'
@@ -375,8 +367,8 @@ const activeTab = computed(() => {
 })
 
 const getTextColor = () => {
-	if (presentation.data.slides[activeSlideIndex.value - 1].background) {
-		let color = presentation.data.slides[activeSlideIndex.value - 1].background
+	if (presentation.data.slides[activeSlideIndex.value].background) {
+		let color = presentation.data.slides[activeSlideIndex.value].background
 		let r = parseInt(color.slice(1, 3), 16)
 		let g = parseInt(color.slice(3, 5), 16)
 		let b = parseInt(color.slice(5, 7), 16)
