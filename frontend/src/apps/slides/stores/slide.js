@@ -57,6 +57,7 @@ const changeSlide = (index) => {
 	focusedElement.value = null
 	currentDataIndex.value = null
 	currentPairedDataIndex.value = null
+	currentTransitionSlide.value = index
 	nextTick(() => {
 		if (!inSlideShow.value) {
 			let slideRef = document.querySelector('.slide')
@@ -113,6 +114,8 @@ const duplicateSlide = async () => {
 	await presentation.reload()
 }
 
+const currentTransitionSlide = ref(0)
+
 export {
 	currentDataIndex,
 	currentPairedDataIndex,
@@ -125,6 +128,7 @@ export {
 	focusedElement,
 	position,
 	dimensions,
+	currentTransitionSlide,
 	setActiveElement,
 	changeSlide,
 	insertSlide,
