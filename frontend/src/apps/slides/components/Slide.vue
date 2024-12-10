@@ -7,10 +7,31 @@
 		:style="{
 			width: '960px',
 			height: '540px',
-			cursor: inSlideShow ? slideCursor : 'default',
+			cursor: slideCursor,
 		}"
 	>
+		<div v-if="inSlideShow">
+			<Transition @before-enter="beforeSlideEnter" @enter="slideEnter" @leave="slideLeave">
+				<div
+					ref="target"
+					class="slide h-[540px] w-[960px] drop-shadow-xl"
+					:style="slideStyles"
+					v-if="currentTransitionSlide == activeSlideIndex"
+					@click="handleSlideClick"
+				>
+					<component
+						ref="element"
+						v-for="(element, index) in activeSlideElements"
+						:key="index"
+						:is="SlideElement"
+						:element="element"
+						:data-index="index"
+					/>
+				</div>
+			</Transition>
+		</div>
 		<div
+			v-else
 			ref="target"
 			class="slide h-[540px] w-[960px] drop-shadow-xl"
 			:style="slideStyles"
@@ -19,32 +40,25 @@
 		>
 			<ElementAlignmentGuides v-if="activeElement" :slideRect="slideRect" />
 
-			<div v-if="activeSlideElements">
-				<component
-					ref="element"
-					v-for="(element, index) in activeSlideElements"
-					:key="index"
-					:is="SlideElement"
-					:element="element"
-					:data-index="index"
+			<div class="fixed -bottom-12 right-0 cursor-pointer p-3">
+				<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
+				<Copy size="14" strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
+				<SquarePlus
+					size="14"
+					strokeWidth="1.5"
+					class="text-gray-800"
+					@click="insertSlide(activeSlideIndex)"
 				/>
-
-				<div class="fixed -bottom-12 right-0 flex cursor-pointer items-center gap-4 p-3">
-					<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
-					<Copy
-						size="14"
-						strokeWidth="1.5"
-						class="text-gray-800"
-						@click="duplicateSlide"
-					/>
-					<SquarePlus
-						size="14"
-						strokeWidth="1.5"
-						class="text-gray-800"
-						@click="insertSlide(activeSlideIndex)"
-					/>
-				</div>
 			</div>
+
+			<component
+				ref="element"
+				v-for="(element, index) in activeSlideElements"
+				:key="index"
+				:is="SlideElement"
+				:element="element"
+				:data-index="index"
+			/>
 		</div>
 	</div>
 </template>
@@ -84,6 +98,7 @@ import {
 	insertSlide,
 	deleteSlide,
 	duplicateSlide,
+	currentTransitionSlide,
 } from '@/stores/slide'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
@@ -278,6 +293,24 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
+
+const beforeSlideEnter = (el) => {
+	el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
+	el.style.transition = 'none'
+}
+
+const slideEnter = (el, done) => {
+	el.offsetWidth
+	el.style.transition = 'transform 0.7s ease-out'
+	el.style.transform = 'translateX(0) scale(1.5, 1.5)'
+	done()
+}
+
+const slideLeave = (el, done) => {
+	el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
+	el.style.transition = 'transform 0.7s ease-out'
+	done()
+}
 
 defineExpose({
 	targetRef,
