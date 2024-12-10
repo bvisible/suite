@@ -4,11 +4,11 @@ import html2canvas from 'html2canvas'
 
 const currentDataIndex = ref(null)
 
+const currentFocusedIndex = ref(null)
+
 const currentPairedDataIndex = ref(null)
 
 const activeElement = ref(null)
-
-const focusedElement = ref(null)
 
 const name = ref('')
 
@@ -26,18 +26,24 @@ const inSlideShow = ref(false)
 const position = ref(null)
 const dimensions = ref(null)
 
-const setActiveElement = (element) => {
+const setActiveElement = (element, inFocus = false) => {
 	if (inSlideShow.value) return
 
-	if (focusedElement.value) {
-		focusedElement.value.content = document.querySelector(
-			`[data-index="${currentDataIndex.value}"]`,
+	if (activeElement.value && currentFocusedIndex.value) {
+		activeElement.value.content = document.querySelector(
+			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
-		focusedElement.value = null
 	}
 
 	activeElement.value = element
-	currentDataIndex.value = activeSlideElements.value.indexOf(element)
+	const index = activeSlideElements.value.indexOf(element)
+	if (inFocus) {
+		currentFocusedIndex.value = index
+		currentDataIndex.value = null
+	} else {
+		currentDataIndex.value = index
+		currentFocusedIndex.value = null
+	}
 }
 
 const updateSlideThumbnail = (slideDiv, index) => {
@@ -54,8 +60,8 @@ const changeSlide = (index) => {
 		activeSlideElements.value,
 	)
 	if (activeElement.value?.type != 'slide') activeElement.value = null
-	focusedElement.value = null
 	currentDataIndex.value = null
+	currentFocusedIndex.value = null
 	currentPairedDataIndex.value = null
 	currentTransitionSlide.value = index
 	nextTick(() => {
@@ -118,6 +124,7 @@ const currentTransitionSlide = ref(0)
 
 export {
 	currentDataIndex,
+	currentFocusedIndex,
 	currentPairedDataIndex,
 	name,
 	presentation,
@@ -125,7 +132,6 @@ export {
 	activeElement,
 	activeSlideElements,
 	inSlideShow,
-	focusedElement,
 	position,
 	dimensions,
 	currentTransitionSlide,

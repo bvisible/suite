@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="focus:outline-none"
-		:contenteditable="currentDataIndex == $attrs['data-index']"
+		:contenteditable="currentFocusedIndex == $attrs['data-index']"
 		:style="textStyle"
 		@click="selectElement"
 	>
@@ -13,9 +13,9 @@
 import { ref, computed, inject, useAttrs } from 'vue'
 import {
 	activeElement,
-	focusedElement,
 	inSlideShow,
 	currentDataIndex,
+	currentFocusedIndex,
 	setActiveElement,
 } from '@/stores/slide'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
@@ -37,14 +37,14 @@ const textStyle = computed(() => ({
 	fontStyle: element.value.fontStyle,
 	textDecoration: element.value.textDecoration,
 	textTransform: element.value.textTransform,
-	userSelect: focusedElement.value == element.value ? 'text' : 'none',
+	userSelect: currentFocusedIndex.value == attrs['data-index'] ? 'text' : 'none',
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
 	letterSpacing: `${element.value.letterSpacing}px`,
 	wordWrap: 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,
-	cursor: focusedElement.value == element.value ? 'text' : '',
+	cursor: currentFocusedIndex.value == attrs['data-index'] ? 'text' : '',
 }))
 
 const selectElement = (e) => {
@@ -54,15 +54,14 @@ const selectElement = (e) => {
 
 const setActiveText = (e) => {
 	e.stopPropagation()
-	if (focusedElement.value == element.value) return
+	if (currentFocusedIndex.value == attrs['data-index']) return
 	setActiveElement(element.value)
 }
 
 const setFocusElement = (e) => {
 	e.stopPropagation()
-	if (focusedElement.value == element.value) return
-	activeElement.value = null
-	focusedElement.value = element.value
-	currentDataIndex.value = attrs['data-index']
+	if (currentFocusedIndex.value == attrs['data-index']) return
+	setActiveElement(element.value, true)
+	removeDragAndResize()
 }
 </script>
