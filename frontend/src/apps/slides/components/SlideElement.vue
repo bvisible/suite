@@ -11,6 +11,7 @@ import { currentDataIndex, currentPairedDataIndex } from '@/stores/slide'
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
+import { currentFocusedIndex } from '@/stores/slide'
 
 const attrs = useAttrs()
 
@@ -24,7 +25,8 @@ const element = defineModel('element', {
 const showOutline = computed(() => {
 	return (
 		currentDataIndex.value == attrs['data-index'] ||
-		currentPairedDataIndex.value == attrs['data-index']
+		currentPairedDataIndex.value == attrs['data-index'] ||
+		currentFocusedIndex.value == attrs['data-index']
 	)
 })
 

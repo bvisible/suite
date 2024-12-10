@@ -51,7 +51,6 @@ import Slide from '@/components/Slide.vue'
 import { usePanAndZoom } from '@/utils/zoom'
 import {
 	activeElement,
-	focusedElement,
 	activeSlideIndex,
 	name,
 	presentation,
@@ -96,7 +95,6 @@ const saveTitle = async () => {
 
 const clearFocus = (e) => {
 	if (e.target == containerRef.value) activeElement.value = null
-	focusedElement.value = null
 }
 
 const startSlideShow = () => {

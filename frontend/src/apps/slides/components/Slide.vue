@@ -38,7 +38,10 @@
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
 		>
-			<ElementAlignmentGuides v-if="activeElement" :slideRect="slideRect" />
+			<ElementAlignmentGuides
+				v-if="activeElement && currentDataIndex != null"
+				:slideRect="slideRect"
+			/>
 
 			<div class="fixed -bottom-12 right-0 cursor-pointer p-3">
 				<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
@@ -85,8 +88,8 @@ import { useResizer } from '@/utils/resizer'
 
 import {
 	currentDataIndex,
+	currentFocusedIndex,
 	activeElement,
-	focusedElement,
 	activeSlideIndex,
 	presentation,
 	activeSlideElements,
@@ -133,13 +136,13 @@ const selectSlide = (e) => {
 	activeElement.value = {
 		type: 'slide',
 	}
-	if (focusedElement.value) {
-		focusedElement.value.content = document.querySelector(
-			`[data-index="${currentDataIndex.value}"]`,
+	if (activeElement.value && currentFocusedIndex.value) {
+		activeElement.content = document.querySelector(
+			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
-		focusedElement.value = null
 	}
 	currentDataIndex.value = null
+	currentFocusedIndex.value = null
 	currentPairedDataIndex.value = null
 }
 
@@ -186,7 +189,7 @@ const duplicateElement = (e) => {
 }
 
 const deleteElement = (e) => {
-	if (!activeElement.value && focusedElement.value) return
+	if (!activeElement.value || currentFocusedIndex.value != null) return
 	activeSlideElements.value.splice(currentDataIndex.value, 1)
 	selectSlide(e)
 }
