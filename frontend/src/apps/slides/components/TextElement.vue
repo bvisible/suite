@@ -22,8 +22,6 @@ import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
 const attrs = useAttrs()
 
-const removeDragAndResize = inject('removeDragAndResize')
-
 const element = defineModel('element', {
 	type: Object,
 	default: null,
@@ -62,6 +60,5 @@ const setFocusElement = (e) => {
 	e.stopPropagation()
 	if (currentFocusedIndex.value == attrs['data-index']) return
 	setActiveElement(element.value, true)
-	removeDragAndResize()
 }
 </script>

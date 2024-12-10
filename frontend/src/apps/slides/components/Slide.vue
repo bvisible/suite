@@ -243,9 +243,12 @@ const handleScreenChange = () => {
 }
 
 watch(
-	() => activeElement.value,
+	() => currentDataIndex.value,
 	() => {
-		removeDragAndResize()
+		if (currentDataIndex.value == null) {
+			removeDragAndResize()
+			return
+		}
 		addDragAndResize()
 	},
 	{ immediate: true },
@@ -319,7 +322,6 @@ defineExpose({
 	targetRef,
 })
 
-provide('removeDragAndResize', removeDragAndResize)
 provide('isDragging', isDragging)
 </script>
 
