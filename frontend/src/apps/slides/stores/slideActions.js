@@ -9,6 +9,7 @@ import {
 	currentFocusedIndex,
 	currentPairedDataIndex,
 	currentTransitionSlide,
+	applyReverseTransition,
 	inSlideShow,
 	name,
 	presentation,
@@ -32,6 +33,7 @@ const changeSlide = (index) => {
 	currentFocusedIndex.value = null
 	currentPairedDataIndex.value = null
 	currentTransitionSlide.value = index
+	applyReverseTransition.value = index < activeSlideIndex.value
 	nextTick(() => {
 		if (!inSlideShow.value) {
 			let slideRef = document.querySelector('.slide')

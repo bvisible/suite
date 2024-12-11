@@ -97,6 +97,7 @@ import {
 	currentTransitionSlide,
 	position,
 	dimensions,
+	applyReverseTransition,
 } from '@/stores/slide'
 import { changeSlide, insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
@@ -228,11 +229,9 @@ const handleScreenChange = () => {
 	if (document.fullscreenElement) {
 		activeElement.value = null
 		transformOrigin.value = ''
-		transform.value = 'scale(1.5, 1.5)'
 		allowPanAndZoom.value = false
 		targetRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
-		transform.value = ''
 		transformOrigin.value = '0 0'
 		allowPanAndZoom.value = true
 		targetRef.value.removeEventListener('mousemove', resetCursorVisibility)
@@ -298,7 +297,8 @@ onBeforeUnmount(() => {
 })
 
 const beforeSlideEnter = (el) => {
-	el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
+	if (applyReverseTransition.value) el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
+	else el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
 	el.style.transition = 'none'
 }
 
@@ -310,7 +310,8 @@ const slideEnter = (el, done) => {
 }
 
 const slideLeave = (el, done) => {
-	el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
+	if (applyReverseTransition.value) el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
+	else el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
 	el.style.transition = 'transform 0.7s ease-out'
 	done()
 }
