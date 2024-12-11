@@ -34,7 +34,7 @@
 			ref="target"
 			class="slide h-[540px] w-[960px] drop-shadow-xl"
 			:style="slideStyles"
-			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
+			:class="activeSlideInFocus ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
 		>
 			<ElementAlignmentGuides
@@ -92,12 +92,14 @@ import {
 	presentation,
 	activeElement,
 	activeSlideIndex,
+	activeSlideInFocus,
 	activeSlideElements,
 	inSlideShow,
 	currentTransitionSlide,
 	position,
 	dimensions,
 	applyReverseTransition,
+	resetFocus,
 } from '@/stores/slide'
 import { changeSlide, insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
@@ -131,17 +133,13 @@ const selectSlide = (e) => {
 		isResizing.value = false
 		return
 	}
-	activeElement.value = {
-		type: 'slide',
-	}
 	if (activeElement.value && currentFocusedIndex.value) {
 		activeElement.content = document.querySelector(
 			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
 	}
-	currentDataIndex.value = null
-	currentFocusedIndex.value = null
-	currentPairedDataIndex.value = null
+	resetFocus()
+	activeSlideInFocus.value = true
 }
 
 const handleSlideClick = (e) => {
@@ -181,7 +179,6 @@ const duplicateElement = (e) => {
 		newElement.top += 10
 		newElement.left += 10
 		activeSlideElements.value.push(newElement)
-		activeElement.value = newElement
 		currentDataIndex.value = activeSlideElements.value.indexOf(newElement)
 	}
 }
@@ -197,12 +194,10 @@ const handleKeyDown = (event) => {
 	if (['Delete', 'Backspace'].includes(event.key)) deleteElement(event)
 	else if (event.key == 'd' && event.metaKey) duplicateElement(event)
 	else if (event.key == 'ArrowUp') {
-		if (activeElement.value && activeElement.value.type != 'slide')
-			position.value = { ...position.value, top: position.value.top - 1 }
+		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
 		else changeSlide(activeSlideIndex.value - 1)
 	} else if (event.key == 'ArrowDown') {
-		if (activeElement.value && activeElement.value.type != 'slide')
-			position.value = { ...position.value, top: position.value.top + 1 }
+		if (activeElement.value) position.value = { ...position.value, top: position.value.top + 1 }
 		else changeSlide(activeSlideIndex.value + 1)
 	} else if (event.key == 'ArrowLeft') {
 		if (activeElement.value)
@@ -227,7 +222,9 @@ const handleScreenChange = () => {
 	inSlideShow.value = document.fullscreenElement
 
 	if (document.fullscreenElement) {
-		activeElement.value = null
+		currentDataIndex.value = null
+		currentFocusedIndex.value = null
+		currentPairedDataIndex.value = null
 		transformOrigin.value = ''
 		allowPanAndZoom.value = false
 		transform.value = 'scale(1.5, 1.5)'

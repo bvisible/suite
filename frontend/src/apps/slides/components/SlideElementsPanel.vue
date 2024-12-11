@@ -1,9 +1,9 @@
 <template>
 	<!-- Element Properties Panel -->
 	<div
-		v-if="activeElement"
+		v-if="activeTab"
 		class="fixed z-20 flex h-[94.27%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
-		:class="activeElement ? 'right-13' : '-right-[174px]'"
+		:class="activeTab ? 'right-13' : '-right-[174px]'"
 		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
 	>
 		<div v-if="activeTab == 'slide'">
@@ -358,6 +358,7 @@ import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from
 import {
 	activeElement,
 	activeSlideIndex,
+	activeSlideInFocus,
 	activeSlideElements,
 	presentation,
 	currentDataIndex,
@@ -369,6 +370,7 @@ import NumberInput from './NumberInput.vue'
 import ColorPicker from './ColorPicker.vue'
 
 const activeTab = computed(() => {
+	if (activeSlideInFocus.value) return 'slide'
 	if (!activeElement.value) return null
 	return activeElement.value.type
 })

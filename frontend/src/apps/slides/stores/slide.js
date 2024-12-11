@@ -1,11 +1,17 @@
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import { createResource } from 'frappe-ui'
 
 const currentDataIndex = ref(null)
 const currentFocusedIndex = ref(null)
 const currentPairedDataIndex = ref(null)
 
-const activeElement = ref(null)
+const activeElement = computed(() => {
+	if (currentDataIndex.value !== null) {
+		return activeSlideElements.value[currentDataIndex.value]
+	} else if (currentFocusedIndex.value !== null) {
+		return activeSlideElements.value[currentFocusedIndex.value]
+	}
+})
 
 const name = ref('')
 const presentation = createResource({
@@ -14,6 +20,7 @@ const presentation = createResource({
 })
 
 const activeSlideIndex = ref(0)
+const activeSlideInFocus = ref(false)
 const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
@@ -31,8 +38,6 @@ const setActiveElement = (element, inFocus = false) => {
 			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
 	}
-
-	activeElement.value = element
 	const index = activeSlideElements.value.indexOf(element)
 	if (inFocus) {
 		currentFocusedIndex.value = index
@@ -41,6 +46,13 @@ const setActiveElement = (element, inFocus = false) => {
 		currentDataIndex.value = index
 		currentFocusedIndex.value = null
 	}
+	activeSlideInFocus.value = false
+}
+
+const resetFocus = () => {
+	currentDataIndex.value = null
+	currentFocusedIndex.value = null
+	currentPairedDataIndex.value = null
 }
 
 export {
@@ -50,6 +62,7 @@ export {
 	name,
 	presentation,
 	activeSlideIndex,
+	activeSlideInFocus,
 	activeElement,
 	activeSlideElements,
 	inSlideShow,
@@ -58,4 +71,5 @@ export {
 	currentTransitionSlide,
 	applyReverseTransition,
 	setActiveElement,
+	resetFocus,
 }
