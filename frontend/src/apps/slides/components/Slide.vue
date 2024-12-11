@@ -7,7 +7,6 @@
 		:style="{
 			width: '960px',
 			height: '540px',
-			cursor: slideCursor,
 		}"
 	>
 		<div v-if="inSlideShow">
@@ -43,7 +42,7 @@
 				:slideRect="slideRect"
 			/>
 
-			<div class="fixed -bottom-12 right-0 cursor-pointer p-3">
+			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
 				<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
 				<Copy size="14" strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
 				<SquarePlus
@@ -120,6 +119,7 @@ const slideStyles = computed(() => {
 		backgroundColor: presentation.data.slides[activeSlideIndex.value]?.background || 'white',
 		transform: transform.value,
 		transformOrigin: transformOrigin.value,
+		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
 	}
 })
 
@@ -318,8 +318,6 @@ const slideLeave = (el, done) => {
 defineExpose({
 	targetRef,
 })
-
-provide('isDragging', isDragging)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>

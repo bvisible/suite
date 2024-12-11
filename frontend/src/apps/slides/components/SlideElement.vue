@@ -15,8 +15,6 @@ import { currentFocusedIndex } from '@/stores/slide'
 
 const attrs = useAttrs()
 
-const isDragging = inject('isDragging')
-
 const element = defineModel('element', {
 	type: Object,
 	default: null,
@@ -36,7 +34,6 @@ const elementStyle = computed(() => ({
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	cursor: isDragging.value ? 'move' : 'default',
 	outline: showOutline.value ? '#70B6F0 solid 2px' : 'none',
 	outlineOffset: '5px',
 }))
