@@ -213,14 +213,14 @@ const handleKeyDown = (event) => {
 	}
 }
 
-function resetCursorVisibility() {
+const resetCursorVisibility = () => {
 	let cursorTimer
 
 	slideCursor.value = 'auto'
 	clearTimeout(cursorTimer)
 	cursorTimer = setTimeout(() => {
 		slideCursor.value = 'none'
-	}, 2000)
+	}, 3000)
 }
 
 const handleScreenChange = () => {
@@ -230,11 +230,13 @@ const handleScreenChange = () => {
 		activeElement.value = null
 		transformOrigin.value = ''
 		allowPanAndZoom.value = false
-		targetRef.value.addEventListener('mousemove', resetCursorVisibility)
+		transform.value = 'scale(1.5, 1.5)'
+		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
+		transform.value = ''
 		transformOrigin.value = '0 0'
 		allowPanAndZoom.value = true
-		targetRef.value.removeEventListener('mousemove', resetCursorVisibility)
+		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
 
