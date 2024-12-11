@@ -18,6 +18,7 @@ const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
 const currentTransitionSlide = ref(0)
+const applyReverseTransition = ref(false)
 
 const position = ref(null)
 const dimensions = ref(null)
@@ -55,5 +56,6 @@ export {
 	position,
 	dimensions,
 	currentTransitionSlide,
+	applyReverseTransition,
 	setActiveElement,
 }
