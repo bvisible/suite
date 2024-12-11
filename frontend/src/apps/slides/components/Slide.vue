@@ -222,9 +222,7 @@ const handleScreenChange = () => {
 	inSlideShow.value = document.fullscreenElement
 
 	if (document.fullscreenElement) {
-		currentDataIndex.value = null
-		currentFocusedIndex.value = null
-		currentPairedDataIndex.value = null
+		resetFocus()
 		transformOrigin.value = ''
 		allowPanAndZoom.value = false
 		transform.value = 'scale(1.5, 1.5)'

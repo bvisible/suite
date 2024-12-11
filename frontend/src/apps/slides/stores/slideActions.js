@@ -68,6 +68,7 @@ const insertSlide = async (index) => {
 		index: index,
 	})
 	await presentation.reload()
+	changeSlide(index + 1)
 }
 
 const deleteSlide = async () => {
@@ -77,6 +78,7 @@ const deleteSlide = async () => {
 		index: activeSlideIndex.value,
 	})
 	await presentation.reload()
+	changeSlide(activeSlideIndex.value - 1)
 }
 
 const duplicateSlide = async () => {
@@ -86,6 +88,7 @@ const duplicateSlide = async () => {
 		index: activeSlideIndex.value,
 	})
 	await presentation.reload()
+	changeSlide(activeSlideIndex.value + 1)
 }
 
 export { changeSlide, saveChanges, insertSlide, deleteSlide, duplicateSlide }
