@@ -13,6 +13,7 @@ import {
 	inSlideShow,
 	name,
 	presentation,
+	resetFocus,
 } from './slide'
 
 const updateSlideThumbnail = (slideDiv, index) => {
@@ -28,10 +29,7 @@ const changeSlide = (index) => {
 	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
 		activeSlideElements.value,
 	)
-	if (activeElement.value?.type != 'slide') activeElement.value = null
-	currentDataIndex.value = null
-	currentFocusedIndex.value = null
-	currentPairedDataIndex.value = null
+	resetFocus()
 	currentTransitionSlide.value = index
 	applyReverseTransition.value = index < activeSlideIndex.value
 	nextTick(() => {

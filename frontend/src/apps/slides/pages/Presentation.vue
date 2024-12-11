@@ -57,6 +57,8 @@ import {
 	activeSlideElements,
 	currentDataIndex,
 	currentPairedDataIndex,
+	resetFocus,
+	activeSlideInFocus,
 } from '@/stores/slide'
 import { saveChanges } from '@/stores/slideActions'
 
@@ -94,7 +96,10 @@ const saveTitle = async () => {
 }
 
 const clearFocus = (e) => {
-	if (e.target == containerRef.value) activeElement.value = null
+	if (e.target == containerRef.value) {
+		resetFocus()
+		activeSlideInFocus.value = false
+	}
 }
 
 const startSlideShow = () => {
