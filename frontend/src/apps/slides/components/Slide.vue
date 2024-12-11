@@ -89,20 +89,17 @@ import { useResizer } from '@/utils/resizer'
 import {
 	currentDataIndex,
 	currentFocusedIndex,
+	currentPairedDataIndex,
+	presentation,
 	activeElement,
 	activeSlideIndex,
-	presentation,
 	activeSlideElements,
 	inSlideShow,
+	currentTransitionSlide,
 	position,
 	dimensions,
-	currentPairedDataIndex,
-	changeSlide,
-	insertSlide,
-	deleteSlide,
-	duplicateSlide,
-	currentTransitionSlide,
 } from '@/stores/slide'
+import { changeSlide, insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
 const zoom = defineModel('zoom')

@@ -59,7 +59,8 @@
 import { ref, onBeforeUnmount, onMounted } from 'vue'
 import Draggable from 'vuedraggable'
 
-import { activeSlideIndex, presentation, changeSlide, insertSlide } from '@/stores/slide'
+import { activeSlideIndex, presentation } from '@/stores/slide'
+import { changeSlide, insertSlide } from '@/stores/slideActions'
 
 const showNavigator = ref(true)
 const showCollapseShortcut = ref(false)

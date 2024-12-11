@@ -57,8 +57,8 @@ import {
 	activeSlideElements,
 	currentDataIndex,
 	currentPairedDataIndex,
-	saveChanges,
 } from '@/stores/slide'
+import { saveChanges } from '@/stores/slideActions'
 
 let autosaveInterval = null
 
