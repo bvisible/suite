@@ -317,11 +317,6 @@
 						</template>
 					</FileUploader>
 				</Tooltip>
-				<Tooltip text="Chart" :hover-delay="1" placement="left">
-					<div class="cursor-pointer p-4">
-						<FeatherIcon name="pie-chart" class="h-5" color="#636363" />
-					</div>
-				</Tooltip>
 				<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
 					<div
 						class="cursor-pointer p-4"
@@ -339,11 +334,6 @@
 					</div>
 				</Tooltip>
 			</div>
-			<Tooltip text="Notes" :hover-delay="1" placement="left">
-				<div class="cursor-pointer p-4">
-					<StickyNote size="20" strokeWidth="1.5" color="#636363" />
-				</div>
-			</Tooltip>
 		</div>
 	</div>
 </template>
