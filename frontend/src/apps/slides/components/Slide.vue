@@ -199,7 +199,7 @@ const handleKeyDown = (event) => {
 	if (['Delete', 'Backspace'].includes(event.key)) handleDelete(event)
 	else if (event.key == 'd' && event.metaKey) handleDuplicate(event)
 	else if (event.key == 'Escape') resetFocus()
-	else if (event.key == 't') addTextElement()
+	else if (event.key == 't' && currentFocusedIndex.value == null) addTextElement()
 	else if (event.key == 'ArrowUp') {
 		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
 		else changeSlide(activeSlideIndex.value - 1)
