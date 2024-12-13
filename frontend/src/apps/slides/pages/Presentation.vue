@@ -50,16 +50,13 @@ import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
 import {
-	activeElement,
 	activeSlideIndex,
 	name,
 	presentation,
 	activeSlideElements,
-	currentDataIndex,
-	currentPairedDataIndex,
-	resetFocus,
 	activeSlideInFocus,
 } from '@/stores/slide'
+import { resetFocus } from '@/stores/element'
 import { saveChanges } from '@/stores/slideActions'
 
 let autosaveInterval = null

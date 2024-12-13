@@ -6,12 +6,11 @@
 
 <script setup>
 import { computed, inject, useAttrs } from 'vue'
-import { currentDataIndex, currentPairedDataIndex } from '@/stores/slide'
+import { currentDataIndex, currentPairedDataIndex, currentFocusedIndex } from '@/stores/element'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
-import { currentFocusedIndex } from '@/stores/slide'
 
 const attrs = useAttrs()
 

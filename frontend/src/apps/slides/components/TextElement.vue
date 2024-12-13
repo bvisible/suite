@@ -11,13 +11,8 @@
 
 <script setup>
 import { ref, computed, inject, useAttrs } from 'vue'
-import {
-	activeElement,
-	inSlideShow,
-	currentDataIndex,
-	currentFocusedIndex,
-	setActiveElement,
-} from '@/stores/slide'
+import { inSlideShow } from '@/stores/slide'
+import { currentFocusedIndex, setActiveElement } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
 const attrs = useAttrs()

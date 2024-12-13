@@ -346,14 +346,13 @@ import { Tooltip, FileUploader } from 'frappe-ui'
 import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
 import {
-	activeElement,
 	activeSlideIndex,
 	activeSlideInFocus,
 	activeSlideElements,
 	presentation,
-	currentDataIndex,
-	setActiveElement,
 } from '@/stores/slide'
+import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
+
 import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 import NumberInput from './NumberInput.vue'
@@ -364,77 +363,6 @@ const activeTab = computed(() => {
 	if (!activeElement.value) return null
 	return activeElement.value.type
 })
-
-const guessTextColor = () => {
-	const rgbString = document.querySelector('.slide')?.style.backgroundColor
-	const match = rgbString?.match(/^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+)\s*)?\)$/)
-	if (!match) return 'hsl(0, 0%, 0%)'
-	const r = parseInt(match[1], 10)
-	const g = parseInt(match[2], 10)
-	const b = parseInt(match[3], 10)
-	const luminance = 0.2989 * r + 0.587 * g + 0.114 * b
-	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
-}
-
-const addTextElement = () => {
-	const lastTextElement = activeSlideElements.value
-		.reverse()
-		.find((element) => element.type == 'text')
-
-	const element = {
-		left: 100,
-		top: 100,
-		opacity: 100,
-		content: 'Text',
-		type: 'text',
-	}
-
-	if (lastTextElement) {
-		element.width = lastTextElement.width
-		element.fontSize = lastTextElement.fontSize
-		element.fontFamily = lastTextElement.fontFamily
-		element.fontWeight = lastTextElement.fontWeight
-		element.color = lastTextElement.color
-		element.lineHeight = lastTextElement.lineHeight
-		element.letterSpacing = lastTextElement.letterSpacing
-	} else {
-		element.width = 65
-		element.fontSize = 30
-		element.fontFamily = 'Inter'
-		element.fontWeight = 'normal'
-		element.color = guessTextColor()
-		element.lineHeight = 1
-		element.letterSpacing = 0
-	}
-	activeSlideElements.value.push(element)
-	nextTick(() => setActiveElement(element))
-}
-
-const addMediaElement = (file, type) => {
-	let element = {
-		width: 300,
-		left: 200,
-		top: 75,
-		opacity: 100,
-		type: type,
-		src: file.file_url,
-		borderStyle: 'none',
-		borderWidth: 0,
-		borderRadius: 0,
-		borderColor: '#000000',
-		shadowOffsetX: 0,
-		shadowOffsetY: 0,
-		shadowSpread: 0,
-		shadowColor: '#000000',
-	}
-	if (type == 'video') {
-		element.autoPlay = false
-		element.loop = false
-		element.playbackRate = 1
-	}
-	activeSlideElements.value.push(element)
-	nextTick(() => setActiveElement(element))
-}
 
 const hoverOption = ref(null)
 </script>

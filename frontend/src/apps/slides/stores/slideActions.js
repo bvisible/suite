@@ -2,19 +2,15 @@ import { nextTick } from 'vue'
 import { call } from 'frappe-ui'
 import html2canvas from 'html2canvas'
 import {
-	activeElement,
 	activeSlideElements,
 	activeSlideIndex,
-	currentDataIndex,
-	currentFocusedIndex,
-	currentPairedDataIndex,
 	currentTransitionSlide,
 	applyReverseTransition,
 	inSlideShow,
 	name,
 	presentation,
-	resetFocus,
 } from './slide'
+import { resetFocus } from './element'
 
 const updateSlideThumbnail = (slideDiv, index) => {
 	if (!slideDiv) return
