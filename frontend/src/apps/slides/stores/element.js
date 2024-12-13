@@ -1,0 +1,121 @@
+import { ref, computed } from 'vue'
+import { inSlideShow, activeSlideInFocus, activeSlideElements } from './slide'
+
+const currentDataIndex = ref(null)
+const currentFocusedIndex = ref(null)
+const currentPairedDataIndex = ref(null)
+
+const activeElement = computed(() => {
+	if (currentDataIndex.value !== null) {
+		return activeSlideElements.value[currentDataIndex.value]
+	} else if (currentFocusedIndex.value !== null) {
+		return activeSlideElements.value[currentFocusedIndex.value]
+	}
+})
+
+const setActiveElement = (element, inFocus = false) => {
+	if (inSlideShow.value) return
+
+	if (activeElement.value && currentFocusedIndex.value) {
+		activeElement.value.content = document.querySelector(
+			`[data-index="${currentFocusedIndex.value}"]`,
+		).innerText
+	}
+	const index = activeSlideElements.value.indexOf(element)
+	if (inFocus) {
+		currentFocusedIndex.value = index
+		currentDataIndex.value = null
+	} else {
+		currentDataIndex.value = index
+		currentFocusedIndex.value = null
+	}
+	activeSlideInFocus.value = false
+}
+
+const guessTextColor = () => {
+	const rgbString = document.querySelector('.slide')?.style.backgroundColor
+	const match = rgbString?.match(/^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+)\s*)?\)$/)
+	if (!match) return 'hsl(0, 0%, 0%)'
+	const r = parseInt(match[1], 10)
+	const g = parseInt(match[2], 10)
+	const b = parseInt(match[3], 10)
+	const luminance = 0.2989 * r + 0.587 * g + 0.114 * b
+	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
+}
+
+const addTextElement = () => {
+	const lastTextElement = activeSlideElements.value
+		.reverse()
+		.find((element) => element.type == 'text')
+
+	const element = {
+		left: 100,
+		top: 100,
+		opacity: 100,
+		content: 'Text',
+		type: 'text',
+	}
+
+	if (lastTextElement) {
+		element.width = lastTextElement.width
+		element.fontSize = lastTextElement.fontSize
+		element.fontFamily = lastTextElement.fontFamily
+		element.fontWeight = lastTextElement.fontWeight
+		element.color = lastTextElement.color
+		element.lineHeight = lastTextElement.lineHeight
+		element.letterSpacing = lastTextElement.letterSpacing
+	} else {
+		element.width = 65
+		element.fontSize = 30
+		element.fontFamily = 'Inter'
+		element.fontWeight = 'normal'
+		element.color = guessTextColor()
+		element.lineHeight = 1
+		element.letterSpacing = 0
+	}
+	activeSlideElements.value.push(element)
+	nextTick(() => setActiveElement(element))
+}
+
+const addMediaElement = (file, type) => {
+	let element = {
+		width: 300,
+		left: 200,
+		top: 75,
+		opacity: 100,
+		type: type,
+		src: file.file_url,
+		borderStyle: 'none',
+		borderWidth: 0,
+		borderRadius: 0,
+		borderColor: '#000000',
+		shadowOffsetX: 0,
+		shadowOffsetY: 0,
+		shadowSpread: 0,
+		shadowColor: '#000000',
+	}
+	if (type == 'video') {
+		element.autoPlay = false
+		element.loop = false
+		element.playbackRate = 1
+	}
+	activeSlideElements.value.push(element)
+	nextTick(() => setActiveElement(element))
+}
+
+const resetFocus = () => {
+	currentDataIndex.value = null
+	currentFocusedIndex.value = null
+	currentPairedDataIndex.value = null
+}
+
+export {
+	currentDataIndex,
+	currentFocusedIndex,
+	currentPairedDataIndex,
+	activeElement,
+	setActiveElement,
+	resetFocus,
+	addTextElement,
+	addMediaElement,
+}

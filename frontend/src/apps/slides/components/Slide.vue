@@ -86,11 +86,7 @@ import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
 import {
-	currentDataIndex,
-	currentFocusedIndex,
-	currentPairedDataIndex,
 	presentation,
-	activeElement,
 	activeSlideIndex,
 	activeSlideInFocus,
 	activeSlideElements,
@@ -99,8 +95,15 @@ import {
 	position,
 	dimensions,
 	applyReverseTransition,
-	resetFocus,
 } from '@/stores/slide'
+import {
+	activeElement,
+	currentDataIndex,
+	currentFocusedIndex,
+	currentPairedDataIndex,
+	resetFocus,
+	addTextElement,
+} from '@/stores/element'
 import { changeSlide, insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
@@ -172,27 +175,31 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
-const duplicateElement = (e) => {
+const handleDuplicate = (e) => {
 	e.preventDefault()
 	if (activeElement.value) {
 		let newElement = JSON.parse(JSON.stringify(activeElement.value))
-		newElement.top += 10
-		newElement.left += 10
+		newElement.top += 40
+		newElement.left += 40
 		activeSlideElements.value.push(newElement)
-		currentDataIndex.value = activeSlideElements.value.indexOf(newElement)
-	}
+		nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
+	} else duplicateSlide()
 }
 
-const deleteElement = (e) => {
-	if (!activeElement.value || currentFocusedIndex.value != null) return
-	activeSlideElements.value.splice(currentDataIndex.value, 1)
-	selectSlide(e)
+const handleDelete = (e) => {
+	if (currentFocusedIndex.value != null) return
+	if (activeElement.value) {
+		activeSlideElements.value.splice(currentDataIndex.value, 1)
+		selectSlide(e)
+	} else deleteSlide()
 }
 
 const handleKeyDown = (event) => {
 	if (document.activeElement.tagName == 'INPUT') return
-	if (['Delete', 'Backspace'].includes(event.key)) deleteElement(event)
-	else if (event.key == 'd' && event.metaKey) duplicateElement(event)
+	if (['Delete', 'Backspace'].includes(event.key)) handleDelete(event)
+	else if (event.key == 'd' && event.metaKey) handleDuplicate(event)
+	else if (event.key == 'Escape') resetFocus()
+	else if (event.key == 't') addTextElement()
 	else if (event.key == 'ArrowUp') {
 		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
 		else changeSlide(activeSlideIndex.value - 1)
