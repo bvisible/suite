@@ -175,44 +175,79 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
-const handleDuplicate = (e) => {
+const duplicateElement = (e) => {
 	e.preventDefault()
-	if (activeElement.value) {
-		let newElement = JSON.parse(JSON.stringify(activeElement.value))
-		newElement.top += 40
-		newElement.left += 40
-		activeSlideElements.value.push(newElement)
-		nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
-	} else duplicateSlide()
+	let newElement = JSON.parse(JSON.stringify(activeElement.value))
+	newElement.top += 40
+	newElement.left += 40
+	activeSlideElements.value.push(newElement)
+	nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
 }
 
-const handleDelete = (e) => {
-	if (currentFocusedIndex.value != null) return
-	if (activeElement.value) {
-		activeSlideElements.value.splice(currentDataIndex.value, 1)
-		selectSlide(e)
-	} else deleteSlide()
+const deleteElement = (e) => {
+	activeSlideElements.value.splice(currentDataIndex.value, 1)
+	selectSlide(e)
 }
 
-const handleKeyDown = (event) => {
-	if (document.activeElement.tagName == 'INPUT') return
-	if (['Delete', 'Backspace'].includes(event.key)) handleDelete(event)
-	else if (event.key == 'd' && event.metaKey) handleDuplicate(event)
-	else if (event.key == 'Escape') resetFocus()
-	else if (event.key == 't' && currentFocusedIndex.value == null) addTextElement()
-	else if (event.key == 'ArrowUp') {
-		if (activeElement.value) position.value = { ...position.value, top: position.value.top - 1 }
-		else changeSlide(activeSlideIndex.value - 1)
-	} else if (event.key == 'ArrowDown') {
-		if (activeElement.value) position.value = { ...position.value, top: position.value.top + 1 }
-		else changeSlide(activeSlideIndex.value + 1)
-	} else if (event.key == 'ArrowLeft') {
-		if (activeElement.value)
-			position.value = { ...position.value, left: position.value.left - 1 }
-	} else if (event.key == 'ArrowRight') {
-		if (activeElement.value)
-			position.value = { ...position.value, left: position.value.left + 1 }
+const updateElementPosition = (dx, dy) => {
+	if (!position.value) return
+	position.value = { left: position.value.left + dx, top: position.value.top + dy }
+}
+
+const handleArrowKeys = (key) => {
+	const dx = 0
+	const dy = 0
+
+	if (key == 'ArrowLeft') dx = -1
+	else if (key == 'ArrowRight') dx = 1
+	else if (key == 'ArrowUp') dy = -1
+	else if (key == 'ArrowDown') dy = 1
+
+	updateElementPosition(dx, dy)
+}
+
+const handleElementShortcuts = (e) => {
+	switch (e.key) {
+		case 'ArrowLeft':
+		case 'ArrowRight':
+		case 'ArrowUp':
+		case 'ArrowDown':
+			handleArrowKeys(e.key)
+			break
+		case 'Delete':
+		case 'Backspace':
+			deleteElement(e)
+			break
+		case 'd':
+			if (e.metaKey) duplicateElement(e)
+			break
 	}
+}
+
+const handleSlideShortcuts = (e) => {
+	switch (e.key) {
+		case 'ArrowUp':
+			changeSlide(activeSlideIndex.value - 1)
+			break
+		case 'ArrowDown':
+			changeSlide(activeSlideIndex.value + 1)
+			break
+		case 'Delete':
+		case 'Backspace':
+			deleteSlide()
+			break
+		case 'd':
+			if (e.metaKey) duplicateSlide()
+			break
+	}
+}
+
+const handleKeyDown = (e) => {
+	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
+	if (e.key == 'Escape') return resetFocus()
+	if (e.key == 't') return addTextElement()
+
+	activeElement.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const resetCursorVisibility = () => {
