@@ -54,6 +54,6 @@ const handleVideoControls = (e) => {
 			isPlaying.value = false
 			video.pause()
 		}
-	} else setActiveElement(element.value)
+	} else setActiveElement(attrs['data-index'])
 }
 </script>

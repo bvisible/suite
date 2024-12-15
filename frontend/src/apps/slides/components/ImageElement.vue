@@ -1,5 +1,5 @@
 <template>
-	<img :src="element.src" :style="imageStyle" @click="setActiveElement(element)" />
+	<img :src="element.src" :style="imageStyle" @click="setActiveElement($attrs['data-index'])" />
 </template>
 
 <script setup>

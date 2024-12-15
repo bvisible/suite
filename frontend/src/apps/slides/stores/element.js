@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { inSlideShow, activeSlideInFocus, activeSlideElements } from './slide'
 
 const currentDataIndex = ref(null)
@@ -13,7 +13,7 @@ const activeElement = computed(() => {
 	}
 })
 
-const setActiveElement = (element, inFocus = false) => {
+const setActiveElement = (index, inFocus = false) => {
 	if (inSlideShow.value) return
 
 	if (activeElement.value && currentFocusedIndex.value) {
@@ -21,7 +21,6 @@ const setActiveElement = (element, inFocus = false) => {
 			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
 	}
-	const index = activeSlideElements.value.indexOf(element)
 	if (inFocus) {
 		currentFocusedIndex.value = index
 		currentDataIndex.value = null
@@ -74,7 +73,7 @@ const addTextElement = () => {
 		element.letterSpacing = 0
 	}
 	activeSlideElements.value.push(element)
-	nextTick(() => setActiveElement(element))
+	nextTick(() => setActiveElement(activeSlideElements.value.length - 1))
 }
 
 const addMediaElement = (file, type) => {
@@ -103,6 +102,20 @@ const addMediaElement = (file, type) => {
 	nextTick(() => setActiveElement(element))
 }
 
+const duplicateElement = (e) => {
+	e.preventDefault()
+	let newElement = JSON.parse(JSON.stringify(activeElement.value))
+	newElement.top += 40
+	newElement.left += 40
+	activeSlideElements.value.push(newElement)
+	nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
+}
+
+const deleteElement = (e) => {
+	activeSlideElements.value.splice(currentDataIndex.value, 1)
+	resetFocus()
+}
+
 const resetFocus = () => {
 	currentDataIndex.value = null
 	currentFocusedIndex.value = null
@@ -118,4 +131,6 @@ export {
 	resetFocus,
 	addTextElement,
 	addMediaElement,
+	duplicateElement,
+	deleteElement,
 }
