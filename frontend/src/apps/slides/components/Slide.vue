@@ -175,28 +175,14 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
-const duplicateElement = (e) => {
-	e.preventDefault()
-	let newElement = JSON.parse(JSON.stringify(activeElement.value))
-	newElement.top += 40
-	newElement.left += 40
-	activeSlideElements.value.push(newElement)
-	nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
-}
-
-const deleteElement = (e) => {
-	activeSlideElements.value.splice(currentDataIndex.value, 1)
-	selectSlide(e)
-}
-
 const updateElementPosition = (dx, dy) => {
 	if (!position.value) return
 	position.value = { left: position.value.left + dx, top: position.value.top + dy }
 }
 
 const handleArrowKeys = (key) => {
-	const dx = 0
-	const dy = 0
+	let dx = 0
+	let dy = 0
 
 	if (key == 'ArrowLeft') dx = -1
 	else if (key == 'ArrowRight') dx = 1
@@ -237,7 +223,7 @@ const handleSlideShortcuts = (e) => {
 			deleteSlide()
 			break
 		case 'd':
-			if (e.metaKey) duplicateSlide()
+			if (e.metaKey) duplicateSlide(e)
 			break
 	}
 }

@@ -48,12 +48,12 @@ const selectElement = (e) => {
 const setActiveText = (e) => {
 	e.stopPropagation()
 	if (currentFocusedIndex.value == attrs['data-index']) return
-	setActiveElement(element.value)
+	setActiveElement(attrs['data-index'])
 }
 
 const setFocusElement = (e) => {
 	e.stopPropagation()
 	if (currentFocusedIndex.value == attrs['data-index']) return
-	setActiveElement(element.value, true)
+	setActiveElement(attrs['data-index'], true)
 }
 </script>
