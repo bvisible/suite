@@ -39,7 +39,7 @@
 						"
 					>
 						<div class="text-sm text-gray-600">Flip Horizontally</div>
-						<FlipHorizontal size="20" strokeWidth="1.2" />
+						<FlipHorizontal size="20" :strokeWidth="1.2" />
 					</div>
 					<div
 						class="flex cursor-pointer items-center justify-between pb-2 pe-2"
@@ -50,7 +50,7 @@
 						"
 					>
 						<div class="text-sm text-gray-600">Flip Vertically</div>
-						<FlipVertical size="20" strokeWidth="1.2" />
+						<FlipVertical size="20" :strokeWidth="1.2" />
 					</div>
 				</div>
 			</div>
@@ -73,7 +73,7 @@
 						>
 							<TvMinimalPlay
 								size="20"
-								strokeWidth="1.2"
+								:strokeWidth="1.2"
 								:class="
 									hoverOption == 'autoplay' || activeElement.autoPlay
 										? 'text-gray-800'
@@ -104,7 +104,7 @@
 						>
 							<Repeat2
 								size="20"
-								strokeWidth="1.2"
+								:strokeWidth="1.2"
 								:class="
 									hoverOption == 'loop' || activeElement.loop
 										? 'text-gray-800'

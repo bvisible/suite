@@ -43,11 +43,11 @@
 			/>
 
 			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-				<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
-				<Copy size="14" strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
+				<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
+				<Copy size="14" :strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
 				<SquarePlus
 					size="14"
-					strokeWidth="1.5"
+					:strokeWidth="1.5"
 					class="text-gray-800"
 					@click="insertSlide(activeSlideIndex)"
 				/>
