@@ -96,15 +96,8 @@ import {
 	dimensions,
 	applyReverseTransition,
 } from '@/stores/slide'
-import {
-	activeElement,
-	currentDataIndex,
-	currentFocusedIndex,
-	currentPairedDataIndex,
-	resetFocus,
-	addTextElement,
-} from '@/stores/element'
-import { changeSlide, insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
+import { activeElement, currentDataIndex, currentFocusedIndex, resetFocus } from '@/stores/element'
+import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
 const zoom = defineModel('zoom')
@@ -173,67 +166,6 @@ const removeDragAndResize = () => {
 	dimensions.value = null
 	dragTarget.value = null
 	resizeTarget.value = null
-}
-
-const updateElementPosition = (dx, dy) => {
-	if (!position.value) return
-	position.value = { left: position.value.left + dx, top: position.value.top + dy }
-}
-
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateElementPosition(dx, dy)
-}
-
-const handleElementShortcuts = (e) => {
-	switch (e.key) {
-		case 'ArrowLeft':
-		case 'ArrowRight':
-		case 'ArrowUp':
-		case 'ArrowDown':
-			handleArrowKeys(e.key)
-			break
-		case 'Delete':
-		case 'Backspace':
-			deleteElement(e)
-			break
-		case 'd':
-			if (e.metaKey) duplicateElement(e)
-			break
-	}
-}
-
-const handleSlideShortcuts = (e) => {
-	switch (e.key) {
-		case 'ArrowUp':
-			changeSlide(activeSlideIndex.value - 1)
-			break
-		case 'ArrowDown':
-			changeSlide(activeSlideIndex.value + 1)
-			break
-		case 'Delete':
-		case 'Backspace':
-			deleteSlide()
-			break
-		case 'd':
-			if (e.metaKey) duplicateSlide(e)
-			break
-	}
-}
-
-const handleKeyDown = (e) => {
-	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
-	if (e.key == 'Escape') return resetFocus()
-	if (e.key == 't') return addTextElement()
-
-	activeElement.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const resetCursorVisibility = () => {
