@@ -102,7 +102,9 @@ const clearFocus = (e) => {
 	}
 }
 
-const startSlideShow = () => {
+const startSlideShow = async () => {
+	await saveChanges()
+	await presentation.reload()
 	let elem = document.querySelector('.slideContainer')
 
 	if (elem.requestFullscreen) {

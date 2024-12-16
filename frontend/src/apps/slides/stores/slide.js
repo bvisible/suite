@@ -15,6 +15,9 @@ const inSlideShow = ref(false)
 const currentTransitionSlide = ref(0)
 const applyReverseTransition = ref(false)
 
+const slideTransition = ref(null)
+const slideTransitionDuration = ref(0)
+
 const position = ref(null)
 const dimensions = ref(null)
 
@@ -29,4 +32,6 @@ export {
 	dimensions,
 	currentTransitionSlide,
 	applyReverseTransition,
+	slideTransition,
+	slideTransitionDuration,
 }

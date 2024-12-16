@@ -95,6 +95,8 @@ import {
 	position,
 	dimensions,
 	applyReverseTransition,
+	slideTransition,
+	slideTransitionDuration,
 } from '@/stores/slide'
 import { activeElement, currentDataIndex, currentFocusedIndex, resetFocus } from '@/stores/element'
 import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
@@ -210,10 +212,11 @@ watch(
 watch(
 	() => presentation.data,
 	() => {
-		if (!presentation.data?.slides[activeSlideIndex.value]?.elements) return
-		activeSlideElements.value = JSON.parse(
-			presentation.data.slides[activeSlideIndex.value].elements,
-		)
+		const currentSlide = presentation.data?.slides[activeSlideIndex.value]
+		if (!currentSlide) return
+		activeSlideElements.value = JSON.parse(currentSlide.elements)
+		slideTransition.value = currentSlide.transition
+		slideTransitionDuration.value = currentSlide.transition_duration
 	},
 	{ immediate: true },
 )
@@ -252,22 +255,25 @@ onBeforeUnmount(() => {
 })
 
 const beforeSlideEnter = (el) => {
+	if (!slideTransition.value) return
 	if (applyReverseTransition.value) el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
 	else el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
 	el.style.transition = 'none'
 }
 
 const slideEnter = (el, done) => {
+	if (!slideTransition.value) return
 	el.offsetWidth
-	el.style.transition = 'transform 0.7s ease-out'
+	el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
 	el.style.transform = 'translateX(0) scale(1.5, 1.5)'
 	done()
 }
 
 const slideLeave = (el, done) => {
+	if (!slideTransition.value) return
 	if (applyReverseTransition.value) el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
 	else el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
-	el.style.transition = 'transform 0.7s ease-out'
+	el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
 	done()
 }
 

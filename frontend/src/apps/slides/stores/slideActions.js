@@ -9,6 +9,8 @@ import {
 	inSlideShow,
 	name,
 	presentation,
+	slideTransition,
+	slideTransitionDuration,
 } from './slide'
 import { resetFocus } from './element'
 
@@ -25,6 +27,9 @@ const changeSlide = (index) => {
 	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
 		activeSlideElements.value,
 	)
+	presentation.data.slides[activeSlideIndex.value].transition = slideTransition.value
+	presentation.data.slides[activeSlideIndex.value].transition_duration =
+		slideTransitionDuration.value
 	resetFocus()
 	currentTransitionSlide.value = index
 	applyReverseTransition.value = index < activeSlideIndex.value
@@ -36,6 +41,9 @@ const changeSlide = (index) => {
 			}
 		}
 		activeSlideIndex.value = index
+		slideTransition.value = presentation.data.slides[activeSlideIndex.value].transition
+		slideTransitionDuration.value =
+			presentation.data.slides[activeSlideIndex.value].transition_duration
 		if (presentation.data.slides[activeSlideIndex.value].elements)
 			activeSlideElements.value = JSON.parse(
 				presentation.data.slides[activeSlideIndex.value].elements,
@@ -51,6 +59,9 @@ const saveChanges = async () => {
 		null,
 		2,
 	)
+	presentation.data.slides[activeSlideIndex.value].transition = slideTransition.value
+	presentation.data.slides[activeSlideIndex.value].transition_duration =
+		slideTransitionDuration.value
 	await call('frappe.client.save', {
 		doc: presentation.data,
 	})
@@ -77,7 +88,8 @@ const deleteSlide = async () => {
 	changeSlide(activeSlideIndex.value - 1)
 }
 
-const duplicateSlide = async () => {
+const duplicateSlide = async (e) => {
+	e.preventDefault()
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
 		name: name.value,
