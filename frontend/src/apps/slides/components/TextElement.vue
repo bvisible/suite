@@ -4,6 +4,7 @@
 		:contenteditable="currentFocusedIndex == $attrs['data-index']"
 		:style="textStyle"
 		@click="selectElement"
+		@blur="handleBlur"
 	>
 		{{ element.content }}
 	</div>
@@ -55,5 +56,9 @@ const setFocusElement = (e) => {
 	e.stopPropagation()
 	if (currentFocusedIndex.value == attrs['data-index']) return
 	setActiveElement(attrs['data-index'], true)
+}
+
+const handleBlur = (e) => {
+	element.value.content = e.target.innerText
 }
 </script>
