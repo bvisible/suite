@@ -244,12 +244,10 @@ watch(
 )
 
 onMounted(() => {
-	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
-	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 
