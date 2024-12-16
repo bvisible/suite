@@ -323,7 +323,7 @@
 						:class="activeTab == 'slide' ? 'bg-gray-100' : ''"
 					>
 						<FeatherIcon
-							name="sliders"
+							name="layout"
 							class="h-5"
 							:class="
 								activeTab == 'slide'
