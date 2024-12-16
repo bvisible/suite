@@ -55,7 +55,7 @@
 			class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white drop-shadow-xl"
 			@click="showNavigator = !showNavigator"
 		>
-			<FeatherIcon name="chevron-left" class="h-3 pe-1" />
+			<FeatherIcon name="chevron-right" class="h-3 pe-1" />
 		</div>
 	</div>
 </template>
@@ -68,14 +68,12 @@ import Draggable from 'vuedraggable'
 import { activeSlideIndex, presentation } from '@/stores/slide'
 import { changeSlide, insertSlide } from '@/stores/slideActions'
 
-const showNavigator = ref(true)
-const showCollapseShortcut = ref(false)
+const showNavigator = defineModel('showNavigator', {
+	type: Boolean,
+	default: true,
+})
 
-const handleKeyDown = (e) => {
-	if (e.metaKey && e.key === 'b') {
-		showNavigator.value = !showNavigator.value
-	}
-}
+const showCollapseShortcut = ref(false)
 
 const handleSortEnd = async (event) => {
 	const data = presentation.data
@@ -88,14 +86,6 @@ const handleSortEnd = async (event) => {
 	})
 	await presentation.reload()
 }
-
-onMounted(() => {
-	document.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-	document.removeEventListener('keydown', handleKeyDown)
-})
 </script>
 
 <style scoped>

@@ -29,7 +29,7 @@
 			class="flex h-full items-center justify-center"
 			@click="(e) => clearFocus(e)"
 		>
-			<SlideNavigationPanel />
+			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<Slide ref="slide" :zoom="zoom" />
 
@@ -72,6 +72,8 @@ const newTitleRef = useTemplateRef('newTitleRef')
 
 const renameMode = ref(false)
 const newTitle = ref('')
+
+const showNavigator = ref(true)
 
 const enableRenameMode = () => {
 	renameMode.value = true
@@ -165,10 +167,23 @@ const handleSlideShortcuts = (e) => {
 	}
 }
 
+const handleGlobalShortcuts = (e) => {
+	switch (e.key) {
+		case 'Escape':
+			resetFocus()
+			break
+		case 't':
+			addTextElement()
+			break
+		case 'b':
+			if (e.metaKey) showNavigator.value = !showNavigator.value
+			break
+	}
+}
+
 const handleKeyDown = (e) => {
 	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
-	if (e.key == 'Escape') return resetFocus()
-	if (e.key == 't') return addTextElement()
+	handleGlobalShortcuts(e)
 
 	currentDataIndex.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
