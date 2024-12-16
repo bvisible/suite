@@ -20,6 +20,27 @@
 					<ColorPicker v-model="presentation.data.slides[activeSlideIndex].background" />
 				</div>
 			</div>
+
+			<div class="flex flex-col gap-4 border-b px-4 py-4">
+				<div class="text-2xs font-semibold uppercase text-gray-700">Transition</div>
+				<FormControl
+					type="autocomplete"
+					:options="['Slide In', 'None']"
+					size="sm"
+					variant="subtle"
+					:modelValue="slideTransition || 'None'"
+					@update:modelValue="(option) => (slideTransition = option.value)"
+				/>
+
+				<SliderInput
+					label="Duration"
+					:rangeStart="0"
+					:rangeEnd="4"
+					:rangeStep="0.1"
+					:default="0"
+					v-model="slideTransitionDuration"
+				/>
+			</div>
 		</div>
 
 		<div v-else class="flex flex-col">
@@ -341,7 +362,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 
-import { Tooltip, FileUploader } from 'frappe-ui'
+import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
 
 import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
@@ -350,6 +371,8 @@ import {
 	activeSlideInFocus,
 	activeSlideElements,
 	presentation,
+	slideTransition,
+	slideTransitionDuration,
 } from '@/stores/slide'
 import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
 
