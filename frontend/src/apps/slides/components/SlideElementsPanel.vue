@@ -25,7 +25,7 @@
 				<div class="text-2xs font-semibold uppercase text-gray-700">Transition</div>
 				<FormControl
 					type="autocomplete"
-					:options="['Slide In', 'None']"
+					:options="['Slide In', 'Fade', 'None']"
 					size="sm"
 					variant="subtle"
 					:modelValue="slideTransition || 'None'"
