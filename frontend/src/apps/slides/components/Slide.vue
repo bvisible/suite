@@ -10,7 +10,12 @@
 		}"
 	>
 		<div v-if="inSlideShow">
-			<Transition @before-enter="beforeSlideEnter" @enter="slideEnter" @leave="slideLeave">
+			<Transition
+				@before-enter="beforeSlideEnter"
+				@enter="slideEnter"
+				@before-leave="beforeSlideLeave"
+				@leave="slideLeave"
+			>
 				<div
 					ref="target"
 					class="slide h-[540px] w-[960px] drop-shadow-xl"
@@ -256,24 +261,49 @@ onBeforeUnmount(() => {
 
 const beforeSlideEnter = (el) => {
 	if (!slideTransition.value) return
-	if (applyReverseTransition.value) el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
-	else el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
-	el.style.transition = 'none'
+	if (slideTransition.value == 'Slide In') {
+		if (applyReverseTransition.value) el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
+		else el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
+		el.style.transition = 'none'
+	} else if (slideTransition.value == 'Fade') {
+		el.style.opacity = 0
+	}
 }
 
 const slideEnter = (el, done) => {
 	if (!slideTransition.value) return
-	el.offsetWidth
-	el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
-	el.style.transform = 'translateX(0) scale(1.5, 1.5)'
+	if (slideTransition.value == 'Slide In') {
+		el.offsetWidth
+		el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
+		el.style.transform = 'translateX(0) scale(1.5, 1.5)'
+	} else if (slideTransition.value == 'Fade') {
+		el.offsetWidth
+		el.style.transition = `opacity ${slideTransitionDuration.value}s`
+		el.style.opacity = 1
+	}
 	done()
+}
+
+const beforeSlideLeave = (el) => {
+	if (!slideTransition.value) return
+	if (slideTransition.value == 'Slide In') {
+		el.style.transition = 'none'
+	} else if (slideTransition.value == 'Fade') {
+		el.style.opacity = 1
+	}
 }
 
 const slideLeave = (el, done) => {
 	if (!slideTransition.value) return
-	if (applyReverseTransition.value) el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
-	else el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
-	el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
+	if (slideTransition.value == 'Slide In') {
+		if (applyReverseTransition.value) el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
+		else el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
+		el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
+	} else if (slideTransition.value == 'Fade') {
+		el.offsetWidth
+		el.style.transition = `opacity ${slideTransitionDuration.value}s`
+		el.style.opacity = 0
+	}
 	done()
 }
 
