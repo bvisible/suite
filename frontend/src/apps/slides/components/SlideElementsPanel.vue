@@ -254,7 +254,7 @@
 	<div class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white">
 		<div class="flex flex-col justify-between">
 			<div>
-				<Tooltip text="Text" hover-delay="1" placement="left">
+				<Tooltip text="Text" :hover-delay="1" placement="left">
 					<div
 						class="cursor-pointer p-4"
 						:class="activeTab == 'text' ? 'bg-gray-100' : ''"
@@ -269,7 +269,7 @@
 						/>
 					</div>
 				</Tooltip>
-				<Tooltip text="Image" hover-delay="1" placement="left">
+				<Tooltip text="Image" :hover-delay="1" placement="left">
 					<FileUploader
 						:fileTypes="['image/*']"
 						@success="(file) => addMediaElement(file, 'image')"
@@ -293,7 +293,7 @@
 						</template>
 					</FileUploader>
 				</Tooltip>
-				<Tooltip text="Video" hover-delay="1" placement="left">
+				<Tooltip text="Video" :hover-delay="1" placement="left">
 					<FileUploader
 						:fileTypes="['video/*']"
 						@success="(file) => addMediaElement(file, 'video')"
@@ -317,12 +317,12 @@
 						</template>
 					</FileUploader>
 				</Tooltip>
-				<Tooltip text="Chart" hover-delay="1" placement="left">
+				<Tooltip text="Chart" :hover-delay="1" placement="left">
 					<div class="cursor-pointer p-4">
 						<FeatherIcon name="pie-chart" class="h-5" color="#636363" />
 					</div>
 				</Tooltip>
-				<Tooltip text="Slide Properties" hover-delay="1" placement="left">
+				<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
 					<div
 						class="cursor-pointer p-4"
 						:class="activeTab == 'slide' ? 'bg-gray-100' : ''"
@@ -339,7 +339,7 @@
 					</div>
 				</Tooltip>
 			</div>
-			<Tooltip text="Notes" hover-delay="1" placement="left">
+			<Tooltip text="Notes" :hover-delay="1" placement="left">
 				<div class="cursor-pointer p-4">
 					<StickyNote size="20" strokeWidth="1.5" color="#636363" />
 				</div>
@@ -349,13 +349,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 
 import { Tooltip, FileUploader } from 'frappe-ui'
 
 import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
-import { activeElement, activeSlideIndex, activeSlideElements, presentation } from '@/stores/slide'
+import {
+	activeElement,
+	activeSlideIndex,
+	activeSlideElements,
+	presentation,
+	currentDataIndex,
+	setActiveElement,
+} from '@/stores/slide'
 import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 import NumberInput from './NumberInput.vue'
@@ -377,29 +384,38 @@ const guessTextColor = () => {
 	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
 }
 
-const getTextColor = () => {
+const addTextElement = () => {
 	const lastTextElement = activeSlideElements.value
 		.reverse()
 		.find((element) => element.type == 'text')
-	return lastTextElement?.color || guessTextColor()
-}
 
-const addTextElement = () => {
-	let element = {
-		width: 65,
+	const element = {
 		left: 100,
 		top: 100,
-		fontSize: 30,
-		fontFamily: 'Inter',
-		fontWeight: 'bold',
 		opacity: 100,
 		content: 'Text',
 		type: 'text',
-		color: getTextColor(),
-		lineHeight: 1,
-		letterSpacing: 0,
+	}
+
+	if (lastTextElement) {
+		element.width = lastTextElement.width
+		element.fontSize = lastTextElement.fontSize
+		element.fontFamily = lastTextElement.fontFamily
+		element.fontWeight = lastTextElement.fontWeight
+		element.color = lastTextElement.color
+		element.lineHeight = lastTextElement.lineHeight
+		element.letterSpacing = lastTextElement.letterSpacing
+	} else {
+		element.width = 65
+		element.fontSize = 30
+		element.fontFamily = 'Inter'
+		element.fontWeight = 'normal'
+		element.color = guessTextColor()
+		element.lineHeight = 1
+		element.letterSpacing = 0
 	}
 	activeSlideElements.value.push(element)
+	nextTick(() => setActiveElement(element))
 }
 
 const addMediaElement = (file, type) => {
@@ -425,6 +441,7 @@ const addMediaElement = (file, type) => {
 		element.playbackRate = 1
 	}
 	activeSlideElements.value.push(element)
+	nextTick(() => setActiveElement(element))
 }
 
 const hoverOption = ref(null)

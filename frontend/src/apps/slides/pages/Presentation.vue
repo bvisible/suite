@@ -56,6 +56,9 @@ import {
 	name,
 	presentation,
 	activeSlideElements,
+	currentDataIndex,
+	currentPairedDataIndex,
+	saveChanges,
 } from '@/stores/slide'
 
 let autosaveInterval = null
@@ -106,19 +109,6 @@ const startSlideShow = () => {
 	} else if (elem.msRequestFullscreen) {
 		elem.msRequestFullscreen()
 	}
-}
-
-const saveChanges = async () => {
-	if (!presentation.data) return
-	presentation.data.slides[activeSlideIndex.value].elements = JSON.stringify(
-		activeSlideElements.value,
-		null,
-		2,
-	)
-	await call('frappe.client.save', {
-		doc: presentation.data,
-	})
-	await presentation.reload()
 }
 
 watch(

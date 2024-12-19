@@ -8,11 +8,6 @@ export const useDragAndDrop = (dragPosition) => {
 
 	const startDragging = (e) => {
 		e.preventDefault()
-		let rect = dragTarget.value.getBoundingClientRect()
-		dragPosition.value = {
-			left: rect.left,
-			top: rect.top,
-		}
 		isDragging.value = true
 		mouseX.value = e.clientX
 		mouseY.value = e.clientY
