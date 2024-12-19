@@ -24,7 +24,7 @@ const element = defineModel('element', {
 const showOutline = computed(() => {
 	return (
 		currentDataIndex.value == attrs['data-index'] ||
-		(currentPairedDataIndex.value == attrs['data-index'] && isDragging.value)
+		currentPairedDataIndex.value == attrs['data-index']
 	)
 })
 

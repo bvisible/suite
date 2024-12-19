@@ -51,14 +51,14 @@ const pairElement = computed(() => {
 
 const snapToCenter = () => {
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.left += diffCenterX.value
+		activeElement.value.left += (diffCenterX.value * 960) / props.slideRect.width.value
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.top += diffCenterY.value
+		activeElement.value.top += (diffCenterY.value * 960) / props.slideRect.width.value
 	}
 }
 
-const snapToPairElement = () => {
+const snapToPairedElement = () => {
 	if (!pairElement.value) return
 	if (diffLeft.value < PROXIMITY_THRESHOLD) {
 		activeElement.value.left = pairElement.value.left
@@ -78,15 +78,17 @@ const snapToPairElement = () => {
 
 const diffCenterX = computed(() => {
 	if (!position.value) return
-	let centerX = props.slideRect.left.value + props.slideRect.width.value / 2
-	let centerOfElementX = position.value.left + activeRect.width.value / 2
+	const rect = activeDiv.value.getBoundingClientRect()
+	const centerX = props.slideRect.width.value / 2 + props.slideRect.left.value
+	const centerOfElementX = rect.left + rect.width / 2
 	return centerX - centerOfElementX
 })
 
 const diffCenterY = computed(() => {
 	if (!position.value) return
-	let centerY = props.slideRect.top.value + props.slideRect.height.value / 2
-	let centerOfElementY = position.value.top + activeRect.height.value / 2
+	const rect = activeDiv.value.getBoundingClientRect()
+	const centerY = props.slideRect.height.value / 2 + props.slideRect.top.value
+	const centerOfElementY = rect.top + rect.height / 2
 	return centerY - centerOfElementY
 })
 
@@ -161,14 +163,13 @@ const topGuideStyles = computed(() => {
 
 const bottomGuideStyles = computed(() => {
 	if (!pairElement.value) return
-	let a = {
+	return {
 		...guideStyles,
 		borderWidth: '1px 0 0 0',
 		top: `${pairedRect.top.value + pairedRect.height.value - props.slideRect.top.value + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
 		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
-	return a
 })
 
 const setCurrentPairedDataIndex = () => {
@@ -197,7 +198,7 @@ watch(
 		if (!position.value) return
 		setCurrentPairedDataIndex()
 		snapToCenter()
-		snapToPairElement()
+		snapToPairedElement()
 	},
 	{ immediate: true },
 )
