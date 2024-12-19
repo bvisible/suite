@@ -123,9 +123,10 @@ const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
 		backgroundColor: presentation.data.slides[activeSlideIndex.value]?.background || 'white',
-		transform: transform.value,
-		transformOrigin: transformOrigin.value,
 		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
+		transition: transition.value,
+		transform: transform.value,
+		opacity: opacity.value,
 	}
 })
 
@@ -262,24 +263,22 @@ onBeforeUnmount(() => {
 const beforeSlideEnter = (el) => {
 	if (!slideTransition.value) return
 	if (slideTransition.value == 'Slide In') {
-		if (applyReverseTransition.value) el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
-		else el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
-		el.style.transition = 'none'
+		transform.value = applyReverseTransition.value ? 'translateX(-100%)' : 'translateX(100%)'
+		transition.value = 'none'
 	} else if (slideTransition.value == 'Fade') {
-		el.style.opacity = 0
+		opacity.value = 0
 	}
 }
 
 const slideEnter = (el, done) => {
 	if (!slideTransition.value) return
+	el.offsetWidth
 	if (slideTransition.value == 'Slide In') {
-		el.offsetWidth
-		el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
-		el.style.transform = 'translateX(0) scale(1.5, 1.5)'
+		transition.value = `transform ${slideTransitionDuration.value}s ease-out`
+		transform.value = 'translateX(0)'
 	} else if (slideTransition.value == 'Fade') {
-		el.offsetWidth
-		el.style.transition = `opacity ${slideTransitionDuration.value}s`
-		el.style.opacity = 1
+		transition.value = `opacity ${slideTransitionDuration.value}s`
+		opacity.value = 1
 	}
 	done()
 }
@@ -287,22 +286,21 @@ const slideEnter = (el, done) => {
 const beforeSlideLeave = (el) => {
 	if (!slideTransition.value) return
 	if (slideTransition.value == 'Slide In') {
-		el.style.transition = 'none'
+		transition.value = 'none'
 	} else if (slideTransition.value == 'Fade') {
-		el.style.opacity = 1
+		opacity.value = 1
 	}
 }
 
 const slideLeave = (el, done) => {
 	if (!slideTransition.value) return
 	if (slideTransition.value == 'Slide In') {
-		if (applyReverseTransition.value) el.style.transform = 'translateX(100%) scale(1.5, 1.5)'
-		else el.style.transform = 'translateX(-100%) scale(1.5, 1.5)'
-		el.style.transition = `transform ${slideTransitionDuration.value}s ease-out`
+		transform.value = applyReverseTransition.value ? 'translateX(100%)' : 'translateX(-100%)'
+		transition.value = `transform ${slideTransitionDuration.value}s ease-out`
 	} else if (slideTransition.value == 'Fade') {
 		el.offsetWidth
-		el.style.transition = `opacity ${slideTransitionDuration.value}s`
-		el.style.opacity = 0
+		transition.value = `opacity ${slideTransitionDuration.value}s`
+		opacity.value = 0
 	}
 	done()
 }
