@@ -12,11 +12,13 @@
 	>
 		<div
 			ref="target"
-			class="h-[540px] w-[960px] drop-shadow-xl"
+			class="slide h-[540px] w-[960px] drop-shadow-xl"
 			:style="slideStyles"
 			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
 			@click="handleSlideClick"
 		>
+			<ElementAlignmentGuides v-if="isDragging" :slideRect="slideRect" />
+
 			<div v-if="activeSlideElements">
 				<TransitionGroup
 					v-if="inSlideShow"
@@ -57,8 +59,10 @@ import {
 	provide,
 	onBeforeUnmount,
 } from 'vue'
+import { useElementBounding } from '@vueuse/core'
 
 import SlideElement from '@/components/SlideElement.vue'
+import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
 
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
@@ -71,6 +75,8 @@ import {
 	presentation,
 	activeSlideElements,
 	inSlideShow,
+	position,
+	dimensions,
 } from '@/stores/slide'
 import html2canvas from 'html2canvas'
 
@@ -82,8 +88,6 @@ const targetRef = useTemplateRef('target')
 const { transform, transformOrigin, allowPanAndZoom } = zoom.value
 
 const slideCursor = ref('auto')
-const position = ref(null)
-const dimensions = ref(null)
 
 const { isDragging, dragTarget } = useDragAndDrop(position)
 const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
@@ -149,13 +153,8 @@ const addDragAndResize = () => {
 	let el = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
 	if (!el || !activeElement.value) return
 	dragTarget.value = el
-	if (activeElement.value.type == 'text') {
-		resizeTarget.value = el
-		resizeMode.value = 'width'
-	} else {
-		resizeTarget.value = el.parentElement
-		resizeMode.value = 'both'
-	}
+	resizeTarget.value = el
+	resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
 }
 
 const removeDragAndResize = () => {
@@ -278,14 +277,15 @@ watch(
 	{ immediate: true },
 )
 
+const slideRect = useElementBounding(targetRef)
+
 watch(
 	() => position.value,
 	() => {
 		if (!position.value) return
-		let container = targetRef.value.getBoundingClientRect()
-		let currentScale = container.width / 960
-		activeElement.value.left = (position.value.left - container.left) / currentScale
-		activeElement.value.top = (position.value.top - container.top) / currentScale
+		let currentScale = slideRect.width.value / 960
+		activeElement.value.left = (position.value.left - slideRect.left.value) / currentScale
+		activeElement.value.top = (position.value.top - slideRect.top.value) / currentScale
 	},
 	{ immediate: true },
 )
@@ -295,7 +295,7 @@ watch(
 	() => {
 		if (!dimensions.value) return
 		if (activeElement.value && dimensions.value.width != activeElement.value.width) {
-			let currentScale = targetRef.value.getBoundingClientRect().width / 960
+			let currentScale = slideRect.width.value / 960
 			activeElement.value.width = dimensions.value.width / currentScale
 		}
 	},

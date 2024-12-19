@@ -45,7 +45,7 @@ const videoStyle = computed(() => ({
 
 const handleVideoControls = (e) => {
 	e.stopPropagation()
-	if (inSlideShow.value || currentDataIndex.value != attrs['data-index']) {
+	if (inSlideShow.value || currentDataIndex.value == attrs['data-index']) {
 		const video = el.value
 		if (video.paused) {
 			isPlaying.value = true

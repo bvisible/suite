@@ -179,7 +179,7 @@
 								<NumberInput
 									v-model="activeElement.borderWidth"
 									suffix="px"
-									:rangeStart="1"
+									:rangeStart="0"
 									:rangeEnd="50"
 								/>
 							</div>
@@ -366,23 +366,30 @@ const activeTab = computed(() => {
 	return activeElement.value.type
 })
 
+const guessTextColor = () => {
+	const rgbString = document.querySelector('.slide')?.style.backgroundColor
+	const match = rgbString?.match(/^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+)\s*)?\)$/)
+	if (!match) return 'hsl(0, 0%, 0%)'
+	const r = parseInt(match[1], 10)
+	const g = parseInt(match[2], 10)
+	const b = parseInt(match[3], 10)
+	const luminance = 0.2989 * r + 0.587 * g + 0.114 * b
+	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
+}
+
 const getTextColor = () => {
-	if (presentation.data.slides[activeSlideIndex.value].background) {
-		let color = presentation.data.slides[activeSlideIndex.value].background
-		let r = parseInt(color.slice(1, 3), 16)
-		let g = parseInt(color.slice(3, 5), 16)
-		let b = parseInt(color.slice(5, 7), 16)
-		let brightness = (r * 299 + g * 587 + b * 114) / 1000
-		return brightness > 125 ? '#000000' : '#ffffff'
-	}
+	const lastTextElement = activeSlideElements.value
+		.reverse()
+		.find((element) => element.type == 'text')
+	return lastTextElement?.color || guessTextColor()
 }
 
 const addTextElement = () => {
 	let element = {
-		width: '85px',
-		left: '100',
-		top: '100',
-		fontSize: 50,
+		width: 65,
+		left: 100,
+		top: 100,
+		fontSize: 30,
 		fontFamily: 'Inter',
 		fontWeight: 'bold',
 		opacity: 100,
@@ -397,9 +404,9 @@ const addTextElement = () => {
 
 const addMediaElement = (file, type) => {
 	let element = {
-		width: '300px',
-		left: '200px',
-		top: '75px',
+		width: 300,
+		left: 200,
+		top: 75,
 		opacity: 100,
 		type: type,
 		src: file.file_url,
