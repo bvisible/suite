@@ -31,7 +31,20 @@
 		>
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
-			<Slide ref="slide" :zoom="zoom" />
+			<div
+				ref="slideContainer"
+				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
+				:class="inSlideShow ? 'bg-black-900' : ''"
+			>
+				<Slide
+					ref="slide"
+					:style="{
+						transform: zoom.transform.value,
+						transformOrigin: zoom.transformOrigin.value,
+					}"
+					:slideCursor="slideCursor"
+				/>
+			</div>
 
 			<SlideElementsPanel />
 		</div>
@@ -49,7 +62,14 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
-import { activeSlideIndex, name, presentation, activeSlideInFocus, position } from '@/stores/slide'
+import {
+	inSlideShow,
+	activeSlideIndex,
+	name,
+	presentation,
+	activeSlideInFocus,
+	position,
+} from '@/stores/slide'
 import {
 	resetFocus,
 	currentFocusedIndex,
@@ -190,6 +210,37 @@ const handleKeyDown = (e) => {
 	currentDataIndex.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
+const slideContainerRef = useTemplateRef('slideContainer')
+
+const slideCursor = ref('none')
+
+const resetCursorVisibility = () => {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 3000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		resetFocus()
+		zoom.transformOrigin.value = ''
+		zoom.allowPanAndZoom.value = false
+		zoom.transform.value = 'scale(1.5, 1.5)'
+		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		zoom.transform.value = ''
+		zoom.transformOrigin.value = '0 0'
+		zoom.allowPanAndZoom.value = true
+		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+
 watch(
 	() => route.params.name,
 	async () => {
@@ -206,11 +257,13 @@ onMounted(() => {
 	zoom.allowPanAndZoom.value = true
 	autosaveInterval = setInterval(saveChanges, 60000)
 	document.addEventListener('keydown', handleKeyDown)
+	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
 	zoom.allowPanAndZoom.value = false
 	clearInterval(autosaveInterval)
 	document.removeEventListener('keydown', handleKeyDown)
+	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 </script>
