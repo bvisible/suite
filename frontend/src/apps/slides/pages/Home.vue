@@ -11,9 +11,9 @@
 		</div>
 
 		<!-- Presentation Cards -->
-		<div class="w-[80%] h-full my-8 flex flex-col gap-4">
+		<div class="w-[80%] h-full my-6 flex flex-col gap-4">
 			<div class="font-semibold text-gray-600 px-4">Presentations</div>
-			<div class="grid grid-cols-5 gap-4 h-[95%] overflow-y-auto p-4">
+			<div class="grid grid-cols-5 gap-4 h-[95%] p-4 overflow-y-auto">
 				<div
 					v-for="presentation in presentationList.data"
 					:key="presentation.name"
@@ -22,7 +22,8 @@
 						backgroundSize: 'cover',
 						backgroundPosition: 'center',
 					}"
-					class="w-[200px] h-[112.5px] rounded-lg shadow-2xl cursor-pointer"
+					class="w-[200px] h-[112.5px] rounded-lg shadow-2xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
+					@click="() => $router.push(`/${presentation.name}`)"
 				></div>
 			</div>
 		</div>
