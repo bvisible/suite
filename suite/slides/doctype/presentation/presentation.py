@@ -15,6 +15,15 @@ def slug(text):
 
 
 @frappe.whitelist()
+def get_all_presentations():
+	presentations = frappe.get_all("Presentation", fields=["name"], order_by="modified desc")
+	all_presentations = [
+		frappe.get_doc("Presentation", presentation.name).as_dict() for presentation in presentations
+	]
+	return all_presentations
+
+
+@frappe.whitelist()
 def get_presentation(name):
 	return frappe.get_doc("Presentation", name)
 
