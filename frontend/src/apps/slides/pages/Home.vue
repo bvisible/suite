@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { createResource } from 'frappe-ui'
 
 const selectedPresentation = ref(null)
@@ -66,8 +66,33 @@ const presentationList = createResource({
 })
 
 const previewStyles = computed(() => ({
-	backgroundImage: `url(${selectedPresentation.value?.slides[0].thumbnail})`,
+	backgroundImage: `url(${selectedPresentation.value?.slides[previewSlide.value].thumbnail})`,
 	backgroundSize: 'cover',
 	backgroundPosition: 'center',
 }))
+
+const previewSlide = ref(0)
+let interval = null
+
+const changePreviewSlide = () => {
+	previewSlide.value = (previewSlide.value + 1) % selectedPresentation.value.slides.length
+}
+
+watch(
+	() => selectedPresentation.value,
+	(val) => {
+		if (!val) {
+			previewSlide.value = 0
+			clearInterval(interval)
+			interval = null
+			return
+		}
+		interval = setInterval(changePreviewSlide, 2000)
+	},
+)
+
+onBeforeUnmount(() => {
+	clearInterval(interval)
+	interval = null
+})
 </script>
