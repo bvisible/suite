@@ -4,7 +4,7 @@
 		<div
 			class="z-10 w-full flex items-center justify-between bg-white p-2 shadow-xl"
 			:class="{
-				'shadow-gray-300': !selectedPresentation,
+				'shadow-gray-300': !activePresentation,
 			}"
 		>
 			<div class="flex items-center gap-2">
@@ -17,7 +17,7 @@
 		<div
 			class="w-[80%] h-full my-6 flex flex-col gap-4"
 			:class="{
-				blur: selectedPresentation,
+				blur: activePresentation,
 			}"
 		>
 			<div class="font-semibold text-gray-600 px-4">
@@ -33,7 +33,7 @@
 						backgroundPosition: 'center',
 					}"
 					class="w-[200px] h-[112.5px] rounded-lg shadow-2xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
-					@click="selectedPresentation = presentation"
+					@click="activePresentation = presentation"
 				></div>
 			</div>
 		</div>
@@ -41,12 +41,12 @@
 		<!-- Presentation Preview -->
 		<div
 			class="bg-gray-800 fixed top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out"
-			:class="selectedPresentation ? 'opacity-30' : 'opacity-0 pointer-events-none'"
-			@click="selectedPresentation = null"
+			:class="activePresentation ? 'opacity-30' : 'opacity-0 pointer-events-none'"
+			@click="activePresentation = null"
 		></div>
 
 		<div
-			v-show="selectedPresentation"
+			v-show="activePresentation"
 			class="z-10 w-[960px] h-[540px] bg-white rounded-2xl fixed left-[calc(50%-480px)] top-[calc(50%-270px)]"
 			:style="previewStyles"
 		></div>
@@ -57,7 +57,9 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { createResource } from 'frappe-ui'
 
-const selectedPresentation = ref(null)
+let interval = null
+const activePresentation = ref(null)
+const previewSlide = ref(0)
 
 const presentationList = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
@@ -66,33 +68,31 @@ const presentationList = createResource({
 })
 
 const previewStyles = computed(() => ({
-	backgroundImage: `url(${selectedPresentation.value?.slides[previewSlide.value].thumbnail})`,
+	backgroundImage: `url(${activePresentation.value?.slides[previewSlide.value].thumbnail})`,
 	backgroundSize: 'cover',
 	backgroundPosition: 'center',
 }))
 
-const previewSlide = ref(0)
-let interval = null
+const initPreview = () => {
+	interval = setInterval(() => {
+		previewSlide.value = (previewSlide.value + 1) % activePresentation.value.slides.length
+	}, 2000)
+}
 
-const changePreviewSlide = () => {
-	previewSlide.value = (previewSlide.value + 1) % selectedPresentation.value.slides.length
+const resetPreview = () => {
+	previewSlide.value = 0
+	clearInterval(interval)
+	interval = null
 }
 
 watch(
-	() => selectedPresentation.value,
+	() => activePresentation.value,
 	(val) => {
-		if (!val) {
-			previewSlide.value = 0
-			clearInterval(interval)
-			interval = null
-			return
-		}
-		interval = setInterval(changePreviewSlide, 2000)
+		val ? initPreview() : resetPreview()
 	},
 )
 
 onBeforeUnmount(() => {
-	clearInterval(interval)
-	interval = null
+	resetPreview()
 })
 </script>
