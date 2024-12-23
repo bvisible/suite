@@ -92,6 +92,11 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { createResource } from 'frappe-ui'
 
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
+
 let interval = null
 const activePresentation = ref(null)
 const previewSlide = ref(0)
@@ -116,11 +121,11 @@ const activePresentationDetails = computed(() => {
 	return [
 		{
 			Title: title,
-			Modified: modified,
+			Modified: dayjs(modified).fromNow(),
 		},
 		{
 			Slides: slides.length,
-			Created: creation,
+			Created: dayjs(creation).fromNow(),
 		},
 	]
 })
