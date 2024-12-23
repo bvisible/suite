@@ -55,8 +55,11 @@
 		>
 			<FeatherIcon
 				v-if="showLinkToPresentation"
-				class="h-5 absolute top-4 right-4 text-white"
+				class="h-5 absolute top-4 right-4 opacity-70"
 				name="arrow-up-right"
+				:style="{
+					color: iconColor,
+				}"
 			/>
 		</div>
 
@@ -91,6 +94,8 @@
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { createResource } from 'frappe-ui'
+import { guessTextColorFromBackground } from '../utils/color'
+import tinycolor from 'tinycolor2'
 
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -128,6 +133,13 @@ const activePresentationDetails = computed(() => {
 			Created: dayjs(creation).fromNow(),
 		},
 	]
+})
+
+const iconColor = computed(() => {
+	const background = tinycolor(
+		activePresentation.value?.slides[previewSlide.value]?.background || 'white',
+	).toRgbString()
+	return guessTextColorFromBackground(background)
 })
 
 const initPreview = () => {
