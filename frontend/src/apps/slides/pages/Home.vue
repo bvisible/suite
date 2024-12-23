@@ -65,8 +65,38 @@
 			class="bg-white w-full h-[380px] fixed transition-all duration-300 flex justify-center"
 			:class="activePresentation ? 'bottom-0' : '-bottom-96'"
 		>
-			<div class="w-[960px] fixed top-[88%] px-2" v-if="activePresentation">
-				<div class="font-semibold text-gray-700">{{ activePresentation.title }}</div>
+			<div
+				class="w-[960px] fixed top-[88%] flex flex-col gap-2 px-2"
+				v-if="activePresentation"
+			>
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<div class="font-semibold text-gray-700">Title</div>
+						<div class="font-semibold text-gray-600">
+							{{ activePresentation.title }}
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
+						<div class="font-semibold text-gray-700">Modified</div>
+						<div class="font-semibold text-gray-600">
+							{{ activePresentation.modified }}
+						</div>
+					</div>
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<div class="font-semibold text-gray-700">Slides</div>
+						<div class="font-semibold text-gray-600">
+							{{ activePresentation.slides.length }}
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
+						<div class="font-semibold text-gray-700">Created</div>
+						<div class="font-semibold text-gray-600">
+							{{ activePresentation.creation }}
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
