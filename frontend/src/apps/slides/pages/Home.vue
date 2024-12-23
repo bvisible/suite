@@ -28,7 +28,7 @@
 					v-for="presentation in presentationList.data"
 					:key="presentation.name"
 					:style="{
-						backgroundImage: `url(${presentation.slides[0].thumbnail})`,
+						backgroundImage: `url(${presentation.slides[0]?.thumbnail})`,
 						backgroundSize: 'cover',
 						backgroundPosition: 'center',
 					}"
@@ -42,7 +42,7 @@
 		<div
 			class="bg-gray-800 fixed top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out"
 			:class="activePresentation ? 'opacity-30' : 'opacity-0 pointer-events-none'"
-			@click="activePresentation = null"
+			@click="hidePreview()"
 		></div>
 
 		<div
@@ -69,7 +69,7 @@
 			:class="activePresentation ? 'bottom-0' : '-bottom-96'"
 		>
 			<div
-				class="w-[960px] fixed top-[88%] flex flex-col gap-2 px-2"
+				class="w-[960px] absolute top-[72%] flex flex-col gap-2 px-2"
 				v-if="activePresentation"
 			>
 				<div
@@ -87,20 +87,33 @@
 					</div>
 				</div>
 			</div>
+
+			<div
+				class="absolute top-[6%] right-[12.5%] flex flex-col gap-3"
+				v-if="activePresentation"
+			>
+				<div class="rounded p-2 mx-2 cursor-pointer bg-gray-900" @click="enablePresentMode">
+					<Presentation size="16" :strokeWidth="1.5" class="text-white" />
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { createResource } from 'frappe-ui'
+import { Presentation } from 'lucide-vue-next'
 import { guessTextColorFromBackground } from '../utils/color'
 import tinycolor from 'tinycolor2'
 
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { startSlideShow } from '@/stores/slide'
 
 dayjs.extend(relativeTime)
+const router = useRouter()
 
 let interval = null
 const activePresentation = ref(null)
@@ -152,6 +165,16 @@ const resetPreview = () => {
 	previewSlide.value = 0
 	clearInterval(interval)
 	interval = null
+}
+
+const hidePreview = () => {
+	activePresentation.value = null
+	resetPreview()
+}
+
+const enablePresentMode = async () => {
+	await router.push(`/${activePresentation.value.name}`)
+	await startSlideShow()
 }
 
 watch(
