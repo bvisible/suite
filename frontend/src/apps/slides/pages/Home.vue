@@ -46,10 +46,29 @@
 		></div>
 
 		<div
-			v-show="activePresentation"
-			class="z-10 w-[960px] h-[540px] bg-white rounded-2xl fixed left-[calc(50%-480px)] top-[calc(50%-270px)]"
+			class="z-10 w-[960px] h-[540px] bg-white shadow-2xl shadow-gray-300 rounded-2xl fixed left-[calc(50%-480px)] transition-all duration-300 cursor-pointer hover:scale-[101%]"
+			:class="activePresentation ? 'bottom-[calc(50%-270px)]' : '-bottom-[540px]'"
 			:style="previewStyles"
-		></div>
+			@mouseenter="showLinkToPresentation = true"
+			@mouseleave="showLinkToPresentation = false"
+			@click="$router.push(`/${activePresentation?.name}`)"
+		>
+			<FeatherIcon
+				v-if="showLinkToPresentation"
+				class="h-5 absolute top-4 right-4 text-white"
+				name="arrow-up-right"
+			/>
+		</div>
+
+		<!-- Presentation Details -->
+		<div
+			class="bg-white w-full h-[380px] fixed transition-all duration-300 flex justify-center"
+			:class="activePresentation ? 'bottom-0' : '-bottom-96'"
+		>
+			<div class="w-[960px] fixed top-[88%] px-2" v-if="activePresentation">
+				<div class="font-semibold text-gray-700">{{ activePresentation.title }}</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -60,6 +79,7 @@ import { createResource } from 'frappe-ui'
 let interval = null
 const activePresentation = ref(null)
 const previewSlide = ref(0)
+const showLinkToPresentation = ref(false)
 
 const presentationList = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
