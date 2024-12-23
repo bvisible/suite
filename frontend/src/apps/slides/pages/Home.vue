@@ -69,32 +69,18 @@
 				class="w-[960px] fixed top-[88%] flex flex-col gap-2 px-2"
 				v-if="activePresentation"
 			>
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<div class="font-semibold text-gray-700">Title</div>
-						<div class="font-semibold text-gray-600">
-							{{ activePresentation.title }}
-						</div>
-					</div>
-					<div class="flex items-center gap-2">
-						<div class="font-semibold text-gray-700">Modified</div>
-						<div class="font-semibold text-gray-600">
-							{{ activePresentation.modified }}
-						</div>
-					</div>
-				</div>
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<div class="font-semibold text-gray-700">Slides</div>
-						<div class="font-semibold text-gray-600">
-							{{ activePresentation.slides.length }}
-						</div>
-					</div>
-					<div class="flex items-center gap-2">
-						<div class="font-semibold text-gray-700">Created</div>
-						<div class="font-semibold text-gray-600">
-							{{ activePresentation.creation }}
-						</div>
+				<div
+					v-for="(row, index) in activePresentationDetails"
+					:key="index"
+					class="flex items-center justify-between"
+				>
+					<div
+						v-for="(detailValue, detailLabel) in row"
+						:key="detailLabel"
+						class="flex items-center gap-2"
+					>
+						<div class="font-semibold text-gray-700">{{ detailLabel }}</div>
+						<div class="font-semibold text-gray-600">{{ detailValue }}</div>
 					</div>
 				</div>
 			</div>
@@ -122,6 +108,22 @@ const previewStyles = computed(() => ({
 	backgroundSize: 'cover',
 	backgroundPosition: 'center',
 }))
+
+const activePresentationDetails = computed(() => {
+	if (!activePresentation.value) return {}
+
+	const { title, slides, creation, modified } = activePresentation.value
+	return [
+		{
+			Title: title,
+			Modified: modified,
+		},
+		{
+			Slides: slides.length,
+			Created: creation,
+		},
+	]
+})
 
 const initPreview = () => {
 	interval = setInterval(() => {
