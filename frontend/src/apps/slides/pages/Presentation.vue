@@ -20,7 +20,7 @@
 			</span>
 
 			<div class="flex select-none gap-2">
-				<Button variant="solid" label="Present" size="sm" @click="startSlideShow" />
+				<Button variant="solid" label="Present" size="sm" @click="enablePresentMode" />
 			</div>
 		</div>
 
@@ -69,6 +69,7 @@ import {
 	presentation,
 	activeSlideInFocus,
 	position,
+	startSlideShow,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -122,18 +123,10 @@ const clearFocus = (e) => {
 	}
 }
 
-const startSlideShow = async () => {
+const enablePresentMode = async () => {
 	await saveChanges()
 	await presentation.reload()
-	let elem = document.querySelector('.slideContainer')
-
-	if (elem.requestFullscreen) {
-		elem.requestFullscreen()
-	} else if (elem.webkitRequestFullscreen) {
-		elem.webkitRequestFullscreen()
-	} else if (elem.msRequestFullscreen) {
-		elem.msRequestFullscreen()
-	}
+	await startSlideShow()
 }
 
 const updateElementPosition = (dx, dy) => {
