@@ -92,12 +92,22 @@
 				class="absolute top-[6%] right-[12.5%] flex flex-col gap-3"
 				v-if="activePresentation"
 			>
-				<div class="rounded p-2 mx-2 cursor-pointer bg-gray-900" @click="enablePresentMode">
-					<Presentation size="16" :strokeWidth="1.5" class="text-white" />
-				</div>
-				<div class="rounded p-2 mx-2 cursor-pointer bg-gray-200" @click="showDialog = true">
-					<Copy size="16" :strokeWidth="1.5" />
-				</div>
+				<Tooltip text="Present" :hover-delay="0.3" placement="right">
+					<div
+						class="rounded p-2 mx-2 cursor-pointer bg-gray-900"
+						@click="enablePresentMode"
+					>
+						<Presentation size="16" :strokeWidth="1.5" class="text-white" />
+					</div>
+				</Tooltip>
+				<Tooltip text="Duplicate" :hover-delay="0.3" placement="right">
+					<div
+						class="rounded p-2 mx-2 cursor-pointer bg-gray-200"
+						@click="showDialog = true"
+					>
+						<Copy size="16" :strokeWidth="1.5" />
+					</div>
+				</Tooltip>
 			</div>
 		</div>
 	</div>
@@ -129,7 +139,7 @@
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { createResource, Dialog, FormControl, call } from 'frappe-ui'
+import { createResource, Dialog, FormControl, call, Tooltip } from 'frappe-ui'
 import { Presentation, Copy } from 'lucide-vue-next'
 import { guessTextColorFromBackground } from '../utils/color'
 import tinycolor from 'tinycolor2'
