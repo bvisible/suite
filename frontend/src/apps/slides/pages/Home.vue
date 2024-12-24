@@ -103,9 +103,17 @@
 				<Tooltip text="Duplicate" :hover-delay="0.3" placement="right">
 					<div
 						class="rounded p-2 mx-2 cursor-pointer bg-gray-200"
-						@click="showDialog = true"
+						@click="setDialogProperties('Duplicate')"
 					>
 						<Copy size="16" :strokeWidth="1.5" />
+					</div>
+				</Tooltip>
+				<Tooltip text="Rename" :hover-delay="0.3" placement="right">
+					<div
+						class="rounded p-2 mx-2 cursor-pointer bg-gray-200"
+						@click="setDialogProperties('Rename')"
+					>
+						<PenLine size="16" :strokeWidth="1.5" />
 					</div>
 				</Tooltip>
 			</div>
@@ -116,17 +124,37 @@
 		<template #body>
 			<div class="flex flex-col gap-6 p-6">
 				<div class="flex items-center justify-between">
-					<div class="text-md font-semibold text-gray-900">Duplicate Presentation</div>
+					<div class="text-md font-semibold text-gray-900">
+						{{ dialogAction }} Presentation
+					</div>
 					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showDialog = false" />
 				</div>
 				<FormControl
+					v-if="['Rename', 'Duplicate']"
 					:type="'text'"
 					size="md"
 					variant="subtle"
 					placeholder="Presentation Title"
 					v-model="newPresentationTitle"
 				/>
-				<Button variant="solid" label="Create Copy" @click="createPresentation()">
+
+				<Button
+					v-if="dialogAction == 'Rename'"
+					variant="solid"
+					label="Save"
+					@click="renamePresentation"
+				>
+					<template #prefix>
+						<FeatherIcon name="save" class="h-3.5" />
+					</template>
+				</Button>
+
+				<Button
+					v-else-if="dialogAction == 'Duplicate'"
+					variant="solid"
+					label="Create Copy"
+					@click="createPresentation"
+				>
 					<template #prefix>
 						<FeatherIcon name="copy" class="h-3.5" />
 					</template>
@@ -140,7 +168,7 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { createResource, Dialog, FormControl, call, Tooltip } from 'frappe-ui'
-import { Presentation, Copy } from 'lucide-vue-next'
+import { Presentation, Copy, PenLine } from 'lucide-vue-next'
 import { guessTextColorFromBackground } from '../utils/color'
 import tinycolor from 'tinycolor2'
 
@@ -157,6 +185,7 @@ const previewSlide = ref(0)
 const showLinkToPresentation = ref(false)
 
 const showDialog = ref(false)
+const dialogAction = ref('')
 const newPresentationTitle = ref('')
 
 const presentationList = createResource({
@@ -216,8 +245,24 @@ const enablePresentMode = async () => {
 	await startSlideShow()
 }
 
-const createPresentation = async () => {
+const setDialogProperties = (action) => {
+	dialogAction.value = action
+	if (action == 'Rename') {
+		newPresentationTitle.value = activePresentation.value.title
+	} else if (action == 'Duplicate') {
+		newPresentationTitle.value = `Copy of ${activePresentation.value.title}`
+	}
+	showDialog.value = true
+}
+
+const resetDialogProperties = () => {
 	showDialog.value = false
+	dialogAction.value = ''
+	newPresentationTitle.value = ''
+}
+
+const createPresentation = async () => {
+	resetDialogProperties()
 	const presentation = await call(
 		'slides.slides.doctype.presentation.presentation.duplicate_presentation',
 		{
@@ -226,6 +271,16 @@ const createPresentation = async () => {
 		},
 	)
 	await router.push(`/${presentation.name}`)
+}
+
+const renamePresentation = async () => {
+	resetDialogProperties()
+	await call('slides.slides.doctype.presentation.presentation.rename_presentation', {
+		name: activePresentation.value.name,
+		new_name: newPresentationTitle.value,
+	})
+	await presentationList.reload()
+	activePresentation.value.title = newPresentationTitle.value
 }
 
 watch(
