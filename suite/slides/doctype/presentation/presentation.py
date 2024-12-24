@@ -85,3 +85,8 @@ def duplicate_presentation(title, presentation_name):
 	new_presentation.name = None
 	new_presentation.save()
 	return new_presentation
+
+
+@frappe.whitelist()
+def delete_presentation(name):
+	return frappe.delete_doc("Presentation", name)
