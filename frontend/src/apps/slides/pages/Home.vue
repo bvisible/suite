@@ -116,6 +116,15 @@
 						<PenLine size="16" :strokeWidth="1.5" />
 					</div>
 				</Tooltip>
+
+				<Tooltip text="Delete" :hover-delay="0.3" placement="right">
+					<div
+						class="rounded p-2 mx-2 cursor-pointer bg-gray-200"
+						@click="setDialogProperties('Delete')"
+					>
+						<Trash size="16" :strokeWidth="1.5" />
+					</div>
+				</Tooltip>
 			</div>
 		</div>
 	</div>
@@ -130,13 +139,16 @@
 					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showDialog = false" />
 				</div>
 				<FormControl
-					v-if="['Rename', 'Duplicate']"
+					v-if="['Rename', 'Duplicate'].includes(dialogAction)"
 					:type="'text'"
 					size="md"
 					variant="subtle"
 					placeholder="Presentation Title"
 					v-model="newPresentationTitle"
 				/>
+				<div v-else class="text-base">
+					Are you sure you want to delete this presentation?
+				</div>
 
 				<Button
 					v-if="dialogAction == 'Rename'"
@@ -159,6 +171,18 @@
 						<FeatherIcon name="copy" class="h-3.5" />
 					</template>
 				</Button>
+
+				<Button
+					v-else-if="dialogAction == 'Delete'"
+					variant="solid"
+					theme="red"
+					label="Confirm Deletion"
+					@click="deletePresentation"
+				>
+					<template #prefix>
+						<FeatherIcon name="trash" class="h-3.5" />
+					</template>
+				</Button>
 			</div>
 		</template>
 	</Dialog>
@@ -168,7 +192,7 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { createResource, Dialog, FormControl, call, Tooltip } from 'frappe-ui'
-import { Presentation, Copy, PenLine } from 'lucide-vue-next'
+import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
 import { guessTextColorFromBackground } from '../utils/color'
 import tinycolor from 'tinycolor2'
 
@@ -251,6 +275,8 @@ const setDialogProperties = (action) => {
 		newPresentationTitle.value = activePresentation.value.title
 	} else if (action == 'Duplicate') {
 		newPresentationTitle.value = `Copy of ${activePresentation.value.title}`
+	} else {
+		newPresentationTitle.value = ''
 	}
 	showDialog.value = true
 }
@@ -281,6 +307,15 @@ const renamePresentation = async () => {
 	})
 	await presentationList.reload()
 	activePresentation.value.title = newPresentationTitle.value
+}
+
+const deletePresentation = async () => {
+	showDialog.value = false
+	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
+		name: activePresentation.value.name,
+	})
+	await presentationList.reload()
+	activePresentation.value = null
 }
 
 watch(
