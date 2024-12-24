@@ -74,3 +74,14 @@ def rename_presentation(name, new_name):
 	frappe.rename_doc("Presentation", name, nameSlug)
 	frappe.db.set_value("Presentation", nameSlug, "title", new_name)
 	return nameSlug
+
+
+@frappe.whitelist()
+def duplicate_presentation(title, presentation_name):
+	presentation = frappe.get_doc("Presentation", presentation_name)
+	new_presentation = frappe.new_doc("Presentation")
+	new_presentation.update(presentation.as_dict())
+	new_presentation.title = title
+	new_presentation.name = None
+	new_presentation.save()
+	return new_presentation

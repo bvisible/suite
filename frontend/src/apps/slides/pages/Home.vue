@@ -46,7 +46,7 @@
 		></div>
 
 		<div
-			class="z-10 w-[960px] h-[540px] bg-white shadow-2xl shadow-gray-300 rounded-2xl fixed left-[calc(50%-480px)] transition-all duration-300 cursor-pointer hover:scale-[101%]"
+			class="z-10 w-[960px] h-[540px] bg-white shadow-2xl rounded-2xl fixed left-[calc(50%-480px)] transition-all duration-300 cursor-pointer hover:scale-[101%]"
 			:class="activePresentation ? 'bottom-[calc(50%-270px)]' : '-bottom-[540px]'"
 			:style="previewStyles"
 			@mouseenter="showLinkToPresentation = true"
@@ -95,16 +95,42 @@
 				<div class="rounded p-2 mx-2 cursor-pointer bg-gray-900" @click="enablePresentMode">
 					<Presentation size="16" :strokeWidth="1.5" class="text-white" />
 				</div>
+				<div class="rounded p-2 mx-2 cursor-pointer bg-gray-200" @click="showDialog = true">
+					<Copy size="16" :strokeWidth="1.5" />
+				</div>
 			</div>
 		</div>
 	</div>
+
+	<Dialog class="pb-0" v-model="showDialog" :options="{ size: 'sm' }">
+		<template #body>
+			<div class="flex flex-col gap-6 p-6">
+				<div class="flex items-center justify-between">
+					<div class="text-md font-semibold text-gray-900">Duplicate Presentation</div>
+					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showDialog = false" />
+				</div>
+				<FormControl
+					:type="'text'"
+					size="md"
+					variant="subtle"
+					placeholder="Presentation Title"
+					v-model="newPresentationTitle"
+				/>
+				<Button variant="solid" label="Create Copy" @click="createPresentation()">
+					<template #prefix>
+						<FeatherIcon name="copy" class="h-3.5" />
+					</template>
+				</Button>
+			</div>
+		</template>
+	</Dialog>
 </template>
 
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { createResource } from 'frappe-ui'
-import { Presentation } from 'lucide-vue-next'
+import { createResource, Dialog, FormControl, call } from 'frappe-ui'
+import { Presentation, Copy } from 'lucide-vue-next'
 import { guessTextColorFromBackground } from '../utils/color'
 import tinycolor from 'tinycolor2'
 
@@ -120,6 +146,9 @@ const activePresentation = ref(null)
 const previewSlide = ref(0)
 const showLinkToPresentation = ref(false)
 
+const showDialog = ref(false)
+const newPresentationTitle = ref('')
+
 const presentationList = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
 	method: 'GET',
@@ -127,7 +156,7 @@ const presentationList = createResource({
 })
 
 const previewStyles = computed(() => ({
-	backgroundImage: `url(${activePresentation.value?.slides[previewSlide.value].thumbnail})`,
+	backgroundImage: `url(${activePresentation.value?.slides[previewSlide.value]?.thumbnail})`,
 	backgroundSize: 'cover',
 	backgroundPosition: 'center',
 }))
@@ -175,6 +204,18 @@ const hidePreview = () => {
 const enablePresentMode = async () => {
 	await router.push(`/${activePresentation.value.name}`)
 	await startSlideShow()
+}
+
+const createPresentation = async () => {
+	showDialog.value = false
+	const presentation = await call(
+		'slides.slides.doctype.presentation.presentation.duplicate_presentation',
+		{
+			title: newPresentationTitle.value,
+			presentation_name: activePresentation.value.name,
+		},
+	)
+	await router.push(`/${presentation.name}`)
 }
 
 watch(
