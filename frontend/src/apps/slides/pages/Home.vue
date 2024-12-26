@@ -31,15 +31,22 @@
 			<div class="grid grid-cols-5 gap-4 h-[95%] p-4 overflow-y-auto">
 				<div
 					v-for="presentation in presentationList.data"
+					class="w-[200px] h-[135px] bg-white rounded-lg shadow-2xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
 					:key="presentation.name"
-					:style="{
-						backgroundImage: `url(${presentation.slides[0]?.thumbnail})`,
-						backgroundSize: 'cover',
-						backgroundPosition: 'center',
-					}"
-					class="w-[200px] h-[112.5px] rounded-lg shadow-2xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
-					@click="activePresentation = presentation"
-				></div>
+				>
+					<div
+						class="w-full h-[83%] rounded-t-lg border-b"
+						:style="{
+							backgroundImage: `url(${presentation.slides[0]?.thumbnail})`,
+							backgroundSize: 'cover',
+							backgroundPosition: 'center',
+						}"
+						@click="activePresentation = presentation"
+					></div>
+					<div class="w-full h-[17%] flex justify-between px-2 items-center">
+						<div class="text-gray-500 text-sm">{{ presentation.title }}</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
