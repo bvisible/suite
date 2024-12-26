@@ -18,10 +18,7 @@
 			<span v-else class="select-none font-semibold text-gray-700" @click="enableRenameMode">
 				{{ presentation.data?.title }}
 			</span>
-
-			<div class="flex select-none gap-2">
-				<Button variant="solid" label="Present" size="sm" @click="enablePresentMode" />
-			</div>
+			<Button variant="solid" label="Present" size="sm" @click="enablePresentMode" />
 		</div>
 
 		<div

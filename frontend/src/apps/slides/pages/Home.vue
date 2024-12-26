@@ -11,6 +11,11 @@
 				<img src="../icons/slides.svg" class="h-7" />
 				<div class="select-none font-semibold">Slides</div>
 			</div>
+			<Button variant="solid" label="New" size="sm" @click="setDialogProperties('Create')">
+				<template #prefix>
+					<FeatherIcon name="plus" class="h-3.5" />
+				</template>
+			</Button>
 		</div>
 
 		<!-- Presentation Cards -->
@@ -116,7 +121,6 @@
 						<PenLine size="16" :strokeWidth="1.5" />
 					</div>
 				</Tooltip>
-
 				<Tooltip text="Delete" :hover-delay="0.3" placement="right">
 					<div
 						class="rounded p-2 mx-2 cursor-pointer bg-gray-200"
@@ -139,7 +143,7 @@
 					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showDialog = false" />
 				</div>
 				<FormControl
-					v-if="['Rename', 'Duplicate'].includes(dialogAction)"
+					v-if="['Rename', 'Duplicate', 'Create'].includes(dialogAction)"
 					:type="'text'"
 					size="md"
 					variant="subtle"
@@ -153,11 +157,11 @@
 				<Button
 					v-if="dialogAction == 'Rename'"
 					variant="solid"
-					label="Save"
+					label="Update"
 					@click="renamePresentation"
 				>
 					<template #prefix>
-						<FeatherIcon name="save" class="h-3.5" />
+						<FeatherIcon name="edit" class="h-3.5" />
 					</template>
 				</Button>
 
@@ -165,7 +169,7 @@
 					v-else-if="dialogAction == 'Duplicate'"
 					variant="solid"
 					label="Create Copy"
-					@click="createPresentation"
+					@click="createPresentation('Duplicate')"
 				>
 					<template #prefix>
 						<FeatherIcon name="copy" class="h-3.5" />
@@ -181,6 +185,12 @@
 				>
 					<template #prefix>
 						<FeatherIcon name="trash" class="h-3.5" />
+					</template>
+				</Button>
+
+				<Button v-else variant="solid" label="Create" @click="createPresentation('Create')">
+					<template #prefix>
+						<FeatherIcon name="save" class="h-3.5" />
 					</template>
 				</Button>
 			</div>
@@ -287,15 +297,25 @@ const resetDialogProperties = () => {
 	newPresentationTitle.value = ''
 }
 
-const createPresentation = async () => {
+const createPresentation = async (action) => {
 	resetDialogProperties()
-	const presentation = await call(
-		'slides.slides.doctype.presentation.presentation.duplicate_presentation',
-		{
-			title: newPresentationTitle.value,
-			presentation_name: activePresentation.value.name,
-		},
-	)
+	let presentation = null
+	if (action == 'Duplicate') {
+		presentation = await call(
+			'slides.slides.doctype.presentation.presentation.duplicate_presentation',
+			{
+				title: newPresentationTitle.value,
+				presentation_name: activePresentation.value.name,
+			},
+		)
+	} else {
+		presentation = await call(
+			'slides.slides.doctype.presentation.presentation.create_presentation',
+			{
+				title: newPresentationTitle.value,
+			},
+		)
+	}
 	await router.push(`/${presentation.name}`)
 }
 
