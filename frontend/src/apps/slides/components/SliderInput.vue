@@ -41,10 +41,6 @@ const props = defineProps({
 		type: Number,
 		default: 1,
 	},
-	default: {
-		type: Number,
-		default: 0,
-	},
 	showInput: {
 		type: Boolean,
 		default: true,
