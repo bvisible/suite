@@ -109,18 +109,20 @@
 
 		<SliderInput
 			label="Line Height"
-			v-model="activeElement.lineHeight"
 			:rangeStart="0.1"
 			:rangeEnd="5.0"
 			:rangeStep="0.1"
+			:modelValue="parseFloat(activeElement.lineHeight)"
+			@update:modelValue="(value) => (activeElement.lineHeight = value)"
 		/>
 
 		<SliderInput
 			label="Letter Spacing"
-			v-model="activeElement.letterSpacing"
 			:rangeStart="-10"
 			:rangeEnd="50"
 			:rangeStep="0.1"
+			:modelValue="parseFloat(activeElement.letterSpacing)"
+			@update:modelValue="(value) => (activeElement.letterSpacing = value)"
 		/>
 	</div>
 </template>
