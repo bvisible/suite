@@ -9,7 +9,8 @@
 					:min="rangeStart"
 					:max="rangeEnd"
 					:step="rangeStep"
-					v-model="modelValue"
+					:value="modelValue"
+					@input="$emit('update:modelValue', $event.target.value)"
 				/>
 				<div
 					class="absolute top-0 h-full rounded border border-black bg-black"
@@ -30,7 +31,7 @@
 </template>
 
 <script setup>
-import { computed, ref, useTemplateRef, onMounted } from 'vue'
+import { ref, useTemplateRef, watch } from 'vue'
 
 const props = defineProps({
 	label: String,
@@ -48,21 +49,19 @@ const props = defineProps({
 		type: Boolean,
 		default: true,
 	},
+	modelValue: {
+		type: Number,
+		required: true,
+	},
 })
 
-const modelValue = defineModel()
+const emit = defineEmits(['update:modelValue'])
 
 const sliderBar = useTemplateRef('slider')
 
 const changeValue = (e) => {
-	let value = parseFloat(e.target.value)
-	if (value < props.rangeStart) {
-		modelValue.value = props.rangeStart
-	} else if (value > props.rangeEnd) {
-		modelValue.value = props.rangeEnd
-	} else {
-		modelValue.value = value
-	}
+	const value = parseFloat(e.target.value)
+	emit('update:modelValue', Math.max(props.rangeStart, Math.min(props.rangeEnd, value)))
 }
 </script>
 <style scoped>
