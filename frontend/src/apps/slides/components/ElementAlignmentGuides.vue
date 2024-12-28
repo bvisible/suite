@@ -161,7 +161,7 @@ const bottomGuideStyles = computed(() => {
 	return {
 		...guideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${pairedRect.top.value + pairedRect.height.value - props.slideRect.top.value + 5.5}px`,
+		top: `${pairElement.value.top + pairedRect.height.value + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
 		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
