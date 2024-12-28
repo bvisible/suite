@@ -72,10 +72,11 @@ import {
 	resetFocus,
 	currentFocusedIndex,
 	currentDataIndex,
+	deleteElement,
 	duplicateElement,
 	addTextElement,
 } from '@/stores/element'
-import { duplicateSlide, changeSlide } from '@/stores/slideActions'
+import { duplicateSlide, deleteSlide, changeSlide } from '@/stores/slideActions'
 import { saveChanges } from '@/stores/slideActions'
 
 let autosaveInterval = null
@@ -197,7 +198,7 @@ const handleKeyDown = (e) => {
 	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
 	handleGlobalShortcuts(e)
 
-	currentDataIndex.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	currentDataIndex.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const slideContainerRef = useTemplateRef('slideContainer')
