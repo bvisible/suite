@@ -20,7 +20,7 @@
 
 		<!-- Presentation Cards -->
 		<div
-			class="w-[80%] h-full my-6 flex flex-col gap-4"
+			class="w-[80%] h-full my-6 flex flex-col gap-2"
 			:class="{
 				blur: activePresentation,
 			}"
@@ -35,7 +35,7 @@
 					:key="presentation.name"
 				>
 					<div
-						class="w-full h-[83%] rounded-t-lg border-b"
+						class="w-full h-[78%] rounded-t-lg border-b"
 						:style="{
 							backgroundImage: `url(${presentation.slides[0]?.thumbnail})`,
 							backgroundSize: 'cover',
@@ -43,7 +43,7 @@
 						}"
 						@click="activePresentation = presentation"
 					></div>
-					<div class="w-full h-[17%] flex justify-between px-2 items-center">
+					<div class="w-full h-[22%] flex justify-between px-2 items-center">
 						<div class="text-gray-500 text-sm">{{ presentation.title }}</div>
 					</div>
 				</div>
