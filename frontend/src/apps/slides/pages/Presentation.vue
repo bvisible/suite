@@ -29,9 +29,22 @@
 			class="flex h-full items-center justify-center"
 			@click="(e) => clearFocus(e)"
 		>
-			<SlideNavigationPanel />
+			<SlideNavigationPanel :showNavigator="showNavigator" />
 
-			<Slide ref="slide" :zoom="zoom" />
+			<div
+				ref="slideContainer"
+				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
+				:class="inSlideShow ? 'bg-black-900' : ''"
+			>
+				<Slide
+					ref="slide"
+					:style="{
+						transform: zoom.transform.value,
+						transformOrigin: zoom.transformOrigin.value,
+					}"
+					:slideCursor="slideCursor"
+				/>
+			</div>
 
 			<SlideElementsPanel />
 		</div>
@@ -50,16 +63,22 @@ import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
 import {
-	activeElement,
-	focusedElement,
+	inSlideShow,
 	activeSlideIndex,
 	name,
 	presentation,
-	activeSlideElements,
-	currentDataIndex,
-	currentPairedDataIndex,
-	saveChanges,
+	activeSlideInFocus,
+	position,
 } from '@/stores/slide'
+import {
+	resetFocus,
+	currentFocusedIndex,
+	currentDataIndex,
+	duplicateElement,
+	addTextElement,
+} from '@/stores/element'
+import { duplicateSlide, changeSlide } from '@/stores/slideActions'
+import { saveChanges } from '@/stores/slideActions'
 
 let autosaveInterval = null
 
@@ -73,6 +92,8 @@ const newTitleRef = useTemplateRef('newTitleRef')
 
 const renameMode = ref(false)
 const newTitle = ref('')
+
+const showNavigator = ref(true)
 
 const enableRenameMode = () => {
 	renameMode.value = true
@@ -95,11 +116,15 @@ const saveTitle = async () => {
 }
 
 const clearFocus = (e) => {
-	if (e.target == containerRef.value) activeElement.value = null
-	focusedElement.value = null
+	if (e.target == containerRef.value) {
+		resetFocus()
+		activeSlideInFocus.value = false
+	}
 }
 
-const startSlideShow = () => {
+const startSlideShow = async () => {
+	await saveChanges()
+	await presentation.reload()
 	let elem = document.querySelector('.slideContainer')
 
 	if (elem.requestFullscreen) {
@@ -108,6 +133,111 @@ const startSlideShow = () => {
 		elem.webkitRequestFullscreen()
 	} else if (elem.msRequestFullscreen) {
 		elem.msRequestFullscreen()
+	}
+}
+
+const updateElementPosition = (dx, dy) => {
+	if (!position.value) return
+	position.value = { left: position.value.left + dx, top: position.value.top + dy }
+}
+
+const handleArrowKeys = (key) => {
+	let dx = 0
+	let dy = 0
+
+	if (key == 'ArrowLeft') dx = -1
+	else if (key == 'ArrowRight') dx = 1
+	else if (key == 'ArrowUp') dy = -1
+	else if (key == 'ArrowDown') dy = 1
+
+	updateElementPosition(dx, dy)
+}
+
+const handleElementShortcuts = (e) => {
+	switch (e.key) {
+		case 'ArrowLeft':
+		case 'ArrowRight':
+		case 'ArrowUp':
+		case 'ArrowDown':
+			handleArrowKeys(e.key)
+			break
+		case 'Delete':
+		case 'Backspace':
+			deleteElement(e)
+			break
+		case 'd':
+			if (e.metaKey) duplicateElement(e)
+			break
+	}
+}
+
+const handleSlideShortcuts = (e) => {
+	switch (e.key) {
+		case 'ArrowUp':
+			changeSlide(activeSlideIndex.value - 1)
+			break
+		case 'ArrowDown':
+			changeSlide(activeSlideIndex.value + 1)
+			break
+		case 'Delete':
+		case 'Backspace':
+			deleteSlide()
+			break
+		case 'd':
+			if (e.metaKey) duplicateSlide(e)
+			break
+	}
+}
+
+const handleGlobalShortcuts = (e) => {
+	switch (e.key) {
+		case 'Escape':
+			resetFocus()
+			break
+		case 't':
+			addTextElement()
+			break
+		case 'b':
+			if (e.metaKey) showNavigator.value = !showNavigator.value
+			break
+	}
+}
+
+const handleKeyDown = (e) => {
+	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
+	handleGlobalShortcuts(e)
+
+	currentDataIndex.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+}
+
+const slideContainerRef = useTemplateRef('slideContainer')
+
+const slideCursor = ref('none')
+
+const resetCursorVisibility = () => {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 3000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		resetFocus()
+		zoom.transformOrigin.value = ''
+		zoom.allowPanAndZoom.value = false
+		zoom.transform.value = 'scale(1.5, 1.5)'
+		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		zoom.transform.value = ''
+		zoom.transformOrigin.value = '0 0'
+		zoom.allowPanAndZoom.value = true
+		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
 
@@ -126,10 +256,14 @@ onMounted(() => {
 	zoom.targetElement.value = slideRef.value.targetRef
 	zoom.allowPanAndZoom.value = true
 	autosaveInterval = setInterval(saveChanges, 60000)
+	document.addEventListener('keydown', handleKeyDown)
+	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
 	zoom.allowPanAndZoom.value = false
 	clearInterval(autosaveInterval)
+	document.removeEventListener('keydown', handleKeyDown)
+	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 </script>

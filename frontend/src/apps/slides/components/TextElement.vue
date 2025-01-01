@@ -1,9 +1,10 @@
 <template>
 	<div
 		class="focus:outline-none"
-		:contenteditable="currentDataIndex == $attrs['data-index']"
+		:contenteditable="currentFocusedIndex == $attrs['data-index']"
 		:style="textStyle"
 		@click="selectElement"
+		@blur="handleBlur"
 	>
 		{{ element.content }}
 	</div>
@@ -11,18 +12,11 @@
 
 <script setup>
 import { ref, computed, inject, useAttrs } from 'vue'
-import {
-	activeElement,
-	focusedElement,
-	inSlideShow,
-	currentDataIndex,
-	setActiveElement,
-} from '@/stores/slide'
+import { inSlideShow } from '@/stores/slide'
+import { currentFocusedIndex, setActiveElement } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 
 const attrs = useAttrs()
-
-const removeDragAndResize = inject('removeDragAndResize')
 
 const element = defineModel('element', {
 	type: Object,
@@ -37,14 +31,14 @@ const textStyle = computed(() => ({
 	fontStyle: element.value.fontStyle,
 	textDecoration: element.value.textDecoration,
 	textTransform: element.value.textTransform,
-	userSelect: focusedElement.value == element.value ? 'text' : 'none',
+	userSelect: currentFocusedIndex.value == attrs['data-index'] ? 'text' : 'none',
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
 	letterSpacing: `${element.value.letterSpacing}px`,
 	wordWrap: 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,
-	cursor: focusedElement.value == element.value ? 'text' : '',
+	cursor: currentFocusedIndex.value == attrs['data-index'] ? 'text' : '',
 }))
 
 const selectElement = (e) => {
@@ -54,15 +48,17 @@ const selectElement = (e) => {
 
 const setActiveText = (e) => {
 	e.stopPropagation()
-	if (focusedElement.value == element.value) return
-	setActiveElement(element.value)
+	if (currentFocusedIndex.value == attrs['data-index']) return
+	setActiveElement(attrs['data-index'])
 }
 
 const setFocusElement = (e) => {
 	e.stopPropagation()
-	if (focusedElement.value == element.value) return
-	activeElement.value = null
-	focusedElement.value = element.value
-	currentDataIndex.value = attrs['data-index']
+	if (currentFocusedIndex.value == attrs['data-index']) return
+	setActiveElement(attrs['data-index'], true)
+}
+
+const handleBlur = (e) => {
+	element.value.content = e.target.innerText
 }
 </script>

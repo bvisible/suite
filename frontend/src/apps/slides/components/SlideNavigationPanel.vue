@@ -9,18 +9,23 @@
 		@mouseleave="showCollapseShortcut = false"
 	>
 		<div class="flex flex-col px-4">
-			<Draggable v-model="presentation.data.slides" item-key="name" :force-fallback="true">
+			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
-					<img
-						:src="slide.thumbnail"
+					<div
 						class="my-4 h-20 cursor-pointer rounded"
 						:class="
 							activeSlideIndex == slide.idx - 1
-								? 'ring-2 ring-blue-400 ring-offset-1'
+								? 'border-2 border-blue-400'
 								: 'border border-gray-300'
 						"
+						:style="{
+							backgroundImage: `url(${slide.thumbnail})`,
+							backgroundSize: 'cover',
+							backgroundPosition: 'center',
+							backgroundRepeat: 'no-repeat',
+						}"
 						@click="changeSlide(slide.idx - 1)"
-					/>
+					></div>
 				</template>
 			</Draggable>
 
@@ -50,37 +55,45 @@
 			class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white drop-shadow-xl"
 			@click="showNavigator = !showNavigator"
 		>
-			<FeatherIcon name="chevron-left" class="h-3 pe-1" />
+			<FeatherIcon name="chevron-right" class="h-3 pe-1" />
 		</div>
 	</div>
 </template>
 
 <script setup>
 import { ref, onBeforeUnmount, onMounted } from 'vue'
+import { call } from 'frappe-ui'
 import Draggable from 'vuedraggable'
 
-import { activeSlideIndex, presentation, changeSlide, insertSlide } from '@/stores/slide'
+import { activeSlideIndex, presentation } from '@/stores/slide'
+import { changeSlide, insertSlide } from '@/stores/slideActions'
 
-const showNavigator = ref(true)
+const showNavigator = defineModel('showNavigator', {
+	type: Boolean,
+	default: true,
+})
+
 const showCollapseShortcut = ref(false)
 
-const handleKeyDown = (e) => {
-	if (e.metaKey && e.key === 'b') {
-		showNavigator.value = !showNavigator.value
-	}
+const handleSortEnd = async (event) => {
+	const data = presentation.data
+	changeSlide(event.newIndex)
+	data.slides.forEach((slide) => {
+		slide.idx = data.slides.indexOf(slide) + 1
+	})
+	await call('frappe.client.save', {
+		doc: data,
+	})
+	await presentation.reload()
 }
-
-onMounted(() => {
-	document.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-	document.removeEventListener('keydown', handleKeyDown)
-})
 </script>
 
 <style scoped>
-.ghost {
-	display: none;
+.sortable-ghost {
+	opacity: 1;
+}
+
+.sortable-chosen {
+	opacity: 0.8;
 }
 </style>

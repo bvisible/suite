@@ -14,13 +14,13 @@
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
 				@click="modelValue + rangeStep <= props.rangeEnd && (modelValue += rangeStep)"
 			>
-				<FeatherIcon name="chevron-up" class="h-3" strokeWidth="2" />
+				<FeatherIcon name="chevron-up" class="h-3" :strokeWidth="2" />
 			</button>
 			<button
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-br bg-white hover:bg-gray-200"
 				@click="modelValue - rangeStep >= props.rangeStart && (modelValue -= rangeStep)"
 			>
-				<FeatherIcon name="chevron-down" class="h-3" strokeWidth="2" />
+				<FeatherIcon name="chevron-down" class="h-3" :strokeWidth="2" />
 			</button>
 		</div>
 	</div>

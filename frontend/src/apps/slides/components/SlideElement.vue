@@ -6,15 +6,13 @@
 
 <script setup>
 import { computed, inject, useAttrs } from 'vue'
-import { currentDataIndex, currentPairedDataIndex } from '@/stores/slide'
+import { currentDataIndex, currentPairedDataIndex, currentFocusedIndex } from '@/stores/element'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
 const attrs = useAttrs()
-
-const isDragging = inject('isDragging')
 
 const element = defineModel('element', {
 	type: Object,
@@ -24,7 +22,8 @@ const element = defineModel('element', {
 const showOutline = computed(() => {
 	return (
 		currentDataIndex.value == attrs['data-index'] ||
-		currentPairedDataIndex.value == attrs['data-index']
+		currentPairedDataIndex.value == attrs['data-index'] ||
+		currentFocusedIndex.value == attrs['data-index']
 	)
 })
 
@@ -34,7 +33,6 @@ const elementStyle = computed(() => ({
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	cursor: isDragging.value ? 'move' : 'default',
 	outline: showOutline.value ? '#70B6F0 solid 2px' : 'none',
 	outlineOffset: '5px',
 }))

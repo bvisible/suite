@@ -1,10 +1,10 @@
 <template>
-	<img :src="element.src" :style="imageStyle" @click="setActiveElement(element)" />
+	<img :src="element.src" :style="imageStyle" @click="setActiveElement($attrs['data-index'])" />
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { setActiveElement } from '@/stores/slide'
+import { setActiveElement } from '@/stores/element'
 
 const element = defineModel('element', {
 	type: Object,
