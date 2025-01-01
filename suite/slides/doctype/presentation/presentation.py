@@ -38,14 +38,9 @@ def insert_slide(name, index):
 @frappe.whitelist()
 def delete_slide(name, index):
 	presentation = frappe.get_doc("Presentation", name)
-	slides = presentation.get("slides")
-	new_slides = []
-	for i in range(len(slides)):
-		if i != index:
-			slide = slides[i]
-			slide.idx = i + 1
-			new_slides.append(slide)
-	presentation.slides = new_slides
+	presentation.slides = presentation.slides[:index] + presentation.slides[index + 1 :]
+	for i in range(index, len(presentation.slides)):
+		presentation.slides[i].idx -= 1
 	presentation.save()
 	return presentation
 
