@@ -1,25 +1,19 @@
 <template>
 	<!-- Slide (Dimensions: 16:9 ratio) -->
-	<div
-		ref="slideContainer"
-		class="slideContainer flex items-center justify-center"
-		:class="inSlideShow ? 'bg-black-900' : ''"
-		:style="{
-			width: '960px',
-			height: '540px',
-			cursor: inSlideShow ? slideCursor : 'default',
-		}"
-	>
-		<div
-			ref="target"
-			class="slide h-[540px] w-[960px] drop-shadow-xl"
-			:style="slideStyles"
-			:class="activeElement?.type == 'slide' ? 'ring-[1px] ring-gray-200' : ''"
-			@click="handleSlideClick"
+	<div v-if="inSlideShow">
+		<Transition
+			@before-enter="beforeSlideEnter"
+			@enter="slideEnter"
+			@before-leave="beforeSlideLeave"
+			@leave="slideLeave"
 		>
-			<ElementAlignmentGuides v-if="activeElement" :slideRect="slideRect" />
-
-			<div v-if="activeSlideElements">
+			<div
+				ref="target"
+				class="slide h-[540px] w-[960px] drop-shadow-xl"
+				:style="slideStyles"
+				v-if="currentTransitionSlide == activeSlideIndex"
+				@click="handleSlideClick"
+			>
 				<component
 					ref="element"
 					v-for="(element, index) in activeSlideElements"
@@ -28,24 +22,41 @@
 					:element="element"
 					:data-index="index"
 				/>
-
-				<div class="fixed -bottom-12 right-0 flex cursor-pointer items-center gap-4 p-3">
-					<Trash size="14" strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
-					<Copy
-						size="14"
-						strokeWidth="1.5"
-						class="text-gray-800"
-						@click="duplicateSlide"
-					/>
-					<SquarePlus
-						size="14"
-						strokeWidth="1.5"
-						class="text-gray-800"
-						@click="insertSlide(activeSlideIndex)"
-					/>
-				</div>
 			</div>
+		</Transition>
+	</div>
+	<div
+		v-else
+		ref="target"
+		class="slide h-[540px] w-[960px] drop-shadow-xl"
+		:style="slideStyles"
+		:class="activeSlideInFocus ? 'ring-[1px] ring-gray-200' : ''"
+		@click="handleSlideClick"
+	>
+		<ElementAlignmentGuides
+			v-if="activeElement && currentDataIndex != null"
+			:slideRect="slideRect"
+		/>
+
+		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
+			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
+			<Copy size="14" :strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
+			<SquarePlus
+				size="14"
+				:strokeWidth="1.5"
+				class="text-gray-800"
+				@click="insertSlide(activeSlideIndex)"
+			/>
 		</div>
+
+		<component
+			ref="element"
+			v-for="(element, index) in activeSlideElements"
+			:key="index"
+			:is="SlideElement"
+			:element="element"
+			:data-index="index"
+		/>
 	</div>
 </template>
 
@@ -70,41 +81,43 @@ import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
 import {
-	currentDataIndex,
-	activeElement,
-	focusedElement,
-	activeSlideIndex,
 	presentation,
+	activeSlideIndex,
+	activeSlideInFocus,
 	activeSlideElements,
 	inSlideShow,
+	currentTransitionSlide,
 	position,
 	dimensions,
-	currentPairedDataIndex,
-	changeSlide,
-	insertSlide,
-	deleteSlide,
-	duplicateSlide,
+	applyReverseTransition,
+	slideTransition,
+	slideTransitionDuration,
 } from '@/stores/slide'
+import { activeElement, currentDataIndex, currentFocusedIndex, resetFocus } from '@/stores/element'
+import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
-const zoom = defineModel('zoom')
+const props = defineProps({
+	slideCursor: String,
+})
 
-const slideContainerRef = useTemplateRef('slideContainer')
 const targetRef = useTemplateRef('target')
-
-const { transform, transformOrigin, allowPanAndZoom } = zoom.value
-
-const slideCursor = ref('auto')
 
 const { isDragging, dragTarget } = useDragAndDrop(position)
 const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
+
+const transition = ref('none')
+const transform = ref('none')
+const opacity = ref(1)
 
 const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
 		backgroundColor: presentation.data.slides[activeSlideIndex.value]?.background || 'white',
+		cursor: inSlideShow.value ? props.slideCursor : isDragging.value ? 'move' : 'default',
+		transition: transition.value,
 		transform: transform.value,
-		transformOrigin: transformOrigin.value,
+		opacity: opacity.value,
 	}
 })
 
@@ -115,17 +128,13 @@ const selectSlide = (e) => {
 		isResizing.value = false
 		return
 	}
-	activeElement.value = {
-		type: 'slide',
-	}
-	if (focusedElement.value) {
-		focusedElement.value.content = document.querySelector(
-			`[data-index="${currentDataIndex.value}"]`,
+	if (activeElement.value && currentFocusedIndex.value) {
+		activeElement.content = document.querySelector(
+			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
-		focusedElement.value = null
 	}
-	currentDataIndex.value = null
-	currentPairedDataIndex.value = null
+	resetFocus()
+	activeSlideInFocus.value = true
 }
 
 const handleSlideClick = (e) => {
@@ -158,76 +167,13 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
-const duplicateElement = (e) => {
-	e.preventDefault()
-	if (activeElement.value) {
-		let newElement = JSON.parse(JSON.stringify(activeElement.value))
-		newElement.top += 10
-		newElement.left += 10
-		activeSlideElements.value.push(newElement)
-		activeElement.value = newElement
-		currentDataIndex.value = activeSlideElements.value.indexOf(newElement)
-	}
-}
-
-const deleteElement = (e) => {
-	if (!activeElement.value && focusedElement.value) return
-	activeSlideElements.value.splice(currentDataIndex.value, 1)
-	selectSlide(e)
-}
-
-const handleKeyDown = (event) => {
-	if (document.activeElement.tagName == 'INPUT') return
-	if (['Delete', 'Backspace'].includes(event.key)) deleteElement(event)
-	else if (event.key == 'd' && event.metaKey) duplicateElement(event)
-	else if (event.key == 'ArrowUp') {
-		if (activeElement.value && activeElement.value.type != 'slide')
-			position.value = { ...position.value, top: position.value.top - 1 }
-		else changeSlide(activeSlideIndex.value - 1)
-	} else if (event.key == 'ArrowDown') {
-		if (activeElement.value && activeElement.value.type != 'slide')
-			position.value = { ...position.value, top: position.value.top + 1 }
-		else changeSlide(activeSlideIndex.value + 1)
-	} else if (event.key == 'ArrowLeft') {
-		if (activeElement.value)
-			position.value = { ...position.value, left: position.value.left - 1 }
-	} else if (event.key == 'ArrowRight') {
-		if (activeElement.value)
-			position.value = { ...position.value, left: position.value.left + 1 }
-	}
-}
-
-function resetCursorVisibility() {
-	let cursorTimer
-
-	slideCursor.value = 'auto'
-	clearTimeout(cursorTimer)
-	cursorTimer = setTimeout(() => {
-		slideCursor.value = 'none'
-	}, 2000)
-}
-
-const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement
-
-	if (document.fullscreenElement) {
-		activeElement.value = null
-		transformOrigin.value = ''
-		transform.value = 'scale(1.5, 1.5)'
-		allowPanAndZoom.value = false
-		targetRef.value.addEventListener('mousemove', resetCursorVisibility)
-	} else {
-		transform.value = ''
-		transformOrigin.value = '0 0'
-		allowPanAndZoom.value = true
-		targetRef.value.removeEventListener('mousemove', resetCursorVisibility)
-	}
-}
-
 watch(
-	() => activeElement.value,
+	() => currentDataIndex.value,
 	() => {
-		removeDragAndResize()
+		if (currentDataIndex.value == null) {
+			removeDragAndResize()
+			return
+		}
 		addDragAndResize()
 	},
 	{ immediate: true },
@@ -236,10 +182,11 @@ watch(
 watch(
 	() => presentation.data,
 	() => {
-		if (!presentation.data?.slides[activeSlideIndex.value]?.elements) return
-		activeSlideElements.value = JSON.parse(
-			presentation.data.slides[activeSlideIndex.value].elements,
-		)
+		const currentSlide = presentation.data?.slides[activeSlideIndex.value]
+		if (!currentSlide) return
+		activeSlideElements.value = JSON.parse(currentSlide.elements)
+		slideTransition.value = currentSlide.transition
+		slideTransitionDuration.value = currentSlide.transition_duration
 	},
 	{ immediate: true },
 )
@@ -269,22 +216,54 @@ watch(
 	{ immediate: true },
 )
 
-onMounted(() => {
-	document.addEventListener('keydown', handleKeyDown)
-	document.addEventListener('fullscreenchange', handleScreenChange)
-})
+const beforeSlideEnter = (el) => {
+	if (!slideTransition.value) return
+	if (slideTransition.value == 'Slide In') {
+		transform.value = applyReverseTransition.value ? 'translateX(-100%)' : 'translateX(100%)'
+		transition.value = 'none'
+	} else if (slideTransition.value == 'Fade') {
+		opacity.value = 0
+	}
+}
 
-onBeforeUnmount(() => {
-	document.removeEventListener('keydown', handleKeyDown)
-	document.removeEventListener('fullscreenchange', handleScreenChange)
-})
+const slideEnter = (el, done) => {
+	if (!slideTransition.value) return
+	el.offsetWidth
+	if (slideTransition.value == 'Slide In') {
+		transition.value = `transform ${slideTransitionDuration.value}s ease-out`
+		transform.value = 'translateX(0)'
+	} else if (slideTransition.value == 'Fade') {
+		transition.value = `opacity ${slideTransitionDuration.value}s`
+		opacity.value = 1
+	}
+	done()
+}
+
+const beforeSlideLeave = (el) => {
+	if (!slideTransition.value) return
+	if (slideTransition.value == 'Slide In') {
+		transition.value = 'none'
+	} else if (slideTransition.value == 'Fade') {
+		opacity.value = 1
+	}
+}
+
+const slideLeave = (el, done) => {
+	if (!slideTransition.value) return
+	if (slideTransition.value == 'Slide In') {
+		transform.value = applyReverseTransition.value ? 'translateX(100%)' : 'translateX(-100%)'
+		transition.value = `transform ${slideTransitionDuration.value}s ease-out`
+	} else if (slideTransition.value == 'Fade') {
+		el.offsetWidth
+		transition.value = `opacity ${slideTransitionDuration.value}s`
+		opacity.value = 0
+	}
+	done()
+}
 
 defineExpose({
 	targetRef,
 })
-
-provide('removeDragAndResize', removeDragAndResize)
-provide('isDragging', isDragging)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>

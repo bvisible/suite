@@ -17,13 +17,8 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import {
-	position,
-	activeElement,
-	currentDataIndex,
-	activeSlideElements,
-	currentPairedDataIndex,
-} from '@/stores/slide'
+import { position, activeSlideElements } from '@/stores/slide'
+import { currentDataIndex, currentPairedDataIndex, activeElement } from '@/stores/element'
 import { useElementBounding } from '@vueuse/core'
 
 const props = defineProps({

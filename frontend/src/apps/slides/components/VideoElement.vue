@@ -22,7 +22,8 @@
 
 <script setup>
 import { ref, useTemplateRef, computed, useAttrs } from 'vue'
-import { activeElement, currentDataIndex, inSlideShow, setActiveElement } from '@/stores/slide'
+import { inSlideShow } from '@/stores/slide'
+import { currentDataIndex, setActiveElement } from '@/stores/element'
 
 const attrs = useAttrs()
 
@@ -53,6 +54,6 @@ const handleVideoControls = (e) => {
 			isPlaying.value = false
 			video.pause()
 		}
-	} else setActiveElement(element.value)
+	} else setActiveElement(attrs['data-index'])
 }
 </script>

@@ -28,14 +28,14 @@
 				:class="activeElement.textDecoration?.includes('line-through') ? 'bg-gray-200' : ''"
 				@click="toggleProperty('textDecoration', 'line-through')"
 			>
-				<Strikethrough size="16" strokeWidth="1.5" />
+				<Strikethrough size="16" :strokeWidth="1.5" />
 			</button>
 			<button
 				class="cursor-pointer rounded-sm p-1"
 				:class="activeElement.textTransform == 'uppercase' ? 'bg-gray-200' : ''"
 				@click="toggleProperty('textTransform')"
 			>
-				<CaseUpper size="20" strokeWidth="1.5" />
+				<CaseUpper size="20" :strokeWidth="1.5" />
 			</button>
 		</div>
 
@@ -130,7 +130,7 @@ import { FormControl } from 'frappe-ui'
 import { Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 import { debounce } from '@/utils/debounce'
-import { activeElement } from '@/stores/slide'
+import { activeElement } from '@/stores/element'
 import SliderInput from './SliderInput.vue'
 import NumberInput from './NumberInput.vue'
 import ColorPicker from './ColorPicker.vue'

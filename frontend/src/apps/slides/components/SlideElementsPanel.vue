@@ -1,9 +1,9 @@
 <template>
 	<!-- Element Properties Panel -->
 	<div
-		v-if="activeElement"
+		v-if="activeTab"
 		class="fixed z-20 flex h-[94.27%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
-		:class="activeElement ? 'right-13' : '-right-[174px]'"
+		:class="activeTab ? 'right-13' : '-right-[174px]'"
 		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
 	>
 		<div v-if="activeTab == 'slide'">
@@ -19,6 +19,27 @@
 					<div class="text-sm text-gray-600">Background</div>
 					<ColorPicker v-model="presentation.data.slides[activeSlideIndex].background" />
 				</div>
+			</div>
+
+			<div class="flex flex-col gap-4 border-b px-4 py-4">
+				<div class="text-2xs font-semibold uppercase text-gray-700">Transition</div>
+				<FormControl
+					type="autocomplete"
+					:options="['Slide In', 'Fade', 'None']"
+					size="sm"
+					variant="subtle"
+					:modelValue="slideTransition || 'None'"
+					@update:modelValue="(option) => (slideTransition = option.value)"
+				/>
+
+				<SliderInput
+					label="Duration"
+					:rangeStart="0"
+					:rangeEnd="4"
+					:rangeStep="0.1"
+					:default="0"
+					v-model="slideTransitionDuration"
+				/>
 			</div>
 		</div>
 
@@ -39,7 +60,7 @@
 						"
 					>
 						<div class="text-sm text-gray-600">Flip Horizontally</div>
-						<FlipHorizontal size="20" strokeWidth="1.2" />
+						<FlipHorizontal size="20" :strokeWidth="1.2" />
 					</div>
 					<div
 						class="flex cursor-pointer items-center justify-between pb-2 pe-2"
@@ -50,7 +71,7 @@
 						"
 					>
 						<div class="text-sm text-gray-600">Flip Vertically</div>
-						<FlipVertical size="20" strokeWidth="1.2" />
+						<FlipVertical size="20" :strokeWidth="1.2" />
 					</div>
 				</div>
 			</div>
@@ -73,7 +94,7 @@
 						>
 							<TvMinimalPlay
 								size="20"
-								strokeWidth="1.2"
+								:strokeWidth="1.2"
 								:class="
 									hoverOption == 'autoplay' || activeElement.autoPlay
 										? 'text-gray-800'
@@ -104,7 +125,7 @@
 						>
 							<Repeat2
 								size="20"
-								strokeWidth="1.2"
+								:strokeWidth="1.2"
 								:class="
 									hoverOption == 'loop' || activeElement.loop
 										? 'text-gray-800'
@@ -317,18 +338,13 @@
 						</template>
 					</FileUploader>
 				</Tooltip>
-				<Tooltip text="Chart" :hover-delay="1" placement="left">
-					<div class="cursor-pointer p-4">
-						<FeatherIcon name="pie-chart" class="h-5" color="#636363" />
-					</div>
-				</Tooltip>
 				<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
 					<div
 						class="cursor-pointer p-4"
 						:class="activeTab == 'slide' ? 'bg-gray-100' : ''"
 					>
 						<FeatherIcon
-							name="sliders"
+							name="layout"
 							class="h-5"
 							:class="
 								activeTab == 'slide'
@@ -339,11 +355,6 @@
 					</div>
 				</Tooltip>
 			</div>
-			<Tooltip text="Notes" :hover-delay="1" placement="left">
-				<div class="cursor-pointer p-4">
-					<StickyNote size="20" strokeWidth="1.5" color="#636363" />
-				</div>
-			</Tooltip>
 		</div>
 	</div>
 </template>
@@ -351,98 +362,30 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 
-import { Tooltip, FileUploader } from 'frappe-ui'
+import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
 
 import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
 import {
-	activeElement,
 	activeSlideIndex,
+	activeSlideInFocus,
 	activeSlideElements,
 	presentation,
-	currentDataIndex,
-	setActiveElement,
+	slideTransition,
+	slideTransitionDuration,
 } from '@/stores/slide'
+import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
+
 import SliderInput from './SliderInput.vue'
 import TextPropertyTab from './TextPropertyTab.vue'
 import NumberInput from './NumberInput.vue'
 import ColorPicker from './ColorPicker.vue'
 
 const activeTab = computed(() => {
+	if (activeSlideInFocus.value) return 'slide'
 	if (!activeElement.value) return null
 	return activeElement.value.type
 })
-
-const guessTextColor = () => {
-	const rgbString = document.querySelector('.slide')?.style.backgroundColor
-	const match = rgbString?.match(/^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+)\s*)?\)$/)
-	if (!match) return 'hsl(0, 0%, 0%)'
-	const r = parseInt(match[1], 10)
-	const g = parseInt(match[2], 10)
-	const b = parseInt(match[3], 10)
-	const luminance = 0.2989 * r + 0.587 * g + 0.114 * b
-	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
-}
-
-const addTextElement = () => {
-	const lastTextElement = activeSlideElements.value
-		.reverse()
-		.find((element) => element.type == 'text')
-
-	const element = {
-		left: 100,
-		top: 100,
-		opacity: 100,
-		content: 'Text',
-		type: 'text',
-	}
-
-	if (lastTextElement) {
-		element.width = lastTextElement.width
-		element.fontSize = lastTextElement.fontSize
-		element.fontFamily = lastTextElement.fontFamily
-		element.fontWeight = lastTextElement.fontWeight
-		element.color = lastTextElement.color
-		element.lineHeight = lastTextElement.lineHeight
-		element.letterSpacing = lastTextElement.letterSpacing
-	} else {
-		element.width = 65
-		element.fontSize = 30
-		element.fontFamily = 'Inter'
-		element.fontWeight = 'normal'
-		element.color = guessTextColor()
-		element.lineHeight = 1
-		element.letterSpacing = 0
-	}
-	activeSlideElements.value.push(element)
-	nextTick(() => setActiveElement(element))
-}
-
-const addMediaElement = (file, type) => {
-	let element = {
-		width: 300,
-		left: 200,
-		top: 75,
-		opacity: 100,
-		type: type,
-		src: file.file_url,
-		borderStyle: 'none',
-		borderWidth: 0,
-		borderRadius: 0,
-		borderColor: '#000000',
-		shadowOffsetX: 0,
-		shadowOffsetY: 0,
-		shadowSpread: 0,
-		shadowColor: '#000000',
-	}
-	if (type == 'video') {
-		element.autoPlay = false
-		element.loop = false
-		element.playbackRate = 1
-	}
-	activeSlideElements.value.push(element)
-	nextTick(() => setActiveElement(element))
-}
 
 const hoverOption = ref(null)
 </script>
