@@ -34,7 +34,7 @@
 		@click="handleSlideClick"
 	>
 		<ElementAlignmentGuides
-			v-if="activeElement && currentDataIndex != null"
+			v-if="activeElement && currentDataIndex != null && !isPanningOrZooming"
 			:slideRect="slideRect"
 		/>
 
@@ -99,6 +99,7 @@ import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
 const props = defineProps({
 	slideCursor: String,
+	isPanningOrZooming: Boolean,
 })
 
 const targetRef = useTemplateRef('target')
