@@ -43,6 +43,7 @@
 						transformOrigin: zoom.transformOrigin.value,
 					}"
 					:slideCursor="slideCursor"
+					:isPanningOrZooming="zoom.isPanningOrZooming.value"
 				/>
 			</div>
 
