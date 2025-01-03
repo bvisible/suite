@@ -11,6 +11,7 @@ import {
 	presentation,
 	slideTransition,
 	slideTransitionDuration,
+	isDirty,
 } from './slide'
 import { resetFocus } from './element'
 
@@ -56,7 +57,7 @@ const changeSlide = (index) => {
 }
 
 const saveChanges = async () => {
-	if (!presentation.data) return
+	if (!presentation.data || !isDirty.value) return
 	updateSlideState()
 	await call('frappe.client.save', {
 		doc: presentation.data,
