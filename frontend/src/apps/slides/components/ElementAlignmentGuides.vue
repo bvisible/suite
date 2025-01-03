@@ -46,10 +46,14 @@ const pairElement = computed(() => {
 
 const snapToCenter = () => {
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.left += (diffCenterX.value * 960) / props.slideRect.width.value
+		const newLeft =
+			activeElement.value.left + (diffCenterX.value * 960) / props.slideRect.width.value
+		activeElement.value = { ...activeElement.value, left: newLeft }
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.top += (diffCenterY.value * 960) / props.slideRect.width.value
+		const newTop =
+			activeElement.value.top + (diffCenterY.value * 960) / props.slideRect.width.value
+		activeElement.value = { ...activeElement.value, top: newTop }
 	}
 }
 
@@ -63,11 +67,13 @@ const snapToPairedElement = () => {
 		{ value: diffBottom.value, direction: 'top' },
 	]
 
+	let element = { ...activeElement.value }
 	diffs.forEach(({ value, direction }) => {
 		if (Math.abs(value) < PROXIMITY_THRESHOLD) {
-			activeElement.value[direction] += value
+			element[direction] += value
 		}
 	})
+	activeElement.value = element
 }
 
 const diffCenterX = computed(() => {

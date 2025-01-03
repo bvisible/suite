@@ -5,21 +5,26 @@ const currentDataIndex = ref(null)
 const currentFocusedIndex = ref(null)
 const currentPairedDataIndex = ref(null)
 
-const activeElement = computed(() => {
-	if (currentDataIndex.value !== null) {
-		return activeSlideElements.value[currentDataIndex.value]
-	} else if (currentFocusedIndex.value !== null) {
-		return activeSlideElements.value[currentFocusedIndex.value]
-	}
+const activeElement = computed({
+	get() {
+		return (
+			activeSlideElements.value[currentDataIndex.value] ||
+			activeSlideElements.value[currentFocusedIndex.value]
+		)
+	},
+	set(newValue) {
+		activeSlideElements.value[currentDataIndex.value] = newValue
+	},
 })
 
 const setActiveElement = (index, inFocus = false) => {
 	if (inSlideShow.value) return
 
 	if (activeElement.value && currentFocusedIndex.value) {
-		activeElement.value.content = document.querySelector(
+		const newContent = document.querySelector(
 			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
+		activeElement.value = { ...activeElement.value, content: newContent }
 	}
 	if (inFocus) {
 		currentFocusedIndex.value = index

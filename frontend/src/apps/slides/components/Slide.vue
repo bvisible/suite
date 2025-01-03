@@ -198,9 +198,10 @@ watch(
 	() => position.value,
 	() => {
 		if (!position.value) return
-		let currentScale = slideRect.width.value / 960
-		activeElement.value.left = (position.value.left - slideRect.left.value) / currentScale
-		activeElement.value.top = (position.value.top - slideRect.top.value) / currentScale
+		const currentScale = slideRect.width.value / 960
+		const newleft = (position.value.left - slideRect.left.value) / currentScale
+		const newTop = (position.value.top - slideRect.top.value) / currentScale
+		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
 	},
 	{ immediate: true },
 )
@@ -210,8 +211,9 @@ watch(
 	() => {
 		if (!dimensions.value) return
 		if (activeElement.value && dimensions.value.width != activeElement.value.width) {
-			let currentScale = slideRect.width.value / 960
-			activeElement.value.width = dimensions.value.width / currentScale
+			const currentScale = slideRect.width.value / 960
+			const newWidth = dimensions.value.width / currentScale
+			activeElement.value = { ...activeElement.value, width: newWidth }
 		}
 	},
 	{ immediate: true },
