@@ -1,4 +1,5 @@
 import { ref, computed, nextTick } from 'vue'
+import { call } from 'frappe-ui'
 import { inSlideShow, activeSlideInFocus, activeSlideElements } from './slide'
 
 const currentDataIndex = ref(null)
@@ -89,6 +90,7 @@ const addMediaElement = (file, type) => {
 		opacity: 100,
 		type: type,
 		src: file.file_url,
+		file_name: file.name,
 		borderStyle: 'none',
 		borderWidth: 0,
 		borderRadius: 0,
@@ -116,7 +118,13 @@ const duplicateElement = (e) => {
 	nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
 }
 
-const deleteElement = (e) => {
+const deleteElement = async (e) => {
+	if (['image', 'video'].includes(activeElement.value.type)) {
+		await call('frappe.client.delete', {
+			doctype: 'File',
+			name: activeElement.value.file_name,
+		})
+	}
 	activeSlideElements.value.splice(currentDataIndex.value, 1)
 	resetFocus()
 }
