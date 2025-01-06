@@ -15,7 +15,7 @@ import {
 } from './slide'
 import { resetFocus } from './element'
 
-const updateSlideThumbnail = (index) => {
+const updateSlideThumbnail = async (index) => {
 	if (inSlideShow.value) return
 	const slideRef = document.querySelector('.slide')
 	html2canvas(slideRef).then((canvas) => {
@@ -44,13 +44,13 @@ const loadSlide = (index) => {
 	activeSlideElements.value = elements ? JSON.parse(elements) : []
 }
 
-const changeSlide = (index) => {
+const changeSlide = async (index) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
 	resetFocus()
 	updateSlideState()
 	triggerTransition(index)
-	nextTick(() => {
-		updateSlideThumbnail(activeSlideIndex.value)
+	await nextTick(async () => {
+		await updateSlideThumbnail(activeSlideIndex.value)
 		activeSlideIndex.value = index
 		loadSlide(activeSlideIndex.value)
 	})
@@ -82,7 +82,7 @@ const deleteSlide = async () => {
 		index: activeSlideIndex.value,
 	})
 	await presentation.reload()
-	changeSlide(activeSlideIndex.value - 1)
+	await changeSlide(activeSlideIndex.value - 1)
 }
 
 const duplicateSlide = async (e) => {
