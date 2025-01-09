@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { createResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
+import { changeSlide } from './slideActions'
 
 const name = ref('')
 const presentation = createResource({
@@ -29,6 +30,19 @@ const isDirty = computed(() => {
 	return !isEqual(oldData, newData)
 })
 
+const startSlideShow = async () => {
+	await changeSlide(0)
+	const elem = document.querySelector('.slideContainer')
+
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen()
+	} else if (elem.webkitRequestFullscreen) {
+		elem.webkitRequestFullscreen()
+	} else if (elem.msRequestFullscreen) {
+		elem.msRequestFullscreen()
+	}
+}
+
 export {
 	name,
 	presentation,
@@ -43,4 +57,5 @@ export {
 	slideTransition,
 	slideTransitionDuration,
 	isDirty,
+	startSlideShow,
 }

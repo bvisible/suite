@@ -1,6 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 import { inSlideShow, activeSlideInFocus, activeSlideElements } from './slide'
+import { guessTextColorFromBackground } from '../utils/color'
 
 const currentDataIndex = ref(null)
 const currentFocusedIndex = ref(null)
@@ -37,17 +38,6 @@ const setActiveElement = (index, inFocus = false) => {
 	activeSlideInFocus.value = false
 }
 
-const guessTextColor = () => {
-	const rgbString = document.querySelector('.slide')?.style.backgroundColor
-	const match = rgbString?.match(/^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+)\s*)?\)$/)
-	if (!match) return 'hsl(0, 0%, 0%)'
-	const r = parseInt(match[1], 10)
-	const g = parseInt(match[2], 10)
-	const b = parseInt(match[3], 10)
-	const luminance = 0.2989 * r + 0.587 * g + 0.114 * b
-	return luminance > 128 ? 'hsl(0, 0%, 0%)' : 'hsl(0, 0%, 100%)'
-}
-
 const addTextElement = () => {
 	const lastTextElement = activeSlideElements.value
 		.reverse()
@@ -70,11 +60,12 @@ const addTextElement = () => {
 		element.lineHeight = lastTextElement.lineHeight
 		element.letterSpacing = lastTextElement.letterSpacing
 	} else {
+		const slideColor = document.querySelector('.slide')?.style.backgroundColor
 		element.width = 65
 		element.fontSize = 30
 		element.fontFamily = 'Inter'
 		element.fontWeight = 'normal'
-		element.color = guessTextColor()
+		element.color = guessTextColorFromBackground(slideColor)
 		element.lineHeight = 1
 		element.letterSpacing = 0
 	}

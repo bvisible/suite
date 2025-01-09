@@ -18,10 +18,7 @@
 			<span v-else class="select-none font-semibold text-gray-700" @click="enableRenameMode">
 				{{ presentation.data?.title }}
 			</span>
-
-			<div class="flex select-none gap-2">
-				<Button variant="solid" label="Present" size="sm" @click="startSlideShow" />
-			</div>
+			<Button variant="solid" label="Present" size="sm" @click="enablePresentMode" />
 		</div>
 
 		<div
@@ -70,15 +67,17 @@ import {
 	presentation,
 	activeSlideInFocus,
 	position,
+	startSlideShow,
 } from '@/stores/slide'
 import {
 	resetFocus,
 	currentFocusedIndex,
 	currentDataIndex,
+	deleteElement,
 	duplicateElement,
 	addTextElement,
 } from '@/stores/element'
-import { duplicateSlide, changeSlide } from '@/stores/slideActions'
+import { duplicateSlide, deleteSlide, changeSlide } from '@/stores/slideActions'
 import { saveChanges } from '@/stores/slideActions'
 
 let autosaveInterval = null
@@ -123,18 +122,10 @@ const clearFocus = (e) => {
 	}
 }
 
-const startSlideShow = async () => {
+const enablePresentMode = async () => {
 	await saveChanges()
 	await presentation.reload()
-	let elem = document.querySelector('.slideContainer')
-
-	if (elem.requestFullscreen) {
-		elem.requestFullscreen()
-	} else if (elem.webkitRequestFullscreen) {
-		elem.webkitRequestFullscreen()
-	} else if (elem.msRequestFullscreen) {
-		elem.msRequestFullscreen()
-	}
+	await startSlideShow()
 }
 
 const updateElementPosition = (dx, dy) => {
@@ -208,7 +199,7 @@ const handleKeyDown = (e) => {
 	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
 	handleGlobalShortcuts(e)
 
-	currentDataIndex.value ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	currentDataIndex.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const slideContainerRef = useTemplateRef('slideContainer')

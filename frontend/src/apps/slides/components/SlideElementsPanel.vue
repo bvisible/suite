@@ -37,8 +37,8 @@
 					:rangeStart="0"
 					:rangeEnd="4"
 					:rangeStep="0.1"
-					:default="0"
-					v-model="slideTransitionDuration"
+					:modelValue="parseFloat(slideTransitionDuration) || 0"
+					@update:modelValue="(value) => (slideTransitionDuration = value)"
 				/>
 			</div>
 		</div>
@@ -147,11 +147,11 @@
 
 					<SliderInput
 						label="Speed"
-						v-model="activeElement.playbackRate"
 						:rangeStart="0.5"
 						:rangeEnd="2"
 						:rangeStep="0.1"
-						:default="1"
+						:modelValue="parseFloat(activeElement.playbackRate) || 1"
+						@update:modelValue="(value) => (activeElement.playbackRate = value)"
 					/>
 				</div>
 			</div>
@@ -230,28 +230,28 @@
 
 					<SliderInput
 						label="Offset X"
-						v-model="activeElement.shadowOffsetX"
 						:rangeStart="-50"
 						:rangeEnd="50"
-						:default="0"
+						:modelValue="parseFloat(activeElement.shadowOffsetX) || 0"
+						@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 					/>
 
 					<SliderInput
 						label="Offset Y"
-						v-model="activeElement.shadowOffsetY"
 						:rangeStart="-50"
 						:rangeEnd="50"
-						:default="0"
+						:modelValue="parseFloat(activeElement.shadowOffsetY) || 0"
+						@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 					/>
 
 					<div class="text-sm text-gray-600">Spread</div>
 					<div class="flex items-center justify-between">
 						<SliderInput
 							class="w-4/5"
-							v-model="activeElement.shadowSpread"
 							:rangeStart="1"
 							:rangeEnd="500"
-							:default="50"
+							:modelValue="parseFloat(activeElement.shadowSpread) || 50"
+							@update:modelValue="(value) => (activeElement.shadowSpread = value)"
 							:showInput="false"
 						/>
 						<ColorPicker v-model="activeElement.shadowColor" />
@@ -263,9 +263,10 @@
 				<div class="text-2xs font-semibold uppercase text-gray-700">Other</div>
 				<SliderInput
 					label="Opacity"
-					v-model="activeElement.opacity"
 					:rangeStart="0"
 					:rangeEnd="100"
+					:modelValue="parseFloat(activeElement.opacity) || 100"
+					@update:modelValue="(value) => (activeElement.opacity = value)"
 				/>
 			</div>
 		</div>

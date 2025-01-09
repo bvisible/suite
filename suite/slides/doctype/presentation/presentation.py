@@ -15,6 +15,15 @@ def slug(text):
 
 
 @frappe.whitelist()
+def get_all_presentations():
+	presentations = frappe.get_all("Presentation", fields=["name"], order_by="modified desc")
+	all_presentations = [
+		frappe.get_doc("Presentation", presentation.name).as_dict() for presentation in presentations
+	]
+	return all_presentations
+
+
+@frappe.whitelist()
 def get_presentation(name):
 	return frappe.get_doc("Presentation", name)
 
@@ -65,3 +74,30 @@ def rename_presentation(name, new_name):
 	frappe.rename_doc("Presentation", name, nameSlug)
 	frappe.db.set_value("Presentation", nameSlug, "title", new_name)
 	return nameSlug
+
+
+@frappe.whitelist()
+def duplicate_presentation(title, presentation_name):
+	presentation = frappe.get_doc("Presentation", presentation_name)
+	new_presentation = frappe.new_doc("Presentation")
+	new_presentation.update(presentation.as_dict())
+	new_presentation.title = title
+	new_presentation.name = None
+	new_presentation.save()
+	return new_presentation
+
+
+@frappe.whitelist()
+def delete_presentation(name):
+	return frappe.delete_doc("Presentation", name)
+
+
+@frappe.whitelist()
+def create_presentation(title):
+	new_presentation = frappe.new_doc("Presentation")
+	new_presentation.title = title
+	slide = frappe.new_doc("Slide")
+	slide.elements = "[]"
+	new_presentation.slides = [slide]
+	new_presentation.save()
+	return new_presentation
