@@ -33,6 +33,8 @@ export const usePanAndZoom = () => {
 	const transform = ref('')
 	const transformOrigin = ref('0 0')
 
+	const isPanningOrZooming = ref(false)
+
 	const setOrigin = () => {
 		if (!transformObj) return
 		// origin is the midpoint of the initial touch points
@@ -44,6 +46,7 @@ export const usePanAndZoom = () => {
 
 	const startGesture = () => {
 		transform.value = ''
+		isPanningOrZooming.value = true
 		setOrigin()
 		setGestureMatrix()
 		applyMatrix()
@@ -63,6 +66,7 @@ export const usePanAndZoom = () => {
 		// while ending transform, apply the final transformation matrix
 		initialMatrix = gestureMatrix
 		applyMatrix()
+		isPanningOrZooming.value = false
 	}
 
 	const limitScale = () => {
@@ -198,5 +202,6 @@ export const usePanAndZoom = () => {
 		allowPanAndZoom,
 		targetElement,
 		containerElement,
+		isPanningOrZooming,
 	}
 }

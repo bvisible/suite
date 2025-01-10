@@ -9,10 +9,10 @@
 		class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
 	></div>
 
-	<div v-show="diffLeft < PROXIMITY_THRESHOLD" :style="leftGuideStyles"></div>
-	<div v-show="diffRight < PROXIMITY_THRESHOLD" :style="rightGuideStyles"></div>
-	<div v-show="diffTop < PROXIMITY_THRESHOLD" :style="topGuideStyles"></div>
-	<div v-show="diffBottom < PROXIMITY_THRESHOLD" :style="bottomGuideStyles"></div>
+	<div v-show="Math.abs(diffLeft) < PROXIMITY_THRESHOLD" :style="leftGuideStyles"></div>
+	<div v-show="Math.abs(diffRight) < PROXIMITY_THRESHOLD" :style="rightGuideStyles"></div>
+	<div v-show="Math.abs(diffTop) < PROXIMITY_THRESHOLD" :style="topGuideStyles"></div>
+	<div v-show="Math.abs(diffBottom) < PROXIMITY_THRESHOLD" :style="bottomGuideStyles"></div>
 </template>
 
 <script setup>
@@ -46,29 +46,34 @@ const pairElement = computed(() => {
 
 const snapToCenter = () => {
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.left += (diffCenterX.value * 960) / props.slideRect.width.value
+		const newLeft =
+			activeElement.value.left + (diffCenterX.value * 960) / props.slideRect.width.value
+		activeElement.value = { ...activeElement.value, left: newLeft }
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeElement.value.top += (diffCenterY.value * 960) / props.slideRect.width.value
+		const newTop =
+			activeElement.value.top + (diffCenterY.value * 960) / props.slideRect.width.value
+		activeElement.value = { ...activeElement.value, top: newTop }
 	}
 }
 
 const snapToPairedElement = () => {
 	if (!pairElement.value) return
-	if (diffLeft.value < PROXIMITY_THRESHOLD) {
-		activeElement.value.left = pairElement.value.left
-	}
-	if (diffRight.value < PROXIMITY_THRESHOLD) {
-		activeElement.value.left =
-			pairElement.value.left + pairElement.value.width - activeElement.value.width
-	}
-	if (diffTop.value < PROXIMITY_THRESHOLD) {
-		activeElement.value.top = pairElement.value.top
-	}
-	if (diffBottom.value < PROXIMITY_THRESHOLD) {
-		activeElement.value.top =
-			pairElement.value.top + pairedRect.height.value - activeRect.height.value
-	}
+
+	const diffs = [
+		{ value: diffLeft.value, direction: 'left' },
+		{ value: diffRight.value, direction: 'left' },
+		{ value: diffTop.value, direction: 'top' },
+		{ value: diffBottom.value, direction: 'top' },
+	]
+
+	let element = { ...activeElement.value }
+	diffs.forEach(({ value, direction }) => {
+		if (Math.abs(value) < PROXIMITY_THRESHOLD) {
+			element[direction] += value
+		}
+	})
+	activeElement.value = element
 }
 
 const diffCenterX = computed(() => {
@@ -89,32 +94,32 @@ const diffCenterY = computed(() => {
 
 const diffLeft = computed(() => {
 	if (!pairElement.value) return
-	return Math.abs(pairElement.value.left - activeElement.value.left)
+	return pairElement.value.left - activeElement.value.left
 })
 
 const diffRight = computed(() => {
 	if (!pairElement.value) return
-	return Math.abs(
+	return (
 		pairElement.value.left +
-			pairElement.value.width -
-			activeElement.value.left -
-			activeElement.value.width,
+		pairElement.value.width -
+		activeElement.value.left -
+		activeElement.value.width
 	)
 })
 
 const diffTop = computed(() => {
 	if (!pairElement.value) return
-	return Math.abs(pairElement.value.top - activeElement.value.top)
+	return pairElement.value.top - activeElement.value.top
 })
 
 const diffBottom = computed(() => {
 	if (!pairElement.value) return
-	return Math.abs(
-		pairElement.value.top +
-			pairedRect.height.value -
-			activeElement.value.top -
-			activeRect.height.value,
-	)
+	const currentScale = props.slideRect.width.value / 960
+	const ogHeight = activeRect.height.value / currentScale
+	const ogPairedHeight = pairedRect.height.value / currentScale
+	const pairedElementBottom = pairElement.value.top + ogPairedHeight
+	const activeElementBottom = activeElement.value.top + ogHeight
+	return pairedElementBottom - activeElementBottom
 })
 
 const guideStyles = {
@@ -158,10 +163,12 @@ const topGuideStyles = computed(() => {
 
 const bottomGuideStyles = computed(() => {
 	if (!pairElement.value) return
+	const currentScale = props.slideRect.width.value / 960
+	const originalHeight = activeRect.height.value / currentScale
 	return {
 		...guideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${pairElement.value.top + pairedRect.height.value + 5.5}px`,
+		top: `${activeElement.value.top + originalHeight + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
 		width: `${Math.abs(pairElement.value.left - activeElement.value.left)}px`,
 	}
