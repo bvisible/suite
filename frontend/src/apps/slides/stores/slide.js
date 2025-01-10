@@ -1,5 +1,6 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { createResource } from 'frappe-ui'
+import { isEqual } from 'lodash'
 import { changeSlide } from './slideActions'
 
 const name = ref('')
@@ -21,6 +22,13 @@ const slideTransitionDuration = ref(0)
 
 const position = ref(null)
 const dimensions = ref(null)
+
+const isDirty = computed(() => {
+	if (!presentation.data) return false
+	const oldData = JSON.parse(presentation.data.slides[activeSlideIndex.value].elements)
+	const newData = activeSlideElements.value
+	return !isEqual(oldData, newData)
+})
 
 const startSlideShow = async () => {
 	await changeSlide(0)
@@ -48,5 +56,6 @@ export {
 	applyReverseTransition,
 	slideTransition,
 	slideTransitionDuration,
+	isDirty,
 	startSlideShow,
 }

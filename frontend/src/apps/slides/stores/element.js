@@ -1,4 +1,5 @@
 import { ref, computed, nextTick } from 'vue'
+import { call } from 'frappe-ui'
 import { inSlideShow, activeSlideInFocus, activeSlideElements } from './slide'
 import { guessTextColorFromBackground } from '../utils/color'
 
@@ -6,21 +7,26 @@ const currentDataIndex = ref(null)
 const currentFocusedIndex = ref(null)
 const currentPairedDataIndex = ref(null)
 
-const activeElement = computed(() => {
-	if (currentDataIndex.value !== null) {
-		return activeSlideElements.value[currentDataIndex.value]
-	} else if (currentFocusedIndex.value !== null) {
-		return activeSlideElements.value[currentFocusedIndex.value]
-	}
+const activeElement = computed({
+	get() {
+		return (
+			activeSlideElements.value[currentDataIndex.value] ||
+			activeSlideElements.value[currentFocusedIndex.value]
+		)
+	},
+	set(newValue) {
+		activeSlideElements.value[currentDataIndex.value] = newValue
+	},
 })
 
 const setActiveElement = (index, inFocus = false) => {
 	if (inSlideShow.value) return
 
 	if (activeElement.value && currentFocusedIndex.value) {
-		activeElement.value.content = document.querySelector(
+		const newContent = document.querySelector(
 			`[data-index="${currentFocusedIndex.value}"]`,
 		).innerText
+		activeElement.value = { ...activeElement.value, content: newContent }
 	}
 	if (inFocus) {
 		currentFocusedIndex.value = index
@@ -75,6 +81,7 @@ const addMediaElement = (file, type) => {
 		opacity: 100,
 		type: type,
 		src: file.file_url,
+		file_name: file.name,
 		borderStyle: 'none',
 		borderWidth: 0,
 		borderRadius: 0,
@@ -102,7 +109,13 @@ const duplicateElement = (e) => {
 	nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
 }
 
-const deleteElement = (e) => {
+const deleteElement = async (e) => {
+	if (['image', 'video'].includes(activeElement.value.type)) {
+		await call('frappe.client.delete', {
+			doctype: 'File',
+			name: activeElement.value.file_name,
+		})
+	}
 	activeSlideElements.value.splice(currentDataIndex.value, 1)
 	resetFocus()
 }
