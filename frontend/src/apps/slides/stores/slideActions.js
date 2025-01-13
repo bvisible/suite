@@ -4,7 +4,6 @@ import html2canvas from 'html2canvas'
 import {
 	activeSlideElements,
 	activeSlideIndex,
-	currentTransitionSlide,
 	applyReverseTransition,
 	inSlideShow,
 	name,
@@ -19,8 +18,7 @@ const updateSlideThumbnail = async (index) => {
 	if (inSlideShow.value) return
 	const slideRef = document.querySelector('.slide')
 	html2canvas(slideRef).then((canvas) => {
-		let img = canvas.toDataURL('image/png')
-		presentation.data.slides[index].thumbnail = img
+		presentation.data.slides[index].thumbnail = canvas.toDataURL('image/png')
 	})
 }
 
@@ -29,11 +27,6 @@ const updateSlideState = () => {
 	currentSlide.elements = JSON.stringify(activeSlideElements.value, null, 2)
 	currentSlide.transition = slideTransition.value
 	currentSlide.transition_duration = slideTransitionDuration.value
-}
-
-const triggerTransition = (index) => {
-	currentTransitionSlide.value = index
-	applyReverseTransition.value = index < activeSlideIndex.value
 }
 
 const loadSlide = (index) => {
@@ -48,7 +41,7 @@ const changeSlide = async (index) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
 	resetFocus()
 	updateSlideState()
-	triggerTransition(index)
+	applyReverseTransition.value = index < activeSlideIndex.value
 	await nextTick(async () => {
 		await updateSlideThumbnail(activeSlideIndex.value)
 		activeSlideIndex.value = index

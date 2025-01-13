@@ -14,7 +14,6 @@ const activeSlideInFocus = ref(false)
 const activeSlideElements = ref([])
 
 const inSlideShow = ref(false)
-const currentTransitionSlide = ref(0)
 const applyReverseTransition = ref(false)
 
 const slideTransition = ref(null)
@@ -52,7 +51,6 @@ export {
 	inSlideShow,
 	position,
 	dimensions,
-	currentTransitionSlide,
 	applyReverseTransition,
 	slideTransition,
 	slideTransitionDuration,

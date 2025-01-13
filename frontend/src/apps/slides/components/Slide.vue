@@ -11,8 +11,8 @@
 				ref="target"
 				class="slide h-[540px] w-[960px] drop-shadow-xl"
 				:style="slideStyles"
-				v-if="currentTransitionSlide == activeSlideIndex"
 				@click="handleSlideClick"
+				:key="activeSlideIndex"
 			>
 				<component
 					ref="element"
@@ -86,7 +86,6 @@ import {
 	activeSlideInFocus,
 	activeSlideElements,
 	inSlideShow,
-	currentTransitionSlide,
 	position,
 	dimensions,
 	applyReverseTransition,
