@@ -66,9 +66,11 @@
 
 <script setup>
 import { nextTick, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Dialog, FormControl, call } from 'frappe-ui'
 import { presentationList, activePresentation } from '@/stores/presentation'
 
+const router = useRouter()
 const showDialog = ref(false)
 
 const dialogAction = defineModel('dialogAction', {
