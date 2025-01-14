@@ -1,6 +1,6 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
-import { inSlideShow, activeSlideInFocus, activeSlideElements } from './slide'
+import { inSlideShow, slideFocus, slide } from './slide'
 import { guessTextColorFromBackground } from '../utils/color'
 
 const currentDataIndex = ref(null)
@@ -10,16 +10,16 @@ const currentPairedDataIndex = ref(null)
 const activeElement = computed({
 	get() {
 		return (
-			activeSlideElements.value[currentDataIndex.value] ||
-			activeSlideElements.value[currentFocusedIndex.value]
+			slide.value.elements[currentDataIndex.value] ||
+			slide.value.elements[currentFocusedIndex.value]
 		)
 	},
 	set(newValue) {
-		activeSlideElements.value[currentDataIndex.value] = newValue
+		slide.value.elements[currentDataIndex.value] = newValue
 	},
 })
 
-const setActiveElement = (index, inFocus = false) => {
+const setActiveElement = (index, focus = false) => {
 	if (inSlideShow.value) return
 
 	if (activeElement.value && currentFocusedIndex.value) {
@@ -28,20 +28,18 @@ const setActiveElement = (index, inFocus = false) => {
 		).innerText
 		activeElement.value = { ...activeElement.value, content: newContent }
 	}
-	if (inFocus) {
+	if (focus) {
 		currentFocusedIndex.value = index
 		currentDataIndex.value = null
 	} else {
 		currentDataIndex.value = index
 		currentFocusedIndex.value = null
 	}
-	activeSlideInFocus.value = false
+	slideFocus.value = false
 }
 
 const addTextElement = () => {
-	const lastTextElement = activeSlideElements.value
-		.reverse()
-		.find((element) => element.type == 'text')
+	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
 
 	const element = {
 		left: 100,
@@ -69,8 +67,8 @@ const addTextElement = () => {
 		element.lineHeight = 1
 		element.letterSpacing = 0
 	}
-	activeSlideElements.value.push(element)
-	nextTick(() => setActiveElement(activeSlideElements.value.length - 1))
+	slide.value.elements.push(element)
+	nextTick(() => setActiveElement(slide.value.elements.length - 1))
 }
 
 const addMediaElement = (file, type) => {
@@ -96,7 +94,7 @@ const addMediaElement = (file, type) => {
 		element.loop = false
 		element.playbackRate = 1
 	}
-	activeSlideElements.value.push(element)
+	slide.value.elements.push(element)
 	nextTick(() => setActiveElement(element))
 }
 
@@ -105,8 +103,8 @@ const duplicateElement = (e) => {
 	let newElement = JSON.parse(JSON.stringify(activeElement.value))
 	newElement.top += 40
 	newElement.left += 40
-	activeSlideElements.value.push(newElement)
-	nextTick(() => (currentDataIndex.value = activeSlideElements.value.indexOf(newElement)))
+	slide.value.elements.push(newElement)
+	nextTick(() => (currentDataIndex.value = slide.value.elements.indexOf(newElement)))
 }
 
 const deleteElement = async (e) => {
@@ -116,7 +114,7 @@ const deleteElement = async (e) => {
 			name: activeElement.value.file_name,
 		})
 	}
-	activeSlideElements.value.splice(currentDataIndex.value, 1)
+	slide.value.elements.splice(currentDataIndex.value, 1)
 	resetFocus()
 }
 

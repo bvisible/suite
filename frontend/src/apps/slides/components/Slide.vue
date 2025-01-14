@@ -12,11 +12,11 @@
 				class="slide h-[540px] w-[960px] drop-shadow-xl"
 				:style="slideStyles"
 				@click="handleSlideClick"
-				:key="activeSlideIndex"
+				:key="slideIndex"
 			>
 				<component
 					ref="element"
-					v-for="(element, index) in activeSlideElements"
+					v-for="(element, index) in slide.elements"
 					:key="index"
 					:is="SlideElement"
 					:element="element"
@@ -30,13 +30,10 @@
 		ref="target"
 		class="slide h-[540px] w-[960px] drop-shadow-xl"
 		:style="slideStyles"
-		:class="activeSlideInFocus ? 'ring-[1px] ring-gray-200' : ''"
+		:class="slideFocus ? 'ring-[1px] ring-gray-200' : ''"
 		@click="handleSlideClick"
 	>
-		<ElementAlignmentGuides
-			v-if="activeElement && currentDataIndex != null && !isPanningOrZooming"
-			:slideRect="slideRect"
-		/>
+		<ElementAlignmentGuides v-if="showGuides" :slideRect="slideRect" />
 
 		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
 			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
@@ -45,13 +42,13 @@
 				size="14"
 				:strokeWidth="1.5"
 				class="text-gray-800"
-				@click="insertSlide(activeSlideIndex)"
+				@click="insertSlide(slideIndex)"
 			/>
 		</div>
 
 		<component
 			ref="element"
-			v-for="(element, index) in activeSlideElements"
+			v-for="(element, index) in slide.elements"
 			:key="index"
 			:is="SlideElement"
 			:element="element"
@@ -82,15 +79,13 @@ import { useResizer } from '@/utils/resizer'
 
 import {
 	presentation,
-	activeSlideIndex,
-	activeSlideInFocus,
-	activeSlideElements,
+	slideIndex,
+	slideFocus,
+	slide,
 	inSlideShow,
 	position,
 	dimensions,
 	applyReverseTransition,
-	slideTransition,
-	slideTransitionDuration,
 } from '@/stores/slide'
 import { activeElement, currentDataIndex, currentFocusedIndex, resetFocus } from '@/stores/element'
 import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
@@ -110,10 +105,14 @@ const transition = ref('none')
 const transform = ref('none')
 const opacity = ref(1)
 
+const showGuides = computed(
+	() => activeElement.value && currentDataIndex.value != null && !props.isPanningOrZooming,
+)
+
 const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
-		backgroundColor: presentation.data.slides[activeSlideIndex.value]?.background || 'white',
+		backgroundColor: presentation.data.slides[slideIndex.value]?.background || 'white',
 		cursor: inSlideShow.value ? props.slideCursor : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
 		transform: transform.value,
@@ -134,14 +133,14 @@ const selectSlide = (e) => {
 		).innerText
 	}
 	resetFocus()
-	activeSlideInFocus.value = true
+	slideFocus.value = true
 }
 
 const handleSlideClick = (e) => {
 	e.stopPropagation()
 	if (e.target != targetRef.value) return
 	if (inSlideShow.value) {
-		activeSlideIndex.value += 1
+		slideIndex.value += 1
 		return
 	} else selectSlide(e)
 }
@@ -182,11 +181,11 @@ watch(
 watch(
 	() => presentation.data,
 	() => {
-		const currentSlide = presentation.data?.slides[activeSlideIndex.value]
+		const currentSlide = presentation.data?.slides[slideIndex.value]
 		if (!currentSlide) return
-		activeSlideElements.value = JSON.parse(currentSlide.elements)
-		slideTransition.value = currentSlide.transition
-		slideTransitionDuration.value = currentSlide.transition_duration
+		slide.value.elements = JSON.parse(currentSlide.elements)
+		slide.value.transition = currentSlide.transition
+		slide.value.transitionDuration = currentSlide.transition_duration
 	},
 	{ immediate: true },
 )
@@ -219,45 +218,45 @@ watch(
 )
 
 const beforeSlideEnter = (el) => {
-	if (!slideTransition.value) return
-	if (slideTransition.value == 'Slide In') {
+	if (!slide.value.transition) return
+	if (slide.value.transition == 'Slide In') {
 		transform.value = applyReverseTransition.value ? 'translateX(-100%)' : 'translateX(100%)'
 		transition.value = 'none'
-	} else if (slideTransition.value == 'Fade') {
+	} else if (slide.value.transition == 'Fade') {
 		opacity.value = 0
 	}
 }
 
 const slideEnter = (el, done) => {
-	if (!slideTransition.value) return
+	if (!slide.value.transition) return
 	el.offsetWidth
-	if (slideTransition.value == 'Slide In') {
-		transition.value = `transform ${slideTransitionDuration.value}s ease-out`
+	if (slide.value.transition == 'Slide In') {
+		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
 		transform.value = 'translateX(0)'
-	} else if (slideTransition.value == 'Fade') {
-		transition.value = `opacity ${slideTransitionDuration.value}s`
+	} else if (slide.value.transition == 'Fade') {
+		transition.value = `opacity ${slide.value.transitionDuration}s`
 		opacity.value = 1
 	}
 	done()
 }
 
 const beforeSlideLeave = (el) => {
-	if (!slideTransition.value) return
-	if (slideTransition.value == 'Slide In') {
+	if (!slide.value.transition) return
+	if (slide.value.transition == 'Slide In') {
 		transition.value = 'none'
-	} else if (slideTransition.value == 'Fade') {
+	} else if (slide.value.transition == 'Fade') {
 		opacity.value = 1
 	}
 }
 
 const slideLeave = (el, done) => {
-	if (!slideTransition.value) return
-	if (slideTransition.value == 'Slide In') {
+	if (!slide.value.transition) return
+	if (slide.value.transition == 'Slide In') {
 		transform.value = applyReverseTransition.value ? 'translateX(100%)' : 'translateX(-100%)'
-		transition.value = `transform ${slideTransitionDuration.value}s ease-out`
-	} else if (slideTransition.value == 'Fade') {
+		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
+	} else if (slide.value.transition == 'Fade') {
 		el.offsetWidth
-		transition.value = `opacity ${slideTransitionDuration.value}s`
+		transition.value = `opacity ${slide.value.transitionDuration}s`
 		opacity.value = 0
 	}
 	done()

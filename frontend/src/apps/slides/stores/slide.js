@@ -9,27 +9,40 @@ const presentation = createResource({
 	makeParams: () => ({ name: name.value }),
 })
 
-const activeSlideIndex = ref(0)
-const activeSlideInFocus = ref(false)
-const activeSlideElements = ref([])
+const slideIndex = ref(0)
 
+const slideFocus = ref(false)
 const inSlideShow = ref(false)
 const applyReverseTransition = ref(false)
 
-const slideTransition = ref(null)
-const slideTransitionDuration = ref(0)
+const slide = ref({
+	background: '#ffffff',
+	elements: [],
+	transition: null,
+	transitionDuration: 0,
+})
 
 const position = ref(null)
 const dimensions = ref(null)
 
-const isDirty = computed(() => {
+const slideDirty = computed(() => {
 	if (!presentation.data) return false
-	const oldData = JSON.parse(presentation.data.slides[activeSlideIndex.value].elements)
-	const newData = activeSlideElements.value
-	return !isEqual(oldData, newData)
+	const currentSlide = presentation.data.slides[slideIndex.value]
+	const data = {
+		elements: JSON.parse(currentSlide.elements),
+		transition: currentSlide.transition,
+		transition_duration: currentSlide.transition_duration,
+	}
+	const updatedData = {
+		elements: slide.value.elements,
+		transition: slide.value.transition,
+		transition_duration: slide.value.transitionDuration,
+	}
+	return !isEqual(data, updatedData)
 })
 
 const startSlideShow = async () => {
+	if (!presentation.data) await presentation.reload()
 	await changeSlide(0)
 	const elem = document.querySelector('.slideContainer')
 
@@ -45,15 +58,13 @@ const startSlideShow = async () => {
 export {
 	name,
 	presentation,
-	activeSlideIndex,
-	activeSlideInFocus,
-	activeSlideElements,
+	slideIndex,
+	slideFocus,
+	slideDirty,
 	inSlideShow,
+	applyReverseTransition,
+	slide,
 	position,
 	dimensions,
-	applyReverseTransition,
-	slideTransition,
-	slideTransitionDuration,
-	isDirty,
 	startSlideShow,
 }
