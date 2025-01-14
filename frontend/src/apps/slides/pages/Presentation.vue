@@ -62,10 +62,10 @@ import Slide from '@/components/Slide.vue'
 import { usePanAndZoom } from '@/utils/zoom'
 import {
 	inSlideShow,
-	activeSlideIndex,
+	slideIndex,
 	name,
 	presentation,
-	activeSlideInFocus,
+	slideFocus,
 	position,
 	startSlideShow,
 } from '@/stores/slide'
@@ -118,7 +118,7 @@ const saveTitle = async () => {
 const clearFocus = (e) => {
 	if (e.target == containerRef.value) {
 		resetFocus()
-		activeSlideInFocus.value = false
+		slideFocus.value = false
 	}
 }
 
@@ -166,10 +166,10 @@ const handleElementShortcuts = (e) => {
 const handleSlideShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowUp':
-			changeSlide(activeSlideIndex.value - 1)
+			changeSlide(slideIndex.value - 1)
 			break
 		case 'ArrowDown':
-			changeSlide(activeSlideIndex.value + 1)
+			changeSlide(slideIndex.value + 1)
 			break
 		case 'Delete':
 		case 'Backspace':

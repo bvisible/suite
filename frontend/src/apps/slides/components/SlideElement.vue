@@ -19,12 +19,11 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const showOutline = computed(() => {
-	return (
-		currentDataIndex.value == attrs['data-index'] ||
-		currentPairedDataIndex.value == attrs['data-index'] ||
-		currentFocusedIndex.value == attrs['data-index']
-	)
+const outline = computed(() => {
+	if ([currentDataIndex.value, currentFocusedIndex.value].includes(attrs['data-index']))
+		return '#70B6F0 solid 2px'
+	else if (currentPairedDataIndex.value == attrs['data-index']) return '#70b6f092 solid 2px'
+	else return 'none'
 })
 
 const elementStyle = computed(() => ({
@@ -33,7 +32,7 @@ const elementStyle = computed(() => ({
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	outline: showOutline.value ? '#70B6F0 solid 2px' : 'none',
+	outline: outline.value,
 	outlineOffset: '5px',
 }))
 

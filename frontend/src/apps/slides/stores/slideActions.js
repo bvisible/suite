@@ -2,15 +2,13 @@ import { nextTick } from 'vue'
 import { call } from 'frappe-ui'
 import html2canvas from 'html2canvas'
 import {
-	activeSlideElements,
-	activeSlideIndex,
+	slide,
+	slideIndex,
 	applyReverseTransition,
 	inSlideShow,
 	name,
 	presentation,
-	slideTransition,
-	slideTransitionDuration,
-	isDirty,
+	slideDirty,
 } from './slide'
 import { resetFocus } from './element'
 
@@ -23,34 +21,43 @@ const updateSlideThumbnail = async (index) => {
 }
 
 const updateSlideState = () => {
-	let currentSlide = presentation.data.slides[activeSlideIndex.value]
-	currentSlide.elements = JSON.stringify(activeSlideElements.value, null, 2)
-	currentSlide.transition = slideTransition.value
-	currentSlide.transition_duration = slideTransitionDuration.value
+	const { elements, transition, transitionDuration, background } = slide.value
+	let currentSlide = presentation.data.slides[slideIndex.value]
+
+	currentSlide = {
+		background,
+		transition,
+		elements: JSON.stringify(elements),
+		transition_duration: transitionDuration,
+	}
 }
 
 const loadSlide = (index) => {
-	const { transition, transition_duration, elements } = presentation.data.slides[index]
+	const { background, transition, transition_duration, elements } =
+		presentation.data.slides[slideIndex.value]
 
-	slideTransition.value = transition
-	slideTransitionDuration.value = transition_duration
-	activeSlideElements.value = elements ? JSON.parse(elements) : []
+	slide.value = {
+		background,
+		transition,
+		transitionDuration: transition_duration,
+		elements: elements ? JSON.parse(elements) : [],
+	}
 }
 
 const changeSlide = async (index) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
 	resetFocus()
 	updateSlideState()
-	applyReverseTransition.value = index < activeSlideIndex.value
+	applyReverseTransition.value = index < slideIndex.value
 	await nextTick(async () => {
-		await updateSlideThumbnail(activeSlideIndex.value)
-		activeSlideIndex.value = index
-		loadSlide(activeSlideIndex.value)
+		await updateSlideThumbnail(slideIndex.value)
+		slideIndex.value = index
+		loadSlide(slideIndex.value)
 	})
 }
 
 const saveChanges = async () => {
-	if (!presentation.data || !isDirty.value) return
+	if (!presentation.data || !slideDirty.value) return
 	updateSlideState()
 	await call('frappe.client.save', {
 		doc: presentation.data,
@@ -72,10 +79,10 @@ const deleteSlide = async () => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.delete_slide', {
 		name: name.value,
-		index: activeSlideIndex.value,
+		index: slideIndex.value,
 	})
 	await presentation.reload()
-	await changeSlide(activeSlideIndex.value - 1)
+	await changeSlide(slideIndex.value - 1)
 }
 
 const duplicateSlide = async (e) => {
@@ -83,10 +90,10 @@ const duplicateSlide = async (e) => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
 		name: name.value,
-		index: activeSlideIndex.value,
+		index: slideIndex.value,
 	})
 	await presentation.reload()
-	changeSlide(activeSlideIndex.value + 1)
+	changeSlide(slideIndex.value + 1)
 }
 
 export { changeSlide, saveChanges, insertSlide, deleteSlide, duplicateSlide }
