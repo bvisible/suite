@@ -1,13 +1,8 @@
 import { ref, computed } from 'vue'
 import { createResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
+import { presentation } from './presentation'
 import { changeSlide } from './slideActions'
-
-const name = ref('')
-const presentation = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
-	makeParams: () => ({ name: name.value }),
-})
 
 const slideIndex = ref(0)
 
@@ -56,8 +51,6 @@ const startSlideShow = async () => {
 }
 
 export {
-	name,
-	presentation,
 	slideIndex,
 	slideFocus,
 	slideDirty,

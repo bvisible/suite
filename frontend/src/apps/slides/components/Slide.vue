@@ -77,8 +77,8 @@ import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
+import { presentation } from '@/stores/presentation'
 import {
-	presentation,
 	slideIndex,
 	slideFocus,
 	slide,

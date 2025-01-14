@@ -367,7 +367,8 @@ import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
 
 import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
 
-import { slideIndex, slideFocus, slide, presentation } from '@/stores/slide'
+import { presentation } from '@/stores/presentation'
+import { slideIndex, slideFocus, slide } from '@/stores/slide'
 import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
 
 import SliderInput from './SliderInput.vue'

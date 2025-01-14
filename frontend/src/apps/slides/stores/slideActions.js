@@ -1,15 +1,8 @@
 import { nextTick } from 'vue'
 import { call } from 'frappe-ui'
 import html2canvas from 'html2canvas'
-import {
-	slide,
-	slideIndex,
-	applyReverseTransition,
-	inSlideShow,
-	name,
-	presentation,
-	slideDirty,
-} from './slide'
+import { presentationId, presentation } from './presentation'
+import { slide, slideIndex, applyReverseTransition, inSlideShow, slideDirty } from './slide'
 import { resetFocus } from './element'
 
 const updateSlideThumbnail = async (index) => {
@@ -68,7 +61,7 @@ const saveChanges = async () => {
 const insertSlide = async (index) => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
-		name: name.value,
+		name: presentationId.value,
 		index: index,
 	})
 	await presentation.reload()
@@ -78,7 +71,7 @@ const insertSlide = async (index) => {
 const deleteSlide = async () => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.delete_slide', {
-		name: name.value,
+		name: presentationId.value,
 		index: slideIndex.value,
 	})
 	await presentation.reload()
@@ -89,7 +82,7 @@ const duplicateSlide = async (e) => {
 	e.preventDefault()
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
-		name: name.value,
+		name: presentationId.value,
 		index: slideIndex.value,
 	})
 	await presentation.reload()
