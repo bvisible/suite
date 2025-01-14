@@ -65,7 +65,8 @@ import { ref, onBeforeUnmount, onMounted } from 'vue'
 import { call } from 'frappe-ui'
 import Draggable from 'vuedraggable'
 
-import { slideIndex, presentation } from '@/stores/slide'
+import { presentation } from '@/stores/presentation'
+import { slideIndex } from '@/stores/slide'
 import { changeSlide, insertSlide } from '@/stores/slideActions'
 
 const showNavigator = defineModel('showNavigator', {

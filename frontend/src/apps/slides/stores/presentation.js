@@ -1,7 +1,11 @@
 import { createResource } from 'frappe-ui'
 import { ref } from 'vue'
 
-const activePresentation = ref(null)
+const presentationId = ref('')
+const presentation = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
+	makeParams: () => ({ name: presentationId.value }),
+})
 
 const presentationList = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
@@ -9,4 +13,4 @@ const presentationList = createResource({
 	auto: true,
 })
 
-export { presentationList, activePresentation }
+export { presentationId, presentation, presentationList }

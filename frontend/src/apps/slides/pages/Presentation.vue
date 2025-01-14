@@ -60,15 +60,8 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
-import {
-	inSlideShow,
-	slideIndex,
-	name,
-	presentation,
-	slideFocus,
-	position,
-	startSlideShow,
-} from '@/stores/slide'
+import { presentationId, presentation } from '@/stores/presentation'
+import { inSlideShow, slideIndex, slideFocus, position, startSlideShow } from '@/stores/slide'
 import {
 	resetFocus,
 	currentFocusedIndex,
@@ -106,11 +99,11 @@ const saveTitle = async () => {
 		let nameSlug = await call(
 			'slides.slides.doctype.presentation.presentation.rename_presentation',
 			{
-				name: route.params.name,
+				name: route.params.presentationId,
 				new_name: newTitle.value,
 			},
 		)
-		await router.replace({ name: 'Presentation', params: { name: nameSlug } })
+		await router.replace({ name: 'Presentation', params: { presentationId: nameSlug } })
 	}
 	renameMode.value = false
 }
@@ -234,10 +227,10 @@ const handleScreenChange = () => {
 }
 
 watch(
-	() => route.params.name,
-	async () => {
-		if (!route.params.name) return
-		name.value = route.params.name
+	() => route.params.presentationId,
+	async (id) => {
+		if (!id) return
+		presentationId.value = id
 		await presentation.fetch()
 	},
 	{ immediate: true },
