@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref, computed, inject, useAttrs } from 'vue'
-import { inSlideShow } from '@/stores/slide'
+import { inSlideShow } from '@/stores/presentation'
 import { currentFocusedIndex, setActiveElement } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
 

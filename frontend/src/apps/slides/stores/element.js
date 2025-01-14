@@ -1,6 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
-import { inSlideShow, slideFocus, slide } from './slide'
+import { inSlideShow } from './presentation'
+import { slideFocus, slide } from './slide'
 import { guessTextColorFromBackground } from '../utils/color'
 
 const currentDataIndex = ref(null)

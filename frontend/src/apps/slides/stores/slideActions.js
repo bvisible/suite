@@ -1,8 +1,8 @@
 import { nextTick } from 'vue'
 import { call } from 'frappe-ui'
 import html2canvas from 'html2canvas'
-import { presentationId, presentation } from './presentation'
-import { slide, slideIndex, applyReverseTransition, inSlideShow, slideDirty } from './slide'
+import { presentationId, presentation, inSlideShow, applyReverseTransition } from './presentation'
+import { slide, slideIndex, slideDirty } from './slide'
 import { resetFocus } from './element'
 
 const updateSlideThumbnail = async (index) => {
