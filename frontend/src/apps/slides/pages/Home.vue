@@ -154,8 +154,7 @@ import tinycolor from 'tinycolor2'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
-import { presentationList } from '@/stores/presentation'
-import { startSlideShow } from '@/stores/slide'
+import { presentationList, startSlideShow } from '@/stores/presentation'
 import { guessTextColorFromBackground } from '@/utils/color'
 
 dayjs.extend(relativeTime)

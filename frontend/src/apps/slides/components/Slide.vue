@@ -77,16 +77,8 @@ import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
-import { presentation } from '@/stores/presentation'
-import {
-	slideIndex,
-	slideFocus,
-	slide,
-	inSlideShow,
-	position,
-	dimensions,
-	applyReverseTransition,
-} from '@/stores/slide'
+import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
+import { slideIndex, slideFocus, slide, position, dimensions } from '@/stores/slide'
 import { activeElement, currentDataIndex, currentFocusedIndex, resetFocus } from '@/stores/element'
 import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'

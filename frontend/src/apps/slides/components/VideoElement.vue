@@ -22,7 +22,7 @@
 
 <script setup>
 import { ref, useTemplateRef, computed, useAttrs } from 'vue'
-import { inSlideShow } from '@/stores/slide'
+import { inSlideShow } from '@/stores/presentation'
 import { currentDataIndex, setActiveElement } from '@/stores/element'
 
 const attrs = useAttrs()

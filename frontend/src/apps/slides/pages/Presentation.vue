@@ -60,8 +60,8 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
-import { presentationId, presentation } from '@/stores/presentation'
-import { inSlideShow, slideIndex, slideFocus, position, startSlideShow } from '@/stores/slide'
+import { presentationId, presentation, inSlideShow, startSlideShow } from '@/stores/presentation'
+import { slideIndex, slideFocus, position } from '@/stores/slide'
 import {
 	resetFocus,
 	currentFocusedIndex,
