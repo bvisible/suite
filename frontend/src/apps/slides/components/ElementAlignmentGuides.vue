@@ -1,23 +1,14 @@
 <template>
 	<div
-		v-show="Math.abs(diffCenterX) < CENTER_PROXIMITY_THRESHOLD"
-		class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
+		v-for="guide in ['left', 'right', 'top', 'bottom', 'centerX', 'centerY']"
+		:key="guide"
+		:style="guideStyles[guide]"
 	></div>
-
-	<div
-		v-show="Math.abs(diffCenterY) < CENTER_PROXIMITY_THRESHOLD"
-		class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
-	></div>
-
-	<div v-show="Math.abs(diffLeft) < PROXIMITY_THRESHOLD" :style="leftGuideStyles"></div>
-	<div v-show="Math.abs(diffRight) < PROXIMITY_THRESHOLD" :style="rightGuideStyles"></div>
-	<div v-show="Math.abs(diffTop) < PROXIMITY_THRESHOLD" :style="topGuideStyles"></div>
-	<div v-show="Math.abs(diffBottom) < PROXIMITY_THRESHOLD" :style="bottomGuideStyles"></div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { position, activeSlideElements } from '@/stores/slide'
+import { position, slide } from '@/stores/slide'
 import { currentDataIndex, currentPairedDataIndex, activeElement } from '@/stores/element'
 import { useElementBounding } from '@vueuse/core'
 
@@ -27,6 +18,17 @@ const props = defineProps({
 
 const CENTER_PROXIMITY_THRESHOLD = 20
 const PROXIMITY_THRESHOLD = 10
+
+const guideStyles = computed(() => {
+	return {
+		left: leftGuideStyles.value,
+		right: rightGuideStyles.value,
+		top: topGuideStyles.value,
+		bottom: bottomGuideStyles.value,
+		centerX: centerXGuideStyles.value,
+		centerY: centerYGuideStyles.value,
+	}
+})
 
 const activeDiv = computed(() => {
 	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
@@ -41,7 +43,7 @@ const pairedDiv = computed(() => {
 const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
-	return activeSlideElements.value[currentPairedDataIndex.value]
+	return slide.value.elements[currentPairedDataIndex.value]
 })
 
 const snapToCenter = () => {
@@ -122,16 +124,16 @@ const diffBottom = computed(() => {
 	return pairedElementBottom - activeElementBottom
 })
 
-const guideStyles = {
+const commonGuideStyles = {
 	position: 'fixed',
 	borderColor: '#70b6f0',
 	borderStyle: 'dashed',
 }
 
 const leftGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffLeft.value == undefined || Math.abs(diffLeft.value) > PROXIMITY_THRESHOLD) return ''
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
 		left: `${activeElement.value.left - 6.5}px`,
 		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
@@ -140,9 +142,9 @@ const leftGuideStyles = computed(() => {
 })
 
 const rightGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffRight.value == undefined || Math.abs(diffRight.value) > PROXIMITY_THRESHOLD) return ''
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
 		left: `${activeElement.value.left + activeElement.value.width + 5.5}px`,
 		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
@@ -151,9 +153,9 @@ const rightGuideStyles = computed(() => {
 })
 
 const topGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffTop.value == undefined || Math.abs(diffTop.value) > PROXIMITY_THRESHOLD) return ''
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
 		top: `${activeElement.value.top - 6.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
@@ -162,11 +164,11 @@ const topGuideStyles = computed(() => {
 })
 
 const bottomGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffBottom.value == undefined || Math.abs(diffBottom.value) > PROXIMITY_THRESHOLD) return ''
 	const currentScale = props.slideRect.width.value / 960
 	const originalHeight = activeRect.height.value / currentScale
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
 		top: `${activeElement.value.top + originalHeight + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
@@ -174,10 +176,32 @@ const bottomGuideStyles = computed(() => {
 	}
 })
 
+const centerXGuideStyles = computed(() => {
+	if (Math.abs(diffCenterX.value) > CENTER_PROXIMITY_THRESHOLD) return ''
+	return {
+		backgroundColor: '#70b6f0',
+		height: '100%',
+		width: '1px',
+		position: 'fixed',
+		left: `${props.slideRect.width.value / 2}px`,
+	}
+})
+
+const centerYGuideStyles = computed(() => {
+	if (Math.abs(diffCenterX.value) > CENTER_PROXIMITY_THRESHOLD) return ''
+	return {
+		backgroundColor: '#70b6f0',
+		width: '100%',
+		height: '1px',
+		position: 'fixed',
+		top: `${props.slideRect.height.value / 2}px`,
+	}
+})
+
 const setCurrentPairedDataIndex = () => {
 	if (!activeElement.value) return
 	let i = null
-	activeSlideElements.value.forEach((element, index) => {
+	slide.value.elements.forEach((element, index) => {
 		if (index == currentDataIndex.value) return
 		let diffLeft = Math.abs(element.left - activeElement.value.left)
 		let diffRight = Math.abs(
