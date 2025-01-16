@@ -4,6 +4,9 @@ import { inSlideShow } from './presentation'
 import { slideFocus, slide } from './slide'
 import { guessTextColorFromBackground } from '../utils/color'
 
+const activePosition = ref(null)
+const activeDimensions = ref(null)
+
 const currentDataIndex = ref(null)
 const currentFocusedIndex = ref(null)
 const currentPairedDataIndex = ref(null)
@@ -126,6 +129,8 @@ const resetFocus = () => {
 }
 
 export {
+	activePosition,
+	activeDimensions,
 	currentDataIndex,
 	currentFocusedIndex,
 	currentPairedDataIndex,

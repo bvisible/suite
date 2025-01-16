@@ -8,8 +8,13 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { position, slide } from '@/stores/slide'
-import { currentDataIndex, currentPairedDataIndex, activeElement } from '@/stores/element'
+import { slide } from '@/stores/slide'
+import {
+	activePosition,
+	currentDataIndex,
+	currentPairedDataIndex,
+	activeElement,
+} from '@/stores/element'
 import { useElementBounding } from '@vueuse/core'
 
 const props = defineProps({
@@ -79,7 +84,7 @@ const snapToPairedElement = () => {
 }
 
 const diffCenterX = computed(() => {
-	if (!position.value) return
+	if (!activePosition.value) return
 	const rect = activeDiv.value.getBoundingClientRect()
 	const centerX = props.slideRect.width.value / 2 + props.slideRect.left.value
 	const centerOfElementX = rect.left + rect.width / 2
@@ -87,7 +92,7 @@ const diffCenterX = computed(() => {
 })
 
 const diffCenterY = computed(() => {
-	if (!position.value) return
+	if (!activePosition.value) return
 	const rect = activeDiv.value.getBoundingClientRect()
 	const centerY = props.slideRect.height.value / 2 + props.slideRect.top.value
 	const centerOfElementY = rect.top + rect.height / 2
@@ -219,9 +224,9 @@ const setCurrentPairedDataIndex = () => {
 }
 
 watch(
-	() => position.value,
+	() => activePosition.value,
 	() => {
-		if (!position.value) return
+		if (!activePosition.value) return
 		setCurrentPairedDataIndex()
 		snapToCenter()
 		snapToPairedElement()

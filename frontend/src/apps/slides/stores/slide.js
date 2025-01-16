@@ -13,9 +13,6 @@ const slide = ref({
 	transitionDuration: 0,
 })
 
-const position = ref(null)
-const dimensions = ref(null)
-
 const slideDirty = computed(() => {
 	if (!presentation.data) return false
 	const currentSlide = presentation.data.slides[slideIndex.value]
@@ -32,4 +29,4 @@ const slideDirty = computed(() => {
 	return !isEqual(data, updatedData)
 })
 
-export { slideIndex, slideFocus, slideDirty, slide, position, dimensions }
+export { slideIndex, slideFocus, slideDirty, slide }
