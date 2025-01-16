@@ -1,6 +1,6 @@
 import { createResource } from 'frappe-ui'
 import { ref } from 'vue'
-import { changeSlide } from './slideActions'
+import { changeSlide } from './slide'
 
 const presentationId = ref('')
 const presentation = createResource({
