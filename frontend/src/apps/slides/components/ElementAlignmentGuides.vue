@@ -9,12 +9,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { slide } from '@/stores/slide'
-import {
-	activePosition,
-	currentDataIndex,
-	currentPairedDataIndex,
-	activeElement,
-} from '@/stores/element'
+import { activePosition, activeElementId, pairElementId, activeElement } from '@/stores/element'
 import { useElementBounding } from '@vueuse/core'
 
 const props = defineProps({
@@ -36,19 +31,19 @@ const guideStyles = computed(() => {
 })
 
 const activeDiv = computed(() => {
-	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+	return document.querySelector(`[data-index="${activeElementId.value}"]`)
 })
 
 const activeRect = useElementBounding(activeDiv)
 
 const pairedDiv = computed(() => {
-	return document.querySelector(`[data-index="${currentPairedDataIndex.value}"]`)
+	return document.querySelector(`[data-index="${pairElementId.value}"]`)
 })
 
 const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
-	return slide.value.elements[currentPairedDataIndex.value]
+	return slide.value.elements[pairElementId.value]
 })
 
 const snapToCenter = () => {
@@ -207,7 +202,7 @@ const setCurrentPairedDataIndex = () => {
 	if (!activeElement.value) return
 	let i = null
 	slide.value.elements.forEach((element, index) => {
-		if (index == currentDataIndex.value) return
+		if (index == activeElementId.value) return
 		let diffLeft = Math.abs(element.left - activeElement.value.left)
 		let diffRight = Math.abs(
 			element.left + element.width - activeElement.value.left - activeElement.value.width,
@@ -220,7 +215,7 @@ const setCurrentPairedDataIndex = () => {
 		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD))
 			i = index
 	})
-	currentPairedDataIndex.value = i
+	pairElementId.value = i
 }
 
 watch(

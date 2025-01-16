@@ -83,8 +83,8 @@ import {
 	activePosition,
 	activeDimensions,
 	activeElement,
-	currentDataIndex,
-	currentFocusedIndex,
+	activeElementId,
+	focusElementId,
 	resetFocus,
 } from '@/stores/element'
 import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
@@ -105,7 +105,7 @@ const transform = ref('none')
 const opacity = ref(1)
 
 const showGuides = computed(
-	() => activeElement.value && currentDataIndex.value != null && !props.isPanningOrZooming,
+	() => activeElement.value && activeElementId.value != null && !props.isPanningOrZooming,
 )
 
 const slideStyles = computed(() => {
@@ -126,9 +126,9 @@ const selectSlide = (e) => {
 		isResizing.value = false
 		return
 	}
-	if (activeElement.value && currentFocusedIndex.value) {
+	if (activeElement.value && focusElementId.value) {
 		activeElement.content = document.querySelector(
-			`[data-index="${currentFocusedIndex.value}"]`,
+			`[data-index="${focusElementId.value}"]`,
 		).innerText
 	}
 	resetFocus()
@@ -145,7 +145,7 @@ const handleSlideClick = (e) => {
 }
 
 const addDragAndResize = () => {
-	let el = document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+	let el = document.querySelector(`[data-index="${activeElementId.value}"]`)
 	if (!el || !activeElement.value) return
 	dragTarget.value = el
 	resizeTarget.value = el
@@ -166,9 +166,9 @@ const removeDragAndResize = () => {
 }
 
 watch(
-	() => currentDataIndex.value,
+	() => activeElementId.value,
 	() => {
-		if (currentDataIndex.value == null) {
+		if (activeElementId.value == null) {
 			removeDragAndResize()
 			return
 		}
