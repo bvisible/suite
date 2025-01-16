@@ -78,7 +78,14 @@ import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
 import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
-import { slideIndex, slideFocus, slide } from '@/stores/slide'
+import {
+	slideIndex,
+	slideFocus,
+	slide,
+	insertSlide,
+	deleteSlide,
+	duplicateSlide,
+} from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
@@ -87,7 +94,6 @@ import {
 	focusElementId,
 	resetFocus,
 } from '@/stores/element'
-import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
 const props = defineProps({

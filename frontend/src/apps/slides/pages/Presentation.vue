@@ -61,7 +61,14 @@ import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
 import { presentationId, presentation, inSlideShow, startSlideShow } from '@/stores/presentation'
-import { slideIndex, slideFocus } from '@/stores/slide'
+import {
+	slideIndex,
+	slideFocus,
+	saveChanges,
+	duplicateSlide,
+	deleteSlide,
+	changeSlide,
+} from '@/stores/slide'
 import {
 	activePosition,
 	resetFocus,
@@ -71,8 +78,6 @@ import {
 	duplicateElement,
 	addTextElement,
 } from '@/stores/element'
-import { duplicateSlide, deleteSlide, changeSlide } from '@/stores/slideActions'
-import { saveChanges } from '@/stores/slideActions'
 
 let autosaveInterval = null
 
