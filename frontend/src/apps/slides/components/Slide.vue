@@ -78,8 +78,15 @@ import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 
 import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
-import { slideIndex, slideFocus, slide, position, dimensions } from '@/stores/slide'
-import { activeElement, currentDataIndex, currentFocusedIndex, resetFocus } from '@/stores/element'
+import { slideIndex, slideFocus, slide } from '@/stores/slide'
+import {
+	activePosition,
+	activeDimensions,
+	activeElement,
+	currentDataIndex,
+	currentFocusedIndex,
+	resetFocus,
+} from '@/stores/element'
 import { insertSlide, deleteSlide, duplicateSlide } from '@/stores/slideActions'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
@@ -90,8 +97,8 @@ const props = defineProps({
 
 const targetRef = useTemplateRef('target')
 
-const { isDragging, dragTarget } = useDragAndDrop(position)
-const { isResizing, resizeTarget, resizeMode } = useResizer(position, dimensions)
+const { isDragging, dragTarget } = useDragAndDrop(activePosition)
+const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
 
 const transition = ref('none')
 const transform = ref('none')
@@ -145,15 +152,15 @@ const addDragAndResize = () => {
 	resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
 
 	const elementRect = el.getBoundingClientRect()
-	position.value = {
+	activePosition.value = {
 		top: elementRect.top,
 		left: elementRect.left,
 	}
 }
 
 const removeDragAndResize = () => {
-	position.value = null
-	dimensions.value = null
+	activePosition.value = null
+	activeDimensions.value = null
 	dragTarget.value = null
 	resizeTarget.value = null
 }
@@ -185,24 +192,24 @@ watch(
 const slideRect = useElementBounding(targetRef)
 
 watch(
-	() => position.value,
-	() => {
-		if (!position.value) return
+	() => activePosition.value,
+	(position) => {
+		if (!position) return
 		const currentScale = slideRect.width.value / 960
-		const newleft = (position.value.left - slideRect.left.value) / currentScale
-		const newTop = (position.value.top - slideRect.top.value) / currentScale
+		const newleft = (position.left - slideRect.left.value) / currentScale
+		const newTop = (position.top - slideRect.top.value) / currentScale
 		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
 	},
 	{ immediate: true },
 )
 
 watch(
-	() => dimensions.value,
-	() => {
-		if (!dimensions.value) return
-		if (activeElement.value && dimensions.value.width != activeElement.value.width) {
+	() => activeDimensions.value,
+	(dimensions) => {
+		if (!dimensions) return
+		if (activeElement.value && dimensions.width != activeElement.value.width) {
 			const currentScale = slideRect.width.value / 960
-			const newWidth = dimensions.value.width / currentScale
+			const newWidth = dimensions.width / currentScale
 			activeElement.value = { ...activeElement.value, width: newWidth }
 		}
 	},

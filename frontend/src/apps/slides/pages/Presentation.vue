@@ -61,8 +61,9 @@ import Slide from '@/components/Slide.vue'
 
 import { usePanAndZoom } from '@/utils/zoom'
 import { presentationId, presentation, inSlideShow, startSlideShow } from '@/stores/presentation'
-import { slideIndex, slideFocus, position } from '@/stores/slide'
+import { slideIndex, slideFocus } from '@/stores/slide'
 import {
+	activePosition,
 	resetFocus,
 	currentFocusedIndex,
 	currentDataIndex,
@@ -122,8 +123,11 @@ const enablePresentMode = async () => {
 }
 
 const updateElementPosition = (dx, dy) => {
-	if (!position.value) return
-	position.value = { left: position.value.left + dx, top: position.value.top + dy }
+	if (!activePosition.value) return
+	activePosition.value = {
+		left: activePosition.value.left + dx,
+		top: activePosition.value.top + dy,
+	}
 }
 
 const handleArrowKeys = (key) => {
