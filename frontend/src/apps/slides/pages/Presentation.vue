@@ -65,8 +65,8 @@ import { slideIndex, slideFocus } from '@/stores/slide'
 import {
 	activePosition,
 	resetFocus,
-	currentFocusedIndex,
-	currentDataIndex,
+	activeElementId,
+	focusElementId,
 	deleteElement,
 	duplicateElement,
 	addTextElement,
@@ -193,10 +193,10 @@ const handleGlobalShortcuts = (e) => {
 }
 
 const handleKeyDown = (e) => {
-	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
+	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
 	handleGlobalShortcuts(e)
 
-	currentDataIndex.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	activeElementId.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const slideContainerRef = useTemplateRef('slideContainer')

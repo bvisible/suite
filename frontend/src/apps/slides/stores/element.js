@@ -7,37 +7,37 @@ import { guessTextColorFromBackground } from '../utils/color'
 const activePosition = ref(null)
 const activeDimensions = ref(null)
 
-const currentDataIndex = ref(null)
-const currentFocusedIndex = ref(null)
-const currentPairedDataIndex = ref(null)
+const activeElementId = ref(null)
+const focusElementId = ref(null)
+const pairElementId = ref(null)
 
 const activeElement = computed({
 	get() {
 		return (
-			slide.value.elements[currentDataIndex.value] ||
-			slide.value.elements[currentFocusedIndex.value]
+			slide.value.elements[activeElementId.value] ||
+			slide.value.elements[focusElementId.value]
 		)
 	},
 	set(newValue) {
-		slide.value.elements[currentDataIndex.value] = newValue
+		slide.value.elements[activeElementId.value] = newValue
 	},
 })
 
 const setActiveElement = (index, focus = false) => {
 	if (inSlideShow.value) return
 
-	if (activeElement.value && currentFocusedIndex.value) {
+	if (activeElement.value && focusElementId.value) {
 		const newContent = document.querySelector(
-			`[data-index="${currentFocusedIndex.value}"]`,
+			`[data-index="${focusElementId.value}"]`,
 		).innerText
 		activeElement.value = { ...activeElement.value, content: newContent }
 	}
 	if (focus) {
-		currentFocusedIndex.value = index
-		currentDataIndex.value = null
+		focusElementId.value = index
+		activeElementId.value = null
 	} else {
-		currentDataIndex.value = index
-		currentFocusedIndex.value = null
+		activeElementId.value = index
+		focusElementId.value = null
 	}
 	slideFocus.value = false
 }
@@ -108,7 +108,7 @@ const duplicateElement = (e) => {
 	newElement.top += 40
 	newElement.left += 40
 	slide.value.elements.push(newElement)
-	nextTick(() => (currentDataIndex.value = slide.value.elements.indexOf(newElement)))
+	nextTick(() => (activeElementId.value = slide.value.elements.indexOf(newElement)))
 }
 
 const deleteElement = async (e) => {
@@ -118,22 +118,22 @@ const deleteElement = async (e) => {
 			name: activeElement.value.file_name,
 		})
 	}
-	slide.value.elements.splice(currentDataIndex.value, 1)
+	slide.value.elements.splice(activeElementId.value, 1)
 	resetFocus()
 }
 
 const resetFocus = () => {
-	currentDataIndex.value = null
-	currentFocusedIndex.value = null
-	currentPairedDataIndex.value = null
+	activeElementId.value = null
+	focusElementId.value = null
+	pairElementId.value = null
 }
 
 export {
 	activePosition,
 	activeDimensions,
-	currentDataIndex,
-	currentFocusedIndex,
-	currentPairedDataIndex,
+	activeElementId,
+	focusElementId,
+	pairElementId,
 	activeElement,
 	setActiveElement,
 	resetFocus,
