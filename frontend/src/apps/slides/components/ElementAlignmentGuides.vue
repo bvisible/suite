@@ -61,20 +61,22 @@ const snapToCenter = () => {
 
 const snapToPairedElement = () => {
 	if (!pairElement.value) return
-
-	const diffs = [
-		{ value: diffLeft.value, direction: 'left' },
-		{ value: diffRight.value, direction: 'left' },
-		{ value: diffTop.value, direction: 'top' },
-		{ value: diffBottom.value, direction: 'top' },
-	]
-
 	let element = { ...activeElement.value }
-	diffs.forEach(({ value, direction }) => {
-		if (Math.abs(value) < PROXIMITY_THRESHOLD) {
-			element[direction] += value
-		}
-	})
+	const l = Math.abs(diffLeft.value) < PROXIMITY_THRESHOLD ? diffLeft.value : 0
+	const r = Math.abs(diffRight.value) < PROXIMITY_THRESHOLD ? diffRight.value : 0
+	if (Math.abs(l) > Math.abs(r)) {
+		element.left += l
+	} else {
+		element.left += r
+	}
+
+	const t = Math.abs(diffTop.value) < PROXIMITY_THRESHOLD ? diffTop.value : 0
+	const b = Math.abs(diffBottom.value) < PROXIMITY_THRESHOLD ? diffBottom.value : 0
+	if (Math.abs(t) > Math.abs(b)) {
+		element.top += t
+	} else {
+		element.top += b
+	}
 	activeElement.value = element
 }
 
