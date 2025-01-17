@@ -1,5 +1,9 @@
 <template>
-	<div class="fixed flex h-screen w-screen flex-col bg-gray-100">
+	<div
+		class="fixed flex h-screen w-screen flex-col bg-gray-100"
+		@dragover.prevent
+		@drop="handleMediaDrop"
+	>
 		<!-- Navbar -->
 		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
 			<div class="flex items-center gap-2">
@@ -53,7 +57,7 @@
 import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { call } from 'frappe-ui'
+import { call, FileUploadHandler } from 'frappe-ui'
 
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
@@ -77,6 +81,7 @@ import {
 	deleteElement,
 	duplicateElement,
 	addTextElement,
+	addMediaElement,
 } from '@/stores/element'
 
 let autosaveInterval = null
@@ -233,6 +238,21 @@ const handleScreenChange = () => {
 		zoom.allowPanAndZoom.value = true
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
+}
+
+const handleMediaDrop = async (e) => {
+	e.preventDefault()
+	const files = e.dataTransfer.files
+	files.forEach(async (file) => {
+		const fileType = file.type.split('/')[0]
+		if (['image', 'video'].includes(fileType)) {
+			const fileUploadHandler = new FileUploadHandler()
+			const fileDoc = await fileUploadHandler.upload(file, {
+				private: false,
+			})
+			addMediaElement(fileDoc, fileType)
+		}
+	})
 }
 
 watch(
