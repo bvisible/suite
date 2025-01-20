@@ -1,7 +1,8 @@
 <template>
 	<div
 		class="fixed flex h-screen w-screen flex-col bg-gray-100"
-		@dragover.prevent
+		@dragover.prevent="isMediaDragOver = true"
+		@dragleave.prevent="isMediaDragOver = false"
 		@drop="handleMediaDrop"
 	>
 		<!-- Navbar -->
@@ -45,6 +46,7 @@
 					}"
 					:slideCursor="slideCursor"
 					:isPanningOrZooming="zoom.isPanningOrZooming.value"
+					:isMediaDragOver="isMediaDragOver"
 				/>
 			</div>
 
@@ -239,6 +241,8 @@ const handleScreenChange = () => {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
+
+const isMediaDragOver = ref(false)
 
 const handleMediaDrop = async (e) => {
 	e.preventDefault()
