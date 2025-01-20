@@ -30,7 +30,6 @@
 		ref="target"
 		class="slide h-[540px] w-[960px] drop-shadow-xl"
 		:style="slideStyles"
-		:class="slideFocus ? 'ring-[1px] ring-gray-200' : ''"
 		@click="handleSlideClick"
 	>
 		<ElementAlignmentGuides v-if="showGuides" :slideRect="slideRect" />
@@ -99,6 +98,7 @@ import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 const props = defineProps({
 	slideCursor: String,
 	isPanningOrZooming: Boolean,
+	isMediaDragOver: Boolean,
 })
 
 const targetRef = useTemplateRef('target')
@@ -122,6 +122,11 @@ const slideStyles = computed(() => {
 		transition: transition.value,
 		transform: transform.value,
 		opacity: opacity.value,
+		outline: slideFocus.value
+			? '1px solid #00000010'
+			: props.isMediaDragOver
+				? '2px solid #70b6f0'
+				: 'none',
 	}
 })
 
