@@ -1,8 +1,10 @@
 <template>
 	<div
+		ref="parent"
 		class="fixed flex h-screen w-screen flex-col bg-gray-100"
-		@dragover.prevent="isMediaDragOver = true"
-		@dragleave.prevent="isMediaDragOver = false"
+		@dragenter.prevent="handleDragEnter"
+		@dragleave.prevent="handleDragLeave"
+		@dragover.prevent
 		@drop="handleMediaDrop"
 	>
 		<!-- Navbar -->
@@ -36,20 +38,27 @@
 			<div
 				ref="slideContainer"
 				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
-				:class="inSlideShow ? 'bg-black-900' : ''"
+				:class="{
+					'bg-black': inSlideShow,
+					'outline-blue-300 outline': isMediaDragOver,
+				}"
 			>
 				<Slide
 					ref="slide"
+					:slideCursor="slideCursor"
+					:isPanningOrZooming="zoom.isPanningOrZooming.value"
 					:style="{
 						transform: zoom.transform.value,
 						transformOrigin: zoom.transformOrigin.value,
 					}"
-					:slideCursor="slideCursor"
-					:isPanningOrZooming="zoom.isPanningOrZooming.value"
-					:isMediaDragOver="isMediaDragOver"
 				/>
-			</div>
 
+				<!-- Media Drag Overlay -->
+				<div
+					v-show="isMediaDragOver"
+					class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
+				></div>
+			</div>
 			<SlideElementsPanel />
 		</div>
 	</div>
@@ -92,6 +101,7 @@ const route = useRoute()
 const router = useRouter()
 const zoom = usePanAndZoom()
 
+const parentRef = useTemplateRef('parent')
 const containerRef = useTemplateRef('container')
 const slideRef = useTemplateRef('slide')
 const newTitleRef = useTemplateRef('newTitleRef')
@@ -244,8 +254,21 @@ const handleScreenChange = () => {
 
 const isMediaDragOver = ref(false)
 
+const handleDragEnter = (e) => {
+	e.preventDefault()
+	isMediaDragOver.value = true
+}
+
+const handleDragLeave = (e) => {
+	e.preventDefault()
+	if (!parentRef.value.contains(e.relatedTarget)) {
+		isMediaDragOver.value = false
+	}
+}
+
 const handleMediaDrop = async (e) => {
 	e.preventDefault()
+	isMediaDragOver.value = false
 	const files = e.dataTransfer.files
 	files.forEach(async (file) => {
 		const fileType = file.type.split('/')[0]

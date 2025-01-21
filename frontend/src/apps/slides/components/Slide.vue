@@ -98,7 +98,6 @@ import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 const props = defineProps({
 	slideCursor: String,
 	isPanningOrZooming: Boolean,
-	isMediaDragOver: Boolean,
 })
 
 const targetRef = useTemplateRef('target')
@@ -122,11 +121,6 @@ const slideStyles = computed(() => {
 		transition: transition.value,
 		transform: transform.value,
 		opacity: opacity.value,
-		outline: slideFocus.value
-			? '1px solid #00000010'
-			: props.isMediaDragOver
-				? '2px solid #70b6f0'
-				: 'none',
 	}
 })
 
