@@ -4,7 +4,7 @@
 		<div
 			class="z-10 w-full flex items-center justify-between bg-white p-2 shadow-xl"
 			:class="{
-				'shadow-gray-300': !activePresentation,
+				'shadow-gray-300': !previewPresentation,
 			}"
 		>
 			<div class="flex items-center gap-2">
@@ -22,7 +22,7 @@
 		<div
 			class="w-[80%] h-full my-6 flex flex-col gap-2"
 			:class="{
-				blur: activePresentation,
+				blur: previewPresentation,
 			}"
 		>
 			<div class="font-semibold text-gray-600 px-4">
@@ -41,7 +41,7 @@
 							backgroundSize: 'cover',
 							backgroundPosition: 'center',
 						}"
-						@click="activePresentation = presentation"
+						@click="previewPresentation = presentation"
 					></div>
 					<div class="w-full h-[22%] flex justify-between px-2 items-center">
 						<div class="text-gray-500 text-sm">{{ presentation.title }}</div>
@@ -53,17 +53,17 @@
 		<!-- Presentation Preview -->
 		<div
 			class="bg-gray-800 fixed top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out"
-			:class="activePresentation ? 'opacity-30' : 'opacity-0 pointer-events-none'"
+			:class="previewPresentation ? 'opacity-30' : 'opacity-0 pointer-events-none'"
 			@click="hidePreview()"
 		></div>
 
 		<div
 			class="z-10 w-[960px] h-[540px] bg-white shadow-2xl rounded-2xl fixed left-[calc(50%-480px)] transition-all duration-300 cursor-pointer hover:scale-[101%]"
-			:class="activePresentation ? 'bottom-[calc(50%-270px)]' : '-bottom-[540px]'"
+			:class="previewPresentation ? 'bottom-[calc(50%-270px)]' : '-bottom-[540px]'"
 			:style="previewStyles"
 			@mouseenter="showLinkToPresentation = true"
 			@mouseleave="showLinkToPresentation = false"
-			@click="$router.push(`/${activePresentation?.name}`)"
+			@click="$router.push(`/${previewPresentation?.name}`)"
 		>
 			<FeatherIcon
 				v-if="showLinkToPresentation"
@@ -78,14 +78,14 @@
 		<!-- Presentation Details -->
 		<div
 			class="bg-white w-full h-[380px] fixed transition-all duration-300 flex justify-center"
-			:class="activePresentation ? 'bottom-0' : '-bottom-96'"
+			:class="previewPresentation ? 'bottom-0' : '-bottom-96'"
 		>
 			<div
 				class="w-[960px] absolute top-[72%] flex flex-col gap-2 px-2"
-				v-if="activePresentation"
+				v-if="previewPresentation"
 			>
 				<div
-					v-for="(row, index) in activePresentationDetails"
+					v-for="(row, index) in previewDetails"
 					:key="index"
 					class="flex items-center justify-between"
 				>
@@ -102,7 +102,7 @@
 
 			<div
 				class="absolute top-[6%] right-[12.5%] flex flex-col gap-3"
-				v-if="activePresentation"
+				v-if="previewPresentation"
 			>
 				<Tooltip text="Present" :hover-delay="0.3" placement="right">
 					<div
@@ -135,30 +135,33 @@
 			</div>
 		</div>
 	</div>
-	<PresentationActionDialog :dialogAction="dialogAction" />
+	<PresentationActionDialog
+		:dialogAction="dialogAction"
+		:previewPresentation="previewPresentation"
+	/>
 </template>
 
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { createResource, Tooltip } from 'frappe-ui'
-import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+import { Tooltip } from 'frappe-ui'
 
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
+import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+
+import { presentationList, startSlideShow } from '@/stores/presentation'
+import { guessTextColorFromBackground } from '@/utils/color'
 
 import tinycolor from 'tinycolor2'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
-import { presentationList, activePresentation } from '@/stores/presentation'
-import { startSlideShow } from '@/stores/slide'
-import { guessTextColorFromBackground } from '@/utils/color'
-
 dayjs.extend(relativeTime)
 const router = useRouter()
 
 let interval = null
+const previewPresentation = ref(null)
 const previewSlide = ref(0)
 const showLinkToPresentation = ref(false)
 
@@ -166,15 +169,15 @@ const showDialog = ref(false)
 const dialogAction = ref('')
 
 const previewStyles = computed(() => ({
-	backgroundImage: `url(${activePresentation.value?.slides[previewSlide.value]?.thumbnail})`,
+	backgroundImage: `url(${previewPresentation.value?.slides[previewSlide.value]?.thumbnail})`,
 	backgroundSize: 'cover',
 	backgroundPosition: 'center',
 }))
 
-const activePresentationDetails = computed(() => {
-	if (!activePresentation.value) return {}
+const previewDetails = computed(() => {
+	if (!previewPresentation.value) return {}
 
-	const { title, slides, creation, modified } = activePresentation.value
+	const { title, slides, creation, modified } = previewPresentation.value
 	return [
 		{
 			Title: title,
@@ -189,14 +192,14 @@ const activePresentationDetails = computed(() => {
 
 const iconColor = computed(() => {
 	const background = tinycolor(
-		activePresentation.value?.slides[previewSlide.value]?.background || 'white',
+		previewPresentation.value?.slides[previewSlide.value]?.background || 'white',
 	).toRgbString()
 	return guessTextColorFromBackground(background)
 })
 
 const initPreview = () => {
 	interval = setInterval(() => {
-		previewSlide.value = (previewSlide.value + 1) % activePresentation.value.slides.length
+		previewSlide.value = (previewSlide.value + 1) % previewPresentation.value.slides.length
 	}, 2000)
 }
 
@@ -207,17 +210,17 @@ const resetPreview = () => {
 }
 
 const hidePreview = () => {
-	activePresentation.value = null
+	previewPresentation.value = null
 	resetPreview()
 }
 
 const enablePresentMode = async () => {
-	await router.push(`/${activePresentation.value.name}`)
+	await router.push(`/${previewPresentation.value.name}`)
 	await startSlideShow()
 }
 
 watch(
-	() => activePresentation.value,
+	() => previewPresentation.value,
 	(val) => {
 		val ? initPreview() : resetPreview()
 	},

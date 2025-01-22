@@ -11,13 +11,13 @@
 				<div class="flex items-center justify-between">
 					<div class="text-2xs font-semibold uppercase text-gray-700">Slide</div>
 					<div class="text-2xs font-semibold text-gray-700">
-						{{ activeSlideIndex + 1 + ' of ' + presentation.data.slides.length }}
+						{{ slideIndex + 1 + ' of ' + presentation.data.slides.length }}
 					</div>
 				</div>
 
 				<div class="flex items-center justify-between">
 					<div class="text-sm text-gray-600">Background</div>
-					<ColorPicker v-model="presentation.data.slides[activeSlideIndex].background" />
+					<ColorPicker v-model="presentation.data.slides[slideIndex].background" />
 				</div>
 			</div>
 
@@ -28,8 +28,8 @@
 					:options="['Slide In', 'Fade', 'None']"
 					size="sm"
 					variant="subtle"
-					:modelValue="slideTransition || 'None'"
-					@update:modelValue="(option) => (slideTransition = option.value)"
+					:modelValue="slide.transition || 'None'"
+					@update:modelValue="(option) => (slide.transition = option.value)"
 				/>
 
 				<SliderInput
@@ -37,8 +37,8 @@
 					:rangeStart="0"
 					:rangeEnd="4"
 					:rangeStep="0.1"
-					:modelValue="parseFloat(slideTransitionDuration) || 0"
-					@update:modelValue="(value) => (slideTransitionDuration = value)"
+					:modelValue="parseFloat(slide.transitionDuration) || 0"
+					@update:modelValue="(value) => (slide.transitionDuration = value)"
 				/>
 			</div>
 		</div>
@@ -361,29 +361,22 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 
 import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
+import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
-import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
+import TextPropertyTab from '@/components/TextPropertyTab.vue'
+import SliderInput from '@/components/controls/SliderInput.vue'
+import NumberInput from '@/components/controls/NumberInput.vue'
+import ColorPicker from '@/components/controls/ColorPicker.vue'
 
-import {
-	activeSlideIndex,
-	activeSlideInFocus,
-	activeSlideElements,
-	presentation,
-	slideTransition,
-	slideTransitionDuration,
-} from '@/stores/slide'
+import { presentation } from '@/stores/presentation'
+import { slideIndex, slideFocus, slide } from '@/stores/slide'
 import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
 
-import SliderInput from './SliderInput.vue'
-import TextPropertyTab from './TextPropertyTab.vue'
-import NumberInput from './NumberInput.vue'
-import ColorPicker from './ColorPicker.vue'
-
 const activeTab = computed(() => {
-	if (activeSlideInFocus.value) return 'slide'
+	if (slideFocus.value) return 'slide'
 	if (!activeElement.value) return null
 	return activeElement.value.type
 })

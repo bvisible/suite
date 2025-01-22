@@ -1,5 +1,12 @@
 <template>
-	<div class="fixed flex h-screen w-screen flex-col bg-gray-100">
+	<div
+		ref="parent"
+		class="fixed flex h-screen w-screen flex-col bg-gray-100"
+		@dragenter.prevent="handleDragEnter"
+		@dragleave.prevent="handleDragLeave"
+		@dragover.prevent
+		@drop="handleMediaDrop"
+	>
 		<!-- Navbar -->
 		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
 			<div class="flex items-center gap-2">
@@ -31,17 +38,26 @@
 			<div
 				ref="slideContainer"
 				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
-				:class="inSlideShow ? 'bg-black-900' : ''"
+				:class="{
+					'bg-black': inSlideShow,
+					'outline-blue-300 outline': isMediaDragOver,
+				}"
 			>
 				<Slide
 					ref="slide"
+					:slideCursor="slideCursor"
+					:isPanningOrZooming="zoom.isPanningOrZooming.value"
 					:style="{
 						transform: zoom.transform.value,
 						transformOrigin: zoom.transformOrigin.value,
 					}"
-					:slideCursor="slideCursor"
-					:isPanningOrZooming="zoom.isPanningOrZooming.value"
 				/>
+
+				<!-- Media Drag Overlay -->
+				<div
+					v-show="isMediaDragOver"
+					class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
+				></div>
 			</div>
 
 			<SlideElementsPanel />
@@ -53,32 +69,32 @@
 import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { call } from 'frappe-ui'
+import { call, FileUploadHandler } from 'frappe-ui'
 
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
-import { usePanAndZoom } from '@/utils/zoom'
+import { presentationId, presentation, inSlideShow, startSlideShow } from '@/stores/presentation'
 import {
-	inSlideShow,
-	activeSlideIndex,
-	name,
-	presentation,
-	activeSlideInFocus,
-	position,
-	startSlideShow,
+	slideIndex,
+	slideFocus,
+	saveChanges,
+	duplicateSlide,
+	deleteSlide,
+	changeSlide,
 } from '@/stores/slide'
 import {
+	activePosition,
 	resetFocus,
-	currentFocusedIndex,
-	currentDataIndex,
+	activeElementId,
+	focusElementId,
 	deleteElement,
 	duplicateElement,
 	addTextElement,
+	addMediaElement,
 } from '@/stores/element'
-import { duplicateSlide, deleteSlide, changeSlide } from '@/stores/slideActions'
-import { saveChanges } from '@/stores/slideActions'
+import { usePanAndZoom } from '@/utils/zoom'
 
 let autosaveInterval = null
 
@@ -86,6 +102,7 @@ const route = useRoute()
 const router = useRouter()
 const zoom = usePanAndZoom()
 
+const parentRef = useTemplateRef('parent')
 const containerRef = useTemplateRef('container')
 const slideRef = useTemplateRef('slide')
 const newTitleRef = useTemplateRef('newTitleRef')
@@ -106,11 +123,11 @@ const saveTitle = async () => {
 		let nameSlug = await call(
 			'slides.slides.doctype.presentation.presentation.rename_presentation',
 			{
-				name: route.params.name,
+				name: route.params.presentationId,
 				new_name: newTitle.value,
 			},
 		)
-		await router.replace({ name: 'Presentation', params: { name: nameSlug } })
+		await router.replace({ name: 'Presentation', params: { presentationId: nameSlug } })
 	}
 	renameMode.value = false
 }
@@ -118,7 +135,7 @@ const saveTitle = async () => {
 const clearFocus = (e) => {
 	if (e.target == containerRef.value) {
 		resetFocus()
-		activeSlideInFocus.value = false
+		slideFocus.value = false
 	}
 }
 
@@ -129,8 +146,11 @@ const enablePresentMode = async () => {
 }
 
 const updateElementPosition = (dx, dy) => {
-	if (!position.value) return
-	position.value = { left: position.value.left + dx, top: position.value.top + dy }
+	if (!activePosition.value) return
+	activePosition.value = {
+		left: activePosition.value.left + dx,
+		top: activePosition.value.top + dy,
+	}
 }
 
 const handleArrowKeys = (key) => {
@@ -166,10 +186,10 @@ const handleElementShortcuts = (e) => {
 const handleSlideShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowUp':
-			changeSlide(activeSlideIndex.value - 1)
+			changeSlide(slideIndex.value - 1)
 			break
 		case 'ArrowDown':
-			changeSlide(activeSlideIndex.value + 1)
+			changeSlide(slideIndex.value + 1)
 			break
 		case 'Delete':
 		case 'Backspace':
@@ -196,10 +216,10 @@ const handleGlobalShortcuts = (e) => {
 }
 
 const handleKeyDown = (e) => {
-	if (document.activeElement.tagName == 'INPUT' || currentFocusedIndex.value != null) return
+	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
 	handleGlobalShortcuts(e)
 
-	currentDataIndex.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	activeElementId.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -233,11 +253,41 @@ const handleScreenChange = () => {
 	}
 }
 
+const isMediaDragOver = ref(false)
+
+const handleDragEnter = (e) => {
+	e.preventDefault()
+	isMediaDragOver.value = true
+}
+
+const handleDragLeave = (e) => {
+	e.preventDefault()
+	if (!parentRef.value.contains(e.relatedTarget)) {
+		isMediaDragOver.value = false
+	}
+}
+
+const handleMediaDrop = async (e) => {
+	e.preventDefault()
+	isMediaDragOver.value = false
+	const files = e.dataTransfer.files
+	files.forEach(async (file) => {
+		const fileType = file.type.split('/')[0]
+		if (['image', 'video'].includes(fileType)) {
+			const fileUploadHandler = new FileUploadHandler()
+			const fileDoc = await fileUploadHandler.upload(file, {
+				private: false,
+			})
+			addMediaElement(fileDoc, fileType)
+		}
+	})
+}
+
 watch(
-	() => route.params.name,
-	async () => {
-		if (!route.params.name) return
-		name.value = route.params.name
+	() => route.params.presentationId,
+	async (id) => {
+		if (!id) return
+		presentationId.value = id
 		await presentation.fetch()
 	},
 	{ immediate: true },

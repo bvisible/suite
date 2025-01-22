@@ -9,7 +9,7 @@
 			:playbackRate="element.playbackRate"
 		/>
 		<div
-			v-if="currentDataIndex == $attrs['data-index']"
+			v-if="activeElementId == $attrs['data-index']"
 			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
 		>
 			<FeatherIcon
@@ -21,9 +21,10 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed, useAttrs } from 'vue'
-import { inSlideShow } from '@/stores/slide'
-import { currentDataIndex, setActiveElement } from '@/stores/element'
+import { ref, computed, useTemplateRef, useAttrs } from 'vue'
+
+import { inSlideShow } from '@/stores/presentation'
+import { activeElementId, setActiveElement } from '@/stores/element'
 
 const attrs = useAttrs()
 
@@ -45,7 +46,7 @@ const videoStyle = computed(() => ({
 
 const handleVideoControls = (e) => {
 	e.stopPropagation()
-	if (inSlideShow.value || currentDataIndex.value == attrs['data-index']) {
+	if (inSlideShow.value || activeElementId.value == attrs['data-index']) {
 		const video = el.value
 		if (video.paused) {
 			isPlaying.value = true

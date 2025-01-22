@@ -65,15 +65,23 @@
 </template>
 
 <script setup>
-import { nextTick, ref, watch } from 'vue'
-import { Dialog, FormControl, call } from 'frappe-ui'
-import { presentationList, activePresentation } from '@/stores/presentation'
+import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
+import { Dialog, FormControl, call } from 'frappe-ui'
+
+import { presentationList } from '@/stores/presentation'
+
+const router = useRouter()
 const showDialog = ref(false)
 
 const dialogAction = defineModel('dialogAction', {
 	type: String,
 	default: '',
+})
+
+const previewPresentation = defineModel('previewPresentation', {
+	type: Object,
 })
 
 const newPresentationTitle = ref('')
@@ -86,7 +94,7 @@ const createPresentation = async (action) => {
 			'slides.slides.doctype.presentation.presentation.duplicate_presentation',
 			{
 				title: newPresentationTitle.value,
-				presentation_name: activePresentation.value.name,
+				presentation_name: previewPresentation.value.name,
 			},
 		)
 	} else {
@@ -103,20 +111,20 @@ const createPresentation = async (action) => {
 const renamePresentation = async () => {
 	showDialog.value = false
 	await call('slides.slides.doctype.presentation.presentation.rename_presentation', {
-		name: activePresentation.value.name,
+		name: previewPresentation.value.name,
 		new_name: newPresentationTitle.value,
 	})
 	await presentationList.reload()
-	activePresentation.value.title = newPresentationTitle.value
+	previewPresentation.value.title = newPresentationTitle.value
 }
 
 const deletePresentation = async () => {
 	showDialog.value = false
 	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
-		name: activePresentation.value.name,
+		name: previewPresentation.value.name,
 	})
 	await presentationList.reload()
-	activePresentation.value = null
+	previewPresentation.value = null
 }
 
 watch(
@@ -124,9 +132,9 @@ watch(
 	(action) => {
 		if (!action) return
 		if (action == 'Rename') {
-			newPresentationTitle.value = activePresentation.value.title
+			newPresentationTitle.value = previewPresentation.value.title
 		} else if (action == 'Duplicate') {
-			newPresentationTitle.value = `Copy of ${activePresentation.value.title}`
+			newPresentationTitle.value = `Copy of ${previewPresentation.value.title}`
 		} else {
 			newPresentationTitle.value = ''
 		}

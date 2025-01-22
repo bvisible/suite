@@ -2,7 +2,7 @@ let isClicked = false
 let delay = 200
 let clickTimeout: ReturnType<typeof setTimeout> | null = null
 
-export const handleSingleAndDoubleClick = (
+const handleSingleAndDoubleClick = (
 	event: MouseEvent,
 	singleClickHandler: Function,
 	doubleClickHandler: Function,
@@ -24,3 +24,13 @@ export const handleSingleAndDoubleClick = (
 		}, delay)
 	}
 }
+
+const debounce = (fn: Function, wait = 300) => {
+	let timer: ReturnType<typeof setTimeout>
+	return function (this: any, ...args: any[]) {
+		clearTimeout(timer)
+		timer = setTimeout(() => fn.apply(this, args), wait)
+	}
+}
+
+export { handleSingleAndDoubleClick, debounce }
