@@ -14,7 +14,7 @@
 					<div
 						class="my-4 h-20 cursor-pointer rounded"
 						:class="
-							activeSlideIndex == slide.idx - 1
+							slideIndex == slide.idx - 1
 								? 'border-2 border-blue-400'
 								: 'border border-gray-300'
 						"
@@ -61,12 +61,14 @@
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount, onMounted } from 'vue'
+import { ref } from 'vue'
+
 import { call } from 'frappe-ui'
+
 import Draggable from 'vuedraggable'
 
-import { activeSlideIndex, presentation } from '@/stores/slide'
-import { changeSlide, insertSlide } from '@/stores/slideActions'
+import { presentation } from '@/stores/presentation'
+import { slideIndex, changeSlide, insertSlide } from '@/stores/slide'
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,

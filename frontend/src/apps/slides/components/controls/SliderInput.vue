@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, watch } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 
 const props = defineProps({
 	label: String,

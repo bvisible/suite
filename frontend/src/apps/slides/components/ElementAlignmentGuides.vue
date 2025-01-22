@@ -1,25 +1,17 @@
 <template>
 	<div
-		v-show="Math.abs(diffCenterX) < CENTER_PROXIMITY_THRESHOLD"
-		class="absolute left-1/2 h-full w-[1px] -translate-x-1/2 bg-blue-400"
+		v-for="guide in ['left', 'right', 'top', 'bottom', 'centerX', 'centerY']"
+		:key="guide"
+		:style="guideStyles[guide]"
 	></div>
-
-	<div
-		v-show="Math.abs(diffCenterY) < CENTER_PROXIMITY_THRESHOLD"
-		class="absolute top-1/2 h-[1px] w-full -translate-y-1/2 bg-blue-400"
-	></div>
-
-	<div v-show="Math.abs(diffLeft) < PROXIMITY_THRESHOLD" :style="leftGuideStyles"></div>
-	<div v-show="Math.abs(diffRight) < PROXIMITY_THRESHOLD" :style="rightGuideStyles"></div>
-	<div v-show="Math.abs(diffTop) < PROXIMITY_THRESHOLD" :style="topGuideStyles"></div>
-	<div v-show="Math.abs(diffBottom) < PROXIMITY_THRESHOLD" :style="bottomGuideStyles"></div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { position, activeSlideElements } from '@/stores/slide'
-import { currentDataIndex, currentPairedDataIndex, activeElement } from '@/stores/element'
 import { useElementBounding } from '@vueuse/core'
+
+import { slide } from '@/stores/slide'
+import { activePosition, activeElementId, pairElementId, activeElement } from '@/stores/element'
 
 const props = defineProps({
 	slideRect: Object,
@@ -28,20 +20,31 @@ const props = defineProps({
 const CENTER_PROXIMITY_THRESHOLD = 20
 const PROXIMITY_THRESHOLD = 10
 
+const guideStyles = computed(() => {
+	return {
+		left: leftGuideStyles.value,
+		right: rightGuideStyles.value,
+		top: topGuideStyles.value,
+		bottom: bottomGuideStyles.value,
+		centerX: centerXGuideStyles.value,
+		centerY: centerYGuideStyles.value,
+	}
+})
+
 const activeDiv = computed(() => {
-	return document.querySelector(`[data-index="${currentDataIndex.value}"]`)
+	return document.querySelector(`[data-index="${activeElementId.value}"]`)
 })
 
 const activeRect = useElementBounding(activeDiv)
 
 const pairedDiv = computed(() => {
-	return document.querySelector(`[data-index="${currentPairedDataIndex.value}"]`)
+	return document.querySelector(`[data-index="${pairElementId.value}"]`)
 })
 
 const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
-	return activeSlideElements.value[currentPairedDataIndex.value]
+	return slide.value.elements[pairElementId.value]
 })
 
 const snapToCenter = () => {
@@ -59,25 +62,27 @@ const snapToCenter = () => {
 
 const snapToPairedElement = () => {
 	if (!pairElement.value) return
-
-	const diffs = [
-		{ value: diffLeft.value, direction: 'left' },
-		{ value: diffRight.value, direction: 'left' },
-		{ value: diffTop.value, direction: 'top' },
-		{ value: diffBottom.value, direction: 'top' },
-	]
-
 	let element = { ...activeElement.value }
-	diffs.forEach(({ value, direction }) => {
-		if (Math.abs(value) < PROXIMITY_THRESHOLD) {
-			element[direction] += value
-		}
-	})
+	const l = Math.abs(diffLeft.value) < PROXIMITY_THRESHOLD ? diffLeft.value : 0
+	const r = Math.abs(diffRight.value) < PROXIMITY_THRESHOLD ? diffRight.value : 0
+	if (Math.abs(l) > Math.abs(r)) {
+		element.left += l
+	} else {
+		element.left += r
+	}
+
+	const t = Math.abs(diffTop.value) < PROXIMITY_THRESHOLD ? diffTop.value : 0
+	const b = Math.abs(diffBottom.value) < PROXIMITY_THRESHOLD ? diffBottom.value : 0
+	if (Math.abs(t) > Math.abs(b)) {
+		element.top += t
+	} else {
+		element.top += b
+	}
 	activeElement.value = element
 }
 
 const diffCenterX = computed(() => {
-	if (!position.value) return
+	if (!activePosition.value) return
 	const rect = activeDiv.value.getBoundingClientRect()
 	const centerX = props.slideRect.width.value / 2 + props.slideRect.left.value
 	const centerOfElementX = rect.left + rect.width / 2
@@ -85,7 +90,7 @@ const diffCenterX = computed(() => {
 })
 
 const diffCenterY = computed(() => {
-	if (!position.value) return
+	if (!activePosition.value) return
 	const rect = activeDiv.value.getBoundingClientRect()
 	const centerY = props.slideRect.height.value / 2 + props.slideRect.top.value
 	const centerOfElementY = rect.top + rect.height / 2
@@ -122,16 +127,16 @@ const diffBottom = computed(() => {
 	return pairedElementBottom - activeElementBottom
 })
 
-const guideStyles = {
+const commonGuideStyles = {
 	position: 'fixed',
-	borderColor: '#70b6f0',
+	borderColor: '#70b6f092',
 	borderStyle: 'dashed',
 }
 
 const leftGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffLeft.value == undefined || Math.abs(diffLeft.value) > PROXIMITY_THRESHOLD) return ''
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
 		left: `${activeElement.value.left - 6.5}px`,
 		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
@@ -140,9 +145,9 @@ const leftGuideStyles = computed(() => {
 })
 
 const rightGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffRight.value == undefined || Math.abs(diffRight.value) > PROXIMITY_THRESHOLD) return ''
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
 		left: `${activeElement.value.left + activeElement.value.width + 5.5}px`,
 		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
@@ -151,9 +156,9 @@ const rightGuideStyles = computed(() => {
 })
 
 const topGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffTop.value == undefined || Math.abs(diffTop.value) > PROXIMITY_THRESHOLD) return ''
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
 		top: `${activeElement.value.top - 6.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
@@ -162,11 +167,11 @@ const topGuideStyles = computed(() => {
 })
 
 const bottomGuideStyles = computed(() => {
-	if (!pairElement.value) return
+	if (diffBottom.value == undefined || Math.abs(diffBottom.value) > PROXIMITY_THRESHOLD) return ''
 	const currentScale = props.slideRect.width.value / 960
 	const originalHeight = activeRect.height.value / currentScale
 	return {
-		...guideStyles,
+		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
 		top: `${activeElement.value.top + originalHeight + 5.5}px`,
 		left: `${Math.min(pairElement.value.left, activeElement.value.left)}px`,
@@ -174,11 +179,33 @@ const bottomGuideStyles = computed(() => {
 	}
 })
 
+const centerXGuideStyles = computed(() => {
+	if (Math.abs(diffCenterX.value) > CENTER_PROXIMITY_THRESHOLD) return ''
+	return {
+		backgroundColor: '#70b6f092',
+		height: '100%',
+		width: '1px',
+		position: 'fixed',
+		left: `${props.slideRect.width.value / 2}px`,
+	}
+})
+
+const centerYGuideStyles = computed(() => {
+	if (Math.abs(diffCenterX.value) > CENTER_PROXIMITY_THRESHOLD) return ''
+	return {
+		backgroundColor: '#70b6f092',
+		width: '100%',
+		height: '1px',
+		position: 'fixed',
+		top: `${props.slideRect.height.value / 2}px`,
+	}
+})
+
 const setCurrentPairedDataIndex = () => {
 	if (!activeElement.value) return
 	let i = null
-	activeSlideElements.value.forEach((element, index) => {
-		if (index == currentDataIndex.value) return
+	slide.value.elements.forEach((element, index) => {
+		if (index == activeElementId.value) return
 		let diffLeft = Math.abs(element.left - activeElement.value.left)
 		let diffRight = Math.abs(
 			element.left + element.width - activeElement.value.left - activeElement.value.width,
@@ -191,13 +218,13 @@ const setCurrentPairedDataIndex = () => {
 		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD))
 			i = index
 	})
-	currentPairedDataIndex.value = i
+	pairElementId.value = i
 }
 
 watch(
-	() => position.value,
+	() => activePosition.value,
 	() => {
-		if (!position.value) return
+		if (!activePosition.value) return
 		setCurrentPairedDataIndex()
 		snapToCenter()
 		snapToPairedElement()

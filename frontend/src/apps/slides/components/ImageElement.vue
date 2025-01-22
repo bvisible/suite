@@ -4,6 +4,7 @@
 
 <script setup>
 import { computed } from 'vue'
+
 import { setActiveElement } from '@/stores/element'
 
 const element = defineModel('element', {

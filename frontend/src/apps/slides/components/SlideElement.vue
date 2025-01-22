@@ -5,12 +5,13 @@
 </template>
 
 <script setup>
-import { computed, inject, useAttrs } from 'vue'
-import { currentDataIndex, currentPairedDataIndex, currentFocusedIndex } from '@/stores/element'
+import { computed, useAttrs } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
+
+import { activeElementId, pairElementId, focusElementId } from '@/stores/element'
 
 const attrs = useAttrs()
 
@@ -19,12 +20,11 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const showOutline = computed(() => {
-	return (
-		currentDataIndex.value == attrs['data-index'] ||
-		currentPairedDataIndex.value == attrs['data-index'] ||
-		currentFocusedIndex.value == attrs['data-index']
-	)
+const outline = computed(() => {
+	if ([activeElementId.value, focusElementId.value].includes(attrs['data-index']))
+		return '#70B6F0 solid 2px'
+	else if (pairElementId.value == attrs['data-index']) return '#70b6f092 solid 2px'
+	else return 'none'
 })
 
 const elementStyle = computed(() => ({
@@ -33,7 +33,7 @@ const elementStyle = computed(() => ({
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	outline: showOutline.value ? '#70B6F0 solid 2px' : 'none',
+	outline: outline.value,
 	outlineOffset: '5px',
 }))
 
