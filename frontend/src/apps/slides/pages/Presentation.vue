@@ -59,6 +59,7 @@
 					class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
 				></div>
 			</div>
+
 			<SlideElementsPanel />
 		</div>
 	</div>
@@ -74,7 +75,6 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
-import { usePanAndZoom } from '@/utils/zoom'
 import { presentationId, presentation, inSlideShow, startSlideShow } from '@/stores/presentation'
 import {
 	slideIndex,
@@ -94,6 +94,7 @@ import {
 	addTextElement,
 	addMediaElement,
 } from '@/stores/element'
+import { usePanAndZoom } from '@/utils/zoom'
 
 let autosaveInterval = null
 

@@ -361,20 +361,19 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 
 import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
+import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
-import { FlipHorizontal, FlipVertical, Repeat2, StickyNote, TvMinimalPlay } from 'lucide-vue-next'
+import TextPropertyTab from '@/components/TextPropertyTab.vue'
+import SliderInput from '@/components/SliderInput.vue'
+import NumberInput from '@/components/NumberInput.vue'
+import ColorPicker from '@/components/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slideIndex, slideFocus, slide } from '@/stores/slide'
 import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
-
-import SliderInput from './SliderInput.vue'
-import TextPropertyTab from './TextPropertyTab.vue'
-import NumberInput from './NumberInput.vue'
-import ColorPicker from './ColorPicker.vue'
 
 const activeTab = computed(() => {
 	if (slideFocus.value) return 'slide'

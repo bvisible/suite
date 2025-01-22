@@ -11,7 +11,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, useAttrs } from 'vue'
+import { computed, useAttrs } from 'vue'
+
 import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, setActiveElement } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/clickHandler'

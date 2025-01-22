@@ -21,7 +21,8 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, computed, useAttrs } from 'vue'
+import { ref, computed, useTemplateRef, useAttrs } from 'vue'
+
 import { inSlideShow } from '@/stores/presentation'
 import { activeElementId, setActiveElement } from '@/stores/element'
 

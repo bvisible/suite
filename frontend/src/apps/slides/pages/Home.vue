@@ -145,17 +145,17 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { createResource, Tooltip } from 'frappe-ui'
-import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+import { Tooltip } from 'frappe-ui'
 
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
+import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+
+import { presentationList, startSlideShow } from '@/stores/presentation'
+import { guessTextColorFromBackground } from '@/utils/color'
 
 import tinycolor from 'tinycolor2'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-
-import { presentationList, startSlideShow } from '@/stores/presentation'
-import { guessTextColorFromBackground } from '@/utils/color'
 
 dayjs.extend(relativeTime)
 const router = useRouter()

@@ -1,7 +1,9 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
+
 import { inSlideShow } from './presentation'
 import { slideFocus, slide } from './slide'
+
 import { guessTextColorFromBackground } from '../utils/color'
 
 const activePosition = ref(null)
