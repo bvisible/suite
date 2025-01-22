@@ -131,11 +131,12 @@
 import { FormControl } from 'frappe-ui'
 import { Strikethrough, CaseUpper } from 'lucide-vue-next'
 
-import { debounce } from '@/utils/debounce'
-import { activeElement } from '@/stores/element'
 import SliderInput from './SliderInput.vue'
 import NumberInput from './NumberInput.vue'
 import ColorPicker from './ColorPicker.vue'
+
+import { activeElement } from '@/stores/element'
+import { debounce } from '@/utils/helpers'
 
 const textFonts = [
 	'Arial',
