@@ -43,12 +43,10 @@ const updateSlideThumbnail = async (index) => {
 
 const updateSlideState = () => {
 	const { elements, transition, transitionDuration, background } = slide.value
-	let currentSlide = presentation.data.slides[slideIndex.value]
-
-	currentSlide = {
+	presentation.data.slides[slideIndex.value] = {
 		background,
 		transition,
-		elements: JSON.stringify(elements),
+		elements: JSON.stringify(elements, null, 2),
 		transition_duration: transitionDuration,
 	}
 }
@@ -120,7 +118,6 @@ const duplicateSlide = async (e) => {
 export {
 	slideIndex,
 	slideFocus,
-	slideDirty,
 	slide,
 	saveChanges,
 	changeSlide,
