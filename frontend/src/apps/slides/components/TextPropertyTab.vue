@@ -131,9 +131,9 @@
 import { FormControl } from 'frappe-ui'
 import { Strikethrough, CaseUpper } from 'lucide-vue-next'
 
-import SliderInput from './SliderInput.vue'
-import NumberInput from './NumberInput.vue'
-import ColorPicker from './ColorPicker.vue'
+import SliderInput from './controls/SliderInput.vue'
+import NumberInput from './controls/NumberInput.vue'
+import ColorPicker from './controls/ColorPicker.vue'
 
 import { activeElement } from '@/stores/element'
 import { debounce } from '@/utils/helpers'
