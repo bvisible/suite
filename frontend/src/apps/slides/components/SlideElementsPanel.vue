@@ -367,9 +367,9 @@ import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
 import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
 import TextPropertyTab from '@/components/TextPropertyTab.vue'
-import SliderInput from '@/components/SliderInput.vue'
-import NumberInput from '@/components/NumberInput.vue'
-import ColorPicker from '@/components/ColorPicker.vue'
+import SliderInput from '@/components/controls/SliderInput.vue'
+import NumberInput from '@/components/controls/NumberInput.vue'
+import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slideIndex, slideFocus, slide } from '@/stores/slide'
