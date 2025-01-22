@@ -1,5 +1,6 @@
 import { ref, computed, nextTick } from 'vue'
-import { call, createResource } from 'frappe-ui'
+import { call } from 'frappe-ui'
+
 import { presentationId, presentation, inSlideShow, applyReverseTransition } from './presentation'
 import { resetFocus } from './element'
 

@@ -61,8 +61,10 @@
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount, onMounted } from 'vue'
+import { ref } from 'vue'
+
 import { call } from 'frappe-ui'
+
 import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'

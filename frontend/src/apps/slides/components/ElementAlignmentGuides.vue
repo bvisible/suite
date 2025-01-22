@@ -8,9 +8,10 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useElementBounding } from '@vueuse/core'
+
 import { slide } from '@/stores/slide'
 import { activePosition, activeElementId, pairElementId, activeElement } from '@/stores/element'
-import { useElementBounding } from '@vueuse/core'
 
 const props = defineProps({
 	slideRect: Object,

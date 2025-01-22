@@ -57,24 +57,12 @@
 </template>
 
 <script setup>
-import {
-	onMounted,
-	ref,
-	useTemplateRef,
-	watch,
-	TransitionGroup,
-	nextTick,
-	computed,
-	provide,
-	onBeforeUnmount,
-} from 'vue'
+import { ref, computed, watch, useTemplateRef } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
+import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
 import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
-
-import { useDragAndDrop } from '@/utils/drag'
-import { useResizer } from '@/utils/resizer'
 
 import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
 import {
@@ -93,7 +81,9 @@ import {
 	focusElementId,
 	resetFocus,
 } from '@/stores/element'
-import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
+
+import { useDragAndDrop } from '@/utils/drag'
+import { useResizer } from '@/utils/resizer'
 
 const props = defineProps({
 	slideCursor: String,

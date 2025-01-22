@@ -5,12 +5,13 @@
 </template>
 
 <script setup>
-import { computed, inject, useAttrs } from 'vue'
-import { activeElementId, pairElementId, focusElementId } from '@/stores/element'
+import { computed, useAttrs } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
+
+import { activeElementId, pairElementId, focusElementId } from '@/stores/element'
 
 const attrs = useAttrs()
 
