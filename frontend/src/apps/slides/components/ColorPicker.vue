@@ -62,11 +62,12 @@
 </template>
 
 <script setup>
-import { ref, unref, onMounted, useTemplateRef, computed, watch } from 'vue'
+import { ref, unref, computed, useTemplateRef } from 'vue'
 import { useElementBounding } from '@vueuse/core'
-import tinycolor from 'tinycolor2'
 
 import { Popover } from 'frappe-ui'
+
+import tinycolor from 'tinycolor2'
 
 const shadeStyles = computed(() => {
 	return {

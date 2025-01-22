@@ -15,7 +15,7 @@ import { computed, useAttrs } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, setActiveElement } from '@/stores/element'
-import { handleSingleAndDoubleClick } from '@/utils/clickHandler'
+import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const attrs = useAttrs()
 
