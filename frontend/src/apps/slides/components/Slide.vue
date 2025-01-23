@@ -25,14 +25,23 @@
 			</div>
 		</Transition>
 	</div>
-	<div
-		v-else
-		ref="target"
-		class="slide h-[540px] w-[960px] drop-shadow-xl"
-		:style="slideStyles"
-		@click="handleSlideClick"
-	>
-		<ElementAlignmentGuides v-if="showGuides" :slideRect="slideRect" />
+	<div v-else ref="target">
+		<div
+			class="slide h-[540px] w-[960px] drop-shadow-2xl"
+			:style="slideStyles"
+			@click="handleSlideClick"
+		>
+			<ElementAlignmentGuides v-if="showGuides" :slideRect="slideRect" />
+
+			<component
+				ref="element"
+				v-for="(element, index) in slide.elements"
+				:key="index"
+				:is="SlideElement"
+				:element="element"
+				:data-index="index"
+			/>
+		</div>
 
 		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
 			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
@@ -44,15 +53,6 @@
 				@click="insertSlide(slideIndex)"
 			/>
 		</div>
-
-		<component
-			ref="element"
-			v-for="(element, index) in slide.elements"
-			:key="index"
-			:is="SlideElement"
-			:element="element"
-			:data-index="index"
-		/>
 	</div>
 </template>
 
@@ -262,3 +262,16 @@ defineExpose({
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
+
+<style>
+.slide::after {
+	content: '';
+	display: block;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background: transparent;
+	pointer-events: none;
+	box-shadow: 0 0 0 5000px rgba(255, 255, 255, 0.7);
+}
+</style>

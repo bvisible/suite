@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="parent"
-		class="fixed flex h-screen w-screen flex-col bg-gray-100"
+		class="fixed flex h-screen w-screen flex-col"
 		@dragenter.prevent="handleDragEnter"
 		@dragleave.prevent="handleDragLeave"
 		@dragover.prevent
@@ -37,10 +37,13 @@
 
 			<div
 				ref="slideContainer"
-				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
+				class="slideContainer flex items-center justify-center w-full h-full"
 				:class="{
 					'bg-black': inSlideShow,
 					'outline-blue-300 outline': isMediaDragOver,
+				}"
+				:style="{
+					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
 				}"
 			>
 				<Slide
