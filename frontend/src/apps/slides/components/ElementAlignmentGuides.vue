@@ -13,6 +13,10 @@ import { useElementBounding } from '@vueuse/core'
 import { slide, slideRect } from '@/stores/slide'
 import { activePosition, activeElementId, pairElementId, activeElement } from '@/stores/element'
 
+const props = defineProps({
+	scale: Number,
+})
+
 const CENTER_PROXIMITY_THRESHOLD = 20
 const PROXIMITY_THRESHOLD = 10
 
@@ -41,10 +45,6 @@ const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
 	return slide.value.elements[pairElementId.value]
-})
-
-const scale = computed(() => {
-	return slideRect.value.width / 960
 })
 
 const snapToCenter = () => {
@@ -115,8 +115,8 @@ const diffTop = computed(() => {
 
 const diffBottom = computed(() => {
 	if (!pairElement.value) return
-	const ogHeight = activeRect.height.value / scale.value
-	const ogPairedHeight = pairedRect.height.value / scale.value
+	const ogHeight = activeRect.height.value / props.scale
+	const ogPairedHeight = pairedRect.height.value / props.scale
 	const pairedElementBottom = pairElement.value.top + ogPairedHeight
 	const activeElementBottom = activeElement.value.top + ogHeight
 	return pairedElementBottom - activeElementBottom
@@ -163,7 +163,7 @@ const topGuideStyles = computed(() => {
 
 const bottomGuideStyles = computed(() => {
 	if (diffBottom.value == undefined || Math.abs(diffBottom.value) > PROXIMITY_THRESHOLD) return ''
-	const originalHeight = activeRect.height.value / scale.value
+	const originalHeight = activeRect.height.value / props.scale
 	return {
 		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
