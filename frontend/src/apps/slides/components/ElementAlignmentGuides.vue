@@ -191,7 +191,7 @@ const centerXGuideStyles = computed(() => {
 })
 
 const centerYGuideStyles = computed(() => {
-	if (Math.abs(diffCenterX.value) > CENTER_PROXIMITY_THRESHOLD) return ''
+	if (Math.abs(diffCenterY.value) > CENTER_PROXIMITY_THRESHOLD) return ''
 	return {
 		backgroundColor: '#70b6f092',
 		width: '100%',
