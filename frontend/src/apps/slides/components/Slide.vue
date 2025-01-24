@@ -32,7 +32,7 @@
 		:style="slideStyles"
 		@click="handleSlideClick"
 	>
-		<ElementAlignmentGuides v-if="showGuides" />
+		<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
 
 		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
 			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
@@ -191,14 +191,18 @@ watch(
 )
 
 slideRect.value = useElementBounding(targetRef)
+const scale = computed(() => {
+	const matrix = transform.value.match(/matrix\((.+)\)/)
+	if (!matrix) return 1
+	return parseFloat(matrix[1].split(', ')[0])
+})
 
 watch(
 	() => activePosition.value,
 	(position) => {
 		if (!position) return
-		const currentScale = slideRect.value.width / 960
-		const newleft = (position.left - slideRect.value.left) / currentScale
-		const newTop = (position.top - slideRect.value.top) / currentScale
+		const newleft = (position.left - slideRect.value.left) / scale.value
+		const newTop = (position.top - slideRect.value.top) / scale.value
 		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
 	},
 	{ immediate: true },
@@ -209,8 +213,7 @@ watch(
 	(dimensions) => {
 		if (!dimensions) return
 		if (activeElement.value && dimensions.width != activeElement.value.width) {
-			const currentScale = slideRect.value.width / 960
-			const newWidth = dimensions.width / currentScale
+			const newWidth = dimensions.width / scale.value
 			activeElement.value = { ...activeElement.value, width: newWidth }
 		}
 	},
