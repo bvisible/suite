@@ -72,6 +72,7 @@ import {
 	insertSlide,
 	deleteSlide,
 	duplicateSlide,
+	slideRect,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -184,7 +185,7 @@ watch(
 	{ immediate: true },
 )
 
-const slideRect = useElementBounding(targetRef)
+slideRect.value = useElementBounding(targetRef)
 
 watch(
 	() => activePosition.value,

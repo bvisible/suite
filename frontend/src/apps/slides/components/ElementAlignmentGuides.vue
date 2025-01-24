@@ -7,15 +7,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
-import { slide } from '@/stores/slide'
+import { slide, slideRect } from '@/stores/slide'
 import { activePosition, activeElementId, pairElementId, activeElement } from '@/stores/element'
-
-const props = defineProps({
-	slideRect: Object,
-})
 
 const CENTER_PROXIMITY_THRESHOLD = 20
 const PROXIMITY_THRESHOLD = 10
@@ -47,15 +43,17 @@ const pairElement = computed(() => {
 	return slide.value.elements[pairElementId.value]
 })
 
+const scale = computed(() => {
+	return slideRect.value.width / 960
+})
+
 const snapToCenter = () => {
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		const newLeft =
-			activeElement.value.left + (diffCenterX.value * 960) / props.slideRect.width.value
+		const newLeft = activeElement.value.left + (diffCenterX.value * 960) / slideRect.value.width
 		activeElement.value = { ...activeElement.value, left: newLeft }
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		const newTop =
-			activeElement.value.top + (diffCenterY.value * 960) / props.slideRect.width.value
+		const newTop = activeElement.value.top + (diffCenterY.value * 960) / slideRect.value.width
 		activeElement.value = { ...activeElement.value, top: newTop }
 	}
 }
@@ -83,17 +81,15 @@ const snapToPairedElement = () => {
 
 const diffCenterX = computed(() => {
 	if (!activePosition.value) return
-	const rect = activeDiv.value.getBoundingClientRect()
-	const centerX = props.slideRect.width.value / 2 + props.slideRect.left.value
-	const centerOfElementX = rect.left + rect.width / 2
+	const centerX = slideRect.value.width / 2 + slideRect.value.left
+	const centerOfElementX = activeRect.left.value + activeRect.width.value / 2
 	return centerX - centerOfElementX
 })
 
 const diffCenterY = computed(() => {
 	if (!activePosition.value) return
-	const rect = activeDiv.value.getBoundingClientRect()
-	const centerY = props.slideRect.height.value / 2 + props.slideRect.top.value
-	const centerOfElementY = rect.top + rect.height / 2
+	const centerY = slideRect.value.height / 2 + slideRect.value.top
+	const centerOfElementY = activeRect.top.value + activeRect.height.value / 2
 	return centerY - centerOfElementY
 })
 
@@ -119,9 +115,8 @@ const diffTop = computed(() => {
 
 const diffBottom = computed(() => {
 	if (!pairElement.value) return
-	const currentScale = props.slideRect.width.value / 960
-	const ogHeight = activeRect.height.value / currentScale
-	const ogPairedHeight = pairedRect.height.value / currentScale
+	const ogHeight = activeRect.height.value / scale.value
+	const ogPairedHeight = pairedRect.height.value / scale.value
 	const pairedElementBottom = pairElement.value.top + ogPairedHeight
 	const activeElementBottom = activeElement.value.top + ogHeight
 	return pairedElementBottom - activeElementBottom
@@ -168,8 +163,7 @@ const topGuideStyles = computed(() => {
 
 const bottomGuideStyles = computed(() => {
 	if (diffBottom.value == undefined || Math.abs(diffBottom.value) > PROXIMITY_THRESHOLD) return ''
-	const currentScale = props.slideRect.width.value / 960
-	const originalHeight = activeRect.height.value / currentScale
+	const originalHeight = activeRect.height.value / scale.value
 	return {
 		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
@@ -186,7 +180,7 @@ const centerXGuideStyles = computed(() => {
 		height: '100%',
 		width: '1px',
 		position: 'fixed',
-		left: `${props.slideRect.width.value / 2}px`,
+		left: '50%',
 	}
 })
 
@@ -197,7 +191,7 @@ const centerYGuideStyles = computed(() => {
 		width: '100%',
 		height: '1px',
 		position: 'fixed',
-		top: `${props.slideRect.height.value / 2}px`,
+		top: '50%',
 	}
 })
 
@@ -225,9 +219,12 @@ watch(
 	() => activePosition.value,
 	() => {
 		if (!activePosition.value) return
-		setCurrentPairedDataIndex()
-		snapToCenter()
-		snapToPairedElement()
+
+		nextTick(() => {
+			setCurrentPairedDataIndex()
+			snapToCenter()
+			snapToPairedElement()
+		})
 	},
 	{ immediate: true },
 )
