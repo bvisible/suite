@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { ref, watch, onBeforeUnmount, onMounted } from 'vue'
 
 type Origin = {
 	x: number
@@ -14,10 +14,8 @@ type Transform = {
 	}
 }
 
-export const usePanAndZoom = () => {
-	const targetElement = ref<HTMLElement | null>(null)
-	const containerElement = ref<HTMLElement | null>(null)
-	const allowPanAndZoom = ref()
+export const usePanAndZoom = (containerElement: HTMLDivElement, targetElement: any) => {
+	const allowPanAndZoom = ref(true)
 
 	const SCALE_SPEED = 0.8
 	const TRANSLATE_SPEED = 0.8
@@ -30,7 +28,7 @@ export const usePanAndZoom = () => {
 
 	let wheelTimeout: ReturnType<typeof setTimeout>
 
-	const transform = ref('')
+	const transform = ref('matrix(1, 0, 0, 1, 0, 0)')
 	const transformOrigin = ref('0 0')
 
 	const isPanningOrZooming = ref(false)
@@ -173,20 +171,20 @@ export const usePanAndZoom = () => {
 	}
 
 	const addPanAndZoom = () => {
-		if (!containerElement.value || !targetElement.value) return
+		if (!containerElement || !targetElement.value) return
 		initialMatrix = new DOMMatrix()
 		gestureMatrix = new DOMMatrix()
 		let rect = targetElement.value.getBoundingClientRect()
 		initialX = rect.x
 		initialY = rect.y
-		containerElement.value.addEventListener('wheel', handlePanAndZoom, {
+		containerElement.addEventListener('wheel', handlePanAndZoom, {
 			passive: false,
 		})
 	}
 
 	const removePanAndZoom = () => {
-		if (!containerElement.value) return
-		containerElement.value.removeEventListener('wheel', handlePanAndZoom)
+		if (!containerElement) return
+		containerElement.removeEventListener('wheel', handlePanAndZoom)
 	}
 
 	watch(
@@ -196,12 +194,18 @@ export const usePanAndZoom = () => {
 		},
 	)
 
+	onMounted(() => {
+		addPanAndZoom()
+	})
+
+	onBeforeUnmount(() => {
+		removePanAndZoom()
+	})
+
 	return {
 		transform,
 		transformOrigin,
 		allowPanAndZoom,
-		targetElement,
-		containerElement,
 		isPanningOrZooming,
 	}
 }
