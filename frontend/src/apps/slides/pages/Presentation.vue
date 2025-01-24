@@ -44,7 +44,7 @@
 					'outline-blue-300 outline': isMediaDragOver,
 				}"
 			>
-				<Slide ref="slide" :containerRef="containerRef" :slideCursor="slideCursor" />
+				<Slide ref="slide" :containerRef="containerRef" />
 
 				<!-- Media Drag Overlay -->
 				<div
@@ -214,29 +214,6 @@ const handleKeyDown = (e) => {
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
-const slideCursor = ref('none')
-
-const resetCursorVisibility = () => {
-	let cursorTimer
-
-	slideCursor.value = 'auto'
-	clearTimeout(cursorTimer)
-	cursorTimer = setTimeout(() => {
-		slideCursor.value = 'none'
-	}, 3000)
-}
-
-const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement
-
-	if (document.fullscreenElement) {
-		resetFocus()
-		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
-	} else {
-		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-	}
-}
-
 const isMediaDragOver = ref(false)
 
 const handleDragEnter = (e) => {
@@ -280,12 +257,10 @@ watch(
 onMounted(() => {
 	autosaveInterval = setInterval(saveChanges, 60000)
 	document.addEventListener('keydown', handleKeyDown)
-	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
 	clearInterval(autosaveInterval)
 	document.removeEventListener('keydown', handleKeyDown)
-	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 </script>
