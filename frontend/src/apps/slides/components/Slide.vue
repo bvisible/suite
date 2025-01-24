@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef } from 'vue'
+import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
@@ -89,7 +89,6 @@ import { usePanAndZoom } from '@/utils/zoom'
 
 const props = defineProps({
 	containerRef: Object,
-	slideCursor: String,
 })
 
 const targetRef = useTemplateRef('target')
@@ -101,6 +100,7 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 	targetRef,
 )
 
+const slideCursor = ref('none')
 const transition = ref('none')
 const opacity = ref(1)
 
@@ -112,10 +112,10 @@ const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
 		backgroundColor: presentation.data.slides[slideIndex.value]?.background || 'white',
-		cursor: inSlideShow.value ? props.slideCursor : isDragging.value ? 'move' : 'default',
+		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
-		transformOrigin: transformOrigin.value,
-		transform: transform.value,
+		transformOrigin: inSlideShow.value ? 'center' : transformOrigin.value,
+		transform: inSlideShow.value ? 'matrix(1.5, 0, 0, 1.5, 0, 0)' : transform.value,
 		opacity: opacity.value,
 	}
 })
@@ -231,7 +231,7 @@ const beforeSlideEnter = (el) => {
 }
 
 const slideEnter = (el, done) => {
-	if (!slide.value.transition) return
+	if (!slide.value.transition) return done()
 	el.offsetWidth
 	if (slide.value.transition == 'Slide In') {
 		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
@@ -253,7 +253,7 @@ const beforeSlideLeave = (el) => {
 }
 
 const slideLeave = (el, done) => {
-	if (!slide.value.transition) return
+	if (!slide.value.transition) return done()
 	if (slide.value.transition == 'Slide In') {
 		transform.value = applyReverseTransition.value ? 'translateX(100%)' : 'translateX(-100%)'
 		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
@@ -265,8 +265,34 @@ const slideLeave = (el, done) => {
 	done()
 }
 
-defineExpose({
-	targetRef,
+const resetCursorVisibility = () => {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 3000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		resetFocus()
+		allowPanAndZoom.value = false
+		props.containerRef.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		allowPanAndZoom.value = true
+		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+onMounted(() => {
+	document.addEventListener('fullscreenchange', handleScreenChange)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 </script>
 

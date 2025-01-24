@@ -184,6 +184,8 @@ export const usePanAndZoom = (containerElement: HTMLDivElement, targetElement: a
 
 	const removePanAndZoom = () => {
 		if (!containerElement) return
+		transform.value = 'matrix(1, 0, 0, 1, 0, 0)'
+		transformOrigin.value = '0 0'
 		containerElement.removeEventListener('wheel', handlePanAndZoom)
 	}
 
