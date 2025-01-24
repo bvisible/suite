@@ -32,7 +32,7 @@
 		:style="slideStyles"
 		@click="handleSlideClick"
 	>
-		<ElementAlignmentGuides v-if="showGuides" :slideRect="slideRect" />
+		<ElementAlignmentGuides v-if="showGuides" />
 
 		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
 			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
@@ -85,23 +85,27 @@ import {
 
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
+import { usePanAndZoom } from '@/utils/zoom'
 
 const props = defineProps({
+	containerRef: Object,
 	slideCursor: String,
-	isPanningOrZooming: Boolean,
 })
 
 const targetRef = useTemplateRef('target')
 
 const { isDragging, dragTarget } = useDragAndDrop(activePosition)
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
+const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
+	props.containerRef,
+	targetRef,
+)
 
 const transition = ref('none')
-const transform = ref('none')
 const opacity = ref(1)
 
 const showGuides = computed(
-	() => activeElement.value && activeElementId.value != null && !props.isPanningOrZooming,
+	() => activeElement.value && activeElementId.value != null && !isPanningOrZooming.value,
 )
 
 const slideStyles = computed(() => {
@@ -110,6 +114,7 @@ const slideStyles = computed(() => {
 		backgroundColor: presentation.data.slides[slideIndex.value]?.background || 'white',
 		cursor: inSlideShow.value ? props.slideCursor : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
+		transformOrigin: transformOrigin.value,
 		transform: transform.value,
 		opacity: opacity.value,
 	}
@@ -191,9 +196,9 @@ watch(
 	() => activePosition.value,
 	(position) => {
 		if (!position) return
-		const currentScale = slideRect.width.value / 960
-		const newleft = (position.left - slideRect.left.value) / currentScale
-		const newTop = (position.top - slideRect.top.value) / currentScale
+		const currentScale = slideRect.value.width / 960
+		const newleft = (position.left - slideRect.value.left) / currentScale
+		const newTop = (position.top - slideRect.value.top) / currentScale
 		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
 	},
 	{ immediate: true },
@@ -204,7 +209,7 @@ watch(
 	(dimensions) => {
 		if (!dimensions) return
 		if (activeElement.value && dimensions.width != activeElement.value.width) {
-			const currentScale = slideRect.width.value / 960
+			const currentScale = slideRect.value.width / 960
 			const newWidth = dimensions.width / currentScale
 			activeElement.value = { ...activeElement.value, width: newWidth }
 		}

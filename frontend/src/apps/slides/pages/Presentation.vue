@@ -36,6 +36,7 @@
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<div
+				v-if="containerRef"
 				ref="slideContainer"
 				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
 				:class="{
@@ -43,15 +44,7 @@
 					'outline-blue-300 outline': isMediaDragOver,
 				}"
 			>
-				<Slide
-					ref="slide"
-					:slideCursor="slideCursor"
-					:isPanningOrZooming="zoom.isPanningOrZooming.value"
-					:style="{
-						transform: zoom.transform.value,
-						transformOrigin: zoom.transformOrigin.value,
-					}"
-				/>
+				<Slide ref="slide" :containerRef="containerRef" :slideCursor="slideCursor" />
 
 				<!-- Media Drag Overlay -->
 				<div
@@ -94,17 +87,14 @@ import {
 	addTextElement,
 	addMediaElement,
 } from '@/stores/element'
-import { usePanAndZoom } from '@/utils/zoom'
 
 let autosaveInterval = null
 
 const route = useRoute()
 const router = useRouter()
-const zoom = usePanAndZoom()
 
 const parentRef = useTemplateRef('parent')
 const containerRef = useTemplateRef('container')
-const slideRef = useTemplateRef('slide')
 const newTitleRef = useTemplateRef('newTitleRef')
 
 const renameMode = ref(false)
@@ -241,14 +231,8 @@ const handleScreenChange = () => {
 
 	if (document.fullscreenElement) {
 		resetFocus()
-		zoom.transformOrigin.value = ''
-		zoom.allowPanAndZoom.value = false
-		zoom.transform.value = 'scale(1.5, 1.5)'
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
-		zoom.transform.value = ''
-		zoom.transformOrigin.value = '0 0'
-		zoom.allowPanAndZoom.value = true
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
@@ -294,16 +278,12 @@ watch(
 )
 
 onMounted(() => {
-	zoom.containerElement.value = containerRef.value
-	zoom.targetElement.value = slideRef.value.targetRef
-	zoom.allowPanAndZoom.value = true
 	autosaveInterval = setInterval(saveChanges, 60000)
 	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
-	zoom.allowPanAndZoom.value = false
 	clearInterval(autosaveInterval)
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleScreenChange)
