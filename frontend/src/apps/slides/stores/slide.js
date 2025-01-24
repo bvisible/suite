@@ -46,6 +46,7 @@ const updateSlideThumbnail = async (index) => {
 const updateSlideState = () => {
 	const { elements, transition, transitionDuration, background } = slide.value
 	presentation.data.slides[slideIndex.value] = {
+		...presentation.data.slides[slideIndex.value],
 		background,
 		transition,
 		elements: JSON.stringify(elements, null, 2),
