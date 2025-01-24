@@ -7,6 +7,8 @@ import { resetFocus } from './element'
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
+const slideRect = ref(null)
+
 const slideIndex = ref(0)
 const slideFocus = ref(false)
 
@@ -119,6 +121,7 @@ export {
 	slideIndex,
 	slideFocus,
 	slide,
+	slideRect,
 	saveChanges,
 	changeSlide,
 	insertSlide,
