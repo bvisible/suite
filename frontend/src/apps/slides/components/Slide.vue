@@ -102,6 +102,7 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 
 const slideCursor = ref('none')
 const transition = ref('none')
+const transitionTransform = ref('')
 const opacity = ref(1)
 
 const showGuides = computed(
@@ -115,7 +116,9 @@ const slideStyles = computed(() => {
 		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
 		transformOrigin: inSlideShow.value ? 'center' : transformOrigin.value,
-		transform: inSlideShow.value ? 'matrix(1.5, 0, 0, 1.5, 0, 0)' : transform.value,
+		transform: inSlideShow.value
+			? `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`
+			: transform.value,
 		opacity: opacity.value,
 	}
 })
@@ -223,7 +226,9 @@ watch(
 const beforeSlideEnter = (el) => {
 	if (!slide.value.transition) return
 	if (slide.value.transition == 'Slide In') {
-		transform.value = applyReverseTransition.value ? 'translateX(-100%)' : 'translateX(100%)'
+		transitionTransform.value = applyReverseTransition.value
+			? 'translateX(-100%)'
+			: 'translateX(100%)'
 		transition.value = 'none'
 	} else if (slide.value.transition == 'Fade') {
 		opacity.value = 0
@@ -235,7 +240,7 @@ const slideEnter = (el, done) => {
 	el.offsetWidth
 	if (slide.value.transition == 'Slide In') {
 		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
-		transform.value = 'translateX(0)'
+		transitionTransform.value = 'translateX(0)'
 	} else if (slide.value.transition == 'Fade') {
 		transition.value = `opacity ${slide.value.transitionDuration}s`
 		opacity.value = 1
@@ -255,7 +260,9 @@ const beforeSlideLeave = (el) => {
 const slideLeave = (el, done) => {
 	if (!slide.value.transition) return done()
 	if (slide.value.transition == 'Slide In') {
-		transform.value = applyReverseTransition.value ? 'translateX(100%)' : 'translateX(-100%)'
+		transitionTransform.value = applyReverseTransition.value
+			? 'translateX(100%)'
+			: 'translateX(-100%)'
 		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
 	} else if (slide.value.transition == 'Fade') {
 		el.offsetWidth
