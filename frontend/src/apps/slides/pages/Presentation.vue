@@ -37,7 +37,6 @@
 
 			<div
 				v-if="containerRef"
-				ref="slideContainer"
 				class="slideContainer flex items-center justify-center w-[960px] h-[540px]"
 				:class="{
 					'bg-black': inSlideShow,
@@ -97,10 +96,10 @@ const parentRef = useTemplateRef('parent')
 const containerRef = useTemplateRef('container')
 const newTitleRef = useTemplateRef('newTitleRef')
 
-const renameMode = ref(false)
 const newTitle = ref('')
-
+const renameMode = ref(false)
 const showNavigator = ref(true)
+const isMediaDragOver = ref(false)
 
 const enableRenameMode = () => {
 	renameMode.value = true
@@ -211,10 +210,6 @@ const handleKeyDown = (e) => {
 
 	activeElementId.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
-
-const slideContainerRef = useTemplateRef('slideContainer')
-
-const isMediaDragOver = ref(false)
 
 const handleDragEnter = (e) => {
 	e.preventDefault()

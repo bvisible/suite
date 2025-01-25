@@ -17,7 +17,7 @@
 
 				<div class="flex items-center justify-between">
 					<div class="text-sm text-gray-600">Background</div>
-					<ColorPicker v-model="presentation.data.slides[slideIndex].background" />
+					<ColorPicker v-model="slide.background" />
 				</div>
 			</div>
 
