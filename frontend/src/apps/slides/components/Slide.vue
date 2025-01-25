@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef } from 'vue'
+import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
@@ -72,6 +72,7 @@ import {
 	insertSlide,
 	deleteSlide,
 	duplicateSlide,
+	slideRect,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -84,32 +85,47 @@ import {
 
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
+import { usePanAndZoom } from '@/utils/zoom'
 
 const props = defineProps({
-	slideCursor: String,
-	isPanningOrZooming: Boolean,
+	containerRef: Object,
 })
 
 const targetRef = useTemplateRef('target')
+slideRect.value = useElementBounding(targetRef)
 
 const { isDragging, dragTarget } = useDragAndDrop(activePosition)
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
+const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
+	props.containerRef,
+	targetRef,
+)
 
+const slideCursor = ref('none')
 const transition = ref('none')
-const transform = ref('none')
+const transitionTransform = ref('')
 const opacity = ref(1)
 
 const showGuides = computed(
-	() => activeElement.value && activeElementId.value != null && !props.isPanningOrZooming,
+	() => activeElement.value && activeElementId.value != null && !isPanningOrZooming.value,
 )
+
+const scale = computed(() => {
+	const matrix = transform.value.match(/matrix\((.+)\)/)
+	if (!matrix) return 1
+	return parseFloat(matrix[1].split(', ')[0])
+})
 
 const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
-		backgroundColor: presentation.data.slides[slideIndex.value]?.background || 'white',
-		cursor: inSlideShow.value ? props.slideCursor : isDragging.value ? 'move' : 'default',
+		backgroundColor: slide.value.background || 'white',
+		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
-		transform: transform.value,
+		transformOrigin: inSlideShow.value ? 'center' : transformOrigin.value,
+		transform: inSlideShow.value
+			? `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`
+			: transform.value,
 		opacity: opacity.value,
 	}
 })
@@ -160,6 +176,78 @@ const removeDragAndResize = () => {
 	resizeTarget.value = null
 }
 
+const beforeSlideEnter = (el) => {
+	if (!slide.value.transition) return
+	if (slide.value.transition == 'Slide In') {
+		transitionTransform.value = applyReverseTransition.value
+			? 'translateX(-100%)'
+			: 'translateX(100%)'
+		transition.value = 'none'
+	} else if (slide.value.transition == 'Fade') {
+		opacity.value = 0
+	}
+}
+
+const slideEnter = (el, done) => {
+	if (!slide.value.transition) return done()
+	el.offsetWidth
+	if (slide.value.transition == 'Slide In') {
+		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
+		transitionTransform.value = 'translateX(0)'
+	} else if (slide.value.transition == 'Fade') {
+		transition.value = `opacity ${slide.value.transitionDuration}s`
+		opacity.value = 1
+	}
+	done()
+}
+
+const beforeSlideLeave = (el) => {
+	if (!slide.value.transition) return
+	if (slide.value.transition == 'Slide In') {
+		transition.value = 'none'
+	} else if (slide.value.transition == 'Fade') {
+		opacity.value = 1
+	}
+}
+
+const slideLeave = (el, done) => {
+	if (!slide.value.transition) return done()
+	if (slide.value.transition == 'Slide In') {
+		transitionTransform.value = applyReverseTransition.value
+			? 'translateX(100%)'
+			: 'translateX(-100%)'
+		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
+	} else if (slide.value.transition == 'Fade') {
+		el.offsetWidth
+		transition.value = `opacity ${slide.value.transitionDuration}s`
+		opacity.value = 0
+	}
+	done()
+}
+
+const resetCursorVisibility = () => {
+	let cursorTimer
+
+	slideCursor.value = 'auto'
+	clearTimeout(cursorTimer)
+	cursorTimer = setTimeout(() => {
+		slideCursor.value = 'none'
+	}, 3000)
+}
+
+const handleScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement
+
+	if (document.fullscreenElement) {
+		resetFocus()
+		allowPanAndZoom.value = false
+		props.containerRef.addEventListener('mousemove', resetCursorVisibility)
+	} else {
+		allowPanAndZoom.value = true
+		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+
 watch(
 	() => activeElementId.value,
 	() => {
@@ -184,15 +272,12 @@ watch(
 	{ immediate: true },
 )
 
-const slideRect = useElementBounding(targetRef)
-
 watch(
 	() => activePosition.value,
 	(position) => {
 		if (!position) return
-		const currentScale = slideRect.width.value / 960
-		const newleft = (position.left - slideRect.left.value) / currentScale
-		const newTop = (position.top - slideRect.top.value) / currentScale
+		const newleft = (position.left - slideRect.value.left) / scale.value
+		const newTop = (position.top - slideRect.value.top) / scale.value
 		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
 	},
 	{ immediate: true },
@@ -203,61 +288,19 @@ watch(
 	(dimensions) => {
 		if (!dimensions) return
 		if (activeElement.value && dimensions.width != activeElement.value.width) {
-			const currentScale = slideRect.width.value / 960
-			const newWidth = dimensions.width / currentScale
+			const newWidth = dimensions.width / scale.value
 			activeElement.value = { ...activeElement.value, width: newWidth }
 		}
 	},
 	{ immediate: true },
 )
 
-const beforeSlideEnter = (el) => {
-	if (!slide.value.transition) return
-	if (slide.value.transition == 'Slide In') {
-		transform.value = applyReverseTransition.value ? 'translateX(-100%)' : 'translateX(100%)'
-		transition.value = 'none'
-	} else if (slide.value.transition == 'Fade') {
-		opacity.value = 0
-	}
-}
+onMounted(() => {
+	document.addEventListener('fullscreenchange', handleScreenChange)
+})
 
-const slideEnter = (el, done) => {
-	if (!slide.value.transition) return
-	el.offsetWidth
-	if (slide.value.transition == 'Slide In') {
-		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
-		transform.value = 'translateX(0)'
-	} else if (slide.value.transition == 'Fade') {
-		transition.value = `opacity ${slide.value.transitionDuration}s`
-		opacity.value = 1
-	}
-	done()
-}
-
-const beforeSlideLeave = (el) => {
-	if (!slide.value.transition) return
-	if (slide.value.transition == 'Slide In') {
-		transition.value = 'none'
-	} else if (slide.value.transition == 'Fade') {
-		opacity.value = 1
-	}
-}
-
-const slideLeave = (el, done) => {
-	if (!slide.value.transition) return
-	if (slide.value.transition == 'Slide In') {
-		transform.value = applyReverseTransition.value ? 'translateX(100%)' : 'translateX(-100%)'
-		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
-	} else if (slide.value.transition == 'Fade') {
-		el.offsetWidth
-		transition.value = `opacity ${slide.value.transitionDuration}s`
-		opacity.value = 0
-	}
-	done()
-}
-
-defineExpose({
-	targetRef,
+onBeforeUnmount(() => {
+	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 </script>
 

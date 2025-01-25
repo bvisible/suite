@@ -36,7 +36,7 @@
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<div
-				ref="slideContainer"
+				v-if="containerRef"
 				class="slideContainer flex items-center justify-center w-full h-full"
 				:class="{
 					'bg-black': inSlideShow,
@@ -46,15 +46,7 @@
 					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
 				}"
 			>
-				<Slide
-					ref="slide"
-					:slideCursor="slideCursor"
-					:isPanningOrZooming="zoom.isPanningOrZooming.value"
-					:style="{
-						transform: zoom.transform.value,
-						transformOrigin: zoom.transformOrigin.value,
-					}"
-				/>
+				<Slide ref="slide" :containerRef="containerRef" />
 
 				<!-- Media Drag Overlay -->
 				<div
@@ -97,23 +89,20 @@ import {
 	addTextElement,
 	addMediaElement,
 } from '@/stores/element'
-import { usePanAndZoom } from '@/utils/zoom'
 
 let autosaveInterval = null
 
 const route = useRoute()
 const router = useRouter()
-const zoom = usePanAndZoom()
 
 const parentRef = useTemplateRef('parent')
 const containerRef = useTemplateRef('container')
-const slideRef = useTemplateRef('slide')
 const newTitleRef = useTemplateRef('newTitleRef')
 
-const renameMode = ref(false)
 const newTitle = ref('')
-
+const renameMode = ref(false)
 const showNavigator = ref(true)
+const isMediaDragOver = ref(false)
 
 const enableRenameMode = () => {
 	renameMode.value = true
@@ -225,39 +214,6 @@ const handleKeyDown = (e) => {
 	activeElementId.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
-const slideContainerRef = useTemplateRef('slideContainer')
-
-const slideCursor = ref('none')
-
-const resetCursorVisibility = () => {
-	let cursorTimer
-
-	slideCursor.value = 'auto'
-	clearTimeout(cursorTimer)
-	cursorTimer = setTimeout(() => {
-		slideCursor.value = 'none'
-	}, 3000)
-}
-
-const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement
-
-	if (document.fullscreenElement) {
-		resetFocus()
-		zoom.transformOrigin.value = ''
-		zoom.allowPanAndZoom.value = false
-		zoom.transform.value = 'scale(1.5, 1.5)'
-		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
-	} else {
-		zoom.transform.value = ''
-		zoom.transformOrigin.value = '0 0'
-		zoom.allowPanAndZoom.value = true
-		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-	}
-}
-
-const isMediaDragOver = ref(false)
-
 const handleDragEnter = (e) => {
 	e.preventDefault()
 	isMediaDragOver.value = true
@@ -297,18 +253,12 @@ watch(
 )
 
 onMounted(() => {
-	zoom.containerElement.value = containerRef.value
-	zoom.targetElement.value = slideRef.value.targetRef
-	zoom.allowPanAndZoom.value = true
 	autosaveInterval = setInterval(saveChanges, 60000)
 	document.addEventListener('keydown', handleKeyDown)
-	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
-	zoom.allowPanAndZoom.value = false
 	clearInterval(autosaveInterval)
 	document.removeEventListener('keydown', handleKeyDown)
-	document.removeEventListener('fullscreenchange', handleScreenChange)
 })
 </script>
