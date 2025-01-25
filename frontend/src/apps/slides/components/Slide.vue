@@ -92,6 +92,7 @@ const props = defineProps({
 })
 
 const targetRef = useTemplateRef('target')
+slideRect.value = useElementBounding(targetRef)
 
 const { isDragging, dragTarget } = useDragAndDrop(activePosition)
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
@@ -109,10 +110,16 @@ const showGuides = computed(
 	() => activeElement.value && activeElementId.value != null && !isPanningOrZooming.value,
 )
 
+const scale = computed(() => {
+	const matrix = transform.value.match(/matrix\((.+)\)/)
+	if (!matrix) return 1
+	return parseFloat(matrix[1].split(', ')[0])
+})
+
 const slideStyles = computed(() => {
 	if (!presentation.data) return
 	return {
-		backgroundColor: presentation.data.slides[slideIndex.value]?.background || 'white',
+		backgroundColor: slide.value.background || 'white',
 		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
 		transformOrigin: inSlideShow.value ? 'center' : transformOrigin.value,
@@ -168,60 +175,6 @@ const removeDragAndResize = () => {
 	dragTarget.value = null
 	resizeTarget.value = null
 }
-
-watch(
-	() => activeElementId.value,
-	() => {
-		if (activeElementId.value == null) {
-			removeDragAndResize()
-			return
-		}
-		addDragAndResize()
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => presentation.data,
-	() => {
-		const currentSlide = presentation.data?.slides[slideIndex.value]
-		if (!currentSlide) return
-		slide.value.elements = JSON.parse(currentSlide.elements)
-		slide.value.transition = currentSlide.transition
-		slide.value.transitionDuration = currentSlide.transition_duration
-	},
-	{ immediate: true },
-)
-
-slideRect.value = useElementBounding(targetRef)
-const scale = computed(() => {
-	const matrix = transform.value.match(/matrix\((.+)\)/)
-	if (!matrix) return 1
-	return parseFloat(matrix[1].split(', ')[0])
-})
-
-watch(
-	() => activePosition.value,
-	(position) => {
-		if (!position) return
-		const newleft = (position.left - slideRect.value.left) / scale.value
-		const newTop = (position.top - slideRect.value.top) / scale.value
-		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => activeDimensions.value,
-	(dimensions) => {
-		if (!dimensions) return
-		if (activeElement.value && dimensions.width != activeElement.value.width) {
-			const newWidth = dimensions.width / scale.value
-			activeElement.value = { ...activeElement.value, width: newWidth }
-		}
-	},
-	{ immediate: true },
-)
 
 const beforeSlideEnter = (el) => {
 	if (!slide.value.transition) return
@@ -294,6 +247,54 @@ const handleScreenChange = () => {
 		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }
+
+watch(
+	() => activeElementId.value,
+	() => {
+		if (activeElementId.value == null) {
+			removeDragAndResize()
+			return
+		}
+		addDragAndResize()
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => presentation.data,
+	() => {
+		const currentSlide = presentation.data?.slides[slideIndex.value]
+		if (!currentSlide) return
+		slide.value.elements = JSON.parse(currentSlide.elements)
+		slide.value.transition = currentSlide.transition
+		slide.value.transitionDuration = currentSlide.transition_duration
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => activePosition.value,
+	(position) => {
+		if (!position) return
+		const newleft = (position.left - slideRect.value.left) / scale.value
+		const newTop = (position.top - slideRect.value.top) / scale.value
+		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => activeDimensions.value,
+	(dimensions) => {
+		if (!dimensions) return
+		if (activeElement.value && dimensions.width != activeElement.value.width) {
+			const newWidth = dimensions.width / scale.value
+			activeElement.value = { ...activeElement.value, width: newWidth }
+		}
+	},
+	{ immediate: true },
+)
+
 onMounted(() => {
 	document.addEventListener('fullscreenchange', handleScreenChange)
 })
