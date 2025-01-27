@@ -243,7 +243,7 @@ const handleScreenChange = async () => {
 		allowPanAndZoom.value = false
 		props.containerRef.addEventListener('mousemove', resetCursorVisibility)
 	} else {
-		await router.replace({ query: {} })
+		await router.replace({ query: null })
 		allowPanAndZoom.value = true
 		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
 	}
