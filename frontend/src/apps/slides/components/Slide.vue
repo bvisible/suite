@@ -9,10 +9,10 @@
 		>
 			<div
 				ref="target"
-				class="slide h-[540px] w-[960px] drop-shadow-xl"
-				:style="slideStyles"
-				@click="handleSlideClick"
 				:key="slideIndex"
+				class="slide h-[540px] w-[960px]"
+				:style="slideShowStyles"
+				@click="changeSlide(slideIndex + 1)"
 			>
 				<component
 					ref="element"
@@ -25,23 +25,14 @@
 			</div>
 		</Transition>
 	</div>
-	<div
-		v-else
-		ref="target"
-		:style="{
-			transformOrigin: inSlideShow ? 'center' : transformOrigin,
-			transform: inSlideShow
-				? `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform}`
-				: transform,
-		}"
-	>
+	<div v-else ref="target" :style="targetStyles">
 		<div
 			class="slide h-[540px] w-[960px] shadow-2xl"
 			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
-			@click="handleSlideClick"
+			@click="selectSlide"
 		>
-			<ElementAlignmentGuides v-if="showGuides" :slideRect="slideRect" />
+			<ElementAlignmentGuides v-if="showGuides" />
 
 			<component
 				ref="element"
@@ -83,6 +74,7 @@ import {
 	deleteSlide,
 	duplicateSlide,
 	slideRect,
+	changeSlide,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -126,18 +118,28 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const slideStyles = computed(() => {
-	if (!presentation.data) return
-	return {
-		backgroundColor: slide.value.background || 'white',
-		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
-		transition: transition.value,
-		opacity: opacity.value,
-		'--overlayDisplay': activeElementId.value != null ? 'none' : 'block',
-	}
-})
+const slideShowStyles = computed(() => ({
+	backgroundColor: slide.value.background || 'white',
+	cursor: slideCursor.value,
+	transformOrigin: 'center',
+	transform: `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`,
+	transition: transition.value,
+	opacity: opacity.value,
+}))
+
+const targetStyles = computed(() => ({
+	transformOrigin: transformOrigin.value,
+	transform: transform.value,
+}))
+
+const slideStyles = computed(() => ({
+	backgroundColor: slide.value.background || 'white',
+	cursor: isDragging.value ? 'move' : 'default',
+	'--showEdgeOverlay': activeElementId.value == null ? 'block' : 'none',
+}))
 
 const selectSlide = (e) => {
+	if (!e.target.classList.contains('slide')) return
 	e.preventDefault()
 	e.stopPropagation()
 	if (isResizing.value) {
@@ -151,15 +153,6 @@ const selectSlide = (e) => {
 	}
 	resetFocus()
 	slideFocus.value = true
-}
-
-const handleSlideClick = (e) => {
-	e.stopPropagation()
-	if (!e.target.classList.contains('slide')) return
-	if (inSlideShow.value) {
-		slideIndex.value += 1
-		return
-	} else selectSlide(e)
 }
 
 const addDragAndResize = () => {
@@ -316,7 +309,7 @@ onBeforeUnmount(() => {
 <style>
 .slide::after {
 	content: '';
-	display: var(--overlayDisplay, none);
+	display: var(--showEdgeOverlay, none);
 	width: 100%;
 	height: 100%;
 	position: absolute;
