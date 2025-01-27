@@ -25,9 +25,19 @@
 			</div>
 		</Transition>
 	</div>
-	<div v-else ref="target">
+	<div
+		v-else
+		ref="target"
+		:style="{
+			transformOrigin: inSlideShow ? 'center' : transformOrigin,
+			transform: inSlideShow
+				? `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform}`
+				: transform,
+		}"
+	>
 		<div
-			class="slide h-[540px] w-[960px] drop-shadow-2xl"
+			class="slide h-[540px] w-[960px] shadow-2xl"
+			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 			@click="handleSlideClick"
 		>
@@ -122,11 +132,8 @@ const slideStyles = computed(() => {
 		backgroundColor: slide.value.background || 'white',
 		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
 		transition: transition.value,
-		transformOrigin: inSlideShow.value ? 'center' : transformOrigin.value,
-		transform: inSlideShow.value
-			? `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`
-			: transform.value,
 		opacity: opacity.value,
+		'--overlayDisplay': activeElementId.value != null ? 'none' : 'block',
 	}
 })
 
@@ -148,7 +155,7 @@ const selectSlide = (e) => {
 
 const handleSlideClick = (e) => {
 	e.stopPropagation()
-	if (e.target != targetRef.value) return
+	if (!e.target.classList.contains('slide')) return
 	if (inSlideShow.value) {
 		slideIndex.value += 1
 		return
@@ -309,12 +316,12 @@ onBeforeUnmount(() => {
 <style>
 .slide::after {
 	content: '';
-	display: block;
+	display: var(--overlayDisplay, none);
 	width: 100%;
 	height: 100%;
 	position: absolute;
 	background: transparent;
 	pointer-events: none;
-	box-shadow: 0 0 0 5000px rgba(255, 255, 255, 0.7);
+	box-shadow: 0 0 5000px 500px rgba(255, 255, 255, 0.6);
 }
 </style>
