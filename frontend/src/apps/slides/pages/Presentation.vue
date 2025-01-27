@@ -26,18 +26,19 @@
 			<span v-else class="select-none font-semibold text-gray-700" @click="enableRenameMode">
 				{{ presentation.data?.title }}
 			</span>
-			<Button variant="solid" label="Present" size="sm" @click="enablePresentMode" />
+			<Button
+				variant="solid"
+				label="Present"
+				size="sm"
+				@click="router.replace({ query: { present: true } })"
+			/>
 		</div>
 
-		<div
-			ref="container"
-			class="flex h-full items-center justify-center"
-			@click="(e) => clearFocus(e)"
-		>
+		<div class="flex h-full items-center justify-center" @click="(e) => clearFocus(e)">
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<div
-				v-if="containerRef"
+				ref="slideContainer"
 				class="slideContainer flex items-center justify-center w-full h-full"
 				:class="{
 					'bg-black': inSlideShow,
@@ -47,7 +48,7 @@
 					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
 				}"
 			>
-				<Slide ref="slide" :containerRef="containerRef" />
+				<Slide v-if="slideContainerRef" ref="slide" :containerRef="slideContainerRef" />
 
 				<!-- Media Drag Overlay -->
 				<div
@@ -71,7 +72,7 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
-import { presentationId, presentation, inSlideShow, startSlideShow } from '@/stores/presentation'
+import { presentationId, presentation, inSlideShow } from '@/stores/presentation'
 import {
 	slideIndex,
 	slideFocus,
@@ -97,7 +98,7 @@ const route = useRoute()
 const router = useRouter()
 
 const parentRef = useTemplateRef('parent')
-const containerRef = useTemplateRef('container')
+const slideContainerRef = useTemplateRef('slideContainer')
 const newTitleRef = useTemplateRef('newTitleRef')
 
 const newTitle = ref('')
@@ -126,16 +127,10 @@ const saveTitle = async () => {
 }
 
 const clearFocus = (e) => {
-	if (e.target == containerRef.value) {
+	if (e.target == slideContainerRef.value) {
 		resetFocus()
 		slideFocus.value = false
 	}
-}
-
-const enablePresentMode = async () => {
-	await saveChanges()
-	await presentation.reload()
-	await startSlideShow()
 }
 
 const updateElementPosition = (dx, dy) => {
@@ -243,12 +238,37 @@ const handleMediaDrop = async (e) => {
 	})
 }
 
+const startSlideShow = async () => {
+	await saveChanges()
+	await presentation.reload()
+	await changeSlide(0)
+
+	const elem = slideContainerRef.value
+
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen()
+	} else if (elem.webkitRequestFullscreen) {
+		elem.webkitRequestFullscreen()
+	} else if (elem.msRequestFullscreen) {
+		elem.msRequestFullscreen()
+	}
+}
+
 watch(
 	() => route.params.presentationId,
 	async (id) => {
 		if (!id) return
 		presentationId.value = id
 		await presentation.fetch()
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => route.query.present,
+	(present) => {
+		present && startSlideShow()
+		inSlideShow.value = present
 	},
 	{ immediate: true },
 )

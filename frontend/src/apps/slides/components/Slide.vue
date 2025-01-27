@@ -44,13 +44,13 @@
 			/>
 		</div>
 
+		<!-- Slide Actions -->
 		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
-			<Copy size="14" :strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
+			<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="deleteSlide" />
+			<Copy size="14" class="text-gray-800 stroke-[1.5]" @click="duplicateSlide" />
 			<SquarePlus
 				size="14"
-				:strokeWidth="1.5"
-				class="text-gray-800"
+				class="text-gray-800 stroke-[1.5]"
 				@click="insertSlide(slideIndex)"
 			/>
 		</div>
@@ -59,6 +59,7 @@
 
 <script setup>
 import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
@@ -88,6 +89,8 @@ import {
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
+
+const router = useRouter()
 
 const props = defineProps({
 	containerRef: Object,
@@ -235,14 +238,12 @@ const resetCursorVisibility = () => {
 	}, 3000)
 }
 
-const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement
-
+const handleScreenChange = async () => {
 	if (document.fullscreenElement) {
-		resetFocus()
 		allowPanAndZoom.value = false
 		props.containerRef.addEventListener('mousemove', resetCursorVisibility)
 	} else {
+		await router.replace({ query: {} })
 		allowPanAndZoom.value = true
 		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
 	}
