@@ -2,6 +2,7 @@
 	<div
 		ref="parent"
 		class="fixed flex h-screen w-screen flex-col"
+		:class="activeElementId == null ? 'bg-gray-200' : 'bg-gray-50'"
 		@dragenter.prevent="handleDragEnter"
 		@dragleave.prevent="handleDragLeave"
 		@dragover.prevent
