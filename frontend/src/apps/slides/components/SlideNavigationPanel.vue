@@ -7,6 +7,7 @@
 		v-if="presentation.data?.slides"
 		@mouseenter="showCollapseShortcut = true"
 		@mouseleave="showCollapseShortcut = false"
+		@wheel.prevent="(e) => e.stopPropagation()"
 	>
 		<div class="flex flex-col px-4">
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">

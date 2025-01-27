@@ -5,6 +5,7 @@
 		class="fixed z-20 flex h-[94.27%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
 		:class="activeTab ? 'right-13' : '-right-[174px]'"
 		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
+		@wheel.prevent="(e) => e.stopPropagation()"
 	>
 		<div v-if="activeTab == 'slide'">
 			<div class="border-b p-4">
@@ -273,7 +274,10 @@
 	</div>
 
 	<!-- Slide Elements Panel -->
-	<div class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white">
+	<div
+		class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white"
+		@wheel.prevent="(e) => e.stopPropagation()"
+	>
 		<div class="flex flex-col justify-between">
 			<div>
 				<Tooltip text="Text" :hover-delay="1" placement="left">

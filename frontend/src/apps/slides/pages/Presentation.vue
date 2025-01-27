@@ -7,6 +7,7 @@
 		@dragleave.prevent="handleDragLeave"
 		@dragover.prevent
 		@drop="handleMediaDrop"
+		@wheel.prevent="(e) => e.stopPropagation()"
 	>
 		<!-- Navbar -->
 		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
@@ -34,12 +35,16 @@
 			/>
 		</div>
 
-		<div class="flex h-full items-center justify-center" @click="(e) => clearFocus(e)">
+		<div
+			v-if="presentation.data?.slides"
+			class="flex h-full items-center justify-center"
+			@click="(e) => clearFocus(e)"
+		>
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<div
 				ref="slideContainer"
-				class="slideContainer flex items-center justify-center w-full h-full"
+				class="flex items-center justify-center w-full h-full"
 				:class="{
 					'bg-black': inSlideShow,
 					'outline-blue-300 outline': isMediaDragOver,
