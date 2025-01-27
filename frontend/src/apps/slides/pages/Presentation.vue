@@ -266,8 +266,8 @@ watch(
 
 watch(
 	() => route.query.present,
-	(present) => {
-		present && startSlideShow()
+	async (present) => {
+		present && (await startSlideShow())
 		inSlideShow.value = present
 	},
 	{ immediate: true },
