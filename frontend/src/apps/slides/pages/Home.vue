@@ -109,7 +109,7 @@
 						class="rounded p-2 mx-2 cursor-pointer bg-gray-900"
 						@click="enablePresentMode"
 					>
-						<Presentation size="16" :strokeWidth="1.5" class="text-white" />
+						<Presentation size="16" class="text-white stroke-[1.5]" />
 					</div>
 				</Tooltip>
 				<Tooltip
@@ -150,7 +150,7 @@ import { Tooltip } from 'frappe-ui'
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
-import { presentationList, startSlideShow } from '@/stores/presentation'
+import { presentationList } from '@/stores/presentation'
 import { guessTextColorFromBackground } from '@/utils/color'
 
 import tinycolor from 'tinycolor2'
@@ -215,8 +215,11 @@ const hidePreview = () => {
 }
 
 const enablePresentMode = async () => {
-	await router.push(`/${previewPresentation.value.name}`)
-	await startSlideShow()
+	await router.push({
+		name: 'Presentation',
+		params: { presentationId: previewPresentation.value.name },
+		query: { present: true },
+	})
 }
 
 watch(
