@@ -91,7 +91,7 @@ const insertSlide = async (index) => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
 		name: presentationId.value,
-		index: index,
+		index: index || presentation.data.slides.length,
 	})
 	await presentation.reload()
 	changeSlide(index + 1)

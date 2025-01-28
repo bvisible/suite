@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col gap-4 border-b px-4 py-4">
+	<div class="flex flex-col gap-4 border-b p-4">
 		<div class="text-2xs font-semibold uppercase text-gray-700">Style</div>
 		<div class="flex items-center justify-between">
 			<button
@@ -74,7 +74,7 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-4 border-b px-4 py-4">
+	<div class="flex flex-col gap-4 border-b p-4">
 		<div class="text-2xs font-semibold uppercase text-gray-700">Font</div>
 		<FormControl
 			type="autocomplete"
@@ -104,7 +104,7 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-4 border-b px-4 py-4">
+	<div class="flex flex-col gap-4 border-b p-4">
 		<div class="text-2xs font-semibold uppercase text-gray-700">Spacing</div>
 
 		<SliderInput
