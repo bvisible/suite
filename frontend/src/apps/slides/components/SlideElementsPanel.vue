@@ -46,7 +46,7 @@
 			<TextPropertyTab v-if="activeTab == 'text'" />
 
 			<div v-if="activeTab == 'image'">
-				<div class="flex flex-col gap-4 p-4 border-b">
+				<div :class="sectionClasses">
 					<div :class="sectionTitleClasses">Orientation</div>
 					<div
 						v-for="(direction, index) in imageOrientationProperties"
@@ -101,35 +101,25 @@
 					<div :class="sectionTitleClasses">Border</div>
 
 					<div
-						class="flex h-[34px] w-full items-center justify-between gap-3 rounded border bg-gray-50 p-[1px] px-[5px]"
+						class="flex h-8 w-full items-center gap-3 justify-between rounded border bg-gray-50 p-[2px] px-2"
 					>
 						<div
+							v-for="(direction, index) in ['none', 'solid', 'dashed', 'dotted']"
+							:key="index"
 							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'none' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'none'"
+							:class="activeElement.borderStyle == direction ? 'bg-white shadow' : ''"
+							@click="activeElement.borderStyle = direction"
 						>
-							<FeatherIcon name="slash" class="h-4 text-black" />
-						</div>
-						<div
-							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'solid' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'solid'"
-						>
-							<div class="h-4 w-5 rounded-sm border border-solid border-black"></div>
-						</div>
-						<div
-							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'dashed' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'dashed'"
-						>
-							<div class="h-4 w-5 rounded-sm border border-dashed border-black"></div>
-						</div>
-						<div
-							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'dotted' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'dotted'"
-						>
-							<div class="h-4 w-5 rounded-sm border border-dotted border-black"></div>
+							<FeatherIcon
+								v-if="direction == 'none'"
+								name="slash"
+								class="h-4 text-black"
+							/>
+							<div
+								v-else
+								class="h-4 w-5 rounded-sm border border-black"
+								:style="{ borderStyle: direction }"
+							></div>
 						</div>
 					</div>
 
@@ -196,7 +186,7 @@
 								:showInput="false"
 							/>
 							<ColorPicker
-								class="w-10 justify-center"
+								class="w-10 justify-end"
 								v-model="activeElement.shadowColor"
 							/>
 						</div>
@@ -204,10 +194,7 @@
 				</div>
 			</div>
 
-			<div
-				v-if="activeElement && activeTab != 'video'"
-				class="flex flex-col gap-4 p-4 border-b"
-			>
+			<div v-if="activeElement && activeTab != 'video'" :class="sectionClasses">
 				<div :class="sectionTitleClasses">Other</div>
 				<SliderInput
 					label="Opacity"
