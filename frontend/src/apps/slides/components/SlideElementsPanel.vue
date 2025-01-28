@@ -1,15 +1,14 @@
 <template>
 	<!-- Element Properties Panel -->
 	<div
-		v-if="activeTab"
-		class="fixed z-20 flex h-[94.27%] w-[226px] select-none flex-col border-l bg-white transition-all duration-500 ease-in-out"
+		class="fixed z-20 flex flex-col h-[94.27%] w-[226px] bg-white transition-all duration-500 ease-in-out border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
 		:class="activeTab ? 'right-13' : '-right-[174px]'"
-		:style="{ boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }"
+		@wheel.prevent="(e) => e.stopPropagation()"
 	>
 		<div v-if="activeTab == 'slide'">
-			<div class="border-b p-4">
+			<div :class="sectionClasses">
 				<div class="flex items-center justify-between">
-					<div class="text-2xs font-semibold uppercase text-gray-700">Slide</div>
+					<div :class="sectionTitleClasses">Slide</div>
 					<div class="text-2xs font-semibold text-gray-700">
 						{{ slideIndex + 1 + ' of ' + presentation.data.slides.length }}
 					</div>
@@ -21,8 +20,8 @@
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-4 border-b px-4 py-4">
-				<div class="text-2xs font-semibold uppercase text-gray-700">Transition</div>
+			<div :class="sectionClasses">
+				<div :class="sectionTitleClasses">Transition</div>
 				<FormControl
 					type="autocomplete"
 					:options="['Slide In', 'Fade', 'None']"
@@ -43,104 +42,45 @@
 			</div>
 		</div>
 
-		<div v-else class="flex flex-col">
-			<div v-if="activeTab == 'text'">
-				<TextPropertyTab />
-			</div>
+		<div v-else>
+			<TextPropertyTab v-if="activeTab == 'text'" />
 
 			<div v-if="activeTab == 'image'">
-				<div class="flex flex-col gap-4 border-b px-4 py-4">
-					<div class="text-2xs font-semibold uppercase text-gray-700">Orientation</div>
+				<div :class="sectionClasses">
+					<div :class="sectionTitleClasses">Orientation</div>
 					<div
-						class="flex cursor-pointer items-center justify-between pb-2 pe-2"
-						@click="
-							activeElement.invertX == 1
-								? (activeElement.invertX = -1)
-								: (activeElement.invertX = 1)
-						"
+						v-for="(direction, index) in imageOrientationProperties"
+						:key="index"
+						class="flex cursor-pointer items-center justify-between"
+						@click="toggleImageOrientation(direction)"
 					>
-						<div class="text-sm text-gray-600">Flip Horizontally</div>
-						<FlipHorizontal size="20" :strokeWidth="1.2" />
-					</div>
-					<div
-						class="flex cursor-pointer items-center justify-between pb-2 pe-2"
-						@click="
-							activeElement.invertY == 1
-								? (activeElement.invertY = -1)
-								: (activeElement.invertY = 1)
-						"
-					>
-						<div class="text-sm text-gray-600">Flip Vertically</div>
-						<FlipVertical size="20" :strokeWidth="1.2" />
+						<div class="text-sm text-gray-600">{{ direction.label }}</div>
+						<component :is="direction.icon" size="20" :strokeWidth="1.2" />
 					</div>
 				</div>
 			</div>
 
 			<div v-if="activeTab == 'video'">
-				<div class="flex flex-col gap-4 border-b px-4 py-4">
-					<div class="text-2xs font-semibold uppercase text-gray-700">Playback</div>
+				<div :class="sectionClasses">
+					<div :class="sectionTitleClasses">Playback</div>
 
 					<div class="flex gap-4">
 						<div
-							class="flex w-1/2 cursor-pointer flex-col items-center justify-center gap-1 rounded border p-1"
-							:class="
-								hoverOption == 'autoplay' || activeElement.autoPlay
-									? 'border-gray-800 bg-gray-50'
-									: ''
-							"
-							@mouseenter="hoverOption = 'autoplay'"
+							v-for="(option, index) in playbackProperties"
+							:key="index"
+							:class="getPlaybackOptionClasses(option.property)"
+							@mouseenter="hoverOption = option.property"
 							@mouseleave="hoverOption = null"
-							@click="activeElement.autoPlay = !activeElement.autoPlay"
+							@click="togglePlaybackOption(option.property)"
 						>
-							<TvMinimalPlay
+							<component
+								:is="option.icon"
 								size="20"
 								:strokeWidth="1.2"
-								:class="
-									hoverOption == 'autoplay' || activeElement.autoPlay
-										? 'text-gray-800'
-										: 'text-gray-600'
-								"
+								:class="getPlaybackTextClasses(option.property)"
 							/>
-							<div
-								class="text-xs"
-								:class="
-									hoverOption == 'autoplay' || activeElement.autoPlay
-										? 'text-gray-800'
-										: 'text-gray-600'
-								"
-							>
-								Autoplay
-							</div>
-						</div>
-						<div
-							class="flex w-1/2 cursor-pointer flex-col items-center justify-center gap-1 rounded border p-1"
-							:class="
-								hoverOption == 'loop' || activeElement.loop
-									? 'border-gray-800 bg-gray-50'
-									: ''
-							"
-							@mouseenter="hoverOption = 'loop'"
-							@mouseleave="hoverOption = null"
-							@click="activeElement.loop = !activeElement.loop"
-						>
-							<Repeat2
-								size="20"
-								:strokeWidth="1.2"
-								:class="
-									hoverOption == 'loop' || activeElement.loop
-										? 'text-gray-800'
-										: 'text-gray-600'
-								"
-							/>
-							<div
-								class="text-xs"
-								:class="
-									hoverOption == 'loop' || activeElement.loop
-										? 'text-gray-800'
-										: 'text-gray-600'
-								"
-							>
-								Loop
+							<div class="text-xs" :class="getPlaybackTextClasses(option.property)">
+								{{ option.label }}
 							</div>
 						</div>
 					</div>
@@ -157,39 +97,29 @@
 			</div>
 
 			<div v-if="['image', 'video'].includes(activeTab)">
-				<div class="flex flex-col gap-4 border-b px-4 py-4">
-					<div class="text-2xs font-semibold uppercase text-gray-700">Border</div>
+				<div :class="sectionClasses">
+					<div :class="sectionTitleClasses">Border</div>
 
 					<div
-						class="flex h-[34px] w-full items-center justify-between gap-3 rounded border bg-gray-50 p-[1px] px-[5px]"
+						class="flex h-8 w-full items-center gap-3 justify-between rounded border bg-gray-50 p-[2px] px-2"
 					>
 						<div
+							v-for="(direction, index) in ['none', 'solid', 'dashed', 'dotted']"
+							:key="index"
 							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'none' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'none'"
+							:class="activeElement.borderStyle == direction ? 'bg-white shadow' : ''"
+							@click="activeElement.borderStyle = direction"
 						>
-							<FeatherIcon name="slash" class="h-4 text-black" />
-						</div>
-						<div
-							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'solid' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'solid'"
-						>
-							<div class="h-4 w-5 rounded-sm border border-solid border-black"></div>
-						</div>
-						<div
-							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'dashed' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'dashed'"
-						>
-							<div class="h-4 w-5 rounded-sm border border-dashed border-black"></div>
-						</div>
-						<div
-							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == 'dotted' ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = 'dotted'"
-						>
-							<div class="h-4 w-5 rounded-sm border border-dotted border-black"></div>
+							<FeatherIcon
+								v-if="direction == 'none'"
+								name="slash"
+								class="h-4 text-black"
+							/>
+							<div
+								v-else
+								class="h-4 w-5 rounded-sm border border-black"
+								:style="{ borderStyle: direction }"
+							></div>
 						</div>
 					</div>
 
@@ -225,8 +155,8 @@
 					</div>
 				</div>
 
-				<div class="flex flex-col gap-4 border-b px-4 py-4">
-					<div class="text-2xs font-semibold uppercase text-gray-700">Shadow</div>
+				<div :class="sectionClasses">
+					<div :class="sectionTitleClasses">Shadow</div>
 
 					<SliderInput
 						label="Offset X"
@@ -244,23 +174,28 @@
 						@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 					/>
 
-					<div class="text-sm text-gray-600">Spread</div>
-					<div class="flex items-center justify-between">
-						<SliderInput
-							class="w-4/5"
-							:rangeStart="1"
-							:rangeEnd="500"
-							:modelValue="parseFloat(activeElement.shadowSpread) || 50"
-							@update:modelValue="(value) => (activeElement.shadowSpread = value)"
-							:showInput="false"
-						/>
-						<ColorPicker v-model="activeElement.shadowColor" />
+					<div class="flex flex-col gap-1">
+						<div class="text-sm text-gray-600">Spread</div>
+						<div class="flex items-center justify-between">
+							<SliderInput
+								class="w-4/5"
+								:rangeStart="1"
+								:rangeEnd="500"
+								:modelValue="parseFloat(activeElement.shadowSpread) || 50"
+								@update:modelValue="(value) => (activeElement.shadowSpread = value)"
+								:showInput="false"
+							/>
+							<ColorPicker
+								class="w-10 justify-end"
+								v-model="activeElement.shadowColor"
+							/>
+						</div>
 					</div>
 				</div>
 			</div>
 
-			<div v-if="activeElement && activeTab != 'video'" class="flex flex-col gap-4 px-4 py-4">
-				<div class="text-2xs font-semibold uppercase text-gray-700">Other</div>
+			<div v-if="activeElement && activeTab != 'video'" :class="sectionClasses">
+				<div :class="sectionTitleClasses">Other</div>
 				<SliderInput
 					label="Opacity"
 					:rangeStart="0"
@@ -273,90 +208,44 @@
 	</div>
 
 	<!-- Slide Elements Panel -->
-	<div class="fixed right-0 z-20 flex h-[94.27%] w-fit select-none border-l bg-white">
-		<div class="flex flex-col justify-between">
-			<div>
-				<Tooltip text="Text" :hover-delay="1" placement="left">
-					<div
-						class="cursor-pointer p-4"
-						:class="activeTab == 'text' ? 'bg-gray-100' : ''"
-						@click="addTextElement"
-					>
-						<FeatherIcon
-							name="type"
-							class="h-5"
-							:class="
-								activeTab == 'text' ? 'stroke-[1.6px] text-black' : 'text-[#636363]'
-							"
-						/>
-					</div>
-				</Tooltip>
-				<Tooltip text="Image" :hover-delay="1" placement="left">
-					<FileUploader
-						:fileTypes="['image/*']"
-						@success="(file) => addMediaElement(file, 'image')"
-					>
-						<template #default="{ openFileSelector }">
-							<div
-								class="cursor-pointer p-4"
-								:class="activeTab == 'image' ? 'bg-gray-100' : ''"
-								@click="openFileSelector"
-							>
-								<FeatherIcon
-									name="image"
-									class="h-5"
-									:class="
-										activeTab == 'image'
-											? 'stroke-[1.6px] text-black'
-											: 'text-[#636363]'
-									"
-								/>
-							</div>
-						</template>
-					</FileUploader>
-				</Tooltip>
-				<Tooltip text="Video" :hover-delay="1" placement="left">
-					<FileUploader
-						:fileTypes="['video/*']"
-						@success="(file) => addMediaElement(file, 'video')"
-					>
-						<template #default="{ openFileSelector }">
-							<div
-								class="cursor-pointer p-4"
-								:class="activeTab == 'video' ? 'bg-gray-100' : ''"
-								@click="openFileSelector"
-							>
-								<FeatherIcon
-									name="film"
-									class="h-5"
-									:class="
-										activeTab == 'video'
-											? 'stroke-[1.6px] text-black'
-											: 'text-[#636363]'
-									"
-								/>
-							</div>
-						</template>
-					</FileUploader>
-				</Tooltip>
-				<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
-					<div
-						class="cursor-pointer p-4"
-						:class="activeTab == 'slide' ? 'bg-gray-100' : ''"
-					>
-						<FeatherIcon
-							name="layout"
-							class="h-5"
-							:class="
-								activeTab == 'slide'
-									? 'stroke-[1.6px] text-black'
-									: 'text-[#636363]'
-							"
-						/>
-					</div>
-				</Tooltip>
+	<div
+		class="fixed right-0 z-20 flex h-[94.27%] border-l bg-white flex-col"
+		@wheel.prevent="(e) => e.stopPropagation()"
+	>
+		<Tooltip text="Text" :hover-delay="1" placement="left">
+			<div :class="getTabClasses('text')" @click="addTextElement">
+				<FeatherIcon name="type" :class="getIconClasses('text')" />
 			</div>
-		</div>
+		</Tooltip>
+		<Tooltip text="Image" :hover-delay="1" placement="left">
+			<FileUploader
+				:fileTypes="['image/*']"
+				@success="(file) => addMediaElement(file, 'image')"
+			>
+				<template #default="{ openFileSelector }">
+					<div :class="getTabClasses('image')" @click="openFileSelector">
+						<FeatherIcon name="image" :class="getIconClasses('image')" />
+					</div>
+				</template>
+			</FileUploader>
+		</Tooltip>
+		<Tooltip text="Video" :hover-delay="1" placement="left">
+			<FileUploader
+				:fileTypes="['video/*']"
+				@success="(file) => addMediaElement(file, 'video')"
+			>
+				<template #default="{ openFileSelector }">
+					<div :class="getTabClasses('video')" @click="openFileSelector">
+						<FeatherIcon name="film" :class="getIconClasses('video')" />
+					</div>
+				</template>
+			</FileUploader>
+		</Tooltip>
+		<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
+			<div :class="getTabClasses('slide')">
+				<FeatherIcon name="layout" :class="getIconClasses('slide')" />
+			</div>
+		</Tooltip>
 	</div>
 </template>
 
@@ -381,7 +270,75 @@ const activeTab = computed(() => {
 	return activeElement.value.type
 })
 
+const getTabClasses = (tab) => {
+	const commonClasses = 'cursor-pointer p-4'
+	return {
+		[commonClasses]: true,
+		'bg-gray-100': activeTab.value == tab,
+	}
+}
+
+const getIconClasses = (tab) => {
+	const commonClass = 'h-5'
+	return {
+		[commonClass]: true,
+		'stroke-[1.6px] text-black': activeTab.value == tab,
+		'text-gray-600': activeTab.value != tab,
+	}
+}
+
+const imageOrientationProperties = [
+	{
+		property: 'invertX',
+		label: 'Flip Horizontal',
+		icon: FlipHorizontal,
+	},
+	{
+		property: 'invertY',
+		label: 'Flip Vertical',
+		icon: FlipVertical,
+	},
+]
+
+const toggleImageOrientation = (direction) => {
+	activeElement.value[direction.property] = activeElement.value[direction.property] === 1 ? -1 : 1
+}
+
+const sectionClasses = 'flex flex-col gap-4 p-4 border-b'
+const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
+
 const hoverOption = ref(null)
+
+const playbackProperties = [
+	{
+		property: 'autoplay',
+		label: 'Autoplay',
+		icon: TvMinimalPlay,
+	},
+	{
+		property: 'loop',
+		label: 'Loop',
+		icon: Repeat2,
+	},
+]
+
+const getPlaybackOptionClasses = (option) => {
+	return {
+		'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
+		'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement[option],
+	}
+}
+
+const getPlaybackTextClasses = (option) => {
+	return {
+		'text-gray-800': hoverOption.value == option || activeElement[option],
+		'text-gray-600': hoverOption.value != option && !activeElement[option],
+	}
+}
+
+const togglePlaybackOption = (option) => {
+	activeElement[option] = !activeElement[option]
+}
 </script>
 
 <style scoped>

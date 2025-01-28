@@ -9,10 +9,10 @@
 		>
 			<div
 				ref="target"
-				class="slide h-[540px] w-[960px] drop-shadow-xl"
-				:style="slideStyles"
-				@click="handleSlideClick"
 				:key="slideIndex"
+				class="slide h-[540px] w-[960px]"
+				:style="slideShowStyles"
+				@click="changeSlide(slideIndex + 1)"
 			>
 				<component
 					ref="element"
@@ -25,39 +25,41 @@
 			</div>
 		</Transition>
 	</div>
-	<div
-		v-else
-		ref="target"
-		class="slide h-[540px] w-[960px] drop-shadow-xl"
-		:style="slideStyles"
-		@click="handleSlideClick"
-	>
-		<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
+	<div v-else ref="target" :style="targetStyles">
+		<div
+			class="slide h-[540px] w-[960px] shadow-2xl"
+			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
+			:style="slideStyles"
+			@click="selectSlide"
+		>
+			<ElementAlignmentGuides v-if="showGuides" />
 
-		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-			<Trash size="14" :strokeWidth="1.5" class="text-gray-800" @click="deleteSlide" />
-			<Copy size="14" :strokeWidth="1.5" class="text-gray-800" @click="duplicateSlide" />
-			<SquarePlus
-				size="14"
-				:strokeWidth="1.5"
-				class="text-gray-800"
-				@click="insertSlide(slideIndex)"
+			<component
+				ref="element"
+				v-for="(element, index) in slide.elements"
+				:key="index"
+				:is="SlideElement"
+				:element="element"
+				:data-index="index"
 			/>
 		</div>
 
-		<component
-			ref="element"
-			v-for="(element, index) in slide.elements"
-			:key="index"
-			:is="SlideElement"
-			:element="element"
-			:data-index="index"
-		/>
+		<!-- Slide Actions -->
+		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
+			<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="deleteSlide" />
+			<Copy size="14" class="text-gray-800 stroke-[1.5]" @click="duplicateSlide" />
+			<SquarePlus
+				size="14"
+				class="text-gray-800 stroke-[1.5]"
+				@click="insertSlide(slideIndex)"
+			/>
+		</div>
 	</div>
 </template>
 
 <script setup>
 import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
@@ -73,6 +75,7 @@ import {
 	deleteSlide,
 	duplicateSlide,
 	slideRect,
+	changeSlide,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -86,6 +89,8 @@ import {
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
+
+const router = useRouter()
 
 const props = defineProps({
 	containerRef: Object,
@@ -116,21 +121,28 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const slideStyles = computed(() => {
-	if (!presentation.data) return
-	return {
-		backgroundColor: slide.value.background || 'white',
-		cursor: inSlideShow.value ? slideCursor.value : isDragging.value ? 'move' : 'default',
-		transition: transition.value,
-		transformOrigin: inSlideShow.value ? 'center' : transformOrigin.value,
-		transform: inSlideShow.value
-			? `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`
-			: transform.value,
-		opacity: opacity.value,
-	}
-})
+const slideShowStyles = computed(() => ({
+	backgroundColor: slide.value.background || 'white',
+	cursor: slideCursor.value,
+	transformOrigin: 'center',
+	transform: `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`,
+	transition: transition.value,
+	opacity: opacity.value,
+}))
+
+const targetStyles = computed(() => ({
+	transformOrigin: transformOrigin.value,
+	transform: transform.value,
+}))
+
+const slideStyles = computed(() => ({
+	backgroundColor: slide.value.background || 'white',
+	cursor: isDragging.value ? 'move' : 'default',
+	'--showEdgeOverlay': activeElementId.value == null ? 'block' : 'none',
+}))
 
 const selectSlide = (e) => {
+	if (!e.target.classList.contains('slide')) return
 	e.preventDefault()
 	e.stopPropagation()
 	if (isResizing.value) {
@@ -144,15 +156,6 @@ const selectSlide = (e) => {
 	}
 	resetFocus()
 	slideFocus.value = true
-}
-
-const handleSlideClick = (e) => {
-	e.stopPropagation()
-	if (e.target != targetRef.value) return
-	if (inSlideShow.value) {
-		slideIndex.value += 1
-		return
-	} else selectSlide(e)
 }
 
 const addDragAndResize = () => {
@@ -235,14 +238,12 @@ const resetCursorVisibility = () => {
 	}, 3000)
 }
 
-const handleScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement
-
+const handleScreenChange = async () => {
 	if (document.fullscreenElement) {
-		resetFocus()
 		allowPanAndZoom.value = false
 		props.containerRef.addEventListener('mousemove', resetCursorVisibility)
 	} else {
+		await router.replace({ query: null })
 		allowPanAndZoom.value = true
 		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
 	}
@@ -305,3 +306,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
+
+<style>
+.slide::after {
+	content: '';
+	display: var(--showEdgeOverlay, none);
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background: transparent;
+	pointer-events: none;
+	box-shadow: 0 0 5000px 500px rgba(255, 255, 255, 0.6);
+}
+</style>

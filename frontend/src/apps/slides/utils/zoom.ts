@@ -141,7 +141,6 @@ export const usePanAndZoom = (containerElement: HTMLDivElement, targetElement: a
 
 	const handlePanAndZoom = (e: WheelEvent) => {
 		e.preventDefault()
-		if (e.composedPath().some((el) => (el as HTMLElement).id === 'slide-navigation-panel')) return
 
 		// initialize the transformObj
 		if (!transformObj) {

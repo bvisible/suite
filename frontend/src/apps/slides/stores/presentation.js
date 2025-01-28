@@ -20,25 +20,4 @@ const inSlideShow = ref(false)
 
 const applyReverseTransition = ref(false)
 
-const startSlideShow = async () => {
-	if (!presentation.data) await presentation.reload()
-	await changeSlide(0)
-	const elem = document.querySelector('.slideContainer')
-
-	if (elem.requestFullscreen) {
-		elem.requestFullscreen()
-	} else if (elem.webkitRequestFullscreen) {
-		elem.webkitRequestFullscreen()
-	} else if (elem.msRequestFullscreen) {
-		elem.msRequestFullscreen()
-	}
-}
-
-export {
-	presentationId,
-	presentation,
-	presentationList,
-	inSlideShow,
-	applyReverseTransition,
-	startSlideShow,
-}
+export { presentationId, presentation, presentationList, inSlideShow, applyReverseTransition }
