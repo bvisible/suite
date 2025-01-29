@@ -215,7 +215,7 @@ const hidePreview = () => {
 }
 
 const enablePresentMode = async () => {
-	await router.push({
+	await router.replace({
 		name: 'Presentation',
 		params: { presentationId: previewPresentation.value.name },
 		query: { present: true },
