@@ -23,7 +23,7 @@ const slideDirty = computed(() => {
 	if (!presentation.data) return false
 	const currentSlide = presentation.data.slides[slideIndex.value]
 	const data = {
-		elements: JSON.parse(currentSlide.elements),
+		elements: JSON.parse(currentSlide.elements || '[]'),
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
 	}
