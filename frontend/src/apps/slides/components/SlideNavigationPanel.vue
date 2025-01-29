@@ -21,7 +21,7 @@
 
 			<div
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
-				@click="insertSlide"
+				@click="insertSlide(presentation.data.slides.length)"
 			>
 				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
 			</div>

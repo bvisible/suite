@@ -266,7 +266,7 @@ watch(
 	() => {
 		const currentSlide = presentation.data?.slides[slideIndex.value]
 		if (!currentSlide) return
-		slide.value.elements = JSON.parse(currentSlide.elements)
+		slide.value.elements = JSON.parse(currentSlide.elements || '[]')
 		slide.value.transition = currentSlide.transition
 		slide.value.transitionDuration = currentSlide.transition_duration
 	},
