@@ -61,5 +61,8 @@ const setFocusElement = (e) => {
 
 const handleBlur = (e) => {
 	element.value.content = e.target.innerText
+	if (element.value.width == 'auto') {
+		element.value.width = e.target.offsetWidth
+	}
 }
 </script>

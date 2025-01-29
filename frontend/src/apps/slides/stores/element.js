@@ -53,10 +53,10 @@ const addTextElement = () => {
 		opacity: 100,
 		content: 'Text',
 		type: 'text',
+		width: 'auto',
 	}
 
 	if (lastTextElement) {
-		element.width = lastTextElement.width
 		element.fontSize = lastTextElement.fontSize
 		element.fontFamily = lastTextElement.fontFamily
 		element.fontWeight = lastTextElement.fontWeight
@@ -65,7 +65,6 @@ const addTextElement = () => {
 		element.letterSpacing = lastTextElement.letterSpacing
 	} else {
 		const slideColor = document.querySelector('.slide')?.style.backgroundColor
-		element.width = 65
 		element.fontSize = 30
 		element.fontFamily = 'Inter'
 		element.fontWeight = 'normal'
