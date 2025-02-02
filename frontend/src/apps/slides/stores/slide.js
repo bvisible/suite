@@ -38,9 +38,8 @@ const slideDirty = computed(() => {
 const updateSlideThumbnail = async (index) => {
 	if (inSlideShow.value) return
 	const slideRef = document.querySelector('.slide')
-	html2canvas(slideRef).then((canvas) => {
-		presentation.data.slides[index].thumbnail = canvas.toDataURL('image/png')
-	})
+	const canvas = await html2canvas(slideRef)
+	return canvas.toDataURL('image/png')
 }
 
 const updateSlideState = () => {
@@ -78,23 +77,27 @@ const changeSlide = async (index) => {
 	})
 }
 
+const saving = ref(false)
+
 const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
+	saving.value = true
 	updateSlideState()
 	await call('frappe.client.save', {
 		doc: presentation.data,
 	})
 	await presentation.reload()
+	saving.value = false
 }
 
 const insertSlide = async (index) => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
 		name: presentationId.value,
-		index: index || presentation.data.slides.length,
+		index: index,
 	})
 	await presentation.reload()
-	changeSlide(index + 1)
+	await changeSlide(index)
 }
 
 const deleteSlide = async () => {
@@ -120,6 +123,8 @@ const duplicateSlide = async (e) => {
 
 export {
 	slideIndex,
+	slideDirty,
+	saving,
 	slideFocus,
 	slide,
 	slideRect,
