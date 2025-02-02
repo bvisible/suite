@@ -16,23 +16,50 @@
 				<div class="select-none font-semibold">Slides</div>
 			</div>
 
-			<input
-				spellcheck="false"
-				ref="newTitleRef"
-				v-if="renameMode"
-				class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
-				v-model="newTitle"
-				@blur="saveTitle"
-			/>
-			<span v-else class="select-none font-semibold text-gray-700" @click="enableRenameMode">
-				{{ presentation.data?.title }}
-			</span>
-			<Button
-				variant="solid"
-				label="Present"
-				size="sm"
-				@click="router.replace({ query: { present: true } })"
-			/>
+			<div class="flex justify-center items-center">
+				<input
+					spellcheck="false"
+					ref="newTitleRef"
+					v-if="renameMode"
+					class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+					v-model="newTitle"
+					@blur="saveTitle"
+				/>
+				<span
+					v-else
+					class="select-none font-semibold text-gray-700"
+					@click="enableRenameMode"
+				>
+					{{ presentation.data?.title }}
+				</span>
+				<span class="text-gray-500"
+					>&nbsp;&#8729;&nbsp;{{ slideDirty ? 'Unsaved' : 'Saved' }}</span
+				>
+			</div>
+
+			<div class="flex items-center gap-2 justify-end">
+				<Button
+					size="sm"
+					:variant="'subtle'"
+					:loading="saving"
+					:disabled="!slideDirty || saving"
+					@click="saveChanges"
+				>
+					<template #icon>
+						<FeatherIcon name="save" class="h-3.5" />
+					</template>
+				</Button>
+				<Button
+					variant="solid"
+					label="Present"
+					size="sm"
+					@click="router.replace({ query: { present: true } })"
+				>
+					<template #prefix>
+						<Presentation size="14" class="text-white stroke-[1.5]" />
+					</template>
+				</Button>
+			</div>
 		</div>
 
 		<div
@@ -71,8 +98,9 @@
 import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { call, FileUploadHandler } from 'frappe-ui'
+import { call, FileUploadHandler, Spinner } from 'frappe-ui'
 
+import { Presentation } from 'lucide-vue-next'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
@@ -80,6 +108,8 @@ import Slide from '@/components/Slide.vue'
 import { presentationId, presentation, inSlideShow } from '@/stores/presentation'
 import {
 	slideIndex,
+	slideDirty,
+	saving,
 	slideFocus,
 	saveChanges,
 	duplicateSlide,
