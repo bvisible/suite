@@ -32,7 +32,7 @@
 			:style="slideStyles"
 			@click="selectSlide"
 		>
-			<ElementAlignmentGuides v-if="showGuides" />
+			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
 
 			<component
 				ref="element"
