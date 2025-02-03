@@ -58,7 +58,7 @@ import { call } from 'frappe-ui'
 import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'
-import { slideIndex, changeSlide, insertSlide } from '@/stores/slide'
+import { slideIndex, changeSlide, insertSlide, slide } from '@/stores/slide'
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
@@ -75,9 +75,10 @@ const getThumbnailClasses = (slide) => {
 	return slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
 }
 
-const getThumbnailStyles = (slide) => {
+const getThumbnailStyles = (s) => {
+	const img = slideIndex.value == s.idx - 1 ? slide.value.thumbnail : s.thumbnail
 	return {
-		backgroundImage: `url(${slide.thumbnail})`,
+		backgroundImage: `url(${img})`,
 	}
 }
 
