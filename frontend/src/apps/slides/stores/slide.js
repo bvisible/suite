@@ -23,7 +23,7 @@ const slideDirty = computed(() => {
 	if (!presentation.data) return false
 	const currentSlide = presentation.data.slides[slideIndex.value]
 	const data = {
-		elements: JSON.parse(currentSlide.elements),
+		elements: JSON.parse(currentSlide.elements || '[]'),
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
 	}
@@ -35,32 +35,34 @@ const slideDirty = computed(() => {
 	return !isEqual(data, updatedData)
 })
 
-const updateSlideThumbnail = async (index) => {
+const getSlideThumbnail = async () => {
 	if (inSlideShow.value) return
 	const slideRef = document.querySelector('.slide')
-	html2canvas(slideRef).then((canvas) => {
-		presentation.data.slides[index].thumbnail = canvas.toDataURL('image/png')
-	})
+	const canvas = await html2canvas(slideRef)
+	return canvas.toDataURL('image/png')
 }
 
-const updateSlideState = () => {
-	const { elements, transition, transitionDuration, background } = slide.value
+const updateSlideState = async () => {
+	slide.value.thumbnail = await getSlideThumbnail()
+	const { elements, transition, transitionDuration, background, thumbnail } = slide.value
 	presentation.data.slides[slideIndex.value] = {
 		...presentation.data.slides[slideIndex.value],
 		background,
 		transition,
+		thumbnail,
 		elements: JSON.stringify(elements, null, 2),
 		transition_duration: transitionDuration,
 	}
 }
 
 const loadSlide = (index) => {
-	const { background, transition, transition_duration, elements } =
+	const { background, transition, transition_duration, elements, thumbnail } =
 		presentation.data.slides[slideIndex.value]
 
 	slide.value = {
 		background,
 		transition,
+		thumbnail,
 		transitionDuration: transition_duration,
 		elements: elements ? JSON.parse(elements) : [],
 	}
@@ -69,32 +71,38 @@ const loadSlide = (index) => {
 const changeSlide = async (index) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
 	resetFocus()
-	updateSlideState()
 	applyReverseTransition.value = index < slideIndex.value
 	await nextTick(async () => {
-		await updateSlideThumbnail(slideIndex.value)
+		await updateSlideState()
 		slideIndex.value = index
 		loadSlide(slideIndex.value)
 	})
 }
 
+const saving = ref(false)
+
 const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
-	updateSlideState()
+	saving.value = true
+	resetFocus()
+	await nextTick(async () => {
+		await updateSlideState()
+	})
 	await call('frappe.client.save', {
 		doc: presentation.data,
 	})
 	await presentation.reload()
+	saving.value = false
 }
 
 const insertSlide = async (index) => {
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
 		name: presentationId.value,
-		index: index || presentation.data.slides.length,
+		index: index,
 	})
 	await presentation.reload()
-	changeSlide(index + 1)
+	await changeSlide(index)
 }
 
 const deleteSlide = async () => {
@@ -120,9 +128,13 @@ const duplicateSlide = async (e) => {
 
 export {
 	slideIndex,
+	slideDirty,
+	saving,
 	slideFocus,
 	slide,
 	slideRect,
+	getSlideThumbnail,
+	loadSlide,
 	saveChanges,
 	changeSlide,
 	insertSlide,

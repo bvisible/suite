@@ -32,7 +32,7 @@
 			:style="slideStyles"
 			@click="selectSlide"
 		>
-			<ElementAlignmentGuides v-if="showGuides" />
+			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
 
 			<component
 				ref="element"
@@ -51,14 +51,14 @@
 			<SquarePlus
 				size="14"
 				class="text-gray-800 stroke-[1.5]"
-				@click="insertSlide(slideIndex)"
+				@click="insertSlide(slideIndex + 1)"
 			/>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
@@ -76,6 +76,8 @@ import {
 	duplicateSlide,
 	slideRect,
 	changeSlide,
+	loadSlide,
+	getSlideThumbnail,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -251,9 +253,12 @@ const handleScreenChange = async () => {
 
 watch(
 	() => activeElementId.value,
-	() => {
+	async () => {
 		if (activeElementId.value == null) {
 			removeDragAndResize()
+			nextTick(async () => {
+				slide.value.thumbnail = await getSlideThumbnail()
+			})
 			return
 		}
 		addDragAndResize()
@@ -266,9 +271,7 @@ watch(
 	() => {
 		const currentSlide = presentation.data?.slides[slideIndex.value]
 		if (!currentSlide) return
-		slide.value.elements = JSON.parse(currentSlide.elements)
-		slide.value.transition = currentSlide.transition
-		slide.value.transitionDuration = currentSlide.transition_duration
+		loadSlide(currentSlide)
 	},
 	{ immediate: true },
 )
