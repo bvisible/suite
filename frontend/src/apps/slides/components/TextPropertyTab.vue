@@ -1,72 +1,26 @@
 <template>
-	<div class="flex flex-col gap-4 border-b p-4">
-		<div class="text-2xs font-semibold uppercase text-gray-700">Style</div>
+	<div :class="sectionClasses">
+		<div :class="sectionTitleClasses">Style</div>
 		<div class="flex items-center justify-between">
 			<button
+				v-for="style in styleProperties"
+				:key="style.property"
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.fontWeight == 'bold' ? 'bg-gray-200' : ''"
-				@click="toggleProperty('fontWeight')"
+				:class="activeElement[style.property]?.includes(style.value) ? 'bg-gray-200' : ''"
+				@click="toggleProperty(style.property, style.value)"
 			>
-				<FeatherIcon name="bold" class="h-4" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.fontStyle == 'italic' ? 'bg-gray-200' : ''"
-				@click="toggleProperty('fontStyle')"
-			>
-				<FeatherIcon name="italic" class="h-4" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textDecoration?.includes('underline') ? 'bg-gray-200' : ''"
-				@click="toggleProperty('textDecoration', 'underline')"
-			>
-				<FeatherIcon name="underline" class="h-4" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textDecoration?.includes('line-through') ? 'bg-gray-200' : ''"
-				@click="toggleProperty('textDecoration', 'line-through')"
-			>
-				<Strikethrough size="16" :strokeWidth="1.5" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textTransform == 'uppercase' ? 'bg-gray-200' : ''"
-				@click="toggleProperty('textTransform')"
-			>
-				<CaseUpper size="20" :strokeWidth="1.5" />
+				<component :is="style.icon" size="18" :strokeWidth="1.5" />
 			</button>
 		</div>
 
 		<div class="flex items-center justify-between">
 			<button
+				v-for="textAlign in ['left', 'center', 'right', 'justify']"
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textAlign == 'left' ? 'bg-gray-200' : ''"
-				@click="activeElement.textAlign = 'left'"
+				:class="activeElement.textAlign == textAlign ? 'bg-gray-200' : ''"
+				@click="activeElement.textAlign = textAlign"
 			>
-				<FeatherIcon name="align-left" class="h-4.5" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textAlign == 'center' ? 'bg-gray-200' : ''"
-				@click="activeElement.textAlign = 'center'"
-			>
-				<FeatherIcon name="align-center" class="h-4.5" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textAlign == 'right' ? 'bg-gray-200' : ''"
-				@click="activeElement.textAlign = 'right'"
-			>
-				<FeatherIcon name="align-right" class="h-4.5" />
-			</button>
-			<button
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textAlign == 'justify' ? 'bg-gray-200' : ''"
-				@click="activeElement.textAlign = 'justify'"
-			>
-				<FeatherIcon name="align-justify" class="h-4.5" />
+				<FeatherIcon :name="`align-${textAlign}`" class="h-4.5" />
 			</button>
 			<button class="cursor-pointer rounded-sm p-1">
 				<FeatherIcon name="list" class="h-4.5" />
@@ -74,8 +28,8 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-4 border-b p-4">
-		<div class="text-2xs font-semibold uppercase text-gray-700">Font</div>
+	<div :class="sectionClasses">
+		<div :class="sectionTitleClasses">Font</div>
 		<FormControl
 			type="autocomplete"
 			:options="textFonts"
@@ -104,8 +58,8 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-4 border-b p-4">
-		<div class="text-2xs font-semibold uppercase text-gray-700">Spacing</div>
+	<div :class="sectionClasses">
+		<div :class="sectionTitleClasses">Spacing</div>
 
 		<SliderInput
 			label="Line Height"
@@ -129,7 +83,7 @@
 
 <script setup>
 import { FormControl } from 'frappe-ui'
-import { Strikethrough, CaseUpper } from 'lucide-vue-next'
+import { Bold, Italic, Underline, Strikethrough, CaseUpper } from 'lucide-vue-next'
 
 import SliderInput from './controls/SliderInput.vue'
 import NumberInput from './controls/NumberInput.vue'
@@ -137,6 +91,9 @@ import ColorPicker from './controls/ColorPicker.vue'
 
 import { activeElement } from '@/stores/element'
 import { debounce } from '@/utils/helpers'
+
+const sectionClasses = 'flex flex-col gap-4 border-b p-4'
+const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
 
 const textFonts = [
 	'Arial',
@@ -156,11 +113,37 @@ const textFonts = [
 	'Inter',
 ]
 
-const styleProps = ['fontSize', 'fontWeight', 'fontFamily', 'fontStyle', 'textDecoration']
+const styleProperties = [
+	{
+		property: 'fontWeight',
+		value: 'bold',
+		icon: Bold,
+	},
+	{
+		property: 'fontStyle',
+		value: 'italic',
+		icon: Italic,
+	},
+	{
+		property: 'textDecoration',
+		value: 'underline',
+		icon: Underline,
+	},
+	{
+		property: 'textDecoration',
+		value: 'line-through',
+		icon: Strikethrough,
+	},
+	{
+		property: 'textTransform',
+		value: 'uppercase',
+		icon: CaseUpper,
+	},
+]
 
-const toggleProperty = (property, textDecoration) => {
-	let oldStyle = activeElement.value[property]
-	let newStyle = ''
+const toggleProperty = (property, value) => {
+	const oldStyle = activeElement.value[property]
+	const newStyle = ''
 
 	switch (property) {
 		case 'fontWeight':
@@ -174,12 +157,12 @@ const toggleProperty = (property, textDecoration) => {
 			break
 		default:
 			if (!oldStyle) {
-				newStyle = textDecoration
+				newStyle = value
 				break
 			}
-			newStyle = oldStyle.includes(textDecoration)
-				? oldStyle.replace(textDecoration, '')
-				: oldStyle + ' ' + textDecoration
+			newStyle = oldStyle.includes(value)
+				? oldStyle.replace(value, '')
+				: oldStyle + ' ' + value
 	}
 	activeElement.value[property] = newStyle
 }
