@@ -5,6 +5,8 @@
 <script setup>
 import { slideRect } from '@/stores/slide'
 import { onMounted, ref, computed, onBeforeUnmount } from 'vue'
+import { slide } from '@/stores/slide'
+import { activeElementIds } from '@/stores/element'
 
 const emit = defineEmits(['selectSlide'])
 
@@ -49,6 +51,17 @@ const handleMouseUp = (e) => {
 	}
 }
 
+const updateSelectedElements = () => {
+	activeElementIds.value = []
+	slide.value.elements.forEach((element, index) => {
+		const withinWidth = left.value <= element.left && left.value + width.value >= element.left
+		const withinHeight = top.value <= element.top && top.value + height.value >= element.top
+		if (withinWidth && withinHeight) {
+			activeElementIds.value.push(index)
+		}
+	})
+}
+
 const initSelection = (e) => {
 	document.addEventListener('mousemove', updateSelection)
 	left.value = e.clientX - slideRect.value.left
@@ -62,6 +75,8 @@ const updateSelection = (e) => {
 
 	width.value = e.clientX - slideRect.value.left - left.value
 	height.value = e.clientY - slideRect.value.top - top.value
+
+	updateSelectedElements()
 }
 
 const endSelection = () => {
