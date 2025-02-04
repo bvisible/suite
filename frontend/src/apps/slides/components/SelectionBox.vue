@@ -79,7 +79,19 @@ const updateSelection = (e) => {
 	updateSelectedElements()
 }
 
+const clearSelection = () => {
+	left.value = 0
+	top.value = 0
+	width.value = 0
+	height.value = 0
+}
+
 const endSelection = () => {
+	// if nothing got selected then clear the selection
+	if (activeElementIds.value.length === 0) {
+		clearSelection()
+	}
+
 	document.removeEventListener('mousemove', updateSelection)
 	document.removeEventListener('mouseup', endSelection)
 }
