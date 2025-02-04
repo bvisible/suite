@@ -11,7 +11,7 @@ import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { activeElementId, pairElementId, focusElementId } from '@/stores/element'
+import { activeElementId, activeElementIds, pairElementId, focusElementId } from '@/stores/element'
 
 const attrs = useAttrs()
 
@@ -21,7 +21,11 @@ const element = defineModel('element', {
 })
 
 const outline = computed(() => {
-	if ([activeElementId.value, focusElementId.value].includes(attrs['data-index']))
+	if (
+		activeElementIds.value
+			.concat([activeElementId.value, focusElementId.value])
+			.includes(attrs['data-index'])
+	)
 		return '#70B6F0 solid 2px'
 	else if (pairElementId.value == attrs['data-index']) return '#70b6f092 solid 2px'
 	else return 'none'

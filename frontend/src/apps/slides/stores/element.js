@@ -10,6 +10,7 @@ const activePosition = ref(null)
 const activeDimensions = ref(null)
 
 const activeElementId = ref(null)
+const activeElementIds = ref([])
 const focusElementId = ref(null)
 const pairElementId = ref(null)
 
@@ -124,6 +125,8 @@ const deleteElement = async (e) => {
 }
 
 const resetFocus = () => {
+	activeElementIds.value = []
+	// clear selection here
 	activeElementId.value = null
 	focusElementId.value = null
 	pairElementId.value = null
@@ -133,6 +136,7 @@ export {
 	activePosition,
 	activeDimensions,
 	activeElementId,
+	activeElementIds,
 	focusElementId,
 	pairElementId,
 	activeElement,
