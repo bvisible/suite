@@ -30,8 +30,9 @@
 			class="slide h-[540px] w-[960px] shadow-2xl"
 			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
-			@click="selectSlide"
 		>
+			<SelectionBox @selectSlide="selectSlide" />
+
 			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
 
 			<component
@@ -65,6 +66,7 @@ import { useElementBounding } from '@vueuse/core'
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
 import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
+import SelectionBox from './SelectionBox.vue'
 
 import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
 import {
