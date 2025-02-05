@@ -55,6 +55,7 @@ const addTextElement = () => {
 		content: 'Text',
 		type: 'text',
 		width: 'auto',
+		height: 'auto',
 	}
 
 	if (lastTextElement) {

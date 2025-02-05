@@ -34,7 +34,7 @@ const outline = computed(() => {
 const elementStyle = computed(() => ({
 	position: 'fixed',
 	width: `${element.value.width}px`,
-	height: 'auto',
+	height: `${element.value.height}px`,
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
 	outline: outline.value,
