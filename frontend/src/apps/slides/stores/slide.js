@@ -83,6 +83,17 @@ const saving = ref(false)
 
 const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
+	slide.value.elements = slide.value.elements.map((element, index) => {
+		if (element.width == 'auto') {
+			let div = document.querySelector(`[data-index="${index}"]`)
+			element.width = div.offsetWidth
+		}
+		if (element.height == 'auto') {
+			let div = document.querySelector(`[data-index="${index}"]`)
+			element.height = div.offsetHeight
+		}
+		return element
+	})
 	saving.value = true
 	resetFocus()
 	await nextTick(async () => {

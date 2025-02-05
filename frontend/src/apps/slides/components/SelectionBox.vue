@@ -21,6 +21,7 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'fixed',
+	backgroundColor: '#70b6f009',
 	border: '1px solid #70b6f092',
 	pointerEvents: 'none',
 	zIndex: 1000,
@@ -54,8 +55,12 @@ const handleMouseUp = (e) => {
 const updateSelectedElements = () => {
 	activeElementIds.value = []
 	slide.value.elements.forEach((element, index) => {
-		const withinWidth = left.value <= element.left && left.value + width.value >= element.left
-		const withinHeight = top.value <= element.top && top.value + height.value >= element.top
+		const withinWidth =
+			(left.value + width.value >= element.left && left.value <= element.left) ||
+			(element.left + element.width >= left.value && element.left <= left.value)
+		const withinHeight =
+			(top.value + height.value >= element.top && top.value <= element.top) ||
+			(element.top + element.height >= top.value && element.top <= top.value)
 		if (withinWidth && withinHeight) {
 			activeElementIds.value.push(index)
 		}
