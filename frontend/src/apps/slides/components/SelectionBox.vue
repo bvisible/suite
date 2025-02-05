@@ -111,6 +111,27 @@ const endSelection = () => {
 		clearSelection()
 	}
 
+	let l = 10000,
+		t = 10000,
+		r = 0,
+		b = 0
+
+	// crop selection to selected element edges
+	activeElementIds.value.forEach((index) => {
+		const element = slide.value.elements[index]
+
+		if (element.left < l) l = element.left
+		if (element.top < t) t = element.top
+		if (element.left + element.width > r) r = element.left + element.width
+		if (element.top + element.height > b) b = element.top + element.height
+	})
+
+	// subtract the outlineOffset - (value from SlideElement outlineOffset) for outlines to match up
+	left.value = l - 7
+	top.value = t - 7
+	width.value = r - l + 14
+	height.value = b - t + 14
+
 	document.removeEventListener('mousemove', updateSelection)
 	document.removeEventListener('mouseup', endSelection)
 }
