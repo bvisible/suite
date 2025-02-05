@@ -14,6 +14,8 @@ const top = ref(0)
 const left = ref(0)
 const width = ref(0)
 const height = ref(0)
+const prevX = ref(0)
+const prevY = ref(0)
 
 let mousedownTimer = 0
 let longpressDuration = 200
@@ -71,6 +73,8 @@ const initSelection = (e) => {
 	document.addEventListener('mousemove', updateSelection)
 	left.value = e.clientX - slideRect.value.left
 	top.value = e.clientY - slideRect.value.top
+	prevX.value = e.clientX
+	prevY.value = e.clientY
 	width.value = 0
 	height.value = 0
 }
@@ -78,8 +82,18 @@ const initSelection = (e) => {
 const updateSelection = (e) => {
 	document.addEventListener('mouseup', endSelection)
 
-	width.value = e.clientX - slideRect.value.left - left.value
-	height.value = e.clientY - slideRect.value.top - top.value
+	const dx = e.clientX - prevX.value
+	const dy = e.clientY - prevY.value
+
+	if (dx < 0) {
+		left.value = e.clientX - slideRect.value.left
+	}
+	if (dy < 0) {
+		top.value = e.clientY - slideRect.value.top
+	}
+
+	width.value = Math.abs(dx)
+	height.value = Math.abs(dy)
 
 	updateSelectedElements()
 }
