@@ -23,7 +23,7 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'absolute',
-	backgroundColor: '#70b6f009',
+	backgroundColor: '#70b6f018',
 	border: '1px solid #70b6f092',
 	zIndex: 1000,
 	width: `${width.value}px`,
