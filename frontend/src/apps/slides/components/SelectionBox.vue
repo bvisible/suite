@@ -22,10 +22,9 @@ let longpressDuration = 200
 let mousedownStart
 
 const boxStyles = computed(() => ({
-	position: 'fixed',
+	position: 'absolute',
 	backgroundColor: '#70b6f009',
 	border: '1px solid #70b6f092',
-	pointerEvents: 'none',
 	zIndex: 1000,
 	width: `${width.value}px`,
 	height: `${height.value}px`,
@@ -55,7 +54,7 @@ const handleMouseUp = (e) => {
 }
 
 const updateSelectedElements = () => {
-	activeElementIds.value = []
+	let selectedElements = []
 	slide.value.elements.forEach((element, index) => {
 		const withinWidth =
 			(left.value + width.value >= element.left && left.value <= element.left) ||
@@ -64,9 +63,10 @@ const updateSelectedElements = () => {
 			(top.value + height.value >= element.top && top.value <= element.top) ||
 			(element.top + element.height >= top.value && element.top <= top.value)
 		if (withinWidth && withinHeight) {
-			activeElementIds.value.push(index)
+			selectedElements.push(index)
 		}
 	})
+	activeElementIds.value = selectedElements
 }
 
 const initSelection = (e) => {
@@ -94,8 +94,6 @@ const updateSelection = (e) => {
 
 	width.value = Math.abs(dx)
 	height.value = Math.abs(dy)
-
-	updateSelectedElements()
 }
 
 const clearSelection = () => {
@@ -107,6 +105,8 @@ const clearSelection = () => {
 
 const endSelection = () => {
 	// if nothing got selected then clear the selection
+	updateSelectedElements()
+
 	if (activeElementIds.value.length === 0) {
 		clearSelection()
 	}
