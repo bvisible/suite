@@ -74,13 +74,19 @@
 				class="flex items-center justify-center w-full h-full"
 				:class="{
 					'bg-black': inSlideShow,
-					'outline-blue-300 outline': isMediaDragOver,
 				}"
 				:style="{
 					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
 				}"
 			>
-				<Slide v-if="slideContainerRef" ref="slide" :containerRef="slideContainerRef" />
+				<Slide
+					v-if="slideContainerRef"
+					ref="slide"
+					:containerRef="slideContainerRef"
+					:class="{
+						'outline outline-1.5 outline-blue-400': isMediaDragOver,
+					}"
+				/>
 
 				<!-- Media Drag Overlay -->
 				<div
