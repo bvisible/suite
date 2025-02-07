@@ -86,6 +86,7 @@ import {
 	activeDimensions,
 	activeElement,
 	activeElementId,
+	activeElementIds,
 	focusElementId,
 	resetFocus,
 } from '@/stores/element'
@@ -163,16 +164,22 @@ const selectSlide = (e) => {
 }
 
 const addDragAndResize = () => {
-	let el = document.querySelector(`[data-index="${activeElementId.value}"]`)
-	if (!el || !activeElement.value) return
-	dragTarget.value = el
-	resizeTarget.value = el
-	resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
+	if (activeElementIds.value.length) {
+		let el = document.querySelector('.groupDiv')
+		if (!el) return
+		dragTarget.value = el
+	} else {
+		let el = document.querySelector(`[data-index="${activeElementId.value}"]`)
+		if (!el || !activeElement.value) return
+		dragTarget.value = el
+		resizeTarget.value = el
+		resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
 
-	const elementRect = el.getBoundingClientRect()
-	activePosition.value = {
-		top: elementRect.top,
-		left: elementRect.left,
+		const elementRect = el.getBoundingClientRect()
+		activePosition.value = {
+			top: elementRect.top,
+			left: elementRect.left,
+		}
 	}
 }
 
@@ -269,6 +276,26 @@ watch(
 )
 
 watch(
+	() => activeElementIds.value,
+	(newVal, oldVal) => {
+		if (newVal.length) {
+			addDragAndResize()
+		} else if (oldVal) {
+			oldVal.forEach((index) => {
+				let elementDiv = document.querySelector(`[data-index="${index}"]`)
+				let slideDiv = document.querySelector('.slide')
+				slideDiv.appendChild(elementDiv)
+
+				let element = slide.value.elements[index]
+				element.left += activePosition.value.left
+				element.top += activePosition.value.top
+			})
+		}
+	},
+	{ immediate: true },
+)
+
+watch(
 	() => presentation.data,
 	() => {
 		const currentSlide = presentation.data?.slides[slideIndex.value]
@@ -282,9 +309,20 @@ watch(
 	() => activePosition.value,
 	(position) => {
 		if (!position) return
-		const newleft = (position.left - slideRect.value.left) / scale.value
-		const newTop = (position.top - slideRect.value.top) / scale.value
-		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
+		if (activeElement.value) {
+			const newleft = (position.left - slideRect.value.left) / scale.value
+			const newTop = (position.top - slideRect.value.top) / scale.value
+			activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
+		} else {
+			const groupDiv = document.querySelector('.groupDiv')
+			if (groupDiv) {
+				const groupLeft = position.left
+				const groupTop = position.top
+
+				groupDiv.style.left = `${groupLeft}px`
+				groupDiv.style.top = `${groupTop}px`
+			}
+		}
 	},
 	{ immediate: true },
 )
