@@ -1,14 +1,16 @@
 <template>
-	<div :style="boxStyles"></div>
+	<div ref="groupDiv" class="groupDiv" :style="boxStyles"></div>
 </template>
 
 <script setup>
 import { slideRect } from '@/stores/slide'
-import { onMounted, ref, computed, onBeforeUnmount } from 'vue'
+import { onMounted, ref, computed, onBeforeUnmount, useTemplateRef } from 'vue'
 import { slide } from '@/stores/slide'
-import { activeElementIds } from '@/stores/element'
+import { activeElementId, activeElementIds, activePosition } from '@/stores/element'
 
 const emit = defineEmits(['selectSlide'])
+
+const groupDiv = useTemplateRef('groupDiv')
 
 const top = ref(0)
 const left = ref(0)
@@ -50,6 +52,8 @@ const handleMouseUp = (e) => {
 	if (new Date().getTime() < mousedownStart + longpressDuration) {
 		clearTimeout(mousedownTimer)
 		emit('selectSlide', e)
+	} else {
+		mousedownStart = 0
 	}
 }
 
@@ -64,19 +68,21 @@ const updateSelectedElements = () => {
 			(element.top + element.height >= top.value && element.top <= top.value)
 		if (withinWidth && withinHeight) {
 			selectedElements.push(index)
+			const elementDiv = document.querySelector(`[data-index="${index}"]`)
+			groupDiv.value.appendChild(elementDiv)
 		}
 	})
 	activeElementIds.value = selectedElements
 }
 
 const initSelection = (e) => {
-	document.addEventListener('mousemove', updateSelection)
 	left.value = e.clientX - slideRect.value.left
 	top.value = e.clientY - slideRect.value.top
 	prevX.value = e.clientX
 	prevY.value = e.clientY
 	width.value = 0
 	height.value = 0
+	document.addEventListener('mousemove', updateSelection)
 }
 
 const updateSelection = (e) => {
@@ -129,11 +135,21 @@ const endSelection = () => {
 	// subtract the outlineOffset - (value from SlideElement outlineOffset) for outlines to match up
 	left.value = l - 7
 	top.value = t - 7
-	width.value = r - l + 14
-	height.value = b - t + 14
+	width.value = r - l + 16
+	height.value = b - t + 11
+	prevX.value = 0
+	prevY.value = 0
 
-	document.removeEventListener('mousemove', updateSelection)
+	activePosition.value = { left: l - 7, top: t - 7 }
+
+	activeElementIds.value.forEach((index) => {
+		let element = slide.value.elements[index]
+		element.left = element.left - left.value
+		element.top = element.top - top.value
+	})
+
 	document.removeEventListener('mouseup', endSelection)
+	document.removeEventListener('mousemove', updateSelection)
 }
 
 onMounted(() => {
@@ -144,5 +160,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	document.removeEventListener('mousedown', initSelection)
+	document.removeEventListener('mouseleave', handleMouseLeave)
+	document.removeEventListener('mouseup', handleMouseUp)
 })
 </script>

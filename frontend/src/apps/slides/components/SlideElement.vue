@@ -11,7 +11,13 @@ import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { activeElementId, activeElementIds, pairElementId, focusElementId } from '@/stores/element'
+import {
+	activeElementId,
+	activeElementIds,
+	pairElementId,
+	focusElementId,
+	activePosition,
+} from '@/stores/element'
 
 const attrs = useAttrs()
 
@@ -32,7 +38,7 @@ const outline = computed(() => {
 })
 
 const elementStyle = computed(() => ({
-	position: 'fixed',
+	position: activeElementIds.value.includes(attrs['data-index']) ? 'absolute' : 'fixed',
 	width: `${element.value.width}px`,
 	height: `${element.value.height}px`,
 	left: `${element.value.left}px`,
