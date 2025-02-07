@@ -26,11 +26,13 @@ const slideDirty = computed(() => {
 		elements: JSON.parse(currentSlide.elements || '[]'),
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
+		background: currentSlide.background,
 	}
 	const updatedData = {
 		elements: slide.value.elements,
 		transition: slide.value.transition,
 		transition_duration: slide.value.transitionDuration,
+		background: slide.value.background,
 	}
 	return !isEqual(data, updatedData)
 })
