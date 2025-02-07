@@ -126,6 +126,7 @@ import {
 	activePosition,
 	resetFocus,
 	activeElementId,
+	activeElementIds,
 	focusElementId,
 	deleteElement,
 	duplicateElement,
@@ -248,7 +249,9 @@ const handleKeyDown = (e) => {
 	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
 	handleGlobalShortcuts(e)
 
-	activeElementId.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	activeElementId.value != null || activeElementIds.value.length
+		? handleElementShortcuts(e)
+		: handleSlideShortcuts(e)
 }
 
 const handleDragEnter = (e) => {
