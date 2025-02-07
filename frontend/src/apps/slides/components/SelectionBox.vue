@@ -82,6 +82,11 @@ const initSelection = (e) => {
 	prevY.value = e.clientY
 	width.value = 0
 	height.value = 0
+	activeElementIds.value = []
+	activeElementIds.value.forEach((index) => {
+		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		groupDiv.value.parentElement.appendChild(elementDiv)
+	})
 	document.addEventListener('mousemove', updateSelection)
 }
 
@@ -109,14 +114,7 @@ const clearSelection = () => {
 	height.value = 0
 }
 
-const endSelection = () => {
-	// if nothing got selected then clear the selection
-	updateSelectedElements()
-
-	if (activeElementIds.value.length === 0) {
-		clearSelection()
-	}
-
+const cropSelectionToFitContent = () => {
 	let l = 10000,
 		t = 10000,
 		r = 0,
@@ -139,14 +137,28 @@ const endSelection = () => {
 	height.value = b - t + 11
 	prevX.value = 0
 	prevY.value = 0
+}
 
-	activePosition.value = { left: l - 7, top: t - 7 }
+const setElementPositions = () => {
+	activePosition.value = { left: left.value, top: top.value }
 
 	activeElementIds.value.forEach((index) => {
 		let element = slide.value.elements[index]
 		element.left = element.left - left.value
 		element.top = element.top - top.value
 	})
+}
+
+const endSelection = () => {
+	// if nothing got selected then clear the selection
+	updateSelectedElements()
+
+	if (activeElementIds.value.length === 0) {
+		clearSelection()
+	}
+
+	cropSelectionToFitContent()
+	setElementPositions()
 
 	document.removeEventListener('mouseup', endSelection)
 	document.removeEventListener('mousemove', updateSelection)
