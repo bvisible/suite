@@ -33,7 +33,7 @@ const outline = computed(() => {
 			.includes(attrs['data-index'])
 	)
 		return '#70B6F0 solid 2px'
-	else if (pairElementId.value == attrs['data-index']) return '#70b6f092 solid 2px'
+	else if (pairElementId.value == attrs['data-index']) return '#70b6f080 solid 2px'
 	else return 'none'
 })
 
