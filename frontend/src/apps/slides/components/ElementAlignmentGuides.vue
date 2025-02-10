@@ -124,7 +124,7 @@ const diffBottom = computed(() => {
 
 const commonGuideStyles = {
 	position: 'fixed',
-	borderColor: '#70b6f092',
+	borderColor: '#70b6f080',
 	borderStyle: 'dashed',
 }
 
@@ -176,7 +176,7 @@ const bottomGuideStyles = computed(() => {
 const centerXGuideStyles = computed(() => {
 	if (Math.abs(diffCenterX.value) > CENTER_PROXIMITY_THRESHOLD) return ''
 	return {
-		backgroundColor: '#70b6f092',
+		backgroundColor: '#70b6f080',
 		height: '100%',
 		width: '1px',
 		position: 'fixed',
@@ -187,7 +187,7 @@ const centerXGuideStyles = computed(() => {
 const centerYGuideStyles = computed(() => {
 	if (Math.abs(diffCenterY.value) > CENTER_PROXIMITY_THRESHOLD) return ''
 	return {
-		backgroundColor: '#70b6f092',
+		backgroundColor: '#70b6f080',
 		width: '100%',
 		height: '1px',
 		position: 'fixed',
