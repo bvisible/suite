@@ -3,9 +3,9 @@
 </template>
 
 <script setup>
-import { slideRect } from '@/stores/slide'
-import { onMounted, ref, computed, onBeforeUnmount, useTemplateRef } from 'vue'
-import { slide } from '@/stores/slide'
+import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+
+import { slideRect, slide } from '@/stores/slide'
 import { activeElementId, activeElementIds, activePosition } from '@/stores/element'
 
 const emit = defineEmits(['selectSlide'])
@@ -66,6 +66,7 @@ const updateSelectedElements = () => {
 		const withinHeight =
 			(top.value + height.value >= element.top && top.value <= element.top) ||
 			(element.top + element.height >= top.value && element.top <= top.value)
+
 		if (withinWidth && withinHeight) {
 			selectedElements.push(index)
 			const elementDiv = document.querySelector(`[data-index="${index}"]`)
@@ -131,12 +132,12 @@ const cropSelectionToFitContent = () => {
 	})
 
 	// subtract the outlineOffset - (value from SlideElement outlineOffset) for outlines to match up
+	prevX.value = 0
+	prevY.value = 0
 	left.value = l - 7
 	top.value = t - 7
 	width.value = r - l + 16
 	height.value = b - t + 11
-	prevX.value = 0
-	prevY.value = 0
 }
 
 const setElementPositions = () => {
@@ -150,9 +151,9 @@ const setElementPositions = () => {
 }
 
 const endSelection = () => {
-	// if nothing got selected then clear the selection
 	updateSelectedElements()
 
+	// if nothing got selected then clear the selection
 	if (activeElementIds.value.length === 0) {
 		clearSelection()
 	}
@@ -174,5 +175,9 @@ onBeforeUnmount(() => {
 	document.removeEventListener('mousedown', initSelection)
 	document.removeEventListener('mouseleave', handleMouseLeave)
 	document.removeEventListener('mouseup', handleMouseUp)
+})
+
+defineExpose({
+	clearSelection,
 })
 </script>
