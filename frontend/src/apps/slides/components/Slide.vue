@@ -31,7 +31,7 @@
 			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 		>
-			<SelectionBox @selectSlide="selectSlide" />
+			<SelectionBox ref="selectionBox" @selectSlide="selectSlide" />
 
 			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
 
@@ -102,6 +102,8 @@ const props = defineProps({
 })
 
 const targetRef = useTemplateRef('target')
+const selectionBox = useTemplateRef('selectionBox')
+
 slideRect.value = useElementBounding(targetRef)
 
 const { isDragging, dragTarget } = useDragAndDrop(activePosition)
@@ -161,6 +163,7 @@ const selectSlide = (e) => {
 	}
 	resetFocus()
 	slideFocus.value = true
+	selectionBox.value.clearSelection()
 }
 
 const addDragAndResize = () => {
