@@ -2,7 +2,7 @@
 	<div
 		ref="parent"
 		class="fixed flex h-screen w-screen flex-col"
-		:class="activeElementId == null ? 'bg-gray-200' : 'bg-gray-50'"
+		:class="activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
 		@dragenter.prevent="handleDragEnter"
 		@dragleave.prevent="handleDragLeave"
 		@dragover.prevent
@@ -125,11 +125,10 @@ import {
 import {
 	activePosition,
 	resetFocus,
-	activeElementId,
 	activeElementIds,
 	focusElementId,
-	deleteElement,
-	duplicateElement,
+	deleteElements,
+	duplicateElements,
 	addTextElement,
 	addMediaElement,
 } from '@/stores/element'
@@ -205,10 +204,10 @@ const handleElementShortcuts = (e) => {
 			break
 		case 'Delete':
 		case 'Backspace':
-			deleteElement(e)
+			deleteElements(e)
 			break
 		case 'd':
-			if (e.metaKey) duplicateElement(e)
+			if (e.metaKey) duplicateElements(e)
 			break
 	}
 }
@@ -249,9 +248,7 @@ const handleKeyDown = (e) => {
 	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
 	handleGlobalShortcuts(e)
 
-	activeElementId.value != null || activeElementIds.value.length
-		? handleElementShortcuts(e)
-		: handleSlideShortcuts(e)
+	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const handleDragEnter = (e) => {
