@@ -28,12 +28,12 @@
 	<div v-else ref="target" :style="targetStyles">
 		<div
 			class="slide h-[540px] w-[960px] shadow-2xl"
-			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
+			:class="activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 		>
 			<SelectionBox ref="selectionBox" @selectSlide="selectSlide" />
 
-			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
+			<!-- <ElementAlignmentGuides v-if="showGuides" :scale="scale" /> -->
 
 			<component
 				ref="element"
@@ -84,8 +84,7 @@ import {
 import {
 	activePosition,
 	activeDimensions,
-	activeElement,
-	activeElementId,
+	activeElements,
 	activeElementIds,
 	focusElementId,
 	resetFocus,
@@ -118,9 +117,7 @@ const transition = ref('none')
 const transitionTransform = ref('')
 const opacity = ref(1)
 
-const showGuides = computed(
-	() => activeElement.value && activeElementId.value != null && !isPanningOrZooming.value,
-)
+const showGuides = computed(() => activeElementIds.value.length && !isPanningOrZooming.value)
 
 const scale = computed(() => {
 	const matrix = transform.value.match(/matrix\((.+)\)/)
@@ -145,7 +142,7 @@ const targetStyles = computed(() => ({
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
 	cursor: isDragging.value ? 'move' : 'default',
-	'--showEdgeOverlay': activeElementId.value == null ? 'block' : 'none',
+	'--showEdgeOverlay': activeElementIds.value.length ? 'block' : 'none',
 }))
 
 const selectSlide = (e) => {
@@ -156,8 +153,8 @@ const selectSlide = (e) => {
 		isResizing.value = false
 		return
 	}
-	if (activeElement.value && focusElementId.value) {
-		activeElement.content = document.querySelector(
+	if (focusElementId.value) {
+		slide.value.elements[focusElementId.value].content = document.querySelector(
 			`[data-index="${focusElementId.value}"]`,
 		).innerText
 	}
@@ -167,26 +164,41 @@ const selectSlide = (e) => {
 }
 
 const addDragAndResize = () => {
-	if (activeElementIds.value.length) {
-		let el = document.querySelector('.groupDiv')
+	if (activeElementIds.value.length == 1) {
+		let el = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
 		if (!el) return
 		dragTarget.value = el
-	} else {
-		let el = document.querySelector(`[data-index="${activeElementId.value}"]`)
-		if (!el || !activeElement.value) return
-		dragTarget.value = el
 		resizeTarget.value = el
-		resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
-
+		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
 		const elementRect = el.getBoundingClientRect()
 		activePosition.value = {
 			top: elementRect.top,
 			left: elementRect.left,
 		}
+		activeDimensions.value = {
+			width: elementRect.width,
+			height: elementRect.height,
+		}
+	} else {
+		let el = document.querySelector('.groupDiv')
+		if (!el) return
+		dragTarget.value = el
 	}
 }
 
-const removeDragAndResize = () => {
+const removeDragAndResize = (val) => {
+	if (val.length > 1) {
+		val.forEach((index) => {
+			let elementDiv = document.querySelector(`[data-index="${index}"]`)
+			let slideDiv = document.querySelector('.slide')
+			slideDiv.appendChild(elementDiv)
+
+			let element = slide.value.elements[index]
+			element.left += activePosition.value.left
+			element.top += activePosition.value.top
+		})
+	}
+
 	activePosition.value = null
 	activeDimensions.value = null
 	dragTarget.value = null
@@ -264,34 +276,15 @@ const handleScreenChange = async () => {
 }
 
 watch(
-	() => activeElementId.value,
-	async () => {
-		if (activeElementId.value == null) {
-			removeDragAndResize()
-			nextTick(async () => {
-				slide.value.thumbnail = await getSlideThumbnail()
-			})
-			return
-		}
-		addDragAndResize()
-	},
-	{ immediate: true },
-)
-
-watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
 		if (newVal.length) {
 			addDragAndResize()
 		} else if (oldVal) {
-			oldVal.forEach((index) => {
-				let elementDiv = document.querySelector(`[data-index="${index}"]`)
-				let slideDiv = document.querySelector('.slide')
-				slideDiv.appendChild(elementDiv)
+			removeDragAndResize(oldVal)
 
-				let element = slide.value.elements[index]
-				element.left += activePosition.value.left
-				element.top += activePosition.value.top
+			nextTick(async () => {
+				slide.value.thumbnail = await getSlideThumbnail()
 			})
 		}
 	},
@@ -312,10 +305,12 @@ watch(
 	() => activePosition.value,
 	(position) => {
 		if (!position) return
-		if (activeElement.value) {
+		if (activeElementIds.value.length == 1) {
 			const newleft = (position.left - slideRect.value.left) / scale.value
 			const newTop = (position.top - slideRect.value.top) / scale.value
-			activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
+			let element = slide.value.elements[activeElementIds.value[0]]
+			element.left = newleft
+			element.top = newTop
 		} else {
 			const groupDiv = document.querySelector('.groupDiv')
 			if (groupDiv) {
@@ -334,9 +329,10 @@ watch(
 	() => activeDimensions.value,
 	(dimensions) => {
 		if (!dimensions) return
-		if (activeElement.value && dimensions.width != activeElement.value.width) {
+		let element = slide.value.elements[activeElementIds.value[0]]
+		if (element && dimensions.width != element.width) {
 			const newWidth = dimensions.width / scale.value
-			activeElement.value = { ...activeElement.value, width: newWidth }
+			element.width = newWidth
 		}
 	},
 	{ immediate: true },
