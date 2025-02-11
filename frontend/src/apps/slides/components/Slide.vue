@@ -160,7 +160,6 @@ const selectSlide = (e) => {
 	}
 	resetFocus()
 	slideFocus.value = true
-	selectionBox.value.clearSelection()
 }
 
 const addDragAndResize = () => {
@@ -190,6 +189,7 @@ const removeDragAndResize = (val) => {
 	if (val.length > 1) {
 		val.forEach((index) => {
 			let elementDiv = document.querySelector(`[data-index="${index}"]`)
+			if (!elementDiv) return
 			let slideDiv = document.querySelector('.slide')
 			slideDiv.appendChild(elementDiv)
 
@@ -282,6 +282,8 @@ watch(
 			addDragAndResize()
 		} else if (oldVal) {
 			removeDragAndResize(oldVal)
+
+			oldVal.length && selectionBox.value.resetSelection()
 
 			nextTick(async () => {
 				slide.value.thumbnail = await getSlideThumbnail()

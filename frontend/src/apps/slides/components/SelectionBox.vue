@@ -74,7 +74,7 @@ const updateSelectedElements = () => {
 	if (selectedElements.length > 1) {
 		selectedElements.forEach((index) => {
 			const elementDiv = document.querySelector(`[data-index="${index}"]`)
-			groupDiv.value.appendChild(elementDiv)
+			groupDiv.value?.appendChild(elementDiv)
 		})
 	}
 	setActiveElements(selectedElements)
@@ -88,10 +88,7 @@ const initSelection = (e) => {
 	width.value = 0
 	height.value = 0
 	activeElementIds.value = []
-	activeElementIds.value.forEach((index) => {
-		const elementDiv = document.querySelector(`[data-index="${index}"]`)
-		groupDiv.value.parentElement.appendChild(elementDiv)
-	})
+
 	document.addEventListener('mousemove', updateSelection)
 }
 
@@ -112,9 +109,7 @@ const updateSelection = (e) => {
 	height.value = Math.abs(dy)
 }
 
-const clearSelection = () => {
-	left.value = 0
-	top.value = 0
+const resetSelection = () => {
 	width.value = 0
 	height.value = 0
 }
@@ -141,7 +136,7 @@ const cropSelectionToFitContent = () => {
 	left.value = l - 7
 	top.value = t - 7
 	width.value = r - l + 16
-	height.value = b - t + 11
+	height.value = b - t + 16
 }
 
 const setElementPositions = () => {
@@ -159,7 +154,7 @@ const endSelection = () => {
 
 	// if nothing got selected then clear the selection
 	if (activeElementIds.value.length < 2) {
-		clearSelection()
+		resetSelection()
 	} else {
 		cropSelectionToFitContent()
 		setElementPositions()
@@ -182,6 +177,6 @@ onBeforeUnmount(() => {
 })
 
 defineExpose({
-	clearSelection,
+	resetSelection,
 })
 </script>
