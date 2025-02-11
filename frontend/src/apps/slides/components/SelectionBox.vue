@@ -69,10 +69,14 @@ const updateSelectedElements = () => {
 
 		if (withinWidth && withinHeight) {
 			selectedElements.push(index)
-			const elementDiv = document.querySelector(`[data-index="${index}"]`)
-			groupDiv.value.appendChild(elementDiv)
 		}
 	})
+	if (selectedElements.length > 1) {
+		selectedElements.forEach((index) => {
+			const elementDiv = document.querySelector(`[data-index="${index}"]`)
+			groupDiv.value.appendChild(elementDiv)
+		})
+	}
 	setActiveElements(selectedElements)
 }
 
@@ -154,12 +158,12 @@ const endSelection = () => {
 	updateSelectedElements()
 
 	// if nothing got selected then clear the selection
-	if (activeElementIds.value.length === 0) {
+	if (activeElementIds.value.length < 2) {
 		clearSelection()
+	} else {
+		cropSelectionToFitContent()
+		setElementPositions()
 	}
-
-	cropSelectionToFitContent()
-	setElementPositions()
 
 	document.removeEventListener('mouseup', endSelection)
 	document.removeEventListener('mousemove', updateSelection)
