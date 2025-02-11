@@ -6,7 +6,7 @@
 import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 
 import { slideRect, slide } from '@/stores/slide'
-import { activeElementId, activeElementIds, activePosition } from '@/stores/element'
+import { activeElementIds, activePosition, setActiveElements } from '@/stores/element'
 
 const emit = defineEmits(['selectSlide'])
 
@@ -73,7 +73,7 @@ const updateSelectedElements = () => {
 			groupDiv.value.appendChild(elementDiv)
 		}
 	})
-	activeElementIds.value = selectedElements
+	setActiveElements(selectedElements)
 }
 
 const initSelection = (e) => {
