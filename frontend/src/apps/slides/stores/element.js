@@ -36,6 +36,7 @@ const setActiveElements = (ids, focus = false) => {
 		activeElementIds.value = []
 		focusElementId.value = ids[0]
 	} else {
+		if (ids.length == 1 && activeElementIds.value.includes(ids[0])) return
 		activeElementIds.value = ids
 		focusElementId.value = null
 	}
