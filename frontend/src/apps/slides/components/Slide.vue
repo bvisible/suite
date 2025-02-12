@@ -33,7 +33,7 @@
 		>
 			<SelectionBox ref="selectionBox" @selectSlide="selectSlide" />
 
-			<!-- <ElementAlignmentGuides v-if="showGuides" :scale="scale" /> -->
+			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
 
 			<component
 				ref="element"

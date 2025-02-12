@@ -1,9 +1,5 @@
 <template>
-	<div
-		v-for="guide in ['left', 'right', 'top', 'bottom', 'centerX', 'centerY']"
-		:key="guide"
-		:style="guideStyles[guide]"
-	></div>
+	<div v-for="guide in ['centerX', 'centerY']" :key="guide" :style="guideStyles[guide]"></div>
 </template>
 
 <script setup>
@@ -11,7 +7,7 @@ import { computed, ref, watch, nextTick } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
 import { slide, slideRect } from '@/stores/slide'
-import { activePosition, activeElementId, pairElementId, activeElement } from '@/stores/element'
+import { activePosition, activeElementIds, pairElementId, activeElements } from '@/stores/element'
 
 const props = defineProps({
 	scale: Number,
@@ -32,7 +28,10 @@ const guideStyles = computed(() => {
 })
 
 const activeDiv = computed(() => {
-	return document.querySelector(`[data-index="${activeElementId.value}"]`)
+	if (activeElementIds.value.length == 0) return
+	else if (activeElementIds.value.length == 1)
+		return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
+	else return document.querySelector('.groupDiv')
 })
 
 const activeRect = useElementBounding(activeDiv)
@@ -49,12 +48,10 @@ const pairElement = computed(() => {
 
 const snapToCenter = () => {
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		const newLeft = activeElement.value.left + (diffCenterX.value * 960) / slideRect.value.width
-		activeElement.value = { ...activeElement.value, left: newLeft }
+		activeDiv.value.style.left = `${activeRect.left.value - slideRect.value.left + diffCenterX.value * props.scale}px`
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		const newTop = activeElement.value.top + (diffCenterY.value * 960) / slideRect.value.width
-		activeElement.value = { ...activeElement.value, top: newTop }
+		activeDiv.value.style.top = `${activeRect.top.value - slideRect.value.top + diffCenterY.value * props.scale}px`
 	}
 }
 
@@ -217,13 +214,9 @@ const setCurrentPairedDataIndex = () => {
 
 watch(
 	() => activePosition.value,
-	() => {
-		if (!activePosition.value) return
-
+	(val) => {
 		nextTick(() => {
-			setCurrentPairedDataIndex()
 			snapToCenter()
-			snapToPairedElement()
 		})
 	},
 	{ immediate: true },
