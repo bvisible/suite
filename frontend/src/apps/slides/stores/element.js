@@ -102,12 +102,16 @@ const addMediaElement = (file, type) => {
 	nextTick(() => setActiveElements([slide.value.elements.length - 1]))
 }
 
-const duplicateElements = (e) => {
+const duplicateElements = async (e) => {
 	e.preventDefault()
 
 	let newSelection = []
+	const oldElements = activeElements.value
+	activeElementIds.value = []
 
-	activeElements.value.forEach((element) => {
+	await nextTick()
+
+	oldElements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.top += 40
 		newElement.left += 40

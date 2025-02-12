@@ -1,9 +1,9 @@
 <template>
-	<div ref="groupDiv" class="groupDiv" :style="boxStyles"></div>
+	<div v-show="width && height" ref="groupDiv" class="groupDiv" :style="boxStyles"></div>
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
 
 import { slideRect, slide } from '@/stores/slide'
 import { activeElementIds, activePosition, setActiveElements } from '@/stores/element'
@@ -71,12 +71,6 @@ const updateSelectedElements = () => {
 			selectedElements.push(index)
 		}
 	})
-	if (selectedElements.length > 1) {
-		selectedElements.forEach((index) => {
-			const elementDiv = document.querySelector(`[data-index="${index}"]`)
-			groupDiv.value?.appendChild(elementDiv)
-		})
-	}
 	setActiveElements(selectedElements)
 }
 
@@ -142,6 +136,7 @@ const cropSelectionToFitContent = () => {
 const setElementPositions = () => {
 	activePosition.value = { left: left.value, top: top.value }
 
+	// set positions relative to the selection box
 	activeElementIds.value.forEach((index) => {
 		let element = slide.value.elements[index]
 		element.left = element.left - left.value
@@ -152,17 +147,28 @@ const setElementPositions = () => {
 const endSelection = () => {
 	updateSelectedElements()
 
-	// if nothing got selected then clear the selection
-	if (activeElementIds.value.length < 2) {
-		resetSelection()
-	} else {
-		cropSelectionToFitContent()
-		setElementPositions()
-	}
-
 	document.removeEventListener('mouseup', endSelection)
 	document.removeEventListener('mousemove', updateSelection)
 }
+
+watch(
+	() => activeElementIds.value,
+	(val) => {
+		if (val.length > 1) {
+			// watch for changes in activeElementIds to auto-highlight duplicated group
+			cropSelectionToFitContent()
+			setElementPositions()
+
+			// move multiple elements to group div after setting position relative to the selection box
+			val.forEach((index) => {
+				const elementDiv = document.querySelector(`[data-index="${index}"]`)
+				groupDiv.value?.appendChild(elementDiv)
+			})
+		} else {
+			resetSelection()
+		}
+	},
+)
 
 onMounted(() => {
 	document.addEventListener('mousedown', handleMouseDown)
