@@ -42,7 +42,7 @@
 	<!-- Slide Navigator Toggle -->
 	<div v-if="!showNavigator">
 		<div
-			class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white drop-shadow-xl"
+			class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
 			@click="toggleNavigator"
 		>
 			<FeatherIcon name="chevron-right" class="h-3 pe-1" />
