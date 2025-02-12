@@ -28,7 +28,7 @@
 	<div v-else ref="target" :style="targetStyles">
 		<div
 			class="slide h-[540px] w-[960px] shadow-2xl"
-			:class="activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
+			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 		>
 			<SelectionBox ref="selectionBox" @selectSlide="selectSlide" />
