@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="parent"
-		class="fixed flex h-screen w-screen flex-col"
+		class="fixed flex h-screen w-screen flex-col select-none"
 		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
 		@dragenter.prevent="handleDragEnter"
 		@dragleave.prevent="handleDragLeave"
@@ -131,6 +131,7 @@ import {
 	duplicateElements,
 	addTextElement,
 	addMediaElement,
+	selectAllElements,
 } from '@/stores/element'
 
 let autosaveInterval = null
@@ -240,6 +241,9 @@ const handleGlobalShortcuts = (e) => {
 			break
 		case 'b':
 			if (e.metaKey) showNavigator.value = !showNavigator.value
+			break
+		case 'a':
+			if (e.metaKey) selectAllElements()
 			break
 	}
 }

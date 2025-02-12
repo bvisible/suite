@@ -137,6 +137,10 @@ const deleteElements = async (e) => {
 	nextTick(() => resetFocus())
 }
 
+const selectAllElements = () => {
+	activeElementIds.value = slide.value.elements.map((_, index) => index)
+}
+
 const resetFocus = () => {
 	activeElementIds.value = []
 	focusElementId.value = null
@@ -156,4 +160,5 @@ export {
 	addMediaElement,
 	duplicateElements,
 	deleteElements,
+	selectAllElements,
 }
