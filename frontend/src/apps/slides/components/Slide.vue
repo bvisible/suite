@@ -142,7 +142,7 @@ const targetStyles = computed(() => ({
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
 	cursor: isDragging.value ? 'move' : 'default',
-	'--showEdgeOverlay': activeElementIds.value.length ? 'block' : 'none',
+	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
 }))
 
 const selectSlide = (e) => {
