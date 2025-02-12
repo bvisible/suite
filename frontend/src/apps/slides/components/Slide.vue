@@ -169,15 +169,6 @@ const addDragAndResize = () => {
 		dragTarget.value = el
 		resizeTarget.value = el
 		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
-		const elementRect = el.getBoundingClientRect()
-		activePosition.value = {
-			top: elementRect.top,
-			left: elementRect.left,
-		}
-		activeDimensions.value = {
-			width: elementRect.width,
-			height: elementRect.height,
-		}
 	} else {
 		let el = document.querySelector('.groupDiv')
 		if (!el) return

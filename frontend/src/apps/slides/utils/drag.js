@@ -43,6 +43,13 @@ export const useDragAndDrop = (dragPosition) => {
 		(newVal, oldVal) => {
 			oldVal?.removeEventListener('mousedown', startDragging)
 			newVal?.addEventListener('mousedown', startDragging)
+			if (!newVal) return
+
+			const elementRect = newVal.getBoundingClientRect()
+			dragPosition.value = {
+				top: elementRect.top,
+				left: elementRect.left,
+			}
 		},
 		{ immediate: true },
 	)
