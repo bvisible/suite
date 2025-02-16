@@ -26,12 +26,13 @@ let mousedownStart
 const boxStyles = computed(() => ({
 	position: 'absolute',
 	backgroundColor: '#70b6f018',
-	border: '1px solid #70b6f092',
+	border: '0.1px solid #70b6f092',
 	zIndex: 1000,
 	width: `${width.value}px`,
 	height: `${height.value}px`,
 	left: `${left.value}px`,
 	top: `${top.value}px`,
+	boxSizing: 'border-box',
 }))
 
 const handleMouseDown = (e) => {
@@ -103,7 +104,18 @@ const updateSelection = (e) => {
 	height.value = Math.abs(dy)
 }
 
-const resetSelection = () => {
+const resetSelection = (oldVal) => {
+	if (oldVal) {
+		oldVal.forEach((index) => {
+			let elementDiv = document.querySelector(`[data-index="${index}"]`)
+			if (!elementDiv) return
+			let slideDiv = document.querySelector('.slide')
+			slideDiv.appendChild(elementDiv)
+			let element = slide.value.elements[index]
+			element.left = left.value + element.left + 2.5
+			element.top = top.value + element.top + 2.5
+		})
+	}
 	width.value = 0
 	height.value = 0
 }
@@ -127,10 +139,10 @@ const cropSelectionToFitContent = () => {
 	// subtract the outlineOffset - (value from SlideElement outlineOffset) for outlines to match up
 	prevX.value = 0
 	prevY.value = 0
-	left.value = l - 7
-	top.value = t - 7
-	width.value = r - l + 16
-	height.value = b - t + 16
+	left.value = l
+	top.value = t
+	width.value = r - l
+	height.value = b - t
 }
 
 const setElementPositions = () => {
@@ -139,8 +151,8 @@ const setElementPositions = () => {
 	// set positions relative to the selection box
 	activeElementIds.value.forEach((index) => {
 		let element = slide.value.elements[index]
-		element.left = element.left - left.value
-		element.top = element.top - top.value
+		element.left = element.left - left.value - 2.5
+		element.top = element.top - top.value - 2.5
 	})
 }
 
@@ -153,7 +165,7 @@ const endSelection = () => {
 
 watch(
 	() => activeElementIds.value,
-	(val) => {
+	(val, oldVal) => {
 		if (val.length > 1) {
 			// watch for changes in activeElementIds to auto-highlight duplicated group
 			cropSelectionToFitContent()
@@ -165,7 +177,17 @@ watch(
 				groupDiv.value?.appendChild(elementDiv)
 			})
 		} else {
-			resetSelection()
+			resetSelection(oldVal)
+		}
+	},
+)
+
+watch(
+	() => activePosition.value,
+	(newVal, oldVal) => {
+		if (newVal) {
+			left.value = newVal.left
+			top.value = newVal.top
 		}
 	},
 )

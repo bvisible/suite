@@ -177,19 +177,6 @@ const addDragAndResize = () => {
 }
 
 const removeDragAndResize = (val) => {
-	if (val.length > 1) {
-		val.forEach((index) => {
-			let elementDiv = document.querySelector(`[data-index="${index}"]`)
-			if (!elementDiv) return
-			let slideDiv = document.querySelector('.slide')
-			slideDiv.appendChild(elementDiv)
-
-			let element = slide.value.elements[index]
-			element.left += activePosition.value.left
-			element.top += activePosition.value.top
-		})
-	}
-
 	activePosition.value = null
 	activeDimensions.value = null
 	dragTarget.value = null
@@ -273,8 +260,6 @@ watch(
 			addDragAndResize()
 		} else if (oldVal) {
 			removeDragAndResize(oldVal)
-
-			oldVal.length && selectionBox.value.resetSelection()
 
 			nextTick(async () => {
 				slide.value.thumbnail = await getSlideThumbnail()

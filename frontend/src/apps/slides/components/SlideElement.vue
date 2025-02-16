@@ -30,11 +30,11 @@ const outline = computed(() => {
 const elementStyle = computed(() => ({
 	position: activeElementIds.value.includes(attrs['data-index']) ? 'absolute' : 'fixed',
 	width: `${element.value.width}px`,
-	height: `${element.value.height}px`,
+	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	outline: outline.value,
-	outlineOffset: '5px',
+	border: outline.value,
+	boxSizing: 'border-box',
 }))
 
 const getDynamicComponent = (type) => {
