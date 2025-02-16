@@ -46,12 +46,22 @@ const pairElement = computed(() => {
 	return slide.value.elements[pairElementId.value]
 })
 
+const snappedX = ref(0)
+
 const snapToCenter = () => {
+	let groupDiv = document.querySelector('.groupDiv')
 	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeDiv.value.style.left = `${activeRect.left.value - slideRect.value.left + diffCenterX.value * props.scale}px`
+		snappedX.value += 1
+		activePosition.value = {
+			...activePosition.value,
+			left: activePosition.value.left + diffCenterX.value * props.scale,
+		}
 	}
 	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
-		activeDiv.value.style.top = `${activeRect.top.value - slideRect.value.top + diffCenterY.value * props.scale}px`
+		activePosition.value = {
+			...activePosition.value,
+			top: activePosition.value.top + diffCenterX.value * props.scale,
+		}
 	}
 }
 
@@ -213,12 +223,14 @@ const setCurrentPairedDataIndex = () => {
 }
 
 watch(
-	() => activePosition.value,
-	(val) => {
-		nextTick(() => {
+	() => diffCenterX.value,
+	() => {
+		let a = Math.abs(diffCenterX.value)
+		if (snappedX.value < 10 && a < CENTER_PROXIMITY_THRESHOLD) {
 			snapToCenter()
-		})
+		} else {
+			snappedX.value = 0
+		}
 	},
-	{ immediate: true },
 )
 </script>
