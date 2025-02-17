@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 
 import { slideRect, slide } from '@/stores/slide'
 import { activeElementIds, activePosition, setActiveElements } from '@/stores/element'
@@ -136,12 +136,11 @@ const cropSelectionToFitContent = () => {
 		if (element.top + element.height > b) b = element.top + element.height
 	})
 
-	// subtract the outlineOffset - (value from SlideElement outlineOffset) for outlines to match up
 	prevX.value = 0
 	prevY.value = 0
 	left.value = l
 	top.value = t
-	width.value = r - l
+	width.value = r - l - 4
 	height.value = b - t
 }
 
@@ -163,19 +162,24 @@ const endSelection = () => {
 	document.removeEventListener('mousemove', updateSelection)
 }
 
+const handleSelection = (val) => {
+	// watch for changes in activeElementIds to auto-highlight duplicated group
+	cropSelectionToFitContent()
+
+	setElementPositions()
+
+	// move multiple elements to group div after setting position relative to the selection box
+	val.forEach((index) => {
+		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		groupDiv.value?.appendChild(elementDiv)
+	})
+}
+
 watch(
 	() => activeElementIds.value,
 	(val, oldVal) => {
-		if (val.length > 1) {
-			// watch for changes in activeElementIds to auto-highlight duplicated group
-			cropSelectionToFitContent()
-			setElementPositions()
-
-			// move multiple elements to group div after setting position relative to the selection box
-			val.forEach((index) => {
-				const elementDiv = document.querySelector(`[data-index="${index}"]`)
-				groupDiv.value?.appendChild(elementDiv)
-			})
+		if (val.length >= 1) {
+			handleSelection(val)
 		} else {
 			resetSelection(oldVal)
 		}
