@@ -6,7 +6,12 @@
 import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
 
 import { slideRect, slide } from '@/stores/slide'
-import { activeElementIds, activePosition, setActiveElements } from '@/stores/element'
+import {
+	activeDimensions,
+	activeElementIds,
+	activePosition,
+	setActiveElements,
+} from '@/stores/element'
 
 const emit = defineEmits(['selectSlide'])
 
@@ -26,7 +31,7 @@ let mousedownStart
 const boxStyles = computed(() => ({
 	position: 'absolute',
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
-	border: '0.1px solid #70b6f092',
+	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
 	zIndex: 1000,
 	width: `${width.value}px`,
 	height: `${height.value}px`,
@@ -138,10 +143,10 @@ const cropSelectionToFitContent = () => {
 
 	prevX.value = 0
 	prevY.value = 0
-	left.value = l
-	top.value = t
-	width.value = r - l - 4
-	height.value = b - t
+	left.value = l - 2.1
+	top.value = t - 2.1
+	width.value = r - l - 0.1
+	height.value = b - t - 0.1
 }
 
 const setElementPositions = () => {
@@ -194,6 +199,17 @@ watch(
 			top.value = newVal.top
 		}
 	},
+	{ immediate: true },
+)
+
+watch(
+	() => activeDimensions.value,
+	(newVal) => {
+		if (newVal) {
+			width.value = newVal.width - 4
+		}
+	},
+	{ immediate: true },
 )
 
 onMounted(() => {
