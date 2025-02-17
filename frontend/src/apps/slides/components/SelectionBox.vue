@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
 
 import { slideRect, slide } from '@/stores/slide'
 import { activeElementIds, activePosition, setActiveElements } from '@/stores/element'
@@ -25,7 +25,7 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'absolute',
-	backgroundColor: '#70b6f018',
+	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
 	border: '0.1px solid #70b6f092',
 	zIndex: 1000,
 	width: `${width.value}px`,
