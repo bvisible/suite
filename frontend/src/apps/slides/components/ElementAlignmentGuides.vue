@@ -50,41 +50,26 @@ const pairElement = computed(() => {
 })
 
 // counters to keep track of how many times the element has been snapped to the center
-const snappedX = ref(0)
-const snappedY = ref(0)
+const snapCountX = ref(0)
+const snapCountY = ref(0)
 
-const snapToCenterX = () => {
+const snapToCenter = (position, diffCenter, snapCount) => {
 	// only allow snapping when -
 	// the element is not being dragged away from the center in the same mouse event &&
 	// the element is close to the center
 	if (
-		snappedX.value < RESISTANCE_THRESHOLD &&
-		Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD
+		snapCount.value < RESISTANCE_THRESHOLD &&
+		Math.abs(diffCenter) < CENTER_PROXIMITY_THRESHOLD
 	) {
 		activePosition.value = {
 			...activePosition.value,
-			left: activePosition.value.left + diffCenterX.value * props.scale,
+			[position]: activePosition.value[position] + diffCenter * props.scale,
 		}
-		snappedX.value += 1
+		snapCount.value += 1
 	}
 	// else reset the counter for snapping
 	else {
-		snappedX.value = 0
-	}
-}
-
-const snapToCenterY = () => {
-	if (
-		snappedY.value < RESISTANCE_THRESHOLD &&
-		Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD
-	) {
-		activePosition.value = {
-			...activePosition.value,
-			top: activePosition.value.top + diffCenterY.value * props.scale,
-		}
-		snappedY.value += 1
-	} else {
-		snappedY.value = 0
+		snapCount.value = 0
 	}
 }
 
@@ -109,19 +94,22 @@ const snapToPairedElement = () => {
 	activeElement.value = element
 }
 
-const diffCenterX = computed(() => {
+const getDiffFromCenter = (axis) => {
 	if (!activePosition.value) return
-	const centerX = slideRect.value.width / 2 + slideRect.value.left
-	const centerOfElementX = activeRect.left.value + activeRect.width.value / 2
-	return centerX - centerOfElementX
-})
+	let slideCenter, elementCenter
+	if (axis == 'X') {
+		slideCenter = slideRect.value.width / 2 + slideRect.value.left
+		elementCenter = activeRect.left.value + activeRect.width.value / 2
+	} else {
+		slideCenter = slideRect.value.height / 2 + slideRect.value.top
+		elementCenter = activeRect.top.value + activeRect.height.value / 2
+	}
+	return slideCenter - elementCenter
+}
 
-const diffCenterY = computed(() => {
-	if (!activePosition.value) return
-	const centerY = slideRect.value.height / 2 + slideRect.value.top
-	const centerOfElementY = activeRect.top.value + activeRect.height.value / 2
-	return centerY - centerOfElementY
-})
+const diffCenterX = computed(() => getDiffFromCenter('X'))
+
+const diffCenterY = computed(() => getDiffFromCenter('Y'))
 
 const diffLeft = computed(() => {
 	if (!pairElement.value) return
@@ -248,7 +236,7 @@ const setCurrentPairedDataIndex = () => {
 watch(
 	() => diffCenterX.value,
 	() => {
-		snapToCenterX()
+		snapToCenter('left', diffCenterX.value, snapCountX)
 	},
 	{ immediate: true },
 )
@@ -256,7 +244,7 @@ watch(
 watch(
 	() => diffCenterY.value,
 	() => {
-		snapToCenterY()
+		snapToCenter('top', diffCenterY.value, snapCountY)
 	},
 	{ immediate: true },
 )
