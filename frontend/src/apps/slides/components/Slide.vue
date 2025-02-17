@@ -163,17 +163,9 @@ const selectSlide = (e) => {
 }
 
 const addDragAndResize = () => {
-	if (activeElementIds.value.length == 1) {
-		let el = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
-		if (!el) return
-		dragTarget.value = el
-		resizeTarget.value = el
-		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
-	} else {
-		let el = document.querySelector('.groupDiv')
-		if (!el) return
-		dragTarget.value = el
-	}
+	let el = document.querySelector('.groupDiv')
+	if (!el) return
+	dragTarget.value = el
 }
 
 const removeDragAndResize = (val) => {

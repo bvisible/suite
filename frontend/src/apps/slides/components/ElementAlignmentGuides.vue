@@ -32,9 +32,7 @@ const guideStyles = computed(() => {
 
 const activeDiv = computed(() => {
 	if (activeElementIds.value.length == 0) return
-	else if (activeElementIds.value.length == 1)
-		return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
-	else return document.querySelector('.groupDiv')
+	return document.querySelector('.groupDiv')
 })
 
 const activeRect = useElementBounding(activeDiv)
