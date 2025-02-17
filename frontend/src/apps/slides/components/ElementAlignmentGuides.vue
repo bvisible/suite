@@ -13,6 +13,9 @@ const props = defineProps({
 	scale: Number,
 })
 
+// this works kind of like an allowance so after the element is snapped, it can still move away from the center in same mouse event
+const RESISTANCE_THRESHOLD = 5
+
 const CENTER_PROXIMITY_THRESHOLD = 20
 const PROXIMITY_THRESHOLD = 10
 
@@ -46,22 +49,42 @@ const pairElement = computed(() => {
 	return slide.value.elements[pairElementId.value]
 })
 
+// counters to keep track of how many times the element has been snapped to the center
 const snappedX = ref(0)
+const snappedY = ref(0)
 
-const snapToCenter = () => {
-	let groupDiv = document.querySelector('.groupDiv')
-	if (Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD) {
-		snappedX.value += 1
+const snapToCenterX = () => {
+	// only allow snapping when -
+	// the element is not being dragged away from the center in the same mouse event &&
+	// the element is close to the center
+	if (
+		snappedX.value < RESISTANCE_THRESHOLD &&
+		Math.abs(diffCenterX.value) < CENTER_PROXIMITY_THRESHOLD
+	) {
 		activePosition.value = {
 			...activePosition.value,
 			left: activePosition.value.left + diffCenterX.value * props.scale,
 		}
+		snappedX.value += 1
 	}
-	if (Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD) {
+	// else reset the counter for snapping
+	else {
+		snappedX.value = 0
+	}
+}
+
+const snapToCenterY = () => {
+	if (
+		snappedY.value < RESISTANCE_THRESHOLD &&
+		Math.abs(diffCenterY.value) < CENTER_PROXIMITY_THRESHOLD
+	) {
 		activePosition.value = {
 			...activePosition.value,
-			top: activePosition.value.top + diffCenterX.value * props.scale,
+			top: activePosition.value.top + diffCenterY.value * props.scale,
 		}
+		snappedY.value += 1
+	} else {
+		snappedY.value = 0
 	}
 }
 
@@ -225,12 +248,16 @@ const setCurrentPairedDataIndex = () => {
 watch(
 	() => diffCenterX.value,
 	() => {
-		let a = Math.abs(diffCenterX.value)
-		if (snappedX.value < 10 && a < CENTER_PROXIMITY_THRESHOLD) {
-			snapToCenter()
-		} else {
-			snappedX.value = 0
-		}
+		snapToCenterX()
 	},
+	{ immediate: true },
+)
+
+watch(
+	() => diffCenterY.value,
+	() => {
+		snapToCenterY()
+	},
+	{ immediate: true },
 )
 </script>
