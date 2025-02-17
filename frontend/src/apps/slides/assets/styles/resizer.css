@@ -28,25 +28,25 @@
 }
 
 .resizer-top-left {
-	top: -8.5px;
-	left: -8.5px;
+	top: -4.5px;
+	left: -4.5px;
 	cursor: nwse-resize;
 }
 
 .resizer-top-right {
-	top: -8.5px;
-	right: -8.5px;
+	top: -4.5px;
+	right: -4.5px;
 	cursor: nesw-resize;
 }
 
 .resizer-bottom-left {
-	bottom: -8.5px;
-	left: -8.5px;
+	bottom: -4.5px;
+	left: -4.5px;
 	cursor: nesw-resize;
 }
 
 .resizer-bottom-right {
-	bottom: -8.5px;
-	right: -8.5px;
+	bottom: -4.5px;
+	right: -4.5px;
 	cursor: nwse-resize;
 }

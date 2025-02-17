@@ -166,6 +166,10 @@ const addDragAndResize = () => {
 	let el = document.querySelector('.groupDiv')
 	if (!el) return
 	dragTarget.value = el
+	if (activeElementIds.value.length == 1) {
+		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
+		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
+	}
 }
 
 const removeDragAndResize = (val) => {
@@ -275,21 +279,13 @@ watch(
 	() => activePosition.value,
 	(position) => {
 		if (!position) return
-		if (activeElementIds.value.length == 1) {
-			const newleft = (position.left - slideRect.value.left) / scale.value
-			const newTop = (position.top - slideRect.value.top) / scale.value
-			let element = slide.value.elements[activeElementIds.value[0]]
-			element.left = newleft
-			element.top = newTop
-		} else {
-			const groupDiv = document.querySelector('.groupDiv')
-			if (groupDiv) {
-				const groupLeft = position.left
-				const groupTop = position.top
+		const groupDiv = document.querySelector('.groupDiv')
+		if (groupDiv) {
+			const groupLeft = position.left
+			const groupTop = position.top
 
-				groupDiv.style.left = `${groupLeft}px`
-				groupDiv.style.top = `${groupTop}px`
-			}
+			groupDiv.style.left = `${groupLeft}px`
+			groupDiv.style.top = `${groupTop}px`
 		}
 	},
 	{ immediate: true },
