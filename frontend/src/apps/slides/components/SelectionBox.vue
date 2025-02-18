@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 
 import { slideRect, slide } from '@/stores/slide'
 import {
@@ -81,13 +81,15 @@ const updateSelectedElements = () => {
 }
 
 const initSelection = (e) => {
-	left.value = e.clientX - slideRect.value.left
-	top.value = e.clientY - slideRect.value.top
-	prevX.value = e.clientX
-	prevY.value = e.clientY
-	width.value = 0
-	height.value = 0
 	activeElementIds.value = []
+	nextTick(() => {
+		left.value = e.clientX - slideRect.value.left
+		top.value = e.clientY - slideRect.value.top
+		prevX.value = e.clientX
+		prevY.value = e.clientY
+		width.value = 0
+		height.value = 0
+	})
 
 	document.addEventListener('mousemove', updateSelection)
 }
@@ -114,11 +116,11 @@ const resetSelection = (oldVal) => {
 		oldVal.forEach((index) => {
 			let elementDiv = document.querySelector(`[data-index="${index}"]`)
 			if (!elementDiv) return
+			let element = slide.value.elements[index]
+			element.left = left.value + element.left + 2.1
+			element.top = top.value + element.top + 2.1
 			let slideDiv = document.querySelector('.slide')
 			slideDiv.appendChild(elementDiv)
-			let element = slide.value.elements[index]
-			element.left = left.value + element.left + 2.5
-			element.top = top.value + element.top + 2.5
 		})
 	}
 	width.value = 0
@@ -143,10 +145,10 @@ const cropSelectionToFitContent = () => {
 
 	prevX.value = 0
 	prevY.value = 0
-	left.value = l - 2.1
-	top.value = t - 2.1
-	width.value = r - l - 0.1
-	height.value = b - t - 0.1
+	left.value = l
+	top.value = t
+	width.value = r - l
+	height.value = b - t
 }
 
 const setElementPositions = () => {
@@ -155,8 +157,8 @@ const setElementPositions = () => {
 	// set positions relative to the selection box
 	activeElementIds.value.forEach((index) => {
 		let element = slide.value.elements[index]
-		element.left = element.left - left.value - 2.5
-		element.top = element.top - top.value - 2.5
+		element.left = element.left - left.value - 2.1
+		element.top = element.top - top.value - 2.1
 	})
 }
 
@@ -183,10 +185,9 @@ const handleSelection = (val) => {
 watch(
 	() => activeElementIds.value,
 	(val, oldVal) => {
+		resetSelection(oldVal)
 		if (val.length >= 1) {
 			handleSelection(val)
-		} else {
-			resetSelection(oldVal)
 		}
 	},
 )
@@ -206,7 +207,7 @@ watch(
 	() => activeDimensions.value,
 	(newVal) => {
 		if (newVal) {
-			width.value = newVal.width - 4
+			width.value = newVal.width
 		}
 	},
 	{ immediate: true },
