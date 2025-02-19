@@ -14,10 +14,10 @@ const props = defineProps({
 })
 
 // this works kind of like an allowance so after the element is snapped, it can still move away from the center in same mouse event
-const RESISTANCE_THRESHOLD = 5
+const RESISTANCE_THRESHOLD = 10
 
 const CENTER_PROXIMITY_THRESHOLD = 20
-const PROXIMITY_THRESHOLD = 10
+const PROXIMITY_THRESHOLD = 7
 
 const guideStyles = computed(() => {
 	return {
@@ -231,19 +231,55 @@ const setCurrentPairedDataIndex = () => {
 	pairElementId.value = i
 }
 
-watch(
-	() => diffCenterX.value,
-	() => {
-		snapToCenter('left', diffCenterX.value, snapCountX)
-	},
-	{ immediate: true },
-)
+const updateDiffsBasedOnSnap = (movement, diff, threshold, snapCount) => {
+	const canSnap = Math.abs(diff) < threshold
+	const withinResistanceThreshold = snapCount.value < RESISTANCE_THRESHOLD
 
-watch(
-	() => diffCenterY.value,
-	() => {
-		snapToCenter('top', diffCenterY.value, snapCountY)
-	},
-	{ immediate: true },
-)
+	// only allow snapping when -
+	// the element is within the range of the snapping threshold
+	// the element is not being forced to snap while being dragged away
+	if (canSnap && withinResistanceThreshold) {
+		movement += diff
+		snapCount.value += 1
+	} else {
+		snapCount.value = 0
+	}
+
+	// if element crosses the resistance threshold, it should not be allowed to move again
+	if (!withinResistanceThreshold) {
+		movement = threshold * Math.sign(movement)
+		snapCount.value = 0
+	}
+
+	return movement
+}
+
+const updateElementPosition = (dx, dy) => {
+	if (!activePosition.value) return
+
+	dx = updateDiffsBasedOnSnap(dx, diffCenterX.value, CENTER_PROXIMITY_THRESHOLD, snapCountX)
+	dy = updateDiffsBasedOnSnap(dy, diffCenterY.value, CENTER_PROXIMITY_THRESHOLD, snapCountY)
+
+	activePosition.value = {
+		left: activePosition.value.left + dx,
+		top: activePosition.value.top + dy,
+	}
+}
+
+const handleArrowKeys = (key) => {
+	let dx = 0
+	let dy = 0
+
+	if (key == 'ArrowLeft') dx = -1
+	else if (key == 'ArrowRight') dx = 1
+	else if (key == 'ArrowUp') dy = -1
+	else if (key == 'ArrowDown') dy = 1
+
+	updateElementPosition(dx, dy)
+}
+
+defineExpose({
+	handleArrowKeys,
+	updateElementPosition,
+})
 </script>
