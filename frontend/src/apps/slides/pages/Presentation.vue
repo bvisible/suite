@@ -139,6 +139,7 @@ let autosaveInterval = null
 const route = useRoute()
 const router = useRouter()
 
+const slideRef = useTemplateRef('slide')
 const parentRef = useTemplateRef('parent')
 const slideContainerRef = useTemplateRef('slideContainer')
 const newTitleRef = useTemplateRef('newTitleRef')
@@ -175,33 +176,13 @@ const clearFocus = (e) => {
 	}
 }
 
-const updateElementPosition = (dx, dy) => {
-	if (!activePosition.value) return
-	activePosition.value = {
-		left: activePosition.value.left + dx,
-		top: activePosition.value.top + dy,
-	}
-}
-
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateElementPosition(dx, dy)
-}
-
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
 		case 'ArrowRight':
 		case 'ArrowUp':
 		case 'ArrowDown':
-			handleArrowKeys(e.key)
+			slideRef.value.guides.handleArrowKeys(e.key)
 			break
 		case 'Delete':
 		case 'Backspace':

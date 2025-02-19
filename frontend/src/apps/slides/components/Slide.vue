@@ -31,9 +31,9 @@
 			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 		>
-			<SelectionBox ref="selectionBox" @selectSlide="selectSlide" />
+			<SelectionBox @selectSlide="selectSlide" />
 
-			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
+			<ElementAlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
 			<component
 				ref="element"
@@ -101,11 +101,11 @@ const props = defineProps({
 })
 
 const targetRef = useTemplateRef('target')
-const selectionBox = useTemplateRef('selectionBox')
+const guides = useTemplateRef('guides')
 
 slideRect.value = useElementBounding(targetRef)
 
-const { isDragging, dragTarget } = useDragAndDrop(activePosition)
+const { isDragging, dragTarget, movement } = useDragAndDrop()
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	props.containerRef,
@@ -165,7 +165,9 @@ const selectSlide = (e) => {
 const addDragAndResize = () => {
 	let el = document.querySelector('.groupDiv')
 	if (!el) return
-	dragTarget.value = el
+	nextTick(() => {
+		dragTarget.value = el
+	})
 	if (activeElementIds.value.length == 1) {
 		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
 		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
@@ -276,13 +278,18 @@ watch(
 )
 
 watch(
-	() => activePosition.value,
-	(position) => {
-		if (!position) return
+	() => movement.value,
+	() => {
+		if (!movement.value || !activePosition.value) return
+
+		const { x, y } = movement.value
+
+		guides.value.updateElementPosition(x, y)
+
 		const groupDiv = document.querySelector('.groupDiv')
 		if (groupDiv) {
-			const groupLeft = position.left
-			const groupTop = position.top
+			const groupLeft = activePosition.value.left
+			const groupTop = activePosition.value.top
 
 			groupDiv.style.left = `${groupLeft}px`
 			groupDiv.style.top = `${groupTop}px`
@@ -304,12 +311,29 @@ watch(
 	{ immediate: true },
 )
 
+watch(
+	() => dragTarget.value,
+	() => {
+		if (!dragTarget.value) return
+		let rect = dragTarget.value.getBoundingClientRect()
+		activePosition.value = {
+			left: rect.left - slideRect.value.left,
+			top: rect.top - slideRect.value.top,
+		}
+	},
+	{ immediate: true },
+)
+
 onMounted(() => {
 	document.addEventListener('fullscreenchange', handleScreenChange)
 })
 
 onBeforeUnmount(() => {
 	document.removeEventListener('fullscreenchange', handleScreenChange)
+})
+
+defineExpose({
+	guides,
 })
 </script>
 

@@ -1,10 +1,11 @@
 import { watch, ref } from 'vue'
 
-export const useDragAndDrop = (dragPosition) => {
+export const useDragAndDrop = () => {
 	const isDragging = ref(false)
 	const mouseX = ref(0)
 	const mouseY = ref(0)
 	const dragTarget = ref(null)
+	const movement = ref({ x: 0, y: 0 })
 
 	const startDragging = (e) => {
 		e.preventDefault()
@@ -21,9 +22,9 @@ export const useDragAndDrop = (dragPosition) => {
 			const dx = mouseX.value - e.clientX
 			const dy = mouseY.value - e.clientY
 
-			dragPosition.value = {
-				left: dragPosition.value.left - dx,
-				top: dragPosition.value.top - dy,
+			movement.value = {
+				x: -(mouseX.value - e.clientX),
+				y: -(mouseY.value - e.clientY),
 			}
 
 			mouseX.value = e.clientX
@@ -43,16 +44,9 @@ export const useDragAndDrop = (dragPosition) => {
 		(newVal, oldVal) => {
 			oldVal?.removeEventListener('mousedown', startDragging)
 			newVal?.addEventListener('mousedown', startDragging)
-			if (!newVal) return
-
-			const elementRect = newVal.getBoundingClientRect()
-			dragPosition.value = {
-				top: elementRect.top,
-				left: elementRect.left,
-			}
 		},
 		{ immediate: true },
 	)
 
-	return { dragTarget, isDragging }
+	return { dragTarget, isDragging, movement }
 }
