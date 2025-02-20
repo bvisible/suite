@@ -59,27 +59,6 @@ const snapCountRight = ref(0)
 const snapCountTop = ref(0)
 const snapCountBottom = ref(0)
 
-const snapToPairedElement = () => {
-	if (!pairElement.value) return
-	let element = { ...activeElement.value }
-	const l = Math.abs(diffLeft.value) < PROXIMITY_THRESHOLD ? diffLeft.value : 0
-	const r = Math.abs(diffRight.value) < PROXIMITY_THRESHOLD ? diffRight.value : 0
-	if (Math.abs(l) > Math.abs(r)) {
-		element.left += l
-	} else {
-		element.left += r
-	}
-
-	const t = Math.abs(diffTop.value) < PROXIMITY_THRESHOLD ? diffTop.value : 0
-	const b = Math.abs(diffBottom.value) < PROXIMITY_THRESHOLD ? diffBottom.value : 0
-	if (Math.abs(t) > Math.abs(b)) {
-		element.top += t
-	} else {
-		element.top += b
-	}
-	activeElement.value = element
-}
-
 const getDiffFromCenter = (axis) => {
 	if (!activePosition.value) return
 	let slideCenter, elementCenter
@@ -96,35 +75,6 @@ const getDiffFromCenter = (axis) => {
 const diffCenterX = computed(() => getDiffFromCenter('X'))
 
 const diffCenterY = computed(() => getDiffFromCenter('Y'))
-
-const diffLeft = computed(() => {
-	if (!pairElement.value) return
-	return pairElement.value.left - activeElement.value.left
-})
-
-const diffRight = computed(() => {
-	if (!pairElement.value) return
-	return (
-		pairElement.value.left +
-		pairElement.value.width -
-		activeElement.value.left -
-		activeElement.value.width
-	)
-})
-
-const diffTop = computed(() => {
-	if (!pairElement.value) return
-	return pairElement.value.top - activeElement.value.top
-})
-
-const diffBottom = computed(() => {
-	if (!pairElement.value) return
-	const ogHeight = activeRect.height.value / props.scale
-	const ogPairedHeight = pairedRect.height.value / props.scale
-	const pairedElementBottom = pairElement.value.top + ogPairedHeight
-	const activeElementBottom = activeElement.value.top + ogHeight
-	return pairedElementBottom - activeElementBottom
-})
 
 const commonGuideStyles = {
 	position: 'fixed',
@@ -197,26 +147,6 @@ const centerYGuideStyles = computed(() => {
 		top: '50%',
 	}
 })
-
-const setCurrentPairedDataIndex = () => {
-	if (!activeElement.value) return
-	let i = null
-	slide.value.elements.forEach((element, index) => {
-		if (index == activeElementId.value) return
-		let diffLeft = Math.abs(element.left - activeElement.value.left)
-		let diffRight = Math.abs(
-			element.left + element.width - activeElement.value.left - activeElement.value.width,
-		)
-		let diffTop = Math.abs(element.top - activeElement.value.top)
-		let elementDiv = document.querySelector(`[data-index="${index}"]`).getBoundingClientRect()
-		let diffBottom = Math.abs(
-			elementDiv.top + elementDiv.height - activeRect.top.value - activeRect.height.value,
-		)
-		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD))
-			i = index
-	})
-	pairElementId.value = i
-}
 
 // decides the paired element based on proximity and sets the diffWithPaired
 const handleElementPairing = () => {
