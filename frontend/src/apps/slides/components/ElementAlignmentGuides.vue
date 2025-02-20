@@ -129,7 +129,7 @@ const commonGuideStyles = {
 }
 
 const leftGuideStyles = computed(() => {
-	if (!pairElementId.value || Math.abs(diffWithPaired.value.left) > PROXIMITY_THRESHOLD) return ''
+	if (!pairElement.value || Math.abs(diffWithPaired.value.left) > PROXIMITY_THRESHOLD) return ''
 	const pairedTop = pairElement.value.top
 	const pairedHeight = pairedRect.height.value
 	const diffHeight = pairedTop < activePosition.value.top ? activeRect.height.value : pairedHeight
@@ -137,14 +137,13 @@ const leftGuideStyles = computed(() => {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
 		left: `${activePosition.value.left - 2}px`,
-		top: `${activePosition.value.top}px`,
+		top: `${Math.min(activePosition.value.top, pairedTop)}px`,
 		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
 	}
 })
 
 const rightGuideStyles = computed(() => {
-	if (!pairElementId.value || Math.abs(diffWithPaired.value.right) > PROXIMITY_THRESHOLD)
-		return ''
+	if (!pairElement.value || Math.abs(diffWithPaired.value.right) > PROXIMITY_THRESHOLD) return ''
 	const pairedTop = pairElement.value.top
 	const pairedHeight = pairedRect.height.value
 	const diffHeight = pairedTop < activePosition.value.top ? activeRect.height.value : pairedHeight
@@ -152,7 +151,7 @@ const rightGuideStyles = computed(() => {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
 		left: `${activePosition.value.left + activeRect.width.value - 4}px`,
-		top: `${activePosition.value.top}px`,
+		top: `${Math.min(activePosition.value.top, pairedTop)}px`,
 		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
 	}
 })
@@ -242,7 +241,7 @@ const handleElementPairing = () => {
 const diffWithPaired = ref({ left: 0, right: 0, top: 0, bottom: 0 })
 
 const setDiffWithPaired = () => {
-	if (!pairElementId.value) return
+	if (!pairElement.value) return
 	const { left, top, width, height } = pairElement.value
 	diffWithPaired.value = {
 		left: left - activePosition.value.left + 2,
@@ -280,7 +279,7 @@ const updateElementPosition = (dx, dy) => {
 	dy = updateDiffsBasedOnSnap(dy, diffCenterY.value, CENTER_PROXIMITY_THRESHOLD, snapCountY)
 
 	handleElementPairing()
-	if (pairElementId.value) {
+	if (pairElement.value) {
 		if (Math.abs(diffWithPaired.value.left) < Math.abs(diffWithPaired.value.right)) {
 			dx = updateDiffsBasedOnSnap(
 				dx,
