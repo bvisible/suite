@@ -191,7 +191,7 @@ const setDiffWithPaired = () => {
 	}
 }
 
-const updateDiffsBasedOnSnap = (movement, diff, threshold, snapCount) => {
+const updateMovement = (movement, diff, threshold, snapCount) => {
 	const canSnap = Math.abs(diff) < threshold
 	const withinResistanceThreshold = snapCount.value < RESISTANCE_THRESHOLD
 
@@ -214,50 +214,56 @@ const updateDiffsBasedOnSnap = (movement, diff, threshold, snapCount) => {
 	return movement
 }
 
+const pickClosestSnapDirection = (axis, a, b) => {
+	let diff, count
+	if (Math.abs(a) < Math.abs(b)) {
+		diff = a
+		count = axis == 'X' ? snapCountLeft : snapCountTop
+	} else {
+		diff = b
+		count = axis == 'X' ? snapCountRight : snapCountBottom
+	}
+	return { diff, count }
+}
+
+const updateMovementBasedOnSnap = (dx, dy) => {
+	let updatedDx = dx,
+		updatedDy = dy
+
+	// check for snapping to the center and update movement
+	updatedDx = updateMovement(dx, diffCenterX.value, CENTER_PROXIMITY_THRESHOLD, snapCountX)
+	updatedDy = updateMovement(dy, diffCenterY.value, CENTER_PROXIMITY_THRESHOLD, snapCountY)
+
+	// check for any possible element pairing and update movement
+	handleElementPairing()
+	if (!pairElement.value) return { updatedDx, updatedDy }
+
+	// check for which direction to snap in - snap to closest direction instead of pulling towards both
+	const { diff: diffX, count: snapX } = pickClosestSnapDirection(
+		'X',
+		diffWithPaired.value.left,
+		diffWithPaired.value.right,
+	)
+	updatedDx = updateMovement(dx, diffX, PROXIMITY_THRESHOLD, snapX)
+
+	const { diff: diffY, count: snapY } = pickClosestSnapDirection(
+		'Y',
+		diffWithPaired.value.top,
+		diffWithPaired.value.bottom,
+	)
+	updatedDy = updateMovement(dy, diffY, PROXIMITY_THRESHOLD, snapY)
+
+	return { updatedDx, updatedDy }
+}
+
 const updateElementPosition = (dx, dy) => {
 	if (!activePosition.value) return
 
-	dx = updateDiffsBasedOnSnap(dx, diffCenterX.value, CENTER_PROXIMITY_THRESHOLD, snapCountX)
-	dy = updateDiffsBasedOnSnap(dy, diffCenterY.value, CENTER_PROXIMITY_THRESHOLD, snapCountY)
-
-	handleElementPairing()
-	if (pairElement.value) {
-		if (Math.abs(diffWithPaired.value.left) < Math.abs(diffWithPaired.value.right)) {
-			dx = updateDiffsBasedOnSnap(
-				dx,
-				diffWithPaired.value.left,
-				PROXIMITY_THRESHOLD,
-				snapCountLeft,
-			)
-		} else {
-			dx = updateDiffsBasedOnSnap(
-				dx,
-				diffWithPaired.value.right,
-				PROXIMITY_THRESHOLD,
-				snapCountRight,
-			)
-		}
-
-		if (Math.abs(diffWithPaired.value.top) < Math.abs(diffWithPaired.value.bottom)) {
-			dy = updateDiffsBasedOnSnap(
-				dy,
-				diffWithPaired.value.top,
-				PROXIMITY_THRESHOLD,
-				snapCountTop,
-			)
-		} else {
-			dy = updateDiffsBasedOnSnap(
-				dy,
-				diffWithPaired.value.bottom,
-				PROXIMITY_THRESHOLD,
-				snapCountBottom,
-			)
-		}
-	}
+	const { updatedDx, updatedDy } = updateMovementBasedOnSnap(dx, dy)
 
 	activePosition.value = {
-		left: activePosition.value.left + dx,
-		top: activePosition.value.top + dy,
+		left: activePosition.value.left + updatedDx,
+		top: activePosition.value.top + updatedDy,
 	}
 }
 
