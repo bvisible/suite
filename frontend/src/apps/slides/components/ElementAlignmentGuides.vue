@@ -128,33 +128,26 @@ const commonGuideStyles = {
 	borderStyle: 'dashed',
 }
 
-const leftGuideStyles = computed(() => {
-	if (!pairElement.value || Math.abs(diffWithPaired.value.left) > PROXIMITY_THRESHOLD) return ''
+const getVerticalGuideStyles = (direction, diffWithPaired) => {
+	if (!pairElement.value || Math.abs(diffWithPaired) > PROXIMITY_THRESHOLD) return ''
 	const pairedTop = pairElement.value.top
-	const pairedHeight = pairedRect.height.value
-	const diffHeight = pairedTop < activePosition.value.top ? activeRect.height.value : pairedHeight
-	return {
-		...commonGuideStyles,
-		borderWidth: '0 0 0 1px',
-		left: `${activePosition.value.left - 2}px`,
-		top: `${Math.min(activePosition.value.top, pairedTop)}px`,
-		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
-	}
-})
+	const diffHeight =
+		pairedTop < activePosition.value.top ? activeRect.height.value : pairedRect.height.value
+	let left = activePosition.value.left - 2
+	if (direction == 'right') left += activeRect.width.value - 2
 
-const rightGuideStyles = computed(() => {
-	if (!pairElement.value || Math.abs(diffWithPaired.value.right) > PROXIMITY_THRESHOLD) return ''
-	const pairedTop = pairElement.value.top
-	const pairedHeight = pairedRect.height.value
-	const diffHeight = pairedTop < activePosition.value.top ? activeRect.height.value : pairedHeight
 	return {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${activePosition.value.left + activeRect.width.value - 4}px`,
+		left: `${left}px`,
 		top: `${Math.min(activePosition.value.top, pairedTop)}px`,
 		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
 	}
-})
+}
+
+const leftGuideStyles = computed(() => getVerticalGuideStyles('left', diffWithPaired.value.left))
+
+const rightGuideStyles = computed(() => getVerticalGuideStyles('right', diffWithPaired.value.right))
 
 const topGuideStyles = computed(() => {
 	if (diffTop.value == undefined || Math.abs(diffTop.value) > PROXIMITY_THRESHOLD) return ''
