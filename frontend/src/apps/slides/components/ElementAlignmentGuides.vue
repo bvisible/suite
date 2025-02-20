@@ -150,30 +150,27 @@ const centerYGuideStyles = computed(() => {
 
 // decides the paired element based on proximity and sets the diffWithPaired
 const handleElementPairing = () => {
-	const selectionLeft = activePosition.value.left
-	const selectionRight = activePosition.value.left + activeRect.width.value
+	const { left, top } = activePosition.value
+	const right = left + activeRect.width.value
+	const bottom = top + activeRect.height.value
+
 	let i
 	slide.value.elements.forEach((element, index) => {
 		if (activeElementIds.value.includes(index)) return
-		const elementRect = document
-			.querySelector(`[data-index="${index}"]`)
-			?.getBoundingClientRect()
-		const elementLeft = element.left
-		const elementRight = element.left + element.width
-		const diffLeft = Math.abs(selectionLeft - elementLeft)
-		const diffRight = Math.abs(selectionRight - elementRight)
-		const diffTop = Math.abs(activePosition.value.top - element.top)
-		const diffBottom = Math.abs(
-			activePosition.value.top + activeRect.height.value - element.top - elementRect.height,
-		)
-		if (
-			diffLeft < PROXIMITY_THRESHOLD ||
-			diffRight < PROXIMITY_THRESHOLD ||
-			diffTop < PROXIMITY_THRESHOLD ||
-			diffBottom < PROXIMITY_THRESHOLD
-		)
+		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		if (!elementDiv) return
+		const elementRect = elementDiv.getBoundingClientRect()
+
+		const diffLeft = Math.abs(left - element.left)
+		const diffRight = Math.abs(right - element.left - element.width)
+		const diffTop = Math.abs(top - element.top)
+		const diffBottom = Math.abs(bottom - element.top - elementRect.height)
+
+		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD)) {
 			i = index
+		}
 	})
+
 	pairElementId.value = i
 	setDiffWithPaired()
 }
