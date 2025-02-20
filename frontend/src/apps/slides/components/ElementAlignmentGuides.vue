@@ -1,5 +1,9 @@
 <template>
-	<div v-for="guide in ['centerX', 'centerY']" :key="guide" :style="guideStyles[guide]"></div>
+	<div
+		v-for="guide in ['centerX', 'centerY', 'left', 'right']"
+		:key="guide"
+		:style="guideStyles[guide]"
+	></div>
 </template>
 
 <script setup>
@@ -23,8 +27,6 @@ const guideStyles = computed(() => {
 	return {
 		left: leftGuideStyles.value,
 		right: rightGuideStyles.value,
-		top: topGuideStyles.value,
-		bottom: bottomGuideStyles.value,
 		centerX: centerXGuideStyles.value,
 		centerY: centerYGuideStyles.value,
 	}
@@ -50,26 +52,8 @@ const pairElement = computed(() => {
 // counters to keep track of how many times the element has been snapped to the center
 const snapCountX = ref(0)
 const snapCountY = ref(0)
-
-const snapToCenter = (position, diffCenter, snapCount) => {
-	// only allow snapping when -
-	// the element is not being dragged away from the center in the same mouse event &&
-	// the element is close to the center
-	if (
-		snapCount.value < RESISTANCE_THRESHOLD &&
-		Math.abs(diffCenter) < CENTER_PROXIMITY_THRESHOLD
-	) {
-		activePosition.value = {
-			...activePosition.value,
-			[position]: activePosition.value[position] + diffCenter * props.scale,
-		}
-		snapCount.value += 1
-	}
-	// else reset the counter for snapping
-	else {
-		snapCount.value = 0
-	}
-}
+const snapCountLeft = ref(0)
+const snapCountRight = ref(0)
 
 const snapToPairedElement = () => {
 	if (!pairElement.value) return
@@ -145,24 +129,31 @@ const commonGuideStyles = {
 }
 
 const leftGuideStyles = computed(() => {
-	if (diffLeft.value == undefined || Math.abs(diffLeft.value) > PROXIMITY_THRESHOLD) return ''
+	if (!pairElementId.value || Math.abs(diffWithPaired.value.left) > PROXIMITY_THRESHOLD) return ''
+	const pairedTop = pairElement.value.top
+	const pairedHeight = pairedRect.height.value
+	const diffHeight = pairedTop < activePosition.value.top ? activeRect.height.value : pairedHeight
 	return {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${activeElement.value.left - 6.5}px`,
-		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
-		height: `${Math.abs(pairElement.value.top - activeElement.value.top)}px`,
+		left: `${activePosition.value.left - 2}px`,
+		top: `${activePosition.value.top}px`,
+		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
 	}
 })
 
 const rightGuideStyles = computed(() => {
-	if (diffRight.value == undefined || Math.abs(diffRight.value) > PROXIMITY_THRESHOLD) return ''
+	if (!pairElementId.value || Math.abs(diffWithPaired.value.right) > PROXIMITY_THRESHOLD)
+		return ''
+	const pairedTop = pairElement.value.top
+	const pairedHeight = pairedRect.height.value
+	const diffHeight = pairedTop < activePosition.value.top ? activeRect.height.value : pairedHeight
 	return {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${activeElement.value.left + activeElement.value.width + 5.5}px`,
-		top: `${Math.min(pairElement.value.top, activeElement.value.top)}px`,
-		height: `${Math.abs(pairElement.value.top - activeElement.value.top)}px`,
+		left: `${activePosition.value.left + activeRect.width.value - 4}px`,
+		top: `${activePosition.value.top}px`,
+		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
 	}
 })
 
@@ -231,6 +222,34 @@ const setCurrentPairedDataIndex = () => {
 	pairElementId.value = i
 }
 
+// decides the paired element based on proximity and sets the diffWithPaired
+const handleElementPairing = () => {
+	const selectionLeft = activePosition.value.left
+	const selectionRight = activePosition.value.left + activeRect.width.value
+	let i
+	slide.value.elements.forEach((element, index) => {
+		if (activeElementIds.value.includes(index)) return
+		const elementLeft = element.left
+		const elementRight = element.left + element.width
+		const diffLeft = Math.abs(selectionLeft - elementLeft)
+		const diffRight = Math.abs(selectionRight - elementRight)
+		if (diffLeft < PROXIMITY_THRESHOLD || diffRight < PROXIMITY_THRESHOLD) i = index
+	})
+	pairElementId.value = i
+	setDiffWithPaired()
+}
+
+const diffWithPaired = ref({ left: 0, right: 0, top: 0, bottom: 0 })
+
+const setDiffWithPaired = () => {
+	if (!pairElementId.value) return
+	const { left, top, width, height } = pairElement.value
+	diffWithPaired.value = {
+		left: left - activePosition.value.left + 2,
+		right: left + width - activePosition.value.left - activeRect.width.value + 2,
+	}
+}
+
 const updateDiffsBasedOnSnap = (movement, diff, threshold, snapCount) => {
 	const canSnap = Math.abs(diff) < threshold
 	const withinResistanceThreshold = snapCount.value < RESISTANCE_THRESHOLD
@@ -259,6 +278,25 @@ const updateElementPosition = (dx, dy) => {
 
 	dx = updateDiffsBasedOnSnap(dx, diffCenterX.value, CENTER_PROXIMITY_THRESHOLD, snapCountX)
 	dy = updateDiffsBasedOnSnap(dy, diffCenterY.value, CENTER_PROXIMITY_THRESHOLD, snapCountY)
+
+	handleElementPairing()
+	if (pairElementId.value) {
+		if (Math.abs(diffWithPaired.value.left) < Math.abs(diffWithPaired.value.right)) {
+			dx = updateDiffsBasedOnSnap(
+				dx,
+				diffWithPaired.value.left,
+				PROXIMITY_THRESHOLD,
+				snapCountLeft,
+			)
+		} else {
+			dx = updateDiffsBasedOnSnap(
+				dx,
+				diffWithPaired.value.right,
+				PROXIMITY_THRESHOLD,
+				snapCountRight,
+			)
+		}
+	}
 
 	activePosition.value = {
 		left: activePosition.value.left + dx,
