@@ -45,49 +45,6 @@ const boxStyles = computed(() => ({
 	boxSizing: 'border-box',
 }))
 
-const handleMouseDown = (e) => {
-	mousedownStart = new Date().getTime()
-	mousedownTimer = setTimeout(() => {
-		initSelection(e)
-	}, longpressDuration)
-}
-
-const handleMouseLeave = () => {
-	mousedownStart = 0
-	clearTimeout(mousedownTimer)
-}
-
-const handleMouseUp = (e) => {
-	if (new Date().getTime() < mousedownStart + longpressDuration) {
-		if (e.target.classList.contains('slide')) {
-			emit('selectSlide', e)
-		} else {
-			resetFocus()
-			slideFocus.value = false
-		}
-		clearTimeout(mousedownTimer)
-	} else {
-		mousedownStart = 0
-	}
-}
-
-const updateSelectedElements = () => {
-	let selectedElements = []
-	slide.value.elements.forEach((element, index) => {
-		const withinWidth =
-			(left.value + width.value >= element.left && left.value <= element.left) ||
-			(element.left + element.width >= left.value && element.left <= left.value)
-		const withinHeight =
-			(top.value + height.value >= element.top && top.value <= element.top) ||
-			(element.top + element.height >= top.value && element.top <= top.value)
-
-		if (withinWidth && withinHeight) {
-			selectedElements.push(index)
-		}
-	})
-	setActiveElements(selectedElements)
-}
-
 const initSelection = (e) => {
 	activeElementIds.value = []
 	nextTick(() => {
@@ -119,20 +76,57 @@ const updateSelection = (e) => {
 	height.value = Math.abs(dy)
 }
 
-const resetSelection = (oldVal) => {
-	if (oldVal) {
-		oldVal.forEach((index) => {
-			let elementDiv = document.querySelector(`[data-index="${index}"]`)
-			if (!elementDiv) return
-			let element = slide.value.elements[index]
-			element.left = left.value + element.left + 2.1
-			element.top = top.value + element.top + 2.1
-			let slideDiv = document.querySelector('.slide')
-			slideDiv.appendChild(elementDiv)
-		})
-	}
+const removeSelectionBox = () => {
+	left.value = 0
+	top.value = 0
 	width.value = 0
 	height.value = 0
+}
+
+const getElementsWithinBoxSurface = () => {
+	let elements = []
+
+	slide.value.elements.forEach((element, index) => {
+		const boxLeft = left.value
+		const boxTop = top.value
+		const boxRight = left.value + width.value
+		const boxBottom = top.value + height.value
+
+		const elementLeft = element.left
+		const elementTop = element.top
+		const elementRight = element.left + element.width
+		const elementBottom = element.top + element.height
+
+		const withinWidth =
+			(boxRight >= elementLeft && boxLeft <= elementLeft) ||
+			(elementRight >= boxLeft && elementLeft <= boxLeft)
+		const withinHeight =
+			(boxBottom >= elementTop && boxTop <= elementTop) ||
+			(elementBottom >= boxTop && elementTop <= boxTop)
+
+		if (withinWidth && withinHeight) {
+			elements.push(index)
+		}
+	})
+
+	return elements
+}
+
+const updateSelectedElements = () => {
+	const selectedElements = getElementsWithinBoxSurface()
+
+	if (selectedElements.length) {
+		setActiveElements(selectedElements)
+	} else {
+		removeSelectionBox()
+	}
+}
+
+const endSelection = () => {
+	updateSelectedElements()
+
+	document.removeEventListener('mouseup', endSelection)
+	document.removeEventListener('mousemove', updateSelection)
 }
 
 const cropSelectionToFitContent = () => {
@@ -173,13 +167,6 @@ const setElementPositions = () => {
 	})
 }
 
-const endSelection = () => {
-	updateSelectedElements()
-
-	document.removeEventListener('mouseup', endSelection)
-	document.removeEventListener('mousemove', updateSelection)
-}
-
 const handleSelection = (val) => {
 	// watch for changes in activeElementIds to auto-highlight duplicated group
 	cropSelectionToFitContent()
@@ -191,6 +178,48 @@ const handleSelection = (val) => {
 		const elementDiv = document.querySelector(`[data-index="${index}"]`)
 		groupDiv.value?.appendChild(elementDiv)
 	})
+}
+
+const resetSelection = (oldVal) => {
+	if (oldVal) {
+		oldVal.forEach((index) => {
+			let elementDiv = document.querySelector(`[data-index="${index}"]`)
+			if (!elementDiv) return
+			let element = slide.value.elements[index]
+			element.left = left.value + element.left + 2.1
+			element.top = top.value + element.top + 2.1
+			let slideDiv = document.querySelector('.slide')
+			slideDiv.appendChild(elementDiv)
+		})
+	}
+	width.value = 0
+	height.value = 0
+}
+
+const handleMouseDown = (e) => {
+	mousedownStart = new Date().getTime()
+	mousedownTimer = setTimeout(() => {
+		initSelection(e)
+	}, longpressDuration)
+}
+
+const handleMouseLeave = () => {
+	mousedownStart = 0
+	clearTimeout(mousedownTimer)
+}
+
+const handleMouseUp = (e) => {
+	if (new Date().getTime() < mousedownStart + longpressDuration) {
+		if (e.target.classList.contains('slide')) {
+			emit('selectSlide', e)
+		} else {
+			resetFocus()
+			slideFocus.value = false
+		}
+		clearTimeout(mousedownTimer)
+	} else {
+		mousedownStart = 0
+	}
 }
 
 watch(
