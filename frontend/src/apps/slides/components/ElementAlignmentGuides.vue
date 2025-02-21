@@ -84,18 +84,25 @@ const commonGuideStyles = {
 
 const getVerticalGuideStyles = (direction, diffWithPaired) => {
 	if (!pairElement.value || Math.abs(diffWithPaired) > PROXIMITY_THRESHOLD) return ''
-	const pairedTop = pairElement.value.top
+
+	let left = (activeRect.left.value - slideRect.value.left) / props.scale
+
+	const top = (activeRect.top.value - slideRect.value.top) / props.scale
+	const pairedTop = (pairedRect.top.value - slideRect.value.top) / props.scale
+
 	const diffHeight =
-		pairedTop < activePosition.value.top ? activeRect.height.value : pairedRect.height.value
-	let left = activePosition.value.left - 2
-	if (direction == 'right') left += activeRect.width.value - 2
+		pairedTop < top
+			? activeRect.height.value / props.scale
+			: pairedRect.height.value / props.scale
+
+	if (direction == 'right') left += activeRect.width.value / props.scale
 
 	return {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${left}px`,
-		top: `${Math.min(activePosition.value.top, pairedTop)}px`,
-		height: `${Math.abs(pairedTop - activePosition.value.top) + diffHeight}px`,
+		left: `${left - 2}px`,
+		top: `${Math.min(top, pairedTop)}px`,
+		height: `${Math.abs(pairedTop - top) + diffHeight}px`,
 	}
 }
 
@@ -105,18 +112,25 @@ const rightGuideStyles = computed(() => getVerticalGuideStyles('right', diffWith
 
 const getHorizontalGuideStyles = (direction, diffWithPaired) => {
 	if (!pairElement.value || Math.abs(diffWithPaired) > PROXIMITY_THRESHOLD) return ''
-	const pairedLeft = pairElement.value.left
+
+	let top = (activeRect.top.value - slideRect.value.top) / props.scale
+
+	const left = (activeRect.left.value - slideRect.value.left) / props.scale
+	const pairedLeft = (pairedRect.left.value - slideRect.value.left) / props.scale
+
 	const diffWidth =
-		pairedLeft < activePosition.value.left ? activeRect.width.value : pairedRect.width.value
-	let top = activePosition.value.top - 2
-	if (direction == 'bottom') top += activeRect.height.value + 2
+		pairedLeft < left
+			? activeRect.width.value / props.scale
+			: pairedRect.width.value / props.scale
+
+	if (direction == 'bottom') top += activeRect.height.value / props.scale
 
 	return {
 		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${top}px`,
-		left: `${Math.min(activePosition.value.left, pairedLeft)}px`,
-		width: `${Math.abs(pairedLeft - activePosition.value.left) + diffWidth}px`,
+		top: `${top - 2}px`,
+		left: `${Math.min(left, pairedLeft)}px`,
+		width: `${Math.abs(pairedLeft - left) + diffWidth}px`,
 	}
 }
 
@@ -150,21 +164,24 @@ const centerYGuideStyles = computed(() => {
 
 // decides the paired element based on proximity and sets the diffWithPaired
 const handleElementPairing = () => {
-	const { left, top } = activePosition.value
+	const left = activeRect.left.value
+	const top = activeRect.top.value
 	const right = left + activeRect.width.value
 	const bottom = top + activeRect.height.value
 
 	let i
 	slide.value.elements.forEach((element, index) => {
 		if (activeElementIds.value.includes(index)) return
+
 		const elementDiv = document.querySelector(`[data-index="${index}"]`)
 		if (!elementDiv) return
+
 		const elementRect = elementDiv.getBoundingClientRect()
 
-		const diffLeft = Math.abs(left - element.left)
-		const diffRight = Math.abs(right - element.left - element.width)
-		const diffTop = Math.abs(top - element.top)
-		const diffBottom = Math.abs(bottom - element.top - elementRect.height)
+		const diffLeft = Math.abs(left - elementRect.left)
+		const diffRight = Math.abs(right - elementRect.right)
+		const diffTop = Math.abs(top - elementRect.top)
+		const diffBottom = Math.abs(bottom - elementRect.bottom)
 
 		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD)) {
 			i = index
@@ -179,12 +196,11 @@ const diffWithPaired = ref({ left: 0, right: 0, top: 0, bottom: 0 })
 
 const setDiffWithPaired = () => {
 	if (!pairElement.value) return
-	const { left, top, width, height } = pairElement.value
 	diffWithPaired.value = {
-		left: left - activePosition.value.left + 2,
-		right: left + width - activePosition.value.left - activeRect.width.value + 2,
-		top: top - activePosition.value.top + 2,
-		bottom: top + pairedRect.height.value - activePosition.value.top - activeRect.height.value,
+		left: activeRect.left.value - pairedRect.left.value - 2,
+		right: activeRect.right.value - pairedRect.right.value - 2,
+		top: activeRect.top.value - pairedRect.top.value - 2,
+		bottom: activeRect.bottom.value - pairedRect.bottom.value - 2,
 	}
 }
 
@@ -204,7 +220,7 @@ const updateMovement = (movement, diff, threshold, snapCount) => {
 
 	// if element crosses the resistance threshold, it should not be allowed to move again
 	if (!withinResistanceThreshold) {
-		movement = threshold * Math.sign(movement)
+		movement = ((threshold * 1) / props.scale) * Math.sign(movement)
 		snapCount.value = 0
 	}
 
@@ -241,14 +257,14 @@ const updateMovementBasedOnSnap = (dx, dy) => {
 		diffWithPaired.value.left,
 		diffWithPaired.value.right,
 	)
-	updatedDx = updateMovement(dx, diffX, PROXIMITY_THRESHOLD, snapX)
+	updatedDx = updateMovement(dx, -diffX, PROXIMITY_THRESHOLD, snapX)
 
 	const { diff: diffY, count: snapY } = pickClosestSnapDirection(
 		'Y',
 		diffWithPaired.value.top,
 		diffWithPaired.value.bottom,
 	)
-	updatedDy = updateMovement(dy, diffY, PROXIMITY_THRESHOLD, snapY)
+	updatedDy = updateMovement(dy, -diffY, PROXIMITY_THRESHOLD, snapY)
 
 	return { updatedDx, updatedDy }
 }

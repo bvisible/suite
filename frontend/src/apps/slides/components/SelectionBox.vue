@@ -152,7 +152,10 @@ const cropSelectionToFitContent = () => {
 }
 
 const setElementPositions = () => {
-	activePosition.value = { left: left.value, top: top.value }
+	activePosition.value = {
+		left: left.value + slideRect.value.left,
+		top: top.value + slideRect.value.top,
+	}
 
 	// set positions relative to the selection box
 	activeElementIds.value.forEach((index) => {
@@ -196,8 +199,8 @@ watch(
 	() => activePosition.value,
 	(newVal, oldVal) => {
 		if (newVal) {
-			left.value = newVal.left
-			top.value = newVal.top
+			left.value = newVal.left - slideRect.value.left
+			top.value = newVal.top - slideRect.value.top
 		}
 	},
 	{ immediate: true },
