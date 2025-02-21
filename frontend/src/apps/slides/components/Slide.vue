@@ -31,7 +31,7 @@
 			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 		>
-			<SelectionBox @selectSlide="selectSlide" />
+			<SelectionBox @selectSlide="selectSlide" :scale="scale" />
 
 			<ElementAlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
@@ -87,6 +87,7 @@ import {
 	activeElements,
 	activeElementIds,
 	focusElementId,
+	pairElementId,
 	resetFocus,
 } from '@/stores/element'
 
