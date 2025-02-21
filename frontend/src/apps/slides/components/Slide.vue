@@ -33,7 +33,7 @@
 		>
 			<SelectionBox @selectSlide="selectSlide" :scale="scale" />
 
-			<ElementAlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
+			<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
 			<component
 				ref="element"
@@ -65,7 +65,7 @@ import { useElementBounding } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
-import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
+import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
