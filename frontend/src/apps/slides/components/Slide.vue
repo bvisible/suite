@@ -147,7 +147,6 @@ const slideStyles = computed(() => ({
 }))
 
 const selectSlide = (e) => {
-	if (!e.target.classList.contains('slide')) return
 	e.preventDefault()
 	e.stopPropagation()
 	if (isResizing.value) {
