@@ -13,6 +13,9 @@ import {
 	setActiveElements,
 } from '@/stores/element'
 
+const props = defineProps({
+	scale: Number,
+})
 const emit = defineEmits(['selectSlide'])
 
 const groupDiv = useTemplateRef('groupDiv')
@@ -83,8 +86,8 @@ const updateSelectedElements = () => {
 const initSelection = (e) => {
 	activeElementIds.value = []
 	nextTick(() => {
-		left.value = e.clientX - slideRect.value.left
-		top.value = e.clientY - slideRect.value.top
+		left.value = (e.clientX - slideRect.value.left) / props.scale
+		top.value = (e.clientY - slideRect.value.top) / props.scale
 		prevX.value = e.clientX
 		prevY.value = e.clientY
 		width.value = 0
@@ -97,14 +100,14 @@ const initSelection = (e) => {
 const updateSelection = (e) => {
 	document.addEventListener('mouseup', endSelection)
 
-	const dx = e.clientX - prevX.value
-	const dy = e.clientY - prevY.value
+	const dx = (e.clientX - prevX.value) / props.scale
+	const dy = (e.clientY - prevY.value) / props.scale
 
 	if (dx < 0) {
-		left.value = e.clientX - slideRect.value.left
+		left.value = (e.clientX - slideRect.value.left) / props.scale
 	}
 	if (dy < 0) {
-		top.value = e.clientY - slideRect.value.top
+		top.value = (e.clientY - slideRect.value.top) / props.scale
 	}
 
 	width.value = Math.abs(dx)
