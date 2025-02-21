@@ -23,17 +23,6 @@ const RESISTANCE_THRESHOLD = 10
 const CENTER_PROXIMITY_THRESHOLD = 20
 const PROXIMITY_THRESHOLD = 7
 
-const guideStyles = computed(() => {
-	return {
-		left: leftGuideStyles.value,
-		right: rightGuideStyles.value,
-		top: topGuideStyles.value,
-		bottom: bottomGuideStyles.value,
-		centerX: centerXGuideStyles.value,
-		centerY: centerYGuideStyles.value,
-	}
-})
-
 const activeDiv = computed(() => {
 	if (activeElementIds.value.length == 0) return
 	return document.querySelector('.groupDiv')
@@ -59,6 +48,23 @@ const snapCountRight = ref(0)
 const snapCountTop = ref(0)
 const snapCountBottom = ref(0)
 
+const guideStyles = computed(() => {
+	return {
+		left: leftGuideStyles.value,
+		right: rightGuideStyles.value,
+		top: topGuideStyles.value,
+		bottom: bottomGuideStyles.value,
+		centerX: centerXGuideStyles.value,
+		centerY: centerYGuideStyles.value,
+	}
+})
+
+const commonGuideStyles = {
+	position: 'fixed',
+	borderColor: '#70b6f080',
+	borderStyle: 'dashed',
+}
+
 const getDiffFromCenter = (axis) => {
 	if (!activePosition.value) return
 	let slideCenter, elementCenter
@@ -75,12 +81,6 @@ const getDiffFromCenter = (axis) => {
 const diffCenterX = computed(() => getDiffFromCenter('X'))
 
 const diffCenterY = computed(() => getDiffFromCenter('Y'))
-
-const commonGuideStyles = {
-	position: 'fixed',
-	borderColor: '#70b6f080',
-	borderStyle: 'dashed',
-}
 
 const getVerticalGuideStyles = (direction, diffWithPaired) => {
 	if (!pairElement.value || Math.abs(diffWithPaired) > PROXIMITY_THRESHOLD) return ''
@@ -162,30 +162,32 @@ const centerYGuideStyles = computed(() => {
 	}
 })
 
-// decides the paired element based on proximity and sets the diffWithPaired
-const handleElementPairing = () => {
+const isElementWithinProximity = (element, index) => {
 	const left = activeRect.left.value
 	const top = activeRect.top.value
 	const right = left + activeRect.width.value
 	const bottom = top + activeRect.height.value
 
+	const elementDiv = document.querySelector(`[data-index="${index}"]`)
+	if (!elementDiv) return
+
+	const elementRect = elementDiv.getBoundingClientRect()
+
+	const diffLeft = Math.abs(left - elementRect.left)
+	const diffRight = Math.abs(right - elementRect.right)
+	const diffTop = Math.abs(top - elementRect.top)
+	const diffBottom = Math.abs(bottom - elementRect.bottom)
+
+	return [diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD)
+}
+
+// decides the paired element based on proximity and sets the diffWithPaired
+const handleElementPairing = () => {
 	let i
 	slide.value.elements.forEach((element, index) => {
 		if (activeElementIds.value.includes(index)) return
-
-		const elementDiv = document.querySelector(`[data-index="${index}"]`)
-		if (!elementDiv) return
-
-		const elementRect = elementDiv.getBoundingClientRect()
-
-		const diffLeft = Math.abs(left - elementRect.left)
-		const diffRight = Math.abs(right - elementRect.right)
-		const diffTop = Math.abs(top - elementRect.top)
-		const diffBottom = Math.abs(bottom - elementRect.bottom)
-
-		if ([diffLeft, diffRight, diffTop, diffBottom].some((diff) => diff < PROXIMITY_THRESHOLD)) {
-			i = index
-		}
+		const withinProximity = isElementWithinProximity(element, index)
+		if (withinProximity) i = index
 	})
 
 	pairElementId.value = i
