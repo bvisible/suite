@@ -3,19 +3,21 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 
-import { slideRect, slide } from '@/stores/slide'
+import { slide, slideFocus, slideRect } from '@/stores/slide'
 import {
+	activePosition,
 	activeDimensions,
 	activeElementIds,
-	activePosition,
 	setActiveElements,
+	resetFocus,
 } from '@/stores/element'
 
 const props = defineProps({
 	scale: Number,
 })
+
 const emit = defineEmits(['selectSlide'])
 
 const groupDiv = useTemplateRef('groupDiv')
@@ -33,9 +35,9 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'absolute',
+	zIndex: 1000,
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
-	zIndex: 1000,
 	width: `${width.value}px`,
 	height: `${height.value}px`,
 	left: `${left.value}px`,
@@ -44,8 +46,6 @@ const boxStyles = computed(() => ({
 }))
 
 const handleMouseDown = (e) => {
-	if (e.target != document.querySelector('.slide')) return
-
 	mousedownStart = new Date().getTime()
 	mousedownTimer = setTimeout(() => {
 		initSelection(e)
@@ -59,8 +59,13 @@ const handleMouseLeave = () => {
 
 const handleMouseUp = (e) => {
 	if (new Date().getTime() < mousedownStart + longpressDuration) {
+		if (e.target.classList.contains('slide')) {
+			emit('selectSlide', e)
+		} else {
+			resetFocus()
+			slideFocus.value = false
+		}
 		clearTimeout(mousedownTimer)
-		emit('selectSlide', e)
 	} else {
 		mousedownStart = 0
 	}
@@ -191,7 +196,9 @@ const handleSelection = (val) => {
 watch(
 	() => activeElementIds.value,
 	(val, oldVal) => {
-		resetSelection(oldVal)
+		if (oldVal.length) {
+			resetSelection(oldVal)
+		}
 		if (val.length >= 1) {
 			handleSelection(val)
 		}
