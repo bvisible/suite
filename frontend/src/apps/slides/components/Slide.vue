@@ -284,16 +284,7 @@ watch(
 
 		const { x, y } = movement.value
 
-		guides.value.updateElementPosition(x, y)
-
-		const groupDiv = document.querySelector('.groupDiv')
-		if (groupDiv) {
-			const groupLeft = activePosition.value.left
-			const groupTop = activePosition.value.top
-
-			groupDiv.style.left = `${groupLeft}px`
-			groupDiv.style.top = `${groupTop}px`
-		}
+		guides.value.updateElementPosition(x / scale.value, y / scale.value)
 	},
 	{ immediate: true },
 )
@@ -312,13 +303,15 @@ watch(
 )
 
 watch(
-	() => dragTarget.value,
-	() => {
-		if (!dragTarget.value) return
-		let rect = dragTarget.value.getBoundingClientRect()
-		activePosition.value = {
-			left: rect.left - slideRect.value.left,
-			top: rect.top - slideRect.value.top,
+	() => pairElementId.value,
+	(newVal, oldVal) => {
+		if (oldVal) {
+			slide.value.elements[oldVal].left += 2
+			slide.value.elements[oldVal].top += 2
+		}
+		if (newVal) {
+			slide.value.elements[newVal].left -= 2
+			slide.value.elements[newVal].top -= 2
 		}
 	},
 	{ immediate: true },
