@@ -9,6 +9,7 @@ export const useDragAndDrop = () => {
 
 	const startDragging = (e) => {
 		e.preventDefault()
+		e.stopPropagation()
 		isDragging.value = true
 		mouseX.value = e.clientX
 		mouseY.value = e.clientY
