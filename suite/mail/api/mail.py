@@ -405,7 +405,7 @@ def get_mail_contacts(txt=None) -> list:
 	if txt:
 		filters["email"] = ["like", f"%{txt}%"]
 
-	contacts = frappe.get_all("Mail Contact", filters=filters, fields=["email"])
+	contacts = frappe.get_all("Mail Contact", filters=filters, fields=["email"], page_length=10)
 
 	for contact in contacts:
 		details = frappe.db.get_value(
