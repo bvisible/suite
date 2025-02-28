@@ -15,35 +15,27 @@
 				/>
 				<div class="flex flex-1 justify-between text-xs">
 					<div class="flex flex-col space-y-1">
-						<div class="space-x-1">
+						<div class="flex items-center space-x-1.5">
 							<span class="text-base font-semibold">
 								{{ mail.display_name || mail.from_ || mail.sender }}
 							</span>
 							<span v-if="mail.display_name" class="text-gray-600">
 								{{ `<${mail.from_ || mail.sender}>` }}
 							</span>
+							<MailDetailsPopover :mail="mail" />
 						</div>
 						<div class="leading-4">
 							{{ mail.subject }}
 						</div>
-						<div class="space-x-2">
-							<span v-if="mail.to.length">
-								{{ __('To') }}:
-								<span class="text-gray-700">
-									{{ toRecipient(mail) }}
-								</span>
+						<div class="flex items-center space-x-2">
+							<span class="flex items-center space-x-1">
+								<span>{{ __('To: ') + toRecipient(mail) }}</span>
 							</span>
 							<span v-if="mail.cc.length">
-								{{ __('Cc') }}:
-								<span class="text-gray-700">
-									{{ getRecipients(mail.cc) }}
-								</span>
+								{{ __('Cc: ') + getRecipients(mail.cc) }}
 							</span>
 							<span v-if="mail.bcc.length">
-								{{ __('Bcc') }}:
-								<span class="text-gray-700">
-									{{ getRecipients(mail.bcc) }}
-								</span>
+								{{ __('Bcc: ') + getRecipients(mail.bcc) }}
 							</span>
 						</div>
 					</div>
@@ -118,8 +110,10 @@ import {
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
+import { getRecipients } from '@/utils'
 import { userStore } from '@/stores/user'
 import MailDate from '@/components/MailDate.vue'
+import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
 
 import type { Folder } from '@/types'
@@ -271,20 +265,11 @@ const getReplyHtml = (html, creation) => {
 	return `<br><blockquote>${replyHeader} <br> ${html}</blockquote>`
 }
 
-interface Recipient {
-	display_name?: string
-	email: string
-}
-
-const getRecipients = (recipients: Recipient[]) =>
-	recipients.map((recipient) => recipient.display_name || recipient.email).join(', ')
-
 const toRecipient = (mail) => {
 	const isSoleRecipient = mail.to.length === 1 && !mail.cc.length && !mail.bcc.length
 	if (!isSoleRecipient) return getRecipients(mail.to)
 
-	const recipient = mail.delivered_to || mail.to[0].email
-	return mail.to[0].display_name ? `${mail.to[0].display_name} <${recipient}>` : recipient
+	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
 }
 
 watch(() => props.mailID, reloadThread)
