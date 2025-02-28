@@ -77,13 +77,14 @@
 				>
 					<ListHeader />
 					<ListRows>
-						<ListRow
-							v-for="row in domain.doc.dns_records"
-							:key="row.name"
-							v-slot="{ item }"
-							:row="row"
-						>
-							{{ item }}
+						<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
+							<template #default="{ item }">
+								<ListRowItem>
+									<div class="cursor-pointer" @click="copyToClipBoard(item)">
+										{{ item }}
+									</div>
+								</ListRowItem>
+							</template>
 						</ListRow>
 					</ListRows>
 				</ListView>
@@ -103,18 +104,17 @@ import {
 	FormControl,
 	ListHeader,
 	ListRow,
+	ListRowItem,
 	ListRows,
 	ListView,
 	Switch,
 	createDocumentResource,
 } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { copyToClipBoard, raiseToast } from '@/utils'
 import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
 
-const props = defineProps<{
-	domainName: string
-}>()
+const props = defineProps<{ domainName: string }>()
 
 const user = inject('$user')
 const router = useRouter()

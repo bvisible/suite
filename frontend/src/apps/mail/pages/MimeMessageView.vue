@@ -30,7 +30,7 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button, createResource } from 'frappe-ui'
 
-import { kebabToTitleCase, raiseToast } from '@/utils'
+import { copyToClipBoard, kebabToTitleCase } from '@/utils'
 
 const route = useRoute()
 const message = ref('')
@@ -68,13 +68,4 @@ const mime = createResource({
 		if (data.bcc && !data.bcc.value) delete data.bcc
 	},
 })
-
-const copyToClipBoard = async (text: string) => {
-	try {
-		await navigator.clipboard.writeText(text)
-		raiseToast(__('Message copied successfully!'))
-	} catch {
-		raiseToast(__('Failed to copy text.'), 'error')
-	}
-}
 </script>
