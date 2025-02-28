@@ -14,35 +14,9 @@
 						{{ ` <${mail.from_ || mail.sender}>` }}
 					</span>
 				</span>
-				<template v-if="mail.reply_to">
-					<span class="col-span-1 text-gray-500">{{ __('Reply To: ') }}</span>
-					<span class="col-span-4 flex flex-col">
-						{{ getRecipients(mail.reply_to, true) }}
-					</span>
-				</template>
-				<span class="col-span-1 text-gray-500">{{ __('To: ') }}</span>
-				<span class="col-span-4 flex flex-col">
-					{{ getRecipients(mail.to, true) }}
-				</span>
-				<template v-if="mail.cc.length">
-					<span class="col-span-1 text-gray-500">{{ __('Cc: ') }}</span>
-					<span class="col-span-4 flex flex-col">
-						{{ getRecipients(mail.cc, true) }}
-					</span>
-				</template>
-				<template v-if="mail.bcc.length">
-					<span class="col-span-1 text-gray-500">{{ __('Bcc: ') }}</span>
-					<span class="col-span-4 flex flex-col">
-						{{ getRecipients(mail.bcc, true) }}
-					</span>
-				</template>
-				<span class="col-span-1 text-gray-500">{{ __('Date:') }}</span>
-				<span class="col-span-4">
-					{{ dayjs(mail.creation).format('MMM D, YYYY, h:mm A') }}
-				</span>
-				<template v-if="mail.subject">
-					<span class="col-span-1 text-gray-500">{{ __('Subject:') }}</span>
-					<span class="col-span-4">{{ mail.subject }}</span>
+				<template v-for="field in FIELDS" :key="field.label">
+					<span class="col-span-1 text-gray-500">{{ field.label }}</span>
+					<span class="col-span-4">{{ field.value() }} </span>
 				</template>
 			</div>
 		</template>
@@ -58,5 +32,36 @@ import { getRecipients } from '@/utils'
 
 const dayjs = inject('$dayjs')
 
-defineProps<{ mail: object }>()
+const props = defineProps<{ mail: object }>()
+
+const FIELDS = [
+	{
+		condition: !!props.mail.reply_to,
+		label: __('Reply To: '),
+		value: () => getRecipients(props.mail.reply_to, true),
+	},
+	{
+		label: __('To: '),
+		value: () => getRecipients(props.mail.to, true),
+	},
+	{
+		condition: !!props.mail.cc.length,
+		label: __('Cc: '),
+		value: () => getRecipients(props.mail.cc, true),
+	},
+	{
+		condition: !!props.mail.bcc.length,
+		label: __('Bcc: '),
+		value: () => getRecipients(props.mail.bcc, true),
+	},
+	{
+		label: __('Date: '),
+		value: () => dayjs(props.mail.creation).format('MMM D, YYYY, h:mm A'),
+	},
+	{
+		condition: !!props.mail.subject,
+		label: __('Subject: '),
+		value: () => props.mail.subject,
+	},
+].filter((field) => field.condition !== false)
 </script>
