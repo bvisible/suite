@@ -156,3 +156,12 @@ export const kebabToTitleCase = (str: string) => {
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(' ')
 }
+
+export const copyToClipBoard = async (text: string) => {
+	try {
+		await navigator.clipboard.writeText(text)
+		raiseToast(__('Message copied successfully!'))
+	} catch {
+		raiseToast(__('Failed to copy text.'), 'error')
+	}
+}
