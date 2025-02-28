@@ -26,7 +26,7 @@
 								: 'ml-2 w-auto opacity-100'
 						"
 					>
-						<div class="text-base font-medium leading-none text-gray-900">
+						<div class="text-base font-medium leading-none">
 							<span
 								v-if="
 									branding.data?.brand_name &&
