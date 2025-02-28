@@ -165,3 +165,15 @@ export const copyToClipBoard = async (text: string) => {
 		raiseToast(__('Failed to copy text.'), 'error')
 	}
 }
+
+interface Recipient {
+	display_name?: string
+	email: string
+}
+
+export const getRecipients = (recipients: Recipient[], showEmail = false) =>
+	recipients
+		.map(({ display_name, email }) =>
+			showEmail && display_name ? `${display_name} <${email}>` : display_name || email,
+		)
+		.join(', ')
