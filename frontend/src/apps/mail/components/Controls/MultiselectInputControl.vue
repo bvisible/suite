@@ -39,7 +39,7 @@
 						<template #body="{ isOpen }">
 							<div v-show="isOpen">
 								<div
-									v-if="options.length"
+									v-if="query && options.length"
 									class="mt-1 rounded-lg bg-white py-1 text-sm shadow-2xl"
 								>
 									<ComboboxOptions
@@ -117,9 +117,7 @@ const selectedValue = computed({
 	get: () => query.value || '',
 	set: (val) => {
 		query.value = ''
-		if (val) {
-			showOptions.value = false
-		}
+		if (val) showOptions.value = false
 		if (val?.value) addValue(val.value)
 	},
 })
@@ -130,18 +128,14 @@ watchDebounced(
 		val = val || ''
 		if (text.value === val && options.value?.length) return
 		text.value = val
-		reload(val)
+		filterOptions.reload({ txt: val })
 	},
-	{ debounce: 300, immediate: true },
+	{ debounce: 300 },
 )
 
 const filterOptions = createResource({
 	url: 'mail.api.mail.get_mail_contacts',
-	makeParams(values) {
-		return {
-			txt: values.txt,
-		}
-	},
+	makeParams: (values) => ({ txt: values.txt }),
 	transform: (data) => {
 		const allData = data.map((option) => {
 			const fullName = option['full_name']
@@ -167,12 +161,6 @@ const options = computed(() => {
 	}
 	return searchedContacts
 })
-
-function reload(val) {
-	filterOptions.reload({
-		txt: val,
-	})
-}
 
 const addValue = (input: string) => {
 	error.value = null
