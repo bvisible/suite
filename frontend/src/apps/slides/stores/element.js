@@ -132,10 +132,13 @@ const deleteElements = async (e) => {
 			})
 		}
 	})
-	slide.value.elements = slide.value.elements.filter((element, index) => {
-		return !activeElementIds.value.includes(index)
+	const idsToDelete = activeElementIds.value
+	resetFocus()
+	nextTick(() => {
+		slide.value.elements = slide.value.elements.filter((_, index) => {
+			return !idsToDelete.includes(index)
+		})
 	})
-	nextTick(() => resetFocus())
 }
 
 const selectAllElements = () => {
