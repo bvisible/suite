@@ -4,6 +4,15 @@
 # import frappe
 from frappe.model.document import Document
 
+from mail.utils.validation import is_valid_cron_expression
+
 
 class MailAgentStore(Document):
-	pass
+	def validate(self):
+		self.validate_purge_frequency()
+
+	def validate_purge_frequency(self):
+		"""Validate the purge frequency"""
+
+		if self.purge_frequency:
+			is_valid_cron_expression(self.purge_frequency, raise_exception=True)
