@@ -110,8 +110,34 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-03-02 14:33:37.870925",
+ "links": [
+  {
+   "group": "Directory Store",
+   "link_doctype": "Mail Agent Group",
+   "link_fieldname": "directory_store"
+  },
+  {
+   "group": "Data Store",
+   "link_doctype": "Mail Agent Group",
+   "link_fieldname": "data_store"
+  },
+  {
+   "group": "Blob Store",
+   "link_doctype": "Mail Agent Group",
+   "link_fieldname": "blob_store"
+  },
+  {
+   "group": "Full Text Index Store",
+   "link_doctype": "Mail Agent Group",
+   "link_fieldname": "blob_store"
+  },
+  {
+   "group": "In-Memory Store",
+   "link_doctype": "Mail Agent Group",
+   "link_fieldname": "memory_store"
+  }
+ ],
+ "modified": "2025-03-02 21:33:25.114573",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Store",
