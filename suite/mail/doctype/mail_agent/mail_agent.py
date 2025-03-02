@@ -17,6 +17,8 @@ from mail.utils.dns import get_dns_record
 class MailAgent(Document):
 	@property
 	def config(self) -> str:
+		address_map = {"Private IP": self.private_ip, "Public IP": self.public_ip}
+		cluster_advertise_address = address_map.get(self.cluster_advertise_address)
 		return get_config_toml(
 			agent_group=self.agent_group,
 			server_hostname=self.agent,
@@ -24,7 +26,7 @@ class MailAgent(Document):
 			cluster_node_id=self.cluster_node_id,
 			cluster_bind_address=self.cluster_bind_address,
 			cluster_bind_port=self.cluster_bind_port,
-			cluster_advertise_address=self.cluster_advertise_address,
+			cluster_advertise_address=cluster_advertise_address,
 			cluster_heartbeat=self.cluster_heartbeat,
 		)
 
