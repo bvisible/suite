@@ -1,13 +1,13 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-[94.27%] w-44 border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out hover:overflow-y-auto"
+		class="fixed z-20 h-[94.27%] w-44 border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 		@mouseenter="showCollapseShortcut = true"
 		@mouseleave="showCollapseShortcut = false"
-		@wheel.prevent="(e) => e.stopPropagation()"
+		@wheel="handleWheelEvent"
 	>
-		<div class="flex flex-col px-4">
+		<div class="flex flex-col h-full px-4 overflow-y-auto">
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
@@ -92,6 +92,15 @@ const handleSortEnd = async (event) => {
 		doc: data,
 	})
 	await presentation.reload()
+}
+
+const handleWheelEvent = (e) => {
+	// allow scroll normal scroll behaviour
+	if (!e.ctrlKey && !e.metaKey) return
+
+	// prevent zoom event from triggering
+	e.preventDefault()
+	e.stopPropagation()
 }
 </script>
 
