@@ -262,12 +262,13 @@ def get_config_toml(
 
 	toml_lines = []
 	for key, value in sorted(flatten_dict(config).items()):
-		if isinstance(value, str):
-			toml_lines.append(f'{key} = "{value}"')
-		elif isinstance(value, bool):
-			toml_lines.append(f"{key} = {str(value).lower()}")
-		else:
-			toml_lines.append(f"{key} = {value}")
+		if value or isinstance(value, bool):
+			if isinstance(value, str):
+				toml_lines.append(f'{key} = "{value}"')
+			elif isinstance(value, bool):
+				toml_lines.append(f"{key} = {str(value).lower()}")
+			else:
+				toml_lines.append(f"{key} = {value}")
 
 	return "\n".join(toml_lines)
 
