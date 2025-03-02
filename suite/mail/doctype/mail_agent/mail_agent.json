@@ -13,6 +13,8 @@
   "agent",
   "network_settings_section",
   "server_max_connections",
+  "public_ip",
+  "private_ip",
   "cluster_settings_section",
   "cluster_node_id",
   "cluster_bind_address",
@@ -105,7 +107,7 @@
    "fieldname": "config",
    "fieldtype": "Code",
    "is_virtual": 1,
-   "label": "Config"
+   "label": "config.toml"
   },
   {
    "fieldname": "section_break_vndz",
@@ -151,9 +153,11 @@
    "reqd": 1
   },
   {
+   "default": "Private IP",
    "fieldname": "cluster_advertise_address",
-   "fieldtype": "Data",
-   "label": "Advertise Address"
+   "fieldtype": "Select",
+   "label": "Advertise Address",
+   "options": "\nPrivate IP\nPublic IP"
   },
   {
    "default": "1",
@@ -166,6 +170,16 @@
   {
    "fieldname": "column_break_m8qz",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "private_ip",
+   "fieldtype": "Data",
+   "label": "Private IP"
+  },
+  {
+   "fieldname": "public_ip",
+   "fieldtype": "Data",
+   "label": "Public IP"
   }
  ],
  "grid_page_length": 50,
@@ -182,7 +196,7 @@
    "link_fieldname": "agent"
   }
  ],
- "modified": "2025-03-02 16:50:45.921008",
+ "modified": "2025-03-02 21:11:39.621077",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",
