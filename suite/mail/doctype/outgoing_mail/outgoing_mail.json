@@ -13,6 +13,7 @@
   "in_reply_to_mail_type",
   "in_reply_to_mail_name",
   "subject",
+  "seen",
   "section_break_baaa",
   "recipients",
   "section_break_atoq",
@@ -585,13 +586,21 @@
    "options": "Email",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Seen"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-28 15:05:42.180799",
+ "modified": "2025-02-28 16:05:42.180799",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Outgoing Mail",
