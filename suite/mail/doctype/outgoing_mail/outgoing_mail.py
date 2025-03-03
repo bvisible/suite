@@ -953,6 +953,7 @@ class OutgoingMail(Document):
 			self._db_set(
 				folder=self.folder,
 				status=self.status,
+				agent_group=agent_group,
 				transfer_completed_at=transfer_completed_at,
 				transfer_completed_after=transfer_completed_after,
 				notify_update=True,
