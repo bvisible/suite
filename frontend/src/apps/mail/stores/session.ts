@@ -2,12 +2,13 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
-import { userStore } from './user'
-
 import router from '@/router'
+import { userStore } from '@/stores/user'
+
+import type { Folder } from '@/types'
 
 export const sessionStore = defineStore('mail-session', () => {
-	const { userResource } = userStore()
+	const { userResource, setCurrentMail } = userStore()
 
 	const sessionUser = () => {
 		const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
@@ -39,9 +40,8 @@ export const sessionStore = defineStore('mail-session', () => {
 	const logout = createResource({
 		url: 'logout',
 		onSuccess() {
-			sessionStorage.removeItem('currentIncomingMail')
-			sessionStorage.removeItem('currentSentMail')
-			sessionStorage.removeItem('currentDraftMail')
+			const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Trash']
+			folders.forEach((folder) => setCurrentMail(folder, null))
 			userResource.reset()
 			user.value = null
 			window.location.reload()

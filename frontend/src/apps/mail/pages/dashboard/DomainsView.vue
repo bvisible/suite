@@ -58,8 +58,8 @@ import {
 	ListRowItem,
 	ListRows,
 	ListView,
-	createListResource,
 } from 'frappe-ui'
+import { useList } from 'frappe-ui/src/data-fetching'
 
 import AddDomainModal from '@/components/Modals/AddDomainModal.vue'
 
@@ -100,18 +100,16 @@ const LIST_OPTIONS = {
 	getRowRoute: (row) => ({ name: 'Domain', params: { domainName: row.name } }),
 }
 
-const domains = createListResource({
+const domains = useList({
 	doctype: 'Mail Domain',
 	fields: ['name', 'enabled', 'is_verified'],
 	filters: { tenant: user.data?.tenant },
-	auto: true,
-	pageLength: 50,
-	cache: ['mailTenantDomains', user.data?.tenant],
-	transform(data) {
-		return data.map((domain) => ({
+	limit: 100,
+	cacheKey: ['mailTenantDomains', user.data?.tenant],
+	transform: (data) =>
+		data.map((domain) => ({
 			...domain,
 			status: domain.enabled ? 'Enabled' : 'Disabled',
-		}))
-	},
+		})),
 })
 </script>
