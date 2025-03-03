@@ -27,15 +27,15 @@
 				:key="idx"
 				class="flex cursor-pointer flex-col space-y-1 rounded"
 				:class="{ 'bg-gray-100': mail.name == currentMail[currentFolder] }"
-				@click="setCurrentMail(currentFolder, mail.name)"
+				@click="openMail(mail)"
 			>
-				<SidebarDetail :mail="mail" @click="markAsRead(mail)" />
+				<SidebarDetail :mail="mail" />
 				<div
 					:class="{
 						'mx-4 h-[0.25px] border-b border-gray-100':
 							idx < mails[currentFolder].data.length - 1,
 					}"
-				></div>
+				/>
 			</div>
 		</div>
 		<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
@@ -92,8 +92,9 @@ const createMailResource = (folder: Folder) =>
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data) => {
-			if (!data.length) return
-			if (!currentMail[folder]) {
+			if (!data.length) return setCurrentMail(folder, null)
+
+			if (!data.some((m) => m.name === currentMail[folder])) {
 				const firstSeen = data.find((m) => m.seen)
 				if (firstSeen) setCurrentMail(folder, firstSeen.name)
 			}
@@ -130,12 +131,12 @@ const setSeen = createResource({
 	onSuccess: (data: SetSeenParams) => {
 		mails[currentFolder.value].data.find((m) => m.name === data.mail_name).seen =
 			data.seen_value
-		if (data.seen_value) mailDetails.value?.reloadThread()
-		else setCurrentMail(currentFolder.value, null)
+		if (!data.seen_value) setCurrentMail(currentFolder.value, null)
 	},
 })
 
-const markAsRead = (mail) => {
+const openMail = (mail) => {
+	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen) setSeen.submit({ mail_name: mail.name, seen_value: 1 })
 }
 
