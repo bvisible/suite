@@ -26,7 +26,7 @@
 							<div class="flex items-center space-x-2">
 								<Avatar :image="row.user_image" :label="row.full_name" size="lg" />
 								<div class="text-sm">
-									<p class="font-medium text-gray-900">{{ row.full_name }}</p>
+									<p class="font-medium">{{ row.full_name }}</p>
 									<p class="mt-0.5 text-gray-600">{{ row.name }}</p>
 								</div>
 							</div>
