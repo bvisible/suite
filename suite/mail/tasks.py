@@ -27,8 +27,7 @@ def enqueue_fetch_emails_from_mail_agents() -> None:
 	"Called by the scheduler to enqueue the `fetch_emails_from_mail_agents` job."
 
 	frappe.session.user = "Administrator"
-	fetch_emails_from_mail_agents()
-	# enqueue_job(fetch_emails_from_mail_agents, queue="long", deduplicate=True)
+	enqueue_job(fetch_emails_from_mail_agents, queue="long", deduplicate=True)
 
 
 @frappe.whitelist()

@@ -374,14 +374,15 @@ def fetch_emails_from_mail_agents(
 	if not accounts:
 		return
 
-	for group in agent_groups:
-		fetch_emails_from_mail_agent(group, accounts)
-	# else:
-	# 	for group in agent_groups:
-	# 		frappe.enqueue(
-	# 			fetch_emails_from_mail_agent,
-	# 			queue="long",
-	# 			job_name=f"Fetch Emails from {group}",
-	# 			agent_group=group,
-	# 			accounts=accounts,
-	# )
+	if frappe.flags.do_not_enqueue:
+		for group in agent_groups:
+			fetch_emails_from_mail_agent(group, accounts)
+	else:
+		for group in agent_groups:
+			frappe.enqueue(
+				fetch_emails_from_mail_agent,
+				queue="long",
+				job_name=f"Fetch Emails from {group}",
+				agent_group=group,
+				accounts=accounts,
+			)
