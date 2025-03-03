@@ -100,6 +100,7 @@
 import { inject, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
+	ArchiveRestore,
 	Ellipsis,
 	Forward,
 	Mail,
@@ -235,17 +236,24 @@ const moreActions = (mail): MailAction[] => [
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: async () => {
-			await outgoingMail.setValue.submit({ name: mail.name, folder: 'Trash' })
-			const noRelevantMailInFolder =
-				mailThread.data.filter((m) => m.folder === mail.folder).length === 1
-			if (noRelevantMailInFolder) setCurrentMail(mail.folder as Folder, null)
-			emit('reloadMails')
-		},
+		onClick: () => setFolder(mail, 'Trash'),
 		icon: Trash2,
 		condition: () => mail.mail_type === 'Outgoing Mail' && mail.folder !== 'Trash',
 	},
+	{
+		label: __('Restore'),
+		onClick: () => setFolder(mail),
+		icon: ArchiveRestore,
+		condition: () => mail.folder === 'Trash',
+	},
 ]
+
+const setFolder = async (mail, folder: 'Trash' | 'Sent' = 'Sent') => {
+	await outgoingMail.setValue.submit({ name: mail.name, folder })
+	const isOnlyMailInFolder = !mailThread.data.some((m) => m.folder === mail.folder && m !== mail)
+	if (isOnlyMailInFolder) setCurrentMail(mail.folder as Folder, null)
+	emit('reloadMails')
+}
 
 const openModal = (type: ActionType, mail) => {
 	if (props.type == 'Incoming Mail') {
