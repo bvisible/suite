@@ -35,7 +35,7 @@
   "is_newsletter",
   "column_break_d6p9",
   "domain_name",
-  "agent",
+  "agent_group",
   "section_break_quhp",
   "message_id",
   "in_reply_to",
@@ -530,15 +530,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "agent",
-   "fieldtype": "Link",
-   "label": "Agent",
-   "no_copy": 1,
-   "options": "Mail Group",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "fieldname": "message_id",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
@@ -585,13 +576,21 @@
    "options": "Email",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "agent_group",
+   "fieldtype": "Data",
+   "label": "Agent Group",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-28 15:05:42.180799",
+ "modified": "2025-03-03 19:22:33.782845",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Outgoing Mail",

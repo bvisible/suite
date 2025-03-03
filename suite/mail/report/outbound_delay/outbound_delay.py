@@ -103,10 +103,10 @@ def get_columns() -> list[dict]:
 			"width": 150,
 		},
 		{
-			"label": _("Agent"),
-			"fieldname": "agent",
+			"label": _("Agent Group"),
+			"fieldname": "agent_group",
 			"fieldtype": "Link",
-			"options": "Mail Agent",
+			"options": "Mail Agent Group",
 			"width": 150,
 		},
 		{
@@ -172,7 +172,7 @@ def get_data(filters: dict | None = None) -> list[dict]:
 				+ OM.transfer_completed_after
 			).as_("total_delay"),
 			OM.domain_name,
-			OM.agent,
+			OM.agent_group,
 			OM.ip_address,
 			OM.sender,
 			OM.from_,
@@ -210,10 +210,10 @@ def get_data(filters: dict | None = None) -> list[dict]:
 		if filters.get(field):
 			query = query.where(OM[field].isin(filters.get(field)))
 
-	if agent := filters.get("agent"):
-		if isinstance(agent, str):
-			agent = [agent]
-		query = query.where(OM.agent.isin(agent))
+	if agent_group := filters.get("agent_group"):
+		if isinstance(agent_group, str):
+			agent_group = [agent_group]
+		query = query.where(OM.agent_group.isin(agent_group))
 
 	if filters.get("email"):
 		query = query.where(MR["email"] == filters.get("email"))
