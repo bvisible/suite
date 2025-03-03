@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Paperclip } from 'lucide-vue-next'
+// import { Paperclip } from 'lucide-vue-next'
 import { Badge } from 'frappe-ui'
 
 import MailDate from '@/components/MailDate.vue'
