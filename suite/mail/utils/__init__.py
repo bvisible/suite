@@ -51,38 +51,42 @@ def generate_secret(length: int = 32):
 
 
 def load_compressed_file(file_path: str | None = None, file_data: bytes | None = None) -> str:
-	"""Load content from a compressed file or bytes object."""
+	"""Load content from a compressed file (ZIP or GZIP) or a bytes object."""
+
+	def extract_zip_content(zip_source) -> str | None:
+		with zipfile.ZipFile(zip_source, "r") as zip_file:
+			file_name = zip_file.namelist()[0]
+			with zip_file.open(file_name) as file:
+				return file.read().decode()
+
+	def extract_gzip_content(gzip_source) -> str | None:
+		with gzip.open(gzip_source, "rt") as gz_file:
+			return gz_file.read()
 
 	if not file_path and not file_data:
 		frappe.throw(_("Either file path or file data is required."))
 
 	if file_path:
 		if zipfile.is_zipfile(file_path):
-			with zipfile.ZipFile(file_path, "r") as zip_file:
-				file_name = zip_file.namelist()[0]
-				with zip_file.open(file_name) as file:
-					content = file.read().decode()
-					return content
-		else:
-			with gzip.open(file_path, "rt") as gz_file:
-				return gz_file.read()
+			return extract_zip_content(file_path)
+		return extract_gzip_content(file_path)
 
-	elif file_data:
-		try:
-			with zipfile.ZipFile(BytesIO(file_data), "r") as zip_file:
-				file_name = zip_file.namelist()[0]
-				with zip_file.open(file_name) as file:
-					return file.read().decode()
-		except zipfile.BadZipFile:
-			pass
+	if isinstance(file_data, str):
+		file_data = file_data.encode()
 
-		try:
-			with gzip.open(BytesIO(file_data), "rt") as gz_file:
-				return gz_file.read()
-		except OSError:
-			pass
+	file_stream = BytesIO(file_data)
 
-		frappe.throw(_("Failed to load content from the compressed file."))
+	try:
+		return extract_zip_content(file_stream)
+	except zipfile.BadZipFile:
+		pass
+
+	try:
+		return extract_gzip_content(file_stream)
+	except OSError:
+		pass
+
+	frappe.throw(_("Failed to load content from the compressed file."))
 
 
 def enqueue_job(method: str | Callable, deduplicate: bool = False, **kwargs) -> None:
