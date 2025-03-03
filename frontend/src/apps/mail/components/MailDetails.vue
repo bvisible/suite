@@ -92,7 +92,7 @@
 		v-model="showSendModal"
 		:mail-i-d="draftMailID"
 		:reply-details="replyDetails"
-		@reload-mails="emit('reloadMails')"
+		@reload-mails="emit('reloadMails', 'Drafts')"
 	/>
 </template>
 
@@ -107,8 +107,10 @@ import {
 	Reply,
 	ReplyAll,
 	SquarePen,
+	Trash2,
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
+import { useDoctype } from 'frappe-ui/src/data-fetching'
 
 import { getRecipients } from '@/utils'
 import { userStore } from '@/stores/user'
@@ -120,6 +122,7 @@ import type { Folder } from '@/types'
 
 const { setCurrentMail } = userStore()
 const dayjs = inject('$dayjs')
+const outgoingMail = useDoctype('Outgoing Mail')
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
@@ -229,6 +232,18 @@ const moreActions = (mail): MailAction[] => [
 		label: __('Mark as Unread'),
 		onClick: () => emit('markAsUnread'),
 		icon: MessageSquareDot,
+	},
+	{
+		label: __('Move to Trash'),
+		onClick: async () => {
+			await outgoingMail.setValue.submit({ name: mail.name, folder: 'Trash' })
+			const noRelevantMailInFolder =
+				mailThread.data.filter((m) => m.folder === mail.folder).length === 1
+			if (noRelevantMailInFolder) setCurrentMail(mail.folder as Folder, null)
+			emit('reloadMails')
+		},
+		icon: Trash2,
+		condition: () => mail.mail_type === 'Outgoing Mail' && mail.folder !== 'Trash',
 	},
 ]
 
