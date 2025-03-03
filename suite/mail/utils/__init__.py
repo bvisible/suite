@@ -5,7 +5,8 @@ import re
 import secrets
 import string
 import zipfile
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from io import BytesIO
 from typing import Literal
 
@@ -13,6 +14,25 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.utils.caching import redis_cache, request_cache
+
+
+@contextmanager
+def user_context(user: str) -> Generator[None, None, None]:
+	"""Context manager to temporarily switch the user context."""
+
+	session_user = frappe.session.user
+	session_data = frappe.session.data.copy()
+
+	if session_user == user:
+		yield
+		return
+
+	try:
+		frappe.set_user(user)
+		yield
+	finally:
+		frappe.set_user(session_user)
+		frappe.session.data = session_data
 
 
 def encode_image_to_base64(image_path: str) -> str:
