@@ -29,6 +29,7 @@ class MailAgent(Document):
 
 		self.validate_agent()
 		self.validate_agent_group()
+		self.validate_cluster_node_id()
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -60,6 +61,23 @@ class MailAgent(Document):
 
 		if not frappe.db.get_value("Mail Agent Group", self.agent_group, "enabled"):
 			frappe.throw(_("Mail Agent Group {0} is disabled.").format(frappe.bold(self.agent_group)))
+
+	def validate_cluster_node_id(self) -> None:
+		"""Validates the cluster node ID."""
+
+		if frappe.db.exists(
+			"Mail Agent",
+			{
+				"agent_group": self.agent_group,
+				"cluster_node_id": self.cluster_node_id,
+				"name": ["!=", self.name],
+			},
+		):
+			frappe.throw(
+				_("Node ID {0} already assigned to another Mail Agent.").format(
+					frappe.bold(self.cluster_node_id)
+				)
+			)
 
 	def clear_cache(self) -> None:
 		"""Clears the cache."""
@@ -95,6 +113,24 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 
 def get_config_toml(agent: str) -> str | None:
 	"""Returns the TOML configuration for the Mail Agent."""
+
+	def get_seed_nodes(agent: str, agent_group: str) -> dict:
+		"""Returns the seed nodes for the Mail Agent."""
+
+		seed_nodes = []
+		for a in frappe.db.get_all(
+			"Mail Agent",
+			filters={"agent_group": agent_group, "name": ["!=", agent]},
+			fields=["public_ip", "private_ip", "cluster_advertise_address"],
+		):
+			if not a["cluster_advertise_address"]:
+				continue
+
+			if seed_node := a[frappe.scrub(a["cluster_advertise_address"])]:
+				seed_nodes.append(seed_node)
+
+		num_digits = len(str(len(seed_nodes) - 1))
+		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(seed_nodes)}
 
 	def get_local_keys() -> dict:
 		"""Returns the local keys for the configuration."""
@@ -194,8 +230,6 @@ def get_config_toml(agent: str) -> str | None:
 	blob_store = frappe.get_doc("Mail Agent Store", agent_group.blob_store)
 	fts_store = frappe.get_doc("Mail Agent Store", agent_group.fts_store)
 	lookup_store = frappe.get_doc("Mail Agent Store", agent_group.memory_store)
-	address_map = {"Private IP": agent.private_ip, "Public IP": agent.public_ip}
-	cluster_advertise_address = address_map.get(agent.cluster_advertise_address)
 
 	config = {
 		"authentication": {
@@ -257,10 +291,10 @@ def get_config_toml(agent: str) -> str | None:
 			"node-id": agent.cluster_node_id,
 			"bind-addr": agent.cluster_bind_address,
 			"bind-port": agent.cluster_bind_port,
-			"advertise-addr": cluster_advertise_address,
+			"advertise-addr": agent.get(frappe.scrub(agent.cluster_advertise_address)),
 			"key": agent_group.get_password("cluster_encryption_key"),
 			"heartbeat": f"{agent.cluster_heartbeat}s" if agent.cluster_heartbeat else 0,
-			"seed-nodes": [],
+			"seed-nodes": get_seed_nodes(agent.name, agent_group.name),
 		},
 		"config": {
 			"local-keys": get_local_keys(),
@@ -314,5 +348,5 @@ def get_config_toml(agent: str) -> str | None:
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Agent", ["agent_group", "cluster_node_id"], constraint_name="unique_agent_group_cluster_node_id"
+		"Mail Agent", ["cluster_node_id", "agent_group"], constraint_name="unique_cluster_node_id"
 	)
