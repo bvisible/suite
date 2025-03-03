@@ -11,14 +11,31 @@
   "column_break_uo3q",
   "type",
   "path",
+  "configuration_section",
+  "hostname",
+  "port",
+  "database",
+  "column_break_offi",
+  "max_allowed_packet_bytes",
+  "timeout_seconds",
+  "authentication_section",
+  "username",
+  "column_break_r24o",
+  "password",
   "storage_settings_section",
   "compression",
   "min_blob_size_bytes",
   "write_buffer_size_mb",
   "column_break_bsqd",
   "purge_frequency_cron",
+  "tls_section",
+  "enable_tls",
+  "allow_invalid_certs",
   "pools_section",
-  "thread_pool_size"
+  "thread_pool_size",
+  "max_connections",
+  "column_break_n71b",
+  "min_connections"
  ],
  "fields": [
   {
@@ -44,18 +61,17 @@
    "unique": 1
   },
   {
-   "default": "RocksDB",
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "RocksDB",
+   "options": "\nRocksDB\nmySQL",
    "reqd": 1
   },
   {
    "fieldname": "storage_settings_section",
    "fieldtype": "Section Break",
-   "label": "Storage settings"
+   "label": "Storage Settings"
   },
   {
    "fieldname": "compression",
@@ -69,27 +85,32 @@
    "label": "Pools"
   },
   {
-   "default": "/opt/stalwart-mail/data",
+   "depends_on": "eval: doc.type == \"RocksDB\"",
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.type == \"RocksDB\""
   },
   {
+   "depends_on": "eval: doc.type == \"RocksDB\"",
    "fieldname": "thread_pool_size",
    "fieldtype": "Int",
    "label": "Thread Pool Size",
    "placeholder": "8"
   },
   {
+   "depends_on": "eval: doc.type == \"RocksDB\"",
    "fieldname": "min_blob_size_bytes",
    "fieldtype": "Int",
-   "label": "Min Blob Size (Bytes)"
+   "label": "Min Blob Size (Bytes)",
+   "non_negative": 1
   },
   {
+   "depends_on": "eval: doc.type == \"RocksDB\"",
    "fieldname": "write_buffer_size_mb",
    "fieldtype": "Int",
-   "label": "Write Buffer Size (MB)"
+   "label": "Write Buffer Size (MB)",
+   "non_negative": 1
   },
   {
    "fieldname": "column_break_uo3q",
@@ -104,7 +125,111 @@
    "fieldname": "purge_frequency_cron",
    "fieldtype": "Data",
    "label": "Purge Frequency (Cron)",
-   "not_nullable": 1
+   "not_nullable": 1,
+   "placeholder": "0 3 * * *"
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "hostname",
+   "fieldtype": "Data",
+   "label": "Hostname",
+   "mandatory_depends_on": "eval: doc.type == \"mySQL\""
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "port",
+   "fieldtype": "Int",
+   "label": "Port",
+   "mandatory_depends_on": "eval: doc.type == \"mySQL\"",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "database",
+   "fieldtype": "Data",
+   "label": "Database",
+   "mandatory_depends_on": "eval: doc.type == \"mySQL\""
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "max_allowed_packet_bytes",
+   "fieldtype": "Int",
+   "label": "Max Allowed Packet (Bytes)",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "timeout_seconds",
+   "fieldtype": "Int",
+   "label": "Timeout (Seconds)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_offi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "authentication_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "Username"
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "Password"
+  },
+  {
+   "fieldname": "tls_section",
+   "fieldtype": "Section Break",
+   "label": "TLS"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "enable_tls",
+   "fieldtype": "Check",
+   "label": "Enable TLS"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "allow_invalid_certs",
+   "fieldtype": "Check",
+   "label": "Allow Invalid Certs"
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "max_connections",
+   "fieldtype": "Int",
+   "label": "Max Connections",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval: doc.type == \"mySQL\"",
+   "fieldname": "min_connections",
+   "fieldtype": "Int",
+   "label": "Min Connections",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_n71b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_r24o",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -137,7 +262,7 @@
    "link_fieldname": "memory_store"
   }
  ],
- "modified": "2025-03-02 21:33:25.114573",
+ "modified": "2025-03-03 13:09:56.689066",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Store",
