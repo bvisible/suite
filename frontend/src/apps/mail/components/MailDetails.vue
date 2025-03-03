@@ -4,7 +4,10 @@
 			v-for="mail in mailThread.data"
 			:key="mail.name"
 			class="mb-4 p-3"
-			:class="{ 'rounded-md border': mailThread.data.length > 1 }"
+			:class="{
+				'rounded-md border': mailThread.data.length > 1,
+				'opacity-50': mail.folder === 'Trash',
+			}"
 		>
 			<div class="flex space-x-3 border-b pb-2">
 				<Avatar
@@ -98,7 +101,6 @@
 
 <script setup lang="ts">
 import { inject, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import {
 	ArchiveRestore,
 	Ellipsis,
@@ -114,14 +116,10 @@ import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 import { useDoctype } from 'frappe-ui/src/data-fetching'
 
 import { getRecipients } from '@/utils'
-import { userStore } from '@/stores/user'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
 
-import type { Folder } from '@/types'
-
-const { setCurrentMail } = userStore()
 const dayjs = inject('$dayjs')
 const outgoingMail = useDoctype('Outgoing Mail')
 
@@ -144,8 +142,6 @@ const replyDetails = reactive({
 	in_reply_to_mail_name: '',
 })
 
-const route = useRoute()
-
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => {
@@ -153,10 +149,6 @@ const mailThread = createResource({
 			name: props.mailID,
 			mail_type: props.type,
 		}
-	},
-	onError: (error) => {
-		if (error.exc_type === 'DoesNotExistError')
-			setCurrentMail(String(route.name) as Folder, null)
 	},
 })
 
@@ -250,8 +242,6 @@ const moreActions = (mail): MailAction[] => [
 
 const setFolder = async (mail, folder: 'Trash' | 'Sent' = 'Sent') => {
 	await outgoingMail.setValue.submit({ name: mail.name, folder })
-	const isOnlyMailInFolder = !mailThread.data.some((m) => m.folder === mail.folder && m !== mail)
-	if (isOnlyMailInFolder) setCurrentMail(mail.folder as Folder, null)
 	emit('reloadMails')
 }
 

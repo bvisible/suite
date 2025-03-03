@@ -309,15 +309,13 @@ const addressOptions = createResource({
 const createDraftMail = createResource({
 	url: 'mail.api.outbound.send',
 	method: 'POST',
-	makeParams() {
-		return {
-			// TODO: use mail account display_name
-			from_: `${user.data?.full_name} <${mail.from}>`,
-			do_not_submit: !isSend.value,
-			...mail,
-		}
-	},
-	onSuccess(data: string) {
+	makeParams: () => ({
+		// TODO: use mail account display_name
+		from_: `${user.data?.full_name} <${mail.from}>`,
+		do_not_submit: !isSend.value,
+		...mail,
+	}),
+	onSuccess: (data: string) => {
 		if (isSend.value) Object.assign(mail, emptyMail)
 		else {
 			localMailID.value = data
@@ -329,61 +327,45 @@ const createDraftMail = createResource({
 
 const updateDraftMail = createResource({
 	url: 'mail.api.mail.update_draft_mail',
-	makeParams() {
-		return {
-			mail_id: localMailID.value,
-			from_: `${user.data?.full_name} <${mail.from}>`,
-			do_submit: isSend.value,
-			...mail,
-		}
-	},
-	onSuccess() {
-		if (isSend.value) setCurrentMail('Drafts', null)
-		emit('reloadMails')
-	},
+	makeParams: () => ({
+		mail_id: localMailID.value,
+		from_: `${user.data?.full_name} <${mail.from}>`,
+		do_submit: isSend.value,
+		...mail,
+	}),
+	onSuccess: () => emit('reloadMails'),
 })
 
 // TODO: delete using documentresource directly
 const deleteDraftMail = createResource({
 	url: 'frappe.client.delete',
-	makeParams() {
-		return {
-			doctype: 'Outgoing Mail',
-			name: localMailID.value,
-		}
-	},
-	onSuccess() {
-		setCurrentMail('Drafts', null)
-		emit('reloadMails')
-	},
+	makeParams: () => ({
+		doctype: 'Outgoing Mail',
+		name: localMailID.value,
+	}),
+	onSuccess: () => emit('reloadMails'),
 })
 
 const attachments = createResource({
 	url: 'mail.api.mail.get_attachments',
-	makeParams() {
-		return {
-			dt: 'Outgoing Mail',
-			dn: localMailID.value,
-		}
-	},
+	makeParams: () => ({
+		dt: 'Outgoing Mail',
+		dn: localMailID.value,
+	}),
 })
 
 const removeAttachment = createResource({
 	url: 'frappe.client.delete',
 	method: 'DELETE',
-	makeParams(values: { name: string }) {
-		return { doctype: 'File', name: values.name }
-	},
-	onSuccess() {
-		attachments.fetch()
-	},
+	makeParams: (values: { name: string }) => ({ doctype: 'File', name: values.name }),
+	onSuccess: () => attachments.fetch(),
 })
 
 const getDraftMail = (name: string) =>
 	createDocumentResource({
 		doctype: 'Outgoing Mail',
 		name: name,
-		onSuccess(data) {
+		onSuccess: (data) => {
 			isMailWatcherActive.value = false
 			const mailDetails = {
 				from_: `${data.display_name} <${data.sender}>`,
