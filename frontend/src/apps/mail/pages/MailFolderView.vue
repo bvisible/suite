@@ -49,7 +49,7 @@
 				ref="mailDetails"
 				:mail-i-d="currentMail[currentFolder]"
 				:type="doctype"
-				@reload-mails="reloadMails('Drafts')"
+				@reload-mails="reloadMails"
 				@mark-as-unread="
 					setSeen.submit({ mail_name: currentMail[currentFolder], seen_value: 0 })
 				"
@@ -83,7 +83,7 @@ const doctype = computed(() =>
 
 const mailDetails = ref<typeof MailDetails>()
 
-const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts']
+const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Trash']
 
 const createMailResource = (folder: Folder) =>
 	createListResource({
@@ -139,8 +139,8 @@ const markAsRead = (mail) => {
 	if (!mail.seen) setSeen.submit({ mail_name: mail.name, seen_value: 1 })
 }
 
-const reloadMails = (folder?: Folder) => {
-	if (folder && folder !== currentFolder.value) return
+const reloadMails = (folder: Folder = currentFolder.value) => {
+	if (folder !== currentFolder.value) return
 	mails[currentFolder.value].reload()
 	mailCount.reload()
 }

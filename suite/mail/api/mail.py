@@ -122,6 +122,13 @@ def get_drafts_mails(start: int = 0) -> list:
 	return get_outgoing_mails("Drafts", start)
 
 
+@frappe.whitelist()
+def get_trash_mails(start: int = 0) -> list:
+	"""Returns trash mails for the current user."""
+
+	return get_outgoing_mails("Trash", start)
+
+
 def get_outgoing_mails(folder: str, start: int = 0) -> list:
 	"""Returns outgoing mails for the current user."""
 
