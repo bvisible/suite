@@ -17,18 +17,7 @@ from mail.utils.dns import get_dns_record
 class MailAgent(Document):
 	@property
 	def config(self) -> str:
-		address_map = {"Private IP": self.private_ip, "Public IP": self.public_ip}
-		cluster_advertise_address = address_map.get(self.cluster_advertise_address)
-		return get_config_toml(
-			agent_group=self.agent_group,
-			server_hostname=self.agent,
-			server_max_connections=self.server_max_connections,
-			cluster_node_id=self.cluster_node_id,
-			cluster_bind_address=self.cluster_bind_address,
-			cluster_bind_port=self.cluster_bind_port,
-			cluster_advertise_address=cluster_advertise_address,
-			cluster_heartbeat=self.cluster_heartbeat,
-		)
+		return get_config_toml(agent=self.name)
 
 	def autoname(self) -> None:
 		self.agent = self.agent.lower()
@@ -104,16 +93,7 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 			frappe.delete_doc("DNS Record", spf_dns_record, ignore_permissions=True)
 
 
-def get_config_toml(
-	agent_group: str,
-	server_hostname: str,
-	server_max_connections: int,
-	cluster_node_id: int,
-	cluster_bind_address: str,
-	cluster_bind_port: int,
-	cluster_advertise_address: str,
-	cluster_heartbeat: int,
-) -> str | None:
+def get_config_toml(agent: str) -> str | None:
 	"""Returns the TOML configuration for the Mail Agent."""
 
 	def get_local_keys() -> dict:
@@ -207,12 +187,15 @@ def get_config_toml(
 
 		return store_config
 
-	agent_group = frappe.get_doc("Mail Agent Group", agent_group)
+	agent = frappe.get_doc("Mail Agent", agent)
+	agent_group = frappe.get_doc("Mail Agent Group", agent.agent_group)
 	directory_store = frappe.get_doc("Mail Agent Store", agent_group.directory_store)
 	data_store = frappe.get_doc("Mail Agent Store", agent_group.data_store)
 	blob_store = frappe.get_doc("Mail Agent Store", agent_group.blob_store)
 	fts_store = frappe.get_doc("Mail Agent Store", agent_group.fts_store)
 	lookup_store = frappe.get_doc("Mail Agent Store", agent_group.memory_store)
+	address_map = {"Private IP": agent.private_ip, "Public IP": agent.public_ip}
+	cluster_advertise_address = address_map.get(agent.cluster_advertise_address)
 
 	config = {
 		"authentication": {
@@ -222,8 +205,8 @@ def get_config_toml(
 			}
 		},
 		"server": {
-			"hostname": server_hostname,
-			"max-connections": server_max_connections,
+			"hostname": agent.agent,
+			"max-connections": agent.server_max_connections,
 			"listener": {
 				"http": {"bind": "[::]:8080", "protocol": "http"},
 				"https": {
@@ -271,12 +254,12 @@ def get_config_toml(
 			},
 		},
 		"cluster": {
-			"node-id": cluster_node_id,
-			"bind-addr": cluster_bind_address,
-			"bind-port": cluster_bind_port,
+			"node-id": agent.cluster_node_id,
+			"bind-addr": agent.cluster_bind_address,
+			"bind-port": agent.cluster_bind_port,
 			"advertise-addr": cluster_advertise_address,
 			"key": agent_group.get_password("cluster_encryption_key"),
-			"heartbeat": f"{cluster_heartbeat}s" if cluster_heartbeat else 0,
+			"heartbeat": f"{agent.cluster_heartbeat}s" if agent.cluster_heartbeat else 0,
 			"seed-nodes": [],
 		},
 		"config": {
