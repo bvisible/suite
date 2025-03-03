@@ -153,6 +153,31 @@ def get_config_toml(
 							}
 						}
 					)
+				case "mySQL":
+					store_config.update(
+						{
+							store.store_id: {
+								"type": store_type_map[store.type],
+								"host": store.hostname,
+								"port": store.port,
+								"database": store.database,
+								"user": store.username,
+								"password": store.get_password("password"),
+								"max-allowed-packet": store.max_allowed_packet_bytes,
+								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
+								"compression": store.compression.lower(),
+								"purge": {"frequency": store.purge_frequency_cron},
+								"tls": {
+									"enable": store.enable_tls,
+									"allow-invalid-certs": store.allow_invalid_certs,
+								},
+								"pool": {
+									"max-connections": store.max_connections,
+									"min-connections": store.min_connections,
+								},
+							}
+						}
+					)
 
 		return store_config
 
@@ -225,7 +250,7 @@ def get_config_toml(
 			"bind-port": cluster_bind_port,
 			"advertise-addr": cluster_advertise_address,
 			"key": agent_group.get_password("cluster_encryption_key"),
-			"heartbeat": cluster_heartbeat,
+			"heartbeat": f"{cluster_heartbeat}s" if cluster_heartbeat else 0,
 			"seed-nodes": [],
 		},
 		"directory": {
