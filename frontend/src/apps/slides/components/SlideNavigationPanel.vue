@@ -58,7 +58,7 @@ import { call } from 'frappe-ui'
 import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'
-import { slideIndex, changeSlide, insertSlide, slide } from '@/stores/slide'
+import { slide, slideIndex, changeSlide, insertSlide } from '@/stores/slide'
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
