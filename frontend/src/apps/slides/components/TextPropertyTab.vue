@@ -93,7 +93,6 @@ import ColorPicker from './controls/ColorPicker.vue'
 
 import { slide } from '@/stores/slide'
 import { activeElementIds, activeElements } from '@/stores/element'
-import { debounce } from '@/utils/helpers'
 
 const sectionClasses = 'flex flex-col gap-4 border-b p-4'
 const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'

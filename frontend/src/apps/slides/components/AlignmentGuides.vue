@@ -7,11 +7,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
 import { slide, slideRect } from '@/stores/slide'
-import { activePosition, activeElementIds, pairElementId, activeElements } from '@/stores/element'
+import { activePosition, activeElementIds, pairElementId } from '@/stores/element'
 
 const props = defineProps({
 	scale: Number,

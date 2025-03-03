@@ -11,7 +11,7 @@ import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { activeElementIds, pairElementId, focusElementId, activePosition } from '@/stores/element'
+import { activeElementIds, pairElementId, focusElementId } from '@/stores/element'
 
 const attrs = useAttrs()
 
