@@ -116,7 +116,33 @@ def get_config_toml(
 ) -> str | None:
 	"""Returns the TOML configuration for the Mail Agent."""
 
+	def get_local_keys() -> dict:
+		"""Returns the local keys for the configuration."""
+
+		local_keys = [
+			"store.*",
+			"directory.*",
+			"tracer.*",
+			"!server.blocked-ip.*",
+			"!server.allowed-ip.*",
+			"server.*",
+			"config.local-keys.*",
+			"certificate.*",
+			"cluster.*",
+			"storage.data",
+			"storage.blob",
+			"storage.lookup",
+			"storage.fts",
+			"storage.directory",
+			"authentication.fallback-admin.*",
+			"enterprise.license-key",
+		]
+		num_digits = len(str(len(local_keys) - 1))
+		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(local_keys)}
+
 	def get_stores(*stores) -> dict:
+		"""Returns the store configuration for the Mail Agent."""
+
 		store_type_map = {
 			"RocksDB": "rocksdb",
 			"FoundationDB": "foundationdb",
@@ -252,6 +278,9 @@ def get_config_toml(
 			"key": agent_group.get_password("cluster_encryption_key"),
 			"heartbeat": f"{cluster_heartbeat}s" if cluster_heartbeat else 0,
 			"seed-nodes": [],
+		},
+		"config": {
+			"local-keys": get_local_keys(),
 		},
 		"directory": {
 			f"{directory_store.store_id}": {
