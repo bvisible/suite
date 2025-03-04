@@ -126,7 +126,7 @@ const draftMailID = ref<string>()
 
 const props = defineProps<{
 	mailID: string | null
-	type: string
+	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread'])

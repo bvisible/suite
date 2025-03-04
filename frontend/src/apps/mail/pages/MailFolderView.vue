@@ -3,7 +3,7 @@
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
 		<Breadcrumbs :items="[{ label: currentFolder }]">
-			<template #suffix>
+			<template v-if="currentFolder !== 'Trash'" #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
 					{{
 						__('{0} {1}', [
@@ -48,7 +48,7 @@
 			<MailDetails
 				ref="mailDetails"
 				:mail-i-d="currentMail[currentFolder]"
-				:type="doctype"
+				:type="getMailType()"
 				@reload-mails="reloadMails"
 				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
 			/>
@@ -105,7 +105,7 @@ const mailCountFilters = computed(() =>
 
 const mailCount = createResource({
 	url: 'frappe.client.get_count',
-	auto: true,
+	auto: currentFolder.value !== 'Trash',
 	makeParams: () => ({
 		doctype: doctype.value,
 		filters: mailCountFilters.value,
@@ -135,7 +135,7 @@ const openMail = (mail) => {
 const reloadMails = (folder: Folder = currentFolder.value) => {
 	if (folder !== currentFolder.value) return
 	mails[currentFolder.value].reload()
-	mailCount.reload()
+	if (currentFolder.value !== 'Trash') mailCount.reload()
 }
 
 watch(() => currentFolder.value, reloadMails, { immediate: true })
@@ -144,6 +144,10 @@ onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
 	socket.on('incoming_mail_received', () => reloadMails('Inbox'))
 })
+
+const getMailType = () =>
+	mails[currentFolder.value].data.find((m) => m.name === currentMail[currentFolder.value])
+		?.mail_type
 
 const loadMoreEmails = useDebounceFn(() => {
 	if (mails[currentFolder.value].hasNextPage) mails[currentFolder.value].next()
