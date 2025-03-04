@@ -7,8 +7,6 @@
  "field_order": [
   "section_break_excr",
   "enabled",
-  "enable_inbound",
-  "enable_outbound",
   "column_break_0mtp",
   "agent_group",
   "agent",
@@ -67,26 +65,6 @@
   {
    "fieldname": "column_break_0mtp",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fetch_from": "agent_group.inbound",
-   "fieldname": "enable_inbound",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Inbound",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "default": "0",
-   "fetch_from": "agent_group.outbound",
-   "fieldname": "enable_outbound",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Outbound",
-   "read_only": 1,
-   "search_index": 1
   },
   {
    "fieldname": "ipv4_addresses",
@@ -194,7 +172,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-04 11:16:02.201718",
+ "modified": "2025-03-04 16:51:58.423454",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",
