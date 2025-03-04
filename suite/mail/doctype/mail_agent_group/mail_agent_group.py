@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import random_string
 
 from mail.agent import AgentAPI, Principal
+from mail.mail.doctype.mail_agent.mail_agent import create_or_update_spf_dns_record
 from mail.utils import generate_secret
 from mail.utils.validation import is_valid_cron_expression
 
@@ -28,9 +29,19 @@ class MailAgentGroup(Document):
 		self.validate_selected_stores()
 
 	def on_update(self) -> None:
+		if self.has_value_changed("enabled") or self.has_value_changed("outbound"):
+			create_or_update_spf_dns_record()
+
 		self.clear_cache()
 
 	def on_trash(self) -> None:
+		if frappe.session.user != "Administrator":
+			frappe.throw(_("Only Administrator can delete Mail Agent Group."))
+
+		if self.outbound:
+			self.db_set("enabled", 0)
+			create_or_update_spf_dns_record()
+
 		self.clear_cache()
 
 	def validate_enabled(self) -> None:

@@ -87,9 +87,7 @@ def get_local_ip_addresses() -> list[str]:
 	"""Returns list of local IPs (Mail Agents IPs)."""
 
 	ip_addresses = []
-	for addresses in frappe.db.get_all(
-		"Mail Agent", {"enable_outbound": 1}, ["ipv4_addresses", "ipv6_addresses"]
-	):
+	for addresses in frappe.db.get_all("Mail Agent", {}, ["ipv4_addresses", "ipv6_addresses"]):
 		for field in ["ipv4_addresses", "ipv6_addresses"]:
 			if addresses.get(field):
 				for address in addresses[field].split("\n"):

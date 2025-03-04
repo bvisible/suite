@@ -5,6 +5,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import Order
 
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
 from mail.mail.doctype.mail_settings.mail_settings import (
@@ -32,14 +33,14 @@ class MailAgent(Document):
 		self.validate_cluster_node_id()
 
 	def on_update(self) -> None:
-		if self.has_value_changed("enabled") or self.has_value_changed("enable_outbound"):
+		if self.has_value_changed("enabled"):
 			create_or_update_spf_dns_record()
 
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Agent."))
 
-		if self.enable_outbound:
+		if frappe.db.get_value("Mail Agent Group", self.agent_group, "outbound"):
 			self.db_set("enabled", 0)
 			create_or_update_spf_dns_record()
 
@@ -81,12 +82,17 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 
 	mail_settings = frappe.get_single("Mail Settings")
 	spf_host = spf_host or mail_settings.spf_host
-	outbound_agents = frappe.db.get_all(
-		"Mail Agent",
-		filters={"enabled": 1, "enable_outbound": 1},
-		pluck="agent",
-		order_by="agent asc",
-	)
+
+	MAIL_AGENT = frappe.qb.DocType("Mail Agent")
+	AGENT_GROUP = frappe.qb.DocType("Mail Agent Group")
+	outbound_agents = (
+		frappe.qb.from_(AGENT_GROUP)
+		.join(MAIL_AGENT)
+		.on(AGENT_GROUP.name == MAIL_AGENT.agent_group)
+		.select(MAIL_AGENT.name)
+		.where((AGENT_GROUP.enabled == 1) & (AGENT_GROUP.outbound == 1) & (MAIL_AGENT.enabled == 1))
+		.orderby(MAIL_AGENT.name, order=Order.asc)
+	).run(pluck="name")
 
 	if outbound_agents:
 		outbound_agents = [f"a:{outbound_agent}" for outbound_agent in outbound_agents]
