@@ -20,6 +20,8 @@
   "cluster_settings_section",
   "cluster_encryption_key",
   "section_break_r4np",
+  "stores_section",
+  "stores",
   "directory_store_section",
   "directory_store",
   "data_store_section",
@@ -97,27 +99,21 @@
   },
   {
    "fieldname": "data_store",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Store",
-   "options": "Mail Agent Store",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "fieldname": "blob_store",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Store",
-   "options": "Mail Agent Store",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "fieldname": "fts_store",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Store",
-   "options": "Mail Agent Store",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "default": "1",
@@ -213,11 +209,9 @@
   },
   {
    "fieldname": "directory_store",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Store",
-   "options": "Mail Agent Store",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "fieldname": "cluster_settings_section",
@@ -261,11 +255,21 @@
   },
   {
    "fieldname": "in_memory_store",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Store",
+   "reqd": 1
+  },
+  {
+   "fieldname": "stores_section",
+   "fieldtype": "Section Break",
+   "label": "Stores"
+  },
+  {
+   "fieldname": "stores",
+   "fieldtype": "Table",
+   "label": "Stores",
    "options": "Mail Agent Store",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -292,7 +296,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-04 13:33:44.946127",
+ "modified": "2025-03-04 15:28:08.903948",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",

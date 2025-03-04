@@ -147,7 +147,7 @@ def get_config_toml(agent: str) -> str | None:
 		num_digits = len(str(len(local_keys) - 1))
 		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(local_keys)}
 
-	def get_stores(*stores) -> dict:
+	def get_stores(stores: list) -> dict:
 		"""Returns the store configuration for the Mail Agent."""
 
 		store_type_map = {
@@ -195,7 +195,7 @@ def get_config_toml(agent: str) -> str | None:
 								"port": store.port,
 								"database": store.database,
 								"user": store.username,
-								"password": store.get_password("password"),
+								"password": store.get_password("password") if store.password else None,
 								"max-allowed-packet": store.max_allowed_packet_bytes,
 								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
 								"compression": store.compression.lower(),
@@ -216,11 +216,6 @@ def get_config_toml(agent: str) -> str | None:
 
 	agent = frappe.get_doc("Mail Agent", agent)
 	agent_group = frappe.get_doc("Mail Agent Group", agent.agent_group)
-	directory_store = frappe.get_doc("Mail Agent Store", agent_group.directory_store)
-	data_store = frappe.get_doc("Mail Agent Store", agent_group.data_store)
-	blob_store = frappe.get_doc("Mail Agent Store", agent_group.blob_store)
-	fts_store = frappe.get_doc("Mail Agent Store", agent_group.fts_store)
-	lookup_store = frappe.get_doc("Mail Agent Store", agent_group.in_memory_store)
 
 	config = {
 		"authentication": {
@@ -291,9 +286,9 @@ def get_config_toml(agent: str) -> str | None:
 			"local-keys": get_local_keys(),
 		},
 		"directory": {
-			f"{directory_store.store_id}": {
+			f"{agent_group.directory_store}": {
 				"type": "internal",
-				"store": f"{directory_store.store_id}",
+				"store": f"{agent_group.directory_store}",
 				"cache": {
 					"size": 1048576,
 					"ttl": {
@@ -304,13 +299,13 @@ def get_config_toml(agent: str) -> str | None:
 			}
 		},
 		"storage": {
-			"directory": directory_store.store_id,
-			"data": data_store.store_id,
-			"blob": blob_store.store_id,
-			"fts": fts_store.store_id,
-			"lookup": lookup_store.store_id,
+			"directory": agent_group.directory_store,
+			"data": agent_group.data_store,
+			"blob": agent_group.blob_store,
+			"fts": agent_group.fts_store,
+			"lookup": agent_group.in_memory_store,
 		},
-		"store": get_stores(directory_store, data_store, blob_store, fts_store, lookup_store),
+		"store": get_stores(agent_group.stores),
 		"tracer": {
 			"log": {
 				"type": "log",
@@ -339,5 +334,5 @@ def get_config_toml(agent: str) -> str | None:
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Agent", ["cluster_node_id", "agent_group"], constraint_name="unique_cluster_node_id"
+		"Mail Agent", ["agent_group", "cluster_node_id"], constraint_name="unique_cluster_node_id"
 	)

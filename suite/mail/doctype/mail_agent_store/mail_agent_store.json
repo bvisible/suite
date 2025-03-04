@@ -3,6 +3,7 @@
  "autoname": "hash",
  "creation": "2025-03-02 10:31:58.549698",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "amended_from",
@@ -57,8 +58,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Store ID",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fieldname": "type",
@@ -234,7 +234,7 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
+ "istable": 1,
  "links": [
   {
    "group": "Directory Store",
@@ -262,27 +262,13 @@
    "link_fieldname": "in_memory_store"
   }
  ],
- "modified": "2025-03-04 13:38:59.962871",
+ "modified": "2025-03-04 15:56:58.758778",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Store",
  "naming_rule": "Random",
  "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  }
- ],
+ "permissions": [],
  "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
