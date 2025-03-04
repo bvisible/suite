@@ -75,33 +75,9 @@ def get_translations() -> dict:
 
 @frappe.whitelist()
 def get_inbox_mails(start: int = 0) -> list:
-	"""Returns incoming mails for the current user."""
+	"""Returns inbox mails for the current user."""
 
-	account = get_account_for_user(frappe.session.user)
-	mails = frappe.get_all(
-		"Incoming Mail",
-		{"receiver": account, "docstatus": 1},
-		[
-			"name",
-			"sender",
-			"body_html",
-			"body_plain",
-			"display_name",
-			"subject",
-			"creation",
-			"in_reply_to_mail_name",
-			"in_reply_to_mail_type",
-			"status",
-			"type",
-			"seen",
-			"message_id",
-		],
-		limit=50,
-		start=start,
-		order_by="created_at desc",
-	)
-
-	return get_mail_list(mails, "Incoming Mail")
+	return get_incoming_mails("Inbox", start)
 
 
 @frappe.whitelist()
@@ -129,7 +105,41 @@ def get_drafts_mails(start: int = 0) -> list:
 def get_trash_mails(start: int = 0) -> list:
 	"""Returns trash mails for the current user."""
 
-	return get_outgoing_mails("Trash", start)
+	all_mails = get_incoming_mails("Trash", start) + get_outgoing_mails("Trash", start)
+	all_mails.sort(key=lambda x: x.creation, reverse=True)
+
+	return all_mails
+
+
+@frappe.whitelist()
+def get_incoming_mails(folder: str, start: int = 0) -> list:
+	"""Returns incoming mails for the current user."""
+
+	account = get_account_for_user(frappe.session.user)
+	mails = frappe.get_all(
+		"Incoming Mail",
+		{"receiver": account, "docstatus": 1, "folder": folder},
+		[
+			"name",
+			"sender",
+			"body_html",
+			"body_plain",
+			"display_name",
+			"subject",
+			"creation",
+			"in_reply_to_mail_name",
+			"in_reply_to_mail_type",
+			"status",
+			"type",
+			"seen",
+			"message_id",
+		],
+		limit=50,
+		start=start,
+		order_by="created_at desc",
+	)
+
+	return get_mail_list(mails, "Incoming Mail")
 
 
 def get_outgoing_mails(folder: str, start: int = 0) -> list:
