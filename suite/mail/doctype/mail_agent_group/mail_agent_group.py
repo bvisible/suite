@@ -10,6 +10,7 @@ from frappe.utils import random_string
 
 from mail.agent import AgentAPI, Principal
 from mail.utils import generate_secret
+from mail.utils.validation import is_valid_cron_expression
 
 
 class MailAgentGroup(Document):
@@ -23,6 +24,8 @@ class MailAgentGroup(Document):
 		self.validate_priority()
 		self.validate_admin_password()
 		self.validate_cluster_encryption_key()
+		self.validate_stores()
+		self.validate_selected_stores()
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -71,6 +74,55 @@ class MailAgentGroup(Document):
 
 		if not self.cluster_encryption_key:
 			self.cluster_encryption_key = random_string(length=64)
+
+	def validate_stores(self) -> None:
+		"""Validates the stores."""
+
+		store_ids = []
+		for store in self.stores:
+			if store.store_id in store_ids:
+				frappe.throw(
+					_("Row #{0}: Store ID {1} is duplicated.").format(store.idx, frappe.bold(store.store_id))
+				)
+
+			store_ids.append(store.store_id)
+
+			if store.purge_frequency_cron:
+				is_valid_cron_expression(store.purge_frequency_cron, raise_exception=True)
+
+	def validate_selected_stores(self) -> None:
+		"""Validates the selected stores against the stores."""
+
+		stores = {store.store_id: store for store in self.stores}
+		storage_labels = {
+			"directory_store": _("Directory Store"),
+			"data_store": _("Data Store"),
+			"blob_store": _("Blob Store"),
+			"fts_store": _("Full Text Index Store"),
+			"in_memory_store": _("In-Memory Store"),
+		}
+		storage_options = {
+			"directory_store": ["RocksDB", "mySQL"],
+			"data_store": ["RocksDB", "mySQL"],
+			"blob_store": ["RocksDB", "mySQL"],
+			"fts_store": ["RocksDB", "mySQL"],
+			"in_memory_store": ["RocksDB", "mySQL"],
+		}
+
+		for key in storage_options.keys():
+			selected_store = getattr(self, key)
+			if selected_store not in stores:
+				frappe.throw(_("Store with Store ID {0} not found.").format(frappe.bold(selected_store)))
+
+			store = stores[selected_store]
+			if store.type not in storage_options[key]:
+				frappe.throw(
+					_("{0} has an invalid store type '{1}'. Allowed types are: {2}.").format(
+						frappe.bold(storage_labels[key]),
+						frappe.bold(store.type),
+						", ".join(storage_options[key]),
+					)
+				)
 
 	def clear_cache(self) -> None:
 		"""Clears the cache."""
