@@ -64,11 +64,7 @@
 			</div>
 		</div>
 
-		<div
-			v-if="presentation.data?.slides"
-			class="flex h-full items-center justify-center"
-			@click="(e) => clearFocus(e)"
-		>
+		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<div
@@ -169,13 +165,6 @@ const saveTitle = async () => {
 		await router.replace({ name: 'Presentation', params: { presentationId: nameSlug } })
 	}
 	renameMode.value = false
-}
-
-const clearFocus = (e) => {
-	if (e.target == slideContainerRef.value) {
-		resetFocus()
-		slideFocus.value = false
-	}
 }
 
 const handleElementShortcuts = (e) => {
