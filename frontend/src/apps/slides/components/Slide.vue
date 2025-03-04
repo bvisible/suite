@@ -268,6 +268,25 @@ watch(
 )
 
 watch(
+	() => focusElementId.value,
+	(newVal, oldVal) => {
+		if (oldVal) {
+			let element = slide.value.elements[oldVal]
+			element.left += 2
+			element.top += 2
+			slide.value.elements[oldVal].content = document.querySelector(
+				`[data-index="${oldVal}"]`,
+			).innerText
+		}
+		if (newVal) {
+			slide.value.elements[newVal].left -= 2
+			slide.value.elements[newVal].top -= 2
+		}
+	},
+	{ immediate: true },
+)
+
+watch(
 	() => presentation.data,
 	() => {
 		const currentSlide = presentation.data?.slides[slideIndex.value]

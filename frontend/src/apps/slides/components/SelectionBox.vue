@@ -197,6 +197,7 @@ const resetSelection = (oldVal) => {
 }
 
 const handleMouseDown = (e) => {
+	if (e.target.getAttribute('contenteditable')) return
 	mousedownStart = new Date().getTime()
 	mousedownTimer = setTimeout(() => {
 		initSelection(e)
