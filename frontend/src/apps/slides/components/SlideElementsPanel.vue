@@ -90,8 +90,8 @@
 						:rangeStart="0.5"
 						:rangeEnd="2"
 						:rangeStep="0.1"
-						:modelValue="parseFloat(activeElement.playbackRate) || 1"
-						@update:modelValue="(value) => (activeElement.playbackRate = value)"
+						:modelValue="parseFloat(activeElements[0].playbackRate) || 1"
+						@update:modelValue="(value) => (activeElements[0].playbackRate = value)"
 					/>
 				</div>
 			</div>
@@ -107,8 +107,10 @@
 							v-for="(direction, index) in ['none', 'solid', 'dashed', 'dotted']"
 							:key="index"
 							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElement.borderStyle == direction ? 'bg-white shadow' : ''"
-							@click="activeElement.borderStyle = direction"
+							:class="
+								activeElements[0].borderStyle == direction ? 'bg-white shadow' : ''
+							"
+							@click="activeElements[0].borderStyle = direction"
 						>
 							<FeatherIcon
 								v-if="direction == 'none'"
@@ -123,12 +125,12 @@
 						</div>
 					</div>
 
-					<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-4">
+					<div v-if="activeElements[0].borderStyle != 'none'" class="flex flex-col gap-4">
 						<div class="flex items-center justify-between">
 							<div class="text-sm text-gray-600">Width</div>
 							<div class="h-[30px] w-28">
 								<NumberInput
-									v-model="activeElement.borderWidth"
+									v-model="activeElements[0].borderWidth"
 									suffix="px"
 									:rangeStart="0"
 									:rangeEnd="50"
@@ -140,7 +142,7 @@
 							<div class="text-sm text-gray-600">Radius</div>
 							<div class="h-[30px] w-28">
 								<NumberInput
-									v-model="activeElement.borderRadius"
+									v-model="activeElements[0].borderRadius"
 									suffix="px"
 									:rangeStart="1"
 									:rangeEnd="50"
@@ -150,7 +152,7 @@
 
 						<div class="flex items-center justify-between">
 							<div class="text-sm text-gray-600">Colour</div>
-							<ColorPicker v-model="activeElement.borderColor" />
+							<ColorPicker v-model="activeElements[0].borderColor" />
 						</div>
 					</div>
 				</div>
@@ -162,16 +164,16 @@
 						label="Offset X"
 						:rangeStart="-50"
 						:rangeEnd="50"
-						:modelValue="parseFloat(activeElement.shadowOffsetX) || 0"
-						@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
+						:modelValue="parseFloat(activeElements[0].shadowOffsetX) || 0"
+						@update:modelValue="(value) => (activeElements[0].shadowOffsetX = value)"
 					/>
 
 					<SliderInput
 						label="Offset Y"
 						:rangeStart="-50"
 						:rangeEnd="50"
-						:modelValue="parseFloat(activeElement.shadowOffsetY) || 0"
-						@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
+						:modelValue="parseFloat(activeElements[0].shadowOffsetY) || 0"
+						@update:modelValue="(value) => (activeElements[0].shadowOffsetY = value)"
 					/>
 
 					<div class="flex flex-col gap-1">
@@ -181,27 +183,29 @@
 								class="w-4/5"
 								:rangeStart="1"
 								:rangeEnd="500"
-								:modelValue="parseFloat(activeElement.shadowSpread) || 50"
-								@update:modelValue="(value) => (activeElement.shadowSpread = value)"
+								:modelValue="parseFloat(activeElements[0].shadowSpread) || 50"
+								@update:modelValue="
+									(value) => (activeElements[0].shadowSpread = value)
+								"
 								:showInput="false"
 							/>
 							<ColorPicker
 								class="w-10 justify-end"
-								v-model="activeElement.shadowColor"
+								v-model="activeElements[0].shadowColor"
 							/>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div v-if="activeElement && activeTab != 'video'" :class="sectionClasses">
+			<div v-if="activeElements[0] && activeTab != 'video'" :class="sectionClasses">
 				<div :class="sectionTitleClasses">Other</div>
 				<SliderInput
 					label="Opacity"
 					:rangeStart="0"
 					:rangeEnd="100"
-					:modelValue="parseFloat(activeElement.opacity) || 100"
-					@update:modelValue="(value) => (activeElement.opacity = value)"
+					:modelValue="parseFloat(activeElements[0].opacity) || 100"
+					@update:modelValue="(value) => (activeElements[0].opacity = value)"
 				/>
 			</div>
 		</div>
@@ -261,13 +265,13 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slideIndex, slideFocus, slide } from '@/stores/slide'
-import { activeElement, addTextElement, addMediaElement } from '@/stores/element'
+import { slide, slideIndex, slideFocus } from '@/stores/slide'
+import { activeElements, addTextElement, addMediaElement } from '@/stores/element'
 
 const activeTab = computed(() => {
 	if (slideFocus.value) return 'slide'
-	if (!activeElement.value) return null
-	return activeElement.value.type
+	if (!activeElements.value[0]) return null
+	return activeElements.value[0].type
 })
 
 const getTabClasses = (tab) => {
@@ -301,7 +305,8 @@ const imageOrientationProperties = [
 ]
 
 const toggleImageOrientation = (direction) => {
-	activeElement.value[direction.property] = activeElement.value[direction.property] === 1 ? -1 : 1
+	activeElements.value[0][direction.property] =
+		activeElements.value[0][direction.property] === 1 ? -1 : 1
 }
 
 const sectionClasses = 'flex flex-col gap-4 p-4 border-b'
@@ -325,19 +330,20 @@ const playbackProperties = [
 const getPlaybackOptionClasses = (option) => {
 	return {
 		'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
-		'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement[option],
+		'border-gray-800 bg-gray-50':
+			hoverOption.value == option || activeElements.value[0][option],
 	}
 }
 
 const getPlaybackTextClasses = (option) => {
 	return {
-		'text-gray-800': hoverOption.value == option || activeElement[option],
-		'text-gray-600': hoverOption.value != option && !activeElement[option],
+		'text-gray-800': hoverOption.value == option || activeElements.value[0][option],
+		'text-gray-600': hoverOption.value != option && !activeElements.value[0][option],
 	}
 }
 
 const togglePlaybackOption = (option) => {
-	activeElement[option] = !activeElement[option]
+	activeElements.value[0][option] = !activeElements.value[0][option]
 }
 </script>
 

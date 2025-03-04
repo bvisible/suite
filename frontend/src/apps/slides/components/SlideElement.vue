@@ -11,7 +11,7 @@ import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { activeElementId, pairElementId, focusElementId } from '@/stores/element'
+import { activeElementIds, pairElementId, focusElementId } from '@/stores/element'
 
 const attrs = useAttrs()
 
@@ -21,20 +21,20 @@ const element = defineModel('element', {
 })
 
 const outline = computed(() => {
-	if ([activeElementId.value, focusElementId.value].includes(attrs['data-index']))
+	if (activeElementIds.value.concat([focusElementId.value]).includes(attrs['data-index']))
 		return '#70B6F0 solid 2px'
-	else if (pairElementId.value == attrs['data-index']) return '#70b6f092 solid 2px'
+	else if (pairElementId.value == attrs['data-index']) return '#70b6f080 solid 2px'
 	else return 'none'
 })
 
 const elementStyle = computed(() => ({
-	position: 'fixed',
+	position: activeElementIds.value.includes(attrs['data-index']) ? 'absolute' : 'fixed',
 	width: `${element.value.width}px`,
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	outline: outline.value,
-	outlineOffset: '5px',
+	border: outline.value,
+	boxSizing: 'border-box',
 }))
 
 const getDynamicComponent = (type) => {

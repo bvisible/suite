@@ -1,16 +1,18 @@
 <template>
 	<div
 		ref="parent"
-		class="fixed flex h-screen w-screen flex-col"
-		:class="activeElementId == null ? 'bg-gray-200' : 'bg-gray-50'"
+		class="fixed flex h-screen w-screen flex-col select-none"
+		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
 		@dragenter.prevent="handleDragEnter"
 		@dragleave.prevent="handleDragLeave"
 		@dragover.prevent
 		@drop="handleMediaDrop"
-		@wheel.prevent="(e) => e.stopPropagation()"
 	>
 		<!-- Navbar -->
-		<div class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300">
+		<div
+			class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300"
+			@wheel.prevent="(e) => e.stopPropagation()"
+		>
 			<div class="flex items-center gap-2">
 				<img src="../icons/slides.svg" class="h-7" />
 				<div class="select-none font-semibold">Slides</div>
@@ -62,11 +64,7 @@
 			</div>
 		</div>
 
-		<div
-			v-if="presentation.data?.slides"
-			class="flex h-full items-center justify-center"
-			@click="(e) => clearFocus(e)"
-		>
+		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
 			<div
@@ -74,13 +72,19 @@
 				class="flex items-center justify-center w-full h-full"
 				:class="{
 					'bg-black': inSlideShow,
-					'outline-blue-300 outline': isMediaDragOver,
 				}"
 				:style="{
 					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
 				}"
 			>
-				<Slide v-if="slideContainerRef" ref="slide" :containerRef="slideContainerRef" />
+				<Slide
+					v-if="slideContainerRef"
+					ref="slide"
+					:containerRef="slideContainerRef"
+					:class="{
+						'outline outline-1.5 outline-blue-400': isMediaDragOver,
+					}"
+				/>
 
 				<!-- Media Drag Overlay -->
 				<div
@@ -119,12 +123,13 @@ import {
 import {
 	activePosition,
 	resetFocus,
-	activeElementId,
+	activeElementIds,
 	focusElementId,
-	deleteElement,
-	duplicateElement,
+	deleteElements,
+	duplicateElements,
 	addTextElement,
 	addMediaElement,
+	selectAllElements,
 } from '@/stores/element'
 
 let autosaveInterval = null
@@ -132,6 +137,7 @@ let autosaveInterval = null
 const route = useRoute()
 const router = useRouter()
 
+const slideRef = useTemplateRef('slide')
 const parentRef = useTemplateRef('parent')
 const slideContainerRef = useTemplateRef('slideContainer')
 const newTitleRef = useTemplateRef('newTitleRef')
@@ -161,47 +167,20 @@ const saveTitle = async () => {
 	renameMode.value = false
 }
 
-const clearFocus = (e) => {
-	if (e.target == slideContainerRef.value) {
-		resetFocus()
-		slideFocus.value = false
-	}
-}
-
-const updateElementPosition = (dx, dy) => {
-	if (!activePosition.value) return
-	activePosition.value = {
-		left: activePosition.value.left + dx,
-		top: activePosition.value.top + dy,
-	}
-}
-
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateElementPosition(dx, dy)
-}
-
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
 		case 'ArrowRight':
 		case 'ArrowUp':
 		case 'ArrowDown':
-			handleArrowKeys(e.key)
+			slideRef.value.guides.handleArrowKeys(e.key)
 			break
 		case 'Delete':
 		case 'Backspace':
-			deleteElement(e)
+			deleteElements(e)
 			break
 		case 'd':
-			if (e.metaKey) duplicateElement(e)
+			if (e.metaKey) duplicateElements(e)
 			break
 	}
 }
@@ -235,6 +214,9 @@ const handleGlobalShortcuts = (e) => {
 		case 'b':
 			if (e.metaKey) showNavigator.value = !showNavigator.value
 			break
+		case 'a':
+			if (e.metaKey) selectAllElements()
+			break
 	}
 }
 
@@ -242,7 +224,7 @@ const handleKeyDown = (e) => {
 	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
 	handleGlobalShortcuts(e)
 
-	activeElementId.value != null ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
 const handleDragEnter = (e) => {

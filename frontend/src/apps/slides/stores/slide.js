@@ -2,7 +2,7 @@ import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
 import { presentationId, presentation, inSlideShow, applyReverseTransition } from './presentation'
-import { resetFocus } from './element'
+import { activeElementIds, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
@@ -26,11 +26,13 @@ const slideDirty = computed(() => {
 		elements: JSON.parse(currentSlide.elements || '[]'),
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
+		background: currentSlide.background,
 	}
 	const updatedData = {
 		elements: slide.value.elements,
 		transition: slide.value.transition,
 		transition_duration: slide.value.transitionDuration,
+		background: slide.value.background,
 	}
 	return !isEqual(data, updatedData)
 })
@@ -82,7 +84,13 @@ const changeSlide = async (index) => {
 const saving = ref(false)
 
 const saveChanges = async () => {
-	if (!presentation.data || !slideDirty.value) return
+	if (!presentation.data || !slideDirty.value || activeElementIds.value.length) return
+	slide.value.elements = slide.value.elements.map((element, index) => {
+		let div = document.querySelector(`[data-index="${index}"]`)
+		element.width = div.offsetWidth
+		element.height = div.offsetHeight
+		return element
+	})
 	saving.value = true
 	resetFocus()
 	await nextTick(async () => {
