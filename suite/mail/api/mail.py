@@ -1,5 +1,6 @@
 import re
 from email.utils import parseaddr
+from typing import Literal
 
 import frappe
 from bs4 import BeautifulSoup
@@ -9,6 +10,8 @@ from frappe.utils import is_html
 
 from mail.utils.cache import get_account_for_user, get_default_outgoing_email_for_user
 from mail.utils.user import get_user_email_addresses, has_role, is_system_manager
+
+MailType = Literal["Incoming Mail", "Outgoing Mail"]
 
 
 def check_app_permission() -> bool:
@@ -165,7 +168,7 @@ def get_outgoing_mails(folder: str, start: int = 0) -> list:
 	return get_mail_list(mails, "Outgoing Mail")
 
 
-def get_mail_list(mails, mail_type) -> list:
+def get_mail_list(mails, mail_type: MailType) -> list:
 	"""Returns a list of mails with additional details."""
 
 	for mail in mails[:]:
@@ -239,7 +242,7 @@ def get_snippet(content) -> str:
 
 
 @frappe.whitelist()
-def get_mail_thread(name, mail_type) -> list:
+def get_mail_thread(name, mail_type: MailType) -> list:
 	"""Returns the mail thread for the given mail."""
 
 	if not frappe.db.exists(mail_type, name):
@@ -287,7 +290,7 @@ def get_mail_thread(name, mail_type) -> list:
 	return thread
 
 
-def reverse_type(mail_type) -> str:
+def reverse_type(mail_type: MailType) -> str:
 	"""Returns the reverse mail type."""
 
 	return "Incoming Mail" if mail_type == "Outgoing Mail" else "Outgoing Mail"
@@ -302,7 +305,7 @@ def gather_thread_replies(mail_name) -> list:
 	return thread
 
 
-def get_thread_from_replies(mail_type, mail_name) -> list:
+def get_thread_from_replies(mail_type: MailType, mail_name) -> list:
 	"""Returns the thread from the replies."""
 
 	replies = []
@@ -315,7 +318,7 @@ def get_thread_from_replies(mail_type, mail_name) -> list:
 	return replies
 
 
-def find_replica(mail, mail_type) -> str:
+def find_replica(mail, mail_type: MailType) -> str:
 	"""Returns the replica of the mail."""
 
 	replica_type = reverse_type(mail_type)
@@ -474,7 +477,7 @@ def get_user_addresses():
 
 
 @frappe.whitelist()
-def get_mime_message(mail_type: str, name: str) -> dict:
+def get_mime_message(mail_type: MailType, name: str) -> dict:
 	"""Fetches mail mime message and related data."""
 
 	doc = frappe.get_doc(mail_type, name)
@@ -508,9 +511,20 @@ def get_mime_message(mail_type: str, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mail_type: str, mail_name: str, seen_value: int) -> str:
+def set_seen(mail_type: MailType, name: str, seen: int) -> str:
 	"""Sets seen for mail."""
 
-	doc = frappe.get_doc(mail_type, mail_name)
-	doc.db_set("seen", seen_value)
-	return {"mail_name": mail_name, "seen_value": seen_value}
+	doc = frappe.get_doc(mail_type, name)
+	doc.db_set("seen", seen)
+	return {"name": name, "seen": seen}
+
+
+@frappe.whitelist()
+def set_folder(mail_type: MailType, name: str, folder: Literal["Trash"] | None = None):
+	"""Sets folder for mail."""
+
+	if mail_type == "Incoming Mail" and folder != "Trash":
+		folder = "Inbox"
+
+	doc = frappe.get_doc(mail_type, name)
+	doc.db_set("folder", folder)
