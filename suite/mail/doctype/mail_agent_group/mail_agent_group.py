@@ -78,6 +78,13 @@ class MailAgentGroup(Document):
 		frappe.cache.delete_value("agent_groups")
 
 	@frappe.whitelist()
+	def get_admin_password(self) -> str:
+		"""Returns the admin password of the agent group."""
+
+		frappe.only_for("System Manager")
+		return self.get_password("admin_password")
+
+	@frappe.whitelist()
 	def generate_api_key(self) -> None:
 		"""Generates an API key for the agent group."""
 

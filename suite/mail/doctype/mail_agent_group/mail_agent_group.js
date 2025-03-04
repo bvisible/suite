@@ -9,7 +9,17 @@ frappe.ui.form.on('Mail Agent Group', {
 	add_actions(frm) {
 		if (frm.doc.__islocal) return
 
+		if (frm.doc.admin_password) {
+			if (!frappe.user_roles.includes('System Manager')) return
+
+			frm.add_custom_button(__('Show Password'), () => {
+				frm.trigger('show_password')
+			})
+		}
+
 		if (frm.doc.base_url) {
+			if (!frappe.user_roles.includes('System Manager')) return
+
 			frm.add_custom_button(
 				__('Generate API Key'),
 				() => {
@@ -18,6 +28,20 @@ frappe.ui.form.on('Mail Agent Group', {
 				__('Actions'),
 			)
 		}
+	},
+
+	show_password(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'get_admin_password',
+			freeze: true,
+			freeze_message: __('Getting Password...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frappe.msgprint(r.message)
+				}
+			},
+		})
 	},
 
 	generate_api_key(frm) {

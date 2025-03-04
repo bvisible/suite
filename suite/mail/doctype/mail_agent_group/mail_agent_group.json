@@ -277,6 +277,11 @@
    "link_fieldname": "agent_group"
   },
   {
+   "group": "Reference",
+   "link_doctype": "Mail Agent Request Log",
+   "link_fieldname": "agent_group"
+  },
+  {
    "group": "Mail",
    "link_doctype": "Incoming Mail",
    "link_fieldname": "agent_group"
@@ -287,7 +292,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-03 21:32:18.577473",
+ "modified": "2025-03-04 11:16:58.585947",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",
