@@ -50,8 +50,25 @@ class MailAgent(Document):
 		if self.is_new() and frappe.db.exists("Mail Agent", self.agent):
 			frappe.throw(_("Mail Agent {0} already exists.").format(frappe.bold(self.agent)))
 
-		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.agent, "A") or []])
-		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.agent, "AAAA") or []])
+		if ipv4_addresses := [r.address for r in get_dns_record(self.agent, "A") or []]:
+			if len(ipv4_addresses) > 1:
+				frappe.throw(
+					_("Multiple IPv4 addresses found for Mail Agent {0}. Found: {1}.").format(
+						frappe.bold(self.agent), ", ".join(ipv4_addresses)
+					)
+				)
+
+			self.public_ipv4 = ipv4_addresses[0]
+
+		if ipv6_addresses := [r.address for r in get_dns_record(self.agent, "AAAA") or []]:
+			if len(ipv6_addresses) > 1:
+				frappe.throw(
+					_("Multiple IPv6 addresses found for Mail Agent {0}. Found: {1}.").format(
+						frappe.bold(self.agent), ", ".join(ipv6_addresses)
+					)
+				)
+
+			self.public_ipv6 = ipv6_addresses[0]
 
 	def validate_agent_group(self) -> None:
 		"""Validates the Mail Agent Group."""
@@ -118,7 +135,13 @@ def get_config_toml(agent: str) -> str | None:
 		for a in frappe.db.get_all(
 			"Mail Agent",
 			filters={"agent_group": agent_group, "name": ["!=", agent]},
-			fields=["public_ip", "private_ip", "cluster_advertise_address"],
+			fields=[
+				"private_ipv4",
+				"private_ipv6",
+				"public_ipv4",
+				"public_ipv6",
+				"cluster_advertise_address",
+			],
 		):
 			if not a["cluster_advertise_address"]:
 				continue
