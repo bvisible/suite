@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_excr",
+  "enabled",
   "enable_inbound",
   "enable_outbound",
   "column_break_0mtp",
@@ -180,18 +181,20 @@
    "fieldname": "public_ip",
    "fieldtype": "Data",
    "label": "Public IP"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [
-  {
-   "group": "Reference",
-   "link_doctype": "Mail Agent Request Log",
-   "link_fieldname": "agent"
-  }
- ],
- "modified": "2025-03-03 19:26:54.387503",
+ "links": [],
+ "modified": "2025-03-04 11:16:02.201718",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",
