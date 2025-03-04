@@ -511,7 +511,7 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mail_type: MailType, name: str, seen: int) -> str:
+def set_seen(mail_type: MailType, name: str, seen: int) -> dict:
 	"""Sets seen for mail."""
 
 	doc = frappe.get_doc(mail_type, name)
@@ -520,11 +520,15 @@ def set_seen(mail_type: MailType, name: str, seen: int) -> str:
 
 
 @frappe.whitelist()
-def set_folder(mail_type: MailType, name: str, folder: Literal["Trash"] | None = None):
+def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> None:
 	"""Sets folder for mail."""
 
-	if mail_type == "Incoming Mail" and folder != "Trash":
-		folder = "Inbox"
-
 	doc = frappe.get_doc(mail_type, name)
-	doc.db_set("folder", folder)
+
+	if move_to_trash:
+		doc.db_set("folder", "Trash")
+	elif mail_type == "Incoming Mail":
+		doc.db_set("folder", "Inbox")
+	else:
+		doc.folder = None
+		doc.set_folder(db_set=True)
