@@ -113,7 +113,6 @@ import {
 	Trash2,
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
-import { useDoctype } from 'frappe-ui/src/data-fetching'
 
 import { getRecipients } from '@/utils'
 import MailDate from '@/components/MailDate.vue'
@@ -121,7 +120,6 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
 
 const dayjs = inject('$dayjs')
-const outgoingMail = useDoctype('Outgoing Mail')
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
@@ -144,12 +142,10 @@ const replyDetails = reactive({
 
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
-	makeParams: () => {
-		return {
-			name: props.mailID,
-			mail_type: props.type,
-		}
-	},
+	makeParams: () => ({
+		name: props.mailID,
+		mail_type: props.type,
+	}),
 })
 
 const reloadThread = () => {
@@ -228,22 +224,33 @@ const moreActions = (mail): MailAction[] => [
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: () => setFolder(mail, 'Trash'),
+		onClick: () => setFolder.submit({ mail, folder: 'Trash' }),
 		icon: Trash2,
-		condition: () => mail.mail_type === 'Outgoing Mail' && mail.folder !== 'Trash',
+		condition: () => mail.folder !== 'Trash',
 	},
 	{
 		label: __('Restore'),
-		onClick: () => setFolder(mail),
+		onClick: () => setFolder.submit({ mail }),
 		icon: ArchiveRestore,
 		condition: () => mail.folder === 'Trash',
 	},
 ]
 
-const setFolder = async (mail, folder: 'Trash' | 'Sent' = 'Sent') => {
-	await outgoingMail.setValue.submit({ name: mail.name, folder })
-	emit('reloadMails')
+interface SetFolderParams {
+	mail: object
+	folder?: 'Trash'
 }
+
+const setFolder = createResource({
+	url: 'mail.api.mail.set_folder',
+	method: 'POST',
+	makeParams: (values: SetFolderParams) => ({
+		mail_type: values.mail.mail_type,
+		name: values.mail.name,
+		folder: values.folder,
+	}),
+	onSuccess: () => emit('reloadMails'),
+})
 
 const openModal = (type: ActionType, mail) => {
 	if (props.type == 'Incoming Mail') {

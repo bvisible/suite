@@ -50,9 +50,7 @@
 				:mail-i-d="currentMail[currentFolder]"
 				:type="doctype"
 				@reload-mails="reloadMails"
-				@mark-as-unread="
-					setSeen.submit({ mail_name: currentMail[currentFolder], seen_value: 0 })
-				"
+				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
 			/>
 		</div>
 	</div>
@@ -121,23 +119,22 @@ const mailCount = createResource({
 })
 
 interface SetSeenParams {
-	mail_name: string
-	seen_value: 1 | 0
+	name: string
+	seen: 1 | 0
 }
 
 const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
 	makeParams: (values: SetSeenParams) => ({ mail_type: doctype.value, ...values }),
 	onSuccess: (data: SetSeenParams) => {
-		mails[currentFolder.value].data.find((m) => m.name === data.mail_name).seen =
-			data.seen_value
-		if (!data.seen_value) setCurrentMail(currentFolder.value, null)
+		mails[currentFolder.value].data.find((m) => m.name === data.name).seen = data.seen
+		if (!data.seen) setCurrentMail(currentFolder.value, null)
 	},
 })
 
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
-	if (!mail.seen) setSeen.submit({ mail_name: mail.name, seen_value: 1 })
+	if (!mail.seen) setSeen.submit({ name: mail.name, seen: 1 })
 }
 
 const reloadMails = (folder: Folder = currentFolder.value) => {
