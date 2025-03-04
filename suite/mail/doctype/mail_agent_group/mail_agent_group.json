@@ -14,6 +14,9 @@
   "authentication_section",
   "admin_username",
   "admin_password",
+  "column_break_9jti",
+  "base_url",
+  "api_key",
   "cluster_settings_section",
   "cluster_encryption_key",
   "section_break_r4np",
@@ -97,28 +100,32 @@
    "fieldtype": "Link",
    "label": "Store",
    "options": "Mail Agent Store",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "blob_store",
    "fieldtype": "Link",
    "label": "Store",
    "options": "Mail Agent Store",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "fts_store",
    "fieldtype": "Link",
    "label": "Store",
    "options": "Mail Agent Store",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "memory_store",
    "fieldtype": "Link",
    "label": "Store",
    "options": "Mail Agent Store",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "default": "1",
@@ -217,7 +224,8 @@
    "fieldtype": "Link",
    "label": "Store",
    "options": "Mail Agent Store",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "cluster_settings_section",
@@ -241,6 +249,23 @@
    "fieldtype": "Password",
    "label": "Encryption Key",
    "read_only": 1
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_9jti",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL",
+   "no_copy": 1,
+   "placeholder": "https://mail.frappemail.com/"
   }
  ],
  "grid_page_length": 50,
@@ -262,7 +287,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-03 19:27:21.197481",
+ "modified": "2025-03-03 21:32:18.577473",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",

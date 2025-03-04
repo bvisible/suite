@@ -7,7 +7,7 @@ frappe.ui.form.on('Mail Agent Request Log', {
 	},
 
 	set_queries(frm) {
-		frm.set_query('agent', () => ({
+		frm.set_query('agent_group', () => ({
 			filters: {
 				enabled: 1,
 			},

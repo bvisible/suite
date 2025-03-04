@@ -32,14 +32,10 @@ class MailAgent(Document):
 		self.validate_cluster_node_id()
 
 	def on_update(self) -> None:
-		self.clear_cache()
-
 		if self.has_value_changed("enabled") or self.has_value_changed("enable_outbound"):
 			create_or_update_spf_dns_record()
 
 	def on_trash(self) -> None:
-		self.clear_cache()
-
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Agent."))
 
@@ -78,11 +74,6 @@ class MailAgent(Document):
 					frappe.bold(self.cluster_node_id)
 				)
 			)
-
-	def clear_cache(self) -> None:
-		"""Clears the cache."""
-
-		frappe.cache.delete_value("primary_agents")
 
 
 def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
