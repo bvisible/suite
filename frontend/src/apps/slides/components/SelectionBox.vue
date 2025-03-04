@@ -5,20 +5,19 @@
 <script setup>
 import { ref, computed, watch, nextTick, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 
-import { slide, slideFocus, slideRect } from '@/stores/slide'
+import { slide, slideRect } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
 	activeElementIds,
 	setActiveElements,
-	resetFocus,
 } from '@/stores/element'
 
 const props = defineProps({
 	scale: Number,
 })
 
-const emit = defineEmits(['selectSlide'])
+const emit = defineEmits(['updateFocus'])
 
 const groupDiv = useTemplateRef('groupDiv')
 
@@ -211,12 +210,7 @@ const handleMouseLeave = () => {
 
 const handleMouseUp = (e) => {
 	if (new Date().getTime() < mousedownStart + longpressDuration) {
-		if (e.target.classList.contains('slide')) {
-			emit('selectSlide', e)
-		} else {
-			resetFocus()
-			slideFocus.value = false
-		}
+		emit('updateFocus', e)
 		clearTimeout(mousedownTimer)
 	} else {
 		mousedownStart = 0
