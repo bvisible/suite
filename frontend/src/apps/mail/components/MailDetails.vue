@@ -88,7 +88,7 @@
 		class="my-auto flex h-full w-full flex-1 flex-col items-center justify-center space-y-2"
 	>
 		<div class="text-lg text-gray-500">
-			{{ __('No emails to show') }}
+			{{ __('Please select an email') }}
 		</div>
 	</div>
 	<SendMailModal
@@ -224,13 +224,13 @@ const moreActions = (mail): MailAction[] => [
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: () => setFolder.submit({ mail, folder: 'Trash' }),
+		onClick: () => setFolder.submit({ mail, moveToTrash: true }),
 		icon: Trash2,
 		condition: () => mail.folder !== 'Trash',
 	},
 	{
 		label: __('Restore'),
-		onClick: () => setFolder.submit({ mail }),
+		onClick: () => setFolder.submit({ mail, moveToTrash: false }),
 		icon: ArchiveRestore,
 		condition: () => mail.folder === 'Trash',
 	},
@@ -238,7 +238,7 @@ const moreActions = (mail): MailAction[] => [
 
 interface SetFolderParams {
 	mail: object
-	folder?: 'Trash'
+	moveToTrash: boolean
 }
 
 const setFolder = createResource({
@@ -247,7 +247,7 @@ const setFolder = createResource({
 	makeParams: (values: SetFolderParams) => ({
 		mail_type: values.mail.mail_type,
 		name: values.mail.name,
-		folder: values.folder,
+		move_to_trash: values.moveToTrash,
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
