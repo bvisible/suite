@@ -143,18 +143,14 @@ def get_blacklist_for_ip_group(ip_group: str) -> list:
 	return frappe.cache.hget("ip-blacklist", ip_group, generator)
 
 
-def get_primary_agents() -> list:
-	"""Returns the primary agents."""
+def get_agent_groups() -> list:
+	"""Returns the agent groups."""
 
 	def generator() -> list:
-		MAIL_AGENT = frappe.qb.DocType("Mail Agent")
-		return (
-			frappe.qb.from_(MAIL_AGENT)
-			.select("name")
-			.where((MAIL_AGENT.enabled == 1) & (MAIL_AGENT.is_primary == 1))
-		).run(pluck="name")
+		AGENT_GROUP = frappe.qb.DocType("Mail Agent Group")
+		return (frappe.qb.from_(AGENT_GROUP).select("name").where(AGENT_GROUP.enabled == 1)).run(pluck="name")
 
-	return frappe.cache.get_value("primary_agents", generator)
+	return frappe.cache.get_value("agent_groups", generator)
 
 
 def get_rate_limits(method_path: str) -> list:

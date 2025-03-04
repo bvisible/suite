@@ -3,6 +3,7 @@
 
 
 import json
+from typing import Literal
 from urllib.parse import quote
 
 import frappe
@@ -34,8 +35,8 @@ class MailAgentRequestLog(Document):
 	def validate_agent(self) -> None:
 		"""Validate if the agent is enabled."""
 
-		if not frappe.get_cached_value("Mail Agent", self.agent, "enabled"):
-			frappe.throw(_("Mail Agent {0} is disabled.").format(self.agent))
+		if not frappe.get_cached_value("Mail Agent Group", self.agent_group, "enabled"):
+			frappe.throw(_("Mail Agent Group {0} is disabled.").format(self.agent_group))
 
 	def validate_endpoint(self) -> None:
 		"""Validates the endpoint."""
@@ -73,18 +74,18 @@ class MailAgentRequestLog(Document):
 	def _execute_request(self) -> None:
 		"""Executes the request."""
 
-		agent = frappe.get_cached_doc("Mail Agent", self.agent)
+		agent_group = frappe.get_cached_doc("Mail Agent Group", self.agent_group)
 
-		if not agent.enabled:
-			frappe.throw(_("Mail Agent {0} is disabled.").format(self.agent))
+		if not agent_group.enabled:
+			frappe.throw(_("Mail Agent Group {0} is disabled.").format(self.agent_group))
 
 		from mail.agent import AgentAPI
 
 		agent_api = AgentAPI(
-			agent.base_url,
-			api_key=agent.get_password("api_key"),
-			username=agent.username,
-			password=agent.get_password("password"),
+			agent_group.base_url,
+			api_key=agent_group.get_password("api_key"),
+			username=agent_group.admin_username,
+			password=agent_group.get_password("admin_password"),
 		)
 		response = agent_api.request(
 			method=self.method,
@@ -124,7 +125,7 @@ class MailAgentRequestLog(Document):
 
 
 def create_mail_agent_request_log(
-	agent: str,
+	agent_group: str,
 	method: str,
 	endpoint: str,
 	request_headers: dict | None = None,
@@ -141,7 +142,7 @@ def create_mail_agent_request_log(
 		frappe.flags.do_not_enqueue = True
 
 	request_log = frappe.new_doc("Mail Agent Request Log")
-	request_log.agent = agent
+	request_log.agent_group = agent_group
 	request_log.method = method
 	request_log.endpoint = endpoint
 	request_log.request_headers = request_headers

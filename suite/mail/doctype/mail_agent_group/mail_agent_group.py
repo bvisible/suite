@@ -1,10 +1,15 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import base64
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string
+
+from mail.agent import AgentAPI, Principal
+from mail.utils import generate_secret
 
 
 class MailAgentGroup(Document):
@@ -18,6 +23,12 @@ class MailAgentGroup(Document):
 		self.validate_priority()
 		self.validate_admin_password()
 		self.validate_cluster_encryption_key()
+
+	def on_update(self) -> None:
+		self.clear_cache()
+
+	def on_trash(self) -> None:
+		self.clear_cache()
 
 	def validate_enabled(self) -> None:
 		"""Validates the enabled status of the agent group."""
@@ -60,3 +71,37 @@ class MailAgentGroup(Document):
 
 		if not self.cluster_encryption_key:
 			self.cluster_encryption_key = random_string(length=64)
+
+	def clear_cache(self) -> None:
+		"""Clears the cache."""
+
+		frappe.cache.delete_value("agent_groups")
+
+	@frappe.whitelist()
+	def generate_api_key(self) -> None:
+		"""Generates an API key for the agent group."""
+
+		frappe.only_for("System Manager")
+		self.api_key = self._generate_api_key()
+		self.save()
+
+	def _generate_api_key(self) -> str:
+		"""Generates an API key for the agent group."""
+
+		if not self.base_url:
+			frappe.throw(_("Base URL is required."))
+
+		name = f"{random_string(10)}-{self.agent_group}".lower()
+		secret = generate_secret()
+		principal = Principal(
+			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]
+		)
+		agent_api = AgentAPI(
+			self.base_url, username=self.admin_username, password=self.get_password("admin_password")
+		)
+		response = agent_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__).json()
+
+		if error := response.get("error"):
+			frappe.throw(error)
+
+		return f"api_{base64.b64encode(f'{name}:{secret}'.encode()).decode()}"
