@@ -26,12 +26,6 @@ const activeElements = computed(() => {
 const setActiveElements = (ids, focus = false) => {
 	if (inSlideShow.value) return
 
-	if (focusElementId.value) {
-		const newContent = document.querySelector(
-			`[data-index="${focusElementId.value}"]`,
-		).innerText
-		slide.value.elements[focusElementId.value].content = newContent
-	}
 	if (ids.length == 1 && focus) {
 		activeElementIds.value = []
 		focusElementId.value = ids[0]
