@@ -11,6 +11,7 @@ from frappe.utils import random_string
 from mail.agent import AgentAPI, Principal
 from mail.mail.doctype.mail_agent.mail_agent import create_or_update_spf_dns_record
 from mail.utils import generate_secret
+from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression
 
 
@@ -57,10 +58,13 @@ class MailAgentGroup(Document):
 			frappe.throw(_("Mail Agent {0} is enabled. Please disable it first.").format(frappe.bold(agent)))
 
 	def validate_agent_group(self) -> None:
-		"""Validates the agent group."""
+		"""Validates the agent group and fetches the IP addresses."""
 
 		if self.is_new() and frappe.db.exists("Mail Agent Group", self.agent_group):
 			frappe.throw(_("Mail Agent Group {0} already exists.").format(frappe.bold(self.agent_group)))
+
+		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.agent_group, "A") or []])
+		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.agent_group, "AAAA") or []])
 
 	def validate_priority(self) -> None:
 		"""Validates the priority of the agent group."""
