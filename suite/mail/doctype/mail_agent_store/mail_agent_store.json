@@ -7,9 +7,9 @@
  "field_order": [
   "amended_from",
   "section_break_oc18",
-  "store_id",
-  "column_break_uo3q",
   "type",
+  "column_break_uo3q",
+  "store_id",
   "path",
   "configuration_section",
   "hostname",
@@ -259,10 +259,10 @@
   {
    "group": "In-Memory Store",
    "link_doctype": "Mail Agent Group",
-   "link_fieldname": "memory_store"
+   "link_fieldname": "in_memory_store"
   }
  ],
- "modified": "2025-03-03 13:09:56.689066",
+ "modified": "2025-03-04 13:38:59.962871",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Store",
