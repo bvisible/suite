@@ -94,15 +94,13 @@ def load_compressed_file(file_path: str | None = None, file_data: bytes | None =
 	if isinstance(file_data, str):
 		file_data = file_data.encode()
 
-	file_stream = BytesIO(file_data)
-
 	try:
-		return extract_zip_content(file_stream)
+		return extract_zip_content(BytesIO(file_data))
 	except zipfile.BadZipFile:
 		pass
 
 	try:
-		return extract_gzip_content(file_stream)
+		return extract_gzip_content(BytesIO(file_data))
 	except OSError:
 		pass
 
