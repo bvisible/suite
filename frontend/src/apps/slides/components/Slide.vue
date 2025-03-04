@@ -28,11 +28,12 @@
 	<div v-else ref="target" :style="targetStyles">
 		<div
 			class="slide h-[540px] w-[960px] shadow-2xl"
-			:class="activeElementId == null ? 'shadow-gray-400' : 'shadow-gray-300'"
+			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
-			@click="selectSlide"
 		>
-			<ElementAlignmentGuides v-if="showGuides" :scale="scale" />
+			<SelectionBox @updateFocus="updateFocus" :scale="scale" />
+
+			<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
 			<component
 				ref="element"
@@ -64,7 +65,8 @@ import { useElementBounding } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
-import ElementAlignmentGuides from '@/components/ElementAlignmentGuides.vue'
+import AlignmentGuides from '@/components/AlignmentGuides.vue'
+import SelectionBox from './SelectionBox.vue'
 
 import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
 import {
@@ -82,9 +84,10 @@ import {
 import {
 	activePosition,
 	activeDimensions,
-	activeElement,
-	activeElementId,
+	activeElements,
+	activeElementIds,
 	focusElementId,
+	pairElementId,
 	resetFocus,
 } from '@/stores/element'
 
@@ -99,9 +102,11 @@ const props = defineProps({
 })
 
 const targetRef = useTemplateRef('target')
+const guides = useTemplateRef('guides')
+
 slideRect.value = useElementBounding(targetRef)
 
-const { isDragging, dragTarget } = useDragAndDrop(activePosition)
+const { isDragging, dragTarget, movement } = useDragAndDrop()
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	props.containerRef,
@@ -113,9 +118,7 @@ const transition = ref('none')
 const transitionTransform = ref('')
 const opacity = ref(1)
 
-const showGuides = computed(
-	() => activeElement.value && activeElementId.value != null && !isPanningOrZooming.value,
-)
+const showGuides = computed(() => activeElementIds.value.length && !isPanningOrZooming.value)
 
 const scale = computed(() => {
 	const matrix = transform.value.match(/matrix\((.+)\)/)
@@ -140,19 +143,18 @@ const targetStyles = computed(() => ({
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
 	cursor: isDragging.value ? 'move' : 'default',
-	'--showEdgeOverlay': activeElementId.value == null ? 'block' : 'none',
+	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
 }))
 
 const selectSlide = (e) => {
-	if (!e.target.classList.contains('slide')) return
 	e.preventDefault()
 	e.stopPropagation()
 	if (isResizing.value) {
 		isResizing.value = false
 		return
 	}
-	if (activeElement.value && focusElementId.value) {
-		activeElement.content = document.querySelector(
+	if (focusElementId.value) {
+		slide.value.elements[focusElementId.value].content = document.querySelector(
 			`[data-index="${focusElementId.value}"]`,
 		).innerText
 	}
@@ -161,20 +163,18 @@ const selectSlide = (e) => {
 }
 
 const addDragAndResize = () => {
-	let el = document.querySelector(`[data-index="${activeElementId.value}"]`)
-	if (!el || !activeElement.value) return
-	dragTarget.value = el
-	resizeTarget.value = el
-	resizeMode.value = activeElement.value.type == 'text' ? 'width' : 'both'
-
-	const elementRect = el.getBoundingClientRect()
-	activePosition.value = {
-		top: elementRect.top,
-		left: elementRect.left,
+	let el = document.querySelector('.groupDiv')
+	if (!el) return
+	nextTick(() => {
+		dragTarget.value = el
+	})
+	if (activeElementIds.value.length == 1) {
+		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
+		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
 	}
 }
 
-const removeDragAndResize = () => {
+const removeDragAndResize = (val) => {
 	activePosition.value = null
 	activeDimensions.value = null
 	dragTarget.value = null
@@ -251,17 +251,46 @@ const handleScreenChange = async () => {
 	}
 }
 
+const updateFocus = (e) => {
+	if (e.target.classList.contains('slide')) {
+		selectSlide(e)
+	} else if (e.target == props.containerRef) {
+		resetFocus()
+		slideFocus.value = false
+	}
+}
+
 watch(
-	() => activeElementId.value,
-	async () => {
-		if (activeElementId.value == null) {
-			removeDragAndResize()
+	() => activeElementIds.value,
+	(newVal, oldVal) => {
+		if (newVal.length) {
+			addDragAndResize()
+		} else if (oldVal) {
+			removeDragAndResize(oldVal)
+
 			nextTick(async () => {
 				slide.value.thumbnail = await getSlideThumbnail()
 			})
-			return
 		}
-		addDragAndResize()
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => focusElementId.value,
+	(newVal, oldVal) => {
+		if (oldVal) {
+			let element = slide.value.elements[oldVal]
+			element.left += 2
+			element.top += 2
+			slide.value.elements[oldVal].content = document.querySelector(
+				`[data-index="${oldVal}"]`,
+			).innerText
+		}
+		if (newVal) {
+			slide.value.elements[newVal].left -= 2
+			slide.value.elements[newVal].top -= 2
+		}
 	},
 	{ immediate: true },
 )
@@ -277,12 +306,13 @@ watch(
 )
 
 watch(
-	() => activePosition.value,
-	(position) => {
-		if (!position) return
-		const newleft = (position.left - slideRect.value.left) / scale.value
-		const newTop = (position.top - slideRect.value.top) / scale.value
-		activeElement.value = { ...activeElement.value, left: newleft, top: newTop }
+	() => movement.value,
+	() => {
+		if (!movement.value || !activePosition.value) return
+
+		const { x, y } = movement.value
+
+		guides.value.updateElementPosition(x / scale.value, y / scale.value)
 	},
 	{ immediate: true },
 )
@@ -291,9 +321,25 @@ watch(
 	() => activeDimensions.value,
 	(dimensions) => {
 		if (!dimensions) return
-		if (activeElement.value && dimensions.width != activeElement.value.width) {
+		let element = slide.value.elements[activeElementIds.value[0]]
+		if (element && dimensions.width != element.width) {
 			const newWidth = dimensions.width / scale.value
-			activeElement.value = { ...activeElement.value, width: newWidth }
+			element.width = newWidth
+		}
+	},
+	{ immediate: true },
+)
+
+watch(
+	() => pairElementId.value,
+	(newVal, oldVal) => {
+		if (oldVal) {
+			slide.value.elements[oldVal].left += 2
+			slide.value.elements[oldVal].top += 2
+		}
+		if (newVal) {
+			slide.value.elements[newVal].left -= 2
+			slide.value.elements[newVal].top -= 2
 		}
 	},
 	{ immediate: true },
@@ -305,6 +351,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	document.removeEventListener('fullscreenchange', handleScreenChange)
+})
+
+defineExpose({
+	guides,
 })
 </script>
 

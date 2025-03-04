@@ -9,36 +9,29 @@ import { guessTextColorFromBackground } from '../utils/color'
 const activePosition = ref(null)
 const activeDimensions = ref(null)
 
-const activeElementId = ref(null)
+const activeElementIds = ref([])
 const focusElementId = ref(null)
 const pairElementId = ref(null)
 
-const activeElement = computed({
-	get() {
-		return (
-			slide.value.elements[activeElementId.value] ||
-			slide.value.elements[focusElementId.value]
-		)
-	},
-	set(newValue) {
-		slide.value.elements[activeElementId.value] = newValue
-	},
+const activeElements = computed(() => {
+	let elements = []
+	slide.value.elements.forEach((element, index) => {
+		if (activeElementIds.value.includes(index)) {
+			elements.push(element)
+		}
+	})
+	return elements
 })
 
-const setActiveElement = (index, focus = false) => {
+const setActiveElements = (ids, focus = false) => {
 	if (inSlideShow.value) return
 
-	if (activeElement.value && focusElementId.value) {
-		const newContent = document.querySelector(
-			`[data-index="${focusElementId.value}"]`,
-		).innerText
-		activeElement.value = { ...activeElement.value, content: newContent }
-	}
-	if (focus) {
-		focusElementId.value = index
-		activeElementId.value = null
+	if (ids.length == 1 && focus) {
+		activeElementIds.value = []
+		focusElementId.value = ids[0]
 	} else {
-		activeElementId.value = index
+		if (ids.length == 1 && activeElementIds.value.includes(ids[0])) return
+		activeElementIds.value = ids
 		focusElementId.value = null
 	}
 	slideFocus.value = false
@@ -50,10 +43,10 @@ const addTextElement = () => {
 	const element = {
 		left: 100,
 		top: 100,
-		opacity: 100,
 		content: 'Text',
 		type: 'text',
 		width: 'auto',
+		height: 'auto',
 	}
 
 	if (lastTextElement) {
@@ -63,6 +56,7 @@ const addTextElement = () => {
 		element.color = lastTextElement.color
 		element.lineHeight = lastTextElement.lineHeight
 		element.letterSpacing = lastTextElement.letterSpacing
+		element.opacity = lastTextElement.opacity
 	} else {
 		const slideColor = document.querySelector('.slide')?.style.backgroundColor
 		element.fontSize = 30
@@ -73,7 +67,7 @@ const addTextElement = () => {
 		element.letterSpacing = 0
 	}
 	slide.value.elements.push(element)
-	nextTick(() => setActiveElement(slide.value.elements.length - 1))
+	nextTick(() => setActiveElements([slide.value.elements.length - 1]))
 }
 
 const addMediaElement = (file, type) => {
@@ -100,31 +94,53 @@ const addMediaElement = (file, type) => {
 		element.playbackRate = 1
 	}
 	slide.value.elements.push(element)
-	nextTick(() => setActiveElement(element))
+	nextTick(() => setActiveElements([slide.value.elements.length - 1]))
 }
 
-const duplicateElement = (e) => {
+const duplicateElements = async (e) => {
 	e.preventDefault()
-	let newElement = JSON.parse(JSON.stringify(activeElement.value))
-	newElement.top += 40
-	newElement.left += 40
-	slide.value.elements.push(newElement)
-	nextTick(() => (activeElementId.value = slide.value.elements.indexOf(newElement)))
+
+	let newSelection = []
+	const oldElements = activeElements.value
+	activeElementIds.value = []
+
+	await nextTick()
+
+	oldElements.forEach((element) => {
+		let newElement = JSON.parse(JSON.stringify(element))
+		newElement.top += 40
+		newElement.left += 40
+		slide.value.elements.push(newElement)
+		newSelection.push(slide.value.elements.indexOf(newElement))
+	})
+
+	nextTick(() => (activeElementIds.value = newSelection))
 }
 
-const deleteElement = async (e) => {
-	if (['image', 'video'].includes(activeElement.value.type)) {
-		await call('frappe.client.delete', {
-			doctype: 'File',
-			name: activeElement.value.file_name,
-		})
-	}
-	slide.value.elements.splice(activeElementId.value, 1)
+const deleteElements = async (e) => {
+	activeElements.value.forEach((element) => {
+		if (['image', 'video'].includes(element.type)) {
+			call('frappe.client.delete', {
+				doctype: 'File',
+				name: element.file_name,
+			})
+		}
+	})
+	const idsToDelete = activeElementIds.value
 	resetFocus()
+	nextTick(() => {
+		slide.value.elements = slide.value.elements.filter((_, index) => {
+			return !idsToDelete.includes(index)
+		})
+	})
+}
+
+const selectAllElements = () => {
+	activeElementIds.value = slide.value.elements.map((_, index) => index)
 }
 
 const resetFocus = () => {
-	activeElementId.value = null
+	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
 }
@@ -132,14 +148,15 @@ const resetFocus = () => {
 export {
 	activePosition,
 	activeDimensions,
-	activeElementId,
+	activeElementIds,
 	focusElementId,
 	pairElementId,
-	activeElement,
-	setActiveElement,
+	activeElements,
+	setActiveElements,
 	resetFocus,
 	addTextElement,
 	addMediaElement,
-	duplicateElement,
-	deleteElement,
+	duplicateElements,
+	deleteElements,
+	selectAllElements,
 }

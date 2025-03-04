@@ -6,7 +6,9 @@
 				v-for="style in styleProperties"
 				:key="style.property"
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement[style.property]?.includes(style.value) ? 'bg-gray-200' : ''"
+				:class="
+					activeElements[0][style.property]?.includes(style.value) ? 'bg-gray-200' : ''
+				"
 				@click="toggleProperty(style.property, style.value)"
 			>
 				<component :is="style.icon" size="18" :strokeWidth="1.5" />
@@ -17,8 +19,8 @@
 			<button
 				v-for="textAlign in ['left', 'center', 'right', 'justify']"
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textAlign == textAlign ? 'bg-gray-200' : ''"
-				@click="activeElement.textAlign = textAlign"
+				:class="activeElements[0].textAlign == textAlign ? 'bg-gray-200' : ''"
+				@click="activeElements[0].textAlign = textAlign"
 			>
 				<FeatherIcon :name="`align-${textAlign}`" class="h-4.5" />
 			</button>
@@ -35,15 +37,15 @@
 			:options="textFonts"
 			size="sm"
 			variant="subtle"
-			:modelValue="activeElement.fontFamily"
-			@update:modelValue="(font) => (activeElement.fontFamily = font.value)"
+			:modelValue="activeElements[0].fontFamily"
+			@update:modelValue="(font) => (activeElements[0].fontFamily = font.value)"
 		/>
 
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-gray-600">Size</div>
 			<div class="h-[30px] w-28">
 				<NumberInput
-					v-model="activeElement.fontSize"
+					v-model="activeElements[0].fontSize"
 					suffix="px"
 					:rangeStart="5"
 					:rangeEnd="100"
@@ -54,7 +56,7 @@
 
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-gray-600">Colour</div>
-			<ColorPicker v-model="activeElement.color" />
+			<ColorPicker v-model="activeElements[0].color" />
 		</div>
 	</div>
 
@@ -66,8 +68,8 @@
 			:rangeStart="0.1"
 			:rangeEnd="5.0"
 			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElement.lineHeight)"
-			@update:modelValue="(value) => (activeElement.lineHeight = value)"
+			:modelValue="parseFloat(activeElements[0].lineHeight)"
+			@update:modelValue="(value) => (activeElements[0].lineHeight = value)"
 		/>
 
 		<SliderInput
@@ -75,8 +77,8 @@
 			:rangeStart="-10"
 			:rangeEnd="50"
 			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElement.letterSpacing)"
-			@update:modelValue="(value) => (activeElement.letterSpacing = value)"
+			:modelValue="parseFloat(activeElements[0].letterSpacing)"
+			@update:modelValue="(value) => (activeElements[0].letterSpacing = value)"
 		/>
 	</div>
 </template>
@@ -89,8 +91,8 @@ import SliderInput from './controls/SliderInput.vue'
 import NumberInput from './controls/NumberInput.vue'
 import ColorPicker from './controls/ColorPicker.vue'
 
-import { activeElement } from '@/stores/element'
-import { debounce } from '@/utils/helpers'
+import { slide } from '@/stores/slide'
+import { activeElementIds, activeElements } from '@/stores/element'
 
 const sectionClasses = 'flex flex-col gap-4 border-b p-4'
 const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
@@ -142,8 +144,8 @@ const styleProperties = [
 ]
 
 const toggleProperty = (property, value) => {
-	const oldStyle = activeElement.value[property]
-	const newStyle = ''
+	const oldStyle = activeElements.value[0][property]
+	let newStyle = ''
 
 	switch (property) {
 		case 'fontWeight':
@@ -164,7 +166,7 @@ const toggleProperty = (property, value) => {
 				? oldStyle.replace(value, '')
 				: oldStyle + ' ' + value
 	}
-	activeElement.value[property] = newStyle
+	slide.value.elements[activeElementIds.value[0]][property] = newStyle
 }
 </script>
 

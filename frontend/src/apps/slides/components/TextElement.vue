@@ -14,7 +14,7 @@
 import { computed, useAttrs } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
-import { focusElementId, setActiveElement } from '@/stores/element'
+import { focusElementId, setActiveElements } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const attrs = useAttrs()
@@ -50,19 +50,16 @@ const selectElement = (e) => {
 const setActiveText = (e) => {
 	e.stopPropagation()
 	if (focusElementId.value == attrs['data-index']) return
-	setActiveElement(attrs['data-index'])
+	setActiveElements([attrs['data-index']])
 }
 
 const setFocusElement = (e) => {
 	e.stopPropagation()
 	if (focusElementId.value == attrs['data-index']) return
-	setActiveElement(attrs['data-index'], true)
+	setActiveElements([attrs['data-index']], true)
 }
 
 const handleBlur = (e) => {
 	element.value.content = e.target.innerText
-	if (element.value.width == 'auto') {
-		element.value.width = e.target.offsetWidth
-	}
 }
 </script>
