@@ -92,10 +92,9 @@ const createMailResource = (folder: Folder) =>
 		onSuccess: (data) => {
 			if (!data.length) return setCurrentMail(folder, null)
 
-			if (!data.some((m) => m.name === currentMail[folder])) {
-				const firstSeen = data.find((m) => m.seen)
-				if (firstSeen) setCurrentMail(folder, firstSeen.name)
-			}
+			if (!data.some((m) => m.name === currentMail[folder]))
+				setCurrentMail(folder, data.find((m) => m.seen)?.name || null)
+
 			mailDetails.value?.reloadThread()
 		},
 	})
