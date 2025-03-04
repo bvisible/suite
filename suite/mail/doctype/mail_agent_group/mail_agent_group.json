@@ -34,7 +34,7 @@
   "column_break_a9m0",
   "default_language",
   "in_memory_store_section",
-  "memory_store",
+  "in_memory_store",
   "cleanup_section",
   "frequency",
   "column_break_ld4b",
@@ -113,14 +113,6 @@
   },
   {
    "fieldname": "fts_store",
-   "fieldtype": "Link",
-   "label": "Store",
-   "options": "Mail Agent Store",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "memory_store",
    "fieldtype": "Link",
    "label": "Store",
    "options": "Mail Agent Store",
@@ -266,6 +258,14 @@
    "label": "Base URL",
    "no_copy": 1,
    "placeholder": "https://mail.frappemail.com/"
+  },
+  {
+   "fieldname": "in_memory_store",
+   "fieldtype": "Link",
+   "label": "Store",
+   "options": "Mail Agent Store",
+   "reqd": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
@@ -292,7 +292,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-04 11:16:58.585947",
+ "modified": "2025-03-04 13:33:44.946127",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",

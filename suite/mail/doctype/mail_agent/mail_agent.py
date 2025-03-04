@@ -220,7 +220,7 @@ def get_config_toml(agent: str) -> str | None:
 	data_store = frappe.get_doc("Mail Agent Store", agent_group.data_store)
 	blob_store = frappe.get_doc("Mail Agent Store", agent_group.blob_store)
 	fts_store = frappe.get_doc("Mail Agent Store", agent_group.fts_store)
-	lookup_store = frappe.get_doc("Mail Agent Store", agent_group.memory_store)
+	lookup_store = frappe.get_doc("Mail Agent Store", agent_group.in_memory_store)
 
 	config = {
 		"authentication": {
