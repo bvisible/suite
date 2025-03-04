@@ -99,9 +99,11 @@ class MailAgentGroup(Document):
 		agent_api = AgentAPI(
 			self.base_url, username=self.admin_username, password=self.get_password("admin_password")
 		)
-		response = agent_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__).json()
+		response = agent_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
+		response.raise_for_status()
+		response_json = response.json()
 
-		if error := response.get("error"):
+		if error := response_json.get("error"):
 			frappe.throw(error)
 
 		return f"api_{base64.b64encode(f'{name}:{secret}'.encode()).decode()}"
