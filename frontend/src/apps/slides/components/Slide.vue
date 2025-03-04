@@ -31,7 +31,7 @@
 			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
 			:style="slideStyles"
 		>
-			<SelectionBox @selectSlide="selectSlide" :scale="scale" />
+			<SelectionBox @updateFocus="updateFocus" :scale="scale" />
 
 			<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
@@ -248,6 +248,15 @@ const handleScreenChange = async () => {
 		await router.replace({ query: null })
 		allowPanAndZoom.value = true
 		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
+	}
+}
+
+const updateFocus = (e) => {
+	if (e.target.classList.contains('slide')) {
+		selectSlide(e)
+	} else if (e.target == props.containerRef) {
+		resetFocus()
+		slideFocus.value = false
 	}
 }
 
