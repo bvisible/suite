@@ -306,9 +306,9 @@ def get_config_toml(agent: str) -> str | None:
 			"local-keys": get_local_keys(),
 		},
 		"directory": {
-			f"{agent_group.directory_store}": {
+			f"{agent_group.directory_storage}": {
 				"type": "internal",
-				"store": f"{agent_group.directory_store}",
+				"store": f"{agent_group.directory_storage}",
 				"cache": {
 					"size": 1048576,
 					"ttl": {
@@ -319,11 +319,11 @@ def get_config_toml(agent: str) -> str | None:
 			}
 		},
 		"storage": {
-			"directory": agent_group.directory_store,
-			"data": agent_group.data_store,
-			"blob": agent_group.blob_store,
-			"fts": agent_group.fts_store,
-			"lookup": agent_group.in_memory_store,
+			"directory": agent_group.directory_storage,
+			"data": agent_group.data_storage,
+			"blob": agent_group.blob_storage,
+			"fts": agent_group.fts_storage,
+			"lookup": agent_group.in_memory_storage,
 			"full-text": {"default-language": agent_group.default_language},
 		},
 		"store": get_stores(agent_group.stores),

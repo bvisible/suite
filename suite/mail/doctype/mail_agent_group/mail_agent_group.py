@@ -53,18 +53,18 @@ DEFAULT_LISTENERS = [
 	},
 ]
 STORAGE_LABELS = {
-	"directory_store": _("Directory Store"),
-	"data_store": _("Data Store"),
-	"blob_store": _("Blob Store"),
-	"fts_store": _("Full Text Index Store"),
-	"in_memory_store": _("In-Memory Store"),
+	"directory_storage": _("Directory Storage"),
+	"data_storage": _("Data Storage"),
+	"blob_storage": _("Blob Storage"),
+	"fts_storage": _("Full Text Index Storage"),
+	"in_memory_storage": _("In-Memory Storage"),
 }
 STORAGE_OPTIONS = {
-	"directory_store": ["RocksDB", "mySQL"],
-	"data_store": ["RocksDB", "mySQL"],
-	"blob_store": ["RocksDB", "mySQL"],
-	"fts_store": ["RocksDB", "mySQL"],
-	"in_memory_store": ["RocksDB", "mySQL"],
+	"directory_storage": ["RocksDB", "mySQL"],
+	"data_storage": ["RocksDB", "mySQL"],
+	"blob_storage": ["RocksDB", "mySQL"],
+	"fts_storage": ["RocksDB", "mySQL"],
+	"in_memory_storage": ["RocksDB", "mySQL"],
 }
 
 
@@ -80,7 +80,7 @@ class MailAgentGroup(Document):
 		self.validate_admin_password()
 		self.validate_cluster_encryption_key()
 		self.validate_stores()
-		self.validate_selected_stores()
+		self.validate_storage()
 		self.validate_listeners()
 
 	def on_update(self) -> None:
@@ -159,17 +159,17 @@ class MailAgentGroup(Document):
 			if store.purge_frequency_cron:
 				is_valid_cron_expression(store.purge_frequency_cron, raise_exception=True)
 
-	def validate_selected_stores(self) -> None:
+	def validate_storage(self) -> None:
 		"""Validates the selected stores against the stores."""
 
 		stores = {store.store_id: store for store in self.stores}
 
 		for key in STORAGE_OPTIONS.keys():
-			selected_store = getattr(self, key)
-			if selected_store not in stores:
-				frappe.throw(_("Store with Store ID {0} not found.").format(frappe.bold(selected_store)))
+			selected_storage = getattr(self, key)
+			if selected_storage not in stores:
+				frappe.throw(_("Store with Store ID {0} not found.").format(frappe.bold(selected_storage)))
 
-			store = stores[selected_store]
+			store = stores[selected_storage]
 			if store.type not in STORAGE_OPTIONS[key]:
 				frappe.throw(
 					_("{0} has an invalid store type '{1}'. Allowed types are: {2}.").format(
@@ -215,7 +215,13 @@ class MailAgentGroup(Document):
 		if len(self.stores) == 1:
 			primary_store = self.stores[0]
 
-			for field in ["directory_store", "data_store", "blob_store", "fts_store", "in_memory_store"]:
+			for field in [
+				"directory_storage",
+				"data_storage",
+				"blob_storage",
+				"fts_storage",
+				"in_memory_storage",
+			]:
 				if primary_store.type in STORAGE_OPTIONS[field]:
 					setattr(self, field, primary_store.store_id)
 
