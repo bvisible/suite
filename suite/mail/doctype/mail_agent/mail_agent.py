@@ -54,6 +54,9 @@ LOCAL_KEYS = [
 	"storage.fts",
 	"storage.full-text.*",
 	"storage.lookup",
+	"jmap.account.*",
+	"jmap.email.*",
+	"jmap.protocol.*",
 	"authentication.fallback-admin.*",
 	"enterprise.license-key",
 ]
@@ -331,6 +334,21 @@ def get_config_toml(agent: str) -> str | None:
 			"fts": agent_group.fts_storage,
 			"full-text": {"default-language": agent_group.default_language},
 			"lookup": agent_group.in_memory_storage,
+		},
+		"jmap": {
+			"account": {"purge": {"frequency": agent_group.jmap_frequency_cron}},
+			"email": {
+				"auto-expunge": f"{agent_group.jmap_trash_auto_expunge_days}d"
+				if agent_group.jmap_trash_auto_expunge_days
+				else 0
+			},
+			"protocol": {
+				"changes": {
+					"max-history": f"{agent_group.jmap_changes_history_days}d"
+					if agent_group.jmap_changes_history_days
+					else 0
+				}
+			},
 		},
 		"store": get_stores(agent_group.stores),
 		"tracer": {
