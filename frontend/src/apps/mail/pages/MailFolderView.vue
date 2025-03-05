@@ -120,7 +120,10 @@ interface SetSeenParams {
 
 const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
-	makeParams: (values: SetSeenParams) => ({ mail_type: doctype.value, ...values }),
+	makeParams: (values: SetSeenParams) => ({
+		mail_type: getMailType() || doctype.value,
+		...values,
+	}),
 	onSuccess: (data: SetSeenParams) => {
 		mails[currentFolder.value].data.find((m) => m.name === data.name).seen = data.seen
 		if (!data.seen) setCurrentMail(currentFolder.value, null)

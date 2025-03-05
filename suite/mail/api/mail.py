@@ -200,6 +200,17 @@ def get_mail_list(mails) -> list:
 	return mails
 
 
+def has_in_reply_to_mail(mail) -> bool:
+	"""Check if the mail is a reply to an existing mail."""
+
+	if not mail.in_reply_to_mail_name:
+		return False
+
+	return frappe.db.exists(
+		mail.in_reply_to_mail_type, {"name": mail.in_reply_to_mail_name, "docstatus": ("!=", 2)}
+	)
+
+
 def get_list_thread(mail) -> list:
 	"""Returns a list of mails in the thread."""
 
@@ -212,7 +223,7 @@ def get_list_thread(mail) -> list:
 		processed.add(mail.name)
 		thread.append(mail)
 
-		if mail.in_reply_to_mail_name:
+		if has_in_reply_to_mail(mail):
 			reply_mail = get_mail_details(mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, False)
 			add_to_thread(reply_mail)
 		if mail.message_id:
@@ -275,7 +286,7 @@ def get_mail_thread(name, mail_type: MailType) -> list:
 			return
 		visited.add(mail.name)
 
-		if mail.in_reply_to_mail_name:
+		if has_in_reply_to_mail(mail):
 			reply_mail = get_mail_details(mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, True)
 			get_thread(reply_mail, thread)
 
@@ -568,4 +579,4 @@ def empty_trash() -> None:
 			pluck="name",
 		)
 		for d in mails:
-			cancel_message(doctype, d)
+			cancel_mail(doctype, d)
