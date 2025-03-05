@@ -244,20 +244,22 @@ const handleMediaDrop = async (e) => {
 	e.preventDefault()
 	isMediaDragOver.value = false
 	const files = e.dataTransfer.files
-	files.forEach(async (file) => {
+	const fileUploadHandler = new FileUploadHandler()
+	files.forEach((file, index) => {
 		const fileType = file.type.split('/')[0]
 		if (['image', 'video'].includes(fileType)) {
-			const fileUploadHandler = new FileUploadHandler()
-			toast.promise(
-				fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
-					addMediaElement(fileDoc, fileType)
-				}),
-				{
-					loading: `Uploading File`,
-					success: (data) => 'File Uploaded',
-					error: (data) => 'Upload failed. Please try again.',
-				},
-			)
+			setTimeout(() => {
+				toast.promise(
+					fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
+						addMediaElement(fileDoc, fileType)
+					}),
+					{
+						loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
+						success: (data) => `Uploaded: ${file.name}`,
+						error: (data) => 'Upload failed. Please try again.',
+					},
+				)
+			}, 100)
 		}
 	})
 }
