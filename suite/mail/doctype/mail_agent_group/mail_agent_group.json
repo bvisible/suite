@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "details_tab",
+  "section_break_b7jt",
   "enabled",
   "inbound",
   "outbound",
@@ -317,6 +318,10 @@
    "fieldname": "listeners_tab",
    "fieldtype": "Tab Break",
    "label": "Listeners"
+  },
+  {
+   "fieldname": "section_break_b7jt",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
@@ -343,7 +348,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-05 12:20:37.011342",
+ "modified": "2025-03-05 14:21:07.733442",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",

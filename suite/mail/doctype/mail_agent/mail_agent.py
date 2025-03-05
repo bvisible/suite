@@ -285,7 +285,7 @@ def get_config_toml(agent: str) -> str | None:
 		"server": {
 			"hostname": agent.agent,
 			"max-connections": agent.server_max_connections,
-			"listener": get_listeners(agent_group.listeners),
+			"listener": get_listeners(agent.listeners or agent_group.listeners),
 			"socket": {
 				"backlog": 1024,
 				"nodelay": True,
