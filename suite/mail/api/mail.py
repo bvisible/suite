@@ -105,14 +105,13 @@ def get_drafts_mails(start: int = 0) -> list:
 def get_trash_mails(start: int = 0) -> list:
 	"""Returns trash mails for the current user."""
 
-	all_mails = get_incoming_mails("Trash", start) + get_outgoing_mails("Trash", start)
-	all_mails.sort(key=lambda x: x.creation, reverse=True)
+	trash_mails = get_incoming_mails("Trash", start, False) + get_outgoing_mails("Trash", start, False)
+	trash_mails.sort(key=lambda x: x.creation, reverse=True)
 
-	return all_mails
+	return get_mail_list(trash_mails)
 
 
-@frappe.whitelist()
-def get_incoming_mails(folder: str, start: int = 0) -> list:
+def get_incoming_mails(folder: str, start: int = 0, get_list: bool = True) -> list:
 	"""Returns incoming mails for the current user."""
 
 	account = get_account_for_user(frappe.session.user)
@@ -133,16 +132,17 @@ def get_incoming_mails(folder: str, start: int = 0) -> list:
 			"type",
 			"seen",
 			"message_id",
+			"'Incoming Mail' as mail_type",
 		],
 		limit=50,
 		start=start,
 		order_by="created_at desc",
 	)
 
-	return get_mail_list(mails, "Incoming Mail")
+	return get_mail_list(mails) if get_list else mails
 
 
-def get_outgoing_mails(folder: str, start: int = 0) -> list:
+def get_outgoing_mails(folder: str, start: int = 0, get_list: bool = True) -> list:
 	"""Returns outgoing mails for the current user."""
 
 	account = get_account_for_user(frappe.session.user)
@@ -169,20 +169,20 @@ def get_outgoing_mails(folder: str, start: int = 0) -> list:
 			"status",
 			"message_id",
 			"seen",
+			"'Outgoing Mail' as mail_type",
 		],
 		limit=50,
 		start=start,
 		order_by=order_by,
 	)
 
-	return get_mail_list(mails, "Outgoing Mail")
+	return get_mail_list(mails) if get_list else mails
 
 
-def get_mail_list(mails, mail_type: MailType) -> list:
+def get_mail_list(mails) -> list:
 	"""Returns a list of mails with additional details."""
 
 	for mail in mails[:]:
-		mail.mail_type = mail_type
 		thread = get_list_thread(mail)
 		thread_with_names = [email.name for email in thread]
 		mails_in_original_list = [email for email in mails if email.name in thread_with_names]
