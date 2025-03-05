@@ -42,11 +42,11 @@
   "default_language",
   "in_memory_storage_section",
   "in_memory_storage",
-  "cleanup_section",
-  "frequency",
+  "cleanup_jmap_section",
+  "jmap_frequency_cron",
   "column_break_ld4b",
-  "changes_history_days",
-  "trash_auto_expunge_days",
+  "jmap_changes_history_days",
+  "jmap_trash_auto_expunge_days",
   "listeners_tab",
   "listeners"
  ],
@@ -132,33 +132,6 @@
   {
    "fieldname": "column_break_a9m0",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "cleanup_section",
-   "fieldtype": "Section Break",
-   "label": "Cleanup"
-  },
-  {
-   "default": "30",
-   "fieldname": "changes_history_days",
-   "fieldtype": "Int",
-   "label": "Changes History (Days)",
-   "non_negative": 1
-  },
-  {
-   "default": "30",
-   "fieldname": "trash_auto_expunge_days",
-   "fieldtype": "Int",
-   "label": "Trash Auto-Expunge (Days)",
-   "non_negative": 1
-  },
-  {
-   "default": "0 0 * * *",
-   "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
-   "fieldname": "frequency",
-   "fieldtype": "Data",
-   "label": "Frequency (Cron)",
-   "reqd": 1
   },
   {
    "fieldname": "column_break_ld4b",
@@ -322,6 +295,33 @@
    "fieldname": "in_memory_storage_section",
    "fieldtype": "Section Break",
    "label": "In-Memory Storage"
+  },
+  {
+   "fieldname": "cleanup_jmap_section",
+   "fieldtype": "Section Break",
+   "label": "Cleanup (JMAP)"
+  },
+  {
+   "default": "0 0 * * *",
+   "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "fieldname": "jmap_frequency_cron",
+   "fieldtype": "Data",
+   "label": "Frequency (Cron)",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "jmap_changes_history_days",
+   "fieldtype": "Int",
+   "label": "Changes History (Days)",
+   "non_negative": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "jmap_trash_auto_expunge_days",
+   "fieldtype": "Int",
+   "label": "Trash Auto-Expunge (Days)",
+   "non_negative": 1
   }
  ],
  "grid_page_length": 50,
@@ -348,7 +348,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-05 15:18:39.350933",
+ "modified": "2025-03-05 16:03:19.641488",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",

@@ -179,6 +179,8 @@ class MailAgentGroup(Document):
 					)
 				)
 
+		is_valid_cron_expression(self.jmap_frequency_cron, raise_exception=True)
+
 	def validate_listeners(self) -> None:
 		"""Validates the listeners."""
 
@@ -215,13 +217,7 @@ class MailAgentGroup(Document):
 		if len(self.stores) == 1:
 			primary_store = self.stores[0]
 
-			for field in [
-				"directory_storage",
-				"data_storage",
-				"blob_storage",
-				"fts_storage",
-				"in_memory_storage",
-			]:
+			for field in STORAGE_OPTIONS.keys():
 				if primary_store.type in STORAGE_OPTIONS[field]:
 					setattr(self, field, primary_store.store_id)
 
