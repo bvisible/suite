@@ -32,6 +32,7 @@
  ],
  "fields": [
   {
+   "description": "Hostname of the mail server.",
    "fieldname": "agent",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -46,6 +47,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "The mail agent group this server belongs to.",
    "fieldname": "agent_group",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -83,12 +85,14 @@
   },
   {
    "default": "8192",
+   "description": "The maximum number of concurrent connections the server will accept.",
    "fieldname": "server_max_connections",
    "fieldtype": "Int",
    "label": "Max Connections",
    "reqd": 1
   },
   {
+   "description": "Unique identifier for this node in the cluster.",
    "fieldname": "cluster_node_id",
    "fieldtype": "Int",
    "label": "Node ID",
@@ -99,6 +103,7 @@
   },
   {
    "default": "[::]",
+   "description": "The address the gossip protocol will bind to.",
    "fieldname": "cluster_bind_address",
    "fieldtype": "Data",
    "label": "Bind Address",
@@ -107,6 +112,7 @@
   },
   {
    "default": "1179",
+   "description": "The UDP port the gossip protocol will bind to.",
    "fieldname": "cluster_bind_port",
    "fieldtype": "Int",
    "label": "Bind Port",
@@ -114,6 +120,7 @@
   },
   {
    "default": "Private IPv4",
+   "description": "The address the gossip protocol will advertise to other nodes in the cluster.",
    "fieldname": "cluster_advertise_address",
    "fieldtype": "Select",
    "label": "Advertise Address",
@@ -121,6 +128,7 @@
   },
   {
    "default": "1",
+   "description": "The interval between heartbeats in the cluster.",
    "fieldname": "cluster_heartbeat",
    "fieldtype": "Int",
    "label": "Heartbeat (Seconds)",
@@ -134,6 +142,7 @@
   {
    "default": "1",
    "depends_on": "eval: !doc.__islocal",
+   "description": "Disable to stop this mail agent from sending or receiving emails.",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled",
@@ -141,6 +150,7 @@
    "search_index": 1
   },
   {
+   "description": "Public IPv4 address of this mail server (used for external communication).",
    "fieldname": "public_ipv4",
    "fieldtype": "Data",
    "label": "Public IPv4",
@@ -148,6 +158,7 @@
    "read_only": 1
   },
   {
+   "description": "Private IPv4 address of this mail server (used for internal communication).",
    "fieldname": "private_ipv4",
    "fieldtype": "Data",
    "label": "Private IPv4",
@@ -158,6 +169,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Public IPv6 address of this mail server (used for external communication).",
    "fieldname": "public_ipv6",
    "fieldtype": "Data",
    "label": "Public IPv6",
@@ -165,6 +177,7 @@
    "read_only": 1
   },
   {
+   "description": "Private IPv6 address of this mail server (used for internal communication).",
    "fieldname": "private_ipv6",
    "fieldtype": "Data",
    "label": "Private IPv6",
@@ -181,6 +194,7 @@
    "label": "Details"
   },
   {
+   "description": "Define custom listeners for this mail agent. If not set, the group\u2019s listeners will be used.",
    "fieldname": "listeners",
    "fieldtype": "Table",
    "label": "Listeners",
@@ -190,7 +204,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 14:22:31.015981",
+ "modified": "2025-03-05 19:43:23.752808",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",
