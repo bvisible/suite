@@ -1,7 +1,7 @@
 // Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-const STORE_DEFAULTS = {
+const STORES_PRESET = {
 	RocksDB: {
 		store_id: 'rocksdb',
 		path: '/opt/stalwart-mail/data',
@@ -24,8 +24,28 @@ const STORE_DEFAULTS = {
 }
 
 frappe.ui.form.on('Mail Agent Group', {
+	setup(frm) {
+		frm.trigger('initialize_defaults')
+	},
+
 	refresh(frm) {
 		frm.trigger('add_actions')
+	},
+
+	initialize_defaults(frm) {
+		if (!frm.doc.__islocal) return
+
+		frappe.call({
+			doc: frm.doc,
+			method: 'initialize_defaults',
+			freeze: true,
+			freeze_message: __('Initializing Defaults...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
 	},
 
 	add_actions(frm) {
@@ -87,7 +107,7 @@ frappe.ui.form.on('Mail Agent Store', {
 
 		if (!row.type) return
 
-		const defaults = STORE_DEFAULTS[row.type]
+		const defaults = STORES_PRESET[row.type]
 		if (!defaults) return
 
 		Object.entries(defaults).forEach(([key, value]) =>

@@ -14,6 +14,48 @@ from mail.mail.doctype.mail_settings.mail_settings import (
 from mail.utils import flatten_dict, hash_password
 from mail.utils.dns import get_dns_record
 
+PROTOCOL_MAP = {
+	"SMTP": "smtp",
+	"LMTP": "lmtp",
+	"HTTP": "http",
+	"IMAP4": "imap",
+	"POP3": "pop3",
+	"ManageSieve": "managesieve",
+}
+STORE_TYPE_MAP = {
+	"RocksDB": "rocksdb",
+	"FoundationDB": "foundationdb",
+	"PostgreSQL": "postgresql",
+	"mySQL": "mysql",
+	"SQLite": "sqlite",
+	"S3-compatible": "s3",
+	"Redis/Memcached": "redis",
+	"ElasticSearch": "elasticsearch",
+	"Azure blob storage": "azure",
+	"Filesystem": "fs",
+	"SQL with Replicas": "sql-read-replica",
+	"Sharded Blob Store": "sharded-blob",
+	"Sharded In-Memory Store": "sharded-in-memory",
+}
+LOCAL_KEYS = [
+	"store.*",
+	"directory.*",
+	"tracer.*",
+	"!server.blocked-ip.*",
+	"!server.allowed-ip.*",
+	"server.*",
+	"config.local-keys.*",
+	"certificate.*",
+	"cluster.*",
+	"storage.data",
+	"storage.blob",
+	"storage.lookup",
+	"storage.fts",
+	"storage.directory",
+	"authentication.fallback-admin.*",
+	"enterprise.license-key",
+]
+
 
 class MailAgent(Document):
 	@property
@@ -128,6 +170,26 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 def get_config_toml(agent: str) -> str | None:
 	"""Returns the TOML configuration for the Mail Agent."""
 
+	def get_listeners(listeners: list) -> dict:
+		"""Returns the listener configuration for the Mail Agent."""
+
+		listeners_config = {}
+		for listener in listeners:
+			if listener.listener_id in listeners_config:
+				continue
+
+			bind_addresses = listener.bind_addresses.split("\n")
+			bind = bind_addresses[0] if len(bind_addresses) == 1 else bind_addresses
+			listeners_config[listener.listener_id] = {
+				"bind": bind,
+				"protocol": PROTOCOL_MAP[listener.protocol],
+			}
+
+			if listener.implicit_tls:
+				listeners_config[listener.listener_id]["tls"] = {"implicit": True}
+
+		return listeners_config
+
 	def get_seed_nodes(agent: str, agent_group: str) -> dict:
 		"""Returns the seed nodes for the Mail Agent."""
 
@@ -155,45 +217,12 @@ def get_config_toml(agent: str) -> str | None:
 	def get_local_keys() -> dict:
 		"""Returns the local keys for the configuration."""
 
-		local_keys = [
-			"store.*",
-			"directory.*",
-			"tracer.*",
-			"!server.blocked-ip.*",
-			"!server.allowed-ip.*",
-			"server.*",
-			"config.local-keys.*",
-			"certificate.*",
-			"cluster.*",
-			"storage.data",
-			"storage.blob",
-			"storage.lookup",
-			"storage.fts",
-			"storage.directory",
-			"authentication.fallback-admin.*",
-			"enterprise.license-key",
-		]
-		num_digits = len(str(len(local_keys) - 1))
-		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(local_keys)}
+		num_digits = len(str(len(LOCAL_KEYS) - 1))
+		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(LOCAL_KEYS)}
 
 	def get_stores(stores: list) -> dict:
 		"""Returns the store configuration for the Mail Agent."""
 
-		store_type_map = {
-			"RocksDB": "rocksdb",
-			"FoundationDB": "foundationdb",
-			"PostgreSQL": "postgresql",
-			"mySQL": "mysql",
-			"SQLite": "sqlite",
-			"S3-compatible": "s3",
-			"Redis/Memcached": "redis",
-			"ElasticSearch": "elasticsearch",
-			"Azure blob storage": "azure",
-			"Filesystem": "fs",
-			"SQL with Replicas": "sql-read-replica",
-			"Sharded Blob Store": "sharded-blob",
-			"Sharded In-Memory Store": "sharded-in-memory",
-		}
 		store_config = {}
 		for store in stores:
 			if store.store_id in store_config:
@@ -205,7 +234,7 @@ def get_config_toml(agent: str) -> str | None:
 					store_config.update(
 						{
 							store.store_id: {
-								"type": store_type_map[store.type],
+								"type": STORE_TYPE_MAP[store.type],
 								"path": store.path,
 								"compression": store.compression.lower(),
 								"min-blob-size": store.min_blob_size_bytes,
@@ -219,7 +248,7 @@ def get_config_toml(agent: str) -> str | None:
 					store_config.update(
 						{
 							store.store_id: {
-								"type": store_type_map[store.type],
+								"type": STORE_TYPE_MAP[store.type],
 								"host": store.hostname,
 								"port": store.port,
 								"database": store.database,
@@ -256,45 +285,7 @@ def get_config_toml(agent: str) -> str | None:
 		"server": {
 			"hostname": agent.agent,
 			"max-connections": agent.server_max_connections,
-			"listener": {
-				"http": {"bind": "[::]:8080", "protocol": "http"},
-				"https": {
-					"bind": "[::]:443",
-					"protocol": "http",
-					"tls": {
-						"implicit": True,
-					},
-				},
-				"imap": {"bind": "[::]:143", "protocol": "imap"},
-				"imaptls": {
-					"bind": "[::]:993",
-					"protocol": "imap",
-					"tls": {
-						"implicit": True,
-					},
-				},
-				"pop3": {"bind": "[::]:110", "protocol": "pop3"},
-				"pop3s": {
-					"bind": "[::]:995",
-					"protocol": "pop3",
-					"tls": {
-						"implicit": True,
-					},
-				},
-				"sieve": {"bind": "[::]:4190", "protocol": "managesieve"},
-				"smtp": {"bind": "[::]:25", "protocol": "smtp"},
-				"submission": {
-					"bind": "[::]:587",
-					"protocol": "smtp",
-				},
-				"submissions": {
-					"bind": "[::]:465",
-					"protocol": "smtp",
-					"tls": {
-						"implicit": True,
-					},
-				},
-			},
+			"listener": get_listeners(agent_group.listeners),
 			"socket": {
 				"backlog": 1024,
 				"nodelay": True,

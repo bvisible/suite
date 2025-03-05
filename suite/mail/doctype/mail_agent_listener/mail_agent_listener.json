@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "creation": "2025-03-05 12:18:08.380756",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_vibk",
+  "protocol",
+  "listener_id",
+  "column_break_eecc",
+  "bind_addresses",
+  "tls_options_section",
+  "implicit_tls"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_vibk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "protocol",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Protocol",
+   "options": "\nSMTP\nLMTP\nHTTP\nIMAP4\nPOP3\nManageSieve",
+   "reqd": 1
+  },
+  {
+   "fieldname": "listener_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Listener Id",
+   "reqd": 1
+  },
+  {
+   "fieldname": "tls_options_section",
+   "fieldtype": "Section Break",
+   "label": "TLS Options"
+  },
+  {
+   "default": "0",
+   "fieldname": "implicit_tls",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Implicit TLS"
+  },
+  {
+   "fieldname": "bind_addresses",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Bind addresses",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_eecc",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-03-05 13:08:04.777821",
+ "modified_by": "Administrator",
+ "module": "Mail",
+ "name": "Mail Agent Listener",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

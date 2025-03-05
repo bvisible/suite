@@ -14,6 +14,59 @@ from mail.utils import generate_secret
 from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression
 
+DEFAULT_STORES = [
+	{
+		"type": "RocksDB",
+		"store_id": "rocksdb",
+		"path": "/opt/stalwart-mail/data",
+		"compression": "LZ4",
+		"min_blob_size_bytes": 16834,
+		"write_buffer_size_mb": 128,
+		"purge_frequency_cron": "0 3 * * *",
+	}
+]
+DEFAULT_LISTENERS = [
+	{"protocol": "HTTP", "listener_id": "http", "bind_addresses": "[::]:8080", "implicit_tls": 0},
+	{"protocol": "HTTP", "listener_id": "https", "bind_addresses": "[::]:443", "implicit_tls": 1},
+	{"protocol": "IMAP4", "listener_id": "imap", "bind_addresses": "[::]:143", "implicit_tls": 0},
+	{"protocol": "IMAP4", "listener_id": "imaptls", "bind_addresses": "[::]:993", "implicit_tls": 1},
+	{"protocol": "POP3", "listener_id": "pop3", "bind_addresses": "[::]:110", "implicit_tls": 0},
+	{"protocol": "POP3", "listener_id": "pop3s", "bind_addresses": "[::]:995", "implicit_tls": 1},
+	{
+		"protocol": "ManageSieve",
+		"listener_id": "sieve",
+		"bind_addresses": "[::]:4190",
+		"implicit_tls": 0,
+	},
+	{"protocol": "SMTP", "listener_id": "smtp", "bind_addresses": "[::]:25", "implicit_tls": 0},
+	{
+		"protocol": "SMTP",
+		"listener_id": "submission",
+		"bind_addresses": "[::]:587",
+		"implicit_tls": 0,
+	},
+	{
+		"protocol": "SMTP",
+		"listener_id": "submissions",
+		"bind_addresses": "[::]:465",
+		"implicit_tls": 1,
+	},
+]
+STORAGE_LABELS = {
+	"directory_store": _("Directory Store"),
+	"data_store": _("Data Store"),
+	"blob_store": _("Blob Store"),
+	"fts_store": _("Full Text Index Store"),
+	"in_memory_store": _("In-Memory Store"),
+}
+STORAGE_OPTIONS = {
+	"directory_store": ["RocksDB", "mySQL"],
+	"data_store": ["RocksDB", "mySQL"],
+	"blob_store": ["RocksDB", "mySQL"],
+	"fts_store": ["RocksDB", "mySQL"],
+	"in_memory_store": ["RocksDB", "mySQL"],
+}
+
 
 class MailAgentGroup(Document):
 	def autoname(self) -> None:
@@ -28,6 +81,7 @@ class MailAgentGroup(Document):
 		self.validate_cluster_encryption_key()
 		self.validate_stores()
 		self.validate_selected_stores()
+		self.validate_listeners()
 
 	def on_update(self) -> None:
 		if self.has_value_changed("enabled") or self.has_value_changed("outbound"):
@@ -109,40 +163,68 @@ class MailAgentGroup(Document):
 		"""Validates the selected stores against the stores."""
 
 		stores = {store.store_id: store for store in self.stores}
-		storage_labels = {
-			"directory_store": _("Directory Store"),
-			"data_store": _("Data Store"),
-			"blob_store": _("Blob Store"),
-			"fts_store": _("Full Text Index Store"),
-			"in_memory_store": _("In-Memory Store"),
-		}
-		storage_options = {
-			"directory_store": ["RocksDB", "mySQL"],
-			"data_store": ["RocksDB", "mySQL"],
-			"blob_store": ["RocksDB", "mySQL"],
-			"fts_store": ["RocksDB", "mySQL"],
-			"in_memory_store": ["RocksDB", "mySQL"],
-		}
 
-		for key in storage_options.keys():
+		for key in STORAGE_OPTIONS.keys():
 			selected_store = getattr(self, key)
 			if selected_store not in stores:
 				frappe.throw(_("Store with Store ID {0} not found.").format(frappe.bold(selected_store)))
 
 			store = stores[selected_store]
-			if store.type not in storage_options[key]:
+			if store.type not in STORAGE_OPTIONS[key]:
 				frappe.throw(
 					_("{0} has an invalid store type '{1}'. Allowed types are: {2}.").format(
-						frappe.bold(storage_labels[key]),
+						frappe.bold(STORAGE_LABELS[key]),
 						frappe.bold(store.type),
-						", ".join(storage_options[key]),
+						", ".join(STORAGE_OPTIONS[key]),
 					)
 				)
+
+	def validate_listeners(self) -> None:
+		"""Validates the listeners."""
+
+		listener_ids = []
+		for listener in self.listeners:
+			if listener.listener_id in listener_ids:
+				frappe.throw(
+					_("Row #{0}: Listener ID {1} is duplicated.").format(
+						listener.idx, frappe.bold(listener.listener_id)
+					)
+				)
+
+			listener_ids.append(listener.listener_id)
 
 	def clear_cache(self) -> None:
 		"""Clears the cache."""
 
 		frappe.cache.delete_value("agent_groups")
+
+	@frappe.whitelist()
+	def initialize_defaults(self) -> None:
+		"""Initializes the default values."""
+
+		self.initialize_default_stores()
+		self.initialize_default_listeners()
+
+	def initialize_default_stores(self) -> None:
+		"""Initializes the default stores."""
+
+		self.stores = []
+		for store in DEFAULT_STORES:
+			self.append("stores", store)
+
+		if len(self.stores) == 1:
+			primary_store = self.stores[0]
+
+			for field in ["directory_store", "data_store", "blob_store", "fts_store", "in_memory_store"]:
+				if primary_store.type in STORAGE_OPTIONS[field]:
+					setattr(self, field, primary_store.store_id)
+
+	def initialize_default_listeners(self) -> None:
+		"""Initializes the default listeners."""
+
+		self.listeners = []
+		for listener in DEFAULT_LISTENERS:
+			self.append("listeners", listener)
 
 	@frappe.whitelist()
 	def get_admin_password(self) -> str:

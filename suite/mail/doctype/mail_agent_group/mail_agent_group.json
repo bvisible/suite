@@ -45,7 +45,9 @@
   "frequency",
   "column_break_ld4b",
   "changes_history_days",
-  "trash_auto_expunge_days"
+  "trash_auto_expunge_days",
+  "listeners_tab",
+  "listeners"
  ],
  "fields": [
   {
@@ -303,6 +305,18 @@
    "label": "IPv6 Addresses",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "listeners",
+   "fieldtype": "Table",
+   "label": "Listeners",
+   "options": "Mail Agent Listener",
+   "reqd": 1
+  },
+  {
+   "fieldname": "listeners_tab",
+   "fieldtype": "Tab Break",
+   "label": "Listeners"
   }
  ],
  "grid_page_length": 50,
@@ -329,7 +343,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-04 18:10:58.017911",
+ "modified": "2025-03-05 12:20:37.011342",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",
