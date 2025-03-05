@@ -47,11 +47,13 @@ LOCAL_KEYS = [
 	"config.local-keys.*",
 	"certificate.*",
 	"cluster.*",
-	"storage.data",
-	"storage.blob",
-	"storage.lookup",
-	"storage.fts",
 	"storage.directory",
+	"storage.data",
+	"storage.encryption.*",
+	"storage.blob",
+	"storage.fts",
+	"storage.full-text.*",
+	"storage.lookup",
 	"authentication.fallback-admin.*",
 	"enterprise.license-key",
 ]
@@ -321,10 +323,14 @@ def get_config_toml(agent: str) -> str | None:
 		"storage": {
 			"directory": agent_group.directory_storage,
 			"data": agent_group.data_storage,
+			"encryption": {
+				"enable": agent_group.enable_encryption_at_rest,
+				"append": agent_group.encrypt_on_append,
+			},
 			"blob": agent_group.blob_storage,
 			"fts": agent_group.fts_storage,
-			"lookup": agent_group.in_memory_storage,
 			"full-text": {"default-language": agent_group.default_language},
+			"lookup": agent_group.in_memory_storage,
 		},
 		"store": get_stores(agent_group.stores),
 		"tracer": {
