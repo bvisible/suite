@@ -545,6 +545,13 @@ def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> N
 
 
 @frappe.whitelist()
+def cancel_mail(mail_type: MailType, name: str) -> None:
+	"""Cancels mail."""
+
+	frappe.db.set_value(mail_type, name, "docstatus", 2)
+
+
+@frappe.whitelist()
 def empty_trash() -> None:
 	"""Empties trash for current user."""
 
@@ -561,4 +568,4 @@ def empty_trash() -> None:
 			pluck="name",
 		)
 		for d in mails:
-			frappe.db.set_value(doctype, d, "docstatus", 2)
+			cancel_message(doctype, d)

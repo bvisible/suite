@@ -234,6 +234,12 @@ const moreActions = (mail): MailAction[] => [
 		icon: ArchiveRestore,
 		condition: () => mail.folder === 'Trash',
 	},
+	{
+		label: __('Delete Message'),
+		onClick: () => cancelMail.submit({ mail }),
+		icon: Trash2,
+		condition: () => mail.folder === 'Trash',
+	},
 ]
 
 interface SetFolderParams {
@@ -252,6 +258,14 @@ const setFolder = createResource({
 	onSuccess: () => emit('reloadMails'),
 })
 
+const cancelMail = createResource({
+	url: 'mail.api.mail.cancel_mail',
+	makeParams: (values: { mail: object }) => ({
+		mail_type: values.mail.mail_type,
+		name: values.mail.name,
+	}),
+	onSuccess: () => emit('reloadMails'),
+})
 const openModal = (type: ActionType, mail) => {
 	if (props.type == 'Incoming Mail') {
 		replyDetails.to = mail.reply_to || mail.sender
