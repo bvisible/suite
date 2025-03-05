@@ -101,6 +101,7 @@
 <script setup>
 import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 import { call, FileUploadHandler, Spinner } from 'frappe-ui'
 
@@ -247,10 +248,16 @@ const handleMediaDrop = async (e) => {
 		const fileType = file.type.split('/')[0]
 		if (['image', 'video'].includes(fileType)) {
 			const fileUploadHandler = new FileUploadHandler()
-			const fileDoc = await fileUploadHandler.upload(file, {
-				private: false,
-			})
-			addMediaElement(fileDoc, fileType)
+			toast.promise(
+				fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
+					addMediaElement(fileDoc, fileType)
+				}),
+				{
+					loading: `Uploading File`,
+					success: (data) => 'File Uploaded',
+					error: (data) => 'Upload failed. Please try again.',
+				},
+			)
 		}
 	})
 }
