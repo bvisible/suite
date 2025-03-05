@@ -155,7 +155,7 @@ def get_outgoing_mails(folder: str, start: int = 0, get_list: bool = True) -> li
 
 	mails = frappe.get_all(
 		"Outgoing Mail",
-		{"sender": account, "folder": folder},
+		{"sender": account, "docstatus": ["!=", 2], "folder": folder},
 		[
 			"name",
 			"subject",
@@ -542,3 +542,23 @@ def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> N
 	else:
 		doc.folder = None
 		doc.set_folder(db_set=True)
+
+
+@frappe.whitelist()
+def empty_trash() -> None:
+	"""Empties trash for current user."""
+
+	account = get_account_for_user(frappe.session.user)
+
+	for doctype in ["Incoming Mail", "Outgoing Mail"]:
+		mails = frappe.get_all(
+			doctype,
+			{
+				"receiver" if doctype == "Incoming Mail" else "sender": account,
+				"folder": "Trash",
+				"docstatus": ["!=", 2],
+			},
+			pluck="name",
+		)
+		for d in mails:
+			frappe.db.set_value(doctype, d, "docstatus", 2)
