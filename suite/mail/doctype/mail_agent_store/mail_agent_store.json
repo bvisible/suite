@@ -54,6 +54,7 @@
    "search_index": 1
   },
   {
+   "description": "Unique identifier for the store.",
    "fieldname": "store_id",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -61,6 +62,7 @@
    "reqd": 1
   },
   {
+   "description": "Storage backend type.",
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -74,6 +76,7 @@
    "label": "Storage Settings"
   },
   {
+   "description": "Algorithm to use to compress large binary objects.",
    "fieldname": "compression",
    "fieldtype": "Select",
    "label": "Compression",
@@ -86,6 +89,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"RocksDB\"",
+   "description": "Where to store the data in the server's filesystem.",
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
@@ -93,6 +97,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"RocksDB\"",
+   "description": "Number of worker threads to use for the store, defaults to the number of cores.",
    "fieldname": "thread_pool_size",
    "fieldtype": "Int",
    "label": "Thread Pool Size",
@@ -100,6 +105,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"RocksDB\"",
+   "description": "Minimum size of a blob to store in the blob store, smaller blobs are stored in the metadata store.",
    "fieldname": "min_blob_size_bytes",
    "fieldtype": "Int",
    "label": "Min Blob Size (Bytes)",
@@ -107,6 +113,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"RocksDB\"",
+   "description": "Size of the write buffer in bytes, used to batch writes to the store.",
    "fieldname": "write_buffer_size_mb",
    "fieldtype": "Int",
    "label": "Write Buffer Size (MB)",
@@ -121,7 +128,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "description": "How often to purge the database. Expects a cron expression.\n\n<br>\n<br>\n\n<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>",
    "fieldname": "purge_frequency_cron",
    "fieldtype": "Data",
    "label": "Purge Frequency (Cron)",
@@ -130,6 +137,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Hostname of the database server.",
    "fieldname": "hostname",
    "fieldtype": "Data",
    "label": "Hostname",
@@ -137,6 +145,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Port of the database server.",
    "fieldname": "port",
    "fieldtype": "Int",
    "label": "Port",
@@ -145,6 +154,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Name of the database.",
    "fieldname": "database",
    "fieldtype": "Data",
    "label": "Database",
@@ -152,6 +162,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Maximum size of a packet in bytes.",
    "fieldname": "max_allowed_packet_bytes",
    "fieldtype": "Int",
    "label": "Max Allowed Packet (Bytes)",
@@ -159,6 +170,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Connection timeout to the database.",
    "fieldname": "timeout_seconds",
    "fieldtype": "Int",
    "label": "Timeout (Seconds)",
@@ -180,12 +192,14 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Username to connect to the database.",
    "fieldname": "username",
    "fieldtype": "Data",
    "label": "Username"
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Password to connect to the database.",
    "fieldname": "password",
    "fieldtype": "Password",
    "label": "Password"
@@ -198,6 +212,7 @@
   {
    "default": "0",
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Use TLS to connect to the store.",
    "fieldname": "enable_tls",
    "fieldtype": "Check",
    "label": "Enable TLS"
@@ -205,12 +220,14 @@
   {
    "default": "0",
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Allow invalid TLS certificates when connecting to the store.",
    "fieldname": "allow_invalid_certs",
    "fieldtype": "Check",
    "label": "Allow Invalid Certs"
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Maximum number of connections to the store.",
    "fieldname": "max_connections",
    "fieldtype": "Int",
    "label": "Max Connections",
@@ -218,6 +235,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"mySQL\"",
+   "description": "Minimum number of connections to the store.",
    "fieldname": "min_connections",
    "fieldtype": "Int",
    "label": "Min Connections",
@@ -236,7 +254,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-05 15:14:54.878447",
+ "modified": "2025-03-05 19:04:43.962029",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Store",
