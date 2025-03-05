@@ -48,7 +48,7 @@
 			<MailDetails
 				ref="mailDetails"
 				:mail-i-d="currentMail[currentFolder]"
-				:type="getMailType()"
+				:type="getMailType() || doctype"
 				@reload-mails="reloadMails"
 				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
 			/>
