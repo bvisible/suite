@@ -324,6 +324,7 @@ def get_config_toml(agent: str) -> str | None:
 			"blob": agent_group.blob_store,
 			"fts": agent_group.fts_store,
 			"lookup": agent_group.in_memory_store,
+			"full-text": {"default-language": agent_group.default_language},
 		},
 		"store": get_stores(agent_group.stores),
 		"tracer": {
