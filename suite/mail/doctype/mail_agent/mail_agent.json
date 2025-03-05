@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "section_break_excr",
   "enabled",
   "column_break_0mtp",
@@ -25,7 +26,9 @@
   "cluster_advertise_address",
   "cluster_heartbeat",
   "section_break_vndz",
-  "config"
+  "config",
+  "listeners_tab",
+  "listeners"
  ],
  "fields": [
   {
@@ -166,12 +169,28 @@
    "fieldtype": "Data",
    "label": "Private IPv6",
    "no_copy": 1
+  },
+  {
+   "fieldname": "listeners_tab",
+   "fieldtype": "Tab Break",
+   "label": "Listeners"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "listeners",
+   "fieldtype": "Table",
+   "label": "Listeners",
+   "options": "Mail Agent Listener"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-04 18:58:38.215384",
+ "modified": "2025-03-05 14:22:31.015981",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",
