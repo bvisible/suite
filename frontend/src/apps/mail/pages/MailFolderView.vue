@@ -14,7 +14,7 @@
 				</div>
 			</template>
 		</Breadcrumbs>
-		<HeaderActions @reload-mails="reloadMails('Drafts')" />
+		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails('Drafts')" />
 	</header>
 	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
 		<div
@@ -97,11 +97,11 @@ const createMailResource = (folder: Folder) =>
 
 const mails = Object.fromEntries(folders.map((folder) => [folder, createMailResource(folder)]))
 
-const mailCountFilters = computed(() =>
-	currentFolder.value === 'Inbox'
-		? { receiver: user.data.name }
-		: { sender: user.data.name, folder: currentFolder.value },
-)
+const mailCountFilters = computed(() => ({
+	folder: currentFolder.value,
+	docstatus: ['!=', 2],
+	[currentFolder.value === 'Inbox' ? 'receiver' : 'sender']: user.data.name,
+}))
 
 const mailCount = createResource({
 	url: 'frappe.client.get_count',

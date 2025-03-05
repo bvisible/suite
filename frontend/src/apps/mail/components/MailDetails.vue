@@ -187,19 +187,19 @@ const mailActions = (mail): MailAction[] => [
 		label: __('Reply'),
 		onClick: () => openModal('reply', mail),
 		icon: Reply,
-		condition: mail.folder !== 'Drafts',
+		condition: mail.status !== 'Draft',
 	},
 	{
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
 		icon: ReplyAll,
-		condition: mail.folder !== 'Drafts',
+		condition: mail.status !== 'Draft',
 	},
 	{
 		label: __('Forward'),
 		onClick: () => openModal('forward', mail),
 		icon: Forward,
-		condition: mail.folder !== 'Drafts',
+		condition: mail.status !== 'Draft',
 	},
 ]
 
@@ -215,7 +215,7 @@ const moreActions = (mail): MailAction[] => [
 				?.focus()
 		},
 		icon: Mail,
-		condition: () => mail.folder !== 'Drafts',
+		condition: () => mail.status !== 'Draft',
 	},
 	{
 		label: __('Mark as Unread'),
