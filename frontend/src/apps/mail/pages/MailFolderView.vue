@@ -14,7 +14,7 @@
 				</div>
 			</template>
 		</Breadcrumbs>
-		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails('Drafts')" />
+		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
 	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
 		<div
