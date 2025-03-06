@@ -15,10 +15,10 @@
 		>
 			<div class="flex items-center gap-2">
 				<img src="../icons/slides.svg" class="h-7" />
-				<div class="select-none font-semibold">Slides</div>
+				<div class="text-base font-semibold">Slides</div>
 			</div>
 
-			<div class="flex justify-center items-center">
+			<div class="flex text-base justify-center items-center">
 				<input
 					spellcheck="false"
 					ref="newTitleRef"
@@ -34,9 +34,10 @@
 				>
 					{{ presentation.data?.title }}
 				</span>
-				<span class="text-gray-500"
-					>&nbsp;&#8729;&nbsp;{{ slideDirty ? 'Unsaved' : 'Saved' }}</span
-				>
+
+				<Badge class="mx-2" :theme="slideDirty ? 'orange' : 'gray'" size="md">
+					{{ slideDirty ? 'Unsaved' : 'Saved' }}
+				</Badge>
 			</div>
 
 			<div class="flex items-center gap-2 justify-end">
@@ -98,7 +99,7 @@ import { ref, computed, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmo
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
-import { call, FileUploadHandler, Spinner } from 'frappe-ui'
+import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
