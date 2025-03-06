@@ -1,4 +1,5 @@
 import { watch, ref, computed } from 'vue'
+import { handleSingleAndDoubleClick } from './helpers'
 
 export const useResizer = (position, resizeDimensions) => {
 	const resizeTarget = ref(null)
@@ -106,6 +107,17 @@ export const useResizer = (position, resizeDimensions) => {
 		window.removeEventListener('mouseup', stopResize)
 	}
 
+	const resizeToFitContent = (e) => {
+		const newWidth = resizeTarget.value.scrollWidth
+
+		const range = document.createRange()
+		const textNode = resizeTarget.value.firstChild
+		range.selectNodeContents(textNode)
+		const textWidth = range.getBoundingClientRect().width
+
+		resizeDimensions.value = { width: textWidth + 10 }
+	}
+
 	watch(
 		() => resizeTarget.value,
 		(val, oldVal) => {
@@ -119,7 +131,14 @@ export const useResizer = (position, resizeDimensions) => {
 				resizeHandles.value.forEach((handle) => {
 					const resizer = document.createElement('div')
 					resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
-					resizer.addEventListener('mousedown', startResize)
+					if (resizeMode.value == 'width') {
+						resizer.addEventListener('mousedown', (e) => {
+							e.stopImmediatePropagation()
+							handleSingleAndDoubleClick(e, startResize, resizeToFitContent)
+						})
+					} else {
+						resizer.addEventListener('mousedown', startResize)
+					}
 					val.appendChild(resizer)
 				})
 			}

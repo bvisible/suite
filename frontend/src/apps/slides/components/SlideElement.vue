@@ -29,7 +29,7 @@ const outline = computed(() => {
 
 const elementStyle = computed(() => ({
 	position: activeElementIds.value.includes(attrs['data-index']) ? 'absolute' : 'fixed',
-	width: `${element.value.width}px`,
+	width: `${element.value.width}px` || 'auto',
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
