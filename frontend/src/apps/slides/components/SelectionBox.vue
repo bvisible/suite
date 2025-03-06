@@ -196,7 +196,16 @@ const resetSelection = (oldVal) => {
 }
 
 const handleMouseDown = (e) => {
-	if (e.target.getAttribute('contenteditable')) return
+	// ignore long press outside slideContainer and slide elements
+	if (
+		!['slide', 'slideContainer'].some((cls) => e.target.classList.contains(cls)) &&
+		!e.target.hasAttribute('data-index')
+	)
+		return
+
+	// ignore long press when userSelect is enabled
+	if (e.target.getAttribute('contenteditable') == 'true') return
+
 	mousedownStart = new Date().getTime()
 	mousedownTimer = setTimeout(() => {
 		initSelection(e)
