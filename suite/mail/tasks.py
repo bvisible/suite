@@ -4,31 +4,31 @@ from frappe.utils import add_days, now
 from mail.mail.doctype.dns_record.dns_record import verify_all_dns_records
 from mail.mail.doctype.incoming_mail.incoming_mail import fetch_emails_from_mail_agents
 from mail.mail.doctype.outgoing_mail.outgoing_mail import delete_newsletters, transfer_mails_to_mail_agent
-from mail.utils import enqueue_job
+from mail.utils import enqueue_job, user_context
 
 
 @frappe.whitelist()
 def enqueue_transfer_mails_to_mail_agent() -> None:
 	"Called by the scheduler to enqueue the `transfer_mails_to_mail_agent` job."
 
-	frappe.session.user = "Administrator"
-	enqueue_job(transfer_mails_to_mail_agent, queue="long", deduplicate=True)
+	with user_context("Administrator"):
+		enqueue_job(transfer_mails_to_mail_agent, queue="long", deduplicate=True)
 
 
 @frappe.whitelist()
 def enqueue_delete_newsletters() -> None:
 	"Called by the scheduler to enqueue the `delete_newsletters` job."
 
-	frappe.session.user = "Administrator"
-	enqueue_job(delete_newsletters, queue="long", deduplicate=True)
+	with user_context("Administrator"):
+		enqueue_job(delete_newsletters, queue="long", deduplicate=True)
 
 
 @frappe.whitelist()
 def enqueue_fetch_emails_from_mail_agents() -> None:
 	"Called by the scheduler to enqueue the `fetch_emails_from_mail_agents` job."
 
-	frappe.session.user = "Administrator"
-	enqueue_job(fetch_emails_from_mail_agents, queue="long", deduplicate=True)
+	with user_context("Administrator"):
+		enqueue_job(fetch_emails_from_mail_agents, queue="long", deduplicate=True)
 
 
 @frappe.whitelist()
@@ -37,24 +37,24 @@ def enqueue_verify_all_dns_records() -> None:
 
 	frappe.only_for("System Manager")
 
-	frappe.session.user = "Administrator"
-	enqueue_job(verify_all_dns_records, queue="long", deduplicate=True)
+	with user_context("Administrator"):
+		enqueue_job(verify_all_dns_records, queue="long", deduplicate=True)
 
 
 def enqueue_cancel_trashed_mails() -> None:
 	"Called by the scheduler to enqueue the `cancel_trash_mails` job."
 
 	def cancel_trashed_mails() -> None:
-		"""Cancels mails that got trashed more than 30 days ago."""
+		"""Cancels mails that got trashed more than 30 days back."""
 
-		thirty_days_ago = add_days(now(), -30)
+		thirty_days_back = add_days(now(), -30)
 
 		for doctype in ["Incoming Mail", "Outgoing Mail"]:
 			mails = frappe.get_all(
 				doctype,
 				{
 					"folder": "Trash",
-					"trashed_on": ["<=", thirty_days_ago],
+					"trashed_on": ["<=", thirty_days_back],
 					"docstatus": ["!=", 2],
 				},
 				pluck="name",
