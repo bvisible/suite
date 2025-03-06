@@ -224,7 +224,8 @@
 		<Tooltip text="Image" :hover-delay="1" placement="left">
 			<FileUploader
 				:fileTypes="['image/*']"
-				@success="(file) => addMediaElement(file, 'image')"
+				@success="(file) => handleUploadSuccess(file, 'image')"
+				@failure="handleUploadFailure"
 			>
 				<template #default="{ openFileSelector }">
 					<div :class="getTabClasses('image')" @click="openFileSelector">
@@ -236,7 +237,8 @@
 		<Tooltip text="Video" :hover-delay="1" placement="left">
 			<FileUploader
 				:fileTypes="['video/*']"
-				@success="(file) => addMediaElement(file, 'video')"
+				@success="(file) => handleUploadSuccess(file, 'video')"
+				@failure="handleUploadFailure"
 			>
 				<template #default="{ openFileSelector }">
 					<div :class="getTabClasses('video')" @click="openFileSelector">
@@ -255,6 +257,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { toast } from 'vue-sonner'
 
 import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
 import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay } from 'lucide-vue-next'
@@ -344,6 +347,15 @@ const getPlaybackTextClasses = (option) => {
 
 const togglePlaybackOption = (option) => {
 	activeElements.value[0][option] = !activeElements.value[0][option]
+}
+
+const handleUploadSuccess = (file, type) => {
+	addMediaElement(file, type)
+	toast.success('Uploaded: ' + file.file_name)
+}
+
+const handleUploadFailure = () => {
+	toast.error('Upload failed. Please try again.')
 }
 </script>
 
