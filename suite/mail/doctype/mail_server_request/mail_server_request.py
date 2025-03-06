@@ -13,7 +13,7 @@ from frappe.utils import now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 
-class MailAgentRequestLog(Document):
+class MailServerRequest(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
@@ -124,7 +124,7 @@ class MailAgentRequestLog(Document):
 			self.notify_update()
 
 
-def create_mail_agent_request_log(
+def create_mail_server_request(
 	agent_group: str,
 	method: str,
 	endpoint: str,
@@ -135,22 +135,22 @@ def create_mail_agent_request_log(
 	execute_on_start: str | None = None,
 	execute_on_end: str | None = None,
 	do_not_enqueue: bool = False,
-) -> "MailAgentRequestLog":
-	"""Creates a new Mail Agent Request Log."""
+) -> "MailServerRequest":
+	"""Creates a new Mail Server Request."""
 
 	if do_not_enqueue:
 		frappe.flags.do_not_enqueue = True
 
-	request_log = frappe.new_doc("Mail Agent Request Log")
-	request_log.agent_group = agent_group
-	request_log.method = method
-	request_log.endpoint = endpoint
-	request_log.request_headers = request_headers
-	request_log.request_params = request_params
-	request_log.request_data = request_data
-	request_log.request_json = request_json
-	request_log.execute_on_start = execute_on_start
-	request_log.execute_on_end = execute_on_end
-	request_log.insert(ignore_permissions=True)
+	request = frappe.new_doc("Mail Server Request")
+	request.agent_group = agent_group
+	request.method = method
+	request.endpoint = endpoint
+	request.request_headers = request_headers
+	request.request_params = request_params
+	request.request_data = request_data
+	request.request_json = request_json
+	request.execute_on_start = execute_on_start
+	request.execute_on_end = execute_on_end
+	request.insert(ignore_permissions=True)
 
-	return request_log
+	return request
