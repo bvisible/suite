@@ -78,6 +78,7 @@ class MailAgentGroup(Document):
 		self.validate_agent_group()
 		self.validate_priority()
 		self.validate_admin_password()
+		self.validate_base_url()
 		self.validate_cluster_encryption_key()
 		self.validate_stores()
 		self.validate_storage()
@@ -137,6 +138,12 @@ class MailAgentGroup(Document):
 				frappe.throw(_("Password must be at least 16 characters long."))
 		else:
 			self.admin_password = random_string(length=20)
+
+	def validate_base_url(self) -> None:
+		"""Validates the base URL of the agent group."""
+
+		if not self.base_url:
+			self.base_url = f"https://{self.agent_group}/"
 
 	def validate_cluster_encryption_key(self) -> None:
 		"""Validates the encryption key of the agent group."""
