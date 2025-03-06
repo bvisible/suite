@@ -4,7 +4,10 @@
 			v-for="mail in mailThread.data"
 			:key="mail.name"
 			class="mb-4 p-3"
-			:class="{ 'rounded-md border': mailThread.data.length > 1 }"
+			:class="{
+				'rounded-md border': mailThread.data.length > 1,
+				'opacity-50': mail.folder === 'Trash',
+			}"
 		>
 			<div class="flex space-x-3 border-b pb-2">
 				<Avatar
@@ -85,21 +88,21 @@
 		class="my-auto flex h-full w-full flex-1 flex-col items-center justify-center space-y-2"
 	>
 		<div class="text-lg text-gray-500">
-			{{ __('No emails to show') }}
+			{{ __('Please select an email') }}
 		</div>
 	</div>
 	<SendMailModal
 		v-model="showSendModal"
 		:mail-i-d="draftMailID"
 		:reply-details="replyDetails"
-		@reload-mails="emit('reloadMails')"
+		@reload-mails="emit('reloadMails', 'Drafts')"
 	/>
 </template>
 
 <script setup lang="ts">
 import { inject, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import {
+	ArchiveRestore,
 	Ellipsis,
 	Forward,
 	Mail,
@@ -107,18 +110,15 @@ import {
 	Reply,
 	ReplyAll,
 	SquarePen,
+	Trash2,
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
-import { userStore } from '@/stores/user'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
 
-import type { Folder } from '@/types'
-
-const { setCurrentMail } = userStore()
 const dayjs = inject('$dayjs')
 
 const showSendModal = ref(false)
@@ -126,7 +126,7 @@ const draftMailID = ref<string>()
 
 const props = defineProps<{
 	mailID: string | null
-	type: string
+	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread'])
@@ -140,20 +140,12 @@ const replyDetails = reactive({
 	in_reply_to_mail_name: '',
 })
 
-const route = useRoute()
-
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
-	makeParams: () => {
-		return {
-			name: props.mailID,
-			mail_type: props.type,
-		}
-	},
-	onError: (error) => {
-		if (error.exc_type === 'DoesNotExistError')
-			setCurrentMail(String(route.name) as Folder, null)
-	},
+	makeParams: () => ({
+		name: props.mailID,
+		mail_type: props.type,
+	}),
 })
 
 const reloadThread = () => {
@@ -195,19 +187,19 @@ const mailActions = (mail): MailAction[] => [
 		label: __('Reply'),
 		onClick: () => openModal('reply', mail),
 		icon: Reply,
-		condition: mail.folder !== 'Drafts',
+		condition: mail.status !== 'Draft',
 	},
 	{
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
 		icon: ReplyAll,
-		condition: mail.folder !== 'Drafts',
+		condition: mail.status !== 'Draft',
 	},
 	{
 		label: __('Forward'),
 		onClick: () => openModal('forward', mail),
 		icon: Forward,
-		condition: mail.folder !== 'Drafts',
+		condition: mail.status !== 'Draft',
 	},
 ]
 
@@ -223,15 +215,57 @@ const moreActions = (mail): MailAction[] => [
 				?.focus()
 		},
 		icon: Mail,
-		condition: () => mail.folder !== 'Drafts',
+		condition: () => mail.status !== 'Draft',
 	},
 	{
 		label: __('Mark as Unread'),
 		onClick: () => emit('markAsUnread'),
 		icon: MessageSquareDot,
 	},
+	{
+		label: __('Move to Trash'),
+		onClick: () => setFolder.submit({ mail, moveToTrash: true }),
+		icon: Trash2,
+		condition: () => mail.folder !== 'Trash',
+	},
+	{
+		label: __('Restore'),
+		onClick: () => setFolder.submit({ mail, moveToTrash: false }),
+		icon: ArchiveRestore,
+		condition: () => mail.folder === 'Trash',
+	},
+	{
+		label: __('Delete Message'),
+		onClick: () => cancelMail.submit({ mail }),
+		icon: Trash2,
+		condition: () => mail.folder === 'Trash',
+	},
 ]
 
+interface SetFolderParams {
+	mail: object
+	moveToTrash: boolean
+}
+
+const setFolder = createResource({
+	url: 'mail.api.mail.set_folder',
+	method: 'POST',
+	makeParams: (values: SetFolderParams) => ({
+		mail_type: values.mail.mail_type,
+		name: values.mail.name,
+		move_to_trash: values.moveToTrash,
+	}),
+	onSuccess: () => emit('reloadMails'),
+})
+
+const cancelMail = createResource({
+	url: 'mail.api.mail.cancel_mail',
+	makeParams: (values: { mail: object }) => ({
+		mail_type: values.mail.mail_type,
+		name: values.mail.name,
+	}),
+	onSuccess: () => emit('reloadMails'),
+})
 const openModal = (type: ActionType, mail) => {
 	if (props.type == 'Incoming Mail') {
 		replyDetails.to = mail.reply_to || mail.sender

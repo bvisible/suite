@@ -3,7 +3,7 @@
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
 		<Breadcrumbs :items="[{ label: currentFolder }]">
-			<template #suffix>
+			<template v-if="currentFolder !== 'Trash'" #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
 					{{
 						__('{0} {1}', [
@@ -14,7 +14,7 @@
 				</div>
 			</template>
 		</Breadcrumbs>
-		<HeaderActions @reload-mails="reloadMails('Drafts')" />
+		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
 	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
 		<div
@@ -27,15 +27,15 @@
 				:key="idx"
 				class="flex cursor-pointer flex-col space-y-1 rounded"
 				:class="{ 'bg-gray-100': mail.name == currentMail[currentFolder] }"
-				@click="setCurrentMail(currentFolder, mail.name)"
+				@click="openMail(mail)"
 			>
-				<SidebarDetail :mail="mail" @click="markAsRead(mail)" />
+				<SidebarDetail :mail="mail" />
 				<div
 					:class="{
 						'mx-4 h-[0.25px] border-b border-gray-100':
 							idx < mails[currentFolder].data.length - 1,
 					}"
-				></div>
+				/>
 			</div>
 		</div>
 		<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
@@ -48,11 +48,9 @@
 			<MailDetails
 				ref="mailDetails"
 				:mail-i-d="currentMail[currentFolder]"
-				:type="doctype"
-				@reload-mails="reloadMails('Drafts')"
-				@mark-as-unread="
-					setSeen.submit({ mail_name: currentMail[currentFolder], seen_value: 0 })
-				"
+				:type="getMailType() || doctype"
+				@reload-mails="reloadMails"
+				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
 			/>
 		</div>
 	</div>
@@ -83,7 +81,7 @@ const doctype = computed(() =>
 
 const mailDetails = ref<typeof MailDetails>()
 
-const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts']
+const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Trash']
 
 const createMailResource = (folder: Folder) =>
 	createListResource({
@@ -92,26 +90,22 @@ const createMailResource = (folder: Folder) =>
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data) => {
-			if (!data.length) return
-			if (!currentMail[folder]) {
-				const firstSeen = data.find((m) => m.seen)
-				if (firstSeen) setCurrentMail(folder, firstSeen.name)
-			}
-			mailDetails.value?.reloadThread()
+			if (data.some((m) => m.name === currentMail[folder])) mailDetails.value?.reloadThread()
+			else setCurrentMail(folder, data.find((m) => m.seen)?.name || null)
 		},
 	})
 
 const mails = Object.fromEntries(folders.map((folder) => [folder, createMailResource(folder)]))
 
-const mailCountFilters = computed(() =>
-	currentFolder.value === 'Inbox'
-		? { receiver: user.data.name }
-		: { sender: user.data.name, folder: currentFolder.value },
-)
+const mailCountFilters = computed(() => ({
+	folder: currentFolder.value,
+	docstatus: ['!=', 2],
+	[currentFolder.value === 'Inbox' ? 'receiver' : 'sender']: user.data.name,
+}))
 
 const mailCount = createResource({
 	url: 'frappe.client.get_count',
-	auto: true,
+	auto: currentFolder.value !== 'Trash',
 	makeParams: () => ({
 		doctype: doctype.value,
 		filters: mailCountFilters.value,
@@ -120,29 +114,31 @@ const mailCount = createResource({
 })
 
 interface SetSeenParams {
-	mail_name: string
-	seen_value: 1 | 0
+	name: string
+	seen: 1 | 0
 }
 
 const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
-	makeParams: (values: SetSeenParams) => ({ mail_type: doctype.value, ...values }),
+	makeParams: (values: SetSeenParams) => ({
+		mail_type: getMailType() || doctype.value,
+		...values,
+	}),
 	onSuccess: (data: SetSeenParams) => {
-		mails[currentFolder.value].data.find((m) => m.name === data.mail_name).seen =
-			data.seen_value
-		if (data.seen_value) mailDetails.value?.reloadThread()
-		else setCurrentMail(currentFolder.value, null)
+		mails[currentFolder.value].data.find((m) => m.name === data.name).seen = data.seen
+		if (!data.seen) setCurrentMail(currentFolder.value, null)
 	},
 })
 
-const markAsRead = (mail) => {
-	if (!mail.seen) setSeen.submit({ mail_name: mail.name, seen_value: 1 })
+const openMail = (mail) => {
+	setCurrentMail(currentFolder.value, mail.name)
+	if (!mail.seen) setSeen.submit({ name: mail.name, seen: 1 })
 }
 
-const reloadMails = (folder?: Folder) => {
-	if (folder && folder !== currentFolder.value) return
+const reloadMails = (folder: Folder = currentFolder.value) => {
+	if (folder !== currentFolder.value) return
 	mails[currentFolder.value].reload()
-	mailCount.reload()
+	if (currentFolder.value !== 'Trash') mailCount.reload()
 }
 
 watch(() => currentFolder.value, reloadMails, { immediate: true })
@@ -151,6 +147,10 @@ onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
 	socket.on('incoming_mail_received', () => reloadMails('Inbox'))
 })
+
+const getMailType = () =>
+	mails[currentFolder.value].data.find((m) => m.name === currentMail[currentFolder.value])
+		?.mail_type
 
 const loadMoreEmails = useDebounceFn(() => {
 	if (mails[currentFolder.value].hasNextPage) mails[currentFolder.value].next()
