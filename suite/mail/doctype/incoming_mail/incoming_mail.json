@@ -6,6 +6,7 @@
  "field_order": [
   "type",
   "folder",
+  "trashed_on",
   "sender",
   "display_name",
   "reply_to",
@@ -445,6 +446,13 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Seen"
+  },
+  {
+   "depends_on": "eval: doc.folder == 'Trash'",
+   "fieldname": "trashed_on",
+   "fieldtype": "Datetime",
+   "label": "Trashed On",
+   "read_only": 1
   }
  ],
  "in_create": 1,
@@ -457,7 +465,7 @@
    "link_fieldname": "incoming_mail"
   }
  ],
- "modified": "2025-02-21 13:06:08.439042",
+ "modified": "2025-03-06 11:20:37.493167",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Incoming Mail",
@@ -493,6 +501,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
