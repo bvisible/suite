@@ -10,7 +10,7 @@ from frappe.utils import random_string
 
 from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
 from mail.mail_server import MailServerAPI, Principal
-from mail.utils import generate_secret
+from mail.utils import generate_secret, hash_password
 from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression
 
@@ -78,6 +78,7 @@ class MailCluster(Document):
 		self.validate_cluster()
 		self.validate_priority()
 		self.validate_admin_password()
+		self.generate_admin_password_hash()
 		self.validate_base_url()
 		self.validate_cluster_encryption_key()
 		self.validate_stores()
@@ -140,6 +141,10 @@ class MailCluster(Document):
 				frappe.throw(_("Password must be at least 16 characters long."))
 		else:
 			self.admin_password = random_string(length=20)
+
+	def generate_admin_password_hash(self) -> None:
+		if self.has_value_changed("admin_password"):
+			self.admin_password_hash = hash_password(self.get_password("admin_password"))
 
 	def validate_base_url(self) -> None:
 		"""Validates the base URL of the cluster."""
