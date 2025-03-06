@@ -84,7 +84,7 @@ const changeSlide = async (index) => {
 const saving = ref(false)
 
 const saveChanges = async () => {
-	if (!presentation.data || !slideDirty.value || activeElementIds.value.length) return
+	if (!presentation.data || !slideDirty.value) return
 	slide.value.elements = slide.value.elements.map((element, index) => {
 		let div = document.querySelector(`[data-index="${index}"]`)
 		element.width = div.offsetWidth

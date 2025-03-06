@@ -15,10 +15,10 @@
 		>
 			<div class="flex items-center gap-2">
 				<img src="../icons/slides.svg" class="h-7" />
-				<div class="select-none font-semibold">Slides</div>
+				<div class="text-base font-semibold">Slides</div>
 			</div>
 
-			<div class="flex justify-center items-center">
+			<div class="flex text-base justify-center items-center">
 				<input
 					spellcheck="false"
 					ref="newTitleRef"
@@ -34,9 +34,10 @@
 				>
 					{{ presentation.data?.title }}
 				</span>
-				<span class="text-gray-500"
-					>&nbsp;&#8729;&nbsp;{{ slideDirty ? 'Unsaved' : 'Saved' }}</span
-				>
+
+				<Badge class="mx-2" :theme="slideDirty ? 'orange' : 'gray'" size="md">
+					{{ slideDirty ? 'Unsaved' : 'Saved' }}
+				</Badge>
 			</div>
 
 			<div class="flex items-center gap-2 justify-end">
@@ -44,7 +45,7 @@
 					size="sm"
 					:variant="'subtle'"
 					:loading="saving"
-					:disabled="!slideDirty || saving"
+					:disabled="!slideDirty"
 					@click="saveChanges"
 				>
 					<template #icon>
@@ -69,13 +70,8 @@
 
 			<div
 				ref="slideContainer"
-				class="flex items-center justify-center w-full h-full"
-				:class="{
-					'bg-black': inSlideShow,
-				}"
-				:style="{
-					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
-				}"
+				class="slideContainer flex items-center justify-center w-full h-full"
+				:style="containerStyles"
 			>
 				<Slide
 					v-if="slideContainerRef"
@@ -99,10 +95,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
-import { call, FileUploadHandler, Spinner } from 'frappe-ui'
+import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
@@ -146,6 +143,14 @@ const newTitle = ref('')
 const renameMode = ref(false)
 const showNavigator = ref(true)
 const isMediaDragOver = ref(false)
+
+const containerStyles = computed(() => {
+	if (!inSlideShow.value) return {}
+	return {
+		clipPath: 'inset(45px 0 45px 0)',
+		backgroundColor: 'black',
+	}
+})
 
 const enableRenameMode = () => {
 	renameMode.value = true
@@ -243,14 +248,22 @@ const handleMediaDrop = async (e) => {
 	e.preventDefault()
 	isMediaDragOver.value = false
 	const files = e.dataTransfer.files
-	files.forEach(async (file) => {
+	const fileUploadHandler = new FileUploadHandler()
+	files.forEach((file, index) => {
 		const fileType = file.type.split('/')[0]
 		if (['image', 'video'].includes(fileType)) {
-			const fileUploadHandler = new FileUploadHandler()
-			const fileDoc = await fileUploadHandler.upload(file, {
-				private: false,
-			})
-			addMediaElement(fileDoc, fileType)
+			setTimeout(() => {
+				toast.promise(
+					fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
+						addMediaElement(fileDoc, fileType)
+					}),
+					{
+						loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
+						success: (data) => `Uploaded: ${file.name}`,
+						error: (data) => 'Upload failed. Please try again.',
+					},
+				)
+			}, 100)
 		}
 	})
 }
@@ -290,8 +303,13 @@ watch(
 	{ immediate: true },
 )
 
+const handleAutoSave = () => {
+	if (activeElementIds.value.length) return
+	saveChanges()
+}
+
 onMounted(() => {
-	autosaveInterval = setInterval(saveChanges, 60000)
+	autosaveInterval = setInterval(handleAutoSave, 60000)
 	document.addEventListener('keydown', handleKeyDown)
 })
 

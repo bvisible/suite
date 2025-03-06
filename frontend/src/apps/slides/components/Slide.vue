@@ -281,14 +281,12 @@ watch(
 	(newVal, oldVal) => {
 		if (oldVal) {
 			let element = slide.value.elements[oldVal]
-			element.left += 2
 			element.top += 2
 			slide.value.elements[oldVal].content = document.querySelector(
 				`[data-index="${oldVal}"]`,
 			).innerText
 		}
 		if (newVal) {
-			slide.value.elements[newVal].left -= 2
 			slide.value.elements[newVal].top -= 2
 		}
 	},
@@ -334,11 +332,9 @@ watch(
 	() => pairElementId.value,
 	(newVal, oldVal) => {
 		if (oldVal) {
-			slide.value.elements[oldVal].left += 2
 			slide.value.elements[oldVal].top += 2
 		}
 		if (newVal) {
-			slide.value.elements[newVal].left -= 2
 			slide.value.elements[newVal].top -= 2
 		}
 	},
