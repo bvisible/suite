@@ -161,7 +161,7 @@ const setElementPositions = () => {
 	// set positions relative to the selection box
 	activeElementIds.value.forEach((index) => {
 		let element = slide.value.elements[index]
-		element.left = element.left - left.value - 2.1
+		element.left = element.left - left.value - 0.1
 		element.top = element.top - top.value - 2.1
 	})
 }
@@ -185,7 +185,7 @@ const resetSelection = (oldVal) => {
 			let elementDiv = document.querySelector(`[data-index="${index}"]`)
 			if (!elementDiv) return
 			let element = slide.value.elements[index]
-			element.left = left.value + element.left + 2.1
+			element.left = left.value + element.left + 0.1
 			element.top = top.value + element.top + 2.1
 			let slideDiv = document.querySelector('.slide')
 			slideDiv.appendChild(elementDiv)

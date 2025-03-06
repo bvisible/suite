@@ -45,8 +45,7 @@ const addTextElement = () => {
 		top: 100,
 		content: 'Text',
 		type: 'text',
-		width: 'auto',
-		height: 'auto',
+		textAlign: 'center',
 	}
 
 	if (lastTextElement) {
