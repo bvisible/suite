@@ -80,9 +80,10 @@ class MailServerRequest(Document):
 
 		from mail.mail_server import MailServerAPI
 
+		api_key = cluster.get_password("api_key") if cluster.api_key else None
 		server_api = MailServerAPI(
 			cluster.base_url,
-			api_key=cluster.get_password("api_key"),
+			api_key=api_key,
 			username=cluster.admin_username,
 			password=cluster.get_password("admin_password"),
 		)
