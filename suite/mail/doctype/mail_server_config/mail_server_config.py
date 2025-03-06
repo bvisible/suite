@@ -97,10 +97,8 @@ def get_config_toml(server: str) -> str | None:
 			listeners_config[listener.listener_id] = {
 				"bind": bind,
 				"protocol": PROTOCOL_MAP[listener.protocol],
+				"tls": {"implicit": bool(listener.implicit_tls)},
 			}
-
-			if listener.implicit_tls:
-				listeners_config[listener.listener_id]["tls"] = {"implicit": True}
 
 		return listeners_config
 
@@ -173,8 +171,8 @@ def get_config_toml(server: str) -> str | None:
 								"compression": store.compression.lower(),
 								"purge": {"frequency": store.purge_frequency_cron},
 								"tls": {
-									"enable": store.enable_tls,
-									"allow-invalid-certs": store.allow_invalid_certs,
+									"enable": bool(store.enable_tls),
+									"allow-invalid-certs": bool(store.allow_invalid_certs),
 								},
 								"pool": {
 									"max-connections": store.max_connections,
@@ -236,8 +234,8 @@ def get_config_toml(server: str) -> str | None:
 			"directory": cluster.directory_storage,
 			"data": cluster.data_storage,
 			"encryption": {
-				"enable": cluster.enable_encryption_at_rest,
-				"append": cluster.encrypt_on_append,
+				"enable": bool(cluster.enable_encryption_at_rest),
+				"append": bool(cluster.encrypt_on_append),
 			},
 			"blob": cluster.blob_storage,
 			"fts": cluster.fts_storage,
