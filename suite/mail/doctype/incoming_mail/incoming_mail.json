@@ -28,7 +28,7 @@
   "is_spam",
   "column_break_pxhn",
   "domain_name",
-  "agent_group",
+  "cluster",
   "section_break_0jgu",
   "message_id",
   "in_reply_to",
@@ -403,16 +403,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "agent_group",
-   "fieldtype": "Data",
-   "label": "Agent Group",
-   "no_copy": 1,
-   "permlevel": 1,
-   "read_only": 1,
-   "search_index": 1,
-   "set_only_once": 1
-  },
-  {
    "default": "Mail",
    "depends_on": "eval: doc.type != \"Mail\"",
    "fieldname": "type",
@@ -436,6 +426,16 @@
    "options": "Email",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "cluster",
+   "fieldtype": "Data",
+   "label": "Cluster",
+   "no_copy": 1,
+   "permlevel": 1,
+   "read_only": 1,
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "in_create": 1,
@@ -448,7 +448,7 @@
    "link_fieldname": "incoming_mail"
   }
  ],
- "modified": "2025-02-19 17:54:12.262442",
+ "modified": "2025-03-06 14:16:22.896149",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Incoming Mail",
@@ -484,6 +484,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

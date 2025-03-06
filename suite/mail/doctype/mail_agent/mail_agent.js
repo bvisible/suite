@@ -7,7 +7,7 @@ frappe.ui.form.on('Mail Agent', {
 	},
 
 	set_queries(frm) {
-		frm.set_query('agent_group', () => ({
+		frm.set_query('cluster', () => ({
 			filters: {
 				enabled: 1,
 			},

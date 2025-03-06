@@ -76,7 +76,7 @@ class MailAgent(Document):
 			validate_mail_settings()
 
 		self.validate_agent()
-		self.validate_agent_group()
+		self.validate_cluster()
 		self.validate_cluster_node_id()
 
 	def on_update(self) -> None:
@@ -87,7 +87,7 @@ class MailAgent(Document):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Agent."))
 
-		if frappe.db.get_value("Mail Agent Group", self.agent_group, "outbound"):
+		if frappe.db.get_value("Mail Cluster", self.cluster, "outbound"):
 			self.db_set("enabled", 0)
 			create_or_update_spf_dns_record()
 
@@ -117,11 +117,11 @@ class MailAgent(Document):
 
 			self.public_ipv6 = ipv6_addresses[0]
 
-	def validate_agent_group(self) -> None:
-		"""Validates the Mail Agent Group."""
+	def validate_cluster(self) -> None:
+		"""Validates the cluster."""
 
-		if not frappe.db.get_value("Mail Agent Group", self.agent_group, "enabled"):
-			frappe.throw(_("Mail Agent Group {0} is disabled.").format(frappe.bold(self.agent_group)))
+		if not frappe.db.get_value("Mail Cluster", self.cluster, "enabled"):
+			frappe.throw(_("Mail Cluster {0} is disabled.").format(frappe.bold(self.cluster)))
 
 	def validate_cluster_node_id(self) -> None:
 		"""Validates the cluster node ID."""
@@ -129,7 +129,7 @@ class MailAgent(Document):
 		if frappe.db.exists(
 			"Mail Agent",
 			{
-				"agent_group": self.agent_group,
+				"cluster": self.cluster,
 				"cluster_node_id": self.cluster_node_id,
 				"name": ["!=", self.name],
 			},
@@ -148,13 +148,13 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 	spf_host = spf_host or mail_settings.spf_host
 
 	MAIL_AGENT = frappe.qb.DocType("Mail Agent")
-	AGENT_GROUP = frappe.qb.DocType("Mail Agent Group")
+	CLUSTER = frappe.qb.DocType("Mail Cluster")
 	outbound_agents = (
-		frappe.qb.from_(AGENT_GROUP)
+		frappe.qb.from_(CLUSTER)
 		.join(MAIL_AGENT)
-		.on(AGENT_GROUP.name == MAIL_AGENT.agent_group)
+		.on(CLUSTER.name == MAIL_AGENT.cluster)
 		.select(MAIL_AGENT.name)
-		.where((AGENT_GROUP.enabled == 1) & (AGENT_GROUP.outbound == 1) & (MAIL_AGENT.enabled == 1))
+		.where((CLUSTER.enabled == 1) & (CLUSTER.outbound == 1) & (MAIL_AGENT.enabled == 1))
 		.orderby(MAIL_AGENT.name, order=Order.asc)
 	).run(pluck="name")
 
@@ -195,13 +195,13 @@ def get_config_toml(agent: str) -> str | None:
 
 		return listeners_config
 
-	def get_seed_nodes(agent: str, agent_group: str) -> dict:
+	def get_seed_nodes(agent: str, cluster: str) -> dict:
 		"""Returns the seed nodes for the Mail Agent."""
 
 		seed_nodes = []
 		for a in frappe.db.get_all(
 			"Mail Agent",
-			filters={"agent_group": agent_group, "name": ["!=", agent]},
+			filters={"cluster": cluster, "name": ["!=", agent]},
 			fields=[
 				"private_ipv4",
 				"private_ipv6",
@@ -278,19 +278,19 @@ def get_config_toml(agent: str) -> str | None:
 		return store_config
 
 	agent = frappe.get_doc("Mail Agent", agent)
-	agent_group = frappe.get_doc("Mail Agent Group", agent.agent_group)
+	cluster = frappe.get_doc("Mail Cluster", agent.cluster)
 
 	config = {
 		"authentication": {
 			"fallback-admin": {
-				"user": agent_group.admin_username,
-				"secret": hash_password(agent_group.get_password("admin_password")),
+				"user": cluster.admin_username,
+				"secret": hash_password(cluster.get_password("admin_password")),
 			}
 		},
 		"server": {
 			"hostname": agent.agent,
 			"max-connections": agent.server_max_connections,
-			"listener": get_listeners(agent.listeners or agent_group.listeners),
+			"listener": get_listeners(agent.listeners or cluster.listeners),
 			"socket": {
 				"backlog": 1024,
 				"nodelay": True,
@@ -301,19 +301,19 @@ def get_config_toml(agent: str) -> str | None:
 		"cluster": {
 			"node-id": agent.cluster_node_id,
 			"bind-addr": agent.cluster_bind_address,
-			"bind-port": agent_group.cluster_bind_port,
+			"bind-port": cluster.cluster_bind_port,
 			"advertise-addr": agent.get(frappe.scrub(agent.cluster_advertise_address)),
-			"key": agent_group.get_password("cluster_encryption_key"),
+			"key": cluster.get_password("cluster_encryption_key"),
 			"heartbeat": f"{agent.cluster_heartbeat}s" if agent.cluster_heartbeat else 0,
-			"seed-nodes": get_seed_nodes(agent.name, agent_group.name),
+			"seed-nodes": get_seed_nodes(agent.name, cluster.name),
 		},
 		"config": {
 			"local-keys": get_local_keys(),
 		},
 		"directory": {
-			f"{agent_group.directory_storage}": {
+			f"{cluster.directory_storage}": {
 				"type": "internal",
-				"store": f"{agent_group.directory_storage}",
+				"store": f"{cluster.directory_storage}",
 				"cache": {
 					"size": 1048576,
 					"ttl": {
@@ -324,33 +324,33 @@ def get_config_toml(agent: str) -> str | None:
 			}
 		},
 		"storage": {
-			"directory": agent_group.directory_storage,
-			"data": agent_group.data_storage,
+			"directory": cluster.directory_storage,
+			"data": cluster.data_storage,
 			"encryption": {
-				"enable": agent_group.enable_encryption_at_rest,
-				"append": agent_group.encrypt_on_append,
+				"enable": cluster.enable_encryption_at_rest,
+				"append": cluster.encrypt_on_append,
 			},
-			"blob": agent_group.blob_storage,
-			"fts": agent_group.fts_storage,
-			"full-text": {"default-language": agent_group.default_language},
-			"lookup": agent_group.in_memory_storage,
+			"blob": cluster.blob_storage,
+			"fts": cluster.fts_storage,
+			"full-text": {"default-language": cluster.default_language},
+			"lookup": cluster.in_memory_storage,
 		},
 		"jmap": {
-			"account": {"purge": {"frequency": agent_group.jmap_frequency_cron}},
+			"account": {"purge": {"frequency": cluster.jmap_frequency_cron}},
 			"email": {
-				"auto-expunge": f"{agent_group.jmap_trash_auto_expunge_days}d"
-				if agent_group.jmap_trash_auto_expunge_days
+				"auto-expunge": f"{cluster.jmap_trash_auto_expunge_days}d"
+				if cluster.jmap_trash_auto_expunge_days
 				else 0
 			},
 			"protocol": {
 				"changes": {
-					"max-history": f"{agent_group.jmap_changes_history_days}d"
-					if agent_group.jmap_changes_history_days
+					"max-history": f"{cluster.jmap_changes_history_days}d"
+					if cluster.jmap_changes_history_days
 					else 0
 				}
 			},
 		},
-		"store": get_stores(agent_group.stores),
+		"store": get_stores(cluster.stores),
 		"tracer": {
 			"log": {
 				"type": "log",
@@ -379,5 +379,5 @@ def get_config_toml(agent: str) -> str | None:
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Agent", ["agent_group", "cluster_node_id"], constraint_name="unique_cluster_node_id"
+		"Mail Agent", ["cluster", "cluster_node_id"], constraint_name="unique_cluster_node_id"
 	)

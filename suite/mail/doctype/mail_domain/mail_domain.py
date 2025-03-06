@@ -216,20 +216,20 @@ def get_dns_records(domain_name: str) -> list[dict]:
 	)
 
 	# MX Record(s)
-	if inbound_agent_groups := frappe.db.get_all(
-		"Mail Agent Group",
+	if inbound_clusters := frappe.db.get_all(
+		"Mail Cluster",
 		filters={"enabled": 1, "inbound": 1},
-		fields=["agent_group", "priority"],
+		fields=["cluster", "priority"],
 		order_by="priority asc",
 	):
-		for group in inbound_agent_groups:
+		for cluster in inbound_clusters:
 			records.append(
 				{
 					"category": "Receiving Record",
 					"type": "MX",
 					"host": domain_name,
-					"value": f"{group.agent_group.split(':')[0]}.",
-					"priority": group.priority,
+					"value": f"{cluster.cluster.split(':')[0]}.",
+					"priority": cluster.priority,
 					"ttl": mail_settings.default_ttl,
 				}
 			)

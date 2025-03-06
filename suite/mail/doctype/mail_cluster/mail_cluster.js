@@ -23,7 +23,7 @@ const STORES_PRESET = {
 	},
 }
 
-frappe.ui.form.on('Mail Agent Group', {
+frappe.ui.form.on('Mail Cluster', {
 	setup(frm) {
 		frm.trigger('initialize_defaults')
 	},

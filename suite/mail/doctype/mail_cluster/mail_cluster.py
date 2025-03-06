@@ -68,14 +68,14 @@ STORAGE_OPTIONS = {
 }
 
 
-class MailAgentGroup(Document):
+class MailCluster(Document):
 	def autoname(self) -> None:
-		self.agent_group = self.agent_group.lower()
-		self.name = self.agent_group
+		self.cluster = self.cluster.lower()
+		self.name = self.cluster
 
 	def validate(self) -> None:
 		self.validate_enabled()
-		self.validate_agent_group()
+		self.validate_cluster()
 		self.validate_priority()
 		self.validate_admin_password()
 		self.validate_base_url()
@@ -92,7 +92,7 @@ class MailAgentGroup(Document):
 
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can delete Mail Agent Group."))
+			frappe.throw(_("Only Administrator can delete Mail Cluster."))
 
 		if self.outbound:
 			self.db_set("enabled", 0)
@@ -101,7 +101,7 @@ class MailAgentGroup(Document):
 		self.clear_cache()
 
 	def validate_enabled(self) -> None:
-		"""Validates the enabled status of the agent group."""
+		"""Validates the enabled status of the cluster."""
 
 		if self.enabled and not self.inbound and not self.outbound:
 			self.enabled = 0
@@ -109,27 +109,27 @@ class MailAgentGroup(Document):
 		if self.enabled:
 			return
 
-		if agent := frappe.db.exists("Mail Agent", {"enabled": 1, "agent_group": self.name}):
+		if agent := frappe.db.exists("Mail Agent", {"enabled": 1, "cluster": self.name}):
 			frappe.throw(_("Mail Agent {0} is enabled. Please disable it first.").format(frappe.bold(agent)))
 
-	def validate_agent_group(self) -> None:
-		"""Validates the agent group and fetches the IP addresses."""
+	def validate_cluster(self) -> None:
+		"""Validates the cluster and fetches the IP addresses."""
 
-		if self.is_new() and frappe.db.exists("Mail Agent Group", self.agent_group):
-			frappe.throw(_("Mail Agent Group {0} already exists.").format(frappe.bold(self.agent_group)))
+		if self.is_new() and frappe.db.exists("Mail Cluster", self.cluster):
+			frappe.throw(_("Mail Cluster {0} already exists.").format(frappe.bold(self.cluster)))
 
-		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.agent_group, "A") or []])
-		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.agent_group, "AAAA") or []])
+		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.cluster, "A") or []])
+		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.cluster, "AAAA") or []])
 
 	def validate_priority(self) -> None:
-		"""Validates the priority of the agent group."""
+		"""Validates the priority of the cluster."""
 
 		if frappe.db.exists(
-			"Mail Agent Group",
+			"Mail Cluster",
 			{"enabled": 1, "inbound": 1, "priority": self.priority, "name": ["!=", self.name]},
 		):
 			frappe.throw(
-				_("Mail Agent Group with priority {0} already exists.").format(frappe.bold(self.priority))
+				_("Mail Cluster with priority {0} already exists.").format(frappe.bold(self.priority))
 			)
 
 	def validate_admin_password(self) -> None:
@@ -140,13 +140,13 @@ class MailAgentGroup(Document):
 			self.admin_password = random_string(length=20)
 
 	def validate_base_url(self) -> None:
-		"""Validates the base URL of the agent group."""
+		"""Validates the base URL of the cluster."""
 
 		if not self.base_url:
-			self.base_url = f"https://{self.agent_group}/"
+			self.base_url = f"https://{self.cluster}/"
 
 	def validate_cluster_encryption_key(self) -> None:
-		"""Validates the encryption key of the agent group."""
+		"""Validates the encryption key of the cluster."""
 
 		if not self.cluster_encryption_key:
 			self.cluster_encryption_key = random_string(length=64)
@@ -205,7 +205,7 @@ class MailAgentGroup(Document):
 	def clear_cache(self) -> None:
 		"""Clears the cache."""
 
-		frappe.cache.delete_value("agent_groups")
+		frappe.cache.delete_value("clusters")
 
 	@frappe.whitelist()
 	def initialize_defaults(self) -> None:
@@ -237,26 +237,26 @@ class MailAgentGroup(Document):
 
 	@frappe.whitelist()
 	def get_admin_password(self) -> str:
-		"""Returns the admin password of the agent group."""
+		"""Returns the admin password of the cluster."""
 
 		frappe.only_for("System Manager")
 		return self.get_password("admin_password")
 
 	@frappe.whitelist()
 	def generate_api_key(self) -> None:
-		"""Generates an API key for the agent group."""
+		"""Generates an API key for the cluster."""
 
 		frappe.only_for("System Manager")
 		self.api_key = self._generate_api_key()
 		self.save()
 
 	def _generate_api_key(self) -> str:
-		"""Generates an API key for the agent group."""
+		"""Generates an API key for the cluster."""
 
 		if not self.base_url:
 			frappe.throw(_("Base URL is required."))
 
-		name = f"{random_string(10)}-{self.agent_group}".lower()
+		name = f"{random_string(10)}-{self.cluster}".lower()
 		secret = generate_secret()
 		principal = Principal(
 			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]

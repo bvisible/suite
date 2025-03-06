@@ -143,14 +143,14 @@ def get_blacklist_for_ip_group(ip_group: str) -> list:
 	return frappe.cache.hget("ip-blacklist", ip_group, generator)
 
 
-def get_agent_groups() -> list:
-	"""Returns the agent groups."""
+def get_agent_clusters() -> list:
+	"""Returns the clusters."""
 
 	def generator() -> list:
-		AGENT_GROUP = frappe.qb.DocType("Mail Agent Group")
-		return (frappe.qb.from_(AGENT_GROUP).select("name").where(AGENT_GROUP.enabled == 1)).run(pluck="name")
+		CLUSTER = frappe.qb.DocType("Mail Cluster")
+		return (frappe.qb.from_(CLUSTER).select("name").where(CLUSTER.enabled == 1)).run(pluck="name")
 
-	return frappe.cache.get_value("agent_groups", generator)
+	return frappe.cache.get_value("clusters", generator)
 
 
 def get_rate_limits(method_path: str) -> list:
