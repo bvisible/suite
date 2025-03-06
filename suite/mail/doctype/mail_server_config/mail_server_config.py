@@ -196,6 +196,7 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"server": {
 			"hostname": server.server,
+			"proxy": {"trusted-networks": cluster.ipv4_addresses.split("\n")},
 			"max-connections": server.server_max_connections,
 			"listener": get_listeners(server.listeners or cluster.listeners),
 			"socket": {
@@ -274,11 +275,15 @@ def get_config_toml(server: str) -> str | None:
 	toml_lines = []
 	for key, value in sorted(flatten_dict(config).items()):
 		if value or isinstance(value, bool):
-			if isinstance(value, str):
-				toml_lines.append(f'{key} = "{value}"')
-			elif isinstance(value, bool):
-				toml_lines.append(f"{key} = {str(value).lower()}")
-			else:
-				toml_lines.append(f"{key} = {value}")
+			match value:
+				case str():
+					toml_lines.append(f'{key} = "{value}"')
+				case bool():
+					toml_lines.append(f"{key} = {str(value).lower()}")
+				case list():
+					formatted_list = ", ".join(f'"{v}"' if isinstance(v, str) else str(v) for v in value)
+					toml_lines.append(f"{key} = [{formatted_list}]")
+				case _:
+					toml_lines.append(f"{key} = {value}")
 
 	return "\n".join(toml_lines)
