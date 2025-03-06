@@ -38,7 +38,7 @@ const FIELDS = [
 	{
 		condition: !!props.mail.reply_to,
 		label: __('Reply To: '),
-		value: () => getRecipients(props.mail.reply_to, true),
+		value: () => props.mail.reply_to,
 	},
 	{
 		label: __('To: '),
