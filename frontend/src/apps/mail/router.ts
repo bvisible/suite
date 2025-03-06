@@ -96,6 +96,13 @@ const routes = [
 		component: () => import('@/pages/dashboard/MembersView.vue'),
 		meta: { isDashboard: true },
 	},
+	{
+		path: '/dashboard/members/:accountID',
+		name: 'Account',
+		component: () => import('@/pages/dashboard/AccountView.vue'),
+		props: true,
+		meta: { isDashboard: true },
+	},
 ]
 
 const router = createRouter({

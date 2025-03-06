@@ -205,9 +205,7 @@ const domain = createDocumentResource({
 			},
 		},
 	},
-	onError: (error) => {
-		if (error.exc_type === 'DoesNotExistError') router.replace({ name: 'Domains' })
-	},
+	onError: () => router.replace({ name: 'Domains' }),
 })
 
 const BREADCRUMBS = [
