@@ -186,7 +186,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "URL where HTTP requests are sent before being forwarded to mail agents.",
+   "description": "URL where HTTP requests are sent before being forwarded to mail servers.",
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL",
@@ -352,7 +352,7 @@
    "reqd": 1
   },
   {
-   "description": "FQDN of the proxy or load balancer forwarding requests to mail agents.",
+   "description": "FQDN of the proxy or load balancer forwarding requests to mail servers.",
    "fieldname": "cluster",
    "fieldtype": "Data",
    "label": "Cluster",
@@ -368,7 +368,7 @@
  "links": [
   {
    "group": "Reference",
-   "link_doctype": "Mail Agent",
+   "link_doctype": "Mail Server",
    "link_fieldname": "cluster"
   },
   {

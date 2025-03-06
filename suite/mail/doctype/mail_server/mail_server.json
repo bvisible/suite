@@ -10,7 +10,7 @@
   "enabled",
   "column_break_0mtp",
   "cluster",
-  "agent",
+  "server",
   "network_settings_section",
   "server_max_connections",
   "private_ipv4",
@@ -32,10 +32,10 @@
  "fields": [
   {
    "description": "Hostname of the mail server.",
-   "fieldname": "agent",
+   "fieldname": "server",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Agent",
+   "label": "Server",
    "no_copy": 1,
    "reqd": 1,
    "set_only_once": 1,
@@ -121,7 +121,7 @@
   {
    "default": "1",
    "depends_on": "eval: !doc.__islocal",
-   "description": "Disable to stop this mail agent from sending or receiving emails.",
+   "description": "Disable to stop this mail server from sending or receiving emails.",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled",
@@ -173,7 +173,7 @@
    "label": "Details"
   },
   {
-   "description": "Define custom listeners for this mail agent. If not set, the cluster\u2019s listeners will be used.",
+   "description": "Define custom listeners for this mail server. If not set, the cluster\u2019s listeners will be used.",
    "fieldname": "listeners",
    "fieldtype": "Table",
    "label": "Listeners",
@@ -198,7 +198,7 @@
  "modified": "2025-03-06 14:21:33.591295",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Agent",
+ "name": "Mail Server",
  "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [

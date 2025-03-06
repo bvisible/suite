@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-03-06 10:59+0553\n"
-"PO-Revision-Date: 2025-03-06 10:59+0553\n"
+"POT-Creation-Date: 2025-03-06 15:35+0553\n"
+"PO-Revision-Date: 2025-03-06 15:35+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -53,12 +53,12 @@ msgstr ""
 msgid "API Access"
 msgstr ""
 
-#. Label of the api_key (Password) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the api_key (Password) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "API Key"
 msgstr ""
 
-#: mail/agent.py:58
+#: mail/mail_server.py:58
 msgid "API Key or Username and Password is required."
 msgstr ""
 
@@ -91,7 +91,7 @@ msgstr ""
 #: mail/mail/doctype/incoming_mail/incoming_mail.js:23
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:29
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:39
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.js:70
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:70
 #: mail/mail/doctype/mail_domain/mail_domain.js:62
 #: mail/mail/doctype/mail_domain/mail_domain.js:75
 #: mail/mail/doctype/mail_domain/mail_domain.js:88
@@ -116,49 +116,14 @@ msgid "Add Member"
 msgstr ""
 
 #. Label of the cluster_advertise_address (Select) field in DocType 'Mail
-#. Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Advertise Address"
 msgstr ""
 
-#. Label of the agent (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-msgid "Agent"
-msgstr ""
-
-#. Label of the agent_group (Data) field in DocType 'Incoming Mail'
-#. Label of the agent_group (Link) field in DocType 'Mail Agent'
-#. Label of the agent_group (Data) field in DocType 'Mail Agent Group'
-#. Label of the agent_group (Link) field in DocType 'Mail Agent Request Log'
-#. Label of the agent_group (Data) field in DocType 'Outgoing Mail'
-#: mail/mail/doctype/incoming_mail/incoming_mail.json
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-#: mail/mail/report/outbound_delay/outbound_delay.js:49
-#: mail/mail/report/outbound_delay/outbound_delay.py:106
-#: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.js:49
-#: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.py:85
-msgid "Agent Group"
-msgstr ""
-
-#. Label of the agent_groups_section (Section Break) field in DocType 'Mail
-#. Domain'
-#. Label of the agent_groups_section (Section Break) field in DocType 'Outgoing
-#. Mail'
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-msgid "Agent Groups"
-msgstr ""
-
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.py:103
-msgid "Agent Request Failed"
-msgstr ""
-
-#. Description of the 'Compression' (Select) field in DocType 'Mail Agent
+#. Description of the 'Compression' (Select) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Algorithm to use to compress large binary objects."
 msgstr ""
 
@@ -176,28 +141,27 @@ msgstr ""
 msgid "All recipients are blocked or sent."
 msgstr ""
 
-#. Label of the allow_invalid_certs (Check) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the allow_invalid_certs (Check) field in DocType 'Mail Server
+#. Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Allow Invalid Certs"
 msgstr ""
 
 #. Description of the 'Allow Invalid Certs' (Check) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Allow invalid TLS certificates when connecting to the store."
 msgstr ""
 
 #. Description of the 'Enable encryption at rest' (Check) field in DocType
-#. 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Allow users to configure encryption at rest for their data."
 msgstr ""
 
 #. Label of the amended_from (Link) field in DocType 'Incoming Mail'
-#. Label of the amended_from (Link) field in DocType 'Mail Agent Store'
 #. Label of the amended_from (Link) field in DocType 'Outgoing Mail'
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Amended From"
 msgstr ""
@@ -207,7 +171,7 @@ msgid "Amending {0} is not allowed."
 msgstr ""
 
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.js:54
-msgid "Are you sure you want to force transfer this email to the agent? It may cause duplicate emails to be sent."
+msgid "Are you sure you want to force transfer this email to the server? It may cause duplicate emails to be sent."
 msgstr ""
 
 #: mail/mail/doctype/mail_domain/mail_domain.js:69
@@ -263,11 +227,11 @@ msgid "Authenticated Session Timeout (Seconds)"
 msgstr ""
 
 #. Label of the authentication_section (Section Break) field in DocType 'Mail
-#. Agent Group'
+#. Cluster'
 #. Label of the authentication_section (Section Break) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Authentication"
 msgstr ""
 
@@ -291,12 +255,12 @@ msgstr ""
 msgid "Bad Cron Expression"
 msgstr ""
 
-#. Label of the base_url (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the base_url (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Base URL"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:257
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:257
 msgid "Base URL is required."
 msgstr ""
 
@@ -308,19 +272,19 @@ msgstr ""
 msgid "Bcc"
 msgstr ""
 
-#. Label of the cluster_bind_address (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Label of the cluster_bind_address (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Bind Address"
 msgstr ""
 
-#. Label of the bind_addresses (Small Text) field in DocType 'Mail Agent
+#. Label of the bind_addresses (Small Text) field in DocType 'Mail Server
 #. Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Bind Addresses"
 msgstr ""
 
-#. Label of the cluster_bind_port (Int) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the cluster_bind_port (Int) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Bind Port"
 msgstr ""
 
@@ -335,9 +299,9 @@ msgid "Blacklisted"
 msgstr ""
 
 #. Label of the blob_storage_section (Section Break) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:58
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:58
 msgid "Blob Storage"
 msgstr ""
 
@@ -446,9 +410,8 @@ msgstr ""
 msgid "Cc"
 msgstr ""
 
-#. Label of the jmap_changes_history_days (Int) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the jmap_changes_history_days (Int) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Changes History (Days)"
 msgstr ""
 
@@ -477,8 +440,8 @@ msgid "Checking email deliverability..."
 msgstr ""
 
 #. Label of the cleanup_jmap_section (Section Break) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Cleanup (JMAP)"
 msgstr ""
 
@@ -488,17 +451,42 @@ msgstr ""
 msgid "Cleanup Interval (Seconds)"
 msgstr ""
 
+#. Label of the cluster (Data) field in DocType 'Incoming Mail'
+#. Label of the cluster (Data) field in DocType 'Mail Cluster'
+#. Label of the cluster (Link) field in DocType 'Mail Server'
+#. Label of the cluster (Link) field in DocType 'Mail Server Request'
+#. Label of the cluster (Data) field in DocType 'Outgoing Mail'
+#: mail/mail/doctype/incoming_mail/incoming_mail.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server/mail_server.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
+#: mail/mail/report/outbound_delay/outbound_delay.js:49
+#: mail/mail/report/outbound_delay/outbound_delay.py:106
+#: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.js:49
+#: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.py:85
+msgid "Cluster"
+msgstr ""
+
 #. Label of the cluster_settings_section (Section Break) field in DocType 'Mail
-#. Agent'
+#. Cluster'
 #. Label of the cluster_settings_section (Section Break) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Server'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Cluster Settings"
 msgstr ""
 
-#. Option for the 'Status' (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the clusters_section (Section Break) field in DocType 'Mail Domain'
+#. Label of the clusters_section (Section Break) field in DocType 'Outgoing
+#. Mail'
+#: mail/mail/doctype/mail_domain/mail_domain.json
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
+msgid "Clusters"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Completed"
 msgstr ""
 
@@ -511,14 +499,14 @@ msgstr ""
 msgid "Compose an email"
 msgstr ""
 
-#. Label of the compression (Select) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the compression (Select) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Compression"
 msgstr ""
 
 #. Label of the configuration_section (Section Break) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Configuration"
 msgstr ""
 
@@ -527,15 +515,15 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
-#. Description of the 'Timeout (Seconds)' (Int) field in DocType 'Mail Agent
+#. Description of the 'Timeout (Seconds)' (Int) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Connection timeout to the database."
 msgstr ""
 
 #. Description of the 'Data Storage' (Section Break) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Core storage unit where email metadata, folders, and various settings are stored. Essentially, it contains all the data except for large binary objects (blobs)."
 msgstr ""
 
@@ -597,8 +585,8 @@ msgstr ""
 msgid "Custom header {0} is not allowed."
 msgstr ""
 
-#. Option for the 'Method' (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Option for the 'Method' (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "DELETE"
 msgstr ""
 
@@ -723,20 +711,20 @@ msgid "DSN Report"
 msgstr ""
 
 #. Label of the data_storage_section (Section Break) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:57
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:57
 msgid "Data Storage"
 msgstr ""
 
-#. Label of the database (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the database (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Database"
 msgstr ""
 
 #. Description of the 'Full Text Index Storage' (Section Break) field in
-#. DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Dedicated to indexing for full-text search, enhancing the speed and efficiency of text-based queries."
 msgstr ""
 
@@ -749,14 +737,13 @@ msgstr ""
 msgid "Default Email must be one of the email addresses assigned to the user."
 msgstr ""
 
-#. Label of the default_language (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the default_language (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Default Language"
 msgstr ""
 
-#. Description of the 'Default Language' (Data) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Default Language' (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Default language to use when language detection is not possible."
 msgstr ""
 
@@ -766,9 +753,9 @@ msgstr ""
 msgid "Defaults"
 msgstr ""
 
-#. Description of the 'Listeners' (Table) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-msgid "Define custom listeners for this mail agent. If not set, the group’s listeners will be used."
+#. Description of the 'Listeners' (Table) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
+msgid "Define custom listeners for this mail server. If not set, the cluster’s listeners will be used."
 msgstr ""
 
 #. Label of the delivered_to (Data) field in DocType 'Incoming Mail'
@@ -784,10 +771,10 @@ msgstr ""
 msgid "Delivery to this recipient was blocked because their email address is on our blocklist. This action was taken after repeated delivery failures to this address. To protect your sender reputation and prevent further issues, this email was not sent to the blocked recipient."
 msgstr ""
 
-#. Label of the details_tab (Tab Break) field in DocType 'Mail Agent'
-#. Label of the details_tab (Tab Break) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the details_tab (Tab Break) field in DocType 'Mail Cluster'
+#. Label of the details_tab (Tab Break) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Details"
 msgstr ""
 
@@ -797,20 +784,20 @@ msgid "DigitalOcean"
 msgstr ""
 
 #. Label of the directory_storage_section (Section Break) field in DocType
-#. 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:56
+#. 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:56
 msgid "Directory Storage"
 msgstr ""
 
-#. Description of the 'Enabled' (Check) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "Disable to stop sending and receiving emails form this group."
+#. Description of the 'Enabled' (Check) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Disable to stop sending and receiving emails form this cluster."
 msgstr ""
 
-#. Description of the 'Enabled' (Check) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-msgid "Disable to stop this mail agent from sending or receiving emails."
+#. Description of the 'Enabled' (Check) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
+msgid "Disable to stop this mail server from sending or receiving emails."
 msgstr ""
 
 #: frontend/src/components/Modals/SendMailModal.vue:174
@@ -954,9 +941,9 @@ msgstr ""
 msgid "Duplicate Record"
 msgstr ""
 
-#. Label of the duration (Float) field in DocType 'Mail Agent Request Log'
+#. Label of the duration (Float) field in DocType 'Mail Server Request'
 #. Label of the duration (Float) field in DocType 'Spam Check Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/spam_check_log/spam_check_log.json
 msgid "Duration (Seconds)"
 msgstr ""
@@ -1018,14 +1005,14 @@ msgstr ""
 msgid "Enable Spam Detection"
 msgstr ""
 
-#. Label of the enable_tls (Check) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the enable_tls (Check) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Enable TLS"
 msgstr ""
 
-#. Label of the enable_encryption_at_rest (Check) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the enable_encryption_at_rest (Check) field in DocType 'Mail
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Enable encryption at rest"
 msgstr ""
 
@@ -1036,48 +1023,48 @@ msgstr ""
 
 #. Label of the enabled (Check) field in DocType 'DKIM Key'
 #. Label of the enabled (Check) field in DocType 'Mail Account'
-#. Label of the enabled (Check) field in DocType 'Mail Agent'
-#. Label of the enabled (Check) field in DocType 'Mail Agent Group'
 #. Label of the enabled (Check) field in DocType 'Mail Alias'
+#. Label of the enabled (Check) field in DocType 'Mail Cluster'
 #. Label of the enabled (Check) field in DocType 'Mail Domain'
 #. Label of the enabled (Check) field in DocType 'Mail Group'
+#. Label of the enabled (Check) field in DocType 'Mail Server'
 #. Label of the enabled (Check) field in DocType 'Rate Limit'
 #: frontend/src/pages/dashboard/DomainView.vue:21
 #: mail/mail/doctype/dkim_key/dkim_key.json
 #: mail/mail/doctype/mail_account/mail_account.json
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_group/mail_group.json
+#: mail/mail/doctype/mail_server/mail_server.json
 #: mail/mail/doctype/rate_limit/rate_limit.json
 msgid "Enabled"
 msgstr ""
 
-#. Description of the 'Encrypt on append' (Check) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Encrypt on append' (Check) field in DocType 'Mail
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Encrypt messages that are manually appended by the user using JMAP or IMAP."
 msgstr ""
 
-#. Label of the encrypt_on_append (Check) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the encrypt_on_append (Check) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Encrypt on append"
 msgstr ""
 
-#. Label of the cluster_encryption_key (Password) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the cluster_encryption_key (Password) field in DocType 'Mail
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Encryption Key"
 msgstr ""
 
-#. Label of the ended_at (Datetime) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the ended_at (Datetime) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Ended At"
 msgstr ""
 
-#. Label of the endpoint (Data) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the endpoint (Data) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Endpoint"
 msgstr ""
 
@@ -1094,9 +1081,9 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#. Label of the error_log (Code) field in DocType 'Mail Agent Request Log'
+#. Label of the error_log (Code) field in DocType 'Mail Server Request'
 #. Label of the error_log (Code) field in DocType 'Outgoing Mail'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Error Log"
 msgstr ""
@@ -1112,29 +1099,27 @@ msgstr ""
 msgid "Error creating IP Blacklist"
 msgstr ""
 
-#. Label of the exclude_agent_groups (Small Text) field in DocType 'Mail
-#. Domain'
-#. Label of the exclude_agent_groups (Small Text) field in DocType 'Outgoing
-#. Mail'
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-msgid "Exclude Agent Groups"
-msgstr ""
-
 #. Option for the 'Scanning Mode' (Select) field in DocType 'Mail Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Exclude Attachments"
 msgstr ""
 
-#. Label of the execute_on_end (Small Text) field in DocType 'Mail Agent
-#. Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the exclude_clusters (Small Text) field in DocType 'Mail Domain'
+#. Label of the exclude_clusters (Small Text) field in DocType 'Outgoing Mail'
+#: mail/mail/doctype/mail_domain/mail_domain.json
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
+msgid "Exclude Clusters"
+msgstr ""
+
+#. Label of the execute_on_end (Small Text) field in DocType 'Mail Server
+#. Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Execute on End"
 msgstr ""
 
-#. Label of the execute_on_start (Small Text) field in DocType 'Mail Agent
-#. Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the execute_on_start (Small Text) field in DocType 'Mail Server
+#. Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Execute on Start"
 msgstr ""
 
@@ -1154,14 +1139,14 @@ msgstr ""
 msgid "FAIL"
 msgstr ""
 
-#. Description of the 'Agent Group' (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "FQDN of the proxy or load balancer forwarding requests to mail agents."
+#. Description of the 'Cluster' (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "FQDN of the proxy or load balancer forwarding requests to mail servers."
 msgstr ""
 
-#. Option for the 'Status' (Select) field in DocType 'Mail Agent Request Log'
+#. Option for the 'Status' (Select) field in DocType 'Mail Server Request'
 #. Option for the 'Status' (Select) field in DocType 'Outgoing Mail'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Failed"
 msgstr ""
@@ -1226,7 +1211,7 @@ msgid "Force Accepting..."
 msgstr ""
 
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.js:51
-msgid "Force Transfer to Agent"
+msgid "Force Transfer to Server"
 msgstr ""
 
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.js:146
@@ -1241,8 +1226,8 @@ msgstr ""
 msgid "Forward"
 msgstr ""
 
-#. Label of the jmap_frequency_cron (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the jmap_frequency_cron (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Frequency (Cron)"
 msgstr ""
 
@@ -1279,9 +1264,9 @@ msgid "From IP"
 msgstr ""
 
 #. Label of the full_text_index_storage_section (Section Break) field in
-#. DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:59
+#. DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:59
 msgid "Full Text Index Storage"
 msgstr ""
 
@@ -1289,20 +1274,20 @@ msgstr ""
 msgid "Future date is not allowed."
 msgstr ""
 
-#. Option for the 'Method' (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Option for the 'Method' (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "GET"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.js:66
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:66
 msgid "Generate API Key"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.js:94
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:94
 msgid "Generating API Key..."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.js:80
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:80
 msgid "Getting Password..."
 msgstr ""
 
@@ -1319,8 +1304,8 @@ msgstr ""
 msgid "Group has members. Please remove them first."
 msgstr ""
 
-#. Option for the 'Protocol' (Select) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Option for the 'Protocol' (Select) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "HTTP"
 msgstr ""
 
@@ -1331,8 +1316,8 @@ msgstr ""
 msgid "Header From"
 msgstr ""
 
-#. Label of the cluster_heartbeat (Int) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Label of the cluster_heartbeat (Int) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Heartbeat (Seconds)"
 msgstr ""
 
@@ -1347,18 +1332,18 @@ msgstr ""
 msgid "Host"
 msgstr ""
 
-#. Label of the hostname (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the hostname (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Hostname"
 msgstr ""
 
-#. Description of the 'Hostname' (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Hostname' (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Hostname of the database server."
 msgstr ""
 
-#. Description of the 'Agent' (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Server' (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Hostname of the mail server."
 msgstr ""
 
@@ -1368,20 +1353,20 @@ msgid "Hostname or IP of the SpamAssassin server."
 msgstr ""
 
 #. Description of the 'Changes History (Days)' (Int) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "How long to keep changes history for JMAP and IMAP clients."
 msgstr ""
 
 #. Description of the 'Trash Auto-Expunge (Days)' (Int) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "How long to keep messages in the Trash and Junk Mail folders before auto-expunging."
 msgstr ""
 
 #. Description of the 'Purge Frequency (Cron)' (Data) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid ""
 "How often to purge the database. Expects a cron expression.\n"
 "\n"
@@ -1423,8 +1408,8 @@ msgstr ""
 msgid "IMAP"
 msgstr ""
 
-#. Option for the 'Protocol' (Select) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Option for the 'Protocol' (Select) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "IMAP4"
 msgstr ""
 
@@ -1475,8 +1460,8 @@ msgstr ""
 msgid "IPv4"
 msgstr ""
 
-#. Label of the ipv4_addresses (Small Text) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the ipv4_addresses (Small Text) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "IPv4 Addresses"
 msgstr ""
 
@@ -1485,8 +1470,8 @@ msgstr ""
 msgid "IPv6"
 msgstr ""
 
-#. Label of the ipv6_addresses (Small Text) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the ipv6_addresses (Small Text) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "IPv6 Addresses"
 msgstr ""
 
@@ -1505,8 +1490,8 @@ msgstr ""
 msgid "Ignored IPs"
 msgstr ""
 
-#. Label of the implicit_tls (Check) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Label of the implicit_tls (Check) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Implicit TLS"
 msgstr ""
 
@@ -1544,9 +1529,9 @@ msgid "In Reply To Mail {0} - {1} does not exist."
 msgstr ""
 
 #. Label of the in_memory_storage_section (Section Break) field in DocType
-#. 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:60
+#. 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:60
 msgid "In-Memory Storage"
 msgstr ""
 
@@ -1555,8 +1540,8 @@ msgstr ""
 msgid "Inactivity Timeout (Seconds)"
 msgstr ""
 
-#. Label of the inbound (Check) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the inbound (Check) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Inbound"
 msgstr ""
 
@@ -1565,18 +1550,16 @@ msgstr ""
 msgid "Inbox"
 msgstr ""
 
-#. Label of the include_agent_groups (Small Text) field in DocType 'Mail
-#. Domain'
-#. Label of the include_agent_groups (Small Text) field in DocType 'Outgoing
-#. Mail'
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-msgid "Include Agent Groups"
-msgstr ""
-
 #. Option for the 'Scanning Mode' (Select) field in DocType 'Mail Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Include Attachments"
+msgstr ""
+
+#. Label of the include_clusters (Small Text) field in DocType 'Mail Domain'
+#. Label of the include_clusters (Small Text) field in DocType 'Outgoing Mail'
+#: mail/mail/doctype/mail_domain/mail_domain.json
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
+msgid "Include Clusters"
 msgstr ""
 
 #: mail/mail/report/outbound_delay/outbound_delay.js:94
@@ -1584,9 +1567,9 @@ msgstr ""
 msgid "Include Newsletter"
 msgstr ""
 
-#. Description of the 'Inbound' (Check) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "Include this group in MX records to receive emails."
+#. Description of the 'Inbound' (Check) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Include this cluster in MX records to receive emails."
 msgstr ""
 
 #. Label of the incoming_mail (Link) field in DocType 'DMARC Report'
@@ -1601,7 +1584,7 @@ msgstr ""
 msgid "Incoming Mail"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.js:42
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:42
 msgid "Initializing Defaults..."
 msgstr ""
 
@@ -1681,24 +1664,24 @@ msgstr ""
 msgid "Key Size"
 msgstr ""
 
-#. Description of the 'API Key' (Password) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'API Key' (Password) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Key for authenticating HTTP requests. Generate one via <i>Actions &gt; Generate API Key</i>."
 msgstr ""
 
 #. Description of the 'In-Memory Storage' (Section Break) field in DocType
-#. 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Key-value storage used primarily by the SMTP server and anti-spam components."
 msgstr ""
 
-#. Option for the 'Protocol' (Select) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Option for the 'Protocol' (Select) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "LMTP"
 msgstr ""
 
-#. Option for the 'Compression' (Select) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Option for the 'Compression' (Select) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "LZ4"
 msgstr ""
 
@@ -1760,17 +1743,17 @@ msgstr ""
 msgid "Limits (Outbound)"
 msgstr ""
 
-#. Label of the listener_id (Data) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Label of the listener_id (Data) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Listener ID"
 msgstr ""
 
-#. Label of the listeners_tab (Tab Break) field in DocType 'Mail Agent'
-#. Label of the listeners (Table) field in DocType 'Mail Agent'
-#. Label of the listeners (Table) field in DocType 'Mail Agent Group'
-#. Label of the listeners_tab (Tab Break) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the listeners (Table) field in DocType 'Mail Cluster'
+#. Label of the listeners_tab (Tab Break) field in DocType 'Mail Cluster'
+#. Label of the listeners_tab (Tab Break) field in DocType 'Mail Server'
+#. Label of the listeners (Table) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Listeners"
 msgstr ""
 
@@ -1799,19 +1782,19 @@ msgstr ""
 msgid "MX"
 msgstr ""
 
-#. Description of the 'Priority' (Int) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Priority' (Int) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "MX record priority for handling inbound mail. Lower values have higher priority."
 msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Incoming Mail'
 #. Group in Mail Account's connections
-#. Group in Mail Agent Group's connections
+#. Group in Mail Cluster's connections
 #. Group in Mail Domain's connections
 #. Group in Spam Check Log's connections
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
 #: mail/mail/doctype/mail_account/mail_account.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/spam_check_log/spam_check_log.json
 msgid "Mail"
@@ -1867,59 +1850,31 @@ msgid "Mail Admin role has been removed from the user {0}."
 msgstr ""
 
 #. Name of a DocType
-#: mail/mail/doctype/mail_agent/mail_agent.json
-msgid "Mail Agent"
-msgstr ""
-
-#. Name of a DocType
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "Mail Agent Group"
-msgstr ""
-
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:132
-msgid "Mail Agent Group with priority {0} already exists."
-msgstr ""
-
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:119
-msgid "Mail Agent Group {0} already exists."
-msgstr ""
-
-#: mail/mail/doctype/mail_agent/mail_agent.py:124
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.py:39
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.py:80
-msgid "Mail Agent Group {0} is disabled."
-msgstr ""
-
-#. Name of a DocType
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
-msgid "Mail Agent Listener"
-msgstr ""
-
-#. Name of a DocType
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
-msgid "Mail Agent Request Log"
-msgstr ""
-
-#. Name of a DocType
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
-msgid "Mail Agent Store"
-msgstr ""
-
-#: mail/mail/doctype/mail_agent/mail_agent.py:98
-msgid "Mail Agent {0} already exists."
-msgstr ""
-
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:113
-msgid "Mail Agent {0} is enabled. Please disable it first."
-msgstr ""
-
-#. Name of a DocType
 #: mail/mail/doctype/mail_alias/mail_alias.json
 msgid "Mail Alias"
 msgstr ""
 
 #: mail/mail/doctype/mail_group/mail_group.py:68
 msgid "Mail Alias {0} is enabled. Please disable it first."
+msgstr ""
+
+#. Name of a DocType
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Mail Cluster"
+msgstr ""
+
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:132
+msgid "Mail Cluster with priority {0} already exists."
+msgstr ""
+
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:119
+msgid "Mail Cluster {0} already exists."
+msgstr ""
+
+#: mail/mail/doctype/mail_server/mail_server.py:124
+#: mail/mail/doctype/mail_server_request/mail_server_request.py:38
+#: mail/mail/doctype/mail_server_request/mail_server_request.py:79
+msgid "Mail Cluster {0} is disabled."
 msgstr ""
 
 #. Name of a DocType
@@ -1984,6 +1939,38 @@ msgid "Mail Recipient"
 msgstr ""
 
 #. Name of a DocType
+#: mail/mail/doctype/mail_server/mail_server.json
+msgid "Mail Server"
+msgstr ""
+
+#. Name of a DocType
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
+msgid "Mail Server Listener"
+msgstr ""
+
+#. Name of a DocType
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
+msgid "Mail Server Request"
+msgstr ""
+
+#: mail/mail/doctype/mail_server_request/mail_server_request.py:102
+msgid "Mail Server Request Failed"
+msgstr ""
+
+#. Name of a DocType
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
+msgid "Mail Server Store"
+msgstr ""
+
+#: mail/mail/doctype/mail_server/mail_server.py:98
+msgid "Mail Server {0} already exists."
+msgstr ""
+
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:113
+msgid "Mail Server {0} is enabled. Please disable it first."
+msgstr ""
+
+#. Name of a DocType
 #: mail/mail/doctype/dns_record/dns_record.js:23
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Mail Settings"
@@ -2036,31 +2023,31 @@ msgstr ""
 msgid "Make Admin"
 msgstr ""
 
-#. Description of the 'Listeners' (Table) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Listeners' (Table) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Manage SMTP, IMAP, HTTP, and other listeners."
 msgstr ""
 
-#. Description of the 'Stores' (Table) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Stores' (Table) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Manage data, blob, full-text, and lookup stores."
 msgstr ""
 
-#. Option for the 'Protocol' (Select) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Option for the 'Protocol' (Select) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "ManageSieve"
 msgstr ""
 
-#. Label of the max_allowed_packet_bytes (Int) field in DocType 'Mail Agent
+#. Label of the max_allowed_packet_bytes (Int) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Max Allowed Packet (Bytes)"
 msgstr ""
 
-#. Label of the server_max_connections (Int) field in DocType 'Mail Agent'
-#. Label of the max_connections (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the server_max_connections (Int) field in DocType 'Mail Server'
+#. Label of the max_connections (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server/mail_server.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Max Connections"
 msgstr ""
 
@@ -2156,9 +2143,9 @@ msgstr ""
 msgid "Maximum number of attachments allowed in an email."
 msgstr ""
 
-#. Description of the 'Max Connections' (Int) field in DocType 'Mail Agent
+#. Description of the 'Max Connections' (Int) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Maximum number of connections to the store."
 msgstr ""
 
@@ -2193,8 +2180,8 @@ msgid "Maximum size for an email message, including attachments."
 msgstr ""
 
 #. Description of the 'Max Allowed Packet (Bytes)' (Int) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Maximum size of a packet in bytes."
 msgstr ""
 
@@ -2272,8 +2259,8 @@ msgstr ""
 msgid "Message size limit exceeded ({0} MB). Maximum {1} MB allowed."
 msgstr ""
 
-#. Label of the method (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the method (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Method"
 msgstr ""
 
@@ -2287,25 +2274,25 @@ msgstr ""
 msgid "Methods"
 msgstr ""
 
-#. Label of the min_blob_size_bytes (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the min_blob_size_bytes (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Min Blob Size (Bytes)"
 msgstr ""
 
-#. Label of the min_connections (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the min_connections (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Min Connections"
 msgstr ""
 
-#. Description of the 'Min Connections' (Int) field in DocType 'Mail Agent
+#. Description of the 'Min Connections' (Int) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Minimum number of connections to the store."
 msgstr ""
 
 #. Description of the 'Min Blob Size (Bytes)' (Int) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Minimum size of a blob to store in the blob store, smaller blobs are stored in the metadata store."
 msgstr ""
 
@@ -2316,12 +2303,12 @@ msgstr ""
 msgid "More Info"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent/mail_agent.py:103
-msgid "Multiple IPv4 addresses found for Mail Agent {0}. Found: {1}."
+#: mail/mail/doctype/mail_server/mail_server.py:103
+msgid "Multiple IPv4 addresses found for Mail Server {0}. Found: {1}."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent/mail_agent.py:113
-msgid "Multiple IPv6 addresses found for Mail Agent {0}. Found: {1}."
+#: mail/mail/doctype/mail_server/mail_server.py:113
+msgid "Multiple IPv6 addresses found for Mail Server {0}. Found: {1}."
 msgstr ""
 
 #: mail/mail/report/dmarc_report_viewer/dmarc_report_viewer.py:22
@@ -2331,8 +2318,8 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#. Description of the 'Database' (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Database' (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Name of the database."
 msgstr ""
 
@@ -2341,14 +2328,14 @@ msgid "Need to switch accounts? Log out."
 msgstr ""
 
 #. Label of the network_settings_section (Section Break) field in DocType 'Mail
-#. Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Network Settings"
 msgstr ""
 
-#. Label of the networking_section (Section Break) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the networking_section (Section Break) field in DocType 'Mail
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Networking"
 msgstr ""
 
@@ -2392,25 +2379,25 @@ msgstr ""
 msgid "No Mail Account found for user {0}."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1073
-msgid "No agent or agent group found based on the given criteria."
-msgstr ""
-
 #: mail/utils/dns.py:27
 msgid "No answer for {0}."
+msgstr ""
+
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1075
+msgid "No cluster found based on the given criteria."
 msgstr ""
 
 #: frontend/src/components/MailDetails.vue:109
 msgid "No emails to show"
 msgstr ""
 
-#. Label of the cluster_node_id (Int) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Label of the cluster_node_id (Int) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Node ID"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent/mail_agent.py:138
-msgid "Node ID {0} already assigned to another Mail Agent."
+#: mail/mail/doctype/mail_server/mail_server.py:138
+msgid "Node ID {0} already assigned to another Mail Server."
 msgstr ""
 
 #. Label of the normalized_email (Data) field in DocType 'Mail Account'
@@ -2422,9 +2409,9 @@ msgstr ""
 msgid "Normalized Email"
 msgstr ""
 
-#. Description of the 'Thread Pool Size' (Int) field in DocType 'Mail Agent
+#. Description of the 'Thread Pool Size' (Int) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Number of worker threads to use for the store, defaults to the number of cores."
 msgstr ""
 
@@ -2441,16 +2428,16 @@ msgstr ""
 msgid "Only Administrator can delete Incoming Mail."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:95
-msgid "Only Administrator can delete Mail Agent Group."
-msgstr ""
-
-#: mail/mail/doctype/mail_agent/mail_agent.py:88
-msgid "Only Administrator can delete Mail Agent."
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:95
+msgid "Only Administrator can delete Mail Cluster."
 msgstr ""
 
 #: mail/mail/doctype/mail_domain/mail_domain.py:49
 msgid "Only Administrator can delete Mail Domain."
+msgstr ""
+
+#: mail/mail/doctype/mail_server/mail_server.py:88
+msgid "Only Administrator can delete Mail Server."
 msgstr ""
 
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.py:133
@@ -2478,10 +2465,10 @@ msgstr ""
 msgid "Original Envelope Id not found in DSN Report."
 msgstr ""
 
-#. Label of the outbound (Check) field in DocType 'Mail Agent Group'
+#. Label of the outbound (Check) field in DocType 'Mail Cluster'
 #. Label of the spamd_outbound_section (Section Break) field in DocType 'Mail
 #. Settings'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Outbound"
 msgstr ""
@@ -2535,49 +2522,50 @@ msgstr ""
 msgid "PASS"
 msgstr ""
 
-#. Option for the 'Method' (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Option for the 'Method' (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "PATCH"
 msgstr ""
 
-#. Option for the 'Protocol' (Select) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Option for the 'Protocol' (Select) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "POP3"
 msgstr ""
 
-#. Option for the 'Method' (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Option for the 'Method' (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "POST"
 msgstr ""
 
 #. Label of the password (Password) field in DocType 'Mail Account'
-#. Label of the admin_password (Password) field in DocType 'Mail Agent Group'
-#. Label of the password (Password) field in DocType 'Mail Agent Store'
+#. Label of the admin_password (Password) field in DocType 'Mail Cluster'
+#. Label of the password (Password) field in DocType 'Mail Server Store'
 #: frontend/src/components/Modals/AddMemberModal.vue:76
 #: frontend/src/pages/LoginView.vue:13
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:111
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Password"
 msgstr ""
 
-#. Description of the 'Password' (Password) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Password' (Password) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Password for administrative access to the cluster."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:138
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:138
 msgid "Password must be at least 16 characters long."
 msgstr ""
 
-#. Description of the 'Password' (Password) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Password' (Password) field in DocType 'Mail Server
+#. Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Password to connect to the database."
 msgstr ""
 
-#. Label of the path (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the path (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Path"
 msgstr ""
 
@@ -2615,15 +2603,15 @@ msgstr ""
 msgid "Policy Published"
 msgstr ""
 
-#. Label of the pools_section (Section Break) field in DocType 'Mail Agent
+#. Label of the pools_section (Section Break) field in DocType 'Mail Server
 #. Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Pools"
 msgstr ""
 
-#. Label of the port (Int) field in DocType 'Mail Agent Store'
+#. Label of the port (Int) field in DocType 'Mail Server Store'
 #. Label of the spamd_port (Int) field in DocType 'Mail Settings'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Port"
 msgstr ""
@@ -2633,17 +2621,17 @@ msgstr ""
 msgid "Port for connecting to the SpamAssassin server."
 msgstr ""
 
-#. Description of the 'Port' (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Port' (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Port of the database server."
 msgstr ""
 
 #. Label of the priority (Int) field in DocType 'DNS Record'
-#. Label of the priority (Int) field in DocType 'Mail Agent Group'
+#. Label of the priority (Int) field in DocType 'Mail Cluster'
 #. Label of the priority (Int) field in DocType 'Mail Domain DNS Record'
 #. Label of the priority (Int) field in DocType 'Outgoing Mail'
 #: mail/mail/doctype/dns_record/dns_record.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_domain_dns_record/mail_domain_dns_record.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 #: mail/mail/report/outbound_delay/outbound_delay.js:60
@@ -2653,25 +2641,25 @@ msgstr ""
 msgid "Priority"
 msgstr ""
 
-#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Agent'
-#. Label of the private_ipv4 (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Server'
+#. Label of the private_ipv4 (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Private IPv4"
 msgstr ""
 
-#. Description of the 'Private IPv4' (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Private IPv4' (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Private IPv4 address of this mail server (used for internal communication)."
 msgstr ""
 
-#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Agent'
-#. Label of the private_ipv6 (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Server'
+#. Label of the private_ipv6 (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Private IPv6"
 msgstr ""
 
-#. Description of the 'Private IPv6' (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Private IPv6' (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Private IPv6 address of this mail server (used for internal communication)."
 msgstr ""
 
@@ -2714,43 +2702,43 @@ msgstr ""
 msgid "Processing Delay"
 msgstr ""
 
-#. Label of the protocol (Select) field in DocType 'Mail Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Label of the protocol (Select) field in DocType 'Mail Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Protocol"
 msgstr ""
 
-#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Agent'
-#. Label of the public_ipv4 (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Server'
+#. Label of the public_ipv4 (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Public IPv4"
 msgstr ""
 
-#. Description of the 'Public IPv4' (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Public IPv4' (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Public IPv4 address of this mail server (used for external communication)."
 msgstr ""
 
 #. Description of the 'IPv4 Addresses' (Small Text) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "Public IPv4 addresses assigned to this group."
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Public IPv4 addresses assigned to this cluster."
 msgstr ""
 
-#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Agent'
-#. Label of the public_ipv6 (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Option for the 'Advertise Address' (Select) field in DocType 'Mail Server'
+#. Label of the public_ipv6 (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Public IPv6"
 msgstr ""
 
-#. Description of the 'Public IPv6' (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Public IPv6' (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Public IPv6 address of this mail server (used for external communication)."
 msgstr ""
 
 #. Description of the 'IPv6 Addresses' (Small Text) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "Public IPv6 addresses assigned to this group."
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Public IPv6 addresses assigned to this cluster."
 msgstr ""
 
 #. Label of the rsa_public_key (Text) field in DocType 'DKIM Key'
@@ -2758,14 +2746,15 @@ msgstr ""
 msgid "Public Key"
 msgstr ""
 
-#. Label of the purge_frequency_cron (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the purge_frequency_cron (Data) field in DocType 'Mail Server
+#. Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Purge Frequency (Cron)"
 msgstr ""
 
-#. Option for the 'Status' (Select) field in DocType 'Mail Agent Request Log'
+#. Option for the 'Status' (Select) field in DocType 'Mail Server Request'
 #. Option for the 'Status' (Select) field in DocType 'Outgoing Mail'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Queued"
 msgstr ""
@@ -2819,17 +2808,22 @@ msgstr ""
 
 #. Group in DKIM Key's connections
 #. Group in Mail Account's connections
-#. Group in Mail Agent Group's connections
+#. Group in Mail Cluster's connections
 #. Group in Mail Domain's connections
 #. Group in Mail Group's connections
 #. Group in MIME Message's connections
 #: mail/mail/doctype/dkim_key/dkim_key.json
 #: mail/mail/doctype/mail_account/mail_account.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mime_message/mime_message.json
 msgid "Reference"
+msgstr ""
+
+#. Group in Mail Cluster's connections
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Referencee"
 msgstr ""
 
 #: frontend/src/pages/dashboard/DomainView.vue:238
@@ -2895,24 +2889,23 @@ msgstr ""
 msgid "Reports"
 msgstr ""
 
-#. Label of the request_data (JSON) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the request_data (JSON) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Request (Data)"
 msgstr ""
 
-#. Label of the request_headers (JSON) field in DocType 'Mail Agent Request
-#. Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the request_headers (JSON) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Request (Headers)"
 msgstr ""
 
-#. Label of the request_json (JSON) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the request_json (JSON) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Request (JSON)"
 msgstr ""
 
-#. Label of the request_params (JSON) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the request_params (JSON) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Request (Params)"
 msgstr ""
 
@@ -2926,8 +2919,8 @@ msgstr ""
 msgid "Response"
 msgstr ""
 
-#. Label of the response_json (JSON) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Label of the response_json (JSON) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Response (JSON)"
 msgstr ""
 
@@ -2948,8 +2941,8 @@ msgstr ""
 msgid "Retrying..."
 msgstr ""
 
-#. Option for the 'Type' (Select) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Option for the 'Type' (Select) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "RocksDB"
 msgstr ""
 
@@ -2993,22 +2986,22 @@ msgstr ""
 msgid "Row #{0}: Invalid recipient {1}."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:198
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:198
 msgid "Row #{0}: Listener ID {1} is duplicated."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:161
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:161
 msgid "Row #{0}: Store ID {1} is duplicated."
 msgstr ""
 
-#. Option for the 'Status' (Select) field in DocType 'Mail Agent Request Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#. Option for the 'Status' (Select) field in DocType 'Mail Server Request'
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 msgid "Running"
 msgstr ""
 
-#. Option for the 'Protocol' (Select) field in DocType 'Mail Agent Listener'
+#. Option for the 'Protocol' (Select) field in DocType 'Mail Server Listener'
 #. Label of the smtp_section (Section Break) field in DocType 'Mail Settings'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "SMTP"
 msgstr ""
@@ -3113,6 +3106,11 @@ msgstr ""
 msgid "Sent"
 msgstr ""
 
+#. Label of the server (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
+msgid "Server"
+msgstr ""
+
 #. Option for the 'Category' (Select) field in DocType 'DNS Record'
 #. Option for the 'Category' (Select) field in DocType 'Mail Domain DNS Record'
 #: mail/mail/doctype/dns_record/dns_record.json
@@ -3137,7 +3135,7 @@ msgstr ""
 msgid "Show Local IPs Only"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.js:57
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:57
 msgid "Show Password"
 msgstr ""
 
@@ -3146,8 +3144,8 @@ msgid "Sign in to your account"
 msgstr ""
 
 #. Description of the 'Write Buffer Size (MB)' (Int) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Size of the write buffer in bytes, used to batch writes to the store."
 msgstr ""
 
@@ -3232,9 +3230,8 @@ msgstr ""
 msgid "SpamAssassin did not return the expected response. This may indicate a permission issue or an unauthorized connection. Please check the following: {0}"
 msgstr ""
 
-#. Description of the 'Frequency (Cron)' (Data) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Frequency (Cron)' (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid ""
 "Specifies how often tombstoned messages are deleted from the database.\n"
 "\n"
@@ -3257,20 +3254,20 @@ msgid ""
 "</pre>\n"
 msgstr ""
 
-#. Label of the started_at (Datetime) field in DocType 'Mail Agent Request Log'
+#. Label of the started_at (Datetime) field in DocType 'Mail Server Request'
 #. Label of the started_at (Datetime) field in DocType 'Spam Check Log'
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/spam_check_log/spam_check_log.json
 msgid "Started At"
 msgstr ""
 
 #. Label of the status (Select) field in DocType 'Incoming Mail'
-#. Label of the status (Select) field in DocType 'Mail Agent Request Log'
 #. Label of the status (Select) field in DocType 'Mail Recipient'
+#. Label of the status (Select) field in DocType 'Mail Server Request'
 #. Label of the status (Select) field in DocType 'Outgoing Mail'
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 #: mail/mail/report/mail_tracker/mail_tracker.js:33
 #: mail/mail/report/mail_tracker/mail_tracker.py:37
@@ -3281,47 +3278,45 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#. Label of the section_break_r4np (Tab Break) field in DocType 'Mail Agent
-#. Group'
-#. Label of the directory_storage (Data) field in DocType 'Mail Agent Group'
-#. Label of the data_storage (Data) field in DocType 'Mail Agent Group'
-#. Label of the blob_storage (Data) field in DocType 'Mail Agent Group'
-#. Label of the fts_storage (Data) field in DocType 'Mail Agent Group'
-#. Label of the in_memory_storage (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the section_break_r4np (Tab Break) field in DocType 'Mail Cluster'
+#. Label of the directory_storage (Data) field in DocType 'Mail Cluster'
+#. Label of the data_storage (Data) field in DocType 'Mail Cluster'
+#. Label of the blob_storage (Data) field in DocType 'Mail Cluster'
+#. Label of the fts_storage (Data) field in DocType 'Mail Cluster'
+#. Label of the in_memory_storage (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Storage"
 msgstr ""
 
 #. Label of the storage_settings_section (Section Break) field in DocType 'Mail
-#. Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Storage Settings"
 msgstr ""
 
-#. Description of the 'Type' (Select) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Type' (Select) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Storage backend type."
 msgstr ""
 
-#. Label of the store_id (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the store_id (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Store ID"
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:177
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:177
 msgid "Store with Store ID {0} not found."
 msgstr ""
 
-#. Label of the stores_section (Section Break) field in DocType 'Mail Agent
-#. Group'
-#. Label of the stores (Table) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the stores_section (Section Break) field in DocType 'Mail Cluster'
+#. Label of the stores (Table) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Stores"
 msgstr ""
 
 #. Description of the 'Directory Storage' (Section Break) field in DocType
-#. 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Stores user accounts, passwords, email addresses, and settings. Used for authentication, email validation, and account management."
 msgstr ""
 
@@ -3386,15 +3381,15 @@ msgstr ""
 #: mail/mail/doctype/ip_blacklist/ip_blacklist.json
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_account_request/mail_account_request.json
-#: mail/mail/doctype/mail_agent/mail_agent.json
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_request_log/mail_agent_request_log.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_contact/mail_contact.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
 #: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mail_group_member/mail_group_member.json
+#: mail/mail/doctype/mail_server/mail_server.json
+#: mail/mail/doctype/mail_server_request/mail_server_request.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
 #: mail/mail/doctype/mail_sync_history/mail_sync_history.json
 #: mail/mail/doctype/mail_tenant/mail_tenant.json
@@ -3406,14 +3401,15 @@ msgstr ""
 msgid "System Manager"
 msgstr ""
 
-#. Label of the tls_section (Section Break) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the tls_section (Section Break) field in DocType 'Mail Server
+#. Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "TLS"
 msgstr ""
 
 #. Label of the tls_options_section (Section Break) field in DocType 'Mail
-#. Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "TLS Options"
 msgstr ""
 
@@ -3471,8 +3467,8 @@ msgstr ""
 msgid "The Mail Group {0} is disabled."
 msgstr ""
 
-#. Description of the 'Bind Port' (Int) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Bind Port' (Int) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "The UDP port the gossip protocol will bind to."
 msgstr ""
 
@@ -3485,19 +3481,19 @@ msgid "The account is linked to a Mail Group as a member. Please remove it first
 msgstr ""
 
 #. Description of the 'Advertise Address' (Select) field in DocType 'Mail
-#. Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "The address the gossip protocol will advertise to other nodes in the cluster."
 msgstr ""
 
-#. Description of the 'Bind Address' (Data) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Bind Address' (Data) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "The address the gossip protocol will bind to."
 msgstr ""
 
 #. Description of the 'Bind Addresses' (Small Text) field in DocType 'Mail
-#. Agent Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#. Server Listener'
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "The addresses the listener will bind to."
 msgstr ""
 
@@ -3542,12 +3538,13 @@ msgstr ""
 msgid "The email address {0} is deliverable."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1061
-msgid "The following agent groups do not exist or are not enabled for outbound: {0}"
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1063
+msgid "The following clusters do not exist or are not enabled for outbound: {0}"
 msgstr ""
 
-#. Description of the 'Heartbeat (Seconds)' (Int) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Heartbeat (Seconds)' (Int) field in DocType 'Mail
+#. Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "The interval between heartbeats in the cluster."
 msgstr ""
 
@@ -3557,15 +3554,15 @@ msgstr ""
 msgid "The interval for cleaning up stale connections."
 msgstr ""
 
-#. Description of the 'Encryption Key' (Password) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Encryption Key' (Password) field in DocType 'Mail
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "The key used to encrypt gossip messages."
 msgstr ""
 
-#. Description of the 'Agent Group' (Link) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
-msgid "The mail agent group this server belongs to."
+#. Description of the 'Cluster' (Link) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
+msgid "The mail cluster this server belongs to."
 msgstr ""
 
 #. Description of the 'Maximum Number of Messages' (Int) field in DocType 'Mail
@@ -3574,8 +3571,8 @@ msgstr ""
 msgid "The maximum messages allowed per SMTP session."
 msgstr ""
 
-#. Description of the 'Max Connections' (Int) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Max Connections' (Int) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "The maximum number of concurrent connections the server will accept."
 msgstr ""
 
@@ -3583,9 +3580,9 @@ msgstr ""
 msgid "The message is required."
 msgstr ""
 
-#. Description of the 'Protocol' (Select) field in DocType 'Mail Agent
+#. Description of the 'Protocol' (Select) field in DocType 'Mail Server
 #. Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "The protocol used by the listener."
 msgstr ""
 
@@ -3621,8 +3618,8 @@ msgstr ""
 msgid "This request has expired. Please create a new one."
 msgstr ""
 
-#. Label of the thread_pool_size (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the thread_pool_size (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Thread Pool Size"
 msgstr ""
 
@@ -3660,8 +3657,8 @@ msgstr ""
 msgid "Timed out waiting for response from SpamAssassin."
 msgstr ""
 
-#. Label of the timeout_seconds (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the timeout_seconds (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Timeout (Seconds)"
 msgstr ""
 
@@ -3682,7 +3679,7 @@ msgstr ""
 msgid "To Date"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1151
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1153
 msgid "Too many email transfer failures: {failed_count}/{total_count} ({failure_rate:.2%}). Process halted."
 msgstr ""
 
@@ -3764,7 +3761,7 @@ msgid "Transfer Started At - Processed At"
 msgstr ""
 
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.js:33
-msgid "Transfer to Agent"
+msgid "Transfer to Server"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Outgoing Mail'
@@ -3783,28 +3780,28 @@ msgstr ""
 msgid "Trash"
 msgstr ""
 
-#. Label of the jmap_trash_auto_expunge_days (Int) field in DocType 'Mail Agent
-#. Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Label of the jmap_trash_auto_expunge_days (Int) field in DocType 'Mail
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Trash Auto-Expunge (Days)"
 msgstr ""
 
 #. Label of the type (Select) field in DocType 'DNS Record'
 #. Label of the type (Select) field in DocType 'Incoming Mail'
-#. Label of the type (Select) field in DocType 'Mail Agent Store'
 #. Label of the type (Select) field in DocType 'Mail Domain DNS Record'
 #. Label of the type (Select) field in DocType 'Mail Recipient'
+#. Label of the type (Select) field in DocType 'Mail Server Store'
 #: mail/mail/doctype/dns_record/dns_record.json
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
 #: mail/mail/doctype/mail_domain_dns_record/mail_domain_dns_record.json
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Type"
 msgstr ""
 
-#. Description of the 'Base URL' (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "URL where HTTP requests are sent before being forwarded to mail agents."
+#. Description of the 'Base URL' (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "URL where HTTP requests are sent before being forwarded to mail servers."
 msgstr ""
 
 #. Label of the imap_unauthenticated_timeout (Int) field in DocType 'Mail
@@ -3813,19 +3810,19 @@ msgstr ""
 msgid "Unauthenticated Session Timeout (Seconds)"
 msgstr ""
 
-#. Description of the 'Listener ID' (Data) field in DocType 'Mail Agent
+#. Description of the 'Listener ID' (Data) field in DocType 'Mail Server
 #. Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Unique identifier for the listener."
 msgstr ""
 
-#. Description of the 'Store ID' (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Store ID' (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Unique identifier for the store."
 msgstr ""
 
-#. Description of the 'Node ID' (Int) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Description of the 'Node ID' (Int) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "Unique identifier for this node in the cluster."
 msgstr ""
 
@@ -3833,19 +3830,19 @@ msgstr ""
 msgid "Unsupported algorithm. Use 'rsa-sha256' or 'ed25519-sha256'."
 msgstr ""
 
-#. Description of the 'Enable TLS' (Check) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Enable TLS' (Check) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Use TLS to connect to the store."
 msgstr ""
 
-#. Description of the 'Outbound' (Check) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-msgid "Use this group to send outbound emails."
+#. Description of the 'Outbound' (Check) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "Use this cluster to send outbound emails."
 msgstr ""
 
 #. Description of the 'Blob Storage' (Section Break) field in DocType 'Mail
-#. Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Used for storing large binary objects such as emails, sieve scripts, and other files."
 msgstr ""
 
@@ -3929,22 +3926,22 @@ msgstr ""
 msgid "User {0} is not authorized to invite users to the tenant."
 msgstr ""
 
-#. Label of the admin_username (Data) field in DocType 'Mail Agent Group'
-#. Label of the username (Data) field in DocType 'Mail Agent Store'
+#. Label of the admin_username (Data) field in DocType 'Mail Cluster'
+#. Label of the username (Data) field in DocType 'Mail Server Store'
 #: frontend/src/components/Modals/AddMemberModal.vue:21
 #: frontend/src/pages/LoginView.vue:5
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Username"
 msgstr ""
 
-#. Description of the 'Username' (Data) field in DocType 'Mail Agent Group'
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.json
+#. Description of the 'Username' (Data) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Username for administrative access to the cluster."
 msgstr ""
 
-#. Description of the 'Username' (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Username' (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Username to connect to the database."
 msgstr ""
 
@@ -4010,19 +4007,19 @@ msgstr ""
 msgid "View in Desk"
 msgstr ""
 
-#. Description of the 'Path' (Data) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Description of the 'Path' (Data) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Where to store the data in the server's filesystem."
 msgstr ""
 
-#. Description of the 'Implicit TLS' (Check) field in DocType 'Mail Agent
+#. Description of the 'Implicit TLS' (Check) field in DocType 'Mail Server
 #. Listener'
-#: mail/mail/doctype/mail_agent_listener/mail_agent_listener.json
+#: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Whether to use implicit TLS."
 msgstr ""
 
-#. Label of the write_buffer_size_mb (Int) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Label of the write_buffer_size_mb (Int) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Write Buffer Size (MB)"
 msgstr ""
 
@@ -4063,13 +4060,13 @@ msgstr ""
 msgid "You have reached the maximum limit of {0} groups for the tenant."
 msgstr ""
 
-#. Label of the config (Code) field in DocType 'Mail Agent'
-#: mail/mail/doctype/mail_agent/mail_agent.json
+#. Label of the config (Code) field in DocType 'Mail Server'
+#: mail/mail/doctype/mail_server/mail_server.json
 msgid "config.toml"
 msgstr ""
 
-#. Option for the 'Type' (Select) field in DocType 'Mail Agent Store'
-#: mail/mail/doctype/mail_agent_store/mail_agent_store.json
+#. Option for the 'Type' (Select) field in DocType 'Mail Server Store'
+#: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "mySQL"
 msgstr ""
 
@@ -4081,7 +4078,7 @@ msgstr ""
 msgid "{0} does not exist."
 msgstr ""
 
-#: mail/mail/doctype/mail_agent_group/mail_agent_group.py:182
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:182
 msgid "{0} has an invalid store type '{1}'. Allowed types are: {2}."
 msgstr ""
 

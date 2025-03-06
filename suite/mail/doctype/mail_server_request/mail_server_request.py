@@ -78,15 +78,15 @@ class MailServerRequest(Document):
 		if not cluster.enabled:
 			frappe.throw(_("Mail Cluster {0} is disabled.").format(self.cluster))
 
-		from mail.agent import AgentAPI
+		from mail.mail_server import MailServerAPI
 
-		agent_api = AgentAPI(
+		server_api = MailServerAPI(
 			cluster.base_url,
 			api_key=cluster.get_password("api_key"),
 			username=cluster.admin_username,
 			password=cluster.get_password("admin_password"),
 		)
-		response = agent_api.request(
+		response = server_api.request(
 			method=self.method,
 			endpoint=self.endpoint,
 			params=self.request_params,
@@ -99,7 +99,7 @@ class MailServerRequest(Document):
 		if response.status_code == 200:
 			self._db_set(response_json=response_json)
 		else:
-			frappe.throw(title=_("Agent Request Failed"), msg=response_json)
+			frappe.throw(title=_("Mail Server Request Failed"), msg=response_json)
 
 	def _execute_method_on_end(self) -> None:
 		"""Executes the method on end."""

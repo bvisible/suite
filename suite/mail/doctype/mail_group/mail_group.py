@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.agent import create_group_on_clusters, delete_group_from_clusters, patch_group_on_clusters
+from mail.mail_server import create_group_on_clusters, delete_group_from_clusters, patch_group_on_clusters
 from mail.utils import normalize_email
 from mail.utils.cache import get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin

@@ -8,8 +8,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string
 
-from mail.agent import AgentAPI, Principal
-from mail.mail.doctype.mail_agent.mail_agent import create_or_update_spf_dns_record
+from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
+from mail.mail_server import MailServerAPI, Principal
 from mail.utils import generate_secret
 from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression
@@ -109,8 +109,10 @@ class MailCluster(Document):
 		if self.enabled:
 			return
 
-		if agent := frappe.db.exists("Mail Agent", {"enabled": 1, "cluster": self.name}):
-			frappe.throw(_("Mail Agent {0} is enabled. Please disable it first.").format(frappe.bold(agent)))
+		if server := frappe.db.exists("Mail Server", {"enabled": 1, "cluster": self.name}):
+			frappe.throw(
+				_("Mail Server {0} is enabled. Please disable it first.").format(frappe.bold(server))
+			)
 
 	def validate_cluster(self) -> None:
 		"""Validates the cluster and fetches the IP addresses."""
@@ -261,10 +263,10 @@ class MailCluster(Document):
 		principal = Principal(
 			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]
 		)
-		agent_api = AgentAPI(
+		server_api = MailServerAPI(
 			self.base_url, username=self.admin_username, password=self.get_password("admin_password")
 		)
-		response = agent_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
+		response = server_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
 		response.raise_for_status()
 		response_json = response.json()
 
