@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "folder",
+  "trashed_on",
   "sender",
   "from_",
   "display_name",
@@ -594,13 +595,20 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Seen"
+  },
+  {
+   "depends_on": "eval: doc.folder == 'Trash'",
+   "fieldname": "trashed_on",
+   "fieldtype": "Datetime",
+   "label": "Trashed On",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-28 16:05:42.180799",
+ "modified": "2025-03-06 11:20:19.735257",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Outgoing Mail",

@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import add_days, now
 
 from mail.mail.doctype.dns_record.dns_record import verify_all_dns_records
 from mail.mail.doctype.incoming_mail.incoming_mail import fetch_emails_from_mail_agents
@@ -38,3 +39,27 @@ def enqueue_verify_all_dns_records() -> None:
 
 	with user_context("Administrator"):
 		enqueue_job(verify_all_dns_records, queue="long", deduplicate=True)
+
+
+def enqueue_cancel_trashed_mails() -> None:
+	"Called by the scheduler to enqueue the `cancel_trash_mails` job."
+
+	def cancel_trashed_mails() -> None:
+		"""Cancels mails that got trashed more than 30 days back."""
+
+		thirty_days_back = add_days(now(), -30)
+
+		for doctype in ["Incoming Mail", "Outgoing Mail"]:
+			mails = frappe.get_all(
+				doctype,
+				{
+					"folder": "Trash",
+					"trashed_on": ["<=", thirty_days_back],
+					"docstatus": ["!=", 2],
+				},
+				pluck="name",
+			)
+			for d in mails:
+				frappe.db.set_value(doctype, d, "docstatus", 2)
+
+	enqueue_job(cancel_trashed_mails, queue="long", deduplicate=True)

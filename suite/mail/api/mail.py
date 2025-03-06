@@ -1,14 +1,17 @@
 import re
 from email.utils import parseaddr
+from typing import Literal
 
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.translate import get_all_translations
-from frappe.utils import is_html
+from frappe.utils import is_html, now
 
 from mail.utils.cache import get_account_for_user, get_default_outgoing_email_for_user
 from mail.utils.user import get_user_email_addresses, has_role, is_system_manager
+
+MailType = Literal["Incoming Mail", "Outgoing Mail"]
 
 
 def check_app_permission() -> bool:
@@ -72,33 +75,9 @@ def get_translations() -> dict:
 
 @frappe.whitelist()
 def get_inbox_mails(start: int = 0) -> list:
-	"""Returns incoming mails for the current user."""
+	"""Returns inbox mails for the current user."""
 
-	account = get_account_for_user(frappe.session.user)
-	mails = frappe.get_all(
-		"Incoming Mail",
-		{"receiver": account, "docstatus": 1},
-		[
-			"name",
-			"sender",
-			"body_html",
-			"body_plain",
-			"display_name",
-			"subject",
-			"creation",
-			"in_reply_to_mail_name",
-			"in_reply_to_mail_type",
-			"status",
-			"type",
-			"seen",
-			"message_id",
-		],
-		limit=50,
-		start=start,
-		order_by="created_at desc",
-	)
-
-	return get_mail_list(mails, "Incoming Mail")
+	return get_incoming_mails("Inbox", start)
 
 
 @frappe.whitelist()
@@ -122,7 +101,48 @@ def get_drafts_mails(start: int = 0) -> list:
 	return get_outgoing_mails("Drafts", start)
 
 
-def get_outgoing_mails(folder: str, start: int = 0) -> list:
+@frappe.whitelist()
+def get_trash_mails(start: int = 0) -> list:
+	"""Returns trash mails for the current user."""
+
+	trash_mails = get_incoming_mails("Trash", start, False) + get_outgoing_mails("Trash", start, False)
+	trash_mails.sort(key=lambda x: x.creation, reverse=True)
+
+	return get_mail_list(trash_mails)
+
+
+def get_incoming_mails(folder: str, start: int = 0, get_list: bool = True) -> list:
+	"""Returns incoming mails for the current user."""
+
+	account = get_account_for_user(frappe.session.user)
+	mails = frappe.get_all(
+		"Incoming Mail",
+		{"receiver": account, "docstatus": 1, "folder": folder},
+		[
+			"name",
+			"sender",
+			"body_html",
+			"body_plain",
+			"display_name",
+			"subject",
+			"creation",
+			"in_reply_to_mail_name",
+			"in_reply_to_mail_type",
+			"status",
+			"type",
+			"seen",
+			"message_id",
+			"'Incoming Mail' as mail_type",
+		],
+		limit=50,
+		start=start,
+		order_by="created_at desc",
+	)
+
+	return get_mail_list(mails) if get_list else mails
+
+
+def get_outgoing_mails(folder: str, start: int = 0, get_list: bool = True) -> list:
 	"""Returns outgoing mails for the current user."""
 
 	account = get_account_for_user(frappe.session.user)
@@ -135,7 +155,7 @@ def get_outgoing_mails(folder: str, start: int = 0) -> list:
 
 	mails = frappe.get_all(
 		"Outgoing Mail",
-		{"sender": account, "folder": folder},
+		{"sender": account, "docstatus": ["!=", 2], "folder": folder},
 		[
 			"name",
 			"subject",
@@ -149,20 +169,20 @@ def get_outgoing_mails(folder: str, start: int = 0) -> list:
 			"status",
 			"message_id",
 			"seen",
+			"'Outgoing Mail' as mail_type",
 		],
 		limit=50,
 		start=start,
 		order_by=order_by,
 	)
 
-	return get_mail_list(mails, "Outgoing Mail")
+	return get_mail_list(mails) if get_list else mails
 
 
-def get_mail_list(mails, mail_type) -> list:
+def get_mail_list(mails) -> list:
 	"""Returns a list of mails with additional details."""
 
 	for mail in mails[:]:
-		mail.mail_type = mail_type
 		thread = get_list_thread(mail)
 		thread_with_names = [email.name for email in thread]
 		mails_in_original_list = [email for email in mails if email.name in thread_with_names]
@@ -180,6 +200,17 @@ def get_mail_list(mails, mail_type) -> list:
 	return mails
 
 
+def has_in_reply_to_mail(mail) -> bool:
+	"""Check if the mail is a reply to an existing mail."""
+
+	if not mail.in_reply_to_mail_name:
+		return False
+
+	return frappe.db.exists(
+		mail.in_reply_to_mail_type, {"name": mail.in_reply_to_mail_name, "docstatus": ("!=", 2)}
+	)
+
+
 def get_list_thread(mail) -> list:
 	"""Returns a list of mails in the thread."""
 
@@ -192,7 +223,7 @@ def get_list_thread(mail) -> list:
 		processed.add(mail.name)
 		thread.append(mail)
 
-		if mail.in_reply_to_mail_name:
+		if has_in_reply_to_mail(mail):
 			reply_mail = get_mail_details(mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, False)
 			add_to_thread(reply_mail)
 		if mail.message_id:
@@ -232,7 +263,7 @@ def get_snippet(content) -> str:
 
 
 @frappe.whitelist()
-def get_mail_thread(name, mail_type) -> list:
+def get_mail_thread(name, mail_type: MailType) -> list:
 	"""Returns the mail thread for the given mail."""
 
 	if not frappe.db.exists(mail_type, name):
@@ -255,7 +286,7 @@ def get_mail_thread(name, mail_type) -> list:
 			return
 		visited.add(mail.name)
 
-		if mail.in_reply_to_mail_name:
+		if has_in_reply_to_mail(mail):
 			reply_mail = get_mail_details(mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, True)
 			get_thread(reply_mail, thread)
 
@@ -280,7 +311,7 @@ def get_mail_thread(name, mail_type) -> list:
 	return thread
 
 
-def reverse_type(mail_type) -> str:
+def reverse_type(mail_type: MailType) -> str:
 	"""Returns the reverse mail type."""
 
 	return "Incoming Mail" if mail_type == "Outgoing Mail" else "Outgoing Mail"
@@ -295,7 +326,7 @@ def gather_thread_replies(mail_name) -> list:
 	return thread
 
 
-def get_thread_from_replies(mail_type, mail_name) -> list:
+def get_thread_from_replies(mail_type: MailType, mail_name) -> list:
 	"""Returns the thread from the replies."""
 
 	replies = []
@@ -308,7 +339,7 @@ def get_thread_from_replies(mail_type, mail_name) -> list:
 	return replies
 
 
-def find_replica(mail, mail_type) -> str:
+def find_replica(mail, mail_type: MailType) -> str:
 	"""Returns the replica of the mail."""
 
 	replica_type = reverse_type(mail_type)
@@ -467,7 +498,7 @@ def get_user_addresses():
 
 
 @frappe.whitelist()
-def get_mime_message(mail_type: str, name: str) -> dict:
+def get_mime_message(mail_type: MailType, name: str) -> dict:
 	"""Fetches mail mime message and related data."""
 
 	doc = frappe.get_doc(mail_type, name)
@@ -501,9 +532,54 @@ def get_mime_message(mail_type: str, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mail_type: str, mail_name: str, seen_value: int) -> str:
+def set_seen(mail_type: MailType, name: str, seen: int) -> dict:
 	"""Sets seen for mail."""
 
-	doc = frappe.get_doc(mail_type, mail_name)
-	doc.db_set("seen", seen_value)
-	return {"mail_name": mail_name, "seen_value": seen_value}
+	doc = frappe.get_doc(mail_type, name)
+	doc.db_set("seen", seen)
+	return {"name": name, "seen": seen}
+
+
+@frappe.whitelist()
+def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> None:
+	"""Sets folder for mail."""
+
+	doc = frappe.get_doc(mail_type, name)
+
+	if move_to_trash:
+		doc.db_set("folder", "Trash")
+		doc.db_set("trashed_on", now())
+	else:
+		doc.db_set("trashed_on")
+		if mail_type == "Incoming Mail":
+			doc.db_set("folder", "Inbox")
+		else:
+			doc.folder = None
+			doc.set_folder(db_set=True)
+
+
+@frappe.whitelist()
+def cancel_mail(mail_type: MailType, name: str) -> None:
+	"""Cancels mail."""
+
+	frappe.db.set_value(mail_type, name, "docstatus", 2)
+
+
+@frappe.whitelist()
+def empty_trash() -> None:
+	"""Empties trash for current user."""
+
+	account = get_account_for_user(frappe.session.user)
+
+	for doctype in ["Incoming Mail", "Outgoing Mail"]:
+		mails = frappe.get_all(
+			doctype,
+			{
+				"receiver" if doctype == "Incoming Mail" else "sender": account,
+				"folder": "Trash",
+				"docstatus": ["!=", 2],
+			},
+			pluck="name",
+		)
+		for d in mails:
+			cancel_mail(doctype, d)
