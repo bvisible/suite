@@ -11,7 +11,7 @@ from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
 from mail.mail.doctype.mail_settings.mail_settings import (
 	validate_mail_settings,
 )
-from mail.utils import flatten_dict, hash_password
+from mail.utils import flatten_dict
 from mail.utils.dns import get_dns_record
 
 PROTOCOL_MAP = {
@@ -284,7 +284,7 @@ def get_config_toml(server: str) -> str | None:
 		"authentication": {
 			"fallback-admin": {
 				"user": cluster.admin_username,
-				"secret": hash_password(cluster.get_password("admin_password")),
+				"secret": cluster.admin_password_hash,
 			}
 		},
 		"server": {

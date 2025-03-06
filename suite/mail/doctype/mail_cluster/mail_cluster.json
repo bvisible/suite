@@ -15,6 +15,7 @@
   "authentication_section",
   "admin_username",
   "admin_password",
+  "admin_password_hash",
   "column_break_9jti",
   "base_url",
   "api_key",
@@ -361,6 +362,14 @@
    "reqd": 1,
    "set_only_once": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "admin_password_hash",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Password Hash",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -387,7 +396,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-03-06 14:59:12.408325",
+ "modified": "2025-03-06 16:27:14.728459",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
