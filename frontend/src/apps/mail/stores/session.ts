@@ -5,10 +5,8 @@ import { createResource } from 'frappe-ui'
 import router from '@/router'
 import { userStore } from '@/stores/user'
 
-import type { Folder } from '@/types'
-
 export const sessionStore = defineStore('mail-session', () => {
-	const { userResource, setCurrentMail } = userStore()
+	const { userResource } = userStore()
 
 	const sessionUser = () => {
 		const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
@@ -40,8 +38,6 @@ export const sessionStore = defineStore('mail-session', () => {
 	const logout = createResource({
 		url: 'logout',
 		onSuccess() {
-			const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Trash']
-			folders.forEach((folder) => setCurrentMail(folder, null))
 			userResource.reset()
 			user.value = null
 			window.location.reload()

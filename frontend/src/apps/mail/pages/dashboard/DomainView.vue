@@ -134,10 +134,7 @@ const confirmDialogOptions = computed(() => ({
 			: `Are you sure you want to rotate the DKIM keys? This will generate new keys for email signing and may take up to 10 minutes to propagate across DNS servers. Emails sent during this period may fail DKIM verification.`,
 	),
 	size: 'xl',
-	icon: {
-		name: 'alert-triangle',
-		appearance: 'warning',
-	},
+	icon: { name: 'alert-triangle', appearance: 'warning' },
 	actions: [
 		{
 			label: __('Confirm'),
