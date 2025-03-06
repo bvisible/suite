@@ -6,7 +6,7 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.translate import get_all_translations
-from frappe.utils import is_html
+from frappe.utils import is_html, now
 
 from mail.utils.cache import get_account_for_user, get_default_outgoing_email_for_user
 from mail.utils.user import get_user_email_addresses, has_role, is_system_manager
@@ -548,11 +548,14 @@ def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> N
 
 	if move_to_trash:
 		doc.db_set("folder", "Trash")
-	elif mail_type == "Incoming Mail":
-		doc.db_set("folder", "Inbox")
+		doc.db_set("trashed_on", now())
 	else:
-		doc.folder = None
-		doc.set_folder(db_set=True)
+		doc.db_set("trashed_on")
+		if mail_type == "Incoming Mail":
+			doc.db_set("folder", "Inbox")
+		else:
+			doc.folder = None
+			doc.set_folder(db_set=True)
 
 
 @frappe.whitelist()
