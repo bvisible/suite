@@ -68,7 +68,7 @@
  "modified": "2025-03-05 18:55:01.803680",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Agent Listener",
+ "name": "Mail Server Listener",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
