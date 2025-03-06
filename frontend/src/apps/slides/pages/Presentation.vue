@@ -69,13 +69,8 @@
 
 			<div
 				ref="slideContainer"
-				class="flex items-center justify-center w-full h-full"
-				:class="{
-					'bg-black': inSlideShow,
-				}"
-				:style="{
-					clipPath: inSlideShow ? 'inset(45px 0 45px 0)' : 'none',
-				}"
+				class="slideContainer flex items-center justify-center w-full h-full"
+				:style="containerStyles"
 			>
 				<Slide
 					v-if="slideContainerRef"
@@ -99,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
@@ -147,6 +142,14 @@ const newTitle = ref('')
 const renameMode = ref(false)
 const showNavigator = ref(true)
 const isMediaDragOver = ref(false)
+
+const containerStyles = computed(() => {
+	if (!inSlideShow.value) return {}
+	return {
+		clipPath: 'inset(45px 0 45px 0)',
+		backgroundColor: 'black',
+	}
+})
 
 const enableRenameMode = () => {
 	renameMode.value = true
