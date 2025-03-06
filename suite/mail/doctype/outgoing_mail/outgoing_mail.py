@@ -101,8 +101,8 @@ class OutgoingMail(Document):
 		self.validate_custom_headers()
 		self.load_attachments()
 		self.validate_attachments()
-		self.validate_include_agent_groups()
-		self.validate_exclude_agent_groups()
+		self.validate_include_clusters()
+		self.validate_exclude_clusters()
 
 		if self.get("_action") == "submit":
 			self.set_ip_address()
@@ -378,15 +378,15 @@ class OutgoingMail(Document):
 				)
 			)
 
-	def validate_include_agent_groups(self) -> None:
-		"""Validate include agent groups and set it to the value from the domain."""
+	def validate_include_clusters(self) -> None:
+		"""Validate include agent clusters and set it to the value from the domain."""
 
-		self.include_agent_groups = self.include_agent_groups or self.runtime.mail_domain.include_agent_groups
+		self.include_clusters = self.include_clusters or self.runtime.mail_domain.include_clusters
 
-	def validate_exclude_agent_groups(self) -> None:
-		"""Validate exclude agent groups and set it to the value from the domain."""
+	def validate_exclude_clusters(self) -> None:
+		"""Validate exclude agent clusters and set it to the value from the domain."""
 
-		self.exclude_agent_groups = self.exclude_agent_groups or self.runtime.mail_domain.exclude_agent_groups
+		self.exclude_clusters = self.exclude_clusters or self.runtime.mail_domain.exclude_clusters
 
 	def set_ip_address(self) -> None:
 		"""Sets the IP Address."""
@@ -915,7 +915,7 @@ class OutgoingMail(Document):
 			if not recipients:
 				frappe.throw(_("All recipients are blocked or sent."))
 
-			agent_group = get_random_agent_group(self.include_agent_groups, self.exclude_agent_groups)
+			cluster = get_random_cluster(self.include_clusters, self.exclude_clusters)
 			mail_account = frappe.get_cached_doc("Mail Account", self.sender)
 			username = mail_account.email
 			password = mail_account.get_password("password")
@@ -928,7 +928,7 @@ class OutgoingMail(Document):
 				# Reuses existing connections across threads.
 				# Connections are gracefully closed by the cleanup thread.
 
-				with SMTPContext(agent_group, 465, username, password, use_ssl=True) as session:
+				with SMTPContext(cluster, 465, username, password, use_ssl=True) as session:
 					session.sendmail(self.from_, recipients, self.message, mail_options=mail_options)
 			else:
 				# Background worker:
@@ -936,7 +936,7 @@ class OutgoingMail(Document):
 				# Ensures the same connection is reused throughout the job for the (host, port, user) key.
 				# Connection is gracefully closed when the job completes.
 
-				connection = get_smtp_connection(agent_group, 465, username, password, use_ssl=True)
+				connection = get_smtp_connection(cluster, 465, username, password, use_ssl=True)
 				connection.session.sendmail(self.from_, recipients, self.message, mail_options=mail_options)
 				connection.increment_email_count()
 
@@ -953,7 +953,7 @@ class OutgoingMail(Document):
 			self._db_set(
 				folder=self.folder,
 				status=self.status,
-				agent_group=agent_group,
+				cluster=cluster,
 				transfer_completed_at=transfer_completed_at,
 				transfer_completed_after=transfer_completed_after,
 				notify_update=True,
@@ -1035,12 +1035,12 @@ def get_retry_after(failed_count: int) -> str:
 	return add_to_date(now(), minutes=retry_after_minutes)
 
 
-def get_random_agent_group(
-	include_agent_groups: str | list[str] | None = None,
-	exclude_agent_groups: str | list[str] | None = None,
+def get_random_cluster(
+	include_clusters: str | list[str] | None = None,
+	exclude_clusters: str | list[str] | None = None,
 	raise_if_not_found: bool = True,
 ) -> str:
-	"""Returns a random agent or agent group based on the given criteria."""
+	"""Returns a random cluster based on the given criteria."""
 
 	def normalize_input(value: str | list[str] | None) -> list[str]:
 		"""Normalize input to a list of strings."""
@@ -1049,30 +1049,32 @@ def get_random_agent_group(
 			return value.split("\n")
 		return value or []
 
-	include_agent_groups = normalize_input(include_agent_groups)
-	exclude_agent_groups = normalize_input(exclude_agent_groups)
+	include_clusters = normalize_input(include_clusters)
+	exclude_clusters = normalize_input(exclude_clusters)
 
-	selected_agent_group = None
-	agent_groups = set(frappe.db.get_all("Mail Agent Group", {"enabled": 1, "outbound": 1}, pluck="name"))
+	selected_cluster = None
+	clusters = set(frappe.db.get_all("Mail Cluster", {"enabled": 1, "outbound": 1}, pluck="name"))
 
-	if include_agent_groups:
-		if invalid_groups := [group for group in include_agent_groups if group and group not in agent_groups]:
+	if include_clusters:
+		if invalid_clusters := [
+			cluster for cluster in include_clusters if cluster and cluster not in clusters
+		]:
 			frappe.throw(
-				_("The following agent groups do not exist or are not enabled for outbound: {0}").format(
-					", ".join(invalid_groups)
+				_("The following clusters do not exist or are not enabled for outbound: {0}").format(
+					", ".join(invalid_clusters)
 				)
 			)
-			agent_groups.intersection_update(include_agent_groups)
+			clusters.intersection_update(include_clusters)
 
-	if exclude_agent_groups:
-		agent_groups.difference_update(exclude_agent_groups)
+	if exclude_clusters:
+		clusters.difference_update(exclude_clusters)
 
-	selected_agent_group = random.choice(list(agent_groups))
+	selected_cluster = random.choice(list(clusters))
 
-	if not selected_agent_group and raise_if_not_found:
-		frappe.throw(_("No agent or agent group found based on the given criteria."))
+	if not selected_cluster and raise_if_not_found:
+		frappe.throw(_("No cluster found based on the given criteria."))
 
-	return selected_agent_group
+	return selected_cluster
 
 
 def create_outgoing_mail(

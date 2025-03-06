@@ -9,7 +9,7 @@ from frappe import _
 
 from mail.mail.doctype.mail_server_request.mail_server_request import create_mail_server_request
 from mail.utils import get_dkim_selector
-from mail.utils.cache import get_agent_groups
+from mail.utils.cache import get_agent_clusters
 
 
 @dataclass
@@ -95,23 +95,23 @@ class AgentAPI:
 		return response
 
 
-def reload_configuration(agent_groups: list[str] | None = None) -> None:
-	"""Reloads the configuration on all agent groups."""
+def reload_configuration(clusters: list[str] | None = None) -> None:
+	"""Reloads the configuration on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
-	for group in agent_groups:
+	clusters = clusters or get_agent_clusters()
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group,
+			cluster=cluster,
 			method="GET",
 			endpoint="/api/reload",
 			do_not_enqueue=True,
 		)
 
 
-def block_ip_on_agents(ip_address: str, agent_groups: list[str] | None = None) -> None:
-	"""Blocks an IP address on all agent groups."""
+def block_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
+	"""Blocks an IP address on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -122,35 +122,35 @@ def block_ip_on_agents(ip_address: str, agent_groups: list[str] | None = None) -
 			}
 		]
 	)
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group,
+			cluster=cluster,
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
 		)
 
 
-def unblock_ip_on_agents(ip_address: str, agent_groups: list[str] | None = None) -> None:
-	"""Unblocks an IP address on all agent groups."""
+def unblock_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
+	"""Unblocks an IP address on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps([{"type": "delete", "keys": [f"server.blocked-ip.{ip_address}"]}])
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group,
+			cluster=cluster,
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
 		)
 
 
-def create_dkim_key_on_agents(
-	domain_name: str, rsa_private_key: str, agent_groups: list[str] | None = None
+def create_dkim_key_on_clusters(
+	domain_name: str, rsa_private_key: str, clusters: list[str] | None = None
 ) -> None:
-	"""Creates a DKIM Key on all agent groups."""
+	"""Creates a DKIM Key on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -168,19 +168,19 @@ def create_dkim_key_on_agents(
 			}
 		]
 	)
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group,
+			cluster=cluster,
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
 		)
 
 
-def delete_dkim_key_from_agents(domain_name: str, agent_groups: list[str] | None = None) -> None:
-	"""Deletes a DKIM Key from all agent groups."""
+def delete_dkim_key_from_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
+	"""Deletes a DKIM Key from all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -189,42 +189,40 @@ def delete_dkim_key_from_agents(domain_name: str, agent_groups: list[str] | None
 			}
 		]
 	)
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group,
+			cluster=cluster,
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
 		)
 
 
-def create_domain_on_agents(domain_name: str, agent_groups: list[str] | None = None) -> None:
-	"""Creates a domain on all agent groups."""
+def create_domain_on_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
+	"""Creates a domain on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	principal = Principal(name=domain_name, type="domain").__dict__
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="POST", endpoint="/api/principal", request_data=principal
+			cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
 		)
 
 
-def delete_domain_from_agents(domain_name: str, agent_groups: list[str] | None = None) -> None:
-	"""Deletes a domain from all agent groups."""
+def delete_domain_from_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
+	"""Deletes a domain from all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
-	for group in agent_groups:
-		create_mail_server_request(
-			agent_group=group, method="DELETE", endpoint=f"/api/principal/{domain_name}"
-		)
+	clusters = clusters or get_agent_clusters()
+	for cluster in clusters:
+		create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{domain_name}")
 
 
-def create_account_on_agents(
-	email: str, display_name: str, secret: str, agent_groups: list[str] | None = None
+def create_account_on_clusters(
+	email: str, display_name: str, secret: str, clusters: list[str] | None = None
 ) -> None:
-	"""Creates an account on all agent groups."""
+	"""Creates an account on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	principal = Principal(
 		name=email,
 		type="individual",
@@ -233,18 +231,18 @@ def create_account_on_agents(
 		emails=[email],
 		roles=["user"],
 	).__dict__
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="POST", endpoint="/api/principal", request_data=principal
+			cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
 		)
 
 
-def patch_account_on_agents(
-	email: str, display_name: str, new_secret: str, old_secret: str, agent_groups: list[str] | None = None
+def patch_account_on_clusters(
+	email: str, display_name: str, new_secret: str, old_secret: str, clusters: list[str] | None = None
 ) -> None:
-	"""Patches an account on all agent groups."""
+	"""Patches an account on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = [
 		{
 			"action": "set",
@@ -270,24 +268,24 @@ def patch_account_on_agents(
 		)
 
 	request_data = json.dumps(request_data)
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
 		)
 
 
-def delete_account_from_agents(email: str, agent_groups: list[str] | None = None) -> None:
-	"""Deletes an account from all agent groups."""
+def delete_account_from_clusters(email: str, clusters: list[str] | None = None) -> None:
+	"""Deletes an account from all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
-	for group in agent_groups:
-		create_mail_server_request(agent_group=group, method="DELETE", endpoint=f"/api/principal/{email}")
+	clusters = clusters or get_agent_clusters()
+	for cluster in clusters:
+		create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{email}")
 
 
-def create_group_on_agents(email: str, display_name: str, agent_groups: list[str] | None = None) -> None:
-	"""Creates a group on all agent groups."""
+def create_group_on_clusters(email: str, display_name: str, clusters: list[str] | None = None) -> None:
+	"""Creates a group on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	principal = Principal(
 		name=email,
 		type="group",
@@ -295,16 +293,16 @@ def create_group_on_agents(email: str, display_name: str, agent_groups: list[str
 		emails=[email],
 		enabledPermissions=["email-send", "email-receive"],
 	).__dict__
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="POST", endpoint="/api/principal", request_data=principal
+			cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
 		)
 
 
-def patch_group_on_agents(email: str, display_name: str, agent_groups: list[str] | None = None) -> None:
-	"""Patches a group on all agent groups."""
+def patch_group_on_clusters(email: str, display_name: str, clusters: list[str] | None = None) -> None:
+	"""Patches a group on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -314,55 +312,55 @@ def patch_group_on_agents(email: str, display_name: str, agent_groups: list[str]
 			}
 		]
 	)
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
 		)
 
 
-def delete_group_from_agents(email: str, agent_groups: list[str] | None = None) -> None:
-	"""Deletes a group from all agent groups."""
+def delete_group_from_clusters(email: str, clusters: list[str] | None = None) -> None:
+	"""Deletes a group from all the clusters."""
 
-	delete_account_from_agents(email, agent_groups)
+	delete_account_from_clusters(email, clusters)
 
 
-def create_alias_on_agents(email: str, alias: str, agent_groups: list[str] | None = None) -> None:
-	"""Creates an alias on all agent groups."""
+def create_alias_on_clusters(email: str, alias: str, clusters: list[str] | None = None) -> None:
+	"""Creates an alias on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps([{"action": "addItem", "field": "emails", "value": alias}])
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
 		)
 
 
-def patch_alias_on_agents(
-	new_email: str, old_email: str, alias: str, agent_groups: list[str] | None = None
+def patch_alias_on_clusters(
+	new_email: str, old_email: str, alias: str, clusters: list[str] | None = None
 ) -> None:
-	"""Patches an alias on all agent groups."""
+	"""Patches an alias on all the clusters."""
 
-	delete_alias_from_agents(old_email, alias, agent_groups)
-	create_alias_on_agents(new_email, alias, agent_groups)
+	delete_alias_from_clusters(old_email, alias, clusters)
+	create_alias_on_clusters(new_email, alias, clusters)
 
 
-def delete_alias_from_agents(email: str, alias: str, agent_groups: list[str] | None = None) -> None:
-	"""Deletes an alias from all agent groups."""
+def delete_alias_from_clusters(email: str, alias: str, clusters: list[str] | None = None) -> None:
+	"""Deletes an alias from all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	request_data = json.dumps([{"action": "removeItem", "field": "emails", "value": alias}])
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
 		)
 
 
-def create_member_on_agents(
-	email: str, member: str, is_group: bool, agent_groups: list[str] | None = None
+def create_member_on_clusters(
+	email: str, member: str, is_group: bool, clusters: list[str] | None = None
 ) -> None:
-	"""Creates a group member on all agent groups."""
+	"""Creates a group member on all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	endpoint = None
 	request_data = None
 	if is_group:
@@ -372,27 +370,27 @@ def create_member_on_agents(
 		endpoint = f"/api/principal/{email}"
 		request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
 
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="PATCH", endpoint=endpoint, request_data=request_data
+			cluster=cluster, method="PATCH", endpoint=endpoint, request_data=request_data
 		)
 
 
-def patch_member_on_agents(
-	new_email: str, old_email: str, member: str, is_group: bool, agent_groups: list[str] | None = None
+def patch_member_on_clusters(
+	new_email: str, old_email: str, member: str, is_group: bool, clusters: list[str] | None = None
 ) -> None:
-	"""Patches a group member on all agent groups."""
+	"""Patches a group member on all the clusters."""
 
-	delete_member_from_agents(old_email, member, is_group, agent_groups)
-	create_member_on_agents(new_email, member, is_group, agent_groups)
+	delete_member_from_clusters(old_email, member, is_group, clusters)
+	create_member_on_clusters(new_email, member, is_group, clusters)
 
 
-def delete_member_from_agents(
-	email: str, member: str, is_group: bool, agent_groups: list[str] | None = None
+def delete_member_from_clusters(
+	email: str, member: str, is_group: bool, clusters: list[str] | None = None
 ) -> None:
-	"""Deletes a group member from all agent groups."""
+	"""Deletes a group member from all the clusters."""
 
-	agent_groups = agent_groups or get_agent_groups()
+	clusters = clusters or get_agent_clusters()
 	endpoint = None
 	request_data = None
 	if is_group:
@@ -402,7 +400,7 @@ def delete_member_from_agents(
 		endpoint = f"/api/principal/{email}"
 		request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
 
-	for group in agent_groups:
+	for cluster in clusters:
 		create_mail_server_request(
-			agent_group=group, method="PATCH", endpoint=endpoint, request_data=request_data
+			cluster=cluster, method="PATCH", endpoint=endpoint, request_data=request_data
 		)

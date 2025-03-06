@@ -9,7 +9,7 @@
   "section_break_excr",
   "enabled",
   "column_break_0mtp",
-  "agent_group",
+  "cluster",
   "agent",
   "network_settings_section",
   "server_max_connections",
@@ -44,18 +44,6 @@
   {
    "fieldname": "section_break_excr",
    "fieldtype": "Section Break"
-  },
-  {
-   "description": "The mail agent group this server belongs to.",
-   "fieldname": "agent_group",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Agent Group",
-   "options": "Mail Agent Group",
-   "reqd": 1,
-   "search_index": 1,
-   "set_only_once": 1
   },
   {
    "fieldname": "column_break_0mtp",
@@ -185,17 +173,29 @@
    "label": "Details"
   },
   {
-   "description": "Define custom listeners for this mail agent. If not set, the group\u2019s listeners will be used.",
+   "description": "Define custom listeners for this mail agent. If not set, the cluster\u2019s listeners will be used.",
    "fieldname": "listeners",
    "fieldtype": "Table",
    "label": "Listeners",
    "options": "Mail Server Listener"
+  },
+  {
+   "description": "The mail cluster this server belongs to.",
+   "fieldname": "cluster",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cluster",
+   "options": "Mail Cluster",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 13:55:34.923440",
+ "modified": "2025-03-06 14:21:33.591295",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",

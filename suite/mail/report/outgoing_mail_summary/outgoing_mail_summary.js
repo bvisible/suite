@@ -45,11 +45,11 @@ frappe.query_reports['Outgoing Mail Summary'] = {
 			},
 		},
 		{
-			fieldname: 'agent_group',
-			label: __('Agent Group'),
+			fieldname: 'cluster',
+			label: __('Cluster'),
 			fieldtype: frappe.user.has_role('System Manager') ? 'MultiSelectList' : 'Data',
 			get_data: (txt) => {
-				return frappe.db.get_link_options('Mail Agent Group', txt, {
+				return frappe.db.get_link_options('Mail Cluster', txt, {
 					enabled: 1,
 					outbound: 1,
 				})

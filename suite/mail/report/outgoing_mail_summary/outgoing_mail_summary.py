@@ -82,10 +82,10 @@ def get_columns() -> list[dict]:
 			"width": 150,
 		},
 		{
-			"label": _("Agent Group"),
-			"fieldname": "agent_group",
+			"label": _("Cluster"),
+			"fieldname": "cluster",
 			"fieldtype": "Link",
-			"options": "Mail Agent Group",
+			"options": "Mail Cluster",
 			"width": 150,
 		},
 		{
@@ -148,7 +148,7 @@ def get_data(filters: dict | None = None) -> list[dict]:
 			OM.priority,
 			OM.is_newsletter,
 			OM.domain_name,
-			OM.agent_group,
+			OM.cluster,
 			OM.ip_address,
 			OM.sender,
 			OM.from_,
@@ -184,10 +184,10 @@ def get_data(filters: dict | None = None) -> list[dict]:
 		if filters.get(field):
 			query = query.where(OM[field].isin(filters.get(field)))
 
-	if agent_group := filters.get("agent_group"):
-		if isinstance(agent_group, str):
-			agent_group = [agent_group]
-		query = query.where(OM.agent_group.isin(agent_group))
+	if cluster := filters.get("cluster"):
+		if isinstance(cluster, str):
+			cluster = [cluster]
+		query = query.where(OM.cluster.isin(cluster))
 
 	if not filters.get("include_newsletter"):
 		query = query.where(OM.is_newsletter == 0)

@@ -5,7 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_nukc",
-  "agent_group",
+  "cluster",
   "status",
   "column_break_u0ac",
   "endpoint",
@@ -166,12 +166,12 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "agent_group",
+   "fieldname": "cluster",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Agent Group",
-   "options": "Mail Agent Group",
+   "label": "Cluster",
+   "options": "Mail Cluster",
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
@@ -180,7 +180,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-03 22:24:26.061500",
+ "modified": "2025-03-06 14:45:58.432272",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Request",
