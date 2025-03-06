@@ -101,7 +101,7 @@ frappe.ui.form.on('Mail Agent Group', {
 	},
 })
 
-frappe.ui.form.on('Mail Agent Store', {
+frappe.ui.form.on('Mail Server Store', {
 	type(frm, cdt, cdn) {
 		const row = locals[cdt][cdn]
 

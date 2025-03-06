@@ -5,13 +5,13 @@ import frappe
 from frappe.model.document import Document
 
 
-class MailAgentListener(Document):
+class MailServerListener(Document):
 	pass
 
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Agent Listener",
+		"Mail Server Listener",
 		["parenttype", "parent", "listener_id"],
 		constraint_name="unique_parent_listener_id",
 	)

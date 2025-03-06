@@ -6,7 +6,6 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "amended_from",
   "section_break_oc18",
   "type",
   "column_break_uo3q",
@@ -42,16 +41,6 @@
   {
    "fieldname": "section_break_oc18",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Mail Agent Store",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
   },
   {
    "description": "Unique identifier for the store.",
@@ -254,10 +243,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-05 19:04:43.962029",
+ "modified": "2025-03-06 13:56:48.065835",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Agent Store",
+ "name": "Mail Server Store",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],

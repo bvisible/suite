@@ -215,7 +215,7 @@
    "fieldtype": "Table",
    "label": "Stores",
    "no_copy": 1,
-   "options": "Mail Agent Store",
+   "options": "Mail Server Store",
    "reqd": 1
   },
   {
@@ -248,7 +248,7 @@
    "fieldname": "listeners",
    "fieldtype": "Table",
    "label": "Listeners",
-   "options": "Mail Agent Listener",
+   "options": "Mail Server Listener",
    "reqd": 1
   },
   {
@@ -387,7 +387,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-06 10:58:25.976365",
+ "modified": "2025-03-06 13:55:43.524427",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",

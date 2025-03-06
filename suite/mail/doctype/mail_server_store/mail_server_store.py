@@ -5,13 +5,13 @@ import frappe
 from frappe.model.document import Document
 
 
-class MailAgentStore(Document):
+class MailServerStore(Document):
 	pass
 
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Agent Store",
+		"Mail Server Store",
 		["parenttype", "parent", "store_id"],
 		constraint_name="unique_parent_store_id",
 	)

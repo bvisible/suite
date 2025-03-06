@@ -189,13 +189,13 @@
    "fieldname": "listeners",
    "fieldtype": "Table",
    "label": "Listeners",
-   "options": "Mail Agent Listener"
+   "options": "Mail Server Listener"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 10:57:50.588151",
+ "modified": "2025-03-06 13:55:34.923440",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",
