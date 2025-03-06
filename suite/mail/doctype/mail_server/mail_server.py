@@ -2,71 +2,25 @@
 # For license information, please see license.txt
 
 
+from typing import TYPE_CHECKING
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Order
 
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
+from mail.mail.doctype.mail_server_config.mail_server_config import create_mail_server_config
 from mail.mail.doctype.mail_settings.mail_settings import (
 	validate_mail_settings,
 )
-from mail.utils import flatten_dict
 from mail.utils.dns import get_dns_record
 
-PROTOCOL_MAP = {
-	"SMTP": "smtp",
-	"LMTP": "lmtp",
-	"HTTP": "http",
-	"IMAP4": "imap",
-	"POP3": "pop3",
-	"ManageSieve": "managesieve",
-}
-STORE_TYPE_MAP = {
-	"RocksDB": "rocksdb",
-	"FoundationDB": "foundationdb",
-	"PostgreSQL": "postgresql",
-	"mySQL": "mysql",
-	"SQLite": "sqlite",
-	"S3-compatible": "s3",
-	"Redis/Memcached": "redis",
-	"ElasticSearch": "elasticsearch",
-	"Azure blob storage": "azure",
-	"Filesystem": "fs",
-	"SQL with Replicas": "sql-read-replica",
-	"Sharded Blob Store": "sharded-blob",
-	"Sharded In-Memory Store": "sharded-in-memory",
-}
-LOCAL_KEYS = [
-	"store.*",
-	"directory.*",
-	"tracer.*",
-	"!server.blocked-ip.*",
-	"!server.allowed-ip.*",
-	"server.*",
-	"config.local-keys.*",
-	"certificate.*",
-	"cluster.*",
-	"storage.directory",
-	"storage.data",
-	"storage.encryption.*",
-	"storage.blob",
-	"storage.fts",
-	"storage.full-text.*",
-	"storage.lookup",
-	"jmap.account.*",
-	"jmap.email.*",
-	"jmap.protocol.*",
-	"authentication.fallback-admin.*",
-	"enterprise.license-key",
-]
+if TYPE_CHECKING:
+	from mail.mail.doctype.mail_server_config.mail_server_config import MailServerConfig
 
 
 class MailServer(Document):
-	@property
-	def config(self) -> str:
-		return get_config_toml(server=self.name)
-
 	def autoname(self) -> None:
 		self.server = self.server.lower()
 		self.name = self.server
@@ -140,6 +94,19 @@ class MailServer(Document):
 				)
 			)
 
+	@frappe.whitelist()
+	def generate_config(self) -> None:
+		"""Generates the Mail Server Config."""
+
+		frappe.only_for("System Manager")
+		self._generate_config()
+		frappe.msgprint(_("Mail Server Config generated successfully."), indicator="green", alert=True)
+
+	def _generate_config(self) -> "MailServerConfig":
+		"""Generates the Mail Server Config."""
+
+		return create_mail_server_config(self.name)
+
 
 def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 	"""Refreshes the SPF DNS Record."""
@@ -170,211 +137,6 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 	else:
 		if spf_dns_record := frappe.db.exists("DNS Record", {"host": spf_host, "type": "TXT"}):
 			frappe.delete_doc("DNS Record", spf_dns_record, ignore_permissions=True)
-
-
-def get_config_toml(server: str) -> str | None:
-	"""Returns the TOML configuration for the Mail Server."""
-
-	def get_listeners(listeners: list) -> dict:
-		"""Returns the listener configuration for the Mail Server."""
-
-		listeners_config = {}
-		for listener in listeners:
-			if listener.listener_id in listeners_config:
-				continue
-
-			bind_addresses = listener.bind_addresses.split("\n")
-			bind = bind_addresses[0] if len(bind_addresses) == 1 else bind_addresses
-			listeners_config[listener.listener_id] = {
-				"bind": bind,
-				"protocol": PROTOCOL_MAP[listener.protocol],
-			}
-
-			if listener.implicit_tls:
-				listeners_config[listener.listener_id]["tls"] = {"implicit": True}
-
-		return listeners_config
-
-	def get_seed_nodes(server: str, cluster: str) -> dict:
-		"""Returns the seed nodes for the Mail Server."""
-
-		seed_nodes = []
-		for a in frappe.db.get_all(
-			"Mail Server",
-			filters={"cluster": cluster, "name": ["!=", server]},
-			fields=[
-				"private_ipv4",
-				"private_ipv6",
-				"public_ipv4",
-				"public_ipv6",
-				"cluster_advertise_address",
-			],
-		):
-			if not a["cluster_advertise_address"]:
-				continue
-
-			if seed_node := a[frappe.scrub(a["cluster_advertise_address"])]:
-				seed_nodes.append(seed_node)
-
-		num_digits = len(str(len(seed_nodes) - 1))
-		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(seed_nodes)}
-
-	def get_local_keys() -> dict:
-		"""Returns the local keys for the configuration."""
-
-		num_digits = len(str(len(LOCAL_KEYS) - 1))
-		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(LOCAL_KEYS)}
-
-	def get_stores(stores: list) -> dict:
-		"""Returns the store configuration for the Mail Server."""
-
-		store_config = {}
-		for store in stores:
-			if store.store_id in store_config:
-				continue
-
-			store_config.setdefault(store.store_id, {})
-			match store.type:
-				case "RocksDB":
-					store_config.update(
-						{
-							store.store_id: {
-								"type": STORE_TYPE_MAP[store.type],
-								"path": store.path,
-								"compression": store.compression.lower(),
-								"min-blob-size": store.min_blob_size_bytes,
-								"write-buffer-size": store.write_buffer_size_mb,
-								"workers": store.thread_pool_size,
-								"purge": {"frequency": store.purge_frequency_cron},
-							}
-						}
-					)
-				case "mySQL":
-					store_config.update(
-						{
-							store.store_id: {
-								"type": STORE_TYPE_MAP[store.type],
-								"host": store.hostname,
-								"port": store.port,
-								"database": store.database,
-								"user": store.username,
-								"password": store.get_password("password") if store.password else None,
-								"max-allowed-packet": store.max_allowed_packet_bytes,
-								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
-								"compression": store.compression.lower(),
-								"purge": {"frequency": store.purge_frequency_cron},
-								"tls": {
-									"enable": store.enable_tls,
-									"allow-invalid-certs": store.allow_invalid_certs,
-								},
-								"pool": {
-									"max-connections": store.max_connections,
-									"min-connections": store.min_connections,
-								},
-							}
-						}
-					)
-
-		return store_config
-
-	server = frappe.get_doc("Mail Server", server)
-	cluster = frappe.get_doc("Mail Cluster", server.cluster)
-
-	config = {
-		"authentication": {
-			"fallback-admin": {
-				"user": cluster.admin_username,
-				"secret": cluster.admin_password_hash,
-			}
-		},
-		"server": {
-			"hostname": server.server,
-			"max-connections": server.server_max_connections,
-			"listener": get_listeners(server.listeners or cluster.listeners),
-			"socket": {
-				"backlog": 1024,
-				"nodelay": True,
-				"reuse-addr": True,
-				"reuse-port": True,
-			},
-		},
-		"cluster": {
-			"node-id": server.cluster_node_id,
-			"bind-addr": server.cluster_bind_address,
-			"bind-port": cluster.cluster_bind_port,
-			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_address)),
-			"key": cluster.get_password("cluster_encryption_key"),
-			"heartbeat": f"{server.cluster_heartbeat}s" if server.cluster_heartbeat else 0,
-			"seed-nodes": get_seed_nodes(server.name, cluster.name),
-		},
-		"config": {
-			"local-keys": get_local_keys(),
-		},
-		"directory": {
-			f"{cluster.directory_storage}": {
-				"type": "internal",
-				"store": f"{cluster.directory_storage}",
-				"cache": {
-					"size": 1048576,
-					"ttl": {
-						"negative": "10m",
-						"positive": "1h",
-					},
-				},
-			}
-		},
-		"storage": {
-			"directory": cluster.directory_storage,
-			"data": cluster.data_storage,
-			"encryption": {
-				"enable": cluster.enable_encryption_at_rest,
-				"append": cluster.encrypt_on_append,
-			},
-			"blob": cluster.blob_storage,
-			"fts": cluster.fts_storage,
-			"full-text": {"default-language": cluster.default_language},
-			"lookup": cluster.in_memory_storage,
-		},
-		"jmap": {
-			"account": {"purge": {"frequency": cluster.jmap_frequency_cron}},
-			"email": {
-				"auto-expunge": f"{cluster.jmap_trash_auto_expunge_days}d"
-				if cluster.jmap_trash_auto_expunge_days
-				else 0
-			},
-			"protocol": {
-				"changes": {
-					"max-history": f"{cluster.jmap_changes_history_days}d"
-					if cluster.jmap_changes_history_days
-					else 0
-				}
-			},
-		},
-		"store": get_stores(cluster.stores),
-		"tracer": {
-			"log": {
-				"type": "log",
-				"path": "/opt/stalwart-mail/logs",
-				"prefix": "stalwart.log",
-				"rotate": "daily",
-				"level": "info",
-				"ansi": False,
-				"enable": True,
-			}
-		},
-	}
-
-	toml_lines = []
-	for key, value in sorted(flatten_dict(config).items()):
-		if value or isinstance(value, bool):
-			if isinstance(value, str):
-				toml_lines.append(f'{key} = "{value}"')
-			elif isinstance(value, bool):
-				toml_lines.append(f"{key} = {str(value).lower()}")
-			else:
-				toml_lines.append(f"{key} = {value}")
-
-	return "\n".join(toml_lines)
 
 
 def on_doctype_update() -> None:
