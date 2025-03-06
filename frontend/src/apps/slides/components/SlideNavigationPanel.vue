@@ -7,7 +7,7 @@
 		@mouseleave="showCollapseShortcut = false"
 		@wheel="handleWheelEvent"
 	>
-		<div class="flex flex-col h-full px-4 overflow-y-auto">
+		<div class="flex flex-col h-full ps-4 pe-3 overflow-y-auto" :style="scrollbarStyles">
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
@@ -29,10 +29,10 @@
 
 		<div
 			v-if="showNavigator && showCollapseShortcut"
-			class="fixed -left-0.5 bottom-0 z-20 flex h-10 w-44 cursor-pointer items-center justify-between border-t bg-white p-4"
+			class="fixed -left-0.4 bottom-0 z-20 flex h-10 w-44 cursor-pointer items-center justify-between border-t bg-white p-4"
 			@click="toggleNavigator"
 		>
-			<div class="text-2xs text-gray-500">Toggle</div>
+			<div class="text-2xs text-gray-500">Toggle Navigator</div>
 			<div class="flex h-5 w-1/3 items-center justify-center rounded-sm border bg-gray-100">
 				<div class="text-xs text-gray-500">⌘ + B</div>
 			</div>
@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 import { call } from 'frappe-ui'
 
@@ -95,13 +95,17 @@ const handleSortEnd = async (event) => {
 }
 
 const handleWheelEvent = (e) => {
-	// allow scroll normal scroll behaviour
+	// allow normal scroll behaviour
 	if (!e.ctrlKey && !e.metaKey) return
 
 	// prevent zoom event from triggering
 	e.preventDefault()
 	e.stopPropagation()
 }
+
+const scrollbarStyles = computed(() => ({
+	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
+}))
 </script>
 
 <style scoped>
@@ -111,5 +115,18 @@ const handleWheelEvent = (e) => {
 
 .sortable-chosen {
 	opacity: 0.8;
+}
+
+::-webkit-scrollbar {
+	width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--scrollbar-thumb-color);
+	border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: #c6c6c6;
 }
 </style>
