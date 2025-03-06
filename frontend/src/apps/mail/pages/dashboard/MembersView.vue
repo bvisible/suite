@@ -21,7 +21,16 @@
 			>
 				<ListHeader />
 				<ListRows>
-					<ListRow v-for="row in members.data" :key="row.name" :row="row">
+					<ListRow
+						v-for="row in members.data"
+						:key="row.name"
+						:row="row"
+						:class="{
+							'cursor-pointer rounded hover:bg-gray-50':
+								row.name !== tenantOwner.data,
+						}"
+						@click="goToAccount(row.name)"
+					>
 						<div class="grid grid-cols-3">
 							<div class="flex items-center space-x-2">
 								<Avatar :image="row.user_image" :label="row.full_name" size="lg" />
@@ -42,6 +51,7 @@
 									v-if="row.name !== tenantOwner.data"
 									:options="dropdownOptions(row.name, row.is_admin)"
 									:button="{ icon: 'more-horizontal', variant: 'ghost' }"
+									@click.stop
 								/>
 							</div>
 						</div>
@@ -55,6 +65,7 @@
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import {
 	Avatar,
 	Badge,
@@ -73,6 +84,7 @@ import { raiseToast } from '@/utils'
 import AddMemberModal from '@/components/Modals/AddMemberModal.vue'
 
 const user = inject('$user')
+const router = useRouter()
 
 const showAddMember = ref(false)
 const showRemoveMember = ref(false)
@@ -125,6 +137,10 @@ const removeMember = createResource({
 	},
 	onError: (error) => raiseToast(error.messages[0], 'error'),
 })
+
+const goToAccount = (accountID: string) => {
+	if (accountID !== tenantOwner.data) router.push({ name: 'Account', params: { accountID } })
+}
 
 const dropdownOptions = (name, isAdmin) => {
 	return [
