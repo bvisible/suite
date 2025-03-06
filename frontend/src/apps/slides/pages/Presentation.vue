@@ -44,7 +44,7 @@
 					size="sm"
 					:variant="'subtle'"
 					:loading="saving"
-					:disabled="!slideDirty || saving"
+					:disabled="!slideDirty"
 					@click="saveChanges"
 				>
 					<template #icon>
@@ -302,8 +302,13 @@ watch(
 	{ immediate: true },
 )
 
+const handleAutoSave = () => {
+	if (activeElementIds.value.length) return
+	saveChanges()
+}
+
 onMounted(() => {
-	autosaveInterval = setInterval(saveChanges, 60000)
+	autosaveInterval = setInterval(handleAutoSave, 60000)
 	document.addEventListener('keydown', handleKeyDown)
 })
 
