@@ -143,7 +143,7 @@ def get_blacklist_for_ip_group(ip_group: str) -> list:
 	return frappe.cache.hget("ip-blacklist", ip_group, generator)
 
 
-def get_agent_clusters() -> list:
+def get_clusters() -> list:
 	"""Returns the clusters."""
 
 	def generator() -> list:

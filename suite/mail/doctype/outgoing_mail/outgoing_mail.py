@@ -379,12 +379,12 @@ class OutgoingMail(Document):
 			)
 
 	def validate_include_clusters(self) -> None:
-		"""Validate include agent clusters and set it to the value from the domain."""
+		"""Validate include clusters and set it to the value from the domain."""
 
 		self.include_clusters = self.include_clusters or self.runtime.mail_domain.include_clusters
 
 	def validate_exclude_clusters(self) -> None:
-		"""Validate exclude agent clusters and set it to the value from the domain."""
+		"""Validate exclude clusters and set it to the value from the domain."""
 
 		self.exclude_clusters = self.exclude_clusters or self.runtime.mail_domain.exclude_clusters
 
@@ -763,7 +763,7 @@ class OutgoingMail(Document):
 			self._sync_with_frontend(self.status)
 		elif self.status == "Accepted":
 			frappe.flags.force_transfer = True
-			self.transfer_to_mail_agent()
+			self.transfer_to_cluster()
 
 	def _prepare_delivery_args(self) -> dict:
 		"""Prepare arguments for delivery processing."""
@@ -862,7 +862,7 @@ class OutgoingMail(Document):
 
 			if self.priority == 1:
 				frappe.flags.force_transfer = True
-				self.transfer_to_mail_agent()
+				self.transfer_to_cluster()
 
 	@frappe.whitelist()
 	def retry_failed(self) -> None:
@@ -870,20 +870,20 @@ class OutgoingMail(Document):
 
 		if self.docstatus == 1 and self.status == "Failed" and self.failed_count < MAX_FAILED_COUNT:
 			self._db_set(status="Accepted", error_log=None, error_message=None, commit=True)
-			self.transfer_to_mail_agent()
+			self.transfer_to_cluster()
 
 	@frappe.whitelist()
-	def force_transfer_to_mail_agent(self) -> None:
-		"""Forces transfer the email to the agent for sending."""
+	def force_transfer_to_cluster(self) -> None:
+		"""Forces transfer the email to the cluster for sending."""
 
 		frappe.only_for("System Manager")
 		if self.status in ["Transferring"]:
 			frappe.flags.force_transfer = True
-			self.transfer_to_mail_agent()
+			self.transfer_to_cluster()
 
 	@frappe.whitelist()
-	def transfer_to_mail_agent(self) -> None:
-		"""Transfers the email to the Mail Agent."""
+	def transfer_to_cluster(self) -> None:
+		"""Transfers the email to the cluster."""
 
 		if not frappe.flags.force_transfer:
 			self.reload()
@@ -1129,7 +1129,7 @@ def create_outgoing_mail(
 
 
 def process_email_transfer_batch(mails: list[str]) -> None:
-	"""Processes a batch of emails and transfer them to the agent."""
+	"""Processes a batch of emails and transfer them to the clusters."""
 
 	failed_mails = []
 
@@ -1142,7 +1142,7 @@ def process_email_transfer_batch(mails: list[str]) -> None:
 				case "Failed":
 					outgoing_mail.retry_failed()
 				case "Transferring":
-					outgoing_mail.force_transfer_to_mail_agent()
+					outgoing_mail.force_transfer_to_cluster()
 		except Exception:
 			failed_mails.append(mail)
 			failed_count = len(failed_mails)
@@ -1156,8 +1156,8 @@ def process_email_transfer_batch(mails: list[str]) -> None:
 				)
 
 
-def transfer_mails_to_mail_agent() -> None:
-	"""Select emails and queues them for transfer to the agent."""
+def transfer_mails_to_clusters() -> None:
+	"""Select emails and queues them for transfer to the clusters."""
 
 	MAX_BATCH_SIZE = 5_000
 	BATCH_PROCESS_SIZE = 1_000
@@ -1198,7 +1198,7 @@ def transfer_mails_to_mail_agent() -> None:
 
 		# Recursively process next batch if the limit was reached.
 		if len(mails) == MAX_BATCH_SIZE:
-			transfer_mails_to_mail_agent()
+			transfer_mails_to_clusters()
 
 	except Exception:
 		frappe.log_error("Error occurred while queuing emails for transfer.")

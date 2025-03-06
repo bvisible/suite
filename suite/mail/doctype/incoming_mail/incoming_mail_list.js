@@ -4,7 +4,7 @@
 frappe.listview_settings['Incoming Mail'] = {
 	refresh: (listview) => {
 		listview.page.add_inner_button('Fetch Emails', () => {
-			fetch_emails_from_mail_agents(listview)
+			fetch_emails_from_clusters(listview)
 		})
 	},
 
@@ -18,9 +18,9 @@ frappe.listview_settings['Incoming Mail'] = {
 	},
 }
 
-function fetch_emails_from_mail_agents() {
+function fetch_emails_from_clusters() {
 	frappe.call({
-		method: 'mail.tasks.enqueue_fetch_emails_from_mail_agents',
+		method: 'mail.tasks.enqueue_fetch_emails_from_clusters',
 		freeze: true,
 		freeze_message: __('Creating Job...'),
 		callback: () => {

@@ -6,7 +6,11 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string
 
-from mail.agent import create_account_on_clusters, delete_account_from_clusters, patch_account_on_clusters
+from mail.mail_server import (
+	create_account_on_clusters,
+	delete_account_from_clusters,
+	patch_account_on_clusters,
+)
 from mail.utils import get_dmarc_address, hash_password, normalize_email
 from mail.utils.cache import get_aliases_for_user, get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin

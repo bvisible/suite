@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.agent import create_member_on_clusters, delete_member_from_clusters
+from mail.mail_server import create_member_on_clusters, delete_member_from_clusters
 from mail.utils.cache import get_account_for_user, get_groups_owned_by_tenant, get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager
 

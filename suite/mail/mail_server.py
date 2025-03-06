@@ -9,7 +9,7 @@ from frappe import _
 
 from mail.mail.doctype.mail_server_request.mail_server_request import create_mail_server_request
 from mail.utils import get_dkim_selector
-from mail.utils.cache import get_agent_clusters
+from mail.utils.cache import get_clusters
 
 
 @dataclass
@@ -33,8 +33,8 @@ class Principal:
 	externalMembers: list[str] = field(default_factory=list)
 
 
-class AgentAPI:
-	"""Class to interact with the Agent."""
+class MailServerAPI:
+	"""Class to interact with the Mail Server API."""
 
 	def __init__(
 		self,
@@ -70,7 +70,7 @@ class AgentAPI:
 		headers: dict[str, str] | None = None,
 		timeout: int | tuple[int, int] = (60, 120),
 	) -> Any | None:
-		"""Makes an HTTP request to the Agent."""
+		"""Makes an HTTP request to the Mail Server API."""
 
 		url = urljoin(self.base_url, endpoint)
 
@@ -98,7 +98,7 @@ class AgentAPI:
 def reload_configuration(clusters: list[str] | None = None) -> None:
 	"""Reloads the configuration on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	for cluster in clusters:
 		create_mail_server_request(
 			cluster=cluster,
@@ -111,7 +111,7 @@ def reload_configuration(clusters: list[str] | None = None) -> None:
 def block_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
 	"""Blocks an IP address on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -134,7 +134,7 @@ def block_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> 
 def unblock_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
 	"""Unblocks an IP address on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps([{"type": "delete", "keys": [f"server.blocked-ip.{ip_address}"]}])
 	for cluster in clusters:
 		create_mail_server_request(
@@ -150,7 +150,7 @@ def create_dkim_key_on_clusters(
 ) -> None:
 	"""Creates a DKIM Key on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -180,7 +180,7 @@ def create_dkim_key_on_clusters(
 def delete_dkim_key_from_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
 	"""Deletes a DKIM Key from all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -201,7 +201,7 @@ def delete_dkim_key_from_clusters(domain_name: str, clusters: list[str] | None =
 def create_domain_on_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
 	"""Creates a domain on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	principal = Principal(name=domain_name, type="domain").__dict__
 	for cluster in clusters:
 		create_mail_server_request(
@@ -212,7 +212,7 @@ def create_domain_on_clusters(domain_name: str, clusters: list[str] | None = Non
 def delete_domain_from_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
 	"""Deletes a domain from all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	for cluster in clusters:
 		create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{domain_name}")
 
@@ -222,7 +222,7 @@ def create_account_on_clusters(
 ) -> None:
 	"""Creates an account on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	principal = Principal(
 		name=email,
 		type="individual",
@@ -242,7 +242,7 @@ def patch_account_on_clusters(
 ) -> None:
 	"""Patches an account on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = [
 		{
 			"action": "set",
@@ -277,7 +277,7 @@ def patch_account_on_clusters(
 def delete_account_from_clusters(email: str, clusters: list[str] | None = None) -> None:
 	"""Deletes an account from all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	for cluster in clusters:
 		create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{email}")
 
@@ -285,7 +285,7 @@ def delete_account_from_clusters(email: str, clusters: list[str] | None = None) 
 def create_group_on_clusters(email: str, display_name: str, clusters: list[str] | None = None) -> None:
 	"""Creates a group on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	principal = Principal(
 		name=email,
 		type="group",
@@ -302,7 +302,7 @@ def create_group_on_clusters(email: str, display_name: str, clusters: list[str] 
 def patch_group_on_clusters(email: str, display_name: str, clusters: list[str] | None = None) -> None:
 	"""Patches a group on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -327,7 +327,7 @@ def delete_group_from_clusters(email: str, clusters: list[str] | None = None) ->
 def create_alias_on_clusters(email: str, alias: str, clusters: list[str] | None = None) -> None:
 	"""Creates an alias on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps([{"action": "addItem", "field": "emails", "value": alias}])
 	for cluster in clusters:
 		create_mail_server_request(
@@ -347,7 +347,7 @@ def patch_alias_on_clusters(
 def delete_alias_from_clusters(email: str, alias: str, clusters: list[str] | None = None) -> None:
 	"""Deletes an alias from all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	request_data = json.dumps([{"action": "removeItem", "field": "emails", "value": alias}])
 	for cluster in clusters:
 		create_mail_server_request(
@@ -360,7 +360,7 @@ def create_member_on_clusters(
 ) -> None:
 	"""Creates a group member on all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	endpoint = None
 	request_data = None
 	if is_group:
@@ -390,7 +390,7 @@ def delete_member_from_clusters(
 ) -> None:
 	"""Deletes a group member from all the clusters."""
 
-	clusters = clusters or get_agent_clusters()
+	clusters = clusters or get_clusters()
 	endpoint = None
 	request_data = None
 	if is_group:

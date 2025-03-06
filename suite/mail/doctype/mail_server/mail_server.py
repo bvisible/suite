@@ -62,20 +62,20 @@ LOCAL_KEYS = [
 ]
 
 
-class MailAgent(Document):
+class MailServer(Document):
 	@property
 	def config(self) -> str:
-		return get_config_toml(agent=self.name)
+		return get_config_toml(server=self.name)
 
 	def autoname(self) -> None:
-		self.agent = self.agent.lower()
-		self.name = self.agent
+		self.server = self.server.lower()
+		self.name = self.server
 
 	def validate(self) -> None:
 		if self.is_new():
 			validate_mail_settings()
 
-		self.validate_agent()
+		self.validate_server()
 		self.validate_cluster()
 		self.validate_cluster_node_id()
 
@@ -85,33 +85,33 @@ class MailAgent(Document):
 
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can delete Mail Agent."))
+			frappe.throw(_("Only Administrator can delete Mail Server."))
 
 		if frappe.db.get_value("Mail Cluster", self.cluster, "outbound"):
 			self.db_set("enabled", 0)
 			create_or_update_spf_dns_record()
 
-	def validate_agent(self) -> None:
-		"""Validates the agent and fetches the IP addresses."""
+	def validate_server(self) -> None:
+		"""Validates the server and fetches the IP addresses."""
 
-		if self.is_new() and frappe.db.exists("Mail Agent", self.agent):
-			frappe.throw(_("Mail Agent {0} already exists.").format(frappe.bold(self.agent)))
+		if self.is_new() and frappe.db.exists("Mail Server", self.server):
+			frappe.throw(_("Mail Server {0} already exists.").format(frappe.bold(self.server)))
 
-		if ipv4_addresses := [r.address for r in get_dns_record(self.agent, "A") or []]:
+		if ipv4_addresses := [r.address for r in get_dns_record(self.server, "A") or []]:
 			if len(ipv4_addresses) > 1:
 				frappe.throw(
-					_("Multiple IPv4 addresses found for Mail Agent {0}. Found: {1}.").format(
-						frappe.bold(self.agent), ", ".join(ipv4_addresses)
+					_("Multiple IPv4 addresses found for Mail Server {0}. Found: {1}.").format(
+						frappe.bold(self.server), ", ".join(ipv4_addresses)
 					)
 				)
 
 			self.public_ipv4 = ipv4_addresses[0]
 
-		if ipv6_addresses := [r.address for r in get_dns_record(self.agent, "AAAA") or []]:
+		if ipv6_addresses := [r.address for r in get_dns_record(self.server, "AAAA") or []]:
 			if len(ipv6_addresses) > 1:
 				frappe.throw(
-					_("Multiple IPv6 addresses found for Mail Agent {0}. Found: {1}.").format(
-						frappe.bold(self.agent), ", ".join(ipv6_addresses)
+					_("Multiple IPv6 addresses found for Mail Server {0}. Found: {1}.").format(
+						frappe.bold(self.server), ", ".join(ipv6_addresses)
 					)
 				)
 
@@ -127,7 +127,7 @@ class MailAgent(Document):
 		"""Validates the cluster node ID."""
 
 		if frappe.db.exists(
-			"Mail Agent",
+			"Mail Server",
 			{
 				"cluster": self.cluster,
 				"cluster_node_id": self.cluster_node_id,
@@ -135,7 +135,7 @@ class MailAgent(Document):
 			},
 		):
 			frappe.throw(
-				_("Node ID {0} already assigned to another Mail Agent.").format(
+				_("Node ID {0} already assigned to another Mail Server.").format(
 					frappe.bold(self.cluster_node_id)
 				)
 			)
@@ -147,23 +147,23 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 	mail_settings = frappe.get_single("Mail Settings")
 	spf_host = spf_host or mail_settings.spf_host
 
-	MAIL_AGENT = frappe.qb.DocType("Mail Agent")
+	SERVER = frappe.qb.DocType("Mail Server")
 	CLUSTER = frappe.qb.DocType("Mail Cluster")
-	outbound_agents = (
+	outbound_servers = (
 		frappe.qb.from_(CLUSTER)
-		.join(MAIL_AGENT)
-		.on(CLUSTER.name == MAIL_AGENT.cluster)
-		.select(MAIL_AGENT.name)
-		.where((CLUSTER.enabled == 1) & (CLUSTER.outbound == 1) & (MAIL_AGENT.enabled == 1))
-		.orderby(MAIL_AGENT.name, order=Order.asc)
+		.join(SERVER)
+		.on(CLUSTER.name == SERVER.cluster)
+		.select(SERVER.name)
+		.where((CLUSTER.enabled == 1) & (CLUSTER.outbound == 1) & (SERVER.enabled == 1))
+		.orderby(SERVER.name, order=Order.asc)
 	).run(pluck="name")
 
-	if outbound_agents:
-		outbound_agents = [f"a:{outbound_agent}" for outbound_agent in outbound_agents]
+	if outbound_servers:
+		outbound_servers = [f"a:{outbound_server}" for outbound_server in outbound_servers]
 		create_or_update_dns_record(
 			host=spf_host,
 			type="TXT",
-			value=f"v=spf1 {' '.join(outbound_agents)} ~all",
+			value=f"v=spf1 {' '.join(outbound_servers)} ~all",
 			ttl=mail_settings.default_ttl,
 			category="Server Record",
 		)
@@ -172,11 +172,11 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 			frappe.delete_doc("DNS Record", spf_dns_record, ignore_permissions=True)
 
 
-def get_config_toml(agent: str) -> str | None:
-	"""Returns the TOML configuration for the Mail Agent."""
+def get_config_toml(server: str) -> str | None:
+	"""Returns the TOML configuration for the Mail Server."""
 
 	def get_listeners(listeners: list) -> dict:
-		"""Returns the listener configuration for the Mail Agent."""
+		"""Returns the listener configuration for the Mail Server."""
 
 		listeners_config = {}
 		for listener in listeners:
@@ -195,13 +195,13 @@ def get_config_toml(agent: str) -> str | None:
 
 		return listeners_config
 
-	def get_seed_nodes(agent: str, cluster: str) -> dict:
-		"""Returns the seed nodes for the Mail Agent."""
+	def get_seed_nodes(server: str, cluster: str) -> dict:
+		"""Returns the seed nodes for the Mail Server."""
 
 		seed_nodes = []
 		for a in frappe.db.get_all(
-			"Mail Agent",
-			filters={"cluster": cluster, "name": ["!=", agent]},
+			"Mail Server",
+			filters={"cluster": cluster, "name": ["!=", server]},
 			fields=[
 				"private_ipv4",
 				"private_ipv6",
@@ -226,7 +226,7 @@ def get_config_toml(agent: str) -> str | None:
 		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(LOCAL_KEYS)}
 
 	def get_stores(stores: list) -> dict:
-		"""Returns the store configuration for the Mail Agent."""
+		"""Returns the store configuration for the Mail Server."""
 
 		store_config = {}
 		for store in stores:
@@ -277,8 +277,8 @@ def get_config_toml(agent: str) -> str | None:
 
 		return store_config
 
-	agent = frappe.get_doc("Mail Agent", agent)
-	cluster = frappe.get_doc("Mail Cluster", agent.cluster)
+	server = frappe.get_doc("Mail Server", server)
+	cluster = frappe.get_doc("Mail Cluster", server.cluster)
 
 	config = {
 		"authentication": {
@@ -288,9 +288,9 @@ def get_config_toml(agent: str) -> str | None:
 			}
 		},
 		"server": {
-			"hostname": agent.agent,
-			"max-connections": agent.server_max_connections,
-			"listener": get_listeners(agent.listeners or cluster.listeners),
+			"hostname": server.server,
+			"max-connections": server.server_max_connections,
+			"listener": get_listeners(server.listeners or cluster.listeners),
 			"socket": {
 				"backlog": 1024,
 				"nodelay": True,
@@ -299,13 +299,13 @@ def get_config_toml(agent: str) -> str | None:
 			},
 		},
 		"cluster": {
-			"node-id": agent.cluster_node_id,
-			"bind-addr": agent.cluster_bind_address,
+			"node-id": server.cluster_node_id,
+			"bind-addr": server.cluster_bind_address,
 			"bind-port": cluster.cluster_bind_port,
-			"advertise-addr": agent.get(frappe.scrub(agent.cluster_advertise_address)),
+			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_address)),
 			"key": cluster.get_password("cluster_encryption_key"),
-			"heartbeat": f"{agent.cluster_heartbeat}s" if agent.cluster_heartbeat else 0,
-			"seed-nodes": get_seed_nodes(agent.name, cluster.name),
+			"heartbeat": f"{server.cluster_heartbeat}s" if server.cluster_heartbeat else 0,
+			"seed-nodes": get_seed_nodes(server.name, cluster.name),
 		},
 		"config": {
 			"local-keys": get_local_keys(),
@@ -379,5 +379,5 @@ def get_config_toml(agent: str) -> str | None:
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Agent", ["cluster", "cluster_node_id"], constraint_name="unique_cluster_node_id"
+		"Mail Server", ["cluster", "cluster_node_id"], constraint_name="unique_cluster_node_id"
 	)

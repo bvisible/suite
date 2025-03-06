@@ -358,9 +358,7 @@ def fetch_emails_from_cluster(cluster: str, accounts: list[str]) -> None:
 				time.sleep(2**total_failures)
 
 
-def fetch_emails_from_mail_agents(
-	clusters: list[str] | None = None, accounts: list[str] | None = None
-) -> None:
+def fetch_emails_from_clusters(clusters: list[str] | None = None, accounts: list[str] | None = None) -> None:
 	"""Called by scheduler to fetch emails from the clusters."""
 
 	clusters = clusters or frappe.db.get_all("Mail Cluster", {"enabled": 1, "inbound": 1}, pluck="name")
