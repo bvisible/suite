@@ -523,7 +523,7 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 		pass_or_fail = {1: _("'Pass'"), 0: _("'Fail'")}
 		mail["spf"] = {
 			"label": _("SPF"),
-			"value": _("{0} with IP {1}").format(pass_or_fail[doc.spf_pass], doc.from_host),
+			"value": _("{0} with IP {1}").format(pass_or_fail[doc.spf_pass], doc.from_ip),
 		}
 		mail["dkim"] = {"label": _("DKIM"), "value": pass_or_fail[doc.dkim_pass]}
 		mail["dmarc"] = {"label": _("DMARC"), "value": pass_or_fail[doc.dmarc_pass]}
