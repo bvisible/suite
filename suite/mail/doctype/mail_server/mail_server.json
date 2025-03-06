@@ -24,8 +24,6 @@
   "column_break_m8qz",
   "cluster_advertise_address",
   "cluster_heartbeat",
-  "section_break_vndz",
-  "config",
   "listeners_tab",
   "listeners"
  ],
@@ -48,17 +46,6 @@
   {
    "fieldname": "column_break_0mtp",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "config",
-   "fieldtype": "Code",
-   "is_virtual": 1,
-   "label": "config.toml",
-   "no_copy": 1
-  },
-  {
-   "fieldname": "section_break_vndz",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "network_settings_section",
@@ -194,8 +181,14 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-03-06 14:21:33.591295",
+ "links": [
+  {
+   "group": "Reference",
+   "link_doctype": "Mail Server Config",
+   "link_fieldname": "server"
+  }
+ ],
+ "modified": "2025-03-06 16:36:47.193594",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server",
