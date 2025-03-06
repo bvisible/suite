@@ -33,6 +33,9 @@ class MailServer(Document):
 		self.validate_cluster()
 		self.validate_cluster_node_id()
 
+	def after_insert(self) -> None:
+		self.generate_config()
+
 	def on_update(self) -> None:
 		if self.has_value_changed("enabled"):
 			create_or_update_spf_dns_record()
