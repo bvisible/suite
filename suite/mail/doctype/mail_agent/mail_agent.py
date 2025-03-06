@@ -301,7 +301,7 @@ def get_config_toml(agent: str) -> str | None:
 		"cluster": {
 			"node-id": agent.cluster_node_id,
 			"bind-addr": agent.cluster_bind_address,
-			"bind-port": agent.cluster_bind_port,
+			"bind-port": agent_group.cluster_bind_port,
 			"advertise-addr": agent.get(frappe.scrub(agent.cluster_advertise_address)),
 			"key": agent_group.get_password("cluster_encryption_key"),
 			"heartbeat": f"{agent.cluster_heartbeat}s" if agent.cluster_heartbeat else 0,

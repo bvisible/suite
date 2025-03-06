@@ -21,7 +21,6 @@
   "cluster_settings_section",
   "cluster_node_id",
   "cluster_bind_address",
-  "cluster_bind_port",
   "column_break_m8qz",
   "cluster_advertise_address",
   "cluster_heartbeat",
@@ -111,14 +110,6 @@
    "reqd": 1
   },
   {
-   "default": "1179",
-   "description": "The UDP port the gossip protocol will bind to.",
-   "fieldname": "cluster_bind_port",
-   "fieldtype": "Int",
-   "label": "Bind Port",
-   "reqd": 1
-  },
-  {
    "default": "Private IPv4",
    "description": "The address the gossip protocol will advertise to other nodes in the cluster.",
    "fieldname": "cluster_advertise_address",
@@ -204,7 +195,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 19:43:23.752808",
+ "modified": "2025-03-06 10:57:50.588151",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent",

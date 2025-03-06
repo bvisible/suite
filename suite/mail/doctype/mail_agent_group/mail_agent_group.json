@@ -20,6 +20,8 @@
   "api_key",
   "cluster_settings_section",
   "cluster_encryption_key",
+  "column_break_trr0",
+  "cluster_bind_port",
   "networking_section",
   "ipv4_addresses",
   "column_break_uhc3",
@@ -346,6 +348,19 @@
    "fieldtype": "Int",
    "label": "Trash Auto-Expunge (Days)",
    "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_trr0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1179",
+   "description": "The UDP port the gossip protocol will bind to.",
+   "fieldname": "cluster_bind_port",
+   "fieldtype": "Int",
+   "label": "Bind Port",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -372,7 +387,7 @@
    "link_fieldname": "agent_group"
   }
  ],
- "modified": "2025-03-05 19:33:41.011718",
+ "modified": "2025-03-06 10:58:25.976365",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Agent Group",
