@@ -21,7 +21,16 @@
 			>
 				<ListHeader />
 				<ListRows>
-					<ListRow v-for="row in members.data" :key="row.name" :row="row">
+					<ListRow
+						v-for="row in members.data"
+						:key="row.name"
+						:row="row"
+						:class="{
+							'cursor-pointer rounded hover:bg-gray-50':
+								row.name !== tenantOwner.data,
+						}"
+						@click="openAccount(row.name)"
+					>
 						<div class="grid grid-cols-3">
 							<div class="flex items-center space-x-2">
 								<Avatar :image="row.user_image" :label="row.full_name" size="lg" />
@@ -42,6 +51,7 @@
 									v-if="row.name !== tenantOwner.data"
 									:options="dropdownOptions(row.name, row.is_admin)"
 									:button="{ icon: 'more-horizontal', variant: 'ghost' }"
+									@click.stop
 								/>
 							</div>
 						</div>
@@ -52,6 +62,7 @@
 	</div>
 	<AddMemberModal v-model="showAddMember" @reload-members="members.reload()" />
 	<Dialog v-model="showRemoveMember" :options="removeMemberOptions" />
+	<MailAccountModal v-model="showMailAccount" :account-i-d="mailAccount" />
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
@@ -71,12 +82,15 @@ import {
 
 import { raiseToast } from '@/utils'
 import AddMemberModal from '@/components/Modals/AddMemberModal.vue'
+import MailAccountModal from '@/components/Modals/MailAccountModal.vue'
 
 const user = inject('$user')
 
 const showAddMember = ref(false)
 const showRemoveMember = ref(false)
 const memberToBeRemoved = ref('')
+const showMailAccount = ref(false)
+const mailAccount = ref('')
 
 const tenantOwner = createResource({
 	url: 'frappe.client.get_value',
@@ -125,6 +139,13 @@ const removeMember = createResource({
 	},
 	onError: (error) => raiseToast(error.messages[0], 'error'),
 })
+
+const openAccount = (account: string) => {
+	if (account !== tenantOwner.data) {
+		mailAccount.value = account
+		showMailAccount.value = true
+	}
+}
 
 const dropdownOptions = (name, isAdmin) => {
 	return [

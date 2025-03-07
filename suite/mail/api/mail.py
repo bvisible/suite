@@ -400,16 +400,16 @@ def get_mail_details(name: str, type: str, include_all_details: bool = False) ->
 	return mail
 
 
-def extract_email_body(html) -> str | None:
+def extract_email_body(html: str) -> str | None:
 	"""Extracts the email body from the html content."""
 
 	if not html:
-		return
+		return None
+
 	soup = BeautifulSoup(html, "html.parser")
-	email_body = soup.find("table", class_="email-body")
-	if email_body:
-		return email_body.find("div").prettify()
-	return html
+	div = soup.select_one("table.email-body div")
+
+	return div.prettify() if div else html
 
 
 def get_recipients(name, type, recipient_type) -> list:
@@ -491,10 +491,13 @@ def get_attachments(dt: str, dn: str):
 
 
 @frappe.whitelist()
-def get_user_addresses():
+def get_user_addresses(user: str | None = None) -> list:
 	"""Fetches user email addresses."""
 
-	return get_user_email_addresses(frappe.session.user)
+	if not user:
+		user = frappe.session.user
+
+	return get_user_email_addresses(user)
 
 
 @frappe.whitelist()
@@ -523,7 +526,7 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 		pass_or_fail = {1: _("'Pass'"), 0: _("'Fail'")}
 		mail["spf"] = {
 			"label": _("SPF"),
-			"value": _("{0} with IP {1}").format(pass_or_fail[doc.spf_pass], doc.from_host),
+			"value": _("{0} with IP {1}").format(pass_or_fail[doc.spf_pass], doc.from_ip),
 		}
 		mail["dkim"] = {"label": _("DKIM"), "value": pass_or_fail[doc.dkim_pass]}
 		mail["dmarc"] = {"label": _("DMARC"), "value": pass_or_fail[doc.dmarc_pass]}
