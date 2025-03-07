@@ -288,7 +288,7 @@ def get_permission_query_condition(user: str | None = None) -> str:
 def create_incoming_mail(
 	receiver: str,
 	folder: Literal["Inbox", "Spam"],
-	agent_group: str,
+	cluster: str,
 	message: str,
 	do_not_save: bool = False,
 	do_not_submit: bool = False,
@@ -298,7 +298,7 @@ def create_incoming_mail(
 	doc = frappe.new_doc("Incoming Mail")
 	doc.receiver = receiver
 	doc.folder = folder
-	doc.agent_group = agent_group
+	doc.cluster = cluster
 	doc.message = message
 
 	if not do_not_save:
@@ -314,8 +314,8 @@ def create_incoming_mail(
 	return doc
 
 
-def fetch_emails_from_mail_agent(agent_group: str, accounts: list[str]) -> None:
-	"""Called by scheduler to fetch emails from mail agent."""
+def fetch_emails_from_cluster(cluster: str, accounts: list[str]) -> None:
+	"""Called by scheduler to fetch emails from the cluster."""
 
 	folders = ["Inbox", "Junk Mail"]
 
@@ -328,7 +328,7 @@ def fetch_emails_from_mail_agent(agent_group: str, accounts: list[str]) -> None:
 			username = account.email
 			password = account.get_password("password")
 
-			with IMAPContext(agent_group, 993, username, password, use_ssl=True) as server:
+			with IMAPContext(cluster, 993, username, password, use_ssl=True) as server:
 				for folder in folders:
 					_folder = "Spam" if folder == "Junk Mail" else folder
 					while True:
@@ -345,29 +345,25 @@ def fetch_emails_from_mail_agent(agent_group: str, accounts: list[str]) -> None:
 
 							if status == "OK" and data:
 								message = data[0][1].decode("utf-8")
-								create_incoming_mail(account.name, _folder, agent_group, message)
+								create_incoming_mail(account.name, _folder, cluster, message)
 								server.store(num, "+FLAGS", r"(\Deleted)")
 
 						server.expunge()
 		except Exception:
 			total_failures += 1
 			error_log = frappe.get_traceback(with_context=False)
-			frappe.log_error(title=_(f"Fetch Emails {agent_group} : {account.email}"), message=error_log)
+			frappe.log_error(title=_(f"Fetch Emails {cluster} : {account.email}"), message=error_log)
 
 			if total_failures < max_failures:
 				time.sleep(2**total_failures)
 
 
-def fetch_emails_from_mail_agents(
-	agent_groups: list[str] | None = None, accounts: list[str] | None = None
-) -> None:
-	"""Called by scheduler to fetch emails from mail agents."""
+def fetch_emails_from_clusters(clusters: list[str] | None = None, accounts: list[str] | None = None) -> None:
+	"""Called by scheduler to fetch emails from the clusters."""
 
-	agent_groups = agent_groups or frappe.db.get_all(
-		"Mail Agent Group", {"enabled": 1, "inbound": 1}, pluck="name"
-	)
+	clusters = clusters or frappe.db.get_all("Mail Cluster", {"enabled": 1, "inbound": 1}, pluck="name")
 
-	if not agent_groups:
+	if not clusters:
 		return
 
 	accounts = accounts or frappe.db.get_all("Mail Account", {"enabled": 1}, pluck="name")
@@ -375,14 +371,14 @@ def fetch_emails_from_mail_agents(
 		return
 
 	if frappe.flags.do_not_enqueue:
-		for group in agent_groups:
-			fetch_emails_from_mail_agent(group, accounts)
+		for cluster in clusters:
+			fetch_emails_from_cluster(cluster, accounts)
 	else:
-		for group in agent_groups:
+		for cluster in clusters:
 			frappe.enqueue(
-				fetch_emails_from_mail_agent,
+				fetch_emails_from_cluster,
 				queue="long",
-				job_name=f"Fetch Emails from {group}",
-				agent_group=group,
+				job_name=f"Fetch Emails from {cluster}",
+				cluster=cluster,
 				accounts=accounts,
 			)

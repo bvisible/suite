@@ -1,0 +1,214 @@
+{
+ "actions": [],
+ "creation": "2024-10-07 14:22:45.181308",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_tab",
+  "section_break_excr",
+  "enabled",
+  "column_break_0mtp",
+  "cluster",
+  "server",
+  "network_settings_section",
+  "server_max_connections",
+  "private_ipv4",
+  "private_ipv6",
+  "column_break_3m4p",
+  "public_ipv4",
+  "public_ipv6",
+  "cluster_settings_section",
+  "cluster_node_id",
+  "cluster_bind_address",
+  "column_break_m8qz",
+  "cluster_advertise_address",
+  "cluster_heartbeat",
+  "listeners_tab",
+  "listeners"
+ ],
+ "fields": [
+  {
+   "description": "Hostname of the mail server.",
+   "fieldname": "server",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Server",
+   "no_copy": 1,
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "section_break_excr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_0mtp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "network_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Network Settings"
+  },
+  {
+   "fieldname": "cluster_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Cluster Settings"
+  },
+  {
+   "default": "8192",
+   "description": "The maximum number of concurrent connections the server will accept.",
+   "fieldname": "server_max_connections",
+   "fieldtype": "Int",
+   "label": "Max Connections",
+   "reqd": 1
+  },
+  {
+   "description": "Unique identifier for this node in the cluster.",
+   "fieldname": "cluster_node_id",
+   "fieldtype": "Int",
+   "label": "Node ID",
+   "no_copy": 1,
+   "non_negative": 1,
+   "placeholder": "1",
+   "reqd": 1
+  },
+  {
+   "default": "[::]",
+   "description": "The address the gossip protocol will bind to.",
+   "fieldname": "cluster_bind_address",
+   "fieldtype": "Data",
+   "label": "Bind Address",
+   "no_copy": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Private IPv4",
+   "description": "The address the gossip protocol will advertise to other nodes in the cluster.",
+   "fieldname": "cluster_advertise_address",
+   "fieldtype": "Select",
+   "label": "Advertise Address",
+   "options": "\nPrivate IPv4\nPrivate IPv6\nPublic IPv4\nPublic IPv6"
+  },
+  {
+   "default": "1",
+   "description": "The interval between heartbeats in the cluster.",
+   "fieldname": "cluster_heartbeat",
+   "fieldtype": "Int",
+   "label": "Heartbeat (Seconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_m8qz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval: !doc.__islocal",
+   "description": "Disable to stop this mail server from sending or receiving emails.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "no_copy": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Public IPv4 address of this mail server (used for external communication).",
+   "fieldname": "public_ipv4",
+   "fieldtype": "Data",
+   "label": "Public IPv4",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Private IPv4 address of this mail server (used for internal communication).",
+   "fieldname": "private_ipv4",
+   "fieldtype": "Data",
+   "label": "Private IPv4",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_3m4p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Public IPv6 address of this mail server (used for external communication).",
+   "fieldname": "public_ipv6",
+   "fieldtype": "Data",
+   "label": "Public IPv6",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Private IPv6 address of this mail server (used for internal communication).",
+   "fieldname": "private_ipv6",
+   "fieldtype": "Data",
+   "label": "Private IPv6",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "listeners_tab",
+   "fieldtype": "Tab Break",
+   "label": "Listeners"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "description": "Define custom listeners for this mail server. If not set, the cluster\u2019s listeners will be used.",
+   "fieldname": "listeners",
+   "fieldtype": "Table",
+   "label": "Listeners",
+   "options": "Mail Server Listener"
+  },
+  {
+   "description": "The mail cluster this server belongs to.",
+   "fieldname": "cluster",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cluster",
+   "options": "Mail Cluster",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Reference",
+   "link_doctype": "Mail Server Config",
+   "link_fieldname": "server"
+  }
+ ],
+ "modified": "2025-03-06 16:36:47.193594",
+ "modified_by": "Administrator",
+ "module": "Mail",
+ "name": "Mail Server",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

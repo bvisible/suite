@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.agent import create_group_on_agents, delete_group_from_agents, patch_group_on_agents
+from mail.mail_server import create_group_on_clusters, delete_group_from_clusters, patch_group_on_clusters
 from mail.utils import normalize_email
 from mail.utils.cache import get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
@@ -38,17 +38,17 @@ class MailGroup(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				create_group_on_agents(self.email, self.display_name)
+				create_group_on_clusters(self.email, self.display_name)
 			elif self.has_value_changed("display_name"):
-				patch_group_on_agents(self.email, self.display_name)
+				patch_group_on_clusters(self.email, self.display_name)
 		elif self.has_value_changed("enabled"):
-			delete_group_from_agents(self.email)
+			delete_group_from_clusters(self.email)
 
 	def on_trash(self) -> None:
 		self.clear_cache()
 
 		if self.enabled:
-			delete_group_from_agents(self.email)
+			delete_group_from_clusters(self.email)
 
 	def set_tenant(self) -> None:
 		"""Sets the tenant based on the domain."""

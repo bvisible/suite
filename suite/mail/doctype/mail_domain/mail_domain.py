@@ -7,9 +7,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from mail.agent import create_domain_on_agents, delete_domain_from_agents
 from mail.mail.doctype.dkim_key.dkim_key import create_dkim_key
 from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
+from mail.mail_server import create_domain_on_clusters, delete_domain_from_clusters
 from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
 from mail.utils.cache import get_root_domain_name, get_tenant_for_user
 from mail.utils.dns import verify_dns_record
@@ -36,7 +36,7 @@ class MailDomain(Document):
 			self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
-		create_domain_on_agents(domain_name=self.domain_name)
+		create_domain_on_clusters(domain_name=self.domain_name)
 
 		if self.is_root_domain:
 			create_dmarc_account(self.tenant)
@@ -49,7 +49,7 @@ class MailDomain(Document):
 			frappe.throw(_("Only Administrator can delete Mail Domain."))
 
 		self.clear_cache()
-		delete_domain_from_agents(domain_name=self.domain_name)
+		delete_domain_from_clusters(domain_name=self.domain_name)
 
 	def validate_is_subdomain(self) -> None:
 		"""Validates the Is Subdomain field."""
@@ -216,20 +216,20 @@ def get_dns_records(domain_name: str) -> list[dict]:
 	)
 
 	# MX Record(s)
-	if inbound_agent_groups := frappe.db.get_all(
-		"Mail Agent Group",
+	if inbound_clusters := frappe.db.get_all(
+		"Mail Cluster",
 		filters={"enabled": 1, "inbound": 1},
-		fields=["agent_group", "priority"],
+		fields=["cluster", "priority"],
 		order_by="priority asc",
 	):
-		for group in inbound_agent_groups:
+		for cluster in inbound_clusters:
 			records.append(
 				{
 					"category": "Receiving Record",
 					"type": "MX",
 					"host": domain_name,
-					"value": f"{group.agent_group.split(':')[0]}.",
-					"priority": group.priority,
+					"value": f"{cluster.cluster.split(':')[0]}.",
+					"priority": cluster.priority,
 					"ttl": mail_settings.default_ttl,
 				}
 			)

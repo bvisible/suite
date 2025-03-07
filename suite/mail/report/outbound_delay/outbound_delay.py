@@ -103,10 +103,10 @@ def get_columns() -> list[dict]:
 			"width": 150,
 		},
 		{
-			"label": _("Agent"),
-			"fieldname": "agent",
+			"label": _("Cluster"),
+			"fieldname": "cluster",
 			"fieldtype": "Link",
-			"options": "Mail Agent",
+			"options": "Mail Cluster",
 			"width": 150,
 		},
 		{
@@ -172,7 +172,7 @@ def get_data(filters: dict | None = None) -> list[dict]:
 				+ OM.transfer_completed_after
 			).as_("total_delay"),
 			OM.domain_name,
-			OM.agent,
+			OM.cluster,
 			OM.ip_address,
 			OM.sender,
 			OM.from_,
@@ -210,10 +210,10 @@ def get_data(filters: dict | None = None) -> list[dict]:
 		if filters.get(field):
 			query = query.where(OM[field].isin(filters.get(field)))
 
-	if agent := filters.get("agent"):
-		if isinstance(agent, str):
-			agent = [agent]
-		query = query.where(OM.agent.isin(agent))
+	if cluster := filters.get("cluster"):
+		if isinstance(cluster, str):
+			cluster = [cluster]
+		query = query.where(OM.cluster.isin(cluster))
 
 	if filters.get("email"):
 		query = query.where(MR["email"] == filters.get("email"))

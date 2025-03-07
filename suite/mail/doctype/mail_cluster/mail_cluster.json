@@ -1,0 +1,442 @@
+{
+ "actions": [],
+ "creation": "2024-10-20 21:15:42.850504",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_tab",
+  "section_break_b7jt",
+  "enabled",
+  "inbound",
+  "outbound",
+  "column_break_fkha",
+  "cluster",
+  "priority",
+  "authentication_section",
+  "admin_username",
+  "admin_password",
+  "admin_password_hash",
+  "column_break_9jti",
+  "base_url",
+  "api_key",
+  "cluster_settings_section",
+  "cluster_encryption_key",
+  "column_break_trr0",
+  "cluster_bind_port",
+  "proxy_section",
+  "proxy_trusted_networks",
+  "column_break_egzt",
+  "networking_section",
+  "ipv4_addresses",
+  "column_break_uhc3",
+  "ipv6_addresses",
+  "section_break_r4np",
+  "stores_section",
+  "stores",
+  "directory_storage_section",
+  "directory_storage",
+  "data_storage_section",
+  "data_storage",
+  "column_break_iwwx",
+  "enable_encryption_at_rest",
+  "encrypt_on_append",
+  "blob_storage_section",
+  "blob_storage",
+  "full_text_index_storage_section",
+  "fts_storage",
+  "column_break_a9m0",
+  "default_language",
+  "in_memory_storage_section",
+  "in_memory_storage",
+  "cleanup_jmap_section",
+  "jmap_frequency_cron",
+  "column_break_ld4b",
+  "jmap_changes_history_days",
+  "jmap_trash_auto_expunge_days",
+  "listeners_tab",
+  "listeners"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "depends_on": "eval: !doc.__islocal",
+   "description": "Disable to stop sending and receiving emails form this cluster.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled",
+   "no_copy": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_fkha",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.inbound",
+   "description": "MX record priority for handling inbound mail. Lower values have higher priority.",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "in_standard_filter": 1,
+   "label": "Priority",
+   "mandatory_depends_on": "eval: doc.inbound",
+   "no_copy": 1,
+   "placeholder": "5",
+   "search_index": 1
+  },
+  {
+   "default": "1",
+   "description": "Include this cluster in MX records to receive emails.",
+   "fieldname": "inbound",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Inbound",
+   "search_index": 1
+  },
+  {
+   "default": "1",
+   "description": "Use this cluster to send outbound emails.",
+   "fieldname": "outbound",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Outbound",
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_r4np",
+   "fieldtype": "Tab Break",
+   "label": "Storage"
+  },
+  {
+   "default": "1",
+   "description": "Allow users to configure encryption at rest for their data.",
+   "fieldname": "enable_encryption_at_rest",
+   "fieldtype": "Check",
+   "label": "Enable encryption at rest"
+  },
+  {
+   "default": "0",
+   "description": "Encrypt messages that are manually appended by the user using JMAP or IMAP.",
+   "fieldname": "encrypt_on_append",
+   "fieldtype": "Check",
+   "label": "Encrypt on append"
+  },
+  {
+   "default": "en",
+   "description": "Default language to use when language detection is not possible.",
+   "fieldname": "default_language",
+   "fieldtype": "Data",
+   "label": "Default Language"
+  },
+  {
+   "fieldname": "column_break_iwwx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_a9m0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ld4b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "authentication_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "fieldname": "cluster_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Cluster Settings"
+  },
+  {
+   "default": "frappe",
+   "description": "Username for administrative access to the cluster.",
+   "fieldname": "admin_username",
+   "fieldtype": "Data",
+   "label": "Username",
+   "reqd": 1
+  },
+  {
+   "description": "Password for administrative access to the cluster.",
+   "fieldname": "admin_password",
+   "fieldtype": "Password",
+   "label": "Password",
+   "no_copy": 1
+  },
+  {
+   "description": "The key used to encrypt gossip messages.",
+   "fieldname": "cluster_encryption_key",
+   "fieldtype": "Password",
+   "label": "Encryption Key",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Key for authenticating HTTP requests. Generate one via <i>Actions &gt; Generate API Key</i>.",
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_9jti",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "URL where HTTP requests are sent before being forwarded to mail servers.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL",
+   "no_copy": 1,
+   "placeholder": "https://mail.frappemail.com/"
+  },
+  {
+   "fieldname": "stores_section",
+   "fieldtype": "Section Break",
+   "label": "Stores"
+  },
+  {
+   "description": "Manage data, blob, full-text, and lookup stores.",
+   "fieldname": "stores",
+   "fieldtype": "Table",
+   "label": "Stores",
+   "no_copy": 1,
+   "options": "Mail Server Store",
+   "reqd": 1
+  },
+  {
+   "fieldname": "networking_section",
+   "fieldtype": "Section Break",
+   "label": "Networking"
+  },
+  {
+   "description": "Public IPv4 addresses assigned to this cluster.",
+   "fieldname": "ipv4_addresses",
+   "fieldtype": "Small Text",
+   "label": "IPv4 Addresses",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_uhc3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Public IPv6 addresses assigned to this cluster.",
+   "fieldname": "ipv6_addresses",
+   "fieldtype": "Small Text",
+   "label": "IPv6 Addresses",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Manage SMTP, IMAP, HTTP, and other listeners.",
+   "fieldname": "listeners",
+   "fieldtype": "Table",
+   "label": "Listeners",
+   "options": "Mail Server Listener",
+   "reqd": 1
+  },
+  {
+   "fieldname": "listeners_tab",
+   "fieldtype": "Tab Break",
+   "label": "Listeners"
+  },
+  {
+   "fieldname": "section_break_b7jt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "directory_storage",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "data_storage",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "blob_storage",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fts_storage",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "in_memory_storage",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "description": "Stores user accounts, passwords, email addresses, and settings. Used for authentication, email validation, and account management.",
+   "fieldname": "directory_storage_section",
+   "fieldtype": "Section Break",
+   "label": "Directory Storage"
+  },
+  {
+   "description": "Core storage unit where email metadata, folders, and various settings are stored. Essentially, it contains all the data except for large binary objects (blobs).",
+   "fieldname": "data_storage_section",
+   "fieldtype": "Section Break",
+   "label": "Data Storage"
+  },
+  {
+   "description": "Used for storing large binary objects such as emails, sieve scripts, and other files.",
+   "fieldname": "blob_storage_section",
+   "fieldtype": "Section Break",
+   "label": "Blob Storage"
+  },
+  {
+   "description": "Dedicated to indexing for full-text search, enhancing the speed and efficiency of text-based queries.",
+   "fieldname": "full_text_index_storage_section",
+   "fieldtype": "Section Break",
+   "label": "Full Text Index Storage"
+  },
+  {
+   "description": "Key-value storage used primarily by the SMTP server and anti-spam components.",
+   "fieldname": "in_memory_storage_section",
+   "fieldtype": "Section Break",
+   "label": "In-Memory Storage"
+  },
+  {
+   "fieldname": "cleanup_jmap_section",
+   "fieldtype": "Section Break",
+   "label": "Cleanup (JMAP)"
+  },
+  {
+   "default": "0 0 * * *",
+   "description": "Specifies how often tombstoned messages are deleted from the database.\n\n<br>\n<br>\n\n<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "fieldname": "jmap_frequency_cron",
+   "fieldtype": "Data",
+   "label": "Frequency (Cron)",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "description": "How long to keep changes history for JMAP and IMAP clients.",
+   "fieldname": "jmap_changes_history_days",
+   "fieldtype": "Int",
+   "label": "Changes History (Days)",
+   "non_negative": 1
+  },
+  {
+   "default": "30",
+   "description": "How long to keep messages in the Trash and Junk Mail folders before auto-expunging.",
+   "fieldname": "jmap_trash_auto_expunge_days",
+   "fieldtype": "Int",
+   "label": "Trash Auto-Expunge (Days)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_trr0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1179",
+   "description": "The UDP port the gossip protocol will bind to.",
+   "fieldname": "cluster_bind_port",
+   "fieldtype": "Int",
+   "label": "Bind Port",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "description": "FQDN of the proxy or load balancer forwarding requests to mail servers.",
+   "fieldname": "cluster",
+   "fieldtype": "Data",
+   "label": "Cluster",
+   "no_copy": 1,
+   "placeholder": "mail.frappemail.com",
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "admin_password_hash",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Password Hash",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Enable proxy protocol for connections from these networks.",
+   "fieldname": "proxy_trusted_networks",
+   "fieldtype": "Small Text",
+   "label": "Trusted Networks"
+  },
+  {
+   "fieldname": "proxy_section",
+   "fieldtype": "Section Break",
+   "label": "Proxy"
+  },
+  {
+   "fieldname": "column_break_egzt",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Reference",
+   "link_doctype": "Mail Server",
+   "link_fieldname": "cluster"
+  },
+  {
+   "group": "Referencee",
+   "link_doctype": "Mail Server Request",
+   "link_fieldname": "cluster"
+  },
+  {
+   "group": "Mail",
+   "link_doctype": "Incoming Mail",
+   "link_fieldname": "cluster"
+  },
+  {
+   "group": "Mail",
+   "link_doctype": "Outgoing Mail",
+   "link_fieldname": "cluster"
+  }
+ ],
+ "modified": "2025-03-07 17:11:09.389502",
+ "modified_by": "Administrator",
+ "module": "Mail",
+ "name": "Mail Cluster",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
