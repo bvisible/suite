@@ -3,7 +3,7 @@
 		<template #body>
 			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
 				<div class="flex w-52 shrink-0 flex-col border-r bg-gray-50 p-4 py-3">
-					<h1 class="px-2 text-xl font-semibold leading-6 text-gray-900">Settings</h1>
+					<h1 class="px-2 text-xl font-semibold leading-6">Settings</h1>
 					<div class="mt-3 space-y-1">
 						<button
 							v-for="tab in tabs"

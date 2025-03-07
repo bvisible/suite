@@ -15,16 +15,16 @@
 					'[&_p.reply-to-content]:hidden',
 				]"
 				:content="mail.html"
-				@change="(val) => (mail.html = val)"
+				@change="(val: string) => (mail.html = val)"
 			>
 				<template #top>
 					<div class="flex flex-col gap-3">
 						<div class="flex items-center gap-2 border-t pt-2.5">
 							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
-							<LinkControl
+							<FormControl
 								v-model="mail.from"
-								doctype="Mail Account"
-								:filters="{ user: user.data.name }"
+								type="autocomplete"
+								:options="addressOptions.data"
 							/>
 						</div>
 						<div class="flex items-center gap-2">
@@ -34,7 +34,8 @@
 								class="flex-1 text-sm"
 								:validate="validateEmail"
 								:error-message="
-									(value) => __('{0} is an invalid email address', [value])
+									(value: string) =>
+										__(`'{0}' is an invalid email address`, [value])
 								"
 							/>
 							<div class="flex gap-1.5">
@@ -64,7 +65,8 @@
 								class="flex-1 text-sm"
 								:validate="validateEmail"
 								:error-message="
-									(value) => __('{0} is an invalid email address', [value])
+									(value: string) =>
+										__(`'{0}' is an invalid email address`, [value])
 								"
 							/>
 						</div>
@@ -76,15 +78,16 @@
 								class="flex-1 text-sm"
 								:validate="validateEmail"
 								:error-message="
-									(value) => __('{0} is an invalid email address', [value])
+									(value: string) =>
+										__(`'{0}' is an invalid email address`, [value])
 								"
 							/>
 						</div>
 						<div class="flex items-center gap-2 pb-2.5">
 							<span class="text-xs text-gray-500">{{ __('Subject') }}:</span>
-							<TextInput
+							<input
 								v-model="mail.subject"
-								class="flex-1 border-none bg-white text-sm hover:bg-white focus:border-none focus:!shadow-none focus-visible:!ring-0"
+								class="text-ink-gray-8 flex-1 border-none bg-white text-base focus-visible:!ring-0"
 							/>
 						</div>
 					</div>
@@ -112,7 +115,7 @@
 						<template #default="{ file, progress, uploading, openFileSelector }">
 							<!-- Attachments -->
 							<div
-								v-if="localMailID"
+								v-if="localMailID && attachments.data?.length"
 								class="mb-2 flex flex-col gap-2 text-sm text-gray-700"
 							>
 								<div v-if="uploading" class="rounded bg-gray-100 p-2.5">
@@ -192,23 +195,24 @@ import {
 	Dialog,
 	FeatherIcon,
 	FileUploader,
+	FormControl,
 	Progress,
 	TextEditor,
 	TextEditorFixedMenu,
-	TextInput,
 	createDocumentResource,
 	createResource,
 } from 'frappe-ui'
 
 import { formatBytes, validateEmail } from '@/utils'
 import { userStore } from '@/stores/user'
-import LinkControl from '@/components/Controls/LinkControl.vue'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'
 import EmojiPicker from '@/components/EmojiPicker.vue'
 
-const user = inject('$user')
-const show = defineModel()
-const localMailID = ref(null)
+import type { ReplyDetails, UserResource } from '@/types'
+
+const user = inject('$user') as UserResource
+const show = defineModel<boolean>()
+const localMailID = ref<string>()
 const textEditor = ref(null)
 const ccInput = ref(null)
 const bccInput = ref(null)
@@ -221,9 +225,7 @@ const { setCurrentMail } = userStore()
 
 const SYNC_DEBOUNCE_TIME = 1500
 
-const editor = computed(() => {
-	return textEditor.value.editor
-})
+const editor = computed(() => textEditor.value.editor)
 
 const isMailEmpty = computed(() => {
 	const isSubjectEmpty = !mail.subject.length
@@ -231,24 +233,18 @@ const isMailEmpty = computed(() => {
 	if (mail.html) {
 		const element = document.createElement('div')
 		element.innerHTML = mail.html
-		isHtmlEmpty = !element.textContent.trim()
-		isHtmlEmpty = Array.from(element.children).some((d) => !d.textContent.trim())
+		isHtmlEmpty = !element.textContent?.trim()
+		isHtmlEmpty = Array.from(element.children).some((d) => !d.textContent?.trim())
 	}
 	const isRecipientsEmpty = [mail.to, mail.cc, mail.bcc].every((d) => !d.length)
 
 	return isSubjectEmpty && isHtmlEmpty && isRecipientsEmpty
 })
 
-const props = defineProps({
-	mailID: {
-		type: String,
-		required: false,
-	},
-	replyDetails: {
-		type: Object,
-		required: false,
-	},
-})
+const props = defineProps<{
+	mailID?: string
+	replyDetails?: ReplyDetails
+}>()
 
 const emit = defineEmits(['reloadMails'])
 
@@ -279,7 +275,7 @@ watch(show, () => {
 	if (!show.value) return
 	if (props.mailID) getDraftMail(props.mailID)
 	else {
-		localMailID.value = null
+		localMailID.value = undefined
 		Object.assign(mail, emptyMail)
 	}
 
@@ -305,22 +301,25 @@ watch(
 
 watch(mail, syncMail)
 
+const addressOptions = createResource({
+	url: 'mail.api.mail.get_user_addresses',
+	auto: true,
+})
+
 const createDraftMail = createResource({
 	url: 'mail.api.outbound.send',
 	method: 'POST',
-	makeParams() {
-		return {
-			// TODO: use mail account display_name
-			from_: `${user.data?.full_name} <${mail.from}>`,
-			do_not_submit: !isSend.value,
-			...mail,
-		}
-	},
-	onSuccess(data) {
+	makeParams: () => ({
+		// TODO: use mail account display_name
+		from_: `${user.data?.full_name} <${mail.from}>`,
+		do_not_submit: !isSend.value,
+		...mail,
+	}),
+	onSuccess: (data: string) => {
 		if (isSend.value) Object.assign(mail, emptyMail)
 		else {
 			localMailID.value = data
-			setCurrentMail('draft', data)
+			setCurrentMail('Drafts', data)
 			emit('reloadMails')
 		}
 	},
@@ -328,61 +327,45 @@ const createDraftMail = createResource({
 
 const updateDraftMail = createResource({
 	url: 'mail.api.mail.update_draft_mail',
-	makeParams() {
-		return {
-			mail_id: localMailID.value,
-			from_: `${user.data?.full_name} <${mail.from}>`,
-			do_submit: isSend.value,
-			...mail,
-		}
-	},
-	onSuccess() {
-		if (isSend.value) setCurrentMail('draft', null)
-		emit('reloadMails')
-	},
+	makeParams: () => ({
+		mail_id: localMailID.value,
+		from_: `${user.data?.full_name} <${mail.from}>`,
+		do_submit: isSend.value,
+		...mail,
+	}),
+	onSuccess: () => emit('reloadMails'),
 })
 
 // TODO: delete using documentresource directly
 const deleteDraftMail = createResource({
 	url: 'frappe.client.delete',
-	makeParams() {
-		return {
-			doctype: 'Outgoing Mail',
-			name: localMailID.value,
-		}
-	},
-	onSuccess() {
-		setCurrentMail('draft', null)
-		emit('reloadMails')
-	},
+	makeParams: () => ({
+		doctype: 'Outgoing Mail',
+		name: localMailID.value,
+	}),
+	onSuccess: () => emit('reloadMails'),
 })
 
 const attachments = createResource({
 	url: 'mail.api.mail.get_attachments',
-	makeParams() {
-		return {
-			dt: 'Outgoing Mail',
-			dn: localMailID.value,
-		}
-	},
+	makeParams: () => ({
+		dt: 'Outgoing Mail',
+		dn: localMailID.value,
+	}),
 })
 
 const removeAttachment = createResource({
 	url: 'frappe.client.delete',
 	method: 'DELETE',
-	makeParams(values) {
-		return { doctype: 'File', name: values.name }
-	},
-	onSuccess() {
-		attachments.fetch()
-	},
+	makeParams: (values: { name: string }) => ({ doctype: 'File', name: values.name }),
+	onSuccess: () => attachments.fetch(),
 })
 
-const getDraftMail = (name) =>
+const getDraftMail = (name: string) =>
 	createDocumentResource({
 		doctype: 'Outgoing Mail',
 		name: name,
-		onSuccess(data) {
+		onSuccess: (data) => {
 			isMailWatcherActive.value = false
 			const mailDetails = {
 				from_: `${data.display_name} <${data.sender}>`,

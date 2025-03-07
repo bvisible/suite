@@ -77,13 +77,14 @@
 				>
 					<ListHeader />
 					<ListRows>
-						<ListRow
-							v-for="row in domain.doc.dns_records"
-							:key="row.name"
-							v-slot="{ item }"
-							:row="row"
-						>
-							{{ item }}
+						<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
+							<template #default="{ item }">
+								<ListRowItem>
+									<div class="cursor-pointer" @click="copyToClipBoard(item)">
+										{{ item }}
+									</div>
+								</ListRowItem>
+							</template>
 						</ListRow>
 					</ListRows>
 				</ListView>
@@ -103,21 +104,17 @@ import {
 	FormControl,
 	ListHeader,
 	ListRow,
+	ListRowItem,
 	ListRows,
 	ListView,
 	Switch,
 	createDocumentResource,
 } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { copyToClipBoard, raiseToast } from '@/utils'
 import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
 
-const props = defineProps({
-	domainName: {
-		type: String,
-		required: true,
-	},
-})
+const props = defineProps<{ domainName: string }>()
 
 const user = inject('$user')
 const router = useRouter()
@@ -137,10 +134,7 @@ const confirmDialogOptions = computed(() => ({
 			: `Are you sure you want to rotate the DKIM keys? This will generate new keys for email signing and may take up to 10 minutes to propagate across DNS servers. Emails sent during this period may fail DKIM verification.`,
 	),
 	size: 'xl',
-	icon: {
-		name: 'alert-triangle',
-		appearance: 'warning',
-	},
+	icon: { name: 'alert-triangle', appearance: 'warning' },
 	actions: [
 		{
 			label: __('Confirm'),

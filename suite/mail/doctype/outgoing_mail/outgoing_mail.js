@@ -9,6 +9,13 @@ frappe.ui.form.on('Outgoing Mail', {
 		frm.trigger('set_from_')
 	},
 
+	folder(frm) {
+		frm.set_value(
+			'trashed_on',
+			frm.doc.folder === 'Trash' ? frappe.datetime.now_datetime() : null,
+		)
+	},
+
 	hide_amend_button(frm) {
 		if (frm.doc.docstatus == 2) {
 			frm.page.btn_primary.hide()

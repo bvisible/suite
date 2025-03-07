@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "folder",
+  "trashed_on",
   "sender",
   "from_",
   "display_name",
@@ -13,6 +14,7 @@
   "in_reply_to_mail_type",
   "in_reply_to_mail_name",
   "subject",
+  "seen",
   "section_break_baaa",
   "recipients",
   "section_break_atoq",
@@ -584,6 +586,21 @@
    "fieldname": "clusters_section",
    "fieldtype": "Section Break",
    "label": "Clusters"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Seen"
+  },
+  {
+   "depends_on": "eval: doc.folder == 'Trash'",
+   "fieldname": "trashed_on",
+   "fieldtype": "Datetime",
+   "label": "Trashed On",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
