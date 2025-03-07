@@ -7,7 +7,7 @@
 			ref="autocomplete"
 			v-model="value"
 			:options="options.data"
-			:size="attrs.size || 'sm'"
+			:size="attrs.size"
 			:variant="attrs.variant"
 			:placeholder="attrs.placeholder"
 			:filterable="false"
@@ -135,13 +135,11 @@ function reload(val) {
 	options.reload()
 }
 
-const labelClasses = computed(() => {
-	return [
-		{
-			sm: 'text-xs',
-			md: 'text-base',
-		}[attrs.size || 'sm'],
-		'text-gray-600',
-	]
-})
+const labelClasses = computed(() => [
+	{
+		sm: 'text-xs',
+		md: 'text-base',
+	}[attrs.size || 'sm'],
+	'text-gray-600',
+])
 </script>

@@ -27,10 +27,10 @@
 					:label="__('Create Mail Contact')"
 					class="switch"
 				/>
-				<FormControl
+				<AutocompleteControl
 					v-model="account.doc.default_outgoing_email"
-					type="autocomplete"
 					:label="__('Default Email')"
+					:show-search="false"
 					:options="userAddresses.data"
 				/>
 				<FormControl v-model="account.doc.display_name" :label="__('Display Name')" />
@@ -45,6 +45,7 @@ import { ref, watch } from 'vue'
 import { Dialog, FormControl, Switch, createDocumentResource, createResource } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
+import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 
 const show = defineModel<boolean>()
 const props = defineProps<{ accountID: string }>()
@@ -60,7 +61,10 @@ const getAccount = () =>
 				data[d] = !!data[d]
 		},
 		setValue: {
-			onSuccess: () => raiseToast(__('Account settings saved successfully')),
+			onSuccess: () => {
+				show.value = false
+				raiseToast(__('Account settings saved successfully'))
+			},
 			onError: (error) => {
 				raiseToast(error.messages[0], 'error')
 				account.value.reload()
