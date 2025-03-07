@@ -52,13 +52,6 @@ DEFAULT_LISTENERS = [
 		"implicit_tls": 1,
 	},
 ]
-STORAGE_LABELS = {
-	"directory_storage": _("Directory Storage"),
-	"data_storage": _("Data Storage"),
-	"blob_storage": _("Blob Storage"),
-	"fts_storage": _("Full Text Index Storage"),
-	"in_memory_storage": _("In-Memory Storage"),
-}
 STORAGE_OPTIONS = {
 	"directory_storage": ["RocksDB", "mySQL"],
 	"data_storage": ["RocksDB", "mySQL"],
@@ -177,6 +170,7 @@ class MailCluster(Document):
 		"""Validates the selected stores against the stores."""
 
 		stores = {store.store_id: store for store in self.stores}
+		storage_labels = get_storage_labels()
 
 		for key in STORAGE_OPTIONS.keys():
 			selected_storage = getattr(self, key)
@@ -187,7 +181,7 @@ class MailCluster(Document):
 			if store.type not in STORAGE_OPTIONS[key]:
 				frappe.throw(
 					_("{0} has an invalid store type '{1}'. Allowed types are: {2}.").format(
-						frappe.bold(STORAGE_LABELS[key]),
+						frappe.bold(storage_labels[key]),
 						frappe.bold(store.type),
 						", ".join(STORAGE_OPTIONS[key]),
 					)
@@ -279,3 +273,15 @@ class MailCluster(Document):
 			frappe.throw(error)
 
 		return f"api_{base64.b64encode(f'{name}:{secret}'.encode()).decode()}"
+
+
+def get_storage_labels() -> dict:
+	"""Returns the storage labels."""
+
+	return {
+		"directory_storage": _("Directory Storage"),
+		"data_storage": _("Data Storage"),
+		"blob_storage": _("Blob Storage"),
+		"fts_storage": _("Full Text Index Storage"),
+		"in_memory_storage": _("In-Memory Storage"),
+	}
