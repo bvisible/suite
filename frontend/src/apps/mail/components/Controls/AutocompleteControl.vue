@@ -1,5 +1,6 @@
 <template>
-	<Combobox v-model="selectedValue" nullable>
+	<Combobox v-model="selectedValue" nullable as="div">
+		<ComboboxLabel v-if="attrs.label" :class="labelClasses">{{ attrs.label }}</ComboboxLabel>
 		<Popover v-model:show="showOptions" class="w-full">
 			<template #target="{ open: openPopover, togglePopover }">
 				<slot name="target" v-bind="{ open: openPopover, togglePopover }">
@@ -29,7 +30,7 @@
 			<template #body="{ isOpen }">
 				<div v-show="isOpen">
 					<div class="mt-1 rounded-lg bg-white py-1 text-base shadow-2xl">
-						<div class="relative px-1.5 pt-0.5">
+						<div class="relative mb-2 px-1.5 pt-0.5" :class="{ hidden: !showSearch }">
 							<ComboboxInput
 								ref="search"
 								class="form-input w-full"
@@ -37,11 +38,7 @@
 								:value="query"
 								autocomplete="off"
 								placeholder="Search"
-								@change="
-									(e) => {
-										query = e.target.value
-									}
-								"
+								@change="query = $event.target.value"
 							/>
 							<button
 								class="absolute right-1.5 inline-flex h-7 w-7 items-center justify-center"
@@ -55,7 +52,6 @@
 								v-for="group in groups"
 								v-show="group.items.length > 0"
 								:key="group.key"
-								class="mt-1.5"
 							>
 								<div
 									v-if="group.group && !group.hideLabel"
@@ -72,7 +68,7 @@
 								>
 									<li
 										:class="[
-											'flex items-center rounded px-2.5 py-2 text-base',
+											'flex cursor-pointer items-center rounded px-2.5 py-2 text-base',
 											{ 'bg-gray-100': active },
 										]"
 									>
@@ -86,13 +82,13 @@
 										>
 											<div class="flex flex-col space-y-1">
 												<div>
-													{{ option.label }}
+													{{ option.label || option }}
 												</div>
 												<div
 													v-if="option.label != option.description"
 													class="text-xs text-gray-700"
 													v-html="option.description"
-												></div>
+												/>
 											</div>
 										</slot>
 									</li>
@@ -117,40 +113,38 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, useAttrs, useSlots, watch } from 'vue'
-import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/vue'
+import {
+	Combobox,
+	ComboboxInput,
+	ComboboxLabel,
+	ComboboxOption,
+	ComboboxOptions,
+} from '@headlessui/vue'
 import { ChevronDown, X } from 'lucide-vue-next'
 import { Popover } from 'frappe-ui'
 
-const props = defineProps({
-	modelValue: {
-		type: String,
-		default: '',
+const props = withDefaults(
+	defineProps<{
+		modelValue: string
+		options?: (object | string)[]
+		size?: 'sm' | 'md'
+		variant?: 'subtle' | 'outline' | 'disabled'
+		placeholder?: string
+		disabled?: boolean
+		filterable?: boolean
+		showSearch?: boolean
+	}>(),
+	{
+		options: () => [],
+		size: 'sm',
+		variant: 'subtle',
+		placeholder: '',
+		disabled: false,
+		filterable: true,
+		showSearch: true,
 	},
-	options: {
-		type: Array,
-		default: () => [],
-	},
-	size: {
-		type: String,
-		default: 'md',
-	},
-	variant: {
-		type: String,
-		default: 'subtle',
-	},
-	placeholder: {
-		type: String,
-		default: '',
-	},
-	disabled: {
-		type: Boolean,
-		default: false,
-	},
-	filterable: {
-		type: Boolean,
-		default: true,
-	},
-})
+)
+
 const emit = defineEmits(['update:modelValue', 'update:query', 'change'])
 
 const query = ref('')
@@ -267,6 +261,14 @@ const inputClasses = computed(() => {
 		'transition-colors w-full',
 	]
 })
+
+const labelClasses = computed(() => [
+	{
+		sm: 'text-xs',
+		md: 'text-base',
+	}[props.size],
+	'text-gray-600 block mb-1.5',
+])
 
 defineExpose({ query })
 </script>
