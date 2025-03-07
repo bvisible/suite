@@ -1,0 +1,91 @@
+<template>
+	<Dialog
+		v-if="account?.doc"
+		v-model="show"
+		:options="{
+			title: accountID,
+			actions: [
+				{
+					label: __('Save'),
+					variant: 'solid',
+					disabled: JSON.stringify(account.doc) === JSON.stringify(account.originalDoc),
+					onClick: account.save.submit,
+				},
+			],
+		}"
+	>
+		<template #body-content>
+			<div class="space-y-4">
+				<Switch v-model="account.doc.enabled" :label="__('Enabled')" class="switch" />
+				<Switch
+					v-model="account.doc.track_outgoing_mail"
+					:label="__('Track Outgoing Mail')"
+					class="switch"
+				/>
+				<Switch
+					v-model="account.doc.create_mail_contact"
+					:label="__('Create Mail Contact')"
+					class="switch"
+				/>
+				<FormControl
+					v-model="account.doc.default_outgoing_email"
+					type="autocomplete"
+					:label="__('Default Email')"
+					:options="userAddresses.data"
+				/>
+				<FormControl v-model="account.doc.display_name" :label="__('Display Name')" />
+				<FormControl v-model="account.doc.reply_to" :label="__('Reply To')" />
+			</div>
+		</template>
+	</Dialog>
+</template>
+
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { Dialog, FormControl, Switch, createDocumentResource, createResource } from 'frappe-ui'
+
+import { raiseToast } from '@/utils'
+
+const show = defineModel<boolean>()
+const props = defineProps<{ accountID: string }>()
+
+const account = ref()
+
+const getAccount = () =>
+	createDocumentResource({
+		doctype: 'Mail Account',
+		name: props.accountID,
+		transform: (data) => {
+			for (const d of ['enabled', 'track_outgoing_mail', 'create_mail_contact'])
+				data[d] = !!data[d]
+		},
+		setValue: {
+			onSuccess: () => raiseToast(__('Account settings saved successfully')),
+			onError: (error) => {
+				raiseToast(error.messages[0], 'error')
+				account.value.reload()
+			},
+		},
+	})
+
+const userAddresses = createResource({
+	url: 'mail.api.mail.get_user_addresses',
+	makeParams: () => ({ user: props.accountID }),
+})
+
+watch(
+	show,
+	(val) => {
+		if (!val) return
+		account.value = getAccount()
+		userAddresses.reload()
+	},
+	{ immediate: true },
+)
+</script>
+
+<style>
+.switch {
+	@apply cursor-auto !p-0 hover:bg-white active:bg-white;
+}
+</style>
