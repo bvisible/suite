@@ -1,0 +1,287 @@
+# Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
+# For license information, please see license.txt
+
+import base64
+
+import frappe
+from frappe import _
+from frappe.model.document import Document
+from frappe.utils import random_string
+
+from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
+from mail.mail_server import MailServerAPI, Principal
+from mail.utils import generate_secret, hash_password
+from mail.utils.dns import get_dns_record
+from mail.utils.validation import is_valid_cron_expression
+
+DEFAULT_STORES = [
+	{
+		"type": "RocksDB",
+		"store_id": "rocksdb",
+		"path": "/opt/stalwart-mail/data",
+		"compression": "LZ4",
+		"min_blob_size_bytes": 16834,
+		"write_buffer_size_mb": 128,
+		"purge_frequency_cron": "0 3 * * *",
+	}
+]
+DEFAULT_LISTENERS = [
+	{"protocol": "HTTP", "listener_id": "http", "bind_addresses": "[::]:8080", "implicit_tls": 0},
+	{"protocol": "HTTP", "listener_id": "https", "bind_addresses": "[::]:443", "implicit_tls": 1},
+	{"protocol": "IMAP4", "listener_id": "imap", "bind_addresses": "[::]:143", "implicit_tls": 0},
+	{"protocol": "IMAP4", "listener_id": "imaptls", "bind_addresses": "[::]:993", "implicit_tls": 1},
+	{"protocol": "POP3", "listener_id": "pop3", "bind_addresses": "[::]:110", "implicit_tls": 0},
+	{"protocol": "POP3", "listener_id": "pop3s", "bind_addresses": "[::]:995", "implicit_tls": 1},
+	{
+		"protocol": "ManageSieve",
+		"listener_id": "sieve",
+		"bind_addresses": "[::]:4190",
+		"implicit_tls": 0,
+	},
+	{"protocol": "SMTP", "listener_id": "smtp", "bind_addresses": "[::]:25", "implicit_tls": 0},
+	{
+		"protocol": "SMTP",
+		"listener_id": "submission",
+		"bind_addresses": "[::]:587",
+		"implicit_tls": 0,
+	},
+	{
+		"protocol": "SMTP",
+		"listener_id": "submissions",
+		"bind_addresses": "[::]:465",
+		"implicit_tls": 1,
+	},
+]
+STORAGE_OPTIONS = {
+	"directory_storage": ["RocksDB", "mySQL"],
+	"data_storage": ["RocksDB", "mySQL"],
+	"blob_storage": ["RocksDB", "mySQL"],
+	"fts_storage": ["RocksDB", "mySQL"],
+	"in_memory_storage": ["RocksDB", "mySQL"],
+}
+
+
+class MailCluster(Document):
+	def autoname(self) -> None:
+		self.cluster = self.cluster.lower()
+		self.name = self.cluster
+
+	def validate(self) -> None:
+		self.validate_enabled()
+		self.validate_cluster()
+		self.validate_priority()
+		self.validate_admin_password()
+		self.generate_admin_password_hash()
+		self.validate_base_url()
+		self.validate_cluster_encryption_key()
+		self.validate_stores()
+		self.validate_storage()
+		self.validate_listeners()
+
+	def on_update(self) -> None:
+		if self.has_value_changed("enabled") or self.has_value_changed("outbound"):
+			create_or_update_spf_dns_record()
+
+		self.clear_cache()
+
+	def on_trash(self) -> None:
+		if frappe.session.user != "Administrator":
+			frappe.throw(_("Only Administrator can delete Mail Cluster."))
+
+		if self.outbound:
+			self.db_set("enabled", 0)
+			create_or_update_spf_dns_record()
+
+		self.clear_cache()
+
+	def validate_enabled(self) -> None:
+		"""Validates the enabled status of the cluster."""
+
+		if self.enabled and not self.inbound and not self.outbound:
+			self.enabled = 0
+
+		if self.enabled:
+			return
+
+		if server := frappe.db.exists("Mail Server", {"enabled": 1, "cluster": self.name}):
+			frappe.throw(
+				_("Mail Server {0} is enabled. Please disable it first.").format(frappe.bold(server))
+			)
+
+	def validate_cluster(self) -> None:
+		"""Validates the cluster and fetches the IP addresses."""
+
+		if self.is_new() and frappe.db.exists("Mail Cluster", self.cluster):
+			frappe.throw(_("Mail Cluster {0} already exists.").format(frappe.bold(self.cluster)))
+
+		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.cluster, "A") or []])
+		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.cluster, "AAAA") or []])
+
+	def validate_priority(self) -> None:
+		"""Validates the priority of the cluster."""
+
+		if frappe.db.exists(
+			"Mail Cluster",
+			{"enabled": 1, "inbound": 1, "priority": self.priority, "name": ["!=", self.name]},
+		):
+			frappe.throw(
+				_("Mail Cluster with priority {0} already exists.").format(frappe.bold(self.priority))
+			)
+
+	def validate_admin_password(self) -> None:
+		if self.admin_password:
+			if len(self.admin_password) < 16:
+				frappe.throw(_("Password must be at least 16 characters long."))
+		else:
+			self.admin_password = random_string(length=20)
+
+	def generate_admin_password_hash(self) -> None:
+		if self.has_value_changed("admin_password"):
+			self.admin_password_hash = hash_password(self.get_password("admin_password"))
+
+	def validate_base_url(self) -> None:
+		"""Validates the base URL of the cluster."""
+
+		if not self.base_url:
+			self.base_url = f"https://{self.cluster}/"
+
+	def validate_cluster_encryption_key(self) -> None:
+		"""Validates the encryption key of the cluster."""
+
+		if not self.cluster_encryption_key:
+			self.cluster_encryption_key = random_string(length=64)
+
+	def validate_stores(self) -> None:
+		"""Validates the stores."""
+
+		store_ids = []
+		for store in self.stores:
+			if store.store_id in store_ids:
+				frappe.throw(
+					_("Row #{0}: Store ID {1} is duplicated.").format(store.idx, frappe.bold(store.store_id))
+				)
+
+			store_ids.append(store.store_id)
+
+			if store.purge_frequency_cron:
+				is_valid_cron_expression(store.purge_frequency_cron, raise_exception=True)
+
+	def validate_storage(self) -> None:
+		"""Validates the selected stores against the stores."""
+
+		stores = {store.store_id: store for store in self.stores}
+		storage_labels = get_storage_labels()
+
+		for key in STORAGE_OPTIONS.keys():
+			selected_storage = getattr(self, key)
+			if selected_storage not in stores:
+				frappe.throw(_("Store with Store ID {0} not found.").format(frappe.bold(selected_storage)))
+
+			store = stores[selected_storage]
+			if store.type not in STORAGE_OPTIONS[key]:
+				frappe.throw(
+					_("{0} has an invalid store type '{1}'. Allowed types are: {2}.").format(
+						frappe.bold(storage_labels[key]),
+						frappe.bold(store.type),
+						", ".join(STORAGE_OPTIONS[key]),
+					)
+				)
+
+		is_valid_cron_expression(self.jmap_frequency_cron, raise_exception=True)
+
+	def validate_listeners(self) -> None:
+		"""Validates the listeners."""
+
+		listener_ids = []
+		for listener in self.listeners:
+			if listener.listener_id in listener_ids:
+				frappe.throw(
+					_("Row #{0}: Listener ID {1} is duplicated.").format(
+						listener.idx, frappe.bold(listener.listener_id)
+					)
+				)
+
+			listener_ids.append(listener.listener_id)
+
+	def clear_cache(self) -> None:
+		"""Clears the cache."""
+
+		frappe.cache.delete_value("clusters")
+
+	@frappe.whitelist()
+	def initialize_defaults(self) -> None:
+		"""Initializes the default values."""
+
+		self.initialize_default_stores()
+		self.initialize_default_listeners()
+
+	def initialize_default_stores(self) -> None:
+		"""Initializes the default stores."""
+
+		self.stores = []
+		for store in DEFAULT_STORES:
+			self.append("stores", store)
+
+		if len(self.stores) == 1:
+			primary_store = self.stores[0]
+
+			for field in STORAGE_OPTIONS.keys():
+				if primary_store.type in STORAGE_OPTIONS[field]:
+					setattr(self, field, primary_store.store_id)
+
+	def initialize_default_listeners(self) -> None:
+		"""Initializes the default listeners."""
+
+		self.listeners = []
+		for listener in DEFAULT_LISTENERS:
+			self.append("listeners", listener)
+
+	@frappe.whitelist()
+	def get_admin_password(self) -> str:
+		"""Returns the admin password of the cluster."""
+
+		frappe.only_for("System Manager")
+		return self.get_password("admin_password")
+
+	@frappe.whitelist()
+	def generate_api_key(self) -> None:
+		"""Generates an API key for the cluster."""
+
+		frappe.only_for("System Manager")
+		self.api_key = self._generate_api_key()
+		self.save()
+
+	def _generate_api_key(self) -> str:
+		"""Generates an API key for the cluster."""
+
+		if not self.base_url:
+			frappe.throw(_("Base URL is required."))
+
+		name = f"{random_string(10)}-{self.cluster}".lower()
+		secret = generate_secret()
+		principal = Principal(
+			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]
+		)
+		server_api = MailServerAPI(
+			self.base_url, username=self.admin_username, password=self.get_password("admin_password")
+		)
+		response = server_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
+		response.raise_for_status()
+		response_json = response.json()
+
+		if error := response_json.get("error"):
+			frappe.throw(error)
+
+		return f"api_{base64.b64encode(f'{name}:{secret}'.encode()).decode()}"
+
+
+def get_storage_labels() -> dict:
+	"""Returns the storage labels."""
+
+	return {
+		"directory_storage": _("Directory Storage"),
+		"data_storage": _("Data Storage"),
+		"blob_storage": _("Blob Storage"),
+		"fts_storage": _("Full Text Index Storage"),
+		"in_memory_storage": _("In-Memory Storage"),
+	}

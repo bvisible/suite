@@ -12,12 +12,12 @@ from frappe.utils import now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 
-class MailAgentRequestLog(Document):
+class MailServerRequest(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
 	def validate(self) -> None:
-		self.validate_agent()
+		self.validate_cluster()
 		self.validate_endpoint()
 
 	def after_insert(self) -> None:
@@ -31,11 +31,11 @@ class MailAgentRequestLog(Document):
 				enqueue_after_commit=True,
 			)
 
-	def validate_agent(self) -> None:
-		"""Validate if the agent is enabled."""
+	def validate_cluster(self) -> None:
+		"""Validate if the cluster is enabled."""
 
-		if not frappe.get_cached_value("Mail Agent", self.agent, "enabled"):
-			frappe.throw(_("Mail Agent {0} is disabled.").format(self.agent))
+		if not frappe.get_cached_value("Mail Cluster", self.cluster, "enabled"):
+			frappe.throw(_("Mail Cluster {0} is disabled.").format(self.cluster))
 
 	def validate_endpoint(self) -> None:
 		"""Validates the endpoint."""
@@ -73,20 +73,21 @@ class MailAgentRequestLog(Document):
 	def _execute_request(self) -> None:
 		"""Executes the request."""
 
-		agent = frappe.get_cached_doc("Mail Agent", self.agent)
+		cluster = frappe.get_cached_doc("Mail Cluster", self.cluster)
 
-		if not agent.enabled:
-			frappe.throw(_("Mail Agent {0} is disabled.").format(self.agent))
+		if not cluster.enabled:
+			frappe.throw(_("Mail Cluster {0} is disabled.").format(self.cluster))
 
-		from mail.agent import AgentAPI
+		from mail.mail_server import MailServerAPI
 
-		agent_api = AgentAPI(
-			agent.base_url,
-			api_key=agent.get_password("api_key"),
-			username=agent.username,
-			password=agent.get_password("password"),
+		api_key = cluster.get_password("api_key") if cluster.api_key else None
+		server_api = MailServerAPI(
+			cluster.base_url,
+			api_key=api_key,
+			username=cluster.admin_username,
+			password=cluster.get_password("admin_password"),
 		)
-		response = agent_api.request(
+		response = server_api.request(
 			method=self.method,
 			endpoint=self.endpoint,
 			params=self.request_params,
@@ -99,7 +100,7 @@ class MailAgentRequestLog(Document):
 		if response.status_code == 200:
 			self._db_set(response_json=response_json)
 		else:
-			frappe.throw(title=_("Agent Request Failed"), msg=response_json)
+			frappe.throw(title=_("Mail Server Request Failed"), msg=response_json)
 
 	def _execute_method_on_end(self) -> None:
 		"""Executes the method on end."""
@@ -123,8 +124,8 @@ class MailAgentRequestLog(Document):
 			self.notify_update()
 
 
-def create_mail_agent_request_log(
-	agent: str,
+def create_mail_server_request(
+	cluster: str,
 	method: str,
 	endpoint: str,
 	request_headers: dict | None = None,
@@ -134,22 +135,22 @@ def create_mail_agent_request_log(
 	execute_on_start: str | None = None,
 	execute_on_end: str | None = None,
 	do_not_enqueue: bool = False,
-) -> "MailAgentRequestLog":
-	"""Creates a new Mail Agent Request Log."""
+) -> "MailServerRequest":
+	"""Creates a new Mail Server Request."""
 
 	if do_not_enqueue:
 		frappe.flags.do_not_enqueue = True
 
-	request_log = frappe.new_doc("Mail Agent Request Log")
-	request_log.agent = agent
-	request_log.method = method
-	request_log.endpoint = endpoint
-	request_log.request_headers = request_headers
-	request_log.request_params = request_params
-	request_log.request_data = request_data
-	request_log.request_json = request_json
-	request_log.execute_on_start = execute_on_start
-	request_log.execute_on_end = execute_on_end
-	request_log.insert(ignore_permissions=True)
+	request = frappe.new_doc("Mail Server Request")
+	request.cluster = cluster
+	request.method = method
+	request.endpoint = endpoint
+	request.request_headers = request_headers
+	request.request_params = request_params
+	request.request_data = request_data
+	request.request_json = request_json
+	request.execute_on_start = execute_on_start
+	request.execute_on_end = execute_on_end
+	request.insert(ignore_permissions=True)
 
-	return request_log
+	return request

@@ -8,8 +8,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, random_string
 
-from mail.agent import create_dkim_key_on_agents, delete_dkim_key_from_agents
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
+from mail.mail_server import create_dkim_key_on_clusters, delete_dkim_key_from_clusters
 from mail.utils import get_dkim_host
 
 
@@ -28,16 +28,16 @@ class DKIMKey(Document):
 			if self.has_value_changed("enabled"):
 				self.create_or_update_dns_record()
 				self.disable_existing_dkim_keys()
-				create_dkim_key_on_agents(self.domain_name, self.rsa_private_key)
+				create_dkim_key_on_clusters(self.domain_name, self.rsa_private_key)
 		elif self.has_value_changed("enabled"):
-			delete_dkim_key_from_agents(self.domain_name)
+			delete_dkim_key_from_clusters(self.domain_name)
 
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete DKIM Key."))
 
 		if self.enabled:
-			delete_dkim_key_from_agents(self.domain_name)
+			delete_dkim_key_from_clusters(self.domain_name)
 
 	def validate_rsa_key_size(self) -> None:
 		"""Validates the Key Size."""

@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.agent import create_alias_on_agents, delete_alias_from_agents, patch_alias_on_agents
+from mail.mail_server import create_alias_on_clusters, delete_alias_from_clusters, patch_alias_on_clusters
 from mail.utils import normalize_email
 from mail.utils.cache import get_account_for_user, get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
@@ -37,21 +37,21 @@ class MailAlias(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				create_alias_on_agents(self.alias_for_name, self.email)
+				create_alias_on_clusters(self.alias_for_name, self.email)
 			elif self.has_value_changed("alias_for_name"):
 				self.remove_alias_set_as_default_outgoing_email()
-				patch_alias_on_agents(
+				patch_alias_on_clusters(
 					self.alias_for_name, self.get_doc_before_save().alias_for_name, self.email
 				)
 		elif self.has_value_changed("enabled"):
 			self.remove_alias_set_as_default_outgoing_email()
-			delete_alias_from_agents(self.alias_for_name, self.email)
+			delete_alias_from_clusters(self.alias_for_name, self.email)
 
 	def on_trash(self) -> None:
 		self.clear_cache()
 
 		if self.enabled:
-			delete_alias_from_agents(self.alias_for_name, self.email)
+			delete_alias_from_clusters(self.alias_for_name, self.email)
 
 	def set_tenant(self) -> None:
 		"""Sets the tenant based on the domain."""

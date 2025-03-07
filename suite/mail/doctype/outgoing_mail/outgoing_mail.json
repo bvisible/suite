@@ -37,7 +37,7 @@
   "is_newsletter",
   "column_break_d6p9",
   "domain_name",
-  "agent",
+  "cluster",
   "section_break_quhp",
   "message_id",
   "in_reply_to",
@@ -66,10 +66,10 @@
   "open_count",
   "last_opened_at",
   "last_opened_from_ip",
-  "agent_groups_section",
-  "include_agent_groups",
+  "clusters_section",
+  "include_clusters",
   "column_break_qhyj",
-  "exclude_agent_groups",
+  "exclude_clusters",
   "section_break_eh7n",
   "amended_from"
  ],
@@ -470,28 +470,8 @@
    "search_index": 1
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.include_agent_groups || doc.exclude_agent_groups",
-   "depends_on": "eval: !doc.__islocal",
-   "fieldname": "agent_groups_section",
-   "fieldtype": "Section Break",
-   "label": "Agent Groups"
-  },
-  {
-   "fieldname": "include_agent_groups",
-   "fieldtype": "Small Text",
-   "label": "Include Agent Groups",
-   "permlevel": 1
-  },
-  {
    "fieldname": "column_break_qhyj",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "exclude_agent_groups",
-   "fieldtype": "Small Text",
-   "label": "Exclude Agent Groups",
-   "permlevel": 1
   },
   {
    "fieldname": "section_break_ptje",
@@ -530,15 +510,6 @@
    "label": "Is Spam",
    "no_copy": 1,
    "read_only": 1
-  },
-  {
-   "fieldname": "agent",
-   "fieldtype": "Link",
-   "label": "Agent",
-   "no_copy": 1,
-   "options": "Mail Group",
-   "read_only": 1,
-   "search_index": 1
   },
   {
    "fieldname": "message_id",
@@ -589,6 +560,34 @@
    "search_index": 1
   },
   {
+   "fieldname": "cluster",
+   "fieldtype": "Data",
+   "label": "Cluster",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "include_clusters",
+   "fieldtype": "Small Text",
+   "label": "Include Clusters",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "exclude_clusters",
+   "fieldtype": "Small Text",
+   "label": "Exclude Clusters",
+   "permlevel": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.include_clusters || doc.exclude_clusters",
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "clusters_section",
+   "fieldtype": "Section Break",
+   "label": "Clusters"
+  },
+  {
    "allow_on_submit": 1,
    "default": "1",
    "fieldname": "seen",
@@ -608,7 +607,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-06 11:20:19.735257",
+ "modified": "2025-03-06 14:49:33.230736",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Outgoing Mail",

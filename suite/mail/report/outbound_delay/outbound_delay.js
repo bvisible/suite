@@ -45,13 +45,13 @@ frappe.query_reports['Outbound Delay'] = {
 			},
 		},
 		{
-			fieldname: 'agent',
-			label: __('Agent'),
+			fieldname: 'cluster',
+			label: __('Cluster'),
 			fieldtype: frappe.user.has_role('System Manager') ? 'MultiSelectList' : 'Data',
 			get_data: (txt) => {
-				return frappe.db.get_link_options('Mail Agent', txt, {
+				return frappe.db.get_link_options('Mail Cluster', txt, {
 					enabled: 1,
-					enable_outbound: 1,
+					outbound: 1,
 				})
 			},
 		},

@@ -48,7 +48,7 @@ class MailSettings(Document):
 		if not self.has_value_changed("spf_host"):
 			return
 
-		from mail.mail.doctype.mail_agent.mail_agent import create_or_update_spf_dns_record
+		from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
 
 		self.spf_host = self.spf_host.lower()
 		if not is_valid_host(self.spf_host):

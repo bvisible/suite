@@ -37,9 +37,9 @@ frappe.ui.form.on('Outgoing Mail', {
 			)
 		} else if (frm.doc.status === 'Accepted') {
 			frm.add_custom_button(
-				__('Transfer to Agent'),
+				__('Transfer to Server'),
 				() => {
-					frm.trigger('transfer_to_mail_agent')
+					frm.trigger('transfer_to_cluster')
 				},
 				__('Actions'),
 			)
@@ -55,13 +55,13 @@ frappe.ui.form.on('Outgoing Mail', {
 			if (!frappe.user_roles.includes('System Manager')) return
 
 			frm.add_custom_button(
-				__('Force Transfer to Agent'),
+				__('Force Transfer to Server'),
 				() => {
 					frappe.confirm(
 						__(
-							'Are you sure you want to force transfer this email to the agent? It may cause duplicate emails to be sent.',
+							'Are you sure you want to force transfer this email to the server? It may cause duplicate emails to be sent.',
 						),
-						() => frm.trigger('force_transfer_to_mail_agent'),
+						() => frm.trigger('force_transfer_to_cluster'),
 					)
 				},
 				__('Actions'),
@@ -131,10 +131,10 @@ frappe.ui.form.on('Outgoing Mail', {
 		})
 	},
 
-	transfer_to_mail_agent(frm) {
+	transfer_to_cluster(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'transfer_to_mail_agent',
+			method: 'transfer_to_cluster',
 			freeze: true,
 			freeze_message: __('Transferring...'),
 			callback: (r) => {
@@ -145,10 +145,10 @@ frappe.ui.form.on('Outgoing Mail', {
 		})
 	},
 
-	force_transfer_to_mail_agent(frm) {
+	force_transfer_to_cluster(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'force_transfer_to_mail_agent',
+			method: 'force_transfer_to_cluster',
 			freeze: true,
 			freeze_message: __('Force Transferring...'),
 			callback: (r) => {

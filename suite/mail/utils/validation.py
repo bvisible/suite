@@ -3,6 +3,7 @@ import re
 import socket
 
 import frappe
+from croniter import CroniterBadCronError, croniter
 from frappe import _
 from frappe.utils.caching import request_cache
 from validate_email_address import validate_email
@@ -190,3 +191,18 @@ def is_domain_exists(domain_name: str, exclude_disabled: bool = True, raise_exce
 		)
 
 	return False
+
+
+def is_valid_cron_expression(expression: str, raise_exception: bool = False) -> bool:
+	"""Returns True if the expression is a valid Cron expression else False."""
+
+	try:
+		croniter(expression)
+		return True
+	except CroniterBadCronError:
+		if raise_exception:
+			frappe.throw(
+				_("{0} is not a valid Cron expression.").format(f"<code>{expression}</code>"),
+				title=_("Bad Cron Expression"),
+			)
+		return False
