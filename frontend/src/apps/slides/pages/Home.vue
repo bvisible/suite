@@ -9,7 +9,7 @@
 		>
 			<div class="flex items-center gap-2">
 				<img src="../icons/slides.svg" class="h-7" />
-				<div class="select-none font-semibold">Slides</div>
+				<div class="select-none text-base font-semibold">Slides</div>
 			</div>
 			<Button variant="solid" label="New" size="sm" @click="dialogAction = 'Create'">
 				<template #prefix>
@@ -25,13 +25,13 @@
 				blur: previewPresentation,
 			}"
 		>
-			<div class="font-semibold text-gray-600 px-4">
+			<div class="font-semibold text-base text-gray-600 px-4">
 				Presentations ({{ presentationList.data?.length }})
 			</div>
 			<div class="grid grid-cols-5 gap-4 h-auto p-4 overflow-y-auto">
 				<div
 					v-for="presentation in presentationList.data"
-					class="w-[200px] h-[135px] bg-white rounded-lg shadow-xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
+					class="w-[200px] h-[135px] bg-white rounded-lg shadow-xl cursor-pointer"
 					:key="presentation.name"
 				>
 					<div
@@ -77,7 +77,7 @@
 
 		<!-- Presentation Details -->
 		<div
-			class="bg-white w-full h-[380px] fixed transition-all duration-300 flex justify-center"
+			class="bg-white text-base w-full h-[380px] fixed transition-all duration-300 flex justify-center"
 			:class="previewPresentation ? 'bottom-0' : '-bottom-96'"
 		>
 			<div
@@ -184,7 +184,7 @@ const previewDetails = computed(() => {
 			Modified: dayjs(modified).fromNow(),
 		},
 		{
-			Slides: slides.length,
+			'Total Slides': slides.length,
 			Created: dayjs(creation).fromNow(),
 		},
 	]
