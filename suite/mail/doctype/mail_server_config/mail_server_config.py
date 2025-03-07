@@ -186,7 +186,6 @@ def get_config_toml(server: str) -> str | None:
 
 	server = frappe.get_doc("Mail Server", server)
 	cluster = frappe.get_doc("Mail Cluster", server.cluster)
-	trusted_networks = cluster.ipv4_addresses.split("\n") if server.server != cluster.cluster else []
 
 	config = {
 		"authentication": {
@@ -197,7 +196,11 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"server": {
 			"hostname": server.server,
-			"proxy": {"trusted-networks": trusted_networks},
+			"proxy": {
+				"trusted-networks": cluster.proxy_trusted_networks.split("\n")
+				if cluster.proxy_trusted_networks
+				else []
+			},
 			"max-connections": server.server_max_connections,
 			"listener": get_listeners(server.listeners or cluster.listeners),
 			"socket": {
