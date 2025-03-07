@@ -6,11 +6,10 @@ export const useResizer = (position, resizeDimensions) => {
 	const isResizing = ref(false)
 	const currentResizer = ref(null)
 	const resizeMode = ref(null)
-	const resizeHandles = computed(() =>
-		resizeMode.value == 'both'
-			? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-			: ['left', 'right'],
-	)
+	const resizeHandles = computed(() => {
+		if (resizeMode.value == 'width') return ['left', 'right']
+		return ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+	})
 
 	let originalWidth = null
 	let originalHeight = null
@@ -108,39 +107,49 @@ export const useResizer = (position, resizeDimensions) => {
 	}
 
 	const resizeToFitContent = (e) => {
-		const newWidth = resizeTarget.value.scrollWidth
-
+		// create range of the text node within TextElement
 		const range = document.createRange()
 		const textNode = resizeTarget.value.firstChild
 		range.selectNodeContents(textNode)
+
+		// find out width of text content
 		const textWidth = range.getBoundingClientRect().width
 
+		// auto resize width of TextElement to fit content with some padding
 		resizeDimensions.value = { width: textWidth + 10 }
+	}
+
+	const handleDoubleClick = (e) => {
+		e.stopImmediatePropagation()
+		handleSingleAndDoubleClick(e, startResize, resizeToFitContent)
+	}
+
+	const addResizers = (el) => {
+		resizeHandles.value.forEach((handle) => {
+			const resizer = document.createElement('div')
+			resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
+
+			// add double click event to fit content based on type of element
+			const mousedownHandler = resizeMode.value == 'width' ? handleDoubleClick : startResize
+			resizer.addEventListener('mousedown', mousedownHandler)
+
+			el.appendChild(resizer)
+		})
+	}
+
+	const removeResizers = (el) => {
+		const resizers = el.querySelectorAll(`.resizer-${resizeMode.value}`)
+		resizers.forEach((resizer) => resizer.remove())
 	}
 
 	watch(
 		() => resizeTarget.value,
 		(val, oldVal) => {
 			if (oldVal) {
-				const resizers = oldVal.querySelectorAll('div.resizer-both, div.resizer-width')
-				resizers.forEach((resizer) => {
-					oldVal.removeChild(resizer)
-				})
+				removeResizers(oldVal)
 			}
 			if (val) {
-				resizeHandles.value.forEach((handle) => {
-					const resizer = document.createElement('div')
-					resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
-					if (resizeMode.value == 'width') {
-						resizer.addEventListener('mousedown', (e) => {
-							e.stopImmediatePropagation()
-							handleSingleAndDoubleClick(e, startResize, resizeToFitContent)
-						})
-					} else {
-						resizer.addEventListener('mousedown', startResize)
-					}
-					val.appendChild(resizer)
-				})
+				addResizers(val)
 			}
 		},
 		{ immediate: true },
