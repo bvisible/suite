@@ -62,7 +62,7 @@
 	</div>
 	<AddMemberModal v-model="showAddMember" @reload-members="members.reload()" />
 	<Dialog v-model="showRemoveMember" :options="removeMemberOptions" />
-	<MailAccountModal v-if="mailAccount" v-model="showMailAccount" :account-i-d="mailAccount" />
+	<MailAccountModal v-model="showMailAccount" :account-i-d="mailAccount" />
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'

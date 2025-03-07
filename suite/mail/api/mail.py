@@ -491,10 +491,13 @@ def get_attachments(dt: str, dn: str):
 
 
 @frappe.whitelist()
-def get_user_addresses():
+def get_user_addresses(user: str | None = None) -> list:
 	"""Fetches user email addresses."""
 
-	return get_user_email_addresses(frappe.session.user)
+	if not user:
+		user = frappe.session.user
+
+	return get_user_email_addresses(user)
 
 
 @frappe.whitelist()
