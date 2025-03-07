@@ -28,10 +28,10 @@
 			<div class="font-semibold text-gray-600 px-4">
 				Presentations ({{ presentationList.data?.length }})
 			</div>
-			<div class="grid grid-cols-5 gap-4 h-[95%] p-4 overflow-y-auto">
+			<div class="grid grid-cols-5 gap-4 h-auto p-4 overflow-y-auto">
 				<div
 					v-for="presentation in presentationList.data"
-					class="w-[200px] h-[135px] bg-white rounded-lg shadow-2xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
+					class="w-[200px] h-[135px] bg-white rounded-lg shadow-xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
 					:key="presentation.name"
 				>
 					<div
