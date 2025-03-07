@@ -16,25 +16,27 @@
 	<div class="mb-4 mt-12 flex items-center">
 		<h1 class="font-semibold">API Access</h1>
 		<Button
-			:label="user.data?.api_key ? 'Regenerate Secret' : 'Generate Keys'"
+			:label="__(user.data?.api_key ? 'Regenerate Secret' : 'Generate Keys')"
 			class="ml-auto"
 			@click="generateKeys.submit()"
 		/>
 	</div>
 
-	<Copy v-if="user.data?.api_key" label="API Key" :value="user.data?.api_key" />
+	<CopyControl v-if="user.data?.api_key" :label="__('API Key')" :value="user.data?.api_key" />
 
 	<div v-else class="mt-2">
-		<p class="text-base">You don't have an API key yet. Generate one to access the API.</p>
+		<p class="text-base">
+			{{ __(`You don't have an API key yet. Generate one to access the PI.`) }}
+		</p>
 	</div>
 
 	<Dialog v-model="showSecret" :options="{ title: __('API Access') }">
 		<template #body-content>
 			<p class="text-base">
-				Please copy the API secret now. You won’t be able to see it again!
+				{{ __(`Please copy the API secret now. You won’t be able to see it again!`) }}
 			</p>
-			<CopyControl label="API Key" :value="user.data?.api_key" />
-			<CopyControl label="API Secret" :value="apiSecret" />
+			<CopyControl :label="__('API Key')" :value="user.data?.api_key" />
+			<CopyControl :label="__('API Secret')" :value="apiSecret" />
 		</template>
 	</Dialog>
 </template>
