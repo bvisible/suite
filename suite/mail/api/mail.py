@@ -400,16 +400,16 @@ def get_mail_details(name: str, type: str, include_all_details: bool = False) ->
 	return mail
 
 
-def extract_email_body(html) -> str | None:
+def extract_email_body(html: str) -> str | None:
 	"""Extracts the email body from the html content."""
 
 	if not html:
-		return
+		return None
+
 	soup = BeautifulSoup(html, "html.parser")
-	email_body = soup.find("table", class_="email-body")
-	if email_body:
-		return email_body.find("div").prettify()
-	return html
+	div = soup.select_one("table.email-body div")
+
+	return div.prettify() if div else html
 
 
 def get_recipients(name, type, recipient_type) -> list:
