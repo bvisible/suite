@@ -103,7 +103,7 @@ class MailServer(Document):
 
 		frappe.only_for("System Manager")
 		self._generate_config()
-		frappe.msgprint(_("Mail Server Config generated successfully."), indicator="green", alert=True)
+		frappe.msgprint(_("Mail Server Config created."), indicator="green", alert=True)
 
 	def _generate_config(self) -> "MailServerConfig":
 		"""Generates the Mail Server Config."""
