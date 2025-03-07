@@ -1,5 +1,8 @@
 <template>
-	<div class="grid grid-cols-1 px-2.5 sm:grid-cols-2" :class="{ 'text-ink-gray-4': disabled }">
+	<div
+		class="grid grid-cols-1 px-2.5 sm:grid-cols-2"
+		:class="disabled ? 'text-ink-gray-4' : 'text-ink-gray-8'"
+	>
 		<label class="my-auto font-medium leading-normal">
 			{{ label }}
 		</label>

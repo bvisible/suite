@@ -37,34 +37,31 @@
 						:disabled="true"
 					/>
 				</div>
-				<div class="p-4">
-					<div class="my-1.5 space-y-3">
-						<HorizontalControl :label="__('Mail Tenant')" :disabled="true">
-							<FormControl v-model="user.data.tenant_name" :disabled="true" />
-						</HorizontalControl>
-						<HorizontalControl :label="__('DKIM RSA Key Size')">
-							<FormControl
-								v-model="domain.doc.dkim_rsa_key_size"
-								type="select"
-								:options="[
-									{ label: '2048', value: 2048 },
-									{ label: '4096', value: 4096 },
-								]"
-							/>
-						</HorizontalControl>
-						<HorizontalControl :label="__('Newsletter Retention (Days)')">
-							<FormControl
-								v-model="domain.doc.newsletter_retention"
-								type="number"
-								min="1"
-								max="7"
-								@update:model-value="
-									domain.doc.newsletter_retention =
-										+domain.doc.newsletter_retention
-								"
-							/>
-						</HorizontalControl>
-					</div>
+				<div class="my-1.5 space-y-3 p-4">
+					<HorizontalControl :label="__('Mail Tenant')" :disabled="true">
+						<FormControl v-model="user.data.tenant_name" :disabled="true" />
+					</HorizontalControl>
+					<HorizontalControl :label="__('DKIM RSA Key Size')">
+						<FormControl
+							v-model="domain.doc.dkim_rsa_key_size"
+							type="select"
+							:options="[
+								{ label: '2048', value: 2048 },
+								{ label: '4096', value: 4096 },
+							]"
+						/>
+					</HorizontalControl>
+					<HorizontalControl :label="__('Newsletter Retention (Days)')">
+						<FormControl
+							v-model="domain.doc.newsletter_retention"
+							type="number"
+							min="1"
+							max="7"
+							@update:model-value="
+								domain.doc.newsletter_retention = +domain.doc.newsletter_retention
+							"
+						/>
+					</HorizontalControl>
 				</div>
 			</div>
 			<div class="rounded-md border p-4">
@@ -80,7 +77,7 @@
 						<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
 							<template #default="{ item }">
 								<ListRowItem>
-									<div class="cursor-pointer" @click="copyToClipBoard(item)">
+									<div class="cursor-copy" @click="copyToClipBoard(item)">
 										{{ item }}
 									</div>
 								</ListRowItem>
@@ -155,9 +152,7 @@ const domain = createDocumentResource({
 			data[d] = !!data[d]
 	},
 	setValue: {
-		onSuccess() {
-			raiseToast('Domain settings saved successfully')
-		},
+		onSuccess: () => raiseToast(__('Domain settings saved successfully')),
 		onError(error) {
 			raiseToast(error.messages[0], 'error')
 			domain.reload()
@@ -209,7 +204,7 @@ const domain = createDocumentResource({
 })
 
 const BREADCRUMBS = [
-	{ label: 'Domains', route: '/dashboard/domains' },
+	{ label: __('Domains'), route: '/dashboard/domains' },
 	{ label: props.domainName },
 ]
 

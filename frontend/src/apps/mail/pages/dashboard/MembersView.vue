@@ -29,7 +29,7 @@
 							'cursor-pointer rounded hover:bg-gray-50':
 								row.name !== tenantOwner.data,
 						}"
-						@click="goToAccount(row.name)"
+						@click="openAccount(row.name)"
 					>
 						<div class="grid grid-cols-3">
 							<div class="flex items-center space-x-2">
@@ -62,10 +62,10 @@
 	</div>
 	<AddMemberModal v-model="showAddMember" @reload-members="members.reload()" />
 	<Dialog v-model="showRemoveMember" :options="removeMemberOptions" />
+	<MailAccountModal v-if="mailAccount" v-model="showMailAccount" :account-i-d="mailAccount" />
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import {
 	Avatar,
 	Badge,
@@ -82,13 +82,15 @@ import {
 
 import { raiseToast } from '@/utils'
 import AddMemberModal from '@/components/Modals/AddMemberModal.vue'
+import MailAccountModal from '@/components/Modals/MailAccountModal.vue'
 
 const user = inject('$user')
-const router = useRouter()
 
 const showAddMember = ref(false)
 const showRemoveMember = ref(false)
 const memberToBeRemoved = ref('')
+const showMailAccount = ref(false)
+const mailAccount = ref('')
 
 const tenantOwner = createResource({
 	url: 'frappe.client.get_value',
@@ -138,8 +140,11 @@ const removeMember = createResource({
 	onError: (error) => raiseToast(error.messages[0], 'error'),
 })
 
-const goToAccount = (accountID: string) => {
-	if (accountID !== tenantOwner.data) router.push({ name: 'Account', params: { accountID } })
+const openAccount = (account: string) => {
+	if (account !== tenantOwner.data) {
+		mailAccount.value = account
+		showMailAccount.value = true
+	}
 }
 
 const dropdownOptions = (name, isAdmin) => {
