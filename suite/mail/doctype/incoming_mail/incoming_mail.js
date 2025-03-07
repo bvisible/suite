@@ -6,6 +6,13 @@ frappe.ui.form.on('Incoming Mail', {
 		frm.trigger('add_actions')
 	},
 
+	folder(frm) {
+		frm.set_value(
+			'trashed_on',
+			frm.doc.folder === 'Trash' ? frappe.datetime.now_datetime() : null,
+		)
+	},
+
 	add_actions(frm) {
 		if (frm.doc.docstatus === 1) {
 			frm.add_custom_button(

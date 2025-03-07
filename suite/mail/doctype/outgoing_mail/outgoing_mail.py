@@ -141,15 +141,14 @@ class OutgoingMail(Document):
 	def set_folder(self, db_set: bool = False) -> None:
 		"""Validates the folder"""
 
-		if self.docstatus == 0:
-			self.folder = "Drafts"
-		elif self.docstatus == 1:
-			if self.status != "Sent":
-				self.folder = "Outbox"
-			elif self.folder != "Trash":
-				self.folder = "Sent"
-		else:
+		if self.docstatus == 2:
 			return
+
+		if self.folder != "Trash":
+			if self.docstatus == 0:
+				self.folder = "Drafts"
+			else:
+				self.folder = "Sent" if self.status == "Sent" else "Outbox"
 
 		if db_set:
 			self._db_set(folder=self.folder, notify_update=True)

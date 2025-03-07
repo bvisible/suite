@@ -209,6 +209,7 @@ scheduler_events = {
 	# ],
 	"daily": [
 		"mail.tasks.enqueue_delete_newsletters",
+		"mail.tasks.enqueue_cancel_trashed_mails",
 	],
 	# "hourly": [
 	#     "mail.tasks.hourly"
