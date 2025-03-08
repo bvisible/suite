@@ -1,145 +1,82 @@
 <template>
-	<Dialog class="pb-0" v-model="showDialog" :options="{ size: 'sm' }">
-		<template #body>
-			<div class="flex flex-col gap-6 p-6">
-				<div class="flex items-center justify-between">
-					<div class="text-md font-semibold text-gray-900">
-						{{ dialogAction }} Presentation
-					</div>
-					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showDialog = false" />
-				</div>
-				<FormControl
-					v-if="['Rename', 'Duplicate', 'Create'].includes(dialogAction)"
-					:type="'text'"
-					size="md"
-					variant="subtle"
-					placeholder="Presentation Title"
-					v-model="newPresentationTitle"
-				/>
-				<div v-else class="text-base">
-					Are you sure you want to delete this presentation?
-				</div>
-
-				<Button
-					v-if="dialogAction == 'Rename'"
-					variant="solid"
-					label="Update"
-					@click="renamePresentation"
-				>
-					<template #prefix>
-						<FeatherIcon name="edit" class="h-3.5" />
-					</template>
-				</Button>
-
-				<Button
-					v-else-if="dialogAction == 'Duplicate'"
-					variant="solid"
-					label="Create Copy"
-					@click="createPresentation('Duplicate')"
-				>
-					<template #prefix>
-						<FeatherIcon name="copy" class="h-3.5" />
-					</template>
-				</Button>
-
-				<Button
-					v-else-if="dialogAction == 'Delete'"
-					variant="solid"
-					theme="red"
-					label="Confirm Deletion"
-					@click="deletePresentation"
-				>
-					<template #prefix>
-						<FeatherIcon name="trash" class="h-3.5" />
-					</template>
-				</Button>
-
-				<Button v-else variant="solid" label="Create" @click="createPresentation('Create')">
-					<template #prefix>
-						<FeatherIcon name="save" class="h-3.5" />
-					</template>
-				</Button>
+	<Dialog class="pb-0" :options="{ size: 'sm' }">
+		<template #body-title>
+			<div class="font-semibold">{{ dialogAction }} Presentation</div>
+		</template>
+		<template #body-content>
+			<FormControl
+				v-if="['Duplicate', 'Create'].includes(dialogAction)"
+				:type="'text'"
+				size="md"
+				variant="subtle"
+				label="Presentation Title"
+				v-model="newPresentationTitle"
+			/>
+			<div v-else class="text-base px-2">
+				This action will permanently delete
+				<strong>{{ presentationTitle }}</strong
+				>. Are you sure you want to continue?
 			</div>
+		</template>
+		<template #actions>
+			<Button
+				class="w-full"
+				variant="solid"
+				:theme="dialogAction == 'Delete' ? 'red' : 'gray'"
+				:label="actions[dialogAction].label"
+				@click="actions[dialogAction].onClick"
+			>
+				<template #prefix>
+					<component :is="actions[dialogAction].icon" size="14" class="stroke-[1.5]" />
+				</template>
+			</Button>
 		</template>
 	</Dialog>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 
-import { Dialog, FormControl, call } from 'frappe-ui'
+import { Dialog, FormControl } from 'frappe-ui'
 
-import { presentationList } from '@/stores/presentation'
+import { Save, Copy, Trash } from 'lucide-vue-next'
 
-const router = useRouter()
-const showDialog = ref(false)
-
-const dialogAction = defineModel('dialogAction', {
-	type: String,
-	default: '',
+const props = defineProps({
+	presentationTitle: String,
+	dialogAction: String,
 })
 
-const previewPresentation = defineModel('previewPresentation', {
-	type: Object,
-})
+const emit = defineEmits(['create', 'duplicate', 'delete'])
 
 const newPresentationTitle = ref('')
 
-const createPresentation = async (action) => {
-	let presentation = null
-	showDialog.value = false
-	if (action == 'Duplicate') {
-		presentation = await call(
-			'slides.slides.doctype.presentation.presentation.duplicate_presentation',
-			{
-				title: newPresentationTitle.value,
-				presentation_name: previewPresentation.value.name,
-			},
-		)
-	} else {
-		presentation = await call(
-			'slides.slides.doctype.presentation.presentation.create_presentation',
-			{
-				title: newPresentationTitle.value,
-			},
-		)
-	}
-	await router.push(`/${presentation.name}`)
-}
-
-const renamePresentation = async () => {
-	showDialog.value = false
-	await call('slides.slides.doctype.presentation.presentation.rename_presentation', {
-		name: previewPresentation.value.name,
-		new_name: newPresentationTitle.value,
-	})
-	await presentationList.reload()
-	previewPresentation.value.title = newPresentationTitle.value
-}
-
-const deletePresentation = async () => {
-	showDialog.value = false
-	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
-		name: previewPresentation.value.name,
-	})
-	await presentationList.reload()
-	previewPresentation.value = null
+const actions = {
+	Create: {
+		label: 'Create Presentation',
+		icon: Save,
+		onClick: () => emit('create', newPresentationTitle.value),
+	},
+	Duplicate: {
+		label: 'Create Copy',
+		icon: Copy,
+		onClick: () => emit('duplicate', newPresentationTitle.value),
+	},
+	Delete: {
+		label: 'Delete Presentation',
+		icon: Trash,
+		onClick: () => emit('delete'),
+	},
 }
 
 watch(
-	() => dialogAction.value,
-	(action) => {
-		if (!action) return
-		if (action == 'Rename') {
-			newPresentationTitle.value = previewPresentation.value.title
-		} else if (action == 'Duplicate') {
-			newPresentationTitle.value = `Copy of ${previewPresentation.value.title}`
-		} else {
+	() => props.dialogAction,
+	(val) => {
+		if (val) {
 			newPresentationTitle.value = ''
+			if (props.dialogAction == 'Duplicate') {
+				newPresentationTitle.value = `Copy of ${props.presentationTitle}`
+			}
 		}
-		showDialog.value = true
 	},
-	{ immediate: true },
 )
 </script>

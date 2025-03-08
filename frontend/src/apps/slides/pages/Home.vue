@@ -11,12 +11,7 @@
 				<img src="../icons/slides.svg" class="h-7" />
 				<div class="select-none text-base font-semibold">Slides</div>
 			</div>
-			<Button
-				variant="solid"
-				label="New"
-				size="sm"
-				@click="performPresentationAction('Create')"
-			>
+			<Button variant="solid" label="New" size="sm" @click="openDialog('Create')">
 				<template #prefix>
 					<FeatherIcon name="plus" class="h-3.5" />
 				</template>
@@ -96,39 +91,25 @@
 					</div>
 				</div>
 				<div class="w-[8%] flex flex-col gap-3 pt-[30%]">
-					<Tooltip text="Present" :hover-delay="0.3" placement="right">
+					<Tooltip
+						v-for="action in presentationActions"
+						:text="action.label"
+						:hover-delay="0.3"
+						placement="right"
+					>
 						<div
-							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-900"
-							@click="enablePresentMode"
+							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer"
+							:class="action.label === 'Present' ? 'bg-gray-900' : 'bg-gray-200'"
+							@click="action.onClick"
 						>
-							<Presentation size="16" class="text-white stroke-[1.5]" />
-						</div>
-					</Tooltip>
-
-					<Tooltip text="Edit" :hover-delay="0.3" placement="right">
-						<div
-							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-200"
-							@click="enablePresentMode"
-						>
-							<PenLine size="16" class="stroke-[1.5]" />
-						</div>
-					</Tooltip>
-
-					<Tooltip text="Duplicate" :hover-delay="0.3" placement="right">
-						<div
-							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-200"
-							@click="enablePresentMode"
-						>
-							<Copy size="16" class="stroke-[1.5]" />
-						</div>
-					</Tooltip>
-
-					<Tooltip text="Delete" :hover-delay="0.3" placement="right">
-						<div
-							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-200"
-							@click="enablePresentMode"
-						>
-							<Trash size="16" class="stroke-[1.5]" />
+							<component
+								:is="action.icon"
+								size="16"
+								class="stroke-[1.5]"
+								:class="{
+									'text-white': action.label === 'Present',
+								}"
+							/>
 						</div>
 					</Tooltip>
 				</div>
@@ -138,19 +119,25 @@
 		</div>
 	</div>
 
-	<PresentationActionDialog v-model="showDialog" :dialogAction="dialogAction" />
+	<PresentationActionDialog
+		v-model="showDialog"
+		:dialogAction="dialogAction"
+		:presentationTitle="previewPresentation?.title || ''"
+		@delete="deletePresentation"
+		@create="(title) => addPresentation(title)"
+		@duplicate="(title) => addPresentation(title, true)"
+	/>
 </template>
 
 <script setup>
 import { computed, ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { Tooltip } from 'frappe-ui'
+import { Tooltip, createResource, call } from 'frappe-ui'
 
-import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
+import { Presentation, Copy, PenLine, Trash, Pen } from 'lucide-vue-next'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
-import { presentationList } from '@/stores/presentation'
 import { guessTextColorFromBackground } from '@/utils/color'
 
 import tinycolor from 'tinycolor2'
@@ -166,6 +153,12 @@ const previewSlide = ref(0)
 
 const showDialog = ref(false)
 const dialogAction = ref('')
+
+const presentationList = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
+	method: 'GET',
+	auto: true,
+})
 
 const previewStyles = computed(() => ({
 	backgroundImage: `url(${previewPresentation.value?.slides[previewSlide.value]?.thumbnail})`,
@@ -189,13 +182,6 @@ const previewDetails = computed(() => {
 	]
 })
 
-const iconColor = computed(() => {
-	const background = tinycolor(
-		previewPresentation.value?.slides[previewSlide.value]?.background || 'white',
-	).toRgbString()
-	return guessTextColorFromBackground(background)
-})
-
 const initPreview = () => {
 	interval = setInterval(() => {
 		previewSlide.value = (previewSlide.value + 1) % previewPresentation.value.slides.length
@@ -209,22 +195,74 @@ const resetPreview = () => {
 }
 
 const hidePreview = () => {
-	console.log('hide')
 	previewPresentation.value = null
 	resetPreview()
 }
 
-const enablePresentMode = async () => {
+const navigateToPresentation = async (name, present) => {
+	name = name || previewPresentation.value.name
 	await router.replace({
 		name: 'Presentation',
-		params: { presentationId: previewPresentation.value.name },
-		query: { present: true },
+		params: { presentationId: name },
+		query: { present: present },
 	})
 }
 
-const performPresentationAction = (action) => {
+const presentationActions = [
+	{
+		icon: Presentation,
+		label: 'Present',
+		onClick: (e) => navigateToPresentation(previewPresentation.value.name, true),
+	},
+	{
+		icon: PenLine,
+		label: 'Edit',
+		onClick: (e) => navigateToPresentation(previewPresentation.value.name),
+	},
+	{
+		icon: Copy,
+		label: 'Duplicate',
+		onClick: (e) => openDialog('Duplicate'),
+	},
+	{
+		icon: Trash,
+		label: 'Delete',
+		onClick: (e) => openDialog('Delete'),
+	},
+]
+
+const createPresentationDoc = async (title, duplicateFrom) => {
+	return await call('slides.slides.doctype.presentation.presentation.create_presentation', {
+		title: title,
+		duplicate_from: duplicateFrom,
+	})
+}
+
+const addPresentation = async (title, duplicate) => {
+	closeDialog()
+	const presentation = await createPresentationDoc(
+		title,
+		duplicate ? previewPresentation.value.name : null,
+	)
+	navigateToPresentation(presentation.name)
+}
+
+const deletePresentation = async () => {
+	closeDialog()
+	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
+		name: previewPresentation.value.name,
+	})
+	await presentationList.reload()
+	previewPresentation.value = null
+}
+
+const openDialog = (action) => {
 	dialogAction.value = action
 	showDialog.value = true
+}
+
+const closeDialog = () => {
+	showDialog.value = false
 }
 
 watch(
