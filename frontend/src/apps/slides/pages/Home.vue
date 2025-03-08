@@ -13,7 +13,7 @@
 			</div>
 			<Button variant="solid" label="New" size="sm" @click="openDialog('Create')">
 				<template #prefix>
-					<FeatherIcon name="plus" class="h-3.5" />
+					<Plus size="14" class="text-white stroke-[1.5]" />
 				</template>
 			</Button>
 		</div>
@@ -135,7 +135,7 @@ import { useRouter } from 'vue-router'
 
 import { Tooltip, createResource, call } from 'frappe-ui'
 
-import { Presentation, Copy, PenLine, Trash, Pen } from 'lucide-vue-next'
+import { Presentation, Copy, PenLine, Trash, Pen, Plus } from 'lucide-vue-next'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
 import { guessTextColorFromBackground } from '@/utils/color'
