@@ -49,7 +49,7 @@
 					@click="saveChanges"
 				>
 					<template #icon>
-						<FeatherIcon name="save" class="h-3.5" />
+						<Save size="14" class="stroke-[1.5]" />
 					</template>
 				</Button>
 				<Button
@@ -101,7 +101,7 @@ import { toast } from 'vue-sonner'
 
 import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
 
-import { Presentation } from 'lucide-vue-next'
+import { Presentation, Save } from 'lucide-vue-next'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
