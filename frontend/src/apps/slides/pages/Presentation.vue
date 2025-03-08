@@ -8,62 +8,39 @@
 		@dragover.prevent
 		@drop="handleMediaDrop"
 	>
-		<!-- Navbar -->
-		<div
-			class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300"
-			@wheel.prevent
-		>
-			<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-				<img src="../icons/slides.svg" class="h-7" />
-				<div class="text-base font-semibold">Slides</div>
-			</router-link>
+		<Navbar :primaryButton="primaryButtonProps">
+			<template #default>
+				<div class="flex text-base justify-center items-center">
+					<input
+						spellcheck="false"
+						ref="newTitleRef"
+						v-if="renameMode"
+						class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+						v-model="newTitle"
+						@blur="saveTitle"
+					/>
+					<span
+						v-else
+						class="select-none font-semibold text-gray-700"
+						@click="enableRenameMode"
+					>
+						{{ presentation.data?.title }}
+					</span>
 
-			<div class="flex text-base justify-center items-center">
-				<input
-					spellcheck="false"
-					ref="newTitleRef"
-					v-if="renameMode"
-					class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
-					v-model="newTitle"
-					@blur="saveTitle"
-				/>
-				<span
-					v-else
-					class="select-none font-semibold text-gray-700"
-					@click="enableRenameMode"
-				>
-					{{ presentation.data?.title }}
-				</span>
+					<Badge class="mx-2" :theme="slideDirty ? 'orange' : 'gray'" size="md">
+						{{ slideDirty ? 'Unsaved' : 'Saved' }}
+					</Badge>
+				</div>
+			</template>
 
-				<Badge class="mx-2" :theme="slideDirty ? 'orange' : 'gray'" size="md">
-					{{ slideDirty ? 'Unsaved' : 'Saved' }}
-				</Badge>
-			</div>
-
-			<div class="flex items-center gap-2 justify-end">
-				<Button
-					size="sm"
-					:variant="'subtle'"
-					:loading="saving"
-					:disabled="!slideDirty"
-					@click="saveChanges"
-				>
+			<template #actions>
+				<Button :loading="saving" :disabled="!slideDirty" @click="saveChanges">
 					<template #icon>
 						<Save size="14" class="stroke-[1.5]" />
 					</template>
 				</Button>
-				<Button
-					variant="solid"
-					label="Present"
-					size="sm"
-					@click="router.replace({ query: { present: true } })"
-				>
-					<template #prefix>
-						<Presentation size="14" class="text-white stroke-[1.5]" />
-					</template>
-				</Button>
-			</div>
-		</div>
+			</template>
+		</Navbar>
 
 		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
 			<SlideNavigationPanel :showNavigator="showNavigator" />
@@ -102,6 +79,8 @@ import { toast } from 'vue-sonner'
 import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
 
 import { Presentation, Save } from 'lucide-vue-next'
+
+import Navbar from '@/components/Navbar.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
@@ -130,6 +109,12 @@ import {
 } from '@/stores/element'
 
 let autosaveInterval = null
+
+const primaryButtonProps = {
+	label: 'Present',
+	icon: Presentation,
+	onClick: () => router.replace({ query: { present: true } }),
+}
 
 const route = useRoute()
 const router = useRouter()
