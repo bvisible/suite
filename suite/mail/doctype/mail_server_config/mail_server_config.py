@@ -106,9 +106,9 @@ def get_config_toml(server: str) -> str | None:
 		"""Returns the seed nodes for the Mail Server."""
 
 		seed_nodes = []
-		for a in frappe.db.get_all(
+		for s in frappe.db.get_all(
 			"Mail Server",
-			filters={"cluster": cluster, "name": ["!=", server]},
+			filters={"enabled": 1, "cluster": cluster, "name": ["!=", server]},
 			fields=[
 				"private_ipv4",
 				"private_ipv6",
@@ -117,10 +117,10 @@ def get_config_toml(server: str) -> str | None:
 				"cluster_advertise_address",
 			],
 		):
-			if not a["cluster_advertise_address"]:
+			if not s["cluster_advertise_address"]:
 				continue
 
-			if seed_node := a[frappe.scrub(a["cluster_advertise_address"])]:
+			if seed_node := s[frappe.scrub(s["cluster_advertise_address"])]:
 				seed_nodes.append(seed_node)
 
 		num_digits = len(str(len(seed_nodes) - 1))
