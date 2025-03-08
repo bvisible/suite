@@ -141,10 +141,8 @@ import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 import { guessTextColorFromBackground } from '@/utils/color'
 
 import tinycolor from 'tinycolor2'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
+import dayjs from '@/utils/dayjs'
 
-dayjs.extend(relativeTime)
 const router = useRouter()
 
 let interval = null
