@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed flex h-screen w-screen flex-col bg-gray-100 items-center">
+	<div class="fixed flex flex-col h-screen w-screen">
 		<!-- Navbar -->
 		<div
 			class="z-10 w-full flex items-center justify-between bg-white p-2 shadow-xl"
@@ -9,9 +9,14 @@
 		>
 			<div class="flex items-center gap-2">
 				<img src="../icons/slides.svg" class="h-7" />
-				<div class="select-none font-semibold">Slides</div>
+				<div class="select-none text-base font-semibold">Slides</div>
 			</div>
-			<Button variant="solid" label="New" size="sm" @click="dialogAction = 'Create'">
+			<Button
+				variant="solid"
+				label="New"
+				size="sm"
+				@click="performPresentationAction('Create')"
+			>
 				<template #prefix>
 					<FeatherIcon name="plus" class="h-3.5" />
 				</template>
@@ -20,129 +25,124 @@
 
 		<!-- Presentation Cards -->
 		<div
-			class="w-[80%] h-full my-6 flex flex-col gap-2"
+			class="w-full h-full bg-gray-100 flex flex-col gap-2 py-6 overflow-y-auto"
 			:class="{
-				blur: previewPresentation,
+				'blur-[1px]': previewPresentation,
 			}"
 		>
-			<div class="font-semibold text-gray-600 px-4">
+			<div class="font-semibold text-base text-gray-600 lg:px-40 px-32">
 				Presentations ({{ presentationList.data?.length }})
 			</div>
-			<div class="grid grid-cols-5 gap-4 h-[95%] p-4 overflow-y-auto">
+			<div
+				class="grid grid-cols-3 lg:grid-cols-4 lg:px-40 lg:py-6 px-32 py-4 lg:gap-10 gap-8"
+			>
 				<div
 					v-for="presentation in presentationList.data"
-					class="w-[200px] h-[135px] bg-white rounded-lg shadow-2xl cursor-pointer hover:scale-[1.01] transition ease-in-out"
 					:key="presentation.name"
+					class="flex flex-col gap-2"
 				>
+					<!-- added bg-white temporarily to support for first slides with no generated thumbnail -->
 					<div
-						class="w-full h-[78%] rounded-t-lg border-b"
+						class="aspect-[16/9] bg-white rounded-lg shadow-xl cursor-pointer hover:scale-[1.01]"
 						:style="{
 							backgroundImage: `url(${presentation.slides[0]?.thumbnail})`,
 							backgroundSize: 'cover',
 							backgroundPosition: 'center',
 						}"
-						@click="previewPresentation = presentation"
+						@click.stop="previewPresentation = presentation"
 					></div>
-					<div class="w-full h-[22%] flex justify-between px-2 items-center">
-						<div class="text-gray-500 text-sm">{{ presentation.title }}</div>
+					<div class="lg:text-base md:text-sm text-gray-700 px-2">
+						{{ presentation.title }}
 					</div>
 				</div>
 			</div>
+
+			<div
+				class="fixed top-0 left-0 w-full h-full bg-black opacity-25"
+				v-show="previewPresentation"
+			></div>
 		</div>
 
 		<!-- Presentation Preview -->
 		<div
-			class="bg-gray-800 fixed top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out"
-			:class="previewPresentation ? 'opacity-30' : 'opacity-0 pointer-events-none'"
+			class="fixed left-0 w-full h-full transition-all duration-300 ease-in-out flex items-center"
+			:class="previewPresentation ? 'top-0' : 'top-[100%]'"
 			@click="hidePreview()"
-		></div>
-
-		<div
-			class="z-10 w-[960px] h-[540px] bg-white shadow-2xl rounded-2xl fixed left-[calc(50%-480px)] transition-all duration-300 cursor-pointer hover:scale-[101%]"
-			:class="previewPresentation ? 'bottom-[calc(50%-270px)]' : '-bottom-[540px]'"
-			:style="previewStyles"
-			@mouseenter="showLinkToPresentation = true"
-			@mouseleave="showLinkToPresentation = false"
-			@click="$router.push(`/${previewPresentation?.name}`)"
-		>
-			<FeatherIcon
-				v-if="showLinkToPresentation"
-				class="h-5 absolute top-4 right-4 opacity-70"
-				name="arrow-up-right"
-				:style="{
-					color: iconColor,
-				}"
-			/>
-		</div>
-
-		<!-- Presentation Details -->
-		<div
-			class="bg-white w-full h-[380px] fixed transition-all duration-300 flex justify-center"
-			:class="previewPresentation ? 'bottom-0' : '-bottom-96'"
 		>
 			<div
-				class="w-[960px] absolute top-[72%] flex flex-col gap-2 px-2"
-				v-if="previewPresentation"
+				class="z-20 w-[70%] absolute left-[calc(50%-31%)] flex justify-between"
+				@click.stop
 			>
-				<div
-					v-for="(row, index) in previewDetails"
-					:key="index"
-					class="flex items-center justify-between"
-				>
+				<div class="w-[88%] flex flex-col gap-8">
 					<div
-						v-for="(detailValue, detailLabel) in row"
-						:key="detailLabel"
-						class="flex items-center gap-2"
-					>
-						<div class="font-semibold text-gray-700">{{ detailLabel }}</div>
-						<div class="font-semibold text-gray-600">{{ detailValue }}</div>
+						class="aspect-video bg-white cursor-pointer rounded-2xl shadow-2xl"
+						:style="previewStyles"
+					></div>
+					<div class="flex flex-col gap-2 lg:text-base text-sm cursor-default px-2">
+						<div
+							v-for="(row, index) in previewDetails"
+							:key="index"
+							class="flex items-center justify-between"
+						>
+							<div
+								v-for="(detailValue, detailLabel) in row"
+								:key="detailLabel"
+								class="flex items-center gap-2"
+							>
+								<div class="font-semibold text-gray-700">{{ detailLabel }}</div>
+								<div class="font-semibold text-gray-600">{{ detailValue }}</div>
+							</div>
+						</div>
 					</div>
+				</div>
+				<div class="w-[8%] flex flex-col gap-3 pt-[30%]">
+					<Tooltip text="Present" :hover-delay="0.3" placement="right">
+						<div
+							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-900"
+							@click="enablePresentMode"
+						>
+							<Presentation size="16" class="text-white stroke-[1.5]" />
+						</div>
+					</Tooltip>
+
+					<Tooltip text="Edit" :hover-delay="0.3" placement="right">
+						<div
+							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-200"
+							@click="enablePresentMode"
+						>
+							<PenLine size="16" class="stroke-[1.5]" />
+						</div>
+					</Tooltip>
+
+					<Tooltip text="Duplicate" :hover-delay="0.3" placement="right">
+						<div
+							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-200"
+							@click="enablePresentMode"
+						>
+							<Copy size="16" class="stroke-[1.5]" />
+						</div>
+					</Tooltip>
+
+					<Tooltip text="Delete" :hover-delay="0.3" placement="right">
+						<div
+							class="w-8 h-8 flex items-center justify-center rounded cursor-pointer bg-gray-200"
+							@click="enablePresentMode"
+						>
+							<Trash size="16" class="stroke-[1.5]" />
+						</div>
+					</Tooltip>
 				</div>
 			</div>
 
-			<div
-				class="absolute top-[6%] right-[12.5%] flex flex-col gap-3"
-				v-if="previewPresentation"
-			>
-				<Tooltip text="Present" :hover-delay="0.3" placement="right">
-					<div
-						class="rounded p-2 mx-2 cursor-pointer bg-gray-900"
-						@click="enablePresentMode"
-					>
-						<Presentation size="16" class="text-white stroke-[1.5]" />
-					</div>
-				</Tooltip>
-				<Tooltip
-					v-for="action in ['Duplicate', 'Rename', 'Delete']"
-					:key="action"
-					:text="action"
-					:hover-delay="0.3"
-					placement="right"
-				>
-					<div
-						class="rounded p-2 mx-2 cursor-pointer bg-gray-200"
-						@click="dialogAction = action"
-					>
-						<component
-							:is="
-								action == 'Duplicate' ? Copy : action == 'Rename' ? PenLine : Trash
-							"
-							size="16"
-							:strokeWidth="1.5"
-						/>
-					</div>
-				</Tooltip>
-			</div>
+			<div class="z-10 bg-white h-[53%] w-full absolute bottom-0 left-0" @click.stop></div>
 		</div>
 	</div>
-	<PresentationActionDialog
-		:dialogAction="dialogAction"
-		:previewPresentation="previewPresentation"
-	/>
+
+	<PresentationActionDialog v-model="showDialog" :dialogAction="dialogAction" />
 </template>
 
 <script setup>
-import { computed, ref, watch, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { Tooltip } from 'frappe-ui'
@@ -163,7 +163,6 @@ const router = useRouter()
 let interval = null
 const previewPresentation = ref(null)
 const previewSlide = ref(0)
-const showLinkToPresentation = ref(false)
 
 const showDialog = ref(false)
 const dialogAction = ref('')
@@ -184,7 +183,7 @@ const previewDetails = computed(() => {
 			Modified: dayjs(modified).fromNow(),
 		},
 		{
-			Slides: slides.length,
+			'Total Slides': slides.length,
 			Created: dayjs(creation).fromNow(),
 		},
 	]
@@ -210,6 +209,7 @@ const resetPreview = () => {
 }
 
 const hidePreview = () => {
+	console.log('hide')
 	previewPresentation.value = null
 	resetPreview()
 }
@@ -220,6 +220,11 @@ const enablePresentMode = async () => {
 		params: { presentationId: previewPresentation.value.name },
 		query: { present: true },
 	})
+}
+
+const performPresentationAction = (action) => {
+	dialogAction.value = action
+	showDialog.value = true
 }
 
 watch(
