@@ -1,22 +1,12 @@
 <template>
 	<div class="fixed flex flex-col h-screen w-screen">
-		<!-- Navbar -->
-		<div
-			class="z-10 w-full flex items-center justify-between bg-white p-2 shadow-xl"
-			:class="{
-				'shadow-gray-300': !previewPresentation,
+		<Navbar
+			:primaryButton="{
+				label: 'New',
+				icon: Plus,
+				onClick: () => openDialog('Create'),
 			}"
-		>
-			<div class="flex items-center gap-2">
-				<img src="../icons/slides.svg" class="h-7" />
-				<div class="select-none text-base font-semibold">Slides</div>
-			</div>
-			<Button variant="solid" label="New" size="sm" @click="openDialog('Create')">
-				<template #prefix>
-					<Plus size="14" class="text-white stroke-[1.5]" />
-				</template>
-			</Button>
-		</div>
+		/>
 
 		<!-- Presentation Cards -->
 		<div
@@ -69,10 +59,16 @@
 				@click.stop
 			>
 				<div class="w-[88%] flex flex-col gap-8">
-					<div
+					<router-link
+						v-if="previewPresentation"
+						:to="{
+							name: 'Presentation',
+							params: { presentationId: previewPresentation?.name },
+						}"
 						class="aspect-video bg-white cursor-pointer rounded-2xl shadow-2xl"
 						:style="previewStyles"
-					></div>
+					></router-link>
+
 					<div class="flex flex-col gap-2 lg:text-base text-sm cursor-default px-2">
 						<div
 							v-for="(row, index) in previewDetails"
@@ -136,6 +132,8 @@ import { useRouter } from 'vue-router'
 import { Tooltip, createResource, call } from 'frappe-ui'
 
 import { Presentation, Copy, PenLine, Trash, Pen, Plus } from 'lucide-vue-next'
+
+import Navbar from '@/components/Navbar.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
 import { guessTextColorFromBackground } from '@/utils/color'
