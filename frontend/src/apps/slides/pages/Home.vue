@@ -15,7 +15,7 @@
 				'blur-[1px]': previewPresentation,
 			}"
 		>
-			<div class="font-semibold text-base text-gray-600 lg:px-40 px-32">
+			<div class="font-semibold text-base cursor-default text-gray-600 lg:px-40 px-32">
 				Presentations ({{ presentationList.data?.length }})
 			</div>
 			<div
@@ -36,7 +36,7 @@
 						}"
 						@click.stop="previewPresentation = presentation"
 					></div>
-					<div class="lg:text-base md:text-sm text-gray-700 px-2">
+					<div class="lg:text-base md:text-sm cursor-default text-gray-700 px-2">
 						{{ presentation.title }}
 					</div>
 				</div>
