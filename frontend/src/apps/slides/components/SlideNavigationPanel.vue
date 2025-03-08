@@ -1,7 +1,7 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-[94.27%] w-44 border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out"
+		class="fixed z-20 h-[94.27%] w-44 border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-300 ease-in-out"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 		@mouseenter="showCollapseShortcut = true"
 		@mouseleave="showCollapseShortcut = false"
