@@ -11,7 +11,7 @@
 		<!-- Navbar -->
 		<div
 			class="z-10 flex items-center justify-between bg-white p-2 shadow-xl shadow-gray-300"
-			@wheel.prevent="(e) => e.stopPropagation()"
+			@wheel.prevent
 		>
 			<div class="flex items-center gap-2">
 				<img src="../icons/slides.svg" class="h-7" />
