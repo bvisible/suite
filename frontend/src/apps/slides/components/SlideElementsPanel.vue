@@ -3,7 +3,7 @@
 	<div
 		class="fixed z-20 flex flex-col h-[94.27%] w-[226px] bg-white transition-all duration-500 ease-in-out border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
 		:class="activeTab ? 'right-13' : '-right-[174px]'"
-		@wheel.prevent="(e) => e.stopPropagation()"
+		@wheel.prevent
 	>
 		<div v-if="activeTab == 'slide'">
 			<div :class="sectionClasses">
@@ -212,10 +212,7 @@
 	</div>
 
 	<!-- Slide Elements Panel -->
-	<div
-		class="fixed right-0 z-20 flex h-[94.27%] border-l bg-white flex-col"
-		@wheel.prevent="(e) => e.stopPropagation()"
-	>
+	<div class="fixed right-0 z-20 flex h-[94.27%] border-l bg-white flex-col" @wheel.prevent>
 		<Tooltip text="Text" :hover-delay="1" placement="left">
 			<div :class="getTabClasses('text')" @click="addTextElement">
 				<Type size="20" :class="getIconClasses('text')" />
