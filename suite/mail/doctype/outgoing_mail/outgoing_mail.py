@@ -123,7 +123,7 @@ class OutgoingMail(Document):
 			if self.via_api and self.submitted_after <= 5:
 				self._db_set(priority=1)
 
-			self.process_for_delivery()
+			self.enqueue_process_for_delivery()
 
 	def on_update_after_submit(self) -> None:
 		self.set_folder(db_set=True)
@@ -733,7 +733,7 @@ class OutgoingMail(Document):
 		"""Enqueue the job to process the email for delivery."""
 
 		# Emails with priority 1 are considered high-priority and should be enqueued at the front.
-		# Note: Existing jobs with priority 1 in the queue may lead to concurrent processing,
+		# Note: Existing emails with priority 1 in the queue may lead to concurrent processing,
 		# which is acceptable (for now) as multiple workers can handle jobs in parallel.
 		at_front = self.priority == 1
 
@@ -744,9 +744,10 @@ class OutgoingMail(Document):
 			queue="short",
 			enqueue_after_commit=True,
 			at_front=at_front,
+			use_connection_pool=True,
 		)
 
-	def process_for_delivery(self) -> None:
+	def process_for_delivery(self, use_connection_pool: bool = False) -> None:
 		"""Process the email for delivery."""
 
 		# Reload the doc to ensure it reflects the latest status.
@@ -762,7 +763,7 @@ class OutgoingMail(Document):
 			self._sync_with_frontend(self.status)
 		elif self.status == "Accepted":
 			frappe.flags.force_transfer = True
-			self.transfer_to_cluster()
+			self.transfer_to_cluster(use_connection_pool=use_connection_pool)
 
 	def _prepare_delivery_args(self) -> dict:
 		"""Prepare arguments for delivery processing."""
@@ -881,7 +882,7 @@ class OutgoingMail(Document):
 			self.transfer_to_cluster()
 
 	@frappe.whitelist()
-	def transfer_to_cluster(self) -> None:
+	def transfer_to_cluster(self, use_connection_pool: bool = False) -> None:
 		"""Transfers the email to the cluster."""
 
 		if not frappe.flags.force_transfer:
@@ -920,9 +921,8 @@ class OutgoingMail(Document):
 			password = mail_account.get_password("password")
 
 			mail_options = [f"ENVID={self.name}", f"MT-PRIORITY={self.priority}"]
-			if frappe.request and hasattr(frappe.request, "after_response"):
-				# Web worker:
-				# Retrieves an `SMTP` or `SMTP_SSL` session from the `SMTPConnectionPool`.
+			if use_connection_pool or (frappe.request and hasattr(frappe.request, "after_response")):
+				# Retrieves an `SMTP` session from the `SMTPConnectionPool`.
 				# Supports multiple concurrent connections for the same (host, port, user) key.
 				# Reuses existing connections across threads.
 				# Connections are gracefully closed by the cleanup thread.
@@ -930,7 +930,6 @@ class OutgoingMail(Document):
 				with SMTPContext(cluster, 465, username, password, use_ssl=True) as session:
 					session.sendmail(self.from_, recipients, self.message, mail_options=mail_options)
 			else:
-				# Background worker:
 				# Retrieves an `SMTPConnection` from a local cache.
 				# Ensures the same connection is reused throughout the job for the (host, port, user) key.
 				# Connection is gracefully closed when the job completes.
