@@ -30,10 +30,10 @@
 				</div>
 			</div>
 		</div>
-
-		<!-- Overlay while previewing certain presentation -->
-		<div class="fixed top-0 left-0 w-full h-full bg-black opacity-25" v-show="blur"></div>
 	</div>
+
+	<!-- Overlay while previewing certain presentation -->
+	<div class="fixed top-0 left-0 w-full h-dvh bg-black opacity-25" v-show="blur"></div>
 </template>
 
 <script setup>
