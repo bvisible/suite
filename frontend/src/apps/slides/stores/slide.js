@@ -2,7 +2,7 @@ import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
 import { presentationId, presentation, inSlideShow, applyReverseTransition } from './presentation'
-import { activeElementIds, resetFocus } from './element'
+import { activeElementIds, activePosition, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
@@ -19,21 +19,48 @@ const slide = ref({
 	transitionDuration: 0,
 })
 
-const slideDirty = computed(() => {
-	if (!presentation.data) return false
+const getSavedData = () => {
+	if (!presentation.data) return {}
 	const currentSlide = presentation.data.slides[slideIndex.value]
-	const data = {
+
+	return {
 		elements: JSON.parse(currentSlide.elements || '[]'),
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
 		background: currentSlide.background,
 	}
+}
+
+const getCurrentData = () => {
 	const updatedData = {
 		elements: slide.value.elements,
 		transition: slide.value.transition,
 		transition_duration: slide.value.transitionDuration,
 		background: slide.value.background,
 	}
+
+	if (activePosition.value) {
+		const dx = activePosition.value.left - slideRect.value.left + 0.1
+		const dy = activePosition.value.top - slideRect.value.top + 2.1
+
+		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
+		elementsCopy.forEach((element, index) => {
+			if (activeElementIds.value.includes(index)) {
+				element.left = element.left + dx
+				element.top = element.top + dy
+			}
+		})
+
+		updatedData.elements = elementsCopy
+	}
+
+	return updatedData
+}
+
+const slideDirty = computed(() => {
+	const data = getSavedData()
+	const updatedData = getCurrentData()
+
 	return !isEqual(data, updatedData)
 })
 
