@@ -25,10 +25,9 @@
 	<PresentationActionDialog
 		v-model="showDialog"
 		:dialogAction="dialogAction"
-		:presentationTitle="previewPresentation?.title || ''"
-		@delete="deletePresentation"
-		@create="(title) => addPresentation(title)"
-		@duplicate="(title) => addPresentation(title, true)"
+		:presentation="previewPresentation"
+		@reloadList="reloadList"
+		@navigate="navigate"
 	/>
 </template>
 
@@ -36,7 +35,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { createResource, call } from 'frappe-ui'
+import { createResource } from 'frappe-ui'
 
 import { Plus } from 'lucide-vue-next'
 
@@ -67,31 +66,6 @@ const navigateToPresentation = async (name, present) => {
 	})
 }
 
-const createPresentationDoc = async (title, duplicateFrom) => {
-	return await call('slides.slides.doctype.presentation.presentation.create_presentation', {
-		title: title,
-		duplicate_from: duplicateFrom,
-	})
-}
-
-const addPresentation = async (title, duplicate) => {
-	closeDialog()
-	const presentation = await createPresentationDoc(
-		title,
-		duplicate ? previewPresentation.value.name : null,
-	)
-	navigateToPresentation(presentation.name)
-}
-
-const deletePresentation = async () => {
-	closeDialog()
-	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
-		name: previewPresentation.value.name,
-	})
-	await presentationList.reload()
-	previewPresentation.value = null
-}
-
 const openDialog = (action) => {
 	dialogAction.value = action
 	showDialog.value = true
@@ -99,6 +73,17 @@ const openDialog = (action) => {
 
 const closeDialog = () => {
 	showDialog.value = false
+}
+
+const reloadList = async () => {
+	closeDialog()
+	await presentationList.reload()
+	previewPresentation.value = null
+}
+
+const navigate = (name) => {
+	closeDialog()
+	navigateToPresentation(name)
 }
 
 const setPreview = (presentation) => {
