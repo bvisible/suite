@@ -48,7 +48,7 @@ const emit = defineEmits(['setPreview'])
 
 const getCardStyles = (presentation) => {
 	return {
-		backgroundImage: `url(${presentation.thumbnail})`,
+		backgroundImage: `url(${presentation.slides[0].thumbnail})`,
 		backgroundSize: 'cover',
 		backgroundPosition: 'center',
 	}
