@@ -25,7 +25,7 @@
 				></div>
 
 				<!-- Presentation Title  -->
-				<div class="lg:text-base md:text-sm cursor-default text-gray-700 px-2">
+				<div class="lg:text-base md:text-sm truncate cursor-default text-gray-700 px-2">
 					{{ presentation.title }}
 				</div>
 			</div>
