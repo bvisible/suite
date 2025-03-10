@@ -99,7 +99,7 @@ const routes = [
 	{
 		path: '/dashboard/aliases',
 		name: 'Aliases',
-		component: () => import('@/pages/dashboard/AliasesView.vue'),
+		component: () => import('@/pages/dashboard/MailAliasesView.vue'),
 		meta: { isDashboard: true },
 	},
 ]

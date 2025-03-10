@@ -4,7 +4,7 @@
 			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 		>
 			<Breadcrumbs :items="[{ label: __('Mail Aliases') }]" />
-			<Button :label="__('Add Mail Alias')" icon-left="plus" @click="showAddAlias = true" />
+			<Button :label="__('Add Mail Alias')" icon-left="plus" @click="showMailAlias = true" />
 		</header>
 		<div class="m-6 flex flex-1 flex-col">
 			<ListView
@@ -38,7 +38,11 @@
 			</ListView>
 		</div>
 	</div>
-	<!-- <AddAliasModal v-model="showAddAlias" @reload-aliases="aliases.reload()" /> -->
+	<MailAliasModal
+		v-model="showMailAlias"
+		:alias-i-d="selectedMailAlias"
+		@reload-aliases="aliases.reload()"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -56,11 +60,12 @@ import {
 } from 'frappe-ui'
 import { useList } from 'frappe-ui/src/data-fetching'
 
-// import AddAliasModal from '@/components/Modals/AddAliasModal.vue'
+import MailAliasModal from '@/components/Modals/MailAliasModal.vue'
 
 const user = inject('$user')
 
-const showAddAlias = ref(false)
+const showMailAlias = ref(false)
+const selectedMailAlias = ref('')
 
 const LIST_COLUMNS = [
 	{
@@ -81,6 +86,10 @@ const LIST_OPTIONS = {
 	selectable: false,
 	showTooltip: false,
 	emptyState: { description: __('No Mail Aliases created.') },
+	onRowClick: (row) => {
+		selectedMailAlias.value = row.name
+		showMailAlias.value = true
+	},
 }
 
 const aliases = useList({
