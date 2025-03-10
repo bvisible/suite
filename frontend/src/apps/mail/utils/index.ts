@@ -59,6 +59,13 @@ export function getSidebarLinks() {
 			activeFor: ['Members'],
 			forDashboard: true,
 		},
+		{
+			label: __('Mail Aliases'),
+			icon: 'AtSign',
+			to: 'Aliases',
+			activeFor: ['Aliases'],
+			forDashboard: true,
+		},
 	]
 }
 
