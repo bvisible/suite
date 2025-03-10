@@ -3,23 +3,23 @@
 		<header
 			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 		>
-			<Breadcrumbs :items="[{ label: __('Domains') }]" />
-			<Button :label="__('Add Domain')" icon-left="plus" @click="showAddDomain = true" />
+			<Breadcrumbs :items="[{ label: __('Mail Aliases') }]" />
+			<Button :label="__('Add Mail Alias')" icon-left="plus" @click="showAddAlias = true" />
 		</header>
 		<div class="m-6 flex flex-1 flex-col">
 			<ListView
-				v-if="domains?.data"
+				v-if="aliases?.data"
 				class="flex-1"
 				:columns="LIST_COLUMNS"
-				:rows="domains.data"
+				:rows="aliases.data"
 				:options="LIST_OPTIONS"
 				row-key="name"
 			>
 				<ListHeader />
 				<ListRows>
-					<template v-if="domains.data.length">
+					<template v-if="aliases.data.length">
 						<ListRow
-							v-for="row in domains.data"
+							v-for="row in aliases.data"
 							:key="row.name"
 							v-slot="{ column, item }"
 							:row="row"
@@ -30,11 +30,6 @@
 									:theme="item ? 'green' : 'red'"
 									:label="item ? 'Enabled' : 'Disabled'"
 								/>
-								<FeatherIcon
-									v-else-if="column.key == 'is_verified'"
-									:name="item ? 'check' : 'x'"
-									class="h-4 w-4"
-								/>
 							</ListRowItem>
 						</ListRow>
 					</template>
@@ -43,15 +38,15 @@
 			</ListView>
 		</div>
 	</div>
-	<AddDomainModal v-model="showAddDomain" @reload-domains="domains.reload()" />
+	<!-- <AddAliasModal v-model="showAddAlias" @reload-aliases="aliases.reload()" /> -->
 </template>
+
 <script setup lang="ts">
 import { inject, ref } from 'vue'
 import {
 	Badge,
 	Breadcrumbs,
 	Button,
-	FeatherIcon,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -61,39 +56,38 @@ import {
 } from 'frappe-ui'
 import { useList } from 'frappe-ui/src/data-fetching'
 
-import AddDomainModal from '@/components/Modals/AddDomainModal.vue'
+// import AddAliasModal from '@/components/Modals/AddAliasModal.vue'
 
 const user = inject('$user')
 
-const showAddDomain = ref(false)
+const showAddAlias = ref(false)
 
 const LIST_COLUMNS = [
 	{
-		label: __('Domain'),
+		label: __('Alias'),
 		key: 'name',
+	},
+	{
+		label: __('Alias For'),
+		key: 'alias_for_name',
 	},
 	{
 		label: __('Status'),
 		key: 'enabled',
-	},
-	{
-		label: __('Verified'),
-		key: 'is_verified',
 	},
 ]
 
 const LIST_OPTIONS = {
 	selectable: false,
 	showTooltip: false,
-	emptyState: { description: __('No Domains configured') },
-	getRowRoute: (row) => ({ name: 'Domain', params: { domainName: row.name } }),
+	emptyState: { description: __('No Mail Aliases created.') },
 }
 
-const domains = useList({
-	doctype: 'Mail Domain',
-	fields: ['name', 'enabled', 'is_verified'],
+const aliases = useList({
+	doctype: 'Mail Alias',
+	fields: ['name', 'alias_for_name', 'enabled'],
 	filters: { tenant: user.data?.tenant },
 	limit: 100,
-	cacheKey: ['mailTenantDomains', user.data?.tenant],
+	cacheKey: ['mailTenantAliases', user.data?.tenant],
 })
 </script>
