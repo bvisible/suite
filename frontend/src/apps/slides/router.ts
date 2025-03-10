@@ -12,6 +12,11 @@ const routes = [
 		name: 'Presentation',
 		component: () => import('@/pages/Presentation.vue'),
 	},
+	{
+		path: '/s/:presentationId',
+		name: 'Slideshow',
+		component: () => import('@/pages/Slideshow.vue'),
+	},
 ]
 
 let router = createRouter({

@@ -113,7 +113,13 @@ let autosaveInterval = null
 const primaryButtonProps = {
 	label: 'Present',
 	icon: Presentation,
-	onClick: () => router.replace({ query: { present: true } }),
+	onClick: () => {
+		router.replace({
+			name: 'Slideshow',
+			params: { presentationId: presentationId.value },
+			query: { present: true },
+		})
+	},
 }
 
 const route = useRoute()

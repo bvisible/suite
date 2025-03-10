@@ -1,31 +1,6 @@
 <template>
 	<!-- Slide (Dimensions: 16:9 ratio) -->
-	<div v-if="inSlideShow">
-		<Transition
-			@before-enter="beforeSlideEnter"
-			@enter="slideEnter"
-			@before-leave="beforeSlideLeave"
-			@leave="slideLeave"
-		>
-			<div
-				ref="target"
-				:key="slideIndex"
-				class="slide h-[540px] w-[960px]"
-				:style="slideShowStyles"
-				@click="changeSlide(slideIndex + 1)"
-			>
-				<component
-					ref="element"
-					v-for="(element, index) in slide.elements"
-					:key="index"
-					:is="SlideElement"
-					:element="element"
-					:data-index="index"
-				/>
-			</div>
-		</Transition>
-	</div>
-	<div v-else ref="target" :style="targetStyles">
+	<div ref="target" :style="targetStyles">
 		<div
 			class="slide h-[540px] w-[960px] shadow-2xl"
 			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
@@ -113,11 +88,6 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 	targetRef,
 )
 
-const slideCursor = ref('none')
-const transition = ref('none')
-const transitionTransform = ref('')
-const opacity = ref(1)
-
 const showGuides = computed(() => activeElementIds.value.length && !isPanningOrZooming.value)
 
 const scale = computed(() => {
@@ -125,15 +95,6 @@ const scale = computed(() => {
 	if (!matrix) return 1
 	return parseFloat(matrix[1].split(', ')[0])
 })
-
-const slideShowStyles = computed(() => ({
-	backgroundColor: slide.value.background || 'white',
-	cursor: slideCursor.value,
-	transformOrigin: 'center',
-	transform: `matrix(1.5, 0, 0, 1.5, 0, 0) ${transitionTransform.value}`,
-	transition: transition.value,
-	opacity: opacity.value,
-}))
 
 const targetStyles = computed(() => ({
 	transformOrigin: transformOrigin.value,
@@ -179,76 +140,6 @@ const removeDragAndResize = (val) => {
 	activeDimensions.value = null
 	dragTarget.value = null
 	resizeTarget.value = null
-}
-
-const beforeSlideEnter = (el) => {
-	if (!slide.value.transition) return
-	if (slide.value.transition == 'Slide In') {
-		transitionTransform.value = applyReverseTransition.value
-			? 'translateX(-100%)'
-			: 'translateX(100%)'
-		transition.value = 'none'
-	} else if (slide.value.transition == 'Fade') {
-		opacity.value = 0
-	}
-}
-
-const slideEnter = (el, done) => {
-	if (!slide.value.transition) return done()
-	el.offsetWidth
-	if (slide.value.transition == 'Slide In') {
-		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
-		transitionTransform.value = 'translateX(0)'
-	} else if (slide.value.transition == 'Fade') {
-		transition.value = `opacity ${slide.value.transitionDuration}s`
-		opacity.value = 1
-	}
-	done()
-}
-
-const beforeSlideLeave = (el) => {
-	if (!slide.value.transition) return
-	if (slide.value.transition == 'Slide In') {
-		transition.value = 'none'
-	} else if (slide.value.transition == 'Fade') {
-		opacity.value = 1
-	}
-}
-
-const slideLeave = (el, done) => {
-	if (!slide.value.transition) return done()
-	if (slide.value.transition == 'Slide In') {
-		transitionTransform.value = applyReverseTransition.value
-			? 'translateX(100%)'
-			: 'translateX(-100%)'
-		transition.value = `transform ${slide.value.transitionDuration}s ease-out`
-	} else if (slide.value.transition == 'Fade') {
-		el.offsetWidth
-		transition.value = `opacity ${slide.value.transitionDuration}s`
-		opacity.value = 0
-	}
-	done()
-}
-
-const resetCursorVisibility = () => {
-	let cursorTimer
-
-	slideCursor.value = 'auto'
-	clearTimeout(cursorTimer)
-	cursorTimer = setTimeout(() => {
-		slideCursor.value = 'none'
-	}, 3000)
-}
-
-const handleScreenChange = async () => {
-	if (document.fullscreenElement) {
-		allowPanAndZoom.value = false
-		props.containerRef.addEventListener('mousemove', resetCursorVisibility)
-	} else {
-		await router.replace({ query: null })
-		allowPanAndZoom.value = true
-		props.containerRef.removeEventListener('mousemove', resetCursorVisibility)
-	}
 }
 
 const updateFocus = (e) => {
@@ -340,14 +231,6 @@ watch(
 	},
 	{ immediate: true },
 )
-
-onMounted(() => {
-	document.addEventListener('fullscreenchange', handleScreenChange)
-})
-
-onBeforeUnmount(() => {
-	document.removeEventListener('fullscreenchange', handleScreenChange)
-})
 
 defineExpose({
 	guides,
