@@ -62,7 +62,7 @@
 	</div>
 	<AddMemberModal v-model="showAddMember" @reload-members="members.reload()" />
 	<Dialog v-model="showRemoveMember" :options="removeMemberOptions" />
-	<MailAccountModal v-model="showMailAccount" :account-i-d="mailAccount" />
+	<MailAccountModal v-model="showMailAccount" :account-i-d="selectedMailAccount" />
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
@@ -90,7 +90,7 @@ const showAddMember = ref(false)
 const showRemoveMember = ref(false)
 const memberToBeRemoved = ref('')
 const showMailAccount = ref(false)
-const mailAccount = ref('')
+const selectedMailAccount = ref('')
 
 const tenantOwner = createResource({
 	url: 'frappe.client.get_value',
@@ -142,7 +142,7 @@ const removeMember = createResource({
 
 const openAccount = (account: string) => {
 	if (account !== tenantOwner.data) {
-		mailAccount.value = account
+		selectedMailAccount.value = account
 		showMailAccount.value = true
 	}
 }
