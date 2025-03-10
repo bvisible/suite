@@ -55,6 +55,15 @@ PROTOCOL_MAP = {
 
 
 class MailServerConfig(Document):
+	@property
+	def config(self) -> str | None:
+		"""Returns the TOML configuration for the Mail Server."""
+
+		frappe.only_for("System Manager")
+
+		if self.config_toml:
+			return self.get_password("config_toml")
+
 	def before_insert(self) -> None:
 		self.generate_config_toml()
 

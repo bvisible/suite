@@ -8,7 +8,8 @@
   "section_break_ulrw",
   "server",
   "section_break_ffqq",
-  "config_toml"
+  "config_toml",
+  "config"
  ],
  "fields": [
   {
@@ -34,18 +35,26 @@
   },
   {
    "fieldname": "config_toml",
-   "fieldtype": "Code",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Config",
    "no_copy": 1,
    "read_only": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "config",
+   "fieldtype": "Code",
+   "is_virtual": 1,
+   "label": "Config",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 16:57:54.081976",
+ "modified": "2025-03-10 16:05:03.458576",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Config",
