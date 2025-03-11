@@ -10,6 +10,11 @@ const STORES_PRESET = {
 		write_buffer_size_mb: 128,
 		purge_frequency_cron: '0 3 * * *',
 	},
+	FoundationDB: {
+		store_id: 'foundationdb',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+	},
 	PostgreSQL: {
 		store_id: 'postgresql',
 		port: 5432,
