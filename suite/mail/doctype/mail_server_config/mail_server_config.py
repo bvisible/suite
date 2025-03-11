@@ -135,11 +135,15 @@ def get_config_toml(server: str) -> str | None:
 		num_digits = len(str(len(seed_nodes) - 1))
 		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(seed_nodes)}
 
-	def get_local_keys() -> dict:
+	def get_local_keys(outbound_only: bool = False) -> dict:
 		"""Returns the local keys for the configuration."""
 
-		num_digits = len(str(len(LOCAL_KEYS) - 1))
-		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(LOCAL_KEYS)}
+		local_keys = LOCAL_KEYS
+		if outbound_only:
+			local_keys.extend(["session.rcpt.directory", "queue.outbound.next-hop"])
+
+		num_digits = len(str(len(local_keys) - 1))
+		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(local_keys)}
 
 	def get_stores(stores: list) -> dict:
 		"""Returns the store configuration for the Mail Server."""
@@ -229,7 +233,7 @@ def get_config_toml(server: str) -> str | None:
 			"seed-nodes": get_seed_nodes(server.name, cluster.name),
 		},
 		"config": {
-			"local-keys": get_local_keys(),
+			"local-keys": get_local_keys(bool(server.outbound_only)),
 		},
 		"directory": {
 			f"{cluster.directory_storage}": {
@@ -284,6 +288,10 @@ def get_config_toml(server: str) -> str | None:
 			}
 		},
 	}
+
+	if server.outbound_only:
+		config.setdefault("session", {}).setdefault("rcpt", {})["directory"] = False
+		config.setdefault("queue", {}).setdefault("outbound", {})["next-hop"] = False
 
 	toml_lines = []
 	for key, value in sorted(flatten_dict(config).items()):
