@@ -137,11 +137,14 @@ const cropSelectionToFitContent = () => {
 	// crop selection to selected element edges
 	activeElementIds.value.forEach((index) => {
 		const element = slide.value.elements[index]
+		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		const elementWidth = elementDiv.offsetWidth
+		const elementHeight = elementDiv.offsetHeight
 
 		if (element.left < l) l = element.left
 		if (element.top < t) t = element.top
-		if (element.left + element.width > r) r = element.left + element.width
-		if (element.top + element.height > b) b = element.top + element.height
+		if (element.left + elementWidth > r) r = element.left + elementWidth
+		if (element.top + elementHeight > b) b = element.top + elementHeight
 	})
 
 	prevX.value = 0
@@ -161,8 +164,11 @@ const setElementPositions = () => {
 	// set positions relative to the selection box
 	activeElementIds.value.forEach((index) => {
 		let element = slide.value.elements[index]
-		element.left = element.left - left.value - 0.1
-		element.top = element.top - top.value - 2.1
+		const l = element.left - left.value
+		const t = element.top - top.value
+
+		element.left = element.width == undefined ? l - 2 : l
+		element.top = t - 2
 	})
 }
 
@@ -184,9 +190,14 @@ const resetSelection = (oldVal) => {
 		oldVal.forEach((index) => {
 			let elementDiv = document.querySelector(`[data-index="${index}"]`)
 			if (!elementDiv) return
+
 			let element = slide.value.elements[index]
-			element.left = left.value + element.left + 0.1
-			element.top = top.value + element.top + 2.1
+			const l = element.left + left.value
+			const t = element.top + top.value
+
+			element.left = element.width == undefined ? l + 2 : l
+			element.top = t + 2
+
 			let slideDiv = document.querySelector('.slide')
 			slideDiv.appendChild(elementDiv)
 		})

@@ -100,7 +100,7 @@ const getVerticalGuideStyles = (direction, diffWithPaired) => {
 	return {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${left - 2}px`,
+		left: `${left}px`,
 		top: `${Math.min(top, pairedTop)}px`,
 		height: `${Math.abs(pairedTop - top) + diffHeight}px`,
 	}
@@ -128,7 +128,7 @@ const getHorizontalGuideStyles = (direction, diffWithPaired) => {
 	return {
 		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${top - 2}px`,
+		top: `${top}px`,
 		left: `${Math.min(left, pairedLeft)}px`,
 		width: `${Math.abs(pairedLeft - left) + diffWidth}px`,
 	}
@@ -199,10 +199,10 @@ const diffWithPaired = ref({ left: 0, right: 0, top: 0, bottom: 0 })
 const setDiffWithPaired = () => {
 	if (!pairElement.value) return
 	diffWithPaired.value = {
-		left: activeRect.left.value - pairedRect.left.value - 2,
-		right: activeRect.right.value - pairedRect.right.value - 2,
-		top: activeRect.top.value - pairedRect.top.value - 2,
-		bottom: activeRect.bottom.value - pairedRect.bottom.value - 2,
+		left: activeRect.left.value - pairedRect.left.value,
+		right: activeRect.right.value - pairedRect.right.value,
+		top: activeRect.top.value - pairedRect.top.value,
+		bottom: activeRect.bottom.value - pairedRect.bottom.value,
 	}
 }
 

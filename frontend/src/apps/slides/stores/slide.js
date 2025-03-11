@@ -114,8 +114,8 @@ const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
 	slide.value.elements = slide.value.elements.map((element, index) => {
 		let div = document.querySelector(`[data-index="${index}"]`)
-		element.width = div.offsetWidth
-		element.height = div.offsetHeight
+		element.width = div.offsetWidth + 4
+		element.left -= 2
 		return element
 	})
 	saving.value = true
