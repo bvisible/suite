@@ -10,6 +10,16 @@ const STORES_PRESET = {
 		write_buffer_size_mb: 128,
 		purge_frequency_cron: '0 3 * * *',
 	},
+	PostgreSQL: {
+		store_id: 'postgresql',
+		port: 5432,
+		database: 'frappemail',
+		timeout_seconds: 15,
+		username: 'frappemail',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+		max_connections: 10,
+	},
 	mySQL: {
 		store_id: 'mysql',
 		port: 3306,
