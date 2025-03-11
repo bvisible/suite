@@ -155,20 +155,25 @@ def get_config_toml(server: str) -> str | None:
 
 			store_config.setdefault(store.store_id, {})
 			match store.type:
-				case "RocksDB":
-					store_config.update(
-						{
-							store.store_id: {
-								"type": STORE_TYPE_MAP[store.type],
-								"path": store.path,
-								"compression": store.compression.lower(),
-								"min-blob-size": store.min_blob_size_bytes,
-								"write-buffer-size": store.write_buffer_size_mb,
-								"workers": store.thread_pool_size,
-								"purge": {"frequency": store.purge_frequency_cron},
-							}
+				case "RocksDB" | "SQLite":
+					config = {
+						store.store_id: {
+							"type": STORE_TYPE_MAP[store.type],
+							"path": store.path,
+							"workers": store.thread_pool_size,
+							"compression": store.compression.lower(),
+							"purge": {"frequency": store.purge_frequency_cron},
 						}
-					)
+					}
+
+					if store.type == "RocksDB":
+						config[store.store_id]["min-blob-size"] = store.min_blob_size_bytes
+						config[store.store_id]["write-buffer-size"] = store.write_buffer_size_mb
+					else:
+						config[store.store_id]["max-connections"] = store.max_connections
+
+					store_config.update(config)
+
 				case "FoundationDB":
 					timeout = (
 						f"{store.transaction_timeout_seconds}s" if store.transaction_timeout_seconds else 0
@@ -198,6 +203,7 @@ def get_config_toml(server: str) -> str | None:
 							}
 						}
 					)
+
 				case "PostgreSQL" | "mySQL":
 					config = {
 						store.store_id: {
@@ -208,8 +214,6 @@ def get_config_toml(server: str) -> str | None:
 							"user": store.username,
 							"password": store.get_password("password") if store.password else None,
 							"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
-							"compression": store.compression.lower(),
-							"purge": {"frequency": store.purge_frequency_cron},
 							"tls": {
 								"enable": bool(store.enable_tls),
 								"allow-invalid-certs": bool(store.allow_invalid_certs),
@@ -217,6 +221,8 @@ def get_config_toml(server: str) -> str | None:
 							"pool": {
 								"max-connections": store.max_connections,
 							},
+							"compression": store.compression.lower(),
+							"purge": {"frequency": store.purge_frequency_cron},
 						}
 					}
 

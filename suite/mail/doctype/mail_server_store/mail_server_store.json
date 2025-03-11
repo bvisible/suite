@@ -66,7 +66,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "\nRocksDB\nFoundationDB\nPostgreSQL\nmySQL",
+   "options": "\nRocksDB\nFoundationDB\nPostgreSQL\nmySQL\nSQLite",
    "reqd": 1
   },
   {
@@ -87,15 +87,15 @@
    "label": "Pools"
   },
   {
-   "depends_on": "eval: doc.type == \"RocksDB\"",
+   "depends_on": "eval: [\"RocksDB\", \"SQLite\"].includes(doc.type)",
    "description": "Where to store the data in the server's filesystem.",
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
-   "mandatory_depends_on": "eval: doc.type == \"RocksDB\""
+   "mandatory_depends_on": "eval: [\"RocksDB\", \"SQLite\"].includes(doc.type)"
   },
   {
-   "depends_on": "eval: doc.type == \"RocksDB\"",
+   "depends_on": "eval: [\"RocksDB\", \"SQLite\"].includes(doc.type)",
    "description": "Number of worker threads to use for the store, defaults to the number of cores.",
    "fieldname": "thread_pool_size",
    "fieldtype": "Int",
@@ -225,7 +225,7 @@
    "label": "Allow Invalid Certs"
   },
   {
-   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\"].includes(doc.type)",
+   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\", \"SQLite\"].includes(doc.type)",
    "description": "Maximum number of connections to the store.",
    "fieldname": "max_connections",
    "fieldtype": "Int",
@@ -318,7 +318,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-11 19:14:12.353058",
+ "modified": "2025-03-11 19:32:02.389368",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Store",
