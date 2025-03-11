@@ -57,7 +57,7 @@ STORAGE_OPTIONS = {
 	"data_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
 	"blob_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
 	"fts_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
-	"in_memory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
+	"in_memory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Redis/Memcached"],
 }
 
 

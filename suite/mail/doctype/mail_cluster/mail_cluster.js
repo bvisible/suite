@@ -43,6 +43,14 @@ const STORES_PRESET = {
 		purge_frequency_cron: '0 3 * * *',
 		max_connections: 10,
 	},
+	'Redis/Memcached': {
+		store_id: 'redis',
+		redis_server_type: 'Redis Single Node',
+		redis_urls: 'redis://127.0.0.1',
+		timeout_seconds: 15,
+		username: 'frappemail',
+		cluster_read_from_replicas: 1,
+	},
 }
 
 frappe.ui.form.on('Mail Cluster', {
@@ -127,14 +135,19 @@ frappe.ui.form.on('Mail Server Store', {
 	type(frm, cdt, cdn) {
 		const row = locals[cdt][cdn]
 
-		if (!row.type) return
+		if (row.type) {
+			const defaults = STORES_PRESET[row.type]
+			if (defaults) {
+				Object.entries(defaults).forEach(([key, value]) =>
+					frappe.model.set_value(cdt, cdn, key, value),
+				)
+			}
+		}
 
-		const defaults = STORES_PRESET[row.type]
-		if (!defaults) return
+		refresh_field('stores')
+	},
 
-		Object.entries(defaults).forEach(([key, value]) =>
-			frappe.model.set_value(cdt, cdn, key, value),
-		)
+	redis_server_type() {
 		refresh_field('stores')
 	},
 })
