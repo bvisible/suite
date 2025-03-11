@@ -36,6 +36,13 @@ const STORES_PRESET = {
 		max_connections: 10,
 		min_connections: 5,
 	},
+	SQLite: {
+		store_id: 'sqlite',
+		path: '/var/lib/data/index.sqlite3',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+		max_connections: 10,
+	},
 }
 
 frappe.ui.form.on('Mail Cluster', {
