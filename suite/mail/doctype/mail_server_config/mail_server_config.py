@@ -232,6 +232,31 @@ def get_config_toml(server: str) -> str | None:
 
 					store_config.update(config)
 
+				case "Redis/Memcached":
+					redis_type = "single" if store.redis_server_type == "Redis Single Node" else "cluster"
+					config = {
+						store.store_id: {
+							"type": STORE_TYPE_MAP[store.type],
+							"redis-type": redis_type,
+							"urls": store.redis_urls.split("\n"),
+							"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
+						}
+					}
+
+					if redis_type == "cluster":
+						config[store.store_id]["user"] = store.username
+						config[store.store_id]["password"] = (
+							store.get_password("password") if store.password else None
+						)
+						config[store.store_id]["read-from-replicas"] = bool(store.cluster_read_from_replicas)
+						config[store.store_id]["retry"] = {
+							"total": store.cluster_retries,
+							"max-wait": f"{store.cluster_max_wait_ms}ms" if store.cluster_max_wait_ms else 0,
+							"min-wait": f"{store.cluster_min_wait_ms}ms" if store.cluster_min_wait_ms else 0,
+						}
+
+					store_config.update(config)
+
 		return store_config
 
 	server = frappe.get_doc("Mail Server", server)
