@@ -1,5 +1,5 @@
 <template>
-	<div v-show="width && height" ref="groupDiv" class="groupDiv" :style="boxStyles"></div>
+	<div v-show="width" ref="groupDiv" class="groupDiv" :style="boxStyles"></div>
 </template>
 
 <script setup>
