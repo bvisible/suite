@@ -8,6 +8,7 @@
   "details_tab",
   "section_break_excr",
   "enabled",
+  "outbound_only",
   "column_break_0mtp",
   "cluster",
   "server",
@@ -177,6 +178,13 @@
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "description": "Disable email delivery to local domains and perform an MX lookup to route emails externally.",
+   "fieldname": "outbound_only",
+   "fieldtype": "Check",
+   "label": "Outbound Only"
   }
  ],
  "grid_page_length": 50,
@@ -188,7 +196,7 @@
    "link_fieldname": "server"
   }
  ],
- "modified": "2025-03-06 16:36:47.193594",
+ "modified": "2025-03-11 14:52:11.298876",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server",
