@@ -53,11 +53,11 @@ DEFAULT_LISTENERS = [
 	},
 ]
 STORAGE_OPTIONS = {
-	"directory_storage": ["RocksDB", "mySQL"],
-	"data_storage": ["RocksDB", "mySQL"],
-	"blob_storage": ["RocksDB", "mySQL"],
-	"fts_storage": ["RocksDB", "mySQL"],
-	"in_memory_storage": ["RocksDB", "mySQL"],
+	"directory_storage": ["RocksDB", "PostgreSQL", "mySQL"],
+	"data_storage": ["RocksDB", "PostgreSQL", "mySQL"],
+	"blob_storage": ["RocksDB", "PostgreSQL", "mySQL"],
+	"fts_storage": ["RocksDB", "PostgreSQL", "mySQL"],
+	"in_memory_storage": ["RocksDB", "PostgreSQL", "mySQL"],
 }
 
 

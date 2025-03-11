@@ -169,31 +169,33 @@ def get_config_toml(server: str) -> str | None:
 							}
 						}
 					)
-				case "mySQL":
-					store_config.update(
-						{
-							store.store_id: {
-								"type": STORE_TYPE_MAP[store.type],
-								"host": store.hostname,
-								"port": store.port,
-								"database": store.database,
-								"user": store.username,
-								"password": store.get_password("password") if store.password else None,
-								"max-allowed-packet": store.max_allowed_packet_bytes,
-								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
-								"compression": store.compression.lower(),
-								"purge": {"frequency": store.purge_frequency_cron},
-								"tls": {
-									"enable": bool(store.enable_tls),
-									"allow-invalid-certs": bool(store.allow_invalid_certs),
-								},
-								"pool": {
-									"max-connections": store.max_connections,
-									"min-connections": store.min_connections,
-								},
-							}
+				case "PostgreSQL" | "mySQL":
+					config = {
+						store.store_id: {
+							"type": STORE_TYPE_MAP[store.type],
+							"host": store.hostname,
+							"port": store.port,
+							"database": store.database,
+							"user": store.username,
+							"password": store.get_password("password") if store.password else None,
+							"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
+							"compression": store.compression.lower(),
+							"purge": {"frequency": store.purge_frequency_cron},
+							"tls": {
+								"enable": bool(store.enable_tls),
+								"allow-invalid-certs": bool(store.allow_invalid_certs),
+							},
+							"pool": {
+								"max-connections": store.max_connections,
+							},
 						}
-					)
+					}
+
+					if store.type == "mySQL":
+						config[store.store_id]["max-allowed-packet"] = store.max_allowed_packet_bytes
+						config[store.store_id]["pool"]["min-connections"] = store.min_connections
+
+					store_config.update(config)
 
 		return store_config
 
