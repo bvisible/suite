@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
@@ -43,7 +43,7 @@ import SlideElement from '@/components/SlideElement.vue'
 import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
-import { presentation, inSlideShow, applyReverseTransition } from '@/stores/presentation'
+import { presentation } from '@/stores/presentation'
 import {
 	slideIndex,
 	slideFocus,
@@ -52,7 +52,6 @@ import {
 	deleteSlide,
 	duplicateSlide,
 	slideRect,
-	changeSlide,
 	loadSlide,
 	getSlideThumbnail,
 } from '@/stores/slide'
