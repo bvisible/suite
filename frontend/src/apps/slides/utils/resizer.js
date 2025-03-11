@@ -138,8 +138,10 @@ export const useResizer = (position, resizeDimensions) => {
 	}
 
 	const removeResizers = (el) => {
-		const resizers = el.querySelectorAll(`.resizer-${resizeMode.value}`)
-		resizers.forEach((resizer) => resizer.remove())
+		const resizers = el.querySelectorAll('div.resizer-both, div.resizer-width')
+		resizers.forEach((resizer) => {
+			el.removeChild(resizer)
+		})
 	}
 
 	watch(
