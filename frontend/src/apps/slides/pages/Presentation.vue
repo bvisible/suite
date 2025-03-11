@@ -48,7 +48,6 @@
 			<div
 				ref="slideContainer"
 				class="slideContainer flex items-center justify-center w-full h-full"
-				:style="containerStyles"
 			>
 				<Slide
 					v-if="slideContainerRef"
@@ -72,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick, useTemplateRef, onBeforeUnmount } from 'vue'
+import { ref, watch, nextTick, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
@@ -85,19 +84,17 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import Slide from '@/components/Slide.vue'
 
-import { presentationId, presentation, inSlideShow } from '@/stores/presentation'
+import { presentationId, presentation } from '@/stores/presentation'
 import {
 	slideIndex,
 	slideDirty,
 	saving,
-	slideFocus,
 	saveChanges,
 	duplicateSlide,
 	deleteSlide,
 	changeSlide,
 } from '@/stores/slide'
 import {
-	activePosition,
 	resetFocus,
 	activeElementIds,
 	focusElementId,
@@ -113,13 +110,7 @@ let autosaveInterval = null
 const primaryButtonProps = {
 	label: 'Present',
 	icon: Presentation,
-	onClick: () => {
-		router.replace({
-			name: 'Slideshow',
-			params: { presentationId: presentationId.value },
-			query: { present: true },
-		})
-	},
+	onClick: () => startSlideShow(),
 }
 
 const route = useRoute()
@@ -134,14 +125,6 @@ const newTitle = ref('')
 const renameMode = ref(false)
 const showNavigator = ref(true)
 const isMediaDragOver = ref(false)
-
-const containerStyles = computed(() => {
-	if (!inSlideShow.value) return {}
-	return {
-		clipPath: 'inset(45px 0 45px 0)',
-		backgroundColor: 'black',
-	}
-})
 
 const enableRenameMode = () => {
 	renameMode.value = true
@@ -262,17 +245,11 @@ const handleMediaDrop = async (e) => {
 const startSlideShow = async () => {
 	await saveChanges()
 	await presentation.reload()
-	await changeSlide(0)
-
-	const elem = slideContainerRef.value
-
-	if (elem.requestFullscreen) {
-		elem.requestFullscreen()
-	} else if (elem.webkitRequestFullscreen) {
-		elem.webkitRequestFullscreen()
-	} else if (elem.msRequestFullscreen) {
-		elem.msRequestFullscreen()
-	}
+	router.replace({
+		name: 'Slideshow',
+		params: { presentationId: presentationId.value },
+		query: { present: true },
+	})
 }
 
 watch(
@@ -281,15 +258,6 @@ watch(
 		if (!id) return
 		presentationId.value = id
 		await presentation.fetch()
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => route.query.present,
-	async (present) => {
-		present && (await startSlideShow())
-		inSlideShow.value = present
 	},
 	{ immediate: true },
 )
