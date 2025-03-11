@@ -51,6 +51,13 @@ const STORES_PRESET = {
 		username: 'frappemail',
 		cluster_read_from_replicas: 1,
 	},
+	Filesystem: {
+		store_id: 'filesystem',
+		path: '/var/lib/data/blobs',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+		nested_depth: 2,
+	},
 }
 
 frappe.ui.form.on('Mail Cluster', {

@@ -155,22 +155,26 @@ def get_config_toml(server: str) -> str | None:
 
 			store_config.setdefault(store.store_id, {})
 			match store.type:
-				case "RocksDB" | "SQLite":
+				case "RocksDB" | "SQLite" | "Filesystem":
 					config = {
 						store.store_id: {
 							"type": STORE_TYPE_MAP[store.type],
 							"path": store.path,
-							"workers": store.thread_pool_size,
 							"compression": store.compression.lower(),
 							"purge": {"frequency": store.purge_frequency_cron},
 						}
 					}
 
+					if store.type in ["RocksDB", "SQLite"]:
+						config[store.store_id]["workers"] = store.thread_pool_size
+
 					if store.type == "RocksDB":
 						config[store.store_id]["min-blob-size"] = store.min_blob_size_bytes
 						config[store.store_id]["write-buffer-size"] = store.write_buffer_size_mb
-					else:
+					elif store.type == "SQLite":
 						config[store.store_id]["max-connections"] = store.max_connections
+					elif store.type == "Filesystem":
+						config[store.store_id]["depth"] = store.nested_depth
 
 					store_config.update(config)
 
