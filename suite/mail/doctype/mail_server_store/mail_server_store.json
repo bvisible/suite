@@ -11,6 +11,7 @@
   "column_break_uo3q",
   "store_id",
   "path",
+  "cluster_file",
   "configuration_section",
   "hostname",
   "port",
@@ -28,6 +29,15 @@
   "write_buffer_size_mb",
   "column_break_bsqd",
   "purge_frequency_cron",
+  "cluster_ids_section",
+  "machine_id",
+  "column_break_gg5z",
+  "data_center_id",
+  "transaction_settings_section",
+  "transaction_timeout_seconds",
+  "transaction_max_retry_delay_seconds",
+  "column_break_q4si",
+  "transaction_retry_limit",
   "tls_section",
   "enable_tls",
   "allow_invalid_certs",
@@ -56,7 +66,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "\nRocksDB\nPostgreSQL\nmySQL",
+   "options": "\nRocksDB\nFoundationDB\nPostgreSQL\nmySQL",
    "reqd": 1
   },
   {
@@ -237,13 +247,78 @@
   {
    "fieldname": "column_break_r24o",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.type == \"FoundationDB\"",
+   "description": "Path to the cluster file for the FoundationDB cluster.",
+   "fieldname": "cluster_file",
+   "fieldtype": "Data",
+   "label": "Cluster File",
+   "placeholder": "/etc/foundationdb/fdb.cluster"
+  },
+  {
+   "fieldname": "cluster_ids_section",
+   "fieldtype": "Section Break",
+   "label": "Cluster IDs"
+  },
+  {
+   "depends_on": "eval: doc.type == \"FoundationDB\"",
+   "description": "Machine ID in the FoundationDB cluster.",
+   "fieldname": "machine_id",
+   "fieldtype": "Data",
+   "label": "Machine ID"
+  },
+  {
+   "depends_on": "eval: doc.type == \"FoundationDB\"",
+   "description": "Data center ID of the FoundationDB cluster.",
+   "fieldname": "data_center_id",
+   "fieldtype": "Data",
+   "label": "Data Center ID"
+  },
+  {
+   "fieldname": "column_break_gg5z",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "transaction_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Transaction Settings"
+  },
+  {
+   "depends_on": "eval: doc.type == \"FoundationDB\"",
+   "description": "Transaction timeout.",
+   "fieldname": "transaction_timeout_seconds",
+   "fieldtype": "Int",
+   "label": "Timeout (Seconds)",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval: doc.type == \"FoundationDB\"",
+   "description": "Transaction retry limit.",
+   "fieldname": "transaction_retry_limit",
+   "fieldtype": "Int",
+   "label": "Retry Limit",
+   "non_negative": 1,
+   "placeholder": "10"
+  },
+  {
+   "fieldname": "column_break_q4si",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.type == \"FoundationDB\"",
+   "description": "Transaction maximum retry delay.",
+   "fieldname": "transaction_max_retry_delay_seconds",
+   "fieldtype": "Int",
+   "label": "Max Retry Delay (Seconds)",
+   "non_negative": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-11 16:17:17.001287",
+ "modified": "2025-03-11 19:14:12.353058",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Store",

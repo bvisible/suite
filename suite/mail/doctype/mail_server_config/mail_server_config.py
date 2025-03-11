@@ -169,6 +169,35 @@ def get_config_toml(server: str) -> str | None:
 							}
 						}
 					)
+				case "FoundationDB":
+					timeout = (
+						f"{store.transaction_timeout_seconds}s" if store.transaction_timeout_seconds else 0
+					)
+					max_retry_delay = (
+						f"{store.transaction_max_retry_delay_seconds}s"
+						if store.transaction_max_retry_delay_seconds
+						else 0
+					)
+
+					store_config.update(
+						{
+							store.store_id: {
+								"type": STORE_TYPE_MAP[store.type],
+								"cluster-file": store.cluster_file,
+								"transaction": {
+									"timeout": timeout,
+									"retry-limit": store.transaction_retry_limit,
+									"max-retry-delay": max_retry_delay,
+								},
+								"ids": {
+									"machine": store.machine_id,
+									"datacenter": store.data_center_id,
+								},
+								"compression": store.compression.lower(),
+								"purge": {"frequency": store.purge_frequency_cron},
+							}
+						}
+					)
 				case "PostgreSQL" | "mySQL":
 					config = {
 						store.store_id: {
