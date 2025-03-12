@@ -58,6 +58,15 @@ const STORES_PRESET = {
 		number_of_shards: 3,
 		number_of_replicas: 0,
 	},
+	'Azure Blob Storage': {
+		store_id: 'azure',
+		timeout_seconds: 15,
+		storage_account_name: 'frappe',
+		container: 'mail',
+		compression: 'LZ4',
+		retry_limit: 3,
+		purge_frequency_cron: '0 3 * * *',
+	},
 	Filesystem: {
 		store_id: 'filesystem',
 		path: '/var/lib/data/blobs',
