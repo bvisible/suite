@@ -12,6 +12,8 @@
   "store_id",
   "path",
   "cluster_file",
+  "url",
+  "cloud_id",
   "configuration_section",
   "hostname",
   "port",
@@ -54,7 +56,11 @@
   "thread_pool_size",
   "max_connections",
   "column_break_n71b",
-  "min_connections"
+  "min_connections",
+  "index_section",
+  "number_of_shards",
+  "column_break_5nye",
+  "number_of_replicas"
  ],
  "fields": [
   {
@@ -75,7 +81,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "\nRocksDB\nFoundationDB\nPostgreSQL\nmySQL\nSQLite\nRedis/Memcached\nFilesystem",
+   "options": "\nRocksDB\nFoundationDB\nPostgreSQL\nmySQL\nSQLite\nRedis/Memcached\nElasticSearch\nFilesystem",
    "reqd": 1
   },
   {
@@ -201,14 +207,14 @@
    "label": "Authentication"
   },
   {
-   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\"].includes(doc.type) || (doc.type == \"Redis/Memcached\" && doc.redis_server_type == \"Redis Cluster\")",
+   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\", \"ElasticSearch\"].includes(doc.type) || (doc.type == \"Redis/Memcached\" && doc.redis_server_type == \"Redis Cluster\")",
    "description": "Username to connect to the database.",
    "fieldname": "username",
    "fieldtype": "Data",
    "label": "Username"
   },
   {
-   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\"].includes(doc.type) || (doc.type == \"Redis/Memcached\" && doc.redis_server_type == \"Redis Cluster\")",
+   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\", \"ElasticSearch\"].includes(doc.type) || (doc.type == \"Redis/Memcached\" && doc.redis_server_type == \"Redis Cluster\")",
    "description": "Password to connect to the database.",
    "fieldname": "password",
    "fieldtype": "Password",
@@ -229,7 +235,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\"].includes(doc.type)",
+   "depends_on": "eval: [\"PostgreSQL\", \"mySQL\", \"ElasticSearch\"].includes(doc.type)",
    "description": "Allow invalid TLS certificates when connecting to the store.",
    "fieldname": "allow_invalid_certs",
    "fieldtype": "Check",
@@ -390,13 +396,53 @@
    "fieldtype": "Int",
    "label": "Nested Depth",
    "non_negative": 1
+  },
+  {
+   "depends_on": "eval: doc.type == \"ElasticSearch\"",
+   "description": "URL of the store.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "mandatory_depends_on": "eval: doc.type == \"ElasticSearch\""
+  },
+  {
+   "depends_on": "eval: doc.type == \"ElasticSearch\"",
+   "description": "Cloud ID for the ElasticSearch cluster.",
+   "fieldname": "cloud_id",
+   "fieldtype": "Data",
+   "label": "Cloud ID"
+  },
+  {
+   "fieldname": "index_section",
+   "fieldtype": "Section Break",
+   "label": "Index"
+  },
+  {
+   "depends_on": "eval: doc.type == \"ElasticSearch\"",
+   "description": "Number of shards for the index.",
+   "fieldname": "number_of_shards",
+   "fieldtype": "Int",
+   "label": "Number of Shards",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval: doc.type == \"ElasticSearch\"",
+   "description": "Number of replicas for the index.",
+   "fieldname": "number_of_replicas",
+   "fieldtype": "Int",
+   "label": "Number of Replicas",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_5nye",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-11 22:20:01.694089",
+ "modified": "2025-03-12 10:23:19.166016",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Store",
