@@ -39,7 +39,7 @@ import { toast } from 'vue-sonner'
 
 import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
 
-import { Presentation, Save } from 'lucide-vue-next'
+import { Presentation, Save, Upload } from 'lucide-vue-next'
 
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
@@ -173,28 +173,33 @@ const handleDragLeave = (e) => {
 	}
 }
 
+const fileUploadHandler = new FileUploadHandler()
+
+const uploadFiles = (files) => {
+	files.forEach((file, index) => {
+		const fileType = file.type.split('/')[0]
+		if (!['image', 'video'].includes(fileType)) return
+
+		setTimeout(() => {
+			toast.promise(
+				fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
+					addMediaElement(fileDoc, fileType)
+				}),
+				{
+					loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
+					success: (data) => `Uploaded: ${file.name}`,
+					error: (data) => 'Upload failed. Please try again.',
+				},
+			)
+		}, 100)
+	})
+}
+
 const handleMediaDrop = async (e) => {
 	e.preventDefault()
 	isMediaDragOver.value = false
 	const files = e.dataTransfer.files
-	const fileUploadHandler = new FileUploadHandler()
-	files.forEach((file, index) => {
-		const fileType = file.type.split('/')[0]
-		if (['image', 'video'].includes(fileType)) {
-			setTimeout(() => {
-				toast.promise(
-					fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
-						addMediaElement(fileDoc, fileType)
-					}),
-					{
-						loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
-						success: (data) => `Uploaded: ${file.name}`,
-						error: (data) => 'Upload failed. Please try again.',
-					},
-				)
-			}, 100)
-		}
-	})
+	uploadFiles(files)
 }
 
 const startSlideShow = async () => {
