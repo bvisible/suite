@@ -98,7 +98,7 @@ const slideClasses = computed(() => {
 
 	const outlineClasses = props.highlight ? ['outline', 'outline-1.5', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-300'] : []
-	const cursorClasses = activeElementIds.value.length ? ['cursor-move'] : ['cursor-default']
+	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
 
 	return [...classes, outlineClasses, shadowClasses, cursorClasses]
 })
