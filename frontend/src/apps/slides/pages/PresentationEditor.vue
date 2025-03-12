@@ -10,27 +10,7 @@
 	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
-				<div class="flex text-base justify-center items-center">
-					<input
-						spellcheck="false"
-						ref="newTitleRef"
-						v-if="renameMode"
-						class="max-w-42 rounded-sm border-none py-1 text-base font-semibold text-gray-700 focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
-						v-model="newTitle"
-						@blur="saveTitle"
-					/>
-					<span
-						v-else
-						class="select-none font-semibold text-gray-700"
-						@click="enableRenameMode"
-					>
-						{{ presentation.data?.title }}
-					</span>
-
-					<Badge class="mx-2" :theme="slideDirty ? 'orange' : 'gray'" size="md">
-						{{ slideDirty ? 'Unsaved' : 'Saved' }}
-					</Badge>
-				</div>
+				<PresentationHeader />
 			</template>
 
 			<template #actions>
@@ -62,6 +42,7 @@ import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
 import { Presentation, Save } from 'lucide-vue-next'
 
 import Navbar from '@/components/Navbar.vue'
+import PresentationHeader from '@/components/PresentationHeader.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
@@ -101,32 +82,9 @@ const router = useRouter()
 
 const slideRef = useTemplateRef('slide')
 const mediaDropContainerRef = useTemplateRef('mediaDropContainer')
-const newTitleRef = useTemplateRef('newTitleRef')
 
-const newTitle = ref('')
-const renameMode = ref(false)
 const showNavigator = ref(true)
 const isMediaDragOver = ref(false)
-
-const enableRenameMode = () => {
-	renameMode.value = true
-	newTitle.value = presentation.data.title
-	nextTick(() => newTitleRef.value.focus())
-}
-
-const saveTitle = async () => {
-	if (newTitle.value && newTitle.value != presentation.data.title) {
-		let nameSlug = await call(
-			'slides.slides.doctype.presentation.presentation.rename_presentation',
-			{
-				name: route.params.presentationId,
-				new_name: newTitle.value,
-			},
-		)
-		await router.replace({ name: 'PresentationEditor', params: { presentationId: nameSlug } })
-	}
-	renameMode.value = false
-}
 
 const handleArrowKeys = (key) => {
 	let dx = 0
