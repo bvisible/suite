@@ -98,3 +98,11 @@ def add_member(
 
 	if not send_invite:
 		account_request.force_verify_and_create_account(first_name, last_name, password)
+
+
+@frappe.whitelist()
+def delete_aliases(names: list) -> None:
+	"""Delete Mail Aliases"""
+
+	for d in names:
+		frappe.delete_doc("Mail Alias", d)
