@@ -146,7 +146,7 @@ const handleFullScreenChange = async () => {
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
-		router.replace({ name: 'Presentation', query: null })
+		router.replace({ name: 'PresentationEditor', query: null })
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 	}
 }

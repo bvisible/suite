@@ -141,7 +141,7 @@ const saveTitle = async () => {
 				new_name: newTitle.value,
 			},
 		)
-		await router.replace({ name: 'Presentation', params: { presentationId: nameSlug } })
+		await router.replace({ name: 'PresentationEditor', params: { presentationId: nameSlug } })
 	}
 	renameMode.value = false
 }

@@ -59,11 +59,18 @@ const presentationList = createResource({
 
 const navigateToPresentation = async (name, present) => {
 	name = name || previewPresentation.value.name
-	await router.replace({
-		name: 'Presentation',
-		params: { presentationId: name },
-		query: { present: present },
-	})
+	if (present) {
+		await router.push({
+			name: 'Slideshow',
+			params: { presentationId: name },
+			query: { present: true },
+		})
+	} else {
+		await router.push({
+			name: 'PresentationEditor',
+			params: { presentationId: name },
+		})
+	}
 }
 
 const openDialog = (action) => {
