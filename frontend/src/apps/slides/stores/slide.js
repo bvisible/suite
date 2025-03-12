@@ -40,8 +40,8 @@ const getCurrentData = () => {
 	}
 
 	if (activePosition.value) {
-		const dx = activePosition.value.left - slideRect.value.left + 0.1
-		const dy = activePosition.value.top - slideRect.value.top + 2.1
+		const dx = activePosition.value.left - slideRect.value.left
+		const dy = activePosition.value.top - slideRect.value.top
 
 		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
 		elementsCopy.forEach((element, index) => {
