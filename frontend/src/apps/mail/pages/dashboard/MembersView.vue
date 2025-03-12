@@ -168,10 +168,7 @@ const dropdownOptions = (name, isAdmin) => {
 const removeMemberOptions = computed(() => ({
 	title: __('Remove Member'),
 	message: __(`Are you sure you want to remove member ${memberToBeRemoved.value}?`),
-	icon: {
-		name: 'alert-triangle',
-		appearance: 'warning',
-	},
+	icon: { name: 'alert-triangle', appearance: 'warning' },
 	actions: [
 		{
 			label: __('Confirm'),

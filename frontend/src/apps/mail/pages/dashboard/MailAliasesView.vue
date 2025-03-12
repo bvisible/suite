@@ -8,6 +8,7 @@
 		</header>
 		<div class="m-6 flex flex-1 flex-col">
 			<ListView
+				ref="listView"
 				v-if="aliases?.data"
 				class="flex-1"
 				:columns="LIST_COLUMNS"
@@ -35,6 +36,16 @@
 					</template>
 					<ListEmptyState v-else />
 				</ListRows>
+				<ListSelectBanner>
+					<template #actions>
+						<Button
+							variant="ghost"
+							theme="red"
+							:label="__('Delete')"
+							@click="showDeleteAliases = true"
+						/>
+					</template>
+				</ListSelectBanner>
 			</ListView>
 		</div>
 	</div>
@@ -45,6 +56,7 @@
 		:alias-i-d="selectedMailAlias"
 		@reload-aliases="aliases.reload()"
 	/>
+	<Dialog v-model="showDeleteAliases" :options="deleteAliasesOptions" />
 </template>
 
 <script setup lang="ts">
@@ -53,23 +65,30 @@ import {
 	Badge,
 	Breadcrumbs,
 	Button,
+	Dialog,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
 	ListRowItem,
 	ListRows,
+	ListSelectBanner,
 	ListView,
+	createResource,
 } from 'frappe-ui'
 import { useList } from 'frappe-ui/src/data-fetching'
 
+import { raiseToast } from '@/utils'
 import AddAliasModal from '@/components/Modals/AddAliasModal.vue'
 import EditAliasModal from '@/components/Modals/EditAliasModal.vue'
 
 const user = inject('$user')
 
+const listView = ref(null)
+
+const selectedMailAlias = ref('')
 const showAddAlias = ref(false)
 const showEditAlias = ref(false)
-const selectedMailAlias = ref('')
+const showDeleteAliases = ref(false)
 
 const LIST_COLUMNS = [
 	{
@@ -87,7 +106,6 @@ const LIST_COLUMNS = [
 ]
 
 const LIST_OPTIONS = {
-	selectable: false,
 	showTooltip: false,
 	emptyState: { description: __('No Mail Aliases created.') },
 	onRowClick: (row) => {
@@ -100,7 +118,35 @@ const aliases = useList({
 	doctype: 'Mail Alias',
 	fields: ['name', 'alias_for_name', 'enabled'],
 	filters: { tenant: user.data?.tenant },
+	orderBy: 'modified desc',
 	limit: 100,
 	cacheKey: ['mailTenantAliases', user.data?.tenant],
 })
+
+const deleteAliases = createResource({
+	url: 'mail.api.admin.delete_aliases',
+	makeParams: () => ({ names: Array.from(listView.value?.selections) }),
+	onSuccess: () => {
+		aliases.reload()
+		showDeleteAliases.value = false
+		raiseToast(__('Aliases deleted successfully.'))
+		listView.value?.toggleAllRows()
+	},
+	onError: (error) => {
+		showDeleteAliases.value = false
+		raiseToast(error.messages[0], 'error')
+	},
+})
+
+const deleteAliasesOptions = {
+	title: __('Delete Mail Aliases'),
+	message: __('Are you sure you want to delete the selected aliases?'),
+	actions: [
+		{
+			label: __('Confirm'),
+			variant: 'solid',
+			onClick: deleteAliases.submit,
+		},
+	],
+}
 </script>

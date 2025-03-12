@@ -22,7 +22,7 @@
 				<FormControl
 					v-model="alias.doc.alias_for_type"
 					type="select"
-					:label="__('Alias For')"
+					:label="__('Alias For Type')"
 					:options="[
 						{ label: __('Mail Account'), value: 'Mail Account' },
 						{ label: __('Mail Group'), value: 'Mail Group' },
