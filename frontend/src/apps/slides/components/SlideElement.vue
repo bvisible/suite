@@ -33,7 +33,7 @@ const elementStyle = computed(() => ({
 	height: 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
-	border: outline.value,
+	outline: outline.value,
 	boxSizing: 'border-box',
 }))
 

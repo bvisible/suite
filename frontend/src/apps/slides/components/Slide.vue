@@ -171,13 +171,9 @@ watch(
 	(newVal, oldVal) => {
 		if (oldVal) {
 			let element = slide.value.elements[oldVal]
-			element.top += 2
 			slide.value.elements[oldVal].content = document.querySelector(
 				`[data-index="${oldVal}"]`,
 			).innerText
-		}
-		if (newVal) {
-			slide.value.elements[newVal].top -= 2
 		}
 	},
 	{ immediate: true },
@@ -213,19 +209,6 @@ watch(
 		if (element && dimensions.width != element.width) {
 			const newWidth = dimensions.width / scale.value
 			element.width = newWidth
-		}
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => pairElementId.value,
-	(newVal, oldVal) => {
-		if (oldVal) {
-			slide.value.elements[oldVal].top += 2
-		}
-		if (newVal) {
-			slide.value.elements[newVal].top -= 2
 		}
 	},
 	{ immediate: true },
