@@ -61,23 +61,21 @@ const changeValue = (e) => {
 const highlightStyles = computed(() => {
 	const { rangeStart, rangeEnd, modelValue: val } = props
 
+	let left = 0
+	let width = 0
+
 	if (rangeStart < 0) {
-		if (val <= 0) {
-			return {
-				left: `${((Math.abs(rangeStart) - Math.abs(val)) / (rangeEnd - rangeStart)) * 100}%`,
-				width: `${(Math.abs(val) / (rangeEnd - rangeStart)) * 100}%`,
-			}
-		} else {
-			return {
-				left: `${(Math.abs(rangeStart) / (rangeEnd - rangeStart)) * 100}%`,
-				width: `${(Math.abs(val) / (rangeEnd - rangeStart)) * 100}%`,
-			}
-		}
+		left = Math.abs(rangeStart)
+		if (val <= 0) left -= Math.abs(val)
+		width = Math.abs(val)
 	} else {
-		return {
-			left: `0`,
-			width: `${((val - rangeStart) / (rangeEnd - rangeStart)) * 100}%`,
-		}
+		left = 0
+		width = val - rangeStart
+	}
+
+	return {
+		left: `${(left / (rangeEnd - rangeStart)) * 100}%`,
+		width: `${(width / (rangeEnd - rangeStart)) * 100}%`,
 	}
 })
 </script>
