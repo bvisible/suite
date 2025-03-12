@@ -236,6 +236,32 @@ def get_config_toml(server: str) -> str | None:
 
 					store_config.update(config)
 
+				case "S3-compatible":
+					s3_access_key = store.get_password("s3_access_key") if store.s3_access_key else None
+					s3_secret_key = store.get_password("s3_secret_key") if store.s3_secret_key else None
+					s3_security_token = (
+						store.get_password("s3_security_token") if store.s3_security_token else None
+					)
+					store_config.update(
+						{
+							store.store_id: {
+								"type": STORE_TYPE_MAP[store.type],
+								"region": store.region,
+								"endpoint": store.endpoint,
+								"profile": store.profile,
+								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
+								"bucket": store.bucket_name,
+								"key-prefix": store.key_prefix,
+								"access-key": s3_access_key,
+								"secret-key": s3_secret_key,
+								"security-token": s3_security_token,
+								"max-retries": store.retry_limit,
+								"compression": store.compression.lower(),
+								"purge": {"frequency": store.purge_frequency_cron},
+							}
+						}
+					)
+
 				case "Redis/Memcached":
 					redis_type = "single" if store.redis_server_type == "Redis Single Node" else "cluster"
 					config = {

@@ -43,6 +43,15 @@ const STORES_PRESET = {
 		purge_frequency_cron: '0 3 * * *',
 		max_connections: 10,
 	},
+	'S3-compatible': {
+		store_id: 's3',
+		timeout_seconds: 15,
+		bucket_name: 'frappemail',
+		key_prefix: 'frappemail/',
+		compression: 'LZ4',
+		retry_limit: 3,
+		purge_frequency_cron: '0 3 * * *',
+	},
 	'Redis/Memcached': {
 		store_id: 'redis',
 		redis_server_type: 'Redis Single Node',
@@ -63,6 +72,7 @@ const STORES_PRESET = {
 		timeout_seconds: 15,
 		storage_account_name: 'frappe',
 		container: 'mail',
+		key_prefix: 'frappemail/',
 		compression: 'LZ4',
 		retry_limit: 3,
 		purge_frequency_cron: '0 3 * * *',
