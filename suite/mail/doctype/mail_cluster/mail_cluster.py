@@ -61,6 +61,7 @@ STORAGE_OPTIONS = {
 		"PostgreSQL",
 		"mySQL",
 		"SQLite",
+		"S3-compatible",
 		"Azure Blob Storage",
 		"Filesystem",
 	],
