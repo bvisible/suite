@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { presentationId, presentation, inSlideShow, applyReverseTransition } from './presentation'
+import { presentationId, presentation, applyReverseTransition } from './presentation'
 import { activeElementIds, activePosition, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
@@ -65,7 +65,6 @@ const slideDirty = computed(() => {
 })
 
 const getSlideThumbnail = async () => {
-	if (inSlideShow.value) return
 	const slideRef = document.querySelector('.slide')
 	const canvas = await html2canvas(slideRef)
 	return canvas.toDataURL('image/png')
