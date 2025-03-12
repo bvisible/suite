@@ -55,7 +55,15 @@ DEFAULT_LISTENERS = [
 STORAGE_OPTIONS = {
 	"directory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
 	"data_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
-	"blob_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Filesystem"],
+	"blob_storage": [
+		"RocksDB",
+		"FoundationDB",
+		"PostgreSQL",
+		"mySQL",
+		"SQLite",
+		"Azure Blob Storage",
+		"Filesystem",
+	],
 	"fts_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "ElasticSearch"],
 	"in_memory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Redis/Memcached"],
 }

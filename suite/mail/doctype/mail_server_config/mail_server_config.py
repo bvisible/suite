@@ -38,7 +38,7 @@ STORE_TYPE_MAP = {
 	"S3-compatible": "s3",
 	"Redis/Memcached": "redis",
 	"ElasticSearch": "elasticsearch",
-	"Azure blob storage": "azure",
+	"Azure Blob Storage": "azure",
 	"Filesystem": "fs",
 	"SQL with Replicas": "sql-read-replica",
 	"Sharded Blob Store": "sharded-blob",
@@ -275,6 +275,26 @@ def get_config_toml(server: str) -> str | None:
 									"shards": store.number_of_shards,
 									"replicas": store.number_of_replicas,
 								},
+							}
+						}
+					)
+
+				case "Azure Blob Storage":
+					access_key = store.get_password("access_key") if store.access_key else None
+					sas_token = store.get_password("sas_token") if store.sas_token else None
+					store_config.update(
+						{
+							store.store_id: {
+								"type": STORE_TYPE_MAP[store.type],
+								"storage-account": store.storage_account_name,
+								"container": store.container,
+								"azure-access-key": access_key,
+								"sas-token": sas_token,
+								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
+								"key-prefix": store.key_prefix,
+								"max-retries": store.retry_limit,
+								"compression": store.compression.lower(),
+								"purge": {"frequency": store.purge_frequency_cron},
 							}
 						}
 					)
