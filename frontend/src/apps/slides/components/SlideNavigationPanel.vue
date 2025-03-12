@@ -1,7 +1,7 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-[94.27%] w-44 border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-500 ease-in-out"
+		class="fixed z-20 h-[94.27%] w-44 border-r bg-white shadow-2xl shadow-gray-300 transition-all duration-300 ease-in-out"
 		:class="showNavigator ? 'left-0' : '-left-44'"
 		@mouseenter="showCollapseShortcut = true"
 		@mouseleave="showCollapseShortcut = false"
@@ -23,7 +23,7 @@
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
 				@click="insertSlide(presentation.data.slides.length)"
 			>
-				<FeatherIcon name="plus" class="h-3.5 text-gray-600" />
+				<Plus size="14" class="stroke-[1.5]" />
 			</div>
 		</div>
 
@@ -45,7 +45,7 @@
 			class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
 			@click="toggleNavigator"
 		>
-			<FeatherIcon name="chevron-right" class="h-3 pe-1" />
+			<ChevronRight size="14" class="stroke-[1.5]" />
 		</div>
 	</div>
 </template>
@@ -54,6 +54,8 @@
 import { ref, computed } from 'vue'
 
 import { call } from 'frappe-ui'
+
+import { Plus, ChevronRight } from 'lucide-vue-next'
 
 import Draggable from 'vuedraggable'
 

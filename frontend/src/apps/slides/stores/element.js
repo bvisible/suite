@@ -1,7 +1,6 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { inSlideShow } from './presentation'
 import { slideFocus, slide } from './slide'
 
 import { guessTextColorFromBackground } from '../utils/color'
@@ -24,8 +23,6 @@ const activeElements = computed(() => {
 })
 
 const setActiveElements = (ids, focus = false) => {
-	if (inSlideShow.value) return
-
 	if (ids.length == 1 && focus) {
 		activeElementIds.value = []
 		focusElementId.value = ids[0]

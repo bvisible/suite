@@ -1,9 +1,9 @@
 <template>
 	<!-- Element Properties Panel -->
 	<div
-		class="fixed z-20 flex flex-col h-[94.27%] w-[226px] bg-white transition-all duration-500 ease-in-out border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
+		class="fixed z-20 flex flex-col h-[94.27%] w-[226px] bg-white transition-all duration-300 ease-in-out border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
 		:class="activeTab ? 'right-13' : '-right-[174px]'"
-		@wheel.prevent="(e) => e.stopPropagation()"
+		@wheel.prevent
 	>
 		<div v-if="activeTab == 'slide'">
 			<div :class="sectionClasses">
@@ -112,10 +112,10 @@
 							"
 							@click="activeElements[0].borderStyle = direction"
 						>
-							<FeatherIcon
+							<Ban
 								v-if="direction == 'none'"
-								name="slash"
-								class="h-4 text-black"
+								size="16"
+								class="stroke-[1.5] text-black"
 							/>
 							<div
 								v-else
@@ -212,13 +212,10 @@
 	</div>
 
 	<!-- Slide Elements Panel -->
-	<div
-		class="fixed right-0 z-20 flex h-[94.27%] border-l bg-white flex-col"
-		@wheel.prevent="(e) => e.stopPropagation()"
-	>
+	<div class="fixed right-0 z-20 flex h-[94.27%] border-l bg-white flex-col" @wheel.prevent>
 		<Tooltip text="Text" :hover-delay="1" placement="left">
 			<div :class="getTabClasses('text')" @click="addTextElement">
-				<FeatherIcon name="type" :class="getIconClasses('text')" />
+				<Type size="20" :class="getIconClasses('text')" />
 			</div>
 		</Tooltip>
 		<Tooltip text="Image" :hover-delay="1" placement="left">
@@ -229,7 +226,7 @@
 			>
 				<template #default="{ openFileSelector }">
 					<div :class="getTabClasses('image')" @click="openFileSelector">
-						<FeatherIcon name="image" :class="getIconClasses('image')" />
+						<Image size="20" :class="getIconClasses('image')" />
 					</div>
 				</template>
 			</FileUploader>
@@ -242,14 +239,14 @@
 			>
 				<template #default="{ openFileSelector }">
 					<div :class="getTabClasses('video')" @click="openFileSelector">
-						<FeatherIcon name="film" :class="getIconClasses('video')" />
+						<Film size="20" :class="getIconClasses('video')" />
 					</div>
 				</template>
 			</FileUploader>
 		</Tooltip>
 		<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
 			<div :class="getTabClasses('slide')">
-				<FeatherIcon name="layout" :class="getIconClasses('slide')" />
+				<Layout size="20" :class="getIconClasses('slide')" />
 			</div>
 		</Tooltip>
 	</div>
@@ -260,7 +257,17 @@ import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 
 import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
-import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay } from 'lucide-vue-next'
+import {
+	FlipHorizontal,
+	FlipVertical,
+	Repeat2,
+	TvMinimalPlay,
+	Ban,
+	Type,
+	Image,
+	Film,
+	Layout,
+} from 'lucide-vue-next'
 
 import TextPropertyTab from '@/components/TextPropertyTab.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
@@ -286,10 +293,10 @@ const getTabClasses = (tab) => {
 }
 
 const getIconClasses = (tab) => {
-	const commonClass = 'h-5'
+	const commonClass = 'stroke-[1.5]'
 	return {
 		[commonClass]: true,
-		'stroke-[1.6px] text-black': activeTab.value == tab,
+		'stroke-[1.6] text-black': activeTab.value == tab,
 		'text-gray-600': activeTab.value != tab,
 	}
 }

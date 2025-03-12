@@ -95,12 +95,12 @@ const getVerticalGuideStyles = (direction, diffWithPaired) => {
 			? activeRect.height.value / props.scale
 			: pairedRect.height.value / props.scale
 
-	if (direction == 'right') left += activeRect.width.value / props.scale
+	if (direction == 'right') left += activeRect.width.value / props.scale + 1
 
 	return {
 		...commonGuideStyles,
 		borderWidth: '0 0 0 1px',
-		left: `${left}px`,
+		left: `${left - 1}px`,
 		top: `${Math.min(top, pairedTop)}px`,
 		height: `${Math.abs(pairedTop - top) + diffHeight}px`,
 	}
@@ -123,12 +123,12 @@ const getHorizontalGuideStyles = (direction, diffWithPaired) => {
 			? activeRect.width.value / props.scale
 			: pairedRect.width.value / props.scale
 
-	if (direction == 'bottom') top += activeRect.height.value / props.scale
+	if (direction == 'bottom') top += activeRect.height.value / props.scale + 1
 
 	return {
 		...commonGuideStyles,
 		borderWidth: '1px 0 0 0',
-		top: `${top}px`,
+		top: `${top - 1}px`,
 		left: `${Math.min(left, pairedLeft)}px`,
 		width: `${Math.abs(pairedLeft - left) + diffWidth}px`,
 	}
@@ -282,20 +282,7 @@ const updateElementPosition = (dx, dy) => {
 	}
 }
 
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateElementPosition(dx, dy)
-}
-
 defineExpose({
-	handleArrowKeys,
 	updateElementPosition,
 })
 </script>
