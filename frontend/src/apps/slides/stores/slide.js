@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { presentationId, presentation, applyReverseTransition } from './presentation'
+import { presentationId, presentation, applyReverseTransition, inSlideShow } from './presentation'
 import { activeElementIds, activePosition, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
@@ -101,7 +101,7 @@ const changeSlide = async (index) => {
 	resetFocus()
 	applyReverseTransition.value = index < slideIndex.value
 	await nextTick(async () => {
-		await updateSlideState()
+		if (!inSlideShow.value) await updateSlideState()
 		slideIndex.value = index
 		loadSlide(slideIndex.value)
 	})
