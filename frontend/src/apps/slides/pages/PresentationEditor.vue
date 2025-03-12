@@ -33,13 +33,13 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
-import { call, FileUploadHandler, Spinner, Badge } from 'frappe-ui'
+import { FileUploadHandler } from 'frappe-ui'
 
-import { Presentation, Save, Upload } from 'lucide-vue-next'
+import { Presentation, Save } from 'lucide-vue-next'
 
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
