@@ -8,7 +8,9 @@
 				{
 					label: __('Save'),
 					variant: 'solid',
-					disabled: JSON.stringify(alias.doc) === JSON.stringify(alias.originalDoc),
+					disabled:
+						JSON.stringify(alias.doc) === JSON.stringify(alias.originalDoc) ||
+						!alias.doc.alias_for_name,
 					onClick: alias.save.submit,
 				},
 			],
@@ -16,22 +18,7 @@
 	>
 		<template #body-content>
 			<div class="space-y-4">
-				<Switch
-					v-if="aliasID"
-					v-model="alias.doc.enabled"
-					:label="__('Enabled')"
-					class="switch"
-				/>
-				<template v-else>
-					<LinkControl
-						v-model="alias.doc.domain_name"
-						:label="__('Domain Name')"
-						placeholder="yourdomain.com"
-						doctype="Mail Domain"
-						:filters="{ tenant: user.data.tenant, enabled: 1, is_verified: 1 }"
-					/>
-				</template>
-
+				<Switch v-model="alias.doc.enabled" :label="__('Enabled')" class="switch" />
 				<FormControl
 					v-model="alias.doc.alias_for_type"
 					type="select"
@@ -103,6 +90,13 @@ watch(
 		if (val) alias.value = getAlias()
 	},
 	{ immediate: true },
+)
+
+watch(
+	() => alias.value.doc?.alias_for_type,
+	(val) => {
+		if (val) alias.value.doc.alias_for_name = ''
+	},
 )
 </script>
 
