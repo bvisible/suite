@@ -124,13 +124,11 @@ watch(show, () => {
 
 const addMember = createResource({
 	url: 'mail.api.admin.add_member',
-	makeParams() {
-		return {
-			tenant: user.data.tenant,
-			...accountRequest,
-		}
-	},
-	onSuccess() {
+	makeParams: () => ({
+		tenant: user.data.tenant,
+		...accountRequest,
+	}),
+	onSuccess: () => {
 		raiseToast(
 			__(
 				accountRequest.send_invite

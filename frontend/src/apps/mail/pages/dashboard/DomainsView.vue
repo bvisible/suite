@@ -26,9 +26,9 @@
 						>
 							<ListRowItem :item="item">
 								<Badge
-									v-if="column.key == 'status'"
-									:theme="item === 'Enabled' ? 'green' : 'red'"
-									:label="item"
+									v-if="column.key == 'enabled'"
+									:theme="item ? 'green' : 'red'"
+									:label="item ? 'Enabled' : 'Disabled'"
 								/>
 								<FeatherIcon
 									v-else-if="column.key == 'is_verified'"
@@ -69,15 +69,15 @@ const showAddDomain = ref(false)
 
 const LIST_COLUMNS = [
 	{
-		label: 'Domain',
+		label: __('Domain'),
 		key: 'name',
 	},
 	{
-		label: 'Status',
-		key: 'status',
+		label: __('Status'),
+		key: 'enabled',
 	},
 	{
-		label: 'Verified',
+		label: __('Verified'),
 		key: 'is_verified',
 	},
 ]
@@ -85,18 +85,7 @@ const LIST_COLUMNS = [
 const LIST_OPTIONS = {
 	selectable: false,
 	showTooltip: false,
-	emptyState: {
-		title: __('No Domains Configured'),
-		description: __('Please add a domain to proceed with sending and receiving emails.'),
-		button: {
-			label: __('Add Domain'),
-			variant: 'solid',
-			iconLeft: 'plus',
-			onClick: () => {
-				showAddDomain.value = true
-			},
-		},
-	},
+	emptyState: { description: __('No Domains configured') },
 	getRowRoute: (row) => ({ name: 'Domain', params: { domainName: row.name } }),
 }
 
@@ -106,10 +95,5 @@ const domains = useList({
 	filters: { tenant: user.data?.tenant },
 	limit: 100,
 	cacheKey: ['mailTenantDomains', user.data?.tenant],
-	transform: (data) =>
-		data.map((domain) => ({
-			...domain,
-			status: domain.enabled ? 'Enabled' : 'Disabled',
-		})),
 })
 </script>
