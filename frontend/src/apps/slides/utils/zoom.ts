@@ -14,7 +14,7 @@ type Transform = {
 	}
 }
 
-export const usePanAndZoom = (containerElement: HTMLDivElement, targetElement: any) => {
+export const usePanAndZoom = (containerElement: any, targetElement: any) => {
 	const allowPanAndZoom = ref(true)
 
 	const SCALE_SPEED = 0.8
@@ -170,22 +170,22 @@ export const usePanAndZoom = (containerElement: HTMLDivElement, targetElement: a
 	}
 
 	const addPanAndZoom = () => {
-		if (!containerElement || !targetElement.value) return
+		if (!containerElement.value || !targetElement.value) return
 		initialMatrix = new DOMMatrix()
 		gestureMatrix = new DOMMatrix()
 		let rect = targetElement.value.getBoundingClientRect()
 		initialX = rect.x
 		initialY = rect.y
-		containerElement.addEventListener('wheel', handlePanAndZoom, {
+		containerElement.value.addEventListener('wheel', handlePanAndZoom, {
 			passive: false,
 		})
 	}
 
 	const removePanAndZoom = () => {
-		if (!containerElement) return
+		if (!containerElement.value) return
 		transform.value = 'matrix(1, 0, 0, 1, 0, 0)'
 		transformOrigin.value = '0 0'
-		containerElement.removeEventListener('wheel', handlePanAndZoom)
+		containerElement.value.removeEventListener('wheel', handlePanAndZoom)
 	}
 
 	watch(

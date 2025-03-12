@@ -1,36 +1,39 @@
 <template>
-	<!-- Slide (Dimensions: 16:9 ratio) -->
-	<div ref="target" :style="targetStyles">
-		<div
-			class="slide h-[540px] w-[960px] shadow-2xl"
-			:class="!activeElementIds.length ? 'shadow-gray-400' : 'shadow-gray-300'"
-			:style="slideStyles"
-		>
-			<SelectionBox @updateFocus="updateFocus" :scale="scale" />
+	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
+		<div ref="target" :style="targetStyles">
+			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
+				<SelectionBox @updateFocus="updateFocus" :scale="scale" />
 
-			<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
+				<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
-			<component
-				ref="element"
-				v-for="(element, index) in slide.elements"
-				:key="index"
-				:is="SlideElement"
-				:element="element"
-				:data-index="index"
-			/>
-		</div>
+				<component
+					ref="element"
+					v-for="(element, index) in slide.elements"
+					:key="index"
+					:is="SlideElement"
+					:element="element"
+					:data-index="index"
+				/>
+			</div>
 
-		<!-- Slide Actions -->
-		<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-			<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="deleteSlide" />
-			<Copy size="14" class="text-gray-800 stroke-[1.5]" @click="duplicateSlide" />
-			<SquarePlus
-				size="14"
-				class="text-gray-800 stroke-[1.5]"
-				@click="insertSlide(slideIndex + 1)"
-			/>
+			<!-- Slide Actions -->
+			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
+				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="deleteSlide" />
+				<Copy size="14" class="text-gray-800 stroke-[1.5]" @click="duplicateSlide" />
+				<SquarePlus
+					size="14"
+					class="text-gray-800 stroke-[1.5]"
+					@click="insertSlide(slideIndex + 1)"
+				/>
+			</div>
 		</div>
 	</div>
+
+	<!-- Media Drag Overlay -->
+	<div
+		v-show="highlight"
+		class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
+	></div>
 </template>
 
 <script setup>
@@ -69,30 +72,34 @@ import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
 
-const router = useRouter()
-
 const props = defineProps({
-	containerRef: Object,
+	highlight: Boolean,
 })
 
-const targetRef = useTemplateRef('target')
+const router = useRouter()
+
+const slideContainerRef = useTemplateRef('slideContainer')
+const slideTargetRef = useTemplateRef('target')
+const slideRef = useTemplateRef('slideRef')
 const guides = useTemplateRef('guides')
 
-slideRect.value = useElementBounding(targetRef)
+slideRect.value = useElementBounding(slideRef)
 
 const { isDragging, dragTarget, movement } = useDragAndDrop()
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
-	props.containerRef,
-	targetRef,
+	slideContainerRef,
+	slideTargetRef,
 )
 
-const showGuides = computed(() => activeElementIds.value.length && !isPanningOrZooming.value)
+const slideClasses = computed(() => {
+	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
-const scale = computed(() => {
-	const matrix = transform.value.match(/matrix\((.+)\)/)
-	if (!matrix) return 1
-	return parseFloat(matrix[1].split(', ')[0])
+	const outlineClasses = props.highlight ? ['outline', 'outline-1.5', 'outline-blue-400'] : []
+	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-300'] : []
+	const cursorClasses = activeElementIds.value.length ? ['cursor-move'] : ['cursor-default']
+
+	return [...classes, outlineClasses, shadowClasses, cursorClasses]
 })
 
 const targetStyles = computed(() => ({
@@ -102,9 +109,16 @@ const targetStyles = computed(() => ({
 
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
-	cursor: isDragging.value ? 'move' : 'default',
 	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
 }))
+
+const showGuides = computed(() => activeElementIds.value.length && !isPanningOrZooming.value)
+
+const scale = computed(() => {
+	const matrix = transform.value?.match(/matrix\((.+)\)/)
+	if (!matrix) return 1
+	return parseFloat(matrix[1].split(', ')[0])
+})
 
 const selectSlide = (e) => {
 	e.preventDefault()
