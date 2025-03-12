@@ -20,8 +20,8 @@ const props = defineProps({
 // this works kind of like an allowance so after the element is snapped, it can still move away from the center in same mouse event
 const RESISTANCE_THRESHOLD = 10
 
-const CENTER_PROXIMITY_THRESHOLD = 20
-const PROXIMITY_THRESHOLD = 7
+const CENTER_PROXIMITY_THRESHOLD = 14
+const PROXIMITY_THRESHOLD = 10
 
 const activeDiv = computed(() => {
 	if (activeElementIds.value.length == 0) return
@@ -41,12 +41,16 @@ const pairElement = computed(() => {
 })
 
 // counters to keep track of how many times the element has been snapped to the center
-const snapCountX = ref(0)
-const snapCountY = ref(0)
-const snapCountLeft = ref(0)
-const snapCountRight = ref(0)
-const snapCountTop = ref(0)
-const snapCountBottom = ref(0)
+const prevDiffs = ref({
+	centerX: 0,
+	centerY: 0,
+	left: 0,
+	right: 0,
+	top: 0,
+	bottom: 0,
+})
+
+const skip = ref(0)
 
 const guideStyles = computed(() => {
 	return {
@@ -206,24 +210,20 @@ const setDiffWithPaired = () => {
 	}
 }
 
-const updateMovement = (movement, diff, threshold, snapCount) => {
-	const canSnap = Math.abs(diff) < threshold
-	const withinResistanceThreshold = snapCount.value < RESISTANCE_THRESHOLD
+const updateMovement = (movement, nextPosition, prevPosition, matchPosition, threshold) => {
+	const canSnap =
+		Math.abs(nextPosition - matchPosition + threshold) < 3 ||
+		Math.abs(nextPosition - matchPosition - threshold) < 3
+
+	const newdiff = Math.abs(matchPosition - nextPosition)
+
+	const movingAway = newdiff > prevPosition
 
 	// only allow snapping when -
 	// the element is within the range of the snapping threshold
 	// the element is not being forced to snap while being dragged away
-	if (canSnap && withinResistanceThreshold) {
-		movement += diff
-		snapCount.value += 1
-	} else {
-		snapCount.value = 0
-	}
-
-	// if element crosses the resistance threshold, it should not be allowed to move again
-	if (!withinResistanceThreshold) {
-		movement = ((threshold * 1) / props.scale) * Math.sign(movement)
-		snapCount.value = 0
+	if (canSnap && !movingAway) {
+		movement += matchPosition - nextPosition
 	}
 
 	return movement
@@ -246,27 +246,58 @@ const updateMovementBasedOnSnap = (dx, dy) => {
 		updatedDy = dy
 
 	// check for snapping to the center and update movement
-	updatedDx = updateMovement(dx, diffCenterX.value, CENTER_PROXIMITY_THRESHOLD, snapCountX)
-	updatedDy = updateMovement(dy, diffCenterY.value, CENTER_PROXIMITY_THRESHOLD, snapCountY)
+	const slideCenterX = slideRect.value.width / 2 + slideRect.value.left
+	const slideCenterY = slideRect.value.height / 2 + slideRect.value.top
+
+	const newCenterX = activeRect.left.value + activeRect.width.value / 2 + dx
+	const newCenterY = activeRect.top.value + activeRect.height.value / 2 + dy
+
+	updatedDx = updateMovement(
+		dx,
+		newCenterX,
+		prevDiffs.value.centerX,
+		slideCenterX,
+		CENTER_PROXIMITY_THRESHOLD,
+	)
+	updatedDy = updateMovement(
+		dy,
+		newCenterY,
+		prevDiffs.value.centerY,
+		slideCenterY,
+		CENTER_PROXIMITY_THRESHOLD,
+	)
 
 	// check for any possible element pairing and update movement
 	handleElementPairing()
 	if (!pairElement.value) return { updatedDx, updatedDy }
 
 	// check for which direction to snap in - snap to closest direction instead of pulling towards both
-	const { diff: diffX, count: snapX } = pickClosestSnapDirection(
-		'X',
-		diffWithPaired.value.left,
-		diffWithPaired.value.right,
-	)
-	updatedDx = updateMovement(dx, -diffX, PROXIMITY_THRESHOLD, snapX)
 
-	const { diff: diffY, count: snapY } = pickClosestSnapDirection(
-		'Y',
-		diffWithPaired.value.top,
-		diffWithPaired.value.bottom,
-	)
-	updatedDy = updateMovement(dy, -diffY, PROXIMITY_THRESHOLD, snapY)
+	let prevX, newX, pairedX
+	if (Math.abs(diffWithPaired.value.right) < Math.abs(diffWithPaired.value.left)) {
+		prevX = prevDiffs.value.right
+		newX = activeRect.right.value + dx
+		pairedX = pairedRect.right.value
+	} else {
+		prevX = prevDiffs.value.left
+		newX = activeRect.left.value + dx
+		pairedX = pairedRect.left.value
+	}
+
+	updatedDx = updateMovement(dx, newX, prevX, pairedX, PROXIMITY_THRESHOLD)
+
+	let prevY, newY, pairedY
+	if (Math.abs(diffWithPaired.value.bottom) < Math.abs(diffWithPaired.value.top)) {
+		prevY = prevDiffs.value.bottom
+		newY = activeRect.bottom.value + dy
+		pairedY = pairedRect.bottom.value
+	} else {
+		prevY = prevDiffs.value.top
+		newY = activeRect.top.value + dy
+		pairedY = pairedRect.top.value
+	}
+
+	updatedDy = updateMovement(dy, newY, prevY, pairedY, PROXIMITY_THRESHOLD)
 
 	return { updatedDx, updatedDy }
 }
@@ -276,9 +307,26 @@ const updateElementPosition = (dx, dy) => {
 
 	const { updatedDx, updatedDy } = updateMovementBasedOnSnap(dx, dy)
 
-	activePosition.value = {
-		left: activePosition.value.left + updatedDx,
-		top: activePosition.value.top + updatedDy,
+	const didSnap = dx != updatedDx || dy != updatedDy
+
+	if (!skip.value)
+		activePosition.value = {
+			left: activePosition.value.left + updatedDx,
+			top: activePosition.value.top + updatedDy,
+		}
+	else skip.value -= 1
+
+	prevDiffs.value = {
+		centerX: Math.abs(diffCenterX.value),
+		centerY: Math.abs(diffCenterY.value),
+		left: Math.abs(diffWithPaired.value.left),
+		right: Math.abs(diffWithPaired.value.right),
+		top: Math.abs(diffWithPaired.value.top),
+		bottom: Math.abs(diffWithPaired.value.bottom),
+	}
+
+	if (didSnap) {
+		skip.value = 20
 	}
 }
 
