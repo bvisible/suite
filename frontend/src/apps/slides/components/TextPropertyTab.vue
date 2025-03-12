@@ -22,10 +22,13 @@
 				:class="activeElements[0].textAlign == textAlign ? 'bg-gray-200' : ''"
 				@click="activeElements[0].textAlign = textAlign"
 			>
-				<FeatherIcon :name="`align-${textAlign}`" class="h-4.5" />
+				<AlignLeft v-if="textAlign == 'left'" size="18" class="stroke-[1.5]" />
+				<AlignCenter v-if="textAlign == 'center'" size="18" class="stroke-[1.5]" />
+				<AlignRight v-if="textAlign == 'right'" size="18" class="stroke-[1.5]" />
+				<AlignJustify v-if="textAlign == 'justify'" size="18" class="stroke-[1.5]" />
 			</button>
 			<button class="cursor-pointer rounded-sm p-1">
-				<FeatherIcon name="list" class="h-4.5" />
+				<List size="18" class="stroke-[1.5]" />
 			</button>
 		</div>
 	</div>
@@ -85,7 +88,18 @@
 
 <script setup>
 import { FormControl } from 'frappe-ui'
-import { Bold, Italic, Underline, Strikethrough, CaseUpper } from 'lucide-vue-next'
+import {
+	Bold,
+	Italic,
+	Underline,
+	Strikethrough,
+	CaseUpper,
+	List,
+	AlignLeft,
+	AlignCenter,
+	AlignRight,
+	AlignJustify,
+} from 'lucide-vue-next'
 
 import SliderInput from './controls/SliderInput.vue'
 import NumberInput from './controls/NumberInput.vue'

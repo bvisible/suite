@@ -12,16 +12,19 @@
 			v-if="activeElementIds.includes($attrs['data-index'])"
 			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
 		>
-			<FeatherIcon
-				:name="isPlaying ? 'pause' : 'play'"
-				class="stroke-width-3 h-3 ps-[0.5px] text-white"
-			></FeatherIcon>
+			<component
+				size="14"
+				:is="isPlaying ? Pause : Play"
+				class="text-white stroke-[1.5] ps-[0.5px]"
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup>
 import { ref, computed, useTemplateRef, useAttrs } from 'vue'
+
+import { Play, Pause } from 'lucide-vue-next'
 
 import { inSlideShow } from '@/stores/presentation'
 import { activeElementIds, setActiveElements } from '@/stores/element'

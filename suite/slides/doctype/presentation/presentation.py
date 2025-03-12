@@ -70,19 +70,24 @@ def duplicate_slide(name, index):
 
 @frappe.whitelist()
 def rename_presentation(name, new_name):
-	nameSlug = slug(new_name)
-	frappe.rename_doc("Presentation", name, nameSlug)
-	frappe.db.set_value("Presentation", nameSlug, "title", new_name)
-	return nameSlug
+	name_slug = slug(new_name)
+	frappe.rename_doc("Presentation", name, name_slug)
+	frappe.db.set_value("Presentation", name_slug, "title", new_name)
+	return name_slug
 
 
 @frappe.whitelist()
-def duplicate_presentation(title, presentation_name):
-	presentation = frappe.get_doc("Presentation", presentation_name)
+def create_presentation(title, duplicate_from=None):
 	new_presentation = frappe.new_doc("Presentation")
-	new_presentation.update(presentation.as_dict())
 	new_presentation.title = title
-	new_presentation.name = None
+	if duplicate_from:
+		presentation = frappe.get_doc("Presentation", duplicate_from)
+		new_presentation.name = None
+		new_presentation.slides = presentation.slides
+	else:
+		slide = frappe.new_doc("Slide")
+		slide.elements = "[]"
+		new_presentation.slides = [slide]
 	new_presentation.save()
 	return new_presentation
 
@@ -90,14 +95,3 @@ def duplicate_presentation(title, presentation_name):
 @frappe.whitelist()
 def delete_presentation(name):
 	return frappe.delete_doc("Presentation", name)
-
-
-@frappe.whitelist()
-def create_presentation(title):
-	new_presentation = frappe.new_doc("Presentation")
-	new_presentation.title = title
-	slide = frappe.new_doc("Slide")
-	slide.elements = "[]"
-	new_presentation.slides = [slide]
-	new_presentation.save()
-	return new_presentation

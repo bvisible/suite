@@ -8,9 +8,14 @@ const routes = [
 		component: () => import('@/pages/Home.vue'),
 	},
 	{
-		path: '/:presentationId',
-		name: 'Presentation',
-		component: () => import('@/pages/Presentation.vue'),
+		path: '/presentation/:presentationId',
+		name: 'PresentationEditor',
+		component: () => import('@/pages/PresentationEditor.vue'),
+	},
+	{
+		path: '/slideshow/:presentationId',
+		name: 'Slideshow',
+		component: () => import('@/pages/Slideshow.vue'),
 	},
 ]
 
