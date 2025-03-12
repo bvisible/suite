@@ -56,6 +56,7 @@ import {
 	duplicateSlide,
 	slideRect,
 	loadSlide,
+	selectSlide,
 	getSlideThumbnail,
 } from '@/stores/slide'
 import {
@@ -120,22 +121,6 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const selectSlide = (e) => {
-	e.preventDefault()
-	e.stopPropagation()
-	if (isResizing.value) {
-		isResizing.value = false
-		return
-	}
-	if (focusElementId.value) {
-		slide.value.elements[focusElementId.value].content = document.querySelector(
-			`[data-index="${focusElementId.value}"]`,
-		).innerText
-	}
-	resetFocus()
-	slideFocus.value = true
-}
-
 const addDragAndResize = () => {
 	let el = document.querySelector('.groupDiv')
 	if (!el) return
@@ -156,7 +141,11 @@ const removeDragAndResize = (val) => {
 }
 
 const updateFocus = (e) => {
-	if (e.target.classList.contains('slide')) {
+	if (e.target == slideRef.value) {
+		if (isResizing.value) {
+			isResizing.value = false
+			return
+		}
 		selectSlide(e)
 	} else if (e.target == props.containerRef) {
 		resetFocus()

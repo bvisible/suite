@@ -245,7 +245,7 @@
 			</FileUploader>
 		</Tooltip>
 		<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
-			<div :class="getTabClasses('slide')">
+			<div :class="getTabClasses('slide')" @click="selectSlide">
 				<Layout size="20" :class="getIconClasses('slide')" />
 			</div>
 		</Tooltip>
@@ -275,7 +275,7 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, slideIndex, slideFocus } from '@/stores/slide'
+import { slide, slideIndex, slideFocus, selectSlide } from '@/stores/slide'
 import { activeElements, addTextElement, addMediaElement } from '@/stores/element'
 
 const activeTab = computed(() => {

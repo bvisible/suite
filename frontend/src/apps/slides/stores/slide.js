@@ -160,6 +160,13 @@ const duplicateSlide = async (e) => {
 	changeSlide(slideIndex.value + 1)
 }
 
+const selectSlide = (e) => {
+	e.preventDefault()
+	e.stopPropagation()
+	resetFocus()
+	slideFocus.value = true
+}
+
 export {
 	slideIndex,
 	slideDirty,
@@ -174,4 +181,5 @@ export {
 	insertSlide,
 	deleteSlide,
 	duplicateSlide,
+	selectSlide,
 }
