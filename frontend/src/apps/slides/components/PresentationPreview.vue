@@ -10,7 +10,7 @@
 				<router-link
 					v-if="presentation"
 					:to="{
-						name: 'Presentation',
+						name: 'PresentationEditor',
 						params: { presentationId: presentation?.name },
 					}"
 					class="aspect-video bg-white cursor-pointer rounded-2xl shadow-2xl"
