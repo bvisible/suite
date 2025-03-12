@@ -56,7 +56,7 @@ STORAGE_OPTIONS = {
 	"directory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
 	"data_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
 	"blob_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Filesystem"],
-	"fts_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
+	"fts_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "ElasticSearch"],
 	"in_memory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Redis/Memcached"],
 }
 

@@ -51,6 +51,13 @@ const STORES_PRESET = {
 		username: 'frappemail',
 		cluster_read_from_replicas: 1,
 	},
+	ElasticSearch: {
+		store_id: 'elasticsearch',
+		url: 'http://localhost:9200',
+		username: 'frappemail',
+		number_of_shards: 3,
+		number_of_replicas: 0,
+	},
 	Filesystem: {
 		store_id: 'filesystem',
 		path: '/var/lib/data/blobs',

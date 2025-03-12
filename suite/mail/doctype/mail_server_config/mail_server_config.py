@@ -261,6 +261,24 @@ def get_config_toml(server: str) -> str | None:
 
 					store_config.update(config)
 
+				case "ElasticSearch":
+					store_config.update(
+						{
+							store.store_id: {
+								"type": STORE_TYPE_MAP[store.type],
+								"url": store.url,
+								"user": store.username,
+								"password": store.get_password("password") if store.password else None,
+								"cloud-id": store.cloud_id,
+								"tls": {"allow-invalid-certs": bool(store.allow_invalid_certs)},
+								"index": {
+									"shards": store.number_of_shards,
+									"replicas": store.number_of_replicas,
+								},
+							}
+						}
+					)
+
 		return store_config
 
 	server = frappe.get_doc("Mail Server", server)
