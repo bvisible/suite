@@ -282,20 +282,7 @@ const updateElementPosition = (dx, dy) => {
 	}
 }
 
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateElementPosition(dx, dy)
-}
-
 defineExpose({
-	handleArrowKeys,
 	updateElementPosition,
 })
 </script>

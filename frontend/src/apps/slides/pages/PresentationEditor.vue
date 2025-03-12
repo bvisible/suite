@@ -1,6 +1,6 @@
 <template>
 	<div
-		ref="parent"
+		ref="mediaDropContainer"
 		class="fixed flex h-screen w-screen flex-col select-none"
 		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
 		@dragenter.prevent="handleDragEnter"
@@ -45,25 +45,7 @@
 		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
 			<SlideNavigationPanel :showNavigator="showNavigator" />
 
-			<div
-				ref="slideContainer"
-				class="slideContainer flex items-center justify-center w-full h-full"
-			>
-				<Slide
-					v-if="slideContainerRef"
-					ref="slide"
-					:containerRef="slideContainerRef"
-					:class="{
-						'outline outline-1.5 outline-blue-400': isMediaDragOver,
-					}"
-				/>
-
-				<!-- Media Drag Overlay -->
-				<div
-					v-show="isMediaDragOver"
-					class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
-				></div>
-			</div>
+			<SlideContainer :highlight="isMediaDragOver" />
 
 			<SlideElementsPanel />
 		</div>
@@ -82,7 +64,7 @@ import { Presentation, Save } from 'lucide-vue-next'
 import Navbar from '@/components/Navbar.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
-import Slide from '@/components/Slide.vue'
+import SlideContainer from '@/components/SlideContainer.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import {
@@ -103,6 +85,7 @@ import {
 	addTextElement,
 	addMediaElement,
 	selectAllElements,
+	activePosition,
 } from '@/stores/element'
 
 let autosaveInterval = null
@@ -117,8 +100,7 @@ const route = useRoute()
 const router = useRouter()
 
 const slideRef = useTemplateRef('slide')
-const parentRef = useTemplateRef('parent')
-const slideContainerRef = useTemplateRef('slideContainer')
+const mediaDropContainerRef = useTemplateRef('mediaDropContainer')
 const newTitleRef = useTemplateRef('newTitleRef')
 
 const newTitle = ref('')
@@ -146,13 +128,28 @@ const saveTitle = async () => {
 	renameMode.value = false
 }
 
+const handleArrowKeys = (key) => {
+	let dx = 0
+	let dy = 0
+
+	if (key == 'ArrowLeft') dx = -1
+	else if (key == 'ArrowRight') dx = 1
+	else if (key == 'ArrowUp') dy = -1
+	else if (key == 'ArrowDown') dy = 1
+
+	activePosition.value = {
+		left: activePosition.value.left + dx,
+		top: activePosition.value.top + dy,
+	}
+}
+
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
 		case 'ArrowRight':
 		case 'ArrowUp':
 		case 'ArrowDown':
-			slideRef.value.guides.handleArrowKeys(e.key)
+			handleArrowKeys(e.key)
 			break
 		case 'Delete':
 		case 'Backspace':
@@ -213,7 +210,7 @@ const handleDragEnter = (e) => {
 
 const handleDragLeave = (e) => {
 	e.preventDefault()
-	if (!parentRef.value.contains(e.relatedTarget)) {
+	if (!mediaDropContainerRef.value.contains(e.relatedTarget)) {
 		isMediaDragOver.value = false
 	}
 }
