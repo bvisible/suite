@@ -13,7 +13,12 @@
 				@before-leave="beforeSlideLeave"
 				@leave="slideLeave"
 			>
-				<div :key="slideIndex" :style="slideStyles" @click="changeSlide(slideIndex + 1)">
+				<div
+					:key="slideIndex"
+					:style="slideStyles"
+					@click="changeSlide(slideIndex + 1)"
+					class="slide"
+				>
 					<component
 						v-for="(element, index) in slide.elements"
 						:key="index"
@@ -54,11 +59,11 @@ const slideCursor = ref('none')
 
 const slideStyles = computed(() => {
 	return {
-		width: '1440px',
-		height: '810px',
+		width: '960px',
+		height: '540px',
 		backgroundColor: slide.value.background || 'white',
 		cursor: slideCursor.value,
-		transform: transform.value,
+		transform: 'scale(1.5)',
 		transition: transition.value,
 		opacity: opacity.value,
 	}
