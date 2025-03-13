@@ -269,13 +269,12 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, slideIndex, slideFocus, selectSlide } from '@/stores/slide'
+import { slide, slideIndex, selectSlide } from '@/stores/slide'
 import { activeElements, addTextElement, addMediaElement } from '@/stores/element'
 
 const activeTab = computed(() => {
-	if (slideFocus.value) return 'slide'
-	if (!activeElements.value[0]) return null
-	return activeElements.value[0].type
+	if (activeElements.value[0]) return activeElements.value[0].type
+	return 'slide'
 })
 
 const getTabClasses = (tab) => {

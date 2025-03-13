@@ -49,7 +49,6 @@ import SelectionBox from './SelectionBox.vue'
 import { presentation } from '@/stores/presentation'
 import {
 	slideIndex,
-	slideFocus,
 	slide,
 	insertSlide,
 	deleteSlide,
@@ -141,16 +140,11 @@ const removeDragAndResize = (val) => {
 }
 
 const updateFocus = (e) => {
-	if (e.target == slideRef.value) {
-		if (isResizing.value) {
-			isResizing.value = false
-			return
-		}
-		selectSlide(e)
-	} else if (e.target == props.containerRef) {
-		resetFocus()
-		slideFocus.value = false
+	if (isResizing.value) {
+		isResizing.value = false
+		return
 	}
+	selectSlide(e)
 }
 
 watch(
