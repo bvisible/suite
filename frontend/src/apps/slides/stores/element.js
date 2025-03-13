@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { slideFocus, slide } from './slide'
+import { slide } from './slide'
 
 import { guessTextColorFromBackground } from '../utils/color'
 
@@ -31,7 +31,6 @@ const setActiveElements = (ids, focus = false) => {
 		activeElementIds.value = ids
 		focusElementId.value = null
 	}
-	slideFocus.value = false
 }
 
 const addTextElement = () => {

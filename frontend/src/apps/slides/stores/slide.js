@@ -10,7 +10,6 @@ import html2canvas from 'html2canvas'
 const slideRect = ref(null)
 
 const slideIndex = ref(0)
-const slideFocus = ref(false)
 
 const slide = ref({
 	background: '#ffffff',
@@ -168,14 +167,12 @@ const selectSlide = (e) => {
 	e.preventDefault()
 	e.stopPropagation()
 	resetFocus()
-	slideFocus.value = true
 }
 
 export {
 	slideIndex,
 	slideDirty,
 	saving,
-	slideFocus,
 	slide,
 	slideRect,
 	getSlideThumbnail,
