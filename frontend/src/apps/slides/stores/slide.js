@@ -66,6 +66,10 @@ const slideDirty = computed(() => {
 
 const getSlideThumbnail = async () => {
 	const slideRef = document.querySelector('.slide')
+	const scale = slideRef.getBoundingClientRect().width / 960
+	if (scale !== 1) {
+		return slide.value.thumbnail
+	}
 	const canvas = await html2canvas(slideRef)
 	return canvas.toDataURL('image/png')
 }
