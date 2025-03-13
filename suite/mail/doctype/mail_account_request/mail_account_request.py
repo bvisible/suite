@@ -45,7 +45,7 @@ class MailAccountRequest(Document):
 				self.validate_domain()
 				self.validate_account()
 			else:
-				self.validate_non_invite()
+				self.validate_self_signup()
 
 	def before_insert(self) -> None:
 		self.set_request_key()
@@ -73,8 +73,10 @@ class MailAccountRequest(Document):
 
 		self.ip_address = frappe.local.request_ip
 
-	def validate_non_invite(self) -> None:
+	def validate_self_signup(self) -> None:
 		"""Validates self sign up."""
+
+		is_subaddressed_email(self.email, raise_exception=True)
 
 		if frappe.db.exists("User", {"email": self.email}):
 			frappe.throw(_("User {0} is already registered.").format(self.email))
