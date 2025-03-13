@@ -66,7 +66,8 @@ class MailAccountRequest(Document):
 	def set_expires_at(self) -> None:
 		"""Sets the expiry date of the request."""
 
-		self.expires_at = add_to_date(now(), days=1)
+		if not self.expires_at:
+			self.expires_at = add_to_date(now(), days=1)
 
 	def set_ip_address(self) -> None:
 		"""Sets the IP address of the request."""
