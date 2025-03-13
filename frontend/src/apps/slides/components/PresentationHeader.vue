@@ -8,13 +8,14 @@
 			spellcheck="false"
 			@blur="saveTitle"
 		/>
-		<span v-else class="select-none font-semibold text-gray-700" @click="makeTitleEditable">
-			{{ presentation.data?.title }}
-		</span>
-
-		<Badge class="mx-2" :theme="slideDirty ? 'orange' : 'gray'" size="md">
-			{{ slideDirty ? 'Unsaved' : 'Saved' }}
-		</Badge>
+		<div
+			v-else
+			class="select-none font-semibold text-gray-700 flex items-center"
+			@click="makeTitleEditable"
+		>
+			<div>{{ presentation.data?.title }}</div>
+			<div class="text-gray-600" v-if="slideDirty">*</div>
+		</div>
 	</div>
 </template>
 
@@ -22,7 +23,7 @@
 import { ref, useTemplateRef, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { Badge, call } from 'frappe-ui'
+import { call } from 'frappe-ui'
 
 import { presentation } from '@/stores/presentation'
 import { slideDirty } from '@/stores/slide'
