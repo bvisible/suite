@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Literal
 
 import frappe
 from frappe import _
+from frappe.query_builder import Case, Order
 from frappe.utils import cint
 
 from mail.utils.rate_limiter import dynamic_rate_limit
@@ -59,14 +60,28 @@ def get_tenant_members(tenant: str) -> list:
 
 	MTM = frappe.qb.DocType("Mail Tenant Member")
 	User = frappe.qb.DocType("User")
+	owner = frappe.db.get_value("Mail Tenant", tenant, "user")
+	sort_order = (
+		Case()
+		.when(MTM.user == owner, 0)  # Owner First
+		.when(MTM.is_admin == 1, 1)  # Admins Second
+		.else_(2)  # Members Last
+	)
 
 	return (
 		frappe.qb.from_(MTM)
 		.left_join(User)
 		.on(MTM.user == User.name)
-		.select(User.name, User.full_name, User.user_image, MTM.is_admin)
+		.select(
+			User.name,
+			User.full_name,
+			User.user_image,
+			MTM.is_admin,
+			sort_order,
+		)
 		.where(MTM.tenant == tenant)
-		.orderby(MTM.creation)
+		.orderby(sort_order, order=Order.asc)
+		.orderby(MTM.name, order=Order.asc)
 	).run(as_dict=True)
 
 
