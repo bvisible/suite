@@ -118,7 +118,7 @@ const aliases = useList({
 	doctype: 'Mail Alias',
 	fields: ['name', 'alias_for_name', 'enabled'],
 	filters: { tenant: user.data?.tenant },
-	orderBy: 'modified desc',
+	orderBy: 'email asc',
 	limit: 100,
 	cacheKey: ['mailTenantAliases', user.data?.tenant],
 })
