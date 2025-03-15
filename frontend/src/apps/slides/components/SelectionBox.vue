@@ -59,8 +59,6 @@ const initSelection = (e) => {
 }
 
 const updateSelection = (e) => {
-	document.addEventListener('mouseup', endSelection)
-
 	const dx = (e.clientX - prevX.value) / props.scale
 	const dy = (e.clientY - prevY.value) / props.scale
 
@@ -73,6 +71,8 @@ const updateSelection = (e) => {
 
 	width.value = Math.abs(dx)
 	height.value = Math.abs(dy)
+
+	document.addEventListener('mouseup', endSelection)
 }
 
 const removeSelectionBox = () => {
@@ -122,10 +122,9 @@ const updateSelectedElements = () => {
 }
 
 const endSelection = () => {
-	updateSelectedElements()
-
-	document.removeEventListener('mouseup', endSelection)
 	document.removeEventListener('mousemove', updateSelection)
+
+	updateSelectedElements()
 }
 
 const cropSelectionToFitContent = () => {
@@ -215,6 +214,8 @@ const handleMouseDown = (e) => {
 	mousedownTimer = setTimeout(() => {
 		initSelection(e)
 	}, longpressDuration)
+
+	document.addEventListener('mouseup', handleMouseUp)
 }
 
 const handleMouseLeave = () => {
@@ -238,6 +239,7 @@ watch(
 			resetSelection(oldVal)
 		}
 		if (val.length >= 1) {
+			document.removeEventListener('mouseup', endSelection)
 			handleSelection(val)
 		}
 	},
@@ -267,11 +269,10 @@ watch(
 onMounted(() => {
 	document.addEventListener('mousedown', handleMouseDown)
 	document.addEventListener('mouseleave', handleMouseLeave)
-	document.addEventListener('mouseup', handleMouseUp)
 })
 
 onBeforeUnmount(() => {
-	document.removeEventListener('mousedown', initSelection)
+	document.removeEventListener('mousedown', handleMouseDown)
 	document.removeEventListener('mouseleave', handleMouseLeave)
 	document.removeEventListener('mouseup', handleMouseUp)
 })

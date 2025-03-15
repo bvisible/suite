@@ -195,7 +195,6 @@ watch(
 
 		guides.value.updateElementPosition(x / scale.value, y / scale.value)
 	},
-	{ immediate: true },
 )
 
 watch(
