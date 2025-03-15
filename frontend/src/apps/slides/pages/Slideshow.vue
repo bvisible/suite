@@ -147,12 +147,14 @@ const resetCursorVisibility = () => {
 	}, 5000)
 }
 
-const handleFullScreenChange = async () => {
+const handleFullScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement != null
+
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
-		router.replace({ name: 'PresentationEditor', query: null })
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
+		router.replace({ name: 'PresentationEditor', query: null })
 	}
 }
 
