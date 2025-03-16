@@ -160,10 +160,6 @@ watch(
 			addDragAndResize()
 		} else if (oldVal) {
 			removeDragAndResize(oldVal)
-
-			nextTick(async () => {
-				slide.value.thumbnail = await getSlideThumbnail()
-			})
 		}
 	},
 	{ immediate: true },
@@ -187,7 +183,7 @@ watch(
 	() => {
 		const currentSlide = presentation.data?.slides[slideIndex.value]
 		if (!currentSlide) return
-		loadSlide(currentSlide)
+		loadSlide()
 	},
 	{ immediate: true },
 )
