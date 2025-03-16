@@ -14,7 +14,7 @@
 			@click="makeTitleEditable"
 		>
 			<div>{{ presentation.data?.title }}</div>
-			<div class="text-gray-600" v-if="slideDirty">*</div>
+			<div class="text-gray-400 text-xs" v-if="slideDirty">*</div>
 		</div>
 	</div>
 </template>
