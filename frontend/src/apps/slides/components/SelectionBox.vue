@@ -136,9 +136,11 @@ const cropSelectionToFitContent = () => {
 	// crop selection to selected element edges
 	activeElementIds.value.forEach((index) => {
 		const element = slide.value.elements[index]
-		const elementDiv = document.querySelector(`[data-index="${index}"]`)
-		const elementWidth = elementDiv.offsetWidth
-		const elementHeight = elementDiv.offsetHeight
+		const elementRect = document
+			.querySelector(`[data-index="${index}"]`)
+			.getBoundingClientRect()
+		const elementWidth = elementRect.width
+		const elementHeight = elementRect.height
 
 		if (element.left < l) l = element.left
 		if (element.top < t) t = element.top
