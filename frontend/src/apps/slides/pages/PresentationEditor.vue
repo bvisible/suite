@@ -236,7 +236,7 @@ watch(
 )
 
 const handleAutoSave = () => {
-	if (activeElementIds.value.length) return
+	if (activeElementIds.value.length || focusElementId.value != null) return
 	saveChanges()
 }
 
@@ -247,6 +247,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	clearInterval(autosaveInterval)
+	resetFocus()
 	document.removeEventListener('keydown', handleKeyDown)
 })
 </script>
