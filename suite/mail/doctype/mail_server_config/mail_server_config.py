@@ -38,7 +38,7 @@ STORE_TYPE_MAP = {
 	"S3-compatible": "s3",
 	"Redis/Memcached": "redis",
 	"ElasticSearch": "elasticsearch",
-	"Azure blob storage": "azure",
+	"Azure Blob Storage": "azure",
 	"Filesystem": "fs",
 	"SQL with Replicas": "sql-read-replica",
 	"Sharded Blob Store": "sharded-blob",
@@ -93,109 +93,201 @@ def get_mail_server_config(server: str) -> MailServerConfig | None:
 def get_config_toml(server: str) -> str | None:
 	"""Returns the TOML configuration for the Mail Server."""
 
+	def format_value_or_zero(value: int, postfix: str) -> str | int:
+		return f"{value}{postfix}" if value else 0
+
+	def password_or_none(doc, field: str) -> str | None:
+		return doc.get_password(field) if doc.get(field) else None
+
+	def split_lines(value: str) -> list:
+		return value.split("\n")
+
+	def split_lines_or_empty(value: str) -> list:
+		return split_lines(value) if value else []
+
+	def split_lines_or_return(value: str) -> str | list:
+		return split_lines(value) if "\n" in value else value
+
 	def get_listeners(listeners: list) -> dict:
-		"""Returns the listener configuration for the Mail Server."""
-
-		listeners_config = {}
-		for listener in listeners:
-			if listener.listener_id in listeners_config:
-				continue
-
-			bind_addresses = listener.bind_addresses.split("\n")
-			bind = bind_addresses[0] if len(bind_addresses) == 1 else bind_addresses
-			listeners_config[listener.listener_id] = {
-				"bind": bind,
+		return {
+			listener.listener_id: {
+				"bind": split_lines_or_return(listener.bind_addresses),
 				"protocol": PROTOCOL_MAP[listener.protocol],
 				"tls": {"implicit": bool(listener.implicit_tls)},
 			}
-
-		return listeners_config
+			for listener in listeners
+		}
 
 	def get_seed_nodes(server: str, cluster: str) -> dict:
-		"""Returns the seed nodes for the Mail Server."""
-
-		seed_nodes = []
-		for s in frappe.db.get_all(
-			"Mail Server",
-			filters={"enabled": 1, "cluster": cluster, "name": ["!=", server]},
-			fields=[
-				"private_ipv4",
-				"private_ipv6",
-				"public_ipv4",
-				"public_ipv6",
-				"cluster_advertise_address",
-			],
-		):
-			if not s["cluster_advertise_address"]:
-				continue
-
-			if seed_node := s[frappe.scrub(s["cluster_advertise_address"])]:
-				seed_nodes.append(seed_node)
-
-		num_digits = len(str(len(seed_nodes) - 1))
-		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(seed_nodes)}
+		seed_nodes = [
+			s[frappe.scrub(s["cluster_advertise_address"])]
+			for s in frappe.db.get_all(
+				"Mail Server",
+				filters={"enabled": 1, "cluster": cluster, "name": ["!=", server]},
+				fields=[
+					"private_ipv4",
+					"private_ipv6",
+					"public_ipv4",
+					"public_ipv6",
+					"cluster_advertise_address",
+				],
+			)
+			if s["cluster_advertise_address"]
+		]
+		return {str(i).zfill(len(str(len(seed_nodes) - 1))): v for i, v in enumerate(seed_nodes)}
 
 	def get_local_keys(outbound_only: bool = False) -> dict:
-		"""Returns the local keys for the configuration."""
+		local_keys = LOCAL_KEYS + (
+			["session.rcpt.directory", "queue.outbound.next-hop"] if outbound_only else []
+		)
+		return {str(i).zfill(len(str(len(local_keys) - 1))): v for i, v in enumerate(local_keys)}
 
-		local_keys = LOCAL_KEYS
-		if outbound_only:
-			local_keys.extend(["session.rcpt.directory", "queue.outbound.next-hop"])
+	def get_store_config(store) -> dict:
+		config = {"type": STORE_TYPE_MAP[store.type]}
 
-		num_digits = len(str(len(local_keys) - 1))
-		return {f"{str(i).zfill(num_digits)}": v for i, v in enumerate(local_keys)}
+		if store.type in ["SQLite", "PostgreSQL", "mySQL"]:
+			config.update({"pool": {"max-connections": store.max_connections}})
+
+		if store.type in ["S3-compatible", "Azure Blob Storage"]:
+			config.update({"key-prefix": store.key_prefix, "max-retries": store.retry_limit})
+
+		if store.type in ["PostgreSQL", "mySQL", "Redis/Memcached", "ElasticSearch"]:
+			if not (store.type == "Redis/Memcached" and store.redis_server_type == "Redis Single Node"):
+				config.update({"user": store.username, "password": password_or_none(store, "password")})
+
+		if store.type in ["PostgreSQL", "mySQL", "S3-compatible", "Redis/Memcached", "Azure Blob Storage"]:
+			config["timeout"] = format_value_or_zero(store.timeout_seconds, "s")
+
+		if store.type in [
+			"RocksDB",
+			"SQLite",
+			"Filesystem",
+			"FoundationDB",
+			"PostgreSQL",
+			"mySQL",
+			"S3-compatible",
+			"Azure Blob Storage",
+		]:
+			config.update(
+				{
+					"compression": store.compression.lower(),
+					"purge": {"frequency": store.purge_frequency_cron},
+				}
+			)
+
+		match store.type:
+			case "RocksDB" | "SQLite" | "Filesystem":
+				config["path"] = store.path
+
+				if store.type in ["RocksDB", "SQLite"]:
+					config["workers"] = store.thread_pool_size
+
+				if store.type == "RocksDB":
+					config.update(
+						{
+							"min-blob-size": store.min_blob_size_bytes,
+							"write-buffer-size": store.write_buffer_size_mb,
+						}
+					)
+				elif store.type == "Filesystem":
+					config["depth"] = store.nested_depth
+
+			case "FoundationDB":
+				config.update(
+					{
+						"cluster-file": store.cluster_file,
+						"transaction": {
+							"timeout": format_value_or_zero(store.transaction_timeout_seconds, "s"),
+							"retry-limit": store.transaction_retry_limit,
+							"max-retry-delay": format_value_or_zero(
+								store.transaction_max_retry_delay_seconds, "s"
+							),
+						},
+						"ids": {
+							"machine": store.machine_id,
+							"datacenter": store.data_center_id,
+						},
+					}
+				)
+
+			case "PostgreSQL" | "mySQL":
+				config.update(
+					{
+						"host": store.hostname,
+						"port": store.port,
+						"database": store.database,
+						"tls": {
+							"enable": bool(store.enable_tls),
+							"allow-invalid-certs": bool(store.allow_invalid_certs),
+						},
+					}
+				)
+
+				if store.type == "mySQL":
+					config["max-allowed-packet"] = store.max_allowed_packet_bytes
+					config["pool"]["min-connections"] = store.min_connections
+
+			case "S3-compatible":
+				config.update(
+					{
+						"region": store.region,
+						"endpoint": store.endpoint,
+						"profile": store.profile,
+						"bucket": store.bucket_name,
+						"access-key": password_or_none(store, "s3_access_key"),
+						"secret-key": password_or_none(store, "s3_secret_key"),
+						"security-token": password_or_none(store, "s3_security_token"),
+					}
+				)
+
+			case "Redis/Memcached":
+				redis_type = "single" if store.redis_server_type == "Redis Single Node" else "cluster"
+				config.update(
+					{
+						"redis-type": redis_type,
+						"urls": split_lines_or_empty(store.redis_urls),
+					}
+				)
+
+				if redis_type == "cluster":
+					config.update(
+						{
+							"read-from-replicas": bool(store.cluster_read_from_replicas),
+							"retry": {
+								"total": store.cluster_retries,
+								"max-wait": format_value_or_zero(store.cluster_max_wait_ms, "ms"),
+								"min-wait": format_value_or_zero(store.cluster_min_wait_ms, "ms"),
+							},
+						}
+					)
+
+			case "ElasticSearch":
+				config.update(
+					{
+						"url": store.url,
+						"cloud-id": store.cloud_id,
+						"tls": {"allow-invalid-certs": bool(store.allow_invalid_certs)},
+						"index": {
+							"shards": store.number_of_shards,
+							"replicas": store.number_of_replicas,
+						},
+					}
+				)
+
+			case "Azure Blob Storage":
+				config.update(
+					{
+						"storage-account": store.storage_account_name,
+						"container": store.container,
+						"azure-access-key": password_or_none(store, "azure_access_key"),
+						"sas-token": password_or_none(store, "azure_sas_token"),
+					}
+				)
+
+		return {store.store_id: config}
 
 	def get_stores(stores: list) -> dict:
-		"""Returns the store configuration for the Mail Server."""
-
-		store_config = {}
-		for store in stores:
-			if store.store_id in store_config:
-				continue
-
-			store_config.setdefault(store.store_id, {})
-			match store.type:
-				case "RocksDB":
-					store_config.update(
-						{
-							store.store_id: {
-								"type": STORE_TYPE_MAP[store.type],
-								"path": store.path,
-								"compression": store.compression.lower(),
-								"min-blob-size": store.min_blob_size_bytes,
-								"write-buffer-size": store.write_buffer_size_mb,
-								"workers": store.thread_pool_size,
-								"purge": {"frequency": store.purge_frequency_cron},
-							}
-						}
-					)
-				case "mySQL":
-					store_config.update(
-						{
-							store.store_id: {
-								"type": STORE_TYPE_MAP[store.type],
-								"host": store.hostname,
-								"port": store.port,
-								"database": store.database,
-								"user": store.username,
-								"password": store.get_password("password") if store.password else None,
-								"max-allowed-packet": store.max_allowed_packet_bytes,
-								"timeout": f"{store.timeout_seconds}s" if store.timeout_seconds else 0,
-								"compression": store.compression.lower(),
-								"purge": {"frequency": store.purge_frequency_cron},
-								"tls": {
-									"enable": bool(store.enable_tls),
-									"allow-invalid-certs": bool(store.allow_invalid_certs),
-								},
-								"pool": {
-									"max-connections": store.max_connections,
-									"min-connections": store.min_connections,
-								},
-							}
-						}
-					)
-
-		return store_config
+		return {k: v for store in stores for k, v in get_store_config(store).items()}
 
 	server = frappe.get_doc("Mail Server", server)
 	cluster = frappe.get_doc("Mail Cluster", server.cluster)
@@ -209,11 +301,7 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"server": {
 			"hostname": server.server,
-			"proxy": {
-				"trusted-networks": cluster.proxy_trusted_networks.split("\n")
-				if cluster.proxy_trusted_networks
-				else []
-			},
+			"proxy": {"trusted-networks": split_lines_or_empty(cluster.proxy_trusted_networks)},
 			"max-connections": server.server_max_connections,
 			"listener": get_listeners(server.listeners or cluster.listeners),
 			"socket": {
@@ -228,8 +316,8 @@ def get_config_toml(server: str) -> str | None:
 			"bind-addr": server.cluster_bind_address,
 			"bind-port": cluster.cluster_bind_port,
 			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_address)),
-			"key": cluster.get_password("cluster_encryption_key"),
-			"heartbeat": f"{server.cluster_heartbeat}s" if server.cluster_heartbeat else 0,
+			"key": password_or_none(cluster, "cluster_encryption_key"),
+			"heartbeat": format_value_or_zero(server.cluster_heartbeat, "s"),
 			"seed-nodes": get_seed_nodes(server.name, cluster.name),
 		},
 		"config": {
@@ -262,17 +350,9 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"jmap": {
 			"account": {"purge": {"frequency": cluster.jmap_frequency_cron}},
-			"email": {
-				"auto-expunge": f"{cluster.jmap_trash_auto_expunge_days}d"
-				if cluster.jmap_trash_auto_expunge_days
-				else 0
-			},
+			"email": {"auto-expunge": format_value_or_zero(cluster.jmap_trash_auto_expunge_days, "d")},
 			"protocol": {
-				"changes": {
-					"max-history": f"{cluster.jmap_changes_history_days}d"
-					if cluster.jmap_changes_history_days
-					else 0
-				}
+				"changes": {"max-history": format_value_or_zero(cluster.jmap_changes_history_days, "d")}
 			},
 		},
 		"store": get_stores(cluster.stores),

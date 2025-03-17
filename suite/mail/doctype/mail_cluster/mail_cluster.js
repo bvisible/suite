@@ -10,6 +10,21 @@ const STORES_PRESET = {
 		write_buffer_size_mb: 128,
 		purge_frequency_cron: '0 3 * * *',
 	},
+	FoundationDB: {
+		store_id: 'foundationdb',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+	},
+	PostgreSQL: {
+		store_id: 'postgresql',
+		port: 5432,
+		database: 'frappemail',
+		timeout_seconds: 15,
+		username: 'frappemail',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+		max_connections: 10,
+	},
 	mySQL: {
 		store_id: 'mysql',
 		port: 3306,
@@ -20,6 +35,54 @@ const STORES_PRESET = {
 		purge_frequency_cron: '0 3 * * *',
 		max_connections: 10,
 		min_connections: 5,
+	},
+	SQLite: {
+		store_id: 'sqlite',
+		path: '/var/lib/data/index.sqlite3',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+		max_connections: 10,
+	},
+	'S3-compatible': {
+		store_id: 's3',
+		timeout_seconds: 15,
+		bucket_name: 'frappemail',
+		key_prefix: 'frappemail/',
+		compression: 'LZ4',
+		retry_limit: 3,
+		purge_frequency_cron: '0 3 * * *',
+	},
+	'Redis/Memcached': {
+		store_id: 'redis',
+		redis_server_type: 'Redis Single Node',
+		redis_urls: 'redis://127.0.0.1',
+		timeout_seconds: 15,
+		username: 'frappemail',
+		cluster_read_from_replicas: 1,
+	},
+	ElasticSearch: {
+		store_id: 'elasticsearch',
+		url: 'http://localhost:9200',
+		username: 'frappemail',
+		number_of_shards: 3,
+		number_of_replicas: 0,
+	},
+	'Azure Blob Storage': {
+		store_id: 'azure',
+		timeout_seconds: 15,
+		storage_account_name: 'frappe',
+		container: 'mail',
+		key_prefix: 'frappemail/',
+		compression: 'LZ4',
+		retry_limit: 3,
+		purge_frequency_cron: '0 3 * * *',
+	},
+	Filesystem: {
+		store_id: 'filesystem',
+		path: '/var/lib/data/blobs',
+		compression: 'LZ4',
+		purge_frequency_cron: '0 3 * * *',
+		nested_depth: 2,
 	},
 }
 
@@ -105,14 +168,19 @@ frappe.ui.form.on('Mail Server Store', {
 	type(frm, cdt, cdn) {
 		const row = locals[cdt][cdn]
 
-		if (!row.type) return
+		if (row.type) {
+			const defaults = STORES_PRESET[row.type]
+			if (defaults) {
+				Object.entries(defaults).forEach(([key, value]) =>
+					frappe.model.set_value(cdt, cdn, key, value),
+				)
+			}
+		}
 
-		const defaults = STORES_PRESET[row.type]
-		if (!defaults) return
+		refresh_field('stores')
+	},
 
-		Object.entries(defaults).forEach(([key, value]) =>
-			frappe.model.set_value(cdt, cdn, key, value),
-		)
+	redis_server_type() {
 		refresh_field('stores')
 	},
 })
