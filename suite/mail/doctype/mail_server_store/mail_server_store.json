@@ -36,11 +36,11 @@
   "username",
   "s3_access_key",
   "s3_secret_key",
-  "access_key",
+  "azure_access_key",
   "column_break_r24o",
   "password",
   "s3_security_token",
-  "sas_token",
+  "azure_sas_token",
   "storage_settings_section",
   "compression",
   "min_blob_size_bytes",
@@ -487,20 +487,6 @@
    "label": "Retry Limit"
   },
   {
-   "depends_on": "eval: doc.type == \"Azure Blob Storage\"",
-   "description": "The access key for the Azure Storage Account.",
-   "fieldname": "access_key",
-   "fieldtype": "Password",
-   "label": "Access Key"
-  },
-  {
-   "depends_on": "eval: doc.type == \"Azure Blob Storage\"",
-   "description": "SAS Token, when not using access-key based authentication.",
-   "fieldname": "sas_token",
-   "fieldtype": "Password",
-   "label": "SAS Token"
-  },
-  {
    "depends_on": "eval: doc.type == \"S3-compatible\"",
    "description": "The geographical region where the bucket resides.",
    "fieldname": "region",
@@ -548,6 +534,7 @@
   },
   {
    "depends_on": "eval: doc.type == \"S3-compatible\"",
+   "description": "The security token for the S3 account.",
    "fieldname": "s3_security_token",
    "fieldtype": "Password",
    "label": "Security Token",
@@ -560,13 +547,27 @@
    "fieldtype": "Password",
    "label": "Secret Key",
    "mandatory_depends_on": "eval: doc.type == \"S3-compatible\""
+  },
+  {
+   "depends_on": "eval: doc.type == \"Azure Blob Storage\"",
+   "description": "The access key for the Azure Storage Account.",
+   "fieldname": "azure_access_key",
+   "fieldtype": "Password",
+   "label": "Access Key"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Azure Blob Storage\"",
+   "description": "SAS Token, when not using access-key based authentication.",
+   "fieldname": "azure_sas_token",
+   "fieldtype": "Password",
+   "label": "SAS Token"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-12 15:27:14.363421",
+ "modified": "2025-03-17 16:07:59.203875",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Store",
