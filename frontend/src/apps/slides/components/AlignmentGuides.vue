@@ -17,7 +17,7 @@ const props = defineProps({
 	scale: Number,
 })
 
-const PROXIMITY_THRESHOLD = 14
+const PROXIMITY_THRESHOLD = 15
 
 const activeDiv = computed(() => {
 	if (activeElementIds.value.length == 0) return
@@ -315,7 +315,7 @@ const updateElementPosition = (dx, dy) => {
 	else skip.value -= 1
 
 	if (didSnap) {
-		skip.value = 20
+		skip.value = 15
 	}
 }
 
