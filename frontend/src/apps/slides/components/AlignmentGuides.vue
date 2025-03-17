@@ -45,15 +45,24 @@ const prevDiffs = ref({
 })
 
 const diffs = ref({
-	centerX: 0,
-	centerY: 0,
-	left: 0,
-	right: 0,
-	top: 0,
-	bottom: 0,
+	centerX: null,
+	centerY: null,
+	left: null,
+	right: null,
+	top: null,
+	bottom: null,
 })
 
 const visibilityMap = computed(() => {
+	if (!activePosition.value || diffs.value.centerX == null)
+		return {
+			centerX: false,
+			centerY: false,
+			left: false,
+			right: false,
+			top: false,
+			bottom: false,
+		}
 	return {
 		centerX: Math.abs(diffs.value.centerX) < PROXIMITY_THRESHOLD,
 		centerY: Math.abs(diffs.value.centerY) < PROXIMITY_THRESHOLD,
