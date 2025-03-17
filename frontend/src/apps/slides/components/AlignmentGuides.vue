@@ -187,6 +187,30 @@ const getMovementAfterSnap = (diff, prevDiff) => {
 	return change
 }
 
+const getPairedOffsets = (dx, dy) => {
+	let offsetLeft = 0,
+		offsetTop = 0
+
+	const diffLeft = diffs.value.left
+	const diffRight = diffs.value.right
+	const diffTop = diffs.value.top
+	const diffBottom = diffs.value.bottom
+
+	if (Math.abs(diffRight) < Math.abs(diffLeft)) {
+		offsetLeft = getMovementAfterSnap(diffRight, prevDiffs.value.right)
+	} else {
+		offsetLeft = getMovementAfterSnap(diffLeft, prevDiffs.value.left)
+	}
+
+	if (Math.abs(diffBottom) < Math.abs(diffTop)) {
+		offsetTop = getMovementAfterSnap(diffBottom, prevDiffs.value.bottom)
+	} else {
+		offsetTop = getMovementAfterSnap(diffTop, prevDiffs.value.top)
+	}
+
+	return { offsetLeft, offsetTop }
+}
+
 const getDiffFromCenter = (axis) => {
 	if (!activePosition.value) return
 	let slideCenter, elementCenter
@@ -214,7 +238,45 @@ const getCenterOffsets = (dx, dy) => {
 	return { offsetX, offsetY }
 }
 
+const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
+	return (
+		Math.abs(diffLeft) < PROXIMITY_THRESHOLD ||
+		Math.abs(diffRight) < PROXIMITY_THRESHOLD ||
+		Math.abs(diffTop) < PROXIMITY_THRESHOLD ||
+		Math.abs(diffBottom) < PROXIMITY_THRESHOLD
+	)
+}
+
 const setCurrentDiffs = () => {
+	slide.value.elements.forEach((element, index) => {
+		if (activeElementIds.value.includes(index)) return
+
+		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		if (!elementDiv || !activeDiv.value) return
+
+		const activeBounds = getElementBounds(activeDiv.value)
+		const elementBounds = getElementBounds(elementDiv)
+
+		const diffLeft = activeBounds.left - elementBounds.left
+		const diffRight = activeBounds.right - elementBounds.right
+		const diffTop = activeBounds.top - elementBounds.top
+		const diffBottom = activeBounds.bottom - elementBounds.bottom
+
+		const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
+		const isPaired = pairElementId.value == index
+
+		if (canPair) {
+			pairElementId.value = index
+		} else if (isPaired) {
+			pairElementId.value = null
+		}
+
+		diffs.value.left = diffLeft
+		diffs.value.right = diffRight
+		diffs.value.top = diffTop
+		diffs.value.bottom = diffBottom
+	})
+
 	diffs.value.centerX = getDiffFromCenter('X')
 	diffs.value.centerY = getDiffFromCenter('Y')
 }
@@ -228,10 +290,12 @@ const updateMovementBasedOnSnap = (dx, dy) => {
 
 	const { offsetX, offsetY } = getCenterOffsets(dx, dy)
 
+	const { offsetLeft, offsetTop } = getPairedOffsets(dx, dy)
+
 	updatePrevDiffs()
 
-	const updatedDx = dx + offsetX
-	const updatedDy = dy + offsetY
+	const updatedDx = dx + offsetX + offsetLeft
+	const updatedDy = dy + offsetY + offsetTop
 
 	return { updatedDx, updatedDy }
 }
