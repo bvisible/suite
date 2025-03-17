@@ -2,7 +2,7 @@
 	<Dialog
 		v-model="show"
 		:options="{
-			title: __('New Mail Alias'),
+			title: __('New Alias'),
 			actions: [
 				{
 					label: __('Save'),
@@ -34,7 +34,6 @@
 						doctype="Mail Domain"
 						:filters="{ tenant: user.data.tenant, is_verified: 1 }"
 						class="w-full"
-						required
 					/>
 				</div>
 				<FormControl
@@ -95,12 +94,10 @@ const alias = useNewDoc(
 		},
 		onSuccess: () => {
 			show.value = false
-			raiseToast(__('Mail Alias saved successfully'))
+			raiseToast(__('Alias created successfully'))
 			emit('reload-aliases')
 		},
-		onError: (error) => {
-			raiseToast(error.message, 'error')
-		},
+		onError: (error) => raiseToast(error.message, 'error'),
 	},
 )
 
