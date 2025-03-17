@@ -85,7 +85,7 @@ const LIST_COLUMNS = [
 const LIST_OPTIONS = {
 	selectable: false,
 	showTooltip: false,
-	emptyState: { description: __('No Domains configured') },
+	emptyState: { description: __('No domains configured') },
 	getRowRoute: (row) => ({ name: 'Domain', params: { domainName: row.name } }),
 }
 

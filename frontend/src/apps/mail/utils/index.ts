@@ -63,7 +63,7 @@ export function getSidebarLinks() {
 			label: __('Groups'),
 			icon: 'Mails',
 			to: 'Groups',
-			activeFor: ['Groups'],
+			activeFor: ['Groups', 'Group'],
 			forDashboard: true,
 		},
 		{

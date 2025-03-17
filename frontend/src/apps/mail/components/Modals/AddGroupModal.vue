@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { inject, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Dialog, FeatherIcon, FormControl } from 'frappe-ui'
 import { useNewDoc } from 'frappe-ui/src/data-fetching'
 
@@ -55,6 +56,7 @@ const show = defineModel<boolean>()
 const emit = defineEmits(['reload-groups'])
 
 const user = inject('$user')
+const router = useRouter()
 
 const defaultGroup = {
 	username: '',
@@ -72,7 +74,7 @@ const group = useNewDoc(
 		onSuccess: () => {
 			show.value = false
 			raiseToast(__('Group created successfully'))
-			emit('reload-groups')
+			router.push({ name: 'Group', params: { groupName: group.doc.email } })
 		},
 		onError: (error) => raiseToast(error.message, 'error'),
 	},

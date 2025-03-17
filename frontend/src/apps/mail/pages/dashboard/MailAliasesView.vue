@@ -107,7 +107,7 @@ const LIST_COLUMNS = [
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No Aliases created.') },
+	emptyState: { description: __('No aliases created.') },
 	onRowClick: (row) => {
 		selectedMailAlias.value = row.name
 		showEditAlias.value = true
