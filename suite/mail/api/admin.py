@@ -129,3 +129,11 @@ def delete_groups(names: list) -> None:
 
 	for d in names:
 		frappe.delete_doc("Mail Group", d)
+
+
+@frappe.whitelist()
+def delete_group_members(names: list) -> None:
+	"""Delete Mail Groups"""
+
+	for d in names:
+		frappe.delete_doc("Mail Group Member", d)
