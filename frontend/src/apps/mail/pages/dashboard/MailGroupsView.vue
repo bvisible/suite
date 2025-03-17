@@ -49,13 +49,7 @@
 			</ListView>
 		</div>
 	</div>
-	<AddMailGroupModal v-model="showAddGroup" @reload-groups="groups.reload()" />
-	<EditMailGroupModal
-		v-if="selectedMailGroup"
-		v-model="showEditGroup"
-		:group-i-d="selectedMailGroup"
-		@reload-groups="groups.reload()"
-	/>
+	<AddGroupModal v-model="showAddGroup" @reload-groups="groups.reload()" />
 	<Dialog v-model="showDeleteGroups" :options="deleteGroupsOptions" />
 </template>
 
@@ -78,16 +72,13 @@ import {
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
-import AddMailGroupModal from '@/components/Modals/AddGroupModal.vue'
-import EditMailGroupModal from '@/components/Modals/EditGroupModal.vue'
+import AddGroupModal from '@/components/Modals/AddGroupModal.vue'
 
 const user = inject('$user')
 
 const listView = ref(null)
 
-const selectedMailGroup = ref('')
 const showAddGroup = ref(false)
-const showEditGroup = ref(false)
 const showDeleteGroups = ref(false)
 
 const LIST_COLUMNS = [
@@ -107,11 +98,8 @@ const LIST_COLUMNS = [
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No Groups created.') },
-	onRowClick: (row) => {
-		selectedMailGroup.value = row.name
-		showEditGroup.value = true
-	},
+	emptyState: { description: __('No groups created.') },
+	getRowRoute: (row) => ({ name: 'Group', params: { groupName: row.name } }),
 }
 
 const groups = useList({
