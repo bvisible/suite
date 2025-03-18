@@ -4,11 +4,9 @@
 			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 		>
 			<Breadcrumbs :items="BREADCRUMBS" />
-			<Button
-				:label="__('Add Member')"
-				icon-left="user-plus"
-				@click="showAddMember = true"
-			/>
+			<Dropdown :options="ADD_OPTIONS">
+				<Button :label="__('Add')" icon-left="plus" icon-right="chevron-down" />
+			</Dropdown>
 		</header>
 		<div class="m-6 flex flex-1 flex-col">
 			<ListView
@@ -48,15 +46,23 @@
 		</div>
 	</div>
 
+	<AddGroupMembersModal
+		v-model="showAddMembers"
+		:group="groupName"
+		:type="addType"
+		@reload-members="members.reload()"
+	/>
 	<Dialog v-model="showRemoveMembers" :options="removeMembersOptions" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { User, Users } from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
 	Dialog,
+	Dropdown,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -69,12 +75,14 @@ import {
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
+import AddGroupMembersModal from '@/components/Modals/AddGroupMembersModal.vue'
 
 const props = defineProps<{ groupName: string }>()
 
 const listView = ref(null)
 
-const showAddMember = ref(false)
+const addType = ref<'Mail Account' | 'Mail Group'>('Mail Account')
+const showAddMembers = ref(false)
 const showRemoveMembers = ref(false)
 
 const LIST_COLUMNS = [
@@ -131,5 +139,24 @@ const removeMembersOptions = {
 const BREADCRUMBS = [
 	{ label: __('Groups'), route: { name: 'Groups' } },
 	{ label: props.groupName },
+]
+
+const ADD_OPTIONS = [
+	{
+		label: __('Members'),
+		icon: User,
+		onClick: () => {
+			addType.value = 'Mail Account'
+			showAddMembers.value = true
+		},
+	},
+	{
+		label: __('Groups'),
+		icon: Users,
+		onClick: () => {
+			addType.value = 'Mail Group'
+			showAddMembers.value = true
+		},
+	},
 ]
 </script>
