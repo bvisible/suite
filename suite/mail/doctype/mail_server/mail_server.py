@@ -32,6 +32,7 @@ class MailServer(Document):
 		self.validate_server()
 		self.validate_cluster()
 		self.validate_cluster_node_id()
+		self.validate_listeners()
 
 	def after_insert(self) -> None:
 		self.generate_config()
@@ -96,6 +97,20 @@ class MailServer(Document):
 					frappe.bold(self.cluster_node_id)
 				)
 			)
+
+	def validate_listeners(self) -> None:
+		"""Validates the listeners."""
+
+		listener_ids = []
+		for listener in self.listeners:
+			if listener.listener_id in listener_ids:
+				frappe.throw(
+					_("Row #{0}: Listener ID {1} is duplicated.").format(
+						listener.idx, frappe.bold(listener.listener_id)
+					)
+				)
+
+			listener_ids.append(listener.listener_id)
 
 	@frappe.whitelist()
 	def generate_config(self) -> None:
