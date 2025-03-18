@@ -132,6 +132,18 @@ def delete_groups(names: list) -> None:
 
 
 @frappe.whitelist()
+def add_group_members(group: str, type: Literal["Mail Account", "Mail Group"], members: list) -> None:
+	"""Adds members to a Mail Group"""
+
+	for d in members:
+		MGM = frappe.new_doc("Mail Group Member")
+		MGM.mail_group = group
+		MGM.member_type = type
+		MGM.member_name = d
+		MGM.insert()
+
+
+@frappe.whitelist()
 def delete_group_members(names: list) -> None:
 	"""Delete Mail Groups"""
 

@@ -53,8 +53,6 @@ import LinkControl from '@/components/Controls/LinkControl.vue'
 
 const show = defineModel<boolean>()
 
-const emit = defineEmits(['reload-groups'])
-
 const user = inject('$user')
 const router = useRouter()
 
