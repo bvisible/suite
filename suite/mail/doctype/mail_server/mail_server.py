@@ -32,6 +32,7 @@ class MailServer(Document):
 		self.validate_server()
 		self.validate_cluster()
 		self.validate_cluster_node_id()
+		self.validate_acme_providers()
 		self.validate_tls_certificates()
 		self.validate_listeners()
 
@@ -98,6 +99,26 @@ class MailServer(Document):
 					frappe.bold(self.cluster_node_id)
 				)
 			)
+
+	def validate_acme_providers(self) -> None:
+		"""Validates the ACME Providers."""
+
+		default_count = 0
+		directory_ids = []
+		for acme in self.acme_providers:
+			if acme.default:
+				default_count += 1
+
+			if acme.directory_id in directory_ids:
+				frappe.throw(
+					_("Row #{0}: Directory ID {1} is duplicated.").format(
+						acme.idx, frappe.bold(acme.directory_id)
+					)
+				)
+			directory_ids.append(acme.directory_id)
+
+		if default_count > 1:
+			frappe.throw(_("Only one ACME Provider can be default."))
 
 	def validate_tls_certificates(self) -> None:
 		"""Validates the TLS Certificates."""

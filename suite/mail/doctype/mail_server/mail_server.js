@@ -46,3 +46,22 @@ frappe.ui.form.on('Mail Server', {
 		})
 	},
 })
+
+frappe.ui.form.on('Mail Server ACME Provider', {
+	acme_providers_add(frm, cdt, cdn) {
+		const row = locals[cdt][cdn]
+
+		if (frm.doc.server) {
+			row.directory_id = frm.doc.server.replaceAll('.', '-')
+			row.subject_names = frm.doc.server
+			row.contact_emails = 'postmaster@' + frm.doc.server
+		}
+		if (frm.doc.acme_providers.length < 2) {
+			row.default = 1
+		}
+		row.challenge_type = 'TLS-ALPN-01'
+		row.directory_url = 'https://acme-v02.api.letsencrypt.org/directory'
+		row.renew_before_days = 30
+		refresh_field('acme_providers')
+	},
+})

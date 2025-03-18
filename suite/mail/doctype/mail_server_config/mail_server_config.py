@@ -111,15 +111,22 @@ def get_config_toml(server: str) -> str | None:
 	def split_lines_or_return(value: str) -> str | list:
 		return split_lines(value) if "\n" in value else value
 
-	def get_listeners(listeners: list) -> dict:
-		return {
-			listener.listener_id: {
-				"bind": split_lines_or_return(listener.bind_addresses),
-				"protocol": PROTOCOL_MAP[listener.protocol],
-				"tls": {"implicit": bool(listener.implicit_tls)},
-			}
-			for listener in listeners
+	def get_acme_config(acme) -> dict:
+		config = {
+			"default": bool(acme.default),
+			"directory": acme.directory_url,
+			"challenge": acme.challenge_type.lower(),
+			"contact": split_lines_or_empty(acme.contact_emails),
+			"domains": split_lines_or_empty(acme.subject_names),
+			"cache": "%{BASE_PATH}%/etc/acme",
+			"renew-before": format_value_or_zero(acme.renew_before_days, "d"),
+			"eab": {"kid": acme.key_id, "hmac-key": password_or_none(acme, "hmac_key")},
 		}
+
+		return {acme.directory_id: config}
+
+	def get_acme_providers(acme_providers: list) -> dict:
+		return {k: v for acme in acme_providers for k, v in get_acme_config(acme).items()}
 
 	def get_tls_config(tls) -> dict:
 		cert = (
@@ -143,6 +150,16 @@ def get_config_toml(server: str) -> str | None:
 
 	def get_tls_certificates(tls_certificates: list) -> dict:
 		return {k: v for tls in tls_certificates for k, v in get_tls_config(tls).items()}
+
+	def get_listeners(listeners: list) -> dict:
+		return {
+			listener.listener_id: {
+				"bind": split_lines_or_return(listener.bind_addresses),
+				"protocol": PROTOCOL_MAP[listener.protocol],
+				"tls": {"implicit": bool(listener.implicit_tls)},
+			}
+			for listener in listeners
+		}
 
 	def get_seed_nodes(server: str, cluster: str) -> dict:
 		seed_nodes = [
@@ -325,6 +342,8 @@ def get_config_toml(server: str) -> str | None:
 				"secret": cluster.admin_password_hash,
 			}
 		},
+		"acme": get_acme_providers(server.acme_providers),
+		"certificate": get_tls_certificates(server.tls_certificates),
 		"server": {
 			"hostname": server.server,
 			"proxy": {"trusted-networks": split_lines_or_empty(cluster.proxy_trusted_networks)},
@@ -337,7 +356,6 @@ def get_config_toml(server: str) -> str | None:
 				"reuse-port": True,
 			},
 		},
-		"certificate": get_tls_certificates(server.tls_certificates),
 		"cluster": {
 			"node-id": server.cluster_node_id,
 			"bind-addr": server.cluster_bind_address,
