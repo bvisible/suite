@@ -222,7 +222,10 @@ watch(
 	() => transform.value,
 	() => {
 		if (!transform.value) return
-		updateSlideDimensions()
+		// wait for the new transform to render before updating dimensions
+		nextTick(() => {
+			updateSlideDimensions()
+		})
 	},
 )
 
