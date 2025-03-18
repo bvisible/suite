@@ -4,7 +4,7 @@
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox @updateFocus="updateFocus" />
 
-				<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
+				<AlignmentGuides ref="guides" v-if="showGuides" />
 
 				<component
 					ref="element"

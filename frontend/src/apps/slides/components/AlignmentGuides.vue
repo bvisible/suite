@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-for="guide in ['centerX', 'centerY', 'left', 'right']"
+		v-for="guide in ['centerX', 'centerY', 'left', 'right', 'top', 'bottom']"
 		:key="guide"
 		:style="guideStyles[guide]"
 	></div>
