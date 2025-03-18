@@ -19,6 +19,7 @@
 					v-for="(inputId, index) in inputFields"
 					:key="inputId"
 					:type="type"
+					:current-members="currentMembers.data"
 					:selected-members="members"
 					:is-last-input="index === inputFields.length - 1"
 					@email-selected="(email) => handleEmailSelected(email, index)"
@@ -32,6 +33,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
+import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
 import AddGroupMemberInput from '@/components/AddGroupMemberInput.vue'
@@ -65,6 +67,16 @@ const removeInput = (email: string, index: number) => {
 	inputFields.value.splice(index, 1)
 }
 
+const currentMembers = useList({
+	doctype: 'Mail Group Member',
+	immediate: false,
+	fields: ['member_name as name'],
+	filters: { mail_group: group, member_type: type },
+	limit: 1000,
+	cacheKey: ['groupMembers', group, type],
+	transform: (data) => data.map((member) => member.name),
+})
+
 const addMembers = createResource({
 	url: 'mail.api.admin.add_group_members',
 	makeParams: () => ({ group, type, members: members.value }),
@@ -82,6 +94,7 @@ watch(
 		if (!val) return
 		members.value = []
 		inputFields.value = [0]
+		currentMembers.fetch()
 	},
 )
 </script>
