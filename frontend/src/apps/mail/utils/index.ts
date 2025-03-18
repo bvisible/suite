@@ -60,7 +60,14 @@ export function getSidebarLinks() {
 			forDashboard: true,
 		},
 		{
-			label: __('Mail Aliases'),
+			label: __('Groups'),
+			icon: 'Mails',
+			to: 'Groups',
+			activeFor: ['Groups', 'Group'],
+			forDashboard: true,
+		},
+		{
+			label: __('Aliases'),
 			icon: 'AtSign',
 			to: 'Aliases',
 			activeFor: ['Aliases'],

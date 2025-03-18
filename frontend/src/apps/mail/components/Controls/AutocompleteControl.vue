@@ -28,7 +28,7 @@
 				</slot>
 			</template>
 			<template #body="{ isOpen }">
-				<div v-show="isOpen">
+				<div v-show="isOpen && !disabled">
 					<div class="mt-1 rounded-lg bg-white py-1 text-base shadow-2xl">
 						<div class="relative mb-2 px-1.5 pt-0.5" :class="{ hidden: !showSearch }">
 							<ComboboxInput
@@ -248,7 +248,7 @@ const inputClasses = computed(() => {
 		outline:
 			'border border-gray-300 bg-white placeholder-gray-500 hover:border-gray-400 hover:shadow-sm focus:bg-white focus:border-gray-500 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-400',
 		disabled: [
-			'border bg-gray-50 placeholder-gray-400',
+			'border bg-gray-50 placeholder-gray-400 cursor-default',
 			props.variant === 'outline' ? 'border-gray-300' : 'border-transparent',
 		],
 	}[variant]

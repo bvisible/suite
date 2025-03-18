@@ -121,3 +121,33 @@ def delete_aliases(names: list) -> None:
 
 	for d in names:
 		frappe.delete_doc("Mail Alias", d)
+
+
+@frappe.whitelist()
+def delete_groups(names: list) -> None:
+	"""Delete Mail Groups"""
+
+	for group in names:
+		for member in frappe.get_all("Mail Group Member", filters={"mail_group": group}, pluck="name"):
+			frappe.delete_doc("Mail Group Member", member)
+		frappe.delete_doc("Mail Group", group)
+
+
+@frappe.whitelist()
+def add_group_members(group: str, type: Literal["Mail Account", "Mail Group"], members: list) -> None:
+	"""Adds members to a Mail Group"""
+
+	for d in members:
+		MGM = frappe.new_doc("Mail Group Member")
+		MGM.mail_group = group
+		MGM.member_type = type
+		MGM.member_name = d
+		MGM.insert()
+
+
+@frappe.whitelist()
+def delete_group_members(names: list) -> None:
+	"""Delete Mail Groups"""
+
+	for d in names:
+		frappe.delete_doc("Mail Group Member", d)

@@ -11,6 +11,7 @@
 			:variant="attrs.variant"
 			:placeholder="attrs.placeholder"
 			:filterable="false"
+			:disabled="attrs.disabled"
 		>
 			<template #target="{ open, togglePopover }">
 				<slot name="target" v-bind="{ open, togglePopover }" />
@@ -47,27 +48,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useAttrs } from 'vue'
+import { computed, ref, useAttrs, watch } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import { Plus } from 'lucide-vue-next'
 import { Button, createResource } from 'frappe-ui'
 
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 
-const props = defineProps({
-	doctype: {
-		type: String,
-		required: true,
-	},
-	filters: {
-		type: Object,
-		default: () => ({}),
-	},
-	modelValue: {
-		type: String,
-		default: '',
-	},
-})
+const props = defineProps<{
+	doctype: string
+	filters?: object
+	modelValue: string
+}>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
@@ -87,53 +79,39 @@ const value = computed({
 const autocomplete = ref(null)
 const text = ref('')
 
+const options = createResource({
+	url: 'frappe.desk.search.search_link',
+	method: 'POST',
+	makeParams: () => ({
+		txt: text.value,
+		doctype: props.doctype,
+		filters: props.filters || {},
+	}),
+	transform: (data) =>
+		data.map((option) => ({
+			label: option.value,
+			value: option.value,
+			description: option.description,
+		})),
+})
+
+const reload = () => {
+	if (!attrs.disabled) options.reload()
+}
 watchDebounced(
 	() => autocomplete.value?.query,
 	(val) => {
 		val = val || ''
 		if (text.value === val) return
 		text.value = val
-		reload(val)
+		reload()
 	},
 	{ debounce: 300, immediate: true },
 )
 
-watchDebounced(
-	() => props.doctype,
-	() => reload(''),
-	{ debounce: 300, immediate: true },
-)
+watchDebounced(() => props.doctype, reload, { debounce: 300, immediate: true })
 
-const options = createResource({
-	url: 'frappe.desk.search.search_link',
-	cache: [props.doctype, text.value],
-	method: 'POST',
-	params: {
-		txt: text.value,
-		doctype: props.doctype,
-		filters: props.filters,
-	},
-	transform: (data) => {
-		return data.map((option) => {
-			return {
-				label: option.value,
-				value: option.value,
-				description: option.description,
-			}
-		})
-	},
-})
-
-function reload(val) {
-	options.update({
-		params: {
-			txt: val,
-			doctype: props.doctype,
-			filters: props.filters,
-		},
-	})
-	options.reload()
-}
+watch(() => props.filters, reload)
 
 const labelClasses = computed(() => [
 	{

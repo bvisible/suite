@@ -102,6 +102,19 @@ const routes = [
 		component: () => import('@/pages/dashboard/MailAliasesView.vue'),
 		meta: { isDashboard: true },
 	},
+	{
+		path: '/dashboard/groups',
+		name: 'Groups',
+		component: () => import('@/pages/dashboard/MailGroupsView.vue'),
+		meta: { isDashboard: true },
+	},
+	{
+		path: '/dashboard/groups/:groupName',
+		name: 'Group',
+		component: () => import('@/pages/dashboard/MailGroupView.vue'),
+		props: true,
+		meta: { isDashboard: true },
+	},
 ]
 
 const router = createRouter({

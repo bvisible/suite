@@ -74,7 +74,7 @@ const getAlias = () =>
 		setValue: {
 			onSuccess: () => {
 				show.value = false
-				raiseToast(__('Mail Alias saved successfully'))
+				raiseToast(__('Alias saved successfully'))
 				emit('reload-aliases')
 			},
 			onError: (error) => {
