@@ -30,7 +30,6 @@ const pairElement = computed(() => {
 	return slide.value.elements[pairElementId.value]
 })
 
-// counters to keep track of how many times the element has been snapped to the center
 const prevDiffs = ref({
 	centerX: 0,
 	centerY: 0,
@@ -69,7 +68,8 @@ const visibilityMap = computed(() => {
 	}
 })
 
-const skip = ref(0)
+// when an element is snapped to a new position, enable movement after a few frames
+const skipFrames = ref(0)
 
 const guideStyles = computed(() => {
 	return {
@@ -312,15 +312,15 @@ const updateElementPosition = (dx, dy) => {
 
 	const didSnap = dx != updatedDx || dy != updatedDy
 
-	if (!skip.value)
+	if (!skipFrames.value)
 		activePosition.value = {
 			left: activePosition.value.left + updatedDx,
 			top: activePosition.value.top + updatedDy,
 		}
-	else skip.value -= 1
+	else skipFrames.value -= 1
 
 	if (didSnap) {
-		skip.value = 15
+		skipFrames.value = 15
 	}
 }
 
