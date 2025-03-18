@@ -25,6 +25,8 @@
   "column_break_m8qz",
   "cluster_advertise_address",
   "cluster_heartbeat",
+  "tls_tab",
+  "tls_certificates",
   "listeners_tab",
   "listeners"
  ],
@@ -185,6 +187,18 @@
    "fieldname": "outbound_only",
    "fieldtype": "Check",
    "label": "Outbound Only"
+  },
+  {
+   "fieldname": "tls_tab",
+   "fieldtype": "Tab Break",
+   "label": "TLS"
+  },
+  {
+   "description": "Manage TLS certificates.",
+   "fieldname": "tls_certificates",
+   "fieldtype": "Table",
+   "label": "TLS Certificates",
+   "options": "Mail Server TLS Certificate"
   }
  ],
  "grid_page_length": 50,
@@ -196,7 +210,7 @@
    "link_fieldname": "server"
   }
  ],
- "modified": "2025-03-11 14:52:11.298876",
+ "modified": "2025-03-18 17:10:12.505897",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server",

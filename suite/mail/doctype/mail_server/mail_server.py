@@ -32,6 +32,8 @@ class MailServer(Document):
 		self.validate_server()
 		self.validate_cluster()
 		self.validate_cluster_node_id()
+		self.validate_tls_certificates()
+		self.validate_listeners()
 
 	def after_insert(self) -> None:
 		self.generate_config()
@@ -96,6 +98,45 @@ class MailServer(Document):
 					frappe.bold(self.cluster_node_id)
 				)
 			)
+
+	def validate_tls_certificates(self) -> None:
+		"""Validates the TLS Certificates."""
+
+		default_count = 0
+		certificate_ids = []
+		for tls in self.tls_certificates:
+			if tls.default:
+				default_count += 1
+
+			if tls.certificate_id in certificate_ids:
+				frappe.throw(
+					_("Row #{0}: Certificate ID {1} is duplicated.").format(
+						tls.idx, frappe.bold(tls.certificate_id)
+					)
+				)
+			certificate_ids.append(tls.certificate_id)
+
+			if not tls.certificate and not tls.certificate_path:
+				frappe.throw(_("Row #{0}: Certificate or Certificate Path is required.").format(tls.idx))
+			if not tls.private_key and not tls.private_key_path:
+				frappe.throw(_("Row #{0}: Private Key or Private Key Path is required.").format(tls.idx))
+
+		if default_count > 1:
+			frappe.throw(_("Only one TLS Certificate can be default."))
+
+	def validate_listeners(self) -> None:
+		"""Validates the listeners."""
+
+		listener_ids = []
+		for listener in self.listeners:
+			if listener.listener_id in listener_ids:
+				frappe.throw(
+					_("Row #{0}: Listener ID {1} is duplicated.").format(
+						listener.idx, frappe.bold(listener.listener_id)
+					)
+				)
+
+			listener_ids.append(listener.listener_id)
 
 	@frappe.whitelist()
 	def generate_config(self) -> None:
