@@ -243,7 +243,7 @@ watch(
 		if (oldVal.length) {
 			resetSelection(oldVal)
 		}
-		if (val.length >= 1) {
+		if (val.length) {
 			document.removeEventListener('mouseup', endSelection)
 			handleSelection(val)
 		}
