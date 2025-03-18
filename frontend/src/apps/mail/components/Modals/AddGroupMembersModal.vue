@@ -71,10 +71,14 @@ const currentMembers = useList({
 	doctype: 'Mail Group Member',
 	immediate: false,
 	fields: ['member_name as name'],
-	filters: { mail_group: group, member_type: type },
+	filters: { mail_group: group },
 	limit: 1000,
-	cacheKey: ['groupMembers', group, type],
-	transform: (data) => data.map((member) => member.name),
+	cacheKey: ['groupMembers', group],
+	transform: (data) => {
+		data = data.map((member) => member.name)
+		data.push(group)
+		return data
+	},
 })
 
 const addMembers = createResource({
