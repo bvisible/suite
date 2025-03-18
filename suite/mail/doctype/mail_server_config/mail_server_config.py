@@ -96,6 +96,9 @@ def get_config_toml(server: str) -> str | None:
 	def format_value_or_zero(value: int, postfix: str) -> str | int:
 		return f"{value}{postfix}" if value else 0
 
+	def wrap_in_triple_quotes(value: str) -> str:
+		return f"'''{value}'''"
+
 	def password_or_none(doc, field: str) -> str | None:
 		return doc.get_password(field) if doc.get(field) else None
 
@@ -117,6 +120,29 @@ def get_config_toml(server: str) -> str | None:
 			}
 			for listener in listeners
 		}
+
+	def get_tls_config(tls) -> dict:
+		cert = (
+			wrap_in_triple_quotes(tls.certificate)
+			if tls.certificate
+			else f"%{{file:{tls.certificate_path}}}%"
+		)
+		private_key = (
+			wrap_in_triple_quotes(tls.private_key)
+			if tls.private_key
+			else f"%{{file:{tls.private_key_path}}}%"
+		)
+		config = {
+			"default": bool(tls.default),
+			"cert": cert,
+			"private-key": private_key,
+			"subjects": split_lines_or_empty(tls.subjects),
+		}
+
+		return {tls.certificate_id: config}
+
+	def get_tls_certificates(tls_certificates: list) -> dict:
+		return {k: v for tls in tls_certificates for k, v in get_tls_config(tls).items()}
 
 	def get_seed_nodes(server: str, cluster: str) -> dict:
 		seed_nodes = [
@@ -311,6 +337,7 @@ def get_config_toml(server: str) -> str | None:
 				"reuse-port": True,
 			},
 		},
+		"certificate": get_tls_certificates(server.tls_certificates),
 		"cluster": {
 			"node-id": server.cluster_node_id,
 			"bind-addr": server.cluster_bind_address,
@@ -378,7 +405,10 @@ def get_config_toml(server: str) -> str | None:
 		if value or isinstance(value, bool):
 			match value:
 				case str():
-					toml_lines.append(f'{key} = "{value}"')
+					if key.startswith("certificate.") and value.startswith("'''") and value.endswith("'''"):
+						toml_lines.append(f"{key} = {value}")
+					else:
+						toml_lines.append(f'{key} = "{value}"')
 				case bool():
 					toml_lines.append(f"{key} = {str(value).lower()}")
 				case list():
