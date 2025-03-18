@@ -104,23 +104,17 @@
 						class="flex h-8 w-full items-center gap-3 justify-between rounded border bg-gray-50 p-[2px] px-2"
 					>
 						<div
-							v-for="(direction, index) in ['none', 'solid', 'dashed', 'dotted']"
+							v-for="(style, index) in ['none', 'solid', 'dashed', 'dotted']"
 							:key="index"
 							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="
-								activeElements[0].borderStyle == direction ? 'bg-white shadow' : ''
-							"
-							@click="activeElements[0].borderStyle = direction"
+							:class="activeElements[0].borderStyle == style ? 'bg-white shadow' : ''"
+							@click="addBorder(style)"
 						>
-							<Ban
-								v-if="direction == 'none'"
-								size="16"
-								class="stroke-[1.5] text-black"
-							/>
+							<Ban v-if="style == 'none'" size="16" class="stroke-[1.5] text-black" />
 							<div
 								v-else
 								class="h-4 w-5 rounded-sm border border-black"
-								:style="{ borderStyle: direction }"
+								:style="{ borderStyle: style }"
 							></div>
 						</div>
 					</div>
@@ -275,13 +269,12 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, slideIndex, slideFocus, selectSlide } from '@/stores/slide'
+import { slide, slideIndex, selectSlide } from '@/stores/slide'
 import { activeElements, addTextElement, addMediaElement } from '@/stores/element'
 
 const activeTab = computed(() => {
-	if (slideFocus.value) return 'slide'
-	if (!activeElements.value[0]) return null
-	return activeElements.value[0].type
+	if (activeElements.value[0]) return activeElements.value[0].type
+	return 'slide'
 })
 
 const getTabClasses = (tab) => {
@@ -363,6 +356,11 @@ const handleUploadSuccess = (file, type) => {
 
 const handleUploadFailure = () => {
 	toast.error('Upload failed. Please try again.')
+}
+
+const addBorder = (style) => {
+	activeElements.value[0].borderStyle = style
+	activeElements.value[0].borderWidth = 1
 }
 </script>
 

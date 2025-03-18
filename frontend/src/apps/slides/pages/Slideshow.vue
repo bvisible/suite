@@ -58,11 +58,11 @@ const slideCursor = ref('none')
 
 const slideStyles = computed(() => {
 	return {
-		width: '1440px',
-		height: '810px',
+		width: '960px',
+		height: '540px',
 		backgroundColor: slide.value.background || 'white',
 		cursor: slideCursor.value,
-		transform: transform.value,
+		transform: 'scale(1.5)',
 		transition: transition.value,
 		opacity: opacity.value,
 	}
@@ -146,12 +146,14 @@ const resetCursorVisibility = () => {
 	}, 5000)
 }
 
-const handleFullScreenChange = async () => {
+const handleFullScreenChange = () => {
+	inSlideShow.value = document.fullscreenElement != null
+
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
-		router.replace({ name: 'PresentationEditor', query: null })
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
+		router.replace({ name: 'PresentationEditor', query: null })
 	}
 }
 

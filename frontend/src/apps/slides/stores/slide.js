@@ -1,16 +1,13 @@
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
-import { presentationId, presentation, applyReverseTransition } from './presentation'
+import { presentationId, presentation, applyReverseTransition, inSlideShow } from './presentation'
 import { activeElementIds, activePosition, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
-const slideRect = ref(null)
-
 const slideIndex = ref(0)
-const slideFocus = ref(false)
 
 const slide = ref({
 	background: '#ffffff',
@@ -40,8 +37,8 @@ const getCurrentData = () => {
 	}
 
 	if (activePosition.value) {
-		const dx = activePosition.value.left - slideRect.value.left + 0.1
-		const dy = activePosition.value.top - slideRect.value.top + 2.1
+		const dx = activePosition.value.left - slideDimensions.left
+		const dy = activePosition.value.top - slideDimensions.top
 
 		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
 		elementsCopy.forEach((element, index) => {
@@ -66,6 +63,10 @@ const slideDirty = computed(() => {
 
 const getSlideThumbnail = async () => {
 	const slideRef = document.querySelector('.slide')
+	const scale = slideRef.getBoundingClientRect().width / 960
+	if (scale !== 1) {
+		return slide.value.thumbnail
+	}
 	const canvas = await html2canvas(slideRef)
 	return canvas.toDataURL('image/png')
 }
@@ -113,9 +114,8 @@ const saving = ref(false)
 const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
 	slide.value.elements = slide.value.elements.map((element, index) => {
-		let div = document.querySelector(`[data-index="${index}"]`)
-		element.width = div.offsetWidth + 4
-		element.left -= 2
+		let rect = document.querySelector(`[data-index="${index}"]`).getBoundingClientRect()
+		element.width = rect.width / slideDimensions.scale
 		return element
 	})
 	saving.value = true
@@ -169,16 +169,16 @@ const selectSlide = (e) => {
 	e.preventDefault()
 	e.stopPropagation()
 	resetFocus()
-	slideFocus.value = true
 }
+
+const slideDimensions = reactive({})
 
 export {
 	slideIndex,
 	slideDirty,
 	saving,
-	slideFocus,
 	slide,
-	slideRect,
+	slideDimensions,
 	getSlideThumbnail,
 	loadSlide,
 	saveChanges,
