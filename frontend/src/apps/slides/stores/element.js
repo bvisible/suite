@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { slideFocus, slide } from './slide'
+import { slide } from './slide'
 
 import { guessTextColorFromBackground } from '../utils/color'
 
@@ -31,7 +31,6 @@ const setActiveElements = (ids, focus = false) => {
 		activeElementIds.value = ids
 		focusElementId.value = null
 	}
-	slideFocus.value = false
 }
 
 const addTextElement = () => {
@@ -141,6 +140,32 @@ const resetFocus = () => {
 	pairElementId.value = null
 }
 
+const toggleTextProperty = (property, value) => {
+	const oldStyle = activeElements.value[0][property]
+	let newStyle = ''
+
+	switch (property) {
+		case 'fontWeight':
+			newStyle = oldStyle == 'bold' ? 'normal' : 'bold'
+			break
+		case 'fontStyle':
+			newStyle = oldStyle == 'italic' ? 'normal' : 'italic'
+			break
+		case 'textTransform':
+			newStyle = oldStyle == 'uppercase' ? 'none' : 'uppercase'
+			break
+		default:
+			if (!oldStyle) {
+				newStyle = value
+				break
+			}
+			newStyle = oldStyle.includes(value)
+				? oldStyle.replace(value, '')
+				: oldStyle + ' ' + value
+	}
+	slide.value.elements[activeElementIds.value[0]][property] = newStyle
+}
+
 export {
 	activePosition,
 	activeDimensions,
@@ -155,4 +180,5 @@ export {
 	duplicateElements,
 	deleteElements,
 	selectAllElements,
+	toggleTextProperty,
 }

@@ -2,9 +2,9 @@
 	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
 		<div ref="target" :style="targetStyles">
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox @updateFocus="updateFocus" :scale="scale" />
+				<SelectionBox @updateFocus="updateFocus" />
 
-				<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
+				<AlignmentGuides ref="guides" v-if="showGuides" />
 
 				<component
 					ref="element"
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
@@ -49,14 +49,14 @@ import SelectionBox from './SelectionBox.vue'
 import { presentation } from '@/stores/presentation'
 import {
 	slideIndex,
-	slideFocus,
 	slide,
 	insertSlide,
 	deleteSlide,
 	duplicateSlide,
-	slideRect,
 	loadSlide,
+	selectSlide,
 	getSlideThumbnail,
+	slideDimensions,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -83,8 +83,6 @@ const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
 const guides = useTemplateRef('guides')
 
-slideRect.value = useElementBounding(slideRef)
-
 const { isDragging, dragTarget, movement } = useDragAndDrop()
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
@@ -97,7 +95,7 @@ const slideClasses = computed(() => {
 
 	const outlineClasses = props.highlight ? ['outline', 'outline-1.5', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-300'] : []
-	const cursorClasses = activeElementIds.value.length ? ['cursor-move'] : ['cursor-default']
+	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
 
 	return [...classes, outlineClasses, shadowClasses, cursorClasses]
 })
@@ -120,22 +118,6 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const selectSlide = (e) => {
-	e.preventDefault()
-	e.stopPropagation()
-	if (isResizing.value) {
-		isResizing.value = false
-		return
-	}
-	if (focusElementId.value) {
-		slide.value.elements[focusElementId.value].content = document.querySelector(
-			`[data-index="${focusElementId.value}"]`,
-		).innerText
-	}
-	resetFocus()
-	slideFocus.value = true
-}
-
 const addDragAndResize = () => {
 	let el = document.querySelector('.groupDiv')
 	if (!el) return
@@ -156,12 +138,21 @@ const removeDragAndResize = (val) => {
 }
 
 const updateFocus = (e) => {
-	if (e.target.classList.contains('slide')) {
-		selectSlide(e)
-	} else if (e.target == props.containerRef) {
-		resetFocus()
-		slideFocus.value = false
+	if (isResizing.value) {
+		isResizing.value = false
+		return
 	}
+	selectSlide(e)
+}
+
+const updateSlideDimensions = () => {
+	const slideRect = slideRef.value.getBoundingClientRect()
+
+	slideDimensions.width = slideRect.width
+	slideDimensions.height = slideRect.height
+	slideDimensions.left = slideRect.left
+	slideDimensions.top = slideRect.top
+	slideDimensions.scale = scale.value
 }
 
 watch(
@@ -212,7 +203,6 @@ watch(
 
 		guides.value.updateElementPosition(x / scale.value, y / scale.value)
 	},
-	{ immediate: true },
 )
 
 watch(
@@ -227,6 +217,22 @@ watch(
 	},
 	{ immediate: true },
 )
+
+watch(
+	() => transform.value,
+	() => {
+		if (!transform.value) return
+		// wait for the new transform to render before updating dimensions
+		nextTick(() => {
+			updateSlideDimensions()
+		})
+	},
+)
+
+onMounted(() => {
+	if (!slideRef.value) return
+	updateSlideDimensions()
+})
 
 defineExpose({
 	guides,

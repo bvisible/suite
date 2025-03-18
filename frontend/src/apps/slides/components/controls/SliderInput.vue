@@ -13,10 +13,8 @@
 					@input="$emit('update:modelValue', $event.target.value)"
 				/>
 				<div
-					class="absolute top-0 h-full rounded border border-black bg-black"
-					:style="{
-						width: `${((modelValue - rangeStart) / (rangeEnd - rangeStart)) * 100}%`,
-					}"
+					class="absolute top-0 h-full rounded border bg-black border-black"
+					:style="highlightStyles"
 				></div>
 			</div>
 			<input
@@ -31,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef, computed } from 'vue'
 
 const props = defineProps({
 	label: String,
@@ -59,6 +57,27 @@ const changeValue = (e) => {
 	const value = parseFloat(e.target.value)
 	emit('update:modelValue', Math.max(props.rangeStart, Math.min(props.rangeEnd, value)))
 }
+
+const highlightStyles = computed(() => {
+	const { rangeStart, rangeEnd, modelValue: val } = props
+
+	let left = 0
+	let width = 0
+
+	if (rangeStart < 0) {
+		left = Math.abs(rangeStart)
+		if (val <= 0) left -= Math.abs(val)
+		width = Math.abs(val)
+	} else {
+		left = 0
+		width = val - rangeStart
+	}
+
+	return {
+		left: `${(left / (rangeEnd - rangeStart)) * 100}%`,
+		width: `${(width / (rangeEnd - rangeStart)) * 100}%`,
+	}
+})
 </script>
 <style scoped>
 input::-webkit-outer-spin-button,
