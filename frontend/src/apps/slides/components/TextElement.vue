@@ -4,6 +4,7 @@
 		:contenteditable="focusElementId == $attrs['data-index']"
 		:style="textStyle"
 		@click="selectElement"
+		@focus="setCursorPosition"
 		@blur="handleBlur"
 	>
 		{{ element.content }}
@@ -11,7 +12,7 @@
 </template>
 
 <script setup>
-import { computed, useAttrs } from 'vue'
+import { computed, nextTick, useAttrs } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, setActiveElements } from '@/stores/element'
@@ -57,6 +58,21 @@ const setFocusElement = (e) => {
 	e.stopPropagation()
 	if (focusElementId.value == attrs['data-index']) return
 	setActiveElements([attrs['data-index']], true)
+	nextTick(() => {
+		e.target.focus()
+	})
+}
+
+const setCursorPosition = (e) => {
+	const range = document.createRange()
+	const selection = window.getSelection()
+
+	range.selectNodeContents(e.target)
+	// set cursor to end of text
+	range.collapse(false)
+
+	selection.removeAllRanges()
+	selection.addRange(range)
 }
 
 const handleBlur = (e) => {

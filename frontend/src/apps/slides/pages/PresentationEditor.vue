@@ -49,6 +49,7 @@ import SlideContainer from '@/components/SlideContainer.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import {
+	slide,
 	slideIndex,
 	slideDirty,
 	saving,
@@ -67,6 +68,8 @@ import {
 	addMediaElement,
 	selectAllElements,
 	activePosition,
+	activeElements,
+	toggleTextProperty,
 } from '@/stores/element'
 
 let autosaveInterval = null
@@ -116,6 +119,12 @@ const handleElementShortcuts = (e) => {
 		case 'd':
 			if (e.metaKey) duplicateElements(e)
 			break
+		case 'i':
+			if (e.metaKey) toggleTextProperty('fontStyle', 'italic')
+			break
+		case 'u':
+			if (e.metaKey) toggleTextProperty('textDecoration', 'underline')
+			break
 	}
 }
 
@@ -146,7 +155,11 @@ const handleGlobalShortcuts = (e) => {
 			addTextElement()
 			break
 		case 'b':
-			if (e.metaKey) showNavigator.value = !showNavigator.value
+			if (e.metaKey) {
+				if (activeElementIds.value.length && activeElements.value[0].type == 'text')
+					return toggleTextProperty('fontWeight', 'bold')
+				showNavigator.value = !showNavigator.value
+			}
 			break
 		case 'a':
 			if (e.metaKey) selectAllElements()
@@ -223,7 +236,7 @@ watch(
 )
 
 const handleAutoSave = () => {
-	if (activeElementIds.value.length) return
+	if (activeElementIds.value.length || focusElementId.value != null) return
 	saveChanges()
 }
 
@@ -234,6 +247,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	clearInterval(autosaveInterval)
+	resetFocus()
 	document.removeEventListener('keydown', handleKeyDown)
 })
 </script>

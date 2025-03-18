@@ -9,7 +9,7 @@
 				:class="
 					activeElements[0][style.property]?.includes(style.value) ? 'bg-gray-200' : ''
 				"
-				@click="toggleProperty(style.property, style.value)"
+				@click="toggleTextProperty(style.property, style.value)"
 			>
 				<component :is="style.icon" size="18" :strokeWidth="1.5" />
 			</button>
@@ -106,7 +106,7 @@ import NumberInput from './controls/NumberInput.vue'
 import ColorPicker from './controls/ColorPicker.vue'
 
 import { slide } from '@/stores/slide'
-import { activeElementIds, activeElements } from '@/stores/element'
+import { activeElementIds, activeElements, toggleTextProperty } from '@/stores/element'
 
 const sectionClasses = 'flex flex-col gap-4 border-b p-4'
 const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
@@ -156,32 +156,6 @@ const styleProperties = [
 		icon: CaseUpper,
 	},
 ]
-
-const toggleProperty = (property, value) => {
-	const oldStyle = activeElements.value[0][property]
-	let newStyle = ''
-
-	switch (property) {
-		case 'fontWeight':
-			newStyle = oldStyle == 'bold' ? 'normal' : 'bold'
-			break
-		case 'fontStyle':
-			newStyle = oldStyle == 'italic' ? 'normal' : 'italic'
-			break
-		case 'textTransform':
-			newStyle = oldStyle == 'uppercase' ? 'none' : 'uppercase'
-			break
-		default:
-			if (!oldStyle) {
-				newStyle = value
-				break
-			}
-			newStyle = oldStyle.includes(value)
-				? oldStyle.replace(value, '')
-				: oldStyle + ' ' + value
-	}
-	slide.value.elements[activeElementIds.value[0]][property] = newStyle
-}
 </script>
 
 <style scoped>
