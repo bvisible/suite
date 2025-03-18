@@ -1,4 +1,4 @@
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
 import { presentationId, presentation, applyReverseTransition, inSlideShow } from './presentation'
@@ -6,8 +6,6 @@ import { activeElementIds, activePosition, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
-
-const slideRect = ref(null)
 
 const slideIndex = ref(0)
 
@@ -39,8 +37,8 @@ const getCurrentData = () => {
 	}
 
 	if (activePosition.value) {
-		const dx = activePosition.value.left - slideRect.value.left
-		const dy = activePosition.value.top - slideRect.value.top
+		const dx = activePosition.value.left - slideDimensions.left
+		const dy = activePosition.value.top - slideDimensions.top
 
 		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
 		elementsCopy.forEach((element, index) => {
@@ -168,12 +166,14 @@ const selectSlide = (e) => {
 	resetFocus()
 }
 
+const slideDimensions = reactive({})
+
 export {
 	slideIndex,
 	slideDirty,
 	saving,
 	slide,
-	slideRect,
+	slideDimensions,
 	getSlideThumbnail,
 	loadSlide,
 	saveChanges,

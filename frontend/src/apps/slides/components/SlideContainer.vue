@@ -2,7 +2,7 @@
 	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
 		<div ref="target" :style="targetStyles">
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox @updateFocus="updateFocus" :scale="scale" />
+				<SelectionBox @updateFocus="updateFocus" />
 
 				<AlignmentGuides ref="guides" v-if="showGuides" :scale="scale" />
 
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
@@ -53,10 +53,10 @@ import {
 	insertSlide,
 	deleteSlide,
 	duplicateSlide,
-	slideRect,
 	loadSlide,
 	selectSlide,
 	getSlideThumbnail,
+	slideDimensions,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -82,8 +82,6 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
 const guides = useTemplateRef('guides')
-
-slideRect.value = useElementBounding(slideRef)
 
 const { isDragging, dragTarget, movement } = useDragAndDrop()
 const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
@@ -145,6 +143,16 @@ const updateFocus = (e) => {
 		return
 	}
 	selectSlide(e)
+}
+
+const updateSlideDimensions = () => {
+	const slideRect = slideRef.value.getBoundingClientRect()
+
+	slideDimensions.width = slideRect.width
+	slideDimensions.height = slideRect.height
+	slideDimensions.left = slideRect.left
+	slideDimensions.top = slideRect.top
+	slideDimensions.scale = scale.value
 }
 
 watch(
@@ -209,6 +217,19 @@ watch(
 	},
 	{ immediate: true },
 )
+
+watch(
+	() => transform.value,
+	() => {
+		if (!transform.value) return
+		updateSlideDimensions()
+	},
+)
+
+onMounted(() => {
+	if (!slideRef.value) return
+	updateSlideDimensions()
+})
 
 defineExpose({
 	guides,
