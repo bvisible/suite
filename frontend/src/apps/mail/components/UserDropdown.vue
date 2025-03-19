@@ -60,13 +60,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
 	ArrowRightLeft,
 	ChevronDown,
-	Home,
-	LayoutDashboard,
+	Crown,
 	LogOut,
+	Mailbox,
 	Settings as SettingsIcon,
 } from 'lucide-vue-next'
 import { Dropdown } from 'frappe-ui'
@@ -79,6 +79,7 @@ import SettingsModal from '@/components/Modals/SettingsModal.vue'
 
 const { logout, branding } = sessionStore()
 const { userResource } = userStore()
+const route = useRoute()
 const router = useRouter()
 
 const showSettings = ref(false)
@@ -92,16 +93,30 @@ defineProps({
 
 const userDropdownOptions = [
 	{
-		icon: Home,
-		label: 'Home',
+		icon: Mailbox,
+		label: 'Mailbox',
 		onClick: () => router.push('/'),
-		condition: () => userResource.data.is_mail_admin && userResource.data.default_outgoing,
+		condition: () =>
+			userResource.data.is_mail_admin &&
+			userResource.data.default_outgoing &&
+			route.meta.isDashboard,
 	},
 	{
-		icon: LayoutDashboard,
+		icon: Crown,
 		label: 'Admin Dashboard',
 		onClick: () => router.push('/dashboard'),
-		condition: () => userResource.data.is_mail_admin && userResource.data.default_outgoing,
+		condition: () =>
+			userResource.data.is_mail_admin &&
+			userResource.data.default_outgoing &&
+			!route.meta.isDashboard,
+	},
+	{
+		icon: SettingsIcon,
+		label: 'Settings',
+		onClick: () => {
+			showSettings.value = true
+		},
+		condition: () => !userResource.data.is_tenant_owner,
 	},
 	{
 		icon: ArrowRightLeft,
@@ -114,14 +129,6 @@ const userDropdownOptions = [
 			const system_user = cookies.get('system_user')
 			return system_user === 'yes'
 		},
-	},
-	{
-		icon: SettingsIcon,
-		label: 'Settings',
-		onClick: () => {
-			showSettings.value = true
-		},
-		condition: () => !userResource.data.is_tenant_owner,
 	},
 	{
 		icon: LogOut,
