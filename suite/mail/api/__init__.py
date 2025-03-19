@@ -39,6 +39,6 @@ def get_apps():
 			"route": "/app",
 		}
 	]
-	app_list += filter(lambda app: app.get("name") != "mail", apps)
+	app_list += [app for app in apps if app.get("name") != "mail"]
 
 	return app_list
