@@ -2,9 +2,13 @@
 	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
 		<div ref="target" :style="targetStyles">
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox @updateFocus="updateFocus" />
+				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" />
 
-				<AlignmentGuides ref="guides" v-if="showGuides" />
+				<AlignmentGuides
+					v-if="showGuides"
+					ref="guides"
+					:selectedRef="selectionBoxRef.$el"
+				/>
 
 				<component
 					ref="element"
@@ -81,6 +85,7 @@ const router = useRouter()
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
+const selectionBoxRef = useTemplateRef('selectionBox')
 const guides = useTemplateRef('guides')
 
 const { isDragging, dragTarget, movement } = useDragAndDrop()
@@ -94,7 +99,7 @@ const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
 	const outlineClasses = props.highlight ? ['outline', 'outline-1.5', 'outline-blue-400'] : []
-	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-300'] : []
+	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
 	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
 
 	return [...classes, outlineClasses, shadowClasses, cursorClasses]
@@ -119,7 +124,7 @@ const scale = computed(() => {
 })
 
 const addDragAndResize = () => {
-	let el = document.querySelector('.groupDiv')
+	let el = selectionBoxRef.value.$el
 	if (!el) return
 	nextTick(() => {
 		dragTarget.value = el
@@ -162,10 +167,6 @@ watch(
 			addDragAndResize()
 		} else if (oldVal) {
 			removeDragAndResize(oldVal)
-
-			nextTick(async () => {
-				slide.value.thumbnail = await getSlideThumbnail()
-			})
 		}
 	},
 	{ immediate: true },
@@ -189,7 +190,7 @@ watch(
 	() => {
 		const currentSlide = presentation.data?.slides[slideIndex.value]
 		if (!currentSlide) return
-		loadSlide(currentSlide)
+		loadSlide()
 	},
 	{ immediate: true },
 )

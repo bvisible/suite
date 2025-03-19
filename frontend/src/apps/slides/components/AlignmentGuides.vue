@@ -13,12 +13,11 @@ import { useElementBounding } from '@vueuse/core'
 import { slide, slideDimensions } from '@/stores/slide'
 import { activePosition, activeElementIds, pairElementId } from '@/stores/element'
 
-const PROXIMITY_THRESHOLD = 15
-
-const activeDiv = computed(() => {
-	if (activeElementIds.value.length == 0) return
-	return document.querySelector('.groupDiv')
+const props = defineProps({
+	selectedRef: Object,
 })
+
+const PROXIMITY_THRESHOLD = 15
 
 const pairedDiv = computed(() => {
 	return document.querySelector(`[data-index="${pairElementId.value}"]`)
@@ -91,7 +90,7 @@ const commonGuideStyles = {
 const getVerticalGuideStyles = (direction) => {
 	if (!pairElement.value || !activePosition.value || !visibilityMap.value[direction]) return ''
 
-	const activeBounds = getElementBounds(activeDiv.value)
+	const activeBounds = getElementBounds(props.selectedRef)
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const left = direction == 'left' ? activeBounds.left - 1 : activeBounds.right
@@ -117,7 +116,7 @@ const rightGuideStyles = computed(() => getVerticalGuideStyles('right'))
 const getHorizontalGuideStyles = (direction, diffWithPaired) => {
 	if (!pairElement.value || !activePosition.value || !visibilityMap.value[direction]) return ''
 
-	const activeBounds = getElementBounds(activeDiv.value)
+	const activeBounds = getElementBounds(props.selectedRef)
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const top = direction == 'top' ? activeBounds.top - 1 : activeBounds.bottom
@@ -220,7 +219,7 @@ const getDiffFromCenter = (axis) => {
 	if (!activePosition.value) return
 	let slideCenter, elementCenter
 
-	const activeBounds = getElementBounds(activeDiv.value)
+	const activeBounds = getElementBounds(props.selectedRef)
 
 	if (axis == 'X') {
 		slideCenter = slideDimensions.width / slideDimensions.scale / 2
@@ -257,9 +256,9 @@ const setCurrentDiffs = () => {
 		if (activeElementIds.value.includes(index)) return
 
 		const elementDiv = document.querySelector(`[data-index="${index}"]`)
-		if (!elementDiv || !activeDiv.value) return
+		if (!elementDiv || !props.selectedRef) return
 
-		const activeBounds = getElementBounds(activeDiv.value)
+		const activeBounds = getElementBounds(props.selectedRef)
 		const elementBounds = getElementBounds(elementDiv)
 
 		const diffLeft = activeBounds.left - elementBounds.left
