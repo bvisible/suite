@@ -1,5 +1,5 @@
 <template>
-	<div v-show="width" ref="groupDiv" class="groupDiv" :style="boxStyles"></div>
+	<div v-show="width" ref="selected" :style="boxStyles"></div>
 </template>
 
 <script setup>
@@ -15,7 +15,7 @@ import {
 
 const emit = defineEmits(['updateFocus'])
 
-const groupDiv = useTemplateRef('groupDiv')
+const selectedRef = useTemplateRef('selected')
 
 const top = ref(0)
 const left = ref(0)
@@ -183,7 +183,7 @@ const handleSelection = (val) => {
 	// move multiple elements to group div after setting position relative to the selection box
 	val.forEach((index) => {
 		const elementDiv = document.querySelector(`[data-index="${index}"]`)
-		groupDiv.value?.appendChild(elementDiv)
+		selectedRef.value?.appendChild(elementDiv)
 	})
 }
 
@@ -281,9 +281,5 @@ onBeforeUnmount(() => {
 	document.removeEventListener('mousedown', handleMouseDown)
 	document.removeEventListener('mouseleave', handleMouseLeave)
 	document.removeEventListener('mouseup', handleMouseUp)
-})
-
-defineExpose({
-	resetSelection,
 })
 </script>
