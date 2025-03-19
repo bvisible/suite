@@ -26,14 +26,9 @@
 						>
 							<ListRowItem :item="item">
 								<Badge
-									v-if="column.key == 'enabled'"
-									:theme="item ? 'green' : 'red'"
-									:label="item ? 'Enabled' : 'Disabled'"
-								/>
-								<FeatherIcon
-									v-else-if="column.key == 'is_verified'"
-									:name="item ? 'check' : 'x'"
-									class="h-4 w-4"
+									v-if="column.key == 'status'"
+									:theme="getTheme(item)"
+									:label="item"
 								/>
 							</ListRowItem>
 						</ListRow>
@@ -51,7 +46,6 @@ import {
 	Badge,
 	Breadcrumbs,
 	Button,
-	FeatherIcon,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -74,11 +68,7 @@ const LIST_COLUMNS = [
 	},
 	{
 		label: __('Status'),
-		key: 'enabled',
-	},
-	{
-		label: __('Verified'),
-		key: 'is_verified',
+		key: 'status',
 	},
 ]
 
@@ -95,5 +85,13 @@ const domains = useList({
 	filters: { tenant: user.data?.tenant },
 	limit: 100,
 	cacheKey: ['mailTenantDomains', user.data?.tenant],
+	transform: (data) =>
+		data.map((row) => ({
+			...row,
+			status: row.is_verified ? 'Verified' : row.enabled ? 'Not Verified' : 'Disabled',
+		})),
 })
+
+const getTheme = (status: 'Verified' | 'Not Verified' | 'Disabled') =>
+	status === 'Verified' ? 'green' : status === 'Not Verified' ? 'orange' : 'gray'
 </script>
