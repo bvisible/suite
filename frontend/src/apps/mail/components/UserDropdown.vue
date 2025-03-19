@@ -61,19 +61,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-	ArrowRightLeft,
-	ChevronDown,
-	Crown,
-	LogOut,
-	Mailbox,
-	Settings as SettingsIcon,
-} from 'lucide-vue-next'
+import { ChevronDown, Crown, LogOut, Mailbox, Settings as SettingsIcon } from 'lucide-vue-next'
 import { Dropdown } from 'frappe-ui'
 
 import { convertToTitleCase } from '@/utils'
 import { sessionStore } from '@/stores/session'
 import { userStore } from '@/stores/user'
+import AppsMenu from '@/components//AppsMenu.vue'
 import MailLogo from '@/components/Icons/MailLogo.vue'
 import SettingsModal from '@/components/Modals/SettingsModal.vue'
 
@@ -84,17 +78,12 @@ const router = useRouter()
 
 const showSettings = ref(false)
 
-defineProps({
-	isCollapsed: {
-		type: Boolean,
-		default: false,
-	},
-})
+defineProps<{ isCollapsed?: boolean }>()
 
 const userDropdownOptions = [
 	{
 		icon: Mailbox,
-		label: 'Mailbox',
+		label: __('Mailbox'),
 		onClick: () => router.push('/'),
 		condition: () =>
 			userResource.data.is_mail_admin &&
@@ -103,7 +92,7 @@ const userDropdownOptions = [
 	},
 	{
 		icon: Crown,
-		label: 'Admin Dashboard',
+		label: __('Admin Dashboard'),
 		onClick: () => router.push('/dashboard'),
 		condition: () =>
 			userResource.data.is_mail_admin &&
@@ -112,22 +101,17 @@ const userDropdownOptions = [
 	},
 	{
 		icon: SettingsIcon,
-		label: 'Settings',
+		label: __('Settings'),
 		onClick: () => {
 			showSettings.value = true
 		},
 		condition: () => !userResource.data.is_tenant_owner,
 	},
 	{
-		icon: ArrowRightLeft,
-		label: 'Switch to Desk',
-		onClick: () => {
-			window.location.href = '/app'
-		},
+		component: AppsMenu,
 		condition: () => {
 			const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
-			const system_user = cookies.get('system_user')
-			return system_user === 'yes'
+			return cookies.get('system_user') === 'yes'
 		},
 	},
 	{
