@@ -8,7 +8,7 @@ import type { Folder, UserResource } from '@/types'
 
 export const userStore = defineStore('mail-users', () => {
 	const userResource: UserResource = createResource({
-		url: 'mail.api.mail.get_user_info',
+		url: 'mail.api.account.get_user_info',
 		onError: (error) => {
 			if (error && error.exc_type === 'AuthenticationError') {
 				router.push('/login')
