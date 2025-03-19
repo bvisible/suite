@@ -1,7 +1,7 @@
 app_name = "slides"
 app_title = "Slides"
 app_publisher = "Frappe Technologies Pvt. Ltd."
-app_description = "Open Source App to help you create presentations"
+app_description = "Tool to create and present slideshows."
 app_email = "gursheen@frappe.io"
 app_license = "mit"
 # required_apps = []
@@ -48,6 +48,10 @@ app_license = "mit"
 # role_home_page = {
 # 	"Role": "home_page"
 # }
+
+website_route_rules = [
+	{"from_route": "/slides/<path:app_path>", "to_route": "slides"},
+]
 
 # Generators
 # ----------
