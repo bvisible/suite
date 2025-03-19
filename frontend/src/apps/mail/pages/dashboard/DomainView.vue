@@ -3,13 +3,16 @@
 		<header
 			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 		>
-			<Breadcrumbs :items="BREADCRUMBS" />
+			<div class="flex items-center space-x-2">
+				<Breadcrumbs :items="BREADCRUMBS" />
+				<Badge :label="badge.label" :theme="badge.theme" />
+			</div>
 			<div class="flex space-x-2">
 				<Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
 				<Button
 					v-if="!domain.doc.is_verified"
 					variant="solid"
-					:label="__(domain.doc.enabled ? 'Verify DNS Records' : 'Enable')"
+					:label="__(domain.doc.enabled ? 'Verify' : 'Enable')"
 					@click="
 						domain.doc.enabled
 							? domain.verifyDnsRecords.submit()
@@ -18,27 +21,42 @@
 				/>
 			</div>
 		</header>
-		<div class="m-6">
-			<ListView
-				class="flex-1"
-				:columns="LIST_COLUMNS"
-				:rows="domain.doc.dns_records"
-				:options="{ selectable: false }"
-				row-key="name"
-			>
-				<ListHeader />
-				<ListRows>
-					<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
-						<template #default="{ item }">
-							<ListRowItem>
-								<div class="cursor-copy" @click="copyToClipBoard(item)">
-									{{ item }}
-								</div>
-							</ListRowItem>
-						</template>
-					</ListRow>
-				</ListRows>
-			</ListView>
+		<div class="m-6 space-y-6">
+			<transition name="expand">
+				<div
+					v-if="domain.doc.enabled && !domain.doc.is_verified"
+					class="overflow-hidden rounded-md border bg-blue-50"
+				>
+					<div class="space-y-2 p-4">
+						<h3 class="font-medium">{{ BANNER.title }}</h3>
+						<p>{{ BANNER.message }}</p>
+						<p class="text-sm text-gray-500">{{ BANNER.subtitle }}</p>
+					</div>
+				</div>
+			</transition>
+			<div class="space-y-4 rounded-md border p-4">
+				<h2>{{ __('DNS Records') }}</h2>
+				<ListView
+					class="flex-1"
+					:columns="LIST_COLUMNS"
+					:rows="domain.doc.dns_records"
+					:options="{ selectable: false }"
+					row-key="name"
+				>
+					<ListHeader />
+					<ListRows>
+						<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
+							<template #default="{ item }">
+								<ListRowItem>
+									<div class="cursor-copy" @click="copyToClipBoard(item)">
+										{{ item }}
+									</div>
+								</ListRowItem>
+							</template>
+						</ListRow>
+					</ListRows>
+				</ListView>
+			</div>
 		</div>
 	</div>
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
@@ -73,7 +91,7 @@ const domain = createDocumentResource({
 	name: props.domainName,
 	setValue: {
 		onSuccess: () => {
-			showConfirmDialog.value = false
+			if (showConfirmDialog.value) showConfirmDialog.value = false
 			raiseToast(__('Domain settings updated.'))
 		},
 		onError: (error) => {
@@ -133,6 +151,14 @@ const BREADCRUMBS = [
 
 const confirmDialogAction = ref<'refreshDnsRecords' | 'rotateDkimKeys' | 'disableDomain'>(
 	'refreshDnsRecords',
+)
+
+const badge = computed(() =>
+	domain.doc.is_verified
+		? { label: __('Verified'), theme: 'green' }
+		: domain.doc.enabled
+			? { label: __('Not Verified'), theme: 'orange' }
+			: { label: __('Disabled'), theme: 'gray' },
 )
 
 const confirmDialogOptions = computed(() => {
@@ -209,4 +235,24 @@ const LIST_COLUMNS = [
 	{ label: 'Value', key: 'value', width: '50%' },
 	{ label: 'TTL (Recommended)', key: 'ttl', width: '10%' },
 ]
+
+const BANNER = {
+	title: __('Verify your DNS Records'),
+	message: __(
+		"Add the following records to your domain's DNS settings. Then click on 'Verify' to complete your domain setup.",
+	),
+	subtitle: __('Note: DNS changes may take up to 48 hours to propagate globally.'),
+}
 </script>
+
+<style scoped>
+.expand-enter-active,
+.expand-leave-active {
+	@apply max-h-full opacity-100 transition-all duration-700 ease-linear;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+	@apply max-h-0 p-0 opacity-0;
+}
+</style>
