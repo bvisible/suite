@@ -20,7 +20,7 @@ function translate(message: string, variables?: string[]) {
 
 function fetchTranslations() {
 	createResource({
-		url: 'mail.api.mail.get_translations',
+		url: 'mail.api.get_translations',
 		cache: 'translations',
 		auto: true,
 		transform: (data) => {
