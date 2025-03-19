@@ -1,5 +1,7 @@
 import frappe
+from frappe.apps import get_apps as get_permitted_apps
 from frappe.translate import get_all_translations
+from frappe.utils.caching import redis_cache
 
 
 @frappe.whitelist(allow_guest=True)
@@ -23,3 +25,20 @@ def get_translations() -> dict:
 		language = frappe.db.get_single_value("System Settings", "language")
 
 	return get_all_translations(language)
+
+
+@frappe.whitelist()
+@redis_cache()
+def get_apps():
+	apps = get_permitted_apps()
+	app_list = [
+		{
+			"name": "frappe",
+			"logo": "/assets/mail/images/desk.png",
+			"title": "Desk",
+			"route": "/app",
+		}
+	]
+	app_list += filter(lambda app: app.get("name") != "mail", apps)
+
+	return app_list
