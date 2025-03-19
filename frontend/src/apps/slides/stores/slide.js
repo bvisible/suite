@@ -147,11 +147,8 @@ const deleteSlide = async () => {
 		index: slideIndex.value,
 	})
 	await presentation.reload()
-	const newIndex =
-		slideIndex.value === presentation.data.slides.length
-			? slideIndex.value - 1
-			: slideIndex.value
-	await changeSlide(newIndex, false)
+	if (slideIndex.value == presentation.data.slides.length)
+		await changeSlide(slideIndex.value - 1, false)
 }
 
 const duplicateSlide = async (e) => {
