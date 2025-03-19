@@ -2,9 +2,13 @@
 	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
 		<div ref="target" :style="targetStyles">
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox @updateFocus="updateFocus" />
+				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" />
 
-				<AlignmentGuides ref="guides" v-if="showGuides" />
+				<AlignmentGuides
+					v-if="showGuides"
+					ref="guides"
+					:selectedRef="selectionBoxRef.$el"
+				/>
 
 				<component
 					ref="element"
@@ -81,6 +85,7 @@ const router = useRouter()
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
+const selectionBoxRef = useTemplateRef('selectionBox')
 const guides = useTemplateRef('guides')
 
 const { isDragging, dragTarget, movement } = useDragAndDrop()
@@ -119,7 +124,7 @@ const scale = computed(() => {
 })
 
 const addDragAndResize = () => {
-	let el = document.querySelector('.groupDiv')
+	let el = selectionBoxRef.value.$el
 	if (!el) return
 	nextTick(() => {
 		dragTarget.value = el
