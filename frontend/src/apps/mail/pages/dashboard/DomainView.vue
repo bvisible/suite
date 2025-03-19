@@ -5,155 +5,78 @@
 		>
 			<Breadcrumbs :items="BREADCRUMBS" />
 			<div class="flex space-x-2">
-				<Dropdown :options="DROPDOWN_OPTIONS" :button="{ icon: 'more-horizontal' }" />
+				<Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
 				<Button
+					v-if="!domain.doc.is_verified"
 					variant="solid"
-					:loading="domain.save.loading"
-					:disabled="JSON.stringify(domain.doc) === JSON.stringify(domain.originalDoc)"
-					:label="__('Save')"
-					@click="domain.save.submit()"
+					:label="__(domain.doc.enabled ? 'Verify DNS Records' : 'Enable')"
+					@click="
+						domain.doc.enabled
+							? domain.verifyDnsRecords.submit()
+							: domain.setValue.submit({ enabled: 1 })
+					"
 				/>
 			</div>
 		</header>
-		<div class="m-6 space-y-6">
-			<div class="grid grid-cols-1 rounded-md border sm:grid-cols-2">
-				<div class="border-r p-4">
-					<Switch v-model="domain.doc.enabled" :label="__('Enabled')" />
-					<Switch
-						v-model="domain.doc.is_verified"
-						:label="__('Verified')"
-						:disabled="true"
-					/>
-					<Switch
-						v-if="domain.doc.is_subdomain"
-						v-model="domain.doc.is_subdomain"
-						:label="__('Subdomain')"
-						:disabled="true"
-					/>
-					<Switch
-						v-if="domain.doc.is_root_domain"
-						v-model="domain.doc.is_root_domain"
-						:label="__('Root Domain')"
-						:disabled="true"
-					/>
-				</div>
-				<div class="my-1.5 space-y-3 p-4">
-					<HorizontalControl :label="__('Mail Tenant')" :disabled="true">
-						<FormControl v-model="user.data.tenant_name" :disabled="true" />
-					</HorizontalControl>
-					<HorizontalControl :label="__('DKIM RSA Key Size')">
-						<FormControl
-							v-model="domain.doc.dkim_rsa_key_size"
-							type="select"
-							:options="[
-								{ label: '2048', value: 2048 },
-								{ label: '4096', value: 4096 },
-							]"
-						/>
-					</HorizontalControl>
-					<HorizontalControl :label="__('Newsletter Retention (Days)')">
-						<FormControl
-							v-model="domain.doc.newsletter_retention"
-							type="number"
-							min="1"
-							max="7"
-							@update:model-value="
-								domain.doc.newsletter_retention = +domain.doc.newsletter_retention
-							"
-						/>
-					</HorizontalControl>
-				</div>
-			</div>
-			<div class="rounded-md border p-4">
-				<ListView
-					class="flex-1"
-					:columns="LIST_COLUMNS"
-					:rows="domain.doc.dns_records"
-					:options="{ selectable: false }"
-					row-key="name"
-				>
-					<ListHeader />
-					<ListRows>
-						<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
-							<template #default="{ item }">
-								<ListRowItem>
-									<div class="cursor-copy" @click="copyToClipBoard(item)">
-										{{ item }}
-									</div>
-								</ListRowItem>
-							</template>
-						</ListRow>
-					</ListRows>
-				</ListView>
-			</div>
+		<div class="m-6">
+			<ListView
+				class="flex-1"
+				:columns="LIST_COLUMNS"
+				:rows="domain.doc.dns_records"
+				:options="{ selectable: false }"
+				row-key="name"
+			>
+				<ListHeader />
+				<ListRows>
+					<ListRow v-for="row in domain.doc.dns_records" :key="row.name" :row="row">
+						<template #default="{ item }">
+							<ListRowItem>
+								<div class="cursor-copy" @click="copyToClipBoard(item)">
+									{{ item }}
+								</div>
+							</ListRowItem>
+						</template>
+					</ListRow>
+				</ListRows>
+			</ListView>
 		</div>
 	</div>
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
+	Badge,
 	Breadcrumbs,
 	Button,
 	Dialog,
 	Dropdown,
-	FormControl,
 	ListHeader,
 	ListRow,
 	ListRowItem,
 	ListRows,
 	ListView,
-	Switch,
 	createDocumentResource,
 } from 'frappe-ui'
 
 import { copyToClipBoard, raiseToast } from '@/utils'
-import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
 
 const props = defineProps<{ domainName: string }>()
 
-const user = inject('$user')
 const router = useRouter()
 
 const showConfirmDialog = ref(false)
-const confirmDialogAction = ref('')
-
-const confirmDialogOptions = computed(() => ({
-	title: __(
-		confirmDialogAction.value === 'refreshDnsRecords'
-			? 'Refresh DNS Records'
-			: 'Rotate DKIM Keys',
-	),
-	message: __(
-		confirmDialogAction.value === 'refreshDnsRecords'
-			? `Are you sure you want to refresh the DNS records? If there are any changes, you'll need to update the DNS settings with your DNS provider accordingly.`
-			: `Are you sure you want to rotate the DKIM keys? This will generate new keys for email signing and may take up to 10 minutes to propagate across DNS servers. Emails sent during this period may fail DKIM verification.`,
-	),
-	size: 'xl',
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick:
-				confirmDialogAction.value === 'refreshDnsRecords'
-					? domain.refreshDnsRecords.submit
-					: domain.rotateDkimKeys.submit,
-		},
-	],
-}))
 
 const domain = createDocumentResource({
 	doctype: 'Mail Domain',
 	name: props.domainName,
-	transform(data) {
-		for (const d of ['enabled', 'is_verified', 'is_subdomain', 'is_root_domain'])
-			data[d] = !!data[d]
-	},
 	setValue: {
-		onSuccess: () => raiseToast(__('Domain settings saved successfully')),
-		onError(error) {
+		onSuccess: () => {
+			showConfirmDialog.value = false
+			raiseToast(__('Domain settings updated.'))
+		},
+		onError: (error) => {
 			raiseToast(error.messages[0], 'error')
 			domain.reload()
 		},
@@ -208,18 +131,53 @@ const BREADCRUMBS = [
 	{ label: props.domainName },
 ]
 
-const DROPDOWN_OPTIONS = [
-	{
-		label: __('View in Desk'),
-		icon: 'external-link',
-		onClick: () => {
-			window.open(`/app/mail-domain/${props.domainName}`, '_blank').focus()
+const confirmDialogAction = ref<'refreshDnsRecords' | 'rotateDkimKeys' | 'disableDomain'>(
+	'refreshDnsRecords',
+)
+
+const confirmDialogOptions = computed(() => {
+	const config = {
+		refreshDnsRecords: {
+			title: __('Refresh DNS Records'),
+			message: __(
+				`Are you sure you want to refresh the DNS records? If there are any changes, you'll need to update the DNS settings with your DNS provider accordingly.`,
+			),
+			action: domain.refreshDnsRecords.submit,
 		},
-	},
+		rotateDkimKeys: {
+			title: __('Rotate DKIM Keys'),
+			message: __(
+				`Are you sure you want to rotate the DKIM keys? This will generate new keys for email signing and may take up to 10 minutes to propagate across DNS servers. Emails sent during this period may fail DKIM verification.`,
+			),
+			action: domain.rotateDkimKeys.submit,
+		},
+		disableDomain: {
+			title: __('Disable Domain'),
+			message: __(
+				`Are you sure you want to disable this domain? Email services for this domain will stop working immediately.`,
+			),
+			action: () => domain.setValue.submit({ enabled: 0 }),
+		},
+	}[confirmDialogAction.value]
+
+	return {
+		title: config.title,
+		message: config.message,
+		size: 'xl',
+		icon: { name: 'alert-triangle', appearance: 'warning' },
+		actions: [{ label: __('Confirm'), variant: 'solid', onClick: config.action }],
+	}
+})
+
+const dropdownOptions = computed(() => [
 	{
-		label: __('Verify DNS Records'),
-		icon: 'check-square',
-		onClick: domain.verifyDnsRecords.submit,
+		label: __('Disable Domain'),
+		icon: 'eye-off',
+		onClick: () => {
+			confirmDialogAction.value = 'disableDomain'
+			showConfirmDialog.value = true
+		},
+		condition: () => domain.doc.enabled,
 	},
 	{
 		label: __('Refresh DNS Records'),
@@ -237,33 +195,18 @@ const DROPDOWN_OPTIONS = [
 			showConfirmDialog.value = true
 		},
 	},
-]
+	{
+		label: __('View in Desk'),
+		icon: 'external-link',
+		onClick: () => window.open(`/app/mail-domain/${props.domainName}`, '_blank')?.focus(),
+	},
+])
 
 const LIST_COLUMNS = [
-	{
-		label: 'Type',
-		key: 'type',
-		width: '10%',
-	},
-	{
-		label: 'Host',
-		key: 'host',
-		width: '20%',
-	},
-	{
-		label: 'Priority',
-		key: 'priority',
-		width: '10%',
-	},
-	{
-		label: 'Value',
-		key: 'value',
-		width: '50%',
-	},
-	{
-		label: 'TTL (Recommended)',
-		key: 'ttl',
-		width: '10%',
-	},
+	{ label: 'Type', key: 'type', width: '10%' },
+	{ label: 'Host', key: 'host', width: '20%' },
+	{ label: 'Priority', key: 'priority', width: '10%' },
+	{ label: 'Value', key: 'value', width: '50%' },
+	{ label: 'TTL (Recommended)', key: 'ttl', width: '10%' },
 ]
 </script>
