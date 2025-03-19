@@ -3,3 +3,7 @@
 html {
 	@apply text-gray-900;
 }
+
+h2 {
+	@apply text-lg font-medium;
+}
