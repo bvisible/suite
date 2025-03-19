@@ -6,7 +6,7 @@
 		</div>
 		<div class="rounded-md border">
 			<div class="border-b px-6 py-4">
-				<h3 class="text-lg font-medium">{{ __('Message Information') }}</h3>
+				<h2>{{ __('Message Information') }}</h2>
 			</div>
 			<div
 				v-for="[key, value] of Object.entries(mime.data)"

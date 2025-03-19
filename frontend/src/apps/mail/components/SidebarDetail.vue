@@ -1,23 +1,23 @@
 <template>
 	<div class="space-y-1 p-2.5">
 		<div class="flex items-center justify-between">
-			<h2 class="mr-1 flex items-center truncate">
+			<h3 class="mr-1 flex items-center truncate">
 				<span v-if="!mail.seen" class="mr-1.5 h-2 w-2 rounded-full bg-blue-500" />
 				<span class="truncate font-semibold" :class="{ italic: !mail.subject }">
 					{{ mail.subject || __('[No subject]') }}
 				</span>
-			</h2>
+			</h3>
 			<MailDate :datetime="mail.creation" :in-list="true" />
 		</div>
-		<h3 class="snippet line-clamp-1 text-xs">
+		<h4 class="snippet line-clamp-1 text-xs">
 			{{ mail.display_name ? mail.display_name : mail.sender }}
-		</h3>
-		<h4
+		</h4>
+		<h5
 			class="snippet line-clamp-2 h-9 text-xs text-gray-600"
 			:class="{ italic: !mail.snippet }"
 		>
 			{{ mail.snippet || __('— No message body —') }}
-		</h4>
+		</h5>
 		<div class="flex items-center">
 			<!-- <div class="flex rounded bg-gray-100 p-1 text-gray-700">
 				<Paperclip class="mr-1 h-3.5 w-3.5" />
