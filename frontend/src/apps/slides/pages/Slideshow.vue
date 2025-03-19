@@ -16,8 +16,7 @@
 				<div
 					:key="slideIndex"
 					:style="slideStyles"
-					@click="changeSlide(slideIndex + 1)"
-					class="slide"
+					@click="changeSlide(slideIndex + 1, false)"
 				>
 					<component
 						v-for="(element, index) in slide.elements"
@@ -160,9 +159,9 @@ const handleFullScreenChange = () => {
 
 const handleKeyDown = (e) => {
 	if (e.key == 'ArrowRight' || e.key == 'ArrowDown') {
-		changeSlide(slideIndex.value + 1)
+		changeSlide(slideIndex.value + 1, false)
 	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
-		changeSlide(slideIndex.value - 1)
+		changeSlide(slideIndex.value - 1, false)
 	}
 }
 
@@ -195,7 +194,7 @@ watch(
 
 		const currentSlide = presentation.data.slides[slideIndex.value]
 		if (!currentSlide) return
-		loadSlide(currentSlide)
+		loadSlide()
 	},
 	{ immediate: true },
 )

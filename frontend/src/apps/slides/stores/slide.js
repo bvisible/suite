@@ -17,8 +17,8 @@ const slide = ref({
 })
 
 const getSavedData = () => {
-	if (!presentation.data) return {}
-	const currentSlide = presentation.data.slides[slideIndex.value]
+	const currentSlide = presentation.data?.slides[slideIndex.value]
+	if (!currentSlide) return {}
 
 	return {
 		elements: JSON.parse(currentSlide.elements || '[]'),
@@ -84,7 +84,7 @@ const updateSlideState = async () => {
 	}
 }
 
-const loadSlide = (index) => {
+const loadSlide = () => {
 	const { background, transition, transition_duration, elements, thumbnail } =
 		presentation.data.slides[slideIndex.value]
 
@@ -97,14 +97,15 @@ const loadSlide = (index) => {
 	}
 }
 
-const changeSlide = async (index) => {
+const changeSlide = async (index, updateCurrent = true) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
 	resetFocus()
 	applyReverseTransition.value = index < slideIndex.value
-	await nextTick(async () => {
-		if (!inSlideShow.value) await updateSlideState()
+
+	nextTick(async () => {
+		if (updateCurrent) await updateSlideState()
 		slideIndex.value = index
-		loadSlide(slideIndex.value)
+		loadSlide()
 	})
 }
 
@@ -146,7 +147,8 @@ const deleteSlide = async () => {
 		index: slideIndex.value,
 	})
 	await presentation.reload()
-	await changeSlide(slideIndex.value - 1)
+	if (slideIndex.value == presentation.data.slides.length)
+		await changeSlide(slideIndex.value - 1, false)
 }
 
 const duplicateSlide = async (e) => {
