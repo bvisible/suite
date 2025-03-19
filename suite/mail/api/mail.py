@@ -5,72 +5,12 @@ from typing import Literal
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
-from frappe.translate import get_all_translations
 from frappe.utils import is_html, now
 
-from mail.utils.cache import get_account_for_user, get_default_outgoing_email_for_user
-from mail.utils.user import get_user_email_addresses, has_role, is_system_manager
+from mail.utils.cache import get_account_for_user
+from mail.utils.user import get_user_email_addresses
 
 MailType = Literal["Incoming Mail", "Outgoing Mail"]
-
-
-def check_app_permission() -> bool:
-	"""Returns True if the user has permission to access the app."""
-
-	user = frappe.session.user
-	return has_role(user, "Mail User") or is_system_manager(user)
-
-
-@frappe.whitelist(allow_guest=True)
-def get_branding() -> dict:
-	"""Returns branding information."""
-
-	return {
-		"brand_name": frappe.db.get_single_value("Website Settings", "app_name"),
-		"brand_html": frappe.db.get_single_value("Website Settings", "brand_html"),
-		"favicon": frappe.db.get_single_value("Website Settings", "favicon"),
-	}
-
-
-@frappe.whitelist(allow_guest=True)
-def get_user_info() -> dict:
-	"""Returns user information."""
-
-	if frappe.session.user == "Guest":
-		return None
-
-	user = frappe.db.get_value(
-		"User",
-		frappe.session.user,
-		["name", "email", "enabled", "user_image", "full_name", "user_type", "username", "api_key"],
-		as_dict=1,
-	)
-	user["roles"] = frappe.get_roles(user.name)
-	user.tenant = frappe.db.get_value("Mail Tenant Member", {"user": frappe.session.user}, "tenant")
-	user.is_mail_user = "Mail User" in user.roles
-	user.is_mail_admin = "Mail Admin" in user.roles
-
-	if user.tenant:
-		user.tenant_name, tenant_owner = frappe.db.get_value(
-			"Mail Tenant", user.tenant, ["tenant_name", "user"]
-		)
-		user.is_tenant_owner = tenant_owner == frappe.session.user
-
-	user.default_outgoing = get_default_outgoing_email_for_user(frappe.session.user)
-
-	return user
-
-
-@frappe.whitelist(allow_guest=True)
-def get_translations() -> dict:
-	"""Returns translations for the current user's language."""
-
-	if frappe.session.user != "Guest":
-		language = frappe.db.get_value("User", frappe.session.user, "language")
-	else:
-		language = frappe.db.get_single_value("System Settings", "language")
-
-	return get_all_translations(language)
 
 
 @frappe.whitelist()
