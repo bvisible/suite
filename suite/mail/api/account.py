@@ -3,6 +3,7 @@ from frappe import _
 from frappe.utils import cint, get_datetime, now_datetime
 
 from mail.mail.doctype.mail_account.mail_account import create_user
+from mail.utils.cache import get_default_outgoing_email_for_user
 from mail.utils.rate_limiter import dynamic_rate_limit
 
 
@@ -78,3 +79,32 @@ def create_account(request_key: str, first_name: str, last_name: str, password: 
 
 	else:
 		create_user(account_request.email, first_name, last_name, password, ["Mail Admin"])
+
+
+@frappe.whitelist(allow_guest=True)
+def get_user_info() -> dict:
+	"""Returns user information."""
+
+	if frappe.session.user == "Guest":
+		return None
+
+	user = frappe.db.get_value(
+		"User",
+		frappe.session.user,
+		["name", "email", "enabled", "user_image", "full_name", "user_type", "username", "api_key"],
+		as_dict=1,
+	)
+	user["roles"] = frappe.get_roles(user.name)
+	user.tenant = frappe.db.get_value("Mail Tenant Member", {"user": frappe.session.user}, "tenant")
+	user.is_mail_user = "Mail User" in user.roles
+	user.is_mail_admin = "Mail Admin" in user.roles
+
+	if user.tenant:
+		user.tenant_name, tenant_owner = frappe.db.get_value(
+			"Mail Tenant", user.tenant, ["tenant_name", "user"]
+		)
+		user.is_tenant_owner = tenant_owner == frappe.session.user
+
+	user.default_outgoing = get_default_outgoing_email_for_user(frappe.session.user)
+
+	return user
