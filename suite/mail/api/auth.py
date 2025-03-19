@@ -1,7 +1,14 @@
 import frappe
 from frappe import _
 
-from mail.utils.user import get_user_email_addresses, has_role
+from mail.utils.user import get_user_email_addresses, has_role, is_system_manager
+
+
+def check_app_permission() -> bool:
+	"""Returns True if the user has permission to access the app."""
+
+	user = frappe.session.user
+	return has_role(user, "Mail User") or is_system_manager(user)
 
 
 @frappe.whitelist(methods=["POST"])

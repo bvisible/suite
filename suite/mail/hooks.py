@@ -315,6 +315,6 @@ add_to_apps_screen = [
 		"logo": "/assets/mail/images/logo.svg",
 		"title": "Mail",
 		"route": "/mail",
-		"has_permission": "mail.api.mail.check_app_permission",
+		"has_permission": "mail.api.auth.check_app_permission",
 	}
 ]
