@@ -4,6 +4,20 @@
 		:button-label="__('Add Group')"
 		:button-action="() => (showAddGroup = true)"
 	>
+		<div class="flex items-center space-x-3">
+			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+				<template #prefix>
+					<FeatherIcon name="search" class="w-4 text-gray-600" />
+				</template>
+			</FormControl>
+			<FormControl
+				v-model="status"
+				:placeholder="__('Status')"
+				class="w-40"
+				type="select"
+				:options="STATUS_OPTIONS"
+			/>
+		</div>
 		<ListView
 			v-if="groups?.data"
 			ref="listView"
@@ -51,10 +65,13 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue'
+import { useDebounce } from '@vueuse/core'
 import {
 	Badge,
 	Button,
 	Dialog,
+	FeatherIcon,
+	FormControl,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -73,6 +90,10 @@ import AddGroupModal from '@/components/Modals/AddGroupModal.vue'
 const user = inject('$user')
 
 const listView = ref(null)
+
+const search = ref('')
+const debouncedSearch = useDebounce(search, 500)
+const status = ref<'Enabled' | 'Disabled' | ''>('')
 
 const showAddGroup = ref(false)
 const showDeleteGroups = ref(false)
@@ -94,17 +115,24 @@ const LIST_COLUMNS = [
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No groups created.') },
+	emptyState: { description: __('No groups found.') },
 	getRowRoute: (row) => ({ name: 'Group', params: { groupName: row.name } }),
 }
 
 const groups = useList({
 	doctype: 'Mail Group',
 	fields: ['name', 'display_name', 'enabled'],
-	filters: { tenant: user.data?.tenant },
+	filters: () => {
+		const filters: Record<string, string | string[] | number> = {
+			tenant: user.data?.tenant,
+			name: ['like', debouncedSearch.value],
+		}
+		if (status.value) filters.enabled = status.value === 'Enabled' ? 1 : 0
+		return filters
+	},
 	orderBy: 'email asc',
 	limit: 100,
-	cacheKey: ['mailTenantGroups', user.data?.tenant],
+	cacheKey: ['mailTenantGroups', user.data?.tenant, debouncedSearch.value, status.value],
 })
 
 const deleteGroups = createResource({
@@ -133,4 +161,10 @@ const deleteGroupsOptions = {
 		},
 	],
 }
+
+const STATUS_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Enabled'), value: 'Enabled' },
+	{ label: __('Disabled'), value: 'Disabled' },
+]
 </script>

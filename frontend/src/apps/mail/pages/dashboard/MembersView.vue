@@ -200,7 +200,7 @@ const LIST_OPTIONS = {
 	selectable: false,
 	showTooltip: false,
 	rowHeight: 50,
-	emptyState: { description: __('No results found') },
+	emptyState: { description: __('No members found.') },
 }
 
 const ROLE_OPTIONS = [
