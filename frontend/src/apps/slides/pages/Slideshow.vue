@@ -153,7 +153,7 @@ const handleFullScreenChange = () => {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-		router.replace({ name: 'PresentationEditor', query: null })
+		router.replace({ name: 'PresentationEditor' })
 	}
 }
 
@@ -179,7 +179,9 @@ const initFullscreenMode = async () => {
 	const fullscreenMethod = fullscreenMethods.find((method) => method)
 
 	if (fullscreenMethod) {
-		fullscreenMethod.call(container)
+		fullscreenMethod.call(container).catch((e) => {
+			router.replace({ name: 'PresentationEditor' })
+		})
 		inSlideShow.value = true
 	}
 }
