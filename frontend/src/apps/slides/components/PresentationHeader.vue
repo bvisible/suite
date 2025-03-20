@@ -64,7 +64,7 @@ const renamePresentationDoc = async (newName) => {
 const saveTitle = async () => {
 	if (newTitle.value && newTitle.value != presentation.data.title) {
 		let nameSlug = await renamePresentationDoc(newTitle.value)
-		await router.push({
+		router.replace({
 			name: 'PresentationEditor',
 			params: { presentationId: nameSlug },
 		})
