@@ -28,7 +28,21 @@
 					</HorizontalControl>
 				</div>
 			</div>
-			<div class="flex flex-1 flex-col rounded-md border p-4">
+			<div class="flex flex-1 flex-col space-y-4 rounded-md border p-4">
+				<div class="flex items-center space-x-3">
+					<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+						<template #prefix>
+							<FeatherIcon name="search" class="w-4 text-gray-600" />
+						</template>
+					</FormControl>
+					<FormControl
+						v-model="type"
+						:placeholder="__('Member Type')"
+						class="w-40"
+						type="select"
+						:options="TYPE_OPTIONS"
+					/>
+				</div>
 				<ListView
 					v-if="members?.data"
 					ref="listView"
@@ -79,11 +93,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useDebounce } from '@vueuse/core'
 import { User, Users } from 'lucide-vue-next'
 import {
 	Button,
 	Dialog,
 	Dropdown,
+	FeatherIcon,
 	FormControl,
 	ListEmptyState,
 	ListHeader,
@@ -109,6 +125,10 @@ const router = useRouter()
 
 const listView = ref(null)
 
+const search = ref('')
+const debouncedSearch = useDebounce(search, 500)
+const type = ref<'Mail Account' | 'Mail Group' | ''>('')
+
 const addType = ref<'Mail Account' | 'Mail Group'>('Mail Account')
 const showAddMembers = ref(false)
 const showRemoveMembers = ref(false)
@@ -132,10 +152,17 @@ const group = createDocumentResource({
 const members = useList({
 	doctype: 'Mail Group Member',
 	fields: ['name', 'member_type', 'member_name'],
-	filters: { mail_group: groupName },
+	filters: () => {
+		const filters: Record<string, string | string[]> = {
+			mail_group: groupName,
+			member_name: ['like', `%${debouncedSearch.value}%`],
+		}
+		if (type.value) filters.member_type = type.value
+		return filters
+	},
 	orderBy: 'member_name asc',
 	limit: 100,
-	cacheKey: ['mailGroupMembers', groupName],
+	cacheKey: ['mailGroupMembers', groupName, debouncedSearch.value, type.value],
 })
 
 const deleteMembers = createResource({
@@ -193,5 +220,11 @@ const ADD_OPTIONS = [
 			showAddMembers.value = true
 		},
 	},
+]
+
+const TYPE_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Member'), value: 'Mail Account' },
+	{ label: __('Group'), value: 'Mail Group' },
 ]
 </script>
