@@ -221,7 +221,6 @@ const startSlideShow = async () => {
 	router.replace({
 		name: 'Slideshow',
 		params: { presentationId: presentationId.value },
-		query: { present: true },
 	})
 }
 
