@@ -98,27 +98,6 @@ const status = ref<'Enabled' | 'Disabled' | ''>('')
 const showAddGroup = ref(false)
 const showDeleteGroups = ref(false)
 
-const LIST_COLUMNS = [
-	{
-		label: __('Group Email'),
-		key: 'name',
-	},
-	{
-		label: __('Display Name'),
-		key: 'display_name',
-	},
-	{
-		label: __('Status'),
-		key: 'enabled',
-	},
-]
-
-const LIST_OPTIONS = {
-	showTooltip: false,
-	emptyState: { description: __('No groups found.') },
-	getRowRoute: (row) => ({ name: 'Group', params: { groupName: row.name } }),
-}
-
 const groups = useList({
 	doctype: 'Mail Group',
 	fields: ['name', 'display_name', 'enabled'],
@@ -160,6 +139,18 @@ const deleteGroupsOptions = {
 			onClick: deleteGroups.submit,
 		},
 	],
+}
+
+const LIST_COLUMNS = [
+	{ label: __('Group Email'), key: 'name' },
+	{ label: __('Display Name'), key: 'display_name' },
+	{ label: __('Status'), key: 'enabled' },
+]
+
+const LIST_OPTIONS = {
+	showTooltip: false,
+	emptyState: { description: __('No groups found.') },
+	getRowRoute: (row) => ({ name: 'Group', params: { groupName: row.name } }),
 }
 
 const STATUS_OPTIONS = [
