@@ -98,6 +98,7 @@ const options = createResource({
 const reload = () => {
 	if (!attrs.disabled) options.reload()
 }
+
 watchDebounced(
 	() => autocomplete.value?.query,
 	(val) => {

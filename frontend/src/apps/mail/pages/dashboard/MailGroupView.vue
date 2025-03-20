@@ -24,7 +24,7 @@
 				/>
 			</div>
 		</header>
-		<div class="m-6 flex flex-1 flex-col space-y-6">
+		<div class="m-5 flex flex-1 flex-col space-y-6">
 			<div v-if="group.doc" class="grid grid-cols-1 rounded-md border sm:grid-cols-2">
 				<div class="border-r p-4">
 					<Switch v-model="group.doc.enabled" :label="__('Enabled')" />
