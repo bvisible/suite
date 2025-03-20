@@ -200,7 +200,7 @@ const LIST_COLUMNS = [
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No members have been added to this group.') },
+	emptyState: { description: __('No group members found.') },
 }
 
 const ADD_OPTIONS = [
@@ -224,7 +224,7 @@ const ADD_OPTIONS = [
 
 const TYPE_OPTIONS = [
 	{ label: '', value: '' },
-	{ label: __('Member'), value: 'Mail Account' },
+	{ label: __('User'), value: 'Mail Account' },
 	{ label: __('Group'), value: 'Mail Group' },
 ]
 </script>

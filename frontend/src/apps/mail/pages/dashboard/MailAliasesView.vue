@@ -182,7 +182,7 @@ const LIST_OPTIONS = {
 
 const TYPE_OPTIONS = [
 	{ label: '', value: '' },
-	{ label: __('Member'), value: 'Mail Account' },
+	{ label: __('User'), value: 'Mail Account' },
 	{ label: __('Group'), value: 'Mail Group' },
 ]
 
