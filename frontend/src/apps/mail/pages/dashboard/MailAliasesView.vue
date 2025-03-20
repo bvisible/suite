@@ -4,6 +4,27 @@
 		:button-label="__('Add Alias')"
 		:button-action="() => (showAddAlias = true)"
 	>
+		<div class="flex items-center space-x-3">
+			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+				<template #prefix>
+					<FeatherIcon name="search" class="w-4 text-gray-600" />
+				</template>
+			</FormControl>
+			<FormControl
+				v-model="type"
+				:placeholder="__('Alias For')"
+				class="w-40"
+				type="select"
+				:options="TYPE_OPTIONS"
+			/>
+			<FormControl
+				v-model="status"
+				:placeholder="__('Status')"
+				class="w-40"
+				type="select"
+				:options="STATUS_OPTIONS"
+			/>
+		</div>
 		<ListView
 			v-if="aliases?.data"
 			ref="listView"
@@ -57,10 +78,13 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue'
+import { watchDebounced } from '@vueuse/core'
 import {
 	Badge,
 	Button,
 	Dialog,
+	FeatherIcon,
+	FormControl,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -81,42 +105,42 @@ const user = inject('$user')
 
 const listView = ref(null)
 
+const search = ref('')
+const debouncedSearch = ref('')
+const type = ref<'Mail Account' | 'Mail Group' | ''>('')
+const status = ref<'Enabled' | 'Disabled' | ''>('')
 const selectedMailAlias = ref('')
 const showAddAlias = ref(false)
 const showEditAlias = ref(false)
 const showDeleteAliases = ref(false)
 
-const LIST_COLUMNS = [
-	{
-		label: __('Alias'),
-		key: 'name',
-	},
-	{
-		label: __('Alias For'),
-		key: 'alias_for_name',
-	},
-	{
-		label: __('Status'),
-		key: 'enabled',
-	},
-]
-
-const LIST_OPTIONS = {
-	showTooltip: false,
-	emptyState: { description: __('No aliases created.') },
-	onRowClick: (row) => {
-		selectedMailAlias.value = row.name
-		showEditAlias.value = true
-	},
-}
+watchDebounced(
+	() => search.value,
+	() => (debouncedSearch.value = search.value),
+	{ debounce: 500 },
+)
 
 const aliases = useList({
 	doctype: 'Mail Alias',
 	fields: ['name', 'alias_for_name', 'enabled'],
-	filters: { tenant: user.data?.tenant },
+	filters: () => {
+		const filters: Record<string, string | string[] | number> = {
+			tenant: user.data?.tenant,
+			name: ['like', debouncedSearch.value],
+		}
+		if (type.value) filters.alias_for_type = type.value
+		if (status.value) filters.enabled = status.value === 'Enabled' ? 1 : 0
+		return filters
+	},
 	orderBy: 'email asc',
 	limit: 100,
-	cacheKey: ['mailTenantAliases', user.data?.tenant],
+	cacheKey: [
+		'mailTenantAliases',
+		user.data?.tenant,
+		debouncedSearch.value,
+		type.value,
+		status.value,
+	],
 })
 
 const deleteAliases = createResource({
@@ -145,4 +169,31 @@ const deleteAliasesOptions = {
 		},
 	],
 }
+
+const LIST_COLUMNS = [
+	{ label: __('Alias'), key: 'name' },
+	{ label: __('Alias For'), key: 'alias_for_name' },
+	{ label: __('Status'), key: 'enabled' },
+]
+
+const LIST_OPTIONS = {
+	showTooltip: false,
+	emptyState: { description: __('No aliases created.') },
+	onRowClick: (row) => {
+		selectedMailAlias.value = row.name
+		showEditAlias.value = true
+	},
+}
+
+const TYPE_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Member'), value: 'Mail Account' },
+	{ label: __('Group'), value: 'Mail Group' },
+]
+
+const STATUS_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Enabled'), value: 'Enabled' },
+	{ label: __('Disabled'), value: 'Disabled' },
+]
 </script>
