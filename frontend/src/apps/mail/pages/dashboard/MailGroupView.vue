@@ -1,30 +1,23 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
-		>
-			<div class="flex items-center space-x-2">
-				<Breadcrumbs :items="BREADCRUMBS" />
-				<Badge
-					v-if="group.originalDoc"
-					:label="group.originalDoc.enabled ? 'Enabled' : 'Disabled'"
-					:theme="group.originalDoc.enabled ? 'green' : 'red'"
-				/>
-			</div>
-			<div class="flex items-center space-x-2">
-				<Dropdown v-if="group.originalDoc" :options="ADD_OPTIONS">
-					<Button icon="plus" :disabled="!group.originalDoc.enabled" />
-				</Dropdown>
-				<Button
-					variant="solid"
-					:label="__('Save')"
-					:loading="group.save.loading"
-					:disabled="JSON.stringify(group.doc) === JSON.stringify(group.originalDoc)"
-					@click="group.save.submit()"
-				/>
-			</div>
-		</header>
-		<div class="m-5 flex flex-1 flex-col space-y-6">
+	<DashboardLayout
+		v-if="group.originalDoc"
+		:breadcrumbs="BREADCRUMBS"
+		:badge-label="group.originalDoc.enabled ? 'Enabled' : 'Disabled'"
+		:badge-theme="group.originalDoc.enabled ? 'green' : 'red'"
+	>
+		<template #actions>
+			<Dropdown :options="ADD_OPTIONS">
+				<Button icon="plus" :disabled="!group.originalDoc.enabled" />
+			</Dropdown>
+			<Button
+				variant="solid"
+				:label="__('Save')"
+				:loading="group.save.loading"
+				:disabled="JSON.stringify(group.doc) === JSON.stringify(group.originalDoc)"
+				@click="group.save.submit()"
+			/>
+		</template>
+		<template #default>
 			<div v-if="group.doc" class="grid grid-cols-1 rounded-md border sm:grid-cols-2">
 				<div class="border-r p-4">
 					<Switch v-model="group.doc.enabled" :label="__('Enabled')" />
@@ -71,8 +64,8 @@
 					</ListSelectBanner>
 				</ListView>
 			</div>
-		</div>
-	</div>
+		</template>
+	</DashboardLayout>
 
 	<AddGroupMembersModal
 		v-model="showAddMembers"
@@ -88,8 +81,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Users } from 'lucide-vue-next'
 import {
-	Badge,
-	Breadcrumbs,
 	Button,
 	Dialog,
 	Dropdown,
@@ -109,6 +100,7 @@ import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
 import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
+import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddGroupMembersModal from '@/components/Modals/AddGroupMembersModal.vue'
 
 const { groupName } = defineProps<{ groupName: string }>()
@@ -172,7 +164,7 @@ const removeMembersOptions = {
 		},
 	],
 }
-const BREADCRUMBS = [{ label: __('Groups'), route: { name: 'Groups' } }, { label: groupName }]
+const BREADCRUMBS = [{ label: __('Groups'), route: '/dashboard/groups' }, { label: groupName }]
 
 const LIST_COLUMNS = [
 	{ label: __('Name'), key: 'member_name' },

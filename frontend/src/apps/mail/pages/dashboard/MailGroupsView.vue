@@ -1,54 +1,50 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
+	<DashboardLayout
+		:breadcrumbs="[{ label: __('Groups') }]"
+		:button-label="__('Add Group')"
+		:button-action="() => (showAddGroup = true)"
+	>
+		<ListView
+			v-if="groups?.data"
+			ref="listView"
+			class="flex-1"
+			:columns="LIST_COLUMNS"
+			:rows="groups.data"
+			:options="LIST_OPTIONS"
+			row-key="name"
 		>
-			<Breadcrumbs :items="[{ label: __('Groups') }]" />
-			<Button :label="__('Add Group')" icon-left="plus" @click="showAddGroup = true" />
-		</header>
-		<div class="m-5 flex flex-1 flex-col">
-			<ListView
-				v-if="groups?.data"
-				ref="listView"
-				class="flex-1"
-				:columns="LIST_COLUMNS"
-				:rows="groups.data"
-				:options="LIST_OPTIONS"
-				row-key="name"
-			>
-				<ListHeader />
-				<ListRows>
-					<template v-if="groups.data.length">
-						<ListRow
-							v-for="row in groups.data"
-							:key="row.name"
-							v-slot="{ column, item }"
-							:row="row"
-						>
-							<ListRowItem :item="item">
-								<Badge
-									v-if="column.key == 'enabled'"
-									:theme="item ? 'green' : 'red'"
-									:label="item ? 'Enabled' : 'Disabled'"
-								/>
-							</ListRowItem>
-						</ListRow>
-					</template>
-					<ListEmptyState v-else />
-				</ListRows>
-				<ListSelectBanner>
-					<template #actions>
-						<Button
-							variant="ghost"
-							theme="red"
-							:label="__('Delete')"
-							@click="showDeleteGroups = true"
-						/>
-					</template>
-				</ListSelectBanner>
-			</ListView>
-		</div>
-	</div>
+			<ListHeader />
+			<ListRows>
+				<template v-if="groups.data.length">
+					<ListRow
+						v-for="row in groups.data"
+						:key="row.name"
+						v-slot="{ column, item }"
+						:row="row"
+					>
+						<ListRowItem :item="item">
+							<Badge
+								v-if="column.key == 'enabled'"
+								:theme="item ? 'green' : 'red'"
+								:label="item ? 'Enabled' : 'Disabled'"
+							/>
+						</ListRowItem>
+					</ListRow>
+				</template>
+				<ListEmptyState v-else />
+			</ListRows>
+			<ListSelectBanner>
+				<template #actions>
+					<Button
+						variant="ghost"
+						theme="red"
+						:label="__('Delete')"
+						@click="showDeleteGroups = true"
+					/>
+				</template>
+			</ListSelectBanner>
+		</ListView>
+	</DashboardLayout>
 	<AddGroupModal v-model="showAddGroup" @reload-groups="groups.reload()" />
 	<Dialog v-model="showDeleteGroups" :options="deleteGroupsOptions" />
 </template>
@@ -57,7 +53,6 @@
 import { inject, ref } from 'vue'
 import {
 	Badge,
-	Breadcrumbs,
 	Button,
 	Dialog,
 	ListEmptyState,
@@ -72,6 +67,7 @@ import {
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
+import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddGroupModal from '@/components/Modals/AddGroupModal.vue'
 
 const user = inject('$user')

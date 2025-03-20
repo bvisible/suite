@@ -1,51 +1,45 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
+	<DashboardLayout
+		:breadcrumbs="[{ label: __('Domains') }]"
+		:button-label="__('Add Domain')"
+		:button-action="() => (showAddDomain = true)"
+	>
+		<ListView
+			v-if="domains?.data"
+			class="flex-1"
+			:columns="LIST_COLUMNS"
+			:rows="domains.data"
+			:options="LIST_OPTIONS"
+			row-key="name"
 		>
-			<Breadcrumbs :items="[{ label: __('Domains') }]" />
-			<Button :label="__('Add Domain')" icon-left="plus" @click="showAddDomain = true" />
-		</header>
-		<div class="m-5 flex flex-1 flex-col">
-			<ListView
-				v-if="domains?.data"
-				class="flex-1"
-				:columns="LIST_COLUMNS"
-				:rows="domains.data"
-				:options="LIST_OPTIONS"
-				row-key="name"
-			>
-				<ListHeader />
-				<ListRows>
-					<template v-if="domains.data.length">
-						<ListRow
-							v-for="row in domains.data"
-							:key="row.name"
-							v-slot="{ column, item }"
-							:row="row"
-						>
-							<ListRowItem :item="item">
-								<Badge
-									v-if="column.key == 'status'"
-									:theme="getTheme(item)"
-									:label="item"
-								/>
-							</ListRowItem>
-						</ListRow>
-					</template>
-					<ListEmptyState v-else />
-				</ListRows>
-			</ListView>
-		</div>
-	</div>
+			<ListHeader />
+			<ListRows>
+				<template v-if="domains.data.length">
+					<ListRow
+						v-for="row in domains.data"
+						:key="row.name"
+						v-slot="{ column, item }"
+						:row="row"
+					>
+						<ListRowItem :item="item">
+							<Badge
+								v-if="column.key == 'status'"
+								:theme="getTheme(item)"
+								:label="item"
+							/>
+						</ListRowItem>
+					</ListRow>
+				</template>
+				<ListEmptyState v-else />
+			</ListRows>
+		</ListView>
+	</DashboardLayout>
 	<AddDomainModal v-model="showAddDomain" @reload-domains="domains.reload()" />
 </template>
 <script setup lang="ts">
 import { inject, ref } from 'vue'
 import {
 	Badge,
-	Breadcrumbs,
-	Button,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -55,6 +49,7 @@ import {
 } from 'frappe-ui'
 import { useList } from 'frappe-ui/src/data-fetching'
 
+import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddDomainModal from '@/components/Modals/AddDomainModal.vue'
 
 const user = inject('$user')
@@ -62,14 +57,8 @@ const user = inject('$user')
 const showAddDomain = ref(false)
 
 const LIST_COLUMNS = [
-	{
-		label: __('Domain'),
-		key: 'name',
-	},
-	{
-		label: __('Status'),
-		key: 'status',
-	},
+	{ label: __('Domain'), key: 'name' },
+	{ label: __('Status'), key: 'status' },
 ]
 
 const LIST_OPTIONS = {
