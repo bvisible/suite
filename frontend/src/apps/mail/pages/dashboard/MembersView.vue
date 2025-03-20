@@ -1,26 +1,36 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
-		>
-			<Breadcrumbs :items="[{ label: __('Members') }]" />
-			<Button
-				:label="__('Add Member')"
-				icon-left="user-plus"
-				@click="showAddMember = true"
+	<DashboardLayout
+		:breadcrumbs="[{ label: __('Members') }]"
+		:button-label="__('Add Member')"
+		:button-action="() => (showAddMember = true)"
+	>
+		<div class="flex items-center space-x-3">
+			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+				<template #prefix>
+					<FeatherIcon name="search" class="w-4 text-gray-600" />
+				</template>
+			</FormControl>
+			<FormControl
+				v-model="role"
+				:placeholder="__('Member Role')"
+				class="w-40"
+				type="select"
+				:options="ROLE_OPTIONS"
+				@update:model-value="members.reload"
 			/>
-		</header>
-		<div class="m-6 flex flex-1 flex-col">
-			<ListView
-				v-if="members?.data"
-				class="flex-1"
-				:columns="[{ label: __('User'), key: 'user' }]"
-				:rows="members.data"
-				:options="{ selectable: false, showTooltip: false, rowHeight: 50 }"
-				row-key="name"
-			>
-				<ListHeader />
-				<ListRows>
+		</div>
+
+		<ListView
+			v-if="members?.data"
+			class="flex-1"
+			:columns="[{ label: __('User'), key: 'user' }]"
+			:rows="members.data"
+			:options="LIST_OPTIONS"
+			row-key="name"
+		>
+			<ListHeader />
+			<ListRows>
+				<template v-if="members.data.length">
 					<ListRow
 						v-for="row in members.data"
 						:key="row.name"
@@ -56,23 +66,26 @@
 							</div>
 						</div>
 					</ListRow>
-				</ListRows>
-			</ListView>
-		</div>
-	</div>
+				</template>
+				<ListEmptyState v-else />
+			</ListRows>
+		</ListView>
+	</DashboardLayout>
 	<AddMemberModal v-model="showAddMember" @reload-members="members.reload()" />
 	<Dialog v-model="showRemoveMember" :options="removeMemberOptions" />
 	<MailAccountModal v-model="showMailAccount" :account-i-d="selectedMailAccount" />
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
+import { watchDebounced } from '@vueuse/core'
 import {
 	Avatar,
 	Badge,
-	Breadcrumbs,
-	Button,
 	Dialog,
 	Dropdown,
+	FeatherIcon,
+	FormControl,
+	ListEmptyState,
 	ListHeader,
 	ListRow,
 	ListRows,
@@ -81,11 +94,14 @@ import {
 } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
+import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddMemberModal from '@/components/Modals/AddMemberModal.vue'
 import MailAccountModal from '@/components/Modals/MailAccountModal.vue'
 
 const user = inject('$user')
 
+const search = ref('')
+const role = ref<'Mail User' | 'Mail Admin' | ''>('')
 const showAddMember = ref(false)
 const showRemoveMember = ref(false)
 const memberToBeRemoved = ref('')
@@ -106,10 +122,12 @@ const tenantOwner = createResource({
 
 const members = createResource({
 	url: 'mail.api.admin.get_tenant_members',
-	makeParams: () => ({ tenant: user.data?.tenant }),
+	makeParams: () => ({ tenant: user.data?.tenant, search: search.value, role: role.value }),
 	auto: true,
-	cache: ['mailTenantMembers', user.data?.tenant],
+	cache: ['mailTenantMembers', user.data?.tenant, search.value, role.value],
 })
+
+watchDebounced(() => search.value, members.reload, { debounce: 500 })
 
 const editAdminRole = createResource({
 	url: 'frappe.client.set_value',
@@ -177,4 +195,17 @@ const removeMemberOptions = computed(() => ({
 		},
 	],
 }))
+
+const LIST_OPTIONS = {
+	selectable: false,
+	showTooltip: false,
+	rowHeight: 50,
+	emptyState: { description: __('No members found.') },
+}
+
+const ROLE_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Mail User'), value: 'Mail User' },
+	{ label: __('Mail Admin'), value: 'Mail Admin' },
+]
 </script>

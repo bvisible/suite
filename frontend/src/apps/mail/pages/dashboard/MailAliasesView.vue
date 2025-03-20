@@ -1,54 +1,71 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
-		>
-			<Breadcrumbs :items="[{ label: __('Aliases') }]" />
-			<Button :label="__('Add Alias')" icon-left="plus" @click="showAddAlias = true" />
-		</header>
-		<div class="m-6 flex flex-1 flex-col">
-			<ListView
-				v-if="aliases?.data"
-				ref="listView"
-				class="flex-1"
-				:columns="LIST_COLUMNS"
-				:rows="aliases.data"
-				:options="LIST_OPTIONS"
-				row-key="name"
-			>
-				<ListHeader />
-				<ListRows>
-					<template v-if="aliases.data.length">
-						<ListRow
-							v-for="row in aliases.data"
-							:key="row.name"
-							v-slot="{ column, item }"
-							:row="row"
-						>
-							<ListRowItem :item="item">
-								<Badge
-									v-if="column.key == 'enabled'"
-									:theme="item ? 'green' : 'red'"
-									:label="item ? 'Enabled' : 'Disabled'"
-								/>
-							</ListRowItem>
-						</ListRow>
-					</template>
-					<ListEmptyState v-else />
-				</ListRows>
-				<ListSelectBanner>
-					<template #actions>
-						<Button
-							variant="ghost"
-							theme="red"
-							:label="__('Delete')"
-							@click="showDeleteAliases = true"
-						/>
-					</template>
-				</ListSelectBanner>
-			</ListView>
+	<DashboardLayout
+		:breadcrumbs="[{ label: __('Aliases') }]"
+		:button-label="__('Add Alias')"
+		:button-action="() => (showAddAlias = true)"
+	>
+		<div class="flex items-center space-x-3">
+			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+				<template #prefix>
+					<FeatherIcon name="search" class="w-4 text-gray-600" />
+				</template>
+			</FormControl>
+			<FormControl
+				v-model="type"
+				:placeholder="__('Alias For')"
+				class="w-40"
+				type="select"
+				:options="TYPE_OPTIONS"
+			/>
+			<FormControl
+				v-model="status"
+				:placeholder="__('Status')"
+				class="w-40"
+				type="select"
+				:options="STATUS_OPTIONS"
+			/>
 		</div>
-	</div>
+		<ListView
+			v-if="aliases?.data"
+			ref="listView"
+			class="flex-1"
+			:columns="LIST_COLUMNS"
+			:rows="aliases.data"
+			:options="LIST_OPTIONS"
+			row-key="name"
+		>
+			<ListHeader />
+			<ListRows>
+				<template v-if="aliases.data.length">
+					<ListRow
+						v-for="row in aliases.data"
+						:key="row.name"
+						v-slot="{ column, item }"
+						:row="row"
+					>
+						<ListRowItem :item="item">
+							<Badge
+								v-if="column.key == 'enabled'"
+								:theme="item ? 'green' : 'red'"
+								:label="item ? 'Enabled' : 'Disabled'"
+							/>
+						</ListRowItem>
+					</ListRow>
+				</template>
+				<ListEmptyState v-else />
+			</ListRows>
+			<ListSelectBanner>
+				<template #actions>
+					<Button
+						variant="ghost"
+						theme="red"
+						:label="__('Delete')"
+						@click="showDeleteAliases = true"
+					/>
+				</template>
+			</ListSelectBanner>
+		</ListView>
+	</DashboardLayout>
 	<AddAliasModal v-model="showAddAlias" @reload-aliases="aliases.reload()" />
 	<EditAliasModal
 		v-if="selectedMailAlias"
@@ -61,11 +78,13 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue'
+import { useDebounce } from '@vueuse/core'
 import {
 	Badge,
-	Breadcrumbs,
 	Button,
 	Dialog,
+	FeatherIcon,
+	FormControl,
 	ListEmptyState,
 	ListHeader,
 	ListRow,
@@ -78,6 +97,7 @@ import {
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
+import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddAliasModal from '@/components/Modals/AddAliasModal.vue'
 import EditAliasModal from '@/components/Modals/EditAliasModal.vue'
 
@@ -85,42 +105,37 @@ const user = inject('$user')
 
 const listView = ref(null)
 
+const search = ref('')
+const debouncedSearch = useDebounce(search, 500)
+const type = ref<'Mail Account' | 'Mail Group' | ''>('')
+const status = ref<'Enabled' | 'Disabled' | ''>('')
+
 const selectedMailAlias = ref('')
 const showAddAlias = ref(false)
 const showEditAlias = ref(false)
 const showDeleteAliases = ref(false)
 
-const LIST_COLUMNS = [
-	{
-		label: __('Alias'),
-		key: 'name',
-	},
-	{
-		label: __('Alias For'),
-		key: 'alias_for_name',
-	},
-	{
-		label: __('Status'),
-		key: 'enabled',
-	},
-]
-
-const LIST_OPTIONS = {
-	showTooltip: false,
-	emptyState: { description: __('No aliases created.') },
-	onRowClick: (row) => {
-		selectedMailAlias.value = row.name
-		showEditAlias.value = true
-	},
-}
-
 const aliases = useList({
 	doctype: 'Mail Alias',
 	fields: ['name', 'alias_for_name', 'enabled'],
-	filters: { tenant: user.data?.tenant },
+	filters: () => {
+		const filters: Record<string, string | string[] | number> = {
+			tenant: user.data?.tenant,
+			name: ['like', debouncedSearch.value],
+		}
+		if (type.value) filters.alias_for_type = type.value
+		if (status.value) filters.enabled = status.value === 'Enabled' ? 1 : 0
+		return filters
+	},
 	orderBy: 'email asc',
 	limit: 100,
-	cacheKey: ['mailTenantAliases', user.data?.tenant],
+	cacheKey: [
+		'mailTenantAliases',
+		user.data?.tenant,
+		debouncedSearch.value,
+		type.value,
+		status.value,
+	],
 })
 
 const deleteAliases = createResource({
@@ -149,4 +164,31 @@ const deleteAliasesOptions = {
 		},
 	],
 }
+
+const LIST_COLUMNS = [
+	{ label: __('Alias'), key: 'name' },
+	{ label: __('Alias For'), key: 'alias_for_name' },
+	{ label: __('Status'), key: 'enabled' },
+]
+
+const LIST_OPTIONS = {
+	showTooltip: false,
+	emptyState: { description: __('No aliases found.') },
+	onRowClick: (row) => {
+		selectedMailAlias.value = row.name
+		showEditAlias.value = true
+	},
+}
+
+const TYPE_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('User'), value: 'Mail Account' },
+	{ label: __('Group'), value: 'Mail Group' },
+]
+
+const STATUS_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Enabled'), value: 'Enabled' },
+	{ label: __('Disabled'), value: 'Disabled' },
+]
 </script>
