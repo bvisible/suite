@@ -1,30 +1,23 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
-		>
-			<div class="flex items-center space-x-2">
-				<Breadcrumbs :items="BREADCRUMBS" />
-				<Badge
-					v-if="group.originalDoc"
-					:label="group.originalDoc.enabled ? 'Enabled' : 'Disabled'"
-					:theme="group.originalDoc.enabled ? 'green' : 'red'"
-				/>
-			</div>
-			<div class="flex items-center space-x-2">
-				<Dropdown v-if="group.originalDoc" :options="ADD_OPTIONS">
-					<Button icon="plus" :disabled="!group.originalDoc.enabled" />
-				</Dropdown>
-				<Button
-					variant="solid"
-					:label="__('Save')"
-					:loading="group.save.loading"
-					:disabled="JSON.stringify(group.doc) === JSON.stringify(group.originalDoc)"
-					@click="group.save.submit()"
-				/>
-			</div>
-		</header>
-		<div class="m-6 flex flex-1 flex-col space-y-6">
+	<DashboardLayout
+		v-if="group.originalDoc"
+		:breadcrumbs="BREADCRUMBS"
+		:badge-label="group.originalDoc.enabled ? 'Enabled' : 'Disabled'"
+		:badge-theme="group.originalDoc.enabled ? 'green' : 'red'"
+	>
+		<template #actions>
+			<Dropdown :options="ADD_OPTIONS">
+				<Button icon="plus" :disabled="!group.originalDoc.enabled" />
+			</Dropdown>
+			<Button
+				variant="solid"
+				:label="__('Save')"
+				:loading="group.save.loading"
+				:disabled="JSON.stringify(group.doc) === JSON.stringify(group.originalDoc)"
+				@click="group.save.submit()"
+			/>
+		</template>
+		<template #default>
 			<div v-if="group.doc" class="grid grid-cols-1 rounded-md border sm:grid-cols-2">
 				<div class="border-r p-4">
 					<Switch v-model="group.doc.enabled" :label="__('Enabled')" />
@@ -35,7 +28,21 @@
 					</HorizontalControl>
 				</div>
 			</div>
-			<div class="flex flex-1 flex-col rounded-md border p-4">
+			<div class="flex flex-1 flex-col space-y-4 rounded-md border p-4">
+				<div class="flex items-center space-x-3">
+					<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+						<template #prefix>
+							<FeatherIcon name="search" class="w-4 text-gray-600" />
+						</template>
+					</FormControl>
+					<FormControl
+						v-model="type"
+						:placeholder="__('Member Type')"
+						class="w-40"
+						type="select"
+						:options="TYPE_OPTIONS"
+					/>
+				</div>
 				<ListView
 					v-if="members?.data"
 					ref="listView"
@@ -71,8 +78,8 @@
 					</ListSelectBanner>
 				</ListView>
 			</div>
-		</div>
-	</div>
+		</template>
+	</DashboardLayout>
 
 	<AddGroupMembersModal
 		v-model="showAddMembers"
@@ -86,13 +93,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useDebounce } from '@vueuse/core'
 import { User, Users } from 'lucide-vue-next'
 import {
-	Badge,
-	Breadcrumbs,
 	Button,
 	Dialog,
 	Dropdown,
+	FeatherIcon,
 	FormControl,
 	ListEmptyState,
 	ListHeader,
@@ -109,6 +116,7 @@ import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
 import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
+import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddGroupMembersModal from '@/components/Modals/AddGroupMembersModal.vue'
 
 const { groupName } = defineProps<{ groupName: string }>()
@@ -116,6 +124,10 @@ const { groupName } = defineProps<{ groupName: string }>()
 const router = useRouter()
 
 const listView = ref(null)
+
+const search = ref('')
+const debouncedSearch = useDebounce(search, 500)
+const type = ref<'Mail Account' | 'Mail Group' | ''>('')
 
 const addType = ref<'Mail Account' | 'Mail Group'>('Mail Account')
 const showAddMembers = ref(false)
@@ -140,10 +152,17 @@ const group = createDocumentResource({
 const members = useList({
 	doctype: 'Mail Group Member',
 	fields: ['name', 'member_type', 'member_name'],
-	filters: { mail_group: groupName },
+	filters: () => {
+		const filters: Record<string, string | string[]> = {
+			mail_group: groupName,
+			member_name: ['like', `%${debouncedSearch.value}%`],
+		}
+		if (type.value) filters.member_type = type.value
+		return filters
+	},
 	orderBy: 'member_name asc',
 	limit: 100,
-	cacheKey: ['mailGroupMembers', groupName],
+	cacheKey: ['mailGroupMembers', groupName, debouncedSearch.value, type.value],
 })
 
 const deleteMembers = createResource({
@@ -172,7 +191,7 @@ const removeMembersOptions = {
 		},
 	],
 }
-const BREADCRUMBS = [{ label: __('Groups'), route: { name: 'Groups' } }, { label: groupName }]
+const BREADCRUMBS = [{ label: __('Groups'), route: '/dashboard/groups' }, { label: groupName }]
 
 const LIST_COLUMNS = [
 	{ label: __('Name'), key: 'member_name' },
@@ -181,7 +200,7 @@ const LIST_COLUMNS = [
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No members have been added to this group.') },
+	emptyState: { description: __('No group members found.') },
 }
 
 const ADD_OPTIONS = [
@@ -201,5 +220,11 @@ const ADD_OPTIONS = [
 			showAddMembers.value = true
 		},
 	},
+]
+
+const TYPE_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('User'), value: 'Mail Account' },
+	{ label: __('Group'), value: 'Mail Group' },
 ]
 </script>

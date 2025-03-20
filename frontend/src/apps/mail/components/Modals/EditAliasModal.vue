@@ -22,21 +22,15 @@
 				<FormControl
 					v-model="alias.doc.alias_for_type"
 					type="select"
-					:label="__('Alias For Type')"
+					:label="__('Alias For')"
 					:options="[
-						{ label: __('Mail Account'), value: 'Mail Account' },
-						{ label: __('Mail Group'), value: 'Mail Group' },
+						{ label: __('User'), value: 'Mail Account' },
+						{ label: __('Group'), value: 'Mail Group' },
 					]"
 				/>
 				<LinkControl
 					v-model="alias.doc.alias_for_name"
-					:label="
-						__(
-							alias.doc.alias_for_type === 'Mail Account'
-								? 'Mail Account'
-								: 'Mail Group',
-						)
-					"
+					:label="__(alias.doc.alias_for_type === 'Mail Account' ? 'User' : 'Group')"
 					:doctype="
 						alias.doc.alias_for_type === 'Mail Account' ? 'Mail Account' : 'Mail Group'
 					"

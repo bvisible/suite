@@ -1,27 +1,24 @@
 <template>
-	<div v-if="domain?.doc" class="flex h-full flex-col">
-		<header
-			class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
-		>
-			<div class="flex items-center space-x-2">
-				<Breadcrumbs :items="BREADCRUMBS" />
-				<Badge :label="badge.label" :theme="badge.theme" />
-			</div>
-			<div class="flex space-x-2">
-				<Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
-				<Button
-					v-if="!domain.doc.is_verified"
-					variant="solid"
-					:label="__(domain.doc.enabled ? 'Verify' : 'Enable')"
-					@click="
-						domain.doc.enabled
-							? domain.verifyDnsRecords.submit()
-							: domain.setValue.submit({ enabled: 1 })
-					"
-				/>
-			</div>
-		</header>
-		<div class="m-6 space-y-6">
+	<DashboardLayout
+		v-if="domain?.doc"
+		:breadcrumbs="BREADCRUMBS"
+		:badge-label="badge.label"
+		:badge-theme="badge.theme"
+	>
+		<template #actions>
+			<Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
+			<Button
+				v-if="!domain.doc.is_verified"
+				variant="solid"
+				:label="__(domain.doc.enabled ? 'Verify' : 'Enable')"
+				@click="
+					domain.doc.enabled
+						? domain.verifyDnsRecords.submit()
+						: domain.setValue.submit({ enabled: 1 })
+				"
+			/>
+		</template>
+		<template #default>
 			<transition name="expand">
 				<div
 					v-if="domain.doc.enabled && !domain.doc.is_verified"
@@ -57,16 +54,14 @@
 					</ListRows>
 				</ListView>
 			</div>
-		</div>
-	</div>
+		</template>
+	</DashboardLayout>
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-	Badge,
-	Breadcrumbs,
 	Button,
 	Dialog,
 	Dropdown,
@@ -79,8 +74,9 @@ import {
 } from 'frappe-ui'
 
 import { copyToClipBoard, raiseToast } from '@/utils'
+import DashboardLayout from '@/components/DashboardLayout.vue'
 
-const props = defineProps<{ domainName: string }>()
+const { domainName } = defineProps<{ domainName: string }>()
 
 const router = useRouter()
 
@@ -88,7 +84,7 @@ const showConfirmDialog = ref(false)
 
 const domain = createDocumentResource({
 	doctype: 'Mail Domain',
-	name: props.domainName,
+	name: domainName,
 	setValue: {
 		onSuccess: () => {
 			if (showConfirmDialog.value) showConfirmDialog.value = false
@@ -144,10 +140,7 @@ const domain = createDocumentResource({
 	onError: () => router.replace({ name: 'Domains' }),
 })
 
-const BREADCRUMBS = [
-	{ label: __('Domains'), route: '/dashboard/domains' },
-	{ label: props.domainName },
-]
+const BREADCRUMBS = [{ label: __('Domains'), route: '/dashboard/domains' }, { label: domainName }]
 
 const confirmDialogAction = ref<'refreshDnsRecords' | 'rotateDkimKeys' | 'disableDomain'>(
 	'refreshDnsRecords',
@@ -224,7 +217,7 @@ const dropdownOptions = computed(() => [
 	{
 		label: __('View in Desk'),
 		icon: 'external-link',
-		onClick: () => window.open(`/app/mail-domain/${props.domainName}`, '_blank')?.focus(),
+		onClick: () => window.open(`/app/mail-domain/${domainName}`, '_blank')?.focus(),
 	},
 ])
 
