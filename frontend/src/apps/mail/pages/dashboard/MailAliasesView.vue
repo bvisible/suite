@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue'
-import { watchDebounced } from '@vueuse/core'
+import { useDebounce } from '@vueuse/core'
 import {
 	Badge,
 	Button,
@@ -106,19 +106,14 @@ const user = inject('$user')
 const listView = ref(null)
 
 const search = ref('')
-const debouncedSearch = ref('')
+const debouncedSearch = useDebounce(search, 500)
 const type = ref<'Mail Account' | 'Mail Group' | ''>('')
 const status = ref<'Enabled' | 'Disabled' | ''>('')
+
 const selectedMailAlias = ref('')
 const showAddAlias = ref(false)
 const showEditAlias = ref(false)
 const showDeleteAliases = ref(false)
-
-watchDebounced(
-	() => search.value,
-	() => (debouncedSearch.value = search.value),
-	{ debounce: 500 },
-)
 
 const aliases = useList({
 	doctype: 'Mail Alias',
@@ -178,7 +173,7 @@ const LIST_COLUMNS = [
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No aliases created.') },
+	emptyState: { description: __('No aliases found.') },
 	onRowClick: (row) => {
 		selectedMailAlias.value = row.name
 		showEditAlias.value = true
