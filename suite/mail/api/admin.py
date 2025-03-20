@@ -51,7 +51,7 @@ def verify_dns_record(domain_request: str) -> bool:
 
 
 @frappe.whitelist()
-def get_tenant_members(tenant: str) -> list:
+def get_tenant_members(tenant: str, search: str, role: str) -> list:
 	"""Returns list of members for the given tenant"""
 
 	user = frappe.session.user
@@ -68,7 +68,7 @@ def get_tenant_members(tenant: str) -> list:
 		.else_(2)  # Members Last
 	)
 
-	return (
+	query = (
 		frappe.qb.from_(MTM)
 		.left_join(User)
 		.on(MTM.user == User.name)
@@ -79,10 +79,14 @@ def get_tenant_members(tenant: str) -> list:
 			MTM.is_admin,
 			sort_order,
 		)
-		.where(MTM.tenant == tenant)
-		.orderby(sort_order, order=Order.asc)
-		.orderby(MTM.name, order=Order.asc)
-	).run(as_dict=True)
+		.where((MTM.tenant == tenant) & (User.name.like(f"%{search}%") | User.full_name.like(f"%{search}%")))
+	)
+
+	if role:
+		is_admin = 1 if role == "Mail Admin" else 0
+		query = query.where(MTM.is_admin == is_admin)
+
+	return (query.orderby(sort_order, order=Order.asc).orderby(MTM.name, order=Order.asc)).run(as_dict=True)
 
 
 @frappe.whitelist()
