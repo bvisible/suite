@@ -10,52 +10,77 @@
 				@click="showAddMember = true"
 			/>
 		</header>
-		<div class="m-6 flex flex-1 flex-col">
+		<div class="m-5 flex flex-1 flex-col space-y-3">
+			<div class="flex items-center space-x-3">
+				<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+					<template #prefix>
+						<FeatherIcon name="search" class="w-4 text-gray-600" />
+					</template>
+				</FormControl>
+				<FormControl
+					v-model="role"
+					:placeholder="__('Member Role')"
+					class="w-40"
+					type="select"
+					:options="ROLE_OPTIONS"
+					@update:model-value="members.reload"
+				/>
+			</div>
+
 			<ListView
 				v-if="members?.data"
 				class="flex-1"
 				:columns="[{ label: __('User'), key: 'user' }]"
 				:rows="members.data"
-				:options="{ selectable: false, showTooltip: false, rowHeight: 50 }"
+				:options="LIST_OPTIONS"
 				row-key="name"
 			>
 				<ListHeader />
 				<ListRows>
-					<ListRow
-						v-for="row in members.data"
-						:key="row.name"
-						:row="row"
-						:class="{
-							'cursor-pointer rounded hover:bg-gray-50':
-								row.name !== tenantOwner.data,
-						}"
-						@click="openAccount(row.name)"
-					>
-						<div class="grid grid-cols-3">
-							<div class="flex items-center space-x-2">
-								<Avatar :image="row.user_image" :label="row.full_name" size="lg" />
-								<div class="text-sm">
-									<p class="font-medium">{{ row.full_name }}</p>
-									<p class="mt-0.5 text-gray-600">{{ row.name }}</p>
+					<template v-if="members.data.length">
+						<ListRow
+							v-for="row in members.data"
+							:key="row.name"
+							:row="row"
+							:class="{
+								'cursor-pointer rounded hover:bg-gray-50':
+									row.name !== tenantOwner.data,
+							}"
+							@click="openAccount(row.name)"
+						>
+							<div class="grid grid-cols-3">
+								<div class="flex items-center space-x-2">
+									<Avatar
+										:image="row.user_image"
+										:label="row.full_name"
+										size="lg"
+									/>
+									<div class="text-sm">
+										<p class="font-medium">{{ row.full_name }}</p>
+										<p class="mt-0.5 text-gray-600">{{ row.name }}</p>
+									</div>
+								</div>
+								<div class="mx-auto flex items-center">
+									<Badge
+										v-if="row.is_admin"
+										:theme="row.name === tenantOwner.data ? 'orange' : 'blue'"
+										:label="
+											__(row.name === tenantOwner.data ? 'Owner' : 'Admin')
+										"
+									/>
+								</div>
+								<div class="ml-auto flex items-center">
+									<Dropdown
+										v-if="row.name !== tenantOwner.data"
+										:options="dropdownOptions(row.name, row.is_admin)"
+										:button="{ icon: 'more-horizontal', variant: 'ghost' }"
+										@click.stop
+									/>
 								</div>
 							</div>
-							<div class="mx-auto flex items-center">
-								<Badge
-									v-if="row.is_admin"
-									:theme="row.name === tenantOwner.data ? 'orange' : 'blue'"
-									:label="__(row.name === tenantOwner.data ? 'Owner' : 'Admin')"
-								/>
-							</div>
-							<div class="ml-auto flex items-center">
-								<Dropdown
-									v-if="row.name !== tenantOwner.data"
-									:options="dropdownOptions(row.name, row.is_admin)"
-									:button="{ icon: 'more-horizontal', variant: 'ghost' }"
-									@click.stop
-								/>
-							</div>
-						</div>
-					</ListRow>
+						</ListRow>
+					</template>
+					<ListEmptyState v-else />
 				</ListRows>
 			</ListView>
 		</div>
@@ -66,6 +91,7 @@
 </template>
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
+import { watchDebounced } from '@vueuse/core'
 import {
 	Avatar,
 	Badge,
@@ -73,6 +99,9 @@ import {
 	Button,
 	Dialog,
 	Dropdown,
+	FeatherIcon,
+	FormControl,
+	ListEmptyState,
 	ListHeader,
 	ListRow,
 	ListRows,
@@ -86,6 +115,8 @@ import MailAccountModal from '@/components/Modals/MailAccountModal.vue'
 
 const user = inject('$user')
 
+const search = ref('')
+const role = ref<'Mail User' | 'Mail Admin' | ''>('')
 const showAddMember = ref(false)
 const showRemoveMember = ref(false)
 const memberToBeRemoved = ref('')
@@ -106,10 +137,12 @@ const tenantOwner = createResource({
 
 const members = createResource({
 	url: 'mail.api.admin.get_tenant_members',
-	makeParams: () => ({ tenant: user.data?.tenant }),
+	makeParams: () => ({ tenant: user.data?.tenant, search: search.value, role: role.value }),
 	auto: true,
-	cache: ['mailTenantMembers', user.data?.tenant],
+	cache: ['mailTenantMembers', user.data?.tenant, search.value, role.value],
 })
+
+watchDebounced(() => search.value, members.reload, { debounce: 500 })
 
 const editAdminRole = createResource({
 	url: 'frappe.client.set_value',
@@ -177,4 +210,17 @@ const removeMemberOptions = computed(() => ({
 		},
 	],
 }))
+
+const LIST_OPTIONS = {
+	selectable: false,
+	showTooltip: false,
+	rowHeight: 50,
+	emptyState: { description: __('No results found') },
+}
+
+const ROLE_OPTIONS = [
+	{ label: '', value: '' },
+	{ label: __('Mail User'), value: 'Mail User' },
+	{ label: __('Mail Admin'), value: 'Mail Admin' },
+]
 </script>

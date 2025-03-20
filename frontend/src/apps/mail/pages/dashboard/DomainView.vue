@@ -21,7 +21,7 @@
 				/>
 			</div>
 		</header>
-		<div class="m-6 space-y-6">
+		<div class="m-5 space-y-5">
 			<transition name="expand">
 				<div
 					v-if="domain.doc.enabled && !domain.doc.is_verified"

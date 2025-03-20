@@ -6,7 +6,7 @@
 			<Breadcrumbs :items="[{ label: __('Aliases') }]" />
 			<Button :label="__('Add Alias')" icon-left="plus" @click="showAddAlias = true" />
 		</header>
-		<div class="m-6 flex flex-1 flex-col">
+		<div class="m-5 flex flex-1 flex-col">
 			<ListView
 				v-if="aliases?.data"
 				ref="listView"

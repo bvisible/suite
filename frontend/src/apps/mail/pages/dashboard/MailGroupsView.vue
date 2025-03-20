@@ -6,7 +6,7 @@
 			<Breadcrumbs :items="[{ label: __('Groups') }]" />
 			<Button :label="__('Add Group')" icon-left="plus" @click="showAddGroup = true" />
 		</header>
-		<div class="m-6 flex flex-1 flex-col">
+		<div class="m-5 flex flex-1 flex-col">
 			<ListView
 				v-if="groups?.data"
 				ref="listView"
