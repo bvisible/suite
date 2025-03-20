@@ -165,23 +165,22 @@ const handleKeyDown = (e) => {
 	}
 }
 
-const startSlideShow = async () => {
-	const elem = slideContainerRef.value
+const initFullscreenMode = async () => {
+	const container = slideContainerRef.value
+	if (!container) return
 
-	if (elem.requestFullscreen) {
-		elem.requestFullscreen()
-	} else if (elem.webkitRequestFullscreen) {
-		elem.webkitRequestFullscreen()
-	} else if (elem.msRequestFullscreen) {
-		elem.msRequestFullscreen()
-	}
-}
+	const fullscreenMethods = [
+		container.requestFullscreen,
+		container.webkitRequestFullscreen, // Safari
+		container.msRequestFullscreen, // IE
+		container.mozRequestFullScreen, // Firefox
+	]
 
-const initPresentMode = async () => {
-	const present = route.query.present
-	if (present) {
-		present && (await startSlideShow())
-		inSlideShow.value = present
+	const fullscreenMethod = fullscreenMethods.find((method) => method)
+
+	if (fullscreenMethod) {
+		fullscreenMethod.call(container)
+		inSlideShow.value = true
 	}
 }
 
@@ -200,7 +199,7 @@ watch(
 )
 
 onMounted(async () => {
-	await initPresentMode()
+	await initFullscreenMode()
 	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
 })
