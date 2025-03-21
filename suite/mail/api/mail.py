@@ -122,7 +122,12 @@ def get_outgoing_mails(folder: str, start: int = 0, get_list: bool = True) -> li
 def get_mail_list(mails) -> list:
 	"""Returns a list of mails with additional details."""
 
+	attachments = get_attachments([mail.name for mail in mails])
+
 	for mail in mails[:]:
+		mail.attachments = [
+			attachment for attachment in attachments if attachment.attached_to_name == mail.name
+		]
 		thread = get_list_thread(mail)
 		thread_with_names = [email.name for email in thread]
 		mails_in_original_list = [email for email in mails if email.name in thread_with_names]
@@ -323,6 +328,7 @@ def get_mail_details(name: str, type: str, include_all_details: bool = False) ->
 
 	mail = frappe.db.get_value(type, name, fields, as_dict=1)
 	mail.mail_type = type
+	mail.attachments = get_attachments_for_mail(type, name)
 
 	if not include_all_details:
 		return mail
@@ -419,14 +425,27 @@ def update_draft_mail(
 		doc.submit()
 
 
+def get_attachments(names: list[str]):
+	"""Fetches mail attachments."""
+
+	return frappe.get_all(
+		"File",
+		fields=["attached_to_name", "name", "file_name", "file_url", "file_size"],
+		filters={
+			"attached_to_name": ["in", names],
+			"attached_to_doctype": ["in", ["Incoming Mail", "Outgoing Mail"]],
+		},
+	)
+
+
 @frappe.whitelist()
-def get_attachments(dt: str, dn: str):
+def get_attachments_for_mail(type: MailType, name: str):
 	"""Fetches mail attachments."""
 
 	return frappe.get_all(
 		"File",
 		fields=["name", "file_name", "file_url", "file_size"],
-		filters={"attached_to_name": dn, "attached_to_doctype": dt},
+		filters={"attached_to_name": name, "attached_to_doctype": type},
 	)
 
 
