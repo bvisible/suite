@@ -19,13 +19,19 @@
 			{{ mail.snippet || __('— No message body —') }}
 		</h5>
 		<div class="flex items-center">
-			<!-- <div class="flex rounded bg-gray-100 p-1 text-gray-700">
-				<Paperclip class="mr-1 h-3.5 w-3.5" />
-				<span class="text-xs">{{ 20 }}</span>
-			</div> -->
+			<AttachmentCapsule
+				v-for="attachment in mail.attachments.slice(0, 2)"
+				:key="attachment.name"
+				:file-name="attachment.file_name"
+				class="mr-2 max-w-40"
+			/>
+			<AttachmentCapsule
+				v-if="mail.attachments.length > 2"
+				:file-name="__('+{0} more', [mail.attachments.length - 2])"
+			/>
 			<Badge
-				class="ml-auto"
 				v-if="Object.keys(STATUS).includes(badgeField)"
+				class="ml-auto"
 				:label="badge.label"
 				:theme="badge.theme"
 			/>
@@ -35,14 +41,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-// import { Paperclip } from 'lucide-vue-next'
 import { Badge } from 'frappe-ui'
 
+import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
-const props = defineProps<{
-	mail: object
-}>()
+const props = defineProps<{ mail: object }>()
 
 interface BadgeType {
 	label: string
