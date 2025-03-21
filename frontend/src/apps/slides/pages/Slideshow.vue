@@ -18,12 +18,11 @@
 					:style="slideStyles"
 					@click="changeSlide(slideIndex + 1, false)"
 				>
-					<component
-						v-for="(element, index) in slide.elements"
-						:key="index"
-						:is="SlideElement"
+					<SlideElement
+						v-for="element in slide.elements"
+						:key="element.id"
 						:element="element"
-						:data-index="index"
+						:data-index="element.id"
 					/>
 				</div>
 			</Transition>

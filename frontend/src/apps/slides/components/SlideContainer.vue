@@ -10,13 +10,11 @@
 					:selectedRef="selectionBoxRef.$el"
 				/>
 
-				<component
-					ref="element"
-					v-for="(element, index) in slide.elements"
-					:key="index"
-					:is="SlideElement"
+				<SlideElement
+					v-for="element in slide.elements"
+					:key="element.id"
 					:element="element"
-					:data-index="index"
+					:data-index="element.id"
 				/>
 			</div>
 
@@ -176,10 +174,8 @@ watch(
 	() => focusElementId.value,
 	(newVal, oldVal) => {
 		if (oldVal) {
-			let element = slide.value.elements[oldVal]
-			slide.value.elements[oldVal].content = document.querySelector(
-				`[data-index="${oldVal}"]`,
-			).innerText
+			let element = slide.value.elements.find((el) => el.id == oldVal)
+			element.content = document.querySelector(`[data-index="${oldVal}"]`).innerText
 		}
 	},
 	{ immediate: true },
@@ -210,7 +206,8 @@ watch(
 	() => activeDimensions.value,
 	(dimensions) => {
 		if (!dimensions) return
-		let element = slide.value.elements[activeElementIds.value[0]]
+		const id = activeElementIds.value[0]
+		let element = slide.value.elements.find((el) => el.id == id)
 		if (element && dimensions.width != element.width) {
 			const newWidth = dimensions.width / scale.value
 			element.width = newWidth

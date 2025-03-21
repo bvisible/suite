@@ -88,9 +88,9 @@ const getElementsWithinBoxSurface = () => {
 	const boxRight = left.value + width.value
 	const boxBottom = top.value + height.value
 
-	slide.value.elements.forEach((element, index) => {
+	slide.value.elements.forEach((element) => {
 		const elementRect = document
-			.querySelector(`[data-index="${index}"]`)
+			.querySelector(`[data-index="${element.id}"]`)
 			.getBoundingClientRect()
 
 		const elementLeft = (elementRect.left - slideDimensions.left) / slideDimensions.scale
@@ -107,7 +107,7 @@ const getElementsWithinBoxSurface = () => {
 			(elementBottom >= boxTop && elementTop <= boxTop)
 
 		if (withinWidth && withinHeight) {
-			elements.push(index)
+			elements.push(element.id)
 		}
 	})
 
@@ -137,11 +137,8 @@ const cropSelectionToFitContent = () => {
 		b = 0
 
 	// crop selection to selected element edges
-	activeElementIds.value.forEach((index) => {
-		const element = slide.value.elements[index]
-		const elementRect = document
-			.querySelector(`[data-index="${index}"]`)
-			.getBoundingClientRect()
+	activeElementIds.value.forEach((id) => {
+		const elementRect = document.querySelector(`[data-index="${id}"]`).getBoundingClientRect()
 
 		const elementLeft = (elementRect.left - slideDimensions.left) / slideDimensions.scale
 		const elementTop = (elementRect.top - slideDimensions.top) / slideDimensions.scale
@@ -167,10 +164,13 @@ const setElementPositions = () => {
 	}
 
 	// set positions relative to the selection box
-	activeElementIds.value.forEach((index) => {
-		let element = slide.value.elements[index]
-		element.left = element.left - left.value
-		element.top = element.top - top.value
+	activeElementIds.value.forEach((id) => {
+		slide.value.elements.forEach((element) => {
+			if (element.id == id) {
+				element.left = element.left - left.value
+				element.top = element.top - top.value
+			}
+		})
 	})
 }
 
@@ -193,7 +193,7 @@ const resetSelection = (oldVal) => {
 			let elementDiv = document.querySelector(`[data-index="${index}"]`)
 			if (!elementDiv) return
 
-			let element = slide.value.elements[index]
+			let element = slide.value.elements.find((el) => el.id == index)
 			element.left = element.left + left.value
 			element.top = element.top + top.value
 
