@@ -26,7 +26,7 @@ const pairedDiv = computed(() => {
 const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
-	return slide.value.elements[pairElementId.value]
+	return slide.value.elements.find((element) => element.id == pairElementId.value)
 })
 
 const prevDiffs = ref({
@@ -252,10 +252,10 @@ const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
 }
 
 const setCurrentDiffs = () => {
-	slide.value.elements.forEach((element, index) => {
-		if (activeElementIds.value.includes(index)) return
+	slide.value.elements.forEach((element) => {
+		if (activeElementIds.value.includes(element.id)) return
 
-		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
 		if (!elementDiv || !props.selectedRef) return
 
 		const activeBounds = getElementBounds(props.selectedRef)
@@ -267,10 +267,10 @@ const setCurrentDiffs = () => {
 		const diffBottom = activeBounds.bottom - elementBounds.bottom
 
 		const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
-		const isPaired = pairElementId.value == index
+		const isPaired = pairElementId.value == element.id
 
 		if (canPair) {
-			pairElementId.value = index
+			pairElementId.value = element.id
 		} else if (isPaired) {
 			pairElementId.value = null
 		}

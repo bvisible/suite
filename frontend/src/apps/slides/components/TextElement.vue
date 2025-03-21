@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="focus:outline-none"
-		:contenteditable="focusElementId == $attrs['data-index']"
+		:contenteditable="focusElementId == element.id"
 		:style="textStyle"
 		@click="selectElement"
 		@focus="setCursorPosition"
@@ -12,13 +12,11 @@
 </template>
 
 <script setup>
-import { computed, nextTick, useAttrs } from 'vue'
+import { computed, nextTick } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, setActiveElements } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/helpers'
-
-const attrs = useAttrs()
 
 const element = defineModel('element', {
 	type: Object,
@@ -33,14 +31,14 @@ const textStyle = computed(() => ({
 	fontStyle: element.value.fontStyle,
 	textDecoration: element.value.textDecoration,
 	textTransform: element.value.textTransform,
-	userSelect: focusElementId.value == attrs['data-index'] ? 'text' : 'none',
+	userSelect: focusElementId.value == element.value.id ? 'text' : 'none',
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
 	letterSpacing: `${element.value.letterSpacing}px`,
 	wordWrap: 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,
-	cursor: focusElementId.value == attrs['data-index'] ? 'text' : '',
+	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
 
 const selectElement = (e) => {
@@ -50,14 +48,14 @@ const selectElement = (e) => {
 
 const setActiveText = (e) => {
 	e.stopPropagation()
-	if (focusElementId.value == attrs['data-index']) return
-	setActiveElements([attrs['data-index']])
+	if (focusElementId.value == element.value.id) return
+	setActiveElements([element.value.id])
 }
 
 const setFocusElement = (e) => {
 	e.stopPropagation()
-	if (focusElementId.value == attrs['data-index']) return
-	setActiveElements([attrs['data-index']], true)
+	if (focusElementId.value == element.value.id) return
+	setActiveElements([element.value.id], true)
 	nextTick(() => {
 		e.target.focus()
 	})

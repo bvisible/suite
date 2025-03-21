@@ -3,6 +3,7 @@ import { call } from 'frappe-ui'
 
 import { slide } from './slide'
 
+import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 
 const activePosition = ref(null)
@@ -14,8 +15,8 @@ const pairElementId = ref(null)
 
 const activeElements = computed(() => {
 	let elements = []
-	slide.value.elements.forEach((element, index) => {
-		if (activeElementIds.value.includes(index)) {
+	slide.value.elements.forEach((element) => {
+		if (activeElementIds.value.includes(element.id)) {
 			elements.push(element)
 		}
 	})
@@ -37,6 +38,7 @@ const addTextElement = () => {
 	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
 
 	const element = {
+		id: generateUniqueId(),
 		left: 100,
 		top: 100,
 		content: 'Text',
@@ -62,11 +64,12 @@ const addTextElement = () => {
 		element.letterSpacing = 0
 	}
 	slide.value.elements.push(element)
-	nextTick(() => setActiveElements([slide.value.elements.length - 1]))
+	nextTick(() => setActiveElements([element.id]))
 }
 
 const addMediaElement = (file, type) => {
 	let element = {
+		id: generateUniqueId(),
 		width: 300,
 		left: 200,
 		top: 75,
@@ -89,7 +92,7 @@ const addMediaElement = (file, type) => {
 		element.playbackRate = 1
 	}
 	slide.value.elements.push(element)
-	nextTick(() => setActiveElements([slide.value.elements.length - 1]))
+	nextTick(() => setActiveElements([element.id]))
 }
 
 const duplicateElements = async (e) => {
@@ -103,10 +106,11 @@ const duplicateElements = async (e) => {
 
 	oldElements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
+		newElement.id = generateUniqueId()
 		newElement.top += 40
 		newElement.left += 40
 		slide.value.elements.push(newElement)
-		newSelection.push(slide.value.elements.indexOf(newElement))
+		newSelection.push(newElement.id)
 	})
 
 	nextTick(() => (activeElementIds.value = newSelection))
@@ -124,14 +128,14 @@ const deleteElements = async (e) => {
 	const idsToDelete = activeElementIds.value
 	resetFocus()
 	nextTick(() => {
-		slide.value.elements = slide.value.elements.filter((_, index) => {
-			return !idsToDelete.includes(index)
+		slide.value.elements = slide.value.elements.filter((element) => {
+			return !idsToDelete.includes(element.id)
 		})
 	})
 }
 
 const selectAllElements = () => {
-	activeElementIds.value = slide.value.elements.map((_, index) => index)
+	activeElementIds.value = slide.value.elements.map((element) => element.id)
 }
 
 const resetFocus = () => {
@@ -163,7 +167,8 @@ const toggleTextProperty = (property, value) => {
 				? oldStyle.replace(value, '')
 				: oldStyle + ' ' + value
 	}
-	slide.value.elements[activeElementIds.value[0]][property] = newStyle
+	let element = slide.value.elements.find((element) => element.id == activeElementIds.value[0])
+	element[property] = newStyle
 }
 
 export {

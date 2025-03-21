@@ -1,11 +1,11 @@
 <template>
 	<div :style="elementStyle">
-		<component :is="getDynamicComponent(element.type)" :element="element" v-bind="$attrs" />
+		<component :is="getDynamicComponent(element.type)" :element="element" />
 	</div>
 </template>
 
 <script setup>
-import { computed, useAttrs } from 'vue'
+import { computed } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
@@ -13,22 +13,20 @@ import VideoElement from '@/components/VideoElement.vue'
 
 import { activeElementIds, pairElementId, focusElementId } from '@/stores/element'
 
-const attrs = useAttrs()
-
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
 const outline = computed(() => {
-	if (activeElementIds.value.concat([focusElementId.value]).includes(attrs['data-index']))
+	if (activeElementIds.value.concat([focusElementId.value]).includes(element.value.id))
 		return '#70B6F0 solid 2px'
-	else if (pairElementId.value == attrs['data-index']) return '#70b6f080 solid 2px'
+	else if (pairElementId.value === element.value.id) return '#70b6f080 solid 2px'
 	else return 'none'
 })
 
 const elementStyle = computed(() => ({
-	position: activeElementIds.value.includes(attrs['data-index']) ? 'absolute' : 'fixed',
+	position: activeElementIds.value.includes(element.value.id) ? 'absolute' : 'fixed',
 	width: `${element.value.width}px` || 'auto',
 	height: 'auto',
 	left: `${element.value.left}px`,

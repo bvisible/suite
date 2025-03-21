@@ -41,8 +41,8 @@ const getCurrentData = () => {
 		const dy = activePosition.value.top - slideDimensions.top
 
 		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
-		elementsCopy.forEach((element, index) => {
-			if (activeElementIds.value.includes(index)) {
+		elementsCopy.forEach((element) => {
+			if (activeElementIds.value.includes(element.id)) {
 				element.left = element.left + dx
 				element.top = element.top + dy
 			}
@@ -113,8 +113,8 @@ const saving = ref(false)
 
 const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
-	slide.value.elements = slide.value.elements.map((element, index) => {
-		let rect = document.querySelector(`[data-index="${index}"]`).getBoundingClientRect()
+	slide.value.elements = slide.value.elements.map((element) => {
+		let rect = document.querySelector(`[data-index="${element.id}"]`).getBoundingClientRect()
 		element.width = rect.width / slideDimensions.scale
 		return element
 	})
