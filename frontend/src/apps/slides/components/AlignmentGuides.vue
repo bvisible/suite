@@ -67,9 +67,6 @@ const visibilityMap = computed(() => {
 	}
 })
 
-// when an element is snapped to a new position, enable movement after a few frames
-const skipFrames = ref(0)
-
 const guideStyles = computed(() => {
 	return {
 		left: leftGuideStyles.value,
@@ -289,7 +286,9 @@ const updatePrevDiffs = () => {
 	prevDiffs.value = JSON.parse(JSON.stringify(diffs.value))
 }
 
-const updateMovementBasedOnSnap = (dx, dy) => {
+const getMovementBasedOnSnap = (initialPosition) => {
+	const { dx, dy } = initialPosition
+
 	setCurrentDiffs()
 
 	const { offsetX, offsetY } = getCenterOffsets(dx, dy)
@@ -301,29 +300,10 @@ const updateMovementBasedOnSnap = (dx, dy) => {
 	const updatedDx = dx + offsetX + offsetLeft
 	const updatedDy = dy + offsetY + offsetTop
 
-	return { updatedDx, updatedDy }
-}
-
-const updateElementPosition = (dx, dy) => {
-	if (!activePosition.value) return
-
-	const { updatedDx, updatedDy } = updateMovementBasedOnSnap(dx, dy)
-
-	const didSnap = dx != updatedDx || dy != updatedDy
-
-	if (!skipFrames.value)
-		activePosition.value = {
-			left: activePosition.value.left + updatedDx,
-			top: activePosition.value.top + updatedDy,
-		}
-	else skipFrames.value -= 1
-
-	if (didSnap) {
-		skipFrames.value = 15
-	}
+	return { dx: updatedDx, dy: updatedDy }
 }
 
 defineExpose({
-	updateElementPosition,
+	getMovementBasedOnSnap,
 })
 </script>

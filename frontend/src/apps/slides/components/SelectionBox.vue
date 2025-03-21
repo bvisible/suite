@@ -11,6 +11,7 @@ import {
 	activeDimensions,
 	activeElementIds,
 	setActiveElements,
+	moveElement,
 } from '@/stores/element'
 
 const emit = defineEmits(['updateFocus'])
@@ -166,10 +167,11 @@ const setElementPositions = () => {
 	// set positions relative to the selection box
 	activeElementIds.value.forEach((id) => {
 		slide.value.elements.forEach((element) => {
-			if (element.id == id) {
-				element.left = element.left - left.value
-				element.top = element.top - top.value
-			}
+			if (element.id != id) return
+			moveElement(id, {
+				dx: -left.value,
+				dy: -top.value,
+			})
 		})
 	})
 }
@@ -193,9 +195,10 @@ const resetSelection = (oldVal) => {
 			let elementDiv = document.querySelector(`[data-index="${index}"]`)
 			if (!elementDiv) return
 
-			let element = slide.value.elements.find((el) => el.id == index)
-			element.left = element.left + left.value
-			element.top = element.top + top.value
+			moveElement(index, {
+				dx: left.value,
+				dy: top.value,
+			})
 
 			let slideDiv = document.querySelector('.slide')
 			slideDiv.appendChild(elementDiv)
