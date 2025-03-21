@@ -68,6 +68,7 @@ import {
 	focusElementId,
 	pairElementId,
 	resetFocus,
+	updateActivePosition,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -191,6 +192,10 @@ watch(
 	{ immediate: true },
 )
 
+const DELAY_COUNT = 15
+
+const delayPositionUpdates = ref(0)
+
 watch(
 	() => movement.value,
 	() => {
@@ -198,7 +203,26 @@ watch(
 
 		const { x, y } = movement.value
 
-		guides.value.updateElementPosition(x / scale.value, y / scale.value)
+		const initialPosition = {
+			dx: x / scale.value,
+			dy: y / scale.value,
+		}
+
+		const snappedPosition = guides.value.getMovementBasedOnSnap(initialPosition)
+
+		const didSnap =
+			initialPosition.dx != snappedPosition.dx || initialPosition.dy != snappedPosition.dy
+
+		if (!delayPositionUpdates.value)
+			updateActivePosition({
+				dx: snappedPosition.dx,
+				dy: snappedPosition.dy,
+			})
+		else delayPositionUpdates.value -= 1
+
+		if (didSnap) {
+			delayPositionUpdates.value = 15
+		}
 	},
 )
 
