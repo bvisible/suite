@@ -328,6 +328,7 @@ def get_mail_details(name: str, type: str, include_all_details: bool = False) ->
 
 	mail = frappe.db.get_value(type, name, fields, as_dict=1)
 	mail.mail_type = type
+	mail.attachments = get_attachments_for_mail(type, name)
 
 	if not include_all_details:
 		return mail
