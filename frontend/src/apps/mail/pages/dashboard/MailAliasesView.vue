@@ -12,7 +12,7 @@
 			</FormControl>
 			<FormControl
 				v-model="type"
-				:placeholder="__('Alias For')"
+				:placeholder="__('Type')"
 				class="w-40"
 				type="select"
 				:options="TYPE_OPTIONS"

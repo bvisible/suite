@@ -347,10 +347,10 @@ const deleteDraftMail = createResource({
 })
 
 const attachments = createResource({
-	url: 'mail.api.mail.get_attachments',
+	url: 'mail.api.mail.get_attachments_for_mail',
 	makeParams: () => ({
-		dt: 'Outgoing Mail',
-		dn: localMailID.value,
+		type: 'Outgoing Mail',
+		name: localMailID.value,
 	}),
 })
 
