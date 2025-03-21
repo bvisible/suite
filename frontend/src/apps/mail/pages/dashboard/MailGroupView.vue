@@ -37,7 +37,7 @@
 					</FormControl>
 					<FormControl
 						v-model="type"
-						:placeholder="__('Member Type')"
+						:placeholder="__('Type')"
 						class="w-40"
 						type="select"
 						:options="TYPE_OPTIONS"
@@ -162,6 +162,11 @@ const members = useList({
 	},
 	orderBy: 'member_name asc',
 	limit: 100,
+	transform: (data) =>
+		data.map((row) => ({
+			...row,
+			member_type: row.member_type === 'Mail Account' ? 'User' : 'Group',
+		})),
 	cacheKey: ['mailGroupMembers', groupName, debouncedSearch.value, type.value],
 })
 
