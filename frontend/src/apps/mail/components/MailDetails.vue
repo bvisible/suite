@@ -81,6 +81,15 @@
 			<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
 				mail.body_plain
 			}}</pre>
+			<div class="mt-8 flex flex-wrap space-x-2">
+				<AttachmentCapsule
+					v-for="attachment in mail.attachments"
+					:key="attachment.name"
+					:file-name="attachment.file_name"
+					:file-url="attachment.file_url"
+					class="mb-2"
+				/>
+			</div>
 		</div>
 	</div>
 	<div
@@ -115,6 +124,7 @@ import {
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
+import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
