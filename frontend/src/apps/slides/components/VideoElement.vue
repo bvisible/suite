@@ -9,7 +9,7 @@
 			:playbackRate="element.playbackRate"
 		/>
 		<div
-			v-if="activeElementIds.includes($attrs['data-index'])"
+			v-if="activeElementIds.includes(element.id)"
 			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
 		>
 			<component
@@ -22,14 +22,12 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, useAttrs } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
 import { inSlideShow } from '@/stores/presentation'
 import { activeElementIds, setActiveElements } from '@/stores/element'
-
-const attrs = useAttrs()
 
 const el = useTemplateRef('videoElement')
 const isPlaying = ref(false)
@@ -49,7 +47,7 @@ const videoStyle = computed(() => ({
 
 const handleVideoControls = (e) => {
 	e.stopPropagation()
-	const isActive = activeElementIds.value.includes(attrs['data-index'])
+	const isActive = activeElementIds.value.includes(element.value.id)
 	if (inSlideShow.value || (isActive && e.target !== el.value)) {
 		const video = el.value
 		if (video.paused) {
@@ -59,6 +57,6 @@ const handleVideoControls = (e) => {
 			isPlaying.value = false
 			video.pause()
 		}
-	} else setActiveElements([attrs['data-index']])
+	} else setActiveElements([element.value.id])
 }
 </script>
