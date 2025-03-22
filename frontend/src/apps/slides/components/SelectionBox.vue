@@ -1,9 +1,18 @@
 <template>
-	<div v-show="width" ref="selected" :style="boxStyles"></div>
+	<div v-show="bounds.width" ref="selected" :style="boxStyles"></div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import {
+	ref,
+	computed,
+	watch,
+	nextTick,
+	useTemplateRef,
+	onMounted,
+	onBeforeUnmount,
+	reactive,
+} from 'vue'
 
 import { slide, slideDimensions } from '@/stores/slide'
 import {
@@ -18,10 +27,12 @@ const emit = defineEmits(['updateFocus'])
 
 const selectedRef = useTemplateRef('selected')
 
-const top = ref(0)
-const left = ref(0)
-const width = ref(0)
-const height = ref(0)
+const bounds = reactive({
+	left: 0,
+	top: 0,
+	width: 0,
+	height: 0,
+})
 
 const startX = ref(0)
 const startY = ref(0)
@@ -35,10 +46,10 @@ const boxStyles = computed(() => ({
 	zIndex: 1000,
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
-	width: `${width.value}px`,
-	height: `${height.value}px`,
-	left: `${left.value}px`,
-	top: `${top.value}px`,
+	width: `${bounds.width}px`,
+	height: `${bounds.height}px`,
+	left: `${bounds.left}px`,
+	top: `${bounds.top}px`,
 	boxSizing: 'border-box',
 }))
 
@@ -48,11 +59,11 @@ const initSelection = (e) => {
 		const currentX = (e.clientX - slideDimensions.left) / slideDimensions.scale
 		const currentY = (e.clientY - slideDimensions.top) / slideDimensions.scale
 
-		left.value = currentX
-		top.value = currentY
+		bounds.left = currentX
+		bounds.top = currentY
 
-		width.value = 0
-		height.value = 0
+		bounds.width = 0
+		bounds.height = 0
 
 		startX.value = currentX
 		startY.value = currentY
@@ -65,29 +76,29 @@ const updateSelection = (e) => {
 	const currentX = (e.clientX - slideDimensions.left) / slideDimensions.scale
 	const currentY = (e.clientY - slideDimensions.top) / slideDimensions.scale
 
-	width.value = Math.abs(currentX - startX.value)
-	height.value = Math.abs(currentY - startY.value)
+	bounds.width = Math.abs(currentX - startX.value)
+	bounds.height = Math.abs(currentY - startY.value)
 
-	if (currentX < startX.value) left.value = currentX
-	if (currentY < startY.value) top.value = currentY
+	if (currentX < startX.value) bounds.left = currentX
+	if (currentY < startY.value) bounds.top = currentY
 
 	document.addEventListener('mouseup', endSelection)
 }
 
 const removeSelectionBox = () => {
-	left.value = 0
-	top.value = 0
-	width.value = 0
-	height.value = 0
+	bounds.left = 0
+	bounds.top = 0
+	bounds.width = 0
+	bounds.height = 0
 }
 
 const getElementsWithinBoxSurface = () => {
 	let elements = []
 
-	const boxLeft = left.value
-	const boxTop = top.value
-	const boxRight = left.value + width.value
-	const boxBottom = top.value + height.value
+	const boxLeft = bounds.left
+	const boxTop = bounds.top
+	const boxRight = bounds.left + bounds.width
+	const boxBottom = bounds.top + bounds.height
 
 	slide.value.elements.forEach((element) => {
 		const elementRect = document
@@ -125,20 +136,20 @@ const updateSelectedElements = () => {
 	}
 }
 
-const endSelection = () => {
+const endSelection = (e) => {
 	document.removeEventListener('mousemove', updateSelection)
 
 	updateSelectedElements()
 }
 
-const cropSelectionToFitContent = () => {
+const cropSelectionToFitContent = (elementIds) => {
 	let l = 10000,
 		t = 10000,
 		r = 0,
 		b = 0
 
 	// crop selection to selected element edges
-	activeElementIds.value.forEach((id) => {
+	elementIds.forEach((id) => {
 		const elementRect = document.querySelector(`[data-index="${id}"]`).getBoundingClientRect()
 
 		const elementLeft = (elementRect.left - slideDimensions.left) / slideDimensions.scale
@@ -152,60 +163,15 @@ const cropSelectionToFitContent = () => {
 		if (elementBottom > b) b = elementBottom
 	})
 
-	left.value = l
-	top.value = t
-	width.value = r - l
-	height.value = b - t
-}
-
-const setElementPositions = () => {
-	activePosition.value = {
-		left: left.value + slideDimensions.left,
-		top: top.value + slideDimensions.top,
-	}
-
-	// set positions relative to the selection box
-	activeElementIds.value.forEach((id) => {
-		slide.value.elements.forEach((element) => {
-			if (element.id != id) return
-			moveElement(id, {
-				dx: -left.value,
-				dy: -top.value,
-			})
-		})
-	})
-}
-
-const handleSelection = (val) => {
-	// watch for changes in activeElementIds to auto-highlight duplicated group
-	cropSelectionToFitContent()
-
-	setElementPositions()
-
-	// move multiple elements to group div after setting position relative to the selection box
-	val.forEach((index) => {
-		const elementDiv = document.querySelector(`[data-index="${index}"]`)
-		selectedRef.value?.appendChild(elementDiv)
-	})
+	bounds.left = l
+	bounds.top = t
+	bounds.width = r - l
+	bounds.height = b - t
 }
 
 const resetSelection = (oldVal) => {
-	if (oldVal) {
-		oldVal.forEach((index) => {
-			let elementDiv = document.querySelector(`[data-index="${index}"]`)
-			if (!elementDiv) return
-
-			moveElement(index, {
-				dx: left.value,
-				dy: top.value,
-			})
-
-			let slideDiv = document.querySelector('.slide')
-			slideDiv.appendChild(elementDiv)
-		})
-	}
-	width.value = 0
-	height.value = 0
+	bounds.width = 0
+	bounds.height = 0
 }
 
 const handleMouseDown = (e) => {
@@ -241,39 +207,46 @@ const handleMouseUp = (e) => {
 	}
 }
 
-watch(
-	() => activeElementIds.value,
-	(val, oldVal) => {
-		if (oldVal.length) {
-			resetSelection(oldVal)
-		}
-		if (val.length) {
-			document.removeEventListener('mouseup', endSelection)
-			handleSelection(val)
-		}
-	},
-)
+const moveElementsToSlide = (elementIds) => {
+	elementIds.forEach((elementId) => {
+		let elementDiv = document.querySelector(`[data-index="${elementId}"]`)
+		let slideDiv = document.querySelector('.slide')
+		slideDiv.appendChild(elementDiv)
+		moveElement(elementId, {
+			dx: bounds.left,
+			dy: bounds.top,
+		})
+	})
+}
 
-watch(
-	() => activePosition.value,
-	(newVal, oldVal) => {
-		if (newVal) {
-			left.value = newVal.left - slideDimensions.left
-			top.value = newVal.top - slideDimensions.top
-		}
-	},
-	{ immediate: true },
-)
+const moveElementsToBox = (elementIds) => {
+	elementIds.forEach((elementId) => {
+		const elementDiv = document.querySelector(`[data-index="${elementId}"]`)
+		selectedRef.value?.appendChild(elementDiv)
+		moveElement(elementId, {
+			dx: -bounds.left,
+			dy: -bounds.top,
+		})
+	})
+}
 
-watch(
-	() => activeDimensions.value,
-	(newVal) => {
-		if (newVal) {
-			width.value = newVal.width
-		}
-	},
-	{ immediate: true },
-)
+const handleSelectionChange = (elementIds, oldIds) => {
+	resetSelection(oldIds)
+	moveElementsToSlide(oldIds)
+	if (elementIds.length) {
+		document.removeEventListener('mouseup', endSelection)
+		cropSelectionToFitContent(elementIds)
+		moveElementsToBox(elementIds)
+	}
+}
+
+const getBoxBounds = () => bounds
+
+const setBoxBounds = (newBounds) => {
+	Object.keys(newBounds).forEach((key) => {
+		bounds[key] = newBounds[key]
+	})
+}
 
 onMounted(() => {
 	document.addEventListener('mousedown', handleMouseDown)
@@ -284,5 +257,12 @@ onBeforeUnmount(() => {
 	document.removeEventListener('mousedown', handleMouseDown)
 	document.removeEventListener('mouseleave', handleMouseLeave)
 	document.removeEventListener('mouseup', handleMouseUp)
+	document.removeEventListener('mouseup', endSelection)
+})
+
+defineExpose({
+	handleSelectionChange,
+	getBoxBounds,
+	setBoxBounds,
 })
 </script>

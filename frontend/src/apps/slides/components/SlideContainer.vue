@@ -123,10 +123,15 @@ const scale = computed(() => {
 })
 
 const addDragAndResize = () => {
-	let el = selectionBoxRef.value.$el
+	let el = selectionBoxRef.value?.$el
 	if (!el) return
 	nextTick(() => {
 		dragTarget.value = el
+		const { left, top } = selectionBoxRef.value.getBoxBounds()
+		activePosition.value = {
+			left: left + slideDimensions.left,
+			top: top + slideDimensions.top,
+		}
 	})
 	if (activeElementIds.value.length == 1) {
 		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
@@ -162,13 +167,13 @@ const updateSlideDimensions = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
+		selectionBoxRef.value.handleSelectionChange(newVal, oldVal)
 		if (newVal.length) {
 			addDragAndResize()
 		} else if (oldVal) {
 			removeDragAndResize(oldVal)
 		}
 	},
-	{ immediate: true },
 )
 
 watch(
@@ -213,12 +218,16 @@ watch(
 		const didSnap =
 			initialPosition.dx != snappedPosition.dx || initialPosition.dy != snappedPosition.dy
 
-		if (!delayPositionUpdates.value)
+		if (!delayPositionUpdates.value) {
 			updateActivePosition({
 				dx: snappedPosition.dx,
 				dy: snappedPosition.dy,
 			})
-		else delayPositionUpdates.value -= 1
+			selectionBoxRef.value.setBoxBounds({
+				left: activePosition.value.left - slideDimensions.left,
+				top: activePosition.value.top - slideDimensions.top,
+			})
+		} else delayPositionUpdates.value -= 1
 
 		if (didSnap) {
 			delayPositionUpdates.value = 15
@@ -236,8 +245,11 @@ watch(
 			const newWidth = dimensions.width / scale.value
 			element.width = newWidth
 		}
+		selectionBoxRef.value.setBoxBounds({
+			width: dimensions.width,
+			height: dimensions.height,
+		})
 	},
-	{ immediate: true },
 )
 
 watch(
@@ -254,10 +266,6 @@ watch(
 onMounted(() => {
 	if (!slideRef.value) return
 	updateSlideDimensions()
-})
-
-defineExpose({
-	guides,
 })
 </script>
 
