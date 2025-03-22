@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
@@ -230,7 +230,7 @@ watch(
 		} else delayPositionUpdates.value -= 1
 
 		if (didSnap) {
-			delayPositionUpdates.value = 15
+			delayPositionUpdates.value = DELAY_COUNT
 		}
 	},
 )
@@ -267,6 +267,9 @@ onMounted(() => {
 	if (!slideRef.value) return
 	updateSlideDimensions()
 })
+
+provide('slideDiv', slideRef)
+provide('slideContainerDiv', slideContainerRef)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
