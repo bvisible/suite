@@ -70,6 +70,7 @@ import {
 	resetFocus,
 	updateActivePosition,
 	setActivePosition,
+	resizeElement,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -165,6 +166,19 @@ const updateSlideDimensions = () => {
 	slideDimensions.scale = scale.value
 }
 
+const handleDimensionChange = (dimensions) => {
+	const elementId = activeElementIds.value[0]
+
+	// update element dimensions in slide object
+	resizeElement(elementId, dimensions)
+
+	// update selection box dimensions to match the element
+	selectionBoxRef.value.setBoxBounds({
+		width: dimensions.width,
+		height: dimensions.height,
+	})
+}
+
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
@@ -240,16 +254,7 @@ watch(
 	() => activeDimensions.value,
 	(dimensions) => {
 		if (!dimensions) return
-		const id = activeElementIds.value[0]
-		let element = slide.value.elements.find((el) => el.id == id)
-		if (element && dimensions.width != element.width) {
-			const newWidth = dimensions.width / scale.value
-			element.width = newWidth
-		}
-		selectionBoxRef.value.setBoxBounds({
-			width: dimensions.width,
-			height: dimensions.height,
-		})
+		handleDimensionChange(dimensions)
 	},
 )
 
