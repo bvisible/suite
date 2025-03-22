@@ -292,16 +292,6 @@ watch(
 	},
 )
 
-watch(
-	() => presentation.data,
-	() => {
-		const currentSlide = presentation.data?.slides[slideIndex.value]
-		if (!currentSlide) return
-		loadSlide()
-	},
-	{ immediate: true },
-)
-
 onMounted(() => {
 	if (!slideRef.value) return
 	updateSlideBounds()

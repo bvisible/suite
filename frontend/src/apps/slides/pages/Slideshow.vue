@@ -187,14 +187,9 @@ const initFullscreenMode = async () => {
 
 watch(
 	() => route.params.presentationId,
-	async (id) => {
+	(id) => {
 		if (!id) return
 		presentationId.value = id
-		await presentation.fetch()
-
-		const currentSlide = presentation.data.slides[slideIndex.value]
-		if (!currentSlide) return
-		loadSlide()
 	},
 	{ immediate: true },
 )

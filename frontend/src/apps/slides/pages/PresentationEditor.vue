@@ -224,10 +224,9 @@ const startSlideShow = async () => {
 
 watch(
 	() => route.params.presentationId,
-	async (id) => {
+	(id) => {
 		if (!id) return
 		presentationId.value = id
-		await presentation.fetch()
 	},
 	{ immediate: true },
 )
