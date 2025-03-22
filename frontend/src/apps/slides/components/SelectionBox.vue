@@ -12,6 +12,7 @@ import {
 	onMounted,
 	onBeforeUnmount,
 	reactive,
+	inject,
 } from 'vue'
 
 import { slide, slideDimensions } from '@/stores/slide'
@@ -24,6 +25,9 @@ import {
 } from '@/stores/element'
 
 const emit = defineEmits(['updateFocus'])
+
+const slideDiv = inject('slideDiv')
+const slideContainerDiv = inject('slideContainerDiv')
 
 const selectedRef = useTemplateRef('selected')
 
@@ -177,7 +181,7 @@ const resetSelection = (oldVal) => {
 const handleMouseDown = (e) => {
 	// ignore long press outside slideContainer and slide elements
 	if (
-		!['slide', 'slideContainer'].some((cls) => e.target.classList.contains(cls)) &&
+		![slideDiv.value, slideContainerDiv.value].includes(e.target) &&
 		!e.target.hasAttribute('data-index')
 	)
 		return
@@ -210,8 +214,7 @@ const handleMouseUp = (e) => {
 const moveElementsToSlide = (elementIds) => {
 	elementIds.forEach((elementId) => {
 		let elementDiv = document.querySelector(`[data-index="${elementId}"]`)
-		let slideDiv = document.querySelector('.slide')
-		slideDiv.appendChild(elementDiv)
+		slideDiv.value.appendChild(elementDiv)
 		moveElement(elementId, {
 			dx: bounds.left,
 			dy: bounds.top,
