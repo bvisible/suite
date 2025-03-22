@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { slide, slideDimensions } from './slide'
+import { slide, slideBounds } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
@@ -182,7 +182,7 @@ const resizeElement = (elementId, dimensions) => {
 	let element = slide.value.elements.find((el) => el.id == elementId)
 
 	if (element && dimensions.width != element.width) {
-		const newWidth = dimensions.width / slideDimensions.scale
+		const newWidth = dimensions.width / slideBounds.scale
 		element.width = newWidth
 	}
 }
