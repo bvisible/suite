@@ -81,6 +81,8 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
+const POSITION_UPDATE_DELAY = 15
+
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -95,6 +97,8 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 	slideContainerRef,
 	slideTargetRef,
 )
+
+const delayPositionUpdates = ref(0)
 
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
@@ -123,30 +127,6 @@ const scale = computed(() => {
 	if (!matrix) return 1
 	return parseFloat(matrix[1].split(', ')[0])
 })
-
-const addDragAndResize = () => {
-	let el = selectionBoxRef.value?.$el
-	if (!el) return
-	nextTick(() => {
-		dragTarget.value = el
-		const { left, top } = selectionBoxRef.value.getBoxBounds()
-		setActivePosition({
-			left: left + slideDimensions.left,
-			top: top + slideDimensions.top,
-		})
-	})
-	if (activeElementIds.value.length == 1) {
-		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
-		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
-	}
-}
-
-const removeDragAndResize = (val) => {
-	setActivePosition(null)
-	activeDimensions.value = null
-	dragTarget.value = null
-	resizeTarget.value = null
-}
 
 const updateFocus = (e) => {
 	if (isResizing.value) {
@@ -179,74 +159,117 @@ const handleDimensionChange = (dimensions) => {
 	})
 }
 
+const initDraggable = () => {
+	let el = selectionBoxRef.value?.$el
+	if (!el) return
+
+	// enable dragging on the selected box
+	dragTarget.value = el
+
+	// set initial position of the selection box
+	const { left, top } = selectionBoxRef.value.getBoxBounds()
+	setActivePosition({
+		left: left + slideDimensions.left,
+		top: top + slideDimensions.top,
+	})
+}
+
+const initResizer = (element) => {
+	// enable resizing on the selected element
+	resizeTarget.value = document.querySelector(`[data-index="${element.id}"]`)
+
+	// set initial dimensions of the element
+	resizeMode.value = element.type == 'text' ? 'width' : 'both'
+}
+
+const addDragAndResize = () => {
+	// if only one element is selected, enable resizing
+	if (activeElementIds.value.length == 1) {
+		initResizer(activeElements.value[0])
+	}
+
+	nextTick(() => {
+		initDraggable()
+	})
+}
+
+const removeDragAndResize = () => {
+	setActivePosition(null)
+	activeDimensions.value = null
+	dragTarget.value = null
+	resizeTarget.value = null
+}
+
+const getPositionChange = (movement) => {
+	return {
+		dx: movement.x / scale.value,
+		dy: movement.y / scale.value,
+	}
+}
+
+const hasSnapped = (positionChange, snappedPositionChange) => {
+	return (
+		positionChange.dx != snappedPositionChange.dx ||
+		positionChange.dy != snappedPositionChange.dy
+	)
+}
+
+const applyMovement = (positionChange) => {
+	// move the element to the new position
+	updateActivePosition({
+		dx: positionChange.dx,
+		dy: positionChange.dy,
+	})
+
+	// update selection box position to match the element
+	selectionBoxRef.value.setBoxBounds({
+		left: activePosition.value.left - slideDimensions.left,
+		top: activePosition.value.top - slideDimensions.top,
+	})
+}
+
+const handlePositionChange = (movement) => {
+	// get change in position - scaled
+	const positionChange = getPositionChange(movement)
+
+	// get change in position - possible snaps
+	const snapPositionChange = guides.value.getMovementBasedOnSnap(positionChange)
+
+	const isElementSnapped = hasSnapped(positionChange, snapPositionChange)
+
+	if (!delayPositionUpdates.value) {
+		applyMovement(snapPositionChange)
+	} else {
+		// delay position updates right after snapping
+		delayPositionUpdates.value -= 1
+	}
+
+	if (isElementSnapped) {
+		delayPositionUpdates.value = POSITION_UPDATE_DELAY
+	}
+}
+
+const handleSelectionChange = (newSelection, oldSelection) => {
+	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
+	if (newSelection.length) {
+		addDragAndResize()
+	} else if (oldSelection) {
+		removeDragAndResize()
+	}
+}
+
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		selectionBoxRef.value.handleSelectionChange(newVal, oldVal)
-		if (newVal.length) {
-			addDragAndResize()
-		} else if (oldVal) {
-			removeDragAndResize(oldVal)
-		}
+		handleSelectionChange(newVal, oldVal)
 	},
 )
-
-watch(
-	() => focusElementId.value,
-	(newVal, oldVal) => {
-		if (oldVal) {
-			let element = slide.value.elements.find((el) => el.id == oldVal)
-			element.content = document.querySelector(`[data-index="${oldVal}"]`).innerText
-		}
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => presentation.data,
-	() => {
-		const currentSlide = presentation.data?.slides[slideIndex.value]
-		if (!currentSlide) return
-		loadSlide()
-	},
-	{ immediate: true },
-)
-
-const DELAY_COUNT = 15
-
-const delayPositionUpdates = ref(0)
 
 watch(
 	() => movement.value,
-	() => {
-		if (!movement.value || !activePosition.value) return
-
-		const { x, y } = movement.value
-
-		const initialPosition = {
-			dx: x / scale.value,
-			dy: y / scale.value,
-		}
-
-		const snappedPosition = guides.value.getMovementBasedOnSnap(initialPosition)
-
-		const didSnap =
-			initialPosition.dx != snappedPosition.dx || initialPosition.dy != snappedPosition.dy
-
-		if (!delayPositionUpdates.value) {
-			updateActivePosition({
-				dx: snappedPosition.dx,
-				dy: snappedPosition.dy,
-			})
-			selectionBoxRef.value.setBoxBounds({
-				left: activePosition.value.left - slideDimensions.left,
-				top: activePosition.value.top - slideDimensions.top,
-			})
-		} else delayPositionUpdates.value -= 1
-
-		if (didSnap) {
-			delayPositionUpdates.value = DELAY_COUNT
-		}
+	(movement) => {
+		if (!movement || !activePosition.value) return
+		handlePositionChange(movement)
 	},
 )
 
@@ -267,6 +290,16 @@ watch(
 			updateSlideDimensions()
 		})
 	},
+)
+
+watch(
+	() => presentation.data,
+	() => {
+		const currentSlide = presentation.data?.slides[slideIndex.value]
+		if (!currentSlide) return
+		loadSlide()
+	},
+	{ immediate: true },
 )
 
 onMounted(() => {
