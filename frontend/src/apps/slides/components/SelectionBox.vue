@@ -15,7 +15,7 @@ import {
 	inject,
 } from 'vue'
 
-import { slide, slideDimensions } from '@/stores/slide'
+import { slide, slideBounds } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
@@ -60,8 +60,8 @@ const boxStyles = computed(() => ({
 const initSelection = (e) => {
 	activeElementIds.value = []
 	nextTick(() => {
-		const currentX = (e.clientX - slideDimensions.left) / slideDimensions.scale
-		const currentY = (e.clientY - slideDimensions.top) / slideDimensions.scale
+		const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
+		const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
 		bounds.left = currentX
 		bounds.top = currentY
@@ -77,8 +77,8 @@ const initSelection = (e) => {
 }
 
 const updateSelection = (e) => {
-	const currentX = (e.clientX - slideDimensions.left) / slideDimensions.scale
-	const currentY = (e.clientY - slideDimensions.top) / slideDimensions.scale
+	const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
+	const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
 	bounds.width = Math.abs(currentX - startX.value)
 	bounds.height = Math.abs(currentY - startY.value)
@@ -109,10 +109,10 @@ const getElementsWithinBoxSurface = () => {
 			.querySelector(`[data-index="${element.id}"]`)
 			.getBoundingClientRect()
 
-		const elementLeft = (elementRect.left - slideDimensions.left) / slideDimensions.scale
-		const elementTop = (elementRect.top - slideDimensions.top) / slideDimensions.scale
-		const elementRight = elementLeft + elementRect.width / slideDimensions.scale
-		const elementBottom = elementTop + elementRect.height / slideDimensions.scale
+		const elementLeft = (elementRect.left - slideBounds.left) / slideBounds.scale
+		const elementTop = (elementRect.top - slideBounds.top) / slideBounds.scale
+		const elementRight = elementLeft + elementRect.width / slideBounds.scale
+		const elementBottom = elementTop + elementRect.height / slideBounds.scale
 
 		const withinWidth =
 			(boxRight >= elementLeft && boxLeft <= elementLeft) ||
@@ -156,10 +156,10 @@ const cropSelectionToFitContent = (elementIds) => {
 	elementIds.forEach((id) => {
 		const elementRect = document.querySelector(`[data-index="${id}"]`).getBoundingClientRect()
 
-		const elementLeft = (elementRect.left - slideDimensions.left) / slideDimensions.scale
-		const elementTop = (elementRect.top - slideDimensions.top) / slideDimensions.scale
-		const elementRight = elementLeft + elementRect.width / slideDimensions.scale
-		const elementBottom = elementTop + elementRect.height / slideDimensions.scale
+		const elementLeft = (elementRect.left - slideBounds.left) / slideBounds.scale
+		const elementTop = (elementRect.top - slideBounds.top) / slideBounds.scale
+		const elementRight = elementLeft + elementRect.width / slideBounds.scale
+		const elementBottom = elementTop + elementRect.height / slideBounds.scale
 
 		if (elementLeft < l) l = elementLeft
 		if (elementTop < t) t = elementTop

@@ -10,7 +10,7 @@
 import { ref, computed } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
-import { slide, slideDimensions } from '@/stores/slide'
+import { slide, slideBounds } from '@/stores/slide'
 import { activePosition, activeElementIds, pairElementId } from '@/stores/element'
 
 const props = defineProps({
@@ -159,8 +159,8 @@ const centerYGuideStyles = computed(() => {
 })
 
 const getScaledValue = (value, axis) => {
-	if (axis == 'X') return (value - slideDimensions.left) / slideDimensions.scale
-	return (value - slideDimensions.top) / slideDimensions.scale
+	if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
+	return (value - slideBounds.top) / slideBounds.scale
 }
 
 const getElementBounds = (div) => {
@@ -170,8 +170,8 @@ const getElementBounds = (div) => {
 		top: getScaledValue(rect.top, 'Y'),
 		right: getScaledValue(rect.right, 'X'),
 		bottom: getScaledValue(rect.bottom, 'Y'),
-		height: rect.height / slideDimensions.scale,
-		width: rect.width / slideDimensions.scale,
+		height: rect.height / slideBounds.scale,
+		width: rect.width / slideBounds.scale,
 	}
 }
 
@@ -219,10 +219,10 @@ const getDiffFromCenter = (axis) => {
 	const activeBounds = getElementBounds(props.selectedRef)
 
 	if (axis == 'X') {
-		slideCenter = slideDimensions.width / slideDimensions.scale / 2
+		slideCenter = slideBounds.width / slideBounds.scale / 2
 		elementCenter = activeBounds.left + activeBounds.width / 2
 	} else {
-		slideCenter = slideDimensions.height / slideDimensions.scale / 2
+		slideCenter = slideBounds.height / slideBounds.scale / 2
 		elementCenter = activeBounds.top + activeBounds.height / 2
 	}
 

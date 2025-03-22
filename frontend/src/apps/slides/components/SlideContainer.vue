@@ -58,7 +58,7 @@ import {
 	loadSlide,
 	selectSlide,
 	getSlideThumbnail,
-	slideDimensions,
+	slideBounds,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -136,14 +136,14 @@ const updateFocus = (e) => {
 	selectSlide(e)
 }
 
-const updateSlideDimensions = () => {
+const updateSlideBounds = () => {
 	const slideRect = slideRef.value.getBoundingClientRect()
 
-	slideDimensions.width = slideRect.width
-	slideDimensions.height = slideRect.height
-	slideDimensions.left = slideRect.left
-	slideDimensions.top = slideRect.top
-	slideDimensions.scale = scale.value
+	slideBounds.width = slideRect.width
+	slideBounds.height = slideRect.height
+	slideBounds.left = slideRect.left
+	slideBounds.top = slideRect.top
+	slideBounds.scale = scale.value
 }
 
 const handleDimensionChange = (dimensions) => {
@@ -169,8 +169,8 @@ const initDraggable = () => {
 	// set initial position of the selection box
 	const { left, top } = selectionBoxRef.value.getBoxBounds()
 	setActivePosition({
-		left: left + slideDimensions.left,
-		top: top + slideDimensions.top,
+		left: left + slideBounds.left,
+		top: top + slideBounds.top,
 	})
 }
 
@@ -223,8 +223,8 @@ const applyMovement = (positionChange) => {
 
 	// update selection box position to match the element
 	selectionBoxRef.value.setBoxBounds({
-		left: activePosition.value.left - slideDimensions.left,
-		top: activePosition.value.top - slideDimensions.top,
+		left: activePosition.value.left - slideBounds.left,
+		top: activePosition.value.top - slideBounds.top,
 	})
 }
 
@@ -287,7 +287,7 @@ watch(
 		if (!transform.value) return
 		// wait for the new transform to render before updating dimensions
 		nextTick(() => {
-			updateSlideDimensions()
+			updateSlideBounds()
 		})
 	},
 )
@@ -304,7 +304,7 @@ watch(
 
 onMounted(() => {
 	if (!slideRef.value) return
-	updateSlideDimensions()
+	updateSlideBounds()
 })
 
 provide('slideDiv', slideRef)
