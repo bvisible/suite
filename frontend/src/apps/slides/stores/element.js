@@ -178,11 +178,15 @@ const moveElement = (elementId, movement) => {
 	element.top += movement.dy
 }
 
+const setActivePosition = (position) => {
+	activePosition.value = position
+}
+
 const updateActivePosition = (positionChange) => {
-	activePosition.value = {
+	setActivePosition({
 		left: activePosition.value?.left + positionChange.dx,
 		top: activePosition.value?.top + positionChange.dy,
-	}
+	})
 }
 
 export {
@@ -201,5 +205,6 @@ export {
 	selectAllElements,
 	toggleTextProperty,
 	moveElement,
+	setActivePosition,
 	updateActivePosition,
 }

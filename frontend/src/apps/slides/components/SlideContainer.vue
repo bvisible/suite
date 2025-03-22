@@ -69,6 +69,7 @@ import {
 	pairElementId,
 	resetFocus,
 	updateActivePosition,
+	setActivePosition,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -128,10 +129,10 @@ const addDragAndResize = () => {
 	nextTick(() => {
 		dragTarget.value = el
 		const { left, top } = selectionBoxRef.value.getBoxBounds()
-		activePosition.value = {
+		setActivePosition({
 			left: left + slideDimensions.left,
 			top: top + slideDimensions.top,
-		}
+		})
 	})
 	if (activeElementIds.value.length == 1) {
 		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
@@ -140,7 +141,7 @@ const addDragAndResize = () => {
 }
 
 const removeDragAndResize = (val) => {
-	activePosition.value = null
+	setActivePosition(null)
 	activeDimensions.value = null
 	dragTarget.value = null
 	resizeTarget.value = null
