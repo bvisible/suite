@@ -70,6 +70,7 @@ import {
 	activePosition,
 	activeElements,
 	toggleTextProperty,
+	updateActivePosition,
 } from '@/stores/element'
 
 let autosaveInterval = null
@@ -98,10 +99,7 @@ const handleArrowKeys = (key) => {
 	else if (key == 'ArrowUp') dy = -1
 	else if (key == 'ArrowDown') dy = 1
 
-	activePosition.value = {
-		left: activePosition.value.left + dx,
-		top: activePosition.value.top + dy,
-	}
+	updateActivePosition({ dx, dy })
 }
 
 const handleElementShortcuts = (e) => {
@@ -226,10 +224,9 @@ const startSlideShow = async () => {
 
 watch(
 	() => route.params.presentationId,
-	async (id) => {
+	(id) => {
 		if (!id) return
 		presentationId.value = id
-		await presentation.fetch()
 	},
 	{ immediate: true },
 )
