@@ -60,10 +60,10 @@ const visibilityMap = computed(() => {
 	return {
 		centerX: Math.abs(diffs.value.centerX) < PROXIMITY_THRESHOLD,
 		centerY: Math.abs(diffs.value.centerY) < PROXIMITY_THRESHOLD,
-		left: Math.abs(diffs.value.left) < PROXIMITY_THRESHOLD,
-		right: Math.abs(diffs.value.right) < PROXIMITY_THRESHOLD,
-		top: Math.abs(diffs.value.top) < PROXIMITY_THRESHOLD,
-		bottom: Math.abs(diffs.value.bottom) < PROXIMITY_THRESHOLD,
+		left: Math.abs(diffs.value.left) < 5,
+		right: Math.abs(diffs.value.right) < 5,
+		top: Math.abs(diffs.value.top) < 5,
+		bottom: Math.abs(diffs.value.bottom) < 5,
 	}
 })
 
