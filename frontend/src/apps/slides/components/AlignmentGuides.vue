@@ -275,6 +275,11 @@ const setCurrentDiffs = () => {
 			diffs.value.bottom = diffBottom
 		} else if (isPaired) {
 			pairElementId.value = null
+
+			diffs.value.left = null
+			diffs.value.right = null
+			diffs.value.top = null
+			diffs.value.bottom = null
 		}
 	})
 
