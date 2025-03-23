@@ -268,14 +268,14 @@ const setCurrentDiffs = () => {
 
 		if (canPair) {
 			pairElementId.value = element.id
+
+			diffs.value.left = diffLeft
+			diffs.value.right = diffRight
+			diffs.value.top = diffTop
+			diffs.value.bottom = diffBottom
 		} else if (isPaired) {
 			pairElementId.value = null
 		}
-
-		diffs.value.left = diffLeft
-		diffs.value.right = diffRight
-		diffs.value.top = diffTop
-		diffs.value.bottom = diffBottom
 	})
 
 	diffs.value.centerX = getDiffFromCenter('X')
