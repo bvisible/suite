@@ -81,7 +81,8 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
-const POSITION_UPDATE_DELAY = 15
+let recentlySnapped = false
+let snapTimer = null
 
 const router = useRouter()
 
@@ -237,15 +238,18 @@ const handlePositionChange = (movement) => {
 
 	const isElementSnapped = hasSnapped(positionChange, snapPositionChange)
 
-	if (!delayPositionUpdates.value) {
-		applyMovement(snapPositionChange)
-	} else {
-		// delay position updates right after snapping
-		delayPositionUpdates.value -= 1
+	if (!recentlySnapped) {
+		requestAnimationFrame(() => {
+			applyMovement(snapPositionChange)
+		})
 	}
 
 	if (isElementSnapped) {
-		delayPositionUpdates.value = POSITION_UPDATE_DELAY
+		recentlySnapped = true
+		clearTimeout(snapTimer)
+		snapTimer = setTimeout(() => {
+			recentlySnapped = false
+		}, 300)
 	}
 }
 
