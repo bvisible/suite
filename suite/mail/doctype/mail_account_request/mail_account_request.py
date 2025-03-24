@@ -59,9 +59,8 @@ class MailAccountRequest(Document):
 	def validate_email(self) -> None:
 		"""Validates email if needed."""
 
-		if self.email:
-			self.email = self.email.strip().lower()
-			validate_email_address(self.email, True)
+		self.email = self.email.strip().lower()
+		validate_email_address(self.email, True)
 
 	def set_expires_at(self) -> None:
 		"""Sets the expiry date of the request."""
@@ -221,6 +220,7 @@ class MailAccountRequest(Document):
 		create_mail_account(
 			tenant=self.tenant,
 			email=self.account,
+			backup_email=self.email,
 			first_name=first_name,
 			last_name=last_name,
 			password=password,
