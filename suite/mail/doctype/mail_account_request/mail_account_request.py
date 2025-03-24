@@ -167,7 +167,7 @@ class MailAccountRequest(Document):
 
 		self.validate_expired()
 
-		link = get_url() + "/mail/signup/" + self.request_key
+		link = get_url("/mail/signup/" + self.request_key)
 		args = {"link": link, "otp": self.otp}
 
 		if self.is_invite and self.invited_by:
