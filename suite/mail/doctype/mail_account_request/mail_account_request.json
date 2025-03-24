@@ -46,8 +46,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Email",
-   "mandatory_depends_on": "eval: !doc.is_invite || doc.send_invite",
    "options": "Email",
+   "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
   },
@@ -187,13 +187,14 @@
    "fieldtype": "Datetime",
    "label": "Expires At",
    "no_copy": 1,
-   "search_index": 1,
-   "set_only_once": 1
+   "read_only": 1,
+   "search_index": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-13 19:31:56.052085",
+ "modified": "2025-03-24 12:45:30.631437",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account Request",
