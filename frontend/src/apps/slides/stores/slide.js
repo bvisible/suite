@@ -37,12 +37,12 @@ const getCurrentData = () => {
 	}
 
 	if (activePosition.value) {
-		const dx = activePosition.value.left - slideDimensions.left
-		const dy = activePosition.value.top - slideDimensions.top
+		const dx = activePosition.value.left - slideBounds.left
+		const dy = activePosition.value.top - slideBounds.top
 
 		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
-		elementsCopy.forEach((element, index) => {
-			if (activeElementIds.value.includes(index)) {
+		elementsCopy.forEach((element) => {
+			if (activeElementIds.value.includes(element.id)) {
 				element.left = element.left + dx
 				element.top = element.top + dy
 			}
@@ -113,9 +113,9 @@ const saving = ref(false)
 
 const saveChanges = async () => {
 	if (!presentation.data || !slideDirty.value) return
-	slide.value.elements = slide.value.elements.map((element, index) => {
-		let rect = document.querySelector(`[data-index="${index}"]`).getBoundingClientRect()
-		element.width = rect.width / slideDimensions.scale
+	slide.value.elements = slide.value.elements.map((element) => {
+		let rect = document.querySelector(`[data-index="${element.id}"]`).getBoundingClientRect()
+		element.width = rect.width / slideBounds.scale
 		return element
 	})
 	saving.value = true
@@ -168,14 +168,14 @@ const selectSlide = (e) => {
 	resetFocus()
 }
 
-const slideDimensions = reactive({})
+const slideBounds = reactive({})
 
 export {
 	slideIndex,
 	slideDirty,
 	saving,
 	slide,
-	slideDimensions,
+	slideBounds,
 	getSlideThumbnail,
 	loadSlide,
 	saveChanges,

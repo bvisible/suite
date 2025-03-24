@@ -10,13 +10,11 @@
 					:selectedRef="selectionBoxRef.$el"
 				/>
 
-				<component
-					ref="element"
-					v-for="(element, index) in slide.elements"
-					:key="index"
-					:is="SlideElement"
+				<SlideElement
+					v-for="element in slide.elements"
+					:key="element.id"
 					:element="element"
-					:data-index="index"
+					:data-index="element.id"
 				/>
 			</div>
 
@@ -41,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
 import { useElementBounding } from '@vueuse/core'
 
@@ -60,7 +58,7 @@ import {
 	loadSlide,
 	selectSlide,
 	getSlideThumbnail,
-	slideDimensions,
+	slideBounds,
 } from '@/stores/slide'
 import {
 	activePosition,
@@ -70,6 +68,9 @@ import {
 	focusElementId,
 	pairElementId,
 	resetFocus,
+	updateActivePosition,
+	setActivePosition,
+	resizeElement,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -79,6 +80,9 @@ import { usePanAndZoom } from '@/utils/zoom'
 const props = defineProps({
 	highlight: Boolean,
 })
+
+let recentlySnapped = false
+let snapTimer = null
 
 const router = useRouter()
 
@@ -94,6 +98,8 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 	slideContainerRef,
 	slideTargetRef,
 )
+
+const delayPositionUpdates = ref(0)
 
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
@@ -123,25 +129,6 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const addDragAndResize = () => {
-	let el = selectionBoxRef.value.$el
-	if (!el) return
-	nextTick(() => {
-		dragTarget.value = el
-	})
-	if (activeElementIds.value.length == 1) {
-		resizeTarget.value = document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
-		resizeMode.value = activeElements.value[0].type == 'text' ? 'width' : 'both'
-	}
-}
-
-const removeDragAndResize = (val) => {
-	activePosition.value = null
-	activeDimensions.value = null
-	dragTarget.value = null
-	resizeTarget.value = null
-}
-
 const updateFocus = (e) => {
 	if (isResizing.value) {
 		isResizing.value = false
@@ -150,59 +137,143 @@ const updateFocus = (e) => {
 	selectSlide(e)
 }
 
-const updateSlideDimensions = () => {
+const updateSlideBounds = () => {
 	const slideRect = slideRef.value.getBoundingClientRect()
 
-	slideDimensions.width = slideRect.width
-	slideDimensions.height = slideRect.height
-	slideDimensions.left = slideRect.left
-	slideDimensions.top = slideRect.top
-	slideDimensions.scale = scale.value
+	slideBounds.width = slideRect.width
+	slideBounds.height = slideRect.height
+	slideBounds.left = slideRect.left
+	slideBounds.top = slideRect.top
+	slideBounds.scale = scale.value
+}
+
+const handleDimensionChange = (dimensions) => {
+	const elementId = activeElementIds.value[0]
+
+	// update element dimensions in slide object
+	resizeElement(elementId, dimensions)
+
+	// update selection box dimensions to match the element
+	selectionBoxRef.value.setBoxBounds({
+		width: dimensions.width,
+		height: dimensions.height,
+	})
+}
+
+const initDraggable = () => {
+	let el = selectionBoxRef.value?.$el
+	if (!el) return
+
+	// enable dragging on the selected box
+	dragTarget.value = el
+
+	// set initial position of the selection box
+	const { left, top } = selectionBoxRef.value.getBoxBounds()
+	setActivePosition({
+		left: left + slideBounds.left,
+		top: top + slideBounds.top,
+	})
+}
+
+const initResizer = (element) => {
+	// enable resizing on the selected element
+	resizeTarget.value = document.querySelector(`[data-index="${element.id}"]`)
+
+	// set initial dimensions of the element
+	resizeMode.value = element.type == 'text' ? 'width' : 'both'
+}
+
+const addDragAndResize = () => {
+	// if only one element is selected, enable resizing
+	if (activeElementIds.value.length == 1) {
+		initResizer(activeElements.value[0])
+	}
+
+	nextTick(() => {
+		initDraggable()
+	})
+}
+
+const removeDragAndResize = () => {
+	setActivePosition(null)
+	activeDimensions.value = null
+	dragTarget.value = null
+	resizeTarget.value = null
+}
+
+const getPositionChange = (movement) => {
+	return {
+		dx: movement.x / scale.value,
+		dy: movement.y / scale.value,
+	}
+}
+
+const hasSnapped = (positionChange, snappedPositionChange) => {
+	return (
+		positionChange.dx != snappedPositionChange.dx ||
+		positionChange.dy != snappedPositionChange.dy
+	)
+}
+
+const applyMovement = (positionChange) => {
+	// move the element to the new position
+	updateActivePosition({
+		dx: positionChange.dx,
+		dy: positionChange.dy,
+	})
+
+	// update selection box position to match the element
+	selectionBoxRef.value.setBoxBounds({
+		left: activePosition.value.left - slideBounds.left,
+		top: activePosition.value.top - slideBounds.top,
+	})
+}
+
+const handlePositionChange = (movement) => {
+	// get change in position - scaled
+	const positionChange = getPositionChange(movement)
+
+	// get change in position - possible snaps
+	const snapPositionChange = guides.value.getMovementBasedOnSnap(positionChange)
+
+	const isElementSnapped = hasSnapped(positionChange, snapPositionChange)
+
+	if (!recentlySnapped) {
+		requestAnimationFrame(() => {
+			applyMovement(snapPositionChange)
+		})
+	}
+
+	if (isElementSnapped) {
+		recentlySnapped = true
+		clearTimeout(snapTimer)
+		snapTimer = setTimeout(() => {
+			recentlySnapped = false
+		}, 300)
+	}
+}
+
+const handleSelectionChange = (newSelection, oldSelection) => {
+	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
+	if (newSelection.length) {
+		addDragAndResize()
+	} else if (oldSelection) {
+		removeDragAndResize()
+	}
 }
 
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		if (newVal.length) {
-			addDragAndResize()
-		} else if (oldVal) {
-			removeDragAndResize(oldVal)
-		}
+		handleSelectionChange(newVal, oldVal)
 	},
-	{ immediate: true },
-)
-
-watch(
-	() => focusElementId.value,
-	(newVal, oldVal) => {
-		if (oldVal) {
-			let element = slide.value.elements[oldVal]
-			slide.value.elements[oldVal].content = document.querySelector(
-				`[data-index="${oldVal}"]`,
-			).innerText
-		}
-	},
-	{ immediate: true },
-)
-
-watch(
-	() => presentation.data,
-	() => {
-		const currentSlide = presentation.data?.slides[slideIndex.value]
-		if (!currentSlide) return
-		loadSlide()
-	},
-	{ immediate: true },
 )
 
 watch(
 	() => movement.value,
-	() => {
-		if (!movement.value || !activePosition.value) return
-
-		const { x, y } = movement.value
-
-		guides.value.updateElementPosition(x / scale.value, y / scale.value)
+	(movement) => {
+		if (!movement || !activePosition.value) return
+		handlePositionChange(movement)
 	},
 )
 
@@ -210,13 +281,8 @@ watch(
 	() => activeDimensions.value,
 	(dimensions) => {
 		if (!dimensions) return
-		let element = slide.value.elements[activeElementIds.value[0]]
-		if (element && dimensions.width != element.width) {
-			const newWidth = dimensions.width / scale.value
-			element.width = newWidth
-		}
+		handleDimensionChange(dimensions)
 	},
-	{ immediate: true },
 )
 
 watch(
@@ -225,19 +291,18 @@ watch(
 		if (!transform.value) return
 		// wait for the new transform to render before updating dimensions
 		nextTick(() => {
-			updateSlideDimensions()
+			updateSlideBounds()
 		})
 	},
 )
 
 onMounted(() => {
 	if (!slideRef.value) return
-	updateSlideDimensions()
+	updateSlideBounds()
 })
 
-defineExpose({
-	guides,
-})
+provide('slideDiv', slideRef)
+provide('slideContainerDiv', slideContainerRef)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>

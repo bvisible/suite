@@ -3,12 +3,10 @@
 </template>
 
 <script setup>
-import { computed, useAttrs } from 'vue'
+import { computed } from 'vue'
 
 import { setActiveElements } from '@/stores/element'
 import { inSlideShow } from '@/stores/presentation'
-
-const attrs = useAttrs()
 
 const element = defineModel('element', {
 	type: Object,
@@ -28,6 +26,6 @@ const imageStyle = computed(() => ({
 
 const selectImage = (e) => {
 	if (inSlideShow.value) return
-	setActiveElements([attrs['data-index']])
+	setActiveElements([element.value.id])
 }
 </script>
