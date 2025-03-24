@@ -10,7 +10,7 @@
 import { ref, computed } from 'vue'
 import { useElementBounding } from '@vueuse/core'
 
-import { slide, slideDimensions } from '@/stores/slide'
+import { slide, slideBounds } from '@/stores/slide'
 import { activePosition, activeElementIds, pairElementId } from '@/stores/element'
 
 const props = defineProps({
@@ -26,7 +26,7 @@ const pairedDiv = computed(() => {
 const pairedRect = useElementBounding(pairedDiv)
 
 const pairElement = computed(() => {
-	return slide.value.elements[pairElementId.value]
+	return slide.value.elements.find((element) => element.id == pairElementId.value)
 })
 
 const prevDiffs = ref({
@@ -60,15 +60,12 @@ const visibilityMap = computed(() => {
 	return {
 		centerX: Math.abs(diffs.value.centerX) < PROXIMITY_THRESHOLD,
 		centerY: Math.abs(diffs.value.centerY) < PROXIMITY_THRESHOLD,
-		left: Math.abs(diffs.value.left) < PROXIMITY_THRESHOLD,
-		right: Math.abs(diffs.value.right) < PROXIMITY_THRESHOLD,
-		top: Math.abs(diffs.value.top) < PROXIMITY_THRESHOLD,
-		bottom: Math.abs(diffs.value.bottom) < PROXIMITY_THRESHOLD,
+		left: Math.abs(diffs.value.left) < 5,
+		right: Math.abs(diffs.value.right) < 5,
+		top: Math.abs(diffs.value.top) < 5,
+		bottom: Math.abs(diffs.value.bottom) < 5,
 	}
 })
-
-// when an element is snapped to a new position, enable movement after a few frames
-const skipFrames = ref(0)
 
 const guideStyles = computed(() => {
 	return {
@@ -162,8 +159,8 @@ const centerYGuideStyles = computed(() => {
 })
 
 const getScaledValue = (value, axis) => {
-	if (axis == 'X') return (value - slideDimensions.left) / slideDimensions.scale
-	return (value - slideDimensions.top) / slideDimensions.scale
+	if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
+	return (value - slideBounds.top) / slideBounds.scale
 }
 
 const getElementBounds = (div) => {
@@ -173,8 +170,8 @@ const getElementBounds = (div) => {
 		top: getScaledValue(rect.top, 'Y'),
 		right: getScaledValue(rect.right, 'X'),
 		bottom: getScaledValue(rect.bottom, 'Y'),
-		height: rect.height / slideDimensions.scale,
-		width: rect.width / slideDimensions.scale,
+		height: rect.height / slideBounds.scale,
+		width: rect.width / slideBounds.scale,
 	}
 }
 
@@ -222,10 +219,10 @@ const getDiffFromCenter = (axis) => {
 	const activeBounds = getElementBounds(props.selectedRef)
 
 	if (axis == 'X') {
-		slideCenter = slideDimensions.width / slideDimensions.scale / 2
+		slideCenter = slideBounds.width / slideBounds.scale / 2
 		elementCenter = activeBounds.left + activeBounds.width / 2
 	} else {
-		slideCenter = slideDimensions.height / slideDimensions.scale / 2
+		slideCenter = slideBounds.height / slideBounds.scale / 2
 		elementCenter = activeBounds.top + activeBounds.height / 2
 	}
 
@@ -252,10 +249,10 @@ const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
 }
 
 const setCurrentDiffs = () => {
-	slide.value.elements.forEach((element, index) => {
-		if (activeElementIds.value.includes(index)) return
+	slide.value.elements.forEach((element) => {
+		if (activeElementIds.value.includes(element.id)) return
 
-		const elementDiv = document.querySelector(`[data-index="${index}"]`)
+		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
 		if (!elementDiv || !props.selectedRef) return
 
 		const activeBounds = getElementBounds(props.selectedRef)
@@ -267,18 +264,23 @@ const setCurrentDiffs = () => {
 		const diffBottom = activeBounds.bottom - elementBounds.bottom
 
 		const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
-		const isPaired = pairElementId.value == index
+		const isPaired = pairElementId.value == element.id
 
 		if (canPair) {
-			pairElementId.value = index
+			pairElementId.value = element.id
+
+			diffs.value.left = diffLeft
+			diffs.value.right = diffRight
+			diffs.value.top = diffTop
+			diffs.value.bottom = diffBottom
 		} else if (isPaired) {
 			pairElementId.value = null
-		}
 
-		diffs.value.left = diffLeft
-		diffs.value.right = diffRight
-		diffs.value.top = diffTop
-		diffs.value.bottom = diffBottom
+			diffs.value.left = null
+			diffs.value.right = null
+			diffs.value.top = null
+			diffs.value.bottom = null
+		}
 	})
 
 	diffs.value.centerX = getDiffFromCenter('X')
@@ -289,7 +291,9 @@ const updatePrevDiffs = () => {
 	prevDiffs.value = JSON.parse(JSON.stringify(diffs.value))
 }
 
-const updateMovementBasedOnSnap = (dx, dy) => {
+const getMovementBasedOnSnap = (initialPosition) => {
+	const { dx, dy } = initialPosition
+
 	setCurrentDiffs()
 
 	const { offsetX, offsetY } = getCenterOffsets(dx, dy)
@@ -301,29 +305,10 @@ const updateMovementBasedOnSnap = (dx, dy) => {
 	const updatedDx = dx + offsetX + offsetLeft
 	const updatedDy = dy + offsetY + offsetTop
 
-	return { updatedDx, updatedDy }
-}
-
-const updateElementPosition = (dx, dy) => {
-	if (!activePosition.value) return
-
-	const { updatedDx, updatedDy } = updateMovementBasedOnSnap(dx, dy)
-
-	const didSnap = dx != updatedDx || dy != updatedDy
-
-	if (!skipFrames.value)
-		activePosition.value = {
-			left: activePosition.value.left + updatedDx,
-			top: activePosition.value.top + updatedDy,
-		}
-	else skipFrames.value -= 1
-
-	if (didSnap) {
-		skipFrames.value = 15
-	}
+	return { dx: updatedDx, dy: updatedDy }
 }
 
 defineExpose({
-	updateElementPosition,
+	getMovementBasedOnSnap,
 })
 </script>
