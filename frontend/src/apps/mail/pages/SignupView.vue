@@ -4,7 +4,7 @@
 			v-model="email"
 			label="Email"
 			type="email"
-			placeholder="johndoe@mail.com"
+			placeholder="johndoe@example.com"
 			autocomplete="email"
 			:readonly="!!props.requestKey || isVerificationStep"
 			required

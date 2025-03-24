@@ -43,6 +43,8 @@ const title = computed(() => {
 			return __('Sign in to your account')
 		case 'Setup':
 			return __('Set up organization')
+		case 'ForgotPassword':
+			return __('Reset Password')
 		default:
 			return __('Create a new account')
 	}
