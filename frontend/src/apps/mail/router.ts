@@ -28,6 +28,12 @@ const routes = [
 		meta: { isLogin: true },
 	},
 	{
+		path: '/reset-password',
+		name: 'ForgotPassword',
+		component: () => import('@/pages/ForgotPasswordView.vue'),
+		meta: { isLogin: true },
+	},
+	{
 		path: '/setup',
 		name: 'Setup',
 		component: () => import('@/pages/SetupView.vue'),
