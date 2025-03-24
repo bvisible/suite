@@ -108,3 +108,38 @@ def get_user_info() -> dict:
 	user.default_outgoing = get_default_outgoing_email_for_user(frappe.session.user)
 
 	return user
+
+
+def censor_email(email: str) -> str:
+	"""Censor the email address to protect privacy"""
+
+	username, domain = email.split("@")
+	censored_username = username[0] + "*" * (len(username) - 1)
+	return f"{censored_username}@{domain}"
+
+
+@frappe.whitelist(allow_guest=True)
+def send_reset_password_link(email: str) -> str:
+	"""Send reset password link to the user"""
+
+	user = frappe.db.get_value("Mail Account", email, "backup_email")
+	if not user:
+		if frappe.db.exists("User", email):
+			user = email
+		else:
+			frappe.throw(_("User {0} does not exist.").format(frappe.bold(email)))
+
+	link = "/mail/signup/"
+	args = {"link": link}
+
+	frappe.sendmail(
+		recipients=user,
+		subject=_("Reset Password"),
+		template="reset_password",
+		args=args,
+		now=True,
+	)
+
+	if user == email:
+		return user
+	return censor_email(user)
