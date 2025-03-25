@@ -170,7 +170,7 @@ class MailAccount(Document):
 
 		validate_email_address(self.backup_email, True)
 
-		if not self.is_new():
+		if self.user != get_dmarc_address():
 			if self.backup_email in get_user_email_addresses(self.user):
 				frappe.throw(_("Backup Email cannot be among the email addresses assigned to the user."))
 
