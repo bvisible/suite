@@ -29,7 +29,7 @@ export function getSidebarLinks() {
 		},
 		{
 			label: __('Outbox'),
-			icon: 'MailWarning',
+			icon: 'MailQuestion',
 			to: 'Outbox',
 			activeFor: ['Outbox'],
 		},
@@ -38,6 +38,12 @@ export function getSidebarLinks() {
 			icon: 'Edit3',
 			to: 'Drafts',
 			activeFor: ['Drafts'],
+		},
+		{
+			label: __('Spam'),
+			icon: 'MailWarning',
+			to: 'Spam',
+			activeFor: ['Spam'],
 		},
 		{
 			label: __('Trash'),
