@@ -325,6 +325,7 @@ provide('slideContainerDiv', slideContainerRef)
 
 defineExpose({
 	togglePanZoom,
+	applyMovement,
 })
 </script>
 
