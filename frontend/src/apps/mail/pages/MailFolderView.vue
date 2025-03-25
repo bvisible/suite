@@ -19,7 +19,7 @@
 	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
 		<div
 			ref="mailSidebar"
-			class="sticky top-16 w-1/3 overflow-y-scroll overscroll-contain border-r p-3"
+			class="sticky top-16 w-1/3 overflow-y-auto overscroll-contain border-r p-3"
 			@scroll="loadMoreEmails"
 		>
 			<div
