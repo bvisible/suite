@@ -44,20 +44,19 @@
 						{ label: __('Mail Admin'), value: 'Mail Admin' },
 					]"
 				/>
+				<FormControl
+					v-model="accountRequest.email"
+					type="email"
+					:label="__('Backup Email')"
+					placeholder="johndoe@personal.com"
+				/>
 				<hr />
 				<FormControl
 					v-model="accountRequest.send_invite"
 					type="checkbox"
 					:label="__('Send Invite')"
 				/>
-				<FormControl
-					v-if="accountRequest.send_invite"
-					v-model="accountRequest.email"
-					type="email"
-					:label="__('Email')"
-					placeholder="johndoe@personal.com"
-				/>
-				<template v-else>
+				<template v-if="!accountRequest.send_invite">
 					<FormControl
 						v-model="accountRequest.first_name"
 						type="text"

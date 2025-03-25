@@ -9,9 +9,10 @@
   "track_outgoing_mail",
   "create_mail_contact",
   "column_break_47zs",
-  "domain_name",
   "tenant",
+  "domain_name",
   "user",
+  "backup_email",
   "email",
   "normalized_email",
   "password",
@@ -173,8 +174,15 @@
    "read_only": 1,
    "set_only_once": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "backup_email",
+   "fieldtype": "Data",
+   "label": "Backup Email",
+   "reqd": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -208,7 +216,7 @@
    "link_fieldname": "sender"
   }
  ],
- "modified": "2025-02-19 11:48:33.501192",
+ "modified": "2025-03-24 13:07:01.687232",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
@@ -273,6 +281,7 @@
    "role": "Mail User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

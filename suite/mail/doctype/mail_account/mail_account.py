@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import random_string
+from frappe.utils import random_string, validate_email_address
 
 from mail.mail_server import (
 	create_account_on_clusters,
@@ -13,7 +13,7 @@ from mail.mail_server import (
 )
 from mail.utils import get_dmarc_address, hash_password, normalize_email
 from mail.utils.cache import get_aliases_for_user, get_tenant_for_user
-from mail.utils.user import has_role, is_system_manager, is_tenant_admin
+from mail.utils.user import get_user_email_addresses, has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
 	is_subaddressed_email,
@@ -42,6 +42,7 @@ class MailAccount(Document):
 		self.validate_password()
 		self.validate_default_outgoing_email()
 		self.validate_display_name()
+		self.validate_backup_email()
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -164,6 +165,15 @@ class MailAccount(Document):
 		if self.is_new() and not self.display_name:
 			self.display_name = frappe.db.get_value("User", self.user, "full_name")
 
+	def validate_backup_email(self) -> None:
+		"""Validates the backup email."""
+
+		validate_email_address(self.backup_email, True)
+
+		if self.user != get_dmarc_address():
+			if self.backup_email in get_user_email_addresses(self.user):
+				frappe.throw(_("Backup Email cannot be among the email addresses assigned to the user."))
+
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
@@ -231,6 +241,7 @@ def _add_user_to_tenant(tenant: str, user: str, is_admin: bool) -> None:
 def create_mail_account(
 	tenant: str,
 	email: str,
+	backup_email: str,
 	first_name: str,
 	last_name: str | None = None,
 	password: str | None = None,
@@ -246,6 +257,7 @@ def create_mail_account(
 	account = frappe.new_doc("Mail Account")
 	account.domain_name = email.split("@")[1]
 	account.user = user
+	account.backup_email = backup_email
 	account.insert(ignore_permissions=True)
 
 	return account
@@ -255,7 +267,8 @@ def create_dmarc_account(tenant: str) -> None:
 	"""Creates a DMARC account"""
 
 	frappe.flags.ignore_domain_validation = True
-	create_mail_account(tenant=tenant, email=get_dmarc_address(), first_name="DMARC")
+	dmarc_address = get_dmarc_address()
+	create_mail_account(tenant=tenant, email=dmarc_address, backup_email=dmarc_address, first_name="DMARC")
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
