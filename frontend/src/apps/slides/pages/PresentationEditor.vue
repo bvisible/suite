@@ -70,6 +70,7 @@ import {
 import {
 	resetFocus,
 	activeElementIds,
+	activeElement,
 	focusElementId,
 	deleteElements,
 	duplicateElements,
@@ -165,7 +166,7 @@ const handleGlobalShortcuts = (e) => {
 			break
 		case 'b':
 			if (e.metaKey) {
-				if (activeElementIds.value.length && activeElements.value[0].type == 'text')
+				if (activeElementIds.value.length && activeElement.value.type == 'text')
 					return toggleTextProperty('fontWeight', 'bold')
 				showNavigator.value = !showNavigator.value
 			}

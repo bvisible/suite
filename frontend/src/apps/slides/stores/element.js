@@ -23,6 +23,14 @@ const activeElements = computed(() => {
 	return elements
 })
 
+const activeElement = computed(() => {
+	if (focusElementId.value) {
+		return slide.value.elements.find((element) => element.id === focusElementId.value)
+	} else {
+		return activeElements.value[0]
+	}
+})
+
 const setActiveElements = (ids, focus = false) => {
 	if (ids.length == 1 && focus) {
 		activeElementIds.value = []
@@ -145,7 +153,7 @@ const resetFocus = () => {
 }
 
 const toggleTextProperty = (property, value) => {
-	const oldStyle = activeElements.value[0][property]
+	const oldStyle = activeElement.value[property]
 	let newStyle = ''
 
 	switch (property) {
@@ -167,8 +175,7 @@ const toggleTextProperty = (property, value) => {
 				? oldStyle.replace(value, '')
 				: oldStyle + ' ' + value
 	}
-	let element = slide.value.elements.find((element) => element.id == activeElementIds.value[0])
-	element[property] = newStyle
+	activeElement.value[property] = newStyle
 }
 
 const moveElement = (elementId, movement) => {
@@ -205,6 +212,7 @@ export {
 	focusElementId,
 	pairElementId,
 	activeElements,
+	activeElement,
 	setActiveElements,
 	resetFocus,
 	addTextElement,
