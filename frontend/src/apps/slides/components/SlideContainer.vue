@@ -41,7 +41,7 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
-import { useElementBounding } from '@vueuse/core'
+import { useElementBounding, useResizeObserver } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
@@ -152,12 +152,6 @@ const handleDimensionChange = (dimensions) => {
 
 	// update element dimensions in slide object
 	resizeElement(elementId, dimensions)
-
-	// update selection box dimensions to match the element
-	selectionBoxRef.value.setBoxBounds({
-		width: dimensions.width,
-		height: dimensions.height,
-	})
 }
 
 const initDraggable = () => {
@@ -261,6 +255,19 @@ const handleSelectionChange = (newSelection, oldSelection) => {
 		removeDragAndResize()
 	}
 }
+
+const activeDiv = computed(() => {
+	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
+})
+
+useResizeObserver(activeDiv, (entries) => {
+	const entry = entries[0]
+	const { width, height } = entry.contentRect
+	selectionBoxRef.value.setBoxBounds({
+		width: width * scale.value,
+		height: height * scale.value,
+	})
+})
 
 watch(
 	() => activeElementIds.value,
