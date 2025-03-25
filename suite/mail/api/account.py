@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
-from frappe.utils import cint, get_datetime, now_datetime
+from frappe.utils import cint, get_datetime, get_url, now_datetime
+from frappe.utils.data import sha256_hash
 
 from mail.mail.doctype.mail_account.mail_account import create_user
 from mail.utils.cache import get_default_outgoing_email_for_user
@@ -108,3 +109,65 @@ def get_user_info() -> dict:
 	user.default_outgoing = get_default_outgoing_email_for_user(frappe.session.user)
 
 	return user
+
+
+def get_backup_email(email: str) -> str:
+	"""Return backup email for a user or the user's email if backup doesn't exist"""
+
+	if backup_email := frappe.db.get_value("Mail Account", email, "backup_email"):
+		return backup_email
+
+	if frappe.db.exists("User", email):
+		return email
+
+	frappe.throw(_("User {0} does not exist.").format(frappe.bold(email)))
+
+
+def set_reset_password_key(email: str) -> str:
+	"""Generate and store a reset password key for a user"""
+
+	key = frappe.generate_hash()
+	hashed_key = sha256_hash(key)
+	frappe.db.set_value(
+		"User",
+		email,
+		{"reset_password_key": hashed_key, "last_reset_password_key_generated_on": now_datetime()},
+	)
+	return key
+
+
+def censor_email(email: str) -> str:
+	"""Censor the email address to protect privacy"""
+
+	username, domain = email.split("@")
+	censored_username = username[0] + "*" * (len(username) - 1)
+	return f"{censored_username}@{domain}"
+
+
+@frappe.whitelist(allow_guest=True)
+@dynamic_rate_limit()
+def send_reset_password_link(email: str) -> str:
+	"""Send reset password link to the user"""
+
+	user = get_backup_email(email)
+	key = set_reset_password_key(email)
+
+	frappe.sendmail(
+		recipients=user,
+		subject=_("Reset Password"),
+		template="reset_password",
+		args={"link": get_url("/mail/reset-password/" + key)},
+		now=True,
+	)
+
+	if user == email:
+		return user
+	return censor_email(user)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_user_for_reset_password_key(key: str) -> str:
+	"""Return the user for a reset password key"""
+
+	hashed_key = sha256_hash(key)
+	return frappe.db.get_value("User", {"reset_password_key": hashed_key}, "name")
