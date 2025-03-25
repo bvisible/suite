@@ -67,6 +67,11 @@ const routes = [
 		component: () => import('@/pages/MailFolderView.vue'),
 	},
 	{
+		path: '/spam',
+		name: 'Spam',
+		component: () => import('@/pages/MailFolderView.vue'),
+	},
+	{
 		path: '/trash',
 		name: 'Trash',
 		component: () => import('@/pages/MailFolderView.vue'),

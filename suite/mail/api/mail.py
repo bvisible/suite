@@ -42,6 +42,13 @@ def get_drafts_mails(start: int = 0) -> list:
 
 
 @frappe.whitelist()
+def get_spam_mails(start: int = 0) -> list:
+	"""Returns spam mails for the current user."""
+
+	return get_incoming_mails("Spam", start)
+
+
+@frappe.whitelist()
 def get_trash_mails(start: int = 0) -> list:
 	"""Returns trash mails for the current user."""
 
