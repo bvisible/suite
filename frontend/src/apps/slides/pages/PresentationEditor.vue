@@ -110,7 +110,7 @@ const handleArrowKeys = (key) => {
 	else if (key == 'ArrowUp') dy = -1
 	else if (key == 'ArrowDown') dy = 1
 
-	updateActivePosition({ dx, dy })
+	slideContainerRef.value.applyMovement({ dx, dy })
 }
 
 const handleElementShortcuts = (e) => {
