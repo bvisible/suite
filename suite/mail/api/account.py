@@ -1,6 +1,5 @@
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_datetime, get_url, now_datetime
 from frappe.utils.data import sha256_hash
 
@@ -146,7 +145,7 @@ def censor_email(email: str) -> str:
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=5, seconds=60 * 60)
+@dynamic_rate_limit()
 def send_reset_password_link(email: str) -> str:
 	"""Send reset password link to the user"""
 
