@@ -8,7 +8,7 @@
 					{{
 						__('{0} {1}', [
 							formatNumber(mailCount?.data || 0),
-							mailCount?.data == 1 ? singularize('messages') : 'messages',
+							mailCount?.data == 1 ? 'message' : 'messages',
 						])
 					}}
 				</div>
@@ -61,7 +61,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { Breadcrumbs, createListResource, createResource } from 'frappe-ui'
 
-import { formatNumber, singularize, startResizing } from '@/utils'
+import { formatNumber, startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
@@ -79,12 +79,12 @@ const screenSize = useScreenSize()
 
 const currentFolder = computed(() => String(route.name) as Folder)
 const doctype = computed(() =>
-	currentFolder.value === 'Inbox' ? 'Incoming Mail' : 'Outgoing Mail',
+	['Inbox', 'Spam'].includes(currentFolder.value) ? 'Incoming Mail' : 'Outgoing Mail',
 )
 
 const mailDetails = ref<typeof MailDetails>()
 
-const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Trash']
+const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Spam', 'Trash']
 
 const createMailResource = (folder: Folder) =>
 	createListResource({
@@ -103,7 +103,7 @@ const mails = Object.fromEntries(folders.map((folder) => [folder, createMailReso
 const mailCountFilters = computed(() => ({
 	folder: currentFolder.value,
 	docstatus: ['!=', 2],
-	[currentFolder.value === 'Inbox' ? 'receiver' : 'sender']: user.data.name,
+	[doctype.value === 'Incoming Mail' ? 'receiver' : 'sender']: user.data.name,
 }))
 
 const mailCount = createResource({
@@ -154,7 +154,10 @@ watch(() => currentFolder.value, reloadMails, { immediate: true })
 
 onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
-	socket.on('incoming_mail_received', () => reloadMails('Inbox'))
+	socket.on('incoming_mail_received', () => {
+		reloadMails('Inbox')
+		reloadMails('Spam')
+	})
 })
 
 const getMailType = () =>
