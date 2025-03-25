@@ -19,7 +19,7 @@
 	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
 		<div
 			ref="mailSidebar"
-			class="sticky top-16 w-1/3 overflow-y-auto overscroll-contain border-r p-3"
+			class="sticky top-16 overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
 			@scroll="loadMoreEmails"
 		>
 			<div
@@ -44,7 +44,7 @@
 				class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
 			/>
 		</div>
-		<div class="w-2/3 flex-1 overflow-auto">
+		<div class="invisible w-2/3 flex-1 overflow-auto sm:visible">
 			<MailDetails
 				ref="mailDetails"
 				:mail-i-d="currentMail[currentFolder]"
@@ -57,11 +57,12 @@
 </template>
 <script setup lang="ts">
 import { computed, inject, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { Breadcrumbs, createListResource, createResource } from 'frappe-ui'
 
 import { formatNumber, singularize, startResizing } from '@/utils'
+import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
 import MailDetails from '@/components/MailDetails.vue'
@@ -73,6 +74,8 @@ const socket = inject('$socket')
 const user = inject('$user') as UserResource
 const { currentMail, setCurrentMail } = userStore()
 const route = useRoute()
+const router = useRouter()
+const screenSize = useScreenSize()
 
 const currentFolder = computed(() => String(route.name) as Folder)
 const doctype = computed(() =>
@@ -133,6 +136,12 @@ const setSeen = createResource({
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen) setSeen.submit({ name: mail.name, seen: 1 })
+
+	if (screenSize.width < 640)
+		router.push({
+			name: 'MailDetailView',
+			params: { folder: currentFolder.value, id: mail.name },
+		})
 }
 
 const reloadMails = (folder: Folder = currentFolder.value) => {
