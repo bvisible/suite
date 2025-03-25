@@ -14,14 +14,14 @@
 						class="my-4 h-20 cursor-pointer rounded bg-center bg-no-repeat bg-cover border"
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
-						@click="changeSlide(slide.idx - 1)"
+						@click="emit('changeSlide', slide.idx - 1)"
 					></div>
 				</template>
 			</Draggable>
 
 			<div
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
-				@click="insertSlide(presentation.data.slides.length)"
+				@click="emit('insertSlide', presentation.data.slides.length)"
 			>
 				<Plus size="14" class="stroke-[1.5]" />
 			</div>
@@ -59,12 +59,14 @@ import { Plus, ChevronRight } from 'lucide-vue-next'
 import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'
-import { slide, slideIndex, changeSlide, insertSlide } from '@/stores/slide'
+import { slide, slideIndex } from '@/stores/slide'
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
 	default: true,
 })
+
+const emit = defineEmits(['changeSlide', 'insertSlide'])
 
 const showCollapseShortcut = ref(false)
 
@@ -85,7 +87,7 @@ const getThumbnailStyles = (s) => {
 
 const handleSortEnd = async (event) => {
 	const data = presentation.data
-	changeSlide(event.newIndex)
+	emit('changeSlide', event.newIndex)
 	data.slides.forEach((slide) => {
 		slide.idx = data.slides.indexOf(slide) + 1
 	})

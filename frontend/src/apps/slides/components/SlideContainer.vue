@@ -20,12 +20,16 @@
 
 			<!-- Slide Actions -->
 			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="deleteSlide" />
-				<Copy size="14" class="text-gray-800 stroke-[1.5]" @click="duplicateSlide" />
+				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="emit('delete')" />
+				<Copy
+					size="14"
+					class="text-gray-800 stroke-[1.5]"
+					@click="(e) => emit('duplicate', e)"
+				/>
 				<SquarePlus
 					size="14"
 					class="text-gray-800 stroke-[1.5]"
-					@click="insertSlide(slideIndex + 1)"
+					@click="emit('insert', slideIndex + 1)"
 				/>
 			</div>
 		</div>
@@ -49,17 +53,7 @@ import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
-import {
-	slideIndex,
-	slide,
-	insertSlide,
-	deleteSlide,
-	duplicateSlide,
-	loadSlide,
-	selectSlide,
-	getSlideThumbnail,
-	slideBounds,
-} from '@/stores/slide'
+import { slideIndex, slide, loadSlide, selectSlide, slideBounds } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
@@ -80,6 +74,8 @@ import { usePanAndZoom } from '@/utils/zoom'
 const props = defineProps({
 	highlight: Boolean,
 })
+
+const emit = defineEmits(['insert', 'delete', 'duplicate'])
 
 let recentlySnapped = false
 let snapTimer = null
@@ -274,6 +270,10 @@ useResizeObserver(activeDiv, (entries) => {
 	})
 })
 
+const togglePanZoom = () => {
+	allowPanAndZoom.value = !allowPanAndZoom.value
+}
+
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
@@ -322,6 +322,10 @@ onMounted(() => {
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
+
+defineExpose({
+	togglePanZoom,
+})
 </script>
 
 <style src="../assets/styles/resizer.css"></style>

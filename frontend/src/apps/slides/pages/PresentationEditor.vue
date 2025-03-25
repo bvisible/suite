@@ -23,9 +23,19 @@
 		</Navbar>
 
 		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
-			<SlideNavigationPanel :showNavigator="showNavigator" />
+			<SlideNavigationPanel
+				:showNavigator="showNavigator"
+				@changeSlide="changeSlide"
+				@insertSlide="insertSlide"
+			/>
 
-			<SlideContainer :highlight="isMediaDragOver" />
+			<SlideContainer
+				ref="slideContainer"
+				:highlight="isMediaDragOver"
+				@insert="insertSlide"
+				@duplicate="duplicateSlide"
+				@delete="deleteSlide"
+			/>
 
 			<SlideElementsPanel />
 		</div>
@@ -33,11 +43,11 @@
 </template>
 
 <script setup>
-import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
-import { FileUploadHandler } from 'frappe-ui'
+import { FileUploadHandler, call } from 'frappe-ui'
 
 import { Presentation, Save } from 'lucide-vue-next'
 
@@ -47,16 +57,15 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 
-import { presentationId, presentation } from '@/stores/presentation'
+import { presentationId, presentation, applyReverseTransition } from '@/stores/presentation'
 import {
 	slide,
 	slideIndex,
 	slideDirty,
 	saving,
 	saveChanges,
-	duplicateSlide,
-	deleteSlide,
-	changeSlide,
+	updateSlideState,
+	loadSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -73,6 +82,8 @@ import {
 	updateActivePosition,
 } from '@/stores/element'
 
+import html2canvas from 'html2canvas'
+
 let autosaveInterval = null
 
 const primaryButtonProps = {
@@ -84,7 +95,7 @@ const primaryButtonProps = {
 const route = useRoute()
 const router = useRouter()
 
-const slideRef = useTemplateRef('slide')
+const slideContainerRef = useTemplateRef('slideContainer')
 const mediaDropContainerRef = useTemplateRef('mediaDropContainer')
 
 const showNavigator = ref(true)
@@ -234,6 +245,65 @@ watch(
 const handleAutoSave = () => {
 	if (activeElementIds.value.length || focusElementId.value != null) return
 	saveChanges()
+}
+
+const getSlideThumbnail = async () => {
+	const slideRef = document.querySelector('.slide')
+	const scale = slideRef.getBoundingClientRect().width / 960
+	if (scale !== 1) {
+		return slide.value.thumbnail
+	}
+	const canvas = await html2canvas(slideRef)
+	return canvas.toDataURL('image/png')
+}
+
+const changeSlide = async (index, updateCurrent = true) => {
+	if (index < 0 || index >= presentation.data.slides.length) return
+	resetFocus()
+	slideContainerRef.value.togglePanZoom()
+	applyReverseTransition.value = index < slideIndex.value
+
+	nextTick(async () => {
+		if (updateCurrent) {
+			slide.value.thumbnail = await getSlideThumbnail()
+			await updateSlideState()
+		}
+		slideIndex.value = index
+		loadSlide()
+		slideContainerRef.value.togglePanZoom()
+	})
+}
+
+const insertSlide = async (index) => {
+	await saveChanges()
+	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
+		name: presentationId.value,
+		index: index,
+	})
+	await presentation.reload()
+	await changeSlide(index)
+}
+
+const deleteSlide = async () => {
+	await saveChanges()
+	await call('slides.slides.doctype.presentation.presentation.delete_slide', {
+		name: presentationId.value,
+		index: slideIndex.value,
+	})
+	await presentation.reload()
+	if (slideIndex.value == presentation.data.slides.length)
+		await changeSlide(slideIndex.value - 1, false)
+}
+
+const duplicateSlide = async (e) => {
+	e.preventDefault()
+	await saveChanges()
+	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
+		name: presentationId.value,
+		index: slideIndex.value,
+	})
+	await presentation.reload()
+	changeSlide(slideIndex.value + 1)
 }
 
 onMounted(() => {
