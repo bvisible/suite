@@ -6,9 +6,7 @@
 				v-for="style in styleProperties"
 				:key="style.property"
 				class="cursor-pointer rounded-sm p-1"
-				:class="
-					activeElements[0][style.property]?.includes(style.value) ? 'bg-gray-200' : ''
-				"
+				:class="element[style.property]?.includes(style.value) ? 'bg-gray-200' : ''"
 				@click="toggleTextProperty(style.property, style.value)"
 			>
 				<component :is="style.icon" size="18" :strokeWidth="1.5" />
@@ -19,8 +17,8 @@
 			<button
 				v-for="textAlign in ['left', 'center', 'right', 'justify']"
 				class="cursor-pointer rounded-sm p-1"
-				:class="activeElements[0].textAlign == textAlign ? 'bg-gray-200' : ''"
-				@click="activeElements[0].textAlign = textAlign"
+				:class="element.textAlign == textAlign ? 'bg-gray-200' : ''"
+				@click="element.textAlign = textAlign"
 			>
 				<AlignLeft v-if="textAlign == 'left'" size="18" class="stroke-[1.5]" />
 				<AlignCenter v-if="textAlign == 'center'" size="18" class="stroke-[1.5]" />
@@ -40,15 +38,15 @@
 			:options="textFonts"
 			size="sm"
 			variant="subtle"
-			:modelValue="activeElements[0].fontFamily"
-			@update:modelValue="(font) => (activeElements[0].fontFamily = font.value)"
+			:modelValue="element.fontFamily"
+			@update:modelValue="(font) => (element.fontFamily = font.value)"
 		/>
 
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-gray-600">Size</div>
 			<div class="h-[30px] w-28">
 				<NumberInput
-					v-model="activeElements[0].fontSize"
+					v-model="element.fontSize"
 					suffix="px"
 					:rangeStart="5"
 					:rangeEnd="100"
@@ -59,7 +57,7 @@
 
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-gray-600">Colour</div>
-			<ColorPicker v-model="activeElements[0].color" />
+			<ColorPicker v-model="element.color" />
 		</div>
 	</div>
 
@@ -71,8 +69,8 @@
 			:rangeStart="0.1"
 			:rangeEnd="5.0"
 			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElements[0].lineHeight)"
-			@update:modelValue="(value) => (activeElements[0].lineHeight = value)"
+			:modelValue="parseFloat(element.lineHeight)"
+			@update:modelValue="(value) => (element.lineHeight = value)"
 		/>
 
 		<SliderInput
@@ -80,13 +78,14 @@
 			:rangeStart="-10"
 			:rangeEnd="50"
 			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElements[0].letterSpacing)"
-			@update:modelValue="(value) => (activeElements[0].letterSpacing = value)"
+			:modelValue="parseFloat(element.letterSpacing)"
+			@update:modelValue="(value) => (element.letterSpacing = value)"
 		/>
 	</div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { FormControl } from 'frappe-ui'
 import {
 	Bold,
@@ -106,10 +105,23 @@ import NumberInput from './controls/NumberInput.vue'
 import ColorPicker from './controls/ColorPicker.vue'
 
 import { slide } from '@/stores/slide'
-import { activeElementIds, activeElements, toggleTextProperty } from '@/stores/element'
+import {
+	activeElementIds,
+	activeElements,
+	focusElementId,
+	toggleTextProperty,
+} from '@/stores/element'
 
 const sectionClasses = 'flex flex-col gap-4 border-b p-4'
 const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
+
+const element = computed(() => {
+	if (focusElementId.value) {
+		return slide.value.elements.find((element) => element.id === focusElementId.value)
+	} else {
+		return activeElements.value[0]
+	}
+})
 
 const textFonts = [
 	'Arial',

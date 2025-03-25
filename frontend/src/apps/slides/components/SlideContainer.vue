@@ -41,7 +41,7 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
-import { useElementBounding } from '@vueuse/core'
+import { useElementBounding, useResizeObserver } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
@@ -152,12 +152,6 @@ const handleDimensionChange = (dimensions) => {
 
 	// update element dimensions in slide object
 	resizeElement(elementId, dimensions)
-
-	// update selection box dimensions to match the element
-	selectionBoxRef.value.setBoxBounds({
-		width: dimensions.width,
-		height: dimensions.height,
-	})
 }
 
 const initDraggable = () => {
@@ -262,6 +256,24 @@ const handleSelectionChange = (newSelection, oldSelection) => {
 	}
 }
 
+const activeDiv = computed(() => {
+	if (activeElementIds.value.length != 1) return null
+	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
+})
+
+useResizeObserver(activeDiv, (entries) => {
+	const entry = entries[0]
+	const { width, height } = entry.contentRect
+
+	// case:
+	// when element dimensions are changed not by resizer
+	// but by other updates on properties - font size, line height, letter spacing etc.
+	selectionBoxRef.value.setBoxBounds({
+		width: width,
+		height: height,
+	})
+})
+
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
@@ -292,6 +304,13 @@ watch(
 		// wait for the new transform to render before updating dimensions
 		nextTick(() => {
 			updateSlideBounds()
+
+			// set initial position of the selection box after zooming / panning
+			const { left, top } = selectionBoxRef.value.getBoxBounds()
+			setActivePosition({
+				left: left + slideBounds.left,
+				top: top + slideBounds.top,
+			})
 		})
 	},
 )
