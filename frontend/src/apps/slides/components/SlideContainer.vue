@@ -257,6 +257,7 @@ const handleSelectionChange = (newSelection, oldSelection) => {
 }
 
 const activeDiv = computed(() => {
+	if (activeElementIds.value.length != 1) return null
 	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
 })
 
