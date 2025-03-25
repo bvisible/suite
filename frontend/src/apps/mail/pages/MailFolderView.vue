@@ -16,10 +16,13 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
+	<div
+		v-if="mails[currentFolder].data"
+		class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3rem)]"
+	>
 		<div
 			ref="mailSidebar"
-			class="sticky top-16 overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
+			class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
 			@scroll="loadMoreEmails"
 		>
 			<div
