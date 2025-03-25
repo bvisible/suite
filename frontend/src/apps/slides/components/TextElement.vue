@@ -35,7 +35,7 @@ const textStyle = computed(() => ({
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
 	letterSpacing: `${element.value.letterSpacing}px`,
-	wordWrap: 'break-word',
+	wordWrap: element.value.width == 'auto' ? 'normal' : 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,
 	cursor: focusElementId.value == element.value.id ? 'text' : '',

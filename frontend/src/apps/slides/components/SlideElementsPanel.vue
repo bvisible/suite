@@ -270,10 +270,11 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideIndex, selectSlide } from '@/stores/slide'
-import { activeElements, addTextElement, addMediaElement } from '@/stores/element'
+import { activeElements, focusElementId, addTextElement, addMediaElement } from '@/stores/element'
 
 const activeTab = computed(() => {
 	if (activeElements.value[0]) return activeElements.value[0].type
+	if (focusElementId.value) return 'text'
 	return 'slide'
 })
 
