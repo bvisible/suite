@@ -4,9 +4,9 @@
 			v-model="email"
 			label="Email"
 			type="email"
-			placeholder="johndoe@mail.com"
+			placeholder="johndoe@example.com"
 			autocomplete="email"
-			:readonly="!!props.requestKey || isVerificationStep"
+			:readonly="!!requestKey || isVerificationStep"
 			required
 		/>
 		<FormControl
@@ -19,7 +19,7 @@
 			autocomplete="email"
 			required
 		/>
-		<template v-if="props.requestKey">
+		<template v-if="requestKey">
 			<FormControl
 				v-model="firstName"
 				label="First Name"
@@ -76,15 +76,10 @@ import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 import { raiseToast } from '@/utils'
 import { sessionStore } from '@/stores/session'
 
+const { requestKey } = defineProps<{ requestKey?: string }>()
+
 const router = useRouter()
 const { login } = sessionStore()
-
-const props = defineProps({
-	requestKey: {
-		type: String,
-		required: false,
-	},
-})
 
 const isVerificationStep = ref(false)
 const email = ref('')
@@ -96,89 +91,70 @@ const accountRequest = ref('')
 const errorMessage = ref('')
 
 const buttonLabel = computed(() => {
-	if (props.requestKey) return 'Create Account'
+	if (requestKey) return 'Create Account'
 	return isVerificationStep.value ? 'Verify' : 'Sign Up'
 })
 
 const signUp = createResource({
 	url: 'mail.api.account.self_signup',
-	makeParams() {
-		return { email: email.value }
-	},
-	onSuccess(data) {
+	makeParams: () => ({ email: email.value }),
+	onSuccess: (data) => {
 		errorMessage.value = ''
 		accountRequest.value = data
 		isVerificationStep.value = true
 		raiseToast('A verification code has been sent to your registered email address.')
 	},
-	onError(error) {
-		errorMessage.value = error.messages[0]
-	},
+	onError: (error) => (errorMessage.value = error.messages[0]),
 })
 
 const resendOtp = createResource({
 	url: 'mail.api.account.resend_otp',
-	makeParams() {
-		return { account_request: accountRequest.value }
-	},
-	onSuccess() {
-		raiseToast('A verification code has been sent to your registered email address.')
-	},
-	onError(error) {
-		raiseToast(error.messages[0], 'error')
-	},
+	makeParams: () => ({ account_request: accountRequest.value }),
+	onSuccess: () =>
+		raiseToast('A verification code has been sent to your registered email address.'),
+	onError: (error) => raiseToast(error.messages[0], 'error'),
 })
 
 const verifyOtp = createResource({
 	url: 'mail.api.account.verify_otp',
-	makeParams() {
-		return {
-			account_request: accountRequest.value,
-			otp: otp.value,
-		}
-	},
-	onSuccess(requestKey) {
+	makeParams: () => ({
+		account_request: accountRequest.value,
+		otp: otp.value,
+	}),
+	onSuccess: (requestKey) => {
 		errorMessage.value = ''
 		router.push({ name: 'AccountSetup', params: { requestKey } })
 	},
-	onError(error) {
-		errorMessage.value = error.messages[0]
-	},
+	onError: (error) => (errorMessage.value = error.messages[0]),
 })
 
 const getAccountRequest = createResource({
 	url: 'mail.api.account.get_account_request',
-	makeParams() {
-		return { request_key: props.requestKey }
-	},
-	onSuccess(data) {
+	makeParams: () => ({ request_key: requestKey }),
+	onSuccess: (data) => {
 		if ((data?.email || data?.account) && !data?.is_verified && !data?.is_expired)
-			email.value = data.account ? data.account : data.email
+			email.value = data.account || data.email
 		else router.replace({ name: 'SignUp' })
 	},
 })
 
 const createAccount = createResource({
 	url: 'mail.api.account.create_account',
-	makeParams() {
-		return {
-			request_key: props.requestKey,
-			first_name: firstName.value,
-			last_name: lastName.value,
-			password: password.value,
-		}
-	},
-	onSuccess() {
+	makeParams: () => ({
+		request_key: requestKey,
+		first_name: firstName.value,
+		last_name: lastName.value,
+		password: password.value,
+	}),
+	onSuccess: () => {
 		errorMessage.value = ''
 		login.submit({ usr: email.value, pwd: password.value })
 	},
-	onError(error) {
-		errorMessage.value = error.messages[0]
-	},
+	onError: (error) => (errorMessage.value = error.messages[0]),
 })
 
 watch(
-	() => props.requestKey,
+	() => requestKey,
 	(val) => {
 		isVerificationStep.value = false
 		if (!val) return
@@ -189,7 +165,7 @@ watch(
 )
 
 const submit = () => {
-	if (props.requestKey) createAccount.submit()
+	if (requestKey) createAccount.submit()
 	else if (isVerificationStep.value) verifyOtp.submit()
 	else signUp.submit()
 }
