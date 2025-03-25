@@ -17,9 +17,11 @@
 			autocomplete="current-password"
 			required
 		/>
-		<router-link class="!mt-2 text-sm hover:underline" to="/reset-password">
-			{{ __('Forgot password?') }}
-		</router-link>
+		<div clas="!mt-2">
+			<router-link class="text-sm hover:underline" to="/reset-password">
+				{{ __('Forgot password?') }}
+			</router-link>
+		</div>
 		<ErrorMessage :message="login.error" />
 		<Button variant="solid" :loading="login.loading">{{ __('Log In ') }} </Button>
 	</form>
