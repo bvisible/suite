@@ -264,9 +264,13 @@ const activeDiv = computed(() => {
 useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
+
+	// case:
+	// when element dimensions are changed not by resizer
+	// but by other updates on properties - font size, line height, letter spacing etc.
 	selectionBoxRef.value.setBoxBounds({
-		width: width * scale.value,
-		height: height * scale.value,
+		width: width,
+		height: height,
 	})
 })
 
@@ -300,6 +304,13 @@ watch(
 		// wait for the new transform to render before updating dimensions
 		nextTick(() => {
 			updateSlideBounds()
+
+			// set initial position of the selection box after zooming / panning
+			const { left, top } = selectionBoxRef.value.getBoxBounds()
+			setActivePosition({
+				left: left + slideBounds.left,
+				top: top + slideBounds.top,
+			})
 		})
 	},
 )
