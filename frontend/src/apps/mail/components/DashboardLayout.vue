@@ -9,7 +9,7 @@
 				</slot>
 			</div>
 		</header>
-		<div class="m-5 flex flex-1 flex-col space-y-5">
+		<div class="m-5 flex flex-1 flex-col space-y-5 overflow-y-auto">
 			<slot />
 		</div>
 	</div>
