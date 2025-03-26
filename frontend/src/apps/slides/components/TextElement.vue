@@ -23,6 +23,8 @@ const element = defineModel('element', {
 	default: null,
 })
 
+const emit = defineEmits(['focus', 'select'])
+
 const textStyle = computed(() => ({
 	content: element.value.content,
 	fontFamily: element.value.fontFamily,
@@ -43,23 +45,17 @@ const textStyle = computed(() => ({
 
 const selectElement = (e) => {
 	if (inSlideShow.value) return
-	handleSingleAndDoubleClick(e, setActiveText, setFocusElement)
+	handleSingleAndDoubleClick(e, setActiveText, setFocusText)
 }
 
 const setActiveText = (e) => {
 	e.stopPropagation()
 	if (focusElementId.value == element.value.id) return
-	if (activeElement.value?.id == element.value.id) setFocusElement(e)
-	else setActiveElements([element.value.id])
+	emit('select', e)
 }
 
-const setFocusElement = (e) => {
-	e.stopPropagation()
-	if (focusElementId.value == element.value.id) return
-	setActiveElements([element.value.id], true)
-	nextTick(() => {
-		e.target.focus()
-	})
+const setFocusText = (e) => {
+	emit('focus', e)
 }
 
 const setCursorPosition = (e) => {

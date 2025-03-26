@@ -29,6 +29,8 @@ import { Play, Pause } from 'lucide-vue-next'
 import { inSlideShow } from '@/stores/presentation'
 import { activeElementIds, setActiveElements } from '@/stores/element'
 
+const emit = defineEmits(['select'])
+
 const el = useTemplateRef('videoElement')
 const isPlaying = ref(false)
 
@@ -57,6 +59,8 @@ const handleVideoControls = (e) => {
 			isPlaying.value = false
 			video.pause()
 		}
-	} else setActiveElements([element.value.id])
+	} else {
+		emit('select', e)
+	}
 }
 </script>

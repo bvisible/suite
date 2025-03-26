@@ -344,6 +344,7 @@ onMounted(() => {
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
+provide('isDragging', isDragging)
 
 defineExpose({
 	togglePanZoom,

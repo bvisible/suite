@@ -1,22 +1,35 @@
 <template>
 	<div :style="elementStyle">
-		<component :is="getDynamicComponent(element.type)" :element="element" />
+		<component
+			:is="getDynamicComponent(element.type)"
+			:element="element"
+			@select="selectElement"
+			@focus="focusOnElement"
+		/>
 	</div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject, nextTick } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { activeElementIds, pairElementId, focusElementId } from '@/stores/element'
+import {
+	activeElementIds,
+	pairElementId,
+	focusElementId,
+	setActiveElements,
+	activeElement,
+} from '@/stores/element'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
+
+const isDragging = inject('isDragging')
 
 const outline = computed(() => {
 	if (activeElementIds.value.concat([focusElementId.value]).includes(element.value.id))
@@ -44,5 +57,24 @@ const getDynamicComponent = (type) => {
 		default:
 			return TextElement
 	}
+}
+
+const focusOnElement = (e) => {
+	e.stopPropagation()
+	if (focusElementId.value == element.value.id) return
+	setActiveElements([element.value.id], true)
+	nextTick(() => {
+		e.target.focus()
+	})
+}
+
+const selectElement = (e) => {
+	if (isDragging.value) {
+		isDragging.value = false
+		return
+	}
+	if (element.value.type == 'text' && element.value.id == activeElement.value?.id)
+		focusOnElement(e)
+	else setActiveElements([element.value.id])
 }
 </script>
