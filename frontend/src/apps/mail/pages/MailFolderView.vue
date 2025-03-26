@@ -29,7 +29,7 @@
 				v-for="(mail, idx) in mails[currentFolder].data"
 				:key="idx"
 				class="flex cursor-pointer flex-col space-y-1 rounded"
-				:class="{ 'bg-gray-100': mail.name == currentMail[currentFolder] }"
+				:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
 				@click="openMail(mail)"
 			>
 				<SidebarDetail :mail="mail" />
@@ -47,10 +47,14 @@
 				class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
 			/>
 		</div>
-		<div class="invisible w-2/3 flex-1 overflow-auto sm:visible">
+		<div
+			class="fixed inset-0 z-20 bg-white sm:static sm:z-0 sm:w-2/3"
+			:class="{ invisible: screenSize.width < 640 && !route.params.id }"
+		>
 			<MailDetails
 				ref="mailDetails"
 				:mail-i-d="currentMail[currentFolder]"
+				:current-folder
 				:type="getMailType() || doctype"
 				@reload-mails="reloadMails"
 				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
@@ -80,7 +84,11 @@ const route = useRoute()
 const router = useRouter()
 const screenSize = useScreenSize()
 
-const currentFolder = computed(() => String(route.name) as Folder)
+const currentFolder = computed(() => {
+	const name = String(route.name)
+	return (name.endsWith('Mail') ? name.replace('Mail', '') : name) as Folder
+})
+
 const doctype = computed(() =>
 	['Inbox', 'Spam'].includes(currentFolder.value) ? 'Incoming Mail' : 'Outgoing Mail',
 )
@@ -97,7 +105,6 @@ const createMailResource = (folder: Folder) =>
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data) => {
 			if (data.some((m) => m.name === currentMail[folder])) mailDetails.value?.reloadThread()
-			else setCurrentMail(folder, data.find((m) => m.seen)?.name || null)
 		},
 	})
 
@@ -112,10 +119,7 @@ const mailCountFilters = computed(() => ({
 const mailCount = createResource({
 	url: 'frappe.client.get_count',
 	auto: currentFolder.value !== 'Trash',
-	makeParams: () => ({
-		doctype: doctype.value,
-		filters: mailCountFilters.value,
-	}),
+	makeParams: () => ({ doctype: doctype.value, filters: mailCountFilters.value }),
 	cache: [`${currentFolder.value}MailCount`, user.data?.name],
 })
 
@@ -139,12 +143,7 @@ const setSeen = createResource({
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen) setSeen.submit({ name: mail.name, seen: 1 })
-
-	if (screenSize.width < 640)
-		router.push({
-			name: 'MailDetailView',
-			params: { folder: currentFolder.value, id: mail.name },
-		})
+	router.push({ name: `${currentFolder.value}Mail`, params: { id: mail.name } })
 }
 
 const reloadMails = (folder: Folder = currentFolder.value) => {

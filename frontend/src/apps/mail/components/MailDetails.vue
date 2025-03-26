@@ -1,115 +1,126 @@
 <template>
-	<div v-if="props.mailID" class="p-3">
-		<div
-			v-for="mail in mailThread.data"
-			:key="mail.name"
-			class="mb-4 p-3"
-			:class="{
-				'rounded-md border': mailThread.data.length > 1,
-				'opacity-50': mail.folder === 'Trash',
-			}"
-		>
-			<div class="flex space-x-3 border-b pb-2">
-				<Avatar
-					class="avatar border border-gray-300"
-					:label="mail.display_name || mail.sender"
-					:image="mail.user_image"
-					size="lg"
-				/>
-				<div class="flex flex-1 justify-between text-xs">
-					<div class="flex flex-col space-y-1">
-						<div class="flex items-center space-x-1.5">
-							<span class="text-base font-semibold">
-								{{ mail.display_name || mail.from_ || mail.sender }}
-							</span>
-							<span v-if="mail.display_name" class="text-gray-600">
-								{{ `<${mail.from_ || mail.sender}>` }}
-							</span>
-							<MailDetailsPopover :mail="mail" />
+	<template v-if="mailID">
+		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
+			<Button icon="chevron-left" variant="ghost" class="mr-2" @click="goBack" />
+			<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
+		</div>
+		<div class="p-3">
+			<div
+				v-for="mail in mailThread.data"
+				:key="mail.name"
+				class="mb-4 p-3"
+				:class="{
+					'rounded-md border': mailThread.data.length > 1,
+					'opacity-50': mail.folder === 'Trash',
+				}"
+			>
+				<div class="flex space-x-3 border-b pb-2">
+					<Avatar
+						class="avatar border border-gray-300"
+						:label="mail.display_name || mail.sender"
+						:image="mail.user_image"
+						size="lg"
+					/>
+					<div class="flex flex-1 justify-between text-xs">
+						<div class="flex flex-col space-y-1">
+							<div class="flex items-center space-x-1.5">
+								<span class="text-base font-semibold">
+									{{ mail.display_name || mail.from_ || mail.sender }}
+								</span>
+								<span v-if="mail.display_name" class="text-gray-600">
+									{{ `<${mail.from_ || mail.sender}>` }}
+								</span>
+								<MailDetailsPopover :mail="mail" />
+							</div>
+							<div class="leading-4">
+								{{ mail.subject }}
+							</div>
+							<div class="flex items-center space-x-2">
+								<span class="flex items-center space-x-1">
+									<span>{{ __('To: ') + toRecipient(mail) }}</span>
+								</span>
+								<span v-if="mail.cc.length">
+									{{ __('Cc: ') + getRecipients(mail.cc) }}
+								</span>
+								<span v-if="mail.bcc.length">
+									{{ __('Bcc: ') + getRecipients(mail.bcc) }}
+								</span>
+							</div>
 						</div>
-						<div class="leading-4">
-							{{ mail.subject }}
-						</div>
-						<div class="flex items-center space-x-2">
-							<span class="flex items-center space-x-1">
-								<span>{{ __('To: ') + toRecipient(mail) }}</span>
-							</span>
-							<span v-if="mail.cc.length">
-								{{ __('Cc: ') + getRecipients(mail.cc) }}
-							</span>
-							<span v-if="mail.bcc.length">
-								{{ __('Bcc: ') + getRecipients(mail.bcc) }}
-							</span>
-						</div>
-					</div>
-					<div class="flex items-center space-x-2 self-start">
-						<MailDate
-							:datetime="mail.folder === 'Drafts' ? mail.modified : mail.creation"
-						/>
-						<Tooltip
-							v-for="action in mailActions(mail).filter(
-								(d) => d.condition !== false,
-							)"
-							:key="action.label"
-							:text="action.label"
-						>
-							<Button variant="ghost" @click="action.onClick()">
-								<template #icon>
-									<component :is="action.icon" class="h-4 w-4 text-gray-600" />
-								</template>
-							</Button>
-						</Tooltip>
-						<Tooltip :text="__('More')">
-							<Dropdown
-								:options="moreActions(mail).filter((d) => d.condition !== false)"
+						<div class="flex items-center space-x-2 self-start">
+							<MailDate
+								:datetime="
+									mail.folder === 'Drafts' ? mail.modified : mail.creation
+								"
+							/>
+							<Tooltip
+								v-for="action in mailActions(mail).filter(
+									(d) => d.condition !== false,
+								)"
+								:key="action.label"
+								:text="action.label"
 							>
-								<Button variant="ghost">
+								<Button variant="ghost" @click="action.onClick()">
 									<template #icon>
-										<Ellipsis class="h-4 w-4 text-gray-600" />
+										<component
+											:is="action.icon"
+											class="h-4 w-4 text-gray-600"
+										/>
 									</template>
 								</Button>
-							</Dropdown>
-						</Tooltip>
+							</Tooltip>
+							<Tooltip :text="__('More')">
+								<Dropdown
+									:options="
+										moreActions(mail).filter((d) => d.condition !== false)
+									"
+								>
+									<Button variant="ghost">
+										<template #icon>
+											<Ellipsis class="h-4 w-4 text-gray-600" />
+										</template>
+									</Button>
+								</Dropdown>
+							</Tooltip>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div
-				v-if="mail.body_html"
-				class="mail-body ProseMirror prose-sm"
-				v-html="mailBody(mail.body_html)"
-			/>
-			<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
-				mail.body_plain
-			}}</pre>
-			<div class="mt-8 flex flex-wrap space-x-2">
-				<AttachmentCapsule
-					v-for="attachment in mail.attachments"
-					:key="attachment.name"
-					:file-name="attachment.file_name"
-					:file-url="attachment.file_url"
-					class="mb-2"
+				<div
+					v-if="mail.body_html"
+					class="mail-body ProseMirror prose-sm"
+					v-html="mailBody(mail.body_html)"
 				/>
+				<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
+					mail.body_plain
+				}}</pre>
+				<div class="mt-8 flex flex-wrap space-x-2">
+					<AttachmentCapsule
+						v-for="attachment in mail.attachments"
+						:key="attachment.name"
+						:file-name="attachment.file_name"
+						:file-url="attachment.file_url"
+						class="mb-2"
+					/>
+				</div>
 			</div>
 		</div>
+		<SendMailModal
+			v-model="showSendModal"
+			:mail-i-d="draftMailID"
+			:reply-details="replyDetails"
+			@reload-mails="emit('reloadMails', 'Drafts')"
+		/>
+	</template>
+	<div v-else class="flex h-full items-center justify-center">
+		<p class="text-gray-500">
+			{{ __('Select an email to view the conversation.') }}
+		</p>
 	</div>
-	<div
-		v-else
-		class="my-auto flex h-full w-full flex-1 flex-col items-center justify-center space-y-2"
-	>
-		<div class="text-lg text-gray-500">
-			{{ __('Please select an email') }}
-		</div>
-	</div>
-	<SendMailModal
-		v-model="showSendModal"
-		:mail-i-d="draftMailID"
-		:reply-details="replyDetails"
-		@reload-mails="emit('reloadMails', 'Drafts')"
-	/>
 </template>
 
 <script setup lang="ts">
 import { inject, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
 	ArchiveRestore,
 	Ellipsis,
@@ -124,22 +135,28 @@ import {
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
+import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
 
-const dayjs = inject('$dayjs')
-
-const showSendModal = ref(false)
-const draftMailID = ref<string>()
+import type { Folder } from '@/types'
 
 const props = defineProps<{
 	mailID: string | null
+	currentFolder: Folder
 	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread'])
+
+const router = useRouter()
+const dayjs = inject('$dayjs')
+const { setCurrentMail } = userStore()
+
+const showSendModal = ref(false)
+const draftMailID = ref<string>()
 
 const replyDetails = reactive({
 	to: '',
@@ -196,21 +213,21 @@ const mailActions = (mail): MailAction[] => [
 		icon: Reply,
 		condition: mail.status !== 'Draft',
 	},
+]
+
+const moreActions = (mail): MailAction[] => [
 	{
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
 		icon: ReplyAll,
-		condition: mail.status !== 'Draft',
+		condition: () => mail.status !== 'Draft',
 	},
 	{
 		label: __('Forward'),
 		onClick: () => openModal('forward', mail),
 		icon: Forward,
-		condition: mail.status !== 'Draft',
+		condition: () => mail.status !== 'Draft',
 	},
-]
-
-const moreActions = (mail): MailAction[] => [
 	{
 		label: __('See MIME Message'),
 		onClick: () => {
@@ -311,6 +328,11 @@ const toRecipient = (mail) => {
 	if (!isSoleRecipient) return getRecipients(mail.to)
 
 	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
+}
+
+const goBack = () => {
+	setCurrentMail(props.currentFolder, null)
+	router.push({ name: props.currentFolder })
 }
 
 watch(() => props.mailID, reloadThread)
