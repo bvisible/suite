@@ -15,7 +15,7 @@
 import { computed, nextTick } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
-import { focusElementId, setActiveElements } from '@/stores/element'
+import { activeElement, focusElementId, setActiveElements } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const element = defineModel('element', {
@@ -49,7 +49,8 @@ const selectElement = (e) => {
 const setActiveText = (e) => {
 	e.stopPropagation()
 	if (focusElementId.value == element.value.id) return
-	setActiveElements([element.value.id])
+	if (activeElement.value?.id == element.value.id) setFocusElement(e)
+	else setActiveElements([element.value.id])
 }
 
 const setFocusElement = (e) => {
