@@ -1,7 +1,7 @@
 import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
-import { presentationId, presentation, applyReverseTransition, inSlideShow } from './presentation'
+import { presentationId, presentation, inSlideShow } from './presentation'
 import { activeElementIds, activePosition, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
@@ -72,7 +72,6 @@ const getSlideThumbnail = async () => {
 }
 
 const updateSlideState = async () => {
-	slide.value.thumbnail = await getSlideThumbnail()
 	const { elements, transition, transitionDuration, background, thumbnail } = slide.value
 	presentation.data.slides[slideIndex.value] = {
 		...presentation.data.slides[slideIndex.value],
@@ -97,18 +96,6 @@ const loadSlide = () => {
 	}
 }
 
-const changeSlide = async (index, updateCurrent = true) => {
-	if (index < 0 || index >= presentation.data.slides.length) return
-	resetFocus()
-	applyReverseTransition.value = index < slideIndex.value
-
-	nextTick(async () => {
-		if (updateCurrent) await updateSlideState()
-		slideIndex.value = index
-		loadSlide()
-	})
-}
-
 const saving = ref(false)
 
 const saveChanges = async () => {
@@ -130,38 +117,6 @@ const saveChanges = async () => {
 	saving.value = false
 }
 
-const insertSlide = async (index) => {
-	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
-		name: presentationId.value,
-		index: index,
-	})
-	await presentation.reload()
-	await changeSlide(index)
-}
-
-const deleteSlide = async () => {
-	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.delete_slide', {
-		name: presentationId.value,
-		index: slideIndex.value,
-	})
-	await presentation.reload()
-	if (slideIndex.value == presentation.data.slides.length)
-		await changeSlide(slideIndex.value - 1, false)
-}
-
-const duplicateSlide = async (e) => {
-	e.preventDefault()
-	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
-		name: presentationId.value,
-		index: slideIndex.value,
-	})
-	await presentation.reload()
-	changeSlide(slideIndex.value + 1)
-}
-
 const selectSlide = (e) => {
 	e.preventDefault()
 	e.stopPropagation()
@@ -176,12 +131,8 @@ export {
 	saving,
 	slide,
 	slideBounds,
-	getSlideThumbnail,
 	loadSlide,
+	updateSlideState,
 	saveChanges,
-	changeSlide,
-	insertSlide,
-	deleteSlide,
-	duplicateSlide,
 	selectSlide,
 }
