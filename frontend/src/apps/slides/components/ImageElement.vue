@@ -5,9 +5,6 @@
 <script setup>
 import { computed } from 'vue'
 
-import { setActiveElements } from '@/stores/element'
-import { inSlideShow } from '@/stores/presentation'
-
 const emit = defineEmits(['select'])
 
 const element = defineModel('element', {
