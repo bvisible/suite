@@ -60,7 +60,6 @@ const togglePlaying = () => {
 }
 
 const handleVideoClick = (e) => {
-	e.stopPropagation()
 	const isActive = activeElementIds.value.includes(element.value.id)
 
 	// in slideshow, always toggle playing on click anywhere
