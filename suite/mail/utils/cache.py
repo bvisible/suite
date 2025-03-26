@@ -43,6 +43,16 @@ def get_imap_limits() -> dict:
 	return frappe.cache.hget("mail-settings", "imap_limits", generator)
 
 
+def get_personal_signup_domains() -> list:
+	"""Returns the personal signup domains."""
+
+	def generator() -> list:
+		mail_settings = frappe.get_cached_doc("Mail Settings")
+		return [signup_domain.domain_name for signup_domain in mail_settings.personal_signup_domains]
+
+	return frappe.cache.hget("mail-settings", "personal_signup_domains", generator)
+
+
 def get_domains_owned_by_tenant(tenant: str) -> list:
 	"""Returns the domains owned by the tenant."""
 
