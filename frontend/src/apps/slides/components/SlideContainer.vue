@@ -150,6 +150,16 @@ const handleDimensionChange = (dimensions) => {
 	resizeElement(elementId, dimensions)
 }
 
+const handlePositionChange = (position) => {
+	if (position.left == selectionBoxRef.value.getBoxBounds().left + slideBounds.left) {
+		return
+	}
+	selectionBoxRef.value.setBoxBounds({
+		left: position.left - slideBounds.left,
+		top: position.top - slideBounds.top,
+	})
+}
+
 const initDraggable = () => {
 	let el = selectionBoxRef.value?.$el
 	if (!el) return
@@ -219,7 +229,7 @@ const applyMovement = (positionChange) => {
 	})
 }
 
-const handlePositionChange = (movement) => {
+const handleMovement = (movement) => {
 	// get change in position - scaled
 	const positionChange = getPositionChange(movement)
 
@@ -274,6 +284,20 @@ const togglePanZoom = () => {
 	allowPanAndZoom.value = !allowPanAndZoom.value
 }
 
+const handleSlideTransform = () => {
+	// wait for the new transform to render before updating dimensions
+	nextTick(() => {
+		updateSlideBounds()
+
+		// set initial position of the selection box after zooming / panning
+		const { left, top } = selectionBoxRef.value.getBoxBounds()
+		setActivePosition({
+			left: left + slideBounds.left,
+			top: top + slideBounds.top,
+		})
+	})
+}
+
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
@@ -285,7 +309,7 @@ watch(
 	() => movement.value,
 	(movement) => {
 		if (!movement || !activePosition.value) return
-		handlePositionChange(movement)
+		handleMovement(movement)
 	},
 )
 
@@ -298,20 +322,18 @@ watch(
 )
 
 watch(
+	() => activePosition.value,
+	(position) => {
+		if (!position) return
+		handlePositionChange(position)
+	},
+)
+
+watch(
 	() => transform.value,
 	() => {
 		if (!transform.value) return
-		// wait for the new transform to render before updating dimensions
-		nextTick(() => {
-			updateSlideBounds()
-
-			// set initial position of the selection box after zooming / panning
-			const { left, top } = selectionBoxRef.value.getBoxBounds()
-			setActivePosition({
-				left: left + slideBounds.left,
-				top: top + slideBounds.top,
-			})
-		})
+		handleSlideTransform()
 	},
 )
 
