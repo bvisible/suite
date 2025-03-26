@@ -27,7 +27,6 @@ const imageStyle = computed(() => ({
 }))
 
 const selectImage = (e) => {
-	if (inSlideShow.value) return
 	emit('select', e)
 }
 </script>
