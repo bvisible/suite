@@ -102,3 +102,31 @@ def get_users_with_mail_user_role(
 			& (HAS_ROLE.parenttype == "User")
 		)
 	).run(as_dict=False)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_personal_signup_domains(
+	doctype: str | None = None,
+	txt: str | None = None,
+	searchfield: str | None = None,
+	start: int = 0,
+	page_len: int = 20,
+	filters: dict | None = None,
+) -> list:
+	"""Returns a list of Mail Domains that allow personal signup."""
+
+	MAIL_DOMAIN = frappe.qb.DocType("Mail Domain")
+	MAIL_TENANT = frappe.qb.DocType("Mail Tenant")
+	return (
+		frappe.qb.from_(MAIL_DOMAIN)
+		.left_join(MAIL_TENANT)
+		.on(MAIL_DOMAIN.tenant == MAIL_TENANT.name)
+		.select(MAIL_DOMAIN.name)
+		.where(
+			(MAIL_DOMAIN.enabled == 1)
+			& (MAIL_DOMAIN.is_verified == 1)
+			& (MAIL_DOMAIN.name.like(f"%{txt}%"))
+			& (MAIL_TENANT.allow_personal_signup == 1)
+		)
+	).run(as_dict=False)

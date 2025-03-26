@@ -55,7 +55,13 @@
   "enable_spamd_for_outbound",
   "spamd_outbound_block",
   "column_break_lhy4",
-  "spamd_outbound_threshold"
+  "spamd_outbound_threshold",
+  "client_tab",
+  "signup_section",
+  "allow_self_signup",
+  "column_break_daqm",
+  "allow_personal_signup",
+  "personal_signup_domains"
  ],
  "fields": [
   {
@@ -432,12 +438,50 @@
    "label": "Idle Session Timeout (Seconds)",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "client_tab",
+   "fieldtype": "Tab Break",
+   "label": "Client"
+  },
+  {
+   "default": "0",
+   "description": "Allows users to sign up from the Mail UI.",
+   "fieldname": "allow_self_signup",
+   "fieldtype": "Check",
+   "label": "Allow Self Signup"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.allow_self_signup",
+   "description": "Allows users to sign up for personal use and select a preferred username.",
+   "fieldname": "allow_personal_signup",
+   "fieldtype": "Check",
+   "label": "Allow Personal Signup"
+  },
+  {
+   "fieldname": "signup_section",
+   "fieldtype": "Section Break",
+   "label": "Signup"
+  },
+  {
+   "fieldname": "column_break_daqm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
+   "description": "Domains allowed for personal signup.",
+   "fieldname": "personal_signup_domains",
+   "fieldtype": "Table MultiSelect",
+   "label": "Personal Signup Domains",
+   "mandatory_depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
+   "options": "Personal Signup Domain"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-02-13 15:46:36.560834",
+ "modified": "2025-03-26 12:54:30.461350",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",
@@ -454,6 +498,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

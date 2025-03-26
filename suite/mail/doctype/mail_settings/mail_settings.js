@@ -2,8 +2,22 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Mail Settings', {
+	setup(frm) {
+		frm.trigger('set_queries')
+	},
+
 	refresh(frm) {
 		frm.trigger('add_comments')
+	},
+
+	set_queries(frm) {
+		frm.set_query('personal_signup_domains', () => ({
+			query: 'mail.utils.query.get_personal_signup_domains',
+			filters: {
+				enabled: 1,
+				is_verified: 1,
+			},
+		}))
 	},
 
 	add_comments(frm) {
