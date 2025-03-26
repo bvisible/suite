@@ -49,8 +49,6 @@ const selectElement = (e) => {
 }
 
 const setActiveText = (e) => {
-	e.stopPropagation()
-	if (focusElementId.value == element.value.id) return
 	emit('select', e)
 }
 
