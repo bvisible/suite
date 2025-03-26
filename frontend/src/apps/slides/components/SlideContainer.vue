@@ -45,7 +45,7 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
-import { useElementBounding, useResizeObserver } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
@@ -53,15 +53,12 @@ import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slideIndex, slide, loadSlide, selectSlide, slideBounds } from '@/stores/slide'
+import { slideIndex, slide, selectSlide, slideBounds } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
 	activeElements,
 	activeElementIds,
-	focusElementId,
-	pairElementId,
-	resetFocus,
 	updateActivePosition,
 	setActivePosition,
 	resizeElement,
@@ -94,8 +91,6 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 	slideContainerRef,
 	slideTargetRef,
 )
-
-const delayPositionUpdates = ref(0)
 
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']

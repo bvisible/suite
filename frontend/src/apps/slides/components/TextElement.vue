@@ -15,7 +15,7 @@
 import { computed, nextTick } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
-import { activeElement, focusElementId, setActiveElements } from '@/stores/element'
+import { focusElementId } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const element = defineModel('element', {
