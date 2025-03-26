@@ -47,4 +47,5 @@ def create_default_tenant() -> None:
 	tenant = frappe.new_doc("Mail Tenant")
 	tenant.tenant_name = "Frappe Mail"
 	tenant.user = "Administrator"
+	tenant.allow_personal_signup = 1
 	tenant.insert(ignore_permissions=True)
