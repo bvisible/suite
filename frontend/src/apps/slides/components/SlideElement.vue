@@ -29,7 +29,7 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const isDragging = inject('isDragging')
+const isDragging = inject('isDragging', null)
 
 const outline = computed(() => {
 	if (activeElementIds.value.concat([focusElementId.value]).includes(element.value.id))
