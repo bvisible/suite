@@ -70,6 +70,7 @@ const addTextElement = () => {
 		element.color = guessTextColorFromBackground(slideColor)
 		element.lineHeight = 1
 		element.letterSpacing = 0
+		element.opacity = 100
 	}
 	slide.value.elements.push(element)
 	nextTick(() => setActiveElements([element.id]))
