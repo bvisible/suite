@@ -36,6 +36,7 @@ def insert_slide(name, index):
 	new_slide.parentfield = "slides"
 	new_slide.parenttype = "Presentation"
 	new_slide.idx = index + 1
+	new_slide.background = presentation.slides[index - 1].background
 	new_slide.save()
 	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
 	for i in range(index + 1, len(presentation.slides)):
