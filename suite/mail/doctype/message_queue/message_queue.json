@@ -1,23 +1,126 @@
 {
  "actions": [],
- "allow_rename": 1,
  "creation": "2025-03-26 19:23:11.587142",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_yoky"
+  "section_break_yoky",
+  "cluster",
+  "queue_id",
+  "return_path",
+  "created_at",
+  "env_id",
+  "blob_hash",
+  "message_size",
+  "column_break_0til",
+  "text",
+  "domains",
+  "section_break_x3li",
+  "recipients",
+  "section_break_l6ts",
+  "_message"
  ],
  "fields": [
   {
    "fieldname": "section_break_yoky",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "return_path",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Return Path",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Created At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "message_size",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Message Size (Bytes)",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "blob_hash",
+   "fieldtype": "Data",
+   "label": "Blob Hash",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cluster",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cluster",
+   "options": "Mail Cluster",
+   "read_only": 1
+  },
+  {
+   "fieldname": "_message",
+   "fieldtype": "Code",
+   "label": "Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "recipients",
+   "fieldtype": "Table",
+   "label": "Recipients",
+   "options": "Message Queue Recipient",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_0til",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "domains",
+   "fieldtype": "JSON",
+   "label": "Domains",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_x3li",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_l6ts",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.env_id",
+   "fieldname": "env_id",
+   "fieldtype": "Data",
+   "label": "Env ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "queue_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Queue ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "text",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Text"
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-03-26 19:23:19.204235",
+ "modified": "2025-03-26 23:53:52.892193",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Message Queue",

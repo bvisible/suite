@@ -132,6 +132,18 @@ def enqueue_job(method: str | Callable, deduplicate: bool = False, **kwargs) -> 
 	frappe.enqueue(method, job_id=job_id, deduplicate=deduplicate, **kwargs)
 
 
+def rename_keys(data: dict, rename_map: dict) -> dict:
+	"""
+	Rename keys in a dictionary based on a given mapping.
+
+	:param data: The original dictionary.
+	:param rename_map: A dictionary mapping old keys to new keys.
+	:return: A new dictionary with renamed keys.
+	"""
+
+	return {rename_map.get(k, k): v for k, v in data.items()}
+
+
 @request_cache
 def convert_html_to_text(html: str) -> str:
 	"""Returns plain text from HTML content."""
