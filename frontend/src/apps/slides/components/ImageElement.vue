@@ -5,8 +5,7 @@
 <script setup>
 import { computed } from 'vue'
 
-import { setActiveElements } from '@/stores/element'
-import { inSlideShow } from '@/stores/presentation'
+const emit = defineEmits(['select'])
 
 const element = defineModel('element', {
 	type: Object,
@@ -25,7 +24,6 @@ const imageStyle = computed(() => ({
 }))
 
 const selectImage = (e) => {
-	if (inSlideShow.value) return
-	setActiveElements([element.value.id])
+	emit('select', e)
 }
 </script>

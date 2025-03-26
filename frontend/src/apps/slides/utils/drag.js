@@ -10,7 +10,6 @@ export const useDragAndDrop = () => {
 	const startDragging = (e) => {
 		e.preventDefault()
 		e.stopPropagation()
-		isDragging.value = true
 		mouseX.value = e.clientX
 		mouseY.value = e.clientY
 		window.addEventListener('mousemove', drag)
@@ -19,6 +18,7 @@ export const useDragAndDrop = () => {
 
 	const drag = (e) => {
 		e.preventDefault()
+		isDragging.value = true
 		if (isDragging.value) {
 			const dx = mouseX.value - e.clientX
 			const dy = mouseY.value - e.clientY
@@ -35,7 +35,7 @@ export const useDragAndDrop = () => {
 
 	const stopDragging = (e) => {
 		e.preventDefault()
-		isDragging.value = false
+		e.stopPropagation()
 		window.removeEventListener('mousemove', drag)
 		window.removeEventListener('mouseup', stopDragging)
 	}
@@ -44,9 +44,9 @@ export const useDragAndDrop = () => {
 		() => dragTarget.value,
 		(newVal, oldVal) => {
 			oldVal?.removeEventListener('mousedown', startDragging)
+			oldVal?.removeEventListener('mouseup', stopDragging)
 			newVal?.addEventListener('mousedown', startDragging)
 		},
-		{ immediate: true },
 	)
 
 	return { dragTarget, isDragging, movement }

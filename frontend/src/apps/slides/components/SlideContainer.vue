@@ -2,7 +2,7 @@
 	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
 		<div ref="target" :style="targetStyles">
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" />
+				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" @click="stopDragging" />
 
 				<AlignmentGuides
 					v-if="showGuides"
@@ -20,12 +20,16 @@
 
 			<!-- Slide Actions -->
 			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="deleteSlide" />
-				<Copy size="14" class="text-gray-800 stroke-[1.5]" @click="duplicateSlide" />
+				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="emit('delete')" />
+				<Copy
+					size="14"
+					class="text-gray-800 stroke-[1.5]"
+					@click="(e) => emit('duplicate', e)"
+				/>
 				<SquarePlus
 					size="14"
 					class="text-gray-800 stroke-[1.5]"
-					@click="insertSlide(slideIndex + 1)"
+					@click="emit('insert', slideIndex + 1)"
 				/>
 			</div>
 		</div>
@@ -41,7 +45,7 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
-import { useElementBounding, useResizeObserver } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 
 import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
@@ -49,25 +53,12 @@ import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
-import {
-	slideIndex,
-	slide,
-	insertSlide,
-	deleteSlide,
-	duplicateSlide,
-	loadSlide,
-	selectSlide,
-	getSlideThumbnail,
-	slideBounds,
-} from '@/stores/slide'
+import { slideIndex, slide, selectSlide, slideBounds } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
 	activeElements,
 	activeElementIds,
-	focusElementId,
-	pairElementId,
-	resetFocus,
 	updateActivePosition,
 	setActivePosition,
 	resizeElement,
@@ -80,6 +71,8 @@ import { usePanAndZoom } from '@/utils/zoom'
 const props = defineProps({
 	highlight: Boolean,
 })
+
+const emit = defineEmits(['insert', 'delete', 'duplicate'])
 
 let recentlySnapped = false
 let snapTimer = null
@@ -98,8 +91,6 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 	slideContainerRef,
 	slideTargetRef,
 )
-
-const delayPositionUpdates = ref(0)
 
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
@@ -152,6 +143,17 @@ const handleDimensionChange = (dimensions) => {
 
 	// update element dimensions in slide object
 	resizeElement(elementId, dimensions)
+}
+
+const handlePositionChange = (position) => {
+	const { left, top } = selectionBoxRef.value.getBoxBounds()
+	if (position.left == left + slideBounds.left && position.top == top + slideBounds.top) {
+		return
+	}
+	selectionBoxRef.value.setBoxBounds({
+		left: position.left - slideBounds.left,
+		top: position.top - slideBounds.top,
+	})
 }
 
 const initDraggable = () => {
@@ -223,7 +225,7 @@ const applyMovement = (positionChange) => {
 	})
 }
 
-const handlePositionChange = (movement) => {
+const handleMovement = (movement) => {
 	// get change in position - scaled
 	const positionChange = getPositionChange(movement)
 
@@ -274,6 +276,32 @@ useResizeObserver(activeDiv, (entries) => {
 	})
 })
 
+const togglePanZoom = () => {
+	allowPanAndZoom.value = !allowPanAndZoom.value
+}
+
+const handleSlideTransform = () => {
+	// wait for the new transform to render before updating dimensions
+	nextTick(() => {
+		updateSlideBounds()
+
+		// set initial position of the selection box after zooming / panning
+		const { left, top } = selectionBoxRef.value.getBoxBounds()
+		setActivePosition({
+			left: left + slideBounds.left,
+			top: top + slideBounds.top,
+		})
+	})
+}
+
+const stopDragging = (e) => {
+	// stop dragging when the mouse is released within the selection box and not on an element
+	if (isDragging.value && e.target == selectionBoxRef.value.$el) {
+		isDragging.value = false
+		return
+	}
+}
+
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
@@ -285,7 +313,7 @@ watch(
 	() => movement.value,
 	(movement) => {
 		if (!movement || !activePosition.value) return
-		handlePositionChange(movement)
+		handleMovement(movement)
 	},
 )
 
@@ -298,20 +326,18 @@ watch(
 )
 
 watch(
+	() => activePosition.value,
+	(position) => {
+		if (!position) return
+		handlePositionChange(position)
+	},
+)
+
+watch(
 	() => transform.value,
 	() => {
 		if (!transform.value) return
-		// wait for the new transform to render before updating dimensions
-		nextTick(() => {
-			updateSlideBounds()
-
-			// set initial position of the selection box after zooming / panning
-			const { left, top } = selectionBoxRef.value.getBoxBounds()
-			setActivePosition({
-				left: left + slideBounds.left,
-				top: top + slideBounds.top,
-			})
-		})
+		handleSlideTransform()
 	},
 )
 
@@ -322,6 +348,12 @@ onMounted(() => {
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
+provide('isDragging', isDragging)
+
+defineExpose({
+	togglePanZoom,
+	applyMovement,
+})
 </script>
 
 <style src="../assets/styles/resizer.css"></style>

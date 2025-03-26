@@ -28,7 +28,7 @@
 					size="sm"
 					variant="subtle"
 					:modelValue="slide.transition || 'None'"
-					@update:modelValue="(option) => (slide.transition = option.value)"
+					@update:modelValue="(option) => setSlideTransition(option)"
 				/>
 
 				<SliderInput
@@ -90,8 +90,8 @@
 						:rangeStart="0.5"
 						:rangeEnd="2"
 						:rangeStep="0.1"
-						:modelValue="parseFloat(activeElements[0].playbackRate) || 1"
-						@update:modelValue="(value) => (activeElements[0].playbackRate = value)"
+						:modelValue="parseFloat(activeElement.playbackRate) || 1"
+						@update:modelValue="(value) => (activeElement.playbackRate = value)"
 					/>
 				</div>
 			</div>
@@ -107,7 +107,7 @@
 							v-for="(style, index) in ['none', 'solid', 'dashed', 'dotted']"
 							:key="index"
 							class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
-							:class="activeElements[0].borderStyle == style ? 'bg-white shadow' : ''"
+							:class="activeElement.borderStyle == style ? 'bg-white shadow' : ''"
 							@click="addBorder(style)"
 						>
 							<Ban v-if="style == 'none'" size="16" class="stroke-[1.5] text-black" />
@@ -119,12 +119,12 @@
 						</div>
 					</div>
 
-					<div v-if="activeElements[0].borderStyle != 'none'" class="flex flex-col gap-4">
+					<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-4">
 						<div class="flex items-center justify-between">
 							<div class="text-sm text-gray-600">Width</div>
 							<div class="h-[30px] w-28">
 								<NumberInput
-									v-model="activeElements[0].borderWidth"
+									v-model="activeElement.borderWidth"
 									suffix="px"
 									:rangeStart="0"
 									:rangeEnd="50"
@@ -136,7 +136,7 @@
 							<div class="text-sm text-gray-600">Radius</div>
 							<div class="h-[30px] w-28">
 								<NumberInput
-									v-model="activeElements[0].borderRadius"
+									v-model="activeElement.borderRadius"
 									suffix="px"
 									:rangeStart="1"
 									:rangeEnd="50"
@@ -146,7 +146,7 @@
 
 						<div class="flex items-center justify-between">
 							<div class="text-sm text-gray-600">Colour</div>
-							<ColorPicker v-model="activeElements[0].borderColor" />
+							<ColorPicker v-model="activeElement.borderColor" />
 						</div>
 					</div>
 				</div>
@@ -158,16 +158,16 @@
 						label="Offset X"
 						:rangeStart="-50"
 						:rangeEnd="50"
-						:modelValue="parseFloat(activeElements[0].shadowOffsetX) || 0"
-						@update:modelValue="(value) => (activeElements[0].shadowOffsetX = value)"
+						:modelValue="parseFloat(activeElement.shadowOffsetX) || 0"
+						@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 					/>
 
 					<SliderInput
 						label="Offset Y"
 						:rangeStart="-50"
 						:rangeEnd="50"
-						:modelValue="parseFloat(activeElements[0].shadowOffsetY) || 0"
-						@update:modelValue="(value) => (activeElements[0].shadowOffsetY = value)"
+						:modelValue="parseFloat(activeElement.shadowOffsetY) || 0"
+						@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 					/>
 
 					<div class="flex flex-col gap-1">
@@ -177,29 +177,27 @@
 								class="w-4/5"
 								:rangeStart="1"
 								:rangeEnd="500"
-								:modelValue="parseFloat(activeElements[0].shadowSpread) || 50"
-								@update:modelValue="
-									(value) => (activeElements[0].shadowSpread = value)
-								"
+								:modelValue="parseFloat(activeElement.shadowSpread) || 50"
+								@update:modelValue="(value) => (activeElement.shadowSpread = value)"
 								:showInput="false"
 							/>
 							<ColorPicker
 								class="w-10 justify-end"
-								v-model="activeElements[0].shadowColor"
+								v-model="activeElement.shadowColor"
 							/>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div v-if="activeElements[0] && activeTab != 'video'" :class="sectionClasses">
+			<div v-if="activeElement && activeTab != 'video'" :class="sectionClasses">
 				<div :class="sectionTitleClasses">Other</div>
 				<SliderInput
 					label="Opacity"
 					:rangeStart="0"
 					:rangeEnd="100"
-					:modelValue="parseFloat(activeElements[0].opacity) || 100"
-					@update:modelValue="(value) => (activeElements[0].opacity = value)"
+					:modelValue="parseFloat(activeElement.opacity) || 100"
+					@update:modelValue="(value) => (activeElement.opacity = value)"
 				/>
 			</div>
 		</div>
@@ -270,11 +268,16 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideIndex, selectSlide } from '@/stores/slide'
-import { activeElements, focusElementId, addTextElement, addMediaElement } from '@/stores/element'
+import {
+	activeElements,
+	activeElement,
+	focusElementId,
+	addTextElement,
+	addMediaElement,
+} from '@/stores/element'
 
 const activeTab = computed(() => {
-	if (activeElements.value[0]) return activeElements.value[0].type
-	if (focusElementId.value) return 'text'
+	if (activeElement.value) return activeElement.value.type
 	return 'slide'
 })
 
@@ -309,8 +312,7 @@ const imageOrientationProperties = [
 ]
 
 const toggleImageOrientation = (direction) => {
-	activeElements.value[0][direction.property] =
-		activeElements.value[0][direction.property] === 1 ? -1 : 1
+	activeElement.value[direction.property] = activeElement.value[direction.property] === 1 ? -1 : 1
 }
 
 const sectionClasses = 'flex flex-col gap-4 p-4 border-b'
@@ -334,20 +336,19 @@ const playbackProperties = [
 const getPlaybackOptionClasses = (option) => {
 	return {
 		'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
-		'border-gray-800 bg-gray-50':
-			hoverOption.value == option || activeElements.value[0][option],
+		'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement.value[option],
 	}
 }
 
 const getPlaybackTextClasses = (option) => {
 	return {
-		'text-gray-800': hoverOption.value == option || activeElements.value[0][option],
-		'text-gray-600': hoverOption.value != option && !activeElements.value[0][option],
+		'text-gray-800': hoverOption.value == option || activeElement.value[option],
+		'text-gray-600': hoverOption.value != option && !activeElement.value[option],
 	}
 }
 
 const togglePlaybackOption = (option) => {
-	activeElements.value[0][option] = !activeElements.value[0][option]
+	activeElement.value[option] = !activeElement.value[option]
 }
 
 const handleUploadSuccess = (file, type) => {
@@ -360,8 +361,14 @@ const handleUploadFailure = () => {
 }
 
 const addBorder = (style) => {
-	activeElements.value[0].borderStyle = style
-	activeElements.value[0].borderWidth = 1
+	activeElement.value.borderStyle = style
+	activeElement.value.borderWidth = 1
+}
+
+const setSlideTransition = (option) => {
+	slide.value.transition = option.value
+	if (option.value == 'None') slide.value.transitionDuration = 0
+	else slide.value.transitionDuration = 1
 }
 </script>
 

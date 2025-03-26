@@ -15,13 +15,15 @@
 import { computed, nextTick } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
-import { focusElementId, setActiveElements } from '@/stores/element'
+import { focusElementId } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
+
+const emit = defineEmits(['focus', 'select'])
 
 const textStyle = computed(() => ({
 	content: element.value.content,
@@ -43,22 +45,15 @@ const textStyle = computed(() => ({
 
 const selectElement = (e) => {
 	if (inSlideShow.value) return
-	handleSingleAndDoubleClick(e, setActiveText, setFocusElement)
+	handleSingleAndDoubleClick(e, setActiveText, setFocusText)
 }
 
 const setActiveText = (e) => {
-	e.stopPropagation()
-	if (focusElementId.value == element.value.id) return
-	setActiveElements([element.value.id])
+	emit('select', e)
 }
 
-const setFocusElement = (e) => {
-	e.stopPropagation()
-	if (focusElementId.value == element.value.id) return
-	setActiveElements([element.value.id], true)
-	nextTick(() => {
-		e.target.focus()
-	})
+const setFocusText = (e) => {
+	emit('focus', e)
 }
 
 const setCursorPosition = (e) => {
