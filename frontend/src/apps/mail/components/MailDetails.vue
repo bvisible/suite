@@ -5,19 +5,21 @@
 				icon="chevron-left"
 				variant="ghost"
 				class="mr-2"
-				@click="setCurrentMail(props.currentFolder, null)"
+				@click="setCurrentMail(currentFolder, null)"
 			/>
 			<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
 			<div class="ml-auto space-x-2">
-				<Button
-					:icon="MessageSquareDot"
-					variant="ghost"
-					class="!text-ink-gray-6"
-					@click="emit('markAsUnread')"
-				/>
+				<Tooltip :text="__('Mark as unread')">
+					<Button
+						:icon="MessageSquareDot"
+						variant="ghost"
+						class="!text-ink-gray-6"
+						@click="emit('markAsUnread')"
+					/>
+				</Tooltip>
 			</div>
 		</div>
-		<div class="px-5 py-6">
+		<div class="px-2.5 py-3 sm:px-5 sm:py-6">
 			<div
 				v-for="mail in mailThread.data"
 				:key="mail.name"
@@ -40,7 +42,10 @@
 								<span class="text-base font-semibold">
 									{{ mail.display_name || mail.from_ || mail.sender }}
 								</span>
-								<span v-if="mail.display_name" class="text-gray-600">
+								<span
+									v-if="mail.display_name && screenSize.width >= 640"
+									class="text-gray-600"
+								>
 									{{ `<${mail.from_ || mail.sender}>` }}
 								</span>
 								<MailDetailsPopover :mail="mail" />
@@ -149,6 +154,7 @@ import {
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
+import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
@@ -166,6 +172,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['reloadMails', 'markAsUnread'])
 
+const screenSize = useScreenSize()
 const dayjs = inject('$dayjs')
 const { setCurrentMail } = userStore()
 
@@ -253,7 +260,7 @@ const moreActions = (mail): MailAction[] => [
 				?.focus()
 		},
 		icon: Mail,
-		condition: () => mail.status !== 'Draft',
+		condition: () => mail.status !== 'Draft' && screenSize.width >= 640,
 	},
 	{
 		label: __('Move to Trash'),

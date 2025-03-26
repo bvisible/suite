@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import { useRoute } from 'vue-router'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
@@ -7,12 +8,12 @@ import router from '@/router'
 import type { Folder, UserResource } from '@/types'
 
 export const userStore = defineStore('mail-users', () => {
+	const route = useRoute()
+
 	const userResource: UserResource = createResource({
 		url: 'mail.api.account.get_user_info',
 		onError: (error) => {
-			if (error && error.exc_type === 'AuthenticationError') {
-				router.push('/login')
-			}
+			if (error && error.exc_type === 'AuthenticationError') router.push('/login')
 		},
 		auto: true,
 	})
@@ -36,6 +37,8 @@ export const userStore = defineStore('mail-users', () => {
 		if (mail) {
 			currentMail[folder] = mail
 			sessionStorage.setItem(itemName, JSON.stringify(mail))
+			if (String(route.name).startsWith(folder))
+				router.push({ name: `${folder}Mail`, params: { id: mail } })
 		} else {
 			currentMail[folder] = null
 			sessionStorage.removeItem(itemName)
