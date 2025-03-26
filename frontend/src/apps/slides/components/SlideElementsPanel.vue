@@ -28,7 +28,7 @@
 					size="sm"
 					variant="subtle"
 					:modelValue="slide.transition || 'None'"
-					@update:modelValue="(option) => (slide.transition = option.value)"
+					@update:modelValue="(option) => setSlideTransition(option)"
 				/>
 
 				<SliderInput
@@ -363,6 +363,12 @@ const handleUploadFailure = () => {
 const addBorder = (style) => {
 	activeElement.value.borderStyle = style
 	activeElement.value.borderWidth = 1
+}
+
+const setSlideTransition = (option) => {
+	slide.value.transition = option.value
+	if (option.value == 'None') slide.value.transitionDuration = 0
+	else slide.value.transitionDuration = 1
 }
 </script>
 
