@@ -2,7 +2,7 @@
 	<div class="space-y-1 p-2.5">
 		<div class="flex items-center justify-between">
 			<h3 class="mr-1 flex items-center truncate">
-				<span v-if="!mail.seen" class="mr-1.5 h-2 w-2 rounded-full bg-blue-500" />
+				<span v-if="!mail.seen" class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500" />
 				<span class="truncate text-base font-semibold" :class="{ italic: !mail.subject }">
 					{{ mail.subject || __('[No subject]') }}
 				</span>

@@ -16,49 +16,54 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div
-		v-if="mails[currentFolder].data"
-		class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.2rem)]"
-	>
-		<div
-			ref="mailSidebar"
-			class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
-			@scroll="loadMoreEmails"
-		>
+	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.2rem)]">
+		<template v-if="mails[currentFolder].data?.length">
 			<div
-				v-for="(mail, idx) in mails[currentFolder].data"
-				:key="idx"
-				class="flex cursor-pointer flex-col space-y-1 rounded"
-				:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
-				@click="openMail(mail)"
+				ref="mailSidebar"
+				class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
+				@scroll="loadMoreEmails"
 			>
-				<SidebarDetail :mail="mail" />
 				<div
-					:class="{
-						'mx-4 h-[0.25px] border-b border-gray-100':
-							idx < mails[currentFolder].data.length - 1,
-					}"
+					v-for="(mail, idx) in mails[currentFolder].data"
+					:key="idx"
+					class="flex cursor-pointer flex-col space-y-1 rounded"
+					:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
+					@click="openMail(mail)"
+				>
+					<SidebarDetail :mail="mail" />
+					<div
+						:class="{
+							'mx-4 h-[0.25px] border-b border-gray-100':
+								idx < mails[currentFolder].data.length - 1,
+						}"
+					/>
+				</div>
+			</div>
+			<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
+				<div
+					ref="resizer"
+					class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
 				/>
 			</div>
-		</div>
-		<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
 			<div
-				ref="resizer"
-				class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
-			/>
-		</div>
-		<div
-			class="fixed inset-0 z-20 bg-white sm:static sm:z-0 sm:w-2/3"
-			:class="{ invisible: screenSize.width < 640 && !route.params.id }"
-		>
-			<MailDetails
-				ref="mailDetails"
-				:mail-i-d="currentMail[currentFolder]"
-				:current-folder
-				:type="getMailType() || doctype"
-				@reload-mails="reloadMails"
-				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
-			/>
+				class="fixed inset-0 z-20 bg-white sm:static sm:z-0 sm:w-2/3"
+				:class="{ invisible: screenSize.width < 640 && !route.params.id }"
+			>
+				<MailDetails
+					ref="mailDetails"
+					:mail-i-d="currentMail[currentFolder]"
+					:current-folder
+					:type="getMailType() || doctype"
+					@reload-mails="reloadMails"
+					@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
+				/>
+			</div>
+		</template>
+		<div v-else class="flex w-full flex-col items-center justify-center space-y-3">
+			<NoMailSelected class="h-16 w-16" />
+			<p class="text-gray-500">
+				{{ __('You have no mails to show in this folder.') }}
+			</p>
 		</div>
 	</div>
 </template>
@@ -72,10 +77,13 @@ import { formatNumber, startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
+import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
 import MailDetails from '@/components/MailDetails.vue'
 import SidebarDetail from '@/components/SidebarDetail.vue'
 
 import type { Folder, UserResource } from '@/types'
+
+const { id } = defineProps<{ id?: string }>()
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
@@ -104,7 +112,16 @@ const createMailResource = (folder: Folder) =>
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data) => {
-			if (data.some((m) => m.name === currentMail[folder])) mailDetails.value?.reloadThread()
+			const mailExists = (id?: string | null) => id && data.some((m) => m.name === id)
+
+			if (mailExists(id)) {
+				if (currentMail[folder] !== id) setCurrentMail(folder, id)
+				mailDetails.value?.reloadThread()
+			} else if (mailExists(currentMail[folder])) {
+				if (route.params.id !== currentMail[folder])
+					router.replace({ name: `${folder}Mail`, params: { id: currentMail[folder] } })
+				mailDetails.value?.reloadThread()
+			} else setCurrentMail(folder, null)
 		},
 	})
 
@@ -143,7 +160,6 @@ const setSeen = createResource({
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen) setSeen.submit({ name: mail.name, seen: 1 })
-	router.push({ name: `${currentFolder.value}Mail`, params: { id: mail.name } })
 }
 
 const reloadMails = (folder: Folder = currentFolder.value) => {
