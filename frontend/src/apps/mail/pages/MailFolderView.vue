@@ -18,7 +18,7 @@
 	</header>
 	<div
 		v-if="mails[currentFolder].data"
-		class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3rem)]"
+		class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.2rem)]"
 	>
 		<div
 			ref="mailSidebar"

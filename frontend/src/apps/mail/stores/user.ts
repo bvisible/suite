@@ -39,6 +39,7 @@ export const userStore = defineStore('mail-users', () => {
 		} else {
 			currentMail[folder] = null
 			sessionStorage.removeItem(itemName)
+			router.push({ name: folder })
 		}
 	}
 

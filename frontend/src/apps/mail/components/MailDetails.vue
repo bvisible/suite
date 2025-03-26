@@ -1,10 +1,23 @@
 <template>
 	<template v-if="mailID">
 		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
-			<Button icon="chevron-left" variant="ghost" class="mr-2" @click="goBack" />
+			<Button
+				icon="chevron-left"
+				variant="ghost"
+				class="mr-2"
+				@click="setCurrentMail(props.currentFolder, null)"
+			/>
 			<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
+			<div class="ml-auto space-x-2">
+				<Button
+					:icon="MessageSquareDot"
+					variant="ghost"
+					class="!text-ink-gray-6"
+					@click="emit('markAsUnread')"
+				/>
+			</div>
 		</div>
-		<div class="p-3">
+		<div class="px-5 py-6">
 			<div
 				v-for="mail in mailThread.data"
 				:key="mail.name"
@@ -31,9 +44,6 @@
 									{{ `<${mail.from_ || mail.sender}>` }}
 								</span>
 								<MailDetailsPopover :mail="mail" />
-							</div>
-							<div class="leading-4">
-								{{ mail.subject }}
 							</div>
 							<div class="flex items-center space-x-2">
 								<span class="flex items-center space-x-1">
@@ -111,16 +121,20 @@
 			@reload-mails="emit('reloadMails', 'Drafts')"
 		/>
 	</template>
-	<div v-else class="flex h-full items-center justify-center">
-		<p class="text-gray-500">
-			{{ __('Select an email to view the conversation.') }}
-		</p>
+	<div v-else class="h-full overflow-hidden">
+		<div class="m-4 flex h-[calc(100%-2em)] items-center justify-center rounded-md bg-gray-50">
+			<div class="flex flex-col items-center space-y-3">
+				<NoMailSelected class="h-16 w-16" />
+				<p class="text-gray-500">
+					{{ __('Select an email to view the thread.') }}
+				</p>
+			</div>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { inject, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import {
 	ArchiveRestore,
 	Ellipsis,
@@ -137,6 +151,7 @@ import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 import { getRecipients } from '@/utils'
 import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
+import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMailModal from '@/components/Modals/SendMailModal.vue'
@@ -151,7 +166,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['reloadMails', 'markAsUnread'])
 
-const router = useRouter()
 const dayjs = inject('$dayjs')
 const { setCurrentMail } = userStore()
 
@@ -242,11 +256,6 @@ const moreActions = (mail): MailAction[] => [
 		condition: () => mail.status !== 'Draft',
 	},
 	{
-		label: __('Mark as Unread'),
-		onClick: () => emit('markAsUnread'),
-		icon: MessageSquareDot,
-	},
-	{
 		label: __('Move to Trash'),
 		onClick: () => setFolder.submit({ mail, moveToTrash: true }),
 		icon: Trash2,
@@ -328,11 +337,6 @@ const toRecipient = (mail) => {
 	if (!isSoleRecipient) return getRecipients(mail.to)
 
 	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
-}
-
-const goBack = () => {
-	setCurrentMail(props.currentFolder, null)
-	router.push({ name: props.currentFolder })
 }
 
 watch(() => props.mailID, reloadThread)
