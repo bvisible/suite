@@ -13,6 +13,7 @@ class MailSettings(Document):
 		self.validate_root_domain_name()
 		self.validate_dns_provider()
 		self.validate_spf_host()
+		self.validate_personal_signup_domains()
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -65,6 +66,30 @@ class MailSettings(Document):
 				frappe.delete_doc("DNS Record", spf_dns_record, ignore_permissions=True)
 
 		create_or_update_spf_dns_record(self.spf_host)
+
+	def validate_personal_signup_domains(self) -> None:
+		"""Validates the Personal Signup Domains."""
+
+		if not self.personal_signup_domains:
+			return
+
+		for signup_domain in self.personal_signup_domains:
+			enabled, is_verified, tenant = frappe.db.get_value(
+				"Mail Domain", signup_domain.domain_name, ["enabled", "is_verified", "tenant"]
+			)
+
+			if not frappe.db.get_value("Mail Tenant", tenant, "allow_personal_signup"):
+				frappe.throw(
+					_("Personal Signup is not allowed for the Mail Domain {0}.").format(
+						frappe.bold(signup_domain.domain_name)
+					)
+				)
+			elif not enabled:
+				frappe.throw(_("Mail Domain {0} is disabled.").format(frappe.bold(signup_domain.domain_name)))
+			elif not is_verified:
+				frappe.throw(
+					_("Mail Domain {0} is not verified.").format(frappe.bold(signup_domain.domain_name))
+				)
 
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
