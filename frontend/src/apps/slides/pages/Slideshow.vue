@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
@@ -42,7 +42,7 @@ import {
 	inSlideShow,
 	applyReverseTransition,
 } from '@/stores/presentation'
-import { slide, slideIndex, changeSlide, loadSlide } from '@/stores/slide'
+import { slide, slideIndex, loadSlide } from '@/stores/slide'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -183,6 +183,16 @@ const initFullscreenMode = async () => {
 		})
 		inSlideShow.value = true
 	}
+}
+
+const changeSlide = (index) => {
+	if (index < 0 || index >= presentation.data.slides.length) return
+	applyReverseTransition.value = index < slideIndex.value
+
+	nextTick(() => {
+		slideIndex.value = index
+		loadSlide()
+	})
 }
 
 watch(
