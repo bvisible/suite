@@ -2,7 +2,7 @@
 	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
 		<div ref="target" :style="targetStyles">
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" />
+				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" @click="stopDragging" />
 
 				<AlignmentGuides
 					v-if="showGuides"
@@ -297,6 +297,14 @@ const handleSlideTransform = () => {
 			top: top + slideBounds.top,
 		})
 	})
+}
+
+const stopDragging = (e) => {
+	// stop dragging when the mouse is released within the selection box and not on an element
+	if (isDragging.value && e.target == selectionBoxRef.value.$el) {
+		isDragging.value = false
+		return
+	}
 }
 
 watch(
