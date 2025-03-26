@@ -151,7 +151,8 @@ const handleDimensionChange = (dimensions) => {
 }
 
 const handlePositionChange = (position) => {
-	if (position.left == selectionBoxRef.value.getBoxBounds().left + slideBounds.left) {
+	const { left, top } = selectionBoxRef.value.getBoxBounds()
+	if (position.left == left + slideBounds.left && position.top == top + slideBounds.top) {
 		return
 	}
 	selectionBoxRef.value.setBoxBounds({
