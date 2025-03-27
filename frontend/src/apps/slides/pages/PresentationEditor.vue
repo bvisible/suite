@@ -158,6 +158,12 @@ const handleGlobalShortcuts = (e) => {
 		case 'a':
 			if (e.metaKey) selectAllElements()
 			break
+		case 's':
+			if (e.metaKey) {
+				e.preventDefault()
+				resetAndSave()
+			}
+			break
 	}
 }
 
@@ -209,10 +215,9 @@ const handleMediaDrop = async (e) => {
 	uploadFiles(files)
 }
 
-const startSlideShow = async () => {
-	resetFocus()
-	await saveChanges()
-	await presentation.reload()
+const startSlideShow = () => {
+	resetAndSave()
+
 	router.replace({
 		name: 'Slideshow',
 		params: { presentationId: presentationId.value },
@@ -236,16 +241,13 @@ const handleAutoSave = () => {
 const changeSlide = async (index, updateCurrent = true) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
 
+	resetFocus()
 	// reset the pan and zoom to capture thumbnail
 	slideContainerRef.value.togglePanZoom()
 
 	nextTick(async () => {
 		// update the current slide along with thumbnail
-		if (updateCurrent) {
-			resetFocus()
-			await saveChanges()
-		}
-		slideIndex.value = index
+		if (updateCurrent) slideIndex.value = index
 		loadSlide()
 
 		// re-enable pan and zoom
@@ -254,9 +256,6 @@ const changeSlide = async (index, updateCurrent = true) => {
 }
 
 const performSlideAction = async (action, index) => {
-	resetFocus()
-	await saveChanges()
-
 	let url = ''
 
 	switch (action) {
@@ -276,9 +275,12 @@ const performSlideAction = async (action, index) => {
 		index: index,
 	}
 
-	await call(url, args)
-
-	await presentation.reload()
+	resetFocus()
+	await nextTick(async () => {
+		await saveChanges()
+		await call(url, args)
+		await presentation.reload()
+	})
 }
 
 const insertSlide = async (index) => {
@@ -297,6 +299,13 @@ const duplicateSlide = async (e) => {
 	e.preventDefault()
 	await performSlideAction('duplicate', slideIndex.value)
 	changeSlide(slideIndex.value + 1)
+}
+
+const resetAndSave = () => {
+	resetFocus()
+	nextTick(() => {
+		saveChanges()
+	})
 }
 
 onMounted(() => {
