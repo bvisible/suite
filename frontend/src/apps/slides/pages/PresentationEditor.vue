@@ -300,7 +300,7 @@ const duplicateSlide = async (e) => {
 }
 
 onMounted(() => {
-	autosaveInterval = setInterval(handleAutoSave, 600000)
+	autosaveInterval = setInterval(handleAutoSave, 60000)
 	document.addEventListener('keydown', handleKeyDown)
 })
 
