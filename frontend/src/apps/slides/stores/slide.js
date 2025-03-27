@@ -25,17 +25,15 @@ const getSavedData = () => {
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
 		background: currentSlide.background,
-		thumbnail: currentSlide.thumbnail,
 	}
 }
 
-const getCurrentData = async () => {
+const getCurrentData = () => {
 	const updatedData = {
 		elements: slide.value.elements,
 		transition: slide.value.transition,
 		transition_duration: slide.value.transitionDuration,
 		background: slide.value.background,
-		thumbnail: await getSlideThumbnail(),
 	}
 
 	if (activePosition.value) {
@@ -56,9 +54,9 @@ const getCurrentData = async () => {
 	return updatedData
 }
 
-const isSlideDirty = async () => {
+const isSlideDirty = () => {
 	const data = getSavedData()
-	const updatedData = await getCurrentData()
+	const updatedData = getCurrentData()
 
 	return !isEqual(data, updatedData)
 }
@@ -99,7 +97,7 @@ const loadSlide = () => {
 }
 
 const saveChanges = async () => {
-	const dirty = await isSlideDirty()
+	const dirty = isSlideDirty()
 
 	if (!presentation.data || !dirty) return
 
