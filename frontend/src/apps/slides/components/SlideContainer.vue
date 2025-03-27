@@ -29,7 +29,7 @@
 				<SquarePlus
 					size="14"
 					class="text-gray-800 stroke-[1.5]"
-					@click="emit('insert', slideIndex + 1)"
+					@click="emit('insert', slideIndex)"
 				/>
 			</div>
 		</div>
