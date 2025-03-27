@@ -249,13 +249,14 @@ const changeSlide = async (index, updateCurrent = true) => {
 }
 
 const insertSlide = async (index) => {
+	resetFocus()
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
 		name: presentationId.value,
 		index: index,
 	})
 	await presentation.reload()
-	await changeSlide(index)
+	await changeSlide(index + 1)
 }
 
 const deleteSlide = async () => {

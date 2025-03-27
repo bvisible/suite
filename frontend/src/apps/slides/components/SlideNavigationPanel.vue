@@ -21,7 +21,7 @@
 
 			<div
 				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
-				@click="emit('insertSlide', presentation.data.slides.length)"
+				@click="emit('insertSlide', presentation.data.slides.length - 1)"
 			>
 				<Plus size="14" class="stroke-[1.5]" />
 			</div>
