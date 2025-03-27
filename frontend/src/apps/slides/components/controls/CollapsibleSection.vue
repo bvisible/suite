@@ -1,9 +1,8 @@
 <template>
 	<div class="flex flex-col gap-4">
-		<div class="flex justify-between items-center">
+		<div class="flex justify-between items-center" @click="showContent = !showContent">
 			<div :class="titleClasses">{{ title }}</div>
 			<component
-				@click="showContent = !showContent"
 				:is="showContent ? ChevronUp : ChevronDown"
 				size="16"
 				class="stroke-[1.5] text-gray-700 cursor-pointer"
