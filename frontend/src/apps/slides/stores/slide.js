@@ -25,15 +25,17 @@ const getSavedData = () => {
 		transition: currentSlide.transition,
 		transition_duration: currentSlide.transition_duration,
 		background: currentSlide.background,
+		thumbnail: currentSlide.thumbnail,
 	}
 }
 
-const getCurrentData = () => {
+const getCurrentData = async () => {
 	const updatedData = {
 		elements: slide.value.elements,
 		transition: slide.value.transition,
 		transition_duration: slide.value.transitionDuration,
 		background: slide.value.background,
+		thumbnail: await getSlideThumbnail(),
 	}
 
 	if (activePosition.value) {
@@ -54,12 +56,12 @@ const getCurrentData = () => {
 	return updatedData
 }
 
-const slideDirty = computed(() => {
+const isSlideDirty = async () => {
 	const data = getSavedData()
-	const updatedData = getCurrentData()
+	const updatedData = await getCurrentData()
 
 	return !isEqual(data, updatedData)
-})
+}
 
 const getSlideThumbnail = async () => {
 	const slideRef = document.querySelector('.slide')
@@ -77,9 +79,9 @@ const updateSlideState = async () => {
 		...presentation.data.slides[slideIndex.value],
 		background,
 		transition,
-		thumbnail,
 		elements: JSON.stringify(elements, null, 2),
 		transition_duration: transitionDuration,
+		thumbnail: await getSlideThumbnail(),
 	}
 }
 
@@ -99,17 +101,10 @@ const loadSlide = () => {
 const saving = ref(false)
 
 const saveChanges = async () => {
-	if (!presentation.data || !slideDirty.value) return
-	slide.value.elements = slide.value.elements.map((element) => {
-		let rect = document.querySelector(`[data-index="${element.id}"]`).getBoundingClientRect()
-		element.width = rect.width / slideBounds.scale
-		return element
-	})
+	const dirty = await isSlideDirty()
+	if (!presentation.data || !dirty) return
 	saving.value = true
-	resetFocus()
-	await nextTick(async () => {
-		await updateSlideState()
-	})
+	await updateSlideState()
 	await call('frappe.client.save', {
 		doc: presentation.data,
 	})
@@ -127,7 +122,6 @@ const slideBounds = reactive({})
 
 export {
 	slideIndex,
-	slideDirty,
 	saving,
 	slide,
 	slideBounds,

@@ -14,7 +14,6 @@
 			@click="makeTitleEditable"
 		>
 			<div>{{ presentation.data?.title }}</div>
-			<div class="text-gray-400 text-xs" v-if="slideDirty">*</div>
 		</div>
 	</div>
 </template>
@@ -26,7 +25,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { call } from 'frappe-ui'
 
 import { presentation } from '@/stores/presentation'
-import { slideDirty } from '@/stores/slide'
 
 const route = useRoute()
 const router = useRouter()

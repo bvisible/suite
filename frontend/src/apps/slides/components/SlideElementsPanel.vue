@@ -21,24 +21,30 @@
 			</div>
 
 			<div :class="sectionClasses">
-				<div :class="sectionTitleClasses">Transition</div>
-				<FormControl
-					type="autocomplete"
-					:options="['Slide In', 'Fade', 'None']"
-					size="sm"
-					variant="subtle"
-					:modelValue="slide.transition || 'None'"
-					@update:modelValue="(option) => setSlideTransition(option)"
-				/>
+				<CollapsibleSection :title="'Transition'" :titleClasses="sectionTitleClasses">
+					<template #default>
+						<div class="flex flex-col gap-4">
+							<FormControl
+								type="autocomplete"
+								:options="['Slide In', 'Fade', 'None']"
+								size="sm"
+								variant="subtle"
+								:modelValue="slide.transition || 'None'"
+								@update:modelValue="(option) => setSlideTransition(option)"
+							/>
 
-				<SliderInput
-					label="Duration"
-					:rangeStart="0"
-					:rangeEnd="4"
-					:rangeStep="0.1"
-					:modelValue="parseFloat(slide.transitionDuration) || 0"
-					@update:modelValue="(value) => (slide.transitionDuration = value)"
-				/>
+							<SliderInput
+								v-show="slide.transition && slide.transition != 'None'"
+								label="Duration"
+								:rangeStart="0"
+								:rangeEnd="4"
+								:rangeStep="0.1"
+								:modelValue="parseFloat(slide.transitionDuration) || 0"
+								@update:modelValue="(value) => (slide.transitionDuration = value)"
+							/>
+						</div>
+					</template>
+				</CollapsibleSection>
 			</div>
 		</div>
 
@@ -275,6 +281,7 @@ import {
 	addTextElement,
 	addMediaElement,
 } from '@/stores/element'
+import CollapsibleSection from './controls/CollapsibleSection.vue'
 
 const activeTab = computed(() => {
 	if (activeElement.value) return activeElement.value.type
