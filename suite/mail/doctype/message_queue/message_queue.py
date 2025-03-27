@@ -35,7 +35,8 @@ class MessageQueue(Document):
 		if cluster:
 			return fetch_messages(cluster, limit=page_length, text=text)
 
-		return frappe.msgprint(_("Please select a cluster to view messages."), alert=True)
+		frappe.msgprint(_("Please select a cluster to view messages."), alert=True)
+		return []
 
 	@staticmethod
 	def get_count(filters=None, **kwargs) -> int:
@@ -55,8 +56,8 @@ def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
 	values = {list(condition.keys())[0]: None for condition in conditions}
 	condition_map = {list(condition.keys())[0]: list(condition.values())[0] for condition in conditions}
 
-	for filter in filters:
-		key, operator, value = filter[1], filter[2], filter[3]
+	for f in filters:
+		key, operator, value = f[1], f[2], f[3]
 		if key in condition_map and operator == condition_map[key]:
 			values[key] = value.replace("%", "") if operator == "like" else value
 
