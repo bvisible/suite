@@ -260,6 +260,7 @@ const insertSlide = async (index) => {
 }
 
 const deleteSlide = async () => {
+	resetFocus()
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.delete_slide', {
 		name: presentationId.value,
@@ -268,10 +269,12 @@ const deleteSlide = async () => {
 	await presentation.reload()
 	if (slideIndex.value == presentation.data.slides.length)
 		await changeSlide(slideIndex.value - 1, false)
+	else loadSlide()
 }
 
 const duplicateSlide = async (e) => {
 	e.preventDefault()
+	resetFocus()
 	await saveChanges()
 	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
 		name: presentationId.value,
