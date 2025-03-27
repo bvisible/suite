@@ -16,7 +16,7 @@
 				@change="(val: string) => (mail.html = val)"
 			>
 				<template #top>
-					<div class="flex flex-col gap-3">
+					<div class="flex flex-col gap-3 border-b">
 						<div class="flex items-center gap-2 sm:border-t sm:pt-2.5">
 							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
 							<FormControl
@@ -91,10 +91,43 @@
 					</div>
 				</template>
 				<template #editor="{ editor }">
-					<EditorContent
-						class="overflow-y-auto border-t py-3 text-sm sm:max-h-[35vh]"
-						:editor="editor"
-					/>
+					<div
+						class="h-[calc(100dvh-14.6rem)] overflow-y-auto py-2.5 text-sm sm:max-h-[40vh]"
+						:class="{
+							'h-[calc(100dvh-17.1rem)]': cc || bcc,
+							'h-[calc(100dvh-19.6rem)]': cc && bcc,
+						}"
+					>
+						<EditorContent :editor="editor" />
+
+						<!-- Attachments -->
+						<div
+							v-if="localMailID && attachments.data?.length"
+							class="mt-2.5 flex flex-col gap-2.5 text-gray-700"
+						>
+							<a
+								v-for="(file, index) in attachments.data"
+								:key="index"
+								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
+								:href="file.file_url"
+								target="_blank"
+							>
+								<span class="mr-1 font-medium">
+									{{ file.file_name || file.name }}
+								</span>
+								<span class="mr-1 font-extralight">
+									({{ formatBytes(file.file_size) }})
+								</span>
+								<FeatherIcon
+									class="ml-auto h-3.5 w-3.5"
+									name="x"
+									@click.stop.prevent="
+										removeAttachment.submit({ name: file.name })
+									"
+								/>
+							</a>
+						</div>
+					</div>
 				</template>
 				<template #bottom>
 					<FileUploader
@@ -112,39 +145,19 @@
 						@success="attachments.fetch()"
 					>
 						<template #default="{ file, progress, uploading, openFileSelector }">
-							<!-- Attachments -->
 							<div
-								v-if="localMailID && attachments.data?.length"
-								class="mb-2 flex flex-col gap-2 text-sm text-gray-700"
+								v-if="uploading"
+								class="mb-2 rounded bg-gray-100 p-2.5 text-sm text-gray-700"
 							>
-								<div v-if="uploading" class="rounded bg-gray-100 p-2.5">
-									<div class="mb-1.5 flex items-center">
-										<span class="mr-1 font-medium">
-											{{ file.name }}
-										</span>
-										<span class="font-extralight">
-											({{ formatBytes(file.size) }})
-										</span>
-									</div>
-									<Progress :value="progress" />
-								</div>
-								<div
-									v-for="(file, index) in attachments.data"
-									:key="index"
-									class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
-								>
+								<div class="mb-1.5 flex items-center">
 									<span class="mr-1 font-medium">
-										{{ file.file_name || file.name }}
+										{{ file.name }}
 									</span>
-									<span class="mr-1 font-extralight">
-										({{ formatBytes(file.file_size) }})
+									<span class="font-extralight">
+										({{ formatBytes(file.size) }})
 									</span>
-									<FeatherIcon
-										class="ml-auto h-3.5 w-3.5"
-										name="x"
-										@click="removeAttachment.submit({ name: file.name })"
-									/>
 								</div>
+								<Progress :value="progress" />
 							</div>
 
 							<div

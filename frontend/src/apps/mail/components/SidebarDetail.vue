@@ -20,7 +20,7 @@
 				v-for="attachment in mail.attachments.slice(0, 2)"
 				:key="attachment.name"
 				:file-name="attachment.file_name"
-				class="mr-2 max-w-40"
+				class="mr-2 max-w-32"
 			/>
 			<AttachmentCapsule
 				v-if="mail.attachments.length > 2"
