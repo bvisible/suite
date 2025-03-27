@@ -98,18 +98,19 @@ const loadSlide = () => {
 	}
 }
 
-const saving = ref(false)
-
 const saveChanges = async () => {
 	const dirty = await isSlideDirty()
+
 	if (!presentation.data || !dirty) return
-	saving.value = true
+
+	// update presentation object with the latest slide data
 	await updateSlideState()
+
 	await call('frappe.client.save', {
 		doc: presentation.data,
 	})
+
 	await presentation.reload()
-	saving.value = false
 }
 
 const selectSlide = (e) => {
@@ -120,13 +121,4 @@ const selectSlide = (e) => {
 
 const slideBounds = reactive({})
 
-export {
-	slideIndex,
-	saving,
-	slide,
-	slideBounds,
-	loadSlide,
-	updateSlideState,
-	saveChanges,
-	selectSlide,
-}
+export { slideIndex, slide, slideBounds, loadSlide, updateSlideState, saveChanges, selectSlide }
