@@ -2,7 +2,7 @@
 	<Popover>
 		<template #target="{ togglePopover }">
 			<div
-				class="my-2 h-4 w-4 cursor-pointer rounded-sm border ring-[1px] ring-gray-800 ring-offset-1"
+				class="my-2 h-4 w-4 cursor-pointer rounded-sm border border-gray-500"
 				:style="{ backgroundColor: currentColor }"
 				@click="togglePopover"
 			></div>
