@@ -50,7 +50,7 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 
 import { presentationId, presentation, applyReverseTransition } from '@/stores/presentation'
-import { slide, slideIndex, saving, saveChanges, updateSlideState, loadSlide } from '@/stores/slide'
+import { slide, slideIndex, saveChanges, updateSlideState, loadSlide } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -235,57 +235,72 @@ const handleAutoSave = () => {
 
 const changeSlide = async (index, updateCurrent = true) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
+
+	// reset the pan and zoom to capture thumbnail
 	slideContainerRef.value.togglePanZoom()
 
 	nextTick(async () => {
+		// update the current slide along with thumbnail
 		if (updateCurrent) {
 			resetFocus()
 			await saveChanges()
 		}
 		slideIndex.value = index
 		loadSlide()
+
+		// re-enable pan and zoom
 		slideContainerRef.value.togglePanZoom()
 	})
 }
 
-const insertSlide = async (index) => {
+const performSlideAction = async (action, index) => {
 	resetFocus()
 	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.insert_slide', {
+
+	let url = ''
+
+	switch (action) {
+		case 'insert':
+			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
+			break
+		case 'duplicate':
+			url = 'slides.slides.doctype.presentation.presentation.duplicate_slide'
+			break
+		case 'delete':
+			url = 'slides.slides.doctype.presentation.presentation.delete_slide'
+			break
+	}
+
+	const args = {
 		name: presentationId.value,
 		index: index,
-	})
+	}
+
+	await call(url, args)
+
 	await presentation.reload()
-	await changeSlide(index + 1)
+}
+
+const insertSlide = async (index) => {
+	await performSlideAction('insert', index)
+	changeSlide(index + 1)
 }
 
 const deleteSlide = async () => {
-	resetFocus()
-	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.delete_slide', {
-		name: presentationId.value,
-		index: slideIndex.value,
-	})
-	await presentation.reload()
+	await performSlideAction('delete', slideIndex.value)
 	if (slideIndex.value == presentation.data.slides.length)
-		await changeSlide(slideIndex.value - 1, false)
+		changeSlide(slideIndex.value - 1, false)
 	else loadSlide()
 }
 
 const duplicateSlide = async (e) => {
 	e.preventDefault()
-	resetFocus()
-	await saveChanges()
-	await call('slides.slides.doctype.presentation.presentation.duplicate_slide', {
-		name: presentationId.value,
-		index: slideIndex.value,
-	})
-	await presentation.reload()
+	await performSlideAction('duplicate', slideIndex.value)
 	changeSlide(slideIndex.value + 1)
 }
 
 onMounted(() => {
-	autosaveInterval = setInterval(handleAutoSave, 60000)
+	autosaveInterval = setInterval(handleAutoSave, 600000)
 	document.addEventListener('keydown', handleKeyDown)
 })
 
