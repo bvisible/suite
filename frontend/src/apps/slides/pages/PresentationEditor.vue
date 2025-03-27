@@ -49,8 +49,8 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 
-import { presentationId, presentation, applyReverseTransition } from '@/stores/presentation'
-import { slide, slideIndex, saveChanges, updateSlideState, loadSlide } from '@/stores/slide'
+import { presentationId, presentation } from '@/stores/presentation'
+import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -64,7 +64,6 @@ import {
 	activePosition,
 	activeElements,
 	toggleTextProperty,
-	updateActivePosition,
 } from '@/stores/element'
 
 import html2canvas from 'html2canvas'
@@ -98,6 +97,17 @@ const handleArrowKeys = (key) => {
 	slideContainerRef.value.applyMovement({ dx, dy })
 }
 
+const saveSlide = (e) => {
+	e.preventDefault()
+	resetAndSave()
+}
+
+const toggleSlideNavigator = () => {
+	if (!activeElementIds.value.length || activeElement.value.type != 'text') {
+		showNavigator.value = !showNavigator.value
+	}
+}
+
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
@@ -118,6 +128,9 @@ const handleElementShortcuts = (e) => {
 			break
 		case 'u':
 			if (e.metaKey) toggleTextProperty('textDecoration', 'underline')
+			break
+		case 'b':
+			if (e.metaKey) toggleTextProperty('fontWeight', 'bold')
 			break
 	}
 }
@@ -149,20 +162,13 @@ const handleGlobalShortcuts = (e) => {
 			addTextElement()
 			break
 		case 'b':
-			if (e.metaKey) {
-				if (activeElementIds.value.length && activeElement.value.type == 'text')
-					return toggleTextProperty('fontWeight', 'bold')
-				showNavigator.value = !showNavigator.value
-			}
+			if (e.metaKey) toggleSlideNavigator()
 			break
 		case 'a':
 			if (e.metaKey) selectAllElements()
 			break
 		case 's':
-			if (e.metaKey) {
-				e.preventDefault()
-				resetAndSave()
-			}
+			if (e.metaKey) saveSlide(e)
 			break
 	}
 }
@@ -224,15 +230,6 @@ const startSlideShow = () => {
 	})
 }
 
-watch(
-	() => route.params.presentationId,
-	(id) => {
-		if (!id) return
-		presentationId.value = id
-	},
-	{ immediate: true },
-)
-
 const handleAutoSave = () => {
 	if (activeElementIds.value.length || focusElementId.value != null) return
 	saveChanges()
@@ -276,6 +273,9 @@ const performSlideAction = async (action, index) => {
 	}
 
 	resetFocus()
+
+	// make sure nextTick call completes before completing the action
+	// to ensure slide index is not updated before the action is completed
 	await nextTick(async () => {
 		await saveChanges()
 		await call(url, args)
@@ -307,6 +307,15 @@ const resetAndSave = () => {
 		saveChanges()
 	})
 }
+
+watch(
+	() => route.params.presentationId,
+	(id) => {
+		if (!id) return
+		presentationId.value = id
+	},
+	{ immediate: true },
+)
 
 onMounted(() => {
 	autosaveInterval = setInterval(handleAutoSave, 60000)
