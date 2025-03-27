@@ -1,7 +1,14 @@
 <template>
 	<div :class="sectionClasses">
 		<div :class="sectionTitleClasses">Style</div>
-		<div class="flex items-center justify-between">
+
+		<Select
+			:options="presetTextStyles"
+			:modelValue="activeElement.defaultStyle || 'body'"
+			@update:modelValue="applyPresetTextStyles"
+		/>
+
+		<div class="flex items-center justify-between px-1">
 			<button
 				v-for="style in styleProperties"
 				:key="style.property"
@@ -9,24 +16,24 @@
 				:class="activeElement[style.property]?.includes(style.value) ? 'bg-gray-200' : ''"
 				@click="toggleTextProperty(style.property, style.value)"
 			>
-				<component :is="style.icon" size="18" :strokeWidth="1.5" />
+				<component :is="style.icon" size="16" :strokeWidth="1.5" />
 			</button>
 		</div>
 
-		<div class="flex items-center justify-between">
+		<div class="flex items-center justify-between px-1">
 			<button
 				v-for="textAlign in ['left', 'center', 'right', 'justify']"
 				class="cursor-pointer rounded-sm p-1"
 				:class="activeElement.textAlign == textAlign ? 'bg-gray-200' : ''"
 				@click="activeElement.textAlign = textAlign"
 			>
-				<AlignLeft v-if="textAlign == 'left'" size="18" class="stroke-[1.5]" />
-				<AlignCenter v-if="textAlign == 'center'" size="18" class="stroke-[1.5]" />
-				<AlignRight v-if="textAlign == 'right'" size="18" class="stroke-[1.5]" />
-				<AlignJustify v-if="textAlign == 'justify'" size="18" class="stroke-[1.5]" />
+				<AlignLeft v-if="textAlign == 'left'" size="16" class="stroke-[1.5]" />
+				<AlignCenter v-if="textAlign == 'center'" size="16" class="stroke-[1.5]" />
+				<AlignRight v-if="textAlign == 'right'" size="16" class="stroke-[1.5]" />
+				<AlignJustify v-if="textAlign == 'justify'" size="16" class="stroke-[1.5]" />
 			</button>
 			<button class="cursor-pointer rounded-sm p-1">
-				<List size="18" class="stroke-[1.5]" />
+				<List size="16" class="stroke-[1.5]" />
 			</button>
 		</div>
 	</div>
@@ -86,7 +93,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { FormControl } from 'frappe-ui'
+import { FormControl, Select } from 'frappe-ui'
 import {
 	Bold,
 	Italic,
@@ -161,6 +168,29 @@ const styleProperties = [
 		icon: CaseUpper,
 	},
 ]
+
+const presetTextStyles = [
+	{ label: 'Title', value: 'title' },
+	{ label: 'Subtitle', value: 'subtitle' },
+	{ label: 'Body', value: 'body' },
+]
+
+const applyPresetTextStyles = (textStyle) => {
+	if (textStyle === 'title') {
+		activeElement.value.fontWeight = 'bold'
+		activeElement.value.fontSize = 60
+		activeElement.value.lineHeight = 1.5
+	} else if (textStyle === 'subtitle') {
+		activeElement.value.fontWeight = 'bold'
+		activeElement.value.fontSize = 30
+		activeElement.value.lineHeight = 1.2
+	} else if (textStyle === 'body') {
+		activeElement.value.fontWeight = 'normal'
+		activeElement.value.fontSize = 20
+		activeElement.value.lineHeight = 1
+	}
+	activeElement.value.defaultStyle = textStyle
+}
 </script>
 
 <style scoped>

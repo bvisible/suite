@@ -61,7 +61,7 @@ const slideStyles = computed(() => {
 		height: '540px',
 		backgroundColor: slide.value.background || 'white',
 		cursor: slideCursor.value,
-		transform: 'scale(1.5)',
+		transform: `${transform.value} scale(1.5)`,
 		transition: transition.value,
 		opacity: opacity.value,
 	}
@@ -107,9 +107,10 @@ const applyTransitionStyles = (hook) => {
 	if (transformVal && Array.isArray(transformVal)) {
 		transformVal = applyReverseTransition.value ? transformVal[1] : transformVal[0]
 	}
+
 	transform.value = transformVal || transform.value
 	transition.value = styles.transition || transition.value
-	opacity.value = styles.opacity || opacity.value
+	opacity.value = styles.opacity
 }
 
 const beforeSlideEnter = (el) => {
