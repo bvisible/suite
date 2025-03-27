@@ -7,11 +7,11 @@
 		@mouseleave="showCollapseShortcut = false"
 		@wheel="handleWheelEvent"
 	>
-		<div class="flex flex-col h-full ps-4 pe-3 overflow-y-auto" :style="scrollbarStyles">
+		<div class="flex flex-col h-full ps-4 pe-3 pb-12 overflow-y-auto" :style="scrollbarStyles">
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
-						class="my-4 h-20 cursor-pointer rounded bg-center bg-no-repeat bg-cover border"
+						class="my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border"
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
 						@click="emit('changeSlide', slide.idx - 1)"
@@ -20,7 +20,7 @@
 			</Draggable>
 
 			<div
-				class="flex h-20 cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
+				class="flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
 				@click="emit('insertSlide', presentation.data.slides.length - 1)"
 			>
 				<Plus size="14" class="stroke-[1.5]" />
@@ -32,7 +32,7 @@
 			class="fixed -left-0.4 bottom-0 z-20 flex h-10 w-44 cursor-pointer items-center justify-between border-t bg-white p-4"
 			@click="toggleNavigator"
 		>
-			<div class="text-2xs text-gray-500">Toggle Navigator</div>
+			<div class="text-2xs text-gray-500">Toggle Sidebar</div>
 			<div class="flex h-5 w-1/3 items-center justify-center rounded-sm border bg-gray-100">
 				<div class="text-xs text-gray-500">⌘ + B</div>
 			</div>
