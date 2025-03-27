@@ -47,7 +47,10 @@
 			</div>
 			<div
 				class="fixed inset-0 z-20 bg-white sm:static sm:z-0 sm:w-2/3"
-				:class="{ invisible: screenSize.width < 640 && !route.params.id }"
+				:class="{
+					invisible:
+						screenSize.width < 640 && !(currentMail[currentFolder] || route.params.id),
+				}"
 			>
 				<MailDetails
 					ref="mailDetails"
@@ -62,7 +65,7 @@
 		<div v-else class="flex w-full flex-col items-center justify-center space-y-3">
 			<NoMailSelected class="h-16 w-16" />
 			<p class="text-gray-500">
-				{{ __('You have no mails to show in this folder.') }}
+				{{ __('You have no mails in this folder.') }}
 			</p>
 		</div>
 	</div>

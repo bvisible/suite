@@ -5,7 +5,7 @@
 		</div>
 		<div
 			v-if="tabs"
-			class="standalone:pb-4 fixed bottom-0 z-10 flex w-full justify-around border-t border-gray-300 bg-white"
+			class="standalone:pb-4 fixed bottom-0 flex w-full justify-around border-t border-gray-300 bg-white"
 			:style="{
 				gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
 			}"
