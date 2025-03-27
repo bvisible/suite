@@ -12,14 +12,6 @@
 			<template #default>
 				<PresentationHeader />
 			</template>
-
-			<template #actions>
-				<Button :loading="saving" :disabled="!slideDirty" @click="saveChanges">
-					<template #icon>
-						<Save size="14" class="stroke-[1.5]" />
-					</template>
-				</Button>
-			</template>
 		</Navbar>
 
 		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
@@ -58,15 +50,7 @@ import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 
 import { presentationId, presentation, applyReverseTransition } from '@/stores/presentation'
-import {
-	slide,
-	slideIndex,
-	slideDirty,
-	saving,
-	saveChanges,
-	updateSlideState,
-	loadSlide,
-} from '@/stores/slide'
+import { slide, slideIndex, saving, saveChanges, updateSlideState, loadSlide } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -226,6 +210,7 @@ const handleMediaDrop = async (e) => {
 }
 
 const startSlideShow = async () => {
+	resetFocus()
 	await saveChanges()
 	await presentation.reload()
 	router.replace({
@@ -248,26 +233,14 @@ const handleAutoSave = () => {
 	saveChanges()
 }
 
-const getSlideThumbnail = async () => {
-	const slideRef = document.querySelector('.slide')
-	const scale = slideRef.getBoundingClientRect().width / 960
-	if (scale !== 1) {
-		return slide.value.thumbnail
-	}
-	const canvas = await html2canvas(slideRef)
-	return canvas.toDataURL('image/png')
-}
-
 const changeSlide = async (index, updateCurrent = true) => {
 	if (index < 0 || index >= presentation.data.slides.length) return
-	resetFocus()
 	slideContainerRef.value.togglePanZoom()
-	applyReverseTransition.value = index < slideIndex.value
 
 	nextTick(async () => {
 		if (updateCurrent) {
-			slide.value.thumbnail = await getSlideThumbnail()
-			await updateSlideState()
+			resetFocus()
+			await saveChanges()
 		}
 		slideIndex.value = index
 		loadSlide()
