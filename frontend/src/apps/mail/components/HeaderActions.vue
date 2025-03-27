@@ -6,14 +6,14 @@
 		{{ buttonMessage }}
 	</Button>
 
-	<SendMailModal v-model="showSendModal" @reload-mails="emit('reloadMails', 'Drafts')" />
+	<SendMail v-model="showSendModal" @reload-mails="emit('reloadMails', 'Drafts')" />
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Button, Dialog, createResource } from 'frappe-ui'
 
-import SendMailModal from '@/components/Modals/SendMailModal.vue'
+import SendMail from '@/components/SendMail.vue'
 
 import type { Folder } from '@/types'
 

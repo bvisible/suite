@@ -119,10 +119,10 @@
 				</div>
 			</div>
 		</div>
-		<SendMailModal
+		<SendMail
 			v-model="showSendModal"
 			:mail-i-d="draftMailID"
-			:reply-details="replyDetails"
+			:reply-details
 			@reload-mails="emit('reloadMails', 'Drafts')"
 		/>
 	</template>
@@ -160,7 +160,7 @@ import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
-import SendMailModal from '@/components/Modals/SendMailModal.vue'
+import SendMail from '@/components/SendMail.vue'
 
 import type { Folder } from '@/types'
 

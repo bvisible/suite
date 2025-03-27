@@ -1,10 +1,8 @@
 <template>
-	<Dialog
+	<component
+		:is="screenSize.width < 640 ? SendMailMobileLayout : Dialog"
 		v-model="show"
-		:options="{
-			title: __('Send Mail'),
-			size: '4xl',
-		}"
+		:options="{ title: __('Send Mail'), size: '4xl' }"
 	>
 		<template #body-content>
 			<TextEditor
@@ -19,7 +17,7 @@
 			>
 				<template #top>
 					<div class="flex flex-col gap-3">
-						<div class="flex items-center gap-2 border-t pt-2.5">
+						<div class="flex items-center gap-2 sm:border-t sm:pt-2.5">
 							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
 							<FormControl
 								v-model="mail.from"
@@ -94,7 +92,7 @@
 				</template>
 				<template #editor="{ editor }">
 					<EditorContent
-						:class="['max-h-[35vh] overflow-y-auto border-t py-3 text-sm']"
+						class="overflow-y-auto border-t py-3 text-sm sm:max-h-[35vh]"
 						:editor="editor"
 					/>
 				</template>
@@ -110,6 +108,7 @@
 								if (!localMailID) await createDraftMail.submit()
 							}
 						"
+						:class="{ 'fixed bottom-0 left-0 right-0 px-3': screenSize.width < 640 }"
 						@success="attachments.fetch()"
 					>
 						<template #default="{ file, progress, uploading, openFileSelector }">
@@ -137,7 +136,7 @@
 									<span class="mr-1 font-medium">
 										{{ file.file_name || file.name }}
 									</span>
-									<span class="font-extralight">
+									<span class="mr-1 font-extralight">
 										({{ formatBytes(file.file_size) }})
 									</span>
 									<FeatherIcon
@@ -155,6 +154,7 @@
 								<div class="flex items-center gap-1 overflow-x-auto">
 									<TextEditorFixedMenu :buttons="textEditorMenuButtons" />
 									<EmojiPicker
+										v-if="screenSize.width >= 640"
 										v-slot="{ togglePopover }"
 										v-model="emoji"
 										@update:model-value="() => appendEmoji()"
@@ -183,7 +183,7 @@
 				</template>
 			</TextEditor>
 		</template>
-	</Dialog>
+	</component>
 </template>
 <script setup lang="ts">
 import { computed, inject, nextTick, reactive, ref, watch } from 'vue'
@@ -204,14 +204,27 @@ import {
 } from 'frappe-ui'
 
 import { formatBytes, validateEmail } from '@/utils'
+import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'
 import EmojiPicker from '@/components/EmojiPicker.vue'
+import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
 import type { ReplyDetails, UserResource } from '@/types'
 
-const user = inject('$user') as UserResource
+const { mailID, replyDetails } = defineProps<{
+	mailID?: string
+	replyDetails?: ReplyDetails
+}>()
+
+const emit = defineEmits(['reloadMails'])
+
 const show = defineModel<boolean>()
+
+const user = inject('$user') as UserResource
+const screenSize = useScreenSize()
+const { setCurrentMail } = userStore()
+
 const localMailID = ref<string>()
 const textEditor = ref(null)
 const ccInput = ref(null)
@@ -221,7 +234,6 @@ const bcc = ref(false)
 const emoji = ref()
 const isSend = ref(false)
 const isMailWatcherActive = ref(true)
-const { setCurrentMail } = userStore()
 
 const SYNC_DEBOUNCE_TIME = 1500
 
@@ -240,13 +252,6 @@ const isMailEmpty = computed(() => {
 
 	return isSubjectEmpty && isHtmlEmpty && isRecipientsEmpty
 })
-
-const props = defineProps<{
-	mailID?: string
-	replyDetails?: ReplyDetails
-}>()
-
-const emit = defineEmits(['reloadMails'])
 
 const discardMail = async () => {
 	if (localMailID.value) await deleteDraftMail.submit()
@@ -273,26 +278,26 @@ const mail = reactive({ ...emptyMail })
 
 watch(show, () => {
 	if (!show.value) return
-	if (props.mailID) getDraftMail(props.mailID)
+	if (mailID) getDraftMail(mailID)
 	else {
 		localMailID.value = undefined
 		Object.assign(mail, emptyMail)
 	}
 
-	if (!props.replyDetails) return
-	mail.to = props.replyDetails.to.split(',').filter((item) => item != '')
-	mail.cc = props.replyDetails.cc.split(',').filter((item) => item != '')
-	mail.bcc = props.replyDetails.bcc.split(',').filter((item) => item != '')
+	if (!replyDetails) return
+	mail.to = replyDetails.to.split(',').filter((item) => item != '')
+	mail.cc = replyDetails.cc.split(',').filter((item) => item != '')
+	mail.bcc = replyDetails.bcc.split(',').filter((item) => item != '')
 	cc.value = mail.cc.length > 0 ? true : false
 	bcc.value = mail.bcc.length > 0 ? true : false
-	mail.subject = props.replyDetails.subject
-	mail.html = props.replyDetails.html
-	mail.in_reply_to_mail_type = props.replyDetails.in_reply_to_mail_type
-	mail.in_reply_to_mail_name = props.replyDetails.in_reply_to_mail_name
+	mail.subject = replyDetails.subject
+	mail.html = replyDetails.html
+	mail.in_reply_to_mail_type = replyDetails.in_reply_to_mail_type
+	mail.in_reply_to_mail_name = replyDetails.in_reply_to_mail_name
 })
 
 watch(
-	() => props.mailID,
+	() => mailID,
 	(val) => {
 		// TODO: use documentresource directly
 		if (val) getDraftMail(val)
