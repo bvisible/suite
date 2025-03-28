@@ -300,6 +300,8 @@ def format_message(message: dict, cluster_name: str) -> dict:
 	message.update(
 		{
 			"cluster": cluster_name,
+			"creation": message["created_at"],
+			"modified": message["created_at"],
 			"name": f"{cluster_name}-{message['queue_id']}",
 			"domains": json.dumps(message.get("domains", []), indent=4),
 		}
