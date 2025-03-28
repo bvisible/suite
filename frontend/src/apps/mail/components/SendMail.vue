@@ -6,6 +6,7 @@
 	>
 		<template #body-content>
 			<TextEditor
+				v-if="!isDraftLoading"
 				ref="textEditor"
 				:editor-class="[
 					'prose-sm max-w-none',
@@ -22,7 +23,7 @@
 							<FormControl
 								v-model="mail.from"
 								type="autocomplete"
-								:options="addressOptions.data"
+								:options="addressOptions.data || []"
 							/>
 						</div>
 						<div class="flex items-center gap-2">
@@ -92,10 +93,10 @@
 				</template>
 				<template #editor="{ editor }">
 					<div
-						class="flex h-[calc(100dvh-14.6rem)] flex-col overflow-y-auto py-2.5 text-sm sm:max-h-[40vh]"
+						class="flex h-[calc(100dvh-16.9rem)] flex-col overflow-y-auto py-2.5 text-sm sm:max-h-[40vh]"
 						:class="{
-							'h-[calc(100dvh-17.1rem)]': cc || bcc,
-							'h-[calc(100dvh-19.6rem)]': cc && bcc,
+							'h-[calc(100dvh-19.7rem)]': cc || bcc,
+							'h-[calc(100dvh-21.9rem)]': cc && bcc,
 						}"
 					>
 						<EditorContent :editor="editor" />
@@ -195,6 +196,7 @@
 					</FileUploader>
 				</template>
 			</TextEditor>
+			<div v-else class="min-h-[30rem]" />
 		</template>
 	</component>
 </template>
@@ -247,6 +249,7 @@ const bcc = ref(false)
 const emoji = ref()
 const isSend = ref(false)
 const isMailWatcherActive = ref(true)
+const isDraftLoading = ref(false)
 
 const SYNC_DEBOUNCE_TIME = 1500
 
@@ -379,7 +382,9 @@ const removeAttachment = createResource({
 	onSuccess: () => attachments.fetch(),
 })
 
-const getDraftMail = (name: string) =>
+const getDraftMail = (name: string) => {
+	isDraftLoading.value = true
+
 	createDocumentResource({
 		doctype: 'Outgoing Mail',
 		name: name,
@@ -402,11 +407,14 @@ const getDraftMail = (name: string) =>
 			Object.assign(mail, mailDetails)
 			if (mailDetails.cc) cc.value = true
 			if (mailDetails.bcc) bcc.value = true
+			isDraftLoading.value = false
+
 			setTimeout(() => {
 				isMailWatcherActive.value = true
 			}, SYNC_DEBOUNCE_TIME + 1)
 		},
 	})
+}
 
 const send = async () => {
 	isSend.value = true

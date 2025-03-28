@@ -62,8 +62,8 @@
 				/>
 			</div>
 		</template>
-		<div v-else class="flex w-full flex-col items-center justify-center space-y-3">
-			<NoMailSelected class="h-16 w-16" />
+		<div v-else class="flex w-full flex-col items-center justify-center">
+			<NoMailSelected class="mb-2 h-16 w-16" />
 			<p class="text-gray-500">
 				{{ __('You have no mails in this folder.') }}
 			</p>
