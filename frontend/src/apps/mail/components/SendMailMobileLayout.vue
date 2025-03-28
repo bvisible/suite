@@ -21,14 +21,10 @@ const close = () => {
 }
 
 watch(show, (val) => {
-	if (val) history.pushState(null, document.title, window.location.href)
+	if (val) history.pushState(null, '')
 })
 
-onMounted(() => {
-	window.addEventListener('popstate', close)
-})
+onMounted(() => window.addEventListener('popstate', close))
 
-onUnmounted(() => {
-	window.removeEventListener('popstate', close)
-})
+onUnmounted(() => window.removeEventListener('popstate', close))
 </script>
