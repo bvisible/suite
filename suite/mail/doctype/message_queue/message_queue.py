@@ -10,8 +10,6 @@ from frappe.model.document import Document
 from mail.mail_server import MailServerAPI
 from mail.utils import rename_keys
 
-cluster_message_count_map = {}
-
 
 class MessageQueue(Document):
 	def db_insert(self, *args, **kwargs) -> None:
@@ -44,9 +42,9 @@ class MessageQueue(Document):
 	@staticmethod
 	def get_count(filters=None, **kwargs) -> int:
 		filters = filters or []
-		cluster = extract_filter_values(filters, [{"cluster": "="}])
+		cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
 
-		return cluster_message_count_map.get(cluster[0], 0) if cluster else 0
+		return frappe.cache.get_value(get_total_cache_key(cluster, text)) if cluster else 0
 
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
@@ -74,6 +72,24 @@ class MessageQueue(Document):
 
 
 @frappe.whitelist()
+def pause_queue(cluster_name: str) -> None:
+	"""Pauses queue processing on the mail server."""
+
+	frappe.only_for("System Manager")
+	stop_queue_processing(cluster_name)
+	frappe.msgprint(_("Queue paused successfully."), alert=True)
+
+
+@frappe.whitelist()
+def resume_queue(cluster_name: str) -> None:
+	"""Resumes queue processing on the mail server."""
+
+	frappe.only_for("System Manager")
+	start_queue_processing(cluster_name)
+	frappe.msgprint(_("Queue resumed successfully."), alert=True)
+
+
+@frappe.whitelist()
 def bulk_retry_delivery(names: str | list[str]) -> None:
 	"""Retries delivery of messages to all recipients."""
 
@@ -86,6 +102,19 @@ def bulk_retry_delivery(names: str | list[str]) -> None:
 		retry_message(name)
 
 	frappe.msgprint(_("Delivery retried successfully."), alert=True)
+
+
+def get_status_cache_key(cluster_name: str) -> str:
+	"""Returns a cache key for message status."""
+
+	return f"cluster:{cluster_name}:status"
+
+
+def get_total_cache_key(cluster_name: str, text: str | None = None) -> str:
+	"""Returns a cache key for total message count."""
+
+	text = text or ""
+	return f"cluster:{cluster_name}:{text}:total"
 
 
 def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
@@ -116,6 +145,32 @@ def get_mail_server_api(cluster_name: str) -> MailServerAPI:
 	)
 
 
+def stop_queue_processing(cluster_name: str) -> None:
+	"""Stops queue processing on the mail server."""
+
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(
+		method="PATCH",
+		endpoint="/api/queue/status/stop",
+	)
+
+	if response.status_code != 200:
+		frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
+
+
+def start_queue_processing(cluster_name: str) -> None:
+	"""Starts queue processing on the mail server."""
+
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(
+		method="PATCH",
+		endpoint="/api/queue/status/start",
+	)
+
+	if response.status_code != 200:
+		frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
+
+
 def fetch_messages(cluster_name: str, page: int = 1, limit: int = 10, text: str | None = None) -> list:
 	"""Fetches a list of messages from the mail server."""
 
@@ -128,7 +183,8 @@ def fetch_messages(cluster_name: str, page: int = 1, limit: int = 10, text: str 
 
 	if response.status_code == 200:
 		data = response.json()["data"]
-		cluster_message_count_map[cluster_name] = data["total"]
+		frappe.cache.set_value(get_status_cache_key(cluster_name), data["status"], expires_in_sec=600)
+		frappe.cache.set_value(get_total_cache_key(cluster_name, text), data["total"], expires_in_sec=600)
 
 		return [format_message(item, cluster_name) for item in data["items"]]
 
