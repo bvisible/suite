@@ -27,6 +27,9 @@ class MessageQueue(Document):
 	def delete(self) -> None:
 		delete_message(self.name)
 
+		if not frappe.flags.in_bulk_delete:
+			frappe.msgprint(_("Message deleted successfully."), alert=True)
+
 	@staticmethod
 	def get_list(filters=None, page_length=20, **kwargs) -> list:
 		filters = filters or []
@@ -48,6 +51,18 @@ class MessageQueue(Document):
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
 		return {}
+
+	@frappe.whitelist()
+	def cancel_delivery(self, recipients: list[str]) -> None:
+		"""Cancels delivery of a message to specific recipients."""
+
+		frappe.only_for("System Manager")
+
+		recipients = list(set(recipients))
+		for recipient in recipients:
+			delete_message(self.name, recipient)
+
+		frappe.msgprint(_("Delivery cancelled successfully."), alert=True)
 
 
 def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
@@ -123,9 +138,7 @@ def delete_message(name: str, recipient: str | None = None) -> None:
 	response = server_api.request(
 		method="DELETE", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
 	)
-	if response.status_code == 200:
-		frappe.msgprint(_("Message deleted successfully."), alert=True)
-	else:
+	if response.status_code != 200:
 		frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
 
 
