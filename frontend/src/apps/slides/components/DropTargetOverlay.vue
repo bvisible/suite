@@ -35,23 +35,33 @@ const handleDragLeave = (e) => {
 
 const fileUploadHandler = new FileUploadHandler()
 
+const uploadMedia = (file, fileType) => {
+	return new Promise((resolve, reject) => {
+		fileUploadHandler
+			.upload(file, { private: false })
+			.then((fileDoc) => {
+				addMediaElement(fileDoc, fileType)
+				resolve(fileDoc)
+			})
+			.catch((error) => {
+				reject(error)
+			})
+	})
+}
+
 const uploadFiles = (files) => {
 	files.forEach((file, index) => {
 		const fileType = file.type.split('/')[0]
 		if (!['image', 'video'].includes(fileType)) return
 
-		setTimeout(() => {
-			toast.promise(
-				fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
-					addMediaElement(fileDoc, fileType)
-				}),
-				{
-					loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
-					success: (data) => `Uploaded: ${file.name}`,
-					error: (data) => 'Upload failed. Please try again.',
-				},
-			)
-		}, 100)
+		const toastProps = {
+			loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
+			success: (data) => `Uploaded: ${file.name}`,
+			error: (data) => 'Upload failed. Please try again.',
+		}
+
+		// run after current call stack so toast's expand animation works
+		setTimeout(() => toast.promise(uploadMedia(file, fileType), toastProps), 0)
 	})
 }
 
