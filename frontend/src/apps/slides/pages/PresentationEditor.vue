@@ -3,10 +3,6 @@
 		ref="mediaDropContainer"
 		class="fixed flex h-screen w-screen flex-col select-none"
 		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
-		@dragenter.prevent="handleDragEnter"
-		@dragleave.prevent="handleDragLeave"
-		@dragover.prevent
-		@drop="handleMediaDrop"
 	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
@@ -23,11 +19,14 @@
 
 			<SlideContainer
 				ref="slideContainer"
-				:highlight="isMediaDragOver"
+				:highlight="dropTargetRef?.isMediaDragOver"
 				@insert="insertSlide"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide"
+				@dragenter="handleMediaDragEnter"
 			/>
+
+			<DropTargetOverlay ref="dropTarget" />
 
 			<SlideElementsPanel />
 		</div>
@@ -39,7 +38,7 @@ import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
-import { FileUploadHandler, call } from 'frappe-ui'
+import { call } from 'frappe-ui'
 
 import { Presentation, Save } from 'lucide-vue-next'
 
@@ -48,6 +47,7 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
+import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
@@ -59,7 +59,6 @@ import {
 	deleteElements,
 	duplicateElements,
 	addTextElement,
-	addMediaElement,
 	selectAllElements,
 	activePosition,
 	activeElements,
@@ -80,10 +79,9 @@ const route = useRoute()
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
-const mediaDropContainerRef = useTemplateRef('mediaDropContainer')
+const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
-const isMediaDragOver = ref(false)
 
 const handleArrowKeys = (key) => {
 	let dx = 0
@@ -180,47 +178,6 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
-const handleDragEnter = (e) => {
-	e.preventDefault()
-	isMediaDragOver.value = true
-}
-
-const handleDragLeave = (e) => {
-	e.preventDefault()
-	if (!mediaDropContainerRef.value.contains(e.relatedTarget)) {
-		isMediaDragOver.value = false
-	}
-}
-
-const fileUploadHandler = new FileUploadHandler()
-
-const uploadFiles = (files) => {
-	files.forEach((file, index) => {
-		const fileType = file.type.split('/')[0]
-		if (!['image', 'video'].includes(fileType)) return
-
-		setTimeout(() => {
-			toast.promise(
-				fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
-					addMediaElement(fileDoc, fileType)
-				}),
-				{
-					loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
-					success: (data) => `Uploaded: ${file.name}`,
-					error: (data) => 'Upload failed. Please try again.',
-				},
-			)
-		}, 100)
-	})
-}
-
-const handleMediaDrop = async (e) => {
-	e.preventDefault()
-	isMediaDragOver.value = false
-	const files = e.dataTransfer.files
-	uploadFiles(files)
-}
-
 const startSlideShow = () => {
 	resetAndSave()
 
@@ -306,6 +263,11 @@ const resetAndSave = () => {
 	nextTick(() => {
 		saveChanges()
 	})
+}
+
+const handleMediaDragEnter = (e) => {
+	e.preventDefault()
+	dropTargetRef.value.handleDragEnter(e)
 }
 
 watch(
