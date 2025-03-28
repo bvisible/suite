@@ -134,16 +134,22 @@ def extract_recipients(message: dict) -> list:
 	domains = json.loads(message["domains"]) if isinstance(message["domains"], str) else message["domains"]
 	for domain in domains:
 		for recipient in domain["recipients"]:
+			status = "Scheduled"
 			server_response = {}
 			if domain["status"] != recipient["status"]:
 				if isinstance(recipient["status"], dict):
-					server_response = json.dumps(recipient["status"], indent=4)
+					recipient_status = recipient["status"]
+					if recipient_status.get("temp_fail", False):
+						status = "Temporary Failure"
+					elif recipient_status.get("perm_fail", False):
+						status = "Permanent Failure"
+					server_response = json.dumps(recipient_status, indent=4)
 
 			recipients.append(
 				{
 					"email": recipient["address"],
 					"domain_name": domain["name"],
-					"status": domain["status"],
+					"status": status,
 					"retry_num": domain["retry_num"],
 					"next_retry": domain["next_retry"],
 					"next_notify": domain["next_notify"],
