@@ -25,7 +25,7 @@ class MessageQueue(Document):
 		raise NotImplementedError
 
 	def delete(self) -> None:
-		delete_message(self.name)
+		cancel_message(self.name)
 
 		if not frappe.flags.in_bulk_delete:
 			frappe.msgprint(_("Message deleted successfully."), alert=True)
@@ -53,15 +53,11 @@ class MessageQueue(Document):
 		return {}
 
 	@frappe.whitelist()
-	def retry_delivery(self, recipients: list[str]) -> None:
-		"""Retries delivery of a message to specific recipients."""
+	def retry_delivery(self) -> None:
+		"""Retries delivery of a message to all recipients."""
 
 		frappe.only_for("System Manager")
-
-		recipients = list(set(recipients))
-		for recipient in recipients:
-			retry_message(self.name, recipient)
-
+		retry_message(self.name)
 		frappe.msgprint(_("Delivery retried successfully."), alert=True)
 
 	@frappe.whitelist()
@@ -72,9 +68,24 @@ class MessageQueue(Document):
 
 		recipients = list(set(recipients))
 		for recipient in recipients:
-			delete_message(self.name, recipient)
+			cancel_message(self.name, recipient)
 
 		frappe.msgprint(_("Delivery cancelled successfully."), alert=True)
+
+
+@frappe.whitelist()
+def bulk_retry_delivery(names: str | list[str]) -> None:
+	"""Retries delivery of messages to all recipients."""
+
+	frappe.only_for("System Manager")
+
+	if isinstance(names, str):
+		names = json.loads(names)
+
+	for name in names:
+		retry_message(name)
+
+	frappe.msgprint(_("Delivery retried successfully."), alert=True)
 
 
 def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
@@ -142,20 +153,18 @@ def fetch_message_details(name: str) -> dict:
 	frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
 
 
-def retry_message(name: str, recipient: str | None = None) -> None:
-	"""Retries delivery of a specific message to a recipient."""
+def retry_message(name: str) -> None:
+	"""Retries delivery of a message to all recipients."""
 
 	cluster_name, queue_id = name.split("-")
 	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
-		method="PATCH", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
-	)
+	response = server_api.request(method="PATCH", endpoint=f"/api/queue/messages/{queue_id}")
 	if response.status_code != 200:
 		frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
 
 
-def delete_message(name: str, recipient: str | None = None) -> None:
-	"""Deletes a specific message from the mail server."""
+def cancel_message(name: str, recipient: str | None = None) -> None:
+	"""Cancels delivery of a message to specific recipients."""
 
 	cluster_name, queue_id = name.split("-")
 	server_api = get_mail_server_api(cluster_name)

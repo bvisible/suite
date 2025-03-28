@@ -9,18 +9,25 @@ frappe.ui.form.on('Message Queue', {
 	add_actions(frm) {
 		if (!frappe.user_roles.includes('System Manager')) return
 
-		frm.add_custom_button(
-			__('Retry or Cancel Delivery'),
-			() => {
-				frm.trigger('retry_or_cancel_delivery')
-			},
-			__('Actions'),
-		)
+		frm.page.set_primary_action('Retry', () => frm.trigger('retry_delivery'))
+		frm.page.set_secondary_action('Cancel', () => frm.trigger('cancel_delivery'))
 	},
 
-	retry_or_cancel_delivery(frm) {
+	retry_delivery(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'retry_delivery',
+			freeze: true,
+			freeze_message: __('Retrying Delivery...'),
+			callback: () => {
+				frm.reload_doc()
+			},
+		})
+	},
+
+	cancel_delivery(frm) {
 		const dialog = new frappe.ui.Dialog({
-			title: __('Retry or Cancel Delivery'),
+			title: __('Cancel Delivery'),
 			size: 'large',
 			fields: [
 				{
@@ -93,33 +100,8 @@ frappe.ui.form.on('Message Queue', {
 					],
 				},
 			],
-			primary_action_label: __('Retry Delivery'),
+			primary_action_label: __('Cancel Delivery'),
 			primary_action: () => {
-				const data = {
-					recipients: dialog.fields_dict.recipients.grid.get_selected_children(),
-				}
-
-				if (data.recipients && data.recipients.length > 0) {
-					frappe.call({
-						doc: frm.doc,
-						method: 'retry_delivery',
-						args: {
-							recipients: data.recipients.map((recipient) => recipient.email),
-						},
-						freeze: true,
-						freeze_message: __('Retrying Delivery...'),
-						callback: () => {
-							frm.reload_doc()
-						},
-					})
-
-					dialog.hide()
-				} else {
-					frappe.msgprint(__('Please select recipients to retry delivery.'))
-				}
-			},
-			secondary_action_label: __('Cancel Delivery'),
-			secondary_action: () => {
 				const data = {
 					recipients: dialog.fields_dict.recipients.grid.get_selected_children(),
 				}
