@@ -92,7 +92,7 @@
 				</template>
 				<template #editor="{ editor }">
 					<div
-						class="h-[calc(100dvh-14.6rem)] overflow-y-auto py-2.5 text-sm sm:max-h-[40vh]"
+						class="flex h-[calc(100dvh-14.6rem)] flex-col overflow-y-auto py-2.5 text-sm sm:max-h-[40vh]"
 						:class="{
 							'h-[calc(100dvh-17.1rem)]': cc || bcc,
 							'h-[calc(100dvh-19.6rem)]': cc && bcc,
@@ -103,7 +103,7 @@
 						<!-- Attachments -->
 						<div
 							v-if="localMailID && attachments.data?.length"
-							class="mt-2.5 flex flex-col gap-2.5 text-gray-700"
+							class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700"
 						>
 							<a
 								v-for="(file, index) in attachments.data"
@@ -161,7 +161,7 @@
 							</div>
 
 							<div
-								class="flex justify-between gap-2 overflow-hidden border-t py-2.5"
+								class="flex flex-wrap justify-between gap-2 overflow-hidden border-t py-2.5"
 							>
 								<!-- Text Editor Buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
@@ -186,7 +186,7 @@
 								</div>
 
 								<!-- Send & Discard -->
-								<div class="flex items-center justify-end space-x-2 sm:mt-0">
+								<div class="ml-auto flex items-center space-x-2 sm:mt-0">
 									<Button :label="__('Discard')" @click="discardMail" />
 									<Button variant="solid" :label="__('Send')" @click="send" />
 								</div>

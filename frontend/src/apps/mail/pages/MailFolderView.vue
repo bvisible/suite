@@ -46,7 +46,7 @@
 				/>
 			</div>
 			<div
-				class="fixed inset-0 z-20 bg-white sm:static sm:z-0 sm:w-2/3"
+				class="fixed inset-0 z-20 overflow-y-auto bg-white sm:static sm:z-0 sm:w-2/3"
 				:class="{
 					invisible:
 						screenSize.width < 640 && !(currentMail[currentFolder] || route.params.id),

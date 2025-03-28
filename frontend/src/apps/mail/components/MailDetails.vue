@@ -1,29 +1,69 @@
 <template>
 	<template v-if="mailID">
-		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
+		<div class="flex items-center border-b px-3 py-2.5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
 				class="mr-2"
 				@click="setCurrentMail(currentFolder, null)"
 			/>
-			<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
-			<div class="ml-auto space-x-2">
-				<Tooltip :text="__('Mark as unread')">
-					<Button
-						:icon="MessageSquareDot"
-						variant="ghost"
-						class="!text-ink-gray-6"
-						@click="emit('markAsUnread')"
+			<span
+				v-if="mailThread.loading"
+				:class="`bg-surface-gray-3 h-3.5 animate-pulse`"
+				:style="{ width: generatePLaceholderWidth() }"
+			/>
+			<template v-else>
+				<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
+				<div class="ml-auto space-x-2">
+					<Tooltip :text="__('Mark as unread')">
+						<Button
+							:icon="MessageSquareDot"
+							variant="ghost"
+							class="!text-ink-gray-6"
+							@click="emit('markAsUnread')"
+						/>
+					</Tooltip>
+				</div>
+			</template>
+		</div>
+		<div v-if="mailThread.loading" class="animate-pulse space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
+			<div v-for="i in Math.ceil(Math.random() * 4)" :key="i" class="rounded-md border p-3">
+				<div class="flex space-x-3 border-b pb-2">
+					<span class="bg-surface-gray-3 h-6.5 w-6.5 rounded-full" />
+					<div class="flex flex-1 justify-between">
+						<div class="flex flex-col space-y-1">
+							<span class="bg-surface-gray-3 h-4 w-40" />
+							<span class="bg-surface-gray-3 h-3 w-48" />
+						</div>
+						<div class="flex items-center space-x-2">
+							<span class="bg-surface-gray-3 h-3 w-12 sm:w-20" />
+							<span class="bg-surface-gray-3 h-3 w-3 rounded" />
+							<span class="bg-surface-gray-3 h-3 w-3 rounded" />
+						</div>
+					</div>
+				</div>
+				<div class="mt-3 space-y-2">
+					<div
+						v-for="j in Math.ceil(Math.random() * 5)"
+						:key="j"
+						class="bg-surface-gray-3 h-2"
+						:style="{ width: generatePLaceholderWidth() }"
 					/>
-				</Tooltip>
+				</div>
+				<div v-if="Math.random() > 0.8" class="mt-5 flex flex-wrap space-x-2">
+					<div
+						v-for="k in Math.ceil(Math.random() * 3)"
+						:key="k"
+						class="bg-surface-gray-3 mb-2 h-6 w-24 rounded"
+					/>
+				</div>
 			</div>
 		</div>
-		<div class="px-2.5 py-3 sm:px-5 sm:py-6">
+		<div v-else class="space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
 			<div
 				v-for="mail in mailThread.data"
 				:key="mail.name"
-				class="mb-4 p-3"
+				class="p-3"
 				:class="{
 					'rounded-md border': mailThread.data.length > 1,
 					'opacity-50': mail.folder === 'Trash',
@@ -108,7 +148,7 @@
 				<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
 					mail.body_plain
 				}}</pre>
-				<div class="mt-8 flex flex-wrap space-x-2">
+				<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
 					<AttachmentCapsule
 						v-for="attachment in mail.attachments"
 						:key="attachment.name"
@@ -344,6 +384,13 @@ const toRecipient = (mail) => {
 	if (!isSoleRecipient) return getRecipients(mail.to)
 
 	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
+}
+
+const generatePLaceholderWidth = () => {
+	const width = screenSize.width
+	const max = width < 640 ? width - 50 : width / 2
+	const min = width < 640 ? width / 2 : width / 3
+	return `${Math.floor(Math.random() * (max - min + 1) + min)}px`
 }
 
 watch(() => props.mailID, reloadThread)
