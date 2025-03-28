@@ -8,7 +8,7 @@
 					{{
 						__('{0} {1}', [
 							formatNumber(mailCount?.data || 0),
-							mailCount?.data == 1 ? singularize('messages') : 'messages',
+							mailCount?.data == 1 ? 'message' : 'messages',
 						])
 					}}
 				</div>
@@ -16,72 +16,97 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div v-if="mails[currentFolder].data" class="flex h-[calc(100vh-3.2rem)]">
-		<div
-			ref="mailSidebar"
-			class="sticky top-16 w-1/3 overflow-y-auto overscroll-contain border-r p-3"
-			@scroll="loadMoreEmails"
-		>
+	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.2rem)]">
+		<template v-if="mails[currentFolder].data?.length">
 			<div
-				v-for="(mail, idx) in mails[currentFolder].data"
-				:key="idx"
-				class="flex cursor-pointer flex-col space-y-1 rounded"
-				:class="{ 'bg-gray-100': mail.name == currentMail[currentFolder] }"
-				@click="openMail(mail)"
+				ref="mailSidebar"
+				class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
+				@scroll="loadMoreEmails"
 			>
-				<SidebarDetail :mail="mail" />
 				<div
-					:class="{
-						'mx-4 h-[0.25px] border-b border-gray-100':
-							idx < mails[currentFolder].data.length - 1,
-					}"
+					v-for="(mail, idx) in mails[currentFolder].data"
+					:key="idx"
+					class="flex cursor-pointer flex-col space-y-1 rounded"
+					:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
+					@click="openMail(mail)"
+				>
+					<SidebarDetail :mail="mail" />
+					<div
+						:class="{
+							'mx-4 h-[0.25px] border-b border-gray-100':
+								idx < mails[currentFolder].data.length - 1,
+						}"
+					/>
+				</div>
+			</div>
+			<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
+				<div
+					ref="resizer"
+					class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
 				/>
 			</div>
-		</div>
-		<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
 			<div
-				ref="resizer"
-				class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
-			/>
-		</div>
-		<div class="w-2/3 flex-1 overflow-auto">
-			<MailDetails
-				ref="mailDetails"
-				:mail-i-d="currentMail[currentFolder]"
-				:type="getMailType() || doctype"
-				@reload-mails="reloadMails"
-				@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
-			/>
+				class="fixed inset-0 z-20 overflow-y-auto bg-white sm:static sm:z-0 sm:w-2/3"
+				:class="{
+					invisible:
+						screenSize.width < 640 && !(currentMail[currentFolder] || route.params.id),
+				}"
+			>
+				<MailDetails
+					ref="mailDetails"
+					:mail-i-d="currentMail[currentFolder]"
+					:current-folder
+					:type="getMailType() || doctype"
+					@reload-mails="reloadMails"
+					@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
+				/>
+			</div>
+		</template>
+		<div v-else class="flex w-full flex-col items-center justify-center">
+			<NoMailSelected class="mb-2 h-16 w-16" />
+			<p class="text-gray-500">
+				{{ __('You have no mails in this folder.') }}
+			</p>
 		</div>
 	</div>
 </template>
 <script setup lang="ts">
 import { computed, inject, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { Breadcrumbs, createListResource, createResource } from 'frappe-ui'
 
-import { formatNumber, singularize, startResizing } from '@/utils'
+import { formatNumber, startResizing } from '@/utils'
+import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
+import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
 import MailDetails from '@/components/MailDetails.vue'
 import SidebarDetail from '@/components/SidebarDetail.vue'
 
 import type { Folder, UserResource } from '@/types'
 
+const { id } = defineProps<{ id?: string }>()
+
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
 const { currentMail, setCurrentMail } = userStore()
 const route = useRoute()
+const router = useRouter()
+const screenSize = useScreenSize()
 
-const currentFolder = computed(() => String(route.name) as Folder)
+const currentFolder = computed(() => {
+	const name = String(route.name)
+	return (name.endsWith('Mail') ? name.replace('Mail', '') : name) as Folder
+})
+
 const doctype = computed(() =>
-	currentFolder.value === 'Inbox' ? 'Incoming Mail' : 'Outgoing Mail',
+	['Inbox', 'Spam'].includes(currentFolder.value) ? 'Incoming Mail' : 'Outgoing Mail',
 )
 
 const mailDetails = ref<typeof MailDetails>()
 
-const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Trash']
+const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Spam', 'Trash']
 
 const createMailResource = (folder: Folder) =>
 	createListResource({
@@ -90,8 +115,16 @@ const createMailResource = (folder: Folder) =>
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data) => {
-			if (data.some((m) => m.name === currentMail[folder])) mailDetails.value?.reloadThread()
-			else setCurrentMail(folder, data.find((m) => m.seen)?.name || null)
+			const mailExists = (id?: string | null) => id && data.some((m) => m.name === id)
+
+			if (mailExists(id)) {
+				if (currentMail[folder] !== id) setCurrentMail(folder, id)
+				mailDetails.value?.reloadThread()
+			} else if (mailExists(currentMail[folder])) {
+				if (route.params.id !== currentMail[folder])
+					router.replace({ name: `${folder}Mail`, params: { id: currentMail[folder] } })
+				mailDetails.value?.reloadThread()
+			} else setCurrentMail(folder, null)
 		},
 	})
 
@@ -100,16 +133,13 @@ const mails = Object.fromEntries(folders.map((folder) => [folder, createMailReso
 const mailCountFilters = computed(() => ({
 	folder: currentFolder.value,
 	docstatus: ['!=', 2],
-	[currentFolder.value === 'Inbox' ? 'receiver' : 'sender']: user.data.name,
+	[doctype.value === 'Incoming Mail' ? 'receiver' : 'sender']: user.data.name,
 }))
 
 const mailCount = createResource({
 	url: 'frappe.client.get_count',
 	auto: currentFolder.value !== 'Trash',
-	makeParams: () => ({
-		doctype: doctype.value,
-		filters: mailCountFilters.value,
-	}),
+	makeParams: () => ({ doctype: doctype.value, filters: mailCountFilters.value }),
 	cache: [`${currentFolder.value}MailCount`, user.data?.name],
 })
 
@@ -145,7 +175,10 @@ watch(() => currentFolder.value, reloadMails, { immediate: true })
 
 onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
-	socket.on('incoming_mail_received', () => reloadMails('Inbox'))
+	socket.on('incoming_mail_received', () => {
+		reloadMails('Inbox')
+		reloadMails('Spam')
+	})
 })
 
 const getMailType = () =>

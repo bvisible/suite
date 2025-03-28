@@ -266,8 +266,8 @@ msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Mail Recipient'
 #: frontend/src/components/MailDetails.vue:46
-#: frontend/src/components/Modals/SendMailModal.vue:50
-#: frontend/src/components/Modals/SendMailModal.vue:72
+#: frontend/src/components/Modals/SendMail.vue:50
+#: frontend/src/components/Modals/SendMail.vue:72
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
 msgid "Bcc"
 msgstr ""
@@ -404,8 +404,8 @@ msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Mail Recipient'
 #: frontend/src/components/MailDetails.vue:36
-#: frontend/src/components/Modals/SendMailModal.vue:42
-#: frontend/src/components/Modals/SendMailModal.vue:60
+#: frontend/src/components/Modals/SendMail.vue:42
+#: frontend/src/components/Modals/SendMail.vue:60
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
 msgid "Cc"
 msgstr ""
@@ -800,7 +800,7 @@ msgstr ""
 msgid "Disable to stop this mail server from sending or receiving emails."
 msgstr ""
 
-#: frontend/src/components/Modals/SendMailModal.vue:174
+#: frontend/src/components/Modals/SendMail.vue:174
 msgid "Discard"
 msgstr ""
 
@@ -1232,7 +1232,7 @@ msgid "Frequency (Cron)"
 msgstr ""
 
 #. Label of the from_ (Data) field in DocType 'Outgoing Mail'
-#: frontend/src/components/Modals/SendMailModal.vue:23
+#: frontend/src/components/Modals/SendMail.vue:23
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 #: mail/mail/report/mail_tracker/mail_tracker.js:57
 #: mail/mail/report/mail_tracker/mail_tracker.py:63
@@ -3057,7 +3057,7 @@ msgstr ""
 msgid "Selector / Scope"
 msgstr ""
 
-#: frontend/src/components/Modals/SendMailModal.vue:175
+#: frontend/src/components/Modals/SendMail.vue:175
 msgid "Send"
 msgstr ""
 
@@ -3067,7 +3067,7 @@ msgstr ""
 msgid "Send Invite"
 msgstr ""
 
-#: frontend/src/components/Modals/SendMailModal.vue:5
+#: frontend/src/components/Modals/SendMail.vue:5
 msgid "Send Mail"
 msgstr ""
 
@@ -3332,7 +3332,7 @@ msgstr ""
 
 #. Label of the subject (Data) field in DocType 'Incoming Mail'
 #. Label of the subject (Data) field in DocType 'Outgoing Mail'
-#: frontend/src/components/Modals/SendMailModal.vue:84
+#: frontend/src/components/Modals/SendMail.vue:84
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 #: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.js:89
@@ -3664,7 +3664,7 @@ msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Mail Recipient'
 #: frontend/src/components/MailDetails.vue:26
-#: frontend/src/components/Modals/SendMailModal.vue:31
+#: frontend/src/components/Modals/SendMail.vue:31
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
 msgid "To"
 msgstr ""
@@ -4082,9 +4082,9 @@ msgstr ""
 msgid "{0} has an invalid store type '{1}'. Allowed types are: {2}."
 msgstr ""
 
-#: frontend/src/components/Modals/SendMailModal.vue:37
-#: frontend/src/components/Modals/SendMailModal.vue:67
-#: frontend/src/components/Modals/SendMailModal.vue:79
+#: frontend/src/components/Modals/SendMail.vue:37
+#: frontend/src/components/Modals/SendMail.vue:67
+#: frontend/src/components/Modals/SendMail.vue:79
 msgid "{0} is an invalid email address"
 msgstr ""
 

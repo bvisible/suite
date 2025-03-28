@@ -52,9 +52,21 @@ const routes = [
 		component: () => import('@/pages/MailFolderView.vue'),
 	},
 	{
+		path: '/inbox/:id',
+		name: 'InboxMail',
+		component: () => import('@/pages/MailFolderView.vue'),
+		props: true,
+	},
+	{
 		path: '/sent',
 		name: 'Sent',
 		component: () => import('@/pages/MailFolderView.vue'),
+	},
+	{
+		path: '/sent/:id',
+		name: 'SentMail',
+		component: () => import('@/pages/MailFolderView.vue'),
+		props: true,
 	},
 	{
 		path: '/outbox',
@@ -62,14 +74,43 @@ const routes = [
 		component: () => import('@/pages/MailFolderView.vue'),
 	},
 	{
+		path: '/outbox/:id',
+		name: 'OutboxMail',
+		component: () => import('@/pages/MailFolderView.vue'),
+		props: true,
+	},
+	{
 		path: '/drafts',
 		name: 'Drafts',
 		component: () => import('@/pages/MailFolderView.vue'),
 	},
 	{
+		path: '/drafts/:id',
+		name: 'DraftsMail',
+		component: () => import('@/pages/MailFolderView.vue'),
+		props: true,
+	},
+	{
+		path: '/spam',
+		name: 'Spam',
+		component: () => import('@/pages/MailFolderView.vue'),
+	},
+	{
+		path: '/spam/:id',
+		name: 'SpamMail',
+		component: () => import('@/pages/MailFolderView.vue'),
+		props: true,
+	},
+	{
 		path: '/trash',
 		name: 'Trash',
 		component: () => import('@/pages/MailFolderView.vue'),
+	},
+	{
+		path: '/trash/:id',
+		name: 'TrashMail',
+		component: () => import('@/pages/MailFolderView.vue'),
+		props: true,
 	},
 	{
 		path: '/mime-message/incoming-mail/:id',

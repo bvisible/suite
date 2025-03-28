@@ -2,8 +2,8 @@
 	<div class="space-y-1 p-2.5">
 		<div class="flex items-center justify-between">
 			<h3 class="mr-1 flex items-center truncate">
-				<span v-if="!mail.seen" class="mr-1.5 h-2 w-2 rounded-full bg-blue-500" />
-				<span class="truncate font-semibold" :class="{ italic: !mail.subject }">
+				<span v-if="!mail.seen" class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500" />
+				<span class="truncate text-base font-semibold" :class="{ italic: !mail.subject }">
 					{{ mail.subject || __('[No subject]') }}
 				</span>
 			</h3>
@@ -12,10 +12,7 @@
 		<h4 class="snippet line-clamp-1 text-xs">
 			{{ mail.display_name ? mail.display_name : mail.sender }}
 		</h4>
-		<h5
-			class="snippet line-clamp-2 h-9 text-xs text-gray-600"
-			:class="{ italic: !mail.snippet }"
-		>
+		<h5 class="snippet line-clamp-1 text-xs text-gray-600" :class="{ italic: !mail.snippet }">
 			{{ mail.snippet || __('— No message body —') }}
 		</h5>
 		<div class="flex items-center">
@@ -23,7 +20,7 @@
 				v-for="attachment in mail.attachments.slice(0, 2)"
 				:key="attachment.name"
 				:file-name="attachment.file_name"
-				class="mr-2 max-w-40"
+				class="mr-2 max-w-32"
 			/>
 			<AttachmentCapsule
 				v-if="mail.attachments.length > 2"

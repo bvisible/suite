@@ -1,13 +1,12 @@
 <template>
-	<Dialog
+	<component
+		:is="screenSize.width < 640 ? SendMailMobileLayout : Dialog"
 		v-model="show"
-		:options="{
-			title: __('Send Mail'),
-			size: '4xl',
-		}"
+		:options="{ title: __('Send Mail'), size: '4xl' }"
 	>
 		<template #body-content>
 			<TextEditor
+				v-if="!isDraftLoading"
 				ref="textEditor"
 				:editor-class="[
 					'prose-sm max-w-none',
@@ -18,13 +17,13 @@
 				@change="(val: string) => (mail.html = val)"
 			>
 				<template #top>
-					<div class="flex flex-col gap-3">
-						<div class="flex items-center gap-2 border-t pt-2.5">
+					<div class="flex flex-col gap-3 border-b">
+						<div class="flex items-center gap-2 sm:border-t sm:pt-2.5">
 							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
 							<FormControl
 								v-model="mail.from"
 								type="autocomplete"
-								:options="addressOptions.data"
+								:options="addressOptions.data || []"
 							/>
 						</div>
 						<div class="flex items-center gap-2">
@@ -93,10 +92,43 @@
 					</div>
 				</template>
 				<template #editor="{ editor }">
-					<EditorContent
-						:class="['max-h-[35vh] overflow-y-auto border-t py-3 text-sm']"
-						:editor="editor"
-					/>
+					<div
+						class="flex h-[calc(100dvh-16.9rem)] flex-col overflow-y-auto py-2.5 text-sm sm:max-h-[40vh]"
+						:class="{
+							'h-[calc(100dvh-19.7rem)]': cc || bcc,
+							'h-[calc(100dvh-21.9rem)]': cc && bcc,
+						}"
+					>
+						<EditorContent :editor="editor" />
+
+						<!-- Attachments -->
+						<div
+							v-if="localMailID && attachments.data?.length"
+							class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700"
+						>
+							<a
+								v-for="(file, index) in attachments.data"
+								:key="index"
+								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
+								:href="file.file_url"
+								target="_blank"
+							>
+								<span class="mr-1 font-medium">
+									{{ file.file_name || file.name }}
+								</span>
+								<span class="mr-1 font-extralight">
+									({{ formatBytes(file.file_size) }})
+								</span>
+								<FeatherIcon
+									class="ml-auto h-3.5 w-3.5"
+									name="x"
+									@click.stop.prevent="
+										removeAttachment.submit({ name: file.name })
+									"
+								/>
+							</a>
+						</div>
+					</div>
 				</template>
 				<template #bottom>
 					<FileUploader
@@ -110,51 +142,33 @@
 								if (!localMailID) await createDraftMail.submit()
 							}
 						"
+						:class="{ 'fixed bottom-0 left-0 right-0 px-3': screenSize.width < 640 }"
 						@success="attachments.fetch()"
 					>
 						<template #default="{ file, progress, uploading, openFileSelector }">
-							<!-- Attachments -->
 							<div
-								v-if="localMailID && attachments.data?.length"
-								class="mb-2 flex flex-col gap-2 text-sm text-gray-700"
+								v-if="uploading"
+								class="mb-2 rounded bg-gray-100 p-2.5 text-sm text-gray-700"
 							>
-								<div v-if="uploading" class="rounded bg-gray-100 p-2.5">
-									<div class="mb-1.5 flex items-center">
-										<span class="mr-1 font-medium">
-											{{ file.name }}
-										</span>
-										<span class="font-extralight">
-											({{ formatBytes(file.size) }})
-										</span>
-									</div>
-									<Progress :value="progress" />
-								</div>
-								<div
-									v-for="(file, index) in attachments.data"
-									:key="index"
-									class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
-								>
+								<div class="mb-1.5 flex items-center">
 									<span class="mr-1 font-medium">
-										{{ file.file_name || file.name }}
+										{{ file.name }}
 									</span>
 									<span class="font-extralight">
-										({{ formatBytes(file.file_size) }})
+										({{ formatBytes(file.size) }})
 									</span>
-									<FeatherIcon
-										class="ml-auto h-3.5 w-3.5"
-										name="x"
-										@click="removeAttachment.submit({ name: file.name })"
-									/>
 								</div>
+								<Progress :value="progress" />
 							</div>
 
 							<div
-								class="flex justify-between gap-2 overflow-hidden border-t py-2.5"
+								class="flex flex-wrap justify-between gap-2 overflow-hidden border-t py-2.5"
 							>
 								<!-- Text Editor Buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
 									<TextEditorFixedMenu :buttons="textEditorMenuButtons" />
 									<EmojiPicker
+										v-if="screenSize.width >= 640"
 										v-slot="{ togglePopover }"
 										v-model="emoji"
 										@update:model-value="() => appendEmoji()"
@@ -173,7 +187,7 @@
 								</div>
 
 								<!-- Send & Discard -->
-								<div class="flex items-center justify-end space-x-2 sm:mt-0">
+								<div class="ml-auto flex items-center space-x-2 sm:mt-0">
 									<Button :label="__('Discard')" @click="discardMail" />
 									<Button variant="solid" :label="__('Send')" @click="send" />
 								</div>
@@ -182,8 +196,9 @@
 					</FileUploader>
 				</template>
 			</TextEditor>
+			<div v-else class="min-h-[30rem]" />
 		</template>
-	</Dialog>
+	</component>
 </template>
 <script setup lang="ts">
 import { computed, inject, nextTick, reactive, ref, watch } from 'vue'
@@ -204,14 +219,27 @@ import {
 } from 'frappe-ui'
 
 import { formatBytes, validateEmail } from '@/utils'
+import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'
 import EmojiPicker from '@/components/EmojiPicker.vue'
+import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
 import type { ReplyDetails, UserResource } from '@/types'
 
-const user = inject('$user') as UserResource
+const { mailID, replyDetails } = defineProps<{
+	mailID?: string
+	replyDetails?: ReplyDetails
+}>()
+
+const emit = defineEmits(['reloadMails'])
+
 const show = defineModel<boolean>()
+
+const user = inject('$user') as UserResource
+const screenSize = useScreenSize()
+const { setCurrentMail } = userStore()
+
 const localMailID = ref<string>()
 const textEditor = ref(null)
 const ccInput = ref(null)
@@ -221,7 +249,7 @@ const bcc = ref(false)
 const emoji = ref()
 const isSend = ref(false)
 const isMailWatcherActive = ref(true)
-const { setCurrentMail } = userStore()
+const isDraftLoading = ref(false)
 
 const SYNC_DEBOUNCE_TIME = 1500
 
@@ -240,13 +268,6 @@ const isMailEmpty = computed(() => {
 
 	return isSubjectEmpty && isHtmlEmpty && isRecipientsEmpty
 })
-
-const props = defineProps<{
-	mailID?: string
-	replyDetails?: ReplyDetails
-}>()
-
-const emit = defineEmits(['reloadMails'])
 
 const discardMail = async () => {
 	if (localMailID.value) await deleteDraftMail.submit()
@@ -273,26 +294,26 @@ const mail = reactive({ ...emptyMail })
 
 watch(show, () => {
 	if (!show.value) return
-	if (props.mailID) getDraftMail(props.mailID)
+	if (mailID) getDraftMail(mailID)
 	else {
 		localMailID.value = undefined
 		Object.assign(mail, emptyMail)
 	}
 
-	if (!props.replyDetails) return
-	mail.to = props.replyDetails.to.split(',').filter((item) => item != '')
-	mail.cc = props.replyDetails.cc.split(',').filter((item) => item != '')
-	mail.bcc = props.replyDetails.bcc.split(',').filter((item) => item != '')
+	if (!replyDetails) return
+	mail.to = replyDetails.to.split(',').filter((item) => item != '')
+	mail.cc = replyDetails.cc.split(',').filter((item) => item != '')
+	mail.bcc = replyDetails.bcc.split(',').filter((item) => item != '')
 	cc.value = mail.cc.length > 0 ? true : false
 	bcc.value = mail.bcc.length > 0 ? true : false
-	mail.subject = props.replyDetails.subject
-	mail.html = props.replyDetails.html
-	mail.in_reply_to_mail_type = props.replyDetails.in_reply_to_mail_type
-	mail.in_reply_to_mail_name = props.replyDetails.in_reply_to_mail_name
+	mail.subject = replyDetails.subject
+	mail.html = replyDetails.html
+	mail.in_reply_to_mail_type = replyDetails.in_reply_to_mail_type
+	mail.in_reply_to_mail_name = replyDetails.in_reply_to_mail_name
 })
 
 watch(
-	() => props.mailID,
+	() => mailID,
 	(val) => {
 		// TODO: use documentresource directly
 		if (val) getDraftMail(val)
@@ -361,7 +382,9 @@ const removeAttachment = createResource({
 	onSuccess: () => attachments.fetch(),
 })
 
-const getDraftMail = (name: string) =>
+const getDraftMail = (name: string) => {
+	isDraftLoading.value = true
+
 	createDocumentResource({
 		doctype: 'Outgoing Mail',
 		name: name,
@@ -384,11 +407,14 @@ const getDraftMail = (name: string) =>
 			Object.assign(mail, mailDetails)
 			if (mailDetails.cc) cc.value = true
 			if (mailDetails.bcc) bcc.value = true
+			isDraftLoading.value = false
+
 			setTimeout(() => {
 				isMailWatcherActive.value = true
 			}, SYNC_DEBOUNCE_TIME + 1)
 		},
 	})
+}
 
 const send = async () => {
 	isSend.value = true
