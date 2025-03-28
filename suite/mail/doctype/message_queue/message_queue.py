@@ -115,12 +115,14 @@ def fetch_message_details(name: str) -> dict:
 	frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
 
 
-def delete_message(name: str) -> None:
+def delete_message(name: str, recipient: str | None = None) -> None:
 	"""Deletes a specific message from the mail server."""
 
 	cluster_name, queue_id = name.split("-")
 	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(method="DELETE", endpoint=f"/api/queue/messages/{queue_id}")
+	response = server_api.request(
+		method="DELETE", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
+	)
 	if response.status_code == 200:
 		frappe.msgprint(_("Message deleted successfully."), alert=True)
 	else:
