@@ -53,6 +53,18 @@ class MessageQueue(Document):
 		return {}
 
 	@frappe.whitelist()
+	def retry_delivery(self, recipients: list[str]) -> None:
+		"""Retries delivery of a message to specific recipients."""
+
+		frappe.only_for("System Manager")
+
+		recipients = list(set(recipients))
+		for recipient in recipients:
+			retry_message(self.name, recipient)
+
+		frappe.msgprint(_("Delivery retried successfully."), alert=True)
+
+	@frappe.whitelist()
 	def cancel_delivery(self, recipients: list[str]) -> None:
 		"""Cancels delivery of a message to specific recipients."""
 
@@ -128,6 +140,18 @@ def fetch_message_details(name: str) -> dict:
 		return message
 
 	frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
+
+
+def retry_message(name: str, recipient: str | None = None) -> None:
+	"""Retries delivery of a specific message to a recipient."""
+
+	cluster_name, queue_id = name.split("-")
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(
+		method="PATCH", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
+	)
+	if response.status_code != 200:
+		frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
 
 
 def delete_message(name: str, recipient: str | None = None) -> None:
