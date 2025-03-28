@@ -34,12 +34,6 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Media Drag Overlay -->
-	<div
-		v-show="highlight"
-		class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
-	></div>
 </template>
 
 <script setup>
