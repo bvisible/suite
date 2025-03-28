@@ -42,6 +42,13 @@ def get_drafts_mails(start: int = 0) -> list:
 
 
 @frappe.whitelist()
+def get_spam_mails(start: int = 0) -> list:
+	"""Returns spam mails for the current user."""
+
+	return get_incoming_mails("Spam", start)
+
+
+@frappe.whitelist()
 def get_trash_mails(start: int = 0) -> list:
 	"""Returns trash mails for the current user."""
 
@@ -528,8 +535,8 @@ def cancel_mail(mail_type: MailType, name: str) -> None:
 
 
 @frappe.whitelist()
-def empty_trash() -> None:
-	"""Empties trash for current user."""
+def empty_folder(folder: str) -> None:
+	"""Empties selected folder for current user."""
 
 	account = get_account_for_user(frappe.session.user)
 
@@ -538,10 +545,13 @@ def empty_trash() -> None:
 			doctype,
 			{
 				"receiver" if doctype == "Incoming Mail" else "sender": account,
-				"folder": "Trash",
+				"folder": folder,
 				"docstatus": ["!=", 2],
 			},
-			pluck="name",
+			["name", "docstatus"],
 		)
 		for d in mails:
-			cancel_mail(doctype, d)
+			if d.docstatus == 1:
+				cancel_mail(doctype, d.name)
+			else:
+				frappe.delete_doc(doctype, d.name)
