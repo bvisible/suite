@@ -25,7 +25,7 @@ class MessageQueue(Document):
 		raise NotImplementedError
 
 	def delete(self) -> None:
-		raise NotImplementedError
+		delete_message(self.name)
 
 	@staticmethod
 	def get_list(filters=None, page_length=20, **kwargs) -> list:
@@ -113,6 +113,18 @@ def fetch_message_details(name: str) -> dict:
 		return message
 
 	frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
+
+
+def delete_message(name: str) -> None:
+	"""Deletes a specific message from the mail server."""
+
+	cluster_name, queue_id = name.split("-")
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(method="DELETE", endpoint=f"/api/queue/messages/{queue_id}")
+	if response.status_code == 200:
+		frappe.msgprint(_("Message deleted successfully."), alert=True)
+	else:
+		frappe.throw(title=_("Mail Server Request Failed"), msg=response.text)
 
 
 def extract_recipients(message: dict) -> list:
