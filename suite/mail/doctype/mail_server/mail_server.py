@@ -236,7 +236,7 @@ def reload_config(servers: str | list[str]) -> None:
 
 	reloaded_servers = []
 	for server in servers:
-		server = frappe.get_doc("Mail Server", server)
+		server = frappe.get_cached_doc("Mail Server", server)
 		if server.enabled:
 			server.reload_config()
 			reloaded_servers.append(server.name)
@@ -244,7 +244,7 @@ def reload_config(servers: str | list[str]) -> None:
 			frappe.msgprint(_("Mail Server {0} is disabled.").format(frappe.bold(server.name)), alert=True)
 
 	if reloaded_servers:
-		frappe.msgprint(_("Mail Server Config reloaded."), alert=True)
+		frappe.msgprint(_("Servers Configuration reloaded."), alert=True)
 
 
 def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
