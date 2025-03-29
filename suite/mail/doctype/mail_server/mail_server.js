@@ -64,6 +64,7 @@ frappe.ui.form.on('Mail Server', {
 			freeze_message: __('Reloading Mail Server Config...'),
 			callback: (r) => {
 				if (!r.exc) {
+					frappe.show_alert(__('Mail Server Config reloaded.'), 5)
 					frm.refresh()
 				}
 			},
