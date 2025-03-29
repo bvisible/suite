@@ -3,11 +3,11 @@
 
 frappe.listview_settings['Mail Server'] = {
 	refresh: (listview) => {
-		add_reload_button(listview)
+		add_reload_config_button(listview)
 	},
 }
 
-function add_reload_button(listview) {
+function add_reload_config_button(listview) {
 	listview.page.add_actions_menu_item(__('Reload Configuration'), () => {
 		frappe.call({
 			method: 'mail.mail.doctype.mail_server.mail_server.reload_config',
@@ -15,7 +15,7 @@ function add_reload_button(listview) {
 				servers: listview.get_checked_items(true),
 			},
 			freeze: true,
-			freeze_message: __('Reloading Mail Server Config...'),
+			freeze_message: __('Reloading Server Configuration...'),
 			callback: (r) => {
 				if (!r.exc) {
 					listview.refresh()
