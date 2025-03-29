@@ -91,7 +91,7 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
-	const outlineClasses = props.highlight ? ['outline', 'outline-1.5', 'outline-blue-400'] : []
+	const outlineClasses = props.highlight ? ['outline', 'outline-2', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
 	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
 
