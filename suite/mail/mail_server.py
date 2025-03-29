@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urljoin
 
 import frappe
@@ -10,6 +10,9 @@ from frappe import _
 from mail.mail.doctype.mail_server_request.mail_server_request import create_mail_server_request
 from mail.utils import get_dkim_selector
 from mail.utils.cache import get_clusters
+
+if TYPE_CHECKING:
+	from mail.mail.doctype.mail_server_request.mail_server_request import MailServerRequest
 
 
 @dataclass
@@ -109,6 +112,17 @@ def get_mail_server_api(cluster_name: str) -> MailServerAPI:
 	)
 
 
+def reload_request_cluster_servers(request: "MailServerRequest") -> None:
+	from mail.mail.doctype.mail_cluster.mail_cluster import reload_servers_config
+
+	try:
+		reload_servers_config([request.cluster])
+	except Exception as e:
+		frappe.log_error(
+			title=_("Error reloading {0} servers configuration").format(request.cluster), message=str(e)
+		)
+
+
 def block_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
 	"""Blocks an IP address on all the clusters."""
 
@@ -175,6 +189,7 @@ def create_dkim_key_on_clusters(
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
+			execute_on_end="mail.mail_server.reload_request_cluster_servers",
 		)
 
 
