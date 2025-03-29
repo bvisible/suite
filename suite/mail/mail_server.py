@@ -98,7 +98,7 @@ class MailServerAPI:
 def get_mail_server_api(cluster_name: str) -> MailServerAPI:
 	"""Returns an authenticated MailServerAPI instance."""
 
-	cluster = frappe.get_doc("Mail Cluster", cluster_name)
+	cluster = frappe.get_cached_doc("Mail Cluster", cluster_name)
 	api_key = cluster.get_password("api_key") if cluster.api_key else None
 
 	return MailServerAPI(
