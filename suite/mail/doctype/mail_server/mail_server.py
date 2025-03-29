@@ -222,7 +222,7 @@ class MailServer(Document):
 		)
 		response = server_api.request(method="GET", endpoint="/api/reload")
 		if response.status_code != 200:
-			frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
+			frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
 
 
 @frappe.whitelist()

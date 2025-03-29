@@ -293,9 +293,7 @@ class MailCluster(Document):
 		if not self.enabled:
 			frappe.throw(_("Mail Cluster {0} is disabled.").format(frappe.bold(self.name)))
 
-		servers = frappe.db.get_all(
-			"Mail Server", filters={"cluster": self.name, "enabled": 1}, fields=["name"]
-		)
+		servers = frappe.db.get_all("Mail Server", filters={"cluster": self.name, "enabled": 1}, pluck="name")
 		for server in servers:
 			server = frappe.get_cached_doc("Mail Server", server)
 			server.reload_config()
