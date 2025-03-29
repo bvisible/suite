@@ -95,6 +95,20 @@ class MailServerAPI:
 		return response
 
 
+def get_mail_server_api(cluster_name: str) -> MailServerAPI:
+	"""Returns an authenticated MailServerAPI instance."""
+
+	cluster = frappe.get_doc("Mail Cluster", cluster_name)
+	api_key = cluster.get_password("api_key") if cluster.api_key else None
+
+	return MailServerAPI(
+		cluster.base_url,
+		api_key=api_key,
+		username=cluster.admin_username,
+		password=cluster.get_password("admin_password"),
+	)
+
+
 def reload_configuration(clusters: list[str] | None = None) -> None:
 	"""Reloads the configuration on all the clusters."""
 
