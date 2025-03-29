@@ -32,13 +32,12 @@ import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } fr
 import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
-import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
 import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slideIndex, slide, selectSlide, slideBounds } from '@/stores/slide'
+import { slide, selectSlide, slideBounds } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,

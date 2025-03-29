@@ -40,11 +40,10 @@
 <script setup>
 import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
 
 import { call } from 'frappe-ui'
 
-import { Presentation, Save } from 'lucide-vue-next'
+import { Presentation } from 'lucide-vue-next'
 
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
@@ -65,7 +64,6 @@ import {
 	duplicateElements,
 	addTextElement,
 	selectAllElements,
-	activePosition,
 	activeElements,
 	toggleTextProperty,
 } from '@/stores/element'
