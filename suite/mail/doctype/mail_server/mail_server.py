@@ -224,9 +224,6 @@ class MailServer(Document):
 		if response.status_code != 200:
 			frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
-		if not frappe.flags.in_bulk_delete:
-			frappe.msgprint(_("Mail Server Config reloaded."), alert=True)
-
 
 @frappe.whitelist()
 def reload_config(servers: str | list[str]) -> None:
