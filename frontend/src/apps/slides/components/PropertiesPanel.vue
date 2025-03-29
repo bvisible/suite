@@ -1,50 +1,10 @@
 <template>
-	<!-- Element Properties Panel -->
 	<div
 		class="fixed right-0 z-20 flex flex-col h-[94.35%] w-64 bg-white border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
 		@wheel.prevent
 	>
 		<div v-if="activeTab == 'slide'">
-			<div :class="sectionClasses">
-				<div class="flex items-center justify-between">
-					<div :class="sectionTitleClasses">Slide</div>
-					<div class="text-2xs font-semibold text-gray-700">
-						{{ slideIndex + 1 + ' of ' + presentation.data.slides.length }}
-					</div>
-				</div>
-
-				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Background</div>
-					<ColorPicker v-model="slide.background" />
-				</div>
-			</div>
-
-			<div :class="sectionClasses">
-				<CollapsibleSection :title="'Transition'" :titleClasses="sectionTitleClasses">
-					<template #default>
-						<div class="flex flex-col gap-4">
-							<FormControl
-								type="autocomplete"
-								:options="['Slide In', 'Fade', 'None']"
-								size="sm"
-								variant="subtle"
-								:modelValue="slide.transition || 'None'"
-								@update:modelValue="(option) => setSlideTransition(option)"
-							/>
-
-							<SliderInput
-								v-show="slide.transition && slide.transition != 'None'"
-								label="Duration"
-								:rangeStart="0"
-								:rangeEnd="4"
-								:rangeStep="0.1"
-								:modelValue="parseFloat(slide.transitionDuration) || 0"
-								@update:modelValue="(value) => (slide.transitionDuration = value)"
-							/>
-						</div>
-					</template>
-				</CollapsibleSection>
-			</div>
+			<SlideProperties />
 		</div>
 
 		<div v-else>
@@ -215,6 +175,7 @@ import { ref, computed } from 'vue'
 import { FormControl } from 'frappe-ui'
 import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay, Ban } from 'lucide-vue-next'
 
+import SlideProperties from './SlideProperties.vue'
 import TextPropertyTab from '@/components/TextPropertyTab.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
@@ -286,12 +247,6 @@ const togglePlaybackOption = (option) => {
 const addBorder = (style) => {
 	activeElement.value.borderStyle = style
 	activeElement.value.borderWidth = 1
-}
-
-const setSlideTransition = (option) => {
-	slide.value.transition = option.value
-	if (option.value == 'None') slide.value.transitionDuration = 0
-	else slide.value.transitionDuration = 1
 }
 </script>
 
