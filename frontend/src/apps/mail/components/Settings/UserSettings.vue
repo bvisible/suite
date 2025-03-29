@@ -26,7 +26,7 @@
 
 	<div v-else class="mt-2">
 		<p class="text-base">
-			{{ __(`You don't have an API key yet. Generate one to access the PI.`) }}
+			{{ __(`You don't have an API key yet. Generate one to access the API.`) }}
 		</p>
 	</div>
 
