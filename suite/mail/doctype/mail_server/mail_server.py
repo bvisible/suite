@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 
+import json
 from typing import TYPE_CHECKING
 
 import frappe
@@ -14,6 +15,7 @@ from mail.mail.doctype.mail_server_config.mail_server_config import create_mail_
 from mail.mail.doctype.mail_settings.mail_settings import (
 	validate_mail_settings,
 )
+from mail.mail_server import MailServerAPI
 from mail.utils.dns import get_dns_record
 
 if TYPE_CHECKING:
@@ -31,6 +33,7 @@ class MailServer(Document):
 
 		self.validate_server()
 		self.validate_cluster()
+		self.validate_base_url()
 		self.validate_cluster_node_id()
 		self.validate_acme_providers()
 		self.validate_tls_certificates()
@@ -84,6 +87,12 @@ class MailServer(Document):
 
 		if not frappe.db.get_value("Mail Cluster", self.cluster, "enabled"):
 			frappe.throw(_("Mail Cluster {0} is disabled.").format(frappe.bold(self.cluster)))
+
+	def validate_base_url(self) -> None:
+		"""Validates the base URL of the server."""
+
+		if not self.base_url:
+			self.base_url = f"https://{self.server}/"
 
 	def validate_cluster_node_id(self) -> None:
 		"""Validates the cluster node ID."""
@@ -193,6 +202,52 @@ class MailServer(Document):
 		else:
 			if spf_ehlo_dns_record := frappe.db.exists("DNS Record", {"host": host, "type": "TXT"}):
 				frappe.delete_doc("DNS Record", spf_ehlo_dns_record, ignore_permissions=True)
+
+	@frappe.whitelist()
+	def reload_config(self) -> None:
+		"""Reloads the Mail Server Config."""
+
+		frappe.only_for("System Manager")
+
+		if not self.enabled:
+			frappe.throw(_("Mail Server {0} is disabled.").format(frappe.bold(self.name)))
+
+		cluster = frappe.get_cached_doc("Mail Cluster", self.cluster)
+		api_key = cluster.get_password("api_key") if cluster.api_key else None
+		server_api = MailServerAPI(
+			self.base_url,
+			api_key=api_key,
+			username=cluster.admin_username,
+			password=cluster.get_password("admin_password"),
+		)
+		response = server_api.request(method="GET", endpoint="/api/reload")
+		if response.status_code != 200:
+			frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
+
+		if not frappe.flags.in_bulk_delete:
+			frappe.msgprint(_("Mail Server Config reloaded."), alert=True)
+
+
+@frappe.whitelist()
+def reload_config(servers: str | list[str]) -> None:
+	"""Reloads the Mail Server Config."""
+
+	frappe.only_for("System Manager")
+
+	if isinstance(servers, str):
+		servers = json.loads(servers)
+
+	reloaded_servers = []
+	for server in servers:
+		server = frappe.get_doc("Mail Server", server)
+		if server.enabled:
+			server.reload_config()
+			reloaded_servers.append(server.name)
+		else:
+			frappe.msgprint(_("Mail Server {0} is disabled.").format(frappe.bold(server.name)), alert=True)
+
+	if reloaded_servers:
+		frappe.msgprint(_("Mail Server Config reloaded."), alert=True)
 
 
 def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
