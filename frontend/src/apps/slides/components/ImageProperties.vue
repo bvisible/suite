@@ -11,10 +11,14 @@
 			<component :is="direction.icon" size="20" :strokeWidth="1.2" />
 		</div>
 	</div>
+
+	<MediaProperties />
 </template>
 
 <script setup>
 import { FlipHorizontal, FlipVertical } from 'lucide-vue-next'
+
+import MediaProperties from './MediaProperties.vue'
 
 import { activeElement } from '@/stores/element'
 import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
