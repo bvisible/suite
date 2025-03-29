@@ -104,11 +104,11 @@ const addMediaElement = (file, type) => {
 	nextTick(() => setActiveElements([element.id]))
 }
 
-const duplicateElements = async (e) => {
+const duplicateElements = async (e, elements) => {
 	e.preventDefault()
 
 	let newSelection = []
-	const oldElements = activeElements.value
+	const oldElements = elements
 	activeElementIds.value = []
 
 	await nextTick()
@@ -206,6 +206,43 @@ const updateActivePosition = (positionChange) => {
 	})
 }
 
+const getElementPosition = (elementId) => {
+	const elementRect = document
+		.querySelector(`[data-index="${elementId}"]`)
+		.getBoundingClientRect()
+
+	const elementLeft = (elementRect.left - slideBounds.left) / slideBounds.scale
+	const elementTop = (elementRect.top - slideBounds.top) / slideBounds.scale
+	const elementRight = elementLeft + elementRect.width / slideBounds.scale
+	const elementBottom = elementTop + elementRect.height / slideBounds.scale
+
+	return {
+		left: elementLeft,
+		top: elementTop,
+		right: elementRight,
+		bottom: elementBottom,
+	}
+}
+
+const copyElements = (e) => {
+	e.preventDefault()
+	const elements = JSON.parse(JSON.stringify(activeElements.value))
+	elements.forEach((element) => {
+		const { left, top } = getElementPosition(element.id)
+		element.left = left
+		element.top = top
+	})
+	const clipboardText = JSON.stringify(elements)
+	e.clipboardData.setData('text/plain', clipboardText)
+}
+
+const pasteElements = (e) => {
+	e.preventDefault()
+	const clipboardText = e.clipboardData.getData('text/plain')
+	const elements = JSON.parse(clipboardText)
+	duplicateElements(e, elements)
+}
+
 export {
 	activePosition,
 	activeDimensions,
@@ -226,4 +263,7 @@ export {
 	resizeElement,
 	setActivePosition,
 	updateActivePosition,
+	getElementPosition,
+	copyElements,
+	pasteElements,
 }

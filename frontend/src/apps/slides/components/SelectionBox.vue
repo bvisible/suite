@@ -22,6 +22,7 @@ import {
 	activeElementIds,
 	setActiveElements,
 	moveElement,
+	getElementPosition,
 } from '@/stores/element'
 
 const emit = defineEmits(['updateFocus'])
@@ -105,14 +106,12 @@ const getElementsWithinBoxSurface = () => {
 	const boxBottom = bounds.top + bounds.height
 
 	slide.value.elements.forEach((element) => {
-		const elementRect = document
-			.querySelector(`[data-index="${element.id}"]`)
-			.getBoundingClientRect()
-
-		const elementLeft = (elementRect.left - slideBounds.left) / slideBounds.scale
-		const elementTop = (elementRect.top - slideBounds.top) / slideBounds.scale
-		const elementRight = elementLeft + elementRect.width / slideBounds.scale
-		const elementBottom = elementTop + elementRect.height / slideBounds.scale
+		const {
+			left: elementLeft,
+			top: elementTop,
+			right: elementRight,
+			bottom: elementBottom,
+		} = getElementPosition(element.id)
 
 		const withinWidth =
 			(boxRight >= elementLeft && boxLeft <= elementLeft) ||
@@ -154,12 +153,12 @@ const cropSelectionToFitContent = (elementIds) => {
 
 	// crop selection to selected element edges
 	elementIds.forEach((id) => {
-		const elementRect = document.querySelector(`[data-index="${id}"]`).getBoundingClientRect()
-
-		const elementLeft = (elementRect.left - slideBounds.left) / slideBounds.scale
-		const elementTop = (elementRect.top - slideBounds.top) / slideBounds.scale
-		const elementRight = elementLeft + elementRect.width / slideBounds.scale
-		const elementBottom = elementTop + elementRect.height / slideBounds.scale
+		const {
+			left: elementLeft,
+			top: elementTop,
+			right: elementRight,
+			bottom: elementBottom,
+		} = getElementPosition(id)
 
 		if (elementLeft < l) l = elementLeft
 		if (elementTop < t) t = elementTop
