@@ -129,7 +129,7 @@ def fetch_messages(cluster_name: str, page: int = 1, limit: int = 10, text: str 
 
 		return [format_message(item, cluster_name) for item in data["items"]]
 
-	frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+	frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def fetch_message_details(name: str) -> dict:
@@ -147,7 +147,7 @@ def fetch_message_details(name: str) -> dict:
 
 		return message
 
-	frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+	frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def fetch_blob(cluster_name: str, blob_id: str) -> str:
@@ -159,7 +159,7 @@ def fetch_blob(cluster_name: str, blob_id: str) -> str:
 	if response.status_code == 200:
 		return response.text
 
-	frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+	frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def retry_message(name: str) -> None:
@@ -169,7 +169,7 @@ def retry_message(name: str) -> None:
 	server_api = get_mail_server_api(cluster_name)
 	response = server_api.request(method="PATCH", endpoint=f"/api/queue/messages/{queue_id}")
 	if response.status_code != 200:
-		frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+		frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def cancel_message(name: str, recipient: str | None = None) -> None:
@@ -181,7 +181,7 @@ def cancel_message(name: str, recipient: str | None = None) -> None:
 		method="DELETE", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
 	)
 	if response.status_code != 200:
-		frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+		frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def stop_queue_processing(cluster_name: str) -> None:
@@ -194,7 +194,7 @@ def stop_queue_processing(cluster_name: str) -> None:
 	)
 
 	if response.status_code != 200:
-		frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+		frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def start_queue_processing(cluster_name: str) -> None:
@@ -207,7 +207,7 @@ def start_queue_processing(cluster_name: str) -> None:
 	)
 
 	if response.status_code != 200:
-		frappe.throw(title=_(f"Request failed for {cluster_name}"), msg=response.text)
+		frappe.throw(title=_(f"Request failed for {server_api.base_url}"), msg=response.text)
 
 
 def get_status_cache_key(cluster_name: str) -> str:
