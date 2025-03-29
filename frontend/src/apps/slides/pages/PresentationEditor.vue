@@ -201,7 +201,10 @@ const changeSlide = async (index, updateCurrent = true) => {
 
 	nextTick(async () => {
 		// update the current slide along with thumbnail
-		if (updateCurrent) slideIndex.value = index
+		if (updateCurrent) {
+			await saveChanges()
+		}
+		slideIndex.value = index
 		loadSlide()
 
 		// re-enable pan and zoom
