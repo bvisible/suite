@@ -1,8 +1,7 @@
 <template>
 	<!-- Element Properties Panel -->
 	<div
-		class="fixed z-20 flex flex-col h-[94.27%] w-[226px] bg-white transition-all duration-300 ease-in-out border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
-		:class="activeTab ? 'right-13' : '-right-[174px]'"
+		class="fixed right-0 z-20 flex flex-col h-[94.35%] w-64 bg-white border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
 		@wheel.prevent
 	>
 		<div v-if="activeTab == 'slide'">
@@ -208,46 +207,6 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Slide Elements Panel -->
-	<div class="fixed right-0 z-20 flex h-[94.27%] border-l bg-white flex-col" @wheel.prevent>
-		<Tooltip text="Text" :hover-delay="1" placement="left">
-			<div :class="getTabClasses('text')" @click="addTextElement">
-				<Type size="20" :class="getIconClasses('text')" />
-			</div>
-		</Tooltip>
-		<Tooltip text="Image" :hover-delay="1" placement="left">
-			<FileUploader
-				:fileTypes="['image/*']"
-				@success="(file) => handleUploadSuccess(file, 'image')"
-				@failure="handleUploadFailure"
-			>
-				<template #default="{ openFileSelector }">
-					<div :class="getTabClasses('image')" @click="openFileSelector">
-						<Image size="20" :class="getIconClasses('image')" />
-					</div>
-				</template>
-			</FileUploader>
-		</Tooltip>
-		<Tooltip text="Video" :hover-delay="1" placement="left">
-			<FileUploader
-				:fileTypes="['video/*']"
-				@success="(file) => handleUploadSuccess(file, 'video')"
-				@failure="handleUploadFailure"
-			>
-				<template #default="{ openFileSelector }">
-					<div :class="getTabClasses('video')" @click="openFileSelector">
-						<Film size="20" :class="getIconClasses('video')" />
-					</div>
-				</template>
-			</FileUploader>
-		</Tooltip>
-		<Tooltip text="Slide Properties" :hover-delay="1" placement="left">
-			<div :class="getTabClasses('slide')" @click="selectSlide">
-				<Layout size="20" :class="getIconClasses('slide')" />
-			</div>
-		</Tooltip>
-	</div>
 </template>
 
 <script setup>
@@ -356,15 +315,6 @@ const getPlaybackTextClasses = (option) => {
 
 const togglePlaybackOption = (option) => {
 	activeElement.value[option] = !activeElement.value[option]
-}
-
-const handleUploadSuccess = (file, type) => {
-	addMediaElement(file, type)
-	toast.success('Uploaded: ' + file.file_name)
-}
-
-const handleUploadFailure = () => {
-	toast.error('Upload failed. Please try again.')
 }
 
 const addBorder = (style) => {

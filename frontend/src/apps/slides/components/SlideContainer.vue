@@ -1,6 +1,12 @@
 <template>
-	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
-		<div ref="target" :style="targetStyles">
+	<div ref="slideContainer" class="flex w-full h-full">
+		<!-- when mounting place slide directly in the center of the visible container -->
+		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
+		<div
+			ref="target"
+			:style="targetStyles"
+			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
+		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" @click="stopDragging" />
 
@@ -15,21 +21,6 @@
 					:key="element.id"
 					:element="element"
 					:data-index="element.id"
-				/>
-			</div>
-
-			<!-- Slide Actions -->
-			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="emit('delete')" />
-				<Copy
-					size="14"
-					class="text-gray-800 stroke-[1.5]"
-					@click="(e) => emit('duplicate', e)"
-				/>
-				<SquarePlus
-					size="14"
-					class="text-gray-800 stroke-[1.5]"
-					@click="emit('insert', slideIndex)"
 				/>
 			</div>
 		</div>
@@ -67,8 +58,6 @@ import { usePanAndZoom } from '@/utils/zoom'
 const props = defineProps({
 	highlight: Boolean,
 })
-
-const emit = defineEmits(['insert', 'delete', 'duplicate'])
 
 let recentlySnapped = false
 let snapTimer = null
