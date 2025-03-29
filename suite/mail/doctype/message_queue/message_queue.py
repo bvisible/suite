@@ -143,7 +143,7 @@ def fetch_message_details(name: str) -> dict:
 		message = response.json()["data"]
 		message["recipients"] = extract_recipients(message)
 		message = format_message(message, cluster_name)
-		message["_message"] = fetch_blob(cluster_name, message["blob_hash"])
+		message["message"] = fetch_blob(cluster_name, message["blob_hash"])
 
 		return message
 
