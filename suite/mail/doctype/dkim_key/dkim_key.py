@@ -28,7 +28,7 @@ class DKIMKey(Document):
 			if self.has_value_changed("enabled"):
 				self.create_or_update_dns_record()
 				self.disable_existing_dkim_keys()
-				create_dkim_key_on_clusters(self.domain_name, self.rsa_private_key)
+				create_dkim_key_on_clusters(self.domain_name, self.get_password("rsa_private_key"))
 		elif self.has_value_changed("enabled"):
 			delete_dkim_key_from_clusters(self.domain_name)
 
@@ -86,18 +86,6 @@ def create_dkim_key(domain_name: str, rsa_key_size: int | None = None) -> "DKIMK
 	doc.save(ignore_permissions=True)
 
 	return doc
-
-
-def get_dkim_private_key(domain_name: str, raise_exception: bool = True) -> str | None:
-	"""Returns the DKIM private key for the given domain."""
-
-	private_key = frappe.db.get_value(
-		"DKIM Key", {"enabled": 1, "domain_name": domain_name}, "rsa_private_key"
-	)
-	if not private_key and raise_exception:
-		frappe.throw(_("DKIM Key not found for the domain {0}").format(frappe.bold(domain_name)))
-
-	return private_key
 
 
 def generate_dkim_keys(

@@ -12,7 +12,7 @@
   "rsa_key_size",
   "section_break_7lky",
   "rsa_private_key",
-  "column_break_67rr",
+  "section_break_mxxt",
   "rsa_public_key"
  ],
  "fields": [
@@ -61,11 +61,11 @@
   },
   {
    "fieldname": "rsa_private_key",
-   "fieldtype": "Text",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Private Key",
    "no_copy": 1,
-   "read_only": 1,
-   "set_only_once": 1
+   "read_only": 1
   },
   {
    "fieldname": "rsa_public_key",
@@ -80,8 +80,8 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "column_break_67rr",
-   "fieldtype": "Column Break"
+   "fieldname": "section_break_mxxt",
+   "fieldtype": "Section Break"
   }
  ],
  "in_create": 1,
@@ -93,7 +93,7 @@
    "link_fieldname": "attached_to_docname"
   }
  ],
- "modified": "2025-02-11 18:28:21.482653",
+ "modified": "2025-03-29 15:49:34.992080",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "DKIM Key",
@@ -112,6 +112,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
