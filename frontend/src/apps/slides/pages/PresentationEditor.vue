@@ -25,7 +25,7 @@
 
 			<DropTargetOverlay ref="dropTarget" />
 
-			<SlideElementsPanel />
+			<PropertiesPanel />
 
 			<Toolbar
 				@setHighlight="setHighlight"
@@ -48,7 +48,7 @@ import { Presentation } from 'lucide-vue-next'
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
-import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
+import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
