@@ -9,43 +9,9 @@
 
 		<ImageProperties v-else-if="activeTab == 'image'" />
 
+		<VideoProperties v-else-if="activeTab == 'video'" />
+
 		<div v-else>
-			<div v-if="activeTab == 'video'">
-				<div :class="sectionClasses">
-					<div :class="sectionTitleClasses">Playback</div>
-
-					<div class="flex gap-4">
-						<div
-							v-for="(option, index) in playbackProperties"
-							:key="index"
-							:class="getPlaybackOptionClasses(option.property)"
-							@mouseenter="hoverOption = option.property"
-							@mouseleave="hoverOption = null"
-							@click="togglePlaybackOption(option.property)"
-						>
-							<component
-								:is="option.icon"
-								size="20"
-								:strokeWidth="1.2"
-								:class="getPlaybackTextClasses(option.property)"
-							/>
-							<div class="text-xs" :class="getPlaybackTextClasses(option.property)">
-								{{ option.label }}
-							</div>
-						</div>
-					</div>
-
-					<SliderInput
-						label="Speed"
-						:rangeStart="0.5"
-						:rangeEnd="2"
-						:rangeStep="0.1"
-						:modelValue="parseFloat(activeElement.playbackRate) || 1"
-						@update:modelValue="(value) => (activeElement.playbackRate = value)"
-					/>
-				</div>
-			</div>
-
 			<div v-if="['image', 'video'].includes(activeTab)">
 				<div :class="sectionClasses">
 					<div :class="sectionTitleClasses">Border</div>
@@ -163,6 +129,8 @@ import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay, Ban } from 'lucid
 import SlideProperties from './SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from './ImageProperties.vue'
+import VideoProperties from './VideoProperties.vue'
+
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -179,39 +147,6 @@ const activeTab = computed(() => {
 
 const sectionClasses = 'flex flex-col gap-4 p-4 border-b'
 const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
-
-const hoverOption = ref(null)
-
-const playbackProperties = [
-	{
-		property: 'autoplay',
-		label: 'Autoplay',
-		icon: TvMinimalPlay,
-	},
-	{
-		property: 'loop',
-		label: 'Loop',
-		icon: Repeat2,
-	},
-]
-
-const getPlaybackOptionClasses = (option) => {
-	return {
-		'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
-		'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement.value[option],
-	}
-}
-
-const getPlaybackTextClasses = (option) => {
-	return {
-		'text-gray-800': hoverOption.value == option || activeElement.value[option],
-		'text-gray-600': hoverOption.value != option && !activeElement.value[option],
-	}
-}
-
-const togglePlaybackOption = (option) => {
-	activeElement.value[option] = !activeElement.value[option]
-}
 
 const addBorder = (style) => {
 	activeElement.value.borderStyle = style
