@@ -19,7 +19,7 @@
   "section_break_x3li",
   "recipients",
   "section_break_l6ts",
-  "_message"
+  "message"
  ],
  "fields": [
   {
@@ -61,12 +61,6 @@
    "in_standard_filter": 1,
    "label": "Cluster",
    "options": "Mail Cluster",
-   "read_only": 1
-  },
-  {
-   "fieldname": "_message",
-   "fieldtype": "Code",
-   "label": "Message",
    "read_only": 1
   },
   {
@@ -121,6 +115,12 @@
    "collapsible": 1,
    "fieldname": "section_break_nxzs",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Code",
+   "label": "Message",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -128,7 +128,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-03-28 18:46:42.754861",
+ "modified": "2025-03-29 11:15:11.453350",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Message Queue",
