@@ -3,28 +3,13 @@
 		class="fixed right-0 z-20 flex flex-col h-[94.35%] w-64 bg-white border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
 		@wheel.prevent
 	>
-		<div v-if="activeTab == 'slide'">
-			<SlideProperties />
-		</div>
+		<SlideProperties v-if="activeTab == 'slide'" />
+
+		<TextProperties v-else-if="activeTab == 'text'" />
+
+		<ImageProperties v-else-if="activeTab == 'image'" />
 
 		<div v-else>
-			<TextPropertyTab v-if="activeTab == 'text'" />
-
-			<div v-if="activeTab == 'image'">
-				<div :class="sectionClasses">
-					<div :class="sectionTitleClasses">Orientation</div>
-					<div
-						v-for="(direction, index) in imageOrientationProperties"
-						:key="index"
-						class="flex cursor-pointer items-center justify-between"
-						@click="toggleImageOrientation(direction)"
-					>
-						<div class="text-sm text-gray-600">{{ direction.label }}</div>
-						<component :is="direction.icon" size="20" :strokeWidth="1.2" />
-					</div>
-				</div>
-			</div>
-
 			<div v-if="activeTab == 'video'">
 				<div :class="sectionClasses">
 					<div :class="sectionTitleClasses">Playback</div>
@@ -176,7 +161,8 @@ import { FormControl } from 'frappe-ui'
 import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay, Ban } from 'lucide-vue-next'
 
 import SlideProperties from './SlideProperties.vue'
-import TextPropertyTab from '@/components/TextPropertyTab.vue'
+import TextProperties from '@/components/TextProperties.vue'
+import ImageProperties from './ImageProperties.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -190,23 +176,6 @@ const activeTab = computed(() => {
 	if (activeElement.value) return activeElement.value.type
 	return 'slide'
 })
-
-const imageOrientationProperties = [
-	{
-		property: 'invertX',
-		label: 'Flip Horizontal',
-		icon: FlipHorizontal,
-	},
-	{
-		property: 'invertY',
-		label: 'Flip Vertical',
-		icon: FlipVertical,
-	},
-]
-
-const toggleImageOrientation = (direction) => {
-	activeElement.value[direction.property] = activeElement.value[direction.property] === 1 ? -1 : 1
-}
 
 const sectionClasses = 'flex flex-col gap-4 p-4 border-b'
 const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
