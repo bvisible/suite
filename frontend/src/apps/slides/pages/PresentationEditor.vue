@@ -11,7 +11,7 @@
 		</Navbar>
 
 		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
-			<SlideNavigationPanel
+			<NavigationPanel
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
 				@insertSlide="insertSlide"
@@ -47,7 +47,7 @@ import { Presentation } from 'lucide-vue-next'
 
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
-import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
+import NavigationPanel from '@/components/NavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
