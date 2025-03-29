@@ -12,6 +12,7 @@
   "column_break_0mtp",
   "cluster",
   "server",
+  "base_url",
   "network_settings_section",
   "server_max_connections",
   "private_ipv4",
@@ -205,6 +206,12 @@
    "fieldtype": "Table",
    "label": "ACME Providers",
    "options": "Mail Server ACME Provider"
+  },
+  {
+   "description": "URL where HTTP requests are sent.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL"
   }
  ],
  "grid_page_length": 50,
@@ -216,7 +223,7 @@
    "link_fieldname": "server"
   }
  ],
- "modified": "2025-03-25 19:12:51.951090",
+ "modified": "2025-03-29 11:33:52.607394",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server",
