@@ -32,6 +32,8 @@
 			@update:modelValue="setPlaybackRate"
 		/>
 	</div>
+
+	<MediaProperties />
 </template>
 
 <script setup>
@@ -39,6 +41,7 @@ import { ref } from 'vue'
 
 import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
+import MediaProperties from './MediaProperties.vue'
 import SliderInput from './controls/SliderInput.vue'
 
 import { activeElement } from '@/stores/element'
