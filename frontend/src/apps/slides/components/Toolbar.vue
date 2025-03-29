@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="bg-white w-56 rounded-lg h-10 fixed bottom-10 left-[50%-144px] shadow-2xl flex items-center gap-1 p-1 justify-center"
+		class="bg-white w-56 rounded-lg h-10 fixed bottom-10 left-[calc(50%-144px)] shadow-2xl flex items-center gap-1 p-1 justify-center"
 	>
 		<Tooltip
 			v-for="option in contentActions"

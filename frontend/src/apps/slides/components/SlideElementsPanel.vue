@@ -211,58 +211,24 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { toast } from 'vue-sonner'
 
-import { Tooltip, FileUploader, FormControl } from 'frappe-ui'
-import {
-	FlipHorizontal,
-	FlipVertical,
-	Repeat2,
-	TvMinimalPlay,
-	Ban,
-	Type,
-	Image,
-	Film,
-	Layout,
-} from 'lucide-vue-next'
+import { FormControl } from 'frappe-ui'
+import { FlipHorizontal, FlipVertical, Repeat2, TvMinimalPlay, Ban } from 'lucide-vue-next'
 
 import TextPropertyTab from '@/components/TextPropertyTab.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
+import CollapsibleSection from './controls/CollapsibleSection.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, slideIndex, selectSlide } from '@/stores/slide'
-import {
-	activeElements,
-	activeElement,
-	focusElementId,
-	addTextElement,
-	addMediaElement,
-} from '@/stores/element'
-import CollapsibleSection from './controls/CollapsibleSection.vue'
+import { slide, slideIndex } from '@/stores/slide'
+import { activeElement } from '@/stores/element'
 
 const activeTab = computed(() => {
 	if (activeElement.value) return activeElement.value.type
 	return 'slide'
 })
-
-const getTabClasses = (tab) => {
-	const commonClasses = 'cursor-pointer p-4'
-	return {
-		[commonClasses]: true,
-		'bg-gray-100': activeTab.value == tab,
-	}
-}
-
-const getIconClasses = (tab) => {
-	const commonClass = 'stroke-[1.5]'
-	return {
-		[commonClass]: true,
-		'stroke-[1.6] text-black': activeTab.value == tab,
-		'text-gray-600': activeTab.value != tab,
-	}
-}
 
 const imageOrientationProperties = [
 	{
