@@ -1,6 +1,12 @@
 <template>
-	<div ref="slideContainer" class="slideContainer flex items-center justify-center w-full h-full">
-		<div ref="target" :style="targetStyles">
+	<div ref="slideContainer" class="flex w-full h-full">
+		<!-- when mounting place slide directly in the center of the visible container -->
+		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
+		<div
+			ref="target"
+			:style="targetStyles"
+			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
+		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" @click="stopDragging" />
 
@@ -17,21 +23,6 @@
 					:data-index="element.id"
 				/>
 			</div>
-
-			<!-- Slide Actions -->
-			<div class="fixed -bottom-12 right-0 cursor-pointer p-3 flex items-center gap-4">
-				<Trash size="14" class="text-gray-800 stroke-[1.5]" @click="emit('delete')" />
-				<Copy
-					size="14"
-					class="text-gray-800 stroke-[1.5]"
-					@click="(e) => emit('duplicate', e)"
-				/>
-				<SquarePlus
-					size="14"
-					class="text-gray-800 stroke-[1.5]"
-					@click="emit('insert', slideIndex)"
-				/>
-			</div>
 		</div>
 	</div>
 </template>
@@ -41,13 +32,12 @@ import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } fr
 import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
-import { Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import SlideElement from '@/components/SlideElement.vue'
 import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slideIndex, slide, selectSlide, slideBounds } from '@/stores/slide'
+import { slide, selectSlide, slideBounds } from '@/stores/slide'
 import {
 	activePosition,
 	activeDimensions,
@@ -67,8 +57,6 @@ import { usePanAndZoom } from '@/utils/zoom'
 const props = defineProps({
 	highlight: Boolean,
 })
-
-const emit = defineEmits(['insert', 'delete', 'duplicate'])
 
 let recentlySnapped = false
 let snapTimer = null
@@ -91,7 +79,7 @@ const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = useP
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
-	const outlineClasses = props.highlight ? ['outline', 'outline-1.5', 'outline-blue-400'] : []
+	const outlineClasses = props.highlight ? ['outline', 'outline-2', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
 	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
 

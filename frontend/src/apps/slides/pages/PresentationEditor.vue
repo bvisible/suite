@@ -11,7 +11,7 @@
 		</Navbar>
 
 		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
-			<SlideNavigationPanel
+			<NavigationPanel
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
 				@insertSlide="insertSlide"
@@ -19,35 +19,39 @@
 
 			<SlideContainer
 				ref="slideContainer"
-				:highlight="dropTargetRef?.isMediaDragOver"
-				@insert="insertSlide"
-				@duplicate="duplicateSlide"
-				@delete="deleteSlide"
+				:highlight="highlightSlide"
 				@dragenter="handleMediaDragEnter"
 			/>
 
 			<DropTargetOverlay ref="dropTarget" />
 
-			<SlideElementsPanel />
+			<PropertiesPanel />
+
+			<Toolbar
+				@setHighlight="setHighlight"
+				@insert="insertSlide"
+				@duplicate="duplicateSlide"
+				@delete="deleteSlide"
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
 
 import { call } from 'frappe-ui'
 
-import { Presentation, Save } from 'lucide-vue-next'
+import { Presentation } from 'lucide-vue-next'
 
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
-import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
-import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
+import NavigationPanel from '@/components/NavigationPanel.vue'
+import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
+import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
@@ -60,7 +64,6 @@ import {
 	duplicateElements,
 	addTextElement,
 	selectAllElements,
-	activePosition,
 	activeElements,
 	toggleTextProperty,
 } from '@/stores/element'
@@ -82,6 +85,15 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
+const showHighlight = ref(false)
+
+const highlightSlide = computed(() => {
+	return dropTargetRef.value?.isMediaDragOver || showHighlight.value
+})
+
+const setHighlight = (value) => {
+	showHighlight.value = value
+}
 
 const handleArrowKeys = (key) => {
 	let dx = 0
@@ -244,6 +256,7 @@ const performSlideAction = async (action, index) => {
 }
 
 const insertSlide = async (index) => {
+	if (!index) index = slideIndex.value
 	await performSlideAction('insert', index)
 	changeSlide(index + 1)
 }

@@ -1,0 +1,86 @@
+<template>
+	<div :class="sectionClasses">
+		<div :class="sectionTitleClasses">Playback</div>
+
+		<div class="flex gap-4">
+			<div
+				v-for="(option, index) in playbackProperties"
+				:key="index"
+				:class="getPlaybackOptionClasses(option.property)"
+				@mouseenter="hoverOption = option.property"
+				@mouseleave="hoverOption = null"
+				@click="togglePlaybackOption(option.property)"
+			>
+				<component
+					:is="option.icon"
+					size="20"
+					:strokeWidth="1.2"
+					:class="getPlaybackTextClasses(option.property)"
+				/>
+				<div class="text-xs" :class="getPlaybackTextClasses(option.property)">
+					{{ option.label }}
+				</div>
+			</div>
+		</div>
+
+		<SliderInput
+			label="Speed"
+			:rangeStart="0.5"
+			:rangeEnd="2"
+			:rangeStep="0.1"
+			:modelValue="parseFloat(activeElement.playbackRate) || 1"
+			@update:modelValue="setPlaybackRate"
+		/>
+	</div>
+
+	<MediaProperties />
+</template>
+
+<script setup>
+import { ref } from 'vue'
+
+import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
+
+import MediaProperties from './MediaProperties.vue'
+import SliderInput from './controls/SliderInput.vue'
+
+import { activeElement } from '@/stores/element'
+import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
+
+const hoverOption = ref(null)
+
+const playbackProperties = [
+	{
+		property: 'autoplay',
+		label: 'Autoplay',
+		icon: TvMinimalPlay,
+	},
+	{
+		property: 'loop',
+		label: 'Loop',
+		icon: Repeat2,
+	},
+]
+
+const getPlaybackOptionClasses = (option) => {
+	return {
+		'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
+		'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement.value[option],
+	}
+}
+
+const getPlaybackTextClasses = (option) => {
+	return {
+		'text-gray-800': hoverOption.value == option || activeElement.value[option],
+		'text-gray-600': hoverOption.value != option && !activeElement.value[option],
+	}
+}
+
+const togglePlaybackOption = (option) => {
+	activeElement.value[option] = !activeElement.value[option]
+}
+
+const setPlaybackRate = (value) => {
+	activeElement.value.playbackRate = value
+}
+</script>
