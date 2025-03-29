@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import base64
+import json
 
 import frappe
 from frappe import _
@@ -282,6 +283,42 @@ class MailCluster(Document):
 			frappe.throw(error)
 
 		return f"api_{base64.b64encode(f'{name}:{secret}'.encode()).decode()}"
+
+	@frappe.whitelist()
+	def reload_servers_config(self) -> None:
+		"""Reloads the Mail Cluster servers configuration."""
+
+		frappe.only_for("System Manager")
+
+		if not self.enabled:
+			frappe.throw(_("Mail Cluster {0} is disabled.").format(frappe.bold(self.name)))
+
+		servers = frappe.db.get_all("Mail Server", filters={"cluster": self.name, "enabled": 1}, pluck="name")
+		for server in servers:
+			server = frappe.get_cached_doc("Mail Server", server)
+			server.reload_config()
+
+
+@frappe.whitelist()
+def reload_servers_config(clusters: str | list[str]) -> None:
+	"""Reloads the Mail Cluster servers configuration."""
+
+	frappe.only_for("System Manager")
+
+	if isinstance(clusters, str):
+		clusters = json.loads(clusters)
+
+	reloaded_clusters = []
+	for cluster in clusters:
+		cluster = frappe.get_cached_doc("Mail Cluster", cluster)
+		if cluster.enabled:
+			cluster.reload_servers_config()
+			reloaded_clusters.append(cluster.name)
+		else:
+			frappe.msgprint(_("Mail Cluster {0} is disabled.").format(frappe.bold(cluster.name)), alert=True)
+
+	if reloaded_clusters:
+		frappe.msgprint(_("Servers Configuration reloaded."), alert=True)
 
 
 def get_storage_labels() -> dict:

@@ -114,21 +114,29 @@ frappe.ui.form.on('Mail Cluster', {
 	add_actions(frm) {
 		if (frm.doc.__islocal) return
 
-		if (frm.doc.admin_password) {
-			if (!frappe.user_roles.includes('System Manager')) return
+		if (!frappe.user_roles.includes('System Manager')) return
 
+		if (frm.doc.admin_password) {
 			frm.add_custom_button(__('Show Password'), () => {
 				frm.trigger('show_password')
 			})
 		}
 
 		if (frm.doc.base_url) {
-			if (!frappe.user_roles.includes('System Manager')) return
-
 			frm.add_custom_button(
 				__('Generate API Key'),
 				() => {
 					frm.trigger('generate_api_key')
+				},
+				__('Actions'),
+			)
+		}
+
+		if (frm.doc.enabled && !frm.is_dirty()) {
+			frm.add_custom_button(
+				__('Reload Servers Configuration'),
+				() => {
+					frm.trigger('reload_servers_config')
 				},
 				__('Actions'),
 			)
@@ -157,6 +165,21 @@ frappe.ui.form.on('Mail Cluster', {
 			freeze_message: __('Generating API Key...'),
 			callback: (r) => {
 				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	reload_servers_config(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'reload_servers_config',
+			freeze: true,
+			freeze_message: __('Reloading Servers Configuration...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frappe.show_alert(__('Servers Configuration reloaded.'), 5)
 					frm.refresh()
 				}
 			},
