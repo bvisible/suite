@@ -109,19 +109,6 @@ def get_mail_server_api(cluster_name: str) -> MailServerAPI:
 	)
 
 
-def reload_configuration(clusters: list[str] | None = None) -> None:
-	"""Reloads the configuration on all the clusters."""
-
-	clusters = clusters or get_clusters()
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster,
-			method="GET",
-			endpoint="/api/reload",
-			do_not_enqueue=True,
-		)
-
-
 def block_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
 	"""Blocks an IP address on all the clusters."""
 
