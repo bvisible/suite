@@ -30,6 +30,16 @@ frappe.ui.form.on('Mail Server', {
 			},
 			__('Actions'),
 		)
+
+		if (frm.doc.enabled && !frm.is_dirty()) {
+			frm.add_custom_button(
+				__('Reload Configuration'),
+				() => {
+					frm.trigger('reload_config')
+				},
+				__('Actions'),
+			)
+		}
 	},
 
 	generate_config(frm) {
@@ -38,6 +48,20 @@ frappe.ui.form.on('Mail Server', {
 			method: 'generate_config',
 			freeze: true,
 			freeze_message: __('Generating Mail Server Config...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	reload_config(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'reload_config',
+			freeze: true,
+			freeze_message: __('Reloading Mail Server Config...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
