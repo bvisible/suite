@@ -3,10 +3,6 @@
 		ref="mediaDropContainer"
 		class="fixed flex h-screen w-screen flex-col select-none"
 		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
-		@dragenter.prevent="handleDragEnter"
-		@dragleave.prevent="handleDragLeave"
-		@dragover.prevent
-		@drop="handleMediaDrop"
 	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
@@ -23,11 +19,14 @@
 
 			<SlideContainer
 				ref="slideContainer"
-				:highlight="isMediaDragOver"
+				:highlight="dropTargetRef?.isMediaDragOver"
 				@insert="insertSlide"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide"
+				@dragenter="handleMediaDragEnter"
 			/>
+
+			<DropTargetOverlay ref="dropTarget" />
 
 			<SlideElementsPanel />
 		</div>
@@ -39,7 +38,7 @@ import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
-import { FileUploadHandler, call } from 'frappe-ui'
+import { call } from 'frappe-ui'
 
 import { Presentation, Save } from 'lucide-vue-next'
 
@@ -48,9 +47,10 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
+import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 
-import { presentationId, presentation, applyReverseTransition } from '@/stores/presentation'
-import { slide, slideIndex, saveChanges, updateSlideState, loadSlide } from '@/stores/slide'
+import { presentationId, presentation } from '@/stores/presentation'
+import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -59,12 +59,10 @@ import {
 	deleteElements,
 	duplicateElements,
 	addTextElement,
-	addMediaElement,
 	selectAllElements,
 	activePosition,
 	activeElements,
 	toggleTextProperty,
-	updateActivePosition,
 } from '@/stores/element'
 
 import html2canvas from 'html2canvas'
@@ -81,10 +79,9 @@ const route = useRoute()
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
-const mediaDropContainerRef = useTemplateRef('mediaDropContainer')
+const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
-const isMediaDragOver = ref(false)
 
 const handleArrowKeys = (key) => {
 	let dx = 0
@@ -96,6 +93,17 @@ const handleArrowKeys = (key) => {
 	else if (key == 'ArrowDown') dy = 1
 
 	slideContainerRef.value.applyMovement({ dx, dy })
+}
+
+const saveSlide = (e) => {
+	e.preventDefault()
+	resetAndSave()
+}
+
+const toggleSlideNavigator = () => {
+	if (!activeElementIds.value.length || activeElement.value.type != 'text') {
+		showNavigator.value = !showNavigator.value
+	}
 }
 
 const handleElementShortcuts = (e) => {
@@ -111,13 +119,16 @@ const handleElementShortcuts = (e) => {
 			deleteElements(e)
 			break
 		case 'd':
-			if (e.metaKey) duplicateElements(e)
+			if (e.metaKey) duplicateElements(e, activeElements.value)
 			break
 		case 'i':
 			if (e.metaKey) toggleTextProperty('fontStyle', 'italic')
 			break
 		case 'u':
 			if (e.metaKey) toggleTextProperty('textDecoration', 'underline')
+			break
+		case 'b':
+			if (e.metaKey) toggleTextProperty('fontWeight', 'bold')
 			break
 	}
 }
@@ -149,20 +160,13 @@ const handleGlobalShortcuts = (e) => {
 			addTextElement()
 			break
 		case 'b':
-			if (e.metaKey) {
-				if (activeElementIds.value.length && activeElement.value.type == 'text')
-					return toggleTextProperty('fontWeight', 'bold')
-				showNavigator.value = !showNavigator.value
-			}
+			if (e.metaKey) toggleSlideNavigator()
 			break
 		case 'a':
 			if (e.metaKey) selectAllElements()
 			break
 		case 's':
-			if (e.metaKey) {
-				e.preventDefault()
-				resetAndSave()
-			}
+			if (e.metaKey) saveSlide(e)
 			break
 	}
 }
@@ -174,47 +178,6 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
-const handleDragEnter = (e) => {
-	e.preventDefault()
-	isMediaDragOver.value = true
-}
-
-const handleDragLeave = (e) => {
-	e.preventDefault()
-	if (!mediaDropContainerRef.value.contains(e.relatedTarget)) {
-		isMediaDragOver.value = false
-	}
-}
-
-const fileUploadHandler = new FileUploadHandler()
-
-const uploadFiles = (files) => {
-	files.forEach((file, index) => {
-		const fileType = file.type.split('/')[0]
-		if (!['image', 'video'].includes(fileType)) return
-
-		setTimeout(() => {
-			toast.promise(
-				fileUploadHandler.upload(file, { private: false }).then((fileDoc) => {
-					addMediaElement(fileDoc, fileType)
-				}),
-				{
-					loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
-					success: (data) => `Uploaded: ${file.name}`,
-					error: (data) => 'Upload failed. Please try again.',
-				},
-			)
-		}, 100)
-	})
-}
-
-const handleMediaDrop = async (e) => {
-	e.preventDefault()
-	isMediaDragOver.value = false
-	const files = e.dataTransfer.files
-	uploadFiles(files)
-}
-
 const startSlideShow = () => {
 	resetAndSave()
 
@@ -223,15 +186,6 @@ const startSlideShow = () => {
 		params: { presentationId: presentationId.value },
 	})
 }
-
-watch(
-	() => route.params.presentationId,
-	(id) => {
-		if (!id) return
-		presentationId.value = id
-	},
-	{ immediate: true },
-)
 
 const handleAutoSave = () => {
 	if (activeElementIds.value.length || focusElementId.value != null) return
@@ -247,7 +201,10 @@ const changeSlide = async (index, updateCurrent = true) => {
 
 	nextTick(async () => {
 		// update the current slide along with thumbnail
-		if (updateCurrent) slideIndex.value = index
+		if (updateCurrent) {
+			await saveChanges()
+		}
+		slideIndex.value = index
 		loadSlide()
 
 		// re-enable pan and zoom
@@ -276,6 +233,9 @@ const performSlideAction = async (action, index) => {
 	}
 
 	resetFocus()
+
+	// make sure nextTick call completes before completing the action
+	// to ensure slide index is not updated before the action is completed
 	await nextTick(async () => {
 		await saveChanges()
 		await call(url, args)
@@ -307,6 +267,20 @@ const resetAndSave = () => {
 		saveChanges()
 	})
 }
+
+const handleMediaDragEnter = (e) => {
+	e.preventDefault()
+	dropTargetRef.value.handleDragEnter(e)
+}
+
+watch(
+	() => route.params.presentationId,
+	(id) => {
+		if (!id) return
+		presentationId.value = id
+	},
+	{ immediate: true },
+)
 
 onMounted(() => {
 	autosaveInterval = setInterval(handleAutoSave, 60000)
