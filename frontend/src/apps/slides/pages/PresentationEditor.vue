@@ -19,22 +19,26 @@
 
 			<SlideContainer
 				ref="slideContainer"
-				:highlight="dropTargetRef?.isMediaDragOver"
-				@insert="insertSlide"
-				@duplicate="duplicateSlide"
-				@delete="deleteSlide"
+				:highlight="highlightSlide"
 				@dragenter="handleMediaDragEnter"
 			/>
 
 			<DropTargetOverlay ref="dropTarget" />
 
 			<SlideElementsPanel />
+
+			<Toolbar
+				@setHighlight="setHighlight"
+				@insert="insertSlide"
+				@duplicate="duplicateSlide"
+				@delete="deleteSlide"
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
@@ -48,6 +52,7 @@ import SlideNavigationPanel from '@/components/SlideNavigationPanel.vue'
 import SlideElementsPanel from '@/components/SlideElementsPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
+import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
@@ -82,6 +87,15 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
+const showHighlight = ref(false)
+
+const highlightSlide = computed(() => {
+	return dropTargetRef.value?.isMediaDragOver || showHighlight.value
+})
+
+const setHighlight = (value) => {
+	showHighlight.value = value
+}
 
 const handleArrowKeys = (key) => {
 	let dx = 0
@@ -244,6 +258,7 @@ const performSlideAction = async (action, index) => {
 }
 
 const insertSlide = async (index) => {
+	if (!index) index = slideIndex.value
 	await performSlideAction('insert', index)
 	changeSlide(index + 1)
 }
