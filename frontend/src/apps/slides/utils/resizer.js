@@ -92,7 +92,9 @@ export const useResizer = (position, resizeDimensions) => {
 				break
 		}
 
-		if (resizeMode.value == 'both' && newWidth > 75 * slideBounds.scale) {
+		const widthLimit = resizeMode.value == 'width' ? 20 : 75
+
+		if (newWidth > widthLimit * slideBounds.scale) {
 			resizeDimensions.value = { width: newWidth }
 			position.value = { left: newLeft, top: newTop }
 		}
