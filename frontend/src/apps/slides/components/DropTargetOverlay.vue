@@ -15,6 +15,7 @@ import { toast } from 'vue-sonner'
 
 import { FileUploadHandler } from 'frappe-ui'
 
+import { presentationId } from '@/stores/presentation'
 import { addMediaElement } from '@/stores/element'
 
 const overlayRef = useTemplateRef('overlay')
@@ -38,7 +39,7 @@ const fileUploadHandler = new FileUploadHandler()
 const uploadMedia = (file, fileType) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
-			.upload(file, { private: false })
+			.upload(file, { doctype: 'Presentation', docname: presentationId.value, private: true })
 			.then((fileDoc) => {
 				addMediaElement(fileDoc, fileType)
 				resolve(fileDoc)

@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+import { call } from 'frappe-ui'
+
 import { session } from '@/stores/session'
 
 const routes = [
@@ -17,6 +20,11 @@ const routes = [
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
 	},
+	{
+		path: '/not-permitted',
+		name: 'NotPermitted',
+		component: () => import('@/pages/errorPages/NotPermitted.vue'),
+	}
 ]
 
 let router = createRouter({
@@ -24,14 +32,40 @@ let router = createRouter({
 	routes,
 })
 
+const hasAccess = async (presentationId: string) => {
+	try {
+		const response = await call('frappe.client.has_permission', {
+			doctype: 'Presentation',
+			docname: presentationId,
+			perm_type: 'write',
+		})
+		return response.has_permission
+	} catch (error) {
+		console.error('Permission check failed:', error)
+		return false
+	}
+}
+
 router.beforeEach(async (to, _, next) => {
-	let isLoggedIn = session.isLoggedIn
-	if (to.path === '/login' && isLoggedIn) {
-		next({ name: 'Home' })
-	} else if (to.path !== '/login' && !isLoggedIn) {
-		window.location.href = '/login?redirect-to=' + to.path
-	} else {
+	const isLoggedIn = session.isLoggedIn
+
+	if (!isLoggedIn) {
+		if (to.path !== '/login') window.location.href = '/login?redirect-to=' + to.path
 		next()
+	} else {
+		if (to.path === '/login') {
+			next({ name: 'Home' })
+		} else if (['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
+			const canAccess = await hasAccess(to.params.presentationId as string)
+
+			if (canAccess) {
+				next()
+			} else {
+				next({ name: 'NotPermitted' })
+			}
+		} else {
+			next()
+		}
 	}
 })
 
