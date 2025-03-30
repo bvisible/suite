@@ -42,14 +42,14 @@ const setActiveElements = (ids, focus = false) => {
 	}
 }
 
-const addTextElement = () => {
+const addTextElement = (text) => {
 	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
 
 	const element = {
 		id: generateUniqueId(),
 		left: 100,
 		top: 100,
-		content: 'Text',
+		content: text || 'Text',
 		type: 'text',
 		textAlign: 'center',
 	}
@@ -243,6 +243,8 @@ const handleCopy = (e) => {
 const pasteText = (clipboardText) => {
 	if (activeElement.value) {
 		document.execCommand('insertText', false, clipboardText)
+	} else {
+		addTextElement(clipboardText)
 	}
 }
 
