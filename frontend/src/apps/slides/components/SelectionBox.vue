@@ -168,8 +168,8 @@ const cropSelectionToFitContent = (elementIds) => {
 
 	bounds.left = l
 	bounds.top = t
-	bounds.width = r - l
-	bounds.height = b - t
+	bounds.width = r - l + 1
+	bounds.height = b - t + 1
 }
 
 const resetSelection = (oldVal) => {
