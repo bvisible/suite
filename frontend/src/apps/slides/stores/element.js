@@ -241,9 +241,10 @@ const handleCopy = (e) => {
 }
 
 const pasteText = (clipboardText) => {
-	if (activeElement.value) {
+	if (focusElementId.value) {
 		document.execCommand('insertText', false, clipboardText)
 	} else {
+		resetFocus()
 		addTextElement(clipboardText)
 	}
 }
