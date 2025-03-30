@@ -23,6 +23,7 @@ import {
 	setActiveElements,
 	activeElement,
 } from '@/stores/element'
+import { inSlideShow } from '@/stores/presentation'
 
 const element = defineModel('element', {
 	type: Object,
@@ -72,6 +73,8 @@ const focusOnElement = (e) => {
 }
 
 const selectElement = (e) => {
+	if (inSlideShow.value) return
+
 	e.stopPropagation()
 
 	// avoid the click event from firing after a drag
