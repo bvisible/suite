@@ -46,8 +46,8 @@ import {
 	updateActivePosition,
 	setActivePosition,
 	resizeElement,
-	copyElements,
-	pasteElements,
+	handleCopy,
+	handlePaste,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -328,8 +328,8 @@ watch(
 onMounted(() => {
 	if (!slideRef.value) return
 	updateSlideBounds()
-	document.addEventListener('copy', copyElements)
-	document.addEventListener('paste', pasteElements)
+	document.addEventListener('copy', handleCopy)
+	document.addEventListener('paste', handlePaste)
 })
 
 provide('slideDiv', slideRef)
