@@ -66,6 +66,7 @@ const handleVideoClick = (e) => {
 	// in editor, toggle playing only when center play button is clicked
 
 	if (inSlideShow.value || (isActive && e.target !== el.value)) {
+		e.stopPropagation()
 		togglePlaying()
 	}
 
