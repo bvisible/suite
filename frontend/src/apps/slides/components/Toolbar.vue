@@ -3,7 +3,7 @@
 		class="bg-white w-48 rounded-lg h-10 fixed bottom-10 left-[calc(50%-128px)] shadow-2xl flex items-center gap-1 p-1 justify-center"
 	>
 		<Tooltip text="Text" :hover-delay="0.7" placement="bottom">
-			<div class="p-2 rounded hover:bg-gray-100 cursor-pointer" @click="addTextElement">
+			<div class="p-2 rounded hover:bg-gray-100 cursor-pointer" @click="addTextElement(null)">
 				<Type size="16" class="stroke-[1.5]" />
 			</div>
 		</Tooltip>
