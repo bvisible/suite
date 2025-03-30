@@ -1,5 +1,4 @@
 import { watch, ref, computed } from 'vue'
-import { handleSingleAndDoubleClick } from './helpers'
 
 export const useResizer = (position, resizeDimensions) => {
 	const resizeTarget = ref(null)
@@ -119,19 +118,16 @@ export const useResizer = (position, resizeDimensions) => {
 		resizeDimensions.value = { width: textWidth + 10 }
 	}
 
-	const handleDoubleClick = (e) => {
-		e.stopImmediatePropagation()
-		handleSingleAndDoubleClick(e, startResize, resizeToFitContent)
-	}
-
 	const addResizers = (el) => {
 		resizeHandles.value.forEach((handle) => {
 			const resizer = document.createElement('div')
 			resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
 
 			// add double click event to fit content based on type of element
-			const mousedownHandler = resizeMode.value == 'width' ? handleDoubleClick : startResize
-			resizer.addEventListener('mousedown', mousedownHandler)
+			if (resizeMode.value == 'width') {
+				resizer.addEventListener('dblclick', resizeToFitContent)
+			}
+			resizer.addEventListener('mousedown', startResize)
 
 			el.appendChild(resizer)
 		})
