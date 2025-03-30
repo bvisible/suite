@@ -20,6 +20,11 @@ const routes = [
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
 	},
+	{
+		path: '/not-permitted',
+		name: 'NotPermitted',
+		component: () => import('@/pages/errorPages/NotPermitted.vue'),
+	}
 ]
 
 let router = createRouter({
@@ -54,7 +59,9 @@ router.beforeEach(async (to, _, next) => {
 			const canAccess = await hasAccess(to.params.presentationId as string)
 
 			if (canAccess) {
-				return next()
+				next()
+			} else {
+				next({ name: 'NotPermitted' })
 			}
 		} else {
 			next()
