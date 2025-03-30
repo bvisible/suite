@@ -1,4 +1,5 @@
 import { watch, ref, computed } from 'vue'
+import { slideBounds } from '../stores/slide'
 
 export const useResizer = (position, resizeDimensions) => {
 	const resizeTarget = ref(null)
@@ -91,8 +92,10 @@ export const useResizer = (position, resizeDimensions) => {
 				break
 		}
 
-		resizeDimensions.value = { width: newWidth }
-		position.value = { left: newLeft, top: newTop }
+		if (resizeMode.value == 'both' && newWidth > 75 * slideBounds.scale) {
+			resizeDimensions.value = { width: newWidth }
+			position.value = { left: newLeft, top: newTop }
+		}
 
 		prevX = e.clientX
 		prevY = e.clientY
