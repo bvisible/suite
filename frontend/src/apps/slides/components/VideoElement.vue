@@ -4,7 +4,7 @@
 			ref="videoElement"
 			:src="element.src"
 			:style="videoStyle"
-			:autoplay="inSlideShow ? element.autoPlay : false"
+			:autoplay="inSlideShow ? element.autoplay : false"
 			:loop="element.loop"
 			:playbackRate="element.playbackRate"
 		/>
