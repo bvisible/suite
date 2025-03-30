@@ -34,7 +34,11 @@ class MessageQueue(Document):
 		cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
 
 		if cluster:
-			return fetch_messages(cluster, limit=page_length, text=text)
+			messages = fetch_messages(cluster, limit=page_length, text=text)
+			if not messages:
+				frappe.msgprint(_("No messages found."), alert=True)
+
+			return messages
 
 		frappe.msgprint(_("Please select a cluster to view messages."), alert=True)
 		return []
