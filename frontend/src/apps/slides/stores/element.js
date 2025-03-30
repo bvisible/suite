@@ -224,23 +224,45 @@ const getElementPosition = (elementId) => {
 	}
 }
 
-const copyElements = (e) => {
-	e.preventDefault()
-	const elements = JSON.parse(JSON.stringify(activeElements.value))
-	elements.forEach((element) => {
+const getCopiedJSON = () => {
+	const elementsCopy = JSON.parse(JSON.stringify(activeElements.value))
+	elementsCopy.forEach((element) => {
 		const { left, top } = getElementPosition(element.id)
 		element.left = left
 		element.top = top
 	})
-	const clipboardText = JSON.stringify(elements)
-	e.clipboardData.setData('text/plain', clipboardText)
+	return JSON.stringify(elementsCopy)
 }
 
-const pasteElements = (e) => {
+const handleCopy = (e) => {
 	e.preventDefault()
-	const clipboardText = e.clipboardData.getData('text/plain')
-	const elements = JSON.parse(clipboardText)
+	const clipboardJSON = getCopiedJSON()
+	e.clipboardData.setData('application/json', clipboardJSON)
+}
+
+const pasteText = (clipboardText) => {
+	if (activeElement.value) {
+		document.execCommand('insertText', false, clipboardText)
+	}
+}
+
+const pasteElements = (e, clipboardJSON) => {
+	const elements = JSON.parse(clipboardJSON)
 	duplicateElements(e, elements)
+}
+
+const handlePaste = (e) => {
+	e.preventDefault()
+
+	const clipboardText = e.clipboardData.getData('text/plain')
+	if (clipboardText) {
+		return pasteText(clipboardText)
+	}
+
+	const clipboardJSON = e.clipboardData.getData('application/json')
+	if (clipboardJSON) {
+		return pasteElements(e, clipboardJSON)
+	}
 }
 
 export {
@@ -264,6 +286,6 @@ export {
 	setActivePosition,
 	updateActivePosition,
 	getElementPosition,
-	copyElements,
-	pasteElements,
+	handleCopy,
+	handlePaste,
 }
