@@ -15,7 +15,7 @@
 import { computed, nextTick } from 'vue'
 
 import { inSlideShow } from '@/stores/presentation'
-import { focusElementId } from '@/stores/element'
+import { focusElementId, deleteElements } from '@/stores/element'
 import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const element = defineModel('element', {
@@ -69,6 +69,9 @@ const setCursorPosition = (e) => {
 }
 
 const handleBlur = (e) => {
+	if (element.value.content.trim() === '') {
+		deleteElements()
+	}
 	element.value.content = e.target.innerText
 }
 </script>
