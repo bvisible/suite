@@ -23,7 +23,7 @@
 				class="flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 shadow-lg shadow-gray-100 hover:border-blue-400 hover:bg-blue-50"
 				@click="emit('insertSlide', presentation.data.slides.length - 1)"
 			>
-				<Plus size="14" class="stroke-[1.5]" />
+				<LucidePlus class="h-3.5 w-3.5" />
 			</div>
 		</div>
 
@@ -45,7 +45,7 @@
 		class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
 		@click="toggleNavigator"
 	>
-		<ChevronRight size="14" class="stroke-[1.5]" />
+		<LucideChevronRight class="h-3.5 w-3.5" />
 	</div>
 </template>
 
@@ -53,8 +53,6 @@
 import { ref, computed } from 'vue'
 
 import { call } from 'frappe-ui'
-
-import { Plus, ChevronRight } from 'lucide-vue-next'
 
 import Draggable from 'vuedraggable'
 

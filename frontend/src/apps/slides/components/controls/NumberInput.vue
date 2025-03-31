@@ -14,21 +14,19 @@
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
 				@click="modelValue + rangeStep <= props.rangeEnd && (modelValue += rangeStep)"
 			>
-				<ChevronUp size="12" class="stroke-[1.5]" />
+				<LucideChevronUp class="h-3 w-3" />
 			</button>
 			<button
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-br bg-white hover:bg-gray-200"
 				@click="modelValue - rangeStep >= props.rangeStart && (modelValue -= rangeStep)"
 			>
-				<ChevronDown size="12" class="stroke-[1.5]" />
+				<LucideChevronDown class="h-3 w-3" />
 			</button>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ChevronUp, ChevronDown } from 'lucide-vue-next'
-
 const props = defineProps({
 	prefix: String,
 	suffix: String,
