@@ -12,7 +12,7 @@
 				:class="activeElement.borderStyle == style ? 'bg-white shadow' : ''"
 				@click="addBorder(style)"
 			>
-				<Ban v-if="style == 'none'" size="16" class="stroke-[1.5] text-black" />
+				<LucideBan v-if="style == 'none'" class="h-4 w-4" />
 				<div
 					v-else
 					class="h-4 w-5 rounded-sm border border-black"
@@ -90,8 +90,6 @@
 </template>
 
 <script setup>
-import { Ban } from 'lucide-vue-next'
-
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
