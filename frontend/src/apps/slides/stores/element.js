@@ -96,7 +96,7 @@ const addMediaElement = (file, type) => {
 		shadowColor: '#000000',
 	}
 	if (type == 'video') {
-		element.autoPlay = false
+		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
 	}

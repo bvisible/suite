@@ -135,8 +135,8 @@ const handlePositionChange = (position) => {
 		return
 	}
 	selectionBoxRef.value.setBoxBounds({
-		left: position.left - slideBounds.left,
-		top: position.top - slideBounds.top,
+		left: (position.left - slideBounds.left) / slideBounds.scale,
+		top: (position.top - slideBounds.top) / slideBounds.scale,
 	})
 }
 

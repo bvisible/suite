@@ -1,5 +1,5 @@
 import { watch, ref, computed } from 'vue'
-import { handleSingleAndDoubleClick } from './helpers'
+import { slideBounds } from '../stores/slide'
 
 export const useResizer = (position, resizeDimensions) => {
 	const resizeTarget = ref(null)
@@ -92,8 +92,12 @@ export const useResizer = (position, resizeDimensions) => {
 				break
 		}
 
-		resizeDimensions.value = { width: newWidth }
-		position.value = { left: newLeft, top: newTop }
+		const widthLimit = resizeMode.value == 'width' ? 20 : 75
+
+		if (newWidth > widthLimit * slideBounds.scale) {
+			resizeDimensions.value = { width: newWidth }
+			position.value = { left: newLeft, top: newTop }
+		}
 
 		prevX = e.clientX
 		prevY = e.clientY
@@ -119,19 +123,16 @@ export const useResizer = (position, resizeDimensions) => {
 		resizeDimensions.value = { width: textWidth + 10 }
 	}
 
-	const handleDoubleClick = (e) => {
-		e.stopImmediatePropagation()
-		handleSingleAndDoubleClick(e, startResize, resizeToFitContent)
-	}
-
 	const addResizers = (el) => {
 		resizeHandles.value.forEach((handle) => {
 			const resizer = document.createElement('div')
 			resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
 
 			// add double click event to fit content based on type of element
-			const mousedownHandler = resizeMode.value == 'width' ? handleDoubleClick : startResize
-			resizer.addEventListener('mousedown', mousedownHandler)
+			if (resizeMode.value == 'width') {
+				resizer.addEventListener('dblclick', resizeToFitContent)
+			}
+			resizer.addEventListener('mousedown', startResize)
 
 			el.appendChild(resizer)
 		})
