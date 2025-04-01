@@ -5,14 +5,26 @@ from frappe.utils.caching import redis_cache
 
 
 @frappe.whitelist(allow_guest=True)
+def get_signup_settings() -> dict:
+	"""Returns client signup settings."""
+
+	return frappe.db.get_value(
+		"Mail Settings", None, ["allow_self_signup", "allow_personal_signup"], as_dict=True
+	)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_personal_signup_domains() -> dict:
+	"""Returns personal signup domains."""
+
+	return frappe.get_all("Personal Signup Domain", pluck="domain_name")
+
+
+@frappe.whitelist(allow_guest=True)
 def get_branding() -> dict:
 	"""Returns branding information."""
 
-	return {
-		"brand_name": frappe.db.get_single_value("Website Settings", "app_name"),
-		"brand_html": frappe.db.get_single_value("Website Settings", "brand_html"),
-		"favicon": frappe.db.get_single_value("Website Settings", "favicon"),
-	}
+	return frappe.db.get_value("Website Settings", None, ["app_name", "brand_html", "favicon"], as_dict=True)
 
 
 @frappe.whitelist(allow_guest=True)
