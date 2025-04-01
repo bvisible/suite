@@ -23,7 +23,7 @@
 			</router-link>
 		</div>
 		<ErrorMessage :message="login.error" />
-		<Button variant="solid" :loading="login.loading">{{ __('Log In ') }} </Button>
+		<Button variant="solid" :loading="login.loading" :label="__('Log In')" />
 	</form>
 	<div class="mt-6 text-center">
 		<router-link class="text-center text-base font-medium hover:underline" to="/signup">
