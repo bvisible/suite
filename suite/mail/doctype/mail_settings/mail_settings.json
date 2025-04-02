@@ -468,19 +468,19 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
+   "depends_on": "eval: doc.allow_personal_signup",
    "description": "Domains allowed for personal signup.",
    "fieldname": "personal_signup_domains",
    "fieldtype": "Table MultiSelect",
    "label": "Personal Signup Domains",
-   "mandatory_depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
+   "mandatory_depends_on": "eval: doc.allow_personal_signup",
    "options": "Personal Signup Domain"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-01 15:18:57.461442",
+ "modified": "2025-04-01 18:29:29.589339",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",
