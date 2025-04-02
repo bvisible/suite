@@ -25,7 +25,13 @@
 		<ErrorMessage :message="login.error" />
 		<Button variant="solid" :loading="login.loading" :label="__('Log In')" />
 	</form>
-	<div class="mt-6 text-center">
+	<div
+		v-if="
+			Number(signupSettings.data?.allow_personal_signup) ||
+			Number(signupSettings.data?.allow_self_signup)
+		"
+		class="mt-6 text-center"
+	>
 		<router-link class="text-center text-base font-medium hover:underline" to="/signup">
 			{{ __('New member? Create an account.') }}
 		</router-link>
@@ -33,7 +39,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Button, ErrorMessage, FormControl } from 'frappe-ui'
+import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
 import { sessionStore } from '@/stores/session'
 
@@ -41,4 +47,6 @@ const { login } = sessionStore()
 
 const usr = ref('')
 const pwd = ref('')
+
+const signupSettings = createResource({ url: 'mail.api.get_signup_settings', auto: true })
 </script>
