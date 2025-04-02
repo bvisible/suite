@@ -1,5 +1,22 @@
 <template>
-	<form class="flex flex-col space-y-4" @submit.prevent="signup.submit">
+	<form
+		v-if="$route.name === 'SignUp'"
+		class="flex flex-col space-y-4"
+		@submit.prevent="router.push(`/signup/${accountType}`)"
+	>
+		<FormControl
+			v-model="accountType"
+			type="select"
+			:label="__('What type of account do you need?')"
+			:options="[
+				{ value: 'personal', label: __('Personal (For individual use)') },
+				{ value: 'business', label: __('Business (For work or company use)') },
+			]"
+			class="w-full"
+		/>
+		<Button variant="solid" :label="__('Next')" />
+	</form>
+	<form v-else class="flex flex-col space-y-4" @submit.prevent="signup.submit">
 		<FormControl
 			v-model="user.first_name"
 			type="text"
@@ -68,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button, ErrorMessage, FeatherIcon, FormControl, createResource } from 'frappe-ui'
 
@@ -76,6 +93,8 @@ import { sessionStore } from '@/stores/session'
 
 const router = useRouter()
 const { login } = sessionStore()
+
+const accountType = ref('personal')
 
 const user = reactive({
 	first_name: '',
@@ -86,19 +105,20 @@ const user = reactive({
 	password: '',
 })
 
-const signupSettings = createResource({
+createResource({
 	url: 'mail.api.get_signup_settings',
 	auto: true,
-	cache: 'signupSettings',
 	onSuccess: (data) => {
-		if (!Number(data.allow_personal_signup)) router.push('/signup/business')
+		if (!Number(data.allow_personal_signup)) {
+			if (Number(data.allow_self_signup)) router.push('/signup/business')
+			else router.push('/login')
+		} else if (!Number(data.allow_self_signup)) router.push('/signup/personal')
 	},
 })
 
 const personalSignupDomains = createResource({
 	url: 'mail.api.get_personal_signup_domains',
 	auto: true,
-	cache: 'personalSignupDomains',
 	onSuccess: (data) => {
 		if (data.length === 1) user.domain = data[0]
 	},

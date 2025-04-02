@@ -93,6 +93,14 @@ const buttonLabel = computed(() => {
 	return __(isVerificationStep.value ? 'Verify' : 'Sign Up')
 })
 
+createResource({
+	url: 'mail.api.get_signup_settings',
+	auto: true,
+	onSuccess: (data) => {
+		if (!Number(data.allow_self_signup)) router.push('/signup')
+	},
+})
+
 const signUp = createResource({
 	url: 'mail.api.account.self_signup',
 	makeParams: () => ({ email: email.value }),
