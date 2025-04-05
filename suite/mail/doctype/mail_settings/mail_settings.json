@@ -87,10 +87,10 @@
    "fieldname": "dns_provider",
    "fieldtype": "Select",
    "label": "DNS Provider",
-   "options": "\nDigitalOcean"
+   "options": "\nDigitalOcean\nHetzner"
   },
   {
-   "depends_on": "eval: doc.dns_provider",
+   "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Hetzner\"].includes(doc.dns_provider)",
    "description": "The token used to authenticate with your DNS provider.",
    "fieldname": "dns_provider_token",
    "fieldtype": "Password",
@@ -481,7 +481,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-05 18:38:08.624542",
+ "modified": "2025-04-05 21:31:05.380931",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

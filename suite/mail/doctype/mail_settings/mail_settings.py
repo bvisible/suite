@@ -40,8 +40,12 @@ class MailSettings(Document):
 	def validate_dns_provider(self) -> None:
 		"""Validates the DNS Provider."""
 
-		if self.dns_provider and not self.dns_provider_token:
-			frappe.throw(_("Please set the DNS Provider Token."))
+		if not self.dns_provider:
+			return
+
+		if self.dns_provider in ["DigitalOcean", "Hetzner"]:
+			if not self.dns_provider_token:
+				frappe.throw(_("Please set the DNS Provider Token."))
 
 	def validate_spf_host(self) -> None:
 		"""Validates the SPF Host."""
