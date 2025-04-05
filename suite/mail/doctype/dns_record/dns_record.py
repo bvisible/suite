@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import cint, now
 
 from mail.mail.doctype.dns_record.dns_provider import DNSProvider
+from mail.utils import password_or_none
 from mail.utils.cache import get_root_domain_name
 from mail.utils.dns import verify_dns_record
 
@@ -64,14 +65,9 @@ class DNSRecord(Document):
 		"""Creates or Updates the DNS Record in the DNS Provider"""
 
 		result = False
-		mail_settings = frappe.get_single("Mail Settings")
+		dns_provider = get_dns_provider()
 
-		if mail_settings.dns_provider:
-			dns_provider = DNSProvider(
-				provider=mail_settings.dns_provider,
-				domain=mail_settings.root_domain_name,
-				token=mail_settings.get_password("dns_provider_token"),
-			)
+		if dns_provider:
 			result = dns_provider.create_or_update_dns_record(
 				type=self.type,
 				host=self.host,
@@ -85,16 +81,11 @@ class DNSRecord(Document):
 	def delete_record_from_dns_provider(self) -> None:
 		"""Deletes the DNS Record from the DNS Provider"""
 
-		mail_settings = frappe.get_single("Mail Settings")
+		dns_provider = get_dns_provider()
 
-		if not mail_settings.dns_provider:
+		if not dns_provider:
 			return
 
-		dns_provider = DNSProvider(
-			provider=mail_settings.dns_provider,
-			domain=mail_settings.root_domain_name,
-			token=mail_settings.get_password("dns_provider_token"),
-		)
 		dns_provider.delete_dns_record(type=self.type, host=self.host)
 
 	def get_fqdn(self) -> str:
@@ -183,6 +174,24 @@ def verify_all_dns_records() -> None:
 	for dns_record in dns_records:
 		dns_record = frappe.get_doc("DNS Record", dns_record)
 		dns_record.verify_dns_record(save=True)
+
+
+def get_dns_provider(mail_settings: str | None = None) -> DNSProvider | None:
+	"""Returns an instance of the DNS Provider"""
+
+	mail_settings = mail_settings or frappe.get_single("Mail Settings")
+
+	if not mail_settings.dns_provider:
+		return
+
+	return DNSProvider(
+		provider=mail_settings.dns_provider,
+		domain=mail_settings.root_domain_name,
+		username=mail_settings.dns_provider_username,
+		password=password_or_none(mail_settings, "dns_provider_password"),
+		token=password_or_none(mail_settings, "dns_provider_token"),
+		zone_id=mail_settings.dns_provider_zone_id,
+	)
 
 
 def after_doctype_insert() -> None:

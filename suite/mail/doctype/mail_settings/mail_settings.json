@@ -6,9 +6,13 @@
  "field_order": [
   "section_break_hrww",
   "root_domain_name",
-  "spf_host",
   "column_break_4ccc",
+  "spf_host",
+  "dns_provider_section",
   "dns_provider",
+  "column_break_pntn",
+  "dns_provider_username",
+  "dns_provider_zone_id",
   "dns_provider_token",
   "section_break_l9un",
   "default_dkim_rsa_key_size",
@@ -87,15 +91,15 @@
    "fieldname": "dns_provider",
    "fieldtype": "Select",
    "label": "DNS Provider",
-   "options": "\nDigitalOcean\nHetzner\nLinode"
+   "options": "\nDigitalOcean\nCloudflare\nHetzner\nLinode"
   },
   {
-   "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Hetzner\", \"Linode\"].includes(doc.dns_provider)",
+   "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\"].includes(doc.dns_provider)",
    "description": "The token used to authenticate with your DNS provider.",
    "fieldname": "dns_provider_token",
    "fieldtype": "Password",
-   "label": "DNS Provider Token",
-   "mandatory_depends_on": "eval: doc.dns_provider"
+   "label": "Token",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\"].includes(doc.dns_provider)"
   },
   {
    "fieldname": "section_break_hrww",
@@ -476,12 +480,33 @@
    "label": "Personal Signup Domains",
    "mandatory_depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
    "options": "Personal Signup Domain"
+  },
+  {
+   "fieldname": "column_break_pntn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dns_provider_section",
+   "fieldtype": "Section Break",
+   "label": "DNS Provider"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"Cloudflare\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_username",
+   "fieldtype": "Data",
+   "label": "Username"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"Cloudflare\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_zone_id",
+   "fieldtype": "Data",
+   "label": "Zone ID"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-05 21:41:46.101896",
+ "modified": "2025-04-05 22:15:49.514416",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

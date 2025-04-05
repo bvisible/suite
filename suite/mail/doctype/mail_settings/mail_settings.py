@@ -43,7 +43,7 @@ class MailSettings(Document):
 		if not self.dns_provider:
 			return
 
-		if self.dns_provider in ["DigitalOcean", "Hetzner", "Linode"]:
+		if self.dns_provider in ["DigitalOcean", "Cloudflare", "Hetzner", "Linode"]:
 			if not self.dns_provider_token:
 				frappe.throw(_("Please set the DNS Provider Token."))
 
