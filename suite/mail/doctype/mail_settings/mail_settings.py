@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from mail.mail.doctype.dns_record.dns_record import get_dns_provider
 from mail.utils.validation import is_valid_host
 
 
@@ -46,6 +47,9 @@ class MailSettings(Document):
 		if self.dns_provider in ["DigitalOcean", "Cloudflare", "Hetzner", "Linode"]:
 			if not self.dns_provider_token:
 				frappe.throw(_("Please set the DNS Provider Token."))
+
+		dns_provider = get_dns_provider(self)
+		dns_provider.read_dns_records("A")
 
 	def validate_spf_host(self) -> None:
 		"""Validates the SPF Host."""
