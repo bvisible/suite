@@ -66,13 +66,13 @@ class DNSRecord(Document):
 		result = False
 		mail_settings = frappe.get_single("Mail Settings")
 
-		if mail_settings.dns_provider and mail_settings.dns_provider_token:
+		if mail_settings.dns_provider:
 			dns_provider = DNSProvider(
 				provider=mail_settings.dns_provider,
+				domain=mail_settings.root_domain_name,
 				token=mail_settings.get_password("dns_provider_token"),
 			)
 			result = dns_provider.create_or_update_dns_record(
-				domain=mail_settings.root_domain_name,
 				type=self.type,
 				host=self.host,
 				value=self.value,
@@ -87,14 +87,15 @@ class DNSRecord(Document):
 
 		mail_settings = frappe.get_single("Mail Settings")
 
-		if not mail_settings.dns_provider or not mail_settings.dns_provider_token:
+		if not mail_settings.dns_provider:
 			return
 
 		dns_provider = DNSProvider(
 			provider=mail_settings.dns_provider,
+			domain=mail_settings.root_domain_name,
 			token=mail_settings.get_password("dns_provider_token"),
 		)
-		dns_provider.delete_dns_record(domain=mail_settings.root_domain_name, type=self.type, host=self.host)
+		dns_provider.delete_dns_record(type=self.type, host=self.host)
 
 	def get_fqdn(self) -> str:
 		"""Returns the Fully Qualified Domain Name"""
