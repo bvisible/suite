@@ -1,143 +1,168 @@
-from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Literal
 
-import digitalocean
+from lexicon.client import Client
 
 
-class BaseDNSProvider(ABC):
-	"""An abstract base class for DNS providers."""
-
-	@abstractmethod
-	def create_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
-	) -> bool:
-		"""Creates a DNS record."""
-		pass
-
-	@abstractmethod
-	def read_dns_records(self, domain: str) -> list:
-		"""Reads DNS records for a domain."""
-		pass
-
-	@abstractmethod
-	def update_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
-	) -> bool:
-		"""Updates a DNS record."""
-		pass
-
-	@abstractmethod
-	def delete_dns_record(self, domain: str, type: str, host: str) -> bool:
-		"""Deletes a DNS record."""
-		pass
+class DNSProviderEnum(str, Enum):
+	AMAZON_ROUTE53 = "AmazonRoute53"
+	DIGITALOCEAN = "DigitalOcean"
+	CLOUDFLARE = "Cloudflare"
+	HETZNER = "Hetzner"
+	LINODE = "Linode"
+	NAMECHEAP = "Namecheap"
+	GODADDY = "GoDaddy"
 
 
-class DigitalOceanDNS(BaseDNSProvider):
-	"""A DNS provider for DigitalOcean."""
+DNSProviderLiteral = Literal[
+	DNSProviderEnum.AMAZON_ROUTE53,
+	DNSProviderEnum.DIGITALOCEAN,
+	DNSProviderEnum.CLOUDFLARE,
+	DNSProviderEnum.HETZNER,
+	DNSProviderEnum.LINODE,
+	DNSProviderEnum.NAMECHEAP,
+	DNSProviderEnum.GODADDY,
+]
 
-	def __init__(self, token: str) -> None:
-		"""Initializes the DigitalOceanDNS provider."""
 
-		self.token = token
-
-	def create_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
-	) -> bool:
-		"""Creates a DNS record."""
-
-		record = (
-			digitalocean.Domain(token=self.token, name=domain)
-			.create_new_domain_record(type=type, name=host, data=value, priority=priority, ttl=ttl)
-			.get("domain_record", {})
-		)
-		return bool(record.get("id"))
-
-	def read_dns_records(self, domain: str) -> list:
-		"""Reads DNS records for a domain."""
-
-		return digitalocean.Domain(token=self.token, name=domain).get_records()
-
-	def update_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
-	) -> bool:
-		"""Updates a DNS record."""
-
-		records = self.read_dns_records(domain)
-		for record in records:
-			if record.name == host and record.type == type:
-				if record.data == value:
-					return True
-
-				record.data = value
-				record.priority = priority
-				record.ttl = ttl
-				record.save()
-
-				return True
-
-		return False
-
-	def delete_dns_record(self, domain: str, type: str, host: str) -> bool:
-		"""Deletes a DNS record."""
-
-		records = self.read_dns_records(domain)
-
-		if not records:
-			return True
-
-		for record in records:
-			if record.name == host and record.type == type:
-				record.destroy()
-				return True
-
-		return False
+DNS_PROVIDER_MAP = {
+	DNSProviderEnum.AMAZON_ROUTE53: "route53",
+	DNSProviderEnum.DIGITALOCEAN: "digitalocean",
+	DNSProviderEnum.CLOUDFLARE: "cloudflare",
+	DNSProviderEnum.HETZNER: "hetzner",
+	DNSProviderEnum.LINODE: "linode4",
+	DNSProviderEnum.NAMECHEAP: "namecheap",
+	DNSProviderEnum.GODADDY: "godaddy",
+}
 
 
 class DNSProvider:
-	"""A DNS provider class that uses a specific DNS provider."""
+	"""A DNS provider utility wrapper using Lexicon to interact with major DNS services."""
 
-	def __init__(self, provider: Literal["DigitalOcean"], token: str) -> None:
-		"""Initializes the DNS provider with the specified provider and token."""
+	def __init__(
+		self,
+		provider: DNSProviderLiteral,
+		domain: str,
+		username: str | None = None,
+		password: str | None = None,
+		token: str | None = None,
+	) -> None:
+		"""Initializes the DNSProvider with credentials and domain."""
 
-		self.provider = self._get_dns_provider(provider, token)
-
-	def _get_dns_provider(self, provider: str, token: str) -> BaseDNSProvider:
-		"""Returns the DNS provider based on the provider name."""
-
-		if provider == "DigitalOcean":
-			return DigitalOceanDNS(token=token)
-		else:
+		if provider not in DNS_PROVIDER_MAP:
 			raise ValueError(f"Unsupported DNS Provider: {provider}")
 
-	def create_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
-	) -> bool:
-		"""Creates a DNS record."""
+		self.provider = DNS_PROVIDER_MAP[provider]
+		self.domain = domain
+		self.__username = username
+		self.__password = password
+		self.__token = token
 
-		return self.provider.create_dns_record(domain, type, host, value, ttl, priority)
+	def get_client(self, config: dict) -> Client:
+		"""Internal helper to return a configured Lexicon client."""
 
-	def read_dns_records(self, domain: str) -> list:
-		"""Reads DNS records for a domain."""
+		config.update(
+			{
+				"provider_name": self.provider,
+				"domain": self.domain,
+				"auth_token": self.__token,
+				"auth_username": self.__username,
+				"auth_password": self.__password,
+			}
+		)
+		client = Client(config)
+		return client
 
-		return self.provider.read_dns_records(domain)
+	def create_dns_record(self, type: str, host: str, value: str, ttl: int, priority: int = 0) -> bool:
+		"""Creates a new DNS record."""
+
+		config = {
+			"action": "create",
+			"type": type,
+			"name": host,
+			"content": value,
+			"ttl": ttl,
+			"priority": priority,
+		}
+		client = self.get_client(config)
+		return client.execute()
+
+	def read_dns_records(self, type: str, host: str | None = None) -> list[dict]:
+		"""Fetches DNS records matching type and optional host."""
+
+		config = {
+			"action": "list",
+		}
+		if type:
+			config["type"] = type
+		if host:
+			config["name"] = host
+
+		client = self.get_client(config)
+		return client.execute()
 
 	def update_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
+		self,
+		type: str,
+		host: str,
+		value: str,
+		ttl: int,
+		priority: int = 0,
+		record_id: int | str | None = None,
 	) -> bool:
-		"""Updates a DNS record."""
+		"""Updates an existing DNS record."""
 
-		return self.provider.update_dns_record(domain, type, host, value, ttl, priority)
+		if not record_id:
+			records = self.read_dns_records(type=type, host=host)
+			if not records:
+				raise ValueError(f"No record found for {host}")
 
-	def delete_dns_record(self, domain: str, type: str, host: str) -> bool:
-		"""Deletes a DNS record."""
+			record_id = records[0]["id"]
 
-		return self.provider.delete_dns_record(domain, type, host)
+		config = {
+			"action": "update",
+			"type": type,
+			"name": host,
+			"content": value,
+			"ttl": ttl,
+			"priority": priority,
+			"identifier": record_id,
+		}
+		client = self.get_client(config)
+		return client.execute()
+
+	def delete_dns_record(self, type: str, host: str, delete_all: bool = False) -> bool:
+		"""Deletes DNS record(s) for a given type and host."""
+
+		records = self.read_dns_records(type=type, host=host)
+		if not records:
+			return True
+
+		success = True
+
+		for record in records if delete_all else [records[0]]:
+			config = {
+				"action": "delete",
+				"type": type,
+				"name": host,
+				"identifier": record["id"],
+			}
+			client = self.get_client(config)
+			try:
+				client.execute()
+			except Exception:
+				success = False
+
+		return success
 
 	def create_or_update_dns_record(
-		self, domain: str, type: str, host: str, value: str, ttl: int, priority: int = 0
+		self, type: str, host: str, value: str, ttl: int, priority: int = 0
 	) -> bool:
-		"""Creates or updates a DNS record based on the existence of the record."""
+		"""Creates a new record if none exists; otherwise, updates the first matching record."""
 
-		return self.update_dns_record(domain, type, host, value, ttl, priority) or self.create_dns_record(
-			domain, type, host, value, ttl, priority
-		)
+		records = self.read_dns_records(type=type, host=host)
+		if records:
+			record_id = records[0]["id"]
+			return self.update_dns_record(type, host, value, ttl, priority, record_id=record_id)
+		else:
+			return self.create_dns_record(type, host, value, ttl, priority)
