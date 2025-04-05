@@ -46,6 +46,7 @@ class DNSProvider:
 		username: str | None = None,
 		password: str | None = None,
 		token: str | None = None,
+		zone_id: str | None = None,
 	) -> None:
 		"""Initializes the DNSProvider with credentials and domain."""
 
@@ -57,6 +58,7 @@ class DNSProvider:
 		self.__username = username
 		self.__password = password
 		self.__token = token
+		self.zone_id = zone_id
 
 	def get_client(self, config: dict) -> Client:
 		"""Internal helper to return a configured Lexicon client."""
@@ -65,9 +67,10 @@ class DNSProvider:
 			{
 				"provider_name": self.provider,
 				"domain": self.domain,
-				"auth_token": self.__token,
 				"auth_username": self.__username,
 				"auth_password": self.__password,
+				"auth_token": self.__token,
+				"zone_id": self.zone_id,
 			}
 		)
 		client = Client(config)
