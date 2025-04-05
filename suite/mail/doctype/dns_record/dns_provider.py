@@ -30,7 +30,7 @@ DNS_PROVIDER_MAP = {
 	DNSProviderEnum.DIGITALOCEAN: "digitalocean",
 	DNSProviderEnum.CLOUDFLARE: "cloudflare",
 	DNSProviderEnum.HETZNER: "hetzner",
-	DNSProviderEnum.LINODE: "linode4",
+	DNSProviderEnum.LINODE: "linode",
 	DNSProviderEnum.NAMECHEAP: "namecheap",
 	DNSProviderEnum.GODADDY: "godaddy",
 }
