@@ -14,6 +14,8 @@
   "dns_provider_username",
   "dns_provider_zone_id",
   "dns_provider_token",
+  "dns_provider_key",
+  "dns_provider_secret",
   "section_break_l9un",
   "default_dkim_rsa_key_size",
   "default_newsletter_retention",
@@ -91,7 +93,7 @@
    "fieldname": "dns_provider",
    "fieldtype": "Select",
    "label": "DNS Provider",
-   "options": "\nDigitalOcean\nCloudflare\nHetzner\nLinode"
+   "options": "\nDigitalOcean\nCloudflare\nHetzner\nLinode\nGoDaddy"
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\"].includes(doc.dns_provider)",
@@ -501,12 +503,26 @@
    "fieldname": "dns_provider_zone_id",
    "fieldtype": "Data",
    "label": "Zone ID"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_key",
+   "fieldtype": "Data",
+   "label": "Key",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_secret",
+   "fieldtype": "Password",
+   "label": "Secret",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-05 22:15:49.514416",
+ "modified": "2025-04-05 22:36:33.521732",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

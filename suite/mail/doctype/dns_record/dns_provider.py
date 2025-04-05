@@ -45,6 +45,8 @@ class DNSProvider:
 		domain: str,
 		username: str | None = None,
 		password: str | None = None,
+		auth_key: str | None = None,
+		auth_secret: str | None = None,
 		token: str | None = None,
 		zone_id: str | None = None,
 	) -> None:
@@ -57,6 +59,8 @@ class DNSProvider:
 		self.domain = domain
 		self.__username = username
 		self.__password = password
+		self.__auth_key = auth_key
+		self.__auth_secret = auth_secret
 		self.__token = token
 		self.zone_id = zone_id
 
@@ -69,6 +73,8 @@ class DNSProvider:
 				"domain": self.domain,
 				"auth_username": self.__username,
 				"auth_password": self.__password,
+				"auth_key": self.__auth_key,
+				"auth_secret": self.__auth_secret,
 				"auth_token": self.__token,
 				"zone_id": self.zone_id,
 			}
