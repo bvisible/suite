@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from mail.mail.doctype.dns_record.dns_record import get_dns_provider
 from mail.utils.validation import is_valid_host
 
 
@@ -19,6 +20,7 @@ class MailSettings(Document):
 		self.clear_cache()
 
 		if self.has_value_changed("root_domain_name"):
+			self.handle_root_domain_change()
 			create_dmarc_dns_record_for_external_domains()
 
 	def validate_root_domain_name(self) -> None:
@@ -26,22 +28,30 @@ class MailSettings(Document):
 
 		self.root_domain_name = self.root_domain_name.lower()
 
-		if self.has_value_changed("root_domain_name"):
-			frappe.db.set_value("DNS Record", {"is_verified": 1}, "is_verified", 0)
-
-			if self.get_doc_before_save().get("root_domain_name"):
-				dns_record_list_link = f'<a href="/app/dns-record">{_("DNS Records")}</a>'
-				frappe.msgprint(
-					_("Please verify the {0} for the new {1} to ensure proper email authentication.").format(
-						dns_record_list_link, frappe.bold("Root Domain Name")
-					)
-				)
-
 	def validate_dns_provider(self) -> None:
 		"""Validates the DNS Provider."""
 
-		if self.dns_provider and not self.dns_provider_token:
-			frappe.throw(_("Please set the DNS Provider Token."))
+		if not self.dns_provider:
+			return
+
+		match self.dns_provider:
+			case "AmazonRoute53":
+				if not self.dns_provider_access_key or not self.dns_provider_access_secret:
+					frappe.throw(_("Please set the DNS Provider Access Key and Secret."))
+
+			case "DigitalOcean" | "Cloudflare" | "Hetzner" | "Linode" | "Namecheap":
+				if not self.dns_provider_token:
+					frappe.throw(_("Please set the DNS Provider Token."))
+				elif self.dns_provider == "Namecheap":
+					if not self.dns_provider_username or not self.dns_provider_client_ip:
+						frappe.throw(_("Please set the DNS Provider Username and Client IP."))
+
+			case "GoDaddy":
+				if not self.dns_provider_key or not self.dns_provider_secret:
+					frappe.throw(_("Please set the DNS Provider Key and Secret."))
+
+		dns_provider = get_dns_provider(self)
+		dns_provider.read_dns_records("A")
 
 	def validate_spf_host(self) -> None:
 		"""Validates the SPF Host."""
@@ -90,6 +100,19 @@ class MailSettings(Document):
 				frappe.throw(
 					_("Mail Domain {0} is not verified.").format(frappe.bold(signup_domain.domain_name))
 				)
+
+	def handle_root_domain_change(self) -> None:
+		"""Resets DNS Record verification and notifies user after root domain change."""
+
+		frappe.db.set_value("DNS Record", {"is_verified": 1}, "is_verified", 0)
+
+		if self.has_value_changed("root_domain_name"):
+			dns_record_list_link = f'<a href="/app/dns-record">{_("DNS Records")}</a>'
+			frappe.msgprint(
+				_("Please verify the {0} for the new {1} to ensure proper email authentication.").format(
+					dns_record_list_link, frappe.bold("Root Domain Name")
+				)
+			)
 
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""

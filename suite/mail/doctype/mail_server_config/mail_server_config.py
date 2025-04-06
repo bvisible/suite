@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
-from mail.utils import flatten_dict
+from mail.utils import flatten_dict, password_or_none
 
 LOCAL_KEYS = [
 	"store.*",
@@ -98,9 +98,6 @@ def get_config_toml(server: str) -> str | None:
 
 	def wrap_in_triple_quotes(value: str) -> str:
 		return f"'''{value}'''"
-
-	def password_or_none(doc, field: str) -> str | None:
-		return doc.get_password(field) if doc.get(field) else None
 
 	def split_lines(value: str) -> list:
 		return value.split("\n")
