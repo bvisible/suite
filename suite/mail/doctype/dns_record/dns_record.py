@@ -192,6 +192,7 @@ def get_dns_provider(mail_settings: str | None = None) -> DNSProvider | None:
 		auth_key=mail_settings.dns_provider_key,
 		auth_secret=password_or_none(mail_settings, "dns_provider_secret"),
 		token=password_or_none(mail_settings, "dns_provider_token"),
+		client_ip=mail_settings.dns_provider_client_ip,
 		zone_id=mail_settings.dns_provider_zone_id,
 	)
 
