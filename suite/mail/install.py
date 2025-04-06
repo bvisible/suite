@@ -22,8 +22,6 @@ def add_rate_limits() -> None:
 		# mail.api.admin
 		{"method_path": "mail.api.admin.verify_dns_record", "limit": 10, "seconds": 60 * 60},
 		{"method_path": "mail.api.admin.add_member", "limit": 10, "seconds": 60 * 60},
-		# mail.api.blacklist
-		{"method_path": "mail.api.blacklist.get", "limit": 180, "seconds": 60 * 60},
 		# mail.api.inbound
 		{"method_path": "mail.api.inbound.pull", "limit": 10, "seconds": 60},
 		{"method_path": "mail.api.inbound.pull_raw", "limit": 10, "seconds": 60},
