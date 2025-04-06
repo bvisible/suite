@@ -13,8 +13,11 @@ from mail.utils import extract_filter_values, rename_keys
 
 
 class BlockedIP(Document):
+	def autoname(self) -> None:
+		self.name = f"{self.cluster}-{self.ip_address}"
+
 	def db_insert(self, *args, **kwargs) -> None:
-		raise NotImplementedError
+		add_blocked_ip(self.cluster, self.ip_address)
 
 	def load_from_db(self) -> "BlockedIP":
 		blocked_ip = fetch_blocked_ip_details(self.name)
@@ -61,6 +64,34 @@ def get_total_cache_key(cluster_name: str, text: str | None = None) -> str:
 
 	text = text or ""
 	return f"{cluster_name}:blocked-ip:{text}:total"
+
+
+def add_blocked_ip(cluster_name: str, ip_address: str | list) -> None:
+	"""Adds a blocked ip to the mail server."""
+
+	if isinstance(ip_address, str):
+		ip_address = [ip_address]
+
+	request_data = []
+	for ip in ip_address:
+		request_data.append(
+			{
+				"type": "insert",
+				"prefix": None,
+				"values": [[f"server.blocked-ip.{ip}", ""]],
+				"assert_empty": True,
+			}
+		)
+
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(
+		method="POST",
+		endpoint="/api/settings",
+		data=json.dumps(request_data),
+	)
+
+	if response.status_code != 200:
+		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
 
 
 def fetch_blocked_ips(cluster_name: str, page: int = 1, limit: int = 10, text: str | None = None) -> list:
