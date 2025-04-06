@@ -11,12 +11,15 @@
   "dns_provider_section",
   "dns_provider",
   "column_break_pntn",
-  "dns_provider_username",
-  "dns_provider_client_ip",
   "dns_provider_zone_id",
-  "dns_provider_token",
+  "dns_provider_access_key",
+  "dns_provider_access_secret",
   "dns_provider_key",
   "dns_provider_secret",
+  "dns_provider_username",
+  "dns_provider_client_ip",
+  "dns_provider_token",
+  "dns_provider_private_zone",
   "section_break_l9un",
   "default_dkim_rsa_key_size",
   "default_newsletter_retention",
@@ -94,7 +97,7 @@
    "fieldname": "dns_provider",
    "fieldtype": "Select",
    "label": "DNS Provider",
-   "options": "\nDigitalOcean\nCloudflare\nHetzner\nLinode\nNamecheap\nGoDaddy"
+   "options": "\nAmazonRoute53\nDigitalOcean\nCloudflare\nHetzner\nLinode\nNamecheap\nGoDaddy"
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\", \"Namecheap\"].includes(doc.dns_provider)",
@@ -501,7 +504,7 @@
    "mandatory_depends_on": "eval: doc.dns_provider && [\"Namecheap\"].includes(doc.dns_provider)"
   },
   {
-   "depends_on": "eval: doc.dns_provider && [\"Cloudflare\"].includes(doc.dns_provider)",
+   "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\", \"Cloudflare\"].includes(doc.dns_provider)",
    "fieldname": "dns_provider_zone_id",
    "fieldtype": "Data",
    "label": "Zone ID"
@@ -526,12 +529,34 @@
    "fieldtype": "Data",
    "label": "Client IP",
    "mandatory_depends_on": "eval: doc.dns_provider && [\"Namecheap\"].includes(doc.dns_provider)"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_private_zone",
+   "fieldtype": "Check",
+   "label": "Private Zone",
+   "options": "0"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_access_key",
+   "fieldtype": "Data",
+   "label": "Access Key",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_access_secret",
+   "fieldtype": "Password",
+   "label": "Access Secret",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-06 09:28:05.330178",
+ "modified": "2025-04-06 10:14:46.572759",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

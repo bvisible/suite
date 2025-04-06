@@ -187,13 +187,15 @@ def get_dns_provider(mail_settings: str | None = None) -> DNSProvider | None:
 	return DNSProvider(
 		provider=mail_settings.dns_provider,
 		domain=mail_settings.root_domain_name,
-		username=mail_settings.dns_provider_username,
-		password=password_or_none(mail_settings, "dns_provider_password"),
+		access_key=mail_settings.dns_provider_access_key,
+		access_secret=password_or_none(mail_settings, "dns_provider_access_secret"),
 		auth_key=mail_settings.dns_provider_key,
 		auth_secret=password_or_none(mail_settings, "dns_provider_secret"),
+		username=mail_settings.dns_provider_username,
 		token=password_or_none(mail_settings, "dns_provider_token"),
 		client_ip=mail_settings.dns_provider_client_ip,
 		zone_id=mail_settings.dns_provider_zone_id,
+		private_zone=bool(mail_settings.dns_provider_private_zone),
 	)
 
 
