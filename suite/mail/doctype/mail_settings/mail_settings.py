@@ -20,23 +20,13 @@ class MailSettings(Document):
 		self.clear_cache()
 
 		if self.has_value_changed("root_domain_name"):
+			self.handle_root_domain_change()
 			create_dmarc_dns_record_for_external_domains()
 
 	def validate_root_domain_name(self) -> None:
 		"""Validates the Root Domain Name."""
 
 		self.root_domain_name = self.root_domain_name.lower()
-
-		if self.has_value_changed("root_domain_name"):
-			frappe.db.set_value("DNS Record", {"is_verified": 1}, "is_verified", 0)
-
-			if self.get_doc_before_save().get("root_domain_name"):
-				dns_record_list_link = f'<a href="/app/dns-record">{_("DNS Records")}</a>'
-				frappe.msgprint(
-					_("Please verify the {0} for the new {1} to ensure proper email authentication.").format(
-						dns_record_list_link, frappe.bold("Root Domain Name")
-					)
-				)
 
 	def validate_dns_provider(self) -> None:
 		"""Validates the DNS Provider."""
@@ -110,6 +100,19 @@ class MailSettings(Document):
 				frappe.throw(
 					_("Mail Domain {0} is not verified.").format(frappe.bold(signup_domain.domain_name))
 				)
+
+	def handle_root_domain_change(self) -> None:
+		"""Resets DNS Record verification and notifies user after root domain change."""
+
+		frappe.db.set_value("DNS Record", {"is_verified": 1}, "is_verified", 0)
+
+		if self.has_value_changed("root_domain_name"):
+			dns_record_list_link = f'<a href="/app/dns-record">{_("DNS Records")}</a>'
+			frappe.msgprint(
+				_("Please verify the {0} for the new {1} to ensure proper email authentication.").format(
+					dns_record_list_link, frappe.bold("Root Domain Name")
+				)
+			)
 
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
