@@ -158,6 +158,20 @@ def convert_html_to_text(html: str) -> str:
 	return text
 
 
+def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
+	"""Extracts specific filter values from a filter list based on given conditions."""
+
+	values = {list(condition.keys())[0]: None for condition in conditions}
+	condition_map = {list(condition.keys())[0]: list(condition.values())[0] for condition in conditions}
+
+	for f in filters:
+		key, operator, value = f[1], f[2], f[3]
+		if key in condition_map and operator == condition_map[key]:
+			values[key] = value.replace("%", "") if operator == "like" else value
+
+	return tuple(values[key] for key in values)
+
+
 def get_in_reply_to_mail(
 	message_id: str | None = None,
 ) -> tuple[str, str] | tuple[None, None]:

@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "hash",
  "creation": "2025-04-06 15:03:32.401911",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -41,11 +40,10 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-04-06 15:09:40.277051",
+ "modified": "2025-04-06 15:47:53.116230",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Blocked IP",
- "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
