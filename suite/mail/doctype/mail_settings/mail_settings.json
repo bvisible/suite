@@ -12,6 +12,7 @@
   "dns_provider",
   "column_break_pntn",
   "dns_provider_username",
+  "dns_provider_client_ip",
   "dns_provider_zone_id",
   "dns_provider_token",
   "dns_provider_key",
@@ -93,15 +94,15 @@
    "fieldname": "dns_provider",
    "fieldtype": "Select",
    "label": "DNS Provider",
-   "options": "\nDigitalOcean\nCloudflare\nHetzner\nLinode\nGoDaddy"
+   "options": "\nDigitalOcean\nCloudflare\nHetzner\nLinode\nNamecheap\nGoDaddy"
   },
   {
-   "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\"].includes(doc.dns_provider)",
+   "depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\", \"Namecheap\"].includes(doc.dns_provider)",
    "description": "The token used to authenticate with your DNS provider.",
    "fieldname": "dns_provider_token",
    "fieldtype": "Password",
    "label": "Token",
-   "mandatory_depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\"].includes(doc.dns_provider)"
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"DigitalOcean\", \"Cloudflare\", \"Hetzner\", \"Linode\", \"Namecheap\"].includes(doc.dns_provider)"
   },
   {
    "fieldname": "section_break_hrww",
@@ -493,10 +494,11 @@
    "label": "DNS Provider"
   },
   {
-   "depends_on": "eval: doc.dns_provider && [\"Cloudflare\"].includes(doc.dns_provider)",
+   "depends_on": "eval: doc.dns_provider && [\"Cloudflare\", \"Namecheap\"].includes(doc.dns_provider)",
    "fieldname": "dns_provider_username",
    "fieldtype": "Data",
-   "label": "Username"
+   "label": "Username",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"Namecheap\"].includes(doc.dns_provider)"
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"Cloudflare\"].includes(doc.dns_provider)",
@@ -517,12 +519,19 @@
    "fieldtype": "Password",
    "label": "Secret",
    "mandatory_depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)"
+  },
+  {
+   "depends_on": "eval: doc.dns_provider && [\"Namecheap\"].includes(doc.dns_provider)",
+   "fieldname": "dns_provider_client_ip",
+   "fieldtype": "Data",
+   "label": "Client IP",
+   "mandatory_depends_on": "eval: doc.dns_provider && [\"Namecheap\"].includes(doc.dns_provider)"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-05 22:36:33.521732",
+ "modified": "2025-04-06 09:28:05.330178",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

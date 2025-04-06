@@ -48,6 +48,7 @@ class DNSProvider:
 		auth_key: str | None = None,
 		auth_secret: str | None = None,
 		token: str | None = None,
+		client_ip: str | None = None,
 		zone_id: str | None = None,
 	) -> None:
 		"""Initializes the DNSProvider with credentials and domain."""
@@ -62,6 +63,7 @@ class DNSProvider:
 		self.__auth_key = auth_key
 		self.__auth_secret = auth_secret
 		self.__token = token
+		self.client_ip = client_ip
 		self.zone_id = zone_id
 
 	def get_client(self, config: dict) -> Client:
@@ -76,6 +78,7 @@ class DNSProvider:
 				"auth_key": self.__auth_key,
 				"auth_secret": self.__auth_secret,
 				"auth_token": self.__token,
+				"auth_client_ip": self.client_ip,
 				"zone_id": self.zone_id,
 			}
 		)

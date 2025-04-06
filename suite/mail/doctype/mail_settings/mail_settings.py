@@ -44,14 +44,17 @@ class MailSettings(Document):
 		if not self.dns_provider:
 			return
 
-		match self.dns_provider:
-			case "DigitalOcean" | "Cloudflare" | "Hetzner" | "Linode":
-				if not self.dns_provider_token:
-					frappe.throw(_("Please set the DNS Provider Token."))
+		if self.dns_provider in ["DigitalOcean", "Cloudflare", "Hetzner", "Linode", "Namecheap"]:
+			if not self.dns_provider_token:
+				frappe.throw(_("Please set the DNS Provider Token."))
 
-			case "GoDaddy":
-				if not self.dns_provider_key or not self.dns_provider_secret:
-					frappe.throw(_("Please set the DNS Provider Key and Secret."))
+		if self.dns_provider in ["Namecheap"]:
+			if not self.dns_provider_username or not self.dns_provider_client_ip:
+				frappe.throw(_("Please set the DNS Provider Username and Client IP."))
+
+		if self.dns_provider in ["GoDaddy"]:
+			if not self.dns_provider_key or not self.dns_provider_secret:
+				frappe.throw(_("Please set the DNS Provider Key and Secret."))
 
 		dns_provider = get_dns_provider(self)
 		dns_provider.read_dns_records("A")
