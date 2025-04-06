@@ -498,6 +498,7 @@
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"Cloudflare\", \"Namecheap\"].includes(doc.dns_provider)",
+   "description": "Account username for the DNS provider.",
    "fieldname": "dns_provider_username",
    "fieldtype": "Data",
    "label": "Username",
@@ -505,12 +506,14 @@
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\", \"Cloudflare\"].includes(doc.dns_provider)",
+   "description": "Unique identifier for your DNS zone.",
    "fieldname": "dns_provider_zone_id",
    "fieldtype": "Data",
    "label": "Zone ID"
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)",
+   "description": "Key used for authorization with the DNS provider.",
    "fieldname": "dns_provider_key",
    "fieldtype": "Data",
    "label": "Key",
@@ -518,6 +521,7 @@
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"GoDaddy\"].includes(doc.dns_provider)",
+   "description": "Secret used along with the auth key for secure access.",
    "fieldname": "dns_provider_secret",
    "fieldtype": "Password",
    "label": "Secret",
@@ -525,6 +529,7 @@
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"Namecheap\"].includes(doc.dns_provider)",
+   "description": "IP address whitelisted to make API calls.",
    "fieldname": "dns_provider_client_ip",
    "fieldtype": "Data",
    "label": "Client IP",
@@ -533,6 +538,7 @@
   {
    "default": "0",
    "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)",
+   "description": "Indicates whether the DNS zone is private.",
    "fieldname": "dns_provider_private_zone",
    "fieldtype": "Check",
    "label": "Private Zone",
@@ -540,6 +546,7 @@
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)",
+   "description": "Public key used to authenticate API requests.",
    "fieldname": "dns_provider_access_key",
    "fieldtype": "Data",
    "label": "Access Key",
@@ -547,6 +554,7 @@
   },
   {
    "depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)",
+   "description": "Secret key paired with the access key for authentication.",
    "fieldname": "dns_provider_access_secret",
    "fieldtype": "Password",
    "label": "Access Secret",
@@ -556,7 +564,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-06 10:14:46.572759",
+ "modified": "2025-04-06 11:32:30.467716",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",
