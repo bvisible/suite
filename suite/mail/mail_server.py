@@ -123,43 +123,6 @@ def reload_request_cluster_servers(request: "MailServerRequest") -> None:
 		)
 
 
-def block_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
-	"""Blocks an IP address on all the clusters."""
-
-	clusters = clusters or get_clusters()
-	request_data = json.dumps(
-		[
-			{
-				"type": "insert",
-				"prefix": None,
-				"values": [[f"server.blocked-ip.{ip_address}", ""]],
-				"assert_empty": True,
-			}
-		]
-	)
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster,
-			method="POST",
-			endpoint="/api/settings",
-			request_data=request_data,
-		)
-
-
-def unblock_ip_on_clusters(ip_address: str, clusters: list[str] | None = None) -> None:
-	"""Unblocks an IP address on all the clusters."""
-
-	clusters = clusters or get_clusters()
-	request_data = json.dumps([{"type": "delete", "keys": [f"server.blocked-ip.{ip_address}"]}])
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster,
-			method="POST",
-			endpoint="/api/settings",
-			request_data=request_data,
-		)
-
-
 def create_dkim_key_on_clusters(
 	domain_name: str, rsa_private_key: str, clusters: list[str] | None = None
 ) -> None:
