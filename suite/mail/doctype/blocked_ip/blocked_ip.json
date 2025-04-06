@@ -21,7 +21,8 @@
    "in_standard_filter": 1,
    "label": "Cluster",
    "options": "Mail Cluster",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "ip_address",
@@ -29,7 +30,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "IP Address",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_zda5",
@@ -40,7 +42,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-04-06 15:47:53.116230",
+ "modified": "2025-04-06 16:45:38.388588",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Blocked IP",

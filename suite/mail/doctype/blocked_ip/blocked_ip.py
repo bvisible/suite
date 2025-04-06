@@ -1,9 +1,12 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import now
 
 from mail.mail_server import get_mail_server_api
 from mail.utils import extract_filter_values, rename_keys
@@ -14,7 +17,8 @@ class BlockedIP(Document):
 		raise NotImplementedError
 
 	def load_from_db(self) -> "BlockedIP":
-		raise NotImplementedError
+		blocked_ip = fetch_blocked_ip_details(self.name)
+		return super(Document, self).__init__(blocked_ip)
 
 	def db_update(self) -> None:
 		raise NotImplementedError
@@ -25,10 +29,10 @@ class BlockedIP(Document):
 	@staticmethod
 	def get_list(filters=None, page_length=20, **kwargs) -> list:
 		filters = filters or []
-		cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
+		cluster, blocked_ip = extract_filter_values(filters, [{"cluster": "="}, {"blocked_ip": "like"}])
 
 		if cluster:
-			blocked_ips = fetch_blocked_ips(cluster, limit=page_length, text=text)
+			blocked_ips = fetch_blocked_ips(cluster, limit=page_length, text=blocked_ip)
 			if not blocked_ips:
 				frappe.msgprint(_("No blocked IPs found."), alert=True)
 
@@ -40,9 +44,9 @@ class BlockedIP(Document):
 	@staticmethod
 	def get_count(filters=None, **kwargs) -> int:
 		filters = filters or []
-		cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
+		cluster, blocked_ip = extract_filter_values(filters, [{"cluster": "="}, {"blocked_ip": "like"}])
 
-		return frappe.cache.get_value(get_total_cache_key(cluster, text)) if cluster else 0
+		return frappe.cache.get_value(get_total_cache_key(cluster, blocked_ip)) if cluster else 0
 
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
@@ -75,12 +79,34 @@ def fetch_blocked_ips(cluster_name: str, page: int = 1, limit: int = 10, text: s
 	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
 
 
+def fetch_blocked_ip_details(name: str) -> dict:
+	"""Fetches details of a specific blocked ip from the mail server."""
+
+	cluster_name, ip_address = name.split("-")
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(
+		method="GET",
+		endpoint="api/settings/group",
+		params={"prefix": "server.blocked-ip", "limit": 1, "filter": ip_address},
+	)
+
+	if response.status_code == 200:
+		blocked_ip = response.json()["data"]["items"][0]
+
+		return format_blocked_ip(blocked_ip, cluster_name)
+
+	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+
+
 def format_blocked_ip(blocked_ip: dict, cluster_name: str) -> dict:
 	"""Formats a blocked ip dictionary to match expected output."""
 
+	creation = now()
 	blocked_ip = rename_keys(blocked_ip, {"_id": "ip_address"})
 	blocked_ip.update(
 		{
+			"creation": creation,
+			"modified": creation,
 			"cluster": cluster_name,
 			"name": f"{cluster_name}-{blocked_ip['ip_address']}",
 		}
