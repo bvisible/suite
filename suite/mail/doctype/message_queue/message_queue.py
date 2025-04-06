@@ -8,7 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 
 from mail.mail_server import get_mail_server_api
-from mail.utils import rename_keys
+from mail.utils import extract_filter_values, rename_keys
 
 
 class MessageQueue(Document):
@@ -217,28 +217,14 @@ def start_queue_processing(cluster_name: str) -> None:
 def get_status_cache_key(cluster_name: str) -> str:
 	"""Returns a cache key for message status."""
 
-	return f"cluster:{cluster_name}:status"
+	return f"{cluster_name}:message-queue:status"
 
 
 def get_total_cache_key(cluster_name: str, text: str | None = None) -> str:
 	"""Returns a cache key for total message count."""
 
 	text = text or ""
-	return f"cluster:{cluster_name}:{text}:total"
-
-
-def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
-	"""Extracts specific filter values from a filter list based on given conditions."""
-
-	values = {list(condition.keys())[0]: None for condition in conditions}
-	condition_map = {list(condition.keys())[0]: list(condition.values())[0] for condition in conditions}
-
-	for f in filters:
-		key, operator, value = f[1], f[2], f[3]
-		if key in condition_map and operator == condition_map[key]:
-			values[key] = value.replace("%", "") if operator == "like" else value
-
-	return tuple(values[key] for key in values)
+	return f"{cluster_name}:message-queue:{text}:total"
 
 
 def extract_recipients(message: dict) -> list:

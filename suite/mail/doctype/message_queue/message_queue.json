@@ -128,7 +128,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-03-29 11:15:11.453350",
+ "modified": "2025-04-06 15:10:16.812321",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Message Queue",
@@ -150,6 +150,5 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+ "states": []
 }
