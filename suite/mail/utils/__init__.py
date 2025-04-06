@@ -227,6 +227,10 @@ def flatten_dict(d, parent_key="", sep="."):
 	return items
 
 
+def password_or_none(doc, field: str) -> str | None:
+	return doc.get_password(field) if doc.get(field) else None
+
+
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:
 	"""
 	Returns DKIM host.
