@@ -24,15 +24,18 @@ class BlockedIP(Document):
 		raise NotImplementedError
 
 	def delete(self) -> None:
-		raise NotImplementedError
+		remove_blocked_ip(self.name)
+
+		if not frappe.flags.in_bulk_delete:
+			frappe.msgprint(_("Blocked IP removed successfully."), alert=True)
 
 	@staticmethod
 	def get_list(filters=None, page_length=20, **kwargs) -> list:
 		filters = filters or []
-		cluster, blocked_ip = extract_filter_values(filters, [{"cluster": "="}, {"blocked_ip": "like"}])
+		cluster, ip_address = extract_filter_values(filters, [{"cluster": "="}, {"ip_address": "like"}])
 
 		if cluster:
-			blocked_ips = fetch_blocked_ips(cluster, limit=page_length, text=blocked_ip)
+			blocked_ips = fetch_blocked_ips(cluster, limit=page_length, text=ip_address)
 			if not blocked_ips:
 				frappe.msgprint(_("No blocked IPs found."), alert=True)
 
@@ -44,9 +47,9 @@ class BlockedIP(Document):
 	@staticmethod
 	def get_count(filters=None, **kwargs) -> int:
 		filters = filters or []
-		cluster, blocked_ip = extract_filter_values(filters, [{"cluster": "="}, {"blocked_ip": "like"}])
+		cluster, ip_address = extract_filter_values(filters, [{"cluster": "="}, {"ip_address": "like"}])
 
-		return frappe.cache.get_value(get_total_cache_key(cluster, blocked_ip)) if cluster else 0
+		return frappe.cache.get_value(get_total_cache_key(cluster, ip_address)) if cluster else 0
 
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
@@ -96,6 +99,28 @@ def fetch_blocked_ip_details(name: str) -> dict:
 		return format_blocked_ip(blocked_ip, cluster_name)
 
 	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+
+
+def remove_blocked_ip(name: str | list) -> None:
+	"""Removes a blocked ip from the mail server."""
+
+	if isinstance(name, str):
+		name = [name]
+
+	request_data = []
+	for n in name:
+		cluster_name, ip_address = n.split("-")
+		request_data.append({"type": "delete", "keys": [f"server.blocked-ip.{ip_address}"]})
+
+	server_api = get_mail_server_api(cluster_name)
+	response = server_api.request(
+		method="POST",
+		endpoint="/api/settings",
+		data=json.dumps(request_data),
+	)
+
+	if response.status_code != 200:
+		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
 
 
 def format_blocked_ip(blocked_ip: dict, cluster_name: str) -> dict:
