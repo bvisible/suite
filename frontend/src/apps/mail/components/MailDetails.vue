@@ -294,7 +294,7 @@ const moreActions = (mail): MailAction[] => [
 		onClick: () => {
 			window
 				.open(
-					`mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
+					`/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
 					'_blank',
 				)
 				?.focus()

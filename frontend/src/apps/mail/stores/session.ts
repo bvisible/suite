@@ -53,11 +53,5 @@ export const sessionStore = defineStore('mail-session', () => {
 		},
 	})
 
-	return {
-		user,
-		isLoggedIn,
-		login,
-		logout,
-		branding,
-	}
+	return { user, isLoggedIn, login, logout, branding }
 })

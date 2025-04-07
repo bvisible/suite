@@ -12,7 +12,7 @@
 				</slot>
 			</div>
 			<div
-				class="mx-auto w-full bg-white px-4 py-8 sm:mt-6 sm:w-96 sm:rounded-lg sm:px-8 sm:shadow-xl"
+				class="mx-auto w-full bg-white px-4 py-8 sm:mt-6 sm:w-[26rem] sm:rounded-lg sm:px-8 sm:shadow-xl"
 			>
 				<div class="mb-6 text-center">
 					<span class="text-center text-lg font-medium leading-5 tracking-tight">

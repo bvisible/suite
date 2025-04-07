@@ -33,9 +33,5 @@
 <script setup lang="ts">
 import { FeatherIcon, Popover, createResource } from 'frappe-ui'
 
-const apps = createResource({
-	url: 'mail.api.get_apps',
-	cache: 'other_apps',
-	auto: true,
-})
+const apps = createResource({ url: 'mail.api.get_apps', cache: 'otherApps', auto: true })
 </script>
