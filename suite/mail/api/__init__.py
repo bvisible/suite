@@ -3,6 +3,8 @@ from frappe.apps import get_apps as get_permitted_apps
 from frappe.translate import get_all_translations
 from frappe.utils.caching import redis_cache
 
+from mail.utils.cache import get_personal_signup_domains
+
 
 @frappe.whitelist(allow_guest=True)
 def get_signup_settings() -> dict:
@@ -14,10 +16,10 @@ def get_signup_settings() -> dict:
 
 
 @frappe.whitelist(allow_guest=True)
-def get_personal_signup_domains() -> dict:
+def get_signup_domains() -> dict:
 	"""Returns personal signup domains."""
 
-	return frappe.get_all("Personal Signup Domain", pluck="domain_name")
+	return get_personal_signup_domains()
 
 
 @frappe.whitelist(allow_guest=True)
