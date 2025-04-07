@@ -13,7 +13,7 @@ def add_rate_limits() -> None:
 
 	rate_limits = [
 		# mail.api.account
-		{"method_path": "mail.api.account.self_signup", "limit": 5, "seconds": 60 * 60},
+		{"method_path": "mail.api.account.business_signup", "limit": 5, "seconds": 60 * 60},
 		{"method_path": "mail.api.account.resend_otp", "limit": 5, "seconds": 60 * 60},
 		{"method_path": "mail.api.account.verify_otp", "limit": 5, "seconds": 60 * 60},
 		{"method_path": "mail.api.account.get_account_request", "limit": 5, "seconds": 60 * 60},

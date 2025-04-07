@@ -68,7 +68,7 @@
   "spamd_outbound_threshold",
   "client_tab",
   "signup_section",
-  "allow_self_signup",
+  "allow_business_signup",
   "column_break_daqm",
   "allow_personal_signup",
   "personal_signup_domains"
@@ -457,13 +457,12 @@
   {
    "default": "0",
    "description": "Allows users to sign up from the Mail UI.",
-   "fieldname": "allow_self_signup",
+   "fieldname": "allow_business_signup",
    "fieldtype": "Check",
-   "label": "Allow Self Signup"
+   "label": "Allow Business Signup"
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.allow_self_signup",
    "description": "Allows users to sign up for personal use and select a preferred username.",
    "fieldname": "allow_personal_signup",
    "fieldtype": "Check",
@@ -479,12 +478,12 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
+   "depends_on": "eval: doc.allow_personal_signup",
    "description": "Domains allowed for personal signup.",
    "fieldname": "personal_signup_domains",
    "fieldtype": "Table MultiSelect",
    "label": "Personal Signup Domains",
-   "mandatory_depends_on": "eval: doc.allow_self_signup && doc.allow_personal_signup",
+   "mandatory_depends_on": "eval: doc.allow_personal_signup",
    "options": "Personal Signup Domain"
   },
   {
@@ -564,7 +563,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-06 11:32:30.467716",
+ "modified": "2025-04-07 11:32:30.467716",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

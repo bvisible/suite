@@ -3,6 +3,25 @@ from frappe.apps import get_apps as get_permitted_apps
 from frappe.translate import get_all_translations
 from frappe.utils.caching import redis_cache
 
+from mail.utils.cache import get_personal_signup_domains
+
+
+@frappe.whitelist(allow_guest=True)
+def get_signup_settings() -> dict:
+	"""Returns client signup settings."""
+
+	return {
+		"allow_business_signup": frappe.db.get_single_value("Mail Settings", "allow_business_signup"),
+		"allow_personal_signup": frappe.db.get_single_value("Mail Settings", "allow_personal_signup"),
+	}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_signup_domains() -> dict:
+	"""Returns personal signup domains."""
+
+	return get_personal_signup_domains()
+
 
 @frappe.whitelist(allow_guest=True)
 def get_branding() -> dict:
