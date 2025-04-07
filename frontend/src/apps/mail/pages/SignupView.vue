@@ -1,172 +1,192 @@
 <template>
-	<form class="flex flex-col space-y-4" @submit.prevent="submit">
+	<form class="flex flex-col space-y-4" @submit.prevent="next">
 		<FormControl
-			v-model="email"
-			label="Email"
-			type="email"
-			placeholder="johndoe@example.com"
-			autocomplete="email"
-			:readonly="!!requestKey || isVerificationStep"
-			required
+			v-if="route.name === 'SignUp'"
+			v-model="accountType"
+			type="select"
+			:label="__('What type of account do you need?')"
+			:options="[
+				{ value: 'personal', label: __('Personal (For individual use)') },
+				{ value: 'business', label: __('Business (For work or company use)') },
+			]"
+			class="w-full"
 		/>
-		<FormControl
-			v-if="isVerificationStep"
-			v-model="otp"
-			label="Verification Code"
-			type="text"
-			placeholder="5 digit verification code"
-			maxlength="5"
-			autocomplete="email"
-			required
-		/>
-		<template v-if="requestKey">
+
+		<div v-else-if="route.query.step === '1'" class="flex items-center justify-between">
 			<FormControl
-				v-model="firstName"
-				label="First Name"
+				v-model="user.username"
 				type="text"
+				:label="__('Username')"
+				placeholder="johndoe"
+				autocomplete="username"
+				class="w-full"
+				required
+				@update:model-value="usernameVerified = false"
+			/>
+			<FeatherIcon class="mx-2.5 mb-1.5 mt-auto h-4 w-4 text-gray-400" name="at-sign" />
+			<FormControl
+				v-if="personalSignupDomains?.data?.length"
+				v-model="user.domain"
+				:type="personalSignupDomains?.data?.length === 1 ? 'text' : 'select'"
+				:readonly="personalSignupDomains?.data?.length === 1"
+				:options="personalSignupDomains?.data"
+				:label="__('Domain Name')"
+				class="w-full"
+				required
+				@update:model-value="usernameVerified = false"
+			/>
+		</div>
+
+		<FormControl
+			v-else-if="route.query.step === '2'"
+			v-model="user.email"
+			type="email"
+			:label="__('Backup Email')"
+			placeholder="johndoe@personal.com"
+			autocomplete="email"
+			class="w-full"
+			required
+		/>
+
+		<FormControl
+			v-else-if="route.query.step === '3'"
+			v-model="user.password"
+			type="password"
+			:label="__('Password')"
+			placeholder="*********"
+			autocomplete="new-password"
+			class="w-full"
+			required
+		/>
+
+		<template v-else>
+			<FormControl
+				v-model="user.first_name"
+				type="text"
+				:label="__('First Name')"
 				placeholder="John"
 				autocomplete="given-name"
+				class="w-full"
 				required
 			/>
 			<FormControl
-				v-model="lastName"
-				label="Last Name"
+				v-model="user.last_name"
 				type="text"
+				:label="__('Last Name')"
 				placeholder="Doe"
 				autocomplete="family-name"
-				required
-			/>
-			<FormControl
-				v-model="password"
-				label="Password"
-				type="password"
-				placeholder="••••••••"
-				name="password"
-				autocomplete="current-password"
-				required
+				class="w-full"
 			/>
 		</template>
-		<ErrorMessage :message="errorMessage" />
+
+		<ErrorMessage :message="validateUsername.error || signup.error" />
 		<Button
 			variant="solid"
-			:loading="signUp.loading || verifyOtp.loading || createAccount.loading"
-		>
-			{{ buttonLabel }}
-		</Button>
+			:label="__(route.query.step === '3' ? 'Sign Up' : 'Next')"
+			:loading="validateUsername.loading || signup.loading"
+		/>
 		<Button
-			v-if="isVerificationStep"
-			type="button"
-			:loading="resendOtp.loading"
-			@click="resendOtp.submit()"
-		>
-			Resend OTP
-		</Button>
+			v-if="route.name === 'PersonalSignUp' && route.query.step"
+			:label="__('Back')"
+			@click.prevent="router.push({ query: { step: Number(route.query.step) - 1 } })"
+		/>
 	</form>
 	<div class="mt-6 text-center">
 		<router-link class="text-center text-base font-medium hover:underline" to="/login">
-			Already have an account? Log in.
+			{{ __('Already have an account? Log in.') }}
 		</router-link>
 	</div>
 </template>
-<script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+<script setup lang="ts">
+import { reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Button, ErrorMessage, FeatherIcon, FormControl, createResource } from 'frappe-ui'
+
 import { sessionStore } from '@/stores/session'
 
-const { requestKey } = defineProps<{ requestKey?: string }>()
-
 const router = useRouter()
+const route = useRoute()
 const { login } = sessionStore()
 
-const isVerificationStep = ref(false)
-const email = ref('')
-const otp = ref('')
-const firstName = ref('')
-const lastName = ref('')
-const password = ref('')
-const accountRequest = ref('')
-const errorMessage = ref('')
+const accountType = ref('personal')
+const usernameVerified = ref(false)
 
-const buttonLabel = computed(() => {
-	if (requestKey) return 'Create Account'
-	return isVerificationStep.value ? 'Verify' : 'Sign Up'
+const user = reactive({
+	first_name: '',
+	last_name: '',
+	username: '',
+	domain: '',
+	email: '',
+	password: '',
 })
 
-const signUp = createResource({
-	url: 'mail.api.account.self_signup',
-	makeParams: () => ({ email: email.value }),
+createResource({
+	url: 'mail.api.get_signup_settings',
+	auto: true,
 	onSuccess: (data) => {
-		errorMessage.value = ''
-		accountRequest.value = data
-		isVerificationStep.value = true
-		raiseToast('A verification code has been sent to your registered email address.')
+		if (!Number(data.allow_personal_signup)) {
+			if (Number(data.allow_business_signup)) router.push('/signup/business')
+			else router.push('/login')
+		} else if (!Number(data.allow_business_signup)) router.push('/signup/personal')
 	},
-	onError: (error) => (errorMessage.value = error.messages[0]),
 })
 
-const resendOtp = createResource({
-	url: 'mail.api.account.resend_otp',
-	makeParams: () => ({ account_request: accountRequest.value }),
-	onSuccess: () =>
-		raiseToast('A verification code has been sent to your registered email address.'),
-	onError: (error) => raiseToast(error.messages[0], 'error'),
-})
-
-const verifyOtp = createResource({
-	url: 'mail.api.account.verify_otp',
-	makeParams: () => ({
-		account_request: accountRequest.value,
-		otp: otp.value,
-	}),
-	onSuccess: (requestKey) => {
-		errorMessage.value = ''
-		router.push({ name: 'AccountSetup', params: { requestKey } })
-	},
-	onError: (error) => (errorMessage.value = error.messages[0]),
-})
-
-const getAccountRequest = createResource({
-	url: 'mail.api.account.get_account_request',
-	makeParams: () => ({ request_key: requestKey }),
+const personalSignupDomains = createResource({
+	url: 'mail.api.get_signup_domains',
+	auto: true,
 	onSuccess: (data) => {
-		if ((data?.email || data?.account) && !data?.is_verified && !data?.is_expired)
-			email.value = data.account || data.email
-		else router.replace({ name: 'SignUp' })
+		user.domain = data[0]
 	},
 })
 
-const createAccount = createResource({
-	url: 'mail.api.account.create_account',
-	makeParams: () => ({
-		request_key: requestKey,
-		first_name: firstName.value,
-		last_name: lastName.value,
-		password: password.value,
-	}),
+const validateUsername = createResource({
+	url: 'mail.api.account.validate_email_assigned',
+	makeParams: () => ({ email: `${user.username}@${user.domain}` }),
 	onSuccess: () => {
-		errorMessage.value = ''
-		login.submit({ usr: email.value, pwd: password.value })
+		usernameVerified.value = true
+		router.push({ query: { step: '2' } })
 	},
-	onError: (error) => (errorMessage.value = error.messages[0]),
 })
+
+const signup = createResource({
+	url: 'mail.api.account.personal_signup',
+	makeParams: () => ({ ...user }),
+	onSuccess: () => login.submit({ usr: `${user.username}@${user.domain}`, pwd: user.password }),
+})
+
+const next = () => {
+	if (route.name === 'SignUp') router.push(`/signup/${accountType.value}`)
+	else if (route.query.step === '1') validateUsername.submit()
+	else if (route.query.step === '3') signup.submit()
+	else router.push({ query: { step: Number(route.query.step || 0) + 1 } })
+}
 
 watch(
-	() => requestKey,
-	(val) => {
-		isVerificationStep.value = false
-		if (!val) return
-		if (val.length === 32) getAccountRequest.submit()
-		else router.replace({ name: 'SignUp' })
+	() => route.query.step,
+	(step) => {
+		switch (step) {
+			case '3':
+				if (!user.email) {
+					router.replace({ query: { step: '2' } })
+					break
+				}
+			// fallthrough
+			case '2':
+				if (!usernameVerified.value) {
+					router.replace({ query: { step: '1' } })
+					break
+				}
+			// fallthrough
+			case '1':
+				if (!user.first_name) {
+					router.replace({ query: {} })
+				}
+				break
+			default:
+				router.replace({ query: {} })
+		}
 	},
 	{ immediate: true },
 )
-
-const submit = () => {
-	if (requestKey) createAccount.submit()
-	else if (isVerificationStep.value) verifyOtp.submit()
-	else signUp.submit()
-}
 </script>

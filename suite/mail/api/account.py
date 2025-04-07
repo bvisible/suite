@@ -3,15 +3,44 @@ from frappe import _
 from frappe.utils import cint, get_datetime, get_url, now_datetime
 from frappe.utils.data import sha256_hash
 
+from mail.api.admin import add_member
 from mail.mail.doctype.mail_account.mail_account import create_user
+from mail.utils import user_context
 from mail.utils.cache import get_default_outgoing_email_for_user
 from mail.utils.rate_limiter import dynamic_rate_limit
+from mail.utils.validation import is_email_assigned
 
 
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
-def self_signup(email: str) -> str:
-	"""Create a new Mail Account Request for self signup"""
+def validate_email_assigned(email: str) -> None:
+	"""Checks if email is already assigned"""
+
+	if is_email_assigned(email):
+		frappe.throw(_("Username already taken."))
+
+
+@frappe.whitelist(allow_guest=True)
+@dynamic_rate_limit()
+def personal_signup(
+	username: str,
+	domain: str,
+	email: str,
+	password: str,
+	first_name: str,
+	last_name: str | None = None,
+) -> str:
+	"""Create a new Mail Account for personal signup"""
+
+	with user_context("Administrator"):
+		tenant = frappe.db.get_value("Mail Domain", domain, "tenant")
+		add_member(tenant, username, domain, "Mail User", False, email, first_name, last_name, password)
+
+
+@frappe.whitelist(allow_guest=True)
+@dynamic_rate_limit()
+def business_signup(email: str) -> str:
+	"""Create a new Mail Account Request for business signup"""
 
 	account_request = frappe.new_doc("Mail Account Request")
 	account_request.email = email

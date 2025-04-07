@@ -11,6 +11,7 @@
 			type="text"
 			:label="__('Organization Name')"
 			placeholder="Unico Plastics Inc."
+			autocomplete="organization"
 			required
 		/>
 		<ErrorMessage :message="createTenant.error?.messages[0]" />

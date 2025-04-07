@@ -97,7 +97,7 @@ def add_member(
 	domain: str,
 	role: Literal["Mail User", "Mail Admin"],
 	send_invite: bool,
-	email: str | None = None,
+	email: str,
 	first_name: str | None = None,
 	last_name: str | None = None,
 	password: str | None = None,

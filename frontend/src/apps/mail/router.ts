@@ -15,9 +15,21 @@ const routes = [
 		meta: { isLogin: true },
 	},
 	{
-		path: '/signup/:requestKey',
-		name: 'AccountSetup',
+		path: '/signup/personal',
+		name: 'PersonalSignUp',
 		component: () => import('@/pages/SignupView.vue'),
+		meta: { isLogin: true },
+	},
+	{
+		path: '/signup/business',
+		name: 'BusinessSignUp',
+		component: () => import('@/pages/BusinessSignupView.vue'),
+		meta: { isLogin: true },
+	},
+	{
+		path: '/signup/business/:requestKey',
+		name: 'BusinessSetup',
+		component: () => import('@/pages/BusinessSignupView.vue'),
 		props: true,
 		meta: { isLogin: true },
 	},
