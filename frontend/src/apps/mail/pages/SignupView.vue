@@ -1,10 +1,7 @@
 <template>
-	<form
-		v-if="$route.name === 'SignUp'"
-		class="flex flex-col space-y-4"
-		@submit.prevent="router.push(`/signup/${accountType}`)"
-	>
+	<form class="flex flex-col space-y-4" @submit.prevent="next">
 		<FormControl
+			v-if="route.name === 'SignUp'"
 			v-model="accountType"
 			type="select"
 			:label="__('What type of account do you need?')"
@@ -14,27 +11,8 @@
 			]"
 			class="w-full"
 		/>
-		<Button variant="solid" :label="__('Next')" />
-	</form>
-	<form v-else class="flex flex-col space-y-4" @submit.prevent="signup.submit">
-		<FormControl
-			v-model="user.first_name"
-			type="text"
-			:label="__('First Name')"
-			placeholder="John"
-			autocomplete="given-name"
-			class="w-full"
-			required
-		/>
-		<FormControl
-			v-model="user.last_name"
-			type="text"
-			:label="__('Last Name')"
-			placeholder="Doe"
-			autocomplete="family-name"
-			class="w-full"
-		/>
-		<div class="flex items-center justify-between">
+
+		<div v-else-if="route.query.step === '1'" class="flex items-center justify-between">
 			<FormControl
 				v-model="user.username"
 				type="text"
@@ -43,6 +21,7 @@
 				autocomplete="username"
 				class="w-full"
 				required
+				@update:model-value="usernameVerified = false"
 			/>
 			<FeatherIcon class="mx-2.5 mb-1.5 mt-auto h-4 w-4 text-gray-400" name="at-sign" />
 			<FormControl
@@ -54,9 +33,12 @@
 				:label="__('Domain Name')"
 				class="w-full"
 				required
+				@update:model-value="usernameVerified = false"
 			/>
 		</div>
+
 		<FormControl
+			v-else-if="route.query.step === '2'"
 			v-model="user.email"
 			type="email"
 			:label="__('Backup Email')"
@@ -65,7 +47,9 @@
 			class="w-full"
 			required
 		/>
+
 		<FormControl
+			v-else-if="route.query.step === '3'"
 			v-model="user.password"
 			type="password"
 			:label="__('Password')"
@@ -74,8 +58,38 @@
 			class="w-full"
 			required
 		/>
-		<ErrorMessage :message="signup.error" />
-		<Button variant="solid" :label="__('Sign Up')" :loading="signup.loading" />
+
+		<template v-else>
+			<FormControl
+				v-model="user.first_name"
+				type="text"
+				:label="__('First Name')"
+				placeholder="John"
+				autocomplete="given-name"
+				class="w-full"
+				required
+			/>
+			<FormControl
+				v-model="user.last_name"
+				type="text"
+				:label="__('Last Name')"
+				placeholder="Doe"
+				autocomplete="family-name"
+				class="w-full"
+			/>
+		</template>
+
+		<ErrorMessage :message="validateUsername.error || signup.error" />
+		<Button
+			variant="solid"
+			:label="__(route.query.step === '3' ? 'Sign Up' : 'Next')"
+			:loading="validateUsername.loading || signup.loading"
+		/>
+		<Button
+			v-if="route.name === 'PersonalSignUp' && route.query.step"
+			:label="__('Back')"
+			@click.prevent="router.push({ query: { step: Number(route.query.step) - 1 } })"
+		/>
 	</form>
 	<div class="mt-6 text-center">
 		<router-link class="text-center text-base font-medium hover:underline" to="/login">
@@ -85,16 +99,18 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Button, ErrorMessage, FeatherIcon, FormControl, createResource } from 'frappe-ui'
 
 import { sessionStore } from '@/stores/session'
 
 const router = useRouter()
+const route = useRoute()
 const { login } = sessionStore()
 
 const accountType = ref('personal')
+const usernameVerified = ref(false)
 
 const user = reactive({
 	first_name: '',
@@ -124,9 +140,53 @@ const personalSignupDomains = createResource({
 	},
 })
 
+const validateUsername = createResource({
+	url: 'mail.api.account.validate_email_assigned',
+	makeParams: () => ({ email: `${user.username}@${user.domain}` }),
+	onSuccess: () => {
+		usernameVerified.value = true
+		router.push({ query: { step: '2' } })
+	},
+})
+
 const signup = createResource({
 	url: 'mail.api.account.personal_signup',
 	makeParams: () => ({ ...user }),
 	onSuccess: () => login.submit({ usr: `${user.username}@${user.domain}`, pwd: user.password }),
 })
+
+const next = () => {
+	if (route.name === 'SignUp') router.push(`/signup/${accountType.value}`)
+	else if (route.query.step === '1') validateUsername.submit()
+	else if (route.query.step === '3') signup.submit()
+	else router.push({ query: { step: Number(route.query.step || 0) + 1 } })
+}
+
+watch(
+	() => route.query.step,
+	(step) => {
+		switch (step) {
+			case '3':
+				if (!user.email) {
+					router.replace({ query: { step: '2' } })
+					break
+				}
+			// fallthrough
+			case '2':
+				if (!usernameVerified.value) {
+					router.replace({ query: { step: '1' } })
+					break
+				}
+			// fallthrough
+			case '1':
+				if (!user.first_name) {
+					router.replace({ query: {} })
+				}
+				break
+			default:
+				router.replace({ query: {} })
+		}
+	},
+	{ immediate: true },
+)
 </script>
