@@ -117,7 +117,7 @@ createResource({
 })
 
 const personalSignupDomains = createResource({
-	url: 'mail.api.get_personal_signup_domains',
+	url: 'mail.api.get_signup_domains',
 	auto: true,
 	onSuccess: (data) => {
 		if (data.length === 1) user.domain = data[0]
