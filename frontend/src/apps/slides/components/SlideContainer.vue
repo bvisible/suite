@@ -72,7 +72,7 @@ const selectionBoxRef = useTemplateRef('selectionBox')
 const guides = useTemplateRef('guides')
 
 const { isDragging, dragMovement, startDragging } = useDragAndDrop()
-const { isResizing, resizeDiffs, addResizers } = useResizer()
+const { isResizing, resizeDiffs, updateResizers } = useResizer()
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
@@ -158,6 +158,11 @@ const handleSlideTransform = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
+		if (newVal.length < 2) {
+			const targetElement = document.querySelector(`[data-index="${newVal[0]}"]`)
+			const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
+			updateResizers(targetElement, resizeMode)
+		}
 		handleSelectionChange(newVal, oldVal)
 	},
 )
@@ -200,7 +205,6 @@ const addToActiveElements = (id) => {
 
 const handleMouseDown = (e, element) => {
 	addToActiveElements(element.id)
-	addResizers(e, 'width')
 
 	startDragging(e)
 }
