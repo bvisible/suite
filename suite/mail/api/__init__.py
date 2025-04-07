@@ -17,7 +17,7 @@ def get_signup_settings() -> dict:
 
 
 @frappe.whitelist(allow_guest=True)
-def get_signup_domains() -> dict:
+def get_signup_domains() -> list:
 	"""Returns personal signup domains."""
 
 	return get_personal_signup_domains()
