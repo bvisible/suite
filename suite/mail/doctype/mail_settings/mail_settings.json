@@ -68,7 +68,7 @@
   "spamd_outbound_threshold",
   "client_tab",
   "signup_section",
-  "allow_self_signup",
+  "allow_business_signup",
   "column_break_daqm",
   "allow_personal_signup",
   "personal_signup_domains"
@@ -457,9 +457,9 @@
   {
    "default": "0",
    "description": "Allows users to sign up from the Mail UI.",
-   "fieldname": "allow_self_signup",
+   "fieldname": "allow_business_signup",
    "fieldtype": "Check",
-   "label": "Allow Self Signup"
+   "label": "Allow Business Signup"
   },
   {
    "default": "0",

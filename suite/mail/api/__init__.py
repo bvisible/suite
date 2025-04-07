@@ -10,9 +10,10 @@ from mail.utils.cache import get_personal_signup_domains
 def get_signup_settings() -> dict:
 	"""Returns client signup settings."""
 
-	return frappe.db.get_value(
-		"Mail Settings", None, ["allow_self_signup", "allow_personal_signup"], as_dict=True
-	)
+	return {
+		"allow_business_signup": frappe.db.get_single_value("Mail Settings", "allow_business_signup"),
+		"allow_personal_signup": frappe.db.get_single_value("Mail Settings", "allow_personal_signup"),
+	}
 
 
 @frappe.whitelist(allow_guest=True)
@@ -26,7 +27,11 @@ def get_signup_domains() -> dict:
 def get_branding() -> dict:
 	"""Returns branding information."""
 
-	return frappe.db.get_value("Website Settings", None, ["app_name", "brand_html", "favicon"], as_dict=True)
+	return {
+		"brand_name": frappe.db.get_single_value("Website Settings", "app_name"),
+		"brand_html": frappe.db.get_single_value("Website Settings", "brand_html"),
+		"favicon": frappe.db.get_single_value("Website Settings", "favicon"),
+	}
 
 
 @frappe.whitelist(allow_guest=True)
