@@ -45,7 +45,7 @@ class MailAccountRequest(Document):
 				self.validate_domain()
 				self.validate_account()
 			else:
-				self.validate_self_signup()
+				self.validate_business_signup()
 
 	def before_insert(self) -> None:
 		self.set_request_key()
@@ -73,8 +73,8 @@ class MailAccountRequest(Document):
 
 		self.ip_address = frappe.local.request_ip
 
-	def validate_self_signup(self) -> None:
-		"""Validates self sign up."""
+	def validate_business_signup(self) -> None:
+		"""Validates business signup."""
 
 		is_subaddressed_email(self.email, raise_exception=True)
 
@@ -180,7 +180,7 @@ class MailAccountRequest(Document):
 			args.update({"invited_by": self.invited_by, "tenant": tenant_name})
 		else:
 			subject = _("{0} - OTP for Frappe Mail Account Verification").format(self.otp)
-			template = "self_signup"
+			template = "business_signup"
 
 		frappe.sendmail(
 			recipients=self.email,

@@ -39,8 +39,8 @@ def personal_signup(
 
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
-def self_signup(email: str) -> str:
-	"""Create a new Mail Account Request for self signup"""
+def business_signup(email: str) -> str:
+	"""Create a new Mail Account Request for business signup"""
 
 	account_request = frappe.new_doc("Mail Account Request")
 	account_request.email = email

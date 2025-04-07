@@ -96,12 +96,12 @@ createResource({
 	url: 'mail.api.get_signup_settings',
 	auto: true,
 	onSuccess: (data) => {
-		if (!Number(data.allow_self_signup)) router.push('/signup')
+		if (!Number(data.allow_business_signup)) router.push('/signup')
 	},
 })
 
 const signUp = createResource({
-	url: 'mail.api.account.self_signup',
+	url: 'mail.api.account.business_signup',
 	makeParams: () => ({ email: email.value }),
 	onSuccess: (data) => {
 		errorMessage.value = ''
