@@ -34,7 +34,6 @@
 				type="text"
 				placeholder="Doe"
 				autocomplete="family-name"
-				required
 			/>
 			<FormControl
 				v-model="password"
@@ -123,13 +122,10 @@ const resendOtp = createResource({
 
 const verifyOtp = createResource({
 	url: 'mail.api.account.verify_otp',
-	makeParams: () => ({
-		account_request: accountRequest.value,
-		otp: otp.value,
-	}),
+	makeParams: () => ({ account_request: accountRequest.value, otp: otp.value }),
 	onSuccess: (requestKey) => {
 		errorMessage.value = ''
-		router.push({ name: 'AccountSetup', params: { requestKey } })
+		router.push({ name: 'BusinessSetup', params: { requestKey } })
 	},
 	onError: (error) => (errorMessage.value = error.messages[0]),
 })
