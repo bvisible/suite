@@ -50,8 +50,21 @@ class MailSettings(Document):
 				if not self.dns_provider_key or not self.dns_provider_secret:
 					frappe.throw(_("Please set the DNS Provider Key and Secret."))
 
-		dns_provider = get_dns_provider(self)
-		dns_provider.read_dns_records("A")
+		verify_dns_provider = (
+			self.has_value_changed("root_domain_name")
+			or self.has_value_changed("dns_provider")
+			or self.has_value_changed("dns_provider_access_key")
+			or self.has_value_changed("dns_provider_access_secret")
+			or self.has_value_changed("dns_provider_token")
+			or self.has_value_changed("dns_provider_username")
+			or self.has_value_changed("dns_provider_client_ip")
+			or self.has_value_changed("dns_provider_key")
+			or self.has_value_changed("dns_provider_secret")
+		)
+
+		if verify_dns_provider:
+			dns_provider = get_dns_provider(self)
+			dns_provider.read_dns_records("A")
 
 	def validate_spf_host(self) -> None:
 		"""Validates the SPF Host."""
