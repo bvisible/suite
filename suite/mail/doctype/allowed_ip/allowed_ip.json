@@ -7,7 +7,8 @@
   "section_break_f82v",
   "cluster",
   "column_break_3xet",
-  "ip_address"
+  "ip_address",
+  "host"
  ],
  "fields": [
   {
@@ -36,13 +37,20 @@
    "label": "IP Address",
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "host",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "Host",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-04-07 11:33:34.666368",
+ "modified": "2025-04-07 12:18:55.943293",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Allowed IP",
