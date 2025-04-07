@@ -28,7 +28,7 @@
 	<div
 		v-if="
 			Number(signupSettings.data?.allow_personal_signup) ||
-			Number(signupSettings.data?.allow_self_signup)
+			Number(signupSettings.data?.allow_business_signup)
 		"
 		class="mt-6 text-center"
 	>
