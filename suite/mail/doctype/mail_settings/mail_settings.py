@@ -64,7 +64,7 @@ class MailSettings(Document):
 
 		if verify_dns_provider:
 			dns_provider = get_dns_provider(self)
-			dns_provider.read_dns_records("A")
+			dns_provider.read_dns_records("MX")
 
 	def validate_spf_host(self) -> None:
 		"""Validates the SPF Host."""
