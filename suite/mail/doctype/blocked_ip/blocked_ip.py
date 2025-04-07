@@ -10,9 +10,17 @@ from frappe.utils import now
 
 from mail.mail_server import get_mail_server_api
 from mail.utils import extract_filter_values, rename_keys
+from mail.utils.dns import get_host_by_ip
 
 
 class BlockedIP(Document):
+	@property
+	def host(self) -> str | None:
+		"""Returns the host name of the IP address."""
+
+		if self.ip_address:
+			return get_host_by_ip(self.ip_address)
+
 	def autoname(self) -> None:
 		self.name = f"{self.cluster}-{self.ip_address}"
 
