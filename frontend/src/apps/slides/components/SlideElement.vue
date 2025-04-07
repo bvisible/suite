@@ -1,11 +1,6 @@
 <template>
 	<div :style="elementStyle">
-		<component
-			:is="getDynamicComponent(element.type)"
-			:element="element"
-			@select="selectElement"
-			@focus="focusOnElement"
-		/>
+		<component :is="getDynamicComponent(element.type)" :element="element" />
 	</div>
 </template>
 
@@ -23,14 +18,11 @@ import {
 	setActiveElements,
 	activeElement,
 } from '@/stores/element'
-import { inSlideShow } from '@/stores/presentation'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
-
-const isDragging = inject('isDragging', null)
 
 const outline = computed(() => {
 	if (activeElementIds.value.concat([focusElementId.value]).includes(element.value.id))
@@ -58,37 +50,5 @@ const getDynamicComponent = (type) => {
 		default:
 			return TextElement
 	}
-}
-
-const focusOnElement = (e) => {
-	e.stopPropagation()
-
-	// avoid re-triggering focus and putting the cursor at end if text element is already in focus
-	if (focusElementId.value == element.value.id) return
-
-	setActiveElements([element.value.id], true)
-	nextTick(() => {
-		e.target.focus()
-	})
-}
-
-const selectElement = (e) => {
-	if (inSlideShow.value) return
-
-	e.stopPropagation()
-
-	// avoid the click event from firing after a drag
-	if (isDragging.value) {
-		isDragging.value = false
-		return
-	}
-
-	// if the text element is in focus, don't select it again
-	if (focusElementId.value == element.value.id) return
-
-	// if the element is already selected and is editable, focus on it
-	if (element.value.type == 'text' && element.value.id == activeElement.value?.id)
-		focusOnElement(e)
-	else setActiveElements([element.value.id])
 }
 </script>

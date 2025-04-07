@@ -1,15 +1,10 @@
-import { watch, ref, computed } from 'vue'
-import { slideBounds } from '../stores/slide'
+import { watch, ref, computed, reactive } from 'vue'
+import { slide, slideBounds } from '../stores/slide'
 
-export const useResizer = (position, resizeDimensions) => {
+export const useResizer = () => {
 	const resizeTarget = ref(null)
 	const isResizing = ref(false)
 	const currentResizer = ref(null)
-	const resizeMode = ref(null)
-	const resizeHandles = computed(() => {
-		if (resizeMode.value == 'width') return ['left', 'right']
-		return ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-	})
 
 	let originalWidth = null
 	let originalHeight = null
@@ -19,6 +14,13 @@ export const useResizer = (position, resizeDimensions) => {
 
 	let prevX = 0
 	let prevY = 0
+
+	const resizeDiffs = ref({
+		width: 0,
+		height: 0,
+		left: 0,
+		top: 0,
+	})
 
 	const startResize = (e) => {
 		e.preventDefault()
@@ -30,17 +32,6 @@ export const useResizer = (position, resizeDimensions) => {
 		prevX = e.clientX
 		prevY = e.clientY
 
-		let rect = resizeTarget.value.getBoundingClientRect()
-
-		originalWidth = rect.width
-		originalHeight = rect.height
-		originalBottom = rect.bottom
-		originalLeft = rect.left
-
-		resizeDimensions.value = {
-			width: rect.width,
-		}
-
 		window.addEventListener('mousemove', resize)
 		window.addEventListener('mouseup', stopResize, { once: true })
 	}
@@ -49,54 +40,43 @@ export const useResizer = (position, resizeDimensions) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
 
-		const rect = resizeTarget.value.getBoundingClientRect()
-
-		let newLeft = 0
-		let newTop = 0
-
-		let newWidth = 0
-		let newHeight = 0
-
 		let diffX = prevX - e.clientX
 		let diffY = prevY - e.clientY
+
+		let diffLeft = 0
+		let diffTop = 0
 
 		if (!diffX) return
 
 		switch (currentResizer.value) {
 			case 'resizer-left':
-				newWidth = rect.width + diffX
-				newLeft = originalLeft + originalWidth - newWidth
-				newTop = position.value.top
+				diffLeft = -diffX
 				break
-			case 'resizer-top-right':
-				newWidth = rect.width - diffX
-				newHeight = (newWidth * originalHeight) / originalWidth
-				newTop = originalBottom - newHeight
-				newLeft = position.value.left
-				break
-			case 'resizer-bottom-left':
-				newWidth = rect.width + diffX
-				newLeft = originalLeft + originalWidth - newWidth
-				newTop = position.value.top
-				break
-			case 'resizer-top-left':
-				newWidth = rect.width + diffX
-				newHeight = (newWidth * originalHeight) / originalWidth
-				newLeft = originalLeft + originalWidth - newWidth
-				newTop = originalBottom - newHeight
-				break
+			// case 'resizer-top-right':
+			//     newWidth = rect.width - diffX
+			//     activeBounds.width = newWidth
+			//     activeBounds.top += diffX
+			//     break
+			// case 'resizer-bottom-left':
+			//     newWidth = rect.width + diffX
+			//     activeBounds.width = newWidth
+			//     activeBounds.left -= diffX
+			//     break
+			// case 'resizer-top-left':
+			//     newWidth = rect.width + diffX
+			//     activeBounds.width = newWidth
+			//     activeBounds.left -= diffX
+			//     activeBounds.top -= (diffX * originalHeight) / originalWidth
+			//     break
 			default:
-				newWidth = rect.width - diffX
-				newLeft = position.value.left
-				newTop = position.value.top
+				diffX = -diffX
 				break
 		}
 
-		const widthLimit = resizeMode.value == 'width' ? 20 : 75
-
-		if (newWidth > widthLimit * slideBounds.scale) {
-			resizeDimensions.value = { width: newWidth }
-			position.value = { left: newLeft, top: newTop }
+		resizeDiffs.value = {
+			width: diffX,
+			left: diffLeft,
+			top: diffTop,
 		}
 
 		prevX = e.clientX
@@ -106,6 +86,7 @@ export const useResizer = (position, resizeDimensions) => {
 	const stopResize = (e) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
+
 		window.removeEventListener('mousemove', resize)
 		window.removeEventListener('mouseup', stopResize)
 	}
@@ -120,16 +101,20 @@ export const useResizer = (position, resizeDimensions) => {
 		const textWidth = range.getBoundingClientRect().width
 
 		// auto resize width of TextElement to fit content with some padding
-		resizeDimensions.value = { width: textWidth + 10 }
+		// dimensions.value = { width: textWidth + 10 }
 	}
 
-	const addResizers = (el) => {
-		resizeHandles.value.forEach((handle) => {
+	const addResizers = (e, resizeMode) => {
+		const el = e.target
+		let resizeHandles = []
+		if (resizeMode == 'width') resizeHandles = ['left', 'right']
+
+		resizeHandles.forEach((handle) => {
 			const resizer = document.createElement('div')
-			resizer.classList.add(`resizer-${resizeMode.value}`, `resizer-${handle}`)
+			resizer.classList.add(`resizer-${resizeMode}`, `resizer-${handle}`)
 
 			// add double click event to fit content based on type of element
-			if (resizeMode.value == 'width') {
+			if (resizeMode == 'width') {
 				resizer.addEventListener('dblclick', resizeToFitContent)
 			}
 			resizer.addEventListener('mousedown', startResize)
@@ -145,18 +130,5 @@ export const useResizer = (position, resizeDimensions) => {
 		})
 	}
 
-	watch(
-		() => resizeTarget.value,
-		(val, oldVal) => {
-			if (oldVal) {
-				removeResizers(oldVal)
-			}
-			if (val) {
-				addResizers(val)
-			}
-		},
-		{ immediate: true },
-	)
-
-	return { isResizing, resizeTarget, resizeMode }
+	return { isResizing, resizeDiffs, addResizers }
 }
