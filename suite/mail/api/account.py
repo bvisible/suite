@@ -29,7 +29,7 @@ def personal_signup(
 	password: str,
 	first_name: str,
 	last_name: str | None = None,
-) -> str:
+) -> None:
 	"""Create a new Mail Account for personal signup"""
 
 	with user_context("Administrator"):
