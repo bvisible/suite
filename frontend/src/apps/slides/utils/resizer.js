@@ -108,8 +108,9 @@ export const useResizer = () => {
 		}
 	}
 
-	const addResizers = (e, resizeMode) => {
-		const el = e.target
+	const updateResizers = (target, resizeMode) => {
+		removeResizers()
+		resizeTarget.value = target
 		let resizeHandles = []
 		if (resizeMode == 'width') resizeHandles = ['left', 'right']
 
@@ -123,16 +124,17 @@ export const useResizer = () => {
 			}
 			resizer.addEventListener('mousedown', startResize)
 
-			el.appendChild(resizer)
+			resizeTarget.value.appendChild(resizer)
 		})
 	}
 
-	const removeResizers = (el) => {
-		const resizers = el.querySelectorAll('div.resizer-both, div.resizer-width')
+	const removeResizers = () => {
+		if (!resizeTarget.value) return
+		const resizers = resizeTarget.value.querySelectorAll('div.resizer-both, div.resizer-width')
 		resizers.forEach((resizer) => {
-			el.removeChild(resizer)
+			resizeTarget.value.removeChild(resizer)
 		})
 	}
 
-	return { isResizing, resizeDiffs, addResizers }
+	return { isResizing, resizeDiffs, updateResizers }
 }
