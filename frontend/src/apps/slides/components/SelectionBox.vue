@@ -32,11 +32,14 @@ const slideContainerDiv = inject('slideContainerDiv')
 
 const selectedRef = useTemplateRef('selected')
 
-const bounds = reactive({
-	left: 0,
-	top: 0,
-	width: 0,
-	height: 0,
+const bounds = defineModel('bounds', {
+	type: Object,
+	default: {
+		left: 0,
+		top: 0,
+		width: 0,
+		height: 0,
+	},
 })
 
 const startX = ref(0)
@@ -51,10 +54,10 @@ const boxStyles = computed(() => ({
 	zIndex: 1000,
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
-	width: `${bounds.width}px`,
-	height: `${bounds.height}px`,
-	left: `${bounds.left}px`,
-	top: `${bounds.top}px`,
+	width: `${bounds.value.width}px`,
+	height: `${bounds.value.height}px`,
+	left: `${bounds.value.left}px`,
+	top: `${bounds.value.top}px`,
 	boxSizing: 'border-box',
 }))
 
@@ -64,11 +67,11 @@ const initSelection = (e) => {
 		const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 		const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
-		bounds.left = currentX
-		bounds.top = currentY
+		bounds.value.left = currentX
+		bounds.value.top = currentY
 
-		bounds.width = 0
-		bounds.height = 0
+		bounds.value.width = 0
+		bounds.value.height = 0
 
 		startX.value = currentX
 		startY.value = currentY
@@ -81,29 +84,29 @@ const updateSelection = (e) => {
 	const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 	const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
-	bounds.width = Math.abs(currentX - startX.value)
-	bounds.height = Math.abs(currentY - startY.value)
+	bounds.value.width = Math.abs(currentX - startX.value)
+	bounds.value.height = Math.abs(currentY - startY.value)
 
-	if (currentX < startX.value) bounds.left = currentX
-	if (currentY < startY.value) bounds.top = currentY
+	if (currentX < startX.value) bounds.value.left = currentX
+	if (currentY < startY.value) bounds.value.top = currentY
 
 	document.addEventListener('mouseup', endSelection)
 }
 
 const removeSelectionBox = () => {
-	bounds.left = 0
-	bounds.top = 0
-	bounds.width = 0
-	bounds.height = 0
+	bounds.value.left = 0
+	bounds.value.top = 0
+	bounds.value.width = 0
+	bounds.value.height = 0
 }
 
 const getElementsWithinBoxSurface = () => {
 	let elements = []
 
-	const boxLeft = bounds.left
-	const boxTop = bounds.top
-	const boxRight = bounds.left + bounds.width
-	const boxBottom = bounds.top + bounds.height
+	const boxLeft = bounds.value.left
+	const boxTop = bounds.value.top
+	const boxRight = bounds.value.left + bounds.value.width
+	const boxBottom = bounds.value.top + bounds.value.height
 
 	slide.value.elements.forEach((element) => {
 		const {
@@ -166,15 +169,15 @@ const cropSelectionToFitContent = (elementIds) => {
 		if (elementBottom > b) b = elementBottom
 	})
 
-	bounds.left = l
-	bounds.top = t
-	bounds.width = r - l + 1
-	bounds.height = b - t + 1
+	bounds.value.left = l
+	bounds.value.top = t
+	bounds.value.width = r - l + 1
+	bounds.value.height = b - t + 1
 }
 
 const resetSelection = (oldVal) => {
-	bounds.width = 0
-	bounds.height = 0
+	bounds.value.width = 0
+	bounds.value.height = 0
 }
 
 const handleMouseDown = (e) => {
@@ -215,8 +218,8 @@ const moveElementsToSlide = (elementIds) => {
 		let elementDiv = document.querySelector(`[data-index="${elementId}"]`)
 		slideDiv.value.appendChild(elementDiv)
 		moveElement(elementId, {
-			dx: bounds.left,
-			dy: bounds.top,
+			dx: bounds.value.left,
+			dy: bounds.value.top,
 		})
 	})
 }
@@ -226,8 +229,8 @@ const moveElementsToBox = (elementIds) => {
 		const elementDiv = document.querySelector(`[data-index="${elementId}"]`)
 		selectedRef.value?.appendChild(elementDiv)
 		moveElement(elementId, {
-			dx: -bounds.left,
-			dy: -bounds.top,
+			dx: -bounds.value.left,
+			dy: -bounds.value.top,
 		})
 	})
 }
@@ -240,14 +243,6 @@ const handleSelectionChange = (elementIds, oldIds) => {
 		cropSelectionToFitContent(elementIds)
 		moveElementsToBox(elementIds)
 	}
-}
-
-const getBoxBounds = () => bounds
-
-const setBoxBounds = (newBounds) => {
-	Object.keys(newBounds).forEach((key) => {
-		bounds[key] = newBounds[key]
-	})
 }
 
 onMounted(() => {
@@ -264,7 +259,5 @@ onBeforeUnmount(() => {
 
 defineExpose({
 	handleSelectionChange,
-	getBoxBounds,
-	setBoxBounds,
 })
 </script>

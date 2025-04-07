@@ -8,19 +8,20 @@
 			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
 		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" @click="stopDragging" />
+				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" :bounds="bounds" />
 
-				<AlignmentGuides
+				<!-- <AlignmentGuides
 					v-if="showGuides"
 					ref="guides"
 					:selectedRef="selectionBoxRef.$el"
-				/>
+				/> -->
 
 				<SlideElement
 					v-for="element in slide.elements"
 					:key="element.id"
 					:element="element"
 					:data-index="element.id"
+					@mousedown="(e) => handleMouseDown(e, element)"
 				/>
 			</div>
 		</div>
@@ -28,11 +29,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
-import SlideElement from '@/components/SlideElement.vue'
+import SlideElement2 from '@/components/SlideElement2.vue'
 import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import SelectionBox from './SelectionBox.vue'
 
@@ -42,6 +43,7 @@ import {
 	activePosition,
 	activeDimensions,
 	activeElements,
+	activeElement,
 	activeElementIds,
 	updateActivePosition,
 	setActivePosition,
@@ -69,8 +71,8 @@ const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 const guides = useTemplateRef('guides')
 
-const { isDragging, dragTarget, movement } = useDragAndDrop()
-const { isResizing, resizeTarget, resizeMode } = useResizer(activePosition, activeDimensions)
+const { isDragging, dragMovement, startDragging } = useDragAndDrop()
+const { isResizing, resizeDiffs, addResizers } = useResizer()
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
@@ -122,124 +124,8 @@ const updateSlideBounds = () => {
 	slideBounds.scale = scale.value
 }
 
-const handleDimensionChange = (dimensions) => {
-	const elementId = activeElementIds.value[0]
-
-	// update element dimensions in slide object
-	resizeElement(elementId, dimensions)
-}
-
-const handlePositionChange = (position) => {
-	const { left, top } = selectionBoxRef.value.getBoxBounds()
-	if (position.left == left + slideBounds.left && position.top == top + slideBounds.top) {
-		return
-	}
-	selectionBoxRef.value.setBoxBounds({
-		left: (position.left - slideBounds.left) / slideBounds.scale,
-		top: (position.top - slideBounds.top) / slideBounds.scale,
-	})
-}
-
-const initDraggable = () => {
-	let el = selectionBoxRef.value?.$el
-	if (!el) return
-
-	// enable dragging on the selected box
-	dragTarget.value = el
-
-	// set initial position of the selection box
-	const { left, top } = selectionBoxRef.value.getBoxBounds()
-	setActivePosition({
-		left: left + slideBounds.left,
-		top: top + slideBounds.top,
-	})
-}
-
-const initResizer = (element) => {
-	// enable resizing on the selected element
-	resizeTarget.value = document.querySelector(`[data-index="${element.id}"]`)
-
-	// set initial dimensions of the element
-	resizeMode.value = element.type == 'text' ? 'width' : 'both'
-}
-
-const addDragAndResize = () => {
-	// if only one element is selected, enable resizing
-	if (activeElementIds.value.length == 1) {
-		initResizer(activeElements.value[0])
-	}
-
-	nextTick(() => {
-		initDraggable()
-	})
-}
-
-const removeDragAndResize = () => {
-	setActivePosition(null)
-	activeDimensions.value = null
-	dragTarget.value = null
-	resizeTarget.value = null
-}
-
-const getPositionChange = (movement) => {
-	return {
-		dx: movement.x / scale.value,
-		dy: movement.y / scale.value,
-	}
-}
-
-const hasSnapped = (positionChange, snappedPositionChange) => {
-	return (
-		positionChange.dx != snappedPositionChange.dx ||
-		positionChange.dy != snappedPositionChange.dy
-	)
-}
-
-const applyMovement = (positionChange) => {
-	// move the element to the new position
-	updateActivePosition({
-		dx: positionChange.dx,
-		dy: positionChange.dy,
-	})
-
-	// update selection box position to match the element
-	selectionBoxRef.value.setBoxBounds({
-		left: activePosition.value.left - slideBounds.left,
-		top: activePosition.value.top - slideBounds.top,
-	})
-}
-
-const handleMovement = (movement) => {
-	// get change in position - scaled
-	const positionChange = getPositionChange(movement)
-
-	// get change in position - possible snaps
-	const snapPositionChange = guides.value.getMovementBasedOnSnap(positionChange)
-
-	const isElementSnapped = hasSnapped(positionChange, snapPositionChange)
-
-	if (!recentlySnapped) {
-		requestAnimationFrame(() => {
-			applyMovement(snapPositionChange)
-		})
-	}
-
-	if (isElementSnapped) {
-		recentlySnapped = true
-		clearTimeout(snapTimer)
-		snapTimer = setTimeout(() => {
-			recentlySnapped = false
-		}, 300)
-	}
-}
-
 const handleSelectionChange = (newSelection, oldSelection) => {
 	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
-	if (newSelection.length) {
-		addDragAndResize()
-	} else if (oldSelection) {
-		removeDragAndResize()
-	}
 }
 
 const activeDiv = computed(() => {
@@ -254,10 +140,8 @@ useResizeObserver(activeDiv, (entries) => {
 	// case:
 	// when element dimensions are changed not by resizer
 	// but by other updates on properties - font size, line height, letter spacing etc.
-	selectionBoxRef.value.setBoxBounds({
-		width: width,
-		height: height,
-	})
+	bounds.width = width
+	bounds.height = height
 })
 
 const togglePanZoom = () => {
@@ -268,52 +152,13 @@ const handleSlideTransform = () => {
 	// wait for the new transform to render before updating dimensions
 	nextTick(() => {
 		updateSlideBounds()
-
-		// set initial position of the selection box after zooming / panning
-		const { left, top } = selectionBoxRef.value.getBoxBounds()
-		setActivePosition({
-			left: left + slideBounds.left,
-			top: top + slideBounds.top,
-		})
 	})
-}
-
-const stopDragging = (e) => {
-	// stop dragging when the mouse is released within the selection box and not on an element
-	if (isDragging.value && e.target == selectionBoxRef.value.$el) {
-		isDragging.value = false
-		return
-	}
 }
 
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
 		handleSelectionChange(newVal, oldVal)
-	},
-)
-
-watch(
-	() => movement.value,
-	(movement) => {
-		if (!movement || !activePosition.value) return
-		handleMovement(movement)
-	},
-)
-
-watch(
-	() => activeDimensions.value,
-	(dimensions) => {
-		if (!dimensions) return
-		handleDimensionChange(dimensions)
-	},
-)
-
-watch(
-	() => activePosition.value,
-	(position) => {
-		if (!position) return
-		handlePositionChange(position)
 	},
 )
 
@@ -338,8 +183,46 @@ provide('isDragging', isDragging)
 
 defineExpose({
 	togglePanZoom,
-	applyMovement,
 })
+
+const bounds = reactive({
+	left: 0,
+	top: 0,
+	width: 0,
+	height: 0,
+})
+
+const addToActiveElements = (id) => {
+	if (!activeElementIds.value.includes(id)) {
+		activeElementIds.value = [...activeElementIds.value, id]
+	}
+}
+
+const handleMouseDown = (e, element) => {
+	addToActiveElements(element.id)
+	addResizers(e, 'width')
+
+	startDragging(e)
+}
+
+watch(
+	() => dragMovement.value,
+	(movement) => {
+		bounds.left += movement.x / scale.value
+		bounds.top += movement.y / scale.value
+	},
+)
+
+watch(
+	() => resizeDiffs.value,
+	(diffs) => {
+		bounds.width += diffs.width / scale.value
+		bounds.left += diffs.left / scale.value
+		bounds.top += diffs.top / scale.value
+
+		activeElement.value.width += diffs.width / scale.value
+	},
+)
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
