@@ -94,14 +94,18 @@ export const useResizer = () => {
 	const resizeToFitContent = (e) => {
 		// create range of the text node within TextElement
 		const range = document.createRange()
-		const textNode = resizeTarget.value.firstChild
+		const textNode = e.target.parentElement.firstChild
+		const originalWidth = e.target.parentElement.offsetWidth
 		range.selectNodeContents(textNode)
 
 		// find out width of text content
 		const textWidth = range.getBoundingClientRect().width
-
 		// auto resize width of TextElement to fit content with some padding
-		// dimensions.value = { width: textWidth + 10 }
+		resizeDiffs.value = {
+			width: textWidth - originalWidth + 5,
+			left: 0,
+			top: 0,
+		}
 	}
 
 	const addResizers = (e, resizeMode) => {
