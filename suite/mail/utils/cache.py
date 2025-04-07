@@ -133,26 +133,6 @@ def get_default_outgoing_email_for_user(user: str) -> str | None:
 	return frappe.cache.hget(f"user|{user}", "default_outgoing_email", generator)
 
 
-def get_blacklist_for_ip_group(ip_group: str) -> list:
-	"""Returns the blacklist for the IP group."""
-
-	def generator() -> list:
-		IP_BLACKLIST = frappe.qb.DocType("IP Blacklist")
-		return (
-			frappe.qb.from_(IP_BLACKLIST)
-			.select(
-				IP_BLACKLIST.name,
-				IP_BLACKLIST.is_blacklisted,
-				IP_BLACKLIST.ip_address,
-				IP_BLACKLIST.ip_address_expanded,
-				IP_BLACKLIST.blacklist_reason,
-			)
-			.where(IP_BLACKLIST.ip_group == ip_group)
-		).run(as_dict=True)
-
-	return frappe.cache.hget("ip-blacklist", ip_group, generator)
-
-
 def get_clusters() -> list:
 	"""Returns the clusters."""
 
