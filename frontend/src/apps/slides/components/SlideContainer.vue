@@ -200,7 +200,7 @@ const bounds = reactive({
 })
 
 const addToActiveElements = (id) => {
-	if (!activeElementIds.value.includes(id)) {
+	if (!activeElementIds.value.includes(id) && focusElementId.value != id) {
 		activeElementIds.value = [...activeElementIds.value, id]
 	}
 }
@@ -209,6 +209,7 @@ let dragTimeout
 
 const handleMouseDown = (e, element) => {
 	if (focusElementId.value == element.id) return
+
 	dragTimeout = setTimeout(() => {
 		addToActiveElements(element.id)
 
@@ -217,6 +218,8 @@ const handleMouseDown = (e, element) => {
 
 	e.target.addEventListener('mouseup', () => {
 		clearTimeout(dragTimeout)
+
+		addToActiveElements(element.id)
 	})
 }
 
