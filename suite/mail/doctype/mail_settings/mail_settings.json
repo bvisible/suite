@@ -66,8 +66,7 @@
   "spamd_outbound_block",
   "column_break_lhy4",
   "spamd_outbound_threshold",
-  "client_tab",
-  "signup_section",
+  "signup_tab",
   "allow_business_signup",
   "column_break_daqm",
   "allow_personal_signup",
@@ -450,13 +449,8 @@
    "reqd": 1
   },
   {
-   "fieldname": "client_tab",
-   "fieldtype": "Tab Break",
-   "label": "Client"
-  },
-  {
    "default": "0",
-   "description": "Allows users to sign up from the Mail UI.",
+   "description": "Allows users to sign up as a business and creates a tenant.",
    "fieldname": "allow_business_signup",
    "fieldtype": "Check",
    "label": "Allow Business Signup"
@@ -467,11 +461,6 @@
    "fieldname": "allow_personal_signup",
    "fieldtype": "Check",
    "label": "Allow Personal Signup"
-  },
-  {
-   "fieldname": "signup_section",
-   "fieldtype": "Section Break",
-   "label": "Signup"
   },
   {
    "fieldname": "column_break_daqm",
@@ -558,12 +547,17 @@
    "fieldtype": "Password",
    "label": "Access Secret",
    "mandatory_depends_on": "eval: doc.dns_provider && [\"AmazonRoute53\"].includes(doc.dns_provider)"
+  },
+  {
+   "fieldname": "signup_tab",
+   "fieldtype": "Tab Break",
+   "label": "Signup"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-07 11:32:30.467716",
+ "modified": "2025-04-08 09:33:16.800557",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",
