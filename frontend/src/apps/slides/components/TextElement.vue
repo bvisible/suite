@@ -3,7 +3,6 @@
 		class="focus:outline-none"
 		:contenteditable="focusElementId == element.id"
 		:style="textStyle"
-		@click="selectElement"
 		@focus="setCursorPosition"
 		@blur="handleBlur"
 	>
@@ -42,19 +41,6 @@ const textStyle = computed(() => ({
 	color: element.value.color,
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
-
-const selectElement = (e) => {
-	if (inSlideShow.value) return
-	handleSingleAndDoubleClick(e, setActiveText, setFocusText)
-}
-
-const setActiveText = (e) => {
-	emit('select', e)
-}
-
-const setFocusText = (e) => {
-	emit('focus', e)
-}
 
 const setCursorPosition = (e) => {
 	const range = document.createRange()
