@@ -110,6 +110,8 @@ export const useResizer = () => {
 
 	const updateResizers = (target, resizeMode) => {
 		removeResizers()
+		if (!target) return
+
 		resizeTarget.value = target
 		let resizeHandles = []
 		if (resizeMode == 'width') resizeHandles = ['left', 'right']

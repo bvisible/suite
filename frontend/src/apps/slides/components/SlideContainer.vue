@@ -22,6 +22,7 @@
 					:element="element"
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
+					@dblclick="(e) => handleDoubleClick(e, element)"
 				/>
 			</div>
 		</div>
@@ -50,6 +51,7 @@ import {
 	resizeElement,
 	handleCopy,
 	handlePaste,
+	focusElementId,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -203,10 +205,26 @@ const addToActiveElements = (id) => {
 	}
 }
 
-const handleMouseDown = (e, element) => {
-	addToActiveElements(element.id)
+let dragTimeout
 
-	startDragging(e)
+const handleMouseDown = (e, element) => {
+	if (focusElementId.value == element.id) return
+	dragTimeout = setTimeout(() => {
+		addToActiveElements(element.id)
+
+		startDragging(e)
+	}, 100)
+
+	e.target.addEventListener('mouseup', () => {
+		clearTimeout(dragTimeout)
+	})
+}
+
+const handleDoubleClick = (e, element) => {
+	if (element.type !== 'text') return
+	clearTimeout(dragTimeout)
+	activeElementIds.value = []
+	focusElementId.value = element.id
 }
 
 watch(
