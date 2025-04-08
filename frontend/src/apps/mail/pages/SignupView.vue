@@ -126,9 +126,9 @@ createResource({
 	auto: true,
 	onSuccess: (data) => {
 		if (!Number(data.allow_personal_signup)) {
-			if (Number(data.allow_business_signup)) router.push('/signup/business')
+			if (Number(data.allow_business_signup)) router.replace('/signup/business')
 			else router.push('/login')
-		} else if (!Number(data.allow_business_signup)) router.push('/signup/personal')
+		} else if (!Number(data.allow_business_signup)) router.replace('/signup/personal')
 	},
 })
 
