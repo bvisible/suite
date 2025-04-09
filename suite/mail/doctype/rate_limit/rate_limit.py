@@ -9,6 +9,7 @@ from frappe.utils import cint
 
 class RateLimit(Document):
 	def validate(self) -> None:
+		self.validate_method_path()
 		self.validate_key_or_ip_based()
 		self.validate_methods()
 		self.validate_allowed_and_blocked_ips()
@@ -18,6 +19,20 @@ class RateLimit(Document):
 
 	def on_trash(self) -> None:
 		self.clear_cache()
+
+	def validate_method_path(self) -> None:
+		"""Validate the method has the dynamic rate limit decorator"""
+
+		fn = frappe.get_attr(self.method_path)
+		if not getattr(fn, "_is_dynamic_rate_limited", False):
+			frappe.throw(
+				_(
+					"The method {method} is missing the required {decorator} decorator. "
+					"Please add it to enforce dynamic rate limiting."
+				).format(
+					decorator="<code>@dynamic_rate_limit</code>", method=f"<code>{self.method_path}</code>"
+				)
+			)
 
 	def validate_key_or_ip_based(self) -> None:
 		"""Validate key_ or IP based"""
