@@ -233,11 +233,11 @@ const mailThread = createResource({
 	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
 })
 
-const reloadThread = () => {
+const reload = () => {
 	if (props.mailID) mailThread.reload()
 }
 
-defineExpose({ reloadThread })
+defineExpose({ reload })
 
 const mailBody = (bodyHTML: string) => {
 	bodyHTML = bodyHTML.replace(/<br\s*\/?>/, '')
@@ -393,7 +393,7 @@ const generatePLaceholderWidth = () => {
 	return `${Math.floor(Math.random() * (max - min + 1) + min)}px`
 }
 
-watch(() => props.mailID, reloadThread)
+watch(() => props.mailID, reload)
 </script>
 <style>
 .prose

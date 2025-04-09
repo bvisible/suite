@@ -52,8 +52,8 @@
 						screenSize.width < 640 && !(currentMail[currentFolder] || route.params.id),
 				}"
 			>
-				<MailDetails
-					ref="mailDetails"
+				<MailThread
+					ref="mailThread"
 					:mail-i-d="currentMail[currentFolder]"
 					:current-folder
 					:type="getMailType() || doctype"
@@ -81,7 +81,7 @@ import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
 import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
-import MailDetails from '@/components/MailDetails.vue'
+import MailThread from '@/components/MailThread.vue'
 import SidebarDetail from '@/components/SidebarDetail.vue'
 
 import type { Folder, UserResource } from '@/types'
@@ -104,7 +104,7 @@ const doctype = computed(() =>
 	['Inbox', 'Spam'].includes(currentFolder.value) ? 'Incoming Mail' : 'Outgoing Mail',
 )
 
-const mailDetails = ref<typeof MailDetails>()
+const mailThread = ref<typeof MailThread>()
 
 const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Spam', 'Trash']
 
@@ -119,11 +119,11 @@ const createMailResource = (folder: Folder) =>
 
 			if (mailExists(id)) {
 				if (currentMail[folder] !== id) setCurrentMail(folder, id)
-				mailDetails.value?.reloadThread()
+				mailThread.value?.reload()
 			} else if (mailExists(currentMail[folder])) {
 				if (route.params.id !== currentMail[folder])
 					router.replace({ name: `${folder}Mail`, params: { id: currentMail[folder] } })
-				mailDetails.value?.reloadThread()
+				mailThread.value?.reload()
 			} else setCurrentMail(folder, null)
 		},
 	})
