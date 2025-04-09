@@ -14,10 +14,13 @@
   "column_break_mc1j",
   "seconds",
   "limit",
-  "key_",
   "column_break_r3yj",
+  "key_",
   "ip_based",
-  "ignored_ips"
+  "section_break_3oyv",
+  "allowed_ips",
+  "column_break_6t0i",
+  "blocked_ips"
  ],
  "fields": [
   {
@@ -97,23 +100,35 @@
    "label": "Key"
   },
   {
-   "depends_on": "eval: doc.ip_based",
-   "fieldname": "ignored_ips",
-   "fieldtype": "Small Text",
-   "label": "Ignored IPs"
-  },
-  {
    "fieldname": "column_break_mc1j",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "column_break_r3yj",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_3oyv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_6t0i",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allowed_ips",
+   "fieldtype": "Small Text",
+   "label": "Allowed IPs"
+  },
+  {
+   "fieldname": "blocked_ips",
+   "fieldtype": "Small Text",
+   "label": "Blocked IPs"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-21 09:59:29.363311",
+ "modified": "2025-04-09 10:53:11.725956",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Rate Limit",
@@ -133,6 +148,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
