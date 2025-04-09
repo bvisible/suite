@@ -8,13 +8,12 @@
 			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
 		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox ref="selectionBox" @updateFocus="updateFocus" :bounds="bounds" />
-
-				<!-- <AlignmentGuides
-					v-if="showGuides"
-					ref="guides"
-					:selectedRef="selectionBoxRef.$el"
-				/> -->
+				<SelectionBox
+					ref="selectionBox"
+					@updateFocus="updateFocus"
+					:bounds="bounds"
+					@mousedown="(e) => handleMouseDown(e)"
+				/>
 
 				<Guides v-if="isDragging" :visibilityMap="visibilityMap" />
 
@@ -214,10 +213,10 @@ const addToActiveElements = (id) => {
 let dragTimeout
 
 const handleMouseDown = (e, element) => {
-	if (focusElementId.value == element.id) return
+	if (element && focusElementId.value == element.id) return
 
 	dragTimeout = setTimeout(() => {
-		addToActiveElements(element.id)
+		if (element) addToActiveElements(element.id)
 
 		startDragging(e)
 	}, 100)
@@ -225,7 +224,7 @@ const handleMouseDown = (e, element) => {
 	e.target.addEventListener('mouseup', () => {
 		clearTimeout(dragTimeout)
 
-		addToActiveElements(element.id)
+		if (element) addToActiveElements(element.id)
 	})
 }
 

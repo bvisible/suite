@@ -88,7 +88,7 @@ export const useSnapping = (target, parent) => {
 		clearTimeout(snapTimeout)
 		snapTimeout = setTimeout(() => {
 			hasSnapped.value = false
-		}, 400)
+		}, 450)
 	}
 
 	const applySnapMovement = (axis) => {
