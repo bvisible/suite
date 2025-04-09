@@ -1,6 +1,8 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import random
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -17,6 +19,8 @@ class MailTenant(Document):
 
 	def validate_cluster(self) -> None:
 		"""Validates the cluster."""
+
+		self.cluster = self.cluster or get_random_public_cluster()
 
 		if not self.cluster:
 			return
@@ -95,3 +99,10 @@ def get_permission_query_condition(user: str | None = None) -> str:
 			return f"(`tabMail Tenant`.`name` = {frappe.db.escape(tenant)})"
 
 	return "1=0"
+
+
+def get_random_public_cluster() -> str | None:
+	"""Returns a random public cluster."""
+
+	if clusters := frappe.db.get_all("Mail Cluster", {"enabled": 1, "public": 1}, pluck="name"):
+		return random.choice(clusters)
