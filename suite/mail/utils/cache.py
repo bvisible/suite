@@ -53,6 +53,15 @@ def get_personal_signup_domains() -> list:
 	return frappe.cache.hget("mail-settings", "personal_signup_domains", generator)
 
 
+def get_cluster_for_tenant(tenant: str) -> str | None:
+	"""Returns the cluster for the tenant."""
+
+	def generator() -> list:
+		return frappe.db.get_value("Mail Tenant", tenant, "cluster")
+
+	return frappe.cache.hget(f"tenant|{tenant}", "cluster", generator)
+
+
 def get_domains_owned_by_tenant(tenant: str) -> list:
 	"""Returns the domains owned by the tenant."""
 
