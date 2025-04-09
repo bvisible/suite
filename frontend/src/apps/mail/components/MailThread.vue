@@ -74,7 +74,7 @@
 						class="avatar border border-gray-300"
 						:label="mail.display_name || mail.sender"
 						:image="mail.user_image"
-						size="lg"
+						size="xl"
 					/>
 					<div class="flex flex-1 justify-between text-xs">
 						<div class="flex flex-col space-y-1">
