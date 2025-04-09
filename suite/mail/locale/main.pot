@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-04-09 10:11+0553\n"
-"PO-Revision-Date: 2025-04-09 10:11+0553\n"
+"POT-Creation-Date: 2025-04-09 11:59+0553\n"
+"PO-Revision-Date: 2025-04-09 11:59+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -1419,7 +1419,7 @@ msgstr ""
 msgid "Either file path or file data is required."
 msgstr ""
 
-#: mail/mail/doctype/rate_limit/rate_limit.py:26
+#: mail/mail/doctype/rate_limit/rate_limit.py:41
 msgid "Either key or IP flag is required."
 msgstr ""
 
@@ -4955,6 +4955,10 @@ msgstr ""
 msgid "The message is required."
 msgstr ""
 
+#: mail/mail/doctype/rate_limit/rate_limit.py:29
+msgid "The method {method} is missing the required {decorator} decorator. Please add it to enforce dynamic rate limiting."
+msgstr ""
+
 #. Description of the 'Container' (Data) field in DocType 'Mail Server Store'
 #: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "The name of the container in the Storage Account."
@@ -5119,7 +5123,7 @@ msgstr ""
 msgid "Tracking ID"
 msgstr ""
 
-#: mail/api/track.py:17
+#: mail/api/track.py:16
 msgid "Tracking ID is required - {0}."
 msgstr ""
 
@@ -5573,6 +5577,10 @@ msgstr ""
 msgid "Write Buffer Size (MB)"
 msgstr ""
 
+#: mail/utils/rate_limiter.py:28
+msgid "You are not allowed to access this resource."
+msgstr ""
+
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.py:170
 msgid "You are not allowed to send from address {0}."
 msgstr ""
@@ -5631,6 +5639,10 @@ msgstr ""
 
 #: mail/mail/doctype/mail_account_request/mail_account_request.py:182
 msgid "{0} - OTP for Frappe Mail Account Verification"
+msgstr ""
+
+#: mail/mail/doctype/rate_limit/rate_limit.py:63
+msgid "{0} cannot be both allowed and blocked."
 msgstr ""
 
 #: mail/utils/dns.py:25

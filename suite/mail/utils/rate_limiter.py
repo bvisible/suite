@@ -38,6 +38,7 @@ def dynamic_rate_limit() -> callable:
 
 			return wrapped_fn(*args, **kwargs)
 
+		wrapper._is_dynamic_rate_limited = True
 		return wrapper
 
 	return decorator
