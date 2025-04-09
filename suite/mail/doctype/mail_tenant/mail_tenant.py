@@ -22,7 +22,7 @@ class MailTenant(Document):
 			return
 
 		if not frappe.db.get_value("Mail Cluster", self.cluster, "enabled"):
-			frappe.throw(_("Cluster {0} is not enabled.").format(frappe.bold(self.cluster)))
+			frappe.throw(_("Cluster {0} is disabled.").format(frappe.bold(self.cluster)))
 
 	def validate_user(self) -> None:
 		"""Validates the user."""
