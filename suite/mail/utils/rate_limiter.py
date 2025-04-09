@@ -25,7 +25,10 @@ def dynamic_rate_limit() -> callable:
 						continue
 					elif any(request_ip.startswith(prefix) for prefix in rl["blocked_ips"]):
 						frappe.throw(
-							_("You are not allowed to access this resource."), frappe.RateLimitExceededError
+							_(
+								"Access denied: Your IP address ({0}) is blocked due to explicit IP restrictions."
+							).format(request_ip),
+							frappe.RateLimitExceededError,
 						)
 
 					wrapped_fn = rate_limit(
