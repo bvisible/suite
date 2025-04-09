@@ -66,10 +66,6 @@
   "open_count",
   "last_opened_at",
   "last_opened_from_ip",
-  "clusters_section",
-  "include_clusters",
-  "column_break_qhyj",
-  "exclude_clusters",
   "section_break_eh7n",
   "amended_from"
  ],
@@ -470,10 +466,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "column_break_qhyj",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "section_break_ptje",
    "fieldtype": "Section Break"
   },
@@ -568,26 +560,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "include_clusters",
-   "fieldtype": "Small Text",
-   "label": "Include Clusters",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "exclude_clusters",
-   "fieldtype": "Small Text",
-   "label": "Exclude Clusters",
-   "permlevel": 1
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.include_clusters || doc.exclude_clusters",
-   "depends_on": "eval: !doc.__islocal",
-   "fieldname": "clusters_section",
-   "fieldtype": "Section Break",
-   "label": "Clusters"
-  },
-  {
    "allow_on_submit": 1,
    "default": "1",
    "fieldname": "seen",
@@ -607,7 +579,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-06 14:49:33.230736",
+ "modified": "2025-04-09 17:02:25.950616",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Outgoing Mail",

@@ -1,7 +1,6 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-import random
 from email import policy
 from email.encoders import encode_base64
 from email.message import Message
@@ -47,7 +46,12 @@ from mail.utils import (
 	get_in_reply_to,
 	get_in_reply_to_mail,
 )
-from mail.utils.cache import get_account_for_email, get_account_for_user, get_default_outgoing_email_for_user
+from mail.utils.cache import (
+	get_account_for_email,
+	get_account_for_user,
+	get_cluster_for_tenant,
+	get_default_outgoing_email_for_user,
+)
 from mail.utils.dns import get_host_by_ip
 from mail.utils.dt import parsedate_to_datetime
 from mail.utils.email_parser import EmailParser
@@ -903,10 +907,10 @@ class OutgoingMail(Document):
 			if not recipients:
 				frappe.throw(_("All recipients are blocked or sent."))
 
-			cluster = get_random_cluster(self.include_clusters, self.exclude_clusters)
-			mail_account = frappe.get_cached_doc("Mail Account", self.sender)
-			username = mail_account.email
-			password = mail_account.get_password("password")
+			account = frappe.get_cached_doc("Mail Account", self.sender)
+			username = account.email
+			password = account.get_password("password")
+			cluster = get_cluster_for_tenant(account.tenant)
 
 			mail_options = [f"ENVID={self.name}", f"MT-PRIORITY={self.priority}"]
 			if use_connection_pool or (frappe.request and hasattr(frappe.request, "after_response")):
@@ -1019,48 +1023,6 @@ def get_retry_after(failed_count: int) -> str:
 
 	retry_after_minutes = failed_count * (failed_count + 1)  # 2, 6, 12, 20, 30 ...
 	return add_to_date(now(), minutes=retry_after_minutes)
-
-
-def get_random_cluster(
-	include_clusters: str | list[str] | None = None,
-	exclude_clusters: str | list[str] | None = None,
-	raise_if_not_found: bool = True,
-) -> str:
-	"""Returns a random cluster based on the given criteria."""
-
-	def normalize_input(value: str | list[str] | None) -> list[str]:
-		"""Normalize input to a list of strings."""
-
-		if isinstance(value, str):
-			return value.split("\n")
-		return value or []
-
-	include_clusters = normalize_input(include_clusters)
-	exclude_clusters = normalize_input(exclude_clusters)
-
-	selected_cluster = None
-	clusters = set(frappe.db.get_all("Mail Cluster", {"enabled": 1, "outbound": 1}, pluck="name"))
-
-	if include_clusters:
-		if invalid_clusters := [
-			cluster for cluster in include_clusters if cluster and cluster not in clusters
-		]:
-			frappe.throw(
-				_("The following clusters do not exist or are not enabled for outbound: {0}").format(
-					", ".join(invalid_clusters)
-				)
-			)
-			clusters.intersection_update(include_clusters)
-
-	if exclude_clusters:
-		clusters.difference_update(exclude_clusters)
-
-	selected_cluster = random.choice(list(clusters))
-
-	if not selected_cluster and raise_if_not_found:
-		frappe.throw(_("No cluster found based on the given criteria."))
-
-	return selected_cluster
 
 
 def create_outgoing_mail(
