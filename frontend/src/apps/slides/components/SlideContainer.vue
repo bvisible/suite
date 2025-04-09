@@ -267,9 +267,11 @@ watch(
 watch(
 	() => resizeDiffs.value,
 	(diffs) => {
+		const ratio = bounds.width / bounds.height
+
 		bounds.width += diffs.width / scale.value
 		bounds.left += diffs.left / scale.value
-		bounds.top += diffs.top / scale.value
+		bounds.top += diffs.top / (ratio * scale.value)
 
 		activeElement.value.width += diffs.width / scale.value
 	},
