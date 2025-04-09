@@ -9,7 +9,6 @@ from frappe import _
 
 from mail.mail.doctype.mail_server_request.mail_server_request import create_mail_server_request
 from mail.utils import get_dkim_selector
-from mail.utils.cache import get_clusters
 
 if TYPE_CHECKING:
 	from mail.mail.doctype.mail_server_request.mail_server_request import MailServerRequest
@@ -123,12 +122,9 @@ def reload_request_cluster_servers(request: "MailServerRequest") -> None:
 		)
 
 
-def create_dkim_key_on_clusters(
-	domain_name: str, rsa_private_key: str, clusters: list[str] | None = None
-) -> None:
-	"""Creates a DKIM Key on all the clusters."""
+def create_dkim_key_on_cluster(cluster: str, domain_name: str, rsa_private_key: str) -> None:
+	"""Creates a DKIM Key on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -146,20 +142,18 @@ def create_dkim_key_on_clusters(
 			}
 		]
 	)
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster,
-			method="POST",
-			endpoint="/api/settings",
-			request_data=request_data,
-			execute_on_end="mail.mail_server.reload_request_cluster_servers",
-		)
+	create_mail_server_request(
+		cluster=cluster,
+		method="POST",
+		endpoint="/api/settings",
+		request_data=request_data,
+		execute_on_end="mail.mail_server.reload_request_cluster_servers",
+	)
 
 
-def delete_dkim_key_from_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
-	"""Deletes a DKIM Key from all the clusters."""
+def delete_dkim_key_from_cluster(cluster: str, domain_name: str) -> None:
+	"""Deletes a DKIM Key from the given cluster."""
 
-	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -168,40 +162,32 @@ def delete_dkim_key_from_clusters(domain_name: str, clusters: list[str] | None =
 			}
 		]
 	)
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster,
-			method="POST",
-			endpoint="/api/settings",
-			request_data=request_data,
-		)
+	create_mail_server_request(
+		cluster=cluster,
+		method="POST",
+		endpoint="/api/settings",
+		request_data=request_data,
+	)
 
 
-def create_domain_on_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
-	"""Creates a domain on all the clusters."""
+def create_domain_on_cluster(cluster: str, domain_name: str) -> None:
+	"""Creates a domain on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	principal = Principal(name=domain_name, type="domain").__dict__
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
-		)
+	create_mail_server_request(
+		cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
+	)
 
 
-def delete_domain_from_clusters(domain_name: str, clusters: list[str] | None = None) -> None:
-	"""Deletes a domain from all the clusters."""
+def delete_domain_from_cluster(cluster: str, domain_name: str) -> None:
+	"""Deletes a domain from the given cluster."""
 
-	clusters = clusters or get_clusters()
-	for cluster in clusters:
-		create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{domain_name}")
+	create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{domain_name}")
 
 
-def create_account_on_clusters(
-	email: str, display_name: str, secret: str, clusters: list[str] | None = None
-) -> None:
-	"""Creates an account on all the clusters."""
+def create_account_on_cluster(cluster: str, email: str, display_name: str, secret: str) -> None:
+	"""Creates an account on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	principal = Principal(
 		name=email,
 		type="individual",
@@ -210,18 +196,16 @@ def create_account_on_clusters(
 		emails=[email],
 		roles=["user"],
 	).__dict__
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
-		)
+	create_mail_server_request(
+		cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
+	)
 
 
-def patch_account_on_clusters(
-	email: str, display_name: str, new_secret: str, old_secret: str, clusters: list[str] | None = None
+def patch_account_on_cluster(
+	cluster: str, email: str, display_name: str, new_secret: str, old_secret: str
 ) -> None:
-	"""Patches an account on all the clusters."""
+	"""Patches an account on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	request_data = [
 		{
 			"action": "set",
@@ -247,24 +231,20 @@ def patch_account_on_clusters(
 		)
 
 	request_data = json.dumps(request_data)
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
-		)
+	create_mail_server_request(
+		cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+	)
 
 
-def delete_account_from_clusters(email: str, clusters: list[str] | None = None) -> None:
-	"""Deletes an account from all the clusters."""
+def delete_account_from_cluster(cluster: str, email: str) -> None:
+	"""Deletes an account from the given cluster."""
 
-	clusters = clusters or get_clusters()
-	for cluster in clusters:
-		create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{email}")
+	create_mail_server_request(cluster=cluster, method="DELETE", endpoint=f"/api/principal/{email}")
 
 
-def create_group_on_clusters(email: str, display_name: str, clusters: list[str] | None = None) -> None:
-	"""Creates a group on all the clusters."""
+def create_group_on_cluster(cluster: str, email: str, display_name: str) -> None:
+	"""Creates a group on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	principal = Principal(
 		name=email,
 		type="group",
@@ -272,16 +252,14 @@ def create_group_on_clusters(email: str, display_name: str, clusters: list[str] 
 		emails=[email],
 		enabledPermissions=["email-send", "email-receive"],
 	).__dict__
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
-		)
+	create_mail_server_request(
+		cluster=cluster, method="POST", endpoint="/api/principal", request_data=principal
+	)
 
 
-def patch_group_on_clusters(email: str, display_name: str, clusters: list[str] | None = None) -> None:
-	"""Patches a group on all the clusters."""
+def patch_group_on_cluster(cluster: str, email: str, display_name: str) -> None:
+	"""Patches a group on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	request_data = json.dumps(
 		[
 			{
@@ -291,55 +269,45 @@ def patch_group_on_clusters(email: str, display_name: str, clusters: list[str] |
 			}
 		]
 	)
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
-		)
+	create_mail_server_request(
+		cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+	)
 
 
-def delete_group_from_clusters(email: str, clusters: list[str] | None = None) -> None:
-	"""Deletes a group from all the clusters."""
+def delete_group_from_cluster(cluster: str, email: str) -> None:
+	"""Deletes a group from the given cluster."""
 
-	delete_account_from_clusters(email, clusters)
+	delete_account_from_cluster(cluster, email)
 
 
-def create_alias_on_clusters(email: str, alias: str, clusters: list[str] | None = None) -> None:
-	"""Creates an alias on all the clusters."""
+def create_alias_on_cluster(cluster: str, email: str, alias: str) -> None:
+	"""Creates an alias on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	request_data = json.dumps([{"action": "addItem", "field": "emails", "value": alias}])
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
-		)
+	create_mail_server_request(
+		cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+	)
 
 
-def patch_alias_on_clusters(
-	new_email: str, old_email: str, alias: str, clusters: list[str] | None = None
-) -> None:
-	"""Patches an alias on all the clusters."""
+def patch_alias_on_cluster(cluster: str, new_email: str, old_email: str, alias: str) -> None:
+	"""Patches an alias on the given cluster."""
 
-	delete_alias_from_clusters(old_email, alias, clusters)
-	create_alias_on_clusters(new_email, alias, clusters)
+	delete_alias_from_cluster(cluster, old_email, alias)
+	create_alias_on_cluster(cluster, new_email, alias)
 
 
-def delete_alias_from_clusters(email: str, alias: str, clusters: list[str] | None = None) -> None:
-	"""Deletes an alias from all the clusters."""
+def delete_alias_from_cluster(cluster: str, email: str, alias: str) -> None:
+	"""Deletes an alias from the given cluster."""
 
-	clusters = clusters or get_clusters()
 	request_data = json.dumps([{"action": "removeItem", "field": "emails", "value": alias}])
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
-		)
+	create_mail_server_request(
+		cluster=cluster, method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data
+	)
 
 
-def create_member_on_clusters(
-	email: str, member: str, is_group: bool, clusters: list[str] | None = None
-) -> None:
-	"""Creates a group member on all the clusters."""
+def create_member_on_cluster(cluster: str, email: str, member: str, is_group: bool) -> None:
+	"""Creates a group member on the given cluster."""
 
-	clusters = clusters or get_clusters()
 	endpoint = None
 	request_data = None
 	if is_group:
@@ -349,27 +317,21 @@ def create_member_on_clusters(
 		endpoint = f"/api/principal/{email}"
 		request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
 
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="PATCH", endpoint=endpoint, request_data=request_data
-		)
+	create_mail_server_request(cluster=cluster, method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
-def patch_member_on_clusters(
-	new_email: str, old_email: str, member: str, is_group: bool, clusters: list[str] | None = None
+def patch_member_on_cluster(
+	cluster: str, new_email: str, old_email: str, member: str, is_group: bool
 ) -> None:
-	"""Patches a group member on all the clusters."""
+	"""Patches a group member on the given cluster."""
 
-	delete_member_from_clusters(old_email, member, is_group, clusters)
-	create_member_on_clusters(new_email, member, is_group, clusters)
+	delete_member_from_cluster(cluster, old_email, member, is_group)
+	create_member_on_cluster(cluster, new_email, member, is_group)
 
 
-def delete_member_from_clusters(
-	email: str, member: str, is_group: bool, clusters: list[str] | None = None
-) -> None:
-	"""Deletes a group member from all the clusters."""
+def delete_member_from_cluster(cluster: str, email: str, member: str, is_group: bool) -> None:
+	"""Deletes a group member from the given cluster."""
 
-	clusters = clusters or get_clusters()
 	endpoint = None
 	request_data = None
 	if is_group:
@@ -379,7 +341,4 @@ def delete_member_from_clusters(
 		endpoint = f"/api/principal/{email}"
 		request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
 
-	for cluster in clusters:
-		create_mail_server_request(
-			cluster=cluster, method="PATCH", endpoint=endpoint, request_data=request_data
-		)
+	create_mail_server_request(cluster=cluster, method="PATCH", endpoint=endpoint, request_data=request_data)
