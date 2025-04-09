@@ -11,7 +11,7 @@ from mail.mail.doctype.dkim_key.dkim_key import create_dkim_key
 from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
 from mail.mail_server import create_domain_on_clusters, delete_domain_from_clusters
 from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
-from mail.utils.cache import get_root_domain_name, get_tenant_for_user
+from mail.utils.cache import get_cluster_for_tenant, get_root_domain_name, get_tenant_for_user
 from mail.utils.dns import verify_dns_record
 from mail.utils.user import get_user_linked_domains, has_role, is_system_manager, is_tenant_admin
 
@@ -123,7 +123,7 @@ class MailDomain(Document):
 		self.is_verified = 0
 		self.dns_records.clear()
 
-		for record in get_dns_records(self.domain_name):
+		for record in get_dns_records(self.tenant, self.domain_name):
 			self.append("dns_records", record)
 
 		if not do_not_save:
@@ -179,7 +179,7 @@ class MailDomain(Document):
 					frappe.cache.hdel(f"tenant|{previous_doc.tenant}", "domains")
 
 
-def get_dns_records(domain_name: str) -> list[dict]:
+def get_dns_records(tenant: str, domain_name: str) -> list[dict]:
 	"""Returns the DNS Records for the given domain."""
 
 	records = []
@@ -219,24 +219,19 @@ def get_dns_records(domain_name: str) -> list[dict]:
 		}
 	)
 
-	# MX Record(s)
-	if inbound_clusters := frappe.db.get_all(
-		"Mail Cluster",
-		filters={"enabled": 1, "inbound": 1},
-		fields=["cluster", "priority"],
-		order_by="priority asc",
-	):
-		for cluster in inbound_clusters:
-			records.append(
-				{
-					"category": "Receiving Record",
-					"type": "MX",
-					"host": domain_name,
-					"value": f"{cluster.cluster.split(':')[0]}.",
-					"priority": cluster.priority,
-					"ttl": mail_settings.default_ttl,
-				}
-			)
+	# MX Record
+	cluster = get_cluster_for_tenant(tenant)
+	priority = frappe.db.get_value("Mail Cluster", cluster, "priority")
+	records.append(
+		{
+			"category": "Receiving Record",
+			"type": "MX",
+			"host": domain_name,
+			"value": f"{cluster.split(':')[0]}.",
+			"priority": priority,
+			"ttl": mail_settings.default_ttl,
+		}
+	)
 
 	return records
 

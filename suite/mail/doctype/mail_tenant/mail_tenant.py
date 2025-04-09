@@ -30,10 +30,16 @@ class MailTenant(Document):
 		if not has_role(self.user, "Mail Admin"):
 			frappe.throw(_("User {0} does not have Mail Admin role.").format(frappe.bold(self.user)))
 
+	def on_update(self) -> None:
+		self.clear_cache()
+
 	def after_insert(self) -> None:
 		"""Add the user as a member of the tenant."""
 
 		self.add_member(self.user)
+
+	def on_trash(self) -> None:
+		self.clear_cache()
 
 	def add_member(self, user: str, is_admin: bool = False) -> str:
 		"""Add a member to the tenant."""
@@ -55,6 +61,11 @@ class MailTenant(Document):
 		"""Check if the user is a member of the tenant."""
 
 		return frappe.db.exists("Mail Tenant Member", {"tenant": self.name, "user": user})
+
+	def clear_cache(self) -> None:
+		"""Clears the Cache."""
+
+		frappe.cache.hdel(f"tenant|{self.name}", "cluster")
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
