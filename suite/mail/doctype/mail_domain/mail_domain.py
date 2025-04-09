@@ -12,7 +12,6 @@ from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
 from mail.mail_server import create_domain_on_cluster, delete_domain_from_cluster
 from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
 from mail.utils.cache import (
-	get_cluster_for_domain,
 	get_cluster_for_tenant,
 	get_root_domain_name,
 	get_tenant_for_user,
@@ -41,7 +40,7 @@ class MailDomain(Document):
 			self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
-		create_domain_on_cluster(get_cluster_for_domain(self.name), self.domain_name)
+		create_domain_on_cluster(get_cluster_for_tenant(self.tenant), self.domain_name)
 
 		if self.is_root_domain:
 			create_dmarc_account(self.tenant)
@@ -54,7 +53,7 @@ class MailDomain(Document):
 			frappe.throw(_("Only Administrator can delete Mail Domain."))
 
 		self.clear_cache()
-		delete_domain_from_cluster(get_cluster_for_domain(self.name), self.domain_name)
+		delete_domain_from_cluster(get_cluster_for_tenant(self.tenant), self.domain_name)
 
 	def validate_is_subdomain(self) -> None:
 		"""Validates the Is Subdomain field."""
@@ -176,12 +175,8 @@ class MailDomain(Document):
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
+		frappe.cache.hdel(f"domain|{self.name}", "tenant")
 		frappe.cache.hdel(f"tenant|{self.tenant}", "domains")
-
-		if self.has_value_changed("tenant"):
-			if previous_doc := self.get_doc_before_save():
-				if previous_doc.tenant:
-					frappe.cache.hdel(f"tenant|{previous_doc.tenant}", "domains")
 
 
 def get_dns_records(tenant: str, domain_name: str) -> list[dict]:

@@ -7,7 +7,7 @@ from frappe.model.document import Document
 
 from mail.mail_server import create_group_on_cluster, delete_group_from_cluster, patch_group_on_cluster
 from mail.utils import normalize_email
-from mail.utils.cache import get_cluster_for_group, get_tenant_for_user
+from mail.utils.cache import get_cluster_for_tenant, get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -38,17 +38,17 @@ class MailGroup(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				create_group_on_cluster(get_cluster_for_group(self.name), self.email, self.display_name)
+				create_group_on_cluster(get_cluster_for_tenant(self.tenant), self.email, self.display_name)
 			elif self.has_value_changed("display_name"):
-				patch_group_on_cluster(get_cluster_for_group(self.name), self.email, self.display_name)
+				patch_group_on_cluster(get_cluster_for_tenant(self.tenant), self.email, self.display_name)
 		elif self.has_value_changed("enabled"):
-			delete_group_from_cluster(get_cluster_for_group(self.name), self.email)
+			delete_group_from_cluster(get_cluster_for_tenant(self.tenant), self.email)
 
 	def on_trash(self) -> None:
 		self.clear_cache()
 
 		if self.enabled:
-			delete_group_from_cluster(get_cluster_for_group(self.name), self.email)
+			delete_group_from_cluster(get_cluster_for_tenant(self.tenant), self.email)
 
 	def set_tenant(self) -> None:
 		"""Sets the tenant based on the domain."""
@@ -104,12 +104,8 @@ class MailGroup(Document):
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
+		frappe.cache.hdel(f"group|{self.name}", "tenant")
 		frappe.cache.hdel(f"tenant|{self.tenant}", "groups")
-
-		if self.has_value_changed("tenant"):
-			if previous_doc := self.get_doc_before_save():
-				if previous_doc.tenant:
-					frappe.cache.hdel(f"tenant|{previous_doc.tenant}", "groups")
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
