@@ -101,8 +101,6 @@ class OutgoingMail(Document):
 		self.validate_custom_headers()
 		self.load_attachments()
 		self.validate_attachments()
-		self.validate_include_clusters()
-		self.validate_exclude_clusters()
 
 		if self.get("_action") == "submit":
 			self.set_ip_address()
@@ -376,16 +374,6 @@ class OutgoingMail(Document):
 					frappe.bold(max_attachments_size),
 				)
 			)
-
-	def validate_include_clusters(self) -> None:
-		"""Validate include clusters and set it to the value from the domain."""
-
-		self.include_clusters = self.include_clusters or self.runtime.mail_domain.include_clusters
-
-	def validate_exclude_clusters(self) -> None:
-		"""Validate exclude clusters and set it to the value from the domain."""
-
-		self.exclude_clusters = self.exclude_clusters or self.runtime.mail_domain.exclude_clusters
 
 	def set_ip_address(self) -> None:
 		"""Sets the IP Address."""
