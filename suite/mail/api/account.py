@@ -6,8 +6,13 @@ from frappe.utils.data import sha256_hash
 from mail.api.admin import add_member
 from mail.mail.doctype.mail_account.mail_account import create_user
 from mail.utils import user_context
-from mail.utils.cache import get_default_outgoing_email_for_user, get_personal_signup_domains
+from mail.utils.cache import (
+	get_default_outgoing_email_for_user,
+	get_personal_signup_domains,
+	get_tenant_for_domain,
+)
 from mail.utils.rate_limiter import dynamic_rate_limit
+from mail.utils.user import get_user_tenant
 from mail.utils.validation import is_email_assigned
 
 
@@ -39,7 +44,7 @@ def personal_signup(
 		frappe.throw(_("Domain {0} is not allowed for personal signup.").format(domain))
 
 	with user_context("Administrator"):
-		tenant = frappe.db.get_value("Mail Domain", domain, "tenant")
+		tenant = get_tenant_for_domain(domain)
 		add_member(tenant, username, domain, "Mail User", False, email, first_name, last_name, password)
 
 
@@ -134,7 +139,7 @@ def get_user_info() -> dict:
 		as_dict=1,
 	)
 	user["roles"] = frappe.get_roles(user.name)
-	user.tenant = frappe.db.get_value("Mail Tenant Member", {"user": frappe.session.user}, "tenant")
+	user.tenant = get_user_tenant()
 	user.is_mail_user = "Mail User" in user.roles
 	user.is_mail_admin = "Mail Admin" in user.roles
 

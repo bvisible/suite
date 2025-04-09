@@ -12,7 +12,12 @@ from mail.mail_server import (
 	patch_account_on_cluster,
 )
 from mail.utils import get_dmarc_address, hash_password, normalize_email
-from mail.utils.cache import get_aliases_for_user, get_cluster_for_tenant, get_tenant_for_user
+from mail.utils.cache import (
+	get_aliases_for_user,
+	get_cluster_for_tenant,
+	get_tenant_for_domain,
+	get_tenant_for_user,
+)
 from mail.utils.user import get_user_email_addresses, has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -73,7 +78,7 @@ class MailAccount(Document):
 		"""Sets the tenant based on the domain."""
 
 		if not self.tenant:
-			self.tenant = frappe.db.get_value("Mail Domain", self.domain_name, "tenant")
+			self.tenant = get_tenant_for_domain(self.domain_name)
 
 	def validate_enabled(self) -> None:
 		"""Validates the enabled field."""

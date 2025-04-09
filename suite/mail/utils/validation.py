@@ -9,7 +9,7 @@ from frappe.utils.caching import request_cache
 from validate_email_address import validate_email
 
 from mail.utils import normalize_email
-from mail.utils.cache import get_tenant_for_user
+from mail.utils.cache import get_tenant_for_domain, get_tenant_for_user
 from mail.utils.user import has_role
 
 
@@ -134,7 +134,7 @@ def validate_domain_is_enabled_and_verified(domain_name: str) -> None:
 def validate_domain_owned_by_tenant(domain_name: str, tenant: str) -> None:
 	"""Validates if the domain is owned by the tenant."""
 
-	if tenant != frappe.db.get_value("Mail Domain", domain_name, "tenant"):
+	if tenant != get_tenant_for_domain(domain_name):
 		frappe.throw(_("Domain {0} is not owned by the tenant.").format(frappe.bold(domain_name)))
 
 
@@ -148,7 +148,7 @@ def validate_domain_owned_by_user_tenant(domain_name: str, user: str) -> None:
 def validate_domain_and_user_tenant(domain_name: str, user: str) -> None:
 	"""Validates if the domain and user belong to the same tenant."""
 
-	domain_tenant = frappe.db.get_value("Mail Domain", domain_name, "tenant")
+	domain_tenant = get_tenant_for_domain(domain_name)
 	user_tenant = get_tenant_for_user(user)
 
 	if domain_tenant != user_tenant:
