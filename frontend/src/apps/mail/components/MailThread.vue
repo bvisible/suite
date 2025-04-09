@@ -16,11 +16,11 @@
 				<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
 				<div class="ml-auto space-x-2">
 					<Tooltip :text="__('Mark as unread')">
-						<Button
-							:icon="MessageSquareDot"
-							variant="ghost"
-							@click="emit('markAsUnread')"
-						/>
+						<Button variant="ghost" @click="emit('markAsUnread')">
+							<template #icon>
+								<MessageSquareDot class="h-4 w-4 text-gray-600" />
+							</template>
+						</Button>
 					</Tooltip>
 				</div>
 			</template>
@@ -167,7 +167,7 @@
 	<div v-else class="h-full overflow-hidden">
 		<div class="m-4 flex h-[calc(100%-2em)] items-center justify-center rounded-md bg-gray-50">
 			<div class="flex flex-col items-center space-y-3">
-				<NoMailSelected class="h-16 w-16" />
+				<NoMails class="h-16 w-16" />
 				<p class="text-gray-500">
 					{{ __('Select an email to view the thread.') }}
 				</p>
@@ -195,7 +195,7 @@ import { getRecipients } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
-import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
+import NoMails from '@/components/Icons/NoMails.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMail from '@/components/SendMail.vue'

@@ -1,7 +1,17 @@
 <template>
-	<div class="flex space-x-2.5 p-3" @mouseenter="isHover = true" @mouseleave="isHover = false">
+	<div
+		class="flex space-x-2.5 p-3"
+		@mouseenter="isHovered = true"
+		@mouseleave="isHovered = false"
+	>
 		<div class="flex h-8 min-h-8 min-w-8 justify-center">
-			<Checkbox v-if="isHover" size="md" />
+			<Checkbox
+				v-if="isHovered || isSelected"
+				v-model="isSelected"
+				size="md"
+				@click.stop
+				@update:model-value="emit('select-mail')"
+			/>
 			<Avatar
 				v-else
 				:label="mail.display_name || mail.sender"
@@ -63,7 +73,10 @@ import MailDate from '@/components/MailDate.vue'
 
 const { mail } = defineProps<{ mail: object }>()
 
-const isHover = ref(false)
+const emit = defineEmits(['select-mail'])
+
+const isHovered = ref(false)
+const isSelected = ref(false)
 
 interface BadgeType {
 	label: string
