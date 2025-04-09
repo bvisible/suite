@@ -26,7 +26,7 @@ class MailDomain(Document):
 			self.validate_is_subdomain()
 			self.validate_is_root_domain()
 
-		self.validate_tenant_max_domains()
+		self.validate_tenant()
 		self.validate_dkim_rsa_key_size()
 		self.validate_newsletter_retention()
 		self.validate_is_verified()
@@ -62,11 +62,15 @@ class MailDomain(Document):
 
 		self.is_root_domain = 1 if self.domain_name == get_root_domain_name() else 0
 
-	def validate_tenant_max_domains(self) -> None:
-		"""Validates the Tenant Max Domains."""
+	def validate_tenant(self) -> None:
+		"""Validates the Tenant."""
+
+		cluster, max_domains = frappe.db.get_value("Mail Tenant", self.tenant, ["cluster", "max_domains"])
+
+		if not cluster:
+			frappe.throw(_("Cluster is not set for Mail Tenant {0}.").format(frappe.bold(self.tenant)))
 
 		total_domains = frappe.db.count("Mail Domain", filters={"tenant": self.tenant, "enabled": 1})
-		max_domains = frappe.db.get_value("Mail Tenant", self.tenant, "max_domains")
 		if total_domains >= max_domains:
 			frappe.throw(
 				_("You have reached the maximum limit of {0} domains for the tenant.").format(
