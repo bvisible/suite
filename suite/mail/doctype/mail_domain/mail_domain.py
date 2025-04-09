@@ -35,9 +35,8 @@ class MailDomain(Document):
 		self.validate_newsletter_retention()
 		self.validate_is_verified()
 
-		if self.is_new() or self.has_value_changed("dkim_rsa_key_size"):
-			create_dkim_key(self.domain_name, cint(self.dkim_rsa_key_size))
-			self.refresh_dns_records(do_not_save=True)
+	def before_insert(self) -> None:
+		self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
 		create_domain_on_cluster(get_cluster_for_tenant(self.tenant), self.domain_name)
@@ -47,6 +46,9 @@ class MailDomain(Document):
 
 	def on_update(self) -> None:
 		self.clear_cache()
+
+		if self.has_value_changed("dkim_rsa_key_size"):
+			create_dkim_key(self.domain_name, cint(self.dkim_rsa_key_size))
 
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":

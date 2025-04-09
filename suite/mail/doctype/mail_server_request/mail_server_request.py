@@ -34,6 +34,9 @@ class MailServerRequest(Document):
 	def validate_cluster(self) -> None:
 		"""Validate if the cluster is enabled."""
 
+		if not self.cluster:
+			frappe.throw(_("Mail Cluster is required."))
+
 		if not frappe.get_cached_value("Mail Cluster", self.cluster, "enabled"):
 			frappe.throw(_("Mail Cluster {0} is disabled.").format(self.cluster))
 

@@ -134,7 +134,7 @@ def validate_domain_is_enabled_and_verified(domain_name: str) -> None:
 def validate_domain_owned_by_tenant(domain_name: str, tenant: str) -> None:
 	"""Validates if the domain is owned by the tenant."""
 
-	if tenant != get_tenant_for_domain(domain_name):
+	if tenant != frappe.db.get_value("Mail Domain", domain_name, "tenant"):
 		frappe.throw(_("Domain {0} is not owned by the tenant.").format(frappe.bold(domain_name)))
 
 
