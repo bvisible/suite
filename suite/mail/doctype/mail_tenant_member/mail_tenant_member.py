@@ -30,7 +30,7 @@ class MailTenantMember(Document):
 	def validate_user(self) -> None:
 		"""Validates if the user is a valid user and has the required roles."""
 
-		if tenant := get_tenant_for_user(self.user):
+		if tenant := frappe.db.get_value("Mail Tenant Member", {"user": self.user}, "tenant"):
 			if tenant == self.tenant:
 				frappe.throw(_("User {0} is already a member.").format(frappe.bold(self.user)))
 			else:
