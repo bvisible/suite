@@ -52,22 +52,17 @@ export const useResizer = () => {
 			case 'resizer-left':
 				diffLeft = -diffX
 				break
-			// case 'resizer-top-right':
-			//     newWidth = rect.width - diffX
-			//     activeBounds.width = newWidth
-			//     activeBounds.top += diffX
-			//     break
-			// case 'resizer-bottom-left':
-			//     newWidth = rect.width + diffX
-			//     activeBounds.width = newWidth
-			//     activeBounds.left -= diffX
-			//     break
-			// case 'resizer-top-left':
-			//     newWidth = rect.width + diffX
-			//     activeBounds.width = newWidth
-			//     activeBounds.left -= diffX
-			//     activeBounds.top -= (diffX * originalHeight) / originalWidth
-			//     break
+			case 'resizer-top-right':
+				diffX = -diffX
+				diffTop = -diffX
+				break
+			case 'resizer-bottom-left':
+				diffLeft = -diffX
+				break
+			case 'resizer-top-left':
+				diffTop = -diffX
+				diffLeft = -diffX
+				break
 			default:
 				diffX = -diffX
 				break
@@ -115,6 +110,7 @@ export const useResizer = () => {
 		resizeTarget.value = target
 		let resizeHandles = []
 		if (resizeMode == 'width') resizeHandles = ['left', 'right']
+		else resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
 
 		resizeHandles.forEach((handle) => {
 			const resizer = document.createElement('div')
