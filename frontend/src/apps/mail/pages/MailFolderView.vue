@@ -20,29 +20,39 @@
 		<template v-if="mails[currentFolder].data?.length">
 			<div
 				ref="mailSidebar"
-				class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r p-1 sm:w-1/3 sm:p-3"
+				class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r sm:w-1/3"
 				@scroll="loadMoreEmails"
 			>
-				<div
-					v-for="(mail, idx) in mails[currentFolder].data"
-					:key="idx"
-					class="flex cursor-pointer flex-col space-y-1 rounded"
-					:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
-					@click="openMail(mail)"
-				>
-					<SidebarDetail :mail="mail" />
+				<div class="flex items-center justify-between border-b px-3 py-2.5">
+					<div class="px-2">All Mail</div>
+					<div>
+						<Tooltip :text="__('Refresh')">
+							<Button :icon="RefreshCw" variant="ghost" @click="reloadMails()" />
+						</Tooltip>
+					</div>
+				</div>
+				<div class="p-1 sm:p-3">
 					<div
-						:class="{
-							'mx-4 h-[0.25px] border-b border-gray-100':
-								idx < mails[currentFolder].data.length - 1,
-						}"
-					/>
+						v-for="(mail, idx) in mails[currentFolder].data"
+						:key="idx"
+						class="flex cursor-pointer flex-col space-y-1 rounded"
+						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
+						@click="openMail(mail)"
+					>
+						<SidebarDetail :mail="mail" />
+						<div
+							:class="{
+								'mx-4 h-[0.25px] border-b border-gray-100':
+									idx < mails[currentFolder].data.length - 1,
+							}"
+						/>
+					</div>
 				</div>
 			</div>
-			<div class="flex w-px cursor-col-resize justify-center" @mousedown="startResizing">
+			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
 				<div
 					ref="resizer"
-					class="h-full w-[2px] rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
+					class="h-full rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
 				/>
 			</div>
 			<div
@@ -74,7 +84,8 @@
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { Breadcrumbs, createListResource, createResource } from 'frappe-ui'
+import { RefreshCw } from 'lucide-vue-next'
+import { Breadcrumbs, Button, Tooltip, createListResource, createResource } from 'frappe-ui'
 
 import { formatNumber, startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'

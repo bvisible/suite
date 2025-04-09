@@ -1,11 +1,15 @@
 <template>
-	<div class="flex space-x-2.5 p-3">
-		<Avatar
-			class="avatar border border-gray-300"
-			:label="mail.display_name || mail.sender"
-			:image="mail.user_image"
-			size="xl"
-		/>
+	<div class="flex space-x-2.5 p-3" @mouseenter="isHover = true" @mouseleave="isHover = false">
+		<div class="flex h-8 min-h-8 min-w-8 justify-center">
+			<Checkbox v-if="isHover" size="md" />
+			<Avatar
+				v-else
+				:label="mail.display_name || mail.sender"
+				:image="mail.user_image"
+				size="xl"
+			/>
+		</div>
+
 		<div class="grow space-y-1 truncate">
 			<div class="flex items-center justify-between">
 				<h3 class="mr-1 mt-1 flex items-center truncate">
@@ -51,13 +55,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Avatar, Badge } from 'frappe-ui'
+import { computed, ref } from 'vue'
+import { Avatar, Badge, Checkbox } from 'frappe-ui'
 
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
-const props = defineProps<{ mail: object }>()
+const { mail } = defineProps<{ mail: object }>()
+
+const isHover = ref(false)
 
 interface BadgeType {
 	label: string
@@ -73,9 +79,7 @@ const STATUS = {
 	'DMARC Report': { label: __('DMARC Report'), theme: 'blue' },
 }
 
-const badgeField = computed(() =>
-	props.mail.mail_type === 'Outgoing Mail' ? props.mail.status : props.mail.type,
-)
+const badgeField = computed(() => (mail.mail_type === 'Outgoing Mail' ? mail.status : mail.type))
 
 const badge = computed<BadgeType>(() => STATUS[badgeField.value])
 </script>

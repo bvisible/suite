@@ -19,7 +19,6 @@
 						<Button
 							:icon="MessageSquareDot"
 							variant="ghost"
-							class="!text-ink-gray-6"
 							@click="emit('markAsUnread')"
 						/>
 					</Tooltip>
@@ -71,7 +70,6 @@
 			>
 				<div class="flex space-x-3 border-b pb-2">
 					<Avatar
-						class="avatar border border-gray-300"
 						:label="mail.display_name || mail.sender"
 						:image="mail.user_image"
 						size="xl"
