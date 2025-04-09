@@ -19,7 +19,7 @@ def create_tenant(tenant_name: str) -> None:
 	tenant = frappe.new_doc("Mail Tenant")
 	tenant.tenant_name = tenant_name
 	tenant.user = frappe.session.user
-	tenant.save(ignore_permissions=True)
+	tenant.insert(ignore_mandatory=True, ignore_permissions=True)
 
 
 @frappe.whitelist()
