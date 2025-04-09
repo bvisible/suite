@@ -73,20 +73,20 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.inbound",
    "description": "MX record priority for handling inbound mail. Lower values have higher priority.",
    "fieldname": "priority",
    "fieldtype": "Int",
    "in_standard_filter": 1,
    "label": "Priority",
-   "mandatory_depends_on": "eval: doc.inbound",
    "no_copy": 1,
+   "non_negative": 1,
    "placeholder": "5",
+   "reqd": 1,
    "search_index": 1
   },
   {
    "default": "1",
-   "description": "Include this cluster in MX records to receive emails.",
+   "description": "If disabled, this cluster will be skipped when pulling inbound emails.",
    "fieldname": "inbound",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -419,7 +419,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-04-09 13:04:39.337759",
+ "modified": "2025-04-09 14:05:30.471978",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
