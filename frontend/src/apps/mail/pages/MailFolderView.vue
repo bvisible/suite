@@ -27,7 +27,11 @@
 					<div class="px-2">All Mail</div>
 					<div>
 						<Tooltip :text="__('Refresh')">
-							<Button :icon="RefreshCw" variant="ghost" @click="reloadMails()" />
+							<Button variant="ghost" @click="reloadMails()">
+								<template #icon>
+									<RefreshCw class="h-4 w-4 text-gray-600" />
+								</template>
+							</Button>
 						</Tooltip>
 					</div>
 				</div>
@@ -39,7 +43,7 @@
 						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
 						@click="openMail(mail)"
 					>
-						<SidebarDetail :mail="mail" />
+						<SidebarDetail :mail="mail" @select-mail="selectMail(mail.name)" />
 						<div
 							:class="{
 								'mx-4 h-[0.25px] border-b border-gray-100':
@@ -73,7 +77,7 @@
 			</div>
 		</template>
 		<div v-else class="flex w-full flex-col items-center justify-center">
-			<NoMailSelected class="mb-2 h-16 w-16" />
+			<NoMails class="mb-2 h-16 w-16" />
 			<p class="text-gray-500">
 				{{ __('You have no mails in this folder.') }}
 			</p>
@@ -91,7 +95,7 @@ import { formatNumber, startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
-import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
+import NoMails from '@/components/Icons/NoMails.vue'
 import MailThread from '@/components/MailThread.vue'
 import SidebarDetail from '@/components/SidebarDetail.vue'
 
@@ -170,6 +174,14 @@ const setSeen = createResource({
 		if (!data.seen) setCurrentMail(currentFolder.value, null)
 	},
 })
+
+const selectedMails = ref([])
+
+const selectMail = (mail) => {
+	if (selectedMails.value.includes(mail))
+		selectedMails.value = selectedMails.value.filter((m) => m !== mail)
+	else selectedMails.value.push(mail)
+}
 
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
