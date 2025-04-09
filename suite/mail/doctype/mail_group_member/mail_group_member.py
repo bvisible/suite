@@ -37,7 +37,7 @@ class MailGroupMember(Document):
 	def validate_member_tenant(self) -> None:
 		"""Validate if the mail group and the member belong to the same tenant."""
 
-		group_tenant = frappe.db.get_value("Mail Group", self.mail_group, "tenant")
+		group_tenant = get_tenant_for_group(self.mail_group)
 		member_tenant = frappe.db.get_value(self.member_type, self.member_name, "tenant")
 
 		if group_tenant != member_tenant:

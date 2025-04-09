@@ -7,7 +7,12 @@ from frappe.model.document import Document
 
 from mail.mail_server import create_alias_on_cluster, delete_alias_from_cluster, patch_alias_on_cluster
 from mail.utils import normalize_email
-from mail.utils.cache import get_account_for_user, get_cluster_for_tenant, get_tenant_for_user
+from mail.utils.cache import (
+	get_account_for_user,
+	get_cluster_for_tenant,
+	get_tenant_for_domain,
+	get_tenant_for_user,
+)
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -60,7 +65,7 @@ class MailAlias(Document):
 		"""Sets the tenant based on the domain."""
 
 		if not self.tenant:
-			self.tenant = frappe.db.get_value("Mail Domain", self.domain_name, "tenant")
+			self.tenant = get_tenant_for_domain(self.domain_name)
 
 	def validate_domain(self) -> None:
 		"""Validates the domain."""
