@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-04-07 12:02+0553\n"
-"PO-Revision-Date: 2025-04-07 12:02+0553\n"
+"POT-Creation-Date: 2025-04-09 10:11+0553\n"
+"PO-Revision-Date: 2025-04-09 10:11+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -248,6 +248,11 @@ msgstr ""
 msgid "All recipients are blocked or sent."
 msgstr ""
 
+#. Label of the allow_business_signup (Check) field in DocType 'Mail Settings'
+#: mail/mail/doctype/mail_settings/mail_settings.json
+msgid "Allow Business Signup"
+msgstr ""
+
 #. Label of the allow_invalid_certs (Check) field in DocType 'Mail Server
 #. Store'
 #: mail/mail/doctype/mail_server_store/mail_server_store.json
@@ -259,11 +264,6 @@ msgstr ""
 #: mail/mail/doctype/mail_settings/mail_settings.json
 #: mail/mail/doctype/mail_tenant/mail_tenant.json
 msgid "Allow Personal Signup"
-msgstr ""
-
-#. Label of the allow_self_signup (Check) field in DocType 'Mail Settings'
-#: mail/mail/doctype/mail_settings/mail_settings.json
-msgid "Allow Self Signup"
 msgstr ""
 
 #. Description of the 'Allow Invalid Certs' (Check) field in DocType 'Mail
@@ -283,8 +283,19 @@ msgstr ""
 msgid "Allowed IP"
 msgstr ""
 
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:33
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:41
 msgid "Allowed IP removed successfully."
+msgstr ""
+
+#. Label of the allowed_ips (Small Text) field in DocType 'Rate Limit'
+#: mail/mail/doctype/rate_limit/rate_limit.json
+msgid "Allowed IPs"
+msgstr ""
+
+#. Description of the 'Allow Business Signup' (Check) field in DocType 'Mail
+#. Settings'
+#: mail/mail/doctype/mail_settings/mail_settings.json
+msgid "Allows users to sign up as a business and creates a tenant."
 msgstr ""
 
 #. Description of the 'Allow Personal Signup' (Check) field in DocType 'Mail
@@ -293,10 +304,9 @@ msgstr ""
 msgid "Allows users to sign up for personal use and select a preferred username."
 msgstr ""
 
-#. Description of the 'Allow Self Signup' (Check) field in DocType 'Mail
-#. Settings'
-#: mail/mail/doctype/mail_settings/mail_settings.json
-msgid "Allows users to sign up from the Mail UI."
+#: frontend/src/pages/BusinessSignupView.vue:64
+#: frontend/src/pages/SignupView.vue:96
+msgid "Already have an account? Log in."
 msgstr ""
 
 #. Option for the 'DNS Provider' (Select) field in DocType 'Mail Settings'
@@ -425,8 +435,13 @@ msgstr ""
 msgid "BCC"
 msgstr ""
 
+#: frontend/src/pages/SignupView.vue:90
+msgid "Back"
+msgstr ""
+
 #. Label of the backup_email (Data) field in DocType 'Mail Account'
 #: frontend/src/components/Modals/AddMemberModal.vue:50
+#: frontend/src/pages/SignupView.vue:44
 #: mail/mail/doctype/mail_account/mail_account.json
 msgid "Backup Email"
 msgstr ""
@@ -518,8 +533,13 @@ msgstr ""
 msgid "Blocked IP"
 msgstr ""
 
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:33
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:41
 msgid "Blocked IP removed successfully."
+msgstr ""
+
+#. Label of the blocked_ips (Small Text) field in DocType 'Rate Limit'
+#: mail/mail/doctype/rate_limit/rate_limit.json
+msgid "Blocked IPs"
 msgstr ""
 
 #. Label of the blocked_until (Datetime) field in DocType 'Bounce History'
@@ -569,6 +589,14 @@ msgstr ""
 #. 'Mail Server Store'
 #: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Bucket / Storage Account"
+msgstr ""
+
+#: frontend/src/pages/SignupView.vue:10
+msgid "Business (For work or company use)"
+msgstr ""
+
+#: mail/api/account.py:52
+msgid "Business signup is disabled."
 msgstr ""
 
 #: mail/api/mail.py:485
@@ -700,11 +728,6 @@ msgstr ""
 #. Label of the imap_cleanup_interval (Int) field in DocType 'Mail Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Cleanup Interval (Seconds)"
-msgstr ""
-
-#. Label of the client_tab (Tab Break) field in DocType 'Mail Settings'
-#: mail/mail/doctype/mail_settings/mail_settings.json
-msgid "Client"
 msgstr ""
 
 #. Label of the dns_provider_client_ip (Data) field in DocType 'Mail Settings'
@@ -1263,6 +1286,7 @@ msgstr ""
 #: frontend/src/components/Modals/AddAliasModal.vue:32
 #: frontend/src/components/Modals/AddDomainModal.vue:27
 #: frontend/src/components/Modals/AddGroupModal.vue:28
+#: frontend/src/pages/SignupView.vue:33
 #: mail/mail/doctype/dkim_key/dkim_key.json
 #: mail/mail/doctype/dmarc_report/dmarc_report.json
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
@@ -1332,6 +1356,10 @@ msgstr ""
 
 #: mail/utils/validation.py:128
 msgid "Domain {0} is disabled."
+msgstr ""
+
+#: mail/api/account.py:39
+msgid "Domain {0} is not allowed for personal signup."
 msgstr ""
 
 #: mail/utils/validation.py:138
@@ -1409,6 +1437,7 @@ msgstr ""
 #. Label of the email (Data) field in DocType 'Mail Recipient'
 #. Label of the email (Data) field in DocType 'Message Queue Recipient'
 #: frontend/src/components/AddGroupMemberInput.vue:5
+#: frontend/src/pages/BusinessSignupView.vue:5
 #: frontend/src/pages/ForgotPasswordView.vue:15
 #: frontend/src/pages/LoginView.vue:5
 #: frontend/src/pages/ResetPasswordView.vue:4
@@ -1686,6 +1715,8 @@ msgid "Filesystem"
 msgstr ""
 
 #: frontend/src/components/Modals/AddMemberModal.vue:63
+#: frontend/src/pages/BusinessSignupView.vue:25
+#: frontend/src/pages/SignupView.vue:66
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:100
 msgid "First Name"
 msgstr ""
@@ -1891,9 +1922,13 @@ msgstr ""
 msgid "Hetzner"
 msgstr ""
 
+#. Label of the host (Data) field in DocType 'Allowed IP'
+#. Label of the host (Data) field in DocType 'Blocked IP'
 #. Label of the host (Data) field in DocType 'DNS Record'
 #. Label of the host (Data) field in DocType 'Mail Domain DNS Record'
 #. Label of the spamd_host (Data) field in DocType 'Mail Settings'
+#: mail/mail/doctype/allowed_ip/allowed_ip.json
+#: mail/mail/doctype/blocked_ip/blocked_ip.json
 #: mail/mail/doctype/dns_record/dns_record.json
 #: mail/mail/doctype/mail_domain_dns_record/mail_domain_dns_record.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
@@ -2038,11 +2073,6 @@ msgstr ""
 msgid "Ignore in Developer Mode"
 msgstr ""
 
-#. Label of the ignored_ips (Small Text) field in DocType 'Rate Limit'
-#: mail/mail/doctype/rate_limit/rate_limit.json
-msgid "Ignored IPs"
-msgstr ""
-
 #. Label of the implicit_tls (Check) field in DocType 'Mail Server Listener'
 #: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Implicit TLS"
@@ -2152,7 +2182,7 @@ msgstr ""
 msgid "Initializing Defaults..."
 msgstr ""
 
-#: mail/api/account.py:43
+#: mail/api/account.py:81
 msgid "Invalid OTP. Please try again."
 msgstr ""
 
@@ -2282,6 +2312,8 @@ msgid "Last Checked At"
 msgstr ""
 
 #: frontend/src/components/Modals/AddMemberModal.vue:69
+#: frontend/src/pages/BusinessSignupView.vue:33
+#: frontend/src/pages/SignupView.vue:75
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:106
 msgid "Last Name"
 msgstr ""
@@ -2344,7 +2376,7 @@ msgid "Listeners"
 msgstr ""
 
 #: frontend/src/pages/LoginView.vue:26
-msgid "Log In "
+msgid "Log In"
 msgstr ""
 
 #. Label of the logo (Attach Image) field in DocType 'Mail Tenant'
@@ -2501,12 +2533,12 @@ msgstr ""
 msgid "Mail Domain Request"
 msgstr ""
 
-#: mail/mail/doctype/mail_settings/mail_settings.py:98
+#: mail/mail/doctype/mail_settings/mail_settings.py:111
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.py:206
 msgid "Mail Domain {0} is disabled."
 msgstr ""
 
-#: mail/mail/doctype/mail_settings/mail_settings.py:101
+#: mail/mail/doctype/mail_settings/mail_settings.py:114
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.py:208
 msgid "Mail Domain {0} is not verified."
 msgstr ""
@@ -3045,7 +3077,7 @@ msgstr ""
 msgid "Namecheap"
 msgstr ""
 
-#: frontend/src/pages/SetupView.vue:21
+#: frontend/src/pages/SetupView.vue:22
 msgid "Need to switch accounts? Log out."
 msgstr ""
 
@@ -3078,7 +3110,7 @@ msgstr ""
 msgid "New Password"
 msgstr ""
 
-#: frontend/src/pages/LoginView.vue:30
+#: frontend/src/pages/LoginView.vue:36
 msgid "New member? Create an account."
 msgstr ""
 
@@ -3131,7 +3163,7 @@ msgstr ""
 msgid "No aliases found."
 msgstr ""
 
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:43
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:51
 msgid "No allowed IPs found."
 msgstr ""
 
@@ -3139,7 +3171,7 @@ msgstr ""
 msgid "No answer for {0}."
 msgstr ""
 
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:43
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:51
 msgid "No blocked IPs found."
 msgstr ""
 
@@ -3366,7 +3398,8 @@ msgstr ""
 #. Label of the admin_password (Password) field in DocType 'Mail Cluster'
 #. Label of the password (Password) field in DocType 'Mail Server Store'
 #: frontend/src/components/Modals/AddMemberModal.vue:75
-#: frontend/src/pages/LoginView.vue:13
+#: frontend/src/pages/BusinessSignupView.vue:40
+#: frontend/src/pages/LoginView.vue:13 frontend/src/pages/SignupView.vue:55
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:111
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
@@ -3419,6 +3452,10 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
+#: frontend/src/pages/SignupView.vue:9
+msgid "Personal (For individual use)"
+msgstr ""
+
 #. Name of a DocType
 #: mail/mail/doctype/personal_signup_domain/personal_signup_domain.json
 msgid "Personal Signup Domain"
@@ -3430,19 +3467,23 @@ msgstr ""
 msgid "Personal Signup Domains"
 msgstr ""
 
-#: mail/mail/doctype/mail_settings/mail_settings.py:93
+#: mail/mail/doctype/mail_settings/mail_settings.py:106
 msgid "Personal Signup is not allowed for the Mail Domain {0}."
+msgstr ""
+
+#: mail/api/account.py:36
+msgid "Personal signup is disabled."
 msgstr ""
 
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.py:267
 msgid "Please add at least one recipient before sending the mail."
 msgstr ""
 
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:47
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:55
 msgid "Please select a cluster to view allowed IPs."
 msgstr ""
 
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:47
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:55
 msgid "Please select a cluster to view blocked IPs."
 msgstr ""
 
@@ -3470,7 +3511,7 @@ msgstr ""
 msgid "Please set the DNS Provider Username and Client IP."
 msgstr ""
 
-#: mail/mail/doctype/mail_settings/mail_settings.py:149
+#: mail/mail/doctype/mail_settings/mail_settings.py:162
 msgid "Please set the {0} in the Mail Settings."
 msgstr ""
 
@@ -3478,7 +3519,7 @@ msgstr ""
 msgid "Please verify the email address first."
 msgstr ""
 
-#: mail/mail/doctype/mail_settings/mail_settings.py:112
+#: mail/mail/doctype/mail_settings/mail_settings.py:125
 msgid "Please verify the {0} for the new {1} to ensure proper email authentication."
 msgstr ""
 
@@ -3933,14 +3974,14 @@ msgstr ""
 msgid "Request Key"
 msgstr ""
 
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:94
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:113
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:132
-#: mail/mail/doctype/allowed_ip/allowed_ip.py:154
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:94
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:113
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:132
-#: mail/mail/doctype/blocked_ip/blocked_ip.py:154
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:102
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:121
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:140
+#: mail/mail/doctype/allowed_ip/allowed_ip.py:162
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:102
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:121
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:140
+#: mail/mail/doctype/blocked_ip/blocked_ip.py:162
 #: mail/mail/doctype/mail_server/mail_server.py:225
 #: mail/mail/doctype/message_queue/message_queue.py:136
 #: mail/mail/doctype/message_queue/message_queue.py:154
@@ -3952,7 +3993,11 @@ msgstr ""
 msgid "Request failed for {0}"
 msgstr ""
 
-#: frontend/src/components/LoginLayout.vue:48 mail/api/account.py:157
+#: frontend/src/pages/BusinessSignupView.vue:58
+msgid "Resend OTP"
+msgstr ""
+
+#: frontend/src/components/LoginLayout.vue:48 mail/api/account.py:195
 msgid "Reset Password"
 msgstr ""
 
@@ -4136,7 +4181,7 @@ msgstr ""
 msgid "SPF Host"
 msgstr ""
 
-#: mail/mail/doctype/mail_settings/mail_settings.py:66
+#: mail/mail/doctype/mail_settings/mail_settings.py:79
 msgid "SPF Host {0} is invalid. It can be alphanumeric but should not contain spaces or special characters, excluding underscores."
 msgstr ""
 
@@ -4344,7 +4389,7 @@ msgstr ""
 msgid "Sign in to your account"
 msgstr ""
 
-#. Label of the signup_section (Section Break) field in DocType 'Mail Settings'
+#. Label of the signup_tab (Tab Break) field in DocType 'Mail Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Signup"
 msgstr ""
@@ -5344,7 +5389,7 @@ msgstr ""
 msgid "User with email {0} already exists."
 msgstr ""
 
-#: mail/api/account.py:123
+#: mail/api/account.py:161
 msgid "User {0} does not exist."
 msgstr ""
 
@@ -5395,10 +5440,15 @@ msgstr ""
 #: frontend/src/components/Modals/AddAliasModal.vue:22
 #: frontend/src/components/Modals/AddGroupModal.vue:21
 #: frontend/src/components/Modals/AddMemberModal.vue:21
+#: frontend/src/pages/SignupView.vue:19
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_server_store/mail_server_store.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Username"
+msgstr ""
+
+#: mail/api/account.py:20
+msgid "Username already taken."
 msgstr ""
 
 #. Description of the 'Username' (Data) field in DocType 'Mail Cluster'
@@ -5418,6 +5468,10 @@ msgstr ""
 #: mail/mail/doctype/mail_domain_dns_record/mail_domain_dns_record.json
 #: mail/mail/doctype/mail_header/mail_header.json
 msgid "Value"
+msgstr ""
+
+#: frontend/src/pages/BusinessSignupView.vue:15
+msgid "Verification Code"
 msgstr ""
 
 #. Label of the verification_details_section (Section Break) field in DocType
@@ -5479,6 +5533,10 @@ msgstr ""
 
 #: frontend/src/pages/ForgotPasswordView.vue:4
 msgid "We have sent an email to {0}. Please click on the link received to reset your password."
+msgstr ""
+
+#: frontend/src/pages/SignupView.vue:7
+msgid "What type of account do you need?"
 msgstr ""
 
 #. Description of the 'Path' (Data) field in DocType 'Mail Server Store'
