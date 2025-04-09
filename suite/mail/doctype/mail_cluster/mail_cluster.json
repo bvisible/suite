@@ -7,6 +7,7 @@
   "details_tab",
   "section_break_b7jt",
   "enabled",
+  "public",
   "inbound",
   "outbound",
   "column_break_fkha",
@@ -388,6 +389,14 @@
   {
    "fieldname": "column_break_egzt",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Make this cluster available for selection when creating a new tenant.",
+   "fieldname": "public",
+   "fieldtype": "Check",
+   "label": "Public",
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
@@ -419,7 +428,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-04-09 14:05:30.471978",
+ "modified": "2025-04-09 19:12:03.632706",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
