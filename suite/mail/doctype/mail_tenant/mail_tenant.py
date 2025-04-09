@@ -12,7 +12,17 @@ from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 
 class MailTenant(Document):
 	def validate(self) -> None:
+		self.validate_cluster()
 		self.validate_user()
+
+	def validate_cluster(self) -> None:
+		"""Validates the cluster."""
+
+		if not self.cluster:
+			return
+
+		if not frappe.db.get_value("Mail Cluster", self.cluster, "enabled"):
+			frappe.throw(_("Cluster {0} is not enabled.").format(frappe.bold(self.cluster)))
 
 	def validate_user(self) -> None:
 		"""Validates the user."""
