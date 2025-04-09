@@ -48,4 +48,4 @@ def create_default_tenant() -> None:
 	tenant.tenant_name = "Frappe Mail"
 	tenant.user = "Administrator"
 	tenant.allow_personal_signup = 1
-	tenant.insert(ignore_mandatory=True, ignore_permissions=True)
+	tenant.insert(ignore_permissions=True)
