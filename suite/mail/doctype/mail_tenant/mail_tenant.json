@@ -84,7 +84,9 @@
    "fieldtype": "Link",
    "label": "Cluster",
    "options": "Mail Cluster",
-   "permlevel": 1
+   "permlevel": 1,
+   "reqd": 1,
+   "search_index": 1
   }
  ],
  "image_field": "logo",
@@ -126,7 +128,7 @@
    "link_fieldname": "tenant"
   }
  ],
- "modified": "2025-04-09 12:49:42.016226",
+ "modified": "2025-04-09 12:56:54.309570",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Tenant",
