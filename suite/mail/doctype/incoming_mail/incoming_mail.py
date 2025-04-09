@@ -22,7 +22,7 @@ from mail.mail.doctype.mime_message.mime_message import (
 	update_mime_message,
 )
 from mail.utils import get_dmarc_address, get_in_reply_to_mail, load_compressed_file
-from mail.utils.cache import get_account_for_user
+from mail.utils.cache import get_account_for_user, get_cluster_for_tenant
 from mail.utils.email_parser import EmailParser, extract_ip_and_host, extract_spam_status
 from mail.utils.user import is_account_owner, is_system_manager
 
@@ -358,23 +358,30 @@ def fetch_emails_from_cluster(cluster: str, accounts: list[str]) -> None:
 				time.sleep(2**total_failures)
 
 
-def fetch_emails_from_clusters(clusters: list[str] | None = None, accounts: list[str] | None = None) -> None:
+def fetch_emails_from_clusters(accounts: list[str] | None = None) -> None:
 	"""Called by scheduler to fetch emails from the clusters."""
 
-	clusters = clusters or frappe.db.get_all("Mail Cluster", {"enabled": 1, "inbound": 1}, pluck="name")
-
-	if not clusters:
-		return
-
-	accounts = accounts or frappe.db.get_all("Mail Account", {"enabled": 1}, pluck="name")
+	accounts = accounts or frappe.db.get_all("Mail Account", {"enabled": 1}, ["name", "tenant"])
 	if not accounts:
 		return
 
+	tenant_accounts_map = {}
+	for account in accounts:
+		tenant_accounts_map.setdefault(account.tenant, []).append(account.name)
+
+	cluster_accounts_map = {}
+	for tenant, accounts in tenant_accounts_map.items():
+		if cluster := get_cluster_for_tenant(tenant):
+			cluster_accounts_map.setdefault(cluster, []).extend(accounts)
+
+	if not cluster_accounts_map:
+		return
+
 	if frappe.flags.do_not_enqueue:
-		for cluster in clusters:
+		for cluster, accounts in cluster_accounts_map:
 			fetch_emails_from_cluster(cluster, accounts)
 	else:
-		for cluster in clusters:
+		for cluster, accounts in cluster_accounts_map:
 			frappe.enqueue(
 				fetch_emails_from_cluster,
 				queue="long",
