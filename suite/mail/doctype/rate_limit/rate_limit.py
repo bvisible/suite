@@ -11,7 +11,7 @@ class RateLimit(Document):
 	def validate(self) -> None:
 		self.validate_key_or_ip_based()
 		self.validate_methods()
-		self.validate_ignored_ips()
+		self.validate_allowed_and_blocked_ips()
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -35,15 +35,20 @@ class RateLimit(Document):
 					methods.append(method)
 		self.methods = "\n".join(methods)
 
-	def validate_ignored_ips(self) -> None:
-		"""Validate ignored IPs"""
+	def validate_allowed_and_blocked_ips(self) -> None:
+		"""Validate allowed and blocked IPs"""
 
-		ignored_ips = []
-		if self.ignored_ips:
-			for ip in self.ignored_ips.split("\n"):
-				if ip and ip not in ignored_ips:
-					ignored_ips.append(ip)
-		self.ignored_ips = "\n".join(ignored_ips)
+		allowed_and_blocked_ips = []
+		for ip_type in ["allowed_ips", "blocked_ips"]:
+			ips = []
+			if getattr(self, ip_type):
+				for ip in getattr(self, ip_type).split("\n"):
+					if ip and ip not in ips:
+						if ip in allowed_and_blocked_ips:
+							frappe.throw(_("{0} cannot be both allowed and blocked.").format(frappe.bold(ip)))
+						ips.append(ip)
+						allowed_and_blocked_ips.append(ip)
+			setattr(self, ip_type, "\n".join(ips))
 
 	def clear_cache(self) -> None:
 		"""Clear cache for the rate limit"""

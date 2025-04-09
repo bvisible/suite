@@ -1,6 +1,7 @@
 from functools import wraps
 
 import frappe
+from frappe import _
 from frappe.rate_limiter import rate_limit
 
 from mail.utils.cache import get_rate_limits
@@ -20,10 +21,12 @@ def dynamic_rate_limit() -> callable:
 				for rl in rate_limits:
 					if rl["ignore_in_developer_mode"] and frappe.conf.developer_mode:
 						continue
-					elif rl["ip_based"] and any(
-						request_ip.startswith(prefix) for prefix in rl["ignored_ips"]
-					):
+					elif any(request_ip.startswith(prefix) for prefix in rl["allowed_ips"]):
 						continue
+					elif any(request_ip.startswith(prefix) for prefix in rl["blocked_ips"]):
+						frappe.throw(
+							_("You are not allowed to access this resource."), frappe.RateLimitExceededError
+						)
 
 					wrapped_fn = rate_limit(
 						key=rl["key"],
