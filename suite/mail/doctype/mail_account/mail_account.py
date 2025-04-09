@@ -7,12 +7,17 @@ from frappe.model.document import Document
 from frappe.utils import random_string, validate_email_address
 
 from mail.mail_server import (
-	create_account_on_clusters,
-	delete_account_from_clusters,
-	patch_account_on_clusters,
+	create_account_on_cluster,
+	delete_account_from_cluster,
+	patch_account_on_cluster,
 )
 from mail.utils import get_dmarc_address, hash_password, normalize_email
-from mail.utils.cache import get_aliases_for_user, get_tenant_for_user
+from mail.utils.cache import (
+	get_aliases_for_user,
+	get_cluster_for_tenant,
+	get_tenant_for_domain,
+	get_tenant_for_user,
+)
 from mail.utils.user import get_user_email_addresses, has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -49,25 +54,31 @@ class MailAccount(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				create_account_on_clusters(self.email, self.display_name, self.secret)
+				create_account_on_cluster(
+					get_cluster_for_tenant(self.tenant), self.email, self.display_name, self.secret
+				)
 			elif self.has_value_changed("display_name") or self.has_value_changed("secret"):
-				patch_account_on_clusters(
-					self.email, self.display_name, self.secret, self.get_doc_before_save().secret
+				patch_account_on_cluster(
+					get_cluster_for_tenant(self.tenant),
+					self.email,
+					self.display_name,
+					self.secret,
+					self.get_doc_before_save().secret,
 				)
 		elif self.has_value_changed("enabled"):
-			delete_account_from_clusters(self.email)
+			delete_account_from_cluster(get_cluster_for_tenant(self.tenant), self.email)
 
 	def on_trash(self) -> None:
 		self.clear_cache()
 
 		if self.enabled:
-			delete_account_from_clusters(self.email)
+			delete_account_from_cluster(get_cluster_for_tenant(self.tenant), self.email)
 
 	def set_tenant(self) -> None:
 		"""Sets the tenant based on the domain."""
 
 		if not self.tenant:
-			self.tenant = frappe.db.get_value("Mail Domain", self.domain_name, "tenant")
+			self.tenant = get_tenant_for_domain(self.domain_name)
 
 	def validate_enabled(self) -> None:
 		"""Validates the enabled field."""

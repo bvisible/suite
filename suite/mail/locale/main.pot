@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-04-09 11:59+0553\n"
-"PO-Revision-Date: 2025-04-09 11:59+0553\n"
+"POT-Creation-Date: 2025-04-09 17:05+0553\n"
+"PO-Revision-Date: 2025-04-09 17:05+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -82,7 +82,7 @@ msgstr ""
 msgid "API Key"
 msgstr ""
 
-#: mail/mail_server.py:61
+#: mail/mail_server.py:60
 msgid "API Key or Username and Password is required."
 msgstr ""
 
@@ -108,6 +108,10 @@ msgstr ""
 #. Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Access Secret"
+msgstr ""
+
+#: mail/utils/rate_limiter.py:28
+msgid "Access denied: Your IP address ({0}) is blocked due to explicit IP restrictions."
 msgstr ""
 
 #. Label of the account (Data) field in DocType 'Mail Account Request'
@@ -244,7 +248,7 @@ msgstr ""
 msgid "Aliases deleted successfully."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:916
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:905
 msgid "All recipients are blocked or sent."
 msgstr ""
 
@@ -321,7 +325,7 @@ msgstr ""
 msgid "Amended From"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:139
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:138
 msgid "Amending {0} is not allowed."
 msgstr ""
 
@@ -374,15 +378,15 @@ msgstr ""
 msgid "Attachment"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:354
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:353
 msgid "Attachment limit exceeded ({0}). Maximum {1} attachment(s) allowed."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:365 mail/overrides.py:31
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:364 mail/overrides.py:31
 msgid "Attachment size limit exceeded ({0} MB). Maximum {1} MB allowed."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:374
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:373
 msgid "Attachments size limit exceeded ({0} MB). Maximum {1} MB allowed."
 msgstr ""
 
@@ -446,11 +450,11 @@ msgstr ""
 msgid "Backup Email"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:178
+#: mail/mail/doctype/mail_account/mail_account.py:184
 msgid "Backup Email cannot be among the email addresses assigned to the user."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:176
+#: mail/mail/doctype/mail_account/mail_account.py:182
 msgid "Backup Email cannot be the same as the email address of the account."
 msgstr ""
 
@@ -465,7 +469,7 @@ msgstr ""
 msgid "Base URL"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:268
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:270
 msgid "Base URL is required."
 msgstr ""
 
@@ -505,7 +509,7 @@ msgstr ""
 #. Label of the blob_storage_section (Section Break) field in DocType 'Mail
 #. Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:330
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:332
 msgid "Blob Storage"
 msgstr ""
 
@@ -756,6 +760,7 @@ msgstr ""
 #. Label of the cluster (Data) field in DocType 'Mail Cluster'
 #. Label of the cluster (Link) field in DocType 'Mail Server'
 #. Label of the cluster (Link) field in DocType 'Mail Server Request'
+#. Label of the cluster (Link) field in DocType 'Mail Tenant'
 #. Label of the cluster (Link) field in DocType 'Message Queue'
 #. Label of the cluster (Data) field in DocType 'Outgoing Mail'
 #: mail/mail/doctype/allowed_ip/allowed_ip.json
@@ -764,6 +769,7 @@ msgstr ""
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_server/mail_server.json
 #: mail/mail/doctype/mail_server_request/mail_server_request.json
+#: mail/mail/doctype/mail_tenant/mail_tenant.json
 #: mail/mail/doctype/message_queue/message_queue.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 #: mail/mail/report/outbound_delay/outbound_delay.js:49
@@ -796,12 +802,12 @@ msgstr ""
 msgid "Cluster Settings"
 msgstr ""
 
-#. Label of the clusters_section (Section Break) field in DocType 'Mail Domain'
-#. Label of the clusters_section (Section Break) field in DocType 'Outgoing
-#. Mail'
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-msgid "Clusters"
+#: mail/mail/doctype/mail_domain/mail_domain.py:75
+msgid "Cluster is not set for Mail Tenant {0}."
+msgstr ""
+
+#: mail/mail/doctype/mail_tenant/mail_tenant.py:25
+msgid "Cluster {0} is disabled."
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Mail Server Request'
@@ -930,11 +936,11 @@ msgstr ""
 msgid "Custom Headers"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:309
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:308
 msgid "Custom Headers limit exceeded ({0}). Maximum {1} custom header(s) allowed."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:320
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:319
 msgid "Custom header {0} is not allowed."
 msgstr ""
 
@@ -960,7 +966,7 @@ msgstr ""
 msgid "DKIM Key"
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:165
+#: mail/mail/doctype/mail_domain/mail_domain.py:173
 msgid "DKIM Keys rotated successfully."
 msgstr ""
 
@@ -1040,11 +1046,11 @@ msgstr ""
 msgid "DNS Records"
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:127
+#: mail/mail/doctype/mail_domain/mail_domain.py:135
 msgid "DNS Records refreshed successfully."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:147
+#: mail/mail/doctype/mail_domain/mail_domain.py:155
 msgid "DNS Records verified successfully."
 msgstr ""
 
@@ -1066,7 +1072,7 @@ msgstr ""
 #. Label of the data_storage_section (Section Break) field in DocType 'Mail
 #. Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:329
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:331
 msgid "Data Storage"
 msgstr ""
 
@@ -1104,7 +1110,7 @@ msgstr ""
 msgid "Default Email"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:160
+#: mail/mail/doctype/mail_account/mail_account.py:166
 msgid "Default Email must be one of the email addresses assigned to the user."
 msgstr ""
 
@@ -1155,7 +1161,7 @@ msgstr ""
 msgid "Delivery cancelled successfully."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:786
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:775
 msgid "Delivery of this email was blocked because all recipients are on our blocklist. Repeated delivery failures to these addresses have led to their blocking. To protect your sender reputation and avoid further issues, this email was not sent. Please review the recipient list or contact support for assistance."
 msgstr ""
 
@@ -1164,7 +1170,7 @@ msgstr ""
 msgid "Delivery retried successfully."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:776
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:765
 msgid "Delivery to this recipient was blocked because their email address is on our blocklist. This action was taken after repeated delivery failures to this address. To protect your sender reputation and prevent further issues, this email was not sent to the blocked recipient."
 msgstr ""
 
@@ -1195,7 +1201,7 @@ msgstr ""
 #. Label of the directory_storage_section (Section Break) field in DocType
 #. 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:328
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:330
 msgid "Directory Storage"
 msgstr ""
 
@@ -1338,11 +1344,11 @@ msgstr ""
 msgid "Domain {0} and User {1} do not belong to the same tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:108
+#: mail/mail/doctype/mail_account/mail_account.py:114
 msgid "Domain {0} and User {1} must belong to the same tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_alias/mail_alias.py:88
+#: mail/mail/doctype/mail_alias/mail_alias.py:91
 msgid "Domain {0} and {1} {2} must belong to the same tenant."
 msgstr ""
 
@@ -1461,7 +1467,7 @@ msgstr ""
 msgid "Email domain {0} does not match with domain {1}."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:129
+#: mail/mail/doctype/mail_account/mail_account.py:135
 msgid "Email is mandatory."
 msgstr ""
 
@@ -1595,20 +1601,13 @@ msgstr ""
 msgid "Error Message"
 msgstr ""
 
-#: mail/mail_server.py:122
+#: mail/mail_server.py:121
 msgid "Error reloading {0} servers configuration"
 msgstr ""
 
 #. Option for the 'Scanning Mode' (Select) field in DocType 'Mail Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Exclude Attachments"
-msgstr ""
-
-#. Label of the exclude_clusters (Small Text) field in DocType 'Mail Domain'
-#. Label of the exclude_clusters (Small Text) field in DocType 'Outgoing Mail'
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-msgid "Exclude Clusters"
 msgstr ""
 
 #. Label of the execute_on_end (Small Text) field in DocType 'Mail Server
@@ -1811,11 +1810,11 @@ msgstr ""
 #. Label of the full_text_index_storage_section (Section Break) field in
 #. DocType 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:331
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:333
 msgid "Full Text Index Storage"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:423
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:412
 msgid "Future date is not allowed."
 msgstr ""
 
@@ -2068,6 +2067,11 @@ msgstr ""
 msgid "Idle Session Timeout (Seconds)"
 msgstr ""
 
+#. Description of the 'Inbound' (Check) field in DocType 'Mail Cluster'
+#: mail/mail/doctype/mail_cluster/mail_cluster.json
+msgid "If disabled, this cluster will be skipped when pulling inbound emails."
+msgstr ""
+
 #. Label of the ignore_in_developer_mode (Check) field in DocType 'Rate Limit'
 #: mail/mail/doctype/rate_limit/rate_limit.json
 msgid "Ignore in Developer Mode"
@@ -2092,7 +2096,7 @@ msgstr ""
 msgid "In Reply To Mail Name"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:245
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:244
 msgid "In Reply To Mail Name is required."
 msgstr ""
 
@@ -2103,18 +2107,18 @@ msgstr ""
 msgid "In Reply To Mail Type"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:243
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:242
 msgid "In Reply To Mail Type is required."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:256
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:255
 msgid "In Reply To Mail {0} - {1} does not exist."
 msgstr ""
 
 #. Label of the in_memory_storage_section (Section Break) field in DocType
 #. 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:332
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:334
 msgid "In-Memory Storage"
 msgstr ""
 
@@ -2138,21 +2142,9 @@ msgstr ""
 msgid "Include Attachments"
 msgstr ""
 
-#. Label of the include_clusters (Small Text) field in DocType 'Mail Domain'
-#. Label of the include_clusters (Small Text) field in DocType 'Outgoing Mail'
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.json
-msgid "Include Clusters"
-msgstr ""
-
 #: mail/mail/report/outbound_delay/outbound_delay.js:94
 #: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.js:99
 msgid "Include Newsletter"
-msgstr ""
-
-#. Description of the 'Inbound' (Check) field in DocType 'Mail Cluster'
-#: mail/mail/doctype/mail_cluster/mail_cluster.json
-msgid "Include this cluster in MX records to receive emails."
 msgstr ""
 
 #. Label of the incoming_mail (Link) field in DocType 'DMARC Report'
@@ -2198,7 +2190,7 @@ msgstr ""
 msgid "Invalid domain name"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:571
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:560
 msgid "Invalid format for recipient {0}."
 msgstr ""
 
@@ -2443,15 +2435,15 @@ msgstr ""
 msgid "Mail Account Request"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:256
+#: mail/mail/doctype/mail_account/mail_account.py:262
 msgid "Mail Account {0} already exists."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:216
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:215
 msgid "Mail Account {0} does not belong to user {1}."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:222
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:221
 msgid "Mail Account {0} is disabled."
 msgstr ""
 
@@ -2493,16 +2485,16 @@ msgstr ""
 msgid "Mail Cluster"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:138
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:140
 msgid "Mail Cluster with priority {0} already exists."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:125
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:127
 msgid "Mail Cluster {0} already exists."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:294
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:318
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:296
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:320
 #: mail/mail/doctype/mail_server/mail_server.py:89
 #: mail/mail/doctype/mail_server_request/mail_server_request.py:38
 #: mail/mail/doctype/mail_server_request/mail_server_request.py:79
@@ -2534,12 +2526,12 @@ msgid "Mail Domain Request"
 msgstr ""
 
 #: mail/mail/doctype/mail_settings/mail_settings.py:111
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:206
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:205
 msgid "Mail Domain {0} is disabled."
 msgstr ""
 
 #: mail/mail/doctype/mail_settings/mail_settings.py:114
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:208
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:207
 msgid "Mail Domain {0} is not verified."
 msgstr ""
 
@@ -2558,7 +2550,7 @@ msgstr ""
 msgid "Mail Group Member"
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:49
+#: mail/mail/doctype/mail_group_member/mail_group_member.py:55
 msgid "Mail Group cannot be a member of itself"
 msgstr ""
 
@@ -2624,7 +2616,7 @@ msgstr ""
 msgid "Mail Server {0} is disabled."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:118
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:120
 msgid "Mail Server {0} is enabled. Please disable it first."
 msgstr ""
 
@@ -2653,6 +2645,10 @@ msgstr ""
 msgid "Mail Tenant Member"
 msgstr ""
 
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:117
+msgid "Mail Tenant {0} is using this cluster."
+msgstr ""
+
 #. Name of a report
 #: mail/mail/doctype/mail_account/mail_account.js:33
 #: mail/mail/doctype/mail_domain/mail_domain.js:12
@@ -2673,7 +2669,7 @@ msgstr ""
 msgid "Mail User"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:860
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:849
 msgid "Mail accepted by System Manager {0}."
 msgstr ""
 
@@ -2903,7 +2899,7 @@ msgstr ""
 msgid "Member Role"
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:51
+#: mail/mail/doctype/mail_group_member/mail_group_member.py:57
 msgid "Member cannot be the same as the Mail Group"
 msgstr ""
 
@@ -2984,7 +2980,7 @@ msgstr ""
 msgid "Message deleted successfully."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:548
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:537
 msgid "Message size limit exceeded ({0} MB). Maximum {1} MB allowed."
 msgstr ""
 
@@ -3129,11 +3125,11 @@ msgstr ""
 msgid "Newsletter Retention (Days)"
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:90
+#: mail/mail/doctype/mail_domain/mail_domain.py:98
 msgid "Newsletter Retention must be greater than 0."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:97
+#: mail/mail/doctype/mail_domain/mail_domain.py:105
 msgid "Newsletter Retention must be less than or equal to {0}."
 msgstr ""
 
@@ -3151,11 +3147,11 @@ msgstr ""
 msgid "Next Retry"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:183
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:182
 msgid "No Mail Account found for email {0}."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:185
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:184
 msgid "No Mail Account found for user {0}."
 msgstr ""
 
@@ -3173,10 +3169,6 @@ msgstr ""
 
 #: mail/mail/doctype/blocked_ip/blocked_ip.py:51
 msgid "No blocked IPs found."
-msgstr ""
-
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1073
-msgid "No cluster found based on the given criteria."
 msgstr ""
 
 #: frontend/src/pages/dashboard/DomainsView.vue:113
@@ -3264,7 +3256,7 @@ msgstr ""
 msgid "OTP"
 msgstr ""
 
-#: mail/mail/doctype/dkim_key/dkim_key.py:37
+#: mail/mail/doctype/dkim_key/dkim_key.py:44
 msgid "Only Administrator can delete DKIM Key."
 msgstr ""
 
@@ -3276,7 +3268,7 @@ msgstr ""
 msgid "Only Administrator can delete Mail Cluster."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:49
+#: mail/mail/doctype/mail_domain/mail_domain.py:53
 msgid "Only Administrator can delete Mail Domain."
 msgstr ""
 
@@ -3284,7 +3276,7 @@ msgstr ""
 msgid "Only Administrator can delete Mail Server."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:133
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:132
 msgid "Only Administrator can delete Outgoing Mail."
 msgstr ""
 
@@ -3418,7 +3410,7 @@ msgstr ""
 msgid "Password for administrative access to the cluster."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:144
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:146
 msgid "Password must be at least 16 characters long."
 msgstr ""
 
@@ -3475,7 +3467,7 @@ msgstr ""
 msgid "Personal signup is disabled."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:267
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:266
 msgid "Please add at least one recipient before sending the mail."
 msgstr ""
 
@@ -3776,7 +3768,7 @@ msgstr ""
 msgid "Recipient"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:275
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:274
 msgid "Recipient limit exceeded ({0}). Maximum {1} recipient(s) allowed."
 msgstr ""
 
@@ -3830,11 +3822,6 @@ msgstr ""
 #: mail/mail/doctype/mail_server/mail_server.json
 #: mail/mail/doctype/mime_message/mime_message.json
 msgid "Reference"
-msgstr ""
-
-#. Group in Mail Cluster's connections
-#: mail/mail/doctype/mail_cluster/mail_cluster.json
-msgid "Referencee"
 msgstr ""
 
 #: frontend/src/pages/dashboard/DomainView.vue:160
@@ -4109,23 +4096,23 @@ msgstr ""
 msgid "Row #{0}: Directory ID {1} is duplicated."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:324
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:323
 msgid "Row #{0}: Duplicate custom header {1}."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:293
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:292
 msgid "Row #{0}: Duplicate recipient {1} of type {2}."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:140
+#: mail/mail/doctype/mail_domain/mail_domain.py:148
 msgid "Row #{0}: Failed to verify {1} : {2}."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:286
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:285
 msgid "Row #{0}: Invalid recipient {1}."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:209
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:211
 #: mail/mail/doctype/mail_server/mail_server.py:166
 msgid "Row #{0}: Listener ID {1} is duplicated."
 msgstr ""
@@ -4134,7 +4121,7 @@ msgstr ""
 msgid "Row #{0}: Private Key or Private Key Path is required."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:171
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:173
 msgid "Row #{0}: Store ID {1} is duplicated."
 msgstr ""
 
@@ -4358,7 +4345,7 @@ msgid "Server Type"
 msgstr ""
 
 #: mail/mail/doctype/mail_cluster/mail_cluster.js:182
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:321
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:323
 #: mail/mail/doctype/mail_server/mail_server.py:247
 msgid "Servers Configuration reloaded."
 msgstr ""
@@ -4455,7 +4442,7 @@ msgstr ""
 msgid "Spam Score"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:814
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:803
 msgid "Spam score exceeded the permitted threshold."
 msgstr ""
 
@@ -4566,7 +4553,7 @@ msgstr ""
 msgid "Store ID"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:188
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:190
 msgid "Store with Store ID {0} not found."
 msgstr ""
 
@@ -4801,11 +4788,11 @@ msgstr ""
 msgid "The External Account Binding (EAB) key ID."
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:39
+#: mail/mail/doctype/mail_group_member/mail_group_member.py:45
 msgid "The Mail Group {0} and the member {1} {2} must belong to the same tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:29
+#: mail/mail/doctype/mail_group_member/mail_group_member.py:35
 msgid "The Mail Group {0} is disabled."
 msgstr ""
 
@@ -4831,11 +4818,11 @@ msgstr ""
 msgid "The access key for the Azure Storage Account."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:82
+#: mail/mail/doctype/mail_account/mail_account.py:88
 msgid "The account is linked to Mail Alias {0}. Please disable it first."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:88
+#: mail/mail/doctype/mail_account/mail_account.py:94
 msgid "The account is linked to a Mail Group as a member. Please remove it first."
 msgstr ""
 
@@ -4901,10 +4888,6 @@ msgstr ""
 #: mail/mail/doctype/bounce_history/bounce_history.js:21
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.js:201
 msgid "The email address {0} is deliverable."
-msgstr ""
-
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1061
-msgid "The following clusters do not exist or are not enabled for outbound: {0}"
 msgstr ""
 
 #. Description of the 'Region' (Data) field in DocType 'Mail Server Store'
@@ -5001,8 +4984,8 @@ msgstr ""
 msgid "The token used to authenticate with your DNS provider."
 msgstr ""
 
-#: mail/mail/doctype/mail_alias/mail_alias.py:95
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:55
+#: mail/mail/doctype/mail_alias/mail_alias.py:98
+#: mail/mail/doctype/mail_group_member/mail_group_member.py:61
 msgid "The {0} {1} is disabled."
 msgstr ""
 
@@ -5010,7 +4993,7 @@ msgstr ""
 msgid "This action cannot be undone."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:818
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:807
 msgid "This email has been blocked because our system flagged it as spam. The spam score exceeded the permitted threshold. To resolve this, review your email content, remove any potentially suspicious links or attachments, and try sending it again. If the issue persists, please contact our support team for assistance."
 msgstr ""
 
@@ -5094,7 +5077,7 @@ msgstr ""
 msgid "Token"
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1151
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:1098
 msgid "Too many email transfer failures: {failed_count}/{total_count} ({failure_rate:.2%}). Process halted."
 msgstr ""
 
@@ -5123,7 +5106,7 @@ msgstr ""
 msgid "Tracking ID"
 msgstr ""
 
-#: mail/api/track.py:16
+#: mail/api/track.py:17
 msgid "Tracking ID is required - {0}."
 msgstr ""
 
@@ -5325,7 +5308,7 @@ msgstr ""
 msgid "Unique identifier for your DNS zone."
 msgstr ""
 
-#: mail/mail/doctype/dkim_key/dkim_key.py:156
+#: mail/mail/doctype/dkim_key/dkim_key.py:165
 msgid "Unsupported algorithm. Use 'rsa-sha256' or 'ed25519-sha256'."
 msgstr ""
 
@@ -5389,7 +5372,7 @@ msgstr ""
 msgid "User must be an admin of the tenant"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:203
+#: mail/mail/doctype/mail_account/mail_account.py:209
 msgid "User with email {0} already exists."
 msgstr ""
 
@@ -5397,11 +5380,11 @@ msgstr ""
 msgid "User {0} does not exist."
 msgstr ""
 
-#: mail/mail/doctype/mail_tenant/mail_tenant.py:21
+#: mail/mail/doctype/mail_tenant/mail_tenant.py:31
 msgid "User {0} does not have Mail Admin role."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:100
+#: mail/mail/doctype/mail_account/mail_account.py:106
 msgid "User {0} does not have Mail User role."
 msgstr ""
 
@@ -5577,11 +5560,7 @@ msgstr ""
 msgid "Write Buffer Size (MB)"
 msgstr ""
 
-#: mail/utils/rate_limiter.py:28
-msgid "You are not allowed to access this resource."
-msgstr ""
-
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:170
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:169
 msgid "You are not allowed to send from address {0}."
 msgstr ""
 
@@ -5590,15 +5569,15 @@ msgstr ""
 msgid "You are not authorized to perform this action."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:117
+#: mail/mail/doctype/mail_domain/mail_domain.py:125
 msgid "You do not have permission to refresh DNS Records."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:162
+#: mail/mail/doctype/mail_domain/mail_domain.py:170
 msgid "You do not have permission to rotate DKIM Keys."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:134
+#: mail/mail/doctype/mail_domain/mail_domain.py:142
 msgid "You do not have permission to verify DNS Records."
 msgstr ""
 
@@ -5610,11 +5589,11 @@ msgstr ""
 msgid "You have no mails in this folder."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:120
+#: mail/mail/doctype/mail_account/mail_account.py:126
 msgid "You have reached the maximum limit of {0} accounts for the tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_domain/mail_domain.py:72
+#: mail/mail/doctype/mail_domain/mail_domain.py:80
 msgid "You have reached the maximum limit of {0} domains for the tenant."
 msgstr ""
 
@@ -5649,7 +5628,7 @@ msgstr ""
 msgid "{0} does not exist."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:193
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:195
 msgid "{0} has an invalid store type '{1}'. Allowed types are: {2}."
 msgstr ""
 
@@ -5666,7 +5645,7 @@ msgstr ""
 msgid "{0} job has been created."
 msgstr ""
 
-#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:248
+#: mail/mail/doctype/outgoing_mail/outgoing_mail.py:247
 msgid "{0} must be either Incoming Mail or Outgoing Mail."
 msgstr ""
 

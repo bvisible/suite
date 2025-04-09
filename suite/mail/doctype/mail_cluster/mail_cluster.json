@@ -7,6 +7,7 @@
   "details_tab",
   "section_break_b7jt",
   "enabled",
+  "public",
   "inbound",
   "outbound",
   "column_break_fkha",
@@ -73,20 +74,20 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.inbound",
    "description": "MX record priority for handling inbound mail. Lower values have higher priority.",
    "fieldname": "priority",
    "fieldtype": "Int",
    "in_standard_filter": 1,
    "label": "Priority",
-   "mandatory_depends_on": "eval: doc.inbound",
    "no_copy": 1,
+   "non_negative": 1,
    "placeholder": "5",
+   "reqd": 1,
    "search_index": 1
   },
   {
    "default": "1",
-   "description": "Include this cluster in MX records to receive emails.",
+   "description": "If disabled, this cluster will be skipped when pulling inbound emails.",
    "fieldname": "inbound",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -388,6 +389,14 @@
   {
    "fieldname": "column_break_egzt",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Make this cluster available for selection when creating a new tenant.",
+   "fieldname": "public",
+   "fieldtype": "Check",
+   "label": "Public",
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
@@ -395,11 +404,16 @@
  "links": [
   {
    "group": "Reference",
+   "link_doctype": "Mail Tenant",
+   "link_fieldname": "cluster"
+  },
+  {
+   "group": "Reference",
    "link_doctype": "Mail Server",
    "link_fieldname": "cluster"
   },
   {
-   "group": "Referencee",
+   "group": "Reference",
    "link_doctype": "Mail Server Request",
    "link_fieldname": "cluster"
   },
@@ -414,7 +428,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-03-07 17:11:09.389502",
+ "modified": "2025-04-09 19:12:03.632706",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",

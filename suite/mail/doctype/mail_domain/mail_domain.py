@@ -9,9 +9,13 @@ from frappe.utils import cint
 
 from mail.mail.doctype.dkim_key.dkim_key import create_dkim_key
 from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
-from mail.mail_server import create_domain_on_clusters, delete_domain_from_clusters
+from mail.mail_server import create_domain_on_cluster, delete_domain_from_cluster
 from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
-from mail.utils.cache import get_root_domain_name, get_tenant_for_user
+from mail.utils.cache import (
+	get_cluster_for_tenant,
+	get_root_domain_name,
+	get_tenant_for_user,
+)
 from mail.utils.dns import verify_dns_record
 from mail.utils.user import get_user_linked_domains, has_role, is_system_manager, is_tenant_admin
 
@@ -26,17 +30,16 @@ class MailDomain(Document):
 			self.validate_is_subdomain()
 			self.validate_is_root_domain()
 
-		self.validate_tenant_max_domains()
+		self.validate_tenant()
 		self.validate_dkim_rsa_key_size()
 		self.validate_newsletter_retention()
 		self.validate_is_verified()
 
-		if self.is_new() or self.has_value_changed("dkim_rsa_key_size"):
-			create_dkim_key(self.domain_name, cint(self.dkim_rsa_key_size))
-			self.refresh_dns_records(do_not_save=True)
+	def before_insert(self) -> None:
+		self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
-		create_domain_on_clusters(domain_name=self.domain_name)
+		create_domain_on_cluster(get_cluster_for_tenant(self.tenant), self.domain_name)
 
 		if self.is_root_domain:
 			create_dmarc_account(self.tenant)
@@ -44,12 +47,15 @@ class MailDomain(Document):
 	def on_update(self) -> None:
 		self.clear_cache()
 
+		if self.has_value_changed("dkim_rsa_key_size"):
+			create_dkim_key(self.domain_name, cint(self.dkim_rsa_key_size))
+
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Domain."))
 
 		self.clear_cache()
-		delete_domain_from_clusters(domain_name=self.domain_name)
+		delete_domain_from_cluster(get_cluster_for_tenant(self.tenant), self.domain_name)
 
 	def validate_is_subdomain(self) -> None:
 		"""Validates the Is Subdomain field."""
@@ -62,11 +68,15 @@ class MailDomain(Document):
 
 		self.is_root_domain = 1 if self.domain_name == get_root_domain_name() else 0
 
-	def validate_tenant_max_domains(self) -> None:
-		"""Validates the Tenant Max Domains."""
+	def validate_tenant(self) -> None:
+		"""Validates the Tenant."""
+
+		cluster, max_domains = frappe.db.get_value("Mail Tenant", self.tenant, ["cluster", "max_domains"])
+
+		if not cluster:
+			frappe.throw(_("Cluster is not set for Mail Tenant {0}.").format(frappe.bold(self.tenant)))
 
 		total_domains = frappe.db.count("Mail Domain", filters={"tenant": self.tenant, "enabled": 1})
-		max_domains = frappe.db.get_value("Mail Tenant", self.tenant, "max_domains")
 		if total_domains >= max_domains:
 			frappe.throw(
 				_("You have reached the maximum limit of {0} domains for the tenant.").format(
@@ -119,7 +129,7 @@ class MailDomain(Document):
 		self.is_verified = 0
 		self.dns_records.clear()
 
-		for record in get_dns_records(self.domain_name):
+		for record in get_dns_records(self.tenant, self.domain_name):
 			self.append("dns_records", record)
 
 		if not do_not_save:
@@ -167,15 +177,11 @@ class MailDomain(Document):
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
+		frappe.cache.hdel(f"domain|{self.name}", "tenant")
 		frappe.cache.hdel(f"tenant|{self.tenant}", "domains")
 
-		if self.has_value_changed("tenant"):
-			if previous_doc := self.get_doc_before_save():
-				if previous_doc.tenant:
-					frappe.cache.hdel(f"tenant|{previous_doc.tenant}", "domains")
 
-
-def get_dns_records(domain_name: str) -> list[dict]:
+def get_dns_records(tenant: str, domain_name: str) -> list[dict]:
 	"""Returns the DNS Records for the given domain."""
 
 	records = []
@@ -215,24 +221,19 @@ def get_dns_records(domain_name: str) -> list[dict]:
 		}
 	)
 
-	# MX Record(s)
-	if inbound_clusters := frappe.db.get_all(
-		"Mail Cluster",
-		filters={"enabled": 1, "inbound": 1},
-		fields=["cluster", "priority"],
-		order_by="priority asc",
-	):
-		for cluster in inbound_clusters:
-			records.append(
-				{
-					"category": "Receiving Record",
-					"type": "MX",
-					"host": domain_name,
-					"value": f"{cluster.cluster.split(':')[0]}.",
-					"priority": cluster.priority,
-					"ttl": mail_settings.default_ttl,
-				}
-			)
+	# MX Record
+	cluster = get_cluster_for_tenant(tenant)
+	priority = frappe.db.get_value("Mail Cluster", cluster, "priority")
+	records.append(
+		{
+			"category": "Receiving Record",
+			"type": "MX",
+			"host": domain_name,
+			"value": f"{cluster.split(':')[0]}.",
+			"priority": priority,
+			"ttl": mail_settings.default_ttl,
+		}
+	)
 
 	return records
 

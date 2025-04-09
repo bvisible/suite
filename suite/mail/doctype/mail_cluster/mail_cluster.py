@@ -78,6 +78,7 @@ class MailCluster(Document):
 
 	def validate(self) -> None:
 		self.validate_enabled()
+		self.validate_public()
 		self.validate_cluster()
 		self.validate_priority()
 		self.validate_admin_password()
@@ -92,8 +93,6 @@ class MailCluster(Document):
 		if self.has_value_changed("enabled") or self.has_value_changed("outbound"):
 			create_or_update_spf_dns_record()
 
-		self.clear_cache()
-
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Cluster."))
@@ -101,8 +100,6 @@ class MailCluster(Document):
 		if self.outbound:
 			self.db_set("enabled", 0)
 			create_or_update_spf_dns_record()
-
-		self.clear_cache()
 
 	def validate_enabled(self) -> None:
 		"""Validates the enabled status of the cluster."""
@@ -113,9 +110,23 @@ class MailCluster(Document):
 		if self.enabled:
 			return
 
-		if server := frappe.db.exists("Mail Server", {"enabled": 1, "cluster": self.name}):
+		if tenant := frappe.db.exists("Mail Tenant", {"cluster": self.name}):
+			frappe.throw(_("Mail Tenant {0} is using this cluster.").format(frappe.bold(tenant)))
+		elif server := frappe.db.exists("Mail Server", {"enabled": 1, "cluster": self.name}):
 			frappe.throw(
 				_("Mail Server {0} is enabled. Please disable it first.").format(frappe.bold(server))
+			)
+
+	def validate_public(self) -> None:
+		"""Validates the public status of the cluster."""
+
+		if not self.public and not bool(
+			frappe.db.count("Mail Cluster", {"enabled": 1, "public": 1, "name": ["!=", self.name]})
+		):
+			self.public = 1
+			frappe.msgprint(
+				_("At least one public cluster must be enabled. This cluster has been made public."),
+				alert=True,
 			)
 
 	def validate_cluster(self) -> None:
@@ -212,11 +223,6 @@ class MailCluster(Document):
 				)
 
 			listener_ids.append(listener.listener_id)
-
-	def clear_cache(self) -> None:
-		"""Clears the cache."""
-
-		frappe.cache.delete_value("clusters")
 
 	@frappe.whitelist()
 	def initialize_defaults(self) -> None:

@@ -5,9 +5,14 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.mail_server import create_alias_on_clusters, delete_alias_from_clusters, patch_alias_on_clusters
+from mail.mail_server import create_alias_on_cluster, delete_alias_from_cluster, patch_alias_on_cluster
 from mail.utils import normalize_email
-from mail.utils.cache import get_account_for_user, get_tenant_for_user
+from mail.utils.cache import (
+	get_account_for_user,
+	get_cluster_for_tenant,
+	get_tenant_for_domain,
+	get_tenant_for_user,
+)
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -37,27 +42,30 @@ class MailAlias(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				create_alias_on_clusters(self.alias_for_name, self.email)
+				create_alias_on_cluster(get_cluster_for_tenant(self.tenant), self.alias_for_name, self.email)
 			elif self.has_value_changed("alias_for_name"):
 				self.remove_alias_set_as_default_outgoing_email()
-				patch_alias_on_clusters(
-					self.alias_for_name, self.get_doc_before_save().alias_for_name, self.email
+				patch_alias_on_cluster(
+					get_cluster_for_tenant(self.tenant),
+					self.alias_for_name,
+					self.get_doc_before_save().alias_for_name,
+					self.email,
 				)
 		elif self.has_value_changed("enabled"):
 			self.remove_alias_set_as_default_outgoing_email()
-			delete_alias_from_clusters(self.alias_for_name, self.email)
+			delete_alias_from_cluster(get_cluster_for_tenant(self.tenant), self.alias_for_name, self.email)
 
 	def on_trash(self) -> None:
 		self.clear_cache()
 
 		if self.enabled:
-			delete_alias_from_clusters(self.alias_for_name, self.email)
+			delete_alias_from_cluster(get_cluster_for_tenant(self.tenant), self.alias_for_name, self.email)
 
 	def set_tenant(self) -> None:
 		"""Sets the tenant based on the domain."""
 
 		if not self.tenant:
-			self.tenant = frappe.db.get_value("Mail Domain", self.domain_name, "tenant")
+			self.tenant = get_tenant_for_domain(self.domain_name)
 
 	def validate_domain(self) -> None:
 		"""Validates the domain."""
@@ -98,7 +106,7 @@ class MailAlias(Document):
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
-		frappe.cache.delete_value(f"email|{self.email}")
+		frappe.cache.hdel(f"email|{self.email}", "account")
 
 		if self.alias_for_type == "Mail Account":
 			user = frappe.db.get_value("Mail Account", self.alias_for_name, "user")

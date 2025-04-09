@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "tenant_name",
+  "cluster",
   "user",
   "logo",
   "column_break_kaqu",
@@ -77,6 +78,14 @@
    "label": "Allow Personal Signup",
    "permlevel": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "cluster",
+   "fieldtype": "Link",
+   "label": "Cluster",
+   "options": "Mail Cluster",
+   "permlevel": 1,
+   "search_index": 1
   }
  ],
  "image_field": "logo",
@@ -118,7 +127,7 @@
    "link_fieldname": "tenant"
   }
  ],
- "modified": "2025-03-26 11:30:38.129809",
+ "modified": "2025-04-09 19:30:19.375260",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Tenant",

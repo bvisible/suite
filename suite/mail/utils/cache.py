@@ -53,11 +53,20 @@ def get_personal_signup_domains() -> list:
 	return frappe.cache.hget("mail-settings", "personal_signup_domains", generator)
 
 
+def get_cluster_for_tenant(tenant: str) -> str | None:
+	"""Returns the cluster for the tenant."""
+
+	def generator() -> str | None:
+		return frappe.db.get_value("Mail Tenant", tenant, "cluster")
+
+	return frappe.cache.hget(f"tenant|{tenant}", "cluster", generator)
+
+
 def get_domains_owned_by_tenant(tenant: str) -> list:
 	"""Returns the domains owned by the tenant."""
 
 	def generator() -> list:
-		return frappe.get_all("Mail Domain", filters={"tenant": tenant}, pluck="name")
+		return frappe.db.get_all("Mail Domain", filters={"tenant": tenant}, pluck="name")
 
 	return frappe.cache.hget(f"tenant|{tenant}", "domains", generator)
 
@@ -66,9 +75,27 @@ def get_groups_owned_by_tenant(tenant: str) -> list:
 	"""Returns the groups owned by the tenant."""
 
 	def generator() -> list:
-		return frappe.get_all("Mail Group", filters={"tenant": tenant}, pluck="name")
+		return frappe.db.get_all("Mail Group", filters={"tenant": tenant}, pluck="name")
 
 	return frappe.cache.hget(f"tenant|{tenant}", "groups", generator)
+
+
+def get_tenant_for_domain(domain_name: str) -> str | None:
+	"""Returns the tenant for the domain."""
+
+	def generator() -> str | None:
+		return frappe.db.get_value("Mail Domain", domain_name, "tenant")
+
+	return frappe.cache.hget(f"domain|{domain_name}", "tenant", generator)
+
+
+def get_tenant_for_group(group: str) -> str | None:
+	"""Returns the tenant for the group."""
+
+	def generator() -> str | None:
+		return frappe.db.get_value("Mail Group", group, "tenant")
+
+	return frappe.cache.hget(f"group|{group}", "tenant", generator)
 
 
 def get_tenant_for_user(user: str) -> str | None:
@@ -131,16 +158,6 @@ def get_default_outgoing_email_for_user(user: str) -> str | None:
 		return frappe.db.get_value("Mail Account", {"user": user, "enabled": 1}, "default_outgoing_email")
 
 	return frappe.cache.hget(f"user|{user}", "default_outgoing_email", generator)
-
-
-def get_clusters() -> list:
-	"""Returns the clusters."""
-
-	def generator() -> list:
-		CLUSTER = frappe.qb.DocType("Mail Cluster")
-		return (frappe.qb.from_(CLUSTER).select("name").where(CLUSTER.enabled == 1)).run(pluck="name")
-
-	return frappe.cache.get_value("clusters", generator)
 
 
 def get_rate_limits(method_path: str) -> list:
