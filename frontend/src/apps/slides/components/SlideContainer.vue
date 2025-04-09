@@ -16,6 +16,8 @@
 					:selectedRef="selectionBoxRef.$el"
 				/> -->
 
+				<Guides v-if="isDragging" :visibilityMap="visibilityMap" />
+
 				<SlideElement
 					v-for="element in slide.elements"
 					:key="element.id"
@@ -35,7 +37,8 @@ import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
 import SlideElement2 from '@/components/SlideElement2.vue'
-import AlignmentGuides from '@/components/AlignmentGuides.vue'
+// import AlignmentGuides from '@/components/AlignmentGuides.vue'
+import Guides from '@/components/Guides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
@@ -57,6 +60,7 @@ import {
 import { useDragAndDrop } from '@/utils/drag'
 import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
+import { useSnapping } from '@/utils/snap'
 
 const props = defineProps({
 	highlight: Boolean,
@@ -75,6 +79,10 @@ const guides = useTemplateRef('guides')
 
 const { isDragging, dragMovement, startDragging } = useDragAndDrop()
 const { isResizing, resizeDiffs, updateResizers } = useResizer()
+const { visibilityMap, updateGuides, disableMovement, getSnapMovement } = useSnapping(
+	selectionBoxRef,
+	slideRef,
+)
 const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
@@ -99,8 +107,6 @@ const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
 	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
 }))
-
-const showGuides = computed(() => activeElementIds.value.length && !isPanningOrZooming.value)
 
 const scale = computed(() => {
 	const matrix = transform.value?.match(/matrix\((.+)\)/)
@@ -230,11 +236,32 @@ const handleDoubleClick = (e, element) => {
 	focusElementId.value = element.id
 }
 
+const moveElement = (movement) => {
+	bounds.left += movement.x / scale.value
+	bounds.top += movement.y / scale.value
+}
+
 watch(
 	() => dragMovement.value,
 	(movement) => {
-		bounds.left += movement.x / scale.value
-		bounds.top += movement.y / scale.value
+		updateGuides()
+
+		let totalMovement = {
+			x: 0,
+			y: 0,
+		}
+
+		if (!disableMovement.value) {
+			totalMovement.x += movement.x
+			totalMovement.y += movement.y
+
+			const snapMovement = getSnapMovement()
+
+			totalMovement.x += snapMovement.x
+			totalMovement.y += snapMovement.y
+
+			moveElement(totalMovement)
+		}
 	},
 )
 
