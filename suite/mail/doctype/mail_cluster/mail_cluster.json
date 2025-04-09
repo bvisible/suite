@@ -395,11 +395,16 @@
  "links": [
   {
    "group": "Reference",
+   "link_doctype": "Mail Tenant",
+   "link_fieldname": "cluster"
+  },
+  {
+   "group": "Reference",
    "link_doctype": "Mail Server",
    "link_fieldname": "cluster"
   },
   {
-   "group": "Referencee",
+   "group": "Reference",
    "link_doctype": "Mail Server Request",
    "link_fieldname": "cluster"
   },
@@ -414,7 +419,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-03-07 17:11:09.389502",
+ "modified": "2025-04-09 13:04:39.337759",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
