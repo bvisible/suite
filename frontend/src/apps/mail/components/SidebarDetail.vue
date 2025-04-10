@@ -1,17 +1,11 @@
 <template>
 	<div
-		class="flex space-x-2.5 p-3"
+		class="flex cursor-pointer space-x-2.5 rounded p-3"
 		@mouseenter="isHovered = true"
 		@mouseleave="isHovered = false"
 	>
 		<div class="flex h-8 min-h-8 min-w-8 justify-center">
-			<Checkbox
-				v-if="isHovered || isSelected"
-				v-model="isSelected"
-				size="md"
-				@click.stop
-				@update:model-value="emit('select-mail')"
-			/>
+			<Checkbox v-if="isHovered || isSelected" v-model="isSelected" size="md" @click.stop />
 			<Avatar
 				v-else
 				:label="mail.display_name || mail.sender"
@@ -65,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Avatar, Badge, Checkbox } from 'frappe-ui'
 
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
@@ -73,10 +67,16 @@ import MailDate from '@/components/MailDate.vue'
 
 const { mail } = defineProps<{ mail: object }>()
 
-const emit = defineEmits(['select-mail'])
+const emit = defineEmits(['select-mail', 'deselect-mail'])
 
 const isHovered = ref(false)
 const isSelected = ref(false)
+
+watch(isSelected, () => emit(isSelected.value ? 'select-mail' : 'deselect-mail'))
+
+const setIsSelected = (value: boolean) => (isSelected.value = value)
+
+defineExpose({ setIsSelected })
 
 interface BadgeType {
 	label: string

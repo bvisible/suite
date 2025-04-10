@@ -25,7 +25,11 @@
 			>
 				<div class="flex items-center justify-between border-b px-3 py-2.5">
 					<div class="px-2">All Mail</div>
-					<div>
+					<div class="flex items-center space-x-2">
+						<Checkbox
+							v-model="allSelected"
+							@change="allSelectedManuallyToggled = true"
+						/>
 						<Tooltip :text="__('Refresh')">
 							<Button variant="ghost" @click="reloadMails()">
 								<template #icon>
@@ -36,21 +40,16 @@
 					</div>
 				</div>
 				<div class="p-1 sm:p-3">
-					<div
+					<SidebarDetail
 						v-for="(mail, idx) in mails[currentFolder].data"
+						ref="mailItems"
 						:key="idx"
-						class="flex cursor-pointer flex-col space-y-1 rounded"
+						:mail
 						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
 						@click="openMail(mail)"
-					>
-						<SidebarDetail :mail="mail" @select-mail="selectMail(mail.name)" />
-						<div
-							:class="{
-								'mx-4 h-[0.25px] border-b border-gray-100':
-									idx < mails[currentFolder].data.length - 1,
-							}"
-						/>
-					</div>
+						@select-mail="selectMail(mail.name)"
+						@deselect-mail="deselectMail(mail.name)"
+					/>
 				</div>
 			</div>
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
@@ -85,11 +84,18 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { RefreshCw } from 'lucide-vue-next'
-import { Breadcrumbs, Button, Tooltip, createListResource, createResource } from 'frappe-ui'
+import {
+	Breadcrumbs,
+	Button,
+	Checkbox,
+	Tooltip,
+	createListResource,
+	createResource,
+} from 'frappe-ui'
 
 import { formatNumber, startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
@@ -119,7 +125,7 @@ const doctype = computed(() =>
 	['Inbox', 'Spam'].includes(currentFolder.value) ? 'Incoming Mail' : 'Outgoing Mail',
 )
 
-const mailThread = ref<typeof MailThread>()
+const mailThread = useTemplateRef('mailThread')
 
 const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Spam', 'Trash']
 
@@ -175,13 +181,33 @@ const setSeen = createResource({
 	},
 })
 
+// selection
+
 const selectedMails = ref([])
+const allSelected = ref(false)
+const allSelectedManuallyToggled = ref(false)
 
 const selectMail = (mail) => {
-	if (selectedMails.value.includes(mail))
-		selectedMails.value = selectedMails.value.filter((m) => m !== mail)
-	else selectedMails.value.push(mail)
+	if (!selectedMails.value.includes(mail)) selectedMails.value.push(mail)
 }
+
+const deselectMail = (mail) =>
+	(selectedMails.value = selectedMails.value.filter((m) => m !== mail))
+
+watch(
+	() => selectedMails.value.length,
+	(val) => {
+		allSelectedManuallyToggled.value = false
+		allSelected.value = val === mails[currentFolder.value].data.length
+	},
+)
+
+const mailItems = useTemplateRef('mailItems')
+
+watch(allSelected, (val) => {
+	if (allSelectedManuallyToggled.value)
+		mailItems.value?.forEach((item) => item?.setIsSelected(val))
+})
 
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
