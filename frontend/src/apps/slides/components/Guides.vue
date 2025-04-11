@@ -4,6 +4,7 @@
 
 <script setup>
 import { computed } from 'vue'
+
 const props = defineProps({
 	visibilityMap: {
 		type: Object,
@@ -11,24 +12,26 @@ const props = defineProps({
 	},
 })
 
+const commonStyles = {
+	backgroundColor: '#70b6f080',
+	position: 'fixed',
+}
+
+const getCenterStyles = (axis) => {
+	return {
+		...commonStyles,
+		width: axis === 'horizontal' ? '1px' : '100%',
+		height: axis === 'vertical' ? '1px' : '100%',
+		left: axis === 'horizontal' ? '50%' : '0',
+		top: axis === 'vertical' ? '50%' : '0',
+		display: props.visibilityMap?.[axis] ? 'block' : 'none',
+	}
+}
+
 const guideStyles = computed(() => {
 	return {
-		centerY: {
-			backgroundColor: '#70b6f080',
-			width: '960px',
-			height: '1px',
-			position: 'fixed',
-			top: '50%',
-			display: props.visibilityMap?.vertical ? 'block' : 'none',
-		},
-		centerX: {
-			backgroundColor: '#70b6f080',
-			height: '540px',
-			width: '1px',
-			position: 'fixed',
-			left: '50%',
-			display: props.visibilityMap?.horizontal ? 'block' : 'none',
-		},
+		centerX: getCenterStyles('horizontal'),
+		centerY: getCenterStyles('vertical'),
 	}
 })
 </script>
