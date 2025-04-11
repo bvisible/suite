@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flex cursor-pointer space-x-2.5 rounded p-3"
+		class="sm:px-4.5 flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5"
 		@mouseenter="isHovered = true"
 		@mouseleave="isHovered = false"
 	>
@@ -16,7 +16,7 @@
 
 		<div class="grow space-y-1 truncate">
 			<div class="flex items-center justify-between">
-				<h3 class="mr-1 mt-1 flex items-center truncate">
+				<h3 class="mr-1 mt-0.5 flex items-center truncate">
 					<span
 						v-if="!mail.seen"
 						class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500"

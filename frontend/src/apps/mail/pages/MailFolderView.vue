@@ -16,15 +16,11 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.15rem)]">
+	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3rem)]">
 		<template v-if="mails[currentFolder].data?.length">
-			<div
-				ref="mailSidebar"
-				class="sticky top-16 w-full overflow-y-auto overscroll-contain border-r sm:w-1/3"
-				@scroll="loadMoreEmails"
-			>
-				<div class="flex items-center justify-between border-b px-3 py-2.5">
-					<div class="px-2">
+			<div ref="mailSidebar" class="sticky top-16 flex w-full flex-col border-r sm:w-1/3">
+				<div class="flex items-center justify-between border-b px-3.5 py-2.5">
+					<div class="text-base sm:px-2">
 						<span v-if="selectedMails.length">{{
 							__('{0} {1} selected', [
 								String(selectedMails.length),
@@ -63,7 +59,7 @@
 								</template>
 							</Button>
 						</Tooltip>
-						<div class="flex items-center border-l pl-3">
+						<div class="flex items-center border-l pl-3.5">
 							<Tooltip :text="__('Select All')">
 								<Checkbox
 									v-model="allSelected"
@@ -73,7 +69,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="p-1 sm:p-3">
+				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
 					<SidebarDetail
 						v-for="(mail, idx) in mails[currentFolder].data"
 						ref="mailItems"
