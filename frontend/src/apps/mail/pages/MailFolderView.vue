@@ -30,32 +30,14 @@
 						<span v-else>{{ __('All Mail') }}</span>
 					</div>
 					<div class="flex items-center space-x-2">
-						<template v-if="selections.length">
-							<Tooltip :text="__('Mark as read')">
-								<Button
-									variant="ghost"
-									@click="setSeen.submit({ names: selections, seen: 1 })"
-								>
-									<template #icon>
-										<MailOpen class="h-4 w-4 text-gray-600" />
-									</template>
-								</Button>
-							</Tooltip>
-							<Tooltip :text="__('Mark as unread')">
-								<Button
-									variant="ghost"
-									@click="setSeen.submit({ names: selections, seen: 0 })"
-								>
-									<template #icon>
-										<Mail class="h-4 w-4 text-gray-600" />
-									</template>
-								</Button>
-							</Tooltip>
-						</template>
-						<Tooltip v-else :text="__('Refresh')">
-							<Button variant="ghost" @click="reloadMails()">
+						<Tooltip
+							v-for="action in selectActions"
+							:key="action.label"
+							:text="action.label"
+						>
+							<Button variant="ghost" @click="action.onClick">
 								<template #icon>
-									<RefreshCw class="h-4 w-4 text-gray-600" />
+									<component :is="action.icon" class="h-4 w-4 text-gray-600" />
 								</template>
 							</Button>
 						</Tooltip>
@@ -119,7 +101,7 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { Mail, MailOpen, RefreshCw } from 'lucide-vue-next'
+import { Mail, MailOpen, RefreshCw, Trash2 } from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
@@ -243,6 +225,42 @@ watch(
 		allSelectedManuallyToggled.value = false
 		allSelected.value = val === mails[currentFolder.value].data.length
 	},
+)
+
+interface SelectAction {
+	label: string
+	onClick: () => void
+	icon: typeof RefreshCw
+	condition: boolean
+}
+
+const selectActions = computed((): SelectAction[] =>
+	[
+		{
+			label: __('Move to Trash'),
+			onClick: reloadMails,
+			icon: Trash2,
+			condition: !!selections.value.length,
+		},
+		{
+			label: __('Mark as read'),
+			onClick: () => setSeen.submit({ names: selections.value, seen: 1 }),
+			icon: MailOpen,
+			condition: !!selections.value.length,
+		},
+		{
+			label: __('Mark as unread'),
+			onClick: () => setSeen.submit({ names: selections.value, seen: 0 }),
+			icon: Mail,
+			condition: !!selections.value.length,
+		},
+		{
+			label: __('Refresh'),
+			onClick: reloadMails,
+			icon: RefreshCw,
+			condition: !selections.value.length,
+		},
+	].filter((action) => action.condition),
 )
 
 watch(allSelected, (val) => {
