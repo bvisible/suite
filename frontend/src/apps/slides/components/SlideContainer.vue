@@ -213,6 +213,8 @@ const addToActiveElements = (id) => {
 let dragTimeout
 
 const handleMouseDown = (e, element) => {
+	e.preventDefault()
+
 	if (element && focusElementId.value == element.id) return
 
 	dragTimeout = setTimeout(() => {
