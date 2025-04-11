@@ -379,10 +379,10 @@ def fetch_emails_from_clusters(accounts: list[str] | None = None) -> None:
 		return
 
 	if frappe.flags.do_not_enqueue:
-		for cluster, accounts in cluster_accounts_map:
+		for cluster, accounts in cluster_accounts_map.items():
 			fetch_emails_from_cluster(cluster, accounts)
 	else:
-		for cluster, accounts in cluster_accounts_map:
+		for cluster, accounts in cluster_accounts_map.items():
 			frappe.enqueue(
 				fetch_emails_from_cluster,
 				queue="long",
