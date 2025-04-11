@@ -21,20 +21,20 @@
 			<div ref="mailSidebar" class="sticky top-16 flex w-full flex-col border-r sm:w-1/3">
 				<div class="flex items-center justify-between border-b px-3.5 py-2.5">
 					<div class="text-base sm:px-2">
-						<span v-if="selectedMails.length">{{
+						<span v-if="selections.length">{{
 							__('{0} {1} selected', [
-								String(selectedMails.length),
-								selectedMails.length === 1 ? 'item' : 'items',
+								String(selections.length),
+								selections.length === 1 ? 'item' : 'items',
 							])
 						}}</span>
 						<span v-else>{{ __('All Mail') }}</span>
 					</div>
 					<div class="flex items-center space-x-2">
-						<template v-if="selectedMails.length">
+						<template v-if="selections.length">
 							<Tooltip :text="__('Mark as read')">
 								<Button
 									variant="ghost"
-									@click="setSeen.submit({ names: selectedMails, seen: 1 })"
+									@click="setSeen.submit({ names: selections, seen: 1 })"
 								>
 									<template #icon>
 										<MailOpen class="h-4 w-4 text-gray-600" />
@@ -44,7 +44,7 @@
 							<Tooltip :text="__('Mark as unread')">
 								<Button
 									variant="ghost"
-									@click="setSeen.submit({ names: selectedMails, seen: 0 })"
+									@click="setSeen.submit({ names: selections, seen: 0 })"
 								>
 									<template #icon>
 										<Mail class="h-4 w-4 text-gray-600" />
@@ -218,26 +218,32 @@ const setSeen = createResource({
 
 // selection
 
-const selectedMails = ref([])
-const allSelected = ref(false)
-const allSelectedManuallyToggled = ref(false)
+const mailItems = useTemplateRef('mailItems')
 
-const selectMail = (mail) => {
-	if (!selectedMails.value.includes(mail)) selectedMails.value.push(mail)
+const selections = ref([])
+const allSelectedManuallyToggled = ref(false)
+const allSelected = ref(false)
+
+const resetSelections = () => {
+	allSelectedManuallyToggled.value = false
+	allSelected.value = false
+	mailItems.value?.forEach((item) => item?.setIsSelected(false))
+	selections.value = []
 }
 
-const deselectMail = (mail) =>
-	(selectedMails.value = selectedMails.value.filter((m) => m !== mail))
+const selectMail = (mail) => {
+	if (!selections.value.includes(mail)) selections.value.push(mail)
+}
+
+const deselectMail = (mail) => (selections.value = selections.value.filter((m) => m !== mail))
 
 watch(
-	() => selectedMails.value.length,
+	() => selections.value.length,
 	(val) => {
 		allSelectedManuallyToggled.value = false
 		allSelected.value = val === mails[currentFolder.value].data.length
 	},
 )
-
-const mailItems = useTemplateRef('mailItems')
 
 watch(allSelected, (val) => {
 	if (allSelectedManuallyToggled.value)
@@ -253,6 +259,7 @@ const reloadMails = (folder: Folder = currentFolder.value) => {
 	if (folder !== currentFolder.value) return
 	mails[currentFolder.value].reload()
 	if (currentFolder.value !== 'Trash') mailCount.reload()
+	resetSelections()
 }
 
 watch(() => currentFolder.value, reloadMails, { immediate: true })
