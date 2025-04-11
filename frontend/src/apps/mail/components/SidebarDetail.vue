@@ -36,7 +36,10 @@
 			>
 				{{ mail.snippet || __('— No message body —') }}
 			</h5>
-			<div class="flex items-center">
+			<div
+				v-if="mail.attachments.length || Object.keys(STATUS).includes(badgeField)"
+				class="flex items-center"
+			>
 				<AttachmentCapsule
 					v-for="attachment in mail.attachments.slice(0, 2)"
 					:key="attachment.name"

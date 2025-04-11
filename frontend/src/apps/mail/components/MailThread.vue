@@ -113,7 +113,7 @@
 								:key="action.label"
 								:text="action.label"
 							>
-								<Button variant="ghost" @click="action.onClick()">
+								<Button variant="ghost" @click="action.onClick">
 									<template #icon>
 										<component
 											:is="action.icon"
