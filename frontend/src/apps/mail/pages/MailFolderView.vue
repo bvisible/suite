@@ -16,7 +16,7 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.2rem)]">
+	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.15rem)]">
 		<template v-if="mails[currentFolder].data?.length">
 			<div
 				ref="mailSidebar"
@@ -24,19 +24,53 @@
 				@scroll="loadMoreEmails"
 			>
 				<div class="flex items-center justify-between border-b px-3 py-2.5">
-					<div class="px-2">All Mail</div>
+					<div class="px-2">
+						<span v-if="selectedMails.length">{{
+							__('{0} {1} selected', [
+								String(selectedMails.length),
+								selectedMails.length === 1 ? 'item' : 'items',
+							])
+						}}</span>
+						<span v-else>{{ __('All Mail') }}</span>
+					</div>
 					<div class="flex items-center space-x-2">
-						<Checkbox
-							v-model="allSelected"
-							@change="allSelectedManuallyToggled = true"
-						/>
-						<Tooltip :text="__('Refresh')">
+						<template v-if="selectedMails.length">
+							<Tooltip :text="__('Mark as read')">
+								<Button
+									variant="ghost"
+									@click="setSeen.submit({ names: selectedMails, seen: 1 })"
+								>
+									<template #icon>
+										<MailOpen class="h-4 w-4 text-gray-600" />
+									</template>
+								</Button>
+							</Tooltip>
+							<Tooltip :text="__('Mark as unread')">
+								<Button
+									variant="ghost"
+									@click="setSeen.submit({ names: selectedMails, seen: 0 })"
+								>
+									<template #icon>
+										<Mail class="h-4 w-4 text-gray-600" />
+									</template>
+								</Button>
+							</Tooltip>
+						</template>
+						<Tooltip v-else :text="__('Refresh')">
 							<Button variant="ghost" @click="reloadMails()">
 								<template #icon>
 									<RefreshCw class="h-4 w-4 text-gray-600" />
 								</template>
 							</Button>
 						</Tooltip>
+						<div class="flex items-center border-l pl-3">
+							<Tooltip :text="__('Select All')">
+								<Checkbox
+									v-model="allSelected"
+									@change="allSelectedManuallyToggled = true"
+								/>
+							</Tooltip>
+						</div>
 					</div>
 				</div>
 				<div class="p-1 sm:p-3">
@@ -71,7 +105,9 @@
 					:current-folder
 					:type="getMailType() || doctype"
 					@reload-mails="reloadMails"
-					@mark-as-unread="setSeen.submit({ name: currentMail[currentFolder], seen: 0 })"
+					@mark-as-unread="
+						setSeen.submit({ names: [currentMail[currentFolder]], seen: 0 })
+					"
 				/>
 			</div>
 		</template>
@@ -87,7 +123,7 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { RefreshCw } from 'lucide-vue-next'
+import { Mail, MailOpen, RefreshCw } from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
@@ -165,7 +201,7 @@ const mailCount = createResource({
 })
 
 interface SetSeenParams {
-	name: string
+	names: string[]
 	seen: 1 | 0
 }
 
@@ -175,9 +211,12 @@ const setSeen = createResource({
 		mail_type: getMailType() || doctype.value,
 		...values,
 	}),
-	onSuccess: (data: SetSeenParams) => {
-		mails[currentFolder.value].data.find((m) => m.name === data.name).seen = data.seen
-		if (!data.seen) setCurrentMail(currentFolder.value, null)
+	onSuccess: ({ names, seen }: SetSeenParams) => {
+		names.forEach(
+			(name) => (mails[currentFolder.value].data.find((m) => m.name === name).seen = seen),
+		)
+		if (!seen && names.includes(currentMail[currentFolder.value]))
+			setCurrentMail(currentFolder.value, null)
 	},
 })
 
@@ -211,7 +250,7 @@ watch(allSelected, (val) => {
 
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
-	if (!mail.seen) setSeen.submit({ name: mail.name, seen: 1 })
+	if (!mail.seen) setSeen.submit({ names: [mail.name], seen: 1 })
 }
 
 const reloadMails = (folder: Folder = currentFolder.value) => {

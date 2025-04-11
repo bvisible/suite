@@ -1,6 +1,6 @@
 <template>
 	<template v-if="mailID">
-		<div class="flex items-center border-b px-3 py-2.5">
+		<div class="flex items-center border-b p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
@@ -18,7 +18,7 @@
 					<Tooltip :text="__('Mark as unread')">
 						<Button variant="ghost" @click="emit('markAsUnread')">
 							<template #icon>
-								<MessageSquareDot class="h-4 w-4 text-gray-600" />
+								<Mail class="h-4 w-4 text-gray-600" />
 							</template>
 						</Button>
 					</Tooltip>
@@ -180,10 +180,10 @@
 import { inject, reactive, ref, watch } from 'vue'
 import {
 	ArchiveRestore,
+	Code,
 	Ellipsis,
 	Forward,
 	Mail,
-	MessageSquareDot,
 	Reply,
 	ReplyAll,
 	SquarePen,
@@ -297,7 +297,7 @@ const moreActions = (mail): MailAction[] => [
 				)
 				?.focus()
 		},
-		icon: Mail,
+		icon: Code,
 		condition: () => mail.status !== 'Draft' && screenSize.width >= 640,
 	},
 	{
