@@ -501,12 +501,14 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mail_type: MailType, name: str, seen: int) -> dict:
-	"""Sets seen for mail."""
+def set_seen(mail_type: MailType, names: list[str], seen: int) -> dict:
+	"""Sets seen for mails."""
 
-	doc = frappe.get_doc(mail_type, name)
-	doc.db_set("seen", seen)
-	return {"name": name, "seen": seen}
+	for name in names:
+		doc = frappe.get_doc(mail_type, name)
+		doc.db_set("seen", seen)
+
+	return {"names": names, "seen": seen}
 
 
 @frappe.whitelist()
