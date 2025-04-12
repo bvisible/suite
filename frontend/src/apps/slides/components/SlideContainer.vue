@@ -275,7 +275,12 @@ watch(
 		bounds.left += diffs.left / scale.value
 		bounds.top += diffs.top / (ratio * scale.value)
 
-		activeElement.value.width += diffs.width / scale.value
+		if (activeElement.value.width) activeElement.value.width += diffs.width / scale.value
+		else {
+			const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
+			const width = elementDiv.getBoundingClientRect().width
+			activeElement.value.width = width + diffs.width / scale.value
+		}
 	},
 )
 </script>
