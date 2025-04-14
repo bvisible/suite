@@ -16,7 +16,7 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3rem)]">
+	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
 		<template v-if="mails[currentFolder].data?.length">
 			<div ref="mailSidebar" class="sticky top-16 flex w-full flex-col border-r sm:w-1/3">
 				<div class="flex items-center justify-between border-b px-3.5 py-2.5">
@@ -59,7 +59,7 @@
 						:mail
 						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
 						@click="openMail(mail)"
-						@select-mail="selectMail(mail.name)"
+						@select-mail="selectMail({ name: mail.name, mail_type: mail.mail_type })"
 						@deselect-mail="deselectMail(mail.name)"
 					/>
 				</div>
@@ -84,7 +84,12 @@
 					:type="getMailType() || doctype"
 					@reload-mails="reloadMails"
 					@mark-as-unread="
-						setSeen.submit({ names: [currentMail[currentFolder]], seen: 0 })
+						setSeen.submit({
+							mails: [
+								{ name: currentMail[currentFolder], mail_type: getMailType() },
+							],
+							seen: 0,
+						})
 					"
 				/>
 			</div>
@@ -185,10 +190,7 @@ interface SetSeenParams {
 
 const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
-	makeParams: (values: SetSeenParams) => ({
-		mail_type: getMailType() || doctype.value,
-		...values,
-	}),
+	makeParams: (values: SetSeenParams) => ({ ...values }),
 	onSuccess: ({ names, seen }: SetSeenParams) => {
 		names.forEach(
 			(name) => (mails[currentFolder.value].data.find((m) => m.name === name).seen = seen),
@@ -196,6 +198,11 @@ const setSeen = createResource({
 		if (!seen && names.includes(currentMail[currentFolder.value]))
 			setCurrentMail(currentFolder.value, null)
 	},
+})
+
+const trashThreads = createResource({
+	url: 'mail.api.mail.trash_threads',
+	makeParams: () => ({ mails: selections.value }),
 })
 
 // selection
@@ -217,7 +224,8 @@ const selectMail = (mail) => {
 	if (!selections.value.includes(mail)) selections.value.push(mail)
 }
 
-const deselectMail = (mail) => (selections.value = selections.value.filter((m) => m !== mail))
+const deselectMail = (mail: string) =>
+	(selections.value = selections.value.filter((m) => m.name !== mail))
 
 watch(
 	() => selections.value.length,
@@ -238,19 +246,19 @@ const selectActions = computed((): SelectAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: reloadMails,
+			onClick: trashThreads.submit,
 			icon: Trash2,
 			condition: !!selections.value.length,
 		},
 		{
 			label: __('Mark as read'),
-			onClick: () => setSeen.submit({ names: selections.value, seen: 1 }),
+			onClick: () => setSeen.submit({ mails: selections.value, seen: 1 }),
 			icon: MailOpen,
 			condition: !!selections.value.length,
 		},
 		{
 			label: __('Mark as unread'),
-			onClick: () => setSeen.submit({ names: selections.value, seen: 0 }),
+			onClick: () => setSeen.submit({ mails: selections.value, seen: 0 }),
 			icon: Mail,
 			condition: !!selections.value.length,
 		},
@@ -270,7 +278,8 @@ watch(allSelected, (val) => {
 
 const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
-	if (!mail.seen) setSeen.submit({ names: [mail.name], seen: 1 })
+	if (!mail.seen)
+		setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
 }
 
 const reloadMails = (folder: Folder = currentFolder.value) => {
