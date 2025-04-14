@@ -106,7 +106,7 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { Mail, MailOpen, RefreshCw, Trash2 } from 'lucide-vue-next'
+import { Mail, MailOpen, RefreshCw, RotateCcw, Trash2 } from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
@@ -183,6 +183,13 @@ const mailCount = createResource({
 	cache: [`${currentFolder.value}MailCount`, user.data?.name],
 })
 
+const reloadMails = (folder: Folder = currentFolder.value) => {
+	if (folder !== currentFolder.value) return
+	mails[currentFolder.value].reload()
+	if (currentFolder.value !== 'Trash') mailCount.reload()
+	resetSelections()
+}
+
 interface SetSeenParams {
 	names: string[]
 	seen: 1 | 0
@@ -202,7 +209,8 @@ const setSeen = createResource({
 
 const trashThreads = createResource({
 	url: 'mail.api.mail.trash_threads',
-	makeParams: () => ({ mails: selections.value }),
+	makeParams: () => ({ threads: selections.value }),
+	onSuccess: reloadMails,
 })
 
 // selection
@@ -248,7 +256,19 @@ const selectActions = computed((): SelectAction[] =>
 			label: __('Move to Trash'),
 			onClick: trashThreads.submit,
 			icon: Trash2,
-			condition: !!selections.value.length,
+			condition: !!selections.value.length && currentFolder.value !== 'Trash',
+		},
+		{
+			label: __('Delete Permanently'),
+			onClick: trashThreads.submit,
+			icon: Trash2,
+			condition: !!selections.value.length && currentFolder.value === 'Trash',
+		},
+		{
+			label: __('Restore'),
+			onClick: trashThreads.submit,
+			icon: RotateCcw,
+			condition: !!selections.value.length && currentFolder.value === 'Trash',
 		},
 		{
 			label: __('Mark as read'),
@@ -280,13 +300,6 @@ const openMail = (mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen)
 		setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
-}
-
-const reloadMails = (folder: Folder = currentFolder.value) => {
-	if (folder !== currentFolder.value) return
-	mails[currentFolder.value].reload()
-	if (currentFolder.value !== 'Trash') mailCount.reload()
-	resetSelections()
 }
 
 watch(() => currentFolder.value, reloadMails, { immediate: true })
