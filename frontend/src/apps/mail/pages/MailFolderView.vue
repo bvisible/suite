@@ -91,13 +91,17 @@
 							seen: 0,
 						})
 					"
-					@trash-thread="
-						trashThreads.submit([
-							{
-								name: currentMail[currentFolder],
-								mail_type: getMailType(),
-							},
-						])
+					@set-thread-folders="
+						(move_to_trash: boolean) =>
+							setFolderForThreads.submit({
+								threads: [
+									{
+										name: currentMail[currentFolder],
+										mail_type: getMailType(),
+									},
+								],
+								move_to_trash,
+							})
 					"
 				/>
 			</div>
@@ -215,9 +219,9 @@ const setSeen = createResource({
 	},
 })
 
-const trashThreads = createResource({
-	url: 'mail.api.mail.trash_threads',
-	makeParams: (threads) => ({ threads }),
+const setFolderForThreads = createResource({
+	url: 'mail.api.mail.set_folder_for_threads',
+	makeParams: ({ threads, move_to_trash }) => ({ threads, move_to_trash }),
 	onSuccess: reloadMails,
 })
 
@@ -262,30 +266,26 @@ const selectActions = computed((): SelectAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => trashThreads.submit(selections.value),
+			onClick: () =>
+				setFolderForThreads.submit({ threads: selections.value, move_to_trash: true }),
 			icon: Trash2,
 			condition: !!selections.value.length && currentFolder.value !== 'Trash',
 		},
 		{
-			label: __('Delete Permanently'),
-			onClick: trashThreads.submit,
-			icon: Trash2,
-			condition: !!selections.value.length && currentFolder.value === 'Trash',
-		},
-		{
 			label: __('Restore'),
-			onClick: trashThreads.submit,
+			onClick: () =>
+				setFolderForThreads.submit({ threads: selections.value, move_to_trash: false }),
 			icon: RotateCcw,
 			condition: !!selections.value.length && currentFolder.value === 'Trash',
 		},
 		{
-			label: __('Mark as read'),
+			label: __('Mark as Read'),
 			onClick: () => setSeen.submit({ mails: selections.value, seen: 1 }),
 			icon: MailOpen,
 			condition: !!selections.value.length,
 		},
 		{
-			label: __('Mark as unread'),
+			label: __('Mark as Unread'),
 			onClick: () => setSeen.submit({ mails: selections.value, seen: 0 }),
 			icon: Mail,
 			condition: !!selections.value.length,
