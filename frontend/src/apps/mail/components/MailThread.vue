@@ -179,13 +179,13 @@
 <script setup lang="ts">
 import { inject, reactive, ref, watch } from 'vue'
 import {
-	ArchiveRestore,
 	Code,
 	Ellipsis,
 	Forward,
 	Mail,
 	Reply,
 	ReplyAll,
+	RotateCcw,
 	SquarePen,
 	Trash2,
 } from 'lucide-vue-next'
@@ -309,12 +309,12 @@ const moreActions = (mail): MailAction[] => [
 	{
 		label: __('Restore'),
 		onClick: () => setFolder.submit({ mail, moveToTrash: false }),
-		icon: ArchiveRestore,
+		icon: RotateCcw,
 		condition: () => mail.folder === 'Trash',
 	},
 	{
 		label: __('Delete Message'),
-		onClick: () => cancelMail.submit({ mail }),
+		onClick: () => deleteMail.submit(mail),
 		icon: Trash2,
 		condition: () => mail.folder === 'Trash',
 	},
@@ -328,19 +328,20 @@ interface SetFolderParams {
 const setFolder = createResource({
 	url: 'mail.api.mail.set_folder',
 	method: 'POST',
-	makeParams: (values: SetFolderParams) => ({
-		mail_type: values.mail.mail_type,
-		name: values.mail.name,
-		move_to_trash: values.moveToTrash,
+	makeParams: ({ mail, moveToTrash }: SetFolderParams) => ({
+		mail_type: mail.mail_type,
+		name: mail.name,
+		move_to_trash: moveToTrash,
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
 
-const cancelMail = createResource({
-	url: 'mail.api.mail.cancel_mail',
-	makeParams: (values: { mail: object }) => ({
-		mail_type: values.mail.mail_type,
-		name: values.mail.name,
+const deleteMail = createResource({
+	url: 'mail.api.mail.cancel_or_delete_mail',
+	makeParams: (mail: object) => ({
+		mail_type: mail.mail_type,
+		name: mail.name,
+		docstatus: mail.docstatus,
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
