@@ -1,6 +1,6 @@
 <template>
 	<template v-if="mailID">
-		<div class="flex items-center border-b px-3 py-2.5">
+		<div class="flex items-center border-b p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
@@ -15,13 +15,16 @@
 			<template v-else>
 				<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
 				<div class="ml-auto space-x-2">
-					<Tooltip :text="__('Mark as unread')">
-						<Button
-							:icon="MessageSquareDot"
-							variant="ghost"
-							class="!text-ink-gray-6"
-							@click="emit('markAsUnread')"
-						/>
+					<Tooltip
+						v-for="action in threadActions"
+						:key="action.label"
+						:text="action.label"
+					>
+						<Button variant="ghost" @click="action.onClick">
+							<template #icon>
+								<component :is="action.icon" class="h-4 w-4 text-gray-600" />
+							</template>
+						</Button>
 					</Tooltip>
 				</div>
 			</template>
@@ -64,17 +67,13 @@
 				v-for="mail in mailThread.data"
 				:key="mail.name"
 				class="p-3"
-				:class="{
-					'rounded-md border': mailThread.data.length > 1,
-					'opacity-50': mail.folder === 'Trash',
-				}"
+				:class="{ 'rounded-md border': mailThread.data.length > 1 }"
 			>
 				<div class="flex space-x-3 border-b pb-2">
 					<Avatar
-						class="avatar border border-gray-300"
 						:label="mail.display_name || mail.sender"
 						:image="mail.user_image"
-						size="lg"
+						size="xl"
 					/>
 					<div class="flex flex-1 justify-between text-xs">
 						<div class="flex flex-col space-y-1">
@@ -115,7 +114,7 @@
 								:key="action.label"
 								:text="action.label"
 							>
-								<Button variant="ghost" @click="action.onClick()">
+								<Button variant="ghost" @click="action.onClick">
 									<template #icon>
 										<component
 											:is="action.icon"
@@ -169,7 +168,7 @@
 	<div v-else class="h-full overflow-hidden">
 		<div class="m-4 flex h-[calc(100%-2em)] items-center justify-center rounded-md bg-gray-50">
 			<div class="flex flex-col items-center space-y-3">
-				<NoMailSelected class="h-16 w-16" />
+				<NoMails class="h-16 w-16" />
 				<p class="text-gray-500">
 					{{ __('Select an email to view the thread.') }}
 				</p>
@@ -179,15 +178,15 @@
 </template>
 
 <script setup lang="ts">
-import { inject, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import {
-	ArchiveRestore,
+	Code,
 	Ellipsis,
 	Forward,
 	Mail,
-	MessageSquareDot,
 	Reply,
 	ReplyAll,
+	RotateCcw,
 	SquarePen,
 	Trash2,
 } from 'lucide-vue-next'
@@ -197,7 +196,7 @@ import { getRecipients } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
-import NoMailSelected from '@/components/Icons/NoMailSelected.vue'
+import NoMails from '@/components/Icons/NoMails.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import SendMail from '@/components/SendMail.vue'
@@ -210,7 +209,7 @@ const props = defineProps<{
 	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread'])
+const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
 
 const screenSize = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -231,13 +230,17 @@ const replyDetails = reactive({
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
+	transform: (data) =>
+		props.currentFolder === 'Trash'
+			? data.filter((mail) => mail.folder === 'Trash')
+			: data.filter((mail) => mail.folder !== 'Trash'),
 })
 
-const reloadThread = () => {
+const reload = () => {
 	if (props.mailID) mailThread.reload()
 }
 
-defineExpose({ reloadThread })
+defineExpose({ reload })
 
 const mailBody = (bodyHTML: string) => {
 	bodyHTML = bodyHTML.replace(/<br\s*\/?>/, '')
@@ -257,6 +260,34 @@ interface MailAction {
 	icon: typeof SquarePen
 	condition?: boolean | (() => boolean)
 }
+
+const threadActions = computed((): MailAction[] =>
+	[
+		{
+			label: __('Move to Trash'),
+			onClick: () => emit('setThreadFolders', true),
+			icon: Trash2,
+			condition: props.currentFolder !== 'Trash',
+		},
+		{
+			label: __('Delete Thread'),
+			onClick: () => emit('deleteThread'),
+			icon: Trash2,
+			condition: props.currentFolder === 'Trash',
+		},
+		{
+			label: __('Restore'),
+			onClick: () => emit('setThreadFolders', false),
+			icon: RotateCcw,
+			condition: props.currentFolder === 'Trash',
+		},
+		{
+			label: __('Mark as Unread'),
+			onClick: () => emit('markAsUnread'),
+			icon: Mail,
+		},
+	].filter((action) => action.condition !== false),
+)
 
 const mailActions = (mail): MailAction[] => [
 	{
@@ -299,7 +330,7 @@ const moreActions = (mail): MailAction[] => [
 				)
 				?.focus()
 		},
-		icon: Mail,
+		icon: Code,
 		condition: () => mail.status !== 'Draft' && screenSize.width >= 640,
 	},
 	{
@@ -311,12 +342,12 @@ const moreActions = (mail): MailAction[] => [
 	{
 		label: __('Restore'),
 		onClick: () => setFolder.submit({ mail, moveToTrash: false }),
-		icon: ArchiveRestore,
+		icon: RotateCcw,
 		condition: () => mail.folder === 'Trash',
 	},
 	{
 		label: __('Delete Message'),
-		onClick: () => cancelMail.submit({ mail }),
+		onClick: () => deleteMail.submit(mail),
 		icon: Trash2,
 		condition: () => mail.folder === 'Trash',
 	},
@@ -330,19 +361,24 @@ interface SetFolderParams {
 const setFolder = createResource({
 	url: 'mail.api.mail.set_folder',
 	method: 'POST',
-	makeParams: (values: SetFolderParams) => ({
-		mail_type: values.mail.mail_type,
-		name: values.mail.name,
-		move_to_trash: values.moveToTrash,
+	makeParams: ({ mail, moveToTrash }: SetFolderParams) => ({
+		mail_type: mail.mail_type,
+		name: mail.name,
+		move_to_trash: moveToTrash,
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
 
-const cancelMail = createResource({
-	url: 'mail.api.mail.cancel_mail',
-	makeParams: (values: { mail: object }) => ({
-		mail_type: values.mail.mail_type,
-		name: values.mail.name,
+const deleteMail = createResource({
+	url: 'mail.api.mail.delete_or_cancel_mails',
+	makeParams: (mail: object) => ({
+		mails: [
+			{
+				mail_type: mail.mail_type,
+				name: mail.name,
+				docstatus: mail.docstatus,
+			},
+		],
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
@@ -393,7 +429,7 @@ const generatePLaceholderWidth = () => {
 	return `${Math.floor(Math.random() * (max - min + 1) + min)}px`
 }
 
-watch(() => props.mailID, reloadThread)
+watch(() => props.mailID, reload)
 </script>
 <style>
 .prose
