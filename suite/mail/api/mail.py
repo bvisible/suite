@@ -317,10 +317,12 @@ def get_mail_details(
 
 	fields = [
 		"name",
+		"folder",
 		"in_reply_to_mail_name",
 		"in_reply_to_mail_type",
 		"message_id",
 		"creation",
+		"docstatus",
 	]
 
 	if not just_names:
@@ -333,9 +335,7 @@ def get_mail_details(
 				"display_name",
 				"modified",
 				"reply_to",
-				"folder",
 				"seen",
-				"docstatus",
 			]
 		)
 
@@ -545,7 +545,7 @@ def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> N
 
 
 @frappe.whitelist()
-def cancel_or_delete_mails(mails: list[dict]) -> None:
+def delete_or_cancel_mails(mails: list[dict]) -> None:
 	"""Deletes mail if draft, otherwise cancels it."""
 
 	for d in mails:
@@ -571,7 +571,7 @@ def empty_folder(folder: str) -> None:
 			},
 			["name", "docstatus", f"'{doctype}' as mail_type"],
 		)
-		cancel_or_delete_mails(mails)
+		delete_or_cancel_mails(mails)
 
 
 @frappe.whitelist()
@@ -581,3 +581,14 @@ def set_folder_for_threads(threads: list[dict], move_to_trash: bool = False) -> 
 	for thread in threads:
 		for mail in get_mail_thread(thread["name"], thread["mail_type"], True):
 			set_folder(mail.mail_type, mail.name, move_to_trash)
+
+
+@frappe.whitelist()
+def delete_or_cancel_threads(threads: list[dict]) -> None:
+	"""Cancels or deletes trashed mails in the given threads."""
+
+	for thread in threads:
+		mails = [
+			d for d in get_mail_thread(thread["name"], thread["mail_type"], True) if d["folder"] == "Trash"
+		]
+		delete_or_cancel_mails(mails)

@@ -67,10 +67,7 @@
 				v-for="mail in mailThread.data"
 				:key="mail.name"
 				class="p-3"
-				:class="{
-					'rounded-md border': mailThread.data.length > 1,
-					'opacity-50': mail.folder === 'Trash',
-				}"
+				:class="{ 'rounded-md border': mailThread.data.length > 1 }"
 			>
 				<div class="flex space-x-3 border-b pb-2">
 					<Avatar
@@ -212,7 +209,7 @@ const props = defineProps<{
 	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders'])
+const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
 
 const screenSize = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -233,6 +230,10 @@ const replyDetails = reactive({
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
+	transform: (data) =>
+		props.currentFolder === 'Trash'
+			? data.filter((mail) => mail.folder === 'Trash')
+			: data.filter((mail) => mail.folder !== 'Trash'),
 })
 
 const reload = () => {
@@ -267,6 +268,12 @@ const threadActions = computed((): MailAction[] =>
 			onClick: () => emit('setThreadFolders', true),
 			icon: Trash2,
 			condition: props.currentFolder !== 'Trash',
+		},
+		{
+			label: __('Delete Thread'),
+			onClick: () => emit('deleteThread'),
+			icon: Trash2,
+			condition: props.currentFolder === 'Trash',
 		},
 		{
 			label: __('Restore'),
@@ -363,7 +370,7 @@ const setFolder = createResource({
 })
 
 const deleteMail = createResource({
-	url: 'mail.api.mail.cancel_or_delete_mails',
+	url: 'mail.api.mail.delete_or_cancel_mails',
 	makeParams: (mail: object) => ({
 		mails: [
 			{
