@@ -35,7 +35,6 @@ import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, rea
 import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
-import SlideElement2 from '@/components/SlideElement2.vue'
 // import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import Guides from '@/components/Guides.vue'
 import SelectionBox from './SelectionBox.vue'
@@ -211,13 +210,16 @@ const addToActiveElements = (id) => {
 }
 
 let dragTimeout
+const clickTimeout = ref(null)
 
 const handleMouseDown = (e, element) => {
-	e.preventDefault()
-
 	if (element && focusElementId.value == element.id) return
 
+	e.preventDefault()
+
 	dragTimeout = setTimeout(() => {
+		if (element && focusElementId.value == element.id) return
+
 		if (element) addToActiveElements(element.id)
 
 		startDragging(e)
@@ -225,16 +227,26 @@ const handleMouseDown = (e, element) => {
 
 	e.target.addEventListener('mouseup', () => {
 		clearTimeout(dragTimeout)
+		clearTimeout(clickTimeout.value)
 
-		if (element) activeElementIds.value = [element.id]
+		clickTimeout.value = setTimeout(() => {
+			if (element && !focusElementId.value) activeElementIds.value = [element.id]
+		}, 100)
 	})
 }
 
 const handleDoubleClick = (e, element) => {
 	if (element.type !== 'text') return
+
+	clearTimeout(clickTimeout.value)
 	clearTimeout(dragTimeout)
+
 	activeElementIds.value = []
 	focusElementId.value = element.id
+
+	nextTick(() => {
+		e.target.focus()
+	})
 }
 
 const moveElement = (movement) => {
