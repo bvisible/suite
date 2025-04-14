@@ -215,7 +215,7 @@ def get_snippet(content) -> str:
 
 
 @frappe.whitelist()
-def get_mail_thread(name, mail_type: MailType) -> list:
+def get_mail_thread(name: str, mail_type: MailType, just_names: bool = False) -> list:
 	"""Returns the mail thread for the given mail."""
 
 	if not frappe.db.exists(mail_type, name):
@@ -224,7 +224,7 @@ def get_mail_thread(name, mail_type: MailType) -> list:
 			frappe.DoesNotExistError,
 		)
 
-	mail = get_mail_details(name, mail_type, True)
+	mail = get_mail_details(name, mail_type, True, just_names)
 	mail.mail_type = mail_type
 
 	original_replica = find_replica(mail, mail_type)
@@ -239,13 +239,15 @@ def get_mail_thread(name, mail_type: MailType) -> list:
 		visited.add(mail.name)
 
 		if has_in_reply_to_mail(mail):
-			reply_mail = get_mail_details(mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, True)
+			reply_mail = get_mail_details(
+				mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, True, just_names
+			)
 			get_thread(reply_mail, thread)
 
 		replica = find_replica(mail, mail.mail_type)
 		if replica and replica != name:
 			replica_type = reverse_type(mail.mail_type)
-			replica_mail = get_mail_details(replica, replica_type, True)
+			replica_mail = get_mail_details(replica, replica_type, True, just_names)
 			replica_mail.mail_type = replica_type
 			get_thread(replica_mail, thread)
 		else:
@@ -308,33 +310,46 @@ def remove_duplicates_and_sort(thread) -> list:
 	return thread
 
 
-def get_mail_details(name: str, type: str, include_all_details: bool = False) -> dict:
+def get_mail_details(
+	name: str, type: str, include_all_details: bool = False, just_names: bool = False
+) -> dict:
 	"""Returns the mail details."""
 
 	fields = [
 		"name",
-		"subject",
-		"body_html",
-		"body_plain",
-		"sender",
-		"display_name",
-		"creation",
-		"modified",
-		"message_id",
+		"folder",
 		"in_reply_to_mail_name",
 		"in_reply_to_mail_type",
-		"reply_to",
-		"folder",
-		"seen",
+		"message_id",
+		"creation",
+		"docstatus",
 	]
 
-	if type == "Outgoing Mail":
-		fields.extend(["from_", "status"])
-	else:
-		fields.extend(["delivered_to", "type"])
+	if not just_names:
+		fields.extend(
+			[
+				"subject",
+				"body_html",
+				"body_plain",
+				"sender",
+				"display_name",
+				"modified",
+				"reply_to",
+				"seen",
+			]
+		)
+
+		if type == "Outgoing Mail":
+			fields.extend(["from_", "status"])
+		else:
+			fields.extend(["delivered_to", "type"])
 
 	mail = frappe.db.get_value(type, name, fields, as_dict=1)
 	mail.mail_type = type
+
+	if just_names:
+		return mail
+
 	mail.attachments = get_attachments_for_mail(type, name)
 
 	if not include_all_details:
@@ -501,12 +516,14 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mail_type: MailType, name: str, seen: int) -> dict:
-	"""Sets seen for mail."""
+def set_seen(mails: list[dict], seen: int) -> dict:
+	"""Sets seen for mails."""
 
-	doc = frappe.get_doc(mail_type, name)
-	doc.db_set("seen", seen)
-	return {"name": name, "seen": seen}
+	for mail in mails:
+		doc = frappe.get_doc(mail["mail_type"], mail["name"])
+		doc.db_set("seen", seen)
+
+	return {"names": [d["name"] for d in mails], "seen": seen}
 
 
 @frappe.whitelist()
@@ -528,10 +545,14 @@ def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> N
 
 
 @frappe.whitelist()
-def cancel_mail(mail_type: MailType, name: str) -> None:
-	"""Cancels mail."""
+def delete_or_cancel_mails(mails: list[dict]) -> None:
+	"""Deletes mail if draft, otherwise cancels it."""
 
-	frappe.db.set_value(mail_type, name, "docstatus", 2)
+	for d in mails:
+		if d["docstatus"] == 0:
+			frappe.delete_doc(d["mail_type"], d["name"])
+		else:
+			frappe.db.set_value(d["mail_type"], d["name"], "docstatus", 2)
 
 
 @frappe.whitelist()
@@ -548,10 +569,26 @@ def empty_folder(folder: str) -> None:
 				"folder": folder,
 				"docstatus": ["!=", 2],
 			},
-			["name", "docstatus"],
+			["name", "docstatus", f"'{doctype}' as mail_type"],
 		)
-		for d in mails:
-			if d.docstatus == 1:
-				cancel_mail(doctype, d.name)
-			else:
-				frappe.delete_doc(doctype, d.name)
+		delete_or_cancel_mails(mails)
+
+
+@frappe.whitelist()
+def set_folder_for_threads(threads: list[dict], move_to_trash: bool = False) -> None:
+	"""Moves threads to trash."""
+
+	for thread in threads:
+		for mail in get_mail_thread(thread["name"], thread["mail_type"], True):
+			set_folder(mail.mail_type, mail.name, move_to_trash)
+
+
+@frappe.whitelist()
+def delete_or_cancel_threads(threads: list[dict]) -> None:
+	"""Cancels or deletes trashed mails in the given threads."""
+
+	for thread in threads:
+		mails = [
+			d for d in get_mail_thread(thread["name"], thread["mail_type"], True) if d["folder"] == "Trash"
+		]
+		delete_or_cancel_mails(mails)
