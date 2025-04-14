@@ -501,14 +501,14 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mail_type: MailType, names: list[str], seen: int) -> dict:
+def set_seen(mails: list[dict], seen: int) -> dict:
 	"""Sets seen for mails."""
 
-	for name in names:
-		doc = frappe.get_doc(mail_type, name)
+	for mail in mails:
+		doc = frappe.get_doc(mail["mail_type"], mail["name"])
 		doc.db_set("seen", seen)
 
-	return {"names": names, "seen": seen}
+	return {"names": [d["name"] for d in mails], "seen": seen}
 
 
 @frappe.whitelist()
@@ -557,3 +557,12 @@ def empty_folder(folder: str) -> None:
 				cancel_mail(doctype, d.name)
 			else:
 				frappe.delete_doc(doctype, d.name)
+
+
+@frappe.whitelist()
+def trash_threads(mails: list[dict]) -> None:
+	"""Moves threads to trash."""
+
+	for mail in mails:
+		thread = get_mail_thread(mail["name"], mail["mail_type"])
+		print(thread)
