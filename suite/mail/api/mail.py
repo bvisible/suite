@@ -545,13 +545,14 @@ def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> N
 
 
 @frappe.whitelist()
-def cancel_or_delete_mail(mail_type: MailType, name: str, docstatus: Literal[0, 1]) -> None:
+def cancel_or_delete_mails(mails: list[dict]) -> None:
 	"""Deletes mail if draft, otherwise cancels it."""
 
-	if docstatus == 0:
-		frappe.delete_doc(mail_type, name)
-	else:
-		frappe.db.set_value(mail_type, name, "docstatus", 2)
+	for d in mails:
+		if d["docstatus"] == 0:
+			frappe.delete_doc(d["mail_type"], d["name"])
+		else:
+			frappe.db.set_value(d["mail_type"], d["name"], "docstatus", 2)
 
 
 @frappe.whitelist()
@@ -568,10 +569,9 @@ def empty_folder(folder: str) -> None:
 				"folder": folder,
 				"docstatus": ["!=", 2],
 			},
-			["name", "docstatus"],
+			["name", "docstatus", f"'{doctype}' as mail_type"],
 		)
-		for d in mails:
-			cancel_or_delete_mail(doctype, d.name, d.docstatus)
+		cancel_or_delete_mails(mails)
 
 
 @frappe.whitelist()
