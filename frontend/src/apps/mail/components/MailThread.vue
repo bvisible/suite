@@ -212,7 +212,7 @@ const props = defineProps<{
 	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread', 'trashThread'])
+const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders'])
 
 const screenSize = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -264,33 +264,21 @@ const threadActions = computed((): MailAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => emit('trashThread'),
+			onClick: () => emit('setThreadFolders', true),
 			icon: Trash2,
 			condition: props.currentFolder !== 'Trash',
 		},
-		// {
-		// 	label: __('Delete Permanently'),
-		// 	onClick: trashThreads.submit,
-		// 	icon: Trash2,
-		// 	condition: !!selections.value.length && currentFolder.value === 'Trash',
-		// },
-		// {
-		// 	label: __('Restore'),
-		// 	onClick: trashThreads.submit,
-		// 	icon: RotateCcw,
-		// 	condition: !!selections.value.length && currentFolder.value === 'Trash',
-		// },
 		{
-			label: __('Mark as unread'),
+			label: __('Restore'),
+			onClick: () => emit('setThreadFolders', false),
+			icon: RotateCcw,
+			condition: props.currentFolder === 'Trash',
+		},
+		{
+			label: __('Mark as Unread'),
 			onClick: () => emit('markAsUnread'),
 			icon: Mail,
 		},
-		// {
-		// 	label: __('Refresh'),
-		// 	onClick: () => reloadMails(),
-		// 	icon: RefreshCw,
-		// 	condition: !selections.value.length,
-		// },
 	].filter((action) => action.condition !== false),
 )
 

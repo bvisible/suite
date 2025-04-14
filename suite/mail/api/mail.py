@@ -575,9 +575,9 @@ def empty_folder(folder: str) -> None:
 
 
 @frappe.whitelist()
-def trash_threads(threads: list[dict]) -> None:
+def set_folder_for_threads(threads: list[dict], move_to_trash: bool = False) -> None:
 	"""Moves threads to trash."""
 
 	for thread in threads:
 		for mail in get_mail_thread(thread["name"], thread["mail_type"], True):
-			set_folder(mail.mail_type, mail.name, True)
+			set_folder(mail.mail_type, mail.name, move_to_trash)
