@@ -19,16 +19,27 @@ import {
 	activeElement,
 } from '@/stores/element'
 
+const props = defineProps({
+	outline: {
+		type: String,
+		default: 'none',
+	},
+})
+
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
 const outline = computed(() => {
-	if (activeElementIds.value.concat([focusElementId.value]).includes(element.value.id))
-		return '#70B6F0 solid 2px'
-	else if (pairElementId.value === element.value.id) return '#70b6f080 solid 2px'
-	else return 'none'
+	switch (props.outline) {
+		case 'primary':
+			return '#70B6F0 solid 2px'
+		case 'secondary':
+			return '#70b6f080 solid 2px'
+		default:
+			return props.outline
+	}
 })
 
 const elementStyle = computed(() => ({

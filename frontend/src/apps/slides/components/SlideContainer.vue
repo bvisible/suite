@@ -21,6 +21,7 @@
 					v-for="element in slide.elements"
 					:key="element.id"
 					:element="element"
+					:outline="getElementOutline(element)"
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
 					@dblclick="(e) => handleDoubleClick(e, element)"
@@ -53,6 +54,7 @@ import {
 	handleCopy,
 	handlePaste,
 	focusElementId,
+	pairElementId,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
@@ -248,6 +250,16 @@ const handleDoubleClick = (e, element) => {
 	nextTick(() => {
 		e.target.focus()
 	})
+}
+
+const getElementOutline = (element) => {
+	if (activeElementIds.value.concat([focusElementId.value]).includes(element.id)) {
+		return 'primary'
+	} else if (pairElementId.value === element.id) {
+		return 'secondary'
+	} else {
+		return 'none'
+	}
 }
 
 const moveElement = (movement) => {
