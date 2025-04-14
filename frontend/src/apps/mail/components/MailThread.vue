@@ -15,10 +15,14 @@
 			<template v-else>
 				<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
 				<div class="ml-auto space-x-2">
-					<Tooltip :text="__('Mark as unread')">
-						<Button variant="ghost" @click="emit('markAsUnread')">
+					<Tooltip
+						v-for="action in threadActions"
+						:key="action.label"
+						:text="action.label"
+					>
+						<Button variant="ghost" @click="action.onClick">
 							<template #icon>
-								<Mail class="h-4 w-4 text-gray-600" />
+								<component :is="action.icon" class="h-4 w-4 text-gray-600" />
 							</template>
 						</Button>
 					</Tooltip>
@@ -177,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref, watch } from 'vue'
 import {
 	Code,
 	Ellipsis,
@@ -208,7 +212,7 @@ const props = defineProps<{
 	type?: 'Incoming Mail' | 'Outgoing Mail'
 }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread'])
+const emit = defineEmits(['reloadMails', 'markAsUnread', 'trashThread'])
 
 const screenSize = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -255,6 +259,40 @@ interface MailAction {
 	icon: typeof SquarePen
 	condition?: boolean | (() => boolean)
 }
+
+const threadActions = computed((): MailAction[] =>
+	[
+		{
+			label: __('Move to Trash'),
+			onClick: () => emit('trashThread'),
+			icon: Trash2,
+			condition: props.currentFolder !== 'Trash',
+		},
+		// {
+		// 	label: __('Delete Permanently'),
+		// 	onClick: trashThreads.submit,
+		// 	icon: Trash2,
+		// 	condition: !!selections.value.length && currentFolder.value === 'Trash',
+		// },
+		// {
+		// 	label: __('Restore'),
+		// 	onClick: trashThreads.submit,
+		// 	icon: RotateCcw,
+		// 	condition: !!selections.value.length && currentFolder.value === 'Trash',
+		// },
+		{
+			label: __('Mark as unread'),
+			onClick: () => emit('markAsUnread'),
+			icon: Mail,
+		},
+		// {
+		// 	label: __('Refresh'),
+		// 	onClick: () => reloadMails(),
+		// 	icon: RefreshCw,
+		// 	condition: !selections.value.length,
+		// },
+	].filter((action) => action.condition !== false),
+)
 
 const mailActions = (mail): MailAction[] => [
 	{
@@ -337,11 +375,15 @@ const setFolder = createResource({
 })
 
 const deleteMail = createResource({
-	url: 'mail.api.mail.cancel_or_delete_mail',
+	url: 'mail.api.mail.cancel_or_delete_mails',
 	makeParams: (mail: object) => ({
-		mail_type: mail.mail_type,
-		name: mail.name,
-		docstatus: mail.docstatus,
+		mails: [
+			{
+				mail_type: mail.mail_type,
+				name: mail.name,
+				docstatus: mail.docstatus,
+			},
+		],
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
