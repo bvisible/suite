@@ -95,13 +95,15 @@
 						(move_to_trash: boolean) =>
 							setFolderForThreads.submit({
 								threads: [
-									{
-										name: currentMail[currentFolder],
-										mail_type: getMailType(),
-									},
+									{ name: currentMail[currentFolder], mail_type: getMailType() },
 								],
 								move_to_trash,
 							})
+					"
+					@delete-thread="
+						deleteThreads.submit([
+							{ name: currentMail[currentFolder], mail_type: getMailType() },
+						])
 					"
 				/>
 			</div>
@@ -225,6 +227,12 @@ const setFolderForThreads = createResource({
 	onSuccess: reloadMails,
 })
 
+const deleteThreads = createResource({
+	url: 'mail.api.mail.delete_or_cancel_threads',
+	makeParams: (threads) => ({ threads }),
+	onSuccess: reloadMails,
+})
+
 // selection
 
 const mailItems = useTemplateRef('mailItems')
@@ -270,6 +278,12 @@ const selectActions = computed((): SelectAction[] =>
 				setFolderForThreads.submit({ threads: selections.value, move_to_trash: true }),
 			icon: Trash2,
 			condition: !!selections.value.length && currentFolder.value !== 'Trash',
+		},
+		{
+			label: __('Delete Threads'),
+			onClick: () => deleteThreads.submit(selections.value),
+			icon: Trash2,
+			condition: !!selections.value.length && currentFolder.value === 'Trash',
 		},
 		{
 			label: __('Restore'),
