@@ -91,6 +91,14 @@
 							seen: 0,
 						})
 					"
+					@trash-thread="
+						trashThreads.submit([
+							{
+								name: currentMail[currentFolder],
+								mail_type: getMailType(),
+							},
+						])
+					"
 				/>
 			</div>
 		</template>
@@ -209,7 +217,7 @@ const setSeen = createResource({
 
 const trashThreads = createResource({
 	url: 'mail.api.mail.trash_threads',
-	makeParams: () => ({ threads: selections.value }),
+	makeParams: (threads) => ({ threads }),
 	onSuccess: reloadMails,
 })
 
@@ -254,7 +262,7 @@ const selectActions = computed((): SelectAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: trashThreads.submit,
+			onClick: () => trashThreads.submit(selections.value),
 			icon: Trash2,
 			condition: !!selections.value.length && currentFolder.value !== 'Trash',
 		},
@@ -284,7 +292,7 @@ const selectActions = computed((): SelectAction[] =>
 		},
 		{
 			label: __('Refresh'),
-			onClick: reloadMails,
+			onClick: () => reloadMails(),
 			icon: RefreshCw,
 			condition: !selections.value.length,
 		},
