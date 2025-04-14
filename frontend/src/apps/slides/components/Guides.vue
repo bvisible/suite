@@ -1,11 +1,27 @@
 <template>
-	<div v-for="guide in ['centerX', 'centerY']" :key="guide" :style="guideStyles[guide]"></div>
+	<div
+		v-for="guide in ['centerX', 'centerY', 'left', 'right']"
+		:key="guide"
+		:style="guideStyles[guide]"
+	></div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
+import { slideBounds } from '@/stores/slide'
+import { pairElementId } from '@/stores/element'
+
 const props = defineProps({
+	bounds: {
+		type: Object,
+		default: () => ({
+			left: 0,
+			top: 0,
+			width: 0,
+			height: 0,
+		}),
+	},
 	visibilityMap: {
 		type: Object,
 		default: null,
@@ -28,10 +44,59 @@ const getCenterStyles = (axis) => {
 	}
 }
 
+const pairedDiv = computed(() => {
+	return document.querySelector(`[data-index="${pairElementId.value}"]`)
+})
+
+const getScaledValue = (value, axis) => {
+	if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
+	return (value - slideBounds.top) / slideBounds.scale
+}
+
+const getElementBounds = (div) => {
+	const rect = div.getBoundingClientRect()
+	return {
+		left: getScaledValue(rect.left, 'X'),
+		top: getScaledValue(rect.top, 'Y'),
+		right: getScaledValue(rect.right, 'X'),
+		bottom: getScaledValue(rect.bottom, 'Y'),
+		height: rect.height / slideBounds.scale,
+		width: rect.width / slideBounds.scale,
+	}
+}
+
+const getVerticalStyles = (direction) => {
+	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
+
+	const activeBounds = props.bounds
+	const pairedBounds = getElementBounds(pairedDiv.value)
+
+	const left =
+		direction == 'left'
+			? activeBounds.left - 1
+			: activeBounds.left + activeBounds.width * slideBounds.scale
+	const top = Math.min(activeBounds.top, pairedBounds.top)
+	const lastElementHeight =
+		pairedBounds.top < activeBounds.top ? activeBounds.height : pairedBounds.height
+	const height = Math.abs(pairedBounds.top - activeBounds.top) + lastElementHeight
+
+	return {
+		position: 'fixed',
+		borderColor: '#70b6f080',
+		borderStyle: 'dashed',
+		borderWidth: '0 0 0 1px',
+		left: `${left}px`,
+		top: `${top}px`,
+		height: `${height}px`,
+	}
+}
+
 const guideStyles = computed(() => {
 	return {
 		centerX: getCenterStyles('horizontal'),
 		centerY: getCenterStyles('vertical'),
+		left: getVerticalStyles('left'),
+		right: getVerticalStyles('right'),
 	}
 })
 </script>

@@ -15,7 +15,7 @@
 					@mousedown="(e) => handleMouseDown(e)"
 				/>
 
-				<Guides v-if="isDragging" :visibilityMap="visibilityMap" />
+				<Guides v-if="isDragging" :visibilityMap="visibilityMap" :bounds="bounds" />
 
 				<SlideElement
 					v-for="element in slide.elements"
