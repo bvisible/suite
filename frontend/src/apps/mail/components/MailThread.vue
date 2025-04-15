@@ -139,11 +139,7 @@
 						</div>
 					</div>
 				</div>
-				<div
-					v-if="mail.body_html"
-					class="mail-body ProseMirror prose-sm"
-					v-html="mailBody(mail.body_html)"
-				/>
+				<div v-if="mail.body_html" class="mail-body" v-html="mailBody(mail.body_html)" />
 				<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
 					mail.body_plain
 				}}</pre>
@@ -246,9 +242,9 @@ const mailBody = (bodyHTML: string) => {
 	bodyHTML = bodyHTML.replace(/<br\s*\/?>/, '')
 	bodyHTML = bodyHTML.replace(
 		/<blockquote>/g,
-		'<div class="blockquote-container"><a href="#" class="font-medium text-gray-900 text-xs no-underline" onclick="this.nextElementSibling.style.display=\'block\'; this.style.display=\'none\'; return false;">Show more from this thread</a><blockquote style="display:none;">',
+		'<button onclick="this.nextElementSibling.classList.toggle(`hidden`);">...</button><blockquote class="hidden">',
 	)
-	bodyHTML = bodyHTML.replace(/<\/blockquote>/g, '</blockquote></div>')
+	bodyHTML = bodyHTML.replace(/<\/blockquote>/g, '</blockquote>')
 	return bodyHTML
 }
 
@@ -431,15 +427,13 @@ const generatePLaceholderWidth = () => {
 
 watch(() => props.mailID, reload)
 </script>
+
 <style>
-.prose
-	:where(blockquote p:first-of-type):not(
-		:where([class~='not-prose'], [class~='not-prose'] *)
-	)::before {
-	content: '';
+.mail-body blockquote {
+	@apply my-2 border-l-4 border-gray-200 pl-4;
 }
 
 .mail-body {
-	@apply prose prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:border-gray-300 prose-th:border-gray-300 prose-td:relative prose-th:relative prose-th:bg-gray-100 prose-sm max-w-none pt-4 text-sm leading-5;
+	@apply pt-4 text-sm leading-5;
 }
 </style>
