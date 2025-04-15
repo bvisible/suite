@@ -207,8 +207,8 @@ const bounds = reactive({
 
 const addToActiveElements = (id) => {
 	if (!activeElementIds.value.includes(id) && focusElementId.value != id) {
-		activeElementIds.value = [...activeElementIds.value, id]
-		focusElementId.value = id
+		activeElementIds.value = [id]
+		focusElementId.value = null
 	}
 }
 
