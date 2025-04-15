@@ -229,6 +229,8 @@ const handleMouseDown = (e, element) => {
 	}, 100)
 
 	e.target.addEventListener('mouseup', () => {
+		pairElementId.value = null
+
 		clearTimeout(dragTimeout)
 		clearTimeout(clickTimeout.value)
 
