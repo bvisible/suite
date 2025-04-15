@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "creation": "2025-04-14 14:43:05.253293",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_bkwc",
+  "column_break_kstt",
+  "part_id",
+  "_name",
+  "type",
+  "charset",
+  "disposition",
+  "language",
+  "location",
+  "column_break_xvpk",
+  "blob_id",
+  "cid",
+  "size"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_bkwc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "blob_id",
+   "fieldtype": "Data",
+   "label": "Blob ID"
+  },
+  {
+   "fieldname": "size",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Size (Bytes)"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type"
+  },
+  {
+   "fieldname": "charset",
+   "fieldtype": "Data",
+   "label": "Charset"
+  },
+  {
+   "fieldname": "disposition",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Disposition",
+   "options": "inline\nattachment"
+  },
+  {
+   "fieldname": "cid",
+   "fieldtype": "Data",
+   "label": "Content ID"
+  },
+  {
+   "fieldname": "column_break_kstt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xvpk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "part_id",
+   "fieldtype": "Data",
+   "label": "Part ID"
+  },
+  {
+   "fieldname": "_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-14 16:46:44.611079",
+ "modified_by": "Administrator",
+ "module": "Mail",
+ "name": "Email Message Part",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
