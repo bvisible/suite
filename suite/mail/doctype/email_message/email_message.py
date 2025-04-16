@@ -3,7 +3,6 @@
 
 import hashlib
 import json
-from functools import lru_cache
 from typing import TYPE_CHECKING
 
 import frappe
@@ -11,9 +10,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, time_diff_in_seconds
 
-from mail.jmap import JMAPClient
+from mail.jmap import get_jmap_client
 from mail.utils import extract_filter_values
-from mail.utils.cache import get_account_for_user, get_cluster_for_tenant
+from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.user import is_system_manager
 
@@ -270,20 +269,6 @@ def cache_email_message(account: str, id: str, email_message: dict) -> None:
 def cache_blob(account: str, blob_id: str, content: bytes) -> None:
 	cache_key = get_blob_cache_key(account, blob_id)
 	frappe.cache.set_value(cache_key, content, expires_in_sec=86400)
-
-
-@lru_cache
-def get_jmap_client(account: str) -> "JMAPClient":
-	account = frappe.get_doc("Mail Account", account)
-	cluster = get_cluster_for_tenant(account.tenant)
-
-	if not cluster:
-		frappe.throw(_("No cluster found for the account {0}.").format(frappe.bold(account.name)))
-
-	host = frappe.db.get_value("Mail Cluster", cluster, "base_url")
-	client = JMAPClient(host, account.email, account.get_password())
-
-	return client
 
 
 def format_email_message(account: str, email: dict) -> dict:

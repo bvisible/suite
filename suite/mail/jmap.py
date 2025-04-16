@@ -3,8 +3,13 @@ import time
 from typing import Any
 from urllib.parse import urljoin
 
+import frappe
 import requests
+from frappe import _
 from frappe.utils import create_batch
+from frappe.utils.caching import redis_cache
+
+from mail.utils.cache import get_cluster_for_tenant
 
 
 class JMAPClient:
@@ -280,3 +285,17 @@ class JMAPClient:
 				emails = self.get_emails(account_id, email_ids)
 				for email in emails:
 					print(f"📥 New: {email['subject']} — {email['receivedAt']}")
+
+
+@redis_cache(ttl=300)
+def get_jmap_client(account: str) -> "JMAPClient":
+	account = frappe.get_doc("Mail Account", account)
+	cluster = get_cluster_for_tenant(account.tenant)
+
+	if not cluster:
+		frappe.throw(_("No cluster found for the account {0}.").format(frappe.bold(account.name)))
+
+	host = frappe.db.get_value("Mail Cluster", cluster, "base_url")
+	client = JMAPClient(host, account.email, account.get_password())
+
+	return client
