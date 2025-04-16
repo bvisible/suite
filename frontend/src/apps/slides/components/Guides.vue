@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-for="guide in ['centerX', 'centerY', 'left', 'right']"
+		v-for="guide in ['centerX', 'centerY', 'left', 'right', 'top', 'bottom']"
 		:key="guide"
 		:style="guideStyles[guide]"
 	></div>
@@ -91,12 +91,41 @@ const getVerticalStyles = (direction) => {
 	}
 }
 
+const getHorizontalStyles = (direction) => {
+	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
+
+	const activeBounds = props.bounds
+	const pairedBounds = getElementBounds(pairedDiv.value)
+
+	const top =
+		direction == 'top'
+			? activeBounds.top - 1
+			: activeBounds.top + activeBounds.height * slideBounds.scale
+	const left = Math.min(activeBounds.left, pairedBounds.left)
+
+	const lastElementWidth =
+		pairedBounds.left < activeBounds.left ? activeBounds.width : pairedBounds.width
+	const width = Math.abs(pairedBounds.left - activeBounds.left) + lastElementWidth
+
+	return {
+		position: 'fixed',
+		borderColor: '#70b6f080',
+		borderStyle: 'dashed',
+		borderWidth: '1px 0 0 0',
+		top: `${top}px`,
+		left: `${left}px`,
+		width: `${width}px`,
+	}
+}
+
 const guideStyles = computed(() => {
 	return {
 		centerX: getCenterStyles('horizontal'),
 		centerY: getCenterStyles('vertical'),
 		left: getVerticalStyles('left'),
 		right: getVerticalStyles('right'),
+		top: getHorizontalStyles('top'),
+		bottom: getHorizontalStyles('bottom'),
 	}
 })
 </script>
