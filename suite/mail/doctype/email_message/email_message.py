@@ -29,8 +29,8 @@ class EmailMessage(Document):
 	@property
 	def message(self) -> str | None:
 		if self.blob_id:
-			key = get_blob_cache_key(self.account, self.blob_id)
-			if content := frappe.cache.get_value(key):
+			cache_key = get_blob_cache_key(self.account, self.blob_id)
+			if content := frappe.cache.get_value(cache_key):
 				return content.decode("utf-8")
 
 	def db_insert(self, *args, **kwargs) -> None:
@@ -56,7 +56,7 @@ class EmailMessage(Document):
 		raise NotImplementedError
 
 	@staticmethod
-	def get_list(filters=None, page_length=20, **kwargs) -> list:
+	def get_current_account(filters: list | None = None) -> str | None:
 		filters = filters or []
 
 		user = frappe.session.user
@@ -64,22 +64,24 @@ class EmailMessage(Document):
 
 		if is_system_manager(user):
 			account = extract_filter_values(filters, [{"account": "="}])[0] or account
+
+		return account
+
+	@staticmethod
+	def get_list(filters: list | None = None, page_length: int = 20, start: int = 0, **kwargs) -> list:
+		filters = filters or []
+		account = EmailMessage.get_current_account(filters)
 
 		if not account:
 			frappe.msgprint(_("Please select an account to view messages."), alert=True)
 			return []
 
-		return get_email_messages(account, filter={})
+		return get_email_messages(account, filter={}, position=start, limit=page_length)
 
 	@staticmethod
-	def get_count(filters=None, **kwargs) -> int:
+	def get_count(filters: list | None = None, **kwargs) -> int:
 		filters = filters or []
-
-		user = frappe.session.user
-		account = get_account_for_user(user)
-
-		if is_system_manager(user):
-			account = extract_filter_values(filters, [{"account": "="}])[0] or account
+		account = EmailMessage.get_current_account(filters)
 
 		return get_email_list_total(account, filter={}) if account else 0
 
@@ -91,8 +93,8 @@ class EmailMessage(Document):
 		if not blob_id:
 			frappe.throw(_("Blob ID is required."))
 
-		key = get_blob_cache_key(self.account, blob_id)
-		if content := frappe.cache.get_value(key):
+		cache_key = get_blob_cache_key(self.account, blob_id)
+		if content := frappe.cache.get_value(cache_key):
 			return content
 
 		client = get_jmap_client(self.account)
@@ -145,22 +147,51 @@ def get_email_messages(account: str, filter: dict, position: int = 0, limit: int
 
 
 def get_email_list(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[str]:
-	list_key = get_list_cache_key(account, filter)
+	total_emails = get_email_list_total(account, filter)
 
-	if frappe.cache.exists(list_key):
-		return frappe.cache.get_value(list_key)
+	if total_emails == 0 or position >= total_emails:
+		return []
+
+	cache_key = get_list_cache_key(account, filter)
+	cached_ids = frappe.cache.get_value(cache_key)
+
+	if cached_ids is not None:
+		return cached_ids[position : position + limit]
 
 	client = get_jmap_client(account)
 	account_id = client.account_ids[0]
-	result = client.query_emails(account_id, filter, position, limit)
-	cache_email_ids(account, filter, result["ids"])
-	cache_email_list_total(account, filter, result["total"])
 
-	return result["ids"]
+	if total_emails > 1000:
+		result = client.query_emails(account_id, filter, position, limit)
+		cache_email_list_total(account, filter, result.get("total", 0))
+		return result.get("ids", [])
+
+	result = client.query_emails(account_id, filter, 0, total_emails)
+	all_ids = result.get("ids", [])
+
+	cache_email_ids(account, filter, all_ids)
+	cache_email_list_total(account, filter, result.get("total", 0))
+
+	return all_ids[position : position + limit]
 
 
-def get_email_list_total(account: str, filter: dict) -> int:
-	return cint(frappe.cache.get_value(get_list_total_cache_key(account, filter)))
+def get_email_list_total(account: str, filter: dict, force_fresh: bool = False) -> int:
+	if not force_fresh:
+		cache_key = get_list_total_cache_key(account, filter)
+		cached_total = frappe.cache.get_value(cache_key)
+
+		if cached_total is not None:
+			return cint(cached_total)
+
+	client = get_jmap_client(account)
+	account_id = client.account_ids[0]
+
+	result = client.query_emails(account_id, filter, position=0, limit=0)
+	total = result.get("total", 0)
+
+	cache_email_list_total(account, filter, total)
+
+	return total
 
 
 def get_email_data(account: str, id: str) -> dict:
@@ -194,6 +225,11 @@ def get_emails_data(account: str, ids: list[str]) -> list[str]:
 	return email_messages
 
 
+def invalidate_email_list_cache(account: str, filter: dict) -> None:
+	frappe.cache.delete_value(get_list_cache_key(account, filter))
+	frappe.cache.delete_value(get_list_total_cache_key(account, filter))
+
+
 def get_list_cache_key(account: str, filter: dict) -> str:
 	filter_json = json.dumps(filter, sort_keys=True)
 	filter_hash = hashlib.sha1(filter_json.encode()).hexdigest()
@@ -215,23 +251,23 @@ def get_blob_cache_key(account: str, blob_id: str) -> str:
 
 
 def cache_email_ids(account: str, filter: dict, ids: list[str]) -> None:
-	key = get_list_cache_key(account, filter)
-	frappe.cache.set_value(key, ids, expires_in_sec=172800)
+	cache_key = get_list_cache_key(account, filter)
+	frappe.cache.set_value(cache_key, ids, expires_in_sec=86400)
 
 
 def cache_email_list_total(account: str, filter: dict, total: int = 0) -> None:
-	key = get_list_total_cache_key(account, filter)
-	frappe.cache.set_value(key, total, expires_in_sec=172800)
+	cache_key = get_list_total_cache_key(account, filter)
+	frappe.cache.set_value(cache_key, total, expires_in_sec=86400)
 
 
 def cache_email_message(account: str, id: str, email_message: dict) -> None:
-	key = get_email_cache_key(account, id)
-	frappe.cache.set_value(key, email_message, expires_in_sec=86400)
+	cache_key = get_email_cache_key(account, id)
+	frappe.cache.set_value(cache_key, email_message, expires_in_sec=86400)
 
 
 def cache_blob(account: str, blob_id: str, content: bytes) -> None:
-	key = get_blob_cache_key(account, blob_id)
-	frappe.cache.set_value(key, content, expires_in_sec=86400)
+	cache_key = get_blob_cache_key(account, blob_id)
+	frappe.cache.set_value(cache_key, content, expires_in_sec=86400)
 
 
 @lru_cache
