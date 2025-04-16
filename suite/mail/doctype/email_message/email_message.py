@@ -20,15 +20,25 @@ if TYPE_CHECKING:
 	from mail.mail.doctype.email_message_part.email_message_part import EmailMessagePart
 
 
+CACHE_TTL = 86400
+BLOB_CACHE_TTL = 3600
+MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024
+BATCH_SIZE = 100
+
+
 class EmailMessage(Document):
 	@property
 	def received_after(self) -> int:
+		"""Returns the time difference in seconds between received and sent time."""
+
 		return time_diff_in_seconds(self.received_at, self.sent_at)
 
 	@property
 	def message(self) -> str | None:
+		"""Returns the message content if available."""
+
 		if self.blob_id:
-			cache_key = get_blob_cache_key(self.account, self.blob_id)
+			cache_key = generate_blob_cache_key(self.account, self.blob_id)
 			if content := frappe.cache.get_value(cache_key):
 				return content.decode("utf-8")
 
@@ -39,14 +49,10 @@ class EmailMessage(Document):
 		if "-" not in self.name:
 			frappe.throw(_("Name must be in the format {account}-{id}."))
 
-		account, id = self.name.split("-")
+		account, email_id = self.name.split("-", 1)
+		self._validate_permission(account)
 
-		user = frappe.session.user
-		if not is_system_manager(user):
-			if account != get_account_for_user(user):
-				frappe.throw(_("You do not have permission to view this message."))
-
-		return super(Document, self).__init__(get_email_data(account, id))
+		return super(Document, self).__init__(fetch_single_message_data(account, email_id))
 
 	def db_update(self) -> None:
 		raise NotImplementedError
@@ -55,130 +61,165 @@ class EmailMessage(Document):
 		raise NotImplementedError
 
 	@staticmethod
-	def get_current_account(filters: list | None = None) -> str | None:
-		filters = filters or []
+	def resolve_user_account_from_filters(filters: list | None = None) -> str | None:
+		"""Returns the account associated with the user from the filters."""
 
+		filters = filters or []
 		user = frappe.session.user
 		account = get_account_for_user(user)
 
 		if is_system_manager(user):
-			account = extract_filter_values(filters, [{"account": "="}])[0] or account
+			account_filter = extract_filter_values(filters, [{"account": "="}])
+			account = account_filter[0] if account_filter else account
 
 		return account
 
 	@staticmethod
 	def get_list(filters: list | None = None, page_length: int = 20, start: int = 0, **kwargs) -> list:
 		filters = filters or []
-		account = EmailMessage.get_current_account(filters)
+		account = EmailMessage.resolve_user_account_from_filters(filters)
 
 		if not account:
 			frappe.msgprint(_("Please select an account to view messages."), alert=True)
 			return []
 
-		return get_email_messages(account, filter={}, position=start, limit=page_length)
+		return fetch_formatted_messages(account, filter={}, position=start, limit=page_length)
 
 	@staticmethod
 	def get_count(filters: list | None = None, **kwargs) -> int:
 		filters = filters or []
-		account = EmailMessage.get_current_account(filters)
-
-		return get_email_list_total(account, filter={}) if account else 0
+		account = EmailMessage.resolve_user_account_from_filters(filters)
+		return get_cached_message_count(account, filter={}) if account else 0
 
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
 		return {}
 
-	def _get_blob(self, blob_id: str, name: str | None = None) -> bytes:
+	def _validate_permission(self, account: str) -> None:
+		"""Validate if the user has permission to access the email message."""
+
+		user = frappe.session.user
+		if not is_system_manager(user) and account != get_account_for_user(user):
+			frappe.throw(_("You do not have permission to view this message."), frappe.PermissionError)
+
+	def fetch_blob_content(self, blob_id: str, name: str | None = None) -> bytes:
+		"""Returns the content of the blob."""
+
 		if not blob_id:
 			frappe.throw(_("Blob ID is required."))
 
-		cache_key = get_blob_cache_key(self.account, blob_id)
+		cache_key = generate_blob_cache_key(self.account, blob_id)
 		if content := frappe.cache.get_value(cache_key):
 			return content
 
 		client = get_jmap_client(self.account)
 		account_id = client.account_ids[0]
-		content = client.download_blob(account_id, blob_id, name)
-		cache_blob(self.account, blob_id, content)
 
-		return content
+		try:
+			content = client.download_blob(account_id, blob_id, name)
+			if len(content) > MAX_ATTACHMENT_SIZE:
+				frappe.throw(_("Attachment size exceeds maximum allowed limit."))
+
+			store_blob_in_cache(self.account, blob_id, content)
+			return content
+		except Exception as e:
+			frappe.throw(_("Failed to download blob: {0}").format(str(e)))
 
 	@frappe.whitelist()
-	def _load_attachments(self, attachments: list["EmailMessagePart"] | None = None) -> None:
+	def preload_attachments_to_cache(self, attachments: list["EmailMessagePart"] | None = None) -> None:
+		"""Preload attachments to cache."""
+
 		if not self.has_attachment:
 			return
 
-		for attachment in attachments or self.attachments:
-			self._get_blob(attachment.blob_id, attachment._name)
+		attachments = attachments or self.attachments
+		for attachment in attachments:
+			try:
+				self.fetch_blob_content(attachment.blob_id, attachment._name)
+			except Exception:
+				frappe.log_error(_("Failed to load attachment {0}").format(attachment._name))
 
 	@frappe.whitelist()
 	def get_mime_message(self) -> str:
+		"""Returns the MIME message content."""
+
 		if not self.blob_id:
 			frappe.throw(_("Email does not have a blob ID."))
 
-		return self._get_blob(self.blob_id).decode("utf-8")
+		try:
+			return self.fetch_blob_content(self.blob_id).decode("utf-8")
+		except UnicodeDecodeError:
+			frappe.throw(_("Failed to decode email content."))
+		except Exception:
+			frappe.throw(_("Failed to retrieve the MIME message."))
 
-	def get_attachment(self, cid: str | None = None, blob_id: str | None = None) -> bytes:
+	def fetch_attachment_content(self, cid: str | None = None, blob_id: str | None = None) -> bytes:
+		"""Returns the content of an attachment."""
+
 		if not self.has_attachment or not self.attachments:
 			frappe.throw(_("Email does not have any attachments."))
 
 		if not cid and not blob_id:
 			frappe.throw(_("Either cid or blob_id is required."))
 
-		attachment_to_download = None
-		for attachment in self.attachments:
-			if (cid and attachment.cid == cid) or (blob_id and attachment.blob_id == blob_id):
-				attachment_to_download = attachment
-				break
+		attachment = next(
+			(a for a in self.attachments if (cid and a.cid == cid) or (blob_id and a.blob_id == blob_id)),
+			None,
+		)
 
-		if not attachment_to_download:
+		if not attachment:
 			frappe.throw(_("Attachment not found."))
 
-		if content := self._get_blob(attachment_to_download.blob_id, attachment_to_download._name):
-			return content
-
-		frappe.throw(_("Failed to retrieve the attachment content."))
+		return self.fetch_blob_content(attachment.blob_id, attachment._name)
 
 
-def get_email_messages(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[dict]:
-	ids = get_email_list(account, filter, position, limit)
-	email_messages = get_emails_data(account, ids)
+def fetch_formatted_messages(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[dict]:
+	"""Returns formatted email messages."""
 
-	return email_messages
+	email_ids = fetch_message_ids_with_cache(account, filter, position, limit)
+	return fetch_batch_message_data(account, email_ids)
 
 
-def get_email_list(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[str]:
-	total_emails = get_email_list_total(account, filter)
+def fetch_message_ids_with_cache(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[str]:
+	"""Returns email IDs with caching."""
+
+	total_emails = get_cached_message_count(account, filter)
 
 	if total_emails == 0 or position >= total_emails:
 		return []
 
-	cache_key = get_list_cache_key(account, filter)
-	cached_ids = frappe.cache.get_value(cache_key)
+	cache_key = generate_message_list_cache_key(account, filter)
+	cached_email_ids = frappe.cache.get_value(cache_key)
 
-	if cached_ids is not None:
-		return cached_ids[position : position + limit]
+	if cached_email_ids is not None:
+		return cached_email_ids[position : position + limit]
 
 	client = get_jmap_client(account)
 	account_id = client.account_ids[0]
 
-	if total_emails > 1000:
-		result = client.query_emails(account_id, filter, position, limit)
-		cache_email_list_total(account, filter, result.get("total", 0))
-		return result.get("ids", [])
+	try:
+		if total_emails > 1000:
+			result = client.query_emails(account_id, filter, position, limit)
+			store_message_count_in_cache(account, filter, result.get("total", 0))
+			return result.get("ids", [])
 
-	result = client.query_emails(account_id, filter, 0, total_emails)
-	all_ids = result.get("ids", [])
+		result = client.query_emails(account_id, filter, 0, total_emails)
+		all_email_ids = result.get("ids", [])
 
-	cache_email_ids(account, filter, all_ids)
-	cache_email_list_total(account, filter, result.get("total", 0))
+		store_message_ids_in_cache(account, filter, all_email_ids)
+		store_message_count_in_cache(account, filter, result.get("total", 0))
 
-	return all_ids[position : position + limit]
+		return all_email_ids[position : position + limit]
+	except Exception as e:
+		frappe.log_error(_("Failed to get email list: {0}").format(str(e)))
+		return []
 
 
-def get_email_list_total(account: str, filter: dict, force_fresh: bool = False) -> int:
+def get_cached_message_count(account: str, filter: dict, force_fresh: bool = False) -> int:
+	"""Returns the total count of emails with caching."""
+
 	if not force_fresh:
-		cache_key = get_list_total_cache_key(account, filter)
+		cache_key = generate_message_count_cache_key(account, filter)
 		cached_total = frappe.cache.get_value(cache_key)
 
 		if cached_total is not None:
@@ -187,120 +228,158 @@ def get_email_list_total(account: str, filter: dict, force_fresh: bool = False) 
 	client = get_jmap_client(account)
 	account_id = client.account_ids[0]
 
-	result = client.query_emails(account_id, filter, position=0, limit=0)
-	total = result.get("total", 0)
+	try:
+		result = client.query_emails(account_id, filter, position=0, limit=0)
+		total = result.get("total", 0)
+		store_message_count_in_cache(account, filter, total)
+		return total
+	except Exception as e:
+		frappe.log_error(_("Failed to get email count: {0}").format(str(e)))
+		return 0
 
-	cache_email_list_total(account, filter, total)
 
-	return total
+def fetch_single_message_data(account: str, email_id: str) -> dict:
+	"""Returns formatted email data for a single email."""
 
-
-def get_email_data(account: str, id: str) -> dict:
-	emails = get_emails_data(account, [id])
+	emails = fetch_batch_message_data(account, [email_id])
 
 	if not emails:
-		frappe.throw(_("Email Message {0} not found.").format(frappe.bold(f"{account}-{id}")))
+		frappe.throw(
+			_("Email Message {0} not found.").format(frappe.bold(f"{account}-{email_id}")),
+			frappe.DoesNotExistError,
+		)
 
 	return emails[0]
 
 
-def get_emails_data(account: str, ids: list[str]) -> list[str]:
-	email_messages = []
+def fetch_batch_message_data(account: str, email_ids: list[str]) -> list[dict]:
+	"""Returns formatted email data for a batch of emails."""
 
-	ids_to_fetch = []
-	for id in ids:
-		email_message = frappe.cache.get_value(get_email_cache_key(account, id))
+	email_messages = []
+	email_ids_to_fetch = []
+
+	for email_id in email_ids:
+		email_message = frappe.cache.get_value(generate_message_cache_key(account, email_id))
 		if email_message:
 			email_messages.append(email_message)
 		else:
-			ids_to_fetch.append(id)
+			email_ids_to_fetch.append(email_id)
 
-	if ids_to_fetch:
+	if email_ids_to_fetch:
 		client = get_jmap_client(account)
 		account_id = client.account_ids[0]
-		for email_data in client.get_emails(account_id, ids_to_fetch):
-			email_message = format_email_message(account, email_data)
-			cache_email_message(account, email_data["id"], email_message)
-			email_messages.append(email_message)
+
+		try:
+			for batch in split_into_batches(email_ids_to_fetch, BATCH_SIZE):
+				for email_data in client.get_emails(account_id, batch):
+					email_message = transform_jmap_to_standard_format(account, email_data)
+					store_message_in_cache(account, email_data["id"], email_message)
+					email_messages.append(email_message)
+		except Exception as e:
+			frappe.log_error(_("Failed to get email data: {0}").format(str(e)))
 
 	return email_messages
 
 
-def invalidate_email_list_cache(account: str, filter: dict) -> None:
-	frappe.cache.delete_value(get_list_cache_key(account, filter))
-	frappe.cache.delete_value(get_list_total_cache_key(account, filter))
+def split_into_batches(lst: list, size: int) -> list[list]:
+	"""Returns a list of lists, each with a maximum size."""
+
+	return [lst[i : i + size] for i in range(0, len(lst), size)]
 
 
-def get_list_cache_key(account: str, filter: dict) -> str:
+def clear_message_list_cache(account: str, filter: dict) -> None:
+	"""Clear the cache for email list and count."""
+
+	frappe.cache.delete_value(generate_message_list_cache_key(account, filter))
+	frappe.cache.delete_value(generate_message_count_cache_key(account, filter))
+
+
+def generate_message_list_cache_key(account: str, filter: dict) -> str:
+	"""Returns cache key for email list."""
+
 	filter_json = json.dumps(filter, sort_keys=True)
 	filter_hash = hashlib.sha1(filter_json.encode()).hexdigest()
 	return f"jmap:list:{account}:{filter_hash}"
 
 
-def get_list_total_cache_key(account: str, filter: dict) -> str:
+def generate_message_count_cache_key(account: str, filter: dict) -> str:
+	"""Returns cache key for email count."""
+
 	filter_json = json.dumps(filter, sort_keys=True)
 	filter_hash = hashlib.sha1(filter_json.encode()).hexdigest()
 	return f"jmap:list:total:{account}:{filter_hash}"
 
 
-def get_email_cache_key(account: str, id: str) -> str:
-	return f"jmap:email:{account}:{id}"
+def generate_message_cache_key(account: str, email_id: str) -> str:
+	"""Returns cache key for email message."""
+
+	return f"jmap:email:{account}:{email_id}"
 
 
-def get_blob_cache_key(account: str, blob_id: str) -> str:
+def generate_blob_cache_key(account: str, blob_id: str) -> str:
+	"""Returns cache key for blob content."""
+
 	return f"jmap:blob:{account}:{blob_id}"
 
 
-def cache_email_ids(account: str, filter: dict, ids: list[str]) -> None:
-	cache_key = get_list_cache_key(account, filter)
-	frappe.cache.set_value(cache_key, ids, expires_in_sec=86400)
+def store_message_ids_in_cache(account: str, filter: dict, email_ids: list[str]) -> None:
+	"""Cache email IDs for a given filter."""
+
+	cache_key = generate_message_list_cache_key(account, filter)
+	frappe.cache.set_value(cache_key, email_ids, expires_in_sec=CACHE_TTL)
 
 
-def cache_email_list_total(account: str, filter: dict, total: int = 0) -> None:
-	cache_key = get_list_total_cache_key(account, filter)
-	frappe.cache.set_value(cache_key, total, expires_in_sec=86400)
+def store_message_count_in_cache(account: str, filter: dict, total: int = 0) -> None:
+	"""Cache the total count of emails for a given filter."""
+
+	cache_key = generate_message_count_cache_key(account, filter)
+	frappe.cache.set_value(cache_key, total, expires_in_sec=CACHE_TTL)
 
 
-def cache_email_message(account: str, id: str, email_message: dict) -> None:
-	cache_key = get_email_cache_key(account, id)
-	frappe.cache.set_value(cache_key, email_message, expires_in_sec=86400)
+def store_message_in_cache(account: str, email_id: str, email_message: dict) -> None:
+	"""Cache email message data."""
+
+	cache_key = generate_message_cache_key(account, email_id)
+	frappe.cache.set_value(cache_key, email_message, expires_in_sec=CACHE_TTL)
 
 
-def cache_blob(account: str, blob_id: str, content: bytes) -> None:
-	cache_key = get_blob_cache_key(account, blob_id)
-	frappe.cache.set_value(cache_key, content, expires_in_sec=86400)
+def store_blob_in_cache(account: str, blob_id: str, content: bytes) -> None:
+	"""Cache blob content."""
+
+	cache_key = generate_blob_cache_key(account, blob_id)
+	frappe.cache.set_value(cache_key, content, expires_in_sec=BLOB_CACHE_TTL)
 
 
-def format_email_message(account: str, email: dict) -> dict:
-	email_message = {}
+def transform_jmap_to_standard_format(account: str, email: dict) -> dict:
+	"""Transform JMAP email format to standard format."""
 
 	client = get_jmap_client(account)
 	account_id = client.account_ids[0]
 
-	email_message.update(
-		{
-			"name": f"{account}-{email['id']}",
-			"account": account,
-			"folder": client.get_mailbox_name(account_id, list(email["mailboxIds"].keys())[0]),
-			"subject": email["subject"],
-			"preview": (email.get("preview") or "").strip(),
-			"sent_at": parse_iso_datetime(email["sentAt"]),
-			"received_at": parse_iso_datetime(email["receivedAt"]),
-			"blob_id": email["blobId"],
-			"thread_id": email["threadId"],
-			"size": email["size"],
-			"_keywords": json.dumps(email["keywords"], indent=4),
-			"has_attachment": bool(email["hasAttachment"]),
-			"creation": parse_iso_datetime(email["receivedAt"]),
-			"modified": parse_iso_datetime(email["receivedAt"]),
-		}
-	)
+	email_message = {
+		"name": f"{account}-{email['id']}",
+		"account": account,
+		"folder": client.get_mailbox_name(account_id, list(email["mailboxIds"].keys())[0]),
+		"subject": email["subject"],
+		"preview": (email.get("preview") or "").strip(),
+		"sent_at": parse_iso_datetime(email["sentAt"]),
+		"received_at": parse_iso_datetime(email["receivedAt"]),
+		"blob_id": email["blobId"],
+		"thread_id": email["threadId"],
+		"size": email["size"],
+		"_keywords": json.dumps(email["keywords"], indent=4),
+		"has_attachment": cint(email["hasAttachment"]),
+		"creation": parse_iso_datetime(email["receivedAt"]),
+		"modified": parse_iso_datetime(email["receivedAt"]),
+	}
 
-	for key in ["from", "sender"]:
+	# Process sender/from fields
+	for key in ["sender", "from"]:
 		if reply_to := email[key]:
 			email_message[f"{key}_name"] = reply_to[0]["name"]
 			email_message[f"{key}_email"] = reply_to[0]["email"]
 
+	# Process recipients
 	email_message["recipients"] = []
 	for key in ["to", "cc", "bcc"]:
 		if rcpts := email[key]:
@@ -309,21 +388,26 @@ def format_email_message(account: str, email: dict) -> dict:
 				[{"type": titled_key, "display_name": rcpt["name"], "email": rcpt["email"]} for rcpt in rcpts]
 			)
 
+	# Process reply-to
 	if reply_to := email["replyTo"]:
 		email_message["reply_to"] = [{"display_name": rt["name"], "email": rt["email"]} for rt in reply_to]
 
+	# Process html and text bodies
 	for key, field in {"htmlBody": "html_body", "textBody": "text_body"}.items():
 		if body := email[key]:
 			part_id = body[0]["partId"]
 			email_message[field] = email["bodyValues"].get(part_id, {}).get("value")
 
+	# Process message metadata
 	for key, field in {"messageId": "message_id", "inReplyTo": "in_reply_to"}.items():
 		if reply_to := email[key]:
 			email_message[field] = reply_to[0]
 
+	# Process seen status
 	if email["keywords"].get("$seen", False):
 		email_message["seen"] = 1
 
+	# Process attachments and body parts
 	for key, field in {
 		"attachments": "attachments",
 		"htmlBody": "_html_body",
