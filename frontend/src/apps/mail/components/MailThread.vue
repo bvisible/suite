@@ -139,10 +139,17 @@
 						</div>
 					</div>
 				</div>
-				<div v-if="mail.body_html" class="mail-body" v-html="mailBody(mail.body_html)" />
-				<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
+
+				<iframe
+					v-if="mail.body_html"
+					class="w-full"
+					@load="loadContent($event.target, mail.body_html)"
+				/>
+
+				<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
 					mail.body_plain
 				}}</pre>
+
 				<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
 					<AttachmentCapsule
 						v-for="attachment in mail.attachments"
@@ -238,14 +245,51 @@ const reload = () => {
 
 defineExpose({ reload })
 
-const mailBody = (bodyHTML: string) => {
-	bodyHTML = bodyHTML.replace(/<br\s*\/?>/, '')
-	bodyHTML = bodyHTML.replace(
+const loadContent = (iframe: HTMLIFrameElement, content: string) => {
+	const doc = iframe?.contentDocument
+	if (!doc) return
+
+	doc.head.innerHTML = `
+		<style>
+			body {
+				font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+				font-size: 13px;
+				line-height: 1.25rem;
+			}
+			blockquote {
+				margin: 8px 0;
+				padding-left: 16px;
+				border-left: 4px solid #e5e7eb;
+			}
+			button {
+				background: none;
+				border: none;
+				cursor: pointer;
+				padding: 0
+			}
+			.hidden {
+				display: none;
+			}
+		</style>
+	`
+
+	doc.body.innerHTML = content.replace(
 		/<blockquote>/g,
-		'<button onclick="this.nextElementSibling.classList.toggle(`hidden`);">...</button><blockquote class="hidden">',
+		'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
 	)
-	bodyHTML = bodyHTML.replace(/<\/blockquote>/g, '</blockquote>')
-	return bodyHTML
+
+	const script = doc.createElement('script')
+	script.textContent = `
+		document.addEventListener('click', (e) => {
+			if (e.target.tagName === 'A') {
+				e.preventDefault();
+				window.open(e.target.href, '_blank');
+			}
+		});
+	`
+	doc.body.appendChild(script)
+
+	iframe.height = doc.body.scrollHeight + 'px'
 }
 
 type ActionType = 'editDraft' | 'reply' | 'replyAll' | 'forward'
@@ -427,13 +471,3 @@ const generatePLaceholderWidth = () => {
 
 watch(() => props.mailID, reload)
 </script>
-
-<style>
-.mail-body blockquote {
-	@apply my-2 border-l-4 border-gray-200 pl-4;
-}
-
-.mail-body {
-	@apply pt-4 text-sm leading-5;
-}
-</style>
