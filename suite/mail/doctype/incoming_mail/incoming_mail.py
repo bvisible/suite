@@ -372,7 +372,8 @@ def fetch_emails_from_clusters(accounts: list[str] | None = None) -> None:
 	cluster_accounts_map = {}
 	for tenant, accounts in tenant_accounts_map.items():
 		if cluster := get_cluster_for_tenant(tenant):
-			if frappe.db.get_value("Mail Cluster", cluster, "enabled"):
+			enabled, inbound = frappe.db.get_value("Mail Cluster", cluster, ["enabled", "inbound"])
+			if enabled and inbound:
 				cluster_accounts_map.setdefault(cluster, []).extend(accounts)
 
 	if not cluster_accounts_map:
