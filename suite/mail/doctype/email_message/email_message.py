@@ -104,6 +104,7 @@ class EmailMessage(Document):
 
 		return content
 
+	@frappe.whitelist()
 	def _load_attachments(self, attachments: list["EmailMessagePart"] | None = None) -> None:
 		if not self.has_attachment:
 			return
@@ -111,6 +112,7 @@ class EmailMessage(Document):
 		for attachment in attachments or self.attachments:
 			self._get_blob(attachment.blob_id, attachment._name)
 
+	@frappe.whitelist()
 	def get_mime_message(self) -> str:
 		if not self.blob_id:
 			frappe.throw(_("Email does not have a blob ID."))
