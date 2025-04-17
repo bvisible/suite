@@ -140,10 +140,11 @@
 					</div>
 				</div>
 
-				<iframe
+				<IframeResizer
 					v-if="mail.body_html"
 					class="w-full"
-					@load="loadContent($event.target, mail.body_html)"
+					license="GPLv3"
+					:src="getSrc(mail.body_html)"
 				/>
 
 				<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
@@ -182,6 +183,7 @@
 
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from 'vue'
+import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
 	Code,
 	Ellipsis,
@@ -245,51 +247,58 @@ const reload = () => {
 
 defineExpose({ reload })
 
-const loadContent = (iframe: HTMLIFrameElement, content: string) => {
-	const doc = iframe?.contentDocument
-	if (!doc) return
-
-	doc.head.innerHTML = `
-		<style>
-			body {
-				font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-				font-size: 13px;
-				line-height: 1.25rem;
-			}
-			blockquote {
-				margin: 8px 0;
-				padding-left: 16px;
-				border-left: 4px solid #e5e7eb;
-			}
-			button {
-				background: none;
-				border: none;
-				cursor: pointer;
-				padding: 0
-			}
-			.hidden {
-				display: none;
-			}
-		</style>
+const getSrc = (content: string) => {
+	/* eslint-disable no-useless-escape */
+	const html = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<style>
+				body {
+					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+					font-size: 13px;
+					line-height: 1.25rem;
+				}
+				blockquote {
+					margin: 8px 0;
+					padding-left: 16px;
+					border-left: 4px solid #e5e7eb;
+				}
+				button {
+					background: none;
+					border: none;
+					cursor: pointer;
+					padding: 0
+				}
+				.hidden {
+					display: none;
+				}
+			</style>
+		</head>
+		<body>
+			${content.replace(
+				/<blockquote>/g,
+				'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
+			)}
+			<script>
+				document.addEventListener('click', (e) => {
+					if (e.target.tagName === 'A') {
+						e.preventDefault();
+						window.open(e.target.href, '_blank');
+					}
+				});
+			<\/script>
+			<script
+			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.5"
+			type="text/javascript"
+			async
+			><\/script>
+		</body>
+		</html>
 	`
 
-	doc.body.innerHTML = content.replace(
-		/<blockquote>/g,
-		'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
-	)
-
-	const script = doc.createElement('script')
-	script.textContent = `
-		document.addEventListener('click', (e) => {
-			if (e.target.tagName === 'A') {
-				e.preventDefault();
-				window.open(e.target.href, '_blank');
-			}
-		});
-	`
-	doc.body.appendChild(script)
-
-	iframe.height = doc.body.scrollHeight + 'px'
+	const blob = new Blob([html], { type: 'text/html' })
+	return URL.createObjectURL(blob)
 }
 
 type ActionType = 'editDraft' | 'reply' | 'replyAll' | 'forward'
