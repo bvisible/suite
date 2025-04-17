@@ -49,7 +49,7 @@ class EmailParser:
 	def get_sender(self) -> tuple[str, str]:
 		"""Returns the display name and email of the sender."""
 
-		return parseaddr(self.message["From"])
+		return parseaddr(str(make_header(decode_header(self.message["From"]))))
 
 	def get_delivered_to(self) -> str | None:
 		"""Returns the Delivered-To email address of the email."""
