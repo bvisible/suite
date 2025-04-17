@@ -204,10 +204,9 @@ class EmailMessage(Document):
 			return content
 
 		client = get_jmap_client(self.account)
-		account_id = client.account_ids[0]
 
 		try:
-			content = client.download_blob(account_id, blob_id, name)
+			content = client.download_blob(blob_id, name)
 			if len(content) > MAX_ATTACHMENT_SIZE:
 				frappe.throw(_("Attachment size exceeds maximum allowed limit."))
 
@@ -300,15 +299,14 @@ def fetch_message_ids_with_cache(account: str, filter: dict, position: int = 0, 
 		return cached_email_ids[position : position + limit]
 
 	client = get_jmap_client(account)
-	account_id = client.account_ids[0]
 
 	try:
 		if total_emails > 1000:
-			result = client.query_emails(account_id, filter, position, limit)
+			result = client.query_emails(filter, position, limit)
 			store_message_count_in_cache(account, filter, result.get("total", 0))
 			return result.get("ids", [])
 
-		result = client.query_emails(account_id, filter, 0, total_emails)
+		result = client.query_emails(filter, 0, total_emails)
 		all_email_ids = result.get("ids", [])
 
 		store_message_ids_in_cache(account, filter, all_email_ids)
@@ -333,10 +331,9 @@ def get_cached_message_count(account: str, filter: dict, force_fresh: bool = Fal
 			return cint(cached_total)
 
 	client = get_jmap_client(account)
-	account_id = client.account_ids[0]
 
 	try:
-		result = client.query_emails(account_id, filter, position=0, limit=0)
+		result = client.query_emails(filter, position=0, limit=0)
 		total = result.get("total", 0)
 		store_message_count_in_cache(account, filter, total)
 		return total
@@ -376,11 +373,10 @@ def fetch_batch_message_data(account: str, email_ids: list[str]) -> list[dict]:
 
 	if email_ids_to_fetch:
 		client = get_jmap_client(account)
-		account_id = client.account_ids[0]
 
 		try:
-			for batch in split_into_batches(email_ids_to_fetch, BATCH_SIZE):
-				for email_data in client.get_emails(account_id, batch):
+			for ids_batch in split_into_batches(email_ids_to_fetch, BATCH_SIZE):
+				for email_data in client.get_emails(email_ids=ids_batch):
 					email_message = transform_jmap_to_standard_format(account, email_data)
 					store_message_in_cache(account, email_data["id"], email_message)
 					email_messages.append(email_message)
@@ -465,12 +461,11 @@ def transform_jmap_to_standard_format(account: str, email: dict) -> dict:
 	"""Transform JMAP email format to standard format."""
 
 	client = get_jmap_client(account)
-	account_id = client.account_ids[0]
 
 	email_message = {
 		"name": f"{account}-{email['id']}",
 		"account": account,
-		"folder": client.get_mailbox_name(account_id, list(email["mailboxIds"].keys())[0]),
+		"folder": client.get_mailbox_name(list(email["mailboxIds"].keys())[0]),
 		"subject": email["subject"],
 		"preview": (email.get("preview") or "").strip(),
 		"sent_at": parse_iso_datetime(email["sentAt"]),

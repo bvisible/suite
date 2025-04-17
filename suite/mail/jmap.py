@@ -1,5 +1,5 @@
-import functools
 import time
+from functools import cached_property
 from typing import Any
 from urllib.parse import urljoin
 
@@ -44,6 +44,10 @@ class JMAPClient:
 		return list(self.__config["accounts"].keys())
 
 	@property
+	def account_id(self) -> str:
+		return self.primary_accounts["urn:ietf:params:jmap:mail"]
+
+	@property
 	def has_multiple_accounts(self) -> bool:
 		return len(self.account_ids) > 1
 
@@ -75,11 +79,10 @@ class JMAPClient:
 	def state(self) -> dict:
 		return self.__config["state"]
 
-	@functools.cached_property
+	@cached_property
 	def mailboxes(self) -> dict[list[dict]]:
 		mailboxes = {}
-
-		for account_id in self.account_ids:
+		for account_id in [self.account_id]:
 			response = self._make_request(
 				["urn:ietf:params:jmap:mail"], [["Mailbox/get", {"accountId": account_id}, "0"]]
 			)
@@ -121,10 +124,10 @@ class JMAPClient:
 
 		return response.json()
 
-	def get_mailboxes(self, account_id: str) -> list[dict]:
+	def get_mailboxes(self) -> list[dict]:
 		mailboxes = []
 
-		for mailbox in self.mailboxes[account_id]:
+		for mailbox in self.mailboxes[self.account_id]:
 			mailboxes.append(
 				{
 					"id": mailbox["id"],
@@ -139,26 +142,26 @@ class JMAPClient:
 
 		return mailboxes
 
-	def get_mailbox_id(self, account_id: str, role: str | None = None, name: str | None = None) -> str | None:
-		for mailbox in self.mailboxes[account_id]:
+	def get_mailbox_id(self, role: str | None = None, name: str | None = None) -> str | None:
+		for mailbox in self.mailboxes[self.account_id]:
 			if role and mailbox.get("role").lower() == role.lower():
 				return mailbox["id"]
 			if name and mailbox.get("name").lower() == name.lower():
 				return mailbox["id"]
 
-	def get_mailbox_name(self, account_id: str, mailbox_id: str) -> str | None:
-		for mailbox in self.mailboxes[account_id]:
+	def get_mailbox_name(self, mailbox_id: str) -> str | None:
+		for mailbox in self.mailboxes[self.account_id]:
 			if mailbox["id"] == mailbox_id:
 				return mailbox["name"]
 
-	def query_emails(self, account_id: str, filter: dict, position: int = 0, limit: int = 50) -> dict:
+	def query_emails(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		response = self._make_request(
 			using=["urn:ietf:params:jmap:mail"],
 			method_calls=[
 				[
 					"Email/query",
 					{
-						"accountId": account_id,
+						"accountId": self.account_id,
 						"filter": filter if filter else None,
 						"position": position,
 						"limit": limit,
@@ -172,7 +175,7 @@ class JMAPClient:
 
 		return response["methodResponses"][0][1]
 
-	def get_emails(self, account_id: str, ids: list[str]) -> list[dict]:
+	def get_emails(self, email_ids: list[str]) -> list[dict]:
 		properties = [
 			"id",
 			"blobId",
@@ -201,14 +204,14 @@ class JMAPClient:
 		]
 
 		results = []
-		for ids_batch in create_batch(ids, 100):
+		for ids_batch in create_batch(email_ids, 100):
 			response = self._make_request(
 				using=["urn:ietf:params:jmap:mail"],
 				method_calls=[
 					[
 						"Email/get",
 						{
-							"accountId": account_id,
+							"accountId": self.account_id,
 							"ids": ids_batch,
 							"properties": properties,
 							"fetchAllBodyValues": True,
@@ -221,17 +224,17 @@ class JMAPClient:
 
 		return results
 
-	def download_blob(self, account_id: str, blob_id: str, name: str | None = None) -> bytes:
+	def download_blob(self, blob_id: str, name: str | None = None) -> bytes:
 		name = name or "blob"
 		download_url = self.download_url.format(
-			accountId=account_id, blobId=blob_id, name=name, type="application/octet-stream"
+			accountId=self.account_id, blobId=blob_id, name=name, type="application/octet-stream"
 		)
 		response = self.__session.get(download_url)
 		response.raise_for_status()
 
 		return response.content
 
-	def get_query_state(self, account_id: str, mailbox_id: str = None) -> str:
+	def get_query_state(self, mailbox_id: str = None) -> str:
 		filters = {}
 		if mailbox_id:
 			filters["inMailbox"] = mailbox_id
@@ -242,7 +245,7 @@ class JMAPClient:
 				[
 					"Email/query",
 					{
-						"accountId": account_id,
+						"accountId": self.account_id,
 						"filter": filters or None,
 						"sort": [{"property": "receivedAt", "isAscending": False}],
 						"limit": 0,
@@ -253,8 +256,8 @@ class JMAPClient:
 		)
 		return response["methodResponses"][0][1]["queryState"]
 
-	def watch_for_new_emails(self, account_id: str, mailbox_id: str = None, interval: int = 5) -> None:
-		last_state = self.get_query_state(account_id, mailbox_id)
+	def watch_for_new_emails(self, str, mailbox_id: str = None, interval: int = 5) -> None:
+		last_state = self.get_query_state(mailbox_id)
 
 		while True:
 			print(f"⏳ Waiting for {interval} seconds before checking for new emails...")
@@ -267,7 +270,7 @@ class JMAPClient:
 					[
 						"Email/queryChanges",
 						{
-							"accountId": account_id,
+							"accountId": self.account_id,
 							"filter": {"inMailbox": mailbox_id} if mailbox_id else None,
 							"sinceQueryState": last_state,
 						},
@@ -282,7 +285,7 @@ class JMAPClient:
 
 			if added_ids:
 				email_ids = [entry["id"] for entry in added_ids]
-				emails = self.get_emails(account_id, email_ids)
+				emails = self.get_emails(email_ids)
 				for email in emails:
 					print(f"📥 New: {email['subject']} — {email['receivedAt']}")
 
