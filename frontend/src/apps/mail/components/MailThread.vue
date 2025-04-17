@@ -1,6 +1,6 @@
 <template>
-	<template v-if="mailID">
-		<div class="flex items-center border-b p-2.5 sm:px-5">
+	<div v-if="mailID" class="relative flex h-full flex-col overflow-hidden">
+		<div class="sticky top-0 z-10 flex items-center border-b bg-white p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
@@ -29,137 +29,146 @@
 				</div>
 			</template>
 		</div>
-		<div v-if="mailThread.loading" class="animate-pulse space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
-			<div v-for="i in Math.ceil(Math.random() * 4)" :key="i" class="rounded-md border p-3">
-				<div class="flex space-x-3 border-b pb-2">
-					<span class="bg-surface-gray-3 h-6.5 w-6.5 rounded-full" />
-					<div class="flex flex-1 justify-between">
-						<div class="flex flex-col space-y-1">
-							<span class="bg-surface-gray-3 h-4 w-40" />
-							<span class="bg-surface-gray-3 h-3 w-48" />
-						</div>
-						<div class="flex items-center space-x-2">
-							<span class="bg-surface-gray-3 h-3 w-12 sm:w-20" />
-							<span class="bg-surface-gray-3 h-3 w-3 rounded" />
-							<span class="bg-surface-gray-3 h-3 w-3 rounded" />
-						</div>
-					</div>
-				</div>
-				<div class="mt-3 space-y-2">
-					<div
-						v-for="j in Math.ceil(Math.random() * 5)"
-						:key="j"
-						class="bg-surface-gray-3 h-2"
-						:style="{ width: generatePLaceholderWidth() }"
-					/>
-				</div>
-				<div v-if="Math.random() > 0.8" class="mt-5 flex flex-wrap space-x-2">
-					<div
-						v-for="k in Math.ceil(Math.random() * 3)"
-						:key="k"
-						class="bg-surface-gray-3 mb-2 h-6 w-24 rounded"
-					/>
-				</div>
-			</div>
-		</div>
-		<div v-else class="space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
+		<div class="flex-1 overflow-y-auto">
 			<div
-				v-for="mail in mailThread.data"
-				:key="mail.name"
-				class="p-3"
-				:class="{ 'rounded-md border': mailThread.data.length > 1 }"
+				v-if="mailThread.loading"
+				class="animate-pulse space-y-4 px-2.5 py-3 sm:px-5 sm:py-6"
 			>
-				<div class="flex space-x-3 border-b pb-2">
-					<Avatar
-						:label="mail.display_name || mail.sender"
-						:image="mail.user_image"
-						size="xl"
-					/>
-					<div class="flex flex-1 justify-between text-xs">
-						<div class="flex flex-col space-y-1">
-							<div class="flex items-center space-x-1.5">
-								<span class="text-base font-semibold">
-									{{ mail.display_name || mail.from_ || mail.sender }}
-								</span>
-								<span
-									v-if="mail.display_name && screenSize.width >= 640"
-									class="text-gray-600"
-								>
-									{{ `<${mail.from_ || mail.sender}>` }}
-								</span>
-								<MailDetailsPopover :mail="mail" />
+				<div
+					v-for="i in Math.ceil(Math.random() * 4)"
+					:key="i"
+					class="rounded-md border p-3"
+				>
+					<div class="flex space-x-3 border-b pb-2">
+						<span class="bg-surface-gray-3 h-6.5 w-6.5 rounded-full" />
+						<div class="flex flex-1 justify-between">
+							<div class="flex flex-col space-y-1">
+								<span class="bg-surface-gray-3 h-4 w-40" />
+								<span class="bg-surface-gray-3 h-3 w-48" />
 							</div>
 							<div class="flex items-center space-x-2">
-								<span class="flex items-center space-x-1">
-									<span>{{ __('To: ') + toRecipient(mail) }}</span>
-								</span>
-								<span v-if="mail.cc.length">
-									{{ __('Cc: ') + getRecipients(mail.cc) }}
-								</span>
-								<span v-if="mail.bcc.length">
-									{{ __('Bcc: ') + getRecipients(mail.bcc) }}
-								</span>
+								<span class="bg-surface-gray-3 h-3 w-12 sm:w-20" />
+								<span class="bg-surface-gray-3 h-3 w-3 rounded" />
+								<span class="bg-surface-gray-3 h-3 w-3 rounded" />
 							</div>
 						</div>
-						<div class="flex items-center space-x-2 self-start">
-							<MailDate
-								:datetime="
-									mail.folder === 'Drafts' ? mail.modified : mail.creation
-								"
-							/>
-							<Tooltip
-								v-for="action in mailActions(mail).filter(
-									(d) => d.condition !== false,
-								)"
-								:key="action.label"
-								:text="action.label"
-							>
-								<Button variant="ghost" @click="action.onClick">
-									<template #icon>
-										<component
-											:is="action.icon"
-											class="h-4 w-4 text-gray-600"
-										/>
-									</template>
-								</Button>
-							</Tooltip>
-							<Tooltip :text="__('More')">
-								<Dropdown
-									:options="
-										moreActions(mail).filter((d) => d.condition !== false)
-									"
-								>
-									<Button variant="ghost">
-										<template #icon>
-											<Ellipsis class="h-4 w-4 text-gray-600" />
-										</template>
-									</Button>
-								</Dropdown>
-							</Tooltip>
-						</div>
+					</div>
+					<div class="mt-3 space-y-2">
+						<div
+							v-for="j in Math.ceil(Math.random() * 5)"
+							:key="j"
+							class="bg-surface-gray-3 h-2"
+							:style="{ width: generatePLaceholderWidth() }"
+						/>
+					</div>
+					<div v-if="Math.random() > 0.8" class="mt-5 flex flex-wrap space-x-2">
+						<div
+							v-for="k in Math.ceil(Math.random() * 3)"
+							:key="k"
+							class="bg-surface-gray-3 mb-2 h-6 w-24 rounded"
+						/>
 					</div>
 				</div>
+			</div>
+			<div v-else class="space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
+				<div
+					v-for="mail in mailThread.data"
+					:key="mail.name"
+					class="p-3"
+					:class="{ 'rounded-md border': mailThread.data.length > 1 }"
+				>
+					<div class="flex space-x-3 border-b pb-2">
+						<Avatar
+							:label="mail.display_name || mail.sender"
+							:image="mail.user_image"
+							size="xl"
+						/>
+						<div class="flex flex-1 justify-between text-xs">
+							<div class="flex flex-col space-y-1">
+								<div class="flex items-center space-x-1.5">
+									<span class="text-base font-semibold">
+										{{ mail.display_name || mail.from_ || mail.sender }}
+									</span>
+									<span
+										v-if="mail.display_name && screenSize.width >= 640"
+										class="text-gray-600"
+									>
+										{{ `<${mail.from_ || mail.sender}>` }}
+									</span>
+									<MailDetailsPopover :mail="mail" />
+								</div>
+								<div class="flex items-center space-x-2">
+									<span class="flex items-center space-x-1">
+										<span>{{ __('To: ') + toRecipient(mail) }}</span>
+									</span>
+									<span v-if="mail.cc.length">
+										{{ __('Cc: ') + getRecipients(mail.cc) }}
+									</span>
+									<span v-if="mail.bcc.length">
+										{{ __('Bcc: ') + getRecipients(mail.bcc) }}
+									</span>
+								</div>
+							</div>
+							<div class="flex items-center space-x-2 self-start">
+								<MailDate
+									:datetime="
+										mail.folder === 'Drafts' ? mail.modified : mail.creation
+									"
+								/>
+								<Tooltip
+									v-for="action in mailActions(mail).filter(
+										(d) => d.condition !== false,
+									)"
+									:key="action.label"
+									:text="action.label"
+								>
+									<Button variant="ghost" @click="action.onClick">
+										<template #icon>
+											<component
+												:is="action.icon"
+												class="h-4 w-4 text-gray-600"
+											/>
+										</template>
+									</Button>
+								</Tooltip>
+								<Tooltip :text="__('More')">
+									<Dropdown
+										:options="
+											moreActions(mail).filter((d) => d.condition !== false)
+										"
+									>
+										<Button variant="ghost">
+											<template #icon>
+												<Ellipsis class="h-4 w-4 text-gray-600" />
+											</template>
+										</Button>
+									</Dropdown>
+								</Tooltip>
+							</div>
+						</div>
+					</div>
 
-				<IframeResizer
-					v-if="mail.body_html"
-					class="w-full"
-					license="GPLv3"
-					:scrolling="true"
-					:src="getSrc(mail.body_html)"
-				/>
-
-				<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
-					mail.body_plain
-				}}</pre>
-
-				<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
-					<AttachmentCapsule
-						v-for="attachment in mail.attachments"
-						:key="attachment.name"
-						:file-name="attachment.file_name"
-						:file-url="attachment.file_url"
-						class="mb-2"
+					<IframeResizer
+						v-if="mail.body_html"
+						class="w-full"
+						license="GPLv3"
+						:scrolling="true"
+						:src="getSrc(mail.body_html)"
 					/>
+
+					<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
+						mail.body_plain
+					}}</pre>
+
+					<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
+						<AttachmentCapsule
+							v-for="attachment in mail.attachments"
+							:key="attachment.name"
+							:file-name="attachment.file_name"
+							:file-url="attachment.file_url"
+							class="mb-2"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -169,7 +178,8 @@
 			:reply-details
 			@reload-mails="emit('reloadMails', 'Drafts')"
 		/>
-	</template>
+	</div>
+
 	<div v-else class="h-full overflow-hidden">
 		<div class="m-4 flex h-[calc(100%-2em)] items-center justify-center rounded-md bg-gray-50">
 			<div class="flex flex-col items-center space-y-3">
