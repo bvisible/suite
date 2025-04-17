@@ -139,14 +139,19 @@
 						</div>
 					</div>
 				</div>
-				<div
+
+				<IframeResizer
 					v-if="mail.body_html"
-					class="mail-body ProseMirror prose-sm"
-					v-html="mailBody(mail.body_html)"
+					class="w-full"
+					license="GPLv3"
+					:scrolling="true"
+					:src="getSrc(mail.body_html)"
 				/>
-				<pre v-else-if="mail.body_plain" class="mail-body text-wrap">{{
+
+				<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
 					mail.body_plain
 				}}</pre>
+
 				<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
 					<AttachmentCapsule
 						v-for="attachment in mail.attachments"
@@ -179,6 +184,8 @@
 
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from 'vue'
+// eslint-disable-next-line import/no-unresolved
+import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
 	Code,
 	Ellipsis,
@@ -242,14 +249,58 @@ const reload = () => {
 
 defineExpose({ reload })
 
-const mailBody = (bodyHTML: string) => {
-	bodyHTML = bodyHTML.replace(/<br\s*\/?>/, '')
-	bodyHTML = bodyHTML.replace(
-		/<blockquote>/g,
-		'<div class="blockquote-container"><a href="#" class="font-medium text-gray-900 text-xs no-underline" onclick="this.nextElementSibling.style.display=\'block\'; this.style.display=\'none\'; return false;">Show more from this thread</a><blockquote style="display:none;">',
-	)
-	bodyHTML = bodyHTML.replace(/<\/blockquote>/g, '</blockquote></div>')
-	return bodyHTML
+const getSrc = (content: string) => {
+	/* eslint-disable no-useless-escape */
+	const html = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<style>
+				body {
+					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+					font-size: 13px;
+					line-height: 1.25rem;
+				}
+				blockquote {
+					margin: 8px 0;
+					padding-left: 16px;
+					border-left: 4px solid #e5e7eb;
+				}
+				button {
+					background: none;
+					border: none;
+					cursor: pointer;
+					padding: 0
+				}
+				.hidden {
+					display: none;
+				}
+			</style>
+		</head>
+		<body>
+			${content.replace(
+				/<blockquote>/g,
+				'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
+			)}
+			<script>
+				document.addEventListener('click', (e) => {
+					if (e.target.tagName === 'A') {
+						e.preventDefault();
+						window.open(e.target.href, '_blank');
+					}
+				});
+			<\/script>
+			<script
+			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.4"
+			type="text/javascript"
+			async
+			><\/script>
+		</body>
+		</html>
+	`
+
+	const blob = new Blob([html], { type: 'text/html' })
+	return URL.createObjectURL(blob)
 }
 
 type ActionType = 'editDraft' | 'reply' | 'replyAll' | 'forward'
@@ -431,15 +482,3 @@ const generatePLaceholderWidth = () => {
 
 watch(() => props.mailID, reload)
 </script>
-<style>
-.prose
-	:where(blockquote p:first-of-type):not(
-		:where([class~='not-prose'], [class~='not-prose'] *)
-	)::before {
-	content: '';
-}
-
-.mail-body {
-	@apply prose prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:border-gray-300 prose-th:border-gray-300 prose-td:relative prose-th:relative prose-th:bg-gray-100 prose-sm max-w-none pt-4 text-sm leading-5;
-}
-</style>
