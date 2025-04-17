@@ -38,9 +38,22 @@
   "in_reply_to",
   "thread_id",
   "seen",
-  "section_break_u8f6",
+  "section_break_sfis",
+  "from_ip",
+  "from_host",
+  "column_break_ntra",
+  "spam_score",
+  "section_break_drft",
+  "spf_pass",
+  "dkim_pass",
+  "dmarc_pass",
+  "column_break_xlyd",
+  "spf_description",
+  "dkim_description",
+  "dmarc_description",
+  "keywords_section",
   "_keywords",
-  "section_break_2tnd",
+  "body_parts_section",
   "_html_body",
   "_text_body",
   "section_break_kwfe",
@@ -213,10 +226,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_2tnd",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "_html_body",
    "fieldtype": "Table",
    "label": "HTML Body",
@@ -236,10 +245,6 @@
    "fieldtype": "Check",
    "label": "Seen",
    "read_only": 1
-  },
-  {
-   "fieldname": "section_break_u8f6",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "_keywords",
@@ -291,6 +296,93 @@
    "is_virtual": 1,
    "label": "Message",
    "read_only": 1
+  },
+  {
+   "fieldname": "keywords_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "body_parts_section",
+   "fieldtype": "Section Break",
+   "label": "Body Parts"
+  },
+  {
+   "depends_on": "eval: doc.message",
+   "fieldname": "section_break_sfis",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "from_ip",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "From IP"
+  },
+  {
+   "fieldname": "from_host",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "From Host"
+  },
+  {
+   "depends_on": "eval: doc.spam_score",
+   "fieldname": "spam_score",
+   "fieldtype": "Float",
+   "is_virtual": 1,
+   "label": "Spam Score",
+   "precision": "3"
+  },
+  {
+   "default": "0",
+   "fieldname": "spf_pass",
+   "fieldtype": "Check",
+   "is_virtual": 1,
+   "label": "SPF"
+  },
+  {
+   "default": "0",
+   "fieldname": "dkim_pass",
+   "fieldtype": "Check",
+   "is_virtual": 1,
+   "label": "DKIM"
+  },
+  {
+   "default": "0",
+   "fieldname": "dmarc_pass",
+   "fieldtype": "Check",
+   "is_virtual": 1,
+   "label": "DMARC"
+  },
+  {
+   "fieldname": "column_break_xlyd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "spf_description",
+   "fieldtype": "Small Text",
+   "is_virtual": 1,
+   "label": "SPF Description"
+  },
+  {
+   "fieldname": "dkim_description",
+   "fieldtype": "Small Text",
+   "is_virtual": 1,
+   "label": "DKIM Description"
+  },
+  {
+   "fieldname": "dmarc_description",
+   "fieldtype": "Small Text",
+   "is_virtual": 1,
+   "label": "DMARC Description"
+  },
+  {
+   "depends_on": "eval: doc.message",
+   "fieldname": "section_break_drft",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ntra",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -298,7 +390,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-04-16 12:10:40.434619",
+ "modified": "2025-04-17 12:23:57.130918",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
