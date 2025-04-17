@@ -61,7 +61,7 @@ class EmailParser:
 		"""Returns the reply-to email(s) of the email."""
 
 		if reply_to := self.message.get("Reply-To"):
-			return remove_whitespace_characters(reply_to)
+			return remove_whitespace_characters(str(make_header(decode_header(reply_to))))
 
 	def get_priority(self) -> int:
 		"""Returns the priority of the email."""
