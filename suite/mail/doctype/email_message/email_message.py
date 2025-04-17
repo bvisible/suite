@@ -141,7 +141,7 @@ class EmailMessage(Document):
 			frappe.throw(_("Name must be in the format {account}-{id}."))
 
 		account, email_id = self.name.split("-", 1)
-		self._validate_permission(account)
+		EmailMessage._validate_permission(account)
 
 		return super(Document, self).__init__(fetch_single_message_data(account, email_id))
 
@@ -186,7 +186,21 @@ class EmailMessage(Document):
 	def get_stats(**kwargs) -> dict:
 		return {}
 
-	def _validate_permission(self, account: str) -> None:
+	@staticmethod
+	def get_thread(account: str, thread_id: str) -> list[dict] | None:
+		"""Returns the email messages in a thread."""
+
+		EmailMessage._validate_permission(account)
+
+		if not thread_id:
+			frappe.throw(_("Thread ID is required."))
+
+		client = get_jmap_client(account)
+		if email_ids := client.get_threads([thread_id]).get(thread_id):
+			return fetch_batch_message_data(account, email_ids)
+
+	@staticmethod
+	def _validate_permission(account: str) -> None:
 		"""Validate if the user has permission to access the email message."""
 
 		user = frappe.session.user

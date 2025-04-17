@@ -175,6 +175,27 @@ class JMAPClient:
 
 		return response["methodResponses"][0][1]
 
+	def get_threads(self, thread_ids: list[str]) -> dict[str, list]:
+		properties = ["emailIds"]
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Thread/get",
+					{
+						"accountId": self.account_id,
+						"ids": thread_ids,
+						"properties": properties,
+					},
+					"0",
+				]
+			],
+		)
+		if data := response["methodResponses"][0][1]["list"]:
+			return {d["id"]: d["emailIds"] for d in data}
+
+		return {}
+
 	def get_emails(self, email_ids: list[str]) -> list[dict]:
 		properties = [
 			"id",
@@ -250,7 +271,7 @@ class JMAPClient:
 						"sort": [{"property": "receivedAt", "isAscending": False}],
 						"limit": 0,
 					},
-					"1",
+					"0",
 				]
 			],
 		)
@@ -274,7 +295,7 @@ class JMAPClient:
 							"filter": {"inMailbox": mailbox_id} if mailbox_id else None,
 							"sinceQueryState": last_state,
 						},
-						"1",
+						"0",
 					]
 				],
 			)
