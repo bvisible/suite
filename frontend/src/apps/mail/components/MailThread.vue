@@ -144,6 +144,7 @@
 					v-if="mail.body_html"
 					class="w-full"
 					license="GPLv3"
+					:scrolling="true"
 					:src="getSrc(mail.body_html)"
 				/>
 
@@ -183,6 +184,7 @@
 
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from 'vue'
+// eslint-disable-next-line import/no-unresolved
 import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
 	Code,
@@ -289,7 +291,7 @@ const getSrc = (content: string) => {
 				});
 			<\/script>
 			<script
-			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.5"
+			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.4"
 			type="text/javascript"
 			async
 			><\/script>
