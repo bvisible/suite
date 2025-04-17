@@ -9,8 +9,10 @@
 			/>
 			<span
 				v-if="mailThread.loading"
-				:class="`bg-surface-gray-3 h-3.5 animate-pulse`"
-				:style="{ width: generatePLaceholderWidth() }"
+				class="bg-surface-gray-3 h-3.5 animate-pulse"
+				:style="{
+					width: `${Math.max(100, Math.random() * (screenSize.width < 640 ? 300 : 800))}px`,
+				}"
 			/>
 			<template v-else>
 				<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
@@ -30,46 +32,8 @@
 			</template>
 		</div>
 		<div class="flex-1 overflow-y-auto">
-			<div
-				v-if="mailThread.loading"
-				class="animate-pulse space-y-4 px-2.5 py-3 sm:px-5 sm:py-6"
-			>
-				<div
-					v-for="i in Math.ceil(Math.random() * 4)"
-					:key="i"
-					class="rounded-md border p-3"
-				>
-					<div class="flex space-x-3 border-b pb-2">
-						<span class="bg-surface-gray-3 h-6.5 w-6.5 rounded-full" />
-						<div class="flex flex-1 justify-between">
-							<div class="flex flex-col space-y-1">
-								<span class="bg-surface-gray-3 h-4 w-40" />
-								<span class="bg-surface-gray-3 h-3 w-48" />
-							</div>
-							<div class="flex items-center space-x-2">
-								<span class="bg-surface-gray-3 h-3 w-12 sm:w-20" />
-								<span class="bg-surface-gray-3 h-3 w-3 rounded" />
-								<span class="bg-surface-gray-3 h-3 w-3 rounded" />
-							</div>
-						</div>
-					</div>
-					<div class="mt-3 space-y-2">
-						<div
-							v-for="j in Math.ceil(Math.random() * 5)"
-							:key="j"
-							class="bg-surface-gray-3 h-2"
-							:style="{ width: generatePLaceholderWidth() }"
-						/>
-					</div>
-					<div v-if="Math.random() > 0.8" class="mt-5 flex flex-wrap space-x-2">
-						<div
-							v-for="k in Math.ceil(Math.random() * 3)"
-							:key="k"
-							class="bg-surface-gray-3 mb-2 h-6 w-24 rounded"
-						/>
-					</div>
-				</div>
-			</div>
+			<MailThreadPlaceholder v-if="mailThread.loading" />
+
 			<div v-else class="space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
 				<div
 					v-for="mail in mailThread.data"
@@ -216,6 +180,7 @@ import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
+import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
 import type { Folder } from '@/types'
@@ -481,13 +446,6 @@ const toRecipient = (mail) => {
 	if (!isSoleRecipient) return getRecipients(mail.to)
 
 	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
-}
-
-const generatePLaceholderWidth = () => {
-	const width = screenSize.width
-	const max = width < 640 ? width - 50 : width / 2
-	const min = width < 640 ? width / 2 : width / 3
-	return `${Math.floor(Math.random() * (max - min + 1) + min)}px`
 }
 
 watch(() => props.mailID, reload)
