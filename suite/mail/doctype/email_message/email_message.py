@@ -3,6 +3,8 @@
 
 import hashlib
 import json
+import re
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 import frappe
@@ -14,6 +16,7 @@ from mail.jmap import get_jmap_client
 from mail.utils import extract_filter_values
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
+from mail.utils.email_parser import EmailParser
 from mail.utils.user import is_system_manager
 
 if TYPE_CHECKING:
@@ -34,6 +37,78 @@ class EmailMessage(Document):
 		return time_diff_in_seconds(self.received_at, self.sent_at)
 
 	@property
+	def spf_pass(self) -> int:
+		"""Returns SPF pass status."""
+
+		return cint(self.authentication_results.get("spf_pass"))
+
+	@property
+	def dkim_pass(self) -> int:
+		"""Returns DKIM pass status."""
+
+		return cint(self.authentication_results.get("dkim_pass"))
+
+	@property
+	def dmarc_pass(self) -> int:
+		"""Returns DMARC pass status."""
+
+		return cint(self.authentication_results.get("dmarc_pass"))
+
+	@property
+	def spf_description(self) -> str | None:
+		"""Returns SPF description."""
+
+		return self.authentication_results.get("spf_description")
+
+	@property
+	def dkim_description(self) -> str | None:
+		"""Returns DKIM description."""
+
+		return self.authentication_results.get("dkim_description")
+
+	@property
+	def dmarc_description(self) -> str | None:
+		"""Returns DMARC description."""
+
+		return self.authentication_results.get("dmarc_description")
+
+	@cached_property
+	def from_ip(self) -> str | None:
+		"""Returns the IP address of the sender."""
+
+		if not self.parsed_message:
+			return
+
+		if header := self.parsed_message.get_header("Received"):
+			ip_pattern = re.compile(r"\[(?P<ip>[\d\.]+|[a-fA-F0-9:]+)")
+			ip_match = ip_pattern.search(header)
+			return ip_match.group("ip") if ip_match else None
+
+	@cached_property
+	def from_host(self) -> str | None:
+		"""Returns the host of the sender."""
+
+		if not self.parsed_message:
+			return
+
+		if header := self.parsed_message.get_header("Received"):
+			host_pattern = re.compile(r"from\s+(?P<host>[^\s]+)")
+			host_match = host_pattern.search(header)
+			return host_match.group("host") if host_match else None
+
+	@cached_property
+	def spam_score(self) -> float:
+		"""Returns the spam score of the email."""
+
+		if not self.parsed_message:
+			return 0.0
+
+		if header := self.parsed_message.get_header("X-Spam-Status"):
+			score_pattern = re.compile(r"score=(-?\d+\.?\d*)")
+			score_match = score_pattern.search(header)
+			return float(score_match.group(1)) if score_match else 0.0
+
+	@property
 	def message(self) -> str | None:
 		"""Returns the message content if available."""
 
@@ -41,6 +116,22 @@ class EmailMessage(Document):
 			cache_key = generate_blob_cache_key(self.account, self.blob_id)
 			if content := frappe.cache.get_value(cache_key):
 				return content.decode("utf-8")
+
+	@cached_property
+	def parsed_message(self) -> EmailParser | None:
+		"""Returns the parsed email message."""
+
+		if self.message:
+			return EmailParser(self.message)
+
+	@cached_property
+	def authentication_results(self) -> dict[str, int | str]:
+		"""Returns the authentication results of the email."""
+
+		if not self.parsed_message:
+			return {}
+
+		return self.parsed_message.get_authentication_results()
 
 	def db_insert(self, *args, **kwargs) -> None:
 		raise NotImplementedError
@@ -126,18 +217,19 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to download blob: {0}").format(str(e)))
 
 	@frappe.whitelist()
-	def preload_attachments_to_cache(self, attachments: list["EmailMessagePart"] | None = None) -> None:
+	def preload_attachments_to_cache(self) -> None:
 		"""Preload attachments to cache."""
 
 		if not self.has_attachment:
 			return
 
-		attachments = attachments or self.attachments
-		for attachment in attachments:
+		for attachment in self.attachments:
 			try:
 				self.fetch_blob_content(attachment.blob_id, attachment._name)
 			except Exception:
-				frappe.log_error(_("Failed to load attachment {0}").format(attachment._name))
+				frappe.log_error(
+					title=_("Failed to load attachment"), message=frappe.get_traceback(with_context=False)
+				)
 
 	@frappe.whitelist()
 	def get_mime_message(self) -> str:
@@ -147,11 +239,24 @@ class EmailMessage(Document):
 			frappe.throw(_("Email does not have a blob ID."))
 
 		try:
+			self.clear_cached_properties()
 			return self.fetch_blob_content(self.blob_id).decode("utf-8")
 		except UnicodeDecodeError:
 			frappe.throw(_("Failed to decode email content."))
 		except Exception:
 			frappe.throw(_("Failed to retrieve the MIME message."))
+
+	def clear_cached_properties(self) -> None:
+		"""Clear cached properties to avoid stale data."""
+
+		for property in [
+			"from_ip",
+			"from_host",
+			"spam_score",
+			"parsed_message",
+			"authentication_results",
+		]:
+			self.__dict__.pop(property, None)
 
 	def fetch_attachment_content(self, cid: str | None = None, blob_id: str | None = None) -> bytes:
 		"""Returns the content of an attachment."""
@@ -210,8 +315,10 @@ def fetch_message_ids_with_cache(account: str, filter: dict, position: int = 0, 
 		store_message_count_in_cache(account, filter, result.get("total", 0))
 
 		return all_email_ids[position : position + limit]
-	except Exception as e:
-		frappe.log_error(_("Failed to get email list: {0}").format(str(e)))
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to get email list"), message=frappe.get_traceback(with_context=False)
+		)
 		return []
 
 
@@ -233,8 +340,10 @@ def get_cached_message_count(account: str, filter: dict, force_fresh: bool = Fal
 		total = result.get("total", 0)
 		store_message_count_in_cache(account, filter, total)
 		return total
-	except Exception as e:
-		frappe.log_error(_("Failed to get email count: {0}").format(str(e)))
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to get email count"), message=frappe.get_traceback(with_context=False)
+		)
 		return 0
 
 
@@ -275,8 +384,10 @@ def fetch_batch_message_data(account: str, email_ids: list[str]) -> list[dict]:
 					email_message = transform_jmap_to_standard_format(account, email_data)
 					store_message_in_cache(account, email_data["id"], email_message)
 					email_messages.append(email_message)
-		except Exception as e:
-			frappe.log_error(_("Failed to get email data: {0}").format(str(e)))
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to get email data"), message=frappe.get_traceback(with_context=False)
+			)
 
 	return email_messages
 

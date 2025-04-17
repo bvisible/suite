@@ -31,7 +31,7 @@ frappe.ui.form.on('Email Message', {
 	load_attachments(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'fetch_attachment_content',
+			method: 'preload_attachments_to_cache',
 			freeze: true,
 			freeze_message: __('Loading Attachments...'),
 			callback: (r) => {
