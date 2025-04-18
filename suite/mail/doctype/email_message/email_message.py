@@ -341,6 +341,20 @@ class EmailMessage(Document):
 		EmailMessage.move_emails_to_folder(account, [email_id], mailbox_id, mailbox_role, mailbox_name)
 
 	@frappe.whitelist()
+	def mark_as_seen(self) -> None:
+		"""Mark the email message as seen."""
+
+		account, email_id = self.name.split("-", 1)
+		EmailMessage.mark_emails_as_seen(account, [email_id])
+
+	@frappe.whitelist()
+	def mark_as_unseen(self) -> None:
+		"""Mark the email message as unseen."""
+
+		account, email_id = self.name.split("-", 1)
+		EmailMessage.mark_emails_as_unseen(account, [email_id])
+
+	@frappe.whitelist()
 	def preload_attachments_to_cache(self) -> None:
 		"""Preload attachments to cache."""
 
