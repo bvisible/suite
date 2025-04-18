@@ -116,7 +116,6 @@
 						v-if="mail.body_html"
 						class="w-full"
 						license="GPLv3"
-						:scrolling="true"
 						:src="getSrc(mail.body_html)"
 					/>
 
@@ -225,6 +224,11 @@ const reload = () => {
 defineExpose({ reload })
 
 const getSrc = (content: string) => {
+	content = content.replace(
+		/<blockquote>/g,
+		'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
+	)
+
 	/* eslint-disable no-useless-escape */
 	const html = `
 		<!DOCTYPE html>
@@ -245,18 +249,21 @@ const getSrc = (content: string) => {
 					background: none;
 					border: none;
 					cursor: pointer;
-					padding: 0
+					padding: 0;
 				}
 				.hidden {
 					display: none;
 				}
+
+				@media (max-width: 640px) {
+					[style*="width:"] {
+						width: auto !important;
+					}
+				}
 			</style>
 		</head>
 		<body>
-			${content.replace(
-				/<blockquote>/g,
-				'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
-			)}
+			${content}
 			<script>
 				document.addEventListener('click', (e) => {
 					if (e.target.tagName === 'A') {
