@@ -128,24 +128,6 @@ class EmailMessage(Document):
 
 		return self.parsed_message.get_authentication_results()
 
-	def db_insert(self, *args, **kwargs) -> None:
-		raise NotImplementedError
-
-	def load_from_db(self) -> "EmailMessage":
-		if "-" not in self.name:
-			frappe.throw(_("Name must be in the format {account}-{id}."))
-
-		account, email_id = self.name.split("-", 1)
-		EmailMessage._validate_permission(account)
-
-		return super(Document, self).__init__(fetch_single_message_data(account, email_id))
-
-	def db_update(self) -> None:
-		raise NotImplementedError
-
-	def delete(self) -> None:
-		raise NotImplementedError
-
 	@staticmethod
 	def resolve_user_account_from_filters(filters: list | None = None) -> str | None:
 		"""Returns the account associated with the user from the filters."""
@@ -169,7 +151,8 @@ class EmailMessage(Document):
 			frappe.msgprint(_("Please select an account to view messages."), alert=True)
 			return []
 
-		return fetch_formatted_messages(account, filter={}, position=start, limit=page_length)
+		email_ids = fetch_message_ids_with_cache(account, filter={}, position=start, limit=page_length)
+		return fetch_batch_message_data(account, email_ids)
 
 	@staticmethod
 	def get_count(filters: list | None = None, **kwargs) -> int:
@@ -204,13 +187,13 @@ class EmailMessage(Document):
 	) -> None:
 		"""Move emails to a specified folder."""
 
-		if not mailbox_id and not mailbox_role and not mailbox_name:
-			frappe.throw(_("Mailbox role, name, or ID is required."))
-
 		EmailMessage._validate_permission(account)
 
 		if not email_ids:
 			frappe.throw(_("Email IDs are required."))
+
+		if not mailbox_id and not mailbox_role and not mailbox_name:
+			frappe.throw(_("Mailbox role, name, or ID is required."))
 
 		if isinstance(email_ids, str):
 			email_ids = [email_ids]
@@ -234,6 +217,31 @@ class EmailMessage(Document):
 		if not is_system_manager(user) and account != get_account_for_user(user):
 			frappe.throw(_("You do not have permission to view this message."), frappe.PermissionError)
 
+	def db_insert(self, *args, **kwargs) -> None:
+		raise NotImplementedError
+
+	def load_from_db(self) -> "EmailMessage":
+		if "-" not in self.name:
+			frappe.throw(_("Name must be in the format {account}-{id}."))
+
+		account, email_id = self.name.split("-", 1)
+		EmailMessage._validate_permission(account)
+
+		emails = fetch_batch_message_data(account, [email_id])
+		if not emails:
+			frappe.throw(
+				_("Email Message {0} not found.").format(frappe.bold(f"{account}-{email_id}")),
+				frappe.DoesNotExistError,
+			)
+
+		return super(Document, self).__init__(emails[0])
+
+	def db_update(self) -> None:
+		raise NotImplementedError
+
+	def delete(self) -> None:
+		raise NotImplementedError
+
 	def fetch_blob_content(self, blob_id: str, name: str | None = None) -> bytes:
 		"""Returns the content of the blob."""
 
@@ -255,36 +263,6 @@ class EmailMessage(Document):
 			return content
 		except Exception as e:
 			frappe.throw(_("Failed to download blob: {0}").format(str(e)))
-
-	@frappe.whitelist()
-	def preload_attachments_to_cache(self) -> None:
-		"""Preload attachments to cache."""
-
-		if not self.has_attachment:
-			return
-
-		for attachment in self.attachments:
-			try:
-				self.fetch_blob_content(attachment.blob_id, attachment._name)
-			except Exception:
-				frappe.log_error(
-					title=_("Failed to load attachment"), message=frappe.get_traceback(with_context=False)
-				)
-
-	@frappe.whitelist()
-	def get_mime_message(self) -> str:
-		"""Returns the MIME message content."""
-
-		if not self.blob_id:
-			frappe.throw(_("Email does not have a blob ID."))
-
-		try:
-			self.clear_cached_properties()
-			return self.fetch_blob_content(self.blob_id).decode("utf-8")
-		except UnicodeDecodeError:
-			frappe.throw(_("Failed to decode email content."))
-		except Exception:
-			frappe.throw(_("Failed to retrieve the MIME message."))
 
 	def clear_cached_properties(self) -> None:
 		"""Clear cached properties to avoid stale data."""
@@ -317,12 +295,44 @@ class EmailMessage(Document):
 
 		return self.fetch_blob_content(attachment.blob_id, attachment._name)
 
+	@frappe.whitelist()
+	def move_to_folder(
+		self, mailbox_id: str | None = None, mailbox_role: str | None = None, mailbox_name: str | None = None
+	) -> None:
+		"""Move the email message to a specified folder."""
 
-def fetch_formatted_messages(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[dict]:
-	"""Returns formatted email messages."""
+		account, email_id = self.name.split("-", 1)
+		EmailMessage.move_emails_to_folder(account, [email_id], mailbox_id, mailbox_role, mailbox_name)
 
-	email_ids = fetch_message_ids_with_cache(account, filter, position, limit)
-	return fetch_batch_message_data(account, email_ids)
+	@frappe.whitelist()
+	def preload_attachments_to_cache(self) -> None:
+		"""Preload attachments to cache."""
+
+		if not self.has_attachment:
+			return
+
+		for attachment in self.attachments:
+			try:
+				self.fetch_blob_content(attachment.blob_id, attachment._name)
+			except Exception:
+				frappe.log_error(
+					title=_("Failed to load attachment"), message=frappe.get_traceback(with_context=False)
+				)
+
+	@frappe.whitelist()
+	def get_mime_message(self) -> str:
+		"""Returns the MIME message content."""
+
+		if not self.blob_id:
+			frappe.throw(_("Email does not have a blob ID."))
+
+		try:
+			self.clear_cached_properties()
+			return self.fetch_blob_content(self.blob_id).decode("utf-8")
+		except UnicodeDecodeError:
+			frappe.throw(_("Failed to decode email content."))
+		except Exception:
+			frappe.throw(_("Failed to retrieve the MIME message."))
 
 
 def fetch_message_ids_with_cache(account: str, filter: dict, position: int = 0, limit: int = 50) -> list[str]:
@@ -383,20 +393,6 @@ def get_cached_message_count(account: str, filter: dict, force_fresh: bool = Fal
 			title=_("Failed to get email count"), message=frappe.get_traceback(with_context=False)
 		)
 		return 0
-
-
-def fetch_single_message_data(account: str, email_id: str) -> dict:
-	"""Returns formatted email data for a single email."""
-
-	emails = fetch_batch_message_data(account, [email_id])
-
-	if not emails:
-		frappe.throw(
-			_("Email Message {0} not found.").format(frappe.bold(f"{account}-{email_id}")),
-			frappe.DoesNotExistError,
-		)
-
-	return emails[0]
 
 
 def fetch_batch_message_data(account: str, email_ids: list[str]) -> list[dict]:
