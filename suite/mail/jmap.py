@@ -255,6 +255,23 @@ class JMAPClient:
 
 		return response.content
 
+	def move_emails(self, email_ids: list[str], target_mailbox_id: str) -> None:
+		self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Email/set",
+					{
+						"accountId": self.account_id,
+						"update": {
+							email_id: {"mailboxIds": {target_mailbox_id: True}} for email_id in email_ids
+						},
+					},
+					"0",
+				]
+			],
+		)
+
 	def get_query_state(self, mailbox_id: str = None) -> str:
 		filters = {}
 		if mailbox_id:

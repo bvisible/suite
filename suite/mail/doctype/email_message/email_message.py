@@ -5,7 +5,6 @@ import hashlib
 import json
 import re
 from functools import cached_property
-from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
@@ -18,10 +17,6 @@ from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
 from mail.utils.user import is_system_manager
-
-if TYPE_CHECKING:
-	from mail.mail.doctype.email_message_part.email_message_part import EmailMessagePart
-
 
 CACHE_TTL = 86400
 BLOB_CACHE_TTL = 3600
@@ -198,6 +193,38 @@ class EmailMessage(Document):
 		client = get_jmap_client(account)
 		if email_ids := client.get_threads([thread_id]).get(thread_id):
 			return fetch_batch_message_data(account, email_ids)
+
+	@staticmethod
+	def move_emails_to_folder(
+		account: str,
+		email_ids: list[str],
+		mailbox_id: str | None = None,
+		mailbox_role: str | None = None,
+		mailbox_name: str | None = None,
+	) -> None:
+		"""Move emails to a specified folder."""
+
+		if not mailbox_id and not mailbox_role and not mailbox_name:
+			frappe.throw(_("Mailbox role, name, or ID is required."))
+
+		EmailMessage._validate_permission(account)
+
+		if not email_ids:
+			frappe.throw(_("Email IDs are required."))
+
+		if isinstance(email_ids, str):
+			email_ids = [email_ids]
+
+		client = get_jmap_client(account)
+		target_mailbox_id = mailbox_id or client.get_mailbox_id(mailbox_role, mailbox_name)
+
+		if not target_mailbox_id:
+			frappe.throw(_("Mailbox not found."))
+
+		client.move_emails(email_ids, target_mailbox_id)
+
+		for email_id in email_ids:
+			frappe.cache.delete_value(generate_message_cache_key(account, email_id))
 
 	@staticmethod
 	def _validate_permission(account: str) -> None:
