@@ -116,6 +116,7 @@
 						v-if="mail.body_html"
 						class="w-full"
 						license="GPLv3"
+						scrolling="yes"
 						:src="getSrc(mail.body_html)"
 					/>
 
@@ -254,7 +255,6 @@ const getSrc = (content: string) => {
 				.hidden {
 					display: none;
 				}
-
 				@media (max-width: 640px) {
 					[style*="width:"] {
 						width: auto !important;
