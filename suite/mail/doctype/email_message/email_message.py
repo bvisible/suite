@@ -178,6 +178,14 @@ class EmailMessage(Document):
 			return fetch_batch_message_data(account, email_ids)
 
 	@staticmethod
+	def _validate_permission(account: str) -> None:
+		"""Validate if the user has permission to access the email message."""
+
+		user = frappe.session.user
+		if not is_system_manager(user) and account != get_account_for_user(user):
+			frappe.throw(_("You do not have permission to view this message."), frappe.PermissionError)
+
+	@staticmethod
 	def move_emails_to_folder(
 		account: str,
 		email_ids: list[str],
@@ -210,12 +218,40 @@ class EmailMessage(Document):
 			frappe.cache.delete_value(generate_message_cache_key(account, email_id))
 
 	@staticmethod
-	def _validate_permission(account: str) -> None:
-		"""Validate if the user has permission to access the email message."""
+	def mark_emails_as_seen(account: str, email_ids: list[str]) -> None:
+		"""Mark emails as seen."""
 
-		user = frappe.session.user
-		if not is_system_manager(user) and account != get_account_for_user(user):
-			frappe.throw(_("You do not have permission to view this message."), frappe.PermissionError)
+		EmailMessage._validate_permission(account)
+
+		if not email_ids:
+			frappe.throw(_("Email IDs are required."))
+
+		if isinstance(email_ids, str):
+			email_ids = [email_ids]
+
+		client = get_jmap_client(account)
+		client.update_emails_keyword(email_ids, "$seen", True)
+
+		for email_id in email_ids:
+			frappe.cache.delete_value(generate_message_cache_key(account, email_id))
+
+	@staticmethod
+	def mark_emails_as_unseen(account: str, email_ids: list[str]) -> None:
+		"""Mark emails as unseen."""
+
+		EmailMessage._validate_permission(account)
+
+		if not email_ids:
+			frappe.throw(_("Email IDs are required."))
+
+		if isinstance(email_ids, str):
+			email_ids = [email_ids]
+
+		client = get_jmap_client(account)
+		client.update_emails_keyword(email_ids, "$seen", False)
+
+		for email_id in email_ids:
+			frappe.cache.delete_value(generate_message_cache_key(account, email_id))
 
 	def db_insert(self, *args, **kwargs) -> None:
 		raise NotImplementedError

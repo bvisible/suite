@@ -1,6 +1,6 @@
 import time
 from functools import cached_property
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urljoin
 
 import frappe
@@ -266,6 +266,23 @@ class JMAPClient:
 						"update": {
 							email_id: {"mailboxIds": {target_mailbox_id: True}} for email_id in email_ids
 						},
+					},
+					"0",
+				]
+			],
+		)
+
+	def update_emails_keyword(
+		self, email_ids: list[str], keyword: Literal["$seen", "$junk"], value: bool
+	) -> None:
+		self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Email/set",
+					{
+						"accountId": self.account_id,
+						"update": {email_id: {"keywords": {keyword: value}} for email_id in email_ids},
 					},
 					"0",
 				]
