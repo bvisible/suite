@@ -397,6 +397,14 @@ def get_config_toml(server: str) -> str | None:
 				"changes": {"max-history": format_value_or_zero(cluster.jmap_changes_history_days, "d")}
 			},
 		},
+		"queue": {
+			"outbound": {
+				"tls": {
+					"allow-invalid-certs": """[ { if = "retry_num > 0 && last_error == 'tls'", then = true}, { else = false } ]""",
+					"starttls": """[ { if = "retry_num > 1 && last_error == 'tls'", then = "disable"}, { else = "require" } ]""",
+				}
+			}
+		},
 		"store": get_stores(cluster.stores),
 		"tracer": {
 			"log": {
@@ -418,18 +426,21 @@ def get_config_toml(server: str) -> str | None:
 	toml_lines = []
 	for key, value in sorted(flatten_dict(config).items()):
 		if value or isinstance(value, bool):
-			match value:
-				case str():
-					if key.startswith("certificate.") and value.startswith("'''") and value.endswith("'''"):
-						toml_lines.append(f"{key} = {value}")
-					else:
-						toml_lines.append(f'{key} = "{value}"')
-				case bool():
-					toml_lines.append(f"{key} = {str(value).lower()}")
-				case list():
-					formatted_list = ", ".join(f'"{v}"' if isinstance(v, str) else str(v) for v in value)
-					toml_lines.append(f"{key} = [{formatted_list}]")
-				case _:
-					toml_lines.append(f"{key} = {value}")
+			if isinstance(value, str):
+				if (value.startswith("[") and "{ if = " in value and "}" in value) or (
+					key.startswith("certificate.") and value.startswith("'''") and value.endswith("'''")
+				):
+					formatted_value = value
+				else:
+					formatted_value = f'"{value}"'
+			elif isinstance(value, bool):
+				formatted_value = str(value).lower()
+			elif isinstance(value, list):
+				formatted_list = ", ".join(f'"{v}"' if isinstance(v, str) else str(v) for v in value)
+				formatted_value = f"[{formatted_list}]"
+			else:
+				formatted_value = str(value)
+
+			toml_lines.append(f"{key} = {formatted_value}")
 
 	return "\n".join(toml_lines)
