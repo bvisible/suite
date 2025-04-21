@@ -139,11 +139,11 @@ class EmailMessage(Document):
 		for d in frappe.db.get_all(
 			"Email Message", {"account": account, "name": ["in", message_ids]}, ["name", "_id", "_keywords"]
 		):
-			for name, _id, _keywords in d.items():
-				_keywords = json.loads(_keywords)
-				_keywords.update({"$seen": seen})
-				email_id_keywords_map[_id] = _keywords
-				message_id_keywords_map[name] = _keywords
+			name, _id, _keywords = d.values()
+			_keywords = json.loads(_keywords)
+			_keywords.update({"$seen": seen})
+			email_id_keywords_map[_id] = _keywords
+			message_id_keywords_map[name] = _keywords
 
 		if not email_id_keywords_map:
 			return
@@ -152,7 +152,11 @@ class EmailMessage(Document):
 		client.update_emails_keywords(email_id_keywords_map)
 
 		for message_id, _keywords in message_id_keywords_map.items():
-			frappe.db.set_value("Email Message", message_id, "_keywords", json.dumps(_keywords, indent=4))
+			frappe.db.set_value(
+				"Email Message",
+				message_id,
+				{"seen": cint(seen), "_keywords": json.dumps(_keywords, indent=4)},
+			)
 
 	@staticmethod
 	def get_thread(account: str, thread_id: str) -> list[str]:
@@ -284,19 +288,21 @@ class EmailMessage(Document):
 		"""Move the email message to a specified folder."""
 
 		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role, mailbox_name)
-		self.load_from_db()
+		self.reload()
 
 	@frappe.whitelist()
 	def mark_as_seen(self) -> None:
 		"""Mark the email message as seen."""
 
 		EmailMessage.mark_emails_as_seen(self.account, [self.name])
+		self.reload()
 
 	@frappe.whitelist()
 	def mark_as_unseen(self) -> None:
 		"""Mark the email message as unseen."""
 
 		EmailMessage.mark_emails_as_unseen(self.account, [self.name])
+		self.reload()
 
 	@frappe.whitelist()
 	def preload_attachments_to_cache(self) -> None:
