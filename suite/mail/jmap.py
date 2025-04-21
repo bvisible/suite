@@ -13,7 +13,11 @@ from mail.utils.cache import get_cluster_for_tenant
 
 
 class JMAPClient:
+	"""JMAP Client for interacting with JMAP servers."""
+
 	def __init__(self, host: str, username: str, password: str) -> None:
+		"""Initialize the JMAP client."""
+
 		self.__host = host
 		self.__config = None
 		self.__session = requests.Session()
@@ -22,6 +26,8 @@ class JMAPClient:
 		self._discover_config()
 
 	def _discover_config(self) -> None:
+		"""Discover JMAP configuration from the server."""
+
 		well_known_url = urljoin(self.__host, "/.well-known/jmap")
 
 		try:
@@ -33,54 +39,80 @@ class JMAPClient:
 
 	@property
 	def capabilities(self) -> dict:
+		"""Returns the capabilities of the JMAP server."""
+
 		return self.__config["capabilities"]
 
 	@property
 	def accounts(self) -> dict:
+		"""Returns the accounts for the logged-in user."""
+
 		return self.__config["accounts"]
 
 	@property
 	def account_ids(self) -> list[str]:
+		"""Returns the list of account IDs for the logged-in user."""
+
 		return list(self.__config["accounts"].keys())
 
 	@property
 	def account_id(self) -> str:
+		"""Returns the primary account ID for the logged-in user."""
+
 		return self.primary_accounts["urn:ietf:params:jmap:mail"]
 
 	@property
 	def has_multiple_accounts(self) -> bool:
+		"""Returns True if the user has multiple accounts, False otherwise."""
+
 		return len(self.account_ids) > 1
 
 	@property
 	def primary_accounts(self) -> dict:
+		"""Returns the primary accounts for the logged-in user."""
+
 		return self.__config["primaryAccounts"]
 
 	@property
 	def username(self) -> str:
+		"""Returns the username of the logged-in user."""
+
 		return self.__config["username"]
 
 	@property
 	def api_url(self) -> str:
+		"""Returns the API URL for the JMAP server."""
+
 		return self.__config["apiUrl"]
 
 	@property
 	def download_url(self) -> str:
+		"""Returns the download URL for the JMAP server."""
+
 		return self.__config["downloadUrl"]
 
 	@property
 	def upload_url(self) -> str:
+		"""Returns the upload URL for the JMAP server."""
+
 		return self.__config["uploadUrl"]
 
 	@property
 	def event_source_url(self) -> str:
+		"""Returns the event source URL for the JMAP server."""
+
 		return self.__config["eventSourceUrl"]
 
 	@property
 	def state(self) -> dict:
+		"""Returns the state of the JMAP server."""
+
 		return self.__config["state"]
 
 	@cached_property
 	def mailboxes(self) -> dict[list[dict]]:
+		"""Returns the mailboxes for the logged-in user."""
+
 		mailboxes = {}
 		for account_id in [self.account_id]:
 			response = self._make_request(
@@ -91,11 +123,15 @@ class JMAPClient:
 		return mailboxes
 
 	def _validate_capabilities(self, capabilities: list[str]) -> None:
+		"""Validate the requested capabilities against the server's capabilities."""
+
 		for capability in capabilities:
 			if capability not in self.capabilities:
 				raise ValueError(f"Unsupported capability: {capability}")
 
 	def _validate_method_calls(self, method_calls: list[list]) -> None:
+		"""Validate the method calls against the server's capabilities."""
+
 		call_ids = []
 		for method_call in method_calls:
 			if not isinstance(method_call, list) or len(method_call) != 3:
@@ -114,6 +150,8 @@ class JMAPClient:
 			call_ids.append(method_call[2])
 
 	def _make_request(self, using: list[str], method_calls: list[list]) -> Any:
+		"""Make a request to the JMAP server."""
+
 		self._validate_capabilities(using)
 		self._validate_method_calls(method_calls)
 
@@ -124,37 +162,9 @@ class JMAPClient:
 
 		return response.json()
 
-	def get_mailboxes(self) -> list[dict]:
-		mailboxes = []
-
-		for mailbox in self.mailboxes[self.account_id]:
-			mailboxes.append(
-				{
-					"id": mailbox["id"],
-					"name": mailbox["name"],
-					"role": mailbox["role"],
-					"totalEmails": mailbox["totalEmails"],
-					"unreadEmails": mailbox["unreadEmails"],
-					"totalThreads": mailbox["totalThreads"],
-					"unreadThreads": mailbox["unreadThreads"],
-				}
-			)
-
-		return mailboxes
-
-	def get_mailbox_id(self, role: str | None = None, name: str | None = None) -> str | None:
-		for mailbox in self.mailboxes[self.account_id]:
-			if role and mailbox.get("role").lower() == role.lower():
-				return mailbox["id"]
-			if name and mailbox.get("name").lower() == name.lower():
-				return mailbox["id"]
-
-	def get_mailbox_name(self, mailbox_id: str) -> str | None:
-		for mailbox in self.mailboxes[self.account_id]:
-			if mailbox["id"] == mailbox_id:
-				return mailbox["name"]
-
 	def query_emails(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
+		"""Query emails based on the provided filter."""
+
 		response = self._make_request(
 			using=["urn:ietf:params:jmap:mail"],
 			method_calls=[
@@ -176,6 +186,8 @@ class JMAPClient:
 		return response["methodResponses"][0][1]
 
 	def get_threads(self, thread_ids: list[str]) -> dict[str, list]:
+		"""Returns the threads for the provided thread IDs."""
+
 		properties = ["emailIds"]
 		response = self._make_request(
 			using=["urn:ietf:params:jmap:mail"],
@@ -197,6 +209,8 @@ class JMAPClient:
 		return {}
 
 	def get_emails(self, email_ids: list[str]) -> list[dict]:
+		"""Returns the emails for the provided email IDs."""
+
 		properties = [
 			"id",
 			"blobId",
@@ -245,6 +259,8 @@ class JMAPClient:
 		return results
 
 	def download_blob(self, blob_id: str, name: str | None = None) -> bytes:
+		"""Returns the blob data for the provided blob ID."""
+
 		name = name or "blob"
 		download_url = self.download_url.format(
 			accountId=self.account_id, blobId=blob_id, name=name, type="application/octet-stream"
@@ -255,6 +271,8 @@ class JMAPClient:
 		return response.content
 
 	def move_emails(self, email_ids: list[str], target_mailbox_id: str) -> None:
+		"""Move emails to the target mailbox."""
+
 		self._make_request(
 			using=["urn:ietf:params:jmap:mail"],
 			method_calls=[
@@ -272,6 +290,8 @@ class JMAPClient:
 		)
 
 	def update_emails_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
+		"""Update email keywords."""
+
 		self._make_request(
 			using=["urn:ietf:params:jmap:mail"],
 			method_calls=[
@@ -289,64 +309,11 @@ class JMAPClient:
 			],
 		)
 
-	def get_query_state(self, mailbox_id: str = None) -> str:
-		filters = {}
-		if mailbox_id:
-			filters["inMailbox"] = mailbox_id
-
-		response = self._make_request(
-			using=["urn:ietf:params:jmap:mail"],
-			method_calls=[
-				[
-					"Email/query",
-					{
-						"accountId": self.account_id,
-						"filter": filters or None,
-						"sort": [{"property": "receivedAt", "isAscending": False}],
-						"limit": 0,
-					},
-					"0",
-				]
-			],
-		)
-		return response["methodResponses"][0][1]["queryState"]
-
-	def watch_for_new_emails(self, str, mailbox_id: str = None, interval: int = 5) -> None:
-		last_state = self.get_query_state(mailbox_id)
-
-		while True:
-			print(f"⏳ Waiting for {interval} seconds before checking for new emails...")
-			time.sleep(interval)
-			print("⏳ Checking for new emails...")
-
-			response = self._make_request(
-				using=["urn:ietf:params:jmap:mail"],
-				method_calls=[
-					[
-						"Email/queryChanges",
-						{
-							"accountId": self.account_id,
-							"filter": {"inMailbox": mailbox_id} if mailbox_id else None,
-							"sinceQueryState": last_state,
-						},
-						"0",
-					]
-				],
-			)
-
-			changes = response["methodResponses"][0][1]
-			added_ids = changes.get("added", [])
-			last_state = changes["newQueryState"]
-
-			if added_ids:
-				email_ids = [entry["id"] for entry in added_ids]
-				emails = self.get_emails(email_ids)
-				for email in emails:
-					print(f"📥 New: {email['subject']} — {email['receivedAt']}")
-
 
 @redis_cache(ttl=300)
 def get_jmap_client(account: str) -> "JMAPClient":
+	"""Returns a JMAP client for the given account."""
+
 	account = frappe.get_doc("Mail Account", account)
 	cluster = get_cluster_for_tenant(account.tenant)
 
@@ -357,3 +324,42 @@ def get_jmap_client(account: str) -> "JMAPClient":
 	client = JMAPClient(host, account.email, account.get_password())
 
 	return client
+
+
+def get_mailboxes(account: str) -> list[dict]:
+	"""Returns the mailboxes for the given account."""
+
+	def generator() -> list[dict]:
+		client = get_jmap_client(account)
+
+		mailboxes = []
+		for mailbox in client.mailboxes[client.account_id]:
+			mailboxes.append(
+				{
+					"id": mailbox["id"],
+					"name": mailbox["name"],
+					"role": mailbox["role"],
+				}
+			)
+
+		return mailboxes
+
+	return frappe.cache.hget("jmap:mailboxes", account, generator)
+
+
+def get_mailbox_id(account: str, role: str | None = None, name: str | None = None) -> str | None:
+	"""Returns the mailbox ID for the given role or name."""
+
+	for mailbox in get_mailboxes(account):
+		if (role and mailbox.get("role").lower() == role.lower()) or (
+			name and mailbox.get("name").lower() == name.lower()
+		):
+			return mailbox["id"]
+
+
+def get_mailbox_name(account: str, id: str | None = None, role: str | None = None) -> str | None:
+	"""Returns the mailbox name for the given ID or role."""
+
+	for mailbox in get_mailboxes(account):
+		if (id and mailbox.get("id") == id) or (role and mailbox.get("role").lower() == role.lower()):
+			return mailbox["name"]
