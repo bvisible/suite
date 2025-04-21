@@ -35,6 +35,7 @@
   "sender_name",
   "sender_email",
   "in_reply_to",
+  "mailbox_id",
   "thread_id",
   "seen",
   "section_break_sfis",
@@ -399,13 +400,19 @@
    "label": "Email ID",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "mailbox_id",
+   "fieldtype": "Data",
+   "label": "Mailbox ID",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-21 15:04:48.719032",
+ "modified": "2025-04-21 16:05:35.475587",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",

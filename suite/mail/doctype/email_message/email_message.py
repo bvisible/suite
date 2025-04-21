@@ -11,7 +11,7 @@ from frappe.model.document import Document
 from frappe.utils import cint, time_diff_in_seconds
 from uuid_utils import uuid7
 
-from mail.jmap import get_jmap_client
+from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -204,14 +204,14 @@ class EmailMessage(Document):
 		if not email_ids:
 			return
 
-		client = get_jmap_client(account)
-		target_mailbox_id = mailbox_id or client.get_mailbox_id(mailbox_role, mailbox_name)
+		target_mailbox_id = mailbox_id or get_mailbox_id(account, mailbox_role, mailbox_name)
 
 		if not target_mailbox_id:
 			frappe.throw(_("Mailbox not found."))
 
+		client = get_jmap_client(account)
 		client.move_emails(email_ids, target_mailbox_id)
-		target_mailbox_name = mailbox_name or client.get_mailbox_name(target_mailbox_id)
+		target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
 		frappe.db.set_value("Email Message", filters, "folder", target_mailbox_name)
 
 	@staticmethod
@@ -371,12 +371,11 @@ def split_into_batches(lst: list, size: int) -> list[list]:
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":
 	"""Creates an EmailMessage from the email data."""
 
-	client = get_jmap_client(account)
-
 	email_message: "EmailMessage" = frappe.new_doc("Email Message")
 	email_message._id = email["id"]
 	email_message.account = account
-	email_message.folder = client.get_mailbox_name(list(email["mailboxIds"].keys())[0])
+	email_message.mailbox_id = list(email["mailboxIds"].keys())[0]
+	email_message.folder = get_mailbox_name(account, email_message.mailbox_id)
 	email_message.subject = email["subject"]
 	email_message.sent_at = parse_iso_datetime(email["sentAt"])
 	email_message.received_at = parse_iso_datetime(email["receivedAt"])
