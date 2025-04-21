@@ -3,29 +3,40 @@
 
 frappe.ui.form.on('Email Message', {
 	refresh(frm) {
-		frm.trigger('add_actions')
+		if (!frm.doc.__islocal) {
+			frm.trigger('add_actions')
+			frm.trigger('add_move_buttons')
+		}
 	},
 
 	add_actions(frm) {
-		if (frm.doc.has_attachment) {
-			frm.add_custom_button(
-				__('Load Attachments'),
-				() => {
-					frm.trigger('load_attachments')
-				},
-				__('Actions'),
-			)
+		const add_button = (label, trigger) => {
+			frm.add_custom_button(__(label), () => frm.trigger(trigger), __('Actions'))
 		}
 
-		if (!frm.doc.message) {
-			frm.add_custom_button(
-				__('Load MIME Message'),
-				() => {
-					frm.trigger('load_mime_message')
-				},
-				__('Actions'),
-			)
-		}
+		if (frm.doc.has_attachment) add_button('Load Attachments', 'load_attachments')
+		if (!frm.doc.message) add_button('Load MIME Message', 'load_mime_message')
+	},
+
+	add_move_buttons(frm) {
+		frappe.call({
+			method: 'mail.jmap.get_mailboxes_for_account',
+			args: { account: frm.doc.account },
+			callback: ({ message: mailboxes = [] }) => {
+				const roles = Object.fromEntries(mailboxes.map((m) => [m.id, m.role]))
+				const current_role = roles[frm.doc.mailbox_id]
+
+				const add_move_button = (label, target) => {
+					frm.add_custom_button(__(label), () => frm.events.move_to_mailbox(frm, target))
+				}
+
+				if (current_role !== 'trash') add_move_button('Move to Trash', 'trash')
+				if (current_role !== 'junk' && current_role !== 'sent')
+					add_move_button('Move to Junk', 'junk')
+				if (['trash', 'junk'].includes(current_role))
+					add_move_button('Move to Inbox', 'inbox')
+			},
+		})
 	},
 
 	load_attachments(frm) {
@@ -48,6 +59,23 @@ frappe.ui.form.on('Email Message', {
 			method: 'get_mime_message',
 			freeze: true,
 			freeze_message: __('Loading MIME Message...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	move_to_mailbox(frm, mailbox_role) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'move_to_mailbox',
+			freeze: true,
+			freeze_message: __('Moving to Mailbox...'),
+			args: {
+				mailbox_role: mailbox_role,
+			},
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()

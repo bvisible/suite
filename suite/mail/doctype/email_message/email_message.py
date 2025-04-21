@@ -16,6 +16,7 @@ from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
 from mail.utils.user import is_account_owner, is_system_manager
+from mail.utils.validation import validate_permission_for_account
 
 BATCH_SIZE = 100
 BLOB_CACHE_TTL = 3600
@@ -125,21 +126,13 @@ class EmailMessage(Document):
 		return self.parsed_message.get_authentication_results()
 
 	@staticmethod
-	def _validate_permission(account: str) -> None:
-		"""Validate if the user has permission to access the account."""
-
-		user = frappe.session.user
-		if not is_system_manager(user) and account != get_account_for_user(user):
-			frappe.throw(_("You do not have permission to access this resource."), frappe.PermissionError)
-
-	@staticmethod
 	def _mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
 		"""Mark emails as seen or unseen."""
 
 		if not account or not message_ids:
 			frappe.throw(_("Account and message IDs are required."))
 
-		EmailMessage._validate_permission(account)
+		validate_permission_for_account(account)
 
 		email_id_keywords_map = {}
 		message_id_keywords_map = {}
@@ -168,7 +161,7 @@ class EmailMessage(Document):
 		if not account or not thread_id:
 			frappe.throw(_("Account and thread ID are required."))
 
-		EmailMessage._validate_permission(account)
+		validate_permission_for_account(account)
 
 		return frappe.db.get_all("Email Message", {"account": account, "thread_id": thread_id}, pluck="name")
 
@@ -196,7 +189,7 @@ class EmailMessage(Document):
 		if not account or not message_ids or not (mailbox_id or mailbox_role or mailbox_name):
 			frappe.throw(_("Account, message IDs, and mailbox ID/role/name are required."))
 
-		EmailMessage._validate_permission(account)
+		validate_permission_for_account(account)
 
 		filters = {"account": account, "name": ["in", message_ids]}
 		email_ids = frappe.db.get_all("Email Message", filters, pluck="_id")
@@ -212,7 +205,9 @@ class EmailMessage(Document):
 		client = get_jmap_client(account)
 		client.move_emails(email_ids, target_mailbox_id)
 		target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
-		frappe.db.set_value("Email Message", filters, "folder", target_mailbox_name)
+		frappe.db.set_value(
+			"Email Message", filters, {"folder": target_mailbox_name, "mailbox_id": target_mailbox_id}
+		)
 
 	@staticmethod
 	def mark_emails_as_seen(account: str, message_ids: list[str]) -> None:
@@ -233,7 +228,7 @@ class EmailMessage(Document):
 		if not account or not blob_id:
 			frappe.throw(_("Account and blob ID are required."))
 
-		EmailMessage._validate_permission(account)
+		validate_permission_for_account(account)
 
 		cache_key = generate_blob_cache_key(account, blob_id)
 		if content := frappe.cache.get_value(cache_key):
@@ -289,6 +284,7 @@ class EmailMessage(Document):
 		"""Move the email message to a specified folder."""
 
 		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role, mailbox_name)
+		self.load_from_db()
 
 	@frappe.whitelist()
 	def mark_as_seen(self) -> None:
