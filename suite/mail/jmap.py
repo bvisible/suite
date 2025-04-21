@@ -207,7 +207,6 @@ class JMAPClient:
 			"receivedAt",
 			"sentAt",
 			"hasAttachment",
-			"preview",
 			"subject",
 			"from",
 			"to",
@@ -272,9 +271,7 @@ class JMAPClient:
 			],
 		)
 
-	def update_emails_keyword(
-		self, email_ids: list[str], keyword: Literal["$seen", "$junk"], value: bool
-	) -> None:
+	def update_emails_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
 		self._make_request(
 			using=["urn:ietf:params:jmap:mail"],
 			method_calls=[
@@ -282,7 +279,10 @@ class JMAPClient:
 					"Email/set",
 					{
 						"accountId": self.account_id,
-						"update": {email_id: {"keywords": {keyword: value}} for email_id in email_ids},
+						"update": {
+							email_id: {"keywords": keywords}
+							for email_id, keywords in email_id_keywords_map.items()
+						},
 					},
 					"0",
 				]
