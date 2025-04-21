@@ -158,6 +158,7 @@ permission_query_conditions = {
 	"Mail Group Member": "mail.mail.doctype.mail_group_member.mail_group_member.get_permission_query_condition",
 	"Mail Alias": "mail.mail.doctype.mail_alias.mail_alias.get_permission_query_condition",
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.get_permission_query_condition",
+	"Email Message": "mail.mail.doctype.email_message.email_message.get_permission_query_condition",
 	"Outgoing Mail": "mail.mail.doctype.outgoing_mail.outgoing_mail.get_permission_query_condition",
 	"Incoming Mail": "mail.mail.doctype.incoming_mail.incoming_mail.get_permission_query_condition",
 }
@@ -173,6 +174,7 @@ has_permission = {
 	"Mail Group Member": "mail.mail.doctype.mail_group_member.mail_group_member.has_permission",
 	"Mail Alias": "mail.mail.doctype.mail_alias.mail_alias.has_permission",
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.has_permission",
+	"Email Message": "mail.mail.doctype.email_message.email_message.has_permission",
 	"Outgoing Mail": "mail.mail.doctype.outgoing_mail.outgoing_mail.has_permission",
 	"Incoming Mail": "mail.mail.doctype.incoming_mail.incoming_mail.has_permission",
 }

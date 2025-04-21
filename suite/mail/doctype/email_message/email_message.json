@@ -15,8 +15,6 @@
   "reply_to",
   "recipients_section",
   "recipients",
-  "section_break_qbxu",
-  "preview",
   "section_break_yjrj",
   "html_body",
   "text_body",
@@ -25,6 +23,7 @@
   "more_info_tab",
   "column_break_ti7y",
   "message_id",
+  "_id",
   "blob_id",
   "size",
   "has_attachment",
@@ -68,12 +67,14 @@
    "fieldname": "subject",
    "fieldtype": "Small Text",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Subject",
    "read_only": 1
   },
   {
    "fieldname": "account",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Account",
    "options": "Mail Account",
@@ -83,6 +84,7 @@
   {
    "fieldname": "thread_id",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Thread ID",
    "read_only": 1,
    "search_index": 1
@@ -102,13 +104,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "preview",
-   "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "label": "Preview",
-   "read_only": 1
-  },
-  {
    "default": "0",
    "fieldname": "has_attachment",
    "fieldtype": "Check",
@@ -119,6 +114,7 @@
    "fieldname": "folder",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Folder",
    "read_only": 1,
    "search_index": 1
@@ -144,18 +140,23 @@
   {
    "fieldname": "message_id",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Message ID",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "in_reply_to",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "In Reply To (Message ID)",
    "read_only": 1
   },
   {
    "fieldname": "from_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "From Name",
    "read_only": 1
   },
@@ -163,28 +164,29 @@
    "fieldname": "from_email",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "From Email",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "sender_name",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Sender Name",
    "read_only": 1
   },
   {
    "fieldname": "sender_email",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Sender Email",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_kiog",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_qbxu",
-   "fieldtype": "Section Break"
   },
   {
    "collapsible": 1,
@@ -389,13 +391,21 @@
   {
    "fieldname": "column_break_ntra",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Email ID",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-21 09:59:30.054638",
+ "modified": "2025-04-21 15:04:48.719032",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
@@ -412,10 +422,24 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "role": "Mail Admin",
+   "select": 1
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mail User",
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "subject"
 }
