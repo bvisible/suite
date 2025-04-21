@@ -6,6 +6,7 @@ frappe.ui.form.on('Email Message', {
 		if (!frm.doc.__islocal) {
 			frm.trigger('add_actions')
 			frm.trigger('add_move_buttons')
+			frm.trigger('add_mark_buttons')
 		}
 	},
 
@@ -37,6 +38,14 @@ frappe.ui.form.on('Email Message', {
 					add_move_button('Move to Inbox', 'inbox')
 			},
 		})
+	},
+
+	add_mark_buttons(frm) {
+		if (frm.doc.seen) {
+			frm.add_custom_button(__('Mark as Unread'), () => frm.trigger('mark_as_unseen'))
+		} else {
+			frm.add_custom_button(__('Mark as Read'), () => frm.trigger('mark_as_seen'))
+		}
 	},
 
 	load_attachments(frm) {
@@ -76,6 +85,34 @@ frappe.ui.form.on('Email Message', {
 			args: {
 				mailbox_role: mailbox_role,
 			},
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	mark_as_unseen(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'mark_as_unseen',
+			freeze: true,
+			freeze_message: __('Marking as Unread...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	mark_as_seen(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'mark_as_seen',
+			freeze: true,
+			freeze_message: __('Marking as Read...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
