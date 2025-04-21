@@ -1,6 +1,5 @@
-import time
 from functools import cached_property
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import urljoin
 
 import frappe
@@ -10,6 +9,7 @@ from frappe.utils import create_batch
 from frappe.utils.caching import redis_cache
 
 from mail.utils.cache import get_cluster_for_tenant
+from mail.utils.validation import validate_permission_for_account
 
 
 class JMAPClient:
@@ -363,3 +363,27 @@ def get_mailbox_name(account: str, id: str | None = None, role: str | None = Non
 	for mailbox in get_mailboxes(account):
 		if (id and mailbox.get("id") == id) or (role and mailbox.get("role").lower() == role.lower()):
 			return mailbox["name"]
+
+
+@frappe.whitelist()
+def get_mailboxes_for_account(account: str) -> list[dict]:
+	"""Returns the mailboxes for the given account."""
+
+	validate_permission_for_account(account)
+	return get_mailboxes(account)
+
+
+@frappe.whitelist()
+def get_mailbox_id_for_account(account: str, role: str | None = None, name: str | None = None) -> str | None:
+	"""Returns the mailbox ID for the given role or name."""
+
+	validate_permission_for_account(account)
+	return get_mailbox_id(account, role, name)
+
+
+@frappe.whitelist()
+def get_mailbox_name_for_account(account: str, id: str | None = None, role: str | None = None) -> str | None:
+	"""Returns the mailbox name for the given ID or role."""
+
+	validate_permission_for_account(account)
+	return get_mailbox_name(account, id, role)
