@@ -203,7 +203,7 @@ export const useSnapping = (target, parent) => {
 		return { offsetLeft, offsetTop }
 	}
 
-	const getSnapMovement = () => {
+	const getSnapDelta = () => {
 		if (!target.value) return
 
 		const { offsetX, offsetY } = getCenterOffsets()
@@ -220,6 +220,6 @@ export const useSnapping = (target, parent) => {
 		visibilityMap,
 		disableMovement: hasSnapped,
 		updateGuides,
-		getSnapMovement,
+		getSnapDelta,
 	}
 }

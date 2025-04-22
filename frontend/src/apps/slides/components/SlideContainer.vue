@@ -72,9 +72,9 @@ const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 
-const { isDragging, dragMovement, startDragging } = useDragAndDrop()
+const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 const { isResizing, resizeDiffs, updateResizers } = useResizer()
-const { visibilityMap, updateGuides, disableMovement, getSnapMovement } = useSnapping(
+const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnapping(
 	selectionBoxRef,
 	slideRef,
 )
@@ -265,27 +265,31 @@ const moveElement = (movement) => {
 	bounds.top += movement.y / scale.value
 }
 
+const handlePositionChange = (delta) => {
+	updateGuides()
+
+	let totalDelta = {
+		x: 0,
+		y: 0,
+	}
+
+	if (!disableMovement.value) {
+		totalDelta.x += delta.x
+		totalDelta.y += delta.y
+
+		const snapDelta = getSnapDelta()
+
+		totalDelta.x += snapDelta.x
+		totalDelta.y += snapDelta.y
+
+		moveElement(totalDelta)
+	}
+}
+
 watch(
-	() => dragMovement.value,
-	(movement) => {
-		updateGuides()
-
-		let totalMovement = {
-			x: 0,
-			y: 0,
-		}
-
-		if (!disableMovement.value) {
-			totalMovement.x += movement.x
-			totalMovement.y += movement.y
-
-			const snapMovement = getSnapMovement()
-
-			totalMovement.x += snapMovement.x
-			totalMovement.y += snapMovement.y
-
-			moveElement(totalMovement)
-		}
+	() => positionDelta.value,
+	(delta) => {
+		handlePositionChange(delta)
 	},
 )
 
