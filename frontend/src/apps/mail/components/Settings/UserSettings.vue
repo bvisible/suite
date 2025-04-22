@@ -1,21 +1,33 @@
 <template>
-	<h1 class="mb-8 font-semibold">{{ __('Profile') }}</h1>
-	<div class="flex w-full items-center justify-start gap-x-4">
+	<h1 class="font-semibold">{{ __('Profile') }}</h1>
+
+	<div class="flex w-full items-center">
 		<Avatar
 			:image="user.data?.user_image"
 			:label="user.data?.full_name"
 			size="3xl"
-			class="h-20 w-20"
+			class="h-16 w-16"
 		/>
-		<div class="flex flex-col">
+		<div class="mx-4 flex flex-col">
 			<span class="text-xl font-semibold">{{ user.data?.full_name }}</span>
 			<span class="text-base text-gray-700">{{ user.data?.email }}</span>
 		</div>
+		<Button :label="__('Change Photo')" class="ml-auto" />
 	</div>
+	<FormControl type="data" :label="__('First Name')" />
+	<FormControl type="data" :label="__('Last Name')" />
+	<Button :label="__('Save Changes')" variant="solid" :disabled="true" />
+	<Button :label="__('Change Password')" @click="showChangePassword = true" />
+
+	<ChangePasswordModal v-model="showChangePassword" />
 </template>
 <script setup lang="ts">
-import { inject } from 'vue'
-import { Avatar } from 'frappe-ui'
+import { inject, ref } from 'vue'
+import { Avatar, Button, FormControl } from 'frappe-ui'
+
+import ChangePasswordModal from '@/components/Modals/ChangePasswordModal.vue'
 
 const user = inject('$user')
+
+const showChangePassword = ref(false)
 </script>

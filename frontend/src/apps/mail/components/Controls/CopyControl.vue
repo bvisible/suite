@@ -2,7 +2,7 @@
 	<div class="block pt-2 text-sm">
 		<span class="mb-2 block leading-4 text-gray-700">{{ props.label }}</span>
 		<button
-			class="flex w-full items-center rounded-lg border-2 bg-gray-100 p-2"
+			class="flex w-full items-center rounded-lg border-2 bg-gray-100 p-1"
 			@click="copyToClipBoard(props.value)"
 		>
 			<span class="scrollbar-none mr-1.5 overflow-x-scroll text-nowrap text-gray-800">

@@ -14,7 +14,7 @@
 			type="password"
 			placeholder="••••••••"
 			name="password"
-			autocomplete="current-password"
+			autocomplete="new-password"
 			required
 		/>
 		<ErrorMessage :message="resetPassword.error" />

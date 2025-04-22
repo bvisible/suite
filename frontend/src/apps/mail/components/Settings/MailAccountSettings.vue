@@ -1,5 +1,5 @@
 <template>
-	<h1 class="mb-8 font-semibold">Account</h1>
+	<h1 class="font-semibold">Account</h1>
 	<div class="mb-3 flex items-center">
 		<span class="text-base font-medium leading-normal text-gray-800">Email Address</span>
 		<LinkControl
