@@ -10,12 +10,16 @@
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox
 					ref="selectionBox"
-					:bounds="bounds"
+					:selectionBounds="selectionBounds"
 					@mousedown="(e) => handleMouseDown(e)"
 					@updateFocus="updateFocus"
 				/>
 
-				<Guides v-if="isDragging" :visibilityMap="visibilityMap" :bounds="bounds" />
+				<Guides
+					v-if="isDragging"
+					:visibilityMap="visibilityMap"
+					:selectionBounds="selectionBounds"
+				/>
 
 				<SlideElement
 					v-for="element in slide.elements"
@@ -73,7 +77,7 @@ const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 
 const { isDragging, positionDelta, startDragging } = useDragAndDrop()
-const { isResizing, resizeDiffs, updateResizers } = useResizer()
+const { isResizing, dimensionDelta, updateResizers } = useResizer()
 const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnapping(
 	selectionBoxRef,
 	slideRef,
@@ -149,8 +153,8 @@ useResizeObserver(activeDiv, (entries) => {
 	// case:
 	// when element dimensions are changed not by resizer
 	// but by other updates on properties - font size, line height, letter spacing etc.
-	bounds.width = width
-	bounds.height = height
+	selectionBounds.width = width
+	selectionBounds.height = height
 })
 
 const togglePanZoom = () => {
@@ -194,7 +198,7 @@ defineExpose({
 	togglePanZoom,
 })
 
-const bounds = reactive({
+const selectionBounds = reactive({
 	left: 0,
 	top: 0,
 	width: 0,
@@ -260,17 +264,21 @@ const getElementOutline = (element) => {
 	}
 }
 
-const moveElement = (movement) => {
-	bounds.left += movement.x / scale.value
-	bounds.top += movement.y / scale.value
-}
-
 const getTotalPositionDelta = (delta) => {
 	const snapDelta = getSnapDelta()
 
 	return {
-		x: delta.x + snapDelta.x,
-		y: delta.y + snapDelta.y,
+		left: delta.x + snapDelta.x,
+		top: delta.y + snapDelta.y,
+	}
+}
+
+const updateSelectionBounds = (delta) => {
+	selectionBounds.left += delta.left / scale.value
+	selectionBounds.top += delta.top / scale.value
+
+	if (delta.width) {
+		selectionBounds.width += delta.width / scale.value
 	}
 }
 
@@ -279,9 +287,29 @@ const handlePositionChange = (delta) => {
 
 	if (!disableMovement.value) {
 		const totalDelta = getTotalPositionDelta(delta)
-
-		moveElement(totalDelta)
+		updateSelectionBounds(totalDelta)
 	}
+}
+
+const updateElementWidth = (deltaWidth) => {
+	if (activeElement.value.width) {
+		activeElement.value.width += deltaWidth
+	} else {
+		const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
+		const width = elementDiv.getBoundingClientRect().width
+
+		activeElement.value.width = width + deltaWidth
+	}
+}
+
+const handleDimensionChange = (delta) => {
+	const ratio = selectionBounds.width / selectionBounds.height
+
+	delta.top *= ratio
+
+	updateSelectionBounds(delta)
+
+	updateElementWidth(delta.width)
 }
 
 watch(
@@ -292,20 +320,9 @@ watch(
 )
 
 watch(
-	() => resizeDiffs.value,
-	(diffs) => {
-		const ratio = bounds.width / bounds.height
-
-		bounds.width += diffs.width / scale.value
-		bounds.left += diffs.left / scale.value
-		bounds.top += diffs.top / (ratio * scale.value)
-
-		if (activeElement.value.width) activeElement.value.width += diffs.width / scale.value
-		else {
-			const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
-			const width = elementDiv.getBoundingClientRect().width
-			activeElement.value.width = width + diffs.width / scale.value
-		}
+	() => dimensionDelta.value,
+	(delta) => {
+		handleDimensionChange(delta)
 	},
 )
 </script>

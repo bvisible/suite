@@ -15,7 +15,7 @@ export const useResizer = () => {
 	let prevX = 0
 	let prevY = 0
 
-	const resizeDiffs = ref({
+	const dimensionDelta = ref({
 		width: 0,
 		height: 0,
 		left: 0,
@@ -68,7 +68,7 @@ export const useResizer = () => {
 				break
 		}
 
-		resizeDiffs.value = {
+		dimensionDelta.value = {
 			width: diffX,
 			left: diffLeft,
 			top: diffTop,
@@ -96,7 +96,7 @@ export const useResizer = () => {
 		// find out width of text content
 		const textWidth = range.getBoundingClientRect().width
 		// auto resize width of TextElement to fit content with some padding
-		resizeDiffs.value = {
+		dimensionDelta.value = {
 			width: textWidth - originalWidth + 5,
 			left: 0,
 			top: 0,
@@ -134,5 +134,5 @@ export const useResizer = () => {
 		})
 	}
 
-	return { isResizing, resizeDiffs, updateResizers }
+	return { isResizing, dimensionDelta, updateResizers }
 }

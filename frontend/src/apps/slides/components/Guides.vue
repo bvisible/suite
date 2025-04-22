@@ -13,7 +13,7 @@ import { slideBounds } from '@/stores/slide'
 import { pairElementId } from '@/stores/element'
 
 const props = defineProps({
-	bounds: {
+	selectionBounds: {
 		type: Object,
 		default: () => ({
 			left: 0,
@@ -68,7 +68,7 @@ const getElementBounds = (div) => {
 const getVerticalStyles = (direction) => {
 	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
 
-	const activeBounds = props.bounds
+	const activeBounds = props.selectionBounds
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const left =
@@ -94,7 +94,7 @@ const getVerticalStyles = (direction) => {
 const getHorizontalStyles = (direction) => {
 	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
 
-	const activeBounds = props.bounds
+	const activeBounds = props.selectionBounds
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const top =
