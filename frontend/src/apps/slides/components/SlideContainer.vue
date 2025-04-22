@@ -329,15 +329,4 @@ watch(
 
 <style src="../assets/styles/resizer.css"></style>
 
-<style>
-.slide::after {
-	content: '';
-	display: var(--showEdgeOverlay, none);
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	background: transparent;
-	pointer-events: none;
-	box-shadow: 0 0 5000px 500px rgba(255, 255, 255, 0.6);
-}
-</style>
+<style src="../assets/styles/overlay.css"></style>
