@@ -18,7 +18,6 @@ from mail.utils.email_parser import EmailParser
 from mail.utils.user import is_account_owner, is_system_manager
 from mail.utils.validation import validate_permission_for_account
 
-BATCH_SIZE = 100
 BLOB_CACHE_TTL = 3600
 
 
@@ -348,26 +347,19 @@ def store_blob_in_cache(account: str, blob_id: str, content: bytes) -> None:
 	frappe.cache.set_value(cache_key, content, expires_in_sec=BLOB_CACHE_TTL)
 
 
-def fetch_emails(account: str) -> None:
+def fetch_emails(account: str, limit: int = 1000) -> None:
 	"""Fetch emails from the server and create EmailMessage documents."""
 
 	client = get_jmap_client(account)
 
 	try:
-		result = client.query_emails(filter={}, limit=1000)
+		result = client.query_emails(filter={}, limit=limit)
 		if email_ids := result.get("ids", []):
-			for ids_batch in split_into_batches(email_ids, BATCH_SIZE):
-				for email_data in client.get_emails(email_ids=ids_batch):
-					create_email_message(account, email_data)
-				frappe.db.commit()
+			for email_data in client.get_emails(email_ids):
+				create_email_message(account, email_data)
+			frappe.db.commit()
 	except Exception:
 		frappe.log_error(title=_("Failed to fetch emails"), message=frappe.get_traceback(with_context=False))
-
-
-def split_into_batches(lst: list, size: int) -> list[list]:
-	"""Returns a list of lists, each with a maximum size."""
-
-	return [lst[i : i + size] for i in range(0, len(lst), size)]
 
 
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":
