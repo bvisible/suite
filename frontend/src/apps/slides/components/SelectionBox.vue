@@ -32,7 +32,7 @@ const slideContainerDiv = inject('slideContainerDiv')
 
 const selectedRef = useTemplateRef('selected')
 
-const bounds = defineModel('bounds', {
+const bounds = defineModel('selectionBounds', {
 	type: Object,
 	default: {
 		left: 0,
