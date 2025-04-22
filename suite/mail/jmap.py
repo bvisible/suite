@@ -305,6 +305,24 @@ class JMAPClient:
 				],
 			)
 
+	def destroy_emails(self, email_ids: list[str]) -> None:
+		"""Destroy emails."""
+
+		for ids_batch in create_batch(email_ids, self.max_objects_in_set):
+			self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Email/set",
+						{
+							"accountId": self.account_id,
+							"destroy": ids_batch,
+						},
+						"0",
+					]
+				],
+			)
+
 	def update_emails_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
 		"""Update email keywords."""
 

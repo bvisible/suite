@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Email Message', {
 	refresh(frm) {
-		if (!frm.doc.__islocal) {
+		if (!frm.doc.__islocal && !frm.doc.destroyed) {
 			frm.trigger('add_actions')
 			frm.trigger('add_move_buttons')
 			frm.trigger('add_mark_buttons')
