@@ -1,0 +1,72 @@
+<template>
+	<Dialog v-model="show" :options="{ title: __('Edit Photo'), size: 'sm' }">
+		<template #body-content>
+			<FileUploader
+				class="mb-2 w-full"
+				:validate-file="validateFile"
+				@success="(file) => setProfilePhoto.submit({ image: file.file_url })"
+			>
+				<template #default="{ error, uploading, openFileSelector }">
+					<div class="flex flex-col items-center space-y-4">
+						<div
+							class="flex h-64 w-64 items-center justify-center rounded-full bg-gray-100"
+						>
+							<img
+								v-if="user.data?.user_image"
+								:src="user.data?.user_image"
+								class="h-full w-full rounded-full object-cover"
+							/>
+							<User v-else class="h-40 w-40 stroke-1 text-gray-400" />
+						</div>
+						<ErrorMessage :message="error" />
+						<Button
+							:label="__('Upload New Photo')"
+							variant="solid"
+							class="w-full"
+							:disabled="uploading || setProfilePhoto.loading"
+							@click="openFileSelector"
+						/>
+						<Button
+							v-if="user.data?.user_image"
+							:label="__('Remove Current Photo')"
+							class="w-full"
+							:disabled="uploading || setProfilePhoto.loading"
+							@click="() => setProfilePhoto.submit({ image: null })"
+						/>
+					</div>
+				</template>
+			</FileUploader>
+		</template>
+	</Dialog>
+</template>
+
+<script setup lang="ts">
+import { inject } from 'vue'
+import { User } from 'lucide-vue-next'
+import { Button, Dialog, ErrorMessage, FileUploader, createResource } from 'frappe-ui'
+
+import { raiseToast } from '@/utils'
+
+const show = defineModel<boolean>()
+
+const user = inject('$user')
+
+const validateFile = (file) => {
+	const extension = file.name.split('.').pop().toLowerCase()
+	if (!['png', 'jpg'].includes(extension)) return __('Only PNGs and JPGs are allowed.')
+}
+
+const setProfilePhoto = createResource({
+	url: 'frappe.client.set_value',
+	makeParams: (values: { image: string | null }) => ({
+		doctype: 'User',
+		name: user.data?.name,
+		fieldname: 'user_image',
+		value: values.image,
+	}),
+	onSuccess: () => {
+		raiseToast(__('Profile photo updated successfully.'))
+		user.reload()
+	},
+})
+</script>

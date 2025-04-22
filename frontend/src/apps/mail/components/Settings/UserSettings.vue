@@ -12,13 +12,14 @@
 			<span class="text-xl font-semibold">{{ user.data?.full_name }}</span>
 			<span class="text-base text-gray-700">{{ user.data?.email }}</span>
 		</div>
-		<Button :label="__('Change Photo')" class="ml-auto" />
+		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
 	</div>
 	<FormControl type="data" :label="__('First Name')" />
 	<FormControl type="data" :label="__('Last Name')" />
 	<Button :label="__('Save Changes')" variant="solid" :disabled="true" />
 	<Button :label="__('Change Password')" @click="showChangePassword = true" />
 
+	<EditPhotoModal v-model="showEditPhoto" />
 	<ChangePasswordModal v-model="showChangePassword" />
 </template>
 <script setup lang="ts">
@@ -26,8 +27,10 @@ import { inject, ref } from 'vue'
 import { Avatar, Button, FormControl } from 'frappe-ui'
 
 import ChangePasswordModal from '@/components/Modals/ChangePasswordModal.vue'
+import EditPhotoModal from '@/components/Modals/EditPhotoModal.vue'
 
 const user = inject('$user')
 
+const showEditPhoto = ref(false)
 const showChangePassword = ref(false)
 </script>
