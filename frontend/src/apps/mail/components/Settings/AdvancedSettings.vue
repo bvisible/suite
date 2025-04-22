@@ -1,20 +1,13 @@
 <template>
-	<div class="mb-4 flex items-center">
-		<h1 class="font-semibold">API Access</h1>
-		<Button
-			:label="__(user.data?.api_key ? 'Regenerate Secret' : 'Generate Keys')"
-			class="ml-auto"
-			@click="generateKeys.submit()"
-		/>
-	</div>
-
+	<h1 class="font-semibold">{{ __('API Access') }}</h1>
 	<CopyControl v-if="user.data?.api_key" :label="__('API Key')" :value="user.data?.api_key" />
-
-	<div v-else class="mt-2">
-		<p class="text-base">
-			{{ __(`You don't have an API key yet. Generate one to access the API.`) }}
-		</p>
-	</div>
+	<p v-else class="text-base">
+		{{ __(`You don't have an API key yet. Generate one to access the API.`) }}
+	</p>
+	<Button
+		:label="__(user.data?.api_key ? 'Regenerate Secret' : 'Generate Keys')"
+		@click="generateKeys.submit()"
+	/>
 
 	<Dialog v-model="showSecret" :options="{ title: __('API Access') }">
 		<template #body-content>
@@ -38,12 +31,8 @@ const apiSecret = ref('')
 
 const generateKeys = createResource({
 	url: 'frappe.core.doctype.user.user.generate_keys',
-	makeParams() {
-		return {
-			user: user.data?.name,
-		}
-	},
-	onSuccess(data) {
+	makeParams: () => ({ user: user.data?.name }),
+	onSuccess: (data) => {
 		if (!user.data?.api_key) user.reload()
 		apiSecret.value = data.api_secret
 		showSecret.value = true

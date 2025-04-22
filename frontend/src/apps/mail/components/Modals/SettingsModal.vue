@@ -1,8 +1,8 @@
 <template>
-	<Dialog v-model="show" :options="{ title: __('Settings'), size: '5xl' }">
+	<Dialog v-model="show" :options="{ title: __('Settings'), size: '3xl' }">
 		<template #body>
 			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
-				<div class="flex w-52 shrink-0 flex-col border-r bg-gray-50 p-4 py-3">
+				<div class="flex w-48 shrink-0 flex-col border-r bg-gray-50 p-4 py-3">
 					<h1 class="px-2 text-xl font-semibold leading-6">Settings</h1>
 					<div class="mt-3 space-y-1">
 						<button
@@ -21,7 +21,7 @@
 						</button>
 					</div>
 				</div>
-				<div class="flex flex-1 flex-col overflow-y-auto p-12">
+				<div class="flex flex-1 flex-col space-y-6 overflow-y-auto p-12">
 					<component :is="activeTab.component" v-if="activeTab" />
 				</div>
 				<Button
