@@ -265,22 +265,20 @@ const moveElement = (movement) => {
 	bounds.top += movement.y / scale.value
 }
 
+const getTotalPositionDelta = (delta) => {
+	const snapDelta = getSnapDelta()
+
+	return {
+		x: delta.x + snapDelta.x,
+		y: delta.y + snapDelta.y,
+	}
+}
+
 const handlePositionChange = (delta) => {
 	updateGuides()
 
-	let totalDelta = {
-		x: 0,
-		y: 0,
-	}
-
 	if (!disableMovement.value) {
-		totalDelta.x += delta.x
-		totalDelta.y += delta.y
-
-		const snapDelta = getSnapDelta()
-
-		totalDelta.x += snapDelta.x
-		totalDelta.y += snapDelta.y
+		const totalDelta = getTotalPositionDelta(delta)
 
 		moveElement(totalDelta)
 	}
