@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils import create_batch
 from frappe.utils.caching import redis_cache
 
+from mail.utils import batch_dict
 from mail.utils.cache import get_cluster_for_tenant
 from mail.utils.validation import validate_permission_for_account
 
@@ -42,6 +43,18 @@ class JMAPClient:
 		"""Returns the capabilities of the JMAP server."""
 
 		return self.__config["capabilities"]
+
+	@property
+	def max_objects_in_get(self) -> int:
+		"""Returns the maximum number of objects in a single get request."""
+
+		return self.capabilities["urn:ietf:params:jmap:core"]["maxObjectsInGet"]
+
+	@property
+	def max_objects_in_set(self) -> int:
+		"""Returns the maximum number of objects in a single set request."""
+
+		return self.capabilities["urn:ietf:params:jmap:core"]["maxObjectsInSet"]
 
 	@property
 	def accounts(self) -> dict:
@@ -188,25 +201,27 @@ class JMAPClient:
 	def get_threads(self, thread_ids: list[str]) -> dict[str, list]:
 		"""Returns the threads for the provided thread IDs."""
 
-		properties = ["emailIds"]
-		response = self._make_request(
-			using=["urn:ietf:params:jmap:mail"],
-			method_calls=[
-				[
-					"Thread/get",
-					{
-						"accountId": self.account_id,
-						"ids": thread_ids,
-						"properties": properties,
-					},
-					"0",
-				]
-			],
-		)
-		if data := response["methodResponses"][0][1]["list"]:
-			return {d["id"]: d["emailIds"] for d in data}
+		result = {}
+		for ids_batch in create_batch(thread_ids, self.max_objects_in_get):
+			response = self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Thread/get",
+						{
+							"accountId": self.account_id,
+							"ids": ids_batch,
+							"properties": ["emailIds"],
+						},
+						"0",
+					]
+				],
+			)
 
-		return {}
+			if threads := response["methodResponses"][0][1]["list"]:
+				result.update({thread["id"]: thread["emailIds"] for thread in threads})
+
+		return result
 
 	def get_emails(self, email_ids: list[str]) -> list[dict]:
 		"""Returns the emails for the provided email IDs."""
@@ -238,7 +253,7 @@ class JMAPClient:
 		]
 
 		results = []
-		for ids_batch in create_batch(email_ids, 100):
+		for ids_batch in create_batch(email_ids, self.max_objects_in_get):
 			response = self._make_request(
 				using=["urn:ietf:params:jmap:mail"],
 				method_calls=[
@@ -273,41 +288,42 @@ class JMAPClient:
 	def move_emails(self, email_ids: list[str], target_mailbox_id: str) -> None:
 		"""Move emails to the target mailbox."""
 
-		self._make_request(
-			using=["urn:ietf:params:jmap:mail"],
-			method_calls=[
-				[
-					"Email/set",
-					{
-						"accountId": self.account_id,
-						"update": {
-							email_id: {"mailboxIds": {target_mailbox_id: True}} for email_id in email_ids
+		for ids_batch in create_batch(email_ids, self.max_objects_in_set):
+			self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Email/set",
+						{
+							"accountId": self.account_id,
+							"update": {
+								email_id: {"mailboxIds": {target_mailbox_id: True}} for email_id in ids_batch
+							},
 						},
-					},
-					"0",
-				]
-			],
-		)
+						"0",
+					]
+				],
+			)
 
 	def update_emails_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
 		"""Update email keywords."""
 
-		self._make_request(
-			using=["urn:ietf:params:jmap:mail"],
-			method_calls=[
-				[
-					"Email/set",
-					{
-						"accountId": self.account_id,
-						"update": {
-							email_id: {"keywords": keywords}
-							for email_id, keywords in email_id_keywords_map.items()
+		for map_batch in batch_dict(email_id_keywords_map, self.max_objects_in_set):
+			self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Email/set",
+						{
+							"accountId": self.account_id,
+							"update": {
+								email_id: {"keywords": keywords} for email_id, keywords in map_batch.items()
+							},
 						},
-					},
-					"0",
-				]
-			],
-		)
+						"0",
+					]
+				],
+			)
 
 
 @redis_cache(ttl=300)
