@@ -6,7 +6,7 @@ export const useDragAndDrop = () => {
 	const prevX = ref(0)
 	const prevY = ref(0)
 
-	const dragMovement = ref({ x: 0, y: 0 })
+	const positionDelta = ref({ x: 0, y: 0 })
 
 	const startDragging = (e) => {
 		e.preventDefault()
@@ -28,7 +28,7 @@ export const useDragAndDrop = () => {
 			const dx = e.clientX - prevX.value
 			const dy = e.clientY - prevY.value
 
-			dragMovement.value = {
+			positionDelta.value = {
 				x: dx,
 				y: dy,
 			}
@@ -48,5 +48,5 @@ export const useDragAndDrop = () => {
 		window.removeEventListener('mouseup', stopDragging)
 	}
 
-	return { isDragging, dragMovement, startDragging }
+	return { isDragging, positionDelta, startDragging }
 }
