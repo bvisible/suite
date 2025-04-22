@@ -116,7 +116,7 @@
 						v-if="mail.body_html"
 						class="w-full"
 						license="GPLv3"
-						scrolling="yes"
+						:scrolling="true"
 						:src="getSrc(mail.body_html)"
 					/>
 

@@ -36,9 +36,10 @@
 </template>
 <script setup lang="ts">
 import { markRaw, ref } from 'vue'
-import { Mailbox, User } from 'lucide-vue-next'
+import { Code, Mailbox, User } from 'lucide-vue-next'
 import { Button, Dialog } from 'frappe-ui'
 
+import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
 import MailAccountSettings from '@/components/Settings/MailAccountSettings.vue'
 import UserSettings from '@/components/Settings/UserSettings.vue'
 
@@ -46,14 +47,19 @@ const show = defineModel()
 
 const tabs = [
 	{
-		label: 'User',
+		label: __('Profile'),
 		icon: User,
 		component: markRaw(UserSettings),
 	},
 	{
-		label: 'Mail Account',
+		label: __('Mail Account'),
 		icon: Mailbox,
 		component: markRaw(MailAccountSettings),
+	},
+	{
+		label: __('Advanced'),
+		icon: Code,
+		component: markRaw(AdvancedSettings),
 	},
 ]
 const activeTab = ref(tabs[0])
