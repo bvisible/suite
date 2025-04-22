@@ -136,7 +136,9 @@ class EmailMessage(Document):
 		email_id_keywords_map = {}
 		message_id_keywords_map = {}
 		for d in frappe.db.get_all(
-			"Email Message", {"account": account, "name": ["in", message_ids]}, ["name", "_id", "_keywords"]
+			"Email Message",
+			{"account": account, "name": ["in", message_ids], "destroyed": 0},
+			["name", "_id", "_keywords"],
 		):
 			name, _id, _keywords = d.values()
 			_keywords = json.loads(_keywords)
@@ -158,6 +160,25 @@ class EmailMessage(Document):
 			)
 
 	@staticmethod
+	def destroy_emails(account: str, message_ids: list[str]) -> None:
+		"""Delete emails from the server and mark them as destroyed."""
+
+		if not account or not message_ids:
+			frappe.throw(_("Account and message IDs are required."))
+
+		validate_permission_for_account(account)
+
+		filters = {"account": account, "name": ["in", message_ids], "destroyed": 0}
+		email_ids = frappe.db.get_all("Email Message", filters, pluck="_id")
+
+		if not email_ids:
+			return
+
+		client = get_jmap_client(account)
+		client.destroy_emails(email_ids)
+		frappe.db.set_value("Email Message", filters, "destroyed", 1)
+
+	@staticmethod
 	def get_thread(account: str, thread_id: str) -> list[str]:
 		"""Returns the message IDs in a thread."""
 
@@ -166,7 +187,9 @@ class EmailMessage(Document):
 
 		validate_permission_for_account(account)
 
-		return frappe.db.get_all("Email Message", {"account": account, "thread_id": thread_id}, pluck="name")
+		return frappe.db.get_all(
+			"Email Message", {"account": account, "thread_id": thread_id, "destroyed": 0}, pluck="name"
+		)
 
 	@staticmethod
 	def get_thread_messages(account: str, thread_id: str) -> list["EmailMessage"]:
@@ -194,7 +217,7 @@ class EmailMessage(Document):
 
 		validate_permission_for_account(account)
 
-		filters = {"account": account, "name": ["in", message_ids]}
+		filters = {"account": account, "name": ["in", message_ids], "destroyed": 0}
 		email_ids = frappe.db.get_all("Email Message", filters, pluck="_id")
 
 		if not email_ids:
@@ -249,6 +272,10 @@ class EmailMessage(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
+	def on_trash(self) -> None:
+		if not self.destroyed:
+			EmailMessage.destroy_emails(self.account, [self.name])
+
 	def clear_cached_properties(self) -> None:
 		"""Clear cached properties to avoid stale data."""
 
@@ -261,8 +288,20 @@ class EmailMessage(Document):
 		]:
 			self.__dict__.pop(property, None)
 
+	def validate_destroyed(self) -> None:
+		"""Raise an exception if the email message is destroyed."""
+
+		if self.destroyed:
+			frappe.throw(
+				_("Email Message {0} has been destroyed and will be permanently removed soon.").format(
+					frappe.bold(self.name)
+				)
+			)
+
 	def fetch_attachment(self, cid: str | None = None, blob_id: str | None = None) -> bytes:
 		"""Returns the content of an attachment."""
+
+		self.validate_destroyed()
 
 		if not self.has_attachment or not self.attachments:
 			frappe.throw(_("Email does not have any attachments."))
@@ -286,6 +325,7 @@ class EmailMessage(Document):
 	) -> None:
 		"""Move the email message to a specified folder."""
 
+		self.validate_destroyed()
 		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role, mailbox_name)
 		self.reload()
 
@@ -293,6 +333,7 @@ class EmailMessage(Document):
 	def mark_as_seen(self) -> None:
 		"""Mark the email message as seen."""
 
+		self.validate_destroyed()
 		EmailMessage.mark_emails_as_seen(self.account, [self.name])
 		self.reload()
 
@@ -300,6 +341,7 @@ class EmailMessage(Document):
 	def mark_as_unseen(self) -> None:
 		"""Mark the email message as unseen."""
 
+		self.validate_destroyed()
 		EmailMessage.mark_emails_as_unseen(self.account, [self.name])
 		self.reload()
 
@@ -309,6 +351,8 @@ class EmailMessage(Document):
 
 		if not self.has_attachment:
 			return
+
+		self.validate_destroyed()
 
 		for attachment in self.attachments:
 			try:
@@ -321,6 +365,8 @@ class EmailMessage(Document):
 	@frappe.whitelist()
 	def get_mime_message(self) -> str:
 		"""Returns the MIME message content."""
+
+		self.validate_destroyed()
 
 		if not self.blob_id:
 			frappe.throw(_("Email does not have a blob ID."))
@@ -447,7 +493,7 @@ def get_permission_query_condition(user: str | None = None) -> str:
 		return ""
 
 	if account := get_account_for_user(user):
-		return f"(`tabEmail Message`.account = '{account}')"
+		return f"(`tabEmail Message`.account = '{account}') AND (`tabEmail Message`.destroyed = 0)"
 	else:
 		return "1=0"
 
@@ -462,7 +508,7 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 
 	if user_is_system_manager:
 		return True
-	elif user_is_account_owner and ptype in ["read", "write", "delete"]:
+	elif user_is_account_owner and ptype in ["read", "write", "delete"] and not doc.destroyed:
 		return True
 
 	return False
