@@ -486,6 +486,18 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 	return email_message
 
 
+def delete_destroyed_emails() -> None:
+	"""Called by scheduler to delete destroyed emails."""
+
+	try:
+		for message in frappe.db.get_all("Email Message", {"destroyed": 1}, pluck="name"):
+			frappe.delete_doc("Email Message", message, ignore_permissions=True)
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to delete destroyed emails"), message=frappe.get_traceback(with_context=False)
+		)
+
+
 def get_permission_query_condition(user: str | None = None) -> str:
 	user = user or frappe.session.user
 
