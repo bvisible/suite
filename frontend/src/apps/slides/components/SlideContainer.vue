@@ -10,9 +10,9 @@
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox
 					ref="selectionBox"
-					@updateFocus="updateFocus"
 					:bounds="bounds"
 					@mousedown="(e) => handleMouseDown(e)"
+					@updateFocus="updateFocus"
 				/>
 
 				<Guides v-if="isDragging" :visibilityMap="visibilityMap" :bounds="bounds" />
@@ -36,7 +36,6 @@ import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, rea
 import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
-// import AlignmentGuides from '@/components/AlignmentGuides.vue'
 import Guides from '@/components/Guides.vue'
 import SelectionBox from './SelectionBox.vue'
 
@@ -66,16 +65,12 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
-let recentlySnapped = false
-let snapTimer = null
-
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
-const guides = useTemplateRef('guides')
 
 const { isDragging, dragMovement, startDragging } = useDragAndDrop()
 const { isResizing, resizeDiffs, updateResizers } = useResizer()
@@ -133,6 +128,12 @@ const updateSlideBounds = () => {
 }
 
 const handleSelectionChange = (newSelection, oldSelection) => {
+	if (newSelection.length < 2) {
+		const targetElement = document.querySelector(`[data-index="${newSelection[0]}"]`)
+		const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
+		updateResizers(targetElement, resizeMode)
+	}
+
 	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
 }
 
@@ -166,11 +167,6 @@ const handleSlideTransform = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		if (newVal.length < 2) {
-			const targetElement = document.querySelector(`[data-index="${newVal[0]}"]`)
-			const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
-			updateResizers(targetElement, resizeMode)
-		}
 		handleSelectionChange(newVal, oldVal)
 	},
 )
