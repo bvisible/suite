@@ -3,7 +3,6 @@
 		<FormControl
 			:label="__('Email')"
 			:value="user.data"
-			type="text"
 			autocomplete="email"
 			readonly
 			required
@@ -14,13 +13,11 @@
 			type="password"
 			placeholder="••••••••"
 			name="password"
-			autocomplete="current-password"
+			autocomplete="new-password"
 			required
 		/>
 		<ErrorMessage :message="resetPassword.error" />
-		<Button variant="solid" :loading="resetPassword.loading">
-			{{ __('Confirm') }}
-		</Button>
+		<Button variant="solid" :loading="resetPassword.loading" :label="__('Confirm')" />
 	</form>
 </template>
 <script setup lang="ts">

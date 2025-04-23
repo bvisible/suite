@@ -17,7 +17,6 @@
 			<div class="mb-4 flex items-center justify-between">
 				<FormControl
 					v-model="group.doc.username"
-					type="text"
 					:label="__('Username')"
 					placeholder="team"
 					class="w-full"
@@ -34,7 +33,6 @@
 			</div>
 			<FormControl
 				v-model="group.doc.display_name"
-				type="text"
 				:label="__('Display Name')"
 				placeholder="Team Example"
 			/>
