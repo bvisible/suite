@@ -3,7 +3,6 @@
 		<FormControl
 			:label="__('Email')"
 			:value="user.data"
-			type="text"
 			autocomplete="email"
 			readonly
 			required

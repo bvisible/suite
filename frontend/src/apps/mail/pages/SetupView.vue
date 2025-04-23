@@ -1,5 +1,5 @@
 <template>
-	<FormControl type="text" label="User" :value="user.data?.name" readonly class="mb-4" />
+	<FormControl label="User" :value="user.data?.name" readonly class="mb-4" />
 
 	<form
 		v-if="!user.data?.tenant"
@@ -8,7 +8,6 @@
 	>
 		<FormControl
 			v-model="tenantName"
-			type="text"
 			:label="__('Organization Name')"
 			placeholder="Unico Plastics Inc."
 			autocomplete="organization"
