@@ -38,6 +38,46 @@ class JMAPClient:
 		except Exception as e:
 			raise ConnectionError(f"Failed to discover JMAP configuration: {str(e)}")
 
+	def _validate_capabilities(self, capabilities: list[str]) -> None:
+		"""Validate the requested capabilities against the server's capabilities."""
+
+		for capability in capabilities:
+			if capability not in self.capabilities:
+				raise ValueError(f"Unsupported capability: {capability}")
+
+	def _validate_method_calls(self, method_calls: list[list]) -> None:
+		"""Validate the method calls against the server's capabilities."""
+
+		call_ids = []
+		for method_call in method_calls:
+			if not isinstance(method_call, list) or len(method_call) != 3:
+				raise ValueError("Method call must be a list of [method_name, arguments, call_id]")
+
+			if (
+				not isinstance(method_call[0], str)
+				or not isinstance(method_call[1], dict)
+				or not isinstance(method_call[2], str)
+			):
+				raise ValueError("Method call must be a list of [string, dict, string]")
+
+			if method_call[2] in call_ids:
+				raise ValueError(f"Duplicate call ID: {method_call[2]}")
+
+			call_ids.append(method_call[2])
+
+	def _make_request(self, using: list[str], method_calls: list[list]) -> Any:
+		"""Make a request to the JMAP server."""
+
+		self._validate_capabilities(using)
+		self._validate_method_calls(method_calls)
+
+		headers = {"Content-Type": "application/json", "Accept": "application/json"}
+		payload = {"using": using, "methodCalls": method_calls}
+		response = self.__session.post(self.api_url, headers=headers, json=payload)
+		response.raise_for_status()
+
+		return response.json()
+
 	@property
 	def capabilities(self) -> dict:
 		"""Returns the capabilities of the JMAP server."""
@@ -135,47 +175,7 @@ class JMAPClient:
 
 		return mailboxes
 
-	def _validate_capabilities(self, capabilities: list[str]) -> None:
-		"""Validate the requested capabilities against the server's capabilities."""
-
-		for capability in capabilities:
-			if capability not in self.capabilities:
-				raise ValueError(f"Unsupported capability: {capability}")
-
-	def _validate_method_calls(self, method_calls: list[list]) -> None:
-		"""Validate the method calls against the server's capabilities."""
-
-		call_ids = []
-		for method_call in method_calls:
-			if not isinstance(method_call, list) or len(method_call) != 3:
-				raise ValueError("Method call must be a list of [method_name, arguments, call_id]")
-
-			if (
-				not isinstance(method_call[0], str)
-				or not isinstance(method_call[1], dict)
-				or not isinstance(method_call[2], str)
-			):
-				raise ValueError("Method call must be a list of [string, dict, string]")
-
-			if method_call[2] in call_ids:
-				raise ValueError(f"Duplicate call ID: {method_call[2]}")
-
-			call_ids.append(method_call[2])
-
-	def _make_request(self, using: list[str], method_calls: list[list]) -> Any:
-		"""Make a request to the JMAP server."""
-
-		self._validate_capabilities(using)
-		self._validate_method_calls(method_calls)
-
-		headers = {"Content-Type": "application/json", "Accept": "application/json"}
-		payload = {"using": using, "methodCalls": method_calls}
-		response = self.__session.post(self.api_url, headers=headers, json=payload)
-		response.raise_for_status()
-
-		return response.json()
-
-	def query_emails(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
+	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
 
 		response = self._make_request(
@@ -188,7 +188,7 @@ class JMAPClient:
 						"filter": filter if filter else None,
 						"position": position,
 						"limit": limit,
-						"sort": [{"property": "receivedAt", "isAscending": False}],
+						"sort": [{"property": "receivedAt", "isAscending": True}],
 						"calculateTotal": True,
 					},
 					"0",
@@ -198,7 +198,7 @@ class JMAPClient:
 
 		return response["methodResponses"][0][1]
 
-	def get_threads(self, thread_ids: list[str]) -> dict[str, list]:
+	def thread_get(self, thread_ids: list[str]) -> dict[str, list]:
 		"""Returns the threads for the provided thread IDs."""
 
 		result = {}
@@ -223,10 +223,10 @@ class JMAPClient:
 
 		return result
 
-	def get_emails(self, email_ids: list[str]) -> list[dict]:
+	def email_get(self, email_ids: list[str], properties: list[str] | None = None) -> tuple[list[dict], str]:
 		"""Returns the emails for the provided email IDs."""
 
-		properties = [
+		properties = properties or [
 			"id",
 			"blobId",
 			"threadId",
@@ -252,7 +252,8 @@ class JMAPClient:
 			"attachments",
 		]
 
-		results = []
+		emails = []
+		state = None
 		for ids_batch in create_batch(email_ids, self.max_objects_in_get):
 			response = self._make_request(
 				using=["urn:ietf:params:jmap:mail"],
@@ -269,9 +270,29 @@ class JMAPClient:
 					]
 				],
 			)
-			results.extend(response["methodResponses"][0][1]["list"])
+			emails.extend(response["methodResponses"][0][1]["list"])
+			state = response["methodResponses"][0][1]["state"]
 
-		return results
+		return emails, state
+
+	def email_changes(self, since_state: str) -> dict:
+		"""Returns the changes in emails since the provided state."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Email/changes",
+					{
+						"accountId": self.account_id,
+						"sinceState": since_state,
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]
 
 	def download_blob(self, blob_id: str, name: str | None = None) -> bytes:
 		"""Returns the blob data for the provided blob ID."""
@@ -285,8 +306,28 @@ class JMAPClient:
 
 		return response.content
 
-	def move_emails(self, email_ids: list[str], target_mailbox_id: str) -> None:
-		"""Move emails to the target mailbox."""
+	def email_set_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
+		"""Update email keywords."""
+
+		for map_batch in batch_dict(email_id_keywords_map, self.max_objects_in_set):
+			self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Email/set",
+						{
+							"accountId": self.account_id,
+							"update": {
+								email_id: {"keywords": keywords} for email_id, keywords in map_batch.items()
+							},
+						},
+						"0",
+					]
+				],
+			)
+
+	def email_set_mailbox(self, email_ids: list[str], target_mailbox_id: str) -> None:
+		"""Update email mailbox."""
 
 		for ids_batch in create_batch(email_ids, self.max_objects_in_set):
 			self._make_request(
@@ -305,7 +346,7 @@ class JMAPClient:
 				],
 			)
 
-	def destroy_emails(self, email_ids: list[str]) -> None:
+	def email_set_destroy(self, email_ids: list[str]) -> None:
 		"""Destroy emails."""
 
 		for ids_batch in create_batch(email_ids, self.max_objects_in_set):
@@ -317,26 +358,6 @@ class JMAPClient:
 						{
 							"accountId": self.account_id,
 							"destroy": ids_batch,
-						},
-						"0",
-					]
-				],
-			)
-
-	def update_emails_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
-		"""Update email keywords."""
-
-		for map_batch in batch_dict(email_id_keywords_map, self.max_objects_in_set):
-			self._make_request(
-				using=["urn:ietf:params:jmap:mail"],
-				method_calls=[
-					[
-						"Email/set",
-						{
-							"accountId": self.account_id,
-							"update": {
-								email_id: {"keywords": keywords} for email_id, keywords in map_batch.items()
-							},
 						},
 						"0",
 					]

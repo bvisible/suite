@@ -12,6 +12,7 @@ from frappe.utils import cint, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name
+from mail.mail.doctype.jmap_sync_state.jmap_sync_state import get_current_state, update_current_state
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -150,7 +151,7 @@ class EmailMessage(Document):
 			return
 
 		client = get_jmap_client(account)
-		client.update_emails_keywords(email_id_keywords_map)
+		client.email_set_keywords(email_id_keywords_map)
 
 		for message_id, _keywords in message_id_keywords_map.items():
 			frappe.db.set_value(
@@ -175,7 +176,7 @@ class EmailMessage(Document):
 			return
 
 		client = get_jmap_client(account)
-		client.destroy_emails(email_ids)
+		client.email_set_destroy(email_ids)
 		frappe.db.set_value("Email Message", filters, "destroyed", 1)
 
 	@staticmethod
@@ -229,7 +230,7 @@ class EmailMessage(Document):
 			frappe.throw(_("Mailbox not found."))
 
 		client = get_jmap_client(account)
-		client.move_emails(email_ids, target_mailbox_id)
+		client.email_set_mailbox(email_ids, target_mailbox_id)
 		target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
 		frappe.db.set_value(
 			"Email Message", filters, {"folder": target_mailbox_name, "mailbox_id": target_mailbox_id}
@@ -393,19 +394,59 @@ def store_blob_in_cache(account: str, blob_id: str, content: bytes) -> None:
 	frappe.cache.set_value(cache_key, content, expires_in_sec=BLOB_CACHE_TTL)
 
 
-def fetch_emails(account: str, limit: int = 1000) -> None:
-	"""Fetch emails from the server and create EmailMessage documents."""
+def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> None:
+	"""Fetch all emails from the server and create EmailMessage documents."""
+
+	if bool(get_current_state(account)):
+		frappe.throw(
+			_("Account {0} already synced. Use <code>fetch_changes</code> to update.").format(
+				frappe.bold(account)
+			)
+		)
 
 	client = get_jmap_client(account)
+	result = client.email_query(filter={}, position=position, limit=batch_size)
 
-	try:
-		result = client.query_emails(filter={}, limit=limit)
-		if email_ids := result.get("ids", []):
-			for email_data in client.get_emails(email_ids):
-				create_email_message(account, email_data)
-			frappe.db.commit()
-	except Exception:
-		frappe.log_error(title=_("Failed to fetch emails"), message=frappe.get_traceback(with_context=False))
+	if email_ids := result["ids"]:
+		emails, state = client.email_get(email_ids)
+		for email_data in emails:
+			create_email_message(account, email_data)
+
+		if result["total"] > batch_size:
+			fetch_emails(account, position + batch_size, batch_size)
+
+		update_current_state(account, state)
+
+
+def fetch_changes(account: str) -> None:
+	"""Fetch changes from the server and update EmailMessage documents."""
+
+	current_state = get_current_state(account)
+
+	if not current_state:
+		return fetch_emails(account)
+
+	client = get_jmap_client(account)
+	result = client.email_changes(current_state)
+
+	if created_ids := result["created"]:
+		for email_data in client.email_get(created_ids)[0]:
+			create_email_message(account, email_data)
+
+	if updated_ids := result["updated"]:
+		properties = ["id", "mailboxIds", "keywords"]
+		for partial_data in client.email_get(updated_ids, properties=properties)[0]:
+			update_email_message(account, partial_data)
+
+	if destroyed_ids := result["destroyed"]:
+		filters = {"account": account, "_id": ["in", destroyed_ids], "destroyed": 0}
+		frappe.db.set_value("Email Message", filters, "destroyed", 1)
+
+	new_state = result["newState"]
+	update_current_state(account, new_state)
+
+	if result["hasMoreChanges"]:
+		fetch_changes(account)
 
 
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":
@@ -484,6 +525,25 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 		email_message.insert(ignore_permissions=True)
 
 	return email_message
+
+
+def update_email_message(account: str, email: dict) -> None:
+	"""Update an existing EmailMessage with new changes."""
+
+	_id = email["id"]
+
+	mailbox_id = list(email["mailboxIds"].keys())[0]
+	folder = get_mailbox_name(account, mailbox_id)
+
+	_keywords = json.dumps(email["keywords"], indent=4)
+	seen = cint(email["keywords"].get("$seen", False))
+
+	filters = {"account": account, "_id": _id, "destroyed": 0}
+	frappe.db.set_value(
+		"Email Message",
+		filters,
+		{"mailbox_id": mailbox_id, "folder": folder, "_keywords": _keywords, "seen": seen},
+	)
 
 
 def delete_destroyed_emails() -> None:
