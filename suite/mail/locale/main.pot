@@ -71,13 +71,13 @@ msgstr ""
 msgid "API"
 msgstr ""
 
-#: frontend/src/components/Settings/UserSettings.vue:33
+#: frontend/src/components/Settings/ProfileSettings.vue:33
 msgid "API Access"
 msgstr ""
 
 #. Label of the api_key (Password) field in DocType 'Mail Cluster'
-#: frontend/src/components/Settings/UserSettings.vue:25
-#: frontend/src/components/Settings/UserSettings.vue:38
+#: frontend/src/components/Settings/ProfileSettings.vue:25
+#: frontend/src/components/Settings/ProfileSettings.vue:38
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "API Key"
 msgstr ""
@@ -86,7 +86,7 @@ msgstr ""
 msgid "API Key or Username and Password is required."
 msgstr ""
 
-#: frontend/src/components/Settings/UserSettings.vue:39
+#: frontend/src/components/Settings/ProfileSettings.vue:39
 msgid "API Secret"
 msgstr ""
 
