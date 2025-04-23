@@ -26,6 +26,8 @@ LOCAL_KEYS = [
 	"jmap.account.*",
 	"jmap.email.*",
 	"jmap.protocol.*",
+	"queue.outbound.tls.allow-invalid-certs",
+	"queue.outbound.tls.starttls",
 	"authentication.fallback-admin.*",
 	"enterprise.license-key",
 ]
