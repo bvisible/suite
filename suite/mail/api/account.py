@@ -135,7 +135,18 @@ def get_user_info() -> dict:
 	user = frappe.db.get_value(
 		"User",
 		frappe.session.user,
-		["name", "email", "enabled", "user_image", "full_name", "user_type", "username", "api_key"],
+		[
+			"name",
+			"email",
+			"enabled",
+			"user_image",
+			"full_name",
+			"first_name",
+			"last_name",
+			"user_type",
+			"username",
+			"api_key",
+		],
 		as_dict=1,
 	)
 	user["roles"] = frappe.get_roles(user.name)
