@@ -13,7 +13,6 @@
 			<FormControl
 				v-model="email"
 				:label="__('Email')"
-				type="text"
 				placeholder="johndoe@example.com"
 				autocomplete="email"
 				required

@@ -3,7 +3,6 @@
 		<FormControl
 			v-model="usr"
 			:label="__('Email')"
-			type="text"
 			placeholder="johndoe@example.com"
 			autocomplete="email"
 			required

@@ -18,7 +18,6 @@
 				<div class="flex items-center justify-between">
 					<FormControl
 						v-model="alias.doc.username"
-						type="text"
 						:label="__('Username')"
 						placeholder="johndoe"
 						class="w-full"

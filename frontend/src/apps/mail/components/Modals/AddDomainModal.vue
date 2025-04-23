@@ -23,7 +23,6 @@
 				</p>
 				<FormControl
 					v-model="domainName"
-					type="text"
 					:label="__('Domain Name')"
 					placeholder="example.com"
 					:readonly="!!domainRequest?.data"

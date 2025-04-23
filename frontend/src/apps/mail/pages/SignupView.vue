@@ -15,7 +15,6 @@
 		<div v-else-if="route.query.step === '1'" class="flex items-center justify-between">
 			<FormControl
 				v-model="user.username"
-				type="text"
 				:label="__('Username')"
 				placeholder="johndoe"
 				autocomplete="username"
@@ -62,7 +61,6 @@
 		<template v-else>
 			<FormControl
 				v-model="user.first_name"
-				type="text"
 				:label="__('First Name')"
 				placeholder="John"
 				autocomplete="given-name"
@@ -71,7 +69,6 @@
 			/>
 			<FormControl
 				v-model="user.last_name"
-				type="text"
 				:label="__('Last Name')"
 				placeholder="Doe"
 				autocomplete="family-name"

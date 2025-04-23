@@ -13,7 +13,6 @@
 			v-if="isVerificationStep"
 			v-model="otp"
 			:label="__('Verification Code')"
-			type="text"
 			placeholder="5 digit verification code"
 			maxlength="5"
 			autocomplete="one-time-code"
@@ -23,7 +22,6 @@
 			<FormControl
 				v-model="firstName"
 				:label="__('First Name')"
-				type="text"
 				placeholder="John"
 				autocomplete="given-name"
 				required
@@ -31,7 +29,6 @@
 			<FormControl
 				v-model="lastName"
 				:label="__('Last Name')"
-				type="text"
 				placeholder="Doe"
 				autocomplete="family-name"
 			/>
