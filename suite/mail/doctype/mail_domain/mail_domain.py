@@ -36,6 +36,7 @@ class MailDomain(Document):
 		self.validate_is_verified()
 
 	def before_insert(self) -> None:
+		self.validate_tenant()
 		self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
