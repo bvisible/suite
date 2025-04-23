@@ -14,9 +14,19 @@
 		</div>
 		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
 	</div>
-	<FormControl type="data" :label="__('First Name')" />
-	<FormControl type="data" :label="__('Last Name')" />
-	<Button :label="__('Save Changes')" variant="solid" :disabled="true" />
+	<FormControl v-model="firstName" type="data" :label="__('First Name')" />
+	<FormControl v-model="lastName" type="data" :label="__('Last Name')" />
+	<ErrorMessage :message="setName.error" />
+	<Button
+		:label="__('Save Changes')"
+		variant="solid"
+		:disabled="
+			!firstName ||
+			(firstName === user.data?.first_name && lastName === user.data?.last_name)
+		"
+		:loading="setName.isLoading"
+		@click="setName.submit"
+	/>
 	<Button :label="__('Change Password')" @click="showChangePassword = true" />
 
 	<EditPhotoModal v-model="showEditPhoto" />
@@ -24,8 +34,9 @@
 </template>
 <script setup lang="ts">
 import { inject, ref } from 'vue'
-import { Avatar, Button, FormControl } from 'frappe-ui'
+import { Avatar, Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
+import { raiseToast } from '@/utils'
 import ChangePasswordModal from '@/components/Modals/ChangePasswordModal.vue'
 import EditPhotoModal from '@/components/Modals/EditPhotoModal.vue'
 
@@ -33,4 +44,20 @@ const user = inject('$user')
 
 const showEditPhoto = ref(false)
 const showChangePassword = ref(false)
+
+const firstName = ref(user.data?.first_name)
+const lastName = ref(user.data?.last_name)
+
+const setName = createResource({
+	url: 'frappe.client.set_value',
+	makeParams: () => ({
+		doctype: 'User',
+		name: user.data?.name,
+		fieldname: { first_name: firstName.value, last_name: lastName.value },
+	}),
+	onSuccess: () => {
+		raiseToast(__('Profile updated successfully.'))
+		user.reload()
+	},
+})
 </script>
