@@ -1,5 +1,5 @@
 <template>
-	<h1 class="font-semibold">{{ __('API Access') }}</h1>
+	<h1>{{ __('API Access') }}</h1>
 	<CopyControl v-if="user.data?.api_key" :label="__('API Key')" :value="user.data?.api_key" />
 	<p v-else class="text-base">
 		{{ __(`You don't have an API key yet. Generate one to access the API.`) }}

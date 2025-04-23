@@ -17,9 +17,7 @@
 			required
 		/>
 		<ErrorMessage :message="resetPassword.error" />
-		<Button variant="solid" :loading="resetPassword.loading">
-			{{ __('Confirm') }}
-		</Button>
+		<Button variant="solid" :loading="resetPassword.loading" :label="__('Confirm')" />
 	</form>
 </template>
 <script setup lang="ts">

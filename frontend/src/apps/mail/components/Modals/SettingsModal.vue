@@ -1,9 +1,9 @@
 <template>
-	<Dialog v-model="show" :options="{ title: __('Settings'), size: '3xl' }">
+	<Dialog v-model="show" :options="{ title: __('Settings'), size: '4xl' }">
 		<template #body>
 			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
 				<div class="flex w-48 shrink-0 flex-col border-r bg-gray-50 p-4 py-3">
-					<h1 class="px-2 text-xl font-semibold leading-6">Settings</h1>
+					<h1 class="px-2 text-xl leading-6">{{ __('Settings') }}</h1>
 					<div class="mt-3 space-y-1">
 						<button
 							v-for="tab in tabs"
@@ -21,7 +21,7 @@
 						</button>
 					</div>
 				</div>
-				<div class="flex flex-1 flex-col space-y-4 overflow-y-auto p-12">
+				<div class="flex flex-1 flex-col space-y-5 overflow-y-auto p-12">
 					<component :is="activeTab.component" v-if="activeTab" />
 				</div>
 				<Button
@@ -39,9 +39,9 @@ import { markRaw, ref } from 'vue'
 import { Code, Mailbox, User } from 'lucide-vue-next'
 import { Button, Dialog } from 'frappe-ui'
 
+import AccountSettings from '@/components/Settings/AccountSettings.vue'
 import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
-import MailAccountSettings from '@/components/Settings/MailAccountSettings.vue'
-import UserSettings from '@/components/Settings/UserSettings.vue'
+import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
 
 const show = defineModel()
 
@@ -49,12 +49,12 @@ const tabs = [
 	{
 		label: __('Profile'),
 		icon: User,
-		component: markRaw(UserSettings),
+		component: markRaw(ProfileSettings),
 	},
 	{
-		label: __('Mail Account'),
+		label: __('Account'),
 		icon: Mailbox,
-		component: markRaw(MailAccountSettings),
+		component: markRaw(AccountSettings),
 	},
 	{
 		label: __('Advanced'),

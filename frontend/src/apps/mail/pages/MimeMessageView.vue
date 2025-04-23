@@ -1,7 +1,7 @@
 <template>
 	<div v-if="mime.data" class="mx-auto space-y-8 rounded-md border bg-white p-12 sm:w-[75rem]">
 		<div class="flex items-center justify-between">
-			<h1 class="text-xl font-medium">{{ __('MIME Message') }}</h1>
+			<h1 class="text-xl !font-medium">{{ __('MIME Message') }}</h1>
 			<Button :label="__('Copy to Clipboard')" size="md" @click="copyToClipBoard(message)" />
 		</div>
 		<div class="rounded-md border">

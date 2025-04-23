@@ -4,6 +4,11 @@ html {
 	@apply text-gray-900;
 }
 
+h1 {
+	@apply font-semibold;
+}
+
+
 h2 {
 	@apply text-lg font-medium;
 }

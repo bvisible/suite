@@ -1,5 +1,5 @@
 <template>
-	<h1 class="font-semibold">{{ __('Profile') }}</h1>
+	<h1>{{ __('Profile') }}</h1>
 
 	<div class="flex w-full items-center">
 		<Avatar
@@ -14,8 +14,8 @@
 		</div>
 		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
 	</div>
-	<FormControl v-model="firstName" type="data" :label="__('First Name')" />
-	<FormControl v-model="lastName" type="data" :label="__('Last Name')" />
+	<FormControl v-model="firstName" :label="__('First Name')" />
+	<FormControl v-model="lastName" :label="__('Last Name')" />
 	<ErrorMessage :message="setName.error" />
 	<Button
 		:label="__('Save Changes')"
