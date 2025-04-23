@@ -58,11 +58,11 @@ const validateFile = (file) => {
 
 const setProfilePhoto = createResource({
 	url: 'frappe.client.set_value',
-	makeParams: (values: { image: string | null }) => ({
+	makeParams: ({ image }: { image: string | null }) => ({
 		doctype: 'User',
 		name: user.data?.name,
 		fieldname: 'user_image',
-		value: values.image,
+		value: image,
 	}),
 	onSuccess: () => {
 		raiseToast(__('Profile photo updated successfully.'))
