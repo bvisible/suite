@@ -6,6 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string, validate_email_address
 
+from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
 from mail.mail_server import (
 	create_account_on_cluster,
 	delete_account_from_cluster,
@@ -48,6 +49,9 @@ class MailAccount(Document):
 		self.validate_default_outgoing_email()
 		self.validate_display_name()
 		self.validate_backup_email()
+
+	def after_insert(self) -> None:
+		create_jmap_sync_state(self.name)
 
 	def on_update(self) -> None:
 		self.clear_cache()
