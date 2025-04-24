@@ -8,7 +8,7 @@ import zipfile
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from io import BytesIO
-from typing import Literal
+from typing import Any, Literal
 
 import bcrypt
 import frappe
@@ -78,7 +78,7 @@ def generate_otp(length=5) -> int:
 	return int.from_bytes(os.urandom(length), byteorder="big") % (upper_bound - lower_bound) + lower_bound
 
 
-def generate_secret(length: int = 32):
+def generate_secret(length: int = 32) -> str:
 	"""Generates a random secret key."""
 
 	characters = string.ascii_letters + string.digits
@@ -228,7 +228,7 @@ def normalize_email(email: str) -> str:
 	return f"{normalized_local}@{domain}"
 
 
-def flatten_dict(d, parent_key="", sep="."):
+def flatten_dict(d, parent_key="", sep=".") -> dict:
 	"""Recursively flattens a nested dictionary into dot notation."""
 
 	items = {}
@@ -242,7 +242,16 @@ def flatten_dict(d, parent_key="", sep="."):
 
 
 def password_or_none(doc, field: str) -> str | None:
+	"""Returns the password if the field is set, otherwise returns None."""
+
 	return doc.get_password(field) if doc.get(field) else None
+
+
+def batch_dict(d: dict[str, Any], batch_size: int) -> list[dict[str, Any]]:
+	"""Splits a dictionary into smaller dictionaries of a specified batch size."""
+
+	keys = list(d.keys())
+	return [{k: d[k] for k in keys[i : i + batch_size]} for i in range(0, len(keys), batch_size)]
 
 
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:
