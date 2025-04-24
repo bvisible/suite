@@ -9,8 +9,8 @@ from frappe.utils.caching import request_cache
 from validate_email_address import validate_email
 
 from mail.utils import normalize_email
-from mail.utils.cache import get_tenant_for_domain, get_tenant_for_user
-from mail.utils.user import has_role
+from mail.utils.cache import get_account_for_user, get_tenant_for_domain, get_tenant_for_user
+from mail.utils.user import has_role, is_system_manager
 
 
 def is_valid_host(host: str) -> bool:
@@ -206,3 +206,11 @@ def is_valid_cron_expression(expression: str, raise_exception: bool = False) -> 
 				title=_("Bad Cron Expression"),
 			)
 		return False
+
+
+def validate_permission_for_account(account: str) -> None:
+	"""Validate if the user has permission to access the account."""
+
+	user = frappe.session.user
+	if not is_system_manager(user) and account != get_account_for_user(user):
+		frappe.throw(_("You do not have permission to access this resource."), frappe.PermissionError)
