@@ -35,8 +35,12 @@ class JMAPClient:
 			response = self.__session.get(well_known_url, headers={"Accept": "application/json"})
 			response.raise_for_status()
 			self.__config = response.json()
-		except Exception as e:
-			raise ConnectionError(f"Failed to discover JMAP configuration: {str(e)}")
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to discover JMAP configuration"),
+				message=frappe.get_traceback(with_context=False),
+			)
+			frappe.throw(_("Failed to discover JMAP configuration."))
 
 	def _validate_capabilities(self, capabilities: list[str]) -> None:
 		"""Validate the requested capabilities against the server's capabilities."""

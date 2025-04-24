@@ -155,14 +155,22 @@ class EmailMessage(Document):
 			return
 
 		client = get_jmap_client(account)
-		client.email_set_keywords(email_id_keywords_map)
 
-		for message_id, _keywords in message_id_keywords_map.items():
-			frappe.db.set_value(
-				"Email Message",
-				message_id,
-				{"seen": cint(seen), "_keywords": json.dumps(_keywords, indent=4)},
+		try:
+			client.email_set_keywords(email_id_keywords_map)
+
+			for message_id, _keywords in message_id_keywords_map.items():
+				frappe.db.set_value(
+					"Email Message",
+					message_id,
+					{"seen": cint(seen), "_keywords": json.dumps(_keywords, indent=4)},
+				)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to mark email(s) as seen/unseen"),
+				message=frappe.get_traceback(with_context=False),
 			)
+			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
 
 	@staticmethod
 	def destroy_emails(account: str, message_ids: list[str]) -> None:
@@ -180,8 +188,16 @@ class EmailMessage(Document):
 			return
 
 		client = get_jmap_client(account)
-		client.email_set_destroy(email_ids)
-		frappe.db.set_value("Email Message", filters, "destroyed", 1)
+
+		try:
+			client.email_set_destroy(email_ids)
+			frappe.db.set_value("Email Message", filters, "destroyed", 1)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to destroy email(s)"),
+				message=frappe.get_traceback(with_context=False),
+			)
+			frappe.throw(_("Failed to destroy email(s)."))
 
 	@staticmethod
 	def get_thread(account: str, thread_id: str) -> list[str]:
@@ -234,11 +250,19 @@ class EmailMessage(Document):
 			frappe.throw(_("Mailbox not found."))
 
 		client = get_jmap_client(account)
-		client.email_set_mailbox(email_ids, target_mailbox_id)
-		target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
-		frappe.db.set_value(
-			"Email Message", filters, {"folder": target_mailbox_name, "mailbox_id": target_mailbox_id}
-		)
+
+		try:
+			client.email_set_mailbox(email_ids, target_mailbox_id)
+			target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
+			frappe.db.set_value(
+				"Email Message", filters, {"folder": target_mailbox_name, "mailbox_id": target_mailbox_id}
+			)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to move email(s) to mailbox"),
+				message=frappe.get_traceback(with_context=False),
+			)
+			frappe.throw(_("Failed to move email(s) to mailbox."))
 
 	@staticmethod
 	def mark_emails_as_seen(account: str, message_ids: list[str]) -> None:
@@ -271,8 +295,12 @@ class EmailMessage(Document):
 			content = client.download_blob(blob_id, name)
 			store_blob_in_cache(account, blob_id, content)
 			return content
-		except Exception as e:
-			frappe.throw(_("Failed to download blob: {0}").format(str(e)))
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to fetch blob"),
+				message=frappe.get_traceback(with_context=False),
+			)
+			frappe.throw(_("Failed to fetch blob."))
 
 	def autoname(self) -> None:
 		self.name = str(uuid7())
@@ -360,12 +388,7 @@ class EmailMessage(Document):
 		self.validate_destroyed()
 
 		for attachment in self.attachments:
-			try:
-				EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment._name)
-			except Exception:
-				frappe.log_error(
-					title=_("Failed to load attachment"), message=frappe.get_traceback(with_context=False)
-				)
+			EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment._name)
 
 	@frappe.whitelist()
 	def get_mime_message(self) -> str:
@@ -376,11 +399,10 @@ class EmailMessage(Document):
 		if not self.blob_id:
 			frappe.throw(_("Email does not have a blob ID."))
 
+		self.clear_cached_properties()
+
 		try:
-			self.clear_cached_properties()
 			return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
-		except UnicodeDecodeError:
-			frappe.throw(_("Failed to decode email content."))
 		except Exception:
 			frappe.throw(_("Failed to retrieve the MIME message."))
 
@@ -411,17 +433,24 @@ def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> Non
 		create_jmap_sync_state(account)
 
 	client = get_jmap_client(account)
-	result = client.email_query(filter={}, position=position, limit=batch_size)
 
-	if email_ids := result["ids"]:
-		emails, state = client.email_get(email_ids)
-		for email_data in emails:
-			create_email_message(account, email_data)
+	try:
+		result = client.email_query(filter={}, position=position, limit=batch_size)
 
-		if result["total"] > batch_size:
-			fetch_emails(account, position + batch_size, batch_size)
+		if email_ids := result["ids"]:
+			emails, state = client.email_get(email_ids)
+			for email_data in emails:
+				create_email_message(account, email_data)
 
-		update_current_state(account, state)
+			if result["total"] > batch_size:
+				fetch_emails(account, position + batch_size, batch_size)
+
+			update_current_state(account, state)
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to fetch emails"),
+			message=frappe.get_traceback(with_context=False),
+		)
 
 
 def fetch_changes(account: str) -> None:
@@ -433,26 +462,33 @@ def fetch_changes(account: str) -> None:
 		return fetch_emails(account)
 
 	client = get_jmap_client(account)
-	result = client.email_changes(current_state)
 
-	if created_ids := result["created"]:
-		for email_data in client.email_get(created_ids)[0]:
-			create_email_message(account, email_data)
+	try:
+		result = client.email_changes(current_state)
 
-	if updated_ids := result["updated"]:
-		properties = ["id", "mailboxIds", "keywords"]
-		for partial_data in client.email_get(updated_ids, properties=properties)[0]:
-			update_email_message(account, partial_data)
+		if created_ids := result["created"]:
+			for email_data in client.email_get(created_ids)[0]:
+				create_email_message(account, email_data)
 
-	if destroyed_ids := result["destroyed"]:
-		filters = {"account": account, "_id": ["in", destroyed_ids], "destroyed": 0}
-		frappe.db.set_value("Email Message", filters, "destroyed", 1)
+		if updated_ids := result["updated"]:
+			properties = ["id", "mailboxIds", "keywords"]
+			for partial_data in client.email_get(updated_ids, properties=properties)[0]:
+				update_email_message(account, partial_data)
 
-	new_state = result["newState"]
-	update_current_state(account, new_state)
+		if destroyed_ids := result["destroyed"]:
+			filters = {"account": account, "_id": ["in", destroyed_ids], "destroyed": 0}
+			frappe.db.set_value("Email Message", filters, "destroyed", 1)
 
-	if result["hasMoreChanges"]:
-		fetch_changes(account)
+		new_state = result["newState"]
+		update_current_state(account, new_state)
+
+		if result["hasMoreChanges"]:
+			fetch_changes(account)
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to fetch changes"),
+			message=frappe.get_traceback(with_context=False),
+		)
 
 
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":
