@@ -48,7 +48,7 @@
 				/>
 				<AttachmentCapsule
 					v-if="mail.attachments.length > 2"
-					:file-name="__('+{0} more', [mail.attachments.length - 2])"
+					:file-name="__('+{0} more', [String(mail.attachments.length - 2)])"
 				/>
 				<Badge
 					v-if="Object.keys(STATUS).includes(badgeField)"
