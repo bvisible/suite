@@ -12,7 +12,11 @@ from frappe.utils import cint, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name
-from mail.mail.doctype.jmap_sync_state.jmap_sync_state import get_current_state, update_current_state
+from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
+	create_jmap_sync_state,
+	get_current_state,
+	update_current_state,
+)
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -403,6 +407,8 @@ def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> Non
 				frappe.bold(account)
 			)
 		)
+	elif not bool(frappe.db.exists("JMAP Sync State", account)):
+		create_jmap_sync_state(account)
 
 	client = get_jmap_client(account)
 	result = client.email_query(filter={}, position=position, limit=batch_size)
