@@ -116,7 +116,7 @@ const userDropdownOptions = [
 	},
 	{
 		icon: LogOut,
-		label: 'Log Out',
+		label: __('Log Out'),
 		onClick: logout.submit,
 	},
 ]

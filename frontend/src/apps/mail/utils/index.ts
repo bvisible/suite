@@ -1,92 +1,86 @@
 import { useTimeAgo } from '@vueuse/core'
 import { toast } from 'frappe-ui'
 
-export function convertToTitleCase(str: string) {
-	if (!str) return ''
-
-	return str
-		.toLowerCase()
+export const convertToTitleCase = (str: string) =>
+	str
+		?.toLowerCase()
 		.split(' ')
 		.map(function (word: string) {
 			return word.charAt(0).toUpperCase().concat(word.substr(1))
 		})
-		.join(' ')
-}
+		.join(' ') || ''
 
-export function getSidebarLinks() {
-	return [
-		{
-			label: __('Inbox'),
-			icon: 'Inbox',
-			to: 'Inbox',
-			activeFor: ['Inbox', 'InboxMail'],
-		},
-		{
-			label: __('Sent'),
-			icon: 'Send',
-			to: 'Sent',
-			activeFor: ['Sent', 'SentMail'],
-		},
-		{
-			label: __('Outbox'),
-			icon: 'MailQuestion',
-			to: 'Outbox',
-			activeFor: ['Outbox', 'OutboxMail'],
-		},
-		{
-			label: __('Drafts'),
-			icon: 'Edit3',
-			to: 'Drafts',
-			activeFor: ['Drafts', 'DraftsMail'],
-		},
-		{
-			label: __('Spam'),
-			icon: 'MailWarning',
-			to: 'Spam',
-			activeFor: ['Spam', 'SpamMail'],
-		},
-		{
-			label: __('Trash'),
-			icon: 'Trash2',
-			to: 'Trash',
-			activeFor: ['Trash', 'TrashMail'],
-		},
-		{
-			label: __('Domains'),
-			icon: 'Globe',
-			to: 'Domains',
-			activeFor: ['Domains', 'Domain'],
-			forDashboard: true,
-		},
-		{
-			label: __('Members'),
-			icon: 'Users',
-			to: 'Members',
-			activeFor: ['Members'],
-			forDashboard: true,
-		},
-		{
-			label: __('Groups'),
-			icon: 'Mails',
-			to: 'Groups',
-			activeFor: ['Groups', 'Group'],
-			forDashboard: true,
-		},
-		{
-			label: __('Aliases'),
-			icon: 'AtSign',
-			to: 'Aliases',
-			activeFor: ['Aliases'],
-			forDashboard: true,
-		},
-	]
-}
+export const getSidebarLinks = () => [
+	{
+		label: __('Inbox'),
+		icon: 'Inbox',
+		to: 'Inbox',
+		activeFor: ['Inbox', 'InboxMail'],
+	},
+	{
+		label: __('Sent'),
+		icon: 'Send',
+		to: 'Sent',
+		activeFor: ['Sent', 'SentMail'],
+	},
+	{
+		label: __('Outbox'),
+		icon: 'MailQuestion',
+		to: 'Outbox',
+		activeFor: ['Outbox', 'OutboxMail'],
+	},
+	{
+		label: __('Drafts'),
+		icon: 'Edit3',
+		to: 'Drafts',
+		activeFor: ['Drafts', 'DraftsMail'],
+	},
+	{
+		label: __('Spam'),
+		icon: 'MailWarning',
+		to: 'Spam',
+		activeFor: ['Spam', 'SpamMail'],
+	},
+	{
+		label: __('Trash'),
+		icon: 'Trash2',
+		to: 'Trash',
+		activeFor: ['Trash', 'TrashMail'],
+	},
+	{
+		label: __('Domains'),
+		icon: 'Globe',
+		to: 'Domains',
+		activeFor: ['Domains', 'Domain'],
+		forDashboard: true,
+	},
+	{
+		label: __('Members'),
+		icon: 'Users',
+		to: 'Members',
+		activeFor: ['Members'],
+		forDashboard: true,
+	},
+	{
+		label: __('Groups'),
+		icon: 'Mails',
+		to: 'Groups',
+		activeFor: ['Groups', 'Group'],
+		forDashboard: true,
+	},
+	{
+		label: __('Aliases'),
+		icon: 'AtSign',
+		to: 'Aliases',
+		activeFor: ['Aliases'],
+		forDashboard: true,
+	},
+]
 
-export function formatNumber(number: number) {
-	return number.toLocaleString('en-IN', {
+export const formatNumber = (number: number) =>
+	number.toLocaleString('en-IN', {
 		maximumFractionDigits: 0,
 	})
-}
 
 export function startResizing(event) {
 	const startX = event.clientX
@@ -111,7 +105,7 @@ export function startResizing(event) {
 	document.addEventListener('mouseup', onMouseUp)
 }
 
-export function singularize(word: string) {
+export const singularize = (word: string) => {
 	const endings = {
 		ves: 'fe',
 		ies: 'y',
@@ -124,17 +118,15 @@ export function singularize(word: string) {
 	return word.replace(new RegExp(`(${Object.keys(endings).join('|')})$`), (r) => endings[r])
 }
 
-export function timeAgo(date) {
-	return useTimeAgo(date).value
-}
+export const timeAgo = (date) => useTimeAgo(date).value
 
-export function validateEmail(email: string) {
+export const validateEmail = (email: string) => {
 	const regExp =
 		/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 	return regExp.test(email)
 }
 
-export function formatBytes(bytes: number) {
+export const formatBytes = (bytes: number) => {
 	if (!+bytes) return '0 Bytes'
 
 	const k = 1024
@@ -170,12 +162,11 @@ export const raiseToast = (message: string, type = 'success') => {
 	})
 }
 
-export const kebabToTitleCase = (str: string) => {
-	return str
+export const kebabToTitleCase = (str: string) =>
+	str
 		.split('-')
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(' ')
-}
 
 export const copyToClipBoard = async (text: string) => {
 	try {

@@ -164,7 +164,7 @@ import {
 	Code,
 	Ellipsis,
 	Forward,
-	Mail,
+	Mail as MailIcon,
 	Reply,
 	ReplyAll,
 	RotateCcw,
@@ -183,12 +183,12 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { Folder } from '@/types'
+import type { Folder, Mail, MailType } from '@/types'
 
 const props = defineProps<{
 	mailID: string | null
 	currentFolder: Folder
-	type?: 'Incoming Mail' | 'Outgoing Mail'
+	type?: MailType
 }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
@@ -212,7 +212,7 @@ const replyDetails = reactive({
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
-	transform: (data) =>
+	transform: (data: Mail[]) =>
 		props.currentFolder === 'Trash'
 			? data.filter((mail) => mail.folder === 'Trash')
 			: data.filter((mail) => mail.folder !== 'Trash'),
@@ -317,12 +317,12 @@ const threadActions = computed((): MailAction[] =>
 		{
 			label: __('Mark as Unread'),
 			onClick: () => emit('markAsUnread'),
-			icon: Mail,
+			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),
 )
 
-const mailActions = (mail): MailAction[] => [
+const mailActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Edit Draft'),
 		onClick: () => {
@@ -340,7 +340,7 @@ const mailActions = (mail): MailAction[] => [
 	},
 ]
 
-const moreActions = (mail): MailAction[] => [
+const moreActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
@@ -355,14 +355,13 @@ const moreActions = (mail): MailAction[] => [
 	},
 	{
 		label: __('See MIME Message'),
-		onClick: () => {
+		onClick: () =>
 			window
 				.open(
 					`/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
 					'_blank',
 				)
-				?.focus()
-		},
+				?.focus(),
 		icon: Code,
 		condition: () => mail.status !== 'Draft' && screenSize.width >= 640,
 	},
@@ -386,15 +385,10 @@ const moreActions = (mail): MailAction[] => [
 	},
 ]
 
-interface SetFolderParams {
-	mail: object
-	moveToTrash: boolean
-}
-
 const setFolder = createResource({
 	url: 'mail.api.mail.set_folder',
 	method: 'POST',
-	makeParams: ({ mail, moveToTrash }: SetFolderParams) => ({
+	makeParams: ({ mail, moveToTrash }: { mail: Mail; moveToTrash: boolean }) => ({
 		mail_type: mail.mail_type,
 		name: mail.name,
 		move_to_trash: moveToTrash,
@@ -404,7 +398,7 @@ const setFolder = createResource({
 
 const deleteMail = createResource({
 	url: 'mail.api.mail.delete_or_cancel_mails',
-	makeParams: (mail: object) => ({
+	makeParams: (mail: Mail) => ({
 		mails: [
 			{
 				mail_type: mail.mail_type,

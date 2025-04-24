@@ -6,12 +6,7 @@
 	>
 		<div class="flex h-8 min-h-8 min-w-8 justify-center">
 			<Checkbox v-if="isHovered || isSelected" v-model="isSelected" size="md" @click.stop />
-			<Avatar
-				v-else
-				:label="mail.display_name || mail.sender"
-				:image="mail.user_image"
-				size="xl"
-			/>
+			<Avatar v-else :label="mail.display_name || mail.sender" size="xl" />
 		</div>
 
 		<div class="grow space-y-1 truncate">
@@ -68,7 +63,9 @@ import { Avatar, Badge, Checkbox } from 'frappe-ui'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
-const { mail } = defineProps<{ mail: object }>()
+import type { Mail } from '@/types'
+
+const { mail } = defineProps<{ mail: Mail }>()
 
 const emit = defineEmits(['select-mail', 'deselect-mail'])
 
