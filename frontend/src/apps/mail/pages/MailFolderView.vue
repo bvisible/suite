@@ -120,7 +120,7 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { Mail, MailOpen, RefreshCw, RotateCcw, Trash2 } from 'lucide-vue-next'
+import { Mail as MailIcon, MailOpen, RefreshCw, RotateCcw, Trash2 } from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
@@ -138,7 +138,7 @@ import NoMails from '@/components/Icons/NoMails.vue'
 import MailThread from '@/components/MailThread.vue'
 import SidebarDetail from '@/components/SidebarDetail.vue'
 
-import type { Folder, UserResource } from '@/types'
+import type { Folder, Mail, MailType, UserResource } from '@/types'
 
 const { id } = defineProps<{ id?: string }>()
 
@@ -168,11 +168,11 @@ const createMailResource = (folder: Folder) =>
 		doctype: doctype.value,
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
-		onSuccess: (data) => {
-			const mailExists = (id?: string | null) => id && data.some((m) => m.name === id)
+		onSuccess: (data: Mail[]) => {
+			const mailExists = (id?: string | null) => data.some((m) => m.name === id)
 
 			if (mailExists(id)) {
-				if (currentMail[folder] !== id) setCurrentMail(folder, id)
+				if (currentMail[folder] !== id) setCurrentMail(folder, id ?? null)
 				mailThread.value?.reload()
 			} else if (mailExists(currentMail[folder])) {
 				if (route.params.id !== currentMail[folder])
@@ -223,13 +223,16 @@ const setSeen = createResource({
 
 const setFolderForThreads = createResource({
 	url: 'mail.api.mail.set_folder_for_threads',
-	makeParams: ({ threads, move_to_trash }) => ({ threads, move_to_trash }),
+	makeParams: ({ threads, move_to_trash }: { threads: string[]; move_to_trash: boolean }) => ({
+		threads,
+		move_to_trash,
+	}),
 	onSuccess: reloadMails,
 })
 
 const deleteThreads = createResource({
 	url: 'mail.api.mail.delete_or_cancel_threads',
-	makeParams: (threads) => ({ threads }),
+	makeParams: (threads: string[]) => ({ threads }),
 	onSuccess: reloadMails,
 })
 
@@ -237,7 +240,12 @@ const deleteThreads = createResource({
 
 const mailItems = useTemplateRef('mailItems')
 
-const selections = ref([])
+interface Selection {
+	name: string
+	mail_type: MailType
+}
+
+const selections = ref<Selection[]>([])
 const allSelectedManuallyToggled = ref(false)
 const allSelected = ref(false)
 
@@ -248,7 +256,7 @@ const resetSelections = () => {
 	selections.value = []
 }
 
-const selectMail = (mail) => {
+const selectMail = (mail: Selection) => {
 	if (!selections.value.includes(mail)) selections.value.push(mail)
 }
 
@@ -301,7 +309,7 @@ const selectActions = computed((): SelectAction[] =>
 		{
 			label: __('Mark as Unread'),
 			onClick: () => setSeen.submit({ mails: selections.value, seen: 0 }),
-			icon: Mail,
+			icon: MailIcon,
 			condition: !!selections.value.length,
 		},
 		{
@@ -318,7 +326,7 @@ watch(allSelected, (val) => {
 		mailItems.value?.forEach((item) => item?.setIsSelected(val))
 })
 
-const openMail = (mail) => {
+const openMail = (mail: Mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen)
 		setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
@@ -335,7 +343,7 @@ onMounted(() => {
 })
 
 const getMailType = () =>
-	mails[currentFolder.value].data.find((m) => m.name === currentMail[currentFolder.value])
+	mails[currentFolder.value].data.find((m: Mail) => m.name === currentMail[currentFolder.value])
 		?.mail_type
 
 const loadMoreEmails = useDebounceFn(() => {

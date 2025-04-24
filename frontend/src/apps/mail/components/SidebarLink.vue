@@ -54,9 +54,6 @@ import { useRouter } from 'vue-router'
 import * as icons from 'lucide-vue-next'
 import { Tooltip } from 'frappe-ui'
 
-const router = useRouter()
-const emit = defineEmits(['openModal', 'deletePage'])
-
 const props = defineProps({
 	link: {
 		type: Object,
@@ -72,6 +69,10 @@ const props = defineProps({
 	},
 })
 
+const emit = defineEmits(['openModal', 'deletePage'])
+
+const router = useRouter()
+
 function handleClick() {
 	if (router.hasRoute(props.link.to)) {
 		router.push({ name: props.link.to })
@@ -84,11 +85,7 @@ const isActive = computed(() => {
 	return props.link?.activeFor?.includes(router.currentRoute.value.name)
 })
 
-const openModal = (link) => {
-	emit('openModal', link)
-}
+const openModal = (link) => emit('openModal', link)
 
-const deletePage = (link) => {
-	emit('deletePage', link)
-}
+const deletePage = (link) => emit('deletePage', link)
 </script>
