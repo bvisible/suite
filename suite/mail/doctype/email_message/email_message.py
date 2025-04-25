@@ -17,6 +17,7 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	get_current_state,
 	update_current_state,
 )
+from mail.utils import enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -485,6 +486,13 @@ def fetch_changes(account: str) -> None:
 			title=_("Failed to fetch changes"),
 			message=frappe.get_traceback(with_context=True),
 		)
+
+
+def enqueue_fetch_changes(account: str) -> None:
+	"""Enqueue the fetch_changes job for the specified account."""
+
+	with user_context("Administrator"):
+		enqueue_job(fetch_changes, account=account, queue="short", deduplicate=True)
 
 
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":
