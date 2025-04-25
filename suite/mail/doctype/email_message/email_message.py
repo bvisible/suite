@@ -400,11 +400,7 @@ class EmailMessage(Document):
 			frappe.throw(_("Email does not have a blob ID."))
 
 		self.clear_cached_properties()
-
-		try:
-			return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
-		except Exception:
-			frappe.throw(_("Failed to retrieve the MIME message."))
+		return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
 
 
 def generate_blob_cache_key(account: str, blob_id: str) -> str:
