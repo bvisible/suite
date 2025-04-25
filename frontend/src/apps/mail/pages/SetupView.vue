@@ -35,11 +35,7 @@ const tenantName = ref('')
 
 const createTenant = createResource({
 	url: 'mail.api.admin.create_tenant',
-	makeParams() {
-		return { tenant_name: tenantName.value }
-	},
-	onSuccess() {
-		window.location.reload()
-	},
+	makeParams: () => ({ tenant_name: tenantName.value }),
+	onSuccess: () => window.location.reload(),
 })
 </script>
