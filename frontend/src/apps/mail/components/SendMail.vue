@@ -1,6 +1,6 @@
 <template>
 	<component
-		:is="screenSize.width < 640 ? SendMailMobileLayout : Dialog"
+		:is="isMobile ? SendMailMobileLayout : Dialog"
 		v-model="show"
 		:options="{ title: __('Send Mail'), size: '4xl' }"
 	>
@@ -142,7 +142,7 @@
 								if (!localMailID) await createDraftMail.submit()
 							}
 						"
-						:class="{ 'fixed bottom-0 left-0 right-0 px-3': screenSize.width < 640 }"
+						:class="{ 'fixed bottom-0 left-0 right-0 px-3': isMobile }"
 						@success="attachments.fetch()"
 					>
 						<template #default="{ file, progress, uploading, openFileSelector }">
@@ -168,7 +168,7 @@
 								<div class="flex items-center gap-1 overflow-x-auto">
 									<TextEditorFixedMenu :buttons="textEditorMenuButtons" />
 									<EmojiPicker
-										v-if="screenSize.width >= 640"
+										v-if="!isMobile"
 										v-slot="{ togglePopover }"
 										v-model="emoji"
 										@update:model-value="() => appendEmoji()"
@@ -237,7 +237,7 @@ const emit = defineEmits(['reloadMails'])
 const show = defineModel<boolean>()
 
 const user = inject('$user') as UserResource
-const screenSize = useScreenSize()
+const { isMobile } = useScreenSize()
 const { setCurrentMail } = userStore()
 
 const localMailID = ref<string>()

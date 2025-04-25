@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="sm:px-4.5 flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5"
+		class="flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5"
 		@mouseenter="isHovered = true"
 		@mouseleave="isHovered = false"
 	>
