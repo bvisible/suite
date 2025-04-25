@@ -9,19 +9,10 @@
 <script setup>
 import { computed } from 'vue'
 
-import { slideBounds } from '@/stores/slide'
+import { slideBounds, selectionBounds } from '@/stores/slide'
 import { pairElementId } from '@/stores/element'
 
 const props = defineProps({
-	selectionBounds: {
-		type: Object,
-		default: () => ({
-			left: 0,
-			top: 0,
-			width: 0,
-			height: 0,
-		}),
-	},
 	visibilityMap: {
 		type: Object,
 		default: null,
@@ -68,7 +59,7 @@ const getElementBounds = (div) => {
 const getVerticalStyles = (direction) => {
 	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
 
-	const activeBounds = props.selectionBounds
+	const activeBounds = selectionBounds
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const left =
@@ -94,7 +85,7 @@ const getVerticalStyles = (direction) => {
 const getHorizontalStyles = (direction) => {
 	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
 
-	const activeBounds = props.selectionBounds
+	const activeBounds = selectionBounds
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const top =

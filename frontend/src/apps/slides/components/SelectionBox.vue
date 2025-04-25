@@ -1,5 +1,5 @@
 <template>
-	<div v-show="bounds.width" ref="selected" :style="boxStyles"></div>
+	<div v-show="selectionBounds.width" ref="selected" :style="boxStyles"></div>
 </template>
 
 <script setup>
@@ -15,9 +15,8 @@ import {
 	inject,
 } from 'vue'
 
-import { slide, slideBounds } from '@/stores/slide'
+import { slide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
-	activePosition,
 	activeDimensions,
 	activeElementIds,
 	setActiveElements,
@@ -32,16 +31,6 @@ const slideContainerDiv = inject('slideContainerDiv')
 
 const selectedRef = useTemplateRef('selected')
 
-const bounds = defineModel('selectionBounds', {
-	type: Object,
-	default: {
-		left: 0,
-		top: 0,
-		width: 0,
-		height: 0,
-	},
-})
-
 const startX = ref(0)
 const startY = ref(0)
 
@@ -54,10 +43,10 @@ const boxStyles = computed(() => ({
 	zIndex: 1000,
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
-	width: `${bounds.value.width}px`,
-	height: `${bounds.value.height}px`,
-	left: `${bounds.value.left}px`,
-	top: `${bounds.value.top}px`,
+	width: `${selectionBounds.width}px`,
+	height: `${selectionBounds.height}px`,
+	left: `${selectionBounds.left}px`,
+	top: `${selectionBounds.top}px`,
 	boxSizing: 'border-box',
 }))
 
@@ -67,11 +56,11 @@ const initSelection = (e) => {
 		const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 		const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
-		bounds.value.left = currentX
-		bounds.value.top = currentY
+		selectionBounds.left = currentX
+		selectionBounds.top = currentY
 
-		bounds.value.width = 0
-		bounds.value.height = 0
+		selectionBounds.width = 0
+		selectionBounds.height = 0
 
 		startX.value = currentX
 		startY.value = currentY
@@ -84,29 +73,29 @@ const updateSelection = (e) => {
 	const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 	const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
-	bounds.value.width = Math.abs(currentX - startX.value)
-	bounds.value.height = Math.abs(currentY - startY.value)
+	selectionBounds.width = Math.abs(currentX - startX.value)
+	selectionBounds.height = Math.abs(currentY - startY.value)
 
-	if (currentX < startX.value) bounds.value.left = currentX
-	if (currentY < startY.value) bounds.value.top = currentY
+	if (currentX < startX.value) selectionBounds.left = currentX
+	if (currentY < startY.value) selectionBounds.top = currentY
 
 	document.addEventListener('mouseup', endSelection)
 }
 
 const removeSelectionBox = () => {
-	bounds.value.left = 0
-	bounds.value.top = 0
-	bounds.value.width = 0
-	bounds.value.height = 0
+	selectionBounds.left = 0
+	selectionBounds.top = 0
+	selectionBounds.width = 0
+	selectionBounds.height = 0
 }
 
 const getElementsWithinBoxSurface = () => {
 	let elements = []
 
-	const boxLeft = bounds.value.left
-	const boxTop = bounds.value.top
-	const boxRight = bounds.value.left + bounds.value.width
-	const boxBottom = bounds.value.top + bounds.value.height
+	const boxLeft = selectionBounds.left
+	const boxTop = selectionBounds.top
+	const boxRight = selectionBounds.left + selectionBounds.width
+	const boxBottom = selectionBounds.top + selectionBounds.height
 
 	slide.value.elements.forEach((element) => {
 		const {
@@ -169,15 +158,15 @@ const cropSelectionToFitContent = (elementIds) => {
 		if (elementBottom > b) b = elementBottom
 	})
 
-	bounds.value.left = l
-	bounds.value.top = t
-	bounds.value.width = r - l + 1
-	bounds.value.height = b - t + 1
+	selectionBounds.left = l
+	selectionBounds.top = t
+	selectionBounds.width = r - l + 1
+	selectionBounds.height = b - t + 1
 }
 
 const resetSelection = (oldVal) => {
-	bounds.value.width = 0
-	bounds.value.height = 0
+	selectionBounds.width = 0
+	selectionBounds.height = 0
 }
 
 const handleMouseDown = (e) => {
@@ -218,8 +207,8 @@ const moveElementsToSlide = (elementIds) => {
 		let elementDiv = document.querySelector(`[data-index="${elementId}"]`)
 		slideDiv.value.appendChild(elementDiv)
 		moveElement(elementId, {
-			dx: bounds.value.left,
-			dy: bounds.value.top,
+			dx: selectionBounds.left,
+			dy: selectionBounds.top,
 		})
 	})
 }
@@ -229,8 +218,8 @@ const moveElementsToBox = (elementIds) => {
 		const elementDiv = document.querySelector(`[data-index="${elementId}"]`)
 		selectedRef.value?.appendChild(elementDiv)
 		moveElement(elementId, {
-			dx: -bounds.value.left,
-			dy: -bounds.value.top,
+			dx: -selectionBounds.left,
+			dy: -selectionBounds.top,
 		})
 	})
 }
