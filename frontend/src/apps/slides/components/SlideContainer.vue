@@ -185,14 +185,15 @@ watch(
 
 onMounted(() => {
 	if (!slideRef.value) return
+
 	updateSlideBounds()
+
 	document.addEventListener('copy', handleCopy)
 	document.addEventListener('paste', handlePaste)
 })
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
-provide('isDragging', isDragging)
 
 defineExpose({
 	togglePanZoom,
@@ -205,53 +206,68 @@ const selectionBounds = reactive({
 	height: 0,
 })
 
-const addToActiveElements = (id) => {
-	if (!activeElementIds.value.includes(id) && focusElementId.value != id) {
+let dragTimeout, clickTimeout
+
+const clearTimeouts = () => {
+	clearTimeout(dragTimeout)
+	clearTimeout(clickTimeout)
+}
+
+const triggerSelection = (e, id) => {
+	if (id && !focusElementId.value) {
 		activeElementIds.value = [id]
-		focusElementId.value = null
 	}
 }
 
-let dragTimeout
-const clickTimeout = ref(null)
+const handleMouseUp = (e, id) => {
+	clearTimeouts()
+
+	pairElementId.value = null
+
+	clickTimeout = setTimeout(() => triggerSelection(e, id), 100)
+}
+
+const triggerDrag = (e, id) => {
+	if (id && !activeElementIds.value.includes(id) && focusElementId.value !== id) {
+		activeElementIds.value = [id]
+		focusElementId.value = null
+	}
+
+	startDragging(e)
+}
 
 const handleMouseDown = (e, element) => {
-	if (element && focusElementId.value == element.id) return
+	const id = element?.id
+
+	// resume normal behavior if element is being edited
+	if (id === focusElementId.value) return
 
 	e.preventDefault()
 
-	dragTimeout = setTimeout(() => {
-		if (element && focusElementId.value == element.id) return
+	// wait for click to be registered
+	// if the click is not registered, it means the user is dragging
+	dragTimeout = setTimeout(() => triggerDrag(e, id), 100)
 
-		if (element) addToActiveElements(element.id)
+	// if the click is registered ie. mouseup happens before dragTimeout
+	// then consider it a selection instead of dragging
+	e.target.addEventListener('mouseup', () => handleMouseUp(e, id), { once: true })
+}
 
-		startDragging(e)
-	}, 100)
+const makeTextEditable = (target, element) => {
+	clearTimeouts()
 
-	e.target.addEventListener('mouseup', () => {
-		pairElementId.value = null
+	activeElementIds.value = []
+	focusElementId.value = element.id
 
-		clearTimeout(dragTimeout)
-		clearTimeout(clickTimeout.value)
-
-		clickTimeout.value = setTimeout(() => {
-			if (element && !focusElementId.value) activeElementIds.value = [element.id]
-		}, 100)
+	nextTick(() => {
+		target.focus()
 	})
 }
 
 const handleDoubleClick = (e, element) => {
 	if (element.type !== 'text') return
 
-	clearTimeout(clickTimeout.value)
-	clearTimeout(dragTimeout)
-
-	activeElementIds.value = []
-	focusElementId.value = element.id
-
-	nextTick(() => {
-		e.target.focus()
-	})
+	makeTextEditable(e.target, element)
 }
 
 const getElementOutline = (element) => {
