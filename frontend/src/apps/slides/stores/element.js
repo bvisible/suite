@@ -6,7 +6,6 @@ import { slide, slideBounds } from './slide'
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 
-const activePosition = ref(null)
 const activeDimensions = ref(null)
 
 const activeElementIds = ref([])
@@ -195,17 +194,6 @@ const resizeElement = (elementId, dimensions) => {
 	}
 }
 
-const setActivePosition = (position) => {
-	activePosition.value = position
-}
-
-const updateActivePosition = (positionChange) => {
-	setActivePosition({
-		left: activePosition.value?.left + positionChange.dx,
-		top: activePosition.value?.top + positionChange.dy,
-	})
-}
-
 const getElementPosition = (elementId) => {
 	const elementRect = document
 		.querySelector(`[data-index="${elementId}"]`)
@@ -269,7 +257,6 @@ const handlePaste = (e) => {
 }
 
 export {
-	activePosition,
 	activeDimensions,
 	activeElementIds,
 	focusElementId,
@@ -286,8 +273,6 @@ export {
 	toggleTextProperty,
 	moveElement,
 	resizeElement,
-	setActivePosition,
-	updateActivePosition,
 	getElementPosition,
 	handleCopy,
 	handlePaste,

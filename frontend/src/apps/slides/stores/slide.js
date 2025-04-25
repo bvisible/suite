@@ -2,7 +2,7 @@ import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
 import { presentationId, presentation, inSlideShow } from './presentation'
-import { activeElementIds, activePosition, resetFocus } from './element'
+import { activeElementIds, resetFocus } from './element'
 
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
@@ -14,6 +14,13 @@ const slide = ref({
 	elements: [],
 	transition: null,
 	transitionDuration: 0,
+})
+
+const selectionBounds = reactive({
+	left: 0,
+	top: 0,
+	width: 0,
+	height: 0,
 })
 
 const getSavedData = () => {
@@ -29,29 +36,13 @@ const getSavedData = () => {
 }
 
 const getCurrentData = () => {
-	const updatedData = {
+	if (!slide.value) return {}
+	return {
 		elements: slide.value.elements,
 		transition: slide.value.transition,
 		transition_duration: slide.value.transitionDuration,
 		background: slide.value.background,
 	}
-
-	if (activePosition.value) {
-		const dx = activePosition.value.left - slideBounds.left
-		const dy = activePosition.value.top - slideBounds.top
-
-		const elementsCopy = JSON.parse(JSON.stringify(slide.value.elements))
-		elementsCopy.forEach((element) => {
-			if (activeElementIds.value.includes(element.id)) {
-				element.left = element.left + dx
-				element.top = element.top + dy
-			}
-		})
-
-		updatedData.elements = elementsCopy
-	}
-
-	return updatedData
 }
 
 const isSlideDirty = () => {
@@ -119,4 +110,13 @@ const selectSlide = (e) => {
 
 const slideBounds = reactive({})
 
-export { slideIndex, slide, slideBounds, loadSlide, updateSlideState, saveChanges, selectSlide }
+export {
+	slideIndex,
+	slide,
+	slideBounds,
+	selectionBounds,
+	loadSlide,
+	updateSlideState,
+	saveChanges,
+	selectSlide,
+}

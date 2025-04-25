@@ -10,16 +10,11 @@
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox
 					ref="selectionBox"
-					:selectionBounds="selectionBounds"
 					@mousedown="(e) => handleMouseDown(e)"
 					@updateFocus="updateFocus"
 				/>
 
-				<Guides
-					v-if="isDragging"
-					:visibilityMap="visibilityMap"
-					:selectionBounds="selectionBounds"
-				/>
+				<Guides v-if="isDragging" :visibilityMap="visibilityMap" />
 
 				<SlideElement
 					v-for="element in slide.elements"
@@ -37,16 +32,14 @@
 
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import { useResizeObserver } from '@vueuse/core'
 
 import Guides from '@/components/Guides.vue'
 import SelectionBox from './SelectionBox.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, selectSlide, slideBounds } from '@/stores/slide'
+import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
-	activePosition,
 	activeDimensions,
 	activeElements,
 	activeElement,
@@ -69,8 +62,6 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
-const router = useRouter()
-
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
@@ -82,7 +73,7 @@ const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnappi
 	selectionBoxRef,
 	slideRef,
 )
-const { isPanningOrZooming, allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
+const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
 )
@@ -116,13 +107,6 @@ const getElementOutline = (element) => {
 		return 'none'
 	}
 }
-
-const selectionBounds = reactive({
-	left: 0,
-	top: 0,
-	width: 0,
-	height: 0,
-})
 
 let dragTimeout, clickTimeout
 
