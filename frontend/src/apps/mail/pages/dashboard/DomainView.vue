@@ -99,7 +99,7 @@ const domain = createDocumentResource({
 		verifyDnsRecords: {
 			method: 'verify_dns_records',
 			makeParams: () => ({ do_not_save: false }),
-			onSuccess: (data) => {
+			onSuccess: (data: boolean) => {
 				raiseToast(
 					data ? 'DNS records verified successfully.' : 'DNS verification failed.',
 					data ? 'success' : 'error',

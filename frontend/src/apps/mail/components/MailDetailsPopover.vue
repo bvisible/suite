@@ -30,38 +30,40 @@ import { Popover } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
 
+import type { Mail } from '@/types'
+
 const dayjs = inject('$dayjs')
 
-const props = defineProps<{ mail: object }>()
+const { mail } = defineProps<{ mail: Mail }>()
 
 const FIELDS = [
 	{
-		condition: !!props.mail.reply_to,
+		condition: !!mail.reply_to,
 		label: __('Reply To: '),
-		value: () => props.mail.reply_to,
+		value: () => mail.reply_to,
 	},
 	{
 		label: __('To: '),
-		value: () => getRecipients(props.mail.to, true),
+		value: () => getRecipients(mail.to, true),
 	},
 	{
-		condition: !!props.mail.cc.length,
+		condition: !!mail.cc.length,
 		label: __('Cc: '),
-		value: () => getRecipients(props.mail.cc, true),
+		value: () => getRecipients(mail.cc, true),
 	},
 	{
-		condition: !!props.mail.bcc.length,
+		condition: !!mail.bcc.length,
 		label: __('Bcc: '),
-		value: () => getRecipients(props.mail.bcc, true),
+		value: () => getRecipients(mail.bcc, true),
 	},
 	{
 		label: __('Date: '),
-		value: () => dayjs(props.mail.creation).format('MMM D, YYYY, h:mm A'),
+		value: () => dayjs(mail.creation).format('MMM D, YYYY, h:mm A'),
 	},
 	{
-		condition: !!props.mail.subject,
+		condition: !!mail.subject,
 		label: __('Subject: '),
-		value: () => props.mail.subject,
+		value: () => mail.subject,
 	},
 ].filter((field) => field.condition !== false)
 </script>
