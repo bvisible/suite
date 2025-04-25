@@ -16,11 +16,15 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
+	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
 		<template v-if="mails[currentFolder].data?.length">
-			<div ref="mailSidebar" class="sticky top-16 flex w-full flex-col border-r sm:w-1/3">
-				<div class="flex items-center justify-between border-b px-3.5 py-2.5">
-					<div class="text-base sm:px-2">
+			<div
+				ref="mailSidebar"
+				class="sticky top-16 flex flex-col border-r"
+				:class="!isMobile && userLayout === 'split' ? 'w-1/3' : 'w-full'"
+			>
+				<div class="flex items-center justify-between border-b px-3.5 py-2.5 sm:px-5">
+					<div class="text-base">
 						<span v-if="selections.length">{{
 							__('{0} {1} selected', [
 								String(selections.length),
@@ -29,7 +33,35 @@
 						}}</span>
 						<span v-else>{{ __('All Mail') }}</span>
 					</div>
-					<div class="flex items-center space-x-2">
+					<div class="flex items-center space-x-1.5 sm:space-x-3">
+						<Tooltip
+							v-if="!isMobile && !selections.length"
+							:text="__('Select Layout')"
+						>
+							<Dropdown
+								:options="[
+									{
+										label: __('Full Width'),
+										icon: Rows4,
+										onClick: () => setUserLayout('full'),
+									},
+									{
+										label: __('Vertical Split'),
+										icon: PanelLeft,
+										onClick: () => setUserLayout('split'),
+									},
+								]"
+							>
+								<Button variant="ghost">
+									<template #icon>
+										<component
+											:is="userLayout === 'full' ? Rows4 : PanelLeft"
+											class="h-4 w-4 text-gray-600"
+										/>
+									</template>
+								</Button>
+							</Dropdown>
+						</Tooltip>
 						<Tooltip
 							v-for="action in selectActions"
 							:key="action.label"
@@ -41,7 +73,7 @@
 								</template>
 							</Button>
 						</Tooltip>
-						<div class="flex items-center border-l pl-3.5">
+						<div class="flex items-center border-l pl-3.5 sm:pl-5">
 							<Tooltip :text="__('Select All')">
 								<Checkbox
 									v-model="allSelected"
@@ -71,10 +103,15 @@
 				/>
 			</div>
 			<div
-				class="fixed inset-0 z-20 overflow-y-auto bg-white sm:static sm:z-0 sm:w-2/3"
+				class="overflow-y-auto bg-white"
 				:class="{
-					invisible:
-						screenSize.width < 640 && !(currentMail[currentFolder] || route.params.id),
+					'w-2/3': !isMobile && userLayout === 'split',
+					'absolute bottom-0 left-0 right-0 top-0 z-10':
+						!isMobile && userLayout === 'full',
+					'fixed inset-0 z-10': isMobile,
+					hidden:
+						(isMobile || userLayout === 'full') &&
+						!(currentMail[currentFolder] || route.params.id),
 				}"
 			>
 				<MailThread
@@ -120,11 +157,20 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { Mail as MailIcon, MailOpen, RefreshCw, RotateCcw, Trash2 } from 'lucide-vue-next'
+import {
+	Mail as MailIcon,
+	MailOpen,
+	PanelLeft,
+	RefreshCw,
+	RotateCcw,
+	Rows4,
+	Trash2,
+} from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
 	Checkbox,
+	Dropdown,
 	Tooltip,
 	createListResource,
 	createResource,
@@ -147,7 +193,7 @@ const user = inject('$user') as UserResource
 const { currentMail, setCurrentMail } = userStore()
 const route = useRoute()
 const router = useRouter()
-const screenSize = useScreenSize()
+const { isMobile } = useScreenSize()
 
 const currentFolder = computed(() => {
 	const name = String(route.name)
@@ -341,6 +387,19 @@ onMounted(() => {
 		reloadMails('Spam')
 	})
 })
+
+// layout
+
+type LayoutType = 'split' | 'full'
+
+const userLayout = ref<LayoutType>(
+	(localStorage.getItem(`user:${user.data.name}:layout`) as LayoutType) || 'split',
+)
+
+const setUserLayout = (type: LayoutType) => {
+	userLayout.value = type
+	localStorage.setItem(`user:${user.data.name}:layout`, type)
+}
 
 const getMailType = () =>
 	mails[currentFolder.value].data.find((m: Mail) => m.name === currentMail[currentFolder.value])

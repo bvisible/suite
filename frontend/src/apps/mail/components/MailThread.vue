@@ -11,7 +11,7 @@
 				v-if="mailThread.loading"
 				class="bg-surface-gray-3 h-3.5 animate-pulse"
 				:style="{
-					width: `${Math.max(100, Math.random() * (screenSize.width < 640 ? 300 : 800))}px`,
+					width: `${Math.max(100, Math.random() * (isMobile ? 300 : 800))}px`,
 				}"
 			/>
 			<template v-else>
@@ -54,7 +54,7 @@
 										{{ mail.display_name || mail.from_ || mail.sender }}
 									</span>
 									<span
-										v-if="mail.display_name && screenSize.width >= 640"
+										v-if="mail.display_name && !isMobile"
 										class="text-gray-600"
 									>
 										{{ `<${mail.from_ || mail.sender}>` }}
@@ -145,7 +145,9 @@
 	</div>
 
 	<div v-else class="h-full overflow-hidden">
-		<div class="m-4 flex h-[calc(100%-2em)] items-center justify-center rounded-md bg-gray-50">
+		<div
+			class="m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md bg-gray-50"
+		>
 			<div class="flex flex-col items-center space-y-3">
 				<NoMails class="h-16 w-16" />
 				<p class="text-gray-500">
@@ -193,7 +195,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
 
-const screenSize = useScreenSize()
+const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
 const { setCurrentMail } = userStore()
 
@@ -363,7 +365,7 @@ const moreActions = (mail: Mail): MailAction[] => [
 				)
 				?.focus(),
 		icon: Code,
-		condition: () => mail.status !== 'Draft' && screenSize.width >= 640,
+		condition: () => mail.status !== 'Draft' && !isMobile.value,
 	},
 	{
 		label: __('Move to Trash'),

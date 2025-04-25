@@ -37,10 +37,10 @@
 <script setup lang="ts">
 import { useScreenSize } from '@/utils/composables'
 
-const screenSize = useScreenSize()
+const { size } = useScreenSize()
 
 const generatePLaceholderWidth = () => {
-	const width = screenSize.width
+	const width = size.width
 	const max = width < 640 ? width - 50 : width / 2
 	const min = width < 640 ? width / 2 : width / 3
 	return `${Math.floor(Math.random() * (max - min + 1) + min)}px`
