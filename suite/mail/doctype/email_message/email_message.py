@@ -168,7 +168,7 @@ class EmailMessage(Document):
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to mark email(s) as seen/unseen"),
-				message=frappe.get_traceback(with_context=False),
+				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
 
@@ -195,7 +195,7 @@ class EmailMessage(Document):
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to destroy email(s)"),
-				message=frappe.get_traceback(with_context=False),
+				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to destroy email(s)."))
 
@@ -260,7 +260,7 @@ class EmailMessage(Document):
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to move email(s) to mailbox"),
-				message=frappe.get_traceback(with_context=False),
+				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to move email(s) to mailbox."))
 
@@ -298,7 +298,7 @@ class EmailMessage(Document):
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to fetch blob"),
-				message=frappe.get_traceback(with_context=False),
+				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to fetch blob."))
 
@@ -445,7 +445,7 @@ def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> Non
 	except Exception:
 		frappe.log_error(
 			title=_("Failed to fetch emails"),
-			message=frappe.get_traceback(with_context=False),
+			message=frappe.get_traceback(with_context=True),
 		)
 
 
@@ -483,7 +483,7 @@ def fetch_changes(account: str) -> None:
 	except Exception:
 		frappe.log_error(
 			title=_("Failed to fetch changes"),
-			message=frappe.get_traceback(with_context=False),
+			message=frappe.get_traceback(with_context=True),
 		)
 
 
@@ -592,7 +592,7 @@ def delete_destroyed_emails() -> None:
 			frappe.delete_doc("Email Message", message, ignore_permissions=True)
 	except Exception:
 		frappe.log_error(
-			title=_("Failed to delete destroyed emails"), message=frappe.get_traceback(with_context=False)
+			title=_("Failed to delete destroyed emails"), message=frappe.get_traceback(with_context=True)
 		)
 
 
