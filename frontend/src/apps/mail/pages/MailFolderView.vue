@@ -84,7 +84,7 @@
 					</div>
 				</div>
 				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
-					<SidebarDetail
+					<MailListItem
 						v-for="(mail, idx) in mails[currentFolder].data"
 						ref="mailItems"
 						:key="idx"
@@ -181,8 +181,8 @@ import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
+import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
-import SidebarDetail from '@/components/SidebarDetail.vue'
 
 import type { Folder, Mail, MailType, UserResource } from '@/types'
 
