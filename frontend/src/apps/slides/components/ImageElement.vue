@@ -13,6 +13,7 @@ const element = defineModel('element', {
 })
 
 const imageStyle = computed(() => ({
+	width: '100%',
 	opacity: element.value.opacity / 100,
 	borderRadius: `${element.value.borderRadius}px`,
 	borderStyle: element.value.borderStyle || 'none',

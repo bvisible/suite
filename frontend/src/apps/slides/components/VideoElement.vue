@@ -41,6 +41,7 @@ const el = useTemplateRef('videoElement')
 const isPlaying = ref(false)
 
 const videoStyle = computed(() => ({
+	width: '100%',
 	borderRadius: `${element.value.borderRadius}px`,
 	borderStyle: element.value.borderStyle || 'none',
 	borderColor: element.value.borderColor,
