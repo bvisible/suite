@@ -107,97 +107,15 @@ const slideStyles = computed(() => ({
 	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
 }))
 
-const scale = computed(() => {
-	const matrix = transform.value?.match(/matrix\((.+)\)/)
-	if (!matrix) return 1
-	return parseFloat(matrix[1].split(', ')[0])
-})
-
-const updateFocus = (e) => {
-	if (isResizing.value) {
-		isResizing.value = false
-		return
+const getElementOutline = (element) => {
+	if (activeElementIds.value.concat([focusElementId.value]).includes(element.id)) {
+		return 'primary'
+	} else if (pairElementId.value === element.id) {
+		return 'secondary'
+	} else {
+		return 'none'
 	}
-	selectSlide(e)
 }
-
-const updateSlideBounds = () => {
-	const slideRect = slideRef.value.getBoundingClientRect()
-
-	slideBounds.width = slideRect.width
-	slideBounds.height = slideRect.height
-	slideBounds.left = slideRect.left
-	slideBounds.top = slideRect.top
-	slideBounds.scale = scale.value
-}
-
-const handleSelectionChange = (newSelection, oldSelection) => {
-	if (newSelection.length < 2) {
-		const targetElement = document.querySelector(`[data-index="${newSelection[0]}"]`)
-		const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
-		updateResizers(targetElement, resizeMode)
-	}
-
-	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
-}
-
-const activeDiv = computed(() => {
-	if (activeElementIds.value.length != 1) return null
-	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
-})
-
-useResizeObserver(activeDiv, (entries) => {
-	const entry = entries[0]
-	const { width, height } = entry.contentRect
-
-	// case:
-	// when element dimensions are changed not by resizer
-	// but by other updates on properties - font size, line height, letter spacing etc.
-	selectionBounds.width = width
-	selectionBounds.height = height
-})
-
-const togglePanZoom = () => {
-	allowPanAndZoom.value = !allowPanAndZoom.value
-}
-
-const handleSlideTransform = () => {
-	// wait for the new transform to render before updating dimensions
-	nextTick(() => {
-		updateSlideBounds()
-	})
-}
-
-watch(
-	() => activeElementIds.value,
-	(newVal, oldVal) => {
-		handleSelectionChange(newVal, oldVal)
-	},
-)
-
-watch(
-	() => transform.value,
-	() => {
-		if (!transform.value) return
-		handleSlideTransform()
-	},
-)
-
-onMounted(() => {
-	if (!slideRef.value) return
-
-	updateSlideBounds()
-
-	document.addEventListener('copy', handleCopy)
-	document.addEventListener('paste', handlePaste)
-})
-
-provide('slideDiv', slideRef)
-provide('slideContainerDiv', slideContainerRef)
-
-defineExpose({
-	togglePanZoom,
-})
 
 const selectionBounds = reactive({
 	left: 0,
@@ -270,14 +188,50 @@ const handleDoubleClick = (e, element) => {
 	makeTextEditable(e.target, element)
 }
 
-const getElementOutline = (element) => {
-	if (activeElementIds.value.concat([focusElementId.value]).includes(element.id)) {
-		return 'primary'
-	} else if (pairElementId.value === element.id) {
-		return 'secondary'
-	} else {
-		return 'none'
+const scale = computed(() => {
+	const matrix = transform.value?.match(/matrix\((.+)\)/)
+	if (!matrix) return 1
+	return parseFloat(matrix[1].split(', ')[0])
+})
+
+const updateFocus = (e) => {
+	if (isResizing.value) {
+		isResizing.value = false
+		return
 	}
+	selectSlide(e)
+}
+
+const updateResizeHandler = (index) => {
+	const targetElement = document.querySelector(`[data-index="${index}"]`)
+	const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
+	updateResizers(targetElement, resizeMode)
+}
+
+const handleSelectionChange = (newSelection, oldSelection) => {
+	if (newSelection.length < 2) updateResizeHandler(newSelection[0])
+
+	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
+}
+
+const activeDiv = computed(() => {
+	if (activeElementIds.value.length != 1) return null
+	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
+})
+
+useResizeObserver(activeDiv, (entries) => {
+	const entry = entries[0]
+	const { width, height } = entry.contentRect
+
+	// case:
+	// when element dimensions are changed not by resizer
+	// but by other updates on properties - font size, line height, letter spacing etc.
+	selectionBounds.width = width
+	selectionBounds.height = height
+})
+
+const togglePanZoom = () => {
+	allowPanAndZoom.value = !allowPanAndZoom.value
 }
 
 const getTotalPositionDelta = (delta) => {
@@ -328,6 +282,38 @@ const handleDimensionChange = (delta) => {
 	updateElementWidth(delta.width)
 }
 
+const updateSlideBounds = () => {
+	const slideRect = slideRef.value.getBoundingClientRect()
+
+	slideBounds.width = slideRect.width
+	slideBounds.height = slideRect.height
+	slideBounds.left = slideRect.left
+	slideBounds.top = slideRect.top
+	slideBounds.scale = scale.value
+}
+
+const handleSlideTransform = () => {
+	// wait for the new transform to render before updating dimensions
+	nextTick(() => {
+		updateSlideBounds()
+	})
+}
+
+watch(
+	() => activeElementIds.value,
+	(newVal, oldVal) => {
+		handleSelectionChange(newVal, oldVal)
+	},
+)
+
+watch(
+	() => transform.value,
+	() => {
+		if (!transform.value) return
+		handleSlideTransform()
+	},
+)
+
 watch(
 	() => positionDelta.value,
 	(delta) => {
@@ -341,6 +327,22 @@ watch(
 		handleDimensionChange(delta)
 	},
 )
+
+onMounted(() => {
+	if (!slideRef.value) return
+
+	updateSlideBounds()
+
+	document.addEventListener('copy', handleCopy)
+	document.addEventListener('paste', handlePaste)
+})
+
+provide('slideDiv', slideRef)
+provide('slideContainerDiv', slideContainerRef)
+
+defineExpose({
+	togglePanZoom,
+})
 </script>
 
 <style src="../assets/styles/resizer.css"></style>
