@@ -6,8 +6,6 @@ import { slide, slideBounds } from './slide'
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 
-const activeDimensions = ref(null)
-
 const activeElementIds = ref([])
 const focusElementId = ref(null)
 const pairElementId = ref(null)
@@ -257,7 +255,6 @@ const handlePaste = (e) => {
 }
 
 export {
-	activeDimensions,
 	activeElementIds,
 	focusElementId,
 	pairElementId,

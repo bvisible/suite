@@ -17,7 +17,6 @@ import {
 
 import { slide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
-	activeDimensions,
 	activeElementIds,
 	setActiveElements,
 	moveElement,
