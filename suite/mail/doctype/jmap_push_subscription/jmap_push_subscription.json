@@ -6,6 +6,8 @@
  "field_order": [
   "section_break_xjjk",
   "verified",
+  "column_break_ivre",
+  "verified_at",
   "section_break_ktdh",
   "status",
   "account",
@@ -123,12 +125,24 @@
    "label": "Subscription Response",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ivre",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.verified",
+   "fieldname": "verified_at",
+   "fieldtype": "Datetime",
+   "label": "Verified At",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-27 22:29:39.804052",
+ "modified": "2025-04-27 22:46:46.263756",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "JMAP Push Subscription",
