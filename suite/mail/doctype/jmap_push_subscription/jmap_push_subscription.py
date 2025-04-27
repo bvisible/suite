@@ -44,8 +44,13 @@ class JMAPPushSubscription(Document):
 
 		kwargs = {"verification_response": json.dumps(response, indent=4)}
 		if response.get("updated"):
-			kwargs["verified"] = 1
-			kwargs["status"] = "Active"
+			kwargs.update(
+				{
+					"verified": 1,
+					"status": "Active",
+					"verified_at": frappe.utils.now(),
+				}
+			)
 		elif response.get("notUpdated"):
 			kwargs["status"] = "Failed to Verify"
 
@@ -98,9 +103,13 @@ class JMAPPushSubscription(Document):
 
 		kwargs = {"subscription_response": json.dumps(response, indent=4)}
 		if response.get("created"):
-			kwargs["status"] = "Pending Verification"
-			kwargs["subscription_id"] = response["created"][self.name]["id"]
-			kwargs["expires_at"] = parse_iso_datetime(response["created"][self.name]["expires"])
+			kwargs.update(
+				{
+					"status": "Pending Verification",
+					"subscription_id": response["created"][self.name]["id"],
+					"expires_at": parse_iso_datetime(response["created"][self.name]["expires"]),
+				}
+			)
 		elif response.get("notCreated"):
 			kwargs["status"] = "Failed to Subscribe"
 		else:
@@ -121,7 +130,12 @@ class JMAPPushSubscription(Document):
 
 		kwargs = {"renew_response": json.dumps(response, indent=4)}
 		if response.get("updated"):
-			kwargs["expires_at"] = parse_iso_datetime(response["updated"][self.name]["expires"])
+			kwargs.update(
+				{
+					"status": "Active",
+					"expires_at": parse_iso_datetime(response["updated"][self.name]["expires"]),
+				}
+			)
 		elif response.get("notUpdated"):
 			kwargs["status"] = "Failed to Renew"
 		else:
