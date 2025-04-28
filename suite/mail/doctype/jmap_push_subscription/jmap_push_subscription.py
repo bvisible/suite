@@ -6,6 +6,8 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import Interval
+from frappe.query_builder.functions import IfNull, Now
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client
@@ -203,3 +205,26 @@ class JMAPPushSubscription(Document):
 
 		if notify_update:
 			self.notify_update()
+
+
+def renew_push_subscriptions() -> None:
+	"""Renews push subscriptions that are about to expire within the next 2 days."""
+
+	PS = frappe.qb.DocType("JMAP Push Subscription")
+	subscriptions = (
+		frappe.qb.from_(PS)
+		.select(PS.name)
+		.where(
+			(PS.verified == 1)
+			& (IfNull(PS.subscription_id, "") != "")
+			& (PS.expires_at < (Now() + Interval(days=2)))
+			& (PS.status.isin(["Active", "Expired", "Failed to Renew"]))
+		)
+	).run(pluck="name")
+
+	if not subscriptions:
+		return
+
+	for subscription in subscriptions:
+		push_subscription = frappe.get_doc("JMAP Push Subscription", subscription)
+		push_subscription.renew()
