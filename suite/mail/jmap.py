@@ -412,7 +412,9 @@ class JMAPClient:
 
 		return response["methodResponses"][0][1]
 
-	def push_subscription_set_verification_code(self, subscription_id: str, verification_code: str) -> dict:
+	def push_subscription_set_verification_code(
+		self, subscription_id: str, verification_code: str
+	) -> list[list]:
 		"""Sets the verification code for a push subscription."""
 
 		response = self._make_request(
@@ -424,13 +426,20 @@ class JMAPClient:
 						"update": {subscription_id: {"verificationCode": verification_code}},
 					},
 					"0",
-				]
+				],
+				[
+					"PushSubscription/get",
+					{
+						"ids": [subscription_id],
+					},
+					"1",
+				],
 			],
 		)
 
-		return response["methodResponses"][0][1]
+		return response["methodResponses"]
 
-	def push_subscription_set_expires(self, subscription_id: str, expires: str | None = None) -> dict:
+	def push_subscription_set_expires(self, subscription_id: str, expires: str | None = None) -> list[list]:
 		"""Sets the expiration date for a push subscription."""
 
 		response = self._make_request(
@@ -442,10 +451,17 @@ class JMAPClient:
 						"update": {subscription_id: {"expires": expires}},
 					},
 					"0",
-				]
+				],
+				[
+					"PushSubscription/get",
+					{
+						"ids": [subscription_id],
+					},
+					"1",
+				],
 			],
 		)
-		return response["methodResponses"][0][1]
+		return response["methodResponses"]
 
 	def push_subscription_set_destroy(self, subscription_ids: list[str]) -> None:
 		"""Destroys push subscriptions."""
