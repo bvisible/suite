@@ -183,15 +183,6 @@ const moveElement = (elementId, movement) => {
 	element.top += movement.dy
 }
 
-const resizeElement = (elementId, dimensions) => {
-	let element = slide.value.elements.find((el) => el.id == elementId)
-
-	if (element && dimensions.width != element.width) {
-		const newWidth = dimensions.width / slideBounds.scale
-		element.width = newWidth
-	}
-}
-
 const getElementPosition = (elementId) => {
 	const elementRect = document
 		.querySelector(`[data-index="${elementId}"]`)
@@ -269,7 +260,6 @@ export {
 	selectAllElements,
 	toggleTextProperty,
 	moveElement,
-	resizeElement,
 	getElementPosition,
 	handleCopy,
 	handlePaste,

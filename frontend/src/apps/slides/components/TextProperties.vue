@@ -114,7 +114,6 @@ import ColorPicker from './controls/ColorPicker.vue'
 import { slide } from '@/stores/slide'
 import {
 	activeElementIds,
-	activeElements,
 	focusElementId,
 	toggleTextProperty,
 	activeElement,
