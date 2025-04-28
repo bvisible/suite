@@ -497,6 +497,12 @@ def get_jmap_client(account: str) -> "JMAPClient":
 	return client
 
 
+def invalidate_jmap_client_cache() -> None:
+	"""Invalidates the JMAP client cache."""
+
+	get_jmap_client.clear_cache()
+
+
 def get_mailboxes(account: str) -> list[dict]:
 	"""Returns the mailboxes for the given account."""
 
