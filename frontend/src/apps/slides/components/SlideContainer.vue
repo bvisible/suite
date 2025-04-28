@@ -40,12 +40,8 @@ import SelectionBox from './SelectionBox.vue'
 import { presentation } from '@/stores/presentation'
 import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
-	activeElements,
 	activeElement,
 	activeElementIds,
-	updateActivePosition,
-	setActivePosition,
-	resizeElement,
 	handleCopy,
 	handlePaste,
 	focusElementId,
