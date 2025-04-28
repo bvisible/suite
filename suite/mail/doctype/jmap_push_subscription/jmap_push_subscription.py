@@ -85,6 +85,10 @@ class JMAPPushSubscription(Document):
 	def after_insert(self) -> None:
 		self._subscribe()
 
+	def on_trash(self) -> None:
+		if self.subscription_id:
+			JMAPPushSubscription.destroy_push_subscriptions(self.account, [self.subscription_id])
+
 	def set_endpoint(self) -> None:
 		"""Sets the endpoint URL for the push subscription."""
 
