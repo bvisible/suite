@@ -35,6 +35,12 @@ class EmailMessage(Document):
 		return time_diff_in_seconds(self.received_at, self.sent_at)
 
 	@property
+	def fetched_after(self) -> int:
+		"""Returns the time difference in seconds between creation and received time."""
+
+		return time_diff_in_seconds(self.creation, self.received_at)
+
+	@property
 	def spf_pass(self) -> int:
 		"""Returns SPF pass status."""
 
