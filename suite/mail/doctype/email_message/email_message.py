@@ -492,7 +492,8 @@ def enqueue_fetch_changes(account: str) -> None:
 	"""Enqueue the fetch_changes job for the specified account."""
 
 	with user_context("Administrator"):
-		enqueue_job(fetch_changes, account=account, queue="short", deduplicate=True)
+		job_id = f"fetch_changes:{account}"
+		enqueue_job(fetch_changes, account=account, queue="short", job_id=job_id, deduplicate=True)
 
 
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":

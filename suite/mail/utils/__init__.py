@@ -122,11 +122,12 @@ def load_compressed_file(file_path: str | None = None, file_data: bytes | None =
 	frappe.throw(_("Failed to load content from the compressed file."))
 
 
-def enqueue_job(method: str | Callable, deduplicate: bool = False, **kwargs) -> None:
+def enqueue_job(
+	method: str | Callable, job_id: str | None = None, deduplicate: bool = False, **kwargs
+) -> None:
 	"""Enqueues a background job."""
 
-	job_id = None
-	if deduplicate:
+	if deduplicate and not job_id:
 		job_id = method.split(".")[-1] if isinstance(method, str) else method.__name__
 
 	frappe.enqueue(method, job_id=job_id, deduplicate=deduplicate, **kwargs)
