@@ -179,6 +179,13 @@ class JMAPPushSubscription(Document):
 
 		self._subscribe()
 
+	@frappe.whitelist()
+	def destroy_all_subscriptions(self) -> None:
+		"""Destroys all push subscriptions for the account."""
+
+		JMAPPushSubscription.destroy_push_subscriptions(self.account)
+		self._subscribe()
+
 	def _db_set(
 		self,
 		update_modified: bool = True,
