@@ -10,18 +10,18 @@ def push_notification(account: str) -> dict:
 	"""Handle JMAP Push Notification."""
 
 	try:
-		data = frappe.request.get_json()
+		request_data = frappe.request.get_json()
 
-		if data["@type"] == "PushVerification":
+		if request_data["@type"] == "PushVerification":
 			JMAPPushSubscription.verify_push_subscription(
-				account, data["pushSubscriptionId"], data["verificationCode"]
+				account, request_data["pushSubscriptionId"], request_data["verificationCode"]
 			)
 			return {}
-		elif data["@type"] == "StateChange":
-			enqueue_fetch_changes(account)
+		elif request_data["@type"] == "StateChange":
+			enqueue_fetch_changes(account, request_data)
 			return {}
 		else:
-			frappe.throw(_("Invalid Push Notification @type = {0}").format(data["@type"]))
+			frappe.throw(_("Invalid Push Notification @type = {0}").format(request_data["@type"]))
 	except Exception:
 		frappe.log_error(
 			title=_("Failed to handle JMAP Push Notification"),
