@@ -11,18 +11,14 @@
 </template>
 
 <script setup>
-import { computed, nextTick } from 'vue'
+import { computed } from 'vue'
 
-import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, deleteElements } from '@/stores/element'
-import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
-
-const emit = defineEmits(['focus', 'select'])
 
 const textStyle = computed(() => ({
 	content: element.value.content,

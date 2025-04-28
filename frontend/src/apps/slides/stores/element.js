@@ -176,13 +176,6 @@ const toggleTextProperty = (property, value) => {
 	activeElement.value[property] = newStyle
 }
 
-const moveElement = (elementId, movement) => {
-	let element = slide.value.elements.find((el) => el.id === elementId)
-
-	element.left += movement.dx
-	element.top += movement.dy
-}
-
 const getElementPosition = (elementId) => {
 	const elementRect = document
 		.querySelector(`[data-index="${elementId}"]`)
@@ -259,7 +252,6 @@ export {
 	deleteElements,
 	selectAllElements,
 	toggleTextProperty,
-	moveElement,
 	getElementPosition,
 	handleCopy,
 	handlePaste,

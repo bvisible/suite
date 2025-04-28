@@ -3,25 +3,10 @@
 </template>
 
 <script setup>
-import {
-	ref,
-	computed,
-	watch,
-	nextTick,
-	useTemplateRef,
-	onMounted,
-	onBeforeUnmount,
-	reactive,
-	inject,
-} from 'vue'
+import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
 
 import { slide, slideBounds, selectionBounds } from '@/stores/slide'
-import {
-	activeElementIds,
-	setActiveElements,
-	moveElement,
-	getElementPosition,
-} from '@/stores/element'
+import { activeElementIds, setActiveElements, getElementPosition } from '@/stores/element'
 
 const emit = defineEmits(['updateFocus'])
 
@@ -199,6 +184,13 @@ const handleMouseUp = (e) => {
 	} else {
 		mousedownStart = 0
 	}
+}
+
+const moveElement = (elementId, movement) => {
+	let element = slide.value.elements.find((el) => el.id === elementId)
+
+	element.left += movement.dx
+	element.top += movement.dy
 }
 
 const moveElementsToSlide = (elementIds) => {

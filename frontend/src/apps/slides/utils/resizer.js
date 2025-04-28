@@ -1,5 +1,5 @@
-import { watch, ref, computed, reactive } from 'vue'
-import { slide, slideBounds } from '../stores/slide'
+import { ref } from 'vue'
+import { slide } from '../stores/slide'
 
 export const useResizer = () => {
 	const resizeTarget = ref(null)
