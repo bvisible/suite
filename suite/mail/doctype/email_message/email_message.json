@@ -31,6 +31,7 @@
   "sent_at",
   "received_at",
   "received_after",
+  "fetched_after",
   "column_break_fdul",
   "sender_name",
   "sender_email",
@@ -415,13 +416,20 @@
    "label": "Destroyed",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "fetched_after",
+   "fieldtype": "Int",
+   "is_virtual": 1,
+   "label": "Fetched After (Seconds)",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-22 15:08:53.551762",
+ "modified": "2025-04-28 14:14:50.862198",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
