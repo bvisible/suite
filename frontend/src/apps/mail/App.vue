@@ -18,12 +18,12 @@ import LoginLayout from '@/components/LoginLayout.vue'
 import MobileLayout from '@/components/MobileLayout.vue'
 
 const route = useRoute()
-const screenSize = useScreenSize()
+const { isMobile } = useScreenSize()
 
 const Layout = computed(() => {
 	if (route.meta.isLogin || route.meta.isSetup) return LoginLayout
 	if (route.meta.isMimeMessage) return EmptyLayout
-	if (screenSize.width < 640) return MobileLayout
+	if (isMobile.value) return MobileLayout
 	return DesktopLayout
 })
 </script>

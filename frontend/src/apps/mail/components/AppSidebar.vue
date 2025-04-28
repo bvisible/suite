@@ -58,9 +58,7 @@ const sidebarLinks = computed(() =>
 	),
 )
 
-const getSidebarFromStorage = () => {
-	return useStorage('sidebar_is_collapsed', false)
-}
+const getSidebarFromStorage = () => useStorage('sidebar_is_collapsed', false)
 
 const isSidebarCollapsed = ref(getSidebarFromStorage())
 </script>

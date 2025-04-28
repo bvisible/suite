@@ -6,6 +6,7 @@ interface DocType {
 	modified: string
 	owner: string
 	modified_by: string
+	docstatus: 0 | 1 | 2
 }
 
 interface ChildDocType extends DocType {

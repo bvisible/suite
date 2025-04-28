@@ -2,7 +2,7 @@
 	<header
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
-		<Breadcrumbs :items="[{ label: currentFolder }]">
+		<Breadcrumbs :items="[{ label: currentFolder, route: { name: currentFolder } }]">
 			<template v-if="currentFolder !== 'Trash'" #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
 					{{
@@ -16,11 +16,15 @@
 		</Breadcrumbs>
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
-	<div class="flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
+	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
 		<template v-if="mails[currentFolder].data?.length">
-			<div ref="mailSidebar" class="sticky top-16 flex w-full flex-col border-r sm:w-1/3">
-				<div class="flex items-center justify-between border-b px-3.5 py-2.5">
-					<div class="text-base sm:px-2">
+			<div
+				ref="mailSidebar"
+				class="sticky top-16 flex flex-col border-r"
+				:class="!isMobile && userLayout === 'split' ? 'w-1/3' : 'w-full'"
+			>
+				<div class="flex items-center justify-between border-b px-3.5 py-2.5 sm:px-5">
+					<div class="text-base">
 						<span v-if="selections.length">{{
 							__('{0} {1} selected', [
 								String(selections.length),
@@ -29,7 +33,35 @@
 						}}</span>
 						<span v-else>{{ __('All Mail') }}</span>
 					</div>
-					<div class="flex items-center space-x-2">
+					<div class="flex items-center space-x-1.5 sm:space-x-3">
+						<Tooltip
+							v-if="!isMobile && !selections.length"
+							:text="__('Select Layout')"
+						>
+							<Dropdown
+								:options="[
+									{
+										label: __('Full Width'),
+										icon: Rows4,
+										onClick: () => setUserLayout('full'),
+									},
+									{
+										label: __('Vertical Split'),
+										icon: PanelLeft,
+										onClick: () => setUserLayout('split'),
+									},
+								]"
+							>
+								<Button variant="ghost">
+									<template #icon>
+										<component
+											:is="userLayout === 'full' ? Rows4 : PanelLeft"
+											class="h-4 w-4 text-gray-600"
+										/>
+									</template>
+								</Button>
+							</Dropdown>
+						</Tooltip>
 						<Tooltip
 							v-for="action in selectActions"
 							:key="action.label"
@@ -41,7 +73,7 @@
 								</template>
 							</Button>
 						</Tooltip>
-						<div class="flex items-center border-l pl-3.5">
+						<div class="flex items-center border-l pl-3.5 sm:pl-5">
 							<Tooltip :text="__('Select All')">
 								<Checkbox
 									v-model="allSelected"
@@ -52,12 +84,13 @@
 					</div>
 				</div>
 				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
-					<SidebarDetail
+					<MailListItem
 						v-for="(mail, idx) in mails[currentFolder].data"
 						ref="mailItems"
 						:key="idx"
 						:mail
-						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
+						:user-layout
+						:class="{ 'bg-gray-50': mail.name == currentMail[currentFolder] }"
 						@click="openMail(mail)"
 						@select-mail="selectMail({ name: mail.name, mail_type: mail.mail_type })"
 						@deselect-mail="deselectMail(mail.name)"
@@ -71,10 +104,15 @@
 				/>
 			</div>
 			<div
-				class="fixed inset-0 z-20 overflow-y-auto bg-white sm:static sm:z-0 sm:w-2/3"
+				class="overflow-y-auto bg-white"
 				:class="{
-					invisible:
-						screenSize.width < 640 && !(currentMail[currentFolder] || route.params.id),
+					'w-2/3': !isMobile && userLayout === 'split',
+					'absolute bottom-0 left-0 right-0 top-0 z-10':
+						!isMobile && userLayout === 'full',
+					'fixed inset-0 z-10': isMobile,
+					hidden:
+						(isMobile || userLayout === 'full') &&
+						!(currentMail[currentFolder] || route.params.id),
 				}"
 			>
 				<MailThread
@@ -120,11 +158,20 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { Mail, MailOpen, RefreshCw, RotateCcw, Trash2 } from 'lucide-vue-next'
+import {
+	Mail as MailIcon,
+	MailOpen,
+	PanelLeft,
+	RefreshCw,
+	RotateCcw,
+	Rows4,
+	Trash2,
+} from 'lucide-vue-next'
 import {
 	Breadcrumbs,
 	Button,
 	Checkbox,
+	Dropdown,
 	Tooltip,
 	createListResource,
 	createResource,
@@ -135,10 +182,10 @@ import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
+import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
-import SidebarDetail from '@/components/SidebarDetail.vue'
 
-import type { Folder, UserResource } from '@/types'
+import type { Folder, LayoutType, Mail, MailType, UserResource } from '@/types'
 
 const { id } = defineProps<{ id?: string }>()
 
@@ -147,7 +194,7 @@ const user = inject('$user') as UserResource
 const { currentMail, setCurrentMail } = userStore()
 const route = useRoute()
 const router = useRouter()
-const screenSize = useScreenSize()
+const { isMobile } = useScreenSize()
 
 const currentFolder = computed(() => {
 	const name = String(route.name)
@@ -168,11 +215,11 @@ const createMailResource = (folder: Folder) =>
 		doctype: doctype.value,
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
-		onSuccess: (data) => {
-			const mailExists = (id?: string | null) => id && data.some((m) => m.name === id)
+		onSuccess: (data: Mail[]) => {
+			const mailExists = (id?: string | null) => data.some((m) => m.name === id)
 
 			if (mailExists(id)) {
-				if (currentMail[folder] !== id) setCurrentMail(folder, id)
+				if (currentMail[folder] !== id) setCurrentMail(folder, id ?? null)
 				mailThread.value?.reload()
 			} else if (mailExists(currentMail[folder])) {
 				if (route.params.id !== currentMail[folder])
@@ -223,13 +270,16 @@ const setSeen = createResource({
 
 const setFolderForThreads = createResource({
 	url: 'mail.api.mail.set_folder_for_threads',
-	makeParams: ({ threads, move_to_trash }) => ({ threads, move_to_trash }),
+	makeParams: ({ threads, move_to_trash }: { threads: string[]; move_to_trash: boolean }) => ({
+		threads,
+		move_to_trash,
+	}),
 	onSuccess: reloadMails,
 })
 
 const deleteThreads = createResource({
 	url: 'mail.api.mail.delete_or_cancel_threads',
-	makeParams: (threads) => ({ threads }),
+	makeParams: (threads: string[]) => ({ threads }),
 	onSuccess: reloadMails,
 })
 
@@ -237,7 +287,12 @@ const deleteThreads = createResource({
 
 const mailItems = useTemplateRef('mailItems')
 
-const selections = ref([])
+interface Selection {
+	name: string
+	mail_type: MailType
+}
+
+const selections = ref<Selection[]>([])
 const allSelectedManuallyToggled = ref(false)
 const allSelected = ref(false)
 
@@ -248,7 +303,7 @@ const resetSelections = () => {
 	selections.value = []
 }
 
-const selectMail = (mail) => {
+const selectMail = (mail: Selection) => {
 	if (!selections.value.includes(mail)) selections.value.push(mail)
 }
 
@@ -301,7 +356,7 @@ const selectActions = computed((): SelectAction[] =>
 		{
 			label: __('Mark as Unread'),
 			onClick: () => setSeen.submit({ mails: selections.value, seen: 0 }),
-			icon: Mail,
+			icon: MailIcon,
 			condition: !!selections.value.length,
 		},
 		{
@@ -318,13 +373,20 @@ watch(allSelected, (val) => {
 		mailItems.value?.forEach((item) => item?.setIsSelected(val))
 })
 
-const openMail = (mail) => {
+const openMail = (mail: Mail) => {
 	setCurrentMail(currentFolder.value, mail.name)
 	if (!mail.seen)
 		setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
 }
 
 watch(() => currentFolder.value, reloadMails, { immediate: true })
+
+watch(
+	() => route.params.id,
+	(val, oldVal) => {
+		if (val !== oldVal) setCurrentMail(currentFolder.value, val || null)
+	},
+)
 
 onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
@@ -334,8 +396,19 @@ onMounted(() => {
 	})
 })
 
+// layout
+
+const userLayout = ref<LayoutType>(
+	(localStorage.getItem(`user:${user.data.name}:layout`) as LayoutType) || 'split',
+)
+
+const setUserLayout = (type: LayoutType) => {
+	userLayout.value = type
+	localStorage.setItem(`user:${user.data.name}:layout`, type)
+}
+
 const getMailType = () =>
-	mails[currentFolder.value].data.find((m) => m.name === currentMail[currentFolder.value])
+	mails[currentFolder.value].data.find((m: Mail) => m.name === currentMail[currentFolder.value])
 		?.mail_type
 
 const loadMoreEmails = useDebounceFn(() => {

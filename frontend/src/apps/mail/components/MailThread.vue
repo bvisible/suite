@@ -11,7 +11,7 @@
 				v-if="mailThread.loading"
 				class="bg-surface-gray-3 h-3.5 animate-pulse"
 				:style="{
-					width: `${Math.max(100, Math.random() * (screenSize.width < 640 ? 300 : 800))}px`,
+					width: `${Math.max(100, Math.random() * (isMobile ? 300 : 800))}px`,
 				}"
 			/>
 			<template v-else>
@@ -54,7 +54,7 @@
 										{{ mail.display_name || mail.from_ || mail.sender }}
 									</span>
 									<span
-										v-if="mail.display_name && screenSize.width >= 640"
+										v-if="mail.display_name && !isMobile"
 										class="text-gray-600"
 									>
 										{{ `<${mail.from_ || mail.sender}>` }}
@@ -145,7 +145,9 @@
 	</div>
 
 	<div v-else class="h-full overflow-hidden">
-		<div class="m-4 flex h-[calc(100%-2em)] items-center justify-center rounded-md bg-gray-50">
+		<div
+			class="m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md bg-gray-50"
+		>
 			<div class="flex flex-col items-center space-y-3">
 				<NoMails class="h-16 w-16" />
 				<p class="text-gray-500">
@@ -164,7 +166,7 @@ import {
 	Code,
 	Ellipsis,
 	Forward,
-	Mail,
+	Mail as MailIcon,
 	Reply,
 	ReplyAll,
 	RotateCcw,
@@ -183,17 +185,17 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { Folder } from '@/types'
+import type { Folder, Mail, MailType } from '@/types'
 
 const props = defineProps<{
 	mailID: string | null
 	currentFolder: Folder
-	type?: 'Incoming Mail' | 'Outgoing Mail'
+	type?: MailType
 }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
 
-const screenSize = useScreenSize()
+const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
 const { setCurrentMail } = userStore()
 
@@ -212,7 +214,7 @@ const replyDetails = reactive({
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
-	transform: (data) =>
+	transform: (data: Mail[]) =>
 		props.currentFolder === 'Trash'
 			? data.filter((mail) => mail.folder === 'Trash')
 			: data.filter((mail) => mail.folder !== 'Trash'),
@@ -317,12 +319,12 @@ const threadActions = computed((): MailAction[] =>
 		{
 			label: __('Mark as Unread'),
 			onClick: () => emit('markAsUnread'),
-			icon: Mail,
+			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),
 )
 
-const mailActions = (mail): MailAction[] => [
+const mailActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Edit Draft'),
 		onClick: () => {
@@ -340,7 +342,7 @@ const mailActions = (mail): MailAction[] => [
 	},
 ]
 
-const moreActions = (mail): MailAction[] => [
+const moreActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
@@ -355,16 +357,15 @@ const moreActions = (mail): MailAction[] => [
 	},
 	{
 		label: __('See MIME Message'),
-		onClick: () => {
+		onClick: () =>
 			window
 				.open(
 					`/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
 					'_blank',
 				)
-				?.focus()
-		},
+				?.focus(),
 		icon: Code,
-		condition: () => mail.status !== 'Draft' && screenSize.width >= 640,
+		condition: () => mail.status !== 'Draft' && !isMobile.value,
 	},
 	{
 		label: __('Move to Trash'),
@@ -386,15 +387,10 @@ const moreActions = (mail): MailAction[] => [
 	},
 ]
 
-interface SetFolderParams {
-	mail: object
-	moveToTrash: boolean
-}
-
 const setFolder = createResource({
 	url: 'mail.api.mail.set_folder',
 	method: 'POST',
-	makeParams: ({ mail, moveToTrash }: SetFolderParams) => ({
+	makeParams: ({ mail, moveToTrash }: { mail: Mail; moveToTrash: boolean }) => ({
 		mail_type: mail.mail_type,
 		name: mail.name,
 		move_to_trash: moveToTrash,
@@ -404,7 +400,7 @@ const setFolder = createResource({
 
 const deleteMail = createResource({
 	url: 'mail.api.mail.delete_or_cancel_mails',
-	makeParams: (mail: object) => ({
+	makeParams: (mail: Mail) => ({
 		mails: [
 			{
 				mail_type: mail.mail_type,
