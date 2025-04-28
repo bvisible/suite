@@ -450,13 +450,15 @@ def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> Non
 		)
 
 
-def fetch_changes(account: str) -> None:
+def fetch_changes(account: str, email_states: list[str] | None = None) -> None:
 	"""Fetch changes from the server and update EmailMessage documents."""
 
 	current_state = get_current_state(account)
 
 	if not current_state:
 		return fetch_emails(account)
+	elif email_states and current_state in email_states:
+		return
 
 	client = get_jmap_client(account)
 
@@ -488,12 +490,25 @@ def fetch_changes(account: str) -> None:
 		)
 
 
-def enqueue_fetch_changes(account: str) -> None:
+def enqueue_fetch_changes(account: str, request_data: dict | None = None) -> None:
 	"""Enqueue the fetch_changes job for the specified account."""
+
+	email_states = None
+	if request_data:
+		email_states = list(
+			set([s["Email"] for s in list(request_data["changed"].values()) if s.get("Email")])
+		)
 
 	with user_context("Administrator"):
 		job_id = f"fetch_changes:{account}"
-		enqueue_job(fetch_changes, account=account, queue="short", job_id=job_id, deduplicate=True)
+		enqueue_job(
+			fetch_changes,
+			account=account,
+			email_states=email_states,
+			queue="short",
+			job_id=job_id,
+			deduplicate=True,
+		)
 
 
 def create_email_message(account: str, email: dict, do_not_save: bool = False) -> "EmailMessage":
