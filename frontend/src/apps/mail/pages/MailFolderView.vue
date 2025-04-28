@@ -89,6 +89,7 @@
 						ref="mailItems"
 						:key="idx"
 						:mail
+						:user-layout
 						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
 						@click="openMail(mail)"
 						@select-mail="selectMail({ name: mail.name, mail_type: mail.mail_type })"
@@ -184,7 +185,7 @@ import NoMails from '@/components/Icons/NoMails.vue'
 import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
 
-import type { Folder, Mail, MailType, UserResource } from '@/types'
+import type { Folder, LayoutType, Mail, MailType, UserResource } from '@/types'
 
 const { id } = defineProps<{ id?: string }>()
 
@@ -389,8 +390,6 @@ onMounted(() => {
 })
 
 // layout
-
-type LayoutType = 'split' | 'full'
 
 const userLayout = ref<LayoutType>(
 	(localStorage.getItem(`user:${user.data.name}:layout`) as LayoutType) || 'split',

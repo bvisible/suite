@@ -51,3 +51,5 @@ export interface UserResource {
 }
 
 export type Folder = 'Inbox' | 'Sent' | 'Outbox' | 'Drafts' | 'Spam' | 'Trash'
+
+export type LayoutType = 'split' | 'full'
