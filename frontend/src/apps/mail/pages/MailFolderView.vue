@@ -381,6 +381,13 @@ const openMail = (mail: Mail) => {
 
 watch(() => currentFolder.value, reloadMails, { immediate: true })
 
+watch(
+	() => route.params.id,
+	(val, oldVal) => {
+		if (val !== oldVal) setCurrentMail(currentFolder.value, val || null)
+	},
+)
+
 onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
 	socket.on('incoming_mail_received', () => {
