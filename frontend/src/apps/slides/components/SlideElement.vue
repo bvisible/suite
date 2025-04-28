@@ -11,13 +11,7 @@ import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import {
-	activeElementIds,
-	pairElementId,
-	focusElementId,
-	setActiveElements,
-	activeElement,
-} from '@/stores/element'
+import { activeElementIds, pairElementId, focusElementId, activeElement } from '@/stores/element'
 
 const props = defineProps({
 	outline: {

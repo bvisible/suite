@@ -1,4 +1,4 @@
-import { watch, ref } from 'vue'
+import { ref } from 'vue'
 
 export const useDragAndDrop = () => {
 	const isDragging = ref(false)

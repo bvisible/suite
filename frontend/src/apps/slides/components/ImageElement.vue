@@ -1,11 +1,9 @@
 <template>
-	<img :src="element.src" :style="imageStyle" @click="selectImage" />
+	<img :src="element.src" :style="imageStyle" />
 </template>
 
 <script setup>
 import { computed } from 'vue'
-
-const emit = defineEmits(['select'])
 
 const element = defineModel('element', {
 	type: Object,
@@ -23,8 +21,4 @@ const imageStyle = computed(() => ({
 	transform: `scale(${element.value.invertX}, ${element.value.invertY})`,
 	userSelect: 'none',
 }))
-
-const selectImage = (e) => {
-	emit('select', e)
-}
 </script>
