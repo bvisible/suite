@@ -1,6 +1,7 @@
 <template>
 	<div
-		class="flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5"
+		class="flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5 sm:hover:bg-gray-50"
+		:class="{ '!bg-blue-50': isSelected }"
 		@mouseenter="isHovered = true"
 		@mouseleave="isHovered = false"
 	>
@@ -61,6 +62,7 @@
 				/>
 				<Badge
 					v-if="Object.keys(STATUS).includes(badgeField)"
+					variant="outline"
 					:class="isFullWidth ? 'ml-5' : 'ml-auto'"
 					:label="badge.label"
 					:theme="badge.theme"

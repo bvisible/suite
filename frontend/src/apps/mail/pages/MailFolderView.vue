@@ -2,7 +2,7 @@
 	<header
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
-		<Breadcrumbs :items="[{ label: currentFolder }]">
+		<Breadcrumbs :items="[{ label: currentFolder, route: { name: currentFolder } }]">
 			<template v-if="currentFolder !== 'Trash'" #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
 					{{
@@ -90,7 +90,7 @@
 						:key="idx"
 						:mail
 						:user-layout
-						:class="{ 'sm:bg-gray-100': mail.name == currentMail[currentFolder] }"
+						:class="{ 'bg-gray-50': mail.name == currentMail[currentFolder] }"
 						@click="openMail(mail)"
 						@select-mail="selectMail({ name: mail.name, mail_type: mail.mail_type })"
 						@deselect-mail="deselectMail(mail.name)"
