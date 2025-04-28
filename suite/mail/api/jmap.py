@@ -7,6 +7,8 @@ from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import JMAP
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def push_notification(account: str) -> dict:
+	"""Handle JMAP Push Notification."""
+
 	try:
 		data = frappe.request.get_json()
 
@@ -20,6 +22,9 @@ def push_notification(account: str) -> dict:
 			return {}
 		else:
 			frappe.throw(_("Invalid Push Notification @type = {0}").format(data["@type"]))
-	except Exception as e:
-		frappe.log_error(_("JMAP Push Notification Error"), data)
-		return {"status": "error", "message": str(e)}
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to handle JMAP Push Notification"),
+			message=frappe.get_traceback(with_context=True),
+		)
+		return {"status": "error", "message": _("Failed to handle JMAP Push Notification.")}
