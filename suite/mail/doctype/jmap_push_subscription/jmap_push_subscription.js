@@ -7,7 +7,7 @@ frappe.ui.form.on('JMAP Push Subscription', {
 	},
 
 	add_actions(frm) {
-		if (!frappe.user_roles.includes('System Manager')) return
+		if (frm.doc.__islocal || !frappe.user_roles.includes('System Manager')) return
 
 		if (
 			frm.doc.verified &&
@@ -22,6 +22,24 @@ frappe.ui.form.on('JMAP Push Subscription', {
 				__('Actions'),
 			)
 		}
+
+		if (
+			[
+				'Expired',
+				'Failed to Verify',
+				'Failed to Renew',
+				'Failed to Subscribe',
+				'Pending Verification',
+			].includes(frm.doc.status)
+		) {
+			frm.add_custom_button(
+				__('Resubscribe'),
+				() => {
+					frm.trigger('resubscribe')
+				},
+				__('Actions'),
+			)
+		}
 	},
 
 	renew(frm) {
@@ -30,6 +48,20 @@ frappe.ui.form.on('JMAP Push Subscription', {
 			method: 'renew',
 			freeze: true,
 			freeze_message: __('Renewing...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	resubscribe(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'resubscribe',
+			freeze: true,
+			freeze_message: __('Resubscribing...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
