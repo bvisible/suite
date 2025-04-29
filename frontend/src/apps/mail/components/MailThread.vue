@@ -15,8 +15,10 @@
 				}"
 			/>
 			<template v-else>
-				<h2>{{ mailThread?.data?.[0].subject || __('[No subject]') }}</h2>
-				<div class="ml-auto space-x-2">
+				<h2 class="leading-5">
+					{{ mailThread?.data?.[0].subject || __('[No subject]') }}
+				</h2>
+				<div class="ml-auto shrink-0 space-x-2">
 					<Tooltip
 						v-for="action in threadActions"
 						:key="action.label"
@@ -360,7 +362,7 @@ const moreActions = (mail: Mail): MailAction[] => [
 		onClick: () =>
 			window
 				.open(
-					`/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
+					`/mail/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
 					'_blank',
 				)
 				?.focus(),
