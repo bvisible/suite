@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "autoname": "field:account",
  "creation": "2025-04-25 13:11:49.985072",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -142,10 +143,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-27 22:46:46.263756",
+ "modified": "2025-04-29 15:18:11.627398",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "JMAP Push Subscription",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
