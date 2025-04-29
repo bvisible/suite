@@ -38,7 +38,7 @@ class JMAPClient:
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to discover JMAP configuration for {0}").format(self.__session.auth[0]),
-				message=frappe.get_traceback(with_context=False),
+				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to discover JMAP configuration."))
 

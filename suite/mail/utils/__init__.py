@@ -255,6 +255,12 @@ def batch_dict(d: dict[str, Any], batch_size: int) -> list[dict[str, Any]]:
 	return [{k: d[k] for k in keys[i : i + batch_size]} for i in range(0, len(keys), batch_size)]
 
 
+def get_dotted_path(func: Callable) -> str:
+	"""Returns the dotted path of a function."""
+
+	return f"{func.__module__}.{func.__qualname__}"
+
+
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:
 	"""
 	Returns DKIM host.

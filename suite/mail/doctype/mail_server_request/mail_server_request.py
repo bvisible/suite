@@ -3,6 +3,7 @@
 
 
 import json
+from collections.abc import Callable
 from urllib.parse import quote
 
 import frappe
@@ -10,6 +11,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now, time_diff_in_seconds
 from uuid_utils import uuid7
+
+from mail.utils import get_dotted_path
 
 
 class MailServerRequest(Document):
@@ -135,8 +138,8 @@ def create_mail_server_request(
 	request_params: dict | None = None,
 	request_data: str | None = None,
 	request_json: dict | None = None,
-	execute_on_start: str | None = None,
-	execute_on_end: str | None = None,
+	execute_on_start: Callable | str | None = None,
+	execute_on_end: Callable | str | None = None,
 	do_not_enqueue: bool = False,
 ) -> "MailServerRequest":
 	"""Creates a new Mail Server Request."""
@@ -152,8 +155,10 @@ def create_mail_server_request(
 	request.request_params = request_params
 	request.request_data = request_data
 	request.request_json = request_json
-	request.execute_on_start = execute_on_start
-	request.execute_on_end = execute_on_end
+	request.execute_on_start = (
+		get_dotted_path(execute_on_start) if callable(execute_on_start) else execute_on_start
+	)
+	request.execute_on_end = get_dotted_path(execute_on_end) if callable(execute_on_end) else execute_on_end
 	request.insert(ignore_permissions=True)
 
 	return request
