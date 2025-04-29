@@ -42,6 +42,7 @@ class JMAPPushSubscription(Document):
 			frappe.throw(_("JMAP Push Subscription Not Found."))
 
 		client = get_jmap_client(account)
+		subscription = frappe.get_doc("JMAP Push Subscription", subscription)
 		response = client.push_subscription_set_verification_code(subscription_id, verification_code)
 
 		kwargs = {"verification_response": json.dumps(response, indent=4)}
@@ -56,7 +57,7 @@ class JMAPPushSubscription(Document):
 		elif response[0][1].get("notUpdated"):
 			kwargs["status"] = "Failed to Verify"
 
-		frappe.db.set_value("JMAP Push Subscription", subscription, kwargs)
+		subscription._db_set(notify_update=True, **kwargs)
 
 	@staticmethod
 	def get_push_subscriptions(account: str) -> list[dict]:
