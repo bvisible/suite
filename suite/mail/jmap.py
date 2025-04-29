@@ -38,7 +38,7 @@ class JMAPClient:
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to discover JMAP configuration for {0}").format(self.__session.auth[0]),
-				message=frappe.get_traceback(with_context=False),
+				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to discover JMAP configuration."))
 
@@ -368,6 +368,118 @@ class JMAPClient:
 				],
 			)
 
+	def push_subscription_get(self, subscription_ids: list[str] | None = None) -> list[dict]:
+		"""Returns the push subscriptions for the provided subscription IDs."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"PushSubscription/get",
+					{
+						"ids": subscription_ids,
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]["list"]
+
+	def push_subscription_create(
+		self, unique_id: str, device_client_id: str, url: str, types: list[str] | None = None
+	) -> dict:
+		"""Creates a push subscription."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"PushSubscription/set",
+					{
+						"create": {
+							unique_id: {
+								"deviceClientId": device_client_id,
+								"url": url,
+								"types": types,
+							}
+						},
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]
+
+	def push_subscription_set_verification_code(
+		self, subscription_id: str, verification_code: str
+	) -> list[list]:
+		"""Sets the verification code for a push subscription."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"PushSubscription/set",
+					{
+						"update": {subscription_id: {"verificationCode": verification_code}},
+					},
+					"0",
+				],
+				[
+					"PushSubscription/get",
+					{
+						"ids": [subscription_id],
+					},
+					"1",
+				],
+			],
+		)
+
+		return response["methodResponses"]
+
+	def push_subscription_set_expires(self, subscription_id: str, expires: str | None = None) -> list[list]:
+		"""Sets the expiration date for a push subscription."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"PushSubscription/set",
+					{
+						"update": {subscription_id: {"expires": expires}},
+					},
+					"0",
+				],
+				[
+					"PushSubscription/get",
+					{
+						"ids": [subscription_id],
+					},
+					"1",
+				],
+			],
+		)
+		return response["methodResponses"]
+
+	def push_subscription_set_destroy(self, subscription_ids: list[str]) -> None:
+		"""Destroys push subscriptions."""
+
+		for ids_batch in create_batch(subscription_ids, self.max_objects_in_set):
+			self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"PushSubscription/set",
+						{
+							"destroy": ids_batch,
+						},
+						"0",
+					]
+				],
+			)
+
 
 @redis_cache(ttl=300)
 def get_jmap_client(account: str) -> "JMAPClient":
@@ -383,6 +495,12 @@ def get_jmap_client(account: str) -> "JMAPClient":
 	client = JMAPClient(host, account.email, account.get_password())
 
 	return client
+
+
+def invalidate_jmap_client_cache() -> None:
+	"""Invalidates the JMAP client cache."""
+
+	get_jmap_client.clear_cache()
 
 
 def get_mailboxes(account: str) -> list[dict]:

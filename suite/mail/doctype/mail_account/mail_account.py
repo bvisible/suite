@@ -6,6 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string, validate_email_address
 
+from mail.jmap import invalidate_jmap_client_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
 from mail.mail_server import (
 	create_account_on_cluster,
@@ -69,6 +70,10 @@ class MailAccount(Document):
 					self.secret,
 					self.get_doc_before_save().secret,
 				)
+
+				if self.has_value_changed("secret"):
+					invalidate_jmap_client_cache()
+
 		elif self.has_value_changed("enabled"):
 			delete_account_from_cluster(get_cluster_for_tenant(self.tenant), self.email)
 

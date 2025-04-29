@@ -26,6 +26,7 @@ LOCAL_KEYS = [
 	"jmap.account.*",
 	"jmap.email.*",
 	"jmap.protocol.*",
+	"jmap.push.*",
 	"queue.outbound.tls.allow-invalid-certs",
 	"queue.outbound.tls.starttls",
 	"authentication.fallback-admin.*",
@@ -397,6 +398,21 @@ def get_config_toml(server: str) -> str | None:
 			"email": {"auto-expunge": format_value_or_zero(cluster.jmap_trash_auto_expunge_days, "d")},
 			"protocol": {
 				"changes": {"max-history": format_value_or_zero(cluster.jmap_changes_history_days, "d")}
+			},
+			"push": {
+				"max-total": cluster.jmap_push_max_total,
+				"throttle": format_value_or_zero(cluster.jmap_push_throttle, "ms"),
+				"attempts": {
+					"interval": format_value_or_zero(cluster.jmap_push_attempts_interval, "ms"),
+					"max": cluster.jmap_push_attempts_max,
+				},
+				"retry": {
+					"interval": format_value_or_zero(cluster.jmap_push_retry_interval, "ms"),
+				},
+				"timeout": {
+					"request": format_value_or_zero(cluster.jmap_push_timeout_request, "ms"),
+					"verify": format_value_or_zero(cluster.jmap_push_timeout_verify, "ms"),
+				},
 			},
 		},
 		"queue": {

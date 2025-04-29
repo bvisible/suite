@@ -1,5 +1,6 @@
 import base64
 import gzip
+import hashlib
 import os
 import re
 import secrets
@@ -122,11 +123,12 @@ def load_compressed_file(file_path: str | None = None, file_data: bytes | None =
 	frappe.throw(_("Failed to load content from the compressed file."))
 
 
-def enqueue_job(method: str | Callable, deduplicate: bool = False, **kwargs) -> None:
+def enqueue_job(
+	method: str | Callable, job_id: str | None = None, deduplicate: bool = False, **kwargs
+) -> None:
 	"""Enqueues a background job."""
 
-	job_id = None
-	if deduplicate:
+	if deduplicate and not job_id:
 		job_id = method.split(".")[-1] if isinstance(method, str) else method.__name__
 
 	frappe.enqueue(method, job_id=job_id, deduplicate=deduplicate, **kwargs)
@@ -252,6 +254,19 @@ def batch_dict(d: dict[str, Any], batch_size: int) -> list[dict[str, Any]]:
 
 	keys = list(d.keys())
 	return [{k: d[k] for k in keys[i : i + batch_size]} for i in range(0, len(keys), batch_size)]
+
+
+def get_dotted_path(func: Callable) -> str:
+	"""Returns the dotted path of a function."""
+
+	return f"{func.__module__}.{func.__qualname__}"
+
+
+def generate_uuid_style_hash(input_str: str) -> str:
+	"""Generates a UUID-style hash from the input string."""
+
+	hash = hashlib.md5(input_str.encode()).hexdigest()
+	return f"{hash[:8]}-{hash[8:12]}-{hash[12:16]}-{hash[16:20]}-{hash[20:]}"
 
 
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:

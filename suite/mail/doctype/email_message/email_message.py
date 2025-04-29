@@ -17,6 +17,7 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	get_current_state,
 	update_current_state,
 )
+from mail.utils import enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -32,6 +33,12 @@ class EmailMessage(Document):
 		"""Returns the time difference in seconds between received and sent time."""
 
 		return time_diff_in_seconds(self.received_at, self.sent_at)
+
+	@property
+	def fetched_after(self) -> int:
+		"""Returns the time difference in seconds between creation and received time."""
+
+		return time_diff_in_seconds(self.creation, self.received_at)
 
 	@property
 	def spf_pass(self) -> int:
@@ -449,13 +456,15 @@ def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> Non
 		)
 
 
-def fetch_changes(account: str) -> None:
+def fetch_changes(account: str, email_states: list[str] | None = None) -> None:
 	"""Fetch changes from the server and update EmailMessage documents."""
 
 	current_state = get_current_state(account)
 
 	if not current_state:
 		return fetch_emails(account)
+	elif email_states and current_state in email_states:
+		return
 
 	client = get_jmap_client(account)
 
@@ -484,6 +493,27 @@ def fetch_changes(account: str) -> None:
 		frappe.log_error(
 			title=_("Failed to fetch changes"),
 			message=frappe.get_traceback(with_context=True),
+		)
+
+
+def enqueue_fetch_changes(account: str, request_data: dict | None = None) -> None:
+	"""Enqueue the fetch_changes job for the specified account."""
+
+	email_states = None
+	if request_data:
+		email_states = list(
+			set([s["Email"] for s in list(request_data["changed"].values()) if s.get("Email")])
+		)
+
+	with user_context("Administrator"):
+		job_id = f"fetch_changes:{account}"
+		enqueue_job(
+			fetch_changes,
+			account=account,
+			email_states=email_states,
+			queue="short",
+			job_id=job_id,
+			deduplicate=True,
 		)
 
 
