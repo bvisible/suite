@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import json
+from contextlib import suppress
 
 import frappe
 from frappe import _
@@ -51,7 +52,15 @@ class JMAPPushSubscription(Document):
 		"""Returns a list of push subscriptions for the given account."""
 
 		client = get_jmap_client(account)
-		return client.push_subscription_get()
+
+		try:
+			return client.push_subscription_get()
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to get push subscriptions"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to get push subscriptions."))
 
 	@staticmethod
 	def destroy_push_subscriptions(account: str, subscription_ids: list[str] | None = None) -> None:
@@ -59,12 +68,19 @@ class JMAPPushSubscription(Document):
 
 		client = get_jmap_client(account)
 
-		if not subscription_ids:
-			subscription_ids = []
-			for subscription in client.push_subscription_get():
-				subscription_ids.append(subscription["id"])
+		try:
+			if not subscription_ids:
+				subscription_ids = []
+				for subscription in client.push_subscription_get():
+					subscription_ids.append(subscription["id"])
 
-		client.push_subscription_set_destroy(subscription_ids)
+			client.push_subscription_set_destroy(subscription_ids)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to destroy push subscription(s)"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to destroy push subscription(s)."))
 
 	@property
 	def account_uuid_hash(self) -> str:
@@ -96,37 +112,47 @@ class JMAPPushSubscription(Document):
 		device_client_id = f"frappe-{frappe.local.site.replace('.', '-')}-{self.account}"
 		types = self.notification_types.split("\n") if self.notification_types else None
 		client = get_jmap_client(self.account)
-		response = client.push_subscription_create(
-			self.account_uuid_hash, device_client_id, self.endpoint, types
-		)
 
-		kwargs = {
-			"verified": 0,
-			"verified_at": None,
-			"renew_response": None,
-			"verification_response": None,
-			"subscription_response": json.dumps(response, indent=4),
-		}
-		if response.get("created"):
-			kwargs.update(
-				{
-					"status": "Pending Verification",
-					"expires_at": parse_iso_datetime(response["created"][self.account_uuid_hash]["expires"]),
-					"subscription_id": response["created"][self.account_uuid_hash]["id"],
-				}
+		try:
+			response = client.push_subscription_create(
+				self.account_uuid_hash, device_client_id, self.endpoint, types
 			)
-		elif response.get("notCreated"):
-			kwargs.update(
-				{
-					"status": "Failed to Subscribe",
-					"expires_at": None,
-					"subscription_id": None,
-				}
-			)
-		else:
-			frappe.throw(_("Failed to subscribe to JMAP Push Subscription."))
 
-		self._db_set(**kwargs)
+			kwargs = {
+				"verified": 0,
+				"verified_at": None,
+				"renew_response": None,
+				"verification_response": None,
+				"subscription_response": json.dumps(response, indent=4),
+			}
+			if response.get("created"):
+				kwargs.update(
+					{
+						"status": "Pending Verification",
+						"expires_at": parse_iso_datetime(
+							response["created"][self.account_uuid_hash]["expires"]
+						),
+						"subscription_id": response["created"][self.account_uuid_hash]["id"],
+					}
+				)
+			elif response.get("notCreated"):
+				kwargs.update(
+					{
+						"status": "Failed to Subscribe",
+						"expires_at": None,
+						"subscription_id": None,
+					}
+				)
+			else:
+				frappe.throw(_("Failed to subscribe to JMAP Push Subscription."))
+
+			self._db_set(**kwargs)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to create push subscription"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to create push subscription."))
 
 	@frappe.whitelist()
 	def renew(self) -> None:
@@ -138,27 +164,35 @@ class JMAPPushSubscription(Document):
 			frappe.throw(_("Cannot renew a subscription that is not active or expired."))
 
 		client = get_jmap_client(self.account)
-		response = client.push_subscription_set_expires(self.subscription_id)
 
-		kwargs = {"renew_response": json.dumps(response, indent=4)}
-		if response[0][1].get("updated"):
-			new_expires = parse_iso_datetime(response[1][1]["list"][0]["expires"])
+		try:
+			response = client.push_subscription_set_expires(self.subscription_id)
 
-			if new_expires == self.expires_at:
+			kwargs = {"renew_response": json.dumps(response, indent=4)}
+			if response[0][1].get("updated"):
+				new_expires = parse_iso_datetime(response[1][1]["list"][0]["expires"])
+
+				if new_expires == self.expires_at:
+					kwargs["status"] = "Failed to Renew"
+				else:
+					kwargs.update(
+						{
+							"status": "Active",
+							"expires_at": new_expires,
+						}
+					)
+			elif response[0][1].get("notUpdated"):
 				kwargs["status"] = "Failed to Renew"
 			else:
-				kwargs.update(
-					{
-						"status": "Active",
-						"expires_at": new_expires,
-					}
-				)
-		elif response[0][1].get("notUpdated"):
-			kwargs["status"] = "Failed to Renew"
-		else:
-			frappe.throw(_("Failed to renew JMAP Push Subscription."))
+				frappe.throw(_("Failed to renew JMAP Push Subscription."))
 
-		self._db_set(**kwargs)
+			self._db_set(**kwargs)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to renew push subscription"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to renew push subscription."))
 
 	@frappe.whitelist()
 	def resubscribe(self) -> None:
@@ -238,5 +272,6 @@ def renew_push_subscriptions() -> None:
 		return
 
 	for subscription in subscriptions:
-		push_subscription = frappe.get_doc("JMAP Push Subscription", subscription)
-		push_subscription.renew()
+		with suppress(Exception):
+			push_subscription = frappe.get_doc("JMAP Push Subscription", subscription)
+			push_subscription.renew()
