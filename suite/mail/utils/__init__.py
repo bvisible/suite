@@ -1,5 +1,6 @@
 import base64
 import gzip
+import hashlib
 import os
 import re
 import secrets
@@ -259,6 +260,13 @@ def get_dotted_path(func: Callable) -> str:
 	"""Returns the dotted path of a function."""
 
 	return f"{func.__module__}.{func.__qualname__}"
+
+
+def generate_uuid_style_hash(input_str: str) -> str:
+	"""Generates a UUID-style hash from the input string."""
+
+	hash = hashlib.md5(input_str.encode()).hexdigest()
+	return f"{hash[:8]}-{hash[8:12]}-{hash[12:16]}-{hash[16:20]}-{hash[20:]}"
 
 
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:
