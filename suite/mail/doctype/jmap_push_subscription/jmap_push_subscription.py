@@ -8,9 +8,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Interval
 from frappe.query_builder.functions import IfNull, Now
-from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client
+from mail.utils import generate_uuid_style_hash
 from mail.utils.dt import parse_iso_datetime
 
 
@@ -22,27 +22,14 @@ class JMAPPushSubscription(Document):
 		if not account or not subscription_id or not verification_code:
 			frappe.throw(_("Invalid parameters for push subscription verification."))
 
-		subscription = frappe.db.get_value(
-			"JMAP Push Subscription",
-			{"account": account, "subscription_id": subscription_id, "verified": 0},
-			"name",
-		)
+		subscription = frappe.get_doc("JMAP Push Subscription", account)
 
-		if not subscription:
-			frappe.log_error(
-				title="JMAP Push Subscription Not Found",
-				message=str(
-					{
-						"account": account,
-						"subscription_id": subscription_id,
-						"verification_code": verification_code,
-					}
-				),
-			)
-			frappe.throw(_("JMAP Push Subscription Not Found."))
+		if subscription.verified:
+			frappe.throw(_("Subscription already verified."))
+		elif subscription.subscription_id != subscription_id:
+			frappe.throw(_("Invalid subscription ID."))
 
 		client = get_jmap_client(account)
-		subscription = frappe.get_doc("JMAP Push Subscription", subscription)
 		response = client.push_subscription_set_verification_code(subscription_id, verification_code)
 
 		kwargs = {"verification_response": json.dumps(response, indent=4)}
@@ -79,8 +66,11 @@ class JMAPPushSubscription(Document):
 
 		client.push_subscription_set_destroy(subscription_ids)
 
-	def autoname(self) -> None:
-		self.name = str(uuid7())
+	@property
+	def account_uuid_hash(self) -> str:
+		"""Returns a UUID-style hash of the account name."""
+
+		return generate_uuid_style_hash(self.account)
 
 	def before_insert(self) -> None:
 		self.set_endpoint()
@@ -106,7 +96,9 @@ class JMAPPushSubscription(Document):
 		device_client_id = f"frappe-{frappe.local.site.replace('.', '-')}-{self.account}"
 		types = self.notification_types.split("\n") if self.notification_types else None
 		client = get_jmap_client(self.account)
-		response = client.push_subscription_create(self.name, device_client_id, self.endpoint, types)
+		response = client.push_subscription_create(
+			self.account_uuid_hash, device_client_id, self.endpoint, types
+		)
 
 		kwargs = {
 			"verified": 0,
@@ -119,8 +111,8 @@ class JMAPPushSubscription(Document):
 			kwargs.update(
 				{
 					"status": "Pending Verification",
-					"expires_at": parse_iso_datetime(response["created"][self.name]["expires"]),
-					"subscription_id": response["created"][self.name]["id"],
+					"expires_at": parse_iso_datetime(response["created"][self.account_uuid_hash]["expires"]),
+					"subscription_id": response["created"][self.account_uuid_hash]["id"],
 				}
 			)
 		elif response.get("notCreated"):
@@ -211,8 +203,8 @@ class JMAPPushSubscription(Document):
 def create_jmap_push_subscription(account: str) -> "JMAPPushSubscription":
 	"""Creates a JMAP Push Subscription for the given account."""
 
-	if subscription := frappe.db.get_value("JMAP Push Subscription", {"account": account}, "name"):
-		return frappe.get_doc("JMAP Push Subscription", subscription)
+	if frappe.db.exists("JMAP Push Subscription", account):
+		return frappe.get_doc("JMAP Push Subscription", account)
 
 	push_subscription = frappe.new_doc("JMAP Push Subscription")
 	push_subscription.account = account
@@ -224,8 +216,7 @@ def create_jmap_push_subscription(account: str) -> "JMAPPushSubscription":
 def delete_jmap_push_subscription(account: str) -> None:
 	"""Deletes the JMAP Push Subscription for the given account."""
 
-	if subscription := frappe.db.get_value("JMAP Push Subscription", {"account": account}, "name"):
-		frappe.delete_doc("JMAP Push Subscription", subscription)
+	frappe.delete_doc("JMAP Push Subscription", account, ignore_permissions=True)
 
 
 def renew_push_subscriptions() -> None:
