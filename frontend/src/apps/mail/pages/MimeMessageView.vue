@@ -19,9 +19,8 @@
 				</div>
 			</div>
 		</div>
-		<div>
-			<pre class="text-wrap" style="font-size: 0.875rem">{{ message }}</pre>
-		</div>
+
+		<pre class="text-wrap break-words" style="font-size: 0.875rem">{{ message }}</pre>
 	</div>
 </template>
 
