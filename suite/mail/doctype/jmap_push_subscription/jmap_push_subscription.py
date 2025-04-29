@@ -208,6 +208,26 @@ class JMAPPushSubscription(Document):
 			self.notify_update()
 
 
+def create_jmap_push_subscription(account: str) -> "JMAPPushSubscription":
+	"""Creates a JMAP Push Subscription for the given account."""
+
+	if subscription := frappe.db.get_value("JMAP Push Subscription", {"account": account}, "name"):
+		return frappe.get_doc("JMAP Push Subscription", subscription)
+
+	push_subscription = frappe.new_doc("JMAP Push Subscription")
+	push_subscription.account = account
+	push_subscription.insert(ignore_permissions=True)
+
+	return push_subscription
+
+
+def delete_jmap_push_subscription(account: str) -> None:
+	"""Deletes the JMAP Push Subscription for the given account."""
+
+	if subscription := frappe.db.get_value("JMAP Push Subscription", {"account": account}, "name"):
+		frappe.delete_doc("JMAP Push Subscription", subscription)
+
+
 def renew_push_subscriptions() -> None:
 	"""Renews push subscriptions that are about to expire within the next 2 days."""
 
