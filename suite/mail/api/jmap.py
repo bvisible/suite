@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 import frappe
 from frappe import _
 
@@ -6,10 +8,15 @@ from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import JMAP
 
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
-def push_notification(account: str) -> dict:
+def push_notification() -> dict:
 	"""Handle JMAP Push Notification."""
 
 	try:
+		account = frappe.request.args.get("account")
+		if not account:
+			frappe.throw(_("Missing account query parameter."))
+
+		account = unquote(account)
 		request_data = frappe.request.get_json()
 
 		if request_data["@type"] == "PushVerification":
