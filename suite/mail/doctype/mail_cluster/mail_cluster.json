@@ -55,7 +55,19 @@
   "jmap_changes_history_days",
   "jmap_trash_auto_expunge_days",
   "listeners_tab",
-  "listeners"
+  "listeners",
+  "jmap_tab",
+  "push_subscription_section",
+  "jmap_push_max_total",
+  "jmap_push_throttle",
+  "jmap_push_retry_interval",
+  "column_break_0q0i",
+  "jmap_push_attempts_max",
+  "jmap_push_attempts_interval",
+  "push_timeouts_section",
+  "jmap_push_timeout_request",
+  "column_break_68lj",
+  "jmap_push_timeout_verify"
  ],
  "fields": [
   {
@@ -397,6 +409,92 @@
    "fieldtype": "Check",
    "label": "Public",
    "search_index": 1
+  },
+  {
+   "fieldname": "jmap_tab",
+   "fieldtype": "Tab Break",
+   "label": "JMAP"
+  },
+  {
+   "fieldname": "push_subscription_section",
+   "fieldtype": "Section Break",
+   "label": "Push Subscription"
+  },
+  {
+   "fieldname": "push_timeouts_section",
+   "fieldtype": "Section Break",
+   "label": "Push Timeouts"
+  },
+  {
+   "default": "1000",
+   "description": "Time to wait between retry attempts.",
+   "fieldname": "jmap_push_retry_interval",
+   "fieldtype": "Int",
+   "label": "Retry Interval (Milliseconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_0q0i",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_68lj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "100",
+   "description": "Total number of push subscriptions that a given user can activate.",
+   "fieldname": "jmap_push_max_total",
+   "fieldtype": "Int",
+   "label": "Max Subscriptions",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1000",
+   "description": "Time to wait before sending a new request to the push service.",
+   "fieldname": "jmap_push_throttle",
+   "fieldtype": "Int",
+   "label": "Throttle (Milliseconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "3",
+   "description": "Maximum number of push attempts before a notification is discarded.",
+   "fieldname": "jmap_push_attempts_max",
+   "fieldtype": "Int",
+   "label": "Max Attempts",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "60000",
+   "description": "Time to wait between push attempts.",
+   "fieldname": "jmap_push_attempts_interval",
+   "fieldtype": "Int",
+   "label": "Attempt Interval (Milliseconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "10000",
+   "description": "Time before a connection with a push service URL times out.",
+   "fieldname": "jmap_push_timeout_request",
+   "fieldtype": "Int",
+   "label": "Request Timeout (Milliseconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "60000",
+   "description": "Time to wait for the push service to verify a subscription.",
+   "fieldname": "jmap_push_timeout_verify",
+   "fieldtype": "Int",
+   "label": "Verification Timeout (Milliseconds)",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -428,7 +526,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-04-09 19:12:03.632706",
+ "modified": "2025-04-29 16:41:53.466047",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
