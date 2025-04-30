@@ -1,81 +1,72 @@
 <template>
-	<DashboardLayout
-		:breadcrumbs="[{ label: __('Member Invites') }]"
-		:button-label="__('Add Member')"
-		:button-action="() => (showAddMember = true)"
-	>
-		<div class="flex items-center">
-			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
-				<template #prefix>
-					<FeatherIcon name="search" class="w-4 text-gray-600" />
-				</template>
-			</FormControl>
-			<FormControl
-				v-model="role"
-				:placeholder="__('Assigned Role')"
-				class="mx-3 w-40"
-				type="select"
-				:options="ROLE_OPTIONS"
-			/>
-			<FormControl
-				v-model="status"
-				:placeholder="__('Invitation Status')"
-				class="w-40"
-				type="select"
-				:options="STATUS_OPTIONS"
-			/>
-			<router-link class="ml-auto" to="/dashboard/members">
-				<Button :label="__('View Members')" />
-			</router-link>
-		</div>
+	<div class="flex items-center space-x-3">
+		<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+			<template #prefix>
+				<FeatherIcon name="search" class="w-4 text-gray-600" />
+			</template>
+		</FormControl>
+		<FormControl
+			v-model="role"
+			:placeholder="__('Assigned Role')"
+			class="w-40"
+			type="select"
+			:options="ROLE_OPTIONS"
+		/>
+		<FormControl
+			v-model="status"
+			:placeholder="__('Invitation Status')"
+			class="w-40"
+			type="select"
+			:options="STATUS_OPTIONS"
+		/>
+	</div>
 
-		<ListView
-			v-if="invites?.data"
-			ref="listView"
-			class="flex-1"
-			:columns="LIST_COLUMNS"
-			:rows="invites.data"
-			:options="LIST_OPTIONS"
-			row-key="name"
-		>
-			<ListHeader />
-			<ListRows>
-				<template v-if="invites.data.length">
-					<ListRow
-						v-for="row in invites.data"
-						:key="row.name"
-						v-slot="{ column, item }"
-						:row="row"
-					>
-						<ListRowItem :item="item">
-							<Badge
-								v-if="column.key == 'is_admin'"
-								:label="__(item ? 'Mail Admin' : 'Mail User')"
-								:theme="item ? 'blue' : 'gray'"
-							/>
-							<Badge
-								v-else-if="column.key == 'status'"
-								:label="item"
-								:theme="getTheme(item)"
-							/>
-						</ListRowItem>
-					</ListRow>
-				</template>
-				<ListEmptyState v-else />
-			</ListRows>
-			<ListSelectBanner>
-				<template #actions>
-					<Button
-						variant="ghost"
-						theme="red"
-						:label="__('Delete')"
-						@click="showDeleteInvites = true"
-					/>
-				</template>
-			</ListSelectBanner>
-		</ListView>
-	</DashboardLayout>
-	<AddMemberModal v-model="showAddMember" @reload-members="invites.reload()" />
+	<ListView
+		v-if="invites?.data"
+		ref="listView"
+		class="flex-1"
+		:columns="LIST_COLUMNS"
+		:rows="invites.data"
+		:options="LIST_OPTIONS"
+		row-key="name"
+	>
+		<ListHeader />
+		<ListRows>
+			<template v-if="invites.data.length">
+				<ListRow
+					v-for="row in invites.data"
+					:key="row.name"
+					v-slot="{ column, item }"
+					:row="row"
+				>
+					<ListRowItem :item="item">
+						<Badge
+							v-if="column.key == 'is_admin'"
+							:label="__(item ? 'Mail Admin' : 'Mail User')"
+							:theme="item ? 'blue' : 'gray'"
+						/>
+						<Badge
+							v-else-if="column.key == 'status'"
+							:label="item"
+							:theme="getTheme(item)"
+						/>
+					</ListRowItem>
+				</ListRow>
+			</template>
+			<ListEmptyState v-else />
+		</ListRows>
+		<ListSelectBanner>
+			<template #actions>
+				<Button
+					variant="ghost"
+					theme="red"
+					:label="__('Delete')"
+					@click="showDeleteInvites = true"
+				/>
+			</template>
+		</ListSelectBanner>
+	</ListView>
+
 	<Dialog v-model="showDeleteInvites" :options="DELETE_INVITES_OPTIONS" />
 </template>
 
@@ -100,8 +91,6 @@ import {
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddMemberModal from '@/components/Modals/AddMemberModal.vue'
 
 const user = inject('$user')
 
@@ -109,7 +98,6 @@ const search = ref('')
 const debouncedSearch = useDebounce(search, 500)
 const role = ref<'Mail User' | 'Mail Admin' | ''>('')
 const status = ref<'Pending' | 'Accepted' | 'Expired' | ''>('')
-const showAddMember = ref(false)
 const showDeleteInvites = ref(false)
 
 const invites = useList({
@@ -147,6 +135,9 @@ const invites = useList({
 		status.value,
 	],
 })
+
+const reloadInvites = () => invites.reload()
+defineExpose({ reloadInvites })
 
 const listView = useTemplateRef('listView')
 
