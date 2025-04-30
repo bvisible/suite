@@ -104,7 +104,7 @@ const defaultAccountRequest = {
 
 const accountRequest = reactive({ ...defaultAccountRequest })
 
-const emit = defineEmits(['reloadMembers'])
+const emit = defineEmits(['reload'])
 
 watch(
 	() => accountRequest.send_invite,
@@ -129,7 +129,7 @@ const addMember = createResource({
 					: 'Member added successfully',
 			),
 		)
-		emit('reloadMembers')
+		emit('reload')
 		show.value = false
 	},
 })

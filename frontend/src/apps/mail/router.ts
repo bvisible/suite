@@ -165,7 +165,7 @@ const routes = [
 	{
 		path: '/dashboard/invites',
 		name: 'Invites',
-		component: () => import('@/pages/dashboard/InvitesView.vue'),
+		component: () => import('@/pages/dashboard/MembersView.vue'),
 		meta: { isDashboard: true },
 	},
 	{
