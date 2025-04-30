@@ -58,7 +58,7 @@ export const getSidebarLinks = () => [
 		label: __('Members'),
 		icon: 'Users',
 		to: 'Members',
-		activeFor: ['Members'],
+		activeFor: ['Members', 'Invites'],
 		forDashboard: true,
 	},
 	{

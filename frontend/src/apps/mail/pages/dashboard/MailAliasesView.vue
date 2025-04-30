@@ -156,13 +156,7 @@ const deleteAliases = createResource({
 const deleteAliasesOptions = {
 	title: __('Delete Aliases'),
 	message: __('Are you sure you want to delete the selected aliases?'),
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: deleteAliases.submit,
-		},
-	],
+	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteAliases.submit }],
 }
 
 const LIST_COLUMNS = [

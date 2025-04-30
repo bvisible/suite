@@ -9,7 +9,10 @@
 				</slot>
 			</div>
 		</header>
-		<div class="m-5 flex flex-1 flex-col space-y-5 overflow-y-auto">
+		<div
+			class="flex flex-1 flex-col overflow-y-auto"
+			:class="{ 'm-5 space-y-5': !removeSpacing }"
+		>
 			<slot />
 		</div>
 	</div>
@@ -18,11 +21,12 @@
 <script setup lang="ts">
 import { Badge, Breadcrumbs, Button } from 'frappe-ui'
 
-defineProps<{
+const { removeSpacing = false } = defineProps<{
 	breadcrumbs: { label: string; route?: string }[]
 	buttonLabel?: string
 	buttonAction?: () => void
 	badgeLabel?: string
 	badgeTheme?: 'green' | 'red' | 'gray' | 'orange'
+	removeSpacing?: boolean
 }>()
 </script>

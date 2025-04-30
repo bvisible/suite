@@ -90,12 +90,12 @@ const domains = useList({
 		}
 		return filters
 	},
-	limit: 100,
 	transform: (data) =>
 		data.map((row) => ({
 			...row,
 			status: row.is_verified ? 'Verified' : row.enabled ? 'Not Verified' : 'Disabled',
 		})),
+	limit: 100,
 	cacheKey: ['mailTenantDomains', user.data?.tenant, debouncedSearch.value, status.value],
 })
 
