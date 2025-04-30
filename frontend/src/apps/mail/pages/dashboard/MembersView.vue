@@ -4,8 +4,8 @@
 		:button-label="__('Add Member')"
 		:button-action="() => (showAddMember = true)"
 	>
-		<div class="flex items-center space-x-3">
-			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+		<div class="flex items-center">
+			<FormControl v-model="search" :placeholder="__('Search')" class="mr-3 w-80">
 				<template #prefix>
 					<FeatherIcon name="search" class="w-4 text-gray-600" />
 				</template>
@@ -18,6 +18,9 @@
 				:options="ROLE_OPTIONS"
 				@update:model-value="members.reload"
 			/>
+			<router-link class="ml-auto" to="/dashboard/invites">
+				<Button :label="__('View Invites')" />
+			</router-link>
 		</div>
 
 		<ListView
@@ -81,6 +84,7 @@ import { watchDebounced } from '@vueuse/core'
 import {
 	Avatar,
 	Badge,
+	Button,
 	Dialog,
 	Dropdown,
 	FeatherIcon,

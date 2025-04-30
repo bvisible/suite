@@ -129,7 +129,7 @@ const addMember = createResource({
 					: 'Member added successfully',
 			),
 		)
-		if (!accountRequest.send_invite) emit('reloadMembers')
+		emit('reloadMembers')
 		show.value = false
 	},
 })
