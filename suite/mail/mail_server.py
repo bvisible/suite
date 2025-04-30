@@ -106,8 +106,8 @@ def get_mail_server_api(cluster_name: str) -> MailServerAPI:
 	return MailServerAPI(
 		cluster.base_url,
 		api_key=api_key,
-		username=cluster.admin_username,
-		password=cluster.get_password("admin_password"),
+		username=cluster.fallback_admin_user,
+		password=cluster.get_password("fallback_admin_password"),
 	)
 
 
