@@ -11,21 +11,21 @@
   "inbound",
   "outbound",
   "column_break_fkha",
-  "cluster",
+  "hostname",
   "priority",
   "authentication_section",
-  "admin_username",
-  "admin_password",
-  "admin_password_hash",
+  "fallback_admin_user",
+  "fallback_admin_password",
+  "fallback_admin_secret",
   "column_break_9jti",
   "base_url",
   "api_key",
   "cluster_settings_section",
-  "cluster_encryption_key",
+  "cluster_key",
   "column_break_trr0",
   "cluster_bind_port",
   "proxy_section",
-  "proxy_trusted_networks",
+  "server_proxy_trusted_networks",
   "column_break_egzt",
   "networking_section",
   "ipv4_addresses",
@@ -35,25 +35,25 @@
   "stores_section",
   "stores",
   "directory_storage_section",
-  "directory_storage",
+  "storage_directory",
   "data_storage_section",
-  "data_storage",
+  "storage_data",
   "column_break_iwwx",
-  "enable_encryption_at_rest",
-  "encrypt_on_append",
+  "storage_encryption_enable",
+  "storage_encryption_append",
   "blob_storage_section",
-  "blob_storage",
+  "storage_blob",
   "full_text_index_storage_section",
-  "fts_storage",
+  "storage_fts",
   "column_break_a9m0",
-  "default_language",
+  "storage_full_text_default_language",
   "in_memory_storage_section",
-  "in_memory_storage",
+  "storage_lookup",
   "cleanup_jmap_section",
-  "jmap_frequency_cron",
+  "jmap_account_purge_frequency",
   "column_break_ld4b",
-  "jmap_changes_history_days",
-  "jmap_trash_auto_expunge_days",
+  "jmap_protocol_changes_max_history",
+  "jmap_email_auto_expunge",
   "listeners_tab",
   "listeners",
   "jmap_tab",
@@ -121,27 +121,6 @@
    "label": "Storage"
   },
   {
-   "default": "1",
-   "description": "Allow users to configure encryption at rest for their data.",
-   "fieldname": "enable_encryption_at_rest",
-   "fieldtype": "Check",
-   "label": "Enable encryption at rest"
-  },
-  {
-   "default": "0",
-   "description": "Encrypt messages that are manually appended by the user using JMAP or IMAP.",
-   "fieldname": "encrypt_on_append",
-   "fieldtype": "Check",
-   "label": "Encrypt on append"
-  },
-  {
-   "default": "en",
-   "description": "Default language to use when language detection is not possible.",
-   "fieldname": "default_language",
-   "fieldtype": "Data",
-   "label": "Default Language"
-  },
-  {
    "fieldname": "column_break_iwwx",
    "fieldtype": "Column Break"
   },
@@ -167,29 +146,6 @@
    "fieldname": "cluster_settings_section",
    "fieldtype": "Section Break",
    "label": "Cluster Settings"
-  },
-  {
-   "default": "frappe",
-   "description": "Username for administrative access to the cluster.",
-   "fieldname": "admin_username",
-   "fieldtype": "Data",
-   "label": "Username",
-   "reqd": 1
-  },
-  {
-   "description": "Password for administrative access to the cluster.",
-   "fieldname": "admin_password",
-   "fieldtype": "Password",
-   "label": "Password",
-   "no_copy": 1
-  },
-  {
-   "description": "The key used to encrypt gossip messages.",
-   "fieldname": "cluster_encryption_key",
-   "fieldtype": "Password",
-   "label": "Encryption Key",
-   "no_copy": 1,
-   "read_only": 1
   },
   {
    "description": "Key for authenticating HTTP requests. Generate one via <i>Actions &gt; Generate API Key</i>.",
@@ -267,36 +223,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "directory_storage",
-   "fieldtype": "Data",
-   "label": "Storage",
-   "reqd": 1
-  },
-  {
-   "fieldname": "data_storage",
-   "fieldtype": "Data",
-   "label": "Storage",
-   "reqd": 1
-  },
-  {
-   "fieldname": "blob_storage",
-   "fieldtype": "Data",
-   "label": "Storage",
-   "reqd": 1
-  },
-  {
-   "fieldname": "fts_storage",
-   "fieldtype": "Data",
-   "label": "Storage",
-   "reqd": 1
-  },
-  {
-   "fieldname": "in_memory_storage",
-   "fieldtype": "Data",
-   "label": "Storage",
-   "reqd": 1
-  },
-  {
    "description": "Stores user accounts, passwords, email addresses, and settings. Used for authentication, email validation, and account management.",
    "fieldname": "directory_storage_section",
    "fieldtype": "Section Break",
@@ -332,30 +258,6 @@
    "label": "Cleanup (JMAP)"
   },
   {
-   "default": "0 0 * * *",
-   "description": "Specifies how often tombstoned messages are deleted from the database.\n\n<br>\n<br>\n\n<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
-   "fieldname": "jmap_frequency_cron",
-   "fieldtype": "Data",
-   "label": "Frequency (Cron)",
-   "reqd": 1
-  },
-  {
-   "default": "30",
-   "description": "How long to keep changes history for JMAP and IMAP clients.",
-   "fieldname": "jmap_changes_history_days",
-   "fieldtype": "Int",
-   "label": "Changes History (Days)",
-   "non_negative": 1
-  },
-  {
-   "default": "30",
-   "description": "How long to keep messages in the Trash and Junk Mail folders before auto-expunging.",
-   "fieldname": "jmap_trash_auto_expunge_days",
-   "fieldtype": "Int",
-   "label": "Trash Auto-Expunge (Days)",
-   "non_negative": 1
-  },
-  {
    "fieldname": "column_break_trr0",
    "fieldtype": "Column Break"
   },
@@ -367,31 +269,6 @@
    "label": "Bind Port",
    "non_negative": 1,
    "reqd": 1
-  },
-  {
-   "description": "FQDN of the proxy or load balancer forwarding requests to mail servers.",
-   "fieldname": "cluster",
-   "fieldtype": "Data",
-   "label": "Cluster",
-   "no_copy": 1,
-   "placeholder": "mail.frappemail.com",
-   "reqd": 1,
-   "set_only_once": 1,
-   "unique": 1
-  },
-  {
-   "fieldname": "admin_password_hash",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Password Hash",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "description": "Enable proxy protocol for connections from these networks.",
-   "fieldname": "proxy_trusted_networks",
-   "fieldtype": "Small Text",
-   "label": "Trusted Networks"
   },
   {
    "fieldname": "proxy_section",
@@ -495,6 +372,129 @@
    "label": "Verification Timeout (Milliseconds)",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "description": "The key used to encrypt gossip messages.",
+   "fieldname": "cluster_key",
+   "fieldtype": "Password",
+   "label": "Encryption Key",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Enable proxy protocol for connections from these networks.",
+   "fieldname": "server_proxy_trusted_networks",
+   "fieldtype": "Small Text",
+   "label": "Trusted Networks"
+  },
+  {
+   "fieldname": "storage_directory",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "storage_data",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "storage_blob",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "storage_fts",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "storage_lookup",
+   "fieldtype": "Data",
+   "label": "Storage",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Allow users to configure encryption at rest for their data.",
+   "fieldname": "storage_encryption_enable",
+   "fieldtype": "Check",
+   "label": "Enable encryption at rest"
+  },
+  {
+   "default": "0",
+   "description": "Encrypt messages that are manually appended by the user using JMAP or IMAP.",
+   "fieldname": "storage_encryption_append",
+   "fieldtype": "Check",
+   "label": "Encrypt on append"
+  },
+  {
+   "default": "en",
+   "description": "Default language to use when language detection is not possible.",
+   "fieldname": "storage_full_text_default_language",
+   "fieldtype": "Data",
+   "label": "Default Language"
+  },
+  {
+   "default": "0 0 * * *",
+   "description": "Specifies how often tombstoned messages are deleted from the database.\n\n<br>\n<br>\n\n<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "fieldname": "jmap_account_purge_frequency",
+   "fieldtype": "Data",
+   "label": "Frequency (Cron)",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "description": "How long to keep changes history for JMAP and IMAP clients.",
+   "fieldname": "jmap_protocol_changes_max_history",
+   "fieldtype": "Int",
+   "label": "Changes History (Days)",
+   "non_negative": 1
+  },
+  {
+   "default": "30",
+   "description": "How long to keep messages in the Trash and Junk Mail folders before auto-expunging.",
+   "fieldname": "jmap_email_auto_expunge",
+   "fieldtype": "Int",
+   "label": "Trash Auto-Expunge (Days)",
+   "non_negative": 1
+  },
+  {
+   "default": "frappe",
+   "description": "Username for administrative access to the cluster.",
+   "fieldname": "fallback_admin_user",
+   "fieldtype": "Data",
+   "label": "Username",
+   "reqd": 1
+  },
+  {
+   "description": "Password for administrative access to the cluster.",
+   "fieldname": "fallback_admin_password",
+   "fieldtype": "Password",
+   "label": "Password",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "fallback_admin_secret",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Password Secret",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "FQDN of the proxy or load balancer forwarding requests to mail servers.",
+   "fieldname": "hostname",
+   "fieldtype": "Data",
+   "label": "Hostname",
+   "no_copy": 1,
+   "placeholder": "mail.frappemail.com",
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
@@ -526,7 +526,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-04-29 16:41:53.466047",
+ "modified": "2025-04-30 12:39:26.719775",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",

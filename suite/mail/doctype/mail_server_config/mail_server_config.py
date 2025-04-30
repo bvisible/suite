@@ -114,13 +114,13 @@ def get_config_toml(server: str) -> str | None:
 	def get_acme_config(acme) -> dict:
 		config = {
 			"default": bool(acme.default),
-			"directory": acme.directory_url,
-			"challenge": acme.challenge_type.lower(),
-			"contact": split_lines_or_empty(acme.contact_emails),
-			"domains": split_lines_or_empty(acme.subject_names),
+			"directory": acme.directory,
+			"challenge": acme.challenge.lower(),
+			"contact": split_lines_or_empty(acme.contact),
+			"domains": split_lines_or_empty(acme.domains),
 			"cache": "%{BASE_PATH}%/etc/acme",
-			"renew-before": format_value_or_zero(acme.renew_before_days, "d"),
-			"eab": {"kid": acme.key_id, "hmac-key": password_or_none(acme, "hmac_key")},
+			"renew-before": format_value_or_zero(acme.renew_before, "d"),
+			"eab": {"kid": acme.eab_kid, "hmac-key": password_or_none(acme, "eab_hmac_key")},
 		}
 
 		return {acme.directory_id: config}
@@ -129,11 +129,7 @@ def get_config_toml(server: str) -> str | None:
 		return {k: v for acme in acme_providers for k, v in get_acme_config(acme).items()}
 
 	def get_tls_config(tls) -> dict:
-		cert = (
-			wrap_in_triple_quotes(tls.certificate)
-			if tls.certificate
-			else f"%{{file:{tls.certificate_path}}}%"
-		)
+		cert = wrap_in_triple_quotes(tls.cert) if tls.cert else f"%{{file:{tls.cert_path}}}%"
 		private_key = (
 			wrap_in_triple_quotes(tls.private_key)
 			if tls.private_key
@@ -154,16 +150,16 @@ def get_config_toml(server: str) -> str | None:
 	def get_listeners(listeners: list) -> dict:
 		return {
 			listener.listener_id: {
-				"bind": split_lines_or_return(listener.bind_addresses),
+				"bind": split_lines_or_return(listener.bind),
 				"protocol": PROTOCOL_MAP[listener.protocol],
-				"tls": {"implicit": bool(listener.implicit_tls)},
+				"tls": {"implicit": bool(listener.tls_implicit)},
 			}
 			for listener in listeners
 		}
 
 	def get_seed_nodes(server: str, cluster: str) -> dict:
 		seed_nodes = [
-			s[frappe.scrub(s["cluster_advertise_address"])]
+			s[frappe.scrub(s["cluster_advertise_addr"])]
 			for s in frappe.db.get_all(
 				"Mail Server",
 				filters={"enabled": 1, "cluster": cluster, "name": ["!=", server]},
@@ -172,10 +168,10 @@ def get_config_toml(server: str) -> str | None:
 					"private_ipv6",
 					"public_ipv4",
 					"public_ipv6",
-					"cluster_advertise_address",
+					"cluster_advertise_addr",
 				],
 			)
-			if s["cluster_advertise_address"]
+			if s["cluster_advertise_addr"]
 		]
 		return {str(i).zfill(len(str(len(seed_nodes) - 1))): v for i, v in enumerate(seed_nodes)}
 
@@ -189,17 +185,17 @@ def get_config_toml(server: str) -> str | None:
 		config = {"type": STORE_TYPE_MAP[store.type]}
 
 		if store.type in ["SQLite", "PostgreSQL", "mySQL"]:
-			config.update({"pool": {"max-connections": store.max_connections}})
+			config.update({"pool": {"max-connections": store.pool_max_connections}})
 
 		if store.type in ["S3-compatible", "Azure Blob Storage"]:
-			config.update({"key-prefix": store.key_prefix, "max-retries": store.retry_limit})
+			config.update({"key-prefix": store.key_prefix, "max-retries": store.max_retries})
 
 		if store.type in ["PostgreSQL", "mySQL", "Redis/Memcached", "ElasticSearch"]:
-			if not (store.type == "Redis/Memcached" and store.redis_server_type == "Redis Single Node"):
-				config.update({"user": store.username, "password": password_or_none(store, "password")})
+			if not (store.type == "Redis/Memcached" and store.redis_type == "Redis Single Node"):
+				config.update({"user": store.user, "password": password_or_none(store, "password")})
 
 		if store.type in ["PostgreSQL", "mySQL", "S3-compatible", "Redis/Memcached", "Azure Blob Storage"]:
-			config["timeout"] = format_value_or_zero(store.timeout_seconds, "s")
+			config["timeout"] = format_value_or_zero(store.timeout, "s")
 
 		if store.type in [
 			"RocksDB",
@@ -214,7 +210,7 @@ def get_config_toml(server: str) -> str | None:
 			config.update(
 				{
 					"compression": store.compression.lower(),
-					"purge": {"frequency": store.purge_frequency_cron},
+					"purge": {"frequency": store.purge_frequency},
 				}
 			)
 
@@ -223,32 +219,30 @@ def get_config_toml(server: str) -> str | None:
 				config["path"] = store.path
 
 				if store.type in ["RocksDB", "SQLite"]:
-					config["workers"] = store.thread_pool_size
+					config["workers"] = store.workers
 
 				if store.type == "RocksDB":
 					config.update(
 						{
-							"min-blob-size": store.min_blob_size_bytes,
-							"write-buffer-size": store.write_buffer_size_mb,
+							"min-blob-size": store.min_blob_size,
+							"write-buffer-size": store.write_buffer_size,
 						}
 					)
 				elif store.type == "Filesystem":
-					config["depth"] = store.nested_depth
+					config["depth"] = store.depth
 
 			case "FoundationDB":
 				config.update(
 					{
 						"cluster-file": store.cluster_file,
 						"transaction": {
-							"timeout": format_value_or_zero(store.transaction_timeout_seconds, "s"),
+							"timeout": format_value_or_zero(store.transaction_timeout, "s"),
 							"retry-limit": store.transaction_retry_limit,
-							"max-retry-delay": format_value_or_zero(
-								store.transaction_max_retry_delay_seconds, "s"
-							),
+							"max-retry-delay": format_value_or_zero(store.transaction_max_retry_delay, "s"),
 						},
 						"ids": {
-							"machine": store.machine_id,
-							"datacenter": store.data_center_id,
+							"machine": store.machine,
+							"datacenter": store.datacenter,
 						},
 					}
 				)
@@ -256,19 +250,19 @@ def get_config_toml(server: str) -> str | None:
 			case "PostgreSQL" | "mySQL":
 				config.update(
 					{
-						"host": store.hostname,
+						"host": store.host,
 						"port": store.port,
 						"database": store.database,
 						"tls": {
-							"enable": bool(store.enable_tls),
-							"allow-invalid-certs": bool(store.allow_invalid_certs),
+							"enable": bool(store.tls_enable),
+							"allow-invalid-certs": bool(store.tls_allow_invalid_certs),
 						},
 					}
 				)
 
 				if store.type == "mySQL":
-					config["max-allowed-packet"] = store.max_allowed_packet_bytes
-					config["pool"]["min-connections"] = store.min_connections
+					config["max-allowed-packet"] = store.max_allowed_packet
+					config["pool"]["min-connections"] = store.pool_min_connections
 
 			case "S3-compatible":
 				config.update(
@@ -276,30 +270,30 @@ def get_config_toml(server: str) -> str | None:
 						"region": store.region,
 						"endpoint": store.endpoint,
 						"profile": store.profile,
-						"bucket": store.bucket_name,
-						"access-key": password_or_none(store, "s3_access_key"),
-						"secret-key": password_or_none(store, "s3_secret_key"),
-						"security-token": password_or_none(store, "s3_security_token"),
+						"bucket": store.bucket,
+						"access-key": password_or_none(store, "access_key"),
+						"secret-key": password_or_none(store, "secret_key"),
+						"security-token": password_or_none(store, "security_token"),
 					}
 				)
 
 			case "Redis/Memcached":
-				redis_type = "single" if store.redis_server_type == "Redis Single Node" else "cluster"
+				redis_type = "single" if store.redis_type == "Redis Single Node" else "cluster"
 				config.update(
 					{
 						"redis-type": redis_type,
-						"urls": split_lines_or_empty(store.redis_urls),
+						"urls": split_lines_or_empty(store.urls),
 					}
 				)
 
 				if redis_type == "cluster":
 					config.update(
 						{
-							"read-from-replicas": bool(store.cluster_read_from_replicas),
+							"read-from-replicas": bool(store.read_from_replicas),
 							"retry": {
-								"total": store.cluster_retries,
-								"max-wait": format_value_or_zero(store.cluster_max_wait_ms, "ms"),
-								"min-wait": format_value_or_zero(store.cluster_min_wait_ms, "ms"),
+								"total": store.retry_total,
+								"max-wait": format_value_or_zero(store.retry_max_wait, "ms"),
+								"min-wait": format_value_or_zero(store.retry_min_wait, "ms"),
 							},
 						}
 					)
@@ -309,10 +303,10 @@ def get_config_toml(server: str) -> str | None:
 					{
 						"url": store.url,
 						"cloud-id": store.cloud_id,
-						"tls": {"allow-invalid-certs": bool(store.allow_invalid_certs)},
+						"tls": {"allow-invalid-certs": bool(store.tls_allow_invalid_certs)},
 						"index": {
-							"shards": store.number_of_shards,
-							"replicas": store.number_of_replicas,
+							"shards": store.index_shards,
+							"replicas": store.index_replicas,
 						},
 					}
 				)
@@ -320,10 +314,10 @@ def get_config_toml(server: str) -> str | None:
 			case "Azure Blob Storage":
 				config.update(
 					{
-						"storage-account": store.storage_account_name,
+						"storage-account": store.storage_account,
 						"container": store.container,
 						"azure-access-key": password_or_none(store, "azure_access_key"),
-						"sas-token": password_or_none(store, "azure_sas_token"),
+						"sas-token": password_or_none(store, "sas_token"),
 					}
 				)
 
@@ -338,15 +332,15 @@ def get_config_toml(server: str) -> str | None:
 	config = {
 		"authentication": {
 			"fallback-admin": {
-				"user": cluster.admin_username,
-				"secret": cluster.admin_password_hash,
+				"user": cluster.fallback_admin_user,
+				"secret": cluster.fallback_admin_secret,
 			}
 		},
 		"acme": get_acme_providers(server.acme_providers),
 		"certificate": get_tls_certificates(server.tls_certificates),
 		"server": {
-			"hostname": server.server,
-			"proxy": {"trusted-networks": split_lines_or_empty(cluster.proxy_trusted_networks)},
+			"hostname": server.hostname,
+			"proxy": {"trusted-networks": split_lines_or_empty(cluster.server_proxy_trusted_networks)},
 			"max-connections": server.server_max_connections,
 			"listener": get_listeners(server.listeners or cluster.listeners),
 			"socket": {
@@ -358,10 +352,10 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"cluster": {
 			"node-id": server.cluster_node_id,
-			"bind-addr": server.cluster_bind_address,
+			"bind-addr": server.cluster_bind_addr,
 			"bind-port": cluster.cluster_bind_port,
-			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_address)),
-			"key": password_or_none(cluster, "cluster_encryption_key"),
+			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_addr)),
+			"key": password_or_none(cluster, "cluster_key"),
 			"heartbeat": format_value_or_zero(server.cluster_heartbeat, "s"),
 			"seed-nodes": get_seed_nodes(server.name, cluster.name),
 		},
@@ -369,9 +363,9 @@ def get_config_toml(server: str) -> str | None:
 			"local-keys": get_local_keys(bool(server.outbound_only)),
 		},
 		"directory": {
-			f"{cluster.directory_storage}": {
+			f"{cluster.storage_directory}": {
 				"type": "internal",
-				"store": f"{cluster.directory_storage}",
+				"store": f"{cluster.storage_directory}",
 				"cache": {
 					"size": 1048576,
 					"ttl": {
@@ -382,22 +376,24 @@ def get_config_toml(server: str) -> str | None:
 			}
 		},
 		"storage": {
-			"directory": cluster.directory_storage,
-			"data": cluster.data_storage,
+			"directory": cluster.storage_directory,
+			"data": cluster.storage_data,
 			"encryption": {
-				"enable": bool(cluster.enable_encryption_at_rest),
-				"append": bool(cluster.encrypt_on_append),
+				"enable": bool(cluster.storage_encryption_enable),
+				"append": bool(cluster.storage_encryption_append),
 			},
-			"blob": cluster.blob_storage,
-			"fts": cluster.fts_storage,
-			"full-text": {"default-language": cluster.default_language},
-			"lookup": cluster.in_memory_storage,
+			"blob": cluster.storage_blob,
+			"fts": cluster.storage_fts,
+			"full-text": {"default-language": cluster.storage_full_text_default_language},
+			"lookup": cluster.storage_lookup,
 		},
 		"jmap": {
-			"account": {"purge": {"frequency": cluster.jmap_frequency_cron}},
-			"email": {"auto-expunge": format_value_or_zero(cluster.jmap_trash_auto_expunge_days, "d")},
+			"account": {"purge": {"frequency": cluster.jmap_account_purge_frequency}},
+			"email": {"auto-expunge": format_value_or_zero(cluster.jmap_email_auto_expunge, "d")},
 			"protocol": {
-				"changes": {"max-history": format_value_or_zero(cluster.jmap_changes_history_days, "d")}
+				"changes": {
+					"max-history": format_value_or_zero(cluster.jmap_protocol_changes_max_history, "d")
+				}
 			},
 			"push": {
 				"max-total": cluster.jmap_push_max_total,

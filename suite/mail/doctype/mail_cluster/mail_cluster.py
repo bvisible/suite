@@ -21,42 +21,42 @@ DEFAULT_STORES = [
 		"store_id": "rocksdb",
 		"path": "/opt/stalwart-mail/data",
 		"compression": "LZ4",
-		"min_blob_size_bytes": 16834,
-		"write_buffer_size_mb": 128,
-		"purge_frequency_cron": "0 3 * * *",
+		"min_blob_size": 16834,
+		"write_buffer_size": 128,
+		"purge_frequency": "0 3 * * *",
 	}
 ]
 DEFAULT_LISTENERS = [
-	{"protocol": "HTTP", "listener_id": "http", "bind_addresses": "[::]:8080", "implicit_tls": 0},
-	{"protocol": "HTTP", "listener_id": "https", "bind_addresses": "[::]:443", "implicit_tls": 1},
-	{"protocol": "IMAP4", "listener_id": "imap", "bind_addresses": "[::]:143", "implicit_tls": 0},
-	{"protocol": "IMAP4", "listener_id": "imaptls", "bind_addresses": "[::]:993", "implicit_tls": 1},
-	{"protocol": "POP3", "listener_id": "pop3", "bind_addresses": "[::]:110", "implicit_tls": 0},
-	{"protocol": "POP3", "listener_id": "pop3s", "bind_addresses": "[::]:995", "implicit_tls": 1},
+	{"protocol": "HTTP", "listener_id": "http", "bind": "[::]:8080", "tls_implicit": 0},
+	{"protocol": "HTTP", "listener_id": "https", "bind": "[::]:443", "tls_implicit": 1},
+	{"protocol": "IMAP4", "listener_id": "imap", "bind": "[::]:143", "tls_implicit": 0},
+	{"protocol": "IMAP4", "listener_id": "imaptls", "bind": "[::]:993", "tls_implicit": 1},
+	{"protocol": "POP3", "listener_id": "pop3", "bind": "[::]:110", "tls_implicit": 0},
+	{"protocol": "POP3", "listener_id": "pop3s", "bind": "[::]:995", "tls_implicit": 1},
 	{
 		"protocol": "ManageSieve",
 		"listener_id": "sieve",
-		"bind_addresses": "[::]:4190",
-		"implicit_tls": 0,
+		"bind": "[::]:4190",
+		"tls_implicit": 0,
 	},
-	{"protocol": "SMTP", "listener_id": "smtp", "bind_addresses": "[::]:25", "implicit_tls": 0},
+	{"protocol": "SMTP", "listener_id": "smtp", "bind": "[::]:25", "tls_implicit": 0},
 	{
 		"protocol": "SMTP",
 		"listener_id": "submission",
-		"bind_addresses": "[::]:587",
-		"implicit_tls": 0,
+		"bind": "[::]:587",
+		"tls_implicit": 0,
 	},
 	{
 		"protocol": "SMTP",
 		"listener_id": "submissions",
-		"bind_addresses": "[::]:465",
-		"implicit_tls": 1,
+		"bind": "[::]:465",
+		"tls_implicit": 1,
 	},
 ]
 STORAGE_OPTIONS = {
-	"directory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
-	"data_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
-	"blob_storage": [
+	"storage_directory": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
+	"storage_data": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
+	"storage_blob": [
 		"RocksDB",
 		"FoundationDB",
 		"PostgreSQL",
@@ -66,25 +66,25 @@ STORAGE_OPTIONS = {
 		"Azure Blob Storage",
 		"Filesystem",
 	],
-	"fts_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "ElasticSearch"],
-	"in_memory_storage": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Redis/Memcached"],
+	"storage_fts": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "ElasticSearch"],
+	"storage_lookup": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite", "Redis/Memcached"],
 }
 
 
 class MailCluster(Document):
 	def autoname(self) -> None:
-		self.cluster = self.cluster.lower()
-		self.name = self.cluster
+		self.hostname = self.hostname.lower()
+		self.name = self.hostname
 
 	def validate(self) -> None:
 		self.validate_enabled()
 		self.validate_public()
-		self.validate_cluster()
+		self.validate_hostname()
 		self.validate_priority()
-		self.validate_admin_password()
-		self.generate_admin_password_hash()
+		self.validate_fallback_admin_password()
+		self.generate_fallback_admin_secret()
 		self.validate_base_url()
-		self.validate_cluster_encryption_key()
+		self.validate_cluster_key()
 		self.validate_stores()
 		self.validate_storage()
 		self.validate_listeners()
@@ -129,14 +129,14 @@ class MailCluster(Document):
 				alert=True,
 			)
 
-	def validate_cluster(self) -> None:
+	def validate_hostname(self) -> None:
 		"""Validates the cluster and fetches the IP addresses."""
 
-		if self.is_new() and frappe.db.exists("Mail Cluster", self.cluster):
-			frappe.throw(_("Mail Cluster {0} already exists.").format(frappe.bold(self.cluster)))
+		if self.is_new() and frappe.db.exists("Mail Cluster", self.hostname):
+			frappe.throw(_("Mail Cluster {0} already exists.").format(frappe.bold(self.hostname)))
 
-		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.cluster, "A") or []])
-		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.cluster, "AAAA") or []])
+		self.ipv4_addresses = "\n".join([r.address for r in get_dns_record(self.hostname, "A") or []])
+		self.ipv6_addresses = "\n".join([r.address for r in get_dns_record(self.hostname, "AAAA") or []])
 
 	def validate_priority(self) -> None:
 		"""Validates the priority of the cluster."""
@@ -149,28 +149,30 @@ class MailCluster(Document):
 				_("Mail Cluster with priority {0} already exists.").format(frappe.bold(self.priority))
 			)
 
-	def validate_admin_password(self) -> None:
-		if self.admin_password:
-			if len(self.admin_password) < 16:
+	def validate_fallback_admin_password(self) -> None:
+		if self.fallback_admin_password:
+			if len(self.fallback_admin_password) < 16:
 				frappe.throw(_("Password must be at least 16 characters long."))
 		else:
-			self.admin_password = random_string(length=20)
+			self.fallback_admin_password = random_string(length=20)
 
-	def generate_admin_password_hash(self) -> None:
-		if self.has_value_changed("admin_password"):
-			self.admin_password_hash = hash_password(self.get_password("admin_password"))
+	def generate_fallback_admin_secret(self) -> None:
+		"""Generates the fallback admin secret."""
+
+		if self.has_value_changed("fallback_admin_password"):
+			self.fallback_admin_secret = hash_password(self.get_password("fallback_admin_password"))
 
 	def validate_base_url(self) -> None:
 		"""Validates the base URL of the cluster."""
 
 		if not self.base_url:
-			self.base_url = f"https://{self.cluster}/"
+			self.base_url = f"https://{self.hostname}/"
 
-	def validate_cluster_encryption_key(self) -> None:
+	def validate_cluster_key(self) -> None:
 		"""Validates the encryption key of the cluster."""
 
-		if not self.cluster_encryption_key:
-			self.cluster_encryption_key = random_string(length=64)
+		if not self.cluster_key:
+			self.cluster_key = random_string(length=64)
 
 	def validate_stores(self) -> None:
 		"""Validates the stores."""
@@ -184,8 +186,8 @@ class MailCluster(Document):
 
 			store_ids.append(store.store_id)
 
-			if store.purge_frequency_cron:
-				is_valid_cron_expression(store.purge_frequency_cron, raise_exception=True)
+			if store.purge_frequency:
+				is_valid_cron_expression(store.purge_frequency, raise_exception=True)
 
 	def validate_storage(self) -> None:
 		"""Validates the selected stores against the stores."""
@@ -208,7 +210,7 @@ class MailCluster(Document):
 					)
 				)
 
-		is_valid_cron_expression(self.jmap_frequency_cron, raise_exception=True)
+		is_valid_cron_expression(self.jmap_account_purge_frequency, raise_exception=True)
 
 	def validate_listeners(self) -> None:
 		"""Validates the listeners."""
@@ -253,11 +255,11 @@ class MailCluster(Document):
 			self.append("listeners", listener)
 
 	@frappe.whitelist()
-	def get_admin_password(self) -> str:
+	def get_fallback_admin_password(self) -> str:
 		"""Returns the admin password of the cluster."""
 
 		frappe.only_for("System Manager")
-		return self.get_password("admin_password")
+		return self.get_password("fallback_admin_password")
 
 	@frappe.whitelist()
 	def generate_api_key(self) -> None:
@@ -273,13 +275,15 @@ class MailCluster(Document):
 		if not self.base_url:
 			frappe.throw(_("Base URL is required."))
 
-		name = f"{random_string(10)}-{self.cluster}".lower()
+		name = f"{random_string(10)}-{self.hostname}".lower()
 		secret = generate_secret()
 		principal = Principal(
 			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]
 		)
 		server_api = MailServerAPI(
-			self.base_url, username=self.admin_username, password=self.get_password("admin_password")
+			self.base_url,
+			username=self.fallback_admin_user,
+			password=self.get_password("fallback_admin_password"),
 		)
 		response = server_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
 		response.raise_for_status()
@@ -331,9 +335,9 @@ def get_storage_labels() -> dict:
 	"""Returns the storage labels."""
 
 	return {
-		"directory_storage": _("Directory Storage"),
-		"data_storage": _("Data Storage"),
-		"blob_storage": _("Blob Storage"),
-		"fts_storage": _("Full Text Index Storage"),
-		"in_memory_storage": _("In-Memory Storage"),
+		"storage_directory": _("Directory Storage"),
+		"storage_data": _("Data Storage"),
+		"storage_blob": _("Blob Storage"),
+		"storage_fts": _("Full Text Index Storage"),
+		"storage_lookup": _("In-Memory Storage"),
 	}
