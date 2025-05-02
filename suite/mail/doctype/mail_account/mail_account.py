@@ -6,9 +6,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string, validate_email_address
 
+from mail.backend import MailBackendAccountManager
 from mail.jmap import invalidate_jmap_client_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
-from mail.mail_server import MailBackendAccountManager
 from mail.utils import get_dmarc_address, hash_password, normalize_email
 from mail.utils.cache import (
 	get_aliases_for_user,

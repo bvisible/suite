@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.mail_server import get_mail_backend_api
+from mail.backend import get_mail_backend_api
 from mail.utils import extract_filter_values, rename_keys
 
 

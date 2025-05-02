@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.mail_server import MailBackendGroupManager
+from mail.backend import MailBackendGroupManager
 from mail.utils.cache import (
 	get_account_for_user,
 	get_cluster_for_tenant,

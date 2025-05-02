@@ -7,9 +7,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from mail.backend import MailBackendDomainManager
 from mail.mail.doctype.dkim_key.dkim_key import create_dkim_key
 from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
-from mail.mail_server import MailBackendDomainManager
 from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
 from mail.utils.cache import (
 	get_cluster_for_tenant,

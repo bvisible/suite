@@ -154,7 +154,7 @@ class MailBackendDKIMManager(MailBackendManagerBase):
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
-			execute_on_end="mail.mail_server.reload_request_cluster_servers",
+			execute_on_end=reload_request_cluster_servers,
 		)
 
 	def delete(self, domain_name: str) -> None:
