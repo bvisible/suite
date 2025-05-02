@@ -513,7 +513,7 @@
   {
    "group": "Reference",
    "link_doctype": "Mail Server Request",
-   "link_fieldname": "cluster"
+   "link_fieldname": "backend_name"
   },
   {
    "group": "Mail",
@@ -526,7 +526,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-04-30 12:39:26.719775",
+ "modified": "2025-05-02 15:19:38.190288",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",

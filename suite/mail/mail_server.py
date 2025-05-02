@@ -1,5 +1,6 @@
 import json
-from dataclasses import asdict, dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urljoin
 
@@ -7,9 +8,7 @@ import frappe
 import requests
 from frappe import _
 
-from mail.mail.doctype.mail_server_request.mail_server_request import (
-	create_mail_server_request as create_request,
-)
+from mail.mail.doctype.mail_server_request.mail_server_request import create_mail_server_request
 from mail.utils import get_dkim_selector
 
 if TYPE_CHECKING:
@@ -95,15 +94,44 @@ class MailServerAPI:
 class MailServerManagerBase:
 	"""Base class for Mail Server Managers."""
 
-	def __init__(self, cluster_name: str) -> None:
-		self.cluster_name = cluster_name
+	def __init__(self, backend_type: Literal["Mail Cluster", "Mail Server"], backend_name: str) -> None:
+		self.backend_type = backend_type
+		self.backend_name = backend_name
+
+	def create_request(
+		self,
+		method: str,
+		endpoint: str,
+		request_headers: dict | None = None,
+		request_params: dict | None = None,
+		request_data: str | None = None,
+		request_json: dict | None = None,
+		execute_on_start: Callable | str | None = None,
+		execute_on_end: Callable | str | None = None,
+		do_not_enqueue: bool = False,
+	) -> None:
+		"""Creates a new Mail Server Request."""
+
+		create_mail_server_request(
+			backend_type=self.backend_type,
+			backend_name=self.backend_name,
+			method=method,
+			endpoint=endpoint,
+			request_headers=request_headers,
+			request_params=request_params,
+			request_data=request_data,
+			request_json=request_json,
+			execute_on_start=execute_on_start,
+			execute_on_end=execute_on_end,
+			do_not_enqueue=do_not_enqueue,
+		)
 
 
 class MailServerDKIMManager(MailServerManagerBase):
 	"""Class to manage DKIM keys on the Mail Server."""
 
 	def create(self, domain_name: str, rsa_private_key: str) -> None:
-		"""Creates a DKIM key on the cluster."""
+		"""Creates a DKIM key on the backend."""
 
 		request_data = json.dumps(
 			[
@@ -122,8 +150,7 @@ class MailServerDKIMManager(MailServerManagerBase):
 				}
 			]
 		)
-		create_request(
-			cluster=self.cluster_name,
+		self.create_request(
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
@@ -131,7 +158,7 @@ class MailServerDKIMManager(MailServerManagerBase):
 		)
 
 	def delete(self, domain_name: str) -> None:
-		"""Deletes a DKIM key from the cluster."""
+		"""Deletes a DKIM key from the backend."""
 
 		request_data = json.dumps(
 			[
@@ -141,8 +168,7 @@ class MailServerDKIMManager(MailServerManagerBase):
 				}
 			]
 		)
-		create_request(
-			cluster=self.cluster_name,
+		self.create_request(
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
@@ -153,24 +179,22 @@ class MailServerDomainManager(MailServerManagerBase):
 	"""Class to manage domains on the Mail Server."""
 
 	def create(self, domain_name: str) -> None:
-		"""Creates a domain on the cluster."""
+		"""Creates a domain on the backend."""
 
 		principal = Principal(name=domain_name, type="domain").__dict__
-		create_request(
-			cluster=self.cluster_name, method="POST", endpoint="/api/principal", request_data=principal
-		)
+		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
 
 	def delete(self, domain_name: str) -> None:
-		"""Deletes a domain from the cluster."""
+		"""Deletes a domain from the backend."""
 
-		create_request(cluster=self.cluster_name, method="DELETE", endpoint=f"/api/principal/{domain_name}")
+		self.create_request(method="DELETE", endpoint=f"/api/principal/{domain_name}")
 
 
 class MailServerAccountManager(MailServerManagerBase):
 	"""Class to manage accounts on the Mail Server."""
 
 	def create(self, email: str, display_name: str, secret: str) -> None:
-		"""Creates an account on the cluster."""
+		"""Creates an account on the backend."""
 
 		principal = Principal(
 			name=email,
@@ -180,12 +204,10 @@ class MailServerAccountManager(MailServerManagerBase):
 			emails=[email],
 			roles=["user"],
 		).__dict__
-		create_request(
-			cluster=self.cluster_name, method="POST", endpoint="/api/principal", request_data=principal
-		)
+		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
 
 	def update(self, email: str, display_name: str, new_secret: str, old_secret: str) -> None:
-		"""Updates an account on the cluster."""
+		"""Updates an account on the backend."""
 
 		request_data = [
 			{
@@ -212,24 +234,19 @@ class MailServerAccountManager(MailServerManagerBase):
 			)
 
 		request_data = json.dumps(request_data)
-		create_request(
-			cluster=self.cluster_name,
-			method="PATCH",
-			endpoint=f"/api/principal/{email}",
-			request_data=request_data,
-		)
+		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 	def delete(self, email: str) -> None:
-		"""Deletes an account from the cluster."""
+		"""Deletes an account from the backend."""
 
-		create_request(cluster=self.cluster_name, method="DELETE", endpoint=f"/api/principal/{email}")
+		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
 
 
 class MailServerGroupManager(MailServerManagerBase):
 	"""Class to manage groups on the Mail Server."""
 
 	def create(self, email: str, display_name: str) -> None:
-		"""Creates a group on the cluster."""
+		"""Creates a group on the backend."""
 
 		principal = Principal(
 			name=email,
@@ -238,12 +255,10 @@ class MailServerGroupManager(MailServerManagerBase):
 			emails=[email],
 			enabledPermissions=["email-send", "email-receive"],
 		).__dict__
-		create_request(
-			cluster=self.cluster_name, method="POST", endpoint="/api/principal", request_data=principal
-		)
+		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
 
 	def update(self, email: str, display_name: str) -> None:
-		"""Updates a group on the cluster."""
+		"""Updates a group on the backend."""
 
 		request_data = json.dumps(
 			[
@@ -254,56 +269,41 @@ class MailServerGroupManager(MailServerManagerBase):
 				}
 			]
 		)
-		create_request(
-			cluster=self.cluster_name,
-			method="PATCH",
-			endpoint=f"/api/principal/{email}",
-			request_data=request_data,
-		)
+		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 	def delete(self, email: str) -> None:
-		"""Deletes a group from the cluster."""
+		"""Deletes a group from the backend."""
 
-		create_request(cluster=self.cluster_name, method="DELETE", endpoint=f"/api/principal/{email}")
+		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
 
 
 class MailServerAliasManager(MailServerManagerBase):
 	"""Class to manage aliases on the Mail Server."""
 
 	def create(self, email: str, alias: str) -> None:
-		"""Creates an alias on the cluster."""
+		"""Creates an alias on the backend."""
 
 		request_data = json.dumps([{"action": "addItem", "field": "emails", "value": alias}])
-		create_request(
-			cluster=self.cluster_name,
-			method="PATCH",
-			endpoint=f"/api/principal/{email}",
-			request_data=request_data,
-		)
+		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 	def update(self, new_email: str, old_email: str, alias: str) -> None:
-		"""Updates an alias on the cluster."""
+		"""Updates an alias on the backend."""
 
 		self.delete(old_email, alias)
 		self.create(new_email, alias)
 
 	def delete(self, email: str, alias: str) -> None:
-		"""Deletes an alias from the cluster."""
+		"""Deletes an alias from the backend."""
 
 		request_data = json.dumps([{"action": "removeItem", "field": "emails", "value": alias}])
-		create_request(
-			cluster=self.cluster_name,
-			method="PATCH",
-			endpoint=f"/api/principal/{email}",
-			request_data=request_data,
-		)
+		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 
 class MailServerMemberManager(MailServerManagerBase):
 	"""Class to manage group members on the Mail Server."""
 
 	def create(self, email: str, member: str, is_group: bool) -> None:
-		"""Creates a group member on the cluster."""
+		"""Creates a group member on the backend."""
 
 		endpoint = None
 		request_data = None
@@ -314,18 +314,16 @@ class MailServerMemberManager(MailServerManagerBase):
 			endpoint = f"/api/principal/{email}"
 			request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
 
-		create_request(
-			cluster=self.cluster_name, method="PATCH", endpoint=endpoint, request_data=request_data
-		)
+		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 	def update(self, new_email: str, old_email: str, member: str, is_group: bool) -> None:
-		"""Updates a group member on the cluster."""
+		"""Updates a group member on the backend."""
 
 		self.delete(old_email, member, is_group)
 		self.create(new_email, member, is_group)
 
 	def delete(self, email: str, member: str, is_group: bool) -> None:
-		"""Deletes a group member from the cluster."""
+		"""Deletes a group member from the backend."""
 
 		endpoint = None
 		request_data = None
@@ -336,9 +334,7 @@ class MailServerMemberManager(MailServerManagerBase):
 			endpoint = f"/api/principal/{email}"
 			request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
 
-		create_request(
-			cluster=self.cluster_name, method="PATCH", endpoint=endpoint, request_data=request_data
-		)
+		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
 def get_mail_server_api(cluster_name: str) -> MailServerAPI:

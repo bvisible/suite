@@ -4,6 +4,7 @@
 
 import json
 from collections.abc import Callable
+from typing import Literal
 from urllib.parse import quote
 
 import frappe
@@ -20,7 +21,7 @@ class MailServerRequest(Document):
 		self.name = str(uuid7())
 
 	def validate(self) -> None:
-		self.validate_cluster()
+		self.validate_backend()
 		self.validate_endpoint()
 
 	def after_insert(self) -> None:
@@ -34,14 +35,14 @@ class MailServerRequest(Document):
 				enqueue_after_commit=True,
 			)
 
-	def validate_cluster(self) -> None:
-		"""Validate if the cluster is enabled."""
+	def validate_backend(self) -> None:
+		"""Validate if the backend is enabled."""
 
-		if not self.cluster:
-			frappe.throw(_("Mail Cluster is required."))
+		if not self.backend_type or not self.backend_name:
+			frappe.throw(_("Backend Type and Backend Name are required."))
 
-		if not frappe.get_cached_value("Mail Cluster", self.cluster, "enabled"):
-			frappe.throw(_("Mail Cluster {0} is disabled.").format(self.cluster))
+		if not frappe.get_cached_value(self.backend_type, self.backend_name, "enabled"):
+			frappe.throw(_("{0} {1} is disabled.").format(self.backend_type, self.backend_name))
 
 	def validate_endpoint(self) -> None:
 		"""Validates the endpoint."""
@@ -79,16 +80,27 @@ class MailServerRequest(Document):
 	def _execute_request(self) -> None:
 		"""Executes the request."""
 
-		cluster = frappe.get_cached_doc("Mail Cluster", self.cluster)
+		cluster_name = self.backend_name
+		if self.backend_type == "Mail Server":
+			cluster_name = frappe.db.get_value("Mail Server", self.backend_name, "cluster")
 
-		if not cluster.enabled:
-			frappe.throw(_("Mail Cluster {0} is disabled.").format(self.cluster))
+			if not cluster_name:
+				frappe.throw(_("Mail Server {0} does not have a cluster.").format(self.backend_name))
+
+		cluster = frappe.get_cached_doc("Mail Cluster", cluster_name)
+
+		base_url = cluster.base_url
+		if self.backend_type == "Mail Server":
+			base_url = frappe.db.get_value("Mail Server", self.backend_name, "base_url")
+
+			if not base_url:
+				frappe.throw(_("Mail Server {0} does not have a base URL.").format(self.backend_name))
 
 		from mail.mail_server import MailServerAPI
 
 		api_key = cluster.get_password("api_key") if cluster.api_key else None
 		server_api = MailServerAPI(
-			cluster.base_url,
+			base_url,
 			api_key=api_key,
 			username=cluster.fallback_admin_user,
 			password=cluster.get_password("fallback_admin_password"),
@@ -131,7 +143,8 @@ class MailServerRequest(Document):
 
 
 def create_mail_server_request(
-	cluster: str,
+	backend_type: Literal["Mail Cluster", "Mail Server"],
+	backend_name: str,
 	method: str,
 	endpoint: str,
 	request_headers: dict | None = None,
@@ -148,7 +161,8 @@ def create_mail_server_request(
 		frappe.flags.do_not_enqueue = True
 
 	request = frappe.new_doc("Mail Server Request")
-	request.cluster = cluster
+	request.backend_type = backend_type
+	request.backend_name = backend_name
 	request.method = method
 	request.endpoint = endpoint
 	request.request_headers = request_headers

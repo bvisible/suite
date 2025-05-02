@@ -7,7 +7,6 @@
   "section_break_nukc",
   "backend_type",
   "backend_name",
-  "cluster",
   "status",
   "column_break_u0ac",
   "endpoint",
@@ -168,17 +167,6 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "cluster",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Cluster",
-   "options": "Mail Cluster",
-   "reqd": 1,
-   "search_index": 1,
-   "set_only_once": 1
-  },
-  {
    "fieldname": "backend_type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -197,13 +185,14 @@
    "label": "Backend Name",
    "options": "backend_type",
    "reqd": 1,
-   "search_index": 1
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-02 15:17:13.024347",
+ "modified": "2025-05-02 15:42:39.999553",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Request",

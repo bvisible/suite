@@ -221,9 +221,14 @@
    "group": "Reference",
    "link_doctype": "Mail Server Config",
    "link_fieldname": "server"
+  },
+  {
+   "group": "Reference",
+   "link_doctype": "Mail Server Request",
+   "link_fieldname": "backend_name"
   }
  ],
- "modified": "2025-04-30 12:08:28.745736",
+ "modified": "2025-05-02 16:01:43.894830",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server",
