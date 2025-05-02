@@ -24,7 +24,7 @@ frappe.ui.form.on('Mail Server', {
 		if (!frappe.user_roles.includes('System Manager')) return
 
 		frm.add_custom_button(
-			__('Generate Mail Server Config'),
+			__('Generate Config'),
 			() => {
 				frm.trigger('generate_config')
 			},
@@ -47,7 +47,7 @@ frappe.ui.form.on('Mail Server', {
 			doc: frm.doc,
 			method: 'generate_config',
 			freeze: true,
-			freeze_message: __('Generating Mail Server Config...'),
+			freeze_message: __('Generating Config...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
@@ -61,10 +61,10 @@ frappe.ui.form.on('Mail Server', {
 			doc: frm.doc,
 			method: 'reload_config',
 			freeze: true,
-			freeze_message: __('Reloading Server Configuration...'),
+			freeze_message: __('Reloading Configuration...'),
 			callback: (r) => {
 				if (!r.exc) {
-					frappe.show_alert(__('Server Configuration reloaded.'), 5)
+					frappe.show_alert(__('Configuration reloaded.'), 5)
 					frm.refresh()
 				}
 			},

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-05-02 16:08+0553\n"
-"PO-Revision-Date: 2025-05-02 16:08+0553\n"
+"POT-Creation-Date: 2025-05-02 18:09+0553\n"
+"PO-Revision-Date: 2025-05-02 18:09+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -83,7 +83,7 @@ msgstr ""
 msgid "API Key"
 msgstr ""
 
-#: mail/mail_server.py:60
+#: mail/backend.py:60
 msgid "API Key or Username and Password is required."
 msgstr ""
 
@@ -978,6 +978,13 @@ msgstr ""
 msgid "Configuration"
 msgstr ""
 
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:182
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:331
+#: mail/mail/doctype/mail_server/mail_server.js:67
+#: mail/mail/doctype/mail_server/mail_server.py:247
+msgid "Configuration reloaded."
+msgstr ""
+
 #: frontend/src/components/HeaderActions.vue:39
 #: frontend/src/components/Modals/AddGroupMembersModal.vue:8
 #: frontend/src/components/Modals/ChangePasswordModal.vue:51
@@ -1863,7 +1870,7 @@ msgstr ""
 msgid "Error Message"
 msgstr ""
 
-#: mail/mail_server.py:364
+#: mail/backend.py:381
 msgid "Error reloading {0} servers configuration"
 msgstr ""
 
@@ -2237,7 +2244,7 @@ msgid "Generate API Key"
 msgstr ""
 
 #: mail/mail/doctype/mail_server/mail_server.js:27
-msgid "Generate Mail Server Config"
+msgid "Generate Config"
 msgstr ""
 
 #: mail/mail/doctype/mail_cluster/mail_cluster.js:165
@@ -2245,7 +2252,7 @@ msgid "Generating API Key..."
 msgstr ""
 
 #: mail/mail/doctype/mail_server/mail_server.js:50
-msgid "Generating Mail Server Config..."
+msgid "Generating Config..."
 msgstr ""
 
 #: mail/mail/doctype/mail_cluster/mail_cluster.js:151
@@ -2991,7 +2998,7 @@ msgstr ""
 msgid "Mail Backend Request"
 msgstr ""
 
-#: mail/mail/doctype/mail_backend_request/mail_backend_request.py:121
+#: mail/mail/doctype/mail_backend_request/mail_backend_request.py:115
 msgid "Mail Backend Request Failed"
 msgstr ""
 
@@ -3121,10 +3128,12 @@ msgstr ""
 msgid "Mail Server {0} already exists."
 msgstr ""
 
+#: mail/backend.py:359
 #: mail/mail/doctype/mail_backend_request/mail_backend_request.py:97
 msgid "Mail Server {0} does not have a base URL."
 msgstr ""
 
+#: mail/backend.py:350
 #: mail/mail/doctype/mail_backend_request/mail_backend_request.py:88
 msgid "Mail Server {0} does not have a cluster."
 msgstr ""
@@ -4520,24 +4529,18 @@ msgstr ""
 msgid "Region"
 msgstr ""
 
+#: mail/mail/doctype/mail_cluster/mail_cluster.js:137
+#: mail/mail/doctype/mail_cluster/mail_cluster_list.js:11
 #: mail/mail/doctype/mail_server/mail_server.js:36
 #: mail/mail/doctype/mail_server/mail_server_list.js:11
 msgid "Reload Configuration"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.js:137
-#: mail/mail/doctype/mail_cluster/mail_cluster_list.js:11
-msgid "Reload Servers Configuration"
-msgstr ""
-
-#: mail/mail/doctype/mail_server/mail_server.js:64
-#: mail/mail/doctype/mail_server/mail_server_list.js:18
-msgid "Reloading Server Configuration..."
-msgstr ""
-
 #: mail/mail/doctype/mail_cluster/mail_cluster.js:179
 #: mail/mail/doctype/mail_cluster/mail_cluster_list.js:18
-msgid "Reloading Servers Configuration..."
+#: mail/mail/doctype/mail_server/mail_server.js:64
+#: mail/mail/doctype/mail_server/mail_server_list.js:18
+msgid "Reloading Configuration..."
 msgstr ""
 
 #: frontend/src/pages/ForgotPasswordView.vue:27
@@ -5085,10 +5088,6 @@ msgstr ""
 msgid "Server"
 msgstr ""
 
-#: mail/mail/doctype/mail_server/mail_server.js:67
-msgid "Server Configuration reloaded."
-msgstr ""
-
 #. Option for the 'Category' (Select) field in DocType 'DNS Record'
 #. Option for the 'Category' (Select) field in DocType 'Mail Domain DNS Record'
 #: mail/mail/doctype/dns_record/dns_record.json
@@ -5106,12 +5105,6 @@ msgstr ""
 #. Label of the redis_type (Select) field in DocType 'Mail Server Store'
 #: mail/mail/doctype/mail_server_store/mail_server_store.json
 msgid "Server Type"
-msgstr ""
-
-#: mail/mail/doctype/mail_cluster/mail_cluster.js:182
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:331
-#: mail/mail/doctype/mail_server/mail_server.py:247
-msgid "Servers Configuration reloaded."
 msgstr ""
 
 #. Label of the smtp_session_duration (Int) field in DocType 'Mail Settings'

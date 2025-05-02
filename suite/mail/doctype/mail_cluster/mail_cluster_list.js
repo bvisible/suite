@@ -3,19 +3,19 @@
 
 frappe.listview_settings['Mail Cluster'] = {
 	refresh: (listview) => {
-		add_reload_servers_config_button(listview)
+		add_reload_config_button(listview)
 	},
 }
 
-function add_reload_servers_config_button(listview) {
-	listview.page.add_actions_menu_item(__('Reload Servers Configuration'), () => {
+function add_reload_config_button(listview) {
+	listview.page.add_actions_menu_item(__('Reload Configuration'), () => {
 		frappe.call({
-			method: 'mail.mail.doctype.mail_cluster.mail_cluster.reload_servers_config',
+			method: 'mail.mail.doctype.mail_cluster.mail_cluster.reload_clusters_config',
 			args: {
 				clusters: listview.get_checked_items(true),
 			},
 			freeze: true,
-			freeze_message: __('Reloading Servers Configuration...'),
+			freeze_message: __('Reloading Configuration...'),
 			callback: (r) => {
 				if (!r.exc) {
 					listview.refresh()

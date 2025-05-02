@@ -10,7 +10,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Order
 
-from mail.backend import MailBackendAPI
+from mail.backend import get_mail_backend_api
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
 from mail.mail.doctype.mail_server_config.mail_server_config import create_mail_server_config
 from mail.mail.doctype.mail_settings.mail_settings import (
@@ -205,29 +205,22 @@ class MailServer(Document):
 
 	@frappe.whitelist()
 	def reload_config(self) -> None:
-		"""Reloads the Mail Server Config."""
+		"""Reloads the Mail Server configuration."""
 
 		frappe.only_for("System Manager")
 
 		if not self.enabled:
 			frappe.throw(_("Mail Server {0} is disabled.").format(frappe.bold(self.name)))
 
-		cluster = frappe.get_cached_doc("Mail Cluster", self.cluster)
-		api_key = cluster.get_password("api_key") if cluster.api_key else None
-		backend_api = MailBackendAPI(
-			self.base_url,
-			api_key=api_key,
-			username=cluster.fallback_admin_user,
-			password=cluster.get_password("fallback_admin_password"),
-		)
+		backend_api = get_mail_backend_api(self.doctype, self.name)
 		response = backend_api.request(method="GET", endpoint="/api/reload")
 		if response.status_code != 200:
 			frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 @frappe.whitelist()
-def reload_config(servers: str | list[str]) -> None:
-	"""Reloads the Mail Server Config."""
+def reload_servers_config(servers: str | list[str]) -> None:
+	"""Reloads the configuration of the specified servers."""
 
 	frappe.only_for("System Manager")
 
@@ -244,7 +237,7 @@ def reload_config(servers: str | list[str]) -> None:
 			frappe.msgprint(_("Mail Server {0} is disabled.").format(frappe.bold(server.name)), alert=True)
 
 	if reloaded_servers:
-		frappe.msgprint(_("Servers Configuration reloaded."), alert=True)
+		frappe.msgprint(_("Configuration reloaded."), alert=True)
 
 
 def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
