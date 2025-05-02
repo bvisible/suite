@@ -372,10 +372,10 @@ def get_mail_backend_api(
 
 
 def reload_request_cluster_servers(request: "MailBackendRequest") -> None:
-	from mail.mail.doctype.mail_cluster.mail_cluster import reload_servers_config
+	from mail.mail.doctype.mail_cluster.mail_cluster import reload_clusters_config
 
 	try:
-		reload_servers_config([request.cluster])
+		reload_clusters_config([request.cluster])
 	except Exception:
 		frappe.log_error(
 			title=_("Error reloading {0} servers configuration").format(request.cluster),
