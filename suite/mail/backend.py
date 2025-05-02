@@ -106,8 +106,10 @@ class MailBackendManagerBase:
 		request_params: dict | None = None,
 		request_data: str | None = None,
 		request_json: dict | None = None,
-		execute_on_start: Callable | str | None = None,
-		execute_on_end: Callable | str | None = None,
+		on_start: Callable | str | None = None,
+		on_start_kwargs: dict | None = None,
+		on_end: Callable | str | None = None,
+		on_end_kwargs: dict | None = None,
 		do_not_enqueue: bool = False,
 	) -> None:
 		"""Creates a new Mail Backend Request."""
@@ -121,8 +123,10 @@ class MailBackendManagerBase:
 			request_params=request_params,
 			request_data=request_data,
 			request_json=request_json,
-			execute_on_start=execute_on_start,
-			execute_on_end=execute_on_end,
+			on_start=on_start,
+			on_start_kwargs=on_start_kwargs,
+			on_end=on_end,
+			on_end_kwargs=on_end_kwargs,
 			do_not_enqueue=do_not_enqueue,
 		)
 
@@ -132,6 +136,9 @@ class MailBackendDKIMManager(MailBackendManagerBase):
 
 	def create(self, domain_name: str, rsa_private_key: str) -> None:
 		"""Creates a DKIM key on the backend."""
+
+		from mail.mail.doctype.mail_cluster.mail_cluster import reload_clusters_config
+		from mail.mail.doctype.mail_server.mail_server import reload_servers_config
 
 		request_data = json.dumps(
 			[
@@ -150,11 +157,19 @@ class MailBackendDKIMManager(MailBackendManagerBase):
 				}
 			]
 		)
+
+		on_end = reload_clusters_config
+		on_end_kwargs = {"clusters": [self.backend_name]}
+		if self.backend_type == "Mail Server":
+			on_end = reload_servers_config
+			on_end_kwargs = {"servers": [self.backend_name]}
+
 		self.create_request(
 			method="POST",
 			endpoint="/api/settings",
 			request_data=request_data,
-			execute_on_end=reload_request_cluster_servers,
+			on_end=on_end,
+			on_end_kwargs=on_end_kwargs,
 		)
 
 	def delete(self, domain_name: str) -> None:
@@ -366,18 +381,3 @@ def get_mail_backend_api(
 		username=cluster.fallback_admin_user,
 		password=cluster.get_password("fallback_admin_password"),
 	)
-
-
-# Execute on Start/End
-
-
-def reload_request_cluster_servers(request: "MailBackendRequest") -> None:
-	from mail.mail.doctype.mail_cluster.mail_cluster import reload_clusters_config
-
-	try:
-		reload_clusters_config([request.cluster])
-	except Exception:
-		frappe.log_error(
-			title=_("Error reloading {0} servers configuration").format(request.cluster),
-			message=frappe.get_traceback(with_context=True),
-		)

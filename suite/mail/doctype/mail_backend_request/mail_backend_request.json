@@ -17,9 +17,11 @@
   "column_break_zwxg",
   "duration",
   "section_break_lytm",
-  "execute_on_start",
+  "on_start",
+  "on_start_kwargs",
   "column_break_b2lb",
-  "execute_on_end",
+  "on_end",
+  "on_end_kwargs",
   "section_break_b0pd",
   "request_headers",
   "request_params",
@@ -151,20 +153,8 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "execute_on_start",
-   "fieldtype": "Small Text",
-   "label": "Execute on Start",
-   "set_only_once": 1
-  },
-  {
    "fieldname": "column_break_b2lb",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "execute_on_end",
-   "fieldtype": "Small Text",
-   "label": "Execute on End",
-   "set_only_once": 1
   },
   {
    "fieldname": "backend_type",
@@ -187,12 +177,38 @@
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "on_start_kwargs",
+   "fieldtype": "JSON",
+   "label": "Start Kwargs",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_end_kwargs",
+   "fieldtype": "JSON",
+   "label": "End Kwargs",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_start",
+   "fieldtype": "Data",
+   "label": "On Start",
+   "length": 255,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_end",
+   "fieldtype": "Data",
+   "label": "On End",
+   "length": 255,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-02 16:05:08.457817",
+ "modified": "2025-05-02 19:18:10.269364",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Backend Request",
