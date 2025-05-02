@@ -10,8 +10,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Order
 
-from mail.backend import get_mail_backend_api
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
+from mail.mail.doctype.mail_backend_request.mail_backend_request import create_mail_backend_request
 from mail.mail.doctype.mail_server_config.mail_server_config import create_mail_server_config
 from mail.mail.doctype.mail_settings.mail_settings import (
 	validate_mail_settings,
@@ -212,10 +212,9 @@ class MailServer(Document):
 		if not self.enabled:
 			frappe.throw(_("Mail Server {0} is disabled.").format(frappe.bold(self.name)))
 
-		backend_api = get_mail_backend_api(self.doctype, self.name)
-		response = backend_api.request(method="GET", endpoint="/api/reload")
-		if response.status_code != 200:
-			frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
+		create_mail_backend_request(
+			self.doctype, self.name, method="GET", endpoint="/api/reload", do_not_enqueue=True
+		)
 
 
 @frappe.whitelist()
