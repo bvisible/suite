@@ -91,8 +91,8 @@ class MailBackendAPI:
 		)
 
 
-class MailServerManagerBase:
-	"""Base class for Mail Server Managers."""
+class MailBackendManagerBase:
+	"""Base class for Mail Backend Managers."""
 
 	def __init__(self, backend_type: Literal["Mail Cluster", "Mail Server"], backend_name: str) -> None:
 		self.backend_type = backend_type
@@ -127,8 +127,8 @@ class MailServerManagerBase:
 		)
 
 
-class MailServerDKIMManager(MailServerManagerBase):
-	"""Class to manage DKIM keys on the Mail Server."""
+class MailBackendDKIMManager(MailBackendManagerBase):
+	"""Class to manage DKIM keys on the Mail Backend."""
 
 	def create(self, domain_name: str, rsa_private_key: str) -> None:
 		"""Creates a DKIM key on the backend."""
@@ -175,8 +175,8 @@ class MailServerDKIMManager(MailServerManagerBase):
 		)
 
 
-class MailServerDomainManager(MailServerManagerBase):
-	"""Class to manage domains on the Mail Server."""
+class MailBackendDomainManager(MailBackendManagerBase):
+	"""Class to manage domains on the Mail Backend."""
 
 	def create(self, domain_name: str) -> None:
 		"""Creates a domain on the backend."""
@@ -190,8 +190,8 @@ class MailServerDomainManager(MailServerManagerBase):
 		self.create_request(method="DELETE", endpoint=f"/api/principal/{domain_name}")
 
 
-class MailServerAccountManager(MailServerManagerBase):
-	"""Class to manage accounts on the Mail Server."""
+class MailBackendAccountManager(MailBackendManagerBase):
+	"""Class to manage accounts on the Mail Backend."""
 
 	def create(self, email: str, display_name: str, secret: str) -> None:
 		"""Creates an account on the backend."""
@@ -242,8 +242,8 @@ class MailServerAccountManager(MailServerManagerBase):
 		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
 
 
-class MailServerGroupManager(MailServerManagerBase):
-	"""Class to manage groups on the Mail Server."""
+class MailBackendGroupManager(MailBackendManagerBase):
+	"""Class to manage groups on the Mail Backend."""
 
 	def create(self, email: str, display_name: str) -> None:
 		"""Creates a group on the backend."""
@@ -277,8 +277,8 @@ class MailServerGroupManager(MailServerManagerBase):
 		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
 
 
-class MailServerAliasManager(MailServerManagerBase):
-	"""Class to manage aliases on the Mail Server."""
+class MailBackendAliasManager(MailBackendManagerBase):
+	"""Class to manage aliases on the Mail Backend."""
 
 	def create(self, email: str, alias: str) -> None:
 		"""Creates an alias on the backend."""
@@ -299,8 +299,8 @@ class MailServerAliasManager(MailServerManagerBase):
 		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 
-class MailServerMemberManager(MailServerManagerBase):
-	"""Class to manage group members on the Mail Server."""
+class MailBackendMemberManager(MailBackendManagerBase):
+	"""Class to manage group members on the Mail Backend."""
 
 	def create(self, email: str, member: str, is_group: bool) -> None:
 		"""Creates a group member on the backend."""

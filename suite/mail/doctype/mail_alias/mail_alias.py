@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.mail_server import MailServerAliasManager
+from mail.mail_server import MailBackendAliasManager
 from mail.utils import normalize_email
 from mail.utils.cache import (
 	get_account_for_user,
@@ -42,17 +42,17 @@ class MailAlias(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				MailServerAliasManager(get_cluster_for_tenant(self.tenant)).create(
+				MailBackendAliasManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(
 					self.alias_for_name, self.email
 				)
 			elif self.has_value_changed("alias_for_name"):
 				self.remove_alias_set_as_default_outgoing_email()
-				MailServerAliasManager(get_cluster_for_tenant(self.tenant)).update(
+				MailBackendAliasManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).update(
 					self.alias_for_name, self.get_doc_before_save().alias_for_name, self.email
 				)
 		elif self.has_value_changed("enabled"):
 			self.remove_alias_set_as_default_outgoing_email()
-			MailServerAliasManager(get_cluster_for_tenant(self.tenant)).delete(
+			MailBackendAliasManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(
 				self.alias_for_name, self.email
 			)
 
@@ -60,7 +60,7 @@ class MailAlias(Document):
 		self.clear_cache()
 
 		if self.enabled:
-			MailServerAliasManager(get_cluster_for_tenant(self.tenant)).delete(
+			MailBackendAliasManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(
 				self.alias_for_name, self.email
 			)
 
