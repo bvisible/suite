@@ -8,11 +8,11 @@ import frappe
 import requests
 from frappe import _
 
-from mail.mail.doctype.mail_server_request.mail_server_request import create_mail_server_request
+from mail.mail.doctype.mail_backend_request.mail_backend_request import create_mail_backend_request
 from mail.utils import get_dkim_selector
 
 if TYPE_CHECKING:
-	from mail.mail.doctype.mail_server_request.mail_server_request import MailServerRequest
+	from mail.mail.doctype.mail_backend_request.mail_backend_request import MailBackendRequest
 
 
 @dataclass
@@ -110,9 +110,9 @@ class MailServerManagerBase:
 		execute_on_end: Callable | str | None = None,
 		do_not_enqueue: bool = False,
 	) -> None:
-		"""Creates a new Mail Server Request."""
+		"""Creates a new Mail Backend Request."""
 
-		create_mail_server_request(
+		create_mail_backend_request(
 			backend_type=self.backend_type,
 			backend_name=self.backend_name,
 			method=method,
@@ -354,7 +354,7 @@ def get_mail_server_api(cluster_name: str) -> MailServerAPI:
 # Execute on Start/End
 
 
-def reload_request_cluster_servers(request: "MailServerRequest") -> None:
+def reload_request_cluster_servers(request: "MailBackendRequest") -> None:
 	from mail.mail.doctype.mail_cluster.mail_cluster import reload_servers_config
 
 	try:

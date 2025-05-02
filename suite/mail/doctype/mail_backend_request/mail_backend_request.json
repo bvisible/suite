@@ -9,8 +9,8 @@
   "backend_name",
   "status",
   "column_break_u0ac",
-  "endpoint",
   "method",
+  "endpoint",
   "section_break_bpxp",
   "started_at",
   "ended_at",
@@ -192,10 +192,10 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-02 15:42:39.999553",
+ "modified": "2025-05-02 16:05:08.457817",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Server Request",
+ "name": "Mail Backend Request",
  "owner": "Administrator",
  "permissions": [
   {
