@@ -134,9 +134,9 @@ frappe.ui.form.on('Mail Cluster', {
 
 		if (frm.doc.enabled && !frm.is_dirty()) {
 			frm.add_custom_button(
-				__('Reload Servers Configuration'),
+				__('Reload Configuration'),
 				() => {
-					frm.trigger('reload_servers_config')
+					frm.trigger('reload_config')
 				},
 				__('Actions'),
 			)
@@ -171,15 +171,15 @@ frappe.ui.form.on('Mail Cluster', {
 		})
 	},
 
-	reload_servers_config(frm) {
+	reload_config(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'reload_servers_config',
+			method: 'reload_config',
 			freeze: true,
-			freeze_message: __('Reloading Servers Configuration...'),
+			freeze_message: __('Reloading Configuration...'),
 			callback: (r) => {
 				if (!r.exc) {
-					frappe.show_alert(__('Servers Configuration reloaded.'), 5)
+					frappe.show_alert(__('Configuration reloaded.'), 5)
 					frm.refresh()
 				}
 			},

@@ -6,9 +6,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string, validate_email_address
 
+from mail.backend import MailBackendAccountManager
 from mail.jmap import invalidate_jmap_client_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
-from mail.mail_server import MailServerAccountManager
 from mail.utils import get_dmarc_address, hash_password, normalize_email
 from mail.utils.cache import (
 	get_aliases_for_user,
@@ -55,11 +55,11 @@ class MailAccount(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
-				MailServerAccountManager(get_cluster_for_tenant(self.tenant)).create(
+				MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(
 					self.email, self.display_name, self.secret
 				)
 			elif self.has_value_changed("display_name") or self.has_value_changed("secret"):
-				MailServerAccountManager(get_cluster_for_tenant(self.tenant)).update(
+				MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).update(
 					self.email, self.display_name, self.secret, self.get_doc_before_save().secret
 				)
 
@@ -67,13 +67,13 @@ class MailAccount(Document):
 					invalidate_jmap_client_cache()
 
 		elif self.has_value_changed("enabled"):
-			MailServerAccountManager(get_cluster_for_tenant(self.tenant)).delete(self.email)
+			MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.email)
 
 	def on_trash(self) -> None:
 		self.clear_cache()
 
 		if self.enabled:
-			MailServerAccountManager(get_cluster_for_tenant(self.tenant)).delete(self.email)
+			MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.email)
 
 	def set_tenant(self) -> None:
 		"""Sets the tenant based on the domain."""

@@ -5,20 +5,23 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_nukc",
-  "cluster",
+  "backend_type",
+  "backend_name",
   "status",
   "column_break_u0ac",
-  "endpoint",
   "method",
+  "endpoint",
   "section_break_bpxp",
   "started_at",
   "ended_at",
   "column_break_zwxg",
   "duration",
   "section_break_lytm",
-  "execute_on_start",
+  "on_start",
+  "on_start_kwargs",
   "column_break_b2lb",
-  "execute_on_end",
+  "on_end",
+  "on_end_kwargs",
   "section_break_b0pd",
   "request_headers",
   "request_params",
@@ -150,40 +153,65 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "execute_on_start",
-   "fieldtype": "Small Text",
-   "label": "Execute on Start",
-   "set_only_once": 1
-  },
-  {
    "fieldname": "column_break_b2lb",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "execute_on_end",
-   "fieldtype": "Small Text",
-   "label": "Execute on End",
+   "fieldname": "backend_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Backend Type",
+   "options": "\nMail Cluster\nMail Server",
+   "reqd": 1,
+   "search_index": 1,
    "set_only_once": 1
   },
   {
-   "fieldname": "cluster",
-   "fieldtype": "Link",
+   "fieldname": "backend_name",
+   "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Cluster",
-   "options": "Mail Cluster",
+   "label": "Backend Name",
+   "options": "backend_type",
    "reqd": 1,
    "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_start_kwargs",
+   "fieldtype": "JSON",
+   "label": "Start Kwargs",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_end_kwargs",
+   "fieldtype": "JSON",
+   "label": "End Kwargs",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_start",
+   "fieldtype": "Data",
+   "label": "On Start",
+   "length": 255,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "on_end",
+   "fieldtype": "Data",
+   "label": "On End",
+   "length": 255,
    "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 14:45:58.432272",
+ "modified": "2025-05-02 19:18:10.269364",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Server Request",
+ "name": "Mail Backend Request",
  "owner": "Administrator",
  "permissions": [
   {

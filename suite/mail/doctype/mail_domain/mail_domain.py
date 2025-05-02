@@ -7,9 +7,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from mail.backend import MailBackendDomainManager
 from mail.mail.doctype.dkim_key.dkim_key import create_dkim_key
 from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
-from mail.mail_server import MailServerDomainManager
 from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
 from mail.utils.cache import (
 	get_cluster_for_tenant,
@@ -40,7 +40,7 @@ class MailDomain(Document):
 		self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
-		MailServerDomainManager(get_cluster_for_tenant(self.tenant)).create(self.domain_name)
+		MailBackendDomainManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(self.domain_name)
 
 		if self.is_root_domain:
 			create_dmarc_account(self.tenant)
@@ -56,7 +56,7 @@ class MailDomain(Document):
 			frappe.throw(_("Only Administrator can delete Mail Domain."))
 
 		self.clear_cache()
-		MailServerDomainManager(get_cluster_for_tenant(self.tenant)).delete(self.domain_name)
+		MailBackendDomainManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.domain_name)
 
 	def validate_is_subdomain(self) -> None:
 		"""Validates the Is Subdomain field."""

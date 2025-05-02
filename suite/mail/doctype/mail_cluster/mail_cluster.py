@@ -9,8 +9,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string
 
+from mail.backend import MailBackendAPI, Principal
 from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
-from mail.mail_server import MailServerAPI, Principal
 from mail.utils import generate_secret, hash_password
 from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression
@@ -280,12 +280,12 @@ class MailCluster(Document):
 		principal = Principal(
 			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]
 		)
-		server_api = MailServerAPI(
+		backend_api = MailBackendAPI(
 			self.base_url,
 			username=self.fallback_admin_user,
 			password=self.get_password("fallback_admin_password"),
 		)
-		response = server_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
+		response = backend_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
 		response.raise_for_status()
 		response_json = response.json()
 
@@ -295,8 +295,8 @@ class MailCluster(Document):
 		return f"api_{base64.b64encode(f'{name}:{secret}'.encode()).decode()}"
 
 	@frappe.whitelist()
-	def reload_servers_config(self) -> None:
-		"""Reloads the Mail Cluster servers configuration."""
+	def reload_config(self) -> None:
+		"""Reloads the Mail Cluster configuration."""
 
 		frappe.only_for("System Manager")
 
@@ -310,8 +310,8 @@ class MailCluster(Document):
 
 
 @frappe.whitelist()
-def reload_servers_config(clusters: str | list[str]) -> None:
-	"""Reloads the Mail Cluster servers configuration."""
+def reload_clusters_config(clusters: str | list[str]) -> None:
+	"""Reloads the configuration of the specified clusters."""
 
 	frappe.only_for("System Manager")
 
@@ -322,13 +322,13 @@ def reload_servers_config(clusters: str | list[str]) -> None:
 	for cluster in clusters:
 		cluster = frappe.get_cached_doc("Mail Cluster", cluster)
 		if cluster.enabled:
-			cluster.reload_servers_config()
+			cluster.reload_config()
 			reloaded_clusters.append(cluster.name)
 		else:
 			frappe.msgprint(_("Mail Cluster {0} is disabled.").format(frappe.bold(cluster.name)), alert=True)
 
 	if reloaded_clusters:
-		frappe.msgprint(_("Servers Configuration reloaded."), alert=True)
+		frappe.msgprint(_("Configuration reloaded."), alert=True)
 
 
 def get_storage_labels() -> dict:
