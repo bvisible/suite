@@ -10,12 +10,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Order
 
+from mail.backend import MailBackendAPI
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
 from mail.mail.doctype.mail_server_config.mail_server_config import create_mail_server_config
 from mail.mail.doctype.mail_settings.mail_settings import (
 	validate_mail_settings,
 )
-from mail.mail_server import MailBackendAPI
 from mail.utils.dns import get_dns_record
 
 if TYPE_CHECKING:

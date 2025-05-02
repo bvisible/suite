@@ -96,7 +96,7 @@ class MailBackendRequest(Document):
 			if not base_url:
 				frappe.throw(_("Mail Server {0} does not have a base URL.").format(self.backend_name))
 
-		from mail.mail_server import get_mail_backend_api
+		from mail.backend import get_mail_backend_api
 
 		backend_api = get_mail_backend_api(self.backend_type, self.backend_name)
 		response = backend_api.request(

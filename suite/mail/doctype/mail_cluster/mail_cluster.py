@@ -9,8 +9,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string
 
+from mail.backend import MailBackendAPI, Principal
 from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
-from mail.mail_server import MailBackendAPI, Principal
 from mail.utils import generate_secret, hash_password
 from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression

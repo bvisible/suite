@@ -8,8 +8,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, random_string
 
+from mail.backend import MailBackendDKIMManager
 from mail.mail.doctype.dns_record.dns_record import create_or_update_dns_record
-from mail.mail_server import MailBackendDKIMManager
 from mail.utils import get_dkim_host
 from mail.utils.cache import get_cluster_for_tenant, get_tenant_for_domain
 

@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.mail_server import MailBackendAliasManager
+from mail.backend import MailBackendAliasManager
 from mail.utils import normalize_email
 from mail.utils.cache import (
 	get_account_for_user,
