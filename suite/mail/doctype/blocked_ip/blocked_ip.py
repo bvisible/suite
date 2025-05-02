@@ -8,7 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now
 
-from mail.mail_server import get_mail_server_api
+from mail.mail_server import get_mail_backend_api
 from mail.utils import extract_filter_values, rename_keys
 from mail.utils.dns import get_host_by_ip
 
@@ -91,22 +91,22 @@ def add_blocked_ip(cluster_name: str, ip_address: str | list) -> None:
 			}
 		)
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="POST",
 		endpoint="/api/settings",
 		data=json.dumps(request_data),
 	)
 
 	if response.status_code != 200:
-		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def fetch_blocked_ips(cluster_name: str, page: int = 1, limit: int = 10, text: str | None = None) -> list:
 	"""Fetches a list of blocked ips from the mail server."""
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="GET",
 		endpoint="api/settings/group",
 		params={"page": page, "prefix": "server.blocked-ip", "limit": limit, "filter": text},
@@ -118,15 +118,15 @@ def fetch_blocked_ips(cluster_name: str, page: int = 1, limit: int = 10, text: s
 
 		return [format_blocked_ip(item, cluster_name) for item in data["items"]]
 
-	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def fetch_blocked_ip_details(name: str) -> dict:
 	"""Fetches details of a specific blocked ip from the mail server."""
 
 	cluster_name, ip_address = name.split("-")
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="GET",
 		endpoint="api/settings/group",
 		params={"prefix": "server.blocked-ip", "limit": 1, "filter": ip_address},
@@ -137,7 +137,7 @@ def fetch_blocked_ip_details(name: str) -> dict:
 
 		return format_blocked_ip(blocked_ip, cluster_name)
 
-	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def remove_blocked_ip(name: str | list) -> None:
@@ -151,15 +151,15 @@ def remove_blocked_ip(name: str | list) -> None:
 		cluster_name, ip_address = n.split("-")
 		request_data.append({"type": "delete", "keys": [f"server.blocked-ip.{ip_address}"]})
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="POST",
 		endpoint="/api/settings",
 		data=json.dumps(request_data),
 	)
 
 	if response.status_code != 200:
-		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def format_blocked_ip(blocked_ip: dict, cluster_name: str) -> dict:
