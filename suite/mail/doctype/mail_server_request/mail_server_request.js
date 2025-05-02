@@ -7,7 +7,7 @@ frappe.ui.form.on('Mail Server Request', {
 	},
 
 	set_queries(frm) {
-		frm.set_query('cluster', () => ({
+		frm.set_query('backend_name', () => ({
 			filters: {
 				enabled: 1,
 			},
