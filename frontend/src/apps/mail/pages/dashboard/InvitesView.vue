@@ -92,6 +92,7 @@ import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
 
+const dayjs = inject('$dayjs')
 const user = inject('$user')
 
 const search = ref('')
@@ -102,7 +103,7 @@ const showDeleteInvites = ref(false)
 
 const invites = useList({
 	doctype: 'Mail Account Request',
-	fields: ['name', 'email', 'account', 'is_admin', 'is_verified', 'is_expired'],
+	fields: ['name', 'email', 'account', 'is_admin', 'is_verified', 'expires_at'],
 	filters: () => {
 		const filters: Record<string, string | string[] | number> = {
 			tenant: user.data?.tenant,
@@ -112,11 +113,12 @@ const invites = useList({
 		}
 
 		if (role.value) filters.is_admin = Number(role.value === 'Mail Admin')
-		if (status.value === 'Accepted') filters.is_verified = 1
-		else if (status.value === 'Pending') filters.is_expired = filters.is_verified = 0
-		else if (status.value === 'Expired') {
-			filters.is_expired = 1
-			filters.is_verified = 0
+		if (status.value) {
+			if (status.value === 'Accepted') filters.is_verified = 1
+			else {
+				filters.is_verified = 0
+				filters.expires_at = [status.value === 'Pending' ? '>=' : '<=', dayjs()]
+			}
 		}
 
 		return filters
@@ -124,7 +126,11 @@ const invites = useList({
 	transform: (data) =>
 		data.map((row) => ({
 			...row,
-			status: row.is_verified ? 'Accepted' : row.is_expired ? 'Expired' : 'Pending',
+			status: row.is_verified
+				? 'Accepted'
+				: dayjs().isAfter(row.expires_at)
+					? 'Expired'
+					: 'Pending',
 		})),
 	limit: 100,
 	cacheKey: [
