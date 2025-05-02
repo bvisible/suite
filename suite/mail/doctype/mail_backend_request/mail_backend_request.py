@@ -16,7 +16,7 @@ from uuid_utils import uuid7
 from mail.utils import get_dotted_path
 
 
-class MailServerRequest(Document):
+class MailBackendRequest(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
@@ -118,7 +118,7 @@ class MailServerRequest(Document):
 		if response.status_code == 200:
 			self._db_set(response_json=response_json)
 		else:
-			frappe.throw(title=_("Mail Server Request Failed"), msg=response_json)
+			frappe.throw(title=_("Mail Backend Request Failed"), msg=response_json)
 
 	def _execute_method_on_end(self) -> None:
 		"""Executes the method on end."""
@@ -142,7 +142,7 @@ class MailServerRequest(Document):
 			self.notify_update()
 
 
-def create_mail_server_request(
+def create_mail_backend_request(
 	backend_type: Literal["Mail Cluster", "Mail Server"],
 	backend_name: str,
 	method: str,
@@ -154,13 +154,13 @@ def create_mail_server_request(
 	execute_on_start: Callable | str | None = None,
 	execute_on_end: Callable | str | None = None,
 	do_not_enqueue: bool = False,
-) -> "MailServerRequest":
-	"""Creates a new Mail Server Request."""
+) -> "MailBackendRequest":
+	"""Creates a new Mail Backend Request."""
 
 	if do_not_enqueue:
 		frappe.flags.do_not_enqueue = True
 
-	request = frappe.new_doc("Mail Server Request")
+	request = frappe.new_doc("Mail Backend Request")
 	request.backend_type = backend_type
 	request.backend_name = backend_name
 	request.method = method
