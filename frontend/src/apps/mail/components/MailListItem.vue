@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5 sm:hover:bg-gray-50"
-		:class="{ '!bg-blue-50': isSelected }"
+		:class="{ '!bg-blue-50': isSelected, '!py-2': isFullWidth }"
 		@mouseenter="isHovered = true"
 		@mouseleave="isHovered = false"
 	>
