@@ -73,9 +73,10 @@ class MailBackendRequest(Document):
 	def _execute_method_on_start(self) -> None:
 		"""Executes the method on start."""
 
-		if self.execute_on_start:
-			method = frappe.get_attr(self.execute_on_start)
-			method(self)
+		if self.on_start:
+			method = frappe.get_attr(self.on_start)
+			kwargs = json.loads(self.on_start_kwargs or "{}")
+			method(**kwargs)
 
 	def _execute_request(self) -> None:
 		"""Executes the request."""
@@ -117,9 +118,10 @@ class MailBackendRequest(Document):
 	def _execute_method_on_end(self) -> None:
 		"""Executes the method on end."""
 
-		if self.execute_on_end:
-			method = frappe.get_attr(self.execute_on_end)
-			method(self)
+		if self.on_end:
+			method = frappe.get_attr(self.on_end)
+			kwargs = json.loads(self.on_end_kwargs or "{}")
+			method(**kwargs)
 
 	def _db_set(
 		self,
@@ -145,8 +147,10 @@ def create_mail_backend_request(
 	request_params: dict | None = None,
 	request_data: str | None = None,
 	request_json: dict | None = None,
-	execute_on_start: Callable | str | None = None,
-	execute_on_end: Callable | str | None = None,
+	on_start: Callable | str | None = None,
+	on_start_kwargs: dict | None = None,
+	on_end: Callable | str | None = None,
+	on_end_kwargs: dict | None = None,
 	do_not_enqueue: bool = False,
 ) -> "MailBackendRequest":
 	"""Creates a new Mail Backend Request."""
@@ -163,10 +167,10 @@ def create_mail_backend_request(
 	request.request_params = request_params
 	request.request_data = request_data
 	request.request_json = request_json
-	request.execute_on_start = (
-		get_dotted_path(execute_on_start) if callable(execute_on_start) else execute_on_start
-	)
-	request.execute_on_end = get_dotted_path(execute_on_end) if callable(execute_on_end) else execute_on_end
+	request.on_start = get_dotted_path(on_start) if callable(on_start) else on_start
+	request.on_start_kwargs = json.dumps(on_start_kwargs) if on_start_kwargs else None
+	request.on_end = get_dotted_path(on_end) if callable(on_end) else on_end
+	request.on_end_kwargs = json.dumps(on_end_kwargs) if on_end_kwargs else None
 	request.insert(ignore_permissions=True)
 
 	return request
