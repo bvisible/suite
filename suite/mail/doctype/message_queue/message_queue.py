@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.mail_server import get_mail_server_api
+from mail.mail_server import get_mail_backend_api
 from mail.utils import extract_filter_values, rename_keys
 
 
@@ -119,8 +119,8 @@ def bulk_retry_delivery(names: str | list[str]) -> None:
 def fetch_messages(cluster_name: str, page: int = 1, limit: int = 10, text: str | None = None) -> list:
 	"""Fetches a list of messages from the mail server."""
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="GET",
 		endpoint="/api/queue/messages",
 		params={"page": page, "limit": limit, "values": 1, "text": text},
@@ -133,15 +133,15 @@ def fetch_messages(cluster_name: str, page: int = 1, limit: int = 10, text: str 
 
 		return [format_message(item, cluster_name) for item in data["items"]]
 
-	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def fetch_message_details(name: str) -> dict:
 	"""Fetches details of a specific message from the mail server."""
 
 	cluster_name, queue_id = name.split("-")
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(method="GET", endpoint=f"/api/queue/messages/{queue_id}")
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(method="GET", endpoint=f"/api/queue/messages/{queue_id}")
 
 	if response.status_code == 200:
 		message = response.json()["data"]
@@ -151,67 +151,67 @@ def fetch_message_details(name: str) -> dict:
 
 		return message
 
-	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def fetch_blob(cluster_name: str, blob_id: str) -> str:
 	"""Fetches a blob (email content) from the mail server."""
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(method="GET", endpoint=f"/api/store/blobs/{blob_id}")
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(method="GET", endpoint=f"/api/store/blobs/{blob_id}")
 
 	if response.status_code == 200:
 		return response.text
 
-	frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def retry_message(name: str) -> None:
 	"""Retries delivery of a message to all recipients."""
 
 	cluster_name, queue_id = name.split("-")
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(method="PATCH", endpoint=f"/api/queue/messages/{queue_id}")
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(method="PATCH", endpoint=f"/api/queue/messages/{queue_id}")
 	if response.status_code != 200:
-		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def cancel_message(name: str, recipient: str | None = None) -> None:
 	"""Cancels delivery of a message to specific recipients."""
 
 	cluster_name, queue_id = name.split("-")
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="DELETE", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
 	)
 	if response.status_code != 200:
-		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def stop_queue_processing(cluster_name: str) -> None:
 	"""Stops queue processing on the mail server."""
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="PATCH",
 		endpoint="/api/queue/status/stop",
 	)
 
 	if response.status_code != 200:
-		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def start_queue_processing(cluster_name: str) -> None:
 	"""Starts queue processing on the mail server."""
 
-	server_api = get_mail_server_api(cluster_name)
-	response = server_api.request(
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
 		method="PATCH",
 		endpoint="/api/queue/status/start",
 	)
 
 	if response.status_code != 200:
-		frappe.throw(title=_("Request failed for {0}").format(server_api.base_url), msg=response.text)
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
 
 
 def get_status_cache_key(cluster_name: str) -> str:

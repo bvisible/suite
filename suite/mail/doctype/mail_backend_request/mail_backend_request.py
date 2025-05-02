@@ -96,16 +96,10 @@ class MailBackendRequest(Document):
 			if not base_url:
 				frappe.throw(_("Mail Server {0} does not have a base URL.").format(self.backend_name))
 
-		from mail.mail_server import MailServerAPI
+		from mail.mail_server import get_mail_backend_api
 
-		api_key = cluster.get_password("api_key") if cluster.api_key else None
-		server_api = MailServerAPI(
-			base_url,
-			api_key=api_key,
-			username=cluster.fallback_admin_user,
-			password=cluster.get_password("fallback_admin_password"),
-		)
-		response = server_api.request(
+		backend_api = get_mail_backend_api(self.backend_type, self.backend_name)
+		response = backend_api.request(
 			method=self.method,
 			endpoint=self.endpoint,
 			params=self.request_params,

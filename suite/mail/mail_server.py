@@ -36,8 +36,8 @@ class Principal:
 	externalMembers: list[str] = field(default_factory=list)
 
 
-class MailServerAPI:
-	"""Class to interact with the Mail Server API."""
+class MailBackendAPI:
+	"""Class to interact with the Mail Backend API."""
 
 	def __init__(
 		self,
@@ -70,7 +70,7 @@ class MailServerAPI:
 		headers: dict[str, str] | None = None,
 		timeout: int | tuple[int, int] = (60, 120),
 	) -> Any:
-		"""Makes an HTTP request to the Mail Server API."""
+		"""Makes an HTTP request to the Mail Backend API."""
 
 		url = urljoin(self.base_url, endpoint)
 		headers = {**self.__headers, **(headers or {})}
@@ -337,14 +337,31 @@ class MailServerMemberManager(MailServerManagerBase):
 		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
-def get_mail_server_api(cluster_name: str) -> MailServerAPI:
-	"""Returns an authenticated MailServerAPI instance."""
+def get_mail_backend_api(
+	backend_type: Literal["Mail Cluster", "Mail Server"], backend_name: str
+) -> MailBackendAPI:
+	"""Returns an authenticated MailBackendAPI instance."""
+
+	cluster_name = backend_name
+	if backend_type == "Mail Server":
+		cluster_name = frappe.db.get_value("Mail Server", backend_name, "cluster")
+
+		if not cluster_name:
+			frappe.throw(_("Mail Server {0} does not have a cluster.").format(backend_name))
 
 	cluster = frappe.get_cached_doc("Mail Cluster", cluster_name)
+
+	base_url = cluster.base_url
+	if backend_type == "Mail Server":
+		base_url = frappe.db.get_value("Mail Server", backend_name, "base_url")
+
+		if not base_url:
+			frappe.throw(_("Mail Server {0} does not have a base URL.").format(backend_name))
+
 	api_key = cluster.get_password("api_key") if cluster.api_key else None
 
-	return MailServerAPI(
-		base_url=cluster.base_url,
+	return MailBackendAPI(
+		base_url,
 		api_key=api_key,
 		username=cluster.fallback_admin_user,
 		password=cluster.get_password("fallback_admin_password"),

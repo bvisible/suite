@@ -10,7 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import random_string
 
 from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
-from mail.mail_server import MailServerAPI, Principal
+from mail.mail_server import MailBackendAPI, Principal
 from mail.utils import generate_secret, hash_password
 from mail.utils.dns import get_dns_record
 from mail.utils.validation import is_valid_cron_expression
@@ -280,12 +280,12 @@ class MailCluster(Document):
 		principal = Principal(
 			name=name, type="apiKey", secrets=secret, roles=["admin"], enabledPermissions=["authenticate"]
 		)
-		server_api = MailServerAPI(
+		backend_api = MailBackendAPI(
 			self.base_url,
 			username=self.fallback_admin_user,
 			password=self.get_password("fallback_admin_password"),
 		)
-		response = server_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
+		response = backend_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
 		response.raise_for_status()
 		response_json = response.json()
 
