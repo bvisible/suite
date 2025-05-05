@@ -51,9 +51,8 @@ class JMAPPushSubscription(Document):
 	def get_push_subscriptions(account: str) -> list[dict]:
 		"""Returns a list of push subscriptions for the given account."""
 
-		client = get_jmap_client(account)
-
 		try:
+			client = get_jmap_client(account)
 			return client.push_subscription_get()
 		except Exception:
 			frappe.log_error(
@@ -66,9 +65,9 @@ class JMAPPushSubscription(Document):
 	def destroy_push_subscriptions(account: str, subscription_ids: list[str] | None = None) -> None:
 		"""Destroys the push subscriptions for the given account."""
 
-		client = get_jmap_client(account)
-
 		try:
+			client = get_jmap_client(account)
+
 			if not subscription_ids:
 				subscription_ids = []
 				for subscription in client.push_subscription_get():
@@ -158,9 +157,8 @@ class JMAPPushSubscription(Document):
 		elif self.status not in ["Active", "Expired", "Failed to Renew"]:
 			frappe.throw(_("Cannot renew a subscription that is not active or expired."))
 
-		client = get_jmap_client(self.account)
-
 		try:
+			client = get_jmap_client(self.account)
 			response = client.push_subscription_set_expires(self.subscription_id)
 
 			kwargs = {"renew_response": json.dumps(response, indent=4)}

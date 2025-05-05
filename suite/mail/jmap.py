@@ -30,17 +30,9 @@ class JMAPClient:
 		"""Discover JMAP configuration from the server."""
 
 		well_known_url = urljoin(self.__host, "/.well-known/jmap")
-
-		try:
-			response = self.__session.get(well_known_url, headers={"Accept": "application/json"})
-			response.raise_for_status()
-			self.__config = response.json()
-		except Exception:
-			frappe.log_error(
-				title=_("Failed to discover JMAP configuration for {0}").format(self.__session.auth[0]),
-				message=frappe.get_traceback(with_context=True),
-			)
-			frappe.throw(_("Failed to discover JMAP configuration."))
+		response = self.__session.get(well_known_url, headers={"Accept": "application/json"})
+		response.raise_for_status()
+		self.__config = response.json()
 
 	def _validate_capabilities(self, capabilities: list[str]) -> None:
 		"""Validate the requested capabilities against the server's capabilities."""
