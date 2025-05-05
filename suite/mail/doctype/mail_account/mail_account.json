@@ -192,12 +192,17 @@
   },
   {
    "group": "Reference",
+   "link_doctype": "Mail Sync History",
+   "link_fieldname": "account"
+  },
+  {
+   "group": "Reference",
    "link_doctype": "JMAP Sync State",
    "link_fieldname": "account"
   },
   {
    "group": "Reference",
-   "link_doctype": "Mail Sync History",
+   "link_doctype": "JMAP Push Subscription",
    "link_fieldname": "account"
   },
   {
@@ -221,7 +226,7 @@
    "link_fieldname": "sender"
   }
  ],
- "modified": "2025-04-24 11:37:19.463158",
+ "modified": "2025-05-05 14:18:55.502691",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
