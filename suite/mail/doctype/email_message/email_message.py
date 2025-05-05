@@ -161,9 +161,8 @@ class EmailMessage(Document):
 		if not email_id_keywords_map:
 			return
 
-		client = get_jmap_client(account)
-
 		try:
+			client = get_jmap_client(account)
 			client.email_set_keywords(email_id_keywords_map)
 
 			for message_id, _keywords in message_id_keywords_map.items():
@@ -194,9 +193,8 @@ class EmailMessage(Document):
 		if not email_ids:
 			return
 
-		client = get_jmap_client(account)
-
 		try:
+			client = get_jmap_client(account)
 			client.email_set_destroy(email_ids)
 			frappe.db.set_value("Email Message", filters, "destroyed", 1)
 		except Exception:
@@ -256,9 +254,8 @@ class EmailMessage(Document):
 		if not target_mailbox_id:
 			frappe.throw(_("Mailbox not found."))
 
-		client = get_jmap_client(account)
-
 		try:
+			client = get_jmap_client(account)
 			client.email_set_mailbox(email_ids, target_mailbox_id)
 			target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
 			frappe.db.set_value(
@@ -296,9 +293,8 @@ class EmailMessage(Document):
 		if content := frappe.cache.get_value(cache_key):
 			return content
 
-		client = get_jmap_client(account)
-
 		try:
+			client = get_jmap_client(account)
 			content = client.download_blob(blob_id, name)
 			store_blob_in_cache(account, blob_id, content)
 			return content
@@ -435,9 +431,8 @@ def fetch_emails(account: str, position: int = 0, batch_size: int = 1000) -> Non
 	elif not bool(frappe.db.exists("JMAP Sync State", account)):
 		create_jmap_sync_state(account)
 
-	client = get_jmap_client(account)
-
 	try:
+		client = get_jmap_client(account)
 		result = client.email_query(filter={}, position=position, limit=batch_size)
 
 		if email_ids := result["ids"]:
@@ -466,9 +461,8 @@ def fetch_changes(account: str, email_states: list[str] | None = None) -> None:
 	elif email_states and current_state in email_states:
 		return
 
-	client = get_jmap_client(account)
-
 	try:
+		client = get_jmap_client(account)
 		result = client.email_changes(current_state)
 
 		if created_ids := result["created"]:
