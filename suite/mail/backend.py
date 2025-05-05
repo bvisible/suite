@@ -211,6 +211,10 @@ class MailBackendAccountManager(MailBackendManagerBase):
 	def create(self, email: str, display_name: str, secret: str) -> None:
 		"""Creates an account on the backend."""
 
+		from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import (
+			create_jmap_push_subscription,
+		)
+
 		principal = Principal(
 			name=email,
 			type="individual",
@@ -219,7 +223,13 @@ class MailBackendAccountManager(MailBackendManagerBase):
 			emails=[email],
 			roles=["user"],
 		).__dict__
-		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
+		self.create_request(
+			method="POST",
+			endpoint="/api/principal",
+			request_data=principal,
+			on_end=create_jmap_push_subscription,
+			on_end_kwargs={"account": email},
+		)
 
 	def update(self, email: str, display_name: str, new_secret: str, old_secret: str) -> None:
 		"""Updates an account on the backend."""
@@ -254,7 +264,16 @@ class MailBackendAccountManager(MailBackendManagerBase):
 	def delete(self, email: str) -> None:
 		"""Deletes an account from the backend."""
 
-		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
+		from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import (
+			delete_jmap_push_subscription,
+		)
+
+		self.create_request(
+			method="DELETE",
+			endpoint=f"/api/principal/{email}",
+			on_start=delete_jmap_push_subscription,
+			on_start_kwargs={"account": email},
+		)
 
 
 class MailBackendGroupManager(MailBackendManagerBase):

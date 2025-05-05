@@ -109,22 +109,24 @@ class JMAPPushSubscription(Document):
 	def _subscribe(self) -> None:
 		"""Subscribes to the JMAP push subscription."""
 
+		kwargs = {
+			"verified": 0,
+			"verified_at": None,
+			"expires_at": None,
+			"subscription_id": None,
+			"verification_response": None,
+			"renew_response": None,
+		}
 		device_client_id = f"frappe-{frappe.local.site.replace('.', '-')}-{self.account}"
 		types = self.notification_types.split("\n") if self.notification_types else None
-		client = get_jmap_client(self.account)
 
 		try:
+			client = get_jmap_client(self.account)
 			response = client.push_subscription_create(
 				self.account_uuid_hash, device_client_id, self.endpoint, types
 			)
 
-			kwargs = {
-				"verified": 0,
-				"verified_at": None,
-				"renew_response": None,
-				"verification_response": None,
-				"subscription_response": json.dumps(response, indent=4),
-			}
+			kwargs["subscription_response"] = json.dumps(response, indent=4)
 			if response.get("created"):
 				kwargs.update(
 					{
@@ -135,24 +137,17 @@ class JMAPPushSubscription(Document):
 						"subscription_id": response["created"][self.account_uuid_hash]["id"],
 					}
 				)
-			elif response.get("notCreated"):
-				kwargs.update(
-					{
-						"status": "Failed to Subscribe",
-						"expires_at": None,
-						"subscription_id": None,
-					}
-				)
 			else:
 				frappe.throw(_("Failed to subscribe to JMAP Push Subscription."))
 
 			self._db_set(**kwargs)
 		except Exception:
 			frappe.log_error(
-				title=_("Failed to create push subscription"),
+				title=_("Failed to subscribe to JMAP Push Subscription"),
 				message=frappe.get_traceback(with_context=True),
 			)
-			frappe.throw(_("Failed to create push subscription."))
+			kwargs["status"] = "Failed to Subscribe"
+			self._db_set(**kwargs)
 
 	@frappe.whitelist()
 	def renew(self) -> None:
