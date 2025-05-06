@@ -302,6 +302,15 @@ class JMAPClient:
 
 		return response.content
 
+	def upload_blob(self, blob: bytes | str, content_type: str = "message/rfc822") -> dict:
+		"""Uploads the blob data and returns a dictionary containing the blob ID."""
+
+		upload_url = self.upload_url.format(accountId=self.account_id)
+		response = self.__session.post(upload_url, data=blob, headers={"Content-Type": content_type})
+		response.raise_for_status()
+
+		return response.json()
+
 	def email_set_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
 		"""Update email keywords."""
 
