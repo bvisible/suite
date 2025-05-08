@@ -159,6 +159,7 @@ permission_query_conditions = {
 	"Mail Alias": "mail.mail.doctype.mail_alias.mail_alias.get_permission_query_condition",
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.get_permission_query_condition",
 	"Email Message": "mail.mail.doctype.email_message.email_message.get_permission_query_condition",
+	"Mail Queue": "mail.mail.doctype.mail_queue.mail_queue.get_permission_query_condition",
 	"Outgoing Mail": "mail.mail.doctype.outgoing_mail.outgoing_mail.get_permission_query_condition",
 	"Incoming Mail": "mail.mail.doctype.incoming_mail.incoming_mail.get_permission_query_condition",
 }
@@ -175,6 +176,7 @@ has_permission = {
 	"Mail Alias": "mail.mail.doctype.mail_alias.mail_alias.has_permission",
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.has_permission",
 	"Email Message": "mail.mail.doctype.email_message.email_message.has_permission",
+	"Mail Queue": "mail.mail.doctype.mail_queue.mail_queue.has_permission",
 	"Outgoing Mail": "mail.mail.doctype.outgoing_mail.outgoing_mail.has_permission",
 	"Incoming Mail": "mail.mail.doctype.incoming_mail.incoming_mail.has_permission",
 }
@@ -307,7 +309,7 @@ ignore_links_on_delete = ["Mail Domain", "Incoming Mail", "Outgoing Mail"]
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
 
-default_log_clearing_doctypes = {"Spam Check Log": 7}
+default_log_clearing_doctypes = {"Mail Queue": 3, "Spam Check Log": 7}
 
 fixtures = [
 	{

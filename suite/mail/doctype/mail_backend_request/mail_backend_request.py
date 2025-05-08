@@ -17,6 +17,12 @@ from mail.utils import get_dotted_path
 
 
 class MailBackendRequest(Document):
+	@property
+	def response_json(self) -> str | None:
+		"""Returns the indented JSON response."""
+
+		return json.dumps(json.loads(self._response_json), indent=4) if self._response_json else None
+
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
@@ -109,11 +115,11 @@ class MailBackendRequest(Document):
 			headers=self.request_headers,
 		)
 
-		response_json = json.dumps(response.json())
+		_response_json = json.dumps(response.json())
 		if response.status_code == 200:
-			self._db_set(response_json=response_json)
+			self._db_set(_response_json=_response_json)
 		else:
-			frappe.throw(title=_("Mail Backend Request Failed"), msg=response_json)
+			frappe.throw(title=_("Mail Backend Request Failed"), msg=_response_json)
 
 	def _execute_method_on_end(self) -> None:
 		"""Executes the method on end."""

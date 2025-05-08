@@ -1,0 +1,331 @@
+{
+ "actions": [],
+ "creation": "2025-05-08 14:54:46.498342",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_fjbl",
+  "status",
+  "account",
+  "from_name",
+  "from_email",
+  "column_break_atrz",
+  "subject",
+  "reply_to_section",
+  "reply_to",
+  "headers_section",
+  "headers",
+  "recipients_section",
+  "recipients",
+  "body_section",
+  "text_html",
+  "text_plain",
+  "more_info_tab",
+  "message_id",
+  "_id",
+  "blob_id",
+  "size",
+  "column_break_admz",
+  "sent_at",
+  "received_after",
+  "column_break_ltfn",
+  "in_reply_to",
+  "mailbox_id",
+  "thread_id",
+  "section_break_aldv",
+  "message",
+  "response_section",
+  "_response",
+  "response",
+  "section_break_9no7",
+  "error_message"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_fjbl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Account",
+   "options": "Mail Account",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "from_name",
+   "fieldtype": "Data",
+   "label": "From Name",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "from_email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "From Email",
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Subject",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "message_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Message ID",
+   "no_copy": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "sent_at",
+   "fieldtype": "Datetime",
+   "label": "Sent At",
+   "no_copy": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "in_reply_to",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "in_standard_filter": 1,
+   "label": "In Reply To (Message ID)",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Code",
+   "label": "Message",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "recipients",
+   "fieldtype": "Table",
+   "options": "Mail Queue Recipient",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_atrz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.headers.length > 0",
+   "fieldname": "headers_section",
+   "fieldtype": "Section Break",
+   "label": "Headers"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: true",
+   "fieldname": "recipients_section",
+   "fieldtype": "Section Break",
+   "label": "Recipients"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.__islocal",
+   "fieldname": "body_section",
+   "fieldtype": "Section Break",
+   "label": "Body"
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "column_break_admz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ltfn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_aldv",
+   "fieldtype": "Section Break",
+   "label": "Message"
+  },
+  {
+   "fieldname": "size",
+   "fieldtype": "Int",
+   "label": "Size (Bytes)",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Email ID",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "blob_id",
+   "fieldtype": "Data",
+   "label": "Blob ID",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "mailbox_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Mailbox ID",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "thread_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Thread ID",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "received_after",
+   "fieldtype": "Int",
+   "is_virtual": 1,
+   "label": "Received After (Seconds)",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "text_html",
+   "fieldtype": "Code",
+   "label": "HTML",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "text_plain",
+   "fieldtype": "Code",
+   "label": "Plain",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "headers",
+   "fieldtype": "Table",
+   "options": "Mail Queue Header",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "_response",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Response",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "response_section",
+   "fieldtype": "Section Break",
+   "label": "Response"
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "JSON",
+   "is_virtual": 1,
+   "label": "Response",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.status",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "\nDraft\nFailed to Draft\nSubmitted\nFailed to Submit\nFailed",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_9no7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Error Message",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.reply_to.length > 0",
+   "fieldname": "reply_to_section",
+   "fieldtype": "Section Break",
+   "label": "Reply To"
+  },
+  {
+   "fieldname": "reply_to",
+   "fieldtype": "Table",
+   "options": "Mail Queue Reply To",
+   "set_only_once": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-11 13:18:33.582889",
+ "modified_by": "Administrator",
+ "module": "Mail",
+ "name": "Mail Queue",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "report": 1,
+   "role": "Mail Admin",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mail User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "subject"
+}

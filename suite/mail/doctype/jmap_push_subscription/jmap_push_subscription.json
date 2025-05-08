@@ -18,8 +18,11 @@
   "column_break_wbrq",
   "notification_types",
   "section_break_gjbl",
+  "_subscription_response",
   "subscription_response",
+  "_verification_response",
   "verification_response",
+  "_renew_response",
   "renew_response"
  ],
  "fields": [
@@ -109,6 +112,7 @@
   {
    "fieldname": "verification_response",
    "fieldtype": "JSON",
+   "is_virtual": 1,
    "label": "Verification Response",
    "no_copy": 1,
    "read_only": 1
@@ -116,6 +120,7 @@
   {
    "fieldname": "renew_response",
    "fieldtype": "JSON",
+   "is_virtual": 1,
    "label": "Renew Response",
    "no_copy": 1,
    "read_only": 1
@@ -123,6 +128,7 @@
   {
    "fieldname": "subscription_response",
    "fieldtype": "JSON",
+   "is_virtual": 1,
    "label": "Subscription Response",
    "no_copy": 1,
    "read_only": 1
@@ -138,12 +144,36 @@
    "label": "Verified At",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "_subscription_response",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Subscription Response",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "_verification_response",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Verification Response",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "_renew_response",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Renew Response",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-29 15:18:11.627398",
+ "modified": "2025-05-09 18:14:45.739539",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "JMAP Push Subscription",
