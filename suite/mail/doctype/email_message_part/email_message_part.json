@@ -51,7 +51,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Disposition",
-   "options": "inline\nattachment"
+   "options": "\ninline\nattachment"
   },
   {
    "fieldname": "cid",
@@ -92,7 +92,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-14 16:46:44.611079",
+ "modified": "2025-05-09 16:47:40.944197",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message Part",

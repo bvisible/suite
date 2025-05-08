@@ -113,6 +113,12 @@ class EmailMessage(Document):
 			return float(score_match.group(1)) if score_match else 0.0
 
 	@property
+	def keywords(self) -> str | None:
+		"""Returns the indented JSON keywords."""
+
+		return json.dumps(json.loads(self._keywords), indent=4) if self._keywords else None
+
+	@property
 	def message(self) -> str | None:
 		"""Returns the message content if available."""
 
@@ -169,7 +175,7 @@ class EmailMessage(Document):
 				frappe.db.set_value(
 					"Email Message",
 					message_id,
-					{"seen": cint(seen), "_keywords": json.dumps(_keywords, indent=4)},
+					{"seen": cint(seen), "_keywords": json.dumps(_keywords)},
 				)
 		except Exception:
 			frappe.log_error(
@@ -525,7 +531,7 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 	email_message.blob_id = email["blobId"]
 	email_message.thread_id = email["threadId"]
 	email_message.size = email["size"]
-	email_message._keywords = json.dumps(email["keywords"], indent=4)
+	email_message._keywords = json.dumps(email["keywords"])
 	email_message.has_attachment = cint(email["hasAttachment"])
 	email_message.seen = cint(email["keywords"].get("$seen", False))
 
@@ -550,7 +556,7 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 			email_message.append("reply_to", {"display_name": rt["name"], "email": rt["email"]})
 
 	# Process html and text bodies
-	for key, field in {"htmlBody": "html_body", "textBody": "text_body"}.items():
+	for key, field in {"htmlBody": "text_html", "textBody": "text_plain"}.items():
 		if body := email[key]:
 			part_id = body[0]["partId"]
 			setattr(email_message, field, email["bodyValues"].get(part_id, {}).get("value"))
@@ -563,8 +569,8 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 	# Process attachments and body parts
 	for key, field in {
 		"attachments": "attachments",
-		"htmlBody": "_html_body",
-		"textBody": "_text_body",
+		"htmlBody": "_text_html",
+		"textBody": "_text_plain",
 	}.items():
 		for p in email[key]:
 			email_message.append(
@@ -578,7 +584,7 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 					"charset": p["charset"],
 					"disposition": p["disposition"],
 					"cid": p["cid"],
-					"language": p["language"],
+					"language": str(p["language"]),
 					"location": p["location"],
 				},
 			)
@@ -597,7 +603,7 @@ def update_email_message(account: str, email: dict) -> None:
 	mailbox_id = list(email["mailboxIds"].keys())[0]
 	folder = get_mailbox_name(account, mailbox_id)
 
-	_keywords = json.dumps(email["keywords"], indent=4)
+	_keywords = json.dumps(email["keywords"])
 	seen = cint(email["keywords"].get("$seen", False))
 
 	filters = {"account": account, "_id": _id, "destroyed": 0}

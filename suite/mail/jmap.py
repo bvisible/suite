@@ -171,6 +171,15 @@ class JMAPClient:
 
 		return mailboxes
 
+	@cached_property
+	def identities(self) -> list[dict]:
+		"""Returns the identities for the logged-in user."""
+
+		return self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[["Identity/get", {"accountId": self.account_id}, "0"]],
+		)["methodResponses"][0][1]["list"]
+
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
 
@@ -523,6 +532,16 @@ def get_mailboxes(account: str) -> list[dict]:
 		return mailboxes
 
 	return frappe.cache.hget("jmap:mailboxes", account, generator)
+
+
+def get_identities(account: str) -> list[dict]:
+	"""Returns the identities for the given account."""
+
+	def generator() -> list[dict]:
+		client = get_jmap_client(account)
+		return client.identities
+
+	return frappe.cache.hget("jmap:identities", account, generator)
 
 
 def get_mailbox_id(account: str, role: str | None = None, name: str | None = None) -> str | None:

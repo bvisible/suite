@@ -1,16 +1,21 @@
 {
  "actions": [],
- "creation": "2025-04-11 12:30:29.058338",
+ "creation": "2025-05-08 15:11:31.353620",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "section_break_sxco",
   "type",
-  "column_break_0bg2",
+  "column_break_9abe",
   "display_name",
   "email"
  ],
  "fields": [
+  {
+   "fieldname": "section_break_sxco",
+   "fieldtype": "Section Break"
+  },
   {
    "default": "To",
    "fieldname": "type",
@@ -21,8 +26,12 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_0bg2",
-   "fieldtype": "Column Break"
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1
   },
   {
    "fieldname": "display_name",
@@ -31,22 +40,18 @@
    "label": "Display Name"
   },
   {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Email",
-   "options": "Email",
-   "reqd": 1
+   "fieldname": "column_break_9abe",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-08 18:28:38.329228",
+ "modified": "2025-05-08 18:26:46.847915",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Email Message Recipient",
+ "name": "Mail Queue Recipient",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
