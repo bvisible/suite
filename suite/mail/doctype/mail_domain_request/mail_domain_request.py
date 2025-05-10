@@ -72,8 +72,8 @@ class MailDomainRequest(Document):
 		self.is_verified = 0
 		if verify_dns_record(self.domain_name, "TXT", self.verification_key):
 			self.is_verified = 1
-			frappe.msgprint(_("Domain Verification Successful"), indicator="green", alert=True)
 			self.create_domain()
+			frappe.msgprint(_("Domain Verification Successful"), indicator="green", alert=True)
 		else:
 			frappe.msgprint(_("Domain Verification Failed"), indicator="red", alert=True)
 
