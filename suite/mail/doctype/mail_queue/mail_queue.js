@@ -6,6 +6,19 @@ frappe.ui.form.on('Mail Queue', {
 		frm.trigger('add_comments')
 	},
 
+	save_as_draft: mutually_exclusive_checkboxes('save_as_draft', [
+		'move_to_sent',
+		'delete_after_sending',
+	]),
+	move_to_sent: mutually_exclusive_checkboxes('move_to_sent', [
+		'save_as_draft',
+		'delete_after_sending',
+	]),
+	delete_after_sending: mutually_exclusive_checkboxes('delete_after_sending', [
+		'save_as_draft',
+		'move_to_sent',
+	]),
+
 	add_comments(frm) {
 		if (
 			!frm.doc.__islocal &&
@@ -16,3 +29,11 @@ frappe.ui.form.on('Mail Queue', {
 		}
 	},
 })
+
+function mutually_exclusive_checkboxes(active_field, fields_to_reset) {
+	return function (frm) {
+		if (frm.doc[active_field]) {
+			fields_to_reset.forEach((field) => frm.set_value(field, 0))
+		}
+	}
+}

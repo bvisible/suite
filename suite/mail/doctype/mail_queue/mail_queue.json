@@ -11,6 +11,12 @@
   "from_email",
   "column_break_atrz",
   "subject",
+  "section_break_veq4",
+  "save_as_draft",
+  "column_break_9kdu",
+  "move_to_sent",
+  "column_break_wzl8",
+  "delete_after_sending",
   "reply_to_section",
   "reply_to",
   "headers_section",
@@ -37,7 +43,7 @@
   "response_section",
   "_response",
   "response",
-  "section_break_9no7",
+  "error_message_section",
   "error_message"
  ],
  "fields": [
@@ -260,10 +266,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "section_break_9no7",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "error_message",
    "fieldtype": "Small Text",
    "hidden": 1,
@@ -284,12 +286,53 @@
    "fieldtype": "Table",
    "options": "Mail Queue Reply To",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "error_message_section",
+   "fieldtype": "Section Break",
+   "label": "Error Message"
+  },
+  {
+   "default": "0",
+   "description": "When checked, the email will be saved as a draft instead of being sent.",
+   "fieldname": "save_as_draft",
+   "fieldtype": "Check",
+   "label": "Save as Draft",
+   "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "description": "If enabled, the email will be permanently deleted from the server after sending.",
+   "fieldname": "delete_after_sending",
+   "fieldtype": "Check",
+   "label": "Delete After Sending",
+   "set_only_once": 1
+  },
+  {
+   "default": "1",
+   "description": "After submission, the email will be moved to the <b>Sent</b> folder.",
+   "fieldname": "move_to_sent",
+   "fieldtype": "Check",
+   "label": "Move to Sent Folder",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "section_break_veq4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_9kdu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wzl8",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-11 13:18:33.582889",
+ "modified": "2025-05-12 15:27:13.470968",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
