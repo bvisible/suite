@@ -102,6 +102,7 @@ class MailQueue(Document):
 	def validate(self) -> None:
 		self.validate_from_name()
 		self.validate_from_email()
+		self.validate_delivery_option()
 		self.validate_recipients()
 		self.validate_message_id()
 		self.validate_sent_at()
@@ -128,6 +129,15 @@ class MailQueue(Document):
 		else:
 			self.from_email = frappe.db.get_value("Mail Account", self.account, "default_outgoing_email")
 
+	def validate_delivery_option(self) -> None:
+		"""Validates the delivery option."""
+
+		flags = [self.save_as_draft, self.move_to_sent, self.delete_after_sending]
+		if sum(bool(flag) for flag in flags) != 1:
+			self.move_to_sent = 1
+			self.save_as_draft = 0
+			self.delete_after_sending = 0
+
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
 
@@ -148,11 +158,11 @@ class MailQueue(Document):
 	def validate_sent_at(self) -> None:
 		"""Validates the sent at date."""
 
-		if not self.sent_at:
+		if self.sent_at:
+			if self.sent_at > self.creation:
+				frappe.throw(_("Sent At date cannot be in the future."))
+		else:
 			self.sent_at = self.creation
-
-		if self.sent_at > self.creation:
-			frappe.throw(_("Sent At date cannot be in the future."))
 
 	def submit(self) -> None:
 		"""Submits the email to the JMAP server."""
@@ -160,6 +170,112 @@ class MailQueue(Document):
 		client = get_jmap_client(self.account)
 		draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
 		sent_mailbox_id = get_mailbox_id(self.account, role="sent")
+
+		using = ["urn:ietf:params:jmap:mail"]
+		method_calls = [
+			[
+				"Email/set",
+				{
+					"accountId": client.account_id,
+					"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
+				},
+				"0",
+			]
+		]
+
+		if self.move_to_sent or self.delete_after_sending:
+			method_call = [
+				"EmailSubmission/set",
+				{
+					"accountId": client.account_id,
+					"create": {
+						f"submit-{self.name}": {
+							"identityId": self.identity_id,
+							"emailId": f"#draft-{self.name}",
+							"envelope": {
+								"mailFrom": {
+									"email": self.from_email,
+									"parameters": {
+										"RET": "FULL",
+										"ENVID": self.name,
+									},
+								},
+								"rcptTo": [
+									{
+										"email": rcpt.email,
+										"parameters": {
+											"NOTIFY": "DELAY,FAILURE",
+											"ORCPT": f"rfc822;{rcpt.email}",
+										},
+									}
+									for rcpt in self.recipients
+								],
+							},
+						}
+					},
+				},
+				"1",
+			]
+
+			if self.move_to_sent:
+				method_call[1]["onSuccessUpdateEmail"] = {
+					f"#submit-{self.name}": {
+						f"mailboxIds/{draft_mailbox_id}": None,
+						f"mailboxIds/{sent_mailbox_id}": True,
+						"keywords/$draft": None,
+						"keywords/$seen": True,
+					}
+				}
+			elif self.delete_after_sending:
+				method_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
+
+			using.append("urn:ietf:params:jmap:submission")
+			method_calls.append(method_call)
+
+		response = client._make_request(using=using, method_calls=method_calls)
+
+		kwargs = {"status": "Failed", "_response": json.dumps(response)}
+		if data := response["methodResponses"][0][1].get("created", {}).get(f"draft-{self.name}"):
+			kwargs.update(
+				{
+					"status": "Draft",
+					"_id": data["id"],
+					"blob_id": data["blobId"],
+					"size": data["size"],
+					"mailbox_id": draft_mailbox_id,
+					"thread_id": data["threadId"],
+				}
+			)
+		elif response["methodResponses"][0][1].get("notCreated", {}).get(f"draft-{self.name}"):
+			kwargs["status"] = "Failed to Draft"
+
+		if self.move_to_sent or self.delete_after_sending:
+			if response["methodResponses"][1][1].get("created", {}).get(f"submit-{self.name}"):
+				kwargs.update(
+					{
+						"status": "Submitted",
+						"mailbox_id": sent_mailbox_id,
+					}
+				)
+			elif response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}"):
+				kwargs["status"] = "Failed to Submit"
+
+		self._db_set(notify_update=True, **kwargs)
+
+	def _get_recipients(self, type: Literal["To", "Cc", "Bcc"] | None = None) -> list[dict[str, str | None]]:
+		"""Returns the recipients."""
+
+		recipients = []
+		for rcpt in self.recipients:
+			if type and rcpt.type != type:
+				continue
+
+			recipients.append({"name": rcpt.display_name, "email": rcpt.email})
+
+		return recipients
+
+	def _draft_mail(self, draft_mailbox_id: str) -> dict:
+		"""Returns the draft mail object."""
 
 		mail = {
 			"mailboxIds": {draft_mailbox_id: True},
@@ -204,97 +320,7 @@ class MailQueue(Document):
 		mail["bodyStructure"] = body_structure
 		mail["bodyValues"] = body_values
 
-		response = client._make_request(
-			using=["urn:ietf:params:jmap:mail"],
-			method_calls=[
-				[
-					"Email/set",
-					{
-						"accountId": client.account_id,
-						"create": {f"draft-{self.name}": mail},
-					},
-					"0",
-				],
-				[
-					"EmailSubmission/set",
-					{
-						"accountId": client.account_id,
-						"create": {
-							f"submit-{self.name}": {
-								"identityId": self.identity_id,
-								"emailId": f"#draft-{self.name}",
-								"envelope": {
-									"mailFrom": {
-										"email": self.from_email,
-										"parameters": {
-											"RET": "FULL",
-											"ENVID": self.name,
-										},
-									},
-									"rcptTo": [
-										{
-											"email": rcpt.email,
-											"parameters": {
-												"NOTIFY": "DELAY,FAILURE",
-												"ORCPT": f"rfc822;{rcpt.email}",
-											},
-										}
-										for rcpt in self.recipients
-									],
-								},
-							}
-						},
-						"onSuccessUpdateEmail": {
-							f"#submit-{self.name}": {
-								f"mailboxIds/{draft_mailbox_id}": None,
-								f"mailboxIds/{sent_mailbox_id}": True,
-								"keywords/$draft": None,
-							}
-						},
-					},
-					"1",
-				],
-			],
-		)
-
-		kwargs = {"status": "Failed", "_response": json.dumps(response)}
-		if data := response["methodResponses"][0][1].get("created", {}).get(f"draft-{self.name}"):
-			kwargs.update(
-				{
-					"status": "Draft",
-					"_id": data["id"],
-					"blob_id": data["blobId"],
-					"size": data["size"],
-					"mailbox_id": draft_mailbox_id,
-					"thread_id": data["threadId"],
-				}
-			)
-		elif response["methodResponses"][0][1].get("notCreated", {}).get(f"draft-{self.name}"):
-			kwargs["status"] = "Failed to Draft"
-
-		if response["methodResponses"][1][1].get("created", {}).get(f"submit-{self.name}"):
-			kwargs.update(
-				{
-					"status": "Submitted",
-					"mailbox_id": sent_mailbox_id,
-				}
-			)
-		elif response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}"):
-			kwargs["status"] = "Failed to Submit"
-
-		self._db_set(notify_update=True, **kwargs)
-
-	def _get_recipients(self, type: Literal["To", "Cc", "Bcc"] | None = None) -> list[dict[str, str | None]]:
-		"""Returns the recipients."""
-
-		recipients = []
-		for rcpt in self.recipients:
-			if type and rcpt.type != type:
-				continue
-
-			recipients.append({"name": rcpt.display_name, "email": rcpt.email})
-
-		return recipients
+		return mail
 
 	def _db_set(
 		self,
