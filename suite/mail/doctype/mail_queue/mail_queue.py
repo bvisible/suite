@@ -223,6 +223,25 @@ class MailQueue(Document):
 							f"submit-{self.name}": {
 								"identityId": self.identity_id,
 								"emailId": f"#draft-{self.name}",
+								"envelope": {
+									"mailFrom": {
+										"email": self.from_email,
+										"parameters": {
+											"RET": "FULL",
+											"ENVID": self.name,
+										},
+									},
+									"rcptTo": [
+										{
+											"email": rcpt.email,
+											"parameters": {
+												"NOTIFY": "DELAY,FAILURE",
+												"ORCPT": f"rfc822;{rcpt.email}",
+											},
+										}
+										for rcpt in self.recipients
+									],
+								},
 							}
 						},
 						"onSuccessUpdateEmail": {
