@@ -71,8 +71,6 @@ export interface OutgoingMail extends DocType {
 	created_at?: string
 	/** Message Size (Bytes): Int */
 	message_size?: number
-	/** Tracking ID: Data */
-	tracking_id?: string
 	/** First Opened At: Datetime */
 	first_opened_at?: string
 	/** Last Opened At: Datetime */
@@ -389,8 +387,6 @@ export interface MailDomainRequest extends DocType {
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
-	/** Track Outgoing Mail: Check */
-	track_outgoing_mail: 0 | 1
 	/** Create Mail Contact: Check */
 	create_mail_contact: 0 | 1
 	/** Domain Name: Link (Mail Domain) */
