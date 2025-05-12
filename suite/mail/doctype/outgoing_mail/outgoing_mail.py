@@ -458,10 +458,6 @@ class OutgoingMail(Document):
 			body_html = self._replace_image_url_with_content_id()
 			body_plain = convert_html_to_text(body_html)
 
-			if self.runtime.mail_account.track_outgoing_mail:
-				self.tracking_id = uuid7().hex
-				body_html = add_tracking_pixel(body_html, self.tracking_id)
-
 			message.attach(MIMEText(body_plain, "plain", "utf-8", policy=policy.SMTP))
 			message.attach(MIMEText(body_html, "html", "utf-8", policy=policy.SMTP))
 
@@ -995,20 +991,6 @@ def reply_to_mail(source_name, target_doc=None) -> "OutgoingMail":
 			)
 
 	return target_doc
-
-
-def add_tracking_pixel(body_html: str, tracking_id: str) -> str:
-	"""Adds the tracking pixel to the HTML body."""
-
-	src = f"{frappe.utils.get_url()}/api/method/mail.api.track.open?id={tracking_id}"
-	tracking_pixel = f'<img src="{src}">'
-
-	if "<body>" in body_html:
-		body_html = body_html.replace("<body>", f"<body>{tracking_pixel}", 1)
-	else:
-		body_html = f"<html><body>{tracking_pixel}{body_html}</body></html>"
-
-	return body_html
 
 
 def is_spam_detection_enabled_for_outbound() -> bool:
