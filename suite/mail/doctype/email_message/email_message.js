@@ -5,8 +5,6 @@ frappe.ui.form.on('Email Message', {
 	refresh(frm) {
 		if (!frm.doc.__islocal && !frm.doc.destroyed) {
 			frm.trigger('add_actions')
-			frm.trigger('add_move_buttons')
-			frm.trigger('add_mark_buttons')
 		}
 	},
 
@@ -17,9 +15,7 @@ frappe.ui.form.on('Email Message', {
 
 		if (frm.doc.has_attachment) add_button('Load Attachments', 'load_attachments')
 		if (!frm.doc.message) add_button('Load MIME Message', 'load_mime_message')
-	},
 
-	add_move_buttons(frm) {
 		frappe.call({
 			method: 'mail.jmap.get_mailboxes_for_account',
 			args: { account: frm.doc.account },
@@ -28,7 +24,11 @@ frappe.ui.form.on('Email Message', {
 				const current_role = roles[frm.doc.mailbox_id]
 
 				const add_move_button = (label, target) => {
-					frm.add_custom_button(__(label), () => frm.events.move_to_mailbox(frm, target))
+					frm.add_custom_button(
+						__(label),
+						() => frm.events.move_to_mailbox(frm, target),
+						__('Actions'),
+					)
 				}
 
 				if (current_role !== 'trash') add_move_button('Move to Trash', 'trash')
@@ -38,13 +38,11 @@ frappe.ui.form.on('Email Message', {
 					add_move_button('Move to Inbox', 'inbox')
 			},
 		})
-	},
 
-	add_mark_buttons(frm) {
 		if (frm.doc.seen) {
-			frm.add_custom_button(__('Mark as Unread'), () => frm.trigger('mark_as_unseen'))
+			add_button('Mark as Unread', 'mark_as_unseen')
 		} else {
-			frm.add_custom_button(__('Mark as Read'), () => frm.trigger('mark_as_seen'))
+			add_button('Mark as Read', 'mark_as_seen')
 		}
 	},
 
