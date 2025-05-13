@@ -130,24 +130,32 @@ class MailQueue(Document):
 			self.from_email = frappe.db.get_value("Mail Account", self.account, "default_outgoing_email")
 
 	def validate_delivery_option(self) -> None:
-		"""Validates the delivery option."""
+		"""Ensures exactly one delivery option is selected."""
 
-		flags = [self.save_as_draft, self.move_to_sent, self.delete_after_sending]
-		if sum(bool(flag) for flag in flags) != 1:
-			self.move_to_sent = 1
+		options = [self.save_as_draft, self.move_to_sent, self.delete_after_sending]
+		if sum(options) != 1:
 			self.save_as_draft = 0
 			self.delete_after_sending = 0
+			self.move_to_sent = 1
+		else:
+			selected_index = options.index(1)
+			self.save_as_draft = int(selected_index == 0)
+			self.move_to_sent = int(selected_index == 1)
+			self.delete_after_sending = int(selected_index == 2)
 
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
 
-		max_recipients = frappe.db.get_single_value("Mail Settings", "max_recipients")
-		if len(self.recipients) > max_recipients:
-			frappe.throw(
-				_(
-					"You cannot send to more than {0} recipients. Please use a mailing list or a group email address."
-				).format(max_recipients)
-			)
+		if self.recipients:
+			max_recipients = frappe.db.get_single_value("Mail Settings", "max_recipients")
+			if len(self.recipients) > max_recipients:
+				frappe.throw(
+					_(
+						"You cannot send to more than {0} recipients. Please use a mailing list or a group email address."
+					).format(max_recipients)
+				)
+		elif not self.save_as_draft:
+			frappe.throw(_("Please add at least one recipient."))
 
 	def validate_message_id(self) -> None:
 		"""Validates the message ID."""
@@ -335,6 +343,46 @@ class MailQueue(Document):
 
 		if notify_update:
 			self.notify_update()
+
+
+def create_mail_queue(do_not_save: bool = False, **kwargs) -> MailQueue:
+	"""Creates a new Mail Queue document."""
+
+	kwargs = frappe._dict(kwargs)
+
+	doc = frappe.new_doc("Mail Queue")
+	doc.account = kwargs.account
+	doc.from_name = kwargs.from_name
+	doc.from_email = kwargs.from_email
+	doc.subject = kwargs.subject
+	doc.save_as_draft = kwargs.save_as_draft
+	doc.move_to_sent = kwargs.move_to_sent
+	doc.delete_after_sending = kwargs.delete_after_sending
+
+	if kwargs.reply_to:
+		for reply_to in kwargs.reply_to:
+			doc.append("reply_to", {"display_name": reply_to.display_name, "email": reply_to.email})
+
+	if kwargs.headers:
+		for header in kwargs.headers:
+			doc.append("headers", {"key": header.key, "value": header.value})
+
+	if kwargs.recipients:
+		for rcpt in kwargs.recipients:
+			doc.append(
+				"recipients", {"type": rcpt.type, "display_name": rcpt.display_name, "email": rcpt.email}
+			)
+
+	doc.text_html = kwargs.text_html
+	doc.text_plain = kwargs.text_plain
+	doc.message_id = kwargs.message_id
+	doc.sent_at = kwargs.sent_at
+	doc.in_reply_to = kwargs.in_reply_to
+
+	if not do_not_save:
+		doc.save()
+
+	return doc
 
 
 def get_permission_query_condition(user: str | None = None) -> str:
