@@ -3,12 +3,15 @@
 
 import json
 import re
+from email.utils import formataddr
 from functools import cached_property
+from typing import TYPE_CHECKING, Literal
 
 import frappe
+from bs4 import BeautifulSoup
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, time_diff_in_seconds
+from frappe.utils import cint, escape_html, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name
@@ -17,12 +20,16 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	get_current_state,
 	update_current_state,
 )
+from mail.mail.doctype.mail_queue.mail_queue import create_mail_queue
 from mail.utils import enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
-from mail.utils.user import is_account_owner, is_system_manager
+from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
 from mail.utils.validation import validate_permission_for_account
+
+if TYPE_CHECKING:
+	from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 
 BLOB_CACHE_TTL = 3600
 
@@ -141,6 +148,18 @@ class EmailMessage(Document):
 			return {}
 
 		return self.parsed_message.get_authentication_results()
+
+	@cached_property
+	def email_type(self) -> str:
+		"""Returns the type of email (Sent or Received)."""
+
+		email_type = "Received"
+		user_addresses = get_account_email_addresses(self.account)
+
+		if self.from_email in user_addresses or self.sender_email in user_addresses:
+			email_type = "Sent"
+
+		return email_type
 
 	@staticmethod
 	def _mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
@@ -387,6 +406,128 @@ class EmailMessage(Document):
 		EmailMessage.mark_emails_as_unseen(self.account, [self.name])
 		self.reload()
 
+	def _reply(self, recipients: list[dict]) -> "MailQueue":
+		"""Returns a unsaved MailQueue object for replying to the email message."""
+
+		mail = create_mail_queue(
+			account=self.account,
+			subject=f"Re: {self.subject}" if not self.subject.lower().startswith("re:") else self.subject,
+			move_to_sent=1,
+			recipients=recipients,
+			in_reply_to=self.message_id,
+			do_not_save=True,
+		)
+
+		return mail
+
+	@frappe.whitelist()
+	def reply(self) -> "MailQueue":
+		"""Reply to the email message."""
+
+		recipients = []
+
+		if self.email_type == "Sent":
+			# To = original To
+			for rcpt in self.recipients:
+				if rcpt.type == "To":
+					recipients.append(
+						{"type": rcpt.type, "display_name": rcpt.display_name, "email": rcpt.email}
+					)
+
+		elif self.email_type == "Received":
+			# To = Reply-To if present, else From
+			if self.reply_to:
+				recipients.append(
+					{"type": "To", "display_name": rt.display_name, "email": rt.email} for rt in self.reply_to
+				)
+			else:
+				recipients.append({"type": "To", "display_name": self.from_name, "email": self.from_email})
+
+		return self._reply(recipients)
+
+	@frappe.whitelist()
+	def reply_all(self) -> "MailQueue":
+		"""Reply to all recipients of the email message."""
+
+		recipients = []
+
+		if self.email_type == "Sent":
+			# To = original To
+			# Cc = original Cc
+			for rcpt in self.recipients:
+				if rcpt.type in ["To", "Cc"]:
+					recipients.append(
+						{"type": rcpt.type, "display_name": rcpt.display_name, "email": rcpt.email}
+					)
+
+		elif self.email_type == "Received":
+			# To = Reply-To if present, else From
+			if self.reply_to:
+				recipients.append(
+					{"type": "To", "display_name": rt.display_name, "email": rt.email} for rt in self.reply_to
+				)
+			else:
+				recipients.append({"type": "To", "display_name": self.from_name, "email": self.from_email})
+
+			# Cc = (original To + original Cc) minus user addresses
+			user_addresses = get_account_email_addresses(self.account)
+			for rcpt in self.recipients:
+				if rcpt.type in ["To", "Cc"] and rcpt.email not in user_addresses:
+					recipients.append({"type": "Cc", "display_name": rcpt.display_name, "email": rcpt.email})
+
+		return self._reply(recipients)
+
+	@frappe.whitelist()
+	def forward(self) -> "MailQueue":
+		"""Forward the email message."""
+
+		formatted_sent_at = self.sent_at.strftime("%a, %B %-d, %Y at %-I:%M %p")
+		forward_text_html = (
+			"<p>---------- Forwarded message ---------</p>"
+			'<table border="0" cellpadding="0" cellspacing="10">'
+			f"<tr><td><b>From:</b></td><td>{escape_html(formataddr([self.from_name, self.from_email]))}</td></tr>"
+			f"<tr><td><b>Date:</b></td><td>{formatted_sent_at}</td></tr>"
+			f"<tr><td><b>Subject:</b></td><td>{self.subject}</td></tr>"
+		)
+		forward_text_plain = (
+			"---------- Forwarded message ---------\n"
+			f"From: {formataddr([self.from_name, self.from_email])}\n"
+			f"Date: {formatted_sent_at}\n"
+			f"Subject: {self.subject}\n"
+		)
+
+		if to := ", ".join(
+			[formataddr([rcpt["name"], rcpt["email"]]) for rcpt in self._get_recipients("To")]
+		):
+			forward_text_html += f"<tr><td><b>To:</b></td><td>{escape_html(to)}</td></tr>"
+			forward_text_plain += f"To: {to}\n"
+		if cc := ", ".join(
+			[formataddr([rcpt["name"], rcpt["email"]]) for rcpt in self._get_recipients("Cc")]
+		):
+			forward_text_html += f"<tr><td><b>Cc:</b></td><td>{escape_html(cc)}</td></tr>"
+			forward_text_plain += f"Cc: {cc}\n"
+
+		original_text_html = self.text_html or ""
+		original_text_plain = self.text_plain or ""
+
+		quoted_text_html = f'<blockquote style="border-left:2px solid #ccc; margin-left:0; padding-left:1em;">{original_text_html}</blockquote>'
+		quoted_text_plain = "\n> ".join(original_text_plain.strip().splitlines())
+
+		forward_text_html += f"</table><br/> {quoted_text_html}"
+		forward_text_html = BeautifulSoup(forward_text_html, "html.parser").prettify()
+		forward_text_plain += f"\n\n> {quoted_text_plain}"
+
+		mail = create_mail_queue(
+			account=self.account,
+			subject=f"Fwd: {self.subject}" if not self.subject.lower().startswith("fwd:") else self.subject,
+			move_to_sent=1,
+			text_html=forward_text_html,
+			text_plain=forward_text_plain,
+			do_not_save=True,
+		)
+
+		return mail
+
 	@frappe.whitelist()
 	def preload_attachments_to_cache(self) -> None:
 		"""Preload attachments to cache."""
@@ -410,6 +551,42 @@ class EmailMessage(Document):
 
 		self.clear_cached_properties()
 		return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
+
+	def _get_recipients(self, type: Literal["To", "Cc", "Bcc"] | None = None) -> list[dict[str, str | None]]:
+		"""Returns the recipients."""
+
+		recipients = []
+		for rcpt in self.recipients:
+			if type and rcpt.type != type:
+				continue
+
+			recipients.append({"name": rcpt.display_name, "email": rcpt.email})
+
+		return recipients
+
+
+@frappe.whitelist()
+def reply(source_name: str, target_doc=None) -> "MailQueue":
+	"""Reply to the email message."""
+
+	source_doc = frappe.get_doc("Email Message", source_name)
+	return source_doc.reply()
+
+
+@frappe.whitelist()
+def reply_all(source_name: str, target_doc=None) -> "MailQueue":
+	"""Reply to all recipients of the email message."""
+
+	source_doc = frappe.get_doc("Email Message", source_name)
+	return source_doc.reply_all()
+
+
+@frappe.whitelist()
+def forward(source_name: str, target_doc=None) -> "MailQueue":
+	"""Forward the email message."""
+
+	source_doc = frappe.get_doc("Email Message", source_name)
+	return source_doc.forward()
 
 
 def generate_blob_cache_key(account: str, blob_id: str) -> str:

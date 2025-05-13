@@ -10,7 +10,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Interval
 from frappe.query_builder.functions import Now
-from frappe.utils import time_diff_in_seconds
+from frappe.utils import cint, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
@@ -106,6 +106,7 @@ class MailQueue(Document):
 		self.validate_recipients()
 		self.validate_message_id()
 		self.validate_sent_at()
+		self.validate_in_reply_to()
 
 	def after_insert(self) -> None:
 		self.submit()
@@ -171,6 +172,12 @@ class MailQueue(Document):
 				frappe.throw(_("Sent At date cannot be in the future."))
 		else:
 			self.sent_at = self.creation
+
+	def validate_in_reply_to(self) -> None:
+		"""Validates the In Reply To (Message ID)."""
+
+		if self.in_reply_to and (not self.in_reply_to.startswith("<") and not self.in_reply_to.endswith(">")):
+			self.in_reply_to = f"<{self.in_reply_to}>"
 
 	def submit(self) -> None:
 		"""Submits the email to the JMAP server."""
@@ -355,23 +362,21 @@ def create_mail_queue(do_not_save: bool = False, **kwargs) -> MailQueue:
 	doc.from_name = kwargs.from_name
 	doc.from_email = kwargs.from_email
 	doc.subject = kwargs.subject
-	doc.save_as_draft = kwargs.save_as_draft
-	doc.move_to_sent = kwargs.move_to_sent
-	doc.delete_after_sending = kwargs.delete_after_sending
+	doc.save_as_draft = cint(kwargs.save_as_draft)
+	doc.move_to_sent = cint(kwargs.move_to_sent)
+	doc.delete_after_sending = cint(kwargs.delete_after_sending)
 
 	if kwargs.reply_to:
 		for reply_to in kwargs.reply_to:
-			doc.append("reply_to", {"display_name": reply_to.display_name, "email": reply_to.email})
+			doc.append("reply_to", reply_to)
 
 	if kwargs.headers:
 		for header in kwargs.headers:
-			doc.append("headers", {"key": header.key, "value": header.value})
+			doc.append("headers", header)
 
 	if kwargs.recipients:
 		for rcpt in kwargs.recipients:
-			doc.append(
-				"recipients", {"type": rcpt.type, "display_name": rcpt.display_name, "email": rcpt.email}
-			)
+			doc.append("recipients", rcpt)
 
 	doc.text_html = kwargs.text_html
 	doc.text_plain = kwargs.text_plain
