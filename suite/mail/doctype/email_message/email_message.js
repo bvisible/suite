@@ -4,18 +4,32 @@
 frappe.ui.form.on('Email Message', {
 	refresh(frm) {
 		if (!frm.doc.__islocal && !frm.doc.destroyed) {
+			frm.trigger('add_reply_buttons')
+			frm.trigger('add_forward_button')
+			frm.trigger('add_mark_buttons')
+			frm.trigger('add_move_buttons')
 			frm.trigger('add_actions')
 		}
 	},
 
-	add_actions(frm) {
-		const add_button = (label, trigger) => {
-			frm.add_custom_button(__(label), () => frm.trigger(trigger), __('Actions'))
+	add_reply_buttons(frm) {
+		frm.add_custom_button(__('Reply'), () => frm.trigger('reply'))
+		frm.add_custom_button(__('Reply All'), () => frm.trigger('reply_all'))
+	},
+
+	add_forward_button(frm) {
+		frm.add_custom_button(__('Forward'), () => frm.trigger('forward'))
+	},
+
+	add_mark_buttons(frm) {
+		if (frm.doc.seen) {
+			frm.add_custom_button(__('Mark as Unread'), () => frm.trigger('mark_as_unseen'))
+		} else {
+			frm.add_custom_button(__('Mark as Read'), () => frm.trigger('mark_as_seen'))
 		}
+	},
 
-		if (frm.doc.has_attachment) add_button('Load Attachments', 'load_attachments')
-		if (!frm.doc.message) add_button('Load MIME Message', 'load_mime_message')
-
+	add_move_buttons(frm) {
 		frappe.call({
 			method: 'mail.jmap.get_mailboxes_for_account',
 			args: { account: frm.doc.account },
@@ -27,7 +41,7 @@ frappe.ui.form.on('Email Message', {
 					frm.add_custom_button(
 						__(label),
 						() => frm.events.move_to_mailbox(frm, target),
-						__('Actions'),
+						__('Move'),
 					)
 				}
 
@@ -38,20 +52,50 @@ frappe.ui.form.on('Email Message', {
 					add_move_button('Move to Inbox', 'inbox')
 			},
 		})
-
-		if (frm.doc.seen) {
-			add_button('Mark as Unread', 'mark_as_unseen')
-		} else {
-			add_button('Mark as Read', 'mark_as_seen')
-		}
 	},
 
-	load_attachments(frm) {
+	add_actions(frm) {
+		const add_button = (label, trigger) => {
+			frm.add_custom_button(__(label), () => frm.trigger(trigger), __('Actions'))
+		}
+
+		if (frm.doc.has_attachment) add_button('Load Attachments', 'load_attachments')
+		if (!frm.doc.message) add_button('Load MIME Message', 'load_mime_message')
+	},
+
+	reply(frm) {
+		frappe.model.open_mapped_doc({
+			method: 'mail.mail.doctype.email_message.email_message.reply',
+			frm: frm,
+			freeze: true,
+			freeze_message: __('Loading...'),
+		})
+	},
+
+	reply_all(frm) {
+		frappe.model.open_mapped_doc({
+			method: 'mail.mail.doctype.email_message.email_message.reply_all',
+			frm: frm,
+			freeze: true,
+			freeze_message: __('Loading...'),
+		})
+	},
+
+	forward(frm) {
+		frappe.model.open_mapped_doc({
+			method: 'mail.mail.doctype.email_message.email_message.forward',
+			frm: frm,
+			freeze: true,
+			freeze_message: __('Loading...'),
+		})
+	},
+
+	mark_as_unseen(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'preload_attachments_to_cache',
+			method: 'mark_as_unseen',
 			freeze: true,
-			freeze_message: __('Loading Attachments...'),
+			freeze_message: __('Marking as Unread...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
@@ -60,12 +104,12 @@ frappe.ui.form.on('Email Message', {
 		})
 	},
 
-	load_mime_message(frm) {
+	mark_as_seen(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'get_mime_message',
+			method: 'mark_as_seen',
 			freeze: true,
-			freeze_message: __('Loading MIME Message...'),
+			freeze_message: __('Marking as Read...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
@@ -91,12 +135,12 @@ frappe.ui.form.on('Email Message', {
 		})
 	},
 
-	mark_as_unseen(frm) {
+	load_attachments(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'mark_as_unseen',
+			method: 'preload_attachments_to_cache',
 			freeze: true,
-			freeze_message: __('Marking as Unread...'),
+			freeze_message: __('Loading Attachments...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
@@ -105,12 +149,12 @@ frappe.ui.form.on('Email Message', {
 		})
 	},
 
-	mark_as_seen(frm) {
+	load_mime_message(frm) {
 		frappe.call({
 			doc: frm.doc,
-			method: 'mark_as_seen',
+			method: 'get_mime_message',
 			freeze: true,
-			freeze_message: __('Marking as Read...'),
+			freeze_message: __('Loading MIME Message...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
