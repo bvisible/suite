@@ -3,14 +3,17 @@
 
 import json
 from email.utils import make_msgid
+from mimetypes import guess_type
+from pathlib import Path
 from typing import Literal
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
 from frappe.query_builder import Interval
 from frappe.query_builder.functions import Now
-from frappe.utils import cint, time_diff_in_seconds
+from frappe.utils import cint, random_string, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
@@ -104,6 +107,7 @@ class MailQueue(Document):
 		self.validate_from_email()
 		self.validate_delivery_option()
 		self.validate_recipients()
+		self.validate_attachments()
 		self.validate_message_id()
 		self.validate_sent_at()
 		self.validate_in_reply_to()
@@ -158,6 +162,16 @@ class MailQueue(Document):
 		elif not self.save_as_draft:
 			frappe.throw(_("Please add at least one recipient."))
 
+	def validate_attachments(self) -> None:
+		"""Validates the attachments."""
+
+		if not self.attachments:
+			return
+
+		for attachment in self.attachments:
+			attachment.cid = attachment.cid or random_string(length=10)
+			attachment.filename = attachment.filename or Path(attachment.file_url).name
+
 	def validate_message_id(self) -> None:
 		"""Validates the message ID."""
 
@@ -185,6 +199,14 @@ class MailQueue(Document):
 		client = get_jmap_client(self.account)
 		draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
 		sent_mailbox_id = get_mailbox_id(self.account, role="sent")
+
+		if self.attachments:
+			for attachment in self.attachments:
+				if file := find_file_by_url(attachment.file_url):
+					content = file.get_content()
+					content_type = guess_type(file.file_name)[0]
+					blob = client.upload_blob(content, content_type)
+					attachment.db_set({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
 
 		using = ["urn:ietf:params:jmap:mail"]
 		method_calls = [
@@ -323,17 +345,25 @@ class MailQueue(Document):
 			if header.key and header.value:
 				mail[f"header:{header.key}"] = header.value
 
-		body_structure = {"type": "multipart/alternative", "subParts": []}
-		body_values = {}
-		for idx, field in enumerate(["text_html", "text_plain"], start=1):
-			if value := getattr(self, field):
-				body_structure["subParts"].append(
-					{"partId": str(idx), "type": field.replace("_", "/"), "header:Content-Language": "en"}
-				)
-				body_values[str(idx)] = {"value": value, "isTruncated": False}
+		mail["textBody"] = [{"partId": "text", "type": "text/plain"}]
+		mail["htmlBody"] = [{"partId": "html", "type": "text/html"}]
+		mail["bodyValues"] = {
+			"text": {"value": self.text_body, "charset": "utf-8", "isTruncated": False},
+			"html": {"value": self.html_body, "charset": "utf-8", "isTruncated": False},
+		}
 
-		mail["bodyStructure"] = body_structure
-		mail["bodyValues"] = body_values
+		attachments = []
+		for attachment in self.attachments:
+			attachments.append(
+				{
+					"name": attachment.filename,
+					"type": attachment.type,
+					"cid": attachment.cid,
+					"blobId": attachment.blob_id,
+					"disposition": attachment.disposition,
+				}
+			)
+		mail["attachments"] = attachments
 
 		return mail
 
@@ -378,8 +408,8 @@ def create_mail_queue(do_not_save: bool = False, **kwargs) -> MailQueue:
 		for rcpt in kwargs.recipients:
 			doc.append("recipients", rcpt)
 
-	doc.text_html = kwargs.text_html
-	doc.text_plain = kwargs.text_plain
+	doc.html_body = kwargs.html_body
+	doc.text_body = kwargs.text_body
 	doc.message_id = kwargs.message_id
 	doc.sent_at = kwargs.sent_at
 	doc.in_reply_to = kwargs.in_reply_to

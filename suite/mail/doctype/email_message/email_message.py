@@ -482,14 +482,14 @@ class EmailMessage(Document):
 		"""Forward the email message."""
 
 		formatted_sent_at = self.sent_at.strftime("%a, %B %-d, %Y at %-I:%M %p")
-		forward_text_html = (
+		forward_html_body = (
 			"<p>---------- Forwarded message ---------</p>"
 			'<table border="0" cellpadding="0" cellspacing="10">'
 			f"<tr><td><b>From:</b></td><td>{escape_html(formataddr([self.from_name, self.from_email]))}</td></tr>"
 			f"<tr><td><b>Date:</b></td><td>{formatted_sent_at}</td></tr>"
 			f"<tr><td><b>Subject:</b></td><td>{self.subject}</td></tr>"
 		)
-		forward_text_plain = (
+		forward_text_body = (
 			"---------- Forwarded message ---------\n"
 			f"From: {formataddr([self.from_name, self.from_email])}\n"
 			f"Date: {formatted_sent_at}\n"
@@ -499,30 +499,30 @@ class EmailMessage(Document):
 		if to := ", ".join(
 			[formataddr([rcpt["name"], rcpt["email"]]) for rcpt in self._get_recipients("To")]
 		):
-			forward_text_html += f"<tr><td><b>To:</b></td><td>{escape_html(to)}</td></tr>"
-			forward_text_plain += f"To: {to}\n"
+			forward_html_body += f"<tr><td><b>To:</b></td><td>{escape_html(to)}</td></tr>"
+			forward_text_body += f"To: {to}\n"
 		if cc := ", ".join(
 			[formataddr([rcpt["name"], rcpt["email"]]) for rcpt in self._get_recipients("Cc")]
 		):
-			forward_text_html += f"<tr><td><b>Cc:</b></td><td>{escape_html(cc)}</td></tr>"
-			forward_text_plain += f"Cc: {cc}\n"
+			forward_html_body += f"<tr><td><b>Cc:</b></td><td>{escape_html(cc)}</td></tr>"
+			forward_text_body += f"Cc: {cc}\n"
 
-		original_text_html = self.text_html or ""
-		original_text_plain = self.text_plain or ""
+		original_html_body = self.html_body or ""
+		original_text_body = self.text_body or ""
 
-		quoted_text_html = f'<blockquote style="border-left:2px solid #ccc; margin-left:0; padding-left:1em;">{original_text_html}</blockquote>'
-		quoted_text_plain = "\n> ".join(original_text_plain.strip().splitlines())
+		quoted_html_body = f'<blockquote style="border-left:2px solid #ccc; margin-left:0; padding-left:1em;">{original_html_body}</blockquote>'
+		quoted_text_body = "\n> ".join(original_text_body.strip().splitlines())
 
-		forward_text_html += f"</table><br/> {quoted_text_html}"
-		forward_text_html = BeautifulSoup(forward_text_html, "html.parser").prettify()
-		forward_text_plain += f"\n\n> {quoted_text_plain}"
+		forward_html_body += f"</table><br/> {quoted_html_body}"
+		forward_html_body = BeautifulSoup(forward_html_body, "html.parser").prettify()
+		forward_text_body += f"\n\n> {quoted_text_body}"
 
 		mail = create_mail_queue(
 			account=self.account,
 			subject=f"Fwd: {self.subject}" if not self.subject.lower().startswith("fwd:") else self.subject,
 			move_to_sent=1,
-			text_html=forward_text_html,
-			text_plain=forward_text_plain,
+			html_body=forward_html_body,
+			text_body=forward_text_body,
 			do_not_save=True,
 		)
 
@@ -733,7 +733,7 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 			email_message.append("reply_to", {"display_name": rt["name"], "email": rt["email"]})
 
 	# Process html and text bodies
-	for key, field in {"htmlBody": "text_html", "textBody": "text_plain"}.items():
+	for key, field in {"htmlBody": "html_body", "textBody": "text_body"}.items():
 		if body := email[key]:
 			part_id = body[0]["partId"]
 			setattr(email_message, field, email["bodyValues"].get(part_id, {}).get("value"))
@@ -746,8 +746,8 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 	# Process attachments and body parts
 	for key, field in {
 		"attachments": "attachments",
-		"htmlBody": "_text_html",
-		"textBody": "_text_plain",
+		"htmlBody": "_html_body",
+		"textBody": "_text_body",
 	}.items():
 		for p in email[key]:
 			email_message.append(

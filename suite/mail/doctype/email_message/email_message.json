@@ -16,8 +16,8 @@
   "recipients_section",
   "recipients",
   "section_break_yjrj",
-  "text_html",
-  "text_plain",
+  "html_body",
+  "text_body",
   "section_break_oulc",
   "attachments",
   "more_info_tab",
@@ -56,8 +56,8 @@
   "_keywords",
   "keywords",
   "body_parts_section",
-  "_text_html",
-  "_text_plain",
+  "_html_body",
+  "_text_body",
   "section_break_kwfe",
   "message"
  ],
@@ -396,36 +396,36 @@
    "read_only": 1
   },
   {
-   "fieldname": "text_html",
-   "fieldtype": "Code",
-   "label": "HTML",
+   "fieldname": "keywords",
+   "fieldtype": "JSON",
+   "is_virtual": 1,
+   "label": "Keywords",
    "read_only": 1
   },
   {
-   "fieldname": "text_plain",
-   "fieldtype": "Code",
-   "label": "Plain",
-   "read_only": 1
-  },
-  {
-   "fieldname": "_text_html",
+   "fieldname": "_html_body",
    "fieldtype": "Table",
    "label": "HTML Body",
    "options": "Email Message Part",
    "read_only": 1
   },
   {
-   "fieldname": "_text_plain",
+   "fieldname": "_text_body",
    "fieldtype": "Table",
-   "label": "TEXT Body",
+   "label": "Text Body",
    "options": "Email Message Part",
    "read_only": 1
   },
   {
-   "fieldname": "keywords",
-   "fieldtype": "JSON",
-   "is_virtual": 1,
-   "label": "Keywords",
+   "fieldname": "html_body",
+   "fieldtype": "Code",
+   "label": "HTML",
+   "read_only": 1
+  },
+  {
+   "fieldname": "text_body",
+   "fieldtype": "Code",
+   "label": "Text",
    "read_only": 1
   }
  ],
@@ -433,7 +433,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 18:02:25.769271",
+ "modified": "2025-05-14 13:04:46.430928",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
