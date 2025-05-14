@@ -364,7 +364,7 @@ class EmailMessage(Document):
 
 		self.validate_destroyed()
 
-		if not self.has_attachment or not self.attachments:
+		if not any([self.attachments, self._html_body, self._text_body]):
 			frappe.throw(_("Email does not have any attachments."))
 
 		if not cid and not blob_id:
@@ -376,9 +376,20 @@ class EmailMessage(Document):
 		)
 
 		if not attachment:
+			attachment = next(
+				(
+					p
+					for p in self._html_body + self._text_body
+					if (p.disposition == "inline")
+					and ((cid and p.cid == cid) or (blob_id and p.blob_id == blob_id))
+				),
+				None,
+			)
+
+		if not attachment:
 			frappe.throw(_("Attachment not found."))
 
-		return EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment._name)
+		return EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment.filename)
 
 	@frappe.whitelist()
 	def move_to_mailbox(
@@ -529,16 +540,24 @@ class EmailMessage(Document):
 		return mail
 
 	@frappe.whitelist()
-	def preload_attachments_to_cache(self) -> None:
+	def preload_attachments_to_cache(self, include_inline: bool = True, include_regular: bool = True) -> None:
 		"""Preload attachments to cache."""
 
-		if not self.has_attachment:
+		if not any([self.attachments, self._html_body, self._text_body]):
 			return
 
 		self.validate_destroyed()
 
 		for attachment in self.attachments:
-			EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment._name)
+			if (include_inline and attachment.disposition == "inline") or (
+				include_regular and attachment.disposition == "attachment"
+			):
+				EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment.filename)
+
+		if include_inline:
+			for body_part in self._html_body + self._text_body:
+				if body_part.disposition == "inline":
+					EmailMessage.fetch_blob(self.account, body_part.blob_id, body_part.filename)
 
 	@frappe.whitelist()
 	def get_mime_message(self) -> str:
@@ -756,7 +775,7 @@ def create_email_message(account: str, email: dict, do_not_save: bool = False) -
 					"part_id": p["partId"],
 					"blob_id": p["blobId"],
 					"size": p["size"],
-					"_name": p["name"],
+					"filename": p["name"],
 					"type": p["type"],
 					"charset": p["charset"],
 					"disposition": p["disposition"],
