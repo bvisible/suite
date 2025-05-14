@@ -3,7 +3,9 @@
 
 # import frappe
 from frappe.model.document import Document
+from uuid_utils import uuid7
 
 
 class MailQueueAttachment(Document):
-	pass
+	def autoname(self) -> None:
+		self.name = str(uuid7())

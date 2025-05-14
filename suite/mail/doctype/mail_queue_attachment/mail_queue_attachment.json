@@ -28,6 +28,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Type",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -46,6 +47,7 @@
    "fieldname": "blob_id",
    "fieldtype": "Data",
    "label": "Blob ID",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -59,6 +61,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Size (Bytes)",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -90,7 +93,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-14 16:56:07.397651",
+ "modified": "2025-05-14 18:22:47.983290",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue Attachment",

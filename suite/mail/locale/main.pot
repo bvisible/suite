@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-05-14 13:08+0553\n"
-"PO-Revision-Date: 2025-05-14 13:08+0553\n"
+"POT-Creation-Date: 2025-05-14 18:28+0553\n"
+"PO-Revision-Date: 2025-05-14 18:28+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -167,7 +167,7 @@ msgstr ""
 msgid "Account username for the DNS provider."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:610
+#: mail/mail/doctype/email_message/email_message.py:629
 msgid "Account {0} already synced. Use <code>fetch_changes</code> to update."
 msgstr ""
 
@@ -464,7 +464,7 @@ msgstr ""
 msgid "Attachment limit exceeded ({0}). Maximum {1} attachment(s) allowed."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:379
+#: mail/mail/doctype/email_message/email_message.py:390
 msgid "Attachment not found."
 msgstr ""
 
@@ -1819,7 +1819,7 @@ msgstr ""
 msgid "Email address {0} is not associated with the user {1}."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:550
+#: mail/mail/doctype/email_message/email_message.py:569
 msgid "Email does not have a blob ID."
 msgstr ""
 
@@ -2085,7 +2085,7 @@ msgstr ""
 msgid "Failed to create DMARC Report"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:802
+#: mail/mail/doctype/email_message/email_message.py:821
 msgid "Failed to delete destroyed emails"
 msgstr ""
 
@@ -2113,11 +2113,11 @@ msgstr ""
 msgid "Failed to fetch blob."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:671
+#: mail/mail/doctype/email_message/email_message.py:690
 msgid "Failed to fetch changes"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:632
+#: mail/mail/doctype/email_message/email_message.py:651
 msgid "Failed to fetch emails"
 msgstr ""
 
@@ -2204,7 +2204,9 @@ msgstr ""
 msgid "File"
 msgstr ""
 
+#. Label of the filename (Data) field in DocType 'Email Message Part'
 #. Label of the filename (Data) field in DocType 'Mail Queue Attachment'
+#: mail/mail/doctype/email_message_part/email_message_part.json
 #: mail/mail/doctype/mail_queue_attachment/mail_queue_attachment.json
 msgid "File Name"
 msgstr ""
@@ -3870,9 +3872,7 @@ msgstr ""
 msgid "Multiple IPv6 addresses found for Mail Server {0}. Found: {1}."
 msgstr ""
 
-#. Label of the _name (Data) field in DocType 'Email Message Part'
 #: frontend/src/pages/dashboard/MailGroupView.vue:202
-#: mail/mail/doctype/email_message_part/email_message_part.json
 #: mail/mail/report/dmarc_report_viewer/dmarc_report_viewer.py:22
 #: mail/mail/report/outbound_delay/outbound_delay.py:26
 #: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.py:28
@@ -5376,7 +5376,7 @@ msgstr ""
 msgid "Sent At"
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:189
+#: mail/mail/doctype/mail_queue/mail_queue.py:186
 msgid "Sent At date cannot be in the future."
 msgstr ""
 
