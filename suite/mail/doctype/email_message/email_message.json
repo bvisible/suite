@@ -4,7 +4,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_w9dv",
+  "destroy_after_submission",
   "section_break_tgjg",
+  "status",
   "folder",
   "account",
   "from_name",
@@ -13,6 +16,8 @@
   "subject",
   "reply_to_section",
   "reply_to",
+  "headers_section",
+  "headers",
   "recipients_section",
   "recipients",
   "section_break_yjrj",
@@ -35,8 +40,10 @@
   "sender_name",
   "sender_email",
   "in_reply_to",
+  "mailbox_role",
   "mailbox_id",
   "thread_id",
+  "draft",
   "seen",
   "destroyed",
   "section_break_sfis",
@@ -59,7 +66,13 @@
   "_html_body",
   "_text_body",
   "section_break_kwfe",
-  "message"
+  "raw_message",
+  "message",
+  "response_section",
+  "_response",
+  "response",
+  "error_message_section",
+  "error_message"
  ],
  "fields": [
   {
@@ -72,7 +85,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Subject",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "account",
@@ -82,13 +96,18 @@
    "label": "Account",
    "options": "Mail Account",
    "read_only": 1,
-   "search_index": 1
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "thread_id",
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "Thread ID",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1,
    "search_index": 1
   },
@@ -96,21 +115,26 @@
    "fieldname": "sent_at",
    "fieldtype": "Datetime",
    "label": "Sent At",
+   "no_copy": 1,
    "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.raw_message || doc.destroyed",
    "search_index": 1
   },
   {
    "fieldname": "received_at",
    "fieldtype": "Datetime",
    "label": "Received At",
+   "no_copy": 1,
    "read_only": 1,
    "search_index": 1
   },
   {
    "default": "0",
+   "depends_on": "eval: !doc.__islocal",
    "fieldname": "has_attachment",
    "fieldtype": "Check",
    "label": "Has Attachment",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -119,6 +143,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Folder",
+   "no_copy": 1,
    "read_only": 1,
    "search_index": 1
   },
@@ -126,26 +151,30 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "options": "Email Message Recipient",
-   "read_only": 1
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "blob_id",
    "fieldtype": "Data",
    "label": "Blob ID",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "fieldname": "reply_to",
    "fieldtype": "Table",
    "options": "Email Message Reply To",
-   "read_only": 1
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "message_id",
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "Message ID",
+   "no_copy": 1,
    "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed",
    "search_index": 1
   },
   {
@@ -153,7 +182,8 @@
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "In Reply To (Message ID)",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "from_name",
@@ -161,7 +191,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "From Name",
-   "read_only": 1
+   "no_copy": 1,
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "from_email",
@@ -169,7 +201,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "From Email",
+   "no_copy": 1,
    "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed",
    "search_index": 1
   },
   {
@@ -177,6 +211,8 @@
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "Sender Name",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -184,6 +220,8 @@
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "Sender Email",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1,
    "search_index": 1
   },
@@ -223,19 +261,25 @@
    "fieldtype": "Int",
    "is_virtual": 1,
    "label": "Received After (Seconds)",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "fieldname": "size",
    "fieldtype": "Int",
    "label": "Size (Bytes)",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "default": "0",
+   "depends_on": "eval: !doc.__islocal",
    "fieldname": "seen",
    "fieldtype": "Check",
    "label": "Seen",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1,
    "search_index": 1
   },
@@ -244,15 +288,17 @@
    "fieldtype": "JSON",
    "hidden": 1,
    "label": "Keywords",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
-   "depends_on": "eval: doc.has_attachment",
+   "depends_on": "eval: doc.draft || doc.attachments.length > 0",
    "fieldname": "attachments",
    "fieldtype": "Table",
    "label": "Attachments",
    "options": "Email Message Part",
-   "read_only": 1
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "collapsible": 1,
@@ -277,6 +323,7 @@
    "fieldtype": "Code",
    "is_virtual": 1,
    "label": "Message",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -290,7 +337,7 @@
    "label": "Body Parts"
   },
   {
-   "depends_on": "eval: doc.message",
+   "depends_on": "eval: !doc.draft && doc.message",
    "fieldname": "section_break_sfis",
    "fieldtype": "Section Break"
   },
@@ -298,13 +345,15 @@
    "fieldname": "from_ip",
    "fieldtype": "Data",
    "is_virtual": 1,
-   "label": "From IP"
+   "label": "From IP",
+   "print_hide": 1
   },
   {
    "fieldname": "from_host",
    "fieldtype": "Data",
    "is_virtual": 1,
-   "label": "From Host"
+   "label": "From Host",
+   "print_hide": 1
   },
   {
    "depends_on": "eval: doc.spam_score",
@@ -312,28 +361,32 @@
    "fieldtype": "Float",
    "is_virtual": 1,
    "label": "Spam Score",
-   "precision": "3"
+   "precision": "3",
+   "print_hide": 1
   },
   {
    "default": "0",
    "fieldname": "spf_pass",
    "fieldtype": "Check",
    "is_virtual": 1,
-   "label": "SPF"
+   "label": "SPF",
+   "print_hide": 1
   },
   {
    "default": "0",
    "fieldname": "dkim_pass",
    "fieldtype": "Check",
    "is_virtual": 1,
-   "label": "DKIM"
+   "label": "DKIM",
+   "print_hide": 1
   },
   {
    "default": "0",
    "fieldname": "dmarc_pass",
    "fieldtype": "Check",
    "is_virtual": 1,
-   "label": "DMARC"
+   "label": "DMARC",
+   "print_hide": 1
   },
   {
    "fieldname": "column_break_xlyd",
@@ -343,22 +396,25 @@
    "fieldname": "spf_description",
    "fieldtype": "Small Text",
    "is_virtual": 1,
-   "label": "SPF Description"
+   "label": "SPF Description",
+   "print_hide": 1
   },
   {
    "fieldname": "dkim_description",
    "fieldtype": "Small Text",
    "is_virtual": 1,
-   "label": "DKIM Description"
+   "label": "DKIM Description",
+   "print_hide": 1
   },
   {
    "fieldname": "dmarc_description",
    "fieldtype": "Small Text",
    "is_virtual": 1,
-   "label": "DMARC Description"
+   "label": "DMARC Description",
+   "print_hide": 1
   },
   {
-   "depends_on": "eval: doc.message",
+   "depends_on": "eval: !doc.draft && doc.message",
    "fieldname": "section_break_drft",
    "fieldtype": "Section Break"
   },
@@ -371,6 +427,8 @@
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "Email ID",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1,
    "search_index": 1
   },
@@ -378,21 +436,29 @@
    "fieldname": "mailbox_id",
    "fieldtype": "Data",
    "label": "Mailbox ID",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "default": "0",
+   "depends_on": "eval: !doc.__islocal",
    "fieldname": "destroyed",
    "fieldtype": "Check",
    "label": "Destroyed",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1,
    "search_index": 1
   },
   {
+   "depends_on": "eval: !doc.draft",
    "fieldname": "fetched_after",
    "fieldtype": "Int",
    "is_virtual": 1,
    "label": "Fetched After (Seconds)",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -400,40 +466,151 @@
    "fieldtype": "JSON",
    "is_virtual": 1,
    "label": "Keywords",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "fieldname": "_html_body",
    "fieldtype": "Table",
    "label": "HTML Body",
+   "no_copy": 1,
    "options": "Email Message Part",
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "fieldname": "_text_body",
    "fieldtype": "Table",
    "label": "Text Body",
+   "no_copy": 1,
    "options": "Email Message Part",
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "fieldname": "html_body",
    "fieldtype": "Code",
    "label": "HTML",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "text_body",
    "fieldtype": "Code",
    "label": "Text",
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "draft",
+   "fieldtype": "Check",
+   "label": "Draft",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "mailbox_role",
+   "fieldtype": "Data",
+   "label": "Mailbox Role",
+   "no_copy": 1,
+   "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.status",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "no_copy": 1,
+   "options": "\nDraft\nFailed to Draft\nSubmitted\nFailed to Submit\nFailed",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "raw_message",
+   "fieldtype": "Code",
+   "label": "Raw Message",
+   "print_hide": 1,
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "response_section",
+   "fieldtype": "Section Break",
+   "label": "Response"
+  },
+  {
+   "fieldname": "_response",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Response",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "JSON",
+   "is_virtual": 1,
+   "label": "Response",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_message_section",
+   "fieldtype": "Section Break",
+   "label": "Error Message"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Error Message",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.headers.length > 0",
+   "fieldname": "headers_section",
+   "fieldtype": "Section Break",
+   "label": "Headers"
+  },
+  {
+   "fieldname": "headers",
+   "fieldtype": "Table",
+   "options": "Email Message Header",
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.draft && !doc.destroyed",
+   "description": "If enabled, the message will be deleted after successful submission.",
+   "fieldname": "destroy_after_submission",
+   "fieldtype": "Check",
+   "label": "Destroy After Submission",
+   "print_hide": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
+  },
+  {
+   "fieldname": "section_break_w9dv",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
- "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 13:04:46.430928",
+ "modified": "2025-05-17 20:20:39.106445",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
@@ -456,6 +633,7 @@
    "select": 1
   },
   {
+   "create": 1,
    "delete": 1,
    "export": 1,
    "print": 1,

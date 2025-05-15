@@ -18,14 +18,14 @@ class MailDomainRequest(Document):
 		if self.is_new():
 			self.set_user_and_tenant()
 
+	def before_insert(self) -> None:
+		self.set_verification_key()
+
 	def validate(self) -> None:
 		if self.is_new():
 			self.validate_domain_name()
 
 		self.validate_user_and_tenant()
-
-	def before_insert(self) -> None:
-		self.set_verification_key()
 
 	def set_user_and_tenant(self) -> None:
 		"""Set the user and tenant"""

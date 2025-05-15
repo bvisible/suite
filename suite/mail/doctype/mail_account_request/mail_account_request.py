@@ -33,6 +33,11 @@ class MailAccountRequest(Document):
 	def is_expired(self) -> bool:
 		return self.expires_at and get_datetime(self.expires_at) < now_datetime()
 
+	def before_insert(self) -> None:
+		self.set_request_key()
+		if not self.is_invite:
+			self.set_otp()
+
 	def validate(self) -> None:
 		self.validate_email()
 
@@ -46,11 +51,6 @@ class MailAccountRequest(Document):
 				self.validate_account()
 			else:
 				self.validate_business_signup()
-
-	def before_insert(self) -> None:
-		self.set_request_key()
-		if not self.is_invite:
-			self.set_otp()
 
 	def after_insert(self) -> None:
 		if self.send_invite:
