@@ -408,6 +408,17 @@ def create_mail_queue(do_not_save: bool = False, **kwargs) -> MailQueue:
 		for rcpt in kwargs.recipients:
 			doc.append("recipients", rcpt)
 
+	if kwargs.attachments:
+		for attachment in kwargs.attachments:
+			doc.append(
+				"attachments",
+				{
+					"file_url": attachment["file_url"],
+					"disposition": attachment["disposition"],
+					"filename": attachment.get("filename"),
+				},
+			)
+
 	doc.html_body = kwargs.html_body
 	doc.text_body = kwargs.text_body
 	doc.message_id = kwargs.message_id
