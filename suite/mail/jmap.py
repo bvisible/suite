@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import cached_property
 from typing import Any
 from urllib.parse import urljoin
@@ -158,6 +159,12 @@ class JMAPClient:
 
 		return self.__config["state"]
 
+	@property
+	def max_concurrent_upload(self) -> int:
+		"""Returns the maximum number of concurrent uploads supported by the JMAP server."""
+
+		return self.capabilities["urn:ietf:params:jmap:core"].get("maxConcurrentUpload", 4)
+
 	@cached_property
 	def mailboxes(self) -> dict[list[dict]]:
 		"""Returns the mailboxes for the logged-in user."""
@@ -312,13 +319,32 @@ class JMAPClient:
 		return response.content
 
 	def upload_blob(self, blob: bytes | str, content_type: str = "message/rfc822") -> dict:
-		"""Uploads the blob data and returns a dictionary containing the blob ID."""
+		"""Uploads the blob data and returns a dictionary containing the response."""
 
 		upload_url = self.upload_url.format(accountId=self.account_id)
 		response = self.__session.post(upload_url, data=blob, headers={"Content-Type": content_type})
 		response.raise_for_status()
 
 		return response.json()
+
+	def upload_blobs_concurrently(self, blobs: list[tuple[bytes | str, str]]) -> list[dict]:
+		"""Uploads multiple blobs concurrently and returns a list of dictionaries containing the responses."""
+
+		upload_url = self.upload_url.format(accountId=self.account_id)
+
+		def upload_single_blob(blob: tuple[bytes | str, str]) -> dict:
+			content, content_type = blob
+			response = self.__session.post(upload_url, data=content, headers={"Content-Type": content_type})
+			response.raise_for_status()
+			return response.json()
+
+		results = []
+		with ThreadPoolExecutor(max_workers=self.max_concurrent_upload) as executor:
+			futures = {executor.submit(upload_single_blob, blob): blob for blob in blobs}
+			for future in as_completed(futures):
+				results.append(future.result())
+
+		return results
 
 	def email_set_keywords(self, email_id_keywords_map: dict[str, dict]) -> None:
 		"""Update email keywords."""
