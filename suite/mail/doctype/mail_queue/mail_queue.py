@@ -2,7 +2,8 @@
 # For license information, please see license.txt
 
 import json
-from email.utils import make_msgid
+from email import message_from_string
+from email.utils import make_msgid, parseaddr
 from mimetypes import guess_type
 from pathlib import Path
 from typing import Literal
@@ -13,13 +14,13 @@ from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
 from frappe.query_builder import Interval
 from frappe.query_builder.functions import Now
-from frappe.utils import cint, random_string, time_diff_in_seconds
+from frappe.utils import cint, get_datetime_str, random_string, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
 from mail.utils.cache import get_account_for_email, get_account_for_user
-from mail.utils.dt import convert_to_utc
-from mail.utils.user import is_account_owner, is_system_manager
+from mail.utils.dt import convert_to_utc, parsedate_to_datetime
+from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
 
 
 class MailQueue(Document):
@@ -103,6 +104,7 @@ class MailQueue(Document):
 		self.name = str(uuid7())
 
 	def validate(self) -> None:
+		self.validate_raw_message()
 		self.validate_from_name()
 		self.validate_from_email()
 		self.validate_delivery_option()
@@ -114,6 +116,47 @@ class MailQueue(Document):
 
 	def after_insert(self) -> None:
 		self.submit()
+
+	def validate_raw_message(self) -> None:
+		"""Validates the raw message."""
+
+		if not self.raw_message:
+			return
+
+		self.from_name = None
+		self.from_email = None
+		self.subject = None
+		self.reply_to = []
+		self.headers = []
+		self.html_body = None
+		self.text_body = None
+		self.attachments = []
+		self.message_id = None
+		self.sent_at = None
+		self.in_reply_to = None
+
+		message = message_from_string(self.raw_message)
+		if from_header := message.get("From"):
+			self.from_name, self.from_email = parseaddr(from_header)
+
+			if self.from_email not in get_account_email_addresses(self.account):
+				self.from_email = None
+
+		if not self.recipients:
+			for rcpt_type in ["To", "Cc", "Bcc"]:
+				if _rcpt := message.get(rcpt_type):
+					for rcpt in _rcpt.split(","):
+						self.append(
+							"recipients",
+							{
+								"type": rcpt_type,
+								"display_name": parseaddr(rcpt)[0],
+								"email": parseaddr(rcpt)[1],
+							},
+						)
+
+		if date_header := message.get("Date"):
+			self.sent_at = get_datetime_str(parsedate_to_datetime(date_header))
 
 	def validate_from_name(self) -> None:
 		"""Validates the from name."""
@@ -200,25 +243,50 @@ class MailQueue(Document):
 		draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
 		sent_mailbox_id = get_mailbox_id(self.account, role="sent")
 
-		if self.attachments:
-			for attachment in self.attachments:
-				if file := find_file_by_url(attachment.file_url):
-					content = file.get_content()
-					content_type = guess_type(file.file_name)[0]
-					blob = client.upload_blob(content, content_type)
-					attachment.db_set({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+		using = []
+		method_calls = []
 
-		using = ["urn:ietf:params:jmap:mail"]
-		method_calls = [
-			[
-				"Email/set",
-				{
-					"accountId": client.account_id,
-					"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
-				},
-				"0",
-			]
-		]
+		if self.raw_message:
+			blob = client.upload_blob(self.raw_message.encode("utf-8"), content_type="message/rfc822")
+			using.append("urn:ietf:params:jmap:mail")
+			method_calls.append(
+				[
+					"Email/import",
+					{
+						"accountId": client.account_id,
+						"emails": {
+							f"draft-{self.name}": {
+								"blobId": blob["blobId"],
+								"mailboxIds": {draft_mailbox_id: True},
+								"keywords": {"$draft": True, "$seen": True},
+							}
+						},
+					},
+					"0",
+				]
+			)
+		else:
+			if self.attachments:
+				for attachment in self.attachments:
+					if file := find_file_by_url(attachment.file_url):
+						content = file.get_content()
+						content_type = guess_type(file.file_name)[0]
+						blob = client.upload_blob(content, content_type)
+						attachment.db_set(
+							{"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]}
+						)
+
+			using.append("urn:ietf:params:jmap:mail")
+			method_calls.append(
+				[
+					"Email/set",
+					{
+						"accountId": client.account_id,
+						"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
+					},
+					"0",
+				]
+			)
 
 		if self.move_to_sent or self.delete_after_sending:
 			method_call = [

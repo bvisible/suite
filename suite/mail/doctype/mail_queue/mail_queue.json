@@ -41,7 +41,7 @@
   "mailbox_id",
   "thread_id",
   "section_break_aldv",
-  "message",
+  "raw_message",
   "response_section",
   "_response",
   "response",
@@ -110,12 +110,6 @@
    "ignore_xss_filter": 1,
    "in_standard_filter": 1,
    "label": "In Reply To (Message ID)",
-   "set_only_once": 1
-  },
-  {
-   "fieldname": "message",
-   "fieldtype": "Code",
-   "label": "Message",
    "set_only_once": 1
   },
   {
@@ -344,12 +338,18 @@
    "fieldtype": "Code",
    "label": "Text",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "raw_message",
+   "fieldtype": "Code",
+   "label": "Raw Message",
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 13:06:04.895629",
+ "modified": "2025-05-15 12:01:02.606708",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
