@@ -34,13 +34,12 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const emit = defineEmits(['select'])
-
 const el = useTemplateRef('videoElement')
 
 const isPlaying = ref(false)
 
 const videoStyle = computed(() => ({
+	width: '100%',
 	borderRadius: `${element.value.borderRadius}px`,
 	borderStyle: element.value.borderStyle || 'none',
 	borderColor: element.value.borderColor,
@@ -68,11 +67,6 @@ const handleVideoClick = (e) => {
 	if (inSlideShow.value || (isActive && e.target !== el.value)) {
 		e.stopPropagation()
 		togglePlaying()
-	}
-
-	// select element if clicked outside play button
-	else {
-		emit('select', e)
 	}
 }
 </script>

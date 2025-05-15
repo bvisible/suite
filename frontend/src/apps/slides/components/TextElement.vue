@@ -3,7 +3,6 @@
 		class="focus:outline-none"
 		:contenteditable="focusElementId == element.id"
 		:style="textStyle"
-		@click="selectElement"
 		@focus="setCursorPosition"
 		@blur="handleBlur"
 	>
@@ -12,18 +11,14 @@
 </template>
 
 <script setup>
-import { computed, nextTick } from 'vue'
+import { computed } from 'vue'
 
-import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, deleteElements } from '@/stores/element'
-import { handleSingleAndDoubleClick } from '@/utils/helpers'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
-
-const emit = defineEmits(['focus', 'select'])
 
 const textStyle = computed(() => ({
 	content: element.value.content,
@@ -42,19 +37,6 @@ const textStyle = computed(() => ({
 	color: element.value.color,
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
-
-const selectElement = (e) => {
-	if (inSlideShow.value) return
-	handleSingleAndDoubleClick(e, setActiveText, setFocusText)
-}
-
-const setActiveText = (e) => {
-	emit('select', e)
-}
-
-const setFocusText = (e) => {
-	emit('focus', e)
-}
 
 const setCursorPosition = (e) => {
 	const range = document.createRange()
