@@ -5,13 +5,13 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick } from 'vue'
+import { computed } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { activeElementIds, pairElementId, focusElementId, activeElement } from '@/stores/element'
+import { activeElementIds } from '@/stores/element'
 
 const props = defineProps({
 	outline: {
