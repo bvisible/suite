@@ -6,9 +6,6 @@ import { slide, slideBounds } from './slide'
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 
-const activePosition = ref(null)
-const activeDimensions = ref(null)
-
 const activeElementIds = ref([])
 const focusElementId = ref(null)
 const pairElementId = ref(null)
@@ -179,33 +176,6 @@ const toggleTextProperty = (property, value) => {
 	activeElement.value[property] = newStyle
 }
 
-const moveElement = (elementId, movement) => {
-	let element = slide.value.elements.find((el) => el.id === elementId)
-
-	element.left += movement.dx
-	element.top += movement.dy
-}
-
-const resizeElement = (elementId, dimensions) => {
-	let element = slide.value.elements.find((el) => el.id == elementId)
-
-	if (element && dimensions.width != element.width) {
-		const newWidth = dimensions.width / slideBounds.scale
-		element.width = newWidth
-	}
-}
-
-const setActivePosition = (position) => {
-	activePosition.value = position
-}
-
-const updateActivePosition = (positionChange) => {
-	setActivePosition({
-		left: activePosition.value?.left + positionChange.dx,
-		top: activePosition.value?.top + positionChange.dy,
-	})
-}
-
 const getElementPosition = (elementId) => {
 	const elementRect = document
 		.querySelector(`[data-index="${elementId}"]`)
@@ -269,8 +239,6 @@ const handlePaste = (e) => {
 }
 
 export {
-	activePosition,
-	activeDimensions,
 	activeElementIds,
 	focusElementId,
 	pairElementId,
@@ -284,10 +252,6 @@ export {
 	deleteElements,
 	selectAllElements,
 	toggleTextProperty,
-	moveElement,
-	resizeElement,
-	setActivePosition,
-	updateActivePosition,
 	getElementPosition,
 	handleCopy,
 	handlePaste,

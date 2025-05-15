@@ -104,7 +104,7 @@ const handleArrowKeys = (key) => {
 	else if (key == 'ArrowUp') dy = -1
 	else if (key == 'ArrowDown') dy = 1
 
-	slideContainerRef.value.applyMovement({ dx, dy })
+	// slideContainerRef.value.applyMovement({ dx, dy })
 }
 
 const saveSlide = (e) => {
