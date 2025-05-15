@@ -103,27 +103,41 @@ export const useResizer = () => {
 		}
 	}
 
+	const getResizeHandlers = (resizeMode) => {
+		if (resizeMode == 'width') {
+			return ['left', 'right']
+		} else {
+			return ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+		}
+	}
+
+	const createResizeHandle = (resizeMode, handle) => {
+		const resizer = document.createElement('div')
+		resizer.classList.add(`resizer-${resizeMode}`, `resizer-${handle}`)
+
+		// add double click event to fit content based on type of element
+		if (resizeMode == 'width') {
+			resizer.addEventListener('dblclick', resizeToFitContent)
+		}
+		resizer.addEventListener('mousedown', startResize)
+
+		resizeTarget.value.appendChild(resizer)
+	}
+
+	const addResizers = (resizeMode) => {
+		const resizeHandles = getResizeHandlers(resizeMode)
+
+		resizeHandles.forEach((handle) => createResizeHandle(resizeMode, handle))
+	}
+
 	const updateResizers = (target, resizeMode) => {
 		removeResizers()
+
 		if (!target) return
 
 		resizeTarget.value = target
-		let resizeHandles = []
-		if (resizeMode == 'width') resizeHandles = ['left', 'right']
-		else resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
 
-		resizeHandles.forEach((handle) => {
-			const resizer = document.createElement('div')
-			resizer.classList.add(`resizer-${resizeMode}`, `resizer-${handle}`)
-
-			// add double click event to fit content based on type of element
-			if (resizeMode == 'width') {
-				resizer.addEventListener('dblclick', resizeToFitContent)
-			}
-			resizer.addEventListener('mousedown', startResize)
-
-			resizeTarget.value.appendChild(resizer)
-		})
+		addResizers(resizeMode)
 	}
 
 	const removeResizers = () => {
