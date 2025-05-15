@@ -580,6 +580,14 @@ def get_mailbox_id(account: str, role: str | None = None, name: str | None = Non
 			return mailbox["id"]
 
 
+def get_mailbox_role(account: str, id: str) -> str | None:
+	"""Returns the mailbox role for the given ID."""
+
+	for mailbox in get_mailboxes(account):
+		if mailbox.get("id") == id:
+			return mailbox["role"]
+
+
 def get_mailbox_name(account: str, id: str | None = None, role: str | None = None) -> str | None:
 	"""Returns the mailbox name for the given ID or role."""
 

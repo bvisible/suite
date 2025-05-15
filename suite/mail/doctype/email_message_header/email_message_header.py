@@ -6,6 +6,6 @@ from frappe.model.document import Document
 from uuid_utils import uuid7
 
 
-class MailQueueReplyTo(Document):
+class EmailMessageHeader(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())

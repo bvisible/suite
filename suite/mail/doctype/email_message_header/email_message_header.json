@@ -1,18 +1,19 @@
 {
  "actions": [],
- "creation": "2025-05-08 15:18:19.748486",
+ "allow_rename": 1,
+ "creation": "2025-05-16 22:58:05.632836",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "section_break_l3uf",
+  "section_break_zaui",
   "key",
-  "column_break_iqs4",
+  "column_break_edjh",
   "value"
  ],
  "fields": [
   {
-   "fieldname": "section_break_l3uf",
+   "fieldname": "section_break_zaui",
    "fieldtype": "Section Break"
   },
   {
@@ -23,25 +24,25 @@
    "reqd": 1
   },
   {
+   "fieldname": "column_break_edjh",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "value",
    "fieldtype": "Small Text",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Value"
-  },
-  {
-   "fieldname": "column_break_iqs4",
-   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-08 18:20:33.023347",
+ "modified": "2025-05-16 22:59:04.817068",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Queue Header",
+ "name": "Email Message Header",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
