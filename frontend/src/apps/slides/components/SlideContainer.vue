@@ -14,7 +14,7 @@
 					@updateFocus="updateFocus"
 				/>
 
-				<Guides v-if="isDragging" :visibilityMap="visibilityMap" />
+				<SnapGuides v-if="isDragging" :visibilityMap="visibilityMap" />
 
 				<SlideElement
 					v-for="element in slide.elements"
@@ -34,8 +34,9 @@
 import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
-import Guides from '@/components/Guides.vue'
-import SelectionBox from './SelectionBox.vue'
+import SnapGuides from '@/components/SnapGuides.vue'
+import SelectionBox from '@/components/SelectionBox.vue'
+import SlideElement from '@/components/SlideElement.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
