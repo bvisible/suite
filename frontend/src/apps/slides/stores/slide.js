@@ -110,6 +110,15 @@ const selectSlide = (e) => {
 
 const slideBounds = reactive({})
 
+const updateSelectionBounds = (delta) => {
+	selectionBounds.left += delta.left / slideBounds.scale
+	selectionBounds.top += delta.top / slideBounds.scale
+
+	if (delta.width) {
+		selectionBounds.width += delta.width / slideBounds.scale
+	}
+}
+
 export {
 	slideIndex,
 	slide,
@@ -119,4 +128,5 @@ export {
 	updateSlideState,
 	saveChanges,
 	selectSlide,
+	updateSelectionBounds,
 }
