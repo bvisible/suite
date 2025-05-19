@@ -24,7 +24,7 @@ import { useResizer } from '@/utils/resizer'
 import { selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import { activeElementIds } from '@/stores/element'
 
-const { dimensionDelta, startResize } = useResizer()
+const { dimensionDelta, currentResizer, startResize } = useResizer()
 
 const props = defineProps({
 	outline: {
@@ -105,7 +105,9 @@ const handleDimensionChange = (delta) => {
 
 const isResizerVisible = (resizer) => {
 	if (!activeElementIds.value.length) return false
-	return activeElementIds.value[0] == element.value.id
+	if (activeElementIds.value[0] != element.value.id) return false
+	if (!currentResizer.value) return true
+	return currentResizer.value === resizer
 }
 
 watch(
