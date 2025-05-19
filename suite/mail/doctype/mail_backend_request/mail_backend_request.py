@@ -133,15 +133,12 @@ class MailBackendRequest(Document):
 		self,
 		update_modified: bool = True,
 		commit: bool = False,
-		notify_update: bool = False,
+		notify: bool = False,
 		**kwargs,
 	) -> None:
 		"""Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, commit=commit)
-
-		if notify_update:
-			self.notify_update()
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
 def create_mail_backend_request(
