@@ -3,30 +3,27 @@
 
 import json
 import re
-from email import message_from_string
-from email.utils import formataddr, make_msgid, parseaddr
+from email.utils import formataddr
 from functools import cached_property
-from mimetypes import guess_type
-from pathlib import Path
 from typing import Literal
 
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
-from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
-from frappe.utils import cint, escape_html, get_datetime_str, now, random_string, time_diff_in_seconds
+from frappe.utils import cint, escape_html, time_diff_in_seconds
 from uuid_utils import uuid7
 
-from mail.jmap import get_identities, get_jmap_client, get_mailbox_id, get_mailbox_name, get_mailbox_role
+from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name, get_mailbox_role
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	create_jmap_sync_state,
 	get_current_state,
 	update_current_state,
 )
+from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils import enqueue_job, user_context
-from mail.utils.cache import get_account_for_email, get_account_for_user
-from mail.utils.dt import convert_to_utc, parse_iso_datetime, parsedate_to_datetime
+from mail.utils.cache import get_account_for_user
+from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
 from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
 from mail.utils.validation import validate_permission_for_account
@@ -212,7 +209,7 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
 
 	@staticmethod
-	def _create_or_update_from_email_data(account: str, email_data: dict) -> "EmailMessage":
+	def _create_or_update_from_email_data(account: str, email_data: dict) -> None:
 		"""Create or update an EmailMessage document from JMAP email data."""
 
 		email_message = EmailMessage._create_from_email_data(account, email_data, do_not_save=True)
@@ -220,9 +217,6 @@ class EmailMessage(Document):
 		try:
 			email_message.insert(ignore_permissions=True)
 		except frappe.UniqueValidationError:
-			# This occurs when the email was originally created by the system (e.g., as a draft or sent message)
-			# and is later fetched again during sync (e.g., via a JMAP push notification).
-
 			email_message = frappe.get_doc("Email Message", {"account": account, "_id": email_data["id"]})
 			email_message = EmailMessage._create_from_email_data(
 				account, email_data, email_message, do_not_save=True
@@ -358,49 +352,6 @@ class EmailMessage(Document):
 		"""Returns cache key for blob content."""
 
 		return f"jmap:blob:{account}:{blob_id}"
-
-	@staticmethod
-	def _create(do_not_save: bool = False, **kwargs) -> "EmailMessage":
-		"""Create a new EmailMessage document."""
-
-		kwargs = frappe._dict(kwargs)
-
-		doc = frappe.new_doc("Email Message")
-		doc.account = kwargs.account
-		doc.from_name = kwargs.from_name
-		doc.from_email = kwargs.from_email
-		doc.subject = kwargs.subject
-
-		if kwargs.reply_to:
-			for reply_to in kwargs.reply_to:
-				doc.append("reply_to", reply_to)
-
-		if kwargs.recipients:
-			for rcpt in kwargs.recipients:
-				doc.append("recipients", rcpt)
-
-		if kwargs.attachments:
-			for attachment in kwargs.attachments:
-				doc.append(
-					"attachments",
-					{
-						"file_url": attachment["file_url"],
-						"disposition": attachment["disposition"],
-						"filename": attachment.get("filename"),
-					},
-				)
-
-		doc.html_body = kwargs.html_body
-		doc.text_body = kwargs.text_body
-		doc.message_id = kwargs.message_id
-		doc.sent_at = kwargs.sent_at
-		doc.in_reply_to = kwargs.in_reply_to
-		doc.draft = 1
-
-		if not do_not_save:
-			doc.save()
-
-		return doc
 
 	@property
 	def to(self) -> list[dict[str, str | None]]:
@@ -546,170 +497,12 @@ class EmailMessage(Document):
 
 		return email_type
 
-	@property
-	def identity_id(self) -> str:
-		"""Returns the identity ID for the from email."""
-
-		for identity in get_identities(self.account):
-			if identity["email"] == self.from_email:
-				return identity["id"]
-
-		frappe.throw(_("Identity not found for email {0}").format(self.from_email))
-
-	@property
-	def response(self) -> str | None:
-		"""Returns the indented JSON response."""
-
-		return json.dumps(json.loads(self._response), indent=4) if self._response else None
-
-	@property
-	def error_message(self) -> str | None:
-		"""Returns the error message."""
-
-		if not self._response or self.status not in ["Failed to Draft", "Failed to Submit"]:
-			return None
-
-		response = json.loads(self._response)
-
-		data = None
-		if self.status == "Failed to Draft":
-			data = response["methodResponses"][0][1].get("notCreated", {}).get(f"draft-{self.name}")
-		elif self.status == "Failed to Submit":
-			data = response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}")
-
-		if data:
-			message = f"{data['type']}: {data['description']}"
-
-			if data.get("properties"):
-				message += f" ({', '.join(data['properties'])})"
-
-			return message
-
 	def autoname(self) -> None:
 		self.name = str(uuid7())
-
-	def validate(self) -> None:
-		# Skip validation if the email is not a draft or if `fetched_from_server` is set.
-		# This typically indicates the email was newly fetched from the server.
-		if not self.draft or self.flags.fetched_from_server:
-			return
-
-		self.validate_account()
-		self.validate_raw_message()
-		self.validate_from_name()
-		self.validate_from_email()
-		self.validate_attachments()
-		self.validate_message_id()
-		self.validate_sent_at()
-		self.validate_in_reply_to()
-
-	def on_update(self) -> None:
-		# Skip validation if the email is not a draft or if `fetched_from_server` is set.
-		# This typically indicates the email was newly fetched from the server.
-		if not self.draft or self.flags.fetched_from_server:
-			return
-
-		self._process()
 
 	def on_trash(self) -> None:
 		if not self.destroyed and self._id:
 			EmailMessage.destroy_emails(self.account, [self.name])
-
-	def validate_account(self) -> None:
-		"""Validates the account."""
-
-		if not self.account:
-			frappe.throw(_("Account is required."))
-
-	def validate_raw_message(self) -> None:
-		"""Validates the raw message."""
-
-		if not self.raw_message:
-			return
-
-		self.from_name = None
-		self.from_email = None
-		self.subject = None
-		self.reply_to = []
-		self.headers = []
-		self.html_body = None
-		self.text_body = None
-		self.attachments = []
-		self.message_id = None
-		self.sent_at = None
-		self.in_reply_to = None
-
-		message = message_from_string(self.raw_message)
-		if from_header := message.get("From"):
-			self.from_name, self.from_email = parseaddr(from_header)
-
-			if self.from_email not in get_account_email_addresses(self.account):
-				# If the `From` address doesn't match any of the account's associated addresses,
-				# reset it to fall back to the account's default email address.
-				self.from_email = None
-
-		if not self.recipients:
-			for rcpt_type in ["To", "Cc", "Bcc"]:
-				if _rcpt := message.get(rcpt_type):
-					for rcpt in _rcpt.split(","):
-						self.append(
-							"recipients",
-							{
-								"type": rcpt_type,
-								"display_name": parseaddr(rcpt)[0],
-								"email": parseaddr(rcpt)[1],
-							},
-						)
-
-		if date_header := message.get("Date"):
-			self.sent_at = get_datetime_str(parsedate_to_datetime(date_header))
-
-	def validate_from_name(self) -> None:
-		"""Validates the from name."""
-
-		if not self.from_name:
-			self.from_name = frappe.db.get_value("Mail Account", self.account, "display_name")
-
-	def validate_from_email(self) -> None:
-		"""Validates the from email."""
-
-		if self.from_email:
-			if self.account != get_account_for_email(self.from_email):
-				frappe.throw(
-					_(
-						"You cannot send email from {0} using account {1}. Please use the email address associated with the account."
-					).format(frappe.bold(self.from_email), frappe.bold(self.account))
-				)
-		else:
-			self.from_email = frappe.db.get_value("Mail Account", self.account, "default_outgoing_email")
-
-	def validate_attachments(self) -> None:
-		"""Validates the attachments."""
-
-		if not self.attachments:
-			return
-
-		for attachment in self.attachments:
-			attachment.cid = attachment.cid or random_string(length=10)
-			attachment.filename = attachment.filename or Path(attachment.file_url).name
-
-	def validate_message_id(self) -> None:
-		"""Validates the message ID."""
-
-		if not self.message_id:
-			self.message_id = make_msgid(domain=self.from_email.split("@")[-1]).strip("<>")
-
-	def validate_sent_at(self) -> None:
-		"""Validates the sent at date."""
-
-		if not self.raw_message:
-			self.sent_at = now()
-
-	def validate_in_reply_to(self) -> None:
-		"""Validates the In Reply To (Message ID)."""
-
-		if self.in_reply_to:
-			self.in_reply_to = self.in_reply_to.strip("<>")
 
 	def clear_cached_properties(self) -> None:
 		"""Clear cached properties to avoid stale data."""
@@ -776,15 +569,6 @@ class EmailMessage(Document):
 		return EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment.filename)
 
 	@frappe.whitelist()
-	def save_draft(self) -> str:
-		"""Save the email message as a draft."""
-
-		self.flags.do_not_submit = True
-		self.save()
-
-		return self.name
-
-	@frappe.whitelist()
 	def move_to_mailbox(
 		self, mailbox_id: str | None = None, mailbox_role: str | None = None, mailbox_name: str | None = None
 	) -> None:
@@ -814,7 +598,7 @@ class EmailMessage(Document):
 		self.reload()
 
 	@frappe.whitelist()
-	def reply(self) -> "EmailMessage":
+	def reply(self) -> "MailQueue":
 		"""Reply to the email message."""
 
 		recipients = []
@@ -839,7 +623,7 @@ class EmailMessage(Document):
 		return self._reply(recipients)
 
 	@frappe.whitelist()
-	def reply_all(self) -> "EmailMessage":
+	def reply_all(self) -> "MailQueue":
 		"""Reply to all recipients of the email message."""
 
 		recipients = []
@@ -871,7 +655,7 @@ class EmailMessage(Document):
 		return self._reply(recipients)
 
 	@frappe.whitelist()
-	def forward(self) -> "EmailMessage":
+	def forward(self) -> "MailQueue":
 		"""Forward the email message."""
 
 		self.validate_draft()
@@ -913,10 +697,9 @@ class EmailMessage(Document):
 		forward_html_body = BeautifulSoup(forward_html_body, "html.parser").prettify()
 		forward_text_body += f"\n\n> {quoted_text_body}"
 
-		return EmailMessage._create(
+		return MailQueue._create(
 			account=self.account,
 			subject=f"Fwd: {self.subject}" if not self.subject.lower().startswith("fwd:") else self.subject,
-			move_to_sent=1,
 			html_body=forward_html_body,
 			text_body=forward_text_body,
 			do_not_save=True,
@@ -966,247 +749,23 @@ class EmailMessage(Document):
 
 		return recipients
 
-	def _process(self) -> None:
-		"""Create, Update or Submit the EmailMessage."""
-
-		self.validate_destroyed()
-
-		if not self.draft:
-			frappe.throw(_("Email Message {0} is not a draft.").format(frappe.bold(self.name)))
-
-		if not self.flags.do_not_submit and not self.recipients:
-			frappe.throw(_("Email Message {0} does not have any recipients.").format(frappe.bold(self.name)))
-
-		client = get_jmap_client(self.account)
-		draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
-		sent_mailbox_id = get_mailbox_id(self.account, role="sent")
-
-		using = []
-		method_calls = []
-
-		if self.raw_message:
-			blob = client.upload_blob(self.raw_message.encode("utf-8"), content_type="message/rfc822")
-			using.append("urn:ietf:params:jmap:mail")
-			method_calls.append(
-				[
-					"Email/import",
-					{
-						"accountId": client.account_id,
-						"emails": {
-							f"draft-{self.name}": {
-								"blobId": blob["blobId"],
-								"mailboxIds": {draft_mailbox_id: True},
-								"keywords": {"$draft": True, "$seen": True},
-							}
-						},
-					},
-					"0",
-				]
-			)
-		else:
-			if self.attachments:
-				for attachment in self.attachments:
-					if file := find_file_by_url(attachment.file_url):
-						content = file.get_content()
-						content_type = guess_type(file.file_name)[0]
-						blob = client.upload_blob(content, content_type)
-						attachment.db_set(
-							{"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]}
-						)
-
-			using.append("urn:ietf:params:jmap:mail")
-			method_calls.append(
-				[
-					"Email/set",
-					{
-						"accountId": client.account_id,
-						"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
-						"destroy": [self._id] if self._id else None,
-					},
-					"0",
-				]
-			)
-
-		if not self.flags.do_not_submit:
-			method_call = [
-				"EmailSubmission/set",
-				{
-					"accountId": client.account_id,
-					"create": {
-						f"submit-{self.name}": {
-							"identityId": self.identity_id,
-							"emailId": f"#draft-{self.name}",
-							"envelope": {
-								"mailFrom": {
-									"email": self.from_email,
-									"parameters": {
-										"RET": "FULL",
-										"ENVID": self.name,
-									},
-								},
-								"rcptTo": [
-									{
-										"email": rcpt.email,
-										"parameters": {
-											"NOTIFY": "DELAY,FAILURE",
-											"ORCPT": f"rfc822;{rcpt.email}",
-										},
-									}
-									for rcpt in self.recipients
-								],
-							},
-						}
-					},
-				},
-				"1",
-			]
-
-			if self.destroy_after_submission:
-				method_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
-			else:
-				method_call[1]["onSuccessUpdateEmail"] = {
-					f"#submit-{self.name}": {
-						f"mailboxIds/{draft_mailbox_id}": None,
-						f"mailboxIds/{sent_mailbox_id}": True,
-						"keywords/$draft": None,
-						"keywords/$seen": True,
-					}
-				}
-
-			using.append("urn:ietf:params:jmap:submission")
-			method_calls.append(method_call)
-
-		if self.raw_message and self._id:
-			method_calls.append(
-				[
-					"Email/set",
-					{
-						"accountId": client.account_id,
-						"destroy": [self._id] if self._id else None,
-					},
-					"2",
-				]
-			)
-
-		response = client._make_request(using=using, method_calls=method_calls)
-
-		kwargs = {"status": None, "_response": json.dumps(response)}
-		if data := response["methodResponses"][0][1].get("created", {}).get(f"draft-{self.name}"):
-			kwargs.update(
-				{
-					"_id": data["id"],
-					"blob_id": data["blobId"],
-					"size": data["size"],
-					"thread_id": data["threadId"],
-					"mailbox_id": draft_mailbox_id,
-					"mailbox_role": get_mailbox_role(self.account, sent_mailbox_id),
-					"folder": get_mailbox_name(self.account, sent_mailbox_id),
-				}
-			)
-		elif response["methodResponses"][0][1].get("notCreated", {}).get(f"draft-{self.name}"):
-			kwargs["status"] = "Failed to Draft"
-
-		if not self.flags.do_not_submit:
-			if response["methodResponses"][1][1].get("created", {}).get(f"submit-{self.name}"):
-				kwargs.update(
-					{
-						"draft": 0,
-						"mailbox_id": sent_mailbox_id,
-						"mailbox_role": get_mailbox_role(self.account, sent_mailbox_id),
-						"folder": get_mailbox_name(self.account, sent_mailbox_id),
-					}
-				)
-			elif response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}"):
-				kwargs["status"] = "Failed to Submit"
-
-		self._db_set(notify=True, **kwargs)
-
-	def _reply(self, recipients: list[dict]) -> "EmailMessage":
+	def _reply(self, recipients: list[dict]) -> "MailQueue":
 		"""Returns a unsaved EmailMessage object for replying to the email message."""
 
 		self.validate_draft()
 		self.validate_destroyed()
 
-		return EmailMessage._create(
+		return MailQueue._create(
 			account=self.account,
 			subject=f"Re: {self.subject}" if not self.subject.lower().startswith("re:") else self.subject,
-			move_to_sent=1,
 			recipients=recipients,
 			in_reply_to=self.message_id,
 			do_not_save=True,
 		)
 
-	def _draft_mail(self, draft_mailbox_id: str) -> dict:
-		"""Returns the draft mail object."""
-
-		mail = {
-			"mailboxIds": {draft_mailbox_id: True},
-			"keywords": {"$draft": True, "$seen": True},
-			"from": [{"name": self.from_name, "email": self.from_email}],
-		}
-
-		for field in ["to", "cc", "bcc"]:
-			if hasattr(self, field):
-				if value := getattr(self, field):
-					mail[field] = value
-
-		if self.subject:
-			mail["subject"] = self.subject
-
-		mail.update(
-			{
-				"sentAt": convert_to_utc(self.sent_at).isoformat(),
-				"header:Message-ID": f"<{self.message_id}>",
-			}
-		)
-
-		if self.reply_to:
-			mail["header:Reply-To"] = ", ".join([f'"{rt.display_name}" <{rt.email}>' for rt in self.reply_to])
-
-		if self.in_reply_to:
-			mail["header:In-Reply-To"] = f"<{self.in_reply_to}>"
-
-		for header in self.headers:
-			if header.key and header.value:
-				mail[f"header:{header.key}"] = header.value
-
-		mail["bodyValues"] = {}
-		if self.text_body:
-			mail["textBody"] = [{"partId": "text", "type": "text/plain"}]
-			mail["bodyValues"]["text"] = {"value": self.text_body, "charset": "utf-8", "isTruncated": False}
-		if self.html_body:
-			mail["htmlBody"] = [{"partId": "html", "type": "text/html"}]
-			mail["bodyValues"]["html"] = {"value": self.html_body, "charset": "utf-8", "isTruncated": False}
-
-		attachments = []
-		for attachment in self.attachments:
-			attachments.append(
-				{
-					"name": attachment.filename,
-					"type": attachment.type,
-					"cid": attachment.cid,
-					"blobId": attachment.blob_id,
-					"disposition": attachment.disposition,
-				}
-			)
-		mail["attachments"] = attachments
-
-		return mail
-
-	def _db_set(
-		self,
-		update_modified: bool = True,
-		commit: bool = False,
-		notify: bool = False,
-		**kwargs,
-	) -> None:
-		"""Updates the document with the given key-value pairs."""
-
-		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
-
 
 @frappe.whitelist()
-def reply(source_name: str, target_doc=None) -> "EmailMessage":
+def reply(source_name: str, target_doc=None) -> "MailQueue":
 	"""Reply to the email message."""
 
 	source_doc = frappe.get_doc("Email Message", source_name)
@@ -1214,7 +773,7 @@ def reply(source_name: str, target_doc=None) -> "EmailMessage":
 
 
 @frappe.whitelist()
-def reply_all(source_name: str, target_doc=None) -> "EmailMessage":
+def reply_all(source_name: str, target_doc=None) -> "MailQueue":
 	"""Reply to all recipients of the email message."""
 
 	source_doc = frappe.get_doc("Email Message", source_name)
@@ -1222,7 +781,7 @@ def reply_all(source_name: str, target_doc=None) -> "EmailMessage":
 
 
 @frappe.whitelist()
-def forward(source_name: str, target_doc=None) -> "EmailMessage":
+def forward(source_name: str, target_doc=None) -> "MailQueue":
 	"""Forward the email message."""
 
 	source_doc = frappe.get_doc("Email Message", source_name)
@@ -1355,7 +914,7 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 
 	if user_is_system_manager:
 		return True
-	elif user_is_account_owner and not doc.destroyed:
+	elif user_is_account_owner and ptype in ["read", "write", "delete"] and not doc.destroyed:
 		return True
 
 	return False

@@ -16,11 +16,6 @@ frappe.ui.form.on('Email Message', {
 
 				frm.trigger('add_actions')
 			}
-
-			if (frm.doc.draft) {
-				frm.trigger('add_draft_button')
-				frm.trigger('add_send_button')
-			}
 		}
 	},
 
@@ -156,30 +151,6 @@ frappe.ui.form.on('Email Message', {
 				__('Actions'),
 			)
 		}
-	},
-
-	add_draft_button(frm) {
-		frm.page.set_secondary_action(__('Save as Draft'), () => {
-			frappe.call({
-				doc: frm.doc,
-				method: 'save_draft',
-				freeze: true,
-				freeze_message: __('Saving Draft...'),
-				callback: (r) => {
-					if (!r.exc) {
-						if (r.message) {
-							frappe.set_route('Form', 'Email Message', r.message)
-						}
-					}
-				},
-			})
-		})
-	},
-
-	add_send_button(frm) {
-		frm.page.set_primary_action(__('Send'), () => {
-			frm.save()
-		})
 	},
 
 	move_to_mailbox(frm, mailbox_role) {

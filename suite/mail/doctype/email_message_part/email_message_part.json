@@ -13,7 +13,6 @@
   "disposition",
   "language",
   "location",
-  "file_url",
   "column_break_xvpk",
   "type",
   "blob_id",
@@ -95,18 +94,13 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "File Name"
-  },
-  {
-   "fieldname": "file_url",
-   "fieldtype": "Attach",
-   "label": "File"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-15 16:34:10.700371",
+ "modified": "2025-05-19 15:42:37.367950",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message Part",
