@@ -45,7 +45,7 @@ class JMAPPushSubscription(Document):
 		elif response[0][1].get("notUpdated"):
 			kwargs["status"] = "Failed to Verify"
 
-		subscription._db_set(notify_update=True, **kwargs)
+		subscription._db_set(notify=True, **kwargs)
 
 	@staticmethod
 	def get_push_subscriptions(account: str) -> list[dict]:
@@ -242,15 +242,12 @@ class JMAPPushSubscription(Document):
 		self,
 		update_modified: bool = True,
 		commit: bool = False,
-		notify_update: bool = False,
+		notify: bool = False,
 		**kwargs,
 	) -> None:
 		"""Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, commit=commit)
-
-		if notify_update:
-			self.notify_update()
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
 def create_jmap_push_subscription(account: str) -> "JMAPPushSubscription":

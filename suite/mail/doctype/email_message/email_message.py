@@ -1119,7 +1119,7 @@ class EmailMessage(Document):
 			elif response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}"):
 				kwargs["status"] = "Failed to Submit"
 
-		self._db_set(notify_update=True, **kwargs)
+		self._db_set(notify=True, **kwargs)
 
 	def _reply(self, recipients: list[dict]) -> "EmailMessage":
 		"""Returns a unsaved EmailMessage object for replying to the email message."""
@@ -1197,15 +1197,12 @@ class EmailMessage(Document):
 		self,
 		update_modified: bool = True,
 		commit: bool = False,
-		notify_update: bool = False,
+		notify: bool = False,
 		**kwargs,
 	) -> None:
 		"""Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, commit=commit)
-
-		if notify_update:
-			self.notify_update()
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
 @frappe.whitelist()
