@@ -96,7 +96,7 @@ const updateElementWidth = (deltaWidth) => {
 const handleDimensionChange = (delta) => {
 	const ratio = selectionBounds.width / selectionBounds.height
 
-	delta.top *= ratio
+	delta.top /= ratio
 
 	updateSelectionBounds(delta)
 
