@@ -1,5 +1,9 @@
 <template>
-	<div :style="resizerStyles" @mousedown="$emit('startResize', $event)"></div>
+	<div
+		:style="resizerStyles"
+		@mousedown="$emit('startResize', $event)"
+		@dblclick="handleDoubleClick"
+	></div>
 </template>
 <script setup>
 import { computed } from 'vue'
@@ -11,7 +15,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['startResize'])
+const emit = defineEmits(['startResize', 'resizeToFitContent'])
 
 const baseStyles = {
 	position: 'absolute',
@@ -74,4 +78,12 @@ const resizerStyles = computed(() => {
 			return {}
 	}
 })
+
+const handleDoubleClick = (e) => {
+	e.stopPropagation()
+
+	if (['resizer-left', 'resizer-right'].includes(props.resizer)) {
+		emit('resizeToFitContent', e)
+	}
+}
 </script>

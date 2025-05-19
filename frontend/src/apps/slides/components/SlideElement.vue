@@ -1,14 +1,15 @@
 <template>
 	<div :style="elementStyle">
+		<component :is="getDynamicComponent(element.type)" :element="element" />
+
 		<Resizer
 			v-for="resizer in resizeHandles"
 			v-show="isResizerVisible(resizer)"
 			:key="resizer"
 			:resizer="resizer"
 			@startResize="(e) => startResize(e, resizer)"
+			@resizeToFitContent="resizeToFitContent"
 		/>
-
-		<component :is="getDynamicComponent(element.type)" :element="element" />
 	</div>
 </template>
 
@@ -95,8 +96,7 @@ const updateElementWidth = (deltaWidth) => {
 
 const handleDimensionChange = (delta) => {
 	const ratio = selectionBounds.width / selectionBounds.height
-
-	delta.top /= ratio
+	delta.top = (delta.top ?? 0) / ratio
 
 	updateSelectionBounds(delta)
 
@@ -108,6 +108,23 @@ const isResizerVisible = (resizer) => {
 	if (activeElementIds.value[0] != element.value.id) return false
 	if (!currentResizer.value) return true
 	return currentResizer.value === resizer
+}
+
+const resizeToFitContent = () => {
+	// create range of the text node within TextElement
+	const target = document.querySelector(`[data-index="${element.value.id}"]`)
+	if (!target) return
+	const range = document.createRange()
+	const textNode = target.firstChild
+	const originalWidth = target.offsetWidth
+	range.selectNodeContents(textNode)
+
+	// find out width of text content
+	const textWidth = range.getBoundingClientRect().width
+	// auto resize width of TextElement to fit content with some padding
+	handleDimensionChange({
+		width: textWidth - originalWidth + 5,
+	})
 }
 
 watch(
