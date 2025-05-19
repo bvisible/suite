@@ -1,16 +1,8 @@
 import { ref } from 'vue'
-import { slide } from '../stores/slide'
 
 export const useResizer = () => {
-	const resizeTarget = ref(null)
 	const isResizing = ref(false)
 	const currentResizer = ref(null)
-
-	let originalWidth = null
-	let originalHeight = null
-
-	let originalBottom = null
-	let originalLeft = null
 
 	let prevX = 0
 	let prevY = 0
@@ -22,11 +14,11 @@ export const useResizer = () => {
 		top: 0,
 	})
 
-	const startResize = (e) => {
+	const startResize = (e, resizer) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
 
-		currentResizer.value = e.target.classList[1]
+		currentResizer.value = resizer
 		isResizing.value = true
 
 		prevX = e.clientX
@@ -60,8 +52,8 @@ export const useResizer = () => {
 				diffLeft = -diffX
 				break
 			case 'resizer-top-left':
-				diffTop = -diffX
 				diffLeft = -diffX
+				diffTop = -diffX
 				break
 			default:
 				diffX = -diffX
@@ -82,71 +74,12 @@ export const useResizer = () => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
 
+		currentResizer.value = null
+		isResizing.value = false
+
 		window.removeEventListener('mousemove', resize)
 		window.removeEventListener('mouseup', stopResize)
 	}
 
-	const resizeToFitContent = (e) => {
-		// create range of the text node within TextElement
-		const range = document.createRange()
-		const textNode = e.target.parentElement.firstChild
-		const originalWidth = e.target.parentElement.offsetWidth
-		range.selectNodeContents(textNode)
-
-		// find out width of text content
-		const textWidth = range.getBoundingClientRect().width
-		// auto resize width of TextElement to fit content with some padding
-		dimensionDelta.value = {
-			width: textWidth - originalWidth + 5,
-			left: 0,
-			top: 0,
-		}
-	}
-
-	const getResizeHandlers = (resizeMode) => {
-		if (resizeMode == 'width') {
-			return ['left', 'right']
-		} else {
-			return ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-		}
-	}
-
-	const createResizeHandle = (resizeMode, handle) => {
-		const resizer = document.createElement('div')
-		resizer.classList.add(`resizer-${resizeMode}`, `resizer-${handle}`)
-
-		// add double click event to fit content based on type of element
-		if (resizeMode == 'width') {
-			resizer.addEventListener('dblclick', resizeToFitContent)
-		}
-		resizer.addEventListener('mousedown', startResize)
-
-		resizeTarget.value.appendChild(resizer)
-	}
-
-	const addResizers = (resizeMode) => {
-		const resizeHandles = getResizeHandlers(resizeMode)
-
-		resizeHandles.forEach((handle) => createResizeHandle(resizeMode, handle))
-	}
-
-	const updateResizers = (target, resizeMode) => {
-		removeResizers()
-
-		if (!target) return
-
-		resizeTarget.value = target
-
-		addResizers(resizeMode)
-	}
-
-	const removeResizers = () => {
-		if (!resizeTarget.value) return
-		const resizers = resizeTarget.value.querySelectorAll('div.resizer-both, div.resizer-width')
-		resizers.forEach((resizer) => {
-			resizeTarget.value.removeChild(resizer)
-		})
-	}
-
-	return { isResizing, dimensionDelta, updateResizers }
+	return { dimensionDelta, currentResizer, startResize }
 }

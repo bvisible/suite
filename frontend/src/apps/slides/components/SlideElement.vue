@@ -1,17 +1,30 @@
 <template>
 	<div :style="elementStyle">
+		<Resizer
+			v-for="resizer in resizeHandles"
+			v-show="isResizerVisible(resizer)"
+			:key="resizer"
+			:resizer="resizer"
+			@startResize="(e) => startResize(e, resizer)"
+		/>
+
 		<component :is="getDynamicComponent(element.type)" :element="element" />
 	</div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
+import Resizer from '@/components/Resizer.vue'
 
+import { useResizer } from '@/utils/resizer'
+import { selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import { activeElementIds } from '@/stores/element'
+
+const { dimensionDelta, startResize } = useResizer()
 
 const props = defineProps({
 	outline: {
@@ -56,4 +69,49 @@ const getDynamicComponent = (type) => {
 			return TextElement
 	}
 }
+
+const resizeHandles = computed(() => {
+	if (!element.value) return []
+	if (element.value.type === 'text') return ['resizer-left', 'resizer-right']
+	else
+		return [
+			'resizer-top-left',
+			'resizer-top-right',
+			'resizer-bottom-left',
+			'resizer-bottom-right',
+		]
+})
+
+const updateElementWidth = (deltaWidth) => {
+	if (element.value.width) {
+		element.value.width += deltaWidth
+	} else {
+		const elementDiv = document.querySelector(`[data-index="${element.value.id}"]`)
+		const width = elementDiv.getBoundingClientRect().width
+
+		element.value.width = width + deltaWidth
+	}
+}
+
+const handleDimensionChange = (delta) => {
+	const ratio = selectionBounds.width / selectionBounds.height
+
+	delta.top *= ratio
+
+	updateSelectionBounds(delta)
+
+	updateElementWidth(delta.width)
+}
+
+const isResizerVisible = (resizer) => {
+	if (!activeElementIds.value.length) return false
+	return activeElementIds.value[0] == element.value.id
+}
+
+watch(
+	() => dimensionDelta.value,
+	(delta) => {
+		handleDimensionChange(delta)
+	},
+)
 </script>

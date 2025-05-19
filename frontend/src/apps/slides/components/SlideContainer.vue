@@ -39,7 +39,13 @@ import SelectionBox from '@/components/SelectionBox.vue'
 import SlideElement from '@/components/SlideElement.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
+import {
+	slide,
+	selectSlide,
+	slideBounds,
+	selectionBounds,
+	updateSelectionBounds,
+} from '@/stores/slide'
 import {
 	activeElement,
 	activeElementIds,
@@ -50,7 +56,6 @@ import {
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
-import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
 import { useSnapping } from '@/utils/snap'
 
@@ -64,7 +69,7 @@ const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 
 const { isDragging, positionDelta, startDragging } = useDragAndDrop()
-const { isResizing, dimensionDelta, updateResizers } = useResizer()
+
 const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnapping(
 	selectionBoxRef,
 	slideRef,
@@ -175,17 +180,12 @@ const scale = computed(() => {
 })
 
 const updateFocus = (e) => {
-	if (isResizing.value) {
-		isResizing.value = false
-		return
-	}
 	selectSlide(e)
 }
 
 const updateResizeHandler = (index) => {
 	const targetElement = document.querySelector(`[data-index="${index}"]`)
 	const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
-	updateResizers(targetElement, resizeMode)
 }
 
 const handleSelectionChange = (newSelection, oldSelection) => {
@@ -223,15 +223,6 @@ const getTotalPositionDelta = (delta) => {
 	}
 }
 
-const updateSelectionBounds = (delta) => {
-	selectionBounds.left += delta.left / scale.value
-	selectionBounds.top += delta.top / scale.value
-
-	if (delta.width) {
-		selectionBounds.width += delta.width / scale.value
-	}
-}
-
 const handlePositionChange = (delta) => {
 	updateGuides()
 
@@ -239,27 +230,6 @@ const handlePositionChange = (delta) => {
 		const totalDelta = getTotalPositionDelta(delta)
 		updateSelectionBounds(totalDelta)
 	}
-}
-
-const updateElementWidth = (deltaWidth) => {
-	if (activeElement.value.width) {
-		activeElement.value.width += deltaWidth
-	} else {
-		const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
-		const width = elementDiv.getBoundingClientRect().width
-
-		activeElement.value.width = width + deltaWidth
-	}
-}
-
-const handleDimensionChange = (delta) => {
-	const ratio = selectionBounds.width / selectionBounds.height
-
-	delta.top *= ratio
-
-	updateSelectionBounds(delta)
-
-	updateElementWidth(delta.width)
 }
 
 const updateSlideBounds = () => {
@@ -301,13 +271,6 @@ watch(
 	},
 )
 
-watch(
-	() => dimensionDelta.value,
-	(delta) => {
-		handleDimensionChange(delta)
-	},
-)
-
 onMounted(() => {
 	if (!slideRef.value) return
 
@@ -324,7 +287,5 @@ defineExpose({
 	togglePanZoom,
 })
 </script>
-
-<style src="../assets/styles/resizer.css"></style>
 
 <style src="../assets/styles/overlay.css"></style>
