@@ -116,7 +116,9 @@ class JMAPPushSubscription(Document):
 			"verification_response": None,
 			"renew_response": None,
 		}
-		device_client_id = f"frappe-{frappe.local.site.replace('.', '-')}-{self.account}"
+		device_client_id = generate_uuid_style_hash(
+			f"frappe-{frappe.local.site.replace('.', '-')}-{self.account}"
+		)
 		types = self.notification_types.split("\n") if self.notification_types else None
 
 		try:
