@@ -233,7 +233,10 @@ scheduler_events = {
 		"*/2 * * * *": [
 			"mail.tasks.enqueue_transfer_mails_to_clusters",
 			"mail.tasks.enqueue_fetch_emails_from_clusters",
-		]
+		],
+		"*/5 * * * *": [
+			"mail.mail.doctype.mail_queue.mail_queue.enqueue_process_pending_emails",
+		],
 	},
 }
 

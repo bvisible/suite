@@ -4,12 +4,14 @@
 frappe.listview_settings['Mail Queue'] = {
 	get_indicator: (doc) => {
 		const status_colors = {
-			Draft: 'grey',
-			'Failed to Draft': 'orange',
-			Submitted: 'green',
-			'Failed to Submit': 'orange',
+			Queued: 'blue',
+			Pending: 'orange',
 			Failed: 'red',
+			Drafted: 'grey',
+			'Failed to Draft': 'red',
+			Submitted: 'green',
+			'Failed to Submit': 'red',
 		}
-		return [__(doc.status), status_colors[doc.status], 'status,=,' + doc.status]
+		return [__(doc.status), status_colors[doc.status] || 'darkgrey', 'status,=,' + doc.status]
 	},
 }

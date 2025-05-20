@@ -12,9 +12,9 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
-from frappe.query_builder import Interval
+from frappe.query_builder import Interval, Order
 from frappe.query_builder.functions import Now
-from frappe.utils import cint, get_datetime_str, now, random_string
+from frappe.utils import add_to_date, cint, create_batch, get_datetime_str, now, random_string
 from uuid_utils import uuid7
 
 from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
@@ -29,7 +29,7 @@ class MailQueue(Document):
 		MQ = frappe.qb.DocType("Mail Queue")
 		(
 			frappe.qb.from_(MQ)
-			.where((MQ.status.isin(["Draft", "Submitted"])) & (MQ.creation < (Now() - Interval(days=days))))
+			.where((MQ.status.isin(["Drafted", "Submitted"])) & (MQ.creation < (Now() - Interval(days=days))))
 			.delete()
 		).run()
 
@@ -86,6 +86,7 @@ class MailQueue(Document):
 		doc.in_reply_to = kwargs.in_reply_to
 		doc.save_as_draft = cint(kwargs.save_as_draft)
 		doc.destroy_after_submission = cint(kwargs.destroy_after_submission)
+		doc.delivery_mode = kwargs.delivery_mode
 		doc.raw_message = kwargs.raw_message
 
 		if not do_not_save:
@@ -156,10 +157,12 @@ class MailQueue(Document):
 
 	def validate(self) -> None:
 		if self.is_new():
+			self.validate_status()
 			self.validate_account()
 			self.validate_raw_message()
 			self.validate_from_name()
 			self.validate_from_email()
+			self.validate_delivery_mode()
 			self.validate_recipients()
 			self.validate_attachments()
 			self.validate_message_id()
@@ -167,7 +170,23 @@ class MailQueue(Document):
 			self.validate_in_reply_to()
 
 	def after_insert(self) -> None:
-		self._process()
+		if self.delivery_mode == "Immediate":
+			self._process()
+		elif self.delivery_mode == "Enqueue":
+			frappe.enqueue_doc(self.doctype, self.name, "_process", queue="short", enqueue_after_commit=True)
+
+	def validate_status(self) -> None:
+		"""Validates the status."""
+
+		if self.delivery_mode == "Immediate":
+			self.status = None
+			self.queued_at = None
+		elif self.delivery_mode == "Enqueue":
+			self.status = "Queued"
+			self.queued_at = now()
+		elif self.delivery_mode == "Batch":
+			self.status = "Pending"
+			self.queued_at = None
 
 	def validate_account(self) -> None:
 		"""Validates the account."""
@@ -239,6 +258,15 @@ class MailQueue(Document):
 		else:
 			self.from_email = frappe.db.get_value("Mail Account", self.account, "default_outgoing_email")
 
+	def validate_delivery_mode(self) -> None:
+		"""Validates the delivery mode."""
+
+		if self.delivery_mode:
+			if self.delivery_mode not in ["Immediate", "Enqueue", "Batch"]:
+				frappe.throw(_("Invalid delivery mode: {0}").format(self.delivery_mode))
+		else:
+			self.delivery_mode = "Immediate"
+
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
 
@@ -276,61 +304,72 @@ class MailQueue(Document):
 		if self.in_reply_to:
 			self.in_reply_to = self.in_reply_to.strip("<>")
 
+	@frappe.whitelist()
+	def retry(self) -> None:
+		"""Retries Create, Update or Submit the Email."""
+
+		frappe.only_for("System Manager")
+
+		if self.status not in ["Failed", "Failed to Draft", "Failed to Submit"]:
+			frappe.throw(_("Cannot retry a mail with status {0}").format(self.status))
+
+		self._process()
+
 	def _process(self) -> None:
 		"""Create, Update or Submit the Email."""
 
-		client = get_jmap_client(self.account)
-		draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
-		sent_mailbox_id = get_mailbox_id(self.account, role="sent")
-
-		using = []
-		method_calls = []
 		kwargs = {}
 
-		if self.raw_message:
-			blob = client.upload_blob(self.raw_message.encode("utf-8"), content_type="message/rfc822")
-			using.append("urn:ietf:params:jmap:mail")
-			method_calls.append(
-				[
-					"Email/import",
-					{
-						"accountId": client.account_id,
-						"emails": {
-							f"draft-{self.name}": {
-								"blobId": blob["blobId"],
-								"mailboxIds": {draft_mailbox_id: True},
-								"keywords": {"$draft": True, "$seen": True},
-							}
+		try:
+			client = get_jmap_client(self.account)
+			draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
+			sent_mailbox_id = get_mailbox_id(self.account, role="sent")
+
+			using = ["urn:ietf:params:jmap:mail"]
+			method_calls = []
+
+			if self.raw_message:
+				blob = client.upload_blob(self.raw_message.encode("utf-8"), content_type="message/rfc822")
+				method_calls.append(
+					[
+						"Email/import",
+						{
+							"accountId": client.account_id,
+							"emails": {
+								f"draft-{self.name}": {
+									"blobId": blob["blobId"],
+									"mailboxIds": {draft_mailbox_id: True},
+									"keywords": {"$draft": True, "$seen": True},
+								}
+							},
 						},
-					},
-					"0",
-				]
-			)
-		else:
-			if attachments := json_loads(self.attachments):
-				for a in attachments:
-					if file := find_file_by_url(a["file_url"]):
-						content = file.get_content()
-						content_type = guess_type(file.file_name)[0]
-						blob = client.upload_blob(content, content_type)
-						a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+						"0",
+					]
+				)
+			else:
+				if attachments := json_loads(self.attachments):
+					for a in attachments:
+						if file := find_file_by_url(a["file_url"]):
+							content = file.get_content()
+							content_type = guess_type(file.file_name)[0]
+							blob = client.upload_blob(content, content_type)
+							a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
 
-				attachments = json.dumps(attachments)
-				self.attachments = attachments
-				kwargs["attachments"] = attachments
+					attachments = json.dumps(attachments)
+					self.attachments = attachments
+					kwargs["attachments"] = attachments
 
-			using.append("urn:ietf:params:jmap:mail")
-			method_calls.append(
-				[
-					"Email/set",
-					{
-						"accountId": client.account_id,
-						"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
-						"destroy": [self._id] if self._id else None,
-					},
-					"0",
-				]
-			)
+				method_calls.append(
+					[
+						"Email/set",
+						{
+							"accountId": client.account_id,
+							"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
+							"destroy": [self._id] if self._id else None,
+						},
+						"0",
+					]
+				)
 
 			if not self.save_as_draft:
 				method_call = [
@@ -399,7 +438,7 @@ class MailQueue(Document):
 			if data := response["methodResponses"][0][1].get("created", {}).get(f"draft-{self.name}"):
 				kwargs.update(
 					{
-						"status": "Draft",
+						"status": "Drafted",
 						"_id": data["id"],
 						"blob_id": data["blobId"],
 						"size": data["size"],
@@ -422,8 +461,18 @@ class MailQueue(Document):
 					)
 				elif response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}"):
 					kwargs["status"] = "Failed to Submit"
+		except Exception:
+			failed_count = self.failed_count + 1
+			kwargs.update(
+				{
+					"status": "Failed",
+					"failed_count": failed_count,
+					"next_retry_after": get_next_retry_after(failed_count),
+					"error_log": frappe.get_traceback(with_context=True),
+				}
+			)
 
-			self._db_set(notify=True, **kwargs)
+		self._db_set(notify=True, **kwargs)
 
 	def _draft_mail(self, draft_mailbox_id: str) -> dict:
 		"""Returns the draft mail object."""
@@ -515,6 +564,89 @@ def json_loads(data: str | None, default: Any = None) -> list | dict | None:
 		return json.loads(data)
 
 	return default
+
+
+def get_next_retry_after(failed_count: int) -> str:
+	"""Returns the next retry after datetime."""
+
+	next_retry_after_minutes = failed_count * (failed_count + 1)  # 2, 6, 12, 20, 30 ...
+	return add_to_date(now(), minutes=next_retry_after_minutes)
+
+
+def process_pending_emails(mails: list[str]) -> None:
+	"""Process pending emails."""
+
+	failed_mails = []
+	total_count = len(mails)
+
+	for mail in mails:
+		doc: "MailQueue" = frappe.get_doc("Mail Queue", mail)
+		doc._process()
+
+		if doc.status in ["Failed", "Failed to Draft", "Failed to Submit"]:
+			failed_mails.append(mail)
+
+			failed_count = len(failed_mails)
+			failure_ratio = failed_count / total_count
+
+			if failure_ratio > 0.33 and failed_count > 50:
+				frappe.throw(
+					_(
+						"Email processing aborted: {failed_count} out of {total_count} emails failed "
+						"({failure_rate:.2%} failure rate). Please investigate the issue before retrying."
+					).format(failed_count=failed_count, total_count=total_count, failure_rate=failure_ratio)
+				)
+
+
+def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_size: int = 10_000) -> None:
+	"""Enqueue process pending emails."""
+
+	MQ = frappe.qb.DocType("Mail Queue")
+	mails = (
+		frappe.qb.from_(MQ)
+		.select(MQ.name)
+		.where(
+			(MQ.status == "Pending")
+			| (
+				(MQ.failed_count > 0)
+				& (MQ.failed_count < 5)
+				& (Now() >= MQ.next_retry_after)
+				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
+			)
+			| ((MQ.status == "Queued") & (MQ.queued_at <= (Now() - Interval(minutes=30))))
+		)
+		.orderby(MQ.creation, MQ.failed_count, order=Order.asc)
+		.limit(max_batch_size)
+	).run(pluck="name")
+
+	if not mails:
+		return
+
+	try:
+		(
+			frappe.qb.update(MQ)
+			.set(MQ.status, "Queued")
+			.set(MQ.queued_at, Now())
+			.where((MQ.name.isin(mails)) & (MQ.status.notin(["Drafted", "Submitted"])))
+		).run()
+
+		for i, batch in enumerate(create_batch(mails, batch_process_size), start=1):
+			frappe.enqueue(
+				process_pending_emails,
+				queue="long",
+				job_name=f"process_pending_emails_{i}_{len(batch)}",
+				enqueue_after_commit=False,
+				mails=batch,
+			)
+
+		# Recursively process next batch if the limit was reached.
+		if len(mails) == max_batch_size:
+			enqueue_process_pending_emails(batch_process_size, max_batch_size)
+
+	except Exception:
+		frappe.log_error(
+			title="Failed - Enqueue Process Pending Emails", message=frappe.get_traceback(with_context=True)
+		)
 
 
 def get_permission_query_condition(user: str | None = None) -> str:

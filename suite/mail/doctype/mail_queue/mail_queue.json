@@ -13,8 +13,13 @@
   "subject",
   "section_break_agmx",
   "save_as_draft",
-  "column_break_htqb",
   "destroy_after_submission",
+  "column_break_htqb",
+  "delivery_mode",
+  "section_break_nug2",
+  "failed_count",
+  "column_break_caio",
+  "next_retry_after",
   "reply_to_section",
   "reply_to",
   "headers_section",
@@ -33,6 +38,7 @@
   "size",
   "column_break_qxot",
   "sent_at",
+  "queued_at",
   "drafted_at",
   "submitted_at",
   "column_break_kuap",
@@ -45,8 +51,9 @@
   "response_section",
   "_response",
   "response",
-  "error_message_section",
-  "error_message"
+  "error_section",
+  "error_message",
+  "error_log"
  ],
  "fields": [
   {
@@ -60,7 +67,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "\nDraft\nFailed to Draft\nSubmitted\nFailed to Submit\nFailed",
+   "options": "\nPending\nQueued\nFailed\nDrafted\nFailed to Draft\nSubmitted\nFailed to Submit",
    "read_only": 1,
    "search_index": 1
   },
@@ -261,12 +268,6 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
-   "fieldname": "error_message_section",
-   "fieldtype": "Section Break",
-   "label": "Error Message"
-  },
-  {
    "fieldname": "error_message",
    "fieldtype": "Small Text",
    "hidden": 1,
@@ -328,6 +329,7 @@
    "label": "Email ID",
    "no_copy": 1,
    "read_only": 1,
+   "read_only_depends_on": "eval: !doc.__islocal",
    "search_index": 1
   },
   {
@@ -353,12 +355,73 @@
    "label": "Submitted At",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "Immediate",
+   "description": "<pre><b>Immediate</b> \u2014 send right after insert (after_insert).\n<b>Enqueue</b> \u2014 enqueue a job (using frappe.enqueue).\n<b>Batch</b> \u2014 wait to be picked up by a scheduled background job.\n</pre>",
+   "fieldname": "delivery_mode",
+   "fieldtype": "Select",
+   "label": "Delivery Mode",
+   "no_copy": 1,
+   "options": "Immediate\nEnqueue\nBatch",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "error_section",
+   "fieldtype": "Section Break",
+   "label": "Error"
+  },
+  {
+   "fieldname": "error_log",
+   "fieldtype": "Code",
+   "label": "Error Log",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_nug2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_caio",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.failed_count > 0",
+   "fieldname": "failed_count",
+   "fieldtype": "Int",
+   "in_standard_filter": 1,
+   "label": "Failed Count",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval: doc.failed_count > 0",
+   "fieldname": "next_retry_after",
+   "fieldtype": "Datetime",
+   "label": "Next Retry After",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "queued_at",
+   "fieldtype": "Datetime",
+   "label": "Queued At",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 15:32:14.609562",
+ "modified": "2025-05-20 17:47:02.123463",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
