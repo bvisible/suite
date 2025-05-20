@@ -126,12 +126,12 @@ const handleMouseUp = (e, id) => {
 }
 
 const triggerDrag = (e, id) => {
-	if (id && !activeElementIds.value.includes(id) && focusElementId.value !== id) {
+	if (id && focusElementId.value !== id) {
+		startDragging(e)
+
 		activeElementIds.value = [id]
 		focusElementId.value = null
 	}
-
-	startDragging(e)
 }
 
 const handleMouseDown = (e, element) => {
