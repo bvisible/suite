@@ -33,6 +33,8 @@
   "size",
   "column_break_qxot",
   "sent_at",
+  "drafted_at",
+  "submitted_at",
   "column_break_kuap",
   "in_reply_to",
   "mailbox_id",
@@ -335,12 +337,28 @@
    "no_copy": 1,
    "non_negative": 1,
    "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.save_as_draft",
+   "fieldname": "drafted_at",
+   "fieldtype": "Datetime",
+   "label": "Drafted At",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: !doc.save_as_draft",
+   "fieldname": "submitted_at",
+   "fieldtype": "Datetime",
+   "label": "Submitted At",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-19 15:50:30.326101",
+ "modified": "2025-05-20 15:32:14.609562",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
