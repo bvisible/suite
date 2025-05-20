@@ -1,8 +1,5 @@
 <template>
-	<div
-		class="fixed right-0 z-20 flex flex-col h-[94.35%] w-64 bg-white border-l shadow-[0_10px_24px_-3px_rgba(199,199,199,0.6)]"
-		@wheel.prevent
-	>
+	<div class="fixed right-0 z-20 flex flex-col h-[94.35%] w-64 bg-white border-l" @wheel.prevent>
 		<component :is="activeProperties" />
 
 		<div v-if="activeElement" :class="sectionClasses">
