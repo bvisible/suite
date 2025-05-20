@@ -131,7 +131,7 @@ const handleElementShortcuts = (e) => {
 			deleteElements(e)
 			break
 		case 'd':
-			if (e.metaKey) duplicateElements(e, activeElements.value)
+			if (e.metaKey) duplicateElements(e, activeElements.value, 40)
 			break
 		case 'i':
 			if (e.metaKey) toggleTextProperty('fontStyle', 'italic')
