@@ -262,6 +262,17 @@ const insertSlide = async (index) => {
 }
 
 const deleteSlide = async () => {
+	if (presentation.data.slides.length == 1) {
+		slide.value = {
+			...slide.value,
+			thumbnail: '',
+			elements: [],
+			background: '',
+			transition: '',
+			transitionDuration: 0,
+		}
+		return
+	}
 	await performSlideAction('delete', slideIndex.value)
 	if (slideIndex.value == presentation.data.slides.length)
 		changeSlide(slideIndex.value - 1, false)
