@@ -403,6 +403,7 @@ class MailQueue(Document):
 						"_id": data["id"],
 						"blob_id": data["blobId"],
 						"size": data["size"],
+						"drafted_at": now(),
 						"thread_id": data["threadId"],
 						"mailbox_id": draft_mailbox_id,
 					}
@@ -415,6 +416,7 @@ class MailQueue(Document):
 					kwargs.update(
 						{
 							"status": "Submitted",
+							"submitted_at": now(),
 							"mailbox_id": sent_mailbox_id,
 						}
 					)
