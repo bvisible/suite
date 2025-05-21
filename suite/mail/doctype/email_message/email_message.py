@@ -71,6 +71,7 @@ class EmailMessage(Document):
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
+				EM.flagged,
 			)
 			.where((EM.account == account) & (EM.destroyed == 0))
 			.orderby(EM.received_at, order=frappe.qb.desc)
@@ -188,16 +189,88 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to move email(s) to mailbox."))
 
 	@staticmethod
-	def mark_emails_as_seen(account: str, message_ids: list[str]) -> None:
-		"""Mark emails as seen."""
+	def mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
+		"""Mark emails as seen or unseen."""
 
-		EmailMessage._mark_emails_as_seen_unseen(account, message_ids, seen=True)
+		if not account or not message_ids:
+			frappe.throw(_("Account and message IDs are required."))
+
+		validate_permission_for_account(account)
+
+		email_id_keywords_map = {}
+		message_id_keywords_map = {}
+		for d in frappe.db.get_all(
+			"Email Message",
+			{"account": account, "name": ["in", message_ids], "destroyed": 0},
+			["name", "_id", "_keywords"],
+		):
+			name, _id, _keywords = d.values()
+			_keywords = json.loads(_keywords)
+			_keywords.update({"$seen": seen})
+			email_id_keywords_map[_id] = _keywords
+			message_id_keywords_map[name] = _keywords
+
+		if not email_id_keywords_map:
+			return
+
+		try:
+			client = get_jmap_client(account)
+			client.email_set_keywords(email_id_keywords_map)
+
+			for message_id, _keywords in message_id_keywords_map.items():
+				frappe.db.set_value(
+					"Email Message",
+					message_id,
+					{"seen": cint(seen), "_keywords": json.dumps(_keywords)},
+				)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to mark email(s) as seen/unseen"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
 
 	@staticmethod
-	def mark_emails_as_unseen(account: str, message_ids: list[str]) -> None:
-		"""Mark emails as unseen."""
+	def mark_emails_as_flagged_unflagged(account: str, message_ids: list[str], flagged: bool) -> None:
+		"""Mark emails as flagged or unflagged."""
 
-		EmailMessage._mark_emails_as_seen_unseen(account, message_ids, seen=False)
+		if not account or not message_ids:
+			frappe.throw(_("Account and message IDs are required."))
+
+		validate_permission_for_account(account)
+
+		email_id_keywords_map = {}
+		message_id_keywords_map = {}
+		for d in frappe.db.get_all(
+			"Email Message",
+			{"account": account, "name": ["in", message_ids], "destroyed": 0},
+			["name", "_id", "_keywords"],
+		):
+			name, _id, _keywords = d.values()
+			_keywords = json.loads(_keywords)
+			_keywords.update({"$flagged": flagged})
+			email_id_keywords_map[_id] = _keywords
+			message_id_keywords_map[name] = _keywords
+
+		if not email_id_keywords_map:
+			return
+
+		try:
+			client = get_jmap_client(account)
+			client.email_set_keywords(email_id_keywords_map)
+
+			for message_id, _keywords in message_id_keywords_map.items():
+				frappe.db.set_value(
+					"Email Message",
+					message_id,
+					{"flagged": cint(flagged), "_keywords": json.dumps(_keywords)},
+				)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to mark email(s) as flagged/unflagged"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to mark email(s) as flagged/unflagged."))
 
 	@staticmethod
 	def destroy_emails(account: str, message_ids: list[str]) -> None:
@@ -251,48 +324,6 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to fetch blob."))
 
 	@staticmethod
-	def _mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
-		"""Mark emails as seen or unseen."""
-
-		if not account or not message_ids:
-			frappe.throw(_("Account and message IDs are required."))
-
-		validate_permission_for_account(account)
-
-		email_id_keywords_map = {}
-		message_id_keywords_map = {}
-		for d in frappe.db.get_all(
-			"Email Message",
-			{"account": account, "name": ["in", message_ids], "destroyed": 0},
-			["name", "_id", "_keywords"],
-		):
-			name, _id, _keywords = d.values()
-			_keywords = json.loads(_keywords)
-			_keywords.update({"$seen": seen})
-			email_id_keywords_map[_id] = _keywords
-			message_id_keywords_map[name] = _keywords
-
-		if not email_id_keywords_map:
-			return
-
-		try:
-			client = get_jmap_client(account)
-			client.email_set_keywords(email_id_keywords_map)
-
-			for message_id, _keywords in message_id_keywords_map.items():
-				frappe.db.set_value(
-					"Email Message",
-					message_id,
-					{"seen": cint(seen), "_keywords": json.dumps(_keywords)},
-				)
-		except Exception:
-			frappe.log_error(
-				title=_("Failed to mark email(s) as seen/unseen"),
-				message=frappe.get_traceback(with_context=True),
-			)
-			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
-
-	@staticmethod
 	def _create_or_update_from_email_data(account: str, email_data: dict) -> None:
 		"""Create or update an EmailMessage document from JMAP email data."""
 
@@ -328,8 +359,9 @@ class EmailMessage(Document):
 		email_message.size = email_data["size"]
 		email_message._keywords = json.dumps(email_data["keywords"])
 		email_message.has_attachment = cint(email_data["hasAttachment"])
-		email_message.draft = cint(email_data["keywords"].get("$draft", False))
-		email_message.seen = cint(email_data["keywords"].get("$seen", False))
+
+		for key in ["draft", "seen", "flagged"]:
+			setattr(email_message, key, cint(email_data["keywords"].get(f"${key}", False)))
 
 		# Process sender/from fields
 		for key in ["sender", "from"]:
@@ -409,6 +441,7 @@ class EmailMessage(Document):
 		_keywords = json.dumps(email_data["keywords"])
 		draft = cint(email_data["keywords"].get("$draft", False))
 		seen = cint(email_data["keywords"].get("$seen", False))
+		flagged = cint(email_data["keywords"].get("$flagged", False))
 
 		filters = {"account": account, "_id": _id, "destroyed": 0}
 		frappe.db.set_value(
@@ -421,6 +454,7 @@ class EmailMessage(Document):
 				"_keywords": _keywords,
 				"draft": draft,
 				"seen": seen,
+				"flagged": flagged,
 			},
 		)
 
@@ -673,21 +707,19 @@ class EmailMessage(Document):
 		self.reload()
 
 	@frappe.whitelist()
-	def mark_as_seen(self) -> None:
-		"""Mark the email message as seen."""
+	def set_seen(self, seen: bool) -> None:
+		"""Mark the email message as seen or unseen."""
 
-		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.mark_emails_as_seen(self.account, [self.name])
+		EmailMessage.mark_emails_as_seen_unseen(self.account, [self.name], seen)
 		self.reload()
 
 	@frappe.whitelist()
-	def mark_as_unseen(self) -> None:
-		"""Mark the email message as unseen."""
+	def set_flagged(self, flagged: bool) -> None:
+		"""Mark the email message as flagged or unflagged."""
 
-		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.mark_emails_as_unseen(self.account, [self.name])
+		EmailMessage.mark_emails_as_flagged_unflagged(self.account, [self.name], flagged)
 		self.reload()
 
 	@frappe.whitelist()

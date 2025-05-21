@@ -38,9 +38,15 @@
   "mailbox_role",
   "mailbox_id",
   "thread_id",
+  "keywords_section",
+  "column_break_eumr",
   "draft",
   "seen",
+  "flagged",
   "destroyed",
+  "column_break_ftjb",
+  "_keywords",
+  "keywords",
   "section_break_sfis",
   "from_ip",
   "from_host",
@@ -54,9 +60,6 @@
   "spf_description",
   "dkim_description",
   "dmarc_description",
-  "keywords_section",
-  "_keywords",
-  "keywords",
   "body_parts_section",
   "_html_body",
   "_text_body",
@@ -498,13 +501,31 @@
    "no_copy": 1,
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "flagged",
+   "fieldtype": "Check",
+   "label": "Flagged",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_eumr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ftjb",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 14:07:54.073845",
+ "modified": "2025-05-21 19:31:49.239739",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
