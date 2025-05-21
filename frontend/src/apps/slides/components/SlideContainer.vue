@@ -24,6 +24,7 @@
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
 					@dblclick="(e) => handleDoubleClick(e, element)"
+					@updateSlideCursor="(cursor) => updateSlideCursor(cursor)"
 				/>
 			</div>
 		</div>
@@ -79,12 +80,23 @@ const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideTargetRef,
 )
 
+const slideCursor = ref('default')
+
+const updateSlideCursor = (cursor) => {
+	slideCursor.value = cursor
+}
+
+const cursorClass = computed(() => {
+	const cursor = isDragging.value ? 'move' : slideCursor.value || 'default'
+	return `cursor-${cursor}`
+})
+
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
 	const outlineClasses = props.highlight ? ['outline', 'outline-2', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
-	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
+	const cursorClasses = [cursorClass.value]
 
 	return [...classes, outlineClasses, shadowClasses, cursorClasses]
 })
