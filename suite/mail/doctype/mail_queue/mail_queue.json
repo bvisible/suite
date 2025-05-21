@@ -43,6 +43,7 @@
   "submitted_at",
   "column_break_kuap",
   "in_reply_to",
+  "in_reply_to_id",
   "mailbox_id",
   "thread_id",
   "message_section",
@@ -333,6 +334,7 @@
    "search_index": 1
   },
   {
+   "depends_on": "eval: !doc.__islocal",
    "fieldname": "size",
    "fieldtype": "Int",
    "label": "Size (Bytes)",
@@ -416,12 +418,20 @@
    "no_copy": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "in_reply_to_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "In Reply To (Email ID)",
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 17:47:02.123463",
+ "modified": "2025-05-21 21:25:17.912221",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
