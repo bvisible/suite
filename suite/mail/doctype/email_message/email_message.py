@@ -212,6 +212,8 @@ class EmailMessage(Document):
 	def get_threads(account: str, mailbox_ids: list[str] | None = None, limit: int = 50) -> list[str]:
 		"""Returns the latest email messages in each thread."""
 
+		validate_permission_for_account(account)
+
 		EM = frappe.qb.DocType("Email Message")
 
 		subquery = (
