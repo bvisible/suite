@@ -3,13 +3,16 @@
 
 import json
 import re
+from collections import defaultdict
 from functools import cached_property
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.custom import GROUP_CONCAT
+from frappe.query_builder.functions import Max
 from frappe.utils import cint, time_diff_in_seconds
+from pypika import Case
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name
@@ -204,6 +207,81 @@ class EmailMessage(Document):
 				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to destroy email(s)."))
+
+	@staticmethod
+	def get_threads(account: str, mailbox_ids: list[str] | None = None, limit: int = 50) -> list[str]:
+		"""Returns the latest email messages in each thread."""
+
+		EM = frappe.qb.DocType("Email Message")
+
+		subquery = (
+			frappe.qb.from_(EM)
+			.select(EM.thread_id, Max(EM.received_at).as_("latest_received_at"))
+			.where((EM.account == account) & (EM.destroyed == 0))
+			.groupby(EM.thread_id)
+		).as_("latest")
+
+		if mailbox_ids:
+			subquery = subquery.where(EM.mailbox_id.isin(mailbox_ids))
+
+		query = (
+			frappe.qb.from_(EM)
+			.join(subquery)
+			.on((EM.thread_id == subquery.thread_id) & (EM.received_at == subquery.latest_received_at))
+			.select(
+				EM.name,
+				EM.account,
+				EM.thread_id,
+				EM.from_name,
+				EM.from_email,
+				EM.subject,
+				Case().when(EM.html_body.isnotnull(), EM.html_body).else_(EM.text_body).as_("preview"),
+				EM.has_attachment,
+				EM.received_at,
+				EM.seen,
+			)
+			.where((EM.account == account) & (EM.destroyed == 0))
+			.orderby(EM.received_at, order=frappe.qb.desc)
+			.limit(limit)
+		)
+
+		if mailbox_ids:
+			query = query.where(EM.mailbox_id.isin(mailbox_ids))
+
+		messages = query.run(as_dict=True)
+
+		attachments_map = {}
+		if messages_with_attachment := [m["name"] for m in messages if m["has_attachment"]]:
+			PART = frappe.qb.DocType("Email Message Part")
+			attachments = (
+				frappe.qb.from_(PART)
+				.select(
+					PART.parent,
+					PART.filename,
+					PART.type,
+					PART.size,
+					PART.disposition,
+					PART.blob_id,
+				)
+				.where(
+					(PART.parenttype == "Email Message")
+					& (PART.parentfield == "attachments")
+					& (PART.parent.isin(messages_with_attachment))
+				)
+			).run(as_dict=True)
+
+			attachments_map = defaultdict(list)
+			for a in attachments:
+				attachments_map[a.pop("parent")].append(a)
+
+		if attachments_map:
+			for message in messages:
+				if message["has_attachment"]:
+					message["attachments"] = attachments_map.get(message["name"], [])
+				else:
+					message["attachments"] = []
+
+		return messages
 
 	@staticmethod
 	def get_thread(account: str, thread_id: str) -> list[str]:
