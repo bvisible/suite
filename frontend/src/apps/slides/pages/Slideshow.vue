@@ -23,6 +23,7 @@
 						:key="element.id"
 						:element="element"
 						:data-index="element.id"
+						@click.stop
 					/>
 				</div>
 			</Transition>
