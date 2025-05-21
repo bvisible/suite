@@ -46,10 +46,7 @@ class MailQueue(Document):
 		doc.subject = kwargs.subject
 
 		if kwargs.reply_to:
-			reply_to = [
-				{"display_name": rt.get("display_name"), "email": rt["email"]} for rt in kwargs.reply_to
-			]
-			doc.reply_to = json.dumps(reply_to)
+			doc.reply_to = json.dumps(kwargs.reply_to)
 
 		if kwargs.headers:
 			headers = {}
@@ -163,6 +160,7 @@ class MailQueue(Document):
 			self.validate_from_name()
 			self.validate_from_email()
 			self.validate_delivery_mode()
+			self.validate_reply_to()
 			self.validate_recipients()
 			self.validate_attachments()
 			self.validate_message_id()
@@ -266,6 +264,21 @@ class MailQueue(Document):
 				frappe.throw(_("Invalid delivery mode: {0}").format(self.delivery_mode))
 		else:
 			self.delivery_mode = "Immediate"
+
+	def validate_reply_to(self) -> None:
+		"""Validates the reply to."""
+
+		reply_to = []
+
+		for rt in json_loads(self.reply_to, default=[]):
+			reply_to.append(
+				{
+					"display_name": rt.get("display_name"),
+					"email": rt["email"],
+				}
+			)
+
+		self.reply_to = json.dumps(reply_to)
 
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
