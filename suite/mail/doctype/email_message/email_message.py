@@ -209,8 +209,12 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to destroy email(s)."))
 
 	@staticmethod
-	def get_threads(account: str, mailbox_ids: list[str] | None = None, limit: int = 50) -> list[str]:
+	def get_threads(
+		account: str, mailbox_ids: list[str] | None = None, start: int = 0, limit: int = 50
+	) -> list[str]:
 		"""Returns the latest email messages in each thread."""
+
+		validate_permission_for_account(account)
 
 		EM = frappe.qb.DocType("Email Message")
 
@@ -242,6 +246,7 @@ class EmailMessage(Document):
 			)
 			.where((EM.account == account) & (EM.destroyed == 0))
 			.orderby(EM.received_at, order=frappe.qb.desc)
+			.offset(start)
 			.limit(limit)
 		)
 
