@@ -53,12 +53,12 @@ frappe.ui.form.on('Email Message', {
 
 	add_mark_buttons(frm) {
 		if (frm.doc.seen) {
-			frm.add_custom_button(__('Mark as Unread'), () => {
+			frm.add_custom_button(__('Mark as Unseen'), () => {
 				frappe.call({
 					doc: frm.doc,
 					method: 'mark_as_unseen',
 					freeze: true,
-					freeze_message: __('Marking as Unread...'),
+					freeze_message: __('Marking as Unseen...'),
 					callback: (r) => {
 						if (!r.exc) {
 							frm.refresh()
@@ -67,12 +67,12 @@ frappe.ui.form.on('Email Message', {
 				})
 			})
 		} else {
-			frm.add_custom_button(__('Mark as Read'), () => {
+			frm.add_custom_button(__('Mark as Seen'), () => {
 				frappe.call({
 					doc: frm.doc,
 					method: 'mark_as_seen',
 					freeze: true,
-					freeze_message: __('Marking as Read...'),
+					freeze_message: __('Marking as Seen...'),
 					callback: (r) => {
 						if (!r.exc) {
 							frm.refresh()
