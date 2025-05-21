@@ -6,7 +6,6 @@
  "field_order": [
   "section_break_rgmz",
   "enabled",
-  "track_outgoing_mail",
   "create_mail_contact",
   "column_break_47zs",
   "tenant",
@@ -39,12 +38,6 @@
    "label": "Enabled",
    "permlevel": 1,
    "search_index": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "track_outgoing_mail",
-   "fieldtype": "Check",
-   "label": "Track Outgoing Mail"
   },
   {
    "default": "0",
@@ -226,7 +219,7 @@
    "link_fieldname": "sender"
   }
  ],
- "modified": "2025-05-05 14:18:55.502691",
+ "modified": "2025-05-12 14:42:35.868073",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
