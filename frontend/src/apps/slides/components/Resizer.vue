@@ -13,7 +13,10 @@
 		<div
 			v-show="currentResizer"
 			:style="badgeStyles"
-			class="bg-white-overlay-500 backdrop-blur-sm opacity-90 text-2xs text-black p-1"
+			class="backdrop-blur-sm opacity-80 text-2xs scale-90 text-black p-1"
+			:class="
+				isBackgroundColorDark(slide.background) ? 'bg-white-overlay-600' : 'bg-gray-100'
+			"
 		>
 			<i v-if="elementType === 'text'"> {{ Math.round(selectionBounds.width) }}px </i>
 			<template v-else>
@@ -28,6 +31,7 @@
 import { computed, inject, watch } from 'vue'
 
 import ResizeHandle from '@/components/ResizeHandle.vue'
+import { isBackgroundColorDark } from '@/utils/color'
 
 import { selectionBounds, slide, slideBounds } from '@/stores/slide'
 import { useResizer } from '@/utils/resizer'
