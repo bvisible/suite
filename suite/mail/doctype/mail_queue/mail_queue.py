@@ -52,11 +52,7 @@ class MailQueue(Document):
 			doc.headers = json.dumps(kwargs.headers)
 
 		if kwargs.recipients:
-			recipients = [
-				{"type": rcpt["type"], "display_name": rcpt.get("display_name"), "email": rcpt["email"]}
-				for rcpt in kwargs.recipients
-			]
-			doc.recipients = json.dumps(recipients)
+			doc.recipients = json.dumps(kwargs.recipients)
 
 		if kwargs.attachments:
 			attachments = []
@@ -290,11 +286,20 @@ class MailQueue(Document):
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
 
-		if self.save_as_draft:
-			return
+		recipients = []
+		for rcpt in json_loads(self.recipients, default=[]):
+			recipients.append(
+				{
+					"type": rcpt["type"],
+					"display_name": rcpt.get("display_name"),
+					"email": rcpt["email"],
+				}
+			)
 
-		if not json_loads(self.recipients):
+		if not recipients and not self.save_as_draft:
 			frappe.throw(_("Please add at least one recipient."))
+
+		self.recipients = json.dumps(recipients)
 
 	def validate_attachments(self) -> None:
 		"""Validates the attachments."""
