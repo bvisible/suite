@@ -142,6 +142,7 @@ const handleMouseDown = (e, element) => {
 	// resume normal behavior if element is being edited
 	if (id === focusElementId.value) return
 
+	e.stopPropagation()
 	e.preventDefault()
 
 	// wait for click to be registered
