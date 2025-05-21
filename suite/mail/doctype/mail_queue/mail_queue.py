@@ -55,17 +55,7 @@ class MailQueue(Document):
 			doc.recipients = json.dumps(kwargs.recipients)
 
 		if kwargs.attachments:
-			attachments = []
-			for a in kwargs.attachments:
-				attachments.append(
-					{
-						"file_url": a["file_url"],
-						"disposition": a["disposition"],
-						"filename": a.get("filename"),
-					}
-				)
-
-			doc.attachments = json.dumps(attachments)
+			doc.attachments = json.dumps(kwargs.attachments)
 
 		doc.html_body = kwargs.html_body
 		doc.text_body = kwargs.text_body
@@ -262,7 +252,6 @@ class MailQueue(Document):
 		"""Validates the reply to."""
 
 		reply_to = []
-
 		for rt in json_loads(self.reply_to, default=[]):
 			reply_to.append(
 				{
@@ -277,7 +266,6 @@ class MailQueue(Document):
 		"""Validates the headers."""
 
 		headers = {}
-
 		for key, value in json_loads(self.headers, default={}).items():
 			headers[key] = value
 
@@ -304,12 +292,18 @@ class MailQueue(Document):
 	def validate_attachments(self) -> None:
 		"""Validates the attachments."""
 
-		if attachments := json_loads(self.attachments):
-			for a in attachments:
-				a["cid"] = a["cid"] or random_string(length=10)
-				a["filename"] = a["filename"] or Path(a["file_url"]).name
+		attachments = []
+		for a in json_loads(self.attachments, default=[]):
+			attachments.append(
+				{
+					"file_url": a["file_url"],
+					"disposition": a["disposition"],
+					"cid": a.get("cid") or random_string(length=10),
+					"filename": a.get("filename") or Path(a["file_url"]).name,
+				}
+			)
 
-			self.attachments = json.dumps(attachments)
+		self.attachments = json.dumps(attachments)
 
 	def validate_message_id(self) -> None:
 		"""Validates the message ID."""
