@@ -76,7 +76,7 @@ class DNSRecord(Document):
 				priority=self.priority,
 			)
 
-		self._db_set(is_verified=cint(result), last_checked_at=now(), notify_update=True)
+		self._db_set(is_verified=cint(result), last_checked_at=now(), notify=True)
 
 	def delete_record_from_dns_provider(self) -> None:
 		"""Deletes the DNS Record from the DNS Provider"""
@@ -122,15 +122,12 @@ class DNSRecord(Document):
 		self,
 		update_modified: bool = True,
 		commit: bool = False,
-		notify_update: bool = False,
+		notify: bool = False,
 		**kwargs,
 	) -> None:
 		"""Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, commit=commit)
-
-		if notify_update:
-			self.notify_update()
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
 def create_or_update_dns_record(

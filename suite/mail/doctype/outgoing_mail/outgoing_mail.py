@@ -119,7 +119,7 @@ class OutgoingMail(Document):
 
 	def on_submit(self) -> None:
 		self.create_mail_contacts()
-		self._db_set(status="Pending", notify_update=True)
+		self._db_set(status="Pending", notify=True)
 
 		if not self.is_newsletter:
 			if self.via_api and self.submitted_after <= 5:
@@ -153,7 +153,7 @@ class OutgoingMail(Document):
 				self.folder = "Sent" if self.status == "Sent" else "Outbox"
 
 		if db_set:
-			self._db_set(folder=self.folder, notify_update=True)
+			self._db_set(folder=self.folder, notify=True)
 
 	def set_priority(self) -> None:
 		"""Sets the priority."""
@@ -458,10 +458,6 @@ class OutgoingMail(Document):
 			body_html = self._replace_image_url_with_content_id()
 			body_plain = convert_html_to_text(body_html)
 
-			if self.runtime.mail_account.track_outgoing_mail:
-				self.tracking_id = uuid7().hex
-				body_html = add_tracking_pixel(body_html, self.tracking_id)
-
 			message.attach(MIMEText(body_plain, "plain", "utf-8", policy=policy.SMTP))
 			message.attach(MIMEText(body_html, "html", "utf-8", policy=policy.SMTP))
 
@@ -687,19 +683,14 @@ class OutgoingMail(Document):
 		self,
 		update_modified: bool = True,
 		commit: bool = False,
-		notify_update: bool = False,
+		notify: bool = False,
 		**kwargs,
 	) -> None:
 		"""Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, commit=commit)
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
-		if notify_update:
-			self.notify_update()
-
-	def update_status(
-		self, status: str | None = None, db_set: bool = False, notify_update: bool = False
-	) -> None:
+	def update_status(self, status: str | None = None, db_set: bool = False, notify: bool = False) -> None:
 		"""Updates the status of the email based on the status of the recipients."""
 
 		if not status:
@@ -719,7 +710,7 @@ class OutgoingMail(Document):
 			self.status = status
 
 			if db_set:
-				self._db_set(status=status, notify_update=notify_update)
+				self._db_set(status=status, notify=notify)
 
 	def enqueue_process_for_delivery(self) -> None:
 		"""Enqueue the job to process the email for delivery."""
@@ -749,7 +740,7 @@ class OutgoingMail(Document):
 			return
 
 		kwargs = self._prepare_delivery_args()
-		self._db_set(notify_update=True, **kwargs)
+		self._db_set(notify=True, **kwargs)
 
 		if self.status == "Blocked":
 			self._sync_with_frontend(self.status)
@@ -831,7 +822,7 @@ class OutgoingMail(Document):
 			error_message=None,
 			processed_at=processed_at,
 			processed_after=processed_after,
-			notify_update=True,
+			notify=True,
 		)
 
 	@frappe.whitelist()
@@ -891,7 +882,7 @@ class OutgoingMail(Document):
 			status="Transferring",
 			transfer_started_at=transfer_started_at,
 			transfer_started_after=time_diff_in_seconds(transfer_started_at, self.processed_at),
-			notify_update=False,
+			notify=False,
 			commit=True,
 		)
 
@@ -946,7 +937,7 @@ class OutgoingMail(Document):
 				cluster=cluster,
 				transfer_completed_at=transfer_completed_at,
 				transfer_completed_after=transfer_completed_after,
-				notify_update=True,
+				notify=True,
 				commit=True,
 			)
 		except Exception:
@@ -957,7 +948,7 @@ class OutgoingMail(Document):
 				error_log=error_log,
 				failed_count=failed_count,
 				retry_after=get_retry_after(failed_count),
-				notify_update=True,
+				notify=True,
 				commit=True,
 			)
 
@@ -995,20 +986,6 @@ def reply_to_mail(source_name, target_doc=None) -> "OutgoingMail":
 			)
 
 	return target_doc
-
-
-def add_tracking_pixel(body_html: str, tracking_id: str) -> str:
-	"""Adds the tracking pixel to the HTML body."""
-
-	src = f"{frappe.utils.get_url()}/api/method/mail.api.track.open?id={tracking_id}"
-	tracking_pixel = f'<img src="{src}">'
-
-	if "<body>" in body_html:
-		body_html = body_html.replace("<body>", f"<body>{tracking_pixel}", 1)
-	else:
-		body_html = f"<html><body>{tracking_pixel}{body_html}</body></html>"
-
-	return body_html
 
 
 def is_spam_detection_enabled_for_outbound() -> bool:

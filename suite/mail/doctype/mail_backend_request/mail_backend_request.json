@@ -27,6 +27,7 @@
   "request_params",
   "request_data",
   "request_json",
+  "_response_json",
   "response_json",
   "section_break_66yy",
   "error_log"
@@ -144,6 +145,7 @@
   {
    "fieldname": "response_json",
    "fieldtype": "JSON",
+   "is_virtual": 1,
    "label": "Response (JSON)",
    "no_copy": 1,
    "read_only": 1
@@ -203,12 +205,20 @@
    "label": "On End",
    "length": 255,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "_response_json",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Response (JSON)",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-02 19:18:10.269364",
+ "modified": "2025-05-09 18:21:44.540796",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Backend Request",

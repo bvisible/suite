@@ -255,24 +255,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "_html_body",
-   "fieldtype": "Table",
-   "label": "HTML Body",
-   "no_copy": 1,
-   "options": "Email Message Part",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "_text_body",
-   "fieldtype": "Table",
-   "label": "Text Body",
-   "no_copy": 1,
-   "options": "Email Message Part",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "default": "0",
    "depends_on": "eval: !doc.__islocal",
    "fieldname": "seen",
@@ -304,18 +286,6 @@
    "fieldname": "section_break_yjrj",
    "fieldtype": "Section Break",
    "label": "Body"
-  },
-  {
-   "fieldname": "html_body",
-   "fieldtype": "Code",
-   "label": "HTML",
-   "read_only": 1
-  },
-  {
-   "fieldname": "text_body",
-   "fieldtype": "Code",
-   "label": "Text",
-   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -472,11 +442,42 @@
    "read_only": 1
   },
   {
-   "fieldname": "mailbox_role",
-   "fieldtype": "Data",
-   "label": "Mailbox Role",
+   "fieldname": "keywords",
+   "fieldtype": "JSON",
+   "is_virtual": 1,
+   "label": "Keywords",
    "no_copy": 1,
    "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "_html_body",
+   "fieldtype": "Table",
+   "label": "HTML Body",
+   "no_copy": 1,
+   "options": "Email Message Part",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "_text_body",
+   "fieldtype": "Table",
+   "label": "Text Body",
+   "no_copy": 1,
+   "options": "Email Message Part",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "html_body",
+   "fieldtype": "Code",
+   "label": "HTML",
+   "read_only": 1
+  },
+  {
+   "fieldname": "text_body",
+   "fieldtype": "Code",
+   "label": "Text",
    "read_only": 1
   },
   {
@@ -491,10 +492,9 @@
    "search_index": 1
   },
   {
-   "fieldname": "keywords",
-   "fieldtype": "JSON",
-   "is_virtual": 1,
-   "label": "Keywords",
+   "fieldname": "mailbox_role",
+   "fieldtype": "Data",
+   "label": "Mailbox Role",
    "no_copy": 1,
    "print_hide": 1,
    "read_only": 1
@@ -504,7 +504,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 11:11:11.828593",
+ "modified": "2025-05-21 14:07:54.073845",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
