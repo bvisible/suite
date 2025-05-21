@@ -18,11 +18,6 @@
 			<div class="space-y-4">
 				<Switch v-model="account.doc.enabled" :label="__('Enabled')" class="switch" />
 				<Switch
-					v-model="account.doc.track_outgoing_mail"
-					:label="__('Track Outgoing Mail')"
-					class="switch"
-				/>
-				<Switch
 					v-model="account.doc.create_mail_contact"
 					:label="__('Create Mail Contact')"
 					class="switch"
@@ -57,8 +52,7 @@ const getAccount = () =>
 		doctype: 'Mail Account',
 		name: props.accountID,
 		transform: (data) => {
-			for (const d of ['enabled', 'track_outgoing_mail', 'create_mail_contact'])
-				data[d] = !!data[d]
+			for (const d of ['enabled', 'create_mail_contact']) data[d] = !!data[d]
 		},
 		setValue: {
 			onSuccess: () => {
