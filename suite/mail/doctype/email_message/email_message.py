@@ -72,6 +72,7 @@ class EmailMessage(Document):
 				EM.received_at,
 				EM.seen,
 				EM.flagged,
+				EM.answered,
 			)
 			.where((EM.account == account) & (EM.destroyed == 0))
 			.orderby(EM.received_at, order=frappe.qb.desc)
@@ -360,7 +361,7 @@ class EmailMessage(Document):
 		email_message._keywords = json.dumps(email_data["keywords"])
 		email_message.has_attachment = cint(email_data["hasAttachment"])
 
-		for key in ["draft", "seen", "flagged"]:
+		for key in ["draft", "seen", "flagged", "answered"]:
 			setattr(email_message, key, cint(email_data["keywords"].get(f"${key}", False)))
 
 		# Process sender/from fields
@@ -442,6 +443,7 @@ class EmailMessage(Document):
 		draft = cint(email_data["keywords"].get("$draft", False))
 		seen = cint(email_data["keywords"].get("$seen", False))
 		flagged = cint(email_data["keywords"].get("$flagged", False))
+		answered = cint(email_data["keywords"].get("$answered", False))
 
 		filters = {"account": account, "_id": _id, "destroyed": 0}
 		frappe.db.set_value(
@@ -455,6 +457,7 @@ class EmailMessage(Document):
 				"draft": draft,
 				"seen": seen,
 				"flagged": flagged,
+				"answered": answered,
 			},
 		)
 
@@ -885,6 +888,7 @@ class EmailMessage(Document):
 			subject=f"Re: {self.subject}" if not self.subject.lower().startswith("re:") else self.subject,
 			recipients=recipients,
 			in_reply_to=self.message_id,
+			in_reply_to_id=self._id,
 			do_not_save=True,
 		)
 

@@ -55,6 +55,7 @@ class MailQueue(Document):
 		doc._id = kwargs._id
 		doc.sent_at = kwargs.sent_at
 		doc.in_reply_to = kwargs.in_reply_to
+		doc.in_reply_to_id = kwargs.in_reply_to_id
 		doc.save_as_draft = cint(kwargs.save_as_draft)
 		doc.destroy_after_submission = cint(kwargs.destroy_after_submission)
 		doc.delivery_mode = kwargs.delivery_mode or "Immediate"
@@ -141,6 +142,7 @@ class MailQueue(Document):
 			self.validate_message_id()
 			self.validate_sent_at()
 			self.validate_in_reply_to()
+			self.validate_in_reply_to_id()
 
 	def after_insert(self) -> None:
 		if self.delivery_mode == "Immediate":
@@ -342,6 +344,16 @@ class MailQueue(Document):
 		if self.in_reply_to:
 			self.in_reply_to = self.in_reply_to.strip("<>")
 
+	def validate_in_reply_to_id(self) -> None:
+		"""Validates the In Reply To ID."""
+
+		if self.in_reply_to and not self.in_reply_to_id:
+			self.in_reply_to_id = frappe.db.get_value(
+				"Email Message",
+				{"account": self.account, "destroyed": 0, "message_id": self.in_reply_to},
+				"_id",
+			)
+
 	@frappe.whitelist()
 	def retry(self) -> None:
 		"""Retries Create, Update or Submit the Email."""
@@ -365,6 +377,7 @@ class MailQueue(Document):
 
 			using = ["urn:ietf:params:jmap:mail"]
 			method_calls = []
+			call_id = 0
 
 			if self.raw_message:
 				blob = client.upload_blob(self.raw_message.encode("utf-8"), content_type="message/rfc822")
@@ -381,9 +394,23 @@ class MailQueue(Document):
 								}
 							},
 						},
-						"0",
+						str(call_id),
 					]
 				)
+				call_id += 1
+
+				if self._id:
+					method_calls.append(
+						[
+							"Email/set",
+							{
+								"accountId": client.account_id,
+								"destroy": [self._id] if self._id else None,
+							},
+							str(call_id),
+						]
+					)
+					call_id += 1
 			else:
 				if attachments := json_loads(self.attachments):
 					for a in attachments:
@@ -405,9 +432,10 @@ class MailQueue(Document):
 							"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
 							"destroy": [self._id] if self._id else None,
 						},
-						"0",
+						str(call_id),
 					]
 				)
+				call_id += 1
 
 			if not self.save_as_draft:
 				method_call = [
@@ -440,7 +468,7 @@ class MailQueue(Document):
 							}
 						},
 					},
-					"1",
+					str(call_id),
 				]
 
 				if self.destroy_after_submission:
@@ -457,18 +485,29 @@ class MailQueue(Document):
 
 				using.append("urn:ietf:params:jmap:submission")
 				method_calls.append(method_call)
+				call_id += 1
 
-			if self.raw_message and self._id:
-				method_calls.append(
-					[
-						"Email/set",
-						{
-							"accountId": client.account_id,
-							"destroy": [self._id] if self._id else None,
-						},
-						"2",
-					]
-				)
+				if self.in_reply_to and self.in_reply_to_id:
+					keywords = frappe.db.get_value(
+						"Email Message",
+						{"account": self.account, "destroyed": 0, "_id": self.in_reply_to_id},
+						"_keywords",
+					)
+
+					if keywords is not None:
+						keywords = json.loads(keywords)
+						keywords["$answered"] = True
+						method_calls.append(
+							[
+								"Email/set",
+								{
+									"accountId": client.account_id,
+									"update": {self.in_reply_to_id: {"keywords": keywords}},
+								},
+								str(call_id),
+							]
+						)
+						call_id += 1
 
 			response = client._make_request(using=using, method_calls=method_calls)
 
