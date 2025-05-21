@@ -7,6 +7,7 @@
 			v-show="isResizerVisible(resizer)"
 			:key="resizer"
 			:resizer="resizer"
+			:cursor="resizeCursor"
 			@startResize="(e) => startResize(e, resizer)"
 			@resizeToFitContent="resizeToFitContent"
 		/>
@@ -33,6 +34,8 @@ const props = defineProps({
 		default: 'none',
 	},
 })
+
+const emit = defineEmits(['updateSlideCursor'])
 
 const element = defineModel('element', {
 	type: Object,
@@ -83,6 +86,24 @@ const resizeHandles = computed(() => {
 		]
 })
 
+const resizeCursor = computed(() => {
+	switch (currentResizer.value) {
+		case 'resizer-top-left':
+			return 'nwse-resize'
+		case 'resizer-top-right':
+			return 'nesw-resize'
+		case 'resizer-bottom-left':
+			return 'nesw-resize'
+		case 'resizer-bottom-right':
+			return 'nwse-resize'
+		case 'resizer-left':
+		case 'resizer-right':
+			return 'ew-resize'
+		default:
+			return 'default'
+	}
+})
+
 const updateElementWidth = (deltaWidth) => {
 	if (element.value.width) {
 		element.value.width += deltaWidth
@@ -131,6 +152,13 @@ watch(
 	() => dimensionDelta.value,
 	(delta) => {
 		handleDimensionChange(delta)
+	},
+)
+
+watch(
+	() => currentResizer.value,
+	(resizer) => {
+		emit('updateSlideCursor', resizeCursor.value)
 	},
 )
 </script>
