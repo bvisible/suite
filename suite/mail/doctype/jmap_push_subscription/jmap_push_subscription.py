@@ -33,7 +33,7 @@ class JMAPPushSubscription(Document):
 		client = get_jmap_client(account)
 		response = client.push_subscription_set_verification_code(subscription_id, verification_code)
 
-		kwargs = {"verification_response": json.dumps(response, indent=4)}
+		kwargs = {"_verification_response": json.dumps(response)}
 		if response[0][1].get("updated"):
 			kwargs.update(
 				{
@@ -45,7 +45,7 @@ class JMAPPushSubscription(Document):
 		elif response[0][1].get("notUpdated"):
 			kwargs["status"] = "Failed to Verify"
 
-		subscription._db_set(notify_update=True, **kwargs)
+		subscription._db_set(notify=True, **kwargs)
 
 	@staticmethod
 	def get_push_subscriptions(account: str) -> list[dict]:
@@ -87,6 +87,32 @@ class JMAPPushSubscription(Document):
 
 		return generate_uuid_style_hash(self.account)
 
+	@property
+	def verification_response(self) -> str | None:
+		"""Returns the indented JSON verification response."""
+
+		return (
+			json.dumps(json.loads(self._verification_response), indent=4)
+			if self._verification_response
+			else None
+		)
+
+	@property
+	def renew_response(self) -> str | None:
+		"""Returns the indented JSON renew response."""
+
+		return json.dumps(json.loads(self._renew_response), indent=4) if self._renew_response else None
+
+	@property
+	def subscription_response(self) -> str | None:
+		"""Returns the indented JSON subscription response."""
+
+		return (
+			json.dumps(json.loads(self._subscription_response), indent=4)
+			if self._subscription_response
+			else None
+		)
+
 	def before_insert(self) -> None:
 		self.set_endpoint()
 
@@ -113,8 +139,8 @@ class JMAPPushSubscription(Document):
 			"verified_at": None,
 			"expires_at": None,
 			"subscription_id": None,
-			"verification_response": None,
-			"renew_response": None,
+			"_verification_response": None,
+			"_renew_response": None,
 		}
 		device_client_id = generate_uuid_style_hash(
 			f"frappe-{frappe.local.site.replace('.', '-')}-{self.account}"
@@ -127,7 +153,7 @@ class JMAPPushSubscription(Document):
 				self.account_uuid_hash, device_client_id, self.endpoint, types
 			)
 
-			kwargs["subscription_response"] = json.dumps(response, indent=4)
+			kwargs["_subscription_response"] = json.dumps(response)
 			if response.get("created"):
 				kwargs.update(
 					{
@@ -163,7 +189,7 @@ class JMAPPushSubscription(Document):
 			client = get_jmap_client(self.account)
 			response = client.push_subscription_set_expires(self.subscription_id)
 
-			kwargs = {"renew_response": json.dumps(response, indent=4)}
+			kwargs = {"_renew_response": json.dumps(response)}
 			if response[0][1].get("updated"):
 				new_expires = parse_iso_datetime(response[1][1]["list"][0]["expires"])
 
@@ -218,15 +244,12 @@ class JMAPPushSubscription(Document):
 		self,
 		update_modified: bool = True,
 		commit: bool = False,
-		notify_update: bool = False,
+		notify: bool = False,
 		**kwargs,
 	) -> None:
 		"""Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, commit=commit)
-
-		if notify_update:
-			self.notify_update()
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
 def create_jmap_push_subscription(account: str) -> "JMAPPushSubscription":

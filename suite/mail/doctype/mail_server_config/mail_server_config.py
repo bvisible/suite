@@ -385,11 +385,38 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"jmap": {
 			"account": {"purge": {"frequency": cluster.jmap_account_purge_frequency}},
-			"email": {"auto-expunge": format_value_or_zero(cluster.jmap_email_auto_expunge, "d")},
+			"email": {
+				"auto-expunge": format_value_or_zero(cluster.jmap_email_auto_expunge, "d"),
+				"max-attachment-size": cluster.jmap_email_max_attachment_size,
+				"max-size": cluster.jmap_email_max_size,
+				"parse": {"max-items": cluster.jmap_email_parse_max_items},
+			},
 			"protocol": {
 				"changes": {
-					"max-history": format_value_or_zero(cluster.jmap_protocol_changes_max_history, "d")
-				}
+					"max-history": format_value_or_zero(cluster.jmap_protocol_changes_max_history, "d"),
+					"max-results": cluster.jmap_protocol_changes_max_results,
+				},
+				"request": {
+					"max-concurrent": cluster.jmap_protocol_request_max_concurrent,
+					"max-size": cluster.jmap_protocol_request_max_size,
+					"max-calls": cluster.jmap_protocol_request_max_calls,
+				},
+				"get": {"max-objects": cluster.jmap_protocol_get_max_objects},
+				"set": {"max-objects": cluster.jmap_protocol_set_max_objects},
+				"query": {"max-results": cluster.jmap_protocol_query_max_results},
+				"upload": {
+					"max-size": cluster.jmap_protocol_upload_max_size,
+					"max-concurrent": cluster.jmap_protocol_upload_max_concurrent,
+					"ttl": format_value_or_zero(cluster.jmap_protocol_upload_ttl, "h"),
+					"quota": {
+						"files": cluster.jmap_protocol_upload_quota_files,
+						"size": cluster.jmap_protocol_upload_quota_size,
+					},
+				},
+			},
+			"mailbox": {
+				"max-depth": cluster.jmap_mailbox_max_depth,
+				"max-name-length": cluster.jmap_mailbox_max_name_length,
 			},
 			"push": {
 				"max-total": cluster.jmap_push_max_total,
