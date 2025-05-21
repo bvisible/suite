@@ -11,6 +11,15 @@
 			@startResize="(e) => startResize(e, resizer)"
 			@resizeToFitContent="resizeToFitContent"
 		/>
+
+		<div
+			v-show="currentResizer"
+			:style="badgeStyles"
+			class="bg-white-overlay-500 backdrop-blur-sm opacity-90 text-2xs text-black p-1"
+		>
+			<i>{{ Math.round(selectionBounds.width) }}px</i> ×
+			<i>{{ Math.round(selectionBounds.height) }}px</i>
+		</div>
 	</div>
 </template>
 
@@ -161,4 +170,21 @@ watch(
 		emit('updateSlideCursor', resizeCursor.value)
 	},
 )
+
+const badgeBaseStyles = {
+	position: 'absolute',
+	zIndex: 100,
+	borderRadius: '6px',
+}
+
+const badgeStyles = computed(() => {
+	if (!currentResizer.value) return {}
+	return {
+		...badgeBaseStyles,
+		left: currentResizer.value.includes('left') ? '8px' : 'auto',
+		right: currentResizer.value.includes('right') ? '8px' : 'auto',
+		top: currentResizer.value.includes('top') ? '8px' : 'auto',
+		bottom: currentResizer.value.includes('bottom') ? '8px' : 'auto',
+	}
+})
 </script>
