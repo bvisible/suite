@@ -125,7 +125,7 @@ const triggerDrag = (e, id) => {
 	if ((id && focusElementId.value !== id) || activeElementIds.value.length > 1) {
 		startDragging(e)
 
-		if (id && activeElementIds.value.length < 2) {
+		if (id && activeElementIds.value.length < 2 && activeElementIds.value[0] !== id) {
 			activeElementIds.value = [id]
 			focusElementId.value = null
 		}
