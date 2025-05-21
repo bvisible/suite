@@ -15,5 +15,5 @@
 	</div>
 </template>
 <script setup lang="ts">
-import AppSidebar from './AppSidebar.vue'
+import AppSidebar from '@/components/AppSidebar.vue'
 </script>
