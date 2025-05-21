@@ -257,8 +257,35 @@ class MailQueue(Document):
 	def validate_headers(self) -> None:
 		"""Validates the headers."""
 
+		standard_headers = {
+			"from",
+			"to",
+			"cc",
+			"bcc",
+			"subject",
+			"date",
+			"message-id",
+			"in-reply-to",
+			"references",
+			"reply-to",
+			"sender",
+			"return-path",
+			"mime-version",
+			"content-type",
+			"content-transfer-encoding",
+			"content-language",
+			"x-priority",
+		}
+
 		headers = {}
 		for key, value in json_loads(self.headers, default={}).items():
+			if key.lower() in standard_headers:
+				frappe.throw(
+					_(
+						"The header <b>{0}</b> is a standard email header and cannot be overridden. Please use custom headers prefixed with <code>X-</code>."
+					).format(key)
+				)
+
 			headers[key] = value
 
 		self.headers = json.dumps(headers)
