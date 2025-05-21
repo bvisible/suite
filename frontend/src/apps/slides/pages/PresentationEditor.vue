@@ -2,7 +2,7 @@
 	<div
 		ref="mediaDropContainer"
 		class="fixed flex h-screen w-screen flex-col select-none"
-		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
+		:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
