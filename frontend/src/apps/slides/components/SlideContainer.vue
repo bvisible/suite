@@ -118,7 +118,7 @@ const handleMouseUp = (e, id) => {
 
 	pairElementId.value = null
 
-	clickTimeout = setTimeout(() => triggerSelection(e, id), 100)
+	if (!isDragging.value) clickTimeout = setTimeout(() => triggerSelection(e, id), 100)
 }
 
 const triggerDrag = (e, id) => {
