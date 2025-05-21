@@ -8,10 +8,9 @@ frappe.ui.form.on('Email Message', {
 		if (!frm.doc.destroyed) {
 			if (!frm.doc.__islocal) {
 				if (!frm.doc.draft) {
-					frm.trigger('add_reply_buttons')
-					frm.trigger('add_forward_button')
-					frm.trigger('add_mark_buttons')
+					frm.trigger('add_seen_flagged_buttons')
 					frm.trigger('add_destroy_button')
+					frm.trigger('add_reply_forward_buttons')
 					frm.trigger('add_move_buttons')
 				}
 
@@ -20,59 +19,21 @@ frappe.ui.form.on('Email Message', {
 		}
 	},
 
-	add_reply_buttons(frm) {
-		frm.add_custom_button(__('Reply'), () => {
-			frappe.model.open_mapped_doc({
-				method: 'mail.mail.doctype.email_message.email_message.reply',
-				frm: frm,
-				freeze: true,
-				freeze_message: __('Loading...'),
-			})
-		})
+	add_seen_flagged_buttons(frm) {
+		function add_toggle_button(field, method, labels, freeze_messages) {
+			const current = frm.doc[field]
+			const label = current ? __(labels[1]) : __(labels[0])
+			const freeze_message = current ? __(freeze_messages[1]) : __(freeze_messages[0])
 
-		frm.add_custom_button(__('Reply All'), () => {
-			frappe.model.open_mapped_doc({
-				method: 'mail.mail.doctype.email_message.email_message.reply_all',
-				frm: frm,
-				freeze: true,
-				freeze_message: __('Loading...'),
-			})
-		})
-	},
-
-	add_forward_button(frm) {
-		frm.add_custom_button(__('Forward'), () => {
-			frappe.model.open_mapped_doc({
-				method: 'mail.mail.doctype.email_message.email_message.forward',
-				frm: frm,
-				freeze: true,
-				freeze_message: __('Loading...'),
-			})
-		})
-	},
-
-	add_mark_buttons(frm) {
-		if (frm.doc.seen) {
-			frm.add_custom_button(__('Mark as Unseen'), () => {
+			frm.add_custom_button(label, () => {
 				frappe.call({
 					doc: frm.doc,
-					method: 'mark_as_unseen',
-					freeze: true,
-					freeze_message: __('Marking as Unseen...'),
-					callback: (r) => {
-						if (!r.exc) {
-							frm.refresh()
-						}
+					method,
+					args: {
+						[field]: !current,
 					},
-				})
-			})
-		} else {
-			frm.add_custom_button(__('Mark as Seen'), () => {
-				frappe.call({
-					doc: frm.doc,
-					method: 'mark_as_seen',
 					freeze: true,
-					freeze_message: __('Marking as Seen...'),
+					freeze_message,
 					callback: (r) => {
 						if (!r.exc) {
 							frm.refresh()
@@ -81,6 +42,20 @@ frappe.ui.form.on('Email Message', {
 				})
 			})
 		}
+
+		add_toggle_button(
+			'seen',
+			'set_seen',
+			['Seen', 'Unseen'],
+			['Marking as Seen...', 'Marking as Unseen...'],
+		)
+
+		add_toggle_button(
+			'flagged',
+			'set_flagged',
+			['Flag', 'Unflag'],
+			['Flagging...', 'Unflagging...'],
+		)
 	},
 
 	add_destroy_button(frm) {
@@ -101,6 +76,47 @@ frappe.ui.form.on('Email Message', {
 				})
 			})
 		}
+	},
+
+	add_reply_forward_buttons(frm) {
+		frm.add_custom_button(
+			__('Reply'),
+			() => {
+				frappe.model.open_mapped_doc({
+					method: 'mail.mail.doctype.email_message.email_message.reply',
+					frm: frm,
+					freeze: true,
+					freeze_message: __('Loading...'),
+				})
+			},
+			__('Reply / Forward'),
+		)
+
+		frm.add_custom_button(
+			__('Reply All'),
+			() => {
+				frappe.model.open_mapped_doc({
+					method: 'mail.mail.doctype.email_message.email_message.reply_all',
+					frm: frm,
+					freeze: true,
+					freeze_message: __('Loading...'),
+				})
+			},
+			__('Reply / Forward'),
+		)
+
+		frm.add_custom_button(
+			__('Forward'),
+			() => {
+				frappe.model.open_mapped_doc({
+					method: 'mail.mail.doctype.email_message.email_message.forward',
+					frm: frm,
+					freeze: true,
+					freeze_message: __('Loading...'),
+				})
+			},
+			__('Reply / Forward'),
+		)
 	},
 
 	add_move_buttons(frm) {
