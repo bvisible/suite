@@ -57,7 +57,7 @@ class MailQueue(Document):
 		doc.in_reply_to = kwargs.in_reply_to
 		doc.save_as_draft = cint(kwargs.save_as_draft)
 		doc.destroy_after_submission = cint(kwargs.destroy_after_submission)
-		doc.delivery_mode = kwargs.delivery_mode
+		doc.delivery_mode = kwargs.delivery_mode or "Immediate"
 		doc.raw_message = kwargs.raw_message
 
 		if not do_not_save:
