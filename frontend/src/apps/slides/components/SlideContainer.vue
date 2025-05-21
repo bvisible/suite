@@ -8,11 +8,7 @@
 			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
 		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox
-					ref="selectionBox"
-					@mousedown="(e) => handleMouseDown(e)"
-					@updateFocus="updateFocus"
-				/>
+				<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
 
 				<SnapGuides v-if="isDragging" :visibilityMap="visibilityMap" />
 
@@ -39,7 +35,7 @@ import SelectionBox from '@/components/SelectionBox.vue'
 import SlideElement from '@/components/SlideElement.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
+import { slide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
 	activeElement,
 	activeElementIds,
@@ -176,14 +172,6 @@ const scale = computed(() => {
 	if (!matrix) return 1
 	return parseFloat(matrix[1].split(', ')[0])
 })
-
-const updateFocus = (e) => {
-	if (isResizing.value) {
-		isResizing.value = false
-		return
-	}
-	selectSlide(e)
-}
 
 const updateResizeHandler = (index) => {
 	const targetElement = document.querySelector(`[data-index="${index}"]`)
