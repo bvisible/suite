@@ -1,89 +1,148 @@
 <template>
-	<div
-		:style="resizerStyles"
-		@mousedown="$emit('startResize', $event)"
-		@dblclick="handleDoubleClick"
-	></div>
+	<div>
+		<ResizeHandle
+			v-for="resizeHandle in resizeHandles"
+			v-show="handleVisibilityMap[resizeHandle]"
+			:key="resizeHandle"
+			:resizer="resizeHandle"
+			:cursor="resizeCursor"
+			@startResize="(e) => startResize(e, resizeHandle)"
+			@resizeToFitContent="resizeToFitContent"
+		/>
+
+		<div
+			v-show="currentResizer"
+			:style="badgeStyles"
+			class="bg-white-overlay-500 backdrop-blur-sm opacity-90 text-2xs text-black p-1"
+		>
+			<i>{{ Math.round(selectionBounds.width) }}px</i> ×
+			<i>{{ Math.round(selectionBounds.height) }}px</i>
+		</div>
+	</div>
 </template>
+
 <script setup>
-import { computed } from 'vue'
+import { computed, inject, watch } from 'vue'
+
+import ResizeHandle from '@/components/ResizeHandle.vue'
+
+import { selectionBounds, slide, slideBounds } from '@/stores/slide'
+import { useResizer } from '@/utils/resizer'
 
 const props = defineProps({
-	resizer: {
+	elementType: {
 		type: String,
 		required: true,
 	},
+	elementDivRef: {
+		type: Object,
+		default: null,
+	},
 })
 
-const emit = defineEmits(['startResize', 'resizeToFitContent'])
+const emit = defineEmits(['updateElementWidth'])
 
-const baseStyles = {
+const element = defineModel('element', {
+	type: Object,
+	default: null,
+})
+
+const updateSlideCursor = inject('updateSlideCursor')
+
+const { dimensionDelta, currentResizer, startResize } = useResizer()
+
+const badgeBaseStyles = {
 	position: 'absolute',
 	zIndex: 100,
-	backgroundColor: '#70b6f0',
-	borderRadius: '10px',
+	borderRadius: '6px',
 }
 
-const widthHandleStyles = {
-	width: '4px',
-	height: '14px',
-	cursor: 'ew-resize',
-	top: 'calc(50% - 7px)',
-}
-
-const dimensionHandleStyles = {
-	width: '7px',
-	height: '7px',
-}
-
-const getWidthResizerStyles = () => {
+const badgeStyles = computed(() => {
+	if (!currentResizer.value) return {}
 	return {
-		...baseStyles,
-		...widthHandleStyles,
-		left: props.resizer === 'resizer-left' ? '-3px' : 'auto',
-		right: props.resizer === 'resizer-right' ? '-3px' : 'auto',
-	}
-}
-
-const getDimensionResizerStyles = () => {
-	const resizer = props.resizer
-	const cursorStyles = {
-		'resizer-top-left': 'nwse-resize',
-		'resizer-top-right': 'nesw-resize',
-		'resizer-bottom-left': 'nesw-resize',
-		'resizer-bottom-right': 'nwse-resize',
-	}
-	return {
-		...baseStyles,
-		...dimensionHandleStyles,
-		top: resizer.includes('top') ? '-4.5px' : 'auto',
-		bottom: resizer.includes('bottom') ? '-4.5px' : 'auto',
-		left: resizer.includes('left') ? '-4.5px' : 'auto',
-		right: resizer.includes('right') ? '-4.5px' : 'auto',
-		cursor: cursorStyles[resizer],
-	}
-}
-
-const resizerStyles = computed(() => {
-	switch (props.resizer) {
-		case 'resizer-left':
-		case 'resizer-right':
-			return getWidthResizerStyles()
-		case 'resizer-top-left':
-		case 'resizer-top-right':
-		case 'resizer-bottom-left':
-		case 'resizer-bottom-right':
-			return getDimensionResizerStyles()
-		default:
-			return {}
+		...badgeBaseStyles,
+		left: currentResizer.value.includes('left') ? '8px' : 'auto',
+		right: currentResizer.value.includes('right') ? '8px' : 'auto',
+		top: currentResizer.value.includes('top') ? '8px' : 'auto',
+		bottom: currentResizer.value.includes('bottom') ? '8px' : 'auto',
 	}
 })
 
-const handleDoubleClick = (e) => {
-	e.stopPropagation()
+const resizeHandles = computed(() => {
+	if (props.elementType === 'text') return ['resizer-left', 'resizer-right']
+	else
+		return [
+			'resizer-top-left',
+			'resizer-top-right',
+			'resizer-bottom-left',
+			'resizer-bottom-right',
+		]
+})
 
-	if (['resizer-left', 'resizer-right'].includes(props.resizer)) {
-		emit('resizeToFitContent', e)
+const resizeCursor = computed(() => {
+	switch (currentResizer.value) {
+		case 'resizer-top-left':
+			return 'nwse-resize'
+		case 'resizer-top-right':
+			return 'nesw-resize'
+		case 'resizer-bottom-left':
+			return 'nesw-resize'
+		case 'resizer-bottom-right':
+			return 'nwse-resize'
+		case 'resizer-left':
+		case 'resizer-right':
+			return 'ew-resize'
+		default:
+			return 'default'
 	}
+})
+
+const handleDimensionChange = (delta) => {
+	const ratio = selectionBounds.width / selectionBounds.height
+	delta.top = (delta.top ?? 0) / ratio
+
+	selectionBounds.left += delta.left / slideBounds.scale
+	selectionBounds.top += delta.top / slideBounds.scale
+
+	emit('updateElementWidth', delta.width || 0)
 }
+
+const isResizeHandleVisible = (resizer) => {
+	if (!currentResizer.value) return true
+	return currentResizer.value === resizer
+}
+
+const handleVisibilityMap = computed(() => {
+	return resizeHandles.value.reduce((acc, resizer) => {
+		acc[resizer] = isResizeHandleVisible(resizer)
+		return acc
+	}, {})
+})
+
+const resizeToFitContent = () => {
+	// create range of the text node within TextElement
+	const target = props.elementDivRef?.value
+	const range = document.createRange()
+	const textNode = target.firstChild
+	const originalWidth = target.offsetWidth
+	range.selectNodeContents(textNode)
+
+	// find out width of text content
+	const textWidth = range.getBoundingClientRect().width
+	handleDimensionChange({ width: textWidth - originalWidth + 5 })
+}
+
+watch(
+	() => dimensionDelta.value,
+	(delta) => {
+		handleDimensionChange(delta)
+	},
+)
+
+watch(
+	() => currentResizer.value,
+	(resizer) => {
+		updateSlideCursor(resizeCursor.value)
+	},
+)
 </script>

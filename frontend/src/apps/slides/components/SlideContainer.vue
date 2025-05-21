@@ -24,7 +24,6 @@
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
 					@dblclick="(e) => handleDoubleClick(e, element)"
-					@updateSlideCursor="(cursor) => updateSlideCursor(cursor)"
 				/>
 			</div>
 		</div>
@@ -40,13 +39,7 @@ import SelectionBox from '@/components/SelectionBox.vue'
 import SlideElement from '@/components/SlideElement.vue'
 
 import { presentation } from '@/stores/presentation'
-import {
-	slide,
-	selectSlide,
-	slideBounds,
-	selectionBounds,
-	updateSelectionBounds,
-} from '@/stores/slide'
+import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
 	activeElement,
 	activeElementIds,
@@ -195,14 +188,7 @@ const updateFocus = (e) => {
 	selectSlide(e)
 }
 
-const updateResizeHandler = (index) => {
-	const targetElement = document.querySelector(`[data-index="${index}"]`)
-	const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
-}
-
 const handleSelectionChange = (newSelection, oldSelection) => {
-	if (newSelection.length < 2) updateResizeHandler(newSelection[0])
-
 	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
 }
 
@@ -240,7 +226,8 @@ const handlePositionChange = (delta) => {
 
 	if (!disableMovement.value) {
 		const totalDelta = getTotalPositionDelta(delta)
-		updateSelectionBounds(totalDelta)
+		selectionBounds.left += totalDelta.left / scale.value
+		selectionBounds.top += totalDelta.top / scale.value
 	}
 }
 
@@ -294,6 +281,7 @@ onMounted(() => {
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
+provide('updateSlideCursor', updateSlideCursor)
 
 defineExpose({
 	togglePanZoom,
