@@ -15,8 +15,11 @@
 			:style="badgeStyles"
 			class="bg-white-overlay-500 backdrop-blur-sm opacity-90 text-2xs text-black p-1"
 		>
-			<i>{{ Math.round(selectionBounds.width) }}px</i> ×
-			<i>{{ Math.round(selectionBounds.height) }}px</i>
+			<i v-if="elementType === 'text'"> {{ Math.round(selectionBounds.width) }}px </i>
+			<template v-else>
+				<i>{{ Math.round(selectionBounds.width) }}px</i> ×
+				<i>{{ Math.round(selectionBounds.height) }}px</i>
+			</template>
 		</div>
 	</div>
 </template>
@@ -59,6 +62,20 @@ const badgeBaseStyles = {
 
 const badgeStyles = computed(() => {
 	if (!currentResizer.value) return {}
+
+	if (props.elementType == 'text') {
+		return {
+			...badgeBaseStyles,
+			left: currentResizer.value.includes('right')
+				? selectionBounds.width + 20 + 'px'
+				: 'auto',
+			right: currentResizer.value.includes('left')
+				? selectionBounds.width + 20 + 'px'
+				: 'auto',
+			top: 'calc(50% - 8.5px)',
+		}
+	}
+
 	return {
 		...badgeBaseStyles,
 		left: currentResizer.value.includes('left') ? '8px' : 'auto',
