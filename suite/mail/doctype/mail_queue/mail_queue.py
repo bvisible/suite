@@ -45,17 +45,9 @@ class MailQueue(Document):
 		doc.from_email = kwargs.from_email
 		doc.subject = kwargs.subject
 
-		if kwargs.reply_to:
-			doc.reply_to = json.dumps(kwargs.reply_to)
-
-		if kwargs.headers:
-			doc.headers = json.dumps(kwargs.headers)
-
-		if kwargs.recipients:
-			doc.recipients = json.dumps(kwargs.recipients)
-
-		if kwargs.attachments:
-			doc.attachments = json.dumps(kwargs.attachments)
+		for field in ["reply_to", "headers", "recipients", "attachments"]:
+			if kwargs.get(field):
+				setattr(doc, field, json.dumps(kwargs[field]))
 
 		doc.html_body = kwargs.html_body
 		doc.text_body = kwargs.text_body
