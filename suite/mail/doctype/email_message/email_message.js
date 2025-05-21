@@ -12,6 +12,7 @@ frappe.ui.form.on('Email Message', {
 					frm.trigger('add_forward_button')
 					frm.trigger('add_mark_buttons')
 					frm.trigger('add_move_buttons')
+					frm.trigger('add_destroy_button')
 				}
 
 				frm.trigger('add_actions')
@@ -105,6 +106,26 @@ frappe.ui.form.on('Email Message', {
 					add_move_button('Move to Inbox', 'inbox')
 			},
 		})
+	},
+
+	add_destroy_button(frm) {
+		if (!frm.doc.destroyed) {
+			frm.add_custom_button(__('Destroy'), () => {
+				frappe.confirm(__('Are you sure you want to destroy this email?'), () => {
+					frappe.call({
+						doc: frm.doc,
+						method: 'destroy',
+						freeze: true,
+						freeze_message: __('Destroying...'),
+						callback: (r) => {
+							if (!r.exc) {
+								frm.refresh()
+							}
+						},
+					})
+				})
+			})
+		}
 	},
 
 	add_actions(frm) {
