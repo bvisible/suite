@@ -29,6 +29,7 @@ export const useSnapping = (target, parent) => {
 	})
 
 	const visibilityMap = computed(() => {
+		if (!target.value) return
 		return {
 			vertical: Math.abs(diffs.vertical) < PROXIMITY_THRESHOLD,
 			horizontal: Math.abs(diffs.horizontal) < PROXIMITY_THRESHOLD,
