@@ -67,7 +67,36 @@
   "push_timeouts_section",
   "jmap_push_timeout_request",
   "column_break_68lj",
-  "jmap_push_timeout_verify"
+  "jmap_push_timeout_verify",
+  "request_limits_section",
+  "jmap_protocol_request_max_concurrent",
+  "column_break_rc7k",
+  "jmap_protocol_request_max_size",
+  "jmap_protocol_request_max_calls",
+  "max_objects_section",
+  "jmap_protocol_get_max_objects",
+  "column_break_rpmh",
+  "jmap_protocol_set_max_objects",
+  "max_results_section",
+  "jmap_protocol_query_max_results",
+  "column_break_ebem",
+  "jmap_protocol_changes_max_results",
+  "upload_limits_section",
+  "jmap_protocol_upload_max_size",
+  "jmap_protocol_upload_max_concurrent",
+  "jmap_protocol_upload_ttl",
+  "column_break_iqbf",
+  "jmap_protocol_upload_quota_files",
+  "jmap_protocol_upload_quota_size",
+  "mailbox_limits_section",
+  "jmap_mailbox_max_depth",
+  "column_break_dxmn",
+  "jmap_mailbox_max_name_length",
+  "email_limits_section",
+  "jmap_email_max_attachment_size",
+  "jmap_email_max_size",
+  "column_break_wuz8",
+  "jmap_email_parse_max_items"
  ],
  "fields": [
   {
@@ -495,6 +524,213 @@
    "reqd": 1,
    "set_only_once": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "request_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Request Limits"
+  },
+  {
+   "fieldname": "column_break_rc7k",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_objects_section",
+   "fieldtype": "Section Break",
+   "label": "Max Objects"
+  },
+  {
+   "fieldname": "column_break_rpmh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_results_section",
+   "fieldtype": "Section Break",
+   "label": "Max Results"
+  },
+  {
+   "fieldname": "column_break_ebem",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "upload_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Upload Limits"
+  },
+  {
+   "fieldname": "column_break_iqbf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mailbox_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Mailbox Limits"
+  },
+  {
+   "fieldname": "column_break_dxmn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Email Limits"
+  },
+  {
+   "fieldname": "column_break_wuz8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "4",
+   "description": "Restricts the number of concurrent requests a user can make to the JMAP server.",
+   "fieldname": "jmap_protocol_request_max_concurrent",
+   "fieldtype": "Int",
+   "label": "Concurrent",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "10000000",
+   "description": "Defines the maximum size of a single request, in bytes, that the server will accept.",
+   "fieldname": "jmap_protocol_request_max_size",
+   "fieldtype": "Int",
+   "label": "Size (Bytes)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "16",
+   "description": "Limits the maximum number of method calls that can be included in a single request.",
+   "fieldname": "jmap_protocol_request_max_calls",
+   "fieldtype": "Int",
+   "label": "Method Calls",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "500",
+   "description": "Determines the maximum number of objects that can be fetched in a single method call.",
+   "fieldname": "jmap_protocol_get_max_objects",
+   "fieldtype": "Int",
+   "label": "Get",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "500",
+   "description": "Establishes the maximum number of objects that can be modified in a single method call.",
+   "fieldname": "jmap_protocol_set_max_objects",
+   "fieldtype": "Int",
+   "label": "Set",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "5000",
+   "description": "Sets the maximum number of results that a Query method can return.",
+   "fieldname": "jmap_protocol_query_max_results",
+   "fieldtype": "Int",
+   "label": "Query",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "5000",
+   "description": "Determines the maximum number of change objects that a Changes method can return.",
+   "fieldname": "jmap_protocol_changes_max_results",
+   "fieldtype": "Int",
+   "label": "Changes",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "50000000",
+   "description": "Defines the maximum file size for file uploads to the server.",
+   "fieldname": "jmap_protocol_upload_max_size",
+   "fieldtype": "Int",
+   "label": "Max Size (Bytes)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "4",
+   "description": "Restricts the number of concurrent file uploads a user can perform.",
+   "fieldname": "jmap_protocol_upload_max_concurrent",
+   "fieldtype": "Int",
+   "label": "Max Concurrent",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Specifies the Time-To-Live (TTL) for each uploaded file, after which the file is deleted from temporary storage.",
+   "fieldname": "jmap_protocol_upload_ttl",
+   "fieldtype": "Int",
+   "label": "Expire After (Hours)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1000",
+   "description": "Specifies the maximum number of files that a user can upload within a certain period.",
+   "fieldname": "jmap_protocol_upload_quota_files",
+   "fieldtype": "Int",
+   "label": "Total Files",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "50000000",
+   "description": "Defines the total size of files that a user can upload within a certain period.",
+   "fieldname": "jmap_protocol_upload_quota_size",
+   "fieldtype": "Int",
+   "label": "Total Size (Bytes)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "10",
+   "description": "Restricts the maximum depth of nested mailboxes a user can create.",
+   "fieldname": "jmap_mailbox_max_depth",
+   "fieldtype": "Int",
+   "label": "Max Depth",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "255",
+   "description": "Establishes the maximum length of a mailbox name.",
+   "fieldname": "jmap_mailbox_max_name_length",
+   "fieldtype": "Int",
+   "label": "Name Length",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "50000000",
+   "description": "Specifies the maximum size for an email attachment.",
+   "fieldname": "jmap_email_max_attachment_size",
+   "fieldtype": "Int",
+   "label": "Attachment Size (Bytes)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "75000000",
+   "description": "Determines the maximum size for an email message.",
+   "fieldname": "jmap_email_max_size",
+   "fieldtype": "Int",
+   "label": "E-mail Size (Bytes)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "10",
+   "description": "Limits the maximum number of items that can be parsed from an email message.",
+   "fieldname": "jmap_email_parse_max_items",
+   "fieldtype": "Int",
+   "label": "Parse Max",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -526,7 +762,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-05-02 16:08:39.296462",
+ "modified": "2025-05-13 20:22:31.463104",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",

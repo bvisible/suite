@@ -9,11 +9,6 @@
 		/>
 		<FormControl v-model="account.doc.display_name" :label="__('Display Name')" />
 		<Switch
-			v-model="account.doc.track_outgoing_mail"
-			:label="__('Track Outgoing Mails')"
-			:description="__('Track recipient activity on mails sent by you.')"
-		/>
-		<Switch
 			v-model="account.doc.create_mail_contact"
 			:label="__('Create Mail Contacts')"
 			:description="__('Create contacts of people you send mails to.')"
@@ -76,7 +71,7 @@ const account = createDocumentResource({
 	doctype: 'Mail Account',
 	name: user.data?.name,
 	transform(data: MailAccount) {
-		const keys = ['enabled', 'track_outgoing_mail', 'create_mail_contact'] as const
+		const keys = ['enabled', 'create_mail_contact'] as const
 		for (const key of keys) data[key] = !!data[key]
 	},
 	setValue: {

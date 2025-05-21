@@ -81,7 +81,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Method Path",
-   "placeholder": "mail.api.track.open",
+   "placeholder": "mail.api.outbound.send",
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
@@ -128,7 +128,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-09 10:53:11.725956",
+ "modified": "2025-05-12 14:50:17.837100",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Rate Limit",

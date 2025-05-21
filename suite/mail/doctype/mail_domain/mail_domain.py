@@ -25,6 +25,10 @@ class MailDomain(Document):
 		self.domain_name = self.domain_name.strip().lower()
 		self.name = self.domain_name
 
+	def before_insert(self) -> None:
+		self.validate_tenant()
+		self.refresh_dns_records(do_not_save=True)
+
 	def validate(self) -> None:
 		if self.is_new():
 			self.validate_is_subdomain()
@@ -34,10 +38,6 @@ class MailDomain(Document):
 		self.validate_dkim_rsa_key_size()
 		self.validate_newsletter_retention()
 		self.validate_is_verified()
-
-	def before_insert(self) -> None:
-		self.validate_tenant()
-		self.refresh_dns_records(do_not_save=True)
 
 	def after_insert(self) -> None:
 		MailBackendDomainManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(self.domain_name)

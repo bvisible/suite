@@ -23,6 +23,13 @@ def get_user_email_addresses(user: str) -> list:
 	return email_addresses
 
 
+def get_account_email_addresses(account: str) -> list:
+	"""Returns the list of email addresses associated with the account."""
+
+	user = frappe.db.get_value("Mail Account", account, "user")
+	return get_user_email_addresses(user)
+
+
 def get_user_linked_domains(user: str) -> list:
 	"""Returns the list of linked domains associated with the user."""
 
