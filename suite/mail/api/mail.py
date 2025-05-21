@@ -7,10 +7,18 @@ from bs4 import BeautifulSoup
 from frappe import _
 from frappe.utils import is_html, now
 
+from mail.jmap import get_mailboxes
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import get_user_email_addresses
 
 MailType = Literal["Incoming Mail", "Outgoing Mail"]
+
+
+@frappe.whitelist()
+def get_user_mailboxes() -> list:
+	"""Returns mailboxes/folders for the current user."""
+
+	return get_mailboxes(frappe.session.user)
 
 
 @frappe.whitelist()
