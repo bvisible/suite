@@ -8,6 +8,7 @@ from functools import cached_property
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder.custom import GROUP_CONCAT
 from frappe.utils import cint, time_diff_in_seconds
 from uuid_utils import uuid7
 
@@ -413,6 +414,30 @@ class EmailMessage(Document):
 
 		self.clear_cached_properties()
 		return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
+
+
+@frappe.whitelist()
+def bulk_destroy(names: str | list[str]) -> None:
+	"""Destroys the email messages."""
+
+	if isinstance(names, str):
+		names = json.loads(names)
+
+	EM = frappe.qb.DocType("Email Message")
+	query = (
+		frappe.qb.from_(EM)
+		.select(
+			EM.account,
+			GROUP_CONCAT(EM.name).as_("message_ids"),
+		)
+		.where((EM.destroyed == 0) & (EM.name.isin(names)))
+		.groupby(EM.account)
+	)
+
+	for row in query.run(as_dict=True):
+		EmailMessage.destroy_emails(row["account"], row["message_ids"].split(","))
+
+	frappe.msgprint(_("Email messages destroyed successfully."), alert=True)
 
 
 def generate_blob_cache_key(account: str, blob_id: str) -> str:
