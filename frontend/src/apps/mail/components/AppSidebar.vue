@@ -50,32 +50,40 @@ import { createResource } from 'frappe-ui'
 import SidebarLink from '@/components/SidebarLink.vue'
 import UserDropdown from '@/components/UserDropdown.vue'
 
-const sidebarItems = ref([
+interface SidebarItem {
+	label: string
+	icon: string
+	to: { name: string; params?: Record<string, string> }
+	activeFor: string[]
+	forDashboard?: boolean
+}
+
+const sidebarItems = ref<SidebarItem[]>([
 	{
 		label: __('Domains'),
 		icon: 'Globe',
-		to: 'Domains',
+		to: { name: 'Domains' },
 		activeFor: ['Domains', 'Domain'],
 		forDashboard: true,
 	},
 	{
 		label: __('Members'),
 		icon: 'Users',
-		to: 'Members',
+		to: { name: 'Members' },
 		activeFor: ['Members', 'Invites'],
 		forDashboard: true,
 	},
 	{
 		label: __('Groups'),
 		icon: 'Mails',
-		to: 'Groups',
+		to: { name: 'Groups' },
 		activeFor: ['Groups', 'Group'],
 		forDashboard: true,
 	},
 	{
 		label: __('Aliases'),
 		icon: 'AtSign',
-		to: 'Aliases',
+		to: { name: 'Aliases' },
 		activeFor: ['Aliases'],
 		forDashboard: true,
 	},
@@ -84,21 +92,19 @@ const sidebarItems = ref([
 const route = useRoute()
 
 const sidebarLinks = computed(() =>
-	sidebarItems.value.filter((link) =>
-		route.meta.isDashboard ? link.forDashboard : !link.forDashboard,
-	),
+	sidebarItems.value.filter((link) => route.meta.isDashboard == link.forDashboard),
 )
 
 createResource({
 	url: 'mail.api.mail.get_user_mailboxes',
 	auto: true,
-	onSuccess: (data) =>
+	onSuccess: (data: { name: string; role: string }[]) =>
 		data.forEach((mailbox) => {
 			sidebarItems.value.push({
 				label: mailbox.name,
 				icon: MAILBOX_ICONS[mailbox.role],
-				to: { name: 'Mailbox', params: { id: mailbox.role } },
-				activeFor: ['Mailbox'],
+				to: { name: 'Mailbox', params: { mailboxName: mailbox.role } },
+				activeFor: [mailbox.role],
 			})
 		})!,
 })
