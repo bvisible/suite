@@ -49,11 +49,7 @@ class MailQueue(Document):
 			doc.reply_to = json.dumps(kwargs.reply_to)
 
 		if kwargs.headers:
-			headers = {}
-			for key, value in kwargs.headers.items():
-				headers[key] = value
-
-			doc.headers = json.dumps(headers)
+			doc.headers = json.dumps(kwargs.headers)
 
 		if kwargs.recipients:
 			recipients = [
@@ -161,6 +157,7 @@ class MailQueue(Document):
 			self.validate_from_email()
 			self.validate_delivery_mode()
 			self.validate_reply_to()
+			self.validate_headers()
 			self.validate_recipients()
 			self.validate_attachments()
 			self.validate_message_id()
@@ -279,6 +276,16 @@ class MailQueue(Document):
 			)
 
 		self.reply_to = json.dumps(reply_to)
+
+	def validate_headers(self) -> None:
+		"""Validates the headers."""
+
+		headers = {}
+
+		for key, value in json_loads(self.headers, default={}).items():
+			headers[key] = value
+
+		self.headers = json.dumps(headers)
 
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
