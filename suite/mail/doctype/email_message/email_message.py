@@ -310,7 +310,7 @@ class EmailMessage(Document):
 
 	def on_trash(self) -> None:
 		if not self.destroyed:
-			EmailMessage.destroy_emails(self.account, [self.name])
+			frappe.throw(_("You must destroy this email message before it can be deleted."))
 
 	def clear_cached_properties(self) -> None:
 		"""Clear cached properties to avoid stale data."""
@@ -354,6 +354,15 @@ class EmailMessage(Document):
 			frappe.throw(_("Attachment not found."))
 
 		return EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment._name)
+
+	@frappe.whitelist()
+	def destroy(self) -> None:
+		"""Destroy the email message."""
+
+		if self.destroyed:
+			frappe.throw(_("Email Message {0} has already been destroyed.").format(frappe.bold(self.name)))
+
+		EmailMessage.destroy_emails(self.account, [self.name])
 
 	@frappe.whitelist()
 	def move_to_mailbox(

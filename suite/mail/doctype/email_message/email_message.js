@@ -7,6 +7,7 @@ frappe.ui.form.on('Email Message', {
 			frm.trigger('add_actions')
 			frm.trigger('add_move_buttons')
 			frm.trigger('add_mark_buttons')
+			frm.trigger('add_destroy_button')
 		}
 	},
 
@@ -45,6 +46,26 @@ frappe.ui.form.on('Email Message', {
 			frm.add_custom_button(__('Mark as Unread'), () => frm.trigger('mark_as_unseen'))
 		} else {
 			frm.add_custom_button(__('Mark as Read'), () => frm.trigger('mark_as_seen'))
+		}
+	},
+
+	add_destroy_button(frm) {
+		if (!frm.doc.destroyed) {
+			frm.add_custom_button(__('Destroy'), () => {
+				frappe.confirm(__('Are you sure you want to destroy this email?'), () => {
+					frappe.call({
+						doc: frm.doc,
+						method: 'destroy',
+						freeze: true,
+						freeze_message: __('Destroying...'),
+						callback: (r) => {
+							if (!r.exc) {
+								frm.refresh()
+							}
+						},
+					})
+				})
+			})
 		}
 	},
 
