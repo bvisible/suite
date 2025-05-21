@@ -26,6 +26,8 @@ export const useResizer = () => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
 
+		isResizing.value = true
+
 		currentResizer.value = e.target.classList[1]
 		isResizing.value = true
 
@@ -81,6 +83,8 @@ export const useResizer = () => {
 	const stopResize = (e) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
+
+		isResizing.value = false
 
 		window.removeEventListener('mousemove', resize)
 		window.removeEventListener('mouseup', stopResize)
