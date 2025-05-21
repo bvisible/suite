@@ -193,85 +193,13 @@ class EmailMessage(Document):
 	def mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
 		"""Mark emails as seen or unseen."""
 
-		if not account or not message_ids:
-			frappe.throw(_("Account and message IDs are required."))
-
-		validate_permission_for_account(account)
-
-		email_id_keywords_map = {}
-		message_id_keywords_map = {}
-		for d in frappe.db.get_all(
-			"Email Message",
-			{"account": account, "name": ["in", message_ids], "destroyed": 0},
-			["name", "_id", "_keywords"],
-		):
-			name, _id, _keywords = d.values()
-			_keywords = json.loads(_keywords)
-			_keywords.update({"$seen": seen})
-			email_id_keywords_map[_id] = _keywords
-			message_id_keywords_map[name] = _keywords
-
-		if not email_id_keywords_map:
-			return
-
-		try:
-			client = get_jmap_client(account)
-			client.email_set_keywords(email_id_keywords_map)
-
-			for message_id, _keywords in message_id_keywords_map.items():
-				frappe.db.set_value(
-					"Email Message",
-					message_id,
-					{"seen": cint(seen), "_keywords": json.dumps(_keywords)},
-				)
-		except Exception:
-			frappe.log_error(
-				title=_("Failed to mark email(s) as seen/unseen"),
-				message=frappe.get_traceback(with_context=True),
-			)
-			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
+		EmailMessage._update_emails_keyword(account, message_ids, "$seen", seen, "seen")
 
 	@staticmethod
 	def mark_emails_as_flagged_unflagged(account: str, message_ids: list[str], flagged: bool) -> None:
 		"""Mark emails as flagged or unflagged."""
 
-		if not account or not message_ids:
-			frappe.throw(_("Account and message IDs are required."))
-
-		validate_permission_for_account(account)
-
-		email_id_keywords_map = {}
-		message_id_keywords_map = {}
-		for d in frappe.db.get_all(
-			"Email Message",
-			{"account": account, "name": ["in", message_ids], "destroyed": 0},
-			["name", "_id", "_keywords"],
-		):
-			name, _id, _keywords = d.values()
-			_keywords = json.loads(_keywords)
-			_keywords.update({"$flagged": flagged})
-			email_id_keywords_map[_id] = _keywords
-			message_id_keywords_map[name] = _keywords
-
-		if not email_id_keywords_map:
-			return
-
-		try:
-			client = get_jmap_client(account)
-			client.email_set_keywords(email_id_keywords_map)
-
-			for message_id, _keywords in message_id_keywords_map.items():
-				frappe.db.set_value(
-					"Email Message",
-					message_id,
-					{"flagged": cint(flagged), "_keywords": json.dumps(_keywords)},
-				)
-		except Exception:
-			frappe.log_error(
-				title=_("Failed to mark email(s) as flagged/unflagged"),
-				message=frappe.get_traceback(with_context=True),
-			)
-			frappe.throw(_("Failed to mark email(s) as flagged/unflagged."))
+		EmailMessage._update_emails_keyword(account, message_ids, "$flagged", flagged, "flagged")
 
 	@staticmethod
 	def destroy_emails(account: str, message_ids: list[str]) -> None:
@@ -323,6 +251,51 @@ class EmailMessage(Document):
 				message=frappe.get_traceback(with_context=True),
 			)
 			frappe.throw(_("Failed to fetch blob."))
+
+	@staticmethod
+	def _update_emails_keyword(
+		account: str, message_ids: list[str], keyword: str, value: bool, db_field: str
+	) -> None:
+		"""Update email keywords and document field."""
+
+		if not account or not message_ids:
+			frappe.throw(_("Account and message IDs are required."))
+
+		validate_permission_for_account(account)
+
+		email_id_keywords_map = {}
+		message_id_keywords_map = {}
+
+		for d in frappe.db.get_all(
+			"Email Message",
+			{"account": account, "name": ["in", message_ids], "destroyed": 0},
+			["name", "_id", "_keywords"],
+		):
+			name, _id, _keywords = d.values()
+			_keywords = json.loads(_keywords)
+			_keywords.update({keyword: value})
+			email_id_keywords_map[_id] = _keywords
+			message_id_keywords_map[name] = _keywords
+
+		if not email_id_keywords_map:
+			return
+
+		try:
+			client = get_jmap_client(account)
+			client.email_set_keywords(email_id_keywords_map)
+
+			for message_id, _keywords in message_id_keywords_map.items():
+				frappe.db.set_value(
+					"Email Message",
+					message_id,
+					{db_field: cint(value), "_keywords": json.dumps(_keywords)},
+				)
+		except Exception:
+			frappe.log_error(
+				title=_("Failed to update email(s)"),
+				message=frappe.get_traceback(with_context=True),
+			)
+			frappe.throw(_("Failed to update email(s)."))
 
 	@staticmethod
 	def _create_or_update_from_email_data(account: str, email_data: dict) -> None:
