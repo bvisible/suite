@@ -340,7 +340,7 @@ const createDraftMail = createResource({
 		if (isSend.value) Object.assign(mail, emptyMail)
 		else {
 			localMailID.value = data
-			setCurrentThread('Drafts', data)
+			// setCurrentThread('Drafts', data)
 			emit('reloadMails')
 		}
 	},

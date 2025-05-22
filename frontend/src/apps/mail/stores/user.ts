@@ -37,11 +37,11 @@ export const userStore = defineStore('mail-users', () => {
 		if (thread) {
 			// currentThread[mailbox] = thread
 			// sessionStorage.setItem(itemName, JSON.stringify(thread))
-			router.push(`/mailbox/${mailbox}/${thread}`)
+			router.push({ name: 'Mail', params: { mailboxName: mailbox, threadID: thread } })
 		} else {
 			// currentThread[mailbox] = null
 			// sessionStorage.removeItem(itemName)
-			router.push(`/mailbox/${mailbox}`)
+			router.push({ name: 'Mailbox', params: { mailboxName: mailbox } })
 		}
 	}
 
