@@ -4,7 +4,7 @@
 			v-for="resizeHandle in resizeHandles"
 			v-show="handleVisibilityMap[resizeHandle]"
 			:key="resizeHandle"
-			:resizer="resizeHandle"
+			:direction="resizeHandle"
 			:cursor="resizeCursor"
 			@startResize="(e) => startResize(e, resizeHandle)"
 			@resizeToFitContent="resizeToFitContent"
@@ -58,6 +58,41 @@ const updateSlideCursor = inject('updateSlideCursor')
 
 const { dimensionDelta, currentResizer, startResize } = useResizer()
 
+const resizeCursor = computed(() => {
+	switch (currentResizer.value) {
+		case 'top-left':
+			return 'nwse-resize'
+		case 'top-right':
+			return 'nesw-resize'
+		case 'bottom-left':
+			return 'nesw-resize'
+		case 'bottom-right':
+			return 'nwse-resize'
+		case 'left':
+		case 'right':
+			return 'ew-resize'
+		default:
+			return 'default'
+	}
+})
+
+const resizeHandles = computed(() => {
+	if (props.elementType === 'text') return ['left', 'right']
+	else return ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+})
+
+const isResizeHandleVisible = (resizer) => {
+	if (!currentResizer.value) return true
+	return currentResizer.value === resizer
+}
+
+const handleVisibilityMap = computed(() => {
+	return resizeHandles.value.reduce((acc, resizer) => {
+		acc[resizer] = isResizeHandleVisible(resizer)
+		return acc
+	}, {})
+})
+
 const getTextIndicatorPosition = () => {
 	const scale = slideBounds.scale
 	const offset = `${selectionBounds.width + 20 / scale}px`
@@ -104,35 +139,6 @@ const indicatorStyles = computed(() => {
 	}
 })
 
-const resizeHandles = computed(() => {
-	if (props.elementType === 'text') return ['resizer-left', 'resizer-right']
-	else
-		return [
-			'resizer-top-left',
-			'resizer-top-right',
-			'resizer-bottom-left',
-			'resizer-bottom-right',
-		]
-})
-
-const resizeCursor = computed(() => {
-	switch (currentResizer.value) {
-		case 'resizer-top-left':
-			return 'nwse-resize'
-		case 'resizer-top-right':
-			return 'nesw-resize'
-		case 'resizer-bottom-left':
-			return 'nesw-resize'
-		case 'resizer-bottom-right':
-			return 'nwse-resize'
-		case 'resizer-left':
-		case 'resizer-right':
-			return 'ew-resize'
-		default:
-			return 'default'
-	}
-})
-
 const handleDimensionChange = (delta) => {
 	if (!currentResizer.value || !delta.width) return
 
@@ -147,18 +153,6 @@ const handleDimensionChange = (delta) => {
 
 	emit('updateElementWidth', delta.width / slideBounds.scale || 0)
 }
-
-const isResizeHandleVisible = (resizer) => {
-	if (!currentResizer.value) return true
-	return currentResizer.value === resizer
-}
-
-const handleVisibilityMap = computed(() => {
-	return resizeHandles.value.reduce((acc, resizer) => {
-		acc[resizer] = isResizeHandleVisible(resizer)
-		return acc
-	}, {})
-})
 
 const resizeToFitContent = () => {
 	// create range of the text node within TextElement

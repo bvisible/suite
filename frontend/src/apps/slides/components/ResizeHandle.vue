@@ -9,7 +9,7 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-	resizer: {
+	direction: {
 		type: String,
 		required: true,
 	},
@@ -40,18 +40,18 @@ const getWidthResizerStyles = () => {
 	return {
 		...baseStyles,
 		...widthHandleStyles,
-		left: props.resizer === 'resizer-left' ? '-3px' : 'auto',
-		right: props.resizer === 'resizer-right' ? '-3px' : 'auto',
+		left: props.direction === 'left' ? '-3px' : 'auto',
+		right: props.direction === 'right' ? '-3px' : 'auto',
 	}
 }
 
 const getDimensionResizerStyles = () => {
-	const resizer = props.resizer
+	const resizer = props.direction
 	const cursorStyles = {
-		'resizer-top-left': 'nwse-resize',
-		'resizer-top-right': 'nesw-resize',
-		'resizer-bottom-left': 'nesw-resize',
-		'resizer-bottom-right': 'nwse-resize',
+		'top-left': 'nwse-resize',
+		'top-right': 'nesw-resize',
+		'bottom-left': 'nesw-resize',
+		'bottom-right': 'nwse-resize',
 	}
 	return {
 		...baseStyles,
@@ -65,14 +65,14 @@ const getDimensionResizerStyles = () => {
 }
 
 const resizerStyles = computed(() => {
-	switch (props.resizer) {
-		case 'resizer-left':
-		case 'resizer-right':
+	switch (props.direction) {
+		case 'left':
+		case 'right':
 			return getWidthResizerStyles()
-		case 'resizer-top-left':
-		case 'resizer-top-right':
-		case 'resizer-bottom-left':
-		case 'resizer-bottom-right':
+		case 'top-left':
+		case 'top-right':
+		case 'bottom-left':
+		case 'bottom-right':
 			return getDimensionResizerStyles()
 		default:
 			return {}
@@ -82,7 +82,7 @@ const resizerStyles = computed(() => {
 const handleDoubleClick = (e) => {
 	e.stopPropagation()
 
-	if (['resizer-left', 'resizer-right'].includes(props.resizer)) {
+	if (['left', 'right'].includes(props.direction)) {
 		emit('resizeToFitContent', e)
 	}
 }
