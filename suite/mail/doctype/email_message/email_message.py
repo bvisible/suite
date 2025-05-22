@@ -149,11 +149,10 @@ class EmailMessage(Document):
 		message_ids: list[str],
 		mailbox_id: str | None = None,
 		mailbox_role: str | None = None,
-		mailbox_name: str | None = None,
 	) -> None:
 		"""Move emails to a specified mailbox."""
 
-		if not account or not message_ids or not (mailbox_id or mailbox_role or mailbox_name):
+		if not account or not message_ids or not (mailbox_id or mailbox_role):
 			frappe.throw(_("Account, message IDs, and mailbox ID/role/name are required."))
 
 		validate_permission_for_account(account)
@@ -164,7 +163,7 @@ class EmailMessage(Document):
 		if not email_ids:
 			return
 
-		target_mailbox_id = mailbox_id or get_mailbox_id(account, mailbox_role, mailbox_name)
+		target_mailbox_id = mailbox_id or get_mailbox_id(account, mailbox_role)
 
 		if not target_mailbox_id:
 			frappe.throw(_("Mailbox not found."))
@@ -173,7 +172,7 @@ class EmailMessage(Document):
 			client = get_jmap_client(account)
 			client.email_set_mailbox(email_ids, target_mailbox_id)
 			target_mailbox_role = mailbox_role or get_mailbox_role(account, target_mailbox_id)
-			target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
+			target_mailbox_name = get_mailbox_name(account, target_mailbox_id)
 			frappe.db.set_value(
 				"Email Message",
 				filters,
@@ -675,14 +674,12 @@ class EmailMessage(Document):
 		EmailMessage.destroy_emails(self.account, [self.name])
 
 	@frappe.whitelist()
-	def move_to_mailbox(
-		self, mailbox_id: str | None = None, mailbox_role: str | None = None, mailbox_name: str | None = None
-	) -> None:
+	def move_to_mailbox(self, mailbox_id: str | None = None, mailbox_role: str | None = None) -> None:
 		"""Move the email message to a specified folder."""
 
 		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role, mailbox_name)
+		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role)
 		self.reload()
 
 	@frappe.whitelist()
