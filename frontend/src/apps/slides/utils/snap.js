@@ -29,8 +29,7 @@ export const useSnapping = (target, parent) => {
 	})
 
 	const visibilityMap = computed(() => {
-		if (!target.value?.$el) return { vertical: false, horizontal: false }
-
+		if (!target.value) return
 		return {
 			vertical: Math.abs(diffs.vertical) < PROXIMITY_THRESHOLD,
 			horizontal: Math.abs(diffs.horizontal) < PROXIMITY_THRESHOLD,
@@ -63,7 +62,6 @@ export const useSnapping = (target, parent) => {
 		let slideCenter, elementCenter
 
 		const activeBounds = getElementBounds(target.value.$el)
-		const slideBounds = getElementBounds(parent.value)
 
 		if (axis == 'X') {
 			slideCenter = slideBounds.left + slideBounds.width / 2

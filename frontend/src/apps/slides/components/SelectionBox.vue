@@ -6,9 +6,12 @@
 import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
 
 import { slide, slideBounds, selectionBounds } from '@/stores/slide'
-import { activeElementIds, setActiveElements, getElementPosition } from '@/stores/element'
-
-const emit = defineEmits(['updateFocus'])
+import {
+	activeElementIds,
+	setActiveElements,
+	getElementPosition,
+	resetFocus,
+} from '@/stores/element'
 
 const slideDiv = inject('slideDiv')
 const slideContainerDiv = inject('slideContainerDiv')
@@ -179,7 +182,7 @@ const handleMouseLeave = () => {
 
 const handleMouseUp = (e) => {
 	if (new Date().getTime() < mousedownStart + longpressDuration) {
-		emit('updateFocus', e)
+		selectSlide(e)
 		clearTimeout(mousedownTimer)
 	} else {
 		mousedownStart = 0
@@ -223,6 +226,12 @@ const handleSelectionChange = (elementIds, oldIds) => {
 		cropSelectionToFitContent(elementIds)
 		moveElementsToBox(elementIds)
 	}
+}
+
+const selectSlide = (e) => {
+	e.preventDefault()
+	e.stopPropagation()
+	resetFocus()
 }
 
 onMounted(() => {
