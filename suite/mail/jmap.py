@@ -555,6 +555,12 @@ def get_mailboxes(account: str) -> list[dict]:
 				}
 			)
 
+		if mailboxes:
+			role_order = ["inbox", "sent", "drafts", "junk", "trash"]
+			role_priority = {role: i for i, role in enumerate(role_order)}
+
+			return sorted(mailboxes, key=lambda m: (role_priority.get(m["role"], len(role_order))))
+
 		return mailboxes
 
 	return frappe.cache.hget("jmap:mailboxes", account, generator)
