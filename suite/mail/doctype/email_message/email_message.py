@@ -73,6 +73,7 @@ class EmailMessage(Document):
 				EM.seen,
 				EM.flagged,
 				EM.answered,
+				EM.forwarded,
 			)
 			.where((EM.account == account) & (EM.destroyed == 0))
 			.orderby(EM.received_at, order=frappe.qb.desc)
@@ -334,7 +335,7 @@ class EmailMessage(Document):
 		email_message._keywords = json.dumps(email_data["keywords"])
 		email_message.has_attachment = cint(email_data["hasAttachment"])
 
-		for key in ["draft", "seen", "flagged", "answered"]:
+		for key in ["draft", "seen", "flagged", "answered", "forwarded"]:
 			setattr(email_message, key, cint(email_data["keywords"].get(f"${key}", False)))
 
 		# Process sender/from fields
@@ -417,6 +418,7 @@ class EmailMessage(Document):
 		seen = cint(email_data["keywords"].get("$seen", False))
 		flagged = cint(email_data["keywords"].get("$flagged", False))
 		answered = cint(email_data["keywords"].get("$answered", False))
+		forwarded = cint(email_data["keywords"].get("$forwarded", False))
 
 		filters = {"account": account, "_id": _id, "destroyed": 0}
 		frappe.db.set_value(
@@ -431,6 +433,7 @@ class EmailMessage(Document):
 				"seen": seen,
 				"flagged": flagged,
 				"answered": answered,
+				"forwarded": forwarded,
 			},
 		)
 
@@ -803,6 +806,7 @@ class EmailMessage(Document):
 			subject=f"Fwd: {self.subject}" if not self.subject.lower().startswith("fwd:") else self.subject,
 			html_body=forward_html_body,
 			text_body=forward_text_body,
+			forwarded_from_id=self._id,
 			do_not_save=True,
 		)
 

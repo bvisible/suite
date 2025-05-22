@@ -32,6 +32,7 @@
   "attachments_section",
   "attachments",
   "more_info_tab",
+  "forwarded_from_id",
   "message_id",
   "_id",
   "blob_id",
@@ -426,12 +427,20 @@
    "label": "In Reply To (Email ID)",
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "forwarded_from_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Forwarded From (Email ID)",
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 21:25:17.912221",
+ "modified": "2025-05-22 11:09:13.021530",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",

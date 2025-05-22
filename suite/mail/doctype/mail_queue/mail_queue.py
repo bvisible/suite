@@ -51,6 +51,7 @@ class MailQueue(Document):
 
 		doc.html_body = kwargs.html_body
 		doc.text_body = kwargs.text_body
+		doc.forwarded_from_id = kwargs.forwarded_from_id
 		doc.message_id = kwargs.message_id
 		doc._id = kwargs._id
 		doc.sent_at = kwargs.sent_at
@@ -438,7 +439,7 @@ class MailQueue(Document):
 				call_id += 1
 
 			if not self.save_as_draft:
-				method_call = [
+				submission_call = [
 					"EmailSubmission/set",
 					{
 						"accountId": client.account_id,
@@ -472,9 +473,9 @@ class MailQueue(Document):
 				]
 
 				if self.destroy_after_submission:
-					method_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
+					submission_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
 				else:
-					method_call[1]["onSuccessUpdateEmail"] = {
+					submission_call[1]["onSuccessUpdateEmail"] = {
 						f"#submit-{self.name}": {
 							f"mailboxIds/{draft_mailbox_id}": None,
 							f"mailboxIds/{sent_mailbox_id}": True,
@@ -484,25 +485,28 @@ class MailQueue(Document):
 					}
 
 				using.append("urn:ietf:params:jmap:submission")
-				method_calls.append(method_call)
+				method_calls.append(submission_call)
 				call_id += 1
 
-				if self.in_reply_to and self.in_reply_to_id:
-					keywords = frappe.db.get_value(
-						"Email Message",
-						{"account": self.account, "destroyed": 0, "_id": self.in_reply_to_id},
-						"_keywords",
-					)
+				if self.forwarded_from_id or self.in_reply_to_id:
+					updates = {}
 
-					if keywords is not None:
-						keywords = json.loads(keywords)
-						keywords["$answered"] = True
+					for _id, keyword in [
+						(self.forwarded_from_id, "$forwarded"),
+						(self.in_reply_to_id, "$answered"),
+					]:
+						if not _id:
+							continue
+
+						updates.setdefault(_id, {}).update({f"keywords/{keyword}": True})
+
+					if updates:
 						method_calls.append(
 							[
 								"Email/set",
 								{
 									"accountId": client.account_id,
-									"update": {self.in_reply_to_id: {"keywords": keywords}},
+									"update": {_id: keywords for _id, keywords in updates.items()},
 								},
 								str(call_id),
 							]
