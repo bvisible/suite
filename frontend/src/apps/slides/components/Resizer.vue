@@ -119,13 +119,18 @@ const resizeCursor = computed(() => {
 })
 
 const handleDimensionChange = (delta) => {
+	if (!currentResizer.value || !delta.width) return
+
 	const ratio = selectionBounds.width / selectionBounds.height
 	delta.top = (delta.top ?? 0) / ratio
+
+	const minWidth = props.elementType === 'text' ? 7 : 50
+	if (delta.width + selectionBounds.width < minWidth) return
 
 	selectionBounds.left += delta.left / slideBounds.scale
 	selectionBounds.top += delta.top / slideBounds.scale
 
-	emit('updateElementWidth', delta.width || 0)
+	emit('updateElementWidth', delta.width / slideBounds.scale || 0)
 }
 
 const isResizeHandleVisible = (resizer) => {
