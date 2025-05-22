@@ -158,19 +158,19 @@ class EmailMessage(Document):
 		validate_permission_for_account(account)
 
 		filters = {"account": account, "name": ["in", message_ids], "destroyed": 0}
-		email_ids = frappe.db.get_all("Email Message", filters, pluck="_id")
+		emails_to_move = frappe.db.get_all("Email Message", filters, ["_id", "mailbox_id"], as_list=True)
 
-		if not email_ids:
+		if not emails_to_move:
 			return
 
-		target_mailbox_id = mailbox_id or get_mailbox_id(account, mailbox_role)
+		target_mailbox_id = mailbox_id or get_mailbox_id(account, role=mailbox_role)
 
 		if not target_mailbox_id:
 			frappe.throw(_("Mailbox not found."))
 
 		try:
 			client = get_jmap_client(account)
-			client.email_set_mailbox(email_ids, target_mailbox_id)
+			client.email_set_mailbox(list(emails_to_move), target_mailbox_id)
 			target_mailbox_role = mailbox_role or get_mailbox_role(account, target_mailbox_id)
 			target_mailbox_name = get_mailbox_name(account, target_mailbox_id)
 			frappe.db.set_value(
