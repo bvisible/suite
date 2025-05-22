@@ -44,6 +44,7 @@
   "seen",
   "flagged",
   "answered",
+  "forwarded",
   "destroyed",
   "column_break_ftjb",
   "_keywords",
@@ -536,13 +537,24 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "forwarded",
+   "fieldtype": "Check",
+   "label": "Forwarded",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 21:21:01.282764",
+ "modified": "2025-05-22 10:39:55.262090",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
