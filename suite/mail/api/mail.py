@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 from email.utils import parseaddr
 from typing import Literal
 
@@ -7,7 +8,8 @@ from bs4 import BeautifulSoup
 from frappe import _
 from frappe.utils import is_html, now
 
-from mail.jmap import get_mailboxes
+from mail.jmap import get_mailboxes_for_account
+from mail.mail.doctype.email_message.email_message import EmailMessage
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import get_user_email_addresses
 
@@ -15,10 +17,87 @@ MailType = Literal["Incoming Mail", "Outgoing Mail"]
 
 
 @frappe.whitelist()
-def get_user_mailboxes() -> list:
+def get_mailboxes() -> list:
 	"""Returns mailboxes/folders for the current user."""
 
-	return get_mailboxes(frappe.session.user)
+	return get_mailboxes_for_account(frappe.session.user)
+
+
+@frappe.whitelist()
+def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
+	"""Returns mails from the selected mailbox for the current user."""
+
+	mailboxes = get_mailboxes()
+	if mailbox not in [d["role"] for d in mailboxes]:
+		frappe.throw(_("Mailbox {0} does not exist.").format(mailbox))
+
+	mailbox_id = next(d["id"] for d in mailboxes if d["role"] == mailbox)
+
+	return EmailMessage.get_threads(frappe.session.user, [mailbox_id], 0, limit)
+
+
+@frappe.whitelist()
+def get_mail_thread(thread_id: str) -> list[dict]:
+	"""Returns mail thread for the given id."""
+
+	EmailMessage = frappe.qb.DocType("Email Message")
+	EmailMessageRecipient = frappe.qb.DocType("Email Message Recipient")
+
+	rows = (
+		frappe.qb.from_(EmailMessage)
+		.left_join(EmailMessageRecipient)
+		.on(EmailMessage.name == EmailMessageRecipient.parent)
+		.select(
+			EmailMessage.name,
+			EmailMessage.from_name,
+			EmailMessage.from_email,
+			EmailMessage.subject,
+			EmailMessage.html_body,
+			EmailMessage.text_body,
+			EmailMessage.received_at,
+			EmailMessageRecipient.type,
+			EmailMessageRecipient.email,
+			EmailMessageRecipient.display_name,
+		)
+		.where(
+			(EmailMessage.account == frappe.session.user)
+			& (EmailMessage.thread_id == thread_id)
+			& (EmailMessage.destroyed == 0)
+		)
+	).run(as_dict=True)
+
+	return group_recipients(rows)
+
+
+def group_recipients(rows: list[dict]) -> list[dict]:
+	"""Returns mail thread with grouped recipients."""
+
+	grouped = {}
+
+	for row in rows:
+		key = row["name"]
+		if key not in grouped:
+			# Copy non-recipient fields
+			grouped[key] = {
+				"name": row["name"],
+				"from_name": row["from_name"],
+				"from_email": row["from_email"],
+				"subject": row["subject"],
+				"html_body": row["html_body"],
+				"text_body": row["text_body"],
+				"received_at": row["received_at"],
+				"recipients": defaultdict(list),
+			}
+
+		recipient = {"email": row["email"], "display_name": row["display_name"]}
+		grouped[key]["recipients"][row["type"]].append(recipient)
+
+	result = []
+	for item in grouped.values():
+		item["recipients"] = dict(item["recipients"])
+		result.append(item)
+
+	return result
 
 
 @frappe.whitelist()
@@ -222,55 +301,55 @@ def get_snippet(content) -> str:
 	return " ".join(content.split()[:50])
 
 
-@frappe.whitelist()
-def get_mail_thread(name: str, mail_type: MailType, just_names: bool = False) -> list:
-	"""Returns the mail thread for the given mail."""
+# @frappe.whitelist()
+# def get_mail_thread(name: str, mail_type: MailType, just_names: bool = False) -> list:
+# 	"""Returns the mail thread for the given mail."""
 
-	if not frappe.db.exists(mail_type, name):
-		frappe.throw(
-			_("{0}: {1} does not exist.").format(mail_type, frappe.bold(name)),
-			frappe.DoesNotExistError,
-		)
+# 	if not frappe.db.exists(mail_type, name):
+# 		frappe.throw(
+# 			_("{0}: {1} does not exist.").format(mail_type, frappe.bold(name)),
+# 			frappe.DoesNotExistError,
+# 		)
 
-	mail = get_mail_details(name, mail_type, True, just_names)
-	mail.mail_type = mail_type
+# 	mail = get_mail_details(name, mail_type, True, just_names)
+# 	mail.mail_type = mail_type
 
-	original_replica = find_replica(mail, mail_type)
+# 	original_replica = find_replica(mail, mail_type)
 
-	thread = []
-	visited = set()
+# 	thread = []
+# 	visited = set()
 
-	def get_thread(mail, thread):
-		thread.append(mail)
-		if mail.name in visited:
-			return
-		visited.add(mail.name)
+# 	def get_thread(mail, thread):
+# 		thread.append(mail)
+# 		if mail.name in visited:
+# 			return
+# 		visited.add(mail.name)
 
-		if has_in_reply_to_mail(mail):
-			reply_mail = get_mail_details(
-				mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, True, just_names
-			)
-			get_thread(reply_mail, thread)
+# 		if has_in_reply_to_mail(mail):
+# 			reply_mail = get_mail_details(
+# 				mail.in_reply_to_mail_name, mail.in_reply_to_mail_type, True, just_names
+# 			)
+# 			get_thread(reply_mail, thread)
 
-		replica = find_replica(mail, mail.mail_type)
-		if replica and replica != name:
-			replica_type = reverse_type(mail.mail_type)
-			replica_mail = get_mail_details(replica, replica_type, True, just_names)
-			replica_mail.mail_type = replica_type
-			get_thread(replica_mail, thread)
-		else:
-			replies = []
-			replies += gather_thread_replies(name)
-			if original_replica:
-				replies += gather_thread_replies(original_replica)
+# 		replica = find_replica(mail, mail.mail_type)
+# 		if replica and replica != name:
+# 			replica_type = reverse_type(mail.mail_type)
+# 			replica_mail = get_mail_details(replica, replica_type, True, just_names)
+# 			replica_mail.mail_type = replica_type
+# 			get_thread(replica_mail, thread)
+# 		else:
+# 			replies = []
+# 			replies += gather_thread_replies(name)
+# 			if original_replica:
+# 				replies += gather_thread_replies(original_replica)
 
-			for reply in replies:
-				if reply.name not in visited:
-					get_thread(reply, thread)
+# 			for reply in replies:
+# 				if reply.name not in visited:
+# 					get_thread(reply, thread)
 
-	get_thread(mail, thread)
-	thread = remove_duplicates_and_sort(thread)
-	return thread
+# 	get_thread(mail, thread)
+# 	thread = remove_duplicates_and_sort(thread)
+# 	return thread
 
 
 def reverse_type(mail_type: MailType) -> str:
@@ -582,21 +661,21 @@ def empty_folder(folder: str) -> None:
 		delete_or_cancel_mails(mails)
 
 
-@frappe.whitelist()
-def set_folder_for_threads(threads: list[dict], move_to_trash: bool = False) -> None:
-	"""Moves threads to trash."""
+# @frappe.whitelist()
+# def set_folder_for_threads(threads: list[dict], move_to_trash: bool = False) -> None:
+# 	"""Moves threads to trash."""
 
-	for thread in threads:
-		for mail in get_mail_thread(thread["name"], thread["mail_type"], True):
-			set_folder(mail.mail_type, mail.name, move_to_trash)
+# 	for thread in threads:
+# 		for mail in get_mail_thread(thread["name"], thread["mail_type"], True):
+# 			set_folder(mail.mail_type, mail.name, move_to_trash)
 
 
-@frappe.whitelist()
-def delete_or_cancel_threads(threads: list[dict]) -> None:
-	"""Cancels or deletes trashed mails in the given threads."""
+# @frappe.whitelist()
+# def delete_or_cancel_threads(threads: list[dict]) -> None:
+# 	"""Cancels or deletes trashed mails in the given threads."""
 
-	for thread in threads:
-		mails = [
-			d for d in get_mail_thread(thread["name"], thread["mail_type"], True) if d["folder"] == "Trash"
-		]
-		delete_or_cancel_mails(mails)
+# 	for thread in threads:
+# 		mails = [
+# 			d for d in get_mail_thread(thread["name"], thread["mail_type"], True) if d["folder"] == "Trash"
+# 		]
+# 		delete_or_cancel_mails(mails)
