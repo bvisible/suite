@@ -12,8 +12,8 @@
 
 		<div
 			v-show="currentResizer"
-			:style="badgeStyles"
-			class="backdrop-blur-sm opacity-80 text-2xs scale-90 text-black p-1"
+			:style="indicatorStyles"
+			class="backdrop-blur-sm opacity-80 text-black"
 			:class="
 				isBackgroundColorDark(slide.background) ? 'bg-white-overlay-600' : 'bg-gray-100'
 			"
@@ -58,34 +58,49 @@ const updateSlideCursor = inject('updateSlideCursor')
 
 const { dimensionDelta, currentResizer, startResize } = useResizer()
 
-const badgeBaseStyles = {
-	position: 'absolute',
-	zIndex: 100,
-	borderRadius: '6px',
-}
-
-const badgeStyles = computed(() => {
-	if (!currentResizer.value) return {}
-
-	if (props.elementType == 'text') {
-		return {
-			...badgeBaseStyles,
-			left: currentResizer.value.includes('right')
-				? selectionBounds.width + 20 + 'px'
-				: 'auto',
-			right: currentResizer.value.includes('left')
-				? selectionBounds.width + 20 + 'px'
-				: 'auto',
-			top: 'calc(50% - 8.5px)',
-		}
-	}
+const getTextIndicatorPosition = () => {
+	const scale = slideBounds.scale
+	const offset = `${selectionBounds.width + 20 / scale}px`
 
 	return {
-		...badgeBaseStyles,
-		left: currentResizer.value.includes('left') ? '8px' : 'auto',
-		right: currentResizer.value.includes('right') ? '8px' : 'auto',
-		top: currentResizer.value.includes('top') ? '8px' : 'auto',
-		bottom: currentResizer.value.includes('bottom') ? '8px' : 'auto',
+		left: currentResizer.value.includes('right') ? offset : 'auto',
+		right: currentResizer.value.includes('left') ? offset : 'auto',
+		top: `calc(50% - ${12 / scale}px)`,
+	}
+}
+
+const getMediaIndicatorPosition = () => {
+	const scale = slideBounds.scale
+	const offset = `${8 / scale}px`
+
+	return {
+		left: currentResizer.value.includes('left') ? offset : 'auto',
+		right: currentResizer.value.includes('right') ? offset : 'auto',
+		top: currentResizer.value.includes('top') ? offset : 'auto',
+		bottom: currentResizer.value.includes('bottom') ? offset : 'auto',
+	}
+}
+
+const getPositionStyles = () => {
+	if (props.elementType === 'text') {
+		return getTextIndicatorPosition()
+	}
+	return getMediaIndicatorPosition()
+}
+
+const indicatorStyles = computed(() => {
+	if (!currentResizer.value) return {}
+
+	const scale = slideBounds.scale
+	const positionStyles = getPositionStyles()
+
+	return {
+		position: 'absolute',
+		zIndex: 100,
+		fontSize: `${10 / scale}px`,
+		borderRadius: `${6 / scale}px`,
+		padding: `${4 / scale}px`,
+		...positionStyles,
 	}
 })
 
