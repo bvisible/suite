@@ -2,7 +2,14 @@
 	<header
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
-		<Breadcrumbs :items="[{ label: currentFolder, route: { name: currentFolder } }]">
+		<Breadcrumbs
+			:items="[
+				{
+					label: mailboxName,
+					route: { name: 'Mailbox', params: { mailbox: mailboxName } },
+				},
+			]"
+		>
 			<template v-if="currentFolder !== 'Trash'" #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
 					{{
@@ -90,7 +97,7 @@
 						:key="idx"
 						:mail
 						:user-layout
-						:class="{ 'bg-gray-50': mail.name == currentThread[currentFolder] }"
+						:class="{ 'bg-gray-50': mail.thread_id == threadID }"
 						@click="openMail(mail)"
 						@select-mail="selectMail({ name: mail.name, mail_type: mail.mail_type })"
 						@deselect-mail="deselectMail(mail.name)"
@@ -207,19 +214,18 @@ const createMailResource = (folder: Folder) =>
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data: Mail[]) => {
-			const mailExists = (threadID?: string | null) => data.some((m) => m.name === threadID)
-
-			if (mailExists(threadID)) {
-				if (currentThread[folder] !== threadID) setCurrentThread(folder, threadID ?? null)
-				mailThread.value?.reload()
-			} else if (mailExists(currentThread[folder])) {
-				if (route.params.threadID !== currentThread[folder])
-					router.replace({
-						name: `${folder}Mail`,
-						params: { threadID: currentThread[folder] },
-					})
-				mailThread.value?.reload()
-			} else setCurrentThread(folder, null)
+			// const mailExists = (threadID?: string | null) => data.some((m) => m.name === threadID)
+			// if (mailExists(threadID)) {
+			// 	if (currentThread[folder] !== threadID) setCurrentThread(folder, threadID ?? null)
+			// 	mailThread.value?.reload()
+			// } else if (mailExists(currentThread[folder])) {
+			// 	if (route.params.threadID !== currentThread[folder])
+			// 		router.replace({
+			// 			name: `${folder}Mail`,
+			// 			params: { threadID: currentThread[folder] },
+			// 		})
+			// 	mailThread.value?.reload()
+			// } else setCurrentThread(folder, null)
 		},
 	})
 
@@ -374,12 +380,12 @@ const openMail = (mail: Mail) => {
 
 watch(() => mailboxName, reloadMails, { immediate: true })
 
-watch(
-	() => route.params.threadID,
-	(val, oldVal) => {
-		if (val !== oldVal) setCurrentThread(currentFolder.value, val || null)
-	},
-)
+// watch(
+// 	() => route.params.threadID,
+// 	(val, oldVal) => {
+// 		if (val !== oldVal) setCurrentThread(currentFolder.value, val || null)
+// 	},
+// )
 
 onMounted(() => {
 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
