@@ -472,25 +472,19 @@ class MailQueue(Document):
 					str(call_id),
 				]
 
+				updates = {}
+
 				if self.destroy_after_submission:
 					submission_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
 				else:
-					submission_call[1]["onSuccessUpdateEmail"] = {
-						f"#submit-{self.name}": {
-							f"mailboxIds/{draft_mailbox_id}": None,
-							f"mailboxIds/{sent_mailbox_id}": True,
-							"keywords/$draft": None,
-							"keywords/$seen": True,
-						}
+					updates[f"#submit-{self.name}"] = {
+						f"mailboxIds/{draft_mailbox_id}": None,
+						f"mailboxIds/{sent_mailbox_id}": True,
+						"keywords/$draft": None,
+						"keywords/$seen": True,
 					}
 
-				using.append("urn:ietf:params:jmap:submission")
-				method_calls.append(submission_call)
-				call_id += 1
-
 				if self.forwarded_from_id or self.in_reply_to_id:
-					updates = {}
-
 					for _id, keyword in [
 						(self.forwarded_from_id, "$forwarded"),
 						(self.in_reply_to_id, "$answered"),
@@ -500,18 +494,14 @@ class MailQueue(Document):
 
 						updates.setdefault(_id, {}).update({f"keywords/{keyword}": True})
 
-					if updates:
-						method_calls.append(
-							[
-								"Email/set",
-								{
-									"accountId": client.account_id,
-									"update": {_id: keywords for _id, keywords in updates.items()},
-								},
-								str(call_id),
-							]
-						)
-						call_id += 1
+				if updates:
+					submission_call[1]["onSuccessUpdateEmail"] = {
+						_id: _updates for _id, _updates in updates.items()
+					}
+
+				using.append("urn:ietf:params:jmap:submission")
+				method_calls.append(submission_call)
+				call_id += 1
 
 			response = client._make_request(using=using, method_calls=method_calls)
 
