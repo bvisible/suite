@@ -38,7 +38,7 @@ export interface MailHeader extends ChildDocType {
 	value?: string
 }
 
-// Last updated: 2025-04-09 17:02:25.950616
+// Last updated: 2025-05-12 14:47:02.245748
 export interface OutgoingMail extends DocType {
 	/** Sender: Link (Mail Account) */
 	sender?: string
@@ -71,16 +71,8 @@ export interface OutgoingMail extends DocType {
 	created_at?: string
 	/** Message Size (Bytes): Int */
 	message_size?: number
-	/** First Opened At: Datetime */
-	first_opened_at?: string
-	/** Last Opened At: Datetime */
-	last_opened_at?: string
 	/** IP Address: Data */
 	ip_address?: string
-	/** Open Count: Int */
-	open_count?: number
-	/** Last Opened From IP: Data */
-	last_opened_from_ip?: string
 	/** API: Check */
 	via_api: 0 | 1
 	/** Reply To: Data */
@@ -383,7 +375,7 @@ export interface MailDomainRequest extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-03-24 13:07:01.687232
+// Last updated: 2025-05-12 14:42:35.868073
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -529,4 +521,134 @@ export interface MailContact extends DocType {
 	email: string
 	/** Display Name: Data */
 	display_name?: string
+}
+
+// Last updated: 2025-05-08 18:28:38.329228
+export interface EmailMessageRecipient extends ChildDocType {
+	/** Type: Select */
+	type: 'To' | 'Cc' | 'Bcc'
+	/** Display Name: Data */
+	display_name?: string
+	/** Email: Data */
+	email: string
+}
+
+// Last updated: 2025-04-12 15:42:32.576799
+export interface EmailMessageReplyTo extends ChildDocType {
+	/** Display Name: Data */
+	display_name?: string
+	/** Email: Data */
+	email: string
+}
+
+// Last updated: 2025-05-19 15:42:37.367950
+export interface EmailMessagePart extends ChildDocType {
+	/** Blob ID: Data */
+	blob_id?: string
+	/** Size (Bytes): Data */
+	size?: string
+	/** Type: Data */
+	type?: string
+	/** Charset: Data */
+	charset?: string
+	/** Disposition: Select */
+	disposition?: '' | 'inline' | 'attachment'
+	/** Content ID: Data */
+	cid?: string
+	/** Part ID: Data */
+	part_id?: string
+	/** Language: Data */
+	language?: string
+	/** Location: Data */
+	location?: string
+	/** File Name: Data */
+	filename?: string
+}
+
+// Last updated: 2025-05-21 14:07:54.073845
+export interface EmailMessage extends DocType {
+	/** Subject: Small Text */
+	subject?: string
+	/** Account: Link (Mail Account) */
+	account: string
+	/** Thread ID: Data */
+	thread_id?: string
+	/** Sent At: Datetime */
+	sent_at?: string
+	/** Received At: Datetime */
+	received_at?: string
+	/** Has Attachment: Check */
+	has_attachment: 0 | 1
+	/** Folder: Data */
+	folder?: string
+	/** undefined: Table (Email Message Recipient) */
+	recipients: EmailMessageRecipient[]
+	/** Blob ID: Data */
+	blob_id?: string
+	/** undefined: Table (Email Message Reply To) */
+	reply_to: EmailMessageReplyTo[]
+	/** Message ID: Data */
+	message_id?: string
+	/** In Reply To (Message ID): Data */
+	in_reply_to?: string
+	/** From Name: Data */
+	from_name?: string
+	/** From Email: Data */
+	from_email?: string
+	/** Sender Name: Data */
+	sender_name?: string
+	/** Sender Email: Data */
+	sender_email?: string
+	/** Received After (Seconds): Int */
+	received_after?: number
+	/** Size (Bytes): Int */
+	size?: number
+	/** Seen: Check */
+	seen: 0 | 1
+	/** Keywords: JSON */
+	_keywords?: any
+	/** Attachments: Table (Email Message Part) */
+	attachments: EmailMessagePart[]
+	/** Message: Code */
+	message?: string
+	/** From IP: Data */
+	from_ip?: string
+	/** From Host: Data */
+	from_host?: string
+	/** Spam Score: Float */
+	spam_score?: number
+	/** SPF: Check */
+	spf_pass: 0 | 1
+	/** DKIM: Check */
+	dkim_pass: 0 | 1
+	/** DMARC: Check */
+	dmarc_pass: 0 | 1
+	/** SPF Description: Small Text */
+	spf_description?: string
+	/** DKIM Description: Small Text */
+	dkim_description?: string
+	/** DMARC Description: Small Text */
+	dmarc_description?: string
+	/** Email ID: Data */
+	_id?: string
+	/** Mailbox ID: Data */
+	mailbox_id?: string
+	/** Destroyed: Check */
+	destroyed: 0 | 1
+	/** Fetched After (Seconds): Int */
+	fetched_after?: number
+	/** Keywords: JSON */
+	keywords?: any
+	/** HTML Body: Table (Email Message Part) */
+	_html_body: EmailMessagePart[]
+	/** Text Body: Table (Email Message Part) */
+	_text_body: EmailMessagePart[]
+	/** HTML: Code */
+	html_body?: string
+	/** Text: Code */
+	text_body?: string
+	/** Draft: Check */
+	draft: 0 | 1
+	/** Mailbox Role: Data */
+	mailbox_role?: string
 }

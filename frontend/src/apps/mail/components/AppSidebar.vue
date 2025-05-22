@@ -96,7 +96,7 @@ const sidebarLinks = computed(() =>
 )
 
 createResource({
-	url: 'mail.api.mail.get_user_mailboxes',
+	url: 'mail.api.mail.get_mailboxes',
 	auto: true,
 	onSuccess: (data: { name: string; role: string }[]) =>
 		data.forEach((mailbox) => {

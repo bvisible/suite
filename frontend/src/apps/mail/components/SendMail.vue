@@ -238,7 +238,7 @@ const show = defineModel<boolean>()
 
 const user = inject('$user') as UserResource
 const { isMobile } = useScreenSize()
-const { setCurrentMail } = userStore()
+const { setCurrentThread } = userStore()
 
 const localMailID = ref<string>()
 const textEditor = ref(null)
@@ -340,7 +340,7 @@ const createDraftMail = createResource({
 		if (isSend.value) Object.assign(mail, emptyMail)
 		else {
 			localMailID.value = data
-			setCurrentMail('Drafts', data)
+			setCurrentThread('Drafts', data)
 			emit('reloadMails')
 		}
 	},

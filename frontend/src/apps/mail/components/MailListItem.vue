@@ -9,7 +9,7 @@
 			<Checkbox v-if="isHovered || isSelected" v-model="isSelected" size="md" @click.stop />
 			<Avatar
 				v-else
-				:label="mail.display_name || mail.sender"
+				:label="mail.from_name || mail.from_email"
 				:size="isFullWidth ? 'lg' : 'xl'"
 			/>
 		</div>
@@ -28,10 +28,10 @@
 						class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500"
 					/>
 					<span class="truncate text-base font-semibold">
-						{{ mail.display_name || mail.sender }}
+						{{ mail.from_name || mail.from_email }}
 					</span>
 				</h3>
-				<MailDate v-if="!isFullWidth" :datetime="mail.creation" :in-list="true" />
+				<MailDate v-if="!isFullWidth" :datetime="mail.received_at" :in-list="true" />
 			</div>
 			<h4
 				class="truncate text-sm leading-[1.5]"
@@ -43,10 +43,10 @@
 				class="truncate text-sm leading-[1.5] text-gray-600"
 				:class="{ italic: !mail.snippet, 'min-w-0 flex-1 !text-base': isFullWidth }"
 			>
-				{{ mail.snippet || __('— No message body —') }}
+				{{ mail.preview || __('— No message body —') }}
 			</h5>
 			<div
-				v-if="mail.attachments.length || Object.keys(STATUS).includes(badgeField)"
+				v-if="mail.attachments || Object.keys(STATUS).includes(badgeField)"
 				class="flex items-center"
 				:class="{ 'ml-auto min-w-fit': isFullWidth }"
 			>
@@ -69,7 +69,7 @@
 				/>
 			</div>
 			<div v-if="isFullWidth" class="flex min-w-20 max-w-20 justify-end">
-				<MailDate :datetime="mail.creation" :in-list="true" />
+				<MailDate :datetime="mail.received_at" :in-list="true" />
 			</div>
 		</div>
 	</div>
@@ -85,7 +85,7 @@ import MailDate from '@/components/MailDate.vue'
 
 import type { LayoutType, Mail } from '@/types'
 
-const { mail, userLayout } = defineProps<{ mail: Mail; userLayout: LayoutType }>()
+const { mail, userLayout } = defineProps<{ mail: any; userLayout: LayoutType }>()
 
 const emit = defineEmits(['select-mail', 'deselect-mail'])
 
@@ -106,6 +106,8 @@ interface BadgeType {
 	label: string
 	theme: 'gray' | 'blue' | 'green' | 'orange' | 'red'
 }
+
+// TODO:
 
 const STATUS = {
 	Draft: { label: __('Draft'), theme: 'gray' },

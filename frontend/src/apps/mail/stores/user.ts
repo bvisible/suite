@@ -23,7 +23,7 @@ export const userStore = defineStore('mail-users', () => {
 		return item ? JSON.parse(item) : null
 	}
 
-	const currentMail: Record<Folder, string | null> = reactive({
+	const currentThread: Record<Folder, string | null> = reactive({
 		Inbox: getParsedItem('currentInboxMail'),
 		Sent: getParsedItem('currentSentMail'),
 		Outbox: getParsedItem('currentOutboxMail'),
@@ -32,19 +32,18 @@ export const userStore = defineStore('mail-users', () => {
 		Trash: getParsedItem('currentTrashMail'),
 	})
 
-	const setCurrentMail = (folder: Folder, mail: string | null) => {
-		const itemName = `current${folder}Mail`
-		if (mail) {
-			currentMail[folder] = mail
-			sessionStorage.setItem(itemName, JSON.stringify(mail))
-			if (String(route.name).startsWith(folder))
-				router.push({ name: `${folder}Mail`, params: { id: mail } })
+	const setCurrentThread = (mailbox: string, thread: string | null) => {
+		const itemName = `current${mailbox}Mail`
+		if (thread) {
+			// currentThread[mailbox] = thread
+			// sessionStorage.setItem(itemName, JSON.stringify(thread))
+			router.push(`/mailbox/${mailbox}/${thread}`)
 		} else {
-			currentMail[folder] = null
-			sessionStorage.removeItem(itemName)
-			router.push({ name: folder })
+			// currentThread[mailbox] = null
+			// sessionStorage.removeItem(itemName)
+			router.push(`/mailbox/${mailbox}`)
 		}
 	}
 
-	return { userResource, currentMail, setCurrentMail }
+	return { userResource, currentThread, setCurrentThread }
 })
