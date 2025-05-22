@@ -17,7 +17,7 @@
 		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
 	</header>
 	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
-		<template v-if="mails[currentFolder].data?.length">
+		<template v-if="threads?.data?.length">
 			<div
 				ref="mailSidebar"
 				class="sticky top-16 flex flex-col border-r"
@@ -85,12 +85,12 @@
 				</div>
 				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
 					<MailListItem
-						v-for="(mail, idx) in mails[currentFolder].data"
+						v-for="(mail, idx) in threads.data"
 						ref="mailItems"
 						:key="idx"
 						:mail
 						:user-layout
-						:class="{ 'bg-gray-50': mail.name == currentMail[currentFolder] }"
+						:class="{ 'bg-gray-50': mail.name == currentThread[currentFolder] }"
 						@click="openMail(mail)"
 						@select-mail="selectMail({ name: mail.name, mail_type: mail.mail_type })"
 						@deselect-mail="deselectMail(mail.name)"
@@ -112,37 +112,16 @@
 					'fixed inset-0 z-10': isMobile,
 					hidden:
 						(isMobile || userLayout === 'full') &&
-						!(currentMail[currentFolder] || route.params.id),
+						!(currentThread[currentFolder] || route.params.threadID),
 				}"
 			>
 				<MailThread
 					ref="mailThread"
-					:mail-i-d="currentMail[currentFolder]"
-					:current-folder
-					:type="getMailType() || doctype"
+					:mailbox="mailboxName"
+					:mail-i-d="currentThread[currentFolder]"
+					:thread-i-d
+					:type="doctype"
 					@reload-mails="reloadMails"
-					@mark-as-unread="
-						setSeen.submit({
-							mails: [
-								{ name: currentMail[currentFolder], mail_type: getMailType() },
-							],
-							seen: 0,
-						})
-					"
-					@set-thread-folders="
-						(move_to_trash: boolean) =>
-							setFolderForThreads.submit({
-								threads: [
-									{ name: currentMail[currentFolder], mail_type: getMailType() },
-								],
-								move_to_trash,
-							})
-					"
-					@delete-thread="
-						deleteThreads.submit([
-							{ name: currentMail[currentFolder], mail_type: getMailType() },
-						])
-					"
 				/>
 			</div>
 		</template>
@@ -187,11 +166,11 @@ import MailThread from '@/components/MailThread.vue'
 
 import type { Folder, LayoutType, Mail, MailType, UserResource } from '@/types'
 
-const { id } = defineProps<{ id?: string }>()
+const { mailboxName, threadID } = defineProps<{ mailboxName: string; threadID?: string }>()
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
-const { currentMail, setCurrentMail } = userStore()
+const { currentThread, setCurrentThread } = userStore()
 const route = useRoute()
 const router = useRouter()
 const { isMobile } = useScreenSize()
@@ -209,6 +188,18 @@ const mailThread = useTemplateRef('mailThread')
 
 const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Spam', 'Trash']
 
+const limit = ref(50)
+
+const threads = createResource({
+	url: 'mail.api.mail.get_mails_from_mailbox',
+	auto: true,
+	makeParams: () => ({ mailbox: mailboxName, limit: limit.value }),
+	cache: [`${mailboxName}Mails`, user.data?.name, limit.value],
+	onSuccess: (data) => {
+		mailThread.value?.reload()
+	},
+})
+
 const createMailResource = (folder: Folder) =>
 	createListResource({
 		url: `mail.api.mail.get_${folder.toLowerCase()}_mails`,
@@ -216,16 +207,19 @@ const createMailResource = (folder: Folder) =>
 		pageLength: 50,
 		cache: [`${folder}Mails`, user.data?.name],
 		onSuccess: (data: Mail[]) => {
-			const mailExists = (id?: string | null) => data.some((m) => m.name === id)
+			const mailExists = (threadID?: string | null) => data.some((m) => m.name === threadID)
 
-			if (mailExists(id)) {
-				if (currentMail[folder] !== id) setCurrentMail(folder, id ?? null)
+			if (mailExists(threadID)) {
+				if (currentThread[folder] !== threadID) setCurrentThread(folder, threadID ?? null)
 				mailThread.value?.reload()
-			} else if (mailExists(currentMail[folder])) {
-				if (route.params.id !== currentMail[folder])
-					router.replace({ name: `${folder}Mail`, params: { id: currentMail[folder] } })
+			} else if (mailExists(currentThread[folder])) {
+				if (route.params.threadID !== currentThread[folder])
+					router.replace({
+						name: `${folder}Mail`,
+						params: { threadID: currentThread[folder] },
+					})
 				mailThread.value?.reload()
-			} else setCurrentMail(folder, null)
+			} else setCurrentThread(folder, null)
 		},
 	})
 
@@ -244,10 +238,9 @@ const mailCount = createResource({
 	cache: [`${currentFolder.value}MailCount`, user.data?.name],
 })
 
-const reloadMails = (folder: Folder = currentFolder.value) => {
-	if (folder !== currentFolder.value) return
-	mails[currentFolder.value].reload()
-	if (currentFolder.value !== 'Trash') mailCount.reload()
+const reloadMails = () => {
+	threads.reload()
+	// if (currentFolder.value !== 'Trash') mailCount.reload()
 	resetSelections()
 }
 
@@ -263,8 +256,8 @@ const setSeen = createResource({
 		names.forEach(
 			(name) => (mails[currentFolder.value].data.find((m) => m.name === name).seen = seen),
 		)
-		if (!seen && names.includes(currentMail[currentFolder.value]))
-			setCurrentMail(currentFolder.value, null)
+		if (!seen && names.includes(currentThread[currentFolder.value]))
+			setCurrentThread(currentFolder.value, null)
 	},
 })
 
@@ -314,7 +307,7 @@ watch(
 	() => selections.value.length,
 	(val) => {
 		allSelectedManuallyToggled.value = false
-		allSelected.value = val === mails[currentFolder.value].data.length
+		// allSelected.value = val === mails[currentFolder.value].data.length
 	},
 )
 
@@ -374,17 +367,17 @@ watch(allSelected, (val) => {
 })
 
 const openMail = (mail: Mail) => {
-	setCurrentMail(currentFolder.value, mail.name)
-	if (!mail.seen)
-		setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
+	setCurrentThread(mailboxName, mail.thread_id)
+	// if (!mail.seen)
+	// 	setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
 }
 
-watch(() => currentFolder.value, reloadMails, { immediate: true })
+watch(() => mailboxName, reloadMails, { immediate: true })
 
 watch(
-	() => route.params.id,
+	() => route.params.threadID,
 	(val, oldVal) => {
-		if (val !== oldVal) setCurrentMail(currentFolder.value, val || null)
+		if (val !== oldVal) setCurrentThread(currentFolder.value, val || null)
 	},
 )
 
@@ -406,10 +399,6 @@ const setUserLayout = (type: LayoutType) => {
 	userLayout.value = type
 	localStorage.setItem(`user:${user.data.name}:layout`, type)
 }
-
-const getMailType = () =>
-	mails[currentFolder.value].data.find((m: Mail) => m.name === currentMail[currentFolder.value])
-		?.mail_type
 
 const loadMoreEmails = useDebounceFn(() => {
 	if (mails[currentFolder.value].hasNextPage) mails[currentFolder.value].next()

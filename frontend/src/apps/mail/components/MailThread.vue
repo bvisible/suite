@@ -1,11 +1,11 @@
 <template>
-	<div v-if="mailID" class="relative flex h-full flex-col overflow-hidden">
+	<div v-if="threadID" class="relative flex h-full flex-col overflow-hidden">
 		<div class="sticky top-0 z-10 flex items-center border-b bg-white p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
 				class="mr-2"
-				@click="setCurrentMail(currentFolder, null)"
+				@click="setCurrentThread(mailbox, null)"
 			/>
 			<span
 				v-if="mailThread.loading"
@@ -45,7 +45,7 @@
 				>
 					<div class="flex space-x-3 border-b pb-2">
 						<Avatar
-							:label="mail.display_name || mail.sender"
+							:label="mail.from_name || mail.from_email"
 							:image="mail.user_image"
 							size="xl"
 						/>
@@ -53,34 +53,27 @@
 							<div class="flex flex-col space-y-1">
 								<div class="flex items-center space-x-1.5">
 									<span class="text-base font-semibold">
-										{{ mail.display_name || mail.from_ || mail.sender }}
+										{{ mail.from_name || mail.from_email }}
 									</span>
-									<span
-										v-if="mail.display_name && !isMobile"
-										class="text-gray-600"
-									>
-										{{ `<${mail.from_ || mail.sender}>` }}
+									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
+										{{ `<${mail.from_email}>` }}
 									</span>
 									<MailDetailsPopover :mail="mail" />
 								</div>
 								<div class="flex items-center space-x-2">
 									<span class="flex items-center space-x-1">
-										<span>{{ __('To: ') + toRecipient(mail) }}</span>
+										{{ __('To: ') + getRecipients(mail.recipients.To) }}
 									</span>
-									<span v-if="mail.cc.length">
-										{{ __('Cc: ') + getRecipients(mail.cc) }}
+									<span v-if="mail.recipients.CC?.length">
+										{{ __('Cc: ') + getRecipients(mail.recipients.CC) }}
 									</span>
-									<span v-if="mail.bcc.length">
-										{{ __('Bcc: ') + getRecipients(mail.bcc) }}
+									<span v-if="mail.recipients.BCC?.length">
+										{{ __('Bcc: ') + getRecipients(mail.recipients.BCC) }}
 									</span>
 								</div>
 							</div>
 							<div class="flex items-center space-x-2 self-start">
-								<MailDate
-									:datetime="
-										mail.folder === 'Drafts' ? mail.modified : mail.creation
-									"
-								/>
+								<MailDate :datetime="mail.received_at" />
 								<Tooltip
 									v-for="action in mailActions(mail).filter(
 										(d) => d.condition !== false,
@@ -115,18 +108,18 @@
 					</div>
 
 					<IframeResizer
-						v-if="mail.body_html"
+						v-if="mail.html_body"
 						class="w-full"
 						license="GPLv3"
 						:scrolling="true"
-						:src="getSrc(mail.body_html)"
+						:src="getSrc(mail.html_body)"
 					/>
 
-					<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
-						mail.body_plain
+					<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
+						mail.text_body
 					}}</pre>
 
-					<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
+					<!-- <div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
 						<AttachmentCapsule
 							v-for="attachment in mail.attachments"
 							:key="attachment.name"
@@ -134,7 +127,7 @@
 							:file-url="attachment.file_url"
 							class="mb-2"
 						/>
-					</div>
+					</div> -->
 				</div>
 			</div>
 		</div>
@@ -187,11 +180,12 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { Folder, Mail, MailType } from '@/types'
+import type { Mail, MailType } from '@/types'
 
 const props = defineProps<{
+	mailbox: string
+	threadID?: string
 	mailID: string | null
-	currentFolder: Folder
 	type?: MailType
 }>()
 
@@ -199,7 +193,7 @@ const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'de
 
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
-const { setCurrentMail } = userStore()
+const { setCurrentThread } = userStore()
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
@@ -215,15 +209,15 @@ const replyDetails = reactive({
 
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
-	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
-	transform: (data: Mail[]) =>
-		props.currentFolder === 'Trash'
-			? data.filter((mail) => mail.folder === 'Trash')
-			: data.filter((mail) => mail.folder !== 'Trash'),
+	makeParams: () => ({ thread_id: props.threadID }),
+	// transform: (data: Mail[]) =>
+	// 	props.currentFolder === 'Trash'
+	// 		? data.filter((mail) => mail.folder === 'Trash')
+	// 		: data.filter((mail) => mail.folder !== 'Trash'),
 })
 
 const reload = () => {
-	if (props.mailID) mailThread.reload()
+	if (props.threadID) mailThread.reload()
 }
 
 defineExpose({ reload })
@@ -304,19 +298,19 @@ const threadActions = computed((): MailAction[] =>
 			label: __('Move to Trash'),
 			onClick: () => emit('setThreadFolders', true),
 			icon: Trash2,
-			condition: props.currentFolder !== 'Trash',
+			condition: props.mailbox !== 'trash',
 		},
 		{
 			label: __('Delete Thread'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: props.currentFolder === 'Trash',
+			condition: props.mailbox === 'trash',
 		},
 		{
 			label: __('Restore'),
 			onClick: () => emit('setThreadFolders', false),
 			icon: RotateCcw,
-			condition: props.currentFolder === 'Trash',
+			condition: props.mailbox === 'trash',
 		},
 		{
 			label: __('Mark as Unread'),
@@ -446,12 +440,5 @@ const getReplyHtml = (html, creation) => {
 	return `<br><blockquote>${replyHeader} <br> ${html}</blockquote>`
 }
 
-const toRecipient = (mail) => {
-	const isSoleRecipient = mail.to.length === 1 && !mail.cc.length && !mail.bcc.length
-	if (!isSoleRecipient) return getRecipients(mail.to)
-
-	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
-}
-
-watch(() => props.mailID, reload)
+watch(() => props.threadID, reload)
 </script>

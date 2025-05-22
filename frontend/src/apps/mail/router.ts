@@ -65,7 +65,7 @@ const routes = [
 		props: true,
 	},
 	{
-		path: '/mailbox/:mailboxName/:id',
+		path: '/mailbox/:mailboxName/:threadID',
 		name: 'Mail',
 		component: () => import('@/pages/MailFolderView.vue'),
 		props: true,
@@ -153,9 +153,9 @@ router.beforeEach(async (to, from, next) => {
 		if (!userResource.data.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })
 		if (!userResource.data.default_outgoing && !to.meta.isDashboard)
 			return next({ name: 'Domains' })
-	} else if (to.meta.isDashboard) return next({ name: 'Inbox' })
+	} else if (to.meta.isDashboard) return next({ name: 'Mailbox' })
 
-	next(to.meta.isLogin || to.meta.isSetup ? { name: 'Inbox' } : undefined)
+	next(to.meta.isLogin || to.meta.isSetup ? { name: 'Mailbox' } : undefined)
 })
 
 export default router
