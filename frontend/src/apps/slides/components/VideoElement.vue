@@ -16,10 +16,10 @@
 		></video>
 		<div
 			v-if="activeElementIds.includes(element.id)"
-			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
+			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-gray-800 opacity-80"
 		>
 			<component
-				size="14"
+				size="16"
 				:is="isPlaying ? Pause : Play"
 				class="text-white stroke-[1.5] ps-[0.5px]"
 			/>
@@ -101,15 +101,13 @@ const updateDuration = () => {
 }
 
 const hoveringOverVideo = ref(false)
-const slideCursor = inject('slideCursor', ref('none'))
 
 const showProgressBar = computed(() => {
 	// In editor, show it when video is active
 	const isActive = activeElementIds.value.includes(element.value.id)
 
-	// During slideshow, show it only if user is hovering over video and mouse cursor is not hidden
-	const slideshowHovering =
-		inSlideShow.value && hoveringOverVideo.value && slideCursor.value !== 'none'
+	// During slideshow, show it only if user is hovering over video
+	const slideshowHovering = inSlideShow.value && hoveringOverVideo.value
 
 	return isActive || slideshowHovering
 })
