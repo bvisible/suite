@@ -122,7 +122,13 @@
 						!(currentThread[mailbox] || route.params.threadID),
 				}"
 			>
-				<MailThread ref="mailThread" :mailbox :thread-i-d @reload-mails="reloadMails" />
+				<MailThread
+					ref="mailThread"
+					:mailbox
+					:thread-i-d
+					@reload-mails="reloadMails"
+					@mark-as-unread="(mail) => setSeen.submit({ mails: [mail], seen: false })"
+				/>
 			</div>
 		</template>
 		<div v-else class="flex w-full flex-col items-center justify-center">
@@ -272,7 +278,7 @@ watch(
 	() => selections.value.length,
 	(val) => {
 		allSelectedManuallyToggled.value = false
-		// allSelected.value = val === mails[currentFolder.value].data.length
+		allSelected.value = val === threads.data.length
 	},
 )
 
