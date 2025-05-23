@@ -5,17 +5,19 @@ frappe.ui.form.on('Email Message', {
 	refresh(frm) {
 		frm.disable_save()
 
-		if (!frm.doc.destroyed) {
-			if (!frm.doc.__islocal) {
-				if (!frm.doc.draft) {
-					frm.trigger('add_seen_flagged_buttons')
-					frm.trigger('add_destroy_button')
-					frm.trigger('add_reply_forward_buttons')
-					frm.trigger('add_move_buttons')
-				}
-
-				frm.trigger('add_actions')
+		if (!frm.doc.__islocal && !frm.doc.destroyed) {
+			if (!frm.doc.draft) {
+				frm.trigger('add_seen_flagged_buttons')
 			}
+
+			frm.trigger('add_destroy_button')
+
+			if (!frm.doc.draft) {
+				frm.trigger('add_reply_forward_buttons')
+				frm.trigger('add_move_buttons')
+			}
+
+			frm.trigger('add_actions')
 		}
 	},
 
