@@ -122,7 +122,7 @@
    "label": "Reply To"
   },
   {
-   "depends_on": "eval: doc.reply_to && doc.reply_to != \"[]\"",
+   "depends_on": "eval: doc.__islocal || doc.reply_to && doc.reply_to != \"[]\"",
    "fieldname": "reply_to",
    "fieldtype": "JSON",
    "label": "Reply To",
@@ -136,7 +136,7 @@
    "label": "Headers"
   },
   {
-   "depends_on": "eval: doc.headers && doc.headers != \"{}\"",
+   "depends_on": "eval: doc.__islocal || doc.headers && doc.headers != \"{}\"",
    "fieldname": "headers",
    "fieldtype": "JSON",
    "label": "Headers",
@@ -148,7 +148,7 @@
    "label": "Recipients"
   },
   {
-   "depends_on": "eval: doc.recipients && doc.recipients != \"[]\"",
+   "depends_on": "eval: doc.__islocal || doc.recipients && doc.recipients != \"[]\"",
    "fieldname": "recipients",
    "fieldtype": "JSON",
    "label": "Recipients",
@@ -180,7 +180,7 @@
    "label": "Attachments"
   },
   {
-   "depends_on": "eval: doc.attachments && doc.attachments != \"[]\"",
+   "depends_on": "eval: doc.__islocal || doc.attachments && doc.attachments != \"[]\"",
    "fieldname": "attachments",
    "fieldtype": "JSON",
    "label": "Attachments",
@@ -444,7 +444,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-22 16:25:47.164847",
+ "modified": "2025-05-23 11:41:36.321074",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
