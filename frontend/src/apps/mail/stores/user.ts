@@ -1,5 +1,4 @@
 import { reactive } from 'vue'
-import { useRoute } from 'vue-router'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
@@ -8,8 +7,6 @@ import router from '@/router'
 import type { Folder, UserResource } from '@/types'
 
 export const userStore = defineStore('mail-users', () => {
-	const route = useRoute()
-
 	const userResource: UserResource = createResource({
 		url: 'mail.api.account.get_user_info',
 		onError: (error) => {

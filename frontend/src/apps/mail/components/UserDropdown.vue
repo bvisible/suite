@@ -84,7 +84,7 @@ const userDropdownOptions = [
 	{
 		icon: Mailbox,
 		label: __('Mailbox'),
-		onClick: () => router.push('/'),
+		onClick: () => router.push('/mailbox'),
 		condition: () =>
 			userResource.data.is_mail_admin &&
 			userResource.data.default_outgoing &&
