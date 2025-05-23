@@ -4,9 +4,8 @@ from email.utils import parseaddr
 from typing import Literal
 
 import frappe
-from bs4 import BeautifulSoup
 from frappe import _
-from frappe.utils import is_html, now
+from frappe.utils import now
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
@@ -207,14 +206,15 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mails: list[dict], seen: int) -> dict:
+def set_seen(mails: list[str], seen: bool) -> dict:
 	"""Sets seen for mails."""
 
-	for mail in mails:
-		doc = frappe.get_doc(mail["mail_type"], mail["name"])
-		doc.db_set("seen", seen)
+	if seen:
+		EmailMessage.mark_emails_as_seen(frappe.session.user, mails)
+	else:
+		EmailMessage.mark_emails_as_unseen(frappe.session.user, mails)
 
-	return {"names": [d["name"] for d in mails], "seen": seen}
+	return {"mails": mails, "seen": seen}
 
 
 @frappe.whitelist()
