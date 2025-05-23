@@ -1,6 +1,6 @@
 <template>
 	<Button
-		:icon-left="['Trash', 'Spam'].includes(currentFolder) ? 'trash-2' : 'edit'"
+		:icon-left="['trash', 'junk'].includes(mailbox) ? 'trash-2' : 'edit'"
 		@click="performAction()"
 	>
 		{{ buttonMessage }}
@@ -15,9 +15,7 @@ import { Button, Dialog, createResource } from 'frappe-ui'
 
 import SendMail from '@/components/SendMail.vue'
 
-import type { Folder } from '@/types'
-
-const { currentFolder } = defineProps<{ currentFolder: Folder }>()
+const { mailbox } = defineProps<{ mailbox: string }>()
 
 const emit = defineEmits(['reloadMails'])
 
@@ -25,8 +23,8 @@ const showSendModal = ref(false)
 const showConfirmDialog = ref(false)
 
 const buttonMessage = computed(() => {
-	if (currentFolder === 'Trash') return __('Empty Trash')
-	if (currentFolder === 'Spam') return __('Empty Spam')
+	if (mailbox === 'trash') return __('Empty Trash')
+	if (mailbox === 'junk') return __('Empty Spam')
 	return __('Compose')
 })
 
@@ -47,13 +45,13 @@ const confirmDialogOptions = computed(() => ({
 }))
 
 const performAction = () => {
-	if (['Trash', 'Spam'].includes(currentFolder)) showConfirmDialog.value = true
+	if (['trash', 'junk'].includes(mailbox)) showConfirmDialog.value = true
 	else showSendModal.value = true
 }
 
 const emptyFolder = createResource({
 	url: 'mail.api.mail.empty_folder',
-	makeParams: () => ({ folder: currentFolder }),
+	makeParams: () => ({ folder: mailbox }),
 	onSuccess: () => emit('reloadMails'),
 })
 </script>

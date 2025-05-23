@@ -55,13 +55,13 @@ const routes = [
 		meta: { isSetup: true },
 	},
 	{
-		path: '/mailbox/:mailboxName',
+		path: '/mailbox/:mailbox',
 		name: 'Mailbox',
 		component: () => import('@/pages/MailFolderView.vue'),
 		props: true,
 	},
 	{
-		path: '/mailbox/:mailboxName/:threadID',
+		path: '/mailbox/:mailbox/:threadID',
 		name: 'Mail',
 		component: () => import('@/pages/MailFolderView.vue'),
 		props: true,
@@ -142,7 +142,7 @@ router.beforeEach(async (to, from, next) => {
 	const { userResource } = userStore()
 	await userResource.promise
 	const user = userResource.data
-	const mailboxRoute = { name: 'Mailbox', params: { mailboxName: user.mailboxes[0].role } }
+	const mailboxRoute = { name: 'Mailbox', params: { mailbox: user.mailboxes[0].role } }
 
 	if (user.is_mail_admin) {
 		if (!user.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })

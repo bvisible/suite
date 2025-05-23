@@ -5,23 +5,23 @@
 		<Breadcrumbs
 			:items="[
 				{
-					label: mailboxName,
-					route: { name: 'Mailbox', params: { mailbox: mailboxName } },
+					label: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
+					route: { name: 'Mailbox', params: { mailbox } },
 				},
 			]"
 		>
-			<template v-if="currentFolder !== 'Trash'" #suffix>
+			<template #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
-					{{
+					<!-- {{
 						__('{0} {1}', [
 							formatNumber(mailCount?.data || 0),
 							mailCount?.data == 1 ? 'message' : 'messages',
 						])
-					}}
+					}} -->
 				</div>
 			</template>
 		</Breadcrumbs>
-		<HeaderActions :current-folder="currentFolder" @reload-mails="reloadMails" />
+		<HeaderActions :mailbox @reload-mails="reloadMails" />
 	</header>
 	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
 		<template v-if="threads?.data?.length">
@@ -119,17 +119,10 @@
 					'fixed inset-0 z-10': isMobile,
 					hidden:
 						(isMobile || userLayout === 'full') &&
-						!(currentThread[currentFolder] || route.params.threadID),
+						!(currentThread[mailbox] || route.params.threadID),
 				}"
 			>
-				<MailThread
-					ref="mailThread"
-					:mailbox="mailboxName"
-					:mail-i-d="currentThread[currentFolder]"
-					:thread-i-d
-					:type="doctype"
-					@reload-mails="reloadMails"
-				/>
+				<MailThread ref="mailThread" :mailbox :thread-i-d @reload-mails="reloadMails" />
 			</div>
 		</template>
 		<div v-else class="flex w-full flex-col items-center justify-center">
@@ -153,15 +146,7 @@ import {
 	Rows4,
 	Trash2,
 } from 'lucide-vue-next'
-import {
-	Breadcrumbs,
-	Button,
-	Checkbox,
-	Dropdown,
-	Tooltip,
-	createListResource,
-	createResource,
-} from 'frappe-ui'
+import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { formatNumber, startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
@@ -171,9 +156,9 @@ import NoMails from '@/components/Icons/NoMails.vue'
 import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
 
-import type { Folder, LayoutType, Mail, MailType, UserResource } from '@/types'
+import type { LayoutType, Mail, MailType, UserResource } from '@/types'
 
-const { mailboxName, threadID } = defineProps<{ mailboxName: string; threadID?: string }>()
+const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
@@ -182,67 +167,43 @@ const route = useRoute()
 const router = useRouter()
 const { isMobile } = useScreenSize()
 
-const currentFolder = computed(() => {
-	const name = String(route.name)
-	return (name.endsWith('Mail') ? name.replace('Mail', '') : name) as Folder
-})
-
-const doctype = computed(() =>
-	['Inbox', 'Spam'].includes(currentFolder.value) ? 'Incoming Mail' : 'Outgoing Mail',
-)
-
 const mailThread = useTemplateRef('mailThread')
-
-const folders: Folder[] = ['Inbox', 'Sent', 'Outbox', 'Drafts', 'Spam', 'Trash']
 
 const limit = ref(50)
 
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
 	auto: true,
-	makeParams: () => ({ mailbox: mailboxName, limit: limit.value }),
-	cache: [`${mailboxName}Mails`, user.data?.name, limit.value],
+	makeParams: () => ({ mailbox, limit: limit.value }),
+	cache: [`${mailbox}Mails`, user.data?.name, limit.value],
 	onSuccess: (data) => {
-		mailThread.value?.reload()
+		const mailExists = (threadID?: string | null) => data.some((m) => m.thread_id === threadID)
+		if (mailExists(threadID)) {
+			if (currentThread[mailbox] !== threadID) setCurrentThread(mailbox, threadID ?? null)
+			mailThread.value?.reload()
+		} else if (mailExists(currentThread[mailbox])) {
+			if (route.params.threadID !== currentThread[mailbox])
+				router.replace({
+					name: 'Mail',
+					params: { mailbox: mailbox, threadID: currentThread[mailbox] },
+				})
+			mailThread.value?.reload()
+		} else setCurrentThread(mailbox, null)
 	},
 })
 
-const createMailResource = (folder: Folder) =>
-	createListResource({
-		url: `mail.api.mail.get_${folder.toLowerCase()}_mails`,
-		doctype: doctype.value,
-		pageLength: 50,
-		cache: [`${folder}Mails`, user.data?.name],
-		onSuccess: (data: Mail[]) => {
-			// const mailExists = (threadID?: string | null) => data.some((m) => m.name === threadID)
-			// if (mailExists(threadID)) {
-			// 	if (currentThread[folder] !== threadID) setCurrentThread(folder, threadID ?? null)
-			// 	mailThread.value?.reload()
-			// } else if (mailExists(currentThread[folder])) {
-			// 	if (route.params.threadID !== currentThread[folder])
-			// 		router.replace({
-			// 			name: `${folder}Mail`,
-			// 			params: { threadID: currentThread[folder] },
-			// 		})
-			// 	mailThread.value?.reload()
-			// } else setCurrentThread(folder, null)
-		},
-	})
+// const mailCountFilters = computed(() => ({
+// 	folder: currentFolder.value,
+// 	docstatus: ['!=', 2],
+// 	[doctype.value === 'Incoming Mail' ? 'receiver' : 'sender']: user.data.name,
+// }))
 
-const mails = Object.fromEntries(folders.map((folder) => [folder, createMailResource(folder)]))
-
-const mailCountFilters = computed(() => ({
-	folder: currentFolder.value,
-	docstatus: ['!=', 2],
-	[doctype.value === 'Incoming Mail' ? 'receiver' : 'sender']: user.data.name,
-}))
-
-const mailCount = createResource({
-	url: 'frappe.client.get_count',
-	auto: currentFolder.value !== 'Trash',
-	makeParams: () => ({ doctype: doctype.value, filters: mailCountFilters.value }),
-	cache: [`${currentFolder.value}MailCount`, user.data?.name],
-})
+// const mailCount = createResource({
+// 	url: 'frappe.client.get_count',
+// 	auto: currentFolder.value !== 'Trash',
+// 	makeParams: () => ({ doctype: doctype.value, filters: mailCountFilters.value }),
+// 	cache: [`${currentFolder.value}MailCount`, user.data?.name],
+// })
 
 const reloadMails = () => {
 	threads.reload()
@@ -259,11 +220,11 @@ const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
 	makeParams: (values: SetSeenParams) => ({ ...values }),
 	onSuccess: ({ names, seen }: SetSeenParams) => {
-		names.forEach(
-			(name) => (mails[currentFolder.value].data.find((m) => m.name === name).seen = seen),
-		)
-		if (!seen && names.includes(currentThread[currentFolder.value]))
-			setCurrentThread(currentFolder.value, null)
+		// 	names.forEach(
+		// 		(name) => (mails[currentFolder.value].data.find((m) => m.name === name).seen = seen),
+		// 	)
+		// 	if (!seen && names.includes(currentThread[currentFolder.value]))
+		// 		setCurrentThread(currentFolder.value, null)
 	},
 })
 
@@ -331,20 +292,20 @@ const selectActions = computed((): SelectAction[] =>
 			onClick: () =>
 				setFolderForThreads.submit({ threads: selections.value, move_to_trash: true }),
 			icon: Trash2,
-			condition: !!selections.value.length && currentFolder.value !== 'Trash',
+			condition: !!selections.value.length && mailbox !== 'trash',
 		},
 		{
 			label: __('Delete Threads'),
 			onClick: () => deleteThreads.submit(selections.value),
 			icon: Trash2,
-			condition: !!selections.value.length && currentFolder.value === 'Trash',
+			condition: !!selections.value.length && mailbox === 'trash',
 		},
 		{
 			label: __('Restore'),
 			onClick: () =>
 				setFolderForThreads.submit({ threads: selections.value, move_to_trash: false }),
 			icon: RotateCcw,
-			condition: !!selections.value.length && currentFolder.value === 'Trash',
+			condition: !!selections.value.length && mailbox === 'trash',
 		},
 		{
 			label: __('Mark as Read'),
@@ -373,12 +334,12 @@ watch(allSelected, (val) => {
 })
 
 const openMail = (mail: Mail) => {
-	setCurrentThread(mailboxName, mail.thread_id)
+	setCurrentThread(mailbox, mail.thread_id)
 	// if (!mail.seen)
 	// 	setSeen.submit({ mails: [{ name: mail.name, mail_type: mail.mail_type }], seen: 1 })
 }
 
-watch(() => mailboxName, reloadMails, { immediate: true })
+watch(() => mailbox, reloadMails, { immediate: true })
 
 // watch(
 // 	() => route.params.threadID,
@@ -388,11 +349,11 @@ watch(() => mailboxName, reloadMails, { immediate: true })
 // )
 
 onMounted(() => {
-	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
-	socket.on('incoming_mail_received', () => {
-		reloadMails('Inbox')
-		reloadMails('Spam')
-	})
+	// socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
+	// socket.on('incoming_mail_received', () => {
+	// 	reloadMails('Inbox')
+	// 	reloadMails('Spam')
+	// })
 })
 
 // layout
@@ -407,6 +368,6 @@ const setUserLayout = (type: LayoutType) => {
 }
 
 const loadMoreEmails = useDebounceFn(() => {
-	if (mails[currentFolder.value].hasNextPage) mails[currentFolder.value].next()
+	// if (mails[currentFolder.value].hasNextPage) mails[currentFolder.value].next()
 }, 500)
 </script>
