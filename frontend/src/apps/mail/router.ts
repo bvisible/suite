@@ -5,10 +5,6 @@ import { userStore } from '@/stores/user'
 
 const routes = [
 	{
-		path: '/',
-		redirect: { name: 'Inbox' },
-	},
-	{
 		path: '/signup',
 		name: 'SignUp',
 		component: () => import('@/pages/SignupView.vue'),
@@ -135,10 +131,7 @@ const routes = [
 	},
 ]
 
-const router = createRouter({
-	history: createWebHistory('/mail'),
-	routes,
-})
+const router = createRouter({ history: createWebHistory('/mail'), routes })
 
 router.beforeEach(async (to, from, next) => {
 	if (document.referrer.includes('/app/setup-wizard')) window.location.replace('/app')
@@ -148,14 +141,17 @@ router.beforeEach(async (to, from, next) => {
 
 	const { userResource } = userStore()
 	await userResource.promise
+	const user = userResource.data
+	const mailboxRoute = { name: 'Mailbox', params: { mailboxName: user.mailboxes[0].role } }
 
-	if (userResource.data.is_mail_admin) {
-		if (!userResource.data.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })
-		if (!userResource.data.default_outgoing && !to.meta.isDashboard)
-			return next({ name: 'Domains' })
-	} else if (to.meta.isDashboard) return next({ name: 'Mailbox' })
+	if (user.is_mail_admin) {
+		if (!user.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })
+		if (!user.default_outgoing && !to.meta.isDashboard) return next({ name: 'Domains' })
+	} else if (to.meta.isDashboard) return next(mailboxRoute)
 
-	next(to.meta.isLogin || to.meta.isSetup ? { name: 'Mailbox' } : undefined)
+	if (to.path === '/' || to.path === '/mailbox') return next(mailboxRoute)
+
+	next(to.meta.isLogin || to.meta.isSetup ? mailboxRoute : undefined)
 })
 
 export default router

@@ -44,6 +44,7 @@ export interface User {
 
 	tenant_name?: string
 	roles: string[]
+	mailboxes: { id: string; name: string; role: string }[]
 }
 
 export interface UserResource {

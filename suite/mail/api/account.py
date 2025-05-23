@@ -4,6 +4,7 @@ from frappe.utils import cint, get_datetime, get_url, now_datetime
 from frappe.utils.data import sha256_hash
 
 from mail.api.admin import add_member
+from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.mail_account.mail_account import create_user
 from mail.utils import user_context
 from mail.utils.cache import (
@@ -126,15 +127,16 @@ def create_account(request_key: str, first_name: str, last_name: str, password: 
 
 
 @frappe.whitelist(allow_guest=True)
-def get_user_info() -> dict:
+def get_user_info() -> dict | None:
 	"""Returns user information."""
 
-	if frappe.session.user == "Guest":
+	user = frappe.session.user
+	if user == "Guest":
 		return None
 
-	user = frappe.db.get_value(
+	user_dict = frappe.db.get_value(
 		"User",
-		frappe.session.user,
+		user,
 		[
 			"name",
 			"email",
@@ -149,20 +151,22 @@ def get_user_info() -> dict:
 		],
 		as_dict=1,
 	)
-	user["roles"] = frappe.get_roles(user.name)
-	user.tenant = get_user_tenant()
-	user.is_mail_user = "Mail User" in user.roles
-	user.is_mail_admin = "Mail Admin" in user.roles
+	user_dict["roles"] = frappe.get_roles(user_dict.name)
+	user_dict.tenant = get_user_tenant()
+	user_dict.is_mail_user = "Mail User" in user_dict.roles
+	user_dict.is_mail_admin = "Mail Admin" in user_dict.roles
 
-	if user.tenant:
-		user.tenant_name, tenant_owner = frappe.db.get_value(
-			"Mail Tenant", user.tenant, ["tenant_name", "user"]
+	if user_dict.tenant:
+		user_dict.tenant_name, tenant_owner = frappe.db.get_value(
+			"Mail Tenant", user_dict.tenant, ["tenant_name", "user"]
 		)
-		user.is_tenant_owner = tenant_owner == frappe.session.user
+		user_dict.is_tenant_owner = tenant_owner == user
 
-	user.default_outgoing = get_default_outgoing_email_for_user(frappe.session.user)
+	user_dict.default_outgoing = get_default_outgoing_email_for_user(user)
 
-	return user
+	user_dict.mailboxes = get_mailboxes_for_account(user)
+
+	return user_dict
 
 
 def get_backup_email(email: str) -> str:
