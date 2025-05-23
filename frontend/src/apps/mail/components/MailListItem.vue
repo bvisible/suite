@@ -41,7 +41,7 @@
 			</h4>
 			<h5
 				class="truncate text-sm leading-[1.5] text-gray-600"
-				:class="{ italic: !mail.snippet, 'min-w-0 flex-1 !text-base': isFullWidth }"
+				:class="{ italic: !mail.preview, 'min-w-0 flex-1 !text-base': isFullWidth }"
 			>
 				{{ mail.preview || __('— No message body —') }}
 			</h5>
