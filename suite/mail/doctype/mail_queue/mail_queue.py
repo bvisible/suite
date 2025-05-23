@@ -571,7 +571,7 @@ class MailQueue(Document):
 
 		if reply_to := json_loads(self.reply_to):
 			mail["header:Reply-To"] = ", ".join(
-				[f'"{rt.display_name}" <{rt.email}>' for rt in frappe._dict(reply_to)]
+				[f'"{rt["display_name"]}" <{rt["email"]}>' for rt in reply_to]
 			)
 
 		if self.in_reply_to:
