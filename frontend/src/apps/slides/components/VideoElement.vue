@@ -7,7 +7,9 @@
 			:autoplay="inSlideShow ? element.autoplay : false"
 			:loop="element.loop"
 			:playbackRate="element.playbackRate"
-		/>
+			@timeupdate="updateProgress"
+			@loadedmetadata="updateDuration"
+		></video>
 		<div
 			v-if="activeElementIds.includes(element.id)"
 			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
@@ -18,6 +20,11 @@
 				class="text-white stroke-[1.5] ps-[0.5px]"
 			/>
 		</div>
+		<div class="bg-gray-900 opacity-30 absolute bottom-0 left-0 right-0 h-1"></div>
+		<div
+			class="bg-gray-900 opacity-40 absolute bottom-0 left-0 right-0 h-1"
+			:style="{ width: `${progress}%` }"
+		></div>
 	</div>
 </template>
 
@@ -67,6 +74,23 @@ const handleVideoClick = (e) => {
 	if (inSlideShow.value || (isActive && e.target !== el.value)) {
 		e.stopPropagation()
 		togglePlaying()
+	}
+}
+
+const duration = ref(0)
+const progress = ref(0)
+
+const updateProgress = () => {
+	const video = el.value
+	if (duration.value) {
+		progress.value = Math.round((video.currentTime / duration.value) * 100)
+	}
+}
+
+const updateDuration = () => {
+	const video = el.value
+	if (video.duration) {
+		duration.value = video.duration
 	}
 }
 </script>
