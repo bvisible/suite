@@ -32,7 +32,16 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import {
+	ref,
+	computed,
+	watch,
+	useTemplateRef,
+	onMounted,
+	onBeforeUnmount,
+	nextTick,
+	provide,
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
@@ -216,4 +225,6 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
 })
+
+provide('slideCursor', slideCursor)
 </script>

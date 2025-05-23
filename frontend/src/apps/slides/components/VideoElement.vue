@@ -1,5 +1,9 @@
 <template>
-	<div @click="handleVideoClick">
+	<div
+		@click="handleVideoClick"
+		@mouseenter="hoveringOverVideo = true"
+		@mouseleave="hoveringOverVideo = false"
+	>
 		<video
 			ref="videoElement"
 			:src="element.src"
@@ -20,16 +24,18 @@
 				class="text-white stroke-[1.5] ps-[0.5px]"
 			/>
 		</div>
-		<div class="bg-gray-900 opacity-30 absolute bottom-0 left-0 right-0 h-1"></div>
-		<div
-			class="bg-gray-900 opacity-40 absolute bottom-0 left-0 right-0 h-1"
-			:style="{ width: `${progress}%` }"
-		></div>
+		<div v-if="showProgressBar">
+			<div class="bg-gray-900 opacity-30 absolute bottom-0 left-0 right-0 h-1"></div>
+			<div
+				class="bg-gray-900 opacity-40 absolute bottom-0 left-0 right-0 h-1"
+				:style="{ width: `${progress}%` }"
+			></div>
+		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
@@ -93,4 +99,18 @@ const updateDuration = () => {
 		duration.value = video.duration
 	}
 }
+
+const hoveringOverVideo = ref(false)
+const slideCursor = inject('slideCursor', ref('none'))
+
+const showProgressBar = computed(() => {
+	// In editor, show it when video is active
+	const isActive = activeElementIds.value.includes(element.value.id)
+
+	// During slideshow, show it only if user is hovering over video and mouse cursor is not hidden
+	const slideshowHovering =
+		inSlideShow.value && hoveringOverVideo.value && slideCursor.value !== 'none'
+
+	return isActive || slideshowHovering
+})
 </script>
