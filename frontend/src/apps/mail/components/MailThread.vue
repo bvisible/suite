@@ -185,7 +185,6 @@ import type { Mail, MailType } from '@/types'
 const props = defineProps<{
 	mailbox: string
 	threadID?: string
-	mailID: string | null
 	type?: MailType
 }>()
 

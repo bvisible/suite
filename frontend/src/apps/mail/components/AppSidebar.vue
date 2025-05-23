@@ -103,7 +103,7 @@ createResource({
 			sidebarItems.value.push({
 				label: mailbox.name,
 				icon: MAILBOX_ICONS[mailbox.role],
-				to: { name: 'Mailbox', params: { mailboxName: mailbox.role } },
+				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
 				activeFor: [mailbox.role],
 			})
 		})!,
