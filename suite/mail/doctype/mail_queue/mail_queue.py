@@ -21,6 +21,7 @@ from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
 from mail.utils.cache import get_account_for_email, get_account_for_user
 from mail.utils.dt import convert_to_utc, parsedate_to_datetime
 from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
+from mail.utils.validation import validate_domain_is_enabled_and_verified
 
 
 class MailQueue(Document):
@@ -179,6 +180,12 @@ class MailQueue(Document):
 
 		if not self.account:
 			frappe.throw(_("Account is required."))
+
+		enabled, domain_name = frappe.db.get_value("Mail Account", self.account, ["enabled", "domain_name"])
+		if not enabled:
+			frappe.throw(_("Mail account {0} is disabled.").format(frappe.bold(self.account)))
+
+		validate_domain_is_enabled_and_verified(domain_name)
 
 	def validate_raw_message(self) -> None:
 		"""Validates the raw message."""
