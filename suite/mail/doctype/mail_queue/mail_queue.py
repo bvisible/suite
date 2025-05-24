@@ -322,8 +322,10 @@ class MailQueue(Document):
 				{
 					"file_url": a["file_url"],
 					"disposition": a["disposition"],
-					"cid": a.get("cid") or random_string(length=10),
 					"filename": a.get("filename") or Path(a["file_url"]).name,
+					"cid": a["cid"]
+					if a["disposition"] == "inline"
+					else a.get("cid", random_string(length=10)),
 				}
 			)
 
