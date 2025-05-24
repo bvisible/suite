@@ -14,7 +14,15 @@ from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
 from frappe.query_builder import Interval, Order
 from frappe.query_builder.functions import Now
-from frappe.utils import add_to_date, cint, create_batch, get_datetime_str, now, random_string
+from frappe.utils import (
+	add_to_date,
+	cint,
+	create_batch,
+	get_datetime_str,
+	now,
+	random_string,
+	time_diff_in_seconds,
+)
 from uuid_utils import uuid7
 
 from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
@@ -85,6 +93,35 @@ class MailQueue(Document):
 		"""Returns the recipients in the Bcc field."""
 
 		return self._get_recipients("Bcc")
+
+	@property
+	def received_after(self) -> float:
+		"""Returns the time difference in seconds between creation and sent time."""
+
+		if self.sent_at and self.creation:
+			time_diff = time_diff_in_seconds(self.creation, self.sent_at)
+			if time_diff > 0:
+				return time_diff
+
+		return 0.0
+
+	@property
+	def queued_after(self) -> float:
+		"""Returns the time difference in seconds between queued and creation time."""
+
+		return time_diff_in_seconds(self.queued_at, self.creation) if self.queued_at else 0.0
+
+	@property
+	def drafted_after(self) -> float:
+		"""Returns the time difference in seconds between drafted and creation time."""
+
+		return time_diff_in_seconds(self.drafted_at, self.creation) if self.drafted_at else 0.0
+
+	@property
+	def submitted_after(self) -> float:
+		"""Returns the time difference in seconds between submitted and creation time."""
+
+		return time_diff_in_seconds(self.submitted_at, self.creation) if self.submitted_at else 0.0
 
 	@property
 	def identity_id(self) -> str:

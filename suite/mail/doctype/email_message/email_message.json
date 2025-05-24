@@ -246,11 +246,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Received At - Sent At",
    "fieldname": "received_after",
-   "fieldtype": "Int",
+   "fieldtype": "Float",
    "is_virtual": 1,
    "label": "Received After (Seconds)",
    "no_copy": 1,
+   "precision": "3",
    "print_hide": 1,
    "read_only": 1
   },
@@ -441,11 +443,13 @@
    "search_index": 1
   },
   {
+   "description": "Creation - Received At",
    "fieldname": "fetched_after",
-   "fieldtype": "Int",
+   "fieldtype": "Float",
    "is_virtual": 1,
    "label": "Fetched After (Seconds)",
    "no_copy": 1,
+   "precision": "3",
    "print_hide": 1,
    "read_only": 1
   },
@@ -554,7 +558,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-22 10:39:55.262090",
+ "modified": "2025-05-24 12:41:26.907346",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
