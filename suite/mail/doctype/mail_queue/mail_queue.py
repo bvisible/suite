@@ -214,6 +214,8 @@ class MailQueue(Document):
 
 		if date_header := message.get("Date"):
 			self.sent_at = get_datetime_str(parsedate_to_datetime(date_header))
+		if in_reply_to := message.get("In-Reply-To"):
+			self.in_reply_to = in_reply_to.strip("<>")
 
 	def validate_from_name(self) -> None:
 		"""Validates the from name."""
