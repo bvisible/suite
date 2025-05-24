@@ -468,13 +468,13 @@ class EmailMessage(Document):
 		return self._get_recipients("Bcc")
 
 	@property
-	def received_after(self) -> int:
+	def received_after(self) -> float:
 		"""Returns the time difference in seconds between received and sent time."""
 
 		return time_diff_in_seconds(self.received_at, self.sent_at)
 
 	@property
-	def fetched_after(self) -> int:
+	def fetched_after(self) -> float:
 		"""Returns the time difference in seconds between creation and received time."""
 
 		return time_diff_in_seconds(self.creation, self.received_at)
