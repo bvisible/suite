@@ -10,6 +10,8 @@ from typing import Any, Literal
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.file import File
+from frappe.core.doctype.file.file import has_permission as has_file_permission
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
 from frappe.query_builder import Interval, Order
@@ -41,6 +43,37 @@ class MailQueue(Document):
 			.where((MQ.status.isin(["Drafted", "Submitted"])) & (MQ.creation < (Now() - Interval(days=days))))
 			.delete()
 		).run()
+
+	@staticmethod
+	def _get_file(
+		name: str | None = None,
+		file_url: str | None = None,
+		user: str | None = None,
+		check_permission: bool = True,
+	) -> File:
+		"""Returns the File document for the given name or file URL."""
+
+		if not name and not file_url:
+			frappe.throw(_("Either name or file URL is required."))
+
+		file = None
+		if name:
+			file = frappe.get_doc("File", name)
+		elif file_url:
+			file = find_file_by_url(file_url)
+
+		if not file:
+			frappe.throw(_("File <code>{0}</code> not found.").format(name or file_url))
+
+		if check_permission:
+			if not has_file_permission(file, "read", user=user):
+				frappe.throw(
+					_("User {0} do not have permission to access the file <code>{1}</code>.").format(
+						frappe.bold(user or frappe.session.user), name or file_url
+					)
+				)
+
+		return file
 
 	@staticmethod
 	def _create(do_not_save: bool = False, **kwargs) -> "MailQueue":
@@ -370,8 +403,26 @@ class MailQueue(Document):
 	def validate_attachments(self) -> None:
 		"""Validates the attachments."""
 
+		user = frappe.session.user
+		if user == "Administrator":
+			user = frappe.db.get_value("Mail Account", self.account, "user")
+
 		attachments = []
 		for a in json_loads(self.attachments, default=[]):
+			file_url = a["file_url"]
+
+			if not file_url:
+				frappe.throw(_("File URL is required."))
+
+			if file_url.startswith("/private/files"):
+				MailQueue._get_file(file_url=a["file_url"], user=user, check_permission=True)
+			elif not file_url.startswith("/files"):
+				frappe.throw(
+					_(
+						"Invalid file URL: {0}. File URLs must start with '/files/' or '/private/files/'."
+					).format(file_url)
+				)
+
 			attachments.append(
 				{
 					"file_url": a["file_url"],
@@ -484,11 +535,11 @@ class MailQueue(Document):
 			else:
 				if attachments := json_loads(self.attachments):
 					for a in attachments:
-						if file := find_file_by_url(a["file_url"]):
-							content = file.get_content()
-							content_type = guess_type(file.file_name)[0]
-							blob = client.upload_blob(content, content_type)
-							a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+						file = MailQueue._get_file(file_url=a["file_url"], check_permission=False)
+						content = file.get_content()
+						content_type = guess_type(file.file_name)[0]
+						blob = client.upload_blob(content, content_type)
+						a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
 
 					attachments = json.dumps(attachments)
 					self.attachments = attachments
