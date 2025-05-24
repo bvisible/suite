@@ -96,6 +96,16 @@ class MailQueue(Document):
 		frappe.throw(_("Identity not found for email {0}").format(self.from_email))
 
 	@property
+	def message(self) -> str | None:
+		"""Returns the message content if available."""
+
+		from mail.mail.doctype.email_message.email_message import EmailMessage
+
+		cache_key = EmailMessage._get_blob_cache_key(self.account, self.blob_id)
+		if content := frappe.cache.get_value(cache_key):
+			return content.decode("utf-8")
+
+	@property
 	def response(self) -> str | None:
 		"""Returns the indented JSON response."""
 
@@ -369,6 +379,17 @@ class MailQueue(Document):
 			frappe.throw(_("Cannot retry a mail with status {0}").format(self.status))
 
 		self._process()
+
+	@frappe.whitelist()
+	def get_mime_message(self) -> str:
+		"""Returns the MIME message content."""
+
+		if not self.blob_id:
+			frappe.throw(_("Email does not have a blob ID."))
+
+		from mail.mail.doctype.email_message.email_message import EmailMessage
+
+		return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
 
 	def _process(self) -> None:
 		"""Create, Update or Submit the Email."""
