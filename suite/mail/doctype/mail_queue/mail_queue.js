@@ -42,5 +42,29 @@ frappe.ui.form.on('Mail Queue', {
 				__('Actions'),
 			)
 		}
+
+		if (
+			frm.doc.blob_id &&
+			!frm.doc.message &&
+			(frm.doc.save_as_draft || !frm.doc.destroy_after_submission)
+		) {
+			frm.add_custom_button(
+				__('Load MIME Message'),
+				() => {
+					frappe.call({
+						doc: frm.doc,
+						method: 'get_mime_message',
+						freeze: true,
+						freeze_message: __('Loading MIME Message...'),
+						callback: (r) => {
+							if (!r.exc) {
+								frm.refresh()
+							}
+						},
+					})
+				},
+				__('Actions'),
+			)
+		}
 	},
 })
