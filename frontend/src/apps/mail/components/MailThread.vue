@@ -30,6 +30,16 @@
 							</template>
 						</Button>
 					</Tooltip>
+
+					<Tooltip :text="__('Move To')">
+						<Dropdown :options="moveToOptions">
+							<Button variant="ghost">
+								<template #icon>
+									<component :is="FolderInput" class="h-4 w-4 text-gray-600" />
+								</template>
+							</Button>
+						</Dropdown>
+					</Tooltip>
 				</div>
 			</template>
 		</div>
@@ -160,6 +170,7 @@ import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
 	Code,
 	Ellipsis,
+	FolderInput,
 	Forward,
 	Mail as MailIcon,
 	Reply,
@@ -188,7 +199,7 @@ const props = defineProps<{
 	type?: MailType
 }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
+const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteThread'])
 
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -209,10 +220,6 @@ const replyDetails = reactive({
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => ({ thread_id: props.threadID }),
-	// transform: (data: Mail[]) =>
-	// 	props.currentFolder === 'Trash'
-	// 		? data.filter((mail) => mail.folder === 'Trash')
-	// 		: data.filter((mail) => mail.folder !== 'Trash'),
 })
 
 const reload = () => {
@@ -282,6 +289,17 @@ const getSrc = (content: string) => {
 	return URL.createObjectURL(blob)
 }
 
+const user = inject('$user')
+
+const moveToOptions = computed(() =>
+	user.data.mailboxes
+		.filter((m) => ![props.mailbox, 'sent', 'drafts'].includes(m.role))
+		.map((m) => ({
+			label: m.name,
+			onClick: () => emit('moveThread', m.role),
+		})),
+)
+
 type ActionType = 'editDraft' | 'reply' | 'replyAll' | 'forward'
 
 interface MailAction {
@@ -295,7 +313,7 @@ const threadActions = computed((): MailAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => emit('setThreadFolders', true),
+			onClick: () => emit('moveThread', 'trash'),
 			icon: Trash2,
 			condition: props.mailbox !== 'trash',
 		},
@@ -303,12 +321,6 @@ const threadActions = computed((): MailAction[] =>
 			label: __('Delete Thread'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: props.mailbox === 'trash',
-		},
-		{
-			label: __('Restore'),
-			onClick: () => emit('setThreadFolders', false),
-			icon: RotateCcw,
 			condition: props.mailbox === 'trash',
 		},
 		{
@@ -367,12 +379,6 @@ const moreActions = (mail: Mail): MailAction[] => [
 		onClick: () => setFolder.submit({ mail, moveToTrash: true }),
 		icon: Trash2,
 		condition: () => mail.folder !== 'Trash',
-	},
-	{
-		label: __('Restore'),
-		onClick: () => setFolder.submit({ mail, moveToTrash: false }),
-		icon: RotateCcw,
-		condition: () => mail.folder === 'Trash',
 	},
 	{
 		label: __('Delete Message'),
