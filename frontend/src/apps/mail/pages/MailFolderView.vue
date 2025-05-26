@@ -143,6 +143,9 @@
 					:thread-i-d
 					@reload-mails="reloadMails"
 					@mark-as-unread="setSeen.submit({ thread_ids: [threadID], seen: false })"
+					@move-thread="
+						(mailbox: string) => moveThread.submit({ thread_ids: [threadID], mailbox })
+					"
 				/>
 			</div>
 		</template>
@@ -260,14 +263,14 @@ const moveToOptions = computed(() =>
 		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
 		.map((m) => ({
 			label: m.name,
-			onClick: () => moveThread.submit({ threads: selections.value, mailbox: m.role }),
+			onClick: () => moveThread.submit({ thread_ids: selections.value, mailbox: m.role }),
 		})),
 )
 
 const moveThread = createResource({
 	url: 'mail.api.mail.set_thread_mailbox',
-	makeParams: ({ threads, mailbox }: { threads: string[]; mailbox: string }) => ({
-		threads,
+	makeParams: ({ thread_ids, mailbox }: { thread_ids: string[]; mailbox: string }) => ({
+		thread_ids,
 		mailbox,
 	}),
 	onSuccess: reloadMails,
@@ -320,7 +323,7 @@ const selectActions = computed((): SelectAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => moveThread.submit({ threads: selections.value, mailbox: 'trash' }),
+			onClick: () => moveThread.submit({ thread_ids: selections.value, mailbox: 'trash' }),
 			icon: Trash2,
 			condition: !!selections.value.length && mailbox !== 'trash',
 		},
