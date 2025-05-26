@@ -269,16 +269,12 @@ def empty_folder(folder: str) -> None:
 
 
 @frappe.whitelist()
-def set_thread_folder(threads: list[str], move_to_trash: bool = False) -> None:
-	"""Sets folder for threads."""
+def set_thread_mailbox(threads: list[str], mailbox: str) -> None:
+	"""Sets mailbox for threads."""
 
 	user = frappe.session.user
 	messages = EmailMessage.get_message_ids(user, threads)
-
-	if move_to_trash:
-		EmailMessage.move_emails_to_mailbox(user, messages, None, "trash")
-	else:
-		EmailMessage.move_emails_to_mailbox(user, messages)
+	EmailMessage.move_emails_to_mailbox(user, messages, None, mailbox)
 
 
 # @frappe.whitelist()
