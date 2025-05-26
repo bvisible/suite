@@ -313,7 +313,7 @@ const threadActions = computed((): MailAction[] =>
 		},
 		{
 			label: __('Mark as Unread'),
-			onClick: () => emit('markAsUnread', mailThread.data?.at(-1).name),
+			onClick: () => emit('markAsUnread'),
 			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),

@@ -87,7 +87,7 @@ import type { LayoutType, Mail } from '@/types'
 
 const { mail, userLayout } = defineProps<{ mail: any; userLayout: LayoutType }>()
 
-const emit = defineEmits(['select-mail', 'deselect-mail'])
+const emit = defineEmits(['select-thread', 'deselect-thread'])
 
 const { isMobile } = useScreenSize()
 
@@ -96,7 +96,7 @@ const isFullWidth = computed(() => userLayout === 'full' && !isMobile.value)
 const isHovered = ref(false)
 const isSelected = ref(false)
 
-watch(isSelected, () => emit(isSelected.value ? 'select-mail' : 'deselect-mail'))
+watch(isSelected, () => emit(isSelected.value ? 'select-thread' : 'deselect-thread'))
 
 const setIsSelected = (value: boolean) => (isSelected.value = value)
 
