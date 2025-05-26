@@ -79,7 +79,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Subject",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "account",
@@ -143,7 +144,8 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "options": "Email Message Recipient",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "blob_id",
@@ -157,7 +159,8 @@
    "fieldname": "reply_to",
    "fieldtype": "Table",
    "options": "Email Message Reply To",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "message_id",
@@ -174,6 +177,7 @@
    "in_standard_filter": 1,
    "label": "In Reply To (Message ID)",
    "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed",
    "search_index": 1
   },
   {
@@ -183,7 +187,8 @@
    "in_standard_filter": 1,
    "label": "From Name",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "from_email",
@@ -193,6 +198,7 @@
    "label": "From Email",
    "no_copy": 1,
    "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed",
    "search_index": 1
   },
   {
@@ -288,7 +294,8 @@
    "fieldtype": "Table",
    "label": "Attachments",
    "options": "Email Message Part",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "collapsible": 1,
@@ -484,13 +491,15 @@
    "fieldname": "html_body",
    "fieldtype": "Code",
    "label": "HTML",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "fieldname": "text_body",
    "fieldtype": "Code",
    "label": "Text",
-   "read_only": 1
+   "read_only": 1,
+   "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
    "default": "0",
@@ -558,7 +567,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-24 12:41:26.907346",
+ "modified": "2025-05-26 12:45:09.615580",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
