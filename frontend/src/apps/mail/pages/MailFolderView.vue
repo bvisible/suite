@@ -99,8 +99,8 @@
 						:user-layout
 						:class="{ 'bg-gray-50': mail.thread_id == threadID }"
 						@click="openMail(mail)"
-						@select-mail="selectMail(mail.name)"
-						@deselect-mail="deselectMail(mail.name)"
+						@select-thread="selectThread(mail.thread_id)"
+						@deselect-thread="deselectThread(mail.thread_id)"
 					/>
 				</div>
 			</div>
@@ -127,7 +127,7 @@
 					:mailbox
 					:thread-i-d
 					@reload-mails="reloadMails"
-					@mark-as-unread="(mail) => setSeen.submit({ mails: [mail], seen: false })"
+					@mark-as-unread="setSeen.submit({ thread_ids: [threadID], seen: false })"
 				/>
 			</div>
 		</template>
@@ -218,19 +218,21 @@ const reloadMails = () => {
 }
 
 interface SetSeenParams {
-	mails: string[]
+	thread_ids: string[]
 	seen: boolean
 }
 
 const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
 	makeParams: (values: SetSeenParams) => ({ ...values }),
-	onSuccess: ({ mails, seen }: SetSeenParams) => {
-		mails.forEach((name) => (threads.data.find((m) => m.name === name).seen = Number(seen)))
+	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
+		thread_ids.forEach(
+			(name) => (threads.data.find((m) => m.thread_id === name).seen = Number(seen)),
+		)
 		if (
 			!seen &&
 			threads.data.some(
-				(m) => mails.includes(m.name) && m.thread_id === currentThread[mailbox],
+				(m) => thread_ids.includes(m.thread_id) && m.thread_id === currentThread[mailbox],
 			)
 		)
 			setCurrentThread(mailbox, null)
@@ -238,7 +240,7 @@ const setSeen = createResource({
 })
 
 const setFolderForThreads = createResource({
-	url: 'mail.api.mail.set_folder_for_threads',
+	url: 'mail.api.mail.set_thread_folder',
 	makeParams: ({ threads, move_to_trash }: { threads: string[]; move_to_trash: boolean }) => ({
 		threads,
 		move_to_trash,
@@ -267,12 +269,12 @@ const resetSelections = () => {
 	selections.value = []
 }
 
-const selectMail = (mail: string) => {
-	if (!selections.value.includes(mail)) selections.value.push(mail)
+const selectThread = (thread: string) => {
+	if (!selections.value.includes(thread)) selections.value.push(thread)
 }
 
-const deselectMail = (mail: string) =>
-	(selections.value = selections.value.filter((m) => m !== mail))
+const deselectThread = (thread: string) =>
+	(selections.value = selections.value.filter((m) => m !== thread))
 
 watch(
 	() => selections.value.length,
@@ -313,13 +315,13 @@ const selectActions = computed((): SelectAction[] =>
 		},
 		{
 			label: __('Mark as Read'),
-			onClick: () => setSeen.submit({ mails: selections.value, seen: true }),
+			onClick: () => setSeen.submit({ thread_ids: selections.value, seen: true }),
 			icon: MailOpen,
 			condition: !!selections.value.length,
 		},
 		{
 			label: __('Mark as Unread'),
-			onClick: () => setSeen.submit({ mails: selections.value, seen: false }),
+			onClick: () => setSeen.submit({ thread_ids: selections.value, seen: false }),
 			icon: MailIcon,
 			condition: !!selections.value.length,
 		},
@@ -339,7 +341,7 @@ watch(allSelected, (val) => {
 
 const openMail = (mail: Mail) => {
 	setCurrentThread(mailbox, mail.thread_id)
-	if (!mail.seen) setSeen.submit({ mails: [mail.name], seen: true })
+	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
 }
 
 watch(() => mailbox, reloadMails, { immediate: true })

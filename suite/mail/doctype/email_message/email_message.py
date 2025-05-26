@@ -117,16 +117,18 @@ class EmailMessage(Document):
 		return messages
 
 	@staticmethod
-	def get_thread(account: str, thread_id: str) -> list[str]:
-		"""Returns the message IDs in a thread."""
+	def get_message_ids(account: str, thread_ids: list[str]) -> list[str]:
+		"""Returns the message IDs for the given threads."""
 
-		if not account or not thread_id:
-			frappe.throw(_("Account and thread ID are required."))
+		if not account or not thread_ids:
+			frappe.throw(_("Account and thread IDs are required."))
 
 		validate_permission_for_account(account)
 
-		return frappe.db.get_all(
-			"Email Message", {"account": account, "thread_id": thread_id, "destroyed": 0}, pluck="name"
+		return frappe.get_all(
+			"Email Message",
+			{"account": account, "thread_id": ["in", thread_ids], "destroyed": 0},
+			pluck="name",
 		)
 
 	@staticmethod
@@ -134,7 +136,7 @@ class EmailMessage(Document):
 		"""Returns the email messages in a thread."""
 
 		messages = []
-		for message_id in EmailMessage.get_thread(account, thread_id):
+		for message_id in EmailMessage.get_message_ids(account, [thread_id]):
 			email_message = frappe.get_doc("Email Message", message_id)
 			messages.append(email_message)
 

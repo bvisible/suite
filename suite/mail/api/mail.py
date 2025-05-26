@@ -206,15 +206,18 @@ def get_mime_message(mail_type: MailType, name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(mails: list[str], seen: bool) -> dict:
+def set_seen(thread_ids: list[str], seen: bool) -> dict:
 	"""Sets seen for mails."""
 
-	if seen:
-		EmailMessage.mark_emails_as_seen(frappe.session.user, mails)
-	else:
-		EmailMessage.mark_emails_as_unseen(frappe.session.user, mails)
+	user = frappe.session.user
+	messages = EmailMessage.get_message_ids(user, thread_ids)
 
-	return {"mails": mails, "seen": seen}
+	if seen:
+		EmailMessage.mark_emails_as_seen(user, messages)
+	else:
+		EmailMessage.mark_emails_as_unseen(user, messages)
+
+	return {"thread_ids": thread_ids, "seen": seen}
 
 
 @frappe.whitelist()
@@ -265,13 +268,17 @@ def empty_folder(folder: str) -> None:
 		delete_or_cancel_mails(mails)
 
 
-# @frappe.whitelist()
-# def set_folder_for_threads(threads: list[dict], move_to_trash: bool = False) -> None:
-# 	"""Moves threads to trash."""
+@frappe.whitelist()
+def set_thread_folder(threads: list[str], move_to_trash: bool = False) -> None:
+	"""Sets folder for threads."""
 
-# 	for thread in threads:
-# 		for mail in get_mail_thread(thread["name"], thread["mail_type"], True):
-# 			set_folder(mail.mail_type, mail.name, move_to_trash)
+	user = frappe.session.user
+	messages = EmailMessage.get_message_ids(user, threads)
+
+	if move_to_trash:
+		EmailMessage.move_emails_to_mailbox(user, messages, None, "trash")
+	else:
+		EmailMessage.move_emails_to_mailbox(user, messages)
 
 
 # @frappe.whitelist()
