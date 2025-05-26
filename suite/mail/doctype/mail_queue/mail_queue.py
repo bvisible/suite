@@ -407,21 +407,24 @@ class MailQueue(Document):
 		if user == "Administrator":
 			user = frappe.db.get_value("Mail Account", self.account, "user")
 
+		blob_ids = []
 		attachments = []
 		for a in json_loads(self.attachments, default=[]):
 			if blob_id := a.get("blob_id"):
-				attachments.append(
-					{
-						"blob_id": blob_id,
-						"type": a["type"],
-						"size": a["size"],
-						"filename": a["filename"],
-						"disposition": a["disposition"],
-						"cid": a["cid"]
-						if a["disposition"] == "inline"
-						else a.get("cid", random_string(length=10)),
-					}
-				)
+				if blob_id not in blob_ids:
+					attachments.append(
+						{
+							"blob_id": blob_id,
+							"type": a["type"],
+							"size": a["size"],
+							"filename": a["filename"],
+							"disposition": a["disposition"],
+							"cid": a["cid"]
+							if a["disposition"] == "inline"
+							else a.get("cid", random_string(length=10)),
+						}
+					)
+					blob_ids.append(blob_id)
 			elif file_url := a.get("file_url"):
 				if file_url.startswith("/private/files"):
 					MailQueue._get_file(file_url=file_url, user=user, check_permission=True)
