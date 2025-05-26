@@ -17,20 +17,26 @@ MailType = Literal["Incoming Mail", "Outgoing Mail"]
 
 @frappe.whitelist()
 def get_mailboxes() -> list:
-	"""Returns mailboxes/folders for the current user."""
+	"""Returns mailboxes for the current user."""
 
 	return get_mailboxes_for_account(frappe.session.user)
+
+
+def get_mailbox_id(mailbox: str) -> str:
+	"""Returns mailbox id for the given role."""
+
+	mailboxes = get_mailboxes()
+	if mailbox not in [d["role"] for d in mailboxes]:
+		frappe.throw(_("Mailbox {0} does not exist.").format(mailbox))
+
+	return next(d["id"] for d in mailboxes if d["role"] == mailbox)
 
 
 @frappe.whitelist()
 def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
 	"""Returns mails from the selected mailbox for the current user."""
 
-	mailboxes = get_mailboxes()
-	if mailbox not in [d["role"] for d in mailboxes]:
-		frappe.throw(_("Mailbox {0} does not exist.").format(mailbox))
-
-	mailbox_id = next(d["id"] for d in mailboxes if d["role"] == mailbox)
+	mailbox_id = get_mailbox_id(mailbox)
 
 	return EmailMessage.get_threads(frappe.session.user, [mailbox_id], 0, limit)
 
@@ -221,51 +227,25 @@ def set_seen(thread_ids: list[str], seen: bool) -> dict:
 
 
 @frappe.whitelist()
-def set_folder(mail_type: MailType, name: str, move_to_trash: bool = False) -> None:
-	"""Sets folder for mail."""
+def set_mails_mailbox(mail_ids: list[str], mailbox: str) -> None:
+	"""Sets mailbox for mails."""
 
-	doc = frappe.get_doc(mail_type, name)
-
-	if move_to_trash:
-		doc.db_set("folder", "Trash")
-		doc.db_set("trashed_on", now())
-	else:
-		doc.db_set("trashed_on")
-		if mail_type == "Incoming Mail":
-			doc.db_set("folder", "Inbox")
-		else:
-			doc.folder = None
-			doc.set_folder(db_set=True)
+	EmailMessage.move_emails_to_mailbox(frappe.session.user, mail_ids, None, mailbox)
 
 
 @frappe.whitelist()
-def delete_or_cancel_mails(mails: list[dict]) -> None:
-	"""Deletes mail if draft, otherwise cancels it."""
+def empty_mailbox(mailbox: str) -> None:
+	"""Empties selected mailbox for current user."""
 
-	for d in mails:
-		if d["docstatus"] == 0:
-			frappe.delete_doc(d["mail_type"], d["name"])
-		else:
-			frappe.db.set_value(d["mail_type"], d["name"], "docstatus", 2)
+	mailbox_id = get_mailbox_id(mailbox)
 
-
-@frappe.whitelist()
-def empty_folder(folder: str) -> None:
-	"""Empties selected folder for current user."""
-
-	account = get_account_for_user(frappe.session.user)
-
-	for doctype in ["Incoming Mail", "Outgoing Mail"]:
-		mails = frappe.get_all(
-			doctype,
-			{
-				"receiver" if doctype == "Incoming Mail" else "sender": account,
-				"folder": folder,
-				"docstatus": ["!=", 2],
-			},
-			["name", "docstatus", f"'{doctype}' as mail_type"],
-		)
-		delete_or_cancel_mails(mails)
+	user = frappe.session.user
+	messages = frappe.get_all(
+		"Email Message",
+		{"account": user, "mailbox_id": ["in", mailbox_id], "destroyed": 0},
+		pluck="name",
+	)
+	EmailMessage.destroy_emails(user, messages)
 
 
 @frappe.whitelist()
