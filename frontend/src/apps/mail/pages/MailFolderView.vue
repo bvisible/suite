@@ -69,6 +69,7 @@
 								</Button>
 							</Dropdown>
 						</Tooltip>
+
 						<Tooltip
 							v-for="action in selectActions"
 							:key="action.label"
@@ -80,6 +81,20 @@
 								</template>
 							</Button>
 						</Tooltip>
+
+						<Tooltip v-if="!!selections.length" :text="__('Move To')">
+							<Dropdown :options="moveToOptions">
+								<Button variant="ghost">
+									<template #icon>
+										<component
+											:is="FolderInput"
+											class="h-4 w-4 text-gray-600"
+										/>
+									</template>
+								</Button>
+							</Dropdown>
+						</Tooltip>
+
 						<div class="flex items-center border-l pl-3.5 sm:pl-5">
 							<Tooltip :text="__('Select All')">
 								<Checkbox
@@ -144,6 +159,7 @@ import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import {
+	FolderInput,
 	Mail as MailIcon,
 	MailOpen,
 	PanelLeft,
@@ -239,11 +255,20 @@ const setSeen = createResource({
 	},
 })
 
-const setFolderForThreads = createResource({
-	url: 'mail.api.mail.set_thread_folder',
-	makeParams: ({ threads, move_to_trash }: { threads: string[]; move_to_trash: boolean }) => ({
+const moveToOptions = computed(() =>
+	user.data.mailboxes
+		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
+		.map((m) => ({
+			label: m.name,
+			onClick: () => moveThread.submit({ threads: selections.value, mailbox: m.role }),
+		})),
+)
+
+const moveThread = createResource({
+	url: 'mail.api.mail.set_thread_mailbox',
+	makeParams: ({ threads, mailbox }: { threads: string[]; mailbox: string }) => ({
 		threads,
-		move_to_trash,
+		mailbox,
 	}),
 	onSuccess: reloadMails,
 })
@@ -295,8 +320,7 @@ const selectActions = computed((): SelectAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () =>
-				setFolderForThreads.submit({ threads: selections.value, move_to_trash: true }),
+			onClick: () => moveThread.submit({ threads: selections.value, mailbox: 'trash' }),
 			icon: Trash2,
 			condition: !!selections.value.length && mailbox !== 'trash',
 		},
@@ -304,13 +328,6 @@ const selectActions = computed((): SelectAction[] =>
 			label: __('Delete Threads'),
 			onClick: () => deleteThreads.submit(selections.value),
 			icon: Trash2,
-			condition: !!selections.value.length && mailbox === 'trash',
-		},
-		{
-			label: __('Restore'),
-			onClick: () =>
-				setFolderForThreads.submit({ threads: selections.value, move_to_trash: false }),
-			icon: RotateCcw,
 			condition: !!selections.value.length && mailbox === 'trash',
 		},
 		{
