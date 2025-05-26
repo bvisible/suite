@@ -815,11 +815,38 @@ class EmailMessage(Document):
 		forward_html_body = BeautifulSoup(forward_html_body, "html.parser").prettify()
 		forward_text_body += f"\n\n> {quoted_text_body}"
 
+		attachments = [
+			{
+				"file_url": a.file_url,
+				"blob_id": a.blob_id,
+				"type": a.type,
+				"size": a.size,
+				"filename": a.filename,
+				"disposition": a.disposition,
+				"cid": a.cid,
+			}
+			for a in self.attachments
+		]
+
+		for body_part in self._html_body + self._text_body:
+			if body_part.disposition == "inline":
+				attachments.append(
+					{
+						"blob_id": body_part.blob_id,
+						"type": body_part.type,
+						"size": body_part.size,
+						"filename": body_part.filename,
+						"disposition": body_part.disposition,
+						"cid": body_part.cid,
+					}
+				)
+
 		return MailQueue._create(
 			account=self.account,
 			subject=f"Fwd: {self.subject}" if not self.subject.lower().startswith("fwd:") else self.subject,
 			html_body=forward_html_body,
 			text_body=forward_text_body,
+			attachments=attachments,
 			forwarded_from_id=self._id,
 			do_not_save=True,
 		)
@@ -908,18 +935,18 @@ class EmailMessage(Document):
 				)
 
 		MailQueue._create(
-			_id=self._id,
 			account=self.account,
 			from_name=self.from_name,
 			from_email=self.from_email,
 			subject=self.subject,
+			reply_to=reply_to,
 			recipients=recipients,
+			attachments=attachments,
 			html_body=self.html_body,
 			text_body=self.text_body,
 			message_id=self.message_id,
+			_id=self._id,
 			in_reply_to=self.in_reply_to,
-			reply_to=reply_to,
-			attachments=attachments,
 			save_as_draft=save_as_draft,
 		)
 
