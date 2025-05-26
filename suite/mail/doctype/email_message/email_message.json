@@ -144,7 +144,6 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "options": "Email Message Recipient",
-   "read_only": 1,
    "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
@@ -159,7 +158,6 @@
    "fieldname": "reply_to",
    "fieldtype": "Table",
    "options": "Email Message Reply To",
-   "read_only": 1,
    "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
@@ -294,7 +292,6 @@
    "fieldtype": "Table",
    "label": "Attachments",
    "options": "Email Message Part",
-   "read_only": 1,
    "read_only_depends_on": "eval: !doc.draft || doc.destroyed"
   },
   {
@@ -567,7 +564,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-26 12:45:09.615580",
+ "modified": "2025-05-26 16:21:22.094482",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
