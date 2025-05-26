@@ -15,6 +15,8 @@ frappe.ui.form.on('Email Message', {
 			if (!frm.doc.draft) {
 				frm.trigger('add_reply_forward_buttons')
 				frm.trigger('add_move_buttons')
+			} else {
+				frm.trigger('add_draft_submit_buttons')
 			}
 
 			frm.trigger('add_actions')
@@ -22,7 +24,7 @@ frappe.ui.form.on('Email Message', {
 	},
 
 	add_seen_flagged_buttons(frm) {
-		function add_toggle_button(field, method, labels, freeze_messages) {
+		const add_toggle_button = (field, method, labels, freeze_messages) => {
 			const current = frm.doc[field]
 			const label = current ? __(labels[1]) : __(labels[0])
 			const freeze_message = current ? __(freeze_messages[1]) : __(freeze_messages[0])
@@ -139,6 +141,27 @@ frappe.ui.form.on('Email Message', {
 			add_move_button('Move to Inbox', 'inbox')
 			add_move_button('Move to Sent', 'sent')
 		}
+	},
+
+	add_draft_submit_buttons(frm) {
+		const add_button = (label, method, freeze_message) => {
+			frm.add_custom_button(__(label), () => {
+				frappe.call({
+					doc: frm.doc,
+					method: method,
+					freeze: true,
+					freeze_message: __(freeze_message),
+					callback: (r) => {
+						if (!r.exc) {
+							frappe.set_route('List', 'Email Message')
+						}
+					},
+				})
+			})
+		}
+
+		add_button('Save Draft', 'save_draft', 'Saving Draft...')
+		add_button('Submit', 'submit', 'Submitting...')
 	},
 
 	add_actions(frm) {

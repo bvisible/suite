@@ -173,6 +173,8 @@ class EmailMessage(Document):
 			client.email_set_mailbox(list(emails_to_move), target_mailbox_id)
 			target_mailbox_role = mailbox_role or get_mailbox_role(account, target_mailbox_id)
 			target_mailbox_name = get_mailbox_name(account, target_mailbox_id)
+
+			# This database update could potentially cause a deadlock.
 			frappe.db.set_value(
 				"Email Message",
 				filters,
@@ -219,6 +221,8 @@ class EmailMessage(Document):
 		try:
 			client = get_jmap_client(account)
 			client.email_set_destroy(email_ids)
+
+			# This database update could potentially cause a deadlock.
 			frappe.db.set_value("Email Message", filters, "destroyed", 1)
 		except Exception:
 			frappe.log_error(
@@ -284,6 +288,7 @@ class EmailMessage(Document):
 			client = get_jmap_client(account)
 			client.email_set_keywords(email_id_keywords_map)
 
+			# This database update could potentially cause a deadlock.
 			for message_id, _keywords in message_id_keywords_map.items():
 				frappe.db.set_value(
 					"Email Message",
@@ -665,6 +670,18 @@ class EmailMessage(Document):
 		return EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment.filename)
 
 	@frappe.whitelist()
+	def save_draft(self) -> None:
+		"""Save the email message as a draft."""
+
+		self._update_or_submit_draft(save_as_draft=True)
+
+	@frappe.whitelist()
+	def submit(self) -> None:
+		"""Submit the draft email message."""
+
+		self._update_or_submit_draft(save_as_draft=False)
+
+	@frappe.whitelist()
 	def destroy(self) -> None:
 		"""Destroy the email message."""
 
@@ -850,6 +867,60 @@ class EmailMessage(Document):
 			recipients.append({"name": rcpt.display_name, "email": rcpt.email})
 
 		return recipients
+
+	def _update_or_submit_draft(self, save_as_draft: bool = True) -> None:
+		"""Update or submit the draft email message."""
+
+		self.validate_destroyed()
+
+		if not self.draft:
+			frappe.throw(_("Email Message {0} is not a draft.").format(frappe.bold(self.name)))
+
+		recipients = [
+			{"type": rcpt.type, "display_name": rcpt.display_name, "email": rcpt.email}
+			for rcpt in self.recipients
+		]
+		reply_to = [{"display_name": rt.display_name, "email": rt.email} for rt in self.reply_to]
+		attachments = [
+			{
+				"blob_id": a.blob_id,
+				"type": a.type,
+				"size": a.size,
+				"filename": a.filename,
+				"disposition": a.disposition,
+				"cid": a.cid,
+			}
+			for a in self.attachments
+		]
+
+		for body_part in self._html_body + self._text_body:
+			if body_part.disposition == "inline":
+				attachments.append(
+					{
+						"blob_id": body_part.blob_id,
+						"type": body_part.type,
+						"size": body_part.size,
+						"filename": body_part.filename,
+						"disposition": body_part.disposition,
+						"cid": body_part.cid,
+					}
+				)
+
+		MailQueue._create(
+			_id=self._id,
+			account=self.account,
+			from_name=self.from_name,
+			from_email=self.from_email,
+			subject=self.subject,
+			recipients=recipients,
+			html_body=self.html_body,
+			text_body=self.text_body,
+			message_id=self.message_id,
+			in_reply_to=self.in_reply_to,
+			reply_to=reply_to,
+			attachments=attachments,
+			save_as_draft=save_as_draft,
+		)
 
 	def _reply(self, recipients: list[dict]) -> "MailQueue":
 		"""Returns a unsaved EmailMessage object for replying to the email message."""
