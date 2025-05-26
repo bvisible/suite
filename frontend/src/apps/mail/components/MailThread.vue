@@ -331,7 +331,7 @@ const threadActions = computed((): MailAction[] =>
 	].filter((action) => action.condition !== false),
 )
 
-const mailActions = (mail: Mail): MailAction[] => [
+const mailActions = (mail: any): MailAction[] => [
 	{
 		label: __('Edit Draft'),
 		onClick: () => {
@@ -349,7 +349,7 @@ const mailActions = (mail: Mail): MailAction[] => [
 	},
 ]
 
-const moreActions = (mail: Mail): MailAction[] => [
+const moreActions = (mail: any): MailAction[] => [
 	{
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
@@ -376,42 +376,33 @@ const moreActions = (mail: Mail): MailAction[] => [
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: () => setFolder.submit({ mail, moveToTrash: true }),
+		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: 'trash' }),
 		icon: Trash2,
-		condition: () => mail.folder !== 'Trash',
+		condition: () => props.mailbox !== 'trash',
 	},
 	{
 		label: __('Delete Message'),
-		onClick: () => deleteMail.submit(mail),
+		onClick: () => deleteMails.submit([mail.name]),
 		icon: Trash2,
-		condition: () => mail.folder === 'Trash',
+		condition: () => props.mailbox === 'trash',
 	},
 ]
 
-const setFolder = createResource({
-	url: 'mail.api.mail.set_folder',
-	method: 'POST',
-	makeParams: ({ mail, moveToTrash }: { mail: Mail; moveToTrash: boolean }) => ({
-		mail_type: mail.mail_type,
-		name: mail.name,
-		move_to_trash: moveToTrash,
+const moveMail = createResource({
+	url: 'mail.api.mail.set_mails_mailbox',
+	makeParams: ({ mail_ids, mailbox }: { mail_ids: string[]; mailbox: string }) => ({
+		mail_ids,
+		mailbox,
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
 
-const deleteMail = createResource({
-	url: 'mail.api.mail.delete_or_cancel_mails',
-	makeParams: (mail: Mail) => ({
-		mails: [
-			{
-				mail_type: mail.mail_type,
-				name: mail.name,
-				docstatus: mail.docstatus,
-			},
-		],
-	}),
+const deleteMails = createResource({
+	url: 'mail.mail.doctype.email_message.email_message.bulk_destroy',
+	makeParams: (names: string[]) => ({ names }),
 	onSuccess: () => emit('reloadMails'),
 })
+
 const openModal = (type: ActionType, mail) => {
 	if (props.type == 'Incoming Mail') {
 		replyDetails.to = mail.reply_to || mail.sender

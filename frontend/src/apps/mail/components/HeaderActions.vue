@@ -37,7 +37,7 @@ const confirmDialogOptions = computed(() => ({
 			label: __('Confirm'),
 			variant: 'solid',
 			onClick: () => {
-				emptyFolder.submit()
+				emptyMailbox.submit()
 				showConfirmDialog.value = false
 			},
 		},
@@ -49,9 +49,9 @@ const performAction = () => {
 	else showSendModal.value = true
 }
 
-const emptyFolder = createResource({
-	url: 'mail.api.mail.empty_folder',
-	makeParams: () => ({ folder: mailbox }),
+const emptyMailbox = createResource({
+	url: 'mail.api.mail.empty_mailbox',
+	makeParams: () => ({ mailbox }),
 	onSuccess: () => emit('reloadMails'),
 })
 </script>
