@@ -409,30 +409,41 @@ class MailQueue(Document):
 
 		attachments = []
 		for a in json_loads(self.attachments, default=[]):
-			file_url = a["file_url"]
-
-			if not file_url:
-				frappe.throw(_("File URL is required."))
-
-			if file_url.startswith("/private/files"):
-				MailQueue._get_file(file_url=a["file_url"], user=user, check_permission=True)
-			elif not file_url.startswith("/files"):
-				frappe.throw(
-					_(
-						"Invalid file URL: {0}. File URLs must start with '/files/' or '/private/files/'."
-					).format(file_url)
+			if blob_id := a.get("blob_id"):
+				attachments.append(
+					{
+						"blob_id": blob_id,
+						"type": a["type"],
+						"size": a["size"],
+						"filename": a["filename"],
+						"disposition": a["disposition"],
+						"cid": a["cid"]
+						if a["disposition"] == "inline"
+						else a.get("cid", random_string(length=10)),
+					}
 				)
+			elif file_url := a.get("file_url"):
+				if file_url.startswith("/private/files"):
+					MailQueue._get_file(file_url=file_url, user=user, check_permission=True)
+				elif not file_url.startswith("/files"):
+					frappe.throw(
+						_(
+							"Invalid file URL: {0}. File URLs must start with '/files/' or '/private/files/'."
+						).format(file_url)
+					)
 
-			attachments.append(
-				{
-					"file_url": a["file_url"],
-					"disposition": a["disposition"],
-					"filename": a.get("filename") or Path(a["file_url"]).name,
-					"cid": a["cid"]
-					if a["disposition"] == "inline"
-					else a.get("cid", random_string(length=10)),
-				}
-			)
+				attachments.append(
+					{
+						"file_url": file_url,
+						"filename": a.get("filename") or Path(file_url).name,
+						"disposition": a["disposition"],
+						"cid": a["cid"]
+						if a["disposition"] == "inline"
+						else a.get("cid", random_string(length=10)),
+					}
+				)
+			else:
+				frappe.throw(_("Either blob_id or file_url is required for attachments."))
 
 		self.attachments = json.dumps(attachments)
 
@@ -535,11 +546,13 @@ class MailQueue(Document):
 			else:
 				if attachments := json_loads(self.attachments):
 					for a in attachments:
-						file = MailQueue._get_file(file_url=a["file_url"], check_permission=False)
-						content = file.get_content()
-						content_type = guess_type(file.file_name)[0]
-						blob = client.upload_blob(content, content_type)
-						a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+						blob_id = a.get("blob_id")
+						if not blob_id:
+							file = MailQueue._get_file(file_url=a["file_url"], check_permission=False)
+							content = file.get_content()
+							content_type = guess_type(file.file_name)[0]
+							blob = client.upload_blob(content, content_type)
+							a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
 
 					attachments = json.dumps(attachments)
 					self.attachments = attachments
