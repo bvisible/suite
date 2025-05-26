@@ -39,7 +39,11 @@ const fileUploadHandler = new FileUploadHandler()
 const uploadMedia = (file, fileType) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
-			.upload(file, { doctype: 'Presentation', docname: presentationId.value, private: true })
+			.upload(file, {
+				doctype: 'Presentation',
+				docname: presentationId.value,
+				private: false,
+			})
 			.then((fileDoc) => {
 				addMediaElement(fileDoc, fileType)
 				resolve(fileDoc)
