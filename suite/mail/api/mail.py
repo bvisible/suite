@@ -269,11 +269,11 @@ def empty_folder(folder: str) -> None:
 
 
 @frappe.whitelist()
-def set_thread_mailbox(threads: list[str], mailbox: str) -> None:
+def set_thread_mailbox(thread_ids: list[str], mailbox: str) -> None:
 	"""Sets mailbox for threads."""
 
 	user = frappe.session.user
-	messages = EmailMessage.get_message_ids(user, threads)
+	messages = EmailMessage.get_message_ids(user, thread_ids)
 	EmailMessage.move_emails_to_mailbox(user, messages, None, mailbox)
 
 
