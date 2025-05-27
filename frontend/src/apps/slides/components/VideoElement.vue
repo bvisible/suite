@@ -16,28 +16,34 @@
 			preload="auto"
 		></video>
 		<div
-			v-if="activeElementIds.includes(element.id)"
-			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-gray-800 opacity-80"
-		>
-			<component
-				size="16"
-				:is="isPlaying ? Pause : Play"
-				class="text-white stroke-[1.5] ps-[0.5px]"
-			/>
-		</div>
-		<div
-			v-if="showProgressBar"
-			class="absolute h-[6px] hover:h-2 w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
-			@click.stop="seekTimestamp"
+			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
+			:class="{ 'opacity-0': !showProgressBar }"
+			:style="gradientOverlayStyles"
 		>
 			<div
-				ref="progressBar"
-				class="bg-gray-900 opacity-30 w-full h-full absolute left-0 top-0"
-			></div>
+				v-if="activeElementIds.includes(element.id)"
+				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-100 opacity-80"
+			>
+				<component
+					size="16"
+					:is="isPlaying ? Pause : Play"
+					class="text-white stroke-[1.5] ps-[0.5px]"
+				/>
+			</div>
 			<div
-				class="bg-gray-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-500 ease-linear"
-				:style="{ width: `${progress}%` }"
-			></div>
+				v-if="showProgressBar"
+				class="absolute h-[6px] hover:h-2 w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
+				@click.stop="seekTimestamp"
+			>
+				<div
+					ref="progressBar"
+					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
+				></div>
+				<div
+					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-500 ease-linear"
+					:style="{ width: `${progress}%` }"
+				></div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -129,4 +135,8 @@ const seekTimestamp = (e) => {
 	const video = el.value
 	video.currentTime = seekTo
 }
+
+const gradientOverlayStyles = computed(() => ({
+	background: `linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0) 100%)`,
+}))
 </script>
