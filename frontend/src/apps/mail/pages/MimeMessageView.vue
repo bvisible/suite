@@ -14,9 +14,7 @@
 				class="flex items-center px-6 py-4 text-base last:rounded-b even:bg-gray-50/70"
 			>
 				<div class="w-1/4 text-gray-600">{{ value.label }}</div>
-				<div class="flex w-3/4 items-center">
-					{{ value.value }}
-				</div>
+				<div class="flex w-3/4 items-center">{{ value.value }}</div>
 			</div>
 		</div>
 
@@ -29,7 +27,7 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button, createResource } from 'frappe-ui'
 
-import { copyToClipBoard, kebabToTitleCase } from '@/utils'
+import { copyToClipBoard } from '@/utils'
 
 const route = useRoute()
 const message = ref('')
@@ -56,10 +54,7 @@ interface Mime {
 const mime = createResource({
 	url: 'mail.api.mail.get_mime_message',
 	auto: true,
-	makeParams: () => ({
-		mail_type: kebabToTitleCase(route.fullPath.split('/')[2]),
-		name: route.params.id,
-	}),
+	makeParams: () => ({ name: route.params.id }),
 	transform: (data: Mime) => {
 		message.value = data.message as string
 		delete data.message

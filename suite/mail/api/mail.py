@@ -178,37 +178,32 @@ def get_user_addresses(user: str | None = None) -> list:
 
 
 @frappe.whitelist()
-def get_mime_message(mail_type: MailType, name: str) -> dict:
+def get_mime_message(name: str) -> dict:
 	"""Fetches mail mime message and related data."""
 
-	doc = frappe.get_doc(mail_type, name)
+	doc = frappe.get_doc("Email Message", name)
 
 	def get_mail_recipients(recipient_type):
 		return ", ".join([d.email for d in doc.recipients if d.type == recipient_type])
 
-	mail = {
-		"message": doc.message,
+	pass_or_fail = {1: _("'Pass'"), 0: _("'Fail'")}
+
+	return {
+		"message": doc.get_mime_message(),
 		"message_id": {"label": _("Message ID"), "value": doc.message_id},
-		"created_at": {"label": _("Created at"), "value": doc.created_at},
+		"created_at": {"label": _("Created at"), "value": doc.received_at},
 		"subject": {"label": _("Subject"), "value": doc.subject},
-		"from": {"label": _("From"), "value": f"{doc.display_name} <{doc.sender}>"},
+		"from": {"label": _("From"), "value": f"{doc.from_name} <{doc.from_email}>"},
 		"to": {"label": _("To"), "value": get_mail_recipients("To")},
 		"cc": {"label": _("CC"), "value": get_mail_recipients("Cc")},
-	}
-
-	if mail_type == "Outgoing Mail":
-		mail["bcc"] = {"label": _("BCC"), "value": get_mail_recipients("Bcc")}
-
-	elif doc.type != "DSN Report":
-		pass_or_fail = {1: _("'Pass'"), 0: _("'Fail'")}
-		mail["spf"] = {
+		"bcc": {"label": _("BCC"), "value": get_mail_recipients("Bcc")},
+		"spf": {
 			"label": _("SPF"),
 			"value": _("{0} with IP {1}").format(pass_or_fail[doc.spf_pass], doc.from_ip),
-		}
-		mail["dkim"] = {"label": _("DKIM"), "value": pass_or_fail[doc.dkim_pass]}
-		mail["dmarc"] = {"label": _("DMARC"), "value": pass_or_fail[doc.dmarc_pass]}
-
-	return mail
+		},
+		"dkim": {"label": _("DKIM"), "value": pass_or_fail[doc.dkim_pass]},
+		"dmarc": {"label": _("DMARC"), "value": pass_or_fail[doc.dmarc_pass]},
+	}
 
 
 @frappe.whitelist()

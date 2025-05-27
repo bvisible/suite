@@ -364,13 +364,7 @@ const moreActions = (mail: any): MailAction[] => [
 	},
 	{
 		label: __('See MIME Message'),
-		onClick: () =>
-			window
-				.open(
-					`/mail/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
-					'_blank',
-				)
-				?.focus(),
+		onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
 		icon: Code,
 		condition: () => mail.status !== 'Draft' && !isMobile.value,
 	},
