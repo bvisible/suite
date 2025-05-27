@@ -30,11 +30,9 @@ import { Popover } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
 
-import type { Mail } from '@/types'
-
 const dayjs = inject('$dayjs')
 
-const { mail } = defineProps<{ mail: Mail }>()
+const { mail } = defineProps<{ mail: any }>()
 
 const FIELDS = [
 	// {

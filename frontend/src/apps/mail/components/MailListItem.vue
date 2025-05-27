@@ -83,7 +83,7 @@ import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
-import type { LayoutType, Mail } from '@/types'
+import type { LayoutType } from '@/types'
 
 const { mail, userLayout } = defineProps<{ mail: any; userLayout: LayoutType }>()
 
