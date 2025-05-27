@@ -35,7 +35,7 @@
 				class="bg-gray-900 opacity-30 w-full h-full absolute left-0 top-0"
 			></div>
 			<div
-				class="bg-gray-900 opacity-40 h-full absolute left-0 top-0"
+				class="bg-gray-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-500 ease-linear"
 				:style="{ width: `${progress}%` }"
 			></div>
 		</div>
