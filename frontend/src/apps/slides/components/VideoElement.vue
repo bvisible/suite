@@ -13,6 +13,7 @@
 			:playbackRate="element.playbackRate"
 			@timeupdate="updateProgress"
 			@loadedmetadata="updateDuration"
+			preload="auto"
 		></video>
 		<div
 			v-if="activeElementIds.includes(element.id)"
@@ -24,10 +25,17 @@
 				class="text-white stroke-[1.5] ps-[0.5px]"
 			/>
 		</div>
-		<div v-if="showProgressBar">
-			<div class="bg-gray-900 opacity-30 absolute bottom-0 left-0 right-0 h-1"></div>
+		<div
+			v-if="showProgressBar"
+			class="absolute h-1.5 w-full bottom-0 left-0 cursor-pointer"
+			@click.stop="seekTimestamp"
+		>
 			<div
-				class="bg-gray-900 opacity-40 absolute bottom-0 left-0 right-0 h-1"
+				ref="progressBar"
+				class="bg-gray-900 opacity-30 w-full h-full absolute left-0 top-0"
+			></div>
+			<div
+				class="bg-gray-900 opacity-40 h-full absolute left-0 top-0"
 				:style="{ width: `${progress}%` }"
 			></div>
 		</div>
@@ -111,4 +119,14 @@ const showProgressBar = computed(() => {
 
 	return isActive || slideshowHovering
 })
+
+const progressBarRef = useTemplateRef('progressBar')
+
+const seekTimestamp = (e) => {
+	const progressBarRect = progressBarRef.value.getBoundingClientRect()
+	const percentage = (e.clientX - progressBarRect.left) / progressBarRect.width
+	const seekTo = Number(percentage.toFixed(2)) * duration.value
+	const video = el.value
+	video.currentTime = seekTo
+}
 </script>
