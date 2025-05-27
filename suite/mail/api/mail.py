@@ -5,6 +5,7 @@ from typing import Literal
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Count
 from frappe.utils import now
 
 from mail.jmap import get_mailboxes_for_account
@@ -39,6 +40,30 @@ def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
 	mailbox_id = get_mailbox_id(mailbox)
 
 	return EmailMessage.get_threads(frappe.session.user, [mailbox_id], 0, limit)
+
+
+@frappe.whitelist()
+def get_mailbox_thread_count(mailbox: str) -> str:
+	"""Returns no. of mails for the given mailbox."""
+
+	mailbox_id = get_mailbox_id(mailbox)
+
+	EmailMessage = frappe.qb.DocType("Email Message")
+
+	distinct_threads = (
+		frappe.qb.from_(EmailMessage)
+		.select(EmailMessage.thread_id)
+		.distinct()
+		.where(
+			(EmailMessage.account == frappe.session.user)
+			& (EmailMessage.mailbox_id == mailbox_id)
+			& (EmailMessage.destroyed == 0)
+		)
+	)
+
+	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
+
+	return count[0][0]
 
 
 @frappe.whitelist()
@@ -191,7 +216,7 @@ def get_mime_message(name: str) -> dict:
 	return {
 		"message": doc.get_mime_message(),
 		"message_id": {"label": _("Message ID"), "value": doc.message_id},
-		"created_at": {"label": _("Created at"), "value": doc.received_at},
+		"created_at": {"label": _("Created at"), "value": doc.sent_at},
 		"subject": {"label": _("Subject"), "value": doc.subject},
 		"from": {"label": _("From"), "value": f"{doc.from_name} <{doc.from_email}>"},
 		"to": {"label": _("To"), "value": get_mail_recipients("To")},
