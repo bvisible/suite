@@ -27,7 +27,7 @@
 		</div>
 		<div
 			v-if="showProgressBar"
-			class="absolute h-1.5 w-full bottom-0 left-0 cursor-pointer"
+			class="absolute h-[6px] hover:h-2 w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
 			@click.stop="seekTimestamp"
 		>
 			<div
