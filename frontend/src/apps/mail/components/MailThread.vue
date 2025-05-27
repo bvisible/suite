@@ -129,7 +129,7 @@
 						mail.text_body
 					}}</pre>
 
-					<!-- <div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
+					<div v-if="mail.attachments?.length" class="mt-8 flex flex-wrap space-x-2">
 						<AttachmentCapsule
 							v-for="attachment in mail.attachments"
 							:key="attachment.name"
@@ -137,7 +137,7 @@
 							:file-url="attachment.file_url"
 							class="mb-2"
 						/>
-					</div> -->
+					</div>
 				</div>
 			</div>
 		</div>
@@ -172,10 +172,9 @@ import {
 	Ellipsis,
 	FolderInput,
 	Forward,
-	Mail as MailIcon,
+	Mail,
 	Reply,
 	ReplyAll,
-	RotateCcw,
 	SquarePen,
 	Trash2,
 } from 'lucide-vue-next'
@@ -191,7 +190,7 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { Mail, MailType } from '@/types'
+import type { MailType } from '@/types'
 
 const props = defineProps<{
 	mailbox: string
@@ -326,7 +325,7 @@ const threadActions = computed((): MailAction[] =>
 		{
 			label: __('Mark as Unread'),
 			onClick: () => emit('markAsUnread'),
-			icon: MailIcon,
+			icon: Mail,
 		},
 	].filter((action) => action.condition !== false),
 )

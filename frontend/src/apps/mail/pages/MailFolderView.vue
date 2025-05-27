@@ -163,15 +163,7 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import {
-	FolderInput,
-	Mail as MailIcon,
-	MailOpen,
-	PanelLeft,
-	RefreshCw,
-	Rows4,
-	Trash2,
-} from 'lucide-vue-next'
+import { FolderInput, Mail, MailOpen, PanelLeft, RefreshCw, Rows4, Trash2 } from 'lucide-vue-next'
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { startResizing } from '@/utils'
@@ -182,7 +174,7 @@ import NoMails from '@/components/Icons/NoMails.vue'
 import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
 
-import type { LayoutType, Mail, UserResource } from '@/types'
+import type { LayoutType, UserResource } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
@@ -337,7 +329,7 @@ const selectActions = computed((): SelectAction[] =>
 		{
 			label: __('Mark as Unread'),
 			onClick: () => setSeen.submit({ thread_ids: selections.value, seen: false }),
-			icon: MailIcon,
+			icon: Mail,
 			condition: !!selections.value.length,
 		},
 		{
@@ -361,20 +353,13 @@ const openMail = (mail: Mail) => {
 
 watch(() => mailbox, reloadMails, { immediate: true })
 
-// watch(
-// 	() => route.params.threadID,
-// 	(val, oldVal) => {
-// 		if (val !== oldVal) setCurrentThread(currentFolder.value, val || null)
-// 	},
-// )
-
-onMounted(() => {
-	// socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
-	// socket.on('incoming_mail_received', () => {
-	// 	reloadMails('Inbox')
-	// 	reloadMails('Spam')
-	// })
-})
+// onMounted(() => {
+// 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
+// 	socket.on('incoming_mail_received', () => {
+// 		reloadMails('Inbox')
+// 		reloadMails('Spam')
+// 	})
+// })
 
 // layout
 
@@ -388,6 +373,9 @@ const setUserLayout = (type: LayoutType) => {
 }
 
 const loadMoreEmails = useDebounceFn(() => {
-	// if (mails[currentFolder.value].hasNextPage) mails[currentFolder.value].next()
+	if (threads?.data?.length === limit.value) {
+		limit.value += 50
+		threads.reload()
+	}
 }, 500)
 </script>

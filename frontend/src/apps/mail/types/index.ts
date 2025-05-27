@@ -1,5 +1,3 @@
-import type { IncomingMail, OutgoingMail } from './doctypes'
-
 export * from './doctypes'
 
 export type MailType = 'Incoming Mail' | 'Outgoing Mail'
@@ -9,13 +7,6 @@ export interface Attachment {
 	file_name: string
 }
 
-export type Mail = (
-	| (IncomingMail & { mail_type: 'Incoming Mail' })
-	| (OutgoingMail & { mail_type: 'Outgoing Mail' })
-) & {
-	snippet: string
-	attachments: Attachment[]
-}
 export interface ReplyDetails {
 	to: string
 	cc: string
@@ -50,7 +41,5 @@ export interface User {
 export interface UserResource {
 	data: User
 }
-
-export type Folder = 'Inbox' | 'Sent' | 'Outbox' | 'Drafts' | 'Spam' | 'Trash'
 
 export type LayoutType = 'split' | 'full'
