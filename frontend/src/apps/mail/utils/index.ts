@@ -10,11 +10,6 @@ export const convertToTitleCase = (str: string) =>
 		})
 		.join(' ') || ''
 
-export const formatNumber = (number: number) =>
-	number.toLocaleString('en-IN', {
-		maximumFractionDigits: 0,
-	})
-
 export function startResizing(event) {
 	const startX = event.clientX
 	const sidebar = document.getElementsByClassName('mailSidebar')[0]

@@ -12,12 +12,12 @@
 		>
 			<template #suffix>
 				<div class="ml-2 self-end text-xs text-gray-600">
-					<!-- {{
+					{{
 						__('{0} {1}', [
-							formatNumber(mailCount?.data || 0),
+							mailCount?.data || 0,
 							mailCount?.data == 1 ? 'message' : 'messages',
 						])
-					}} -->
+					}}
 				</div>
 			</template>
 		</Breadcrumbs>
@@ -169,13 +169,12 @@ import {
 	MailOpen,
 	PanelLeft,
 	RefreshCw,
-	RotateCcw,
 	Rows4,
 	Trash2,
 } from 'lucide-vue-next'
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
-import { formatNumber, startResizing } from '@/utils'
+import { startResizing } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
@@ -183,7 +182,7 @@ import NoMails from '@/components/Icons/NoMails.vue'
 import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
 
-import type { LayoutType, Mail, MailType, UserResource } from '@/types'
+import type { LayoutType, Mail, UserResource } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
@@ -219,22 +218,16 @@ const threads = createResource({
 	},
 })
 
-// const mailCountFilters = computed(() => ({
-// 	folder: currentFolder.value,
-// 	docstatus: ['!=', 2],
-// 	[doctype.value === 'Incoming Mail' ? 'receiver' : 'sender']: user.data.name,
-// }))
-
-// const mailCount = createResource({
-// 	url: 'frappe.client.get_count',
-// 	auto: currentFolder.value !== 'Trash',
-// 	makeParams: () => ({ doctype: doctype.value, filters: mailCountFilters.value }),
-// 	cache: [`${currentFolder.value}MailCount`, user.data?.name],
-// })
+const mailCount = createResource({
+	url: 'mail.api.mail.get_mailbox_thread_count',
+	auto: true,
+	makeParams: () => ({ mailbox }),
+	cache: [`${mailbox}MailCount`, user.data?.name],
+})
 
 const reloadMails = () => {
 	threads.reload()
-	// if (currentFolder.value !== 'Trash') mailCount.reload()
+	mailCount.reload()
 	resetSelections()
 }
 
