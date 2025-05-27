@@ -67,15 +67,8 @@ const routes = [
 		props: true,
 	},
 	{
-		path: '/mime-message/incoming-mail/:id',
-		name: 'IncomingMailMimeMessage',
-		component: () => import('@/pages/MimeMessageView.vue'),
-		props: true,
-		meta: { isMimeMessage: true },
-	},
-	{
-		path: '/mime-message/outgoing-mail/:id',
-		name: 'OutgoingMailMimeMessage',
+		path: '/mime-message/:id',
+		name: 'MimeMessage',
 		component: () => import('@/pages/MimeMessageView.vue'),
 		props: true,
 		meta: { isMimeMessage: true },
