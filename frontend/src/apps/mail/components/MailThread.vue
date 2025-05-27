@@ -218,7 +218,7 @@ const replyDetails = reactive({
 
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
-	makeParams: () => ({ thread_id: props.threadID }),
+	makeParams: () => ({ thread_id: props.threadID, mailbox: props.mailbox }),
 })
 
 const reload = () => {

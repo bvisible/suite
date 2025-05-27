@@ -144,8 +144,8 @@
 					@reload-mails="reloadMails"
 					@mark-as-unread="setSeen.submit({ thread_ids: [threadID], seen: false })"
 					@move-thread="
-						(mailbox: string) =>
-							moveThreads.submit({ thread_ids: [threadID], mailbox })
+						(move_to_mailbox: string) =>
+							moveThreads.submit({ thread_ids: [threadID], move_to_mailbox })
 					"
 					@delete-thread="deleteThreads.submit([threadID])"
 				/>
@@ -230,7 +230,7 @@ interface SetSeenParams {
 
 const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
-	makeParams: (values: SetSeenParams) => ({ ...values }),
+	makeParams: (values: SetSeenParams) => ({ ...values, mailbox }),
 	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
 		thread_ids.forEach(
 			(name) => (threads.data.find((m) => m.thread_id === name).seen = Number(seen)),
@@ -250,22 +250,30 @@ const moveToOptions = computed(() =>
 		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
 		.map((m) => ({
 			label: m.name,
-			onClick: () => moveThreads.submit({ thread_ids: selections.value, mailbox: m.role }),
+			onClick: () =>
+				moveThreads.submit({ thread_ids: selections.value, move_to_mailbox: m.role }),
 		})),
 )
 
 const moveThreads = createResource({
 	url: 'mail.api.mail.set_threads_mailbox',
-	makeParams: ({ thread_ids, mailbox }: { thread_ids: string[]; mailbox: string }) => ({
+	makeParams: ({
+		thread_ids,
+		move_to_mailbox,
+	}: {
+		thread_ids: string[]
+		move_to_mailbox: string
+	}) => ({
 		thread_ids,
 		mailbox,
+		move_to_mailbox,
 	}),
 	onSuccess: reloadMails,
 })
 
 const deleteThreads = createResource({
 	url: 'mail.api.mail.delete_threads',
-	makeParams: (thread_ids: string[]) => ({ thread_ids }),
+	makeParams: (thread_ids: string[]) => ({ thread_ids, mailbox }),
 	onSuccess: reloadMails,
 })
 
@@ -310,7 +318,12 @@ const selectActions = computed((): SelectAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => moveThreads.submit({ thread_ids: selections.value, mailbox: 'trash' }),
+			onClick: () =>
+				moveThreads.submit({
+					thread_ids: selections.value,
+					mailbox,
+					move_to_mailbox: 'trash',
+				}),
 			icon: Trash2,
 			condition: !!selections.value.length && mailbox !== 'trash',
 		},
