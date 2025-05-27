@@ -67,8 +67,10 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 
 
 @frappe.whitelist()
-def get_mail_thread(thread_id: str) -> list[dict]:
+def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
+
+	mailbox_id = get_mailbox_id(mailbox)
 
 	EmailMessage = frappe.qb.DocType("Email Message")
 	EmailMessageRecipient = frappe.qb.DocType("Email Message Recipient")
@@ -92,6 +94,7 @@ def get_mail_thread(thread_id: str) -> list[dict]:
 		.where(
 			(EmailMessage.account == frappe.session.user)
 			& (EmailMessage.thread_id == thread_id)
+			& (EmailMessage.mailbox_id == mailbox_id)
 			& (EmailMessage.destroyed == 0)
 		)
 	).run(as_dict=True)
@@ -232,11 +235,12 @@ def get_mime_message(name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_seen(thread_ids: list[str], seen: bool) -> dict:
+def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	"""Sets seen for mails."""
 
 	user = frappe.session.user
-	messages = EmailMessage.get_message_ids(user, thread_ids)
+	mailbox_id = get_mailbox_id(mailbox)
+	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 
 	if seen:
 		EmailMessage.mark_emails_as_seen(user, messages)
@@ -269,18 +273,20 @@ def empty_mailbox(mailbox: str) -> None:
 
 
 @frappe.whitelist()
-def set_threads_mailbox(thread_ids: list[str], mailbox: str) -> None:
+def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) -> None:
 	"""Sets mailbox for threads."""
 
 	user = frappe.session.user
-	messages = EmailMessage.get_message_ids(user, thread_ids)
-	EmailMessage.move_emails_to_mailbox(user, messages, None, mailbox)
+	mailbox_id = get_mailbox_id(mailbox)
+	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
+	EmailMessage.move_emails_to_mailbox(user, messages, None, move_to_mailbox)
 
 
 @frappe.whitelist()
-def delete_threads(thread_ids: list[str]) -> None:
+def delete_threads(thread_ids: list[str], mailbox: str) -> None:
 	"""Destroys mails belonging to the given threads."""
 
 	user = frappe.session.user
-	messages = EmailMessage.get_message_ids(user, thread_ids)
+	mailbox_id = get_mailbox_id(mailbox)
+	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 	EmailMessage.destroy_emails(user, messages)

@@ -74,7 +74,9 @@ const emit = defineEmits(['openModal', 'deletePage'])
 const route = useRoute()
 
 const isActive = computed(() =>
-	link?.activeFor?.includes(route.name === 'Mailbox' ? route.params.mailbox : route.name),
+	link?.activeFor?.includes(
+		['Mailbox', 'Mail'].includes(route.name) ? route.params.mailbox : route.name,
+	),
 )
 
 const openModal = (link: Link) => emit('openModal', link)
