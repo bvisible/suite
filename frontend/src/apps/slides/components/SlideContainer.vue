@@ -8,11 +8,7 @@
 			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
 		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox
-					ref="selectionBox"
-					@mousedown="(e) => handleMouseDown(e)"
-					@updateFocus="updateFocus"
-				/>
+				<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
 
 				<SnapGuides v-if="isDragging" :visibilityMap="visibilityMap" />
 
@@ -39,7 +35,7 @@ import SelectionBox from '@/components/SelectionBox.vue'
 import SlideElement from '@/components/SlideElement.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, selectSlide, slideBounds, selectionBounds } from '@/stores/slide'
+import { slide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
 	activeElement,
 	activeElementIds,
@@ -132,16 +128,18 @@ const handleMouseUp = (e, id) => {
 
 	pairElementId.value = null
 
-	clickTimeout = setTimeout(() => triggerSelection(e, id), 100)
+	if (!isDragging.value) clickTimeout = setTimeout(() => triggerSelection(e, id), 100)
 }
 
 const triggerDrag = (e, id) => {
-	if (id && !activeElementIds.value.includes(id) && focusElementId.value !== id) {
-		activeElementIds.value = [id]
-		focusElementId.value = null
-	}
+	if ((id && focusElementId.value !== id) || activeElementIds.value.length > 1) {
+		startDragging(e)
 
-	startDragging(e)
+		if (id && activeElementIds.value.length < 2 && activeElementIds.value[0] !== id) {
+			activeElementIds.value = [id]
+			focusElementId.value = null
+		}
+	}
 }
 
 const handleMouseDown = (e, element) => {
@@ -150,6 +148,7 @@ const handleMouseDown = (e, element) => {
 	// resume normal behavior if element is being edited
 	if (id === focusElementId.value) return
 
+	e.stopPropagation()
 	e.preventDefault()
 
 	// wait for click to be registered
@@ -183,10 +182,6 @@ const scale = computed(() => {
 	if (!matrix) return 1
 	return parseFloat(matrix[1].split(', ')[0])
 })
-
-const updateFocus = (e) => {
-	selectSlide(e)
-}
 
 const handleSelectionChange = (newSelection, oldSelection) => {
 	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)

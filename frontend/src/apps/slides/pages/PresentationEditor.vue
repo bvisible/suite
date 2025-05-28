@@ -2,7 +2,7 @@
 	<div
 		ref="mediaDropContainer"
 		class="fixed flex h-screen w-screen flex-col select-none"
-		:class="!activeElementIds.length ? 'bg-gray-200' : 'bg-gray-50'"
+		:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
@@ -131,7 +131,7 @@ const handleElementShortcuts = (e) => {
 			deleteElements(e)
 			break
 		case 'd':
-			if (e.metaKey) duplicateElements(e, activeElements.value)
+			if (e.metaKey) duplicateElements(e, activeElements.value, 40)
 			break
 		case 'i':
 			if (e.metaKey) toggleTextProperty('fontStyle', 'italic')
@@ -262,6 +262,17 @@ const insertSlide = async (index) => {
 }
 
 const deleteSlide = async () => {
+	if (presentation.data.slides.length == 1) {
+		slide.value = {
+			...slide.value,
+			thumbnail: '',
+			elements: [],
+			background: '',
+			transition: '',
+			transitionDuration: 0,
+		}
+		return
+	}
 	await performSlideAction('delete', slideIndex.value)
 	if (slideIndex.value == presentation.data.slides.length)
 		changeSlide(slideIndex.value - 1, false)
