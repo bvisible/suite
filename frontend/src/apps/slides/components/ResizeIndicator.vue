@@ -1,8 +1,8 @@
 <template>
 	<div
 		:style="indicatorStyles"
-		class="backdrop-blur-sm opacity-80 text-black"
-		:class="isBackgroundColorDark(slide.background) ? 'bg-white-overlay-600' : 'bg-gray-100'"
+		class="backdrop-blur-sm opacity-85 text-black"
+		:class="indicatorClasses"
 	>
 		<i v-if="type === 'text'"> {{ Math.round(selectionBounds.width) }}px </i>
 		<template v-else>
@@ -73,5 +73,10 @@ const indicatorStyles = computed(() => {
 		padding: `${4 / scale}px`,
 		...positionStyles,
 	}
+})
+
+const indicatorClasses = computed(() => {
+	const isDark = isBackgroundColorDark(slide.value.background)
+	return [isDark ? 'bg-white-overlay-600' : 'bg-gray-100']
 })
 </script>
