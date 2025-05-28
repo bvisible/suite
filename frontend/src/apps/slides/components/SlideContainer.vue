@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
 import SnapGuides from '@/components/SnapGuides.vue'
@@ -37,7 +37,6 @@ import SlideElement from '@/components/SlideElement.vue'
 import { presentation } from '@/stores/presentation'
 import { slide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
-	activeElement,
 	activeElementIds,
 	handleCopy,
 	handlePaste,
@@ -183,10 +182,6 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const handleSelectionChange = (newSelection, oldSelection) => {
-	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
-}
-
 const activeDiv = computed(() => {
 	if (activeElementIds.value.length != 1) return null
 	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
@@ -246,7 +241,7 @@ const handleSlideTransform = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		handleSelectionChange(newVal, oldVal)
+		selectionBoxRef.value.handleSelectionChange(newVal, oldVal)
 	},
 )
 
