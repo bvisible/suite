@@ -21,7 +21,7 @@ export const isBackgroundColorDark = (colorString) => {
 	return luminance < 128
 }
 
-export const guessTextColorFromBackground = (rgbString) => {
-	const textColor = isBackgroundColorDark(rgbString) ? 'hsl(0, 0%, 100%)' : 'hsl(0, 0%, 0%)'
+export const guessTextColorFromBackground = (colorString) => {
+	const textColor = isBackgroundColorDark(colorString) ? 'hsl(0, 0%, 100%)' : 'hsl(0, 0%, 0%)'
 	return textColor
 }
