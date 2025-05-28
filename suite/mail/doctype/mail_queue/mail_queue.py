@@ -547,26 +547,27 @@ class MailQueue(Document):
 					)
 					call_id += 1
 			else:
-				if attachments := json_loads(self.attachments):
-					for a in attachments:
-						blob_id = a.get("blob_id")
-						if not blob_id:
-							file = MailQueue._get_file(file_url=a["file_url"], check_permission=False)
-							content = file.get_content()
-							content_type = guess_type(file.file_name)[0]
-							blob = client.upload_blob(content, content_type)
-							a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+				attachments = []
+				for a in json_loads(self.attachments, default=[]):
+					blob_id = a.get("blob_id")
+					if not blob_id:
+						file = MailQueue._get_file(file_url=a["file_url"], check_permission=False)
+						content = file.get_content()
+						content_type = guess_type(file.file_name)[0]
+						blob = client.upload_blob(content, content_type)
+						a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
 
-					attachments = json.dumps(attachments)
-					self.attachments = attachments
-					kwargs["attachments"] = attachments
-
+				kwargs["attachments"] = json.dumps(attachments)
 				method_calls.append(
 					[
 						"Email/set",
 						{
 							"accountId": client.account_id,
-							"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
+							"create": {
+								f"draft-{self.name}": self._draft_mail(
+									draft_mailbox_id, attachments=attachments
+								)
+							},
 							"destroy": [self._id] if self._id else None,
 						},
 						str(call_id),
@@ -681,7 +682,7 @@ class MailQueue(Document):
 
 		self._db_set(notify=True, **kwargs)
 
-	def _draft_mail(self, draft_mailbox_id: str) -> dict:
+	def _draft_mail(self, draft_mailbox_id: str, attachments: list[dict] | None = None) -> dict:
 		"""Returns the draft mail object."""
 
 		mail = {
@@ -725,9 +726,9 @@ class MailQueue(Document):
 			mail["htmlBody"] = [{"partId": "html", "type": "text/html"}]
 			mail["bodyValues"]["html"] = {"value": self.html_body, "charset": "utf-8", "isTruncated": False}
 
-		attachments = []
-		for a in json_loads(self.attachments, default=[]):
-			attachments.append(
+		_attachments = []
+		for a in attachments or json_loads(self.attachments, default=[]):
+			_attachments.append(
 				{
 					"name": a["filename"],
 					"type": a["type"],
@@ -736,7 +737,7 @@ class MailQueue(Document):
 					"disposition": a["disposition"],
 				}
 			)
-		mail["attachments"] = attachments
+		mail["attachments"] = _attachments
 
 		return mail
 
