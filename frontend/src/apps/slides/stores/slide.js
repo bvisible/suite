@@ -2,7 +2,7 @@ import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
 import { presentationId, presentation, inSlideShow } from './presentation'
-import { activeElementIds, resetFocus } from './element'
+import { activeElementIds } from './element'
 
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
@@ -102,33 +102,6 @@ const saveChanges = async () => {
 	await presentation.reload()
 }
 
-const selectSlide = (e) => {
-	e.preventDefault()
-	e.stopPropagation()
-	resetFocus()
-}
-
 const slideBounds = reactive({})
 
-const updateSelectionBounds = (delta) => {
-	const { left = 0, top = 0, width = 0 } = delta
-
-	selectionBounds.left += left / slideBounds.scale
-	selectionBounds.top += top / slideBounds.scale
-
-	if (width) {
-		selectionBounds.width += width / slideBounds.scale
-	}
-}
-
-export {
-	slideIndex,
-	slide,
-	slideBounds,
-	selectionBounds,
-	loadSlide,
-	updateSlideState,
-	saveChanges,
-	selectSlide,
-	updateSelectionBounds,
-}
+export { slideIndex, slide, slideBounds, selectionBounds, loadSlide, updateSlideState, saveChanges }
