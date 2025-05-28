@@ -1,15 +1,23 @@
 <template>
-	<div :style="elementStyle">
+	<div ref="elementDiv" :style="elementStyle">
 		<component :is="getDynamicComponent(element.type)" :element="element" />
+
+		<Resizer
+			v-if="isElementActive"
+			:elementType="element.type"
+			:elementDivRef="elementDivRef"
+			@updateElementWidth="updateElementWidth"
+		/>
 	</div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
+import Resizer from '@/components/Resizer.vue'
 
 import { activeElementIds } from '@/stores/element'
 
@@ -24,6 +32,8 @@ const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
+
+const elementDivRef = useTemplateRef('elementDiv')
 
 const outline = computed(() => {
 	switch (props.outline) {
@@ -54,6 +64,22 @@ const getDynamicComponent = (type) => {
 			return VideoElement
 		default:
 			return TextElement
+	}
+}
+
+const isElementActive = computed(() => {
+	if (!activeElementIds.value.length) return false
+	return activeElementIds.value[0] == element.value.id
+})
+
+const updateElementWidth = (deltaWidth) => {
+	if (element.value.width) {
+		element.value.width += deltaWidth
+	} else {
+		const elementDiv = elementDivRef.value
+		const width = elementDiv.getBoundingClientRect().width
+
+		element.value.width = width + deltaWidth
 	}
 }
 </script>

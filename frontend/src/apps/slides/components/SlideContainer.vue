@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
 import SnapGuides from '@/components/SnapGuides.vue'
@@ -37,7 +37,6 @@ import SlideElement from '@/components/SlideElement.vue'
 import { presentation } from '@/stores/presentation'
 import { slide, slideBounds, selectionBounds } from '@/stores/slide'
 import {
-	activeElement,
 	activeElementIds,
 	handleCopy,
 	handlePaste,
@@ -46,7 +45,6 @@ import {
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
-import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
 import { useSnapping } from '@/utils/snap'
 
@@ -60,7 +58,7 @@ const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 
 const { isDragging, positionDelta, startDragging } = useDragAndDrop()
-const { isResizing, dimensionDelta, updateResizers } = useResizer()
+
 const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnapping(
 	selectionBoxRef,
 	slideRef,
@@ -70,12 +68,23 @@ const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideTargetRef,
 )
 
+const slideCursor = ref('default')
+
+const updateSlideCursor = (cursor) => {
+	slideCursor.value = cursor
+}
+
+const cursorClass = computed(() => {
+	const cursor = isDragging.value ? 'move' : slideCursor.value || 'default'
+	return `cursor-${cursor}`
+})
+
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
 	const outlineClasses = props.highlight ? ['outline', 'outline-2', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
-	const cursorClasses = isDragging.value ? ['cursor-move'] : ['cursor-default']
+	const cursorClasses = [cursorClass.value]
 
 	return [...classes, outlineClasses, shadowClasses, cursorClasses]
 })
@@ -173,18 +182,6 @@ const scale = computed(() => {
 	return parseFloat(matrix[1].split(', ')[0])
 })
 
-const updateResizeHandler = (index) => {
-	const targetElement = document.querySelector(`[data-index="${index}"]`)
-	const resizeMode = activeElement.value?.type == 'text' ? 'width' : 'both'
-	updateResizers(targetElement, resizeMode)
-}
-
-const handleSelectionChange = (newSelection, oldSelection) => {
-	if (newSelection.length < 2) updateResizeHandler(newSelection[0])
-
-	selectionBoxRef.value.handleSelectionChange(newSelection, oldSelection)
-}
-
 const activeDiv = computed(() => {
 	if (activeElementIds.value.length != 1) return null
 	return document.querySelector(`[data-index="${activeElementIds.value[0]}"]`)
@@ -214,43 +211,14 @@ const getTotalPositionDelta = (delta) => {
 	}
 }
 
-const updateSelectionBounds = (delta) => {
-	selectionBounds.left += delta.left / scale.value
-	selectionBounds.top += delta.top / scale.value
-
-	if (delta.width) {
-		selectionBounds.width += delta.width / scale.value
-	}
-}
-
 const handlePositionChange = (delta) => {
 	updateGuides()
 
 	if (!disableMovement.value) {
 		const totalDelta = getTotalPositionDelta(delta)
-		updateSelectionBounds(totalDelta)
+		selectionBounds.left += totalDelta.left / scale.value
+		selectionBounds.top += totalDelta.top / scale.value
 	}
-}
-
-const updateElementWidth = (deltaWidth) => {
-	if (activeElement.value.width) {
-		activeElement.value.width += deltaWidth
-	} else {
-		const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
-		const width = elementDiv.getBoundingClientRect().width
-
-		activeElement.value.width = width + deltaWidth
-	}
-}
-
-const handleDimensionChange = (delta) => {
-	const ratio = selectionBounds.width / selectionBounds.height
-
-	delta.top *= ratio
-
-	updateSelectionBounds(delta)
-
-	updateElementWidth(delta.width)
 }
 
 const updateSlideBounds = () => {
@@ -273,7 +241,7 @@ const handleSlideTransform = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		handleSelectionChange(newVal, oldVal)
+		selectionBoxRef.value.handleSelectionChange(newVal, oldVal)
 	},
 )
 
@@ -292,13 +260,6 @@ watch(
 	},
 )
 
-watch(
-	() => dimensionDelta.value,
-	(delta) => {
-		handleDimensionChange(delta)
-	},
-)
-
 onMounted(() => {
 	if (!slideRef.value) return
 
@@ -310,12 +271,11 @@ onMounted(() => {
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
+provide('updateSlideCursor', updateSlideCursor)
 
 defineExpose({
 	togglePanZoom,
 })
 </script>
-
-<style src="../assets/styles/resizer.css"></style>
 
 <style src="../assets/styles/overlay.css"></style>

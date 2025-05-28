@@ -60,7 +60,7 @@ const addTextElement = (text) => {
 		element.letterSpacing = lastTextElement.letterSpacing
 		element.opacity = lastTextElement.opacity
 	} else {
-		const slideColor = document.querySelector('.slide')?.style.backgroundColor
+		const slideColor = slide.value.background || '#ffffff'
 		element.fontSize = 30
 		element.fontFamily = 'Inter'
 		element.fontWeight = 'normal'
