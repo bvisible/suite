@@ -185,7 +185,7 @@ class EmailParser:
 
 		for check in checks:
 			result[f"{check}_pass"] = 0
-			result[f"{check}_description"] = "Header not found."
+			result[f"{check}_description"] = None
 
 		if headers := self.message.get_all("Authentication-Results"):
 			if len(headers) == 1:

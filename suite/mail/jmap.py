@@ -187,6 +187,29 @@ class JMAPClient:
 			method_calls=[["Identity/get", {"accountId": self.account_id}, "0"]],
 		)["methodResponses"][0][1]["list"]
 
+	def get_mailbox_id(self, role: str | None = None, name: str | None = None) -> str | None:
+		"""Returns the mailbox ID for the given role or name."""
+
+		for mailbox in self.mailboxes[self.account_id]:
+			if (role and mailbox.get("role").lower() == role.lower()) or (
+				name and mailbox.get("name").lower() == name.lower()
+			):
+				return mailbox["id"]
+
+	def get_mailbox_role(self, id: str) -> str | None:
+		"""Returns the mailbox role for the given ID."""
+
+		for mailbox in self.mailboxes[self.account_id]:
+			if mailbox.get("id") == id:
+				return mailbox["role"]
+
+	def get_mailbox_name(self, id: str | None = None, role: str | None = None) -> str | None:
+		"""Returns the mailbox name for the given ID or role."""
+
+		for mailbox in self.mailboxes[self.account_id]:
+			if (id and mailbox.get("id") == id) or (role and mailbox.get("role").lower() == role.lower()):
+				return mailbox["name"]
+
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
 
@@ -366,10 +389,53 @@ class JMAPClient:
 				],
 			)
 
-	def email_set_mailbox(self, email_ids: list[str], target_mailbox_id: str) -> None:
-		"""Update email mailbox."""
+	def email_set_mailbox(self, emails_to_move: list[tuple[str, str]], target_mailbox_id: str) -> None:
+		"""Update emails mailbox."""
 
-		for ids_batch in create_batch(email_ids, self.max_objects_in_set):
+		update_data = {}
+		junk_mailbox_id = self.get_mailbox_id(role="junk")
+		trash_mailbox_id = self.get_mailbox_id(role="trash")
+
+		for email in emails_to_move:
+			email_id, from_mailbox_id = email
+
+			update = {
+				f"mailboxIds/{from_mailbox_id}": None,
+				f"mailboxIds/{target_mailbox_id}": True,
+			}
+
+			is_to_junk = target_mailbox_id == junk_mailbox_id
+			is_from_junk = from_mailbox_id == junk_mailbox_id
+			is_to_trash = target_mailbox_id == trash_mailbox_id
+
+			# !Junk -> Junk
+			if is_to_junk and not is_from_junk:
+				update.update(
+					{
+						"keywords/$notjunk": False,
+						"keywords/$junk": True,
+					}
+				)
+			# Junk -> Trash
+			elif is_from_junk and is_to_trash:
+				update.update(
+					{
+						"keywords/$notjunk": False,
+						"keywords/$junk": True,
+					}
+				)
+			# Junk -> !Junk
+			elif is_from_junk and not is_to_junk:
+				update.update(
+					{
+						"keywords/$junk": False,
+						"keywords/$notjunk": True,
+					}
+				)
+
+			update_data[email_id] = update
+
+		for map_batch in batch_dict(update_data, self.max_objects_in_set):
 			self._make_request(
 				using=["urn:ietf:params:jmap:mail"],
 				method_calls=[
@@ -377,9 +443,7 @@ class JMAPClient:
 						"Email/set",
 						{
 							"accountId": self.account_id,
-							"update": {
-								email_id: {"mailboxIds": {target_mailbox_id: True}} for email_id in ids_batch
-							},
+							"update": map_batch,
 						},
 						"0",
 					]
@@ -554,6 +618,12 @@ def get_mailboxes(account: str) -> list[dict]:
 					"role": mailbox["role"],
 				}
 			)
+
+		if mailboxes:
+			role_order = ["inbox", "sent", "drafts", "junk", "trash"]
+			role_priority = {role: i for i, role in enumerate(role_order)}
+
+			return sorted(mailboxes, key=lambda m: (role_priority.get(m["role"], len(role_order))))
 
 		return mailboxes
 

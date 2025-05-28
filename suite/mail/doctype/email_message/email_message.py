@@ -71,6 +71,9 @@ class EmailMessage(Document):
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
+				EM.flagged,
+				EM.answered,
+				EM.forwarded,
 			)
 			.where((EM.account == account) & (EM.destroyed == 0))
 			.orderby(EM.received_at, order=frappe.qb.desc)
@@ -148,31 +151,32 @@ class EmailMessage(Document):
 		message_ids: list[str],
 		mailbox_id: str | None = None,
 		mailbox_role: str | None = None,
-		mailbox_name: str | None = None,
 	) -> None:
 		"""Move emails to a specified mailbox."""
 
-		if not account or not message_ids or not (mailbox_id or mailbox_role or mailbox_name):
+		if not account or not message_ids or not (mailbox_id or mailbox_role):
 			frappe.throw(_("Account, message IDs, and mailbox ID/role/name are required."))
 
 		validate_permission_for_account(account)
 
 		filters = {"account": account, "name": ["in", message_ids], "destroyed": 0}
-		email_ids = frappe.db.get_all("Email Message", filters, pluck="_id")
+		emails_to_move = frappe.db.get_all("Email Message", filters, ["_id", "mailbox_id"], as_list=True)
 
-		if not email_ids:
+		if not emails_to_move:
 			return
 
-		target_mailbox_id = mailbox_id or get_mailbox_id(account, mailbox_role, mailbox_name)
+		target_mailbox_id = mailbox_id or get_mailbox_id(account, role=mailbox_role)
 
 		if not target_mailbox_id:
 			frappe.throw(_("Mailbox not found."))
 
 		try:
 			client = get_jmap_client(account)
-			client.email_set_mailbox(email_ids, target_mailbox_id)
+			client.email_set_mailbox(list(emails_to_move), target_mailbox_id)
 			target_mailbox_role = mailbox_role or get_mailbox_role(account, target_mailbox_id)
-			target_mailbox_name = mailbox_name or get_mailbox_name(account, target_mailbox_id)
+			target_mailbox_name = get_mailbox_name(account, target_mailbox_id)
+
+			# This database update could potentially cause a deadlock.
 			frappe.db.set_value(
 				"Email Message",
 				filters,
@@ -190,16 +194,16 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to move email(s) to mailbox."))
 
 	@staticmethod
-	def mark_emails_as_seen(account: str, message_ids: list[str]) -> None:
-		"""Mark emails as seen."""
+	def mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
+		"""Mark emails as seen or unseen."""
 
-		EmailMessage._mark_emails_as_seen_unseen(account, message_ids, seen=True)
+		EmailMessage._update_emails_keyword(account, message_ids, "$seen", seen, "seen")
 
 	@staticmethod
-	def mark_emails_as_unseen(account: str, message_ids: list[str]) -> None:
-		"""Mark emails as unseen."""
+	def mark_emails_as_flagged_unflagged(account: str, message_ids: list[str], flagged: bool) -> None:
+		"""Mark emails as flagged or unflagged."""
 
-		EmailMessage._mark_emails_as_seen_unseen(account, message_ids, seen=False)
+		EmailMessage._update_emails_keyword(account, message_ids, "$flagged", flagged, "flagged")
 
 	@staticmethod
 	def destroy_emails(account: str, message_ids: list[str]) -> None:
@@ -219,6 +223,8 @@ class EmailMessage(Document):
 		try:
 			client = get_jmap_client(account)
 			client.email_set_destroy(email_ids)
+
+			# This database update could potentially cause a deadlock.
 			frappe.db.set_value("Email Message", filters, "destroyed", 1)
 		except Exception:
 			frappe.log_error(
@@ -253,8 +259,10 @@ class EmailMessage(Document):
 			frappe.throw(_("Failed to fetch blob."))
 
 	@staticmethod
-	def _mark_emails_as_seen_unseen(account: str, message_ids: list[str], seen: bool) -> None:
-		"""Mark emails as seen or unseen."""
+	def _update_emails_keyword(
+		account: str, message_ids: list[str], keyword: str, value: bool, db_field: str
+	) -> None:
+		"""Update email keywords and document field."""
 
 		if not account or not message_ids:
 			frappe.throw(_("Account and message IDs are required."))
@@ -263,6 +271,7 @@ class EmailMessage(Document):
 
 		email_id_keywords_map = {}
 		message_id_keywords_map = {}
+
 		for d in frappe.db.get_all(
 			"Email Message",
 			{"account": account, "name": ["in", message_ids], "destroyed": 0},
@@ -270,7 +279,7 @@ class EmailMessage(Document):
 		):
 			name, _id, _keywords = d.values()
 			_keywords = json.loads(_keywords)
-			_keywords.update({"$seen": seen})
+			_keywords.update({keyword: value})
 			email_id_keywords_map[_id] = _keywords
 			message_id_keywords_map[name] = _keywords
 
@@ -281,18 +290,19 @@ class EmailMessage(Document):
 			client = get_jmap_client(account)
 			client.email_set_keywords(email_id_keywords_map)
 
+			# This database update could potentially cause a deadlock.
 			for message_id, _keywords in message_id_keywords_map.items():
 				frappe.db.set_value(
 					"Email Message",
 					message_id,
-					{"seen": cint(seen), "_keywords": json.dumps(_keywords)},
+					{db_field: cint(value), "_keywords": json.dumps(_keywords)},
 				)
 		except Exception:
 			frappe.log_error(
-				title=_("Failed to mark email(s) as seen/unseen"),
+				title=_("Failed to update email(s)"),
 				message=frappe.get_traceback(with_context=True),
 			)
-			frappe.throw(_("Failed to mark email(s) as seen/unseen."))
+			frappe.throw(_("Failed to update email(s)."))
 
 	@staticmethod
 	def _create_or_update_from_email_data(account: str, email_data: dict) -> None:
@@ -330,8 +340,9 @@ class EmailMessage(Document):
 		email_message.size = email_data["size"]
 		email_message._keywords = json.dumps(email_data["keywords"])
 		email_message.has_attachment = cint(email_data["hasAttachment"])
-		email_message.draft = cint(email_data["keywords"].get("$draft", False))
-		email_message.seen = cint(email_data["keywords"].get("$seen", False))
+
+		for key in ["draft", "seen", "flagged", "answered", "forwarded"]:
+			setattr(email_message, key, cint(email_data["keywords"].get(f"${key}", False)))
 
 		# Process sender/from fields
 		for key in ["sender", "from"]:
@@ -411,6 +422,9 @@ class EmailMessage(Document):
 		_keywords = json.dumps(email_data["keywords"])
 		draft = cint(email_data["keywords"].get("$draft", False))
 		seen = cint(email_data["keywords"].get("$seen", False))
+		flagged = cint(email_data["keywords"].get("$flagged", False))
+		answered = cint(email_data["keywords"].get("$answered", False))
+		forwarded = cint(email_data["keywords"].get("$forwarded", False))
 
 		filters = {"account": account, "_id": _id, "destroyed": 0}
 		frappe.db.set_value(
@@ -423,6 +437,9 @@ class EmailMessage(Document):
 				"_keywords": _keywords,
 				"draft": draft,
 				"seen": seen,
+				"flagged": flagged,
+				"answered": answered,
+				"forwarded": forwarded,
 			},
 		)
 
@@ -458,13 +475,13 @@ class EmailMessage(Document):
 		return self._get_recipients("Bcc")
 
 	@property
-	def received_after(self) -> int:
+	def received_after(self) -> float:
 		"""Returns the time difference in seconds between received and sent time."""
 
 		return time_diff_in_seconds(self.received_at, self.sent_at)
 
 	@property
-	def fetched_after(self) -> int:
+	def fetched_after(self) -> float:
 		"""Returns the time difference in seconds between creation and received time."""
 
 		return time_diff_in_seconds(self.creation, self.received_at)
@@ -655,6 +672,18 @@ class EmailMessage(Document):
 		return EmailMessage.fetch_blob(self.account, attachment.blob_id, attachment.filename)
 
 	@frappe.whitelist()
+	def save_draft(self) -> None:
+		"""Save the email message as a draft."""
+
+		self._update_or_submit_draft(save_as_draft=True)
+
+	@frappe.whitelist()
+	def submit(self) -> None:
+		"""Submit the draft email message."""
+
+		self._update_or_submit_draft(save_as_draft=False)
+
+	@frappe.whitelist()
 	def destroy(self) -> None:
 		"""Destroy the email message."""
 
@@ -664,32 +693,28 @@ class EmailMessage(Document):
 		EmailMessage.destroy_emails(self.account, [self.name])
 
 	@frappe.whitelist()
-	def move_to_mailbox(
-		self, mailbox_id: str | None = None, mailbox_role: str | None = None, mailbox_name: str | None = None
-	) -> None:
+	def move_to_mailbox(self, mailbox_id: str | None = None, mailbox_role: str | None = None) -> None:
 		"""Move the email message to a specified folder."""
 
 		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role, mailbox_name)
+		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role)
 		self.reload()
 
 	@frappe.whitelist()
-	def mark_as_seen(self) -> None:
-		"""Mark the email message as seen."""
+	def set_seen(self, seen: bool) -> None:
+		"""Mark the email message as seen or unseen."""
 
-		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.mark_emails_as_seen(self.account, [self.name])
+		EmailMessage.mark_emails_as_seen_unseen(self.account, [self.name], seen)
 		self.reload()
 
 	@frappe.whitelist()
-	def mark_as_unseen(self) -> None:
-		"""Mark the email message as unseen."""
+	def set_flagged(self, flagged: bool) -> None:
+		"""Mark the email message as flagged or unflagged."""
 
-		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.mark_emails_as_unseen(self.account, [self.name])
+		EmailMessage.mark_emails_as_flagged_unflagged(self.account, [self.name], flagged)
 		self.reload()
 
 	@frappe.whitelist()
@@ -792,11 +817,39 @@ class EmailMessage(Document):
 		forward_html_body = BeautifulSoup(forward_html_body, "html.parser").prettify()
 		forward_text_body += f"\n\n> {quoted_text_body}"
 
+		attachments = [
+			{
+				"file_url": a.file_url,
+				"blob_id": a.blob_id,
+				"type": a.type,
+				"size": a.size,
+				"filename": a.filename,
+				"disposition": a.disposition,
+				"cid": a.cid,
+			}
+			for a in self.attachments
+		]
+
+		for body_part in self._html_body + self._text_body:
+			if body_part.disposition == "inline":
+				attachments.append(
+					{
+						"blob_id": body_part.blob_id,
+						"type": body_part.type,
+						"size": body_part.size,
+						"filename": body_part.filename,
+						"disposition": body_part.disposition,
+						"cid": body_part.cid,
+					}
+				)
+
 		return MailQueue._create(
 			account=self.account,
 			subject=f"Fwd: {self.subject}" if not self.subject.lower().startswith("fwd:") else self.subject,
 			html_body=forward_html_body,
 			text_body=forward_text_body,
+			attachments=attachments,
+			forwarded_from_id=self._id,
 			do_not_save=True,
 		)
 
@@ -844,6 +897,61 @@ class EmailMessage(Document):
 
 		return recipients
 
+	def _update_or_submit_draft(self, save_as_draft: bool = True) -> None:
+		"""Update or submit the draft email message."""
+
+		self.validate_destroyed()
+
+		if not self.draft:
+			frappe.throw(_("Email Message {0} is not a draft.").format(frappe.bold(self.name)))
+
+		recipients = [
+			{"type": rcpt.type, "display_name": rcpt.display_name, "email": rcpt.email}
+			for rcpt in self.recipients
+		]
+		reply_to = [{"display_name": rt.display_name, "email": rt.email} for rt in self.reply_to]
+		attachments = [
+			{
+				"file_url": a.file_url,
+				"blob_id": a.blob_id,
+				"type": a.type,
+				"size": a.size,
+				"filename": a.filename,
+				"disposition": a.disposition,
+				"cid": a.cid,
+			}
+			for a in self.attachments
+		]
+
+		for body_part in self._html_body + self._text_body:
+			if body_part.disposition == "inline":
+				attachments.append(
+					{
+						"blob_id": body_part.blob_id,
+						"type": body_part.type,
+						"size": body_part.size,
+						"filename": body_part.filename,
+						"disposition": body_part.disposition,
+						"cid": body_part.cid,
+					}
+				)
+
+		MailQueue._create(
+			account=self.account,
+			from_name=self.from_name,
+			from_email=self.from_email,
+			subject=self.subject,
+			reply_to=reply_to,
+			recipients=recipients,
+			attachments=attachments,
+			html_body=self.html_body,
+			text_body=self.text_body,
+			message_id=self.message_id,
+			_id=self._id,
+			in_reply_to=self.in_reply_to,
+			save_as_draft=save_as_draft,
+		)
+
 	def _reply(self, recipients: list[dict]) -> "MailQueue":
 		"""Returns a unsaved EmailMessage object for replying to the email message."""
 
@@ -855,6 +963,7 @@ class EmailMessage(Document):
 			subject=f"Re: {self.subject}" if not self.subject.lower().startswith("re:") else self.subject,
 			recipients=recipients,
 			in_reply_to=self.message_id,
+			in_reply_to_id=self._id,
 			do_not_save=True,
 		)
 
