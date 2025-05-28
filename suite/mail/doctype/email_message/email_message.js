@@ -5,74 +5,39 @@ frappe.ui.form.on('Email Message', {
 	refresh(frm) {
 		frm.disable_save()
 
-		if (!frm.doc.destroyed) {
-			if (!frm.doc.__islocal) {
-				if (!frm.doc.draft) {
-					frm.trigger('add_reply_buttons')
-					frm.trigger('add_forward_button')
-					frm.trigger('add_mark_buttons')
-					frm.trigger('add_move_buttons')
-					frm.trigger('add_destroy_button')
-				}
-
-				frm.trigger('add_actions')
+		if (!frm.doc.__islocal && !frm.doc.destroyed) {
+			if (!frm.doc.draft) {
+				frm.trigger('add_seen_flagged_buttons')
 			}
+
+			frm.trigger('add_destroy_button')
+
+			if (!frm.doc.draft) {
+				frm.trigger('add_reply_forward_buttons')
+				frm.trigger('add_move_buttons')
+			} else {
+				frm.trigger('add_draft_submit_buttons')
+			}
+
+			frm.trigger('add_actions')
 		}
 	},
 
-	add_reply_buttons(frm) {
-		frm.add_custom_button(__('Reply'), () => {
-			frappe.model.open_mapped_doc({
-				method: 'mail.mail.doctype.email_message.email_message.reply',
-				frm: frm,
-				freeze: true,
-				freeze_message: __('Loading...'),
-			})
-		})
+	add_seen_flagged_buttons(frm) {
+		const add_toggle_button = (field, method, labels, freeze_messages) => {
+			const current = frm.doc[field]
+			const label = current ? __(labels[1]) : __(labels[0])
+			const freeze_message = current ? __(freeze_messages[1]) : __(freeze_messages[0])
 
-		frm.add_custom_button(__('Reply All'), () => {
-			frappe.model.open_mapped_doc({
-				method: 'mail.mail.doctype.email_message.email_message.reply_all',
-				frm: frm,
-				freeze: true,
-				freeze_message: __('Loading...'),
-			})
-		})
-	},
-
-	add_forward_button(frm) {
-		frm.add_custom_button(__('Forward'), () => {
-			frappe.model.open_mapped_doc({
-				method: 'mail.mail.doctype.email_message.email_message.forward',
-				frm: frm,
-				freeze: true,
-				freeze_message: __('Loading...'),
-			})
-		})
-	},
-
-	add_mark_buttons(frm) {
-		if (frm.doc.seen) {
-			frm.add_custom_button(__('Mark as Unread'), () => {
+			frm.add_custom_button(label, () => {
 				frappe.call({
 					doc: frm.doc,
-					method: 'mark_as_unseen',
-					freeze: true,
-					freeze_message: __('Marking as Unread...'),
-					callback: (r) => {
-						if (!r.exc) {
-							frm.refresh()
-						}
+					method,
+					args: {
+						[field]: !current,
 					},
-				})
-			})
-		} else {
-			frm.add_custom_button(__('Mark as Read'), () => {
-				frappe.call({
-					doc: frm.doc,
-					method: 'mark_as_seen',
 					freeze: true,
-					freeze_message: __('Marking as Read...'),
+					freeze_message,
 					callback: (r) => {
 						if (!r.exc) {
 							frm.refresh()
@@ -81,31 +46,20 @@ frappe.ui.form.on('Email Message', {
 				})
 			})
 		}
-	},
 
-	add_move_buttons(frm) {
-		frappe.call({
-			method: 'mail.jmap.get_mailboxes_for_account',
-			args: { account: frm.doc.account },
-			callback: ({ message: mailboxes = [] }) => {
-				const roles = Object.fromEntries(mailboxes.map((m) => [m.id, m.role]))
-				const current_role = roles[frm.doc.mailbox_id]
+		add_toggle_button(
+			'seen',
+			'set_seen',
+			['Seen', 'Unseen'],
+			['Marking as Seen...', 'Marking as Unseen...'],
+		)
 
-				const add_move_button = (label, target) => {
-					frm.add_custom_button(
-						__(label),
-						() => frm.events.move_to_mailbox(frm, target),
-						__('Move'),
-					)
-				}
-
-				if (current_role !== 'trash') add_move_button('Move to Trash', 'trash')
-				if (current_role !== 'junk' && current_role !== 'sent')
-					add_move_button('Move to Junk', 'junk')
-				if (['trash', 'junk'].includes(current_role))
-					add_move_button('Move to Inbox', 'inbox')
-			},
-		})
+		add_toggle_button(
+			'flagged',
+			'set_flagged',
+			['Flag', 'Unflag'],
+			['Flagging...', 'Unflagging...'],
+		)
 	},
 
 	add_destroy_button(frm) {
@@ -126,6 +80,88 @@ frappe.ui.form.on('Email Message', {
 				})
 			})
 		}
+	},
+
+	add_reply_forward_buttons(frm) {
+		frm.add_custom_button(
+			__('Reply'),
+			() => {
+				frappe.model.open_mapped_doc({
+					method: 'mail.mail.doctype.email_message.email_message.reply',
+					frm: frm,
+					freeze: true,
+					freeze_message: __('Loading...'),
+				})
+			},
+			__('Reply / Forward'),
+		)
+
+		frm.add_custom_button(
+			__('Reply All'),
+			() => {
+				frappe.model.open_mapped_doc({
+					method: 'mail.mail.doctype.email_message.email_message.reply_all',
+					frm: frm,
+					freeze: true,
+					freeze_message: __('Loading...'),
+				})
+			},
+			__('Reply / Forward'),
+		)
+
+		frm.add_custom_button(
+			__('Forward'),
+			() => {
+				frappe.model.open_mapped_doc({
+					method: 'mail.mail.doctype.email_message.email_message.forward',
+					frm: frm,
+					freeze: true,
+					freeze_message: __('Loading...'),
+				})
+			},
+			__('Reply / Forward'),
+		)
+	},
+
+	add_move_buttons(frm) {
+		const add_move_button = (label, target) => {
+			frm.add_custom_button(
+				__(label),
+				() => frm.events.move_to_mailbox(frm, target),
+				__('Move'),
+			)
+		}
+
+		const current_role = frm.doc.mailbox_role
+
+		if (current_role !== 'trash') add_move_button('Move to Trash', 'trash')
+		if (current_role !== 'junk' && current_role !== 'sent')
+			add_move_button('Move to Junk', 'junk')
+		if (['trash', 'junk'].includes(current_role)) {
+			add_move_button('Move to Inbox', 'inbox')
+			add_move_button('Move to Sent', 'sent')
+		}
+	},
+
+	add_draft_submit_buttons(frm) {
+		const add_button = (label, method, freeze_message) => {
+			frm.add_custom_button(__(label), () => {
+				frappe.call({
+					doc: frm.doc,
+					method: method,
+					freeze: true,
+					freeze_message: __(freeze_message),
+					callback: (r) => {
+						if (!r.exc) {
+							frappe.set_route('List', 'Email Message')
+						}
+					},
+				})
+			})
+		}
+
+		add_button('Save Draft', 'save_draft', 'Saving Draft...')
+		add_button('Submit', 'submit', 'Submitting...')
 	},
 
 	add_actions(frm) {
