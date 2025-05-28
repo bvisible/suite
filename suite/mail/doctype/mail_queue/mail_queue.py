@@ -10,17 +10,28 @@ from typing import Any, Literal
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.file import File
+from frappe.core.doctype.file.file import has_permission as has_file_permission
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
 from frappe.query_builder import Interval, Order
 from frappe.query_builder.functions import Now
-from frappe.utils import add_to_date, cint, create_batch, get_datetime_str, now, random_string
+from frappe.utils import (
+	add_to_date,
+	cint,
+	create_batch,
+	get_datetime_str,
+	now,
+	random_string,
+	time_diff_in_seconds,
+)
 from uuid_utils import uuid7
 
 from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
 from mail.utils.cache import get_account_for_email, get_account_for_user
 from mail.utils.dt import convert_to_utc, parsedate_to_datetime
 from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
+from mail.utils.validation import validate_domain_is_enabled_and_verified
 
 
 class MailQueue(Document):
@@ -34,6 +45,37 @@ class MailQueue(Document):
 		).run()
 
 	@staticmethod
+	def _get_file(
+		name: str | None = None,
+		file_url: str | None = None,
+		user: str | None = None,
+		check_permission: bool = True,
+	) -> File:
+		"""Returns the File document for the given name or file URL."""
+
+		if not name and not file_url:
+			frappe.throw(_("Either name or file URL is required."))
+
+		file = None
+		if name:
+			file = frappe.get_doc("File", name)
+		elif file_url:
+			file = find_file_by_url(file_url)
+
+		if not file:
+			frappe.throw(_("File <code>{0}</code> not found.").format(name or file_url))
+
+		if check_permission:
+			if not has_file_permission(file, "read", user=user):
+				frappe.throw(
+					_("User {0} do not have permission to access the file <code>{1}</code>.").format(
+						frappe.bold(user or frappe.session.user), name or file_url
+					)
+				)
+
+		return file
+
+	@staticmethod
 	def _create(do_not_save: bool = False, **kwargs) -> "MailQueue":
 		"""Create a new MailQueue document."""
 
@@ -45,48 +87,21 @@ class MailQueue(Document):
 		doc.from_email = kwargs.from_email
 		doc.subject = kwargs.subject
 
-		if kwargs.reply_to:
-			reply_to = [
-				{"display_name": rt.get("display_name"), "email": rt["email"]} for rt in kwargs.reply_to
-			]
-			doc.reply_to = json.dumps(reply_to)
-
-		if kwargs.headers:
-			headers = {}
-			for key, value in kwargs.headers.items():
-				headers[key] = value
-
-			doc.headers = json.dumps(headers)
-
-		if kwargs.recipients:
-			recipients = [
-				{"type": rcpt["type"], "display_name": rcpt.get("display_name"), "email": rcpt["email"]}
-				for rcpt in kwargs.recipients
-			]
-			doc.recipients = json.dumps(recipients)
-
-		if kwargs.attachments:
-			attachments = []
-			for a in kwargs.attachments:
-				attachments.append(
-					{
-						"file_url": a["file_url"],
-						"disposition": a["disposition"],
-						"filename": a.get("filename"),
-					}
-				)
-
-			doc.attachments = json.dumps(attachments)
+		for field in ["reply_to", "headers", "recipients", "attachments"]:
+			if kwargs.get(field):
+				setattr(doc, field, json.dumps(kwargs[field]))
 
 		doc.html_body = kwargs.html_body
 		doc.text_body = kwargs.text_body
+		doc.forwarded_from_id = kwargs.forwarded_from_id
 		doc.message_id = kwargs.message_id
 		doc._id = kwargs._id
 		doc.sent_at = kwargs.sent_at
 		doc.in_reply_to = kwargs.in_reply_to
+		doc.in_reply_to_id = kwargs.in_reply_to_id
 		doc.save_as_draft = cint(kwargs.save_as_draft)
 		doc.destroy_after_submission = cint(kwargs.destroy_after_submission)
-		doc.delivery_mode = kwargs.delivery_mode
+		doc.delivery_mode = kwargs.delivery_mode or "Immediate"
 		doc.raw_message = kwargs.raw_message
 
 		if not do_not_save:
@@ -113,6 +128,35 @@ class MailQueue(Document):
 		return self._get_recipients("Bcc")
 
 	@property
+	def received_after(self) -> float:
+		"""Returns the time difference in seconds between creation and sent time."""
+
+		if self.sent_at and self.creation:
+			time_diff = time_diff_in_seconds(self.creation, self.sent_at)
+			if time_diff > 0:
+				return time_diff
+
+		return 0.0
+
+	@property
+	def queued_after(self) -> float:
+		"""Returns the time difference in seconds between queued and creation time."""
+
+		return time_diff_in_seconds(self.queued_at, self.creation) if self.queued_at else 0.0
+
+	@property
+	def drafted_after(self) -> float:
+		"""Returns the time difference in seconds between drafted and creation time."""
+
+		return time_diff_in_seconds(self.drafted_at, self.creation) if self.drafted_at else 0.0
+
+	@property
+	def submitted_after(self) -> float:
+		"""Returns the time difference in seconds between submitted and creation time."""
+
+		return time_diff_in_seconds(self.submitted_at, self.creation) if self.submitted_at else 0.0
+
+	@property
 	def identity_id(self) -> str:
 		"""Returns the identity ID for the from email."""
 
@@ -121,6 +165,16 @@ class MailQueue(Document):
 				return identity["id"]
 
 		frappe.throw(_("Identity not found for email {0}").format(self.from_email))
+
+	@property
+	def message(self) -> str | None:
+		"""Returns the message content if available."""
+
+		from mail.mail.doctype.email_message.email_message import EmailMessage
+
+		cache_key = EmailMessage._get_blob_cache_key(self.account, self.blob_id)
+		if content := frappe.cache.get_value(cache_key):
+			return content.decode("utf-8")
 
 	@property
 	def response(self) -> str | None:
@@ -163,11 +217,14 @@ class MailQueue(Document):
 			self.validate_from_name()
 			self.validate_from_email()
 			self.validate_delivery_mode()
+			self.validate_reply_to()
+			self.validate_headers()
 			self.validate_recipients()
 			self.validate_attachments()
 			self.validate_message_id()
 			self.validate_sent_at()
 			self.validate_in_reply_to()
+			self.validate_in_reply_to_id()
 
 	def after_insert(self) -> None:
 		if self.delivery_mode == "Immediate":
@@ -193,6 +250,12 @@ class MailQueue(Document):
 
 		if not self.account:
 			frappe.throw(_("Account is required."))
+
+		enabled, domain_name = frappe.db.get_value("Mail Account", self.account, ["enabled", "domain_name"])
+		if not enabled:
+			frappe.throw(_("Mail account {0} is disabled.").format(frappe.bold(self.account)))
+
+		validate_domain_is_enabled_and_verified(domain_name)
 
 	def validate_raw_message(self) -> None:
 		"""Validates the raw message."""
@@ -238,6 +301,8 @@ class MailQueue(Document):
 
 		if date_header := message.get("Date"):
 			self.sent_at = get_datetime_str(parsedate_to_datetime(date_header))
+		if in_reply_to := message.get("In-Reply-To"):
+			self.in_reply_to = in_reply_to.strip("<>")
 
 	def validate_from_name(self) -> None:
 		"""Validates the from name."""
@@ -267,24 +332,123 @@ class MailQueue(Document):
 		else:
 			self.delivery_mode = "Immediate"
 
+	def validate_reply_to(self) -> None:
+		"""Validates the reply to."""
+
+		reply_to = []
+		for rt in json_loads(self.reply_to, default=[]):
+			reply_to.append(
+				{
+					"display_name": rt.get("display_name"),
+					"email": rt["email"],
+				}
+			)
+
+		self.reply_to = json.dumps(reply_to)
+
+	def validate_headers(self) -> None:
+		"""Validates the headers."""
+
+		standard_headers = {
+			"from",
+			"to",
+			"cc",
+			"bcc",
+			"subject",
+			"date",
+			"message-id",
+			"in-reply-to",
+			"references",
+			"reply-to",
+			"sender",
+			"return-path",
+			"mime-version",
+			"content-type",
+			"content-transfer-encoding",
+			"content-language",
+			"x-priority",
+		}
+
+		headers = {}
+		for key, value in json_loads(self.headers, default={}).items():
+			if key.lower() in standard_headers:
+				frappe.throw(
+					_(
+						"The header <b>{0}</b> is a standard email header and cannot be overridden. Please use custom headers prefixed with <code>X-</code>."
+					).format(key)
+				)
+
+			headers[key] = value
+
+		self.headers = json.dumps(headers)
+
 	def validate_recipients(self) -> None:
 		"""Validates the recipients."""
 
-		if self.save_as_draft:
-			return
+		recipients = []
+		for rcpt in json_loads(self.recipients, default=[]):
+			recipients.append(
+				{
+					"type": rcpt["type"],
+					"display_name": rcpt.get("display_name"),
+					"email": rcpt["email"],
+				}
+			)
 
-		if not json_loads(self.recipients):
+		if not recipients and not self.save_as_draft:
 			frappe.throw(_("Please add at least one recipient."))
+
+		self.recipients = json.dumps(recipients)
 
 	def validate_attachments(self) -> None:
 		"""Validates the attachments."""
 
-		if attachments := json_loads(self.attachments):
-			for a in attachments:
-				a["cid"] = a["cid"] or random_string(length=10)
-				a["filename"] = a["filename"] or Path(a["file_url"]).name
+		user = frappe.session.user
+		if user == "Administrator":
+			user = frappe.db.get_value("Mail Account", self.account, "user")
 
-			self.attachments = json.dumps(attachments)
+		blob_ids = []
+		attachments = []
+		for a in json_loads(self.attachments, default=[]):
+			if blob_id := a.get("blob_id"):
+				if blob_id not in blob_ids:
+					attachments.append(
+						{
+							"blob_id": blob_id,
+							"type": a["type"],
+							"size": a["size"],
+							"filename": a["filename"],
+							"disposition": a["disposition"],
+							"cid": a["cid"]
+							if a["disposition"] == "inline"
+							else a.get("cid", random_string(length=10)),
+						}
+					)
+					blob_ids.append(blob_id)
+			elif file_url := a.get("file_url"):
+				if file_url.startswith("/private/files"):
+					MailQueue._get_file(file_url=file_url, user=user, check_permission=True)
+				elif not file_url.startswith("/files"):
+					frappe.throw(
+						_(
+							"Invalid file URL: {0}. File URLs must start with '/files/' or '/private/files/'."
+						).format(file_url)
+					)
+
+				attachments.append(
+					{
+						"file_url": file_url,
+						"filename": a.get("filename") or Path(file_url).name,
+						"disposition": a["disposition"],
+						"cid": a["cid"]
+						if a["disposition"] == "inline"
+						else a.get("cid", random_string(length=10)),
+					}
+				)
+			else:
+				frappe.throw(_("Either blob_id or file_url is required for attachments."))
+
+		self.attachments = json.dumps(attachments)
 
 	def validate_message_id(self) -> None:
 		"""Validates the message ID."""
@@ -304,6 +468,16 @@ class MailQueue(Document):
 		if self.in_reply_to:
 			self.in_reply_to = self.in_reply_to.strip("<>")
 
+	def validate_in_reply_to_id(self) -> None:
+		"""Validates the In Reply To ID."""
+
+		if self.in_reply_to and not self.in_reply_to_id:
+			self.in_reply_to_id = frappe.db.get_value(
+				"Email Message",
+				{"account": self.account, "destroyed": 0, "message_id": self.in_reply_to},
+				"_id",
+			)
+
 	@frappe.whitelist()
 	def retry(self) -> None:
 		"""Retries Create, Update or Submit the Email."""
@@ -314,6 +488,17 @@ class MailQueue(Document):
 			frappe.throw(_("Cannot retry a mail with status {0}").format(self.status))
 
 		self._process()
+
+	@frappe.whitelist()
+	def get_mime_message(self) -> str:
+		"""Returns the MIME message content."""
+
+		if not self.blob_id:
+			frappe.throw(_("Email does not have a blob ID."))
+
+		from mail.mail.doctype.email_message.email_message import EmailMessage
+
+		return EmailMessage.fetch_blob(self.account, self.blob_id).decode("utf-8")
 
 	def _process(self) -> None:
 		"""Create, Update or Submit the Email."""
@@ -327,6 +512,7 @@ class MailQueue(Document):
 
 			using = ["urn:ietf:params:jmap:mail"]
 			method_calls = []
+			call_id = 0
 
 			if self.raw_message:
 				blob = client.upload_blob(self.raw_message.encode("utf-8"), content_type="message/rfc822")
@@ -343,36 +529,54 @@ class MailQueue(Document):
 								}
 							},
 						},
-						"0",
+						str(call_id),
 					]
 				)
+				call_id += 1
+
+				if self._id:
+					method_calls.append(
+						[
+							"Email/set",
+							{
+								"accountId": client.account_id,
+								"destroy": [self._id] if self._id else None,
+							},
+							str(call_id),
+						]
+					)
+					call_id += 1
 			else:
-				if attachments := json_loads(self.attachments):
-					for a in attachments:
-						if file := find_file_by_url(a["file_url"]):
-							content = file.get_content()
-							content_type = guess_type(file.file_name)[0]
-							blob = client.upload_blob(content, content_type)
-							a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+				attachments = []
+				for a in json_loads(self.attachments, default=[]):
+					blob_id = a.get("blob_id")
+					if not blob_id:
+						file = MailQueue._get_file(file_url=a["file_url"], check_permission=False)
+						content = file.get_content()
+						content_type = guess_type(file.file_name)[0]
+						blob = client.upload_blob(content, content_type)
+						a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
 
-					attachments = json.dumps(attachments)
-					self.attachments = attachments
-					kwargs["attachments"] = attachments
-
+				kwargs["attachments"] = json.dumps(attachments)
 				method_calls.append(
 					[
 						"Email/set",
 						{
 							"accountId": client.account_id,
-							"create": {f"draft-{self.name}": self._draft_mail(draft_mailbox_id)},
+							"create": {
+								f"draft-{self.name}": self._draft_mail(
+									draft_mailbox_id, attachments=attachments
+								)
+							},
 							"destroy": [self._id] if self._id else None,
 						},
-						"0",
+						str(call_id),
 					]
 				)
+				call_id += 1
 
 			if not self.save_as_draft:
-				method_call = [
+				submission_call = [
 					"EmailSubmission/set",
 					{
 						"accountId": client.account_id,
@@ -402,35 +606,39 @@ class MailQueue(Document):
 							}
 						},
 					},
-					"1",
+					str(call_id),
 				]
 
+				updates = {}
+
 				if self.destroy_after_submission:
-					method_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
+					submission_call[1]["onSuccessDestroyEmail"] = [f"#submit-{self.name}"]
 				else:
-					method_call[1]["onSuccessUpdateEmail"] = {
-						f"#submit-{self.name}": {
-							f"mailboxIds/{draft_mailbox_id}": None,
-							f"mailboxIds/{sent_mailbox_id}": True,
-							"keywords/$draft": None,
-							"keywords/$seen": True,
-						}
+					updates[f"#submit-{self.name}"] = {
+						f"mailboxIds/{draft_mailbox_id}": None,
+						f"mailboxIds/{sent_mailbox_id}": True,
+						"keywords/$draft": None,
+						"keywords/$seen": True,
+					}
+
+				if self.forwarded_from_id or self.in_reply_to_id:
+					for _id, keyword in [
+						(self.forwarded_from_id, "$forwarded"),
+						(self.in_reply_to_id, "$answered"),
+					]:
+						if not _id:
+							continue
+
+						updates.setdefault(_id, {}).update({f"keywords/{keyword}": True})
+
+				if updates:
+					submission_call[1]["onSuccessUpdateEmail"] = {
+						_id: _updates for _id, _updates in updates.items()
 					}
 
 				using.append("urn:ietf:params:jmap:submission")
-				method_calls.append(method_call)
-
-			if self.raw_message and self._id:
-				method_calls.append(
-					[
-						"Email/set",
-						{
-							"accountId": client.account_id,
-							"destroy": [self._id] if self._id else None,
-						},
-						"2",
-					]
-				)
+				method_calls.append(submission_call)
+				call_id += 1
 
 			response = client._make_request(using=using, method_calls=method_calls)
 
@@ -474,7 +682,7 @@ class MailQueue(Document):
 
 		self._db_set(notify=True, **kwargs)
 
-	def _draft_mail(self, draft_mailbox_id: str) -> dict:
+	def _draft_mail(self, draft_mailbox_id: str, attachments: list[dict] | None = None) -> dict:
 		"""Returns the draft mail object."""
 
 		mail = {
@@ -500,7 +708,7 @@ class MailQueue(Document):
 
 		if reply_to := json_loads(self.reply_to):
 			mail["header:Reply-To"] = ", ".join(
-				[f'"{rt.display_name}" <{rt.email}>' for rt in frappe._dict(reply_to)]
+				[f'"{rt["display_name"]}" <{rt["email"]}>' for rt in reply_to]
 			)
 
 		if self.in_reply_to:
@@ -518,9 +726,9 @@ class MailQueue(Document):
 			mail["htmlBody"] = [{"partId": "html", "type": "text/html"}]
 			mail["bodyValues"]["html"] = {"value": self.html_body, "charset": "utf-8", "isTruncated": False}
 
-		attachments = []
-		for a in json_loads(self.attachments, default=[]):
-			attachments.append(
+		_attachments = []
+		for a in attachments or json_loads(self.attachments, default=[]):
+			_attachments.append(
 				{
 					"name": a["filename"],
 					"type": a["type"],
@@ -529,7 +737,7 @@ class MailQueue(Document):
 					"disposition": a["disposition"],
 				}
 			)
-		mail["attachments"] = attachments
+		mail["attachments"] = _attachments
 
 		return mail
 
