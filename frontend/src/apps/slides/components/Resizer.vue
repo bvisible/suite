@@ -10,20 +10,11 @@
 			@resizeToFitContent="resizeToFitContent"
 		/>
 
-		<div
+		<ResizeIndicator
 			v-show="currentResizer"
-			:style="indicatorStyles"
-			class="backdrop-blur-sm opacity-80 text-black"
-			:class="
-				isBackgroundColorDark(slide.background) ? 'bg-white-overlay-600' : 'bg-gray-100'
-			"
-		>
-			<i v-if="elementType === 'text'"> {{ Math.round(selectionBounds.width) }}px </i>
-			<template v-else>
-				<i>{{ Math.round(selectionBounds.width) }}px</i> ×
-				<i>{{ Math.round(selectionBounds.height) }}px</i>
-			</template>
-		</div>
+			:currentResizer="currentResizer"
+			:type="elementType"
+		/>
 	</div>
 </template>
 
@@ -31,9 +22,9 @@
 import { computed, inject, watch } from 'vue'
 
 import ResizeHandle from '@/components/ResizeHandle.vue'
-import { isBackgroundColorDark } from '@/utils/color'
+import ResizeIndicator from '@/components/ResizeIndicator.vue'
 
-import { selectionBounds, slide, slideBounds } from '@/stores/slide'
+import { selectionBounds, slideBounds } from '@/stores/slide'
 import { useResizer } from '@/utils/resizer'
 
 const props = defineProps({
@@ -91,52 +82,6 @@ const handleVisibilityMap = computed(() => {
 		acc[resizer] = isResizeHandleVisible(resizer)
 		return acc
 	}, {})
-})
-
-const getTextIndicatorPosition = () => {
-	const scale = slideBounds.scale
-	const offset = `${selectionBounds.width + 20 / scale}px`
-
-	return {
-		left: currentResizer.value.includes('right') ? offset : 'auto',
-		right: currentResizer.value.includes('left') ? offset : 'auto',
-		top: `calc(50% - ${12 / scale}px)`,
-	}
-}
-
-const getMediaIndicatorPosition = () => {
-	const scale = slideBounds.scale
-	const offset = `${8 / scale}px`
-
-	return {
-		left: currentResizer.value.includes('left') ? offset : 'auto',
-		right: currentResizer.value.includes('right') ? offset : 'auto',
-		top: currentResizer.value.includes('top') ? offset : 'auto',
-		bottom: currentResizer.value.includes('bottom') ? offset : 'auto',
-	}
-}
-
-const getPositionStyles = () => {
-	if (props.elementType === 'text') {
-		return getTextIndicatorPosition()
-	}
-	return getMediaIndicatorPosition()
-}
-
-const indicatorStyles = computed(() => {
-	if (!currentResizer.value) return {}
-
-	const scale = slideBounds.scale
-	const positionStyles = getPositionStyles()
-
-	return {
-		position: 'absolute',
-		zIndex: 100,
-		fontSize: `${10 / scale}px`,
-		borderRadius: `${6 / scale}px`,
-		padding: `${4 / scale}px`,
-		...positionStyles,
-	}
 })
 
 const handleDimensionChange = (delta) => {
