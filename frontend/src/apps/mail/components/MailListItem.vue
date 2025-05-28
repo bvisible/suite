@@ -53,11 +53,15 @@
 				<AttachmentCapsule
 					v-for="attachment in mail.attachments.slice(0, 2)"
 					:key="attachment.name"
-					:file-name="attachment.file_name"
+					:message-i-d="mail.name"
+					:file-name="attachment.filename"
+					:blob-i-d="attachment.blob_id"
+					:type="attachment.type"
 					class="mr-2 max-w-32"
 				/>
 				<AttachmentCapsule
 					v-if="mail.attachments.length > 2"
+					:message-i-d="mail.name"
 					:file-name="__('+{0} more', [String(mail.attachments.length - 2)])"
 				/>
 				<Badge

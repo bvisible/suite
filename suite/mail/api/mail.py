@@ -87,6 +87,7 @@ def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 			EmailMessage.html_body,
 			EmailMessage.text_body,
 			EmailMessage.received_at,
+			EmailMessage.has_attachment,
 			EmailMessageRecipient.type,
 			EmailMessageRecipient.email,
 			EmailMessageRecipient.display_name,
@@ -99,18 +100,17 @@ def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 		)
 	).run(as_dict=True)
 
-	return group_recipients(rows)
+	return group_recipients_and_add_attachments(rows)
 
 
-def group_recipients(rows: list[dict]) -> list[dict]:
-	"""Returns mail thread with grouped recipients."""
+def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
+	"""Returns mail thread with attachments and grouped recipients."""
 
 	grouped = {}
 
 	for row in rows:
 		key = row["name"]
 		if key not in grouped:
-			# Copy non-recipient fields
 			grouped[key] = {
 				"name": row["name"],
 				"from_name": row["from_name"],
@@ -119,6 +119,7 @@ def group_recipients(rows: list[dict]) -> list[dict]:
 				"html_body": row["html_body"],
 				"text_body": row["text_body"],
 				"received_at": row["received_at"],
+				"has_attachment": row["has_attachment"],
 				"recipients": defaultdict(list),
 			}
 
@@ -128,9 +129,23 @@ def group_recipients(rows: list[dict]) -> list[dict]:
 	result = []
 	for item in grouped.values():
 		item["recipients"] = dict(item["recipients"])
+		if item["has_attachment"]:
+			item["attachments"] = frappe.get_all(
+				"Email Message Part",
+				filters={"parenttype": "Email Message", "parentfield": "attachments", "parent": item["name"]},
+				fields=["filename", "blob_id", "type"],
+			)
 		result.append(item)
 
 	return result
+
+
+@frappe.whitelist()
+def fetch_attachment(message_id: str, blob_id: str) -> bytes:
+	"""Returns the content of an attachment."""
+
+	doc = frappe.get_doc("Email Message", message_id)
+	return doc.fetch_attachment(None, blob_id)
 
 
 @frappe.whitelist()

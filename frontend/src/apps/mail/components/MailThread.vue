@@ -133,8 +133,10 @@
 						<AttachmentCapsule
 							v-for="attachment in mail.attachments"
 							:key="attachment.name"
-							:file-name="attachment.file_name"
-							:file-url="attachment.file_url"
+							:message-i-d="mail.name"
+							:file-name="attachment.filename"
+							:blob-i-d="attachment.blob_id"
+							:type="attachment.type"
 							class="mb-2"
 						/>
 					</div>
