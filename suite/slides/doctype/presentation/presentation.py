@@ -38,6 +38,16 @@ def get_all_presentations():
 
 
 @frappe.whitelist()
+def get_thumbnails(presentation):
+	return frappe.get_all(
+		"Slide",
+		fields=["thumbnail"],
+		filters={"parent": presentation},
+		order_by="idx",
+	)
+
+
+@frappe.whitelist()
 def get_presentation(name):
 	return frappe.get_doc("Presentation", name)
 
