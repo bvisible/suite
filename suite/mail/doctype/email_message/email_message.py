@@ -71,6 +71,7 @@ class EmailMessage(Document):
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
+				EM.draft,
 				EM.flagged,
 				EM.answered,
 				EM.forwarded,

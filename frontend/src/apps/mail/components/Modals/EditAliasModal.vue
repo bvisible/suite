@@ -48,6 +48,8 @@ import { Dialog, FormControl, Switch, createDocumentResource } from 'frappe-ui'
 import { raiseToast } from '@/utils'
 import LinkControl from '@/components/Controls/LinkControl.vue'
 
+import type { MailAlias } from '@/types'
+
 const show = defineModel<boolean>()
 
 const props = defineProps<{ aliasID: string }>()
@@ -62,7 +64,7 @@ const getAlias = () =>
 	createDocumentResource({
 		doctype: 'Mail Alias',
 		name: props.aliasID,
-		transform: (data) => {
+		transform: (data: MailAlias) => {
 			data.enabled = !!data.enabled
 		},
 		setValue: {

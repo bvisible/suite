@@ -46,12 +46,12 @@
 				{{ mail.preview || __('— No message body —') }}
 			</h5>
 			<div
-				v-if="mail.attachments || Object.keys(STATUS).includes(badgeField)"
+				v-if="mail.attachments || mail.draft"
 				class="flex items-center"
 				:class="{ 'ml-auto min-w-fit': isFullWidth }"
 			>
 				<AttachmentCapsule
-					v-for="attachment in mail.attachments.slice(0, 2)"
+					v-for="attachment in mail.attachments?.slice(0, 2)"
 					:key="attachment.name"
 					:message-i-d="mail.name"
 					:file-name="attachment.filename"
@@ -60,16 +60,15 @@
 					class="mr-2 max-w-32"
 				/>
 				<AttachmentCapsule
-					v-if="mail.attachments.length > 2"
+					v-if="mail.attachments?.length > 2"
 					:message-i-d="mail.name"
 					:file-name="__('+{0} more', [String(mail.attachments.length - 2)])"
 				/>
 				<Badge
-					v-if="Object.keys(STATUS).includes(badgeField)"
-					variant="outline"
+					v-if="mail.draft"
 					:class="isFullWidth ? 'ml-5' : 'ml-auto'"
-					:label="badge.label"
-					:theme="badge.theme"
+					:label="__('Draft')"
+					theme="red"
 				/>
 			</div>
 			<div v-if="isFullWidth" class="flex min-w-20 max-w-20 justify-end">
@@ -105,24 +104,4 @@ watch(isSelected, () => emit(isSelected.value ? 'select-thread' : 'deselect-thre
 const setIsSelected = (value: boolean) => (isSelected.value = value)
 
 defineExpose({ setIsSelected })
-
-interface BadgeType {
-	label: string
-	theme: 'gray' | 'blue' | 'green' | 'orange' | 'red'
-}
-
-// TODO:
-
-const STATUS = {
-	Draft: { label: __('Draft'), theme: 'gray' },
-	Queued: { label: __('Queued'), theme: 'orange' },
-	Blocked: { label: __('Blocked'), theme: 'red' },
-	Failed: { label: __('Failed'), theme: 'red' },
-	'DSN Report': { label: __('DSN Report'), theme: 'blue' },
-	'DMARC Report': { label: __('DMARC Report'), theme: 'blue' },
-}
-
-const badgeField = computed(() => (mail.mail_type === 'Outgoing Mail' ? mail.status : mail.type))
-
-const badge = computed<BadgeType>(() => STATUS[badgeField.value])
 </script>

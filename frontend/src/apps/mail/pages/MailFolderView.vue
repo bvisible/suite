@@ -195,11 +195,12 @@ const threads = createResource({
 	makeParams: () => ({ mailbox, limit: limit.value }),
 	cache: [`${mailbox}Mails`, user.data?.name, limit.value],
 	onSuccess: (data) => {
-		const mailExists = (threadID?: string | null) => data.some((m) => m.thread_id === threadID)
-		if (mailExists(threadID)) {
+		const threadExists = (threadID?: string | null) =>
+			data.some((m) => m.thread_id === threadID)
+		if (threadExists(threadID)) {
 			if (currentThread[mailbox] !== threadID) setCurrentThread(mailbox, threadID ?? null)
 			mailThread.value?.reload()
-		} else if (mailExists(currentThread[mailbox])) {
+		} else if (threadExists(currentThread[mailbox])) {
 			if (route.params.threadID !== currentThread[mailbox])
 				router.replace({
 					name: 'Mail',

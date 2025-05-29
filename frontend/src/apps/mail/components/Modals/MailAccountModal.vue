@@ -42,6 +42,8 @@ import { Dialog, FormControl, Switch, createDocumentResource, createResource } f
 import { raiseToast } from '@/utils'
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 
+import type { MailAccount } from '@/types'
+
 const show = defineModel<boolean>()
 const props = defineProps<{ accountID: string }>()
 
@@ -51,7 +53,7 @@ const getAccount = () =>
 	createDocumentResource({
 		doctype: 'Mail Account',
 		name: props.accountID,
-		transform: (data) => {
+		transform: (data: MailAccount) => {
 			for (const d of ['enabled', 'create_mail_contact']) data[d] = !!data[d]
 		},
 		setValue: {
