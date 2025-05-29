@@ -1,12 +1,15 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from email.utils import parseaddr
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.backend import MailBackendAliasManager
-from mail.utils import normalize_email
+from mail.backend import MailBackendAliasManager, MailBackendIdentityManager
+from mail.jmap import get_jmap_client
+from mail.utils import generate_uuid_style_hash, normalize_email
 from mail.utils.cache import (
 	get_account_for_user,
 	get_cluster_for_tenant,
@@ -128,6 +131,48 @@ class MailAlias(Document):
 			account = frappe.get_doc("Mail Account", account)
 			account.default_outgoing_email = None
 			account.save(ignore_permissions=True)
+
+
+def sync_jmap_identities(account: str) -> None:
+	"""Sync JMAP identities for the given mail account."""
+
+	doc = frappe.get_doc("Mail Account", account)
+	account_id = get_jmap_client(doc.name).account_id
+	aliases = frappe.db.get_all(
+		"Mail Alias", {"alias_for_type": "Mail Account", "alias_for_name": doc.name}, pluck="email"
+	)
+
+	reply_to = []
+	if doc.reply_to:
+		for rt in doc.reply_to.split(","):
+			rt = rt.strip()
+			display_name, email = parseaddr(rt)
+			reply_to.append({"name": display_name, "email": email})
+
+	identities = {
+		generate_uuid_style_hash(doc.email): {
+			"name": doc.display_name,
+			"email": doc.email,
+			"replyTo": reply_to or None,
+			"bcc": None,
+			"textSignature": None,
+			"htmlSignature": None,
+		}
+	}
+
+	for alias in aliases:
+		identities[generate_uuid_style_hash(alias)] = {
+			"name": doc.display_name,
+			"email": alias,
+			"replyTo": reply_to or None,
+			"bcc": None,
+			"textSignature": None,
+			"htmlSignature": None,
+		}
+
+	MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(doc.tenant)).sync(
+		account_id, identities
+	)
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
