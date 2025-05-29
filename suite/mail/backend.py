@@ -9,7 +9,7 @@ import requests
 from frappe import _
 
 from mail.mail.doctype.mail_backend_request.mail_backend_request import create_mail_backend_request
-from mail.utils import get_dkim_selector
+from mail.utils import generate_uuid_style_hash, get_dkim_selector
 
 if TYPE_CHECKING:
 	from mail.mail.doctype.mail_backend_request.mail_backend_request import MailBackendRequest
@@ -369,6 +369,46 @@ class MailBackendMemberManager(MailBackendManagerBase):
 			request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
 
 		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
+
+
+class MailBackendIdentityManager(MailBackendManagerBase):
+	def sync(
+		self,
+		account_id: str,
+		identities: dict[str, dict[str, Any]],
+	) -> None:
+		"""Synchronizes identities with the backend."""
+
+		payload = {
+			"using": ["urn:ietf:params:jmap:mail"],
+			"methodCalls": [
+				[
+					"Identity/get",
+					{
+						"accountId": account_id,
+					},
+					"0",
+				],
+				[
+					"Identity/set",
+					{
+						"accountId": account_id,
+						"#destroy": {"resultOf": "0", "name": "Identity/get", "path": "/list/*/id"},
+					},
+					"1",
+				],
+				[
+					"Identity/set",
+					{
+						"accountId": account_id,
+						"create": identities,
+					},
+					"2",
+				],
+			],
+		}
+
+		self.create_request(method="POST", endpoint="/jmap", request_json=payload, do_not_enqueue=True)
 
 
 def get_mail_backend_api(
