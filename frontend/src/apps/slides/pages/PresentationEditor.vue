@@ -53,7 +53,7 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
-import { presentationId, presentation } from '@/stores/presentation'
+import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
 import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
 import {
 	resetFocus,
@@ -301,7 +301,7 @@ watch(
 	() => route.params.presentationId,
 	(id) => {
 		if (!id) return
-		presentationId.value = id
+		loadPresentation(id)
 	},
 	{ immediate: true },
 )
