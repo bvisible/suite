@@ -297,6 +297,17 @@ const handleMediaDragEnter = (e) => {
 	dropTargetRef.value.handleDragEnter(e)
 }
 
+const resetSlideState = () => {
+	slideIndex.value = 0
+	slide.value = {
+		thumbnail: '',
+		elements: [],
+		background: '',
+		transition: '',
+		transitionDuration: 0,
+	}
+}
+
 watch(
 	() => route.params.presentationId,
 	(id) => {
@@ -312,6 +323,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+	resetSlideState()
 	clearInterval(autosaveInterval)
 	resetFocus()
 	document.removeEventListener('keydown', handleKeyDown)
