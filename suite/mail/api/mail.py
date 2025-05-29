@@ -1,4 +1,4 @@
-import re
+import json
 from collections import defaultdict
 from email.utils import parseaddr
 from typing import Literal
@@ -6,14 +6,12 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Count
-from frappe.utils import now
+from frappe.utils import cint
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import get_user_email_addresses
-
-MailType = Literal["Incoming Mail", "Outgoing Mail"]
 
 
 @frappe.whitelist()
@@ -169,6 +167,31 @@ def get_mail_contacts(txt=None) -> list:
 
 
 @frappe.whitelist()
+def create_mail(
+	from_email: str,
+	to: list[str],
+	cc: list[str],
+	bcc: list[str],
+	subject: str | None,
+	body: str | None,
+	save_as_draft: bool = False,
+):
+	doc = frappe.new_doc("Mail Queue")
+	doc.account = frappe.session.user
+	doc.from_email = from_email
+	doc.subject = subject
+	doc.html_body = body
+	doc.save_as_draft = cint(save_as_draft)
+
+	doc.recipients = [{"type": "To", "email": email} for email in to]
+	doc.recipients += [{"type": "Cc", "email": email} for email in cc]
+	doc.recipients += [{"type": "Bcc", "email": email} for email in bcc]
+	doc.recipients = json.dumps(doc.recipients)
+
+	doc.save()
+
+
+@frappe.whitelist()
 def update_draft_mail(
 	mail_id: str,
 	from_: str,
@@ -199,15 +222,15 @@ def update_draft_mail(
 		doc.submit()
 
 
-@frappe.whitelist()
-def get_attachments_for_mail(type: MailType, name: str):
-	"""Fetches mail attachments."""
+# @frappe.whitelist()
+# def get_attachments_for_mail(type: MailType, name: str):
+# 	"""Fetches mail attachments."""
 
-	return frappe.get_all(
-		"File",
-		fields=["name", "file_name", "file_url", "file_size"],
-		filters={"attached_to_name": name, "attached_to_doctype": type},
-	)
+# 	return frappe.get_all(
+# 		"File",
+# 		fields=["name", "file_name", "file_url", "file_size"],
+# 		filters={"attached_to_name": name, "attached_to_doctype": type},
+# 	)
 
 
 @frappe.whitelist()
@@ -256,11 +279,7 @@ def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	user = frappe.session.user
 	mailbox_id = get_mailbox_id(mailbox)
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
-
-	if seen:
-		EmailMessage.mark_emails_as_seen(user, messages)
-	else:
-		EmailMessage.mark_emails_as_unseen(user, messages)
+	EmailMessage.mark_emails_as_seen_unseen(user, messages, seen)
 
 	return {"thread_ids": thread_ids, "seen": seen}
 

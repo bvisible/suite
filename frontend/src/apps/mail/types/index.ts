@@ -1,12 +1,5 @@
 export * from './doctypes'
 
-export type MailType = 'Incoming Mail' | 'Outgoing Mail'
-
-export interface Attachment {
-	name: string
-	file_name: string
-}
-
 export interface ReplyDetails {
 	to: string
 	cc: string
