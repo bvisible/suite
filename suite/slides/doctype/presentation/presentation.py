@@ -10,11 +10,12 @@ class Presentation(Document):
 		self.name = slug(self.title)
 
 
-def slug(text):
+def slug(text: str) -> str:
 	return text.lower().replace(" ", "-")
 
 
-def get_presentation_thumbnail(presentation_name):
+def get_presentation_thumbnail(presentation_name: str) -> str:
+	"""Returns the thumbnail of the first slide in a presentation"""
 	return frappe.get_value(
 		"Slide",
 		{"parent": presentation_name, "idx": 1},
@@ -23,7 +24,11 @@ def get_presentation_thumbnail(presentation_name):
 
 
 @frappe.whitelist()
-def get_all_presentations():
+def get_all_presentations() -> list[dict]:
+	"""
+	Returns a list of presentation details
+	- name, title, creation date, modified date, and first thumbnail
+	"""
 	presentations = frappe.get_list(
 		"Presentation",
 		fields=["name", "title", "creation", "modified"],
@@ -31,20 +36,25 @@ def get_all_presentations():
 		order_by="modified desc",
 	)
 
-	for p in presentations:
-		p["thumbnail"] = get_presentation_thumbnail(p["name"])
+	for presentation in presentations:
+		presentation["thumbnail"] = get_presentation_thumbnail(presentation["name"])
 
 	return presentations
 
 
 @frappe.whitelist()
-def get_thumbnails(presentation):
-	return frappe.get_all(
+def get_slide_thumbnails(presentation: str) -> list[str]:
+	"""
+	Returns a list of thumbnails for all slides in a presentation
+	"""
+	slides = frappe.get_all(
 		"Slide",
-		fields=["thumbnail"],
+		fields=["name", "thumbnail"],
 		filters={"parent": presentation},
 		order_by="idx",
 	)
+
+	return [slide["thumbnail"] for slide in slides]
 
 
 @frappe.whitelist()

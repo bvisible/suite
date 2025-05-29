@@ -87,18 +87,21 @@ let interval = null
 const previewSlide = ref(0)
 
 const slideThumbnails = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_thumbnails',
+	url: 'slides.slides.doctype.presentation.presentation.get_slide_thumbnails',
 	method: 'GET',
 	makeParams: () => ({
 		presentation: props.presentation.name,
 	}),
 })
 
-const previewStyles = computed(() => ({
-	backgroundImage: `url(${slideThumbnails.data?.[previewSlide.value].thumbnail || props.presentation.thumbnail})`,
-	backgroundSize: 'cover',
-	backgroundPosition: 'center',
-}))
+const previewStyles = computed(() => {
+	const thumbnail = slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail
+	return {
+		backgroundImage: `url(${thumbnail})`,
+		backgroundSize: 'cover',
+		backgroundPosition: 'center',
+	}
+})
 
 const previewDetails = computed(() => {
 	if (!props.presentation) return {}
