@@ -192,12 +192,9 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { MailType } from '@/types'
-
 const props = defineProps<{
 	mailbox: string
 	threadID?: string
-	type?: MailType
 }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteThread'])

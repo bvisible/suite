@@ -6,22 +6,21 @@
 	>
 		<template #body-content>
 			<TextEditor
-				v-if="!isDraftLoading"
 				ref="textEditor"
 				:editor-class="[
 					'prose-sm max-w-none',
 					'min-h-[15rem]',
 					'[&_p.reply-to-content]:hidden',
 				]"
-				:content="mail.html"
-				@change="(val: string) => (mail.html = val)"
+				:content="mail.body"
+				@change="(val: string) => (mail.body = val)"
 			>
 				<template #top>
 					<div class="flex flex-col gap-3 border-b">
 						<div class="flex items-center gap-2 sm:border-t sm:pt-2.5">
 							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
 							<FormControl
-								v-model="mail.from"
+								v-model="mail.from_email"
 								type="autocomplete"
 								:options="addressOptions.data || []"
 							/>
@@ -102,11 +101,8 @@
 						<EditorContent :editor="editor" />
 
 						<!-- Attachments -->
-						<div
-							v-if="localMailID && attachments.data?.length"
-							class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700"
-						>
-							<a
+						<div class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700">
+							<!-- <a
 								v-for="(file, index) in attachments.data"
 								:key="index"
 								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
@@ -122,29 +118,14 @@
 								<FeatherIcon
 									class="ml-auto h-3.5 w-3.5"
 									name="x"
-									@click.stop.prevent="
-										removeAttachment.submit({ name: file.name })
-									"
+									@click.stop.prevent=""
 								/>
-							</a>
+							</a> -->
 						</div>
 					</div>
 				</template>
 				<template #bottom>
-					<FileUploader
-						:upload-args="{
-							doctype: 'Outgoing Mail',
-							docname: localMailID,
-							private: true,
-						}"
-						:validate-file="
-							async () => {
-								if (!localMailID) await createDraftMail.submit()
-							}
-						"
-						:class="{ 'fixed bottom-0 left-0 right-0 px-3': isMobile }"
-						@success="attachments.fetch()"
-					>
+					<FileUploader :class="{ 'fixed bottom-0 left-0 right-0 px-3': isMobile }">
 						<template #default="{ file, progress, uploading, openFileSelector }">
 							<div
 								v-if="uploading"
@@ -189,21 +170,23 @@
 								<!-- Send & Discard -->
 								<div class="ml-auto flex items-center space-x-2 sm:mt-0">
 									<Button :label="__('Discard')" @click="discardMail" />
-									<Button variant="solid" :label="__('Send')" @click="send" />
+									<Button
+										variant="solid"
+										:label="__('Send')"
+										@click="createMail.submit({ saveAsDraft: false })"
+									/>
 								</div>
 							</div>
 						</template>
 					</FileUploader>
 				</template>
 			</TextEditor>
-			<div v-else class="min-h-[30rem]" />
 		</template>
 	</component>
 </template>
 <script setup lang="ts">
 import { computed, inject, nextTick, reactive, ref, watch } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
-import { useDebounceFn } from '@vueuse/core'
 import { Laugh, Paperclip } from 'lucide-vue-next'
 import {
 	Button,
@@ -214,23 +197,16 @@ import {
 	Progress,
 	TextEditor,
 	TextEditorFixedMenu,
-	createDocumentResource,
 	createResource,
 } from 'frappe-ui'
 
 import { formatBytes, validateEmail } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'
 import EmojiPicker from '@/components/EmojiPicker.vue'
 import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
-import type { ReplyDetails, UserResource } from '@/types'
-
-const { mailID, replyDetails } = defineProps<{
-	mailID?: string
-	replyDetails?: ReplyDetails
-}>()
+import type { UserResource } from '@/types'
 
 const emit = defineEmits(['reloadMails'])
 
@@ -238,191 +214,74 @@ const show = defineModel<boolean>()
 
 const user = inject('$user') as UserResource
 const { isMobile } = useScreenSize()
-const { setCurrentThread } = userStore()
 
-const localMailID = ref<string>()
 const textEditor = ref(null)
 const ccInput = ref(null)
 const bccInput = ref(null)
 const cc = ref(false)
 const bcc = ref(false)
 const emoji = ref()
-const isSend = ref(false)
-const isMailWatcherActive = ref(true)
-const isDraftLoading = ref(false)
-
-const SYNC_DEBOUNCE_TIME = 1500
 
 const editor = computed(() => textEditor.value.editor)
 
-const isMailEmpty = computed(() => {
-	const isSubjectEmpty = !mail.subject.length
-	let isHtmlEmpty = true
-	if (mail.html) {
-		const element = document.createElement('div')
-		element.innerHTML = mail.html
-		isHtmlEmpty = !element.textContent?.trim()
-		isHtmlEmpty = Array.from(element.children).some((d) => !d.textContent?.trim())
-	}
-	const isRecipientsEmpty = [mail.to, mail.cc, mail.bcc].every((d) => !d.length)
-
-	return isSubjectEmpty && isHtmlEmpty && isRecipientsEmpty
-})
-
-const discardMail = async () => {
-	if (localMailID.value) await deleteDraftMail.submit()
-	else if (!isMailEmpty.value) Object.assign(mail, emptyMail)
-	show.value = false
-}
-
-const syncMail = useDebounceFn(() => {
-	if (!isMailWatcherActive.value) return
-	if (localMailID.value) updateDraftMail.submit()
-	else if (!isMailEmpty.value) createDraftMail.submit()
-}, SYNC_DEBOUNCE_TIME)
+const addressOptions = createResource({ url: 'mail.api.mail.get_user_addresses', auto: true })
 
 const emptyMail = {
-	from: user.data?.default_outgoing,
-	to: '',
-	cc: '',
-	bcc: '',
+	from_email: user.data?.default_outgoing,
+	to: [],
+	cc: [],
+	bcc: [],
 	subject: '',
-	html: '',
+	body: '',
 }
 
 const mail = reactive({ ...emptyMail })
 
-watch(show, () => {
-	if (!show.value) return
-	if (mailID) getDraftMail(mailID)
-	else {
-		localMailID.value = undefined
-		Object.assign(mail, emptyMail)
+const mailSent = ref(false)
+
+const createMail = createResource({
+	url: 'mail.api.mail.create_mail',
+	makeParams: ({ saveAsDraft }: { saveAsDraft: boolean }) => ({
+		...mail,
+		save_as_draft: saveAsDraft,
+	}),
+	onSuccess: () => {
+		emit('reloadMails')
+		mailSent.value = true
+		show.value = false
+	},
+})
+
+const isMailEmpty = computed(() => {
+	const isSubjectEmpty = !mail.subject.length
+	let isBodyEmpty = true
+	if (mail.body) {
+		const element = document.createElement('div')
+		element.innerHTML = mail.body
+		isBodyEmpty =
+			!element.textContent?.trim() &&
+			Array.from(element.children).every((d) => !d.textContent?.trim())
 	}
+	const isRecipientsEmpty = [mail.to, mail.cc, mail.bcc].every((d) => !d.length)
 
-	if (!replyDetails) return
-	mail.to = replyDetails.to.split(',').filter((item) => item != '')
-	mail.cc = replyDetails.cc.split(',').filter((item) => item != '')
-	mail.bcc = replyDetails.bcc.split(',').filter((item) => item != '')
-	cc.value = mail.cc.length > 0 ? true : false
-	bcc.value = mail.bcc.length > 0 ? true : false
-	mail.subject = replyDetails.subject
-	mail.html = replyDetails.html
-	mail.in_reply_to_mail_type = replyDetails.in_reply_to_mail_type
-	mail.in_reply_to_mail_name = replyDetails.in_reply_to_mail_name
+	return isSubjectEmpty && isBodyEmpty && isRecipientsEmpty
 })
 
-watch(
-	() => mailID,
-	(val) => {
-		// TODO: use documentresource directly
-		if (val) getDraftMail(val)
-	},
-)
+const mailDiscarded = ref(false)
 
-watch(mail, syncMail)
-
-const addressOptions = createResource({
-	url: 'mail.api.mail.get_user_addresses',
-	auto: true,
-})
-
-const createDraftMail = createResource({
-	url: 'mail.api.outbound.send',
-	method: 'POST',
-	makeParams: () => ({
-		// TODO: use mail account display_name
-		from_: `${user.data?.full_name} <${mail.from}>`,
-		do_not_submit: !isSend.value,
-		...mail,
-	}),
-	onSuccess: (data: string) => {
-		if (isSend.value) Object.assign(mail, emptyMail)
-		else {
-			localMailID.value = data
-			// setCurrentThread('Drafts', data)
-			emit('reloadMails')
-		}
-	},
-})
-
-const updateDraftMail = createResource({
-	url: 'mail.api.mail.update_draft_mail',
-	makeParams: () => ({
-		mail_id: localMailID.value,
-		from_: `${user.data?.full_name} <${mail.from}>`,
-		do_submit: isSend.value,
-		...mail,
-	}),
-	onSuccess: () => emit('reloadMails'),
-})
-
-// TODO: delete using documentresource directly
-const deleteDraftMail = createResource({
-	url: 'frappe.client.delete',
-	makeParams: () => ({
-		doctype: 'Outgoing Mail',
-		name: localMailID.value,
-	}),
-	onSuccess: () => emit('reloadMails'),
-})
-
-const attachments = createResource({
-	url: 'mail.api.mail.get_attachments_for_mail',
-	makeParams: () => ({
-		type: 'Outgoing Mail',
-		name: localMailID.value,
-	}),
-})
-
-const removeAttachment = createResource({
-	url: 'frappe.client.delete',
-	method: 'DELETE',
-	makeParams: (values: { name: string }) => ({ doctype: 'File', name: values.name }),
-	onSuccess: () => attachments.fetch(),
-})
-
-const getDraftMail = (name: string) => {
-	isDraftLoading.value = true
-
-	createDocumentResource({
-		doctype: 'Outgoing Mail',
-		name: name,
-		onSuccess: (data) => {
-			isMailWatcherActive.value = false
-			const mailDetails = {
-				from_: `${data.display_name} <${data.sender}>`,
-				subject: data.subject,
-				html: data.body_html,
-				in_reply_to_mail_name: data.in_reply_to_mail_name,
-				in_reply_to_mail_type: data.in_reply_to_mail_type,
-			}
-			for (const recipient of data.recipients) {
-				const recipientType = recipient.type.toLowerCase()
-				if (recipientType in mailDetails) mailDetails[recipientType].push(recipient.email)
-				else mailDetails[recipientType] = [recipient.email]
-			}
-			localMailID.value = name
-			attachments.fetch()
-			Object.assign(mail, mailDetails)
-			if (mailDetails.cc) cc.value = true
-			if (mailDetails.bcc) bcc.value = true
-			isDraftLoading.value = false
-
-			setTimeout(() => {
-				isMailWatcherActive.value = true
-			}, SYNC_DEBOUNCE_TIME + 1)
-		},
-	})
-}
-
-const send = async () => {
-	isSend.value = true
-	if (localMailID.value) await updateDraftMail.submit()
-	else await createDraftMail.submit()
-	isSend.value = false
+const discardMail = () => {
+	mailDiscarded.value = true
 	show.value = false
 }
+
+watch(show, (val) => {
+	if (val) return (mailSent.value = mailDiscarded.value = false)
+
+	if (!(mailSent.value || mailDiscarded.value || isMailEmpty.value))
+		createMail.submit({ saveAsDraft: true })
+
+	Object.assign(mail, emptyMail)
+})
 
 const toggleCC = () => {
 	cc.value = !cc.value

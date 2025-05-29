@@ -38,185 +38,6 @@ export interface MailHeader extends ChildDocType {
 	value?: string
 }
 
-// Last updated: 2025-05-12 14:47:02.245748
-export interface OutgoingMail extends DocType {
-	/** Sender: Link (Mail Account) */
-	sender?: string
-	/** Recipients: Table (Mail Recipient) */
-	recipients: MailRecipient[]
-	/** Subject: Data */
-	subject?: string
-	/** Status: Select */
-	status:
-		| 'Draft'
-		| 'Pending'
-		| 'Queued'
-		| 'Blocked'
-		| 'Accepted'
-		| 'Transferring'
-		| 'Failed'
-		| 'Sent'
-		| 'Cancelled'
-	/** Domain Name: Link (Mail Domain) */
-	domain_name?: string
-	/** Body Plain: Code */
-	body_plain?: string
-	/** Body HTML: HTML Editor */
-	body_html?: any
-	/** Custom Headers: Table (Mail Header) */
-	custom_headers: MailHeader[]
-	/** Amended From: Link (Outgoing Mail) */
-	amended_from?: string
-	/** Created At: Datetime */
-	created_at?: string
-	/** Message Size (Bytes): Int */
-	message_size?: number
-	/** IP Address: Data */
-	ip_address?: string
-	/** API: Check */
-	via_api: 0 | 1
-	/** Reply To: Data */
-	reply_to?: string
-	/** Folder: Select */
-	folder: 'Drafts' | 'Outbox' | 'Sent' | 'Trash'
-	/** Submitted At: Datetime */
-	submitted_at?: string
-	/** Submitted After (Seconds): Float */
-	submitted_after?: number
-	/** Display Name: Data */
-	display_name?: string
-	/** Newsletter: Check */
-	is_newsletter: 0 | 1
-	/** In Reply To Mail Type: Select */
-	in_reply_to_mail_type?: '' | 'Incoming Mail' | 'Outgoing Mail'
-	/** In Reply To Mail Name: Data */
-	in_reply_to_mail_name?: string
-	/** In Reply To (Message ID): Data */
-	in_reply_to?: string
-	/** Transfer Completed At: Datetime */
-	transfer_completed_at?: string
-	/** Transfer Completed After (Seconds): Float */
-	transfer_completed_after?: number
-	/** Transfer Started At: Datetime */
-	transfer_started_at?: string
-	/** Transfer Started After (Seconds): Float */
-	transfer_started_after?: number
-	/** Error Message: Code */
-	error_message?: string
-	/** Error Log: Code */
-	error_log?: string
-	/** Failed Count: Int */
-	failed_count?: number
-	/** Retry After: Datetime */
-	retry_after?: string
-	/** Raw Message: Link (MIME Message) */
-	_raw_message?: string
-	/** Message: Link (MIME Message) */
-	_message?: string
-	/** Priority: Int */
-	priority?: number
-	/** Spam Score: Float */
-	spam_score?: number
-	/** Is Spam: Check */
-	is_spam: 0 | 1
-	/** Message ID: Data */
-	message_id?: string
-	/** Spam Check Log: Link (Spam Check Log) */
-	spam_check_log?: string
-	/** Processed At: Datetime */
-	processed_at?: string
-	/** Processed After (Seconds): Float */
-	processed_after?: number
-	/** From: Data */
-	from_: string
-	/** Cluster: Data */
-	cluster?: string
-	/** Seen: Check */
-	seen: 0 | 1
-	/** Trashed On: Datetime */
-	trashed_on?: string
-}
-
-// Last updated: 2025-03-06 14:16:22.896149
-export interface IncomingMail extends DocType {
-	/** Amended From: Link (Incoming Mail) */
-	amended_from?: string
-	/** Subject: Data */
-	subject?: string
-	/** Body HTML: HTML Editor */
-	body_html?: any
-	/** Body Plain: Code */
-	body_plain?: string
-	/** Message ID: Data */
-	message_id?: string
-	/** Display Name: Data */
-	display_name?: string
-	/** Sender: Data */
-	sender?: string
-	/** SPF Description: Small Text */
-	spf_description?: string
-	/** DKIM Description: Small Text */
-	dkim_description?: string
-	/** DMARC Description: Small Text */
-	dmarc_description?: string
-	/** Receiver: Link (Mail Account) */
-	receiver?: string
-	/** Recipients: Table (Mail Recipient) */
-	recipients: MailRecipient[]
-	/** Created At: Datetime */
-	created_at?: string
-	/** Message Size (Bytes): Int */
-	message_size?: number
-	/** Reply To: Data */
-	reply_to?: string
-	/** Folder: Select */
-	folder: 'Inbox' | 'Spam' | 'Trash'
-	/** Processed At: Datetime */
-	processed_at?: string
-	/** Processed After (Seconds): Float */
-	processed_after?: number
-	/** SPF: Check */
-	spf_pass: 0 | 1
-	/** DKIM: Check */
-	dkim_pass: 0 | 1
-	/** DMARC: Check */
-	dmarc_pass: 0 | 1
-	/** Domain Name: Link (Mail Domain) */
-	domain_name?: string
-	/** From IP: Data */
-	from_ip?: string
-	/** From Host: Data */
-	from_host?: string
-	/** In Reply To Mail Type: Select */
-	in_reply_to_mail_type?: '' | 'Incoming Mail' | 'Outgoing Mail'
-	/** In Reply To Mail Name: Data */
-	in_reply_to_mail_name?: string
-	/** In Reply To (Message ID): Data */
-	in_reply_to?: string
-	/** Fetched At: Datetime */
-	fetched_at?: string
-	/** Fetched After (Seconds): Float */
-	fetched_after?: number
-	/** Spam Score: Float */
-	spam_score?: number
-	/** Is Spam: Check */
-	is_spam: 0 | 1
-	/** Message: Link (MIME Message) */
-	_message?: string
-	/** Status: Select */
-	status: 'Draft' | 'Submitted' | 'Cancelled'
-	/** Type: Select */
-	type: 'Mail' | 'DSN Report' | 'DMARC Report'
-	/** Delivered To: Data */
-	delivered_to?: string
-	/** Cluster: Data */
-	cluster?: string
-	/** Seen: Check */
-	seen: 0 | 1
-	/** Trashed On: Datetime */
-	trashed_on?: string
-}
-
 // Last updated: 2025-04-05 17:13:59.621031
 export interface MailAccountRequest extends DocType {
 	/** Request Key: Data */
@@ -541,7 +362,7 @@ export interface EmailMessageReplyTo extends ChildDocType {
 	email: string
 }
 
-// Last updated: 2025-05-19 15:42:37.367950
+// Last updated: 2025-05-26 15:33:56.249725
 export interface EmailMessagePart extends ChildDocType {
 	/** Blob ID: Data */
 	blob_id?: string
@@ -563,9 +384,11 @@ export interface EmailMessagePart extends ChildDocType {
 	location?: string
 	/** File Name: Data */
 	filename?: string
+	/** File URL: Attach */
+	file_url?: any
 }
 
-// Last updated: 2025-05-21 14:07:54.073845
+// Last updated: 2025-05-26 16:21:22.094482
 export interface EmailMessage extends DocType {
 	/** Subject: Small Text */
 	subject?: string
@@ -599,7 +422,7 @@ export interface EmailMessage extends DocType {
 	sender_name?: string
 	/** Sender Email: Data */
 	sender_email?: string
-	/** Received After (Seconds): Int */
+	/** Received After (Seconds): Float */
 	received_after?: number
 	/** Size (Bytes): Int */
 	size?: number
@@ -635,7 +458,7 @@ export interface EmailMessage extends DocType {
 	mailbox_id?: string
 	/** Destroyed: Check */
 	destroyed: 0 | 1
-	/** Fetched After (Seconds): Int */
+	/** Fetched After (Seconds): Float */
 	fetched_after?: number
 	/** Keywords: JSON */
 	keywords?: any
@@ -651,4 +474,10 @@ export interface EmailMessage extends DocType {
 	draft: 0 | 1
 	/** Mailbox Role: Data */
 	mailbox_role?: string
+	/** Flagged: Check */
+	flagged: 0 | 1
+	/** Answered: Check */
+	answered: 0 | 1
+	/** Forwarded: Check */
+	forwarded: 0 | 1
 }
