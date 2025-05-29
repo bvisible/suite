@@ -706,11 +706,11 @@
    "non_negative": 1
   },
   {
-   "default": "30",
+   "default": "10000",
    "description": "How many changes to keep in the history for each account. This is used to determine the changes that have occurred since the last time the client requested changes.",
    "fieldname": "changes_max_history",
    "fieldtype": "Int",
-   "label": "Changes History (Days)",
+   "label": "Changes History",
    "non_negative": 1
   },
   {
@@ -762,7 +762,7 @@
    "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-05-28 11:25:57.823304",
+ "modified": "2025-05-29 18:34:47.744984",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",

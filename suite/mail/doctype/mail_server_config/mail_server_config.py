@@ -387,7 +387,7 @@ def get_config_toml(server: str) -> str | None:
 			},
 			"auto-expunge": format_value_or_zero(cluster.email_auto_expunge, "d"),
 		},
-		"changes": {"max-history": format_value_or_zero(cluster.changes_max_history, "d")},
+		"changes": {"max-history": cluster.changes_max_history},
 		"jmap": {
 			"email": {
 				"max-attachment-size": cluster.jmap_email_max_attachment_size,
