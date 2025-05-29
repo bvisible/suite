@@ -14,15 +14,27 @@ def slug(text):
 	return text.lower().replace(" ", "-")
 
 
+def get_presentation_thumbnail(presentation_name):
+	return frappe.get_value(
+		"Slide",
+		{"parent": presentation_name, "idx": 1},
+		"thumbnail",
+	)
+
+
 @frappe.whitelist()
 def get_all_presentations():
-	presentations = frappe.get_all(
-		"Presentation", fields=["name"], filters={"owner": frappe.session.user}, order_by="modified desc"
+	presentations = frappe.get_list(
+		"Presentation",
+		fields=["name", "title", "creation", "modified"],
+		filters={"owner": frappe.session.user},
+		order_by="modified desc",
 	)
-	all_presentations = [
-		frappe.get_doc("Presentation", presentation.name).as_dict() for presentation in presentations
-	]
-	return all_presentations
+
+	for p in presentations:
+		p["thumbnail"] = get_presentation_thumbnail(p["name"])
+
+	return presentations
 
 
 @frappe.whitelist()
