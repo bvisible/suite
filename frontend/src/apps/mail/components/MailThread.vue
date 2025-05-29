@@ -68,10 +68,10 @@
 									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
 										{{ `<${mail.from_email}>` }}
 									</span>
-									<MailDetailsPopover :mail="mail" />
+									<MailDetailsPopover v-if="!mail.draft" :mail="mail" />
 								</div>
 								<div class="flex items-center space-x-2">
-									<span class="flex items-center space-x-1">
+									<span v-if="mail.recipients.To?.length">
 										{{ __('To: ') + getRecipients(mail.recipients.To) }}
 									</span>
 									<span v-if="mail.recipients.CC?.length">
@@ -85,9 +85,7 @@
 							<div class="flex items-center space-x-2 self-start">
 								<MailDate :datetime="mail.received_at" />
 								<Tooltip
-									v-for="action in mailActions(mail).filter(
-										(d) => d.condition !== false,
-									)"
+									v-for="action in mailActions(mail).filter((d) => d.condition)"
 									:key="action.label"
 									:text="action.label"
 								>
@@ -147,7 +145,7 @@
 			v-model="showSendModal"
 			:mail-i-d="draftMailID"
 			:reply-details
-			@reload-mails="emit('reloadMails', 'Drafts')"
+			@reload-mails="emit('reloadMails')"
 		/>
 	</div>
 
@@ -298,7 +296,7 @@ const moveToOptions = computed(() =>
 		})),
 )
 
-type ActionType = 'editDraft' | 'reply' | 'replyAll' | 'forward'
+type ActionType = 'reply' | 'replyAll' | 'forward'
 
 interface MailAction {
 	label: string
@@ -337,13 +335,13 @@ const mailActions = (mail: any): MailAction[] => [
 			showSendModal.value = true
 		},
 		icon: SquarePen,
-		condition: mail.folder === 'Drafts',
+		condition: mail.draft,
 	},
 	{
 		label: __('Reply'),
 		onClick: () => openModal('reply', mail),
 		icon: Reply,
-		condition: mail.status !== 'Draft',
+		condition: !mail.draft,
 	},
 ]
 
@@ -352,19 +350,19 @@ const moreActions = (mail: any): MailAction[] => [
 		label: __('Reply All'),
 		onClick: () => openModal('replyAll', mail),
 		icon: ReplyAll,
-		condition: () => mail.status !== 'Draft',
+		condition: () => !mail.draft,
 	},
 	{
 		label: __('Forward'),
 		onClick: () => openModal('forward', mail),
 		icon: Forward,
-		condition: () => mail.status !== 'Draft',
+		condition: () => !mail.draft,
 	},
 	{
 		label: __('See MIME Message'),
 		onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
 		icon: Code,
-		condition: () => mail.status !== 'Draft' && !isMobile.value,
+		condition: () => !mail.draft && !isMobile.value,
 	},
 	{
 		label: __('Move to Trash'),
@@ -396,27 +394,25 @@ const deleteMails = createResource({
 })
 
 const openModal = (type: ActionType, mail) => {
-	if (props.type == 'Incoming Mail') {
-		replyDetails.to = mail.reply_to || mail.sender
-	} else {
-		replyDetails.to = mail.to.map((to) => to.email).join(', ')
-	}
-
-	replyDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
-	replyDetails.cc = ''
-	replyDetails.bcc = ''
-	replyDetails.in_reply_to_mail_name = mail.name
-
-	if (type === 'replyAll') {
-		replyDetails.cc = mail.cc.map((cc) => cc.email).join(', ')
-		replyDetails.bcc = mail.bcc.map((bcc) => bcc.email).join(', ')
-	}
-	if (type === 'forward') {
-		replyDetails.to = ''
-		replyDetails.subject = `Fwd: ${mail.subject}`
-	}
-	replyDetails.html = getReplyHtml(mail.body_html, mail.creation)
-	showSendModal.value = true
+	// if (props.type == 'Incoming Mail') {
+	// 	replyDetails.to = mail.reply_to || mail.sender
+	// } else {
+	// 	replyDetails.to = mail.to.map((to) => to.email).join(', ')
+	// }
+	// replyDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
+	// replyDetails.cc = ''
+	// replyDetails.bcc = ''
+	// replyDetails.in_reply_to_mail_name = mail.name
+	// if (type === 'replyAll') {
+	// 	replyDetails.cc = mail.cc.map((cc) => cc.email).join(', ')
+	// 	replyDetails.bcc = mail.bcc.map((bcc) => bcc.email).join(', ')
+	// }
+	// if (type === 'forward') {
+	// 	replyDetails.to = ''
+	// 	replyDetails.subject = `Fwd: ${mail.subject}`
+	// }
+	// replyDetails.html = getReplyHtml(mail.body_html, mail.creation)
+	// showSendModal.value = true
 }
 
 const getReplyHtml = (html, creation) => {

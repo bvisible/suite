@@ -119,6 +119,8 @@ import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
 import DashboardLayout from '@/components/DashboardLayout.vue'
 import AddGroupMembersModal from '@/components/Modals/AddGroupMembersModal.vue'
 
+import type { MailGroup } from '@/types'
+
 const { groupName } = defineProps<{ groupName: string }>()
 
 const router = useRouter()
@@ -136,7 +138,7 @@ const showRemoveMembers = ref(false)
 const group = createDocumentResource({
 	doctype: 'Mail Group',
 	name: groupName,
-	transform: (data) => {
+	transform: (data: MailGroup) => {
 		data['enabled'] = !!data['enabled']
 	},
 	setValue: {

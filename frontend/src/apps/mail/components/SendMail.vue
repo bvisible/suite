@@ -173,7 +173,7 @@
 									<Button
 										variant="solid"
 										:label="__('Send')"
-										@click="createMail.submit({ saveAsDraft: false })"
+										@click="sendMail"
 									/>
 								</div>
 							</div>
@@ -197,6 +197,7 @@ import {
 	Progress,
 	TextEditor,
 	TextEditorFixedMenu,
+	createDocumentResource,
 	createResource,
 } from 'frappe-ui'
 
@@ -206,25 +207,70 @@ import MultiselectInputControl from '@/components/Controls/MultiselectInputContr
 import EmojiPicker from '@/components/EmojiPicker.vue'
 import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
-import type { UserResource } from '@/types'
-
-const emit = defineEmits(['reloadMails'])
+import type { EmailMessage, UserResource } from '@/types'
 
 const show = defineModel<boolean>()
+
+const { mailID } = defineProps<{ mailID?: string }>()
+
+const emit = defineEmits(['reloadMails'])
 
 const user = inject('$user') as UserResource
 const { isMobile } = useScreenSize()
 
 const textEditor = ref(null)
-const ccInput = ref(null)
-const bccInput = ref(null)
-const cc = ref(false)
-const bcc = ref(false)
-const emoji = ref()
-
 const editor = computed(() => textEditor.value.editor)
 
+const ccInput = ref(null)
+const cc = ref(false)
+const toggleCC = () => {
+	cc.value = !cc.value
+	if (cc.value) nextTick(() => ccInput.value.setFocus())
+}
+
+const bccInput = ref(null)
+const bcc = ref(false)
+const toggleBCC = () => {
+	bcc.value = !bcc.value
+	if (bcc.value) nextTick(() => bccInput.value.setFocus())
+}
+
+const emoji = ref()
+const appendEmoji = () => {
+	editor.value.commands.insertContent(emoji.value)
+	editor.value.commands.focus()
+	emoji.value = ''
+}
+
 const addressOptions = createResource({ url: 'mail.api.mail.get_user_addresses', auto: true })
+
+const draftMail = ref()
+
+const getDraftMail = (name: string) =>
+	createDocumentResource({
+		doctype: 'Email Message',
+		name: name,
+		onSuccess: (data: EmailMessage) => {
+			Object.assign(mail, {
+				from_email: data.from_email,
+				to: data.recipients.filter((d) => d.type === 'To').map((d) => d.email),
+				cc: data.recipients.filter((d) => d.type === 'Cc').map((d) => d.email),
+				bcc: data.recipients.filter((d) => d.type === 'Bcc').map((d) => d.email),
+				subject: data.subject,
+				body: data.html_body,
+			})
+			cc.value = !!mail.cc?.length
+			bcc.value = !!mail.bcc?.length
+		},
+		whitelistedMethods: { destroy: 'destroy' },
+	})
+
+watch(
+	() => mailID,
+	(val) => {
+		if (val) draftMail.value = getDraftMail(val)
+	},
+)
 
 const emptyMail = {
 	from_email: user.data?.default_outgoing,
@@ -234,10 +280,7 @@ const emptyMail = {
 	subject: '',
 	body: '',
 }
-
 const mail = reactive({ ...emptyMail })
-
-const mailSent = ref(false)
 
 const createMail = createResource({
 	url: 'mail.api.mail.create_mail',
@@ -245,11 +288,43 @@ const createMail = createResource({
 		...mail,
 		save_as_draft: saveAsDraft,
 	}),
-	onSuccess: () => {
-		emit('reloadMails')
-		mailSent.value = true
-		show.value = false
-	},
+	onSuccess: () => closeAndReload(),
+})
+
+const updateDraftMail = createResource({
+	url: 'mail.api.mail.update_draft_mail',
+	makeParams: ({ submit }: { submit: boolean }) => ({ ...mail, name: mailID, submit: submit }),
+	onSuccess: () => closeAndReload(),
+})
+
+const saveDraft = ref(true)
+
+const sendMail = async () => {
+	saveDraft.value = false
+	if (mailID) await updateDraftMail.submit({ submit: true })
+	else await createMail.submit({ saveAsDraft: false })
+}
+
+const discardMail = async () => {
+	saveDraft.value = false
+	if (mailID) await draftMail.value.destroy.submit()
+	closeAndReload()
+}
+
+const closeAndReload = () => {
+	show.value = false
+	setTimeout(() => emit('reloadMails'), 500)
+}
+
+watch(show, (val) => {
+	if (val) return
+
+	if (saveDraft.value) {
+		if (mailID) updateDraftMail.submit({ submit: false })
+		else if (!isMailEmpty.value) createMail.submit({ saveAsDraft: true })
+	} else saveDraft.value = true
+
+	Object.assign(mail, emptyMail)
 })
 
 const isMailEmpty = computed(() => {
@@ -266,38 +341,6 @@ const isMailEmpty = computed(() => {
 
 	return isSubjectEmpty && isBodyEmpty && isRecipientsEmpty
 })
-
-const mailDiscarded = ref(false)
-
-const discardMail = () => {
-	mailDiscarded.value = true
-	show.value = false
-}
-
-watch(show, (val) => {
-	if (val) return (mailSent.value = mailDiscarded.value = false)
-
-	if (!(mailSent.value || mailDiscarded.value || isMailEmpty.value))
-		createMail.submit({ saveAsDraft: true })
-
-	Object.assign(mail, emptyMail)
-})
-
-const toggleCC = () => {
-	cc.value = !cc.value
-	if (cc.value) nextTick(() => ccInput.value.setFocus())
-}
-
-const toggleBCC = () => {
-	bcc.value = !bcc.value
-	if (bcc.value) nextTick(() => bccInput.value.setFocus())
-}
-
-const appendEmoji = () => {
-	editor.value.commands.insertContent(emoji.value)
-	editor.value.commands.focus()
-	emoji.value = ''
-}
 
 const textEditorMenuButtons = [
 	'Paragraph',
