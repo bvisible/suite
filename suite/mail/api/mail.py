@@ -85,6 +85,7 @@ def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 			EmailMessage.html_body,
 			EmailMessage.text_body,
 			EmailMessage.received_at,
+			EmailMessage.draft,
 			EmailMessage.has_attachment,
 			EmailMessageRecipient.type,
 			EmailMessageRecipient.email,
@@ -117,6 +118,7 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 				"html_body": row["html_body"],
 				"text_body": row["text_body"],
 				"received_at": row["received_at"],
+				"draft": row["draft"],
 				"has_attachment": row["has_attachment"],
 				"recipients": defaultdict(list),
 			}
@@ -193,33 +195,25 @@ def create_mail(
 
 @frappe.whitelist()
 def update_draft_mail(
-	mail_id: str,
-	from_: str,
-	to: str | list[str],
-	subject: str,
-	cc: str | list[str] | None = None,
-	bcc: str | list[str] | None = None,
-	html: str | None = None,
-	attachments: list[dict] | None = None,
-	do_submit: bool = False,
+	name: str,
+	from_email: str,
+	to: list[str],
+	cc: list[str],
+	bcc: list[str],
+	subject: str | None,
+	body: str | None,
+	submit: bool = False,
 ):
-	"""Update draft mail."""
-
-	display_name, from_ = parseaddr(from_)
-
-	doc = frappe.get_doc("Outgoing Mail", mail_id)
-	doc.from_ = from_
-	doc.display_name = display_name
-	doc._update_recipients("To", to)
-	doc._update_recipients("Cc", cc)
-	doc._update_recipients("Bcc", bcc)
+	doc = frappe.get_doc("Email Message", name)
+	doc.account = frappe.session.user
+	doc.from_email = from_email
 	doc.subject = subject
-	doc.body_html = html
-	doc.save()
-	doc._add_attachment(attachments)
+	doc.html_body = body
+	doc.recipients = [frappe._dict({"type": "To", "email": email}) for email in to]
+	doc.recipients += [frappe._dict({"type": "Cc", "email": email}) for email in cc]
+	doc.recipients += [frappe._dict({"type": "Bcc", "email": email}) for email in bcc]
 
-	if do_submit:
-		doc.submit()
+	doc.submit() if submit else doc.save_draft()
 
 
 # @frappe.whitelist()
