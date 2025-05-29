@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
@@ -323,9 +323,15 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-	resetSlideState()
 	clearInterval(autosaveInterval)
 	resetFocus()
 	document.removeEventListener('keydown', handleKeyDown)
+})
+
+onBeforeRouteLeave((to, from, next) => {
+	if (to.name !== 'Slideshow') {
+		resetSlideState()
+	}
+	next()
 })
 </script>
