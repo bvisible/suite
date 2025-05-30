@@ -19,7 +19,7 @@ import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 import Resizer from '@/components/Resizer.vue'
 
-import { activeElementIds } from '@/stores/element'
+import { activeElement, activeElementIds } from '@/stores/element'
 
 const props = defineProps({
 	outline: {
@@ -68,8 +68,8 @@ const getDynamicComponent = (type) => {
 }
 
 const isElementActive = computed(() => {
-	if (!activeElementIds.value.length) return false
-	return activeElementIds.value[0] == element.value.id
+	if (!activeElement.value) return false
+	return activeElement.value.id == element.value.id
 })
 
 const updateElementWidth = (deltaWidth) => {
