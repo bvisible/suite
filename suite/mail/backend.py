@@ -1,7 +1,7 @@
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 from urllib.parse import urljoin
 
 import frappe
@@ -10,9 +10,6 @@ from frappe import _
 
 from mail.mail.doctype.mail_backend_request.mail_backend_request import create_mail_backend_request
 from mail.utils import get_dkim_selector
-
-if TYPE_CHECKING:
-	from mail.mail.doctype.mail_backend_request.mail_backend_request import MailBackendRequest
 
 
 @dataclass
@@ -317,8 +314,16 @@ class MailBackendAliasManager(MailBackendManagerBase):
 	def create(self, email: str, alias: str) -> None:
 		"""Creates an alias on the backend."""
 
+		from mail.mail.doctype.mail_account.mail_account import sync_jmap_identities
+
 		request_data = json.dumps([{"action": "addItem", "field": "emails", "value": alias}])
-		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
+		self.create_request(
+			method="PATCH",
+			endpoint=f"/api/principal/{email}",
+			request_data=request_data,
+			on_end=sync_jmap_identities,
+			on_end_kwargs={"account": email},
+		)
 
 	def update(self, new_email: str, old_email: str, alias: str) -> None:
 		"""Updates an alias on the backend."""
@@ -329,8 +334,16 @@ class MailBackendAliasManager(MailBackendManagerBase):
 	def delete(self, email: str, alias: str) -> None:
 		"""Deletes an alias from the backend."""
 
+		from mail.mail.doctype.mail_account.mail_account import sync_jmap_identities
+
 		request_data = json.dumps([{"action": "removeItem", "field": "emails", "value": alias}])
-		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
+		self.create_request(
+			method="PATCH",
+			endpoint=f"/api/principal/{email}",
+			request_data=request_data,
+			on_end=sync_jmap_identities,
+			on_end_kwargs={"account": email},
+		)
 
 
 class MailBackendMemberManager(MailBackendManagerBase):
@@ -369,6 +382,46 @@ class MailBackendMemberManager(MailBackendManagerBase):
 			request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
 
 		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
+
+
+class MailBackendIdentityManager(MailBackendManagerBase):
+	def sync(
+		self,
+		account_id: str,
+		identities: dict[str, dict[str, Any]],
+	) -> None:
+		"""Synchronizes identities with the backend."""
+
+		payload = {
+			"using": ["urn:ietf:params:jmap:mail"],
+			"methodCalls": [
+				[
+					"Identity/get",
+					{
+						"accountId": account_id,
+					},
+					"0",
+				],
+				[
+					"Identity/set",
+					{
+						"accountId": account_id,
+						"#destroy": {"resultOf": "0", "name": "Identity/get", "path": "/list/*/id"},
+					},
+					"1",
+				],
+				[
+					"Identity/set",
+					{
+						"accountId": account_id,
+						"create": identities,
+					},
+					"2",
+				],
+			],
+		}
+
+		self.create_request(method="POST", endpoint="/jmap", request_json=payload, do_not_enqueue=True)
 
 
 def get_mail_backend_api(

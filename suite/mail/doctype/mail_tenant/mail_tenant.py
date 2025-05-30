@@ -8,7 +8,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from mail.jmap import invalidate_jmap_client_cache
 from mail.utils.cache import get_tenant_for_user
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 
@@ -37,9 +36,6 @@ class MailTenant(Document):
 
 	def on_update(self) -> None:
 		self.clear_cache()
-
-		if self.has_value_changed("cluster"):
-			invalidate_jmap_client_cache()
 
 	def after_insert(self) -> None:
 		"""Add the user as a member of the tenant."""
