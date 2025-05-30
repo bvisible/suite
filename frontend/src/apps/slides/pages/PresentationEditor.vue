@@ -54,7 +54,7 @@ import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
-import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
+import { slide, slideIndex, saveChanges, loadSlide, updateSlideThumbnail } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -211,7 +211,7 @@ const changeSlide = async (index, updateCurrent = true) => {
 	// reset the pan and zoom to capture thumbnail
 	slideContainerRef.value.togglePanZoom()
 
-	nextTick(async () => {
+	await nextTick(async () => {
 		// update the current slide along with thumbnail
 		if (updateCurrent) {
 			await saveChanges()
@@ -257,8 +257,13 @@ const performSlideAction = async (action, index) => {
 
 const insertSlide = async (index) => {
 	if (!index) index = slideIndex.value
+	const previousBackground = slide.value.background
 	await performSlideAction('insert', index)
-	changeSlide(index + 1)
+	await changeSlide(index + 1)
+	slide.value.background = previousBackground
+	nextTick(() => {
+		updateSlideThumbnail()
+	})
 }
 
 const deleteSlide = async () => {
