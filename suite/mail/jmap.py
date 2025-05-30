@@ -7,7 +7,6 @@ import frappe
 import requests
 from frappe import _
 from frappe.utils import create_batch
-from frappe.utils.caching import redis_cache
 
 from mail.utils import batch_dict
 from mail.utils.cache import get_cluster_for_tenant
@@ -186,6 +185,27 @@ class JMAPClient:
 			using=["urn:ietf:params:jmap:mail"],
 			method_calls=[["Identity/get", {"accountId": self.account_id}, "0"]],
 		)["methodResponses"][0][1]["list"]
+
+	def get_mailboxes(self) -> list[dict]:
+		"""Returns the mailboxes for the logged-in user."""
+
+		mailboxes = []
+		for mailbox in self.mailboxes[self.account_id]:
+			mailboxes.append(
+				{
+					"id": mailbox["id"],
+					"name": mailbox["name"],
+					"role": mailbox["role"],
+				}
+			)
+
+		if mailboxes:
+			role_order = ["inbox", "sent", "drafts", "junk", "trash"]
+			role_priority = {role: i for i, role in enumerate(role_order)}
+
+			return sorted(mailboxes, key=lambda m: (role_priority.get(m["role"], len(role_order))))
+
+		return mailboxes
 
 	def get_mailbox_id(self, role: str | None = None, name: str | None = None) -> str | None:
 		"""Returns the mailbox ID for the given role or name."""
@@ -581,89 +601,61 @@ class JMAPClient:
 			)
 
 
-@redis_cache(ttl=300)
 def get_jmap_client(account: str) -> "JMAPClient":
 	"""Returns a JMAP client for the given account."""
 
-	account = frappe.get_doc("Mail Account", account)
-	cluster = get_cluster_for_tenant(account.tenant)
+	def generator() -> "JMAPClient":
+		doc = frappe.get_doc("Mail Account", account)
+		cluster = get_cluster_for_tenant(doc.tenant)
 
-	if not cluster:
-		frappe.throw(_("No cluster found for the account {0}.").format(frappe.bold(account.name)))
+		if not cluster:
+			frappe.throw(_("No cluster found for the account {0}.").format(frappe.bold(doc.name)))
 
-	host = frappe.db.get_value("Mail Cluster", cluster, "base_url")
-	client = JMAPClient(host, account.email, account.get_password())
+		host = frappe.db.get_value("Mail Cluster", cluster, "base_url")
+		return JMAPClient(host, doc.email, doc.get_password())
 
-	return client
+	return frappe.cache.hget("jmap:client", account, generator)
 
 
-def invalidate_jmap_client_cache() -> None:
-	"""Invalidates the JMAP client cache."""
+def invalidate_jmap_client_cache(account: str) -> None:
+	"""Invalidates the JMAP client cache for the given account."""
 
-	get_jmap_client.clear_cache()
+	frappe.cache.hdel("jmap:client", account)
 
 
 def get_mailboxes(account: str) -> list[dict]:
 	"""Returns the mailboxes for the given account."""
 
-	def generator() -> list[dict]:
-		client = get_jmap_client(account)
-
-		mailboxes = []
-		for mailbox in client.mailboxes[client.account_id]:
-			mailboxes.append(
-				{
-					"id": mailbox["id"],
-					"name": mailbox["name"],
-					"role": mailbox["role"],
-				}
-			)
-
-		if mailboxes:
-			role_order = ["inbox", "sent", "drafts", "junk", "trash"]
-			role_priority = {role: i for i, role in enumerate(role_order)}
-
-			return sorted(mailboxes, key=lambda m: (role_priority.get(m["role"], len(role_order))))
-
-		return mailboxes
-
-	return frappe.cache.hget("jmap:mailboxes", account, generator)
+	client = get_jmap_client(account)
+	return client.get_mailboxes()
 
 
 def get_identities(account: str) -> list[dict]:
 	"""Returns the identities for the given account."""
 
-	def generator() -> list[dict]:
-		client = get_jmap_client(account)
-		return client.identities
-
-	return frappe.cache.hget("jmap:identities", account, generator)
+	client = get_jmap_client(account)
+	return client.identities
 
 
 def get_mailbox_id(account: str, role: str | None = None, name: str | None = None) -> str | None:
 	"""Returns the mailbox ID for the given role or name."""
 
-	for mailbox in get_mailboxes(account):
-		if (role and mailbox.get("role").lower() == role.lower()) or (
-			name and mailbox.get("name").lower() == name.lower()
-		):
-			return mailbox["id"]
+	client = get_jmap_client(account)
+	return client.get_mailbox_id(role, name)
 
 
 def get_mailbox_role(account: str, id: str) -> str | None:
 	"""Returns the mailbox role for the given ID."""
 
-	for mailbox in get_mailboxes(account):
-		if mailbox.get("id") == id:
-			return mailbox["role"]
+	client = get_jmap_client(account)
+	return client.get_mailbox_role(id)
 
 
 def get_mailbox_name(account: str, id: str | None = None, role: str | None = None) -> str | None:
 	"""Returns the mailbox name for the given ID or role."""
 
-	for mailbox in get_mailboxes(account):
-		if (id and mailbox.get("id") == id) or (role and mailbox.get("role").lower() == role.lower()):
-			return mailbox["name"]
+	client = get_jmap_client(account)
+	return client.get_mailbox_name(id, role)
 
 
 @frappe.whitelist()
