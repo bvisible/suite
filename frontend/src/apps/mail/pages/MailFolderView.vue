@@ -367,6 +367,7 @@ const openMail = (mail: Mail) => {
 
 watch(() => mailbox, reloadMails, { immediate: true })
 
+// todo:
 // onMounted(() => {
 // 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
 // 	socket.on('incoming_mail_received', () => {
