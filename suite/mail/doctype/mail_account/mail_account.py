@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 from email.utils import parseaddr
-from typing import Any
 
 import frappe
 from frappe import _
@@ -67,7 +66,7 @@ class MailAccount(Document):
 				)
 
 				if self.has_value_changed("secret"):
-					invalidate_jmap_client_cache()
+					invalidate_jmap_client_cache(self.name)
 
 		elif self.has_value_changed("enabled"):
 			MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.email)
@@ -252,6 +251,8 @@ class MailAccount(Document):
 		MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).sync(
 			account_id, identities
 		)
+
+		invalidate_jmap_client_cache(self.name)
 
 
 def _create_user_for_mail_account(
