@@ -136,10 +136,15 @@ class MailAlias(Document):
 def sync_jmap_identities(account: str) -> None:
 	"""Sync JMAP identities for the given mail account."""
 
+	if not frappe.db.exists("Mail Account", account):
+		return
+
 	doc = frappe.get_doc("Mail Account", account)
 	account_id = get_jmap_client(doc.name).account_id
 	aliases = frappe.db.get_all(
-		"Mail Alias", {"alias_for_type": "Mail Account", "alias_for_name": doc.name}, pluck="email"
+		"Mail Alias",
+		{"enabled": 1, "alias_for_type": "Mail Account", "alias_for_name": doc.name},
+		pluck="email",
 	)
 
 	reply_to = []
