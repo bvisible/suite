@@ -144,7 +144,7 @@
 		<SendMail
 			v-model="showSendModal"
 			:mail-i-d="draftMailID"
-			:reply-details
+			:mail-details
 			@reload-mails="emit('reloadMails')"
 		/>
 	</div>
@@ -204,13 +204,14 @@ const { setCurrentThread } = userStore()
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
 
-const replyDetails = reactive({
-	to: '',
-	cc: '',
-	bcc: '',
+const mailDetails = reactive({
+	to: [],
+	cc: [],
+	bcc: [],
 	subject: '',
-	in_reply_to_mail_type: props.type,
-	in_reply_to_mail_name: '',
+	body: '',
+	in_reply_to: '',
+	in_reply_to_id: '',
 })
 
 const mailThread = createResource({
@@ -296,8 +297,6 @@ const moveToOptions = computed(() =>
 		})),
 )
 
-type ActionType = 'reply' | 'replyAll' | 'forward'
-
 interface MailAction {
 	label: string
 	onClick: () => void
@@ -339,22 +338,27 @@ const mailActions = (mail: any): MailAction[] => [
 	},
 	{
 		label: __('Reply'),
-		onClick: () => openModal('reply', mail),
+		onClick: () => reply(mail),
 		icon: Reply,
 		condition: !mail.draft,
 	},
 ]
 
-const moreActions = (mail: any): MailAction[] => [
+const moreActions = (mail): MailAction[] => [
 	{
 		label: __('Reply All'),
-		onClick: () => openModal('replyAll', mail),
+		onClick: () => replyAll(mail),
 		icon: ReplyAll,
-		condition: () => !mail.draft,
+		condition: () =>
+			!mail.draft &&
+			mail.from_email !== user.data.email &&
+			mail.recipients.To?.concat(mail.recipients.Cc || []).filter(
+				(m) => m.email !== user.data.email,
+			).length > 0,
 	},
 	{
 		label: __('Forward'),
-		onClick: () => openModal('forward', mail),
+		onClick: () => forward(mail),
 		icon: Forward,
 		condition: () => !mail.draft,
 	},
@@ -393,35 +397,38 @@ const deleteMails = createResource({
 	onSuccess: () => emit('reloadMails'),
 })
 
-const openModal = (type: ActionType, mail) => {
-	// if (props.type == 'Incoming Mail') {
-	// 	replyDetails.to = mail.reply_to || mail.sender
-	// } else {
-	// 	replyDetails.to = mail.to.map((to) => to.email).join(', ')
-	// }
-	// replyDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
-	// replyDetails.cc = ''
-	// replyDetails.bcc = ''
-	// replyDetails.in_reply_to_mail_name = mail.name
-	// if (type === 'replyAll') {
-	// 	replyDetails.cc = mail.cc.map((cc) => cc.email).join(', ')
-	// 	replyDetails.bcc = mail.bcc.map((bcc) => bcc.email).join(', ')
-	// }
-	// if (type === 'forward') {
-	// 	replyDetails.to = ''
-	// 	replyDetails.subject = `Fwd: ${mail.subject}`
-	// }
-	// replyDetails.html = getReplyHtml(mail.body_html, mail.creation)
-	// showSendModal.value = true
+const reply = (mail) => {
+	mailDetails.in_reply_to = mail.message_id
+	mailDetails.in_reply_to_id = mail._id
+	mailDetails.to = [mail.from_email]
+	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
+	mailDetails.body = getMailBody(mail)
+	showSendModal.value = true
 }
 
-const getReplyHtml = (html, creation) => {
-	const replyHeader = `
-        On ${dayjs(creation).format('DD MMM YYYY')} at ${dayjs(creation).format('h:mm A')}, ${
-			replyDetails.to
-		} wrote:
-    `
-	return `<br><blockquote>${replyHeader} <br> ${html}</blockquote>`
+const replyAll = (mail) => {
+	mailDetails.in_reply_to = mail.message_id
+	mailDetails.in_reply_to_id = mail._id
+	mailDetails.to = [...(mail.recipients.To?.map((m) => m.email) || []), mail.from_email].filter(
+		(m) => m !== user.data.email,
+	)
+	mailDetails.cc = (mail.recipients.Cc?.map((m) => m.email) || []).filter(
+		(m) => m.email !== user.data.email,
+	)
+	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
+	mailDetails.body = getMailBody(mail)
+	showSendModal.value = true
+}
+
+const forward = (mail) => {
+	mailDetails.subject = `Fwd: ${mail.subject}`
+	mailDetails.body = getMailBody(mail)
+	showSendModal.value = true
+}
+
+const getMailBody = (mail) => {
+	const replyHeader = `On ${dayjs(mail.received_at).format('DD MMM YYYY')} at ${dayjs(mail.received_at).format('h:mm A')}, ${mail.from_email} wrote:`
+	return `<br><blockquote>${replyHeader} <br> ${mail.html_body}</blockquote>`
 }
 
 watch(() => props.threadID, reload)

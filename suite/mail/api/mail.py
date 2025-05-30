@@ -1,6 +1,5 @@
 import json
 from collections import defaultdict
-from email.utils import parseaddr
 from typing import Literal
 
 import frappe
@@ -10,7 +9,6 @@ from frappe.utils import cint
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
-from mail.utils.cache import get_account_for_user
 from mail.utils.user import get_user_email_addresses
 
 
@@ -64,6 +62,7 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 	return count[0][0]
 
 
+# todo:
 @frappe.whitelist()
 def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
@@ -79,6 +78,8 @@ def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 		.on(EmailMessage.name == EmailMessageRecipient.parent)
 		.select(
 			EmailMessage.name,
+			EmailMessage.message_id,
+			EmailMessage._id,
 			EmailMessage.from_name,
 			EmailMessage.from_email,
 			EmailMessage.subject,
@@ -112,6 +113,8 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 		if key not in grouped:
 			grouped[key] = {
 				"name": row["name"],
+				"message_id": row["message_id"],
+				"_id": row["_id"],
 				"from_name": row["from_name"],
 				"from_email": row["from_email"],
 				"subject": row["subject"],
@@ -176,6 +179,8 @@ def create_mail(
 	bcc: list[str],
 	subject: str | None,
 	body: str | None,
+	in_reply_to: str | None = None,
+	in_reply_to_id: str | None = None,
 	save_as_draft: bool = False,
 ):
 	doc = frappe.new_doc("Mail Queue")
@@ -183,6 +188,8 @@ def create_mail(
 	doc.from_email = from_email
 	doc.subject = subject
 	doc.html_body = body
+	doc.in_reply_to = in_reply_to
+	doc.in_reply_to_id = in_reply_to_id
 	doc.save_as_draft = cint(save_as_draft)
 
 	doc.recipients = [{"type": "To", "email": email} for email in to]
@@ -216,6 +223,7 @@ def update_draft_mail(
 	doc.submit() if submit else doc.save_draft()
 
 
+# todo:
 # @frappe.whitelist()
 # def get_attachments_for_mail(type: MailType, name: str):
 # 	"""Fetches mail attachments."""

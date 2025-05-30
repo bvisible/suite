@@ -45,14 +45,14 @@ import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 import type { MailAccount } from '@/types'
 
 const show = defineModel<boolean>()
-const props = defineProps<{ accountID: string }>()
+const { accountID } = defineProps<{ accountID: string }>()
 
 const account = ref()
 
 const getAccount = () =>
 	createDocumentResource({
 		doctype: 'Mail Account',
-		name: props.accountID,
+		name: accountID,
 		transform: (data: MailAccount) => {
 			for (const d of ['enabled', 'create_mail_contact']) data[d] = !!data[d]
 		},
@@ -70,7 +70,7 @@ const getAccount = () =>
 
 const userAddresses = createResource({
 	url: 'mail.api.mail.get_user_addresses',
-	makeParams: () => ({ user: props.accountID }),
+	makeParams: () => ({ user: accountID }),
 })
 
 watch(

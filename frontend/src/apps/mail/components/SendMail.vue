@@ -211,7 +211,7 @@ import type { EmailMessage, UserResource } from '@/types'
 
 const show = defineModel<boolean>()
 
-const { mailID } = defineProps<{ mailID?: string }>()
+const { mailID, mailDetails } = defineProps<{ mailID?: string; mailDetails?: any }>()
 
 const emit = defineEmits(['reloadMails'])
 
@@ -279,6 +279,8 @@ const emptyMail = {
 	bcc: [],
 	subject: '',
 	body: '',
+	in_reply_to: '',
+	in_reply_to_id: '',
 }
 const mail = reactive({ ...emptyMail })
 
@@ -288,43 +290,54 @@ const createMail = createResource({
 		...mail,
 		save_as_draft: saveAsDraft,
 	}),
-	onSuccess: () => closeAndReload(),
+	onSuccess: () => setTimeout(() => emit('reloadMails'), 500),
 })
 
 const updateDraftMail = createResource({
 	url: 'mail.api.mail.update_draft_mail',
 	makeParams: ({ submit }: { submit: boolean }) => ({ ...mail, name: mailID, submit: submit }),
-	onSuccess: () => closeAndReload(),
+	onSuccess: () => setTimeout(() => emit('reloadMails'), 500),
 })
 
 const saveDraft = ref(true)
 
 const sendMail = async () => {
 	saveDraft.value = false
+	show.value = false
 	if (mailID) await updateDraftMail.submit({ submit: true })
 	else await createMail.submit({ saveAsDraft: false })
+	setTimeout(() => emit('reloadMails'), 500)
 }
 
 const discardMail = async () => {
 	saveDraft.value = false
-	if (mailID) await draftMail.value.destroy.submit()
-	closeAndReload()
-}
-
-const closeAndReload = () => {
 	show.value = false
+	if (mailID) await draftMail.value.destroy.submit()
 	setTimeout(() => emit('reloadMails'), 500)
 }
 
+const setMailDetails = () => {
+	if (!mailDetails) return Object.assign(mail, emptyMail)
+
+	mail.in_reply_to = mailDetails.in_reply_to
+	mail.in_reply_to_id = mailDetails.in_reply_to_id
+	mail.subject = mailDetails.subject
+	mail.body = mailDetails.body
+	mail.to = mailDetails.to
+	mail.cc = mailDetails.cc
+	mail.bcc = mailDetails.bcc
+
+	cc.value = !!mail.cc?.length
+	bcc.value = !!mail.bcc?.length
+}
+
 watch(show, (val) => {
-	if (val) return
+	if (val) return setMailDetails()
 
-	if (saveDraft.value) {
-		if (mailID) updateDraftMail.submit({ submit: false })
-		else if (!isMailEmpty.value) createMail.submit({ saveAsDraft: true })
-	} else saveDraft.value = true
+	if (!saveDraft.value) return (saveDraft.value = true)
 
-	Object.assign(mail, emptyMail)
+	if (mailID) updateDraftMail.submit({ submit: false })
+	else if (!isMailEmpty.value) createMail.submit({ saveAsDraft: true })
 })
 
 const isMailEmpty = computed(() => {
