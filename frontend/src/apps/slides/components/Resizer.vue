@@ -24,7 +24,7 @@ import { computed, inject, watch } from 'vue'
 import ResizeHandle from '@/components/ResizeHandle.vue'
 import ResizeIndicator from '@/components/ResizeIndicator.vue'
 
-import { selectionBounds, slideBounds } from '@/stores/slide'
+import { selectionBounds, slideBounds, updateSelectionBounds } from '@/stores/slide'
 import { useResizer } from '@/utils/resizer'
 
 const props = defineProps({
@@ -93,8 +93,10 @@ const handleDimensionChange = (delta) => {
 	const minWidth = props.elementType === 'text' ? 7 : 50
 	if (delta.width + selectionBounds.width < minWidth) return
 
-	selectionBounds.left += delta.left / slideBounds.scale
-	selectionBounds.top += delta.top / slideBounds.scale
+	updateSelectionBounds({
+		left: selectionBounds.left + delta.left / slideBounds.scale,
+		top: selectionBounds.top + delta.top / slideBounds.scale,
+	})
 
 	emit('updateElementWidth', delta.width / slideBounds.scale || 0)
 }
