@@ -104,4 +104,17 @@ const saveChanges = async () => {
 
 const slideBounds = reactive({})
 
-export { slideIndex, slide, slideBounds, selectionBounds, loadSlide, updateSlideState, saveChanges }
+const updateSelectionBounds = (newBounds) => {
+	Object.assign(selectionBounds, newBounds)
+}
+
+export {
+	slideIndex,
+	slide,
+	slideBounds,
+	selectionBounds,
+	loadSlide,
+	updateSlideState,
+	saveChanges,
+	updateSelectionBounds,
+}

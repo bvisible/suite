@@ -104,8 +104,10 @@ const handleArrowKeys = (key) => {
 	else if (key == 'ArrowUp') dy = -1
 	else if (key == 'ArrowDown') dy = 1
 
-	selectionBounds.left += dx
-	selectionBounds.top += dy
+	updateSelectionBounds({
+		left: selectionBounds.left + dx,
+		top: selectionBounds.top + dy,
+	})
 }
 
 const saveSlide = (e) => {

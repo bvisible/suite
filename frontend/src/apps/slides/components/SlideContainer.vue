@@ -35,7 +35,7 @@ import SelectionBox from '@/components/SelectionBox.vue'
 import SlideElement from '@/components/SlideElement.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, slideBounds, selectionBounds } from '@/stores/slide'
+import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
 	activeElementIds,
 	handleCopy,
@@ -194,8 +194,10 @@ useResizeObserver(activeDiv, (entries) => {
 	// case:
 	// when element dimensions are changed not by resizer
 	// but by other updates on properties - font size, line height, letter spacing etc.
-	selectionBounds.width = width
-	selectionBounds.height = height
+	updateSelectionBounds({
+		width: width,
+		height: height,
+	})
 })
 
 const togglePanZoom = () => {
@@ -216,8 +218,10 @@ const handlePositionChange = (delta) => {
 
 	if (!disableMovement.value) {
 		const totalDelta = getTotalPositionDelta(delta)
-		selectionBounds.left += totalDelta.left / scale.value
-		selectionBounds.top += totalDelta.top / scale.value
+		updateSelectionBounds({
+			left: selectionBounds.left + totalDelta.left / scale.value,
+			top: selectionBounds.top + totalDelta.top / scale.value,
+		})
 	}
 }
 
