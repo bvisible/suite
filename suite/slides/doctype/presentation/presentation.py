@@ -10,23 +10,55 @@ class Presentation(Document):
 		self.name = slug(self.title)
 
 
-def slug(text):
+def slug(text: str) -> str:
 	return text.lower().replace(" ", "-")
 
 
-@frappe.whitelist()
-def get_all_presentations():
-	presentations = frappe.get_all(
-		"Presentation", fields=["name"], filters={"owner": frappe.session.user}, order_by="modified desc"
+def get_presentation_thumbnail(presentation_name: str) -> str:
+	"""Returns the thumbnail of the first slide in a presentation"""
+	return frappe.get_value(
+		"Slide",
+		{"parent": presentation_name, "idx": 1},
+		"thumbnail",
 	)
-	all_presentations = [
-		frappe.get_doc("Presentation", presentation.name).as_dict() for presentation in presentations
-	]
-	return all_presentations
 
 
 @frappe.whitelist()
-def get_presentation(name):
+def get_all_presentations() -> list[dict]:
+	"""
+	Returns a list of presentation details
+	- name, title, creation date, modified date, and first thumbnail
+	"""
+	presentations = frappe.get_list(
+		"Presentation",
+		fields=["name", "title", "creation", "modified"],
+		filters={"owner": frappe.session.user},
+		order_by="modified desc",
+	)
+
+	for presentation in presentations:
+		presentation["thumbnail"] = get_presentation_thumbnail(presentation["name"])
+
+	return presentations
+
+
+@frappe.whitelist()
+def get_slide_thumbnails(presentation: str) -> list[str]:
+	"""
+	Returns a list of thumbnails for all slides in a presentation
+	"""
+	slides = frappe.get_all(
+		"Slide",
+		fields=["name", "thumbnail"],
+		filters={"parent": presentation},
+		order_by="idx",
+	)
+
+	return [slide["thumbnail"] for slide in slides]
+
+
+@frappe.whitelist()
+def get_presentation(name: str) -> Document:
 	return frappe.get_doc("Presentation", name)
 
 
@@ -38,7 +70,6 @@ def insert_slide(name, index):
 	new_slide.parentfield = "slides"
 	new_slide.parenttype = "Presentation"
 	new_slide.idx = index + 1
-	new_slide.background = presentation.slides[index].background
 	new_slide.save()
 	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
 	for i in range(index + 1, len(presentation.slides)):
