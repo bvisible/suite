@@ -1,5 +1,5 @@
 import { ref, reactive, computed } from 'vue'
-import { slide, slideBounds } from '../stores/slide'
+import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
@@ -64,11 +64,11 @@ export const useSnapping = (target, parent) => {
 		const activeBounds = getElementBounds(target.value.$el)
 
 		if (axis == 'X') {
-			slideCenter = slideBounds.left + slideBounds.width / 2
-			elementCenter = activeBounds.left + activeBounds.width / 2
+			slideCenter = slideBounds.width / 2
+			elementCenter = selectionBounds.left + selectionBounds.width / 2
 		} else {
-			slideCenter = slideBounds.top + slideBounds.height / 2
-			elementCenter = activeBounds.top + activeBounds.height / 2
+			slideCenter = slideBounds.height / 2
+			elementCenter = selectionBounds.top + selectionBounds.height / 2
 		}
 
 		return slideCenter - elementCenter
@@ -90,7 +90,7 @@ export const useSnapping = (target, parent) => {
 			const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
 			if (!elementDiv || !target.value) return
 
-			const activeBounds = getElementBounds(target.value.$el)
+			const activeBounds = selectionBounds
 			const elementBounds = getElementBounds(elementDiv)
 
 			const diffLeft = activeBounds.left - elementBounds.left
