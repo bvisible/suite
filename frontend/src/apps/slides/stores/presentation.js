@@ -13,12 +13,10 @@ const inSlideShow = ref(false)
 
 const applyReverseTransition = ref(false)
 
-watch(
-	() => presentationId.value,
-	async () => {
-		await presentation.fetch()
-		loadSlide()
-	},
-)
+const loadPresentation = async (id) => {
+	presentationId.value = id
+	await presentation.fetch()
+	loadSlide()
+}
 
-export { presentationId, presentation, inSlideShow, applyReverseTransition }
+export { presentationId, presentation, inSlideShow, applyReverseTransition, loadPresentation }
