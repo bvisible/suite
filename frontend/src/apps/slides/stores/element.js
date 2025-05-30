@@ -23,7 +23,7 @@ const activeElements = computed(() => {
 const activeElement = computed(() => {
 	if (focusElementId.value) {
 		return slide.value.elements.find((element) => element.id === focusElementId.value)
-	} else {
+	} else if (activeElementIds.value.length == 1) {
 		return activeElements.value[0]
 	}
 })
