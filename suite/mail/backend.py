@@ -1,7 +1,7 @@
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 from urllib.parse import urljoin
 
 import frappe
@@ -9,10 +9,7 @@ import requests
 from frappe import _
 
 from mail.mail.doctype.mail_backend_request.mail_backend_request import create_mail_backend_request
-from mail.utils import generate_uuid_style_hash, get_dkim_selector
-
-if TYPE_CHECKING:
-	from mail.mail.doctype.mail_backend_request.mail_backend_request import MailBackendRequest
+from mail.utils import get_dkim_selector
 
 
 @dataclass
@@ -317,8 +314,16 @@ class MailBackendAliasManager(MailBackendManagerBase):
 	def create(self, email: str, alias: str) -> None:
 		"""Creates an alias on the backend."""
 
+		from mail.mail.doctype.mail_alias.mail_alias import sync_jmap_identities
+
 		request_data = json.dumps([{"action": "addItem", "field": "emails", "value": alias}])
-		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
+		self.create_request(
+			method="PATCH",
+			endpoint=f"/api/principal/{email}",
+			request_data=request_data,
+			on_end=sync_jmap_identities,
+			on_end_kwargs={"account": email},
+		)
 
 	def update(self, new_email: str, old_email: str, alias: str) -> None:
 		"""Updates an alias on the backend."""
@@ -329,8 +334,16 @@ class MailBackendAliasManager(MailBackendManagerBase):
 	def delete(self, email: str, alias: str) -> None:
 		"""Deletes an alias from the backend."""
 
+		from mail.mail.doctype.mail_alias.mail_alias import sync_jmap_identities
+
 		request_data = json.dumps([{"action": "removeItem", "field": "emails", "value": alias}])
-		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
+		self.create_request(
+			method="PATCH",
+			endpoint=f"/api/principal/{email}",
+			request_data=request_data,
+			on_end=sync_jmap_identities,
+			on_end_kwargs={"account": email},
+		)
 
 
 class MailBackendMemberManager(MailBackendManagerBase):
