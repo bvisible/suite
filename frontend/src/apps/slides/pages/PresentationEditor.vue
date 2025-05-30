@@ -54,7 +54,7 @@ import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
-import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
+import { slide, slideIndex, saveChanges, loadSlide, selectionBounds } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -104,7 +104,8 @@ const handleArrowKeys = (key) => {
 	else if (key == 'ArrowUp') dy = -1
 	else if (key == 'ArrowDown') dy = 1
 
-	// slideContainerRef.value.applyMovement({ dx, dy })
+	selectionBounds.left += dx
+	selectionBounds.top += dy
 }
 
 const saveSlide = (e) => {
