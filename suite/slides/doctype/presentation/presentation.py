@@ -58,7 +58,7 @@ def get_slide_thumbnails(presentation: str) -> list[str]:
 
 
 @frappe.whitelist()
-def get_presentation(name):
+def get_presentation(name: str) -> Document:
 	return frappe.get_doc("Presentation", name)
 
 
@@ -70,7 +70,6 @@ def insert_slide(name, index):
 	new_slide.parentfield = "slides"
 	new_slide.parenttype = "Presentation"
 	new_slide.idx = index + 1
-	new_slide.background = presentation.slides[index].background
 	new_slide.save()
 	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
 	for i in range(index + 1, len(presentation.slides)):
