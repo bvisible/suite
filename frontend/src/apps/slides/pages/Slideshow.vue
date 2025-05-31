@@ -197,15 +197,6 @@ const changeSlide = (index) => {
 	})
 }
 
-watch(
-	() => route.params.presentationId,
-	(id) => {
-		if (!id) return
-		presentationId.value = id
-	},
-	{ immediate: true },
-)
-
 onMounted(async () => {
 	await initFullscreenMode()
 	document.addEventListener('keydown', handleKeyDown)

@@ -63,7 +63,7 @@ const getSlideThumbnail = async () => {
 }
 
 const updateSlideState = async () => {
-	const { elements, transition, transitionDuration, background, thumbnail } = slide.value
+	const { elements, transition, transitionDuration, background } = slide.value
 	presentation.data.slides[slideIndex.value] = {
 		...presentation.data.slides[slideIndex.value],
 		background,
@@ -72,6 +72,14 @@ const updateSlideState = async () => {
 		transition_duration: transitionDuration,
 		thumbnail: await getSlideThumbnail(),
 	}
+}
+
+const updateSlideThumbnail = async () => {
+	if (!presentation.data || !slide.value) return
+
+	const thumbnail = await getSlideThumbnail()
+	slide.value.thumbnail = thumbnail
+	presentation.data.slides[slideIndex.value].thumbnail = thumbnail
 }
 
 const loadSlide = () => {
@@ -104,4 +112,13 @@ const saveChanges = async () => {
 
 const slideBounds = reactive({})
 
-export { slideIndex, slide, slideBounds, selectionBounds, loadSlide, updateSlideState, saveChanges }
+export {
+	slideIndex,
+	slide,
+	slideBounds,
+	selectionBounds,
+	loadSlide,
+	updateSlideState,
+	updateSlideThumbnail,
+	saveChanges,
+}
