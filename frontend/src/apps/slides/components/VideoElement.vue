@@ -13,6 +13,7 @@
 			:playbackRate="element.playbackRate"
 			@timeupdate="updateProgress"
 			@loadedmetadata="updateDuration"
+			@ended="resetProgress"
 			preload="auto"
 		></video>
 		<div
@@ -40,7 +41,7 @@
 					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
 				></div>
 				<div
-					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-500 ease-linear"
+					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-300 ease-linear"
 					:style="{ width: `${progress}%` }"
 				></div>
 			</div>
@@ -139,4 +140,9 @@ const seekTimestamp = (e) => {
 const gradientOverlayStyles = computed(() => ({
 	background: `linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0) 100%)`,
 }))
+
+const resetProgress = () => {
+	progress.value = 0
+	isPlaying.value = false
+}
 </script>
