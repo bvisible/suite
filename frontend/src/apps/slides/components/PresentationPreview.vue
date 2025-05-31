@@ -67,9 +67,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue'
 
-import { Tooltip } from 'frappe-ui'
+import { Tooltip, createResource } from 'frappe-ui'
 
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
 
@@ -77,6 +77,7 @@ import dayjs from '@/utils/dayjs'
 
 const props = defineProps({
 	presentation: Object,
+	required: true,
 })
 
 const emit = defineEmits(['setPreview', 'openDialog', 'navigate'])
@@ -85,23 +86,34 @@ let interval = null
 
 const previewSlide = ref(0)
 
-const previewStyles = computed(() => ({
-	backgroundImage: `url(${props.presentation?.slides[previewSlide.value]?.thumbnail})`,
-	backgroundSize: 'cover',
-	backgroundPosition: 'center',
-}))
+const slideThumbnails = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_slide_thumbnails',
+	method: 'GET',
+	makeParams: () => ({
+		presentation: props.presentation.name,
+	}),
+})
+
+const previewStyles = computed(() => {
+	const thumbnail = slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail
+	return {
+		backgroundImage: `url(${thumbnail})`,
+		backgroundSize: 'cover',
+		backgroundPosition: 'center',
+	}
+})
 
 const previewDetails = computed(() => {
 	if (!props.presentation) return {}
 
-	const { title, slides, creation, modified } = props.presentation
+	const { title, creation, modified } = props.presentation
 	return [
 		{
 			Title: title,
 			Modified: dayjs(modified).fromNow(),
 		},
 		{
-			'Total Slides': slides.length,
+			'Total Slides': slideThumbnails.data?.length,
 			Created: dayjs(creation).fromNow(),
 		},
 	]
@@ -130,10 +142,14 @@ const presentationActions = [
 	},
 ]
 
-const initPreview = () => {
-	interval = setInterval(() => {
-		previewSlide.value = (previewSlide.value + 1) % props.presentation.slides.length
-	}, 2000)
+const updateCurrentThumbnail = () => {
+	// cycle through the thumbnails for preview
+	previewSlide.value = (previewSlide.value + 1) % slideThumbnails.data.length
+}
+
+const initPreview = async () => {
+	await slideThumbnails.fetch()
+	interval = setInterval(updateCurrentThumbnail, 2000)
 }
 
 const clearPreview = () => {
@@ -147,14 +163,7 @@ const hidePreview = () => {
 	clearPreview()
 }
 
-watch(
-	() => props.presentation,
-	(val) => {
-		val ? initPreview() : clearPreview()
-	},
-)
+onMounted(() => initPreview())
 
-onBeforeUnmount(() => {
-	clearPreview()
-})
+onBeforeUnmount(() => clearPreview())
 </script>

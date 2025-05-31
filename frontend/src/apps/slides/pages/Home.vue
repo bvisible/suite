@@ -15,6 +15,7 @@
 		/>
 
 		<PresentationPreview
+			v-if="previewPresentation"
 			:presentation="previewPresentation"
 			@setPreview="setPreview"
 			@openDialog="openDialog"
