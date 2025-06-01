@@ -15,13 +15,9 @@
 			v-show="currentResizer"
 			class="w-full h-full absolute left-0 top-0"
 			:style="overlayStyle"
-		></div>
-
-		<ResizeIndicator
-			v-show="currentResizer"
-			:currentResizer="currentResizer"
-			:type="elementType"
-		/>
+		>
+			<ResizeIndicator :currentResizer="currentResizer" :type="elementType" />
+		</div>
 	</div>
 </template>
 
@@ -71,6 +67,29 @@ const resizeCursor = computed(() => {
 			return 'ew-resize'
 		default:
 			return 'default'
+	}
+})
+
+const overlayStyle = computed(() => {
+	if (!currentResizer.value || props.elementType == 'text') return {}
+
+	let direction = ''
+	switch (currentResizer.value) {
+		case 'top-right':
+			direction = 'to bottom left'
+			break
+		case 'bottom-left':
+			direction = 'to top right'
+			break
+		case 'bottom-right':
+			direction = 'to top left'
+			break
+		default:
+			direction = 'to bottom right'
+			break
+	}
+	return {
+		background: `linear-gradient(${direction}, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.1) 60px, transparent 90px)`,
 	}
 })
 
@@ -133,30 +152,4 @@ watch(
 	},
 	{ immediate: true },
 )
-
-const overlayStyle = computed(() => {
-	if (!currentResizer.value || props.elementType == 'text') return {}
-
-	let direction = ''
-	switch (currentResizer.value) {
-		case 'top-left':
-			direction = 'to bottom right'
-			break
-		case 'top-right':
-			direction = 'to bottom left'
-			break
-		case 'bottom-left':
-			direction = 'to top right'
-			break
-		case 'bottom-right':
-			direction = 'to top left'
-			break
-		default:
-			direction = 'to bottom right'
-			break
-	}
-	return {
-		background: `linear-gradient(${direction}, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.1) 60px, transparent 90px)`,
-	}
-})
 </script>
