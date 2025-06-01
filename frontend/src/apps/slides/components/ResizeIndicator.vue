@@ -4,10 +4,10 @@
 		class="backdrop-blur-sm opacity-85 text-black"
 		:class="indicatorClasses"
 	>
-		<i v-if="type === 'text'"> {{ Math.round(selectionBounds.width) }}px </i>
+		<i v-if="type === 'text'"> {{ Math.round(selectionBounds.width) }} </i>
 		<template v-else>
-			<i>{{ Math.round(selectionBounds.width) }}px</i> ×
-			<i>{{ Math.round(selectionBounds.height) }}px</i>
+			<i>{{ Math.round(selectionBounds.width) }}</i> ×
+			<i>{{ Math.round(selectionBounds.height) }}</i>
 		</template>
 	</div>
 </template>
@@ -42,7 +42,7 @@ const getTextIndicatorPosition = () => {
 
 const getMediaIndicatorPosition = () => {
 	const scale = slideBounds.scale
-	const offset = `${8 / scale}px`
+	const offset = `${12 / scale}px`
 
 	return {
 		left: props.currentResizer.includes('left') ? offset : 'auto',
@@ -64,13 +64,15 @@ const indicatorStyles = computed(() => {
 
 	const scale = slideBounds.scale
 	const positionStyles = getPositionStyles()
+	const paddingX = props.type === 'text' ? 8 / scale : 4 / scale
 
 	return {
 		position: 'absolute',
 		zIndex: 100,
 		fontSize: `${10 / scale}px`,
 		borderRadius: `${6 / scale}px`,
-		padding: `${4 / scale}px`,
+		padding: `${4 / scale}px ${paddingX}px`,
+
 		...positionStyles,
 	}
 })
