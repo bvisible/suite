@@ -42,7 +42,7 @@ const getTextIndicatorPosition = () => {
 
 const getMediaIndicatorPosition = () => {
 	const scale = slideBounds.scale
-	const offset = `${8 / scale}px`
+	const offset = `${12 / scale}px`
 
 	return {
 		left: props.currentResizer.includes('left') ? offset : 'auto',
@@ -64,13 +64,15 @@ const indicatorStyles = computed(() => {
 
 	const scale = slideBounds.scale
 	const positionStyles = getPositionStyles()
+	const paddingX = props.type === 'text' ? 8 / scale : 4 / scale
 
 	return {
 		position: 'absolute',
 		zIndex: 100,
 		fontSize: `${10 / scale}px`,
 		borderRadius: `${6 / scale}px`,
-		padding: `${4 / scale}px`,
+		padding: `${4 / scale}px ${paddingX}px`,
+
 		...positionStyles,
 	}
 })
