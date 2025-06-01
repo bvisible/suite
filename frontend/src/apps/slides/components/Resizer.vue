@@ -5,6 +5,7 @@
 			v-show="handleVisibilityMap[resizeHandle]"
 			:key="resizeHandle"
 			:direction="resizeHandle"
+			:currentResizer="currentResizer"
 			:cursor="resizeCursor"
 			@startResize="(e) => startResize(e, resizeHandle)"
 			@resizeToFitContent="resizeToFitContent"
