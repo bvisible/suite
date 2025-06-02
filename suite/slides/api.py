@@ -72,5 +72,5 @@ def get_video_file(src):
 	if range_header:
 		return get_media_response_with_range(range_header, file_path)
 
-		# otherwise, return the full content response
+	# otherwise, return the full content response
 	return get_media_response(file_path)
