@@ -131,7 +131,6 @@
 						<AttachmentCapsule
 							v-for="attachment in mail.attachments"
 							:key="attachment.name"
-							:message-i-d="mail.name"
 							:file-name="attachment.filename"
 							:blob-i-d="attachment.blob_id"
 							:type="attachment.type"
@@ -205,11 +204,13 @@ const showSendModal = ref(false)
 const draftMailID = ref<string>()
 
 const mailDetails = reactive({
+	from: '',
 	to: [],
 	cc: [],
 	bcc: [],
 	subject: '',
 	body: '',
+	attachments: [],
 	in_reply_to: '',
 	in_reply_to_id: '',
 })
@@ -329,10 +330,7 @@ const threadActions = computed((): MailAction[] =>
 const mailActions = (mail: any): MailAction[] => [
 	{
 		label: __('Edit Draft'),
-		onClick: () => {
-			draftMailID.value = mail.name
-			showSendModal.value = true
-		},
+		onClick: () => editDraft(mail),
 		icon: SquarePen,
 		condition: mail.draft,
 	},
@@ -396,6 +394,18 @@ const deleteMails = createResource({
 	makeParams: (names: string[]) => ({ names }),
 	onSuccess: () => emit('reloadMails'),
 })
+
+const editDraft = (mail) => {
+	draftMailID.value = mail.name
+	mailDetails.from = mail.from_email
+	mailDetails.to = mail.recipients.To?.map((m) => m.email) || []
+	mailDetails.cc = mail.recipients.Cc?.map((m) => m.email) || []
+	mailDetails.bcc = mail.recipients.Bcc?.map((m) => m.email) || []
+	mailDetails.subject = mail.subject || ''
+	mailDetails.body = mail.html_body
+	mailDetails.attachments = mail.attachments || []
+	showSendModal.value = true
+}
 
 const reply = (mail) => {
 	mailDetails.to = [mail.from_email]

@@ -108,17 +108,18 @@
 								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
 								:href="file.file_url"
 								target="_blank"
+								@click="openAttachment(file.blob_id, file.type)"
 							>
 								<span class="mr-1 font-medium">
-									{{ file.file_name || file.name }}
+									{{ file.file_name || file.filename || file.name }}
 								</span>
 								<span class="mr-1 font-extralight">
-									({{ formatBytes(file.file_size) }})
+									({{ formatBytes(file.file_size || file.size) }})
 								</span>
 								<FeatherIcon
 									class="ml-auto h-3.5 w-3.5"
 									name="x"
-									@click.stop.prevent=""
+									@click.stop.prevent="mail.attachments.splice(index, 1)"
 								/>
 							</a>
 						</div>
@@ -202,7 +203,6 @@ import {
 	Progress,
 	TextEditor,
 	TextEditorFixedMenu,
-	createDocumentResource,
 	createResource,
 } from 'frappe-ui'
 
@@ -212,7 +212,7 @@ import MultiselectInputControl from '@/components/Controls/MultiselectInputContr
 import EmojiPicker from '@/components/EmojiPicker.vue'
 import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
-import type { EmailMessage, UserResource } from '@/types'
+import type { UserResource } from '@/types'
 
 const show = defineModel<boolean>()
 
@@ -249,34 +249,6 @@ const appendEmoji = () => {
 
 const addressOptions = createResource({ url: 'mail.api.mail.get_user_addresses', auto: true })
 
-const draftMail = ref()
-
-const getDraftMail = (name: string) =>
-	createDocumentResource({
-		doctype: 'Email Message',
-		name: name,
-		onSuccess: (data: EmailMessage) => {
-			Object.assign(mail, {
-				from_email: data.from_email,
-				to: data.recipients.filter((d) => d.type === 'To').map((d) => d.email),
-				cc: data.recipients.filter((d) => d.type === 'Cc').map((d) => d.email),
-				bcc: data.recipients.filter((d) => d.type === 'Bcc').map((d) => d.email),
-				subject: data.subject,
-				body: data.html_body,
-			})
-			cc.value = !!mail.cc?.length
-			bcc.value = !!mail.bcc?.length
-		},
-		whitelistedMethods: { destroy: 'destroy' },
-	})
-
-watch(
-	() => mailID,
-	(val) => {
-		if (val) draftMail.value = getDraftMail(val)
-	},
-)
-
 const emptyMail = {
 	from_email: user.data?.default_outgoing,
 	to: [],
@@ -305,6 +277,11 @@ const updateDraftMail = createResource({
 	onSuccess: () => setTimeout(() => emit('reloadMails'), 500),
 })
 
+const destroyMail = createResource({
+	url: 'mail.api.mail.destroy_mail',
+	makeParams: () => ({ name: mailID }),
+})
+
 const saveDraft = ref(true)
 
 const sendMail = async () => {
@@ -318,7 +295,7 @@ const sendMail = async () => {
 const discardMail = async () => {
 	saveDraft.value = false
 	show.value = false
-	if (mailID) await draftMail.value.destroy.submit()
+	if (mailID) await destroyMail.submit()
 	setTimeout(() => emit('reloadMails'), 500)
 }
 
@@ -329,10 +306,12 @@ const setMailDetails = () => {
 		return
 	}
 
+	if (mailDetails.from) mail.from_email = mailDetails.from
 	mail.in_reply_to = mailDetails.in_reply_to
 	mail.in_reply_to_id = mailDetails.in_reply_to_id
 	mail.subject = mailDetails.subject
 	mail.body = mailDetails.body
+	mail.attachments = mailDetails.attachments
 	mail.to = mailDetails.to
 	mail.cc = mailDetails.cc
 	mail.bcc = mailDetails.bcc
@@ -366,6 +345,22 @@ const isMailEmpty = computed(() => {
 
 	return isSubjectEmpty && isRecipientsEmpty && isAttachmentsEmpty && isBodyEmpty
 })
+
+// todo:
+const fetchAttachment = createResource({
+	url: 'mail.api.mail.fetch_attachment',
+	makeParams: (blob_id: string) => ({ blob_id }),
+})
+
+const openAttachment = async (blob_id?: string, type: string) => {
+	if (!blob_id) return
+
+	const data = await fetchAttachment.submit(blob_id)
+	const byteArray = new Uint8Array(data)
+	const blob = new Blob([byteArray], { type })
+	const url = URL.createObjectURL(blob)
+	window.open(url, '_blank')
+}
 
 const textEditorMenuButtons = [
 	'Paragraph',

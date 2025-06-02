@@ -136,7 +136,7 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 			item["attachments"] = frappe.get_all(
 				"Email Message Part",
 				filters={"parenttype": "Email Message", "parentfield": "attachments", "parent": item["name"]},
-				fields=["filename", "blob_id", "type"],
+				fields=["filename", "blob_id", "type", "size", "file_url", "disposition"],
 			)
 		result.append(item)
 
@@ -144,11 +144,10 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 
 
 @frappe.whitelist()
-def fetch_attachment(message_id: str, blob_id: str) -> bytes:
+def fetch_attachment(blob_id: str) -> bytes:
 	"""Returns the content of an attachment."""
 
-	doc = frappe.get_doc("Email Message", message_id)
-	return doc.fetch_attachment(None, blob_id)
+	return EmailMessage.fetch_blob(frappe.session.user, blob_id)
 
 
 @frappe.whitelist()
@@ -184,6 +183,8 @@ def create_mail(
 	in_reply_to_id: str | None = None,
 	save_as_draft: bool = False,
 ):
+	"""Creates new mail queue."""
+
 	doc = frappe.new_doc("Mail Queue")
 	doc.account = frappe.session.user
 	doc.from_email = from_email
@@ -195,9 +196,9 @@ def create_mail(
 
 	doc.attachments = [
 		{
-			"file_url": d.get("file_url", ""),
+			"file_url": d.get("file_url"),
 			"filename": d.get("file_name", ""),
-			"disposition": d.get("disposition", ""),
+			"disposition": d.get("disposition"),
 			"cid": random_string(10),
 		}
 		for d in attachments
@@ -221,13 +222,30 @@ def update_draft_mail(
 	bcc: list[str],
 	subject: str | None,
 	body: str | None,
+	attachments: list[dict] = None,
 	submit: bool = False,
 ):
+	"""Creates new mail queue from existing draft message."""
+
 	doc = frappe.get_doc("Email Message", name)
 	doc.account = frappe.session.user
 	doc.from_email = from_email
 	doc.subject = subject
 	doc.html_body = body
+
+	doc.attachments = [
+		{
+			"blob_id": d.get("blob_id", ""),
+			"file_url": d.get("file_url", ""),
+			"type": d.get("type", ""),
+			"size": d.get("size", ""),
+			"filename": d.get("filename", ""),
+			"disposition": d.get("disposition"),
+			"cid": random_string(10),
+		}
+		for d in attachments
+	]
+
 	doc.recipients = [frappe._dict({"type": "To", "email": email}) for email in to]
 	doc.recipients += [frappe._dict({"type": "Cc", "email": email}) for email in cc]
 	doc.recipients += [frappe._dict({"type": "Bcc", "email": email}) for email in bcc]
@@ -235,16 +253,11 @@ def update_draft_mail(
 	doc.submit() if submit else doc.save_draft()
 
 
-# todo:
-# @frappe.whitelist()
-# def get_attachments_for_mail(type: MailType, name: str):
-# 	"""Fetches mail attachments."""
+@frappe.whitelist()
+def destroy_mail(name: str):
+	"""Destroys the given mail."""
 
-# 	return frappe.get_all(
-# 		"File",
-# 		fields=["name", "file_name", "file_url", "file_size"],
-# 		filters={"attached_to_name": name, "attached_to_doctype": type},
-# 	)
+	EmailMessage.destroy_emails(frappe.session.user, [name])
 
 
 @frappe.whitelist()
