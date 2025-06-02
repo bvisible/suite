@@ -23,7 +23,7 @@
    "in_standard_filter": 1,
    "label": "Member (Type)",
    "no_copy": 1,
-   "options": "\nMail Account\nMailing List",
+   "options": "Mail Account",
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
@@ -59,7 +59,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 13:08:03.965857",
+ "modified": "2025-06-02 13:39:11.904000",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailing List Member",
