@@ -1,9 +1,5 @@
 <template>
-	<div
-		@click="handleVideoClick"
-		@mouseenter="hoveringOverVideo = true"
-		@mouseleave="hoveringOverVideo = false"
-	>
+	<div @click="handleVideoClick" @mouseenter="hoverOver = 'video'" @mouseleave="hoverOver = null">
 		<video
 			ref="videoElement"
 			:style="videoStyle"
@@ -19,7 +15,6 @@
 		</video>
 		<div
 			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
-			:class="{ 'opacity-0': !showProgressBar }"
 			:style="gradientOverlayStyles"
 		>
 			<div
@@ -34,15 +29,18 @@
 			</div>
 			<div
 				v-if="showProgressBar"
-				class="absolute h-[6px] hover:h-2 w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
+				class="absolute w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
+				:class="hoverOver == 'progressBar' ? 'h-2' : 'h-[6px]'"
 				@click.stop="seekTimestamp"
+				@mouseenter="hoverOver = 'progressBar'"
+				@mouseleave="hoverOver = null"
 			>
 				<div
 					ref="progressBar"
 					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
 				></div>
 				<div
-					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-100 ease-linear"
+					class="bg-white-overlay-900 opacity-70 h-full absolute left-0 top-0 transition-width duration-100 ease-linear"
 					:style="{ width: `${progress}%` }"
 				></div>
 			</div>
@@ -116,14 +114,14 @@ const updateDuration = () => {
 	}
 }
 
-const hoveringOverVideo = ref(false)
+const hoverOver = ref(null)
 
 const showProgressBar = computed(() => {
 	// In editor, show it when video is active
 	const isActive = activeElementIds.value.includes(element.value.id)
 
 	// During slideshow, show it only if user is hovering over video
-	const slideshowHovering = inSlideShow.value && hoveringOverVideo.value
+	const slideshowHovering = inSlideShow.value && hoverOver.value === 'video'
 
 	return isActive || slideshowHovering
 })
@@ -141,6 +139,7 @@ const seekTimestamp = (e) => {
 const gradientOverlayStyles = computed(() => ({
 	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 5%, rgba(0, 0, 0, 0) 100%),
 	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 15%, rgba(0, 0, 0, 0) 100%)`,
+	opacity: showProgressBar.value ? 1 : 0,
 }))
 
 const resetProgress = () => {
