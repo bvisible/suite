@@ -13,8 +13,7 @@
 import { Paperclip } from 'lucide-vue-next'
 import { createResource } from 'frappe-ui'
 
-const { messageID, fileName, blobID, type } = defineProps<{
-	messageID: string
+const { fileName, blobID, type } = defineProps<{
 	fileName: string
 	blobID?: string
 	type?: string
@@ -22,7 +21,7 @@ const { messageID, fileName, blobID, type } = defineProps<{
 
 const fetchAttachment = createResource({
 	url: 'mail.api.mail.fetch_attachment',
-	makeParams: () => ({ message_id: messageID, blob_id: blobID }),
+	makeParams: () => ({ blob_id: blobID }),
 	cache: ['attachment', blobID],
 	onSuccess: (data: number[]) => {
 		const byteArray = new Uint8Array(data)
