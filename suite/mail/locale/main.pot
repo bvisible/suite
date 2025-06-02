@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-05-28 11:53+0553\n"
-"PO-Revision-Date: 2025-05-28 11:53+0553\n"
+"POT-Creation-Date: 2025-06-02 15:05+0553\n"
+"PO-Revision-Date: 2025-06-02 15:05+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -97,7 +97,7 @@ msgstr ""
 msgid "API Key"
 msgstr ""
 
-#: mail/backend.py:60
+#: mail/backend.py:57
 msgid "API Key or Username and Password is required."
 msgstr ""
 
@@ -202,6 +202,7 @@ msgstr ""
 #: mail/mail/doctype/jmap_push_subscription/jmap_push_subscription.js:23
 #: mail/mail/doctype/jmap_push_subscription/jmap_push_subscription.js:41
 #: mail/mail/doctype/jmap_push_subscription/jmap_push_subscription.js:52
+#: mail/mail/doctype/mail_account/mail_account.js:76
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:29
 #: mail/mail/doctype/mail_account_request/mail_account_request.js:39
 #: mail/mail/doctype/mail_cluster/mail_cluster.js:131
@@ -594,11 +595,11 @@ msgstr ""
 msgid "Backup Email"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:190
+#: mail/mail/doctype/mail_account/mail_account.py:192
 msgid "Backup Email cannot be among the email addresses assigned to the user."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:188
+#: mail/mail/doctype/mail_account/mail_account.py:190
 msgid "Backup Email cannot be the same as the email address of the account."
 msgstr ""
 
@@ -891,7 +892,7 @@ msgstr ""
 
 #. Label of the changes_max_history (Int) field in DocType 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-msgid "Changes History (Days)"
+msgid "Changes History"
 msgstr ""
 
 #. Description of the 'SMTP' (Section Break) field in DocType 'Mail Settings'
@@ -1002,7 +1003,7 @@ msgstr ""
 msgid "Cluster is not set for Mail Tenant {0}."
 msgstr ""
 
-#: mail/mail/doctype/mail_tenant/mail_tenant.py:30
+#: mail/mail/doctype/mail_tenant/mail_tenant.py:29
 msgid "Cluster {0} is disabled."
 msgstr ""
 
@@ -1367,7 +1368,7 @@ msgstr ""
 msgid "Default Email"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:172
+#: mail/mail/doctype/mail_account/mail_account.py:174
 msgid "Default Email must be one of the email addresses assigned to the user."
 msgstr ""
 
@@ -1581,8 +1582,8 @@ msgstr ""
 #. Label of the display_name (Data) field in DocType 'Incoming Mail'
 #. Label of the display_name (Data) field in DocType 'Mail Account'
 #. Label of the display_name (Data) field in DocType 'Mail Contact'
-#. Label of the display_name (Data) field in DocType 'Mail Group'
 #. Label of the display_name (Data) field in DocType 'Mail Recipient'
+#. Label of the display_name (Data) field in DocType 'Mailing List'
 #. Label of the display_name (Data) field in DocType 'Outgoing Mail'
 #: frontend/src/components/Modals/AddGroupModal.vue:36
 #: frontend/src/components/Modals/MailAccountModal.vue:31
@@ -1594,8 +1595,8 @@ msgstr ""
 #: mail/mail/doctype/incoming_mail/incoming_mail.json
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_contact/mail_contact.json
-#: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Display Name"
 msgstr ""
@@ -1626,7 +1627,7 @@ msgstr ""
 #. Label of the domain_name (Link) field in DocType 'Mail Alias'
 #. Label of the domain_name (Data) field in DocType 'Mail Domain'
 #. Label of the domain_name (Data) field in DocType 'Mail Domain Request'
-#. Label of the domain_name (Link) field in DocType 'Mail Group'
+#. Label of the domain_name (Link) field in DocType 'Mailing List'
 #. Label of the domain_name (Data) field in DocType 'Message Queue Recipient'
 #. Label of the domain_name (Link) field in DocType 'Outgoing Mail'
 #. Label of the domain_name (Link) field in DocType 'Personal Signup Domain'
@@ -1641,7 +1642,7 @@ msgstr ""
 #: mail/mail/doctype/mail_alias/mail_alias.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
-#: mail/mail/doctype/mail_group/mail_group.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 #: mail/mail/doctype/message_queue/message_queue.js:53
 #: mail/mail/doctype/message_queue_recipient/message_queue_recipient.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
@@ -1683,7 +1684,7 @@ msgstr ""
 msgid "Domain {0} and User {1} do not belong to the same tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:120
+#: mail/mail/doctype/mail_account/mail_account.py:122
 msgid "Domain {0} and User {1} must belong to the same tenant."
 msgstr ""
 
@@ -1825,8 +1826,8 @@ msgstr ""
 #. Label of the email (Data) field in DocType 'Mail Account Request'
 #. Label of the email (Data) field in DocType 'Mail Alias'
 #. Label of the email (Data) field in DocType 'Mail Contact'
-#. Label of the email (Data) field in DocType 'Mail Group'
 #. Label of the email (Data) field in DocType 'Mail Recipient'
+#. Label of the email (Data) field in DocType 'Mailing List'
 #. Label of the email (Data) field in DocType 'Message Queue Recipient'
 #: frontend/src/components/AddGroupMemberInput.vue:5
 #: frontend/src/pages/BusinessSignupView.vue:5
@@ -1840,8 +1841,8 @@ msgstr ""
 #: mail/mail/doctype/mail_account_request/mail_account_request.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
 #: mail/mail/doctype/mail_contact/mail_contact.json
-#: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mail_recipient/mail_recipient.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 #: mail/mail/doctype/message_queue/message_queue.js:46
 #: mail/mail/doctype/message_queue_recipient/message_queue_recipient.json
 msgid "Email"
@@ -1913,7 +1914,7 @@ msgstr ""
 msgid "Email domain {0} does not match with domain {1}."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:141
+#: mail/mail/doctype/mail_account/mail_account.py:143
 msgid "Email is mandatory."
 msgstr ""
 
@@ -1925,7 +1926,7 @@ msgstr ""
 msgid "Email messages destroyed successfully."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:802
+#: mail/mail/doctype/mail_queue/mail_queue.py:803
 msgid "Email processing aborted: {failed_count} out of {total_count} emails failed ({failure_rate:.2%} failure rate). Please investigate the issue before retrying."
 msgstr ""
 
@@ -1974,8 +1975,8 @@ msgstr ""
 #. Label of the enabled (Check) field in DocType 'Mail Alias'
 #. Label of the enabled (Check) field in DocType 'Mail Cluster'
 #. Label of the enabled (Check) field in DocType 'Mail Domain'
-#. Label of the enabled (Check) field in DocType 'Mail Group'
 #. Label of the enabled (Check) field in DocType 'Mail Server'
+#. Label of the enabled (Check) field in DocType 'Mailing List'
 #. Label of the enabled (Check) field in DocType 'Rate Limit'
 #: frontend/src/components/Modals/EditAliasModal.vue:21
 #: frontend/src/components/Modals/MailAccountModal.vue:19
@@ -1987,8 +1988,8 @@ msgstr ""
 #: mail/mail/doctype/mail_alias/mail_alias.json
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mail_server/mail_server.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 #: mail/mail/doctype/rate_limit/rate_limit.json
 msgid "Enabled"
 msgstr ""
@@ -2511,25 +2512,12 @@ msgstr ""
 msgid "Group"
 msgstr ""
 
-#. Group in Mail Account's connections
-#. Group in Mail Domain's connections
-#. Group in Mail Tenant's connections
-#: mail/mail/doctype/mail_account/mail_account.json
-#: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/mail_tenant/mail_tenant.json
-msgid "Group & Alias"
-msgstr ""
-
 #: frontend/src/pages/dashboard/MailGroupsView.vue:145
 msgid "Group Email"
 msgstr ""
 
 #: frontend/src/components/Modals/AddGroupModal.vue:72
 msgid "Group created successfully"
-msgstr ""
-
-#: mail/mail/doctype/mail_group/mail_group.py:75
-msgid "Group has members. Please remove them first."
 msgstr ""
 
 #: frontend/src/pages/dashboard/MailGroupView.vue:143
@@ -2645,8 +2633,7 @@ msgstr ""
 msgid "How long to keep messages in the Trash and Junk Mail folders before auto-expunging."
 msgstr ""
 
-#. Description of the 'Changes History (Days)' (Int) field in DocType 'Mail
-#. Cluster'
+#. Description of the 'Changes History' (Int) field in DocType 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
 msgid "How many changes to keep in the history for each account. This is used to determine the changes that have occurred since the last time the client requested changes."
 msgstr ""
@@ -3120,6 +3107,15 @@ msgstr ""
 msgid "Linode"
 msgstr ""
 
+#. Group in Mail Account's connections
+#. Group in Mail Domain's connections
+#. Group in Mail Tenant's connections
+#: mail/mail/doctype/mail_account/mail_account.json
+#: mail/mail/doctype/mail_domain/mail_domain.json
+#: mail/mail/doctype/mail_tenant/mail_tenant.json
+msgid "List & Alias"
+msgstr ""
+
 #. Label of the listener_id (Data) field in DocType 'Mail Server Listener'
 #: mail/mail/doctype/mail_server_listener/mail_server_listener.json
 msgid "Listener ID"
@@ -3223,10 +3219,11 @@ msgstr ""
 
 #. Name of a DocType
 #. Option for the 'Alias For (Type)' (Select) field in DocType 'Mail Alias'
-#. Option for the 'Member (Type)' (Select) field in DocType 'Mail Group Member'
+#. Option for the 'Member (Type)' (Select) field in DocType 'Mailing List
+#. Member'
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
 msgid "Mail Account"
 msgstr ""
 
@@ -3235,7 +3232,7 @@ msgstr ""
 msgid "Mail Account Request"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:268
+#: mail/mail/doctype/mail_account/mail_account.py:321
 msgid "Mail Account {0} already exists."
 msgstr ""
 
@@ -3257,10 +3254,10 @@ msgstr ""
 #: mail/mail/doctype/mail_alias/mail_alias.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
-#: mail/mail/doctype/mail_group/mail_group.json
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
 #: mail/mail/doctype/mail_tenant/mail_tenant.json
 #: mail/mail/doctype/mail_tenant_member/mail_tenant_member.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Mail Admin"
 msgstr ""
@@ -3278,7 +3275,7 @@ msgstr ""
 msgid "Mail Alias"
 msgstr ""
 
-#: mail/mail/doctype/mail_group/mail_group.py:72
+#: mail/mail/doctype/mailing_list/mailing_list.py:76
 msgid "Mail Alias {0} is enabled. Please disable it first."
 msgstr ""
 
@@ -3347,25 +3344,6 @@ msgstr ""
 msgid "Mail Domain {0} is not verified."
 msgstr ""
 
-#. Option for the 'Alias For (Type)' (Select) field in DocType 'Mail Alias'
-#. Name of a DocType
-#. Label of the mail_group (Link) field in DocType 'Mail Group Member'
-#. Option for the 'Member (Type)' (Select) field in DocType 'Mail Group Member'
-#: mail/mail/doctype/mail_alias/mail_alias.json
-#: mail/mail/doctype/mail_group/mail_group.json
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
-msgid "Mail Group"
-msgstr ""
-
-#. Name of a DocType
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
-msgid "Mail Group Member"
-msgstr ""
-
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:55
-msgid "Mail Group cannot be a member of itself"
-msgstr ""
-
 #. Name of a DocType
 #: mail/mail/doctype/mail_header/mail_header.json
 msgid "Mail Header"
@@ -3422,12 +3400,12 @@ msgstr ""
 msgid "Mail Server {0} already exists."
 msgstr ""
 
-#: mail/backend.py:393
+#: mail/backend.py:431
 #: mail/mail/doctype/mail_backend_request/mail_backend_request.py:104
 msgid "Mail Server {0} does not have a base URL."
 msgstr ""
 
-#: mail/backend.py:384
+#: mail/backend.py:422
 #: mail/mail/doctype/mail_backend_request/mail_backend_request.py:95
 msgid "Mail Server {0} does not have a cluster."
 msgstr ""
@@ -3480,8 +3458,8 @@ msgstr ""
 #: mail/mail/doctype/mail_alias/mail_alias.json
 #: mail/mail/doctype/mail_contact/mail_contact.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
 #: mail/mail/doctype/mail_queue/mail_queue.json
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
 msgid "Mail User"
 msgstr ""
@@ -3518,6 +3496,24 @@ msgstr ""
 
 #: mail/mail/doctype/email_message/email_message.py:169
 msgid "Mailbox not found."
+msgstr ""
+
+#. Option for the 'Alias For (Type)' (Select) field in DocType 'Mail Alias'
+#. Name of a DocType
+#. Label of the mailing_list (Link) field in DocType 'Mailing List Member'
+#: mail/mail/doctype/mail_alias/mail_alias.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
+msgid "Mailing List"
+msgstr ""
+
+#. Name of a DocType
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
+msgid "Mailing List Member"
+msgstr ""
+
+#: mail/mail/doctype/mailing_list/mailing_list.py:79
+msgid "Mailing List has members. Please remove them first."
 msgstr ""
 
 #: frontend/src/pages/dashboard/UsersView.vue:164
@@ -3661,9 +3657,9 @@ msgstr ""
 msgid "Maximum No. of Domains"
 msgstr ""
 
-#. Label of the max_groups (Int) field in DocType 'Mail Tenant'
+#. Label of the max_mailing_lists (Int) field in DocType 'Mail Tenant'
 #: mail/mail/doctype/mail_tenant/mail_tenant.json
-msgid "Maximum No. of Groups"
+msgid "Maximum No. of Mailing Lists"
 msgstr ""
 
 #. Label of the max_attachments (Int) field in DocType 'Mail Settings'
@@ -3780,13 +3776,14 @@ msgstr ""
 msgid "Member"
 msgstr ""
 
-#. Label of the member_name (Dynamic Link) field in DocType 'Mail Group Member'
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
+#. Label of the member_name (Dynamic Link) field in DocType 'Mailing List
+#. Member'
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
 msgid "Member (Name)"
 msgstr ""
 
-#. Label of the member_type (Select) field in DocType 'Mail Group Member'
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
+#. Label of the member_type (Select) field in DocType 'Mailing List Member'
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
 msgid "Member (Type)"
 msgstr ""
 
@@ -3795,8 +3792,8 @@ msgstr ""
 msgid "Member Role"
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:57
-msgid "Member cannot be the same as the Mail Group"
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.py:48
+msgid "Member cannot be the same as the Mailing List."
 msgstr ""
 
 #: frontend/src/pages/dashboard/UsersView.vue:148
@@ -4111,7 +4108,7 @@ msgstr ""
 msgid "No blocked IPs found."
 msgstr ""
 
-#: mail/jmap.py:592
+#: mail/jmap.py:612
 msgid "No cluster found for the account {0}."
 msgstr ""
 
@@ -4150,10 +4147,10 @@ msgstr ""
 
 #. Label of the normalized_email (Data) field in DocType 'Mail Account'
 #. Label of the normalized_email (Data) field in DocType 'Mail Alias'
-#. Label of the normalized_email (Data) field in DocType 'Mail Group'
+#. Label of the normalized_email (Data) field in DocType 'Mailing List'
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
-#: mail/mail/doctype/mail_group/mail_group.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 msgid "Normalized Email"
 msgstr ""
 
@@ -4280,7 +4277,7 @@ msgid "Outbound"
 msgstr ""
 
 #. Name of a report
-#: mail/mail/doctype/mail_account/mail_account.js:33
+#: mail/mail/doctype/mail_account/mail_account.js:34
 #: mail/mail/doctype/mail_domain/mail_domain.js:12
 #: mail/mail/report/outbound_delay/outbound_delay.json
 msgid "Outbound Delay"
@@ -4313,7 +4310,7 @@ msgid "Outgoing Mail"
 msgstr ""
 
 #. Name of a report
-#: mail/mail/doctype/mail_account/mail_account.js:44
+#: mail/mail/doctype/mail_account/mail_account.js:45
 #: mail/mail/doctype/mail_domain/mail_domain.js:36
 #: mail/mail/report/outgoing_mail_summary/outgoing_mail_summary.json
 msgid "Outgoing Mail Summary"
@@ -4897,15 +4894,15 @@ msgstr ""
 #. Group in Mail Account's connections
 #. Group in Mail Cluster's connections
 #. Group in Mail Domain's connections
-#. Group in Mail Group's connections
 #. Group in Mail Server's connections
+#. Group in Mailing List's connections
 #. Group in MIME Message's connections
 #: mail/mail/doctype/dkim_key/dkim_key.json
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
-#: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mail_server/mail_server.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 #: mail/mail/doctype/mime_message/mime_message.json
 msgid "Reference"
 msgstr ""
@@ -5046,8 +5043,8 @@ msgstr ""
 msgid "Report ID"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.js:40
-#: mail/mail/doctype/mail_account/mail_account.js:51
+#: mail/mail/doctype/mail_account/mail_account.js:41
+#: mail/mail/doctype/mail_account/mail_account.js:52
 #: mail/mail/doctype/mail_domain/mail_domain.js:19
 #: mail/mail/doctype/mail_domain/mail_domain.js:31
 #: mail/mail/doctype/mail_domain/mail_domain.js:43
@@ -5927,8 +5924,16 @@ msgstr ""
 msgid "Sync DNS Record"
 msgstr ""
 
+#: mail/mail/doctype/mail_account/mail_account.js:62
+msgid "Sync JMAP Identities"
+msgstr ""
+
 #: mail/mail/doctype/dns_record/dns_record.js:64
 msgid "Syncing DNS Record..."
+msgstr ""
+
+#: mail/mail/doctype/mail_account/mail_account.js:68
+msgid "Syncing JMAP Identities..."
 msgstr ""
 
 #. Name of a role
@@ -5950,8 +5955,6 @@ msgstr ""
 #: mail/mail/doctype/mail_contact/mail_contact.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
-#: mail/mail/doctype/mail_group/mail_group.json
-#: mail/mail/doctype/mail_group_member/mail_group_member.json
 #: mail/mail/doctype/mail_queue/mail_queue.json
 #: mail/mail/doctype/mail_server/mail_server.json
 #: mail/mail/doctype/mail_server_config/mail_server_config.json
@@ -5959,6 +5962,8 @@ msgstr ""
 #: mail/mail/doctype/mail_sync_history/mail_sync_history.json
 #: mail/mail/doctype/mail_tenant/mail_tenant.json
 #: mail/mail/doctype/mail_tenant_member/mail_tenant_member.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.json
 #: mail/mail/doctype/message_queue/message_queue.json
 #: mail/mail/doctype/mime_message/mime_message.json
 #: mail/mail/doctype/outgoing_mail/outgoing_mail.json
@@ -6022,15 +6027,15 @@ msgstr ""
 #. Label of the tenant (Link) field in DocType 'Mail Alias'
 #. Label of the tenant (Link) field in DocType 'Mail Domain'
 #. Label of the tenant (Link) field in DocType 'Mail Domain Request'
-#. Label of the tenant (Link) field in DocType 'Mail Group'
 #. Label of the tenant (Link) field in DocType 'Mail Tenant Member'
+#. Label of the tenant (Link) field in DocType 'Mailing List'
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_account_request/mail_account_request.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
-#: mail/mail/doctype/mail_group/mail_group.json
 #: mail/mail/doctype/mail_tenant_member/mail_tenant_member.json
+#: mail/mail/doctype/mailing_list/mailing_list.json
 msgid "Tenant"
 msgstr ""
 
@@ -6082,12 +6087,12 @@ msgstr ""
 msgid "The External Account Binding (EAB) key ID."
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:45
-msgid "The Mail Group {0} and the member {1} {2} must belong to the same tenant."
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.py:39
+msgid "The Mailing List {0} and the member {1} {2} must belong to the same tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:35
-msgid "The Mail Group {0} is disabled."
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.py:29
+msgid "The Mailing List {0} is disabled."
 msgstr ""
 
 #. Description of the 'Bucket' (Data) field in DocType 'Mail Server Store'
@@ -6112,12 +6117,12 @@ msgstr ""
 msgid "The access key for the Azure Storage Account."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:94
+#: mail/mail/doctype/mail_account/mail_account.py:96
 msgid "The account is linked to Mail Alias {0}. Please disable it first."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:100
-msgid "The account is linked to a Mail Group as a member. Please remove it first."
+#: mail/mail/doctype/mail_account/mail_account.py:102
+msgid "The account is linked to a Mailing List as a member. Please remove it first."
 msgstr ""
 
 #. Description of the 'Advertise Address' (Select) field in DocType 'Mail
@@ -6287,7 +6292,7 @@ msgid "The token used to authenticate with your DNS provider."
 msgstr ""
 
 #: mail/mail/doctype/mail_alias/mail_alias.py:106
-#: mail/mail/doctype/mail_group_member/mail_group_member.py:61
+#: mail/mail/doctype/mailing_list_member/mailing_list_member.py:52
 msgid "The {0} {1} is disabled."
 msgstr ""
 
@@ -6721,7 +6726,7 @@ msgstr ""
 msgid "User must be an admin of the tenant"
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:215
+#: mail/mail/doctype/mail_account/mail_account.py:268
 msgid "User with email {0} already exists."
 msgstr ""
 
@@ -6733,11 +6738,11 @@ msgstr ""
 msgid "User {0} does not exist."
 msgstr ""
 
-#: mail/mail/doctype/mail_tenant/mail_tenant.py:36
+#: mail/mail/doctype/mail_tenant/mail_tenant.py:35
 msgid "User {0} does not have Mail Admin role."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:112
+#: mail/mail/doctype/mail_account/mail_account.py:114
 msgid "User {0} does not have Mail User role."
 msgstr ""
 
@@ -6988,7 +6993,7 @@ msgstr ""
 msgid "You have no mails in this folder."
 msgstr ""
 
-#: mail/mail/doctype/mail_account/mail_account.py:132
+#: mail/mail/doctype/mail_account/mail_account.py:134
 msgid "You have reached the maximum limit of {0} accounts for the tenant."
 msgstr ""
 
@@ -6996,8 +7001,8 @@ msgstr ""
 msgid "You have reached the maximum limit of {0} domains for the tenant."
 msgstr ""
 
-#: mail/mail/doctype/mail_group/mail_group.py:103
-msgid "You have reached the maximum limit of {0} groups for the tenant."
+#: mail/mail/doctype/mailing_list/mailing_list.py:107
+msgid "You have reached the maximum limit of {0} mailing lists for the tenant."
 msgstr ""
 
 #: mail/mail/doctype/email_message/email_message.py:606

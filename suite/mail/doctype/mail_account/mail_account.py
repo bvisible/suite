@@ -98,8 +98,8 @@ class MailAccount(Document):
 				)
 			)
 
-		if frappe.db.exists("Mail Group Member", {"member_type": self.doctype, "member_name": self.name}):
-			frappe.throw(_("The account is linked to a Mail Group as a member. Please remove it first."))
+		if frappe.db.exists("Mailing List Member", {"member_type": self.doctype, "member_name": self.name}):
+			frappe.throw(_("The account is linked to a Mailing List as a member. Please remove it first."))
 
 	def validate_domain(self) -> None:
 		"""Validates the domain."""

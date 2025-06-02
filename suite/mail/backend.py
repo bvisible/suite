@@ -17,7 +17,7 @@ class Principal:
 	"""Dataclass to represent a principal."""
 
 	name: str
-	type: Literal["domain", "apiKey", "individual", "group"]
+	type: Literal["domain", "apiKey", "individual", "group", "list"]
 	id: int = 0
 	quota: int = 0
 	description: str = ""
@@ -273,23 +273,23 @@ class MailBackendAccountManager(MailBackendManagerBase):
 		)
 
 
-class MailBackendGroupManager(MailBackendManagerBase):
-	"""Class to manage groups on the Mail Backend."""
+class MailBackendMailingListManager(MailBackendManagerBase):
+	"""Class to manage mailing lists on the Mail Backend."""
 
-	def create(self, email: str, display_name: str) -> None:
-		"""Creates a group on the backend."""
+	def create(self, email: str, display_name: str, members: list[str] | None = None) -> None:
+		"""Creates a mailing list on the backend."""
 
 		principal = Principal(
 			name=email,
-			type="group",
+			type="list",
 			description=display_name,
 			emails=[email],
-			enabledPermissions=["email-send", "email-receive"],
+			members=members or [],
 		).__dict__
 		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
 
 	def update(self, email: str, display_name: str) -> None:
-		"""Updates a group on the backend."""
+		"""Updates a mailing list on the backend."""
 
 		request_data = json.dumps(
 			[
@@ -303,9 +303,23 @@ class MailBackendGroupManager(MailBackendManagerBase):
 		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 	def delete(self, email: str) -> None:
-		"""Deletes a group from the backend."""
+		"""Deletes a mailing list from the backend."""
 
 		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
+
+	def add_member(self, email: str, member: str) -> None:
+		"""Adds a mailing list member on the backend."""
+
+		endpoint = f"/api/principal/{email}"
+		request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
+		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
+
+	def remove_member(self, email: str, member: str) -> None:
+		"""Removes a mailing list member from the backend."""
+
+		endpoint = f"/api/principal/{email}"
+		request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
+		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
 class MailBackendAliasManager(MailBackendManagerBase):
@@ -344,44 +358,6 @@ class MailBackendAliasManager(MailBackendManagerBase):
 			on_end=sync_jmap_identities,
 			on_end_kwargs={"account": email},
 		)
-
-
-class MailBackendMemberManager(MailBackendManagerBase):
-	"""Class to manage group members on the Mail Backend."""
-
-	def create(self, email: str, member: str, is_group: bool) -> None:
-		"""Creates a group member on the backend."""
-
-		endpoint = None
-		request_data = None
-		if is_group:
-			endpoint = f"/api/principal/{member}"
-			request_data = json.dumps([{"action": "addItem", "field": "memberOf", "value": email}])
-		else:
-			endpoint = f"/api/principal/{email}"
-			request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
-
-		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
-
-	def update(self, new_email: str, old_email: str, member: str, is_group: bool) -> None:
-		"""Updates a group member on the backend."""
-
-		self.delete(old_email, member, is_group)
-		self.create(new_email, member, is_group)
-
-	def delete(self, email: str, member: str, is_group: bool) -> None:
-		"""Deletes a group member from the backend."""
-
-		endpoint = None
-		request_data = None
-		if is_group:
-			endpoint = f"/api/principal/{member}"
-			request_data = json.dumps([{"action": "removeItem", "field": "memberOf", "value": email}])
-		else:
-			endpoint = f"/api/principal/{email}"
-			request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
-
-		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
 class MailBackendIdentityManager(MailBackendManagerBase):
