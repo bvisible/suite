@@ -9,8 +9,8 @@ from mail.backend import MailBackendListMemberManager
 from mail.utils.cache import (
 	get_account_for_user,
 	get_cluster_for_tenant,
-	get_groups_owned_by_tenant,
-	get_tenant_for_group,
+	get_mailing_lists_owned_by_tenant,
+	get_tenant_for_mailing_list,
 	get_tenant_for_user,
 )
 from mail.utils.user import has_role, is_system_manager
@@ -31,10 +31,10 @@ class MailingListMember(Document):
 	def validate_member_tenant(self) -> None:
 		"""Validate if the Mailing List and the member belong to the same tenant."""
 
-		group_tenant = get_tenant_for_group(self.mailing_list)
+		mailing_list_tenant = get_tenant_for_mailing_list(self.mailing_list)
 		member_tenant = frappe.db.get_value(self.member_type, self.member_name, "tenant")
 
-		if group_tenant != member_tenant:
+		if mailing_list_tenant != member_tenant:
 			frappe.throw(
 				_("The Mailing List {0} and the member {1} {2} must belong to the same tenant.").format(
 					frappe.bold(self.mailing_list), self.member_type, frappe.bold(self.member_name)
@@ -54,12 +54,12 @@ class MailingListMember(Document):
 
 	def after_insert(self) -> None:
 		MailBackendListMemberManager(
-			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
+			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_mailing_list(self.mailing_list))
 		).create(self.mailing_list, self.member_name)
 
 	def on_trash(self) -> None:
 		MailBackendListMemberManager(
-			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
+			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_mailing_list(self.mailing_list))
 		).delete(self.mailing_list, self.member_name)
 
 
@@ -74,7 +74,7 @@ def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool
 
 	if has_role(user, "Mail Admin"):
 		if tenant := get_tenant_for_user(user):
-			return doc.mailing_list in get_groups_owned_by_tenant(tenant)
+			return doc.mailing_list in get_mailing_lists_owned_by_tenant(tenant)
 
 	if has_role(user, "Mail User"):
 		return doc.member_type == "Mail Account" and doc.member_name == get_account_for_user(user)
@@ -90,8 +90,8 @@ def get_permission_query_condition(user: str | None = None) -> str:
 
 	if has_role(user, "Mail Admin"):
 		if tenant := get_tenant_for_user(user):
-			if groups := get_groups_owned_by_tenant(tenant):
-				return f'(`tabMailing List Member`.`mailing_list` IN ({", ".join([frappe.db.escape(group) for group in groups])}))'
+			if mailing_lists := get_mailing_lists_owned_by_tenant(tenant):
+				return f'(`tabMailing List Member`.`mailing_list` IN ({", ".join([frappe.db.escape(mailing_list) for mailing_list in mailing_lists])}))'
 
 	if has_role(user, "Mail User"):
 		if account := get_account_for_user(user):

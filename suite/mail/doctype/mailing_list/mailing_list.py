@@ -31,7 +31,7 @@ class MailingList(Document):
 		self.validate_domain()
 		self.validate_email()
 		self.set_normalized_email()
-		self.validate_tenant_max_groups()
+		self.validate_tenant_max_max_mailing_lists()
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -97,23 +97,23 @@ class MailingList(Document):
 		if not self.normalized_email:
 			self.normalized_email = normalize_email(self.email)
 
-	def validate_tenant_max_groups(self) -> None:
-		"""Validates the Tenant Max Groups."""
+	def validate_tenant_max_max_mailing_lists(self) -> None:
+		"""Validates the Tenant Max Mailing Lists."""
 
-		total_groups = frappe.db.count("Mailing List", filters={"tenant": self.tenant, "enabled": 1})
-		max_groups = frappe.db.get_value("Mail Tenant", self.tenant, "max_groups")
-		if total_groups >= max_groups:
+		total_mailing_lists = frappe.db.count("Mailing List", filters={"tenant": self.tenant, "enabled": 1})
+		max_mailing_lists = frappe.db.get_value("Mail Tenant", self.tenant, "max_mailing_lists")
+		if total_mailing_lists >= max_mailing_lists:
 			frappe.throw(
-				_("You have reached the maximum limit of {0} groups for the tenant.").format(
-					frappe.bold(max_groups)
+				_("You have reached the maximum limit of {0} mailing lists for the tenant.").format(
+					frappe.bold(max_mailing_lists)
 				)
 			)
 
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
-		frappe.cache.hdel(f"group|{self.name}", "tenant")
-		frappe.cache.hdel(f"tenant|{self.tenant}", "groups")
+		frappe.cache.hdel(f"mailing_list|{self.name}", "tenant")
+		frappe.cache.hdel(f"tenant|{self.tenant}", "mailing_lists")
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:

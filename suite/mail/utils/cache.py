@@ -71,13 +71,13 @@ def get_domains_owned_by_tenant(tenant: str) -> list:
 	return frappe.cache.hget(f"tenant|{tenant}", "domains", generator)
 
 
-def get_groups_owned_by_tenant(tenant: str) -> list:
-	"""Returns the groups owned by the tenant."""
+def get_mailing_lists_owned_by_tenant(tenant: str) -> list:
+	"""Returns the mailing lists owned by the tenant."""
 
 	def generator() -> list:
 		return frappe.db.get_all("Mailing List", filters={"tenant": tenant}, pluck="name")
 
-	return frappe.cache.hget(f"tenant|{tenant}", "groups", generator)
+	return frappe.cache.hget(f"tenant|{tenant}", "mailing_lists", generator)
 
 
 def get_tenant_for_domain(domain_name: str) -> str | None:
@@ -89,13 +89,13 @@ def get_tenant_for_domain(domain_name: str) -> str | None:
 	return frappe.cache.hget(f"domain|{domain_name}", "tenant", generator)
 
 
-def get_tenant_for_group(group: str) -> str | None:
-	"""Returns the tenant for the group."""
+def get_tenant_for_mailing_list(mailing_list: str) -> str | None:
+	"""Returns the tenant for the mailing list."""
 
 	def generator() -> str | None:
-		return frappe.db.get_value("Mailing List", group, "tenant")
+		return frappe.db.get_value("Mailing List", mailing_list, "tenant")
 
-	return frappe.cache.hget(f"group|{group}", "tenant", generator)
+	return frappe.cache.hget(f"mailing_list|{mailing_list}", "tenant", generator)
 
 
 def get_tenant_for_user(user: str) -> str | None:
