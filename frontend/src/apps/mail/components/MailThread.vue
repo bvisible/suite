@@ -398,31 +398,31 @@ const deleteMails = createResource({
 })
 
 const reply = (mail) => {
-	mailDetails.in_reply_to = mail.message_id
-	mailDetails.in_reply_to_id = mail._id
 	mailDetails.to = [mail.from_email]
-	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
-	mailDetails.body = getMailBody(mail)
-	showSendModal.value = true
+	setReplyDetailsAndOpenModal(mail)
 }
 
 const replyAll = (mail) => {
-	mailDetails.in_reply_to = mail.message_id
-	mailDetails.in_reply_to_id = mail._id
 	mailDetails.to = [...(mail.recipients.To?.map((m) => m.email) || []), mail.from_email].filter(
 		(m) => m !== user.data.email,
 	)
 	mailDetails.cc = (mail.recipients.Cc?.map((m) => m.email) || []).filter(
 		(m) => m.email !== user.data.email,
 	)
-	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
-	mailDetails.body = getMailBody(mail)
-	showSendModal.value = true
+	setReplyDetailsAndOpenModal(mail)
 }
 
 const forward = (mail) => {
 	mailDetails.subject = `Fwd: ${mail.subject}`
 	mailDetails.body = getMailBody(mail)
+	showSendModal.value = true
+}
+
+const setReplyDetailsAndOpenModal = (mail) => {
+	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
+	mailDetails.body = getMailBody(mail)
+	mailDetails.in_reply_to = mail.message_id
+	mailDetails.in_reply_to_id = mail._id
 	showSendModal.value = true
 }
 

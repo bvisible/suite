@@ -102,8 +102,8 @@
 
 						<!-- Attachments -->
 						<div class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700">
-							<!-- <a
-								v-for="(file, index) in attachments.data"
+							<a
+								v-for="(file, index) in mail.attachments"
 								:key="index"
 								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
 								:href="file.file_url"
@@ -120,12 +120,17 @@
 									name="x"
 									@click.stop.prevent=""
 								/>
-							</a> -->
+							</a>
 						</div>
 					</div>
 				</template>
 				<template #bottom>
-					<FileUploader :class="{ 'fixed bottom-0 left-0 right-0 px-3': isMobile }">
+					<FileUploader
+						:class="{ 'fixed bottom-0 left-0 right-0 px-3': isMobile }"
+						@success="
+							(file) => mail.attachments.push({ ...file, disposition: 'attachment' })
+						"
+					>
 						<template #default="{ file, progress, uploading, openFileSelector }">
 							<div
 								v-if="uploading"
@@ -277,6 +282,7 @@ const emptyMail = {
 	to: [],
 	cc: [],
 	bcc: [],
+	attachments: [],
 	subject: '',
 	body: '',
 	in_reply_to: '',
@@ -317,7 +323,11 @@ const discardMail = async () => {
 }
 
 const setMailDetails = () => {
-	if (!mailDetails) return Object.assign(mail, emptyMail)
+	if (!mailDetails) {
+		Object.assign(mail, emptyMail)
+		mail.attachments = []
+		return
+	}
 
 	mail.in_reply_to = mailDetails.in_reply_to
 	mail.in_reply_to_id = mailDetails.in_reply_to_id
@@ -342,6 +352,9 @@ watch(show, (val) => {
 
 const isMailEmpty = computed(() => {
 	const isSubjectEmpty = !mail.subject.length
+	const isAttachmentsEmpty = !mail.attachments.length
+	const isRecipientsEmpty = [mail.to, mail.cc, mail.bcc].every((d) => !d.length)
+
 	let isBodyEmpty = true
 	if (mail.body) {
 		const element = document.createElement('div')
@@ -350,9 +363,8 @@ const isMailEmpty = computed(() => {
 			!element.textContent?.trim() &&
 			Array.from(element.children).every((d) => !d.textContent?.trim())
 	}
-	const isRecipientsEmpty = [mail.to, mail.cc, mail.bcc].every((d) => !d.length)
 
-	return isSubjectEmpty && isBodyEmpty && isRecipientsEmpty
+	return isSubjectEmpty && isRecipientsEmpty && isAttachmentsEmpty && isBodyEmpty
 })
 
 const textEditorMenuButtons = [
