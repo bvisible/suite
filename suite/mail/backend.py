@@ -276,7 +276,7 @@ class MailBackendAccountManager(MailBackendManagerBase):
 class MailBackendMailingListManager(MailBackendManagerBase):
 	"""Class to manage mailing lists on the Mail Backend."""
 
-	def create(self, email: str, display_name: str) -> None:
+	def create(self, email: str, display_name: str, members: list[str] | None = None) -> None:
 		"""Creates a mailing list on the backend."""
 
 		principal = Principal(
@@ -284,6 +284,7 @@ class MailBackendMailingListManager(MailBackendManagerBase):
 			type="list",
 			description=display_name,
 			emails=[email],
+			members=members or [],
 		).__dict__
 		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
 
@@ -305,6 +306,20 @@ class MailBackendMailingListManager(MailBackendManagerBase):
 		"""Deletes a mailing list from the backend."""
 
 		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
+
+	def add_member(self, email: str, member: str) -> None:
+		"""Adds a mailing list member on the backend."""
+
+		endpoint = f"/api/principal/{email}"
+		request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
+		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
+
+	def remove_member(self, email: str, member: str) -> None:
+		"""Removes a mailing list member from the backend."""
+
+		endpoint = f"/api/principal/{email}"
+		request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
+		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
 class MailBackendAliasManager(MailBackendManagerBase):
@@ -343,30 +358,6 @@ class MailBackendAliasManager(MailBackendManagerBase):
 			on_end=sync_jmap_identities,
 			on_end_kwargs={"account": email},
 		)
-
-
-class MailBackendListMemberManager(MailBackendManagerBase):
-	"""Class to manage mailing list members on the Mail Backend."""
-
-	def create(self, email: str, member: str) -> None:
-		"""Creates a mailing list member on the backend."""
-
-		endpoint = f"/api/principal/{email}"
-		request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
-		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
-
-	def update(self, new_email: str, old_email: str, member: str) -> None:
-		"""Updates a mailing list member on the backend."""
-
-		self.delete(old_email, member)
-		self.create(new_email, member)
-
-	def delete(self, email: str, member: str) -> None:
-		"""Deletes a mailing list member from the backend."""
-
-		endpoint = f"/api/principal/{email}"
-		request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
-		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 
 class MailBackendIdentityManager(MailBackendManagerBase):

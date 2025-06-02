@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.backend import MailBackendListMemberManager
+from mail.backend import MailBackendMailingListManager
 from mail.utils.cache import (
 	get_account_for_user,
 	get_cluster_for_tenant,
@@ -53,14 +53,15 @@ class MailingListMember(Document):
 			)
 
 	def after_insert(self) -> None:
-		MailBackendListMemberManager(
+		MailBackendMailingListManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_mailing_list(self.mailing_list))
-		).create(self.mailing_list, self.member_name)
+		).add_member(self.mailing_list, self.member_name)
 
 	def on_trash(self) -> None:
-		MailBackendListMemberManager(
-			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_mailing_list(self.mailing_list))
-		).delete(self.mailing_list, self.member_name)
+		if frappe.db.get_value("Mailing List", self.mailing_list, "enabled"):
+			MailBackendMailingListManager(
+				"Mail Cluster", get_cluster_for_tenant(get_tenant_for_mailing_list(self.mailing_list))
+			).remove_member(self.mailing_list, self.member_name)
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:

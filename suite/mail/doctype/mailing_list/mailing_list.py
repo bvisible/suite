@@ -38,8 +38,11 @@ class MailingList(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
+				members = frappe.db.get_all(
+					"Mailing List Member", filters={"mailing_list": self.name}, pluck="member_name"
+				)
 				MailBackendMailingListManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(
-					self.email, self.display_name
+					self.email, self.display_name, members
 				)
 			elif self.has_value_changed("display_name"):
 				MailBackendMailingListManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).update(
@@ -74,9 +77,6 @@ class MailingList(Document):
 			"Mail Alias", {"enabled": 1, "alias_for_type": self.doctype, "alias_for_name": self.name}
 		):
 			frappe.throw(_("Mail Alias {0} is enabled. Please disable it first.").format(frappe.bold(alias)))
-
-		if frappe.db.exists("Mailing List Member", {"mailing_list": self.name}):
-			frappe.throw(_("Mailing List has members. Please remove them first."))
 
 	def validate_domain(self) -> None:
 		"""Validates the domain."""
