@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.backend import MailBackendMemberManager
+from mail.backend import MailBackendListMemberManager
 from mail.utils.cache import (
 	get_account_for_user,
 	get_cluster_for_tenant,
@@ -18,7 +18,7 @@ from mail.utils.user import has_role, is_system_manager
 
 class MailingListMember(Document):
 	@property
-	def member_is_group(self) -> bool:
+	def member_is_list(self) -> bool:
 		"""Return True if the member is a Mailing List."""
 
 		return self.member_type == "Mailing List"
@@ -62,21 +62,21 @@ class MailingListMember(Document):
 			)
 
 	def after_insert(self) -> None:
-		MailBackendMemberManager(
+		MailBackendListMemberManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
 		).create(
 			self.mailing_list,
 			self.member_name,
-			self.member_is_group,
+			self.member_is_list,
 		)
 
 	def on_trash(self) -> None:
-		MailBackendMemberManager(
+		MailBackendListMemberManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
 		).delete(
 			self.mailing_list,
 			self.member_name,
-			self.member_is_group,
+			self.member_is_list,
 		)
 
 

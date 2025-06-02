@@ -17,7 +17,7 @@ class Principal:
 	"""Dataclass to represent a principal."""
 
 	name: str
-	type: Literal["domain", "apiKey", "individual", "group"]
+	type: Literal["domain", "apiKey", "individual", "group", "list"]
 	id: int = 0
 	quota: int = 0
 	description: str = ""
@@ -273,23 +273,22 @@ class MailBackendAccountManager(MailBackendManagerBase):
 		)
 
 
-class MailBackendGroupManager(MailBackendManagerBase):
-	"""Class to manage groups on the Mail Backend."""
+class MailBackendMailingListManager(MailBackendManagerBase):
+	"""Class to manage mailing lists on the Mail Backend."""
 
 	def create(self, email: str, display_name: str) -> None:
-		"""Creates a group on the backend."""
+		"""Creates a mailing list on the backend."""
 
 		principal = Principal(
 			name=email,
-			type="group",
+			type="list",
 			description=display_name,
 			emails=[email],
-			enabledPermissions=["email-send", "email-receive"],
 		).__dict__
 		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
 
 	def update(self, email: str, display_name: str) -> None:
-		"""Updates a group on the backend."""
+		"""Updates a mailing list on the backend."""
 
 		request_data = json.dumps(
 			[
@@ -303,7 +302,7 @@ class MailBackendGroupManager(MailBackendManagerBase):
 		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
 	def delete(self, email: str) -> None:
-		"""Deletes a group from the backend."""
+		"""Deletes a mailing list from the backend."""
 
 		self.create_request(method="DELETE", endpoint=f"/api/principal/{email}")
 
@@ -346,15 +345,15 @@ class MailBackendAliasManager(MailBackendManagerBase):
 		)
 
 
-class MailBackendMemberManager(MailBackendManagerBase):
-	"""Class to manage group members on the Mail Backend."""
+class MailBackendListMemberManager(MailBackendManagerBase):
+	"""Class to manage mailing list members on the Mail Backend."""
 
-	def create(self, email: str, member: str, is_group: bool) -> None:
-		"""Creates a group member on the backend."""
+	def create(self, email: str, member: str, is_list: bool) -> None:
+		"""Creates a mailing list member on the backend."""
 
 		endpoint = None
 		request_data = None
-		if is_group:
+		if is_list:
 			endpoint = f"/api/principal/{member}"
 			request_data = json.dumps([{"action": "addItem", "field": "memberOf", "value": email}])
 		else:
@@ -363,18 +362,18 @@ class MailBackendMemberManager(MailBackendManagerBase):
 
 		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
-	def update(self, new_email: str, old_email: str, member: str, is_group: bool) -> None:
-		"""Updates a group member on the backend."""
+	def update(self, new_email: str, old_email: str, member: str, is_list: bool) -> None:
+		"""Updates a mailing list member on the backend."""
 
-		self.delete(old_email, member, is_group)
-		self.create(new_email, member, is_group)
+		self.delete(old_email, member, is_list)
+		self.create(new_email, member, is_list)
 
-	def delete(self, email: str, member: str, is_group: bool) -> None:
-		"""Deletes a group member from the backend."""
+	def delete(self, email: str, member: str, is_list: bool) -> None:
+		"""Deletes a mailing list member from the backend."""
 
 		endpoint = None
 		request_data = None
-		if is_group:
+		if is_list:
 			endpoint = f"/api/principal/{member}"
 			request_data = json.dumps([{"action": "removeItem", "field": "memberOf", "value": email}])
 		else:
