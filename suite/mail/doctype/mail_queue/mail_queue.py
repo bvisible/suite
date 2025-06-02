@@ -556,6 +556,7 @@ class MailQueue(Document):
 						content_type = guess_type(file.file_name)[0]
 						blob = client.upload_blob(content, content_type)
 						a.update({"type": blob["type"], "size": blob["size"], "blob_id": blob["blobId"]})
+					attachments.append(a)
 
 				kwargs["attachments"] = json.dumps(attachments)
 				method_calls.append(
