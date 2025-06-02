@@ -1,7 +1,5 @@
 export * from './doctypes'
 
-// todo:
-
 export interface User {
 	name: string
 	email: string
@@ -26,6 +24,40 @@ export interface User {
 
 export interface UserResource {
 	data: User
+}
+
+export interface Recipient {
+	email: string
+	display_name: string | null
+}
+
+export interface Attachment {
+	filename: string
+	blob_id: string
+	type: string
+	size: string
+	file_url: string | null
+	disposition: string
+}
+
+export interface Mail {
+	name: string
+	message_id: string
+	_id: string
+	from_name: string
+	from_email: string
+	subject: string
+	html_body: string
+	text_body: string
+	received_at: string
+	draft: 0 | 1
+	has_attachment: 0 | 1
+	recipients: {
+		To: Recipient[]
+		Cc: Recipient[]
+		Bcc: Recipient[]
+	}
+	attachments: Attachment[]
 }
 
 export type LayoutType = 'split' | 'full'

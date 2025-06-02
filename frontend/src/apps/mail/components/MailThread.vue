@@ -171,7 +171,7 @@ import {
 	Ellipsis,
 	FolderInput,
 	Forward,
-	Mail,
+	Mail as MailIcon,
 	Reply,
 	ReplyAll,
 	SquarePen,
@@ -189,10 +189,9 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-const props = defineProps<{
-	mailbox: string
-	threadID?: string
-}>()
+import type { Mail } from '@/types'
+
+const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
 const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteThread'])
 
@@ -217,11 +216,11 @@ const mailDetails = reactive({
 
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
-	makeParams: () => ({ thread_id: props.threadID, mailbox: props.mailbox }),
+	makeParams: () => ({ thread_id: threadID, mailbox }),
 })
 
 const reload = () => {
-	if (props.threadID) mailThread.reload()
+	if (threadID) mailThread.reload()
 }
 
 defineExpose({ reload })
@@ -291,7 +290,7 @@ const user = inject('$user')
 
 const moveToOptions = computed(() =>
 	user.data.mailboxes
-		.filter((m) => ![props.mailbox, 'sent', 'drafts'].includes(m.role))
+		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
 		.map((m) => ({
 			label: m.name,
 			onClick: () => emit('moveThread', m.role),
@@ -311,28 +310,28 @@ const threadActions = computed((): MailAction[] =>
 			label: __('Move to Trash'),
 			onClick: () => emit('moveThread', 'trash'),
 			icon: Trash2,
-			condition: props.mailbox !== 'trash',
+			condition: mailbox !== 'trash',
 		},
 		{
 			label: __('Delete Thread'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: props.mailbox === 'trash',
+			condition: mailbox === 'trash',
 		},
 		{
 			label: __('Mark as Unread'),
 			onClick: () => emit('markAsUnread'),
-			icon: Mail,
+			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),
 )
 
-const mailActions = (mail: any): MailAction[] => [
+const mailActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Edit Draft'),
 		onClick: () => editDraft(mail),
 		icon: SquarePen,
-		condition: mail.draft,
+		condition: !!mail.draft,
 	},
 	{
 		label: __('Reply'),
@@ -342,7 +341,7 @@ const mailActions = (mail: any): MailAction[] => [
 	},
 ]
 
-const moreActions = (mail): MailAction[] => [
+const moreActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Reply All'),
 		onClick: () => replyAll(mail),
@@ -370,13 +369,13 @@ const moreActions = (mail): MailAction[] => [
 		label: __('Move to Trash'),
 		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: 'trash' }),
 		icon: Trash2,
-		condition: () => props.mailbox !== 'trash',
+		condition: () => mailbox !== 'trash',
 	},
 	{
 		label: __('Delete Message'),
 		onClick: () => deleteMails.submit([mail.name]),
 		icon: Trash2,
-		condition: () => props.mailbox === 'trash',
+		condition: () => mailbox === 'trash',
 	},
 ]
 
@@ -395,7 +394,7 @@ const deleteMails = createResource({
 	onSuccess: () => emit('reloadMails'),
 })
 
-const editDraft = (mail) => {
+const editDraft = (mail: Mail) => {
 	draftMailID.value = mail.name
 	mailDetails.from = mail.from_email
 	mailDetails.to = mail.recipients.To?.map((m) => m.email) || []
@@ -407,28 +406,28 @@ const editDraft = (mail) => {
 	showSendModal.value = true
 }
 
-const reply = (mail) => {
+const reply = (mail: Mail) => {
 	mailDetails.to = [mail.from_email]
 	setReplyDetailsAndOpenModal(mail)
 }
 
-const replyAll = (mail) => {
+const replyAll = (mail: Mail) => {
 	mailDetails.to = [...(mail.recipients.To?.map((m) => m.email) || []), mail.from_email].filter(
 		(m) => m !== user.data.email,
 	)
 	mailDetails.cc = (mail.recipients.Cc?.map((m) => m.email) || []).filter(
-		(m) => m.email !== user.data.email,
+		(m) => m !== user.data.email,
 	)
 	setReplyDetailsAndOpenModal(mail)
 }
 
-const forward = (mail) => {
+const forward = (mail: Mail) => {
 	mailDetails.subject = `Fwd: ${mail.subject}`
 	mailDetails.body = getMailBody(mail)
 	showSendModal.value = true
 }
 
-const setReplyDetailsAndOpenModal = (mail) => {
+const setReplyDetailsAndOpenModal = (mail: Mail) => {
 	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
 	mailDetails.body = getMailBody(mail)
 	mailDetails.in_reply_to = mail.message_id
@@ -436,10 +435,10 @@ const setReplyDetailsAndOpenModal = (mail) => {
 	showSendModal.value = true
 }
 
-const getMailBody = (mail) => {
+const getMailBody = (mail: Mail) => {
 	const replyHeader = `On ${dayjs(mail.received_at).format('DD MMM YYYY')} at ${dayjs(mail.received_at).format('h:mm A')}, ${mail.from_email} wrote:`
 	return `<br><blockquote>${replyHeader} <br> ${mail.html_body}</blockquote>`
 }
 
-watch(() => props.threadID, reload)
+watch(() => threadID, reload)
 </script>
