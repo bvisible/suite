@@ -6,7 +6,6 @@
 	>
 		<video
 			ref="videoElement"
-			:src="element.src"
 			:style="videoStyle"
 			:autoplay="inSlideShow ? element.autoplay : false"
 			:loop="element.loop"
@@ -15,7 +14,9 @@
 			@loadedmetadata="updateDuration"
 			@ended="resetProgress"
 			preload="auto"
-		></video>
+		>
+			<source :src="`/api/method/slides.api.get_video?src=${element.src}`" />
+		</video>
 		<div
 			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
 			:class="{ 'opacity-0': !showProgressBar }"
