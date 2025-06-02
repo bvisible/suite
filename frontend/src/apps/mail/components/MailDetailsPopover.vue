@@ -30,9 +30,11 @@ import { Popover } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
 
+import type { Mail } from '@/types'
+
 const dayjs = inject('$dayjs')
 
-const { mail } = defineProps<{ mail: any }>()
+const { mail } = defineProps<{ mail: Mail }>()
 
 const FIELDS = [
 	// {
@@ -45,14 +47,14 @@ const FIELDS = [
 		value: () => getRecipients(mail.recipients.To, true),
 	},
 	{
-		condition: !!mail.recipients.CC?.length,
+		condition: !!mail.recipients.Cc?.length,
 		label: __('Cc: '),
-		value: () => getRecipients(mail.recipients.CC, true),
+		value: () => getRecipients(mail.recipients.Cc, true),
 	},
 	{
-		condition: !!mail.recipients.BCC?.length,
+		condition: !!mail.recipients.Bcc?.length,
 		label: __('Bcc: '),
-		value: () => getRecipients(mail.recipients.BCC, true),
+		value: () => getRecipients(mail.recipients.Bcc, true),
 	},
 	{
 		label: __('Date: '),

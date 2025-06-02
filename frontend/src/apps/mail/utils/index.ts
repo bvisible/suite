@@ -106,7 +106,7 @@ export const copyToClipBoard = async (text: string) => {
 }
 
 interface Recipient {
-	display_name?: string
+	display_name?: string | null
 	email: string
 }
 
