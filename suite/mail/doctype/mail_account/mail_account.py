@@ -1,15 +1,17 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from email.utils import parseaddr
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import random_string, validate_email_address
 
-from mail.backend import MailBackendAccountManager
-from mail.jmap import invalidate_jmap_client_cache
+from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
+from mail.jmap import get_jmap_client, invalidate_jmap_client_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
-from mail.utils import get_dmarc_address, hash_password, normalize_email
+from mail.utils import generate_uuid_style_hash, get_dmarc_address, hash_password, normalize_email
 from mail.utils.cache import (
 	get_aliases_for_user,
 	get_cluster_for_tenant,
@@ -64,7 +66,7 @@ class MailAccount(Document):
 				)
 
 				if self.has_value_changed("secret"):
-					invalidate_jmap_client_cache()
+					invalidate_jmap_client_cache(self.name)
 
 		elif self.has_value_changed("enabled"):
 			MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.email)
@@ -201,6 +203,57 @@ class MailAccount(Document):
 		password = self.get_password("password")
 		self.secret = hash_password(password)
 
+	@frappe.whitelist()
+	def sync_jmap_identities(self) -> None:
+		"""Syncs JMAP identities for the Mail Account."""
+
+		frappe.only_for("System Manager")
+		self._sync_jmap_identities()
+
+	def _sync_jmap_identities(self) -> None:
+		"""Syncs JMAP identities for the Mail Account."""
+
+		account_id = get_jmap_client(self.name).account_id
+		aliases = frappe.db.get_all(
+			"Mail Alias",
+			{"enabled": 1, "alias_for_type": "Mail Account", "alias_for_name": self.name},
+			pluck="email",
+		)
+
+		reply_to = []
+		if self.reply_to:
+			for rt in self.reply_to.split(","):
+				rt = rt.strip()
+				display_name, email = parseaddr(rt)
+				reply_to.append({"name": display_name, "email": email})
+
+		identities = {
+			generate_uuid_style_hash(self.email): {
+				"name": self.display_name,
+				"email": self.email,
+				"replyTo": reply_to or None,
+				"bcc": None,
+				"textSignature": None,
+				"htmlSignature": None,
+			}
+		}
+
+		for alias in aliases:
+			identities[generate_uuid_style_hash(alias)] = {
+				"name": self.display_name,
+				"email": alias,
+				"replyTo": reply_to or None,
+				"bcc": None,
+				"textSignature": None,
+				"htmlSignature": None,
+			}
+
+		MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).sync(
+			account_id, identities
+		)
+
+		invalidate_jmap_client_cache(self.name)
+
 
 def _create_user_for_mail_account(
 	email: str,
@@ -284,6 +337,16 @@ def create_dmarc_account(tenant: str) -> None:
 	frappe.flags.ignore_domain_validation = True
 	dmarc_address = get_dmarc_address()
 	create_mail_account(tenant=tenant, email=dmarc_address, backup_email=dmarc_address, first_name="DMARC")
+
+
+def sync_jmap_identities(account: str) -> None:
+	"""Sync JMAP identities for the given mail account."""
+
+	if not frappe.db.exists("Mail Account", account):
+		return
+
+	doc = frappe.get_doc("Mail Account", account)
+	doc._sync_jmap_identities()
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:

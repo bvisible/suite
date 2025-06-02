@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.backend import MailBackendGroupManager
+from mail.backend import MailBackendMemberManager
 from mail.utils.cache import (
 	get_account_for_user,
 	get_cluster_for_tenant,
@@ -62,7 +62,7 @@ class MailGroupMember(Document):
 			)
 
 	def after_insert(self) -> None:
-		MailBackendGroupManager(
+		MailBackendMemberManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mail_group))
 		).create(
 			self.mail_group,
@@ -71,7 +71,7 @@ class MailGroupMember(Document):
 		)
 
 	def on_trash(self) -> None:
-		MailBackendGroupManager(
+		MailBackendMemberManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mail_group))
 		).delete(
 			self.mail_group,

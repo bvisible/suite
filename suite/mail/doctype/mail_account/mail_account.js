@@ -7,6 +7,7 @@ frappe.ui.form.on('Mail Account', {
 	},
 
 	refresh(frm) {
+		frm.trigger('add_reports')
 		frm.trigger('add_actions')
 	},
 
@@ -27,7 +28,7 @@ frappe.ui.form.on('Mail Account', {
 		}))
 	},
 
-	add_actions(frm) {
+	add_reports(frm) {
 		if (!frm.doc.__islocal) {
 			frm.add_custom_button(
 				__('Outbound Delay'),
@@ -49,6 +50,30 @@ frappe.ui.form.on('Mail Account', {
 					frappe.set_route('query-report', 'Outgoing Mail Summary')
 				},
 				__('Reports'),
+			)
+		}
+	},
+
+	add_actions(frm) {
+		if (!frappe.user_roles.includes('System Manager')) return
+
+		if (!frm.doc.__islocal) {
+			frm.add_custom_button(
+				__('Sync JMAP Identities'),
+				() => {
+					frappe.call({
+						doc: frm.doc,
+						method: 'sync_jmap_identities',
+						freeze: true,
+						freeze_message: __('Syncing JMAP Identities...'),
+						callback: (r) => {
+							if (!r.exc) {
+								frm.refresh()
+							}
+						},
+					})
+				},
+				__('Actions'),
 			)
 		}
 	},
