@@ -5,7 +5,7 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Count
-from frappe.utils import cint
+from frappe.utils import cint, random_string
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
@@ -179,6 +179,7 @@ def create_mail(
 	bcc: list[str],
 	subject: str | None,
 	body: str | None,
+	attachments: list[dict] = None,
 	in_reply_to: str | None = None,
 	in_reply_to_id: str | None = None,
 	save_as_draft: bool = False,
@@ -191,6 +192,17 @@ def create_mail(
 	doc.in_reply_to = in_reply_to
 	doc.in_reply_to_id = in_reply_to_id
 	doc.save_as_draft = cint(save_as_draft)
+
+	doc.attachments = [
+		{
+			"file_url": d.get("file_url", ""),
+			"filename": d.get("file_name", ""),
+			"disposition": d.get("disposition", ""),
+			"cid": random_string(10),
+		}
+		for d in attachments
+	]
+	doc.attachments = json.dumps(doc.attachments)
 
 	doc.recipients = [{"type": "To", "email": email} for email in to]
 	doc.recipients += [{"type": "Cc", "email": email} for email in cc]
