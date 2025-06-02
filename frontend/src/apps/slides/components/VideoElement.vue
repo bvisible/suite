@@ -15,7 +15,7 @@
 			@ended="resetProgress"
 			preload="auto"
 		>
-			<source :src="`/api/method/slides.api.get_video?src=${element.src}`" />
+			<source :src="`/api/method/slides.api.get_video_file?src=${element.src}`" />
 		</video>
 		<div
 			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
