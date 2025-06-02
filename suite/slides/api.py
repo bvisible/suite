@@ -25,6 +25,33 @@ def get_range(range_header, file_size):
 	return range_start, range_end
 
 
+def get_range_response(range_header, file_path):
+	file_size = get_file_size(file_path)
+	range_start, range_end = get_range(range_header, file_size)
+	content_length = range_end - range_start + 1
+
+	with open(file_path, "rb") as f:
+		f.seek(range_start)
+		data = f.read(content_length)
+
+	response = Response(data, 206, mimetype="video/mp4", direct_passthrough=True)
+	response.headers["Content-Range"] = f"bytes {range_start}-{range_end}/{file_size}"
+	response.headers["Accept-Ranges"] = "bytes"
+	response.headers["Content-Length"] = str(content_length)
+	return response
+
+
+def get_response(file_path):
+	file_size = get_file_size(file_path)
+	with open(file_path, "rb") as f:
+		data = f.read()
+
+	response = Response(data, 200, mimetype="video/mp4", direct_passthrough=True)
+	response.headers["Content-Length"] = str(file_size)
+	response.headers["Accept-Ranges"] = "bytes"
+	return response
+
+
 @frappe.whitelist()
 def get_video(src):
 	file_path = frappe.get_site_path() + src
@@ -33,26 +60,8 @@ def get_video(src):
 		frappe.throw(_("File {0} does not exist").format(file_path), IOError)
 
 	range_header = frappe.request.headers.get("Range", None)
-	file_size = get_file_size(file_path)
 
 	if range_header:
-		range_start, range_end = get_range(range_header, file_size)
-		content_length = range_end - range_start + 1
+		return get_range_response(range_header, file_path)
 
-		with open(file_path, "rb") as f:
-			f.seek(range_start)
-			data = f.read(content_length)
-
-		response = Response(data, 206, mimetype="video/mp4", direct_passthrough=True)
-		response.headers["Content-Range"] = f"bytes {range_start}-{range_end}/{file_size}"
-		response.headers["Accept-Ranges"] = "bytes"
-		response.headers["Content-Length"] = str(content_length)
-		return response
-
-	with open(file_path, "rb") as f:
-		data = f.read()
-
-	response = Response(data, 200, mimetype="video/mp4", direct_passthrough=True)
-	response.headers["Content-Length"] = str(file_size)
-	response.headers["Accept-Ranges"] = "bytes"
-	return response
+	return get_response(file_path)
