@@ -16,45 +16,45 @@ from mail.utils.cache import (
 from mail.utils.user import has_role, is_system_manager
 
 
-class MailGroupMember(Document):
+class MailingListMember(Document):
 	@property
 	def member_is_group(self) -> bool:
-		"""Return True if the member is a mail group"""
+		"""Return True if the member is a Mailing List."""
 
-		return self.member_type == "Mail Group"
+		return self.member_type == "Mailing List"
 
 	def validate(self) -> None:
-		self.validate_mail_group()
+		self.validate_mailing_list()
 		self.validate_member_tenant()
 		self.validate_member_name()
 
-	def validate_mail_group(self) -> None:
-		"""Validate if the mail group is enabled."""
+	def validate_mailing_list(self) -> None:
+		"""Validate if the Mailing List is enabled."""
 
-		if not frappe.db.get_value("Mail Group", self.mail_group, "enabled"):
-			frappe.throw(_("The Mail Group {0} is disabled.").format(frappe.bold(self.mail_group)))
+		if not frappe.db.get_value("Mailing List", self.mailing_list, "enabled"):
+			frappe.throw(_("The Mailing List {0} is disabled.").format(frappe.bold(self.mailing_list)))
 
 	def validate_member_tenant(self) -> None:
-		"""Validate if the mail group and the member belong to the same tenant."""
+		"""Validate if the Mailing List and the member belong to the same tenant."""
 
-		group_tenant = get_tenant_for_group(self.mail_group)
+		group_tenant = get_tenant_for_group(self.mailing_list)
 		member_tenant = frappe.db.get_value(self.member_type, self.member_name, "tenant")
 
 		if group_tenant != member_tenant:
 			frappe.throw(
-				_("The Mail Group {0} and the member {1} {2} must belong to the same tenant.").format(
-					frappe.bold(self.mail_group), self.member_type, frappe.bold(self.member_name)
+				_("The Mailing List {0} and the member {1} {2} must belong to the same tenant.").format(
+					frappe.bold(self.mailing_list), self.member_type, frappe.bold(self.member_name)
 				)
 			)
 
 	def validate_member_name(self) -> None:
-		"""Validate if the member name is not the same as the mail group"""
+		"""Validate if the member name is not the same as the Mailing List."""
 
-		if self.mail_group == self.member_name:
-			if self.member_type == "Mail Group":
-				frappe.throw(_("Mail Group cannot be a member of itself"))
+		if self.mailing_list == self.member_name:
+			if self.member_type == "Mailing List":
+				frappe.throw(_("Mailing List cannot be a member of itself."))
 			else:
-				frappe.throw(_("Member cannot be the same as the Mail Group"))
+				frappe.throw(_("Member cannot be the same as the Mailing List."))
 
 		if not frappe.db.get_value(self.member_type, self.member_name, "enabled"):
 			frappe.throw(
@@ -63,25 +63,25 @@ class MailGroupMember(Document):
 
 	def after_insert(self) -> None:
 		MailBackendMemberManager(
-			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mail_group))
+			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
 		).create(
-			self.mail_group,
+			self.mailing_list,
 			self.member_name,
 			self.member_is_group,
 		)
 
 	def on_trash(self) -> None:
 		MailBackendMemberManager(
-			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mail_group))
+			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
 		).delete(
-			self.mail_group,
+			self.mailing_list,
 			self.member_name,
 			self.member_is_group,
 		)
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
-	if doc.doctype != "Mail Group Member":
+	if doc.doctype != "Mailing List Member":
 		return False
 
 	user = user or frappe.session.user
@@ -91,7 +91,7 @@ def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool
 
 	if has_role(user, "Mail Admin"):
 		if tenant := get_tenant_for_user(user):
-			return doc.mail_group in get_groups_owned_by_tenant(tenant)
+			return doc.mailing_list in get_groups_owned_by_tenant(tenant)
 
 	if has_role(user, "Mail User"):
 		return doc.member_type == "Mail Account" and doc.member_name == get_account_for_user(user)
@@ -108,18 +108,18 @@ def get_permission_query_condition(user: str | None = None) -> str:
 	if has_role(user, "Mail Admin"):
 		if tenant := get_tenant_for_user(user):
 			if groups := get_groups_owned_by_tenant(tenant):
-				return f'(`tabMail Group Member`.`mail_group` IN ({", ".join([frappe.db.escape(group) for group in groups])}))'
+				return f'(`tabMailing List Member`.`mailing_list` IN ({", ".join([frappe.db.escape(group) for group in groups])}))'
 
 	if has_role(user, "Mail User"):
 		if account := get_account_for_user(user):
-			return f'(`tabMail Group Member`.`member_type` = "Mail Account" AND `tabMail Group Member`.`member_name` = {frappe.db.escape(account)})'
+			return f'(`tabMailing List Member`.`member_type` = "Mail Account" AND `tabMailing List Member`.`member_name` = {frappe.db.escape(account)})'
 
 	return "1=0"
 
 
 def on_doctype_update() -> None:
 	frappe.db.add_unique(
-		"Mail Group Member",
-		["mail_group", "member_name"],
-		constraint_name="unique_mail_group_member",
+		"Mailing List Member",
+		["mailing_list", "member_name"],
+		constraint_name="unique_mailing_list_member",
 	)
