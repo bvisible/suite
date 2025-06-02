@@ -14,6 +14,7 @@
 			<source :src="`/api/method/slides.api.get_video_file?src=${element.src}`" />
 		</video>
 		<div
+			ref="overlay"
 			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
 			:style="gradientOverlayStyles"
 		>
@@ -62,6 +63,7 @@ const element = defineModel('element', {
 })
 
 const el = useTemplateRef('videoElement')
+const overlay = useTemplateRef('overlay')
 
 const isPlaying = ref(false)
 
@@ -91,7 +93,7 @@ const handleVideoClick = (e) => {
 	// in slideshow, always toggle playing on click anywhere
 	// in editor, toggle playing only when center play button is clicked
 
-	if (inSlideShow.value || (isActive && e.target !== el.value)) {
+	if (inSlideShow.value || (isActive && e.target !== overlay.value)) {
 		e.stopPropagation()
 		togglePlaying()
 	}
