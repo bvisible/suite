@@ -24,7 +24,7 @@
 		>
 			<div
 				v-if="activeElementIds.includes(element.id)"
-				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-100 opacity-80"
+				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-90"
 			>
 				<component
 					size="16"
@@ -139,7 +139,8 @@ const seekTimestamp = (e) => {
 }
 
 const gradientOverlayStyles = computed(() => ({
-	background: `linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0) 100%)`,
+	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 5%, rgba(0, 0, 0, 0) 100%),
+	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 15%, rgba(0, 0, 0, 0) 100%)`,
 }))
 
 const resetProgress = () => {
