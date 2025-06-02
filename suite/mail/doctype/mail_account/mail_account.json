@@ -199,12 +199,12 @@
    "link_fieldname": "account"
   },
   {
-   "group": "Group & Alias",
-   "link_doctype": "Mail Group Member",
+   "group": "List & Alias",
+   "link_doctype": "Mailing List Member",
    "link_fieldname": "member_name"
   },
   {
-   "group": "Group & Alias",
+   "group": "List & Alias",
    "link_doctype": "Mail Alias",
    "link_fieldname": "alias_for_name"
   },
@@ -219,7 +219,7 @@
    "link_fieldname": "sender"
   }
  ],
- "modified": "2025-05-12 14:42:35.868073",
+ "modified": "2025-06-02 13:00:34.654482",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",

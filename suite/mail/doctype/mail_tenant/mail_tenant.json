@@ -117,17 +117,17 @@
    "link_fieldname": "tenant"
   },
   {
-   "group": "Group & Alias",
-   "link_doctype": "Mail Group",
+   "group": "List & Alias",
+   "link_doctype": "Mailing List",
    "link_fieldname": "tenant"
   },
   {
-   "group": "Group & Alias",
+   "group": "List & Alias",
    "link_doctype": "Mail Alias",
    "link_fieldname": "tenant"
   }
  ],
- "modified": "2025-04-09 19:30:19.375260",
+ "modified": "2025-06-02 13:02:54.141092",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Tenant",

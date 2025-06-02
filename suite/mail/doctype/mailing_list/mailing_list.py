@@ -18,7 +18,7 @@ from mail.utils.validation import (
 )
 
 
-class MailGroup(Document):
+class MailingList(Document):
 	def autoname(self) -> None:
 		self.email = self.email.strip().lower()
 		self.name = self.email
@@ -71,8 +71,8 @@ class MailGroup(Document):
 		):
 			frappe.throw(_("Mail Alias {0} is enabled. Please disable it first.").format(frappe.bold(alias)))
 
-		if frappe.db.exists("Mail Group Member", {"mail_group": self.name}):
-			frappe.throw(_("Group has members. Please remove them first."))
+		if frappe.db.exists("Mailing List Member", {"mailing_list": self.name}):
+			frappe.throw(_("Mailing List has members. Please remove them first."))
 
 	def validate_domain(self) -> None:
 		"""Validates the domain."""
@@ -96,7 +96,7 @@ class MailGroup(Document):
 	def validate_tenant_max_groups(self) -> None:
 		"""Validates the Tenant Max Groups."""
 
-		total_groups = frappe.db.count("Mail Group", filters={"tenant": self.tenant, "enabled": 1})
+		total_groups = frappe.db.count("Mailing List", filters={"tenant": self.tenant, "enabled": 1})
 		max_groups = frappe.db.get_value("Mail Tenant", self.tenant, "max_groups")
 		if total_groups >= max_groups:
 			frappe.throw(
@@ -113,7 +113,7 @@ class MailGroup(Document):
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
-	if doc.doctype != "Mail Group":
+	if doc.doctype != "Mailing List":
 		return False
 
 	user = user or frappe.session.user
@@ -135,6 +135,6 @@ def get_permission_query_condition(user: str | None = None) -> str:
 
 	if has_role(user, "Mail Admin"):
 		if tenant := get_tenant_for_user(user):
-			return f"(`tabMail Group`.`tenant` = {frappe.db.escape(tenant)})"
+			return f"(`tabMailing List`.`tenant` = {frappe.db.escape(tenant)})"
 
 	return "1=0"

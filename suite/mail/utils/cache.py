@@ -75,7 +75,7 @@ def get_groups_owned_by_tenant(tenant: str) -> list:
 	"""Returns the groups owned by the tenant."""
 
 	def generator() -> list:
-		return frappe.db.get_all("Mail Group", filters={"tenant": tenant}, pluck="name")
+		return frappe.db.get_all("Mailing List", filters={"tenant": tenant}, pluck="name")
 
 	return frappe.cache.hget(f"tenant|{tenant}", "groups", generator)
 
@@ -93,7 +93,7 @@ def get_tenant_for_group(group: str) -> str | None:
 	"""Returns the tenant for the group."""
 
 	def generator() -> str | None:
-		return frappe.db.get_value("Mail Group", group, "tenant")
+		return frappe.db.get_value("Mailing List", group, "tenant")
 
 	return frappe.cache.hget(f"group|{group}", "tenant", generator)
 
