@@ -62,7 +62,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Alias For (Type)",
-   "options": "\nMail Account\nMail Group",
+   "options": "\nMail Account\nMailing List",
    "reqd": 1,
    "search_index": 1
   },
@@ -107,7 +107,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-19 11:48:33.501192",
+ "modified": "2025-06-02 13:01:28.396363",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Alias",
@@ -143,6 +143,7 @@
    "role": "Mail User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

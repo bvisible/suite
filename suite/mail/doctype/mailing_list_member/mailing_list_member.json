@@ -6,7 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_hw88",
-  "mail_group",
+  "mailing_list",
   "column_break_upc0",
   "member_type",
   "member_name"
@@ -17,25 +17,13 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "mail_group",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Mail Group",
-   "no_copy": 1,
-   "options": "Mail Group",
-   "reqd": 1,
-   "search_index": 1,
-   "set_only_once": 1
-  },
-  {
    "fieldname": "member_type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Member (Type)",
    "no_copy": 1,
-   "options": "\nMail Account\nMail Group",
+   "options": "Mail Account",
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
@@ -55,14 +43,26 @@
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "mailing_list",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Mailing List",
+   "no_copy": 1,
+   "options": "Mailing List",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-04 13:50:24.993867",
+ "modified": "2025-06-02 13:39:11.904000",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Group Member",
+ "name": "Mailing List Member",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -95,6 +95,7 @@
    "role": "Mail User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
