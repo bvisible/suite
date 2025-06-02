@@ -42,7 +42,7 @@
 					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
 				></div>
 				<div
-					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-300 ease-linear"
+					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-100 ease-linear"
 					:style="{ width: `${progress}%` }"
 				></div>
 			</div>
