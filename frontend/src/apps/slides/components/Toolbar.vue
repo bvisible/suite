@@ -11,7 +11,7 @@
 		<Tooltip text="Media" :hover-delay="0.7" placement="bottom">
 			<FileUploader
 				:fileTypes="ALLOWED_IMAGE_FILETYPES.concat(['video/*'])"
-				:uploadArgs="{ doctype: 'Presentation', docname: presentationId, private: false }"
+				:uploadArgs="{ doctype: 'Presentation', docname: presentationId, private: true }"
 				@success="(file) => handleUploadSuccess(file)"
 			>
 				<template #default="{ openFileSelector }">
