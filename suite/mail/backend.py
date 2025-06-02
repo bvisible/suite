@@ -348,38 +348,24 @@ class MailBackendAliasManager(MailBackendManagerBase):
 class MailBackendListMemberManager(MailBackendManagerBase):
 	"""Class to manage mailing list members on the Mail Backend."""
 
-	def create(self, email: str, member: str, is_list: bool) -> None:
+	def create(self, email: str, member: str) -> None:
 		"""Creates a mailing list member on the backend."""
 
-		endpoint = None
-		request_data = None
-		if is_list:
-			endpoint = f"/api/principal/{member}"
-			request_data = json.dumps([{"action": "addItem", "field": "memberOf", "value": email}])
-		else:
-			endpoint = f"/api/principal/{email}"
-			request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
-
+		endpoint = f"/api/principal/{email}"
+		request_data = json.dumps([{"action": "addItem", "field": "members", "value": member}])
 		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
-	def update(self, new_email: str, old_email: str, member: str, is_list: bool) -> None:
+	def update(self, new_email: str, old_email: str, member: str) -> None:
 		"""Updates a mailing list member on the backend."""
 
-		self.delete(old_email, member, is_list)
-		self.create(new_email, member, is_list)
+		self.delete(old_email, member)
+		self.create(new_email, member)
 
-	def delete(self, email: str, member: str, is_list: bool) -> None:
+	def delete(self, email: str, member: str) -> None:
 		"""Deletes a mailing list member from the backend."""
 
-		endpoint = None
-		request_data = None
-		if is_list:
-			endpoint = f"/api/principal/{member}"
-			request_data = json.dumps([{"action": "removeItem", "field": "memberOf", "value": email}])
-		else:
-			endpoint = f"/api/principal/{email}"
-			request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
-
+		endpoint = f"/api/principal/{email}"
+		request_data = json.dumps([{"action": "removeItem", "field": "members", "value": member}])
 		self.create_request(method="PATCH", endpoint=endpoint, request_data=request_data)
 
 

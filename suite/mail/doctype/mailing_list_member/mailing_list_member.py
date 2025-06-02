@@ -17,12 +17,6 @@ from mail.utils.user import has_role, is_system_manager
 
 
 class MailingListMember(Document):
-	@property
-	def member_is_list(self) -> bool:
-		"""Return True if the member is a Mailing List."""
-
-		return self.member_type == "Mailing List"
-
 	def validate(self) -> None:
 		self.validate_mailing_list()
 		self.validate_member_tenant()
@@ -51,10 +45,7 @@ class MailingListMember(Document):
 		"""Validate if the member name is not the same as the Mailing List."""
 
 		if self.mailing_list == self.member_name:
-			if self.member_type == "Mailing List":
-				frappe.throw(_("Mailing List cannot be a member of itself."))
-			else:
-				frappe.throw(_("Member cannot be the same as the Mailing List."))
+			frappe.throw(_("Member cannot be the same as the Mailing List."))
 
 		if not frappe.db.get_value(self.member_type, self.member_name, "enabled"):
 			frappe.throw(
@@ -64,20 +55,12 @@ class MailingListMember(Document):
 	def after_insert(self) -> None:
 		MailBackendListMemberManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
-		).create(
-			self.mailing_list,
-			self.member_name,
-			self.member_is_list,
-		)
+		).create(self.mailing_list, self.member_name)
 
 	def on_trash(self) -> None:
 		MailBackendListMemberManager(
 			"Mail Cluster", get_cluster_for_tenant(get_tenant_for_group(self.mailing_list))
-		).delete(
-			self.mailing_list,
-			self.member_name,
-			self.member_is_list,
-		)
+		).delete(self.mailing_list, self.member_name)
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
