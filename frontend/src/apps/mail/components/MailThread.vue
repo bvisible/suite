@@ -412,17 +412,26 @@ const editDraft = (mail: Mail) => {
 }
 
 const reply = (mail: Mail) => {
-	mailDetails.to = [mail.from_email]
+	if (isUserEmail(mail.from_email))
+		mailDetails.to = mail.recipients.To?.map((rcpt) => rcpt.email)
+	else mailDetails.to = mail.reply_to.length ? mail.reply_to : [mail.from_email]
+
 	setReplyDetailsAndOpenModal(mail)
 }
 
 const replyAll = (mail: Mail) => {
-	mailDetails.to = [...(mail.recipients.To?.map((m) => m.email) || []), mail.from_email].filter(
-		(m) => m !== user.data.email,
-	)
-	mailDetails.cc = (mail.recipients.Cc?.map((m) => m.email) || []).filter(
-		(m) => m !== user.data.email,
-	)
+	if (isUserEmail(mail.from_email)) {
+		mailDetails.to = mail.recipients.To?.map((rcpt) => rcpt.email) || []
+		mailDetails.cc = mail.recipients.Cc?.map((rcpt) => rcpt.email) || []
+	} else {
+		mailDetails.to = mail.reply_to.length ? mail.reply_to : [mail.from_email]
+
+		const originalRecipients = [...(mail.recipients.To || []), ...(mail.recipients.Cc || [])]
+		mailDetails.cc = originalRecipients
+			.filter((rcpt) => !isUserEmail(rcpt.email))
+			.map((rcpt) => rcpt.email)
+	}
+
 	setReplyDetailsAndOpenModal(mail)
 }
 
@@ -431,6 +440,8 @@ const forward = (mail: Mail) => {
 	mailDetails.body = getMailBody(mail)
 	showSendModal.value = true
 }
+
+const isUserEmail = (email: string) => user.data.email_addresses.includes(email)
 
 const setReplyDetailsAndOpenModal = (mail: Mail) => {
 	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`

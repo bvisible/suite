@@ -67,11 +67,14 @@ def get_mail_thread(thread_id: str) -> list[dict]:
 
 	EmailMessage = frappe.qb.DocType("Email Message")
 	EmailMessageRecipient = frappe.qb.DocType("Email Message Recipient")
+	EmailMessageReplyTo = frappe.qb.DocType("Email Message Reply To")
 
 	rows = (
 		frappe.qb.from_(EmailMessage)
 		.left_join(EmailMessageRecipient)
 		.on(EmailMessage.name == EmailMessageRecipient.parent)
+		.left_join(EmailMessageReplyTo)
+		.on(EmailMessage.name == EmailMessageReplyTo.parent)
 		.select(
 			EmailMessage.name,
 			EmailMessage.message_id,
@@ -88,6 +91,7 @@ def get_mail_thread(thread_id: str) -> list[dict]:
 			EmailMessageRecipient.type,
 			EmailMessageRecipient.email,
 			EmailMessageRecipient.display_name,
+			EmailMessageReplyTo.email.as_("reply_to"),
 		)
 		.where(
 			(EmailMessage.account == frappe.session.user)
@@ -122,6 +126,7 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 				"mailbox_role": row["mailbox_role"],
 				"has_attachment": row["has_attachment"],
 				"recipients": defaultdict(list),
+				"reply_to": [],
 			}
 
 			if row["has_attachment"]:
@@ -130,6 +135,9 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 		if row["email"]:
 			recipient = {"email": row["email"], "display_name": row["display_name"]}
 			grouped[key]["recipients"][row["type"]].append(recipient)
+
+		if row["reply_to"] and row["reply_to"] not in grouped[key]["reply_to"]:
+			grouped[key]["reply_to"].append(row["reply_to"])
 
 	if messages_with_attachments:
 		attachments = frappe.get_all(
