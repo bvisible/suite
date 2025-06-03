@@ -94,9 +94,9 @@ export const useSnapping = (target, parent) => {
 			const elementBounds = getElementBounds(elementDiv)
 
 			const diffLeft = activeBounds.left - elementBounds.left
-			const diffRight = activeBounds.right - elementBounds.right
+			const diffRight = activeBounds.left + activeBounds.width - elementBounds.right
 			const diffTop = activeBounds.top - elementBounds.top
-			const diffBottom = activeBounds.bottom - elementBounds.bottom
+			const diffBottom = activeBounds.top + activeBounds.height - elementBounds.bottom
 
 			const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
 			const isPaired = pairElementId.value == element.id
