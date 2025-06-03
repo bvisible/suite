@@ -15,7 +15,7 @@ import bcrypt
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
-from frappe.utils.caching import redis_cache, request_cache
+from frappe.utils.caching import redis_cache
 
 
 def hash_password(password: str) -> str:
@@ -146,18 +146,15 @@ def rename_keys(data: dict, rename_map: dict) -> dict:
 	return {rename_map.get(k, k): v for k, v in data.items()}
 
 
-@request_cache
 def convert_html_to_text(html: str) -> str:
 	"""Returns plain text from HTML content."""
 
-	text = ""
+	if not html:
+		return ""
 
-	if html:
-		soup = BeautifulSoup(html, "html.parser")
-		text = soup.get_text()
-		text = re.sub(r"\s+", " ", text).strip()
-
-	return text
+	soup = BeautifulSoup(html, "html.parser")
+	text = soup.get_text(separator=" ")
+	return re.sub(r"\s+", " ", text).strip()
 
 
 def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:

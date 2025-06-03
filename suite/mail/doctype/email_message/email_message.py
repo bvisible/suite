@@ -25,7 +25,7 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	update_current_state,
 )
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
-from mail.utils import enqueue_job, user_context
+from mail.utils import convert_html_to_text, enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -67,7 +67,7 @@ class EmailMessage(Document):
 				EM.from_name,
 				EM.from_email,
 				EM.subject,
-				Case().when(EM.html_body.isnotnull(), EM.html_body).else_(EM.text_body).as_("preview"),
+				Case().when(EM.text_body.isnotnull(), EM.text_body).else_(EM.html_body).as_("preview"),
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
@@ -85,6 +85,10 @@ class EmailMessage(Document):
 			query = query.where(EM.mailbox_id.isin(mailbox_ids))
 
 		messages = query.run(as_dict=True)
+
+		for message in messages:
+			if preview := message.get("preview"):
+				message["preview"] = convert_html_to_text(preview)
 
 		attachments_map = {}
 		if messages_with_attachment := [m["name"] for m in messages if m["has_attachment"]]:
