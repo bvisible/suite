@@ -2,15 +2,20 @@
 	<button
 		class="flex items-center space-x-2 rounded-full border px-2 py-1.5"
 		:class="{ 'cursor-pointer hover:border-gray-400': true }"
-		@click="blobID && fetchAttachment.submit()"
+		@click="openAttachment"
 	>
-		<Paperclip class="h-3.5 min-h-3.5 w-3.5 min-w-3.5 text-gray-500" />
+		<Loader
+			v-if="isLoading"
+			class="h-3.5 min-h-3.5 w-3.5 min-w-3.5 animate-spin text-gray-500"
+		/>
+		<Paperclip v-else class="h-3.5 min-h-3.5 w-3.5 min-w-3.5 text-gray-500" />
 		<span class="truncate text-sm">{{ fileName }}</span>
 	</button>
 </template>
 
 <script setup lang="ts">
-import { Paperclip } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Loader, Paperclip } from 'lucide-vue-next'
 import { createResource } from 'frappe-ui'
 
 const { fileName, blobID, type } = defineProps<{
@@ -18,6 +23,15 @@ const { fileName, blobID, type } = defineProps<{
 	blobID?: string
 	type?: string
 }>()
+
+const isLoading = ref(false)
+
+const openAttachment = async () => {
+	if (!blobID) return
+	isLoading.value = true
+	await fetchAttachment.submit()
+	isLoading.value = false
+}
 
 const fetchAttachment = createResource({
 	url: 'mail.api.mail.fetch_attachment',
@@ -29,5 +43,6 @@ const fetchAttachment = createResource({
 		const url = URL.createObjectURL(blob)
 		window.open(url, '_blank')
 	},
+	onError: () => (isLoading.value = false),
 })
 </script>

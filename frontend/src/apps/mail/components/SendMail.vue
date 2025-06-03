@@ -377,8 +377,7 @@ const textEditorMenuButtons = [
 	'Bullet List',
 	'Numbered List',
 	'Separator',
-	// todo: fix inline image upload
-	// 'Image',
+	'Image',
 	'Link',
 	'Horizontal Rule',
 	[
