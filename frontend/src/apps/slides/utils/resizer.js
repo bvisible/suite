@@ -1,8 +1,36 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
-export const useResizer = () => {
+export const useResizer = (elementType) => {
 	const isResizing = ref(false)
 	const currentResizer = ref(null)
+
+	const cursorMap = {
+		'top-left': 'nwse-resize',
+		'top-right': 'nesw-resize',
+		'bottom-left': 'nesw-resize',
+		'bottom-right': 'nwse-resize',
+		left: 'ew-resize',
+		right: 'ew-resize',
+	}
+
+	const resizeCursor = computed(() => cursorMap[currentResizer.value] ?? 'default')
+
+	const isResizeHandleVisible = (resizer) => {
+		if (!currentResizer.value) return true
+		return currentResizer.value === resizer
+	}
+
+	const resizeHandles = computed(() => {
+		const directions =
+			elementType === 'text'
+				? ['left', 'right']
+				: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+
+		return directions.map((direction) => ({
+			direction,
+			isVisible: isResizeHandleVisible(direction),
+		}))
+	})
 
 	let prevX = 0
 	let prevY = 0
@@ -81,5 +109,5 @@ export const useResizer = () => {
 		window.removeEventListener('mouseup', stopResize)
 	}
 
-	return { dimensionDelta, currentResizer, startResize }
+	return { dimensionDelta, currentResizer, startResize, resizeHandles, resizeCursor }
 }
