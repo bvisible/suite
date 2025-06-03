@@ -5,12 +5,13 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Count
-from frappe.utils import cint, random_string
+from frappe.utils import format_datetime, random_string
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils.user import get_user_email_addresses
+from mail.utils.validation import validate_permission_for_account
 
 
 @frappe.whitelist()
@@ -43,8 +44,6 @@ def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
 def get_mailbox_thread_count(mailbox: str) -> str:
 	"""Returns no. of mails for the given mailbox."""
 
-	mailbox_id = get_mailbox_id(mailbox)
-
 	EmailMessage = frappe.qb.DocType("Email Message")
 
 	distinct_threads = (
@@ -53,7 +52,7 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 		.distinct()
 		.where(
 			(EmailMessage.account == frappe.session.user)
-			& (EmailMessage.mailbox_id == mailbox_id)
+			& (EmailMessage.mailbox_role == mailbox)
 			& (EmailMessage.destroyed == 0)
 		)
 	)
@@ -65,10 +64,8 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 
 # todo:
 @frappe.whitelist()
-def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
+def get_mail_thread(thread_id: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
-
-	mailbox_id = get_mailbox_id(mailbox)
 
 	EmailMessage = frappe.qb.DocType("Email Message")
 	EmailMessageRecipient = frappe.qb.DocType("Email Message Recipient")
@@ -88,6 +85,7 @@ def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 			EmailMessage.text_body,
 			EmailMessage.received_at,
 			EmailMessage.draft,
+			EmailMessage.mailbox_role,
 			EmailMessage.has_attachment,
 			EmailMessageRecipient.type,
 			EmailMessageRecipient.email,
@@ -96,7 +94,6 @@ def get_mail_thread(thread_id: str, mailbox: str) -> list[dict]:
 		.where(
 			(EmailMessage.account == frappe.session.user)
 			& (EmailMessage.thread_id == thread_id)
-			& (EmailMessage.mailbox_id == mailbox_id)
 			& (EmailMessage.destroyed == 0)
 		)
 	).run(as_dict=True)
@@ -123,6 +120,7 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 				"text_body": row["text_body"],
 				"received_at": row["received_at"],
 				"draft": row["draft"],
+				"mailbox_role": row["mailbox_role"],
 				"has_attachment": row["has_attachment"],
 				"recipients": defaultdict(list),
 			}
@@ -274,6 +272,7 @@ def get_user_addresses(user: str | None = None) -> list:
 	if not user:
 		user = frappe.session.user
 
+	validate_permission_for_account(user)
 	return get_user_email_addresses(user)
 
 
@@ -289,22 +288,34 @@ def get_mime_message(name: str) -> dict:
 
 	pass_or_fail = {1: _("'Pass'"), 0: _("'Fail'")}
 
-	return {
+	result = {
 		"message": doc.message or doc.get_mime_message(),
 		"message_id": {"label": _("Message ID"), "value": doc.message_id},
-		"created_at": {"label": _("Created at"), "value": doc.sent_at},
+		"created_at": {
+			"label": _("Created at"),
+			"value": _("{0} (Delivered after {1} seconds)").format(
+				format_datetime(doc.sent_at, "E, MMM d, yyyy 'at' h:mm a"),
+				round(doc.received_after),
+			),
+		},
 		"subject": {"label": _("Subject"), "value": doc.subject},
 		"from": {"label": _("From"), "value": f"{doc.from_name} <{doc.from_email}>"},
 		"to": {"label": _("To"), "value": get_mail_recipients("To")},
 		"cc": {"label": _("CC"), "value": get_mail_recipients("Cc")},
 		"bcc": {"label": _("BCC"), "value": get_mail_recipients("Bcc")},
-		"spf": {
+	}
+
+	if doc.spf_description:
+		result["spf"] = {
 			"label": _("SPF"),
 			"value": _("{0} with IP {1}").format(pass_or_fail[doc.spf_pass], doc.from_ip),
-		},
-		"dkim": {"label": _("DKIM"), "value": pass_or_fail[doc.dkim_pass]},
-		"dmarc": {"label": _("DMARC"), "value": pass_or_fail[doc.dmarc_pass]},
-	}
+		}
+	if doc.dkim_description:
+		result["dkim"] = {"label": _("DKIM"), "value": pass_or_fail[doc.dkim_pass]}
+	if doc.dmarc_description:
+		result["dmarc"] = {"label": _("DMARC"), "value": pass_or_fail[doc.dmarc_pass]}
+
+	return result
 
 
 @frappe.whitelist()
@@ -330,12 +341,10 @@ def set_mails_mailbox(mail_ids: list[str], mailbox: str) -> None:
 def empty_mailbox(mailbox: str) -> None:
 	"""Empties selected mailbox for current user."""
 
-	mailbox_id = get_mailbox_id(mailbox)
-
 	user = frappe.session.user
 	messages = frappe.get_all(
 		"Email Message",
-		{"account": user, "mailbox_id": ["in", mailbox_id], "destroyed": 0},
+		{"account": user, "mailbox_role": ["in", mailbox], "destroyed": 0},
 		pluck="name",
 	)
 	EmailMessage.destroy_emails(user, messages)
