@@ -85,7 +85,7 @@ const handleVisibilityMap = computed(() => {
 })
 
 const handleDimensionChange = (delta) => {
-	if (!currentResizer.value || !delta.width) return
+	if (!delta.width) return
 
 	const ratio = selectionBounds.width / selectionBounds.height
 	delta.top = (delta.top ?? 0) / ratio
@@ -103,7 +103,7 @@ const handleDimensionChange = (delta) => {
 
 const resizeToFitContent = () => {
 	// create range of the text node within TextElement
-	const target = props.elementDivRef?.value
+	const target = props.elementDivRef
 	const range = document.createRange()
 	const textNode = target.firstChild
 	const originalWidth = target.offsetWidth
