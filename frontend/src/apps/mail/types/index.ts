@@ -58,6 +58,7 @@ export interface Mail {
 		Cc: Recipient[]
 		Bcc: Recipient[]
 	}
+	reply_to: string[]
 	attachments: Attachment[]
 }
 
