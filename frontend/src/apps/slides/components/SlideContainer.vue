@@ -74,19 +74,13 @@ const updateSlideCursor = (cursor) => {
 	slideCursor.value = cursor
 }
 
-const cursorClass = computed(() => {
-	const cursor = isDragging.value ? 'move' : slideCursor.value || 'default'
-	return `cursor-${cursor}`
-})
-
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
 	const outlineClasses = props.highlight ? ['outline', 'outline-2', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
-	const cursorClasses = [cursorClass.value]
 
-	return [...classes, outlineClasses, shadowClasses, cursorClasses]
+	return [...classes, outlineClasses, shadowClasses]
 })
 
 const targetStyles = computed(() => ({
@@ -97,6 +91,7 @@ const targetStyles = computed(() => ({
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
 	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
+	cursor: isDragging.value ? 'move' : slideCursor.value || 'default',
 }))
 
 const getElementOutline = (element) => {
