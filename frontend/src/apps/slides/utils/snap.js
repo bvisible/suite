@@ -3,7 +3,8 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const PROXIMITY_THRESHOLD = 30
+	const CENTER_PROXIMITY_THRESHOLD = 15
+	const PROXIMITY_THRESHOLD = 10
 
 	const snapMovement = ref({ x: 0, y: 0 })
 
@@ -139,10 +140,18 @@ export const useSnapping = (target, parent) => {
 		const diff = diffs[axis]
 		const prevDiff = prevDiffs[axis]
 
+		let threshold, margin
+		if (['horizontal', 'vertical'].includes(axis)) {
+			threshold = CENTER_PROXIMITY_THRESHOLD
+			margin = 3
+		} else {
+			threshold = PROXIMITY_THRESHOLD
+			margin = 5
+		}
+
 		let offset = 0
 
-		const canSnap =
-			Math.abs(diff + PROXIMITY_THRESHOLD) < 3 || Math.abs(diff - PROXIMITY_THRESHOLD) < 3
+		const canSnap = Math.abs(diff + threshold) < margin || Math.abs(diff - threshold) < margin
 		const movingAway = Math.abs(diff) > Math.abs(prevDiff)
 
 		if (canSnap && !movingAway) {
