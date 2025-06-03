@@ -5,7 +5,7 @@
 			v-model="account.doc.default_outgoing_email"
 			:label="__('Send Mails From')"
 			:show-search="false"
-			:options="userAddresses.data"
+			:options="user.data.email_addresses"
 		/>
 		<FormControl v-model="account.doc.display_name" :label="__('Display Name')" />
 		<Switch
@@ -51,14 +51,7 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue'
-import {
-	Button,
-	ErrorMessage,
-	FormControl,
-	Switch,
-	createDocumentResource,
-	createResource,
-} from 'frappe-ui'
+import { Button, ErrorMessage, FormControl, Switch, createDocumentResource } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
@@ -81,6 +74,4 @@ const account = createDocumentResource({
 })
 
 const setCustomReplyTo = ref(account.doc?.reply_to)
-
-const userAddresses = createResource({ url: 'mail.api.mail.get_user_addresses', auto: true })
 </script>

@@ -69,7 +69,7 @@ const getAccount = () =>
 	})
 
 const userAddresses = createResource({
-	url: 'mail.api.mail.get_user_addresses',
+	url: 'mail.api.admin.get_user_addresses',
 	makeParams: () => ({ user: accountID }),
 })
 
