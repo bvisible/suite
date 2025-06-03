@@ -913,13 +913,13 @@ class EmailMessage(Document):
 		reply_to = [{"display_name": rt.display_name, "email": rt.email} for rt in self.reply_to]
 		attachments = [
 			{
-				"file_url": a["file_url"],
-				"blob_id": a["blob_id"],
-				"type": a["type"],
-				"size": a["size"],
-				"filename": a["filename"],
-				"disposition": a["disposition"],
-				"cid": a["cid"],
+				"file_url": a.file_url,
+				"blob_id": a.blob_id,
+				"type": a.type,
+				"size": a.size,
+				"filename": a.filename,
+				"disposition": a.disposition,
+				"cid": a.cid,
 			}
 			for a in self.attachments
 		]

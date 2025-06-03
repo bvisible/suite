@@ -436,6 +436,7 @@ const setReplyDetailsAndOpenModal = (mail: Mail) => {
 }
 
 const getMailBody = (mail: Mail) => {
+	if (!mail.html_body) return ''
 	const replyHeader = `On ${dayjs(mail.received_at).format('DD MMM YYYY')} at ${dayjs(mail.received_at).format('h:mm A')}, ${mail.from_email} wrote:`
 	return `<br><blockquote>${replyHeader} <br> ${mail.html_body}</blockquote>`
 }
