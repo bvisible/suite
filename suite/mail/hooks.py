@@ -219,12 +219,14 @@ scheduler_events = {
 		"mail.tasks.enqueue_cancel_trashed_mails",
 	],
 	"daily_long": [
-		"mail.mail.doctype.email_message.email_message.delete_destroyed_emails",
 		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
 	],
 	# "hourly": [
 	#     "mail.tasks.hourly"
 	# ],
+	"hourly_long": [
+		"mail.mail.doctype.email_message.email_message.delete_destroyed_emails",
+	],
 	# "weekly": [
 	#     "mail.tasks.weekly"
 	# ],
