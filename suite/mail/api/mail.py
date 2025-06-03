@@ -9,6 +9,7 @@ from frappe.utils import cint, random_string
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
+from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils.user import get_user_email_addresses
 
 
@@ -177,24 +178,16 @@ def create_mail(
 	cc: list[str],
 	bcc: list[str],
 	subject: str | None,
-	body: str | None,
+	html_body: str | None,
 	attachments: list[dict] = None,
 	in_reply_to: str | None = None,
 	in_reply_to_id: str | None = None,
 	save_as_draft: bool = False,
-):
+) -> None:
 	"""Creates new mail queue."""
 
-	doc = frappe.new_doc("Mail Queue")
-	doc.account = frappe.session.user
-	doc.from_email = from_email
-	doc.subject = subject
-	doc.html_body = body
-	doc.in_reply_to = in_reply_to
-	doc.in_reply_to_id = in_reply_to_id
-	doc.save_as_draft = cint(save_as_draft)
-
-	doc.attachments = [
+	account = frappe.session.user
+	doc_attachments = [
 		{
 			"file_url": d.get("file_url"),
 			"filename": d.get("file_name", ""),
@@ -203,14 +196,21 @@ def create_mail(
 		}
 		for d in attachments
 	]
-	doc.attachments = json.dumps(doc.attachments)
+	recipients = [{"type": "To", "email": email} for email in to]
+	recipients += [{"type": "Cc", "email": email} for email in cc]
+	recipients += [{"type": "Bcc", "email": email} for email in bcc]
 
-	doc.recipients = [{"type": "To", "email": email} for email in to]
-	doc.recipients += [{"type": "Cc", "email": email} for email in cc]
-	doc.recipients += [{"type": "Bcc", "email": email} for email in bcc]
-	doc.recipients = json.dumps(doc.recipients)
-
-	doc.save()
+	MailQueue._create(
+		account=account,
+		from_email=from_email,
+		subject=subject,
+		html_body=html_body,
+		in_reply_to=in_reply_to,
+		in_reply_to_id=in_reply_to_id,
+		attachments=doc_attachments,
+		recipients=recipients,
+		save_as_draft=save_as_draft,
+	)
 
 
 @frappe.whitelist()
@@ -221,40 +221,47 @@ def update_draft_mail(
 	cc: list[str],
 	bcc: list[str],
 	subject: str | None,
-	body: str | None,
+	html_body: str | None,
 	attachments: list[dict] = None,
 	submit: bool = False,
-):
+) -> None:
 	"""Creates new mail queue from existing draft message."""
 
 	doc = frappe.get_doc("Email Message", name)
-	doc.account = frappe.session.user
+	doc.check_permission(permtype="write")
+
 	doc.from_email = from_email
 	doc.subject = subject
-	doc.html_body = body
+	doc.html_body = html_body
 
-	doc.attachments = [
-		{
-			"blob_id": d.get("blob_id", ""),
-			"file_url": d.get("file_url", ""),
-			"type": d.get("type", ""),
-			"size": d.get("size", ""),
-			"filename": d.get("filename", ""),
-			"disposition": d.get("disposition"),
-			"cid": random_string(10),
-		}
-		for d in attachments
-	]
+	doc.attachments = []
+	for d in attachments or []:
+		doc.append(
+			"attachments",
+			{
+				"blob_id": d.get("blob_id", ""),
+				"file_url": d.get("file_url", ""),
+				"type": d.get("type", ""),
+				"size": d.get("size", ""),
+				"filename": d.get("filename", ""),
+				"disposition": d.get("disposition"),
+				"cid": random_string(10),
+			},
+		)
 
-	doc.recipients = [frappe._dict({"type": "To", "email": email}) for email in to]
-	doc.recipients += [frappe._dict({"type": "Cc", "email": email}) for email in cc]
-	doc.recipients += [frappe._dict({"type": "Bcc", "email": email}) for email in bcc]
+	doc.recipients = []
+	for email in to:
+		doc.append("recipients", {"type": "To", "email": email})
+	for email in cc:
+		doc.append("recipients", {"type": "Cc", "email": email})
+	for email in bcc:
+		doc.append("recipients", {"type": "Bcc", "email": email})
 
 	doc.submit() if submit else doc.save_draft()
 
 
 @frappe.whitelist()
-def destroy_mail(name: str):
+def destroy_mail(name: str) -> None:
 	"""Destroys the given mail."""
 
 	EmailMessage.destroy_emails(frappe.session.user, [name])
@@ -275,6 +282,7 @@ def get_mime_message(name: str) -> dict:
 	"""Fetches mail mime message and related data."""
 
 	doc = frappe.get_doc("Email Message", name)
+	doc.check_permission(permtype="read")
 
 	def get_mail_recipients(recipient_type):
 		return ", ".join([d.email for d in doc.recipients if d.type == recipient_type])
@@ -282,7 +290,7 @@ def get_mime_message(name: str) -> dict:
 	pass_or_fail = {1: _("'Pass'"), 0: _("'Fail'")}
 
 	return {
-		"message": doc.get_mime_message(),
+		"message": doc.message or doc.get_mime_message(),
 		"message_id": {"label": _("Message ID"), "value": doc.message_id},
 		"created_at": {"label": _("Created at"), "value": doc.sent_at},
 		"subject": {"label": _("Subject"), "value": doc.subject},
