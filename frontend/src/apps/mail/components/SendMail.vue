@@ -22,7 +22,7 @@
 							<FormControl
 								v-model="mail.from_email"
 								type="autocomplete"
-								:options="addressOptions.data || []"
+								:options="user.data?.email_addresses || []"
 							/>
 						</div>
 						<div class="flex items-center gap-2">
@@ -249,8 +249,6 @@ const appendEmoji = () => {
 	editor.value.commands.focus()
 	emoji.value = ''
 }
-
-const addressOptions = createResource({ url: 'mail.api.mail.get_user_addresses', auto: true })
 
 const emptyMail = {
 	from_email: user.data?.default_outgoing,

@@ -13,7 +13,7 @@ from mail.utils.cache import (
 	get_tenant_for_domain,
 )
 from mail.utils.rate_limiter import dynamic_rate_limit
-from mail.utils.user import get_user_tenant
+from mail.utils.user import get_user_email_addresses, get_user_tenant
 from mail.utils.validation import is_email_assigned
 
 
@@ -162,8 +162,8 @@ def get_user_info() -> dict | None:
 		)
 		user_dict.is_tenant_owner = tenant_owner == user
 
+	user_dict.email_addresses = get_user_email_addresses(user)
 	user_dict.default_outgoing = get_default_outgoing_email_for_user(user)
-
 	user_dict.mailboxes = get_mailboxes_for_account(user)
 
 	return user_dict

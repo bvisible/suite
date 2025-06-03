@@ -10,6 +10,7 @@ export interface User {
 	user_image: string | null
 	api_key: string | null
 	tenant: string | null
+	email_addresses: string[]
 	default_outgoing: string | null
 
 	enabled: boolean
@@ -52,7 +53,6 @@ export interface Mail {
 	received_at: string
 	draft: 0 | 1
 	mailbox_role: string
-	has_attachment: 0 | 1
 	recipients: {
 		To: Recipient[]
 		Cc: Recipient[]

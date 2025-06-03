@@ -57,6 +57,7 @@
 					:blob-i-d="attachment.blob_id"
 					:type="attachment.type"
 					class="mr-2 max-w-32"
+					@click.stop.prevent
 				/>
 				<AttachmentCapsule
 					v-if="mail.attachments?.length > 2"
