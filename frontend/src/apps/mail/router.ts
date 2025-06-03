@@ -142,7 +142,7 @@ router.beforeEach(async (to, from, next) => {
 		if (!user.default_outgoing && !to.meta.isDashboard) return next({ name: 'Domains' })
 	} else if (to.meta.isDashboard) return next(mailboxRoute)
 
-	if (to.path === '/' || to.path === '/mailbox') return next(mailboxRoute)
+	if (['/', '/mailbox', '/mailbox/'].includes(to.path)) return next(mailboxRoute)
 
 	next(to.meta.isLogin || to.meta.isSetup ? mailboxRoute : undefined)
 })

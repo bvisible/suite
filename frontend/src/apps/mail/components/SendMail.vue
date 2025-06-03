@@ -12,8 +12,8 @@
 					'min-h-[15rem]',
 					'[&_p.reply-to-content]:hidden',
 				]"
-				:content="mail.body"
-				@change="(val: string) => (mail.body = val)"
+				:content="mail.html_body"
+				@change="(val: string) => (mail.html_body = val)"
 			>
 				<template #top>
 					<div class="flex flex-col gap-3 border-b">
@@ -256,7 +256,7 @@ const emptyMail = {
 	bcc: [],
 	attachments: [],
 	subject: '',
-	body: '',
+	html_body: '',
 	in_reply_to: '',
 	in_reply_to_id: '',
 }
@@ -310,7 +310,7 @@ const setMailDetails = () => {
 	mail.in_reply_to = mailDetails.in_reply_to
 	mail.in_reply_to_id = mailDetails.in_reply_to_id
 	mail.subject = mailDetails.subject
-	mail.body = mailDetails.body
+	mail.html_body = mailDetails.body
 	mail.attachments = mailDetails.attachments
 	mail.to = mailDetails.to
 	mail.cc = mailDetails.cc
@@ -335,9 +335,9 @@ const isMailEmpty = computed(() => {
 	const isRecipientsEmpty = [mail.to, mail.cc, mail.bcc].every((d) => !d.length)
 
 	let isBodyEmpty = true
-	if (mail.body) {
+	if (mail.html_body) {
 		const element = document.createElement('div')
-		element.innerHTML = mail.body
+		element.innerHTML = mail.html_body
 		isBodyEmpty =
 			!element.textContent?.trim() &&
 			Array.from(element.children).every((d) => !d.textContent?.trim())
