@@ -225,6 +225,7 @@ scheduler_events = {
 	#     "mail.tasks.hourly"
 	# ],
 	"hourly_long": [
+		"mail.mail.doctype.email_message.email_message.schedule_fetch_changes",
 		"mail.mail.doctype.email_message.email_message.delete_destroyed_emails",
 	],
 	# "weekly": [
