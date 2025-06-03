@@ -10,8 +10,6 @@ from frappe.utils import format_datetime, random_string
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
-from mail.utils.user import get_user_email_addresses
-from mail.utils.validation import validate_permission_for_account
 
 
 @frappe.whitelist()
@@ -105,6 +103,7 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 	"""Returns mail thread with attachments and grouped recipients."""
 
 	grouped = {}
+	messages_with_attachments = set()
 
 	for row in rows:
 		key = row["name"]
@@ -125,18 +124,34 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 				"recipients": defaultdict(list),
 			}
 
-		recipient = {"email": row["email"], "display_name": row["display_name"]}
-		grouped[key]["recipients"][row["type"]].append(recipient)
+			if row["has_attachment"]:
+				messages_with_attachments.add(key)
+
+		if row["email"]:
+			recipient = {"email": row["email"], "display_name": row["display_name"]}
+			grouped[key]["recipients"][row["type"]].append(recipient)
+
+	if messages_with_attachments:
+		attachments = frappe.get_all(
+			"Email Message Part",
+			filters={
+				"parenttype": "Email Message",
+				"parentfield": "attachments",
+				"parent": ["in", messages_with_attachments],
+			},
+			fields=["parent", "filename", "blob_id", "type", "size", "file_url", "disposition"],
+		)
+
+		attachments_by_parent = defaultdict(list)
+		for attachment in attachments:
+			parent = attachment.pop("parent")
+			attachments_by_parent[parent].append(attachment)
 
 	result = []
 	for item in grouped.values():
 		item["recipients"] = dict(item["recipients"])
 		if item["has_attachment"]:
-			item["attachments"] = frappe.get_all(
-				"Email Message Part",
-				filters={"parenttype": "Email Message", "parentfield": "attachments", "parent": item["name"]},
-				fields=["filename", "blob_id", "type", "size", "file_url", "disposition"],
-			)
+			item["attachments"] = attachments_by_parent[item["name"]]
 		result.append(item)
 
 	return result
@@ -263,17 +278,6 @@ def destroy_mail(name: str) -> None:
 	"""Destroys the given mail."""
 
 	EmailMessage.destroy_emails(frappe.session.user, [name])
-
-
-@frappe.whitelist()
-def get_user_addresses(user: str | None = None) -> list:
-	"""Fetches user email addresses."""
-
-	if not user:
-		user = frappe.session.user
-
-	validate_permission_for_account(user)
-	return get_user_email_addresses(user)
 
 
 @frappe.whitelist()
