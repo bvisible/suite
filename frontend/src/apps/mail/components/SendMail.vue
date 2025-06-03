@@ -132,21 +132,23 @@
 							(file) => mail.attachments.push({ ...file, disposition: 'attachment' })
 						"
 					>
-						<template #default="{ file, progress, uploading, openFileSelector }">
+						<template
+							#default="{ file, progress, uploading, openFileSelector, error }"
+						>
 							<div
 								v-if="uploading"
 								class="mb-2 rounded bg-gray-100 p-2.5 text-sm text-gray-700"
 							>
 								<div class="mb-1.5 flex items-center">
-									<span class="mr-1 font-medium">
-										{{ file.name }}
-									</span>
+									<span class="mr-1 font-medium"> {{ file.name }} </span>
 									<span class="font-extralight">
 										({{ formatBytes(file.size) }})
 									</span>
 								</div>
 								<Progress :value="progress" />
 							</div>
+
+							<ErrorMessage :message="error" class="mb-2.5" />
 
 							<div
 								class="flex flex-wrap justify-between gap-2 overflow-hidden border-t py-2.5"
@@ -197,6 +199,7 @@ import { Laugh, Paperclip } from 'lucide-vue-next'
 import {
 	Button,
 	Dialog,
+	ErrorMessage,
 	FeatherIcon,
 	FileUploader,
 	FormControl,
