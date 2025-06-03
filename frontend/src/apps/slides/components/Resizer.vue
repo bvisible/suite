@@ -2,11 +2,11 @@
 	<div>
 		<ResizeHandle
 			v-for="resizeHandle in resizeHandles"
-			v-show="handleVisibilityMap[resizeHandle]"
-			:key="resizeHandle"
-			:direction="resizeHandle"
+			v-show="resizeHandle.isVisible"
+			:key="resizeHandle.direction"
+			:direction="resizeHandle.direction"
 			:cursor="resizeCursor"
-			@startResize="(e) => startResize(e, resizeHandle)"
+			@startResize="(e) => startResize(e, resizeHandle.direction)"
 			@resizeToFitContent="resizeToFitContent"
 		/>
 
@@ -47,42 +47,9 @@ const element = defineModel('element', {
 
 const updateSlideCursor = inject('updateSlideCursor')
 
-const { dimensionDelta, currentResizer, startResize } = useResizer()
-
-const resizeCursor = computed(() => {
-	switch (currentResizer.value) {
-		case 'top-left':
-			return 'nwse-resize'
-		case 'top-right':
-			return 'nesw-resize'
-		case 'bottom-left':
-			return 'nesw-resize'
-		case 'bottom-right':
-			return 'nwse-resize'
-		case 'left':
-		case 'right':
-			return 'ew-resize'
-		default:
-			return 'default'
-	}
-})
-
-const resizeHandles = computed(() => {
-	if (props.elementType === 'text') return ['left', 'right']
-	else return ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-})
-
-const isResizeHandleVisible = (resizer) => {
-	if (!currentResizer.value) return true
-	return currentResizer.value === resizer
-}
-
-const handleVisibilityMap = computed(() => {
-	return resizeHandles.value.reduce((acc, resizer) => {
-		acc[resizer] = isResizeHandleVisible(resizer)
-		return acc
-	}, {})
-})
+const { dimensionDelta, currentResizer, startResize, resizeHandles, resizeCursor } = useResizer(
+	props.elementType,
+)
 
 const handleDimensionChange = (delta) => {
 	if (!delta.width) return
