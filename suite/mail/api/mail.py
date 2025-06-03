@@ -7,8 +7,11 @@ from bs4 import BeautifulSoup
 from frappe import _
 from frappe.utils import is_html, now
 
+from mail.mail.doctype.email_message.email_message import enqueue_fetch_changes
 from mail.utils.cache import get_account_for_user
+from mail.utils.rate_limiter import dynamic_rate_limit
 from mail.utils.user import get_user_email_addresses
+from mail.utils.validation import validate_permission_for_account
 
 MailType = Literal["Incoming Mail", "Outgoing Mail"]
 
@@ -592,3 +595,13 @@ def delete_or_cancel_threads(threads: list[dict]) -> None:
 			d for d in get_mail_thread(thread["name"], thread["mail_type"], True) if d["folder"] == "Trash"
 		]
 		delete_or_cancel_mails(mails)
+
+
+@frappe.whitelist()
+@dynamic_rate_limit()
+def fetch_changes() -> None:
+	"""Fetches changes for the current user's account."""
+
+	account = frappe.session.user
+	validate_permission_for_account(account)
+	enqueue_fetch_changes(account)
