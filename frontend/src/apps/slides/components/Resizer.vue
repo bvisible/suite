@@ -11,8 +11,9 @@
 
 		<ResizeIndicator
 			v-show="currentResizer"
-			:currentResizer="currentResizer"
 			:type="elementType"
+			:dimensions="selectionBounds"
+			:indicatorStyles="indicatorStyles"
 		/>
 	</div>
 </template>
@@ -49,6 +50,52 @@ const updateSlideCursor = inject('updateSlideCursor')
 const { dimensionDelta, currentResizer, startResize, resizeHandles, resizeCursor } = useResizer(
 	props.elementType,
 )
+
+const getScaledValue = (value) => `${value / slideBounds.scale}px`
+
+const getTextIndicatorPosition = () => {
+	const resizer = currentResizer.value
+	const offsetX = getScaledValue(selectionBounds.width + 20)
+	const offsetY = getScaledValue(12)
+
+	return {
+		left: resizer.includes('right') ? offsetX : 'auto',
+		right: resizer.includes('left') ? offsetX : 'auto',
+		top: `calc(50% - ${offsetY})`,
+	}
+}
+
+const getMediaIndicatorPosition = () => {
+	const resizer = currentResizer.value
+	const offset = getScaledValue(8)
+
+	return {
+		left: resizer.includes('left') ? offset : 'auto',
+		right: resizer.includes('right') ? offset : 'auto',
+		top: resizer.includes('top') ? offset : 'auto',
+		bottom: resizer.includes('bottom') ? offset : 'auto',
+	}
+}
+
+const getPositionStyles = () => {
+	if (props.elementType === 'text') {
+		return getTextIndicatorPosition()
+	}
+	return getMediaIndicatorPosition()
+}
+
+const indicatorStyles = computed(() => {
+	if (!currentResizer.value) return {}
+
+	const positionStyles = getPositionStyles()
+
+	return {
+		fontSize: getScaledValue(10),
+		borderRadius: getScaledValue(6),
+		padding: getScaledValue(4),
+		...positionStyles,
+	}
+})
 
 const handleDimensionChange = (delta) => {
 	if (!delta.width) return
