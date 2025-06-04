@@ -128,6 +128,7 @@
 				<template #bottom>
 					<FileUploader
 						:class="{ 'fixed bottom-0 left-0 right-0 px-3': isMobile }"
+						:upload-args="{ private: true, folder: 'Home/Frappe Mail' }"
 						@success="
 							(file) => mail.attachments.push({ ...file, disposition: 'attachment' })
 						"
@@ -347,7 +348,6 @@ const isMailEmpty = computed(() => {
 	return isSubjectEmpty && isRecipientsEmpty && isAttachmentsEmpty && isBodyEmpty
 })
 
-// todo:
 const fetchAttachment = createResource({
 	url: 'mail.api.mail.fetch_attachment',
 	makeParams: (blob_id: string) => ({ blob_id }),

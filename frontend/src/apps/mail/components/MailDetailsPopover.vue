@@ -37,6 +37,7 @@ const dayjs = inject('$dayjs')
 const { mail } = defineProps<{ mail: Mail }>()
 
 const FIELDS = [
+	// todo:
 	// {
 	// 	condition: !!mail.reply_to,
 	// 	label: __('Reply To: '),
