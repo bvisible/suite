@@ -216,11 +216,11 @@ import MultiselectInputControl from '@/components/Controls/MultiselectInputContr
 import EmojiPicker from '@/components/EmojiPicker.vue'
 import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
-import type { UserResource } from '@/types'
+import type { ComposeMailData, UserResource } from '@/types'
 
 const show = defineModel<boolean>()
 
-const { mailID, mailDetails } = defineProps<{ mailID?: string; mailDetails?: any }>()
+const { mailID, mailDetails } = defineProps<{ mailID?: string; mailDetails?: ComposeMailData }>()
 
 const emit = defineEmits(['reloadMails'])
 
@@ -252,7 +252,7 @@ const appendEmoji = () => {
 }
 
 const emptyMail = {
-	from_email: user.data?.default_outgoing,
+	from_email: user.data.default_outgoing,
 	to: [],
 	cc: [],
 	bcc: [],
@@ -262,7 +262,8 @@ const emptyMail = {
 	in_reply_to: '',
 	in_reply_to_id: '',
 }
-const mail = reactive({ ...emptyMail })
+
+const mail = reactive<ComposeMailData>({ ...emptyMail })
 
 const createMail = createResource({
 	url: 'mail.api.mail.create_mail',
@@ -308,11 +309,11 @@ const setMailDetails = () => {
 		return
 	}
 
-	if (mailDetails.from) mail.from_email = mailDetails.from
+	if (mailDetails.from_email) mail.from_email = mailDetails.from_email
 	mail.in_reply_to = mailDetails.in_reply_to
 	mail.in_reply_to_id = mailDetails.in_reply_to_id
 	mail.subject = mailDetails.subject
-	mail.html_body = mailDetails.body
+	mail.html_body = mailDetails.html_body
 	mail.attachments = mailDetails.attachments
 	mail.to = mailDetails.to
 	mail.cc = mailDetails.cc
@@ -353,7 +354,7 @@ const fetchAttachment = createResource({
 	makeParams: (blob_id: string) => ({ blob_id }),
 })
 
-const openAttachment = async (blob_id?: string, type: string) => {
+const openAttachment = async (blob_id?: string, type?: string) => {
 	if (!blob_id) return
 
 	const data = await fetchAttachment.submit(blob_id)
@@ -378,6 +379,7 @@ const textEditorMenuButtons = [
 	'Bullet List',
 	'Numbered List',
 	'Separator',
+	// todo:
 	'Image',
 	'Link',
 	'Horizontal Rule',

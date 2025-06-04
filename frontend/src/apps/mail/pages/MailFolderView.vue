@@ -113,7 +113,7 @@
 						:mail
 						:user-layout
 						:class="{ 'bg-gray-50': mail.thread_id == threadID }"
-						@click="openMail(mail)"
+						@click="openThread(mail)"
 						@select-thread="selectThread(mail.thread_id)"
 						@deselect-thread="deselectThread(mail.thread_id)"
 					/>
@@ -174,7 +174,7 @@ import NoMails from '@/components/Icons/NoMails.vue'
 import MailListItem from '@/components/MailListItem.vue'
 import MailThread from '@/components/MailThread.vue'
 
-import type { LayoutType, UserResource } from '@/types'
+import type { LayoutType, Thread, UserResource } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
@@ -194,7 +194,7 @@ const threads = createResource({
 	auto: true,
 	makeParams: () => ({ mailbox, limit: limit.value }),
 	cache: [`${mailbox}Mails`, user.data?.name, limit.value],
-	onSuccess: (data) => {
+	onSuccess: (data: Thread[]) => {
 		const threadExists = (threadID?: string | null) =>
 			data.some((m) => m.thread_id === threadID)
 		if (threadExists(threadID)) {
@@ -234,12 +234,13 @@ const setSeen = createResource({
 	makeParams: (values: SetSeenParams) => ({ ...values, mailbox }),
 	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
 		thread_ids.forEach(
-			(name) => (threads.data.find((m) => m.thread_id === name).seen = Number(seen)),
+			(name) => (threads.data.find((m: Thread) => m.thread_id === name).seen = Number(seen)),
 		)
 		if (
 			!seen &&
 			threads.data.some(
-				(m) => thread_ids.includes(m.thread_id) && m.thread_id === currentThread[mailbox],
+				(m: Thread) =>
+					thread_ids.includes(m.thread_id) && m.thread_id === currentThread[mailbox],
 			)
 		)
 			setCurrentThread(mailbox, null)
@@ -366,7 +367,7 @@ watch(allSelected, (val) => {
 		mailItems.value?.forEach((item) => item?.setIsSelected(val))
 })
 
-const openMail = (mail: Mail) => {
+const openThread = (mail: Thread) => {
 	setCurrentThread(mailbox, mail.thread_id)
 	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
 }

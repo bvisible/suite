@@ -51,8 +51,8 @@
 				:class="{ 'ml-auto min-w-fit': isFullWidth }"
 			>
 				<AttachmentCapsule
-					v-for="attachment in mail.attachments?.slice(0, 2)"
-					:key="attachment.name"
+					v-for="(attachment, idx) in mail.attachments?.slice(0, 2)"
+					:key="idx"
 					:file-name="attachment.filename"
 					:blob-i-d="attachment.blob_id"
 					:type="attachment.type"
@@ -85,9 +85,9 @@ import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
-import type { LayoutType } from '@/types'
+import type { LayoutType, Thread } from '@/types'
 
-const { mail, userLayout } = defineProps<{ mail: any; userLayout: LayoutType }>()
+const { mail, userLayout } = defineProps<{ mail: Thread; userLayout: LayoutType }>()
 
 const emit = defineEmits(['select-thread', 'deselect-thread'])
 
