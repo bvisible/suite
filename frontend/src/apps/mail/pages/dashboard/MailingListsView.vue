@@ -1,8 +1,8 @@
 <template>
 	<DashboardLayout
-		:breadcrumbs="[{ label: __('Groups') }]"
-		:button-label="__('Add Group')"
-		:button-action="() => (showAddGroup = true)"
+		:breadcrumbs="[{ label: __('Mailing Lists') }]"
+		:button-label="__('Add Mailing List')"
+		:button-action="() => (showAddList = true)"
 	>
 		<div class="flex items-center space-x-3">
 			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
@@ -19,19 +19,19 @@
 			/>
 		</div>
 		<ListView
-			v-if="groups?.data"
+			v-if="lists?.data"
 			ref="listView"
 			class="flex-1"
 			:columns="LIST_COLUMNS"
-			:rows="groups.data"
+			:rows="lists.data"
 			:options="LIST_OPTIONS"
 			row-key="name"
 		>
 			<ListHeader />
 			<ListRows>
-				<template v-if="groups.data.length">
+				<template v-if="lists.data.length">
 					<ListRow
-						v-for="row in groups.data"
+						v-for="row in lists.data"
 						:key="row.name"
 						v-slot="{ column, item }"
 						:row="row"
@@ -53,14 +53,14 @@
 						variant="ghost"
 						theme="red"
 						:label="__('Delete')"
-						@click="showDeleteGroups = true"
+						@click="showDeleteLists = true"
 					/>
 				</template>
 			</ListSelectBanner>
 		</ListView>
 	</DashboardLayout>
-	<AddGroupModal v-model="showAddGroup" @reload-groups="groups.reload()" />
-	<Dialog v-model="showDeleteGroups" :options="deleteGroupsOptions" />
+	<AddMailingListModal v-model="showAddList" />
+	<Dialog v-model="showDeleteLists" :options="deleteListsOptions" />
 </template>
 
 <script setup lang="ts">
@@ -85,7 +85,7 @@ import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
 import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddGroupModal from '@/components/Modals/AddGroupModal.vue'
+import AddMailingListModal from '@/components/Modals/AddMailingListModal.vue'
 
 const user = inject('$user')
 
@@ -95,11 +95,11 @@ const search = ref('')
 const debouncedSearch = useDebounce(search, 500)
 const status = ref<'Enabled' | 'Disabled' | ''>('')
 
-const showAddGroup = ref(false)
-const showDeleteGroups = ref(false)
+const showAddList = ref(false)
+const showDeleteLists = ref(false)
 
-const groups = useList({
-	doctype: 'Mail Group',
+const lists = useList({
+	doctype: 'Mailing List',
 	fields: ['name', 'display_name', 'enabled'],
 	filters: () => {
 		const filters: Record<string, string | string[] | number> = {
@@ -111,46 +111,46 @@ const groups = useList({
 	},
 	orderBy: 'email asc',
 	limit: 100,
-	cacheKey: ['mailTenantGroups', user.data?.tenant, debouncedSearch.value, status.value],
+	cacheKey: ['mailTenantMailingLists', user.data?.tenant, debouncedSearch.value, status.value],
 })
 
-const deleteGroups = createResource({
-	url: 'mail.api.admin.delete_groups',
+const deleteLists = createResource({
+	url: 'mail.api.admin.delete_mailing_lists',
 	makeParams: () => ({ names: Array.from(listView.value?.selections) }),
 	onSuccess: () => {
-		groups.reload()
-		showDeleteGroups.value = false
-		raiseToast(__('Groups deleted successfully.'))
+		lists.reload()
+		showDeleteLists.value = false
+		raiseToast(__('Mailing Lists deleted successfully.'))
 		listView.value?.toggleAllRows()
 	},
 	onError: (error) => {
-		showDeleteGroups.value = false
+		showDeleteLists.value = false
 		raiseToast(error.messages[0], 'error')
 	},
 })
 
-const deleteGroupsOptions = {
-	title: __('Delete Groups'),
-	message: __('Are you sure you want to delete the selected groups?'),
+const deleteListsOptions = {
+	title: __('Delete Mailing Lists'),
+	message: __('Are you sure you want to delete the selected lists?'),
 	actions: [
 		{
 			label: __('Confirm'),
 			variant: 'solid',
-			onClick: deleteGroups.submit,
+			onClick: deleteLists.submit,
 		},
 	],
 }
 
 const LIST_COLUMNS = [
-	{ label: __('Group Email'), key: 'name' },
+	{ label: __('Email'), key: 'name' },
 	{ label: __('Display Name'), key: 'display_name' },
 	{ label: __('Status'), key: 'enabled' },
 ]
 
 const LIST_OPTIONS = {
 	showTooltip: false,
-	emptyState: { description: __('No groups found.') },
-	getRowRoute: (row) => ({ name: 'Group', params: { groupName: row.name } }),
+	emptyState: { description: __('No mailing lists found.') },
+	getRowRoute: (row) => ({ name: 'MailingList', params: { listName: row.name } }),
 }
 
 const STATUS_OPTIONS = [

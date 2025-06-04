@@ -60,7 +60,6 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 	return count[0][0]
 
 
-# todo:
 @frappe.whitelist()
 def get_mail_thread(thread_id: str) -> list[dict]:
 	"""Returns mail thread for the given id."""

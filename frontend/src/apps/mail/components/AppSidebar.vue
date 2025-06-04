@@ -74,10 +74,10 @@ const sidebarItems = ref<SidebarItem[]>([
 		forDashboard: true,
 	},
 	{
-		label: __('Groups'),
+		label: __('Mailing Lists'),
 		icon: 'Mails',
-		to: { name: 'Groups' },
-		activeFor: ['Groups', 'Group'],
+		to: { name: 'MailingLists' },
+		activeFor: ['MailingLists', 'MailingList'],
 		forDashboard: true,
 	},
 	{

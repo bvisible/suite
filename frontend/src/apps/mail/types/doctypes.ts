@@ -126,22 +126,6 @@ export interface MailAlias extends DocType {
 	normalized_email?: string
 }
 
-// Last updated: 2025-02-19 11:48:33.501192
-export interface MailGroup extends DocType {
-	/** Enabled: Check */
-	enabled: 0 | 1
-	/** Domain Name: Link (Mail Domain) */
-	domain_name: string
-	/** Email: Data */
-	email: string
-	/** Display Name: Data */
-	display_name?: string
-	/** Tenant: Link (Mail Tenant) */
-	tenant?: string
-	/** Normalized Email: Data */
-	normalized_email?: string
-}
-
 // Last updated: 2025-06-02 14:52:59.122386
 export interface MailTenant extends DocType {
 	/** Tenant Name: Data */
@@ -170,16 +154,6 @@ export interface MailTenantMember extends DocType {
 	tenant: string
 	/** Is Admin: Check */
 	is_admin: 0 | 1
-}
-
-// Last updated: 2025-02-04 13:50:24.993867
-export interface MailGroupMember extends DocType {
-	/** Mail Group: Link (Mail Group) */
-	mail_group: string
-	/** Member (Type): Select */
-	member_type: '' | 'Mail Account' | 'Mail Group'
-	/** Member (Name): Dynamic Link (member_type) */
-	member_name: string
 }
 
 // Last updated: 2025-01-28 15:33:09.730936
@@ -518,4 +492,30 @@ export interface File extends DocType {
 	uploaded_to_google_drive: 0 | 1
 	/** File Type: Data */
 	file_type?: string
+}
+
+// Last updated: 2025-06-02 19:19:48.921106
+export interface MailingList extends DocType {
+	/** Enabled: Check */
+	enabled: 0 | 1
+	/** Domain Name: Link (Mail Domain) */
+	domain_name: string
+	/** Email: Data */
+	email: string
+	/** Display Name: Data */
+	display_name?: string
+	/** Tenant: Link (Mail Tenant) */
+	tenant?: string
+	/** Normalized Email: Data */
+	normalized_email?: string
+}
+
+// Last updated: 2025-06-02 13:39:11.904000
+export interface MailingListMember extends DocType {
+	/** Member (Type): Select */
+	member_type: 'Mail Account'
+	/** Member (Name): Dynamic Link (member_type) */
+	member_name: string
+	/** Mailing List: Link (Mailing List) */
+	mailing_list: string
 }

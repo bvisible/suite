@@ -15,7 +15,7 @@
 	>
 		<template #body-content>
 			<div ref="dialogBody" class="max-h-80 space-y-4 overflow-y-auto">
-				<AddGroupMemberInput
+				<AddMailingListMemberInput
 					v-for="(inputId, index) in inputFields"
 					:key="inputId"
 					:type="type"
@@ -36,9 +36,9 @@ import { Dialog, createResource } from 'frappe-ui'
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
-import AddGroupMemberInput from '@/components/AddGroupMemberInput.vue'
+import AddMailingListMemberInput from '@/components/AddMailingListMemberInput.vue'
 
-const { group, type } = defineProps<{ group: string; type: 'Mail Account' | 'Mail Group' }>()
+const { list, type } = defineProps<{ list: string; type: 'Mail Account' | 'Mail Group' }>()
 
 const emit = defineEmits(['reloadMembers'])
 
@@ -68,22 +68,22 @@ const removeInput = (email: string, index: number) => {
 }
 
 const currentMembers = useList({
-	doctype: 'Mail Group Member',
+	doctype: 'Mailing List Member',
 	immediate: false,
 	fields: ['member_name as name'],
-	filters: { mail_group: group },
+	filters: { mailing_list: list },
 	limit: 1000,
-	cacheKey: ['groupMembers', group],
+	cacheKey: ['mailingListMembers', list],
 	transform: (data) => {
 		data = data.map((member) => member.name)
-		data.push(group)
+		data.push(list)
 		return data
 	},
 })
 
 const addMembers = createResource({
-	url: 'mail.api.admin.add_group_members',
-	makeParams: () => ({ group, type, members: members.value }),
+	url: 'mail.api.admin.add_list_members',
+	makeParams: () => ({ list, type, members: members.value }),
 	onSuccess: () => {
 		raiseToast(__('Members added successfully'))
 		show.value = false

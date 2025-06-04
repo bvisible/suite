@@ -25,14 +25,18 @@
 					:label="__('Alias For')"
 					:options="[
 						{ label: __('User'), value: 'Mail Account' },
-						{ label: __('Group'), value: 'Mail Group' },
+						{ label: __('Mailing List'), value: 'Mailing List' },
 					]"
 				/>
 				<LinkControl
 					v-model="alias.doc.alias_for_name"
-					:label="__(alias.doc.alias_for_type === 'Mail Account' ? 'User' : 'Group')"
+					:label="
+						__(alias.doc.alias_for_type === 'Mail Account' ? 'User' : 'Mailing List')
+					"
 					:doctype="
-						alias.doc.alias_for_type === 'Mail Account' ? 'Mail Account' : 'Mail Group'
+						alias.doc.alias_for_type === 'Mail Account'
+							? 'Mail Account'
+							: 'Mailing List'
 					"
 					:filters="{ tenant: user.data.tenant, enabled: 1 }"
 				/>
