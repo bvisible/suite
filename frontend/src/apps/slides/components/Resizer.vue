@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { computed, inject, watch } from 'vue'
+import { computed, inject } from 'vue'
 
 import ResizeHandle from '@/components/ResizeHandle.vue'
 import ResizeIndicator from '@/components/ResizeIndicator.vue'
@@ -45,10 +45,12 @@ const isResizeHandleVisible = (resizer) => {
 }
 
 const resizeHandles = computed(() => {
-	const directions =
-		props.elementType === 'text'
-			? ['left', 'right']
-			: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+	let directions = []
+	if (props.elementType === 'text') {
+		directions = ['left', 'right']
+	} else {
+		directions = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+	}
 
 	return directions.map((direction) => ({
 		direction,

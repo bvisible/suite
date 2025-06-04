@@ -73,12 +73,6 @@ const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideTargetRef,
 )
 
-const slideCursor = ref('default')
-
-const updateSlideCursor = (cursor) => {
-	slideCursor.value = cursor
-}
-
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
@@ -96,7 +90,7 @@ const targetStyles = computed(() => ({
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
 	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
-	cursor: isDragging.value ? 'move' : slideCursor.value || 'default',
+	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
 }))
 
 const getElementOutline = (element) => {
@@ -288,13 +282,6 @@ watch(
 	() => dimensionDelta.value,
 	(delta) => {
 		handleDimensionChange(delta)
-	},
-)
-
-watch(
-	() => currentResizer.value,
-	(resizer) => {
-		updateSlideCursor(resizeCursor.value)
 	},
 )
 
