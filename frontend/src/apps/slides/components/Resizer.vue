@@ -5,7 +5,6 @@
 			v-show="resizeHandle.isVisible"
 			:key="resizeHandle.direction"
 			:direction="resizeHandle.direction"
-			:cursor="resizeCursor"
 			@startResize="(e) => startResize(e, resizeHandle.direction)"
 			@resizeToFitContent="resizeToFitContent"
 		/>

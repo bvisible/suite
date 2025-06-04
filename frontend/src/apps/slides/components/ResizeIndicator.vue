@@ -29,26 +29,29 @@ const props = defineProps({
 	},
 })
 
+const getScaledOffset = (offset) => `${offset / slideBounds.scale}px`
+
 const getTextIndicatorPosition = () => {
-	const scale = slideBounds.scale
-	const offset = `${selectionBounds.width + 20 / scale}px`
+	const resizer = props.currentResizer
+	const offsetX = getScaledOffset(selectionBounds.width + 20)
+	const offsetY = getScaledOffset(12)
 
 	return {
-		left: props.currentResizer.includes('right') ? offset : 'auto',
-		right: props.currentResizer.includes('left') ? offset : 'auto',
-		top: `calc(50% - ${12 / scale}px)`,
+		left: resizer.includes('right') ? offsetX : 'auto',
+		right: resizer.includes('left') ? offsetX : 'auto',
+		top: `calc(50% - ${offsetY})`,
 	}
 }
 
 const getMediaIndicatorPosition = () => {
-	const scale = slideBounds.scale
-	const offset = `${8 / scale}px`
+	const resizer = props.currentResizer
+	const offset = getScaledOffset(8)
 
 	return {
-		left: props.currentResizer.includes('left') ? offset : 'auto',
-		right: props.currentResizer.includes('right') ? offset : 'auto',
-		top: props.currentResizer.includes('top') ? offset : 'auto',
-		bottom: props.currentResizer.includes('bottom') ? offset : 'auto',
+		left: resizer.includes('left') ? offset : 'auto',
+		right: resizer.includes('right') ? offset : 'auto',
+		top: resizer.includes('top') ? offset : 'auto',
+		bottom: resizer.includes('bottom') ? offset : 'auto',
 	}
 }
 
