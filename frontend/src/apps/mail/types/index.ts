@@ -11,7 +11,7 @@ export interface User {
 	api_key: string | null
 	tenant: string | null
 	email_addresses: string[]
-	default_outgoing: string | null
+	default_outgoing: string
 
 	enabled: boolean
 	is_mail_user: boolean
@@ -59,6 +59,36 @@ export interface Mail {
 		Bcc: Recipient[]
 	}
 	reply_to: string[]
+	attachments: Attachment[]
+}
+
+export interface ComposeMailData {
+	from_email: string
+	to: string[]
+	cc: string[]
+	bcc: string[]
+	subject: string
+	html_body: string
+	attachments: Attachment[]
+	in_reply_to: string
+	in_reply_to_id: string
+}
+
+export interface Thread {
+	name: string
+	account: string
+	thread_id: string
+	from_name: string
+	from_email: string
+	subject: string | null
+	preview: string | null
+	has_attachment: 0 | 1
+	received_at: string
+	seen: 0 | 1
+	draft: 0 | 1
+	flagged: 0 | 1
+	answered: 0 | 1
+	forwarded: 0 | 1
 	attachments: Attachment[]
 }
 

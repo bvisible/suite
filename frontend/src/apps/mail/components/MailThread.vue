@@ -189,7 +189,7 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { Mail } from '@/types'
+import type { ComposeMailData, Mail } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
@@ -202,13 +202,13 @@ const { setCurrentThread } = userStore()
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
 
-const mailDetails = reactive({
-	from: '',
+const mailDetails = reactive<ComposeMailData>({
+	from_email: '',
 	to: [],
 	cc: [],
 	bcc: [],
 	subject: '',
-	body: '',
+	html_body: '',
 	attachments: [],
 	in_reply_to: '',
 	in_reply_to_id: '',
@@ -403,12 +403,12 @@ const deleteMails = createResource({
 
 const editDraft = (mail: Mail) => {
 	draftMailID.value = mail.name
-	mailDetails.from = mail.from_email
+	mailDetails.from_email = mail.from_email
 	mailDetails.to = mail.recipients.To?.map((m) => m.email) || []
 	mailDetails.cc = mail.recipients.Cc?.map((m) => m.email) || []
 	mailDetails.bcc = mail.recipients.Bcc?.map((m) => m.email) || []
 	mailDetails.subject = mail.subject || ''
-	mailDetails.body = mail.html_body
+	mailDetails.html_body = mail.html_body
 	mailDetails.attachments = mail.attachments || []
 	showSendModal.value = true
 }
@@ -439,7 +439,7 @@ const replyAll = (mail: Mail) => {
 
 const forward = (mail: Mail) => {
 	mailDetails.subject = `Fwd: ${mail.subject}`
-	mailDetails.body = getMailBody(mail)
+	mailDetails.html_body = getMailBody(mail)
 	showSendModal.value = true
 }
 
@@ -447,7 +447,7 @@ const isUserEmail = (email: string) => user.data.email_addresses.includes(email)
 
 const setReplyDetailsAndOpenModal = (mail: Mail) => {
 	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
-	mailDetails.body = getMailBody(mail)
+	mailDetails.html_body = getMailBody(mail)
 	mailDetails.in_reply_to = mail.message_id
 	mailDetails.in_reply_to_id = mail._id
 	showSendModal.value = true
