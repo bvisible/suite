@@ -154,8 +154,9 @@ permission_query_conditions = {
 	"Mail Domain Request": "mail.mail.doctype.mail_domain_request.mail_domain_request.get_permission_query_condition",
 	"Mail Domain": "mail.mail.doctype.mail_domain.mail_domain.get_permission_query_condition",
 	"Mail Account": "mail.mail.doctype.mail_account.mail_account.get_permission_query_condition",
-	"Mail Group": "mail.mail.doctype.mail_group.mail_group.get_permission_query_condition",
-	"Mail Group Member": "mail.mail.doctype.mail_group_member.mail_group_member.get_permission_query_condition",
+	"Mailing List": "mail.mail.doctype.mailing_list.mailing_list.get_permission_query_condition",
+	"Mailing List Member": "mail.mail.doctype.mailing_list_member.mailing_list_member.get_permission_query_condition",
+	"Mailing List External Member": "mail.mail.doctype.mailing_list_external_member.mailing_list_external_member.get_permission_query_condition",
 	"Mail Alias": "mail.mail.doctype.mail_alias.mail_alias.get_permission_query_condition",
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.get_permission_query_condition",
 	"Email Message": "mail.mail.doctype.email_message.email_message.get_permission_query_condition",
@@ -171,8 +172,9 @@ has_permission = {
 	"Mail Domain Request": "mail.mail.doctype.mail_domain_request.mail_domain_request.has_permission",
 	"Mail Domain": "mail.mail.doctype.mail_domain.mail_domain.has_permission",
 	"Mail Account": "mail.mail.doctype.mail_account.mail_account.has_permission",
-	"Mail Group": "mail.mail.doctype.mail_group.mail_group.has_permission",
-	"Mail Group Member": "mail.mail.doctype.mail_group_member.mail_group_member.has_permission",
+	"Mailing List": "mail.mail.doctype.mailing_list.mailing_list.has_permission",
+	"Mailing List Member": "mail.mail.doctype.mailing_list_member.mailing_list_member.has_permission",
+	"Mailing List External Member": "mail.mail.doctype.mailing_list_external_member.mailing_list_external_member.has_permission",
 	"Mail Alias": "mail.mail.doctype.mail_alias.mail_alias.has_permission",
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.has_permission",
 	"Email Message": "mail.mail.doctype.email_message.email_message.has_permission",
@@ -217,12 +219,15 @@ scheduler_events = {
 		"mail.tasks.enqueue_cancel_trashed_mails",
 	],
 	"daily_long": [
-		"mail.mail.doctype.email_message.email_message.delete_destroyed_emails",
 		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
 	],
 	# "hourly": [
 	#     "mail.tasks.hourly"
 	# ],
+	"hourly_long": [
+		"mail.mail.doctype.email_message.email_message.schedule_fetch_changes",
+		"mail.mail.doctype.email_message.email_message.delete_destroyed_emails",
+	],
 	# "weekly": [
 	#     "mail.tasks.weekly"
 	# ],

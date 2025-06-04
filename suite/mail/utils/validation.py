@@ -58,9 +58,9 @@ def is_subaddressed_email(email: str, raise_exception: bool = False) -> bool:
 
 
 def is_email_assigned(email: str, ignore_doctype: str | None = None, raise_exception: bool = False) -> bool:
-	"""Returns True if the email is already assigned to Mail Account, Mail Group, or Mail Alias, else False."""
+	"""Returns True if the email is already assigned to Mail Account, Mailing List, or Mail Alias, else False."""
 
-	doctypes = ["Mail Account", "Mail Group", "Mail Alias"]
+	doctypes = ["Mail Account", "Mailing List", "Mail Alias"]
 	normalized_email = normalize_email(email)
 
 	if ignore_doctype:

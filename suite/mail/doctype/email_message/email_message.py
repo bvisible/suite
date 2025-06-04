@@ -12,8 +12,9 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import Interval, Order
 from frappe.query_builder.custom import GROUP_CONCAT
-from frappe.query_builder.functions import Max
+from frappe.query_builder.functions import Max, Now
 from frappe.utils import cint, escape_html, time_diff_in_seconds
 from pypika import Case
 from uuid_utils import uuid7
@@ -25,7 +26,7 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	update_current_state,
 )
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
-from mail.utils import enqueue_job, user_context
+from mail.utils import convert_html_to_text, enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
@@ -67,7 +68,7 @@ class EmailMessage(Document):
 				EM.from_name,
 				EM.from_email,
 				EM.subject,
-				Case().when(EM.html_body.isnotnull(), EM.html_body).else_(EM.text_body).as_("preview"),
+				Case().when(EM.text_body.isnotnull(), EM.text_body).else_(EM.html_body).as_("preview"),
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
@@ -86,6 +87,10 @@ class EmailMessage(Document):
 			query = query.where(EM.mailbox_id.isin(mailbox_ids))
 
 		messages = query.run(as_dict=True)
+
+		for message in messages:
+			if preview := message.get("preview"):
+				message["preview"] = convert_html_to_text(preview)
 
 		attachments_map = {}
 		if messages_with_attachment := [m["name"] for m in messages if m["has_attachment"]]:
@@ -1107,6 +1112,21 @@ def enqueue_fetch_changes(account: str, request_data: dict | None = None) -> Non
 			job_id=job_id,
 			deduplicate=True,
 		)
+
+
+def schedule_fetch_changes() -> None:
+	"""Scheduled job to fetch changes for accounts that haven't been synced in the last 3 hours."""
+
+	SYNC_STATE = frappe.qb.DocType("JMAP Sync State")
+	accounts = (
+		frappe.qb.from_(SYNC_STATE)
+		.select(SYNC_STATE.account)
+		.where(SYNC_STATE.last_synced_at.isnull() | SYNC_STATE.last_synced_at < (Now() - Interval(hours=3)))
+	).run(pluck="account")
+
+	if accounts:
+		for account in accounts:
+			enqueue_fetch_changes(account)
 
 
 def delete_destroyed_emails() -> None:
