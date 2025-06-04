@@ -6,13 +6,13 @@
 			:key="resizeHandle.direction"
 			:direction="resizeHandle.direction"
 			@startResize="(e) => startResize(e, resizeHandle.direction)"
-			@resizeToFitContent="resizeToFitContent"
+			@resizeToFitContent="$emit('resizeToFitContent')"
 		/>
 
 		<ResizeIndicator
 			v-show="currentResizer"
 			:type="elementType"
-			:dimensions="selectionBounds"
+			:dimensions="dimensions"
 			:indicatorStyles="indicatorStyles"
 		/>
 	</div>
@@ -24,32 +24,37 @@ import { computed, inject, watch } from 'vue'
 import ResizeHandle from '@/components/ResizeHandle.vue'
 import ResizeIndicator from '@/components/ResizeIndicator.vue'
 
-import { selectionBounds, slideBounds, updateSelectionBounds } from '@/stores/slide'
-import { useResizer } from '@/utils/resizer'
+import { selectionBounds, slideBounds } from '@/stores/slide'
 
 const props = defineProps({
 	elementType: {
 		type: String,
 		required: true,
 	},
-	elementDivRef: {
+	dimensions: {
 		type: Object,
-		default: null,
+		default: {},
 	},
 })
 
-const emit = defineEmits(['updateElementWidth'])
+const { currentResizer, startResize } = inject('resizer', {})
 
-const element = defineModel('element', {
-	type: Object,
-	default: null,
+const isResizeHandleVisible = (resizer) => {
+	if (!currentResizer.value) return true
+	return currentResizer.value === resizer
+}
+
+const resizeHandles = computed(() => {
+	const directions =
+		props.elementType === 'text'
+			? ['left', 'right']
+			: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+
+	return directions.map((direction) => ({
+		direction,
+		isVisible: isResizeHandleVisible(direction),
+	}))
 })
-
-const updateSlideCursor = inject('updateSlideCursor')
-
-const { dimensionDelta, currentResizer, startResize, resizeHandles, resizeCursor } = useResizer(
-	props.elementType,
-)
 
 const getScaledValue = (value) => `${value / slideBounds.scale}px`
 
@@ -96,48 +101,4 @@ const indicatorStyles = computed(() => {
 		...positionStyles,
 	}
 })
-
-const handleDimensionChange = (delta) => {
-	if (!delta.width) return
-
-	const ratio = selectionBounds.width / selectionBounds.height
-	delta.top = (delta.top ?? 0) / ratio
-
-	const minWidth = props.elementType === 'text' ? 7 : 50
-	if (delta.width + selectionBounds.width < minWidth) return
-
-	updateSelectionBounds({
-		left: selectionBounds.left + delta.left / slideBounds.scale,
-		top: selectionBounds.top + delta.top / slideBounds.scale,
-	})
-
-	emit('updateElementWidth', delta.width / slideBounds.scale || 0)
-}
-
-const resizeToFitContent = () => {
-	// create range of the text node within TextElement
-	const target = props.elementDivRef
-	const range = document.createRange()
-	const textNode = target.firstChild
-	const originalWidth = target.offsetWidth
-	range.selectNodeContents(textNode)
-
-	// find out width of text content
-	const textWidth = range.getBoundingClientRect().width
-	handleDimensionChange({ width: textWidth - originalWidth + 5 })
-}
-
-watch(
-	() => dimensionDelta.value,
-	(delta) => {
-		handleDimensionChange(delta)
-	},
-)
-
-watch(
-	() => currentResizer.value,
-	(resizer) => {
-		updateSlideCursor(resizeCursor.value)
-	},
-)
 </script>

@@ -5,8 +5,8 @@
 		<Resizer
 			v-if="isElementActive"
 			:elementType="element.type"
-			:elementDivRef="elementDivRef"
-			@updateElementWidth="updateElementWidth"
+			:dimensions="selectionBounds"
+			@resizeToFitContent="resizeToFitContent"
 		/>
 	</div>
 </template>
@@ -19,7 +19,9 @@ import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 import Resizer from '@/components/Resizer.vue'
 
-import { activeElement, activeElementIds } from '@/stores/element'
+import { activeElement, activeElementIds, updateElementWidth } from '@/stores/element'
+
+import { selectionBounds, slideBounds } from '@/stores/slide'
 
 const props = defineProps({
 	outline: {
@@ -72,14 +74,19 @@ const isElementActive = computed(() => {
 	return activeElement.value.id == element.value.id
 })
 
-const updateElementWidth = (deltaWidth) => {
-	if (element.value.width) {
-		element.value.width += deltaWidth
-	} else {
-		const elementDiv = elementDivRef.value
-		const width = elementDiv.getBoundingClientRect().width
+const resizeToFitContent = () => {
+	// create range of the text node within TextElement
+	const target = elementDivRef.value
+	const range = document.createRange()
+	const textNode = target.firstChild
+	const originalWidth = target.offsetWidth
+	range.selectNodeContents(textNode)
 
-		element.value.width = width + deltaWidth
-	}
+	// find out width of text content
+	const textWidth = range.getBoundingClientRect().width
+
+	const newWidth = textWidth - originalWidth + 5 / slideBounds.scale
+
+	updateElementWidth(newWidth)
 }
 </script>

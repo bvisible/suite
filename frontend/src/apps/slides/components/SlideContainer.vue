@@ -38,13 +38,16 @@ import { presentation } from '@/stores/presentation'
 import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
 	activeElementIds,
+	activeElement,
 	handleCopy,
 	handlePaste,
 	focusElementId,
 	pairElementId,
+	updateElementWidth,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/utils/drag'
+import { useResizer } from '@/utils/resizer'
 import { usePanAndZoom } from '@/utils/zoom'
 import { useSnapping } from '@/utils/snap'
 
@@ -58,6 +61,8 @@ const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 
 const { isDragging, positionDelta, startDragging } = useDragAndDrop()
+
+const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
 const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnapping(
 	selectionBoxRef,
@@ -270,11 +275,47 @@ onMounted(() => {
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)
-provide('updateSlideCursor', updateSlideCursor)
+provide('resizer', {
+	currentResizer,
+	startResize,
+})
 
 defineExpose({
 	togglePanZoom,
 })
+
+watch(
+	() => dimensionDelta.value,
+	(delta) => {
+		handleDimensionChange(delta)
+	},
+)
+
+watch(
+	() => currentResizer.value,
+	(resizer) => {
+		updateSlideCursor(resizeCursor.value)
+	},
+)
+
+const handleDimensionChange = (delta) => {
+	if (!delta.width) return
+
+	const ratio = selectionBounds.width / selectionBounds.height
+	delta.top = (delta.top ?? 0) / ratio
+
+	const minWidth = props.elementType === 'text' ? 7 : 50
+	if (delta.width + selectionBounds.width < minWidth) return
+
+	updateSelectionBounds({
+		left: selectionBounds.left + delta.left / slideBounds.scale,
+		top: selectionBounds.top + delta.top / slideBounds.scale,
+	})
+
+	const newWidth = delta.width / slideBounds.scale || 0
+
+	updateElementWidth(newWidth)
+}
 </script>
 
 <style src="../assets/styles/overlay.css"></style>
