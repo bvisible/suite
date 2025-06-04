@@ -219,6 +219,31 @@ const handlePositionChange = (delta) => {
 	}
 }
 
+const applyAspectRatio = (offset) => {
+	if (!offset) return 0
+	const ratio = selectionBounds.width / selectionBounds.height
+	return (offset ?? 0) / ratio
+}
+
+const validateMinWidth = (width) => {
+	const minWidth = activeElement.value.type === 'text' ? 7 : 50
+	return width + selectionBounds.width > minWidth
+}
+
+const handleDimensionChange = (delta) => {
+	if (!delta.width || !validateMinWidth(delta.width)) return
+
+	delta.top = applyAspectRatio(delta.top)
+
+	updateSelectionBounds({
+		left: selectionBounds.left + delta.left / slideBounds.scale,
+		top: selectionBounds.top + delta.top / slideBounds.scale,
+	})
+
+	const newWidth = delta.width / slideBounds.scale || 0
+	updateElementWidth(newWidth)
+}
+
 const updateSlideBounds = () => {
 	const slideRect = slideRef.value.getBoundingClientRect()
 
@@ -258,6 +283,13 @@ watch(
 	},
 )
 
+watch(
+	() => dimensionDelta.value,
+	(delta) => {
+		handleDimensionChange(delta)
+	},
+)
+
 onMounted(() => {
 	if (!slideRef.value) return
 
@@ -277,32 +309,6 @@ provide('resizer', {
 defineExpose({
 	togglePanZoom,
 })
-
-watch(
-	() => dimensionDelta.value,
-	(delta) => {
-		handleDimensionChange(delta)
-	},
-)
-
-const handleDimensionChange = (delta) => {
-	if (!delta.width) return
-
-	const ratio = selectionBounds.width / selectionBounds.height
-	delta.top = (delta.top ?? 0) / ratio
-
-	const minWidth = props.elementType === 'text' ? 7 : 50
-	if (delta.width + selectionBounds.width < minWidth) return
-
-	updateSelectionBounds({
-		left: selectionBounds.left + delta.left / slideBounds.scale,
-		top: selectionBounds.top + delta.top / slideBounds.scale,
-	})
-
-	const newWidth = delta.width / slideBounds.scale || 0
-
-	updateElementWidth(newWidth)
-}
 </script>
 
 <style src="../assets/styles/overlay.css"></style>
