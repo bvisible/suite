@@ -86,7 +86,7 @@ export interface MailDomainDNSRecord extends ChildDocType {
 	category: '' | 'Sending Record' | 'Receiving Record' | 'Tracking Record' | 'Server Record'
 }
 
-// Last updated: 2025-04-09 13:32:29.722110
+// Last updated: 2025-06-02 13:02:15.287080
 export interface MailDomain extends DocType {
 	/** Domain Name: Data */
 	domain_name: string
@@ -108,7 +108,7 @@ export interface MailDomain extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-02-19 11:48:33.501192
+// Last updated: 2025-06-02 13:01:28.396363
 export interface MailAlias extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -117,7 +117,7 @@ export interface MailAlias extends DocType {
 	/** Email: Data */
 	email: string
 	/** Alias For (Type): Select */
-	alias_for_type: '' | 'Mail Account' | 'Mail Group'
+	alias_for_type: '' | 'Mail Account' | 'Mailing List'
 	/** Alias For (Name): Dynamic Link (alias_for_type) */
 	alias_for_name: string
 	/** Tenant: Link (Mail Tenant) */
@@ -142,7 +142,7 @@ export interface MailGroup extends DocType {
 	normalized_email?: string
 }
 
-// Last updated: 2025-04-09 19:30:19.375260
+// Last updated: 2025-06-02 14:52:59.122386
 export interface MailTenant extends DocType {
 	/** Tenant Name: Data */
 	tenant_name: string
@@ -152,14 +152,14 @@ export interface MailTenant extends DocType {
 	max_domains: number
 	/** Maximum No. of Accounts: Int */
 	max_accounts: number
-	/** Maximum No. of Groups: Int */
-	max_groups: number
 	/** User: Link (User) */
 	user: string
 	/** Allow Personal Signup: Check */
 	allow_personal_signup: 0 | 1
 	/** Cluster: Link (Mail Cluster) */
 	cluster?: string
+	/** Maximum No. of Mailing Lists: Int */
+	max_mailing_lists: number
 }
 
 // Last updated: 2025-01-31 15:53:10.550269
@@ -196,7 +196,7 @@ export interface MailDomainRequest extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-05-12 14:42:35.868073
+// Last updated: 2025-06-02 13:00:34.654482
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
