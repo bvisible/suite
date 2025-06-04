@@ -114,6 +114,11 @@ class EmailMessage(Document):
 
 			attachments_map = defaultdict(list)
 			for a in attachments:
+				if not a.filename:
+					if a.type == "message/delivery-status":
+						a.filename = "Delivery Report"
+					elif a.type == "message/rfc822":
+						a.filename = "Original Message"
 				attachments_map[a.pop("parent")].append(a)
 
 		if attachments_map:

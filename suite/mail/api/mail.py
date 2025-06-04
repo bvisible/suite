@@ -151,6 +151,11 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 
 		attachments_by_parent = defaultdict(list)
 		for attachment in attachments:
+			if not attachment.filename:
+				if attachment.type == "message/delivery-status":
+					attachment.filename = "Delivery Report"
+				elif attachment.type == "message/rfc822":
+					attachment.filename = "Original Message"
 			parent = attachment.pop("parent")
 			attachments_by_parent[parent].append(attachment)
 
