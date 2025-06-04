@@ -231,10 +231,12 @@ const reload = () => {
 defineExpose({ reload })
 
 const getSrc = (content: string) => {
-	content = content.replace(
-		/<blockquote>/g,
-		'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
-	)
+	content = content
+		.replace(
+			/<blockquote>/g,
+			'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
+		)
+		.replace(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g, '<b>&lt;$1&gt;</b>')
 
 	/* eslint-disable no-useless-escape */
 	const html = `

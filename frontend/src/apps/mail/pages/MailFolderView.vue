@@ -278,6 +278,12 @@ const deleteThreads = createResource({
 	onSuccess: reloadMails,
 })
 
+const fetchChanges = createResource({
+	url: 'mail.api.mail.fetch_changes',
+	onSuccess: reloadMails,
+	onError: reloadMails,
+})
+
 // selection
 
 const mailItems = useTemplateRef('mailItems')
@@ -348,7 +354,7 @@ const selectActions = computed((): SelectAction[] =>
 		},
 		{
 			label: __('Refresh'),
-			onClick: () => reloadMails(),
+			onClick: () => fetchChanges.submit(),
 			icon: RefreshCw,
 			condition: !selections.value.length,
 		},
