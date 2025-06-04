@@ -1,4 +1,5 @@
 import frappe
+from frappe.core.api.file import create_new_folder
 
 from mail.mail.doctype.rate_limit.rate_limit import create_rate_limit
 
@@ -6,6 +7,7 @@ from mail.mail.doctype.rate_limit.rate_limit import create_rate_limit
 def after_install() -> None:
 	add_rate_limits()
 	create_default_tenant()
+	create_new_folder("Frappe Mail", "Home")
 
 
 def add_rate_limits() -> None:
