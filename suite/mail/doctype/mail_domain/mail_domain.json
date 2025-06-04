@@ -139,12 +139,12 @@
    "link_fieldname": "domain_name"
   },
   {
-   "group": "Group & Alias",
-   "link_doctype": "Mail Group",
+   "group": "List & Alias",
+   "link_doctype": "Mailing List",
    "link_fieldname": "domain_name"
   },
   {
-   "group": "Group & Alias",
+   "group": "List & Alias",
    "link_doctype": "Mail Alias",
    "link_fieldname": "domain_name"
   },
@@ -164,7 +164,7 @@
    "link_fieldname": "domain_name"
   }
  ],
- "modified": "2025-04-09 13:32:29.722110",
+ "modified": "2025-06-02 13:02:15.287080",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Domain",

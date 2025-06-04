@@ -1,6 +1,4 @@
-import json
 from collections import defaultdict
-from typing import Literal
 
 import frappe
 from frappe import _
@@ -8,8 +6,10 @@ from frappe.query_builder.functions import Count
 from frappe.utils import format_datetime, random_string
 
 from mail.jmap import get_mailboxes_for_account
-from mail.mail.doctype.email_message.email_message import EmailMessage
+from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
+from mail.utils.rate_limiter import dynamic_rate_limit
+from mail.utils.validation import validate_permission_for_account
 
 
 @frappe.whitelist()
@@ -380,3 +380,13 @@ def delete_threads(thread_ids: list[str], mailbox: str) -> None:
 	mailbox_id = get_mailbox_id(mailbox)
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 	EmailMessage.destroy_emails(user, messages)
+
+
+@frappe.whitelist()
+@dynamic_rate_limit()
+def fetch_changes() -> None:
+	"""Fetches changes for the current user's account."""
+
+	account = frappe.session.user
+	validate_permission_for_account(account)
+	enqueue_fetch_changes(account)
