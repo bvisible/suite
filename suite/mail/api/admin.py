@@ -129,33 +129,33 @@ def delete_aliases(names: list) -> None:
 
 
 @frappe.whitelist()
-def delete_groups(names: list) -> None:
-	"""Delete Mail Groups"""
+def delete_mailing_lists(names: list) -> None:
+	"""Delete Mailing Lists"""
 
-	for group in names:
-		for member in frappe.get_all("Mail Group Member", filters={"mail_group": group}, pluck="name"):
-			frappe.delete_doc("Mail Group Member", member)
-		frappe.delete_doc("Mail Group", group)
+	for d in names:
+		for member in frappe.get_all("Mailing List Member", filters={"mailing_list": d}, pluck="name"):
+			frappe.delete_doc("Mailing List Member", member)
+		frappe.delete_doc("Mailing List", d)
 
 
 @frappe.whitelist()
-def add_group_members(group: str, type: Literal["Mail Account", "Mail Group"], members: list) -> None:
-	"""Adds members to a Mail Group"""
+def add_list_members(list: str, type: Literal["Mail Account", "Mail Group"], members: list) -> None:
+	"""Adds members to a Mailing List"""
 
 	for d in members:
-		MGM = frappe.new_doc("Mail Group Member")
-		MGM.mail_group = group
+		MGM = frappe.new_doc("Mailing List Member")
+		MGM.mailing_list = list
 		MGM.member_type = type
 		MGM.member_name = d
 		MGM.insert()
 
 
 @frappe.whitelist()
-def delete_group_members(names: list) -> None:
-	"""Delete Mail Groups"""
+def delete_list_members(names: list) -> None:
+	"""Delete Mailing List Members"""
 
 	for d in names:
-		frappe.delete_doc("Mail Group Member", d)
+		frappe.delete_doc("Mailing List Member", d)
 
 
 @frappe.whitelist()
