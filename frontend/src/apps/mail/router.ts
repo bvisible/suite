@@ -57,13 +57,13 @@ const routes = [
 	{
 		path: '/mailbox/:mailbox',
 		name: 'Mailbox',
-		component: () => import('@/pages/MailFolderView.vue'),
+		component: () => import('@/pages/MailboxView.vue'),
 		props: true,
 	},
 	{
 		path: '/mailbox/:mailbox/:threadID',
 		name: 'Mail',
-		component: () => import('@/pages/MailFolderView.vue'),
+		component: () => import('@/pages/MailboxView.vue'),
 		props: true,
 	},
 	{
