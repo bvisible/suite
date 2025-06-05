@@ -1,10 +1,12 @@
 import frappe
 
 
-def get_context(context):
-	context.no_cache = 1
-	csrf_token = frappe.sessions.get_csrf_token()
+def get_context():
 	frappe.db.commit()
 	context = frappe._dict()
-	context.boot = {"csrf_token": csrf_token}
+	context.boot = get_boot()
 	return context
+
+
+def get_boot():
+	return frappe._dict({"site_name": frappe.local.site, "csrf_token": frappe.sessions.get_csrf_token()})

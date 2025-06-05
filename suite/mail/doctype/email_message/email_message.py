@@ -331,6 +331,10 @@ class EmailMessage(Document):
 			email_message.flags.notify_update = True
 			email_message.save(ignore_permissions=True)
 
+		frappe.publish_realtime(
+			"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
+		)
+
 	@staticmethod
 	def _create_from_email_data(
 		account: str, email_data: dict, email_message: "EmailMessage" = None, do_not_save: bool = False
