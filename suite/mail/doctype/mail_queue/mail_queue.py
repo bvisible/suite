@@ -657,7 +657,14 @@ class MailQueue(Document):
 					}
 				)
 			elif response["methodResponses"][0][1].get("notCreated", {}).get(f"draft-{self.name}"):
-				kwargs["status"] = "Failed to Draft"
+				failed_count = self.failed_count + 1
+				kwargs.update(
+					{
+						"status": "Failed to Draft",
+						"failed_count": failed_count,
+						"next_retry_after": get_next_retry_after(failed_count),
+					}
+				)
 
 			if not self.save_as_draft:
 				if response["methodResponses"][1][1].get("created", {}).get(f"submit-{self.name}"):
@@ -669,7 +676,14 @@ class MailQueue(Document):
 						}
 					)
 				elif response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}"):
-					kwargs["status"] = "Failed to Submit"
+					failed_count = self.failed_count + 1
+					kwargs.update(
+						{
+							"status": "Failed to Submit",
+							"failed_count": failed_count,
+							"next_retry_after": get_next_retry_after(failed_count),
+						}
+					)
 		except Exception:
 			failed_count = self.failed_count + 1
 			kwargs.update(
@@ -818,7 +832,7 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 			(MQ.status == "Pending")
 			| (
 				(MQ.failed_count > 0)
-				& (MQ.failed_count < 5)
+				& (MQ.failed_count < 3)
 				& (Now() >= MQ.next_retry_after)
 				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
 			)
