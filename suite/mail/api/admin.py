@@ -6,7 +6,8 @@ from frappe.query_builder import Case, Order
 from frappe.utils import cint
 
 from mail.utils.rate_limiter import dynamic_rate_limit
-from mail.utils.user import is_tenant_admin
+from mail.utils.user import get_user_email_addresses, is_tenant_admin
+from mail.utils.validation import validate_permission_for_account
 
 if TYPE_CHECKING:
 	from mail.mail.doctype.mail_domain_request.mail_domain_request import MailDomainRequest
@@ -128,33 +129,34 @@ def delete_aliases(names: list) -> None:
 
 
 @frappe.whitelist()
-def delete_groups(names: list) -> None:
-	"""Delete Mail Groups"""
+def delete_mailing_lists(names: list) -> None:
+	"""Delete Mailing Lists"""
 
-	for group in names:
-		for member in frappe.get_all("Mail Group Member", filters={"mail_group": group}, pluck="name"):
-			frappe.delete_doc("Mail Group Member", member)
-		frappe.delete_doc("Mail Group", group)
+	for d in names:
+		doc = frappe.get_doc("Mailing List", d)
+		doc.enabled = 0
+		frappe.db.delete("Mailing List Member", {"mailing_list": d})
+		doc.delete()
 
 
 @frappe.whitelist()
-def add_group_members(group: str, type: Literal["Mail Account", "Mail Group"], members: list) -> None:
-	"""Adds members to a Mail Group"""
+def add_list_members(list: str, type: Literal["Mail Account", "Mail Group"], members: list) -> None:
+	"""Adds members to a Mailing List"""
 
 	for d in members:
-		MGM = frappe.new_doc("Mail Group Member")
-		MGM.mail_group = group
+		MGM = frappe.new_doc("Mailing List Member")
+		MGM.mailing_list = list
 		MGM.member_type = type
 		MGM.member_name = d
 		MGM.insert()
 
 
 @frappe.whitelist()
-def delete_group_members(names: list) -> None:
-	"""Delete Mail Groups"""
+def delete_list_members(names: list) -> None:
+	"""Delete Mailing List Members"""
 
 	for d in names:
-		frappe.delete_doc("Mail Group Member", d)
+		frappe.delete_doc("Mailing List Member", d)
 
 
 @frappe.whitelist()
@@ -163,3 +165,11 @@ def delete_account_requests(names: list) -> None:
 
 	for d in names:
 		frappe.delete_doc("Mail Account Request", d)
+
+
+@frappe.whitelist()
+def get_user_addresses(user: str) -> list:
+	"""Fetches user email addresses."""
+
+	validate_permission_for_account(user)
+	return get_user_email_addresses(user)
