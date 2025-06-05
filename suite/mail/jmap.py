@@ -1,5 +1,4 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from functools import cached_property
 from typing import Any
 from urllib.parse import urljoin
 
@@ -164,27 +163,33 @@ class JMAPClient:
 
 		return self.capabilities["urn:ietf:params:jmap:core"].get("maxConcurrentUpload", 4)
 
-	@cached_property
+	@property
 	def mailboxes(self) -> dict[list[dict]]:
 		"""Returns the mailboxes for the logged-in user."""
 
-		mailboxes = {}
-		for account_id in [self.account_id]:
-			response = self._make_request(
-				["urn:ietf:params:jmap:mail"], [["Mailbox/get", {"accountId": account_id}, "0"]]
-			)
-			mailboxes[account_id] = response["methodResponses"][0][1]["list"]
+		def generator() -> dict[list[dict]]:
+			mailboxes = {}
+			for account_id in [self.account_id]:
+				response = self._make_request(
+					["urn:ietf:params:jmap:mail"], [["Mailbox/get", {"accountId": account_id}, "0"]]
+				)
+				mailboxes[account_id] = response["methodResponses"][0][1]["list"]
 
-		return mailboxes
+			return mailboxes
 
-	@cached_property
+		return frappe.cache.hget("jmap:mailboxes", self.__session.auth[0], generator)
+
+	@property
 	def identities(self) -> list[dict]:
 		"""Returns the identities for the logged-in user."""
 
-		return self._make_request(
-			using=["urn:ietf:params:jmap:mail"],
-			method_calls=[["Identity/get", {"accountId": self.account_id}, "0"]],
-		)["methodResponses"][0][1]["list"]
+		def generator() -> list[dict]:
+			return self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[["Identity/get", {"accountId": self.account_id}, "0"]],
+			)["methodResponses"][0][1]["list"]
+
+		return frappe.cache.hget("jmap:identities", self.__session.auth[0], generator)
 
 	def get_mailboxes(self) -> list[dict]:
 		"""Returns the mailboxes for the logged-in user."""
@@ -639,6 +644,8 @@ def invalidate_jmap_client_cache(account: str) -> None:
 	"""Invalidates the JMAP client cache for the given account."""
 
 	frappe.cache.hdel("jmap:client", account)
+	frappe.cache.hdel("jmap:mailboxes", account)
+	frappe.cache.hdel("jmap:identities", account)
 
 
 def get_mailboxes(account: str) -> list[dict]:
