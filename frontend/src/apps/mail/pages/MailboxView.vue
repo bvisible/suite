@@ -107,9 +107,9 @@
 				</div>
 				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
 					<MailListItem
-						v-for="(mail, idx) in threads.data"
+						v-for="mail in threads.data"
 						ref="mailItems"
-						:key="idx"
+						:key="mail.thread_id"
 						:mail
 						:user-layout
 						:class="{ 'bg-gray-50': mail.thread_id == threadID }"
