@@ -133,9 +133,10 @@ def delete_mailing_lists(names: list) -> None:
 	"""Delete Mailing Lists"""
 
 	for d in names:
-		for member in frappe.get_all("Mailing List Member", filters={"mailing_list": d}, pluck="name"):
-			frappe.delete_doc("Mailing List Member", member)
-		frappe.delete_doc("Mailing List", d)
+		doc = frappe.get_doc("Mailing List", d)
+		doc.enabled = 0
+		frappe.db.delete("Mailing List Member", {"mailing_list": d})
+		doc.delete()
 
 
 @frappe.whitelist()
