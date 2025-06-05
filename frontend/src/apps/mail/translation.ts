@@ -3,7 +3,7 @@ import { createResource } from 'frappe-ui'
 export default function translationPlugin(app) {
 	app.config.globalProperties.__ = translate
 	window.__ = translate
-	if (!window.translatedMessages) fetchTranslations()
+	if (!window.translatedMessages) translations.fetch()
 }
 
 function translate(message: string, variables?: string[]) {
@@ -18,13 +18,8 @@ function translate(message: string, variables?: string[]) {
 	})
 }
 
-function fetchTranslations() {
-	createResource({
-		url: 'mail.api.get_translations',
-		cache: 'translations',
-		auto: true,
-		transform: (data) => {
-			window.translatedMessages = data
-		},
-	})
-}
+const translations = createResource({
+	url: 'mail.api.get_translations',
+	cache: 'translations',
+	transform: (data) => (window.translatedMessages = data),
+})

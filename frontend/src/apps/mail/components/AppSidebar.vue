@@ -45,18 +45,77 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStorage } from '@vueuse/core'
 import { ArrowLeftFromLine } from 'lucide-vue-next'
+import { createResource } from 'frappe-ui'
 
-import { getSidebarLinks } from '@/utils'
 import SidebarLink from '@/components/SidebarLink.vue'
 import UserDropdown from '@/components/UserDropdown.vue'
+
+interface SidebarItem {
+	label: string
+	icon: string
+	to: { name: string; params?: Record<string, string> }
+	activeFor: string[]
+	forDashboard?: boolean
+}
+
+const sidebarItems = ref<SidebarItem[]>([
+	{
+		label: __('Domains'),
+		icon: 'Globe',
+		to: { name: 'Domains' },
+		activeFor: ['Domains', 'Domain'],
+		forDashboard: true,
+	},
+	{
+		label: __('Members'),
+		icon: 'Users',
+		to: { name: 'Members' },
+		activeFor: ['Members', 'Invites'],
+		forDashboard: true,
+	},
+	{
+		label: __('Mailing Lists'),
+		icon: 'Mails',
+		to: { name: 'MailingLists' },
+		activeFor: ['MailingLists', 'MailingList'],
+		forDashboard: true,
+	},
+	{
+		label: __('Aliases'),
+		icon: 'AtSign',
+		to: { name: 'Aliases' },
+		activeFor: ['Aliases'],
+		forDashboard: true,
+	},
+])
 
 const route = useRoute()
 
 const sidebarLinks = computed(() =>
-	getSidebarLinks().filter((link) =>
-		route.meta.isDashboard ? link.forDashboard : !link.forDashboard,
-	),
+	sidebarItems.value.filter((link) => route.meta.isDashboard == link.forDashboard),
 )
+
+createResource({
+	url: 'mail.api.mail.get_mailboxes',
+	auto: true,
+	onSuccess: (data: { name: string; role: string }[]) =>
+		data.forEach((mailbox) => {
+			sidebarItems.value.push({
+				label: mailbox.name,
+				icon: MAILBOX_ICONS[mailbox.role],
+				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
+				activeFor: [mailbox.role],
+			})
+		})!,
+})
+
+const MAILBOX_ICONS = {
+	inbox: 'Inbox',
+	sent: 'Send',
+	trash: 'Trash2',
+	junk: 'MailWarning',
+	drafts: 'Edit3',
+}
 
 const getSidebarFromStorage = () => useStorage('sidebar_is_collapsed', false)
 

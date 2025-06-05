@@ -26,15 +26,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as icons from 'lucide-vue-next'
 
-import { getSidebarLinks } from '@/utils'
-
 const router = useRouter()
 
-const tabs = computed(() => getSidebarLinks().filter((link) => !link.forDashboard))
+const tabs = []
 
 const isActive = (tab) => tab.activeFor?.includes(router.currentRoute.value.name)
 </script>

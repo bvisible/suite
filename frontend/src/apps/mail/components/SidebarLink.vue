@@ -3,7 +3,7 @@
 		v-if="link && !link.onlyMobile"
 		class="flex h-7 cursor-pointer items-center rounded text-gray-800 duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-gray-400"
 		:class="isActive ? 'bg-white shadow-sm' : 'hover:bg-gray-100'"
-		@click="handleClick"
+		@click="link.to && $router.push(link.to)"
 	>
 		<div
 			class="group flex w-full items-center duration-300 ease-in-out"
@@ -50,42 +50,36 @@
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { type RouteLocationRaw, useRoute } from 'vue-router'
 import * as icons from 'lucide-vue-next'
 import { Tooltip } from 'frappe-ui'
 
-const props = defineProps({
-	link: {
-		type: Object,
-		required: true,
-	},
-	isCollapsed: {
-		type: Boolean,
-		default: false,
-	},
-	showControls: {
-		type: Boolean,
-		default: false,
-	},
-})
+interface Link {
+	label: string
+	to?: RouteLocationRaw
+	icon?: string
+	count?: number
+	activeFor?: string[]
+	onlyMobile?: boolean
+}
+
+const {
+	link,
+	isCollapsed = false,
+	showControls = false,
+} = defineProps<{ link: Link; isCollapsed?: boolean; showControls?: boolean }>()
 
 const emit = defineEmits(['openModal', 'deletePage'])
 
-const router = useRouter()
+const route = useRoute()
 
-function handleClick() {
-	if (router.hasRoute(props.link.to)) {
-		router.push({ name: props.link.to })
-	} else if (props.link.to) {
-		window.location.href = `/${props.link.to}`
-	}
-}
+const isActive = computed(() =>
+	link?.activeFor?.includes(
+		['Mailbox', 'Mail'].includes(route.name) ? route.params.mailbox : route.name,
+	),
+)
 
-const isActive = computed(() => {
-	return props.link?.activeFor?.includes(router.currentRoute.value.name)
-})
+const openModal = (link: Link) => emit('openModal', link)
 
-const openModal = (link) => emit('openModal', link)
-
-const deletePage = (link) => emit('deletePage', link)
+const deletePage = (link: Link) => emit('deletePage', link)
 </script>

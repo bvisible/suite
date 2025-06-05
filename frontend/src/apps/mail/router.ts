@@ -5,10 +5,6 @@ import { userStore } from '@/stores/user'
 
 const routes = [
 	{
-		path: '/',
-		redirect: { name: 'Inbox' },
-	},
-	{
 		path: '/signup',
 		name: 'SignUp',
 		component: () => import('@/pages/SignupView.vue'),
@@ -59,81 +55,20 @@ const routes = [
 		meta: { isSetup: true },
 	},
 	{
-		path: '/inbox',
-		name: 'Inbox',
-		component: () => import('@/pages/MailFolderView.vue'),
-	},
-	{
-		path: '/inbox/:id',
-		name: 'InboxMail',
-		component: () => import('@/pages/MailFolderView.vue'),
+		path: '/mailbox/:mailbox',
+		name: 'Mailbox',
+		component: () => import('@/pages/MailboxView.vue'),
 		props: true,
 	},
 	{
-		path: '/sent',
-		name: 'Sent',
-		component: () => import('@/pages/MailFolderView.vue'),
-	},
-	{
-		path: '/sent/:id',
-		name: 'SentMail',
-		component: () => import('@/pages/MailFolderView.vue'),
+		path: '/mailbox/:mailbox/:threadID',
+		name: 'Mail',
+		component: () => import('@/pages/MailboxView.vue'),
 		props: true,
 	},
 	{
-		path: '/outbox',
-		name: 'Outbox',
-		component: () => import('@/pages/MailFolderView.vue'),
-	},
-	{
-		path: '/outbox/:id',
-		name: 'OutboxMail',
-		component: () => import('@/pages/MailFolderView.vue'),
-		props: true,
-	},
-	{
-		path: '/drafts',
-		name: 'Drafts',
-		component: () => import('@/pages/MailFolderView.vue'),
-	},
-	{
-		path: '/drafts/:id',
-		name: 'DraftsMail',
-		component: () => import('@/pages/MailFolderView.vue'),
-		props: true,
-	},
-	{
-		path: '/spam',
-		name: 'Spam',
-		component: () => import('@/pages/MailFolderView.vue'),
-	},
-	{
-		path: '/spam/:id',
-		name: 'SpamMail',
-		component: () => import('@/pages/MailFolderView.vue'),
-		props: true,
-	},
-	{
-		path: '/trash',
-		name: 'Trash',
-		component: () => import('@/pages/MailFolderView.vue'),
-	},
-	{
-		path: '/trash/:id',
-		name: 'TrashMail',
-		component: () => import('@/pages/MailFolderView.vue'),
-		props: true,
-	},
-	{
-		path: '/mime-message/incoming-mail/:id',
-		name: 'IncomingMailMimeMessage',
-		component: () => import('@/pages/MimeMessageView.vue'),
-		props: true,
-		meta: { isMimeMessage: true },
-	},
-	{
-		path: '/mime-message/outgoing-mail/:id',
-		name: 'OutgoingMailMimeMessage',
+		path: '/mime-message/:id',
+		name: 'MimeMessage',
 		component: () => import('@/pages/MimeMessageView.vue'),
 		props: true,
 		meta: { isMimeMessage: true },
@@ -175,24 +110,21 @@ const routes = [
 		meta: { isDashboard: true },
 	},
 	{
-		path: '/dashboard/groups',
-		name: 'Groups',
-		component: () => import('@/pages/dashboard/MailGroupsView.vue'),
+		path: '/dashboard/mailing-lists',
+		name: 'MailingLists',
+		component: () => import('@/pages/dashboard/MailingListsView.vue'),
 		meta: { isDashboard: true },
 	},
 	{
-		path: '/dashboard/groups/:groupName',
-		name: 'Group',
-		component: () => import('@/pages/dashboard/MailGroupView.vue'),
+		path: '/dashboard/mailing-lists/:listName',
+		name: 'MailingList',
+		component: () => import('@/pages/dashboard/MailingListView.vue'),
 		props: true,
 		meta: { isDashboard: true },
 	},
 ]
 
-const router = createRouter({
-	history: createWebHistory('/mail'),
-	routes,
-})
+const router = createRouter({ history: createWebHistory('/mail'), routes })
 
 router.beforeEach(async (to, from, next) => {
 	if (document.referrer.includes('/app/setup-wizard')) window.location.replace('/app')
@@ -202,14 +134,17 @@ router.beforeEach(async (to, from, next) => {
 
 	const { userResource } = userStore()
 	await userResource.promise
+	const user = userResource.data
+	const mailboxRoute = { name: 'Mailbox', params: { mailbox: user.mailboxes[0].role } }
 
-	if (userResource.data.is_mail_admin) {
-		if (!userResource.data.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })
-		if (!userResource.data.default_outgoing && !to.meta.isDashboard)
-			return next({ name: 'Domains' })
-	} else if (to.meta.isDashboard) return next({ name: 'Inbox' })
+	if (user.is_mail_admin) {
+		if (!user.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })
+		if (!user.default_outgoing && !to.meta.isDashboard) return next({ name: 'Domains' })
+	} else if (to.meta.isDashboard) return next(mailboxRoute)
 
-	next(to.meta.isLogin || to.meta.isSetup ? { name: 'Inbox' } : undefined)
+	if (['/', '/mailbox', '/mailbox/'].includes(to.path)) return next(mailboxRoute)
+
+	next(to.meta.isLogin || to.meta.isSetup ? mailboxRoute : undefined)
 })
 
 export default router

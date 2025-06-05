@@ -1,15 +1,12 @@
 import { reactive } from 'vue'
-import { useRoute } from 'vue-router'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
 import router from '@/router'
 
-import type { Folder, UserResource } from '@/types'
+import type { UserResource } from '@/types'
 
 export const userStore = defineStore('mail-users', () => {
-	const route = useRoute()
-
 	const userResource: UserResource = createResource({
 		url: 'mail.api.account.get_user_info',
 		onError: (error) => {
@@ -18,33 +15,16 @@ export const userStore = defineStore('mail-users', () => {
 		auto: true,
 	})
 
-	const getParsedItem = (key: string): string | null => {
-		const item = sessionStorage.getItem(key)
-		return item ? JSON.parse(item) : null
+	const currentThread: Record<string, string | null> = reactive({})
+
+	const setCurrentThread = (mailbox: string, thread: string | null) => {
+		currentThread[mailbox] = thread
+		router.push(
+			thread
+				? { name: 'Mail', params: { mailbox, threadID: thread } }
+				: { name: 'Mailbox', params: { mailbox } },
+		)
 	}
 
-	const currentMail: Record<Folder, string | null> = reactive({
-		Inbox: getParsedItem('currentInboxMail'),
-		Sent: getParsedItem('currentSentMail'),
-		Outbox: getParsedItem('currentOutboxMail'),
-		Drafts: getParsedItem('currentDraftsMail'),
-		Spam: getParsedItem('currentSpamMail'),
-		Trash: getParsedItem('currentTrashMail'),
-	})
-
-	const setCurrentMail = (folder: Folder, mail: string | null) => {
-		const itemName = `current${folder}Mail`
-		if (mail) {
-			currentMail[folder] = mail
-			sessionStorage.setItem(itemName, JSON.stringify(mail))
-			if (String(route.name).startsWith(folder))
-				router.push({ name: `${folder}Mail`, params: { id: mail } })
-		} else {
-			currentMail[folder] = null
-			sessionStorage.removeItem(itemName)
-			router.push({ name: folder })
-		}
-	}
-
-	return { userResource, currentMail, setCurrentMail }
+	return { userResource, currentThread, setCurrentThread }
 })

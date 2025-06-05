@@ -1,29 +1,4 @@
-import type { IncomingMail, OutgoingMail } from './doctypes'
-
 export * from './doctypes'
-
-export type MailType = 'Incoming Mail' | 'Outgoing Mail'
-
-export interface Attachment {
-	name: string
-	file_name: string
-}
-
-export type Mail = (
-	| (IncomingMail & { mail_type: 'Incoming Mail' })
-	| (OutgoingMail & { mail_type: 'Outgoing Mail' })
-) & {
-	snippet: string
-	attachments: Attachment[]
-}
-export interface ReplyDetails {
-	to: string
-	cc: string
-	bcc: string
-	subject?: string
-	in_reply_to_mail_type: 'Outgoing Mail' | 'Incoming Mail'
-	in_reply_to_mail_name?: string
-}
 
 export interface User {
 	name: string
@@ -35,7 +10,8 @@ export interface User {
 	user_image: string | null
 	api_key: string | null
 	tenant: string | null
-	default_outgoing: string | null
+	email_addresses: string[]
+	default_outgoing: string
 
 	enabled: boolean
 	is_mail_user: boolean
@@ -44,12 +20,76 @@ export interface User {
 
 	tenant_name?: string
 	roles: string[]
+	mailboxes: { id: string; name: string; role: string }[]
 }
 
 export interface UserResource {
 	data: User
 }
 
-export type Folder = 'Inbox' | 'Sent' | 'Outbox' | 'Drafts' | 'Spam' | 'Trash'
+export interface Recipient {
+	email: string
+	display_name: string | null
+}
+
+export interface Attachment {
+	filename: string
+	blob_id: string
+	type: string
+	size: string
+	file_url: string | null
+	disposition: string
+}
+
+export interface Mail {
+	name: string
+	message_id: string
+	_id: string
+	from_name: string
+	from_email: string
+	subject: string
+	html_body: string
+	text_body: string
+	received_at: string
+	draft: 0 | 1
+	mailbox_role: string
+	recipients: {
+		To: Recipient[]
+		Cc: Recipient[]
+		Bcc: Recipient[]
+	}
+	reply_to: string[]
+	attachments: Attachment[]
+}
+
+export interface ComposeMailData {
+	from_email: string
+	to: string[]
+	cc: string[]
+	bcc: string[]
+	subject: string
+	html_body: string
+	attachments: Attachment[]
+	in_reply_to: string
+	in_reply_to_id: string
+}
+
+export interface Thread {
+	name: string
+	account: string
+	thread_id: string
+	from_name: string
+	from_email: string
+	subject: string | null
+	preview: string | null
+	has_attachment: 0 | 1
+	received_at: string
+	seen: 0 | 1
+	draft: 0 | 1
+	flagged: 0 | 1
+	answered: 0 | 1
+	forwarded: 0 | 1
+	attachments: Attachment[]
+}
 
 export type LayoutType = 'split' | 'full'

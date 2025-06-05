@@ -107,7 +107,7 @@ const listView = ref(null)
 
 const search = ref('')
 const debouncedSearch = useDebounce(search, 500)
-const type = ref<'Mail Account' | 'Mail Group' | ''>('')
+const type = ref<'Mail Account' | 'Mailing List' | ''>('')
 const status = ref<'Enabled' | 'Disabled' | ''>('')
 
 const selectedMailAlias = ref('')
@@ -177,7 +177,7 @@ const LIST_OPTIONS = {
 const TYPE_OPTIONS = [
 	{ label: '', value: '' },
 	{ label: __('User'), value: 'Mail Account' },
-	{ label: __('Group'), value: 'Mail Group' },
+	{ label: __('Mailing List'), value: 'Mailing List' },
 ]
 
 const STATUS_OPTIONS = [

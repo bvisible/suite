@@ -72,6 +72,7 @@ class EmailMessage(Document):
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
+				EM.draft,
 				EM.flagged,
 				EM.answered,
 				EM.forwarded,
@@ -113,6 +114,11 @@ class EmailMessage(Document):
 
 			attachments_map = defaultdict(list)
 			for a in attachments:
+				if not a.filename:
+					if a.type == "message/delivery-status":
+						a.filename = "Delivery Report"
+					elif a.type == "message/rfc822":
+						a.filename = "Original Message"
 				attachments_map[a.pop("parent")].append(a)
 
 		if attachments_map:
@@ -125,24 +131,26 @@ class EmailMessage(Document):
 		return messages
 
 	@staticmethod
-	def get_thread(account: str, thread_id: str) -> list[str]:
-		"""Returns the message IDs in a thread."""
+	def get_message_ids(account: str, thread_ids: list[str], mailbox_id: str | None = None) -> list[str]:
+		"""Returns the message IDs for the given threads."""
 
-		if not account or not thread_id:
-			frappe.throw(_("Account and thread ID are required."))
+		if not account or not thread_ids:
+			frappe.throw(_("Account and thread IDs are required."))
 
 		validate_permission_for_account(account)
 
-		return frappe.db.get_all(
-			"Email Message", {"account": account, "thread_id": thread_id, "destroyed": 0}, pluck="name"
-		)
+		filters = {"account": account, "thread_id": ["in", thread_ids], "destroyed": 0}
+		if mailbox_id:
+			filters["mailbox_id"] = mailbox_id
+
+		return frappe.get_all("Email Message", filters, pluck="name")
 
 	@staticmethod
 	def get_thread_messages(account: str, thread_id: str) -> list["EmailMessage"]:
 		"""Returns the email messages in a thread."""
 
 		messages = []
-		for message_id in EmailMessage.get_thread(account, thread_id):
+		for message_id in EmailMessage.get_message_ids(account, [thread_id]):
 			email_message = frappe.get_doc("Email Message", message_id)
 			messages.append(email_message)
 
@@ -322,6 +330,10 @@ class EmailMessage(Document):
 			)
 			email_message.flags.notify_update = True
 			email_message.save(ignore_permissions=True)
+
+		frappe.publish_realtime(
+			"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
+		)
 
 	@staticmethod
 	def _create_from_email_data(

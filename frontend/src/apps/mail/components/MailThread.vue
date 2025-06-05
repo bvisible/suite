@@ -1,11 +1,11 @@
 <template>
-	<div v-if="mailID" class="relative flex h-full flex-col overflow-hidden">
+	<div v-if="threadID" class="relative flex h-full flex-col overflow-hidden">
 		<div class="sticky top-0 z-10 flex items-center border-b bg-white p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
 				class="mr-2"
-				@click="setCurrentMail(currentFolder, null)"
+				@click="setCurrentThread(mailbox, null)"
 			/>
 			<span
 				v-if="mailThread.loading"
@@ -30,6 +30,16 @@
 							</template>
 						</Button>
 					</Tooltip>
+
+					<Tooltip :text="__('Move To')">
+						<Dropdown :options="moveToOptions">
+							<Button variant="ghost">
+								<template #icon>
+									<component :is="FolderInput" class="h-4 w-4 text-gray-600" />
+								</template>
+							</Button>
+						</Dropdown>
+					</Tooltip>
 				</div>
 			</template>
 		</div>
@@ -45,7 +55,7 @@
 				>
 					<div class="flex space-x-3 border-b pb-2">
 						<Avatar
-							:label="mail.display_name || mail.sender"
+							:label="mail.from_name || mail.from_email"
 							:image="mail.user_image"
 							size="xl"
 						/>
@@ -53,38 +63,29 @@
 							<div class="flex flex-col space-y-1">
 								<div class="flex items-center space-x-1.5">
 									<span class="text-base font-semibold">
-										{{ mail.display_name || mail.from_ || mail.sender }}
+										{{ mail.from_name || mail.from_email }}
 									</span>
-									<span
-										v-if="mail.display_name && !isMobile"
-										class="text-gray-600"
-									>
-										{{ `<${mail.from_ || mail.sender}>` }}
+									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
+										{{ `<${mail.from_email}>` }}
 									</span>
-									<MailDetailsPopover :mail="mail" />
+									<MailDetailsPopover v-if="!mail.draft" :mail="mail" />
 								</div>
 								<div class="flex items-center space-x-2">
-									<span class="flex items-center space-x-1">
-										<span>{{ __('To: ') + toRecipient(mail) }}</span>
+									<span v-if="mail.recipients.To?.length">
+										{{ __('To: ') + getRecipients(mail.recipients.To) }}
 									</span>
-									<span v-if="mail.cc.length">
-										{{ __('Cc: ') + getRecipients(mail.cc) }}
+									<span v-if="mail.recipients.CC?.length">
+										{{ __('Cc: ') + getRecipients(mail.recipients.CC) }}
 									</span>
-									<span v-if="mail.bcc.length">
-										{{ __('Bcc: ') + getRecipients(mail.bcc) }}
+									<span v-if="mail.recipients.BCC?.length">
+										{{ __('Bcc: ') + getRecipients(mail.recipients.BCC) }}
 									</span>
 								</div>
 							</div>
 							<div class="flex items-center space-x-2 self-start">
-								<MailDate
-									:datetime="
-										mail.folder === 'Drafts' ? mail.modified : mail.creation
-									"
-								/>
+								<MailDate :datetime="mail.received_at" />
 								<Tooltip
-									v-for="action in mailActions(mail).filter(
-										(d) => d.condition !== false,
-									)"
+									v-for="action in mailActions(mail).filter((d) => d.condition)"
 									:key="action.label"
 									:text="action.label"
 								>
@@ -115,23 +116,24 @@
 					</div>
 
 					<IframeResizer
-						v-if="mail.body_html"
+						v-if="mail.html_body"
 						class="w-full"
 						license="GPLv3"
 						:scrolling="true"
-						:src="getSrc(mail.body_html)"
+						:src="getSrc(mail.html_body)"
 					/>
 
-					<pre v-else-if="mail.body_plain" class="text-wrap pt-4 text-sm leading-5">{{
-						mail.body_plain
+					<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
+						mail.text_body
 					}}</pre>
 
-					<div v-if="mail.attachments.length" class="mt-8 flex flex-wrap space-x-2">
+					<div v-if="mail.attachments?.length" class="mt-8 flex flex-wrap space-x-2">
 						<AttachmentCapsule
 							v-for="attachment in mail.attachments"
 							:key="attachment.name"
-							:file-name="attachment.file_name"
-							:file-url="attachment.file_url"
+							:file-name="attachment.filename"
+							:blob-i-d="attachment.blob_id"
+							:type="attachment.type"
 							class="mb-2"
 						/>
 					</div>
@@ -141,8 +143,8 @@
 		<SendMail
 			v-model="showSendModal"
 			:mail-i-d="draftMailID"
-			:reply-details
-			@reload-mails="emit('reloadMails', 'Drafts')"
+			:mail-details
+			@reload-mails="emit('reloadMails')"
 		/>
 	</div>
 
@@ -167,11 +169,11 @@ import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
 	Code,
 	Ellipsis,
+	FolderInput,
 	Forward,
 	Mail as MailIcon,
 	Reply,
 	ReplyAll,
-	RotateCcw,
 	SquarePen,
 	Trash2,
 } from 'lucide-vue-next'
@@ -187,52 +189,54 @@ import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
 import MailThreadPlaceholder from '@/components/MailThreadPlaceholder.vue'
 import SendMail from '@/components/SendMail.vue'
 
-import type { Folder, Mail, MailType } from '@/types'
+import type { ComposeMailData, Mail } from '@/types'
 
-const props = defineProps<{
-	mailID: string | null
-	currentFolder: Folder
-	type?: MailType
-}>()
+const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread', 'setThreadFolders', 'deleteThread'])
+const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteThread'])
 
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
-const { setCurrentMail } = userStore()
+const { setCurrentThread } = userStore()
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
 
-const replyDetails = reactive({
-	to: '',
-	cc: '',
-	bcc: '',
+const mailDetails = reactive<ComposeMailData>({
+	from_email: '',
+	to: [],
+	cc: [],
+	bcc: [],
 	subject: '',
-	in_reply_to_mail_type: props.type,
-	in_reply_to_mail_name: '',
+	html_body: '',
+	attachments: [],
+	in_reply_to: '',
+	in_reply_to_id: '',
 })
 
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
-	makeParams: () => ({ name: props.mailID, mail_type: props.type }),
-	transform: (data: Mail[]) =>
-		props.currentFolder === 'Trash'
-			? data.filter((mail) => mail.folder === 'Trash')
-			: data.filter((mail) => mail.folder !== 'Trash'),
+	makeParams: () => ({ thread_id: threadID }),
+	onSuccess: (data: Mail[]) => {
+		if (mailbox === 'trash')
+			mailThread.data = data.filter((mail) => mail.mailbox_role === 'trash')
+		else mailThread.data = data.filter((mail) => mail.mailbox_role !== 'trash')
+	},
 })
 
 const reload = () => {
-	if (props.mailID) mailThread.reload()
+	if (threadID) mailThread.reload()
 }
 
 defineExpose({ reload })
 
 const getSrc = (content: string) => {
-	content = content.replace(
-		/<blockquote>/g,
-		'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
-	)
+	content = content
+		.replace(
+			/<blockquote>/g,
+			'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
+		)
+		.replace(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g, '<b>&lt;$1&gt;</b>')
 
 	/* eslint-disable no-useless-escape */
 	const html = `
@@ -289,7 +293,16 @@ const getSrc = (content: string) => {
 	return URL.createObjectURL(blob)
 }
 
-type ActionType = 'editDraft' | 'reply' | 'replyAll' | 'forward'
+const user = inject('$user')
+
+const moveToOptions = computed(() =>
+	user.data.mailboxes
+		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
+		.map((m) => ({
+			label: m.name,
+			onClick: () => emit('moveThread', m.role),
+		})),
+)
 
 interface MailAction {
 	label: string
@@ -302,21 +315,15 @@ const threadActions = computed((): MailAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => emit('setThreadFolders', true),
+			onClick: () => emit('moveThread', 'trash'),
 			icon: Trash2,
-			condition: props.currentFolder !== 'Trash',
+			condition: mailbox !== 'trash',
 		},
 		{
 			label: __('Delete Thread'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: props.currentFolder === 'Trash',
-		},
-		{
-			label: __('Restore'),
-			onClick: () => emit('setThreadFolders', false),
-			icon: RotateCcw,
-			condition: props.currentFolder === 'Trash',
+			condition: mailbox === 'trash',
 		},
 		{
 			label: __('Mark as Unread'),
@@ -329,129 +336,128 @@ const threadActions = computed((): MailAction[] =>
 const mailActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Edit Draft'),
-		onClick: () => {
-			draftMailID.value = mail.name
-			showSendModal.value = true
-		},
+		onClick: () => editDraft(mail),
 		icon: SquarePen,
-		condition: mail.folder === 'Drafts',
+		condition: !!mail.draft,
 	},
 	{
 		label: __('Reply'),
-		onClick: () => openModal('reply', mail),
+		onClick: () => reply(mail),
 		icon: Reply,
-		condition: mail.status !== 'Draft',
+		condition: !mail.draft,
 	},
 ]
 
 const moreActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Reply All'),
-		onClick: () => openModal('replyAll', mail),
+		onClick: () => replyAll(mail),
 		icon: ReplyAll,
-		condition: () => mail.status !== 'Draft',
+		condition: () =>
+			!mail.draft &&
+			mail.from_email !== user.data.email &&
+			mail.recipients.To?.concat(mail.recipients.Cc || []).filter(
+				(m) => m.email !== user.data.email,
+			).length > 0,
 	},
 	{
 		label: __('Forward'),
-		onClick: () => openModal('forward', mail),
+		onClick: () => forward(mail),
 		icon: Forward,
-		condition: () => mail.status !== 'Draft',
+		condition: () => !mail.draft,
 	},
 	{
 		label: __('See MIME Message'),
-		onClick: () =>
-			window
-				.open(
-					`/mail/mime-message/${mail.mail_type.toLowerCase().split(' ').join('-')}/${mail.name}`,
-					'_blank',
-				)
-				?.focus(),
+		onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
 		icon: Code,
-		condition: () => mail.status !== 'Draft' && !isMobile.value,
+		condition: () => !mail.draft && !isMobile.value,
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: () => setFolder.submit({ mail, moveToTrash: true }),
+		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: 'trash' }),
 		icon: Trash2,
-		condition: () => mail.folder !== 'Trash',
-	},
-	{
-		label: __('Restore'),
-		onClick: () => setFolder.submit({ mail, moveToTrash: false }),
-		icon: RotateCcw,
-		condition: () => mail.folder === 'Trash',
+		condition: () => mailbox !== 'trash',
 	},
 	{
 		label: __('Delete Message'),
-		onClick: () => deleteMail.submit(mail),
+		onClick: () => deleteMails.submit([mail.name]),
 		icon: Trash2,
-		condition: () => mail.folder === 'Trash',
+		condition: () => mailbox === 'trash',
 	},
 ]
 
-const setFolder = createResource({
-	url: 'mail.api.mail.set_folder',
-	method: 'POST',
-	makeParams: ({ mail, moveToTrash }: { mail: Mail; moveToTrash: boolean }) => ({
-		mail_type: mail.mail_type,
-		name: mail.name,
-		move_to_trash: moveToTrash,
+const moveMail = createResource({
+	url: 'mail.api.mail.set_mails_mailbox',
+	makeParams: ({ mail_ids, mailbox }: { mail_ids: string[]; mailbox: string }) => ({
+		mail_ids,
+		mailbox,
 	}),
 	onSuccess: () => emit('reloadMails'),
 })
 
-const deleteMail = createResource({
-	url: 'mail.api.mail.delete_or_cancel_mails',
-	makeParams: (mail: Mail) => ({
-		mails: [
-			{
-				mail_type: mail.mail_type,
-				name: mail.name,
-				docstatus: mail.docstatus,
-			},
-		],
-	}),
+const deleteMails = createResource({
+	url: 'mail.mail.doctype.email_message.email_message.bulk_destroy',
+	makeParams: (names: string[]) => ({ names }),
 	onSuccess: () => emit('reloadMails'),
 })
-const openModal = (type: ActionType, mail) => {
-	if (props.type == 'Incoming Mail') {
-		replyDetails.to = mail.reply_to || mail.sender
-	} else {
-		replyDetails.to = mail.to.map((to) => to.email).join(', ')
-	}
 
-	replyDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
-	replyDetails.cc = ''
-	replyDetails.bcc = ''
-	replyDetails.in_reply_to_mail_name = mail.name
-
-	if (type === 'replyAll') {
-		replyDetails.cc = mail.cc.map((cc) => cc.email).join(', ')
-		replyDetails.bcc = mail.bcc.map((bcc) => bcc.email).join(', ')
-	}
-	if (type === 'forward') {
-		replyDetails.to = ''
-		replyDetails.subject = `Fwd: ${mail.subject}`
-	}
-	replyDetails.html = getReplyHtml(mail.body_html, mail.creation)
+const editDraft = (mail: Mail) => {
+	draftMailID.value = mail.name
+	mailDetails.from_email = mail.from_email
+	mailDetails.to = mail.recipients.To?.map((m) => m.email) || []
+	mailDetails.cc = mail.recipients.Cc?.map((m) => m.email) || []
+	mailDetails.bcc = mail.recipients.Bcc?.map((m) => m.email) || []
+	mailDetails.subject = mail.subject || ''
+	mailDetails.html_body = mail.html_body
+	mailDetails.attachments = mail.attachments || []
 	showSendModal.value = true
 }
 
-const getReplyHtml = (html, creation) => {
-	const replyHeader = `
-        On ${dayjs(creation).format('DD MMM YYYY')} at ${dayjs(creation).format('h:mm A')}, ${
-			replyDetails.to
-		} wrote:
-    `
-	return `<br><blockquote>${replyHeader} <br> ${html}</blockquote>`
+const reply = (mail: Mail) => {
+	if (isUserEmail(mail.from_email))
+		mailDetails.to = mail.recipients.To?.map((rcpt) => rcpt.email)
+	else mailDetails.to = mail.reply_to.length ? mail.reply_to : [mail.from_email]
+
+	setReplyDetailsAndOpenModal(mail)
 }
 
-const toRecipient = (mail) => {
-	const isSoleRecipient = mail.to.length === 1 && !mail.cc.length && !mail.bcc.length
-	if (!isSoleRecipient) return getRecipients(mail.to)
+const replyAll = (mail: Mail) => {
+	if (isUserEmail(mail.from_email)) {
+		mailDetails.to = mail.recipients.To?.map((rcpt) => rcpt.email) || []
+		mailDetails.cc = mail.recipients.Cc?.map((rcpt) => rcpt.email) || []
+	} else {
+		mailDetails.to = mail.reply_to.length ? mail.reply_to : [mail.from_email]
 
-	return mail.to[0].display_name || mail.delivered_to || mail.to[0].email
+		const originalRecipients = [...(mail.recipients.To || []), ...(mail.recipients.Cc || [])]
+		mailDetails.cc = originalRecipients
+			.filter((rcpt) => !isUserEmail(rcpt.email))
+			.map((rcpt) => rcpt.email)
+	}
+
+	setReplyDetailsAndOpenModal(mail)
 }
 
-watch(() => props.mailID, reload)
+const forward = (mail: Mail) => {
+	mailDetails.subject = `Fwd: ${mail.subject}`
+	mailDetails.html_body = getMailBody(mail)
+	showSendModal.value = true
+}
+
+const isUserEmail = (email: string) => user.data.email_addresses.includes(email)
+
+const setReplyDetailsAndOpenModal = (mail: Mail) => {
+	mailDetails.subject = mail.subject.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`
+	mailDetails.html_body = getMailBody(mail)
+	mailDetails.in_reply_to = mail.message_id
+	mailDetails.in_reply_to_id = mail._id
+	showSendModal.value = true
+}
+
+const getMailBody = (mail: Mail) => {
+	if (!mail.html_body) return ''
+	const replyHeader = `On ${dayjs(mail.received_at).format('DD MMM YYYY')} at ${dayjs(mail.received_at).format('h:mm A')}, ${mail.from_email} wrote:`
+	return `<br><blockquote>${replyHeader} <br> ${mail.html_body}</blockquote>`
+}
+
+watch(() => threadID, reload)
 </script>

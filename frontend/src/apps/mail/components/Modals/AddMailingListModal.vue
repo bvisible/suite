@@ -2,13 +2,13 @@
 	<Dialog
 		v-model="show"
 		:options="{
-			title: __('New Group'),
+			title: __('New Mailing List'),
 			actions: [
 				{
 					label: __('Save'),
 					variant: 'solid',
-					disabled: !(group.doc.username && group.doc.domain_name),
-					onClick: group.submit,
+					disabled: !(list.doc.username && list.doc.domain_name),
+					onClick: list.submit,
 				},
 			],
 		}"
@@ -16,14 +16,14 @@
 		<template #body-content>
 			<div class="mb-4 flex items-center justify-between">
 				<FormControl
-					v-model="group.doc.username"
+					v-model="list.doc.username"
 					:label="__('Username')"
 					placeholder="team"
 					class="w-full"
 				/>
 				<FeatherIcon class="mx-2.5 mb-1.5 mt-auto h-4 w-4 text-gray-400" name="at-sign" />
 				<LinkControl
-					v-model="group.doc.domain_name"
+					v-model="list.doc.domain_name"
 					:label="__('Domain Name')"
 					placeholder="yourdomain.com"
 					doctype="Mail Domain"
@@ -32,7 +32,7 @@
 				/>
 			</div>
 			<FormControl
-				v-model="group.doc.display_name"
+				v-model="list.doc.display_name"
 				:label="__('Display Name')"
 				placeholder="Team Example"
 			/>
@@ -54,29 +54,29 @@ const show = defineModel<boolean>()
 const user = inject('$user')
 const router = useRouter()
 
-const defaultGroup = {
+const defaultList = {
 	username: '',
 	domain_name: '',
 	display_name: '',
 }
 
-const group = useNewDoc(
-	'Mail Group',
-	{ ...defaultGroup },
+const list = useNewDoc(
+	'Mailing List',
+	{ ...defaultList },
 	{
 		beforeSubmit: () => {
-			group.doc.email = `${group.doc.username}@${group.doc.domain_name}`
+			list.doc.email = `${list.doc.username}@${list.doc.domain_name}`
 		},
 		onSuccess: () => {
 			show.value = false
-			raiseToast(__('Group created successfully'))
-			router.push({ name: 'Group', params: { groupName: group.doc.email } })
+			raiseToast(__('Mailing List created successfully'))
+			router.push({ name: 'MailingList', params: { listName: list.doc.email } })
 		},
 		onError: (error) => raiseToast(error.message, 'error'),
 	},
 )
 
 watch(show, (val) => {
-	if (val) Object.assign(group.doc, defaultGroup)
+	if (val) Object.assign(list.doc, defaultList)
 })
 </script>

@@ -8,10 +8,10 @@
 				<span class="col-span-1 text-gray-500">{{ __('From:') }}</span>
 				<span class="col-span-4">
 					<span class="font-semibold">
-						{{ mail.display_name || mail.from_ || mail.sender }}
+						{{ mail.from_name || mail.from_email }}
 					</span>
-					<span v-if="mail.display_name">
-						{{ ` <${mail.from_ || mail.sender}>` }}
+					<span v-if="mail.from_name">
+						{{ ` <${mail.from_email}>` }}
 					</span>
 				</span>
 				<template v-for="field in FIELDS" :key="field.label">
@@ -38,27 +38,27 @@ const { mail } = defineProps<{ mail: Mail }>()
 
 const FIELDS = [
 	{
-		condition: !!mail.reply_to,
+		condition: mail.reply_to.length > 0,
 		label: __('Reply To: '),
-		value: () => mail.reply_to,
+		value: () => mail.reply_to.join(', '),
 	},
 	{
 		label: __('To: '),
-		value: () => getRecipients(mail.to, true),
+		value: () => getRecipients(mail.recipients.To, true),
 	},
 	{
-		condition: !!mail.cc.length,
+		condition: !!mail.recipients.Cc?.length,
 		label: __('Cc: '),
-		value: () => getRecipients(mail.cc, true),
+		value: () => getRecipients(mail.recipients.Cc, true),
 	},
 	{
-		condition: !!mail.bcc.length,
+		condition: !!mail.recipients.Bcc?.length,
 		label: __('Bcc: '),
-		value: () => getRecipients(mail.bcc, true),
+		value: () => getRecipients(mail.recipients.Bcc, true),
 	},
 	{
 		label: __('Date: '),
-		value: () => dayjs(mail.creation).format('MMM D, YYYY, h:mm A'),
+		value: () => dayjs(mail.received_at).format('MMM D, YYYY, h:mm A'),
 	},
 	{
 		condition: !!mail.subject,

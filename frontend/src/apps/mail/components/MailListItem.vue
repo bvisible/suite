@@ -9,7 +9,7 @@
 			<Checkbox v-if="isHovered || isSelected" v-model="isSelected" size="md" @click.stop />
 			<Avatar
 				v-else
-				:label="mail.display_name || mail.sender"
+				:label="mail.from_name || mail.from_email"
 				:size="isFullWidth ? 'lg' : 'xl'"
 			/>
 		</div>
@@ -28,10 +28,10 @@
 						class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500"
 					/>
 					<span class="truncate text-base font-semibold">
-						{{ mail.display_name || mail.sender }}
+						{{ mail.from_name || mail.from_email }}
 					</span>
 				</h3>
-				<MailDate v-if="!isFullWidth" :datetime="mail.creation" :in-list="true" />
+				<MailDate v-if="!isFullWidth" :datetime="mail.received_at" :in-list="true" />
 			</div>
 			<h4
 				class="truncate text-sm leading-[1.5]"
@@ -41,35 +41,37 @@
 			</h4>
 			<h5
 				class="truncate text-sm leading-[1.5] text-gray-600"
-				:class="{ italic: !mail.snippet, 'min-w-0 flex-1 !text-base': isFullWidth }"
+				:class="{ italic: !mail.preview, 'min-w-0 flex-1 !text-base': isFullWidth }"
 			>
-				{{ mail.snippet || __('— No message body —') }}
+				{{ mail.preview || __('— No message body —') }}
 			</h5>
 			<div
-				v-if="mail.attachments.length || Object.keys(STATUS).includes(badgeField)"
+				v-if="mail.attachments || mail.draft"
 				class="flex items-center"
 				:class="{ 'ml-auto min-w-fit': isFullWidth }"
 			>
 				<AttachmentCapsule
-					v-for="attachment in mail.attachments.slice(0, 2)"
-					:key="attachment.name"
-					:file-name="attachment.file_name"
+					v-for="(attachment, idx) in mail.attachments?.slice(0, 2)"
+					:key="idx"
+					:file-name="attachment.filename"
+					:blob-i-d="attachment.blob_id"
+					:type="attachment.type"
 					class="mr-2 max-w-32"
+					@click.stop.prevent
 				/>
 				<AttachmentCapsule
-					v-if="mail.attachments.length > 2"
+					v-if="mail.attachments?.length > 2"
 					:file-name="__('+{0} more', [String(mail.attachments.length - 2)])"
 				/>
 				<Badge
-					v-if="Object.keys(STATUS).includes(badgeField)"
-					variant="outline"
+					v-if="mail.draft"
 					:class="isFullWidth ? 'ml-5' : 'ml-auto'"
-					:label="badge.label"
-					:theme="badge.theme"
+					:label="__('Draft')"
+					theme="red"
 				/>
 			</div>
 			<div v-if="isFullWidth" class="flex min-w-20 max-w-20 justify-end">
-				<MailDate :datetime="mail.creation" :in-list="true" />
+				<MailDate :datetime="mail.received_at" :in-list="true" />
 			</div>
 		</div>
 	</div>
@@ -83,11 +85,11 @@ import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
-import type { LayoutType, Mail } from '@/types'
+import type { LayoutType, Thread } from '@/types'
 
-const { mail, userLayout } = defineProps<{ mail: Mail; userLayout: LayoutType }>()
+const { mail, userLayout } = defineProps<{ mail: Thread; userLayout: LayoutType }>()
 
-const emit = defineEmits(['select-mail', 'deselect-mail'])
+const emit = defineEmits(['select-thread', 'deselect-thread'])
 
 const { isMobile } = useScreenSize()
 
@@ -96,27 +98,9 @@ const isFullWidth = computed(() => userLayout === 'full' && !isMobile.value)
 const isHovered = ref(false)
 const isSelected = ref(false)
 
-watch(isSelected, () => emit(isSelected.value ? 'select-mail' : 'deselect-mail'))
+watch(isSelected, () => emit(isSelected.value ? 'select-thread' : 'deselect-thread'))
 
 const setIsSelected = (value: boolean) => (isSelected.value = value)
 
 defineExpose({ setIsSelected })
-
-interface BadgeType {
-	label: string
-	theme: 'gray' | 'blue' | 'green' | 'orange' | 'red'
-}
-
-const STATUS = {
-	Draft: { label: __('Draft'), theme: 'gray' },
-	Queued: { label: __('Queued'), theme: 'orange' },
-	Blocked: { label: __('Blocked'), theme: 'red' },
-	Failed: { label: __('Failed'), theme: 'red' },
-	'DSN Report': { label: __('DSN Report'), theme: 'blue' },
-	'DMARC Report': { label: __('DMARC Report'), theme: 'blue' },
-}
-
-const badgeField = computed(() => (mail.mail_type === 'Outgoing Mail' ? mail.status : mail.type))
-
-const badge = computed<BadgeType>(() => STATUS[badgeField.value])
 </script>
