@@ -271,35 +271,32 @@ const createMail = createResource({
 		...mail,
 		save_as_draft: saveAsDraft,
 	}),
-	onSuccess: () => setTimeout(() => emit('reloadMails'), 500),
 })
 
 const updateDraftMail = createResource({
 	url: 'mail.api.mail.update_draft_mail',
 	makeParams: ({ submit }: { submit: boolean }) => ({ ...mail, name: mailID, submit: submit }),
-	onSuccess: () => setTimeout(() => emit('reloadMails'), 500),
 })
 
 const destroyMail = createResource({
 	url: 'mail.api.mail.destroy_mail',
 	makeParams: () => ({ name: mailID }),
+	onSuccess: () => emit('reloadMails'),
 })
 
 const saveDraft = ref(true)
 
-const sendMail = async () => {
+const sendMail = () => {
 	saveDraft.value = false
 	show.value = false
-	if (mailID) await updateDraftMail.submit({ submit: true })
-	else await createMail.submit({ saveAsDraft: false })
-	setTimeout(() => emit('reloadMails'), 500)
+	if (mailID) updateDraftMail.submit({ submit: true })
+	else createMail.submit({ saveAsDraft: false })
 }
 
-const discardMail = async () => {
+const discardMail = () => {
 	saveDraft.value = false
 	show.value = false
-	if (mailID) await destroyMail.submit()
-	setTimeout(() => emit('reloadMails'), 500)
+	if (mailID) destroyMail.submit()
 }
 
 const setMailDetails = () => {

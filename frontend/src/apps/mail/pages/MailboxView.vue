@@ -374,14 +374,11 @@ const openThread = (mail: Thread) => {
 
 watch(() => mailbox, reloadMails, { immediate: true })
 
-// todo:
-// onMounted(() => {
-// 	socket.on('outgoing_mail_sent', () => reloadMails('Sent'))
-// 	socket.on('incoming_mail_received', () => {
-// 		reloadMails('Inbox')
-// 		reloadMails('Spam')
-// 	})
-// })
+onMounted(() =>
+	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
+		if (updatedMailbox === mailbox) reloadMails()
+	}),
+)
 
 // layout
 
