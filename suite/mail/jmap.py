@@ -629,12 +629,8 @@ def get_jmap_client(account: str, server: str | None = None, cache: bool = True)
 
 		return JMAPClient(host, account_doc.email, account_doc.get_password())
 
-	if cache:
-		cache_key = "jmap:client"
-		if server:
-			cache_key = f"{cache_key}:{server}"
-
-		return frappe.cache.hget(cache_key, account, generator)
+	if cache and not server:
+		return frappe.cache.hget("jmap:client", account, generator)
 	else:
 		return generator()
 
