@@ -156,7 +156,7 @@ class MailAccount(Document):
 		"""Generates secret if password is changed"""
 
 		if not self.password:
-			self.password = random_string(length=20)
+			self._generate_password()
 
 		if not self.is_new():
 			if previous_doc := self.get_doc_before_save():
@@ -210,6 +210,21 @@ class MailAccount(Document):
 
 		frappe.only_for("System Manager")
 		self._sync_jmap_identities()
+
+	@frappe.whitelist()
+	def regenerate_password(self) -> None:
+		"""Regenerates the password for the Mail Account."""
+
+		validate_permission_for_account(self.name)
+		self._generate_password()
+		self.save()
+
+		frappe.msgprint(_("Password has been regenerated."), alert=True, indicator="green")
+
+	def _generate_password(self) -> None:
+		"""Generates a random password for the Mail Account."""
+
+		self.password = random_string(length=20)
 
 	def _sync_jmap_identities(self) -> None:
 		"""Syncs JMAP identities for the Mail Account."""
