@@ -7,6 +7,7 @@ frappe.ui.form.on('Mail Account', {
 	},
 
 	refresh(frm) {
+		frm.trigger('add_show_password')
 		frm.trigger('add_reports')
 		frm.trigger('add_actions')
 	},
@@ -26,6 +27,26 @@ frappe.ui.form.on('Mail Account', {
 				role: 'Mail User',
 			},
 		}))
+	},
+
+	add_show_password(frm) {
+		if (frm.doc.__islocal) return
+
+		if (frm.doc.password) {
+			frm.add_custom_button(__('Show Password'), () => {
+				frappe.call({
+					doc: frm.doc,
+					method: 'get_account_password',
+					freeze: true,
+					freeze_message: __('Getting Password...'),
+					callback: (r) => {
+						if (!r.exc) {
+							frappe.msgprint(r.message)
+						}
+					},
+				})
+			})
+		}
 	},
 
 	add_reports(frm) {
@@ -55,9 +76,9 @@ frappe.ui.form.on('Mail Account', {
 	},
 
 	add_actions(frm) {
-		if (!frappe.user_roles.includes('System Manager')) return
+		if (frm.doc.__islocal) return
 
-		if (!frm.doc.__islocal) {
+		if (frappe.user_roles.includes('System Manager')) {
 			frm.add_custom_button(
 				__('Sync JMAP Identities'),
 				() => {
