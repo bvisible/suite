@@ -1,3 +1,4 @@
+import base64
 from collections import defaultdict
 
 import frappe
@@ -64,49 +65,50 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 def get_mail_thread(thread_id: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
 
-	EmailMessage = frappe.qb.DocType("Email Message")
-	EmailMessageRecipient = frappe.qb.DocType("Email Message Recipient")
-	EmailMessageReplyTo = frappe.qb.DocType("Email Message Reply To")
+	rows = get_thread_rows(thread_id)
+	messages, message_names = group_thread_mail_recipients(rows)
+	return add_mail_attachments(messages, message_names)
 
-	rows = (
-		frappe.qb.from_(EmailMessage)
-		.left_join(EmailMessageRecipient)
-		.on(EmailMessage.name == EmailMessageRecipient.parent)
-		.left_join(EmailMessageReplyTo)
-		.on(EmailMessage.name == EmailMessageReplyTo.parent)
+
+def get_thread_rows(thread_id: str) -> list[dict]:
+	"""Returns mail thread rows for the given id."""
+
+	EM = frappe.qb.DocType("Email Message")
+	EMR = frappe.qb.DocType("Email Message Recipient")
+	EMRT = frappe.qb.DocType("Email Message Reply To")
+
+	return (
+		frappe.qb.from_(EM)
+		.left_join(EMR)
+		.on(EM.name == EMR.parent)
+		.left_join(EMRT)
+		.on(EM.name == EMRT.parent)
 		.select(
-			EmailMessage.name,
-			EmailMessage.message_id,
-			EmailMessage._id,
-			EmailMessage.from_name,
-			EmailMessage.from_email,
-			EmailMessage.subject,
-			EmailMessage.html_body,
-			EmailMessage.text_body,
-			EmailMessage.received_at,
-			EmailMessage.draft,
-			EmailMessage.mailbox_role,
-			EmailMessage.has_attachment,
-			EmailMessageRecipient.type,
-			EmailMessageRecipient.email,
-			EmailMessageRecipient.display_name,
-			EmailMessageReplyTo.email.as_("reply_to"),
+			EM.name,
+			EM.message_id,
+			EM._id,
+			EM.from_name,
+			EM.from_email,
+			EM.subject,
+			EM.html_body,
+			EM.text_body,
+			EM.received_at,
+			EM.draft,
+			EM.mailbox_role,
+			EMR.type,
+			EMR.email,
+			EMR.display_name,
+			EMRT.email.as_("reply_to"),
 		)
-		.where(
-			(EmailMessage.account == frappe.session.user)
-			& (EmailMessage.thread_id == thread_id)
-			& (EmailMessage.destroyed == 0)
-		)
+		.where((EM.account == frappe.session.user) & (EM.thread_id == thread_id) & (EM.destroyed == 0))
 	).run(as_dict=True)
 
-	return group_recipients_and_add_attachments(rows)
 
-
-def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
-	"""Returns mail thread with attachments and grouped recipients."""
+def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
+	"""Groups mail thread recipients by type."""
 
 	grouped = {}
-	messages_with_attachments = set()
+	message_names = set()
 
 	for row in rows:
 		key = row["name"]
@@ -123,13 +125,10 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 				"received_at": row["received_at"],
 				"draft": row["draft"],
 				"mailbox_role": row["mailbox_role"],
-				"has_attachment": row["has_attachment"],
 				"recipients": defaultdict(list),
 				"reply_to": [],
 			}
-
-			if row["has_attachment"]:
-				messages_with_attachments.add(key)
+			message_names.add(key)
 
 		if row["email"]:
 			recipient = {"email": row["email"], "display_name": row["display_name"]}
@@ -138,19 +137,17 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 		if row["reply_to"] and row["reply_to"] not in grouped[key]["reply_to"]:
 			grouped[key]["reply_to"].append(row["reply_to"])
 
-	if messages_with_attachments:
-		attachments = frappe.get_all(
-			"Email Message Part",
-			filters={
-				"parenttype": "Email Message",
-				"parentfield": "attachments",
-				"parent": ["in", messages_with_attachments],
-			},
-			fields=["parent", "filename", "blob_id", "type", "size", "file_url", "disposition"],
-		)
+	return grouped, message_names
 
-		attachments_by_parent = defaultdict(list)
-		for attachment in attachments:
+
+def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list[dict]:
+	"""Returns thread with attachments."""
+
+	attachments = get_mail_attachments(message_names)
+	attachments_by_parent = defaultdict(list)
+
+	for attachment in attachments:
+		if attachment.disposition == "attachment":
 			if not attachment.filename:
 				if attachment.type == "message/delivery-status":
 					attachment.filename = "Delivery Report"
@@ -159,14 +156,47 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 			parent = attachment.pop("parent")
 			attachments_by_parent[parent].append(attachment)
 
+		else:
+			blob = EmailMessage.fetch_blob(frappe.session.user, attachment.blob_id)
+			base64_content = base64.b64encode(blob).decode("utf-8")
+			message = messages[attachment.parent]
+			message["html_body"] = message["html_body"].replace(
+				f'<img src="cid:{attachment.cid}"',
+				f'<img src="data:{attachment.type};base64,{base64_content}"',
+			)
+
 	result = []
-	for item in grouped.values():
+	for item in messages.values():
 		item["recipients"] = dict(item["recipients"])
-		if item["has_attachment"]:
-			item["attachments"] = attachments_by_parent[item["name"]]
+		item["attachments"] = attachments_by_parent[item["name"]]
 		result.append(item)
 
 	return result
+
+
+def get_mail_attachments(messages: list[str]) -> list[dict]:
+	"""Returns attachments for the given messages."""
+
+	EMP = frappe.qb.DocType("Email Message Part")
+
+	return (
+		frappe.qb.from_(EMP)
+		.select(
+			EMP.parent,
+			EMP.filename,
+			EMP.blob_id,
+			EMP.cid,
+			EMP.type,
+			EMP.size,
+			EMP.file_url,
+			EMP.disposition,
+		)
+		.where(
+			(EMP.parenttype == "Email Message")
+			& (EMP.parent.isin(messages))
+			& ((EMP.parentfield == "attachments") | (EMP.disposition == "inline"))
+		)
+	).run(as_dict=True)
 
 
 @frappe.whitelist()
