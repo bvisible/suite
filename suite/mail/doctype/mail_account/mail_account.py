@@ -185,13 +185,6 @@ class MailAccount(Document):
 
 		validate_email_address(self.backup_email, True)
 
-		if self.email != get_dmarc_address():
-			if self.is_new():
-				if self.email == self.backup_email:
-					frappe.throw(_("Backup Email cannot be the same as the email address of the account."))
-			elif self.backup_email in get_user_email_addresses(self.user):
-				frappe.throw(_("Backup Email cannot be among the email addresses assigned to the user."))
-
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
