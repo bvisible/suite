@@ -212,15 +212,21 @@ def create_mail(
 	"""Creates new mail queue."""
 
 	account = frappe.session.user
-	doc_attachments = [
-		{
-			"file_url": d.get("file_url"),
-			"filename": d.get("file_name", ""),
-			"disposition": d.get("disposition"),
-			"cid": random_string(10),
-		}
-		for d in attachments
-	]
+
+	doc_attachments = []
+	for d in attachments:
+		cid = random_string(10)
+		doc_attachments.append(
+			{
+				"file_url": d.get("file_url"),
+				"filename": d.get("file_name", ""),
+				"disposition": d.get("disposition"),
+				"cid": cid,
+			}
+		)
+		if d.get("disposition") == "inline":
+			html_body = html_body.replace(f'<img src="{d.get("file_url")}"', f'<img src="cid:{cid}"')
+
 	recipients = [{"type": "To", "email": email} for email in to]
 	recipients += [{"type": "Cc", "email": email} for email in cc]
 	recipients += [{"type": "Bcc", "email": email} for email in bcc]
@@ -261,6 +267,7 @@ def update_draft_mail(
 
 	doc.attachments = []
 	for d in attachments or []:
+		cid = d.get("cid", random_string(10))
 		doc.append(
 			"attachments",
 			{
@@ -270,9 +277,11 @@ def update_draft_mail(
 				"size": d.get("size", ""),
 				"filename": d.get("filename", ""),
 				"disposition": d.get("disposition"),
-				"cid": random_string(10),
+				"cid": cid,
 			},
 		)
+		if d.get("disposition") == "inline":
+			html_body = html_body.replace(f'<img src="{d.get("file_url")}"', f'<img src="cid:{cid}"')
 
 	doc.recipients = []
 	for email in to:

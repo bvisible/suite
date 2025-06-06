@@ -13,6 +13,7 @@
 					'[&_p.reply-to-content]:hidden',
 				]"
 				:content="mail.html_body"
+				:upload-function
 				@change="(val: string) => (mail.html_body = val)"
 			>
 				<template #top>
@@ -103,7 +104,9 @@
 						<!-- Attachments -->
 						<div class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700">
 							<a
-								v-for="(file, index) in mail.attachments"
+								v-for="(file, index) in mail.attachments.filter(
+									(file: Attachment) => file.disposition === 'attachment',
+								)"
 								:key="index"
 								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
 								:href="file.file_url"
@@ -194,7 +197,7 @@
 	</component>
 </template>
 <script setup lang="ts">
-import { computed, inject, nextTick, reactive, ref, watch } from 'vue'
+import { computed, inject, nextTick, reactive, ref, useTemplateRef, watch } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
 import { Laugh, Paperclip } from 'lucide-vue-next'
 import {
@@ -209,6 +212,7 @@ import {
 	TextEditorFixedMenu,
 	createResource,
 } from 'frappe-ui'
+import { useFileUpload } from 'frappe-ui/src/utils/useFileUpload'
 
 import { formatBytes, validateEmail } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
@@ -216,7 +220,7 @@ import MultiselectInputControl from '@/components/Controls/MultiselectInputContr
 import EmojiPicker from '@/components/EmojiPicker.vue'
 import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
 
-import type { ComposeMailData, UserResource } from '@/types'
+import type { Attachment, ComposeMailData, File as FileDoc, UserResource } from '@/types'
 
 const show = defineModel<boolean>()
 
@@ -227,7 +231,7 @@ const emit = defineEmits(['reloadMails'])
 const user = inject('$user') as UserResource
 const { isMobile } = useScreenSize()
 
-const textEditor = ref(null)
+const textEditor = useTemplateRef('textEditor')
 const editor = computed(() => textEditor.value.editor)
 
 const ccInput = ref(null)
@@ -376,7 +380,6 @@ const textEditorMenuButtons = [
 	'Bullet List',
 	'Numbered List',
 	'Separator',
-	// todo:
 	'Image',
 	'Link',
 	'Horizontal Rule',
@@ -396,4 +399,18 @@ const textEditorMenuButtons = [
 		'DeleteTable',
 	],
 ]
+
+const uploadFunction = async (file: File) => {
+	const fileUpload = useFileUpload()
+	const fileDoc = (await fileUpload.upload(file, {
+		private: true,
+		folder: 'Home/Frappe Mail',
+	})) as FileDoc
+	mail.attachments.push({
+		file_name: fileDoc.file_name,
+		file_url: fileDoc.file_url,
+		disposition: 'inline',
+	})
+	return { src: fileDoc.file_url }
+}
 </script>
