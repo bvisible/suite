@@ -68,7 +68,7 @@ class EmailMessage(Document):
 				EM.from_name,
 				EM.from_email,
 				EM.subject,
-				Case().when(EM.text_body.isnotnull(), EM.text_body).else_(EM.html_body).as_("preview"),
+				Case().when(EM.html_body.isnotnull(), EM.html_body).else_(EM.text_body).as_("preview"),
 				EM.has_attachment,
 				EM.received_at,
 				EM.seen,
