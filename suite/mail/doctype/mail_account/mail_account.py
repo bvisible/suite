@@ -25,6 +25,7 @@ from mail.utils.validation import (
 	is_valid_email_for_domain,
 	validate_domain_is_enabled_and_verified,
 	validate_domain_owned_by_tenant,
+	validate_permission_for_account,
 )
 
 
@@ -202,6 +203,13 @@ class MailAccount(Document):
 
 		password = self.get_password("password")
 		self.secret = hash_password(password)
+
+	@frappe.whitelist()
+	def get_account_password(self) -> str:
+		"""Returns the password for the Mail Account."""
+
+		validate_permission_for_account(self.name)
+		return self.get_password("password")
 
 	@frappe.whitelist()
 	def sync_jmap_identities(self) -> None:
