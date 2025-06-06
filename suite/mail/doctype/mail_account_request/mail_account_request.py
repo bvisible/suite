@@ -124,9 +124,6 @@ class MailAccountRequest(Document):
 		is_subaddressed_email(self.account, raise_exception=True)
 		is_email_assigned(self.account, raise_exception=True)
 
-		if self.account == self.email:
-			frappe.throw(_("Assigned email and backup email cannot be the same."))
-
 		if not is_valid_email_for_domain(self.account, self.domain_name):
 			frappe.throw(
 				_("Account domain {0} does not match with domain {1}.").format(
