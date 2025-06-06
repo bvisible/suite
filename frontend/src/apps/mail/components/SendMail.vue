@@ -19,9 +19,8 @@
 					<div class="flex flex-col gap-3 border-b">
 						<div class="flex items-center gap-2 sm:border-t sm:pt-2.5">
 							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
-							<FormControl
+							<AutocompleteControl
 								v-model="mail.from_email"
-								type="autocomplete"
 								:options="user.data?.email_addresses || []"
 							/>
 						</div>
@@ -203,7 +202,6 @@ import {
 	ErrorMessage,
 	FeatherIcon,
 	FileUploader,
-	FormControl,
 	Progress,
 	TextEditor,
 	TextEditorFixedMenu,
@@ -212,6 +210,7 @@ import {
 
 import { formatBytes, validateEmail } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
+import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'
 import EmojiPicker from '@/components/EmojiPicker.vue'
 import SendMailMobileLayout from '@/components/SendMailMobileLayout.vue'
