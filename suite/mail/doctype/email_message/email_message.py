@@ -1143,7 +1143,7 @@ def delete_destroyed_emails() -> None:
 
 	try:
 		for message in frappe.db.get_all("Email Message", {"destroyed": 1}, pluck="name"):
-			frappe.delete_doc("Email Message", message, ignore_permissions=True)
+			frappe.delete_doc("Email Message", message, ignore_permissions=True, delete_permanently=True)
 	except Exception:
 		frappe.log_error(
 			title=_("Failed to delete destroyed emails"), message=frappe.get_traceback(with_context=True)
