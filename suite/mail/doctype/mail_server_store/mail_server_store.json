@@ -567,7 +567,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-30 11:27:31.938711",
+ "modified": "2025-06-06 23:03:43.299954",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server Store",
@@ -579,6 +579,5 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "store_id",
- "track_changes": 1
+ "title_field": "store_id"
 }
