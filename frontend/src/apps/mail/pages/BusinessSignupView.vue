@@ -93,7 +93,7 @@ createResource({
 	url: 'mail.api.get_signup_settings',
 	auto: true,
 	onSuccess: (data) => {
-		if (!Number(data.allow_business_signup)) router.push('/signup')
+		if (!(Number(data.allow_business_signup) || requestKey)) router.push('/signup')
 	},
 })
 
