@@ -97,5 +97,23 @@ frappe.ui.form.on('Mail Account', {
 				__('Actions'),
 			)
 		}
+
+		frm.add_custom_button(
+			__('Regenerate Password'),
+			() => {
+				frappe.call({
+					doc: frm.doc,
+					method: 'regenerate_password',
+					freeze: true,
+					freeze_message: __('Regenerating Password...'),
+					callback: (r) => {
+						if (!r.exc) {
+							frm.refresh()
+						}
+					},
+				})
+			},
+			__('Actions'),
+		)
 	},
 })
