@@ -58,6 +58,9 @@ class MailServerConfig(Document):
 	def config(self) -> str | None:
 		"""Returns the TOML configuration for the Mail Server."""
 
+		if self.flags.in_delete:
+			return
+
 		frappe.only_for("System Manager")
 
 		if self.config_toml:
