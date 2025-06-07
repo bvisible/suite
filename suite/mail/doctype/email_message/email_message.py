@@ -319,21 +319,28 @@ class EmailMessage(Document):
 	def _create_or_update_from_email_data(account: str, email_data: dict) -> None:
 		"""Create or update an EmailMessage document from JMAP email data."""
 
+		notify = False
 		email_message = EmailMessage._create_from_email_data(account, email_data, do_not_save=True)
 
 		try:
 			email_message.insert(ignore_permissions=True)
+			notify = True
 		except frappe.UniqueValidationError:
-			email_message = frappe.get_doc("Email Message", {"account": account, "_id": email_data["id"]})
-			email_message = EmailMessage._create_from_email_data(
-				account, email_data, email_message, do_not_save=True
-			)
-			email_message.flags.notify_update = True
-			email_message.save(ignore_permissions=True)
+			if email_message_name := frappe.db.get_value(
+				"Email Message", {"account": account, "_id": email_data["id"]}, "name"
+			):
+				email_message = frappe.get_doc("Email Message", email_message_name)
+				email_message = EmailMessage._create_from_email_data(
+					account, email_data, email_message, do_not_save=True
+				)
+				email_message.flags.notify_update = True
+				email_message.save(ignore_permissions=True)
+				notify = True
 
-		frappe.publish_realtime(
-			"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
-		)
+		if notify:
+			frappe.publish_realtime(
+				"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
+			)
 
 	@staticmethod
 	def _create_from_email_data(
