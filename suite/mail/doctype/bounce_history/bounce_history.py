@@ -41,7 +41,9 @@ def create_bounce_history(
 	doc.recipient = recipient
 	doc.bounce_count = bounce_count
 	doc.last_bounce_response = last_bounce_response
-	doc.save(ignore_permissions=True)
+	doc.insert(ignore_permissions=True)
+
+	return doc
 
 
 def create_or_update_bounce_history(
