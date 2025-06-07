@@ -1079,7 +1079,13 @@ def fetch_changes(account: str, email_states: list[str] | None = None) -> None:
 
 		if created_ids := result["created"]:
 			for email_data in client.email_get(created_ids)[0]:
-				EmailMessage._create_or_update_from_email_data(account, email_data)
+				try:
+					EmailMessage._create_or_update_from_email_data(account, email_data)
+				except Exception:
+					frappe.log_error(
+						title=_("Failed to process created email"),
+						message=frappe.get_traceback(with_context=True),
+					)
 
 		if updated_ids := result["updated"]:
 			properties = ["id", "mailboxIds", "keywords"]
