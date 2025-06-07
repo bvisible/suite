@@ -14,7 +14,8 @@ def create_jmap_sync_state(account: str) -> "JMAPSyncState":
 
 	doc = frappe.new_doc("JMAP Sync State")
 	doc.account = account
-	doc.insert(ignore_permissions=True)
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
 	return doc
 
 
