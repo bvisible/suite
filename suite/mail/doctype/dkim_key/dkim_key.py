@@ -90,7 +90,7 @@ def create_dkim_key(domain_name: str, rsa_key_size: int | None = None) -> "DKIMK
 	doc.domain_name = domain_name
 	doc.rsa_key_size = rsa_key_size
 	doc.flags.ignore_links = True
-	doc.save(ignore_permissions=True)
+	doc.insert(ignore_permissions=True)
 
 	return doc
 
