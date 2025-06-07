@@ -367,6 +367,7 @@ class MailQueue(Document):
 			"content-transfer-encoding",
 			"content-language",
 			"x-priority",
+			"x-mail-queue",
 		}
 
 		headers = {}
@@ -729,9 +730,10 @@ class MailQueue(Document):
 		if self.in_reply_to:
 			mail["header:In-Reply-To"] = f"<{self.in_reply_to}>"
 
+		mail["header:X-Mail-Queue"] = str(self.name)
 		if headers := json_loads(self.headers):
 			for key, value in headers.items():
-				mail[f"header:{key}"] = value
+				mail[f"header:{key}"] = str(value)
 
 		mail["bodyValues"] = {}
 		if self.text_body:
