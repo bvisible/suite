@@ -1120,6 +1120,7 @@ def enqueue_fetch_changes(account: str, request_data: dict | None = None) -> Non
 			queue="short",
 			job_id=job_id,
 			deduplicate=True,
+			enqueue_after_commit=True,
 		)
 
 
