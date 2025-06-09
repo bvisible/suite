@@ -285,8 +285,6 @@ def update_draft_mail(
 	doc.from_email = from_email
 	doc.subject = subject
 
-	doc.html_body = convert_img_src_from_base64_to_cid(html_body)
-
 	doc.attachments = []
 	for d in attachments or []:
 		cid = d.get("cid", random_string(10))
@@ -304,6 +302,8 @@ def update_draft_mail(
 		)
 		if d.get("disposition") == "inline":
 			html_body = convert_img_src_from_file_url_to_cid(html_body, d.get("file_url"), cid)
+
+	doc.html_body = convert_img_src_from_base64_to_cid(html_body)
 
 	doc.recipients = []
 	for email in to:
