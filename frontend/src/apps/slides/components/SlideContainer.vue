@@ -17,6 +17,7 @@
 					:key="element.id"
 					:element="element"
 					:outline="getElementOutline(element)"
+					:isDragging="isDragging"
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
 					@dblclick="(e) => handleDoubleClick(e, element)"

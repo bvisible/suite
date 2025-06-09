@@ -3,7 +3,7 @@
 		<component :is="getDynamicComponent(element.type)" :element="element" />
 
 		<Resizer
-			v-if="isElementActive"
+			v-if="showResizers"
 			:elementType="element.type"
 			:dimensions="selectionBounds"
 			@resizeToFitContent="resizeToFitContent"
@@ -27,6 +27,10 @@ const props = defineProps({
 	outline: {
 		type: String,
 		default: 'none',
+	},
+	isDragging: {
+		type: Boolean,
+		default: false,
 	},
 })
 
@@ -69,9 +73,9 @@ const getDynamicComponent = (type) => {
 	}
 }
 
-const isElementActive = computed(() => {
+const showResizers = computed(() => {
 	if (!activeElement.value) return false
-	return activeElement.value.id == element.value.id
+	return activeElement.value.id == element.value.id && !props.isDragging
 })
 
 const resizeToFitContent = () => {
