@@ -62,14 +62,18 @@ export const useSnapping = (target, parent) => {
 		if (!target.value) return
 		let slideCenter, elementCenter
 
-		const activeBounds = getElementBounds(target.value.$el)
-
 		if (axis == 'X') {
-			slideCenter = slideBounds.width / 2
-			elementCenter = selectionBounds.left + selectionBounds.width / 2
+			const elementLeft = selectionBounds.left * slideBounds.scale + slideBounds.left
+			const elementWidth = selectionBounds.width * slideBounds.scale
+
+			slideCenter = slideBounds.left + slideBounds.width / 2
+			elementCenter = elementLeft + elementWidth / 2
 		} else {
-			slideCenter = slideBounds.height / 2
-			elementCenter = selectionBounds.top + selectionBounds.height / 2
+			const elementTop = selectionBounds.top * slideBounds.scale + slideBounds.top
+			const elementHeight = selectionBounds.height * slideBounds.scale
+
+			slideCenter = slideBounds.top + slideBounds.height / 2
+			elementCenter = elementTop + elementHeight / 2
 		}
 
 		return slideCenter - elementCenter
