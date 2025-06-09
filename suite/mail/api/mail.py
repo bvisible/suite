@@ -2,6 +2,7 @@ import base64
 from collections import defaultdict
 
 import frappe
+from bs4 import BeautifulSoup
 from frappe import _
 from frappe.query_builder.functions import Count
 from frappe.utils import format_datetime, random_string
@@ -159,9 +160,8 @@ def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list
 			blob = EmailMessage.fetch_blob(frappe.session.user, attachment.blob_id)
 			base64_content = base64.b64encode(blob).decode("utf-8")
 			message = messages[attachment.parent]
-			message["html_body"] = message["html_body"].replace(
-				f'<img src="cid:{attachment.cid}"',
-				f'<img src="data:{attachment.type};base64,{base64_content}"',
+			message["html_body"] = convert_img_src_from_cid_to_base64(
+				message["html_body"], attachment.cid, attachment.type, base64_content
 			)
 
 	return messages.values()
@@ -248,7 +248,7 @@ def create_mail(
 			}
 		)
 		if d.get("disposition") == "inline":
-			html_body = html_body.replace(f'<img src="{d.get("file_url")}"', f'<img src="cid:{cid}"')
+			html_body = convert_img_src_from_file_url_to_cid(html_body, d.get("file_url"), cid)
 
 	recipients = [{"type": "To", "email": email} for email in to]
 	recipients += [{"type": "Cc", "email": email} for email in cc]
@@ -286,7 +286,8 @@ def update_draft_mail(
 
 	doc.from_email = from_email
 	doc.subject = subject
-	doc.html_body = html_body
+
+	doc.html_body = convert_img_src_from_base64_to_cid(html_body)
 
 	doc.attachments = []
 	for d in attachments or []:
@@ -304,7 +305,7 @@ def update_draft_mail(
 			},
 		)
 		if d.get("disposition") == "inline":
-			html_body = html_body.replace(f'<img src="{d.get("file_url")}"', f'<img src="cid:{cid}"')
+			html_body = convert_img_src_from_file_url_to_cid(html_body, d.get("file_url"), cid)
 
 	doc.recipients = []
 	for email in to:
@@ -315,6 +316,37 @@ def update_draft_mail(
 		doc.append("recipients", {"type": "Bcc", "email": email})
 
 	doc.submit() if submit else doc.save_draft()
+
+
+def convert_img_src_from_file_url_to_cid(html_body: str, file_url: str, cid: str) -> str:
+	"""Converts url-based images in HTML body to CID references."""
+
+	soup = BeautifulSoup(html_body, "html.parser")
+	for img in soup.find_all("img", src=file_url):
+		img["src"] = f"cid:{cid}"
+
+	return str(soup)
+
+
+def convert_img_src_from_base64_to_cid(html_body: str) -> str:
+	"""Converts base64 images in HTML body to CID references."""
+
+	soup = BeautifulSoup(html_body, "html.parser")
+	for img in soup.find_all("img", attrs={"data-cid": True}):
+		img["src"] = f"cid:{img['data-cid']}"
+
+	return str(soup)
+
+
+def convert_img_src_from_cid_to_base64(html_body: str, cid: str, type: str, base64_content) -> str:
+	"""Converts CID-based images in HTML body to base 64."""
+
+	soup = BeautifulSoup(html_body, "html.parser")
+	for img in soup.find_all("img", src=f"cid:{cid}"):
+		img["data-cid"] = cid
+		img["src"] = f"data:{type};base64,{base64_content}"
+
+	return str(soup)
 
 
 @frappe.whitelist()
