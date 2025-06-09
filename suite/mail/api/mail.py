@@ -1,6 +1,8 @@
+import base64
 from collections import defaultdict
 
 import frappe
+from bs4 import BeautifulSoup
 from frappe import _
 from frappe.query_builder.functions import Count
 from frappe.utils import format_datetime, random_string
@@ -64,49 +66,49 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 def get_mail_thread(thread_id: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
 
-	EmailMessage = frappe.qb.DocType("Email Message")
-	EmailMessageRecipient = frappe.qb.DocType("Email Message Recipient")
-	EmailMessageReplyTo = frappe.qb.DocType("Email Message Reply To")
+	rows = get_thread_rows(thread_id)
+	messages = group_thread_mail_recipients(rows)
+	return add_mail_attachments(messages)
 
-	rows = (
-		frappe.qb.from_(EmailMessage)
-		.left_join(EmailMessageRecipient)
-		.on(EmailMessage.name == EmailMessageRecipient.parent)
-		.left_join(EmailMessageReplyTo)
-		.on(EmailMessage.name == EmailMessageReplyTo.parent)
+
+def get_thread_rows(thread_id: str) -> list[dict]:
+	"""Returns mail thread rows for the given id."""
+
+	EM = frappe.qb.DocType("Email Message")
+	EMR = frappe.qb.DocType("Email Message Recipient")
+	EMRT = frappe.qb.DocType("Email Message Reply To")
+
+	return (
+		frappe.qb.from_(EM)
+		.left_join(EMR)
+		.on(EM.name == EMR.parent)
+		.left_join(EMRT)
+		.on(EM.name == EMRT.parent)
 		.select(
-			EmailMessage.name,
-			EmailMessage.message_id,
-			EmailMessage._id,
-			EmailMessage.from_name,
-			EmailMessage.from_email,
-			EmailMessage.subject,
-			EmailMessage.html_body,
-			EmailMessage.text_body,
-			EmailMessage.received_at,
-			EmailMessage.draft,
-			EmailMessage.mailbox_role,
-			EmailMessage.has_attachment,
-			EmailMessageRecipient.type,
-			EmailMessageRecipient.email,
-			EmailMessageRecipient.display_name,
-			EmailMessageReplyTo.email.as_("reply_to"),
+			EM.name,
+			EM.message_id,
+			EM._id,
+			EM.from_name,
+			EM.from_email,
+			EM.subject,
+			EM.html_body,
+			EM.text_body,
+			EM.received_at,
+			EM.draft,
+			EM.mailbox_role,
+			EMR.type,
+			EMR.email,
+			EMR.display_name,
+			EMRT.email.as_("reply_to"),
 		)
-		.where(
-			(EmailMessage.account == frappe.session.user)
-			& (EmailMessage.thread_id == thread_id)
-			& (EmailMessage.destroyed == 0)
-		)
+		.where((EM.account == frappe.session.user) & (EM.thread_id == thread_id) & (EM.destroyed == 0))
 	).run(as_dict=True)
 
-	return group_recipients_and_add_attachments(rows)
 
-
-def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
-	"""Returns mail thread with attachments and grouped recipients."""
+def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
+	"""Groups mail thread recipients by type."""
 
 	grouped = {}
-	messages_with_attachments = set()
 
 	for row in rows:
 		key = row["name"]
@@ -123,13 +125,9 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 				"received_at": row["received_at"],
 				"draft": row["draft"],
 				"mailbox_role": row["mailbox_role"],
-				"has_attachment": row["has_attachment"],
 				"recipients": defaultdict(list),
 				"reply_to": [],
 			}
-
-			if row["has_attachment"]:
-				messages_with_attachments.add(key)
 
 		if row["email"]:
 			recipient = {"email": row["email"], "display_name": row["display_name"]}
@@ -138,35 +136,58 @@ def group_recipients_and_add_attachments(rows: list[dict]) -> list[dict]:
 		if row["reply_to"] and row["reply_to"] not in grouped[key]["reply_to"]:
 			grouped[key]["reply_to"].append(row["reply_to"])
 
-	if messages_with_attachments:
-		attachments = frappe.get_all(
-			"Email Message Part",
-			filters={
-				"parenttype": "Email Message",
-				"parentfield": "attachments",
-				"parent": ["in", messages_with_attachments],
-			},
-			fields=["parent", "filename", "blob_id", "type", "size", "file_url", "disposition"],
-		)
+	return grouped
 
-		attachments_by_parent = defaultdict(list)
-		for attachment in attachments:
+
+def add_mail_attachments(messages: list[dict]) -> list[dict]:
+	"""Returns thread with attachments."""
+
+	attachments = get_mail_attachments(list(messages.keys()))
+
+	for attachment in attachments:
+		if attachment.disposition == "attachment":
 			if not attachment.filename:
 				if attachment.type == "message/delivery-status":
 					attachment.filename = "Delivery Report"
 				elif attachment.type == "message/rfc822":
 					attachment.filename = "Original Message"
 			parent = attachment.pop("parent")
-			attachments_by_parent[parent].append(attachment)
+			messages[parent].setdefault("attachments", []).append(attachment)
 
-	result = []
-	for item in grouped.values():
-		item["recipients"] = dict(item["recipients"])
-		if item["has_attachment"]:
-			item["attachments"] = attachments_by_parent[item["name"]]
-		result.append(item)
+		elif attachment.disposition == "inline":
+			blob = EmailMessage.fetch_blob(frappe.session.user, attachment.blob_id)
+			base64_content = base64.b64encode(blob).decode("utf-8")
+			message = messages[attachment.parent]
+			message["html_body"] = convert_img_src_from_cid_to_base64(
+				message["html_body"], attachment.cid, attachment.type, base64_content
+			)
 
-	return result
+	return messages.values()
+
+
+def get_mail_attachments(messages: list[str]) -> list[dict]:
+	"""Returns attachments for the given messages."""
+
+	EMP = frappe.qb.DocType("Email Message Part")
+
+	return (
+		frappe.qb.from_(EMP)
+		.select(
+			EMP.parent,
+			EMP.filename,
+			EMP.blob_id,
+			EMP.cid,
+			EMP.type,
+			EMP.size,
+			EMP.file_url,
+			EMP.disposition,
+		)
+		.where(
+			(EMP.parenttype == "Email Message")
+			& (EMP.parent.isin(messages))
+			& ((EMP.parentfield == "attachments") | (EMP.disposition == "inline"))
+		)
+	).run(as_dict=True)
 
 
 @frappe.whitelist()
@@ -212,15 +233,21 @@ def create_mail(
 	"""Creates new mail queue."""
 
 	account = frappe.session.user
-	doc_attachments = [
-		{
-			"file_url": d.get("file_url"),
-			"filename": d.get("file_name", ""),
-			"disposition": d.get("disposition"),
-			"cid": random_string(10),
-		}
-		for d in attachments
-	]
+
+	doc_attachments = []
+	for d in attachments:
+		cid = random_string(10)
+		doc_attachments.append(
+			{
+				"file_url": d.get("file_url"),
+				"filename": d.get("file_name", ""),
+				"disposition": d.get("disposition"),
+				"cid": cid,
+			}
+		)
+		if d.get("disposition") == "inline":
+			html_body = convert_img_src_from_file_url_to_cid(html_body, d.get("file_url"), cid)
+
 	recipients = [{"type": "To", "email": email} for email in to]
 	recipients += [{"type": "Cc", "email": email} for email in cc]
 	recipients += [{"type": "Bcc", "email": email} for email in bcc]
@@ -257,10 +284,10 @@ def update_draft_mail(
 
 	doc.from_email = from_email
 	doc.subject = subject
-	doc.html_body = html_body
 
 	doc.attachments = []
 	for d in attachments or []:
+		cid = d.get("cid", random_string(10))
 		doc.append(
 			"attachments",
 			{
@@ -270,9 +297,13 @@ def update_draft_mail(
 				"size": d.get("size", ""),
 				"filename": d.get("filename", ""),
 				"disposition": d.get("disposition"),
-				"cid": random_string(10),
+				"cid": cid,
 			},
 		)
+		if d.get("disposition") == "inline":
+			html_body = convert_img_src_from_file_url_to_cid(html_body, d.get("file_url"), cid)
+
+	doc.html_body = convert_img_src_from_base64_to_cid(html_body)
 
 	doc.recipients = []
 	for email in to:
@@ -283,6 +314,37 @@ def update_draft_mail(
 		doc.append("recipients", {"type": "Bcc", "email": email})
 
 	doc.submit() if submit else doc.save_draft()
+
+
+def convert_img_src_from_file_url_to_cid(html_body: str, file_url: str, cid: str) -> str:
+	"""Converts url-based images in HTML body to CID references."""
+
+	soup = BeautifulSoup(html_body, "html.parser")
+	for img in soup.find_all("img", src=file_url):
+		img["src"] = f"cid:{cid}"
+
+	return str(soup)
+
+
+def convert_img_src_from_base64_to_cid(html_body: str) -> str:
+	"""Converts base64 images in HTML body to CID references."""
+
+	soup = BeautifulSoup(html_body, "html.parser")
+	for img in soup.find_all("img", attrs={"data-cid": True}):
+		img["src"] = f"cid:{img['data-cid']}"
+
+	return str(soup)
+
+
+def convert_img_src_from_cid_to_base64(html_body: str, cid: str, type: str, base64_content) -> str:
+	"""Converts CID-based images in HTML body to base 64."""
+
+	soup = BeautifulSoup(html_body, "html.parser")
+	for img in soup.find_all("img", src=f"cid:{cid}"):
+		img["data-cid"] = cid
+		img["src"] = f"data:{type};base64,{base64_content}"
+
+	return str(soup)
 
 
 @frappe.whitelist()
