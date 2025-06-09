@@ -144,7 +144,6 @@ def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list
 	"""Returns thread with attachments."""
 
 	attachments = get_mail_attachments(message_names)
-	attachments_by_parent = defaultdict(list)
 
 	for attachment in attachments:
 		if attachment.disposition == "attachment":
@@ -154,7 +153,7 @@ def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list
 				elif attachment.type == "message/rfc822":
 					attachment.filename = "Original Message"
 			parent = attachment.pop("parent")
-			attachments_by_parent[parent].append(attachment)
+			messages[parent].setdefault("attachments", []).append(attachment)
 
 		else:
 			blob = EmailMessage.fetch_blob(frappe.session.user, attachment.blob_id)
@@ -165,13 +164,7 @@ def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list
 				f'<img src="data:{attachment.type};base64,{base64_content}"',
 			)
 
-	result = []
-	for item in messages.values():
-		item["recipients"] = dict(item["recipients"])
-		item["attachments"] = attachments_by_parent[item["name"]]
-		result.append(item)
-
-	return result
+	return messages.values()
 
 
 def get_mail_attachments(messages: list[str]) -> list[dict]:
