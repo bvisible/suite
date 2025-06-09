@@ -1,5 +1,9 @@
 <template>
-	<div @click="handleVideoClick">
+	<div
+		@click="handleVideoClick"
+		@mouseenter="hoveringOverVideo = true"
+		@mouseleave="hoveringOverVideo = false"
+	>
 		<video
 			ref="videoElement"
 			:src="element.src"
@@ -7,22 +11,46 @@
 			:autoplay="inSlideShow ? element.autoplay : false"
 			:loop="element.loop"
 			:playbackRate="element.playbackRate"
-		/>
+			@timeupdate="updateProgress"
+			@loadedmetadata="updateDuration"
+			@ended="resetProgress"
+			preload="auto"
+		></video>
 		<div
-			v-if="activeElementIds.includes(element.id)"
-			class="absolute left-[calc(50%-12px)] top-[calc(50%-12px)] flex h-6 w-6 cursor-pointer items-center justify-center rounded bg-blue-400"
+			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
+			:class="{ 'opacity-0': !showProgressBar }"
+			:style="gradientOverlayStyles"
 		>
-			<component
-				size="14"
-				:is="isPlaying ? Pause : Play"
-				class="text-white stroke-[1.5] ps-[0.5px]"
-			/>
+			<div
+				v-if="activeElementIds.includes(element.id)"
+				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-100 opacity-80"
+			>
+				<component
+					size="16"
+					:is="isPlaying ? Pause : Play"
+					class="text-white stroke-[1.5] ps-[0.5px]"
+				/>
+			</div>
+			<div
+				v-if="showProgressBar"
+				class="absolute h-[6px] hover:h-2 w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
+				@click.stop="seekTimestamp"
+			>
+				<div
+					ref="progressBar"
+					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
+				></div>
+				<div
+					class="bg-white-overlay-900 opacity-40 h-full absolute left-0 top-0 transition-width duration-300 ease-linear"
+					:style="{ width: `${progress}%` }"
+				></div>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
@@ -68,5 +96,53 @@ const handleVideoClick = (e) => {
 		e.stopPropagation()
 		togglePlaying()
 	}
+}
+
+const duration = ref(0)
+const progress = ref(0)
+
+const updateProgress = () => {
+	const video = el.value
+	if (duration.value) {
+		progress.value = Math.round((video.currentTime / duration.value) * 100)
+	}
+}
+
+const updateDuration = () => {
+	const video = el.value
+	if (video.duration) {
+		duration.value = video.duration
+	}
+}
+
+const hoveringOverVideo = ref(false)
+
+const showProgressBar = computed(() => {
+	// In editor, show it when video is active
+	const isActive = activeElementIds.value.includes(element.value.id)
+
+	// During slideshow, show it only if user is hovering over video
+	const slideshowHovering = inSlideShow.value && hoveringOverVideo.value
+
+	return isActive || slideshowHovering
+})
+
+const progressBarRef = useTemplateRef('progressBar')
+
+const seekTimestamp = (e) => {
+	const progressBarRect = progressBarRef.value.getBoundingClientRect()
+	const percentage = (e.clientX - progressBarRect.left) / progressBarRect.width
+	const seekTo = Number(percentage.toFixed(2)) * duration.value
+	const video = el.value
+	video.currentTime = seekTo
+}
+
+const gradientOverlayStyles = computed(() => ({
+	background: `linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 25%, rgba(0, 0, 0, 0) 100%)`,
+}))
+
+const resetProgress = () => {
+	progress.value = 0
+	isPlaying.value = false
 }
 </script>

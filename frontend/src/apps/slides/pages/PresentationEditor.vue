@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
@@ -53,15 +53,8 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
-import { presentationId, presentation } from '@/stores/presentation'
-import {
-	slide,
-	slideIndex,
-	saveChanges,
-	loadSlide,
-	selectionBounds,
-	updateSelectionBounds,
-} from '@/stores/slide'
+import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
+import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
@@ -221,7 +214,7 @@ const changeSlide = async (index, updateCurrent = true) => {
 	// reset the pan and zoom to capture thumbnail
 	slideContainerRef.value.togglePanZoom()
 
-	nextTick(async () => {
+	await nextTick(async () => {
 		// update the current slide along with thumbnail
 		if (updateCurrent) {
 			await saveChanges()
@@ -267,8 +260,13 @@ const performSlideAction = async (action, index) => {
 
 const insertSlide = async (index) => {
 	if (!index) index = slideIndex.value
+	const previousBackground = slide.value.background
 	await performSlideAction('insert', index)
-	changeSlide(index + 1)
+	await changeSlide(index + 1)
+	slide.value.background = previousBackground
+	nextTick(() => {
+		updateSlideThumbnail()
+	})
 }
 
 const deleteSlide = async () => {
@@ -307,11 +305,22 @@ const handleMediaDragEnter = (e) => {
 	dropTargetRef.value.handleDragEnter(e)
 }
 
+const resetSlideState = () => {
+	slideIndex.value = 0
+	slide.value = {
+		thumbnail: '',
+		elements: [],
+		background: '',
+		transition: '',
+		transitionDuration: 0,
+	}
+}
+
 watch(
 	() => route.params.presentationId,
 	(id) => {
 		if (!id) return
-		presentationId.value = id
+		loadPresentation(id)
 	},
 	{ immediate: true },
 )
@@ -325,5 +334,12 @@ onBeforeUnmount(() => {
 	clearInterval(autosaveInterval)
 	resetFocus()
 	document.removeEventListener('keydown', handleKeyDown)
+})
+
+onBeforeRouteLeave((to, from, next) => {
+	if (to.name !== 'Slideshow') {
+		resetSlideState()
+	}
+	next()
 })
 </script>
