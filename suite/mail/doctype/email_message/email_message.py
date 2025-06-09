@@ -108,6 +108,7 @@ class EmailMessage(Document):
 				.where(
 					(PART.parenttype == "Email Message")
 					& (PART.parentfield == "attachments")
+					& (PART.disposition == "attachment")
 					& (PART.parent.isin(messages_with_attachment))
 				)
 			).run(as_dict=True)
