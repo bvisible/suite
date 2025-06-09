@@ -3,12 +3,12 @@
 		<router-view />
 	</Layout>
 	<Dialogs />
-	<Toasts />
+	<Toast />
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Toasts } from 'frappe-ui'
+import { Toast } from 'frappe-ui'
 
 import { useScreenSize } from '@/utils/composables'
 import { Dialogs } from '@/utils/dialogs'

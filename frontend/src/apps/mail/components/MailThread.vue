@@ -217,11 +217,10 @@ const mailDetails = reactive<ComposeMailData>({
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
 	makeParams: () => ({ thread_id: threadID }),
-	onSuccess: (data: Mail[]) => {
-		if (mailbox === 'trash')
-			mailThread.data = data.filter((mail) => mail.mailbox_role === 'trash')
-		else mailThread.data = data.filter((mail) => mail.mailbox_role !== 'trash')
-	},
+	transform: (data: Mail[]) =>
+		data.filter((mail) =>
+			mailbox === 'trash' ? mail.mailbox_role === 'trash' : mail.mailbox_role !== 'trash',
+		),
 })
 
 const reload = () => {
