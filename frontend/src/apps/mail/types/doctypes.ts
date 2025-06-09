@@ -96,8 +96,6 @@ export interface MailDomain extends DocType {
 	enabled: 0 | 1
 	/** Verified: Check */
 	is_verified: 0 | 1
-	/** Newsletter Retention (Days): Int */
-	newsletter_retention?: number
 	/** Subdomain: Check */
 	is_subdomain: 0 | 1
 	/** DKIM RSA Key Size: Select */
@@ -246,24 +244,10 @@ export interface MailSettings extends DocType {
 	spamd_outbound_block: 0 | 1
 	/** Threshold: Float */
 	spamd_outbound_threshold?: number
-	/** Maximum Newsletter Retention (Days): Int */
-	max_newsletter_retention: number
-	/** Newsletter Retention (Days): Int */
-	default_newsletter_retention: number
 	/** DKIM RSA Key Size: Select */
 	default_dkim_rsa_key_size: '' | '2048' | '4096'
-	/** Maximum Number of Recipients: Int */
-	max_recipients: number
-	/** Maximum Message Size (MB): Int */
-	max_message_size_mb: number
-	/** Maximum Custom Headers: Int */
-	max_headers: number
 	/** Maximum Attachment Size (MB): Int */
 	max_attachment_size_mb: number
-	/** Maximum Total Attachments Size (MB): Int */
-	max_total_attachments_size_mb: number
-	/** Maximum Number of Attachments: Int */
-	max_attachments: number
 	/** Inactivity Timeout (Seconds): Int */
 	smtp_inactivity_timeout: number
 	/** Session Duration (Seconds): Int */
