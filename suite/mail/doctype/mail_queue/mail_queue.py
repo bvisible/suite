@@ -96,6 +96,7 @@ class MailQueue(Document):
 		doc.forwarded_from_id = kwargs.forwarded_from_id
 		doc.message_id = kwargs.message_id
 		doc._id = kwargs._id
+		doc.via_api = cint(kwargs.via_api)
 		doc.sent_at = kwargs.sent_at
 		doc.in_reply_to = kwargs.in_reply_to
 		doc.in_reply_to_id = kwargs.in_reply_to_id
@@ -222,6 +223,7 @@ class MailQueue(Document):
 			self.validate_recipients()
 			self.validate_attachments()
 			self.validate_message_id()
+			self.validate_from_ip()
 			self.validate_sent_at()
 			self.validate_in_reply_to()
 			self.validate_in_reply_to_id()
@@ -456,6 +458,11 @@ class MailQueue(Document):
 
 		if not self.message_id:
 			self.message_id = make_msgid(domain=self.from_email.split("@")[-1]).strip("<>")
+
+	def validate_from_ip(self) -> None:
+		"""Validates the from IP address."""
+
+		self.from_ip = frappe.local.request_ip
 
 	def validate_sent_at(self) -> None:
 		"""Validates the sent at date."""
