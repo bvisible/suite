@@ -41,23 +41,6 @@ export const useSnapping = (target, parent) => {
 		}
 	})
 
-	const getScaledValue = (value, axis) => {
-		if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
-		return (value - slideBounds.top) / slideBounds.scale
-	}
-
-	const getElementBounds = (div) => {
-		const rect = div.getBoundingClientRect()
-		return {
-			left: getScaledValue(rect.left, 'X'),
-			top: getScaledValue(rect.top, 'Y'),
-			right: getScaledValue(rect.right, 'X'),
-			bottom: getScaledValue(rect.bottom, 'Y'),
-			height: rect.height / slideBounds.scale,
-			width: rect.width / slideBounds.scale,
-		}
-	}
-
 	const getDiffFromCenter = (axis) => {
 		if (!target.value) return
 		let slideCenter, elementCenter
@@ -88,6 +71,21 @@ export const useSnapping = (target, parent) => {
 		)
 	}
 
+	const getActiveElementBounds = () => {
+		const scale = slideBounds.scale
+
+		const bounds = Object.fromEntries(
+			Object.entries(selectionBounds).map(([key, value]) => [key, value * scale]),
+		)
+
+		return {
+			left: bounds.left + slideBounds.left,
+			right: bounds.left + bounds.width + slideBounds.left,
+			top: bounds.top + slideBounds.top,
+			bottom: bounds.top + bounds.height + slideBounds.top,
+		}
+	}
+
 	const setPairedDiffs = () => {
 		slide.value.elements.forEach((element) => {
 			if (activeElementIds.value.includes(element.id)) return
@@ -95,13 +93,13 @@ export const useSnapping = (target, parent) => {
 			const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
 			if (!elementDiv || !target.value) return
 
-			const activeBounds = selectionBounds
-			const elementBounds = getElementBounds(elementDiv)
+			const elementBounds = elementDiv.getBoundingClientRect()
+			const activeBounds = getActiveElementBounds()
 
 			const diffLeft = activeBounds.left - elementBounds.left
-			const diffRight = activeBounds.left + activeBounds.width - elementBounds.right
+			const diffRight = activeBounds.right - elementBounds.right
 			const diffTop = activeBounds.top - elementBounds.top
-			const diffBottom = activeBounds.top + activeBounds.height - elementBounds.bottom
+			const diffBottom = activeBounds.bottom - elementBounds.bottom
 
 			const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
 			const isPaired = pairElementId.value == element.id
