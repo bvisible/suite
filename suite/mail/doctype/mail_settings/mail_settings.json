@@ -22,20 +22,13 @@
   "dns_provider_private_zone",
   "section_break_l9un",
   "default_dkim_rsa_key_size",
-  "default_newsletter_retention",
   "column_break_rwnw",
   "default_ttl",
-  "limits_outbound_tab",
-  "limit_outbound_message_section",
-  "max_recipients",
-  "max_headers",
-  "column_break_seja",
-  "max_message_size_mb",
-  "max_newsletter_retention",
-  "attachment_section",
-  "max_attachments",
-  "column_break_4lt9",
-  "max_total_attachments_size_mb",
+  "signup_tab",
+  "allow_business_signup",
+  "column_break_daqm",
+  "allow_personal_signup",
+  "personal_signup_domains",
   "spamassassin_tab",
   "section_break_hgqa",
   "enable_spamd",
@@ -49,12 +42,7 @@
   "enable_spamd_for_outbound",
   "spamd_outbound_block",
   "column_break_lhy4",
-  "spamd_outbound_threshold",
-  "signup_tab",
-  "allow_business_signup",
-  "column_break_daqm",
-  "allow_personal_signup",
-  "personal_signup_domains"
+  "spamd_outbound_threshold"
  ],
  "fields": [
   {
@@ -211,24 +199,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "7",
-   "description": "Maximum number of days a newsletter is retained.",
-   "fieldname": "max_newsletter_retention",
-   "fieldtype": "Int",
-   "label": "Maximum Newsletter Retention (Days)",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "default": "3",
-   "description": "The default number of days a newsletter is retained.",
-   "fieldname": "default_newsletter_retention",
-   "fieldtype": "Int",
-   "label": "Newsletter Retention (Days)",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
    "default": "2048",
    "description": "The default size of the RSA key used for DKIM signing.",
    "fieldname": "default_dkim_rsa_key_size",
@@ -238,77 +208,9 @@
    "reqd": 1
   },
   {
-   "default": "25",
-   "description": "Maximum recipients allowed per email.",
-   "fieldname": "max_recipients",
-   "fieldtype": "Int",
-   "label": "Maximum Number of Recipients",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "default": "15",
-   "description": "Maximum size for an email message, including attachments.",
-   "fieldname": "max_message_size_mb",
-   "fieldtype": "Int",
-   "label": "Maximum Message Size (MB)",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "default": "10",
-   "description": "Maximum number of custom headers allowed in an email.",
-   "fieldname": "max_headers",
-   "fieldtype": "Int",
-   "label": "Maximum Custom Headers",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "default": "10",
-   "description": "Maximum combined size for all attachments in an email.",
-   "fieldname": "max_total_attachments_size_mb",
-   "fieldtype": "Int",
-   "label": "Maximum Total Attachments Size (MB)",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_seja",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_4lt9",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "10",
-   "description": "Maximum number of attachments allowed in an email.",
-   "fieldname": "max_attachments",
-   "fieldtype": "Int",
-   "label": "Maximum Number of Attachments",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "attachment_section",
-   "fieldtype": "Section Break",
-   "label": "Attachment"
-  },
-  {
    "fieldname": "spamd_outbound_section",
    "fieldtype": "Section Break",
    "label": "Outbound"
-  },
-  {
-   "fieldname": "limits_outbound_tab",
-   "fieldtype": "Tab Break",
-   "label": "Limits (Outbound)"
-  },
-  {
-   "fieldname": "limit_outbound_message_section",
-   "fieldtype": "Section Break",
-   "label": "Message"
   },
   {
    "default": "0",
@@ -419,7 +321,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-05 14:14:18.808516",
+ "modified": "2025-06-09 16:45:53.921752",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",
