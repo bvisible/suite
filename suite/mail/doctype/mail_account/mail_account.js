@@ -8,7 +8,6 @@ frappe.ui.form.on('Mail Account', {
 
 	refresh(frm) {
 		frm.trigger('add_show_password')
-		frm.trigger('add_reports')
 		frm.trigger('add_actions')
 	},
 
@@ -33,45 +32,7 @@ frappe.ui.form.on('Mail Account', {
 		if (frm.doc.__islocal) return
 
 		if (frm.doc.password) {
-			frm.add_custom_button(__('Show Password'), () => {
-				frappe.call({
-					doc: frm.doc,
-					method: 'get_account_password',
-					freeze: true,
-					freeze_message: __('Getting Password...'),
-					callback: (r) => {
-						if (!r.exc) {
-							frappe.msgprint(r.message)
-						}
-					},
-				})
-			})
-		}
-	},
-
-	add_reports(frm) {
-		if (!frm.doc.__islocal) {
-			frm.add_custom_button(
-				__('Outbound Delay'),
-				() => {
-					frappe.route_options = {
-						sender: frm.doc.name,
-					}
-					frappe.set_route('query-report', 'Outbound Delay')
-				},
-				__('Reports'),
-			)
-
-			frm.add_custom_button(
-				__('Outgoing Mail Summary'),
-				() => {
-					frappe.route_options = {
-						sender: frm.doc.name,
-					}
-					frappe.set_route('query-report', 'Outgoing Mail Summary')
-				},
-				__('Reports'),
-			)
+			frm.add_custom_button(__('Show Password'), () => frm.trigger('get_account_password'))
 		}
 	},
 
@@ -81,39 +42,57 @@ frappe.ui.form.on('Mail Account', {
 		if (frappe.user_roles.includes('System Manager')) {
 			frm.add_custom_button(
 				__('Sync JMAP Identities'),
-				() => {
-					frappe.call({
-						doc: frm.doc,
-						method: 'sync_jmap_identities',
-						freeze: true,
-						freeze_message: __('Syncing JMAP Identities...'),
-						callback: (r) => {
-							if (!r.exc) {
-								frm.refresh()
-							}
-						},
-					})
-				},
+				() => frm.trigger('sync_jmap_identities'),
 				__('Actions'),
 			)
 		}
 
 		frm.add_custom_button(
 			__('Regenerate Password'),
-			() => {
-				frappe.call({
-					doc: frm.doc,
-					method: 'regenerate_password',
-					freeze: true,
-					freeze_message: __('Regenerating Password...'),
-					callback: (r) => {
-						if (!r.exc) {
-							frm.refresh()
-						}
-					},
-				})
-			},
+			() => frm.trigger('regenerate_password'),
 			__('Actions'),
 		)
+	},
+
+	get_account_password(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'get_account_password',
+			freeze: true,
+			freeze_message: __('Getting Password...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frappe.msgprint(r.message)
+				}
+			},
+		})
+	},
+
+	sync_jmap_identities(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'sync_jmap_identities',
+			freeze: true,
+			freeze_message: __('Syncing JMAP Identities...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	regenerate_password(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'regenerate_password',
+			freeze: true,
+			freeze_message: __('Regenerating Password...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
 	},
 })

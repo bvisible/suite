@@ -24,23 +24,7 @@ frappe.ui.form.on('Mail Queue', {
 		if (!frappe.user_roles.includes('System Manager')) return
 
 		if (['Failed', 'Failed to Draft', 'Failed to Submit'].includes(frm.doc.status)) {
-			frm.add_custom_button(
-				__('Retry'),
-				() => {
-					frappe.call({
-						doc: frm.doc,
-						method: 'retry',
-						freeze: true,
-						freeze_message: __('Retrying...'),
-						callback: (r) => {
-							if (!r.exc) {
-								frm.refresh()
-							}
-						},
-					})
-				},
-				__('Actions'),
-			)
+			frm.add_custom_button(__('Retry'), () => frm.trigger('retry'), __('Actions'))
 		}
 
 		if (
@@ -50,21 +34,37 @@ frappe.ui.form.on('Mail Queue', {
 		) {
 			frm.add_custom_button(
 				__('Load MIME Message'),
-				() => {
-					frappe.call({
-						doc: frm.doc,
-						method: 'get_mime_message',
-						freeze: true,
-						freeze_message: __('Loading MIME Message...'),
-						callback: (r) => {
-							if (!r.exc) {
-								frm.refresh()
-							}
-						},
-					})
-				},
+				() => frm.trigger('get_mime_message'),
 				__('Actions'),
 			)
 		}
+	},
+
+	retry(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'retry',
+			freeze: true,
+			freeze_message: __('Retrying...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	get_mime_message(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'get_mime_message',
+			freeze: true,
+			freeze_message: __('Loading MIME Message...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
 	},
 })
