@@ -149,22 +149,12 @@
    "link_fieldname": "domain_name"
   },
   {
-   "group": "Mail",
-   "link_doctype": "Incoming Mail",
-   "link_fieldname": "domain_name"
-  },
-  {
-   "group": "Mail",
-   "link_doctype": "Outgoing Mail",
-   "link_fieldname": "domain_name"
-  },
-  {
    "group": "Report",
    "link_doctype": "DMARC Report",
    "link_fieldname": "domain_name"
   }
  ],
- "modified": "2025-06-02 13:02:15.287080",
+ "modified": "2025-06-05 13:24:32.088300",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Domain",

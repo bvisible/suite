@@ -66,17 +66,7 @@ frappe.ui.form.on('Email Message', {
 		if (!frm.doc.destroyed) {
 			frm.add_custom_button(__('Destroy'), () => {
 				frappe.confirm(__('Are you sure you want to destroy this email?'), () => {
-					frappe.call({
-						doc: frm.doc,
-						method: 'destroy',
-						freeze: true,
-						freeze_message: __('Destroying...'),
-						callback: (r) => {
-							if (!r.exc) {
-								frm.refresh()
-							}
-						},
-					})
+					frm.trigger('destroy')
 				})
 			})
 		}
@@ -168,23 +158,7 @@ frappe.ui.form.on('Email Message', {
 		if (frm.doc.has_attachment) {
 			frm.add_custom_button(
 				__('Load Attachments'),
-				() => {
-					frappe.call({
-						doc: frm.doc,
-						method: 'preload_attachments_to_cache',
-						args: {
-							include_inline: true,
-							include_regular: true,
-						},
-						freeze: true,
-						freeze_message: __('Loading Attachments...'),
-						callback: (r) => {
-							if (!r.exc) {
-								frm.refresh()
-							}
-						},
-					})
-				},
+				() => frm.trigger('load_attachments'),
 				__('Actions'),
 			)
 		}
@@ -192,22 +166,24 @@ frappe.ui.form.on('Email Message', {
 		if (!frm.doc.message) {
 			frm.add_custom_button(
 				__('Load MIME Message'),
-				() => {
-					frappe.call({
-						doc: frm.doc,
-						method: 'get_mime_message',
-						freeze: true,
-						freeze_message: __('Loading MIME Message...'),
-						callback: (r) => {
-							if (!r.exc) {
-								frm.refresh()
-							}
-						},
-					})
-				},
+				() => frm.trigger('get_mime_message'),
 				__('Actions'),
 			)
 		}
+	},
+
+	destroy(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'destroy',
+			freeze: true,
+			freeze_message: __('Destroying...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
 	},
 
 	move_to_mailbox(frm, mailbox_role) {
@@ -219,6 +195,38 @@ frappe.ui.form.on('Email Message', {
 			args: {
 				mailbox_role: mailbox_role,
 			},
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	load_attachments(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'preload_attachments_to_cache',
+			args: {
+				include_inline: true,
+				include_regular: true,
+			},
+			freeze: true,
+			freeze_message: __('Loading Attachments...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frm.refresh()
+				}
+			},
+		})
+	},
+
+	get_mime_message(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'get_mime_message',
+			freeze: true,
+			freeze_message: __('Loading MIME Message...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()

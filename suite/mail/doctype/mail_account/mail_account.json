@@ -210,16 +210,11 @@
   },
   {
    "group": "Mail",
-   "link_doctype": "Incoming Mail",
-   "link_fieldname": "receiver"
-  },
-  {
-   "group": "Mail",
-   "link_doctype": "Outgoing Mail",
-   "link_fieldname": "sender"
+   "link_doctype": "Email Message",
+   "link_fieldname": "account"
   }
  ],
- "modified": "2025-06-02 13:00:34.654482",
+ "modified": "2025-06-05 13:21:25.743867",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
