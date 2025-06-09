@@ -67,8 +67,8 @@ def get_mail_thread(thread_id: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
 
 	rows = get_thread_rows(thread_id)
-	messages, message_names = group_thread_mail_recipients(rows)
-	return add_mail_attachments(messages, message_names)
+	messages = group_thread_mail_recipients(rows)
+	return add_mail_attachments(messages)
 
 
 def get_thread_rows(thread_id: str) -> list[dict]:
@@ -109,7 +109,6 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 	"""Groups mail thread recipients by type."""
 
 	grouped = {}
-	message_names = set()
 
 	for row in rows:
 		key = row["name"]
@@ -129,7 +128,6 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 				"recipients": defaultdict(list),
 				"reply_to": [],
 			}
-			message_names.add(key)
 
 		if row["email"]:
 			recipient = {"email": row["email"], "display_name": row["display_name"]}
@@ -138,13 +136,13 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 		if row["reply_to"] and row["reply_to"] not in grouped[key]["reply_to"]:
 			grouped[key]["reply_to"].append(row["reply_to"])
 
-	return grouped, message_names
+	return grouped
 
 
-def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list[dict]:
+def add_mail_attachments(messages: list[dict]) -> list[dict]:
 	"""Returns thread with attachments."""
 
-	attachments = get_mail_attachments(message_names)
+	attachments = get_mail_attachments(list(messages.keys()))
 
 	for attachment in attachments:
 		if attachment.disposition == "attachment":
@@ -156,7 +154,7 @@ def add_mail_attachments(messages: list[dict], message_names: list[str]) -> list
 			parent = attachment.pop("parent")
 			messages[parent].setdefault("attachments", []).append(attachment)
 
-		else:
+		elif attachment.disposition == "inline":
 			blob = EmailMessage.fetch_blob(frappe.session.user, attachment.blob_id)
 			base64_content = base64.b64encode(blob).decode("utf-8")
 			message = messages[attachment.parent]
