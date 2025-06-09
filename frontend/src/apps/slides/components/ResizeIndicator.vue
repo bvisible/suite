@@ -1,9 +1,9 @@
 <template>
 	<div :style="styles" class="backdrop-blur-sm opacity-85 text-black" :class="indicatorClasses">
-		<i v-if="type === 'text'"> {{ Math.round(dimensions.width) }}px </i>
+		<i v-if="type === 'text'"> {{ Math.round(dimensions.width) }} </i>
 		<template v-else>
-			<i>{{ Math.round(dimensions.width) }}px</i> ×
-			<i>{{ Math.round(dimensions.height) }}px</i>
+			<i>{{ Math.round(dimensions.width) }}</i> ×
+			<i>{{ Math.round(dimensions.height) }}</i>
 		</template>
 	</div>
 </template>

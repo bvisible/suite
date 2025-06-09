@@ -13,6 +13,10 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
+	currentResizer: {
+		type: String,
+		default: null,
+	},
 })
 
 const emit = defineEmits(['startResize', 'resizeToFitContent'])
@@ -29,11 +33,6 @@ const widthHandleStyles = {
 	height: '14px',
 	cursor: 'ew-resize',
 	top: 'calc(50% - 7px)',
-}
-
-const dimensionHandleStyles = {
-	width: '7px',
-	height: '7px',
 }
 
 const getWidthResizerStyles = () => {
@@ -53,13 +52,15 @@ const getDimensionResizerStyles = () => {
 		'bottom-left': 'nesw-resize',
 		'bottom-right': 'nwse-resize',
 	}
+	const offset = props.currentResizer ? '-5px' : '-4.5px'
 	return {
 		...baseStyles,
-		...dimensionHandleStyles,
-		top: resizer.includes('top') ? '-4.5px' : 'auto',
-		bottom: resizer.includes('bottom') ? '-4.5px' : 'auto',
-		left: resizer.includes('left') ? '-4.5px' : 'auto',
-		right: resizer.includes('right') ? '-4.5px' : 'auto',
+		top: resizer.includes('top') ? offset : 'auto',
+		bottom: resizer.includes('bottom') ? offset : 'auto',
+		left: resizer.includes('left') ? offset : 'auto',
+		right: resizer.includes('right') ? offset : 'auto',
+		width: props.currentResizer ? '10px' : '7px',
+		height: props.currentResizer ? '10px' : '7px',
 		cursor: cursorStyles[resizer],
 	}
 }
