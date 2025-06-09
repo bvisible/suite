@@ -125,4 +125,5 @@ export {
 	updateSlideState,
 	saveChanges,
 	updateSelectionBounds,
+	updateSlideThumbnail,
 }

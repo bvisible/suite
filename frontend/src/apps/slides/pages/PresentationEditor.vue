@@ -54,7 +54,7 @@ import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
-import { slide, slideIndex, saveChanges, loadSlide } from '@/stores/slide'
+import { slide, slideIndex, saveChanges, loadSlide, updateSlideThumbnail } from '@/stores/slide'
 import {
 	resetFocus,
 	activeElementIds,
