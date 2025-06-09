@@ -9,7 +9,6 @@
   "column_break_9x8t",
   "source_host",
   "section_break_opob",
-  "_message",
   "scanning_mode",
   "hybrid_scanning_threshold",
   "spam_score",
@@ -19,7 +18,9 @@
   "started_at",
   "completed_at",
   "column_break_svei",
-  "duration"
+  "duration",
+  "message_section",
+  "message"
  ],
  "fields": [
   {
@@ -126,20 +127,25 @@
    "read_only": 1
   },
   {
-   "fieldname": "_message",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
+   "fieldname": "message",
+   "fieldtype": "Code",
    "label": "Message",
    "no_copy": 1,
-   "options": "MIME Message",
+   "print_hide": 1,
    "read_only": 1,
-   "search_index": 1
+   "report_hide": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "message_section",
+   "fieldtype": "Section Break",
+   "label": "Message"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-06 23:05:21.784472",
+ "modified": "2025-06-09 16:07:35.473702",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Spam Check Log",
