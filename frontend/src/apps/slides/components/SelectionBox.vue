@@ -233,14 +233,17 @@ const moveElementsToBox = (elementIds) => {
 	})
 }
 
+const handleSelection = (elementIds) => {
+	if (!elementIds.length) return
+	document.removeEventListener('mouseup', endSelection)
+	cropSelectionToFitContent(elementIds)
+	moveElementsToBox(elementIds)
+}
+
 const handleSelectionChange = (elementIds, oldIds) => {
 	resetSelection(oldIds)
 	moveElementsToSlide(oldIds)
-	if (elementIds.length) {
-		document.removeEventListener('mouseup', endSelection)
-		cropSelectionToFitContent(elementIds)
-		moveElementsToBox(elementIds)
-	}
+	nextTick(() => handleSelection(elementIds))
 }
 
 const selectSlide = (e) => {
