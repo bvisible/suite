@@ -12,8 +12,8 @@
 					'min-h-[15rem]',
 					'[&_p.reply-to-content]:hidden',
 				]"
+				:extensions="[CustomImageExtension]"
 				:content="mail.html_body"
-				:upload-function
 				@change="(val: string) => (mail.html_body = val)"
 			>
 				<template #top>
@@ -212,6 +212,7 @@ import {
 	TextEditorFixedMenu,
 	createResource,
 } from 'frappe-ui'
+import { ImageExtension } from 'frappe-ui/src/components/TextEditor/extensions/image'
 import { useFileUpload } from 'frappe-ui/src/utils/useFileUpload'
 
 import { formatBytes, validateEmail } from '@/utils'
@@ -413,4 +414,16 @@ const uploadFunction = async (file: File) => {
 	})
 	return { src: fileDoc.file_url }
 }
+
+const CustomImageExtension = ImageExtension.extend({
+	addOptions: () => ({ uploadFunction }),
+	addAttributes: () => ({
+		'data-cid': {
+			default: null,
+			parseHTML: (element) => element.getAttribute('data-cid'),
+			renderHTML: (attributes) =>
+				attributes['data-cid'] ? { 'data-cid': attributes['data-cid'] } : {},
+		},
+	}),
+})
 </script>
