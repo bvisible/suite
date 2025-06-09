@@ -43,13 +43,13 @@ DEFAULT_LISTENERS = [
 	{
 		"protocol": "SMTP",
 		"listener_id": "submission",
-		"bind": "[::]:587",
+		"bind": "[::]:587\n[::]:8025",
 		"tls_implicit": 0,
 	},
 	{
 		"protocol": "SMTP",
 		"listener_id": "submissions",
-		"bind": "[::]:465",
+		"bind": "[::]:465\n[::]:2525",
 		"tls_implicit": 1,
 	},
 ]

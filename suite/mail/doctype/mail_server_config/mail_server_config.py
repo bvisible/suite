@@ -107,8 +107,9 @@ def get_config_toml(server: str) -> str | None:
 	def split_lines_or_empty(value: str) -> list:
 		return split_lines(value) if value else []
 
-	def split_lines_or_return(value: str) -> str | list:
-		return split_lines(value) if "\n" in value else value
+	def format_keys(keys: list) -> dict:
+		width = len(str(len(keys) - 1))
+		return {str(i).zfill(width): key for i, key in enumerate(keys)}
 
 	def get_acme_config(acme) -> dict:
 		config = {
@@ -147,14 +148,17 @@ def get_config_toml(server: str) -> str | None:
 		return {k: v for tls in tls_certificates for k, v in get_tls_config(tls).items()}
 
 	def get_listeners(listeners: list) -> dict:
-		return {
-			listener.listener_id: {
-				"bind": split_lines_or_return(listener.bind),
+		result = {}
+
+		for listener in listeners:
+			binds = split_lines(listener.bind)
+			result[listener.listener_id] = {
+				"bind": format_keys(binds) if len(binds) > 1 else binds[0],
 				"protocol": PROTOCOL_MAP[listener.protocol],
 				"tls": {"implicit": bool(listener.tls_implicit)},
 			}
-			for listener in listeners
-		}
+
+		return result
 
 	def get_seed_nodes(server: str, cluster: str) -> dict:
 		seed_nodes = [
@@ -172,13 +176,13 @@ def get_config_toml(server: str) -> str | None:
 			)
 			if s["cluster_advertise_addr"]
 		]
-		return {str(i).zfill(len(str(len(seed_nodes) - 1))): v for i, v in enumerate(seed_nodes)}
+		return format_keys(seed_nodes)
 
 	def get_local_keys(outbound_only: bool = False) -> dict:
 		local_keys = LOCAL_KEYS + (
 			["session.rcpt.directory", "queue.outbound.next-hop"] if outbound_only else []
 		)
-		return {str(i).zfill(len(str(len(local_keys) - 1))): v for i, v in enumerate(local_keys)}
+		return format_keys(local_keys)
 
 	def get_store_config(store) -> dict:
 		config = {"type": STORE_TYPE_MAP[store.type]}
