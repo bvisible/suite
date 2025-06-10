@@ -1,5 +1,5 @@
 <template>
-	<Popover>
+	<Popover @open="handlePopoverOpen">
 		<template #target="{ togglePopover }">
 			<div
 				class="my-2 h-4 w-4 cursor-pointer rounded-sm ring-1 ring-gray-400"
@@ -77,6 +77,7 @@ const shadeStyles = computed(() => {
 
 const colorStyles = computed(() => {
 	return {
+		width: '125px',
 		background: `linear-gradient(to right, rgb(255, 0, 0), rgb(255, 0, 255), rgb(0, 0, 255), rgb(0, 255, 255), rgb(0, 255, 0), rgb(255, 255, 0), rgb(255, 0, 0))`,
 	}
 })
@@ -90,8 +91,8 @@ let colorRect = useElementBounding(colorSlider)
 let shadeRect = useElementBounding(shadeSlider)
 
 const currentColor = defineModel()
-const currentHue = ref('hsl(0, 100%, 50%)')
-const hueCursorLeft = ref('calc(0% - 6px)')
+const currentHue = ref('')
+const hueCursorLeft = ref('')
 
 const currentOpacity = ref(1)
 const opacityCursorLeft = ref('calc(100% - 6px)')
@@ -198,5 +199,11 @@ const updateOpacity = (e) => {
 
 const endUpdateOpacity = (e) => {
 	window.removeEventListener('mousemove', updateOpacity)
+}
+
+const handlePopoverOpen = () => {
+	hue = tinycolor(currentColor.value).toHsl().h
+	currentHue.value = tinycolor('hsl ' + hue + ' 1 .5').toHslString()
+	hueCursorLeft.value = 125 - (hue / 360) * 125 - 6 + 'px'
 }
 </script>
