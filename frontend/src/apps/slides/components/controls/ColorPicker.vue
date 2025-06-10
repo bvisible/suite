@@ -16,14 +16,7 @@
 						:style="shadeStyles"
 						@mousedown="handleUpdateShade"
 					>
-						<div
-							class="relative h-3 w-3 rounded border"
-							:style="{
-								backgroundColor: currentColor,
-								left: shadeCursorLeft,
-								top: shadeCursorTop,
-							}"
-						></div>
+						<div class="relative h-3 w-3 rounded border" :style="shadeRectStyles"></div>
 					</div>
 					<div class="flex h-8 justify-between p-1">
 						<div
@@ -33,23 +26,23 @@
 						<div class="flex flex-col justify-between">
 							<div
 								ref="colorSlider"
-								class="h-1/5 rounded cursor-pointer"
-								:style="colorStyles"
+								:class="sliderClasses"
+								:style="colorSliderStyles"
 								@mousedown="handleUpdateHue"
 							>
 								<div
-									class="relative h-[0.8rem] w-[0.8rem] rounded border border-gray-700 bg-white"
+									:class="sliderCursorClasses"
 									:style="{ left: hueCursorLeft, top: '-0.25rem' }"
 								></div>
 							</div>
 							<div
 								ref="opacitySlider"
-								class="h-1/5 rounded cursor-pointer"
-								:style="opacityStyles"
+								:class="sliderClasses"
+								:style="opacitySliderStyles"
 								@mousedown="handleUpdateOpacity"
 							>
 								<div
-									class="relative h-[0.8rem] w-[0.8rem] rounded border border-gray-700 bg-white"
+									:class="sliderCursorClasses"
 									:style="{ left: opacityCursorLeft, top: '-0.25rem' }"
 								></div>
 							</div>
@@ -77,14 +70,20 @@ const shadeStyles = computed(() => {
 	}
 })
 
-const colorStyles = computed(() => {
+const colorSliderStyles = computed(() => {
 	return {
 		width: `${SLIDER_WIDTH}px`,
 		background: `linear-gradient(to right, rgb(255, 0, 0), rgb(255, 0, 255), rgb(0, 0, 255), rgb(0, 255, 255), rgb(0, 255, 0), rgb(255, 255, 0), rgb(255, 0, 0))`,
 	}
 })
 
-const opacityStyles = `background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1))`
+const opacitySliderStyles = `background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1))`
+
+const shadeRectStyles = computed(() => ({
+	backgroundColor: currentColor.value,
+	left: shadeCursorLeft.value,
+	top: shadeCursorTop.value,
+}))
 
 const shadeSlider = useTemplateRef('shadeSlider')
 const colorSlider = useTemplateRef('colorSlider')
@@ -95,6 +94,9 @@ let shadeRect = useElementBounding(shadeSlider)
 const SLIDER_WIDTH = 125
 const SHADE_RECT_WIDTH = 170
 const SHADE_RECT_HEIGHT = 130
+
+const sliderClasses = 'h-1/5 rounded cursor-pointer'
+const sliderCursorClasses = 'relative h-[0.8rem] w-[0.8rem] rounded border border-gray-700 bg-white'
 
 const currentColor = defineModel()
 const currentHue = ref('')
