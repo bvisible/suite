@@ -1,24 +1,35 @@
 <template>
 	<div
+		v-if="isMobile && isSidebarOpen"
+		class="fixed inset-0 z-40 bg-black bg-opacity-50"
+		@click="closeSidebar"
+	/>
+
+	<div
+		v-if="!isMobile || isSidebarOpen"
 		class="flex h-full flex-col justify-between border-r bg-gray-50 transition-all duration-300 ease-in-out"
-		:class="isSidebarCollapsed ? 'w-14' : 'w-56'"
+		:class="[
+			isSidebarCollapsed && !isMobile ? 'w-14' : 'w-56',
+			isMobile ? 'fixed left-0 top-0 z-50 shadow-lg' : 'relative',
+		]"
 	>
 		<div
 			class="flex flex-col overflow-hidden"
-			:class="isSidebarCollapsed ? 'items-center' : ''"
+			:class="{ 'items-center': isSidebarCollapsed && !isMobile }"
 		>
-			<UserDropdown class="p-2" :is-collapsed="isSidebarCollapsed" />
-			<div class="flex flex-col overflow-y-auto">
+			<UserDropdown class="p-2" :is-collapsed="isSidebarCollapsed && !isMobile" />
+			<div class="flex flex-col">
 				<SidebarLink
 					v-for="link in sidebarLinks"
 					:key="link.label"
 					:link="link"
-					:is-collapsed="isSidebarCollapsed"
+					:is-collapsed="isSidebarCollapsed && !isMobile"
 					class="mx-2 my-0.5"
 				/>
 			</div>
 		</div>
 		<SidebarLink
+			v-if="!isMobile"
 			:link="{
 				label: isSidebarCollapsed ? 'Expand' : 'Collapse',
 			}"
@@ -47,8 +58,13 @@ import { useStorage } from '@vueuse/core'
 import { ArrowLeftFromLine } from 'lucide-vue-next'
 import { createResource } from 'frappe-ui'
 
+import { useScreenSize, useSidebar } from '@/utils/composables'
 import SidebarLink from '@/components/SidebarLink.vue'
 import UserDropdown from '@/components/UserDropdown.vue'
+
+const { isMobile } = useScreenSize()
+const { isSidebarOpen, closeSidebar } = useSidebar()
+const isSidebarCollapsed = useStorage('sidebar_is_collapsed', false)
 
 interface SidebarItem {
 	label: string
@@ -116,8 +132,4 @@ const MAILBOX_ICONS = {
 	junk: 'MailWarning',
 	drafts: 'Edit3',
 }
-
-const getSidebarFromStorage = () => useStorage('sidebar_is_collapsed', false)
-
-const isSidebarCollapsed = ref(getSidebarFromStorage())
 </script>
