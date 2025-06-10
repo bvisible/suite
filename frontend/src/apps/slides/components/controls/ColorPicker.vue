@@ -79,7 +79,7 @@ const shadeStyles = computed(() => {
 
 const colorStyles = computed(() => {
 	return {
-		width: '125px',
+		width: `${SLIDER_WIDTH}px`,
 		background: `linear-gradient(to right, rgb(255, 0, 0), rgb(255, 0, 255), rgb(0, 0, 255), rgb(0, 255, 255), rgb(0, 255, 0), rgb(255, 255, 0), rgb(255, 0, 0))`,
 	}
 })
@@ -91,6 +91,10 @@ const colorSlider = useTemplateRef('colorSlider')
 
 let colorRect = useElementBounding(colorSlider)
 let shadeRect = useElementBounding(shadeSlider)
+
+const SLIDER_WIDTH = 125
+const SHADE_RECT_WIDTH = 170
+const SHADE_RECT_HEIGHT = 130
 
 const currentColor = defineModel()
 const currentHue = ref('')
@@ -146,21 +150,21 @@ const updateShade = (e) => {
 	var x = e.pageX - unref(shadeRect.left)
 	var y = e.pageY - unref(shadeRect.top)
 
-	if (x > unref(shadeRect.width)) {
-		x = unref(shadeRect.width)
+	if (x > SHADE_RECT_WIDTH) {
+		x = SHADE_RECT_WIDTH
 	}
 	if (x < 0) {
 		x = 0
 	}
-	if (y > unref(shadeRect.height)) {
-		y = unref(shadeRect.height)
+	if (y > unref(SHADE_RECT_HEIGHT)) {
+		y = unref(SHADE_RECT_HEIGHT)
 	}
 	if (y < 0) {
 		y = 0.1
 	}
 
-	var xRatio = (x / unref(shadeRect.width)) * 100
-	var yRatio = (y / unref(shadeRect.height)) * 100
+	var xRatio = (x / SHADE_RECT_WIDTH) * 100
+	var yRatio = (y / unref(SHADE_RECT_HEIGHT)) * 100
 	var hsvValue = 1 - yRatio / 100
 	var hsvSaturation = xRatio / 100
 	lightness = (hsvValue / 2) * (2 - hsvSaturation)
@@ -211,12 +215,12 @@ const handlePopoverOpen = () => {
 	lightness = initialHsl.l
 
 	currentOpacity.value = initialHsl.a
-	opacityCursorLeft.value = `${currentOpacity.value * 125 - 6}px`
+	opacityCursorLeft.value = `${currentOpacity.value * SLIDER_WIDTH - 6}px`
 
 	currentHue.value = tinycolor('hsl ' + hue + ' 1 .5').toHslString()
-	hueCursorLeft.value = `${125 - (hue / 360) * 125 - 6}px`
+	hueCursorLeft.value = `${SLIDER_WIDTH - (hue / 360) * SLIDER_WIDTH - 6}px`
 
-	shadeCursorLeft.value = `${saturation * 170 - 6}px`
-	shadeCursorTop.value = `${(100 - lightness * 100) * (130 / 100) - 6}px`
+	shadeCursorLeft.value = `${saturation * SHADE_RECT_WIDTH - 6}px`
+	shadeCursorTop.value = `${(100 - lightness * 100) * (SHADE_RECT_HEIGHT / 100) - 6}px`
 }
 </script>
