@@ -8,11 +8,11 @@
 			></div>
 		</template>
 		<template #body-main>
-			<div class="rounded p-3" :style="{ width: '192px', height: '200px' }">
-				<div class="flex h-full w-full flex-col gap-3">
+			<div class="rounded p-3">
+				<div class="flex flex-col gap-3">
 					<div
 						ref="shadeSlider"
-						class="h-full cursor-pointer rounded-t"
+						class="cursor-pointer rounded-t"
 						:style="shadeStyles"
 						@mousedown="handleUpdateShade"
 					>
@@ -25,7 +25,7 @@
 							}"
 						></div>
 					</div>
-					<div class="flex h-[20%] justify-between p-1">
+					<div class="flex h-8 justify-between p-1">
 						<div
 							class="h-full w-6 rounded-sm ring-[1.5px] ring-gray-200"
 							:style="{ backgroundColor: currentColor }"
@@ -72,6 +72,8 @@ import tinycolor from 'tinycolor2'
 const shadeStyles = computed(() => {
 	return {
 		background: `linear-gradient(transparent, black), linear-gradient(to right, white, ${currentHue.value})`,
+		width: '170px',
+		height: '130px',
 	}
 })
 
@@ -97,8 +99,8 @@ const hueCursorLeft = ref('')
 const currentOpacity = ref()
 const opacityCursorLeft = ref('')
 
-const shadeCursorLeft = ref('calc(0% - 6px)')
-const shadeCursorTop = ref('calc(100% - 6px)')
+const shadeCursorLeft = ref('')
+const shadeCursorTop = ref('')
 
 let hue = 0
 let saturation = 1
@@ -205,11 +207,16 @@ const handlePopoverOpen = () => {
 	const initialHsl = tinycolor(currentColor.value).toHsl()
 
 	hue = initialHsl.h
+	saturation = initialHsl.s
+	lightness = initialHsl.l
 
 	currentOpacity.value = initialHsl.a
 	opacityCursorLeft.value = `${currentOpacity.value * 125 - 6}px`
 
 	currentHue.value = tinycolor('hsl ' + hue + ' 1 .5').toHslString()
 	hueCursorLeft.value = `${125 - (hue / 360) * 125 - 6}px`
+
+	shadeCursorLeft.value = `${saturation * 170 - 6}px`
+	shadeCursorTop.value = `${(100 - lightness * 100) * (130 / 100) - 6}px`
 }
 </script>
