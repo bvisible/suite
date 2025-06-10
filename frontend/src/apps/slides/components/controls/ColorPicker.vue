@@ -121,13 +121,13 @@ const handleUpdateHue = (e) => {
 const updateHue = (e) => {
 	e.preventDefault()
 	var x = e.pageX - unref(colorRect.left)
-	if (x > unref(colorRect.width)) {
-		x = unref(colorRect.width)
+	if (x > SLIDER_WIDTH) {
+		x = SLIDER_WIDTH
 	}
 	if (x < 0) {
 		x = 0
 	}
-	var percent = x / unref(colorRect.width)
+	var percent = x / SLIDER_WIDTH
 	hue = 360 - 360 * percent
 	hueCursorLeft.value = `${x - 6}px`
 	var color = tinycolor('hsl ' + hue + ' ' + saturation + ' ' + lightness)
@@ -193,13 +193,13 @@ const handleUpdateOpacity = (e) => {
 const updateOpacity = (e) => {
 	e.preventDefault()
 	var x = e.pageX - unref(colorRect.left)
-	if (x > unref(colorRect.width)) {
-		x = unref(colorRect.width)
+	if (x > SLIDER_WIDTH) {
+		x = SLIDER_WIDTH
 	}
 	if (x < 0) {
 		x = 0
 	}
-	var percent = x / unref(colorRect.width)
+	var percent = x / SLIDER_WIDTH
 	currentOpacity.value = percent
 	currentColor.value = tinycolor(currentColor.value).setAlpha(percent).toHslString()
 	opacityCursorLeft.value = `${x - 6}px`
