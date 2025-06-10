@@ -64,8 +64,7 @@ import UserDropdown from '@/components/UserDropdown.vue'
 
 const { isMobile } = useScreenSize()
 const { isSidebarOpen, closeSidebar } = useSidebar()
-const getSidebarFromStorage = () => useStorage('sidebar_is_collapsed', false)
-const isSidebarCollapsed = ref(getSidebarFromStorage())
+const isSidebarCollapsed = useStorage('sidebar_is_collapsed', false)
 
 interface SidebarItem {
 	label: string
