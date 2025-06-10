@@ -94,8 +94,8 @@ const currentColor = defineModel()
 const currentHue = ref('')
 const hueCursorLeft = ref('')
 
-const currentOpacity = ref(1)
-const opacityCursorLeft = ref('calc(100% - 6px)')
+const currentOpacity = ref()
+const opacityCursorLeft = ref('')
 
 const shadeCursorLeft = ref('calc(0% - 6px)')
 const shadeCursorTop = ref('calc(100% - 6px)')
@@ -202,8 +202,14 @@ const endUpdateOpacity = (e) => {
 }
 
 const handlePopoverOpen = () => {
-	hue = tinycolor(currentColor.value).toHsl().h
+	const initialHsl = tinycolor(currentColor.value).toHsl()
+
+	hue = initialHsl.h
+
+	currentOpacity.value = initialHsl.a
+	opacityCursorLeft.value = `${currentOpacity.value * 125 - 6}px`
+
 	currentHue.value = tinycolor('hsl ' + hue + ' 1 .5').toHslString()
-	hueCursorLeft.value = 125 - (hue / 360) * 125 - 6 + 'px'
+	hueCursorLeft.value = `${125 - (hue / 360) * 125 - 6}px`
 }
 </script>
