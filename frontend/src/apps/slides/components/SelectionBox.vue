@@ -5,7 +5,7 @@
 <script setup>
 import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
 
-import { slide, slideBounds, selectionBounds } from '@/stores/slide'
+import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
 	activeElementIds,
 	setActiveElements,
@@ -43,11 +43,12 @@ const initSelection = (e) => {
 		const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 		const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
-		selectionBounds.left = currentX
-		selectionBounds.top = currentY
-
-		selectionBounds.width = 0
-		selectionBounds.height = 0
+		updateSelectionBounds({
+			left: currentX,
+			top: currentY,
+			width: 0,
+			height: 0,
+		})
 
 		startX.value = currentX
 		startY.value = currentY
@@ -60,20 +61,30 @@ const updateSelection = (e) => {
 	const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 	const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
 
-	selectionBounds.width = Math.abs(currentX - startX.value)
-	selectionBounds.height = Math.abs(currentY - startY.value)
+	const newBounds = {
+		width: Math.abs(currentX - startX.value),
+		height: Math.abs(currentY - startY.value),
+	}
 
-	if (currentX < startX.value) selectionBounds.left = currentX
-	if (currentY < startY.value) selectionBounds.top = currentY
+	if (currentX < startX.value) {
+		newBounds.left = currentX
+	}
+	if (currentY < startY.value) {
+		newBounds.top = currentY
+	}
+
+	updateSelectionBounds(newBounds)
 
 	document.addEventListener('mouseup', endSelection)
 }
 
 const removeSelectionBox = () => {
-	selectionBounds.left = 0
-	selectionBounds.top = 0
-	selectionBounds.width = 0
-	selectionBounds.height = 0
+	updateSelectionBounds({
+		left: 0,
+		top: 0,
+		width: 0,
+		height: 0,
+	})
 }
 
 const getElementsWithinBoxSurface = () => {
@@ -145,15 +156,19 @@ const cropSelectionToFitContent = (elementIds) => {
 		if (elementBottom > b) b = elementBottom
 	})
 
-	selectionBounds.left = l
-	selectionBounds.top = t
-	selectionBounds.width = r - l + 1
-	selectionBounds.height = b - t + 1
+	updateSelectionBounds({
+		left: l,
+		top: t,
+		width: r - l + 1,
+		height: b - t + 1,
+	})
 }
 
 const resetSelection = (oldVal) => {
-	selectionBounds.width = 0
-	selectionBounds.height = 0
+	updateSelectionBounds({
+		width: 0,
+		height: 0,
+	})
 }
 
 const handleMouseDown = (e) => {
@@ -218,14 +233,17 @@ const moveElementsToBox = (elementIds) => {
 	})
 }
 
+const handleSelection = (elementIds) => {
+	if (!elementIds.length) return
+	document.removeEventListener('mouseup', endSelection)
+	cropSelectionToFitContent(elementIds)
+	moveElementsToBox(elementIds)
+}
+
 const handleSelectionChange = (elementIds, oldIds) => {
 	resetSelection(oldIds)
 	moveElementsToSlide(oldIds)
-	if (elementIds.length) {
-		document.removeEventListener('mouseup', endSelection)
-		cropSelectionToFitContent(elementIds)
-		moveElementsToBox(elementIds)
-	}
+	nextTick(() => handleSelection(elementIds))
 }
 
 const selectSlide = (e) => {
