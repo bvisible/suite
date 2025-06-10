@@ -8,11 +8,11 @@
 			></div>
 		</template>
 		<template #body-main>
-			<div class="rounded p-2 shadow-2xl" :style="{ width: '192px', height: '200px' }">
-				<div class="flex h-full w-full flex-col">
+			<div class="rounded p-3" :style="{ width: '192px', height: '200px' }">
+				<div class="flex h-full w-full flex-col gap-3">
 					<div
 						ref="shadeSlider"
-						class="h-[150px] cursor-pointer rounded-t"
+						class="h-full cursor-pointer rounded-t"
 						:style="shadeStyles"
 						@mousedown="handleUpdateShade"
 					>
@@ -25,15 +25,15 @@
 							}"
 						></div>
 					</div>
-					<div class="flex h-[50px] justify-between gap-3 p-3">
+					<div class="flex h-[20%] justify-between p-1">
 						<div
-							class="h-full w-8 rounded-sm ring-[1.5px] ring-gray-200"
+							class="h-full w-6 rounded-sm ring-[1.5px] ring-gray-200"
 							:style="{ backgroundColor: currentColor }"
 						></div>
-						<div class="flex w-full flex-col gap-4">
+						<div class="flex flex-col justify-between">
 							<div
 								ref="colorSlider"
-								class="h-1/5 rounded"
+								class="h-1/5 rounded cursor-pointer"
 								:style="colorStyles"
 								@mousedown="handleUpdateHue"
 							>
@@ -44,7 +44,7 @@
 							</div>
 							<div
 								ref="opacitySlider"
-								class="h-1/5 rounded"
+								class="h-1/5 rounded cursor-pointer"
 								:style="opacityStyles"
 								@mousedown="handleUpdateOpacity"
 							>
