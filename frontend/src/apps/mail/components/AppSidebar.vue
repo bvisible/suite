@@ -3,12 +3,9 @@
 		class="flex h-full flex-col justify-between border-r bg-gray-50 transition-all duration-300 ease-in-out"
 		:class="isSidebarCollapsed ? 'w-14' : 'w-56'"
 	>
-		<div
-			class="flex flex-col overflow-hidden"
-			:class="isSidebarCollapsed ? 'items-center' : ''"
-		>
+		<div class="flex flex-col overflow-hidden" :class="{ 'items-center': isSidebarCollapsed }">
 			<UserDropdown class="p-2" :is-collapsed="isSidebarCollapsed" />
-			<div class="flex flex-col overflow-y-auto">
+			<div class="flex flex-col">
 				<SidebarLink
 					v-for="link in sidebarLinks"
 					:key="link.label"
