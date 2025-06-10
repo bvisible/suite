@@ -68,7 +68,7 @@ import { convertToTitleCase } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import { sessionStore } from '@/stores/session'
 import { userStore } from '@/stores/user'
-import AppsMenu from '@/components//AppsMenu.vue'
+import AppsMenu from '@/components/AppsMenu.vue'
 import MailLogo from '@/components/Icons/MailLogo.vue'
 import SettingsModal from '@/components/Modals/SettingsModal.vue'
 
