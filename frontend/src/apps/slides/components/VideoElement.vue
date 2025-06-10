@@ -20,7 +20,7 @@
 		>
 			<div
 				v-if="activeElementIds.includes(element.id)"
-				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-90"
+				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-95"
 			>
 				<component
 					size="16"
@@ -41,7 +41,7 @@
 					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
 				></div>
 				<div
-					class="bg-white-overlay-900 opacity-70 h-full absolute left-0 top-0 transition-width duration-100 ease-linear"
+					class="bg-white-overlay-900 opacity-80 h-full absolute left-0 top-0 transition-width duration-100 ease-linear"
 					:style="{ width: `${progress}%` }"
 				></div>
 			</div>
@@ -140,8 +140,8 @@ const seekTimestamp = (e) => {
 }
 
 const gradientOverlayStyles = computed(() => ({
-	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 5%, rgba(0, 0, 0, 0) 100%),
-	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 15%, rgba(0, 0, 0, 0) 100%)`,
+	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0) 100%),
+	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0) 100%)`,
 	opacity: showProgressBar.value ? 1 : 0,
 }))
 
