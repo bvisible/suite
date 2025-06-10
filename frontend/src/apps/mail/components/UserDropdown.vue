@@ -16,7 +16,7 @@
 						v-if="branding.data?.brand_html"
 						class="h-8 w-8 flex-shrink-0 rounded"
 						v-html="branding.data?.brand_html"
-					></span>
+					/>
 					<MailLogo v-else class="h-8 w-8 flex-shrink-0 rounded" />
 					<div
 						class="flex flex-1 flex-col text-left duration-300 ease-in-out"
@@ -65,16 +65,18 @@ import { ChevronDown, Crown, LogOut, Mailbox, Settings as SettingsIcon } from 'l
 import { Dropdown } from 'frappe-ui'
 
 import { convertToTitleCase } from '@/utils'
+import { useScreenSize } from '@/utils/composables'
 import { sessionStore } from '@/stores/session'
 import { userStore } from '@/stores/user'
 import AppsMenu from '@/components//AppsMenu.vue'
 import MailLogo from '@/components/Icons/MailLogo.vue'
 import SettingsModal from '@/components/Modals/SettingsModal.vue'
 
-const { logout, branding } = sessionStore()
-const { userResource } = userStore()
 const route = useRoute()
 const router = useRouter()
+const { logout, branding } = sessionStore()
+const { userResource } = userStore()
+const { isMobile } = useScreenSize()
 
 const showSettings = ref(false)
 
@@ -97,21 +99,20 @@ const userDropdownOptions = [
 		condition: () =>
 			userResource.data.is_mail_admin &&
 			userResource.data.default_outgoing &&
-			!route.meta.isDashboard,
+			!route.meta.isDashboard &&
+			!isMobile.value,
 	},
 	{
 		icon: SettingsIcon,
 		label: __('Settings'),
-		onClick: () => {
-			showSettings.value = true
-		},
-		condition: () => !userResource.data.is_tenant_owner,
+		onClick: () => (showSettings.value = true),
+		condition: () => !userResource.data.is_tenant_owner && !isMobile.value,
 	},
 	{
 		component: AppsMenu,
 		condition: () => {
 			const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
-			return cookies.get('system_user') === 'yes'
+			return cookies.get('system_user') === 'yes' && !isMobile.value
 		},
 	},
 	{
