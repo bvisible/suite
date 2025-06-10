@@ -3,10 +3,10 @@
 		<component :is="getDynamicComponent(element.type)" :element="element" />
 
 		<Resizer
-			v-if="isElementActive"
+			v-if="showResizers"
 			:elementType="element.type"
-			:elementDivRef="elementDivRef"
-			@updateElementWidth="updateElementWidth"
+			:dimensions="selectionBounds"
+			@resizeToFitContent="resizeToFitContent"
 		/>
 	</div>
 </template>
@@ -19,12 +19,18 @@ import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 import Resizer from '@/components/Resizer.vue'
 
-import { activeElementIds } from '@/stores/element'
+import { activeElement, activeElementIds, updateElementWidth } from '@/stores/element'
+
+import { selectionBounds, slideBounds } from '@/stores/slide'
 
 const props = defineProps({
 	outline: {
 		type: String,
 		default: 'none',
+	},
+	isDragging: {
+		type: Boolean,
+		default: false,
 	},
 })
 
@@ -67,19 +73,24 @@ const getDynamicComponent = (type) => {
 	}
 }
 
-const isElementActive = computed(() => {
-	if (!activeElementIds.value.length) return false
-	return activeElementIds.value[0] == element.value.id
+const showResizers = computed(() => {
+	if (!activeElement.value) return false
+	return activeElement.value.id == element.value.id && !props.isDragging
 })
 
-const updateElementWidth = (deltaWidth) => {
-	if (element.value.width) {
-		element.value.width += deltaWidth
-	} else {
-		const elementDiv = elementDivRef.value
-		const width = elementDiv.getBoundingClientRect().width
+const resizeToFitContent = () => {
+	// create range of the text node within TextElement
+	const target = elementDivRef.value
+	const range = document.createRange()
+	const textNode = target.firstChild
+	const originalWidth = target.offsetWidth
+	range.selectNodeContents(textNode)
 
-		element.value.width = width + deltaWidth
-	}
+	// find out width of text content
+	const textWidth = range.getBoundingClientRect().width
+
+	const newWidth = textWidth - originalWidth + 5 / slideBounds.scale
+
+	updateElementWidth(newWidth)
 }
 </script>

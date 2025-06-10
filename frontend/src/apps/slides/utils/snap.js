@@ -1,9 +1,10 @@
 import { ref, reactive, computed } from 'vue'
-import { slide, slideBounds } from '../stores/slide'
+import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const PROXIMITY_THRESHOLD = 30
+	const CENTER_PROXIMITY_THRESHOLD = 15
+	const PROXIMITY_THRESHOLD = 10
 
 	const snapMovement = ref({ x: 0, y: 0 })
 
@@ -40,35 +41,22 @@ export const useSnapping = (target, parent) => {
 		}
 	})
 
-	const getScaledValue = (value, axis) => {
-		if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
-		return (value - slideBounds.top) / slideBounds.scale
-	}
-
-	const getElementBounds = (div) => {
-		const rect = div.getBoundingClientRect()
-		return {
-			left: getScaledValue(rect.left, 'X'),
-			top: getScaledValue(rect.top, 'Y'),
-			right: getScaledValue(rect.right, 'X'),
-			bottom: getScaledValue(rect.bottom, 'Y'),
-			height: rect.height / slideBounds.scale,
-			width: rect.width / slideBounds.scale,
-		}
-	}
-
 	const getDiffFromCenter = (axis) => {
 		if (!target.value) return
 		let slideCenter, elementCenter
 
-		const activeBounds = getElementBounds(target.value.$el)
-
 		if (axis == 'X') {
+			const elementLeft = selectionBounds.left * slideBounds.scale + slideBounds.left
+			const elementWidth = selectionBounds.width * slideBounds.scale
+
 			slideCenter = slideBounds.left + slideBounds.width / 2
-			elementCenter = activeBounds.left + activeBounds.width / 2
+			elementCenter = elementLeft + elementWidth / 2
 		} else {
+			const elementTop = selectionBounds.top * slideBounds.scale + slideBounds.top
+			const elementHeight = selectionBounds.height * slideBounds.scale
+
 			slideCenter = slideBounds.top + slideBounds.height / 2
-			elementCenter = activeBounds.top + activeBounds.height / 2
+			elementCenter = elementTop + elementHeight / 2
 		}
 
 		return slideCenter - elementCenter
@@ -83,6 +71,21 @@ export const useSnapping = (target, parent) => {
 		)
 	}
 
+	const getActiveElementBounds = () => {
+		const scale = slideBounds.scale
+
+		const bounds = Object.fromEntries(
+			Object.entries(selectionBounds).map(([key, value]) => [key, value * scale]),
+		)
+
+		return {
+			left: bounds.left + slideBounds.left,
+			right: bounds.left + bounds.width + slideBounds.left,
+			top: bounds.top + slideBounds.top,
+			bottom: bounds.top + bounds.height + slideBounds.top,
+		}
+	}
+
 	const setPairedDiffs = () => {
 		slide.value.elements.forEach((element) => {
 			if (activeElementIds.value.includes(element.id)) return
@@ -90,8 +93,8 @@ export const useSnapping = (target, parent) => {
 			const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
 			if (!elementDiv || !target.value) return
 
-			const activeBounds = getElementBounds(target.value.$el)
-			const elementBounds = getElementBounds(elementDiv)
+			const elementBounds = elementDiv.getBoundingClientRect()
+			const activeBounds = getActiveElementBounds()
 
 			const diffLeft = activeBounds.left - elementBounds.left
 			const diffRight = activeBounds.right - elementBounds.right
@@ -139,10 +142,18 @@ export const useSnapping = (target, parent) => {
 		const diff = diffs[axis]
 		const prevDiff = prevDiffs[axis]
 
+		let threshold, margin
+		if (['horizontal', 'vertical'].includes(axis)) {
+			threshold = CENTER_PROXIMITY_THRESHOLD
+			margin = 3
+		} else {
+			threshold = PROXIMITY_THRESHOLD
+			margin = 5
+		}
+
 		let offset = 0
 
-		const canSnap =
-			Math.abs(diff + PROXIMITY_THRESHOLD) < 3 || Math.abs(diff - PROXIMITY_THRESHOLD) < 3
+		const canSnap = Math.abs(diff + threshold) < margin || Math.abs(diff - threshold) < margin
 		const movingAway = Math.abs(diff) > Math.abs(prevDiff)
 
 		if (canSnap && !movingAway) {
