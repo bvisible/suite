@@ -11,6 +11,7 @@ from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils.rate_limiter import dynamic_rate_limit
+from mail.utils.user import has_role
 from mail.utils.validation import validate_permission_for_account
 
 
@@ -18,7 +19,11 @@ from mail.utils.validation import validate_permission_for_account
 def get_mailboxes() -> list:
 	"""Returns mailboxes for the current user."""
 
-	return get_mailboxes_for_account(frappe.session.user)
+	user = frappe.session.user
+	if not has_role(user, "Mail User") or user == "Administrator":
+		return []
+
+	return get_mailboxes_for_account(user)
 
 
 def get_mailbox_id(mailbox: str) -> str:
