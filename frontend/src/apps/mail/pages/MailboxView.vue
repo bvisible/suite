@@ -2,27 +2,31 @@
 	<header
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
-		<Breadcrumbs
-			:items="[
-				{
-					label: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
-					route: { name: 'Mailbox', params: { mailbox } },
-				},
-			]"
-		>
-			<template #suffix>
-				<div class="ml-2 self-end text-xs text-gray-600">
-					{{
-						__('{0} {1}', [
-							mailCount?.data || 0,
-							mailCount?.data == 1 ? 'message' : 'messages',
-						])
-					}}
-				</div>
-			</template>
-		</Breadcrumbs>
+		<div class="flex items-center space-x-2">
+			<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
+			<Breadcrumbs
+				:items="[
+					{
+						label: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
+						route: { name: 'Mailbox', params: { mailbox } },
+					},
+				]"
+			>
+				<template #suffix>
+					<div class="ml-2 self-end text-xs text-gray-600">
+						{{
+							__('{0} {1}', [
+								mailCount?.data || 0,
+								mailCount?.data == 1 ? 'message' : 'messages',
+							])
+						}}
+					</div>
+				</template>
+			</Breadcrumbs>
+		</div>
 		<HeaderActions :mailbox @reload-mails="reloadMails" />
 	</header>
+
 	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
 		<template v-if="threads?.data?.length">
 			<div
@@ -167,7 +171,7 @@ import { FolderInput, Mail, MailOpen, PanelLeft, RefreshCw, Rows4, Trash2 } from
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { startResizing } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
+import { useScreenSize, useSidebar } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
@@ -184,6 +188,7 @@ const { currentThread, setCurrentThread } = userStore()
 const route = useRoute()
 const router = useRouter()
 const { isMobile } = useScreenSize()
+const { openSidebar } = useSidebar()
 
 const mailThread = useTemplateRef('mailThread')
 

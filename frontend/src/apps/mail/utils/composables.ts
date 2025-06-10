@@ -1,6 +1,6 @@
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
-export function useScreenSize() {
+export const useScreenSize = () => {
 	const size = reactive({
 		width: window.innerWidth,
 		height: window.innerHeight,
@@ -20,7 +20,7 @@ export function useScreenSize() {
 	return { size, isMobile }
 }
 // write a composable for detecting swipe gestures in mobile devices
-export function useSwipe() {
+export const useSwipe = () => {
 	const swipe = reactive({
 		initialX: null,
 		initialY: null,
@@ -86,13 +86,11 @@ export function useSwipe() {
 	return swipe
 }
 
-export function useLocalStorage(key, initialValue) {
-	const value = ref(null)
-	const storedValue = localStorage.getItem(key)
-	value.value = storedValue ? JSON.parse(storedValue) : initialValue
+const isSidebarOpen = ref(false)
 
-	watch(value, (newValue) => {
-		localStorage.setItem(key, JSON.stringify(newValue))
-	})
-	return value
+export const useSidebar = () => {
+	const openSidebar = () => (isSidebarOpen.value = true)
+	const closeSidebar = () => (isSidebarOpen.value = false)
+
+	return { isSidebarOpen, openSidebar, closeSidebar }
 }
