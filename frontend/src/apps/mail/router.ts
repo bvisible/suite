@@ -126,11 +126,11 @@ const routes = [
 
 const router = createRouter({ history: createWebHistory('/mail'), routes })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _, next) => {
 	if (document.referrer.includes('/app/setup-wizard')) window.location.replace('/app')
 
 	const { isLoggedIn } = sessionStore()
-	if (!isLoggedIn) return next(to.meta.isLogin ? undefined : { name: 'Login' })
+	if (!isLoggedIn) return to.meta.isLogin ? next() : next({ name: 'Login' })
 
 	const { userResource } = userStore()
 	await userResource.promise
@@ -138,13 +138,13 @@ router.beforeEach(async (to, from, next) => {
 	const mailboxRoute = { name: 'Mailbox', params: { mailbox: user.mailboxes[0]?.role } }
 
 	if (user.is_mail_admin) {
-		if (!user.tenant) return next(to.meta.isSetup ? undefined : { name: 'Setup' })
+		if (!user.tenant) return to.meta.isSetup ? next() : next({ name: 'Setup' })
 		if (!user.is_mail_user && !to.meta.isDashboard) return next({ name: 'Domains' })
 	} else if (to.meta.isDashboard) return next(mailboxRoute)
 
 	if (['/', '/mailbox', '/mailbox/'].includes(to.path)) return next(mailboxRoute)
 
-	next(to.meta.isLogin || to.meta.isSetup ? mailboxRoute : undefined)
+	return to.meta.isLogin || to.meta.isSetup ? next(mailboxRoute) : next()
 })
 
 export default router

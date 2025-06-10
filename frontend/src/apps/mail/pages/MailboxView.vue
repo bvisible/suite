@@ -193,7 +193,6 @@ const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
 	auto: true,
 	makeParams: () => ({ mailbox, limit: limit.value }),
-	cache: [`${mailbox}Mails`, user.data?.name, limit.value],
 	onSuccess: (data: Thread[]) => {
 		const threadExists = (threadID?: string | null) =>
 			data.some((m) => m.thread_id === threadID)

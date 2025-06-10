@@ -16,7 +16,7 @@ export interface User {
 	enabled: boolean
 	is_mail_user: boolean
 	is_mail_admin: boolean
-	is_mail_owner: boolean
+	is_tenant_owner?: boolean
 
 	tenant_name?: string
 	roles: string[]
@@ -25,6 +25,7 @@ export interface User {
 
 export interface UserResource {
 	data: User
+	promise: Promise<User>
 }
 
 export interface Recipient {
