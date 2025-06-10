@@ -38,7 +38,7 @@ def get_media_response_with_range(range_header, file_path):
 		f.seek(range_start)
 		data = f.read(content_length)
 
-		# return a 206 Partial Content response with the specified range
+	# return a 206 Partial Content response with the specified range
 	response = Response(data, 206, mimetype="video/mp4", direct_passthrough=True)
 	response.headers["Content-Range"] = f"bytes {range_start}-{range_end}/{file_size}"
 	response.headers["Accept-Ranges"] = "bytes"
@@ -52,7 +52,7 @@ def get_media_response(file_path):
 	with open(file_path, "rb") as f:
 		data = f.read()
 
-		# return the full file content in the response
+	# return the full file content in the response
 	response = Response(data, 200, mimetype="video/mp4", direct_passthrough=True)
 	response.headers["Content-Length"] = str(file_size)
 	response.headers["Accept-Ranges"] = "bytes"
