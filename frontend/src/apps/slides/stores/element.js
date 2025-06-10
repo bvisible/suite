@@ -23,7 +23,7 @@ const activeElements = computed(() => {
 const activeElement = computed(() => {
 	if (focusElementId.value) {
 		return slide.value.elements.find((element) => element.id === focusElementId.value)
-	} else {
+	} else if (activeElementIds.value.length == 1) {
 		return activeElements.value[0]
 	}
 })
@@ -238,6 +238,19 @@ const handlePaste = (e) => {
 	}
 }
 
+const updateElementWidth = (deltaWidth) => {
+	const element = activeElement.value
+
+	if (element.width) {
+		element.width += deltaWidth
+	} else {
+		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
+		const width = elementDiv.getBoundingClientRect().width
+
+		element.width = width + deltaWidth
+	}
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -255,4 +268,5 @@ export {
 	getElementPosition,
 	handleCopy,
 	handlePaste,
+	updateElementWidth,
 }

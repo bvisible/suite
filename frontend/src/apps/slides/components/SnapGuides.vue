@@ -59,17 +59,16 @@ const getElementBounds = (div) => {
 const getVerticalStyles = (direction) => {
 	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
 
-	const activeBounds = selectionBounds
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const left =
 		direction == 'left'
-			? activeBounds.left - 1
-			: activeBounds.left + activeBounds.width * slideBounds.scale
-	const top = Math.min(activeBounds.top, pairedBounds.top)
+			? selectionBounds.left - 1
+			: selectionBounds.left + selectionBounds.width
+	const top = Math.min(selectionBounds.top, pairedBounds.top)
 	const lastElementHeight =
-		pairedBounds.top < activeBounds.top ? activeBounds.height : pairedBounds.height
-	const height = Math.abs(pairedBounds.top - activeBounds.top) + lastElementHeight
+		pairedBounds.top < selectionBounds.top ? selectionBounds.height : pairedBounds.height
+	const height = Math.abs(pairedBounds.top - selectionBounds.top) + lastElementHeight
 
 	return {
 		position: 'fixed',
@@ -85,18 +84,15 @@ const getVerticalStyles = (direction) => {
 const getHorizontalStyles = (direction) => {
 	if (!pairElementId.value || !props.visibilityMap[direction]) return ''
 
-	const activeBounds = selectionBounds
 	const pairedBounds = getElementBounds(pairedDiv.value)
 
 	const top =
-		direction == 'top'
-			? activeBounds.top - 1
-			: activeBounds.top + activeBounds.height * slideBounds.scale
-	const left = Math.min(activeBounds.left, pairedBounds.left)
+		direction == 'top' ? selectionBounds.top - 1 : selectionBounds.top + selectionBounds.height
+	const left = Math.min(selectionBounds.left, pairedBounds.left)
 
 	const lastElementWidth =
-		pairedBounds.left < activeBounds.left ? activeBounds.width : pairedBounds.width
-	const width = Math.abs(pairedBounds.left - activeBounds.left) + lastElementWidth
+		pairedBounds.left < selectionBounds.left ? selectionBounds.width : pairedBounds.width
+	const width = Math.abs(pairedBounds.left - selectionBounds.left) + lastElementWidth
 
 	return {
 		position: 'fixed',
