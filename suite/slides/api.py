@@ -7,11 +7,17 @@ from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.wrappers import Response
 
 
-def get_file_size(file_path):
+def get_file_size(file_path: str) -> int:
+	"""
+	Returns the size of the file at the given path.
+	"""
 	return os.path.getsize(file_path)
 
 
-def get_range(range_header, file_size):
+def get_range(range_header: str, file_size: int) -> tuple[int, int]:
+	"""
+	Extracts the byte range from Range header.
+	"""
 	import re
 
 	range_start, range_end = 0, None
@@ -27,49 +33,71 @@ def get_range(range_header, file_size):
 	return range_start, range_end
 
 
-def get_file_data(file_path, range_start=0, range_end=None):
+def get_file_data(file_path: str, range_start: int = 0, range_end: int = 0) -> bytes:
+	"""
+	Returns specified range of bytes from the file.
+	If range_end is None, returns the full file content.
+	"""
 	with open(file_path, "rb") as f:
 		f.seek(range_start)
-		if range_end is not None:
-			# read the specified range from the file
-			data = f.read(range_end - range_start + 1)
-		else:
+
+		if range_end == 0:
 			# return the full file content in the response
 			data = f.read()
+		else:
+			# read the specified range from the file
+			data = f.read(range_end - range_start + 1)
+
 	return data
 
 
-def get_response(src):
+def get_file_metadata(src: str) -> tuple[str, int, str]:
+	"""
+	Returns file metadata including path, size, and MIME type.
+	"""
 	file_path = frappe.get_site_path() + src
 	file_size = get_file_size(file_path)
 	mimetype = mimetypes.guess_type(file_path)[0] or "video/mp4"
 
-	range_header = frappe.request.headers.get("Range", None)
+	return file_path, file_size, mimetype
 
-	response = None
+
+def get_media_response(src: str) -> Response:
+	"""
+	Processes the range header from browser to return valid response.
+	"""
+	file_path, file_size, mimetype = get_file_metadata(src)
+
+	range_header = frappe.request.headers.get("Range", None)
 
 	# if the request includes a Range header, return a partial content response
 	if range_header:
-		# extract the byte range from the Range header
 		range_start, range_end = get_range(range_header, file_size)
+
 		file_data = get_file_data(file_path, range_start, range_end)
-		response = Response(file_data, 206, mimetype=mimetype, direct_passthrough=True)
-		response.headers["Content-Range"] = f"bytes {range_start}-{range_end}/{file_size}"
+		status_code = 206  # Partial Content
 		content_length = range_end - range_start + 1
 
 	# otherwise, return the full content response
 	else:
 		file_data = get_file_data(file_path)
-		response = Response(file_data, 200, mimetype=mimetype, direct_passthrough=True)
+		status_code = 200  # Full Content
 		content_length = file_size
 
+	response = Response(file_data, status_code, mimetype=mimetype, direct_passthrough=True)
 	response.headers["Content-Length"] = str(content_length)
 	response.headers["Accept-Ranges"] = "bytes"
+
+	if range_start is not None and range_end is not None:
+		response.headers["Content-Range"] = f"bytes {range_start}-{range_end}/{file_size}"
 	return response
 
 
 @frappe.whitelist()
-def get_video_file(src):
+def get_video_file(src: str) -> Response:
+	"""
+	Fetches permitted video file and returns a response.
+	"""
 	file_doc = frappe.get_doc("File", {"file_url": src})
 
 	if not file_doc:
@@ -78,4 +106,4 @@ def get_video_file(src):
 	if not frappe.has_permission("File", "read", file_doc):
 		raise Forbidden(_("You don't have permission to access this file"))
 
-	return get_response(src)
+	return get_media_response(src)
