@@ -42,7 +42,7 @@ const uploadMedia = (file, fileType) => {
 			.upload(file, {
 				doctype: 'Presentation',
 				docname: presentationId.value,
-				private: false,
+				private: true,
 			})
 			.then((fileDoc) => {
 				addMediaElement(fileDoc, fileType)
