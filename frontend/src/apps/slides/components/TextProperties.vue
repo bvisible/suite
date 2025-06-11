@@ -63,7 +63,7 @@
 		</div>
 
 		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-600">Colour</div>
+			<div class="text-sm text-gray-600">Color</div>
 			<ColorPicker v-model="activeElement.color" />
 		</div>
 	</div>
