@@ -8,7 +8,7 @@
 		</div>
 
 		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-600">Background</div>
+			<div class="text-sm text-gray-600">Background Color</div>
 			<ColorPicker v-model="slide.background" />
 		</div>
 	</div>
@@ -50,7 +50,7 @@ import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
-import CollapsibleSection from './controls/CollapsibleSection.vue'
+import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 const setSlideTransition = (option) => {
 	slide.value.transition = option.value
