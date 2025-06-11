@@ -30,6 +30,7 @@
 						suffix="px"
 						:rangeStart="0"
 						:rangeEnd="50"
+						:rangeStep="0.5"
 					/>
 				</div>
 			</div>
@@ -56,11 +57,16 @@
 	<div :class="sectionClasses">
 		<div :class="sectionTitleClasses">Shadow</div>
 
+		<div class="flex items-center justify-between">
+			<div class="text-sm text-gray-600">Color</div>
+			<ColorPicker class="pe-[0.2px]" v-model="activeElement.shadowColor" />
+		</div>
+
 		<SliderInput
 			label="Offset X"
 			:rangeStart="-50"
 			:rangeEnd="50"
-			:modelValue="parseFloat(activeElement.shadowOffsetX) || 0"
+			:modelValue="parseFloat(activeElement.shadowOffsetX) || 5"
 			@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 		/>
 
@@ -68,24 +74,17 @@
 			label="Offset Y"
 			:rangeStart="-50"
 			:rangeEnd="50"
-			:modelValue="parseFloat(activeElement.shadowOffsetY) || 0"
+			:modelValue="parseFloat(activeElement.shadowOffsetY) || 5"
 			@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 		/>
 
-		<div class="flex flex-col gap-1">
-			<div class="text-sm text-gray-600">Spread</div>
-			<div class="flex items-center justify-between">
-				<SliderInput
-					class="w-4/5"
-					:rangeStart="1"
-					:rangeEnd="500"
-					:modelValue="parseFloat(activeElement.shadowSpread) || 50"
-					@update:modelValue="(value) => (activeElement.shadowSpread = value)"
-					:showInput="false"
-				/>
-				<ColorPicker class="w-10 justify-end" v-model="activeElement.shadowColor" />
-			</div>
-		</div>
+		<SliderInput
+			label="Spread"
+			:rangeStart="1"
+			:rangeEnd="500"
+			:modelValue="parseFloat(activeElement.shadowSpread) || 50"
+			@update:modelValue="(value) => (activeElement.shadowSpread = value)"
+		/>
 	</div>
 </template>
 
@@ -101,6 +100,14 @@ const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
 const addBorder = (style) => {
 	activeElement.value.borderStyle = style
-	if (style != 'none') activeElement.value.borderWidth = 1
+	if (style != 'none') {
+		activeElement.value.borderWidth = 0.5
+		activeElement.value.borderColor = 'hsla(0, 0%, 0%, 0.2)'
+		activeElement.value.borderRadius = 20
+	} else {
+		activeElement.value.borderWidth = 0
+		activeElement.value.borderColor = ''
+		activeElement.value.borderRadius = 0
+	}
 }
 </script>
