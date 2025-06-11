@@ -2,10 +2,50 @@ from email.utils import parseaddr
 
 import frappe
 from frappe import _
+from frappe.utils.file_manager import save_file
+from werkzeug.datastructures.file_storage import FileStorage
 
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils.cache import get_account_for_user
 from mail.utils.rate_limiter import dynamic_rate_limit
+from mail.utils.user import has_role
+
+
+@frappe.whitelist(methods=["POST"])
+@dynamic_rate_limit()
+def upload_attachment() -> dict:
+	"""Upload an attachment to the Frappe Mail folder."""
+
+	try:
+		user = frappe.session.user
+		if not has_role(user, "Mail User"):
+			frappe.throw(_("User {0} is not allowed to upload attachments.").format(frappe.bold(user)))
+
+		if file := frappe.request.files.get("file"):
+			if not isinstance(file, FileStorage):
+				frappe.throw(_("Invalid file type."))
+
+			kwargs = {
+				"dt": None,
+				"dn": None,
+				"is_private": 1,
+				"fname": file.filename,
+				"folder": "Home/Frappe Mail",
+				"content": file.stream.read(),
+			}
+			doc = save_file(**kwargs)
+
+			return {
+				"file_name": doc.file_name,
+				"file_type": doc.file_type,
+				"file_size": doc.file_size,
+				"file_url": doc.file_url,
+			}
+	except Exception as e:
+		frappe.log_error(title=_("Error uploading attachment"), message=frappe.get_traceback())
+		frappe.throw(str(e))
+
+	frappe.throw(_("No file found in the request."), frappe.MandatoryError)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -36,7 +76,7 @@ def send(
 		reply_to=format_reply_to(reply_to),
 		headers=headers,
 		recipients=format_recipients(to, cc, bcc),
-		attachments="",
+		attachments=attachments,
 		html_body=html,
 		text_body=text,
 		via_api=True,
