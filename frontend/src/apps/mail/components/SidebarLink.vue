@@ -1,9 +1,9 @@
 <template>
 	<button
-		v-if="link && !link.onlyMobile"
+		v-if="link"
 		class="flex h-7 cursor-pointer items-center rounded text-gray-800 duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-gray-400"
 		:class="isActive ? 'bg-white shadow-sm' : 'hover:bg-gray-100'"
-		@click="link.to && $router.push(link.to)"
+		@click="openLink"
 	>
 		<div
 			class="group flex w-full items-center duration-300 ease-in-out"
@@ -30,29 +30,16 @@
 			<span v-if="link.count" class="!ml-auto block text-xs text-gray-600">
 				{{ link.count }}
 			</span>
-			<div
-				v-if="showControls"
-				class="invisible !ml-auto block flex items-center space-x-2 text-xs text-gray-600 group-hover:visible"
-			>
-				<component
-					:is="icons['Edit']"
-					class="stroke-1.5 h-3 w-3 text-gray-800"
-					@click.stop="openModal(link)"
-				/>
-				<component
-					:is="icons['X']"
-					class="stroke-1.5 h-3 w-3 text-gray-800"
-					@click.stop="deletePage(link)"
-				/>
-			</div>
 		</div>
 	</button>
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
-import { type RouteLocationRaw, useRoute } from 'vue-router'
+import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 import * as icons from 'lucide-vue-next'
 import { Tooltip } from 'frappe-ui'
+
+import { useScreenSize, useSidebar } from '@/utils/composables'
 
 interface Link {
 	label: string
@@ -60,18 +47,17 @@ interface Link {
 	icon?: string
 	count?: number
 	activeFor?: string[]
-	onlyMobile?: boolean
 }
 
-const {
-	link,
-	isCollapsed = false,
-	showControls = false,
-} = defineProps<{ link: Link; isCollapsed?: boolean; showControls?: boolean }>()
-
-const emit = defineEmits(['openModal', 'deletePage'])
+const { link, isCollapsed = false } = defineProps<{
+	link: Link
+	isCollapsed?: boolean
+}>()
 
 const route = useRoute()
+const router = useRouter()
+const { isMobile } = useScreenSize()
+const { closeSidebar } = useSidebar()
 
 const isActive = computed(() =>
 	link?.activeFor?.includes(
@@ -79,7 +65,9 @@ const isActive = computed(() =>
 	),
 )
 
-const openModal = (link: Link) => emit('openModal', link)
-
-const deletePage = (link: Link) => emit('deletePage', link)
+const openLink = () => {
+	if (!link.to) return
+	router.push(link.to)
+	if (isMobile.value) closeSidebar()
+}
 </script>
