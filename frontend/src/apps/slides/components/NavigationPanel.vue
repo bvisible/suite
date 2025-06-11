@@ -7,7 +7,11 @@
 		@mouseleave="showCollapseShortcut = false"
 		@wheel="handleWheelEvent"
 	>
-		<div class="flex flex-col h-full px-4 pb-12 overflow-y-auto" :style="scrollbarStyles">
+		<div
+			v-if="presentation.data"
+			class="flex flex-col h-full px-4 pb-12 overflow-y-auto"
+			:style="scrollbarStyles"
+		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
