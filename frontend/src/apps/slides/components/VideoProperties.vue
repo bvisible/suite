@@ -41,8 +41,8 @@ import { ref } from 'vue'
 
 import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
-import MediaProperties from './MediaProperties.vue'
-import SliderInput from './controls/SliderInput.vue'
+import MediaProperties from '@/components/MediaProperties.vue'
+import SliderInput from '@/components/controls/SliderInput.vue'
 
 import { activeElement } from '@/stores/element'
 import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
