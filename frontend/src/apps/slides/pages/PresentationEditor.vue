@@ -31,6 +31,7 @@
 <script setup>
 import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 import { call } from 'frappe-ui'
 
@@ -189,7 +190,10 @@ const handleKeyDown = (e) => {
 }
 
 const startSlideShow = () => {
-	resetAndSave()
+	resetFocus()
+	nextTick(() => {
+		saveChanges()
+	})
 
 	router.replace({
 		name: 'Slideshow',
@@ -291,7 +295,12 @@ const duplicateSlide = async (e) => {
 const resetAndSave = () => {
 	resetFocus()
 	nextTick(() => {
-		saveChanges()
+		const toastProps = {
+			loading: `Saving ...`,
+			success: () => `Saved`,
+			error: () => 'Could not save presentation. Please try again.',
+		}
+		toast.promise(saveChanges(), toastProps)
 	})
 }
 
