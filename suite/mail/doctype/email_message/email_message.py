@@ -12,7 +12,7 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import Interval, Order
+from frappe.query_builder import Interval
 from frappe.query_builder.custom import GROUP_CONCAT
 from frappe.query_builder.functions import Max, Now
 from frappe.utils import cint, escape_html, time_diff_in_seconds
@@ -89,12 +89,15 @@ class EmailMessage(Document):
 
 		messages = query.run(as_dict=True)
 
+		messages_with_attachment = []
 		for message in messages:
-			if preview := message.get("preview"):
+			if preview := message["preview"]:
 				message["preview"] = convert_html_to_text(preview)
+			if message["has_attachment"]:
+				messages_with_attachment.append(message["name"])
+			message["attachments"] = []
 
-		attachments_map = {}
-		if messages_with_attachment := [m["name"] for m in messages if m["has_attachment"]]:
+		if messages_with_attachment:
 			PART = frappe.qb.DocType("Email Message Part")
 			attachments = (
 				frappe.qb.from_(PART)
@@ -122,12 +125,10 @@ class EmailMessage(Document):
 						a.filename = "Original Message"
 				attachments_map[a.pop("parent")].append(a)
 
-		if attachments_map:
-			for message in messages:
-				if message["has_attachment"]:
-					message["attachments"] = attachments_map.get(message["name"], [])
-				else:
-					message["attachments"] = []
+			if attachments_map:
+				for message in messages:
+					if message["has_attachment"]:
+						message["attachments"] = attachments_map.get(message["name"], [])
 
 		return messages
 

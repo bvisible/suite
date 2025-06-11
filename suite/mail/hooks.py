@@ -32,6 +32,11 @@ website_redirects = [
 		"redirect_http_status": 307,
 	},
 	{
+		"source": "/inbound/blob",
+		"target": "/api/method/mail.api.inbound.fetch_blob",
+		"redirect_http_status": 307,
+	},
+	{
 		"source": "/inbound/pull",
 		"target": "/api/method/mail.api.inbound.pull",
 		"redirect_http_status": 307,
