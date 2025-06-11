@@ -12,37 +12,22 @@ class MailContact(Document):
 	def before_validate(self) -> None:
 		self.set_user()
 
-	def validate(self) -> None:
-		if self.is_new():
-			self.validate_duplicate_contact()
-
 	def set_user(self) -> None:
 		"""Set user as current user if not set."""
 
 		if not self.user:
-			user = frappe.session.user
-			self.user = user
-
-	def validate_duplicate_contact(self) -> None:
-		"""Validates if the contact is duplicate."""
-
-		if frappe.db.exists("Mail Contact", {"user": self.user, "email": self.email}):
-			frappe.throw(_("Mail Contact with email {0} already exists.").format(frappe.bold(self.email)))
+			self.user = frappe.session.user
 
 
 def create_mail_contact(user: str, email: str, display_name: str | None = None) -> None:
 	"""Creates the mail contact."""
 
-	if mail_contact := frappe.db.exists("Mail Contact", {"user": user, "email": email}):
-		current_display_name = frappe.get_cached_value("Mail Contact", mail_contact, "display_name")
-		if display_name != current_display_name:
-			frappe.db.set_value("Mail Contact", mail_contact, "display_name", display_name)
-	else:
+	if not frappe.db.exists("Mail Contact", {"user": user, "email": email}):
 		doc = frappe.new_doc("Mail Contact")
 		doc.user = user
 		doc.email = email
 		doc.display_name = display_name
-		doc.insert(ignore_permissions=True)
+		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
