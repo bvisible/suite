@@ -325,7 +325,7 @@ watch(
 )
 
 onMounted(() => {
-	autosaveInterval = setInterval(handleAutoSave, 60000)
+	autosaveInterval = setInterval(handleAutoSave, 2000)
 	document.addEventListener('keydown', handleKeyDown)
 })
 
