@@ -57,12 +57,16 @@ const opacity = ref(1)
 const slideCursor = ref('none')
 
 const slideStyles = computed(() => {
+	// scale slide to fit current screen size while maintaining 16:9 aspect ratio
+	const screenWidth = window.screen.width
+	const widthScale = screenWidth / 960
+
 	return {
 		width: '960px',
 		height: '540px',
 		backgroundColor: slide.value.background || 'white',
 		cursor: slideCursor.value,
-		transform: `${transform.value} scale(1.5)`,
+		transform: `${transform.value} scale(${widthScale})`,
 		transition: transition.value,
 		opacity: opacity.value,
 	}
