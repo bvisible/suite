@@ -15,21 +15,10 @@ from mail.utils.user import has_role
 from mail.utils.validation import validate_permission_for_account
 
 
-@frappe.whitelist()
-def get_mailboxes() -> list:
-	"""Returns mailboxes for the current user."""
-
-	user = frappe.session.user
-	if not has_role(user, "Mail User") or user == "Administrator":
-		return []
-
-	return get_mailboxes_for_account(user)
-
-
 def get_mailbox_id(mailbox: str) -> str:
 	"""Returns mailbox id for the given role."""
 
-	mailboxes = get_mailboxes()
+	mailboxes = get_mailboxes_for_account(frappe.session.user)
 	if mailbox not in [d["role"] for d in mailboxes]:
 		frappe.throw(_("Mailbox {0} does not exist.").format(mailbox))
 
@@ -46,7 +35,7 @@ def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
 
 
 @frappe.whitelist()
-def get_mailbox_thread_count(mailbox: str) -> str:
+def get_mailbox_thread_count(mailbox: str) -> int:
 	"""Returns no. of mails for the given mailbox."""
 
 	EmailMessage = frappe.qb.DocType("Email Message")
@@ -65,6 +54,30 @@ def get_mailbox_thread_count(mailbox: str) -> str:
 	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
 
 	return count[0][0]
+
+
+@frappe.whitelist()
+def get_mailboxes() -> list[dict]:
+	"""Returns no. of unseen mails for each mailbox."""
+
+	user = frappe.session.user
+	if not has_role(user, "Mail User") or user == "Administrator":
+		return []
+
+	EmailMessage = frappe.qb.DocType("Email Message")
+	unseen_counts = (
+		frappe.qb.from_(EmailMessage)
+		.select(EmailMessage.mailbox_role, Count("*").as_("count"))
+		.where((EmailMessage.account == user) & (EmailMessage.destroyed == 0) & (EmailMessage.seen == 0))
+		.groupby(EmailMessage.mailbox_role)
+	).run(as_dict=True)
+	unseen_map = {item["mailbox_role"]: item["count"] for item in unseen_counts}
+
+	mailboxes = get_mailboxes_for_account(user)
+	for mailbox in mailboxes:
+		mailbox["count"] = unseen_map.get(mailbox["role"], 0)
+
+	return mailboxes
 
 
 @frappe.whitelist()
