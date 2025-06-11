@@ -15,6 +15,8 @@ export const userStore = defineStore('mail-users', () => {
 		auto: true,
 	})
 
+	const mailboxes = createResource({ url: 'mail.api.mail.get_mailboxes', auto: true })
+
 	const currentThread: Record<string, string | null> = reactive({})
 
 	const setCurrentThread = (mailbox: string, thread: string | null) => {
@@ -26,5 +28,5 @@ export const userStore = defineStore('mail-users', () => {
 		)
 	}
 
-	return { userResource, currentThread, setCurrentThread }
+	return { userResource, mailboxes, currentThread, setCurrentThread }
 })

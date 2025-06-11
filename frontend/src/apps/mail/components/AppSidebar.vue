@@ -52,29 +52,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStorage } from '@vueuse/core'
 import { ArrowLeftFromLine } from 'lucide-vue-next'
-import { createResource } from 'frappe-ui'
 
 import { useScreenSize, useSidebar } from '@/utils/composables'
+import { userStore } from '@/stores/user'
 import SidebarLink from '@/components/SidebarLink.vue'
 import UserDropdown from '@/components/UserDropdown.vue'
 
+const route = useRoute()
 const { isMobile } = useScreenSize()
 const { isSidebarOpen, closeSidebar } = useSidebar()
 const isSidebarCollapsed = useStorage('sidebar_is_collapsed', false)
+const { mailboxes } = userStore()
 
-interface SidebarItem {
-	label: string
-	icon: string
-	to: { name: string; params?: Record<string, string> }
-	activeFor: string[]
-	forDashboard?: boolean
-}
-
-const sidebarItems = ref<SidebarItem[]>([
+const dashboardItems = [
 	{
 		label: __('Domains'),
 		icon: 'Globe',
@@ -103,27 +97,7 @@ const sidebarItems = ref<SidebarItem[]>([
 		activeFor: ['Aliases'],
 		forDashboard: true,
 	},
-])
-
-const route = useRoute()
-
-const sidebarLinks = computed(() =>
-	sidebarItems.value.filter((link) => route.meta.isDashboard == link.forDashboard),
-)
-
-createResource({
-	url: 'mail.api.mail.get_mailboxes',
-	auto: true,
-	onSuccess: (data: { name: string; role: string }[]) =>
-		data.forEach((mailbox) => {
-			sidebarItems.value.push({
-				label: mailbox.name,
-				icon: MAILBOX_ICONS[mailbox.role],
-				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
-				activeFor: [mailbox.role],
-			})
-		})!,
-})
+]
 
 const MAILBOX_ICONS = {
 	inbox: 'Inbox',
@@ -132,4 +106,18 @@ const MAILBOX_ICONS = {
 	junk: 'MailWarning',
 	drafts: 'Edit3',
 }
+
+const sidebarLinks = computed(() => {
+	if (route.meta.isDashboard) return dashboardItems
+
+	return mailboxes.data?.map(
+		(mailbox: { name: string; role: keyof typeof MAILBOX_ICONS; count: number }) => ({
+			label: mailbox.name,
+			icon: MAILBOX_ICONS[mailbox.role],
+			to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
+			count: mailbox.count,
+			activeFor: [mailbox.role],
+		}),
+	)
+})
 </script>
