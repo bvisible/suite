@@ -1,13 +1,17 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-[94.27%] w-48 border-r bg-white transition-all duration-300 ease-in-out"
+		class="fixed z-20 h-full top-[2.5rem] w-48 border-r bg-white transition-all duration-300 ease-in-out"
 		:class="showNavigator ? 'left-0' : '-left-48'"
 		@mouseenter="showCollapseShortcut = true"
 		@mouseleave="showCollapseShortcut = false"
 		@wheel="handleWheelEvent"
 	>
-		<div class="flex flex-col h-full px-4 pb-12 overflow-y-auto" :style="scrollbarStyles">
+		<div
+			v-if="presentation.data"
+			class="flex flex-col h-full px-4 pb-12 overflow-y-auto"
+			:style="scrollbarStyles"
+		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
