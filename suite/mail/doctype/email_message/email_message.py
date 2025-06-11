@@ -25,6 +25,7 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	get_current_state,
 	update_current_state,
 )
+from mail.mail.doctype.mail_contact.mail_contact import create_mail_contact
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils import convert_html_to_text, enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
@@ -625,9 +626,23 @@ class EmailMessage(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
+	def after_insert(self) -> None:
+		self.create_mail_contacts()
+
 	def on_trash(self) -> None:
 		if not self.destroyed:
 			frappe.throw(_("You must destroy this email message before it can be deleted."))
+
+	def create_mail_contacts(self) -> None:
+		"""Creates Mail Contacts."""
+
+		user, create_contact = frappe.db.get_value(
+			"Mail Account", self.account, ["user", "create_mail_contact"]
+		)
+
+		if create_contact:
+			for rcpt in self.recipients:
+				create_mail_contact(user, rcpt.email, rcpt.display_name)
 
 	def clear_cached_properties(self) -> None:
 		"""Clear cached properties to avoid stale data."""
