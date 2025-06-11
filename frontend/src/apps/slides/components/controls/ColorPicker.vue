@@ -2,7 +2,7 @@
 	<Popover @open="handlePopoverOpen">
 		<template #target="{ togglePopover }">
 			<div
-				class="my-2 h-4 w-4 cursor-pointer rounded-sm ring-1 ring-gray-400"
+				class="my-2 h-4 w-4 cursor-pointer rounded-sm ring-1 ring-offset-1 ring-gray-200"
 				:style="{ backgroundColor: currentColor }"
 				@click="togglePopover"
 			></div>
@@ -12,18 +12,21 @@
 				<div class="flex flex-col gap-3">
 					<div
 						ref="shadeSlider"
-						class="cursor-pointer rounded-t"
+						class="cursor-pointer rounded-t shadow-xl"
 						:style="shadeStyles"
 						@mousedown="handleUpdateShade"
 					>
-						<div class="relative h-3 w-3 rounded border" :style="shadeRectStyles"></div>
-					</div>
-					<div class="flex h-8 justify-between p-1">
 						<div
-							class="h-full w-6 rounded-sm ring-[1.5px] ring-gray-200"
+							class="relative h-3 w-3 rounded border shadow-md"
+							:style="shadeRectStyles"
+						></div>
+					</div>
+					<div class="flex h-8 justify-between py-1">
+						<div
+							class="h-full w-6 rounded-sm ring-1 ring-offset-1 ring-gray-100"
 							:style="{ backgroundColor: currentColor }"
 						></div>
-						<div class="flex flex-col justify-between">
+						<div class="flex flex-col justify-between px-1">
 							<div
 								ref="colorSlider"
 								:class="sliderClasses"
@@ -73,7 +76,8 @@ const SHADE_RECT_WIDTH = 170
 const SHADE_RECT_HEIGHT = 130
 
 const sliderClasses = 'h-1/5 rounded cursor-pointer'
-const sliderCursorClasses = 'relative h-[0.8rem] w-[0.8rem] rounded border border-gray-700 bg-white'
+const sliderCursorClasses =
+	'relative h-[0.8rem] w-[0.8rem] rounded shadow border border-gray-200 bg-white'
 
 const currentColor = defineModel()
 
