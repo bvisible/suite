@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-06-09 16:46+0553\n"
-"PO-Revision-Date: 2025-06-09 16:46+0553\n"
+"POT-Creation-Date: 2025-06-11 11:35+0553\n"
+"PO-Revision-Date: 2025-06-11 11:35+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -76,6 +76,11 @@ msgstr ""
 #. Label of the acme_providers (Table) field in DocType 'Mail Server'
 #: mail/mail/doctype/mail_server/mail_server.json
 msgid "ACME Providers"
+msgstr ""
+
+#. Label of the via_api (Check) field in DocType 'Mail Queue'
+#: mail/mail/doctype/mail_queue/mail_queue.json
+msgid "API"
 msgstr ""
 
 #: frontend/src/components/Settings/AdvancedSettings.vue:2
@@ -162,7 +167,7 @@ msgstr ""
 msgid "Account is already verified and created."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:252
+#: mail/mail/doctype/mail_queue/mail_queue.py:254
 msgid "Account is required."
 msgstr ""
 
@@ -604,11 +609,6 @@ msgstr ""
 msgid "Blocked IPs"
 msgstr ""
 
-#. Label of the blocked_until (Datetime) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Blocked Until"
-msgstr ""
-
 #. Label of the section_break_yjrj (Section Break) field in DocType 'Email
 #. Message'
 #. Label of the body_section (Section Break) field in DocType 'Mail Queue'
@@ -621,16 +621,6 @@ msgstr ""
 #. Message'
 #: mail/mail/doctype/email_message/email_message.json
 msgid "Body Parts"
-msgstr ""
-
-#. Label of the bounce_count (Int) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Bounce Count"
-msgstr ""
-
-#. Name of a DocType
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Bounce History"
 msgstr ""
 
 #. Label of the bucket (Data) field in DocType 'Mail Server Store'
@@ -692,7 +682,7 @@ msgstr ""
 msgid "Cannot resubscribe a subscription that is not expired or failed."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:489
+#: mail/mail/doctype/mail_queue/mail_queue.py:496
 msgid "Cannot retry a mail with status {0}"
 msgstr ""
 
@@ -757,19 +747,10 @@ msgstr ""
 msgid "Charset"
 msgstr ""
 
-#. Label of the check_deliverability (Button) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Check Deliverability"
-msgstr ""
-
 #. Description of the 'Enable Spam Detection' (Check) field in DocType 'Mail
 #. Settings'
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Check to enable spam detection."
-msgstr ""
-
-#: mail/mail/doctype/bounce_history/bounce_history.js:16
-msgid "Checking email deliverability..."
 msgstr ""
 
 #. Label of the cleanup_section (Section Break) field in DocType 'Mail Cluster'
@@ -1544,7 +1525,7 @@ msgstr ""
 msgid "Edit Photo"
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:450
+#: mail/mail/doctype/mail_queue/mail_queue.py:452
 msgid "Either blob_id or file_url is required for attachments."
 msgstr ""
 
@@ -1654,7 +1635,7 @@ msgid "Email address {0} is not associated with the user {1}."
 msgstr ""
 
 #: mail/mail/doctype/email_message/email_message.py:905
-#: mail/mail/doctype/mail_queue/mail_queue.py:498
+#: mail/mail/doctype/mail_queue/mail_queue.py:505
 msgid "Email does not have a blob ID."
 msgstr ""
 
@@ -1678,7 +1659,7 @@ msgstr ""
 msgid "Email messages destroyed successfully."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:819
+#: mail/mail/doctype/mail_queue/mail_queue.py:826
 msgid "Email processing aborted: {failed_count} out of {total_count} emails failed ({failure_rate:.2%} failure rate). Please investigate the issue before retrying."
 msgstr ""
 
@@ -1818,6 +1799,10 @@ msgstr ""
 #. Label of the error_message (Small Text) field in DocType 'Mail Queue'
 #: mail/mail/doctype/mail_queue/mail_queue.json
 msgid "Error Message"
+msgstr ""
+
+#: mail/api/outbound.py:45
+msgid "Error uploading attachment"
 msgstr ""
 
 #. Description of the 'Name Length' (Int) field in DocType 'Mail Cluster'
@@ -2133,7 +2118,9 @@ msgid "From Host"
 msgstr ""
 
 #. Label of the from_ip (Data) field in DocType 'Email Message'
+#. Label of the from_ip (Data) field in DocType 'Mail Queue'
 #: mail/mail/doctype/email_message/email_message.json
+#: mail/mail/doctype/mail_queue/mail_queue.json
 msgid "From IP"
 msgstr ""
 
@@ -2388,7 +2375,7 @@ msgstr ""
 msgid "Identifies the S3 account."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:167
+#: mail/mail/doctype/mail_queue/mail_queue.py:168
 msgid "Identity not found for email {0}"
 msgstr ""
 
@@ -2478,7 +2465,7 @@ msgstr ""
 msgid "Invalid date format: {0}"
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:331
+#: mail/mail/doctype/mail_queue/mail_queue.py:333
 msgid "Invalid delivery mode: {0}"
 msgstr ""
 
@@ -2486,8 +2473,12 @@ msgstr ""
 msgid "Invalid domain name"
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:434
+#: mail/mail/doctype/mail_queue/mail_queue.py:436
 msgid "Invalid file URL: {0}. File URLs must start with '/files/' or '/private/files/'."
+msgstr ""
+
+#: mail/api/outbound.py:26
+msgid "Invalid file type."
 msgstr ""
 
 #: mail/mail/doctype/jmap_push_subscription/jmap_push_subscription.py:26
@@ -2620,16 +2611,6 @@ msgstr ""
 #. Label of the language (Data) field in DocType 'Email Message Part'
 #: mail/mail/doctype/email_message_part/email_message_part.json
 msgid "Language"
-msgstr ""
-
-#. Label of the last_bounce_response (Code) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Last Bounce Response"
-msgstr ""
-
-#. Label of the last_bounced_at (Datetime) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Last Bounced At"
 msgstr ""
 
 #. Label of the last_checked_at (Datetime) field in DocType 'DNS Record'
@@ -2998,7 +2979,7 @@ msgstr ""
 msgid "Mail User"
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:256
+#: mail/mail/doctype/mail_queue/mail_queue.py:258
 msgid "Mail account {0} is disabled."
 msgstr ""
 
@@ -3486,6 +3467,10 @@ msgstr ""
 msgid "Next Retry After"
 msgstr ""
 
+#: mail/api/outbound.py:128
+msgid "No Mail Account found for the user {0}."
+msgstr ""
+
 #: frontend/src/pages/dashboard/MailAliasesView.vue:170
 msgid "No aliases found."
 msgstr ""
@@ -3509,6 +3494,10 @@ msgstr ""
 
 #: frontend/src/pages/dashboard/DomainsView.vue:113
 msgid "No domains found."
+msgstr ""
+
+#: mail/api/outbound.py:48
+msgid "No file found in the request."
 msgstr ""
 
 #: frontend/src/pages/dashboard/InvitesView.vue:183
@@ -3812,7 +3801,7 @@ msgstr ""
 msgid "Personal signup is disabled."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:400
+#: mail/mail/doctype/mail_queue/mail_queue.py:402
 msgid "Please add at least one recipient."
 msgstr ""
 
@@ -4130,11 +4119,6 @@ msgstr ""
 #: mail/mail/doctype/dns_record/dns_record.json
 #: mail/mail/doctype/mail_domain_dns_record/mail_domain_dns_record.json
 msgid "Receiving Record"
-msgstr ""
-
-#. Label of the recipient (Data) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Recipient"
 msgstr ""
 
 #. Label of the recipients_section (Section Break) field in DocType 'Email
@@ -4722,11 +4706,6 @@ msgstr ""
 msgid "Send Verification Email"
 msgstr ""
 
-#. Label of the sender (Data) field in DocType 'Bounce History'
-#: mail/mail/doctype/bounce_history/bounce_history.json
-msgid "Sender"
-msgstr ""
-
 #. Label of the sender_email (Data) field in DocType 'Email Message'
 #: mail/mail/doctype/email_message/email_message.json
 msgid "Sender Email"
@@ -5116,7 +5095,6 @@ msgstr ""
 #. Name of a role
 #: mail/mail/doctype/allowed_ip/allowed_ip.json
 #: mail/mail/doctype/blocked_ip/blocked_ip.json
-#: mail/mail/doctype/bounce_history/bounce_history.json
 #: mail/mail/doctype/dkim_key/dkim_key.json
 #: mail/mail/doctype/dmarc_report/dmarc_report.json
 #: mail/mail/doctype/dns_record/dns_record.json
@@ -5345,10 +5323,6 @@ msgstr ""
 msgid "The domain name used to create DNS records (SPF, DKIM keys, external DMARC, etc.)."
 msgstr ""
 
-#: mail/mail/doctype/bounce_history/bounce_history.js:27
-msgid "The email address {0} appears to be invalid."
-msgstr ""
-
 #: mail/utils/validation.py:80
 msgid "The email address {0} cannot be used because it is too similar to an existing email in {1}. We ignore dots in the local part of the email (before '@'). For example, {2} and {3} are treated as the same address. Please use a different email."
 msgstr ""
@@ -5361,10 +5335,6 @@ msgstr ""
 msgid "The email address {0} is already used as a {1} in this system and cannot be added as an external member."
 msgstr ""
 
-#: mail/mail/doctype/bounce_history/bounce_history.js:21
-msgid "The email address {0} is deliverable."
-msgstr ""
-
 #: mail/mail/doctype/jmap_push_subscription/jmap_push_subscription.js:49
 msgid "The endpoint must start with 'https://'."
 msgstr ""
@@ -5374,7 +5344,7 @@ msgstr ""
 msgid "The geographical region where the bucket resides."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:377
+#: mail/mail/doctype/mail_queue/mail_queue.py:379
 msgid "The header <b>{0}</b> is a standard email header and cannot be overridden. Please use custom headers prefixed with <code>X-</code>."
 msgstr ""
 
@@ -5429,7 +5399,7 @@ msgstr ""
 msgid "The protocol used by the listener."
 msgstr ""
 
-#: mail/api/outbound.py:65
+#: mail/api/outbound.py:105
 msgid "The raw message is required."
 msgstr ""
 
@@ -5830,6 +5800,10 @@ msgstr ""
 msgid "User {0} is not allowed to send or receive emails."
 msgstr ""
 
+#: mail/api/outbound.py:22
+msgid "User {0} is not allowed to upload attachments."
+msgstr ""
+
 #: mail/mail/doctype/mail_account_request/mail_account_request.py:105
 msgid "User {0} is not authorized to invite users to the tenant."
 msgstr ""
@@ -6014,7 +5988,7 @@ msgstr ""
 msgid "You are not authorized to perform this action."
 msgstr ""
 
-#: mail/mail/doctype/mail_queue/mail_queue.py:319
+#: mail/mail/doctype/mail_queue/mail_queue.py:321
 msgid "You cannot send email from {0} using account {1}. Please use the email address associated with the account."
 msgstr ""
 
