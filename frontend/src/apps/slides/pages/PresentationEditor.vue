@@ -25,8 +25,6 @@
 
 			<DropTargetOverlay ref="dropTarget" />
 
-			<PropertiesPanel />
-
 			<Toolbar
 				@setHighlight="setHighlight"
 				@insert="insertSlide"
@@ -34,6 +32,8 @@
 				@delete="deleteSlide"
 			/>
 		</div>
+
+		<PropertiesPanel />
 	</div>
 </template>
 
