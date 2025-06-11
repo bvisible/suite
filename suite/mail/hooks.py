@@ -17,6 +17,11 @@ website_redirects = [
 		"redirect_http_status": 307,
 	},
 	{
+		"source": "/outbound/upload",
+		"target": "/api/method/mail.api.outbound.upload_attachment",
+		"redirect_http_status": 307,
+	},
+	{
 		"source": "/outbound/send",
 		"target": "/api/method/mail.api.outbound.send",
 		"redirect_http_status": 307,
