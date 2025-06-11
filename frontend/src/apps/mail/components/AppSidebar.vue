@@ -70,6 +70,7 @@ interface SidebarItem {
 	label: string
 	icon: string
 	to: { name: string; params?: Record<string, string> }
+	count?: number
 	activeFor: string[]
 	forDashboard?: boolean
 }
@@ -111,20 +112,6 @@ const sidebarLinks = computed(() =>
 	sidebarItems.value.filter((link) => route.meta.isDashboard == link.forDashboard),
 )
 
-createResource({
-	url: 'mail.api.mail.get_mailboxes',
-	auto: true,
-	onSuccess: (data: { name: string; role: string }[]) =>
-		data.forEach((mailbox) => {
-			sidebarItems.value.push({
-				label: mailbox.name,
-				icon: MAILBOX_ICONS[mailbox.role],
-				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
-				activeFor: [mailbox.role],
-			})
-		})!,
-})
-
 const MAILBOX_ICONS = {
 	inbox: 'Inbox',
 	sent: 'Send',
@@ -132,4 +119,19 @@ const MAILBOX_ICONS = {
 	junk: 'MailWarning',
 	drafts: 'Edit3',
 }
+
+createResource({
+	url: 'mail.api.mail.get_mailboxes',
+	auto: true,
+	onSuccess: (data: { name: string; role: keyof typeof MAILBOX_ICONS; count: number }[]) =>
+		data.forEach((mailbox) => {
+			sidebarItems.value.push({
+				label: mailbox.name,
+				icon: MAILBOX_ICONS[mailbox.role],
+				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
+				count: mailbox.count,
+				activeFor: [mailbox.role],
+			})
+		})!,
+})
 </script>
