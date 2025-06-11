@@ -110,4 +110,9 @@ input::-webkit-inner-spin-button {
 	cursor: pointer;
 	border-radius: 50%;
 }
+
+.slider:hover::-webkit-slider-thumb {
+	transform: scale(1.1);
+	transition: transform 0.2s;
+}
 </style>

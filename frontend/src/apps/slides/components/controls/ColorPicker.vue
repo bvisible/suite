@@ -2,7 +2,7 @@
 	<Popover @open="handlePopoverOpen">
 		<template #target="{ togglePopover }">
 			<div
-				class="my-2 h-4 w-4 cursor-pointer rounded-sm ring-1 ring-offset-1 ring-gray-200"
+				class="my-2 h-4 w-4 cursor-pointer rounded-sm ring-[1.5px] ring-offset-1 ring-gray-300"
 				:style="{ backgroundColor: currentColor }"
 				@click="togglePopover"
 			></div>
@@ -17,7 +17,7 @@
 						@mousedown="handleUpdateShade"
 					>
 						<div
-							class="relative h-3 w-3 rounded border shadow-md"
+							class="relative h-3 w-3 rounded border shadow-md hover:scale-[1.2] transition-transform duration-200 ease-in-out"
 							:style="shadeRectStyles"
 						></div>
 					</div>
@@ -77,7 +77,7 @@ const SHADE_RECT_HEIGHT = 130
 
 const sliderClasses = 'h-1/5 rounded cursor-pointer'
 const sliderCursorClasses =
-	'relative h-[0.8rem] w-[0.8rem] rounded shadow border border-gray-200 bg-white'
+	'relative h-[0.8rem] w-[0.8rem] rounded shadow border border-gray-200 bg-white hover:scale-[1.1] transition-transform duration-200 ease-in-out'
 
 const currentColor = defineModel()
 

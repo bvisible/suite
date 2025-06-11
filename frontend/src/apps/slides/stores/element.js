@@ -5,6 +5,7 @@ import { slide, slideBounds } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
+import { presentation } from './presentation'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -125,6 +126,17 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 const deleteElements = async (e) => {
 	activeElements.value.forEach((element) => {
 		if (['image', 'video'].includes(element.type)) {
+			// TODO: Handle this in a cleaner way
+			// Delete the file doc only if it's not used in other slides
+			const isFileDocUsed = presentation.data.slides.some((slide) => {
+				if (!slide.elements) return false
+				return JSON.parse(slide.elements).some((el) => {
+					return el.src === element.src
+				})
+			})
+
+			if (isFileDocUsed) return
+
 			call('frappe.client.delete', {
 				doctype: 'File',
 				name: element.file_name,

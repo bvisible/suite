@@ -63,7 +63,7 @@
 		</div>
 
 		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-600">Colour</div>
+			<div class="text-sm text-gray-600">Color</div>
 			<ColorPicker v-model="activeElement.color" />
 		</div>
 	</div>
@@ -107,9 +107,9 @@ import {
 	AlignJustify,
 } from 'lucide-vue-next'
 
-import SliderInput from './controls/SliderInput.vue'
-import NumberInput from './controls/NumberInput.vue'
-import ColorPicker from './controls/ColorPicker.vue'
+import SliderInput from '@/components/controls/SliderInput.vue'
+import NumberInput from '@/components/controls/NumberInput.vue'
+import ColorPicker from '@/components/controls/ColorPicker.vue'
 
 import { slide } from '@/stores/slide'
 import {
