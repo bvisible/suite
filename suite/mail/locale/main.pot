@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-06-11 11:35+0553\n"
-"PO-Revision-Date: 2025-06-11 11:35+0553\n"
+"POT-Creation-Date: 2025-06-11 17:15+0553\n"
+"PO-Revision-Date: 2025-06-11 17:15+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -146,16 +146,16 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:252
+#: mail/mail/doctype/email_message/email_message.py:254
 msgid "Account and blob ID are required."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:224
-#: mail/mail/doctype/email_message/email_message.py:279
+#: mail/mail/doctype/email_message/email_message.py:226
+#: mail/mail/doctype/email_message/email_message.py:281
 msgid "Account and message IDs are required."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:138
+#: mail/mail/doctype/email_message/email_message.py:140
 msgid "Account and thread IDs are required."
 msgstr ""
 
@@ -181,11 +181,11 @@ msgstr ""
 msgid "Account username for the DNS provider."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:1046
+#: mail/mail/doctype/email_message/email_message.py:1062
 msgid "Account {0} already synced. Use <code>fetch_changes</code> to update."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:169
+#: mail/mail/doctype/email_message/email_message.py:171
 msgid "Account, message IDs, and mailbox ID/role/name are required."
 msgstr ""
 
@@ -420,7 +420,7 @@ msgstr ""
 msgid "Assigned Role"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:128
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:124
 msgid "At least one public cluster must be enabled. This cluster has been made public."
 msgstr ""
 
@@ -441,7 +441,7 @@ msgstr ""
 msgid "Attachment Size (Bytes)"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:692
+#: mail/mail/doctype/email_message/email_message.py:708
 msgid "Attachment not found."
 msgstr ""
 
@@ -528,7 +528,7 @@ msgstr ""
 msgid "Base URL"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:276
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:272
 msgid "Base URL is required."
 msgstr ""
 
@@ -581,7 +581,7 @@ msgstr ""
 #. Label of the blob_storage_section (Section Break) field in DocType 'Mail
 #. Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:340
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:336
 msgid "Blob Storage"
 msgstr ""
 
@@ -662,7 +662,7 @@ msgstr ""
 msgid "Cancelling Delivery..."
 msgstr ""
 
-#: mail/api/inbound.py:72
+#: mail/api/inbound.py:87
 msgid "Cannot fetch more than {0} emails at a time."
 msgstr ""
 
@@ -860,7 +860,7 @@ msgid "Configuration"
 msgstr ""
 
 #: mail/mail/doctype/mail_cluster/mail_cluster.js:182
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:331
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:327
 #: mail/mail/doctype/mail_server/mail_server.js:67
 #: mail/mail/doctype/mail_server/mail_server.py:239
 msgid "Configuration reloaded."
@@ -1104,7 +1104,7 @@ msgstr ""
 #. Label of the data_storage_section (Section Break) field in DocType 'Mail
 #. Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:339
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:335
 msgid "Data Storage"
 msgstr ""
 
@@ -1290,7 +1290,7 @@ msgstr ""
 #. Label of the directory_storage_section (Section Break) field in DocType
 #. 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:338
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:334
 msgid "Directory Storage"
 msgstr ""
 
@@ -1529,7 +1529,7 @@ msgstr ""
 msgid "Either blob_id or file_url is required for attachments."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:673
+#: mail/mail/doctype/email_message/email_message.py:689
 msgid "Either cid or blob_id is required."
 msgstr ""
 
@@ -1614,19 +1614,19 @@ msgstr ""
 msgid "Email Message Reply To"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:713
+#: mail/mail/doctype/email_message/email_message.py:729
 msgid "Email Message {0} has already been destroyed."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:659
+#: mail/mail/doctype/email_message/email_message.py:675
 msgid "Email Message {0} has been destroyed and will be permanently removed soon."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:649
+#: mail/mail/doctype/email_message/email_message.py:665
 msgid "Email Message {0} is a draft. Please send it before performing this action."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:928
+#: mail/mail/doctype/email_message/email_message.py:944
 msgid "Email Message {0} is not a draft."
 msgstr ""
 
@@ -1634,12 +1634,12 @@ msgstr ""
 msgid "Email address {0} is not associated with the user {1}."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:905
+#: mail/mail/doctype/email_message/email_message.py:921
 #: mail/mail/doctype/mail_queue/mail_queue.py:505
 msgid "Email does not have a blob ID."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:670
+#: mail/mail/doctype/email_message/email_message.py:686
 msgid "Email does not have any attachments."
 msgstr ""
 
@@ -1655,7 +1655,7 @@ msgstr ""
 msgid "Email is required to send invite"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:1014
+#: mail/mail/doctype/email_message/email_message.py:1030
 msgid "Email messages destroyed successfully."
 msgstr ""
 
@@ -1907,15 +1907,15 @@ msgstr ""
 msgid "Failed to create DMARC Report"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:1163
+#: mail/mail/doctype/email_message/email_message.py:1179
 msgid "Failed to delete destroyed emails"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:242
+#: mail/mail/doctype/email_message/email_message.py:244
 msgid "Failed to destroy email(s)"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:245
+#: mail/mail/doctype/email_message/email_message.py:247
 msgid "Failed to destroy email(s)."
 msgstr ""
 
@@ -1927,19 +1927,19 @@ msgstr ""
 msgid "Failed to destroy push subscription(s)."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:267
+#: mail/mail/doctype/email_message/email_message.py:269
 msgid "Failed to fetch blob"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:270
+#: mail/mail/doctype/email_message/email_message.py:272
 msgid "Failed to fetch blob."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:1113
+#: mail/mail/doctype/email_message/email_message.py:1129
 msgid "Failed to fetch changes"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:1068
+#: mail/mail/doctype/email_message/email_message.py:1084
 msgid "Failed to fetch emails"
 msgstr ""
 
@@ -1963,15 +1963,15 @@ msgstr ""
 msgid "Failed to load content from the compressed file."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:202
+#: mail/mail/doctype/email_message/email_message.py:204
 msgid "Failed to move email(s) to mailbox"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:205
+#: mail/mail/doctype/email_message/email_message.py:207
 msgid "Failed to move email(s) to mailbox."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:1093
+#: mail/mail/doctype/email_message/email_message.py:1109
 msgid "Failed to process created email"
 msgstr ""
 
@@ -1995,11 +1995,11 @@ msgstr ""
 msgid "Failed to subscribe to JMAP Push Subscription."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:313
+#: mail/mail/doctype/email_message/email_message.py:315
 msgid "Failed to update email(s)"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:316
+#: mail/mail/doctype/email_message/email_message.py:318
 msgid "Failed to update email(s)."
 msgstr ""
 
@@ -2138,7 +2138,7 @@ msgstr ""
 #. Label of the full_text_index_storage_section (Section Break) field in
 #. DocType 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:341
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:337
 msgid "Full Text Index Storage"
 msgstr ""
 
@@ -2379,11 +2379,6 @@ msgstr ""
 msgid "Identity not found for email {0}"
 msgstr ""
 
-#. Description of the 'Inbound' (Check) field in DocType 'Mail Cluster'
-#: mail/mail/doctype/mail_cluster/mail_cluster.json
-msgid "If disabled, this cluster will be skipped when pulling inbound emails."
-msgstr ""
-
 #. Description of the 'Destroy After Submission' (Check) field in DocType 'Mail
 #. Queue'
 #: mail/mail/doctype/mail_queue/mail_queue.json
@@ -2420,13 +2415,8 @@ msgstr ""
 #. Label of the in_memory_storage_section (Section Break) field in DocType
 #. 'Mail Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:342
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:338
 msgid "In-Memory Storage"
-msgstr ""
-
-#. Label of the inbound (Check) field in DocType 'Mail Cluster'
-#: mail/mail/doctype/mail_cluster/mail_cluster.json
-msgid "Inbound"
 msgstr ""
 
 #. Option for the 'Scanning Mode' (Select) field in DocType 'Mail Settings'
@@ -2825,16 +2815,16 @@ msgstr ""
 msgid "Mail Cluster"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:149
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:145
 msgid "Mail Cluster with priority {0} already exists."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:136
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:132
 msgid "Mail Cluster {0} already exists."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:304
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:328
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:300
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:324
 #: mail/mail/doctype/mail_server/mail_server.py:89
 msgid "Mail Cluster {0} is disabled."
 msgstr ""
@@ -2842,10 +2832,6 @@ msgstr ""
 #. Name of a DocType
 #: mail/mail/doctype/mail_contact/mail_contact.json
 msgid "Mail Contact"
-msgstr ""
-
-#: mail/mail/doctype/mail_contact/mail_contact.py:30
-msgid "Mail Contact with email {0} already exists."
 msgstr ""
 
 #. Name of a DocType
@@ -2932,7 +2918,7 @@ msgstr ""
 msgid "Mail Server {0} is disabled."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:117
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:113
 msgid "Mail Server {0} is enabled. Please disable it first."
 msgstr ""
 
@@ -2961,7 +2947,7 @@ msgstr ""
 msgid "Mail Tenant Member"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:114
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:110
 msgid "Mail Tenant {0} is using this cluster."
 msgstr ""
 
@@ -3005,7 +2991,7 @@ msgstr ""
 msgid "Mailbox Role"
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:182
+#: mail/mail/doctype/email_message/email_message.py:184
 msgid "Mailbox not found."
 msgstr ""
 
@@ -3467,7 +3453,7 @@ msgstr ""
 msgid "Next Retry After"
 msgstr ""
 
-#: mail/api/outbound.py:128
+#: mail/api/inbound.py:290 mail/api/outbound.py:128
 msgid "No Mail Account found for the user {0}."
 msgstr ""
 
@@ -3641,10 +3627,8 @@ msgstr ""
 msgid "Organization Name"
 msgstr ""
 
-#. Label of the outbound (Check) field in DocType 'Mail Cluster'
 #. Label of the spamd_outbound_section (Section Break) field in DocType 'Mail
 #. Settings'
-#: mail/mail/doctype/mail_cluster/mail_cluster.json
 #: mail/mail/doctype/mail_settings/mail_settings.json
 msgid "Outbound"
 msgstr ""
@@ -3730,7 +3714,7 @@ msgstr ""
 msgid "Password has been regenerated."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:155
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:151
 msgid "Password must be at least 16 characters long."
 msgstr ""
 
@@ -4518,7 +4502,7 @@ msgstr ""
 msgid "Row #{0}: Failed to verify {1} : {2}."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:222
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:218
 #: mail/mail/doctype/mail_server/mail_server.py:166
 msgid "Row #{0}: Listener ID {1} is duplicated."
 msgstr ""
@@ -4527,7 +4511,7 @@ msgstr ""
 msgid "Row #{0}: Private Key or Private Key Path is required."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:184
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:180
 msgid "Row #{0}: Store ID {1} is duplicated."
 msgstr ""
 
@@ -4982,7 +4966,7 @@ msgstr ""
 msgid "Store ID"
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:201
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:197
 msgid "Store with Store ID {0} not found."
 msgstr ""
 
@@ -5696,11 +5680,6 @@ msgstr ""
 msgid "Use TLS to connect to the store."
 msgstr ""
 
-#. Description of the 'Outbound' (Check) field in DocType 'Mail Cluster'
-#: mail/mail/doctype/mail_cluster/mail_cluster.json
-msgid "Use this cluster to send outbound emails."
-msgstr ""
-
 #. Description of the 'Blob Storage' (Section Break) field in DocType 'Mail
 #. Cluster'
 #: mail/mail/doctype/mail_cluster/mail_cluster.json
@@ -6028,7 +6007,7 @@ msgstr ""
 msgid "You have reached the maximum limit of {0} mailing lists for the tenant."
 msgstr ""
 
-#: mail/mail/doctype/email_message/email_message.py:630
+#: mail/mail/doctype/email_message/email_message.py:635
 msgid "You must destroy this email message before it can be deleted."
 msgstr ""
 
@@ -6073,7 +6052,7 @@ msgstr ""
 msgid "{0} does not exist."
 msgstr ""
 
-#: mail/mail/doctype/mail_cluster/mail_cluster.py:206
+#: mail/mail/doctype/mail_cluster/mail_cluster.py:202
 msgid "{0} has an invalid store type '{1}'. Allowed types are: {2}."
 msgstr ""
 
