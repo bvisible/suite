@@ -1,5 +1,5 @@
 <template>
-	<div ref="slideContainer" class="flex w-full h-full">
+	<div ref="slideContainer" class="flex w-full h-full" @dragenter="showOverlay">
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
 		<div
@@ -25,6 +25,8 @@
 			</div>
 		</div>
 	</div>
+
+	<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
 </template>
 
 <script setup>
@@ -77,7 +79,8 @@ const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 const slideClasses = computed(() => {
 	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
 
-	const outlineClasses = props.highlight ? ['outline', 'outline-2', 'outline-blue-400'] : []
+	const outlineClasses =
+		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
 	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
 
 	return [...classes, outlineClasses, shadowClasses]
@@ -102,6 +105,17 @@ const getElementOutline = (element) => {
 	} else {
 		return 'none'
 	}
+}
+
+const mediaDragOver = ref(false)
+
+const showOverlay = (e) => {
+	e.preventDefault()
+	mediaDragOver.value = true
+}
+
+const hideOverlay = () => {
+	mediaDragOver.value = false
 }
 
 let dragTimeout, clickTimeout
