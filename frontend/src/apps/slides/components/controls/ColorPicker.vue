@@ -17,7 +17,7 @@
 						@mousedown="handleUpdateShade"
 					>
 						<div
-							class="relative h-3 w-3 rounded border shadow-md"
+							class="relative h-3 w-3 rounded border shadow-md hover:scale-[1.2] transition-transform duration-200 ease-in-out"
 							:style="shadeRectStyles"
 						></div>
 					</div>
@@ -77,7 +77,7 @@ const SHADE_RECT_HEIGHT = 130
 
 const sliderClasses = 'h-1/5 rounded cursor-pointer'
 const sliderCursorClasses =
-	'relative h-[0.8rem] w-[0.8rem] rounded shadow border border-gray-200 bg-white'
+	'relative h-[0.8rem] w-[0.8rem] rounded shadow border border-gray-200 bg-white hover:scale-[1.1] transition-transform duration-200 ease-in-out'
 
 const currentColor = defineModel()
 
