@@ -1,6 +1,5 @@
 <template>
 	<div
-		v-show="isMediaDragOver"
 		ref="overlay"
 		class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
 		@dragleave.prevent="handleDragLeave"
@@ -18,20 +17,13 @@ import { FileUploadHandler } from 'frappe-ui'
 import { presentationId } from '@/stores/presentation'
 import { addMediaElement } from '@/stores/element'
 
+const emit = defineEmits(['hideOverlay'])
+
 const overlayRef = useTemplateRef('overlay')
-
-const isMediaDragOver = ref(false)
-
-const handleDragEnter = (e) => {
-	e.preventDefault()
-	isMediaDragOver.value = true
-}
 
 const handleDragLeave = (e) => {
 	e.preventDefault()
-	if (!overlayRef.value.contains(e.relatedTarget)) {
-		isMediaDragOver.value = false
-	}
+	emit('hideOverlay', false)
 }
 
 const fileUploadHandler = new FileUploadHandler()
@@ -72,13 +64,8 @@ const uploadFiles = (files) => {
 
 const handleMediaDrop = async (e) => {
 	e.preventDefault()
-	isMediaDragOver.value = false
+	emit('hideOverlay', false)
 	const files = e.dataTransfer.files
 	uploadFiles(files)
 }
-
-defineExpose({
-	isMediaDragOver,
-	handleDragEnter,
-})
 </script>
