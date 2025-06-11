@@ -58,7 +58,7 @@ def get_mailbox_thread_count(mailbox: str) -> int:
 
 @frappe.whitelist()
 def get_mailboxes() -> list[dict]:
-	"""Returns no. of unseen mails for each mailbox."""
+	"""Returns the user's mailboxes along with no. of unseen mails."""
 
 	user = frappe.session.user
 	if not has_role(user, "Mail User") or user == "Administrator":

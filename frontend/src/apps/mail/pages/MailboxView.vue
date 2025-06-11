@@ -184,7 +184,7 @@ const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
-const { currentThread, setCurrentThread } = userStore()
+const { mailboxes, currentThread, setCurrentThread } = userStore()
 const route = useRoute()
 const router = useRouter()
 const { isMobile } = useScreenSize()
@@ -225,6 +225,7 @@ const mailCount = createResource({
 const reloadMails = () => {
 	threads.reload()
 	mailCount.reload()
+	mailboxes.reload()
 	resetSelections()
 }
 
@@ -237,6 +238,7 @@ const setSeen = createResource({
 	url: 'mail.api.mail.set_seen',
 	makeParams: (values: SetSeenParams) => ({ ...values, mailbox }),
 	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
+		mailboxes.reload()
 		thread_ids.forEach(
 			(name) => (threads.data.find((m: Thread) => m.thread_id === name).seen = Number(seen)),
 		)
@@ -381,6 +383,7 @@ watch(() => mailbox, reloadMails, { immediate: true })
 onMounted(() =>
 	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
 		if (updatedMailbox === mailbox) reloadMails()
+		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
 	}),
 )
 
