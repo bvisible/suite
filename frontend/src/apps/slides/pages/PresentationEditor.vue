@@ -1,6 +1,5 @@
 <template>
 	<div
-		ref="mediaDropContainer"
 		class="fixed h-screen w-screen flex flex-col select-none"
 		:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 	>
@@ -16,22 +15,14 @@
 			@insertSlide="insertSlide"
 		/>
 
-		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
-			<SlideContainer
-				ref="slideContainer"
-				:highlight="highlightSlide"
-				@dragenter="handleMediaDragEnter"
-			/>
+		<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
-			<DropTargetOverlay ref="dropTarget" />
-
-			<Toolbar
-				@setHighlight="setHighlight"
-				@insert="insertSlide"
-				@duplicate="duplicateSlide"
-				@delete="deleteSlide"
-			/>
-		</div>
+		<Toolbar
+			@setHighlight="setHighlight"
+			@insert="insertSlide"
+			@duplicate="duplicateSlide"
+			@delete="deleteSlide"
+		/>
 
 		<PropertiesPanel />
 	</div>
@@ -93,14 +84,10 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
-const showHighlight = ref(false)
-
-const highlightSlide = computed(() => {
-	return dropTargetRef.value?.isMediaDragOver || showHighlight.value
-})
+const slideHighlight = ref(false)
 
 const setHighlight = (value) => {
-	showHighlight.value = value
+	slideHighlight.value = value
 }
 
 const handleArrowKeys = (key) => {
@@ -306,11 +293,6 @@ const resetAndSave = () => {
 	nextTick(() => {
 		saveChanges()
 	})
-}
-
-const handleMediaDragEnter = (e) => {
-	e.preventDefault()
-	dropTargetRef.value.handleDragEnter(e)
 }
 
 const resetSlideState = () => {
