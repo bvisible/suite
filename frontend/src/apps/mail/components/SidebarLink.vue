@@ -1,7 +1,7 @@
 <template>
 	<button
 		v-if="link"
-		class="flex h-7 cursor-pointer items-center rounded text-gray-800 duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-gray-400"
+		class="flex h-9 cursor-pointer items-center rounded text-gray-800 duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-gray-400 sm:h-7"
 		:class="isActive ? 'bg-white shadow-sm' : 'hover:bg-gray-100'"
 		@click="openLink"
 	>
@@ -27,7 +27,7 @@
 			>
 				{{ link.label }}
 			</span>
-			<span v-if="link.count" class="!ml-auto block text-xs text-gray-600">
+			<span v-if="link.count && !isCollapsed" class="!ml-auto block text-xs text-gray-600">
 				{{ link.count }}
 			</span>
 		</div>
