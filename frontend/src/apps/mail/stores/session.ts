@@ -6,7 +6,7 @@ import router from '@/router'
 import { userStore } from '@/stores/user'
 
 export const sessionStore = defineStore('mail-session', () => {
-	const { userResource } = userStore()
+	const { userResource, mailboxes } = userStore()
 
 	const sessionUser = () => {
 		const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
@@ -27,6 +27,7 @@ export const sessionStore = defineStore('mail-session', () => {
 		},
 		onSuccess: () => {
 			userResource.reload()
+			mailboxes.reload()
 			user.value = sessionUser()
 			login.reset()
 
@@ -39,6 +40,7 @@ export const sessionStore = defineStore('mail-session', () => {
 		url: 'logout',
 		onSuccess() {
 			userResource.reset()
+			mailboxes.reset()
 			user.value = null
 			window.location.reload()
 		},
