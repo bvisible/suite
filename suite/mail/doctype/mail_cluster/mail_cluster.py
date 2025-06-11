@@ -90,22 +90,18 @@ class MailCluster(Document):
 		self.validate_listeners()
 
 	def on_update(self) -> None:
-		if self.has_value_changed("enabled") or self.has_value_changed("outbound"):
+		if self.has_value_changed("enabled"):
 			create_or_update_spf_dns_record()
 
 	def on_trash(self) -> None:
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Cluster."))
 
-		if self.outbound:
-			self.db_set("enabled", 0)
-			create_or_update_spf_dns_record()
+		self.db_set("enabled", 0)
+		create_or_update_spf_dns_record()
 
 	def validate_enabled(self) -> None:
 		"""Validates the enabled status of the cluster."""
-
-		if self.enabled and not self.inbound and not self.outbound:
-			self.enabled = 0
 
 		if self.enabled:
 			return
@@ -143,7 +139,7 @@ class MailCluster(Document):
 
 		if frappe.db.exists(
 			"Mail Cluster",
-			{"enabled": 1, "inbound": 1, "priority": self.priority, "name": ["!=", self.name]},
+			{"enabled": 1, "priority": self.priority, "name": ["!=", self.name]},
 		):
 			frappe.throw(
 				_("Mail Cluster with priority {0} already exists.").format(frappe.bold(self.priority))
