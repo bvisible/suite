@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="mediaDropContainer"
-		class="fixed flex h-screen w-screen flex-col select-none"
+		class="fixed h-screen w-screen flex flex-col select-none"
 		:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 	>
 		<Navbar :primaryButton="primaryButtonProps">
@@ -10,13 +10,13 @@
 			</template>
 		</Navbar>
 
-		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
-			<NavigationPanel
-				:showNavigator="showNavigator"
-				@changeSlide="changeSlide"
-				@insertSlide="insertSlide"
-			/>
+		<NavigationPanel
+			:showNavigator="showNavigator"
+			@changeSlide="changeSlide"
+			@insertSlide="insertSlide"
+		/>
 
+		<div v-if="presentation.data?.slides" class="flex h-full items-center justify-center">
 			<SlideContainer
 				ref="slideContainer"
 				:highlight="highlightSlide"
