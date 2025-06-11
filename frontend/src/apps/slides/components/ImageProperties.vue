@@ -18,7 +18,7 @@
 <script setup>
 import { FlipHorizontal, FlipVertical } from 'lucide-vue-next'
 
-import MediaProperties from './MediaProperties.vue'
+import MediaProperties from '@/components/MediaProperties.vue'
 
 import { activeElement } from '@/stores/element'
 import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
