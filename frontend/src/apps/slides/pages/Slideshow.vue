@@ -4,7 +4,7 @@
 			ref="slideContainer"
 			class="flex items-center justify-center w-full h-screen"
 			:style="{
-				clipPath: 'inset(45px 0 45px 0)',
+				clipPath: clipPath,
 			}"
 		>
 			<Transition
@@ -53,6 +53,7 @@ const router = useRouter()
 const transition = ref('none')
 const transform = ref('')
 const opacity = ref(1)
+const clipPath = ref('')
 
 const slideCursor = ref('none')
 
@@ -170,6 +171,17 @@ const handleKeyDown = (e) => {
 	}
 }
 
+const setClipPath = () => {
+	const screenHeight = window.screen.height
+	const scale = window.screen.width / 960
+	const containerHeight = 540 * scale
+
+	// divide remaining height by 2 to set inset on top and bottom
+	const inset = (screenHeight - containerHeight) / 2
+
+	clipPath.value = `inset(${inset}px 0px ${inset}px 0px)`
+}
+
 const initFullscreenMode = async () => {
 	const container = slideContainerRef.value
 	if (!container) return
@@ -188,6 +200,8 @@ const initFullscreenMode = async () => {
 			router.replace({ name: 'PresentationEditor' })
 		})
 		inSlideShow.value = true
+
+		setClipPath()
 	}
 }
 
