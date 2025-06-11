@@ -46,7 +46,7 @@
 	<!-- Slide Navigator Toggle -->
 	<div
 		v-if="!showNavigator"
-		class="top-[calc(50% - 24)px] fixed left-0 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
+		class="absolute top-1/2 transform -transform-y-1/2 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
 		@click="toggleNavigator"
 	>
 		<LucideChevronRight class="h-3.5 w-3.5" />
