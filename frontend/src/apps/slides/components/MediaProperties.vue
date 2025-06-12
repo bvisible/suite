@@ -3,19 +3,26 @@
 		<div :class="sectionTitleClasses">Border</div>
 
 		<div
-			class="flex h-8 w-full items-center gap-3 justify-between rounded border bg-gray-50 p-[2px] px-2"
+			class="flex h-8 w-full items-center gap-3 justify-between rounded-[10px] border bg-gray-50 p-0.5"
 		>
 			<div
 				v-for="(style, index) in borderStyles"
 				:key="index"
-				class="flex h-4/5 w-1/4 cursor-pointer items-center justify-center rounded-sm"
+				class="flex h-full w-1/4 cursor-pointer items-center justify-center rounded"
 				:class="activeElement.borderStyle == style ? 'bg-white shadow' : ''"
 				@click="addBorder(style)"
 			>
-				<LucideBan v-if="style == 'none'" class="h-4 w-4" />
+				<LucideBan
+					v-if="style == 'none'"
+					class="h-4 w-4"
+					:class="activeElement.borderStyle == style ? 'text-gray-800' : 'text-gray-500'"
+				/>
 				<div
 					v-else
-					class="h-4 w-5 rounded-sm border border-black"
+					class="h-4 w-5 rounded-sm border"
+					:class="
+						activeElement.borderStyle == style ? 'border-gray-800' : 'border-gray-500'
+					"
 					:style="{ borderStyle: style }"
 				></div>
 			</div>
