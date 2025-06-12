@@ -4,7 +4,7 @@
 			<div class="flex justify-between items-center" @click="showContent = !showContent">
 				<div :class="titleClasses">{{ title }}</div>
 				<component
-					:is="showContent ? ChevronUp : ChevronDown"
+					:is="showContent ? ChevronUp : ChevronRight"
 					size="14"
 					class="stroke-[1.5] text-gray-500"
 				/>
@@ -23,7 +23,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { ChevronRight, ChevronUp } from 'lucide-vue-next'
 
 import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
 
@@ -44,7 +44,7 @@ const showContent = ref(props.initialState)
 
 <style>
 .slide-fade-enter-active {
-	transition: all 0.1s ease-out;
+	transition: all 0.08s ease-out;
 }
 
 .slide-fade-enter-from,
