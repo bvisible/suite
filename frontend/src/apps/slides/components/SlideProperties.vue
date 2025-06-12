@@ -13,32 +13,28 @@
 		</div>
 	</div>
 
-	<div :class="sectionClasses">
-		<CollapsibleSection :title="'Transition'" :titleClasses="sectionTitleClasses">
-			<template #default>
-				<div class="flex flex-col gap-4">
-					<FormControl
-						type="autocomplete"
-						:options="['Slide In', 'Fade', 'None']"
-						size="sm"
-						variant="subtle"
-						:modelValue="slide.transition || 'None'"
-						@update:modelValue="(option) => setSlideTransition(option)"
-					/>
+	<CollapsibleSection title="Transition" :initialState="true">
+		<template #default>
+			<FormControl
+				type="autocomplete"
+				:options="['Slide In', 'Fade', 'None']"
+				size="sm"
+				variant="subtle"
+				:modelValue="slide.transition || 'None'"
+				@update:modelValue="(option) => setSlideTransition(option)"
+			/>
 
-					<SliderInput
-						v-show="slide.transition && slide.transition != 'None'"
-						label="Duration"
-						:rangeStart="0"
-						:rangeEnd="4"
-						:rangeStep="0.1"
-						:modelValue="parseFloat(slide.transitionDuration) || 0"
-						@update:modelValue="(value) => setTransitionDuration(value)"
-					/>
-				</div>
-			</template>
-		</CollapsibleSection>
-	</div>
+			<SliderInput
+				v-show="slide.transition && slide.transition != 'None'"
+				label="Duration"
+				:rangeStart="0"
+				:rangeEnd="4"
+				:rangeStep="0.1"
+				:modelValue="parseFloat(slide.transitionDuration) || 0"
+				@update:modelValue="(value) => setTransitionDuration(value)"
+			/>
+		</template>
+	</CollapsibleSection>
 </template>
 
 <script setup>
