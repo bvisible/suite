@@ -152,11 +152,11 @@ def add_list_members(list: str, type: Literal["Mail Account", "Mail Group"], mem
 
 
 @frappe.whitelist()
-def delete_list_members(names: list) -> None:
+def delete_list_members(names: list, is_external: bool) -> None:
 	"""Delete Mailing List Members"""
 
-	for d in names:
-		frappe.delete_doc("Mailing List Member", d)
+	doctype = "Mailing List External Member" if is_external else "Mailing List Member"
+	frappe.db.delete(doctype, {"name": ["in", names]})
 
 
 @frappe.whitelist()

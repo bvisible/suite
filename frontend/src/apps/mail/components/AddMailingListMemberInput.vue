@@ -21,7 +21,7 @@ import LinkControl from '@/components/Controls/LinkControl.vue'
 
 import type { UserResource } from '@/types'
 
-const props = defineProps<{
+const { selectedMembers, currentMembers } = defineProps<{
 	type: string
 	currentMembers?: string[]
 	selectedMembers: string[]
@@ -34,5 +34,5 @@ const user = inject('$user') as UserResource
 
 const email = ref('')
 
-const invalidMembers = computed(() => props.selectedMembers.concat(props.currentMembers || []))
+const invalidMembers = computed(() => selectedMembers.concat(currentMembers || []))
 </script>

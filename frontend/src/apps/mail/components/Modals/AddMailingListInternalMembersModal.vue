@@ -2,7 +2,7 @@
 	<Dialog
 		v-model="show"
 		:options="{
-			title: type === 'Mail Account' ? __('Add Members') : __('Add Groups'),
+			title: type === 'Mail Account' ? __('Add Internal Members') : __('Add Groups'),
 			actions: [
 				{
 					label: __('Confirm'),
