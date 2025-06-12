@@ -76,7 +76,7 @@
 				label="Offset X"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetX) || 5"
+				:modelValue="parseFloat(activeElement.shadowOffsetX) || 10"
 				@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 			/>
 
@@ -84,7 +84,7 @@
 				label="Offset Y"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetY) || 5"
+				:modelValue="parseFloat(activeElement.shadowOffsetY) || 10"
 				@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 			/>
 
@@ -113,8 +113,8 @@ const addBorder = (style) => {
 	activeElement.value.borderStyle = style
 	if (style != 'none') {
 		activeElement.value.borderWidth = 0.5
-		activeElement.value.borderColor = 'hsla(0, 0%, 0%, 0.2)'
-		activeElement.value.borderRadius = 20
+		activeElement.value.borderColor = 'hsl(0, 1%, 80%)'
+		activeElement.value.borderRadius = 10
 	} else {
 		activeElement.value.borderWidth = 0
 		activeElement.value.borderColor = ''
