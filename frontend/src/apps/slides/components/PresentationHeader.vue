@@ -10,7 +10,7 @@
 		/>
 		<div
 			v-else
-			class="select-none font-semibold text-gray-700 flex items-center"
+			class="select-none font-semibold text-gray-700 flex items-center cursor-text"
 			@click="makeTitleEditable"
 		>
 			<div>{{ presentation.data?.title }}</div>
