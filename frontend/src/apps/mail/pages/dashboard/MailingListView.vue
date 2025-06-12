@@ -28,55 +28,71 @@
 					</HorizontalControl>
 				</div>
 			</div>
-			<div class="flex flex-1 flex-col space-y-4 rounded-md border p-4">
-				<div class="flex items-center space-x-3">
-					<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
-						<template #prefix>
-							<FeatherIcon name="search" class="w-4 text-gray-600" />
-						</template>
-					</FormControl>
-					<FormControl
-						v-model="type"
-						:placeholder="__('Type')"
-						class="w-40"
-						type="select"
-						:options="TYPE_OPTIONS"
-					/>
-				</div>
-				<ListView
-					v-if="members?.data"
-					ref="listView"
-					:columns="LIST_COLUMNS"
-					:rows="members.data"
-					:options="LIST_OPTIONS"
-					row-key="name"
-					class="flex-1"
+			<div class="flex flex-1 flex-col rounded-md border">
+				<Tabs
+					v-model="tabIndex"
+					:tabs="[
+						{ label: __('Internal'), icon: Home, index: 0 },
+						{ label: __('External'), icon: Globe, index: 1 },
+					]"
 				>
-					<ListHeader />
-					<ListRows>
-						<template v-if="members.data.length">
-							<ListRow
-								v-for="row in members.data"
-								:key="row.name"
-								v-slot="{ item }"
-								:row="row"
+					<template #tab-panel>
+						<div class="flex flex-1 flex-col space-y-4 p-4">
+							<div class="flex items-center space-x-3">
+								<FormControl
+									v-model="search"
+									:placeholder="__('Search')"
+									class="w-80"
+								>
+									<template #prefix>
+										<FeatherIcon name="search" class="w-4 text-gray-600" />
+									</template>
+								</FormControl>
+								<!-- <FormControl
+									v-model="type"
+									:placeholder="__('Type')"
+									class="w-40"
+									type="select"
+									:options="TYPE_OPTIONS"
+								/> -->
+							</div>
+							<ListView
+								v-if="memberList"
+								ref="listView"
+								:columns="listColums"
+								:rows="memberList"
+								:options="LIST_OPTIONS"
+								row-key="name"
+								class="flex-1"
 							>
-								<ListRowItem :item="item" />
-							</ListRow>
-						</template>
-						<ListEmptyState v-else />
-					</ListRows>
-					<ListSelectBanner>
-						<template #actions>
-							<Button
-								variant="ghost"
-								theme="red"
-								:label="__('Remove')"
-								@click="showRemoveMembers = true"
-							/>
-						</template>
-					</ListSelectBanner>
-				</ListView>
+								<ListHeader />
+								<ListRows>
+									<template v-if="memberList.length">
+										<ListRow
+											v-for="row in memberList"
+											:key="row.name"
+											v-slot="{ item }"
+											:row="row"
+										>
+											<ListRowItem :item="item" />
+										</ListRow>
+									</template>
+									<ListEmptyState v-else />
+								</ListRows>
+								<ListSelectBanner>
+									<template #actions>
+										<Button
+											variant="ghost"
+											theme="red"
+											:label="__('Remove')"
+											@click="showRemoveMembers = true"
+										/>
+									</template>
+								</ListSelectBanner>
+							</ListView>
+						</div>
+					</template>
+				</Tabs>
 			</div>
 		</template>
 	</DashboardLayout>
@@ -91,10 +107,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDebounce } from '@vueuse/core'
-import { User, Users } from 'lucide-vue-next'
+import { Globe, Home, User } from 'lucide-vue-next'
 import {
 	Button,
 	Dialog,
@@ -109,6 +125,7 @@ import {
 	ListSelectBanner,
 	ListView,
 	Switch,
+	Tabs,
 	createDocumentResource,
 	createResource,
 } from 'frappe-ui'
@@ -125,6 +142,7 @@ const { listName } = defineProps<{ listName: string }>()
 
 const router = useRouter()
 
+const tabIndex = ref(0)
 const listView = ref(null)
 
 const search = ref('')
@@ -153,7 +171,7 @@ const list = createDocumentResource({
 
 const members = useList({
 	doctype: 'Mailing List Member',
-	fields: ['name', 'member_type', 'member_name'],
+	fields: ['name', 'member_name'],
 	filters: () => {
 		const filters: Record<string, string | string[]> = {
 			mailing_list: listName,
@@ -164,19 +182,38 @@ const members = useList({
 	},
 	orderBy: 'member_name asc',
 	limit: 100,
-	transform: (data) =>
-		data.map((row) => ({
-			...row,
-			member_type: row.member_type === 'Mail Account' ? 'User' : 'Group',
-		})),
+	// transform: (data) =>
+	// 	data.map((row) => ({
+	// 		...row,
+	// 		member_type: row.member_type === 'Mail Account' ? 'User' : 'Group',
+	// 	})),
 	cacheKey: ['mailingListMembers', listName, debouncedSearch.value, type.value],
 })
 
+const externalMembers = useList({
+	doctype: 'Mailing List External Member',
+	fields: ['name', 'member_email'],
+	filters: () => ({
+		mailing_list: listName,
+		member_email: ['like', `%${debouncedSearch.value}%`],
+	}),
+	orderBy: 'member_email asc',
+	limit: 100,
+	cacheKey: ['externalMailingListMembers', listName, debouncedSearch.value],
+})
+
+const memberList = computed(() => (tabIndex.value ? externalMembers?.data : members?.data))
+
 const deleteMembers = createResource({
 	url: 'mail.api.admin.delete_list_members',
-	makeParams: () => ({ names: Array.from(listView.value?.selections) }),
+	makeParams: () => ({
+		names: Array.from(listView.value?.selections),
+		is_external: !!tabIndex.value,
+	}),
 	onSuccess: () => {
-		members.reload()
+		if (tabIndex.value) externalMembers.reload()
+		else members.reload()
+
 		showRemoveMembers.value = false
 		raiseToast(__('Members removed successfully.'))
 		listView.value?.toggleAllRows()
@@ -198,14 +235,15 @@ const removeMembersOptions = {
 		},
 	],
 }
+
+const listColums = computed(() => [
+	{ label: __('Name'), key: tabIndex.value ? 'member_email' : 'member_name' },
+	// { label: __('Type'), key: 'member_type' },
+])
+
 const BREADCRUMBS = [
 	{ label: __('Mailing Lists'), route: '/dashboard/mailing-lists' },
 	{ label: listName },
-]
-
-const LIST_COLUMNS = [
-	{ label: __('Name'), key: 'member_name' },
-	{ label: __('Type'), key: 'member_type' },
 ]
 
 const LIST_OPTIONS = {
@@ -222,20 +260,19 @@ const ADD_OPTIONS = [
 			showAddMembers.value = true
 		},
 	},
-	{
-		label: __('Add Groups'),
-		icon: Users,
-		condition: () => false,
-		onClick: () => {
-			addType.value = 'Mail Group'
-			showAddMembers.value = true
-		},
-	},
+	// {
+	// 	label: __('Add Groups'),
+	// 	icon: Users,
+	// 	onClick: () => {
+	// 		addType.value = 'Mail Group'
+	// 		showAddMembers.value = true
+	// 	},
+	// },
 ]
 
-const TYPE_OPTIONS = [
-	{ label: '', value: '' },
-	{ label: __('User'), value: 'Mail Account' },
-	{ label: __('Group'), value: 'Mail Group' },
-]
+// const TYPE_OPTIONS = [
+// 	{ label: '', value: '' },
+// 	{ label: __('User'), value: 'Mail Account' },
+// 	{ label: __('Group'), value: 'Mail Group' },
+// ]
 </script>
