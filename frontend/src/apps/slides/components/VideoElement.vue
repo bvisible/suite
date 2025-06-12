@@ -33,7 +33,7 @@
 				class="absolute w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
 				:class="hoverOver == 'progressBar' ? 'h-2' : 'h-[6px]'"
 				@click.stop="seekTimestamp"
-				@mouseenter="hoverOver = 'progressBar'"
+				@mouseenter="handleMouseEnter"
 				@mouseleave="hoverOver = null"
 			>
 				<div
@@ -148,5 +148,9 @@ const gradientOverlayStyles = computed(() => ({
 const resetProgress = () => {
 	progress.value = 0
 	isPlaying.value = false
+}
+
+const handleMouseEnter = () => {
+	hoverOver.value = inSlideShow.value ? 'video' : 'progressBar'
 }
 </script>
