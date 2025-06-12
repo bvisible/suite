@@ -1,137 +1,179 @@
 {
  "actions": [],
- "autoname": "hash",
- "creation": "2024-11-19 11:38:22.846485",
+ "creation": "2025-06-12 14:43:35.996965",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_nb25",
+  "section_break_xmmn",
+  "_id",
+  "cluster",
+  "column_break_bgdm",
   "domain_name",
-  "policy_published",
-  "column_break_kyq2",
+  "report_begin",
+  "report_end",
+  "report_details_section",
   "report_id",
-  "organization",
+  "organization_name",
   "email",
+  "received_from",
   "extra_contact_info",
-  "section_break_bgcw",
-  "from_date",
-  "column_break_lztn",
-  "to_date",
-  "section_break_prwz",
+  "column_break_bgdr",
+  "subject",
+  "published_policy_section",
+  "dkim_alignment",
+  "spf_alignment",
+  "column_break_bfle",
+  "domain_policy",
+  "subdomain_policy",
+  "records_section",
   "records"
  ],
  "fields": [
   {
-   "fieldname": "section_break_nb25",
+   "fieldname": "section_break_xmmn",
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "organization",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Organization",
-   "no_copy": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Email",
-   "no_copy": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "from_date",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "From Date",
-   "no_copy": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "to_date",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "To Date",
-   "no_copy": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "domain_name",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Domain Name",
-   "no_copy": 1,
-   "options": "Mail Domain",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "column_break_kyq2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_bgcw",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_lztn",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "extra_contact_info",
+   "fieldname": "subject",
    "fieldtype": "Small Text",
-   "label": "Extra Contact Info",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "policy_published",
-   "fieldtype": "Small Text",
-   "label": "Policy Published",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_prwz",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "records",
-   "fieldtype": "Table",
-   "label": "Records",
-   "no_copy": 1,
-   "options": "DMARC Report Detail",
+   "label": "Subject",
    "read_only": 1
   },
   {
    "fieldname": "report_id",
    "fieldtype": "Data",
    "label": "Report ID",
-   "length": 255,
-   "no_copy": 1,
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
+  },
+  {
+   "fieldname": "domain_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Domain Name",
+   "options": "Mail Domain",
+   "read_only": 1
+  },
+  {
+   "fieldname": "extra_contact_info",
+   "fieldtype": "Data",
+   "label": "Extra Contact Info",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "E-mail",
+   "read_only": 1
+  },
+  {
+   "fieldname": "organization_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Organization Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "report_end",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Report End",
+   "read_only": 1
+  },
+  {
+   "fieldname": "received_from",
+   "fieldtype": "Data",
+   "label": "Received From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bgdm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dkim_alignment",
+   "fieldtype": "Data",
+   "label": "DKIM Alignment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "spf_alignment",
+   "fieldtype": "Data",
+   "label": "SPF Alignment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "domain_policy",
+   "fieldtype": "Data",
+   "label": "Domain Policy",
+   "read_only": 1
+  },
+  {
+   "fieldname": "subdomain_policy",
+   "fieldtype": "Data",
+   "label": "Subdomain Policy",
+   "read_only": 1
+  },
+  {
+   "fieldname": "records",
+   "fieldtype": "Table",
+   "label": "Records",
+   "options": "DMARC Report Detail",
+   "read_only": 1
+  },
+  {
+   "fieldname": "_id",
+   "fieldtype": "Data",
+   "label": "ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cluster",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Cluster",
+   "options": "Mail Cluster",
+   "read_only": 1
+  },
+  {
+   "fieldname": "report_begin",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Report Begin",
+   "read_only": 1
+  },
+  {
+   "fieldname": "published_policy_section",
+   "fieldtype": "Section Break",
+   "label": "Published Policy"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "records_section",
+   "fieldtype": "Section Break",
+   "label": "Records"
+  },
+  {
+   "fieldname": "report_details_section",
+   "fieldtype": "Section Break",
+   "label": "Report Details"
+  },
+  {
+   "fieldname": "column_break_bgdr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_bfle",
+   "fieldtype": "Column Break"
   }
  ],
- "in_create": 1,
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_virtual": 1,
  "links": [],
- "modified": "2025-06-05 13:33:33.245733",
+ "modified": "2025-06-13 15:57:08.007853",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "DMARC Report",
- "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -151,5 +193,5 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "title_field": "_id"
 }
