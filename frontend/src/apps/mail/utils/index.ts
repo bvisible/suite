@@ -66,28 +66,14 @@ export const formatBytes = (bytes: number) => {
 }
 
 export const raiseToast = (message: string, type = 'success') => {
-	if (type === 'success')
-		return toast({
-			title: 'Success',
-			text: __(message),
-			icon: 'check-circle',
-			position: 'bottom-right',
-			iconClasses: 'text-green-500',
-		})
+	if (type === 'success') return toast.success(message)
 
 	const div = document.createElement('div')
 	div.innerHTML = message
 	// strip html tags
 	const text =
-		div.textContent || div.innerText || 'Failed to perform action. Please try again later.'
-	toast({
-		title: 'Error',
-		text: __(text),
-		icon: 'alert-circle',
-		position: 'bottom-right',
-		iconClasses: 'text-red-500',
-		timeout: 7,
-	})
+		div.textContent || div.innerText || __('Failed to perform action. Please try again later.')
+	toast.error(text)
 }
 
 export const kebabToTitleCase = (str: string) =>
