@@ -1,94 +1,97 @@
 <template>
-	<div :class="sectionClasses">
-		<div :class="sectionTitleClasses">Style</div>
+	<CollapsibleSection title="Style" :initialState="true">
+		<template #default>
+			<Select
+				:options="presetTextStyles"
+				:modelValue="activeElement.defaultStyle || 'body'"
+				@update:modelValue="applyPresetTextStyles"
+			/>
 
-		<Select
-			:options="presetTextStyles"
-			:modelValue="activeElement.defaultStyle || 'body'"
-			@update:modelValue="applyPresetTextStyles"
-		/>
-
-		<div class="flex items-center justify-between px-1">
-			<button
-				v-for="style in styleProperties"
-				:key="style.property"
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement[style.property]?.includes(style.value) ? 'bg-gray-200' : ''"
-				@click="toggleTextProperty(style.property, style.value)"
-			>
-				<component :is="style.icon" size="16" :strokeWidth="1.5" />
-			</button>
-		</div>
-
-		<div class="flex items-center justify-between px-1">
-			<button
-				v-for="textAlign in ['left', 'center', 'right', 'justify']"
-				class="cursor-pointer rounded-sm p-1"
-				:class="activeElement.textAlign == textAlign ? 'bg-gray-200' : ''"
-				@click="activeElement.textAlign = textAlign"
-			>
-				<AlignLeft v-if="textAlign == 'left'" size="16" class="stroke-[1.5]" />
-				<AlignCenter v-if="textAlign == 'center'" size="16" class="stroke-[1.5]" />
-				<AlignRight v-if="textAlign == 'right'" size="16" class="stroke-[1.5]" />
-				<AlignJustify v-if="textAlign == 'justify'" size="16" class="stroke-[1.5]" />
-			</button>
-			<button class="cursor-pointer rounded-sm p-1">
-				<List size="16" class="stroke-[1.5]" />
-			</button>
-		</div>
-	</div>
-
-	<div :class="sectionClasses">
-		<div :class="sectionTitleClasses">Font</div>
-		<FormControl
-			type="autocomplete"
-			:options="textFonts"
-			size="sm"
-			variant="subtle"
-			:modelValue="activeElement.fontFamily"
-			@update:modelValue="(font) => (activeElement.fontFamily = font.value)"
-		/>
-
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-600">Size</div>
-			<div class="h-[30px] w-28">
-				<NumberInput
-					v-model="activeElement.fontSize"
-					suffix="px"
-					:rangeStart="5"
-					:rangeEnd="100"
-					:rangeStep="1"
-				/>
+			<div class="flex items-center justify-between">
+				<button
+					v-for="style in styleProperties"
+					:key="style.property"
+					class="cursor-pointer rounded-sm p-1.5"
+					:class="
+						activeElement[style.property]?.includes(style.value) ? 'bg-gray-200' : ''
+					"
+					@click="toggleTextProperty(style.property, style.value)"
+				>
+					<component :is="style.icon" size="18" :strokeWidth="1.5" />
+				</button>
 			</div>
-		</div>
 
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-600">Color</div>
-			<ColorPicker v-model="activeElement.color" />
-		</div>
-	</div>
+			<div class="flex items-center justify-between">
+				<button
+					v-for="textAlign in ['left', 'center', 'right', 'justify']"
+					class="cursor-pointer rounded-sm p-1.5"
+					:class="activeElement.textAlign == textAlign ? 'bg-gray-200' : ''"
+					@click="activeElement.textAlign = textAlign"
+				>
+					<AlignLeft v-if="textAlign == 'left'" size="18" class="stroke-[1.5]" />
+					<AlignCenter v-if="textAlign == 'center'" size="18" class="stroke-[1.5]" />
+					<AlignRight v-if="textAlign == 'right'" size="18" class="stroke-[1.5]" />
+					<AlignJustify v-if="textAlign == 'justify'" size="18" class="stroke-[1.5]" />
+				</button>
+				<button class="cursor-pointer rounded-sm p-1">
+					<List size="18" class="stroke-[1.5]" />
+				</button>
+			</div>
+		</template>
+	</CollapsibleSection>
 
-	<div :class="sectionClasses">
-		<div :class="sectionTitleClasses">Spacing</div>
+	<CollapsibleSection title="Font" :initialState="true">
+		<template #default>
+			<FormControl
+				type="autocomplete"
+				:options="textFonts"
+				size="sm"
+				variant="subtle"
+				:modelValue="activeElement.fontFamily"
+				@update:modelValue="(font) => (activeElement.fontFamily = font.value)"
+			/>
 
-		<SliderInput
-			label="Line Height"
-			:rangeStart="0.1"
-			:rangeEnd="5.0"
-			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElement.lineHeight)"
-			@update:modelValue="(value) => (activeElement.lineHeight = value)"
-		/>
+			<div class="flex items-center justify-between">
+				<div class="text-sm text-gray-600">Size</div>
+				<div class="h-[30px] w-28">
+					<NumberInput
+						v-model="activeElement.fontSize"
+						suffix="px"
+						:rangeStart="5"
+						:rangeEnd="100"
+						:rangeStep="1"
+					/>
+				</div>
+			</div>
 
-		<SliderInput
-			label="Letter Spacing"
-			:rangeStart="-10"
-			:rangeEnd="50"
-			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElement.letterSpacing)"
-			@update:modelValue="(value) => (activeElement.letterSpacing = value)"
-		/>
-	</div>
+			<div class="flex items-center justify-between">
+				<div class="text-sm text-gray-600">Color</div>
+				<ColorPicker v-model="activeElement.color" />
+			</div>
+		</template>
+	</CollapsibleSection>
+
+	<CollapsibleSection title="Spacing">
+		<template #default>
+			<SliderInput
+				label="Line Height"
+				:rangeStart="0.1"
+				:rangeEnd="5.0"
+				:rangeStep="0.1"
+				:modelValue="parseFloat(activeElement.lineHeight)"
+				@update:modelValue="(value) => (activeElement.lineHeight = value)"
+			/>
+
+			<SliderInput
+				label="Letter Spacing"
+				:rangeStart="-10"
+				:rangeEnd="50"
+				:rangeStep="0.1"
+				:modelValue="parseFloat(activeElement.letterSpacing)"
+				@update:modelValue="(value) => (activeElement.letterSpacing = value)"
+			/>
+		</template>
+	</CollapsibleSection>
 </template>
 
 <script setup>
@@ -110,6 +113,7 @@ import {
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
+import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slide } from '@/stores/slide'
 import {
@@ -118,9 +122,6 @@ import {
 	toggleTextProperty,
 	activeElement,
 } from '@/stores/element'
-
-const sectionClasses = 'flex flex-col gap-4 border-b p-4'
-const sectionTitleClasses = 'text-2xs font-semibold uppercase text-gray-700'
 
 const textFonts = [
 	'Arial',

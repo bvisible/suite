@@ -123,8 +123,8 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	nextTick(() => (activeElementIds.value = newSelection))
 }
 
-const deleteElements = async (e) => {
-	activeElements.value.forEach((element) => {
+const deleteAttachments = async (elements) => {
+	elements.forEach((element) => {
 		if (['image', 'video'].includes(element.type)) {
 			// TODO: Handle this in a cleaner way
 			// Delete the file doc only if it's not used in other slides
@@ -143,6 +143,10 @@ const deleteElements = async (e) => {
 			})
 		}
 	})
+}
+
+const deleteElements = async (e) => {
+	deleteAttachments(activeElements.value)
 	const idsToDelete = activeElementIds.value
 	resetFocus()
 	nextTick(() => {

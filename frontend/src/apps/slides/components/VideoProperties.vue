@@ -1,37 +1,37 @@
 <template>
-	<div :class="sectionClasses">
-		<div :class="sectionTitleClasses">Playback</div>
-
-		<div class="flex gap-4">
-			<div
-				v-for="(option, index) in playbackProperties"
-				:key="index"
-				:class="getPlaybackOptionClasses(option.property)"
-				@mouseenter="hoverOption = option.property"
-				@mouseleave="hoverOption = null"
-				@click="togglePlaybackOption(option.property)"
-			>
-				<component
-					:is="option.icon"
-					size="20"
-					:strokeWidth="1.2"
-					:class="getPlaybackTextClasses(option.property)"
-				/>
-				<div class="text-xs" :class="getPlaybackTextClasses(option.property)">
-					{{ option.label }}
+	<CollapsibleSection title="Playback" :initialState="true">
+		<template #default>
+			<div class="flex gap-4">
+				<div
+					v-for="(option, index) in playbackProperties"
+					:key="index"
+					:class="getPlaybackOptionClasses(option.property)"
+					@mouseenter="hoverOption = option.property"
+					@mouseleave="hoverOption = null"
+					@click="togglePlaybackOption(option.property)"
+				>
+					<component
+						:is="option.icon"
+						size="20"
+						:strokeWidth="1.2"
+						:class="getPlaybackTextClasses(option.property)"
+					/>
+					<div class="text-xs" :class="getPlaybackTextClasses(option.property)">
+						{{ option.label }}
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<SliderInput
-			label="Speed"
-			:rangeStart="0.5"
-			:rangeEnd="2"
-			:rangeStep="0.1"
-			:modelValue="parseFloat(activeElement.playbackRate) || 1"
-			@update:modelValue="setPlaybackRate"
-		/>
-	</div>
+			<SliderInput
+				label="Speed"
+				:rangeStart="0.5"
+				:rangeEnd="2"
+				:rangeStep="0.1"
+				:modelValue="parseFloat(activeElement.playbackRate) || 1"
+				@update:modelValue="setPlaybackRate"
+			/>
+		</template>
+	</CollapsibleSection>
 
 	<MediaProperties />
 </template>
@@ -43,9 +43,9 @@ import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
 import MediaProperties from '@/components/MediaProperties.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
+import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
-import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
 
 const hoverOption = ref(null)
 

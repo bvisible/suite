@@ -140,10 +140,17 @@ const handleMouseUp = (e, id) => {
 }
 
 const triggerDrag = (e, id) => {
-	if ((id && focusElementId.value !== id) || activeElementIds.value.length > 1) {
+	const notEditable = id && focusElementId.value !== id
+	const isMultiSelect = activeElementIds.value.length > 1
+	const isNotInSelection = id && !activeElementIds.value.includes(id)
+
+	// prevent drag if multiple are selected and id isn't in the selection
+	if (isMultiSelect && isNotInSelection) return
+
+	if (notEditable || isMultiSelect) {
 		startDragging(e)
 
-		if (id && activeElementIds.value.length < 2 && activeElementIds.value[0] !== id) {
+		if (id && !isMultiSelect && activeElementIds.value[0] !== id) {
 			activeElementIds.value = [id]
 			focusElementId.value = null
 		}
