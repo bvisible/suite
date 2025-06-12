@@ -6,15 +6,18 @@
 	>
 		<component :is="activeProperties" />
 
-		<div v-if="activeElement" :class="sectionClasses">
-			<div :class="sectionTitleClasses">Other</div>
-			<SliderInput
-				label="Opacity"
-				:rangeStart="0"
-				:rangeEnd="100"
-				:modelValue="parseFloat(activeElement.opacity) || 100"
-				@update:modelValue="(value) => (activeElement.opacity = value)"
-			/>
+		<div v-if="activeElement">
+			<CollapsibleSection title="Other">
+				<template #default>
+					<SliderInput
+						label="Opacity"
+						:rangeStart="0"
+						:rangeEnd="100"
+						:modelValue="parseFloat(activeElement.opacity) || 100"
+						@update:modelValue="(value) => (activeElement.opacity = value)"
+					/>
+				</template>
+			</CollapsibleSection>
 		</div>
 	</div>
 </template>
@@ -30,11 +33,11 @@ import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
+import CollapsibleSection from './controls/CollapsibleSection.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
-import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type

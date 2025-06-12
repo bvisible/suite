@@ -1,19 +1,23 @@
 <template>
-	<div class="flex flex-col gap-4 cursor-pointer">
-		<div class="flex justify-between items-center" @click="showContent = !showContent">
-			<div :class="titleClasses">{{ title }}</div>
-			<component
-				:is="showContent ? ChevronUp : ChevronDown"
-				size="16"
-				class="stroke-[1.5] text-gray-700"
-			/>
-		</div>
-
-		<transition name="slide-fade">
-			<div v-if="showContent">
-				<slot />
+	<div :class="sectionClasses">
+		<div class="flex flex-col gap-4 cursor-pointer">
+			<div class="flex justify-between items-center" @click="showContent = !showContent">
+				<div :class="titleClasses">{{ title }}</div>
+				<component
+					:is="showContent ? ChevronUp : ChevronDown"
+					size="14"
+					class="stroke-[1.5] text-gray-500"
+				/>
 			</div>
-		</transition>
+
+			<transition name="slide-fade">
+				<div v-if="showContent">
+					<div class="flex flex-col gap-4">
+						<slot />
+					</div>
+				</div>
+			</transition>
+		</div>
 	</div>
 </template>
 
@@ -21,15 +25,21 @@
 import { ref } from 'vue'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
+import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
+
 const props = defineProps({
 	title: String,
 	titleClasses: {
 		type: String,
-		default: 'text-base text-gray-700',
+		default: sectionTitleClasses,
+	},
+	initialState: {
+		type: Boolean,
+		default: false,
 	},
 })
 
-const showContent = ref(false)
+const showContent = ref(props.initialState)
 </script>
 
 <style>

@@ -1,16 +1,17 @@
 <template>
-	<div :class="sectionClasses">
-		<div :class="sectionTitleClasses">Orientation</div>
-		<div
-			v-for="(direction, index) in imageOrientationProperties"
-			:key="index"
-			class="flex cursor-pointer items-center justify-between"
-			@click="toggleImageOrientation(direction)"
-		>
-			<div class="text-sm text-gray-600">{{ direction.label }}</div>
-			<component :is="direction.icon" size="20" :strokeWidth="1.2" />
-		</div>
-	</div>
+	<CollapsibleSection title="Orientation" :initialState="true">
+		<template #default>
+			<div
+				v-for="(direction, index) in imageOrientationProperties"
+				:key="index"
+				class="flex cursor-pointer items-center justify-between"
+				@click="toggleImageOrientation(direction)"
+			>
+				<div class="text-sm text-gray-600">{{ direction.label }}</div>
+				<component :is="direction.icon" size="20" :strokeWidth="1.2" />
+			</div>
+		</template>
+	</CollapsibleSection>
 
 	<MediaProperties />
 </template>
@@ -21,7 +22,6 @@ import { FlipHorizontal, FlipVertical } from 'lucide-vue-next'
 import MediaProperties from '@/components/MediaProperties.vue'
 
 import { activeElement } from '@/stores/element'
-import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
 
 const imageOrientationProperties = [
 	{
