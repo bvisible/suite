@@ -171,21 +171,6 @@ def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
 	return tuple(values[key] for key in values)
 
 
-def get_in_reply_to_mail(
-	message_id: str | None = None,
-) -> tuple[str, str] | tuple[None, None]:
-	"""Returns mail type and name of the mail to which the given message is a reply to."""
-
-	if message_id:
-		for in_reply_to_mail_type in ["Outgoing Mail", "Incoming Mail"]:
-			if in_reply_to_mail_name := frappe.db.get_value(
-				in_reply_to_mail_type, {"message_id": message_id}, "name"
-			):
-				return in_reply_to_mail_type, in_reply_to_mail_name
-
-	return None, None
-
-
 def get_in_reply_to(
 	in_reply_to_mail_type: str | None = None,
 	in_reply_to_mail_name: str | None = None,

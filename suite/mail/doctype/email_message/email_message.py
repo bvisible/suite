@@ -12,7 +12,7 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import Interval, Order
+from frappe.query_builder import Interval
 from frappe.query_builder.custom import GROUP_CONCAT
 from frappe.query_builder.functions import Max, Now
 from frappe.utils import cint, escape_html, time_diff_in_seconds
@@ -25,6 +25,7 @@ from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	get_current_state,
 	update_current_state,
 )
+from mail.mail.doctype.mail_contact.mail_contact import create_mail_contact
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils import convert_html_to_text, enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
@@ -88,12 +89,15 @@ class EmailMessage(Document):
 
 		messages = query.run(as_dict=True)
 
+		messages_with_attachment = []
 		for message in messages:
-			if preview := message.get("preview"):
+			if preview := message["preview"]:
 				message["preview"] = convert_html_to_text(preview)
+			if message["has_attachment"]:
+				messages_with_attachment.append(message["name"])
+			message["attachments"] = []
 
-		attachments_map = {}
-		if messages_with_attachment := [m["name"] for m in messages if m["has_attachment"]]:
+		if messages_with_attachment:
 			PART = frappe.qb.DocType("Email Message Part")
 			attachments = (
 				frappe.qb.from_(PART)
@@ -122,12 +126,10 @@ class EmailMessage(Document):
 						a.filename = "Original Message"
 				attachments_map[a.pop("parent")].append(a)
 
-		if attachments_map:
-			for message in messages:
-				if message["has_attachment"]:
-					message["attachments"] = attachments_map.get(message["name"], [])
-				else:
-					message["attachments"] = []
+			if attachments_map:
+				for message in messages:
+					if message["has_attachment"]:
+						message["attachments"] = attachments_map.get(message["name"], [])
 
 		return messages
 
@@ -626,9 +628,23 @@ class EmailMessage(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
+	def after_insert(self) -> None:
+		self.create_mail_contacts()
+
 	def on_trash(self) -> None:
 		if not self.destroyed:
 			frappe.throw(_("You must destroy this email message before it can be deleted."))
+
+	def create_mail_contacts(self) -> None:
+		"""Creates Mail Contacts."""
+
+		user, create_contact = frappe.db.get_value(
+			"Mail Account", self.account, ["user", "create_mail_contact"]
+		)
+
+		if create_contact:
+			for rcpt in self.recipients:
+				create_mail_contact(user, rcpt.email, rcpt.display_name)
 
 	def clear_cached_properties(self) -> None:
 		"""Clear cached properties to avoid stale data."""

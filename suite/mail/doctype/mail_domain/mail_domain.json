@@ -13,7 +13,6 @@
   "tenant",
   "domain_name",
   "dkim_rsa_key_size",
-  "newsletter_retention",
   "dns_records_section",
   "dns_records"
  ],
@@ -62,13 +61,6 @@
    "label": "Verified",
    "no_copy": 1,
    "permlevel": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "newsletter_retention",
-   "fieldtype": "Int",
-   "label": "Newsletter Retention (Days)",
-   "non_negative": 1,
    "search_index": 1
   },
   {
@@ -149,22 +141,12 @@
    "link_fieldname": "domain_name"
   },
   {
-   "group": "Mail",
-   "link_doctype": "Incoming Mail",
-   "link_fieldname": "domain_name"
-  },
-  {
-   "group": "Mail",
-   "link_doctype": "Outgoing Mail",
-   "link_fieldname": "domain_name"
-  },
-  {
    "group": "Report",
    "link_doctype": "DMARC Report",
    "link_fieldname": "domain_name"
   }
  ],
- "modified": "2025-06-02 13:02:15.287080",
+ "modified": "2025-06-09 16:38:07.714093",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Domain",

@@ -7,7 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import cint, now
 
 from mail.mail.doctype.dns_record.dns_provider import DNSProvider
-from mail.utils import password_or_none
+from mail.utils import enqueue_job, password_or_none, user_context
 from mail.utils.cache import get_root_domain_name
 from mail.utils.dns import verify_dns_record
 
@@ -173,6 +173,16 @@ def verify_all_dns_records() -> None:
 		dns_record.verify_dns_record(save=True)
 
 
+@frappe.whitelist()
+def enqueue_verify_all_dns_records() -> None:
+	"Called by the scheduler to enqueue the `verify_all_dns_records` job."
+
+	frappe.only_for("System Manager")
+
+	with user_context("Administrator"):
+		enqueue_job(verify_all_dns_records, queue="long", deduplicate=True)
+
+
 def get_dns_provider(mail_settings: str | None = None) -> DNSProvider | None:
 	"""Returns an instance of the DNS Provider"""
 
@@ -196,5 +206,5 @@ def get_dns_provider(mail_settings: str | None = None) -> DNSProvider | None:
 	)
 
 
-def after_doctype_insert() -> None:
+def on_doctype_update() -> None:
 	frappe.db.add_unique("DNS Record", ["host", "type"])

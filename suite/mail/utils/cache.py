@@ -11,38 +11,6 @@ def get_root_domain_name() -> str | None:
 	return frappe.cache.hget("mail-settings", "root_domain_name", generator)
 
 
-def get_smtp_limits() -> dict:
-	"""Returns the SMTP limits."""
-
-	def generator() -> dict:
-		mail_settings = frappe.get_doc("Mail Settings")
-		return {
-			"max_connections": mail_settings.smtp_max_connections,
-			"max_messages": mail_settings.smtp_max_messages,
-			"session_duration": mail_settings.smtp_session_duration,
-			"inactivity_timeout": mail_settings.smtp_inactivity_timeout,
-			"cleanup_interval": mail_settings.smtp_cleanup_interval,
-		}
-
-	return frappe.cache.hget("mail-settings", "smtp_limits", generator)
-
-
-def get_imap_limits() -> dict:
-	"""Returns the IMAP limits."""
-
-	def generator() -> dict:
-		mail_settings = frappe.get_doc("Mail Settings")
-		return {
-			"max_connections": mail_settings.imap_max_connections,
-			"authenticated_timeout": mail_settings.imap_authenticated_timeout,
-			"unauthenticated_timeout": mail_settings.imap_unauthenticated_timeout,
-			"idle_timeout": mail_settings.imap_idle_timeout,
-			"cleanup_interval": mail_settings.imap_cleanup_interval,
-		}
-
-	return frappe.cache.hget("mail-settings", "imap_limits", generator)
-
-
 def get_personal_signup_domains() -> list:
 	"""Returns the personal signup domains."""
 

@@ -51,10 +51,9 @@ class MailServer(Document):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can delete Mail Server."))
 
-		if frappe.db.get_value("Mail Cluster", self.cluster, "outbound"):
-			self.db_set("enabled", 0)
-			create_or_update_spf_dns_record()
-			self.create_or_delete_spf_ehlo_dns_record()
+		self.db_set("enabled", 0)
+		create_or_update_spf_dns_record()
+		self.create_or_delete_spf_ehlo_dns_record()
 
 	def validate_hostname(self) -> None:
 		"""Validates the server and fetches the IP addresses."""
@@ -252,7 +251,7 @@ def create_or_update_spf_dns_record(spf_host: str | None = None) -> None:
 		.join(SERVER)
 		.on(CLUSTER.name == SERVER.cluster)
 		.select(SERVER.name)
-		.where((CLUSTER.enabled == 1) & (CLUSTER.outbound == 1) & (SERVER.enabled == 1))
+		.where((CLUSTER.enabled == 1) & (SERVER.enabled == 1))
 		.orderby(SERVER.name, order=Order.asc)
 	).run(pluck="name")
 

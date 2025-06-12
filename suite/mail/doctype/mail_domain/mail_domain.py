@@ -36,7 +36,6 @@ class MailDomain(Document):
 
 		self.validate_tenant()
 		self.validate_dkim_rsa_key_size()
-		self.validate_newsletter_retention()
 		self.validate_is_verified()
 
 	def after_insert(self) -> None:
@@ -91,27 +90,6 @@ class MailDomain(Document):
 		if not self.dkim_rsa_key_size:
 			self.dkim_rsa_key_size = frappe.db.get_single_value(
 				"Mail Settings", "default_dkim_rsa_key_size", cache=True
-			)
-
-	def validate_newsletter_retention(self) -> None:
-		"""Validates the Newsletter Retention."""
-
-		if self.newsletter_retention:
-			if self.newsletter_retention < 1:
-				frappe.throw(_("Newsletter Retention must be greater than 0."))
-
-			max_newsletter_retention = frappe.db.get_single_value(
-				"Mail Settings", "max_newsletter_retention", cache=True
-			)
-			if self.newsletter_retention > max_newsletter_retention:
-				frappe.throw(
-					_("Newsletter Retention must be less than or equal to {0}.").format(
-						frappe.bold(max_newsletter_retention)
-					)
-				)
-		else:
-			self.newsletter_retention = frappe.db.get_single_value(
-				"Mail Settings", "default_newsletter_retention", cache=True
 			)
 
 	def validate_is_verified(self) -> None:
