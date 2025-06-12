@@ -37,6 +37,8 @@
   "_id",
   "blob_id",
   "size",
+  "from_ip",
+  "via_api",
   "column_break_qxot",
   "sent_at",
   "received_after",
@@ -491,12 +493,29 @@
    "non_negative": 1,
    "precision": "3",
    "read_only": 1
+  },
+  {
+   "fieldname": "from_ip",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "From IP",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "via_api",
+   "fieldtype": "Check",
+   "label": "API",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-24 13:08:07.619094",
+ "modified": "2025-06-09 17:37:33.282767",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",

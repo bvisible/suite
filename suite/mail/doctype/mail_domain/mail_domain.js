@@ -8,17 +8,6 @@ frappe.ui.form.on('Mail Domain', {
 
 	add_actions(frm) {
 		if (!frm.doc.__islocal) {
-			frm.add_custom_button(
-				__('Outbound Delay'),
-				() => {
-					frappe.route_options = {
-						domain_name: frm.doc.name,
-					}
-					frappe.set_route('query-report', 'Outbound Delay')
-				},
-				__('Reports'),
-			)
-
 			if (frappe.user_roles.includes('System Manager')) {
 				frm.add_custom_button(
 					__('DMARC Report Viewer'),
@@ -31,17 +20,6 @@ frappe.ui.form.on('Mail Domain', {
 					__('Reports'),
 				)
 			}
-
-			frm.add_custom_button(
-				__('Outgoing Mail Summary'),
-				() => {
-					frappe.route_options = {
-						domain_name: frm.doc.name,
-					}
-					frappe.set_route('query-report', 'Outgoing Mail Summary')
-				},
-				__('Reports'),
-			)
 
 			frm.add_custom_button(
 				__('Verify DNS Records'),

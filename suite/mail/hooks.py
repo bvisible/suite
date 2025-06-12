@@ -17,6 +17,11 @@ website_redirects = [
 		"redirect_http_status": 307,
 	},
 	{
+		"source": "/outbound/upload",
+		"target": "/api/method/mail.api.outbound.upload_attachment",
+		"redirect_http_status": 307,
+	},
+	{
 		"source": "/outbound/send",
 		"target": "/api/method/mail.api.outbound.send",
 		"redirect_http_status": 307,
@@ -24,6 +29,11 @@ website_redirects = [
 	{
 		"source": "/outbound/send-raw",
 		"target": "/api/method/mail.api.outbound.send_raw",
+		"redirect_http_status": 307,
+	},
+	{
+		"source": "/inbound/blob",
+		"target": "/api/method/mail.api.inbound.fetch_blob",
 		"redirect_http_status": 307,
 	},
 	{
@@ -161,8 +171,6 @@ permission_query_conditions = {
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.get_permission_query_condition",
 	"Email Message": "mail.mail.doctype.email_message.email_message.get_permission_query_condition",
 	"Mail Queue": "mail.mail.doctype.mail_queue.mail_queue.get_permission_query_condition",
-	"Outgoing Mail": "mail.mail.doctype.outgoing_mail.outgoing_mail.get_permission_query_condition",
-	"Incoming Mail": "mail.mail.doctype.incoming_mail.incoming_mail.get_permission_query_condition",
 }
 
 has_permission = {
@@ -179,8 +187,6 @@ has_permission = {
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.has_permission",
 	"Email Message": "mail.mail.doctype.email_message.email_message.has_permission",
 	"Mail Queue": "mail.mail.doctype.mail_queue.mail_queue.has_permission",
-	"Outgoing Mail": "mail.mail.doctype.outgoing_mail.outgoing_mail.has_permission",
-	"Incoming Mail": "mail.mail.doctype.incoming_mail.incoming_mail.has_permission",
 }
 
 website_route_rules = [
@@ -199,13 +205,7 @@ website_route_rules = [
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
-	"File": {
-		"validate": "mail.overrides.validate_file",
-		"on_update": "mail.overrides.validate_file",
-		"on_trash": "mail.overrides.validate_file",
-	}
-}
+# doc_events = {}
 
 # Scheduled Tasks
 # ---------------
@@ -214,10 +214,9 @@ scheduler_events = {
 	# "all": [
 	#     "mail.tasks.all"
 	# ],
-	"daily": [
-		"mail.tasks.enqueue_delete_newsletters",
-		"mail.tasks.enqueue_cancel_trashed_mails",
-	],
+	# "daily": [
+	# 	"mail.tasks.daily"
+	# ],
 	"daily_long": [
 		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
 	],
@@ -235,10 +234,6 @@ scheduler_events = {
 	#     "mail.tasks.monthly"
 	# ],
 	"cron": {
-		"*/2 * * * *": [
-			"mail.tasks.enqueue_transfer_mails_to_clusters",
-			"mail.tasks.enqueue_fetch_emails_from_clusters",
-		],
 		"*/5 * * * *": [
 			"mail.mail.doctype.mail_queue.mail_queue.enqueue_process_pending_emails",
 		],
@@ -271,7 +266,7 @@ scheduler_events = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-ignore_links_on_delete = ["Mail Domain", "Incoming Mail", "Outgoing Mail"]
+ignore_links_on_delete = ["Mail Domain", "Email Message"]
 
 # Request Events
 # ----------------

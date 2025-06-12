@@ -5,7 +5,6 @@ import re
 import socket
 from email import message_from_string
 from email.mime.multipart import MIMEMultipart
-from typing import Literal
 
 import frappe
 from frappe import _
@@ -15,11 +14,6 @@ from frappe.query_builder.functions import Now
 from frappe.utils import now, time_diff_in_seconds
 from uuid_utils import uuid7
 
-from mail.mail.doctype.mime_message.mime_message import (
-	create_mime_message,
-	get_mime_message,
-	update_mime_message,
-)
 from mail.utils.dns import get_host_by_ip
 
 
@@ -28,18 +22,6 @@ class SpamCheckLog(Document):
 	def clear_old_logs(days=7) -> None:
 		log = frappe.qb.DocType("Spam Check Log")
 		frappe.db.delete(log, filters=(log.creation < (Now() - Interval(days=days))))
-
-	@property
-	def message(self) -> str:
-		if self._message:
-			return get_mime_message(self._message)
-
-	@message.setter
-	def message(self, value: str | bytes) -> None:
-		if self._message:
-			update_mime_message(self._message, value)
-		else:
-			self._message = create_mime_message(value)
 
 	def autoname(self) -> None:
 		self.name = str(uuid7())

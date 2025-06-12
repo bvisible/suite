@@ -8,8 +8,6 @@
   "section_break_b7jt",
   "enabled",
   "public",
-  "inbound",
-  "outbound",
   "column_break_fkha",
   "hostname",
   "priority",
@@ -124,24 +122,6 @@
    "non_negative": 1,
    "placeholder": "5",
    "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "default": "1",
-   "description": "If disabled, this cluster will be skipped when pulling inbound emails.",
-   "fieldname": "inbound",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Inbound",
-   "search_index": 1
-  },
-  {
-   "default": "1",
-   "description": "Use this cluster to send outbound emails.",
-   "fieldname": "outbound",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Outbound",
    "search_index": 1
   },
   {
@@ -750,19 +730,9 @@
    "group": "Reference",
    "link_doctype": "Mail Backend Request",
    "link_fieldname": "backend_name"
-  },
-  {
-   "group": "Mail",
-   "link_doctype": "Incoming Mail",
-   "link_fieldname": "cluster"
-  },
-  {
-   "group": "Mail",
-   "link_doctype": "Outgoing Mail",
-   "link_fieldname": "cluster"
   }
  ],
- "modified": "2025-05-29 18:34:47.744984",
+ "modified": "2025-06-11 17:15:44.921198",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
