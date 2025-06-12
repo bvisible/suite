@@ -225,7 +225,7 @@ msgstr ""
 msgid "Add Domain"
 msgstr ""
 
-#: frontend/src/components/Modals/AddMailingListMembersModal.vue:5
+#: frontend/src/components/Modals/AddMailingListInternalMembersModal.vue:5
 #: frontend/src/pages/dashboard/MailingListView.vue:226
 msgid "Add Groups"
 msgstr ""
@@ -239,7 +239,7 @@ msgstr ""
 msgid "Add Member"
 msgstr ""
 
-#: frontend/src/components/Modals/AddMailingListMembersModal.vue:5
+#: frontend/src/components/Modals/AddMailingListInternalMembersModal.vue:5
 #: frontend/src/pages/dashboard/MailingListView.vue:218
 msgid "Add Members"
 msgstr ""
@@ -867,7 +867,7 @@ msgid "Configuration reloaded."
 msgstr ""
 
 #: frontend/src/components/HeaderActions.vue:37
-#: frontend/src/components/Modals/AddMailingListMembersModal.vue:8
+#: frontend/src/components/Modals/AddMailingListInternalMembersModal.vue:8
 #: frontend/src/components/Modals/ChangePasswordModal.vue:51
 #: frontend/src/pages/ResetPasswordView.vue:20
 #: frontend/src/pages/dashboard/DomainView.vue:187
@@ -3225,7 +3225,7 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: frontend/src/components/Modals/AddMailingListMembersModal.vue:88
+#: frontend/src/components/Modals/AddMailingListInternalMembersModal.vue:88
 msgid "Members added successfully"
 msgstr ""
 
