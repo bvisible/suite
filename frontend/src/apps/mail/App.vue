@@ -1,14 +1,15 @@
 <template>
-	<Layout>
-		<router-view />
-	</Layout>
-	<Dialogs />
-	<Toast />
+	<FrappeUIProvider>
+		<Layout>
+			<router-view />
+		</Layout>
+		<Dialogs />
+	</FrappeUIProvider>
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Toast } from 'frappe-ui'
+import { FrappeUIProvider } from 'frappe-ui'
 
 import { Dialogs } from '@/utils/dialogs'
 import DefaultLayout from '@/components/DefaultLayout.vue'
