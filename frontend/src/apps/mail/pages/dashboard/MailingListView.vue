@@ -7,7 +7,11 @@
 	>
 		<template #actions>
 			<Dropdown :options="ADD_OPTIONS">
-				<Button icon="plus" :disabled="!list.originalDoc.enabled" />
+				<Button
+					icon-left="plus"
+					:label="__('Add Members')"
+					:disabled="!list.originalDoc.enabled"
+				/>
 			</Dropdown>
 			<Button
 				variant="solid"
@@ -59,7 +63,7 @@
 							<ListView
 								v-if="memberList"
 								ref="listView"
-								:columns="listColums"
+								:columns="listColumns"
 								:rows="memberList"
 								:options="LIST_OPTIONS"
 								row-key="name"
@@ -97,11 +101,16 @@
 		</template>
 	</DashboardLayout>
 
-	<AddMailingListMembersModal
-		v-model="showAddMembers"
+	<AddMailingListInternalMembersModal
+		v-model="showAddInternalMembers"
 		:list="listName"
 		:type="addType"
-		@reload-members="members.reload()"
+		@reload-members="internalMembers.reload()"
+	/>
+	<AddMailingListExternalMemberModal
+		v-model="showAddExternalMember"
+		:list="listName"
+		@reload-members="externalMembers.reload()"
 	/>
 	<Dialog v-model="showRemoveMembers" :options="removeMembersOptions" />
 </template>
@@ -110,7 +119,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDebounce } from '@vueuse/core'
-import { Globe, Home, User } from 'lucide-vue-next'
+import { Globe, Home } from 'lucide-vue-next'
 import {
 	Button,
 	Dialog,
@@ -134,7 +143,8 @@ import { useList } from 'frappe-ui/src/data-fetching'
 import { raiseToast } from '@/utils'
 import HorizontalControl from '@/components/Controls/HorizontalControl.vue'
 import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddMailingListMembersModal from '@/components/Modals/AddMailingListMembersModal.vue'
+import AddMailingListExternalMemberModal from '@/components/Modals/AddMailingListExternalMemberModal.vue'
+import AddMailingListInternalMembersModal from '@/components/Modals/AddMailingListInternalMembersModal.vue'
 
 import type { MailingList } from '@/types'
 
@@ -150,7 +160,8 @@ const debouncedSearch = useDebounce(search, 500)
 const type = ref<'Mail Account' | 'Mail Group' | ''>('')
 
 const addType = ref<'Mail Account' | 'Mail Group'>('Mail Account')
-const showAddMembers = ref(false)
+const showAddInternalMembers = ref(false)
+const showAddExternalMember = ref(false)
 const showRemoveMembers = ref(false)
 
 const list = createDocumentResource({
@@ -169,7 +180,7 @@ const list = createDocumentResource({
 	onError: () => router.replace({ name: 'MailingLists' }),
 })
 
-const members = useList({
+const internalMembers = useList({
 	doctype: 'Mailing List Member',
 	fields: ['name', 'member_name'],
 	filters: () => {
@@ -202,7 +213,7 @@ const externalMembers = useList({
 	cacheKey: ['externalMailingListMembers', listName, debouncedSearch.value],
 })
 
-const memberList = computed(() => (tabIndex.value ? externalMembers?.data : members?.data))
+const memberList = computed(() => (tabIndex.value ? externalMembers?.data : internalMembers?.data))
 
 const deleteMembers = createResource({
 	url: 'mail.api.admin.delete_list_members',
@@ -212,7 +223,7 @@ const deleteMembers = createResource({
 	}),
 	onSuccess: () => {
 		if (tabIndex.value) externalMembers.reload()
-		else members.reload()
+		else internalMembers.reload()
 
 		showRemoveMembers.value = false
 		raiseToast(__('Members removed successfully.'))
@@ -224,41 +235,37 @@ const deleteMembers = createResource({
 	},
 })
 
-const removeMembersOptions = {
-	title: __('Remove Members'),
-	message: __('Are you sure you want to remove the selected members from this list?'),
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: deleteMembers.submit,
-		},
-	],
-}
-
-const listColums = computed(() => [
+const listColumns = computed(() => [
 	{ label: __('Name'), key: tabIndex.value ? 'member_email' : 'member_name' },
 	// { label: __('Type'), key: 'member_type' },
 ])
+
+const removeMembersOptions = {
+	title: __('Remove Members'),
+	message: __('Are you sure you want to remove the selected members from this list?'),
+	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteMembers.submit }],
+}
 
 const BREADCRUMBS = [
 	{ label: __('Mailing Lists'), route: '/dashboard/mailing-lists' },
 	{ label: listName },
 ]
 
-const LIST_OPTIONS = {
-	showTooltip: false,
-	emptyState: { description: __('No members found.') },
-}
+const LIST_OPTIONS = { showTooltip: false, emptyState: { description: __('No members found.') } }
 
 const ADD_OPTIONS = [
 	{
-		label: __('Add Members'),
-		icon: User,
+		label: __('Internal'),
+		icon: Home,
 		onClick: () => {
 			addType.value = 'Mail Account'
-			showAddMembers.value = true
+			showAddInternalMembers.value = true
 		},
+	},
+	{
+		label: __('External'),
+		icon: Globe,
+		onClick: () => (showAddExternalMember.value = true),
 	},
 	// {
 	// 	label: __('Add Groups'),
