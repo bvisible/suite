@@ -1,6 +1,6 @@
 <template>
 	<div :class="sectionClasses">
-		<div class="flex flex-col gap-4 cursor-pointer">
+		<div class="flex flex-col gap-3 cursor-pointer">
 			<div class="flex justify-between items-center" @click="showContent = !showContent">
 				<div :class="titleClasses">{{ title }}</div>
 				<component
@@ -12,7 +12,7 @@
 
 			<transition name="slide-fade">
 				<div v-if="showContent">
-					<div class="flex flex-col gap-4">
+					<div class="flex flex-col gap-3">
 						<slot />
 					</div>
 				</div>

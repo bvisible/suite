@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-1">
-		<div class="text-sm text-gray-600">{{ label }}</div>
+		<div :class="fieldLabelClasses">{{ label }}</div>
 		<div class="flex items-center justify-between">
 			<div class="relative me-4 h-[1px] w-full">
 				<input
@@ -30,6 +30,7 @@
 
 <script setup>
 import { ref, useTemplateRef, computed } from 'vue'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const props = defineProps({
 	label: String,
