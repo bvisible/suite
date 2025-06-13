@@ -5,8 +5,8 @@ import json
 
 import frappe
 from frappe import _
-from frappe.query_builder import Order
-from frappe.query_builder.functions import Date
+
+from mail.mail.doctype.dmarc_report.dmarc_report import DMARCReport
 
 
 def execute(filters: dict | None = None) -> tuple:
@@ -23,10 +23,10 @@ def get_columns() -> list[dict]:
 			"fieldname": "name",
 			"fieldtype": "Link",
 			"options": "DMARC Report",
-			"width": 120,
+			"width": 200,
 		},
-		{"label": _("From Date"), "fieldname": "from_date", "fieldtype": "Datetime", "width": 180},
-		{"label": _("To Date"), "fieldname": "to_date", "fieldtype": "Datetime", "width": 180},
+		{"label": _("Report Begin"), "fieldname": "report_begin", "fieldtype": "Datetime", "width": 180},
+		{"label": _("report_end"), "fieldname": "report_end", "fieldtype": "Datetime", "width": 180},
 		{
 			"label": _("Domain Name"),
 			"fieldname": "domain_name",
@@ -34,17 +34,19 @@ def get_columns() -> list[dict]:
 			"options": "Mail Domain",
 			"width": 150,
 		},
-		{"label": _("Organization"), "fieldname": "organization", "fieldtype": "Data", "width": 150},
+		{"label": _("Organization"), "fieldname": "organization_name", "fieldtype": "Data", "width": 150},
 		{"label": _("Report ID"), "fieldname": "report_id", "fieldtype": "Data", "width": 150},
 		{"label": _("Source IP"), "fieldname": "source_ip", "fieldtype": "Data", "width": 150},
 		{"label": _("Count"), "fieldname": "count", "fieldtype": "Int", "width": 70},
 		{"label": _("Disposition"), "fieldname": "disposition", "fieldtype": "Data", "width": 150},
 		{"label": _("Header From"), "fieldname": "header_from", "fieldtype": "Data", "width": 150},
 		{"label": _("Envelope From"), "fieldname": "envelope_from", "fieldtype": "Data", "width": 150},
-		{"label": _("SPF Result"), "fieldname": "spf_result", "fieldtype": "Data", "width": 150},
+		{"label": _("Envelope To"), "fieldname": "envelope_to", "fieldtype": "Data", "width": 150},
 		{"label": _("DKIM Result"), "fieldname": "dkim_result", "fieldtype": "Data", "width": 150},
+		{"label": _("SPF Result"), "fieldname": "spf_result", "fieldtype": "Data", "width": 150},
 		{"label": _("Auth Type"), "fieldname": "auth_type", "fieldtype": "Data", "width": 150},
-		{"label": _("Selector / Scope"), "fieldname": "selector_or_scope", "fieldtype": "Data", "width": 150},
+		{"label": _("Selector"), "fieldname": "selector", "fieldtype": "Data", "width": 150},
+		{"label": _("Scope"), "fieldname": "scope", "fieldtype": "Data", "width": 150},
 		{"label": _("Domain"), "fieldname": "domain", "fieldtype": "Data", "width": 150},
 		{"label": _("Result"), "fieldname": "result", "fieldtype": "Data", "width": 150},
 	]
@@ -53,11 +55,11 @@ def get_columns() -> list[dict]:
 def get_data(filters: dict | None = None) -> list[list]:
 	filters = filters or {}
 	local_ips = get_local_ip_addresses()
-	dmarc_reports = get_dmarc_reports(filters)
+	dmarc_reports = DMARCReport.get_list(filters)
 
 	data = []
 	for dmarc_report in dmarc_reports:
-		records = get_dmarc_report_records(filters, dmarc_report.name, local_ips)
+		records = dmarc_report.pop("records", [])
 
 		if not records:
 			continue
@@ -68,17 +70,16 @@ def get_data(filters: dict | None = None) -> list[list]:
 		for record in records:
 			record["indent"] = 1
 			record["is_local_ip"] = record["source_ip"] in local_ips
+			record["dkim_result"] = record["dkim_result"].upper()
+			record["spf_result"] = record["spf_result"].upper()
 			data.append(record)
 
-			auth_results = json.loads(record.auth_results)
-			for auth_result in auth_results:
-				auth_result["indent"] = 2
-				auth_result["selector_or_scope"] = (
-					auth_result.get("selector")
-					if auth_result["auth_type"] == "DKIM"
-					else auth_result.get("scope")
-				)
-				data.append(auth_result)
+			for field in ["dkim_results", "spf_results"]:
+				for result in json.loads(record[field]):
+					result["indent"] = 2
+					result["auth_type"] = field.replace("_results", "").upper()
+					result["result"] = result["result"].upper()
+					data.append(result)
 
 	return data
 
@@ -93,68 +94,3 @@ def get_local_ip_addresses() -> list[str]:
 				ip_addresses.append(address)
 
 	return ip_addresses
-
-
-def get_dmarc_reports(filters: dict) -> list[dict]:
-	"""Returns DMARC Reports based on filters."""
-
-	DR = frappe.qb.DocType("DMARC Report")
-	query = (
-		frappe.qb.from_(DR)
-		.select(
-			DR.name,
-			DR.from_date,
-			DR.to_date,
-			DR.domain_name,
-			DR.organization,
-			DR.report_id,
-		)
-		.orderby(DR.from_date, order=Order.desc)
-	)
-
-	if not filters.get("name"):
-		query = query.where(
-			(Date(DR.from_date) >= Date(filters.get("from_date")))
-			& (Date(DR.to_date) <= Date(filters.get("to_date")))
-		)
-
-	for field in [
-		"name",
-		"organization",
-		"report_id",
-	]:
-		if filters.get(field):
-			query = query.where(DR[field] == filters.get(field))
-
-	if filters.get("domain_name"):
-		query = query.where(DR["domain_name"].isin(filters.get("domain_name")))
-
-	return query.run(as_dict=True)
-
-
-def get_dmarc_report_records(filters: dict, dmarc_report: str, local_ips: list) -> list[dict]:
-	"""Returns DMARC Report Details based on filters."""
-
-	records_filters = {"parenttype": "DMARC Report", "parent": dmarc_report}
-
-	for field in ["source_ip", "disposition", "header_from", "envelope_from", "spf_result", "dkim_result"]:
-		if filters.get(field):
-			records_filters[field] = filters[field]
-
-	if filters.get("show_local_ips_only"):
-		records_filters["source_ip"] = ["in", local_ips]
-
-	return frappe.db.get_all(
-		"DMARC Report Detail",
-		filters=records_filters,
-		fields=[
-			"source_ip",
-			"count",
-			"disposition",
-			"header_from",
-			"envelope_from",
-			"spf_result",
-			"dkim_result",
-			"auth_results",
-		],
-	)

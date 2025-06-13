@@ -55,7 +55,7 @@
   },
   {
    "fieldname": "extra_contact_info",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Extra Contact Info",
    "read_only": 1
   },
@@ -170,7 +170,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-06-13 15:57:08.007853",
+ "modified": "2025-06-13 17:17:43.017468",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "DMARC Report",

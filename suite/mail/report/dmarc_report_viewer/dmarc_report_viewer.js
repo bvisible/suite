@@ -21,81 +21,11 @@ frappe.query_reports['DMARC Report Viewer'] = {
 
 	filters: [
 		{
-			fieldname: 'from_date',
-			label: __('From Date'),
-			fieldtype: 'Date',
-			default: frappe.datetime.add_days(frappe.datetime.get_today(), -1),
-			reqd: 1,
-		},
-		{
-			fieldname: 'to_date',
-			label: __('To Date'),
-			fieldtype: 'Date',
-			default: frappe.datetime.get_today(),
-			reqd: 1,
-		},
-		{
-			fieldname: 'name',
-			label: __('DMARC Report'),
+			fieldname: 'cluster',
+			label: __('Cluster'),
 			fieldtype: 'Link',
-			options: 'DMARC Report',
-		},
-		{
-			fieldname: 'domain_name',
-			label: __('Domain Name'),
-			fieldtype: 'MultiSelectList',
-			get_data: (txt) => {
-				return frappe.db.get_link_options('Mail Domain', txt)
-			},
-		},
-		{
-			fieldname: 'organization',
-			label: __('Organization'),
-			fieldtype: 'Data',
-		},
-		{
-			fieldname: 'report_id',
-			label: __('Report ID'),
-			fieldtype: 'Data',
-		},
-		{
-			fieldname: 'source_ip',
-			label: __('Source IP'),
-			fieldtype: 'Data',
-		},
-		{
-			fieldname: 'disposition',
-			label: __('Disposition'),
-			fieldtype: 'Select',
-			options: ['', 'none', 'quarantine', 'reject'],
-		},
-		{
-			fieldname: 'header_from',
-			label: __('Header From'),
-			fieldtype: 'Data',
-		},
-		{
-			fieldname: 'envelope_from',
-			label: __('Envelope From'),
-			fieldtype: 'Data',
-		},
-		{
-			fieldname: 'spf_result',
-			label: __('SPF Result'),
-			fieldtype: 'Select',
-			options: ['', 'PASS', 'FAIL'],
-		},
-		{
-			fieldname: 'dkim_result',
-			label: __('DKIM Result'),
-			fieldtype: 'Select',
-			options: ['', 'PASS', 'FAIL'],
-		},
-		{
-			fieldname: 'show_local_ips_only',
-			label: __('Show Local IPs Only'),
-			fieldtype: 'Check',
-			default: 1,
+			options: 'Mail Cluster',
+			reqd: 1,
 		},
 	],
 }

@@ -37,7 +37,13 @@ class DMARCReport(Document):
 	@staticmethod
 	def get_list(filters=None, page_length=20, **kwargs) -> list:
 		filters = filters or []
-		cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
+		cluster, text = None, None
+
+		if isinstance(filters, dict):
+			cluster = filters.get("cluster")
+			text = filters.get("text")
+		elif isinstance(filters, list):
+			cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
 
 		if cluster:
 			reports = fetch_dmarc_reports(cluster, limit=page_length, text=text)
@@ -164,8 +170,8 @@ def format_report(report: dict, cluster_name: str) -> dict:
 				"source_ip": record["row"]["source_ip"],
 				"count": cint(record["row"]["count"]),
 				"disposition": record["row"]["policy_evaluated"]["disposition"],
-				"dkim": record["row"]["policy_evaluated"]["dkim"],
-				"spf": record["row"]["policy_evaluated"]["spf"],
+				"dkim_result": record["row"]["policy_evaluated"]["dkim"],
+				"spf_result": record["row"]["policy_evaluated"]["spf"],
 				"reason": json.dumps(record["row"]["policy_evaluated"]["reason"], indent=4),
 				"envelope_to": record["identifiers"]["envelope_to"],
 				"envelope_from": record["identifiers"]["envelope_from"],
