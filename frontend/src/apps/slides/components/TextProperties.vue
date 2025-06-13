@@ -52,7 +52,7 @@
 			/>
 
 			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-600">Size</div>
+				<div :class="fieldLabelClasses">Size</div>
 				<div class="h-[30px] w-28">
 					<NumberInput
 						v-model="activeElement.fontSize"
@@ -65,7 +65,7 @@
 			</div>
 
 			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-600">Color</div>
+				<div :class="fieldLabelClasses">Color</div>
 				<ColorPicker v-model="activeElement.color" />
 			</div>
 		</template>
@@ -122,6 +122,7 @@ import {
 	toggleTextProperty,
 	activeElement,
 } from '@/stores/element'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const textFonts = [
 	'Arial',

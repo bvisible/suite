@@ -33,7 +33,7 @@
 
 			<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-4">
 				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Width</div>
+					<div :class="fieldLabelClasses">Width</div>
 					<div class="h-[30px] w-28">
 						<NumberInput
 							v-model="activeElement.borderWidth"
@@ -46,7 +46,7 @@
 				</div>
 
 				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Radius</div>
+					<div :class="fieldLabelClasses">Radius</div>
 					<div class="h-[30px] w-28">
 						<NumberInput
 							v-model="activeElement.borderRadius"
@@ -58,7 +58,7 @@
 				</div>
 
 				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Color</div>
+					<div :class="fieldLabelClasses">Color</div>
 					<ColorPicker v-model="activeElement.borderColor" />
 				</div>
 			</div>
@@ -68,7 +68,7 @@
 	<CollapsibleSection title="Shadow">
 		<template #default>
 			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-600">Color</div>
+				<div :class="fieldLabelClasses">Color</div>
 				<ColorPicker class="pe-[0.2px]" v-model="activeElement.shadowColor" />
 			</div>
 
@@ -106,6 +106,7 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
