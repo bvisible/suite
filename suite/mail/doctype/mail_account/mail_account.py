@@ -11,7 +11,7 @@ from frappe.utils import random_string, validate_email_address
 from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
 from mail.jmap import get_jmap_client, invalidate_jmap_client_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
-from mail.utils import generate_uuid_style_hash, get_dmarc_address, hash_password, normalize_email
+from mail.utils import generate_uuid_style_hash, get_postmaster_address, hash_password, normalize_email
 from mail.utils.cache import (
 	get_aliases_for_user,
 	get_cluster_for_tenant,
@@ -347,12 +347,14 @@ def create_mail_account(
 	return account
 
 
-def create_dmarc_account(tenant: str) -> None:
-	"""Creates a DMARC account"""
+def create_postmaster_account(tenant: str) -> None:
+	"""Creates a Postmaster account."""
 
 	frappe.flags.ignore_domain_validation = True
-	dmarc_address = get_dmarc_address()
-	create_mail_account(tenant=tenant, email=dmarc_address, backup_email=dmarc_address, first_name="DMARC")
+	postmaster_address = get_postmaster_address()
+	create_mail_account(
+		tenant=tenant, email=postmaster_address, backup_email=postmaster_address, first_name="Postmaster"
+	)
 
 
 def sync_jmap_identities(account: str) -> None:

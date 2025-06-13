@@ -9,8 +9,8 @@ from frappe.utils import cint
 
 from mail.backend import MailBackendDomainManager
 from mail.mail.doctype.dkim_key.dkim_key import create_dkim_key
-from mail.mail.doctype.mail_account.mail_account import create_dmarc_account
-from mail.utils import get_dkim_host, get_dkim_selector, get_dmarc_address
+from mail.mail.doctype.mail_account.mail_account import create_postmaster_account
+from mail.utils import get_dkim_host, get_dkim_selector, get_postmaster_address
 from mail.utils.cache import (
 	get_cluster_for_tenant,
 	get_root_domain_name,
@@ -42,7 +42,7 @@ class MailDomain(Document):
 		MailBackendDomainManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(self.domain_name)
 
 		if self.is_root_domain:
-			create_dmarc_account(self.tenant)
+			create_postmaster_account(self.tenant)
 
 	def on_update(self) -> None:
 		self.clear_cache()
@@ -189,7 +189,7 @@ def get_dns_records(tenant: str, domain_name: str) -> list[dict]:
 	)
 
 	# DMARC Record
-	dmarc_address = get_dmarc_address()
+	dmarc_address = get_postmaster_address()
 	records.append(
 		{
 			"category": "Sending Record",
