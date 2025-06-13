@@ -1,25 +1,24 @@
 <template>
 	<div :class="sectionClasses">
-		<div class="flex items-center justify-between">
-			<div :class="sectionTitleClasses">Slide</div>
-			<div class="text-2xs font-semibold text-gray-700">
-				{{ slideIndex + 1 + ' of ' + presentation.data.slides.length }}
+		<div class="flex flex-col gap-3">
+			<div class="flex items-center justify-between">
+				<div :class="sectionTitleClasses">Slide</div>
+				<div class="text-2xs pe-0.5 font-semibold text-gray-700">
+					{{ slideIndex + 1 + ' of ' + presentation.data.slides.length }}
+				</div>
 			</div>
-		</div>
 
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-gray-600">Background Color</div>
-			<ColorPicker v-model="slide.background" />
+			<div class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Background Color</div>
+				<ColorPicker v-model="slide.background" />
+			</div>
 		</div>
 	</div>
 
 	<CollapsibleSection title="Transition" :initialState="true">
 		<template #default>
-			<FormControl
-				type="autocomplete"
+			<Select
 				:options="['Slide In', 'Fade', 'None']"
-				size="sm"
-				variant="subtle"
 				:modelValue="slide.transition || 'None'"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>
@@ -38,18 +37,18 @@
 </template>
 
 <script setup>
-import { FormControl } from 'frappe-ui'
+import { Select } from 'frappe-ui'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideIndex } from '@/stores/slide'
-import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
+import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 const setSlideTransition = (option) => {
-	slide.value.transition = option.value
+	slide.value.transition = option
 	if (option.value == 'None') slide.value.transitionDuration = 0
 	else slide.value.transitionDuration = 1
 }
