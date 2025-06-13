@@ -22,7 +22,7 @@ class AllowedIP(Document):
 			return get_host_by_ip(self.ip_address)
 
 	def autoname(self) -> None:
-		self.name = f"{self.cluster}-{self.ip_address}"
+		self.name = f"{self.cluster}|{self.ip_address}"
 
 	def db_insert(self, *args, **kwargs) -> None:
 		add_allowed_ip(self.cluster, self.ip_address)
@@ -124,7 +124,7 @@ def fetch_allowed_ips(cluster_name: str, page: int = 1, limit: int = 10, text: s
 def fetch_allowed_ip_details(name: str) -> dict:
 	"""Fetches details of a specific allowed ip from the mail server."""
 
-	cluster_name, ip_address = name.split("-")
+	cluster_name, ip_address = name.split("|")
 	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
 	response = backend_api.request(
 		method="GET",
@@ -148,7 +148,7 @@ def remove_allowed_ip(name: str | list) -> None:
 
 	request_data = []
 	for n in name:
-		cluster_name, ip_address = n.split("-")
+		cluster_name, ip_address = n.split("|")
 		request_data.append({"type": "delete", "keys": [f"server.allowed-ip.{ip_address}"]})
 
 	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
@@ -172,7 +172,7 @@ def format_allowed_ip(allowed_ip: dict, cluster_name: str) -> dict:
 			"creation": creation,
 			"modified": creation,
 			"cluster": cluster_name,
-			"name": f"{cluster_name}-{allowed_ip['ip_address']}",
+			"name": f"{cluster_name}|{allowed_ip['ip_address']}",
 		}
 	)
 
