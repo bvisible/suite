@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-full w-full items-center justify-between rounded border bg-gray-50/80">
+	<div class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80">
 		<div v-if="prefix" class="px-2 text-center text-xs text-gray-500">{{ prefix }}</div>
 		<input
 			type="number"
