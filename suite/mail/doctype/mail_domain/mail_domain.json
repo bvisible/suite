@@ -139,14 +139,9 @@
    "group": "List & Alias",
    "link_doctype": "Mail Alias",
    "link_fieldname": "domain_name"
-  },
-  {
-   "group": "Report",
-   "link_doctype": "DMARC Report",
-   "link_fieldname": "domain_name"
   }
  ],
- "modified": "2025-06-09 16:38:07.714093",
+ "modified": "2025-06-13 17:27:38.910662",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Domain",

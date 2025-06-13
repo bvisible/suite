@@ -1,107 +1,184 @@
-# Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
+
 
 import json
 from datetime import datetime, timezone
 
 import frappe
-import xmltodict
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, convert_utc_to_system_timezone, get_datetime_str
+from frappe.utils import cint, convert_utc_to_system_timezone, get_datetime_str, now
+
+from mail.backend import get_mail_backend_api
+from mail.utils import extract_filter_values
 
 
 class DMARCReport(Document):
-	pass
+	def autoname(self) -> None:
+		self.name = f"{self.cluster}|{self._id}"
+
+	def db_insert(self, *args, **kwargs) -> None:
+		raise NotImplementedError
+
+	def load_from_db(self) -> "DMARCReport":
+		report = fetch_dmarc_report_details(self.name)
+		return super(Document, self).__init__(report)
+
+	def db_update(self) -> None:
+		raise NotImplementedError
+
+	def delete(self) -> None:
+		remove_dmarc_report(self.name)
+
+		if not frappe.flags.in_bulk_delete:
+			frappe.msgprint(_("DMARC report removed successfully."), alert=True)
+
+	@staticmethod
+	def get_list(filters=None, page_length=20, **kwargs) -> list:
+		filters = filters or []
+		cluster, text = None, None
+
+		if isinstance(filters, dict):
+			cluster = filters.get("cluster")
+			text = filters.get("text")
+		elif isinstance(filters, list):
+			cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
+
+		if cluster:
+			reports = fetch_dmarc_reports(cluster, limit=page_length, text=text)
+			if not reports:
+				frappe.msgprint(_("No DMARC reports found."), alert=True)
+
+			return reports
+
+		frappe.msgprint(_("Please select a cluster to view DMARC reports."), alert=True)
+		return []
+
+	@staticmethod
+	def get_count(filters=None, **kwargs) -> int:
+		filters = filters or []
+		cluster, text = extract_filter_values(filters, [{"cluster": "="}, {"text": "like"}])
+
+		return frappe.cache.get_value(get_total_cache_key(cluster, text)) if cluster else 0
+
+	@staticmethod
+	def get_stats(**kwargs) -> dict:
+		return {}
 
 
-def create_dmarc_report(xml_content: str, incoming_mail: str | None = None) -> "DMARCReport":
-	"""Create a DMARC Report from the given XML content."""
+def get_total_cache_key(cluster_name: str, text: str | None = None) -> str:
+	"""Returns a cache key for total reports count."""
 
-	root = xmltodict.parse(xml_content)
-	feedback = root["feedback"]
+	text = text or ""
+	return f"{cluster_name}:dmarc_reports:{text}:total"
 
-	report_metadata = feedback["report_metadata"]
-	policy_published = feedback["policy_published"]
-	records = feedback["record"]
 
-	doc = frappe.new_doc("DMARC Report")
-	doc.incoming_mail = incoming_mail
-	doc.organization = report_metadata["org_name"]
-	doc.email = report_metadata["email"]
-	doc.report_id = report_metadata["report_id"]
-	doc.extra_contact_info = report_metadata.get("extra_contact_info", "")  # Optional
+def fetch_dmarc_reports(cluster_name: str, page: int = 1, limit: int = 10, text: str | None = None) -> list:
+	"""Fetches DMARC reports from the mail server."""
 
-	date_range = report_metadata["date_range"]
-	doc.from_date = get_datetime_str(
-		convert_utc_to_system_timezone(datetime.fromtimestamp(int(date_range["begin"]), tz=timezone.utc))
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(
+		method="GET",
+		endpoint="api/reports/dmarc",
+		params={"page": page, "limit": limit, "filter": text},
 	)
-	doc.to_date = get_datetime_str(
-		convert_utc_to_system_timezone(datetime.fromtimestamp(int(date_range["end"]), tz=timezone.utc))
+
+	if response.status_code == 200:
+		data = response.json()["data"]
+		frappe.cache.set_value(get_total_cache_key(cluster_name, text), data["total"], expires_in_sec=600)
+
+		return [fetch_dmarc_report_details(f"{cluster_name}|{_id}") for _id in data["items"]]
+
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
+
+
+def fetch_dmarc_report_details(name: str) -> dict:
+	"""Fetches details of a specific DMARC report from the mail server."""
+
+	if report := frappe.cache.hget("dmarc_reports", name):
+		return report
+
+	cluster_name, _id = name.split("|")
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(method="GET", endpoint=f"/api/reports/dmarc/{_id}")
+
+	if response.status_code == 200:
+		report = response.json()["data"]
+		report["_id"] = _id
+		report = format_report(report, cluster_name)
+		frappe.cache.hset("dmarc_reports", name, report)
+
+		return report
+
+	frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
+
+
+def remove_dmarc_report(name: str) -> None:
+	"""Removes a DMARC report from the mail server."""
+
+	cluster_name, _id = name.split("|")
+	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
+	response = backend_api.request(method="DELETE", endpoint=f"/api/reports/dmarc/{_id}")
+	if response.status_code != 200:
+		frappe.throw(title=_("Request failed for {0}").format(backend_api.base_url), msg=response.text)
+
+
+def format_report(report: dict, cluster_name: str) -> dict:
+	"""Formats the DMARC report data for display."""
+
+	report_begin = get_datetime_str(
+		convert_utc_to_system_timezone(
+			datetime.fromtimestamp(
+				int(report["report"]["report_metadata"]["date_range"]["begin"]), tz=timezone.utc
+			)
+		)
+	)
+	report_end = get_datetime_str(
+		convert_utc_to_system_timezone(
+			datetime.fromtimestamp(
+				int(report["report"]["report_metadata"]["date_range"]["end"]), tz=timezone.utc
+			)
+		)
 	)
 
-	doc.domain_name = policy_published["domain"]
-	doc.policy_published = json.dumps(
-		{
-			"adkim": policy_published["adkim"],
-			"aspf": policy_published["aspf"],
-			"p": policy_published["p"],
-			"sp": policy_published.get("sp", ""),  # Optional
-			"pct": policy_published.get("pct", ""),  # Optional
-			"np": policy_published.get("np", ""),  # Optional
-			"fo": policy_published.get("fo", ""),  # Optional
-		},
-		indent=4,
-	)
+	formatted_report = {
+		"_id": report["_id"],
+		"cluster": cluster_name,
+		"name": f"{cluster_name}|{report['_id']}",
+		"report_id": report["report"]["report_metadata"]["report_id"],
+		"organization_name": report["report"]["report_metadata"]["org_name"],
+		"email": report["report"]["report_metadata"]["email"],
+		"extra_contact_info": report["report"]["report_metadata"]["extra_contact_info"],
+		"received_from": report["from"],
+		"report_begin": report_begin,
+		"report_end": report_end,
+		"subject": report["subject"],
+		"domain_name": report["report"]["policy_published"]["domain"],
+		"dkim_alignment": report["report"]["policy_published"]["adkim"],
+		"spf_alignment": report["report"]["policy_published"]["aspf"],
+		"domain_policy": report["report"]["policy_published"]["p"],
+		"subdomain_policy": report["report"]["policy_published"]["sp"],
+		"records": [],
+		"creation": now(),
+		"modified": now(),
+	}
 
-	if isinstance(records, dict):
-		records = [records]
-
-	for record in records:
-		row = record["row"]
-		policy_evaluated = row["policy_evaluated"]
-		identifiers = record["identifiers"]
-		auth_results = record["auth_results"]
-
-		source_ip = row["source_ip"]
-		count = row["count"]
-		disposition = policy_evaluated["disposition"]
-		header_from = identifiers["header_from"]
-		envelope_from = identifiers.get("envelope_from", "")  # Optional
-		spf_result = policy_evaluated["spf"].upper()
-		dkim_result = policy_evaluated["dkim"].upper()
-
-		results = []
-		for auth_type, auth_result in auth_results.items():
-			if isinstance(auth_result, dict):
-				auth_result = [auth_result]
-
-			for result in auth_result:
-				result["auth_type"] = auth_type.upper()
-				result["result"] = result["result"].upper()
-				results.append(result)
-
-		doc.append(
-			"records",
+	for record in report["report"]["record"]:
+		formatted_report["records"].append(
 			{
-				"source_ip": source_ip,
-				"count": cint(count),
-				"disposition": disposition,
-				"header_from": header_from,
-				"envelope_from": envelope_from,
-				"spf_result": spf_result,
-				"dkim_result": dkim_result,
-				"auth_results": json.dumps(results, indent=4),
-			},
+				"source_ip": record["row"]["source_ip"],
+				"count": cint(record["row"]["count"]),
+				"disposition": record["row"]["policy_evaluated"]["disposition"],
+				"dkim_result": record["row"]["policy_evaluated"]["dkim"],
+				"spf_result": record["row"]["policy_evaluated"]["spf"],
+				"reason": json.dumps(record["row"]["policy_evaluated"]["reason"], indent=4),
+				"envelope_to": record["identifiers"]["envelope_to"],
+				"envelope_from": record["identifiers"]["envelope_from"],
+				"header_from": record["identifiers"]["header_from"],
+				"dkim_results": json.dumps(record["auth_results"]["dkim"], indent=4),
+				"spf_results": json.dumps(record["auth_results"]["spf"], indent=4),
+			}
 		)
 
-	doc.flags.ignore_links = True
-
-	try:
-		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-		return doc
-	except Exception:
-		frappe.log_error(
-			title=_("Failed to create DMARC Report"),
-			message=frappe.get_traceback(with_context=True),
-		)
+	return formatted_report
