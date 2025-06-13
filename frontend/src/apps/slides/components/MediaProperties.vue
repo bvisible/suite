@@ -31,10 +31,10 @@
 				</div>
 			</div>
 
-			<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-4">
+			<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-3">
 				<div class="flex items-center justify-between">
 					<div :class="fieldLabelClasses">Width</div>
-					<div class="h-[30px] w-28">
+					<div class="w-28">
 						<NumberInput
 							v-model="activeElement.borderWidth"
 							suffix="px"
@@ -47,7 +47,7 @@
 
 				<div class="flex items-center justify-between">
 					<div :class="fieldLabelClasses">Radius</div>
-					<div class="h-[30px] w-28">
+					<div class="w-28">
 						<NumberInput
 							v-model="activeElement.borderRadius"
 							suffix="px"
