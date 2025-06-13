@@ -84,7 +84,10 @@
 							</div>
 							<div class="flex items-center space-x-1 self-start">
 								<MailDate :datetime="mail.received_at" />
-								<Tooltip v-if="mail.flagged" :text="__('Unstar')">
+								<Tooltip
+									v-if="mail.flagged && mailbox !== 'trash'"
+									:text="__('Unstar')"
+								>
 									<Button
 										variant="ghost"
 										@click="
@@ -357,7 +360,7 @@ const mailActions = (mail: Mail): MailAction[] => [
 		label: __('Star'),
 		onClick: () => starMails.submit({ names: [mail.name], flagged: true }),
 		icon: Star,
-		condition: !mail.flagged,
+		condition: !mail.flagged && mailbox !== 'trash',
 	},
 	{
 		label: __('Edit Draft'),
