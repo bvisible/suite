@@ -269,12 +269,12 @@ def get_dkim_selector(key_type: Literal["rsa", "ed25519"]) -> str:
 	return f"frappemail-{key_type[0]}"
 
 
-def get_dmarc_address() -> str:
+def get_postmaster_address() -> str:
 	"""
-	Returns DMARC address.
-	e.g. dmarc@rootdomain.com
+	Returns Postmaster address.
+	e.g. postmaster@rootdomain.com
 	"""
 
 	from mail.utils.cache import get_root_domain_name
 
-	return f"dmarc@{get_root_domain_name()}"
+	return f"postmaster@{get_root_domain_name()}"
