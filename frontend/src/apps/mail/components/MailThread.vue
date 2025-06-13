@@ -31,7 +31,7 @@
 						</Button>
 					</Tooltip>
 
-					<Tooltip :text="__('Move To')">
+					<Tooltip v-if="mailbox !== 'starred'" :text="__('Move To')">
 						<Dropdown :options="moveToOptions">
 							<Button variant="ghost">
 								<template #icon>
@@ -82,10 +82,32 @@
 									</span>
 								</div>
 							</div>
-							<div class="flex items-center space-x-2 self-start">
+							<div class="flex items-center space-x-1 self-start">
 								<MailDate :datetime="mail.received_at" />
 								<Tooltip
-									v-for="action in mailActions(mail).filter((d) => d.condition)"
+									v-if="mail.flagged && mailbox !== 'trash'"
+									:text="__('Unstar')"
+								>
+									<Button
+										variant="ghost"
+										@click="
+											starMails.submit({
+												names: [mail.name],
+												flagged: false,
+											})
+										"
+									>
+										<template #icon>
+											<Star
+												class="fill-ink-amber-2 text-ink-amber-2 h-4 w-4"
+											/>
+										</template>
+									</Button>
+								</Tooltip>
+								<Tooltip
+									v-for="action in mailActions(mail).filter(
+										(d) => d.condition !== false,
+									)"
 									:key="action.label"
 									:text="action.label"
 								>
@@ -175,6 +197,7 @@ import {
 	Reply,
 	ReplyAll,
 	SquarePen,
+	Star,
 	Trash2,
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
@@ -334,6 +357,12 @@ const threadActions = computed((): MailAction[] =>
 
 const mailActions = (mail: Mail): MailAction[] => [
 	{
+		label: __('Star'),
+		onClick: () => starMails.submit({ names: [mail.name], flagged: true }),
+		icon: Star,
+		condition: !mail.flagged && mailbox !== 'trash',
+	},
+	{
 		label: __('Edit Draft'),
 		onClick: () => editDraft(mail),
 		icon: SquarePen,
@@ -398,6 +427,19 @@ const deleteMails = createResource({
 	url: 'mail.mail.doctype.email_message.email_message.bulk_destroy',
 	makeParams: (names: string[]) => ({ names }),
 	onSuccess: () => emit('reloadMails'),
+})
+
+const starMails = createResource({
+	url: 'mail.api.mail.set_flagged',
+	makeParams: ({ names, flagged }: { names: string[]; flagged: boolean }) => ({
+		names,
+		flagged,
+	}),
+	onSuccess: ({ names, flagged }) =>
+		names.forEach(
+			(name) =>
+				(mailThread.data.find((m: Mail) => m.name === name).flagged = Number(flagged)),
+		),
 })
 
 const editDraft = (mail: Mail) => {

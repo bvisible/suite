@@ -5,12 +5,7 @@
 		<div class="flex items-center space-x-2">
 			<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
 			<Breadcrumbs
-				:items="[
-					{
-						label: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
-						route: { name: 'Mailbox', params: { mailbox } },
-					},
-				]"
+				:items="[{ label: mailboxName, route: { name: 'Mailbox', params: { mailbox } } }]"
 			>
 				<template #suffix>
 					<div class="ml-2 self-end text-xs text-gray-600">
@@ -86,7 +81,10 @@
 							</Button>
 						</Tooltip>
 
-						<Tooltip v-if="!!selections.length" :text="__('Move To')">
+						<Tooltip
+							v-if="!!selections.length && mailbox !== 'starred'"
+							:text="__('Move To')"
+						>
 							<Dropdown :options="moveToOptions">
 								<Button variant="ghost">
 									<template #icon>
@@ -193,6 +191,12 @@ const { openSidebar } = useSidebar()
 const mailThread = useTemplateRef('mailThread')
 
 const limit = ref(50)
+
+const mailboxName = computed(() =>
+	mailbox === 'starred'
+		? __('Starred')
+		: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
+)
 
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',

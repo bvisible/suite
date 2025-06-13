@@ -110,14 +110,24 @@ const MAILBOX_ICONS = {
 const sidebarLinks = computed(() => {
 	if (route.meta.isDashboard) return dashboardItems
 
-	return mailboxes.data?.map(
-		(mailbox: { name: string; role: keyof typeof MAILBOX_ICONS; count: number }) => ({
-			label: mailbox.name,
-			icon: MAILBOX_ICONS[mailbox.role],
-			to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
-			count: mailbox.count,
-			activeFor: [mailbox.role],
-		}),
-	)
+	const mailboxItems =
+		mailboxes.data?.map(
+			(mailbox: { name: string; role: keyof typeof MAILBOX_ICONS; count: number }) => ({
+				label: mailbox.name,
+				icon: MAILBOX_ICONS[mailbox.role],
+				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
+				count: mailbox.count,
+				activeFor: [mailbox.role],
+			}),
+		) || []
+
+	const starredItem = {
+		label: __('Starred'),
+		icon: 'Star',
+		to: { name: 'Mailbox', params: { mailbox: 'starred' } },
+		activeFor: ['starred'],
+	}
+
+	return [mailboxItems[0], starredItem, ...mailboxItems.slice(1)].filter(Boolean)
 })
 </script>

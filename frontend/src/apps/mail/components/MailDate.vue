@@ -1,6 +1,8 @@
 <template>
 	<Tooltip :text="tooltipText" :disabled="inList">
-		<div class="text-nowrap text-xs text-gray-600">{{ formattedDate }}</div>
+		<div class="text-nowrap text-xs text-gray-600" :class="{ 'mr-1': !inList }">
+			{{ formattedDate }}
+		</div>
 	</Tooltip>
 </template>
 <script setup lang="ts">
@@ -9,12 +11,9 @@ import { Tooltip } from 'frappe-ui'
 
 import { timeAgo } from '@/utils'
 
-const dayjs = inject('$dayjs')
+const { datetime, inList = false } = defineProps<{ datetime: string; inList?: boolean }>()
 
-const { datetime, inList = false } = defineProps<{
-	datetime: string
-	inList?: boolean
-}>()
+const dayjs = inject('$dayjs')
 
 const formattedDate = computed(() => {
 	if (!inList) return __(timeAgo(datetime))

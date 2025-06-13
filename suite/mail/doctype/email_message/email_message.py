@@ -40,7 +40,11 @@ BLOB_CACHE_TTL = 3600
 class EmailMessage(Document):
 	@staticmethod
 	def get_threads(
-		account: str, mailbox_ids: list[str] | None = None, start: int = 0, limit: int = 50
+		account: str,
+		mailbox_ids: list[str] | None = None,
+		is_flagged: bool = False,
+		start: int = 0,
+		limit: int = 50,
 	) -> list[str]:
 		"""Returns the latest email messages in each thread."""
 
@@ -57,6 +61,9 @@ class EmailMessage(Document):
 
 		if mailbox_ids:
 			subquery = subquery.where(EM.mailbox_id.isin(mailbox_ids))
+
+		if is_flagged:
+			subquery = subquery.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
 
 		query = (
 			frappe.qb.from_(EM)
@@ -134,7 +141,9 @@ class EmailMessage(Document):
 		return messages
 
 	@staticmethod
-	def get_message_ids(account: str, thread_ids: list[str], mailbox_id: str | None = None) -> list[str]:
+	def get_message_ids(
+		account: str, thread_ids: list[str], mailbox_id_filter: str | list[str] | None = None
+	) -> list[str]:
 		"""Returns the message IDs for the given threads."""
 
 		if not account or not thread_ids:
@@ -143,8 +152,8 @@ class EmailMessage(Document):
 		validate_permission_for_account(account)
 
 		filters = {"account": account, "thread_id": ["in", thread_ids], "destroyed": 0}
-		if mailbox_id:
-			filters["mailbox_id"] = mailbox_id
+		if mailbox_id_filter:
+			filters["mailbox_id"] = mailbox_id_filter
 
 		return frappe.get_all("Email Message", filters, pluck="name")
 
