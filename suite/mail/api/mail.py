@@ -29,9 +29,11 @@ def get_mailbox_id(mailbox: str) -> str:
 def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
 	"""Returns mails from the selected mailbox for the current user."""
 
-	mailbox_id = get_mailbox_id(mailbox)
+	if mailbox == "starred":
+		return EmailMessage.get_threads(frappe.session.user, None, True, 0, limit)
 
-	return EmailMessage.get_threads(frappe.session.user, [mailbox_id], 0, limit)
+	mailbox_id = get_mailbox_id(mailbox)
+	return EmailMessage.get_threads(frappe.session.user, [mailbox_id], False, 0, limit)
 
 
 @frappe.whitelist()
@@ -44,12 +46,13 @@ def get_mailbox_thread_count(mailbox: str) -> int:
 		frappe.qb.from_(EmailMessage)
 		.select(EmailMessage.thread_id)
 		.distinct()
-		.where(
-			(EmailMessage.account == frappe.session.user)
-			& (EmailMessage.mailbox_role == mailbox)
-			& (EmailMessage.destroyed == 0)
-		)
+		.where((EmailMessage.account == frappe.session.user) & (EmailMessage.destroyed == 0))
 	)
+
+	if mailbox == "starred":
+		distinct_threads = distinct_threads.where(EmailMessage.flagged == 1)
+	else:
+		distinct_threads = distinct_threads.where(EmailMessage.mailbox_role == mailbox)
 
 	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
 

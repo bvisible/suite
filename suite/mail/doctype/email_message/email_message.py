@@ -40,7 +40,11 @@ BLOB_CACHE_TTL = 3600
 class EmailMessage(Document):
 	@staticmethod
 	def get_threads(
-		account: str, mailbox_ids: list[str] | None = None, start: int = 0, limit: int = 50
+		account: str,
+		mailbox_ids: list[str] | None = None,
+		is_flagged: bool = False,
+		start: int = 0,
+		limit: int = 50,
 	) -> list[str]:
 		"""Returns the latest email messages in each thread."""
 
@@ -57,6 +61,9 @@ class EmailMessage(Document):
 
 		if mailbox_ids:
 			subquery = subquery.where(EM.mailbox_id.isin(mailbox_ids))
+
+		if is_flagged:
+			subquery = subquery.where(EM.flagged == 1)
 
 		query = (
 			frappe.qb.from_(EM)
