@@ -2,7 +2,7 @@
 	<CollapsibleSection title="Border" :initialState="true">
 		<template #default>
 			<div
-				class="flex h-8 w-full items-center gap-3 justify-between rounded-[10px] border bg-gray-50 p-0.5"
+				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-50 p-0.5"
 			>
 				<div
 					v-for="(style, index) in borderStyles"
