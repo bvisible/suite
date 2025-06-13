@@ -29,30 +29,32 @@ def get_mailbox_id(mailbox: str) -> str:
 def get_mails_from_mailbox(mailbox: str, limit: int) -> list:
 	"""Returns mails from the selected mailbox for the current user."""
 
+	user = frappe.session.user
+
 	if mailbox == "starred":
-		return EmailMessage.get_threads(frappe.session.user, None, True, 0, limit)
+		return EmailMessage.get_threads(user, None, True, 0, limit)
 
 	mailbox_id = get_mailbox_id(mailbox)
-	return EmailMessage.get_threads(frappe.session.user, [mailbox_id], False, 0, limit)
+	return EmailMessage.get_threads(user, [mailbox_id], False, 0, limit)
 
 
 @frappe.whitelist()
 def get_mailbox_thread_count(mailbox: str) -> int:
 	"""Returns no. of mails for the given mailbox."""
 
-	EmailMessage = frappe.qb.DocType("Email Message")
+	EM = frappe.qb.DocType("Email Message")
 
 	distinct_threads = (
-		frappe.qb.from_(EmailMessage)
-		.select(EmailMessage.thread_id)
+		frappe.qb.from_(EM)
+		.select(EM.thread_id)
 		.distinct()
-		.where((EmailMessage.account == frappe.session.user) & (EmailMessage.destroyed == 0))
+		.where((EM.account == frappe.session.user) & (EM.destroyed == 0))
 	)
 
 	if mailbox == "starred":
-		distinct_threads = distinct_threads.where(EmailMessage.flagged == 1)
+		distinct_threads = distinct_threads.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
 	else:
-		distinct_threads = distinct_threads.where(EmailMessage.mailbox_role == mailbox)
+		distinct_threads = distinct_threads.where(EM.mailbox_role == mailbox)
 
 	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
 
@@ -424,7 +426,7 @@ def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	"""Sets seen for mails."""
 
 	user = frappe.session.user
-	mailbox_id = get_mailbox_id(mailbox)
+	mailbox_id = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else get_mailbox_id(mailbox)
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 	EmailMessage.mark_emails_as_seen_unseen(user, messages, seen)
 
@@ -465,7 +467,7 @@ def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) ->
 	"""Sets mailbox for threads."""
 
 	user = frappe.session.user
-	mailbox_id = get_mailbox_id(mailbox)
+	mailbox_id = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else get_mailbox_id(mailbox)
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 	EmailMessage.move_emails_to_mailbox(user, messages, None, move_to_mailbox)
 

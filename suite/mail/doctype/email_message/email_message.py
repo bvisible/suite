@@ -63,7 +63,7 @@ class EmailMessage(Document):
 			subquery = subquery.where(EM.mailbox_id.isin(mailbox_ids))
 
 		if is_flagged:
-			subquery = subquery.where(EM.flagged == 1)
+			subquery = subquery.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
 
 		query = (
 			frappe.qb.from_(EM)
@@ -141,7 +141,9 @@ class EmailMessage(Document):
 		return messages
 
 	@staticmethod
-	def get_message_ids(account: str, thread_ids: list[str], mailbox_id: str | None = None) -> list[str]:
+	def get_message_ids(
+		account: str, thread_ids: list[str], mailbox_id_filter: str | list[str] | None = None
+	) -> list[str]:
 		"""Returns the message IDs for the given threads."""
 
 		if not account or not thread_ids:
@@ -150,8 +152,8 @@ class EmailMessage(Document):
 		validate_permission_for_account(account)
 
 		filters = {"account": account, "thread_id": ["in", thread_ids], "destroyed": 0}
-		if mailbox_id:
-			filters["mailbox_id"] = mailbox_id
+		if mailbox_id_filter:
+			filters["mailbox_id"] = mailbox_id_filter
 
 		return frappe.get_all("Email Message", filters, pluck="name")
 
