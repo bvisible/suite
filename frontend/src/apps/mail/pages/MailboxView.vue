@@ -81,7 +81,10 @@
 							</Button>
 						</Tooltip>
 
-						<Tooltip v-if="!!selections.length" :text="__('Move To')">
+						<Tooltip
+							v-if="!!selections.length && mailbox !== 'starred'"
+							:text="__('Move To')"
+						>
 							<Dropdown :options="moveToOptions">
 								<Button variant="ghost">
 									<template #icon>

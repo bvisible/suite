@@ -31,7 +31,7 @@
 						</Button>
 					</Tooltip>
 
-					<Tooltip :text="__('Move To')">
+					<Tooltip v-if="mailbox !== 'starred'" :text="__('Move To')">
 						<Dropdown :options="moveToOptions">
 							<Button variant="ghost">
 								<template #icon>
