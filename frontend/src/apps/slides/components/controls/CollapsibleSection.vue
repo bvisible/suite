@@ -11,7 +11,7 @@
 			</div>
 
 			<transition name="slide-fade">
-				<div v-if="showContent">
+				<div v-if="showContent" class="cursor-default">
 					<div class="flex flex-col gap-3">
 						<slot />
 					</div>
