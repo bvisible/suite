@@ -53,7 +53,7 @@
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Size</div>
-				<div class="h-[30px] w-28">
+				<div class="w-28">
 					<NumberInput
 						v-model="activeElement.fontSize"
 						suffix="px"
