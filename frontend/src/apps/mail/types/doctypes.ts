@@ -86,7 +86,7 @@ export interface MailDomainDNSRecord extends ChildDocType {
 	category: '' | 'Sending Record' | 'Receiving Record' | 'Tracking Record' | 'Server Record'
 }
 
-// Last updated: 2025-06-02 13:02:15.287080
+// Last updated: 2025-06-09 16:38:07.714093
 export interface MailDomain extends DocType {
 	/** Domain Name: Data */
 	domain_name: string
@@ -168,7 +168,7 @@ export interface MailDomainRequest extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-06-02 13:00:34.654482
+// Last updated: 2025-06-05 13:21:25.743867
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -208,7 +208,7 @@ export interface PersonalSignupDomain extends ChildDocType {
 	domain_name: string
 }
 
-// Last updated: 2025-04-08 09:33:16.800557
+// Last updated: 2025-06-09 16:45:53.921752
 export interface MailSettings extends DocType {
 	/** Root Domain Name: Data */
 	root_domain_name: string
@@ -246,28 +246,6 @@ export interface MailSettings extends DocType {
 	spamd_outbound_threshold?: number
 	/** DKIM RSA Key Size: Select */
 	default_dkim_rsa_key_size: '' | '2048' | '4096'
-	/** Maximum Attachment Size (MB): Int */
-	max_attachment_size_mb: number
-	/** Inactivity Timeout (Seconds): Int */
-	smtp_inactivity_timeout: number
-	/** Session Duration (Seconds): Int */
-	smtp_session_duration: number
-	/** Maximum Number of Messages: Int */
-	smtp_max_messages: number
-	/** Maximum Number of Connections: Int */
-	smtp_max_connections: number
-	/** Cleanup Interval (Seconds): Int */
-	smtp_cleanup_interval: number
-	/** Maximum Number of Connections: Int */
-	imap_max_connections: number
-	/** Cleanup Interval (Seconds): Int */
-	imap_cleanup_interval: number
-	/** Authenticated Session Timeout (Seconds): Int */
-	imap_authenticated_timeout: number
-	/** Unauthenticated Session Timeout (Seconds): Int */
-	imap_unauthenticated_timeout: number
-	/** Idle Session Timeout (Seconds): Int */
-	imap_idle_timeout: number
 	/** Allow Business Signup: Check */
 	allow_business_signup: 0 | 1
 	/** Allow Personal Signup: Check */

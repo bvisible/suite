@@ -113,6 +113,7 @@ def get_thread_rows(thread_id: str) -> list[dict]:
 			EM.text_body,
 			EM.received_at,
 			EM.draft,
+			EM.flagged,
 			EM.mailbox_role,
 			EMR.type,
 			EMR.email,
@@ -142,6 +143,7 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 				"text_body": row["text_body"],
 				"received_at": row["received_at"],
 				"draft": row["draft"],
+				"flagged": row["flagged"],
 				"mailbox_role": row["mailbox_role"],
 				"recipients": defaultdict(list),
 				"reply_to": [],
@@ -424,6 +426,15 @@ def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	EmailMessage.mark_emails_as_seen_unseen(user, messages, seen)
 
 	return {"thread_ids": thread_ids, "seen": seen}
+
+
+@frappe.whitelist()
+def set_flagged(names: list[str], flagged: bool) -> dict:
+	"""Sets flagged for mails."""
+
+	EmailMessage.mark_emails_as_flagged_unflagged(frappe.session.user, names, flagged)
+
+	return {"names": names, "flagged": flagged}
 
 
 @frappe.whitelist()
