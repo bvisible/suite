@@ -139,7 +139,7 @@ def fetch_messages(cluster_name: str, page: int = 1, limit: int = 10, text: str 
 def fetch_message_details(name: str) -> dict:
 	"""Fetches details of a specific message from the mail server."""
 
-	cluster_name, queue_id = name.split("-")
+	cluster_name, queue_id = name.split("|")
 	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
 	response = backend_api.request(method="GET", endpoint=f"/api/queue/messages/{queue_id}")
 
@@ -169,7 +169,7 @@ def fetch_blob(cluster_name: str, blob_id: str) -> str:
 def retry_message(name: str) -> None:
 	"""Retries delivery of a message to all recipients."""
 
-	cluster_name, queue_id = name.split("-")
+	cluster_name, queue_id = name.split("|")
 	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
 	response = backend_api.request(method="PATCH", endpoint=f"/api/queue/messages/{queue_id}")
 	if response.status_code != 200:
@@ -179,7 +179,7 @@ def retry_message(name: str) -> None:
 def cancel_message(name: str, recipient: str | None = None) -> None:
 	"""Cancels delivery of a message to specific recipients."""
 
-	cluster_name, queue_id = name.split("-")
+	cluster_name, queue_id = name.split("|")
 	backend_api = get_mail_backend_api("Mail Cluster", cluster_name)
 	response = backend_api.request(
 		method="DELETE", endpoint=f"/api/queue/messages/{queue_id}", params={"filter": recipient}
@@ -278,7 +278,7 @@ def format_message(message: dict, cluster_name: str) -> dict:
 			"cluster": cluster_name,
 			"creation": message["created_at"],
 			"modified": message["created_at"],
-			"name": f"{cluster_name}-{message['queue_id']}",
+			"name": f"{cluster_name}|{message['queue_id']}",
 			"domains": json.dumps(message.get("domains", []), indent=4),
 		}
 	)
