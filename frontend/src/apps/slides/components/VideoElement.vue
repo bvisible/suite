@@ -1,5 +1,5 @@
 <template>
-	<div @click="handleVideoClick" @mouseenter="hoverOver = 'video'" @mouseleave="hoverOver = null">
+	<div @click="handleVideoClick" @mouseenter="hoverOver = true" @mouseleave="hoverOver = false">
 		<video
 			ref="videoElement"
 			:style="videoStyle"
@@ -19,7 +19,7 @@
 			:style="gradientOverlayStyles"
 		>
 			<div
-				v-if="activeElementIds.includes(element.id)"
+				v-if="showProgressBar"
 				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-95"
 			>
 				<component
@@ -30,11 +30,8 @@
 			</div>
 			<div
 				v-if="showProgressBar"
-				class="absolute w-full bottom-0 left-0 cursor-pointer transition-all duration-100 ease-linear"
-				:class="hoverOver == 'progressBar' ? 'h-2' : 'h-[6px]'"
+				class="absolute w-full bottom-0 left-0 cursor-pointer h-2"
 				@click.stop="seekTimestamp"
-				@mouseenter="handleMouseEnter"
-				@mouseleave="hoverOver = null"
 			>
 				<div
 					ref="progressBar"
@@ -117,14 +114,14 @@ const updateDuration = () => {
 	}
 }
 
-const hoverOver = ref(null)
+const hoverOver = ref(false)
 
 const showProgressBar = computed(() => {
 	// In editor, show it when video is active
 	const isActive = activeElementIds.value.includes(element.value.id)
 
 	// During slideshow, show it only if user is hovering over video
-	const slideshowHovering = inSlideShow.value && hoverOver.value === 'video'
+	const slideshowHovering = inSlideShow.value && hoverOver.value
 
 	return isActive || slideshowHovering
 })
@@ -148,9 +145,5 @@ const gradientOverlayStyles = computed(() => ({
 const resetProgress = () => {
 	progress.value = 0
 	isPlaying.value = false
-}
-
-const handleMouseEnter = () => {
-	hoverOver.value = inSlideShow.value ? 'video' : 'progressBar'
 }
 </script>
