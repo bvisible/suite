@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-06-16 10:51+0553\n"
-"PO-Revision-Date: 2025-06-16 10:51+0553\n"
+"POT-Creation-Date: 2025-06-16 11:14+0553\n"
+"PO-Revision-Date: 2025-06-16 11:14+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -3648,15 +3648,14 @@ msgstr ""
 msgid "Outgoing"
 msgstr ""
 
-#. Label of the override_display_name_api (Check) field in DocType 'Mail
-#. Account'
+#. Label of the override_display_name (Check) field in DocType 'Mail Account'
 #: mail/mail/doctype/mail_account/mail_account.json
-msgid "Override Display Name (API)"
+msgid "Override Display Name"
 msgstr ""
 
-#. Label of the override_reply_to_api (Check) field in DocType 'Mail Account'
+#. Label of the override_reply_to (Check) field in DocType 'Mail Account'
 #: mail/mail/doctype/mail_account/mail_account.json
-msgid "Override Reply To (API)"
+msgid "Override Reply To"
 msgstr ""
 
 #. Option for the 'Method' (Select) field in DocType 'Mail Backend Request'
@@ -4286,7 +4285,7 @@ msgstr ""
 
 #. Label of the reply_to_section (Section Break) field in DocType 'Email
 #. Message'
-#. Label of the reply_to (Data) field in DocType 'Mail Account'
+#. Label of the reply_to (Small Text) field in DocType 'Mail Account'
 #. Label of the reply_to_section (Section Break) field in DocType 'Mail Queue'
 #. Label of the reply_to (JSON) field in DocType 'Mail Queue'
 #: frontend/src/components/Modals/MailAccountModal.vue:32

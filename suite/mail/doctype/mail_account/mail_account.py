@@ -18,7 +18,7 @@ from mail.utils.cache import (
 	get_tenant_for_domain,
 	get_tenant_for_user,
 )
-from mail.utils.user import get_user_email_addresses, has_role, is_system_manager, is_tenant_admin
+from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
 	is_subaddressed_email,
@@ -48,6 +48,7 @@ class MailAccount(Document):
 		self.validate_password()
 		self.validate_default_outgoing_email()
 		self.validate_display_name()
+		self.validate_reply_to()
 		self.validate_backup_email()
 
 	def after_insert(self) -> None:
@@ -179,6 +180,24 @@ class MailAccount(Document):
 
 		if self.is_new() and not self.display_name:
 			self.display_name = frappe.db.get_value("User", self.user, "full_name")
+
+	def validate_reply_to(self) -> None:
+		"""Validates the reply-to addresses."""
+
+		if not self.reply_to:
+			return
+
+		reply_to = {}
+		for rt in self.reply_to.split(","):
+			rt = rt.strip()
+			display_name, email = parseaddr(rt)
+
+			if not email:
+				frappe.throw(_("Invalid reply-to address: {0}").format(frappe.bold(rt)))
+
+			reply_to[email] = display_name
+
+		self.reply_to = ", ".join([f"{display_name} <{email}>" for email, display_name in reply_to.items()])
 
 	def validate_backup_email(self) -> None:
 		"""Validates the backup email."""
