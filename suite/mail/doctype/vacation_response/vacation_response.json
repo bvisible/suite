@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "autoname": "field:account",
+ "creation": "2025-06-16 15:13:43.157280",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_eknc",
+  "enabled",
+  "column_break_p7hp",
+  "account",
+  "section_break_dlnr",
+  "from_date",
+  "to_date",
+  "column_break_vcbs",
+  "subject",
+  "body_section",
+  "text_body",
+  "html_body"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_eknc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "no_copy": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "From Date",
+   "mandatory_depends_on": "eval: doc.enabled"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "To Date",
+   "mandatory_depends_on": "eval: doc.enabled"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Subject"
+  },
+  {
+   "fieldname": "text_body",
+   "fieldtype": "Code",
+   "label": "Text"
+  },
+  {
+   "fieldname": "html_body",
+   "fieldtype": "HTML Editor",
+   "label": "HTML"
+  },
+  {
+   "fieldname": "column_break_p7hp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "label": "Account",
+   "no_copy": 1,
+   "options": "Mail Account",
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "section_break_dlnr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vcbs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: true",
+   "fieldname": "body_section",
+   "fieldtype": "Section Break",
+   "label": "Body"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-16 15:30:18.972057",
+ "modified_by": "Administrator",
+ "module": "Mail",
+ "name": "Vacation Response",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "account",
+ "track_changes": 1
+}
