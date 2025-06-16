@@ -188,6 +188,7 @@ const toggleTextProperty = (property, value) => {
 			newStyle = oldStyle.includes(value)
 				? oldStyle.replace(value, '')
 				: oldStyle + ' ' + value
+			newStyle = newStyle.trim()
 	}
 	activeElement.value[property] = newStyle
 }

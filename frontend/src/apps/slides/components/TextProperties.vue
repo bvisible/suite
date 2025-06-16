@@ -7,35 +7,37 @@
 				@update:modelValue="applyPresetTextStyles"
 			/>
 
-			<div class="flex items-center justify-between">
+			<div class="grid grid-cols-5 gap-2">
 				<button
 					v-for="style in styleProperties"
 					:key="style.property"
-					class="cursor-pointer rounded-sm p-1.5"
-					:class="
-						activeElement[style.property]?.includes(style.value) ? 'bg-gray-200' : ''
-					"
+					:class="getFontStyleButtonClasses(style.property, style.value)"
 					@click="toggleTextProperty(style.property, style.value)"
 				>
-					<component :is="style.icon" size="18" :strokeWidth="1.5" />
+					<component
+						:is="style.icon"
+						size="16"
+						:strokeWidth="1.5"
+						:class="getFontStyleIconClasses(style.property, style.value)"
+					/>
 				</button>
 			</div>
 
-			<div class="flex items-center justify-between">
-				<button
-					v-for="textAlign in ['left', 'center', 'right', 'justify']"
-					class="cursor-pointer rounded-sm p-1.5"
-					:class="activeElement.textAlign == textAlign ? 'bg-gray-200' : ''"
-					@click="activeElement.textAlign = textAlign"
+			<div
+				class="h-8 rounded-[10px] bg-gray-100 w-full flex items-center justify-between p-0.5 border"
+			>
+				<div
+					v-for="textAlign in textAlignProperties"
+					:key="textAlign.alignValue"
+					:class="getTabClasses(textAlign.alignValue)"
+					@click="activeElement.textAlign = textAlign.alignValue"
 				>
-					<AlignLeft v-if="textAlign == 'left'" size="18" class="stroke-[1.5]" />
-					<AlignCenter v-if="textAlign == 'center'" size="18" class="stroke-[1.5]" />
-					<AlignRight v-if="textAlign == 'right'" size="18" class="stroke-[1.5]" />
-					<AlignJustify v-if="textAlign == 'justify'" size="18" class="stroke-[1.5]" />
-				</button>
-				<button class="cursor-pointer rounded-sm p-1">
-					<List size="18" class="stroke-[1.5]" />
-				</button>
+					<component
+						:is="textAlign.icon"
+						size="16"
+						:class="getAlignIconClasses(textAlign.alignValue)"
+					/>
+				</div>
 			</div>
 		</template>
 	</CollapsibleSection>
@@ -52,8 +54,8 @@
 			/>
 
 			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-600">Size</div>
-				<div class="h-[30px] w-28">
+				<div :class="fieldLabelClasses">Size</div>
+				<div class="w-28">
 					<NumberInput
 						v-model="activeElement.fontSize"
 						suffix="px"
@@ -65,7 +67,7 @@
 			</div>
 
 			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-600">Color</div>
+				<div :class="fieldLabelClasses">Color</div>
 				<ColorPicker v-model="activeElement.color" />
 			</div>
 		</template>
@@ -122,6 +124,7 @@ import {
 	toggleTextProperty,
 	activeElement,
 } from '@/stores/element'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const textFonts = [
 	'Arial',
@@ -169,6 +172,25 @@ const styleProperties = [
 	},
 ]
 
+const textAlignProperties = [
+	{
+		alignValue: 'left',
+		icon: AlignLeft,
+	},
+	{
+		alignValue: 'center',
+		icon: AlignCenter,
+	},
+	{
+		alignValue: 'right',
+		icon: AlignRight,
+	},
+	{
+		alignValue: 'justify',
+		icon: AlignJustify,
+	},
+]
+
 const presetTextStyles = [
 	{ label: 'Title', value: 'title' },
 	{ label: 'Subtitle', value: 'subtitle' },
@@ -190,6 +212,34 @@ const applyPresetTextStyles = (textStyle) => {
 		activeElement.value.lineHeight = 1
 	}
 	activeElement.value.defaultStyle = textStyle
+}
+
+const getFontStyleButtonClasses = (property, value) => {
+	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
+	if (activeElement.value[property]?.includes(value)) {
+		return `${baseClasses} bg-gray-100`
+	}
+	return baseClasses
+}
+
+const getFontStyleIconClasses = (property, value) => {
+	return activeElement.value[property]?.includes(value) ? 'text-gray-900' : 'text-gray-700'
+}
+
+const getTabClasses = (alignValue) => {
+	const baseClasses = 'rounded h-full flex items-center justify-center px-4 cursor-pointer'
+	if (activeElement.value.textAlign === alignValue) {
+		return `${baseClasses} bg-white shadow`
+	}
+	return baseClasses
+}
+
+const getAlignIconClasses = (alignValue) => {
+	const baseClasses = 'stroke-[1.5] text-gray-600'
+	if (activeElement.value.textAlign === alignValue) {
+		return `${baseClasses} text-gray-800`
+	}
+	return baseClasses
 }
 </script>
 

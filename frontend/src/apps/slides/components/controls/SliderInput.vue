@@ -1,8 +1,8 @@
 <template>
 	<div class="flex flex-col gap-1">
-		<div class="text-sm text-gray-600">{{ label }}</div>
+		<div :class="fieldLabelClasses">{{ label }}</div>
 		<div class="flex items-center justify-between">
-			<div class="relative me-4 h-[1px] w-full">
+			<div class="relative me-3 h-[1px] w-full">
 				<input
 					class="slider absolute top-0 h-full"
 					type="range"
@@ -20,7 +20,7 @@
 			<input
 				v-if="showInput"
 				type="number"
-				class="h-7 w-10 rounded border border-gray-400 px-1 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
+				class="h-[25px] w-10 rounded border border-gray-400 px-1 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
 				:value="modelValue"
 				@change="changeValue"
 			/>
@@ -30,6 +30,7 @@
 
 <script setup>
 import { ref, useTemplateRef, computed } from 'vue'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const props = defineProps({
 	label: String,

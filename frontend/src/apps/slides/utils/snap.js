@@ -3,8 +3,8 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const CENTER_PROXIMITY_THRESHOLD = 15
-	const PROXIMITY_THRESHOLD = 10
+	const CENTER_PROXIMITY_THRESHOLD = 12
+	const PROXIMITY_THRESHOLD = 8
 
 	const snapMovement = ref({ x: 0, y: 0 })
 
@@ -32,12 +32,12 @@ export const useSnapping = (target, parent) => {
 	const visibilityMap = computed(() => {
 		if (!target.value) return
 		return {
-			vertical: Math.abs(diffs.vertical) < PROXIMITY_THRESHOLD,
-			horizontal: Math.abs(diffs.horizontal) < PROXIMITY_THRESHOLD,
-			left: Math.abs(diffs.left) < 10,
-			right: Math.abs(diffs.right) < 10,
-			top: Math.abs(diffs.top) < 10,
-			bottom: Math.abs(diffs.bottom) < 10,
+			vertical: Math.abs(diffs.vertical) < CENTER_PROXIMITY_THRESHOLD,
+			horizontal: Math.abs(diffs.horizontal) < CENTER_PROXIMITY_THRESHOLD,
+			left: Math.abs(diffs.left) < PROXIMITY_THRESHOLD,
+			right: Math.abs(diffs.right) < PROXIMITY_THRESHOLD,
+			top: Math.abs(diffs.top) < PROXIMITY_THRESHOLD,
+			bottom: Math.abs(diffs.bottom) < PROXIMITY_THRESHOLD,
 		}
 	})
 
@@ -145,10 +145,10 @@ export const useSnapping = (target, parent) => {
 		let threshold, margin
 		if (['horizontal', 'vertical'].includes(axis)) {
 			threshold = CENTER_PROXIMITY_THRESHOLD
-			margin = 3
+			margin = 2
 		} else {
 			threshold = PROXIMITY_THRESHOLD
-			margin = 5
+			margin = 3
 		}
 
 		let offset = 0

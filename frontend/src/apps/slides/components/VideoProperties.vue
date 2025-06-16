@@ -16,7 +16,7 @@
 						:strokeWidth="1.2"
 						:class="getPlaybackTextClasses(option.property)"
 					/>
-					<div class="text-xs" :class="getPlaybackTextClasses(option.property)">
+					<div :class="getPlaybackTextClasses(option.property)">
 						{{ option.label }}
 					</div>
 				</div>
@@ -71,6 +71,7 @@ const getPlaybackOptionClasses = (option) => {
 
 const getPlaybackTextClasses = (option) => {
 	return {
+		'text-xs': true,
 		'text-gray-800': hoverOption.value == option || activeElement.value[option],
 		'text-gray-600': hoverOption.value != option && !activeElement.value[option],
 	}

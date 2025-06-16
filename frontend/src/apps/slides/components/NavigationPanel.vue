@@ -1,10 +1,9 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-full top-[2.5rem] w-48 border-r bg-white transition-all duration-300 ease-in-out"
-		:class="showNavigator ? 'left-0' : '-left-48'"
-		@mouseenter="showCollapseShortcut = true"
-		@mouseleave="showCollapseShortcut = false"
+		:class="panelClasses"
+		@mouseenter="handleHoverChange"
+		@mouseleave="handleHoverChange"
 		@wheel="handleWheelEvent"
 	>
 		<div
@@ -15,7 +14,6 @@
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
-						class="my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border"
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
 						@click="emit('changeSlide', slide.idx - 1)"
@@ -24,16 +22,16 @@
 			</Draggable>
 
 			<div
-				class="flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50"
+				:class="insertButtonClasses"
 				@click="emit('insertSlide', presentation.data.slides.length - 1)"
 			>
-				<LucidePlus class="h-3.5 w-3.5" />
+				<LucidePlus class="size-3.5" />
 			</div>
 		</div>
 
 		<div
 			v-if="showNavigator && showCollapseShortcut"
-			class="fixed -left-0.4 bottom-0 z-20 flex h-10 w-48 cursor-pointer items-center justify-between border-t bg-white p-4"
+			:class="toggleButtonClasses"
 			@click="toggleNavigator"
 		>
 			<div class="text-2xs text-gray-500">Toggle Sidebar</div>
@@ -44,12 +42,8 @@
 	</div>
 
 	<!-- Slide Navigator Toggle -->
-	<div
-		v-if="!showNavigator"
-		class="absolute top-1/2 transform -transform-y-1/2 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
-		@click="toggleNavigator"
-	>
-		<LucideChevronRight class="h-3.5 w-3.5" />
+	<div v-if="!showNavigator" :class="toggleButtonClasses" @click="toggleNavigator">
+		<LucideChevronRight class="size-3.5" />
 	</div>
 </template>
 
@@ -70,14 +64,27 @@ const showNavigator = defineModel('showNavigator', {
 
 const emit = defineEmits(['changeSlide', 'insertSlide'])
 
+const insertButtonClasses =
+	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
+
 const showCollapseShortcut = ref(false)
 
 const toggleNavigator = () => {
 	showNavigator.value = !showNavigator.value
 }
 
+const panelClasses = computed(() => {
+	const baseClasses =
+		'fixed z-20 h-full top-[2.5rem] w-48 border-r bg-white transition-all duration-300 ease-in-out'
+	return `${baseClasses} ${showNavigator.value ? 'left-0' : '-left-48'}`
+})
+
 const getThumbnailClasses = (slide) => {
-	return slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
+	const baseClasses =
+		'my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
+	const borderClasses =
+		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
+	return `${baseClasses} ${borderClasses}`
 }
 
 const getThumbnailStyles = (s) => {
@@ -86,6 +93,14 @@ const getThumbnailStyles = (s) => {
 		backgroundImage: `url(${img})`,
 	}
 }
+
+const toggleButtonClasses = computed(() => {
+	const baseClasses = 'z-20 flex cursor-pointer items-center border bg-white'
+	if (showNavigator.value) {
+		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
+	}
+	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
+})
 
 const handleSortEnd = async (event) => {
 	const data = presentation.data
@@ -106,6 +121,14 @@ const handleWheelEvent = (e) => {
 	// prevent zoom event from triggering
 	e.preventDefault()
 	e.stopPropagation()
+}
+
+const handleHoverChange = (e) => {
+	if (e.type === 'mouseenter') {
+		showCollapseShortcut.value = true
+	} else if (e.type === 'mouseleave') {
+		showCollapseShortcut.value = false
+	}
 }
 
 const scrollbarStyles = computed(() => ({
