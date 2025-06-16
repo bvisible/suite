@@ -142,7 +142,7 @@
 						class="w-full"
 						license="GPLv3"
 						:scrolling="true"
-						:src="getSrc(mail.html_body)"
+						:srcdoc="getSrc(mail.html_body)"
 					/>
 
 					<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
@@ -261,7 +261,7 @@ const getSrc = (content: string) => {
 		.replace(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g, '<b>&lt;$1&gt;</b>')
 
 	/* eslint-disable no-useless-escape */
-	const html = `
+	return `
 		<!DOCTYPE html>
 		<html>
 		<head>
@@ -291,6 +291,10 @@ const getSrc = (content: string) => {
 					}
 				}
 			</style>
+			<script
+			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.6"
+			type="text/javascript"
+			><\/script>
 		</head>
 		<body>
 			${content}
@@ -302,17 +306,9 @@ const getSrc = (content: string) => {
 					}
 				});
 			<\/script>
-			<script
-			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.4"
-			type="text/javascript"
-			async
-			><\/script>
 		</body>
 		</html>
 	`
-
-	const blob = new Blob([html], { type: 'text/html' })
-	return URL.createObjectURL(blob)
 }
 
 const user = inject('$user')
