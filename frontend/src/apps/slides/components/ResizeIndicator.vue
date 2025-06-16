@@ -1,9 +1,8 @@
 <template>
-	<div :style="styles" class="backdrop-blur-sm opacity-85 text-black" :class="indicatorClasses">
-		<i v-if="type === 'text'"> {{ Math.round(dimensions.width) }} </i>
+	<div :style="styles" :class="indicatorClasses">
+		<div v-if="type === 'text'">{{ Math.round(dimensions.width) }}</div>
 		<template v-else>
-			<i>{{ Math.round(dimensions.width) }}</i> ×
-			<i>{{ Math.round(dimensions.height) }}</i>
+			<div>{{ Math.round(dimensions.width) }} × {{ Math.round(dimensions.height) }}</div>
 		</template>
 	</div>
 </template>
@@ -36,7 +35,10 @@ const styles = computed(() => ({
 }))
 
 const indicatorClasses = computed(() => {
-	const isDark = isBackgroundColorDark(slide.value.background)
-	return [isDark ? 'bg-white-overlay-600' : 'bg-gray-100']
+	const baseClasses = 'backdrop-blur-sm opacity-85 text-black'
+	const bgClass = isBackgroundColorDark(slide.value.background)
+		? 'bg-white-overlay-600'
+		: 'bg-gray-100'
+	return `${baseClasses} ${bgClass}`
 })
 </script>

@@ -7,7 +7,7 @@
 				class="flex cursor-pointer items-center justify-between"
 				@click="toggleImageOrientation(direction)"
 			>
-				<div class="text-sm text-gray-600">{{ direction.label }}</div>
+				<div :class="fieldLabelClasses">{{ direction.label }}</div>
 				<component :is="direction.icon" size="20" :strokeWidth="1.2" />
 			</div>
 		</template>
@@ -20,8 +20,10 @@
 import { FlipHorizontal, FlipVertical } from 'lucide-vue-next'
 
 import MediaProperties from '@/components/MediaProperties.vue'
+import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const imageOrientationProperties = [
 	{

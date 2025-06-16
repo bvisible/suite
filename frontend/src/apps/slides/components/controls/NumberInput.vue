@@ -1,10 +1,9 @@
 <template>
-	<div class="flex h-full w-full items-center justify-between rounded border bg-gray-50/80">
+	<div class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80">
 		<div v-if="prefix" class="px-2 text-center text-xs text-gray-500">{{ prefix }}</div>
 		<input
 			type="number"
-			class="h-full w-full border-none p-0 text-center text-xs font-semibold text-gray-800 focus:border-none focus:outline-none focus:ring-0"
-			:class="{ 'rounded-l': !prefix }"
+			:class="inputClasses"
 			:value="parseFloat(parseFloat(modelValue).toFixed(2))"
 			@change="changeValue"
 		/>
@@ -14,19 +13,21 @@
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
 				@click="modelValue + rangeStep <= props.rangeEnd && (modelValue += rangeStep)"
 			>
-				<LucideChevronUp class="h-3 w-3" />
+				<LucideChevronUp class="size-3" />
 			</button>
 			<button
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-br bg-white hover:bg-gray-200"
 				@click="modelValue - rangeStep >= props.rangeStart && (modelValue -= rangeStep)"
 			>
-				<LucideChevronDown class="h-3 w-3" />
+				<LucideChevronDown class="size-3" />
 			</button>
 		</div>
 	</div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
 	prefix: String,
 	suffix: String,
@@ -39,6 +40,13 @@ const props = defineProps({
 })
 
 const modelValue = defineModel()
+
+const inputClasses = computed(() => {
+	const baseClasses =
+		'size-full border-none p-0 text-center text-xs font-semibold text-gray-800 focus:border-none focus:outline-none focus:ring-0'
+	if (props.prefix) return `${baseClasses}`
+	else return `${baseClasses} rounded-l`
+})
 
 const changeValue = (e) => {
 	let value = parseFloat(e.target.value)

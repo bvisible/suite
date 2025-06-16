@@ -1,5 +1,5 @@
 <template>
-	<div ref="slideContainer" class="flex w-full h-full" @dragenter="showOverlay">
+	<div ref="slideContainer" class="flex size-full" @dragenter="showOverlay">
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
 		<div
