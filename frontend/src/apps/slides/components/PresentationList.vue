@@ -1,10 +1,5 @@
 <template>
-	<div
-		class="size-full bg-gray-100 flex flex-col gap-2 py-6 overflow-y-auto"
-		:class="{
-			'blur-[1px]': blur,
-		}"
-	>
+	<div :class="backgroundClasses">
 		<!-- Header -->
 		<div class="font-semibold text-base cursor-default text-gray-600 lg:px-40 px-32">
 			Presentations ({{ presentations?.length }})
@@ -45,6 +40,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['setPreview'])
+
+const backgroundClasses = computed(() => {
+	const baseClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-6 overflow-y-auto'
+	if (props.blur) return `${baseClasses} blur-[1px]`
+	return baseClasses
+})
 
 const getCardStyles = (presentation) => {
 	return {
