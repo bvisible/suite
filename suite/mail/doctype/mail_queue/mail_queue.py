@@ -346,6 +346,18 @@ class MailQueue(Document):
 				}
 			)
 
+		if not reply_to:
+			if default_reply_to := frappe.db.get_value("Mail Account", self.account, "reply_to"):
+				for rt in default_reply_to.split(","):
+					display_name, email = parseaddr(rt)
+					if email:
+						reply_to.append(
+							{
+								"display_name": display_name,
+								"email": email,
+							}
+						)
+
 		self.reply_to = json.dumps(reply_to)
 
 	def validate_headers(self) -> None:
