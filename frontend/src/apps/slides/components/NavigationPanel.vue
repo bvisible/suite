@@ -17,6 +17,7 @@
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
 						@click="emit('changeSlide', slide.idx - 1)"
+						:ref="(el) => (slideThumbnailsRef[slide.idx - 1] = el)"
 					></div>
 				</template>
 			</Draggable>
@@ -48,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 
 import { call } from 'frappe-ui'
 
@@ -96,7 +97,7 @@ const getThumbnailClasses = (slide) => {
 		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
 	const borderClasses =
 		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
-	return `${baseClasses} ${borderClasses} slide-${slide.idx}`
+	return `${baseClasses} ${borderClasses}`
 }
 
 const getThumbnailStyles = (s) => {
@@ -147,28 +148,28 @@ const scrollbarStyles = computed(() => ({
 	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
 }))
 
+const slideThumbnailsRef = ref([])
+
+const handleScrollChange = (index) => {
+	const el = slideThumbnailsRef.value[index]
+
+	if (!el) return
+	el.scrollIntoView({
+		behavior: 'smooth',
+		block: 'start',
+		inline: 'nearest',
+	})
+}
+
 watch(
 	() => slideIndex.value,
 	() => {
-		if (showNavigator.value) {
-			nextTick(() => {
-				handleScrollChange(slideIndex.value)
-			})
-		}
+		if (!showNavigator.value) return
+		nextTick(() => {
+			handleScrollChange(slideIndex.value)
+		})
 	},
 )
-
-const handleScrollChange = (index) => {
-	const el = document.querySelector(`.slide-${index}`)
-
-	if (el) {
-		el.scrollIntoView({
-			behavior: 'smooth',
-			block: 'start',
-			inline: 'nearest',
-		})
-	}
-}
 </script>
 
 <style scoped>
