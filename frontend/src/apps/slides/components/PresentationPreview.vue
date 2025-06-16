@@ -1,9 +1,5 @@
 <template>
-	<div
-		class="fixed left-0 w-full h-full transition-all duration-300 ease-in-out flex items-center"
-		:class="presentation ? 'top-0' : 'top-[100%]'"
-		@click="hidePreview()"
-	>
+	<div :class="previewOverlayClasses" @click="hidePreview()">
 		<div class="z-20 w-[70%] absolute left-[calc(50%-31%)] flex justify-between" @click.stop>
 			<div class="w-[88%] flex flex-col gap-8">
 				<!-- Preview -->
@@ -44,18 +40,11 @@
 					:hover-delay="0.3"
 					placement="right"
 				>
-					<div
-						class="w-8 h-8 flex items-center justify-center rounded cursor-pointer"
-						:class="action.label === 'Present' ? 'bg-gray-900' : 'bg-gray-200'"
-						@click="action.onClick"
-					>
+					<div :class="getActionButtonClasses(action.label)" @click="action.onClick">
 						<component
 							:is="action.icon"
 							size="16"
-							class="stroke-[1.5]"
-							:class="{
-								'text-white': action.label === 'Present',
-							}"
+							:class="getActionIconClasses(action.label)"
 						/>
 					</div>
 				</Tooltip>
@@ -93,6 +82,31 @@ const slideThumbnails = createResource({
 		presentation: props.presentation.name,
 	}),
 })
+
+const previewOverlayClasses = computed(() => {
+	const baseClasses =
+		'fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center'
+	if (props.presentation) {
+		return `${baseClasses} top-0`
+	}
+	return `${baseClasses} top-[100%]`
+})
+
+const getActionButtonClasses = (action) => {
+	const baseClasses = 'size-8 flex items-center justify-center rounded cursor-pointer'
+	if (action === 'Present') {
+		return `${baseClasses} bg-gray-900`
+	}
+	return `${baseClasses} bg-gray-200`
+}
+
+const getActionIconClasses = (action) => {
+	const baseClasses = 'stroke-[1.5]'
+	if (action === 'Present') {
+		return `${baseClasses} text-white`
+	}
+	return baseClasses
+}
 
 const previewStyles = computed(() => {
 	const thumbnail = slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail

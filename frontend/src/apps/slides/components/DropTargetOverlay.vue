@@ -1,7 +1,7 @@
 <template>
 	<div
 		ref="overlay"
-		class="bg-blue-400 opacity-10 z-15 w-full h-full fixed top-0 left-0"
+		class="bg-blue-400 opacity-10 z-15 size-full fixed top-0 left-0"
 		@dragleave.prevent="handleDragLeave"
 		@dragover.prevent
 		@drop="handleMediaDrop"
