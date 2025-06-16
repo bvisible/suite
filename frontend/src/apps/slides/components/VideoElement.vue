@@ -1,5 +1,5 @@
 <template>
-	<div @click="handleVideoClick" @mouseenter="hoverOver = true" @mouseleave="hoverOver = false">
+	<div @click="handleVideoClick" @mouseenter="handleHoverChange" @mouseleave="handleHoverChange">
 		<video
 			ref="videoElement"
 			:style="videoStyle"
@@ -15,13 +15,10 @@
 		</video>
 		<div
 			ref="overlay"
-			class="transition-opacity duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
+			class="transition-opacity overflow-hidden duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
 			:style="gradientOverlayStyles"
 		>
-			<div
-				v-if="showProgressBar"
-				class="absolute inset-[calc(50%-16px)] flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-95"
-			>
+			<div v-if="showProgressBar" :class="toggleButtonClasses">
 				<component
 					size="16"
 					:is="isPlaying ? Pause : Play"
@@ -30,17 +27,12 @@
 			</div>
 			<div
 				v-if="showProgressBar"
-				class="absolute w-full bottom-0 left-0 cursor-pointer h-2"
+				ref="progressBar"
+				:class="progressBarClasses"
 				@click.stop="seekTimestamp"
 			>
-				<div
-					ref="progressBar"
-					class="bg-white-overlay-900 opacity-30 w-full h-full absolute left-0 top-0"
-				></div>
-				<div
-					class="bg-white-overlay-900 opacity-80 h-full absolute left-0 top-0 transition-width duration-100 ease-linear"
-					:style="{ width: `${progress}%` }"
-				></div>
+				<div :class="getBarClasses('duration')"></div>
+				<div :class="getBarClasses('current')" :style="{ width: `${progress}%` }"></div>
 			</div>
 		</div>
 	</div>
@@ -61,6 +53,22 @@ const element = defineModel('element', {
 
 const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')
+
+const toggleButtonClasses =
+	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-95'
+
+const getBarClasses = (type) => {
+	const commonClasses = 'bg-white-overlay-900 h-full absolute left-0 top-0'
+	if (type == 'current') {
+		return `${commonClasses} opacity-80 transition-width duration-100 ease-linear`
+	}
+	return `${commonClasses} opacity-30 w-full`
+}
+
+const progressBarClasses = computed(() => {
+	const baseClasses = 'absolute w-full bottom-0 left-0 cursor-pointer h-2'
+	return `${baseClasses} ${inSlideShow.value ? 'bottom-0' : 'bottom-[10px]'}`
+})
 
 const isPlaying = ref(false)
 
@@ -140,10 +148,19 @@ const gradientOverlayStyles = computed(() => ({
 	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0) 100%),
 	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0) 100%)`,
 	opacity: showProgressBar.value ? 1 : 0,
+	borderRadius: `${element.value.borderRadius}px`,
 }))
 
 const resetProgress = () => {
 	progress.value = 0
 	isPlaying.value = false
+}
+
+const handleHoverChange = (e) => {
+	if (e.type === 'mouseenter') {
+		hoverOver.value = true
+	} else if (e.type === 'mouseleave') {
+		hoverOver.value = false
+	}
 }
 </script>
