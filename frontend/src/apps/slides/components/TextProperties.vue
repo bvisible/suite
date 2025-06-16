@@ -11,7 +11,6 @@
 				<button
 					v-for="style in styleProperties"
 					:key="style.property"
-					class="cursor-pointer rounded flex items-center justify-center py-1.5"
 					:class="getFontStyleButtonClasses(style.property, style.value)"
 					@click="toggleTextProperty(style.property, style.value)"
 				>
@@ -30,19 +29,13 @@
 				<div
 					v-for="textAlign in textAlignProperties"
 					:key="textAlign.alignValue"
-					class="rounded h-full flex items-center justify-center px-4 cursor-pointer"
-					:class="{
-						'bg-white shadow': activeElement.textAlign === textAlign.alignValue,
-					}"
+					:class="getTabClasses(textAlign.alignValue)"
 					@click="activeElement.textAlign = textAlign.alignValue"
 				>
 					<component
 						:is="textAlign.icon"
 						size="16"
-						class="stroke-[1.5] text-gray-600"
-						:class="{
-							'text-gray-800': activeElement.textAlign === textAlign.alignValue,
-						}"
+						:class="getAlignIconClasses(textAlign.alignValue)"
 					/>
 				</div>
 			</div>
@@ -222,11 +215,31 @@ const applyPresetTextStyles = (textStyle) => {
 }
 
 const getFontStyleButtonClasses = (property, value) => {
-	return activeElement.value[property]?.includes(value) ? 'bg-gray-100' : ''
+	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
+	if (activeElement.value[property]?.includes(value)) {
+		return `${baseClasses} bg-gray-100`
+	}
+	return baseClasses
 }
 
 const getFontStyleIconClasses = (property, value) => {
 	return activeElement.value[property]?.includes(value) ? 'text-gray-900' : 'text-gray-700'
+}
+
+const getTabClasses = (alignValue) => {
+	const baseClasses = 'rounded h-full flex items-center justify-center px-4 cursor-pointer'
+	if (activeElement.value.textAlign === alignValue) {
+		return `${baseClasses} bg-white shadow`
+	}
+	return baseClasses
+}
+
+const getAlignIconClasses = (alignValue) => {
+	const baseClasses = 'stroke-[1.5] text-gray-600'
+	if (activeElement.value.textAlign === alignValue) {
+		return `${baseClasses} text-gray-800`
+	}
+	return baseClasses
 }
 </script>
 
