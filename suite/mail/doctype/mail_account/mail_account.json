@@ -19,10 +19,10 @@
   "backup_email",
   "section_break_gexs",
   "display_name",
-  "override_display_name_api",
+  "override_display_name",
   "column_break_yyco",
   "reply_to",
-  "override_reply_to_api"
+  "override_reply_to"
  ],
  "fields": [
   {
@@ -99,26 +99,14 @@
   },
   {
    "fieldname": "reply_to",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "ignore_xss_filter": 1,
    "label": "Reply To",
    "length": 255
   },
   {
-   "default": "0",
-   "fieldname": "override_display_name_api",
-   "fieldtype": "Check",
-   "label": "Override Display Name (API)"
-  },
-  {
    "fieldname": "column_break_yyco",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "override_reply_to_api",
-   "fieldtype": "Check",
-   "label": "Override Reply To (API)"
   },
   {
    "fieldname": "password",
@@ -173,6 +161,18 @@
    "fieldtype": "Data",
    "label": "Backup Email",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "override_display_name",
+   "fieldtype": "Check",
+   "label": "Override Display Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "override_reply_to",
+   "fieldtype": "Check",
+   "label": "Override Reply To"
   }
  ],
  "grid_page_length": 50,
@@ -214,7 +214,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-06-05 13:21:25.743867",
+ "modified": "2025-06-16 11:14:11.831446",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
