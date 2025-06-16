@@ -37,12 +37,7 @@
   "spamd_port",
   "column_break_c43x",
   "spamd_scanning_mode",
-  "spamd_hybrid_scanning_threshold",
-  "spamd_outbound_section",
-  "enable_spamd_for_outbound",
-  "spamd_outbound_block",
-  "column_break_lhy4",
-  "spamd_outbound_threshold"
+  "spamd_hybrid_scanning_threshold"
  ],
  "fields": [
   {
@@ -165,36 +160,6 @@
    "label": "Enable Spam Detection"
   },
   {
-   "fieldname": "column_break_lhy4",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "1",
-   "description": "Enable or disable outbound spam detection.",
-   "fieldname": "enable_spamd_for_outbound",
-   "fieldtype": "Check",
-   "label": "Enable",
-   "read_only_depends_on": "eval: !doc.enable_spamd"
-  },
-  {
-   "default": "0",
-   "description": "Block emails identified as spam from being sent.",
-   "fieldname": "spamd_outbound_block",
-   "fieldtype": "Check",
-   "label": "Block Spam",
-   "read_only_depends_on": "eval: !doc.enable_spamd || !doc.enable_spamd_for_outbound"
-  },
-  {
-   "default": "3",
-   "description": "Spam score threshold for blocking emails.",
-   "fieldname": "spamd_outbound_threshold",
-   "fieldtype": "Float",
-   "label": "Threshold",
-   "mandatory_depends_on": "eval: doc.enable_spamd_for_outbound",
-   "precision": "1",
-   "read_only_depends_on": "eval: !doc.enable_spamd || !doc.enable_spamd_for_outbound"
-  },
-  {
    "fieldname": "column_break_rwnw",
    "fieldtype": "Column Break"
   },
@@ -206,11 +171,6 @@
    "label": "DKIM RSA Key Size",
    "options": "\n2048\n4096",
    "reqd": 1
-  },
-  {
-   "fieldname": "spamd_outbound_section",
-   "fieldtype": "Section Break",
-   "label": "Outbound"
   },
   {
    "default": "0",
@@ -321,7 +281,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-09 16:45:53.921752",
+ "modified": "2025-06-16 10:50:56.921888",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",
