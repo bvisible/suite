@@ -3,8 +3,7 @@
 		<div v-if="prefix" class="px-2 text-center text-xs text-gray-500">{{ prefix }}</div>
 		<input
 			type="number"
-			class="size-full border-none p-0 text-center text-xs font-semibold text-gray-800 focus:border-none focus:outline-none focus:ring-0"
-			:class="{ 'rounded-l': !prefix }"
+			:class="inputClasses"
 			:value="parseFloat(parseFloat(modelValue).toFixed(2))"
 			@change="changeValue"
 		/>
@@ -27,6 +26,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
 	prefix: String,
 	suffix: String,
@@ -39,6 +40,13 @@ const props = defineProps({
 })
 
 const modelValue = defineModel()
+
+const inputClasses = computed(() => {
+	const baseClasses =
+		'size-full border-none p-0 text-center text-xs font-semibold text-gray-800 focus:border-none focus:outline-none focus:ring-0'
+	if (props.prefix) return `${baseClasses}`
+	else return `${baseClasses} rounded-l`
+})
 
 const changeValue = (e) => {
 	let value = parseFloat(e.target.value)
