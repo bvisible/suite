@@ -238,12 +238,6 @@ export interface MailSettings extends DocType {
 	spamd_hybrid_scanning_threshold?: number
 	/** Enable Spam Detection: Check */
 	enable_spamd: 0 | 1
-	/** Enable: Check */
-	enable_spamd_for_outbound: 0 | 1
-	/** Block Spam: Check */
-	spamd_outbound_block: 0 | 1
-	/** Threshold: Float */
-	spamd_outbound_threshold?: number
 	/** DKIM RSA Key Size: Select */
 	default_dkim_rsa_key_size: '' | '2048' | '4096'
 	/** Allow Business Signup: Check */
