@@ -184,10 +184,10 @@ export interface MailAccount extends DocType {
 	display_name?: string
 	/** Reply To: Data */
 	reply_to?: string
-	/** Override Display Name (API): Check */
-	override_display_name_api: 0 | 1
-	/** Override Reply To (API): Check */
-	override_reply_to_api: 0 | 1
+	/** Override Display Name: Check */
+	override_display_name: 0 | 1
+	/** Override Reply To: Check */
+	override_reply_to: 0 | 1
 	/** Password: Password */
 	password?: string
 	/** Secret: Small Text */
