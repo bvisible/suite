@@ -1,16 +1,22 @@
 <template>
 	<div class="flex flex-col gap-1">
 		<div :class="fieldLabelClasses">{{ label }}</div>
-		<div class="flex items-center justify-between">
-			<div class="relative me-3 h-[1px] w-full">
+		<div class="flex items-center justify-between cursor-pointer">
+			<div class="relative me-3 h-[2.5px] w-full">
 				<input
-					class="slider absolute top-0 h-full"
+					class="slider absolute top-0 h-full cursor-pointer"
+					:class="{
+						'!cursor-grabbing': isDragging,
+					}"
 					type="range"
 					:min="rangeStart"
 					:max="rangeEnd"
 					:step="rangeStep"
 					:value="modelValue"
 					@input="$emit('update:modelValue', $event.target.value)"
+					@mousedown="isDragging = true"
+					@mouseup="isDragging = false"
+					@mouseleave="isDragging = false"
 				/>
 				<div
 					class="absolute top-0 h-full rounded border bg-black border-black"
@@ -54,6 +60,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const sliderBar = useTemplateRef('slider')
 
+const isDragging = ref(false)
+
 const changeValue = (e) => {
 	const value = parseFloat(e.target.value)
 	emit('update:modelValue', Math.max(props.rangeStart, Math.min(props.rangeEnd, value)))
@@ -90,7 +98,7 @@ input::-webkit-inner-spin-button {
 .slider {
 	-webkit-appearance: none;
 	width: 100%;
-	height: 2px;
+	height: 2.5px;
 	background: #d3d3d3;
 	outline: none;
 	-webkit-transition: 0.2s;
@@ -108,7 +116,6 @@ input::-webkit-inner-spin-button {
 	width: 10px;
 	height: 10px;
 	background: #000000;
-	cursor: pointer;
 	border-radius: 50%;
 }
 
