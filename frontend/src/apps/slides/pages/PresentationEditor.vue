@@ -1,30 +1,35 @@
 <template>
-	<div
-		class="fixed h-screen w-screen flex flex-col select-none"
-		:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
-	>
+	<div class="h-screen w-screen flex flex-col select-none overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
 				<PresentationHeader />
 			</template>
 		</Navbar>
+		<div
+			class="flex relative h-screen"
+			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
+		>
+			<NavigationPanel
+				class="absolute top-0 bottom-0 -left-48 z-50"
+				:class="{
+					'left-0': showNavigator,
+				}"
+				:showNavigator="showNavigator"
+				@changeSlide="changeSlide"
+				@insertSlide="insertSlide"
+			/>
 
-		<NavigationPanel
-			:showNavigator="showNavigator"
-			@changeSlide="changeSlide"
-			@insertSlide="insertSlide"
-		/>
+			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
-		<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
+			<Toolbar
+				@setHighlight="setHighlight"
+				@insert="insertSlide"
+				@duplicate="duplicateSlide"
+				@delete="deleteSlide"
+			/>
 
-		<Toolbar
-			@setHighlight="setHighlight"
-			@insert="insertSlide"
-			@duplicate="duplicateSlide"
-			@delete="deleteSlide"
-		/>
-
-		<PropertiesPanel />
+			<PropertiesPanel class="absolute top-0 right-0 bottom-0 z-10" />
+		</div>
 	</div>
 </template>
 

@@ -1,8 +1,8 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		class="fixed z-20 h-full top-[2.5rem] w-48 border-r bg-white transition-all duration-300 ease-in-out"
-		:class="showNavigator ? 'left-0' : '-left-48'"
+		class="w-48 border-r bg-white transition-all duration-300 ease-in-out"
+		:class="attrs.class"
 		@mouseenter="showCollapseShortcut = true"
 		@mouseleave="showCollapseShortcut = false"
 		@wheel="handleWheelEvent"
@@ -62,6 +62,10 @@ import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideIndex } from '@/stores/slide'
+
+import { useAttrs } from 'vue'
+
+const attrs = useAttrs()
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
