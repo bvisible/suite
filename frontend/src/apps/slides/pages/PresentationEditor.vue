@@ -10,10 +10,7 @@
 			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 		>
 			<NavigationPanel
-				class="absolute top-0 bottom-0 -left-48 z-50"
-				:class="{
-					'left-0': showNavigator,
-				}"
+				class="absolute top-0 bottom-0 z-50"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
 				@insertSlide="insertSlide"
