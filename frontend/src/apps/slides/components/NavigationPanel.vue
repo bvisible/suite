@@ -15,7 +15,6 @@
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
-						class="my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border"
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
 						@click="emit('changeSlide', slide.idx - 1)"
@@ -77,7 +76,11 @@ const toggleNavigator = () => {
 }
 
 const getThumbnailClasses = (slide) => {
-	return slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
+	const baseClasses =
+		'my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
+	const borderClasses =
+		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
+	return `${baseClasses} ${borderClasses}`
 }
 
 const getThumbnailStyles = (s) => {
