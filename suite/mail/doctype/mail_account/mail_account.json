@@ -185,12 +185,17 @@
   },
   {
    "group": "Reference",
-   "link_doctype": "Mail Sync History",
+   "link_doctype": "Vacation Response",
    "link_fieldname": "account"
   },
   {
    "group": "Reference",
    "link_doctype": "JMAP Sync State",
+   "link_fieldname": "account"
+  },
+  {
+   "group": "Reference",
+   "link_doctype": "Mail Sync History",
    "link_fieldname": "account"
   },
   {
@@ -214,7 +219,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-06-16 11:14:11.831446",
+ "modified": "2025-06-16 15:21:21.511404",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
