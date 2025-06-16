@@ -7,25 +7,13 @@
 				<div
 					v-for="(style, index) in borderStyles"
 					:key="index"
-					class="flex h-full w-1/4 cursor-pointer items-center justify-center rounded"
-					:class="activeElement.borderStyle == style ? 'bg-white shadow' : ''"
+					:class="getTabClasses(style)"
 					@click="addBorder(style)"
 				>
-					<LucideBan
-						v-if="style == 'none'"
-						class="size-4"
-						:class="
-							activeElement.borderStyle == style ? 'text-gray-800' : 'text-gray-500'
-						"
-					/>
+					<LucideBan v-if="style == 'none'" :class="getTabIconClasses(style)" />
 					<div
 						v-else
-						class="h-4 w-5 rounded-sm border"
-						:class="
-							activeElement.borderStyle == style
-								? 'border-gray-800'
-								: 'border-gray-500'
-						"
+						:class="getTabIconClasses(style)"
 						:style="{ borderStyle: style }"
 					></div>
 				</div>
@@ -107,6 +95,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
+import { computed } from 'vue'
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
@@ -120,6 +109,23 @@ const addBorder = (style) => {
 		activeElement.value.borderWidth = 0
 		activeElement.value.borderColor = ''
 		activeElement.value.borderRadius = 0
+	}
+}
+
+const getTabClasses = (style) => {
+	const baseClasses = 'flex h-full w-1/4 cursor-pointer items-center justify-center rounded'
+	if (activeElement.value.borderStyle == style) {
+		return `${baseClasses} bg-white shadow`
+	}
+	return baseClasses
+}
+
+const getTabIconClasses = (style) => {
+	const isActive = activeElement.value.borderStyle == style
+	if (style == 'none') {
+		return `size-4 ${isActive ? 'text-gray-800' : 'text-gray-500'}`
+	} else {
+		return `h-4 w-5 rounded-sm border ${isActive ? 'border-gray-800' : 'border-gray-500'}`
 	}
 }
 </script>
