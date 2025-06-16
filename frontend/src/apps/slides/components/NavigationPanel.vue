@@ -1,7 +1,7 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		:class="panelClasses"
+		:class="[panelClasses, attrs.class]"
 		@mouseenter="handleHoverChange"
 		@mouseleave="handleHoverChange"
 		@wheel="handleWheelEvent"
@@ -79,10 +79,16 @@ const toggleNavigator = () => {
 
 const panelClasses = computed(() => {
 	// can't add it from parent attrs.class since attrs is not reactive
-	const leftPositionClass = showNavigator.value ? 'left-0' : '-left-48'
-
-	const baseClasses = 'w-48 border-r bg-white transition-all duration-300 ease-in-out'
-	return `${baseClasses} ${leftPositionClass} ${attrs.class}`
+	const positionClass = showNavigator.value ? 'left-0' : '-left-48'
+	const baseClasses = [
+		'w-48',
+		'border-r',
+		'bg-white',
+		'transition-all',
+		'duration-300',
+		'ease-in-out',
+	]
+	return [...baseClasses, positionClass]
 })
 
 const getThumbnailClasses = (slide) => {
