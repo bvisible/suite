@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="w-full h-full bg-gray-100 flex flex-col gap-2 py-6 overflow-y-auto"
+		class="size-full bg-gray-100 flex flex-col gap-2 py-6 overflow-y-auto"
 		:class="{
 			'blur-[1px]': blur,
 		}"

@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="fixed left-0 w-full h-full transition-all duration-300 ease-in-out flex items-center"
+		class="fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center"
 		:class="presentation ? 'top-0' : 'top-[100%]'"
 		@click="hidePreview()"
 	>
@@ -45,7 +45,7 @@
 					placement="right"
 				>
 					<div
-						class="w-8 h-8 flex items-center justify-center rounded cursor-pointer"
+						class="size-8 flex items-center justify-center rounded cursor-pointer"
 						:class="action.label === 'Present' ? 'bg-gray-900' : 'bg-gray-200'"
 						@click="action.onClick"
 					>
