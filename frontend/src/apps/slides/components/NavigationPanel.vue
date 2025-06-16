@@ -8,7 +8,7 @@
 	>
 		<div
 			v-if="presentation.data"
-			class="flex flex-col h-full p-4 pb-12 overflow-y-auto"
+			class="flex flex-col h-full p-4 overflow-y-auto"
 			:style="scrollbarStyles"
 		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 
 import { call } from 'frappe-ui'
 
@@ -96,7 +96,7 @@ const getThumbnailClasses = (slide) => {
 		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
 	const borderClasses =
 		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
-	return `${baseClasses} ${borderClasses}`
+	return `${baseClasses} ${borderClasses} slide-${slide.idx}`
 }
 
 const getThumbnailStyles = (s) => {
@@ -146,6 +146,29 @@ const handleHoverChange = (e) => {
 const scrollbarStyles = computed(() => ({
 	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
 }))
+
+watch(
+	() => slideIndex.value,
+	() => {
+		if (showNavigator.value) {
+			nextTick(() => {
+				handleScrollChange(slideIndex.value)
+			})
+		}
+	},
+)
+
+const handleScrollChange = (index) => {
+	const el = document.querySelector(`.slide-${index}`)
+
+	if (el) {
+		el.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start',
+			inline: 'nearest',
+		})
+	}
+}
 </script>
 
 <style scoped>
