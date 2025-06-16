@@ -605,6 +605,61 @@ class JMAPClient:
 				],
 			)
 
+	def vacation_response_get(self) -> dict:
+		"""Returns the vacation response for the logged-in user."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"VacationResponse/get",
+					{
+						"accountId": self.account_id,
+					},
+					"0",
+				]
+			],
+		)
+
+		vacation_responses = response["methodResponses"][0][1]["list"]
+		return vacation_responses[0] if vacation_responses else {}
+
+	def vacation_response_set(
+		self,
+		enabled: bool,
+		from_date: str | None = None,
+		to_date: str | None = None,
+		subject: str | None = None,
+		text_body: str | None = None,
+		html_body: str | None = None,
+	) -> dict:
+		"""Sets the vacation response for the logged-in user."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"VacationResponse/set",
+					{
+						"accountId": self.account_id,
+						"update": {
+							"singleton": {
+								"isEnabled": enabled,
+								"fromDate": from_date or None,
+								"toDate": to_date or None,
+								"subject": subject or None,
+								"textBody": text_body or None,
+								"htmlBody": html_body or None,
+							}
+						},
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]
+
 
 def get_jmap_client(account: str, server: str | None = None, cache: bool = True) -> "JMAPClient":
 	"""Returns a JMAP client for the given account."""
