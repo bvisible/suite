@@ -13,7 +13,7 @@
 				>
 					<LucideBan
 						v-if="style == 'none'"
-						class="h-4 w-4"
+						class="size-4"
 						:class="
 							activeElement.borderStyle == style ? 'text-gray-800' : 'text-gray-500'
 						"

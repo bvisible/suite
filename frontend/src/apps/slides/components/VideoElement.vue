@@ -15,7 +15,7 @@
 		</video>
 		<div
 			ref="overlay"
-			class="transition-opacity overflow-hidden duration-500 ease-in-out absolute top-0 left-0 w-full h-full"
+			class="transition-opacity overflow-hidden duration-500 ease-in-out absolute top-0 left-0 size-full"
 			:style="gradientOverlayStyles"
 		>
 			<div v-if="showProgressBar" :class="toggleButtonClasses">

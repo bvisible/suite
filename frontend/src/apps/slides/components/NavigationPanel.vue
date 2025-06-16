@@ -27,7 +27,7 @@
 				class="flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50"
 				@click="emit('insertSlide', presentation.data.slides.length - 1)"
 			>
-				<LucidePlus class="h-3.5 w-3.5" />
+				<LucidePlus class="size-3.5" />
 			</div>
 		</div>
 
@@ -49,7 +49,7 @@
 		class="absolute top-1/2 transform -transform-y-1/2 z-20 flex h-12 w-4 cursor-pointer items-center justify-center rounded-r-lg border bg-white shadow-xl"
 		@click="toggleNavigator"
 	>
-		<LucideChevronRight class="h-3.5 w-3.5" />
+		<LucideChevronRight class="size-3.5" />
 	</div>
 </template>
 
