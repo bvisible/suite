@@ -8,7 +8,7 @@
 	>
 		<div
 			v-if="presentation.data"
-			class="flex flex-col h-full px-4 pb-12 overflow-y-auto"
+			class="flex flex-col h-full p-4 pb-12 overflow-y-auto"
 			:style="scrollbarStyles"
 		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
@@ -87,7 +87,7 @@ const panelClasses = computed(() => {
 
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
-		'my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
+		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
 	const borderClasses =
 		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
 	return `${baseClasses} ${borderClasses}`
