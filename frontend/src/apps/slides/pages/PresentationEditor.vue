@@ -1,8 +1,5 @@
 <template>
-	<div
-		class="fixed h-screen w-screen flex flex-col select-none"
-		:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
-	>
+	<div :class="backgroundClasses">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
 				<PresentationHeader />
@@ -77,6 +74,14 @@ const primaryButtonProps = {
 	icon: Presentation,
 	onClick: () => startSlideShow(),
 }
+
+const backgroundClasses = computed(() => {
+	const baseClasses = 'fixed h-screen w-screen flex flex-col select-none'
+	if (activeElementIds.value.length) {
+		return `${baseClasses} bg-gray-100`
+	}
+	return `${baseClasses} bg-gray-300`
+})
 
 const route = useRoute()
 const router = useRouter()

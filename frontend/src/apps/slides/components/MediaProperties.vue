@@ -2,39 +2,27 @@
 	<CollapsibleSection title="Border" :initialState="true">
 		<template #default>
 			<div
-				class="flex h-8 w-full items-center gap-3 justify-between rounded-[10px] border bg-gray-50 p-0.5"
+				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-50 p-0.5"
 			>
 				<div
 					v-for="(style, index) in borderStyles"
 					:key="index"
-					class="flex h-full w-1/4 cursor-pointer items-center justify-center rounded"
-					:class="activeElement.borderStyle == style ? 'bg-white shadow' : ''"
+					:class="getTabClasses(style)"
 					@click="addBorder(style)"
 				>
-					<LucideBan
-						v-if="style == 'none'"
-						class="h-4 w-4"
-						:class="
-							activeElement.borderStyle == style ? 'text-gray-800' : 'text-gray-500'
-						"
-					/>
+					<LucideBan v-if="style == 'none'" :class="getTabIconClasses(style)" />
 					<div
 						v-else
-						class="h-4 w-5 rounded-sm border"
-						:class="
-							activeElement.borderStyle == style
-								? 'border-gray-800'
-								: 'border-gray-500'
-						"
+						:class="getTabIconClasses(style)"
 						:style="{ borderStyle: style }"
 					></div>
 				</div>
 			</div>
 
-			<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-4">
+			<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-3">
 				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Width</div>
-					<div class="h-[30px] w-28">
+					<div :class="fieldLabelClasses">Width</div>
+					<div class="w-28">
 						<NumberInput
 							v-model="activeElement.borderWidth"
 							suffix="px"
@@ -46,8 +34,8 @@
 				</div>
 
 				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Radius</div>
-					<div class="h-[30px] w-28">
+					<div :class="fieldLabelClasses">Radius</div>
+					<div class="w-28">
 						<NumberInput
 							v-model="activeElement.borderRadius"
 							suffix="px"
@@ -58,7 +46,7 @@
 				</div>
 
 				<div class="flex items-center justify-between">
-					<div class="text-sm text-gray-600">Color</div>
+					<div :class="fieldLabelClasses">Color</div>
 					<ColorPicker v-model="activeElement.borderColor" />
 				</div>
 			</div>
@@ -68,7 +56,7 @@
 	<CollapsibleSection title="Shadow">
 		<template #default>
 			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-600">Color</div>
+				<div :class="fieldLabelClasses">Color</div>
 				<ColorPicker class="pe-[0.2px]" v-model="activeElement.shadowColor" />
 			</div>
 
@@ -76,7 +64,7 @@
 				label="Offset X"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetX) || 5"
+				:modelValue="parseFloat(activeElement.shadowOffsetX) || 10"
 				@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 			/>
 
@@ -84,7 +72,7 @@
 				label="Offset Y"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetY) || 5"
+				:modelValue="parseFloat(activeElement.shadowOffsetY) || 10"
 				@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 			/>
 
@@ -106,6 +94,8 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
+import { fieldLabelClasses } from '@/utils/constants'
+import { computed } from 'vue'
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
@@ -113,12 +103,29 @@ const addBorder = (style) => {
 	activeElement.value.borderStyle = style
 	if (style != 'none') {
 		activeElement.value.borderWidth = 0.5
-		activeElement.value.borderColor = 'hsla(0, 0%, 0%, 0.2)'
-		activeElement.value.borderRadius = 20
+		activeElement.value.borderColor = 'hsl(0, 1%, 80%)'
+		activeElement.value.borderRadius = 10
 	} else {
 		activeElement.value.borderWidth = 0
 		activeElement.value.borderColor = ''
 		activeElement.value.borderRadius = 0
+	}
+}
+
+const getTabClasses = (style) => {
+	const baseClasses = 'flex h-full w-1/4 cursor-pointer items-center justify-center rounded'
+	if (activeElement.value.borderStyle == style) {
+		return `${baseClasses} bg-white shadow`
+	}
+	return baseClasses
+}
+
+const getTabIconClasses = (style) => {
+	const isActive = activeElement.value.borderStyle == style
+	if (style == 'none') {
+		return `size-4 ${isActive ? 'text-gray-800' : 'text-gray-500'}`
+	} else {
+		return `h-4 w-5 rounded-sm border ${isActive ? 'border-gray-800' : 'border-gray-500'}`
 	}
 }
 </script>
