@@ -135,7 +135,7 @@ router.beforeEach(async (to, _, next) => {
 	const { userResource } = userStore()
 	await userResource.promise
 	const user = userResource.data
-	const mailboxRoute = { name: 'Mailbox', params: { mailbox: user.mailboxes[0]?.role } }
+	const mailboxRoute = { name: 'Mailbox', params: { mailbox: user.mailboxes?.[0]?.role } }
 
 	if (user.is_mail_admin) {
 		if (!user.tenant) return to.meta.isSetup ? next() : next({ name: 'Setup' })
