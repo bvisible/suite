@@ -108,17 +108,22 @@
 					</div>
 				</div>
 				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
-					<MailListItem
-						v-for="mail in threads.data"
-						ref="mailItems"
-						:key="mail.thread_id"
-						:mail
-						:user-layout
-						:class="{ 'bg-gray-50': mail.thread_id == threadID }"
-						@click="openThread(mail)"
-						@select-thread="selectThread(mail.thread_id)"
-						@deselect-thread="deselectThread(mail.thread_id)"
-					/>
+					<div v-for="(group, key) in groupedThreads" :key="key">
+						<div class="text-ink-gray-6 border-b px-5 py-3.5 text-xs font-semibold">
+							{{ formattedDate(key) }}
+						</div>
+						<MailListItem
+							v-for="mail in group"
+							ref="mailItems"
+							:key="mail.thread_id"
+							:mail
+							:user-layout
+							:class="{ 'bg-gray-50': mail.thread_id == threadID }"
+							@click="openThread(mail)"
+							@select-thread="selectThread(mail.thread_id)"
+							@deselect-thread="deselectThread(mail.thread_id)"
+						/>
+					</div>
 				</div>
 			</div>
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
@@ -164,7 +169,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useDebounceFn } from '@vueuse/core'
+import { useDebounceFn, useTimeAgo } from '@vueuse/core'
 import { FolderInput, Mail, MailOpen, PanelLeft, RefreshCw, Rows4, Trash2 } from 'lucide-vue-next'
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
@@ -182,6 +187,7 @@ const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
+const dayjs = inject('$dayjs')
 const { mailboxes, currentThread, setCurrentThread } = userStore()
 const route = useRoute()
 const router = useRouter()
@@ -218,6 +224,22 @@ const threads = createResource({
 		} else setCurrentThread(mailbox, null)
 	},
 })
+
+const groupedThreads = computed(() =>
+	threads?.data?.reduce((groups, thread) => {
+		const date = dayjs(thread.received_at).format('YYYY-MM-DD')
+		if (!groups[date]) groups[date] = []
+
+		groups[date].push(thread)
+		return groups
+	}, {}),
+)
+
+const formattedDate = (date) => {
+	if (dayjs(date).isToday()) return __('TODAY')
+	if (dayjs(date).isYesterday()) return __('YESTERDAY')
+	return dayjs(date).format('DD MMMM').toUpperCase()
+}
 
 const mailCount = createResource({
 	url: 'mail.api.mail.get_mailbox_thread_count',
