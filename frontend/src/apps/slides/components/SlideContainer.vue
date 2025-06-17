@@ -27,6 +27,8 @@
 	</div>
 
 	<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
+
+	<OverflowContentOverlay v-if="!activeElementIds.length" />
 </template>
 
 <script setup>
@@ -36,6 +38,8 @@ import { useResizeObserver } from '@vueuse/core'
 import SnapGuides from '@/components/SnapGuides.vue'
 import SelectionBox from '@/components/SelectionBox.vue'
 import SlideElement from '@/components/SlideElement.vue'
+import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
+import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
@@ -332,5 +336,3 @@ defineExpose({
 	togglePanZoom,
 })
 </script>
-
-<style src="../assets/styles/overlay.css"></style>
