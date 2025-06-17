@@ -76,6 +76,7 @@ class EmailMessage(Document):
 				EM.from_name,
 				EM.from_email,
 				EM.subject,
+				EM.mailbox_role,
 				Case().when(EM.html_body.isnotnull(), EM.html_body).else_(EM.text_body).as_("preview"),
 				EM.has_attachment,
 				EM.received_at,
@@ -96,8 +97,21 @@ class EmailMessage(Document):
 
 		messages = query.run(as_dict=True)
 
+		EMR = frappe.qb.DocType("Email Message Recipient")
+
+		recipients = (
+			frappe.qb.from_(EMR)
+			.select(EMR.email, EMR.display_name, EMR.parent)
+			.where(EMR.parent.isin([message["name"] for message in messages]))
+		).run(as_dict=True)
+
+		recipients_map = defaultdict(list)
+		for r in recipients:
+			recipients_map[r.pop("parent")].append(r)
+
 		messages_with_attachment = []
 		for message in messages:
+			message["recipients"] = recipients_map.get(message["name"], [])
 			if preview := message["preview"]:
 				message["preview"] = convert_html_to_text(preview)
 			if message["has_attachment"]:
