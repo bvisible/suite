@@ -44,7 +44,6 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
-import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
