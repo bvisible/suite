@@ -1,25 +1,21 @@
 <template>
 	<div class="flex text-base justify-center items-center">
-		<input
-			v-if="editingTitle"
-			ref="titleInput"
-			v-model="newTitle"
-			:class="inputClasses"
-			spellcheck="false"
-			@blur="saveTitle"
-		/>
 		<div
-			v-else
-			class="select-none font-semibold text-gray-700 flex items-center cursor-text"
+			ref="titleInput"
+			:contenteditable="editingTitle"
+			spellcheck="false"
+			:class="inputClasses"
 			@click="makeTitleEditable"
+			@focus="setCursorPosition"
+			@blur="saveTitle"
 		>
-			<div>{{ presentation.data?.title }}</div>
+			{{ presentation.data?.title }}
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, useTemplateRef, nextTick } from 'vue'
+import { ref, useTemplateRef, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
@@ -30,26 +26,37 @@ const route = useRoute()
 const router = useRouter()
 
 const titleInputRef = useTemplateRef('titleInput')
-const newTitle = ref('')
 const editingTitle = ref(false)
 
 const inputClasses = [
 	'max-w-42',
-	'rounded-sm',
-	'border-none',
-	'py-1',
+	'w-fit',
+	'p-1',
 	'text-base',
-	'font-semibold',
-	'text-gray-700',
-	'focus:ring-[1.5px]',
-	'focus:ring-gray-300',
-	'focus:ring-offset-1',
+	'outline-none',
+	'font-medium',
+	'text-gray-800',
+	'cursor-text',
 ]
 
-const makeTitleEditable = () => {
+const makeTitleEditable = (e) => {
+	if (editingTitle.value) return
 	editingTitle.value = true
-	newTitle.value = presentation.data.title
-	nextTick(() => titleInputRef.value.focus())
+	e.target.focus()
+	e.target.tabIndex = 0
+	setCursorPosition(e)
+}
+
+const setCursorPosition = (e) => {
+	const range = document.createRange()
+	const selection = window.getSelection()
+
+	range.selectNodeContents(e.target)
+	// set cursor to end of text
+	range.collapse(false)
+
+	selection.removeAllRanges()
+	selection.addRange(range)
 }
 
 const renamePresentationDoc = async (newName) => {
@@ -59,14 +66,16 @@ const renamePresentationDoc = async (newName) => {
 	})
 }
 
-const saveTitle = async () => {
-	if (newTitle.value && newTitle.value != presentation.data.title) {
-		let nameSlug = await renamePresentationDoc(newTitle.value)
+const saveTitle = async (e) => {
+	editingTitle.value = false
+	const newTitle = e.target.innerText.trim()
+
+	if (newTitle && newTitle != presentation.data.title) {
+		let nameSlug = await renamePresentationDoc(newTitle)
 		router.replace({
 			name: 'PresentationEditor',
 			params: { presentationId: nameSlug },
 		})
 	}
-	editingTitle.value = false
 }
 </script>
