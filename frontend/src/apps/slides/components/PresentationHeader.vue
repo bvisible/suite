@@ -1,31 +1,28 @@
 <template>
-	<div class="flex text-base justify-center items-center">
-		<div
-			ref="titleInput"
-			:contenteditable="editingTitle"
-			spellcheck="false"
-			:class="inputClasses"
-			@click="makeTitleEditable"
-			@focus="setCursorPosition"
-			@blur="saveTitle"
-		>
-			{{ presentation.data?.title }}
-		</div>
+	<div
+		:class="inputClasses"
+		:contenteditable="editingTitle"
+		spellcheck="false"
+		@click="makeTitleEditable"
+		@focus="setCursorPositionAtEnd"
+		@blur="saveTitle"
+	>
+		{{ presentation.data?.title }}
 	</div>
 </template>
 
 <script setup>
-import { ref, useTemplateRef, nextTick, computed } from 'vue'
+import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
 import { presentation } from '@/stores/presentation'
+import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const route = useRoute()
 const router = useRouter()
 
-const titleInputRef = useTemplateRef('titleInput')
 const editingTitle = ref(false)
 
 const inputClasses = [
@@ -41,22 +38,10 @@ const inputClasses = [
 
 const makeTitleEditable = (e) => {
 	if (editingTitle.value) return
+
 	editingTitle.value = true
 	e.target.focus()
 	e.target.tabIndex = 0
-	setCursorPosition(e)
-}
-
-const setCursorPosition = (e) => {
-	const range = document.createRange()
-	const selection = window.getSelection()
-
-	range.selectNodeContents(e.target)
-	// set cursor to end of text
-	range.collapse(false)
-
-	selection.removeAllRanges()
-	selection.addRange(range)
 }
 
 const renamePresentationDoc = async (newName) => {
@@ -68,6 +53,7 @@ const renamePresentationDoc = async (newName) => {
 
 const saveTitle = async (e) => {
 	editingTitle.value = false
+
 	const newTitle = e.target.innerText.trim()
 
 	if (newTitle && newTitle != presentation.data.title) {
