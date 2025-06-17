@@ -6,7 +6,7 @@ from email.utils import parseaddr
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import random_string, validate_email_address
+from frappe.utils import now, random_string, validate_email_address
 
 from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
 from mail.jmap import get_jmap_client, invalidate_jmap_client_cache
@@ -50,6 +50,7 @@ class MailAccount(Document):
 		self.validate_display_name()
 		self.validate_reply_to()
 		self.validate_backup_email()
+		self.validate_vacation_response()
 
 	def after_insert(self) -> None:
 		create_jmap_sync_state(self.name)
@@ -203,6 +204,31 @@ class MailAccount(Document):
 		"""Validates the backup email."""
 
 		validate_email_address(self.backup_email, True)
+
+	def validate_vacation_response(self) -> None:
+		"""Validates the vacation response settings."""
+
+		if self.is_new():
+			self.vacation_response_enabled = 0
+			self.vacation_from_date = None
+			self.vacation_to_date = None
+			self.vacation_response_subject = None
+			self.vacation_response_text_body = None
+			self.vacation_response_html_body = None
+		else:
+			if self.vacation_response_enabled:
+				if not self.vacation_from_date:
+					frappe.throw(_("Vacation - {0} is required.").format(frappe.bold(_("From Date"))))
+				if not self.vacation_to_date:
+					frappe.throw(_("Vacation - {0} is required.").format(frappe.bold(_("To Date"))))
+				elif self.vacation_to_date < now():
+					frappe.throw(_("Vacation - {0} cannot be in the past.").format(frappe.bold(_("To Date"))))
+				elif self.vacation_from_date >= self.vacation_to_date:
+					frappe.throw(
+						_("Vacation - {0} cannot be before Vacation - {1}.").format(
+							frappe.bold(_("To Date")), frappe.bold(_("From Date"))
+						)
+					)
 
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""

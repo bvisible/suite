@@ -22,7 +22,17 @@
   "override_display_name",
   "column_break_yyco",
   "reply_to",
-  "override_reply_to"
+  "override_reply_to",
+  "vacation_response_tab",
+  "vacation_response_enabled",
+  "section_break_ttgy",
+  "vacation_from_date",
+  "vacation_to_date",
+  "column_break_j94t",
+  "vacation_response_subject",
+  "vacation_response_body_section",
+  "vacation_response_text_body",
+  "vacation_response_html_body"
  ],
  "fields": [
   {
@@ -173,6 +183,65 @@
    "fieldname": "override_reply_to",
    "fieldtype": "Check",
    "label": "Override Reply To"
+  },
+  {
+   "depends_on": "eval: !doc.__islocal && doc.enabled",
+   "fieldname": "vacation_response_tab",
+   "fieldtype": "Tab Break",
+   "label": "Vacation Response"
+  },
+  {
+   "default": "0",
+   "fieldname": "vacation_response_enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "no_copy": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_ttgy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "vacation_from_date",
+   "fieldtype": "Datetime",
+   "label": "From Date",
+   "mandatory_depends_on": "eval: doc.vacation_response_enabled",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "vacation_to_date",
+   "fieldtype": "Datetime",
+   "label": "To Date",
+   "mandatory_depends_on": "eval: doc.vacation_response_enabled",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_j94t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vacation_response_subject",
+   "fieldtype": "Small Text",
+   "label": "Subject",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "vacation_response_body_section",
+   "fieldtype": "Section Break",
+   "label": "Body"
+  },
+  {
+   "fieldname": "vacation_response_text_body",
+   "fieldtype": "Code",
+   "label": "Text Body",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "vacation_response_html_body",
+   "fieldtype": "Code",
+   "label": "HTML Body",
+   "no_copy": 1
   }
  ],
  "grid_page_length": 50,
@@ -185,17 +254,12 @@
   },
   {
    "group": "Reference",
-   "link_doctype": "Vacation Response",
+   "link_doctype": "Mail Sync History",
    "link_fieldname": "account"
   },
   {
    "group": "Reference",
    "link_doctype": "JMAP Sync State",
-   "link_fieldname": "account"
-  },
-  {
-   "group": "Reference",
-   "link_doctype": "Mail Sync History",
    "link_fieldname": "account"
   },
   {
@@ -219,7 +283,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-06-16 15:21:21.511404",
+ "modified": "2025-06-17 11:58:29.830714",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
