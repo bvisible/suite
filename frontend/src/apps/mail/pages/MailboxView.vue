@@ -238,7 +238,7 @@ const groupedThreads = computed(() =>
 const formattedDate = (date) => {
 	if (dayjs(date).isToday()) return __('TODAY')
 	if (dayjs(date).isYesterday()) return __('YESTERDAY')
-	return dayjs(date).format('DD MMMM').toUpperCase()
+	return dayjs(date).format('D MMMM').toUpperCase()
 }
 
 const mailCount = createResource({

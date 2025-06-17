@@ -27,8 +27,8 @@
 						v-if="!mail.seen"
 						class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500"
 					/>
-					<span class="truncate text-base font-semibold">
-						{{ mail.from_name || mail.from_email }}
+					<span class="text-ink-gray-8 truncate text-base font-semibold">
+						{{ header }}
 					</span>
 				</h3>
 				<MailDate v-if="!isFullWidth" :datetime="mail.received_at" :in-list="true" />
@@ -40,7 +40,7 @@
 				{{ mail.subject || __('[No subject]') }}
 			</h4>
 			<h5
-				class="truncate text-sm leading-[1.5] text-gray-600"
+				class="text-ink-gray-6 truncate text-sm leading-[1.5]"
 				:class="{ italic: !mail.preview, 'min-w-0 flex-1 !text-base': isFullWidth }"
 			>
 				{{ mail.preview || __('— No message body —') }}
@@ -94,6 +94,13 @@ const emit = defineEmits(['select-thread', 'deselect-thread'])
 const { isMobile } = useScreenSize()
 
 const isFullWidth = computed(() => userLayout === 'full' && !isMobile.value)
+
+const header = computed(() => {
+	const isOutgoing = ['sent', 'drafts'].includes(mail.mailbox_role)
+	if (isOutgoing)
+		return __('To: {0}', [mail.recipients.map((d) => d.name || d.email).join(', ')])
+	return mail.from_name || mail.from_email
+})
 
 const isHovered = ref(false)
 const isSelected = ref(false)
