@@ -185,7 +185,12 @@ const handleGlobalShortcuts = (e) => {
 }
 
 const handleKeyDown = (e) => {
-	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
+	const editingText =
+		document.activeElement.getAttribute('contenteditable') ||
+		document.activeElement.tagName == 'INPUT' ||
+		focusElementId.value != null
+
+	if (editingText) return
 	handleGlobalShortcuts(e)
 
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
