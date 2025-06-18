@@ -42,7 +42,9 @@ class EmailMessage(Document):
 	def get_threads(
 		account: str,
 		mailbox_ids: list[str] | None = None,
+		is_unseen: bool = False,
 		is_flagged: bool = False,
+		is_has_attachment: bool = False,
 		start: int = 0,
 		limit: int = 50,
 	) -> list[dict]:
@@ -62,8 +64,14 @@ class EmailMessage(Document):
 		if mailbox_ids:
 			subquery = subquery.where(EM.mailbox_id.isin(mailbox_ids))
 
+		if is_unseen:
+			subquery = subquery.where(EM.seen == 0)
+
 		if is_flagged:
 			subquery = subquery.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
+
+		if is_has_attachment:
+			subquery = subquery.where(EM.has_attachment == 1)
 
 		query = (
 			frappe.qb.from_(EM)
