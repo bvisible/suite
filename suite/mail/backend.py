@@ -1,7 +1,7 @@
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urljoin
 
 import frappe
@@ -10,6 +10,9 @@ from frappe import _
 
 from mail.mail.doctype.mail_backend_request.mail_backend_request import create_mail_backend_request
 from mail.utils import get_dkim_selector
+
+if TYPE_CHECKING:
+	from mail.mail.doctype.mail_backend_request.mail_backend_request import MailBackendRequest
 
 
 @dataclass
@@ -108,10 +111,10 @@ class MailBackendManagerBase:
 		on_end: Callable | str | None = None,
 		on_end_kwargs: dict | None = None,
 		do_not_enqueue: bool = False,
-	) -> None:
+	) -> "MailBackendRequest":
 		"""Creates a new Mail Backend Request."""
 
-		create_mail_backend_request(
+		return create_mail_backend_request(
 			backend_type=self.backend_type,
 			backend_name=self.backend_name,
 			method=method,
@@ -194,7 +197,7 @@ class MailBackendDomainManager(MailBackendManagerBase):
 		"""Creates a domain on the backend."""
 
 		principal = Principal(name=domain_name, type="domain").__dict__
-		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
+		self.create_request(method="POST", endpoint="/api/principal", request_json=principal)
 
 	def delete(self, domain_name: str) -> None:
 		"""Deletes a domain from the backend."""
@@ -224,7 +227,7 @@ class MailBackendAccountManager(MailBackendManagerBase):
 		self.create_request(
 			method="POST",
 			endpoint="/api/principal",
-			request_data=principal,
+			request_json=principal,
 			on_end=create_jmap_push_subscriptions,
 			on_end_kwargs={"account": email},
 		)
@@ -294,7 +297,7 @@ class MailBackendMailingListManager(MailBackendManagerBase):
 			members=members or [],
 			externalMembers=external_members or [],
 		).__dict__
-		self.create_request(method="POST", endpoint="/api/principal", request_data=principal)
+		self.create_request(method="POST", endpoint="/api/principal", request_json=principal)
 
 	def update(self, email: str, display_name: str) -> None:
 		"""Updates a mailing list on the backend."""
@@ -371,7 +374,7 @@ class MailBackendAliasManager(MailBackendManagerBase):
 
 
 class MailBackendIdentityManager(MailBackendManagerBase):
-	def sync(
+	def set(
 		self,
 		account_id: str,
 		identities: dict[str, dict[str, Any]],

@@ -309,7 +309,7 @@ class MailAccount(Document):
 				"htmlSignature": None,
 			}
 
-		MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).sync(
+		MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).set(
 			account_id, identities
 		)
 
