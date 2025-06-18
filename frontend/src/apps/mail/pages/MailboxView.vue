@@ -243,7 +243,7 @@ const title = computed(() => {
 
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
-	makeParams: () => ({ mailbox, limit: limit.value, filter: filter.value }),
+	makeParams: () => ({ mailbox, limit: limit.value, filter_by: filter.value }),
 	onSuccess: (data: Thread[]) => {
 		const threadExists = (threadID?: string | null) =>
 			data.some((m) => m.thread_id === threadID)
