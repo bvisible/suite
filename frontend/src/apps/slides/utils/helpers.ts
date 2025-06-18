@@ -37,4 +37,18 @@ const generateUniqueId = () => {
 	return Math.random().toString(36).slice(2, 11)
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId }
+const setCursorPositionAtEnd = (e: Event) => {
+	const selection = window.getSelection()
+	if (!e.target || !selection) return
+
+	const target = e.target as HTMLElement
+	const range = document.createRange()
+
+	range.selectNodeContents(target)
+	range.collapse(false) // set cursor to end of text
+
+	selection.removeAllRanges()
+	selection.addRange(range)
+}
+
+export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd }

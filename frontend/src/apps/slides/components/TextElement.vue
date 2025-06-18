@@ -3,7 +3,7 @@
 		class="focus:outline-none"
 		:contenteditable="focusElementId == element.id"
 		:style="textStyle"
-		@focus="setCursorPosition"
+		@focus="setCursorPositionAtEnd"
 		@blur="handleBlur"
 	>
 		{{ element.content }}
@@ -14,6 +14,7 @@
 import { computed } from 'vue'
 
 import { focusElementId, deleteElements } from '@/stores/element'
+import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const element = defineModel('element', {
 	type: Object,
@@ -32,23 +33,12 @@ const textStyle = computed(() => ({
 	opacity: element.value.opacity / 100,
 	lineHeight: element.value.lineHeight,
 	letterSpacing: `${element.value.letterSpacing}px`,
+	whiteSpace: 'pre-wrap',
 	wordWrap: element.value.width == 'auto' ? 'normal' : 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
-
-const setCursorPosition = (e) => {
-	const range = document.createRange()
-	const selection = window.getSelection()
-
-	range.selectNodeContents(e.target)
-	// set cursor to end of text
-	range.collapse(false)
-
-	selection.removeAllRanges()
-	selection.addRange(range)
-}
 
 const handleBlur = (e) => {
 	if (element.value.content.trim() === '') {
