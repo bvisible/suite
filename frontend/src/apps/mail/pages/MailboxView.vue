@@ -22,7 +22,7 @@
 		<HeaderActions :mailbox @reload-mails="reloadMails" />
 	</header>
 
-	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
+	<div class="relative flex h-[calc(100dvh-3.05rem)]">
 		<template v-if="threads?.data?.length">
 			<div
 				ref="mailSidebar"
@@ -238,7 +238,10 @@ const groupedThreads = computed(() =>
 const formattedDate = (date) => {
 	if (dayjs(date).isToday()) return __('TODAY')
 	if (dayjs(date).isYesterday()) return __('YESTERDAY')
-	return dayjs(date).format('D MMMM').toUpperCase()
+	const isCurrentYear = dayjs(date).year() === dayjs().year()
+	return dayjs(date)
+		.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
+		.toUpperCase()
 }
 
 const mailCount = createResource({

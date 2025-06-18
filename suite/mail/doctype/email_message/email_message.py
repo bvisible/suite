@@ -45,7 +45,7 @@ class EmailMessage(Document):
 		is_flagged: bool = False,
 		start: int = 0,
 		limit: int = 50,
-	) -> list[str]:
+	) -> list[dict]:
 		"""Returns the latest email messages in each thread."""
 
 		validate_permission_for_account(account)
@@ -96,6 +96,8 @@ class EmailMessage(Document):
 			query = query.where(EM.mailbox_id.isin(mailbox_ids))
 
 		messages = query.run(as_dict=True)
+		if not messages:
+			return []
 
 		EMR = frappe.qb.DocType("Email Message Recipient")
 
