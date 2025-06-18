@@ -15,7 +15,7 @@ const { datetime, inList = false } = defineProps<{ datetime: string; inList?: bo
 const dayjs = inject('$dayjs')
 
 const formattedDate = computed(() => {
-	if (!inList) return __(useTimeAgo(datetime))
+	if (!inList) return __(useTimeAgo(datetime).value)
 	if (dayjs(datetime).isToday()) return dayjs(datetime).format('h:mm A')
 	if (dayjs(datetime).isYesterday()) return __('Yesterday')
 	return dayjs(datetime).format('DD MMM YYYY')
