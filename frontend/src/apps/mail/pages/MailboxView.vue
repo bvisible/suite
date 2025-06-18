@@ -23,7 +23,7 @@
 	</header>
 
 	<div class="relative flex h-[calc(100dvh-3.05rem)]">
-		<template v-if="threads?.data?.length">
+		<template v-if="threads?.data?.length || filter">
 			<div
 				ref="mailSidebar"
 				class="sticky top-16 flex flex-col border-r"
@@ -107,7 +107,11 @@
 						</div>
 					</div>
 				</div>
-				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
+				<div
+					v-if="threads?.data?.length"
+					class="h-full overflow-y-auto overscroll-contain"
+					@scroll="loadMoreEmails"
+				>
 					<div v-for="(group, key) in groupedThreads" :key="key">
 						<div class="text-ink-gray-6 border-b px-5 py-3.5 text-xs font-semibold">
 							{{ formattedDate(key) }}
@@ -124,6 +128,11 @@
 							@deselect-thread="deselectThread(mail.thread_id)"
 						/>
 					</div>
+				</div>
+				<div v-else class="flex h-full items-center justify-center">
+					<p class="text-gray-500">
+						{{ __('No mails found for the selected filter.') }}
+					</p>
 				</div>
 			</div>
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
@@ -158,6 +167,8 @@
 				/>
 			</div>
 		</template>
+
+		<!-- No mails -->
 		<div v-else class="flex w-full flex-col items-center justify-center">
 			<NoMails class="mb-2 h-16 w-16" />
 			<p class="text-gray-500">
@@ -258,7 +269,6 @@ const formattedDate = (date) => {
 
 const mailCount = createResource({
 	url: 'mail.api.mail.get_mailbox_thread_count',
-	auto: true,
 	makeParams: () => ({ mailbox }),
 	cache: [`${mailbox}MailCount`, user.data?.name],
 })
@@ -421,7 +431,10 @@ const openThread = (mail: Thread) => {
 
 // filter
 
-watch(filter, reloadMails)
+watch(filter, () => {
+	threads.reload()
+	resetSelections()
+})
 
 const FILTER_OPTIONS = [
 	{
