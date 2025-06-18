@@ -1,27 +1,32 @@
 <template>
-	<div :class="backgroundClasses">
+	<div class="h-screen w-screen flex flex-col select-none overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
 				<PresentationHeader />
 			</template>
 		</Navbar>
+		<div
+			class="flex relative h-screen"
+			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
+		>
+			<NavigationPanel
+				class="absolute top-0 bottom-0 z-50"
+				:showNavigator="showNavigator"
+				@changeSlide="changeSlide"
+				@insertSlide="insertSlide"
+			/>
 
-		<NavigationPanel
-			:showNavigator="showNavigator"
-			@changeSlide="changeSlide"
-			@insertSlide="insertSlide"
-		/>
+			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
-		<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
+			<Toolbar
+				@setHighlight="setHighlight"
+				@insert="insertSlide"
+				@duplicate="duplicateSlide"
+				@delete="deleteSlide"
+			/>
 
-		<Toolbar
-			@setHighlight="setHighlight"
-			@insert="insertSlide"
-			@duplicate="duplicateSlide"
-			@delete="deleteSlide"
-		/>
-
-		<PropertiesPanel />
+			<PropertiesPanel class="absolute top-0 right-0 bottom-0 z-10" />
+		</div>
 	</div>
 </template>
 
@@ -39,7 +44,6 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
-import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
 import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
@@ -74,14 +78,6 @@ const primaryButtonProps = {
 	icon: Presentation,
 	onClick: () => startSlideShow(),
 }
-
-const backgroundClasses = computed(() => {
-	const baseClasses = 'fixed h-screen w-screen flex flex-col select-none'
-	if (activeElementIds.value.length) {
-		return `${baseClasses} bg-gray-100`
-	}
-	return `${baseClasses} bg-gray-300`
-})
 
 const route = useRoute()
 const router = useRouter()
@@ -188,7 +184,12 @@ const handleGlobalShortcuts = (e) => {
 }
 
 const handleKeyDown = (e) => {
-	if (document.activeElement.tagName == 'INPUT' || focusElementId.value != null) return
+	const editingText =
+		document.activeElement.getAttribute('contenteditable') ||
+		document.activeElement.tagName == 'INPUT' ||
+		focusElementId.value != null
+
+	if (editingText) return
 	handleGlobalShortcuts(e)
 
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)

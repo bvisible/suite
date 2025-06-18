@@ -1,14 +1,14 @@
 <template>
 	<!-- Slide Navigation Panel -->
 	<div
-		:class="panelClasses"
+		:class="[panelClasses, attrs.class]"
 		@mouseenter="handleHoverChange"
 		@mouseleave="handleHoverChange"
 		@wheel="handleWheelEvent"
 	>
 		<div
 			v-if="presentation.data"
-			class="flex flex-col h-full px-4 pb-12 overflow-y-auto"
+			class="flex flex-col h-full p-4 overflow-y-auto"
 			:style="scrollbarStyles"
 		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
@@ -17,6 +17,7 @@
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
 						@click="emit('changeSlide', slide.idx - 1)"
+						:ref="(el) => (slideThumbnailsRef[slide.idx - 1] = el)"
 					></div>
 				</template>
 			</Draggable>
@@ -48,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 
 import { call } from 'frappe-ui'
 
@@ -56,6 +57,10 @@ import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideIndex } from '@/stores/slide'
+
+import { useAttrs } from 'vue'
+
+const attrs = useAttrs()
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
@@ -74,14 +79,22 @@ const toggleNavigator = () => {
 }
 
 const panelClasses = computed(() => {
-	const baseClasses =
-		'fixed z-20 h-full top-[2.5rem] w-48 border-r bg-white transition-all duration-300 ease-in-out'
-	return `${baseClasses} ${showNavigator.value ? 'left-0' : '-left-48'}`
+	// can't add it from parent attrs.class since attrs is not reactive
+	const positionClass = showNavigator.value ? 'left-0' : '-left-48'
+	const baseClasses = [
+		'w-48',
+		'border-r',
+		'bg-white',
+		'transition-all',
+		'duration-300',
+		'ease-in-out',
+	]
+	return [...baseClasses, positionClass]
 })
 
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
-		'my-4 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
+		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
 	const borderClasses =
 		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
 	return `${baseClasses} ${borderClasses}`
@@ -134,6 +147,29 @@ const handleHoverChange = (e) => {
 const scrollbarStyles = computed(() => ({
 	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
 }))
+
+const slideThumbnailsRef = ref([])
+
+const handleScrollChange = (index) => {
+	const el = slideThumbnailsRef.value[index]
+
+	if (!el) return
+	el.scrollIntoView({
+		behavior: 'smooth',
+		block: 'start',
+		inline: 'nearest',
+	})
+}
+
+watch(
+	() => slideIndex.value,
+	() => {
+		if (!showNavigator.value) return
+		nextTick(() => {
+			handleScrollChange(slideIndex.value)
+		})
+	},
+)
 </script>
 
 <style scoped>
