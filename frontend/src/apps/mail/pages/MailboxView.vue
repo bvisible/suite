@@ -37,7 +37,7 @@
 								selections.length === 1 ? 'item' : 'items',
 							])
 						}}</span>
-						<span v-else>{{ __('All Mail') }}</span>
+						<span v-else>{{ title }}</span>
 					</div>
 					<div class="flex items-center space-x-1.5 sm:space-x-3">
 						<Tooltip
@@ -227,6 +227,19 @@ const mailboxName = computed(() =>
 
 const limit = ref(50)
 const filter = ref<string | null>(null)
+
+const title = computed(() => {
+	switch (filter.value) {
+		case 'unread':
+			return __('Unread Mails')
+		case 'starred':
+			return __('Starred Mails')
+		case 'has_attachments':
+			return __('Mails With Attachments')
+		default:
+			return __('All Mails')
+	}
+})
 
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
@@ -431,34 +444,35 @@ const openThread = (mail: Thread) => {
 
 // filter
 
-watch(filter, () => {
-	threads.reload()
-	resetSelections()
-})
-
 const FILTER_OPTIONS = [
 	{
 		label: __('All'),
 		icon: Mails,
-		onClick: () => (filter.value = null),
+		onClick: () => setFilter(null),
 	},
 	{
 		label: __('Unread'),
 		icon: Mail,
-		onClick: () => (filter.value = 'unread'),
+		onClick: () => setFilter('unread'),
 	},
 	{
 		label: __('Starred'),
 		icon: Star,
-		onClick: () => (filter.value = 'starred'),
+		onClick: () => setFilter('starred'),
 		condition: () => !['trash', 'starred'].includes(mailbox),
 	},
 	{
 		label: __('Has attachments'),
 		icon: Paperclip,
-		onClick: () => (filter.value = 'has_attachments'),
+		onClick: () => setFilter('has_attachments'),
 	},
 ]
+
+const setFilter = (value: string | null) => {
+	filter.value = value
+	threads.reload()
+	resetSelections()
+}
 
 // layout
 
