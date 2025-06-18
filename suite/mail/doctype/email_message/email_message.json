@@ -165,6 +165,7 @@
    "fieldtype": "Data",
    "in_standard_filter": 1,
    "label": "Message ID",
+   "length": 255,
    "no_copy": 1,
    "read_only": 1,
    "search_index": 1
@@ -564,7 +565,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-26 16:21:22.094482",
+ "modified": "2025-06-18 17:10:58.660997",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
