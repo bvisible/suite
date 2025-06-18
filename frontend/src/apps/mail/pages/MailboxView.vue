@@ -44,25 +44,25 @@
 							v-if="!isMobile && !selections.length"
 							:text="__('Select Layout')"
 						>
-							<Dropdown
-								:options="[
-									{
-										label: __('Full Width'),
-										icon: Rows4,
-										onClick: () => setUserLayout('full'),
-									},
-									{
-										label: __('Vertical Split'),
-										icon: PanelLeft,
-										onClick: () => setUserLayout('split'),
-									},
-								]"
-							>
+							<Dropdown :options="LAYOUT_OPTIONS">
 								<Button variant="ghost">
 									<template #icon>
 										<component
 											:is="userLayout === 'full' ? Rows4 : PanelLeft"
-											class="h-4 w-4 text-gray-600"
+											class="text-ink-gray-7 h-4 w-4"
+										/>
+									</template>
+								</Button>
+							</Dropdown>
+						</Tooltip>
+
+						<Tooltip v-if="!selections.length" :text="__('Filter')">
+							<Dropdown :options="FILTER_OPTIONS">
+								<Button variant="ghost">
+									<template #icon>
+										<component
+											:is="ListFilter"
+											class="text-ink-gray-7 h-4 w-4"
 										/>
 									</template>
 								</Button>
@@ -76,7 +76,7 @@
 						>
 							<Button variant="ghost" @click="action.onClick">
 								<template #icon>
-									<component :is="action.icon" class="h-4 w-4 text-gray-600" />
+									<component :is="action.icon" class="text-ink-gray-7 h-4 w-4" />
 								</template>
 							</Button>
 						</Tooltip>
@@ -169,8 +169,20 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useDebounceFn, useTimeAgo } from '@vueuse/core'
-import { FolderInput, Mail, MailOpen, PanelLeft, RefreshCw, Rows4, Trash2 } from 'lucide-vue-next'
+import { useDebounceFn } from '@vueuse/core'
+import {
+	FolderInput,
+	ListFilter,
+	Mail,
+	MailOpen,
+	Mails,
+	PanelLeft,
+	Paperclip,
+	RefreshCw,
+	Rows4,
+	Star,
+	Trash2,
+} from 'lucide-vue-next'
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { startResizing } from '@/utils'
@@ -196,18 +208,18 @@ const { openSidebar } = useSidebar()
 
 const mailThread = useTemplateRef('mailThread')
 
-const limit = ref(50)
-
 const mailboxName = computed(() =>
 	mailbox === 'starred'
 		? __('Starred')
 		: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
 )
 
+const limit = ref(50)
+const filter = ref<string | null>(null)
+
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
-	auto: true,
-	makeParams: () => ({ mailbox, limit: limit.value }),
+	makeParams: () => ({ mailbox, limit: limit.value, filter: filter.value }),
 	onSuccess: (data: Thread[]) => {
 		const threadExists = (threadID?: string | null) =>
 			data.some((m) => m.thread_id === threadID)
@@ -407,14 +419,33 @@ const openThread = (mail: Thread) => {
 	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
 }
 
-watch(() => mailbox, reloadMails, { immediate: true })
+// filter
 
-onMounted(() =>
-	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
-		if (updatedMailbox === mailbox) reloadMails()
-		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
-	}),
-)
+watch(filter, reloadMails)
+
+const FILTER_OPTIONS = [
+	{
+		label: __('All'),
+		icon: Mails,
+		onClick: () => (filter.value = null),
+	},
+	{
+		label: __('Unread'),
+		icon: Mail,
+		onClick: () => (filter.value = 'unread'),
+	},
+	{
+		label: __('Starred'),
+		icon: Star,
+		onClick: () => (filter.value = 'starred'),
+		condition: () => !['trash', 'starred'].includes(mailbox),
+	},
+	{
+		label: __('Has attachments'),
+		icon: Paperclip,
+		onClick: () => (filter.value = 'has_attachments'),
+	},
+]
 
 // layout
 
@@ -426,6 +457,35 @@ const setUserLayout = (type: LayoutType) => {
 	userLayout.value = type
 	localStorage.setItem(`user:${user.data.name}:layout`, type)
 }
+
+const LAYOUT_OPTIONS = [
+	{
+		label: __('Full Width'),
+		icon: Rows4,
+		onClick: () => setUserLayout('full'),
+	},
+	{
+		label: __('Vertical Split'),
+		icon: PanelLeft,
+		onClick: () => setUserLayout('split'),
+	},
+]
+
+watch(
+	() => mailbox,
+	() => {
+		filter.value = null
+		reloadMails()
+	},
+	{ immediate: true },
+)
+
+onMounted(() =>
+	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
+		if (updatedMailbox === mailbox) reloadMails()
+		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
+	}),
+)
 
 const loadMoreEmails = useDebounceFn(() => {
 	if (threads?.data?.length === limit.value) {
