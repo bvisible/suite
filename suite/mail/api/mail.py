@@ -26,14 +26,14 @@ def get_mailbox_id(mailbox: str) -> str:
 
 
 @frappe.whitelist()
-def get_mails_from_mailbox(mailbox: str, limit: int, filter: str | None = None) -> list:
+def get_mails_from_mailbox(mailbox: str, limit: int, filter_by: str | None = None) -> list:
 	"""Returns mails from the selected mailbox for the current user."""
 
 	user = frappe.session.user
 
-	is_unseen = filter == "unread"
-	is_has_attachment = filter == "has_attachments"
-	is_flagged = filter == "starred" or mailbox == "starred"
+	is_unseen = filter_by == "unread"
+	is_has_attachment = filter_by == "has_attachments"
+	is_flagged = filter_by == "starred" or mailbox == "starred"
 	mailboxes = None if mailbox == "starred" else [get_mailbox_id(mailbox)]
 
 	return EmailMessage.get_threads(user, mailboxes, is_unseen, is_flagged, is_has_attachment, 0, limit)
