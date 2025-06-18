@@ -20,7 +20,7 @@
 		>
 			<div
 				class="flex items-center"
-				:class="isFullWidth ? 'min-w-36 max-w-36' : 'justify-between'"
+				:class="isFullWidth ? 'min-w-48 max-w-48' : 'justify-between'"
 			>
 				<h3 class="mr-1 mt-0.5 flex items-center truncate">
 					<span
