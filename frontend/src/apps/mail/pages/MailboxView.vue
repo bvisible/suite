@@ -22,8 +22,8 @@
 		<HeaderActions :mailbox @reload-mails="reloadMails" />
 	</header>
 
-	<div class="relative flex h-[calc(100dvh-6rem)] sm:h-[calc(100dvh-3.05rem)]">
-		<template v-if="threads?.data?.length">
+	<div class="relative flex h-[calc(100dvh-3.05rem)]">
+		<template v-if="threads?.data?.length || filter">
 			<div
 				ref="mailSidebar"
 				class="sticky top-16 flex flex-col border-r"
@@ -37,32 +37,32 @@
 								selections.length === 1 ? 'item' : 'items',
 							])
 						}}</span>
-						<span v-else>{{ __('All Mail') }}</span>
+						<span v-else>{{ title }}</span>
 					</div>
 					<div class="flex items-center space-x-1.5 sm:space-x-3">
 						<Tooltip
 							v-if="!isMobile && !selections.length"
 							:text="__('Select Layout')"
 						>
-							<Dropdown
-								:options="[
-									{
-										label: __('Full Width'),
-										icon: Rows4,
-										onClick: () => setUserLayout('full'),
-									},
-									{
-										label: __('Vertical Split'),
-										icon: PanelLeft,
-										onClick: () => setUserLayout('split'),
-									},
-								]"
-							>
+							<Dropdown :options="LAYOUT_OPTIONS">
 								<Button variant="ghost">
 									<template #icon>
 										<component
 											:is="userLayout === 'full' ? Rows4 : PanelLeft"
-											class="h-4 w-4 text-gray-600"
+											class="text-ink-gray-7 h-4 w-4"
+										/>
+									</template>
+								</Button>
+							</Dropdown>
+						</Tooltip>
+
+						<Tooltip v-if="!selections.length" :text="__('Filter')">
+							<Dropdown :options="FILTER_OPTIONS">
+								<Button variant="ghost">
+									<template #icon>
+										<component
+											:is="ListFilter"
+											class="text-ink-gray-7 h-4 w-4"
 										/>
 									</template>
 								</Button>
@@ -76,7 +76,7 @@
 						>
 							<Button variant="ghost" @click="action.onClick">
 								<template #icon>
-									<component :is="action.icon" class="h-4 w-4 text-gray-600" />
+									<component :is="action.icon" class="text-ink-gray-7 h-4 w-4" />
 								</template>
 							</Button>
 						</Tooltip>
@@ -107,18 +107,32 @@
 						</div>
 					</div>
 				</div>
-				<div class="h-full overflow-y-auto overscroll-contain" @scroll="loadMoreEmails">
-					<MailListItem
-						v-for="mail in threads.data"
-						ref="mailItems"
-						:key="mail.thread_id"
-						:mail
-						:user-layout
-						:class="{ 'bg-gray-50': mail.thread_id == threadID }"
-						@click="openThread(mail)"
-						@select-thread="selectThread(mail.thread_id)"
-						@deselect-thread="deselectThread(mail.thread_id)"
-					/>
+				<div
+					v-if="threads?.data?.length"
+					class="h-full overflow-y-auto overscroll-contain"
+					@scroll="loadMoreEmails"
+				>
+					<div v-for="(group, key) in groupedThreads" :key="key">
+						<div class="text-ink-gray-6 border-b px-5 py-3.5 text-xs font-semibold">
+							{{ formattedDate(key) }}
+						</div>
+						<MailListItem
+							v-for="mail in group"
+							ref="mailItems"
+							:key="mail.thread_id"
+							:mail
+							:user-layout
+							:class="{ 'bg-gray-50': mail.thread_id == threadID }"
+							@click="openThread(mail)"
+							@select-thread="selectThread(mail.thread_id)"
+							@deselect-thread="deselectThread(mail.thread_id)"
+						/>
+					</div>
+				</div>
+				<div v-else class="flex h-full items-center justify-center">
+					<p class="text-gray-500">
+						{{ __('No mails found for the selected filter.') }}
+					</p>
 				</div>
 			</div>
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
@@ -153,6 +167,8 @@
 				/>
 			</div>
 		</template>
+
+		<!-- No mails -->
 		<div v-else class="flex w-full flex-col items-center justify-center">
 			<NoMails class="mb-2 h-16 w-16" />
 			<p class="text-gray-500">
@@ -165,7 +181,19 @@
 import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
-import { FolderInput, Mail, MailOpen, PanelLeft, RefreshCw, Rows4, Trash2 } from 'lucide-vue-next'
+import {
+	FolderInput,
+	ListFilter,
+	Mail,
+	MailOpen,
+	Mails,
+	PanelLeft,
+	Paperclip,
+	RefreshCw,
+	Rows4,
+	Star,
+	Trash2,
+} from 'lucide-vue-next'
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { startResizing } from '@/utils'
@@ -182,6 +210,7 @@ const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
+const dayjs = inject('$dayjs')
 const { mailboxes, currentThread, setCurrentThread } = userStore()
 const route = useRoute()
 const router = useRouter()
@@ -190,18 +219,31 @@ const { openSidebar } = useSidebar()
 
 const mailThread = useTemplateRef('mailThread')
 
-const limit = ref(50)
-
 const mailboxName = computed(() =>
 	mailbox === 'starred'
 		? __('Starred')
 		: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
 )
 
+const limit = ref(50)
+const filter = ref<string | null>(null)
+
+const title = computed(() => {
+	switch (filter.value) {
+		case 'unread':
+			return __('Unread Mails')
+		case 'starred':
+			return __('Starred Mails')
+		case 'has_attachments':
+			return __('Mails With Attachments')
+		default:
+			return __('All Mails')
+	}
+})
+
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
-	auto: true,
-	makeParams: () => ({ mailbox, limit: limit.value }),
+	makeParams: () => ({ mailbox, limit: limit.value, filter_by: filter.value }),
 	onSuccess: (data: Thread[]) => {
 		const threadExists = (threadID?: string | null) =>
 			data.some((m) => m.thread_id === threadID)
@@ -219,9 +261,27 @@ const threads = createResource({
 	},
 })
 
+const groupedThreads = computed(() =>
+	threads?.data?.reduce((groups, thread) => {
+		const date = dayjs(thread.received_at).format('YYYY-MM-DD')
+		if (!groups[date]) groups[date] = []
+
+		groups[date].push(thread)
+		return groups
+	}, {}),
+)
+
+const formattedDate = (date) => {
+	if (dayjs(date).isToday()) return __('TODAY')
+	if (dayjs(date).isYesterday()) return __('YESTERDAY')
+	const isCurrentYear = dayjs(date).year() === dayjs().year()
+	return dayjs(date)
+		.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
+		.toUpperCase()
+}
+
 const mailCount = createResource({
 	url: 'mail.api.mail.get_mailbox_thread_count',
-	auto: true,
 	makeParams: () => ({ mailbox }),
 	cache: [`${mailbox}MailCount`, user.data?.name],
 })
@@ -382,14 +442,37 @@ const openThread = (mail: Thread) => {
 	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
 }
 
-watch(() => mailbox, reloadMails, { immediate: true })
+// filter
 
-onMounted(() =>
-	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
-		if (updatedMailbox === mailbox) reloadMails()
-		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
-	}),
-)
+const FILTER_OPTIONS = [
+	{
+		label: __('All'),
+		icon: Mails,
+		onClick: () => setFilter(null),
+	},
+	{
+		label: __('Unread'),
+		icon: Mail,
+		onClick: () => setFilter('unread'),
+	},
+	{
+		label: __('Starred'),
+		icon: Star,
+		onClick: () => setFilter('starred'),
+		condition: () => !['trash', 'starred'].includes(mailbox),
+	},
+	{
+		label: __('Has attachments'),
+		icon: Paperclip,
+		onClick: () => setFilter('has_attachments'),
+	},
+]
+
+const setFilter = (value: string | null) => {
+	filter.value = value
+	threads.reload()
+	resetSelections()
+}
 
 // layout
 
@@ -401,6 +484,35 @@ const setUserLayout = (type: LayoutType) => {
 	userLayout.value = type
 	localStorage.setItem(`user:${user.data.name}:layout`, type)
 }
+
+const LAYOUT_OPTIONS = [
+	{
+		label: __('Full Width'),
+		icon: Rows4,
+		onClick: () => setUserLayout('full'),
+	},
+	{
+		label: __('Vertical Split'),
+		icon: PanelLeft,
+		onClick: () => setUserLayout('split'),
+	},
+]
+
+watch(
+	() => mailbox,
+	() => {
+		filter.value = null
+		reloadMails()
+	},
+	{ immediate: true },
+)
+
+onMounted(() =>
+	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
+		if (updatedMailbox === mailbox) reloadMails()
+		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
+	}),
+)
 
 const loadMoreEmails = useDebounceFn(() => {
 	if (threads?.data?.length === limit.value) {

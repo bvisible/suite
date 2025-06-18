@@ -1,4 +1,3 @@
-import { useTimeAgo } from '@vueuse/core'
 import { toast } from 'frappe-ui'
 
 export const convertToTitleCase = (str: string) =>
@@ -45,8 +44,6 @@ export const singularize = (word: string) => {
 	}
 	return word.replace(new RegExp(`(${Object.keys(endings).join('|')})$`), (r) => endings[r])
 }
-
-export const timeAgo = (date) => useTimeAgo(date).value
 
 export const validateEmail = (email: string) => {
 	const regExp =
