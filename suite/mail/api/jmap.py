@@ -3,6 +3,7 @@ from urllib.parse import unquote
 import frappe
 from frappe import _
 
+from mail.jmap import invalidate_jmap_identities_cache, invalidate_jmap_mailboxes_cache
 from mail.mail.doctype.email_message.email_message import enqueue_fetch_changes
 from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import JMAPPushSubscription
 
@@ -25,7 +26,19 @@ def push_notification() -> dict:
 			)
 			return {}
 		elif request_data["@type"] == "StateChange":
-			enqueue_fetch_changes(account, request_data)
+			changes = []
+			for change in request_data["changed"].values():
+				changes.append(change)
+
+			for change in changes:
+				for key, state in change.items():
+					if key == "Email":
+						enqueue_fetch_changes(account, state)
+					elif key == "Mailbox":
+						invalidate_jmap_mailboxes_cache(account)
+					elif key == "Identity":
+						invalidate_jmap_identities_cache(account)
+
 			return {}
 		else:
 			frappe.throw(_("Invalid Push Notification @type = {0}").format(request_data["@type"]))
