@@ -43,13 +43,20 @@ const setActiveElements = (ids, focus = false) => {
 const addTextElement = (text) => {
 	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
 
+	// TODO: find better way to handle calculating offsets without rendering element and knowing exact dimensions
+	const elementWidth = 60.73 * slideBounds.scale
+	const elementHeight = 30 * slideBounds.scale
+
+	const slideWidth = slideBounds.width / slideBounds.scale
+	const slideHeight = slideBounds.height / slideBounds.scale
+
 	const element = {
 		id: generateUniqueId(),
-		left: 100,
-		top: 100,
 		content: text || 'Text',
 		type: 'text',
 		textAlign: 'center',
+		left: slideWidth / 2 - elementWidth / 2,
+		top: slideHeight / 2 - elementHeight / 2,
 	}
 
 	if (lastTextElement) {
