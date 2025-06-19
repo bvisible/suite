@@ -695,11 +695,29 @@ def get_jmap_client(account: str, server: str | None = None, cache: bool = True)
 		return generator()
 
 
+def invalidate_jmap_cache(account: str) -> None:
+	"""Invalidates the JMAP cache for the given account."""
+
+	invalidate_jmap_client_cache(account)
+	invalidate_jmap_mailboxes_cache(account)
+	invalidate_jmap_identities_cache(account)
+
+
 def invalidate_jmap_client_cache(account: str) -> None:
 	"""Invalidates the JMAP client cache for the given account."""
 
 	frappe.cache.hdel("jmap:client", account)
+
+
+def invalidate_jmap_mailboxes_cache(account: str) -> None:
+	"""Invalidates the JMAP mailboxes cache for the given account."""
+
 	frappe.cache.hdel("jmap:mailboxes", account)
+
+
+def invalidate_jmap_identities_cache(account: str) -> None:
+	"""Invalidates the JMAP identities cache for the given account."""
+
 	frappe.cache.hdel("jmap:identities", account)
 
 

@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import now, random_string, validate_email_address
 
 from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
-from mail.jmap import get_jmap_client, invalidate_jmap_client_cache
+from mail.jmap import get_jmap_client, invalidate_jmap_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
 from mail.utils import generate_uuid_style_hash, get_postmaster_address, hash_password, normalize_email
 from mail.utils.cache import (
@@ -70,7 +70,7 @@ class MailAccount(Document):
 				)
 
 				if self.has_value_changed("secret"):
-					invalidate_jmap_client_cache(self.name)
+					invalidate_jmap_cache(self.name)
 
 			vacation_response_updated = False
 			previous_doc = self.get_doc_before_save()
@@ -349,7 +349,7 @@ class MailAccount(Document):
 			account_id, identities
 		)
 
-		invalidate_jmap_client_cache(self.name)
+		invalidate_jmap_cache(self.name)
 
 
 def _create_user_for_mail_account(
