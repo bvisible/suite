@@ -91,8 +91,8 @@ const colorValue = ref()
 const shadeStyles = computed(() => {
 	return {
 		background: `linear-gradient(transparent, black), linear-gradient(to right, white, ${currentHue.value})`,
-		width: '170px',
-		height: '130px',
+		width: `${SHADE_RECT_WIDTH}px`,
+		height: `${SHADE_RECT_HEIGHT}px`,
 	}
 })
 
@@ -145,7 +145,7 @@ const updateHue = (e) => {
 	// set currentHue with full saturation and 50% lightness
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 
-	// update currentColor based on exact hue, saturation, and lightness
+	// update currentColor based on exact hue, saturation, and value
 	currentColor.value = tinycolor
 		.fromRatio({
 			h: colorHue.value,
@@ -213,10 +213,12 @@ const endUpdateOpacity = (e) => {
 
 const handlePopoverOpen = () => {
 	const initialHsv = tinycolor(currentColor.value).toHsv()
+
 	colorHue.value = initialHsv.h
 	colorSaturation.value = initialHsv.s
 	colorValue.value = initialHsv.v
 	currentOpacity.value = initialHsv.a
+
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 }
 </script>
