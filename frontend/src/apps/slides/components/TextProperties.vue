@@ -227,7 +227,7 @@ const getFontStyleIconClasses = (property, value) => {
 }
 
 const getTabClasses = (alignValue) => {
-	const baseClasses = 'rounded h-full flex items-center justify-center px-4 cursor-pointer'
+	const baseClasses = 'rounded h-full flex items-center justify-center w-1/6 cursor-pointer'
 	if (activeElement.value.textAlign === alignValue) {
 		return `${baseClasses} bg-white shadow`
 	}
