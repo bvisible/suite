@@ -345,7 +345,7 @@ class MailAccount(Document):
 				"htmlSignature": None,
 			}
 
-		MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).set(
+		MailBackendIdentityManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).sync(
 			account_id, identities
 		)
 
