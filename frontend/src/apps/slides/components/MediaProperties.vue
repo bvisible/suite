@@ -113,7 +113,7 @@ const addBorder = (style) => {
 }
 
 const getTabClasses = (style) => {
-	const baseClasses = 'flex h-full w-1/4 cursor-pointer items-center justify-center rounded'
+	const baseClasses = 'flex h-full w-1/6 cursor-pointer items-center justify-center rounded'
 	if (activeElement.value.borderStyle == style) {
 		return `${baseClasses} bg-white shadow`
 	}
