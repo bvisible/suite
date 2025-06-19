@@ -84,9 +84,9 @@ const currentColor = defineModel()
 const currentHue = ref()
 const currentOpacity = ref()
 
-const hue = ref(0)
-const saturation = ref()
-const lightness = ref()
+const colorHue = ref(0)
+const colorSaturation = ref()
+const colorValue = ref()
 
 const shadeStyles = computed(() => {
 	return {
@@ -105,11 +105,13 @@ const colorSliderStyles = computed(() => {
 
 const opacitySliderStyles = `background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1))`
 
-const shadeRectStyles = computed(() => ({
-	backgroundColor: currentColor.value,
-	left: shadeCursorLeft.value,
-	top: shadeCursorTop.value,
-}))
+const shadeRectStyles = computed(() => {
+	return {
+		backgroundColor: currentColor.value,
+		left: shadeCursorLeft.value,
+		top: shadeCursorTop.value,
+	}
+})
 
 const handleUpdateHue = (e) => {
 	updateHue(e)
@@ -118,7 +120,7 @@ const handleUpdateHue = (e) => {
 }
 
 const hueCursorLeft = computed(() => {
-	return `${SLIDER_WIDTH - (hue.value / 360) * SLIDER_WIDTH - 6}px`
+	return `${SLIDER_WIDTH - (colorHue.value / 360) * SLIDER_WIDTH - 6}px`
 })
 
 const opacityCursorLeft = computed(() => {
@@ -126,11 +128,11 @@ const opacityCursorLeft = computed(() => {
 })
 
 const shadeCursorLeft = computed(() => {
-	return `${saturation.value * SHADE_RECT_WIDTH - 6}px`
+	return `${colorSaturation.value * SHADE_RECT_WIDTH - 6}px`
 })
 
 const shadeCursorTop = computed(() => {
-	return `${(1 - lightness.value) * SHADE_RECT_HEIGHT - 6}px`
+	return `${(1 - colorValue.value) * SHADE_RECT_HEIGHT - 6}px`
 })
 
 const updateHue = (e) => {
@@ -138,20 +140,20 @@ const updateHue = (e) => {
 	const clientX = e.clientX - unref(colorRect.left)
 
 	const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
-	hue.value = 360 - (360 * x) / SLIDER_WIDTH
+	colorHue.value = 360 - (360 * x) / SLIDER_WIDTH
 
 	// set currentHue with full saturation and 50% lightness
-	currentHue.value = tinycolor('hsl ' + hue.value + ' 1 .5').toHslString()
+	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 
 	// update currentColor based on exact hue, saturation, and lightness
 	currentColor.value = tinycolor
 		.fromRatio({
-			h: hue.value,
-			s: saturation.value * 100,
-			v: lightness.value * 100,
+			h: colorHue.value,
+			s: colorSaturation.value * 100,
+			v: colorValue.value * 100,
 			a: currentOpacity.value,
 		})
-		.toHslString()
+		.toHex8String()
 }
 
 const endUpdateHue = (e) => {
@@ -173,17 +175,15 @@ const updateShade = (e) => {
 	const x = Math.min(Math.max(clientX, 0), SHADE_RECT_WIDTH)
 	const y = Math.min(Math.max(clientY, 0), SHADE_RECT_HEIGHT)
 
-	lightness.value = 1 - y / SHADE_RECT_HEIGHT
-	saturation.value = x / SHADE_RECT_WIDTH
+	colorSaturation.value = x / SHADE_RECT_WIDTH
+	colorValue.value = 1 - y / SHADE_RECT_HEIGHT
 
-	currentColor.value = tinycolor
-		.fromRatio({
-			h: hue.value,
-			s: saturation.value * 100,
-			v: lightness.value * 100,
-			a: currentOpacity.value,
-		})
-		.toHslString()
+	currentColor.value = tinycolor({
+		h: colorHue.value,
+		s: colorSaturation.value * 100,
+		v: colorValue.value * 100,
+		a: currentOpacity.value,
+	}).toHex8String()
 }
 
 const endUpdateShade = (e) => {
@@ -204,7 +204,7 @@ const updateOpacity = (e) => {
 	const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
 
 	currentOpacity.value = x / SLIDER_WIDTH
-	currentColor.value = tinycolor(currentColor.value).setAlpha(currentOpacity.value).toHslString()
+	currentColor.value = tinycolor(currentColor.value).setAlpha(currentOpacity.value).toHex8String()
 }
 
 const endUpdateOpacity = (e) => {
@@ -212,13 +212,11 @@ const endUpdateOpacity = (e) => {
 }
 
 const handlePopoverOpen = () => {
-	const initialHsl = tinycolor(currentColor.value).toHsl()
-
-	hue.value = initialHsl.h
-	saturation.value = initialHsl.s
-	lightness.value = initialHsl.l
-
-	currentOpacity.value = initialHsl.a
-	currentHue.value = tinycolor('hsl ' + hue.value + ' 1 .5').toHslString()
+	const initialHsv = tinycolor(currentColor.value).toHsv()
+	colorHue.value = initialHsv.h
+	colorSaturation.value = initialHsv.s
+	colorValue.value = initialHsv.v
+	currentOpacity.value = initialHsv.a
+	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 }
 </script>
