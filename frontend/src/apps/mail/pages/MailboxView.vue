@@ -1,4 +1,5 @@
 <template>
+	<!-- Header -->
 	<header
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
 	>
@@ -29,6 +30,7 @@
 				class="sticky top-16 flex flex-col border-r"
 				:class="!isMobile && userLayout === 'split' ? 'w-1/3' : 'w-full'"
 			>
+				<!-- Toolbar/Actions -->
 				<div class="flex items-center justify-between border-b px-3.5 py-2.5 sm:px-5">
 					<div class="text-base">
 						<span v-if="selections.length">{{
@@ -107,6 +109,8 @@
 						</div>
 					</div>
 				</div>
+
+				<!-- Mail list -->
 				<div
 					v-if="threads?.data?.length"
 					class="h-full overflow-y-auto overscroll-contain"
@@ -141,6 +145,8 @@
 					class="h-full rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
 				/>
 			</div>
+
+			<!-- Mail thread -->
 			<div
 				class="overflow-y-auto bg-white"
 				:class="{
@@ -208,154 +214,19 @@ import type { LayoutType, Thread, UserResource } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
-const socket = inject('$socket')
-const user = inject('$user') as UserResource
-const dayjs = inject('$dayjs')
-const { mailboxes, currentThread, setCurrentThread } = userStore()
-const route = useRoute()
-const router = useRouter()
 const { isMobile } = useScreenSize()
 const { openSidebar } = useSidebar()
 
-const mailThread = useTemplateRef('mailThread')
+const route = useRoute()
+const router = useRouter()
 
-const mailboxName = computed(() =>
-	mailbox === 'starred'
-		? __('Starred')
-		: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
-)
+const socket = inject('$socket')
+const user = inject('$user') as UserResource
+const dayjs = inject('$dayjs')
 
-const limit = ref(50)
-const filter = ref<string | null>(null)
+const { mailboxes, currentThread, setCurrentThread } = userStore()
 
-const title = computed(() => {
-	switch (filter.value) {
-		case 'unread':
-			return __('Unread Mails')
-		case 'starred':
-			return __('Starred Mails')
-		case 'has_attachments':
-			return __('Mails With Attachments')
-		default:
-			return __('All Mails')
-	}
-})
-
-const threads = createResource({
-	url: 'mail.api.mail.get_mails_from_mailbox',
-	makeParams: () => ({ mailbox, limit: limit.value, filter_by: filter.value }),
-	onSuccess: (data: Thread[]) => {
-		const threadExists = (threadID?: string | null) =>
-			data.some((m) => m.thread_id === threadID)
-		if (threadExists(threadID)) {
-			if (currentThread[mailbox] !== threadID) setCurrentThread(mailbox, threadID ?? null)
-			mailThread.value?.reload()
-		} else if (threadExists(currentThread[mailbox])) {
-			if (route.params.threadID !== currentThread[mailbox])
-				router.replace({
-					name: 'Mail',
-					params: { mailbox: mailbox, threadID: currentThread[mailbox] },
-				})
-			mailThread.value?.reload()
-		} else setCurrentThread(mailbox, null)
-	},
-})
-
-const groupedThreads = computed(() =>
-	threads?.data?.reduce((groups, thread) => {
-		const date = dayjs(thread.received_at).format('YYYY-MM-DD')
-		if (!groups[date]) groups[date] = []
-
-		groups[date].push(thread)
-		return groups
-	}, {}),
-)
-
-const formattedDate = (date) => {
-	if (dayjs(date).isToday()) return __('TODAY')
-	if (dayjs(date).isYesterday()) return __('YESTERDAY')
-	const isCurrentYear = dayjs(date).year() === dayjs().year()
-	return dayjs(date)
-		.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
-		.toUpperCase()
-}
-
-const mailCount = createResource({
-	url: 'mail.api.mail.get_mailbox_thread_count',
-	makeParams: () => ({ mailbox }),
-	cache: [`${mailbox}MailCount`, user.data?.name],
-})
-
-const reloadMails = () => {
-	threads.reload()
-	mailCount.reload()
-	mailboxes.reload()
-	resetSelections()
-}
-
-interface SetSeenParams {
-	thread_ids: string[]
-	seen: boolean
-}
-
-const setSeen = createResource({
-	url: 'mail.api.mail.set_seen',
-	makeParams: (values: SetSeenParams) => ({ ...values, mailbox }),
-	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
-		mailboxes.reload()
-		thread_ids.forEach(
-			(name) => (threads.data.find((m: Thread) => m.thread_id === name).seen = Number(seen)),
-		)
-		if (
-			!seen &&
-			threads.data.some(
-				(m: Thread) =>
-					thread_ids.includes(m.thread_id) && m.thread_id === currentThread[mailbox],
-			)
-		)
-			setCurrentThread(mailbox, null)
-	},
-})
-
-const moveToOptions = computed(() =>
-	user.data.mailboxes
-		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
-		.map((m) => ({
-			label: m.name,
-			onClick: () =>
-				moveThreads.submit({ thread_ids: selections.value, move_to_mailbox: m.role }),
-		})),
-)
-
-const moveThreads = createResource({
-	url: 'mail.api.mail.set_threads_mailbox',
-	makeParams: ({
-		thread_ids,
-		move_to_mailbox,
-	}: {
-		thread_ids: string[]
-		move_to_mailbox: string
-	}) => ({
-		thread_ids,
-		mailbox,
-		move_to_mailbox,
-	}),
-	onSuccess: reloadMails,
-})
-
-const deleteThreads = createResource({
-	url: 'mail.api.mail.delete_threads',
-	makeParams: (thread_ids: string[]) => ({ thread_ids, mailbox }),
-	onSuccess: reloadMails,
-})
-
-const fetchChanges = createResource({
-	url: 'mail.api.mail.fetch_changes',
-	onSuccess: reloadMails,
-	onError: reloadMails,
-})
-
-// selection
+// Selection
 
 const mailItems = useTemplateRef('mailItems')
 
@@ -437,12 +308,148 @@ watch(allSelected, (val) => {
 		mailItems.value?.forEach((item) => item?.setIsSelected(val))
 })
 
+// Main data
+
+const mailThread = useTemplateRef('mailThread')
+const limit = ref(50)
+const filter = ref<string | null>(null)
+
+const threads = createResource({
+	url: 'mail.api.mail.get_mails_from_mailbox',
+	makeParams: () => ({ mailbox, limit: limit.value, filter_by: filter.value }),
+	onSuccess: (data: Thread[]) => {
+		const threadExists = (threadID?: string | null) =>
+			data.some((m) => m.thread_id === threadID)
+		if (threadExists(threadID)) {
+			if (currentThread[mailbox] !== threadID) setCurrentThread(mailbox, threadID ?? null)
+			mailThread.value?.reload()
+		} else if (threadExists(currentThread[mailbox])) {
+			if (route.params.threadID !== currentThread[mailbox])
+				router.replace({
+					name: 'Mail',
+					params: { mailbox: mailbox, threadID: currentThread[mailbox] },
+				})
+			mailThread.value?.reload()
+		} else setCurrentThread(mailbox, null)
+	},
+})
+
+const groupedThreads = computed(() =>
+	threads?.data?.reduce((groups, thread) => {
+		const date = dayjs(thread.received_at).format('YYYY-MM-DD')
+		if (!groups[date]) groups[date] = []
+
+		groups[date].push(thread)
+		return groups
+	}, {}),
+)
+
+const mailCount = createResource({
+	url: 'mail.api.mail.get_mailbox_thread_count',
+	makeParams: () => ({ mailbox }),
+	cache: [`${mailbox}MailCount`, user.data?.name],
+})
+
+const reloadMails = () => {
+	threads.reload()
+	mailCount.reload()
+	mailboxes.reload()
+	resetSelections()
+}
+
+watch(
+	() => mailbox,
+	() => {
+		filter.value = null
+		reloadMails()
+	},
+	{ immediate: true },
+)
+
+onMounted(() =>
+	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
+		if (updatedMailbox === mailbox) reloadMails()
+		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
+	}),
+)
+
+const loadMoreEmails = useDebounceFn(() => {
+	if (threads?.data?.length === limit.value) {
+		limit.value += 50
+		threads.reload()
+	}
+}, 500)
+
+// Actions
+
+interface SetSeenParams {
+	thread_ids: string[]
+	seen: boolean
+}
+
+const setSeen = createResource({
+	url: 'mail.api.mail.set_seen',
+	makeParams: (values: SetSeenParams) => ({ ...values, mailbox }),
+	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
+		mailboxes.reload()
+		thread_ids.forEach(
+			(name) => (threads.data.find((m: Thread) => m.thread_id === name).seen = Number(seen)),
+		)
+		if (
+			!seen &&
+			threads.data.some(
+				(m: Thread) =>
+					thread_ids.includes(m.thread_id) && m.thread_id === currentThread[mailbox],
+			)
+		)
+			setCurrentThread(mailbox, null)
+	},
+})
+
 const openThread = (mail: Thread) => {
 	setCurrentThread(mailbox, mail.thread_id)
 	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
 }
 
-// filter
+const moveThreads = createResource({
+	url: 'mail.api.mail.set_threads_mailbox',
+	makeParams: ({
+		thread_ids,
+		move_to_mailbox,
+	}: {
+		thread_ids: string[]
+		move_to_mailbox: string
+	}) => ({
+		thread_ids,
+		mailbox,
+		move_to_mailbox,
+	}),
+	onSuccess: reloadMails,
+})
+
+const moveToOptions = computed(() =>
+	user.data.mailboxes
+		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
+		.map((m) => ({
+			label: m.name,
+			onClick: () =>
+				moveThreads.submit({ thread_ids: selections.value, move_to_mailbox: m.role }),
+		})),
+)
+
+const deleteThreads = createResource({
+	url: 'mail.api.mail.delete_threads',
+	makeParams: (thread_ids: string[]) => ({ thread_ids, mailbox }),
+	onSuccess: reloadMails,
+})
+
+const fetchChanges = createResource({
+	url: 'mail.api.mail.fetch_changes',
+	onSuccess: reloadMails,
+	onError: reloadMails,
+})
+
+// Filter
 
 const FILTER_OPTIONS = [
 	{
@@ -474,7 +481,7 @@ const setFilter = (value: string | null) => {
 	resetSelections()
 }
 
-// layout
+// Layout
 
 const userLayout = ref<LayoutType>(
 	(localStorage.getItem(`user:${user.data.name}:layout`) as LayoutType) || 'split',
@@ -498,26 +505,33 @@ const LAYOUT_OPTIONS = [
 	},
 ]
 
-watch(
-	() => mailbox,
-	() => {
-		filter.value = null
-		reloadMails()
-	},
-	{ immediate: true },
+// UI formatting
+
+const mailboxName = computed(() =>
+	mailbox === 'starred'
+		? __('Starred')
+		: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
 )
 
-onMounted(() =>
-	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
-		if (updatedMailbox === mailbox) reloadMails()
-		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
-	}),
-)
-
-const loadMoreEmails = useDebounceFn(() => {
-	if (threads?.data?.length === limit.value) {
-		limit.value += 50
-		threads.reload()
+const title = computed(() => {
+	switch (filter.value) {
+		case 'unread':
+			return __('Unread Mails')
+		case 'starred':
+			return __('Starred Mails')
+		case 'has_attachments':
+			return __('Mails With Attachments')
+		default:
+			return __('All Mails')
 	}
-}, 500)
+})
+
+const formattedDate = (date) => {
+	if (dayjs(date).isToday()) return __('TODAY')
+	if (dayjs(date).isYesterday()) return __('YESTERDAY')
+	const isCurrentYear = dayjs(date).year() === dayjs().year()
+	return dayjs(date)
+		.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
+		.toUpperCase()
+}
 </script>
