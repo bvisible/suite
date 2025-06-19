@@ -86,7 +86,7 @@ export interface MailDomainDNSRecord extends ChildDocType {
 	category: '' | 'Sending Record' | 'Receiving Record' | 'Tracking Record' | 'Server Record'
 }
 
-// Last updated: 2025-06-09 16:38:07.714093
+// Last updated: 2025-06-13 17:27:38.910662
 export interface MailDomain extends DocType {
 	/** Domain Name: Data */
 	domain_name: string
@@ -168,7 +168,7 @@ export interface MailDomainRequest extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-06-05 13:21:25.743867
+// Last updated: 2025-06-16 11:14:11.831446
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -182,12 +182,8 @@ export interface MailAccount extends DocType {
 	email?: string
 	/** Display Name: Data */
 	display_name?: string
-	/** Reply To: Data */
+	/** Reply To: Small Text */
 	reply_to?: string
-	/** Override Display Name: Check */
-	override_display_name: 0 | 1
-	/** Override Reply To: Check */
-	override_reply_to: 0 | 1
 	/** Password: Password */
 	password?: string
 	/** Secret: Small Text */
@@ -200,6 +196,10 @@ export interface MailAccount extends DocType {
 	normalized_email?: string
 	/** Backup Email: Data */
 	backup_email: string
+	/** Override Display Name: Check */
+	override_display_name: 0 | 1
+	/** Override Reply To: Check */
+	override_reply_to: 0 | 1
 }
 
 // Last updated: 2025-03-26 11:43:10.481605
@@ -208,7 +208,7 @@ export interface PersonalSignupDomain extends ChildDocType {
 	domain_name: string
 }
 
-// Last updated: 2025-06-09 16:45:53.921752
+// Last updated: 2025-06-16 10:50:56.921888
 export interface MailSettings extends DocType {
 	/** Root Domain Name: Data */
 	root_domain_name: string

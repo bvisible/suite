@@ -156,7 +156,7 @@
 							<div
 								class="flex flex-wrap justify-between gap-2 overflow-hidden border-t py-2.5"
 							>
-								<!-- Text Editor Buttons -->
+								<!-- Text editor buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
 									<TextEditorFixedMenu :buttons="textEditorMenuButtons" />
 									<EmojiPicker
