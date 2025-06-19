@@ -374,7 +374,7 @@ class MailBackendAliasManager(MailBackendManagerBase):
 
 
 class MailBackendIdentityManager(MailBackendManagerBase):
-	def set(
+	def sync(
 		self,
 		account_id: str,
 		identities: dict[str, dict[str, Any]],
