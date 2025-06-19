@@ -18,6 +18,7 @@ from mail.utils.cache import (
 	get_tenant_for_domain,
 	get_tenant_for_user,
 )
+from mail.utils.dt import convert_to_utc
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -70,6 +71,41 @@ class MailAccount(Document):
 
 				if self.has_value_changed("secret"):
 					invalidate_jmap_client_cache(self.name)
+
+			vacation_response_updated = False
+			previous_doc = self.get_doc_before_save()
+			for field in [
+				"vacation_response_enabled",
+				"vacation_from_date",
+				"vacation_to_date",
+				"vacation_response_subject",
+				"vacation_response_text_body",
+				"vacation_response_html_body",
+			]:
+				if getattr(self, field) != getattr(previous_doc, field):
+					vacation_response_updated = True
+					break
+
+			if vacation_response_updated:
+				from_date = convert_to_utc(self.vacation_from_date).isoformat()
+				to_date = convert_to_utc(self.vacation_to_date).isoformat()
+
+				try:
+					client = get_jmap_client(self.name)
+					client.vacation_response_set(
+						bool(self.vacation_response_enabled),
+						from_date,
+						to_date,
+						self.vacation_response_subject,
+						self.vacation_response_text_body,
+						self.vacation_response_html_body,
+					)
+				except Exception:
+					frappe.log_error(
+						title=_("Failed to create or update vacation response"),
+						message=frappe.get_traceback(with_context=True),
+					)
+					frappe.throw(_("Failed to create or update vacation response."))
 
 		elif self.has_value_changed("enabled"):
 			MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.email)
