@@ -11,7 +11,7 @@
 			@ended="resetProgress"
 			preload="auto"
 		>
-			<source :src="`/api/method/slides.api.get_video_file?src=${element.src}`" />
+			<source :src="`/api/method/slides.api.file.get_video_file?src=${element.src}`" />
 		</video>
 		<div
 			ref="overlay"
