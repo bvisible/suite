@@ -24,7 +24,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-30 20:37:32.187672",
+ "modified": "2025-06-19 18:01:28.719517",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
@@ -48,7 +48,7 @@
    "delete": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "All",
+   "role": "Slides User",
    "select": 1,
    "write": 1
   }
