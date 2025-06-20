@@ -6,6 +6,16 @@ app_email = "gursheen@frappe.io"
 app_license = "mit"
 # required_apps = []
 
+add_to_apps_screen = [
+	{
+		"name": "slides",
+		"logo": "/assets/slides/images/slides-logo.svg",
+		"title": "Slides",
+		"route": "/slides",
+		"has_permission": "slides.api.check_app_permission",
+	}
+]
+
 # Includes in <head>
 # ------------------
 
