@@ -15,14 +15,14 @@
 		</video>
 		<div
 			ref="overlay"
-			class="transition-opacity overflow-hidden duration-500 ease-in-out absolute top-0 left-0 size-full"
+			class="absolute left-0 top-0 size-full overflow-hidden transition-opacity duration-500 ease-in-out"
 			:style="gradientOverlayStyles"
 		>
 			<div v-if="showProgressBar" :class="toggleButtonClasses">
 				<component
 					size="16"
 					:is="isPlaying ? Pause : Play"
-					class="text-white stroke-[1.5] ps-[0.5px]"
+					class="stroke-[1.5] ps-[0.5px] text-white"
 				/>
 			</div>
 			<div

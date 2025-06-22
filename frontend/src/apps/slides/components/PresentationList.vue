@@ -1,14 +1,14 @@
 <template>
 	<div :class="backgroundClasses">
 		<!-- Header -->
-		<div class="font-semibold text-base cursor-default text-gray-700 lg:px-40 px-32">
+		<div class="cursor-default px-32 text-base font-semibold text-gray-700 lg:px-40">
 			Presentations <span v-if="presentations?.length">({{ presentations?.length }})</span>
 		</div>
 
-		<div class="lg:px-40 px-32 py-4">
+		<div class="px-32 py-4 lg:px-40">
 			<div
 				v-if="presentations?.length"
-				class="grid grid-cols-3 lg:grid-cols-4 lg:gap-10 gap-8"
+				class="grid grid-cols-3 gap-8 lg:grid-cols-4 lg:gap-10"
 			>
 				<div
 					v-for="presentation in presentations"
@@ -18,13 +18,13 @@
 					<!-- Presentation Card -->
 					<!-- added bg-white temporarily to support for first slides with no generated thumbnail -->
 					<div
-						class="aspect-[16/9] bg-white rounded-lg shadow-xl cursor-pointer hover:scale-[1.01]"
+						class="aspect-[16/9] cursor-pointer rounded-lg bg-white shadow-xl hover:scale-[1.01]"
 						:style="getCardStyles(presentation)"
 						@click="(e) => setPreviewPresentation(e, presentation)"
 					></div>
 
 					<!-- Presentation Title  -->
-					<div class="lg:text-base md:text-sm truncate cursor-default text-gray-700 px-2">
+					<div class="cursor-default truncate px-2 text-gray-700 md:text-sm lg:text-base">
 						{{ presentation.title }}
 					</div>
 				</div>
@@ -34,7 +34,7 @@
 	</div>
 
 	<!-- Overlay while previewing certain presentation -->
-	<div class="fixed top-0 left-0 w-full h-dvh bg-black opacity-25" v-show="blur"></div>
+	<div class="fixed left-0 top-0 h-dvh w-full bg-black opacity-25" v-show="blur"></div>
 </template>
 
 <script setup>

@@ -1,7 +1,7 @@
 <template>
 	<div :class="previewOverlayClasses" @click="hidePreview()">
-		<div class="z-20 w-[70%] absolute left-[calc(50%-31%)] flex justify-between" @click.stop>
-			<div class="w-[88%] flex flex-col gap-8">
+		<div class="absolute left-[calc(50%-31%)] z-20 flex w-[70%] justify-between" @click.stop>
+			<div class="flex w-[88%] flex-col gap-8">
 				<!-- Preview -->
 				<router-link
 					v-if="presentation"
@@ -9,12 +9,12 @@
 						name: 'PresentationEditor',
 						params: { presentationId: presentation?.name },
 					}"
-					class="aspect-video bg-white cursor-pointer rounded-2xl shadow-2xl"
+					class="aspect-video cursor-pointer rounded-2xl bg-white shadow-2xl"
 					:style="previewStyles"
 				></router-link>
 
 				<!-- Details -->
-				<div class="flex flex-col gap-2 lg:text-base text-sm cursor-default px-2">
+				<div class="flex cursor-default flex-col gap-2 px-2 text-sm lg:text-base">
 					<div
 						v-for="(row, index) in previewDetails"
 						:key="index"
@@ -33,7 +33,7 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="w-[8%] flex flex-col gap-3 pt-[30%]">
+			<div class="flex w-[8%] flex-col gap-3 pt-[30%]">
 				<Tooltip
 					v-for="action in presentationActions"
 					:text="action.label"
@@ -51,7 +51,7 @@
 			</div>
 		</div>
 
-		<div class="z-10 bg-white h-[53%] w-full absolute bottom-0 left-0" @click.stop></div>
+		<div class="absolute bottom-0 left-0 z-10 h-[53%] w-full bg-white" @click.stop></div>
 	</div>
 </template>
 

@@ -5,7 +5,7 @@
 		<div
 			ref="target"
 			:style="targetStyles"
-			class="fixed top-[calc(50%-270px)] left-[calc(50%-512px)]"
+			class="fixed left-[calc(50%-512px)] top-[calc(50%-270px)]"
 		>
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />

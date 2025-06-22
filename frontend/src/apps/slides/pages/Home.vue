@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed flex flex-col h-screen w-screen">
+	<div class="fixed flex h-screen w-screen flex-col">
 		<Navbar
 			:primaryButton="{
 				label: 'New',
