@@ -6,18 +6,27 @@ from email.utils import parseaddr
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import random_string, validate_email_address
+from frappe.utils import cint, now, random_string, validate_email_address
+from frappe.utils.data import convert_utc_to_system_timezone, get_datetime
 
 from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
-from mail.jmap import get_jmap_client, invalidate_jmap_client_cache
+from mail.jmap import get_jmap_client, invalidate_jmap_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
-from mail.utils import generate_uuid_style_hash, get_postmaster_address, hash_password, normalize_email
+from mail.utils import (
+	enqueue_job,
+	generate_uuid_style_hash,
+	get_postmaster_address,
+	hash_password,
+	normalize_email,
+	user_context,
+)
 from mail.utils.cache import (
 	get_aliases_for_user,
 	get_cluster_for_tenant,
 	get_tenant_for_domain,
 	get_tenant_for_user,
 )
+from mail.utils.dt import convert_to_utc
 from mail.utils.user import has_role, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	is_email_assigned,
@@ -50,6 +59,7 @@ class MailAccount(Document):
 		self.validate_display_name()
 		self.validate_reply_to()
 		self.validate_backup_email()
+		self.validate_vacation_response()
 
 	def after_insert(self) -> None:
 		create_jmap_sync_state(self.name)
@@ -68,7 +78,43 @@ class MailAccount(Document):
 				)
 
 				if self.has_value_changed("secret"):
-					invalidate_jmap_client_cache(self.name)
+					invalidate_jmap_cache(self.name)
+
+			vacation_response_updated = False
+			previous_doc = self.get_doc_before_save()
+			for field in [
+				"vacation_response_enabled",
+				"vacation_from_date",
+				"vacation_to_date",
+				"vacation_response_subject",
+				"vacation_response_text_body",
+				"vacation_response_html_body",
+			]:
+				if getattr(self, field) != getattr(previous_doc, field):
+					vacation_response_updated = True
+					break
+
+			if vacation_response_updated:
+				from_date = convert_to_utc(self.vacation_from_date).isoformat()
+				to_date = convert_to_utc(self.vacation_to_date).isoformat()
+
+				try:
+					client = get_jmap_client(self.name)
+					response = client.vacation_response_set(
+						bool(self.vacation_response_enabled),
+						from_date,
+						to_date,
+						self.vacation_response_subject,
+						self.vacation_response_text_body,
+						self.vacation_response_html_body,
+					)
+					self._db_set(vacation_response_state=response["newState"])
+				except Exception:
+					frappe.log_error(
+						title=_("Failed to create or update vacation response"),
+						message=frappe.get_traceback(with_context=True),
+					)
+					frappe.throw(_("Failed to create or update vacation response."))
 
 		elif self.has_value_changed("enabled"):
 			MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).delete(self.email)
@@ -204,6 +250,31 @@ class MailAccount(Document):
 
 		validate_email_address(self.backup_email, True)
 
+	def validate_vacation_response(self) -> None:
+		"""Validates the vacation response settings."""
+
+		if self.is_new():
+			self.vacation_response_enabled = 0
+			self.vacation_from_date = None
+			self.vacation_to_date = None
+			self.vacation_response_subject = None
+			self.vacation_response_text_body = None
+			self.vacation_response_html_body = None
+		else:
+			if self.vacation_response_enabled:
+				if not self.vacation_from_date:
+					frappe.throw(_("Vacation - {0} is required.").format(frappe.bold(_("From Date"))))
+				if not self.vacation_to_date:
+					frappe.throw(_("Vacation - {0} is required.").format(frappe.bold(_("To Date"))))
+				elif self.vacation_to_date < now():
+					frappe.throw(_("Vacation - {0} cannot be in the past.").format(frappe.bold(_("To Date"))))
+				elif self.vacation_from_date >= self.vacation_to_date:
+					frappe.throw(
+						_("Vacation - {0} cannot be before Vacation - {1}.").format(
+							frappe.bold(_("To Date")), frappe.bold(_("From Date"))
+						)
+					)
+
 	def clear_cache(self) -> None:
 		"""Clears the Cache."""
 
@@ -287,7 +358,18 @@ class MailAccount(Document):
 			account_id, identities
 		)
 
-		invalidate_jmap_client_cache(self.name)
+		invalidate_jmap_cache(self.name)
+
+	def _db_set(
+		self,
+		update_modified: bool = True,
+		commit: bool = False,
+		notify: bool = False,
+		**kwargs,
+	) -> None:
+		"""Updates the document with the given key-value pairs."""
+
+		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
 def _create_user_for_mail_account(
@@ -384,6 +466,69 @@ def sync_jmap_identities(account: str) -> None:
 
 	doc = frappe.get_doc("Mail Account", account)
 	doc._sync_jmap_identities()
+
+
+def enqueue_sync_jmap_vacation_response(account: str, new_state: str | None = None) -> None:
+	"""Enqueue a job to sync JMAP vacation response for the given mail account."""
+
+	with user_context("Administrator"):
+		enqueue_job(
+			sync_jmap_vacation_response,
+			account=account,
+			new_state=new_state,
+			queue="short",
+			deduplicate=True,
+			enqueue_after_commit=True,
+		)
+
+
+@frappe.whitelist()
+def sync_jmap_vacation_response(
+	account: str, new_state: str | None = None, raise_exception: bool = False
+) -> None:
+	"""Sync JMAP vacation response for the given mail account."""
+
+	if not frappe.db.exists("Mail Account", account):
+		return
+
+	doc = frappe.get_doc("Mail Account", account)
+
+	if new_state and doc.vacation_response_state == new_state:
+		return
+
+	try:
+		client = get_jmap_client(doc.name)
+		response, new_state = client.vacation_response_get()
+
+		if response:
+			from_date = (
+				convert_utc_to_system_timezone(get_datetime(response["fromDate"]))
+				if response["fromDate"]
+				else None
+			)
+			to_date = (
+				convert_utc_to_system_timezone(get_datetime(response["toDate"]))
+				if response["toDate"]
+				else None
+			)
+			doc._db_set(
+				vacation_response_enabled=cint(response["isEnabled"]),
+				vacation_from_date=from_date,
+				vacation_to_date=to_date,
+				vacation_response_subject=response["subject"],
+				vacation_response_text_body=response["textBody"],
+				vacation_response_html_body=response["htmlBody"],
+				vacation_response_state=new_state,
+				notify=True,
+			)
+	except Exception:
+		frappe.log_error(
+			title=_("Failed to sync JMAP vacation response"),
+			message=frappe.get_traceback(with_context=True),
+		)
+
+		if raise_exception:
+			frappe.throw(_("Failed to sync JMAP vacation response."))
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:

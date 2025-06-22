@@ -42,7 +42,7 @@
    "set_only_once": 1
   },
   {
-   "default": "Email\nMailbox\nEmailDelivery",
+   "default": "Email\nMailbox\nIdentity\nVacationResponse",
    "fieldname": "notification_types",
    "fieldtype": "Small Text",
    "label": "Notification Types",
@@ -184,7 +184,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 12:54:26.523305",
+ "modified": "2025-06-22 19:58:07.160791",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "JMAP Push Subscription",

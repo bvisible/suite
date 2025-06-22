@@ -605,6 +605,62 @@ class JMAPClient:
 				],
 			)
 
+	def vacation_response_get(self) -> tuple[dict, str]:
+		"""Returns the vacation response for the logged-in user."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"VacationResponse/get",
+					{
+						"accountId": self.account_id,
+					},
+					"0",
+				]
+			],
+		)
+
+		vacation_responses = response["methodResponses"][0][1]["list"]
+		state = response["methodResponses"][0][1]["state"]
+		return (vacation_responses[0], state) if vacation_responses else ({}, state)
+
+	def vacation_response_set(
+		self,
+		enabled: bool,
+		from_date: str | None = None,
+		to_date: str | None = None,
+		subject: str | None = None,
+		text_body: str | None = None,
+		html_body: str | None = None,
+	) -> dict:
+		"""Sets the vacation response for the logged-in user."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"VacationResponse/set",
+					{
+						"accountId": self.account_id,
+						"update": {
+							"singleton": {
+								"isEnabled": enabled,
+								"fromDate": from_date or None,
+								"toDate": to_date or None,
+								"subject": subject or None,
+								"textBody": text_body or None,
+								"htmlBody": html_body or None,
+							}
+						},
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]
+
 
 def get_jmap_client(account: str, server: str | None = None, cache: bool = True) -> "JMAPClient":
 	"""Returns a JMAP client for the given account."""
@@ -640,11 +696,29 @@ def get_jmap_client(account: str, server: str | None = None, cache: bool = True)
 		return generator()
 
 
+def invalidate_jmap_cache(account: str) -> None:
+	"""Invalidates the JMAP cache for the given account."""
+
+	invalidate_jmap_client_cache(account)
+	invalidate_jmap_mailboxes_cache(account)
+	invalidate_jmap_identities_cache(account)
+
+
 def invalidate_jmap_client_cache(account: str) -> None:
 	"""Invalidates the JMAP client cache for the given account."""
 
 	frappe.cache.hdel("jmap:client", account)
+
+
+def invalidate_jmap_mailboxes_cache(account: str) -> None:
+	"""Invalidates the JMAP mailboxes cache for the given account."""
+
 	frappe.cache.hdel("jmap:mailboxes", account)
+
+
+def invalidate_jmap_identities_cache(account: str) -> None:
+	"""Invalidates the JMAP identities cache for the given account."""
+
 	frappe.cache.hdel("jmap:identities", account)
 
 
