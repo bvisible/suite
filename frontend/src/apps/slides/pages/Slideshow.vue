@@ -1,8 +1,8 @@
 <template>
-	<div class="bg-black fixed top-0 left-0 w-full h-full">
+	<div class="fixed left-0 top-0 h-full w-full bg-black">
 		<div
 			ref="slideContainer"
-			class="flex items-center justify-center w-full h-screen"
+			class="flex h-screen w-full items-center justify-center"
 			:style="{
 				clipPath: clipPath,
 			}"

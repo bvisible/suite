@@ -2,13 +2,13 @@
 	<Popover @open="handlePopoverOpen">
 		<template #target="{ togglePopover }">
 			<div
-				class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-offset-1 ring-gray-300"
+				class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-gray-300 ring-offset-1"
 				:style="{ backgroundColor: currentColor }"
 				@click="togglePopover"
 			></div>
 		</template>
 		<template #body>
-			<div class="rounded-lg border bg-surface-modal shadow-xl p-3 mt-2">
+			<div class="mt-2 rounded-lg border bg-surface-modal p-3 shadow-xl">
 				<div class="flex flex-col gap-3">
 					<div
 						ref="shadeSlider"
@@ -17,13 +17,13 @@
 						@mousedown="handleUpdateShade"
 					>
 						<div
-							class="relative size-3 rounded border shadow-md hover:scale-[1.2] transition-transform duration-200 ease-in-out"
+							class="relative size-3 rounded border shadow-md transition-transform duration-200 ease-in-out hover:scale-[1.2]"
 							:style="shadeRectStyles"
 						></div>
 					</div>
 					<div class="flex h-8 justify-between py-1">
 						<div
-							class="h-full w-6 rounded-sm ring-1 ring-offset-1 ring-gray-100"
+							class="h-full w-6 rounded-sm ring-1 ring-gray-100 ring-offset-1"
 							:style="{ backgroundColor: currentColor }"
 						></div>
 						<div class="flex flex-col justify-between px-1">

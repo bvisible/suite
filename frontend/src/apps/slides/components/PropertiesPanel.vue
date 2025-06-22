@@ -1,5 +1,5 @@
 <template>
-	<div v-if="presentation.data" class="flex flex-col w-64 bg-white border-l" @wheel.prevent>
+	<div v-if="presentation.data" class="flex w-64 flex-col border-l bg-white" @wheel.prevent>
 		<component :is="activeProperties" />
 
 		<div v-if="activeElement">

@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col gap-1">
 		<div :class="fieldLabelClasses">{{ label }}</div>
-		<div class="flex items-center justify-between cursor-pointer">
+		<div class="flex cursor-pointer items-center justify-between">
 			<div class="relative me-3 h-[2.5px] w-full">
 				<input
 					class="slider absolute top-0 h-full cursor-pointer"
@@ -19,7 +19,7 @@
 					@mouseleave="isDragging = false"
 				/>
 				<div
-					class="absolute top-0 h-full rounded border bg-black border-black"
+					class="absolute top-0 h-full rounded border border-black bg-black"
 					:style="highlightStyles"
 				></div>
 			</div>

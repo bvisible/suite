@@ -8,7 +8,7 @@
 	>
 		<div
 			v-if="presentation.data"
-			class="flex flex-col h-full p-4 overflow-y-auto"
+			class="flex h-full flex-col overflow-y-auto p-4"
 			:style="scrollbarStyles"
 		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
