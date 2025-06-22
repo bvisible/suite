@@ -605,7 +605,7 @@ class JMAPClient:
 				],
 			)
 
-	def vacation_response_get(self) -> dict:
+	def vacation_response_get(self) -> tuple[dict, str]:
 		"""Returns the vacation response for the logged-in user."""
 
 		response = self._make_request(
@@ -622,7 +622,8 @@ class JMAPClient:
 		)
 
 		vacation_responses = response["methodResponses"][0][1]["list"]
-		return vacation_responses[0] if vacation_responses else {}
+		state = response["methodResponses"][0][1]["state"]
+		return (vacation_responses[0], state) if vacation_responses else ({}, state)
 
 	def vacation_response_set(
 		self,
