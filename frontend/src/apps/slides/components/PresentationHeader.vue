@@ -44,10 +44,16 @@ const makeTitleEditable = (e) => {
 	e.target.tabIndex = 0
 }
 
-const renamePresentationDoc = async (newName) => {
-	return await call('slides.slides.doctype.presentation.presentation.rename_presentation', {
+const updatePresentationTitle = async (newTitle) => {
+	return call('slides.slides.doctype.presentation.presentation.update_title', {
 		name: route.params.presentationId,
-		new_name: newName,
+		title: newTitle,
+	}).then((response) => {
+		if (response) {
+			return response
+		} else {
+			throw new Error('Failed to rename presentation')
+		}
 	})
 }
 
@@ -57,10 +63,10 @@ const saveTitle = async (e) => {
 	const newTitle = e.target.innerText.trim()
 
 	if (newTitle && newTitle != presentation.data.title) {
-		let nameSlug = await renamePresentationDoc(newTitle)
+		const slug = await updatePresentationTitle(newTitle)
 		router.replace({
 			name: 'PresentationEditor',
-			params: { presentationId: nameSlug },
+			params: { presentationId: route.params.presentationId, slug: slug },
 		})
 	}
 }
