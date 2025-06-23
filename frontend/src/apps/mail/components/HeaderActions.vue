@@ -14,7 +14,7 @@
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Button, Dialog, createResource } from 'frappe-ui'
 
 import SearchModal from '@/components/Modals/SearchModal.vue'
@@ -60,4 +60,14 @@ const emptyMailbox = createResource({
 	makeParams: () => ({ mailbox }),
 	onSuccess: () => emit('reloadMails'),
 })
+
+const handleKeydown = (event: KeyboardEvent) => {
+	if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+		event.preventDefault()
+		showSearchModal.value = true
+	}
+}
+
+onMounted(() => document.addEventListener('keydown', handleKeydown))
+onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
 </script>

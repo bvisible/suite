@@ -18,10 +18,10 @@
 					class="flex items-center rounded p-2 hover:cursor-pointer hover:bg-gray-50"
 					@click="openMail(result.mailbox_role, result.thread_id)"
 				>
-					<p class="text-base">{{ result.subject }}</p>
-					<div class="text-ink-gray-4 ml-auto text-sm">
+					<span class="text-base">{{ result.subject || __('[No subject]') }}</span>
+					<span class="text-ink-gray-4 ml-auto text-sm">
 						{{ getFormattedDate(result.received_at) }}
-					</div>
+					</span>
 				</div>
 			</div>
 		</template>
@@ -30,12 +30,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { Search } from 'lucide-vue-next'
 import { Dialog, createResource } from 'frappe-ui'
 
 import { getFormattedDate } from '@/utils'
+import { userStore } from '@/stores/user'
 
 const show = defineModel<boolean>()
 
@@ -46,12 +46,19 @@ const results = createResource({
 	makeParams: () => ({ query: query.value }),
 })
 
-watchDebounced(() => query.value, results.reload, { debounce: 300 })
+watchDebounced(
+	() => query.value,
+	() => {
+		if (query.value) results.reload()
+		else results.reset()
+	},
+	{ debounce: 200 },
+)
 
-const router = useRouter()
+const { setCurrentThread } = userStore()
 
 const openMail = (mailbox: string, threadID: string) => {
-	router.push({ name: 'Mail', params: { mailbox, threadID } })
+	setCurrentThread(mailbox, threadID)
 	query.value = ''
 	show.value = false
 }
