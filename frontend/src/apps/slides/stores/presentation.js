@@ -1,6 +1,5 @@
 import { ref, watch } from 'vue'
 import { createResource, call } from 'frappe-ui'
-import { loadSlide } from './slide'
 
 const presentationId = ref('')
 
@@ -12,12 +11,6 @@ const presentation = createResource({
 const inSlideShow = ref(false)
 
 const applyReverseTransition = ref(false)
-
-const loadPresentation = async (id) => {
-	presentationId.value = id
-	await presentation.fetch()
-	loadSlide()
-}
 
 const createPresentationResource = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.create_presentation',
@@ -35,6 +28,5 @@ export {
 	presentation,
 	inSlideShow,
 	applyReverseTransition,
-	loadPresentation,
 	createPresentationResource,
 }

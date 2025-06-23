@@ -5,7 +5,8 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "slides"
+  "slides",
+  "slug"
  ],
  "fields": [
   {
@@ -17,12 +18,20 @@
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Title"
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Slug"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 17:39:51.103962",
+ "modified": "2025-06-23 23:32:17.653908",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
@@ -50,7 +59,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "title"
 }

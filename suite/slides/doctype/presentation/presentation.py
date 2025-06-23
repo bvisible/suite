@@ -6,7 +6,12 @@ from frappe.model.document import Document
 
 
 class Presentation(Document):
-	pass
+	def before_save(self):
+		self.slug = slug(self.title)
+
+
+def slug(text: str) -> str:
+	return text.lower().replace(" ", "-")
 
 
 def get_presentation_thumbnail(presentation_name: str) -> str:
