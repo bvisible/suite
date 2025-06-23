@@ -46,7 +46,7 @@ import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
-import { presentationId, presentation, loadPresentation } from '@/stores/presentation'
+import { presentationId, presentation } from '@/stores/presentation'
 import {
 	slide,
 	slideIndex,
@@ -321,11 +321,23 @@ const resetSlideState = () => {
 	}
 }
 
+const addRouteSlug = async () => {
+	const slug = presentation.data.slug
+	if (route.params.slug === slug) return
+	router.replace({
+		name: 'PresentationEditor',
+		params: { presentationId: presentationId.value, slug: slug },
+	})
+}
+
 watch(
 	() => route.params.presentationId,
-	(id) => {
+	async (id) => {
 		if (!id) return
-		loadPresentation(id)
+		presentationId.value = id
+		await presentation.fetch()
+		addRouteSlug()
+		loadSlide()
 	},
 	{ immediate: true },
 )
