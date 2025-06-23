@@ -118,7 +118,7 @@
 				>
 					<div v-for="(group, key) in groupedThreads" :key="key">
 						<div class="text-ink-gray-6 border-b px-5 py-3.5 text-xs font-semibold">
-							{{ formattedDate(key) }}
+							{{ getFormattedDate(key).toUpperCase() }}
 						</div>
 						<MailListItem
 							v-for="mail in group"
@@ -202,7 +202,7 @@ import {
 } from 'lucide-vue-next'
 import { Breadcrumbs, Button, Checkbox, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
-import { startResizing } from '@/utils'
+import { getFormattedDate, startResizing } from '@/utils'
 import { useScreenSize, useSidebar } from '@/utils/composables'
 import { userStore } from '@/stores/user'
 import HeaderActions from '@/components/HeaderActions.vue'
@@ -335,7 +335,7 @@ const threads = createResource({
 })
 
 const groupedThreads = computed(() =>
-	threads?.data?.reduce((groups, thread) => {
+	threads?.data?.reduce((groups, thread: Thread) => {
 		const date = dayjs(thread.received_at).format('YYYY-MM-DD')
 		if (!groups[date]) groups[date] = []
 
@@ -525,13 +525,4 @@ const title = computed(() => {
 			return __('All Mails')
 	}
 })
-
-const formattedDate = (date) => {
-	if (dayjs(date).isToday()) return __('TODAY')
-	if (dayjs(date).isYesterday()) return __('YESTERDAY')
-	const isCurrentYear = dayjs(date).year() === dayjs().year()
-	return dayjs(date)
-		.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
-		.toUpperCase()
-}
 </script>

@@ -15,7 +15,7 @@
 		</template>
 		<template #body>
 			<div
-				class="border-outline-gray-2 bg-surface-white text-ink-gray-8 auto-fill-[100px] dark:bg-surface-gray-1 flex w-48 flex-col rounded-lg border p-1.5 text-sm shadow-xl"
+				class="border-outline-gray-2 bg-surface-white auto-fill-[100px] dark:bg-surface-gray-1 flex w-48 flex-col rounded-lg border p-1.5 text-sm shadow-xl"
 			>
 				<a
 					v-for="app in apps.data"

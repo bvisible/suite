@@ -85,7 +85,7 @@
 							<span class="text-xs text-gray-500">{{ __('Subject') }}:</span>
 							<input
 								v-model="mail.subject"
-								class="text-ink-gray-8 flex-1 border-none bg-white text-base focus-visible:!ring-0"
+								class="flex-1 border-none bg-white text-base focus-visible:!ring-0"
 							/>
 						</div>
 					</div>
