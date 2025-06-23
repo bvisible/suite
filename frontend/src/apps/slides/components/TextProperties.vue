@@ -24,7 +24,7 @@
 			</div>
 
 			<div
-				class="h-8 rounded-[10px] bg-gray-100 w-full flex items-center justify-between p-0.5 border"
+				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
 			>
 				<div
 					v-for="textAlign in textAlignProperties"

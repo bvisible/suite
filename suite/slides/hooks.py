@@ -4,7 +4,17 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Tool to create and present slideshows."
 app_email = "gursheen@frappe.io"
 app_license = "mit"
+
 # required_apps = []
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"logo": "/assets/slides/frontend/slides-logo.svg",
+		"title": app_title,
+		"route": "/slides",
+		"has_permission": "slides.api.check_app_permission",
+	}
+]
 
 # Includes in <head>
 # ------------------

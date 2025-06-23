@@ -1,16 +1,16 @@
 <template>
-	<div class="h-screen w-screen flex flex-col select-none overflow-hidden">
+	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
 				<PresentationHeader />
 			</template>
 		</Navbar>
 		<div
-			class="flex relative h-screen"
+			class="relative flex h-screen"
 			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 		>
 			<NavigationPanel
-				class="absolute top-0 bottom-0 z-50"
+				class="absolute bottom-0 top-0 z-50"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
 				@insertSlide="insertSlide"
@@ -25,7 +25,7 @@
 				@delete="deleteSlide"
 			/>
 
-			<PropertiesPanel class="absolute top-0 right-0 bottom-0 z-10" />
+			<PropertiesPanel class="absolute bottom-0 right-0 top-0 z-10" />
 		</div>
 	</div>
 </template>

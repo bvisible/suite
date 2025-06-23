@@ -1,7 +1,7 @@
 <template>
 	<div :class="sectionClasses">
-		<div class="flex flex-col gap-3 cursor-pointer">
-			<div class="flex justify-between items-center" @click="showContent = !showContent">
+		<div class="flex cursor-pointer flex-col gap-3">
+			<div class="flex items-center justify-between" @click="showContent = !showContent">
 				<div :class="titleClasses">{{ title }}</div>
 				<component
 					:is="showContent ? ChevronUp : ChevronRight"
