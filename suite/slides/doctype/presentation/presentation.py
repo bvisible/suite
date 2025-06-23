@@ -121,3 +121,9 @@ def create_presentation(title, duplicate_from=None):
 @frappe.whitelist()
 def delete_presentation(name):
 	return frappe.delete_doc("Presentation", name)
+
+
+@frappe.whitelist()
+def update_title(name, title):
+	frappe.set_value("Presentation", name, "title", title)
+	return slug(title)
