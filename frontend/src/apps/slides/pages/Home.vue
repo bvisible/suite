@@ -4,7 +4,7 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => openDialog('Create'),
+				onClick: () => createPresentation(),
 			}"
 		/>
 
@@ -28,7 +28,8 @@
 		:dialogAction="dialogAction"
 		:presentation="previewPresentation"
 		@reloadList="reloadList"
-		@navigate="navigate"
+		@closeDialog="closeDialog"
+		@navigate="navigateToPresentation"
 	/>
 </template>
 
@@ -44,6 +45,8 @@ import Navbar from '@/components/Navbar.vue'
 import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+
+import { createPresentationResource } from '@/stores/presentation'
 
 const router = useRouter()
 
@@ -95,5 +98,16 @@ const navigate = (name) => {
 
 const setPreview = (presentation) => {
 	previewPresentation.value = presentation
+}
+
+const createPresentation = async () => {
+	const newPresentation = await createPresentationResource.submit({
+		title: 'Untitled',
+	})
+	if (newPresentation) {
+		navigateToPresentation(newPresentation.name)
+	} else {
+		console.error('Failed to create new presentation')
+	}
 }
 </script>
