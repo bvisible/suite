@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "creation": "2024-09-03 19:11:55.640617",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -23,7 +22,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 17:32:41.391014",
+ "modified": "2025-06-23 17:39:51.103962",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",

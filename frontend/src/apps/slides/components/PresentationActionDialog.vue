@@ -4,17 +4,14 @@
 			<div class="font-semibold">{{ dialogAction }} Presentation</div>
 		</template>
 		<template #body-content>
-			<div v-if="['Duplicate', 'Create'].includes(dialogAction)">
-				<FormControl
-					:type="'text'"
-					size="md"
-					variant="subtle"
-					label="Presentation Title"
-					v-model="newPresentationTitle"
-				/>
-				<ErrorMessage class="mx-1 mt-2" :message="errorMessage" />
-			</div>
-
+			<FormControl
+				v-if="dialogAction == 'Duplicate'"
+				:type="'text'"
+				size="md"
+				variant="subtle"
+				label="Presentation Title"
+				v-model="newPresentationTitle"
+			/>
 			<div v-else class="px-2 text-base">
 				This action will permanently delete
 				<strong>{{ presentation?.title }}</strong
@@ -40,7 +37,9 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-import { Dialog, FormControl, ErrorMessage, call } from 'frappe-ui'
+import { Dialog, FormControl, call } from 'frappe-ui'
+
+import { createPresentationResource } from '@/stores/presentation'
 
 import { Save, Copy, Trash } from 'lucide-vue-next'
 
@@ -52,18 +51,12 @@ const props = defineProps({
 const emit = defineEmits(['reloadList', 'navigate'])
 
 const newPresentationTitle = ref('')
-const errorMessage = ref('')
 
 const actions = {
-	Create: {
-		label: 'Create Presentation',
-		icon: Save,
-		onClick: () => addPresentation(),
-	},
 	Duplicate: {
 		label: 'Create Copy',
 		icon: Copy,
-		onClick: () => addPresentation(true),
+		onClick: () => duplicatePresentation(),
 	},
 	Delete: {
 		label: 'Delete Presentation',
@@ -72,21 +65,13 @@ const actions = {
 	},
 }
 
-const createPresentationDoc = async (duplicate) => {
-	try {
-		return await call('slides.slides.doctype.presentation.presentation.create_presentation', {
-			title: newPresentationTitle.value,
-			duplicate_from: duplicate ? props.presentation.name : null,
-		})
-	} catch (DuplicateEntryError) {
-		errorMessage.value = 'A presentation with this name already exists.'
-	}
-}
-
-const addPresentation = async (duplicate) => {
-	const presentation = await createPresentationDoc(duplicate)
+const duplicatePresentation = async () => {
+	emit('closeDialog')
+	const presentation = await createPresentationResource.submit({
+		title: newPresentationTitle.value,
+		duplicateFrom: props.presentation.name,
+	})
 	if (presentation) {
-		errorMessage.value = ''
 		emit('navigate', presentation.name)
 	}
 }
