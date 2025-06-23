@@ -6,12 +6,7 @@ from frappe.model.document import Document
 
 
 class Presentation(Document):
-	def autoname(self):
-		self.name = slug(self.title)
-
-
-def slug(text: str) -> str:
-	return text.lower().replace(" ", "-")
+	pass
 
 
 def get_presentation_thumbnail(presentation_name: str) -> str:
@@ -100,14 +95,6 @@ def duplicate_slide(name, index):
 		presentation.slides[i].idx += 1
 	presentation.save()
 	return presentation
-
-
-@frappe.whitelist()
-def rename_presentation(name, new_name):
-	name_slug = slug(new_name)
-	frappe.rename_doc("Presentation", name, name_slug)
-	frappe.db.set_value("Presentation", name_slug, "title", new_name)
-	return name_slug
 
 
 @frappe.whitelist()
