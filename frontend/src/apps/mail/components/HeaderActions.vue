@@ -1,24 +1,30 @@
 <template>
-	<Button
-		:icon-left="['trash', 'junk'].includes(mailbox) ? 'trash-2' : 'edit'"
-		@click="performAction()"
-	>
-		{{ buttonMessage }}
-	</Button>
+	<div class="flex space-x-2">
+		<Button icon="search" variant="ghost" @click="showSearchModal = true" />
+		<Button
+			:icon-left="['trash', 'junk'].includes(mailbox) ? 'trash-2' : 'edit'"
+			@click="performAction()"
+		>
+			{{ buttonMessage }}
+		</Button>
+	</div>
 
 	<SendMail v-model="showSendModal" @reload-mails="emit('reloadMails', 'Drafts')" />
+	<SearchModal v-model="showSearchModal" />
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Button, Dialog, createResource } from 'frappe-ui'
 
+import SearchModal from '@/components/Modals/SearchModal.vue'
 import SendMail from '@/components/SendMail.vue'
 
 const { mailbox } = defineProps<{ mailbox: string }>()
 
 const emit = defineEmits(['reloadMails'])
 
+const showSearchModal = ref(false)
 const showSendModal = ref(false)
 const showConfirmDialog = ref(false)
 

@@ -1,7 +1,7 @@
 @import 'frappe-ui/src/style.css';
 
 html {
-	@apply text-gray-900;
+	@apply text-ink-gray-8;
 }
 
 h1 {
