@@ -3,7 +3,7 @@
 		<div class="flex flex-col gap-3">
 			<div class="flex items-center justify-between">
 				<div :class="sectionTitleClasses">Slide</div>
-				<div class="text-2xs pe-0.5 font-semibold text-gray-700">
+				<div class="pe-0.5 text-2xs font-semibold text-gray-700">
 					{{ slideIndex + 1 + ' of ' + presentation.data.slides.length }}
 				</div>
 			</div>

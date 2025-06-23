@@ -1,9 +1,9 @@
 <template>
 	<div
-		class="bg-white w-48 rounded-lg h-10 fixed bottom-10 left-[calc(50%-128px)] shadow-xl flex items-center gap-1 p-1 justify-center"
+		class="fixed bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
 	>
 		<Tooltip text="Text" :hover-delay="0.7" placement="bottom">
-			<div class="p-2 rounded hover:bg-gray-100 cursor-pointer" @click="addTextElement(null)">
+			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
 				<Type size="16" class="stroke-[1.5]" />
 			</div>
 		</Tooltip>
@@ -16,7 +16,7 @@
 			>
 				<template #default="{ openFileSelector }">
 					<div
-						class="p-2 rounded hover:bg-gray-100 cursor-pointer"
+						class="cursor-pointer rounded p-2 hover:bg-gray-100"
 						@click="openFileSelector"
 					>
 						<ImagePlus size="16" class="stroke-[1.5]" />
@@ -34,7 +34,7 @@
 			placement="bottom"
 		>
 			<div
-				class="p-2 rounded hover:bg-gray-100 cursor-pointer"
+				class="cursor-pointer rounded p-2 hover:bg-gray-100"
 				@click="option.onClick"
 				@mouseenter="emit('setHighlight', true)"
 				@mouseleave="emit('setHighlight', false)"

@@ -12,10 +12,10 @@
 					label="Presentation Title"
 					v-model="newPresentationTitle"
 				/>
-				<ErrorMessage class="mt-2 mx-1" :message="errorMessage" />
+				<ErrorMessage class="mx-1 mt-2" :message="errorMessage" />
 			</div>
 
-			<div v-else class="text-base px-2">
+			<div v-else class="px-2 text-base">
 				This action will permanently delete
 				<strong>{{ presentation?.title }}</strong
 				>. Are you sure you want to continue?
