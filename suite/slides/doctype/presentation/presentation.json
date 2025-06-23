@@ -18,17 +18,15 @@
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Title",
-   "unique": 1
+   "label": "Title"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 18:01:28.719517",
+ "modified": "2025-06-23 17:32:41.391014",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
- "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
