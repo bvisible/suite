@@ -48,7 +48,7 @@ const props = defineProps({
 	dialogAction: String,
 })
 
-const emit = defineEmits(['reloadList', 'navigate'])
+const emit = defineEmits(['reloadList', 'navigate', 'closeDialog'])
 
 const newPresentationTitle = ref('')
 
@@ -77,6 +77,7 @@ const duplicatePresentation = async () => {
 }
 
 const deletePresentation = async () => {
+	emit('closeDialog')
 	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
 		name: props.presentation.name,
 	})

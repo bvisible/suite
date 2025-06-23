@@ -91,11 +91,6 @@ const reloadList = async () => {
 	previewPresentation.value = null
 }
 
-const navigate = (name) => {
-	closeDialog()
-	navigateToPresentation(name)
-}
-
 const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
