@@ -15,13 +15,18 @@
 				<div
 					v-for="(result, idx) in results?.data?.docs"
 					:key="idx"
-					class="flex items-center rounded p-2 hover:cursor-pointer hover:bg-gray-50"
+					class="flex rounded p-2 hover:cursor-pointer hover:bg-gray-50"
 					@click="openMail(result.mailbox_role, result.thread_id)"
 				>
-					<span class="text-base">{{ result.subject || __('[No subject]') }}</span>
-					<span class="text-ink-gray-4 ml-auto text-sm">
+					<div class="space-y-1">
+						<p class="text-base font-semibold">
+							{{ result.subject || __('[No subject]') }}
+						</p>
+						<p class="text-sm">{{ getInterlocutors(result) }}</p>
+					</div>
+					<p class="text-ink-gray-4 ml-auto text-xs">
 						{{ getFormattedDate(result.received_at) }}
-					</span>
+					</p>
 				</div>
 			</div>
 		</template>
@@ -61,5 +66,25 @@ const openMail = (mailbox: string, threadID: string) => {
 	setCurrentThread(mailbox, threadID)
 	query.value = ''
 	show.value = false
+}
+
+const getInterlocutors = (result: {
+	from_name?: string
+	from_email: string
+	recipients?: string
+}) => {
+	const sender = result.from_name || result.from_email
+	const recipients = result.recipients
+		?.split(', ')
+		.map((email) => {
+			const parts = email.split(' <')
+			if (
+				(parts.length === 1 && parts[0] !== result.from_email) ||
+				(parts.length === 2 && parts[1].slice(0, -1) !== result.from_email)
+			)
+				return parts[0]
+		})
+		.join(', ')
+	return sender + (recipients ? `, ${recipients}` : '')
 }
 </script>
