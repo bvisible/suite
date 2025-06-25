@@ -24,7 +24,7 @@
 				variant="solid"
 				:theme="dialogAction == 'Delete' ? 'red' : 'gray'"
 				:label="actions[dialogAction].label"
-				@click="actions[dialogAction].onClick"
+				@click="performAction()"
 			>
 				<template #prefix>
 					<component :is="actions[dialogAction].icon" size="14" class="stroke-[1.5]" />
@@ -56,55 +56,79 @@ const actions = {
 	Duplicate: {
 		label: 'Create Copy',
 		icon: Copy,
-		onClick: () => duplicatePresentation(),
 	},
 	Rename: {
 		label: 'Update Title',
 		icon: PenLine,
-		onClick: () => renamePresentation(),
 	},
 	Delete: {
 		label: 'Delete Presentation',
 		icon: Trash,
-		onClick: () => deletePresentation(),
 	},
 }
 
-const duplicatePresentation = async () => {
+const performAction = async () => {
+	const action = props.dialogAction
+
+	if (!props.dialogAction || !props.presentation) return
+
 	emit('closeDialog')
-	const presentation = await createPresentationResource.submit({
-		title: newPresentationTitle.value,
-		duplicateFrom: props.presentation.name,
-	})
-	if (presentation) {
-		emit('navigate', presentation.name)
+
+	let newPresentationId
+	switch (action) {
+		case 'Rename':
+			await renamePresentation()
+			break
+		case 'Delete':
+			await deletePresentation()
+			break
+		default:
+			newPresentationId = await duplicatePresentation()
+			break
+	}
+
+	if (newPresentationId) {
+		emit('navigate', newPresentationId)
+	} else {
+		emit('reloadList')
 	}
 }
 
+const duplicatePresentation = async () => {
+	return await createPresentationResource.submit({
+		title: newPresentationTitle.value,
+		duplicateFrom: props.presentation.name,
+	}).name
+}
+
 const deletePresentation = async () => {
-	emit('closeDialog')
 	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
 		name: props.presentation.name,
 	})
-	emit('reloadList')
 }
 
 const renamePresentation = async () => {
-	emit('closeDialog')
 	await updatePresentationTitle(props.presentation.name, newPresentationTitle.value)
-	emit('reloadList')
 }
 
 watch(
 	() => [props.dialogAction, props.presentation],
 	(val) => {
 		if (!val) return
-		newPresentationTitle.value = ''
-		if (props.dialogAction == 'Duplicate') {
-			newPresentationTitle.value = `Copy of ${props.presentation.title}`
-		} else if (props.dialogAction == 'Rename') {
-			newPresentationTitle.value = props.presentation.title
+		let newTitle
+		switch (props.dialogAction) {
+			case 'Duplicate':
+				newTitle = `Copy of ${props.presentation.title}`
+				break
+			case 'Rename':
+				newTitle = props.presentation.title
+				break
+			default:
+				newTitle = ''
+				break
 		}
+
+		newPresentationTitle.value = newTitle
 	},
 )
 </script>
