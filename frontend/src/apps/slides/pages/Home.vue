@@ -11,7 +11,7 @@
 		<PresentationList
 			:presentations="presentationList.data"
 			@setPreview="setPreview"
-			@navigate="(name) => navigateToPresentation(name)"
+			@navigate="(name, present) => navigateToPresentation(name, present)"
 			@openDialog="openDialog"
 		/>
 
