@@ -1,8 +1,8 @@
 <template>
 	<div :class="backgroundClasses">
 		<!-- Header -->
-		<div class="cursor-default px-32 text-base font-semibold text-gray-700 lg:px-40">
-			Presentations <span v-if="presentations?.length">({{ presentations?.length }})</span>
+		<div class="cursor-default px-32 text-lg font-semibold text-gray-800 lg:px-40">
+			Presentations
 		</div>
 
 		<div class="px-32 py-4 lg:px-40">
@@ -20,7 +20,7 @@
 					<div
 						class="aspect-[16/9] cursor-pointer rounded-lg bg-white shadow-xl hover:scale-[1.01]"
 						:style="getCardStyles(presentation)"
-						@click="(e) => setPreviewPresentation(e, presentation)"
+						@click="$emit('navigate', presentation.name)"
 					></div>
 
 					<!-- Presentation Title  -->
@@ -32,9 +32,6 @@
 			<div v-else class="text-sm text-gray-600">No presentations created yet.</div>
 		</div>
 	</div>
-
-	<!-- Overlay while previewing certain presentation -->
-	<div class="fixed left-0 top-0 h-dvh w-full bg-black opacity-25" v-show="blur"></div>
 </template>
 
 <script setup>
@@ -42,16 +39,11 @@ import { computed } from 'vue'
 
 const props = defineProps({
 	presentations: Object,
-	blur: Boolean,
 })
 
-const emit = defineEmits(['setPreview'])
+const emit = defineEmits(['navigate', 'setPreview'])
 
-const backgroundClasses = computed(() => {
-	const baseClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-8 overflow-y-auto'
-	if (props.blur) return `${baseClasses} blur-[1px]`
-	return baseClasses
-})
+const backgroundClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-8 overflow-y-auto'
 
 const getCardStyles = (presentation) => {
 	return {

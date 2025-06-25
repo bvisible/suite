@@ -85,7 +85,7 @@ const slideThumbnails = createResource({
 
 const previewOverlayClasses = computed(() => {
 	const baseClasses =
-		'fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center'
+		'fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
 	if (props.presentation) {
 		return `${baseClasses} top-0`
 	}
