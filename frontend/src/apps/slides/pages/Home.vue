@@ -89,7 +89,6 @@ const closeDialog = () => {
 }
 
 const reloadList = async () => {
-	closeDialog()
 	await presentationList.reload()
 	previewPresentation.value = null
 }

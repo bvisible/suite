@@ -18,7 +18,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
-import { presentation } from '@/stores/presentation'
+import { presentation, updatePresentationTitle } from '@/stores/presentation'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const route = useRoute()
@@ -45,26 +45,13 @@ const makeTitleEditable = (e) => {
 	e.target.tabIndex = 0
 }
 
-const updatePresentationTitle = async (newTitle) => {
-	return call('slides.slides.doctype.presentation.presentation.update_title', {
-		name: route.params.presentationId,
-		title: newTitle,
-	}).then((response) => {
-		if (response) {
-			return response
-		} else {
-			throw new Error('Failed to rename presentation')
-		}
-	})
-}
-
 const saveTitle = async (e) => {
 	editingTitle.value = false
 
 	const newTitle = e.target.innerText.trim()
 
 	if (newTitle && newTitle != presentation.data.title) {
-		const slug = await updatePresentationTitle(newTitle)
+		const slug = await updatePresentationTitle(route.params.presentationId, newTitle)
 		router.replace({
 			name: 'PresentationEditor',
 			params: { presentationId: route.params.presentationId, slug: slug },

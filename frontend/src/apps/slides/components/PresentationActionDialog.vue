@@ -5,14 +5,14 @@
 		</template>
 		<template #body-content>
 			<FormControl
-				v-if="dialogAction == 'Duplicate'"
+				v-if="['Duplicate', 'Rename'].includes(dialogAction)"
 				:type="'text'"
 				size="md"
 				variant="subtle"
 				label="Presentation Title"
 				v-model="newPresentationTitle"
 			/>
-			<div v-else class="px-2 text-base">
+			<div v-else class="text-base">
 				This action will permanently delete
 				<strong>{{ presentation?.title }}</strong
 				>. Are you sure you want to continue?
@@ -39,9 +39,9 @@ import { ref, watch } from 'vue'
 
 import { Dialog, FormControl, call } from 'frappe-ui'
 
-import { createPresentationResource } from '@/stores/presentation'
+import { createPresentationResource, updatePresentationTitle } from '@/stores/presentation'
 
-import { Save, Copy, Trash } from 'lucide-vue-next'
+import { Copy, Trash, PenLine } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentation: Object,
@@ -57,6 +57,11 @@ const actions = {
 		label: 'Create Copy',
 		icon: Copy,
 		onClick: () => duplicatePresentation(),
+	},
+	Rename: {
+		label: 'Update Title',
+		icon: PenLine,
+		onClick: () => renamePresentation(),
 	},
 	Delete: {
 		label: 'Delete Presentation',
@@ -81,16 +86,24 @@ const deletePresentation = async () => {
 	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
 		name: props.presentation.name,
 	})
-	emit('reloadList', true)
+	emit('reloadList')
+}
+
+const renamePresentation = async () => {
+	emit('closeDialog')
+	await updatePresentationTitle(props.presentation.name, newPresentationTitle.value)
+	emit('reloadList')
 }
 
 watch(
-	() => props.dialogAction,
+	() => [props.dialogAction, props.presentation],
 	(val) => {
 		if (!val) return
 		newPresentationTitle.value = ''
 		if (props.dialogAction == 'Duplicate') {
 			newPresentationTitle.value = `Copy of ${props.presentation.title}`
+		} else if (props.dialogAction == 'Rename') {
+			newPresentationTitle.value = props.presentation.title
 		}
 	},
 )

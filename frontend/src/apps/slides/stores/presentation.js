@@ -23,10 +23,24 @@ const createPresentationResource = createResource({
 	},
 })
 
+const updatePresentationTitle = async (id, newTitle) => {
+	return call('slides.slides.doctype.presentation.presentation.update_title', {
+		name: id,
+		title: newTitle,
+	}).then((response) => {
+		if (response) {
+			return response
+		} else {
+			throw new Error('Failed to rename presentation')
+		}
+	})
+}
+
 export {
 	presentationId,
 	presentation,
 	inSlideShow,
 	applyReverseTransition,
 	createPresentationResource,
+	updatePresentationTitle,
 }
