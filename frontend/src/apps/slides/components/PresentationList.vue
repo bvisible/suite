@@ -49,13 +49,13 @@
 import { computed } from 'vue'
 
 import { Dropdown } from 'frappe-ui'
-import { Info, Trash } from 'lucide-vue-next'
+import { Info, Trash, PenLine, Copy } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentations: Object,
 })
 
-const emit = defineEmits(['navigate', 'setPreview'])
+const emit = defineEmits(['navigate', 'setPreview', 'openDialog'])
 
 const backgroundClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-8 overflow-y-auto'
 
@@ -73,6 +73,16 @@ const getContextMenuOptions = (presentation) => {
 			label: 'Details',
 			icon: Info,
 			onClick: () => emit('setPreview', presentation),
+		},
+		{
+			label: 'Rename',
+			icon: PenLine,
+			onClick: () => emit('openDialog', 'Rename', presentation),
+		},
+		{
+			label: 'Duplicate',
+			icon: Copy,
+			onClick: () => emit('openDialog', 'Duplicate', presentation),
 		},
 		{
 			label: 'Delete',
