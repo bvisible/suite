@@ -14,11 +14,11 @@ from redis.commands.search.query import Query
 from redis.exceptions import ResponseError
 
 
-class Search:
+class EmailSearch:
 	def __init__(self) -> None:
 		self.ft = redis.Redis(host="localhost", port=6379).ft("email_message_idx")
 
-	def build_index(self):
+	def build_index(self) -> None:
 		self.drop_index()
 		self.create_index()
 		recipients = self.get_recipients()
@@ -34,11 +34,15 @@ class Search:
 				)
 			self.index_doc(doc)
 
-	def drop_index(self):
+	def drop_index(self) -> None:
+		"""Drops index."""
+
 		with suppress(ResponseError):
 			self.ft.dropindex(delete_documents=True)
 
-	def create_index(self):
+	def create_index(self) -> None:
+		"""Creates index."""
+
 		definition = IndexDefinition(prefix=["email_message"])
 		schema = [
 			TextField("subject", weight=12),
@@ -52,7 +56,9 @@ class Search:
 		self.ft.create_index(schema, definition=definition)
 		self._index_exists = True
 
-	def get_messages(self):
+	def get_messages(self) -> list[dict]:
+		"""Returns all email messages."""
+
 		return frappe.get_all(
 			"Email Message",
 			filters={"destroyed": 0},
@@ -70,14 +76,18 @@ class Search:
 			],
 		)
 
-	def get_recipients(self):
+	def get_recipients(self) -> dict:
+		"""Returns all email message recipients."""
+
 		recipients = frappe.get_all("Email Message Recipient", fields=["email", "display_name", "parent"])
 		recipients_map = defaultdict(list)
 		for r in recipients:
 			recipients_map[r.pop("parent")].append(r)
 		return recipients_map
 
-	def index_doc(self, doc):
+	def index_doc(self, doc: dict) -> None:
+		"""Indexes a single email message document."""
+
 		if not self.index_exists():
 			return
 
@@ -97,6 +107,8 @@ class Search:
 		self.ft.add_document(key, replace=True, **mapping)
 
 	def index_exists(self):
+		"""Checks if the email search index exists."""
+
 		if hasattr(self, "_index_exists"):
 			return self._index_exists
 		self._index_exists = False
@@ -106,7 +118,9 @@ class Search:
 				self._index_exists = True
 		return self._index_exists
 
-	def search(self, input):
+	def search(self, input: str) -> dict:
+		"""Searches the index based on the input string."""
+
 		cleaned_input = re.sub(r"\s+", " ", re.sub(r"[\[\]{}<>+!\-*@.,]", " ", input.strip())).lower()
 
 		query_parts = []
@@ -133,55 +147,25 @@ class Search:
 
 		return out
 
-	def remove_doc(self, doc):
-		if not self.index_exists():
-			return
-
-		key = f"email_message:{doc.name}"
-		self.ft.delete_document(key)
+	def remove_doc(self, doc: dict) -> None:
+		if self.index_exists():
+			key = f"email_message:{doc.name}"
+			self.ft.delete_document(key)
 
 
-@frappe.whitelist()
-@filelock("email_search_indexing", timeout=300)  # 5 minute timeout for large mailboxes
-def build_index():
-	"""Build the email search index"""
+@filelock("email_search_indexing", timeout=300)
+def build_index() -> None:
+	"""Build the email search index."""
+
 	frappe.cache().set_value("email_search_indexing_in_progress", True)
-	try:
-		search_engine = Search()
-		search_engine.build_index()
-	finally:
-		frappe.cache().set_value("email_search_indexing_in_progress", False)
+	search = EmailSearch()
+	search.build_index()
+	frappe.cache().set_value("email_search_indexing_in_progress", False)
 
 
-def build_index_in_background():
-	"""Queue index building in background"""
-	if not frappe.cache().get_value("email_search_indexing_in_progress"):
+def build_index_in_background() -> None:
+	"""Build index if it doesn't exist and not already in progress."""
+
+	search = EmailSearch()
+	if not search.index_exists() and not frappe.cache().get_value("email_search_indexing_in_progress"):
 		frappe.enqueue(build_index, queue="long")
-
-
-def build_index_if_not_exists():
-	"""Build index if it doesn't exist"""
-	search_engine = Search()
-	if not search_engine.index_exists():
-		build_index_in_background()
-
-
-def on_email_message_after_insert(doc):
-	"""Hook to index new emails"""
-
-	search_engine = Search()
-	search_engine.index_doc(doc)
-
-
-def on_email_message_on_update(doc):
-	"""Hook to update indexed emails"""
-
-	search_engine = Search()
-	search_engine.index_doc(doc)
-
-
-def on_email_message_on_trash(doc):
-	"""Hook to remove emails from index when deleted"""
-
-	search_engine = Search()
-	search_engine.remove_doc(doc)

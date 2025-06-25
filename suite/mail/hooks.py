@@ -123,7 +123,7 @@ email_css = ["/assets/mail/css/email.css"]
 
 # before_install = "mail.install.before_install"
 after_install = "mail.install.after_install"
-# after_migrate = "mail.install.after_migrate"
+after_migrate = "mail.mail.doctype.email_message.search.build_index_in_background"
 
 # Uninstallation
 # ------------
@@ -211,9 +211,7 @@ website_route_rules = [
 # ---------------
 
 scheduler_events = {
-	# "all": [
-	#     "mail.tasks.all"
-	# ],
+	"all": ["helpdesk.search.build_index_in_background"],
 	# "daily": [
 	# 	"mail.tasks.daily"
 	# ],

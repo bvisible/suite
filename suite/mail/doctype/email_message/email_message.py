@@ -20,6 +20,7 @@ from pypika import Case
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name, get_mailbox_role
+from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	create_jmap_sync_state,
 	get_current_state,
@@ -373,6 +374,9 @@ class EmailMessage(Document):
 				email_message.save(ignore_permissions=True)
 				notify = True
 
+		search = EmailSearch()
+		search.index_doc(email_data)
+
 		if notify:
 			frappe.publish_realtime(
 				"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
@@ -667,6 +671,10 @@ class EmailMessage(Document):
 	def on_trash(self) -> None:
 		if not self.destroyed:
 			frappe.throw(_("You must destroy this email message before it can be deleted."))
+
+	def after_delete(self) -> None:
+		search = EmailSearch()
+		search.index_doc(self.__dict__)
 
 	def create_mail_contacts(self) -> None:
 		"""Creates Mail Contacts."""
