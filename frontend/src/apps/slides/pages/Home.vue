@@ -10,8 +10,8 @@
 
 		<PresentationList
 			:presentations="presentationList.data"
-			:blur="previewPresentation != undefined"
 			@setPreview="setPreview"
+			@navigate="(name) => navigateToPresentation(name)"
 		/>
 
 		<PresentationPreview
