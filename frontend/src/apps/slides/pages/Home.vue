@@ -12,6 +12,7 @@
 			:presentations="presentationList.data"
 			@setPreview="setPreview"
 			@navigate="(name) => navigateToPresentation(name)"
+			@openDialog="openDialog"
 		/>
 
 		<PresentationPreview
@@ -26,7 +27,7 @@
 	<PresentationActionDialog
 		v-model="showDialog"
 		:dialogAction="dialogAction"
-		:presentation="previewPresentation"
+		:presentation="selectedPresentation"
 		@reloadList="reloadList"
 		@closeDialog="closeDialog"
 		@navigate="navigateToPresentation"
@@ -51,6 +52,7 @@ import { createPresentationResource } from '@/stores/presentation'
 const router = useRouter()
 
 const previewPresentation = ref(null)
+const selectedPresentation = ref(null)
 
 const showDialog = ref(false)
 const dialogAction = ref('')
@@ -76,9 +78,10 @@ const navigateToPresentation = (name, present) => {
 	}
 }
 
-const openDialog = (action) => {
+const openDialog = (action, presentation) => {
 	dialogAction.value = action
 	showDialog.value = true
+	selectedPresentation.value = presentation || previewPresentation.value
 }
 
 const closeDialog = () => {

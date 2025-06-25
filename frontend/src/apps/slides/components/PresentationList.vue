@@ -49,7 +49,7 @@
 import { computed } from 'vue'
 
 import { Dropdown } from 'frappe-ui'
-import { Info } from 'lucide-vue-next'
+import { Info, Trash } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentations: Object,
@@ -73,6 +73,11 @@ const getContextMenuOptions = (presentation) => {
 			label: 'Details',
 			icon: Info,
 			onClick: () => emit('setPreview', presentation),
+		},
+		{
+			label: 'Delete',
+			icon: Trash,
+			onClick: () => emit('openDialog', 'Delete', presentation),
 		},
 	]
 }
