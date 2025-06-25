@@ -6,6 +6,7 @@
 		@click="makeTitleEditable"
 		@focus="setCursorPositionAtEnd"
 		@blur="saveTitle"
+		@keydown.enter.prevent
 	>
 		{{ presentation.data?.title }}
 	</div>
