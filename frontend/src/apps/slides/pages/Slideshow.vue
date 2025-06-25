@@ -215,8 +215,16 @@ const changeSlide = (index) => {
 	})
 }
 
+const loadPresentation = async () => {
+	if (presentation.fetched) return
+	presentationId.value = route.params.presentationId
+	await presentation.fetch()
+	loadSlide()
+}
+
 onMounted(async () => {
-	await initFullscreenMode()
+	loadPresentation()
+	initFullscreenMode()
 	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
 })
