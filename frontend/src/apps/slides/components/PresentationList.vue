@@ -23,9 +23,20 @@
 						@click="$emit('navigate', presentation.name)"
 					></div>
 
-					<!-- Presentation Title  -->
-					<div class="cursor-default truncate px-2 text-gray-700 md:text-sm lg:text-base">
-						{{ presentation.title }}
+					<!-- Presentation Title -->
+					<div class="flex items-center justify-between px-1">
+						<div class="cursor-default truncate text-gray-700 md:text-sm lg:text-base">
+							{{ presentation.title }}
+						</div>
+						<Dropdown
+							v-if="presentation"
+							:options="getContextMenuOptions(presentation)"
+							placement="right"
+						>
+							<template #default>
+								<LucideEllipsis class="size-3.5 cursor-pointer text-gray-600" />
+							</template>
+						</Dropdown>
 					</div>
 				</div>
 			</div>
@@ -36,6 +47,9 @@
 
 <script setup>
 import { computed } from 'vue'
+
+import { Dropdown } from 'frappe-ui'
+import { Info } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentations: Object,
@@ -53,8 +67,13 @@ const getCardStyles = (presentation) => {
 	}
 }
 
-const setPreviewPresentation = (e, presentation) => {
-	e.stopPropagation()
-	emit('setPreview', presentation)
+const getContextMenuOptions = (presentation) => {
+	return [
+		{
+			label: 'Details',
+			icon: Info,
+			onClick: () => emit('setPreview', presentation),
+		},
+	]
 }
 </script>
