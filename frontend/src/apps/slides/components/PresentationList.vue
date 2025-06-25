@@ -24,8 +24,10 @@
 					></div>
 
 					<!-- Presentation Title -->
-					<div class="flex items-center justify-between px-1">
-						<div class="cursor-default truncate text-gray-700 md:text-sm lg:text-base">
+					<div class="flex items-center justify-between gap-6 px-1">
+						<div
+							class="cursor-default truncate font-medium text-gray-700 md:text-sm lg:text-base"
+						>
 							{{ presentation.title }}
 						</div>
 						<Dropdown
@@ -46,10 +48,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, h } from 'vue'
 
 import { Dropdown } from 'frappe-ui'
-import { Info, Trash, PenLine, Copy } from 'lucide-vue-next'
+import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentations: Object,
@@ -58,6 +60,7 @@ const props = defineProps({
 const emit = defineEmits(['navigate', 'setPreview', 'openDialog'])
 
 const backgroundClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-8 overflow-y-auto'
+const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
 
 const getCardStyles = (presentation) => {
 	return {
@@ -70,24 +73,39 @@ const getCardStyles = (presentation) => {
 const getContextMenuOptions = (presentation) => {
 	return [
 		{
-			label: 'Details',
-			icon: Info,
-			onClick: () => emit('setPreview', presentation),
+			group: 'Actions',
+			items: [
+				{
+					label: 'Rename',
+					icon: h(PenLine, { class: contextMenuIconClasses }),
+					onClick: () => emit('openDialog', 'Rename', presentation),
+				},
+				{
+					label: 'Duplicate',
+					icon: h(Copy, { class: contextMenuIconClasses }),
+					onClick: () => emit('openDialog', 'Duplicate', presentation),
+				},
+				{
+					label: 'Delete',
+					icon: h(Trash, { class: contextMenuIconClasses }),
+					onClick: () => emit('openDialog', 'Delete', presentation),
+				},
+			],
 		},
 		{
-			label: 'Rename',
-			icon: PenLine,
-			onClick: () => emit('openDialog', 'Rename', presentation),
-		},
-		{
-			label: 'Duplicate',
-			icon: Copy,
-			onClick: () => emit('openDialog', 'Duplicate', presentation),
-		},
-		{
-			label: 'Delete',
-			icon: Trash,
-			onClick: () => emit('openDialog', 'Delete', presentation),
+			group: 'Explore',
+			items: [
+				{
+					label: 'Preview',
+					icon: h(Eye, { class: contextMenuIconClasses }),
+					onClick: () => emit('setPreview', presentation),
+				},
+				{
+					label: 'Slideshow',
+					icon: h(TvMinimalPlay, { class: contextMenuIconClasses }),
+					onClick: () => emit('navigate', presentation.name, true),
+				},
+			],
 		},
 	]
 }
