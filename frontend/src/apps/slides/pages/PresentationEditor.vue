@@ -356,6 +356,8 @@ onBeforeUnmount(() => {
 onBeforeRouteLeave((to, from, next) => {
 	if (to.name !== 'Slideshow') {
 		resetSlideState()
+		presentationId.value = ''
+		presentation.reset()
 	}
 	next()
 })
