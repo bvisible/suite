@@ -7,6 +7,8 @@
   "section_break_rgmz",
   "enabled",
   "create_mail_contact",
+  "destroy_email_after_submission",
+  "destroy_newsletter_after_submission",
   "column_break_47zs",
   "tenant",
   "domain_name",
@@ -256,6 +258,18 @@
    "label": "State",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "destroy_email_after_submission",
+   "fieldtype": "Check",
+   "label": "Destroy Email After Submission"
+  },
+  {
+   "default": "0",
+   "fieldname": "destroy_newsletter_after_submission",
+   "fieldtype": "Check",
+   "label": "Destroy Newsletter After Submission"
   }
  ],
  "grid_page_length": 50,
@@ -297,7 +311,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-06-22 20:34:57.981187",
+ "modified": "2025-06-26 11:21:00.562086",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",

@@ -39,6 +39,7 @@
   "size",
   "from_ip",
   "via_api",
+  "newsletter",
   "column_break_qxot",
   "sent_at",
   "received_after",
@@ -510,12 +511,20 @@
    "label": "API",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "newsletter",
+   "fieldtype": "Check",
+   "label": "Newsletter",
+   "no_copy": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-09 17:37:33.282767",
+ "modified": "2025-06-26 11:33:50.623947",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
