@@ -97,6 +97,7 @@ class MailQueue(Document):
 		doc.message_id = kwargs.message_id
 		doc._id = kwargs._id
 		doc.via_api = cint(kwargs.via_api)
+		doc.newsletter = cint(kwargs.newsletter)
 		doc.sent_at = kwargs.sent_at
 		doc.in_reply_to = kwargs.in_reply_to
 		doc.in_reply_to_id = kwargs.in_reply_to_id
@@ -217,6 +218,7 @@ class MailQueue(Document):
 			self.validate_raw_message()
 			self.validate_from_name()
 			self.validate_from_email()
+			self.validate_destroy_after_submission()
 			self.validate_delivery_mode()
 			self.validate_reply_to()
 			self.validate_headers()
@@ -330,6 +332,18 @@ class MailQueue(Document):
 				)
 		else:
 			self.from_email = frappe.db.get_value("Mail Account", self.account, "default_outgoing_email")
+
+	def validate_destroy_after_submission(self) -> None:
+		"""Validates the destroy after submission setting."""
+
+		if self.save_as_draft or self.destroy_after_submission:
+			return
+
+		if self.newsletter:
+			if frappe.db.get_value("Mail Account", self.account, "destroy_newsletter_after_submission"):
+				self.destroy_after_submission = 1
+		elif frappe.db.get_value("Mail Account", self.account, "destroy_email_after_submission"):
+			self.destroy_after_submission = 1
 
 	def validate_delivery_mode(self) -> None:
 		"""Validates the delivery mode."""

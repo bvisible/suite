@@ -80,6 +80,7 @@ def send(
 		html_body=html,
 		text_body=text,
 		via_api=True,
+		newsletter=is_newsletter,
 		in_reply_to=in_reply_to,
 		save_as_draft=save_as_draft,
 		destroy_after_submission=False,
@@ -110,6 +111,7 @@ def send_raw(
 		from_email=from_email,
 		recipients=format_recipients(to),
 		via_api=True,
+		newsletter=is_newsletter,
 		raw_message=raw_message,
 		delivery_mode="Batch" if is_newsletter else "Enqueue",
 	)
