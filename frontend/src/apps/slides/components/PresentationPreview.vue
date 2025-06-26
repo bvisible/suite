@@ -25,8 +25,8 @@
 							:key="detailLabel"
 							class="flex items-center gap-2"
 						>
-							<div class="font-semibold text-gray-700">{{ detailLabel }}</div>
-							<div class="font-semibold text-gray-600">{{ detailValue }}</div>
+							<div class="font-medium text-gray-800">{{ detailLabel }}</div>
+							<div class="font-medium text-gray-600">{{ detailValue }}</div>
 						</div>
 					</div>
 				</div>
@@ -85,7 +85,7 @@ const slideThumbnails = createResource({
 
 const previewOverlayClasses = computed(() => {
 	const baseClasses =
-		'fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center'
+		'fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
 	if (props.presentation) {
 		return `${baseClasses} top-0`
 	}
@@ -120,15 +120,16 @@ const previewStyles = computed(() => {
 const previewDetails = computed(() => {
 	if (!props.presentation) return {}
 
-	const { title, creation, modified } = props.presentation
+	const { title, creation, modified, modified_by, owner } = props.presentation
+
 	return [
 		{
 			Title: title,
-			Modified: dayjs(modified).fromNow(),
+			[`Modified by ${modified_by}`]: dayjs(modified).fromNow(),
 		},
 		{
 			'Total Slides': slideThumbnails.data?.length,
-			Created: dayjs(creation).fromNow(),
+			[`Created by ${owner}`]: dayjs(creation).fromNow(),
 		},
 	]
 })
@@ -141,8 +142,8 @@ const presentationActions = [
 	},
 	{
 		icon: PenLine,
-		label: 'Edit',
-		onClick: (e) => emit('navigate', props.presentation.name),
+		label: 'Rename',
+		onClick: (e) => emit('openDialog', 'Rename'),
 	},
 	{
 		icon: Copy,

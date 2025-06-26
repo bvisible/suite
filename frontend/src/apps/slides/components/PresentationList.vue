@@ -1,8 +1,8 @@
 <template>
 	<div :class="backgroundClasses">
 		<!-- Header -->
-		<div class="cursor-default px-32 text-base font-semibold text-gray-700 lg:px-40">
-			Presentations <span v-if="presentations?.length">({{ presentations?.length }})</span>
+		<div class="cursor-default px-32 text-lg font-semibold text-gray-800 lg:px-40">
+			Presentations
 		</div>
 
 		<div class="px-32 py-4 lg:px-40">
@@ -20,38 +20,47 @@
 					<div
 						class="aspect-[16/9] cursor-pointer rounded-lg bg-white shadow-xl hover:scale-[1.01]"
 						:style="getCardStyles(presentation)"
-						@click="(e) => setPreviewPresentation(e, presentation)"
+						@click="$emit('navigate', presentation.name)"
 					></div>
 
-					<!-- Presentation Title  -->
-					<div class="cursor-default truncate px-2 text-gray-700 md:text-sm lg:text-base">
-						{{ presentation.title }}
+					<!-- Presentation Title -->
+					<div class="flex items-center justify-between gap-6 px-1">
+						<div
+							class="cursor-default truncate font-medium text-gray-700 md:text-sm lg:text-base"
+						>
+							{{ presentation.title }}
+						</div>
+						<Dropdown
+							v-if="presentation"
+							:options="getContextMenuOptions(presentation)"
+							placement="right"
+						>
+							<template #default>
+								<LucideEllipsis class="size-3.5 cursor-pointer text-gray-600" />
+							</template>
+						</Dropdown>
 					</div>
 				</div>
 			</div>
 			<div v-else class="text-sm text-gray-600">No presentations created yet.</div>
 		</div>
 	</div>
-
-	<!-- Overlay while previewing certain presentation -->
-	<div class="fixed left-0 top-0 h-dvh w-full bg-black opacity-25" v-show="blur"></div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, h } from 'vue'
+
+import { Dropdown } from 'frappe-ui'
+import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentations: Object,
-	blur: Boolean,
 })
 
-const emit = defineEmits(['setPreview'])
+const emit = defineEmits(['navigate', 'setPreview', 'openDialog'])
 
-const backgroundClasses = computed(() => {
-	const baseClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-8 overflow-y-auto'
-	if (props.blur) return `${baseClasses} blur-[1px]`
-	return baseClasses
-})
+const backgroundClasses = 'size-full bg-gray-100 flex flex-col gap-2 py-8 overflow-y-auto'
+const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
 
 const getCardStyles = (presentation) => {
 	return {
@@ -61,8 +70,43 @@ const getCardStyles = (presentation) => {
 	}
 }
 
-const setPreviewPresentation = (e, presentation) => {
-	e.stopPropagation()
-	emit('setPreview', presentation)
+const getContextMenuOptions = (presentation) => {
+	return [
+		{
+			group: 'Actions',
+			items: [
+				{
+					label: 'Rename',
+					icon: h(PenLine, { class: contextMenuIconClasses }),
+					onClick: () => emit('openDialog', 'Rename', presentation),
+				},
+				{
+					label: 'Duplicate',
+					icon: h(Copy, { class: contextMenuIconClasses }),
+					onClick: () => emit('openDialog', 'Duplicate', presentation),
+				},
+				{
+					label: 'Delete',
+					icon: h(Trash, { class: contextMenuIconClasses }),
+					onClick: () => emit('openDialog', 'Delete', presentation),
+				},
+			],
+		},
+		{
+			group: 'Explore',
+			items: [
+				{
+					label: 'Preview',
+					icon: h(Eye, { class: contextMenuIconClasses }),
+					onClick: () => emit('setPreview', presentation),
+				},
+				{
+					label: 'Slideshow',
+					icon: h(TvMinimalPlay, { class: contextMenuIconClasses }),
+					onClick: () => emit('navigate', presentation.name, true),
+				},
+			],
+		},
+	]
 }
 </script>

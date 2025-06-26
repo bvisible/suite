@@ -11,7 +11,7 @@ const routes = [
 		component: () => import('@/pages/Home.vue'),
 	},
 	{
-		path: '/presentation/:presentationId',
+		path: '/presentation/:presentationId/:slug?',
 		name: 'PresentationEditor',
 		component: () => import('@/pages/PresentationEditor.vue'),
 	},

@@ -6,6 +6,7 @@
 		@click="makeTitleEditable"
 		@focus="setCursorPositionAtEnd"
 		@blur="saveTitle"
+		@keydown.enter.prevent
 	>
 		{{ presentation.data?.title }}
 	</div>
@@ -17,7 +18,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
-import { presentation } from '@/stores/presentation'
+import { presentation, updatePresentationTitle } from '@/stores/presentation'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const route = useRoute()
@@ -44,23 +45,16 @@ const makeTitleEditable = (e) => {
 	e.target.tabIndex = 0
 }
 
-const renamePresentationDoc = async (newName) => {
-	return await call('slides.slides.doctype.presentation.presentation.rename_presentation', {
-		name: route.params.presentationId,
-		new_name: newName,
-	})
-}
-
 const saveTitle = async (e) => {
 	editingTitle.value = false
 
 	const newTitle = e.target.innerText.trim()
 
 	if (newTitle && newTitle != presentation.data.title) {
-		let nameSlug = await renamePresentationDoc(newTitle)
+		const slug = await updatePresentationTitle(route.params.presentationId, newTitle)
 		router.replace({
 			name: 'PresentationEditor',
-			params: { presentationId: nameSlug },
+			params: { presentationId: route.params.presentationId, slug: slug },
 		})
 	}
 }

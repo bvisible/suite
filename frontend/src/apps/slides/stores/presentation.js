@@ -1,6 +1,5 @@
 import { ref, watch } from 'vue'
-import { createResource } from 'frappe-ui'
-import { loadSlide } from './slide'
+import { createResource, call } from 'frappe-ui'
 
 const presentationId = ref('')
 
@@ -13,10 +12,35 @@ const inSlideShow = ref(false)
 
 const applyReverseTransition = ref(false)
 
-const loadPresentation = async (id) => {
-	presentationId.value = id
-	await presentation.fetch()
-	loadSlide()
+const createPresentationResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.create_presentation',
+	method: 'POST',
+	makeParams: (args) => {
+		return {
+			title: args.title,
+			duplicate_from: args.duplicateFrom,
+		}
+	},
+})
+
+const updatePresentationTitle = async (id, newTitle) => {
+	return call('slides.slides.doctype.presentation.presentation.update_title', {
+		name: id,
+		title: newTitle,
+	}).then((response) => {
+		if (response) {
+			return response
+		} else {
+			throw new Error('Failed to rename presentation')
+		}
+	})
 }
 
-export { presentationId, presentation, inSlideShow, applyReverseTransition, loadPresentation }
+export {
+	presentationId,
+	presentation,
+	inSlideShow,
+	applyReverseTransition,
+	createPresentationResource,
+	updatePresentationTitle,
+}

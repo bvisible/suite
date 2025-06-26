@@ -6,8 +6,8 @@ from frappe.model.document import Document
 
 
 class Presentation(Document):
-	def autoname(self):
-		self.name = slug(self.title)
+	def before_save(self):
+		self.slug = slug(self.title)
 
 
 def slug(text: str) -> str:
@@ -27,11 +27,11 @@ def get_presentation_thumbnail(presentation_name: str) -> str:
 def get_all_presentations() -> list[dict]:
 	"""
 	Returns a list of presentation details
-	- name, title, creation date, modified date, and first thumbnail
+	- info and first thumbnail
 	"""
 	presentations = frappe.get_list(
 		"Presentation",
-		fields=["name", "title", "creation", "modified"],
+		fields=["name", "title", "owner", "creation", "modified_by", "modified"],
 		filters={"owner": frappe.session.user},
 		order_by="modified desc",
 	)
@@ -103,14 +103,6 @@ def duplicate_slide(name, index):
 
 
 @frappe.whitelist()
-def rename_presentation(name, new_name):
-	name_slug = slug(new_name)
-	frappe.rename_doc("Presentation", name, name_slug)
-	frappe.db.set_value("Presentation", name_slug, "title", new_name)
-	return name_slug
-
-
-@frappe.whitelist()
 def create_presentation(title, duplicate_from=None):
 	new_presentation = frappe.new_doc("Presentation")
 	new_presentation.title = title
@@ -129,3 +121,9 @@ def create_presentation(title, duplicate_from=None):
 @frappe.whitelist()
 def delete_presentation(name):
 	return frappe.delete_doc("Presentation", name)
+
+
+@frappe.whitelist()
+def update_title(name, title):
+	frappe.set_value("Presentation", name, "title", title)
+	return slug(title)
