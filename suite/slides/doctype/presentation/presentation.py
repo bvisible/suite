@@ -27,11 +27,11 @@ def get_presentation_thumbnail(presentation_name: str) -> str:
 def get_all_presentations() -> list[dict]:
 	"""
 	Returns a list of presentation details
-	- name, title, creation date, modified date, and first thumbnail
+	- info and first thumbnail
 	"""
 	presentations = frappe.get_list(
 		"Presentation",
-		fields=["name", "title", "creation", "modified"],
+		fields=["name", "title", "owner", "creation", "modified_by", "modified"],
 		filters={"owner": frappe.session.user},
 		order_by="modified desc",
 	)
