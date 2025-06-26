@@ -47,7 +47,7 @@ class MailBackendRequest(Document):
 		if not self.backend_type or not self.backend_name:
 			frappe.throw(_("Backend Type and Backend Name are required."))
 
-		if not frappe.get_cached_value(self.backend_type, self.backend_name, "enabled"):
+		if not frappe.db.get_value(self.backend_type, self.backend_name, "enabled"):
 			frappe.throw(_("{0} {1} is disabled.").format(self.backend_type, self.backend_name))
 
 	def validate_endpoint(self) -> None:

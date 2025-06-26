@@ -171,18 +171,6 @@ def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
 	return tuple(values[key] for key in values)
 
 
-def get_in_reply_to(
-	in_reply_to_mail_type: str | None = None,
-	in_reply_to_mail_name: str | None = None,
-) -> str | None:
-	"""Returns message_id of the mail to which the given mail is a reply to."""
-
-	if in_reply_to_mail_type and in_reply_to_mail_name:
-		return frappe.get_cached_value(in_reply_to_mail_type, in_reply_to_mail_name, "message_id")
-
-	return None
-
-
 @frappe.whitelist()
 @redis_cache(ttl=3600)
 def check_deliverability(email: str) -> bool:
