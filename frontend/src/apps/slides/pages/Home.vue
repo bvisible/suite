@@ -4,14 +4,15 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => openDialog('Create'),
+				onClick: () => createPresentation(),
 			}"
 		/>
 
 		<PresentationList
 			:presentations="presentationList.data"
-			:blur="previewPresentation != undefined"
 			@setPreview="setPreview"
+			@navigate="(name, present) => navigateToPresentation(name, present)"
+			@openDialog="openDialog"
 		/>
 
 		<PresentationPreview
@@ -26,9 +27,10 @@
 	<PresentationActionDialog
 		v-model="showDialog"
 		:dialogAction="dialogAction"
-		:presentation="previewPresentation"
+		:presentation="selectedPresentation"
 		@reloadList="reloadList"
-		@navigate="navigate"
+		@closeDialog="closeDialog"
+		@navigate="navigateToPresentation"
 	/>
 </template>
 
@@ -45,9 +47,12 @@ import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
+import { createPresentationResource } from '@/stores/presentation'
+
 const router = useRouter()
 
 const previewPresentation = ref(null)
+const selectedPresentation = ref(null)
 
 const showDialog = ref(false)
 const dialogAction = ref('')
@@ -73,9 +78,10 @@ const navigateToPresentation = (name, present) => {
 	}
 }
 
-const openDialog = (action) => {
+const openDialog = (action, presentation) => {
 	dialogAction.value = action
 	showDialog.value = true
+	selectedPresentation.value = presentation || previewPresentation.value
 }
 
 const closeDialog = () => {
@@ -83,17 +89,22 @@ const closeDialog = () => {
 }
 
 const reloadList = async () => {
-	closeDialog()
 	await presentationList.reload()
 	previewPresentation.value = null
 }
 
-const navigate = (name) => {
-	closeDialog()
-	navigateToPresentation(name)
-}
-
 const setPreview = (presentation) => {
 	previewPresentation.value = presentation
+}
+
+const createPresentation = async () => {
+	const newPresentation = await createPresentationResource.submit({
+		title: 'Untitled',
+	})
+	if (newPresentation) {
+		navigateToPresentation(newPresentation.name)
+	} else {
+		console.error('Failed to create new presentation')
+	}
 }
 </script>
