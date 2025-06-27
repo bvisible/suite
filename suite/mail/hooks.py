@@ -211,7 +211,7 @@ website_route_rules = [
 # ---------------
 
 scheduler_events = {
-	"all": ["helpdesk.search.build_index_in_background"],
+	"all": ["mail.mail.doctype.email_message.search.build_index_in_background"],
 	# "daily": [
 	# 	"mail.tasks.daily"
 	# ],

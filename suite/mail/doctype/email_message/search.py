@@ -23,15 +23,8 @@ class EmailSearch:
 		self.create_index()
 		recipients = self.get_recipients()
 		for doc in self.get_messages():
-			if doc_recipients := recipients.get(doc.name):
-				doc["recipients"] = ", ".join(
-					[
-						f"{d.get('display_name')} <{d.get('email')}>"
-						if d.get("display_name")
-						else d.get("email")
-						for d in doc_recipients
-					]
-				)
+			doc["recipients"] = recipients.get(doc.name, [])
+
 			self.index_doc(doc)
 
 	def drop_index(self) -> None:
@@ -92,6 +85,14 @@ class EmailSearch:
 			return
 
 		key = f"email_message:{doc.name}"
+
+		doc.recipients = ", ".join(
+			[
+				f"{d.get('display_name')} <{d.get('email')}>" if d.get("display_name") else d.get("email")
+				for d in doc.recipients
+			]
+		)
+
 		mapping = {
 			"subject": cstr(doc.subject),
 			"html_body": cstr(strip_html_tags(doc.html_body or "")),
@@ -106,6 +107,11 @@ class EmailSearch:
 		}
 		self.ft.add_document(key, replace=True, **mapping)
 
+	def set_value(self, name: str, field: str, value: str) -> None:
+		"""Update field value for indexed document."""
+
+		redis.Redis(host="localhost", port=6379).hset(f"email_message:{name}", field, value)
+
 	def index_exists(self):
 		"""Checks if the email search index exists."""
 
@@ -113,15 +119,19 @@ class EmailSearch:
 			return self._index_exists
 		self._index_exists = False
 		with suppress(ResponseError):
-			ftinfo = self.ft.info()
-			if isclose(int(ftinfo["num_docs"]), self.get_count("Email Message"), rel_tol=0.1):
+			if isclose(int(self.ft.info()["num_docs"]), self.get_count(), rel_tol=0.1):
 				self._index_exists = True
 		return self._index_exists
+
+	def get_count(self) -> int:
+		"""Returns the count of email messages."""
+
+		return frappe.db.count("Email Message", {"destroyed": 0})
 
 	def search(self, input: str) -> dict:
 		"""Searches the index based on the input string."""
 
-		cleaned_input = re.sub(r"\s+", " ", re.sub(r"[\[\]{}<>+!\-*@.,]", " ", input.strip())).lower()
+		cleaned_input = re.sub(r"\s+", " ", re.sub(r"[\[\]{}<>+!\-*@.,'\"]", " ", input.strip())).lower()
 
 		query_parts = []
 		for word in cleaned_input.split():
@@ -147,10 +157,12 @@ class EmailSearch:
 
 		return out
 
-	def remove_doc(self, doc: dict) -> None:
-		if self.index_exists():
-			key = f"email_message:{doc.name}"
-			self.ft.delete_document(key)
+	def remove_docs(self, names: list[str]) -> None:
+		if not self.index_exists():
+			return
+
+		for d in names:
+			self.ft.delete_document(f"email_message:{d}")
 
 
 @filelock("email_search_indexing", timeout=300)
