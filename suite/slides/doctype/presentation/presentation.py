@@ -1,6 +1,10 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+import random
+import string
+
 import frappe
 from frappe.model.document import Document
 
@@ -88,13 +92,21 @@ def delete_slide(name, index):
 	return presentation
 
 
+def add_duplicate_slide(old_slide, idx):
+	new_slide = frappe.new_doc("Slide")
+	new_slide.update(old_slide.as_dict())
+	elements = json.loads(old_slide.elements)
+	for element in elements:
+		element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
+	new_slide.elements = json.dumps(elements)
+	new_slide.idx = idx
+	return new_slide.save()
+
+
 @frappe.whitelist()
 def duplicate_slide(name, index):
 	presentation = frappe.get_doc("Presentation", name)
-	new_slide = frappe.new_doc("Slide")
-	new_slide.update(presentation.slides[index].as_dict())
-	new_slide.idx = index + 1
-	new_slide.save()
+	new_slide = add_duplicate_slide(presentation.slides[index], index + 1)
 	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
 	for i in range(index + 1, len(presentation.slides)):
 		presentation.slides[i].idx += 1
