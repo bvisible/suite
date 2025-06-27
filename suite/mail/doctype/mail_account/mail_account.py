@@ -81,18 +81,18 @@ class MailAccount(Document):
 					invalidate_jmap_cache(self.name)
 
 			vacation_response_updated = False
-			previous_doc = self.get_doc_before_save()
-			for field in [
-				"vacation_response_enabled",
-				"vacation_from_date",
-				"vacation_to_date",
-				"vacation_response_subject",
-				"vacation_response_text_body",
-				"vacation_response_html_body",
-			]:
-				if getattr(self, field) != getattr(previous_doc, field):
-					vacation_response_updated = True
-					break
+			if previous_doc := self.get_doc_before_save():
+				for field in [
+					"vacation_response_enabled",
+					"vacation_from_date",
+					"vacation_to_date",
+					"vacation_response_subject",
+					"vacation_response_text_body",
+					"vacation_response_html_body",
+				]:
+					if getattr(self, field) != getattr(previous_doc, field):
+						vacation_response_updated = True
+						break
 
 			if vacation_response_updated:
 				from_date = convert_to_utc(self.vacation_from_date).isoformat()
