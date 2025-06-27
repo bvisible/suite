@@ -90,7 +90,7 @@ const addMediaElement = (file, type) => {
 		opacity: 100,
 		type: type,
 		src: file.file_url,
-		file_name: file.name,
+		attachmentName: file.name,
 		borderStyle: 'none',
 		borderWidth: 0,
 		borderRadius: 0,
@@ -138,6 +138,7 @@ const deleteAttachments = async (elements) => {
 			const isFileDocUsed = presentation.data.slides.some((slide) => {
 				if (!slide.elements) return false
 				return JSON.parse(slide.elements).some((el) => {
+					if (element.id == el.id) return false
 					return el.src === element.src
 				})
 			})
@@ -146,14 +147,14 @@ const deleteAttachments = async (elements) => {
 
 			call('frappe.client.delete', {
 				doctype: 'File',
-				name: element.file_name,
+				name: element.attachmentName,
 			})
 		}
 	})
 }
 
 const deleteElements = async (e) => {
-	// deleteAttachments(activeElements.value)
+	deleteAttachments(activeElements.value)
 	const idsToDelete = activeElementIds.value
 	resetFocus()
 	nextTick(() => {
@@ -257,7 +258,7 @@ const handlePastedJSON = async (json) => {
 		// add file attachments correctly to current presentation + update docnames in json
 		json = await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
 			presentation: presentationId.value,
-			json: JSON.parse(json),
+			json: json,
 		})
 	}
 	duplicateElements(null, json)
@@ -270,7 +271,7 @@ const handlePaste = (e) => {
 	if (clipboardText) pasteText(clipboardText)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) handlePastedJSON(clipboardJSON)
+	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
 }
 
 const updateElementWidth = (deltaWidth) => {
