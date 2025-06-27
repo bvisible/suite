@@ -197,7 +197,7 @@ class MailBackendDomainManager(MailBackendManagerBase):
 		"""Creates a domain on the backend."""
 
 		principal = Principal(name=domain_name, type="domain").__dict__
-		self.create_request(method="POST", endpoint="/api/principal", request_json=principal)
+		self.create_request(method="POST", endpoint="/api/principal", request_data=json.dumps(principal))
 
 	def delete(self, domain_name: str) -> None:
 		"""Deletes a domain from the backend."""
@@ -227,7 +227,7 @@ class MailBackendAccountManager(MailBackendManagerBase):
 		self.create_request(
 			method="POST",
 			endpoint="/api/principal",
-			request_json=principal,
+			request_data=json.dumps(principal),
 			on_end=create_jmap_push_subscriptions,
 			on_end_kwargs={"account": email},
 		)
@@ -297,7 +297,7 @@ class MailBackendMailingListManager(MailBackendManagerBase):
 			members=members or [],
 			externalMembers=external_members or [],
 		).__dict__
-		self.create_request(method="POST", endpoint="/api/principal", request_json=principal)
+		self.create_request(method="POST", endpoint="/api/principal", request_data=json.dumps(principal))
 
 	def update(self, email: str, display_name: str) -> None:
 		"""Updates a mailing list on the backend."""
