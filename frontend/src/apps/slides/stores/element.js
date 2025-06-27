@@ -251,18 +251,16 @@ const pasteElements = (e, clipboardJSON) => {
 	duplicateElements(e, elements)
 }
 
-const getUpdatedJSON = async (json) => {
-	return await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
-		presentation: presentationId.value,
-		json: JSON.parse(json),
-	})
-}
-
 const handlePastedJSON = async (json) => {
-	if (copiedFromId.value == presentationId.value) return duplicateElements(null, json)
-
-	const updatedJSON = await getUpdatedJSON(json)
-	duplicateElements(null, updatedJSON)
+	if (copiedFromId.value !== presentationId.value) {
+		// if pasted elements are from a different presentation
+		// add file attachments correctly to current presentation + update docnames in json
+		json = await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
+			presentation: presentationId.value,
+			json: JSON.parse(json),
+		})
+	}
+	duplicateElements(null, json)
 }
 
 const handlePaste = (e) => {
