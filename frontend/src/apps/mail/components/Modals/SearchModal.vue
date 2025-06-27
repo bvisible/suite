@@ -76,6 +76,7 @@ const getInterlocutors = (result: {
 	const sender = result.from_name || result.from_email
 	const recipients = result.recipients
 		?.split(', ')
+		.filter((email, index, array) => array.indexOf(email) === index)
 		.map((email) => {
 			const parts = email.split(' <')
 			if (
