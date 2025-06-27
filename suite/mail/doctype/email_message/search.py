@@ -5,7 +5,6 @@ from contextlib import suppress
 from math import isclose
 
 import frappe
-import redis
 from frappe.utils import cstr, strip_html_tags
 from frappe.utils.synchronization import filelock
 from redis.commands.search.field import TextField
@@ -16,7 +15,7 @@ from redis.exceptions import ResponseError
 
 class EmailSearch:
 	def __init__(self) -> None:
-		self.ft = redis.Redis(host="localhost", port=6379).ft("email_message_idx")
+		self.ft = frappe.cache.ft("email_message_idx")
 
 	def build_index(self) -> None:
 		self.drop_index()
@@ -24,7 +23,6 @@ class EmailSearch:
 		recipients = self.get_recipients()
 		for doc in self.get_messages():
 			doc["recipients"] = recipients.get(doc.name, [])
-
 			self.index_doc(doc)
 
 	def drop_index(self) -> None:
@@ -110,7 +108,7 @@ class EmailSearch:
 	def set_value(self, name: str, field: str, value: str) -> None:
 		"""Update field value for indexed document."""
 
-		redis.Redis(host="localhost", port=6379).hset(f"email_message:{name}", field, value)
+		frappe.cache.hset(f"email_message:{name}", field, value)
 
 	def index_exists(self):
 		"""Checks if the email search index exists."""
@@ -143,7 +141,6 @@ class EmailSearch:
 			Query(f'@account:"{frappe.session.user}" {fuzzy_query}')
 			.paging(0, 10)
 			.summarize(fields=["html_body", "text_body"])
-			.scorer("DISMAX")
 		)
 
 		result = self.ft.search(query)
@@ -169,15 +166,15 @@ class EmailSearch:
 def build_index() -> None:
 	"""Build the email search index."""
 
-	frappe.cache().set_value("email_search_indexing_in_progress", True)
+	frappe.cache.set_value("email_search_indexing_in_progress", True)
 	search = EmailSearch()
 	search.build_index()
-	frappe.cache().set_value("email_search_indexing_in_progress", False)
+	frappe.cache.set_value("email_search_indexing_in_progress", False)
 
 
 def build_index_in_background() -> None:
 	"""Build index if it doesn't exist and not already in progress."""
 
 	search = EmailSearch()
-	if not search.index_exists() and not frappe.cache().get_value("email_search_indexing_in_progress"):
+	if not search.index_exists() and not frappe.cache.get_value("email_search_indexing_in_progress"):
 		frappe.enqueue(build_index, queue="long")
