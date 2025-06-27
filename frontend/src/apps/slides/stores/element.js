@@ -5,7 +5,7 @@ import { slide, slideBounds } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
-import { presentation } from './presentation'
+import { presentation, presentationId } from './presentation'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -110,7 +110,7 @@ const addMediaElement = (file, type) => {
 }
 
 const duplicateElements = async (e, elements, displaceByPx = 0) => {
-	e.preventDefault()
+	e?.preventDefault()
 
 	let newSelection = []
 	const oldElements = elements
@@ -153,7 +153,7 @@ const deleteAttachments = async (elements) => {
 }
 
 const deleteElements = async (e) => {
-	deleteAttachments(activeElements.value)
+	// deleteAttachments(activeElements.value)
 	const idsToDelete = activeElementIds.value
 	resetFocus()
 	nextTick(() => {
@@ -228,10 +228,13 @@ const getCopiedJSON = () => {
 	return JSON.stringify(elementsCopy)
 }
 
+const copiedFromId = ref(null)
+
 const handleCopy = (e) => {
 	e.preventDefault()
 	const clipboardJSON = getCopiedJSON()
 	e.clipboardData.setData('application/json', clipboardJSON)
+	copiedFromId.value = presentationId.value
 }
 
 const pasteText = (clipboardText) => {
@@ -248,18 +251,28 @@ const pasteElements = (e, clipboardJSON) => {
 	duplicateElements(e, elements)
 }
 
+const getUpdatedJSON = async (json) => {
+	return await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
+		presentation: presentationId.value,
+		json: JSON.parse(json),
+	})
+}
+
+const handlePastedJSON = async (json) => {
+	if (copiedFromId.value == presentationId.value) return duplicateElements(null, json)
+
+	const updatedJSON = await getUpdatedJSON(json)
+	duplicateElements(null, updatedJSON)
+}
+
 const handlePaste = (e) => {
 	e.preventDefault()
 
 	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) {
-		return pasteText(clipboardText)
-	}
+	if (clipboardText) pasteText(clipboardText)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) {
-		return pasteElements(e, clipboardJSON)
-	}
+	if (clipboardJSON) handlePastedJSON(clipboardJSON)
 }
 
 const updateElementWidth = (deltaWidth) => {
