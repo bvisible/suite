@@ -127,3 +127,29 @@ def delete_presentation(name):
 def update_title(name, title):
 	frappe.set_value("Presentation", name, "title", title)
 	return slug(title)
+
+
+@frappe.whitelist()
+def get_updated_json(presentation, json):
+	for element in json:
+		if element.get("type") == "image" or element.get("type") == "video":
+			file_url = element.get("src").replace(frappe.local.site_name, "")
+			file_doc_exists = frappe.db.exists(
+				"File", {"file_url": file_url, "attached_to_name": presentation}
+			)
+			if file_doc_exists:
+				name = frappe.get_value(
+					"File", {"file_url": file_url, "attached_to_name": presentation}, "name"
+				)
+			else:
+				existing_docname = frappe.get_all("File", filters={"file_url": file_url}, limit=1)
+				print(existing_docname)
+				if existing_docname:
+					copied_doc = frappe.copy_doc(frappe.get_doc("File", existing_docname[0].name))
+					copied_doc.attached_to_name = presentation
+					copied_doc.insert()
+					name = copied_doc.name
+
+			element["file_name"] = name
+
+	return json
