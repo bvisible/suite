@@ -305,4 +305,5 @@ export {
 	handleCopy,
 	handlePaste,
 	updateElementWidth,
+	deleteAttachments,
 }
