@@ -130,20 +130,19 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	nextTick(() => (activeElementIds.value = newSelection))
 }
 
+const isFileDocUsed = (element) => {
+	return presentation.data.slides.some((slide) => {
+		if (!slide.elements) return false
+
+		const elements = JSON.parse(slide.elements)
+		return elements.some((el) => el.id !== element.id && el.src === element.src)
+	})
+}
+
 const deleteAttachments = async (elements) => {
 	elements.forEach((element) => {
 		if (['image', 'video'].includes(element.type)) {
-			// TODO: Handle this in a cleaner way
-			// Delete the file doc only if it's not used in other slides
-			const isFileDocUsed = presentation.data.slides.some((slide) => {
-				if (!slide.elements) return false
-				return JSON.parse(slide.elements).some((el) => {
-					if (element.id == el.id) return false
-					return el.src === element.src
-				})
-			})
-
-			if (isFileDocUsed) return
+			if (isFileDocUsed(element)) return
 
 			call('frappe.client.delete', {
 				doctype: 'File',
