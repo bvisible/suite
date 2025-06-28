@@ -5,6 +5,7 @@ import { slide, slideBounds } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
+import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentation, presentationId } from './presentation'
 
 const activeElementIds = ref([])
@@ -237,18 +238,13 @@ const handleCopy = (e) => {
 	copiedFromId.value = presentationId.value
 }
 
-const pasteText = (clipboardText) => {
+const handlePastedText = (clipboardText) => {
 	if (focusElementId.value) {
 		document.execCommand('insertText', false, clipboardText)
 	} else {
 		resetFocus()
 		addTextElement(clipboardText)
 	}
-}
-
-const pasteElements = (e, clipboardJSON) => {
-	const elements = JSON.parse(clipboardJSON)
-	duplicateElements(e, elements)
 }
 
 const handlePastedJSON = async (json) => {
@@ -266,8 +262,11 @@ const handlePastedJSON = async (json) => {
 const handlePaste = (e) => {
 	e.preventDefault()
 
+	const clipboardItems = e.clipboardData.items
+	if (clipboardItems) handleUploadedMedia(clipboardItems)
+
 	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) pasteText(clipboardText)
+	if (clipboardText) handlePastedText(clipboardText)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
 	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
