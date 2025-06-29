@@ -48,7 +48,12 @@
 
 			<div :class="fieldLabelClasses">Vertical</div>
 			<div class="grid grid-cols-3 gap-3">
-				<div :class="getAlignmentButtonClasses('top')" @click="performAlignment('top')">
+				<div
+					:class="getAlignmentButtonClasses('top')"
+					@click="performAlignment('top')"
+					@mouseenter="updateGuideVisibilityMap('topEdge', true)"
+					@mouseleave="updateGuideVisibilityMap('topEdge', false)"
+				>
 					<AlignStartHorizontal size="18" :strokeWidth="1.5" />
 				</div>
 				<div
@@ -62,6 +67,8 @@
 				<div
 					:class="getAlignmentButtonClasses('bottom')"
 					@click="performAlignment('bottom')"
+					@mouseenter="updateGuideVisibilityMap('bottomEdge', true)"
+					@mouseleave="updateGuideVisibilityMap('bottomEdge', false)"
 				>
 					<AlignEndHorizontal size="18" :strokeWidth="1.5" />
 				</div>
