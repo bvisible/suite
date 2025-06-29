@@ -1,5 +1,27 @@
 <template>
 	<div v-if="presentation.data" class="flex w-64 flex-col border-l bg-white" @wheel.prevent>
+		<div v-if="activeElement">
+			<CollapsibleSection title="Alignment" :initialState="true">
+				<template #default>
+					<div class="flex items-center gap-3">
+						<NumberInput
+							v-model="selectionBounds.left"
+							prefix="x"
+							:rangeStart="0"
+							:rangeStep="1"
+							:hideButtons="true"
+						/>
+						<NumberInput
+							v-model="selectionBounds.top"
+							prefix="y"
+							:rangeStart="0"
+							:rangeStep="1"
+							:hideButtons="true"
+						/>
+					</div>
+				</template>
+			</CollapsibleSection>
+		</div>
 		<component :is="activeProperties" />
 
 		<div v-if="activeElement">
@@ -32,7 +54,7 @@ import SliderInput from '@/components/controls/SliderInput.vue'
 import CollapsibleSection from './controls/CollapsibleSection.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide } from '@/stores/slide'
+import { slide, selectionBounds } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 
 const activeProperties = computed(() => {
