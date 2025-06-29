@@ -32,6 +32,19 @@
 							<AlignEndVertical size="18" :strokeWidth="1.5" />
 						</div>
 					</div>
+
+					<div :class="fieldLabelClasses">Vertical</div>
+					<div class="grid grid-cols-3 gap-3">
+						<div :class="quickAlignmentButtonClasses">
+							<AlignStartHorizontal size="18" :strokeWidth="1.5" />
+						</div>
+						<div :class="quickAlignmentButtonClasses">
+							<AlignCenterHorizontal size="18" :strokeWidth="1.5" />
+						</div>
+						<div :class="quickAlignmentButtonClasses">
+							<AlignEndHorizontal size="18" :strokeWidth="1.5" />
+						</div>
+					</div>
 				</template>
 			</CollapsibleSection>
 		</div>
@@ -58,7 +71,14 @@ import { computed } from 'vue'
 
 import { FormControl } from 'frappe-ui'
 
-import { AlignStartVertical, AlignCenterVertical, AlignEndVertical } from 'lucide-vue-next'
+import {
+	AlignStartVertical,
+	AlignCenterVertical,
+	AlignEndVertical,
+	AlignStartHorizontal,
+	AlignCenterHorizontal,
+	AlignEndHorizontal,
+} from 'lucide-vue-next'
 
 import SlideProperties from '@/components/SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
