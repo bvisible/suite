@@ -1,14 +1,18 @@
 <template>
 	<div class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80">
-		<div v-if="prefix" class="px-2 text-center text-xs text-gray-500">{{ prefix }}</div>
+		<div v-if="prefix" class="w-1/2 text-center text-xs font-medium text-gray-500">
+			{{ prefix }}
+		</div>
 		<input
 			type="number"
 			:class="inputClasses"
 			:value="parseFloat(parseFloat(modelValue).toFixed(2))"
 			@change="changeValue"
 		/>
-		<div v-if="suffix" class="px-2 text-center text-xs text-gray-500">{{ suffix }}</div>
-		<div class="flex h-full w-12 flex-col border-l">
+		<div v-if="suffix" class="w-1/2 text-center text-xs font-medium text-gray-500">
+			{{ suffix }}
+		</div>
+		<div v-if="!hideButtons" class="flex h-full w-12 flex-col border-l">
 			<button
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
 				@click="modelValue + rangeStep <= props.rangeEnd && (modelValue += rangeStep)"
@@ -37,13 +41,18 @@ const props = defineProps({
 		type: Number,
 		default: 1,
 	},
+	hideButtons: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const modelValue = defineModel()
 
 const inputClasses = computed(() => {
-	const baseClasses =
-		'size-full border-none p-0 text-center text-xs font-semibold text-gray-800 focus:border-none focus:outline-none focus:ring-0'
+	let baseClasses =
+		'size-full border-none p-0 text-center text-xs font-medium text-gray-800 focus:border-none focus:outline-none focus:ring-0'
+	if (props.hideButtons) baseClasses += ' rounded-r'
 	if (props.prefix) return `${baseClasses}`
 	else return `${baseClasses} rounded-l`
 })
