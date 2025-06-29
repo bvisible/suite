@@ -124,6 +124,8 @@ const guideVisibilityMap = reactive({
 	centerY: false,
 	leftEdge: false,
 	rightEdge: false,
+	topEdge: false,
+	bottomEdge: false,
 })
 
 export {

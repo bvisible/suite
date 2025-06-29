@@ -9,6 +9,8 @@
 			'bottom',
 			'leftEdge',
 			'rightEdge',
+			'topEdge',
+			'bottomEdge',
 		]"
 		:key="guide"
 		:style="guideStyles[guide]"
@@ -128,9 +130,9 @@ const getEdgeStyles = (direction) => {
 	return {
 		...commonStyles,
 		width: ['leftEdge', 'rightEdge'].includes(direction) ? '2px' : '100%',
-		height: '100%',
-		left: direction == 'leftEdge' ? '0%' : '100%',
-		top: '0%',
+		height: ['topEdge', 'bottomEdge'].includes(direction) ? '2px' : '100%',
+		left: direction == 'rightEdge' ? '100%' : '0%',
+		top: direction == 'bottomEdge' ? '100%' : '0%',
 		display: isVisible(direction) ? 'block' : 'none',
 	}
 }
@@ -145,6 +147,8 @@ const guideStyles = computed(() => {
 		bottom: getHorizontalStyles('bottom'),
 		leftEdge: getEdgeStyles('leftEdge'),
 		rightEdge: getEdgeStyles('rightEdge'),
+		topEdge: getEdgeStyles('topEdge'),
+		bottomEdge: getEdgeStyles('bottomEdge'),
 	}
 })
 </script>
