@@ -1,20 +1,5 @@
 <template>
-	<div
-		v-for="guide in [
-			'centerX',
-			'centerY',
-			'left',
-			'right',
-			'top',
-			'bottom',
-			'leftEdge',
-			'rightEdge',
-			'topEdge',
-			'bottomEdge',
-		]"
-		:key="guide"
-		:style="guideStyles[guide]"
-	></div>
+	<div v-for="guide in Object.keys(guideStyles)" :key="guide" :style="guideStyles[guide]"></div>
 </template>
 
 <script setup>
@@ -37,6 +22,7 @@ const props = defineProps({
 const commonStyles = {
 	backgroundColor: '#70b6f080',
 	position: 'fixed',
+	zIndex: 1000,
 }
 
 const isVisible = (axis) => {
@@ -129,8 +115,8 @@ const getHorizontalStyles = (direction) => {
 const getEdgeStyles = (direction) => {
 	return {
 		...commonStyles,
-		width: ['leftEdge', 'rightEdge'].includes(direction) ? '2px' : '100%',
-		height: ['topEdge', 'bottomEdge'].includes(direction) ? '2px' : '100%',
+		width: ['leftEdge', 'rightEdge'].includes(direction) ? '1.5px' : '100%',
+		height: ['topEdge', 'bottomEdge'].includes(direction) ? '1.5px' : '100%',
 		left: direction == 'rightEdge' ? '100%' : '0%',
 		top: direction == 'bottomEdge' ? '100%' : '0%',
 		display: isVisible(direction) ? 'block' : 'none',
