@@ -128,19 +128,18 @@ const activeProperties = computed(() => {
 })
 
 const alignmentPositions = computed(() => {
+	const slideWidth = slideBounds.width / slideBounds.scale
+	const slideHeight = slideBounds.height / slideBounds.scale
+
+	const { width: selectionWidth, height: selectionHeight } = selectionBounds
+
 	return {
 		left: 0,
-		centerX:
-			Math.round(slideBounds.width / (2 * slideBounds.scale)) -
-			Math.round(selectionBounds.width / 2),
-		right:
-			Math.round(slideBounds.width / slideBounds.scale) - Math.round(selectionBounds.width),
+		centerX: Math.round(slideWidth / 2) - Math.round(selectionWidth / 2),
+		right: Math.round(slideWidth) - Math.round(selectionWidth),
 		top: 0,
-		centerY:
-			Math.round(slideBounds.height / (2 * slideBounds.scale)) -
-			Math.round(selectionBounds.height / 2),
-		bottom:
-			Math.round(slideBounds.height / slideBounds.scale) - Math.round(selectionBounds.height),
+		centerY: Math.round(slideHeight / 2) - Math.round(selectionHeight / 2),
+		bottom: Math.round(slideHeight) - Math.round(selectionHeight),
 	}
 })
 
