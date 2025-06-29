@@ -22,13 +22,22 @@
 
 					<div :class="fieldLabelClasses">Horizontal</div>
 					<div class="grid grid-cols-3 gap-3">
-						<div :class="getAlignmentButtonClasses('left')">
+						<div
+							:class="getAlignmentButtonClasses('left')"
+							@click="performAlignment('left')"
+						>
 							<AlignStartVertical size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="getAlignmentButtonClasses('centerX')">
+						<div
+							:class="getAlignmentButtonClasses('centerX')"
+							@click="performAlignment('centerX')"
+						>
 							<AlignCenterVertical size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="getAlignmentButtonClasses('right')">
+						<div
+							:class="getAlignmentButtonClasses('right')"
+							@click="performAlignment('right')"
+						>
 							<AlignEndVertical size="18" :strokeWidth="1.5" />
 						</div>
 					</div>
@@ -87,7 +96,7 @@ import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
-import CollapsibleSection from './controls/CollapsibleSection.vue'
+import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide, selectionBounds, slideBounds } from '@/stores/slide'
@@ -141,6 +150,19 @@ const getAlignmentButtonClasses = (direction) => {
 		? 'border-gray-500 text-gray-900'
 		: 'text-gray-600 hover:text-gray-700'
 	return `${baseClasses} ${activeClasses}`
+}
+
+const performAlignment = (direction) => {
+	if (direction === 'left') {
+		selectionBounds.left = 0
+	} else if (direction === 'centerX') {
+		selectionBounds.left =
+			Math.round(slideBounds.width / (2 * slideBounds.scale)) -
+			Math.round(selectionBounds.width / 2)
+	} else if (direction === 'right') {
+		selectionBounds.left =
+			Math.round(slideBounds.width / slideBounds.scale) - Math.round(selectionBounds.width)
+	}
 }
 </script>
 
