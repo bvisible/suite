@@ -22,32 +22,33 @@
 
 					<div :class="fieldLabelClasses">Horizontal</div>
 					<div class="grid grid-cols-3 gap-3">
-						<div :class="quickAlignmentButtonClasses">
+						<div :class="getAlignmentButtonClasses('left')">
 							<AlignStartVertical size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="quickAlignmentButtonClasses">
+						<div :class="getAlignmentButtonClasses('centerX')">
 							<AlignCenterVertical size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="quickAlignmentButtonClasses">
+						<div :class="getAlignmentButtonClasses('right')">
 							<AlignEndVertical size="18" :strokeWidth="1.5" />
 						</div>
 					</div>
 
 					<div :class="fieldLabelClasses">Vertical</div>
 					<div class="grid grid-cols-3 gap-3">
-						<div :class="quickAlignmentButtonClasses">
+						<div :class="getAlignmentButtonClasses('top')">
 							<AlignStartHorizontal size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="quickAlignmentButtonClasses">
+						<div :class="getAlignmentButtonClasses('centerY')">
 							<AlignCenterHorizontal size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="quickAlignmentButtonClasses">
+						<div :class="getAlignmentButtonClasses('bottom')">
 							<AlignEndHorizontal size="18" :strokeWidth="1.5" />
 						</div>
 					</div>
 				</template>
 			</CollapsibleSection>
 		</div>
+
 		<component :is="activeProperties" />
 
 		<div v-if="activeElement">
@@ -89,7 +90,7 @@ import SliderInput from '@/components/controls/SliderInput.vue'
 import CollapsibleSection from './controls/CollapsibleSection.vue'
 
 import { presentation } from '@/stores/presentation'
-import { slide, selectionBounds } from '@/stores/slide'
+import { slide, selectionBounds, slideBounds } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
@@ -103,8 +104,44 @@ const activeProperties = computed(() => {
 	if (elementType == 'video') return VideoProperties
 })
 
-const quickAlignmentButtonClasses =
-	'flex cursor-pointer items-center justify-center rounded border py-1.5 text-gray-600'
+const isAligned = (direction) => {
+	if (direction === 'left') return Math.round(selectionBounds.left) == 0
+	if (direction === 'centerX') {
+		return (
+			Math.round(selectionBounds.left + selectionBounds.width / 2) ==
+			Math.round(slideBounds.width / (2 * slideBounds.scale))
+		)
+	}
+	if (direction === 'right') {
+		return (
+			Math.round(slideBounds.width / slideBounds.scale) ==
+			Math.round(selectionBounds.left + selectionBounds.width)
+		)
+	}
+	if (direction === 'top') return Math.round(selectionBounds.top) == 0
+	if (direction === 'centerY') {
+		return (
+			Math.round(selectionBounds.top + selectionBounds.height / 2) ==
+			Math.round(slideBounds.height / (2 * slideBounds.scale))
+		)
+	}
+	if (direction === 'bottom') {
+		return (
+			Math.round(slideBounds.height / slideBounds.scale) ==
+			Math.round(selectionBounds.top + selectionBounds.height)
+		)
+	}
+	return false
+}
+
+const getAlignmentButtonClasses = (direction) => {
+	const baseClasses =
+		'flex cursor-pointer items-center justify-center rounded border py-1.5 hover:border-gray-400'
+	const activeClasses = isAligned(direction)
+		? 'border-gray-500 text-gray-900'
+		: 'text-gray-600 hover:text-gray-700'
+	return `${baseClasses} ${activeClasses}`
+}
 </script>
 
 <style scoped>
