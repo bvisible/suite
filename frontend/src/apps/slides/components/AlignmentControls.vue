@@ -20,7 +20,12 @@
 
 			<div :class="fieldLabelClasses">Horizontal</div>
 			<div class="grid grid-cols-3 gap-3">
-				<div :class="getAlignmentButtonClasses('left')" @click="performAlignment('left')">
+				<div
+					:class="getAlignmentButtonClasses('left')"
+					@click="performAlignment('left')"
+					@mouseenter="updateGuideVisibilityMap('leftEdge', true)"
+					@mouseleave="updateGuideVisibilityMap('leftEdge', false)"
+				>
 					<AlignStartVertical size="18" :strokeWidth="1.5" />
 				</div>
 				<div
@@ -31,7 +36,12 @@
 				>
 					<AlignCenterVertical size="18" :strokeWidth="1.5" />
 				</div>
-				<div :class="getAlignmentButtonClasses('right')" @click="performAlignment('right')">
+				<div
+					:class="getAlignmentButtonClasses('right')"
+					@click="performAlignment('right')"
+					@mouseenter="updateGuideVisibilityMap('rightEdge', true)"
+					@mouseleave="updateGuideVisibilityMap('rightEdge', false)"
+				>
 					<AlignEndVertical size="18" :strokeWidth="1.5" />
 				</div>
 			</div>

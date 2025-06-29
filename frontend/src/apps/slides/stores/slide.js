@@ -122,6 +122,8 @@ const updateSelectionBounds = (newBounds) => {
 const guideVisibilityMap = reactive({
 	centerX: false,
 	centerY: false,
+	leftEdge: false,
+	rightEdge: false,
 })
 
 export {

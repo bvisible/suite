@@ -124,6 +124,17 @@ const getHorizontalStyles = (direction) => {
 	}
 }
 
+const getEdgeStyles = (direction) => {
+	return {
+		...commonStyles,
+		width: ['leftEdge', 'rightEdge'].includes(direction) ? '2px' : '100%',
+		height: '100%',
+		left: direction == 'leftEdge' ? '0%' : '100%',
+		top: '0%',
+		display: isVisible(direction) ? 'block' : 'none',
+	}
+}
+
 const guideStyles = computed(() => {
 	return {
 		centerX: getCenterStyles('centerX'),
@@ -132,6 +143,8 @@ const guideStyles = computed(() => {
 		right: getVerticalStyles('right'),
 		top: getHorizontalStyles('top'),
 		bottom: getHorizontalStyles('bottom'),
+		leftEdge: getEdgeStyles('leftEdge'),
+		rightEdge: getEdgeStyles('rightEdge'),
 	}
 })
 </script>
