@@ -1,9 +1,13 @@
 <template>
 	<div v-if="presentation.data" class="flex w-64 flex-col border-l bg-white" @wheel.prevent>
-		<AlignmentControls v-if="activeElement" />
-
-		<component :is="activeProperties" />
-
+		<div v-if="!activeElement">
+			<SlideProperties />
+			<AlignmentControls v-if="activeElementIds.length" />
+		</div>
+		<div v-else>
+			<AlignmentControls />
+			<component :is="activeProperties" />
+		</div>
 		<div v-if="activeElement">
 			<CollapsibleSection title="Other">
 				<template #default>
@@ -36,7 +40,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { presentation } from '@/stores/presentation'
 import { slide } from '@/stores/slide'
-import { activeElement } from '@/stores/element'
+import { activeElement, activeElementIds } from '@/stores/element'
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type
@@ -48,8 +52,6 @@ const activeProperties = computed(() => {
 			return ImageProperties
 		case 'video':
 			return VideoProperties
-		default:
-			return SlideProperties
 	}
 })
 </script>

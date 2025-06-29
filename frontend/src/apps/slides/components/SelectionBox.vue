@@ -159,8 +159,8 @@ const cropSelectionToFitContent = (elementIds) => {
 	updateSelectionBounds({
 		left: l,
 		top: t,
-		width: r - l + 1,
-		height: b - t + 1,
+		width: r - l,
+		height: b - t,
 	})
 }
 
