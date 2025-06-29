@@ -19,6 +19,19 @@
 							:hideButtons="true"
 						/>
 					</div>
+
+					<div :class="fieldLabelClasses">Horizontal</div>
+					<div class="grid grid-cols-3 gap-3">
+						<div :class="quickAlignmentButtonClasses">
+							<AlignStartVertical size="18" :strokeWidth="1.5" />
+						</div>
+						<div :class="quickAlignmentButtonClasses">
+							<AlignCenterVertical size="18" :strokeWidth="1.5" />
+						</div>
+						<div :class="quickAlignmentButtonClasses">
+							<AlignEndVertical size="18" :strokeWidth="1.5" />
+						</div>
+					</div>
 				</template>
 			</CollapsibleSection>
 		</div>
@@ -45,6 +58,8 @@ import { computed } from 'vue'
 
 import { FormControl } from 'frappe-ui'
 
+import { AlignStartVertical, AlignCenterVertical, AlignEndVertical } from 'lucide-vue-next'
+
 import SlideProperties from '@/components/SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from '@/components/ImageProperties.vue'
@@ -56,6 +71,7 @@ import CollapsibleSection from './controls/CollapsibleSection.vue'
 import { presentation } from '@/stores/presentation'
 import { slide, selectionBounds } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
+import { fieldLabelClasses } from '@/utils/constants'
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type
@@ -66,6 +82,9 @@ const activeProperties = computed(() => {
 	if (elementType == 'image') return ImageProperties
 	if (elementType == 'video') return VideoProperties
 })
+
+const quickAlignmentButtonClasses =
+	'flex cursor-pointer items-center justify-center rounded border py-1.5 text-gray-600'
 </script>
 
 <style scoped>
