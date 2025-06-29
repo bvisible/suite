@@ -119,11 +119,17 @@ const updateSelectionBounds = (newBounds) => {
 	Object.assign(selectionBounds, roundedBounds)
 }
 
+const guideVisibilityMap = reactive({
+	centerX: false,
+	centerY: false,
+})
+
 export {
 	slideIndex,
 	slide,
 	slideBounds,
 	selectionBounds,
+	guideVisibilityMap,
 	loadSlide,
 	updateSlideState,
 	saveChanges,

@@ -12,8 +12,8 @@ export const useSnapping = (target, parent) => {
 	let snapTimeout = null
 
 	const diffs = reactive({
-		vertical: 0,
-		horizontal: 0,
+		centerX: 0,
+		centerY: 0,
 		left: 0,
 		right: 0,
 		top: 0,
@@ -21,8 +21,8 @@ export const useSnapping = (target, parent) => {
 	})
 
 	const prevDiffs = reactive({
-		vertical: 0,
-		horizontal: 0,
+		centerX: 0,
+		centerY: 0,
 		left: 0,
 		right: 0,
 		top: 0,
@@ -32,8 +32,8 @@ export const useSnapping = (target, parent) => {
 	const visibilityMap = computed(() => {
 		if (!target.value) return
 		return {
-			vertical: Math.abs(diffs.vertical) < CENTER_PROXIMITY_THRESHOLD,
-			horizontal: Math.abs(diffs.horizontal) < CENTER_PROXIMITY_THRESHOLD,
+			centerX: Math.abs(diffs.centerX) < CENTER_PROXIMITY_THRESHOLD,
+			centerY: Math.abs(diffs.centerY) < CENTER_PROXIMITY_THRESHOLD,
 			left: Math.abs(diffs.left) < PROXIMITY_THRESHOLD,
 			right: Math.abs(diffs.right) < PROXIMITY_THRESHOLD,
 			top: Math.abs(diffs.top) < PROXIMITY_THRESHOLD,
@@ -45,7 +45,7 @@ export const useSnapping = (target, parent) => {
 		if (!target.value) return
 		let slideCenter, elementCenter
 
-		if (axis == 'X') {
+		if (axis == 'Y') {
 			const elementLeft = selectionBounds.left * slideBounds.scale + slideBounds.left
 			const elementWidth = selectionBounds.width * slideBounds.scale
 
@@ -125,15 +125,10 @@ export const useSnapping = (target, parent) => {
 	const updateGuides = () => {
 		if (!target.value) return
 
-		prevDiffs.vertical = diffs.vertical
-		prevDiffs.horizontal = diffs.horizontal
-		prevDiffs.left = diffs.left
-		prevDiffs.right = diffs.right
-		prevDiffs.top = diffs.top
-		prevDiffs.bottom = diffs.bottom
+		Object.assign(prevDiffs, diffs)
 
-		diffs.vertical = getDiffFromCenter('Y')
-		diffs.horizontal = getDiffFromCenter('X')
+		diffs.centerX = getDiffFromCenter('X')
+		diffs.centerY = getDiffFromCenter('Y')
 
 		setPairedDiffs()
 	}
@@ -143,7 +138,7 @@ export const useSnapping = (target, parent) => {
 		const prevDiff = prevDiffs[axis]
 
 		let threshold, margin
-		if (['horizontal', 'vertical'].includes(axis)) {
+		if (['centerX', 'centerY'].includes(axis)) {
 			threshold = CENTER_PROXIMITY_THRESHOLD
 			margin = 2
 		} else {
@@ -188,8 +183,8 @@ export const useSnapping = (target, parent) => {
 
 	const getCenterOffsets = () => {
 		return {
-			offsetX: applySnapMovement('horizontal'),
-			offsetY: applySnapMovement('vertical'),
+			offsetX: applySnapMovement('centerY'),
+			offsetY: applySnapMovement('centerX'),
 		}
 	}
 

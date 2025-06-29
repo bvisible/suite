@@ -24,8 +24,10 @@
 					<AlignStartVertical size="18" :strokeWidth="1.5" />
 				</div>
 				<div
-					:class="getAlignmentButtonClasses('centerX')"
-					@click="performAlignment('centerX')"
+					:class="getAlignmentButtonClasses('centerY')"
+					@click="performAlignment('centerY')"
+					@mouseenter="updateGuideVisibilityMap('centerY', true)"
+					@mouseleave="updateGuideVisibilityMap('centerY', false)"
 				>
 					<AlignCenterVertical size="18" :strokeWidth="1.5" />
 				</div>
@@ -40,8 +42,10 @@
 					<AlignStartHorizontal size="18" :strokeWidth="1.5" />
 				</div>
 				<div
-					:class="getAlignmentButtonClasses('centerY')"
-					@click="performAlignment('centerY')"
+					:class="getAlignmentButtonClasses('centerX')"
+					@click="performAlignment('centerX')"
+					@mouseenter="updateGuideVisibilityMap('centerX', true)"
+					@mouseleave="updateGuideVisibilityMap('centerX', false)"
 				>
 					<AlignCenterHorizontal size="18" :strokeWidth="1.5" />
 				</div>
@@ -70,7 +74,7 @@ import {
 
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { slideBounds, selectionBounds } from '@/stores/slide'
+import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
 
 const alignmentPositions = computed(() => {
@@ -81,16 +85,16 @@ const alignmentPositions = computed(() => {
 
 	return {
 		left: 0,
-		centerX: Math.round(slideWidth / 2) - Math.round(selectionWidth / 2),
+		centerY: Math.round(slideWidth / 2) - Math.round(selectionWidth / 2),
 		right: Math.round(slideWidth) - Math.round(selectionWidth),
 		top: 0,
-		centerY: Math.round(slideHeight / 2) - Math.round(selectionHeight / 2),
+		centerX: Math.round(slideHeight / 2) - Math.round(selectionHeight / 2),
 		bottom: Math.round(slideHeight) - Math.round(selectionHeight),
 	}
 })
 
 const isAligned = (direction) => {
-	const axis = ['left', 'centerX', 'right'].includes(direction) ? 'X' : 'Y'
+	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
 
 	const expectedPos = alignmentPositions.value[direction]
 
@@ -122,7 +126,7 @@ const alignVertically = (direction) => {
 const performAlignment = (direction) => {
 	switch (direction) {
 		case 'left':
-		case 'centerX':
+		case 'centerY':
 		case 'right':
 			alignHorizontally(direction)
 			break
@@ -131,5 +135,9 @@ const performAlignment = (direction) => {
 			alignVertically(direction)
 			break
 	}
+}
+
+const updateGuideVisibilityMap = (direction, value) => {
+	guideVisibilityMap[direction] = value
 }
 </script>
