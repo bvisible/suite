@@ -113,7 +113,10 @@ const saveChanges = async () => {
 const slideBounds = reactive({})
 
 const updateSelectionBounds = (newBounds) => {
-	Object.assign(selectionBounds, newBounds)
+	const roundedBounds = Object.fromEntries(
+		Object.entries(newBounds).map(([key, value]) => [key, Math.round(value)]),
+	)
+	Object.assign(selectionBounds, roundedBounds)
 }
 
 export {
