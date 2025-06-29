@@ -10,7 +10,7 @@
 			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
 				<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
 
-				<SnapGuides v-if="isDragging" :visibilityMap="visibilityMap" />
+				<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
 
 				<SlideElement
 					v-for="element in slide.elements"

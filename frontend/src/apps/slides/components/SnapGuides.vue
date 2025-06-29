@@ -1,6 +1,15 @@
 <template>
 	<div
-		v-for="guide in ['centerX', 'centerY', 'left', 'right', 'top', 'bottom']"
+		v-for="guide in [
+			'centerX',
+			'centerY',
+			'left',
+			'right',
+			'top',
+			'bottom',
+			'leftEdge',
+			'rightEdge',
+		]"
 		:key="guide"
 		:style="guideStyles[guide]"
 	></div>
@@ -9,13 +18,17 @@
 <script setup>
 import { computed } from 'vue'
 
-import { slideBounds, selectionBounds } from '@/stores/slide'
+import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { pairElementId } from '@/stores/element'
 
 const props = defineProps({
 	visibilityMap: {
 		type: Object,
 		default: null,
+	},
+	isDragging: {
+		type: Boolean,
+		default: false,
 	},
 })
 
@@ -24,14 +37,20 @@ const commonStyles = {
 	position: 'fixed',
 }
 
+const isVisible = (axis) => {
+	const closeToSnap = props.isDragging && props.visibilityMap?.[axis]
+	const hoveringOverControl = guideVisibilityMap[axis]
+	return closeToSnap || hoveringOverControl
+}
+
 const getCenterStyles = (axis) => {
 	return {
 		...commonStyles,
-		width: axis === 'horizontal' ? '1px' : '100%',
-		height: axis === 'vertical' ? '1px' : '100%',
-		left: axis === 'horizontal' ? '50%' : '0',
-		top: axis === 'vertical' ? '50%' : '0',
-		display: props.visibilityMap?.[axis] ? 'block' : 'none',
+		width: axis === 'centerY' ? '1px' : '100%',
+		height: axis === 'centerX' ? '1px' : '100%',
+		left: axis === 'centerY' ? '50%' : '0',
+		top: axis === 'centerX' ? '50%' : '0',
+		display: isVisible(axis) ? 'block' : 'none',
 	}
 }
 
@@ -107,8 +126,8 @@ const getHorizontalStyles = (direction) => {
 
 const guideStyles = computed(() => {
 	return {
-		centerX: getCenterStyles('horizontal'),
-		centerY: getCenterStyles('vertical'),
+		centerX: getCenterStyles('centerX'),
+		centerY: getCenterStyles('centerY'),
 		left: getVerticalStyles('left'),
 		right: getVerticalStyles('right'),
 		top: getHorizontalStyles('top'),
