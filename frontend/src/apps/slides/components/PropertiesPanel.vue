@@ -44,13 +44,22 @@
 
 					<div :class="fieldLabelClasses">Vertical</div>
 					<div class="grid grid-cols-3 gap-3">
-						<div :class="getAlignmentButtonClasses('top')">
+						<div
+							:class="getAlignmentButtonClasses('top')"
+							@click="performAlignment('top')"
+						>
 							<AlignStartHorizontal size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="getAlignmentButtonClasses('centerY')">
+						<div
+							:class="getAlignmentButtonClasses('centerY')"
+							@click="performAlignment('centerY')"
+						>
 							<AlignCenterHorizontal size="18" :strokeWidth="1.5" />
 						</div>
-						<div :class="getAlignmentButtonClasses('bottom')">
+						<div
+							:class="getAlignmentButtonClasses('bottom')"
+							@click="performAlignment('bottom')"
+						>
 							<AlignEndHorizontal size="18" :strokeWidth="1.5" />
 						</div>
 					</div>
@@ -162,6 +171,15 @@ const performAlignment = (direction) => {
 	} else if (direction === 'right') {
 		selectionBounds.left =
 			Math.round(slideBounds.width / slideBounds.scale) - Math.round(selectionBounds.width)
+	} else if (direction === 'top') {
+		selectionBounds.top = 0
+	} else if (direction === 'centerY') {
+		selectionBounds.top =
+			Math.round(slideBounds.height / (2 * slideBounds.scale)) -
+			Math.round(selectionBounds.height / 2)
+	} else if (direction === 'bottom') {
+		selectionBounds.top =
+			Math.round(slideBounds.height / slideBounds.scale) - Math.round(selectionBounds.height)
 	}
 }
 </script>
