@@ -67,6 +67,7 @@ import {
 	selectAllElements,
 	activeElements,
 	toggleTextProperty,
+	deleteAttachments,
 } from '@/stores/element'
 
 import html2canvas from 'html2canvas'
@@ -233,6 +234,7 @@ const changeSlide = async (index, updateCurrent = true) => {
 }
 
 const performSlideAction = async (action, index) => {
+	if (!index) index = slideIndex.value
 	let url = ''
 
 	switch (action) {
@@ -274,27 +276,30 @@ const insertSlide = async (index) => {
 	})
 }
 
-const deleteSlide = async () => {
-	if (presentation.data.slides.length == 1) {
-		slide.value = {
-			...slide.value,
-			thumbnail: '',
-			elements: [],
-			background: '',
-			transition: '',
-			transitionDuration: 0,
-		}
-		return
-	}
-	await performSlideAction('delete', slideIndex.value)
+const loadSlidePostDeletion = async (index) => {
+	// if last slide is deleted, load the previous slide
 	if (slideIndex.value == presentation.data.slides.length)
 		changeSlide(slideIndex.value - 1, false)
+	// otherwise load next one
 	else loadSlide()
+}
+
+const deleteSlide = async () => {
+	// store elements to delete attachments later
+	const elements = slide.value.elements
+
+	// if there is only one slide, reset the slide state instead of deleting
+	if (presentation.data.slides.length == 1) return resetSlideState()
+
+	await performSlideAction('delete')
+	loadSlidePostDeletion()
+
+	deleteAttachments(elements)
 }
 
 const duplicateSlide = async (e) => {
 	e.preventDefault()
-	await performSlideAction('duplicate', slideIndex.value)
+	await performSlideAction('duplicate')
 	changeSlide(slideIndex.value + 1)
 }
 
@@ -311,7 +316,6 @@ const resetAndSave = () => {
 }
 
 const resetSlideState = () => {
-	slideIndex.value = 0
 	slide.value = {
 		thumbnail: '',
 		elements: [],
@@ -355,6 +359,7 @@ onBeforeUnmount(() => {
 
 onBeforeRouteLeave((to, from, next) => {
 	if (to.name !== 'Slideshow') {
+		slideIndex.value = 0
 		resetSlideState()
 		presentationId.value = ''
 		presentation.reset()

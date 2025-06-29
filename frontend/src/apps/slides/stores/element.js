@@ -5,7 +5,8 @@ import { slide, slideBounds } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
-import { presentation } from './presentation'
+import { handleUploadedMedia } from '../utils/mediaUploads'
+import { presentation, presentationId } from './presentation'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -90,7 +91,7 @@ const addMediaElement = (file, type) => {
 		opacity: 100,
 		type: type,
 		src: file.file_url,
-		file_name: file.name,
+		attachmentName: file.name,
 		borderStyle: 'none',
 		borderWidth: 0,
 		borderRadius: 0,
@@ -110,7 +111,7 @@ const addMediaElement = (file, type) => {
 }
 
 const duplicateElements = async (e, elements, displaceByPx = 0) => {
-	e.preventDefault()
+	e?.preventDefault()
 
 	let newSelection = []
 	const oldElements = elements
@@ -130,23 +131,23 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	nextTick(() => (activeElementIds.value = newSelection))
 }
 
+const isFileDocUsed = (element) => {
+	return presentation.data.slides.some((slide) => {
+		if (!slide.elements) return false
+
+		const elements = JSON.parse(slide.elements)
+		return elements.some((el) => el.id !== element.id && el.src === element.src)
+	})
+}
+
 const deleteAttachments = async (elements) => {
 	elements.forEach((element) => {
 		if (['image', 'video'].includes(element.type)) {
-			// TODO: Handle this in a cleaner way
-			// Delete the file doc only if it's not used in other slides
-			const isFileDocUsed = presentation.data.slides.some((slide) => {
-				if (!slide.elements) return false
-				return JSON.parse(slide.elements).some((el) => {
-					return el.src === element.src
-				})
-			})
-
-			if (isFileDocUsed) return
+			if (isFileDocUsed(element)) return
 
 			call('frappe.client.delete', {
 				doctype: 'File',
-				name: element.file_name,
+				name: element.attachmentName,
 			})
 		}
 	})
@@ -228,13 +229,16 @@ const getCopiedJSON = () => {
 	return JSON.stringify(elementsCopy)
 }
 
+const copiedFromId = ref(null)
+
 const handleCopy = (e) => {
 	e.preventDefault()
 	const clipboardJSON = getCopiedJSON()
 	e.clipboardData.setData('application/json', clipboardJSON)
+	copiedFromId.value = presentationId.value
 }
 
-const pasteText = (clipboardText) => {
+const handlePastedText = (clipboardText) => {
 	if (focusElementId.value) {
 		document.execCommand('insertText', false, clipboardText)
 	} else {
@@ -243,23 +247,29 @@ const pasteText = (clipboardText) => {
 	}
 }
 
-const pasteElements = (e, clipboardJSON) => {
-	const elements = JSON.parse(clipboardJSON)
-	duplicateElements(e, elements)
+const handlePastedJSON = async (json) => {
+	if (copiedFromId.value !== presentationId.value) {
+		// if pasted elements are from a different presentation
+		// add file attachments correctly to current presentation + update docnames in json
+		json = await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
+			presentation: presentationId.value,
+			json: json,
+		})
+	}
+	duplicateElements(null, json)
 }
 
 const handlePaste = (e) => {
 	e.preventDefault()
 
+	const clipboardItems = e.clipboardData.items
+	if (clipboardItems) handleUploadedMedia(clipboardItems)
+
 	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) {
-		return pasteText(clipboardText)
-	}
+	if (clipboardText) handlePastedText(clipboardText)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) {
-		return pasteElements(e, clipboardJSON)
-	}
+	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
 }
 
 const updateElementWidth = (deltaWidth) => {
@@ -293,4 +303,5 @@ export {
 	handleCopy,
 	handlePaste,
 	updateElementWidth,
+	deleteAttachments,
 }
