@@ -18,59 +18,19 @@
 				/>
 			</div>
 
-			<div :class="fieldLabelClasses">Horizontal</div>
-			<div class="grid grid-cols-3 gap-3">
-				<div
-					:class="getAlignmentButtonClasses('left')"
-					@click="performAlignment('left')"
-					@mouseenter="updateGuideVisibilityMap('leftEdge', true)"
-					@mouseleave="updateGuideVisibilityMap('leftEdge', false)"
-				>
-					<AlignStartVertical size="18" :strokeWidth="1.5" />
-				</div>
-				<div
-					:class="getAlignmentButtonClasses('centerY')"
-					@click="performAlignment('centerY')"
-					@mouseenter="updateGuideVisibilityMap('centerY', true)"
-					@mouseleave="updateGuideVisibilityMap('centerY', false)"
-				>
-					<AlignCenterVertical size="18" :strokeWidth="1.5" />
-				</div>
-				<div
-					:class="getAlignmentButtonClasses('right')"
-					@click="performAlignment('right')"
-					@mouseenter="updateGuideVisibilityMap('rightEdge', true)"
-					@mouseleave="updateGuideVisibilityMap('rightEdge', false)"
-				>
-					<AlignEndVertical size="18" :strokeWidth="1.5" />
-				</div>
-			</div>
-
-			<div :class="fieldLabelClasses">Vertical</div>
-			<div class="grid grid-cols-3 gap-3">
-				<div
-					:class="getAlignmentButtonClasses('top')"
-					@click="performAlignment('top')"
-					@mouseenter="updateGuideVisibilityMap('topEdge', true)"
-					@mouseleave="updateGuideVisibilityMap('topEdge', false)"
-				>
-					<AlignStartHorizontal size="18" :strokeWidth="1.5" />
-				</div>
-				<div
-					:class="getAlignmentButtonClasses('centerX')"
-					@click="performAlignment('centerX')"
-					@mouseenter="updateGuideVisibilityMap('centerX', true)"
-					@mouseleave="updateGuideVisibilityMap('centerX', false)"
-				>
-					<AlignCenterHorizontal size="18" :strokeWidth="1.5" />
-				</div>
-				<div
-					:class="getAlignmentButtonClasses('bottom')"
-					@click="performAlignment('bottom')"
-					@mouseenter="updateGuideVisibilityMap('bottomEdge', true)"
-					@mouseleave="updateGuideVisibilityMap('bottomEdge', false)"
-				>
-					<AlignEndHorizontal size="18" :strokeWidth="1.5" />
+			<div v-for="axis in axes" :key="axis" class="flex flex-col gap-1.5">
+				<div :class="fieldLabelClasses">{{ axis.label }}</div>
+				<div class="grid grid-cols-3 gap-3">
+					<div
+						v-for="option in axis.options"
+						:key="option.direction"
+						:class="getAlignmentButtonClasses(option.direction)"
+						@click="performAlignment(option.direction)"
+						@mouseenter="updateGuideVisibilityMap(option.guide, true)"
+						@mouseleave="updateGuideVisibilityMap(option.guide, false)"
+					>
+						<component :is="option.icon" size="18" :strokeWidth="1.5" />
+					</div>
 				</div>
 			</div>
 		</template>
@@ -93,6 +53,53 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
+
+const horizontalAlignmentOptions = [
+	{
+		direction: 'left',
+		guide: 'leftEdge',
+		icon: AlignStartVertical,
+	},
+	{
+		direction: 'centerY',
+		guide: 'centerY',
+		icon: AlignCenterVertical,
+	},
+	{
+		direction: 'right',
+		guide: 'rightEdge',
+		icon: AlignEndVertical,
+	},
+]
+
+const verticalAlignmentOptions = [
+	{
+		direction: 'top',
+		guide: 'topEdge',
+		icon: AlignStartHorizontal,
+	},
+	{
+		direction: 'centerX',
+		guide: 'centerX',
+		icon: AlignCenterHorizontal,
+	},
+	{
+		direction: 'bottom',
+		guide: 'bottomEdge',
+		icon: AlignEndHorizontal,
+	},
+]
+
+const axes = [
+	{
+		label: 'Horizontal',
+		options: horizontalAlignmentOptions,
+	},
+	{
+		label: 'Vertical',
+		options: verticalAlignmentOptions,
+	},
+]
 
 const alignmentPositions = computed(() => {
 	const slideWidth = slideBounds.width / slideBounds.scale
