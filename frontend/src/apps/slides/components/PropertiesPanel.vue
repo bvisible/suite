@@ -115,71 +115,78 @@ import { fieldLabelClasses } from '@/utils/constants'
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type
 
-	if (!elementType) return SlideProperties
+	switch (elementType) {
+		case 'text':
+			return TextProperties
+		case 'image':
+			return ImageProperties
+		case 'video':
+			return VideoProperties
+		default:
+			return SlideProperties
+	}
+})
 
-	if (elementType == 'text') return TextProperties
-	if (elementType == 'image') return ImageProperties
-	if (elementType == 'video') return VideoProperties
+const alignmentPositions = computed(() => {
+	return {
+		left: 0,
+		centerX:
+			Math.round(slideBounds.width / (2 * slideBounds.scale)) -
+			Math.round(selectionBounds.width / 2),
+		right:
+			Math.round(slideBounds.width / slideBounds.scale) - Math.round(selectionBounds.width),
+		top: 0,
+		centerY:
+			Math.round(slideBounds.height / (2 * slideBounds.scale)) -
+			Math.round(selectionBounds.height / 2),
+		bottom:
+			Math.round(slideBounds.height / slideBounds.scale) - Math.round(selectionBounds.height),
+	}
 })
 
 const isAligned = (direction) => {
-	if (direction === 'left') return Math.round(selectionBounds.left) == 0
-	if (direction === 'centerX') {
-		return (
-			Math.round(selectionBounds.left + selectionBounds.width / 2) ==
-			Math.round(slideBounds.width / (2 * slideBounds.scale))
-		)
-	}
-	if (direction === 'right') {
-		return (
-			Math.round(slideBounds.width / slideBounds.scale) ==
-			Math.round(selectionBounds.left + selectionBounds.width)
-		)
-	}
-	if (direction === 'top') return Math.round(selectionBounds.top) == 0
-	if (direction === 'centerY') {
-		return (
-			Math.round(selectionBounds.top + selectionBounds.height / 2) ==
-			Math.round(slideBounds.height / (2 * slideBounds.scale))
-		)
-	}
-	if (direction === 'bottom') {
-		return (
-			Math.round(slideBounds.height / slideBounds.scale) ==
-			Math.round(selectionBounds.top + selectionBounds.height)
-		)
-	}
-	return false
+	const axis = ['left', 'centerX', 'right'].includes(direction) ? 'X' : 'Y'
+
+	const expectedPos = alignmentPositions.value[direction]
+
+	const currentPos =
+		axis == 'X' ? Math.round(selectionBounds.left) : Math.round(selectionBounds.top)
+
+	return expectedPos == currentPos
 }
 
 const getAlignmentButtonClasses = (direction) => {
 	const baseClasses =
 		'flex cursor-pointer items-center justify-center rounded border py-1.5 hover:border-gray-400'
+
 	const activeClasses = isAligned(direction)
 		? 'border-gray-500 text-gray-900'
 		: 'text-gray-600 hover:text-gray-700'
+
 	return `${baseClasses} ${activeClasses}`
 }
 
+const alignHorizontally = (direction) => {
+	const newLeft = alignmentPositions.value[direction]
+	selectionBounds.left = Math.round(newLeft)
+}
+
+const alignVertically = (direction) => {
+	const newTop = alignmentPositions.value[direction]
+	selectionBounds.top = Math.round(newTop)
+}
+
 const performAlignment = (direction) => {
-	if (direction === 'left') {
-		selectionBounds.left = 0
-	} else if (direction === 'centerX') {
-		selectionBounds.left =
-			Math.round(slideBounds.width / (2 * slideBounds.scale)) -
-			Math.round(selectionBounds.width / 2)
-	} else if (direction === 'right') {
-		selectionBounds.left =
-			Math.round(slideBounds.width / slideBounds.scale) - Math.round(selectionBounds.width)
-	} else if (direction === 'top') {
-		selectionBounds.top = 0
-	} else if (direction === 'centerY') {
-		selectionBounds.top =
-			Math.round(slideBounds.height / (2 * slideBounds.scale)) -
-			Math.round(selectionBounds.height / 2)
-	} else if (direction === 'bottom') {
-		selectionBounds.top =
-			Math.round(slideBounds.height / slideBounds.scale) - Math.round(selectionBounds.height)
+	switch (direction) {
+		case 'left':
+		case 'centerX':
+		case 'right':
+			alignHorizontally(direction)
+			break
+		default:
+			// 'top', 'centerY', 'bottom'
+			alignVertically(direction)
+			break
 	}
 }
 </script>
