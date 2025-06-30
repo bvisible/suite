@@ -20,6 +20,7 @@ from pypika import Case
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name, get_mailbox_role
+from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	create_jmap_sync_state,
 	get_current_state,
@@ -273,6 +274,8 @@ class EmailMessage(Document):
 
 			# This database update could potentially cause a deadlock.
 			frappe.db.set_value("Email Message", filters, "destroyed", 1)
+			search = EmailSearch()
+			search.remove_docs(message_ids)
 		except Exception:
 			frappe.log_error(
 				title=_("Failed to destroy email(s)"),
@@ -372,6 +375,9 @@ class EmailMessage(Document):
 				email_message.flags.notify_update = True
 				email_message.save(ignore_permissions=True)
 				notify = True
+
+		search = EmailSearch()
+		search.index_doc(email_message)
 
 		if notify:
 			frappe.publish_realtime(
@@ -1149,9 +1155,20 @@ def fetch_changes(account: str, email_state: str | None = None) -> None:
 			for email_data in client.email_get(updated_ids, properties=properties)[0]:
 				EmailMessage._patch_from_email_data(account, email_data)
 
+			search = EmailSearch()
+			for d in frappe.get_all(
+				"Email Message",
+				filters={"account": account, "_id": ["in", updated_ids], "destroyed": 0},
+				fields=["name", "mailbox_role"],
+			):
+				search.set_value(d.name, "mailbox_role", d.mailbox_role)
+
 		if destroyed_ids := result["destroyed"]:
 			filters = {"account": account, "_id": ["in", destroyed_ids], "destroyed": 0}
-			frappe.db.set_value("Email Message", filters, "destroyed", 1)
+			message_ids = frappe.get_all("Email Message", filters=filters, pluck="name")
+			frappe.db.set_value("Email Message", {"name": ["in", message_ids]}, "destroyed", 1)
+			search = EmailSearch()
+			search.remove_docs(message_ids)
 
 		new_state = result["newState"]
 		update_current_state(account, new_state)
