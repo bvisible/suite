@@ -495,7 +495,7 @@ def fetch_changes() -> None:
 
 
 @frappe.whitelist()
-def search_mails(query) -> list[dict]:
+def search_mails(query) -> dict:
 	"""Returns search results for the given query."""
 
 	return EmailSearch().search(query)

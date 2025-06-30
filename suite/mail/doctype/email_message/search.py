@@ -42,7 +42,7 @@ class EmailSearch:
 			TextField("from_name", weight=2),
 			TextField("from_email", weight=2, no_stem=True),
 			TextField("recipients", weight=2),
-			TextField("account"),
+			TextField("account", no_stem=True),
 		]
 		self.ft.create_index(schema, definition=definition)
 		self._index_exists = True

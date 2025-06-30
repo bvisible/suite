@@ -57,7 +57,7 @@ watchDebounced(
 		if (query.value) results.reload()
 		else results.reset()
 	},
-	{ debounce: 200 },
+	{ debounce: 250 },
 )
 
 const { setCurrentThread } = userStore()
