@@ -181,7 +181,8 @@ const deleteElements = async (e) => {
 	})
 }
 
-const selectAllElements = () => {
+const selectAllElements = (e) => {
+	e.preventDefault()
 	activeElementIds.value = slide.value.elements.map((element) => element.id)
 }
 
