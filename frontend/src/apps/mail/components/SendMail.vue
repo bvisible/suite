@@ -85,7 +85,7 @@
 							<span class="text-xs text-gray-500">{{ __('Subject') }}:</span>
 							<input
 								v-model="mail.subject"
-								class="text-ink-gray-8 flex-1 border-none bg-white text-base focus-visible:!ring-0"
+								class="flex-1 border-none bg-white text-base focus-visible:!ring-0"
 							/>
 						</div>
 					</div>
@@ -156,7 +156,7 @@
 							<div
 								class="flex flex-wrap justify-between gap-2 overflow-hidden border-t py-2.5"
 							>
-								<!-- Text Editor Buttons -->
+								<!-- Text editor buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
 									<TextEditorFixedMenu :buttons="textEditorMenuButtons" />
 									<EmojiPicker

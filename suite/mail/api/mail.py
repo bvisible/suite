@@ -9,6 +9,7 @@ from frappe.utils import format_datetime, random_string
 
 from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
+from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils.rate_limiter import dynamic_rate_limit
 from mail.utils.user import has_role
@@ -491,3 +492,10 @@ def fetch_changes() -> None:
 	account = frappe.session.user
 	validate_permission_for_account(account)
 	enqueue_fetch_changes(account)
+
+
+@frappe.whitelist()
+def search_mails(query) -> dict:
+	"""Returns search results for the given query."""
+
+	return EmailSearch().search(query)

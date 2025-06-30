@@ -27,7 +27,7 @@
 						v-if="!mail.seen"
 						class="mr-1.5 min-h-2 min-w-2 rounded-full bg-blue-500"
 					/>
-					<span class="text-ink-gray-8 truncate text-base font-semibold">
+					<span class="truncate text-base font-semibold">
 						{{ header }}
 					</span>
 				</h3>

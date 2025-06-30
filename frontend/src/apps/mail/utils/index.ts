@@ -1,5 +1,7 @@
 import { toast } from 'frappe-ui'
 
+import dayjs from '@/utils/dayjs'
+
 export const convertToTitleCase = (str: string) =>
 	str
 		?.toLowerCase()
@@ -99,3 +101,10 @@ export const getRecipients = (recipients: Recipient[], showEmail = false) =>
 			showEmail && display_name ? `${display_name} <${email}>` : display_name || email,
 		)
 		.join(', ')
+
+export const getFormattedDate = (date: Date) => {
+	if (dayjs(date).isToday()) return __('Today')
+	if (dayjs(date).isYesterday()) return __('Yesterday')
+	const isCurrentYear = dayjs(date).year() === dayjs().year()
+	return dayjs(date).format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
+}
