@@ -5,7 +5,7 @@
 			<AlignmentControls v-if="activeElementIds.length" />
 		</div>
 		<div v-else>
-			<AlignmentControls />
+			<AlignmentControls v-if="activeElementIds.length" />
 			<component :is="activeProperties" />
 		</div>
 		<div v-if="activeElement">
