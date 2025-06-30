@@ -168,6 +168,8 @@ const resetSelection = (oldVal) => {
 	updateSelectionBounds({
 		width: 0,
 		height: 0,
+		left: 0,
+		top: 0,
 	})
 }
 
@@ -241,8 +243,8 @@ const handleSelection = (elementIds) => {
 }
 
 const handleSelectionChange = (elementIds, oldIds) => {
-	resetSelection(oldIds)
 	moveElementsToSlide(oldIds)
+	resetSelection(oldIds)
 	nextTick(() => handleSelection(elementIds))
 }
 
