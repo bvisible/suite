@@ -113,14 +113,27 @@ const saveChanges = async () => {
 const slideBounds = reactive({})
 
 const updateSelectionBounds = (newBounds) => {
-	Object.assign(selectionBounds, newBounds)
+	const roundedBounds = Object.fromEntries(
+		Object.entries(newBounds).map(([key, value]) => [key, Math.round(value)]),
+	)
+	Object.assign(selectionBounds, roundedBounds)
 }
+
+const guideVisibilityMap = reactive({
+	centerX: false,
+	centerY: false,
+	leftEdge: false,
+	rightEdge: false,
+	topEdge: false,
+	bottomEdge: false,
+})
 
 export {
 	slideIndex,
 	slide,
 	slideBounds,
 	selectionBounds,
+	guideVisibilityMap,
 	loadSlide,
 	updateSlideState,
 	saveChanges,

@@ -159,8 +159,8 @@ const cropSelectionToFitContent = (elementIds) => {
 	updateSelectionBounds({
 		left: l,
 		top: t,
-		width: r - l + 1,
-		height: b - t + 1,
+		width: r - l,
+		height: b - t,
 	})
 }
 
@@ -168,6 +168,8 @@ const resetSelection = (oldVal) => {
 	updateSelectionBounds({
 		width: 0,
 		height: 0,
+		left: 0,
+		top: 0,
 	})
 }
 
@@ -241,8 +243,8 @@ const handleSelection = (elementIds) => {
 }
 
 const handleSelectionChange = (elementIds, oldIds) => {
-	resetSelection(oldIds)
 	moveElementsToSlide(oldIds)
+	resetSelection(oldIds)
 	nextTick(() => handleSelection(elementIds))
 }
 

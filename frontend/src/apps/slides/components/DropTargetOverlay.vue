@@ -12,7 +12,6 @@
 import { ref, useTemplateRef } from 'vue'
 
 import { presentationId } from '@/stores/presentation'
-import { addMediaElement } from '@/stores/element'
 import { handleUploadedMedia } from '@/utils/mediaUploads'
 
 const emit = defineEmits(['hideOverlay'])

@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { call } from 'frappe-ui'
 
-import { slide, slideBounds } from './slide'
+import { selectionBounds, slide, slideBounds, updateSelectionBounds } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
@@ -41,23 +41,40 @@ const setActiveElements = (ids, focus = false) => {
 	}
 }
 
-const addTextElement = (text) => {
+const selectAndCenterElement = (elementId) => {
+	const slideWidth = Math.round(slideBounds.width / slideBounds.scale)
+	const slideHeight = Math.round(slideBounds.height / slideBounds.scale)
+
+	nextTick(() => {
+		setActiveElements([elementId])
+		// to allow centering element only after it's rendere in order to correctly calculate its offset from center
+		requestAnimationFrame(async () => {
+			await nextTick()
+			const elementRect = document
+				.querySelector(`[data-index="${elementId}"]`)
+				.getBoundingClientRect()
+
+			const elementWidth = Math.round(elementRect.width / slideBounds.scale)
+			const elementHeight = Math.round(elementRect.height / slideBounds.scale)
+
+			updateSelectionBounds({
+				left: (slideWidth - elementWidth - 0.1) / 2,
+				top: (slideHeight - elementHeight - 0.1) / 2,
+			})
+		})
+	})
+}
+
+const addTextElement = async (text) => {
 	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
-
-	// TODO: find better way to handle calculating offsets without rendering element and knowing exact dimensions
-	const elementWidth = 60.73 * slideBounds.scale
-	const elementHeight = 30 * slideBounds.scale
-
-	const slideWidth = slideBounds.width / slideBounds.scale
-	const slideHeight = slideBounds.height / slideBounds.scale
 
 	const element = {
 		id: generateUniqueId(),
 		content: text || 'Text',
 		type: 'text',
 		textAlign: 'center',
-		left: slideWidth / 2 - elementWidth / 2,
-		top: slideHeight / 2 - elementHeight / 2,
+		left: 0,
+		top: 0,
 	}
 
 	if (lastTextElement) {
@@ -71,7 +88,7 @@ const addTextElement = (text) => {
 	} else {
 		const slideColor = slide.value.background || '#ffffff'
 		element.fontSize = 30
-		element.fontFamily = 'Inter'
+		element.fontFamily = 'Arial'
 		element.fontWeight = 'normal'
 		element.color = guessTextColorFromBackground(slideColor)
 		element.lineHeight = 1
@@ -79,15 +96,15 @@ const addTextElement = (text) => {
 		element.opacity = 100
 	}
 	slide.value.elements.push(element)
-	nextTick(() => setActiveElements([element.id]))
+	selectAndCenterElement(element.id)
 }
 
-const addMediaElement = (file, type) => {
+const addMediaElement = async (file, type) => {
 	let element = {
 		id: generateUniqueId(),
 		width: 300,
-		left: 200,
-		top: 75,
+		left: 0,
+		top: 0,
 		opacity: 100,
 		type: type,
 		src: file.file_url,
@@ -107,7 +124,7 @@ const addMediaElement = (file, type) => {
 		element.playbackRate = 1
 	}
 	slide.value.elements.push(element)
-	nextTick(() => setActiveElements([element.id]))
+	selectAndCenterElement(element.id)
 }
 
 const duplicateElements = async (e, elements, displaceByPx = 0) => {
@@ -164,7 +181,8 @@ const deleteElements = async (e) => {
 	})
 }
 
-const selectAllElements = () => {
+const selectAllElements = (e) => {
+	e.preventDefault()
 	activeElementIds.value = slide.value.elements.map((element) => element.id)
 }
 

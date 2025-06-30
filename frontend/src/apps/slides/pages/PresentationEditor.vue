@@ -176,7 +176,7 @@ const handleGlobalShortcuts = (e) => {
 			if (e.metaKey) toggleSlideNavigator()
 			break
 		case 'a':
-			if (e.metaKey) selectAllElements()
+			if (e.metaKey) selectAllElements(e)
 			break
 		case 's':
 			if (e.metaKey) saveSlide(e)
