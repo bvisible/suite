@@ -42,8 +42,8 @@ const setActiveElements = (ids, focus = false) => {
 }
 
 const selectAndCenterElement = (elementId) => {
-	const slideWidth = Math.round(slideBounds.width / slideBounds.scale)
-	const slideHeight = Math.round(slideBounds.height / slideBounds.scale)
+	const slideWidth = slideBounds.width / slideBounds.scale
+	const slideHeight = slideBounds.height / slideBounds.scale
 
 	nextTick(() => {
 		setActiveElements([elementId])
@@ -54,8 +54,8 @@ const selectAndCenterElement = (elementId) => {
 				.querySelector(`[data-index="${elementId}"]`)
 				.getBoundingClientRect()
 
-			const elementWidth = Math.round(elementRect.width / slideBounds.scale)
-			const elementHeight = Math.round(elementRect.height / slideBounds.scale)
+			const elementWidth = elementRect.width / slideBounds.scale
+			const elementHeight = elementRect.height / slideBounds.scale
 
 			updateSelectionBounds({
 				left: (slideWidth - elementWidth - 0.1) / 2,
