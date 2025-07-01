@@ -3,7 +3,6 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const CENTER_PROXIMITY_THRESHOLD = 40
 	const PROXIMITY_THRESHOLD = 8
 
 	const snapMovement = ref({ x: 0, y: 0 })
@@ -150,63 +149,56 @@ export const useSnapping = (target, parent) => {
 		}
 	}
 
-	const getSnapOffset = (axis) => {
-		const diff = diffs[axis]
-		const prevDiff = prevDiffs[axis]
-
-		let margin
-		if (['centerX', 'centerY'].includes(axis)) {
-			margin = 1
-		} else {
-			margin = 3
+	const getDiffsForAxis = (axis) => {
+		return {
+			diff: diffs[axis],
+			prevDiff: prevDiffs[axis],
 		}
-
-		const { threshold, resistance_threshold } = getDynamicThreshold(axis)
-
-		let offset = 0
-
-		const canSnap = Math.abs(diff + threshold) < margin || Math.abs(diff - threshold) < margin
-		const movingAway =
-			Math.abs(diff) >= Math.abs(prevDiff) || Math.abs(prevDiff) - threshold < 1
-
-		const direction = axis == 'centerY' ? 'X' : 'Y'
-
-		if (canSnap && !movingAway) {
-			offset = diff
-		}
-
-		resistanceMap[direction] =
-			diff !== null && movingAway && Math.abs(diff) < resistance_threshold
-		return offset
 	}
 
-	const delayNextMovement = () => {
-		hasSnapped.value = true
-
-		clearTimeout(snapTimeout)
-		snapTimeout = setTimeout(() => {
-			hasSnapped.value = false
-		}, 450)
+	const getThresholdsAndMargin = (axis) => {
+		return {
+			...getDynamicThreshold(axis),
+			margin: ['centerX', 'centerY'].includes(axis) ? 1 : 3,
+		}
 	}
 
-	const applySnapMovement = (axis) => {
-		let offset = 0
+	const handleSnapMovement = (axis) => {
+		const isMovingAway = () => {
+			// If current diff is greater, element is moving away
+			const currDiffGreater = Math.abs(diff) >= Math.abs(prevDiff)
 
-		const possibleOffset = getSnapOffset(axis)
+			// If element just snapped, the prev diff is the threshold point
+			const justSnapped = Math.abs(prevDiff) - threshold < 1
 
-		if (possibleOffset) {
-			offset += possibleOffset
-
-			delayNextMovement()
+			return currDiffGreater || justSnapped
 		}
 
-		return offset
+		const getSnapOffset = () => {
+			// check for threshold + / - margin
+			const canSnap = Math.abs(Math.abs(diff) - threshold) < margin
+			if (canSnap && !movingAway) return diff
+			return 0
+		}
+
+		const setResistanceMap = () => {
+			const direction = axis == 'centerY' ? 'X' : 'Y'
+			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
+
+			resistanceMap[direction] = diff !== null && withinResistanceRange
+		}
+
+		const { diff, prevDiff } = getDiffsForAxis(axis)
+		const { threshold, resistance_threshold, margin } = getThresholdsAndMargin(axis)
+		const movingAway = isMovingAway()
+		setResistanceMap()
+		return getSnapOffset()
 	}
 
 	const getCenterOffsets = () => {
 		return {
-			offsetX: applySnapMovement('centerY'),
-			offsetY: applySnapMovement('centerX'),
+			offsetX: handleSnapMovement('centerY'),
+			offsetY: handleSnapMovement('centerX'),
 		}
 	}
 
@@ -215,15 +207,15 @@ export const useSnapping = (target, parent) => {
 			offsetTop = 0
 
 		if (Math.abs(diffs.right) < Math.abs(diffs.left)) {
-			offsetLeft = applySnapMovement('right')
+			offsetLeft = handleSnapMovement('right')
 		} else {
-			offsetLeft = applySnapMovement('left')
+			offsetLeft = handleSnapMovement('left')
 		}
 
 		if (Math.abs(diffs.bottom) < Math.abs(diffs.top)) {
-			offsetTop = applySnapMovement('bottom')
+			offsetTop = handleSnapMovement('bottom')
 		} else {
-			offsetTop = applySnapMovement('top')
+			offsetTop = handleSnapMovement('top')
 		}
 
 		return { offsetLeft, offsetTop }
@@ -244,7 +236,6 @@ export const useSnapping = (target, parent) => {
 
 	return {
 		visibilityMap,
-		disableMovement: hasSnapped,
 		resistanceMap,
 		updateGuides,
 		getSnapDelta,
