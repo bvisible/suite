@@ -3,7 +3,7 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const CENTER_PROXIMITY_THRESHOLD = 12
+	const CENTER_PROXIMITY_THRESHOLD = 40
 	const PROXIMITY_THRESHOLD = 8
 
 	const snapMovement = ref({ x: 0, y: 0 })
@@ -12,21 +12,21 @@ export const useSnapping = (target, parent) => {
 	let snapTimeout = null
 
 	const diffs = reactive({
-		centerX: 0,
-		centerY: 0,
-		left: 0,
-		right: 0,
-		top: 0,
-		bottom: 0,
+		centerX: null,
+		centerY: null,
+		left: null,
+		right: null,
+		top: null,
+		bottom: null,
 	})
 
 	const prevDiffs = reactive({
-		centerX: 0,
-		centerY: 0,
-		left: 0,
-		right: 0,
-		top: 0,
-		bottom: 0,
+		centerX: null,
+		centerY: null,
+		left: null,
+		right: null,
+		top: null,
+		bottom: null,
 	})
 
 	const visibilityMap = computed(() => {
@@ -133,6 +133,11 @@ export const useSnapping = (target, parent) => {
 		setPairedDiffs()
 	}
 
+	const resistanceMap = reactive({
+		X: false,
+		Y: false,
+	})
+
 	const getSnapOffset = (axis) => {
 		const diff = diffs[axis]
 		const prevDiff = prevDiffs[axis]
@@ -140,7 +145,7 @@ export const useSnapping = (target, parent) => {
 		let threshold, margin
 		if (['centerX', 'centerY'].includes(axis)) {
 			threshold = CENTER_PROXIMITY_THRESHOLD
-			margin = 2
+			margin = 1
 		} else {
 			threshold = PROXIMITY_THRESHOLD
 			margin = 3
@@ -149,12 +154,18 @@ export const useSnapping = (target, parent) => {
 		let offset = 0
 
 		const canSnap = Math.abs(diff + threshold) < margin || Math.abs(diff - threshold) < margin
-		const movingAway = Math.abs(diff) > Math.abs(prevDiff)
+		const movingAway = Math.abs(diff) >= Math.abs(prevDiff) && diff !== null
+		const direction = axis == 'centerY' ? 'X' : 'Y'
 
 		if (canSnap && !movingAway) {
 			offset = diff
 		}
 
+		if ((movingAway || Math.abs(prevDiffs[axis]) == threshold) && Math.abs(diff) < 5) {
+			resistanceMap[direction] = true
+		} else {
+			resistanceMap[direction] = false
+		}
 		return offset
 	}
 
@@ -223,6 +234,7 @@ export const useSnapping = (target, parent) => {
 	return {
 		visibilityMap,
 		disableMovement: hasSnapped,
+		resistanceMap,
 		updateGuides,
 		getSnapDelta,
 	}
