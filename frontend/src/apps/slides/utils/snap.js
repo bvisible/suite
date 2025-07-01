@@ -32,8 +32,8 @@ export const useSnapping = (target, parent) => {
 	const visibilityMap = computed(() => {
 		if (!target.value) return
 		return {
-			centerX: Math.abs(diffs.centerX) < CENTER_PROXIMITY_THRESHOLD,
-			centerY: Math.abs(diffs.centerY) < CENTER_PROXIMITY_THRESHOLD,
+			centerX: Math.abs(diffs.centerX) < getDynamicThreshold('centerX').threshold,
+			centerY: Math.abs(diffs.centerY) < getDynamicThreshold('centerY').threshold,
 			left: Math.abs(diffs.left) < PROXIMITY_THRESHOLD,
 			right: Math.abs(diffs.right) < PROXIMITY_THRESHOLD,
 			top: Math.abs(diffs.top) < PROXIMITY_THRESHOLD,
@@ -138,34 +138,45 @@ export const useSnapping = (target, parent) => {
 		Y: false,
 	})
 
+	const getDynamicThreshold = (axis) => {
+		const scaleFactor = 0.1
+		const scaled = selectionBounds.width * slideBounds.scale * scaleFactor
+		const minThreshold = ['centerX', 'centerY'].includes(axis) ? scaled / 2 : 5
+		const maxThreshold = ['centerX', 'centerY'].includes(axis) ? scaled * 2 : 50
+
+		return {
+			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaled)),
+			resistance_threshold: scaled * 0.15,
+		}
+	}
+
 	const getSnapOffset = (axis) => {
 		const diff = diffs[axis]
 		const prevDiff = prevDiffs[axis]
 
-		let threshold, margin
+		let margin
 		if (['centerX', 'centerY'].includes(axis)) {
-			threshold = CENTER_PROXIMITY_THRESHOLD
 			margin = 1
 		} else {
-			threshold = PROXIMITY_THRESHOLD
 			margin = 3
 		}
+
+		const { threshold, resistance_threshold } = getDynamicThreshold(axis)
 
 		let offset = 0
 
 		const canSnap = Math.abs(diff + threshold) < margin || Math.abs(diff - threshold) < margin
-		const movingAway = Math.abs(diff) >= Math.abs(prevDiff) && diff !== null
+		const movingAway =
+			Math.abs(diff) >= Math.abs(prevDiff) || Math.abs(prevDiff) - threshold < 1
+
 		const direction = axis == 'centerY' ? 'X' : 'Y'
 
 		if (canSnap && !movingAway) {
 			offset = diff
 		}
 
-		if ((movingAway || Math.abs(prevDiffs[axis]) == threshold) && Math.abs(diff) < 5) {
-			resistanceMap[direction] = true
-		} else {
-			resistanceMap[direction] = false
-		}
+		resistanceMap[direction] =
+			diff !== null && movingAway && Math.abs(diff) < resistance_threshold
 		return offset
 	}
 
