@@ -714,9 +714,8 @@ class MailQueue(Document):
 				)
 
 			if not self.save_as_draft:
-				idx = 2 if self._id else 1
-
-				if response["methodResponses"][1][idx].get("created", {}).get(f"submit-{self.name}"):
+				idx = 2 if self.raw_message and self._id else 1
+				if response["methodResponses"][idx][1].get("created", {}).get(f"submit-{self.name}"):
 					kwargs.update(
 						{
 							"status": "Submitted",
@@ -724,7 +723,7 @@ class MailQueue(Document):
 							"mailbox_id": sent_mailbox_id,
 						}
 					)
-				elif response["methodResponses"][1][idx].get("notCreated", {}).get(f"submit-{self.name}"):
+				elif response["methodResponses"][idx][1].get("notCreated", {}).get(f"submit-{self.name}"):
 					failed_count = self.failed_count + 1
 					kwargs.update(
 						{
