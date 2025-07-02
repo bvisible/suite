@@ -158,7 +158,7 @@
 							>
 								<!-- Text editor buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
-									<TextEditorFixedMenu :buttons="getTextEditorButtons()" />
+									<TextEditorFixedMenu :buttons="textEditorButtons" />
 									<EmojiPicker
 										v-if="!isMobile"
 										v-slot="{ togglePopover }"
@@ -213,7 +213,7 @@ import {
 import { ImageExtension } from 'frappe-ui/src/components/TextEditor/extensions/image'
 import { useFileUpload } from 'frappe-ui/src/utils/useFileUpload'
 
-import { formatBytes, getTextEditorButtons, validateEmail } from '@/utils'
+import { formatBytes, textEditorButtons, validateEmail } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'

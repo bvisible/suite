@@ -79,7 +79,7 @@
 				<TextEditor
 					editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none"
 					placeholder="Type something..."
-					:fixed-menu="getTextEditorButtons()"
+					:fixed-menu="textEditorButtons"
 					:content="account.doc.vacation_response_html_body"
 					@change="(val) => (account.doc.vacation_response_html_body = val)"
 				/>
@@ -116,7 +116,7 @@ import {
 	createDocumentResource,
 } from 'frappe-ui'
 
-import { getTextEditorButtons, raiseToast } from '@/utils'
+import { raiseToast, textEditorButtons } from '@/utils'
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 
 import type { MailAccount } from '@/types/doctypes'
