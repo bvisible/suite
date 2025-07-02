@@ -184,7 +184,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import {
@@ -322,14 +322,14 @@ const threads = createResource({
 			data.some((m) => m.thread_id === threadID)
 		if (threadExists(threadID)) {
 			if (currentThread[mailbox] !== threadID) setCurrentThread(mailbox, threadID ?? null)
-			mailThread.value?.reload()
+			nextTick(() => mailThread.value?.reload())
 		} else if (threadExists(currentThread[mailbox])) {
 			if (route.params.threadID !== currentThread[mailbox])
 				router.replace({
 					name: 'Mail',
 					params: { mailbox: mailbox, threadID: currentThread[mailbox] },
 				})
-			mailThread.value?.reload()
+			nextTick(() => mailThread.value?.reload())
 		} else setCurrentThread(mailbox, null)
 	},
 })
