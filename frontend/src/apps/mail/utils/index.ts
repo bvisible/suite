@@ -109,7 +109,7 @@ export const getFormattedDate = (date: Date) => {
 	return dayjs(date).format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
 }
 
-export const getTextEditorButtons = () => [
+export const textEditorButtons = [
 	'Paragraph',
 	['Heading 2', 'Heading 3', 'Heading 4', 'Heading 5', 'Heading 6'],
 	'Separator',
