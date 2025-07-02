@@ -108,3 +108,38 @@ export const getFormattedDate = (date: Date) => {
 	const isCurrentYear = dayjs(date).year() === dayjs().year()
 	return dayjs(date).format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
 }
+
+export const textEditorButtons = [
+	'Paragraph',
+	['Heading 2', 'Heading 3', 'Heading 4', 'Heading 5', 'Heading 6'],
+	'Separator',
+	'Bold',
+	'Italic',
+	'FontColor',
+	'Separator',
+	'Align Left',
+	'Align Center',
+	'Align Right',
+	'Separator',
+	'Bullet List',
+	'Numbered List',
+	'Separator',
+	'Image',
+	'Link',
+	'Horizontal Rule',
+	[
+		'InsertTable',
+		'AddColumnBefore',
+		'AddColumnAfter',
+		'DeleteColumn',
+		'AddRowBefore',
+		'AddRowAfter',
+		'DeleteRow',
+		'MergeCells',
+		'SplitCell',
+		'ToggleHeaderColumn',
+		'ToggleHeaderRow',
+		'ToggleHeaderCell',
+		'DeleteTable',
+	],
+]

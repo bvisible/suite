@@ -14,8 +14,8 @@
 		</div>
 		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
 	</div>
-	<FormControl v-model="firstName" :label="__('First Name')" />
-	<FormControl v-model="lastName" :label="__('Last Name')" />
+	<FormControl v-model="firstName" :label="__('First Name')" variant="outline" />
+	<FormControl v-model="lastName" :label="__('Last Name')" variant="outline" />
 	<ErrorMessage :message="setName.error" />
 	<Button
 		:label="__('Save Changes')"

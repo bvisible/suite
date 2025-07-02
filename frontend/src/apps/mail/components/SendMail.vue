@@ -158,7 +158,7 @@
 							>
 								<!-- Text editor buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
-									<TextEditorFixedMenu :buttons="textEditorMenuButtons" />
+									<TextEditorFixedMenu :buttons="textEditorButtons" />
 									<EmojiPicker
 										v-if="!isMobile"
 										v-slot="{ togglePopover }"
@@ -213,7 +213,7 @@ import {
 import { ImageExtension } from 'frappe-ui/src/components/TextEditor/extensions/image'
 import { useFileUpload } from 'frappe-ui/src/utils/useFileUpload'
 
-import { formatBytes, validateEmail } from '@/utils'
+import { formatBytes, textEditorButtons, validateEmail } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 import MultiselectInputControl from '@/components/Controls/MultiselectInputControl.vue'
@@ -364,41 +364,6 @@ const openAttachment = async (blob_id?: string, type?: string) => {
 	const url = URL.createObjectURL(blob)
 	window.open(url, '_blank')
 }
-
-const textEditorMenuButtons = [
-	'Paragraph',
-	['Heading 2', 'Heading 3', 'Heading 4', 'Heading 5', 'Heading 6'],
-	'Separator',
-	'Bold',
-	'Italic',
-	'FontColor',
-	'Separator',
-	'Align Left',
-	'Align Center',
-	'Align Right',
-	'Separator',
-	'Bullet List',
-	'Numbered List',
-	'Separator',
-	'Image',
-	'Link',
-	'Horizontal Rule',
-	[
-		'InsertTable',
-		'AddColumnBefore',
-		'AddColumnAfter',
-		'DeleteColumn',
-		'AddRowBefore',
-		'AddRowAfter',
-		'DeleteRow',
-		'MergeCells',
-		'SplitCell',
-		'ToggleHeaderColumn',
-		'ToggleHeaderRow',
-		'ToggleHeaderCell',
-		'DeleteTable',
-	],
-]
 
 const uploadFunction = async (file: File) => {
 	const fileUpload = useFileUpload()
