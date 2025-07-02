@@ -15,9 +15,7 @@
 							@click="activeTab = tab"
 						>
 							<component :is="tab.icon" class="h-4 w-4 stroke-[1.5] text-gray-700" />
-							<span class="text-base text-gray-800">
-								{{ tab.label }}
-							</span>
+							<span class="text-base text-gray-800"> {{ tab.label }} </span>
 						</button>
 					</div>
 				</div>
@@ -43,7 +41,7 @@ import AccountSettings from '@/components/Settings/AccountSettings.vue'
 import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
 import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
 
-const show = defineModel()
+const show = defineModel<boolean>()
 
 const tabs = [
 	{
