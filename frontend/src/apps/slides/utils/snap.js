@@ -31,12 +31,9 @@ export const useSnapping = (target, parent) => {
 	const visibilityMap = computed(() => {
 		if (!target.value) return
 		return {
-			centerX: Math.abs(diffs.centerX) < getDynamicThreshold('centerX').threshold,
-			centerY: Math.abs(diffs.centerY) < getDynamicThreshold('centerY').threshold,
-			left: Math.abs(diffs.left) < PROXIMITY_THRESHOLD,
-			right: Math.abs(diffs.right) < PROXIMITY_THRESHOLD,
-			top: Math.abs(diffs.top) < PROXIMITY_THRESHOLD,
-			bottom: Math.abs(diffs.bottom) < PROXIMITY_THRESHOLD,
+			centerX: Math.abs(diffs.centerX) < getDynamicThresholds('centerX').threshold,
+			centerY: Math.abs(diffs.centerY) < getDynamicThresholds('centerY').threshold,
+			left: Math.abs(diffs.left) < getDynamicThresholds('left').threshold,
 		}
 	})
 
@@ -62,12 +59,7 @@ export const useSnapping = (target, parent) => {
 	}
 
 	const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
-		return (
-			Math.abs(diffLeft) < PROXIMITY_THRESHOLD ||
-			Math.abs(diffRight) < PROXIMITY_THRESHOLD ||
-			Math.abs(diffTop) < PROXIMITY_THRESHOLD ||
-			Math.abs(diffBottom) < PROXIMITY_THRESHOLD
-		)
+		return Math.abs(diffLeft) < getDynamicThresholds('left').threshold
 	}
 
 	const getActiveElementBounds = () => {
@@ -133,15 +125,19 @@ export const useSnapping = (target, parent) => {
 	}
 
 	const resistanceMap = reactive({
-		X: false,
-		Y: false,
+		centerX: false,
+		centerY: false,
+		left: false,
+		right: false,
+		top: false,
+		bottom: false,
 	})
 
-	const getDynamicThreshold = (axis) => {
+	const getDynamicThresholds = (axis) => {
 		const scaleFactor = 0.1
 		const scaledWidth = selectionBounds.width * slideBounds.scale * scaleFactor
-		const minThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth / 2 : 5
-		const maxThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth * 2 : 50
+		const minThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth / 2 : 10
+		const maxThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth * 2 : 100
 
 		return {
 			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaledWidth)),
@@ -158,18 +154,19 @@ export const useSnapping = (target, parent) => {
 
 	const getThresholdsAndMargin = (axis) => {
 		return {
-			...getDynamicThreshold(axis),
-			margin: ['centerX', 'centerY'].includes(axis) ? 1 : 3,
+			...getDynamicThresholds(axis),
+			margin: ['centerX', 'centerY'].includes(axis) ? 1 : 5,
 		}
 	}
 
 	const handleSnapMovement = (axis) => {
 		const isMovingAway = () => {
 			// If current diff is greater, element is moving away
+			if (diff == null || prevDiff == null) return false
 			const currDiffGreater = Math.abs(diff) >= Math.abs(prevDiff)
 
 			// If element just snapped, the prev diff is the threshold point
-			const justSnapped = Math.abs(prevDiff) - threshold < 1
+			const justSnapped = Math.abs(Math.abs(prevDiff) - threshold) < margin
 
 			return currDiffGreater || justSnapped
 		}
@@ -182,11 +179,9 @@ export const useSnapping = (target, parent) => {
 		}
 
 		const setResistanceMap = () => {
-			if (!['centerX', 'centerY'].includes(axis)) return
-			const direction = axis == 'centerY' ? 'X' : 'Y'
 			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
 
-			resistanceMap[direction] = diff !== null && withinResistanceRange
+			resistanceMap[axis] = diff !== null && withinResistanceRange
 		}
 
 		const { diff, prevDiff } = getDiffsForAxis(axis)
