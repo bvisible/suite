@@ -3,12 +3,7 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const PROXIMITY_THRESHOLD = 8
-
 	const snapMovement = ref({ x: 0, y: 0 })
-
-	const hasSnapped = ref(false)
-	let snapTimeout = null
 
 	const diffs = reactive({
 		centerX: null,
@@ -34,6 +29,9 @@ export const useSnapping = (target, parent) => {
 			centerX: Math.abs(diffs.centerX) < getDynamicThresholds('centerX').threshold,
 			centerY: Math.abs(diffs.centerY) < getDynamicThresholds('centerY').threshold,
 			left: Math.abs(diffs.left) < getDynamicThresholds('left').threshold,
+			right: Math.abs(diffs.right) < getDynamicThresholds('right').threshold,
+			top: Math.abs(diffs.top) < getDynamicThresholds('top').threshold,
+			bottom: Math.abs(diffs.bottom) < getDynamicThresholds('bottom').threshold,
 		}
 	})
 
@@ -59,7 +57,12 @@ export const useSnapping = (target, parent) => {
 	}
 
 	const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
-		return Math.abs(diffLeft) < getDynamicThresholds('left').threshold
+		return (
+			Math.abs(diffLeft) < getDynamicThresholds('left').threshold ||
+			Math.abs(diffRight) < getDynamicThresholds('right').threshold ||
+			Math.abs(diffTop) < getDynamicThresholds('top').threshold ||
+			Math.abs(diffBottom) < getDynamicThresholds('bottom').threshold
+		)
 	}
 
 	const getActiveElementBounds = () => {
@@ -161,8 +164,9 @@ export const useSnapping = (target, parent) => {
 
 	const handleSnapMovement = (axis) => {
 		const isMovingAway = () => {
-			// If current diff is greater, element is moving away
 			if (diff == null || prevDiff == null) return false
+
+			// If current diff is greater, element is moving away
 			const currDiffGreater = Math.abs(diff) >= Math.abs(prevDiff)
 
 			// If element just snapped, the prev diff is the threshold point
@@ -185,9 +189,13 @@ export const useSnapping = (target, parent) => {
 		}
 
 		const { diff, prevDiff } = getDiffsForAxis(axis)
+
 		const { threshold, resistance_threshold, margin } = getThresholdsAndMargin(axis)
+
 		const movingAway = isMovingAway()
+
 		setResistanceMap()
+
 		return getSnapOffset()
 	}
 
