@@ -224,20 +224,23 @@ const togglePanZoom = () => {
 	allowPanAndZoom.value = !allowPanAndZoom.value
 }
 
+const applyResistance = (axis, delta) => {
+	const val = axis == 'X' ? delta.x : delta.y
+	return resistanceMap[axis] && Math.abs(val) < 3
+}
+
 const getTotalPositionDelta = (delta) => {
 	const snapDelta = getSnapDelta()
 
-	let left = delta.x
-	let top = delta.y
+	const left = snapDelta.x || delta.x
+	const top = snapDelta.y || delta.y
 
-	if (snapDelta.x) {
-		left = snapDelta.x
-	}
-	const final_left = resistanceMap['X'] && Math.abs(delta.x) < 3 ? 0 : left
+	const final_left = applyResistance('X', delta) ? 0 : left
+	const final_top = applyResistance('Y', delta) ? 0 : top
 
 	return {
 		left: final_left,
-		top: delta.y,
+		top: final_top,
 	}
 }
 
