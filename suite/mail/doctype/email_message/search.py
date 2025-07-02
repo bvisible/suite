@@ -141,6 +141,7 @@ class EmailSearch:
 			Query(f'@account:"{frappe.session.user}" {fuzzy_query}')
 			.paging(0, 10)
 			.summarize(fields=["html_body", "text_body"])
+			.dialect(None)
 		)
 
 		result = self.ft.search(query)
