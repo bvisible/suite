@@ -139,13 +139,13 @@ export const useSnapping = (target, parent) => {
 
 	const getDynamicThreshold = (axis) => {
 		const scaleFactor = 0.1
-		const scaled = selectionBounds.width * slideBounds.scale * scaleFactor
-		const minThreshold = ['centerX', 'centerY'].includes(axis) ? scaled / 2 : 5
-		const maxThreshold = ['centerX', 'centerY'].includes(axis) ? scaled * 2 : 50
+		const scaledWidth = selectionBounds.width * slideBounds.scale * scaleFactor
+		const minThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth / 2 : 5
+		const maxThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth * 2 : 50
 
 		return {
-			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaled)),
-			resistance_threshold: scaled * 0.15,
+			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaledWidth)),
+			resistance_threshold: scaledWidth * 0.15,
 		}
 	}
 
@@ -182,6 +182,7 @@ export const useSnapping = (target, parent) => {
 		}
 
 		const setResistanceMap = () => {
+			if (!['centerX', 'centerY'].includes(axis)) return
 			const direction = axis == 'centerY' ? 'X' : 'Y'
 			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
 
