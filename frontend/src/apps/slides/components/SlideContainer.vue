@@ -225,8 +225,20 @@ const togglePanZoom = () => {
 }
 
 const applyResistance = (axis, delta) => {
-	const val = axis == 'X' ? delta.x : delta.y
-	return resistanceMap[axis] && Math.abs(val) < 3
+	const escapeDelta = 3
+
+	let useResistance = false
+	let pullDelta = null
+
+	if (axis == 'X') {
+		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
+		pullDelta = delta.x
+	} else if (axis == 'Y') {
+		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
+		pullDelta = delta.y
+	}
+
+	return useResistance && Math.abs(pullDelta) < escapeDelta
 }
 
 const getTotalPositionDelta = (delta) => {

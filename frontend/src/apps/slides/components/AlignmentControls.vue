@@ -112,7 +112,7 @@ const alignmentPositions = computed(() => {
 		centerY: (slideWidth - selectionWidth) / 2,
 		right: Math.round(slideWidth) - Math.round(selectionWidth),
 		top: 0,
-		centerX: Math.round(slideHeight / 2) - Math.round(selectionHeight / 2),
+		centerX: (slideHeight - selectionHeight) / 2,
 		bottom: Math.round(slideHeight) - Math.round(selectionHeight),
 	}
 })
