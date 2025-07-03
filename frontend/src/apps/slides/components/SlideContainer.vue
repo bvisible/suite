@@ -71,10 +71,7 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
-const { visibilityMap, resistanceMap, updateGuides, getSnapDelta } = useSnapping(
-	selectionBoxRef,
-	slideRef,
-)
+const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
@@ -225,7 +222,9 @@ const togglePanZoom = () => {
 }
 
 const applyResistance = (axis, delta) => {
-	const escapeDelta = 3
+	const scaledThreshold = (0.02 * selectionBounds.width) / slideBounds.scale
+
+	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
 
 	let useResistance = false
 	let pullDelta = null
@@ -242,23 +241,18 @@ const applyResistance = (axis, delta) => {
 }
 
 const getTotalPositionDelta = (delta) => {
-	const snapDelta = getSnapDelta()
+	const snapDelta = handleSnapping()
 
 	const left = snapDelta.x || delta.x
 	const top = snapDelta.y || delta.y
 
-	const final_left = applyResistance('X', delta) ? 0 : left
-	const final_top = applyResistance('Y', delta) ? 0 : top
-
 	return {
-		left: final_left,
-		top: final_top,
+		left: applyResistance('X', delta) ? 0 : left,
+		top: applyResistance('Y', delta) ? 0 : top,
 	}
 }
 
 const handlePositionChange = (delta) => {
-	updateGuides()
-
 	const totalDelta = getTotalPositionDelta(delta)
 	updateSelectionBounds({
 		left: selectionBounds.left + totalDelta.left / scale.value,

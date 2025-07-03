@@ -156,7 +156,7 @@ export const useSnapping = (target, parent) => {
 		})
 	}
 
-	const updateGuides = () => {
+	const updateDiffs = () => {
 		if (!target.value) return
 
 		Object.assign(prevDiffs, diffs)
@@ -272,10 +272,17 @@ export const useSnapping = (target, parent) => {
 		}
 	}
 
+	const handleSnapping = () => {
+		// update diffs based on current position
+		updateDiffs()
+
+		// return delta to apply for closest snap
+		return getSnapDelta()
+	}
+
 	return {
 		visibilityMap,
 		resistanceMap,
-		updateGuides,
-		getSnapDelta,
+		handleSnapping,
 	}
 }
