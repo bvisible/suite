@@ -50,12 +50,19 @@
 					placeholder="johndoe@personal.com"
 				/>
 				<hr />
+
 				<FormControl
 					v-model="accountRequest.send_invite"
 					type="checkbox"
 					:label="__('Send Invite')"
 				/>
-				<template v-if="!accountRequest.send_invite">
+				<FormControl
+					v-if="accountRequest.send_invite"
+					v-model="accountRequest.expires_at"
+					:label="__('Expires At')"
+					type="datetime-local"
+				/>
+				<template v-else>
 					<FormControl
 						v-model="accountRequest.first_name"
 						:label="__('First Name')"
@@ -90,12 +97,14 @@ import type { UserResource } from '@/types'
 
 const show = defineModel<boolean>()
 const user = inject('$user') as UserResource
+const dayjs = inject('$dayjs')
 
 const defaultAccountRequest = {
 	username: '',
 	domain: '',
 	role: 'Mail User',
 	send_invite: true,
+	expires_at: dayjs().add(1, 'day').format('YYYY-MM-DDTHH:mm'),
 	email: '',
 	first_name: '',
 	last_name: '',
