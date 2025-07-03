@@ -67,6 +67,12 @@
 		</ListSelectBanner>
 	</ListView>
 
+	<EditInviteModal
+		v-if="selectedInvite"
+		v-model="showEditInvite"
+		:invite-i-d="selectedInvite"
+		@reload-invites="invites.reload()"
+	/>
 	<Dialog v-model="showDeleteInvites" :options="DELETE_INVITES_OPTIONS" />
 </template>
 
@@ -91,6 +97,7 @@ import {
 import { useList } from 'frappe-ui/src/data-fetching'
 
 import { raiseToast } from '@/utils'
+import EditInviteModal from '@/components/Modals/EditInviteModal.vue'
 
 const dayjs = inject('$dayjs')
 const user = inject('$user')
@@ -99,11 +106,14 @@ const search = ref('')
 const debouncedSearch = useDebounce(search, 500)
 const role = ref<'Mail User' | 'Mail Admin' | ''>('')
 const status = ref<'Pending' | 'Accepted' | 'Expired' | ''>('')
+const selectedInvite = ref(false)
+const showEditInvite = ref(false)
 const showDeleteInvites = ref(false)
 
 const invites = useList({
 	doctype: 'Mail Account Request',
-	fields: ['name', 'email', 'account', 'is_admin', 'is_verified', 'expires_at'],
+	fields: ['name', 'email', 'account', 'is_admin', 'is_verified', 'expires_at', 'invited_by'],
+	orderBy: 'creation desc',
 	filters: () => {
 		const filters: Record<string, string | string[] | number> = {
 			tenant: user.data?.tenant,
@@ -172,8 +182,9 @@ const DELETE_INVITES_OPTIONS = {
 
 const LIST_COLUMNS = [
 	{ label: __('Assigned Email'), key: 'account' },
-	{ label: __('Backup Email'), key: 'email' },
 	{ label: __('Assigned Role'), key: 'is_admin' },
+	{ label: __('Backup Email'), key: 'email' },
+	{ label: __('Invited By'), key: 'invited_by' },
 	{ label: __('Invitation Status'), key: 'status' },
 ]
 
@@ -181,6 +192,10 @@ const LIST_OPTIONS = {
 	showTooltip: false,
 	rowHeight: 50,
 	emptyState: { description: __('No invites found.') },
+	onRowClick: (row) => {
+		selectedInvite.value = row.name
+		showEditInvite.value = true
+	},
 }
 
 const ROLE_OPTIONS = [
