@@ -187,14 +187,13 @@
    "fieldtype": "Datetime",
    "label": "Expires At",
    "no_copy": 1,
-   "search_index": 1,
-   "set_only_once": 1
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-05 17:13:59.621031",
+ "modified": "2025-07-03 15:08:35.572464",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account Request",

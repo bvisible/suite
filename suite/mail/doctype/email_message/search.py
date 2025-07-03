@@ -8,9 +8,13 @@ import frappe
 from frappe.utils import cstr, strip_html_tags
 from frappe.utils.synchronization import filelock
 from redis.commands.search.field import TextField
-from redis.commands.search.index_definition import IndexDefinition
 from redis.commands.search.query import Query
 from redis.exceptions import ResponseError
+
+try:
+	from redis.commands.search.index_definition import IndexDefinition
+except ImportError:
+	from redis.commands.search.indexDefinition import IndexDefinition
 
 
 class EmailSearch:
@@ -141,7 +145,6 @@ class EmailSearch:
 			Query(f'@account:"{frappe.session.user}" {fuzzy_query}')
 			.paging(0, 10)
 			.summarize(fields=["html_body", "text_body"])
-			.dialect(None)
 		)
 
 		result = self.ft.search(query)
