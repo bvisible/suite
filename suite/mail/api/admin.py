@@ -99,6 +99,7 @@ def add_member(
 	role: Literal["Mail User", "Mail Admin"],
 	send_invite: bool,
 	email: str,
+	expires_at: str | None = None,
 	first_name: str | None = None,
 	last_name: str | None = None,
 	password: str | None = None,
@@ -114,6 +115,7 @@ def add_member(
 	account_request.invited_by = frappe.session.user
 	account_request.email = email
 	account_request.send_invite = cint(send_invite)
+	account_request.expires_at = expires_at
 	account_request.insert()
 
 	if not send_invite:
