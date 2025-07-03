@@ -106,7 +106,7 @@ const search = ref('')
 const debouncedSearch = useDebounce(search, 500)
 const role = ref<'Mail User' | 'Mail Admin' | ''>('')
 const status = ref<'Pending' | 'Accepted' | 'Expired' | ''>('')
-const selectedInvite = ref(false)
+const selectedInvite = ref('')
 const showEditInvite = ref(false)
 const showDeleteInvites = ref(false)
 
