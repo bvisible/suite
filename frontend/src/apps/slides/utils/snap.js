@@ -83,9 +83,9 @@ export const useSnapping = (target, parent) => {
 	const canElementPair = (diffsFromElement) => {
 		if (!diffsFromElement) return false
 
-		return Object.values(diffsFromElement).some((direction, diff) => {
+		return Object.entries(diffsFromElement).some(([direction, diff]) => {
 			const threshold = getDynamicThresholds(direction).threshold
-			return Math.abs(diff) < threshold
+			return diff !== null && Math.abs(diff) < threshold
 		})
 	}
 
