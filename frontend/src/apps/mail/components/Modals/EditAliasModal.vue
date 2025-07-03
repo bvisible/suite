@@ -56,7 +56,7 @@ import type { MailAlias } from '@/types'
 
 const show = defineModel<boolean>()
 
-const props = defineProps<{ aliasID: string }>()
+const { aliasID } = defineProps<{ aliasID: string }>()
 
 const emit = defineEmits(['reload-aliases'])
 
@@ -67,7 +67,7 @@ const alias = ref()
 const getAlias = () =>
 	createDocumentResource({
 		doctype: 'Mail Alias',
-		name: props.aliasID,
+		name: aliasID,
 		transform: (data: MailAlias) => {
 			data.enabled = !!data.enabled
 		},
