@@ -30,36 +30,60 @@ export const useSnapping = (target, parent) => {
 		}, {})
 	})
 
-	const getDiffFromCenter = (axis) => {
-		if (!target.value) return
-		let slideCenter, elementCenter
+	const getSlideCenter = (axis) => {
+		let slideStart, slideSize
 
 		if (axis == 'Y') {
-			const elementLeft = selectionBounds.left * slideBounds.scale + slideBounds.left
-			const elementWidth = selectionBounds.width * slideBounds.scale
-
-			slideCenter = slideBounds.left + slideBounds.width / 2
-			elementCenter = elementLeft + elementWidth / 2
+			slideStart = slideBounds.left
+			slideSize = slideBounds.width
 		} else {
-			const elementTop = selectionBounds.top * slideBounds.scale + slideBounds.top
-			const elementHeight = selectionBounds.height * slideBounds.scale
-
-			slideCenter = slideBounds.top + slideBounds.height / 2
-			elementCenter = elementTop + elementHeight / 2
+			slideStart = slideBounds.top
+			slideSize = slideBounds.height
 		}
+
+		return slideStart + slideSize / 2
+	}
+
+	const getElementCenter = (axis) => {
+		if (!target.value) return
+		let elementStart, elementSize, slideStart
+
+		if (axis == 'Y') {
+			elementStart = selectionBounds.left
+			elementSize = selectionBounds.width
+			slideStart = slideBounds.left
+		} else {
+			elementStart = selectionBounds.top
+			elementSize = selectionBounds.height
+			slideStart = slideBounds.top
+		}
+
+		elementStart = elementStart * slideBounds.scale + slideStart
+		elementSize *= slideBounds.scale
+
+		return elementStart + elementSize / 2
+	}
+
+	const getDiffFromCenter = (axis) => {
+		if (!target.value) return
+
+		const slideCenter = getSlideCenter(axis)
+		const elementCenter = getElementCenter(axis)
 
 		return slideCenter - elementCenter
 	}
 
-	const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
-		const pairings = {
-			left: diffLeft,
-			right: diffRight,
-			top: diffTop,
-			bottom: diffBottom,
-		}
+	const setCenterDiffs = () => {
+		if (!target.value) return
 
-		return Object.values(pairings).some((direction, diff) => {
+		diffs.centerX = getDiffFromCenter('X')
+		diffs.centerY = getDiffFromCenter('Y')
+	}
+
+	const canElementPair = (diffsFromElement) => {
+		if (!diffsFromElement) return false
+
+		return Object.values(diffsFromElement).some((direction, diff) => {
 			const threshold = getDynamicThresholds(direction).threshold
 			return Math.abs(diff) < threshold
 		})
@@ -80,39 +104,51 @@ export const useSnapping = (target, parent) => {
 		}
 	}
 
+	const getDiffFromElement = (element) => {
+		if (activeElementIds.value.includes(element.id)) return
+
+		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
+		if (!elementDiv || !target.value) return
+
+		const elementBounds = elementDiv.getBoundingClientRect()
+		const activeBounds = getActiveElementBounds()
+
+		return {
+			left: activeBounds.left - elementBounds.left,
+			right: activeBounds.right - elementBounds.right,
+			top: activeBounds.top - elementBounds.top,
+			bottom: activeBounds.bottom - elementBounds.bottom,
+		}
+	}
+
+	const pairElement = (id, diffFromElement) => {
+		if (!diffFromElement) return
+
+		pairElementId.value = id
+
+		Object.assign(diffs, diffFromElement)
+	}
+
+	const unpairElement = () => {
+		pairElementId.value = null
+
+		Object.assign(diffs, {
+			left: null,
+			right: null,
+			top: null,
+			bottom: null,
+		})
+	}
+
 	const setPairedDiffs = () => {
 		slide.value.elements.forEach((element) => {
-			if (activeElementIds.value.includes(element.id)) return
+			const diffFromElement = getDiffFromElement(element)
 
-			const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
-			if (!elementDiv || !target.value) return
-
-			const elementBounds = elementDiv.getBoundingClientRect()
-			const activeBounds = getActiveElementBounds()
-
-			const diffLeft = activeBounds.left - elementBounds.left
-			const diffRight = activeBounds.right - elementBounds.right
-			const diffTop = activeBounds.top - elementBounds.top
-			const diffBottom = activeBounds.bottom - elementBounds.bottom
-
-			const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
+			const canPair = canElementPair(diffFromElement)
 			const isPaired = pairElementId.value == element.id
 
-			if (canPair) {
-				pairElementId.value = element.id
-
-				diffs.left = diffLeft
-				diffs.right = diffRight
-				diffs.top = diffTop
-				diffs.bottom = diffBottom
-			} else if (isPaired) {
-				pairElementId.value = null
-
-				diffs.left = null
-				diffs.right = null
-				diffs.top = null
-				diffs.bottom = null
-			}
+			if (canPair) pairElement(element.id, diffFromElement)
+			else if (isPaired) unpairElement()
 		})
 	}
 
@@ -121,8 +157,7 @@ export const useSnapping = (target, parent) => {
 
 		Object.assign(prevDiffs, diffs)
 
-		diffs.centerX = getDiffFromCenter('X')
-		diffs.centerY = getDiffFromCenter('Y')
+		setCenterDiffs()
 
 		setPairedDiffs()
 	}
