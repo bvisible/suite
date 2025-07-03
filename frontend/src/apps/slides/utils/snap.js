@@ -3,36 +3,31 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
+	const directionKeys = ['left', 'centerX', 'right', 'top', 'centerY', 'bottom']
+
 	const snapMovement = ref({ x: 0, y: 0 })
 
-	const diffs = reactive({
-		centerX: null,
-		centerY: null,
-		left: null,
-		right: null,
-		top: null,
-		bottom: null,
-	})
+	const initDiffs = () => {
+		return directionKeys.reduce((map, direction) => {
+			map[direction] = null
+			return map
+		}, {})
+	}
 
-	const prevDiffs = reactive({
-		centerX: null,
-		centerY: null,
-		left: null,
-		right: null,
-		top: null,
-		bottom: null,
-	})
+	const diffs = reactive(initDiffs())
+	const prevDiffs = reactive(initDiffs())
+	const resistanceMap = reactive(initDiffs())
 
 	const visibilityMap = computed(() => {
 		if (!target.value) return
-		return {
-			centerX: Math.abs(diffs.centerX) < getDynamicThresholds('centerX').threshold,
-			centerY: Math.abs(diffs.centerY) < getDynamicThresholds('centerY').threshold,
-			left: Math.abs(diffs.left) < getDynamicThresholds('left').threshold,
-			right: Math.abs(diffs.right) < getDynamicThresholds('right').threshold,
-			top: Math.abs(diffs.top) < getDynamicThresholds('top').threshold,
-			bottom: Math.abs(diffs.bottom) < getDynamicThresholds('bottom').threshold,
-		}
+
+		return directionKeys.reduce((visibility, direction) => {
+			const diff = Math.abs(diffs[direction])
+			const threshold = getDynamicThresholds(direction).threshold
+
+			visibility[direction] = Math.abs(diff) < threshold
+			return visibility
+		}, {})
 	})
 
 	const getDiffFromCenter = (axis) => {
@@ -57,12 +52,17 @@ export const useSnapping = (target, parent) => {
 	}
 
 	const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
-		return (
-			Math.abs(diffLeft) < getDynamicThresholds('left').threshold ||
-			Math.abs(diffRight) < getDynamicThresholds('right').threshold ||
-			Math.abs(diffTop) < getDynamicThresholds('top').threshold ||
-			Math.abs(diffBottom) < getDynamicThresholds('bottom').threshold
-		)
+		const pairings = {
+			left: diffLeft,
+			right: diffRight,
+			top: diffTop,
+			bottom: diffBottom,
+		}
+
+		return Object.values(pairings).some((direction, diff) => {
+			const threshold = getDynamicThresholds(direction).threshold
+			return Math.abs(diff) < threshold
+		})
 	}
 
 	const getActiveElementBounds = () => {
@@ -126,15 +126,6 @@ export const useSnapping = (target, parent) => {
 
 		setPairedDiffs()
 	}
-
-	const resistanceMap = reactive({
-		centerX: false,
-		centerY: false,
-		left: false,
-		right: false,
-		top: false,
-		bottom: false,
-	})
 
 	const getDynamicThresholds = (axis) => {
 		const scaleFactor = 0.1
