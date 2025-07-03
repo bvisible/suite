@@ -53,6 +53,7 @@ class MailAccountRequest(Document):
 				self.validate_business_signup()
 
 	def after_insert(self) -> None:
+		return
 		if self.send_invite:
 			self.send_verification_email()
 
