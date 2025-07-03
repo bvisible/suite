@@ -132,12 +132,16 @@ export const useSnapping = (target, parent) => {
 	const unpairElement = () => {
 		pairElementId.value = null
 
-		Object.assign(diffs, {
-			left: null,
-			right: null,
-			top: null,
-			bottom: null,
-		})
+		const resetDiffs = () => {
+			return ['left', 'right', 'top', 'bottom'].reduce((map, direction) => {
+				map[direction] = null
+				return map
+			}, {})
+		}
+
+		Object.assign(diffs, resetDiffs())
+		Object.assign(resistanceMap, resetDiffs())
+		Object.assign(prevDiffs, resetDiffs())
 	}
 
 	const setPairedDiffs = () => {
@@ -232,23 +236,27 @@ export const useSnapping = (target, parent) => {
 		}
 	}
 
+	const getOffset = (axis) => {
+		let start, end
+
+		if (axis == 'X') {
+			start = 'left'
+			end = 'right'
+		} else {
+			start = 'top'
+			end = 'bottom'
+		}
+
+		if (Math.abs(diffs[end]) < Math.abs(diffs[start])) return handleSnapMovement(end)
+
+		return handleSnapMovement(start)
+	}
+
 	const getPairedOffsets = () => {
-		let offsetLeft = 0,
-			offsetTop = 0
-
-		if (Math.abs(diffs.right) < Math.abs(diffs.left)) {
-			offsetLeft = handleSnapMovement('right')
-		} else {
-			offsetLeft = handleSnapMovement('left')
+		return {
+			offsetLeft: getOffset('X'),
+			offsetTop: getOffset('Y'),
 		}
-
-		if (Math.abs(diffs.bottom) < Math.abs(diffs.top)) {
-			offsetTop = handleSnapMovement('bottom')
-		} else {
-			offsetTop = handleSnapMovement('top')
-		}
-
-		return { offsetLeft, offsetTop }
 	}
 
 	const getSnapDelta = () => {
