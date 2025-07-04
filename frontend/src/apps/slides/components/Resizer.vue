@@ -62,7 +62,7 @@ const getScaledValue = (value) => `${value / slideBounds.scale}px`
 
 const getTextIndicatorPosition = () => {
 	const resizer = currentResizer.value
-	const offsetX = getScaledValue(selectionBounds.width + 20)
+	const offsetX = `${20 / slideBounds.scale + selectionBounds.width}px`
 	const offsetY = getScaledValue(12)
 
 	return {
