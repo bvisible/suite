@@ -132,6 +132,12 @@
 							@deselect-thread="deselectThread(mail.thread_id)"
 						/>
 					</div>
+					<div v-if="threads.loading" class="flex items-center justify-center py-4">
+						<div class="text-ink-gray-5 flex items-center space-x-2">
+							<LoaderCircle class="h-4 w-4 animate-spin" />
+							<span class="text-sm">{{ __('Loading more mails...') }}</span>
+						</div>
+					</div>
 				</div>
 				<div v-else class="flex h-full items-center justify-center">
 					<p class="text-gray-500">
@@ -190,6 +196,7 @@ import { useDebounceFn } from '@vueuse/core'
 import {
 	FolderInput,
 	ListFilter,
+	LoaderCircle,
 	Mail,
 	MailOpen,
 	Mails,
@@ -373,8 +380,9 @@ onMounted(() =>
 	}),
 )
 
-const loadMoreEmails = useDebounceFn(() => {
-	if (threads?.data?.length === limit.value) {
+const loadMoreEmails = useDebounceFn((e) => {
+	const { scrollTop, scrollHeight, clientHeight } = e.target
+	if (scrollTop + clientHeight >= scrollHeight - 10 && threads?.data?.length === limit.value) {
 		limit.value += 50
 		threads.reload()
 	}

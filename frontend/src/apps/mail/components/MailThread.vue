@@ -259,7 +259,7 @@ const mailThread = createResource({
 })
 
 const reload = () => {
-	Object.keys(iframeReady).forEach((key) => delete iframeReady[key])
+	Object.keys(iframeReady).forEach((key) => (iframeReady[key] = false))
 	if (threadID) mailThread.reload()
 }
 
