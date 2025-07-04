@@ -2,6 +2,12 @@
 // For license information, please see license.txt
 
 frappe.listview_settings['Mail Queue'] = {
+	onload: () => {
+		frappe.route_options = {
+			status: ['not in', ['Drafted', 'Submitted']],
+		}
+	},
+
 	get_indicator: (doc) => {
 		const status_colors = {
 			Queued: 'blue',
