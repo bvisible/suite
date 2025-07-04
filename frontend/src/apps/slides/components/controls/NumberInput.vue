@@ -6,7 +6,7 @@
 		<input
 			type="number"
 			:class="inputClasses"
-			:value="parseFloat(parseFloat(modelValue).toFixed(2))"
+			:value="Math.round(modelValue)"
 			@change="changeValue"
 		/>
 		<div v-if="suffix" class="w-1/2 text-center text-xs font-medium text-gray-500">
