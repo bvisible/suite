@@ -137,13 +137,24 @@
 						</div>
 					</div>
 
-					<IframeResizer
-						v-if="mail.html_body"
-						class="w-full"
-						license="GPLv3"
-						:scrolling="true"
-						:srcdoc="getSrc(mail.html_body)"
-					/>
+					<template v-if="mail.html_body">
+						<div v-if="!iframeReady[mail.name]" class="animate-pulse space-y-2 py-4">
+							<div
+								v-for="i in 5"
+								:key="i"
+								class="bg-surface-gray-3 h-2"
+								:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
+							/>
+						</div>
+						<IframeResizer
+							v-show="iframeReady[mail.name]"
+							class="w-full"
+							license="GPLv3"
+							:scrolling="true"
+							:srcdoc="getSrc(mail.html_body)"
+							@on-ready="iframeReady[mail.name] = true"
+						/>
+					</template>
 
 					<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
 						mail.text_body
@@ -224,6 +235,7 @@ const { setCurrentThread } = userStore()
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
+const iframeReady = reactive<Record<string, boolean>>({})
 
 const mailDetails = reactive<ComposeMailData>({
 	from_email: '',
@@ -247,6 +259,7 @@ const mailThread = createResource({
 })
 
 const reload = () => {
+	Object.keys(iframeReady).forEach((key) => delete iframeReady[key])
 	if (threadID) mailThread.reload()
 }
 
@@ -285,11 +298,12 @@ const getSrc = (content: string) => {
 				.hidden {
 					display: none;
 				}
-				@media (max-width: 640px) {
-					[style*="width:"] {
-						width: auto !important;
-					}
-				}
+                @media (max-width: 640px) {
+                    /* Only override specific problematic patterns */
+                    table[width="600"], table[width="600px"] {
+                        width: 100% !important;
+                    }
+                }
 			</style>
 			<script
 			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.6"

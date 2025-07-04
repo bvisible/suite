@@ -20,7 +20,7 @@
 					v-for="j in Math.ceil(Math.random() * 5)"
 					:key="j"
 					class="bg-surface-gray-3 h-2"
-					:style="{ width: generatePLaceholderWidth() }"
+					:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
 				/>
 			</div>
 			<div v-if="Math.random() > 0.8" class="mt-5 flex flex-wrap space-x-2">
@@ -33,16 +33,3 @@
 		</div>
 	</div>
 </template>
-
-<script setup lang="ts">
-import { useScreenSize } from '@/utils/composables'
-
-const { size } = useScreenSize()
-
-const generatePLaceholderWidth = () => {
-	const width = size.width
-	const max = width < 640 ? width - 50 : width / 2
-	const min = width < 640 ? width / 2 : width / 3
-	return `${Math.floor(Math.random() * (max - min + 1) + min)}px`
-}
-</script>

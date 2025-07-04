@@ -38,7 +38,7 @@ export interface MailHeader extends ChildDocType {
 	value?: string
 }
 
-// Last updated: 2025-04-05 17:13:59.621031
+// Last updated: 2025-07-03 15:08:35.572464
 export interface MailAccountRequest extends DocType {
 	/** Request Key: Data */
 	request_key?: string
@@ -168,7 +168,7 @@ export interface MailDomainRequest extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-06-16 11:14:11.831446
+// Last updated: 2025-06-26 11:21:00.562086
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -200,6 +200,24 @@ export interface MailAccount extends DocType {
 	override_display_name: 0 | 1
 	/** Override Reply To: Check */
 	override_reply_to: 0 | 1
+	/** Enabled: Check */
+	vacation_response_enabled: 0 | 1
+	/** From Date: Datetime */
+	vacation_from_date?: string
+	/** To Date: Datetime */
+	vacation_to_date?: string
+	/** Subject: Small Text */
+	vacation_response_subject?: string
+	/** Text Body: Code */
+	vacation_response_text_body?: string
+	/** HTML Body: Code */
+	vacation_response_html_body?: string
+	/** State: Data */
+	vacation_response_state?: string
+	/** Destroy Email After Submission: Check */
+	destroy_email_after_submission: 0 | 1
+	/** Destroy Newsletter After Submission: Check */
+	destroy_newsletter_after_submission: 0 | 1
 }
 
 // Last updated: 2025-03-26 11:43:10.481605
@@ -318,7 +336,7 @@ export interface EmailMessagePart extends ChildDocType {
 	file_url?: any
 }
 
-// Last updated: 2025-05-26 16:21:22.094482
+// Last updated: 2025-06-18 17:10:58.660997
 export interface EmailMessage extends DocType {
 	/** Subject: Small Text */
 	subject?: string
