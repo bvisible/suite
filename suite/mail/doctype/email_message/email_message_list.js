@@ -2,6 +2,12 @@
 // For license information, please see license.txt
 
 frappe.listview_settings['Email Message'] = {
+	onload: () => {
+		frappe.route_options = {
+			destroyed: 0,
+		}
+	},
+
 	refresh: (listview) => {
 		add_bulk_destroy_button_to_actions(listview)
 	},
