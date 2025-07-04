@@ -53,6 +53,7 @@ export interface Mail {
 	text_body: string
 	received_at: string
 	draft: 0 | 1
+	flagged: 0 | 1
 	mailbox_role: string
 	recipients: {
 		To: Recipient[]
