@@ -1,4 +1,3 @@
-import { reactive } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
@@ -17,16 +16,5 @@ export const userStore = defineStore('mail-users', () => {
 
 	const mailboxes = createResource({ url: 'mail.api.mail.get_mailboxes', auto: true })
 
-	const currentThread: Record<string, string | null> = reactive({})
-
-	const setCurrentThread = (mailbox: string, thread: string | null) => {
-		currentThread[mailbox] = thread
-		router.push(
-			thread
-				? { name: 'Mail', params: { mailbox, threadID: thread } }
-				: { name: 'Mailbox', params: { mailbox } },
-		)
-	}
-
-	return { userResource, mailboxes, currentThread, setCurrentThread }
+	return { userResource, mailboxes }
 })

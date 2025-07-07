@@ -9,11 +9,11 @@
 				:items="[{ label: mailboxName, route: { name: 'Mailbox', params: { mailbox } } }]"
 			>
 				<template #suffix>
-					<div class="ml-2 self-end text-xs text-gray-600">
+					<div class="text-ink-gray-5 ml-2 self-end text-xs">
 						{{
 							__('{0} {1}', [
 								mailCount?.data || 0,
-								mailCount?.data == 1 ? 'message' : 'messages',
+								mailCount?.data == 1 ? 'thread' : 'threads',
 							])
 						}}
 					</div>
@@ -24,7 +24,18 @@
 	</header>
 
 	<div class="relative flex h-[calc(100dvh-3.05rem)]">
-		<template v-if="threads?.data?.length || filter">
+		<!-- Loading -->
+		<div
+			v-if="threads?.loading && limit === 50"
+			class="flex w-full flex-col items-center justify-center"
+		>
+			<div class="text-ink-gray-5 flex items-center space-x-2">
+				<LoaderCircle class="h-5 w-5 animate-spin" />
+				<span>{{ __('Loading...') }}</span>
+			</div>
+		</div>
+
+		<template v-else-if="threads?.data?.length || filter">
 			<div
 				ref="mailSidebar"
 				class="sticky top-16 flex flex-col border-r"
@@ -92,7 +103,7 @@
 									<template #icon>
 										<component
 											:is="FolderInput"
-											class="h-4 w-4 text-gray-600"
+											class="text-ink-gray-7 h-4 w-4"
 										/>
 									</template>
 								</Button>
@@ -140,7 +151,7 @@
 					</div>
 				</div>
 				<div v-else class="flex h-full items-center justify-center">
-					<p class="text-gray-500">
+					<p class="text-ink-gray-5">
 						{{ __('No mails found for the selected filter.') }}
 					</p>
 				</div>
@@ -160,13 +171,10 @@
 					'absolute bottom-0 left-0 right-0 top-0 z-10':
 						!isMobile && userLayout === 'full',
 					'fixed inset-0 z-10': isMobile,
-					hidden:
-						(isMobile || userLayout === 'full') &&
-						!(currentThread[mailbox] || route.params.threadID),
+					hidden: (isMobile || userLayout === 'full') && !threadID,
 				}"
 			>
 				<MailThread
-					ref="mailThread"
 					:mailbox
 					:thread-i-d
 					@reload-mails="reloadMails"
@@ -181,17 +189,15 @@
 		</template>
 
 		<!-- No mails -->
-		<div v-else class="flex w-full flex-col items-center justify-center">
+		<div v-else class="text-ink-gray-5 flex w-full flex-col items-center justify-center">
 			<NoMails class="mb-2 h-16 w-16" />
-			<p class="text-gray-500">
-				{{ __('You have no mails in this folder.') }}
-			</p>
+			<p>{{ __('You have no mails in this folder.') }}</p>
 		</div>
 	</div>
 </template>
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import {
 	FolderInput,
@@ -221,17 +227,15 @@ import type { LayoutType, Thread, UserResource } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
+const router = useRouter()
 const { isMobile } = useScreenSize()
 const { openSidebar } = useSidebar()
-
-const route = useRoute()
-const router = useRouter()
 
 const socket = inject('$socket')
 const user = inject('$user') as UserResource
 const dayjs = inject('$dayjs')
 
-const { mailboxes, currentThread, setCurrentThread } = userStore()
+const { mailboxes } = userStore()
 
 // Selection
 
@@ -317,28 +321,12 @@ watch(allSelected, (val) => {
 
 // Main data
 
-const mailThread = useTemplateRef('mailThread')
 const limit = ref(50)
 const filter = ref<string | null>(null)
 
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
 	makeParams: () => ({ mailbox, limit: limit.value, filter_by: filter.value }),
-	onSuccess: (data: Thread[]) => {
-		const threadExists = (threadID?: string | null) =>
-			data.some((m) => m.thread_id === threadID)
-		if (threadExists(threadID)) {
-			if (currentThread[mailbox] !== threadID) setCurrentThread(mailbox, threadID ?? null)
-			nextTick(() => mailThread.value?.reload())
-		} else if (threadExists(currentThread[mailbox])) {
-			if (route.params.threadID !== currentThread[mailbox])
-				router.replace({
-					name: 'Mail',
-					params: { mailbox: mailbox, threadID: currentThread[mailbox] },
-				})
-			nextTick(() => mailThread.value?.reload())
-		} else setCurrentThread(mailbox, null)
-	},
 })
 
 const groupedThreads = computed(() =>
@@ -368,6 +356,7 @@ watch(
 	() => mailbox,
 	() => {
 		filter.value = null
+		limit.value = 50
 		reloadMails()
 	},
 	{ immediate: true },
@@ -400,22 +389,21 @@ const setSeen = createResource({
 	makeParams: (values: SetSeenParams) => ({ ...values, mailbox }),
 	onSuccess: ({ thread_ids, seen }: SetSeenParams) => {
 		mailboxes.reload()
-		thread_ids.forEach(
-			(name) => (threads.data.find((m: Thread) => m.thread_id === name).seen = Number(seen)),
-		)
+		threads.data
+			.filter((thread: Thread) => thread_ids.includes(thread.thread_id))
+			.forEach((thread: Thread) => (thread.seen = seen ? 1 : 0))
 		if (
 			!seen &&
-			threads.data.some(
-				(m: Thread) =>
-					thread_ids.includes(m.thread_id) && m.thread_id === currentThread[mailbox],
-			)
+			threadID &&
+			(thread_ids.includes(threadID) ||
+				!threads.data.some((m: Thread) => thread_ids.includes(m.thread_id)))
 		)
-			setCurrentThread(mailbox, null)
+			router.push({ name: 'Mailbox', params: { mailbox } })
 	},
 })
 
 const openThread = (mail: Thread) => {
-	setCurrentThread(mailbox, mail.thread_id)
+	router.push({ name: 'Mail', params: { mailbox, threadID: mail.thread_id } })
 	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
 }
 
