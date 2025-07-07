@@ -14,12 +14,12 @@ from frappe.core.doctype.file.file import File
 from frappe.core.doctype.file.file import has_permission as has_file_permission
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
-from frappe.query_builder import Interval, Order
-from frappe.query_builder.functions import Now
+from frappe.query_builder import Order
 from frappe.utils import (
 	add_to_date,
 	cint,
 	create_batch,
+	get_datetime,
 	get_datetime_str,
 	now,
 	now_datetime,
@@ -41,7 +41,10 @@ class MailQueue(Document):
 		MQ = frappe.qb.DocType("Mail Queue")
 		(
 			frappe.qb.from_(MQ)
-			.where((MQ.status.isin(["Drafted", "Submitted"])) & (MQ.creation < (Now() - Interval(days=days))))
+			.where(
+				(MQ.status.isin(["Drafted", "Submitted"]))
+				& (MQ.creation < get_datetime(add_to_date(now(), days=-days)))
+			)
 			.delete()
 		).run()
 
@@ -886,7 +889,7 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 				& (MQ.next_retry_after <= now_datetime())
 				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
 			)
-			| ((MQ.status == "Queued") & (MQ.queued_at <= (Now() - Interval(minutes=30))))
+			| ((MQ.status == "Queued") & (MQ.queued_at <= get_datetime(add_to_date(now(), minutes=-30))))
 		)
 		.orderby(MQ.creation, MQ.failed_count, order=Order.asc)
 		.limit(max_batch_size)

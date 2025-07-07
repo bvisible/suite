@@ -12,10 +12,9 @@ import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import Interval
 from frappe.query_builder.custom import GROUP_CONCAT
-from frappe.query_builder.functions import Max, Now
-from frappe.utils import cint, escape_html, time_diff_in_seconds
+from frappe.query_builder.functions import Max
+from frappe.utils import add_to_date, cint, escape_html, get_datetime, now, time_diff_in_seconds
 from pypika import Case
 from uuid_utils import uuid7
 
@@ -1205,7 +1204,10 @@ def schedule_fetch_changes() -> None:
 	accounts = (
 		frappe.qb.from_(SYNC_STATE)
 		.select(SYNC_STATE.account)
-		.where(SYNC_STATE.last_synced_at.isnull() | SYNC_STATE.last_synced_at < (Now() - Interval(hours=3)))
+		.where(
+			SYNC_STATE.last_synced_at.isnull() | SYNC_STATE.last_synced_at
+			< get_datetime(add_to_date(now(), hours=-3))
+		)
 	).run(pluck="account")
 
 	if accounts:
