@@ -9,9 +9,7 @@ from email.mime.multipart import MIMEMultipart
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import Interval
-from frappe.query_builder.functions import Now
-from frappe.utils import now, time_diff_in_seconds
+from frappe.utils import add_to_date, get_datetime, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.utils.dns import get_host_by_ip
@@ -21,7 +19,7 @@ class SpamCheckLog(Document):
 	@staticmethod
 	def clear_old_logs(days=7) -> None:
 		log = frappe.qb.DocType("Spam Check Log")
-		frappe.db.delete(log, filters=(log.creation < (Now() - Interval(days=days))))
+		frappe.db.delete(log, filters=(log.creation < get_datetime(add_to_date(now(), days=-days))))
 
 	def autoname(self) -> None:
 		self.name = str(uuid7())

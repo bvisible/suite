@@ -7,8 +7,8 @@ from contextlib import suppress
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import Interval
-from frappe.query_builder.functions import IfNull, Now
+from frappe.query_builder.functions import IfNull
+from frappe.utils import add_to_date, get_datetime, now
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client
@@ -321,7 +321,7 @@ def renew_push_subscriptions() -> None:
 		.where(
 			(PS.verified == 1)
 			& (IfNull(PS.subscription_id, "") != "")
-			& (PS.expires_at < (Now() + Interval(days=2)))
+			& (PS.expires_at < get_datetime(add_to_date(now(), days=2)))
 			& (PS.status.isin(["Active", "Expired", "Failed to Renew"]))
 		)
 	).run(pluck="name")
