@@ -22,6 +22,7 @@ from frappe.utils import (
 	create_batch,
 	get_datetime_str,
 	now,
+	now_datetime,
 	random_string,
 	time_diff_in_seconds,
 )
@@ -882,7 +883,7 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 			| (
 				(MQ.failed_count > 0)
 				& (MQ.failed_count < 3)
-				& (Now() >= MQ.next_retry_after)
+				& (MQ.next_retry_after <= now_datetime())
 				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
 			)
 			| ((MQ.status == "Queued") & (MQ.queued_at <= (Now() - Interval(minutes=30))))
@@ -898,7 +899,7 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 		(
 			frappe.qb.update(MQ)
 			.set(MQ.status, "Queued")
-			.set(MQ.queued_at, Now())
+			.set(MQ.queued_at, now())
 			.where((MQ.name.isin(mails)) & (MQ.status.notin(["Drafted", "Submitted"])))
 		).run()
 
