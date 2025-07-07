@@ -5,7 +5,7 @@
 				icon="chevron-left"
 				variant="ghost"
 				class="mr-2"
-				@click="setCurrentThread(mailbox, null)"
+				@click="router.push({ name: 'Mailbox', params: { mailbox } })"
 			/>
 			<span
 				v-if="mailThread.loading"
@@ -197,6 +197,7 @@
 
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 // eslint-disable-next-line import/no-unresolved
 import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
@@ -215,7 +216,6 @@ import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { getRecipients } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
 import MailDate from '@/components/MailDate.vue'
@@ -231,7 +231,7 @@ const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteTh
 
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
-const { setCurrentThread } = userStore()
+const router = useRouter()
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
@@ -251,11 +251,13 @@ const mailDetails = reactive<ComposeMailData>({
 
 const mailThread = createResource({
 	url: 'mail.api.mail.get_mail_thread',
+	auto: !!threadID,
 	makeParams: () => ({ thread_id: threadID }),
 	transform: (data: Mail[]) =>
 		data.filter((mail) =>
 			mailbox === 'trash' ? mail.mailbox_role === 'trash' : mail.mailbox_role !== 'trash',
 		),
+	onError: () => router.push({ name: 'Mailbox', params: { mailbox } }),
 })
 
 const reload = () => {

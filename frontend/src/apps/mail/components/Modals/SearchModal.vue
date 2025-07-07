@@ -35,12 +35,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { Search } from 'lucide-vue-next'
 import { Dialog, createResource } from 'frappe-ui'
 
 import { getFormattedDate } from '@/utils'
-import { userStore } from '@/stores/user'
 
 const show = defineModel<boolean>()
 
@@ -60,10 +60,10 @@ watchDebounced(
 	{ debounce: 250 },
 )
 
-const { setCurrentThread } = userStore()
+const router = useRouter()
 
 const openMail = (mailbox: string, threadID: string) => {
-	setCurrentThread(mailbox, threadID)
+	router.push({ name: 'Mail', params: { mailbox, threadID } })
 	query.value = ''
 	show.value = false
 }
