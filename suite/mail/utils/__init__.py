@@ -15,6 +15,7 @@ import bcrypt
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
+from frappe.utils import get_bench_path
 from frappe.utils.caching import redis_cache
 
 
@@ -237,6 +238,18 @@ def generate_uuid_style_hash(input_str: str) -> str:
 
 	hash = hashlib.md5(input_str.encode()).hexdigest()
 	return f"{hash[:8]}-{hash[8:12]}-{hash[12:16]}-{hash[16:20]}-{hash[20:]}"
+
+
+def get_mail_app_path() -> str:
+	"""Returns the path to the Mail app directory."""
+
+	return os.path.join(get_bench_path(), "apps/mail")
+
+
+def get_stalwart_cli_path() -> str:
+	"""Returns the path to the Stalwart CLI tool."""
+
+	return os.path.join(get_mail_app_path(), "stalwart-cli")
 
 
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:
