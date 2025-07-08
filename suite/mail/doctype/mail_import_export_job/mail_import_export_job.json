@@ -11,11 +11,8 @@
   "column_break_3krp",
   "operation",
   "account",
-  "output_section",
-  "output",
-  "error_section",
-  "error_message",
-  "error_log"
+  "section_break_gizx",
+  "output"
  ],
  "fields": [
   {
@@ -36,6 +33,7 @@
    "fieldname": "operation",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Operation",
    "options": "\nImport\nExport",
    "reqd": 1,
@@ -46,8 +44,10 @@
    "depends_on": "eval: !doc.__islocal",
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
-   "options": "Draft\nQueued\nIn Progress\nCompleted\nFailed",
+   "options": "Draft\nQueued\nIn Progress\nCompleted\nFailed\nCancelled",
    "read_only": 1,
    "reqd": 1,
    "search_index": 1
@@ -63,38 +63,12 @@
   {
    "fieldname": "account",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Account",
    "options": "Mail Account",
    "reqd": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "error_log",
-   "fieldtype": "Code",
-   "label": "Error Log",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "error_section",
-   "fieldtype": "Section Break",
-   "label": "Error"
-  },
-  {
-   "fieldname": "error_message",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "is_virtual": 1,
-   "label": "Error Message",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "output_section",
-   "fieldtype": "Section Break",
-   "label": "Output"
   },
   {
    "fieldname": "output",
@@ -102,19 +76,24 @@
    "label": "Output",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_gizx",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-08 15:03:23.579212",
+ "modified": "2025-07-08 19:40:45.884184",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Import Export Job",
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
