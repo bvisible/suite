@@ -1,0 +1,26 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Slide Layouts",
+  "modified": "2025-07-10 03:40:29.940741",
+  "name": "Slide Layouts",
+  "slides": [
+   {
+    "background": "#ffffff",
+    "elements": "[\n  {\n    \"id\": \"xcd9e2rv8\",\n    \"content\": \"Title\",\n    \"type\": \"text\",\n    \"textAlign\": \"center\",\n    \"left\": 418.88,\n    \"top\": 225,\n    \"fontSize\": 60,\n    \"fontFamily\": \"Arial\",\n    \"fontWeight\": \"bold\",\n    \"color\": \"#000000\",\n    \"lineHeight\": 1.5,\n    \"letterSpacing\": 0,\n    \"opacity\": 100,\n    \"defaultStyle\": \"title\"\n  }\n]",
+    "is_layout": 0,
+    "thumbnail": "",
+    "transition": null,
+    "transition_duration": null
+   },
+   {
+    "background": "#ffffff",
+    "elements": "[]",
+    "is_layout": 0,
+    "thumbnail": "",
+    "transition": null,
+    "transition_duration": null
+   }
+  ]
+ }
+]
