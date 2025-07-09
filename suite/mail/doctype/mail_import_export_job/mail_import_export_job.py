@@ -9,7 +9,7 @@ import frappe
 import pexpect
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_bench_path
+from frappe.utils import get_bench_path, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.utils import get_stalwart_cli_path
@@ -23,8 +23,17 @@ class MailImportExportJob(Document):
 
 	def before_submit(self) -> None:
 		self.status = "Queued"
+		self.queued_at = now()
 
 	def on_submit(self) -> None:
+		self.process()
+
+	def before_cancel(self) -> None:
+		self.status = "Cancelled"
+
+	def process(self) -> None:
+		"""Enqueue the import or export job based on the operation type."""
+
 		if self.operation == "Import":
 			job_id = f"{self.name}:import"
 			frappe.enqueue_doc(
@@ -50,20 +59,19 @@ class MailImportExportJob(Document):
 				enqueue_after_commit=True,
 			)
 
-	def before_cancel(self) -> None:
-		self.status = "Cancelled"
-
 	def _import(self) -> None:
 		if self.operation != "Import":
 			return
 
-		self._db_set(status="In Progress", notify=True)
+		self._mark_started()
+		kwargs = {}
+		self._mark_completed(**kwargs)
 
 	def _export(self) -> None:
 		if self.operation != "Export":
 			return
 
-		self._db_set(status="In Progress", notify=True)
+		self._mark_started()
 
 		cli_path = get_stalwart_cli_path()
 		export_dir = get_bench_path() + f"/sites/{frappe.local.site}/exports/{self.name}"
@@ -103,7 +111,14 @@ class MailImportExportJob(Document):
 			kwargs.update({"status": "Failed", "output": str(e)})
 
 		shutil.rmtree(export_dir)
-		self._db_set(notify=True, **kwargs)
+		self._mark_completed(**kwargs)
+
+	def _mark_started(self) -> None:
+		"""Marks the job as started and updates the started_at and started_after fields."""
+
+		started_at = now()
+		started_after = time_diff_in_seconds(started_at, self.queued_at)
+		self._db_set(status="In Progress", started_at=started_at, started_after=started_after, notify=True)
 
 	def _get_host_and_credentials(self) -> tuple[str, str]:
 		"""Returns the host and credentials for the account's cluster."""
@@ -115,6 +130,13 @@ class MailImportExportJob(Document):
 			cluster.base_url,
 			f"{cluster.fallback_admin_user}:{cluster.get_password('fallback_admin_password')}",
 		)
+
+	def _mark_completed(self, **kwargs) -> None:
+		"""Marks the job as completed and updates the completed_at and duration fields."""
+
+		kwargs["completed_at"] = now()
+		kwargs["duration"] = time_diff_in_seconds(kwargs["completed_at"], self.started_at)
+		self._db_set(notify=True, **kwargs)
 
 	def _db_set(
 		self,
