@@ -114,7 +114,7 @@ const slideBounds = reactive({})
 
 const updateSelectionBounds = (newBounds) => {
 	const roundedBounds = Object.fromEntries(
-		Object.entries(newBounds).map(([key, value]) => [key, Math.round(value)]),
+		Object.entries(newBounds).map(([key, value]) => [key, Math.round(value * 100) / 100]),
 	)
 	Object.assign(selectionBounds, roundedBounds)
 }
