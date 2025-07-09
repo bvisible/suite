@@ -9,7 +9,7 @@
     "background": "#ffffff",
     "elements": "[\n  {\n    \"id\": \"xcd9e2rv8\",\n    \"content\": \"Title\",\n    \"type\": \"text\",\n    \"textAlign\": \"center\",\n    \"left\": 418.88,\n    \"top\": 225,\n    \"fontSize\": 60,\n    \"fontFamily\": \"Arial\",\n    \"fontWeight\": \"bold\",\n    \"color\": \"#000000\",\n    \"lineHeight\": 1.5,\n    \"letterSpacing\": 0,\n    \"opacity\": 100,\n    \"defaultStyle\": \"title\"\n  }\n]",
     "is_layout": 0,
-    "thumbnail": "",
+    "thumbnail": "/assets/slides/images/layout_thumbnails/thumbnail_1.png",
     "transition": null,
     "transition_duration": null
    },
@@ -17,7 +17,7 @@
     "background": "#ffffff",
     "elements": "[]",
     "is_layout": 0,
-    "thumbnail": "",
+    "thumbnail": "/assets/slides/images/layout_thumbnails/thumbnail_2.png",
     "transition": null,
     "transition_duration": null
    }
