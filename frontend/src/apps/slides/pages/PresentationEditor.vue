@@ -10,7 +10,7 @@
 			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
 		>
 			<NavigationPanel
-				class="absolute bottom-0 top-0 z-50"
+				class="absolute bottom-0 top-0 z-10"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
 				@insertSlide="insertSlide"
@@ -20,13 +20,15 @@
 
 			<Toolbar
 				@setHighlight="setHighlight"
-				@insert="insertSlide"
+				@insert="openLayoutDialog"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide"
 			/>
 
 			<PropertiesPanel class="absolute bottom-0 right-0 top-0 z-10" />
 		</div>
+
+		<LayoutDialog v-model="showLayoutDialog" />
 	</div>
 </template>
 
@@ -45,6 +47,7 @@ import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
+import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import {
@@ -366,4 +369,10 @@ onBeforeRouteLeave((to, from, next) => {
 	}
 	next()
 })
+
+const showLayoutDialog = ref(false)
+
+const openLayoutDialog = () => {
+	showLayoutDialog.value = true
+}
 </script>
