@@ -44,9 +44,9 @@ const elementDivRef = useTemplateRef('elementDiv')
 const outline = computed(() => {
 	switch (props.outline) {
 		case 'primary':
-			return '#70B6F0 solid 2px'
+			return `#70B6F0 solid ${2 / slideBounds.scale}px`
 		case 'secondary':
-			return '#70b6f080 solid 2px'
+			return `#70B6F0 solid ${2 / slideBounds.scale}px`
 		default:
 			return props.outline
 	}
