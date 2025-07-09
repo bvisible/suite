@@ -66,15 +66,32 @@ def get_presentation(name: str) -> Document:
 	return frappe.get_doc("Presentation", name)
 
 
-@frappe.whitelist()
-def insert_slide(name, index):
-	presentation = frappe.get_doc("Presentation", name)
+def create_new_slide(presentation, index, layout_id=None):
+	"""
+	Creates a new slide with the given layout_id.
+	If no layout_id is provided, it creates a blank slide.
+	"""
 	new_slide = frappe.new_doc("Slide")
-	new_slide.parent = name
+	new_slide.parent = presentation
 	new_slide.parentfield = "slides"
 	new_slide.parenttype = "Presentation"
 	new_slide.idx = index + 1
+	if layout_id:
+		layout_slide = frappe.get_doc("Slide", layout_id)
+		new_slide.update(layout_slide.as_dict())
+		elements = json.loads(layout_slide.elements)
+		for element in elements:
+			element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
+		new_slide.elements = json.dumps(elements)
 	new_slide.save()
+
+	return new_slide
+
+
+@frappe.whitelist()
+def insert_slide(name, index, layout_id=None):
+	presentation = frappe.get_doc("Presentation", name)
+	new_slide = create_new_slide(name, index, layout_id)
 	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
 	for i in range(index + 1, len(presentation.slides)):
 		presentation.slides[i].idx += 1
