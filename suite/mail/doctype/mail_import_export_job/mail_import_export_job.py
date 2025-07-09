@@ -158,6 +158,10 @@ class MailImportExportJob(Document):
 
 		kwargs["completed_at"] = now()
 		kwargs["duration"] = time_diff_in_seconds(kwargs["completed_at"], self.started_at)
+
+		if kwargs["status"] == "Failed":
+			kwargs["failed_count"] = self.failed_count + 1
+
 		self._db_set(notify=True, **kwargs)
 
 	def _db_set(
