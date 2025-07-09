@@ -2,8 +2,8 @@
 # For license information, please see license.txt
 
 import os
+import shlex
 import shutil
-import zipfile
 
 import frappe
 import pexpect
@@ -12,7 +12,7 @@ from frappe.model.document import Document
 from frappe.utils import get_bench_path, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
-from mail.utils import get_stalwart_cli_path
+from mail.utils import extract_compressed_file, get_mbox_files, get_stalwart_cli_path, zip_directory
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import is_account_owner, is_system_manager
 
@@ -20,6 +20,11 @@ from mail.utils.user import is_account_owner, is_system_manager
 class MailImportExportJob(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
+
+	def validate(self) -> None:
+		if self.operation == "Import":
+			self.validate_import_file_format()
+			self.validate_import_file()
 
 	def before_submit(self) -> None:
 		self.status = "Queued"
@@ -30,6 +35,26 @@ class MailImportExportJob(Document):
 
 	def before_cancel(self) -> None:
 		self.status = "Cancelled"
+
+	def validate_import_file_format(self) -> None:
+		"""Validate the import file format."""
+
+		if not self.import_file_format:
+			frappe.throw(_("Import File Format is required."))
+
+	def validate_import_file(self) -> None:
+		"""Validate the import file."""
+
+		if not self.import_file:
+			frappe.throw(_("Import File is required."))
+
+		allowed_extensions = [".zip", ".tgz", ".tar.gz"]
+		if not self.import_file.endswith(tuple(allowed_extensions)):
+			frappe.throw(
+				_("Only {0} files are supported for import.").format(
+					", ".join(f"<code>{ext}</code>" for ext in allowed_extensions)
+				)
+			)
 
 	def process(self) -> None:
 		"""Enqueue the import or export job based on the operation type."""
@@ -82,19 +107,59 @@ class MailImportExportJob(Document):
 		self.process()
 
 	def _import(self) -> None:
+		"""Imports the account data."""
+
 		if self.operation != "Import":
 			return
 
 		self._mark_started()
+		cli_path = get_stalwart_cli_path()
+		import_dir = get_bench_path() + f"/sites/{frappe.local.site}/imports/{self.name}"
+		file_path = get_bench_path() + f"/sites/{frappe.local.site}{self.import_file}"
+		os.makedirs(import_dir, exist_ok=True)
+
 		kwargs = {}
+		try:
+			extract_compressed_file(file_path, import_dir)
+			host, _credentials = self._get_host_and_credentials()
+			command = [
+				cli_path,
+				"-u",
+				host,
+				"import",
+				"messages",
+				"-f",
+				self.import_file_format,
+				self.account,
+			]
+
+			if self.import_file_format == "mbox":
+				mbox_files = get_mbox_files(import_dir)
+
+				if len(mbox_files) == 0:
+					frappe.throw(_("No .mbox file found in the archive."))
+				elif len(mbox_files) > 1:
+					frappe.throw(_("Multiple .mbox files found. Please provide only one."))
+
+				command.append(mbox_files[0])
+			else:
+				command.append(import_dir)
+
+			output = _run_stalwart_cli_command(command, _credentials)
+			kwargs.update({"status": "Completed", "output": output})
+		except Exception as e:
+			kwargs.update({"status": "Failed", "output": str(e)})
+
+		shutil.rmtree(import_dir)
 		self._mark_completed(**kwargs)
 
 	def _export(self) -> None:
+		"""Exports the account data."""
+
 		if self.operation != "Export":
 			return
 
 		self._mark_started()
-
 		cli_path = get_stalwart_cli_path()
 		export_dir = get_bench_path() + f"/sites/{frappe.local.site}/exports/{self.name}"
 		zip_path = get_bench_path() + f"/sites/{frappe.local.site}/private/files/{self.name}.zip"
@@ -103,24 +168,10 @@ class MailImportExportJob(Document):
 		kwargs = {}
 		try:
 			host, _credentials = self._get_host_and_credentials()
-			cmd = f"{cli_path} -u {host} export account {self.account} {export_dir}"
-			child = pexpect.spawn(cmd, encoding="utf-8", timeout=1500)
-			child.expect("Enter administrator credentials or press \\[ENTER\\] to use OAuth:")
-			child.sendline(_credentials)
-			child.expect(pexpect.EOF)
-			child.wait()
-			output = child.before.strip() if child.before else "No output received"
+			command = f"{cli_path} -u {host} export account {self.account} {export_dir}"
+			output = _run_stalwart_cli_command(command, _credentials)
 
-			if child.exitstatus != 0:
-				raise Exception(output)
-
-			with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-				for root, _dirs, files in os.walk(export_dir):
-					for file in files:
-						full_path = os.path.join(root, file)
-						arcname = os.path.relpath(full_path, export_dir)
-						zipf.write(full_path, arcname)
-
+			zip_directory(export_dir, zip_path)
 			file = frappe.new_doc("File")
 			file.file_url = f"/private/files/{self.name}.zip"
 			file.attached_to_doctype = self.doctype
@@ -200,3 +251,22 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 		return True
 
 	return False
+
+
+def _run_stalwart_cli_command(command: str | list[str], _credentials: str, timeout: int = 1500) -> str:
+	"""Runs the stalwart CLI command with the provided credentials and returns the output."""
+
+	if isinstance(command, list):
+		command = " ".join(shlex.quote(arg) for arg in command)
+
+	child = pexpect.spawn(command, encoding="utf-8", timeout=1500)
+	child.expect("Enter administrator credentials or press \\[ENTER\\] to use OAuth:")
+	child.sendline(_credentials)
+	child.expect(pexpect.EOF)
+	child.wait()
+	output = child.before.strip() if child.before else "No output received"
+
+	if child.exitstatus != 0:
+		raise Exception(output)
+
+	return output

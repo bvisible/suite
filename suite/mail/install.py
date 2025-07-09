@@ -18,7 +18,7 @@ def after_install() -> None:
 
 
 def after_migrate() -> None:
-	_install_stalwart_cli()
+	install_stalwart_cli()
 	build_index_in_background()
 
 
@@ -68,6 +68,8 @@ def create_default_tenant() -> None:
 
 
 def install_stalwart_cli() -> None:
+	"""Enqueues a job to install the Stalwart CLI tool."""
+
 	frappe.enqueue(_install_stalwart_cli, queue="default", at_front=True)
 
 

@@ -5,6 +5,7 @@ import os
 import re
 import secrets
 import string
+import tarfile
 import zipfile
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
@@ -122,6 +123,47 @@ def load_compressed_file(file_path: str | None = None, file_data: bytes | None =
 		pass
 
 	frappe.throw(_("Failed to load content from the compressed file."))
+
+
+def extract_compressed_file(file_path: str, destination: str) -> None:
+	"""Extract a .zip, .tar.gz, or .tgz archive to the specified destination directory."""
+
+	if not os.path.exists(file_path):
+		frappe.throw(_("File not found: {0}").format(file_path))
+
+	if file_path.endswith(".zip"):
+		with zipfile.ZipFile(file_path, "r") as archive:
+			archive.extractall(destination)
+
+	elif file_path.endswith((".tar.gz", ".tgz")):
+		with tarfile.open(file_path, "r:gz") as archive:
+			archive.extractall(destination)
+
+	else:
+		frappe.throw(_("Unsupported file format: {0}").format(file_path))
+
+
+def get_mbox_files(base_dir: str) -> list[str]:
+	"""Recursively find and return all .mbox files under the given directory."""
+
+	mbox_files = [
+		os.path.join(root, filename)
+		for root, _, files in os.walk(base_dir)
+		for filename in files
+		if filename.endswith(".mbox")
+	]
+	return mbox_files
+
+
+def zip_directory(source_dir: str, output_zip: str) -> None:
+	"""Create a ZIP archive from the contents of a directory."""
+
+	with zipfile.ZipFile(output_zip, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+		for root, _dirs, files in os.walk(source_dir):
+			for file in files:
+				file_path = os.path.join(root, file)
+				relative_path = os.path.relpath(file_path, source_dir)
+				zip_file.write(file_path, relative_path)
 
 
 def enqueue_job(

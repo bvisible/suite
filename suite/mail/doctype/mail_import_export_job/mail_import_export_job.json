@@ -10,8 +10,10 @@
   "status",
   "failed_count",
   "column_break_3krp",
-  "operation",
   "account",
+  "operation",
+  "import_file_format",
+  "import_file",
   "section_break_4a28",
   "queued_at",
   "started_at",
@@ -150,13 +152,30 @@
    "non_negative": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "depends_on": "eval: doc.operation == \"Import\"",
+   "fieldname": "import_file",
+   "fieldtype": "Attach",
+   "label": "File",
+   "mandatory_depends_on": "eval: doc.operation == \"Import\"",
+   "no_copy": 1
+  },
+  {
+   "depends_on": "eval: doc.operation == \"Import\"",
+   "fieldname": "import_file_format",
+   "fieldtype": "Select",
+   "label": "File Format",
+   "mandatory_depends_on": "eval: doc.operation == \"Import\"",
+   "no_copy": 1,
+   "options": "\nmbox\nmaildir\nmaildir-nested"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-09 09:20:15.768927",
+ "modified": "2025-07-09 11:10:52.551216",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Import Export Job",
