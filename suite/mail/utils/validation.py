@@ -209,6 +209,40 @@ def is_valid_cron_expression(expression: str, raise_exception: bool = False) -> 
 		return False
 
 
+def validate_jmap_structure(base_dir: str, raise_exception: bool = False) -> list[str]:
+	"""Validates a JMAP import directory. Returns a list of missing files or folders."""
+
+	required_files = {
+		"emails.json",
+		"identities.json",
+		"mailboxes.json",
+		"sieve.json",
+		"vacation.json",
+	}
+	required_dirs = {"blobs"}
+
+	missing = []
+	base_folder = os.path.basename(base_dir)
+
+	for file in required_files:
+		if not os.path.isfile(os.path.join(base_dir, file)):
+			missing.append(f"/{base_folder}/{file}")
+
+	for dir in required_dirs:
+		if not os.path.isdir(os.path.join(base_dir, dir)):
+			missing.append(f"/{base_folder}/{dir}/")
+
+	if missing and raise_exception:
+		frappe.throw(
+			_("Missing required files/directories for JMAP format: {0}").format(
+				", ".join(f"<code>{m}</code>" for m in missing)
+			),
+			title=_("Invalid JMAP Structure"),
+		)
+
+	return missing
+
+
 def is_valid_maildir(base_dir: str, raise_exception: bool = False) -> bool:
 	"""Checks if the given base directory is a valid Maildir."""
 
