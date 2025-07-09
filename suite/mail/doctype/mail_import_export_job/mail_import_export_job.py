@@ -59,6 +59,28 @@ class MailImportExportJob(Document):
 				enqueue_after_commit=True,
 			)
 
+	@frappe.whitelist()
+	def retry(self) -> None:
+		"""Retry the import or export job."""
+
+		frappe.only_for("System Manager")
+
+		if self.operation == "Emport":
+			if files := frappe.db.get_all(
+				"File",
+				{
+					"attached_to_doctype": self.doctype,
+					"attached_to_name": self.name,
+					"attached_to_field": "file",
+				},
+				pluck="name",
+			):
+				for file in files:
+					frappe.delete_doc("File", file)
+
+		self._db_set(status="Queued", queued_at=now(), notify=True)
+		self.process()
+
 	def _import(self) -> None:
 		if self.operation != "Import":
 			return
@@ -101,7 +123,7 @@ class MailImportExportJob(Document):
 
 			file = frappe.new_doc("File")
 			file.file_url = f"/private/files/{self.name}.zip"
-			file.attached_to_doctype = "Mail Import Export Job"
+			file.attached_to_doctype = self.doctype
 			file.attached_to_name = self.name
 			file.attached_to_field = "file"
 			file.insert()
