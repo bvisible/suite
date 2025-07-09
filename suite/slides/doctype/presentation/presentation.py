@@ -190,6 +190,5 @@ def get_updated_json(presentation, json):
 
 @frappe.whitelist()
 def get_layouts():
-	layout_presentation = frappe.db.get_value("Presentation", {"is_layout": 1})
-	layout_presentation = frappe.get_doc("Presentation", layout_presentation)
+	layout_presentation = frappe.get_doc("Slide Layouts")
 	return layout_presentation.slides
