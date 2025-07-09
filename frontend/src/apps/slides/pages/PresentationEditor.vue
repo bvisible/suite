@@ -28,7 +28,10 @@
 			<PropertiesPanel class="absolute bottom-0 right-0 top-0 z-10" />
 		</div>
 
-		<LayoutDialog v-model="showLayoutDialog" />
+		<LayoutDialog
+			v-model="showLayoutDialog"
+			@insert="(layoutId) => handleInsertSlide(layoutId)"
+		/>
 	</div>
 </template>
 
@@ -236,7 +239,7 @@ const changeSlide = async (index, updateCurrent = true) => {
 	})
 }
 
-const performSlideAction = async (action, index) => {
+const performSlideAction = async (action, index, layoutId) => {
 	if (!index) index = slideIndex.value
 	let url = ''
 
@@ -255,6 +258,7 @@ const performSlideAction = async (action, index) => {
 	const args = {
 		name: presentationId.value,
 		index: index,
+		layout_id: layoutId,
 	}
 
 	resetFocus()
@@ -268,10 +272,10 @@ const performSlideAction = async (action, index) => {
 	})
 }
 
-const insertSlide = async (index) => {
+const insertSlide = async (index, layoutId) => {
 	if (!index) index = slideIndex.value
 	const previousBackground = slide.value.background
-	await performSlideAction('insert', index)
+	await performSlideAction('insert', index, layoutId)
 	await changeSlide(index + 1)
 	slide.value.background = previousBackground
 	nextTick(() => {
@@ -374,5 +378,10 @@ const showLayoutDialog = ref(false)
 
 const openLayoutDialog = () => {
 	showLayoutDialog.value = true
+}
+
+const handleInsertSlide = (layoutId) => {
+	showLayoutDialog.value = false
+	insertSlide(null, layoutId)
 }
 </script>
