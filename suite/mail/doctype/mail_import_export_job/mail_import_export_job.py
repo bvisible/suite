@@ -15,7 +15,11 @@ from uuid_utils import uuid7
 from mail.utils import extract_compressed_file, get_mbox_files, get_stalwart_cli_path, zip_directory
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import is_account_owner, is_system_manager
-from mail.utils.validation import validate_maildir_or_maildirpp, validate_nested_maildir_tree
+from mail.utils.validation import (
+	validate_jmap_structure,
+	validate_maildir_or_maildirpp,
+	validate_nested_maildir_tree,
+)
 
 
 class MailImportExportJob(Document):
@@ -115,24 +119,24 @@ class MailImportExportJob(Document):
 
 		self._mark_started()
 		cli_path = get_stalwart_cli_path()
-		import_dir = get_bench_path() + f"/sites/{frappe.local.site}/imports/{self.name}"
 		file_path = get_bench_path() + f"/sites/{frappe.local.site}{self.import_file}"
+
+		import_dir = get_bench_path() + f"/sites/{frappe.local.site}/imports/{self.name}"
+		if self.import_file_format == "jmap":
+			import_dir += f"/{self.account}"
 		os.makedirs(import_dir, exist_ok=True)
 
 		kwargs = {}
 		try:
 			extract_compressed_file(file_path, import_dir)
 			host, _credentials = self._get_host_and_credentials()
-			command = [
-				cli_path,
-				"-u",
-				host,
-				"import",
-				"messages",
-				"-f",
-				self.import_file_format,
-				self.account,
-			]
+
+			command = [cli_path, "-u", host, "import"]
+			if self.import_file_format == "jmap":
+				command.append("account")
+			else:
+				command.extend(["messages", "-f", self.import_file_format])
+			command.append(self.account)
 
 			if self.import_file_format == "mbox":
 				mbox_files = get_mbox_files(import_dir)
@@ -144,7 +148,9 @@ class MailImportExportJob(Document):
 
 				command.append(mbox_files[0])
 			else:
-				if self.import_file_format == "maildir":
+				if self.import_file_format == "jmap":
+					validate_jmap_structure(import_dir, raise_exception=True)
+				elif self.import_file_format == "maildir":
 					validate_maildir_or_maildirpp(import_dir, raise_exception=True)
 				elif self.import_file_format == "maildir-nested":
 					validate_nested_maildir_tree(import_dir, raise_exception=True)
