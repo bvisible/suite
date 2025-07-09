@@ -6,8 +6,7 @@
  "field_order": [
   "title",
   "slides",
-  "slug",
-  "is_layout"
+  "slug"
  ],
  "fields": [
   {
@@ -28,17 +27,11 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Slug"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_layout",
-   "fieldtype": "Check",
-   "label": "Is Layout"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 16:59:38.350839",
+ "modified": "2025-07-10 01:05:37.566761",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
