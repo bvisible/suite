@@ -15,6 +15,7 @@ from uuid_utils import uuid7
 from mail.utils import extract_compressed_file, get_mbox_files, get_stalwart_cli_path, zip_directory
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import is_account_owner, is_system_manager
+from mail.utils.validation import validate_maildir_or_maildirpp
 
 
 class MailImportExportJob(Document):
@@ -143,6 +144,9 @@ class MailImportExportJob(Document):
 
 				command.append(mbox_files[0])
 			else:
+				if self.import_file_format == "maildir":
+					validate_maildir_or_maildirpp(import_dir, raise_exception=True)
+
 				command.append(import_dir)
 
 			output = _run_stalwart_cli_command(command, _credentials)

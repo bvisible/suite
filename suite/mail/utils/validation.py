@@ -1,4 +1,5 @@
 import ipaddress
+import os
 import re
 import socket
 
@@ -206,6 +207,83 @@ def is_valid_cron_expression(expression: str, raise_exception: bool = False) -> 
 				title=_("Bad Cron Expression"),
 			)
 		return False
+
+
+def is_valid_maildir(base_dir: str, raise_exception: bool = False) -> bool:
+	"""Checks if the given base directory is a valid Maildir."""
+
+	required_dirs = ["cur", "new", "tmp"]
+	result = all(os.path.isdir(os.path.join(base_dir, d)) for d in required_dirs)
+
+	if not result and raise_exception:
+		frappe.throw(
+			_("Invalid Maildir format: missing {0} directories.").format(
+				", ".join(f"<code>{d}</code>" for d in required_dirs)
+			),
+			title=_("Invalid Maildir"),
+		)
+
+	return result
+
+
+def validate_maildir_or_maildirpp(base_dir: str, raise_exception: bool = False) -> list[str]:
+	"""Validates a base Maildir or Maildir++ structure. Returns a list of invalid subdirs (relative paths)."""
+
+	invalid_dirs = []
+
+	def to_rel(path) -> str:
+		rel = os.path.relpath(path, base_dir)
+		return "/" if rel == "." else f"/{rel}"
+
+	if not is_valid_maildir(base_dir, raise_exception=False):
+		invalid_dirs.append("/")
+
+	for entry in os.listdir(base_dir):
+		full_path = os.path.join(base_dir, entry)
+		if entry.startswith(".") and os.path.isdir(full_path):
+			if not is_valid_maildir(full_path, raise_exception=False):
+				invalid_dirs.append(to_rel(full_path))
+
+	if invalid_dirs and raise_exception:
+		frappe.throw(
+			_("Invalid Maildir format in the following directories: {0}").format(
+				", ".join(f"<code>{d}</code>" for d in invalid_dirs)
+			),
+			title=_("Invalid Maildir"),
+		)
+
+	return invalid_dirs
+
+
+def validate_nested_maildir_tree(base_dir: str, raise_exception: bool = False) -> list[str]:
+	"""Recursively validates a nested Maildir++ tree. Returns list of invalid directories (relative paths)."""
+
+	invalid_dirs = []
+
+	def to_rel(path) -> str:
+		rel = os.path.relpath(path, base_dir)
+		return "/" if rel == "." else f"/{rel}"
+
+	def check_dir(path: str) -> None:
+		if not is_valid_maildir(path, raise_exception=False):
+			invalid_dirs.append(to_rel(path))
+
+		for entry in os.listdir(path):
+			full_path = os.path.join(path, entry)
+			if entry.startswith(".") and os.path.isdir(full_path):
+				check_dir(full_path)
+
+	check_dir(base_dir)
+
+	if invalid_dirs and raise_exception:
+		frappe.throw(
+			_("Invalid Maildir format in the following directories: {0}").format(
+				", ".join(f"<code>{d}</code>" for d in invalid_dirs)
+			),
+			title=_("Invalid Maildir"),
+		)
+
+	return invalid_dirs
 
 
 def validate_permission_for_account(account: str) -> None:
