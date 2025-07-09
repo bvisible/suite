@@ -71,10 +71,7 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
-const { visibilityMap, updateGuides, disableMovement, getSnapDelta } = useSnapping(
-	selectionBoxRef,
-	slideRef,
-)
+const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
@@ -224,25 +221,43 @@ const togglePanZoom = () => {
 	allowPanAndZoom.value = !allowPanAndZoom.value
 }
 
+const applyResistance = (axis, delta) => {
+	const scaledThreshold = (0.02 * selectionBounds.width) / slideBounds.scale
+
+	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
+
+	let useResistance = false
+	let pullDelta = null
+
+	if (axis == 'X') {
+		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
+		pullDelta = delta.x
+	} else if (axis == 'Y') {
+		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
+		pullDelta = delta.y
+	}
+
+	return useResistance && Math.abs(pullDelta) < escapeDelta
+}
+
 const getTotalPositionDelta = (delta) => {
-	const snapDelta = getSnapDelta()
+	const snapDelta = handleSnapping()
+
+	const left = snapDelta.x || delta.x
+	const top = snapDelta.y || delta.y
 
 	return {
-		left: delta.x + snapDelta.x,
-		top: delta.y + snapDelta.y,
+		left: applyResistance('X', delta) ? 0 : left,
+		top: applyResistance('Y', delta) ? 0 : top,
 	}
 }
 
 const handlePositionChange = (delta) => {
-	updateGuides()
-
-	if (!disableMovement.value) {
-		const totalDelta = getTotalPositionDelta(delta)
-		updateSelectionBounds({
-			left: selectionBounds.left + totalDelta.left / scale.value,
-			top: selectionBounds.top + totalDelta.top / scale.value,
-		})
-	}
+	const totalDelta = getTotalPositionDelta(delta)
+	updateSelectionBounds({
+		left: selectionBounds.left + totalDelta.left / scale.value,
+		top: selectionBounds.top + totalDelta.top / scale.value,
+	})
 }
 
 const applyAspectRatio = (offset) => {

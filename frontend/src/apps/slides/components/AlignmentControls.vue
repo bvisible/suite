@@ -109,21 +109,23 @@ const alignmentPositions = computed(() => {
 
 	return {
 		left: 0,
-		centerY: Math.round(slideWidth / 2) - Math.round(selectionWidth / 2),
-		right: Math.round(slideWidth) - Math.round(selectionWidth),
+		centerY: (slideWidth - selectionWidth) / 2,
+		right: slideWidth - selectionWidth,
 		top: 0,
-		centerX: Math.round(slideHeight / 2) - Math.round(selectionHeight / 2),
-		bottom: Math.round(slideHeight) - Math.round(selectionHeight),
+		centerX: (slideHeight - selectionHeight) / 2,
+		bottom: slideHeight - selectionHeight,
 	}
 })
 
 const isAligned = (direction) => {
 	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
 
-	const expectedPos = alignmentPositions.value[direction]
+	const expectedPos = Math.round(alignmentPositions.value[direction] * 10) / 10
 
 	const currentPos =
-		axis == 'X' ? Math.round(selectionBounds.left) : Math.round(selectionBounds.top)
+		axis == 'X'
+			? Math.round(selectionBounds.left * 10) / 10
+			: Math.round(selectionBounds.top * 10) / 10
 
 	return expectedPos == currentPos
 }

@@ -3,72 +3,90 @@ import { selectionBounds, slide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
 export const useSnapping = (target, parent) => {
-	const CENTER_PROXIMITY_THRESHOLD = 12
-	const PROXIMITY_THRESHOLD = 8
+	const directionKeys = ['left', 'centerX', 'right', 'top', 'centerY', 'bottom']
 
 	const snapMovement = ref({ x: 0, y: 0 })
 
-	const hasSnapped = ref(false)
-	let snapTimeout = null
+	const initDiffs = () => {
+		return directionKeys.reduce((map, direction) => {
+			map[direction] = null
+			return map
+		}, {})
+	}
 
-	const diffs = reactive({
-		centerX: 0,
-		centerY: 0,
-		left: 0,
-		right: 0,
-		top: 0,
-		bottom: 0,
-	})
-
-	const prevDiffs = reactive({
-		centerX: 0,
-		centerY: 0,
-		left: 0,
-		right: 0,
-		top: 0,
-		bottom: 0,
-	})
+	const diffs = reactive(initDiffs())
+	const prevDiffs = reactive(initDiffs())
+	const resistanceMap = reactive(initDiffs())
 
 	const visibilityMap = computed(() => {
 		if (!target.value) return
-		return {
-			centerX: Math.abs(diffs.centerX) < CENTER_PROXIMITY_THRESHOLD,
-			centerY: Math.abs(diffs.centerY) < CENTER_PROXIMITY_THRESHOLD,
-			left: Math.abs(diffs.left) < PROXIMITY_THRESHOLD,
-			right: Math.abs(diffs.right) < PROXIMITY_THRESHOLD,
-			top: Math.abs(diffs.top) < PROXIMITY_THRESHOLD,
-			bottom: Math.abs(diffs.bottom) < PROXIMITY_THRESHOLD,
-		}
+
+		return directionKeys.reduce((visibility, direction) => {
+			const diff = Math.abs(diffs[direction])
+			const threshold = getDynamicThresholds(direction).threshold
+
+			visibility[direction] = Math.abs(diff) < threshold
+			return visibility
+		}, {})
 	})
+
+	const getSlideCenter = (axis) => {
+		let slideStart, slideSize
+
+		if (axis == 'Y') {
+			slideStart = slideBounds.left
+			slideSize = slideBounds.width
+		} else {
+			slideStart = slideBounds.top
+			slideSize = slideBounds.height
+		}
+
+		return slideStart + slideSize / 2
+	}
+
+	const getElementCenter = (axis) => {
+		if (!target.value) return
+		let elementStart, elementSize, slideStart
+
+		if (axis == 'Y') {
+			elementStart = selectionBounds.left
+			elementSize = selectionBounds.width
+			slideStart = slideBounds.left
+		} else {
+			elementStart = selectionBounds.top
+			elementSize = selectionBounds.height
+			slideStart = slideBounds.top
+		}
+
+		elementStart = elementStart * slideBounds.scale + slideStart
+		elementSize *= slideBounds.scale
+
+		return elementStart + elementSize / 2
+	}
 
 	const getDiffFromCenter = (axis) => {
 		if (!target.value) return
-		let slideCenter, elementCenter
 
-		if (axis == 'Y') {
-			const elementLeft = selectionBounds.left * slideBounds.scale + slideBounds.left
-			const elementWidth = selectionBounds.width * slideBounds.scale
-
-			slideCenter = slideBounds.left + slideBounds.width / 2
-			elementCenter = elementLeft + elementWidth / 2
-		} else {
-			const elementTop = selectionBounds.top * slideBounds.scale + slideBounds.top
-			const elementHeight = selectionBounds.height * slideBounds.scale
-
-			slideCenter = slideBounds.top + slideBounds.height / 2
-			elementCenter = elementTop + elementHeight / 2
-		}
+		const slideCenter = getSlideCenter(axis)
+		const elementCenter = getElementCenter(axis)
 
 		return slideCenter - elementCenter
 	}
 
-	const canElementPair = (diffLeft, diffRight, diffTop, diffBottom) => {
-		return (
-			Math.abs(diffLeft) < PROXIMITY_THRESHOLD ||
-			Math.abs(diffRight) < PROXIMITY_THRESHOLD ||
-			Math.abs(diffTop) < PROXIMITY_THRESHOLD ||
-			Math.abs(diffBottom) < PROXIMITY_THRESHOLD
-		)
+	const setCenterDiffs = () => {
+		if (!target.value) return
+
+		diffs.centerX = getDiffFromCenter('X')
+		diffs.centerY = getDiffFromCenter('Y')
+	}
+
+	const canElementPair = (diffsFromElement) => {
+		if (!diffsFromElement) return false
+
+		return Object.entries(diffsFromElement).some(([direction, diff]) => {
+			const threshold = getDynamicThresholds(direction).threshold
+			return diff !== null && Math.abs(diff) < threshold
+		})
 	}
 
 	const getActiveElementBounds = () => {
@@ -86,125 +104,159 @@ export const useSnapping = (target, parent) => {
 		}
 	}
 
+	const getDiffFromElement = (element) => {
+		if (activeElementIds.value.includes(element.id)) return
+
+		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
+		if (!elementDiv || !target.value) return
+
+		const elementBounds = elementDiv.getBoundingClientRect()
+		const activeBounds = getActiveElementBounds()
+
+		return {
+			left: activeBounds.left - elementBounds.left,
+			right: activeBounds.right - elementBounds.right,
+			top: activeBounds.top - elementBounds.top,
+			bottom: activeBounds.bottom - elementBounds.bottom,
+		}
+	}
+
+	const pairElement = (id, diffFromElement) => {
+		if (!diffFromElement) return
+
+		pairElementId.value = id
+
+		Object.assign(diffs, diffFromElement)
+	}
+
+	const unpairElement = () => {
+		pairElementId.value = null
+
+		const resetDiffs = () => {
+			return ['left', 'right', 'top', 'bottom'].reduce((map, direction) => {
+				map[direction] = null
+				return map
+			}, {})
+		}
+
+		Object.assign(diffs, resetDiffs())
+		Object.assign(resistanceMap, resetDiffs())
+		Object.assign(prevDiffs, resetDiffs())
+	}
+
 	const setPairedDiffs = () => {
 		slide.value.elements.forEach((element) => {
-			if (activeElementIds.value.includes(element.id)) return
+			const diffFromElement = getDiffFromElement(element)
 
-			const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
-			if (!elementDiv || !target.value) return
-
-			const elementBounds = elementDiv.getBoundingClientRect()
-			const activeBounds = getActiveElementBounds()
-
-			const diffLeft = activeBounds.left - elementBounds.left
-			const diffRight = activeBounds.right - elementBounds.right
-			const diffTop = activeBounds.top - elementBounds.top
-			const diffBottom = activeBounds.bottom - elementBounds.bottom
-
-			const canPair = canElementPair(diffLeft, diffRight, diffTop, diffBottom)
+			const canPair = canElementPair(diffFromElement)
 			const isPaired = pairElementId.value == element.id
 
-			if (canPair) {
-				pairElementId.value = element.id
-
-				diffs.left = diffLeft
-				diffs.right = diffRight
-				diffs.top = diffTop
-				diffs.bottom = diffBottom
-			} else if (isPaired) {
-				pairElementId.value = null
-
-				diffs.left = null
-				diffs.right = null
-				diffs.top = null
-				diffs.bottom = null
-			}
+			if (canPair) pairElement(element.id, diffFromElement)
+			else if (isPaired) unpairElement()
 		})
 	}
 
-	const updateGuides = () => {
+	const updateDiffs = () => {
 		if (!target.value) return
 
 		Object.assign(prevDiffs, diffs)
 
-		diffs.centerX = getDiffFromCenter('X')
-		diffs.centerY = getDiffFromCenter('Y')
+		setCenterDiffs()
 
 		setPairedDiffs()
 	}
 
-	const getSnapOffset = (axis) => {
-		const diff = diffs[axis]
-		const prevDiff = prevDiffs[axis]
+	const getDynamicThresholds = (axis) => {
+		const scaleFactor = 0.1
+		const scaledWidth = selectionBounds.width * slideBounds.scale * scaleFactor
+		const minThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth / 2 : 10
+		const maxThreshold = ['centerX', 'centerY'].includes(axis) ? scaledWidth * 2 : 100
 
-		let threshold, margin
-		if (['centerX', 'centerY'].includes(axis)) {
-			threshold = CENTER_PROXIMITY_THRESHOLD
-			margin = 2
-		} else {
-			threshold = PROXIMITY_THRESHOLD
-			margin = 3
+		return {
+			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaledWidth)),
+			resistance_threshold: scaledWidth * 0.15,
 		}
-
-		let offset = 0
-
-		const canSnap = Math.abs(diff + threshold) < margin || Math.abs(diff - threshold) < margin
-		const movingAway = Math.abs(diff) > Math.abs(prevDiff)
-
-		if (canSnap && !movingAway) {
-			offset = diff
-		}
-
-		return offset
 	}
 
-	const delayNextMovement = () => {
-		hasSnapped.value = true
-
-		clearTimeout(snapTimeout)
-		snapTimeout = setTimeout(() => {
-			hasSnapped.value = false
-		}, 450)
+	const getDiffsForAxis = (axis) => {
+		return {
+			diff: diffs[axis],
+			prevDiff: prevDiffs[axis],
+		}
 	}
 
-	const applySnapMovement = (axis) => {
-		let offset = 0
+	const getThresholdsAndMargin = (axis) => {
+		return {
+			...getDynamicThresholds(axis),
+			margin: ['centerX', 'centerY'].includes(axis) ? 1 : 5,
+		}
+	}
 
-		const possibleOffset = getSnapOffset(axis)
+	const handleSnapMovement = (axis) => {
+		const isMovingAway = () => {
+			if (diff == null || prevDiff == null) return false
 
-		if (possibleOffset) {
-			offset += possibleOffset
+			// If current diff is greater, element is moving away
+			const currDiffGreater = Math.abs(diff) >= Math.abs(prevDiff)
 
-			delayNextMovement()
+			// If element just snapped, the prev diff is the threshold point
+			const justSnapped = Math.abs(Math.abs(prevDiff) - threshold) < margin
+
+			return currDiffGreater || justSnapped
 		}
 
-		return offset
+		const getSnapOffset = () => {
+			// check for threshold + / - margin
+			const canSnap = Math.abs(Math.abs(diff) - threshold) < margin
+			if (canSnap && !movingAway) return diff
+			return 0
+		}
+
+		const setResistanceMap = () => {
+			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
+
+			resistanceMap[axis] = diff !== null && withinResistanceRange
+		}
+
+		const { diff, prevDiff } = getDiffsForAxis(axis)
+
+		const { threshold, resistance_threshold, margin } = getThresholdsAndMargin(axis)
+
+		const movingAway = isMovingAway()
+
+		setResistanceMap()
+
+		return getSnapOffset()
 	}
 
 	const getCenterOffsets = () => {
 		return {
-			offsetX: applySnapMovement('centerY'),
-			offsetY: applySnapMovement('centerX'),
+			offsetX: handleSnapMovement('centerY'),
+			offsetY: handleSnapMovement('centerX'),
 		}
 	}
 
+	const getOffset = (axis) => {
+		let start, end
+
+		if (axis == 'X') {
+			start = 'left'
+			end = 'right'
+		} else {
+			start = 'top'
+			end = 'bottom'
+		}
+
+		if (Math.abs(diffs[end]) < Math.abs(diffs[start])) return handleSnapMovement(end)
+
+		return handleSnapMovement(start)
+	}
+
 	const getPairedOffsets = () => {
-		let offsetLeft = 0,
-			offsetTop = 0
-
-		if (Math.abs(diffs.right) < Math.abs(diffs.left)) {
-			offsetLeft = applySnapMovement('right')
-		} else {
-			offsetLeft = applySnapMovement('left')
+		return {
+			offsetLeft: getOffset('X'),
+			offsetTop: getOffset('Y'),
 		}
-
-		if (Math.abs(diffs.bottom) < Math.abs(diffs.top)) {
-			offsetTop = applySnapMovement('bottom')
-		} else {
-			offsetTop = applySnapMovement('top')
-		}
-
-		return { offsetLeft, offsetTop }
 	}
 
 	const getSnapDelta = () => {
@@ -220,10 +272,17 @@ export const useSnapping = (target, parent) => {
 		}
 	}
 
+	const handleSnapping = () => {
+		// update diffs based on current position
+		updateDiffs()
+
+		// return delta to apply for closest snap
+		return getSnapDelta()
+	}
+
 	return {
 		visibilityMap,
-		disableMovement: hasSnapped,
-		updateGuides,
-		getSnapDelta,
+		resistanceMap,
+		handleSnapping,
 	}
 }

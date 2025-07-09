@@ -8,6 +8,8 @@
 <script setup>
 import { computed } from 'vue'
 
+import { slideBounds } from '@/stores/slide'
+
 const props = defineProps({
 	direction: {
 		type: String,
@@ -28,19 +30,16 @@ const baseStyles = {
 	borderRadius: '10px',
 }
 
-const widthHandleStyles = {
-	width: '4px',
-	height: '14px',
-	cursor: 'ew-resize',
-	top: 'calc(50% - 7px)',
-}
-
 const getWidthResizerStyles = () => {
+	const offsetX = `-${3 / slideBounds.scale}px`
 	return {
 		...baseStyles,
-		...widthHandleStyles,
-		left: props.direction === 'left' ? '-3px' : 'auto',
-		right: props.direction === 'right' ? '-3px' : 'auto',
+		cursor: 'ew-resize',
+		left: props.direction === 'left' ? offsetX : 'auto',
+		right: props.direction === 'right' ? offsetX : 'auto',
+		top: `calc(50% - ${7 / slideBounds.scale}px)`,
+		width: `${4 / slideBounds.scale}px`,
+		height: `${14 / slideBounds.scale}px`,
 	}
 }
 
@@ -52,15 +51,18 @@ const getDimensionResizerStyles = () => {
 		'bottom-left': 'nesw-resize',
 		'bottom-right': 'nwse-resize',
 	}
-	const offset = props.currentResizer ? '-5px' : '-4.5px'
+	const offset = props.currentResizer
+		? `-${5 / slideBounds.scale}px`
+		: `-${4.5 / slideBounds.scale}px`
+	const size = props.currentResizer ? `${10 / slideBounds.scale}px` : `${7 / slideBounds.scale}px`
 	return {
 		...baseStyles,
 		top: resizer.includes('top') ? offset : 'auto',
 		bottom: resizer.includes('bottom') ? offset : 'auto',
 		left: resizer.includes('left') ? offset : 'auto',
 		right: resizer.includes('right') ? offset : 'auto',
-		width: props.currentResizer ? '10px' : '7px',
-		height: props.currentResizer ? '10px' : '7px',
+		width: size,
+		height: size,
 		cursor: cursorStyles[resizer],
 	}
 }
