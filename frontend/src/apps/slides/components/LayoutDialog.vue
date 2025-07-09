@@ -19,7 +19,12 @@
 			</div>
 		</template>
 		<template #actions>
-			<Button class="w-full" variant="solid" label="Add Slide" />
+			<Button
+				class="w-full"
+				variant="solid"
+				label="Add Slide"
+				@click="insertSlideWithLayout"
+			/>
 		</template>
 	</Dialog>
 </template>
@@ -27,6 +32,8 @@
 <script setup>
 import { ref } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
+
+const emit = defineEmits(['insert'])
 
 const showLayoutDialog = defineModel({
 	name: 'showLayoutDialog',
@@ -51,5 +58,10 @@ const getThumbnailStyles = (layout) => {
 
 const setCurrentLayout = (layout) => {
 	currentLayout.value = layout.name
+}
+
+const insertSlideWithLayout = () => {
+	emit('insert', currentLayout.value)
+	currentLayout.value = null
 }
 </script>
