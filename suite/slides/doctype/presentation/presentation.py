@@ -169,3 +169,10 @@ def get_updated_json(presentation, json):
 			element["attachmentName"] = name
 
 	return json
+
+
+@frappe.whitelist()
+def get_layouts():
+	layout_presentation = frappe.db.get_value("Presentation", {"is_layout": 1})
+	layout_presentation = frappe.get_doc("Presentation", layout_presentation)
+	return layout_presentation.slides
