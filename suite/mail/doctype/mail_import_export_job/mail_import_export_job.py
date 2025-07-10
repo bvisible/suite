@@ -12,7 +12,14 @@ from frappe.model.document import Document
 from frappe.utils import get_bench_path, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
-from mail.utils import extract_compressed_file, get_mbox_files, get_stalwart_cli_path, zip_directory
+from mail.utils import (
+	extract_compressed_file,
+	get_export_directory,
+	get_import_directory,
+	get_mbox_files,
+	get_stalwart_cli_path,
+	zip_directory,
+)
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import is_account_owner, is_system_manager
 from mail.utils.validation import (
@@ -118,17 +125,14 @@ class MailImportExportJob(Document):
 			return
 
 		self._mark_started()
-		cli_path = get_stalwart_cli_path()
-		file_path = get_bench_path() + f"/sites/{frappe.local.site}{self.import_file}"
-
-		import_dir = get_bench_path() + f"/sites/{frappe.local.site}/imports/{self.name}"
-		if self.import_file_format == "jmap":
-			import_dir += f"/{self.account}"
-		os.makedirs(import_dir, exist_ok=True)
+		import_file = os.path.join(get_bench_path(), f"sites/{frappe.local.site}{self.import_file}")
+		import_base = os.path.join(get_import_directory(), self.name)
+		os.makedirs(import_base, exist_ok=True)
 
 		kwargs = {}
 		try:
-			extract_compressed_file(file_path, import_dir)
+			cli_path = get_stalwart_cli_path()
+			extract_compressed_file(import_file, import_base)
 			host, _credentials = self._get_host_and_credentials()
 
 			command = [cli_path, "-u", host, "import"]
@@ -139,30 +143,34 @@ class MailImportExportJob(Document):
 			command.append(self.account)
 
 			if self.import_file_format == "mbox":
-				mbox_files = get_mbox_files(import_dir)
+				mbox_files = get_mbox_files(import_base)
 
 				if len(mbox_files) == 0:
-					frappe.throw(_("No .mbox file found in the archive."))
+					frappe.throw(_("No {0} file found in the archive.").format("<code>.mbox</code>"))
 				elif len(mbox_files) > 1:
-					frappe.throw(_("Multiple .mbox files found. Please provide only one."))
+					frappe.throw(
+						_("Multiple {0} files found. Please provide only one.").format("<code>.mbox</code>")
+					)
 
 				command.append(mbox_files[0])
+			elif self.import_file_format == "jmap":
+				_import_base = os.path.join(import_base, self.account)
+				validate_jmap_structure(_import_base, raise_exception=True)
+				command.append(_import_base)
 			else:
-				if self.import_file_format == "jmap":
-					validate_jmap_structure(import_dir, raise_exception=True)
-				elif self.import_file_format == "maildir":
-					validate_maildir_or_maildirpp(import_dir, raise_exception=True)
+				if self.import_file_format == "maildir":
+					validate_maildir_or_maildirpp(import_base, raise_exception=True)
 				elif self.import_file_format == "maildir-nested":
-					validate_nested_maildir_tree(import_dir, raise_exception=True)
+					validate_nested_maildir_tree(import_base, raise_exception=True)
 
-				command.append(import_dir)
+				command.append(import_base)
 
 			output = _run_stalwart_cli_command(command, _credentials)
 			kwargs.update({"status": "Completed", "output": output})
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
 
-		shutil.rmtree(import_dir)
+		shutil.rmtree(import_base)
 		self._mark_completed(**kwargs)
 
 	def _export(self) -> None:
@@ -172,18 +180,20 @@ class MailImportExportJob(Document):
 			return
 
 		self._mark_started()
-		cli_path = get_stalwart_cli_path()
-		export_dir = get_bench_path() + f"/sites/{frappe.local.site}/exports/{self.name}"
-		zip_path = get_bench_path() + f"/sites/{frappe.local.site}/private/files/{self.name}.zip"
-		os.makedirs(export_dir, exist_ok=True)
+		export_base = os.path.join(get_export_directory(), self.name)
+		export_file = os.path.join(
+			get_bench_path(), f"sites/{frappe.local.site}/private/files/{self.name}.zip"
+		)
+		os.makedirs(export_base, exist_ok=True)
 
 		kwargs = {}
 		try:
+			cli_path = get_stalwart_cli_path()
 			host, _credentials = self._get_host_and_credentials()
-			command = f"{cli_path} -u {host} export account {self.account} {export_dir}"
+			command = f"{cli_path} -u {host} export account {self.account} {export_base}"
 			output = _run_stalwart_cli_command(command, _credentials)
 
-			zip_directory(export_dir, zip_path)
+			zip_directory(export_base, export_file)
 			file = frappe.new_doc("File")
 			file.file_url = f"/private/files/{self.name}.zip"
 			file.attached_to_doctype = self.doctype
@@ -195,7 +205,7 @@ class MailImportExportJob(Document):
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
 
-		shutil.rmtree(export_dir)
+		shutil.rmtree(export_base)
 		self._mark_completed(**kwargs)
 
 	def _mark_started(self) -> None:
@@ -271,12 +281,12 @@ def _run_stalwart_cli_command(command: str | list[str], _credentials: str, timeo
 	if isinstance(command, list):
 		command = " ".join(shlex.quote(arg) for arg in command)
 
-	child = pexpect.spawn(command, encoding="utf-8", timeout=1500)
+	child = pexpect.spawn(command, encoding="utf-8", timeout=timeout)
 	child.expect("Enter administrator credentials or press \\[ENTER\\] to use OAuth:")
 	child.sendline(_credentials)
 	child.expect(pexpect.EOF)
 	child.wait()
-	output = child.before.strip() if child.before else "No output received"
+	output = child.before.strip() if child.before else "No output received."
 
 	if child.exitstatus != 0:
 		raise Exception(output)
