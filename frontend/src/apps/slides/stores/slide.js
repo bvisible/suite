@@ -107,6 +107,8 @@ const saveChanges = async () => {
 		doc: presentation.data,
 	})
 
+	slide.value.thumbnail = presentation.data.slides[slideIndex.value].thumbnail
+
 	await presentation.reload()
 }
 
