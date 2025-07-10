@@ -1,17 +1,41 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import base64
 import json
 import random
 import string
+import uuid
 
 import frappe
 from frappe.model.document import Document
 
 
+def save_base64_thumbnail(base64_data):
+	header, b64 = base64_data.split(",", 1)
+	ext = header.split("/")[1].split(";")[0]
+	filename = f"{uuid.uuid4().hex[:7]}.{ext}"
+
+	file_doc = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": filename,
+			"content": base64.b64decode(b64),
+			"is_private": 0,
+		}
+	).insert()
+
+	return file_doc.file_url
+
+
 class Presentation(Document):
 	def before_save(self):
 		self.slug = slug(self.title)
+
+	def validate(self):
+		for slide in self.slides:
+			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail)
 
 
 def slug(text: str) -> str:
