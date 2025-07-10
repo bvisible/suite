@@ -14,7 +14,7 @@ from frappe.model.document import Document
 def save_base64_thumbnail(base64_data, presentation_name):
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
-	filename = f"{uuid.uuid4().hex[:7]}.{ext}"
+	filename = f"thumbnail-{uuid.uuid4().hex[:7]}.{ext}"
 
 	file_doc = frappe.get_doc(
 		{
