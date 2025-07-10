@@ -9,7 +9,8 @@ import frappe
 import pexpect
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_bench_path, now, time_diff_in_seconds
+from frappe.query_builder import Order
+from frappe.utils import add_to_date, get_bench_path, get_datetime, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.utils import (
@@ -110,7 +111,12 @@ class MailImportExportJob(Document):
 
 		frappe.only_for("System Manager")
 
-		if self.operation == "Emport":
+		if self.docstatus != 1:
+			frappe.throw(_("Only submitted jobs can be retried."))
+		elif self.status not in ["Queued", "In Progress", "Failed"]:
+			frappe.throw(_("Only jobs with status 'Queued', 'In Progress', or 'Failed' can be retried."))
+
+		if self.operation == "Export":
 			if files := frappe.db.get_all(
 				"File",
 				{
@@ -309,6 +315,28 @@ def _run_stalwart_cli_command(command: str | list[str], _credentials: str, timeo
 		raise Exception(output)
 
 	return output
+
+
+def retry_stuck_import_export_jobs() -> None:
+	"""Called by the scheduler to retry stuck import/export jobs."""
+
+	IE = frappe.qb.DocType("Mail Import Export Job")
+	jobs = (
+		frappe.qb.from_(IE)
+		.select(IE.name)
+		.where(
+			(IE.status.isin(["Queued", "In Progress"]))
+			& (IE.queued_at <= get_datetime(add_to_date(now(), hours=-1)))
+		)
+		.orderby(IE.queued_at, order=Order.asc)
+	).run(pluck="name")
+
+	if not jobs:
+		return
+
+	for job in jobs:
+		doc = frappe.get_doc("Mail Import Export Job", job)
+		doc.retry()
 
 
 def clean_import_export_directories() -> None:
