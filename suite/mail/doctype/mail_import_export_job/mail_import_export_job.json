@@ -14,6 +14,7 @@
   "operation",
   "import_format",
   "import_file",
+  "export_format",
   "section_break_4a28",
   "queued_at",
   "started_at",
@@ -169,13 +170,21 @@
    "mandatory_depends_on": "eval: doc.operation == \"Import\"",
    "no_copy": 1,
    "options": "\njmap\nmbox\nmaildir\nmaildir-nested"
+  },
+  {
+   "depends_on": "eval: doc.operation == \"Export\"",
+   "fieldname": "export_format",
+   "fieldtype": "Select",
+   "label": "Format",
+   "mandatory_depends_on": "eval: doc.operation == \"Export\"",
+   "options": "\n.zip\n.tgz\n.tar.gz"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-10 13:40:13.636118",
+ "modified": "2025-07-10 13:54:10.490522",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Import Export Job",

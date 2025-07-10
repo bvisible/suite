@@ -13,12 +13,12 @@ from frappe.utils import get_bench_path, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.utils import (
+	compress_directory,
 	extract_compressed_file,
 	get_export_directory,
 	get_import_directory,
 	get_mbox_files,
 	get_stalwart_cli_path,
-	zip_directory,
 )
 from mail.utils.cache import get_account_for_user
 from mail.utils.user import is_account_owner, is_system_manager
@@ -37,6 +37,8 @@ class MailImportExportJob(Document):
 		if self.operation == "Import":
 			self.validate_import_format()
 			self.validate_import_file()
+		elif self.operation == "Export":
+			self.validate_export_format()
 
 	def before_submit(self) -> None:
 		self.status = "Queued"
@@ -67,6 +69,12 @@ class MailImportExportJob(Document):
 					", ".join(f"<code>{ext}</code>" for ext in allowed_extensions)
 				)
 			)
+
+	def validate_export_format(self) -> None:
+		"""Validate the export format."""
+
+		if not self.export_format:
+			frappe.throw(_("Export Format is required."))
 
 	def process(self) -> None:
 		"""Enqueue the import or export job based on the operation type."""
@@ -181,9 +189,9 @@ class MailImportExportJob(Document):
 
 		self._mark_started()
 		export_base = os.path.join(get_export_directory(), self.name)
-		export_file = os.path.join(
-			get_bench_path(), f"sites/{frappe.local.site}/private/files/{self.name}.zip"
-		)
+		export_file_name = f"{self.name}{self.export_format}"
+		export_file_url = f"/private/files/{export_file_name}"
+		export_file = os.path.join(get_bench_path(), f"sites/{frappe.local.site}{export_file_url}")
 		os.makedirs(export_base, exist_ok=True)
 
 		kwargs = {}
@@ -193,13 +201,20 @@ class MailImportExportJob(Document):
 			command = f"{cli_path} -u {host} export account {self.account} {export_base}"
 			output = _run_stalwart_cli_command(command, _credentials)
 
-			zip_directory(export_base, export_file)
+			compress_directory(export_base, export_file)
 			file = frappe.new_doc("File")
-			file.file_url = f"/private/files/{self.name}.zip"
+			file.is_private = 1
+			file.file_url = export_file_url
+			file.file_name = export_file_name
 			file.attached_to_doctype = self.doctype
 			file.attached_to_name = self.name
 			file.attached_to_field = "file"
 			file.insert()
+
+			# https://github.com/frappe/frappe/issues/26615
+			frappe.db.set_value(
+				"File", file.name, {"file_url": export_file_url, "file_name": export_file_name}
+			)
 
 			kwargs.update({"status": "Completed", "output": output})
 		except Exception as e:
