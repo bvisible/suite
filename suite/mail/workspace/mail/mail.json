@@ -15,7 +15,7 @@
  "label": "Mail",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-07-10 15:06:57.240561",
+ "modified": "2025-07-10 16:41:36.753526",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail",
@@ -39,8 +39,8 @@
    "color": "Blue",
    "doc_view": "List",
    "label": "Import/Export - Queued",
-   "link_to": "Mail Import Export Job",
-   "stats_filter": "[[\"Mail Import Export Job\",\"status\",\"=\",\"Queued\",false]]",
+   "link_to": "Mail Data Exchange",
+   "stats_filter": "[]",
    "type": "DocType"
   },
   {
@@ -49,22 +49,6 @@
    "label": "Queued",
    "link_to": "Mail Queue",
    "stats_filter": "[[\"Mail Queue\",\"status\",\"=\",\"Queued\",false]]",
-   "type": "DocType"
-  },
-  {
-   "color": "Orange",
-   "doc_view": "List",
-   "label": "Import/Export - In Progress",
-   "link_to": "Mail Import Export Job",
-   "stats_filter": "[[\"Mail Import Export Job\",\"status\",\"=\",\"In Progress\",false]]",
-   "type": "DocType"
-  },
-  {
-   "color": "Red",
-   "doc_view": "List",
-   "label": "Import/Export - Failed",
-   "link_to": "Mail Import Export Job",
-   "stats_filter": "[[\"Mail Import Export Job\",\"status\",\"=\",\"Failed\",false]]",
    "type": "DocType"
   },
   {
@@ -100,6 +84,14 @@
    "type": "DocType"
   },
   {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Import/Export - In Progress",
+   "link_to": "Mail Data Exchange",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
    "color": "Red",
    "doc_view": "List",
    "label": "Failed",
@@ -113,6 +105,14 @@
    "label": "Expired",
    "link_to": "JMAP Push Subscription",
    "stats_filter": "[[\"JMAP Push Subscription\",\"status\",\"=\",\"Expired\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "label": "Import/Export - Failed",
+   "link_to": "Mail Data Exchange",
+   "stats_filter": "[]",
    "type": "DocType"
   },
   {

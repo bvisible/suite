@@ -30,7 +30,7 @@ from mail.utils.validation import (
 )
 
 
-class MailImportExportJob(Document):
+class MailDataExchange(Document):
 	def autoname(self) -> None:
 		self.name = str(uuid7())
 
@@ -78,7 +78,7 @@ class MailImportExportJob(Document):
 			frappe.throw(_("Export Format is required."))
 
 	def process(self) -> None:
-		"""Enqueue the import or export job based on the operation type."""
+		"""Enqueue the import or export based on the operation type."""
 
 		if self.operation == "Import":
 			job_id = f"{self.name}:import"
@@ -107,14 +107,16 @@ class MailImportExportJob(Document):
 
 	@frappe.whitelist()
 	def retry(self) -> None:
-		"""Retry the import or export job."""
+		"""Retry the import or export."""
 
 		frappe.only_for("System Manager")
 
 		if self.docstatus != 1:
-			frappe.throw(_("Only submitted jobs can be retried."))
+			frappe.throw(_("Only submitted data exchange can be retried."))
 		elif self.status not in ["Queued", "In Progress", "Failed"]:
-			frappe.throw(_("Only jobs with status 'Queued', 'In Progress', or 'Failed' can be retried."))
+			frappe.throw(
+				_("Only data exchange with status 'Queued', 'In Progress', or 'Failed' can be retried.")
+			)
 
 		if self.operation == "Export":
 			if files := frappe.db.get_all(
@@ -230,7 +232,7 @@ class MailImportExportJob(Document):
 		self._mark_completed(**kwargs)
 
 	def _mark_started(self) -> None:
-		"""Marks the job as started and updates the started_at and started_after fields."""
+		"""Marks the data exchange as started and updates the started_at and started_after fields."""
 
 		started_at = now()
 		started_after = time_diff_in_seconds(started_at, self.queued_at)
@@ -250,7 +252,7 @@ class MailImportExportJob(Document):
 		)
 
 	def _mark_completed(self, **kwargs) -> None:
-		"""Marks the job as completed and updates the completed_at and duration fields."""
+		"""Marks the data exchange as completed and updates the completed_at and duration fields."""
 
 		kwargs["completed_at"] = now()
 		kwargs["duration"] = time_diff_in_seconds(kwargs["completed_at"], self.started_at)
@@ -279,13 +281,13 @@ def get_permission_query_condition(user: str | None = None) -> str:
 		return ""
 
 	if account := get_account_for_user(user):
-		return f"(`tabMail Import Export Job`.account = '{account}')"
+		return f"(`tabMail Data Exchange`.account = '{account}')"
 	else:
 		return "1=0"
 
 
 def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
-	if doc.doctype != "Mail Import Export Job":
+	if doc.doctype != "Mail Data Exchange":
 		return False
 
 	user = user or frappe.session.user
@@ -317,25 +319,25 @@ def _run_stalwart_cli_command(command: str | list[str], _credentials: str, timeo
 	return output
 
 
-def retry_stuck_import_export_jobs() -> None:
-	"""Called by the scheduler to retry stuck import/export jobs."""
+def retry_stuck_data_exchanges() -> None:
+	"""Called by the scheduler to retry stuck data exchanges."""
 
-	IE = frappe.qb.DocType("Mail Import Export Job")
-	jobs = (
-		frappe.qb.from_(IE)
-		.select(IE.name)
+	DE = frappe.qb.DocType("Mail Data Exchange")
+	exchanges = (
+		frappe.qb.from_(DE)
+		.select(DE.name)
 		.where(
-			(IE.status.isin(["Queued", "In Progress"]))
-			& (IE.queued_at <= get_datetime(add_to_date(now(), hours=-1)))
+			(DE.status.isin(["Queued", "In Progress"]))
+			& (DE.queued_at <= get_datetime(add_to_date(now(), hours=-1)))
 		)
-		.orderby(IE.queued_at, order=Order.asc)
+		.orderby(DE.queued_at, order=Order.asc)
 	).run(pluck="name")
 
-	if not jobs:
+	if not exchanges:
 		return
 
-	for job in jobs:
-		doc = frappe.get_doc("Mail Import Export Job", job)
+	for exchange in exchanges:
+		doc = frappe.get_doc("Mail Data Exchange", exchange)
 		doc.retry()
 
 
@@ -347,7 +349,7 @@ def clean_import_export_directories() -> None:
 			for item in os.listdir(directory):
 				item_path = os.path.join(directory, item)
 				if os.path.isdir(item_path):
-					if frappe.db.exists("Mail Import Export Job", {"name": item, "status": "In Progress"}):
+					if frappe.db.exists("Mail Data Exchange", {"name": item, "status": "In Progress"}):
 						continue
 
 					shutil.rmtree(item_path, ignore_errors=True)
