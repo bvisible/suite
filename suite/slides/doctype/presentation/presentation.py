@@ -11,7 +11,7 @@ import frappe
 from frappe.model.document import Document
 
 
-def save_base64_thumbnail(base64_data):
+def save_base64_thumbnail(base64_data, presentation_name):
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"{uuid.uuid4().hex[:7]}.{ext}"
@@ -21,7 +21,9 @@ def save_base64_thumbnail(base64_data):
 			"doctype": "File",
 			"file_name": filename,
 			"content": base64.b64decode(b64),
-			"is_private": 0,
+			"is_private": 1,
+			"attached_to_doctype": "Presentation",
+			"attached_to_name": presentation_name,
 		}
 	).insert()
 
@@ -35,7 +37,7 @@ class Presentation(Document):
 	def validate(self):
 		for slide in self.slides:
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name)
 
 
 def slug(text: str) -> str:
