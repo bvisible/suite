@@ -288,10 +288,31 @@ def get_mail_app_path() -> str:
 	return os.path.join(get_bench_path(), "apps/mail")
 
 
-def get_stalwart_cli_path() -> str:
-	"""Returns the path to the Stalwart CLI tool."""
+def get_import_directory() -> str:
+	"""Returns the path to the import directory for the current site."""
 
-	return os.path.join(get_mail_app_path(), "stalwart-cli")
+	directory = os.path.join(get_bench_path(), "sites", frappe.local.site, "imports")
+	os.makedirs(directory, exist_ok=True)
+	return directory
+
+
+def get_export_directory() -> str:
+	"""Returns the path to the export directory for the current site."""
+
+	directory = os.path.join(get_bench_path(), "sites", frappe.local.site, "exports")
+	os.makedirs(directory, exist_ok=True)
+	return directory
+
+
+def get_stalwart_cli_path() -> str:
+	"""Returns the path to the Stalwart CLI tool, raising an error if not found."""
+
+	cli_path = os.path.join(get_mail_app_path(), "stalwart-cli")
+	if not os.path.exists(cli_path):
+		relpath = os.path.relpath(cli_path, get_bench_path())
+		frappe.throw(_("Stalwart CLI not found at {0}.").format(relpath))
+
+	return cli_path
 
 
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:
