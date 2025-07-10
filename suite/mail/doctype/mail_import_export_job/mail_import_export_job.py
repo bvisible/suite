@@ -35,7 +35,7 @@ class MailImportExportJob(Document):
 
 	def validate(self) -> None:
 		if self.operation == "Import":
-			self.validate_import_file_format()
+			self.validate_import_format()
 			self.validate_import_file()
 
 	def before_submit(self) -> None:
@@ -48,11 +48,11 @@ class MailImportExportJob(Document):
 	def before_cancel(self) -> None:
 		self.status = "Cancelled"
 
-	def validate_import_file_format(self) -> None:
-		"""Validate the import file format."""
+	def validate_import_format(self) -> None:
+		"""Validate the import format."""
 
-		if not self.import_file_format:
-			frappe.throw(_("Import File Format is required."))
+		if not self.import_format:
+			frappe.throw(_("Import Format is required."))
 
 	def validate_import_file(self) -> None:
 		"""Validate the import file."""
@@ -136,13 +136,13 @@ class MailImportExportJob(Document):
 			host, _credentials = self._get_host_and_credentials()
 
 			command = [cli_path, "-u", host, "import"]
-			if self.import_file_format == "jmap":
+			if self.import_format == "jmap":
 				command.append("account")
 			else:
-				command.extend(["messages", "-f", self.import_file_format])
+				command.extend(["messages", "-f", self.import_format])
 			command.append(self.account)
 
-			if self.import_file_format == "mbox":
+			if self.import_format == "mbox":
 				mbox_files = get_mbox_files(import_base)
 
 				if len(mbox_files) == 0:
@@ -153,14 +153,14 @@ class MailImportExportJob(Document):
 					)
 
 				command.append(mbox_files[0])
-			elif self.import_file_format == "jmap":
+			elif self.import_format == "jmap":
 				_import_base = os.path.join(import_base, self.account)
 				validate_jmap_structure(_import_base, raise_exception=True)
 				command.append(_import_base)
 			else:
-				if self.import_file_format == "maildir":
+				if self.import_format == "maildir":
 					validate_maildir_or_maildirpp(import_base, raise_exception=True)
-				elif self.import_file_format == "maildir-nested":
+				elif self.import_format == "maildir-nested":
 					validate_nested_maildir_tree(import_base, raise_exception=True)
 
 				command.append(import_base)
