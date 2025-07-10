@@ -37,7 +37,7 @@ def delete_old_thumbnail(old_thumbnail: str):
 			frappe.log_error(f"Failed to remove old thumbnail: {e}")
 
 
-def save_base64_thumbnail(base64_data, presentation_name):
+def save_base64_thumbnail(base64_data: str, presentation_name: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"thumbnail-{uuid.uuid4().hex[:7]}.{ext}"
@@ -127,6 +127,7 @@ def insert_slide(name, index):
 @frappe.whitelist()
 def delete_slide(name, index):
 	presentation = frappe.get_doc("Presentation", name)
+	delete_old_thumbnail(presentation.slides[index].thumbnail)
 	presentation.slides = presentation.slides[:index] + presentation.slides[index + 1 :]
 	for i in range(index, len(presentation.slides)):
 		presentation.slides[i].idx -= 1
