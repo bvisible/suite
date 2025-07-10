@@ -11,6 +11,32 @@ import frappe
 from frappe.model.document import Document
 
 
+class Presentation(Document):
+	def before_save(self):
+		self.slug = slug(self.title)
+
+	def update_thumbnails(self):
+		old_slides = self.get_doc_before_save().slides
+
+		for slide in self.slides:
+			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
+				old_thumbnail = old_slides[slide.idx - 1].thumbnail
+				delete_old_thumbnail(old_thumbnail)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name)
+
+	def validate(self):
+		self.update_thumbnails()
+
+
+def delete_old_thumbnail(old_thumbnail: str):
+	if old_thumbnail and old_thumbnail.startswith("/private/files/"):
+		try:
+			file_doc = frappe.db.get_value("File", {"file_url": old_thumbnail})
+			frappe.delete_doc("File", file_doc)
+		except Exception as e:
+			frappe.log_error(f"Failed to remove old thumbnail: {e}")
+
+
 def save_base64_thumbnail(base64_data, presentation_name):
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
@@ -28,16 +54,6 @@ def save_base64_thumbnail(base64_data, presentation_name):
 	).insert()
 
 	return file_doc.file_url
-
-
-class Presentation(Document):
-	def before_save(self):
-		self.slug = slug(self.title)
-
-	def validate(self):
-		for slide in self.slides:
-			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name)
 
 
 def slug(text: str) -> str:
