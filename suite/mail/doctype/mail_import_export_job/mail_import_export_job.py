@@ -228,7 +228,9 @@ class MailImportExportJob(Document):
 
 		started_at = now()
 		started_after = time_diff_in_seconds(started_at, self.queued_at)
-		self._db_set(status="In Progress", started_at=started_at, started_after=started_after, notify=True)
+		self._db_set(
+			status="In Progress", started_at=started_at, started_after=started_after, notify=True, commit=True
+		)
 
 	def _get_host_and_credentials(self) -> tuple[str, str]:
 		"""Returns the host and credentials for the account's cluster."""
@@ -307,3 +309,19 @@ def _run_stalwart_cli_command(command: str | list[str], _credentials: str, timeo
 		raise Exception(output)
 
 	return output
+
+
+def clean_import_export_directories() -> None:
+	"""Called by the scheduler to clean up import and export directories."""
+
+	for directory in (get_import_directory(), get_export_directory()):
+		if os.path.exists(directory):
+			for item in os.listdir(directory):
+				item_path = os.path.join(directory, item)
+				if os.path.isdir(item_path):
+					if frappe.db.exists("Mail Import Export Job", {"name": item, "status": "In Progress"}):
+						continue
+
+					shutil.rmtree(item_path, ignore_errors=True)
+				else:
+					os.remove(item_path)
