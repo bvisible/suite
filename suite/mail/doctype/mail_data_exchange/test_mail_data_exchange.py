@@ -11,18 +11,18 @@ EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
-class UnitTestMailImportExportJob(UnitTestCase):
+class UnitTestMailDataExchange(UnitTestCase):
 	"""
-	Unit tests for MailImportExportJob.
+	Unit tests for MailDataExchange.
 	Use this class for testing individual functions and methods.
 	"""
 
 	pass
 
 
-class IntegrationTestMailImportExportJob(IntegrationTestCase):
+class IntegrationTestMailDataExchange(IntegrationTestCase):
 	"""
-	Integration tests for MailImportExportJob.
+	Integration tests for MailDataExchange.
 	Use this class for testing interactions between multiple components.
 	"""
 

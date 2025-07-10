@@ -171,7 +171,7 @@ permission_query_conditions = {
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.get_permission_query_condition",
 	"Email Message": "mail.mail.doctype.email_message.email_message.get_permission_query_condition",
 	"Mail Queue": "mail.mail.doctype.mail_queue.mail_queue.get_permission_query_condition",
-	"Mail Import Export Job": "mail.mail.doctype.mail_import_export_job.mail_import_export_job.get_permission_query_condition",
+	"Mail Data Exchange": "mail.mail.doctype.mail_data_exchange.mail_data_exchange.get_permission_query_condition",
 }
 
 has_permission = {
@@ -188,7 +188,7 @@ has_permission = {
 	"Mail Contact": "mail.mail.doctype.mail_contact.mail_contact.has_permission",
 	"Email Message": "mail.mail.doctype.email_message.email_message.has_permission",
 	"Mail Queue": "mail.mail.doctype.mail_queue.mail_queue.has_permission",
-	"Mail Import Export Job": "mail.mail.doctype.mail_import_export_job.mail_import_export_job.has_permission",
+	"Mail Data Exchange": "mail.mail.doctype.mail_data_exchange.mail_data_exchange.has_permission",
 }
 
 website_route_rules = [
@@ -215,13 +215,13 @@ website_route_rules = [
 scheduler_events = {
 	"all": ["mail.mail.doctype.email_message.search.build_index_in_background"],
 	"daily": [
-		"mail.mail.doctype.mail_import_export_job.mail_import_export_job.clean_import_export_directories",
+		"mail.mail.doctype.mail_data_exchange.mail_data_exchange.clean_import_export_directories",
 	],
 	"daily_long": [
 		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
 	],
 	"hourly": [
-		"mail.mail.doctype.mail_import_export_job.mail_import_export_job.retry_stuck_import_export_jobs",
+		"mail.mail.doctype.mail_data_exchange.mail_data_exchange.retry_stuck_data_exchanges",
 	],
 	"hourly_long": [
 		"mail.mail.doctype.email_message.email_message.schedule_fetch_changes",
