@@ -214,16 +214,15 @@ website_route_rules = [
 
 scheduler_events = {
 	"all": ["mail.mail.doctype.email_message.search.build_index_in_background"],
-	# "daily": [
-	# 	"mail.tasks.daily"
-	# ],
-	"daily_long": [
-		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
+	"daily": [
 		"mail.mail.doctype.mail_import_export_job.mail_import_export_job.clean_import_export_directories",
 	],
-	# "hourly": [
-	#     "mail.tasks.hourly"
-	# ],
+	"daily_long": [
+		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
+	],
+	"hourly": [
+		"mail.mail.doctype.mail_import_export_job.mail_import_export_job.retry_stuck_import_export_jobs",
+	],
 	"hourly_long": [
 		"mail.mail.doctype.email_message.email_message.schedule_fetch_changes",
 		"mail.mail.doctype.email_message.email_message.delete_destroyed_emails",
