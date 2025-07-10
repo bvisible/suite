@@ -178,7 +178,7 @@ class MailImportExportJob(Document):
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
 
-		shutil.rmtree(import_base)
+		shutil.rmtree(import_base, ignore_errors=True)
 		self._mark_completed(**kwargs)
 
 	def _export(self) -> None:
@@ -220,7 +220,7 @@ class MailImportExportJob(Document):
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
 
-		shutil.rmtree(export_base)
+		shutil.rmtree(export_base, ignore_errors=True)
 		self._mark_completed(**kwargs)
 
 	def _mark_started(self) -> None:
