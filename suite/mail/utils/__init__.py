@@ -5,6 +5,7 @@ import os
 import re
 import secrets
 import string
+import tarfile
 import zipfile
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
@@ -15,6 +16,7 @@ import bcrypt
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
+from frappe.utils import get_bench_path
 from frappe.utils.caching import redis_cache
 
 
@@ -121,6 +123,55 @@ def load_compressed_file(file_path: str | None = None, file_data: bytes | None =
 		pass
 
 	frappe.throw(_("Failed to load content from the compressed file."))
+
+
+def extract_compressed_file(file_path: str, destination: str) -> None:
+	"""Extract a .zip, .tar.gz, or .tgz archive to the specified destination directory."""
+
+	if not os.path.exists(file_path):
+		frappe.throw(_("File not found: {0}").format(file_path))
+
+	if file_path.endswith(".zip"):
+		with zipfile.ZipFile(file_path, "r") as archive:
+			archive.extractall(destination)
+
+	elif file_path.endswith((".tar.gz", ".tgz")):
+		with tarfile.open(file_path, "r:gz") as archive:
+			archive.extractall(destination)
+
+	else:
+		frappe.throw(_("Unsupported file format: {0}").format(file_path))
+
+
+def get_mbox_files(base_dir: str) -> list[str]:
+	"""Recursively find and return all .mbox files under the given directory."""
+
+	mbox_files = [
+		os.path.join(root, filename)
+		for root, _, files in os.walk(base_dir)
+		for filename in files
+		if filename.endswith(".mbox")
+	]
+	return mbox_files
+
+
+def compress_directory(source_dir: str, output_path: str) -> None:
+	"""Compress a directory into .zip, .tgz, or .tar.gz format based on output file extension."""
+
+	if output_path.endswith(".zip"):
+		with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+			for root, _dirs, files in os.walk(source_dir):
+				for file in files:
+					file_path = os.path.join(root, file)
+					relative_path = os.path.relpath(file_path, source_dir)
+					zip_file.write(file_path, relative_path)
+
+	elif output_path.endswith(".tgz") or output_path.endswith(".tar.gz"):
+		with tarfile.open(output_path, "w:gz") as tar_file:
+			tar_file.add(source_dir, arcname=".")
+
+	else:
+		frappe.throw(_("Unsupported output file format. Supported formats are .zip, .tgz, and .tar.gz."))
 
 
 def enqueue_job(
@@ -237,6 +288,39 @@ def generate_uuid_style_hash(input_str: str) -> str:
 
 	hash = hashlib.md5(input_str.encode()).hexdigest()
 	return f"{hash[:8]}-{hash[8:12]}-{hash[12:16]}-{hash[16:20]}-{hash[20:]}"
+
+
+def get_mail_app_path() -> str:
+	"""Returns the path to the Mail app directory."""
+
+	return os.path.join(get_bench_path(), "apps/mail")
+
+
+def get_import_directory() -> str:
+	"""Returns the path to the import directory for the current site."""
+
+	directory = os.path.join(get_bench_path(), "sites", frappe.local.site, "imports")
+	os.makedirs(directory, exist_ok=True)
+	return directory
+
+
+def get_export_directory() -> str:
+	"""Returns the path to the export directory for the current site."""
+
+	directory = os.path.join(get_bench_path(), "sites", frappe.local.site, "exports")
+	os.makedirs(directory, exist_ok=True)
+	return directory
+
+
+def get_stalwart_cli_path() -> str:
+	"""Returns the path to the Stalwart CLI tool, raising an error if not found."""
+
+	cli_path = os.path.join(get_mail_app_path(), "stalwart-cli")
+	if not os.path.exists(cli_path):
+		relpath = os.path.relpath(cli_path, get_bench_path())
+		frappe.throw(_("Stalwart CLI not found at {0}.").format(relpath))
+
+	return cli_path
 
 
 def get_dkim_host(domain_name: str, type: Literal["rsa", "ed25519"]) -> str:

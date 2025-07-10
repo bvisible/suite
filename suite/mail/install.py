@@ -1,13 +1,25 @@
+import os
+import platform
+import tarfile
+import urllib.request
+
 import frappe
 from frappe.core.api.file import create_new_folder
 
+from mail.mail.doctype.email_message.search import build_index_in_background
 from mail.mail.doctype.rate_limit.rate_limit import create_rate_limit
+from mail.utils import get_mail_app_path, get_stalwart_cli_path
 
 
 def after_install() -> None:
 	add_rate_limits()
 	create_default_tenant()
 	create_new_folder("Frappe Mail", "Home")
+
+
+def after_migrate() -> None:
+	install_stalwart_cli()
+	build_index_in_background()
 
 
 def add_rate_limits() -> None:
@@ -53,3 +65,59 @@ def create_default_tenant() -> None:
 	tenant.user = "Administrator"
 	tenant.allow_personal_signup = 1
 	tenant.insert(ignore_permissions=True)
+
+
+def install_stalwart_cli() -> None:
+	"""Enqueues a job to install the Stalwart CLI tool."""
+
+	frappe.enqueue(_install_stalwart_cli, queue="default", at_front=True)
+
+
+def _install_stalwart_cli() -> str:
+	"""Download and install the Stalwart CLI tool."""
+
+	url, filename = _get_stalwart_cli_download_url()
+	install_dir = get_mail_app_path()
+	tar_path = os.path.join(install_dir, filename)
+
+	print(f"Downloading {url}...")
+	urllib.request.urlretrieve(url, tar_path)
+
+	print(f"Extracting {filename}...")
+	with tarfile.open(tar_path, "r:gz") as tar:
+		tar.extractall(path=install_dir)
+
+	cli_path = get_stalwart_cli_path()
+	os.chmod(cli_path, 0o755)
+
+	print(f"Removing {tar_path}...")
+	os.remove(tar_path)
+
+	print(f"Stalwart CLI installed to: {cli_path}")
+	return cli_path
+
+
+def _get_stalwart_cli_download_url() -> str:
+	"""Returns the download URL and filename for the Stalwart CLI tool."""
+
+	github_release_base = "https://github.com/stalwartlabs/stalwart/releases/latest/download"
+
+	system = platform.system().lower()
+	arch = platform.machine().lower()
+
+	if arch in ["x86_64", "amd64"]:
+		arch = "x86_64"
+	elif arch in ["arm64", "aarch64"]:
+		arch = "aarch64"
+	else:
+		frappe.throw(f"Unsupported architecture: {arch}")
+
+	if system == "linux":
+		os_id = "unknown-linux-gnu"
+	elif system == "darwin":
+		os_id = "apple-darwin"
+	else:
+		raise Exception(f"Unsupported operating system: {system}")
+
+	filename = f"stalwart-cli-{arch}-{os_id}.tar.gz"
+	return f"{github_release_base}/{filename}", filename
