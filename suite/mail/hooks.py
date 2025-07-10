@@ -219,6 +219,7 @@ scheduler_events = {
 	# ],
 	"daily_long": [
 		"mail.mail.doctype.jmap_push_subscription.jmap_push_subscription.renew_push_subscriptions",
+		"mail.mail.doctype.mail_import_export_job.mail_import_export_job.clean_import_export_directories",
 	],
 	# "hourly": [
 	#     "mail.tasks.hourly"
