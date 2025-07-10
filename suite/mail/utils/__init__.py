@@ -155,15 +155,23 @@ def get_mbox_files(base_dir: str) -> list[str]:
 	return mbox_files
 
 
-def zip_directory(source_dir: str, output_zip: str) -> None:
-	"""Create a ZIP archive from the contents of a directory."""
+def compress_directory(source_dir: str, output_path: str) -> None:
+	"""Compress a directory into .zip, .tgz, or .tar.gz format based on output file extension."""
 
-	with zipfile.ZipFile(output_zip, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
-		for root, _dirs, files in os.walk(source_dir):
-			for file in files:
-				file_path = os.path.join(root, file)
-				relative_path = os.path.relpath(file_path, source_dir)
-				zip_file.write(file_path, relative_path)
+	if output_path.endswith(".zip"):
+		with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+			for root, _dirs, files in os.walk(source_dir):
+				for file in files:
+					file_path = os.path.join(root, file)
+					relative_path = os.path.relpath(file_path, source_dir)
+					zip_file.write(file_path, relative_path)
+
+	elif output_path.endswith(".tgz") or output_path.endswith(".tar.gz"):
+		with tarfile.open(output_path, "w:gz") as tar_file:
+			tar_file.add(source_dir, arcname=".")
+
+	else:
+		frappe.throw(_("Unsupported output file format. Supported formats are .zip, .tgz, and .tar.gz."))
 
 
 def enqueue_job(
