@@ -60,7 +60,7 @@
 						v-model="activeElement.fontSize"
 						suffix="px"
 						:rangeStart="5"
-						:rangeEnd="100"
+						:rangeEnd="800"
 						:rangeStep="1"
 					/>
 				</div>
