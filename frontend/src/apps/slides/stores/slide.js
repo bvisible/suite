@@ -65,6 +65,11 @@ const getThumbnailHtml = () => {
 	clone.querySelectorAll('*').forEach((element) => {
 		if (element.hasAttribute('data-index')) {
 			element.style.position = 'absolute'
+			// compensate for baseline alignment done by html2canvas for text
+			if (element.firstChild.hasAttribute('contenteditable')) {
+				const offsetTop = element.firstChild.style.fontSize.replace('px', '') * 0.4
+				element.style.top = `${parseFloat(element.style.top) - offsetTop}px`
+			}
 		}
 	})
 
