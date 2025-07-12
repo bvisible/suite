@@ -42,7 +42,7 @@ def delete_old_thumbnail(slide_id: Document, old_thumbnail: str | None = None):
 def save_base64_thumbnail(base64_data: str, presentation_name: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
-	filename = f"thumbnail-{uuid.uuid4().hex[:7]}.{ext}"
+	filename = f"thumbnail-{uuid.uuid4().hex[:6]}.{ext}"
 
 	file_doc = frappe.get_doc(
 		{
