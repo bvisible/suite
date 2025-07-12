@@ -28,7 +28,7 @@
 
 	<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
 
-	<OverflowContentOverlay v-if="!activeElementIds.length" />
+	<OverflowContentOverlay />
 </template>
 
 <script setup>
