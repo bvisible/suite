@@ -52,13 +52,36 @@ const isSlideDirty = () => {
 	return !isEqual(data, updatedData)
 }
 
-const getSlideThumbnail = async () => {
+const getThumbnailHtml = () => {
 	const slideRef = document.querySelector('.slide')
-	const scale = slideRef.getBoundingClientRect().width / 960
-	if (scale !== 1) {
-		return slide.value.thumbnail
-	}
-	const canvas = await html2canvas(slideRef)
+
+	const clone = slideRef.cloneNode(true)
+
+	clone.style.position = 'absolute'
+	clone.style.left = '-9999px'
+	clone.style.top = '0'
+	clone.style.transform = 'scale(1)'
+
+	clone.querySelectorAll('*').forEach((element) => {
+		if (element.hasAttribute('data-index')) {
+			element.style.position = 'absolute'
+		}
+	})
+
+	return clone
+}
+
+const getSlideThumbnail = async () => {
+	const thumbnailHtml = getThumbnailHtml()
+
+	document.body.appendChild(thumbnailHtml)
+
+	const canvas = await html2canvas(thumbnailHtml, {
+		scale: window.devicePixelRatio,
+	})
+
+	document.body.removeChild(thumbnailHtml)
+
 	return canvas.toDataURL('image/png')
 }
 
