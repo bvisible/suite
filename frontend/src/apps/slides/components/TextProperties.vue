@@ -49,8 +49,8 @@
 				:options="textFonts"
 				size="sm"
 				variant="subtle"
-				:modelValue="activeElement.fontFamily"
-				@update:modelValue="(font) => (activeElement.fontFamily = font.value)"
+				:modelValue="styles.fontFamily"
+				@update:modelValue="(font) => updateProperty('fontFamily', font.value)"
 			/>
 
 			<div class="flex items-center justify-between">
