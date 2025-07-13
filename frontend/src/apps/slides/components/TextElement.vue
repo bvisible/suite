@@ -1,33 +1,24 @@
 <template>
-	<!-- <div
-		class="focus:outline-none"
-		:contenteditable="focusElementId == element.id"
-		:style="textStyle"
-		@focus="setCursorPositionAtEnd"
-		@blur="handleBlur"
-	>
-		{{ element.content }}
-	</div> -->
-
 	<EditorContent :editor="editor" class="p-0" />
 </template>
 
 <script setup>
-import { computed, watchEffect, onMounted } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 
-import { focusElementId, deleteElements } from '@/stores/element'
+import { focusElementId, deleteElements, activeElement } from '@/stores/element'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 import { EditorContent } from '@tiptap/vue-3'
 
-import { useTextEditor } from '@/stores/textEditor'
+import { initTextEditor, activeEditor } from '@/stores/textEditor'
+import { updateSelectionBounds } from '@/stores/slide'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
-const { editor, isEditorReady } = useTextEditor()
+const editor = initTextEditor(element.value.content)
 
 const textStyle = computed(() => ({
 	content: element.value.content,
@@ -59,11 +50,13 @@ const handleBlur = (e) => {
 	element.value.content = e.target.innerText
 }
 
-onMounted(() => {
-	watchEffect(() => {
-		if (isEditorReady.value && element.value.content) {
-			editor.value.commands.setContent(element.value.content)
+watch(
+	() => activeElement.value,
+	(el) => {
+		if (el?.type === 'text' && el.id == element.value.id) {
+			activeEditor.value = editor
 		}
-	})
-})
+	},
+	{ immediate: true },
+)
 </script>
