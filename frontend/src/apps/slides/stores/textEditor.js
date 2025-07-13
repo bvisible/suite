@@ -1,9 +1,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Editor } from '@tiptap/vue-3'
 
+import { Editor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import TextStyle from '@tiptap/extension-text-style'
 import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
 
 const CustomTextStyle = TextStyle.extend({
 	addAttributes() {
@@ -17,6 +18,12 @@ const CustomTextStyle = TextStyle.extend({
 						style: `font-size: ${attributes.fontSize}`,
 					}
 				},
+			},
+			textTransform: {
+				default: null,
+				parseHTML: (el) => el.style.textTransform || null,
+				renderHTML: (attrs) =>
+					attrs.textTransform ? { style: `text-transform: ${attrs.textTransform}` } : {},
 			},
 			fontFamily: {
 				default: null,
@@ -37,6 +44,7 @@ export const initTextEditor = (content) => {
 		extensions: [
 			StarterKit,
 			CustomTextStyle,
+			Underline,
 			TextAlign.configure({
 				types: ['paragraph'],
 			}),
@@ -63,8 +71,20 @@ export const toggleTextProperty = (property) => {
 		case 'strike':
 			editor.chain().focus().selectAll().toggleStrike().run()
 			break
+		case 'uppercase':
+			editor
+				.chain()
+				.focus()
+				.setMark('textStyle', {
+					textTransform:
+						editor.getAttributes('textStyle').textTransform == 'uppercase'
+							? null
+							: 'uppercase',
+				})
+				.run()
+			break
 		default:
-			editor.chain().focus().selectAll().toggleStrike().run()
+			editor.chain().focus().selectAll().toggleUnderline().run()
 			break
 	}
 }
@@ -74,6 +94,8 @@ export function useTextStyles(editor) {
 		bold: false,
 		italic: false,
 		strike: false,
+		underline: false,
+		uppercase: false,
 	})
 
 	const update = () => {
@@ -85,6 +107,8 @@ export function useTextStyles(editor) {
 			bold: editor.value.isActive('bold'),
 			italic: editor.value.isActive('italic'),
 			strike: editor.value.isActive('strike'),
+			underline: editor.value.isActive('underline'),
+			uppercase: attrs.textTransform == 'uppercase',
 		}
 	}
 
