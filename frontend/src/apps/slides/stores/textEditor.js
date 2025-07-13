@@ -107,6 +107,16 @@ export const updateProperty = (property, value) => {
 				})
 				.run()
 			break
+		case 'fontFamily':
+			editor
+				.chain()
+				.focus()
+				.selectAll()
+				.setMark('textStyle', {
+					fontFamily: value ? value : null,
+				})
+				.run()
+			break
 	}
 }
 
@@ -119,6 +129,7 @@ export function useTextStyles(editor) {
 		uppercase: false,
 		textAlign: 'left',
 		fontSize: null,
+		fontFamily: null,
 	})
 
 	const update = () => {
@@ -134,6 +145,7 @@ export function useTextStyles(editor) {
 			uppercase: attrs.textTransform == 'uppercase',
 			textAlign: editor.value.getAttributes('paragraph').textAlign || 'left',
 			fontSize: parseInt(attrs.fontSize, 10) || null,
+			fontFamily: attrs.fontFamily || null,
 		}
 	}
 
