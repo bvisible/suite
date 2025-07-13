@@ -84,6 +84,7 @@ const getElementContent = (element) => {
 								attrs: {
 									fontSize: `${element.fontSize}px`,
 									fontFamily: element.fontFamily,
+									color: element.color,
 								},
 							},
 						],
@@ -99,6 +100,7 @@ const addTextElement = async (text) => {
 		textAlign: 'center',
 		fontSize: 28,
 		fontFamily: 'Arial',
+		color: guessTextColorFromBackground(slide.value.background),
 	}
 
 	const element = {

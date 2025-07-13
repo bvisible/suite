@@ -5,6 +5,7 @@ import StarterKit from '@tiptap/starter-kit'
 import TextStyle from '@tiptap/extension-text-style'
 import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
+import Color from '@tiptap/extension-color'
 
 const CustomTextStyle = TextStyle.extend({
 	addAttributes() {
@@ -45,6 +46,7 @@ export const initTextEditor = (content) => {
 			StarterKit,
 			CustomTextStyle,
 			Underline,
+			Color,
 			TextAlign.configure({
 				types: ['paragraph'],
 			}),
@@ -117,6 +119,9 @@ export const updateProperty = (property, value) => {
 				})
 				.run()
 			break
+		case 'color':
+			editor.chain().focus().selectAll().setColor(value).run()
+			break
 	}
 }
 
@@ -130,6 +135,7 @@ export function useTextStyles(editor) {
 		textAlign: 'left',
 		fontSize: null,
 		fontFamily: null,
+		color: null,
 	})
 
 	const update = () => {
@@ -146,6 +152,7 @@ export function useTextStyles(editor) {
 			textAlign: editor.value.getAttributes('paragraph').textAlign || 'left',
 			fontSize: parseInt(attrs.fontSize, 10) || null,
 			fontFamily: attrs.fontFamily || null,
+			color: attrs.color || null,
 		}
 	}
 
