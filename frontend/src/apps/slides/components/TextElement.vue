@@ -1,13 +1,5 @@
 <template>
-	<div
-		class="focus:outline-none"
-		:contenteditable="focusElementId == element.id"
-		:style="textStyle"
-		@focus="setCursorPositionAtEnd"
-		@blur="handleBlur"
-	>
-		{{ element.content }}
-	</div>
+	<EditorContent :editor="editor" class="focus:outline-none" />
 </template>
 
 <script setup>
@@ -16,9 +8,17 @@ import { computed } from 'vue'
 import { focusElementId, deleteElements } from '@/stores/element'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
+import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { StarterKit } from '@tiptap/starter-kit'
+
 const element = defineModel('element', {
 	type: Object,
 	default: null,
+})
+
+const editor = useEditor({
+	extensions: [StarterKit],
+	content: element.value.content || '',
 })
 
 const textStyle = computed(() => ({
