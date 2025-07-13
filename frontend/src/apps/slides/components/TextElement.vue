@@ -13,59 +13,21 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watchEffect, onMounted } from 'vue'
 
 import { focusElementId, deleteElements } from '@/stores/element'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
-import { EditorContent, useEditor } from '@tiptap/vue-3'
-import { StarterKit } from '@tiptap/starter-kit'
-import TextStyle from '@tiptap/extension-text-style'
-import TextAlign from '@tiptap/extension-text-align'
+import { EditorContent } from '@tiptap/vue-3'
+
+import { useTextEditor } from '@/stores/textEditor'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
-const CustomTextStyle = TextStyle.extend({
-	addAttributes() {
-		return {
-			fontSize: {
-				default: null,
-				parseHTML: (element) => element.style.fontSize || null,
-				renderHTML: (attributes) => {
-					if (!attributes.fontSize) return {}
-					return {
-						style: `font-size: ${attributes.fontSize}`,
-					}
-				},
-			},
-			fontFamily: {
-				default: null,
-				parseHTML: (element) => element.style.fontFamily || null,
-				renderHTML: (attributes) => {
-					if (!attributes.fontFamily) return {}
-					return {
-						style: `font-family: ${attributes.fontFamily}`,
-					}
-				},
-			},
-		}
-	},
-})
-
-const editor = useEditor({
-	extensions: [
-		StarterKit,
-		CustomTextStyle,
-		TextAlign.configure({
-			types: ['paragraph'],
-		}),
-	],
-	content: element.value.content || '',
-	editable: false,
-})
+const { editor, isEditorReady } = useTextEditor()
 
 const textStyle = computed(() => ({
 	content: element.value.content,
@@ -96,4 +58,12 @@ const handleBlur = (e) => {
 	}
 	element.value.content = e.target.innerText
 }
+
+onMounted(() => {
+	watchEffect(() => {
+		if (isEditorReady.value && element.value.content) {
+			editor.value.commands.setContent(element.value.content)
+		}
+	})
+})
 </script>
