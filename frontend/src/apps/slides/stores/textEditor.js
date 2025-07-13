@@ -1,5 +1,5 @@
-import { ref } from 'vue'
-import { useEditor } from '@tiptap/vue-3'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Editor } from '@tiptap/vue-3'
 
 import StarterKit from '@tiptap/starter-kit'
 import TextStyle from '@tiptap/extension-text-style'
@@ -32,10 +32,8 @@ const CustomTextStyle = TextStyle.extend({
 	},
 })
 
-export const useTextEditor = () => {
-	const isEditorReady = ref(false)
-
-	const editor = useEditor({
+export const initTextEditor = (content) => {
+	return new Editor({
 		extensions: [
 			StarterKit,
 			CustomTextStyle,
@@ -44,13 +42,66 @@ export const useTextEditor = () => {
 			}),
 		],
 		editable: false,
-		onCreate: () => {
-			isEditorReady.value = true
-		},
+		content: content,
+	})
+}
+
+export const activeEditor = ref(null)
+
+export const toggleTextProperty = (property) => {
+	const editor = activeEditor.value
+
+	if (!editor) return
+
+	switch (property) {
+		case 'bold':
+			editor.chain().focus().selectAll().toggleBold().run()
+			break
+		case 'italic':
+			editor.chain().focus().selectAll().toggleItalic().run()
+			break
+		case 'strike':
+			editor.chain().focus().selectAll().toggleStrike().run()
+			break
+		default:
+			editor.chain().focus().selectAll().toggleStrike().run()
+			break
+	}
+}
+
+export function useTextStyles(editor) {
+	const styles = ref({
+		bold: false,
+		italic: false,
+		strike: false,
+	})
+
+	const update = () => {
+		if (!editor.value) return
+
+		const attrs = editor.value.getAttributes('textStyle')
+
+		styles.value = {
+			bold: editor.value.isActive('bold'),
+			italic: editor.value.isActive('italic'),
+			strike: editor.value.isActive('strike'),
+		}
+	}
+
+	onMounted(() => {
+		if (!editor.value) return
+		editor.value.on('selectionUpdate', update)
+		editor.value.on('transaction', update)
+		update()
+	})
+
+	onUnmounted(() => {
+		if (!editor.value) return
+		editor.value.off('selectionUpdate', update)
+		editor.value.off('transaction', update)
 	})
 
 	return {
-		editor,
-		isEditorReady,
+		styles,
 	}
 }

@@ -98,6 +98,7 @@ const addTextElement = async (text) => {
 	const elementPresets = {
 		textAlign: 'center',
 		fontSize: 28,
+		fontFamily: 'Arial',
 	}
 
 	const element = {
@@ -205,33 +206,6 @@ const resetFocus = () => {
 	pairElementId.value = null
 }
 
-const toggleTextProperty = (property, value) => {
-	const oldStyle = activeElement.value[property]
-	let newStyle = ''
-
-	switch (property) {
-		case 'fontWeight':
-			newStyle = oldStyle == 'bold' ? 'normal' : 'bold'
-			break
-		case 'fontStyle':
-			newStyle = oldStyle == 'italic' ? 'normal' : 'italic'
-			break
-		case 'textTransform':
-			newStyle = oldStyle == 'uppercase' ? 'none' : 'uppercase'
-			break
-		default:
-			if (!oldStyle) {
-				newStyle = value
-				break
-			}
-			newStyle = oldStyle.includes(value)
-				? oldStyle.replace(value, '')
-				: oldStyle + ' ' + value
-			newStyle = newStyle.trim()
-	}
-	activeElement.value[property] = newStyle
-}
-
 const getElementPosition = (elementId) => {
 	const elementRect = document
 		.querySelector(`[data-index="${elementId}"]`)
@@ -329,7 +303,6 @@ export {
 	duplicateElements,
 	deleteElements,
 	selectAllElements,
-	toggleTextProperty,
 	getElementPosition,
 	handleCopy,
 	handlePaste,

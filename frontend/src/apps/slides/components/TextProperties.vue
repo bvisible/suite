@@ -11,14 +11,14 @@
 				<button
 					v-for="style in styleProperties"
 					:key="style.property"
-					:class="getFontStyleButtonClasses(style.property, style.value)"
-					@click="toggleTextProperty(style.property, style.value)"
+					:class="getFontStyleButtonClasses(style.property)"
+					@click="toggleTextProperty(style.property)"
 				>
 					<component
 						:is="style.icon"
 						size="16"
 						:strokeWidth="1.5"
-						:class="getFontStyleIconClasses(style.property, style.value)"
+						:class="getFontStyleIconClasses(style.property)"
 					/>
 				</button>
 			</div>
@@ -118,13 +118,12 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slide } from '@/stores/slide'
-import {
-	activeElementIds,
-	focusElementId,
-	toggleTextProperty,
-	activeElement,
-} from '@/stores/element'
+import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
+
+import { activeEditor, toggleTextProperty, useTextStyles } from '@/stores/textEditor'
+
+const { styles } = useTextStyles(activeEditor)
 
 const textFonts = [
 	'Arial',
@@ -146,28 +145,23 @@ const textFonts = [
 
 const styleProperties = [
 	{
-		property: 'fontWeight',
-		value: 'bold',
+		property: 'bold',
 		icon: Bold,
 	},
 	{
-		property: 'fontStyle',
-		value: 'italic',
+		property: 'italic',
 		icon: Italic,
 	},
 	{
-		property: 'textDecoration',
-		value: 'underline',
+		property: 'underline',
 		icon: Underline,
 	},
 	{
-		property: 'textDecoration',
-		value: 'line-through',
+		property: 'strike',
 		icon: Strikethrough,
 	},
 	{
-		property: 'textTransform',
-		value: 'uppercase',
+		property: 'uppercase',
 		icon: CaseUpper,
 	},
 ]
@@ -214,16 +208,16 @@ const applyPresetTextStyles = (textStyle) => {
 	activeElement.value.defaultStyle = textStyle
 }
 
-const getFontStyleButtonClasses = (property, value) => {
+const getFontStyleButtonClasses = (property) => {
 	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
-	if (activeElement.value[property]?.includes(value)) {
+	if (styles.value[property]) {
 		return `${baseClasses} bg-gray-100`
 	}
 	return baseClasses
 }
 
-const getFontStyleIconClasses = (property, value) => {
-	return activeElement.value[property]?.includes(value) ? 'text-gray-900' : 'text-gray-700'
+const getFontStyleIconClasses = (property) => {
+	return styles.value[property] ? 'text-gray-900' : 'text-gray-700'
 }
 
 const getTabClasses = (alignValue) => {
