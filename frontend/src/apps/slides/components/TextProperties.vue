@@ -57,7 +57,8 @@
 				<div :class="fieldLabelClasses">Size</div>
 				<div class="w-28">
 					<NumberInput
-						v-model="activeElement.fontSize"
+						:modelValue="styles.fontSize"
+						@update:modelValue="(value) => updateProperty('fontSize', value)"
 						suffix="px"
 						:rangeStart="5"
 						:rangeEnd="100"
