@@ -97,6 +97,16 @@ export const updateProperty = (property, value) => {
 		case 'textAlign':
 			editor.chain().focus().setTextAlign(value).run()
 			break
+		case 'fontSize':
+			editor
+				.chain()
+				.focus()
+				.selectAll()
+				.setMark('textStyle', {
+					fontSize: value ? `${value}px` : null,
+				})
+				.run()
+			break
 	}
 }
 
@@ -108,6 +118,7 @@ export function useTextStyles(editor) {
 		underline: false,
 		uppercase: false,
 		textAlign: 'left',
+		fontSize: null,
 	})
 
 	const update = () => {
@@ -122,6 +133,7 @@ export function useTextStyles(editor) {
 			underline: editor.value.isActive('underline'),
 			uppercase: attrs.textTransform == 'uppercase',
 			textAlign: editor.value.getAttributes('paragraph').textAlign || 'left',
+			fontSize: parseInt(attrs.fontSize, 10) || null,
 		}
 	}
 

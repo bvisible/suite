@@ -15,13 +15,13 @@
 		<div v-if="!hideButtons" class="flex h-full w-12 flex-col border-l">
 			<button
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
-				@click="modelValue + rangeStep <= props.rangeEnd && (modelValue += rangeStep)"
+				@click="updateValue('increment')"
 			>
 				<LucideChevronUp class="size-3" />
 			</button>
 			<button
 				class="flex h-1/2 cursor-pointer items-center justify-center rounded-br bg-white hover:bg-gray-200"
-				@click="modelValue - rangeStep >= props.rangeStart && (modelValue -= rangeStep)"
+				@click="updateValue('decrement')"
 			>
 				<LucideChevronDown class="size-3" />
 			</button>
@@ -65,6 +65,14 @@ const changeValue = (e) => {
 		modelValue.value = props.rangeEnd
 	} else {
 		modelValue.value = value
+	}
+}
+
+const updateValue = (change) => {
+	if (change == 'increment') {
+		modelValue.value = Math.min(modelValue.value + props.rangeStep, props.rangeEnd)
+	} else if (change == 'decrement') {
+		modelValue.value = Math.max(modelValue.value - props.rangeStep, props.rangeStart)
 	}
 }
 </script>
