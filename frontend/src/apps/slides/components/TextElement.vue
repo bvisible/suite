@@ -1,5 +1,15 @@
 <template>
-	<EditorContent :editor="editor" class="focus:outline-none" />
+	<!-- <div
+		class="focus:outline-none"
+		:contenteditable="focusElementId == element.id"
+		:style="textStyle"
+		@focus="setCursorPositionAtEnd"
+		@blur="handleBlur"
+	>
+		{{ element.content }}
+	</div> -->
+
+	<EditorContent :editor="editor" class="p-0" />
 </template>
 
 <script setup>
@@ -10,15 +20,51 @@ import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { StarterKit } from '@tiptap/starter-kit'
+import TextStyle from '@tiptap/extension-text-style'
+import TextAlign from '@tiptap/extension-text-align'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
 
+const CustomTextStyle = TextStyle.extend({
+	addAttributes() {
+		return {
+			fontSize: {
+				default: null,
+				parseHTML: (element) => element.style.fontSize || null,
+				renderHTML: (attributes) => {
+					if (!attributes.fontSize) return {}
+					return {
+						style: `font-size: ${attributes.fontSize}`,
+					}
+				},
+			},
+			fontFamily: {
+				default: null,
+				parseHTML: (element) => element.style.fontFamily || null,
+				renderHTML: (attributes) => {
+					if (!attributes.fontFamily) return {}
+					return {
+						style: `font-family: ${attributes.fontFamily}`,
+					}
+				},
+			},
+		}
+	},
+})
+
 const editor = useEditor({
-	extensions: [StarterKit],
+	extensions: [
+		StarterKit,
+		CustomTextStyle,
+		TextAlign.configure({
+			types: ['paragraph'],
+		}),
+	],
 	content: element.value.content || '',
+	editable: false,
 })
 
 const textStyle = computed(() => ({
@@ -37,6 +83,10 @@ const textStyle = computed(() => ({
 	wordWrap: element.value.width == 'auto' ? 'normal' : 'break-word',
 	textAlign: element.value.textAlign,
 	color: element.value.color,
+	cursor: focusElementId.value == element.value.id ? 'text' : '',
+}))
+
+const editorStyles = computed(() => ({
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
 

@@ -47,7 +47,7 @@ const selectAndCenterElement = (elementId) => {
 
 	nextTick(() => {
 		setActiveElements([elementId])
-		// to allow centering element only after it's rendere in order to correctly calculate its offset from center
+		// to allow centering element only after it's rendered in order to correctly calculate its offset from center
 		requestAnimationFrame(async () => {
 			await nextTick()
 			const elementRect = document
@@ -65,38 +65,51 @@ const selectAndCenterElement = (elementId) => {
 	})
 }
 
+const getElementContent = (element) => {
+	return {
+		type: 'doc',
+		content: [
+			{
+				type: 'paragraph',
+				attrs: {
+					textAlign: element.textAlign || 'center',
+				},
+				content: [
+					{
+						type: 'text',
+						text: element.innerText || 'Text',
+						marks: [
+							{
+								type: 'textStyle',
+								attrs: {
+									fontSize: `${element.fontSize}px`,
+									fontFamily: element.fontFamily,
+								},
+							},
+						],
+					},
+				],
+			},
+		],
+	}
+}
+
 const addTextElement = async (text) => {
-	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
+	const elementPresets = {
+		textAlign: 'center',
+		fontSize: 28,
+	}
 
 	const element = {
 		id: generateUniqueId(),
-		content: text || 'Text',
-		type: 'text',
-		textAlign: 'center',
 		left: 0,
 		top: 0,
+		type: 'text',
+		content: getElementContent(elementPresets),
 	}
 
-	if (lastTextElement) {
-		element.fontSize = lastTextElement.fontSize
-		element.fontFamily = lastTextElement.fontFamily
-		element.fontWeight = lastTextElement.fontWeight
-		element.color = lastTextElement.color
-		element.lineHeight = lastTextElement.lineHeight
-		element.letterSpacing = lastTextElement.letterSpacing
-		element.opacity = lastTextElement.opacity
-	} else {
-		const slideColor = slide.value.background || '#ffffff'
-		element.fontSize = 30
-		element.fontFamily = 'Arial'
-		element.fontWeight = 'normal'
-		element.color = guessTextColorFromBackground(slideColor)
-		element.lineHeight = 1
-		element.letterSpacing = 0
-		element.opacity = 100
-	}
 	slide.value.elements.push(element)
-	selectAndCenterElement(element.id)
+	// selectAndCenterElement(element.id)
 }
 
 const addMediaElement = async (file, type) => {
