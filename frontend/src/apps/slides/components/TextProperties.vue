@@ -69,7 +69,10 @@
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Color</div>
-				<ColorPicker v-model="activeElement.color" />
+				<ColorPicker
+					:modelValue="styles.color"
+					@update:modelValue="(val) => updateProperty('color', val)"
+				/>
 			</div>
 		</template>
 	</CollapsibleSection>
