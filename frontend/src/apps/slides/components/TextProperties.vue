@@ -30,7 +30,7 @@
 					v-for="textAlign in textAlignProperties"
 					:key="textAlign.alignValue"
 					:class="getTabClasses(textAlign.alignValue)"
-					@click="activeElement.textAlign = textAlign.alignValue"
+					@click="updateProperty('textAlign', textAlign.alignValue)"
 				>
 					<component
 						:is="textAlign.icon"
@@ -121,7 +121,12 @@ import { slide } from '@/stores/slide'
 import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
-import { activeEditor, toggleTextProperty, useTextStyles } from '@/stores/textEditor'
+import {
+	activeEditor,
+	toggleTextProperty,
+	updateProperty,
+	useTextStyles,
+} from '@/stores/textEditor'
 
 const { styles } = useTextStyles(activeEditor)
 
@@ -222,7 +227,7 @@ const getFontStyleIconClasses = (property) => {
 
 const getTabClasses = (alignValue) => {
 	const baseClasses = 'rounded h-full flex items-center justify-center w-1/6 cursor-pointer'
-	if (activeElement.value.textAlign === alignValue) {
+	if (styles.value.textAlign === alignValue) {
 		return `${baseClasses} bg-white shadow`
 	}
 	return baseClasses
@@ -230,7 +235,7 @@ const getTabClasses = (alignValue) => {
 
 const getAlignIconClasses = (alignValue) => {
 	const baseClasses = 'stroke-[1.5] text-gray-600'
-	if (activeElement.value.textAlign === alignValue) {
+	if (styles.value.textAlign === alignValue) {
 		return `${baseClasses} text-gray-800`
 	}
 	return baseClasses
