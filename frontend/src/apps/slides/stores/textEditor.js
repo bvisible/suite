@@ -89,6 +89,17 @@ export const toggleTextProperty = (property) => {
 	}
 }
 
+export const updateProperty = (property, value) => {
+	const editor = activeEditor.value
+	if (!editor) return
+
+	switch (property) {
+		case 'textAlign':
+			editor.chain().focus().setTextAlign(value).run()
+			break
+	}
+}
+
 export function useTextStyles(editor) {
 	const styles = ref({
 		bold: false,
@@ -96,6 +107,7 @@ export function useTextStyles(editor) {
 		strike: false,
 		underline: false,
 		uppercase: false,
+		textAlign: 'left',
 	})
 
 	const update = () => {
@@ -109,6 +121,7 @@ export function useTextStyles(editor) {
 			strike: editor.value.isActive('strike'),
 			underline: editor.value.isActive('underline'),
 			uppercase: attrs.textTransform == 'uppercase',
+			textAlign: editor.value.getAttributes('paragraph').textAlign || 'left',
 		}
 	}
 
