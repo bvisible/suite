@@ -207,25 +207,51 @@ const textAlignProperties = [
 ]
 
 const presetTextStyles = [
-	{ label: 'Title', value: 'title' },
-	{ label: 'Subtitle', value: 'subtitle' },
-	{ label: 'Body', value: 'body' },
+	{
+		label: 'Title',
+		value: 'title',
+		bold: true,
+		fontSize: 60,
+		lineHeight: 1.5,
+		textAlign: 'center',
+	},
+	{
+		label: 'Subtitle',
+		value: 'subtitle',
+		bold: true,
+		fontSize: 40,
+		lineHeight: 1,
+		textAlign: 'center',
+	},
+	{
+		label: 'Body',
+		value: 'body',
+		bold: false,
+		fontSize: 20,
+		lineHeight: 1.5,
+		textAlign: 'justify',
+	},
 ]
 
 const applyPresetTextStyles = (textStyle) => {
-	if (textStyle === 'title') {
-		activeElement.value.fontWeight = 'bold'
-		activeElement.value.fontSize = 60
-		activeElement.value.lineHeight = 1.5
-	} else if (textStyle === 'subtitle') {
-		activeElement.value.fontWeight = 'bold'
-		activeElement.value.fontSize = 30
-		activeElement.value.lineHeight = 1.2
-	} else if (textStyle === 'body') {
-		activeElement.value.fontWeight = 'normal'
-		activeElement.value.fontSize = 20
-		activeElement.value.lineHeight = 1
-	}
+	const presetStyles = presetTextStyles.find((style) => style.value == textStyle)
+
+	activeEditor.value
+		.chain()
+		.focus()
+		.selectAll()
+		.setMark('textStyle', {
+			fontFamily: 'Arial',
+			fontSize: `${presetStyles.fontSize}px`,
+			lineHeight: presetStyles.lineHeight,
+			letterSpacing: '0px',
+			opacity: 100,
+		})
+		.run()
+
+	activeEditor.value.chain().focus().setTextAlign(presetStyles.textAlign).run()
+	activeEditor.value.chain().focus().setBold(presetStyles.bold).run()
+
 	activeElement.value.defaultStyle = textStyle
 }
 
