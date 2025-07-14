@@ -85,6 +85,8 @@ const getElementContent = (element) => {
 									fontSize: `${element.fontSize}px`,
 									fontFamily: element.fontFamily,
 									color: element.color,
+									lineHeight: 1,
+									letterSpacing: '0px',
 								},
 							},
 						],
