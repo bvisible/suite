@@ -1,11 +1,16 @@
 <template>
-	<EditorContent :editor="editor" class="p-0" />
+	<EditorContent
+		:editor="editor"
+		:style="editorStyles"
+		@mousedown="handleMouseDown"
+		@dblclick="handleDoubleClick"
+	/>
 </template>
 
 <script setup>
 import { computed, watch, onMounted } from 'vue'
 
-import { focusElementId, deleteElements, activeElement } from '@/stores/element'
+import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 import { EditorContent } from '@tiptap/vue-3'
@@ -17,6 +22,8 @@ const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
+
+const emit = defineEmits(['clearTimeouts'])
 
 const editor = initTextEditor(element.value.content)
 
@@ -48,6 +55,29 @@ const handleBlur = (e) => {
 		deleteElements()
 	}
 	element.value.content = e.target.innerText
+}
+
+const handleMouseDown = (e) => {
+	if (focusElementId.value == element.value.id) {
+		e.stopPropagation()
+		return
+	}
+}
+
+const handleDoubleClick = (e) => {
+	if (focusElementId.value == element.value.id) {
+		e.stopPropagation()
+		return
+	}
+
+	emit('clearTimeouts')
+
+	activeEditor.value = editor
+	focusElementId.value = element.value.id
+	activeElementIds.value = [element.value.id]
+
+	activeEditor.value.setEditable(true)
+	activeEditor.value.commands.focus('end')
 }
 
 watch(

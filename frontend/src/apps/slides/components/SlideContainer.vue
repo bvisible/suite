@@ -20,7 +20,7 @@
 					:isDragging="isDragging"
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
-					@dblclick="(e) => handleDoubleClick(e, element)"
+					@clearTimeouts="clearTimeouts"
 				/>
 			</div>
 		</div>
@@ -161,9 +161,6 @@ const triggerDrag = (e, id) => {
 const handleMouseDown = (e, element) => {
 	const id = element?.id
 
-	// resume normal behavior if element is being edited
-	if (id === focusElementId.value) return
-
 	e.stopPropagation()
 	e.preventDefault()
 
@@ -174,23 +171,6 @@ const handleMouseDown = (e, element) => {
 	// if the click is registered ie. mouseup happens before dragTimeout
 	// then consider it a selection instead of dragging
 	e.target.addEventListener('mouseup', () => handleMouseUp(e, id), { once: true })
-}
-
-const makeTextEditable = (target, element) => {
-	clearTimeouts()
-
-	activeElementIds.value = []
-	focusElementId.value = element.id
-
-	nextTick(() => {
-		target.focus()
-	})
-}
-
-const handleDoubleClick = (e, element) => {
-	if (element.type !== 'text') return
-
-	makeTextEditable(e.target, element)
 }
 
 const scale = computed(() => {
