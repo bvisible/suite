@@ -5,50 +5,50 @@
 		@click="closeSidebar"
 	/>
 
-	<div
-		v-if="!isMobile || isSidebarOpen"
-		class="flex h-full flex-col justify-between border-r bg-gray-50 transition-all duration-300 ease-in-out"
-		:class="[
-			isSidebarCollapsed && !isMobile ? 'w-14' : 'w-56',
-			isMobile ? 'fixed left-0 top-0 z-50 shadow-lg' : 'relative',
-		]"
-	>
+	<Transition>
 		<div
-			class="flex flex-col overflow-hidden"
-			:class="{ 'items-center': isSidebarCollapsed && !isMobile }"
+			v-if="!isMobile || isSidebarOpen"
+			class="flex h-full flex-col justify-between border-r bg-gray-50 duration-300 ease-in-out"
+			:class="[
+				isSidebarCollapsed && !isMobile ? 'w-14' : 'w-56',
+				isMobile ? 'fixed left-0 top-0 z-50 shadow-lg' : 'relative',
+			]"
 		>
-			<UserDropdown class="p-2" :is-collapsed="isSidebarCollapsed && !isMobile" />
-			<div class="flex flex-col">
-				<SidebarLink
-					v-for="link in sidebarLinks"
-					:key="link.label"
-					:link="link"
-					:is-collapsed="isSidebarCollapsed && !isMobile"
-					class="mx-2 my-0.5"
-				/>
-			</div>
-		</div>
-		<SidebarLink
-			v-if="!isMobile"
-			:link="{
-				label: isSidebarCollapsed ? 'Expand' : 'Collapse',
-			}"
-			:is-collapsed="isSidebarCollapsed"
-			class="m-2"
-			@click="isSidebarCollapsed = !isSidebarCollapsed"
-		>
-			<template #icon>
-				<span class="grid h-5 w-6 flex-shrink-0 place-items-center">
-					<ArrowLeftFromLine
-						class="h-4 w-4 text-gray-700 duration-300 ease-in-out"
-						:class="{
-							'[transform:rotateY(180deg)]': isSidebarCollapsed,
-						}"
+			<div
+				class="flex flex-col overflow-hidden"
+				:class="{ 'items-center': isSidebarCollapsed && !isMobile }"
+			>
+				<UserDropdown class="p-2" :is-collapsed="isSidebarCollapsed && !isMobile" />
+				<div class="flex flex-col">
+					<SidebarLink
+						v-for="link in sidebarLinks"
+						:key="link.label"
+						:link="link"
+						:is-collapsed="isSidebarCollapsed && !isMobile"
+						class="mx-2 my-0.5"
 					/>
-				</span>
-			</template>
-		</SidebarLink>
-	</div>
+				</div>
+			</div>
+			<SidebarLink
+				v-if="!isMobile"
+				:link="{ label: isSidebarCollapsed ? 'Expand' : 'Collapse' }"
+				:is-collapsed="isSidebarCollapsed"
+				class="m-2"
+				@click="isSidebarCollapsed = !isSidebarCollapsed"
+			>
+				<template #icon>
+					<span class="grid h-5 w-6 flex-shrink-0 place-items-center">
+						<ArrowLeftFromLine
+							class="h-4 w-4 text-gray-700 duration-300 ease-in-out"
+							:class="{
+								'[transform:rotateY(180deg)]': isSidebarCollapsed,
+							}"
+						/>
+					</span>
+				</template>
+			</SidebarLink>
+		</div>
+	</Transition>
 </template>
 
 <script setup lang="ts">
@@ -131,3 +131,15 @@ const sidebarLinks = computed(() => {
 	return [mailboxItems[0], starredItem, ...mailboxItems.slice(1)].filter(Boolean)
 })
 </script>
+
+<style scoped>
+.v-enter-from,
+.v-leave-to {
+	@apply -translate-x-full opacity-0;
+}
+
+.v-enter-to,
+.v-leave-from {
+	@apply translate-x-0 opacity-100;
+}
+</style>
