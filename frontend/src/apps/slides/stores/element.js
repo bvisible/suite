@@ -115,7 +115,7 @@ const addTextElement = async (text) => {
 	}
 
 	slide.value.elements.push(element)
-	// selectAndCenterElement(element.id)
+	selectAndCenterElement(element.id)
 }
 
 const addMediaElement = async (file, type) => {

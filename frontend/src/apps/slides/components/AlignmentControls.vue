@@ -120,12 +120,10 @@ const alignmentPositions = computed(() => {
 const isAligned = (direction) => {
 	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
 
-	const expectedPos = Math.round(alignmentPositions.value[direction] * 10) / 10
+	const expectedPos = Math.round(alignmentPositions.value[direction])
 
 	const currentPos =
-		axis == 'X'
-			? Math.round(selectionBounds.left * 10) / 10
-			: Math.round(selectionBounds.top * 10) / 10
+		axis == 'X' ? Math.round(selectionBounds.left) : Math.round(selectionBounds.top)
 
 	return expectedPos == currentPos
 }
