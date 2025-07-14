@@ -87,6 +87,7 @@ const getElementContent = (element) => {
 									color: element.color,
 									lineHeight: 1,
 									letterSpacing: '0px',
+									opacity: 100,
 								},
 							},
 						],

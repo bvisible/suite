@@ -56,6 +56,15 @@ const CustomTextStyle = TextStyle.extend({
 					}
 				},
 			},
+			opacity: {
+				default: null,
+				parseHTML: (element) => element.style.opacity || null,
+				renderHTML: (attributes) => {
+					return {
+						style: `opacity: ${attributes.opacity}%`,
+					}
+				},
+			},
 		}
 	},
 })
@@ -162,6 +171,16 @@ export const updateProperty = (property, value) => {
 				})
 				.run()
 			break
+		case 'opacity':
+			editor
+				.chain()
+				.focus()
+				.selectAll()
+				.setMark('textStyle', {
+					opacity: value,
+				})
+				.run()
+			break
 	}
 }
 
@@ -178,6 +197,7 @@ export function useTextStyles(editor) {
 		color: null,
 		lineHeight: null,
 		letterSpacing: null,
+		opacity: null,
 	})
 
 	const update = () => {
@@ -197,6 +217,7 @@ export function useTextStyles(editor) {
 			color: attrs.color || null,
 			lineHeight: attrs.lineHeight,
 			letterSpacing: parseInt(attrs.letterSpacing, 10),
+			opacity: parseInt(attrs.opacity, 10),
 		}
 	}
 
