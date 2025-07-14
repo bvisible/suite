@@ -433,6 +433,9 @@ class MailQueue(Document):
 
 		recipients = []
 		for rcpt in json_loads(self.recipients, default=[]):
+			if not rcpt["type"] or not rcpt["email"]:
+				continue
+
 			recipients.append(
 				{
 					"type": rcpt["type"],
