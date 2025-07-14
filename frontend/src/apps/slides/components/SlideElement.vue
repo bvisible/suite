@@ -1,6 +1,10 @@
 <template>
 	<div ref="elementDiv" :style="elementStyle">
-		<component :is="getDynamicComponent(element.type)" :element="element" />
+		<component
+			:is="getDynamicComponent(element.type)"
+			:element="element"
+			@clearTimeouts="$emit('clearTimeouts')"
+		/>
 
 		<Resizer
 			v-if="showResizers"
@@ -33,6 +37,8 @@ const props = defineProps({
 		default: false,
 	},
 })
+
+const emit = defineEmits(['clearTimeouts'])
 
 const element = defineModel('element', {
 	type: Object,
