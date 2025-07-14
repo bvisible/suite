@@ -52,8 +52,11 @@ const handleBlur = (e) => {
 
 watch(
 	() => activeElement.value,
-	(el) => {
-		if (el?.type === 'text' && el.id == element.value.id) {
+	(el, oldEl) => {
+		if (oldEl?.type == 'text' && oldEl.id == element.value.id) {
+			element.value.content = editor.getJSON()
+		}
+		if (el?.type == 'text' && el.id == element.value.id) {
 			activeEditor.value = editor
 		}
 	},
