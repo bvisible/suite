@@ -15,7 +15,7 @@
  "label": "Mail",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-07-10 16:41:36.753526",
+ "modified": "2025-07-14 16:53:31.649231",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail",
@@ -28,18 +28,18 @@
  "sequence_id": 23.0,
  "shortcuts": [
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "DKIM Key",
-   "link_to": "DKIM Key",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
    "color": "Blue",
    "doc_view": "List",
    "label": "Import/Export - Queued",
    "link_to": "Mail Data Exchange",
+   "stats_filter": "[[\"Mail Data Exchange\",\"status\",\"=\",\"Queued\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "DKIM Key",
+   "link_to": "DKIM Key",
    "stats_filter": "[]",
    "type": "DocType"
   },
@@ -76,18 +76,18 @@
    "type": "DocType"
   },
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Sync State",
-   "link_to": "JMAP Sync State",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
    "color": "Orange",
    "doc_view": "List",
    "label": "Import/Export - In Progress",
    "link_to": "Mail Data Exchange",
+   "stats_filter": "[[\"Mail Data Exchange\",\"status\",\"=\",\"In Progress\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sync State",
+   "link_to": "JMAP Sync State",
    "stats_filter": "[]",
    "type": "DocType"
   },
@@ -102,17 +102,17 @@
   {
    "color": "Red",
    "doc_view": "List",
-   "label": "Expired",
-   "link_to": "JMAP Push Subscription",
-   "stats_filter": "[[\"JMAP Push Subscription\",\"status\",\"=\",\"Expired\",false]]",
+   "label": "Import/Export - Failed",
+   "link_to": "Mail Data Exchange",
+   "stats_filter": "[[\"Mail Data Exchange\",\"status\",\"=\",\"Failed\",false]]",
    "type": "DocType"
   },
   {
    "color": "Red",
    "doc_view": "List",
-   "label": "Import/Export - Failed",
-   "link_to": "Mail Data Exchange",
-   "stats_filter": "[]",
+   "label": "Expired",
+   "link_to": "JMAP Push Subscription",
+   "stats_filter": "[[\"JMAP Push Subscription\",\"status\",\"=\",\"Expired\",false]]",
    "type": "DocType"
   },
   {
