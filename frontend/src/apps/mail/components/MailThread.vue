@@ -15,7 +15,7 @@
 				}"
 			/>
 			<template v-else>
-				<h2 class="leading-5">
+				<h2 v-if="!isMobile" class="font-semibold leading-5">
 					{{ mailThread?.data?.[0].subject || __('[No subject]') }}
 				</h2>
 				<div class="ml-auto shrink-0 space-x-2">
@@ -44,16 +44,23 @@
 			</template>
 		</div>
 		<div class="flex-1 overflow-y-auto">
+			<div v-if="isMobile && !mailThread.loading" class="border-b px-3 py-3.5">
+				<h2 class="font-semibold leading-5">
+					{{ mailThread?.data?.[0].subject || __('[No subject]') }}
+				</h2>
+			</div>
+
 			<MailThreadPlaceholder v-if="mailThread.loading" />
 
-			<div v-else class="space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
+			<div v-else class="space-y-4 p-3 sm:px-5 sm:py-6">
 				<div
 					v-for="mail in mailThread.data"
 					:key="mail.name"
-					class="p-3"
-					:class="{ 'rounded-md border': mailThread.data.length > 1 }"
+					:class="{
+						'border-b sm:rounded-md sm:border sm:p-3.5': mailThread.data.length > 1,
+					}"
 				>
-					<div class="flex space-x-3 border-b pb-2">
+					<div class="flex space-x-3 pb-6">
 						<Avatar
 							:label="mail.from_name || mail.from_email"
 							:image="mail.user_image"

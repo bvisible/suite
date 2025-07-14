@@ -97,7 +97,7 @@ interface Recipient {
 
 export const getRecipients = (recipients: Recipient[], showEmail = false) =>
 	recipients
-		.map(({ display_name, email }) =>
+		?.map(({ display_name, email }) =>
 			showEmail && display_name ? `${display_name} <${email}>` : display_name || email,
 		)
 		.join(', ')

@@ -40,17 +40,17 @@
 								<Button
 									:label="__('Cc')"
 									variant="ghost"
-									:class="[
-										cc ? '!bg-gray-300 hover:bg-gray-200' : '!text-gray-500',
-									]"
+									:class="
+										cc ? '!bg-gray-300 hover:bg-gray-200' : '!text-gray-500'
+									"
 									@click="toggleCC()"
 								/>
 								<Button
 									:label="__('Bcc')"
 									variant="ghost"
-									:class="[
-										bcc ? '!bg-gray-300 hover:bg-gray-200' : '!text-gray-500',
-									]"
+									:class="
+										bcc ? '!bg-gray-300 hover:bg-gray-200' : '!text-gray-500'
+									"
 									@click="toggleBCC()"
 								/>
 							</div>
