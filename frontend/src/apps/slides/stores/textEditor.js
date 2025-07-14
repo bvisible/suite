@@ -36,6 +36,26 @@ const CustomTextStyle = TextStyle.extend({
 					}
 				},
 			},
+			lineHeight: {
+				default: null,
+				parseHTML: (element) => element.style.lineHeight || null,
+				renderHTML: (attributes) => {
+					if (!attributes.lineHeight) return {}
+					return {
+						style: `line-height: ${attributes.lineHeight}`,
+					}
+				},
+			},
+			letterSpacing: {
+				default: null,
+				parseHTML: (element) => element.style.letterSpacing || null,
+				renderHTML: (attributes) => {
+					if (!attributes.letterSpacing) return {}
+					return {
+						style: `letter-spacing: ${attributes.letterSpacing}px`,
+					}
+				},
+			},
 		}
 	},
 })
@@ -122,6 +142,26 @@ export const updateProperty = (property, value) => {
 		case 'color':
 			editor.chain().focus().selectAll().setColor(value).run()
 			break
+		case 'lineHeight':
+			editor
+				.chain()
+				.focus()
+				.selectAll()
+				.setMark('textStyle', {
+					lineHeight: value,
+				})
+				.run()
+			break
+		case 'letterSpacing':
+			editor
+				.chain()
+				.focus()
+				.selectAll()
+				.setMark('textStyle', {
+					letterSpacing: value,
+				})
+				.run()
+			break
 	}
 }
 
@@ -136,6 +176,8 @@ export function useTextStyles(editor) {
 		fontSize: null,
 		fontFamily: null,
 		color: null,
+		lineHeight: null,
+		letterSpacing: null,
 	})
 
 	const update = () => {
@@ -153,6 +195,8 @@ export function useTextStyles(editor) {
 			fontSize: parseInt(attrs.fontSize, 10) || null,
 			fontFamily: attrs.fontFamily || null,
 			color: attrs.color || null,
+			lineHeight: attrs.lineHeight,
+			letterSpacing: parseInt(attrs.letterSpacing, 10),
 		}
 	}
 

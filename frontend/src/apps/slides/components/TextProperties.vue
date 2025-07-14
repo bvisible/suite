@@ -84,8 +84,8 @@
 				:rangeStart="0.1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.lineHeight)"
-				@update:modelValue="(value) => (activeElement.lineHeight = value)"
+				:modelValue="styles.lineHeight"
+				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 
 			<SliderInput
@@ -93,8 +93,8 @@
 				:rangeStart="-10"
 				:rangeEnd="50"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.letterSpacing)"
-				@update:modelValue="(value) => (activeElement.letterSpacing = value)"
+				:modelValue="styles.letterSpacing"
+				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
 			/>
 		</template>
 	</CollapsibleSection>
