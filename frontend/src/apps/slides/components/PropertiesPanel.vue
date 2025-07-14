@@ -8,19 +8,6 @@
 			<AlignmentControls v-if="activeElementIds.length" />
 			<component :is="activeProperties" />
 		</div>
-		<div v-if="activeElement">
-			<CollapsibleSection title="Other">
-				<template #default>
-					<SliderInput
-						label="Opacity"
-						:rangeStart="0"
-						:rangeEnd="100"
-						:modelValue="parseFloat(activeElement.opacity) || 100"
-						@update:modelValue="(value) => (activeElement.opacity = value)"
-					/>
-				</template>
-			</CollapsibleSection>
-		</div>
 	</div>
 </template>
 
