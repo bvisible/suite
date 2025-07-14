@@ -208,6 +208,8 @@ useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
 
+	if (width - selectionBounds.width < 0.3 && height - selectionBounds.height < 0.3) return
+
 	// case:
 	// when element dimensions are changed not by resizer
 	// but by other updates on properties - font size, line height, letter spacing etc.
