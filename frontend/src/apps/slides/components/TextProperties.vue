@@ -237,9 +237,9 @@ const applyPresetTextStyles = (textStyle) => {
 		.selectAll()
 		.setMark('textStyle', {
 			fontFamily: 'Arial',
-			fontSize: `${presetStyles.fontSize}px`,
+			fontSize: presetStyles.fontSize,
 			lineHeight: presetStyles.lineHeight,
-			letterSpacing: '0px',
+			letterSpacing: 0,
 			opacity: 100,
 		})
 		.run()
