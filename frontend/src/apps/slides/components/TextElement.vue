@@ -8,16 +8,16 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted } from 'vue'
-
-import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
-import { setCursorPositionAtEnd } from '@/utils/helpers'
+import { computed, watch } from 'vue'
 
 import { EditorContent } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
+
+import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
+import { setCursorPositionAtEnd } from '@/utils/helpers'
+
 import { initTextEditor } from '@/stores/tiptapSetup'
-import { updateSelectionBounds } from '@/stores/slide'
 
 const { activeEditor } = useTextEditor()
 
