@@ -117,6 +117,7 @@ frappe.ui.form.on('Mail Account', {
 					fieldname: 'quota',
 					fieldtype: 'Float',
 					label: __('Quota (in GB)'),
+					description: __('<code><b>0</b></code> means no quota restriction.'),
 					reqd: 1,
 					precision: 5,
 					default: frm.doc.disk_quota || 0,
