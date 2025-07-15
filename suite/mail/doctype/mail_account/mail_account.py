@@ -64,18 +64,28 @@ class MailAccount(Document):
 		return {}
 
 	@property
+	def _disk_quota(self) -> int:
+		"""Returns the disk quota in bytes."""
+
+		return self._account.get("quota", 0)
+
+	@property
+	def _used_quota(self) -> int:
+		"""Returns the used quota in bytes."""
+
+		return self._account.get("usedQuota", 0)
+
+	@property
 	def disk_quota(self) -> float:
 		"""Returns the disk quota in gigabytes."""
 
-		_disk_quota = self._account.get("quota", 0)
-		return _disk_quota / (1024**3) if _disk_quota else 0
+		return self._disk_quota / (1024**3) if self._disk_quota else 0
 
 	@property
 	def used_quota(self) -> float:
 		"""Returns the used quota in gigabytes."""
 
-		_used_quota = self._account.get("usedQuota", 0)
-		return _used_quota / (1024**3) if _used_quota else 0
+		return self._used_quota / (1024**3) if self._used_quota else 0
 
 	@property
 	def quota_usage(self) -> float:

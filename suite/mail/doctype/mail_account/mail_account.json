@@ -20,7 +20,9 @@
   "default_outgoing_email",
   "backup_email",
   "section_break_wzwp",
+  "_disk_quota",
   "disk_quota",
+  "_used_quota",
   "used_quota",
   "column_break_rrsz",
   "quota_usage",
@@ -312,6 +314,26 @@
    "no_copy": 1,
    "precision": "5",
    "read_only": 1
+  },
+  {
+   "description": "<code><b>0</b></code> means no quota restriction.",
+   "fieldname": "_disk_quota",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Disk Quota (Bytes)",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "<code><b>0</b></code> means no usage.",
+   "fieldname": "_used_quota",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Used Quota (Bytes)",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -353,7 +375,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-15 16:01:19.393953",
+ "modified": "2025-07-15 16:48:23.418749",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
