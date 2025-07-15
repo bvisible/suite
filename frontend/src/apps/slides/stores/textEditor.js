@@ -87,70 +87,6 @@ export const initTextEditor = (content) => {
 
 export const activeEditor = ref(null)
 
-export const updateProperty = (property, value) => {
-	const editor = activeEditor.value
-	if (!editor) return
-
-	switch (property) {
-		case 'textAlign':
-			editor.chain().focus().setTextAlign(value).run()
-			break
-		case 'fontSize':
-			editor
-				.chain()
-				.focus()
-				.selectAll()
-				.setMark('textStyle', {
-					fontSize: value ? `${value}px` : null,
-				})
-				.run()
-			break
-		case 'fontFamily':
-			editor
-				.chain()
-				.focus()
-				.selectAll()
-				.setMark('textStyle', {
-					fontFamily: value ? value : null,
-				})
-				.run()
-			break
-		case 'color':
-			editor.chain().focus().selectAll().setColor(value).run()
-			break
-		case 'lineHeight':
-			editor
-				.chain()
-				.focus()
-				.selectAll()
-				.setMark('textStyle', {
-					lineHeight: value,
-				})
-				.run()
-			break
-		case 'letterSpacing':
-			editor
-				.chain()
-				.focus()
-				.selectAll()
-				.setMark('textStyle', {
-					letterSpacing: value,
-				})
-				.run()
-			break
-		case 'opacity':
-			editor
-				.chain()
-				.focus()
-				.selectAll()
-				.setMark('textStyle', {
-					opacity: value,
-				})
-				.run()
-			break
-	}
-}
-
 export function useTextStyles(editor) {
 	const styles = ref({
 		bold: false,
@@ -219,6 +155,31 @@ export function useTextStyles(editor) {
 		chain[markCommands[property]](property).run()
 	}
 
+	const updateProperty = (property, value) => {
+		const currentEditor = editor.value
+
+		const chain = currentEditor.chain().focus()
+
+		const { empty } = currentEditor.state.selection
+		if (empty) chain.selectAll()
+
+		switch (property) {
+			case 'textAlign':
+				chain.setTextAlign(value).run()
+				return
+			case 'color':
+				chain.setColor(value).run()
+				return
+			default:
+				chain
+					.setMark('textStyle', {
+						[property]: value,
+					})
+					.run()
+				return
+		}
+	}
+
 	onMounted(() => {
 		if (!editor.value) return
 		editor.value.on('selectionUpdate', update)
@@ -235,5 +196,6 @@ export function useTextStyles(editor) {
 	return {
 		styles,
 		toggleMark,
+		updateProperty,
 	}
 }

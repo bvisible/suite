@@ -137,9 +137,9 @@ import { slide } from '@/stores/slide'
 import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
-import { activeEditor, updateProperty, useTextStyles } from '@/stores/textEditor'
+import { activeEditor, useTextStyles } from '@/stores/textEditor'
 
-const { styles, toggleMark } = useTextStyles(activeEditor)
+const { styles, toggleMark, updateProperty } = useTextStyles(activeEditor)
 
 const textFonts = [
 	'Arial',
