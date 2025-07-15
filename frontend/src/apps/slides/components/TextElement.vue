@@ -77,7 +77,7 @@ const handleDoubleClick = (e) => {
 
 	activeEditor.value = editor
 	focusElementId.value = element.value.id
-	activeElementIds.value = [element.value.id]
+	activeElementIds.value = []
 
 	activeEditor.value.setEditable(true)
 	activeEditor.value.commands.focus('end')
