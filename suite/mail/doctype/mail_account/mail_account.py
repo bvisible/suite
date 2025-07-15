@@ -41,8 +41,8 @@ from mail.utils.validation import (
 
 class MailAccount(Document):
 	@cached_property
-	def _disk_quota(self) -> int:
-		"""Fetches the disk quota for the Mail Account from the backend API."""
+	def _account(self) -> dict:
+		"""Fetches the account details from the backend API."""
 
 		if not self.is_new() and self.enabled:
 			try:
@@ -51,24 +51,41 @@ class MailAccount(Document):
 
 				_response_json = response.json()
 				if response.status_code == 200:
-					data = _response_json["data"]
-					return data.get("quota", -1)
+					return _response_json["data"]
 				else:
-					frappe.throw(title=_("Failed to fetch Account Quota"), msg=_response_json)
+					frappe.throw(title=_("Failed to fetch Account Details"), msg=_response_json)
 			except Exception:
 				frappe.log_error(
-					title=_("Failed to fetch Account Quota"),
+					title=_("Failed to fetch Account Details"),
 					message=frappe.get_traceback(with_context=True),
 				)
-				frappe.msgprint(_("Failed to fetch Account Quota."), alert=True, indicator="red")
+				frappe.msgprint(_("Failed to fetch Account Details."), alert=True, indicator="red")
 
-		return -1
+		return {}
+
+	@property
+	def _disk_quota(self) -> int:
+		"""Returns the disk quota in bytes."""
+
+		return self._account.get("quota", -1)
 
 	@property
 	def disk_quota(self) -> float:
-		"""Returns the disk quota in GB for the Mail Account."""
+		"""Returns the disk quota in gigabytes."""
 
 		return -1 if self._disk_quota == -1 else self._disk_quota / (1024**3)
+
+	@property
+	def _used_quota(self) -> int:
+		"""Returns the used quota in bytes."""
+
+		return self._account.get("usedQuota", 0)
+
+	@property
+	def used_quota(self) -> float:
+		"""Returns the used quota in gigabytes."""
+
+		return self._used_quota / (1024**3) if self._used_quota else 0
 
 	def autoname(self) -> None:
 		self.email = self.email.strip().lower()
