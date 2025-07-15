@@ -208,7 +208,7 @@ class MailBackendDomainManager(MailBackendManagerBase):
 class MailBackendAccountManager(MailBackendManagerBase):
 	"""Class to manage accounts on the Mail Backend."""
 
-	def create(self, email: str, display_name: str, secret: str) -> None:
+	def create(self, email: str, display_name: str, secret: str, quota: int = 10 * (1024**3)) -> None:
 		"""Creates an account on the backend."""
 
 		from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import (
@@ -221,6 +221,7 @@ class MailBackendAccountManager(MailBackendManagerBase):
 			description=display_name,
 			secrets=[secret],
 			emails=[email],
+			quota=quota,
 			roles=["user"],
 			disabledPermissions=["jmap-mailbox-set"],
 		).__dict__
