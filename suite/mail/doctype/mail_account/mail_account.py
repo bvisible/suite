@@ -67,13 +67,13 @@ class MailAccount(Document):
 	def _disk_quota(self) -> int:
 		"""Returns the disk quota in bytes."""
 
-		return self._account.get("quota", -1)
+		return self._account.get("quota", 0)
 
 	@property
 	def disk_quota(self) -> float:
 		"""Returns the disk quota in gigabytes."""
 
-		return -1 if self._disk_quota == -1 else self._disk_quota / (1024**3)
+		return self._disk_quota / (1024**3) if self._disk_quota else 0
 
 	@property
 	def _used_quota(self) -> int:
@@ -348,6 +348,21 @@ class MailAccount(Document):
 
 		frappe.only_for("System Manager")
 		self._sync_jmap_identities()
+
+	@frappe.whitelist()
+	def set_quota(self, quota: int) -> None:
+		"""Sets the quota for the Mail Account."""
+
+		user = frappe.session.user
+		if not is_system_manager(user) and not is_tenant_admin(self.tenant, user):
+			frappe.throw(_("You do not have permission to set quota for this account."))
+		elif not self.enabled:
+			frappe.throw(_("Cannot set quota for a disabled account."))
+
+		MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).set_quota(
+			self.email, quota
+		)
+		frappe.msgprint(_("A job has been queued to set the quota."), alert=True, indicator="blue")
 
 	@frappe.whitelist()
 	def regenerate_password(self) -> None:

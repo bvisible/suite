@@ -263,6 +263,20 @@ class MailBackendAccountManager(MailBackendManagerBase):
 		request_data = json.dumps(request_data)
 		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
 
+	def set_quota(self, email: str, quota: int) -> None:
+		"""Sets the quota for an account on the backend."""
+
+		request_data = json.dumps(
+			[
+				{
+					"action": "set",
+					"field": "quota",
+					"value": quota,
+				}
+			]
+		)
+		self.create_request(method="PATCH", endpoint=f"/api/principal/{email}", request_data=request_data)
+
 	def delete(self, email: str) -> None:
 		"""Deletes an account from the backend."""
 
