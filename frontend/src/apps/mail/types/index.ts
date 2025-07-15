@@ -63,6 +63,7 @@ export interface Mail {
 	}
 	reply_to: string[]
 	attachments: Attachment[]
+	collapsed?: boolean
 }
 
 export interface ComposeMailData {

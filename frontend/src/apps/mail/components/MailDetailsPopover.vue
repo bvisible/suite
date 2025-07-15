@@ -7,7 +7,7 @@
 			/>
 		</template>
 		<template #body-main>
-			<div class="grid max-w-lg grid-cols-5 gap-2 p-3 text-sm">
+			<div class="grid max-h-96 max-w-md grid-cols-5 gap-2 overflow-y-auto p-3 text-sm">
 				<span class="text-ink-gray-5 col-span-1">{{ __('From:') }}</span>
 				<span class="col-span-4">
 					<span class="font-semibold">
