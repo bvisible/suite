@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 from email.utils import parseaddr
+from functools import cached_property
 
 import frappe
 from frappe import _
@@ -9,7 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import cint, now, random_string, validate_email_address
 from frappe.utils.data import convert_utc_to_system_timezone, get_datetime
 
-from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
+from mail.backend import MailBackendAccountManager, MailBackendIdentityManager, get_mail_backend_api
 from mail.jmap import get_jmap_client, invalidate_jmap_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
 from mail.utils import (
@@ -39,6 +40,59 @@ from mail.utils.validation import (
 
 
 class MailAccount(Document):
+	@cached_property
+	def _account(self) -> dict:
+		"""Fetches the account details from the backend API."""
+
+		if not self.is_new() and self.enabled:
+			try:
+				backend_api = get_mail_backend_api("Mail Cluster", get_cluster_for_tenant(self.tenant))
+				response = backend_api.request(method="GET", endpoint=f"/api/principal/{self.email}")
+
+				_response_json = response.json()
+				if response.status_code == 200:
+					return _response_json["data"]
+				else:
+					frappe.throw(title=_("Failed to fetch Account Details"), msg=_response_json)
+			except Exception:
+				frappe.log_error(
+					title=_("Failed to fetch Account Details"),
+					message=frappe.get_traceback(with_context=True),
+				)
+				frappe.msgprint(_("Failed to fetch Account Details."), alert=True, indicator="red")
+
+		return {}
+
+	@property
+	def _disk_quota(self) -> int:
+		"""Returns the disk quota in bytes."""
+
+		return self._account.get("quota", 0)
+
+	@property
+	def _used_quota(self) -> int:
+		"""Returns the used quota in bytes."""
+
+		return self._account.get("usedQuota", 0)
+
+	@property
+	def disk_quota(self) -> float:
+		"""Returns the disk quota in gigabytes."""
+
+		return self._disk_quota / (1024**3) if self._disk_quota else 0
+
+	@property
+	def used_quota(self) -> float:
+		"""Returns the used quota in gigabytes."""
+
+		return self._used_quota / (1024**3) if self._used_quota else 0
+
+	@property
+	def quota_usage(self) -> float:
+		"""Returns the quota usage percentage."""
+
+		return (self.used_quota / self.disk_quota) * 100 if self.disk_quota else 0
+
 	def autoname(self) -> None:
 		self.email = self.email.strip().lower()
 		self.name = self.email
@@ -69,8 +123,9 @@ class MailAccount(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
+				quota = cint(frappe.db.get_value("Mail Domain", self.domain_name, "default_disk_quota")) or 10
 				MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(
-					self.email, self.display_name, self.secret
+					self.email, self.display_name, cint(quota * (1024**3)), self.secret
 				)
 			elif self.has_value_changed("display_name") or self.has_value_changed("secret"):
 				MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).update(
@@ -300,6 +355,23 @@ class MailAccount(Document):
 
 		frappe.only_for("System Manager")
 		self._sync_jmap_identities()
+
+	@frappe.whitelist()
+	def set_quota(self, quota: int) -> None:
+		"""Sets the quota for the Mail Account."""
+
+		user = frappe.session.user
+		if not is_system_manager(user) and not is_tenant_admin(self.tenant, user):
+			frappe.throw(_("You do not have permission to set quota for this account."))
+		elif not self.enabled:
+			frappe.throw(_("Cannot set quota for a disabled account."))
+		elif quota < 0:
+			frappe.throw(_("Quota cannot be negative."))
+
+		MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).set_quota(
+			self.email, quota
+		)
+		frappe.msgprint(_("A job has been queued to set the quota."), alert=True, indicator="blue")
 
 	@frappe.whitelist()
 	def regenerate_password(self) -> None:

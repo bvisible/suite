@@ -13,6 +13,7 @@
   "tenant",
   "domain_name",
   "dkim_rsa_key_size",
+  "default_disk_quota",
   "dns_records_section",
   "dns_records"
  ],
@@ -105,6 +106,14 @@
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "default": "10.0",
+   "fieldname": "default_disk_quota",
+   "fieldtype": "Float",
+   "label": "Default Disk Quota (in GB)",
+   "non_negative": 1,
+   "precision": "5"
   }
  ],
  "grid_page_length": 50,
@@ -141,7 +150,7 @@
    "link_fieldname": "domain_name"
   }
  ],
- "modified": "2025-06-13 17:27:38.910662",
+ "modified": "2025-07-15 16:20:27.181885",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Domain",
