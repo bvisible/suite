@@ -21,8 +21,9 @@
   "backup_email",
   "section_break_wzwp",
   "disk_quota",
-  "column_break_rrsz",
   "used_quota",
+  "column_break_rrsz",
+  "quota_usage",
   "section_break_gexs",
   "display_name",
   "override_display_name",
@@ -302,6 +303,15 @@
    "no_copy": 1,
    "precision": "5",
    "read_only": 1
+  },
+  {
+   "fieldname": "quota_usage",
+   "fieldtype": "Percent",
+   "is_virtual": 1,
+   "label": "Quota Usage",
+   "no_copy": 1,
+   "precision": "5",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -343,7 +353,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-15 15:46:43.326412",
+ "modified": "2025-07-15 16:01:19.393953",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",

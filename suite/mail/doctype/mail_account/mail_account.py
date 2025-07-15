@@ -77,6 +77,12 @@ class MailAccount(Document):
 		_used_quota = self._account.get("usedQuota", 0)
 		return _used_quota / (1024**3) if _used_quota else 0
 
+	@property
+	def quota_usage(self) -> float:
+		"""Returns the quota usage percentage."""
+
+		return (self.used_quota / self.disk_quota) * 100 if self.disk_quota else 0
+
 	def autoname(self) -> None:
 		self.email = self.email.strip().lower()
 		self.name = self.email
