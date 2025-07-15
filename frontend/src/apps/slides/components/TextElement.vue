@@ -15,8 +15,11 @@ import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 import { EditorContent } from '@tiptap/vue-3'
 
-import { initTextEditor, activeEditor } from '@/stores/textEditor'
+import { useTextEditor } from '@/composables/useTextEditor'
+import { initTextEditor } from '@/stores/tiptapSetup'
 import { updateSelectionBounds } from '@/stores/slide'
+
+const { activeEditor } = useTextEditor()
 
 const element = defineModel('element', {
 	type: Object,
