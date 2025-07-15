@@ -292,6 +292,9 @@ class MailQueue(Document):
 				# reset it to fall back to the account's default email address.
 				self.from_email = None
 
+		if message_id := message.get("Message-ID"):
+			self.message_id = message_id.strip("<>")
+
 		if not json_loads(self.recipients):
 			recipients = []
 			for rcpt_type in ["To", "Cc", "Bcc"]:
