@@ -278,6 +278,7 @@
    "label": "Destroy Newsletter After Submission"
   },
   {
+   "description": "<code><b>-1</b></code> means no quota restriction.",
    "fieldname": "_disk_quota",
    "fieldtype": "Int",
    "hidden": 1,
@@ -287,6 +288,7 @@
    "read_only": 1
   },
   {
+   "description": "<code><b>-1</b></code> means no quota restriction.",
    "fieldname": "disk_quota",
    "fieldtype": "Float",
    "is_virtual": 1,
@@ -304,6 +306,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "<code><b>0</b></code> means no usage.",
    "fieldname": "_used_quota",
    "fieldtype": "Int",
    "hidden": 1,
@@ -313,6 +316,7 @@
    "read_only": 1
   },
   {
+   "description": "<code><b>0</b></code> means no usage.",
    "fieldname": "used_quota",
    "fieldtype": "Float",
    "is_virtual": 1,
@@ -361,7 +365,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-15 12:37:55.246282",
+ "modified": "2025-07-15 12:46:56.319725",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
