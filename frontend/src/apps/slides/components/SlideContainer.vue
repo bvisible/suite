@@ -53,10 +53,10 @@ import {
 	updateElementWidth,
 } from '@/stores/element'
 
-import { useDragAndDrop } from '@/composables/drag'
-import { useResizer } from '@/composables/resizer'
-import { usePanAndZoom } from '@/composables/zoom'
-import { useSnapping } from '@/composables/snap'
+import { useDragAndDrop } from '@/composables/useDragAndDrop'
+import { useResizer } from '@/composables/useResizer'
+import { usePanAndZoom } from '@/composables/usePanAndZoom'
+import { useSnapping } from '@/composables/useSnapping'
 
 const props = defineProps({
 	highlight: Boolean,
