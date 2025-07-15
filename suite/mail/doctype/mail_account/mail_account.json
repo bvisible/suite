@@ -19,6 +19,8 @@
   "secret",
   "default_outgoing_email",
   "backup_email",
+  "_disk_quota",
+  "disk_quota",
   "section_break_gexs",
   "display_name",
   "override_display_name",
@@ -270,6 +272,24 @@
    "fieldname": "destroy_newsletter_after_submission",
    "fieldtype": "Check",
    "label": "Destroy Newsletter After Submission"
+  },
+  {
+   "fieldname": "_disk_quota",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Disk Quota (Bytes)",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "disk_quota",
+   "fieldtype": "Float",
+   "is_virtual": 1,
+   "label": "Disk Quota (GB)",
+   "no_copy": 1,
+   "precision": "3",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -311,7 +331,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-06-26 11:21:00.562086",
+ "modified": "2025-07-15 12:12:28.985887",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",

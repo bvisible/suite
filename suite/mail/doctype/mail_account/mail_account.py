@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 from email.utils import parseaddr
+from functools import cached_property
 
 import frappe
 from frappe import _
@@ -9,7 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import cint, now, random_string, validate_email_address
 from frappe.utils.data import convert_utc_to_system_timezone, get_datetime
 
-from mail.backend import MailBackendAccountManager, MailBackendIdentityManager
+from mail.backend import MailBackendAccountManager, MailBackendIdentityManager, get_mail_backend_api
 from mail.jmap import get_jmap_client, invalidate_jmap_cache
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import create_jmap_sync_state
 from mail.utils import (
@@ -39,6 +40,36 @@ from mail.utils.validation import (
 
 
 class MailAccount(Document):
+	@cached_property
+	def _disk_quota(self) -> int:
+		"""Fetches the disk quota for the Mail Account from the backend API."""
+
+		if not self.is_new() and self.enabled:
+			try:
+				backend_api = get_mail_backend_api("Mail Cluster", get_cluster_for_tenant(self.tenant))
+				response = backend_api.request(method="GET", endpoint=f"/api/principal/{self.email}")
+
+				_response_json = response.json()
+				if response.status_code == 200:
+					data = _response_json["data"]
+					return data.get("quota", -1)
+				else:
+					frappe.throw(title=_("Failed to fetch Account Quota"), msg=_response_json)
+			except Exception:
+				frappe.log_error(
+					title=_("Failed to fetch Account Quota"),
+					message=frappe.get_traceback(with_context=True),
+				)
+				frappe.msgprint(_("Failed to fetch Account Quota."), alert=True, indicator="red")
+
+		return -1
+
+	@property
+	def disk_quota(self) -> float:
+		"""Returns the disk quota in GB for the Mail Account."""
+
+		return -1 if self._disk_quota == -1 else self._disk_quota / (1024**3)
+
 	def autoname(self) -> None:
 		self.email = self.email.strip().lower()
 		self.name = self.email
