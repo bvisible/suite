@@ -11,6 +11,7 @@ from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
 from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
+from mail.utils import convert_html_to_text
 from mail.utils.rate_limiter import dynamic_rate_limit
 from mail.utils.user import has_role
 from mail.utils.validation import validate_permission_for_account
@@ -120,6 +121,7 @@ def get_thread_rows(thread_id: str) -> list[dict]:
 			EM.text_body,
 			EM.received_at,
 			EM.draft,
+			EM.seen,
 			EM.flagged,
 			EM.mailbox_role,
 			EMR.type,
@@ -148,8 +150,10 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 				"subject": row["subject"],
 				"html_body": row["html_body"],
 				"text_body": row["text_body"],
+				"preview": convert_html_to_text(row["html_body"] or row["text_body"] or ""),
 				"received_at": row["received_at"],
 				"draft": row["draft"],
+				"seen": row["seen"],
 				"flagged": row["flagged"],
 				"mailbox_role": row["mailbox_role"],
 				"recipients": defaultdict(list),

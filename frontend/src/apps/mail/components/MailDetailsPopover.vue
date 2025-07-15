@@ -1,11 +1,14 @@
 <template>
 	<Popover>
 		<template #target="{ togglePopover }">
-			<ChevronDown class="h-3 w-3 cursor-pointer" @click="togglePopover()" />
+			<ChevronDown
+				class="text-ink-gray-6 hover:bg-surface-gray-2 h-3 w-3 cursor-pointer rounded-sm"
+				@click.stop="togglePopover()"
+			/>
 		</template>
 		<template #body-main>
-			<div class="grid max-w-lg grid-cols-5 gap-2 p-3 text-sm">
-				<span class="col-span-1 text-gray-500">{{ __('From:') }}</span>
+			<div class="grid max-h-96 max-w-md grid-cols-5 gap-2 overflow-y-auto p-3 text-sm">
+				<span class="text-ink-gray-5 col-span-1">{{ __('From:') }}</span>
 				<span class="col-span-4">
 					<span class="font-semibold">
 						{{ mail.from_name || mail.from_email }}

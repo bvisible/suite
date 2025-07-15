@@ -24,7 +24,7 @@
 				class="bg-surface-gray-3 flex h-10 min-h-10 w-10 min-w-10 rounded-full"
 				@click.stop="isSelected = false"
 			>
-				<Check class="text-ink-gray-5 m-auto" />
+				<Check class="text-ink-gray-5 m-auto h-5 w-5" />
 			</div>
 			<Avatar
 				v-else

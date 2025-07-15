@@ -4,7 +4,7 @@
 			<Button
 				icon="chevron-left"
 				variant="ghost"
-				class="mr-2"
+				class="mr-2 shrink-0"
 				@click="router.push({ name: 'Mailbox', params: { mailbox } })"
 			/>
 			<span
@@ -15,7 +15,7 @@
 				}"
 			/>
 			<template v-else>
-				<h2 class="leading-5">
+				<h2 v-if="!isMobile" class="mr-2 truncate font-semibold leading-5">
 					{{ mailThread?.data?.[0].subject || __('[No subject]') }}
 				</h2>
 				<div class="ml-auto shrink-0 space-x-2">
@@ -44,23 +44,39 @@
 			</template>
 		</div>
 		<div class="flex-1 overflow-y-auto">
+			<div v-if="isMobile && !mailThread.loading" class="border-b px-3 py-3.5">
+				<h2 class="font-semibold leading-5">
+					{{ mailThread?.data?.[0].subject || __('[No subject]') }}
+				</h2>
+			</div>
+
 			<MailThreadPlaceholder v-if="mailThread.loading" />
 
-			<div v-else class="space-y-4 px-2.5 py-3 sm:px-5 sm:py-6">
+			<div v-else class="space-y-4 sm:px-5 sm:py-6">
 				<div
 					v-for="mail in mailThread.data"
 					:key="mail.name"
-					class="p-3"
-					:class="{ 'rounded-md border': mailThread.data.length > 1 }"
+					:class="{
+						'border-b p-3.5 sm:rounded-md sm:border': mailThread.data.length > 1,
+						'cursor-pointer': isCollapsed(mail),
+					}"
+					@click="mail.collapsed = false"
 				>
-					<div class="flex space-x-3 border-b pb-2">
+					<div
+						class="flex space-x-3"
+						:class="{
+							'cursor-pointer': mail !== mailThread.data[mailThread.data.length - 1],
+							'pb-6': mail.preview,
+						}"
+						@click.stop="mail.collapsed = !mail.collapsed"
+					>
 						<Avatar
 							:label="mail.from_name || mail.from_email"
 							:image="mail.user_image"
 							size="xl"
 						/>
-						<div class="flex flex-1 justify-between text-xs">
-							<div class="flex flex-col space-y-1">
+						<div class="flex flex-1 justify-between truncate text-sm">
+							<div class="mr-3 flex flex-col space-y-1 truncate">
 								<div class="flex items-center space-x-1.5">
 									<span class="text-base font-semibold">
 										{{ mail.from_name || mail.from_email }}
@@ -68,19 +84,12 @@
 									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
 										{{ `<${mail.from_email}>` }}
 									</span>
-									<MailDetailsPopover v-if="!mail.draft" :mail="mail" />
+									<MailDetailsPopover
+										v-if="!(mail.draft || isCollapsed(mail))"
+										:mail="mail"
+									/>
 								</div>
-								<div class="flex items-center space-x-2">
-									<span v-if="mail.recipients.To?.length">
-										{{ __('To: ') + getRecipients(mail.recipients.To) }}
-									</span>
-									<span v-if="mail.recipients.CC?.length">
-										{{ __('Cc: ') + getRecipients(mail.recipients.CC) }}
-									</span>
-									<span v-if="mail.recipients.BCC?.length">
-										{{ __('Bcc: ') + getRecipients(mail.recipients.BCC) }}
-									</span>
-								</div>
+								<div class="truncate">{{ getAllRecipients(mail) }}</div>
 							</div>
 							<div class="flex items-center space-x-1 self-start">
 								<MailDate :datetime="mail.received_at" />
@@ -90,7 +99,7 @@
 								>
 									<Button
 										variant="ghost"
-										@click="
+										@click.stop="
 											starMails.submit({
 												names: [mail.name],
 												flagged: false,
@@ -106,12 +115,12 @@
 								</Tooltip>
 								<Tooltip
 									v-for="action in mailActions(mail).filter(
-										(d) => d.condition !== false,
+										(d) => d.condition !== false && !isCollapsed(mail),
 									)"
 									:key="action.label"
 									:text="action.label"
 								>
-									<Button variant="ghost" @click="action.onClick">
+									<Button variant="ghost" @click.stop="action.onClick">
 										<template #icon>
 											<component
 												:is="action.icon"
@@ -120,11 +129,12 @@
 										</template>
 									</Button>
 								</Tooltip>
-								<Tooltip :text="__('More')">
+								<Tooltip v-if="!isCollapsed(mail)" :text="__('More')">
 									<Dropdown
 										:options="
 											moreActions(mail).filter((d) => d.condition !== false)
 										"
+										@click.stop
 									>
 										<Button variant="ghost">
 											<template #icon>
@@ -137,38 +147,47 @@
 						</div>
 					</div>
 
-					<template v-if="mail.html_body">
-						<div v-if="!iframeReady[mail.name]" class="animate-pulse space-y-2 py-4">
+					<div v-show="isCollapsed(mail)" class="truncate">
+						{{ mail.preview }}
+					</div>
+
+					<div v-show="!isCollapsed(mail)">
+						<template v-if="mail.html_body">
 							<div
-								v-for="i in 5"
-								:key="i"
-								class="bg-surface-gray-3 h-2"
-								:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
+								v-if="!iframeReady[mail.name]"
+								class="animate-pulse space-y-2 py-4"
+							>
+								<div
+									v-for="i in 5"
+									:key="i"
+									class="bg-surface-gray-3 h-2"
+									:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
+								/>
+							</div>
+							<IframeResizer
+								v-show="iframeReady[mail.name]"
+								class="w-full"
+								license="GPLv3"
+								:scrolling="true"
+								:srcdoc="getSrc(mail.html_body)"
+								@on-ready="iframeReady[mail.name] = true"
+							/>
+						</template>
+
+						<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
+							mail.text_body
+						}}</pre>
+
+						<div v-if="mail.attachments?.length" class="mt-8 flex flex-wrap space-x-2">
+							<AttachmentCapsule
+								v-for="attachment in mail.attachments"
+								:key="attachment.name"
+								:file-name="attachment.filename"
+								:blob-i-d="attachment.blob_id"
+								:type="attachment.type"
+								class="mb-2"
 							/>
 						</div>
-						<IframeResizer
-							v-show="iframeReady[mail.name]"
-							class="w-full"
-							license="GPLv3"
-							:scrolling="true"
-							:srcdoc="getSrc(mail.html_body)"
-							@on-ready="iframeReady[mail.name] = true"
-						/>
-					</template>
-
-					<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
-						mail.text_body
-					}}</pre>
-
-					<div v-if="mail.attachments?.length" class="mt-8 flex flex-wrap space-x-2">
-						<AttachmentCapsule
-							v-for="attachment in mail.attachments"
-							:key="attachment.name"
-							:file-name="attachment.filename"
-							:blob-i-d="attachment.blob_id"
-							:type="attachment.type"
-							class="mb-2"
-						/>
 					</div>
 				</div>
 			</div>
@@ -227,7 +246,7 @@ import type { ComposeMailData, Mail } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteThread'])
+const emit = defineEmits(['reloadMails', 'setSeen', 'moveThread', 'deleteThread'])
 
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -254,9 +273,19 @@ const mailThread = createResource({
 	auto: !!threadID,
 	makeParams: () => ({ thread_id: threadID }),
 	transform: (data: Mail[]) =>
-		data.filter((mail) =>
-			mailbox === 'trash' ? mail.mailbox_role === 'trash' : mail.mailbox_role !== 'trash',
-		),
+		data
+			.filter((mail) =>
+				mailbox === 'trash'
+					? mail.mailbox_role === 'trash'
+					: mail.mailbox_role !== 'trash',
+			)
+			.map((mail) => ({
+				...mail,
+				collapsed: !!mail.seen,
+			})),
+	onSuccess: (data: Mail[]) => {
+		if (data.some((mail) => !mail.seen)) emit('setSeen', true)
+	},
 	onError: () => router.push({ name: 'Mailbox', params: { mailbox } }),
 })
 
@@ -283,7 +312,7 @@ const getSrc = (content: string) => {
 			<style>
 				body {
 					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-					font-size: 13px;
+					font-size: 14px;
 					line-height: 1.25rem;
 				}
 				blockquote {
@@ -361,7 +390,7 @@ const threadActions = computed((): MailAction[] =>
 		},
 		{
 			label: __('Mark as Unread'),
-			onClick: () => emit('markAsUnread'),
+			onClick: () => emit('setSeen', false),
 			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),
@@ -425,6 +454,20 @@ const moreActions = (mail: Mail): MailAction[] => [
 		condition: () => mailbox === 'trash',
 	},
 ]
+
+const isCollapsed = (mail: Mail) =>
+	mail.collapsed && mail !== mailThread.data[mailThread.data.length - 1]
+
+const getAllRecipients = (mail: Mail) => {
+	let recipients = ''
+	if (mail.recipients.To?.length)
+		recipients += __('To: ') + getRecipients(mail.recipients.To) + ' '
+	if (mail.recipients.Cc?.length)
+		recipients += __('Cc: ') + getRecipients(mail.recipients.Cc) + ' '
+	if (mail.recipients.Bcc?.length)
+		recipients += __('Bcc: ') + getRecipients(mail.recipients.Bcc) + ' '
+	return recipients
+}
 
 const moveMail = createResource({
 	url: 'mail.api.mail.set_mails_mailbox',
