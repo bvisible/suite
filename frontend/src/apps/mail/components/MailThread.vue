@@ -246,7 +246,7 @@ import type { ComposeMailData, Mail } from '@/types'
 
 const { mailbox, threadID } = defineProps<{ mailbox: string; threadID?: string }>()
 
-const emit = defineEmits(['reloadMails', 'markAsUnread', 'moveThread', 'deleteThread'])
+const emit = defineEmits(['reloadMails', 'setSeen', 'moveThread', 'deleteThread'])
 
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
@@ -283,6 +283,9 @@ const mailThread = createResource({
 				...mail,
 				collapsed: !!mail.seen,
 			})),
+	onSuccess: (data: Mail[]) => {
+		if (data.some((mail) => !mail.seen)) emit('setSeen', true)
+	},
 	onError: () => router.push({ name: 'Mailbox', params: { mailbox } }),
 })
 
@@ -387,7 +390,7 @@ const threadActions = computed((): MailAction[] =>
 		},
 		{
 			label: __('Mark as Unread'),
-			onClick: () => emit('markAsUnread'),
+			onClick: () => emit('setSeen', false),
 			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),

@@ -138,7 +138,12 @@
 							:mail
 							:user-layout
 							:class="{ 'bg-gray-50': mail.thread_id == threadID }"
-							@click="openThread(mail)"
+							@click="
+								router.push({
+									name: 'Mail',
+									params: { mailbox, threadID: mail.thread_id },
+								})
+							"
 							@select-thread="
 								(isManuallySelected) =>
 									selectThread(mail.thread_id, isManuallySelected)
@@ -184,7 +189,7 @@
 					:mailbox
 					:thread-i-d
 					@reload-mails="reloadMails"
-					@mark-as-unread="setSeen.submit({ thread_ids: [threadID], seen: false })"
+					@set-seen="(seen: boolean) => setSeen.submit({ thread_ids: [threadID], seen })"
 					@move-thread="
 						(move_to_mailbox: string) =>
 							moveThreads.submit({ thread_ids: [threadID], move_to_mailbox })
@@ -455,11 +460,6 @@ const setSeen = createResource({
 			router.push({ name: 'Mailbox', params: { mailbox } })
 	},
 })
-
-const openThread = (mail: Thread) => {
-	router.push({ name: 'Mail', params: { mailbox, threadID: mail.thread_id } })
-	if (!mail.seen) setSeen.submit({ thread_ids: [mail.thread_id], seen: true })
-}
 
 const moveThreads = createResource({
 	url: 'mail.api.mail.set_threads_mailbox',
