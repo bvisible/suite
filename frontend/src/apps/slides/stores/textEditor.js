@@ -87,39 +87,6 @@ export const initTextEditor = (content) => {
 
 export const activeEditor = ref(null)
 
-export const toggleTextProperty = (property) => {
-	const editor = activeEditor.value
-
-	if (!editor) return
-
-	switch (property) {
-		case 'bold':
-			editor.chain().focus().selectAll().toggleBold().run()
-			break
-		case 'italic':
-			editor.chain().focus().selectAll().toggleItalic().run()
-			break
-		case 'strike':
-			editor.chain().focus().selectAll().toggleStrike().run()
-			break
-		case 'uppercase':
-			editor
-				.chain()
-				.focus()
-				.setMark('textStyle', {
-					textTransform:
-						editor.getAttributes('textStyle').textTransform == 'uppercase'
-							? null
-							: 'uppercase',
-				})
-				.run()
-			break
-		default:
-			editor.chain().focus().selectAll().toggleUnderline().run()
-			break
-	}
-}
-
 export const updateProperty = (property, value) => {
 	const editor = activeEditor.value
 	if (!editor) return
@@ -221,6 +188,37 @@ export function useTextStyles(editor) {
 		}
 	}
 
+	const markCommands = {
+		bold: 'toggleBold',
+		italic: 'toggleItalic',
+		strike: 'toggleStrike',
+		underline: 'toggleUnderline',
+	}
+
+	const toggleCapitalize = (chain) => {
+		const val = editor.value.getAttributes('textStyle').textTransform
+		const newVal = val === 'uppercase' ? null : 'uppercase'
+
+		chain
+			.setMark('textStyle', {
+				textTransform: newVal,
+			})
+			.run()
+	}
+
+	const toggleMark = (property) => {
+		const currentEditor = editor.value
+
+		const chain = currentEditor.chain().focus()
+
+		const { empty } = currentEditor.state.selection
+		if (empty) chain.selectAll()
+
+		if (property == 'uppercase') return toggleCapitalize(chain)
+
+		chain[markCommands[property]](property).run()
+	}
+
 	onMounted(() => {
 		if (!editor.value) return
 		editor.value.on('selectionUpdate', update)
@@ -236,5 +234,6 @@ export function useTextStyles(editor) {
 
 	return {
 		styles,
+		toggleMark,
 	}
 }
