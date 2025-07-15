@@ -82,11 +82,11 @@ const getElementContent = (element) => {
 							{
 								type: 'textStyle',
 								attrs: {
-									fontSize: `${element.fontSize}px`,
+									fontSize: element.fontSize,
 									fontFamily: element.fontFamily,
 									color: element.color,
 									lineHeight: 1,
-									letterSpacing: '0px',
+									letterSpacing: 0,
 									opacity: 100,
 								},
 							},

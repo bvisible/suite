@@ -49,7 +49,7 @@
 				:options="textFonts"
 				size="sm"
 				variant="subtle"
-				:modelValue="styles.fontFamily"
+				:modelValue="editorStyles.fontFamily"
 				@update:modelValue="(font) => updateProperty('fontFamily', font.value)"
 			/>
 
@@ -57,7 +57,7 @@
 				<div :class="fieldLabelClasses">Size</div>
 				<div class="w-28">
 					<NumberInput
-						:modelValue="styles.fontSize"
+						:modelValue="editorStyles.fontSize"
 						@update:modelValue="(value) => updateProperty('fontSize', value)"
 						suffix="px"
 						:rangeStart="5"
@@ -70,7 +70,7 @@
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Color</div>
 				<ColorPicker
-					:modelValue="styles.color"
+					:modelValue="editorStyles.color"
 					@update:modelValue="(val) => updateProperty('color', val)"
 				/>
 			</div>
@@ -84,7 +84,7 @@
 				:rangeStart="0.1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="styles.lineHeight"
+				:modelValue="editorStyles.lineHeight"
 				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 
@@ -93,7 +93,7 @@
 				:rangeStart="-10"
 				:rangeEnd="50"
 				:rangeStep="0.1"
-				:modelValue="styles.letterSpacing"
+				:modelValue="editorStyles.letterSpacing"
 				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
 			/>
 		</template>
@@ -105,7 +105,7 @@
 				label="Opacity"
 				:rangeStart="0"
 				:rangeEnd="100"
-				:modelValue="styles.opacity"
+				:modelValue="editorStyles.opacity"
 				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
 			/>
 		</template>
@@ -137,9 +137,9 @@ import { slide } from '@/stores/slide'
 import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
-import { activeEditor, useTextStyles } from '@/stores/textEditor'
+import { useTextEditor } from '@/composables/useTextEditor'
 
-const { styles, toggleMark, updateProperty } = useTextStyles(activeEditor)
+const { activeEditor, editorStyles, toggleMark, updateProperty } = useTextEditor()
 
 const textFonts = [
 	'Arial',
@@ -252,19 +252,19 @@ const applyPresetTextStyles = (textStyle) => {
 
 const getFontStyleButtonClasses = (property) => {
 	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
-	if (styles.value[property]) {
+	if (editorStyles.value[property]) {
 		return `${baseClasses} bg-gray-100`
 	}
 	return baseClasses
 }
 
 const getFontStyleIconClasses = (property) => {
-	return styles.value[property] ? 'text-gray-900' : 'text-gray-700'
+	return editorStyles.value[property] ? 'text-gray-900' : 'text-gray-700'
 }
 
 const getTabClasses = (alignValue) => {
 	const baseClasses = 'rounded h-full flex items-center justify-center w-1/6 cursor-pointer'
-	if (styles.value.textAlign === alignValue) {
+	if (editorStyles.value.textAlign === alignValue) {
 		return `${baseClasses} bg-white shadow`
 	}
 	return baseClasses
@@ -272,7 +272,7 @@ const getTabClasses = (alignValue) => {
 
 const getAlignIconClasses = (alignValue) => {
 	const baseClasses = 'stroke-[1.5] text-gray-600'
-	if (styles.value.textAlign === alignValue) {
+	if (editorStyles.value.textAlign === alignValue) {
 		return `${baseClasses} text-gray-800`
 	}
 	return baseClasses
