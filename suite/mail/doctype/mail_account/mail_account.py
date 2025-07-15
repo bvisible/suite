@@ -64,28 +64,18 @@ class MailAccount(Document):
 		return {}
 
 	@property
-	def _disk_quota(self) -> int:
-		"""Returns the disk quota in bytes."""
-
-		return self._account.get("quota", 0)
-
-	@property
 	def disk_quota(self) -> float:
 		"""Returns the disk quota in gigabytes."""
 
-		return self._disk_quota / (1024**3) if self._disk_quota else 0
-
-	@property
-	def _used_quota(self) -> int:
-		"""Returns the used quota in bytes."""
-
-		return self._account.get("usedQuota", 0)
+		_disk_quota = self._account.get("quota", 0)
+		return _disk_quota / (1024**3) if _disk_quota else 0
 
 	@property
 	def used_quota(self) -> float:
 		"""Returns the used quota in gigabytes."""
 
-		return self._used_quota / (1024**3) if self._used_quota else 0
+		_used_quota = self._account.get("usedQuota", 0)
+		return _used_quota / (1024**3) if _used_quota else 0
 
 	def autoname(self) -> None:
 		self.email = self.email.strip().lower()
@@ -358,6 +348,8 @@ class MailAccount(Document):
 			frappe.throw(_("You do not have permission to set quota for this account."))
 		elif not self.enabled:
 			frappe.throw(_("Cannot set quota for a disabled account."))
+		elif quota < 0:
+			frappe.throw(_("Quota cannot be negative."))
 
 		MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).set_quota(
 			self.email, quota
