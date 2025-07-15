@@ -32,7 +32,7 @@ from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
 from mail.utils.cache import get_account_for_email, get_account_for_user
 from mail.utils.dt import convert_to_utc, parsedate_to_datetime
 from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
-from mail.utils.validation import validate_domain_is_enabled_and_verified
+from mail.utils.validation import validate_domain_is_enabled_and_verified, validate_email_address
 
 
 class MailQueue(Document):
@@ -438,6 +438,9 @@ class MailQueue(Document):
 		for rcpt in json_loads(self.recipients, default=[]):
 			if not rcpt["type"] or not rcpt["email"]:
 				continue
+
+			if not validate_email_address(rcpt["email"], check_mx=False, verify=False):
+				frappe.throw(_("Invalid email address: {0}").format(frappe.bold(rcpt["email"])))
 
 			recipients.append(
 				{
