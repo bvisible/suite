@@ -31,14 +31,9 @@ const activeElement = computed(() => {
 })
 
 const setActiveElements = (ids, focus = false) => {
-	if (ids.length == 1 && focus) {
-		activeElementIds.value = []
-		focusElementId.value = ids[0]
-	} else {
-		if (ids.length == 1 && activeElementIds.value.includes(ids[0])) return
-		activeElementIds.value = ids
-		focusElementId.value = null
-	}
+	if (ids.length == 1 && activeElementIds.value.includes(ids[0])) return
+	activeElementIds.value = ids
+	focusElementId.value = null
 }
 
 const selectAndCenterElement = (elementId) => {
