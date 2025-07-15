@@ -113,8 +113,9 @@ class MailAccount(Document):
 
 		if self.enabled:
 			if self.has_value_changed("enabled") or self.has_value_changed("email"):
+				quota = cint(frappe.db.get_value("Mail Domain", self.domain_name, "default_disk_quota")) or 10
 				MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).create(
-					self.email, self.display_name, self.secret
+					self.email, self.display_name, cint(quota * (1024**3)), self.secret
 				)
 			elif self.has_value_changed("display_name") or self.has_value_changed("secret"):
 				MailBackendAccountManager("Mail Cluster", get_cluster_for_tenant(self.tenant)).update(
