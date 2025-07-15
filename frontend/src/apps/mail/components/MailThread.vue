@@ -52,15 +52,25 @@
 
 			<MailThreadPlaceholder v-if="mailThread.loading" />
 
-			<div v-else class="space-y-4 p-3 sm:px-5 sm:py-6">
+			<div v-else class="space-y-4 sm:px-5 sm:py-6">
 				<div
 					v-for="mail in mailThread.data"
 					:key="mail.name"
 					:class="{
-						'border-b sm:rounded-md sm:border sm:p-3.5': mailThread.data.length > 1,
+						'border-b p-3.5 sm:rounded-md sm:border': mailThread.data.length > 1,
+						'cursor-pointer':
+							mail !== mailThread.data[mailThread.data.length - 1] && mail.collapsed,
 					}"
+					@click="mail.collapsed = false"
 				>
-					<div class="flex space-x-3 pb-6">
+					<div
+						class="flex space-x-3"
+						:class="{
+							'cursor-pointer': mail !== mailThread.data[mailThread.data.length - 1],
+							'pb-6': mail.preview,
+						}"
+						@click.stop="mail.collapsed = !mail.collapsed"
+					>
 						<Avatar
 							:label="mail.from_name || mail.from_email"
 							:image="mail.user_image"
@@ -75,7 +85,15 @@
 									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
 										{{ `<${mail.from_email}>` }}
 									</span>
-									<MailDetailsPopover v-if="!mail.draft" :mail="mail" />
+									<MailDetailsPopover
+										v-if="
+											!mail.draft &&
+											(!mail.collapsed ||
+												mail ===
+													mailThread.data[mailThread.data.length - 1])
+										"
+										:mail="mail"
+									/>
 								</div>
 								<div class="flex items-center space-x-2">
 									<span v-if="mail.recipients.To?.length">
@@ -144,38 +162,56 @@
 						</div>
 					</div>
 
-					<template v-if="mail.html_body">
-						<div v-if="!iframeReady[mail.name]" class="animate-pulse space-y-2 py-4">
+					<div
+						v-show="
+							mail.collapsed && mail !== mailThread.data[mailThread.data.length - 1]
+						"
+						class="truncate"
+					>
+						{{ mail.preview }}
+					</div>
+
+					<div
+						v-show="
+							!mail.collapsed || mail === mailThread.data[mailThread.data.length - 1]
+						"
+					>
+						<template v-if="mail.html_body">
 							<div
-								v-for="i in 5"
-								:key="i"
-								class="bg-surface-gray-3 h-2"
-								:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
+								v-if="!iframeReady[mail.name]"
+								class="animate-pulse space-y-2 py-4"
+							>
+								<div
+									v-for="i in 5"
+									:key="i"
+									class="bg-surface-gray-3 h-2"
+									:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
+								/>
+							</div>
+							<IframeResizer
+								v-show="iframeReady[mail.name]"
+								class="w-full"
+								license="GPLv3"
+								:scrolling="true"
+								:srcdoc="getSrc(mail.html_body)"
+								@on-ready="iframeReady[mail.name] = true"
+							/>
+						</template>
+
+						<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
+							mail.text_body
+						}}</pre>
+
+						<div v-if="mail.attachments?.length" class="mt-8 flex flex-wrap space-x-2">
+							<AttachmentCapsule
+								v-for="attachment in mail.attachments"
+								:key="attachment.name"
+								:file-name="attachment.filename"
+								:blob-i-d="attachment.blob_id"
+								:type="attachment.type"
+								class="mb-2"
 							/>
 						</div>
-						<IframeResizer
-							v-show="iframeReady[mail.name]"
-							class="w-full"
-							license="GPLv3"
-							:scrolling="true"
-							:srcdoc="getSrc(mail.html_body)"
-							@on-ready="iframeReady[mail.name] = true"
-						/>
-					</template>
-
-					<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
-						mail.text_body
-					}}</pre>
-
-					<div v-if="mail.attachments?.length" class="mt-8 flex flex-wrap space-x-2">
-						<AttachmentCapsule
-							v-for="attachment in mail.attachments"
-							:key="attachment.name"
-							:file-name="attachment.filename"
-							:blob-i-d="attachment.blob_id"
-							:type="attachment.type"
-							class="mb-2"
-						/>
 					</div>
 				</div>
 			</div>
@@ -261,9 +297,16 @@ const mailThread = createResource({
 	auto: !!threadID,
 	makeParams: () => ({ thread_id: threadID }),
 	transform: (data: Mail[]) =>
-		data.filter((mail) =>
-			mailbox === 'trash' ? mail.mailbox_role === 'trash' : mail.mailbox_role !== 'trash',
-		),
+		data
+			.filter((mail) =>
+				mailbox === 'trash'
+					? mail.mailbox_role === 'trash'
+					: mail.mailbox_role !== 'trash',
+			)
+			.map((mail) => ({
+				...mail,
+				collapsed: !!mail.seen,
+			})),
 	onError: () => router.push({ name: 'Mailbox', params: { mailbox } }),
 })
 
@@ -290,7 +333,7 @@ const getSrc = (content: string) => {
 			<style>
 				body {
 					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-					font-size: 13px;
+					font-size: 14px;
 					line-height: 1.25rem;
 				}
 				blockquote {
