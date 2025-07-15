@@ -53,13 +53,6 @@ const editorStyles = computed(() => ({
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
 
-const handleBlur = (e) => {
-	if (element.value.content.trim() === '') {
-		deleteElements()
-	}
-	element.value.content = e.target.innerText
-}
-
 const handleMouseDown = (e) => {
 	if (focusElementId.value == element.value.id) {
 		e.stopPropagation()
@@ -87,6 +80,8 @@ watch(
 	() => activeElement.value,
 	(el, oldEl) => {
 		if (oldEl?.type == 'text' && oldEl.id == element.value.id) {
+			activeEditor.value.setEditable(false)
+			activeEditor.value.commands.blur()
 			element.value.content = editor.getJSON()
 		}
 		if (el?.type == 'text' && el.id == element.value.id) {
