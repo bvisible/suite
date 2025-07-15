@@ -12,7 +12,7 @@
 					v-for="style in styleProperties"
 					:key="style.property"
 					:class="getFontStyleButtonClasses(style.property)"
-					@click="toggleTextProperty(style.property)"
+					@click="toggleMark(style.property)"
 				>
 					<component
 						:is="style.icon"
@@ -137,14 +137,9 @@ import { slide } from '@/stores/slide'
 import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
-import {
-	activeEditor,
-	toggleTextProperty,
-	updateProperty,
-	useTextStyles,
-} from '@/stores/textEditor'
+import { activeEditor, updateProperty, useTextStyles } from '@/stores/textEditor'
 
-const { styles } = useTextStyles(activeEditor)
+const { styles, toggleMark } = useTextStyles(activeEditor)
 
 const textFonts = [
 	'Arial',
