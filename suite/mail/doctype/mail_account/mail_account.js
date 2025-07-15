@@ -52,6 +52,10 @@ frappe.ui.form.on('Mail Account', {
 			)
 		}
 
+		if (frm.doc.enabled && frappe.user_roles.includes('Mail Admin')) {
+			frm.add_custom_button(__('Set Quota'), () => frm.trigger('set_quota'), __('Actions'))
+		}
+
 		frm.add_custom_button(
 			__('Regenerate Password'),
 			() => frm.trigger('regenerate_password'),
@@ -102,6 +106,49 @@ frappe.ui.form.on('Mail Account', {
 				}
 			},
 		})
+	},
+
+	set_quota(frm) {
+		const dialog = new frappe.ui.Dialog({
+			title: __('Set Quota'),
+			size: 'small',
+			fields: [
+				{
+					fieldname: 'quota',
+					fieldtype: 'Float',
+					label: __('Quota (in GB)'),
+					reqd: 1,
+					precision: 5,
+					default: frm.doc.disk_quota || 0,
+				},
+			],
+			primary_action_label: __('Set Quota'),
+			primary_action: (data) => {
+				const quota = data.quota
+				if (quota < 0) {
+					frappe.msgprint(__('Quota cannot be negative.'))
+					return
+				}
+
+				frappe.call({
+					doc: frm.doc,
+					method: 'set_quota',
+					args: {
+						quota: Math.round(quota * 1024 * 1024 * 1024),
+					},
+					freeze: true,
+					freeze_message: __('Setting Quota...'),
+					callback: (r) => {
+						if (!r.exc) {
+							frm.refresh()
+							dialog.hide()
+						}
+					},
+				})
+			},
+		})
+
+		dialog.show()
 	},
 
 	regenerate_password(frm) {
