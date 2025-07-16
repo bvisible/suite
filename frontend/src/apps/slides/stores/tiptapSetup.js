@@ -5,6 +5,7 @@ import StarterKit from '@tiptap/starter-kit'
 import TextStyle from '@tiptap/extension-text-style'
 import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
+import BulletList from '@tiptap/extension-bullet-list'
 import Color from '@tiptap/extension-color'
 import { Plugin } from 'prosemirror-state'
 
@@ -71,7 +72,9 @@ const PastePlainText = Extension.create({
 export const initTextEditor = (content) => {
 	return new Editor({
 		extensions: [
-			StarterKit,
+			StarterKit.configure({
+				bulletList: false,
+			}),
 			CustomTextStyle,
 			Underline,
 			Color,
@@ -79,6 +82,11 @@ export const initTextEditor = (content) => {
 				types: ['paragraph'],
 			}),
 			PastePlainText,
+			BulletList.configure({
+				HTMLAttributes: {
+					class: 'list-disc pl-6',
+				},
+			}),
 		],
 		editable: false,
 		content: content,

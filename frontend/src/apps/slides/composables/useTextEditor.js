@@ -64,9 +64,10 @@ export const useTextEditor = () => {
 		const chain = currentEditor.chain().focus()
 
 		const { empty } = currentEditor.state.selection
-		if (empty) chain.selectAll()
+		if (empty && property != 'bulletList') chain.selectAll()
 
 		if (property == 'uppercase') return toggleCapitalize(chain)
+		if (property == 'bulletList') return chain.toggleBulletList().run()
 
 		chain[markCommands[property]](property).run()
 	}

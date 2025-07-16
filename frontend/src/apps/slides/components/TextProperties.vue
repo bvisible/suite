@@ -23,20 +23,29 @@
 				</button>
 			</div>
 
-			<div
-				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
-			>
+			<div class="flex items-center justify-between">
 				<div
-					v-for="textAlign in textAlignProperties"
-					:key="textAlign.alignValue"
-					:class="getTabClasses(textAlign.alignValue)"
-					@click="updateProperty('textAlign', textAlign.alignValue)"
+					class="flex h-8 w-4/5 items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
 				>
-					<component
-						:is="textAlign.icon"
-						size="16"
-						:class="getAlignIconClasses(textAlign.alignValue)"
-					/>
+					<div
+						v-for="textAlign in textAlignProperties"
+						:key="textAlign.alignValue"
+						:class="getTabClasses(textAlign.alignValue)"
+						@click="updateProperty('textAlign', textAlign.alignValue)"
+					>
+						<component
+							:is="textAlign.icon"
+							size="16"
+							:class="getAlignIconClasses(textAlign.alignValue)"
+						/>
+					</div>
+				</div>
+
+				<div
+					class="flex h-full w-1/5 items-center justify-center ps-2"
+					@click="toggleMark('bulletList')"
+				>
+					<List size="16" class="cursor-pointer stroke-[1.5] text-gray-600" />
 				</div>
 			</div>
 		</template>
@@ -263,7 +272,7 @@ const getFontStyleIconClasses = (property) => {
 }
 
 const getTabClasses = (alignValue) => {
-	const baseClasses = 'rounded h-full flex items-center justify-center w-1/6 cursor-pointer'
+	const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
 	if (editorStyles.value.textAlign === alignValue) {
 		return `${baseClasses} bg-white shadow`
 	}
