@@ -245,12 +245,8 @@ const handleCopy = (e) => {
 }
 
 const handlePastedText = (clipboardText) => {
-	if (focusElementId.value) {
-		document.execCommand('insertText', false, clipboardText)
-	} else {
-		resetFocus()
-		addTextElement(clipboardText)
-	}
+	resetFocus()
+	addTextElement(clipboardText)
 }
 
 const handlePastedJSON = async (json) => {
@@ -272,7 +268,7 @@ const handlePaste = (e) => {
 	if (clipboardItems) handleUploadedMedia(clipboardItems)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) handlePastedText(clipboardText)
+	if (clipboardText && !focusElementId.value) handlePastedText(clipboardText)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
 	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))

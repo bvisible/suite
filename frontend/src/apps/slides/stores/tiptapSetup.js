@@ -5,6 +5,32 @@ import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
 import Color from '@tiptap/extension-color'
 
+import { Extension } from '@tiptap/core'
+import { Plugin } from 'prosemirror-state'
+
+export const PastePlainText = Extension.create({
+	name: 'pastePlainText',
+
+	addProseMirrorPlugins() {
+		const pasteWithInheritedStyles = (view, event) => {
+			const plainText = event.clipboardData?.getData('text/plain')
+			if (!plainText) return false
+
+			const { state, dispatch } = view
+			const { tr } = state
+
+			dispatch(tr.insertText(plainText, state.selection.from, state.selection.to))
+			return true
+		}
+
+		const pastePlugin = new Plugin({
+			props: { handlePaste: pasteWithInheritedStyles },
+		})
+
+		return [pastePlugin]
+	},
+})
+
 const CustomTextStyle = TextStyle.extend({
 	addAttributes() {
 		return {
@@ -77,6 +103,7 @@ export const initTextEditor = (content) => {
 			TextAlign.configure({
 				types: ['paragraph'],
 			}),
+			PastePlainText,
 		],
 		editable: false,
 		content: content,
