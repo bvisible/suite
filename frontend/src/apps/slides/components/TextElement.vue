@@ -15,9 +15,9 @@ import { EditorContent } from '@tiptap/vue-3'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
-import { setCursorPositionAtEnd } from '@/utils/helpers'
-
 import { initTextEditor } from '@/stores/tiptapSetup'
+
+import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const { activeEditor } = useTextEditor()
 
@@ -30,25 +30,6 @@ const emit = defineEmits(['clearTimeouts'])
 
 const editor = initTextEditor(element.value.content)
 
-const textStyle = computed(() => ({
-	content: element.value.content,
-	fontFamily: element.value.fontFamily,
-	fontSize: `${element.value.fontSize}px`,
-	fontWeight: element.value.fontWeight,
-	fontStyle: element.value.fontStyle,
-	textDecoration: element.value.textDecoration,
-	textTransform: element.value.textTransform,
-	userSelect: focusElementId.value == element.value.id ? 'text' : 'none',
-	opacity: element.value.opacity / 100,
-	lineHeight: element.value.lineHeight,
-	letterSpacing: `${element.value.letterSpacing}px`,
-	whiteSpace: 'pre-wrap',
-	wordWrap: element.value.width == 'auto' ? 'normal' : 'break-word',
-	textAlign: element.value.textAlign,
-	color: element.value.color,
-	cursor: focusElementId.value == element.value.id ? 'text' : '',
-}))
-
 const editorStyles = computed(() => ({
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
 }))
@@ -60,12 +41,7 @@ const handleMouseDown = (e) => {
 	}
 }
 
-const handleDoubleClick = (e) => {
-	if (focusElementId.value == element.value.id) {
-		e.stopPropagation()
-		return
-	}
-
+const makeElementEditable = () => {
 	emit('clearTimeouts')
 
 	activeEditor.value = editor
@@ -74,6 +50,15 @@ const handleDoubleClick = (e) => {
 
 	activeEditor.value.setEditable(true)
 	activeEditor.value.commands.focus('end')
+}
+
+const handleDoubleClick = (e) => {
+	if (focusElementId.value == element.value.id) {
+		e.stopPropagation()
+		return
+	}
+
+	makeElementEditable()
 }
 
 watch(
@@ -88,6 +73,5 @@ watch(
 			activeEditor.value = editor
 		}
 	},
-	{ immediate: true },
 )
 </script>
