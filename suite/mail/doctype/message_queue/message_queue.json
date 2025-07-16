@@ -44,8 +44,9 @@
    "fieldname": "message_size",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Message Size (Bytes)",
+   "label": "Message Size",
    "non_negative": 1,
+   "options": "File Size",
    "read_only": 1
   },
   {
@@ -128,7 +129,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-04-06 15:10:16.812321",
+ "modified": "2025-07-16 13:17:16.580833",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Message Queue",

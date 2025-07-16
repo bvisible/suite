@@ -349,9 +349,10 @@
    "depends_on": "eval: !doc.__islocal",
    "fieldname": "size",
    "fieldtype": "Int",
-   "label": "Size (Bytes)",
+   "label": "Size",
    "no_copy": 1,
    "non_negative": 1,
+   "options": "File Size",
    "read_only": 1
   },
   {
@@ -524,7 +525,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-26 11:33:50.623947",
+ "modified": "2025-07-16 13:16:46.365817",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
