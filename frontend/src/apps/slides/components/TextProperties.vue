@@ -42,10 +42,19 @@
 				</div>
 
 				<div
-					class="flex h-full w-1/5 items-center justify-center ps-2"
-					@click="toggleMark('bulletList')"
+					class="ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded-md py-2"
+					:class="{
+						'bg-gray-100 text-gray-800':
+							editorStyles.bulletList || editorStyles.orderedList,
+					}"
+					@click="updateProperty('bulletList')"
 				>
-					<List size="16" class="cursor-pointer stroke-[1.5] text-gray-600" />
+					<ListOrdered
+						v-if="editorStyles.orderedList"
+						size="16"
+						class="cursor-pointer stroke-[1.5] text-gray-600"
+					/>
+					<List v-else size="16" class="cursor-pointer stroke-[1.5] text-gray-600" />
 				</div>
 			</div>
 		</template>
@@ -131,6 +140,7 @@ import {
 	Strikethrough,
 	CaseUpper,
 	List,
+	ListOrdered,
 	AlignLeft,
 	AlignCenter,
 	AlignRight,
