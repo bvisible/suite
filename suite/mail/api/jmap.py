@@ -6,7 +6,6 @@ from frappe import _
 from mail.jmap import invalidate_jmap_identities_cache, invalidate_jmap_mailboxes_cache
 from mail.mail.doctype.email_message.email_message import enqueue_fetch_changes
 from mail.mail.doctype.jmap_push_subscription.jmap_push_subscription import JMAPPushSubscription
-from mail.mail.doctype.mail_account.mail_account import enqueue_sync_jmap_vacation_response
 
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
@@ -39,8 +38,6 @@ def push_notification() -> dict:
 						invalidate_jmap_mailboxes_cache(account)
 					elif key == "Identity":
 						invalidate_jmap_identities_cache(account)
-					elif key == "VacationResponse":
-						enqueue_sync_jmap_vacation_response(account, state)
 
 			return {}
 		else:

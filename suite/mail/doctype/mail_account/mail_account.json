@@ -35,7 +35,6 @@
   "vacation_response_tab",
   "vacation_response_enabled",
   "column_break_xhfw",
-  "vacation_response_state",
   "section_break_ttgy",
   "vacation_from_date",
   "vacation_to_date",
@@ -203,11 +202,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.vacation_response_enabled",
    "fieldname": "vacation_response_enabled",
    "fieldtype": "Check",
+   "is_virtual": 1,
    "label": "Enabled",
    "no_copy": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_ttgy",
@@ -216,16 +217,20 @@
   {
    "fieldname": "vacation_from_date",
    "fieldtype": "Datetime",
+   "is_virtual": 1,
    "label": "From Date",
    "mandatory_depends_on": "eval: doc.vacation_response_enabled",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "vacation_to_date",
    "fieldtype": "Datetime",
+   "is_virtual": 1,
    "label": "To Date",
    "mandatory_depends_on": "eval: doc.vacation_response_enabled",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "column_break_j94t",
@@ -234,8 +239,10 @@
   {
    "fieldname": "vacation_response_subject",
    "fieldtype": "Small Text",
+   "is_virtual": 1,
    "label": "Subject",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "vacation_response_body_section",
@@ -245,26 +252,22 @@
   {
    "fieldname": "vacation_response_text_body",
    "fieldtype": "Code",
+   "is_virtual": 1,
    "label": "Text Body",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "vacation_response_html_body",
-   "fieldtype": "Code",
+   "fieldtype": "Text Editor",
+   "is_virtual": 1,
    "label": "HTML Body",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "column_break_xhfw",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "vacation_response_state",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "State",
-   "no_copy": 1,
-   "read_only": 1
   },
   {
    "default": "0",
@@ -375,7 +378,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-15 16:48:23.418749",
+ "modified": "2025-07-16 11:04:51.953084",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",

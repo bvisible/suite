@@ -45,11 +45,6 @@ frappe.ui.form.on('Mail Account', {
 				() => frm.trigger('sync_jmap_identities'),
 				__('Actions'),
 			)
-			frm.add_custom_button(
-				__('Sync JMAP Vacation Response'),
-				() => frm.trigger('sync_jmap_vacation_response'),
-				__('Actions'),
-			)
 		}
 
 		if (frm.doc.enabled && frappe.user_roles.includes('Mail Admin')) {
@@ -83,23 +78,6 @@ frappe.ui.form.on('Mail Account', {
 			method: 'sync_jmap_identities',
 			freeze: true,
 			freeze_message: __('Syncing JMAP Identities...'),
-			callback: (r) => {
-				if (!r.exc) {
-					frm.refresh()
-				}
-			},
-		})
-	},
-
-	sync_jmap_vacation_response(frm) {
-		frappe.call({
-			method: 'mail.mail.doctype.mail_account.mail_account.sync_jmap_vacation_response',
-			args: {
-				account: frm.doc.name,
-				raise_exception: true,
-			},
-			freeze: true,
-			freeze_message: __('Syncing JMAP Vacation Response...'),
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
