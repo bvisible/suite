@@ -99,6 +99,7 @@ const addTextElement = async (text) => {
 		fontSize: 28,
 		fontFamily: 'Arial',
 		color: guessTextColorFromBackground(slide.value.background),
+		innerText: text,
 	}
 
 	const element = {
