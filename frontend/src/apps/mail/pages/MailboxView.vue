@@ -128,7 +128,7 @@
 					@scroll="loadMoreEmails"
 				>
 					<div v-for="(group, key) in groupedThreads" :key="key">
-						<div class="text-ink-gray-6 border-b px-5 py-3.5 text-xs font-semibold">
+						<div class="text-ink-gray-6 border-b p-3.5 text-xs font-semibold sm:px-5">
 							{{ getFormattedDate(key).toUpperCase() }}
 						</div>
 						<MailListItem
