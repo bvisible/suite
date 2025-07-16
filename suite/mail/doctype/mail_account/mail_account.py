@@ -53,7 +53,7 @@ class MailAccount(Document):
 				if response.status_code == 200:
 					return _response_json["data"]
 				else:
-					frappe.throw(title=_("Failed to fetch Account Details"), msg=_response_json)
+					frappe.throw(title=_("Failed to fetch Account Details"), msg=str(_response_json))
 			except Exception:
 				frappe.log_error(
 					title=_("Failed to fetch Account Details"),
