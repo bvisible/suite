@@ -1,9 +1,11 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import base64
 import json
 import random
 import string
+import uuid
 
 import frappe
 from frappe.model.document import Document
@@ -12,6 +14,48 @@ from frappe.model.document import Document
 class Presentation(Document):
 	def before_save(self):
 		self.slug = slug(self.title)
+
+	def update_thumbnails(self):
+		old_slides = self.get_doc_before_save().slides
+
+		for slide in self.slides:
+			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
+				old_thumbnail = old_slides[slide.idx - 1].thumbnail
+				delete_old_thumbnail(slide.name, old_thumbnail)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name)
+
+	def validate(self):
+		self.update_thumbnails()
+
+
+def delete_old_thumbnail(slide_id: Document, old_thumbnail: str | None = None):
+	if old_thumbnail and old_thumbnail.startswith("/private/files/"):
+		if frappe.db.exists("Slide", {"thumbnail": old_thumbnail, "name": ["!=", slide_id]}):
+			return
+		try:
+			file_doc = frappe.db.get_value("File", {"file_url": old_thumbnail})
+			frappe.delete_doc("File", file_doc)
+		except Exception as e:
+			frappe.log_error(f"Failed to remove old thumbnail: {e}")
+
+
+def save_base64_thumbnail(base64_data: str, presentation_name: str) -> str:
+	header, b64 = base64_data.split(",", 1)
+	ext = header.split("/")[1].split(";")[0]
+	filename = f"thumbnail-{uuid.uuid4().hex[:6]}.{ext}"
+
+	file_doc = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": filename,
+			"content": base64.b64decode(b64),
+			"is_private": 1,
+			"attached_to_doctype": "Presentation",
+			"attached_to_name": presentation_name,
+		}
+	).insert()
+
+	return file_doc.file_url
 
 
 def slug(text: str) -> str:
@@ -85,6 +129,8 @@ def insert_slide(name, index):
 @frappe.whitelist()
 def delete_slide(name, index):
 	presentation = frappe.get_doc("Presentation", name)
+	slide = presentation.slides[index]
+	delete_old_thumbnail(slide.name, slide.thumbnail)
 	presentation.slides = presentation.slides[:index] + presentation.slides[index + 1 :]
 	for i in range(index, len(presentation.slides)):
 		presentation.slides[i].idx -= 1

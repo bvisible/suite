@@ -321,7 +321,7 @@ const resetSlideState = () => {
 		elements: [],
 		background: '',
 		transition: '',
-		transitionDuration: 0,
+		transitionDuration: '0',
 	}
 }
 
