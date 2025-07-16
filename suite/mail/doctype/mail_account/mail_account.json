@@ -285,6 +285,7 @@
    "description": "<code><b>0</b></code> means no quota restriction.",
    "fieldname": "disk_quota",
    "fieldtype": "Float",
+   "hidden": 1,
    "is_virtual": 1,
    "label": "Disk Quota (in GB)",
    "no_copy": 1,
@@ -304,6 +305,7 @@
    "description": "<code><b>0</b></code> means no usage.",
    "fieldname": "used_quota",
    "fieldtype": "Float",
+   "hidden": 1,
    "is_virtual": 1,
    "label": "Used Quota (in GB)",
    "no_copy": 1,
@@ -324,20 +326,20 @@
    "description": "<code><b>0</b></code> means no quota restriction.",
    "fieldname": "_disk_quota",
    "fieldtype": "Int",
-   "hidden": 1,
    "is_virtual": 1,
-   "label": "Disk Quota (Bytes)",
+   "label": "Disk Quota",
    "no_copy": 1,
+   "options": "File Size",
    "read_only": 1
   },
   {
    "description": "<code><b>0</b></code> means no usage.",
    "fieldname": "_used_quota",
    "fieldtype": "Int",
-   "hidden": 1,
    "is_virtual": 1,
-   "label": "Used Quota (Bytes)",
+   "label": "Used Quota",
    "no_copy": 1,
+   "options": "File Size",
    "read_only": 1
   }
  ],
@@ -380,7 +382,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-16 11:36:05.882367",
+ "modified": "2025-07-16 12:57:35.746471",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
