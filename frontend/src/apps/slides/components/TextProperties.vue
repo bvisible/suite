@@ -41,20 +41,12 @@
 					</div>
 				</div>
 
-				<div
-					class="ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded-md py-2"
-					:class="{
-						'bg-gray-100 text-gray-800':
-							editorStyles.bulletList || editorStyles.orderedList,
-					}"
-					@click="updateProperty('bulletList')"
-				>
-					<ListOrdered
-						v-if="editorStyles.orderedList"
+				<div :class="listButtonClasses" @click="updateProperty('list')">
+					<component
+						:is="editorStyles.orderedList ? ListOrdered : List"
 						size="16"
-						class="cursor-pointer stroke-[1.5] text-gray-600"
+						class="stroke-[1.5] text-gray-600"
 					/>
-					<List v-else size="16" class="cursor-pointer stroke-[1.5] text-gray-600" />
 				</div>
 			</div>
 		</template>
@@ -268,6 +260,13 @@ const applyPresetTextStyles = (textStyle) => {
 
 	activeElement.value.defaultStyle = textStyle
 }
+
+const listButtonClasses = computed(() => {
+	const baseClasses =
+		'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
+	const isActive = editorStyles.value.bulletList || editorStyles.value.orderedList
+	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : ''}`
+})
 
 const getFontStyleButtonClasses = (property) => {
 	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'

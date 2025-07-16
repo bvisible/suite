@@ -88,7 +88,7 @@ export const useTextEditor = () => {
 
 		const chain = currentEditor.chain().focus()
 
-		if (property == 'bulletList') return setListProperty(chain)
+		if (property == 'list') return setListProperty(chain)
 
 		const { empty } = currentEditor.state.selection
 		if (empty) chain.selectAll()
