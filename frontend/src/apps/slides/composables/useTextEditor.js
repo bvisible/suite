@@ -29,6 +29,8 @@ export const useTextEditor = () => {
 			italic: editor.isActive('italic'),
 			strike: editor.isActive('strike'),
 			underline: editor.isActive('underline'),
+			bulletList: editor.isActive('bulletList'),
+			orderedList: editor.isActive('orderedList'),
 			uppercase: activeStyles.textTransform == 'uppercase',
 			textAlign: editor.getAttributes('paragraph').textAlign || 'left',
 			fontSize: parseInt(activeStyles.fontSize, 10) || null,
@@ -64,18 +66,29 @@ export const useTextEditor = () => {
 		const chain = currentEditor.chain().focus()
 
 		const { empty } = currentEditor.state.selection
-		if (empty && property != 'bulletList') chain.selectAll()
+		if (empty) chain.selectAll()
 
 		if (property == 'uppercase') return toggleCapitalize(chain)
-		if (property == 'bulletList') return chain.toggleBulletList().run()
 
 		chain[markCommands[property]](property).run()
+	}
+
+	const setListProperty = (chain) => {
+		if (editorStyles.value.bulletList) {
+			chain.toggleBulletList().toggleOrderedList().run()
+		} else if (editorStyles.value.orderedList) {
+			chain.toggleOrderedList().run()
+		} else {
+			chain.toggleBulletList().run()
+		}
 	}
 
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
 		const chain = currentEditor.chain().focus()
+
+		if (property == 'bulletList') return setListProperty(chain)
 
 		const { empty } = currentEditor.state.selection
 		if (empty) chain.selectAll()

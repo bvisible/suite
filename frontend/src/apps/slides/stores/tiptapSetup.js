@@ -6,6 +6,7 @@ import TextStyle from '@tiptap/extension-text-style'
 import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
 import BulletList from '@tiptap/extension-bullet-list'
+import OrderedList from '@tiptap/extension-ordered-list'
 import Color from '@tiptap/extension-color'
 import { Plugin } from 'prosemirror-state'
 
@@ -74,6 +75,7 @@ export const initTextEditor = (content) => {
 		extensions: [
 			StarterKit.configure({
 				bulletList: false,
+				orderedList: false,
 			}),
 			CustomTextStyle,
 			Underline,
@@ -85,6 +87,11 @@ export const initTextEditor = (content) => {
 			BulletList.configure({
 				HTMLAttributes: {
 					class: 'list-disc pl-6',
+				},
+			}),
+			OrderedList.configure({
+				HTMLAttributes: {
+					class: 'list-decimal pl-6',
 				},
 			}),
 		],
