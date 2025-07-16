@@ -70,7 +70,7 @@ class MailAccount(Document):
 		if not self.is_new() and self.enabled:
 			try:
 				client = get_jmap_client(self.name)
-				response, _state = client.vacation_response_get()
+				response = client.vacation_response_get()
 				if response:
 					return response
 			except Exception:
