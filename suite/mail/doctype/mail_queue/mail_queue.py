@@ -202,7 +202,7 @@ class MailQueue(Document):
 		if self.status == "Failed to Draft":
 			data = response["methodResponses"][0][1].get("notCreated", {}).get(f"draft-{self.name}")
 		elif self.status == "Failed to Submit":
-			data = response["methodResponses"][1][1].get("notCreated", {}).get(f"submit-{self.name}")
+			data = response["methodResponses"][-1][1].get("notCreated", {}).get(f"submit-{self.name}")
 
 		if data:
 			message = f"{data['type']}: {data['description']}"
