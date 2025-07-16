@@ -52,7 +52,13 @@ frappe.ui.form.on('Mail Account', {
 		}
 
 		frm.add_custom_button(
-			__('Regenerate Password'),
+			__('Set Vacation Response'),
+			() => frm.trigger('set_vacation_response'),
+			__('Actions'),
+		)
+
+		frm.add_custom_button(
+			__('Re-generate Password'),
 			() => frm.trigger('regenerate_password'),
 			__('Actions'),
 		)
@@ -117,6 +123,88 @@ frappe.ui.form.on('Mail Account', {
 					},
 					freeze: true,
 					freeze_message: __('Setting Quota...'),
+					callback: (r) => {
+						if (!r.exc) {
+							frm.refresh()
+							dialog.hide()
+						}
+					},
+				})
+			},
+		})
+
+		dialog.show()
+	},
+
+	set_vacation_response(frm) {
+		const dialog = new frappe.ui.Dialog({
+			title: __('Set Vacation Response'),
+			size: 'large',
+			fields: [
+				{
+					fieldname: 'enabled',
+					fieldtype: 'Check',
+					label: __('Enabled'),
+					default: frm.doc.vacation_response_enabled || 0,
+				},
+				{
+					fieldtype: 'Section Break',
+				},
+				{
+					fieldname: 'from_date',
+					fieldtype: 'Datetime',
+					label: __('From Date'),
+					default: frm.doc.vacation_from_date || '',
+					mandatory_depends_on: 'enabled',
+				},
+				{
+					fieldname: 'to_date',
+					fieldtype: 'Datetime',
+					label: __('To Date'),
+					default: frm.doc.vacation_to_date || '',
+					mandatory_depends_on: 'enabled',
+				},
+				{
+					fieldtype: 'Column Break',
+				},
+				{
+					fieldname: 'subject',
+					fieldtype: 'Data',
+					label: __('Subject'),
+					default: frm.doc.vacation_response_subject || '',
+				},
+				{
+					fieldtype: 'Section Break',
+				},
+				{
+					fieldname: 'text_body',
+					fieldtype: 'Code',
+					label: __('Text'),
+					default: frm.doc.vacation_response_text_body || '',
+				},
+				{
+					fieldname: 'html_body',
+					fieldtype: 'Text Editor',
+					label: __('HTML'),
+					options: 'text/html',
+					default: frm.doc.vacation_response_html_body || '',
+				},
+			],
+			primary_action_label: __('Set Vacation Response'),
+			primary_action: (data) => {
+				frappe.call({
+					doc: frm.doc,
+					method: 'set_vacation_response',
+					args: {
+						enabled: data.enabled,
+						from_date: data.from_date,
+						to_date: data.to_date,
+						subject: data.subject,
+						text_body: data.text_body,
+						html_body: data.html_body,
+					},
+					freeze: true,
+					freeze_message: __('Setting Vacation Response...'),
 					callback: (r) => {
 						if (!r.exc) {
 							frm.refresh()
