@@ -57,6 +57,7 @@
 					v-for="mail in mailThread.data"
 					:key="mail.name"
 					:class="{
+						'p-3.5': isMobile,
 						'border-b p-3.5 sm:rounded-md sm:border': mailThread.data.length > 1,
 						'cursor-pointer': isCollapsed(mail),
 					}"
