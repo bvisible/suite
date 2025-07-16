@@ -185,9 +185,9 @@ const deleteAttachments = async (elements) => {
 	})
 }
 
-const deleteElements = async (e) => {
+const deleteElements = async (e, ids) => {
 	deleteAttachments(activeElements.value)
-	const idsToDelete = activeElementIds.value
+	const idsToDelete = ids || activeElementIds.value
 	resetFocus()
 	nextTick(() => {
 		slide.value.elements = slide.value.elements.filter((element) => {

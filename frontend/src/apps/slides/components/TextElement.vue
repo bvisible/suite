@@ -61,13 +61,38 @@ const handleDoubleClick = (e) => {
 	makeElementEditable()
 }
 
+const isEditorEmpty = () => {
+	const json = activeEditor.value.getJSON()
+
+	if (!json || !json.content) return true
+
+	if (
+		json.content.length == 1 &&
+		json.content[0].type == 'paragraph' &&
+		(!json.content[0].content || json.content[0].content.length == 0)
+	) {
+		return true
+	}
+
+	return false
+}
+
+const blurAndSaveContent = async (id) => {
+	activeEditor.value.setEditable(false)
+	activeEditor.value.commands.blur()
+
+	if (isEditorEmpty()) {
+		deleteElements(null, [id])
+	} else {
+		element.value.content = editor.getJSON()
+	}
+}
+
 watch(
 	() => activeElement.value,
 	(el, oldEl) => {
 		if (oldEl?.type == 'text' && oldEl.id == element.value.id) {
-			activeEditor.value.setEditable(false)
-			activeEditor.value.commands.blur()
-			element.value.content = editor.getJSON()
+			blurAndSaveContent(oldEl.id)
 		}
 		if (el?.type == 'text' && el.id == element.value.id) {
 			activeEditor.value = editor
