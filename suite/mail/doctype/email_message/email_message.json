@@ -264,8 +264,9 @@
   {
    "fieldname": "size",
    "fieldtype": "Int",
-   "label": "Size (Bytes)",
+   "label": "Size",
    "no_copy": 1,
+   "options": "File Size",
    "read_only": 1
   },
   {
@@ -565,7 +566,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 17:10:58.660997",
+ "modified": "2025-07-16 13:13:27.609533",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
