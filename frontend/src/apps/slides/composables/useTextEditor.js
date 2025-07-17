@@ -16,6 +16,8 @@ export const useTextEditor = () => {
 		lineHeight: null,
 		letterSpacing: null,
 		opacity: null,
+		bulletList: false,
+		orderedList: false,
 	})
 
 	const update = () => {
@@ -112,12 +114,23 @@ export const useTextEditor = () => {
 		})
 	}
 
+	const initListMarkers = (chain) => {
+		changeListMarkers('fontSize', editorStyles.value.fontSize)
+		changeListMarkers('fontFamily', editorStyles.value.fontFamily)
+		changeListMarkers('color', editorStyles.value.color)
+		changeListMarkers('opacity', editorStyles.value.opacity)
+	}
+
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
 		const chain = currentEditor.chain().focus()
 
-		if (property == 'list') return setListProperty(chain)
+		if (property == 'list') {
+			setListProperty(chain)
+			initListMarkers(chain)
+			return
+		}
 
 		const { empty } = currentEditor.state.selection
 		if (empty) chain.selectAll()
