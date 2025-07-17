@@ -50,9 +50,7 @@ export const sessionStore = defineStore('mail-session', () => {
 		url: 'mail.api.get_branding',
 		cache: 'brand',
 		auto: true,
-		onSuccess(data) {
-			document.querySelector("link[rel='icon']").href = data.favicon
-		},
+		onSuccess: (data) => (document.querySelector("link[rel='icon']").href = data.favicon),
 	})
 
 	return { user, isLoggedIn, login, logout, branding }
