@@ -89,22 +89,6 @@ def get_mailboxes() -> list[dict]:
 
 
 @frappe.whitelist()
-def set_vacation_response(
-	enabled: bool | int,
-	from_date: str | None = None,
-	to_date: str | None = None,
-	subject: str | None = None,
-	html_body: str | None = None,
-) -> None:
-	"""Updates vacation response details for the given mail account."""
-
-	doc = frappe.get_doc("Mail Account", frappe.session.user)
-	doc.set_vacation_response(
-		enabled, from_date, to_date, subject, convert_html_to_text(html_body), html_body
-	)
-
-
-@frappe.whitelist()
 def get_mail_thread(thread_id: str) -> list[dict]:
 	"""Returns mail thread for the given id."""
 
