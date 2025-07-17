@@ -49,43 +49,6 @@
 			variant="outline"
 		/>
 
-		<h1>{{ __('Vacation Response') }}</h1>
-		<Switch
-			v-model="account.doc.vacation_response_enabled"
-			:label="__('Enabled')"
-			:description="__('Auto-reply to incoming mails while you’re away.')"
-		/>
-		<template v-if="account.doc.vacation_response_enabled">
-			<FormControl
-				v-model="account.doc.vacation_from_date"
-				type="datetime-local"
-				:label="__('From Date')"
-				variant="outline"
-			/>
-			<FormControl
-				v-model="account.doc.vacation_to_date"
-				type="datetime-local"
-				:label="__('To Date')"
-				variant="outline"
-			/>
-			<FormControl
-				v-model="account.doc.vacation_response_subject"
-				:label="__('Subject')"
-				placeholder="Out of Office"
-				variant="outline"
-			/>
-			<div class="space-y-1.5">
-				<label class="text-ink-gray-5 block text-xs">{{ __('Message') }}</label>
-				<TextEditor
-					editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none"
-					placeholder="Type something..."
-					:fixed-menu="textEditorButtons"
-					:content="account.doc.vacation_response_html_body"
-					@change="(val) => (account.doc.vacation_response_html_body = val)"
-				/>
-			</div>
-		</template>
-
 		<h1>{{ __('Recovery') }}</h1>
 		<FormControl
 			v-model="account.doc.backup_email"
@@ -107,16 +70,9 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue'
-import {
-	Button,
-	ErrorMessage,
-	FormControl,
-	Switch,
-	TextEditor,
-	createDocumentResource,
-} from 'frappe-ui'
+import { Button, ErrorMessage, FormControl, Switch, createDocumentResource } from 'frappe-ui'
 
-import { raiseToast, textEditorButtons } from '@/utils'
+import { raiseToast } from '@/utils'
 import AutocompleteControl from '@/components/Controls/AutocompleteControl.vue'
 
 import type { MailAccount } from '@/types/doctypes'
@@ -126,13 +82,11 @@ const user = inject('$user')
 const account = createDocumentResource({
 	doctype: 'Mail Account',
 	name: user.data?.name,
-	transform(data: MailAccount) {
+	transform: (data: MailAccount) => {
 		const keys = [
-			'enabled',
 			'create_mail_contact',
 			'destroy_email_after_submission',
 			'destroy_newsletter_after_submission',
-			'vacation_response_enabled',
 		] as const
 		for (const key of keys) data[key] = !!data[key]
 	},

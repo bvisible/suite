@@ -148,9 +148,7 @@
 						</div>
 					</div>
 
-					<div v-show="isCollapsed(mail)" class="truncate">
-						{{ mail.preview }}
-					</div>
+					<div v-show="isCollapsed(mail)" class="truncate">{{ mail.preview }}</div>
 
 					<div v-show="!isCollapsed(mail)">
 						<template v-if="mail.html_body">
