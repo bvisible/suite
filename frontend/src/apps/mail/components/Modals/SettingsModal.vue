@@ -2,7 +2,7 @@
 	<Dialog v-model="show" :options="{ title: __('Settings'), size: '4xl' }">
 		<template #body>
 			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
-				<div class="flex w-48 shrink-0 flex-col border-r bg-gray-50 p-4 py-3">
+				<div class="flex w-52 shrink-0 flex-col border-r bg-gray-50 p-4 py-3">
 					<h1 class="px-2 text-xl leading-6">{{ __('Settings') }}</h1>
 					<div class="mt-3 space-y-1">
 						<button
@@ -34,12 +34,13 @@
 </template>
 <script setup lang="ts">
 import { markRaw, ref } from 'vue'
-import { Code, Mailbox, User } from 'lucide-vue-next'
+import { Code, Mailbox, TreePalm, User } from 'lucide-vue-next'
 import { Button, Dialog } from 'frappe-ui'
 
 import AccountSettings from '@/components/Settings/AccountSettings.vue'
 import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
 import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
+import VacationResponseSettings from '@/components/Settings/VacationResponseSettings.vue'
 
 const show = defineModel<boolean>()
 
@@ -53,6 +54,11 @@ const tabs = [
 		label: __('Account'),
 		icon: Mailbox,
 		component: markRaw(AccountSettings),
+	},
+	{
+		label: __('Vacation Response'),
+		icon: TreePalm,
+		component: markRaw(VacationResponseSettings),
 	},
 	{
 		label: __('Advanced'),
