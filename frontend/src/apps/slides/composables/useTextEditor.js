@@ -83,6 +83,35 @@ export const useTextEditor = () => {
 		}
 	}
 
+	const getCSSString = (currentStyle, property, value) => {
+		const val =
+			property == 'opacity' ? `${value}%` : property == 'fontSize' ? `${value}px` : value
+		const prop = property.replace(/([A-Z])/g, '-$1').toLowerCase()
+		const newStyle = `${prop}: ${val}`
+		return currentStyle ? `${currentStyle}; ${newStyle}` : newStyle
+	}
+
+	const changeListMarkers = (property, value) => {
+		activeEditor.value.commands.command(({ tr, state }) => {
+			const listItemType = state.schema.nodes.listItem
+
+			tr.doc.descendants((node, pos) => {
+				if (node.type === listItemType) {
+					const currentStyle = typeof node.attrs.style == 'string' ? node.attrs.style : ''
+
+					const newStyle = getCSSString(currentStyle, property, value)
+
+					tr.setNodeMarkup(pos, listItemType, {
+						...node.attrs,
+						style: newStyle,
+					})
+				}
+			})
+
+			return true
+		})
+	}
+
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
@@ -96,18 +125,20 @@ export const useTextEditor = () => {
 		switch (property) {
 			case 'textAlign':
 				chain.setTextAlign(value).run()
-				return
+				break
 			case 'color':
 				chain.setColor(value).run()
-				return
+				break
 			default:
 				chain
 					.setMark('textStyle', {
 						[property]: value,
 					})
 					.run()
-				return
+				break
 		}
+
+		changeListMarkers(property, value)
 	}
 
 	onMounted(() => {

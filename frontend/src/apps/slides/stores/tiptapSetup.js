@@ -7,6 +7,7 @@ import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
+import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 import { Plugin } from 'prosemirror-state'
 
@@ -70,12 +71,27 @@ const PastePlainText = Extension.create({
 	},
 })
 
+const CustomListItem = ListItem.extend({
+	addAttributes() {
+		return {
+			style: {
+				default: null,
+				parseHTML: (element) => element.getAttribute('style') || null,
+				renderHTML: (attributes) => {
+					return attributes.style ? { style: attributes.style } : {}
+				},
+			},
+		}
+	},
+})
+
 export const initTextEditor = (content) => {
 	return new Editor({
 		extensions: [
 			StarterKit.configure({
 				bulletList: false,
 				orderedList: false,
+				listItem: false,
 			}),
 			CustomTextStyle,
 			Underline,
@@ -88,12 +104,17 @@ export const initTextEditor = (content) => {
 				HTMLAttributes: {
 					class: 'list-disc pl-6',
 				},
+				keepAttributes: true,
+				keepMarks: true,
 			}),
 			OrderedList.configure({
 				HTMLAttributes: {
 					class: 'list-decimal pl-6',
 				},
+				keepAttributes: true,
+				keepMarks: true,
 			}),
+			CustomListItem,
 		],
 		editable: false,
 		content: content,
