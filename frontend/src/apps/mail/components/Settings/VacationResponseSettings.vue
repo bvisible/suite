@@ -38,23 +38,16 @@
 			:label="__('Save Changes')"
 			variant="solid"
 			:disabled="JSON.stringify(account.doc) === JSON.stringify(account.originalDoc)"
-			:loading="setVacationResponse.loading || account.get.loading"
+			:loading="account.setVacationResponse.loading || account.get.loading"
 			class="min-h-7"
-			@click="setVacationResponse.submit"
+			@click="account.setVacationResponse.submit"
 		/>
 	</template>
 </template>
 
 <script setup lang="ts">
 import { inject } from 'vue'
-import {
-	Button,
-	FormControl,
-	Switch,
-	TextEditor,
-	createDocumentResource,
-	createResource,
-} from 'frappe-ui'
+import { Button, FormControl, Switch, TextEditor, createDocumentResource } from 'frappe-ui'
 
 import { raiseToast, textEditorButtons } from '@/utils'
 
@@ -71,21 +64,22 @@ const account = createDocumentResource({
 		data['vacation_from_date'] = dayjs(data['vacation_from_date']).format('YYYY-MM-DDTHH:mm')
 		data['vacation_to_date'] = dayjs(data['vacation_to_date']).format('YYYY-MM-DDTHH:mm')
 	},
-})
-
-const setVacationResponse = createResource({
-	url: 'mail.api.mail.set_vacation_response',
-	makeParams: () => ({
-		enabled: account.doc.vacation_response_enabled,
-		from_date: account.doc.vacation_from_date,
-		to_date: account.doc.vacation_to_date,
-		subject: account.doc.vacation_response_subject,
-		html_body: account.doc.vacation_response_html_body,
-	}),
-	onSuccess: () => {
-		account.reload()
-		raiseToast(__('Vacation response settings saved successfully'))
+	whitelistedMethods: {
+		setVacationResponse: {
+			method: 'set_vacation_response',
+			makeParams: () => ({
+				enabled: account.doc.vacation_response_enabled,
+				from_date: account.doc.vacation_from_date,
+				to_date: account.doc.vacation_to_date,
+				subject: account.doc.vacation_response_subject,
+				html_body: account.doc.vacation_response_html_body,
+			}),
+			onSuccess: () => {
+				account.reload()
+				raiseToast(__('Vacation response settings saved successfully'))
+			},
+			onError: (error) => raiseToast(error.messages[0], 'error'),
+		},
 	},
-	onError: (error) => raiseToast(error.messages[0], 'error'),
 })
 </script>
