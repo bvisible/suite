@@ -45,6 +45,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Email",
+   "length": 255,
    "no_copy": 1,
    "options": "Email",
    "reqd": 1,
@@ -103,7 +104,7 @@
    "link_fieldname": "mailing_list"
   }
  ],
- "modified": "2025-06-02 19:19:48.921106",
+ "modified": "2025-07-17 13:00:30.774415",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailing List",

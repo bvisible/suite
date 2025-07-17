@@ -106,6 +106,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "From Email",
+   "length": 255,
    "no_copy": 1,
    "search_index": 1,
    "set_only_once": 1
@@ -525,7 +526,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 13:16:46.365817",
+ "modified": "2025-07-17 12:57:58.810632",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",

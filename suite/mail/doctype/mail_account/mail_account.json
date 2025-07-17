@@ -102,6 +102,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Email",
+   "length": 255,
    "no_copy": 1,
    "options": "Email",
    "read_only": 1,
@@ -148,6 +149,7 @@
    "fieldname": "default_outgoing_email",
    "fieldtype": "Data",
    "label": "Default Email",
+   "length": 255,
    "no_copy": 1,
    "options": "Email",
    "unique": 1
@@ -170,6 +172,7 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Normalized Email",
+   "length": 255,
    "no_copy": 1,
    "options": "Email",
    "read_only": 1,
@@ -180,6 +183,7 @@
    "fieldname": "backup_email",
    "fieldtype": "Data",
    "label": "Backup Email",
+   "length": 255,
    "reqd": 1
   },
   {
@@ -382,7 +386,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-16 12:57:35.746471",
+ "modified": "2025-07-17 13:01:33.729262",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",

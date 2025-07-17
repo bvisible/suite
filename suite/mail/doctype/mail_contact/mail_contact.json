@@ -28,6 +28,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Email",
+   "length": 255,
    "no_copy": 1,
    "options": "Email",
    "reqd": 1,
@@ -49,7 +50,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-16 15:35:35.197481",
+ "modified": "2025-07-17 13:01:50.810837",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Contact",
@@ -88,6 +89,7 @@
    "role": "Mail User"
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
