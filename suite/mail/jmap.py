@@ -216,8 +216,10 @@ class JMAPClient:
 		"""Returns the mailbox ID for the given role or name."""
 
 		for mailbox in self.mailboxes[self.account_id]:
-			if (role and mailbox.get("role").lower() == role.lower()) or (
-				name and mailbox.get("name").lower() == name.lower()
+			mailbox_role = mailbox.get("role") or ""
+			mailbox_name = mailbox.get("name") or ""
+			if (role and mailbox_role.lower() == role.lower()) or (
+				name and mailbox_name.lower() == name.lower()
 			):
 				return mailbox["id"]
 
@@ -232,7 +234,8 @@ class JMAPClient:
 		"""Returns the mailbox name for the given ID or role."""
 
 		for mailbox in self.mailboxes[self.account_id]:
-			if (id and mailbox.get("id") == id) or (role and mailbox.get("role").lower() == role.lower()):
+			mailbox_role = mailbox.get("role") or ""
+			if (id and mailbox.get("id") == id) or (role and mailbox_role.lower() == role.lower()):
 				return mailbox["name"]
 
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
