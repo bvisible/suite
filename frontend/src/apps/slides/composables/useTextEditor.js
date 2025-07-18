@@ -1,4 +1,5 @@
 import { ref, onMounted, onUnmounted } from 'vue'
+import { TextSelection } from 'prosemirror-state'
 
 const activeEditor = ref(null)
 
@@ -75,13 +76,27 @@ export const useTextEditor = () => {
 		chain[markCommands[property]](property).run()
 	}
 
-	const setListProperty = (chain) => {
-		if (editorStyles.value.bulletList) {
-			chain.toggleBulletList().toggleOrderedList().run()
-		} else if (editorStyles.value.orderedList) {
-			chain.toggleOrderedList().run()
-		} else {
-			chain.toggleBulletList().run()
+	const selectListBlock = () => {
+		const { state } = activeEditor.value
+		const doc = state.doc
+
+		let selectionStart = null,
+			selectionEnd = null
+
+		doc.descendants((node, pos) => {
+			if (!node.isTextblock) return
+
+			selectionEnd = pos + node.nodeSize - 1
+
+			if (!selectionStart) {
+				selectionStart = pos + 1
+			}
+		})
+
+		if (selectionStart && selectionEnd) {
+			const selection = TextSelection.create(doc, selectionStart, selectionEnd)
+			const transaction = state.tr.setSelection(selection)
+			activeEditor.value.view.dispatch(transaction)
 		}
 	}
 
@@ -112,6 +127,16 @@ export const useTextEditor = () => {
 
 			return true
 		})
+	}
+
+	const setListProperty = (chain) => {
+		if (!activeEditor.value.isEditable) selectListBlock()
+
+		if (!activeEditor.value.isActive('orderedList')) {
+			activeEditor.value.chain().focus().wrapInList('orderedList').run()
+		} else {
+			activeEditor.value.chain().focus().liftListItem('listItem').run()
+		}
 	}
 
 	const initListMarkers = (chain) => {
