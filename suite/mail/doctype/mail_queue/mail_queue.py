@@ -14,7 +14,7 @@ from frappe.core.doctype.file.file import File
 from frappe.core.doctype.file.file import has_permission as has_file_permission
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
-from frappe.query_builder import Order
+from frappe.query_builder import Case, Order
 from frappe.utils import (
 	add_to_date,
 	cint,
@@ -910,6 +910,13 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 	"""Enqueue process pending emails."""
 
 	MQ = frappe.qb.DocType("Mail Queue")
+
+	priority_order = Case()
+	priority_order.when(MQ.priority == "High", 1)
+	priority_order.when(MQ.priority == "Normal", 2)
+	priority_order.when(MQ.priority == "Low", 3)
+	priority_order.else_(4)
+
 	mails = (
 		frappe.qb.from_(MQ)
 		.select(MQ.name)
@@ -917,13 +924,13 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 			(MQ.status == "Pending")
 			| (
 				(MQ.failed_count > 0)
-				& (MQ.failed_count < 3)
+				# & (MQ.failed_count < 3)
 				& (MQ.next_retry_after <= now_datetime())
 				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
 			)
 			| ((MQ.status == "Queued") & (MQ.queued_at <= get_datetime(add_to_date(now(), minutes=-30))))
 		)
-		.orderby(MQ.creation, MQ.failed_count, order=Order.asc)
+		.orderby(priority_order, MQ.creation, MQ.failed_count, order=Order.asc)
 		.limit(max_batch_size)
 	).run(pluck="name")
 
