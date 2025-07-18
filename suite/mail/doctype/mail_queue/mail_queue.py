@@ -116,6 +116,17 @@ class MailQueue(Document):
 		return doc
 
 	@property
+	def _priority(self) -> str:
+		"""Returns the MT-Priority value based on the priority field."""
+
+		mt_priority_map = {
+			"Low": "-4",
+			"Normal": "0",
+			"High": "4",
+		}
+		return mt_priority_map[self.priority]
+
+	@property
 	def to(self) -> list[dict[str, str | None]]:
 		"""Returns the recipients in the To field."""
 
@@ -651,6 +662,7 @@ class MailQueue(Document):
 										"parameters": {
 											"RET": "FULL",
 											"ENVID": self.name,
+											"MT-PRIORITY": self._priority,
 										},
 									},
 									"rcptTo": [

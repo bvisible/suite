@@ -12,6 +12,8 @@
   "column_break_vzib",
   "subject",
   "section_break_agmx",
+  "priority",
+  "section_break_kk2t",
   "save_as_draft",
   "destroy_after_submission",
   "column_break_htqb",
@@ -521,12 +523,29 @@
    "label": "Newsletter",
    "no_copy": 1,
    "set_only_once": 1
+  },
+  {
+   "default": "Normal",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priority",
+   "no_copy": 1,
+   "options": "Low\nNormal\nHigh",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "section_break_kk2t",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:57:58.810632",
+ "modified": "2025-07-18 11:45:01.025319",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
