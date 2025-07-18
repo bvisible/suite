@@ -40,6 +40,53 @@ export const useTextEditor = () => {
 		editorStyles.lineHeight = activeStyles.lineHeight
 		editorStyles.letterSpacing = parseInt(activeStyles.letterSpacing, 10)
 		editorStyles.opacity = parseInt(activeStyles.opacity, 10)
+
+		updateListStyles({ transaction, editor })
+	}
+
+	const updateListStyles = ({ transaction, editor }) => {
+		if (!transaction.docChanged || transaction.getMeta('custom-list-style-applied')) return
+
+		const styles = {
+			fontSize: editorStyles.fontSize,
+			fontFamily: editorStyles.fontFamily,
+			color: editorStyles.color,
+			opacity: editorStyles.opacity,
+		}
+
+		const { state } = editor
+		const listItemType = state.schema.nodes.listItem
+		const tr = state.tr
+
+		if (!listItemType || !tr) return
+
+		let hasChanged = false
+		state.doc.descendants((node, pos) => {
+			if (!node.type || node.type.name != 'listItem') return
+
+			if (node.type == listItemType) {
+				let currentStyle = typeof node.attrs.style == 'string' ? node.attrs.style : ''
+				let newStyle = currentStyle
+
+				Object.entries(styles).forEach(([property, value]) => {
+					if (value == null) return
+					newStyle = getCSSString(newStyle, property, value)
+				})
+
+				if (newStyle != currentStyle) {
+					tr.setNodeMarkup(pos, listItemType, {
+						...node.attrs,
+						style: newStyle,
+					})
+					hasChanged = true
+				}
+			}
+		})
+
+		if (hasChanged) {
+			tr.setMeta('custom-list-style-applied', true)
+			editor.view.dispatch(tr)
+		}
 	}
 
 	const markCommands = {
@@ -136,23 +183,12 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const initListMarkers = (chain) => {
-		changeListMarkers('fontSize', editorStyles.value.fontSize)
-		changeListMarkers('fontFamily', editorStyles.value.fontFamily)
-		changeListMarkers('color', editorStyles.value.color)
-		changeListMarkers('opacity', editorStyles.value.opacity)
-	}
-
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
 		const chain = currentEditor.chain().focus()
 
-		if (property == 'list') {
-			setListProperty(chain)
-			initListMarkers(chain)
-			return
-		}
+		if (property == 'list') return setListProperty(chain)
 
 		const { empty } = currentEditor.state.selection
 		if (empty) chain.selectAll()
@@ -160,20 +196,18 @@ export const useTextEditor = () => {
 		switch (property) {
 			case 'textAlign':
 				chain.setTextAlign(value).run()
-				break
+				return
 			case 'color':
 				chain.setColor(value).run()
-				break
+				return
 			default:
 				chain
 					.setMark('textStyle', {
 						[property]: value,
 					})
 					.run()
-				break
+				return
 		}
-
-		changeListMarkers(property, value)
 	}
 
 	const initTextEditor = (content) => {
