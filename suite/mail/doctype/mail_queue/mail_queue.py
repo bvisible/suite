@@ -228,7 +228,6 @@ class MailQueue(Document):
 
 	def validate(self) -> None:
 		if self.is_new():
-			self.validate_priority()
 			self.validate_status()
 			self.validate_account()
 			self.validate_raw_message()
@@ -243,6 +242,7 @@ class MailQueue(Document):
 			self.validate_message_id()
 			self.validate_from_ip()
 			self.validate_sent_at()
+			self.validate_priority()
 			self.validate_in_reply_to()
 			self.validate_in_reply_to_id()
 
@@ -251,19 +251,6 @@ class MailQueue(Document):
 			self._process()
 		elif self.delivery_mode == "Enqueue":
 			frappe.enqueue_doc(self.doctype, self.name, "_process", queue="short", enqueue_after_commit=True)
-
-	def validate_priority(self) -> None:
-		"""Validates the priority."""
-
-		if self.priority:
-			return
-
-		if self.newsletter:
-			self.priority = "Low"
-		elif self.received_after <= 5:
-			self.priority = "High"
-		else:
-			self.priority = "Normal"
 
 	def validate_status(self) -> None:
 		"""Validates the status."""
@@ -546,6 +533,19 @@ class MailQueue(Document):
 
 		if not self.raw_message:
 			self.sent_at = now()
+
+	def validate_priority(self) -> None:
+		"""Validates the priority."""
+
+		if self.priority:
+			return
+
+		if self.newsletter:
+			self.priority = "Low"
+		elif self.received_after <= 5:
+			self.priority = "High"
+		else:
+			self.priority = "Normal"
 
 	def validate_in_reply_to(self) -> None:
 		"""Validates the In Reply To (Message ID)."""
