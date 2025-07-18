@@ -15,11 +15,9 @@ import { EditorContent } from '@tiptap/vue-3'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
-import { initTextEditor } from '@/stores/tiptapSetup'
-
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
-const { activeEditor } = useTextEditor()
+const { activeEditor, initTextEditor } = useTextEditor()
 
 const element = defineModel('element', {
 	type: Object,
