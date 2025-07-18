@@ -228,6 +228,7 @@ class MailQueue(Document):
 
 	def validate(self) -> None:
 		if self.is_new():
+			self.validate_priority()
 			self.validate_status()
 			self.validate_account()
 			self.validate_raw_message()
@@ -250,6 +251,16 @@ class MailQueue(Document):
 			self._process()
 		elif self.delivery_mode == "Enqueue":
 			frappe.enqueue_doc(self.doctype, self.name, "_process", queue="short", enqueue_after_commit=True)
+
+	def validate_priority(self) -> None:
+		"""Validates the priority."""
+
+		if self.newsletter:
+			self.priority = "Low"
+		elif self.received_after <= 5:
+			self.priority = "High"
+		else:
+			self.priority = "Normal"
 
 	def validate_status(self) -> None:
 		"""Validates the status."""
