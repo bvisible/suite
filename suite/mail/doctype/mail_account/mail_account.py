@@ -59,7 +59,6 @@ class MailAccount(Document):
 					title=_("Failed to fetch Account Details"),
 					message=frappe.get_traceback(with_context=True),
 				)
-				frappe.msgprint(_("Failed to fetch Account Details."), alert=True, indicator="red")
 
 		return {}
 
@@ -78,7 +77,6 @@ class MailAccount(Document):
 					title=_("Failed to fetch Vacation Response"),
 					message=frappe.get_traceback(with_context=True),
 				)
-				frappe.msgprint(_("Failed to fetch Vacation Response."), alert=True, indicator="red")
 
 		return {}
 
