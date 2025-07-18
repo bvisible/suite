@@ -528,7 +528,6 @@
    "label": "Priority",
    "no_copy": 1,
    "options": "\nLow\nNormal\nHigh",
-   "read_only": 1,
    "search_index": 1,
    "set_only_once": 1
   },
@@ -540,7 +539,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 12:42:03.811805",
+ "modified": "2025-07-18 12:57:35.361455",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",

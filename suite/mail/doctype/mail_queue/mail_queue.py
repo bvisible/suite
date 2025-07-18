@@ -124,7 +124,7 @@ class MailQueue(Document):
 			"Normal": "0",
 			"High": "4",
 		}
-		return mt_priority_map[self.priority]
+		return mt_priority_map.get(self.priority, "0")
 
 	@property
 	def to(self) -> list[dict[str, str | None]]:
@@ -254,6 +254,9 @@ class MailQueue(Document):
 
 	def validate_priority(self) -> None:
 		"""Validates the priority."""
+
+		if self.priority:
+			return
 
 		if self.newsletter:
 			self.priority = "Low"
