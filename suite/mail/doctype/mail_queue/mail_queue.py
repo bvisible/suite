@@ -14,7 +14,7 @@ from frappe.core.doctype.file.file import File
 from frappe.core.doctype.file.file import has_permission as has_file_permission
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.model.document import Document
-from frappe.query_builder import Order
+from frappe.query_builder import Case, Order
 from frappe.utils import (
 	add_to_date,
 	cint,
@@ -114,6 +114,17 @@ class MailQueue(Document):
 			doc.insert()
 
 		return doc
+
+	@property
+	def _priority(self) -> str:
+		"""Returns the MT-Priority value based on the priority field."""
+
+		mt_priority_map = {
+			"Low": "-4",
+			"Normal": "0",
+			"High": "4",
+		}
+		return mt_priority_map.get(self.priority, "0")
 
 	@property
 	def to(self) -> list[dict[str, str | None]]:
@@ -217,6 +228,7 @@ class MailQueue(Document):
 
 	def validate(self) -> None:
 		if self.is_new():
+			self.validate_priority()
 			self.validate_status()
 			self.validate_account()
 			self.validate_raw_message()
@@ -239,6 +251,19 @@ class MailQueue(Document):
 			self._process()
 		elif self.delivery_mode == "Enqueue":
 			frappe.enqueue_doc(self.doctype, self.name, "_process", queue="short", enqueue_after_commit=True)
+
+	def validate_priority(self) -> None:
+		"""Validates the priority."""
+
+		if self.priority:
+			return
+
+		if self.newsletter:
+			self.priority = "Low"
+		elif self.received_after <= 5:
+			self.priority = "High"
+		else:
+			self.priority = "Normal"
 
 	def validate_status(self) -> None:
 		"""Validates the status."""
@@ -651,6 +676,7 @@ class MailQueue(Document):
 										"parameters": {
 											"RET": "FULL",
 											"ENVID": self.name,
+											"MT-PRIORITY": self._priority,
 										},
 									},
 									"rcptTo": [
@@ -887,6 +913,13 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 	"""Enqueue process pending emails."""
 
 	MQ = frappe.qb.DocType("Mail Queue")
+
+	priority_order = Case()
+	priority_order.when(MQ.priority == "High", 1)
+	priority_order.when(MQ.priority == "Normal", 2)
+	priority_order.when(MQ.priority == "Low", 3)
+	priority_order.else_(4)
+
 	mails = (
 		frappe.qb.from_(MQ)
 		.select(MQ.name)
@@ -894,13 +927,13 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 			(MQ.status == "Pending")
 			| (
 				(MQ.failed_count > 0)
-				& (MQ.failed_count < 3)
+				# & (MQ.failed_count < 3)
 				& (MQ.next_retry_after <= now_datetime())
 				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
 			)
 			| ((MQ.status == "Queued") & (MQ.queued_at <= get_datetime(add_to_date(now(), minutes=-30))))
 		)
-		.orderby(MQ.creation, MQ.failed_count, order=Order.asc)
+		.orderby(priority_order, MQ.creation, MQ.failed_count, order=Order.asc)
 		.limit(max_batch_size)
 	).run(pluck="name")
 
