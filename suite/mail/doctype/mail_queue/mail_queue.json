@@ -14,7 +14,8 @@
   "section_break_agmx",
   "save_as_draft",
   "destroy_after_submission",
-  "column_break_htqb",
+  "column_break_lnat",
+  "priority",
   "delivery_mode",
   "section_break_nug2",
   "failed_count",
@@ -315,10 +316,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "column_break_htqb",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "depends_on": "eval: !doc.save_as_draft",
    "description": "If enabled, the message will be deleted after successful submission.",
@@ -377,6 +374,7 @@
    "description": "<pre><b>Immediate</b> \u2014 send right after insert (after_insert).\n<b>Enqueue</b> \u2014 enqueue a job (using frappe.enqueue).\n<b>Batch</b> \u2014 wait to be picked up by a scheduled background job.\n</pre>",
    "fieldname": "delivery_mode",
    "fieldtype": "Select",
+   "in_standard_filter": 1,
    "label": "Delivery Mode",
    "no_copy": 1,
    "options": "Immediate\nEnqueue\nBatch",
@@ -521,12 +519,27 @@
    "label": "Newsletter",
    "no_copy": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priority",
+   "no_copy": 1,
+   "options": "\nLow\nNormal\nHigh",
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_lnat",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:57:58.810632",
+ "modified": "2025-07-18 12:57:35.361455",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
