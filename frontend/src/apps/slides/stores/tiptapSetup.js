@@ -85,38 +85,32 @@ const CustomListItem = ListItem.extend({
 	},
 })
 
-export const initTextEditor = (content) => {
-	return new Editor({
-		extensions: [
-			StarterKit.configure({
-				bulletList: false,
-				orderedList: false,
-				listItem: false,
-			}),
-			CustomTextStyle,
-			Underline,
-			Color,
-			TextAlign.configure({
-				types: ['paragraph'],
-			}),
-			PastePlainText,
-			BulletList.configure({
-				HTMLAttributes: {
-					class: 'list-disc pl-6',
-				},
-				keepAttributes: true,
-				keepMarks: true,
-			}),
-			OrderedList.configure({
-				HTMLAttributes: {
-					class: 'list-decimal pl-6',
-				},
-				keepAttributes: true,
-				keepMarks: true,
-			}),
-			CustomListItem,
-		],
-		editable: false,
-		content: content,
-	})
-}
+export const extensions = [
+	StarterKit.configure({
+		bulletList: false,
+		orderedList: false,
+		listItem: false,
+	}),
+	CustomTextStyle,
+	Underline,
+	Color,
+	TextAlign.configure({
+		types: ['paragraph'],
+	}),
+	PastePlainText,
+	BulletList.configure({
+		HTMLAttributes: {
+			class: 'list-disc pl-6',
+		},
+		keepAttributes: true,
+		keepMarks: true,
+	}),
+	OrderedList.configure({
+		HTMLAttributes: {
+			class: 'list-decimal pl-6',
+		},
+		keepAttributes: true,
+		keepMarks: true,
+	}),
+	CustomListItem,
+]

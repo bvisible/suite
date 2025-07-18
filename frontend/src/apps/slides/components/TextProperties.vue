@@ -264,25 +264,25 @@ const applyPresetTextStyles = (textStyle) => {
 const listButtonClasses = computed(() => {
 	const baseClasses =
 		'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
-	const isActive = editorStyles.value.bulletList || editorStyles.value.orderedList
+	const isActive = editorStyles.bulletList || editorStyles.orderedList
 	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : ''}`
 })
 
 const getFontStyleButtonClasses = (property) => {
 	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
-	if (editorStyles.value[property]) {
+	if (editorStyles[property]) {
 		return `${baseClasses} bg-gray-100`
 	}
 	return baseClasses
 }
 
 const getFontStyleIconClasses = (property) => {
-	return editorStyles.value[property] ? 'text-gray-900' : 'text-gray-700'
+	return editorStyles[property] ? 'text-gray-900' : 'text-gray-700'
 }
 
 const getTabClasses = (alignValue) => {
 	const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
-	if (editorStyles.value.textAlign === alignValue) {
+	if (editorStyles.textAlign == alignValue) {
 		return `${baseClasses} bg-white shadow`
 	}
 	return baseClasses
@@ -290,7 +290,7 @@ const getTabClasses = (alignValue) => {
 
 const getAlignIconClasses = (alignValue) => {
 	const baseClasses = 'stroke-[1.5] text-gray-600'
-	if (editorStyles.value.textAlign === alignValue) {
+	if (editorStyles.textAlign == alignValue) {
 		return `${baseClasses} text-gray-800`
 	}
 	return baseClasses

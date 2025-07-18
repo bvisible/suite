@@ -1,48 +1,45 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, reactive } from 'vue'
+import { Editor } from '@tiptap/vue-3'
+import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
 
 const activeEditor = ref(null)
 
+const editorStyles = reactive({
+	textAlign: 'left',
+	bold: false,
+	italic: false,
+	strike: false,
+	underline: false,
+	uppercase: false,
+	fontSize: null,
+	fontFamily: null,
+	color: null,
+	lineHeight: null,
+	letterSpacing: null,
+	opacity: null,
+	bulletList: false,
+	orderedList: false,
+})
+
 export const useTextEditor = () => {
-	const editorStyles = ref({
-		textAlign: 'left',
-		bold: false,
-		italic: false,
-		strike: false,
-		underline: false,
-		uppercase: false,
-		fontSize: null,
-		fontFamily: null,
-		color: null,
-		lineHeight: null,
-		letterSpacing: null,
-		opacity: null,
-		bulletList: false,
-		orderedList: false,
-	})
-
-	const update = () => {
-		if (!activeEditor.value) return
-
-		const editor = activeEditor.value
+	const update = ({ transaction, editor }) => {
 		const activeStyles = editor.getAttributes('textStyle')
 
-		editorStyles.value = {
-			bold: editor.isActive('bold'),
-			italic: editor.isActive('italic'),
-			strike: editor.isActive('strike'),
-			underline: editor.isActive('underline'),
-			bulletList: editor.isActive('bulletList'),
-			orderedList: editor.isActive('orderedList'),
-			uppercase: activeStyles.textTransform == 'uppercase',
-			textAlign: editor.getAttributes('paragraph').textAlign || 'left',
-			fontSize: parseInt(activeStyles.fontSize, 10) || null,
-			fontFamily: activeStyles.fontFamily || null,
-			color: activeStyles.color || null,
-			lineHeight: activeStyles.lineHeight,
-			letterSpacing: parseInt(activeStyles.letterSpacing, 10),
-			opacity: parseInt(activeStyles.opacity, 10),
-		}
+		editorStyles.bold = editor.isActive('bold')
+		editorStyles.italic = editor.isActive('italic')
+		editorStyles.strike = editor.isActive('strike')
+		editorStyles.underline = editor.isActive('underline')
+		editorStyles.bulletList = editor.isActive('bulletList')
+		editorStyles.orderedList = editor.isActive('orderedList')
+		editorStyles.uppercase = activeStyles.textTransform == 'uppercase'
+		editorStyles.textAlign = editor.getAttributes('paragraph').textAlign || 'left'
+		editorStyles.fontSize = parseInt(activeStyles.fontSize, 10) || null
+		editorStyles.fontFamily = activeStyles.fontFamily || null
+		editorStyles.color = activeStyles.color || null
+		editorStyles.lineHeight = activeStyles.lineHeight
+		editorStyles.letterSpacing = parseInt(activeStyles.letterSpacing, 10)
+		editorStyles.opacity = parseInt(activeStyles.opacity, 10)
 	}
 
 	const markCommands = {
@@ -179,23 +176,20 @@ export const useTextEditor = () => {
 		changeListMarkers(property, value)
 	}
 
-	onMounted(() => {
-		if (!activeEditor.value) return
-		activeEditor.value.on('selectionUpdate', update)
-		activeEditor.value.on('transaction', update)
-		update()
-	})
-
-	onUnmounted(() => {
-		if (!activeEditor.value) return
-		activeEditor.value.off('selectionUpdate', update)
-		activeEditor.value.off('transaction', update)
-	})
+	const initTextEditor = (content) => {
+		return new Editor({
+			extensions: extensions,
+			editable: false,
+			content: content,
+			onTransaction: ({ transaction, editor }) => update({ transaction, editor }),
+		})
+	}
 
 	return {
 		activeEditor,
 		editorStyles,
 		toggleMark,
 		updateProperty,
+		initTextEditor,
 	}
 }
