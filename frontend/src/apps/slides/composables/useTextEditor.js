@@ -173,13 +173,17 @@ export const useTextEditor = () => {
 		})
 	}
 
-	const setListProperty = (chain) => {
+	const setListProperty = () => {
 		if (!activeEditor.value.isEditable) selectListBlock()
 
-		if (!activeEditor.value.isActive('orderedList')) {
-			activeEditor.value.chain().focus().wrapInList('orderedList').run()
+		const chain = activeEditor.value.chain().focus()
+
+		if (activeEditor.value.isActive('orderedList')) {
+			chain.liftListItem('listItem').run()
+		} else if (activeEditor.value.isActive('bulletList')) {
+			chain.liftListItem('listItem').wrapInList('orderedList').run()
 		} else {
-			activeEditor.value.chain().focus().liftListItem('listItem').run()
+			chain.wrapInList('bulletList').run()
 		}
 	}
 
@@ -188,7 +192,7 @@ export const useTextEditor = () => {
 
 		const chain = currentEditor.chain().focus()
 
-		if (property == 'list') return setListProperty(chain)
+		if (property == 'list') return setListProperty()
 
 		const { empty } = currentEditor.state.selection
 		if (empty) chain.selectAll()
