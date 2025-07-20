@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { Editor } from '@tiptap/vue-3'
 import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
@@ -23,25 +23,34 @@ const editorStyles = reactive({
 })
 
 export const useTextEditor = () => {
-	const update = ({ transaction, editor }) => {
+	const setEditorStyles = (editor) => {
+		if (!editor) return
+
 		const activeStyles = editor.getAttributes('textStyle')
 
-		editorStyles.bold = editor.isActive('bold')
-		editorStyles.italic = editor.isActive('italic')
-		editorStyles.strike = editor.isActive('strike')
-		editorStyles.underline = editor.isActive('underline')
-		editorStyles.bulletList = editor.isActive('bulletList')
-		editorStyles.orderedList = editor.isActive('orderedList')
-		editorStyles.uppercase = activeStyles.textTransform == 'uppercase'
-		editorStyles.textAlign = editor.getAttributes('paragraph').textAlign || 'left'
-		editorStyles.fontSize = parseInt(activeStyles.fontSize, 10) || null
-		editorStyles.fontFamily = activeStyles.fontFamily || null
-		editorStyles.color = activeStyles.color || null
-		editorStyles.lineHeight = activeStyles.lineHeight
-		editorStyles.letterSpacing = parseInt(activeStyles.letterSpacing, 10)
-		editorStyles.opacity = parseInt(activeStyles.opacity, 10)
+		Object.assign(editorStyles, {
+			textAlign: editor.getAttributes('paragraph').textAlign || 'left',
+			bold: editor.isActive('bold'),
+			italic: editor.isActive('italic'),
+			strike: editor.isActive('strike'),
+			underline: editor.isActive('underline'),
+			bulletList: editor.isActive('bulletList'),
+			orderedList: editor.isActive('orderedList'),
+			uppercase: activeStyles.textTransform == 'uppercase',
+			fontSize: parseInt(activeStyles.fontSize, 10) || null,
+			fontFamily: activeStyles.fontFamily || null,
+			color: activeStyles.color || null,
+			lineHeight: activeStyles.lineHeight,
+			letterSpacing: parseInt(activeStyles.letterSpacing, 10),
+			opacity: parseInt(activeStyles.opacity, 10),
+		})
+	}
 
-		updateListStyles({ transaction, editor })
+	const update = ({ transaction, editor }) => {
+		setEditorStyles(editor)
+
+		const changeListMarkers = !editor.isEditable || editor.state.selection.empty
+		changeListMarkers && updateListStyles({ transaction, editor })
 	}
 
 	const updateListStyles = ({ transaction, editor }) => {
@@ -201,6 +210,13 @@ export const useTextEditor = () => {
 			onTransaction: ({ transaction, editor }) => update({ transaction, editor }),
 		})
 	}
+
+	watch(
+		() => activeEditor.value,
+		(newEditor) => {
+			setEditorStyles(newEditor)
+		},
+	)
 
 	return {
 		activeEditor,
