@@ -208,6 +208,7 @@ export const useTextEditor = () => {
 			editable: false,
 			content: content,
 			onTransaction: ({ transaction, editor }) => update({ transaction, editor }),
+			onSelectionUpdate: ({ editor }) => update({ transaction: editor.state.tr, editor }),
 		})
 	}
 
