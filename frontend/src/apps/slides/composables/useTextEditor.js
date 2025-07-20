@@ -152,27 +152,6 @@ export const useTextEditor = () => {
 		return currentStyle ? `${currentStyle}; ${newStyle}` : newStyle
 	}
 
-	const changeListMarkers = (property, value) => {
-		activeEditor.value.commands.command(({ tr, state }) => {
-			const listItemType = state.schema.nodes.listItem
-
-			tr.doc.descendants((node, pos) => {
-				if (node.type === listItemType) {
-					const currentStyle = typeof node.attrs.style == 'string' ? node.attrs.style : ''
-
-					const newStyle = getCSSString(currentStyle, property, value)
-
-					tr.setNodeMarkup(pos, listItemType, {
-						...node.attrs,
-						style: newStyle,
-					})
-				}
-			})
-
-			return true
-		})
-	}
-
 	const setListProperty = () => {
 		if (!activeEditor.value.isEditable) selectListBlock()
 
