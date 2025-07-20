@@ -33,11 +33,7 @@
 						:class="getTabClasses(textAlign.alignValue)"
 						@click="updateProperty('textAlign', textAlign.alignValue)"
 					>
-						<component
-							:is="textAlign.icon"
-							size="16"
-							:class="getAlignIconClasses(textAlign.alignValue)"
-						/>
+						<component :is="textAlign.icon" size="16" :strokeWidth="1.5" />
 					</div>
 				</div>
 
@@ -45,7 +41,7 @@
 					<component
 						:is="editorStyles.orderedList ? ListOrdered : List"
 						size="16"
-						class="stroke-[1.5] text-gray-600"
+						:strokeWidth="1.5"
 					/>
 				</div>
 			</div>
@@ -265,7 +261,7 @@ const listButtonClasses = computed(() => {
 	const baseClasses =
 		'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
 	const isActive = editorStyles.bulletList || editorStyles.orderedList
-	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : ''}`
+	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : 'text-gray-600'}`
 })
 
 const getFontStyleButtonClasses = (property) => {
@@ -283,17 +279,9 @@ const getFontStyleIconClasses = (property) => {
 const getTabClasses = (alignValue) => {
 	const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
 	if (editorStyles.textAlign == alignValue) {
-		return `${baseClasses} bg-white shadow`
+		return `${baseClasses} bg-white shadow text-gray-800`
 	}
-	return baseClasses
-}
-
-const getAlignIconClasses = (alignValue) => {
-	const baseClasses = 'stroke-[1.5] text-gray-600'
-	if (editorStyles.textAlign == alignValue) {
-		return `${baseClasses} text-gray-800`
-	}
-	return baseClasses
+	return `${baseClasses} text-gray-600`
 }
 </script>
 
