@@ -98,3 +98,23 @@ watch(
 	},
 )
 </script>
+
+<style>
+.tiptap > ul {
+	list-style: none;
+	padding-left: 0;
+}
+
+.tiptap > ul li {
+	position: relative;
+	padding-left: 0.6em;
+}
+
+.tiptap > ul li::before {
+	content: '•';
+	position: absolute;
+	left: 0;
+	top: 0.1em;
+	font-size: 1em;
+}
+</style>

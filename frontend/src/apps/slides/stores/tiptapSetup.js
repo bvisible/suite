@@ -99,16 +99,10 @@ export const extensions = [
 	}),
 	PastePlainText,
 	BulletList.configure({
-		HTMLAttributes: {
-			class: 'list-disc pl-6',
-		},
 		keepAttributes: true,
 		keepMarks: true,
 	}),
 	OrderedList.configure({
-		HTMLAttributes: {
-			class: 'list-decimal pl-6',
-		},
 		keepAttributes: true,
 		keepMarks: true,
 	}),
