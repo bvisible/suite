@@ -927,7 +927,7 @@ def enqueue_process_pending_emails(batch_process_size: int = 1_000, max_batch_si
 			(MQ.status == "Pending")
 			| (
 				(MQ.failed_count > 0)
-				# & (MQ.failed_count < 3)
+				& (MQ.failed_count < 3)
 				& (MQ.next_retry_after <= now_datetime())
 				& (MQ.status.isin(["Failed", "Failed to Draft", "Failed to Submit"]))
 			)
