@@ -2,6 +2,7 @@ import { ref, reactive, watch } from 'vue'
 import { Editor } from '@tiptap/vue-3'
 import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
+import { activeElement } from '@/stores/element'
 
 const activeEditor = ref(null)
 
@@ -46,7 +47,7 @@ export const useTextEditor = () => {
 		})
 	}
 
-	const update = ({ transaction, editor }) => {
+	const updateEditor = ({ transaction, editor }) => {
 		setEditorStyles(editor)
 
 		const changeListMarkers = !editor.isEditable || editor.state.selection.empty
@@ -175,6 +176,18 @@ export const useTextEditor = () => {
 		}
 	}
 
+	const setLineHeight = (value) => {
+		if (!activeElement.value) return
+
+		activeElement.value.editorMetadata = {
+			...activeElement.value.editorMetadata,
+			lineHeight: value,
+		}
+
+		const el = activeEditor.value.view.dom
+		if (el) el.style.lineHeight = value
+	}
+
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
@@ -192,6 +205,8 @@ export const useTextEditor = () => {
 			case 'color':
 				chain.setColor(value).run()
 				return
+			case 'lineHeight':
+				return setLineHeight(value)
 			default:
 				chain
 					.setMark('textStyle', {
@@ -202,13 +217,23 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const initTextEditor = (content) => {
+	const getEditorProps = (editorMetadata) => {
+		return {
+			attributes: {
+				style: `line-height: ${editorMetadata?.lineHeight || 1}`,
+			},
+		}
+	}
+
+	const initTextEditor = (content, editorMetadata) => {
 		return new Editor({
 			extensions: extensions,
 			editable: false,
 			content: content,
-			onTransaction: ({ transaction, editor }) => update({ transaction, editor }),
-			onSelectionUpdate: ({ editor }) => update({ transaction: editor.state.tr, editor }),
+			editorProps: getEditorProps(editorMetadata),
+			onTransaction: ({ transaction, editor }) => updateEditor({ transaction, editor }),
+			onSelectionUpdate: ({ editor }) =>
+				updateEditor({ transaction: editor.state.tr, editor }),
 		})
 	}
 

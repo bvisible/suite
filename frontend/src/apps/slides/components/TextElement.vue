@@ -26,7 +26,7 @@ const element = defineModel('element', {
 
 const emit = defineEmits(['clearTimeouts'])
 
-const editor = initTextEditor(element.value.content)
+const editor = initTextEditor(element.value.content, element.value.editorMetadata)
 
 const editorStyles = computed(() => ({
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
