@@ -80,7 +80,6 @@ const getElementContent = (element) => {
 									fontSize: element.fontSize,
 									fontFamily: element.fontFamily,
 									color: element.color,
-									lineHeight: 1,
 									letterSpacing: 0,
 									opacity: 100,
 								},
@@ -108,6 +107,9 @@ const addTextElement = async (text) => {
 		top: 0,
 		type: 'text',
 		content: getElementContent(elementPresets),
+		editorMetadata: {
+			lineHeight: 1,
+		},
 	}
 
 	slide.value.elements.push(element)
