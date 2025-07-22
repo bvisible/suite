@@ -117,4 +117,26 @@ watch(
 	top: 0.1em;
 	font-size: 1em;
 }
+
+.tiptap ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	counter-reset: step;
+}
+
+.tiptap ol li {
+	counter-increment: step;
+	position: relative;
+	padding-left: calc(2ch + 0.2em);
+}
+
+.tiptap ol li::before {
+	content: counter(step) '.';
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 2ch;
+	text-align: right;
+}
 </style>
