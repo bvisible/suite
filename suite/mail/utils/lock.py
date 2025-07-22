@@ -19,16 +19,15 @@ def acquire_lock(lockname: str, acquire_timeout: int, lock_timeout: int) -> str 
 	if lock_timeout <= 0:
 		frappe.throw(_("Lock timeout must be greater than 0 seconds."))
 
-	cache = frappe.cache()
 	identifier = str(uuid7())
 	lock_key = f"lock:{lockname}"
 
 	if acquire_timeout == 0:
-		return identifier if cache.set(lock_key, identifier, ex=lock_timeout, nx=True) else None
+		return identifier if frappe.cache.set(lock_key, identifier, ex=lock_timeout, nx=True) else None
 
 	end = time.time() + acquire_timeout
 	while time.time() < end:
-		if cache.set(lock_key, identifier, ex=lock_timeout, nx=True):
+		if frappe.cache.set(lock_key, identifier, ex=lock_timeout, nx=True):
 			return identifier
 		time.sleep(0.001)
 
@@ -40,9 +39,8 @@ def release_lock(lockname: str, identifier: str) -> bool:
 	Release the lock only if it is held by the caller.
 	"""
 
-	cache = frappe.cache()
 	lock_key = f"lock:{lockname}"
-	pipe = cache.pipeline(True)
+	pipe = frappe.cache.pipeline(True)
 
 	while True:
 		try:
