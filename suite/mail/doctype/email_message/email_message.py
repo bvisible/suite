@@ -31,10 +31,12 @@ from mail.utils import convert_html_to_text, enqueue_job, user_context
 from mail.utils.cache import get_account_for_user
 from mail.utils.dt import parse_iso_datetime
 from mail.utils.email_parser import EmailParser
+from mail.utils.lock import acquire_lock, release_lock
 from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
 from mail.utils.validation import validate_permission_for_account
 
 BLOB_CACHE_TTL = 3600
+FETCH_LOCK_TIMEOUT = 300
 
 
 class EmailMessage(Document):
@@ -1181,18 +1183,31 @@ def fetch_changes(account: str, email_state: str | None = None) -> None:
 		)
 
 
+def locked_fetch_changes(account: str, email_state: str | None, lock_id: str) -> None:
+	"""Fetch changes for the specified account with a lock to prevent concurrent execution."""
+
+	try:
+		fetch_changes(account, email_state)
+	finally:
+		release_lock(f"fetch_changes:{account}", lock_id)
+
+
 def enqueue_fetch_changes(account: str, email_state: str | None = None) -> None:
 	"""Enqueue the fetch_changes job for the specified account."""
 
+	lockname = f"fetch_changes:{account}"
+	identifier = acquire_lock(lockname, acquire_timeout=0, lock_timeout=FETCH_LOCK_TIMEOUT)
+
+	if not identifier:
+		return
+
 	with user_context("Administrator"):
-		job_id = f"fetch_changes:{account}"
 		enqueue_job(
-			fetch_changes,
+			locked_fetch_changes,
 			account=account,
 			email_state=email_state,
+			lock_id=identifier,
 			queue="short",
-			job_id=job_id,
-			deduplicate=True,
 			enqueue_after_commit=True,
 		)
 
