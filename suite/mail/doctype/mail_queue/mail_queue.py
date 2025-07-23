@@ -3,6 +3,7 @@
 
 import json
 from email import message_from_string
+from email.header import Header
 from email.utils import make_msgid, parseaddr
 from mimetypes import guess_type
 from pathlib import Path
@@ -799,7 +800,7 @@ class MailQueue(Document):
 					mail[field] = value
 
 		if self.subject:
-			mail["subject"] = self.subject
+			mail["subject"] = Header(self.subject, "utf-8").encode()
 
 		mail.update(
 			{
