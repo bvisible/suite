@@ -46,8 +46,8 @@ const getCurrentData = () => {
 }
 
 const isSlideDirty = () => {
-	const data = getSavedData()
-	const updatedData = getCurrentData()
+	const data = JSON.parse(JSON.stringify(getSavedData()))
+	const updatedData = JSON.parse(JSON.stringify(getCurrentData()))
 
 	return !isEqual(data, updatedData)
 }

@@ -1,5 +1,5 @@
 <template>
-	<div v-show="selectionBounds.width" ref="selected" :style="boxStyles"></div>
+	<div v-show="selectionBounds.width && !focusElementId" ref="selected" :style="boxStyles"></div>
 </template>
 
 <script setup>
@@ -11,6 +11,7 @@ import {
 	setActiveElements,
 	getElementPosition,
 	resetFocus,
+	focusElementId,
 } from '@/stores/element'
 
 const slideDiv = inject('slideDiv')

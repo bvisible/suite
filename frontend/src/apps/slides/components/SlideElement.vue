@@ -1,6 +1,10 @@
 <template>
 	<div ref="elementDiv" :style="elementStyle">
-		<component :is="getDynamicComponent(element.type)" :element="element" />
+		<component
+			:is="getDynamicComponent(element.type)"
+			:element="element"
+			@clearTimeouts="$emit('clearTimeouts')"
+		/>
 
 		<Resizer
 			v-if="showResizers"
@@ -19,7 +23,12 @@ import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 import Resizer from '@/components/Resizer.vue'
 
-import { activeElement, activeElementIds, updateElementWidth } from '@/stores/element'
+import {
+	activeElement,
+	activeElementIds,
+	focusElementId,
+	updateElementWidth,
+} from '@/stores/element'
 
 import { selectionBounds, slideBounds } from '@/stores/slide'
 
@@ -33,6 +42,8 @@ const props = defineProps({
 		default: false,
 	},
 })
+
+const emit = defineEmits(['clearTimeouts'])
 
 const element = defineModel('element', {
 	type: Object,
@@ -74,7 +85,7 @@ const getDynamicComponent = (type) => {
 }
 
 const showResizers = computed(() => {
-	if (!activeElement.value) return false
+	if (!activeElement.value || focusElementId.value) return false
 	return activeElement.value.id == element.value.id && !props.isDragging
 })
 
