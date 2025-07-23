@@ -827,8 +827,9 @@ class MailQueue(Document):
 			mail["textBody"] = [{"partId": "text", "type": "text/plain"}]
 			mail["bodyValues"]["text"] = {"value": self.text_body, "charset": "utf-8", "isTruncated": False}
 		if self.html_body:
+			html_body = Header(self.html_body, "utf-8").encode()
 			mail["htmlBody"] = [{"partId": "html", "type": "text/html"}]
-			mail["bodyValues"]["html"] = {"value": self.html_body, "charset": "utf-8", "isTruncated": False}
+			mail["bodyValues"]["html"] = {"value": html_body, "charset": "utf-8", "isTruncated": False}
 
 		_attachments = []
 		for a in attachments or json_loads(self.attachments, default=[]):
