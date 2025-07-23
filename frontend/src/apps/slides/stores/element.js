@@ -31,14 +31,9 @@ const activeElement = computed(() => {
 })
 
 const setActiveElements = (ids, focus = false) => {
-	if (ids.length == 1 && focus) {
-		activeElementIds.value = []
-		focusElementId.value = ids[0]
-	} else {
-		if (ids.length == 1 && activeElementIds.value.includes(ids[0])) return
-		activeElementIds.value = ids
-		focusElementId.value = null
-	}
+	if (ids.length == 1 && activeElementIds.value.includes(ids[0])) return
+	activeElementIds.value = ids
+	focusElementId.value = null
 }
 
 const selectAndCenterElement = (elementId) => {
@@ -47,7 +42,7 @@ const selectAndCenterElement = (elementId) => {
 
 	nextTick(() => {
 		setActiveElements([elementId])
-		// to allow centering element only after it's rendere in order to correctly calculate its offset from center
+		// to allow centering element only after it's rendered in order to correctly calculate its offset from center
 		requestAnimationFrame(async () => {
 			await nextTick()
 			const elementRect = document
@@ -65,36 +60,56 @@ const selectAndCenterElement = (elementId) => {
 	})
 }
 
+const getElementContent = (element) => {
+	return {
+		type: 'doc',
+		content: [
+			{
+				type: 'paragraph',
+				attrs: {
+					textAlign: element.textAlign || 'center',
+				},
+				content: [
+					{
+						type: 'text',
+						text: element.innerText || 'Text',
+						marks: [
+							{
+								type: 'textStyle',
+								attrs: {
+									fontSize: element.fontSize,
+									fontFamily: element.fontFamily,
+									color: element.color,
+									lineHeight: 1,
+									letterSpacing: 0,
+									opacity: 100,
+								},
+							},
+						],
+					},
+				],
+			},
+		],
+	}
+}
+
 const addTextElement = async (text) => {
-	const lastTextElement = slide.value.elements.reverse().find((element) => element.type == 'text')
+	const elementPresets = {
+		textAlign: 'center',
+		fontSize: 28,
+		fontFamily: 'Arial',
+		color: guessTextColorFromBackground(slide.value.background),
+		innerText: text,
+	}
 
 	const element = {
 		id: generateUniqueId(),
-		content: text || 'Text',
-		type: 'text',
-		textAlign: 'center',
 		left: 0,
 		top: 0,
+		type: 'text',
+		content: getElementContent(elementPresets),
 	}
 
-	if (lastTextElement) {
-		element.fontSize = lastTextElement.fontSize
-		element.fontFamily = lastTextElement.fontFamily
-		element.fontWeight = lastTextElement.fontWeight
-		element.color = lastTextElement.color
-		element.lineHeight = lastTextElement.lineHeight
-		element.letterSpacing = lastTextElement.letterSpacing
-		element.opacity = lastTextElement.opacity
-	} else {
-		const slideColor = slide.value.background || '#ffffff'
-		element.fontSize = 30
-		element.fontFamily = 'Arial'
-		element.fontWeight = 'normal'
-		element.color = guessTextColorFromBackground(slideColor)
-		element.lineHeight = 1
-		element.letterSpacing = 0
-		element.opacity = 100
-	}
 	slide.value.elements.push(element)
 	selectAndCenterElement(element.id)
 }
@@ -170,9 +185,9 @@ const deleteAttachments = async (elements) => {
 	})
 }
 
-const deleteElements = async (e) => {
+const deleteElements = async (e, ids) => {
 	deleteAttachments(activeElements.value)
-	const idsToDelete = activeElementIds.value
+	const idsToDelete = ids || activeElementIds.value
 	resetFocus()
 	nextTick(() => {
 		slide.value.elements = slide.value.elements.filter((element) => {
@@ -190,33 +205,6 @@ const resetFocus = () => {
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
-}
-
-const toggleTextProperty = (property, value) => {
-	const oldStyle = activeElement.value[property]
-	let newStyle = ''
-
-	switch (property) {
-		case 'fontWeight':
-			newStyle = oldStyle == 'bold' ? 'normal' : 'bold'
-			break
-		case 'fontStyle':
-			newStyle = oldStyle == 'italic' ? 'normal' : 'italic'
-			break
-		case 'textTransform':
-			newStyle = oldStyle == 'uppercase' ? 'none' : 'uppercase'
-			break
-		default:
-			if (!oldStyle) {
-				newStyle = value
-				break
-			}
-			newStyle = oldStyle.includes(value)
-				? oldStyle.replace(value, '')
-				: oldStyle + ' ' + value
-			newStyle = newStyle.trim()
-	}
-	activeElement.value[property] = newStyle
 }
 
 const getElementPosition = (elementId) => {
@@ -257,12 +245,8 @@ const handleCopy = (e) => {
 }
 
 const handlePastedText = (clipboardText) => {
-	if (focusElementId.value) {
-		document.execCommand('insertText', false, clipboardText)
-	} else {
-		resetFocus()
-		addTextElement(clipboardText)
-	}
+	resetFocus()
+	addTextElement(clipboardText)
 }
 
 const handlePastedJSON = async (json) => {
@@ -284,7 +268,7 @@ const handlePaste = (e) => {
 	if (clipboardItems) handleUploadedMedia(clipboardItems)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) handlePastedText(clipboardText)
+	if (clipboardText && !focusElementId.value) handlePastedText(clipboardText)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
 	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
@@ -316,7 +300,6 @@ export {
 	duplicateElements,
 	deleteElements,
 	selectAllElements,
-	toggleTextProperty,
 	getElementPosition,
 	handleCopy,
 	handlePaste,

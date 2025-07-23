@@ -66,7 +66,6 @@ import {
 	addTextElement,
 	selectAllElements,
 	activeElements,
-	toggleTextProperty,
 	deleteAttachments,
 } from '@/stores/element'
 
@@ -133,15 +132,6 @@ const handleElementShortcuts = (e) => {
 			break
 		case 'd':
 			if (e.metaKey) duplicateElements(e, activeElements.value, 40)
-			break
-		case 'i':
-			if (e.metaKey) toggleTextProperty('fontStyle', 'italic')
-			break
-		case 'u':
-			if (e.metaKey) toggleTextProperty('textDecoration', 'underline')
-			break
-		case 'b':
-			if (e.metaKey) toggleTextProperty('fontWeight', 'bold')
 			break
 	}
 }
