@@ -15,11 +15,9 @@ import { EditorContent } from '@tiptap/vue-3'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
-import { initTextEditor } from '@/stores/tiptapSetup'
-
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
-const { activeEditor } = useTextEditor()
+const { activeEditor, initTextEditor } = useTextEditor()
 
 const element = defineModel('element', {
 	type: Object,
@@ -28,7 +26,7 @@ const element = defineModel('element', {
 
 const emit = defineEmits(['clearTimeouts'])
 
-const editor = initTextEditor(element.value.content)
+const editor = initTextEditor(element.value.content, element.value.editorMetadata)
 
 const editorStyles = computed(() => ({
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
@@ -100,3 +98,45 @@ watch(
 	},
 )
 </script>
+
+<style>
+.tiptap > ul {
+	list-style: none;
+	padding-left: 0;
+}
+
+.tiptap > ul li {
+	position: relative;
+	padding-left: 0.6em;
+}
+
+.tiptap > ul li::before {
+	content: '•';
+	position: absolute;
+	left: 0;
+	top: 0.1em;
+	font-size: 1em;
+}
+
+.tiptap ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	counter-reset: step;
+}
+
+.tiptap ol li {
+	counter-increment: step;
+	position: relative;
+	padding-left: calc(2ch + 0.2em);
+}
+
+.tiptap ol li::before {
+	content: counter(step) '.';
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 2ch;
+	text-align: right;
+}
+</style>
