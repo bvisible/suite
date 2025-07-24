@@ -11,31 +11,37 @@
 				<button
 					v-for="style in styleProperties"
 					:key="style.property"
-					:class="getFontStyleButtonClasses(style.property, style.value)"
-					@click="toggleTextProperty(style.property, style.value)"
+					:class="getFontStyleButtonClasses(style.property)"
+					@click="toggleMark(style.property)"
 				>
 					<component
 						:is="style.icon"
 						size="16"
 						:strokeWidth="1.5"
-						:class="getFontStyleIconClasses(style.property, style.value)"
+						:class="getFontStyleIconClasses(style.property)"
 					/>
 				</button>
 			</div>
 
-			<div
-				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
-			>
+			<div class="flex items-center justify-between">
 				<div
-					v-for="textAlign in textAlignProperties"
-					:key="textAlign.alignValue"
-					:class="getTabClasses(textAlign.alignValue)"
-					@click="activeElement.textAlign = textAlign.alignValue"
+					class="flex h-8 w-4/5 items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
 				>
+					<div
+						v-for="textAlign in textAlignProperties"
+						:key="textAlign.alignValue"
+						:class="getTabClasses(textAlign.alignValue)"
+						@click="updateProperty('textAlign', textAlign.alignValue)"
+					>
+						<component :is="textAlign.icon" size="16" :strokeWidth="1.5" />
+					</div>
+				</div>
+
+				<div :class="listButtonClasses" @click="updateProperty('list')">
 					<component
-						:is="textAlign.icon"
+						:is="editorStyles.orderedList ? ListOrdered : List"
 						size="16"
-						:class="getAlignIconClasses(textAlign.alignValue)"
+						:strokeWidth="1.5"
 					/>
 				</div>
 			</div>
@@ -49,18 +55,19 @@
 				:options="textFonts"
 				size="sm"
 				variant="subtle"
-				:modelValue="activeElement.fontFamily"
-				@update:modelValue="(font) => (activeElement.fontFamily = font.value)"
+				:modelValue="editorStyles.fontFamily"
+				@update:modelValue="(font) => updateProperty('fontFamily', font.value)"
 			/>
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Size</div>
 				<div class="w-28">
 					<NumberInput
-						v-model="activeElement.fontSize"
+						:modelValue="editorStyles.fontSize"
+						@update:modelValue="(value) => updateProperty('fontSize', value)"
 						suffix="px"
 						:rangeStart="5"
-						:rangeEnd="100"
+						:rangeEnd="800"
 						:rangeStep="1"
 					/>
 				</div>
@@ -68,7 +75,10 @@
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Color</div>
-				<ColorPicker v-model="activeElement.color" />
+				<ColorPicker
+					:modelValue="editorStyles.color"
+					@update:modelValue="(val) => updateProperty('color', val)"
+				/>
 			</div>
 		</template>
 	</CollapsibleSection>
@@ -80,8 +90,8 @@
 				:rangeStart="0.1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.lineHeight)"
-				@update:modelValue="(value) => (activeElement.lineHeight = value)"
+				:modelValue="activeElement?.editorMetadata?.lineHeight || 1"
+				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 
 			<SliderInput
@@ -89,8 +99,20 @@
 				:rangeStart="-10"
 				:rangeEnd="50"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.letterSpacing)"
-				@update:modelValue="(value) => (activeElement.letterSpacing = value)"
+				:modelValue="editorStyles.letterSpacing"
+				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
+			/>
+		</template>
+	</CollapsibleSection>
+
+	<CollapsibleSection title="Other">
+		<template #default>
+			<SliderInput
+				label="Opacity"
+				:rangeStart="0"
+				:rangeEnd="100"
+				:modelValue="editorStyles.opacity"
+				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
 			/>
 		</template>
 	</CollapsibleSection>
@@ -106,6 +128,7 @@ import {
 	Strikethrough,
 	CaseUpper,
 	List,
+	ListOrdered,
 	AlignLeft,
 	AlignCenter,
 	AlignRight,
@@ -118,13 +141,12 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slide } from '@/stores/slide'
-import {
-	activeElementIds,
-	focusElementId,
-	toggleTextProperty,
-	activeElement,
-} from '@/stores/element'
+import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
+
+import { useTextEditor } from '@/composables/useTextEditor'
+
+const { activeEditor, editorStyles, toggleMark, updateProperty } = useTextEditor()
 
 const textFonts = [
 	'Arial',
@@ -146,28 +168,23 @@ const textFonts = [
 
 const styleProperties = [
 	{
-		property: 'fontWeight',
-		value: 'bold',
+		property: 'bold',
 		icon: Bold,
 	},
 	{
-		property: 'fontStyle',
-		value: 'italic',
+		property: 'italic',
 		icon: Italic,
 	},
 	{
-		property: 'textDecoration',
-		value: 'underline',
+		property: 'underline',
 		icon: Underline,
 	},
 	{
-		property: 'textDecoration',
-		value: 'line-through',
+		property: 'strike',
 		icon: Strikethrough,
 	},
 	{
-		property: 'textTransform',
-		value: 'uppercase',
+		property: 'uppercase',
 		icon: CaseUpper,
 	},
 ]
@@ -192,54 +209,79 @@ const textAlignProperties = [
 ]
 
 const presetTextStyles = [
-	{ label: 'Title', value: 'title' },
-	{ label: 'Subtitle', value: 'subtitle' },
-	{ label: 'Body', value: 'body' },
+	{
+		label: 'Title',
+		value: 'title',
+		bold: true,
+		fontSize: 60,
+		lineHeight: 1.5,
+		textAlign: 'center',
+	},
+	{
+		label: 'Subtitle',
+		value: 'subtitle',
+		bold: true,
+		fontSize: 40,
+		lineHeight: 1,
+		textAlign: 'center',
+	},
+	{
+		label: 'Body',
+		value: 'body',
+		bold: false,
+		fontSize: 20,
+		lineHeight: 1.5,
+		textAlign: 'justify',
+	},
 ]
 
 const applyPresetTextStyles = (textStyle) => {
-	if (textStyle === 'title') {
-		activeElement.value.fontWeight = 'bold'
-		activeElement.value.fontSize = 60
-		activeElement.value.lineHeight = 1.5
-	} else if (textStyle === 'subtitle') {
-		activeElement.value.fontWeight = 'bold'
-		activeElement.value.fontSize = 30
-		activeElement.value.lineHeight = 1.2
-	} else if (textStyle === 'body') {
-		activeElement.value.fontWeight = 'normal'
-		activeElement.value.fontSize = 20
-		activeElement.value.lineHeight = 1
-	}
+	const presetStyles = presetTextStyles.find((style) => style.value == textStyle)
+
+	activeEditor.value
+		.chain()
+		.focus()
+		.selectAll()
+		.setMark('textStyle', {
+			fontFamily: 'Arial',
+			fontSize: presetStyles.fontSize,
+			lineHeight: presetStyles.lineHeight,
+			letterSpacing: 0,
+			opacity: 100,
+		})
+		.run()
+
+	activeEditor.value.chain().focus().setTextAlign(presetStyles.textAlign).run()
+	activeEditor.value.chain().focus().setBold(presetStyles.bold).run()
+
 	activeElement.value.defaultStyle = textStyle
 }
 
-const getFontStyleButtonClasses = (property, value) => {
+const listButtonClasses = computed(() => {
+	const baseClasses =
+		'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
+	const isActive = editorStyles.bulletList || editorStyles.orderedList
+	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : 'text-gray-600'}`
+})
+
+const getFontStyleButtonClasses = (property) => {
 	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
-	if (activeElement.value[property]?.includes(value)) {
+	if (editorStyles[property]) {
 		return `${baseClasses} bg-gray-100`
 	}
 	return baseClasses
 }
 
-const getFontStyleIconClasses = (property, value) => {
-	return activeElement.value[property]?.includes(value) ? 'text-gray-900' : 'text-gray-700'
+const getFontStyleIconClasses = (property) => {
+	return editorStyles[property] ? 'text-gray-900' : 'text-gray-700'
 }
 
 const getTabClasses = (alignValue) => {
-	const baseClasses = 'rounded h-full flex items-center justify-center w-1/6 cursor-pointer'
-	if (activeElement.value.textAlign === alignValue) {
-		return `${baseClasses} bg-white shadow`
+	const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
+	if (editorStyles.textAlign == alignValue) {
+		return `${baseClasses} bg-white shadow text-gray-800`
 	}
-	return baseClasses
-}
-
-const getAlignIconClasses = (alignValue) => {
-	const baseClasses = 'stroke-[1.5] text-gray-600'
-	if (activeElement.value.textAlign === alignValue) {
-		return `${baseClasses} text-gray-800`
-	}
-	return baseClasses
+	return `${baseClasses} text-gray-600`
 }
 </script>
 

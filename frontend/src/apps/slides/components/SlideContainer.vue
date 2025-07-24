@@ -20,7 +20,7 @@
 					:isDragging="isDragging"
 					:data-index="element.id"
 					@mousedown="(e) => handleMouseDown(e, element)"
-					@dblclick="(e) => handleDoubleClick(e, element)"
+					@clearTimeouts="clearTimeouts"
 				/>
 			</div>
 		</div>
@@ -28,7 +28,7 @@
 
 	<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
 
-	<OverflowContentOverlay v-if="!activeElementIds.length" />
+	<OverflowContentOverlay />
 </template>
 
 <script setup>
@@ -53,10 +53,10 @@ import {
 	updateElementWidth,
 } from '@/stores/element'
 
-import { useDragAndDrop } from '@/utils/drag'
-import { useResizer } from '@/utils/resizer'
-import { usePanAndZoom } from '@/utils/zoom'
-import { useSnapping } from '@/utils/snap'
+import { useDragAndDrop } from '@/composables/useDragAndDrop'
+import { useResizer } from '@/composables/useResizer'
+import { usePanAndZoom } from '@/composables/usePanAndZoom'
+import { useSnapping } from '@/composables/useSnapping'
 
 const props = defineProps({
 	highlight: Boolean,
@@ -94,7 +94,6 @@ const targetStyles = computed(() => ({
 
 const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || 'white',
-	'--showEdgeOverlay': !activeElementIds.value.length ? 'block' : 'none',
 	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
 }))
 
@@ -127,8 +126,9 @@ const clearTimeouts = () => {
 }
 
 const triggerSelection = (e, id) => {
-	if (id && !focusElementId.value && !activeElementIds.value.includes(id)) {
+	if (id && !activeElementIds.value.includes(id)) {
 		activeElementIds.value = [id]
+		focusElementId.value = null
 	}
 }
 
@@ -161,9 +161,6 @@ const triggerDrag = (e, id) => {
 const handleMouseDown = (e, element) => {
 	const id = element?.id
 
-	// resume normal behavior if element is being edited
-	if (id === focusElementId.value) return
-
 	e.stopPropagation()
 	e.preventDefault()
 
@@ -174,23 +171,6 @@ const handleMouseDown = (e, element) => {
 	// if the click is registered ie. mouseup happens before dragTimeout
 	// then consider it a selection instead of dragging
 	e.target.addEventListener('mouseup', () => handleMouseUp(e, id), { once: true })
-}
-
-const makeTextEditable = (target, element) => {
-	clearTimeouts()
-
-	activeElementIds.value = []
-	focusElementId.value = element.id
-
-	nextTick(() => {
-		target.focus()
-	})
-}
-
-const handleDoubleClick = (e, element) => {
-	if (element.type !== 'text') return
-
-	makeTextEditable(e.target, element)
 }
 
 const scale = computed(() => {
@@ -207,6 +187,8 @@ const activeDiv = computed(() => {
 useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
+
+	if (width - selectionBounds.width < 0.3 && height - selectionBounds.height < 0.3) return
 
 	// case:
 	// when element dimensions are changed not by resizer

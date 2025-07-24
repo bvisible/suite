@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { call } from 'frappe-ui'
+import { createResource } from 'frappe-ui'
 
 import { session } from '@/stores/session'
 
@@ -34,10 +34,13 @@ let router = createRouter({
 
 const hasAccess = async (presentationId: string) => {
 	try {
-		const response = await call('frappe.client.has_permission', {
-			doctype: 'Presentation',
+		const response = await createResource({
+			url: "frappe.client.has_permission",
+			method: "GET",
+		}).submit({
+			doctype: "Presentation",
 			docname: presentationId,
-			perm_type: 'write',
+			perm_type: "write",
 		})
 		return response.has_permission
 	} catch (error) {
