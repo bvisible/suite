@@ -5,6 +5,9 @@ import StarterKit from '@tiptap/starter-kit'
 import TextStyle from '@tiptap/extension-text-style'
 import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
+import BulletList from '@tiptap/extension-bullet-list'
+import OrderedList from '@tiptap/extension-ordered-list'
+import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 import { Plugin } from 'prosemirror-state'
 
@@ -68,19 +71,40 @@ const PastePlainText = Extension.create({
 	},
 })
 
-export const initTextEditor = (content) => {
-	return new Editor({
-		extensions: [
-			StarterKit,
-			CustomTextStyle,
-			Underline,
-			Color,
-			TextAlign.configure({
-				types: ['paragraph'],
-			}),
-			PastePlainText,
-		],
-		editable: false,
-		content: content,
-	})
-}
+const CustomListItem = ListItem.extend({
+	addAttributes() {
+		return {
+			style: {
+				default: null,
+				parseHTML: (element) => element.getAttribute('style') || null,
+				renderHTML: (attributes) => {
+					return attributes.style ? { style: attributes.style } : {}
+				},
+			},
+		}
+	},
+})
+
+export const extensions = [
+	StarterKit.configure({
+		bulletList: false,
+		orderedList: false,
+		listItem: false,
+	}),
+	CustomTextStyle,
+	Underline,
+	Color,
+	TextAlign.configure({
+		types: ['paragraph'],
+	}),
+	PastePlainText,
+	BulletList.configure({
+		keepAttributes: true,
+		keepMarks: true,
+	}),
+	OrderedList.configure({
+		keepAttributes: true,
+		keepMarks: true,
+	}),
+	CustomListItem,
+]

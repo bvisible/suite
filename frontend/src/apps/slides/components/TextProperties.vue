@@ -23,19 +23,25 @@
 				</button>
 			</div>
 
-			<div
-				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
-			>
+			<div class="flex items-center justify-between">
 				<div
-					v-for="textAlign in textAlignProperties"
-					:key="textAlign.alignValue"
-					:class="getTabClasses(textAlign.alignValue)"
-					@click="updateProperty('textAlign', textAlign.alignValue)"
+					class="flex h-8 w-4/5 items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
 				>
+					<div
+						v-for="textAlign in textAlignProperties"
+						:key="textAlign.alignValue"
+						:class="getTabClasses(textAlign.alignValue)"
+						@click="updateProperty('textAlign', textAlign.alignValue)"
+					>
+						<component :is="textAlign.icon" size="16" :strokeWidth="1.5" />
+					</div>
+				</div>
+
+				<div :class="listButtonClasses" @click="updateProperty('list')">
 					<component
-						:is="textAlign.icon"
+						:is="editorStyles.orderedList ? ListOrdered : List"
 						size="16"
-						:class="getAlignIconClasses(textAlign.alignValue)"
+						:strokeWidth="1.5"
 					/>
 				</div>
 			</div>
@@ -84,7 +90,7 @@
 				:rangeStart="0.1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="editorStyles.lineHeight"
+				:modelValue="activeElement?.editorMetadata?.lineHeight || 1"
 				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 
@@ -122,6 +128,7 @@ import {
 	Strikethrough,
 	CaseUpper,
 	List,
+	ListOrdered,
 	AlignLeft,
 	AlignCenter,
 	AlignRight,
@@ -250,32 +257,31 @@ const applyPresetTextStyles = (textStyle) => {
 	activeElement.value.defaultStyle = textStyle
 }
 
+const listButtonClasses = computed(() => {
+	const baseClasses =
+		'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
+	const isActive = editorStyles.bulletList || editorStyles.orderedList
+	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : 'text-gray-600'}`
+})
+
 const getFontStyleButtonClasses = (property) => {
 	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
-	if (editorStyles.value[property]) {
+	if (editorStyles[property]) {
 		return `${baseClasses} bg-gray-100`
 	}
 	return baseClasses
 }
 
 const getFontStyleIconClasses = (property) => {
-	return editorStyles.value[property] ? 'text-gray-900' : 'text-gray-700'
+	return editorStyles[property] ? 'text-gray-900' : 'text-gray-700'
 }
 
 const getTabClasses = (alignValue) => {
-	const baseClasses = 'rounded h-full flex items-center justify-center w-1/6 cursor-pointer'
-	if (editorStyles.value.textAlign === alignValue) {
-		return `${baseClasses} bg-white shadow`
+	const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
+	if (editorStyles.textAlign == alignValue) {
+		return `${baseClasses} bg-white shadow text-gray-800`
 	}
-	return baseClasses
-}
-
-const getAlignIconClasses = (alignValue) => {
-	const baseClasses = 'stroke-[1.5] text-gray-600'
-	if (editorStyles.value.textAlign === alignValue) {
-		return `${baseClasses} text-gray-800`
-	}
-	return baseClasses
+	return `${baseClasses} text-gray-600`
 }
 </script>
 
