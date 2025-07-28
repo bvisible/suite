@@ -1,3 +1,4 @@
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 from urllib.parse import urljoin
@@ -68,7 +69,9 @@ class JMAPClient:
 
 		headers = {"Content-Type": "application/json", "Accept": "application/json"}
 		payload = {"using": using, "methodCalls": method_calls}
-		response = self.__session.post(self.api_url, headers=headers, json=payload)
+		response = self.__session.post(
+			self.api_url, headers=headers, data=json.dumps(payload, ensure_ascii=False)
+		)
 		response.raise_for_status()
 
 		return response.json()
