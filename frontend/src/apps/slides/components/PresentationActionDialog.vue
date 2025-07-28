@@ -101,7 +101,7 @@ const duplicatePresentation = async () => {
 	return await createPresentationResource.submit({
 		title: newPresentationTitle.value,
 		duplicateFrom: props.presentation.name,
-	}).name
+	})
 }
 
 const deletePresentation = async () => {
