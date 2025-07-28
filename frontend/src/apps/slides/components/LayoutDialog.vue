@@ -20,6 +20,7 @@
 		</template>
 		<template #actions>
 			<Button
+				ref="buttonRef"
 				class="w-full"
 				variant="solid"
 				label="Add Slide"
@@ -30,10 +31,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { nextTick, ref, useTemplateRef, watch } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
 
 const emit = defineEmits(['insert'])
+
+const buttonRef = useTemplateRef('buttonRef')
 
 const showLayoutDialog = defineModel({
 	name: 'showLayoutDialog',
@@ -64,4 +67,17 @@ const insertSlideWithLayout = () => {
 	emit('insert', currentLayout.value)
 	currentLayout.value = null
 }
+
+watch(
+	() => showLayoutDialog.value,
+	(visibility) => {
+		if (visibility) {
+			nextTick(() => {
+				if (buttonRef.value) {
+					buttonRef.value.$el.focus()
+				}
+			})
+		}
+	},
+)
 </script>
