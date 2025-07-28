@@ -110,10 +110,7 @@ const userDropdownOptions = [
 	},
 	{
 		component: AppsMenu,
-		condition: () => {
-			const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
-			return cookies.get('system_user') === 'yes' && !isMobile.value
-		},
+		condition: () => userResource.data.is_system_manager,
 	},
 	{
 		icon: LogOut,
