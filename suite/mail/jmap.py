@@ -31,7 +31,7 @@ class JMAPClient:
 
 		well_known_url = urljoin(self.__host, "/.well-known/jmap")
 		response = self.__session.get(well_known_url, headers={"Accept": "application/json"})
-		response.raise_for_status()
+		raise_for_status(response)
 		self.__config = response.json()
 
 	def _validate_capabilities(self, capabilities: list[str]) -> None:
@@ -72,7 +72,7 @@ class JMAPClient:
 		response = self.__session.post(
 			self.api_url, headers=headers, data=json.dumps(payload, ensure_ascii=False)
 		)
-		response.raise_for_status()
+		raise_for_status(response)
 
 		return response.json()
 
@@ -368,7 +368,7 @@ class JMAPClient:
 			accountId=self.account_id, blobId=blob_id, name=name, type="application/octet-stream"
 		)
 		response = self.__session.get(download_url)
-		response.raise_for_status()
+		raise_for_status(response)
 
 		return response.content
 
@@ -377,7 +377,7 @@ class JMAPClient:
 
 		upload_url = self.upload_url.format(accountId=self.account_id)
 		response = self.__session.post(upload_url, data=blob, headers={"Content-Type": content_type})
-		response.raise_for_status()
+		raise_for_status(response)
 
 		return response.json()
 
@@ -389,7 +389,7 @@ class JMAPClient:
 		def upload_single_blob(blob: tuple[bytes | str, str]) -> dict:
 			content, content_type = blob
 			response = self.__session.post(upload_url, data=content, headers={"Content-Type": content_type})
-			response.raise_for_status()
+			raise_for_status(response)
 			return response.json()
 
 		results = []
@@ -784,3 +784,16 @@ def get_mailbox_name_for_account(account: str, id: str | None = None, role: str 
 
 	validate_permission_for_account(account)
 	return get_mailbox_name(account, id, role)
+
+
+def raise_for_status(response: requests.Response) -> None:
+	"""Raises an HTTPError if the response status code indicates an error."""
+
+	if not response.ok:
+		try:
+			error_text = response.json()
+		except Exception:
+			error_text = response.text.strip()
+
+		message = _("Error {0}: {1}").format(response.status_code, error_text)
+		raise requests.exceptions.HTTPError(message, response=response)
