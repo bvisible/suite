@@ -1,31 +1,18 @@
 <template>
 	<Dialog v-model="showLayoutDialog" class="pb-0" :options="{ size: '3xl' }">
 		<template #body-title>
-			<div class="font-semibold">Select a Template Layout</div>
+			<div ref="titleRef" class="font-semibold">Select a Template Layout</div>
 		</template>
 		<template #body-content>
 			<div class="grid max-h-80 grid-cols-3 gap-6 overflow-y-auto px-6">
 				<div
 					v-for="layout in layouts.data"
 					:key="layout.idx"
-					class="aspect-video cursor-pointer rounded-lg border"
-					:class="{
-						'border-gray-300': currentLayout !== layout.name,
-						'border-gray-500': currentLayout === layout.name,
-					}"
+					class="aspect-video cursor-pointer rounded-lg border hover:border-gray-500"
 					:style="getThumbnailStyles(layout)"
-					@click="setCurrentLayout(layout)"
+					@click="insertSlideWithLayout(layout)"
 				></div>
 			</div>
-		</template>
-		<template #actions>
-			<Button
-				ref="buttonRef"
-				class="w-full"
-				variant="solid"
-				label="Add Slide"
-				@click="insertSlideWithLayout"
-			/>
 		</template>
 	</Dialog>
 </template>
@@ -36,14 +23,12 @@ import { Dialog, createResource } from 'frappe-ui'
 
 const emit = defineEmits(['insert'])
 
-const buttonRef = useTemplateRef('buttonRef')
+const titleRef = useTemplateRef('titleRef')
 
 const showLayoutDialog = defineModel({
 	name: 'showLayoutDialog',
 	required: true,
 })
-
-const currentLayout = ref(null)
 
 const layouts = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
@@ -59,13 +44,8 @@ const getThumbnailStyles = (layout) => {
 	}
 }
 
-const setCurrentLayout = (layout) => {
-	currentLayout.value = layout.name
-}
-
-const insertSlideWithLayout = () => {
-	emit('insert', currentLayout.value)
-	currentLayout.value = null
+const insertSlideWithLayout = (layout) => {
+	emit('insert', layout.name)
 }
 
 watch(
@@ -73,9 +53,7 @@ watch(
 	(visibility) => {
 		if (visibility) {
 			nextTick(() => {
-				if (buttonRef.value) {
-					buttonRef.value.$el.focus()
-				}
+				document.activeElement?.blur()
 			})
 		}
 	},
