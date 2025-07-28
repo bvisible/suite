@@ -72,7 +72,10 @@
 						@click.stop="mail.collapsed = !mail.collapsed"
 					>
 						<Avatar
-							:label="mail.from_name || mail.from_email"
+							:label="
+								mail.from_name?.match(/[A-Za-z]/)?.[0] ||
+								mail.from_email?.match(/[A-Za-z]/)?.[0]
+							"
 							:image="mail.user_image"
 							size="xl"
 						/>

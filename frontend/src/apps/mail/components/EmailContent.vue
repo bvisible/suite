@@ -65,11 +65,11 @@ const srcdoc = computed(() => {
 				}
 
 				@media (max-width: 640px) {
-					/* Force override any remaining fixed widths */
-					table[style*="width"] {
-						width: 100% !important;
-					}
-				}
+                    /* Only override specific problematic patterns */
+                    table[width="600"], table[width="600px"] {
+                        width: 100% !important;
+                    }
+                }
 			</style>
 			<script
 			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.6"
