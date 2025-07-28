@@ -367,7 +367,9 @@ const selectActions = computed((): SelectAction[] =>
 // Main data
 
 const limit = ref(50)
-const filter = ref<string | null>(null)
+const filter = ref<string | null>(
+	localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null,
+)
 
 const threads = createResource({
 	url: 'mail.api.mail.get_mails_from_mailbox',
@@ -402,7 +404,7 @@ const reloadMails = () => {
 watch(
 	() => mailbox,
 	() => {
-		filter.value = null
+		filter.value = localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null
 		limit.value = 50
 		reloadMails()
 	},
@@ -527,6 +529,7 @@ const FILTER_OPTIONS = [
 
 const setFilter = (value: string | null) => {
 	filter.value = value
+	localStorage.setItem(`user:${user.data.name}:filter:${mailbox}`, value ?? '')
 	threads.reload()
 	resetSelections()
 }
