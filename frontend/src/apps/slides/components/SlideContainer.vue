@@ -78,13 +78,12 @@ const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 )
 
 const slideClasses = computed(() => {
-	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
+	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl', 'shadow-gray-400']
 
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
-	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
 
-	return [...classes, outlineClasses, shadowClasses]
+	return [...classes, outlineClasses]
 })
 
 const targetStyles = computed(() => ({

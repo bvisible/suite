@@ -5,10 +5,7 @@
 				<PresentationHeader />
 			</template>
 		</Navbar>
-		<div
-			class="relative flex h-screen"
-			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
-		>
+		<div class="relative flex h-screen bg-gray-300">
 			<NavigationPanel
 				class="absolute bottom-0 top-0 z-10"
 				:showNavigator="showNavigator"
