@@ -28,7 +28,10 @@
 			</div>
 			<Avatar
 				v-else
-				:label="mail.from_name || mail.from_email"
+				:label="
+					mail.from_name?.match(/[A-Za-z]/)?.[0] ||
+					mail.from_email?.match(/[A-Za-z]/)?.[0]
+				"
 				:size="isFullWidth ? 'lg' : '2xl'"
 				@click.stop="isSelected = true"
 			/>
