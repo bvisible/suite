@@ -21,6 +21,9 @@ const createPresentationResource = createResource({
 			duplicate_from: args.duplicateFrom,
 		}
 	},
+	transform: (response) => {
+		return response.name
+	},
 })
 
 const updatePresentationTitle = async (id, newTitle) => {
