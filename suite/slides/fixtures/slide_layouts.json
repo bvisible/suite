@@ -2,7 +2,7 @@
  {
   "docstatus": 0,
   "doctype": "Slide Layouts",
-  "modified": "2025-07-28 12:46:44.046609",
+  "modified": "2025-07-28 13:57:54.868659",
   "name": "Slide Layouts",
   "slides": [
    {
@@ -42,8 +42,15 @@
    },
    {
     "background": "#ffffff",
-    "elements": "[]",
+    "elements": "[\n  {\n    \"id\": \"8rramz5a7\",\n    \"left\": 83,\n    \"top\": 205,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"left\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 60,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 100\n                  }\n                },\n                {\n                  \"type\": \"bold\"\n                }\n              ],\n              \"text\": \"Title\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 318.3359375\n  },\n  {\n    \"id\": \"eniv9oi7g\",\n    \"width\": 484,\n    \"height\": 542,\n    \"left\": 477,\n    \"top\": 0,\n    \"opacity\": 100,\n    \"type\": \"image\",\n    \"src\": \"/assets/slides/frontend/images/placeholder.png\",\n    \"attachmentName\": \"8b16800f3a\",\n    \"borderStyle\": \"none\",\n    \"borderWidth\": 0,\n    \"borderRadius\": 0,\n    \"borderColor\": \"#000000\",\n    \"shadowOffsetX\": 0,\n    \"shadowOffsetY\": 0,\n    \"shadowSpread\": 0,\n    \"shadowColor\": \"#000000\"\n  }\n]",
     "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-6.png",
+    "transition": null,
+    "transition_duration": null
+   },
+   {
+    "background": "#ffffff",
+    "elements": "[]",
+    "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-7.png",
     "transition": null,
     "transition_duration": null
    }

@@ -66,7 +66,7 @@ const outline = computed(() => {
 const elementStyle = computed(() => ({
 	position: activeElementIds.value.includes(element.value.id) ? 'absolute' : 'fixed',
 	width: `${element.value.width}px` || 'auto',
-	height: 'auto',
+	height: `${element.value.height}px` || 'auto',
 	left: `${element.value.left}px`,
 	top: `${element.value.top}px`,
 	outline: outline.value,
