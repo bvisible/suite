@@ -16,7 +16,10 @@ class Presentation(Document):
 		self.slug = slug(self.title)
 
 	def update_thumbnails(self):
-		old_slides = self.get_doc_before_save().slides
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save or not doc_before_save.slides:
+			return
+		old_slides = doc_before_save.slides
 
 		for slide in self.slides:
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
@@ -119,7 +122,6 @@ def create_new_slide(presentation, index, layout_id=None):
 	new_slide.parent = presentation
 	new_slide.parentfield = "slides"
 	new_slide.parenttype = "Presentation"
-	new_slide.idx = index + 1
 	if layout_id:
 		layout_slide = frappe.get_doc("Slide", layout_id)
 		new_slide.update(layout_slide.as_dict())
@@ -127,6 +129,7 @@ def create_new_slide(presentation, index, layout_id=None):
 		for element in elements:
 			element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
 		new_slide.elements = json.dumps(elements)
+	new_slide.idx = index + 1
 	new_slide.save()
 
 	return new_slide
