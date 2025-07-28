@@ -5,7 +5,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "slides"
+  "slides",
+  "slides_dark"
  ],
  "fields": [
   {
@@ -13,13 +14,19 @@
    "fieldtype": "Table",
    "label": "Slides",
    "options": "Slide"
+  },
+  {
+   "fieldname": "slides_dark",
+   "fieldtype": "Table",
+   "label": "Slides Dark",
+   "options": "Slide"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-07-10 00:25:12.978247",
+ "modified": "2025-07-28 17:49:42.902591",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Slide Layouts",
