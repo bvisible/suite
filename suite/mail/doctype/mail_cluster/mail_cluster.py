@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import random_string
 
 from mail.backend import MailBackendAPI, Principal
+from mail.jmap import raise_for_status
 from mail.mail.doctype.mail_server.mail_server import create_or_update_spf_dns_record
 from mail.utils import generate_secret, hash_password
 from mail.utils.dns import get_dns_record
@@ -282,7 +283,7 @@ class MailCluster(Document):
 			password=self.get_password("fallback_admin_password"),
 		)
 		response = backend_api.request(method="POST", endpoint="/api/principal", json=principal.__dict__)
-		response.raise_for_status()
+		raise_for_status(response)
 		response_json = response.json()
 
 		if error := response_json.get("error"):
