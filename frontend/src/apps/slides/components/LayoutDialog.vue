@@ -1,10 +1,10 @@
 <template>
-	<Dialog v-model="showLayoutDialog" class="pb-0" :options="{ size: '2xl' }">
+	<Dialog v-model="showLayoutDialog" class="pb-0" :options="{ size: '3xl' }">
 		<template #body-title>
-			<div class="font-semibold">Select a Layout</div>
+			<div class="font-semibold">Select a Template Layout</div>
 		</template>
 		<template #body-content>
-			<div class="grid grid-cols-3 gap-4">
+			<div class="grid max-h-80 grid-cols-3 gap-6 overflow-y-auto px-6">
 				<div
 					v-for="layout in layouts.data"
 					:key="layout.idx"
