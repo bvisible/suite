@@ -5,7 +5,7 @@
 			Presentations
 		</div>
 
-		<div class="px-32 py-4 lg:px-40">
+		<div class="px-32 pb-16 pt-8 lg:px-40">
 			<div
 				v-if="presentations?.length"
 				class="grid grid-cols-3 gap-6 lg:grid-cols-4 lg:gap-8"
@@ -59,7 +59,7 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate', 'setPreview', 'openDialog'])
 
-const backgroundClasses = 'size-full bg-gray-100 flex flex-col gap-6 pt-8 overflow-y-auto'
+const backgroundClasses = 'size-full bg-gray-100 flex flex-col pt-8 overflow-y-auto'
 const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
 
 const getCardStyles = (presentation) => {
