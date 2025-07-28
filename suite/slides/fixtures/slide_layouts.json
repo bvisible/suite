@@ -8,7 +8,6 @@
    {
     "background": "#ffffff",
     "elements": "[\n  {\n    \"id\": \"9o1alf1u7\",\n    \"left\": 83,\n    \"top\": 225,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"center\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 60,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 100\n                  }\n                },\n                {\n                  \"type\": \"bold\"\n                }\n              ],\n              \"text\": \"Title\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 794.3359375\n  }\n]",
-    "is_layout": 0,
     "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-1.png",
     "transition": null,
     "transition_duration": null
@@ -16,7 +15,6 @@
    {
     "background": "#ffffff",
     "elements": "[\n  {\n    \"id\": \"i5ificow1\",\n    \"left\": 83,\n    \"top\": 205,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"center\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 60,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 100\n                  }\n                },\n                {\n                  \"type\": \"bold\"\n                }\n              ],\n              \"text\": \"Title\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 794.3359375\n  },\n  {\n    \"id\": \"idvf34rcm\",\n    \"left\": 83,\n    \"top\": 297,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"center\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 25,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 40\n                  }\n                }\n              ],\n              \"text\": \"Subtitle\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 794.3359375\n  }\n]",
-    "is_layout": 0,
     "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-2.png",
     "transition": null,
     "transition_duration": null
@@ -24,7 +22,6 @@
    {
     "background": "#ffffff",
     "elements": "[\n  {\n    \"id\": \"jkn2cn4n1\",\n    \"left\": 83,\n    \"top\": 205,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"left\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 60,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 100\n                  }\n                },\n                {\n                  \"type\": \"bold\"\n                }\n              ],\n              \"text\": \"Title\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 794.3359375\n  }\n]",
-    "is_layout": 0,
     "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-3.png",
     "transition": null,
     "transition_duration": null
@@ -32,7 +29,6 @@
    {
     "background": "#ffffff",
     "elements": "[\n  {\n    \"id\": \"w48oldl2p\",\n    \"left\": 83,\n    \"top\": 205,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"left\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 60,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 100\n                  }\n                },\n                {\n                  \"type\": \"bold\"\n                }\n              ],\n              \"text\": \"Title\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 794.3359375\n  },\n  {\n    \"id\": \"dkq776rim\",\n    \"left\": 83,\n    \"top\": 297,\n    \"type\": \"text\",\n    \"content\": {\n      \"type\": \"doc\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"attrs\": {\n            \"textAlign\": \"left\"\n          },\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"textStyle\",\n                  \"attrs\": {\n                    \"color\": \"#000000\",\n                    \"fontSize\": 25,\n                    \"textTransform\": null,\n                    \"fontFamily\": \"Inter\",\n                    \"lineHeight\": 1.5,\n                    \"letterSpacing\": 0,\n                    \"opacity\": 40\n                  }\n                }\n              ],\n              \"text\": \"Subtitle\"\n            }\n          ]\n        }\n      ]\n    },\n    \"editorMetadata\": {\n      \"lineHeight\": 1\n    },\n    \"defaultStyle\": \"title\",\n    \"width\": 794.3359375\n  }\n]",
-    "is_layout": 0,
     "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-4.png",
     "transition": null,
     "transition_duration": null
@@ -40,7 +36,6 @@
    {
     "background": "#ffffff",
     "elements": "[]",
-    "is_layout": 0,
     "thumbnail": "/assets/slides/frontend/images/template-thumbnails/thumbnail-5.png",
     "transition": null,
     "transition_duration": null
