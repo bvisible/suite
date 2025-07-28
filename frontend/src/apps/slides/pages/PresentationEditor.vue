@@ -10,7 +10,7 @@
 				class="absolute bottom-0 top-0 z-10"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
-				@insertSlide="insertSlide"
+				@insertSlide="openLayoutDialog"
 			/>
 
 			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
