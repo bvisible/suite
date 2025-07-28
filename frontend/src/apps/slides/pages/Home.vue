@@ -4,7 +4,7 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => createPresentation(),
+				onClick: () => openThemeDialog(),
 			}"
 		/>
 
@@ -32,6 +32,8 @@
 		@closeDialog="closeDialog"
 		@navigate="navigateToPresentation"
 	/>
+
+	<ThemeDialog v-model="showThemeDialog" />
 </template>
 
 <script setup>
@@ -46,6 +48,7 @@ import Navbar from '@/components/Navbar.vue'
 import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+import ThemeDialog from '@/components/ThemeDialog.vue'
 
 import { createPresentationResource } from '@/stores/presentation'
 
@@ -55,6 +58,7 @@ const previewPresentation = ref(null)
 const selectedPresentation = ref(null)
 
 const showDialog = ref(false)
+const showThemeDialog = ref(false)
 const dialogAction = ref('')
 
 const presentationList = createResource({
@@ -64,7 +68,7 @@ const presentationList = createResource({
 })
 
 const navigateToPresentation = (name, present) => {
-	name = name || previewPresentation.value.name
+	name = name || previewPresentation.value?.name
 	if (present) {
 		router.replace({
 			name: 'Slideshow',
@@ -97,14 +101,19 @@ const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
 
-const createPresentation = async () => {
+const createPresentation = async (theme) => {
 	const newPresentation = await createPresentationResource.submit({
 		title: 'Untitled',
+		theme: theme,
 	})
 	if (newPresentation) {
-		navigateToPresentation(newPresentation.name)
+		navigateToPresentation(newPresentation)
 	} else {
 		console.error('Failed to create new presentation')
 	}
+}
+
+const openThemeDialog = () => {
+	showThemeDialog.value = true
 }
 </script>
