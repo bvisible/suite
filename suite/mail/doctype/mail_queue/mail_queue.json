@@ -132,6 +132,7 @@
   },
   {
    "depends_on": "eval: doc.__islocal || doc.reply_to && doc.reply_to != \"[]\"",
+   "description": "Provide a JSON array of objects with display_name and email. <br>\nExample: <code>[{\"display_name\": \"Jane Smith\", \"email\": \"jane@example.com\"}]</code>",
    "fieldname": "reply_to",
    "fieldtype": "JSON",
    "label": "Reply To",
@@ -146,6 +147,7 @@
   },
   {
    "depends_on": "eval: doc.__islocal || doc.headers && doc.headers != \"{}\"",
+   "description": "Provide a JSON object with header name\u2013value pairs. <br>\nExample: <code>{\"X-Custom-Header\": \"Value\"}</code>",
    "fieldname": "headers",
    "fieldtype": "JSON",
    "label": "Headers",
@@ -158,6 +160,7 @@
   },
   {
    "depends_on": "eval: doc.__islocal || doc.recipients && doc.recipients != \"[]\"",
+   "description": "Provide a JSON array of recipients with type, display_name, and email. <br>\n<b>type</b> must be \"To\", \"Cc\", or \"Bcc\". <br>\nExample: <code>[{\"type\": \"To\", \"display_name\": \"Jane Smith\", \"email\": \"jane@example.com\"}]</code>",
    "fieldname": "recipients",
    "fieldtype": "JSON",
    "label": "Recipients",
@@ -190,6 +193,7 @@
   },
   {
    "depends_on": "eval: doc.__islocal || doc.attachments && doc.attachments != \"[]\"",
+   "description": "Provide a JSON array with file_url, disposition (inline or attachment), and cid. <br>\nExample: <code>[{\"file_url\": \"/private/files/image.png\", \"disposition\": \"inline\", \"cid\": \"j80BhiEC5o\"}]</code>",
    "fieldname": "attachments",
    "fieldtype": "JSON",
    "label": "Attachments",
@@ -539,7 +543,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 12:57:35.361455",
+ "modified": "2025-07-28 15:14:12.396905",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Queue",
