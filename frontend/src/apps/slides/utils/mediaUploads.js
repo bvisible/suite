@@ -2,9 +2,25 @@ import { FileUploadHandler } from 'frappe-ui'
 import { toast } from 'vue-sonner'
 
 import { presentationId } from '../stores/presentation'
+import { slide } from '../stores/slide'
 import { addMediaElement } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
+
+const performPostUploadActions = (fileDoc, fileType, resolve) => {
+	for (const element of slide.value.elements) {
+		if (!element.useTemplateDimensions) continue
+
+		element.src = fileDoc.file_url
+		element.attachmentName = fileDoc.name
+
+		resolve(fileDoc)
+		return
+	}
+
+	addMediaElement(fileDoc, fileType)
+	resolve(fileDoc)
+}
 
 const uploadMedia = (file, fileType) => {
 	return new Promise((resolve, reject) => {
@@ -14,10 +30,7 @@ const uploadMedia = (file, fileType) => {
 				docname: presentationId.value,
 				private: true,
 			})
-			.then((fileDoc) => {
-				addMediaElement(fileDoc, fileType)
-				resolve(fileDoc)
-			})
+			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, resolve))
 			.catch((error) => {
 				reject(error)
 			})
