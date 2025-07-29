@@ -1,13 +1,8 @@
 <template>
 	<div>
-		<img
-			class="object-cover"
-			:src="element.src"
-			:style="imageStyle"
-			@dblclick="openFileSelector"
-		/>
+		<img class="object-cover" :src="element.src" :style="imageStyle" />
 		<div
-			v-if="element.useTemplateDimensions && activeElement?.id == element.id"
+			v-if="showReplaceImageButton"
 			class="absolute left-0 top-0 size-full overflow-hidden transition-opacity duration-500 ease-in-out"
 			:style="gradientOverlayStyles"
 		>
@@ -17,10 +12,7 @@
 				@success="replaceTemplateImage"
 			>
 				<template #default="{ openFileSelector }">
-					<div
-						class="absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-500 opacity-95"
-						@click="openFileSelector"
-					>
+					<div :class="replaceButtonClasses" @click="openFileSelector">
 						<LucideReplace class="size-5 stroke-[1.5] text-gray-700" />
 					</div>
 				</template>
@@ -41,6 +33,13 @@ import { activeElement } from '@/stores/element'
 const element = defineModel('element', {
 	type: Object,
 	default: null,
+})
+
+const replaceButtonClasses =
+	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-500 opacity-95'
+
+const showReplaceImageButton = computed(() => {
+	return element.value.useTemplateDimensions && activeElement.value?.id == element.value.id
 })
 
 const imageStyle = computed(() => {
