@@ -78,6 +78,7 @@ const previewSlide = ref(0)
 const slideThumbnails = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_slide_thumbnails',
 	method: 'GET',
+	cache: 'slideThumbnails',
 	makeParams: () => ({
 		presentation: props.presentation.name,
 	}),
