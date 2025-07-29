@@ -56,14 +56,14 @@ import { presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
 
-const emit = defineEmits(['insert', 'delete', 'duplicate', 'setHighlight'])
+const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
 
 const slideActions = [
 	{
 		label: 'Insert Slide',
 		icon: SquarePlus,
 		onClick: () => {
-			emit('insert')
+			emit('openLayoutDialog')
 		},
 	},
 	{
