@@ -33,7 +33,7 @@
 		@navigate="navigateToPresentation"
 	/>
 
-	<ThemeDialog v-model="showThemeDialog" />
+	<ThemeDialog v-model="showThemeDialog" @create="(theme) => createPresentation(theme)" />
 </template>
 
 <script setup>

@@ -9,6 +9,7 @@
 					<div
 						class="aspect-video cursor-pointer rounded-lg border hover:border-gray-400"
 						:style="getThumbnailStyles(theme)"
+						@click="$emit('create', theme.name)"
 					></div>
 					<div class="px-1 text-base text-gray-600">{{ theme.name }}</div>
 				</div>
@@ -19,6 +20,8 @@
 
 <script setup>
 import { Dialog } from 'frappe-ui'
+
+const emit = defineEmits(['create'])
 
 const themes = [
 	{

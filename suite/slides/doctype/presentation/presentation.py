@@ -119,9 +119,6 @@ def create_new_slide(presentation, index, layout_id=None):
 	If no layout_id is provided, it creates a blank slide.
 	"""
 	new_slide = frappe.new_doc("Slide")
-	new_slide.parent = presentation
-	new_slide.parentfield = "slides"
-	new_slide.parenttype = "Presentation"
 	if layout_id:
 		layout_slide = frappe.get_doc("Slide", layout_id)
 		new_slide.update(layout_slide.as_dict())
@@ -129,6 +126,9 @@ def create_new_slide(presentation, index, layout_id=None):
 		for element in elements:
 			element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
 		new_slide.elements = json.dumps(elements)
+	new_slide.parent = presentation
+	new_slide.parentfield = "slides"
+	new_slide.parenttype = "Presentation"
 	new_slide.idx = index + 1
 	new_slide.save()
 
@@ -181,9 +181,10 @@ def duplicate_slide(name, index):
 
 
 @frappe.whitelist()
-def create_presentation(title, duplicate_from=None):
+def create_presentation(title, duplicate_from=None, theme="Default"):
 	new_presentation = frappe.new_doc("Presentation")
 	new_presentation.title = title
+	new_presentation.theme = theme
 	if duplicate_from:
 		presentation = frappe.get_doc("Presentation", duplicate_from)
 		new_presentation.name = None
