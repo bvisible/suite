@@ -4,11 +4,11 @@
 			<div ref="titleRef" class="font-semibold">Select a Template Layout</div>
 		</template>
 		<template #body-content>
-			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto">
+			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto p-2">
 				<div
 					v-for="layout in layouts.data"
 					:key="layout.idx"
-					class="aspect-video cursor-pointer rounded-lg border hover:border-gray-500"
+					class="aspect-video cursor-pointer rounded-lg border hover:border-gray-400"
 					:style="getThumbnailStyles(layout)"
 					@click="insertSlideWithLayout(layout)"
 				></div>
