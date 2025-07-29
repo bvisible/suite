@@ -1,7 +1,7 @@
 <template>
 	<Dialog v-model="showLayoutDialog" class="pb-0" :options="{ size: '4xl' }">
 		<template #body-title>
-			<div ref="titleRef" class="font-semibold">Select a Template Layout</div>
+			<div class="font-semibold">Select a Template Layout</div>
 		</template>
 		<template #body-content>
 			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto p-2">
@@ -18,12 +18,10 @@
 </template>
 
 <script setup>
-import { nextTick, ref, useTemplateRef, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
 
 const emit = defineEmits(['insert'])
-
-const titleRef = useTemplateRef('titleRef')
 
 const props = defineProps({
 	theme: String,
@@ -50,17 +48,18 @@ const getThumbnailStyles = (layout) => {
 }
 
 const insertSlideWithLayout = (layout) => {
+	showLayoutDialog.value = false
 	emit('insert', layout.name)
 }
 
 watch(
 	() => showLayoutDialog.value,
 	(visibility) => {
-		if (visibility) {
-			nextTick(() => {
-				document.activeElement?.blur()
-			})
-		}
+		if (!visibility) return
+		nextTick(() => {
+			// TODO: fix dialog to not focus on close button
+			document.activeElement?.blur()
+		})
 	},
 )
 </script>

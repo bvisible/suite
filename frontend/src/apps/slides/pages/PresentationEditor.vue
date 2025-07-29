@@ -385,7 +385,6 @@ const openLayoutDialog = (action) => {
 }
 
 const handleInsertSlide = async (layoutId) => {
-	showLayoutDialog.value = false
 	if (layoutAction.value == 'replace') {
 		await performSlideAction('replace', slideIndex.value, layoutId)
 		loadSlide()
