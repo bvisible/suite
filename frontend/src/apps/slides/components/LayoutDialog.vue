@@ -36,7 +36,7 @@ const showLayoutDialog = defineModel({
 
 const layouts = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
-	makeParams: () => ({ theme: props.theme || 'Default' }),
+	makeParams: () => ({ theme: props.theme || 'Light' }),
 	method: 'GET',
 	auto: true,
 })

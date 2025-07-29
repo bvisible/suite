@@ -1,7 +1,7 @@
 <template>
 	<div v-if="presentation.data" class="flex w-64 flex-col border-l bg-white" @wheel.prevent>
 		<div v-if="!activeElement">
-			<SlideProperties />
+			<SlideProperties @openLayoutDialog="$emit('openLayoutDialog')" />
 			<AlignmentControls v-if="activeElementIds.length" />
 		</div>
 		<div v-else>
@@ -28,6 +28,8 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { presentation } from '@/stores/presentation'
 import { slide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
+
+const emit = defineEmits(['openLayoutDialog'])
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type

@@ -10,19 +10,22 @@
 				class="absolute bottom-0 top-0 z-10"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
-				@insertSlide="openLayoutDialog"
+				@insertSlide="openLayoutDialog('insert')"
 			/>
 
 			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
 			<Toolbar
 				@setHighlight="setHighlight"
-				@insert="openLayoutDialog"
+				@insert="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide"
 			/>
 
-			<PropertiesPanel class="absolute bottom-0 right-0 top-0 z-10" />
+			<PropertiesPanel
+				class="absolute bottom-0 right-0 top-0 z-10"
+				@openLayoutDialog="openLayoutDialog('replace')"
+			/>
 		</div>
 
 		<LayoutDialog
@@ -239,6 +242,9 @@ const performSlideAction = async (action, index, layoutId) => {
 		case 'duplicate':
 			url = 'slides.slides.doctype.presentation.presentation.duplicate_slide'
 			break
+		case 'replace':
+			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
+			break
 		case 'delete':
 			url = 'slides.slides.doctype.presentation.presentation.delete_slide'
 			break
@@ -248,6 +254,7 @@ const performSlideAction = async (action, index, layoutId) => {
 		name: presentationId.value,
 		index: index,
 		layout_id: layoutId,
+		replace: action == 'replace',
 	}
 
 	resetFocus()
@@ -364,13 +371,20 @@ onBeforeRouteLeave((to, from, next) => {
 })
 
 const showLayoutDialog = ref(false)
+const layoutAction = ref('')
 
-const openLayoutDialog = () => {
+const openLayoutDialog = (action) => {
 	showLayoutDialog.value = true
+	layoutAction.value = action
 }
 
-const handleInsertSlide = (layoutId) => {
+const handleInsertSlide = async (layoutId) => {
 	showLayoutDialog.value = false
-	insertSlide(null, layoutId)
+	if (layoutAction.value == 'replace') {
+		await performSlideAction('replace', slideIndex.value, layoutId)
+		loadSlide()
+	} else {
+		insertSlide(null, layoutId)
+	}
 }
 </script>
