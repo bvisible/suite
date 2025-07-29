@@ -30,7 +30,7 @@
    "label": "Slug"
   },
   {
-   "default": "Default",
+   "default": "Light",
    "fieldname": "theme",
    "fieldtype": "Data",
    "label": "Theme"
