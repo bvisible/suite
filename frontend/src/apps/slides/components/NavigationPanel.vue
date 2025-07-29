@@ -104,6 +104,7 @@ const getThumbnailStyles = (s) => {
 	const img = slideIndex.value == s.idx - 1 ? slide.value.thumbnail : s.thumbnail
 	return {
 		backgroundImage: `url(${img})`,
+		backgroundColor: presentation.data.theme == 'Dark' ? '#000' : '#fff',
 	}
 }
 
