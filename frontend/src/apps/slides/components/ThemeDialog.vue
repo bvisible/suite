@@ -25,8 +25,8 @@ const emit = defineEmits(['create'])
 
 const themes = [
 	{
-		name: 'Default',
-		thumbnail: '/assets/slides/frontend/images/layouts/default/thumbnail-3.png',
+		name: 'Light',
+		thumbnail: '/assets/slides/frontend/images/layouts/light/thumbnail-3.png',
 	},
 	{
 		name: 'Dark',
