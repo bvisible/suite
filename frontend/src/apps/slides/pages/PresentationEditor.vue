@@ -179,6 +179,12 @@ const handleGlobalShortcuts = (e) => {
 		case 's':
 			if (e.metaKey) saveSlide(e)
 			break
+		case 'n':
+			if (e.ctrlKey) {
+				e.preventDefault()
+				openLayoutDialog('insert')
+			}
+			break
 	}
 }
 
