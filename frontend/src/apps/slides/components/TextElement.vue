@@ -45,7 +45,8 @@ const makeElementEditable = () => {
 	activeElementIds.value = []
 
 	activeEditor.value.setEditable(true)
-	activeEditor.value.commands.focus('end')
+	activeEditor.value.commands.focus()
+	activeEditor.value.commands.selectAll()
 }
 
 const handleDoubleClick = (e) => {
