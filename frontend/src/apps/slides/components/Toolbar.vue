@@ -46,7 +46,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 
 import { Type, ImagePlus, Trash, Copy, SquarePlus } from 'lucide-vue-next'
