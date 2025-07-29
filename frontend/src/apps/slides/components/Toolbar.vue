@@ -10,7 +10,7 @@
 
 		<Tooltip text="Media" :hover-delay="0.7" placement="bottom">
 			<FileUploader
-				:fileTypes="ALLOWED_IMAGE_FILETYPES.concat(['video/*'])"
+				:fileTypes="allowedImageFileTypes.concat(['video/*'])"
 				:uploadArgs="{ doctype: 'Presentation', docname: presentationId, private: true }"
 				@success="(file) => handleUploadSuccess(file)"
 			>
@@ -54,8 +54,7 @@ import { Type, ImagePlus, Trash, Copy, SquarePlus } from 'lucide-vue-next'
 import { Tooltip, FileUploader } from 'frappe-ui'
 import { presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
-
-const ALLOWED_IMAGE_FILETYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+import { allowedImageFileTypes } from '@/utils/constants'
 
 const emit = defineEmits(['insert', 'delete', 'duplicate', 'setHighlight'])
 
@@ -84,7 +83,7 @@ const slideActions = [
 ]
 
 const handleUploadSuccess = (file) => {
-	const imageTypes = ALLOWED_IMAGE_FILETYPES.map((type) => type.split('/')[1].toUpperCase())
+	const imageTypes = allowedImageFileTypes.map((type) => type.split('/')[1].toUpperCase())
 	const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
 
 	addMediaElement(file, fileType)

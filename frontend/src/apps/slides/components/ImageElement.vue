@@ -1,6 +1,6 @@
 <template>
 	<FileUploader
-		:fileTypes="ALLOWED_IMAGE_FILETYPES"
+		:fileTypes="allowedImageFileTypes"
 		:uploadArgs="{ doctype: 'Presentation', docname: presentationId, private: true }"
 		@success="handleImageReplace"
 	>
@@ -21,8 +21,7 @@ import { computed } from 'vue'
 import { FileUploader } from 'frappe-ui'
 
 import { presentationId } from '@/stores/presentation'
-
-const ALLOWED_IMAGE_FILETYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+import { allowedImageFileTypes } from '@/utils/constants'
 
 const element = defineModel('element', {
 	type: Object,
