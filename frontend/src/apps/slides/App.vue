@@ -6,10 +6,8 @@
 			</keep-alive>
 		</router-view>
 	</FrappeUIProvider>
-	<Toaster richColors expand :visibleToasts="2" />
 </template>
 
 <script setup>
-import { Toaster } from 'vue-sonner'
 import { FrappeUIProvider } from 'frappe-ui'
 </script>
