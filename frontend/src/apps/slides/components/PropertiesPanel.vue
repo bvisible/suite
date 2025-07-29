@@ -1,5 +1,9 @@
 <template>
-	<div v-if="presentation.data" class="flex w-64 flex-col border-l bg-white" @wheel.prevent>
+	<div
+		v-if="presentation.data"
+		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white"
+		@wheel="handleWheelEvent"
+	>
 		<div v-if="!activeElement">
 			<SlideProperties />
 			<AlignmentControls v-if="activeElementIds.length" />
@@ -41,6 +45,15 @@ const activeProperties = computed(() => {
 			return VideoProperties
 	}
 })
+
+const handleWheelEvent = (e) => {
+	// allow normal scroll behaviour
+	if (!e.ctrlKey && !e.metaKey) return
+
+	// prevent zoom event from triggering
+	e.preventDefault()
+	e.stopPropagation()
+}
 </script>
 
 <style scoped>
