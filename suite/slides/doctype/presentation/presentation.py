@@ -136,12 +136,13 @@ def create_new_slide(presentation, index, layout_id=None):
 
 
 @frappe.whitelist()
-def insert_slide(name, index, layout_id=None):
+def insert_slide(name, index, layout_id=None, replace=False):
 	presentation = frappe.get_doc("Presentation", name)
 	new_slide = create_new_slide(name, index, layout_id)
-	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
-	for i in range(index + 1, len(presentation.slides)):
-		presentation.slides[i].idx += 1
+	range_end = index if replace else index + 1
+	presentation.slides = presentation.slides[:range_end] + [new_slide] + presentation.slides[index + 1 :]
+	for i in range(len(presentation.slides)):
+		presentation.slides[i].idx = i + 1
 	presentation.save()
 	return presentation
 
