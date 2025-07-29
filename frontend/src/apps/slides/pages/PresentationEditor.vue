@@ -33,9 +33,8 @@
 <script setup>
 import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
-import { toast } from 'vue-sonner'
 
-import { call } from 'frappe-ui'
+import { call, toast } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
