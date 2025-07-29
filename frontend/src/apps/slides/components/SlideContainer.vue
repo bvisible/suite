@@ -126,9 +126,13 @@ const clearTimeouts = () => {
 }
 
 const triggerSelection = (e, id) => {
-	if (id && !activeElementIds.value.includes(id)) {
-		activeElementIds.value = [id]
-		focusElementId.value = null
+	if (id) {
+		if (!activeElementIds.value.includes(id)) {
+			activeElementIds.value = [id]
+			focusElementId.value = null
+		} else {
+			focusElementId.value = id
+		}
 	}
 }
 

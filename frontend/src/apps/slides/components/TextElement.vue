@@ -15,7 +15,6 @@ import { EditorContent } from '@tiptap/vue-3'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
-import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const { activeEditor, initTextEditor } = useTextEditor()
 
@@ -43,7 +42,6 @@ const makeElementEditable = () => {
 	emit('clearTimeouts')
 
 	activeEditor.value = editor
-	focusElementId.value = element.value.id
 	activeElementIds.value = []
 
 	activeEditor.value.setEditable(true)
@@ -56,7 +54,7 @@ const handleDoubleClick = (e) => {
 		return
 	}
 
-	makeElementEditable()
+	focusElementId.value = element.value.id
 }
 
 const isEditorEmpty = () => {
@@ -85,6 +83,18 @@ const blurAndSaveContent = async (id) => {
 		element.value.content = editor.getJSON()
 	}
 }
+
+watch(
+	() => focusElementId.value,
+	(newId, oldId) => {
+		if (oldId && oldId != newId) {
+			blurAndSaveContent(oldId)
+		}
+		if (newId == element.value.id) {
+			makeElementEditable()
+		}
+	},
+)
 
 watch(
 	() => activeElement.value,
