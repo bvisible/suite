@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="presentation.data"
-		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white custom-scrollbar"
+		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
 		@wheel="handleWheelEvent"
 	>
 		<div v-if="!activeElement">
