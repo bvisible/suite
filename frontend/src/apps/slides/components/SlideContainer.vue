@@ -41,7 +41,6 @@ import SlideElement from '@/components/SlideElement.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
 
-import { presentation } from '@/stores/presentation'
 import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
 	activeElementIds,
@@ -72,6 +71,7 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
+
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
@@ -92,7 +92,7 @@ const targetStyles = computed(() => ({
 }))
 
 const slideStyles = computed(() => ({
-	backgroundColor: slide.value.background || 'white',
+	backgroundColor: slide.value.background || '#ffffff',
 	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
 }))
 

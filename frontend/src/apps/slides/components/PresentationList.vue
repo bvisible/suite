@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { computed, h } from 'vue'
+import { h } from 'vue'
 
 import { Dropdown } from 'frappe-ui'
 import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
