@@ -25,6 +25,10 @@ const emit = defineEmits(['insert'])
 
 const titleRef = useTemplateRef('titleRef')
 
+const props = defineProps({
+	theme: String,
+})
+
 const showLayoutDialog = defineModel({
 	name: 'showLayoutDialog',
 	required: true,
@@ -32,6 +36,7 @@ const showLayoutDialog = defineModel({
 
 const layouts = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
+	makeParams: () => ({ theme: props.theme || 'Default' }),
 	method: 'GET',
 	auto: true,
 })
