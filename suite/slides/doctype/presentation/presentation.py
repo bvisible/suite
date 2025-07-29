@@ -239,6 +239,9 @@ def get_updated_json(presentation, json):
 
 
 @frappe.whitelist()
-def get_layouts():
+def get_layouts(theme=None):
 	layout_presentation = frappe.get_doc("Slide Layouts")
-	return layout_presentation.slides
+	if theme == "Dark":
+		return layout_presentation.slides_dark
+	else:
+		return layout_presentation.slides

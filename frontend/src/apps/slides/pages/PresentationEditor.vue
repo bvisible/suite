@@ -26,7 +26,9 @@
 		</div>
 
 		<LayoutDialog
+			v-if="presentation.data"
 			v-model="showLayoutDialog"
+			:theme="presentation.data.theme"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
 	</div>
