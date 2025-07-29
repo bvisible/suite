@@ -8,7 +8,7 @@
 				<div
 					v-for="layout in layouts.data"
 					:key="layout.idx"
-					class="aspect-video cursor-pointer rounded-lg border hover:border-gray-400"
+					class="aspect-video cursor-pointer rounded-lg border border-gray-300 hover:border-gray-400"
 					:style="getThumbnailStyles(layout)"
 					@click="insertSlideWithLayout(layout)"
 				></div>
