@@ -48,7 +48,7 @@
 <script setup>
 import { toast } from 'vue-sonner'
 
-import { Type, ImagePlus, Trash, Copy, SquarePlus } from 'lucide-vue-next'
+import { Type, ImagePlus, Trash, Copy, Square } from 'lucide-vue-next'
 
 import { Tooltip, FileUploader } from 'frappe-ui'
 import { presentationId } from '@/stores/presentation'
@@ -60,7 +60,7 @@ const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlig
 const slideActions = [
 	{
 		label: 'Insert Slide',
-		icon: SquarePlus,
+		icon: Square,
 		onClick: () => {
 			emit('openLayoutDialog')
 		},
