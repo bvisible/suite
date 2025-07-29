@@ -29,18 +29,23 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const imageStyle = computed(() => ({
-	width: '100%',
-	height: `${element.value.height}px`,
-	opacity: element.value.opacity / 100,
-	borderRadius: `${element.value.borderRadius}px`,
-	borderStyle: element.value.borderStyle || 'none',
-	borderColor: element.value.borderColor,
-	borderWidth: `${element.value.borderWidth}px`,
-	boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
-	transform: `scale(${element.value.invertX}, ${element.value.invertY})`,
-	userSelect: 'none',
-}))
+const imageStyle = computed(() => {
+	const styles = {
+		width: '100%',
+		opacity: element.value.opacity / 100,
+		borderRadius: `${element.value.borderRadius}px`,
+		borderStyle: element.value.borderStyle || 'none',
+		borderColor: element.value.borderColor,
+		borderWidth: `${element.value.borderWidth}px`,
+		boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
+		transform: `scale(${element.value.invertX}, ${element.value.invertY})`,
+		userSelect: 'none',
+	}
+	if (element.value.useTemplateDimensions) {
+		styles.height = `${element.value.height}px`
+	}
+	return styles
+})
 
 const handleImageReplace = (file) => {
 	element.value.src = file.file_url
