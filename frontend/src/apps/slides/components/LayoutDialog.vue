@@ -6,7 +6,7 @@
 		<template #body-content>
 			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto p-2">
 				<div
-					v-for="layout in layouts.data"
+					v-for="layout in layouts"
 					:key="layout.idx"
 					class="aspect-video cursor-pointer rounded-lg border border-gray-300 hover:border-gray-400"
 					:style="getThumbnailStyles(layout)"
@@ -19,7 +19,7 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
-import { Dialog, createResource } from 'frappe-ui'
+import { Dialog, createDocumentResource } from 'frappe-ui'
 
 const emit = defineEmits(['insert'])
 
@@ -32,11 +32,19 @@ const showLayoutDialog = defineModel({
 	required: true,
 })
 
-const layouts = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
-	makeParams: () => ({ theme: props.theme || 'Light' }),
-	method: 'GET',
+const layouts = ref([])
+
+createDocumentResource({
+	doctype: 'Slide Layouts',
+	name: 'Slide Layouts',
 	auto: true,
+	onSuccess: (data) => {
+		if (props.theme == 'Dark') {
+			layouts.value = data.slides_dark
+		} else {
+			layouts.value = data.slides
+		}
+	},
 })
 
 const getThumbnailStyles = (layout) => {
