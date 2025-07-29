@@ -191,6 +191,10 @@ def create_presentation(title, duplicate_from=None, theme="Default"):
 		new_presentation.slides = presentation.slides
 	else:
 		slide = frappe.new_doc("Slide")
+		if theme == "Dark":
+			slide.background = "#000000"
+		else:
+			slide.background = "#ffffff"
 		slide.elements = "[]"
 		new_presentation.slides = [slide]
 	new_presentation.save()
