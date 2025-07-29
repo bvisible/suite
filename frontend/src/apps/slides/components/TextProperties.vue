@@ -83,7 +83,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Spacing">
+	<CollapsibleSection title="Spacing" :initialState="true">
 		<template #default>
 			<SliderInput
 				label="Line Height"

@@ -18,7 +18,7 @@ const imageStyle = computed(() => ({
 	borderColor: element.value.borderColor,
 	borderWidth: `${element.value.borderWidth}px`,
 	boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
-	transform: `scale(${element.value.invertX}, ${element.value.invertY})`,
+	transform: `scale(${element.value.invertX || 1}, ${element.value.invertY || 1})`,
 	userSelect: 'none',
 }))
 </script>
