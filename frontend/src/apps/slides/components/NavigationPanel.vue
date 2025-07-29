@@ -8,7 +8,7 @@
 	>
 		<div
 			v-if="presentation.data"
-			class="flex h-full flex-col overflow-y-auto p-4"
+			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
 			:style="scrollbarStyles"
 		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
@@ -179,18 +179,5 @@ watch(
 
 .sortable-chosen {
 	opacity: 0.8;
-}
-
-::-webkit-scrollbar {
-	width: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-	background-color: var(--scrollbar-thumb-color);
-	border-radius: 20px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background-color: #c6c6c6;
 }
 </style>
