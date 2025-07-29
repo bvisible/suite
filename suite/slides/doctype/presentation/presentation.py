@@ -241,12 +241,3 @@ def get_updated_json(presentation, json):
 			element["attachmentName"] = name
 
 	return json
-
-
-@frappe.whitelist()
-def get_layouts(theme=None):
-	layout_presentation = frappe.get_doc("Slide Layouts")
-	if theme == "Dark":
-		return layout_presentation.slides_dark
-	else:
-		return layout_presentation.slides
