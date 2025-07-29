@@ -10,14 +10,14 @@
 				class="absolute bottom-0 top-0 z-10"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
-				@insertSlide="openLayoutDialog('insert')"
+				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
 
 			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
 			<Toolbar
 				@setHighlight="setHighlight"
-				@insert="openLayoutDialog('insert')"
+				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide"
 			/>
