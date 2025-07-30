@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Alignment" :initialState="true">
+	<CollapsibleSection title="Alignment">
 		<template #default>
 			<div class="flex items-center gap-3">
 				<NumberInput

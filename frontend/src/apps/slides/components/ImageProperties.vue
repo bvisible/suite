@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Orientation" :initialState="true">
+	<CollapsibleSection title="Orientation">
 		<template #default>
 			<div
 				v-for="(direction, index) in imageOrientationProperties"
