@@ -21,7 +21,7 @@
 						<template #target="{ togglePopover }">
 							<ComboboxInput
 								ref="search"
-								class="search-input form-input bg-surface-white hover:bg-surface-white w-full border-none focus:border-none focus:!shadow-none focus-visible:!ring-0"
+								class="bg-surface-white sm:bg-surface-modal sm:hover:bg-surface-modal sm:focus:bg-surface-modal search-input form-input w-full border-none focus:border-none focus:!shadow-none focus-visible:!ring-0"
 								type="text"
 								:value="query"
 								autocomplete="off"
@@ -40,7 +40,7 @@
 							<div v-show="isOpen">
 								<div
 									v-if="query && options.length"
-									class="bg-surface-white mt-1 rounded-lg py-1 text-sm shadow-2xl"
+									class="bg-surface-modal mt-1 rounded-lg py-1 text-sm shadow-2xl"
 								>
 									<ComboboxOptions
 										class="my-1 max-h-[12rem] overflow-y-auto px-1.5"

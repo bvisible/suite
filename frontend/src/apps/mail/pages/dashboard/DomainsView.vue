@@ -34,6 +34,7 @@
 						:key="row.name"
 						v-slot="{ column, item }"
 						:row="row"
+						class="hover:!bg-surface-gray-1"
 					>
 						<ListRowItem :item="item">
 							<Badge

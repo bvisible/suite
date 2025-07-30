@@ -1,7 +1,7 @@
 <template>
 	<button
 		class="flex items-center space-x-2 rounded-full border px-2 py-1.5"
-		:class="{ 'cursor-pointer hover:border-gray-400': blobID }"
+		:class="{ 'hover:border-outline-gray-3 cursor-pointer': blobID }"
 		@click="openAttachment"
 	>
 		<Loader
