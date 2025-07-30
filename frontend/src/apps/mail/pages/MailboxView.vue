@@ -201,7 +201,7 @@
 
 		<!-- No mails -->
 		<div v-else class="text-ink-gray-5 flex w-full flex-col items-center justify-center">
-			<NoMails class="mb-2 h-16 w-16" />
+			<NoMails class="text-ink-gray-2 mb-2 h-16 w-16" />
 			<p>{{ __('You have no mails in this folder.') }}</p>
 		</div>
 	</div>

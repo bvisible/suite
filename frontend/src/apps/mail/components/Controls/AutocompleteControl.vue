@@ -244,12 +244,12 @@ const inputClasses = computed(() => {
 
 	const variant = props.disabled ? 'disabled' : props.variant
 	const variantClasses = {
-		subtle: 'border border-gray-100 bg-surface-gray-2 placeholder-gray-500 hover:border-gray-200 hover:bg-surface-gray-3 focus:bg-surface-white focus:border-gray-500 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-400',
+		subtle: 'bg-surface-gray-2 placeholder-ink-gray-4 hover:bg-surface-gray-3 focus:shadow-sm focus:ring-0 focus-visible:ring-2',
 		outline:
-			'border border-gray-300 bg-surface-white placeholder-gray-500 hover:border-gray-400 hover:shadow-sm focus:bg-surface-white focus:border-gray-500 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-400',
+			'border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3',
 		disabled: [
-			'border bg-surface-gray-1 placeholder-gray-400 cursor-default',
-			props.variant === 'outline' ? 'border-gray-300' : 'border-transparent',
+			'border bg-surface-gray-1 placeholder-ink-gray-3 cursor-default',
+			props.variant === 'outline' ? 'border-outline-gray-2' : 'border-transparent',
 		],
 	}[variant]
 

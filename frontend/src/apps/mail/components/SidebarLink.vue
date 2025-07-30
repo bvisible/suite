@@ -1,7 +1,7 @@
 <template>
 	<button
 		v-if="link"
-		class="text-ink-gray-7 flex h-8 cursor-pointer items-center rounded duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-gray-400 sm:h-7"
+		class="text-ink-gray-7 focus-visible:ring-outline-gray-3 flex h-8 cursor-pointer items-center rounded duration-300 ease-in-out focus:outline-none focus:transition-none focus-visible:rounded focus-visible:ring-2 sm:h-7"
 		:class="isActive ? 'bg-surface-selected shadow-sm' : 'hover:bg-surface-gray-3'"
 		@click="openLink"
 	>

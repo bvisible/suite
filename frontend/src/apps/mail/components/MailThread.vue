@@ -189,7 +189,7 @@
 			class="bg-surface-gray-1 m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md"
 		>
 			<div class="flex flex-col items-center space-y-3">
-				<NoMails class="h-16 w-16" />
+				<NoMails class="text-ink-gray-2 h-16 w-16" />
 				<p class="text-ink-gray-4">
 					{{ __('Select an email to view the thread.') }}
 				</p>

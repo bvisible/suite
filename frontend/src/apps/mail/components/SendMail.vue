@@ -89,7 +89,7 @@
 							<span class="text-ink-gray-4 text-xs">{{ __('Subject') }}:</span>
 							<input
 								v-model="mail.subject"
-								class="bg-surface-white flex-1 border-none text-base focus-visible:!ring-0"
+								class="bg-surface-white sm:bg-surface-modal flex-1 border-none text-base focus-visible:!ring-0"
 							/>
 						</div>
 					</div>
@@ -162,7 +162,10 @@
 							>
 								<!-- Text editor buttons -->
 								<div class="flex items-center gap-1 overflow-x-auto">
-									<TextEditorFixedMenu :buttons="textEditorButtons" />
+									<TextEditorFixedMenu
+										:buttons="textEditorButtons"
+										class="sm:!bg-surface-modal"
+									/>
 									<EmojiPicker
 										v-if="!isMobile"
 										v-slot="{ togglePopover }"

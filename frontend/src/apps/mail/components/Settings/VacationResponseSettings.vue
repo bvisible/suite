@@ -27,7 +27,7 @@
 		<div class="space-y-1.5">
 			<label class="text-ink-gray-5 block text-xs">{{ __('Message') }}</label>
 			<TextEditor
-				editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none"
+				editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none border-outline-gray-2"
 				placeholder="Type something..."
 				:fixed-menu="textEditorButtons"
 				:content="account.doc.vacation_response_html_body"
