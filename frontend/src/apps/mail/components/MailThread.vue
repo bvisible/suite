@@ -1,6 +1,6 @@
 <template>
 	<div v-if="threadID" class="relative flex h-full flex-col overflow-hidden">
-		<div class="sticky top-0 z-10 flex items-center border-b bg-white p-2.5 sm:px-5">
+		<div class="bg-surface-white sticky top-0 z-10 flex items-center border-b p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
@@ -26,7 +26,7 @@
 					>
 						<Button variant="ghost" @click="action.onClick">
 							<template #icon>
-								<component :is="action.icon" class="h-4 w-4 text-gray-600" />
+								<component :is="action.icon" class="text-ink-gray-5 h-4 w-4" />
 							</template>
 						</Button>
 					</Tooltip>
@@ -35,7 +35,7 @@
 						<Dropdown :options="moveToOptions">
 							<Button variant="ghost">
 								<template #icon>
-									<component :is="FolderInput" class="h-4 w-4 text-gray-600" />
+									<component :is="FolderInput" class="text-ink-gray-5 h-4 w-4" />
 								</template>
 							</Button>
 						</Dropdown>
@@ -85,7 +85,10 @@
 									<span class="text-base font-semibold">
 										{{ mail.from_name || mail.from_email }}
 									</span>
-									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
+									<span
+										v-if="mail.from_name && !isMobile"
+										class="text-ink-gray-5"
+									>
 										{{ `<${mail.from_email}>` }}
 									</span>
 									<MailDetailsPopover
@@ -128,7 +131,7 @@
 										<template #icon>
 											<component
 												:is="action.icon"
-												class="h-4 w-4 text-gray-600"
+												class="text-ink-gray-5 h-4 w-4"
 											/>
 										</template>
 									</Button>
@@ -142,7 +145,7 @@
 									>
 										<Button variant="ghost">
 											<template #icon>
-												<Ellipsis class="h-4 w-4 text-gray-600" />
+												<Ellipsis class="text-ink-gray-5 h-4 w-4" />
 											</template>
 										</Button>
 									</Dropdown>
@@ -183,11 +186,11 @@
 
 	<div v-else class="h-full overflow-hidden">
 		<div
-			class="m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md bg-gray-50"
+			class="bg-surface-gray-1 m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md"
 		>
 			<div class="flex flex-col items-center space-y-3">
 				<NoMails class="h-16 w-16" />
-				<p class="text-gray-500">
+				<p class="text-ink-gray-4">
 					{{ __('Select an email to view the thread.') }}
 				</p>
 			</div>

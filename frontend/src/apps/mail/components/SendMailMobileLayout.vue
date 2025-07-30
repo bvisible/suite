@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed inset-0 z-20 flex flex-col bg-white" :class="{ hidden: !show }">
+	<div class="bg-surface-white fixed inset-0 z-20 flex flex-col" :class="{ hidden: !show }">
 		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
 			<Button icon="x" variant="ghost" class="mr-2" @click="close" />
 			<h2>{{ __('Send Mail') }}</h2>

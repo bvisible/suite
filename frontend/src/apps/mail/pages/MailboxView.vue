@@ -1,7 +1,7 @@
 <template>
 	<!-- Header -->
 	<header
-		class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 py-2.5 sm:px-5"
+		class="sticky top-0 z-10 flex items-center justify-between border-b px-3 py-2.5 sm:px-5"
 	>
 		<div class="flex items-center space-x-2">
 			<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
@@ -137,7 +137,7 @@
 							:key="mail.thread_id"
 							:mail
 							:user-layout
-							:class="{ 'bg-gray-50': mail.thread_id == threadID }"
+							:class="{ 'bg-surface-gray-1': mail.thread_id == threadID }"
 							@click="
 								router.push({
 									name: 'Mail',
@@ -145,11 +145,11 @@
 								})
 							"
 							@select-thread="
-								(isManuallySelected) =>
+								(isManuallySelected: boolean) =>
 									selectThread(mail.thread_id, isManuallySelected)
 							"
 							@deselect-thread="
-								(isManuallySelected) =>
+								(isManuallySelected: boolean) =>
 									deselectThread(mail.thread_id, isManuallySelected)
 							"
 						/>
@@ -170,13 +170,13 @@
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
 				<div
 					ref="resizer"
-					class="h-full rounded-full transition-all duration-300 ease-in-out group-hover:bg-gray-400"
+					class="group-hover:bg-surface-gray-5 h-full rounded-full transition-all duration-300 ease-in-out"
 				/>
 			</div>
 
 			<!-- Mail thread -->
 			<div
-				class="overflow-y-auto bg-white"
+				class="bg-surface-white overflow-y-auto"
 				:class="{
 					'w-2/3': !isMobile && userLayout === 'split',
 					'absolute bottom-0 left-0 right-0 top-0 z-10':

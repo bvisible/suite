@@ -1,14 +1,14 @@
 <template>
 	<div class="block pt-2 text-sm">
-		<span class="mb-2 block leading-4 text-gray-700">{{ props.label }}</span>
+		<span class="text-ink-gray-6 mb-2 block leading-4">{{ props.label }}</span>
 		<button
-			class="flex w-full items-center rounded-lg border-2 bg-gray-100 p-1"
+			class="bg-surface-gray-2 flex w-full items-center rounded-lg border-2 p-1"
 			@click="copyToClipBoard(props.value)"
 		>
-			<span class="scrollbar-none mr-1.5 overflow-x-scroll text-nowrap text-gray-800">
+			<span class="scrollbar-none text-ink-gray-7 mr-1.5 overflow-x-scroll text-nowrap">
 				{{ props.value }}
 			</span>
-			<span class="ml-auto rounded border bg-white p-1 text-xs text-gray-600">
+			<span class="bg-surface-white text-ink-gray-5 ml-auto rounded border p-1 text-xs">
 				{{ message }}
 			</span>
 		</button>

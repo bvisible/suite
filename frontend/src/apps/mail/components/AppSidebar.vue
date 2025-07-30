@@ -8,7 +8,7 @@
 	<Transition>
 		<div
 			v-if="!isMobile || isSidebarOpen"
-			class="flex h-full flex-col justify-between border-r bg-gray-50 duration-300 ease-in-out"
+			class="bg-surface-menu-bar flex h-full flex-col justify-between border-r duration-300 ease-in-out"
 			:class="[
 				isSidebarCollapsed && !isMobile ? 'w-14' : 'w-56',
 				isMobile ? 'fixed left-0 top-0 z-50 shadow-lg' : 'relative',
@@ -39,7 +39,7 @@
 				<template #icon>
 					<span class="grid h-5 w-6 flex-shrink-0 place-items-center">
 						<ArrowLeftFromLine
-							class="h-4 w-4 text-gray-700 duration-300 ease-in-out"
+							class="text-ink-gray-6 h-4 w-4 duration-300 ease-in-out"
 							:class="{
 								'[transform:rotateY(180deg)]': isSidebarCollapsed,
 							}"

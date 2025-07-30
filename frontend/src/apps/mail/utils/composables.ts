@@ -53,20 +53,16 @@ export const useTheme = () => {
 
 	const initializeTheme = (): void => {
 		const storedTheme = localStorage.getItem('theme') as Theme | null
-		if (storedTheme && ['light', 'dark', 'system'].includes(storedTheme)) setTheme(storedTheme)
-		else setTheme('system')
+		setTheme(storedTheme || 'system')
 	}
 
 	onMounted(() => {
 		initializeTheme()
 
-		// Listen for system theme changes
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 		const handleSystemThemeChange = () => {
-			if (currentTheme.value === 'system') {
-				const systemTheme = getSystemTheme()
-				document.documentElement.setAttribute('data-theme', systemTheme)
-			}
+			if (currentTheme.value === 'system')
+				document.documentElement.setAttribute('data-theme', getSystemTheme())
 		}
 
 		mediaQuery.addEventListener('change', handleSystemThemeChange)
