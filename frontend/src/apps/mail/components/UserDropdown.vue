@@ -61,11 +61,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronDown, Crown, LogOut, Mailbox, Settings as SettingsIcon } from 'lucide-vue-next'
+import {
+	ChevronDown,
+	Crown,
+	LogOut,
+	Mailbox,
+	Settings as SettingsIcon,
+	SunMoon,
+} from 'lucide-vue-next'
 import { Dropdown } from 'frappe-ui'
 
 import { convertToTitleCase } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
+import { useScreenSize, useTheme } from '@/utils/composables'
 import { sessionStore } from '@/stores/session'
 import { userStore } from '@/stores/user'
 import AppsMenu from '@/components/AppsMenu.vue'
@@ -77,6 +84,7 @@ const router = useRouter()
 const { logout, branding } = sessionStore()
 const { userResource } = userStore()
 const { isMobile } = useScreenSize()
+const { setTheme } = useTheme()
 
 const showSettings = ref(false)
 
@@ -107,6 +115,27 @@ const userDropdownOptions = [
 		label: __('Settings'),
 		onClick: () => (showSettings.value = true),
 		condition: () => !userResource.data.is_tenant_owner && !isMobile.value,
+	},
+	{
+		icon: SunMoon,
+		label: __('Toggle Theme'),
+		submenu: [
+			{
+				label: 'Light Mode',
+				icon: 'sun',
+				onClick: () => setTheme('light'),
+			},
+			{
+				label: 'Dark Mode',
+				icon: 'moon',
+				onClick: () => setTheme('dark'),
+			},
+			{
+				label: 'System Default',
+				icon: 'monitor',
+				onClick: () => setTheme('system'),
+			},
+		],
 	},
 	{
 		component: AppsMenu,

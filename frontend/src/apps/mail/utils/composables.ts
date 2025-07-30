@@ -19,72 +19,6 @@ export const useScreenSize = () => {
 
 	return { size, isMobile }
 }
-// write a composable for detecting swipe gestures in mobile devices
-export const useSwipe = () => {
-	const swipe = reactive({
-		initialX: null,
-		initialY: null,
-		currentX: null,
-		currentY: null,
-		diffX: null,
-		diffY: null,
-		absDiffX: null,
-		absDiffY: null,
-		direction: null,
-	})
-
-	const onTouchStart = (e) => {
-		swipe.initialX = e.touches[0].clientX
-		swipe.initialY = e.touches[0].clientY
-		swipe.direction = null
-		swipe.diffX = null
-		swipe.diffY = null
-		swipe.absDiffX = null
-		swipe.absDiffY = null
-	}
-
-	const onTouchMove = (e) => {
-		swipe.currentX = e.touches[0].clientX
-		swipe.currentY = e.touches[0].clientY
-
-		swipe.diffX = swipe.initialX - swipe.currentX
-		swipe.diffY = swipe.initialY - swipe.currentY
-
-		swipe.absDiffX = Math.abs(swipe.diffX)
-		swipe.absDiffY = Math.abs(swipe.diffY)
-	}
-
-	const onTouchEnd = () => {
-		const { diffX, diffY, absDiffX, absDiffY } = swipe
-		if (absDiffX > absDiffY) {
-			if (diffX > 0) {
-				swipe.direction = 'left'
-			} else {
-				swipe.direction = 'right'
-			}
-		} else {
-			if (diffY > 0) {
-				swipe.direction = 'up'
-			} else {
-				swipe.direction = 'down'
-			}
-		}
-	}
-
-	onMounted(() => {
-		window.addEventListener('touchstart', onTouchStart)
-		window.addEventListener('touchend', onTouchEnd)
-		window.addEventListener('touchmove', onTouchMove)
-	})
-
-	onUnmounted(() => {
-		window.removeEventListener('touchstart', onTouchStart)
-		window.removeEventListener('touchend', onTouchEnd)
-		window.removeEventListener('touchmove', onTouchMove)
-	})
-
-	return swipe
-}
 
 const isSidebarOpen = ref(false)
 
@@ -93,4 +27,58 @@ export const useSidebar = () => {
 	const closeSidebar = () => (isSidebarOpen.value = false)
 
 	return { isSidebarOpen, openSidebar, closeSidebar }
+}
+
+export type Theme = 'light' | 'dark' | 'system'
+
+export const useTheme = () => {
+	const currentTheme = ref<Theme>('light')
+
+	const getSystemTheme = (): 'light' | 'dark' =>
+		window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+
+	const toggleTheme = (): void => {
+		const theme: Theme = currentTheme.value === 'dark' ? 'light' : 'dark'
+		setTheme(theme)
+	}
+
+	const setTheme = (theme: Theme): void => {
+		currentTheme.value = theme
+		document.documentElement.setAttribute(
+			'data-theme',
+			theme === 'system' ? getSystemTheme() : theme,
+		)
+		localStorage.setItem('theme', theme)
+	}
+
+	const initializeTheme = (): void => {
+		const storedTheme = localStorage.getItem('theme') as Theme | null
+		if (storedTheme && ['light', 'dark', 'system'].includes(storedTheme)) setTheme(storedTheme)
+		else setTheme('system')
+	}
+
+	onMounted(() => {
+		initializeTheme()
+
+		// Listen for system theme changes
+		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+		const handleSystemThemeChange = () => {
+			if (currentTheme.value === 'system') {
+				const systemTheme = getSystemTheme()
+				document.documentElement.setAttribute('data-theme', systemTheme)
+			}
+		}
+
+		mediaQuery.addEventListener('change', handleSystemThemeChange)
+
+		return () => mediaQuery.removeEventListener('change', handleSystemThemeChange)
+	})
+
+	return {
+		currentTheme,
+		toggleTheme,
+		setTheme,
+		initializeTheme,
+		getSystemTheme,
+	}
 }
