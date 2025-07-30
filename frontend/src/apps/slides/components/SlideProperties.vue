@@ -29,7 +29,7 @@
 				:rangeStart="0"
 				:rangeEnd="4"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(slide.transitionDuration) || 0"
+				:modelValue="parseFloat(slide.transitionDuration)"
 				@update:modelValue="(value) => setTransitionDuration(value)"
 			/>
 		</template>

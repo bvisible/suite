@@ -90,7 +90,7 @@
 				:rangeStart="0.1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="activeElement?.editorMetadata?.lineHeight || 1"
+				:modelValue="activeElement?.editorMetadata?.lineHeight"
 				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 

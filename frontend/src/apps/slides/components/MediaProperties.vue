@@ -64,7 +64,7 @@
 				label="Offset X"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetX) || 10"
+				:modelValue="parseFloat(activeElement.shadowOffsetX)"
 				@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 			/>
 
@@ -72,7 +72,7 @@
 				label="Offset Y"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetY) || 10"
+				:modelValue="parseFloat(activeElement.shadowOffsetY)"
 				@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 			/>
 
@@ -80,7 +80,7 @@
 				label="Spread"
 				:rangeStart="1"
 				:rangeEnd="500"
-				:modelValue="parseFloat(activeElement.shadowSpread) || 50"
+				:modelValue="parseFloat(activeElement.shadowSpread)"
 				@update:modelValue="(value) => (activeElement.shadowSpread = value)"
 			/>
 		</template>

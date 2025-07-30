@@ -27,7 +27,7 @@
 				:rangeStart="0.5"
 				:rangeEnd="2"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.playbackRate) || 1"
+				:modelValue="parseFloat(activeElement.playbackRate)"
 				@update:modelValue="setPlaybackRate"
 			/>
 		</template>
