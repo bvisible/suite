@@ -2,7 +2,7 @@
 	<div
 		v-if="presentation.data"
 		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
-		@wheel="handleWheelEvent"
+		@wheel="handleScrollBarWheelEvent"
 	>
 		<div v-if="!activeElement">
 			<SlideProperties />
@@ -32,6 +32,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { presentation } from '@/stores/presentation'
 import { slide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type
@@ -45,15 +46,6 @@ const activeProperties = computed(() => {
 			return VideoProperties
 	}
 })
-
-const handleWheelEvent = (e) => {
-	// allow normal scroll behaviour
-	if (!e.ctrlKey && !e.metaKey) return
-
-	// prevent zoom event from triggering
-	e.preventDefault()
-	e.stopPropagation()
-}
 </script>
 
 <style scoped>
