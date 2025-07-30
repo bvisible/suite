@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Playback" :initialState="true">
+	<CollapsibleSection title="Playback">
 		<template #default>
 			<div class="flex gap-4">
 				<div

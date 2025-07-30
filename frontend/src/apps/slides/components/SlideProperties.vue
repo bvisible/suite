@@ -15,7 +15,7 @@
 		</div>
 	</div>
 
-	<CollapsibleSection title="Transition" :initialState="true">
+	<CollapsibleSection title="Transition">
 		<template #default>
 			<Select
 				:options="['Slide In', 'Fade', 'None']"

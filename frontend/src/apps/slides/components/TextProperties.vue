@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Style" :initialState="true">
+	<CollapsibleSection title="Style">
 		<template #default>
 			<Select
 				:options="presetTextStyles"
@@ -48,7 +48,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Font" :initialState="true">
+	<CollapsibleSection title="Font">
 		<template #default>
 			<FormControl
 				type="autocomplete"
@@ -83,7 +83,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Spacing" :initialState="true">
+	<CollapsibleSection title="Spacing">
 		<template #default>
 			<SliderInput
 				label="Line Height"
@@ -105,7 +105,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Other">
+	<CollapsibleSection title="Other" :initialState="false">
 		<template #default>
 			<SliderInput
 				label="Opacity"

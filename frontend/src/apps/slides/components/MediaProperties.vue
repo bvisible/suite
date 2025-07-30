@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Border" :initialState="true">
+	<CollapsibleSection title="Border">
 		<template #default>
 			<div
 				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-50 p-0.5"
@@ -86,7 +86,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Other">
+	<CollapsibleSection title="Other" :initialState="false">
 		<template #default>
 			<SliderInput
 				label="Opacity"
