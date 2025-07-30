@@ -27,12 +27,13 @@
 			<div class="bg-gray-800 px-6 py-2 flex-shrink-0 border-b border-gray-700">
 				<div class="flex items-center justify-between">
 					<div class="text-white">
-						<span class="text-sm"
-							>Meeting: {{ meetingDoc?.data?.title || meetingId }}</span
+						<span
+							class="text-sm cursor-pointer hover:text-gray-300 transition-colors"
+							@click="copyMeetingUrl"
+							:title="'Click to copy meeting URL'"
 						>
-					</div>
-					<div class="text-white text-sm">
-						{{ meetingTime }}
+							{{ meetingDoc?.data?.title || meetingId }}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -201,7 +202,6 @@ const meetingId = computed(() => route.params.meetingId);
 const isMicOn = ref(true);
 const isCameraOn = ref(true);
 const isScreenSharing = ref(false);
-const meetingTime = ref("00:00");
 const localVideo = ref(null);
 const isConnecting = ref(true);
 const connectionError = ref(null);
@@ -246,17 +246,6 @@ const participantsList = computed(() => {
 });
 
 const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
-
-// Timer for meeting duration
-const startTime = Date.now();
-let timer = null;
-
-const updateMeetingTime = () => {
-	const elapsed = Date.now() - startTime;
-	const minutes = Math.floor(elapsed / 60000);
-	const seconds = Math.floor((elapsed % 60000) / 1000);
-	meetingTime.value = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-};
 
 // Control functions
 const toggleMicrophone = async () => {
@@ -331,6 +320,16 @@ const endCall = async () => {
 	}
 };
 
+const copyMeetingUrl = async () => {
+	try {
+		const meetingUrl = window.location.href;
+		await navigator.clipboard.writeText(meetingUrl);
+		console.log("Meeting URL copied to clipboard:", meetingUrl);
+	} catch (error) {
+		console.error("Failed to copy meeting URL:", error);
+	}
+};
+
 const initializeCamera = async () => {
 	try {
 		console.log("Initializing camera and microphone...");
@@ -395,15 +394,11 @@ const joinMeetingRoom = async () => {
 		// Initialize camera/audio first to show local stream
 		await initializeCamera();
 
-		// Step 1: Initialize Frappe socket connection for non-WebRTC events
-		const socket = initSocket();
-		setupWebRTCEventHandlers();
-
-		// Step 2: Join the meeting in Frappe (authentication and permissions)
+		// Step 1: Join the meeting in Frappe (authentication and permissions)
 		const joinResult = await joinMeeting(meetingId.value);
 		console.log("✅ Joined meeting in Frappe:", joinResult);
 
-		// Step 3: Connect directly to SFU for WebRTC operations
+		// Step 2: Connect directly to SFU for WebRTC operations
 		sfuManager = getSFUMeetingManager();
 		sfuManager.initialize({
 			meetingId: meetingId.value,
@@ -445,16 +440,13 @@ const joinMeetingRoom = async () => {
 
 		await sfuManager.connect();
 
-		// Step 4: Set up legacy WebRTC event handlers (for backward compatibility)
-		setupWebRTCEventHandlers();
-
 		// Hide loading indicator once we've joined
 		isConnecting.value = false;
 
-		// Step 5: Initialize mediasoup device with router capabilities from SFU
+		// Step 3: Initialize mediasoup device with router capabilities from SFU
 		await sfuManager.initializeDevice();
 
-		// Step 6: Start publishing media if we have local stream
+		// Step 4: Start publishing media if we have local stream
 		if (localStream && sfuManager) {
 			const publishOptions = {
 				publishVideo: isCameraOn.value,
@@ -469,7 +461,7 @@ const joinMeetingRoom = async () => {
 			audioProducer = mediaResults.audioProducer;
 		}
 
-		// Step 7: Request existing participants and their media streams
+		// Step 5: Request existing participants and their media streams
 		// This will create receive transport on-demand when needed
 		await requestExistingParticipants();
 
@@ -485,92 +477,10 @@ const requestExistingParticipants = async () => {
 	try {
 		console.log("Requesting existing participants and their streams...");
 
-		// Get existing participants from the meeting document
-		let existingMembers = [];
-		if (meetingDoc?.data?.members) {
-			existingMembers = meetingDoc.data.members;
-		}
-
-		// Use SFU manager to setup existing participants
-		if (sfuManager) {
-			await sfuManager.setupExistingParticipants(existingMembers);
-		}
+		await sfuManager.setupExistingParticipants();
 	} catch (error) {
 		console.error("Error requesting existing participants:", error);
 	}
-};
-
-const setupWebRTCEventHandlers = () => {
-	console.log(
-		"🔧 Setting up legacy WebRTC event handlers for backward compatibility",
-	);
-
-	registerWebRTCEventHandlers({
-		onMeetingJoined: (data) => {
-			console.log("Meeting joined successfully:", data);
-
-			// Add existing members from the join response
-			if (data.members) {
-				console.log(
-					"Processing existing members from join response:",
-					data.members,
-				);
-				for (const member of data.members) {
-					if (member.user !== currentUser.value?.name) {
-						const participant = {
-							user_id: member.user,
-							user_name: member.full_name || member.user,
-							initials: (member.full_name || member.user || "U")
-								.split(" ")
-								.map((n) => n[0])
-								.join("")
-								.toUpperCase()
-								.slice(0, 2),
-							audio_enabled: true,
-							video_enabled: true,
-						};
-						participants.value.set(member.user, participant);
-						console.log("Added member from join response:", participant);
-					}
-				}
-			}
-		},
-
-		onMeetingJoinError: (error) => {
-			console.error("Meeting join error:", error);
-			connectionError.value = error.message || "Failed to join meeting";
-		},
-
-		onParticipantJoined: (data) => {
-			console.log("Legacy participant joined:", data);
-			// SFU manager handles this now
-		},
-
-		onParticipantLeft: (data) => {
-			console.log("Legacy participant left:", data);
-			// SFU manager handles this now
-		},
-
-		onProducerCreated: async (data) => {
-			console.log("Legacy producer created:", data);
-			// SFU manager handles this now
-		},
-
-		onConsumerClosed: (data) => {
-			console.log("Legacy consumer closed:", data);
-			// SFU manager handles this now
-		},
-
-		onMediaControlUpdate: (data) => {
-			console.log("Legacy media control update:", data);
-			// SFU manager handles this now
-		},
-
-		onSFUError: (error) => {
-			console.error("SFU Error:", error);
-			connectionError.value = "Connection error occurred";
-		},
-	});
 };
 
 const handleKeyDown = (event) => {
@@ -585,8 +495,6 @@ const handleKeyDown = (event) => {
 };
 
 onMounted(async () => {
-	// Start the meeting time counter
-	timer = setInterval(updateMeetingTime, 1000);
 	window.addEventListener("keydown", handleKeyDown);
 
 	// Join the meeting room
@@ -612,10 +520,6 @@ watch(
 );
 
 onUnmounted(async () => {
-	if (timer) {
-		clearInterval(timer);
-	}
-
 	// Clean up WebRTC event handlers
 	unregisterWebRTCEventHandlers();
 

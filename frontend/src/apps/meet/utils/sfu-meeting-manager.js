@@ -46,7 +46,7 @@ export class SFUMeetingManager {
 			this.sfuClient = getSFUClient();
 			await this.sfuClient.connect(this.meetingId);
 			this.isConnected = true;
-			console.log("✅ Connected to SFU directly");
+			console.log("✅ Connected to SFU");
 
 			// Set up SFU event handlers
 			this.setupSFUEventHandlers();
@@ -126,39 +126,8 @@ export class SFUMeetingManager {
 	/**
 	 * Request and setup existing participants
 	 */
-	async setupExistingParticipants(existingMembers) {
+	async setupExistingParticipants() {
 		try {
-			console.log("👥 Setting up existing participants...");
-
-			// Add existing participants to state
-			if (existingMembers && existingMembers.length > 0) {
-				console.log("Found existing members:", existingMembers);
-
-				for (const member of existingMembers) {
-					if (member.user !== this.currentUser.value?.name) {
-						const participant = {
-							user_id: member.user,
-							user_name: member.full_name || member.user,
-							initials: (member.full_name || member.user || "U")
-								.split(" ")
-								.map((n) => n[0])
-								.join("")
-								.toUpperCase()
-								.slice(0, 2),
-							audio_enabled: true,
-							video_enabled: true,
-						};
-						this.participants.value.set(member.user, participant);
-						console.log("Added existing participant:", participant);
-					}
-				}
-
-				// Wait for DOM to update with new participants
-				await nextTick();
-				console.log("DOM updated with existing participants");
-				await new Promise((resolve) => setTimeout(resolve, 100));
-			}
-
 			// Request existing producers from the SFU
 			await this.requestExistingProducers();
 
@@ -182,12 +151,16 @@ export class SFUMeetingManager {
 				await nextTick();
 
 				for (const { consumer, producer } of existingResult.subscriptions) {
-					if (consumer.kind === "video" && producer.user_id) {
-						await this.attachVideoStream(
-							producer.user_id,
-							consumer,
-							"existing",
-						);
+					if (producer.user_id) {
+						if (consumer.kind === "video") {
+							await this.attachVideoStream(
+								producer.user_id,
+								consumer,
+								"existing",
+							);
+						} else if (consumer.kind === "audio") {
+							await this.attachAudioStream(producer.user_id, consumer);
+						}
 					}
 				}
 			}
@@ -809,6 +782,113 @@ export class SFUMeetingManager {
 	}
 
 	/**
+	 * Attach audio stream to existing video element or create audio-only playback
+	 */
+	async attachAudioStream(userId, audioConsumer) {
+		try {
+			console.log(`🎵 Attaching audio stream for user ${userId}`);
+
+			// Resume the audio consumer if it's paused
+			if (audioConsumer?.paused) {
+				try {
+					await audioConsumer.resume();
+					console.log(`✅ Resumed audio consumer for user ${userId}`);
+				} catch (resumeError) {
+					console.error(
+						`Failed to resume audio consumer for user ${userId}:`,
+						resumeError,
+					);
+					throw resumeError;
+				}
+			}
+
+			// Check if there's already a video element for this participant
+			const videoElement = this.remoteVideos.value.get(userId);
+
+			if (videoElement) {
+				// If video element exists, update its stream to include audio
+				const existingStream = videoElement.srcObject;
+
+				if (existingStream) {
+					// Get existing tracks
+					const existingTracks = existingStream.getTracks();
+					const newTracks = [...existingTracks];
+
+					// Add the new audio track if it's not already present
+					if (
+						audioConsumer.track &&
+						!existingTracks.find((t) => t.id === audioConsumer.track.id)
+					) {
+						newTracks.push(audioConsumer.track);
+
+						// Create new stream with all tracks
+						const newStream = new MediaStream(newTracks);
+						videoElement.srcObject = newStream;
+
+						console.log(
+							`🎵 Added audio track to existing video stream for user ${userId}`,
+						);
+					}
+				} else {
+					// No existing stream, create audio-only stream
+					if (audioConsumer.track) {
+						const audioStream = new MediaStream([audioConsumer.track]);
+						videoElement.srcObject = audioStream;
+
+						console.log(`🎵 Created audio-only stream for user ${userId}`);
+					}
+				}
+
+				// Ensure the video element is not muted so we can hear audio
+				videoElement.muted = false;
+
+				// Try to play to ensure audio starts
+				try {
+					await videoElement.play();
+					console.log(`✅ Audio playback started for user ${userId}`);
+				} catch (playError) {
+					console.warn(
+						`⚠️ Audio play failed for user ${userId}:`,
+						playError.message,
+					);
+
+					// Add user interaction handler for autoplay restrictions
+					this.addUserInteractionHandler(videoElement, userId);
+				}
+			} else {
+				// No video element found, create an audio-only element
+				console.log(`🎵 Creating audio-only element for user ${userId}`);
+
+				const audioElement = document.createElement("audio");
+				audioElement.autoplay = true;
+				audioElement.playsInline = true;
+				audioElement.muted = false;
+
+				if (audioConsumer.track) {
+					const audioStream = new MediaStream([audioConsumer.track]);
+					audioElement.srcObject = audioStream;
+
+					try {
+						await audioElement.play();
+						console.log(`✅ Audio-only playback started for user ${userId}`);
+					} catch (playError) {
+						console.warn(
+							`⚠️ Audio-only play failed for user ${userId}:`,
+							playError.message,
+						);
+					}
+				}
+			}
+		} catch (error) {
+			console.error(
+				`❌ Failed to attach audio stream for user ${userId}:`,
+				error,
+			);
+			throw error;
+		}
+	}
+
+	/**
 	 * Play video stream with robust retry logic
 	 */
 	async playVideoStream(videoElement, stream, userId) {
@@ -829,7 +909,8 @@ export class SFUMeetingManager {
 		const playVideo = async () => {
 			// Set the stream
 			videoElement.srcObject = stream;
-			videoElement.muted = true;
+			// Only mute if this is the local user to prevent echo, otherwise allow audio
+			videoElement.muted = userId === this.currentUser.value?.user_id;
 			videoElement.playsInline = true;
 
 			// Wait for metadata and canplay
@@ -920,7 +1001,8 @@ export class SFUMeetingManager {
 		try {
 			// Set the stream
 			videoElement.srcObject = stream;
-			videoElement.muted = true;
+			// Only mute if this is the local user to prevent echo, otherwise allow audio
+			videoElement.muted = userId === this.currentUser.value?.user_id;
 			videoElement.playsInline = true;
 
 			// Try to play immediately without waiting for metadata
@@ -1080,9 +1162,13 @@ export class SFUMeetingManager {
 						consumer.participantId = data.participantId;
 						this.consumers.value.set(consumer.id, consumer);
 
-						// Only attach video streams
+						// Handle both audio and video streams
 						if (consumer.kind === "video") {
 							await this.attachVideoStream(data.participantId, consumer, "new");
+						} else if (consumer.kind === "audio") {
+							// For audio-only consumers, we still need to check if there's a video element
+							// and update its stream to include the audio track
+							await this.attachAudioStream(data.participantId, consumer);
 						}
 
 						// Notify parent component
