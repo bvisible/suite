@@ -103,7 +103,12 @@ const colorSliderStyles = computed(() => {
 	}
 })
 
-const opacitySliderStyles = `background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1))`
+const opacitySliderStyles = computed(() => ({
+	backgroundImage: `linear-gradient(to right, rgb(0, 0, 0, 0), ${currentHue.value}), url('/assets/slides/frontend/opacityCheckered.png')`,
+	backgroundSize: 'cover',
+	backgroundPosition: 'center',
+	backgroundRepeat: 'no-repeat',
+}))
 
 const shadeRectStyles = computed(() => {
 	return {
