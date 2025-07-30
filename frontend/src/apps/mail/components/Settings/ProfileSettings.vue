@@ -10,7 +10,7 @@
 		/>
 		<div class="mx-4 flex flex-col">
 			<span class="text-xl font-semibold">{{ user.data?.full_name }}</span>
-			<span class="text-base text-gray-700">{{ user.data?.email }}</span>
+			<span class="text-ink-gray-6 text-base">{{ user.data?.email }}</span>
 		</div>
 		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
 	</div>

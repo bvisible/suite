@@ -19,14 +19,14 @@
 				<template #top>
 					<div class="flex flex-col gap-3 border-b">
 						<div class="flex items-center gap-2 sm:border-t sm:pt-2.5">
-							<span class="text-xs text-gray-500">{{ __('From') }}:</span>
+							<span class="text-ink-gray-4 text-xs">{{ __('From') }}:</span>
 							<AutocompleteControl
 								v-model="mail.from_email"
 								:options="user.data?.email_addresses || []"
 							/>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="text-xs text-gray-500">{{ __('To') }}:</span>
+							<span class="text-ink-gray-4 text-xs">{{ __('To') }}:</span>
 							<MultiselectInputControl
 								v-model="mail.to"
 								class="flex-1 text-sm"
@@ -41,7 +41,9 @@
 									:label="__('Cc')"
 									variant="ghost"
 									:class="
-										cc ? '!bg-gray-300 hover:bg-gray-200' : '!text-gray-500'
+										cc
+											? '!bg-surface-gray-4 hover:bg-surface-gray-3'
+											: '!text-ink-gray-4'
 									"
 									@click="toggleCC()"
 								/>
@@ -49,14 +51,16 @@
 									:label="__('Bcc')"
 									variant="ghost"
 									:class="
-										bcc ? '!bg-gray-300 hover:bg-gray-200' : '!text-gray-500'
+										bcc
+											? '!bg-surface-gray-4 hover:bg-surface-gray-3'
+											: '!text-ink-gray-4'
 									"
 									@click="toggleBCC()"
 								/>
 							</div>
 						</div>
 						<div v-if="cc" class="flex items-center gap-2">
-							<span class="text-xs text-gray-500">{{ __('Cc') }}:</span>
+							<span class="text-ink-gray-4 text-xs">{{ __('Cc') }}:</span>
 							<MultiselectInputControl
 								ref="ccInput"
 								v-model="mail.cc"
@@ -69,7 +73,7 @@
 							/>
 						</div>
 						<div v-if="bcc" class="flex items-center gap-2">
-							<span class="text-xs text-gray-500">{{ __('Bcc') }}:</span>
+							<span class="text-ink-gray-4 text-xs">{{ __('Bcc') }}:</span>
 							<MultiselectInputControl
 								ref="bccInput"
 								v-model="mail.bcc"
@@ -82,10 +86,10 @@
 							/>
 						</div>
 						<div class="flex items-center gap-2 pb-2.5">
-							<span class="text-xs text-gray-500">{{ __('Subject') }}:</span>
+							<span class="text-ink-gray-4 text-xs">{{ __('Subject') }}:</span>
 							<input
 								v-model="mail.subject"
-								class="flex-1 border-none bg-white text-base focus-visible:!ring-0"
+								class="bg-surface-white flex-1 border-none text-base focus-visible:!ring-0"
 							/>
 						</div>
 					</div>
@@ -101,13 +105,13 @@
 						<EditorContent :editor="editor" />
 
 						<!-- Attachments -->
-						<div class="mt-auto flex flex-col gap-2.5 pt-2.5 text-gray-700">
+						<div class="text-ink-gray-6 mt-auto flex flex-col gap-2.5 pt-2.5">
 							<a
 								v-for="(file, index) in mail.attachments.filter(
 									(file: Attachment) => file.disposition === 'attachment',
 								)"
 								:key="index"
-								class="flex cursor-pointer items-center rounded bg-gray-100 p-2.5"
+								class="bg-surface-gray-2 flex cursor-pointer items-center rounded p-2.5"
 								:href="file.file_url"
 								target="_blank"
 								@click="openAttachment(file.blob_id, file.type)"
@@ -140,7 +144,7 @@
 						>
 							<div
 								v-if="uploading"
-								class="mb-2 rounded bg-gray-100 p-2.5 text-sm text-gray-700"
+								class="bg-surface-gray-2 text-ink-gray-6 mb-2 rounded p-2.5 text-sm"
 							>
 								<div class="mb-1.5 flex items-center">
 									<span class="mr-1 font-medium"> {{ file.name }} </span>

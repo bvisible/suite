@@ -6,9 +6,9 @@
 	>
 		<Loader
 			v-if="isLoading"
-			class="h-3.5 min-h-3.5 w-3.5 min-w-3.5 animate-spin text-gray-500"
+			class="text-ink-gray-4 h-3.5 min-h-3.5 w-3.5 min-w-3.5 animate-spin"
 		/>
-		<Paperclip v-else class="h-3.5 min-h-3.5 w-3.5 min-w-3.5 text-gray-500" />
+		<Paperclip v-else class="text-ink-gray-4 h-3.5 min-h-3.5 w-3.5 min-w-3.5" />
 		<span class="truncate text-sm">{{ fileName }}</span>
 	</button>
 </template>

@@ -8,8 +8,8 @@
 						isCollapsed
 							? 'w-auto px-0'
 							: open
-								? 'w-52 bg-white px-2 shadow-sm'
-								: 'w-52 px-2 hover:bg-gray-200'
+								? 'bg-surface-white w-52 px-2 shadow-sm'
+								: 'hover:bg-surface-gray-3 w-52 px-2'
 					"
 				>
 					<span
@@ -37,7 +37,7 @@
 							</span>
 							<span v-else> Mail </span>
 						</div>
-						<div v-if="userResource" class="mt-1 text-sm leading-none text-gray-700">
+						<div v-if="userResource" class="text-ink-gray-6 mt-1 text-sm leading-none">
 							{{ convertToTitleCase(userResource.data?.full_name) }}
 						</div>
 					</div>
@@ -49,7 +49,7 @@
 								: 'ml-2 w-auto opacity-100'
 						"
 					>
-						<ChevronDown class="h-4 w-4 text-gray-700" />
+						<ChevronDown class="text-ink-gray-6 h-4 w-4" />
 					</div>
 				</button>
 			</template>

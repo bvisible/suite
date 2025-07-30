@@ -18,7 +18,7 @@
 					</span>
 				</span>
 				<template v-for="field in FIELDS" :key="field.label">
-					<span class="col-span-1 text-gray-500">{{ field.label }}</span>
+					<span class="text-ink-gray-4 col-span-1">{{ field.label }}</span>
 					<span class="col-span-4">{{ field.value() }} </span>
 				</template>
 			</div>

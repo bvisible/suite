@@ -1,8 +1,8 @@
 <template>
 	<div
-		class="flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5 sm:hover:bg-gray-50"
+		class="sm:hover:bg-surface-gray-1 flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5"
 		:class="{
-			'!bg-blue-50': isSelected || isTouching,
+			'!bg-surface-blue-1': isSelected || isTouching,
 			'!py-2': isFullWidth,
 			'select-none': isMobile,
 		}"

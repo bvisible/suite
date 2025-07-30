@@ -22,7 +22,7 @@
 				required
 				@update:model-value="usernameVerified = false"
 			/>
-			<FeatherIcon class="mx-2.5 mb-1.5 mt-auto h-4 w-4 text-gray-400" name="at-sign" />
+			<FeatherIcon class="text-ink-gray-3 mx-2.5 mb-1.5 mt-auto h-4 w-4" name="at-sign" />
 			<FormControl
 				v-if="personalSignupDomains?.data?.length"
 				v-model="user.domain"
