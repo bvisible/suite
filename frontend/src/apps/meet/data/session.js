@@ -37,6 +37,9 @@ export const session = reactive({
 			router.replace({ name: "Login" });
 		},
 	}),
-	user: sessionUser(),
-	isLoggedIn: computed(() => !!session.user),
+	user: computed(() => ({
+		sessionUser: sessionUser(),
+		...userResource.data,
+	})),
+	isLoggedIn: computed(() => !!session.user.sessionUser),
 });

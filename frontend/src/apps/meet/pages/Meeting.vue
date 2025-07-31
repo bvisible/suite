@@ -49,23 +49,22 @@
 							autoplay
 							muted
 							playsinline
-						></video>
+						/>
 						<div
 							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm"
 						>
-							{{ currentUser?.full_name || "You" }}
+							{{ currentUser?.full_name || currentUser?.name || "You" }}
 						</div>
 						<div
 							v-if="!isCameraOn"
 							class="absolute inset-0 bg-gray-700 flex items-center justify-center"
 						>
-							<div
-								class="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center"
-							>
-								<span class="text-white text-xl font-semibold">{{
-									userInitials
-								}}</span>
-							</div>
+							<Avatar
+								size="3xl"
+								:label="userInitials"
+								:image="userAvatar"
+								class="mx-auto mb-4"
+							/>
 						</div>
 					</div>
 
@@ -104,7 +103,7 @@
 						</div>
 						<div
 							v-if="!participant.audio_enabled"
-							class="absolute top-2 right-2 bg-red-500 rounded-full p-1.5"
+							class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5"
 						>
 							<lucide-mic-off class="w-4 h-4 text-white" />
 						</div>
@@ -172,7 +171,7 @@
 </template>
 
 <script setup>
-import { Button, getCachedDocumentResource } from "frappe-ui";
+import { Avatar, Button, getCachedDocumentResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session.js";
@@ -231,7 +230,6 @@ const gridClass = computed(() => {
 });
 
 const userInitials = computed(() => {
-	if (!currentUser.value) return "U";
 	const name = currentUser.value.full_name || currentUser.value.name || "User";
 	return name
 		.split(" ")
@@ -240,6 +238,7 @@ const userInitials = computed(() => {
 		.toUpperCase()
 		.slice(0, 2);
 });
+const userAvatar = computed(() => currentUser.value.avatar || "");
 
 const participantsList = computed(() => {
 	return Array.from(participants.value.values());
@@ -386,9 +385,10 @@ const joinMeetingRoom = async () => {
 		}
 
 		currentUser.value = {
-			user_id: session.user,
-			name: session.user,
-			full_name: session.user, // Use session user as fallback for display name
+			user_id: session.user.sessionUser,
+			name: session.user.full_name,
+			full_name: session.user.full_name,
+			avatar: session.user.avatar,
 		};
 
 		// Initialize camera/audio first to show local stream

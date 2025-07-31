@@ -2,11 +2,11 @@ import router from "@/router";
 import { createResource } from "frappe-ui";
 
 export const userResource = createResource({
-	url: "frappe.auth.get_logged_user",
+	url: "sae.api.user.get_logged_in_user",
 	cache: "User",
 	onError(error) {
 		if (error && error.exc_type === "AuthenticationError") {
-			router.push({ name: "LoginPage" });
+			router.push({ name: "Login" });
 		}
 	},
 });
