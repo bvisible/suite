@@ -118,7 +118,7 @@ const userDropdownOptions = [
 	},
 	{
 		icon: SunMoon,
-		label: __('Toggle Theme'),
+		label: __('Change Theme'),
 		submenu: [
 			{
 				label: 'Light Mode',

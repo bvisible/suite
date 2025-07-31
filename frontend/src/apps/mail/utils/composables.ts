@@ -1,10 +1,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
 export const useScreenSize = () => {
-	const size = reactive({
-		width: window.innerWidth,
-		height: window.innerHeight,
-	})
+	const size = reactive({ width: window.innerWidth, height: window.innerHeight })
 
 	const isMobile = computed(() => size.width < 640)
 
@@ -31,16 +28,11 @@ export const useSidebar = () => {
 
 export type Theme = 'light' | 'dark' | 'system'
 
-export const useTheme = () => {
-	const currentTheme = ref<Theme>('light')
+const currentTheme = ref<Theme>('light')
 
+export const useTheme = () => {
 	const getSystemTheme = (): 'light' | 'dark' =>
 		window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-
-	const toggleTheme = (): void => {
-		const theme: Theme = currentTheme.value === 'dark' ? 'light' : 'dark'
-		setTheme(theme)
-	}
 
 	const setTheme = (theme: Theme): void => {
 		currentTheme.value = theme
@@ -51,13 +43,9 @@ export const useTheme = () => {
 		localStorage.setItem('theme', theme)
 	}
 
-	const initializeTheme = (): void => {
+	onMounted(() => {
 		const storedTheme = localStorage.getItem('theme') as Theme | null
 		setTheme(storedTheme || 'system')
-	}
-
-	onMounted(() => {
-		initializeTheme()
 
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 		const handleSystemThemeChange = () => {
@@ -70,11 +58,5 @@ export const useTheme = () => {
 		return () => mediaQuery.removeEventListener('change', handleSystemThemeChange)
 	})
 
-	return {
-		currentTheme,
-		toggleTheme,
-		setTheme,
-		initializeTheme,
-		getSystemTheme,
-	}
+	return { currentTheme, setTheme }
 }
