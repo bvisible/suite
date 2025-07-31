@@ -31,24 +31,18 @@ const { currentTheme } = useTheme()
 const isIframeReady = ref(false)
 
 const srcdoc = computed(() => {
-	const colors = {
-		text: currentTheme.value === 'light' ? '#383838' : '#D4D4D4',
-		button: currentTheme.value === 'dark' ? '#374151' : '#F3F4F6',
-		buttonHover: currentTheme.value === 'dark' ? '#4B5563' : '#E5E7EB',
-	}
-
 	const collapseButton = `
 		<button
 			style="
-			background: ${colors.button};
-			color: ${colors.text};
+			background: ${colors.value.button};
+			color: ${colors.value.text};
 			padding: 0.5px 6px;
 			border-radius: 4px;
 			cursor: pointer;
 			transition: background 0.2s;
 			"
-			onmouseover="this.style.background='${colors.buttonHover}'"
-			onmouseout="this.style.background='${colors.button}'"
+			onmouseover="this.style.background='${colors.value.buttonHover}'"
+			onmouseout="this.style.background='${colors.value.button}'"
 			onclick="this.nextElementSibling.classList.toggle('hidden');"
 		>
 			&middot;&middot;&middot;
@@ -66,7 +60,7 @@ const srcdoc = computed(() => {
 		<html>
 		<head>
 			<meta name="viewport" content="width=device-width, initial-scale=1">
-			<meta name="color-scheme" content=${currentTheme.value}>
+			<meta name="color-scheme" content="${currentTheme.value}">
 			<style>
 				body {
 					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -75,13 +69,13 @@ const srcdoc = computed(() => {
 				}
 
 				body:not([style*="background"]) {
-					color: ${colors.text} !important;
+					color: ${colors.value.text} !important;
 				}
 
 				blockquote {
 					margin: 8px 0;
 					padding-left: 16px;
-					border-left: 2px solid ${colors.button};
+					border-left: 2px solid ${colors.value.button};
 				}
 
 				table {
@@ -133,4 +127,19 @@ const srcdoc = computed(() => {
 		</html>
 	`
 })
+
+const colors = computed(() => THEMES[currentTheme.value as keyof typeof THEMES])
+
+const THEMES = {
+	light: {
+		text: '#383838',
+		button: '#F3F4F6',
+		buttonHover: '#E5E7EB',
+	},
+	dark: {
+		text: '#D4D4D4',
+		button: '#374151',
+		buttonHover: '#4B5563',
+	},
+}
 </script>
