@@ -28,10 +28,7 @@
 			</div>
 			<Avatar
 				v-else
-				:label="
-					mail.from_name?.match(/[A-Za-z]/)?.[0] ||
-					mail.from_email?.match(/[A-Za-z]/)?.[0]
-				"
+				:label="getFirstAlphabet(mail.from_name) || getFirstAlphabet(mail.from_email)"
 				:size="isFullWidth ? 'lg' : '2xl'"
 				@click.stop="isSelected = true"
 			/>
@@ -105,6 +102,7 @@ import { computed, ref, watch } from 'vue'
 import { Check } from 'lucide-vue-next'
 import { Avatar, Badge, Checkbox } from 'frappe-ui'
 
+import { getFirstAlphabet } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'

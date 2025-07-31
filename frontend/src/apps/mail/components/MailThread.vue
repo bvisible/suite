@@ -73,8 +73,8 @@
 					>
 						<Avatar
 							:label="
-								mail.from_name?.match(/[A-Za-z]/)?.[0] ||
-								mail.from_email?.match(/[A-Za-z]/)?.[0]
+								getFirstAlphabet(mail.from_name) ||
+								getFirstAlphabet(mail.from_email)
 							"
 							:image="mail.user_image"
 							size="xl"
@@ -216,7 +216,7 @@ import {
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
-import { getRecipients } from '@/utils'
+import { getFirstAlphabet, getRecipients } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import EmailContent from '@/components/EmailContent.vue'

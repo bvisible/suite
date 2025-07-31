@@ -34,7 +34,7 @@ export const useTheme = () => {
 	const getSystemTheme = (): 'light' | 'dark' =>
 		window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 
-	const setTheme = (theme: Theme): void => {
+	const setTheme = (theme: Theme) => {
 		currentTheme.value = theme
 		document.documentElement.setAttribute(
 			'data-theme',
@@ -43,20 +43,18 @@ export const useTheme = () => {
 		localStorage.setItem('theme', theme)
 	}
 
+	const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+	const handleSystemThemeChange = () => {
+		if (currentTheme.value === 'system')
+			document.documentElement.setAttribute('data-theme', getSystemTheme())
+	}
+
 	onMounted(() => {
 		const storedTheme = localStorage.getItem('theme') as Theme | null
 		setTheme(storedTheme || 'system')
-
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-		const handleSystemThemeChange = () => {
-			if (currentTheme.value === 'system')
-				document.documentElement.setAttribute('data-theme', getSystemTheme())
-		}
-
 		mediaQuery.addEventListener('change', handleSystemThemeChange)
-
-		return () => mediaQuery.removeEventListener('change', handleSystemThemeChange)
 	})
+	onUnmounted(() => mediaQuery.removeEventListener('change', handleSystemThemeChange))
 
 	return { currentTheme, setTheme }
 }
