@@ -31,11 +31,33 @@ const { currentTheme } = useTheme()
 const isIframeReady = ref(false)
 
 const srcdoc = computed(() => {
+	const colors = {
+		text: currentTheme.value === 'light' ? '#383838' : '#D4D4D4',
+		button: currentTheme.value === 'dark' ? '#374151' : '#F3F4F6',
+		buttonHover: currentTheme.value === 'dark' ? '#4B5563' : '#E5E7EB',
+	}
+
+	const collapseButton = `
+		<button
+			style="
+			background: ${colors.button};
+			color: ${colors.text};
+			padding: 0.5px 6px;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background 0.2s;
+			"
+			onmouseover="this.style.background='${colors.buttonHover}'"
+			onmouseout="this.style.background='${colors.button}'"
+			onclick="this.nextElementSibling.classList.toggle('hidden');"
+		>
+			&middot;&middot;&middot;
+		</button>
+		<blockquote class="hidden">
+	`
+
 	const cleanedContent = content
-		.replace(
-			/<blockquote>/g,
-			'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
-		)
+		.replace(/<blockquote>/g, collapseButton)
 		.replace(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g, '<b>&lt;$1&gt;</b>')
 
 	/* eslint-disable no-useless-escape */
@@ -53,13 +75,13 @@ const srcdoc = computed(() => {
 				}
 
 				body:not([style*="background"]) {
-					color: ${currentTheme.value === 'light' ? '#383838' : '#D4D4D4'} !important;
+					color: ${colors.text} !important;
 				}
 
 				blockquote {
 					margin: 8px 0;
 					padding-left: 16px;
-					border-left: 2px solid ${currentTheme.value === 'dark' ? '#4B5563' : '#E5E7EB'};
+					border-left: 2px solid ${colors.button};
 				}
 
 				table {
