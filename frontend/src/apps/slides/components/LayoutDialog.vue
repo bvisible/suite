@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { watch, nextTick, computed } from 'vue'
 import { Dialog, createDocumentResource } from 'frappe-ui'
 
 const emit = defineEmits(['insert'])
@@ -32,19 +32,15 @@ const showLayoutDialog = defineModel({
 	required: true,
 })
 
-const layouts = ref([])
+const layouts = computed(() => {
+	return props.theme == 'Dark' ? layoutResource.doc.slides_dark : layoutResource.doc.slides
+})
 
-createDocumentResource({
+const layoutResource = createDocumentResource({
 	doctype: 'Slide Layouts',
 	name: 'Slide Layouts',
+	cache: 'layouts',
 	auto: true,
-	onSuccess: (data) => {
-		if (props.theme == 'Dark') {
-			layouts.value = data.slides_dark
-		} else {
-			layouts.value = data.slides
-		}
-	},
 })
 
 const getThumbnailStyles = (layout) => {
