@@ -51,4 +51,13 @@ const setCursorPositionAtEnd = (e: Event) => {
 	selection.addRange(range)
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd }
+const handleScrollBarWheelEvent = (e: WheelEvent) => {
+	// allow normal scroll behaviour
+	if (!e.ctrlKey && !e.metaKey) return
+
+	// prevent zoom event from triggering
+	e.preventDefault()
+	e.stopPropagation()
+}
+
+export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent }

@@ -15,7 +15,7 @@
 		</div>
 	</div>
 
-	<CollapsibleSection title="Transition" :initialState="true">
+	<CollapsibleSection title="Transition">
 		<template #default>
 			<Select
 				:options="['Slide In', 'Fade', 'None']"
@@ -29,7 +29,7 @@
 				:rangeStart="0"
 				:rangeEnd="4"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(slide.transitionDuration) || 0"
+				:modelValue="parseFloat(slide.transitionDuration)"
 				@update:modelValue="(value) => setTransitionDuration(value)"
 			/>
 		</template>
