@@ -39,7 +39,11 @@ const replaceButtonClasses =
 	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-500 opacity-95'
 
 const showReplaceImageButton = computed(() => {
-	return element.value.useTemplateDimensions && activeElement.value?.id == element.value.id
+	return (
+		element.value.useTemplateDimensions &&
+		activeElement.value?.id == element.value.id &&
+		element.value.src.includes('placeholder')
+	)
 })
 
 const imageStyle = computed(() => {
