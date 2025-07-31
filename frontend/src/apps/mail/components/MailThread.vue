@@ -1,6 +1,6 @@
 <template>
 	<div v-if="threadID" class="relative flex h-full flex-col overflow-hidden">
-		<div class="bg-surface-white sticky top-0 z-10 flex items-center border-b p-2.5 sm:px-5">
+		<div class="bg-surface-white sticky top-0 flex items-center border-b p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
