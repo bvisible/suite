@@ -94,7 +94,7 @@ const getElementContent = (element) => {
 
 const addTextElement = async (text) => {
 	const elementPresets = {
-		textAlign: 'center',
+		textAlign: 'left',
 		fontSize: 28,
 		fontFamily: 'Arial',
 		color: guessTextColorFromBackground(slide.value.background),
@@ -108,7 +108,7 @@ const addTextElement = async (text) => {
 		type: 'text',
 		content: getElementContent(elementPresets),
 		editorMetadata: {
-			lineHeight: 1,
+			lineHeight: 1.4,
 		},
 	}
 

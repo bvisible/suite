@@ -4,11 +4,11 @@
 		:class="[panelClasses, attrs.class]"
 		@mouseenter="handleHoverChange"
 		@mouseleave="handleHoverChange"
-		@wheel="handleWheelEvent"
+		@wheel="handleScrollBarWheelEvent"
 	>
 		<div
 			v-if="presentation.data"
-			class="flex h-full flex-col overflow-y-auto p-4"
+			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
 		>
 			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
@@ -57,6 +57,7 @@ import Draggable from 'vuedraggable'
 
 import { presentation } from '@/stores/presentation'
 import { slide, slideIndex } from '@/stores/slide'
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
 
@@ -128,15 +129,6 @@ const handleSortEnd = async (event) => {
 	await presentation.reload()
 }
 
-const handleWheelEvent = (e) => {
-	// allow normal scroll behaviour
-	if (!e.ctrlKey && !e.metaKey) return
-
-	// prevent zoom event from triggering
-	e.preventDefault()
-	e.stopPropagation()
-}
-
 const handleHoverChange = (e) => {
 	if (e.type === 'mouseenter') {
 		showCollapseShortcut.value = true
@@ -180,18 +172,5 @@ watch(
 
 .sortable-chosen {
 	opacity: 0.8;
-}
-
-::-webkit-scrollbar {
-	width: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-	background-color: var(--scrollbar-thumb-color);
-	border-radius: 20px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background-color: #c6c6c6;
 }
 </style>

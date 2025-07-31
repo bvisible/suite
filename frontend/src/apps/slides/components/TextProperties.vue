@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Style" :initialState="true">
+	<CollapsibleSection title="Style">
 		<template #default>
 			<Select
 				:options="presetTextStyles"
@@ -48,7 +48,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Font" :initialState="true">
+	<CollapsibleSection title="Font">
 		<template #default>
 			<FormControl
 				type="autocomplete"
@@ -90,7 +90,7 @@
 				:rangeStart="0.1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="activeElement?.editorMetadata?.lineHeight || 1"
+				:modelValue="activeElement?.editorMetadata?.lineHeight"
 				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 
@@ -105,7 +105,7 @@
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Other">
+	<CollapsibleSection title="Other" :initialState="false">
 		<template #default>
 			<SliderInput
 				label="Opacity"

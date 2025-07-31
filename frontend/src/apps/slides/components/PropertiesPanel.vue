@@ -1,5 +1,9 @@
 <template>
-	<div v-if="presentation.data" class="flex w-64 flex-col border-l bg-white" @wheel.prevent>
+	<div
+		v-if="presentation.data"
+		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
+		@wheel="handleScrollBarWheelEvent"
+	>
 		<div v-if="!activeElement">
 			<SlideProperties @openLayoutDialog="$emit('openLayoutDialog')" />
 
@@ -24,6 +28,7 @@ import AlignmentControls from '@/components/AlignmentControls.vue'
 
 import { presentation } from '@/stores/presentation'
 import { activeElement, activeElementIds } from '@/stores/element'
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 const emit = defineEmits(['openLayoutDialog'])
 
