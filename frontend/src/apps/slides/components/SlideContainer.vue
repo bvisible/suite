@@ -125,9 +125,13 @@ const clearTimeouts = () => {
 }
 
 const triggerSelection = (e, id) => {
-	if (id && !activeElementIds.value.includes(id)) {
-		activeElementIds.value = [id]
-		focusElementId.value = null
+	if (id) {
+		if (!activeElementIds.value.includes(id)) {
+			activeElementIds.value = [id]
+			focusElementId.value = null
+		} else {
+			focusElementId.value = id
+		}
 	}
 }
 
@@ -186,8 +190,6 @@ const activeDiv = computed(() => {
 useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
-
-	if (width - selectionBounds.width < 0.3 && height - selectionBounds.height < 0.3) return
 
 	// case:
 	// when element dimensions are changed not by resizer

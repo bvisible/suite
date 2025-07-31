@@ -117,8 +117,8 @@ const getEdgeStyles = (direction) => {
 		...commonStyles,
 		width: ['leftEdge', 'rightEdge'].includes(direction) ? '1.5px' : '100%',
 		height: ['topEdge', 'bottomEdge'].includes(direction) ? '1.5px' : '100%',
-		left: direction == 'rightEdge' ? '100%' : '0%',
-		top: direction == 'bottomEdge' ? '100%' : '0%',
+		left: direction == 'rightEdge' ? `calc(100% - 1.5px)` : '0%',
+		top: direction == 'bottomEdge' ? `calc(100% - 1.5px)` : '0%',
 		display: isVisible(direction) ? 'block' : 'none',
 	}
 }

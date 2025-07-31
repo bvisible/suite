@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Orientation" :initialState="true">
+	<CollapsibleSection title="Orientation">
 		<template #default>
 			<div
 				v-for="(direction, index) in imageOrientationProperties"
@@ -39,6 +39,9 @@ const imageOrientationProperties = [
 ]
 
 const toggleImageOrientation = (direction) => {
-	activeElement.value[direction.property] = activeElement.value[direction.property] === 1 ? -1 : 1
+	const currentValue = activeElement.value[direction.property]
+	let newValue = 1
+	if (!currentValue || currentValue == 1) newValue = -1
+	activeElement.value[direction.property] = newValue
 }
 </script>
