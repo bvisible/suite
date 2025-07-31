@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="isMobile && isSidebarOpen"
-		class="fixed inset-0 z-40 bg-black bg-opacity-50"
+		class="fixed inset-0 z-10 bg-black bg-opacity-50"
 		@click="closeSidebar"
 	/>
 
@@ -11,7 +11,7 @@
 			class="bg-surface-menu-bar flex h-full flex-col justify-between border-r duration-300 ease-in-out"
 			:class="[
 				isSidebarCollapsed && !isMobile ? 'w-14' : 'w-56',
-				isMobile ? 'fixed left-0 top-0 z-50 shadow-lg' : 'relative',
+				{ 'fixed left-0 top-0 z-10 shadow-lg': isMobile },
 			]"
 		>
 			<div

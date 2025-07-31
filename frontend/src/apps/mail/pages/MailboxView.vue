@@ -1,8 +1,6 @@
 <template>
 	<!-- Header -->
-	<header
-		class="sticky top-0 z-10 flex items-center justify-between border-b px-3 py-2.5 sm:px-5"
-	>
+	<header class="flex items-center justify-between border-b px-3 py-2.5 sm:px-5">
 		<div class="flex items-center space-x-2">
 			<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
 			<Breadcrumbs
@@ -179,9 +177,8 @@
 				class="bg-surface-white overflow-y-auto"
 				:class="{
 					'w-2/3': !isMobile && userLayout === 'split',
-					'absolute bottom-0 left-0 right-0 top-0 z-10':
-						!isMobile && userLayout === 'full',
-					'fixed inset-0 z-10': isMobile,
+					'absolute bottom-0 left-0 right-0 top-0': !isMobile && userLayout === 'full',
+					'fixed inset-0': isMobile,
 					hidden: (isMobile || userLayout === 'full') && !threadID,
 				}"
 			>
