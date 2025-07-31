@@ -102,6 +102,7 @@ const setPreview = (presentation) => {
 }
 
 const createPresentation = async (theme) => {
+	showThemeDialog.value = false
 	const newPresentation = await createPresentationResource.submit({
 		title: 'Untitled',
 		theme: theme,
