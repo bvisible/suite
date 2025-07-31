@@ -34,25 +34,29 @@
    "label": "Thumbnail"
   },
   {
+   "default": "None",
    "fieldname": "transition",
    "fieldtype": "Data",
    "label": "Transition"
   },
   {
+   "default": "0",
    "fieldname": "transition_duration",
    "fieldtype": "Data",
    "label": "Transition Duration"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-12-16 13:21:08.050574",
+ "modified": "2025-07-30 17:21:17.635084",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Slide",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
