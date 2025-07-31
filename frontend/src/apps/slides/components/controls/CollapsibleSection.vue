@@ -35,7 +35,7 @@ const props = defineProps({
 	},
 	initialState: {
 		type: Boolean,
-		default: false,
+		default: true,
 	},
 })
 

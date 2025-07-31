@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Border" :initialState="true">
+	<CollapsibleSection title="Border">
 		<template #default>
 			<div
 				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-50 p-0.5"
@@ -64,7 +64,7 @@
 				label="Offset X"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetX) || 10"
+				:modelValue="parseFloat(activeElement.shadowOffsetX)"
 				@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
 			/>
 
@@ -72,7 +72,7 @@
 				label="Offset Y"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetY) || 10"
+				:modelValue="parseFloat(activeElement.shadowOffsetY)"
 				@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
 			/>
 
@@ -80,13 +80,13 @@
 				label="Spread"
 				:rangeStart="1"
 				:rangeEnd="500"
-				:modelValue="parseFloat(activeElement.shadowSpread) || 50"
+				:modelValue="parseFloat(activeElement.shadowSpread)"
 				@update:modelValue="(value) => (activeElement.shadowSpread = value)"
 			/>
 		</template>
 	</CollapsibleSection>
 
-	<CollapsibleSection title="Other">
+	<CollapsibleSection title="Other" :initialState="false">
 		<template #default>
 			<SliderInput
 				label="Opacity"
