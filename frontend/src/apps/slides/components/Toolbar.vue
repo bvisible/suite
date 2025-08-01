@@ -46,11 +46,11 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { ref } from 'vue'
 
 import { Type, ImagePlus, Trash, Copy, Square } from 'lucide-vue-next'
 
-import { Tooltip, FileUploader } from 'frappe-ui'
+import { Tooltip, FileUploader, toast } from 'frappe-ui'
 import { presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
