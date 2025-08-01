@@ -7,11 +7,11 @@
 	</FrappeUIProvider>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { FrappeUIProvider } from 'frappe-ui'
 
-import { useScreenSize } from '@/utils/composables'
+import { type Theme, useScreenSize, useTheme } from '@/utils/composables'
 import DefaultLayout from '@/components/DefaultLayout.vue'
 import EmptyLayout from '@/components/EmptyLayout.vue'
 import InstallPrompt from '@/components/InstallPrompt.vue'
@@ -26,4 +26,19 @@ const Layout = computed(() => {
 	if (route.meta.isMimeMessage) return EmptyLayout
 	return DefaultLayout
 })
+
+const { currentTheme, getSystemTheme, setTheme } = useTheme()
+
+const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+const handleSystemThemeChange = () => {
+	if (currentTheme.value === 'system')
+		document.documentElement.setAttribute('data-theme', getSystemTheme())
+}
+
+onMounted(() => {
+	const storedTheme = localStorage.getItem('theme') as Theme | null
+	setTheme(storedTheme || 'system')
+	mediaQuery.addEventListener('change', handleSystemThemeChange)
+})
+onUnmounted(() => mediaQuery.removeEventListener('change', handleSystemThemeChange))
 </script>

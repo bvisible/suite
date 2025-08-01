@@ -43,22 +43,9 @@ export const useTheme = () => {
 		localStorage.setItem('theme', theme)
 	}
 
-	const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-	const handleSystemThemeChange = () => {
-		if (currentTheme.value === 'system')
-			document.documentElement.setAttribute('data-theme', getSystemTheme())
-	}
-
-	onMounted(() => {
-		const storedTheme = localStorage.getItem('theme') as Theme | null
-		setTheme(storedTheme || 'system')
-		mediaQuery.addEventListener('change', handleSystemThemeChange)
-	})
-	onUnmounted(() => mediaQuery.removeEventListener('change', handleSystemThemeChange))
-
 	const activeTheme = computed<'light' | 'dark'>(() =>
 		currentTheme.value === 'system' ? getSystemTheme() : currentTheme.value,
 	)
 
-	return { currentTheme, setTheme, activeTheme }
+	return { currentTheme, getSystemTheme, setTheme, activeTheme }
 }
