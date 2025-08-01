@@ -83,7 +83,7 @@ def get_all_presentations() -> list[dict]:
 	presentations = frappe.get_list(
 		"Presentation",
 		fields=["name", "title", "owner", "creation", "modified_by", "modified"],
-		filters={"owner": frappe.session.user},
+		filters={"owner": frappe.session.user, "is_template": 0},
 		order_by="modified desc",
 	)
 
