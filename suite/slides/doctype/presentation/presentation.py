@@ -186,18 +186,16 @@ def create_presentation(title, duplicate_from=None, theme="Light"):
 	new_presentation = frappe.new_doc("Presentation")
 	new_presentation.title = title
 	new_presentation.theme = theme
+	new_presentation.insert()
 	if duplicate_from:
 		presentation = frappe.get_doc("Presentation", duplicate_from)
 		new_presentation.name = None
 		new_presentation.slides = presentation.slides
 	else:
-		slide = frappe.new_doc("Slide")
-		if theme == "Dark":
-			slide.background = "#000000"
-		else:
-			slide.background = "#ffffff"
-		slide.elements = "[]"
-		new_presentation.slides = [slide]
+		template = frappe.get_doc("Presentation", theme)
+		first_slide_layout = template.slides[2].name
+		first_slide = create_new_slide(new_presentation.name, 0, first_slide_layout)
+		new_presentation.slides = [first_slide]
 	new_presentation.save()
 	return new_presentation
 
@@ -241,3 +239,8 @@ def get_updated_json(presentation, json):
 			element["attachmentName"] = name
 
 	return json
+
+
+@frappe.whitelist()
+def get_layouts(theme):
+	return frappe.get_doc("Presentation", theme).slides if frappe.db.exists("Presentation", theme) else []

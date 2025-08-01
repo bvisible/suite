@@ -5,9 +5,12 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "slides",
   "slug",
-  "theme"
+  "column_break_axws",
+  "theme",
+  "is_template",
+  "slides_section",
+  "slides"
  ],
  "fields": [
   {
@@ -34,11 +37,26 @@
    "fieldname": "theme",
    "fieldtype": "Data",
    "label": "Theme"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_template",
+   "fieldtype": "Check",
+   "label": "Is Template"
+  },
+  {
+   "fieldname": "column_break_axws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "slides_section",
+   "fieldtype": "Section Break",
+   "label": "Slides"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 18:19:00.140110",
+ "modified": "2025-08-01 15:17:58.288331",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
