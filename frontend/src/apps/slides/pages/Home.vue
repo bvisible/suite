@@ -65,6 +65,7 @@ const presentationList = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
 	method: 'GET',
 	auto: true,
+	cache: 'presentations',
 })
 
 const navigateToPresentation = (name, present) => {

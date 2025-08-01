@@ -5,6 +5,7 @@ const presentationId = ref('')
 
 const presentation = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
+	cache: 'presentation',
 	makeParams: () => ({ name: presentationId.value }),
 })
 
