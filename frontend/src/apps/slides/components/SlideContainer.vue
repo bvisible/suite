@@ -129,7 +129,7 @@ const triggerSelection = (e, id) => {
 		if (!activeElementIds.value.includes(id)) {
 			activeElementIds.value = [id]
 			focusElementId.value = null
-		} else {
+		} else if (activeElement.value?.type == 'text') {
 			focusElementId.value = id
 		}
 	}
