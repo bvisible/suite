@@ -182,7 +182,7 @@ def duplicate_slide(name, index):
 
 
 @frappe.whitelist()
-def create_presentation(title, duplicate_from=None, theme="Light"):
+def create_presentation(title, theme, duplicate_from=None):
 	new_presentation = frappe.new_doc("Presentation")
 	new_presentation.title = title
 	new_presentation.theme = theme
