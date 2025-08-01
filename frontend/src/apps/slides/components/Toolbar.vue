@@ -47,11 +47,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import { toast } from 'vue-sonner'
 
 import { Type, ImagePlus, Trash, Copy, SquarePlus } from 'lucide-vue-next'
 
-import { Tooltip, FileUploader } from 'frappe-ui'
+import { Tooltip, FileUploader, toast } from 'frappe-ui'
 import { presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 

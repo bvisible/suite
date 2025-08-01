@@ -1,5 +1,4 @@
-import { FileUploadHandler } from 'frappe-ui'
-import { toast } from 'vue-sonner'
+import { FileUploadHandler, toast } from 'frappe-ui'
 
 import { presentationId } from '../stores/presentation'
 import { addMediaElement } from '../stores/element'
