@@ -40,18 +40,22 @@ const srcdoc = computed(() => {
 			border-radius: 4px;
 			cursor: pointer;
 			transition: background 0.2s;
+			margin: 12px 0;
 			"
 			onmouseover="this.style.background='${colors.value.buttonHover}'"
 			onmouseout="this.style.background='${colors.value.button}'"
-			onclick="this.nextElementSibling.classList.toggle('hidden');"
+			onclick="this.nextElementSibling.classList.toggle('quote-hidden');"
 		>
 			&middot;&middot;&middot;
 		</button>
-		<blockquote class="hidden">
 	`
 
 	const cleanedContent = content
-		.replace(/<blockquote>/g, collapseButton)
+		.replace(
+			/<div\s+class="(gmail_quote|frappe_mail_quote)"([^>]*)>([\s\S]*?)<\/div>/gi,
+			(_, quoteClass, otherAttrs, innerHtml) =>
+				`${collapseButton}<div class="quote-hidden ${quoteClass}"${otherAttrs}>${innerHtml}</div>`,
+		)
 		.replace(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g, '<b>&lt;$1&gt;</b>')
 
 	/* eslint-disable no-useless-escape */
@@ -74,8 +78,8 @@ const srcdoc = computed(() => {
 
 				blockquote {
 					margin: 8px 0;
-					padding-left: 16px;
-					border-left: 2px solid ${colors.value.button};
+					padding-left: 12px;
+					border-left: 1px solid ${colors.value.buttonHover};
 				}
 
 				table {
@@ -89,7 +93,7 @@ const srcdoc = computed(() => {
 					padding: 0;
 				}
 
-				.hidden {
+				.quote-hidden {
 					display: none;
 				}
 
@@ -128,7 +132,7 @@ const srcdoc = computed(() => {
 	`
 })
 
-const colors = computed(() => THEMES[currentTheme.value as keyof typeof THEMES])
+const colors = computed(() => THEMES[(currentTheme.value as keyof typeof THEMES) || 'light'])
 
 const THEMES = {
 	light: {
