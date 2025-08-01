@@ -51,6 +51,7 @@ const srcdoc = computed(() => {
 	`
 
 	const transformedContent = content
+		.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script\s*>/gi, '')
 		.replace(
 			/<div\s+class="(gmail_quote|frappe_mail_quote)"([^>]*)>([\s\S]*?)<\/div>/gi,
 			(_, quoteClass, otherAttrs, innerHtml) =>
@@ -70,6 +71,7 @@ const srcdoc = computed(() => {
 					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 					font-size: 14px;
 					line-height: 1.25rem;
+					background-color: ${colors.value.background};
 				}
 
 				blockquote {
@@ -133,15 +135,17 @@ const colors = computed(() => THEME_CONFIG[activeTheme.value])
 
 const THEME_CONFIG = {
 	light: {
+		background: '#FFFFFF',
 		text: '#383838',
-		button: '#F3F4F6',
-		buttonHover: '#E5E7EB',
+		button: '#F3F3F3',
+		buttonHover: '#EDEDED',
 		script: '',
 	},
 	dark: {
+		background: '#0F0F0F',
 		text: '#D4D4D4',
-		button: '#374151',
-		buttonHover: '#4B5563',
+		button: '#2B2B2B',
+		buttonHover: '#343434',
 		script: `
 			function hasBackground(el) {
 				while (el && el !== document.body) {

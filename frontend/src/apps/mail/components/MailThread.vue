@@ -141,13 +141,14 @@
 										:options="
 											moreActions(mail).filter((d) => d.condition !== false)
 										"
-										@click.stop
 									>
-										<Button variant="ghost">
-											<template #icon>
-												<Ellipsis class="text-ink-gray-5 h-4 w-4" />
-											</template>
-										</Button>
+										<span @click.stop>
+											<Button variant="ghost">
+												<template #icon>
+													<Ellipsis class="text-ink-gray-5 h-4 w-4" />
+												</template>
+											</Button>
+										</span>
 									</Dropdown>
 								</Tooltip>
 							</div>
