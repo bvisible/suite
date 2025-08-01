@@ -241,4 +241,6 @@ website_route_rules = [
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-fixtures = ["Slide Layouts"]
+fixtures = [
+	{"dt": "Presentation", "filters": [["is_template", "=", "1"]]},
+]
