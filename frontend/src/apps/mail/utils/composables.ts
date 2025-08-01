@@ -56,5 +56,9 @@ export const useTheme = () => {
 	})
 	onUnmounted(() => mediaQuery.removeEventListener('change', handleSystemThemeChange))
 
-	return { currentTheme, setTheme }
+	const activeTheme = computed<'light' | 'dark'>(() =>
+		currentTheme.value === 'system' ? getSystemTheme() : currentTheme.value,
+	)
+
+	return { currentTheme, setTheme, activeTheme }
 }
