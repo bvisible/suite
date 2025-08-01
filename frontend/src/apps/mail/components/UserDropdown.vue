@@ -139,7 +139,7 @@ const userDropdownOptions = [
 	},
 	{
 		component: AppsMenu,
-		condition: () => userResource.data.is_system_manager,
+		condition: () => userResource.data.is_system_manager && !isMobile.value,
 	},
 	{
 		icon: LogOut,

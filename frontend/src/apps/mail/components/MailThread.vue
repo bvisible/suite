@@ -480,7 +480,7 @@ const setReplyDetailsAndOpenModal = (mail: Mail) => {
 const getMailBody = (mail: Mail) => {
 	if (!mail.html_body) return ''
 	const replyHeader = `On ${dayjs(mail.received_at).format('DD MMM YYYY')} at ${dayjs(mail.received_at).format('h:mm A')}, ${mail.from_email} wrote:`
-	return `<br><blockquote>${replyHeader} <br> ${mail.html_body}</blockquote>`
+	return `<div class="frappe_mail_quote">${replyHeader}<br><blockquote style="margin-left: 8px"><br>${mail.html_body}</blockquote></div>`
 }
 
 watch(() => threadID, reload)

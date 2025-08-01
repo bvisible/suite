@@ -1,7 +1,7 @@
 <template>
 	<div class="relative flex h-full flex-col">
 		<div class="h-full flex-1">
-			<div class="flex h-screen text-base">
+			<div class="isolate flex h-screen text-base">
 				<AppSidebar v-if="isMobile" />
 				<div
 					v-else
