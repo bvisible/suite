@@ -26,7 +26,7 @@ import { useTheme } from '@/utils/composables'
 
 const { content } = defineProps<{ content: string }>()
 
-const { currentTheme } = useTheme()
+const { activeTheme } = useTheme()
 
 const isIframeReady = ref(false)
 
@@ -50,7 +50,7 @@ const srcdoc = computed(() => {
 		</button>
 	`
 
-	const cleanedContent = content
+	const transformedContent = content
 		.replace(
 			/<div\s+class="(gmail_quote|frappe_mail_quote)"([^>]*)>([\s\S]*?)<\/div>/gi,
 			(_, quoteClass, otherAttrs, innerHtml) =>
@@ -64,16 +64,12 @@ const srcdoc = computed(() => {
 		<html>
 		<head>
 			<meta name="viewport" content="width=device-width, initial-scale=1">
-			<meta name="color-scheme" content="${currentTheme.value}">
+			<meta name="color-scheme" content="${activeTheme.value}">
 			<style>
 				body {
 					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 					font-size: 14px;
 					line-height: 1.25rem;
-				}
-
-				body:not([style*="background"]) {
-					color: ${colors.value.text} !important;
 				}
 
 				blockquote {
@@ -118,7 +114,7 @@ const srcdoc = computed(() => {
 			><\/script>
 		</head>
 		<body>
-			${cleanedContent}
+			${transformedContent}
 			<script>
 				document.addEventListener('click', (e) => {
 					if (e.target.tagName === 'A') {
@@ -126,24 +122,57 @@ const srcdoc = computed(() => {
 						window.open(e.target.href, '_blank');
 					}
 				});
+				${colors.value.script}
 			<\/script>
 		</body>
 		</html>
 	`
 })
 
-const colors = computed(() => THEMES[(currentTheme.value as keyof typeof THEMES) || 'light'])
+const colors = computed(() => THEME_CONFIG[activeTheme.value])
 
-const THEMES = {
+const THEME_CONFIG = {
 	light: {
 		text: '#383838',
 		button: '#F3F4F6',
 		buttonHover: '#E5E7EB',
+		script: '',
 	},
 	dark: {
 		text: '#D4D4D4',
 		button: '#374151',
 		buttonHover: '#4B5563',
+		script: `
+			function hasBackground(el) {
+				while (el && el !== document.body) {
+					const bg = getComputedStyle(el).backgroundColor;
+					if (bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+						return true;
+					}
+					el = el.parentElement;
+				}
+				return false;
+			}
+
+			function walkAndWrapTextNodes(node) {
+				for (let child of Array.from(node.childNodes)) {
+					if (child.nodeType === 3) {
+						const trimmed = child.textContent.trim();
+						if (
+							trimmed.length > 0 &&
+							!hasBackground(child.parentElement) &&
+							child.parentElement.tagName !== 'A'
+						) {
+							child.parentElement.style.setProperty('color', '#D4D4D4');
+						}
+					} else if (child.nodeType === 1) {
+						walkAndWrapTextNodes(child);
+					}
+				}
+			}
+
+			walkAndWrapTextNodes(document.body);
+		`,
 	},
 }
 </script>
