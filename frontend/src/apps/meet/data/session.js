@@ -24,7 +24,6 @@ export const session = reactive({
 		},
 		onSuccess(data) {
 			userResource.reload();
-			session.user = sessionUser();
 			session.login.reset();
 			router.replace(data.default_route || "/");
 		},

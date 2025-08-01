@@ -888,72 +888,6 @@ export function getRecvTransport() {
 }
 
 /**
- * Validate and potentially fix consumer track issues
- */
-export async function validateConsumerTrack(consumer, maxRetries = 3) {
-	if (!consumer.track) {
-		throw new Error(`Consumer ${consumer.id} has no track`);
-	}
-
-	// Check basic track health
-	if (consumer.track.readyState !== "live") {
-		console.error(`❌ Consumer track not live: ${consumer.track.readyState}`);
-		throw new Error(`Consumer track not live: ${consumer.track.readyState}`);
-	}
-
-	// For video tracks, ensure they have dimensions
-	if (consumer.kind === "video") {
-		let attempts = 0;
-
-		while (attempts < maxRetries) {
-			const settings = consumer.track.getSettings();
-
-			if (
-				settings.width &&
-				settings.height &&
-				settings.width > 0 &&
-				settings.height > 0
-			) {
-				return {
-					valid: true,
-					dimensions: { width: settings.width, height: settings.height },
-					settings,
-				};
-			}
-
-			attempts++;
-			console.warn(
-				`⚠️ Video track has no dimensions (attempt ${attempts}/${maxRetries}):`,
-				settings,
-			);
-
-			if (attempts < maxRetries) {
-				// Wait and retry - sometimes dimensions appear after a delay
-				console.log("⏳ Waiting 1 second before retry...");
-				await new Promise((resolve) => setTimeout(resolve, 1000));
-			}
-		}
-
-		// Still no dimensions after retries
-		console.error(
-			`❌ Video track never got dimensions after ${maxRetries} attempts`,
-		);
-		return {
-			valid: false,
-			error: "No video dimensions after retries",
-			finalSettings: consumer.track.getSettings(),
-		};
-	}
-
-	// For audio tracks, just check if they're live
-	console.log("✅ Audio track is valid and live");
-	return {
-		valid: true,
-		settings: consumer.track.getSettings?.() || null,
-	};
-}
-
-/**
  * Enhanced consumer creation with validation
  */
 export async function createValidatedConsumer(
@@ -962,24 +896,7 @@ export async function createValidatedConsumer(
 	allowUnconnectedTransport = false,
 ) {
 	try {
-		// Create the consumer using existing method
 		const consumer = await subscribeToProducer(meetingId, producerId);
-
-		// Validate the consumer track
-		const validation = await validateConsumerTrack(consumer);
-
-		if (!validation.valid) {
-			console.error(`❌ Consumer validation failed: ${validation}`);
-
-			// Close the invalid consumer
-			try {
-				consumer.close();
-			} catch (e) {
-				console.warn(`Error closing invalid consumer: ${e}`);
-			}
-
-			throw new Error(`Consumer validation failed: ${validation.error}`);
-		}
 
 		return consumer;
 	} catch (error) {
@@ -998,23 +915,6 @@ export async function createValidatedConsumer(
 					meetingId,
 					producerId,
 				);
-
-				// Still validate the consumer track
-				const validation = await validateConsumerTrack(consumer, 5); // More retries for unconnected transport
-
-				if (!validation.valid) {
-					console.error(
-						`❌ Consumer validation failed even without connection wait: ${validation}`,
-					);
-					try {
-						consumer.close();
-					} catch (e) {
-						console.warn(`Error closing invalid consumer: ${e}`);
-					}
-					throw new Error(
-						`Consumer validation failed after retry: ${validation.error}`,
-					);
-				}
 
 				return consumer;
 			} catch (retryError) {
@@ -1097,6 +997,7 @@ export async function subscribeToProducerWithoutConnectionWait(
 
 /**
  * Get current transport status for debugging
+ * Don't remove
  */
 export function getTransportStatus() {
 	const status = {
