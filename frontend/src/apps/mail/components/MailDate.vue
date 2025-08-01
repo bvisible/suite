@@ -1,6 +1,6 @@
 <template>
 	<Tooltip :text="tooltipText" :disabled="inList">
-		<div class="text-nowrap text-xs text-gray-600" :class="{ 'mr-1': !inList }">
+		<div class="text-ink-gray-5 text-nowrap text-xs" :class="{ 'mr-1': !inList }">
 			{{ formattedDate }}
 		</div>
 	</Tooltip>

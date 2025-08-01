@@ -1,5 +1,5 @@
 <template>
-	<div class="mx-auto space-y-8 rounded-md border bg-white p-12 sm:w-[75rem]">
+	<div class="bg-surface-white mx-auto space-y-8 rounded-md border p-12 sm:w-[75rem]">
 		<template v-if="mime.data">
 			<div class="flex items-center justify-between">
 				<h1 class="text-xl !font-medium">{{ __('MIME Message') }}</h1>
@@ -16,9 +16,9 @@
 				<div
 					v-for="[key, value] of Object.entries(mime.data)"
 					:key="key"
-					class="flex items-center px-6 py-4 text-base last:rounded-b even:bg-gray-50/70"
+					class="even:bg-surface-gray-1 flex items-center px-6 py-4 text-base last:rounded-b"
 				>
-					<div class="w-1/4 text-gray-600">{{ value.label }}</div>
+					<div class="text-ink-gray-5 w-1/4">{{ value.label }}</div>
 					<div class="flex w-3/4 items-center">{{ value.value }}</div>
 				</div>
 			</div>
@@ -27,7 +27,7 @@
 
 		<div v-else-if="mime.error" class="space-y-4 text-center">
 			<h1 class="text-xl !font-medium text-red-500">{{ __('Error') }}</h1>
-			<div class="text-gray-600" v-html="mime.error.messages[0]" />
+			<div class="text-ink-gray-5" v-html="mime.error.messages[0]" />
 			<Button :label="__('Return to Home')" size="md" @click="$router.push('/')" />
 		</div>
 	</div>

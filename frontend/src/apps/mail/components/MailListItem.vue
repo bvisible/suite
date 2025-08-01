@@ -1,8 +1,8 @@
 <template>
 	<div
-		class="flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5 sm:hover:bg-gray-50"
+		class="sm:hover:bg-surface-gray-1 flex cursor-pointer space-x-2.5 border-b px-3.5 py-2.5 sm:px-5"
 		:class="{
-			'!bg-blue-50': isSelected || isTouching,
+			'!bg-surface-blue-1': isSelected || isTouching,
 			'!py-2': isFullWidth,
 			'select-none': isMobile,
 		}"
@@ -28,7 +28,7 @@
 			</div>
 			<Avatar
 				v-else
-				:label="mail.from_name || mail.from_email"
+				:label="getFirstAlphabet(mail.from_name) || getFirstAlphabet(mail.from_email)"
 				:size="isFullWidth ? 'lg' : '2xl'"
 				@click.stop="isSelected = true"
 			/>
@@ -102,6 +102,7 @@ import { computed, ref, watch } from 'vue'
 import { Check } from 'lucide-vue-next'
 import { Avatar, Badge, Checkbox } from 'frappe-ui'
 
+import { getFirstAlphabet } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'

@@ -9,14 +9,14 @@
 				<template #default="{ error, uploading, openFileSelector }">
 					<div class="flex flex-col items-center space-y-4">
 						<div
-							class="flex h-64 w-64 items-center justify-center rounded-full bg-gray-100"
+							class="bg-surface-gray-2 flex h-64 w-64 items-center justify-center rounded-full"
 						>
 							<img
 								v-if="user.data?.user_image"
 								:src="user.data?.user_image"
 								class="h-full w-full rounded-full object-cover"
 							/>
-							<User v-else class="h-40 w-40 stroke-1 text-gray-400" />
+							<User v-else class="text-ink-gray-4 h-40 w-40 stroke-1" />
 						</div>
 						<ErrorMessage :message="error" />
 						<Button

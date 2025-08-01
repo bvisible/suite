@@ -7,7 +7,7 @@
 		<div class="flex items-center space-x-3">
 			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
 				<template #prefix>
-					<FeatherIcon name="search" class="w-4 text-gray-600" />
+					<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
 				</template>
 			</FormControl>
 			<FormControl
@@ -42,6 +42,7 @@
 						:key="row.name"
 						v-slot="{ column, item }"
 						:row="row"
+						class="hover:!bg-surface-gray-1"
 					>
 						<ListRowItem :item="item">
 							<Badge

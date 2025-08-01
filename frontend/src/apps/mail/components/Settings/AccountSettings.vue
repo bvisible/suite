@@ -14,19 +14,19 @@
 			variant="outline"
 		/>
 		<Switch
-			v-model="account.doc.create_mail_contact"
+			v-model="createMailContact"
 			:label="__('Create Mail Contacts')"
 			:description="__('Create contacts of people you send mails to.')"
 		/>
 		<Switch
-			v-model="account.doc.destroy_email_after_submission"
+			v-model="destroyEmailAfterSubmission"
 			:label="__('Delete Email After Sending')"
 			:description="
 				__('Automatically deletes the email from your mailbox after it is sent.')
 			"
 		/>
 		<Switch
-			v-model="account.doc.destroy_newsletter_after_submission"
+			v-model="destroyNewsletterAfterSubmission"
 			:label="__('Delete Newsletter After Sending')"
 			:description="__('Automatically deletes the newsletter after it is sent.')"
 		/>
@@ -63,13 +63,13 @@
 			:disabled="JSON.stringify(account.doc) === JSON.stringify(account.originalDoc)"
 			:loading="account.save.loading"
 			class="min-h-7"
-			@click="account.save.submit"
+			@click="() => account.save.submit()"
 		/>
 	</template>
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { Button, ErrorMessage, FormControl, Switch, createDocumentResource } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
@@ -82,18 +82,25 @@ const user = inject('$user')
 const account = createDocumentResource({
 	doctype: 'Mail Account',
 	name: user.data?.name,
-	transform: (data: MailAccount) => {
-		const keys = [
-			'create_mail_contact',
-			'destroy_email_after_submission',
-			'destroy_newsletter_after_submission',
-		] as const
-		for (const key of keys) data[key] = !!data[key]
-	},
 	setValue: {
 		onSuccess: () => raiseToast(__('Account settings saved successfully')),
 	},
 	onSuccess: (data: MailAccount) => (setCustomReplyTo.value = !!data.reply_to),
+})
+
+const createMailContact = computed({
+	get: () => !!account.doc.create_mail_contact,
+	set: (val: boolean) => (account.doc.create_mail_contact = val ? 1 : 0),
+})
+
+const destroyEmailAfterSubmission = computed({
+	get: () => !!account.doc.destroy_email_after_submission,
+	set: (val: boolean) => (account.doc.destroy_email_after_submission = val ? 1 : 0),
+})
+
+const destroyNewsletterAfterSubmission = computed({
+	get: () => !!account.doc.destroy_newsletter_after_submission,
+	set: (val: boolean) => (account.doc.destroy_newsletter_after_submission = val ? 1 : 0),
 })
 
 const setCustomReplyTo = ref(account.doc?.reply_to)

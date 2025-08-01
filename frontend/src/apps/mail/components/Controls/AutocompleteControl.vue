@@ -18,7 +18,7 @@
 								>
 									{{ displayValue(selectedValue) }}
 								</span>
-								<span v-else class="text-base leading-5 text-gray-500">
+								<span v-else class="text-ink-gray-4 text-base leading-5">
 									{{ placeholder || '' }}
 								</span>
 							</div>
@@ -29,7 +29,7 @@
 			</template>
 			<template #body="{ isOpen }">
 				<div v-show="isOpen && !disabled">
-					<div class="mt-1 rounded-lg bg-white py-1 text-base shadow-2xl">
+					<div class="bg-surface-white mt-1 rounded-lg py-1 text-base shadow-2xl">
 						<div class="relative mb-2 px-1.5 pt-0.5" :class="{ hidden: !showSearch }">
 							<ComboboxInput
 								ref="search"
@@ -55,7 +55,7 @@
 							>
 								<div
 									v-if="group.group && !group.hideLabel"
-									class="px-2.5 py-1.5 text-sm font-medium text-gray-500"
+									class="text-ink-gray-4 px-2.5 py-1.5 text-sm font-medium"
 								>
 									{{ group.group }}
 								</div>
@@ -69,7 +69,7 @@
 									<li
 										:class="[
 											'flex cursor-pointer items-center rounded px-2.5 py-2 text-base',
-											{ 'bg-gray-100': active },
+											{ 'bg-surface-gray-2': active },
 										]"
 									>
 										<slot
@@ -86,7 +86,7 @@
 												</div>
 												<div
 													v-if="option.label != option.description"
-													class="text-xs text-gray-700"
+													class="text-ink-gray-6 text-xs"
 													v-html="option.description"
 												/>
 											</div>
@@ -96,7 +96,7 @@
 							</div>
 							<li
 								v-if="groups.length == 0"
-								class="mt-1.5 rounded-md px-2.5 py-1.5 text-base text-gray-600"
+								class="text-ink-gray-5 mt-1.5 rounded-md px-2.5 py-1.5 text-base"
 							>
 								No results found
 							</li>
@@ -224,7 +224,7 @@ watch(showOptions, (val) => {
 })
 
 const textColor = computed(() => {
-	return props.disabled ? 'text-gray-600' : 'text-gray-800'
+	return props.disabled ? 'text-ink-gray-5' : 'text-ink-gray-7'
 })
 
 const inputClasses = computed(() => {
@@ -244,12 +244,12 @@ const inputClasses = computed(() => {
 
 	const variant = props.disabled ? 'disabled' : props.variant
 	const variantClasses = {
-		subtle: 'border border-gray-100 bg-gray-100 placeholder-gray-500 hover:border-gray-200 hover:bg-gray-200 focus:bg-white focus:border-gray-500 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-400',
+		subtle: 'bg-surface-gray-2 placeholder-ink-gray-4 hover:bg-surface-gray-3 focus:shadow-sm focus:ring-0 focus-visible:ring-2',
 		outline:
-			'border border-gray-300 bg-white placeholder-gray-500 hover:border-gray-400 hover:shadow-sm focus:bg-white focus:border-gray-500 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-400',
+			'border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3',
 		disabled: [
-			'border bg-gray-50 placeholder-gray-400 cursor-default',
-			props.variant === 'outline' ? 'border-gray-300' : 'border-transparent',
+			'border bg-surface-gray-1 placeholder-ink-gray-3 cursor-default',
+			props.variant === 'outline' ? 'border-outline-gray-2' : 'border-transparent',
 		],
 	}[variant]
 
@@ -267,7 +267,7 @@ const labelClasses = computed(() => [
 		sm: 'text-xs',
 		md: 'text-base',
 	}[props.size],
-	'text-gray-600 block mb-1.5',
+	'text-ink-gray-5 block mb-1.5',
 ])
 
 defineExpose({ query })

@@ -1,6 +1,6 @@
 <template>
 	<div v-if="threadID" class="relative flex h-full flex-col overflow-hidden">
-		<div class="sticky top-0 z-10 flex items-center border-b bg-white p-2.5 sm:px-5">
+		<div class="bg-surface-white sticky top-0 flex items-center border-b p-2.5 sm:px-5">
 			<Button
 				icon="chevron-left"
 				variant="ghost"
@@ -26,7 +26,7 @@
 					>
 						<Button variant="ghost" @click="action.onClick">
 							<template #icon>
-								<component :is="action.icon" class="h-4 w-4 text-gray-600" />
+								<component :is="action.icon" class="text-ink-gray-5 h-4 w-4" />
 							</template>
 						</Button>
 					</Tooltip>
@@ -35,7 +35,7 @@
 						<Dropdown :options="moveToOptions">
 							<Button variant="ghost">
 								<template #icon>
-									<component :is="FolderInput" class="h-4 w-4 text-gray-600" />
+									<component :is="FolderInput" class="text-ink-gray-5 h-4 w-4" />
 								</template>
 							</Button>
 						</Dropdown>
@@ -72,7 +72,10 @@
 						@click.stop="mail.collapsed = !mail.collapsed"
 					>
 						<Avatar
-							:label="mail.from_name || mail.from_email"
+							:label="
+								getFirstAlphabet(mail.from_name) ||
+								getFirstAlphabet(mail.from_email)
+							"
 							:image="mail.user_image"
 							size="xl"
 						/>
@@ -82,7 +85,10 @@
 									<span class="text-base font-semibold">
 										{{ mail.from_name || mail.from_email }}
 									</span>
-									<span v-if="mail.from_name && !isMobile" class="text-gray-600">
+									<span
+										v-if="mail.from_name && !isMobile"
+										class="text-ink-gray-5"
+									>
 										{{ `<${mail.from_email}>` }}
 									</span>
 									<MailDetailsPopover
@@ -125,7 +131,7 @@
 										<template #icon>
 											<component
 												:is="action.icon"
-												class="h-4 w-4 text-gray-600"
+												class="text-ink-gray-5 h-4 w-4"
 											/>
 										</template>
 									</Button>
@@ -135,13 +141,14 @@
 										:options="
 											moreActions(mail).filter((d) => d.condition !== false)
 										"
-										@click.stop
 									>
-										<Button variant="ghost">
-											<template #icon>
-												<Ellipsis class="h-4 w-4 text-gray-600" />
-											</template>
-										</Button>
+										<span @click.stop>
+											<Button variant="ghost">
+												<template #icon>
+													<Ellipsis class="text-ink-gray-5 h-4 w-4" />
+												</template>
+											</Button>
+										</span>
 									</Dropdown>
 								</Tooltip>
 							</div>
@@ -151,28 +158,7 @@
 					<div v-show="isCollapsed(mail)" class="truncate">{{ mail.preview }}</div>
 
 					<div v-show="!isCollapsed(mail)">
-						<template v-if="mail.html_body">
-							<div
-								v-if="!iframeReady[mail.name]"
-								class="animate-pulse space-y-2 py-4"
-							>
-								<div
-									v-for="i in 5"
-									:key="i"
-									class="bg-surface-gray-3 h-2"
-									:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
-								/>
-							</div>
-							<IframeResizer
-								v-show="iframeReady[mail.name]"
-								class="w-full"
-								license="GPLv3"
-								:scrolling="true"
-								:srcdoc="getSrc(mail.html_body)"
-								@on-ready="iframeReady[mail.name] = true"
-							/>
-						</template>
-
+						<EmailContent v-if="mail.html_body" :content="mail.html_body" />
 						<pre v-else-if="mail.text_body" class="text-wrap pt-4 text-sm leading-5">{{
 							mail.text_body
 						}}</pre>
@@ -201,11 +187,11 @@
 
 	<div v-else class="h-full overflow-hidden">
 		<div
-			class="m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md bg-gray-50"
+			class="bg-surface-gray-1 m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md"
 		>
 			<div class="flex flex-col items-center space-y-3">
-				<NoMails class="h-16 w-16" />
-				<p class="text-gray-500">
+				<NoMails class="text-ink-gray-2 h-16 w-16" />
+				<p class="text-ink-gray-4">
 					{{ __('Select an email to view the thread.') }}
 				</p>
 			</div>
@@ -216,11 +202,10 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-// eslint-disable-next-line import/no-unresolved
-import IframeResizer from '@iframe-resizer/vue/sfc'
 import {
 	Code,
 	Ellipsis,
+	ExternalLink,
 	FolderInput,
 	Forward,
 	Mail as MailIcon,
@@ -232,9 +217,10 @@ import {
 } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
-import { getRecipients } from '@/utils'
+import { getFirstAlphabet, getRecipients } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
+import EmailContent from '@/components/EmailContent.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
 import MailDate from '@/components/MailDate.vue'
 import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
@@ -253,7 +239,6 @@ const router = useRouter()
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
-const iframeReady = reactive<Record<string, boolean>>({})
 
 const mailDetails = reactive<ComposeMailData>({
 	from_email: '',
@@ -289,71 +274,10 @@ const mailThread = createResource({
 })
 
 const reload = () => {
-	Object.keys(iframeReady).forEach((key) => (iframeReady[key] = false))
 	if (threadID) mailThread.reload()
 }
 
 defineExpose({ reload })
-
-const getSrc = (content: string) => {
-	content = content
-		.replace(
-			/<blockquote>/g,
-			'<button onclick="this.nextElementSibling.classList.toggle(\'hidden\');">...</button><blockquote class="hidden">',
-		)
-		.replace(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g, '<b>&lt;$1&gt;</b>')
-
-	/* eslint-disable no-useless-escape */
-	return `
-		<!DOCTYPE html>
-		<html>
-		<head>
-			<style>
-				body {
-					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-					font-size: 14px;
-					line-height: 1.25rem;
-				}
-				blockquote {
-					margin: 8px 0;
-					padding-left: 16px;
-					border-left: 4px solid #e5e7eb;
-				}
-				button {
-					background: none;
-					border: none;
-					cursor: pointer;
-					padding: 0;
-				}
-				.hidden {
-					display: none;
-				}
-                @media (max-width: 640px) {
-                    /* Only override specific problematic patterns */
-                    table[width="600"], table[width="600px"] {
-                        width: 100% !important;
-                    }
-                }
-			</style>
-			<script
-			src="https://cdn.jsdelivr.net/npm/@iframe-resizer/child@5.4.6"
-			type="text/javascript"
-			><\/script>
-		</head>
-		<body>
-			${content}
-			<script>
-				document.addEventListener('click', (e) => {
-					if (e.target.tagName === 'A') {
-						e.preventDefault();
-						window.open(e.target.href, '_blank');
-					}
-				});
-			<\/script>
-		</body>
-		</html>
-	`
-}
 
 const user = inject('$user')
 
@@ -435,12 +359,6 @@ const moreActions = (mail: Mail): MailAction[] => [
 		condition: () => !mail.draft,
 	},
 	{
-		label: __('See MIME Message'),
-		onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
-		icon: Code,
-		condition: () => !mail.draft && !isMobile.value,
-	},
-	{
 		label: __('Move to Trash'),
 		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: 'trash' }),
 		icon: Trash2,
@@ -451,6 +369,18 @@ const moreActions = (mail: Mail): MailAction[] => [
 		onClick: () => deleteMails.submit([mail.name]),
 		icon: Trash2,
 		condition: () => mailbox === 'trash',
+	},
+	{
+		label: __('See MIME Message'),
+		onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
+		icon: Code,
+		condition: () => !mail.draft && !isMobile.value,
+	},
+	{
+		label: __('View in Desk'),
+		onClick: () => window.open(`/app/email-message/${mail.name}`, '_blank')?.focus(),
+		icon: ExternalLink,
+		condition: () => user.data.is_system_manager,
 	},
 ]
 
@@ -551,7 +481,7 @@ const setReplyDetailsAndOpenModal = (mail: Mail) => {
 const getMailBody = (mail: Mail) => {
 	if (!mail.html_body) return ''
 	const replyHeader = `On ${dayjs(mail.received_at).format('DD MMM YYYY')} at ${dayjs(mail.received_at).format('h:mm A')}, ${mail.from_email} wrote:`
-	return `<br><blockquote>${replyHeader} <br> ${mail.html_body}</blockquote>`
+	return `<div class="frappe_mail_quote">${replyHeader}<br><blockquote style="margin-left: 8px"><br>${mail.html_body}</blockquote></div>`
 }
 
 watch(() => threadID, reload)

@@ -22,12 +22,12 @@
 			<transition name="expand">
 				<div
 					v-if="domain.doc.enabled && !domain.doc.is_verified"
-					class="overflow-hidden rounded-md border bg-blue-50"
+					class="bg-surface-blue-1 overflow-hidden rounded-md border"
 				>
 					<div class="space-y-2 p-4">
 						<h3 class="font-medium">{{ BANNER.title }}</h3>
 						<p>{{ BANNER.message }}</p>
-						<p class="text-sm text-gray-500">{{ BANNER.subtitle }}</p>
+						<p class="text-ink-gray-4 text-sm">{{ BANNER.subtitle }}</p>
 					</div>
 				</div>
 			</transition>

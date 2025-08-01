@@ -8,12 +8,12 @@
 		<template #body="{ togglePopover }">
 			<div
 				v-if="reaction"
-				class="flex items-center justify-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm"
+				class="bg-surface-white flex items-center justify-center gap-2 rounded-full px-2 py-1 shadow-sm"
 			>
 				<div
 					v-for="r in reactionEmojis"
 					:key="r"
-					class="size-5 cursor-pointer rounded-full bg-white text-xl"
+					class="bg-surface-white size-5 cursor-pointer rounded-full text-xl"
 					@click="() => (emoji = r) && togglePopover()"
 				>
 					<button>
@@ -22,7 +22,7 @@
 				</div>
 				<Button class="rounded-full" icon="plus" @click.stop="() => (reaction = false)" />
 			</div>
-			<div v-else class="my-3 max-w-max transform rounded-lg bg-white px-4 sm:px-0">
+			<div v-else class="bg-surface-white my-3 max-w-max transform rounded-lg px-4 sm:px-0">
 				<div
 					class="relative max-h-96 overflow-y-auto rounded-lg pb-3 shadow-2xl ring-1 ring-black ring-opacity-5"
 				>
@@ -38,14 +38,16 @@
 					</div>
 					<div class="w-96"></div>
 					<div v-for="(emojis, group) in emojiGroups" :key="group" class="px-3">
-						<div class="sticky top-0 bg-white pb-2 pt-3 text-sm text-gray-700">
+						<div
+							class="bg-surface-white text-ink-gray-6 sticky top-0 pb-2 pt-3 text-sm"
+						>
 							{{ group }}
 						</div>
 						<div class="grid w-96 grid-cols-12 place-items-center">
 							<button
 								v-for="_emoji in emojis"
 								:key="_emoji.description"
-								class="h-8 w-8 rounded-md p-1 text-2xl hover:bg-gray-100 focus:outline-none focus:ring focus:ring-blue-200"
+								class="hover:bg-surface-gray-2 h-8 w-8 rounded-md p-1 text-2xl focus:outline-none focus:ring focus:ring-blue-200"
 								:title="_emoji.description"
 								@click="() => (emoji = _emoji.emoji) && togglePopover()"
 							>

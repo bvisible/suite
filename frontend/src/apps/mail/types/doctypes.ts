@@ -38,7 +38,7 @@ export interface MailHeader extends ChildDocType {
 	value?: string
 }
 
-// Last updated: 2025-07-03 15:08:35.572464
+// Last updated: 2025-07-17 13:00:14.427328
 export interface MailAccountRequest extends DocType {
 	/** Request Key: Data */
 	request_key?: string
@@ -86,7 +86,7 @@ export interface MailDomainDNSRecord extends ChildDocType {
 	category: '' | 'Sending Record' | 'Receiving Record' | 'Tracking Record' | 'Server Record'
 }
 
-// Last updated: 2025-06-13 17:27:38.910662
+// Last updated: 2025-07-15 16:20:27.181885
 export interface MailDomain extends DocType {
 	/** Domain Name: Data */
 	domain_name: string
@@ -104,9 +104,11 @@ export interface MailDomain extends DocType {
 	is_root_domain: 0 | 1
 	/** Tenant: Link (Mail Tenant) */
 	tenant: string
+	/** Default Disk Quota (in GB): Float */
+	default_disk_quota?: number
 }
 
-// Last updated: 2025-06-02 13:01:28.396363
+// Last updated: 2025-07-17 13:00:45.874699
 export interface MailAlias extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -168,7 +170,7 @@ export interface MailDomainRequest extends DocType {
 	tenant: string
 }
 
-// Last updated: 2025-06-26 11:21:00.562086
+// Last updated: 2025-07-17 13:01:33.729262
 export interface MailAccount extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1
@@ -208,16 +210,24 @@ export interface MailAccount extends DocType {
 	vacation_to_date?: string
 	/** Subject: Small Text */
 	vacation_response_subject?: string
-	/** Text Body: Code */
+	/** Text: Code */
 	vacation_response_text_body?: string
-	/** HTML Body: Code */
+	/** HTML: Text Editor */
 	vacation_response_html_body?: string
-	/** State: Data */
-	vacation_response_state?: string
 	/** Destroy Email After Submission: Check */
 	destroy_email_after_submission: 0 | 1
 	/** Destroy Newsletter After Submission: Check */
 	destroy_newsletter_after_submission: 0 | 1
+	/** Disk Quota (in GB): Float */
+	disk_quota?: number
+	/** Used Quota (in GB): Float */
+	used_quota?: number
+	/** Quota Usage: Percent */
+	quota_usage?: number
+	/** Disk Quota: Int */
+	_disk_quota?: number
+	/** Used Quota: Int */
+	_used_quota?: number
 }
 
 // Last updated: 2025-03-26 11:43:10.481605
@@ -282,7 +292,7 @@ export interface MailSettings extends DocType {
 	dns_provider_access_secret?: string
 }
 
-// Last updated: 2024-11-16 15:35:35.197481
+// Last updated: 2025-07-17 13:01:50.810837
 export interface MailContact extends DocType {
 	/** User: Link (User) */
 	user: string
@@ -292,7 +302,7 @@ export interface MailContact extends DocType {
 	display_name?: string
 }
 
-// Last updated: 2025-05-08 18:28:38.329228
+// Last updated: 2025-07-17 12:58:57.621439
 export interface EmailMessageRecipient extends ChildDocType {
 	/** Type: Select */
 	type: 'To' | 'Cc' | 'Bcc'
@@ -302,7 +312,7 @@ export interface EmailMessageRecipient extends ChildDocType {
 	email: string
 }
 
-// Last updated: 2025-04-12 15:42:32.576799
+// Last updated: 2025-07-17 12:46:53.441935
 export interface EmailMessageReplyTo extends ChildDocType {
 	/** Display Name: Data */
 	display_name?: string
@@ -310,12 +320,12 @@ export interface EmailMessageReplyTo extends ChildDocType {
 	email: string
 }
 
-// Last updated: 2025-05-26 15:33:56.249725
+// Last updated: 2025-07-16 13:15:26.953982
 export interface EmailMessagePart extends ChildDocType {
 	/** Blob ID: Data */
 	blob_id?: string
-	/** Size (Bytes): Data */
-	size?: string
+	/** Size: Int */
+	size?: number
 	/** Type: Data */
 	type?: string
 	/** Charset: Data */
@@ -336,7 +346,7 @@ export interface EmailMessagePart extends ChildDocType {
 	file_url?: any
 }
 
-// Last updated: 2025-06-18 17:10:58.660997
+// Last updated: 2025-07-17 12:59:27.169419
 export interface EmailMessage extends DocType {
 	/** Subject: Small Text */
 	subject?: string
@@ -372,7 +382,7 @@ export interface EmailMessage extends DocType {
 	sender_email?: string
 	/** Received After (Seconds): Float */
 	received_after?: number
-	/** Size (Bytes): Int */
+	/** Size: Int */
 	size?: number
 	/** Seen: Check */
 	seen: 0 | 1
@@ -468,7 +478,7 @@ export interface File extends DocType {
 	file_type?: string
 }
 
-// Last updated: 2025-06-02 19:19:48.921106
+// Last updated: 2025-07-17 13:00:30.774415
 export interface MailingList extends DocType {
 	/** Enabled: Check */
 	enabled: 0 | 1

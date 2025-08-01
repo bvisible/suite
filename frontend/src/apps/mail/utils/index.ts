@@ -143,3 +143,5 @@ export const textEditorButtons = [
 		'DeleteTable',
 	],
 ]
+
+export const getFirstAlphabet = (str?: string) => str?.match(/[A-Za-z]/)?.[0]

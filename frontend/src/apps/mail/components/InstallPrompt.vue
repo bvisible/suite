@@ -18,21 +18,21 @@
 	<Popover :show="iosInstallMessage" placement="bottom">
 		<template #body>
 			<div
-				class="mx-2 mt-[calc(100vh-15rem)] flex flex-col gap-3 rounded bg-blue-100 py-5 drop-shadow-xl"
+				class="bg-surface-blue-2 mx-2 mt-[calc(100vh-15rem)] flex flex-col gap-3 rounded py-5 drop-shadow-xl"
 			>
 				<div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
-					<span class="text-base font-bold text-gray-900">
+					<span class="text-base font-bold">
 						{{ __('Install Frappe Mail') }}
 					</span>
 					<span class="inline-flex items-baseline">
 						<FeatherIcon
 							name="x"
-							class="ml-auto h-4 w-4 text-gray-700"
+							class="text-ink-gray-6 ml-auto h-4 w-4"
 							@click="iosInstallMessage = false"
 						/>
 					</span>
 				</div>
-				<div class="px-3 text-xs text-gray-800">
+				<div class="text-ink-gray-7 px-3 text-xs">
 					<span class="flex flex-col gap-2">
 						<span>
 							{{

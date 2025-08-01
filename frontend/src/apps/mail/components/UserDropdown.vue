@@ -8,8 +8,8 @@
 						isCollapsed
 							? 'w-auto px-0'
 							: open
-								? 'w-52 bg-white px-2 shadow-sm'
-								: 'w-52 px-2 hover:bg-gray-200'
+								? 'bg-surface-white w-52 px-2 shadow-sm'
+								: 'hover:bg-surface-gray-3 w-52 px-2'
 					"
 				>
 					<span
@@ -37,7 +37,7 @@
 							</span>
 							<span v-else> Mail </span>
 						</div>
-						<div v-if="userResource" class="mt-1 text-sm leading-none text-gray-700">
+						<div v-if="userResource" class="text-ink-gray-6 mt-1 text-sm leading-none">
 							{{ convertToTitleCase(userResource.data?.full_name) }}
 						</div>
 					</div>
@@ -49,7 +49,7 @@
 								: 'ml-2 w-auto opacity-100'
 						"
 					>
-						<ChevronDown class="h-4 w-4 text-gray-700" />
+						<ChevronDown class="text-ink-gray-6 h-4 w-4" />
 					</div>
 				</button>
 			</template>
@@ -61,11 +61,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronDown, Crown, LogOut, Mailbox, Settings as SettingsIcon } from 'lucide-vue-next'
+import {
+	ChevronDown,
+	Crown,
+	LogOut,
+	Mailbox,
+	Settings as SettingsIcon,
+	SunMoon,
+} from 'lucide-vue-next'
 import { Dropdown } from 'frappe-ui'
 
 import { convertToTitleCase } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
+import { useScreenSize, useTheme } from '@/utils/composables'
 import { sessionStore } from '@/stores/session'
 import { userStore } from '@/stores/user'
 import AppsMenu from '@/components/AppsMenu.vue'
@@ -77,6 +84,7 @@ const router = useRouter()
 const { logout, branding } = sessionStore()
 const { userResource } = userStore()
 const { isMobile } = useScreenSize()
+const { setTheme } = useTheme()
 
 const showSettings = ref(false)
 
@@ -109,11 +117,29 @@ const userDropdownOptions = [
 		condition: () => !userResource.data.is_tenant_owner && !isMobile.value,
 	},
 	{
+		icon: SunMoon,
+		label: __('Change Theme'),
+		submenu: [
+			{
+				label: 'Light Mode',
+				icon: 'sun',
+				onClick: () => setTheme('light'),
+			},
+			{
+				label: 'Dark Mode',
+				icon: 'moon',
+				onClick: () => setTheme('dark'),
+			},
+			{
+				label: 'System Default',
+				icon: 'monitor',
+				onClick: () => setTheme('system'),
+			},
+		],
+	},
+	{
 		component: AppsMenu,
-		condition: () => {
-			const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
-			return cookies.get('system_user') === 'yes' && !isMobile.value
-		},
+		condition: () => userResource.data.is_system_manager && !isMobile.value,
 	},
 	{
 		icon: LogOut,

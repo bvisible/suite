@@ -2,7 +2,7 @@
 	<div class="flex items-center space-x-3">
 		<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
 			<template #prefix>
-				<FeatherIcon name="search" class="w-4 text-gray-600" />
+				<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
 			</template>
 		</FormControl>
 		<FormControl
@@ -30,7 +30,8 @@
 					:key="row.name"
 					:row="row"
 					:class="{
-						'cursor-pointer rounded hover:bg-gray-50': row.name !== tenantOwner.data,
+						'hover:bg-surface-gray-1 cursor-pointer rounded':
+							row.name !== tenantOwner.data,
 					}"
 					@click="openAccount(row.name)"
 				>
@@ -39,7 +40,7 @@
 							<Avatar :image="row.user_image" :label="row.full_name" size="lg" />
 							<div class="text-sm">
 								<p class="font-medium">{{ row.full_name }}</p>
-								<p class="mt-0.5 text-gray-600">
+								<p class="text-ink-gray-5 mt-0.5">
 									{{ row.name }}
 								</p>
 							</div>

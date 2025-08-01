@@ -86,6 +86,6 @@ watch(
 
 <style>
 .switch {
-	@apply cursor-auto !p-0 hover:bg-white active:bg-white;
+	@apply hover:bg-surface-white active:bg-surface-white cursor-auto !p-0;
 }
 </style>

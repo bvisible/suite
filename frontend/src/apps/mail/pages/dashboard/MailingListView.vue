@@ -49,7 +49,7 @@
 									class="w-80"
 								>
 									<template #prefix>
-										<FeatherIcon name="search" class="w-4 text-gray-600" />
+										<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
 									</template>
 								</FormControl>
 								<!-- <FormControl
