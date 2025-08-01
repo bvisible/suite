@@ -151,10 +151,11 @@ def get_user_info() -> dict | None:
 		],
 		as_dict=1,
 	)
-	user_dict["roles"] = frappe.get_roles(user_dict.name)
+	user_roles = frappe.get_roles(user)
 	user_dict.tenant = get_user_tenant()
-	user_dict.is_mail_user = "Mail User" in user_dict.roles and user != "Administrator"
-	user_dict.is_mail_admin = "Mail Admin" in user_dict.roles
+	user_dict.is_mail_user = "Mail User" in user_roles and user != "Administrator"
+	user_dict.is_mail_admin = "Mail Admin" in user_roles
+	user_dict.is_system_manager = "System Manager" in user_roles or user == "Administrator"
 
 	if user_dict.tenant:
 		user_dict.tenant_name, tenant_owner = frappe.db.get_value(
