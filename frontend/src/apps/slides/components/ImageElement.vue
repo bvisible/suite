@@ -3,7 +3,7 @@
 		<img class="object-cover" :src="element.src" :style="imageStyle" />
 		<div
 			v-if="showReplaceImageButton"
-			class="absolute left-0 top-0 size-full overflow-hidden transition-opacity duration-500 ease-in-out"
+			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
 			:style="gradientOverlayStyles"
 		>
 			<FileUploader
@@ -13,7 +13,7 @@
 			>
 				<template #default="{ openFileSelector }">
 					<div :class="replaceButtonClasses" @click="openFileSelector">
-						<LucideReplace class="size-5 stroke-[1.5] text-gray-700" />
+						<LucideReplace class="size-5 stroke-[1.5] text-gray-900" />
 					</div>
 				</template>
 			</FileUploader>
@@ -36,7 +36,7 @@ const element = defineModel('element', {
 })
 
 const replaceButtonClasses =
-	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-500 opacity-95'
+	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white'
 
 const showReplaceImageButton = computed(() => {
 	return (
@@ -70,7 +70,6 @@ const replaceTemplateImage = (file) => {
 }
 
 const gradientOverlayStyles = computed(() => ({
-	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 5%, rgba(0, 0, 0, 0) 100%)`,
 	borderRadius: `${element.value.borderRadius}px`,
 }))
 </script>
