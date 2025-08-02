@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="fixed bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
 	>
 		<Tooltip text="Text" :hover-delay="0.7" placement="bottom">
 			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
