@@ -85,6 +85,7 @@ const getVerticalStyles = (direction) => {
 		left: `${left}px`,
 		top: `${top}px`,
 		height: `${height}px`,
+		display: isVisible(direction) ? 'block' : 'none',
 	}
 }
 
@@ -109,6 +110,7 @@ const getHorizontalStyles = (direction) => {
 		top: `${top}px`,
 		left: `${left}px`,
 		width: `${width}px`,
+		display: isVisible(direction) ? 'block' : 'none',
 	}
 }
 
