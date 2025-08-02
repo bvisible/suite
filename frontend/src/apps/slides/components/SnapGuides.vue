@@ -21,7 +21,7 @@ const props = defineProps({
 
 const commonStyles = {
 	backgroundColor: '#70b6f080',
-	position: 'fixed',
+	position: 'absolute',
 	zIndex: 1000,
 }
 
@@ -78,7 +78,7 @@ const getVerticalStyles = (direction) => {
 	const height = Math.abs(pairedBounds.top - selectionBounds.top) + lastElementHeight
 
 	return {
-		position: 'fixed',
+		position: 'absolute',
 		borderColor: '#70b6f080',
 		borderStyle: 'dashed',
 		borderWidth: '0 0 0 1px',
@@ -102,7 +102,7 @@ const getHorizontalStyles = (direction) => {
 	const width = Math.abs(pairedBounds.left - selectionBounds.left) + lastElementWidth
 
 	return {
-		position: 'fixed',
+		position: 'absolute',
 		borderColor: '#70b6f080',
 		borderStyle: 'dashed',
 		borderWidth: '1px 0 0 0',
