@@ -1,6 +1,7 @@
 <template>
 	<div
 		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		@wheel="handleScrollBarWheelEvent"
 	>
 		<Tooltip text="Text" :hover-delay="0.7" placement="bottom">
 			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
@@ -54,6 +55,8 @@ import { Tooltip, FileUploader, toast } from 'frappe-ui'
 import { presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
+
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
 
