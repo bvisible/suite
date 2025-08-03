@@ -41,9 +41,17 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	elementOffset: {
+		type: Object,
+		default: () => ({ left: 0, top: 0 }),
+	},
 })
 
 const emit = defineEmits(['clearTimeouts'])
+
+const isActive = computed(() => {
+	return activeElementIds.value.includes(element.value.id)
+})
 
 const element = defineModel('element', {
 	type: Object,
@@ -63,14 +71,21 @@ const outline = computed(() => {
 	}
 })
 
-const elementStyle = computed(() => ({
-	position: activeElementIds.value.includes(element.value.id) ? 'absolute' : 'fixed',
-	width: `${element.value.width}px` || 'auto',
-	left: `${element.value.left}px`,
-	top: `${element.value.top}px`,
-	outline: outline.value,
-	boxSizing: 'border-box',
-}))
+const elementStyle = computed(() => {
+	const offsetLeft = isActive.value ? props.elementOffset.left : 0
+	const offsetTop = isActive.value ? props.elementOffset.top : 0
+	const elementLeft = element.value.left + offsetLeft
+	const elementTop = element.value.top + offsetTop
+	return {
+		position: 'absolute',
+		width: `${element.value.width}px` || 'auto',
+		height: 'auto',
+		left: `${elementLeft}px`,
+		top: `${elementTop}px`,
+		outline: outline.value,
+		boxSizing: 'border-box',
+	}
+})
 
 const getDynamicComponent = (type) => {
 	switch (type) {

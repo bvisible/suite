@@ -2,37 +2,30 @@
 	<div ref="slideContainer" class="flex size-full" @dragenter="showOverlay">
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
-		<div
-			ref="target"
-			:style="targetStyles"
-			class="fixed left-[calc(50%-512px)] top-[calc(50%-270px)]"
-		>
-			<div ref="slideRef" :class="slideClasses" :style="slideStyles">
-				<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
+		<div ref="slideRef" :style="slideStyles" :class="slideClasses">
+			<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
 
-				<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
+			<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
 
-				<SlideElement
-					v-for="element in slide.elements"
-					:key="element.id"
-					:element="element"
-					:outline="getElementOutline(element)"
-					:isDragging="isDragging"
-					:data-index="element.id"
-					@mousedown="(e) => handleMouseDown(e, element)"
-					@clearTimeouts="clearTimeouts"
-				/>
-			</div>
+			<SlideElement
+				v-for="element in slide.elements"
+				:key="element.id"
+				:element
+				:elementOffset
+				:isDragging
+				:data-index="element.id"
+				:outline="getElementOutline(element)"
+				@mousedown="(e) => handleMouseDown(e, element)"
+				@clearTimeouts="clearTimeouts"
+			/>
 		</div>
+		<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
+		<OverflowContentOverlay />
 	</div>
-
-	<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
-
-	<OverflowContentOverlay />
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide } from 'vue'
+import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
 import SnapGuides from '@/components/SnapGuides.vue'
@@ -62,7 +55,6 @@ const props = defineProps({
 })
 
 const slideContainerRef = useTemplateRef('slideContainer')
-const slideTargetRef = useTemplateRef('target')
 const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
 
@@ -72,13 +64,18 @@ const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer
 
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
 
-const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
-	slideContainerRef,
-	slideTargetRef,
-)
+const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(slideContainerRef, slideRef)
 
 const slideClasses = computed(() => {
-	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl', 'shadow-gray-400']
+	const classes = [
+		'absolute',
+		'left-[calc(50%-512px)]',
+		'top-[calc(50%-270px)]',
+		'h-[540px]',
+		'w-[960px]',
+		'shadow-2xl',
+		'shadow-gray-400',
+	]
 
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
@@ -86,12 +83,9 @@ const slideClasses = computed(() => {
 	return [...classes, outlineClasses]
 })
 
-const targetStyles = computed(() => ({
+const slideStyles = computed(() => ({
 	transformOrigin: transformOrigin.value,
 	transform: transform.value,
-}))
-
-const slideStyles = computed(() => ({
 	backgroundColor: slide.value.background || '#ffffff',
 	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
 }))
@@ -235,8 +229,17 @@ const getTotalPositionDelta = (delta) => {
 	}
 }
 
+const elementOffset = reactive({
+	left: 0,
+	top: 0,
+})
+
 const handlePositionChange = (delta) => {
 	const totalDelta = getTotalPositionDelta(delta)
+
+	elementOffset.left += totalDelta.left / scale.value
+	elementOffset.top += totalDelta.top / scale.value
+
 	updateSelectionBounds({
 		left: selectionBounds.left + totalDelta.left / scale.value,
 		top: selectionBounds.top + totalDelta.top / scale.value,
@@ -333,4 +336,23 @@ provide('resizer', {
 defineExpose({
 	togglePanZoom,
 })
+
+watch(
+	() => isDragging.value,
+	(isDragging) => {
+		if (!isDragging) {
+			requestAnimationFrame(() => {
+				activeElementIds.value.forEach((id) => {
+					const element = slide.value.elements.find((el) => el.id === id)
+					if (element) {
+						element.left += elementOffset.left
+						element.top += elementOffset.top
+					}
+				})
+				elementOffset.left = 0
+				elementOffset.top = 0
+			})
+		}
+	},
+)
 </script>
