@@ -149,15 +149,19 @@ def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 	client = get_jmap_client(account)
 	mailboxes = client.mailbox_get()
 
+	formatted_mailboxes = [format_mailbox(account, mailbox) for mailbox in mailboxes]
+	sorted_mailboxes = sorted(formatted_mailboxes, key=lambda m: m.get("_sort_order", 0))
+
 	start = (page - 1) * limit
 	end = start + limit
 
-	return [format_mailbox(account, mailbox) for mailbox in mailboxes[start:end]]
+	return sorted_mailboxes[start:end]
 
 
 def format_mailbox(account: str, mailbox: dict) -> dict:
 	"""Formats mailbox data for display."""
 
+	sort_order = cint(mailbox["sortOrder"])
 	if _parent := mailbox["parentId"]:
 		_parent = f"{account}|{_parent}"
 	if rights := mailbox.get("myRights"):
@@ -171,7 +175,8 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"_parent": _parent,
 		"parent_id": mailbox["parentId"],
 		"role": mailbox["role"],
-		"sort_order": cint(mailbox["sortOrder"]),
+		"sort_order": sort_order,
+		"_sort_order": sort_order or get_sort_order(mailbox["role"]),
 		"subscribed": bool(mailbox["isSubscribed"]),
 		"total_emails": cint(mailbox["totalEmails"]),
 		"unread_emails": cint(mailbox["unreadEmails"]),
@@ -181,6 +186,17 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"creation": today(),
 		"modified": today(),
 	}
+
+
+def get_sort_order(role: str | None = None) -> int:
+	"""Returns the sort order for the mailbox based on its role."""
+
+	sort_order = ["inbox", "sent", "drafts", "junk", "trash"]
+
+	if not role or role not in sort_order:
+		return 0
+
+	return sort_order.index(role) + 1
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
