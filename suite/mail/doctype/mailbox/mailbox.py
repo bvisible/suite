@@ -35,7 +35,8 @@ class Mailbox(Document):
 		self.reload()
 
 	def delete(self) -> None:
-		raise NotImplementedError
+		account, id = self.name.split("|")
+		delete_mailbox(account, id)
 
 	@staticmethod
 	def get_list(filters=None, page_length=20, **kwargs) -> list:
@@ -84,11 +85,9 @@ def add_mailbox(
 	if response.get("created"):
 		return response["created"][unique_id]["id"]
 	elif response.get("notCreated"):
-		frappe.throw(
-			_("Mailbox creation failed: {0}").format(response["notCreated"][unique_id]["description"])
-		)
+		frappe.throw(_(response["notCreated"][unique_id]["description"]))
 	else:
-		frappe.throw(_("Mailbox creation failed: {0}").format(response["description"]))
+		frappe.throw(_(response["description"]))
 
 
 def get_mailbox(account: str, id: str) -> dict:
@@ -122,9 +121,19 @@ def update_mailbox(
 
 	if not response.get("updated"):
 		if response.get("notUpdated"):
-			frappe.throw(_("Mailbox update failed: {0}").format(response["notUpdated"][id]["description"]))
+			frappe.throw(_(response["notUpdated"][id]["description"]))
 		else:
-			frappe.throw(_("Mailbox update failed: {0}").format(response["description"]))
+			frappe.throw(_(response["description"]))
+
+
+def delete_mailbox(account: str, id: str) -> None:
+	"""Deletes a mailbox for the given account by its ID."""
+
+	client = get_jmap_client(account)
+	response = client.mailbox_destroy([id], remove_emails=True)
+
+	if response.get("notDestroyed"):
+		frappe.throw(_(response["notDestroyed"][id]["description"]))
 
 
 def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
