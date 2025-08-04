@@ -244,6 +244,8 @@ const elementOffset = reactive({
 })
 
 const handlePositionChange = (delta) => {
+	if (!delta.x && !delta.y) return
+
 	const totalDelta = getTotalPositionDelta(delta)
 
 	applyPositionDelta(totalDelta)
