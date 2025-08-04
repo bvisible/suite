@@ -8,13 +8,7 @@
 					<rect width="100%" height="100%" fill="white" />
 
 					<!-- cutout the section for the slide -->
-					<rect
-						fill="black"
-						:x="slideBounds.left"
-						:y="slideBounds.top"
-						:width="slideBounds.width"
-						:height="slideBounds.height"
-					/>
+					<rect v-bind="rectAttributes" />
 				</mask>
 			</defs>
 		</svg>
@@ -26,7 +20,7 @@ import { computed } from 'vue'
 import { slideBounds } from '@/stores/slide'
 
 const maskStyles = computed(() => ({
-	position: 'fixed',
+	position: 'absolute',
 	top: 0,
 	left: 0,
 	width: '100vw',
@@ -36,5 +30,13 @@ const maskStyles = computed(() => ({
 	mask: 'url(#hole-mask)',
 	webkitMask: 'url(#hole-mask)',
 	pointerEvents: 'none',
+}))
+
+const rectAttributes = computed(() => ({
+	fill: 'black',
+	x: slideBounds.left,
+	y: (slideBounds.top || 0) - 45, // subtract navbar height
+	width: slideBounds.width,
+	height: slideBounds.height,
 }))
 </script>
