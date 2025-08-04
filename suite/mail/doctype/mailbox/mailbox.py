@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint
+from frappe.utils import cint, now
 
 from mail.jmap import get_jmap_client
 from mail.utils import extract_filter_values
@@ -86,8 +86,8 @@ def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 def format_mailbox(account: str, mailbox: dict) -> dict:
 	"""Formats mailbox data for display."""
 
-	if parent := mailbox["parentId"]:
-		parent = f"{account}|{parent}"
+	if _parent := mailbox["parentId"]:
+		_parent = f"{account}|{_parent}"
 	if rights := mailbox.get("myRights"):
 		rights = json.dumps(rights, indent=4, sort_keys=True)
 
@@ -96,7 +96,7 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"account": account,
 		"id": mailbox["id"],
 		"_name": mailbox["name"],
-		"parent": parent,
+		"_parent": _parent,
 		"parent_id": mailbox["parentId"],
 		"role": mailbox["role"],
 		"sort_order": cint(mailbox["sortOrder"]),
@@ -106,4 +106,6 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"total_threads": cint(mailbox["totalThreads"]),
 		"unread_threads": cint(mailbox["unreadThreads"]),
 		"rights": rights,
+		"creation": now(),
+		"modified": now(),
 	}
