@@ -18,7 +18,7 @@ from frappe.utils import add_to_date, cint, escape_html, get_datetime, now, time
 from pypika import Case
 from uuid_utils import uuid7
 
-from mail.jmap import get_jmap_client, get_mailbox_id, get_mailbox_name, get_mailbox_role
+from mail.jmap import get_jmap_client, get_mailbox_id_by_role, get_mailbox_name_by_id, get_mailbox_role_by_id
 from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	create_jmap_sync_state,
@@ -214,7 +214,7 @@ class EmailMessage(Document):
 		if not emails_to_move:
 			return
 
-		target_mailbox_id = mailbox_id or get_mailbox_id(account, role=mailbox_role)
+		target_mailbox_id = mailbox_id or get_mailbox_id_by_role(account, role=mailbox_role)
 
 		if not target_mailbox_id:
 			frappe.throw(_("Mailbox not found."))
@@ -222,8 +222,8 @@ class EmailMessage(Document):
 		try:
 			client = get_jmap_client(account)
 			client.email_set_mailbox(list(emails_to_move), target_mailbox_id)
-			target_mailbox_role = mailbox_role or get_mailbox_role(account, target_mailbox_id)
-			target_mailbox_name = get_mailbox_name(account, target_mailbox_id)
+			target_mailbox_role = mailbox_role or get_mailbox_role_by_id(account, target_mailbox_id)
+			target_mailbox_name = get_mailbox_name_by_id(account, target_mailbox_id)
 
 			# This database update could potentially cause a deadlock.
 			frappe.db.set_value(
@@ -395,8 +395,8 @@ class EmailMessage(Document):
 		email_message._id = email_data["id"]
 		email_message.account = account
 		email_message.mailbox_id = list(email_data["mailboxIds"].keys())[0]
-		email_message.mailbox_role = get_mailbox_role(account, email_message.mailbox_id)
-		email_message.folder = get_mailbox_name(account, email_message.mailbox_id)
+		email_message.mailbox_role = get_mailbox_role_by_id(account, email_message.mailbox_id)
+		email_message.folder = get_mailbox_name_by_id(account, email_message.mailbox_id)
 		email_message.subject = email_data["subject"]
 		email_message.sent_at = parse_iso_datetime(email_data["sentAt"])
 		email_message.received_at = parse_iso_datetime(email_data["receivedAt"])
@@ -481,8 +481,8 @@ class EmailMessage(Document):
 		_id = email_data["id"]
 
 		mailbox_id = list(email_data["mailboxIds"].keys())[0]
-		mailbox_role = get_mailbox_role(account, mailbox_id)
-		folder = get_mailbox_name(account, mailbox_id)
+		mailbox_role = get_mailbox_role_by_id(account, mailbox_id)
+		folder = get_mailbox_name_by_id(account, mailbox_id)
 
 		_keywords = json.dumps(email_data["keywords"])
 		draft = cint(email_data["keywords"].get("$draft", False))
