@@ -34,7 +34,13 @@ import SlideElement from '@/components/SlideElement.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
 
-import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
+import {
+	slide,
+	slideBounds,
+	selectionBounds,
+	updateSelectionBounds,
+	setSlideRef,
+} from '@/stores/slide'
 import {
 	activeElementIds,
 	activeElement,
@@ -319,6 +325,8 @@ watch(
 
 onMounted(() => {
 	if (!slideRef.value) return
+
+	setSlideRef(slideRef.value)
 
 	updateSlideBounds()
 
