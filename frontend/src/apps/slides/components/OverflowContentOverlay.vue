@@ -32,11 +32,14 @@ const maskStyles = computed(() => ({
 	pointerEvents: 'none',
 }))
 
-const rectAttributes = computed(() => ({
-	fill: 'black',
-	x: slideBounds.left,
-	y: (slideBounds.top || 0) - 45, // subtract navbar height
-	width: slideBounds.width,
-	height: slideBounds.height,
-}))
+const rectAttributes = computed(() => {
+	if (!slideBounds.left) return {}
+	return {
+		x: slideBounds.left,
+		y: slideBounds.top - 45, // subtract navbar height
+		width: slideBounds.width,
+		height: slideBounds.height,
+		fill: 'black',
+	}
+})
 </script>
