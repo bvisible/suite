@@ -267,7 +267,7 @@ class JMAPClient:
 		role: str | None = None,
 		parent: str | None = None,
 		sort_order: int = 0,
-		is_subscribed: bool = True,
+		subscribed: bool = True,
 	) -> dict:
 		"""Creates a mailbox with the given parameters."""
 
@@ -284,7 +284,7 @@ class JMAPClient:
 								"role": role or None,
 								"parentId": parent or None,
 								"sortOrder": sort_order or 0,
-								"isSubscribed": is_subscribed or False,
+								"isSubscribed": subscribed or False,
 							}
 						},
 					},
@@ -301,7 +301,7 @@ class JMAPClient:
 		role: str | None = None,
 		parent: str | None = None,
 		sort_order: int = 0,
-		is_subscribed: bool = True,
+		subscribed: bool = True,
 	) -> dict:
 		"""Updates the mailbox with the given parameters."""
 
@@ -318,7 +318,7 @@ class JMAPClient:
 								"role": role or None,
 								"parentId": parent or None,
 								"sortOrder": sort_order or 0,
-								"isSubscribed": is_subscribed or False,
+								"isSubscribed": subscribed or False,
 							}
 						},
 					},

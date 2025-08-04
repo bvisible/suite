@@ -18,7 +18,7 @@ class Mailbox(Document):
 	def db_insert(self, *args, **kwargs) -> None:
 		parent = self._parent.replace(f"{self.account}|", "") if self._parent else None
 		self.id = add_mailbox(
-			self.account, self._name, self.role, parent, self.sort_order, bool(self.is_subscribed)
+			self.account, self._name, self.role, parent, self.sort_order, bool(self.subscribed)
 		)
 		self.name = f"{self.account}|{self.id}"
 
@@ -30,8 +30,9 @@ class Mailbox(Document):
 	def db_update(self) -> None:
 		parent = self._parent.replace(f"{self.account}|", "") if self._parent else None
 		update_mailbox(
-			self.account, self.id, self._name, self.role, parent, self.sort_order, bool(self.is_subscribed)
+			self.account, self.id, self._name, self.role, parent, self.sort_order, bool(self.subscribed)
 		)
+		self.reload()
 
 	def delete(self) -> None:
 		raise NotImplementedError
@@ -72,13 +73,13 @@ def add_mailbox(
 	role: str | None = None,
 	parent: str | None = None,
 	sort_order: int = 0,
-	is_subscribed: bool = True,
+	subscribed: bool = True,
 ) -> str:
 	"""Adds a mailbox for the given account with the specified parameters."""
 
 	unique_id = str(uuid7())
 	client = get_jmap_client(account)
-	response = client.mailbox_create(unique_id, name, role, parent, sort_order, is_subscribed)
+	response = client.mailbox_create(unique_id, name, role, parent, sort_order, subscribed)
 
 	if response.get("created"):
 		return response["created"][unique_id]["id"]
@@ -109,12 +110,15 @@ def update_mailbox(
 	role: str | None = None,
 	parent: str | None = None,
 	sort_order: int = 0,
-	is_subscribed: bool = True,
+	subscribed: bool = True,
 ) -> None:
 	"""Updates an existing mailbox with the given parameters."""
 
+	if parent and id == parent:
+		frappe.throw(_("Mailbox cannot be a parent of itself."))
+
 	client = get_jmap_client(account)
-	response = client.mailbox_set(id, name, role, parent, sort_order, is_subscribed)
+	response = client.mailbox_set(id, name, role, parent, sort_order, subscribed)
 
 	if not response.get("updated"):
 		if response.get("notUpdated"):
@@ -150,7 +154,7 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"parent_id": mailbox["parentId"],
 		"role": mailbox["role"],
 		"sort_order": cint(mailbox["sortOrder"]),
-		"is_subscribed": bool(mailbox["isSubscribed"]),
+		"subscribed": bool(mailbox["isSubscribed"]),
 		"total_emails": cint(mailbox["totalEmails"]),
 		"unread_emails": cint(mailbox["unreadEmails"]),
 		"total_threads": cint(mailbox["totalThreads"]),
