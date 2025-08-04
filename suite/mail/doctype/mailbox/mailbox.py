@@ -21,7 +21,8 @@ class Mailbox(Document):
 		raise NotImplementedError
 
 	def load_from_db(self) -> "Mailbox":
-		raise NotImplementedError
+		mailbox = get_mailbox(self.name)
+		return super(Document, self).__init__(mailbox)
 
 	def db_update(self) -> None:
 		raise NotImplementedError
@@ -59,6 +60,19 @@ class Mailbox(Document):
 		pass
 
 
+def get_mailbox(name: str) -> dict:
+	"""Returns mailbox details for the given name in the format 'account|id'."""
+
+	account, id = name.split("|")
+	client = get_jmap_client(account)
+	if mailboxes := client.mailbox_get([id]):
+		return format_mailbox(account, mailboxes[0])
+
+	frappe.throw(
+		_("Mailbox with ID {0} not found in account {1}.").format(frappe.bold(id), frappe.bold(account))
+	)
+
+
 def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 	"""Returns a list of mailboxes for the given account."""
 
@@ -74,8 +88,8 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 
 	if parent := mailbox["parentId"]:
 		parent = f"{account}|{parent}"
-	if my_rights := mailbox.get("myRights"):
-		my_rights = json.dumps(my_rights, indent=4, sort_keys=True)
+	if rights := mailbox.get("myRights"):
+		rights = json.dumps(rights, indent=4, sort_keys=True)
 
 	return {
 		"name": f"{account}|{mailbox['id']}",
@@ -91,5 +105,5 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"unread_emails": cint(mailbox["unreadEmails"]),
 		"total_threads": cint(mailbox["totalThreads"]),
 		"unread_threads": cint(mailbox["unreadThreads"]),
-		"my_rights": my_rights,
+		"rights": rights,
 	}
