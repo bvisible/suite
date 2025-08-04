@@ -30,7 +30,7 @@ const props = defineProps({
 
 const styles = computed(() => ({
 	position: 'absolute',
-	zIndex: 100,
+	zIndex: 5,
 	...props.indicatorStyles,
 }))
 

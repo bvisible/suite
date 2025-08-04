@@ -109,7 +109,7 @@ const getThumbnailStyles = (s) => {
 }
 
 const toggleButtonClasses = computed(() => {
-	const baseClasses = 'z-20 flex cursor-pointer items-center border bg-white'
+	const baseClasses = 'flex cursor-pointer items-center border bg-white'
 	if (showNavigator.value) {
 		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
 	}

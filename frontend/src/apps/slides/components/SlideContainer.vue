@@ -94,6 +94,7 @@ const slideStyles = computed(() => ({
 	transform: transform.value,
 	backgroundColor: slide.value.background || '#ffffff',
 	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
+	zIndex: 0,
 }))
 
 const getElementOutline = (element) => {
