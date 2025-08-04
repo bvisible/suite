@@ -60,6 +60,8 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
+const emit = defineEmits(['update:hasOngoingInteraction'])
+
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideRef = useTemplateRef('slideRef')
 const selectionBoxRef = useTemplateRef('selectionBox')
@@ -352,7 +354,7 @@ defineExpose({
 	togglePanZoom,
 })
 
-const isInteracting = computed(() => isDragging.value || isResizing.value)
+const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
 const applyInteractionOffset = () => {
 	requestAnimationFrame(() => {
@@ -369,9 +371,10 @@ const applyInteractionOffset = () => {
 }
 
 watch(
-	() => isInteracting.value,
+	() => hasOngoingInteraction.value,
 	(newVal, oldVal) => {
 		if (oldVal && !newVal) applyInteractionOffset()
+		emit('update:hasOngoingInteraction', newVal)
 	},
 )
 </script>
