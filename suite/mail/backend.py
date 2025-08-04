@@ -223,7 +223,6 @@ class MailBackendAccountManager(MailBackendManagerBase):
 			secrets=[secret],
 			emails=[email],
 			roles=["user"],
-			disabledPermissions=["jmap-mailbox-set"],
 		).__dict__
 		self.create_request(
 			method="POST",
