@@ -7,6 +7,10 @@ import { activeElementIds } from './element'
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
+const slideRef = ref(null)
+
+const setSlideRef = (ref) => (slideRef.value = ref)
+
 const slideIndex = ref(0)
 
 const slide = ref({
@@ -53,9 +57,7 @@ const isSlideDirty = () => {
 }
 
 const getThumbnailHtml = () => {
-	const slideRef = document.querySelector('.slide')
-
-	const clone = slideRef.cloneNode(true)
+	const clone = slideRef.value.cloneNode(true)
 
 	clone.style.position = 'absolute'
 	clone.style.left = '-9999px'
@@ -166,4 +168,5 @@ export {
 	saveChanges,
 	updateSelectionBounds,
 	updateSlideThumbnail,
+	setSlideRef,
 }
