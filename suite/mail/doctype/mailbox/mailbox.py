@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, now
+from frappe.utils import cint, today
 from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client
@@ -28,7 +28,10 @@ class Mailbox(Document):
 		return super(Document, self).__init__(mailbox)
 
 	def db_update(self) -> None:
-		raise NotImplementedError
+		parent = self._parent.replace(f"{self.account}|", "") if self._parent else None
+		update_mailbox(
+			self.account, self.id, self._name, self.role, parent, self.sort_order, bool(self.is_subscribed)
+		)
 
 	def delete(self) -> None:
 		raise NotImplementedError
@@ -60,7 +63,7 @@ class Mailbox(Document):
 
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
-		pass
+		return {}
 
 
 def add_mailbox(
@@ -99,6 +102,27 @@ def get_mailbox(account: str, id: str) -> dict:
 	)
 
 
+def update_mailbox(
+	account: str,
+	id: str,
+	name: str,
+	role: str | None = None,
+	parent: str | None = None,
+	sort_order: int = 0,
+	is_subscribed: bool = True,
+) -> None:
+	"""Updates an existing mailbox with the given parameters."""
+
+	client = get_jmap_client(account)
+	response = client.mailbox_set(id, name, role, parent, sort_order, is_subscribed)
+
+	if not response.get("updated"):
+		if response.get("notUpdated"):
+			frappe.throw(_("Mailbox update failed: {0}").format(response["notUpdated"][id]["description"]))
+		else:
+			frappe.throw(_("Mailbox update failed: {0}").format(response["description"]))
+
+
 def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 	"""Returns a list of mailboxes for the given account."""
 
@@ -132,6 +156,6 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 		"total_threads": cint(mailbox["totalThreads"]),
 		"unread_threads": cint(mailbox["unreadThreads"]),
 		"rights": rights,
-		"creation": now(),
-		"modified": now(),
+		"creation": today(),
+		"modified": today(),
 	}
