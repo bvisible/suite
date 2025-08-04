@@ -6,18 +6,24 @@
  "field_order": [
   "section_break_nuoa",
   "account",
+  "column_break_5a4x",
+  "is_subscribed",
+  "section_break_cbgf",
   "id",
+  "role",
   "_name",
+  "sort_order",
+  "column_break_0da9",
   "parent1",
   "parent_id",
-  "role",
-  "sort_order",
+  "section_break_9nkx",
   "total_emails",
   "unread_emails",
+  "column_break_cg5h",
   "total_threads",
   "unread_threads",
-  "my_rights",
-  "is_subscribed"
+  "section_break_uvft",
+  "rights"
  ],
  "fields": [
   {
@@ -41,7 +47,10 @@
   {
    "fieldname": "parent_id",
    "fieldtype": "Data",
-   "label": "Parent ID"
+   "label": "Parent ID",
+   "no_copy": 1,
+   "read_only": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "parent1",
@@ -59,57 +68,100 @@
   {
    "fieldname": "sort_order",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Sort Order"
   },
   {
    "fieldname": "total_emails",
    "fieldtype": "Int",
-   "label": "Total Emails"
-  },
-  {
-   "fieldname": "unread_emails",
-   "fieldtype": "Int",
-   "label": "Unread Emails"
-  },
-  {
-   "fieldname": "total_threads",
-   "fieldtype": "Int",
-   "label": "Total Threads"
-  },
-  {
-   "fieldname": "unread_threads",
-   "fieldtype": "Int",
-   "label": "Unread Threads"
-  },
-  {
-   "fieldname": "my_rights",
-   "fieldtype": "JSON",
-   "label": "My Rights",
+   "in_list_view": 1,
+   "label": "Total Emails",
    "no_copy": 1,
    "read_only": 1,
    "set_only_once": 1
   },
   {
-   "default": "0",
+   "fieldname": "unread_emails",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Unread Emails",
+   "no_copy": 1,
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "total_threads",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total Threads",
+   "no_copy": 1,
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "unread_threads",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Unread Threads",
+   "no_copy": 1,
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "1",
    "fieldname": "is_subscribed",
    "fieldtype": "Check",
-   "label": "Is Subscribed"
+   "in_list_view": 1,
+   "label": "Subscribed"
   },
   {
    "fieldname": "account",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Account",
+   "no_copy": 1,
    "options": "Mail Account",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "section_break_uvft",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_9nkx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_cg5h",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_5a4x",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_cbgf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_0da9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rights",
+   "fieldtype": "JSON",
+   "label": "Rights",
+   "no_copy": 1,
+   "read_only": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-08-04 09:46:11.512908",
+ "modified": "2025-08-04 10:54:57.970095",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailbox",
