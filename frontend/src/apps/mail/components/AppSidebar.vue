@@ -112,12 +112,15 @@ const sidebarLinks = computed(() => {
 
 	const mailboxItems =
 		mailboxes.data?.map(
-			(mailbox: { name: string; role: keyof typeof MAILBOX_ICONS; count: number }) => ({
+			(mailbox: { name: string; role: string; id: string; count: number }) => ({
 				label: mailbox.name,
-				icon: MAILBOX_ICONS[mailbox.role],
-				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
+				icon:
+					mailbox.role in MAILBOX_ICONS
+						? MAILBOX_ICONS[mailbox.role as keyof typeof MAILBOX_ICONS]
+						: 'Tag',
+				to: { name: 'Mailbox', params: { mailbox: mailbox.id } },
 				count: mailbox.count,
-				activeFor: [mailbox.role],
+				activeFor: [mailbox.id],
 			}),
 		) || []
 

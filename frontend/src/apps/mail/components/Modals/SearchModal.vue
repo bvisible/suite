@@ -16,7 +16,7 @@
 					v-for="(result, idx) in results?.data?.docs"
 					:key="idx"
 					class="hover:bg-surface-gray-3 flex rounded p-2 hover:cursor-pointer"
-					@click="openMail(result.mailbox_role, result.thread_id)"
+					@click="openMail(result.mailbox_id, result.thread_id)"
 				>
 					<div class="mr-2 space-y-1 truncate">
 						<p class="truncate text-base font-semibold">

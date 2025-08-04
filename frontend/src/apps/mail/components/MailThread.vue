@@ -101,7 +101,7 @@
 							<div class="flex items-center space-x-1 self-start">
 								<MailDate :datetime="mail.received_at" />
 								<Tooltip
-									v-if="mail.flagged && mailbox !== 'trash'"
+									v-if="mail.flagged && mailbox !== trashMailboxId"
 									:text="__('Unstar')"
 								>
 									<Button
@@ -219,6 +219,7 @@ import { Avatar, Button, Dropdown, Tooltip, createResource } from 'frappe-ui'
 
 import { getFirstAlphabet, getRecipients } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
+import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import EmailContent from '@/components/EmailContent.vue'
 import NoMails from '@/components/Icons/NoMails.vue'
@@ -236,6 +237,9 @@ const emit = defineEmits(['reloadMails', 'setSeen', 'moveThread', 'deleteThread'
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
 const router = useRouter()
+const { getMailboxId } = userStore()
+
+const trashMailboxId = computed(() => getMailboxId('trash'))
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
@@ -259,7 +263,7 @@ const mailThread = createResource({
 	transform: (data: Mail[]) =>
 		data
 			.filter((mail) =>
-				mailbox === 'trash'
+				mailbox === trashMailboxId.value
 					? mail.mailbox_role === 'trash'
 					: mail.mailbox_role !== 'trash',
 			)
@@ -283,11 +287,8 @@ const user = inject('$user')
 
 const moveToOptions = computed(() =>
 	user.data.mailboxes
-		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
-		.map((m) => ({
-			label: m.name,
-			onClick: () => emit('moveThread', m.role),
-		})),
+		.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
+		.map((m) => ({ label: m.name, onClick: () => emit('moveThread', m.id) })),
 )
 
 interface MailAction {
@@ -301,15 +302,15 @@ const threadActions = computed((): MailAction[] =>
 	[
 		{
 			label: __('Move to Trash'),
-			onClick: () => emit('moveThread', 'trash'),
+			onClick: () => emit('moveThread', trashMailboxId.value),
 			icon: Trash2,
-			condition: mailbox !== 'trash',
+			condition: mailbox !== trashMailboxId.value,
 		},
 		{
 			label: __('Delete Thread'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: mailbox === 'trash',
+			condition: mailbox === trashMailboxId.value,
 		},
 		{
 			label: __('Mark as Unread'),
@@ -324,7 +325,7 @@ const mailActions = (mail: Mail): MailAction[] => [
 		label: __('Star'),
 		onClick: () => starMails.submit({ names: [mail.name], flagged: true }),
 		icon: Star,
-		condition: !mail.flagged && mailbox !== 'trash',
+		condition: !mail.flagged && mailbox !== trashMailboxId.value,
 	},
 	{
 		label: __('Edit Draft'),
@@ -360,15 +361,15 @@ const moreActions = (mail: Mail): MailAction[] => [
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: 'trash' }),
+		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: trashMailboxId.value }),
 		icon: Trash2,
-		condition: () => mailbox !== 'trash',
+		condition: () => mailbox !== trashMailboxId.value,
 	},
 	{
 		label: __('Delete Message'),
 		onClick: () => deleteMails.submit([mail.name]),
 		icon: Trash2,
-		condition: () => mailbox === 'trash',
+		condition: () => mailbox === trashMailboxId.value,
 	},
 	{
 		label: __('See MIME Message'),
@@ -410,7 +411,10 @@ const moveMail = createResource({
 const deleteMails = createResource({
 	url: 'mail.mail.doctype.email_message.email_message.bulk_destroy',
 	makeParams: (names: string[]) => ({ names }),
-	onSuccess: () => emit('reloadMails'),
+	onSuccess: () => {
+		if (mailThread.data.length == 1) router.push({ name: 'Mailbox', params: { mailbox } })
+		emit('reloadMails')
+	},
 })
 
 const starMails = createResource({
