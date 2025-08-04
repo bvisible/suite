@@ -51,7 +51,7 @@
 			</div>
 		</div>
 
-		<div class="absolute bottom-0 left-0 z-10 h-[53%] w-full bg-white" @click.stop></div>
+		<div class="absolute bottom-0 left-0 h-[53%] w-full bg-white" @click.stop></div>
 	</div>
 </template>
 
