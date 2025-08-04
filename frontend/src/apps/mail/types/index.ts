@@ -88,6 +88,7 @@ export interface Thread {
 	preview: string | null
 	has_attachment: 0 | 1
 	received_at: string
+	mailbox_role: string
 	seen: 0 | 1
 	draft: 0 | 1
 	flagged: 0 | 1

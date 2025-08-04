@@ -243,7 +243,11 @@ const socket = inject('$socket')
 const user = inject('$user') as UserResource
 const dayjs = inject('$dayjs')
 
-const { mailboxes } = userStore()
+const { mailboxes, getMailboxId } = userStore()
+
+const trashMailboxId = computed(() => getMailboxId('trash'))
+const inboxMailboxId = computed(() => getMailboxId('inbox'))
+const junkMailboxId = computed(() => getMailboxId('junk'))
 
 // Selection
 
@@ -329,16 +333,16 @@ const selectActions = computed((): SelectAction[] =>
 				moveThreads.submit({
 					thread_ids: selections.value,
 					mailbox,
-					move_to_mailbox: 'trash',
+					move_to_mailbox: trashMailboxId.value,
 				}),
 			icon: Trash2,
-			condition: !!selections.value.length && mailbox !== 'trash',
+			condition: !!selections.value.length && mailbox !== trashMailboxId.value,
 		},
 		{
 			label: __('Delete Threads'),
 			onClick: () => deleteThreads.submit(selections.value),
 			icon: Trash2,
-			condition: !!selections.value.length && mailbox === 'trash',
+			condition: !!selections.value.length && mailbox === trashMailboxId.value,
 		},
 		{
 			label: __('Mark as Read'),
@@ -414,7 +418,8 @@ onMounted(() => {
 
 	socket.on('mail_created_or_updated', (updatedMailbox: string) => {
 		if (updatedMailbox === mailbox) reloadMails()
-		else if (['inbox', 'junk'].includes(updatedMailbox)) mailboxes.reload()
+		else if ([inboxMailboxId.value, junkMailboxId.value].includes(updatedMailbox))
+			mailboxes.reload()
 	})
 })
 
@@ -473,23 +478,31 @@ const moveThreads = createResource({
 		mailbox,
 		move_to_mailbox,
 	}),
-	onSuccess: reloadMails,
+	onSuccess: (thread_ids: string[]) => {
+		if (threadID && thread_ids.includes(threadID))
+			router.push({ name: 'Mailbox', params: { mailbox } })
+		reloadMails()
+	},
 })
 
 const moveToOptions = computed(() =>
 	user.data.mailboxes
-		.filter((m) => ![mailbox, 'sent', 'drafts'].includes(m.role))
+		.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
 		.map((m) => ({
 			label: m.name,
 			onClick: () =>
-				moveThreads.submit({ thread_ids: selections.value, move_to_mailbox: m.role }),
+				moveThreads.submit({ thread_ids: selections.value, move_to_mailbox: m.id }),
 		})),
 )
 
 const deleteThreads = createResource({
 	url: 'mail.api.mail.delete_threads',
 	makeParams: (thread_ids: string[]) => ({ thread_ids, mailbox }),
-	onSuccess: reloadMails,
+	onSuccess: (thread_ids: string[]) => {
+		if (threadID && thread_ids.includes(threadID))
+			router.push({ name: 'Mailbox', params: { mailbox } })
+		reloadMails()
+	},
 })
 
 const fetchChanges = createResource({
@@ -515,7 +528,7 @@ const FILTER_OPTIONS = [
 		label: __('Starred'),
 		icon: Star,
 		onClick: () => setFilter('starred'),
-		condition: () => !['trash', 'starred'].includes(mailbox),
+		condition: () => ![trashMailboxId.value, 'starred'].includes(mailbox),
 	},
 	{
 		label: __('Has attachments'),
@@ -560,7 +573,7 @@ const LAYOUT_OPTIONS = [
 const mailboxName = computed(() =>
 	mailbox === 'starred'
 		? __('Starred')
-		: user.data.mailboxes.find((m) => m.role === mailbox)?.name,
+		: user.data.mailboxes.find((m) => m.id === mailbox)?.name,
 )
 
 const title = computed(() => {

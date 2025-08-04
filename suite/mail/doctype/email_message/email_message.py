@@ -382,7 +382,7 @@ class EmailMessage(Document):
 
 		if notify:
 			frappe.publish_realtime(
-				"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
+				"mail_created_or_updated", email_message.mailbox_id, user=email_message.account
 			)
 
 	@staticmethod

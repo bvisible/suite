@@ -36,7 +36,7 @@ def get_mails_from_mailbox(mailbox: str, limit: int, filter_by: str | None = Non
 	is_unseen = filter_by == "unread"
 	is_has_attachment = filter_by == "has_attachments"
 	is_flagged = filter_by == "starred" or mailbox == "starred"
-	mailboxes = None if mailbox == "starred" else [get_mailbox_id(mailbox)]
+	mailboxes = None if mailbox == "starred" else [mailbox]
 
 	return EmailMessage.get_threads(user, mailboxes, is_unseen, is_flagged, is_has_attachment, 0, limit)
 
@@ -57,7 +57,7 @@ def get_mailbox_thread_count(mailbox: str) -> int:
 	if mailbox == "starred":
 		distinct_threads = distinct_threads.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
 	else:
-		distinct_threads = distinct_threads.where(EM.mailbox_role == mailbox)
+		distinct_threads = distinct_threads.where(EM.mailbox_id == mailbox)
 
 	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
 
@@ -75,15 +75,15 @@ def get_mailboxes() -> list[dict]:
 	EmailMessage = frappe.qb.DocType("Email Message")
 	unseen_counts = (
 		frappe.qb.from_(EmailMessage)
-		.select(EmailMessage.mailbox_role, Count("*").as_("count"))
+		.select(EmailMessage.mailbox_id, Count("*").as_("count"))
 		.where((EmailMessage.account == user) & (EmailMessage.destroyed == 0) & (EmailMessage.seen == 0))
-		.groupby(EmailMessage.mailbox_role)
+		.groupby(EmailMessage.mailbox_id)
 	).run(as_dict=True)
-	unseen_map = {item["mailbox_role"]: item["count"] for item in unseen_counts}
+	unseen_map = {item["mailbox_id"]: item["count"] for item in unseen_counts}
 
 	mailboxes = get_mailboxes_for_account(user)
 	for mailbox in mailboxes:
-		mailbox["count"] = unseen_map.get(mailbox["role"], 0)
+		mailbox["count"] = unseen_map.get(mailbox["id"], 0)
 
 	return mailboxes
 
@@ -432,7 +432,7 @@ def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	"""Sets seen for mails."""
 
 	user = frappe.session.user
-	mailbox_id = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else get_mailbox_id(mailbox)
+	mailbox_id = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else mailbox
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 	EmailMessage.mark_emails_as_seen_unseen(user, messages, seen)
 
@@ -452,7 +452,7 @@ def set_flagged(names: list[str], flagged: bool) -> dict:
 def set_mails_mailbox(mail_ids: list[str], mailbox: str) -> None:
 	"""Sets mailbox for mails."""
 
-	EmailMessage.move_emails_to_mailbox(frappe.session.user, mail_ids, None, mailbox)
+	EmailMessage.move_emails_to_mailbox(frappe.session.user, mail_ids, mailbox)
 
 
 @frappe.whitelist()
@@ -462,30 +462,31 @@ def empty_mailbox(mailbox: str) -> None:
 	user = frappe.session.user
 	messages = frappe.get_all(
 		"Email Message",
-		{"account": user, "mailbox_role": ["in", mailbox], "destroyed": 0},
+		{"account": user, "mailbox_id": ["in", mailbox], "destroyed": 0},
 		pluck="name",
 	)
 	EmailMessage.destroy_emails(user, messages)
 
 
 @frappe.whitelist()
-def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) -> None:
+def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) -> list[str]:
 	"""Sets mailbox for threads."""
 
 	user = frappe.session.user
-	mailbox_id = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else get_mailbox_id(mailbox)
-	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
-	EmailMessage.move_emails_to_mailbox(user, messages, None, move_to_mailbox)
+	mailbox_filter = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else mailbox
+	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_filter)
+	EmailMessage.move_emails_to_mailbox(user, messages, move_to_mailbox)
+	return thread_ids
 
 
 @frappe.whitelist()
-def delete_threads(thread_ids: list[str], mailbox: str) -> None:
+def delete_threads(thread_ids: list[str], mailbox: str) -> list[str]:
 	"""Destroys mails belonging to the given threads."""
 
 	user = frappe.session.user
-	mailbox_id = get_mailbox_id(mailbox)
-	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
+	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox)
 	EmailMessage.destroy_emails(user, messages)
+	return thread_ids
 
 
 @frappe.whitelist()
