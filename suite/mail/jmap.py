@@ -241,7 +241,7 @@ class JMAPClient:
 			if (id and mailbox.get("id") == id) or (role and mailbox_role.lower() == role.lower()):
 				return mailbox["name"]
 
-	def mailbox_get(self, mailbox_ids: list[str] | None = None) -> dict:
+	def mailbox_get(self, mailbox_ids: list[str] | None = None) -> list[dict]:
 		"""Returns the mailboxes for the provided mailbox IDs."""
 
 		response = self._make_request(

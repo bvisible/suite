@@ -140,10 +140,12 @@ def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 	"""Returns a list of mailboxes for the given account."""
 
 	client = get_jmap_client(account)
-	if mailboxes := client.mailbox_get():
-		return [format_mailbox(account, mailbox) for mailbox in mailboxes]
+	mailboxes = client.mailbox_get()
 
-	return []
+	start = (page - 1) * limit
+	end = start + limit
+
+	return [format_mailbox(account, mailbox) for mailbox in mailboxes[start:end]]
 
 
 def format_mailbox(account: str, mailbox: dict) -> dict:
