@@ -66,7 +66,7 @@ const selectionBoxRef = useTemplateRef('selectionBox')
 
 const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
-const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
+const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
 
@@ -244,13 +244,7 @@ const elementOffset = reactive({
 const handlePositionChange = (delta) => {
 	const totalDelta = getTotalPositionDelta(delta)
 
-	elementOffset.left += totalDelta.left / scale.value
-	elementOffset.top += totalDelta.top / scale.value
-
-	updateSelectionBounds({
-		left: selectionBounds.left + totalDelta.left / scale.value,
-		top: selectionBounds.top + totalDelta.top / scale.value,
-	})
+	applyPositionDelta(totalDelta)
 }
 
 const applyAspectRatio = (offset) => {
@@ -264,15 +258,27 @@ const validateMinWidth = (width) => {
 	return width + selectionBounds.width > minWidth
 }
 
+const applyPositionDelta = (delta) => {
+	if (!delta.left && !delta.top) return
+
+	const deltaLeft = delta.left / slideBounds.scale
+	const deltaTop = delta.top / slideBounds.scale
+
+	updateSelectionBounds({
+		left: selectionBounds.left + deltaLeft,
+		top: selectionBounds.top + deltaTop,
+	})
+
+	elementOffset.left += deltaLeft
+	elementOffset.top += deltaTop
+}
+
 const handleDimensionChange = (delta) => {
 	if (!delta.width || !validateMinWidth(delta.width)) return
 
 	delta.top = applyAspectRatio(delta.top)
 
-	updateSelectionBounds({
-		left: selectionBounds.left + delta.left / slideBounds.scale,
-		top: selectionBounds.top + delta.top / slideBounds.scale,
-	})
+	applyPositionDelta(delta)
 
 	const newWidth = delta.width / slideBounds.scale || 0
 	updateElementWidth(newWidth)
@@ -346,22 +352,26 @@ defineExpose({
 	togglePanZoom,
 })
 
+const isInteracting = computed(() => isDragging.value || isResizing.value)
+
+const applyInteractionOffset = () => {
+	requestAnimationFrame(() => {
+		activeElementIds.value.forEach((id) => {
+			const element = slide.value.elements.find((el) => el.id === id)
+			if (element) {
+				element.left += elementOffset.left
+				element.top += elementOffset.top
+			}
+		})
+		elementOffset.left = 0
+		elementOffset.top = 0
+	})
+}
+
 watch(
-	() => isDragging.value,
-	(isDragging) => {
-		if (!isDragging) {
-			requestAnimationFrame(() => {
-				activeElementIds.value.forEach((id) => {
-					const element = slide.value.elements.find((el) => el.id === id)
-					if (element) {
-						element.left += elementOffset.left
-						element.top += elementOffset.top
-					}
-				})
-				elementOffset.left = 0
-				elementOffset.top = 0
-			})
-		}
+	() => isInteracting.value,
+	(newVal, oldVal) => {
+		if (oldVal && !newVal) applyInteractionOffset()
 	},
 )
 </script>
