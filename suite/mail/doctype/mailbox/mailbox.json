@@ -7,7 +7,7 @@
   "section_break_nuoa",
   "account",
   "column_break_5a4x",
-  "is_subscribed",
+  "subscribed",
   "section_break_cbgf",
   "id",
   "_name",
@@ -58,7 +58,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Role",
-   "options": "\nall\narchive\ndrafts\nflagged\nimportant\ninbox\njunk\nsent\nsubscribed\ntrash"
+   "options": "\narchive\ndrafts\nimportant\ninbox\njunk\nsent\ntrash"
   },
   {
    "default": "0",
@@ -103,13 +103,6 @@
    "no_copy": 1,
    "read_only": 1,
    "set_only_once": 1
-  },
-  {
-   "default": "1",
-   "fieldname": "is_subscribed",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Subscribed"
   },
   {
    "fieldname": "account",
@@ -159,13 +152,20 @@
    "in_list_view": 1,
    "label": "Parent",
    "options": "Mailbox"
+  },
+  {
+   "default": "1",
+   "fieldname": "subscribed",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Subscribed"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-08-04 14:05:49.384545",
+ "modified": "2025-08-04 15:54:24.427160",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailbox",
