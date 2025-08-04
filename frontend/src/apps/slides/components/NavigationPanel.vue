@@ -7,6 +7,7 @@
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<div
+			ref="scrollableArea"
 			v-if="presentation.data"
 			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
@@ -62,6 +63,8 @@ import { handleScrollBarWheelEvent } from '@/utils/helpers'
 import { useAttrs } from 'vue'
 
 const attrs = useAttrs()
+
+const scrollableArea = useTemplateRef('scrollableArea')
 
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
@@ -142,15 +145,27 @@ const scrollbarStyles = computed(() => ({
 
 const slideThumbnailsRef = ref([])
 
+const scrollThumbnailToView = (element) => {
+	if (!scrollableArea.value) return
+
+	const isScrollable = scrollableArea.value.scrollHeight > scrollableArea.value.clientHeight
+
+	if (isScrollable) {
+		// adjust offset for top padding - 16px
+		const offset = element.offsetTop - scrollableArea.value.offsetTop - 16
+
+		scrollableArea.value.scrollTo({
+			top: offset,
+			behavior: 'smooth',
+		})
+	}
+}
+
 const handleScrollChange = (index) => {
 	const el = slideThumbnailsRef.value[index]
 
 	if (!el) return
-	el.scrollIntoView({
-		behavior: 'smooth',
-		block: 'start',
-		inline: 'nearest',
-	})
+	scrollThumbnailToView(el)
 }
 
 watch(
