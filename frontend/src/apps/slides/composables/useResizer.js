@@ -92,5 +92,5 @@ export const useResizer = () => {
 		window.removeEventListener('mouseup', stopResize)
 	}
 
-	return { dimensionDelta, currentResizer, startResize, resizeCursor }
+	return { isResizing, dimensionDelta, currentResizer, startResize, resizeCursor }
 }
