@@ -68,11 +68,25 @@ class Mailbox(Document):
 
 	@staticmethod
 	def get_count(filters=None, **kwargs) -> int:
-		return len(Mailbox.get_list(filters, **kwargs))
+		filters = filters or []
+		account_values = extract_filter_values(filters, [{"account": "="}])
+		account = (
+			account_values[0]
+			if account_values and account_values[0]
+			else get_account_for_user(frappe.session.user)
+		)
+
+		return frappe.cache.get_value(get_total_cache_key(account)) if account else 0
 
 	@staticmethod
 	def get_stats(**kwargs) -> dict:
 		return {}
+
+
+def get_total_cache_key(account: str) -> str:
+	"""Returns a cache key for total mailbox count for the given account."""
+
+	return f"{account}:mailboxes:total"
 
 
 def add_mailbox(
@@ -148,9 +162,9 @@ def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 
 	client = get_jmap_client(account)
 	mailboxes = client.mailbox_get()
-
 	formatted_mailboxes = [format_mailbox(account, mailbox) for mailbox in mailboxes]
 	sorted_mailboxes = sorted(formatted_mailboxes, key=lambda m: m.get("_sort_order", 0))
+	frappe.cache.set_value(get_total_cache_key(account), len(mailboxes), expires_in_sec=600)
 
 	start = (page - 1) * limit
 	end = start + limit
