@@ -14,7 +14,7 @@
   "_name",
   "sort_order",
   "column_break_0da9",
-  "parent1",
+  "_parent",
   "parent_id",
   "section_break_9nkx",
   "total_emails",
@@ -51,12 +51,6 @@
    "no_copy": 1,
    "read_only": 1,
    "set_only_once": 1
-  },
-  {
-   "fieldname": "parent1",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Parent"
   },
   {
    "fieldname": "role",
@@ -155,13 +149,20 @@
    "no_copy": 1,
    "read_only": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "_parent",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Parent",
+   "options": "Mailbox"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-08-04 10:54:57.970095",
+ "modified": "2025-08-04 11:17:12.671934",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailbox",
