@@ -103,6 +103,9 @@ def get_account_mailboxes(
 	filters = filters or {}
 	account = filters.get("account") or get_account_for_user(frappe.session.user)
 
+	if not account:
+		return []
+
 	result = []
 	if mailboxes := fetch_mailboxes(account):
 		for mailbox in mailboxes:

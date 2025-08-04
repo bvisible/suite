@@ -260,6 +260,40 @@ class JMAPClient:
 
 		return response["methodResponses"][0][1]["list"]
 
+	def mailbox_create(
+		self,
+		unique_id: str,
+		name: str,
+		role: str | None = None,
+		parent: str | None = None,
+		sort_order: int = 0,
+		is_subscribed: bool = True,
+	) -> dict:
+		"""Creates a mailbox with the given parameters."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Mailbox/set",
+					{
+						"accountId": self.account_id,
+						"create": {
+							unique_id: {
+								"name": name,
+								"role": role or None,
+								"parentId": parent or None,
+								"sortOrder": sort_order or 0,
+								"isSubscribed": is_subscribed or False,
+							}
+						},
+					},
+					"0",
+				]
+			],
+		)
+		return response["methodResponses"][0][1]
+
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
 

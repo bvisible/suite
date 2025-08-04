@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, now
+from uuid_utils import uuid7
 
 from mail.jmap import get_jmap_client
 from mail.utils import extract_filter_values
@@ -14,14 +15,16 @@ from mail.utils.cache import get_account_for_user
 
 
 class Mailbox(Document):
-	def autoname(self) -> None:
+	def db_insert(self, *args, **kwargs) -> None:
+		parent = self._parent.replace(f"{self.account}|", "") if self._parent else None
+		self.id = add_mailbox(
+			self.account, self._name, self.role, parent, self.sort_order, bool(self.is_subscribed)
+		)
 		self.name = f"{self.account}|{self.id}"
 
-	def db_insert(self, *args, **kwargs) -> None:
-		raise NotImplementedError
-
 	def load_from_db(self) -> "Mailbox":
-		mailbox = get_mailbox(self.name)
+		account, id = self.name.split("|")
+		mailbox = get_mailbox(account, id)
 		return super(Document, self).__init__(mailbox)
 
 	def db_update(self) -> None:
@@ -60,10 +63,33 @@ class Mailbox(Document):
 		pass
 
 
-def get_mailbox(name: str) -> dict:
+def add_mailbox(
+	account: str,
+	name: str,
+	role: str | None = None,
+	parent: str | None = None,
+	sort_order: int = 0,
+	is_subscribed: bool = True,
+) -> str:
+	"""Adds a mailbox for the given account with the specified parameters."""
+
+	unique_id = str(uuid7())
+	client = get_jmap_client(account)
+	response = client.mailbox_create(unique_id, name, role, parent, sort_order, is_subscribed)
+
+	if response.get("created"):
+		return response["created"][unique_id]["id"]
+	elif response.get("notCreated"):
+		frappe.throw(
+			_("Mailbox creation failed: {0}").format(response["notCreated"][unique_id]["description"])
+		)
+	else:
+		frappe.throw(_("Mailbox creation failed: {0}").format(response["description"]))
+
+
+def get_mailbox(account: str, id: str) -> dict:
 	"""Returns mailbox details for the given name in the format 'account|id'."""
 
-	account, id = name.split("|")
 	client = get_jmap_client(account)
 	if mailboxes := client.mailbox_get([id]):
 		return format_mailbox(account, mailboxes[0])
