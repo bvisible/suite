@@ -6,7 +6,11 @@
 			</template>
 		</Navbar>
 		<div class="relative flex h-screen bg-gray-300">
-			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
+			<SlideContainer
+				ref="slideContainer"
+				:highlight="slideHighlight"
+				v-model:hasOngoingInteraction="hasOngoingInteraction"
+			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
@@ -94,6 +98,7 @@ const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
 const slideHighlight = ref(false)
+const hasOngoingInteraction = ref(false)
 
 const setHighlight = (value) => {
 	slideHighlight.value = value
@@ -212,7 +217,7 @@ const startSlideShow = () => {
 }
 
 const handleAutoSave = () => {
-	if (activeElementIds.value.length || focusElementId.value != null) return
+	if (hasOngoingInteraction.value || focusElementId.value != null) return
 	saveChanges()
 }
 
