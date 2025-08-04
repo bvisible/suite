@@ -328,6 +328,32 @@ class JMAPClient:
 		)
 		return response["methodResponses"][0][1]
 
+	def mailbox_destroy(self, mailbox_ids: list[str], remove_emails: bool = False) -> dict:
+		"""Destroys the mailboxes with the given IDs."""
+
+		result = {"destroyed": [], "notDestroyed": {}}
+		for ids_batch in create_batch(mailbox_ids, self.max_objects_in_set):
+			response = self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Mailbox/set",
+						{
+							"accountId": self.account_id,
+							"destroy": ids_batch,
+							"onDestroyRemoveEmails": remove_emails,
+						},
+						"0",
+					]
+				],
+			)
+
+			result["destroyed"].extend(response["methodResponses"][0][1].get("destroyed", []))
+			if not_destroyed := response["methodResponses"][0][1].get("notDestroyed", {}):
+				result["notDestroyed"].update(not_destroyed)
+
+		return result
+
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
 
