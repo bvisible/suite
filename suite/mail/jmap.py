@@ -171,14 +171,7 @@ class JMAPClient:
 		"""Returns the mailboxes for the logged-in user."""
 
 		def generator() -> dict[list[dict]]:
-			mailboxes = {}
-			for account_id in [self.account_id]:
-				response = self._make_request(
-					["urn:ietf:params:jmap:mail"], [["Mailbox/get", {"accountId": account_id}, "0"]]
-				)
-				mailboxes[account_id] = response["methodResponses"][0][1]["list"]
-
-			return mailboxes
+			return {self.account_id: self.mailbox_get()}
 
 		return frappe.cache.hget("jmap:mailboxes", self.__session.auth[0], generator)
 
