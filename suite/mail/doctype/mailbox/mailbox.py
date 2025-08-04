@@ -103,12 +103,13 @@ def add_mailbox(
 	client = get_jmap_client(account)
 	response = client.mailbox_create(unique_id, name, role, parent, sort_order, subscribed)
 
+	title = _("Mailbox Creation Error")
 	if response.get("created"):
 		return response["created"][unique_id]["id"]
 	elif response.get("notCreated"):
-		frappe.throw(_(response["notCreated"][unique_id]["description"]))
+		frappe.throw(_(response["notCreated"][unique_id]["description"]), title=title)
 	else:
-		frappe.throw(_(response["description"]))
+		frappe.throw(_(response["description"]), title=title)
 
 
 def get_mailbox(account: str, id: str) -> dict:
@@ -119,7 +120,8 @@ def get_mailbox(account: str, id: str) -> dict:
 		return format_mailbox(account, mailboxes[0])
 
 	frappe.throw(
-		_("Mailbox with ID {0} not found in account {1}.").format(frappe.bold(id), frappe.bold(account))
+		_("Mailbox with ID {0} not found in account {1}.").format(frappe.bold(id), frappe.bold(account)),
+		title=_("Mailbox Not Found"),
 	)
 
 
@@ -134,17 +136,18 @@ def update_mailbox(
 ) -> None:
 	"""Updates an existing mailbox with the given parameters."""
 
+	title = _("Mailbox Update Error")
 	if parent and id == parent:
-		frappe.throw(_("Mailbox cannot be a parent of itself."))
+		frappe.throw(_("Mailbox cannot be a parent of itself."), title=title)
 
 	client = get_jmap_client(account)
 	response = client.mailbox_set(id, name, role, parent, sort_order, subscribed)
 
 	if not response.get("updated"):
 		if response.get("notUpdated"):
-			frappe.throw(_(response["notUpdated"][id]["description"]))
+			frappe.throw(_(response["notUpdated"][id]["description"]), title=title)
 		else:
-			frappe.throw(_(response["description"]))
+			frappe.throw(_(response["description"]), title=title)
 
 
 def delete_mailbox(account: str, id: str) -> None:
@@ -154,7 +157,7 @@ def delete_mailbox(account: str, id: str) -> None:
 	response = client.mailbox_destroy([id], remove_emails=True)
 
 	if response.get("notDestroyed"):
-		frappe.throw(_(response["notDestroyed"][id]["description"]))
+		frappe.throw(_(response["notDestroyed"][id]["description"]), title=_("Mailbox Deletion Error"))
 
 
 def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
@@ -163,7 +166,10 @@ def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
 	client = get_jmap_client(account)
 	mailboxes = client.mailbox_get()
 	formatted_mailboxes = [format_mailbox(account, mailbox) for mailbox in mailboxes]
-	sorted_mailboxes = sorted(formatted_mailboxes, key=lambda m: m.get("_sort_order", 0))
+	sorted_mailboxes = sorted(
+		formatted_mailboxes,
+		key=lambda m: (m.get("_sort_order") == 0, m.get("_sort_order", float("inf")), m.get("_name")),
+	)
 	frappe.cache.set_value(get_total_cache_key(account), len(mailboxes), expires_in_sec=600)
 
 	start = (page - 1) * limit
