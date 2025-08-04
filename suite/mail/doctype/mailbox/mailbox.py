@@ -1,31 +1,95 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-# import frappe
+import json
+
+import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
+
+from mail.jmap import get_jmap_client
+from mail.utils import extract_filter_values
+from mail.utils.cache import get_account_for_user
 
 
 class Mailbox(Document):
-	def db_insert(self, *args, **kwargs):
+	def autoname(self) -> None:
+		self.name = f"{self.account}|{self.id}"
+
+	def db_insert(self, *args, **kwargs) -> None:
 		raise NotImplementedError
 
-	def load_from_db(self):
+	def load_from_db(self) -> "Mailbox":
 		raise NotImplementedError
 
-	def db_update(self):
+	def db_update(self) -> None:
 		raise NotImplementedError
 
-	def delete(self):
+	def delete(self) -> None:
 		raise NotImplementedError
 
 	@staticmethod
-	def get_list(filters=None, page_length=20, **kwargs):
-		pass
+	def get_list(filters=None, page_length=20, **kwargs) -> list:
+		filters = filters or []
+		account_values = extract_filter_values(filters, [{"account": "="}])
+		account = (
+			account_values[0]
+			if account_values and account_values[0]
+			else get_account_for_user(frappe.session.user)
+		)
+
+		if not account:
+			frappe.msgprint(_("Please select a account to view mailboxes."), alert=True)
+			return []
+
+		mailboxes = fetch_mailboxes(account, limit=page_length)
+
+		if not mailboxes:
+			frappe.msgprint(_("No mailboxes found."), alert=True)
+
+		return mailboxes
 
 	@staticmethod
-	def get_count(filters=None, **kwargs):
-		pass
+	def get_count(filters=None, **kwargs) -> int:
+		return len(Mailbox.get_list(filters, **kwargs))
 
 	@staticmethod
-	def get_stats(**kwargs):
+	def get_stats(**kwargs) -> dict:
 		pass
+
+
+def fetch_mailboxes(account: str, page: int = 1, limit: int = 10) -> list:
+	"""Returns a list of mailboxes for the given account."""
+
+	client = get_jmap_client(account)
+	if mailboxes := client.mailbox_get():
+		return [format_mailbox(account, mailbox) for mailbox in mailboxes]
+
+	return []
+
+
+def format_mailbox(account: str, mailbox: dict) -> dict:
+	"""Formats mailbox data for display."""
+
+	if parent := mailbox["parentId"]:
+		parent = f"{account}|{parent}"
+	if my_rights := mailbox.get("myRights"):
+		my_rights = json.dumps(my_rights, indent=4, sort_keys=True)
+
+	return {
+		"name": f"{account}|{mailbox['id']}",
+		"account": account,
+		"id": mailbox["id"],
+		"_name": mailbox["name"],
+		"parent": parent,
+		"parent_id": mailbox["parentId"],
+		"role": mailbox["role"],
+		"sort_order": cint(mailbox["sortOrder"]),
+		"is_subscribed": bool(mailbox["isSubscribed"]),
+		"total_emails": cint(mailbox["totalEmails"]),
+		"unread_emails": cint(mailbox["unreadEmails"]),
+		"total_threads": cint(mailbox["totalThreads"]),
+		"unread_threads": cint(mailbox["unreadThreads"]),
+		"my_rights": my_rights,
+	}

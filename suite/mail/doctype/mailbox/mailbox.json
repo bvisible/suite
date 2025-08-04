@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_nuoa",
+  "account",
   "id",
   "_name",
   "parent1",
@@ -26,7 +27,6 @@
   {
    "fieldname": "id",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "ID",
    "no_copy": 1,
    "read_only": 1,
@@ -35,6 +35,7 @@
   {
    "fieldname": "_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Name"
   },
   {
@@ -45,11 +46,13 @@
   {
    "fieldname": "parent1",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Parent"
   },
   {
    "fieldname": "role",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Role",
    "options": "\nall\narchive\ndrafts\nflagged\nimportant\ninbox\njunk\nsent\nsubscribed\ntrash"
   },
@@ -91,13 +94,22 @@
    "fieldname": "is_subscribed",
    "fieldtype": "Check",
    "label": "Is Subscribed"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Account",
+   "options": "Mail Account",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-08-04 09:10:55.951328",
+ "modified": "2025-08-04 09:46:11.512908",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailbox",

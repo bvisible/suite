@@ -241,6 +241,25 @@ class JMAPClient:
 			if (id and mailbox.get("id") == id) or (role and mailbox_role.lower() == role.lower()):
 				return mailbox["name"]
 
+	def mailbox_get(self, mailbox_ids: list[str] | None = None) -> dict:
+		"""Returns the mailboxes for the provided mailbox IDs."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Mailbox/get",
+					{
+						"accountId": self.account_id,
+						"ids": mailbox_ids,
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]["list"]
+
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
 
