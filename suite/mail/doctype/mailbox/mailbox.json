@@ -13,6 +13,7 @@
   "_name",
   "role",
   "sort_order",
+  "_sort_order",
   "column_break_0da9",
   "_parent",
   "parent_id",
@@ -66,6 +67,7 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Sort Order",
+   "no_copy": 1,
    "non_negative": 1
   },
   {
@@ -159,13 +161,22 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Subscribed"
+  },
+  {
+   "fieldname": "_sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order",
+   "no_copy": 1,
+   "non_negative": 1,
+   "read_only": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-08-04 16:57:36.461211",
+ "modified": "2025-08-04 17:25:23.516057",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailbox",
