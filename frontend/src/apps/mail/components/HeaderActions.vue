@@ -2,14 +2,14 @@
 	<div class="flex space-x-2">
 		<Button icon="search" variant="ghost" @click="showSearchModal = true" />
 		<Button
-			:icon-left="['trash', 'junk'].includes(mailbox) ? 'trash-2' : 'edit'"
+			:icon-left="[mailboxIds.trash, mailboxIds.junk].includes(mailbox) ? 'trash-2' : 'edit'"
 			@click="performAction()"
 		>
 			{{ buttonMessage }}
 		</Button>
 	</div>
 
-	<SendMail v-model="showSendModal" @reload-mails="emit('reloadMails', 'Drafts')" />
+	<SendMail v-model="showSendModal" />
 	<SearchModal v-model="showSearchModal" />
 	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
@@ -17,6 +17,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Button, Dialog, createResource } from 'frappe-ui'
 
+import { userStore } from '@/stores/user'
 import SearchModal from '@/components/Modals/SearchModal.vue'
 import SendMail from '@/components/SendMail.vue'
 
@@ -24,13 +25,15 @@ const { mailbox } = defineProps<{ mailbox: string }>()
 
 const emit = defineEmits(['reloadMails'])
 
+const { mailboxIds } = userStore()
+
 const showSearchModal = ref(false)
 const showSendModal = ref(false)
 const showConfirmDialog = ref(false)
 
 const buttonMessage = computed(() => {
-	if (mailbox === 'trash') return __('Empty Trash')
-	if (mailbox === 'junk') return __('Empty Spam')
+	if (mailbox === mailboxIds.trash) return __('Empty Trash')
+	if (mailbox === mailboxIds.junk) return __('Empty Spam')
 	return __('Compose')
 })
 
@@ -51,7 +54,7 @@ const confirmDialogOptions = computed(() => ({
 }))
 
 const performAction = () => {
-	if (['trash', 'junk'].includes(mailbox)) showConfirmDialog.value = true
+	if ([mailboxIds.trash, mailboxIds.junk].includes(mailbox)) showConfirmDialog.value = true
 	else showSendModal.value = true
 }
 

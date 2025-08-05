@@ -112,12 +112,15 @@ const sidebarLinks = computed(() => {
 
 	const mailboxItems =
 		mailboxes.data?.map(
-			(mailbox: { name: string; role: keyof typeof MAILBOX_ICONS; count: number }) => ({
-				label: mailbox.name,
-				icon: MAILBOX_ICONS[mailbox.role],
-				to: { name: 'Mailbox', params: { mailbox: mailbox.role } },
-				count: mailbox.count,
-				activeFor: [mailbox.role],
+			(mailbox: { id: string; _name: string; role?: string; unread_threads: number }) => ({
+				label: mailbox._name,
+				icon:
+					mailbox.role && mailbox.role in MAILBOX_ICONS
+						? MAILBOX_ICONS[mailbox.role as keyof typeof MAILBOX_ICONS]
+						: 'Tag',
+				to: { name: 'Mailbox', params: { mailbox: mailbox.id } },
+				count: mailbox.unread_threads,
+				activeFor: [mailbox.id],
 			}),
 		) || []
 
@@ -128,7 +131,7 @@ const sidebarLinks = computed(() => {
 		activeFor: ['starred'],
 	}
 
-	return [mailboxItems[0], starredItem, ...mailboxItems.slice(1)].filter(Boolean)
+	return mailboxes.data?.length ? [mailboxItems[0], starredItem, ...mailboxItems.slice(1)] : []
 })
 </script>
 
