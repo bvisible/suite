@@ -8,8 +8,10 @@
 			:playbackRate="element.playbackRate"
 			@timeupdate="updateProgress"
 			@loadedmetadata="updateDuration"
+			@loadeddata.once="initPoster"
 			@ended="resetProgress"
 			preload="auto"
+			:poster="element.poster"
 		>
 			<source :src="`/api/method/slides.api.file.get_video_file?src=${element.src}`" />
 		</video>
@@ -43,8 +45,9 @@ import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { inSlideShow } from '@/stores/presentation'
+import { inSlideShow, presentationId } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
+import { createResource } from 'frappe-ui'
 
 const element = defineModel('element', {
 	type: Object,
@@ -162,5 +165,30 @@ const handleHoverChange = (e) => {
 	} else if (e.type === 'mouseleave') {
 		hoverOver.value = false
 	}
+}
+
+const savePoster = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.save_base64_thumbnail',
+	makeParams: (posterDataUrl) => ({
+		presentation_name: presentationId.value,
+		base64_data: posterDataUrl,
+		prefix: 'poster',
+	}),
+})
+
+const generatePoster = async (video) => {
+	const canvas = document.createElement('canvas')
+	canvas.width = video.videoWidth
+	canvas.height = video.videoHeight
+
+	const context = canvas.getContext('2d')
+	context.drawImage(video, 0, 0, canvas.width, canvas.height)
+	const posterDataUrl = canvas.toDataURL('image/jpeg')
+	element.value.poster = await savePoster.submit(posterDataUrl)
+}
+
+const initPoster = (e) => {
+	if (!el.value || element.value.poster) return
+	generatePoster(el.value)
 }
 </script>
