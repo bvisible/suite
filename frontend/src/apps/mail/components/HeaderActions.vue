@@ -2,7 +2,7 @@
 	<div class="flex space-x-2">
 		<Button icon="search" variant="ghost" @click="showSearchModal = true" />
 		<Button
-			:icon-left="[trashMailboxId, junkMailboxId].includes(mailbox) ? 'trash-2' : 'edit'"
+			:icon-left="[mailboxIds.trash, mailboxIds.junk].includes(mailbox) ? 'trash-2' : 'edit'"
 			@click="performAction()"
 		>
 			{{ buttonMessage }}
@@ -25,18 +25,15 @@ const { mailbox } = defineProps<{ mailbox: string }>()
 
 const emit = defineEmits(['reloadMails'])
 
-const { getMailboxId } = userStore()
-
-const trashMailboxId = computed(() => getMailboxId('trash'))
-const junkMailboxId = computed(() => getMailboxId('junk'))
+const { mailboxIds } = userStore()
 
 const showSearchModal = ref(false)
 const showSendModal = ref(false)
 const showConfirmDialog = ref(false)
 
 const buttonMessage = computed(() => {
-	if (mailbox === trashMailboxId.value) return __('Empty Trash')
-	if (mailbox === junkMailboxId.value) return __('Empty Spam')
+	if (mailbox === mailboxIds.trash) return __('Empty Trash')
+	if (mailbox === mailboxIds.junk) return __('Empty Spam')
 	return __('Compose')
 })
 
@@ -57,8 +54,7 @@ const confirmDialogOptions = computed(() => ({
 }))
 
 const performAction = () => {
-	if ([trashMailboxId.value, junkMailboxId.value].includes(mailbox))
-		showConfirmDialog.value = true
+	if ([mailboxIds.trash, mailboxIds.junk].includes(mailbox)) showConfirmDialog.value = true
 	else showSendModal.value = true
 }
 

@@ -100,7 +100,7 @@
 							<div class="flex items-center space-x-1 self-start">
 								<MailDate :datetime="mail.received_at" />
 								<Tooltip
-									v-if="mail.flagged && mailbox !== trashMailboxId"
+									v-if="mail.flagged && mailbox !== mailboxIds.trash"
 									:text="__('Unstar')"
 								>
 									<Button
@@ -236,9 +236,7 @@ const emit = defineEmits(['reloadMails', 'setSeen', 'moveThread', 'deleteThread'
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
 const router = useRouter()
-const { mailboxes, getMailboxId } = userStore()
-
-const trashMailboxId = computed(() => getMailboxId('trash'))
+const { mailboxes, mailboxIds } = userStore()
 
 const showSendModal = ref(false)
 const draftMailID = ref<string>()
@@ -262,9 +260,9 @@ const mailThread = createResource({
 	transform: (data: Mail[]) =>
 		data
 			.filter((mail) =>
-				mailbox === trashMailboxId.value
-					? mail.mailbox_role === 'trash'
-					: mail.mailbox_role !== 'trash',
+				mailbox === mailboxIds.trash
+					? mail.mailbox_id === mailboxIds.trash
+					: mail.mailbox_id !== mailboxIds.trash,
 			)
 			.map((mail) => ({
 				...mail,
@@ -286,8 +284,8 @@ const user = inject('$user')
 
 const moveToOptions = computed(() =>
 	mailboxes.data
-		?.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
-		.map((m) => ({ label: m.name, onClick: () => emit('moveThread', m.id) })),
+		?.filter((m) => ![mailbox, mailboxIds.sent, mailboxIds.drafts].includes(m.id))
+		.map((m) => ({ label: m._name, onClick: () => emit('moveThread', m.id) })),
 )
 
 interface MailAction {
@@ -306,15 +304,15 @@ const threadActions = computed((): MailAction[] =>
 		},
 		{
 			label: __('Move to Trash'),
-			onClick: () => emit('moveThread', trashMailboxId.value),
+			onClick: () => emit('moveThread', mailboxIds.trash),
 			icon: Trash2,
-			condition: mailbox !== trashMailboxId.value,
+			condition: mailbox !== mailboxIds.trash,
 		},
 		{
 			label: __('Delete Thread'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: mailbox === trashMailboxId.value,
+			condition: mailbox === mailboxIds.trash,
 		},
 	].filter((action) => action.condition !== false),
 )
@@ -324,7 +322,7 @@ const mailActions = (mail: Mail): MailAction[] => [
 		label: __('Star'),
 		onClick: () => starMails.submit({ names: [mail.name], flagged: true }),
 		icon: Star,
-		condition: !mail.flagged && mailbox !== trashMailboxId.value,
+		condition: !mail.flagged && mailbox !== mailboxIds.trash,
 	},
 	{
 		label: __('Edit Draft'),
@@ -360,15 +358,15 @@ const moreActions = (mail: Mail): MailAction[] => [
 	},
 	{
 		label: __('Move to Trash'),
-		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: trashMailboxId.value }),
+		onClick: () => moveMail.submit({ mail_ids: [mail.name], mailbox: mailboxIds.trash }),
 		icon: Trash2,
-		condition: () => mailbox !== trashMailboxId.value,
+		condition: () => mailbox !== mailboxIds.trash,
 	},
 	{
 		label: __('Delete Message'),
 		onClick: () => deleteMails.submit([mail.name]),
 		icon: Trash2,
-		condition: () => mailbox === trashMailboxId.value,
+		condition: () => mailbox === mailboxIds.trash,
 	},
 	{
 		label: __('See MIME Message'),

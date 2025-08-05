@@ -122,6 +122,7 @@ import { Avatar, Badge, Button, Checkbox, Tooltip } from 'frappe-ui'
 
 import { getFirstAlphabet } from '@/utils'
 import { useScreenSize } from '@/utils/composables'
+import { userStore } from '@/stores/user'
 import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
 import MailDate from '@/components/MailDate.vue'
 
@@ -138,11 +139,12 @@ const emit = defineEmits([
 ])
 
 const { isMobile } = useScreenSize()
+const { mailboxIds } = userStore()
 
 const isFullWidth = computed(() => userLayout === 'full' && !isMobile.value)
 
 const header = computed(() => {
-	const isOutgoing = ['sent', 'drafts'].includes(mail.mailbox_role)
+	const isOutgoing = [mailboxIds.sent, mailboxIds.drafts].includes(mail.mailbox_id)
 	if (isOutgoing)
 		return __('To: {0}', [mail.recipients.map((d) => d.name || d.email).join(', ')])
 	return mail.from_name || mail.from_email
@@ -179,13 +181,13 @@ const actions = computed(() =>
 			label: __('Move to Trash'),
 			onClick: () => emit('trashThread'),
 			icon: Trash2,
-			condition: mail.mailbox_role !== 'trash',
+			condition: mail.mailbox_id !== mailboxIds.trash,
 		},
 		{
 			label: __('Delete Message'),
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
-			condition: mail.mailbox_role === 'trash',
+			condition: mail.mailbox_id === mailboxIds.trash,
 		},
 	].filter((action) => action.condition),
 )
