@@ -4,7 +4,6 @@ from frappe.utils import cint, get_datetime, get_url, now_datetime
 from frappe.utils.data import sha256_hash
 
 from mail.api.admin import add_member
-from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.mail_account.mail_account import create_user
 from mail.utils import user_context
 from mail.utils.cache import (
@@ -165,8 +164,6 @@ def get_user_info() -> dict | None:
 
 	user_dict.email_addresses = get_user_email_addresses(user)
 	user_dict.default_outgoing = get_default_outgoing_email_for_user(user)
-	if user_dict.is_mail_user and user != "Administrator":
-		user_dict.mailboxes = get_mailboxes_for_account(user)
 
 	return user_dict
 
