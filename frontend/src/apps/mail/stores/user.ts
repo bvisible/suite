@@ -1,9 +1,12 @@
+import { computed } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
 import router from '@/router'
 
 import type { UserResource } from '@/types'
+
+type Mailbox = 'inbox' | 'sent' | 'drafts' | 'trash' | 'junk' | 'archive' | 'important'
 
 export const userStore = defineStore('mail-users', () => {
 	const userResource: UserResource = createResource({
@@ -16,8 +19,21 @@ export const userStore = defineStore('mail-users', () => {
 
 	const mailboxes = createResource({ url: 'mail.api.mail.get_mailboxes', auto: true })
 
-	const getMailboxId = (mailboxRole: string) =>
-		mailboxes.data?.find((m) => m.role === mailboxRole)?.id
+	const mailboxIds = computed(() => {
+		const ids: Record<Mailbox, string> = {
+			inbox: '',
+			sent: '',
+			drafts: '',
+			trash: '',
+			junk: '',
+			archive: '',
+			important: '',
+		}
+		mailboxes.data?.forEach((m: { role?: Mailbox; id: string }) => {
+			if (m.role) ids[m.role] = m.id
+		})
+		return ids
+	})
 
-	return { userResource, mailboxes, getMailboxId }
+	return { userResource, mailboxes, mailboxIds }
 })

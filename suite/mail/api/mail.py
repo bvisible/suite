@@ -4,10 +4,9 @@ from collections import defaultdict
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
-from frappe.query_builder.functions import Count
 from frappe.utils import format_datetime, random_string
 
-from mail.jmap import get_mailboxes_for_account
+from mail.jmap import get_mailbox_id_by_role
 from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
 from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
@@ -16,16 +15,6 @@ from mail.utils.cache import get_account_for_user
 from mail.utils.rate_limiter import dynamic_rate_limit
 from mail.utils.user import has_role
 from mail.utils.validation import validate_permission_for_account
-
-
-def get_mailbox_id(mailbox: str) -> str:
-	"""Returns mailbox id for the given role."""
-
-	mailboxes = get_mailboxes_for_account(frappe.session.user)
-	if mailbox not in [d["role"] for d in mailboxes]:
-		frappe.throw(_("Mailbox {0} does not exist.").format(mailbox))
-
-	return next(d["id"] for d in mailboxes if d["role"] == mailbox)
 
 
 @frappe.whitelist()
@@ -407,7 +396,7 @@ def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	"""Sets seen for mails."""
 
 	user = frappe.session.user
-	mailbox_id = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else mailbox
+	mailbox_id = ["!=", get_mailbox_id_by_role(user, "trash")] if mailbox == "starred" else mailbox
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
 	EmailMessage.mark_emails_as_seen_unseen(user, messages, seen)
 
@@ -448,7 +437,7 @@ def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) ->
 	"""Sets mailbox for threads."""
 
 	user = frappe.session.user
-	mailbox_filter = ["!=", get_mailbox_id("trash")] if mailbox == "starred" else mailbox
+	mailbox_filter = ["!=", get_mailbox_id_by_role(user, "trash")] if mailbox == "starred" else mailbox
 	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_filter)
 	EmailMessage.move_emails_to_mailbox(user, messages, move_to_mailbox)
 	return thread_ids
