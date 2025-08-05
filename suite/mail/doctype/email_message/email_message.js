@@ -114,23 +114,31 @@ frappe.ui.form.on('Email Message', {
 	},
 
 	add_move_buttons(frm) {
-		const add_move_button = (label, target) => {
-			frm.add_custom_button(
-				__(label),
-				() => frm.events.move_to_mailbox(frm, target),
-				__('Move'),
-			)
-		}
+		frappe.call({
+			method: 'mail.jmap.get_mailboxes_for_account',
+			args: {
+				account: frm.doc.account,
+			},
+			freeze: true,
+			freeze_message: __('Loading Mailboxes...'),
+			callback: (r) => {
+				if (!r.exc) {
+					const mailboxes = r.message || []
+					if (mailboxes.length == 0) return
 
-		const current_role = frm.doc.mailbox_role
+					const current_mailbox = mailboxes.find((m) => m.id === frm.doc.mailbox_id)
+					mailboxes.forEach((mailbox) => {
+						if (mailbox.id == current_mailbox.id || mailbox.role === 'drafts') return
 
-		if (current_role !== 'trash') add_move_button('Move to Trash', 'trash')
-		if (current_role !== 'junk' && current_role !== 'sent')
-			add_move_button('Move to Junk', 'junk')
-		if (['trash', 'junk'].includes(current_role)) {
-			add_move_button('Move to Inbox', 'inbox')
-			add_move_button('Move to Sent', 'sent')
-		}
+						frm.add_custom_button(
+							__('Move to ' + mailbox._name),
+							() => frm.events.move_to_mailbox(frm, mailbox.id),
+							__('Move'),
+						)
+					})
+				}
+			},
+		})
 	},
 
 	add_draft_submit_buttons(frm) {
@@ -186,14 +194,14 @@ frappe.ui.form.on('Email Message', {
 		})
 	},
 
-	move_to_mailbox(frm, mailbox_role) {
+	move_to_mailbox(frm, mailbox_id) {
 		frappe.call({
 			doc: frm.doc,
 			method: 'move_to_mailbox',
 			freeze: true,
 			freeze_message: __('Moving to Mailbox...'),
 			args: {
-				mailbox_role: mailbox_role,
+				mailbox_id: mailbox_id,
 			},
 			callback: (r) => {
 				if (!r.exc) {
