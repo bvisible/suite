@@ -389,10 +389,10 @@ const groupedThreads = computed(() =>
 	}, {}),
 )
 
-const reloadMails = () => {
-	threads.reload()
-	mailboxes.reload()
+const reloadMails = (reloadMailboxes = true) => {
 	resetSelections()
+	threads.reload()
+	if (reloadMailboxes) mailboxes.reload()
 }
 
 watch(
@@ -400,7 +400,7 @@ watch(
 	() => {
 		filter.value = localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null
 		limit.value = 50
-		reloadMails()
+		reloadMails(false)
 	},
 	{ immediate: true },
 )
