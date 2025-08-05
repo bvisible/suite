@@ -54,6 +54,9 @@ export const useTextEditor = () => {
 
 		let chain = editor.chain().focus()
 
+		if (oldStyles.textAlign) chain = chain.setTextAlign(oldStyles.textAlign)
+		if (oldStyles.color) chain = chain.setColor(oldStyles.color)
+
 		chain = chain.setMark('textStyle', {
 			fontSize: oldStyles.fontSize,
 			fontFamily: oldStyles.fontFamily,
