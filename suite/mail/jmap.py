@@ -199,7 +199,7 @@ class JMAPClient:
 
 		return frappe.cache.hget("jmap:identities", self.__session.auth[0], generator)
 
-	def get_mailbox_id_by_role(self, role: str) -> str | None:
+	def get_mailbox_id_by_role(self, role: str, raise_exception: bool = False) -> str | None:
 		"""Returns the mailbox ID for the given role."""
 
 		for mailbox in self.mailboxes:
@@ -207,19 +207,40 @@ class JMAPClient:
 			if role and mailbox_role.lower() == role.lower():
 				return mailbox["id"]
 
-	def get_mailbox_role_by_id(self, id: str) -> str | None:
+		if raise_exception:
+			frappe.throw(
+				_("Mailbox with role {0} not found for account {1}.").format(
+					frappe.bold(role), frappe.bold(self.__session.auth[0])
+				)
+			)
+
+	def get_mailbox_role_by_id(self, id: str, raise_exception: bool = False) -> str | None:
 		"""Returns the mailbox role for the given ID."""
 
 		for mailbox in self.mailboxes:
 			if mailbox["id"] == id:
 				return mailbox["role"]
 
-	def get_mailbox_name_by_id(self, id: str) -> str | None:
+		if raise_exception:
+			frappe.throw(
+				_("Mailbox with ID {0} not found for account {1}.").format(
+					frappe.bold(id), frappe.bold(self.__session.auth[0])
+				)
+			)
+
+	def get_mailbox_name_by_id(self, id: str, raise_exception: bool = False) -> str | None:
 		"""Returns the mailbox name for the given ID."""
 
 		for mailbox in self.mailboxes:
 			if id and mailbox["id"] == id:
 				return mailbox["name"]
+
+		if raise_exception:
+			frappe.throw(
+				_("Mailbox with ID {0} not found for account {1}.").format(
+					frappe.bold(id), frappe.bold(self.__session.auth[0])
+				)
+			)
 
 	def mailbox_get(self, mailbox_ids: list[str] | None = None) -> list[dict]:
 		"""Returns the mailboxes for the provided mailbox IDs."""
@@ -834,25 +855,25 @@ def get_identities(account: str) -> list[dict]:
 	return client.identities
 
 
-def get_mailbox_id_by_role(account: str, role: str) -> str | None:
+def get_mailbox_id_by_role(account: str, role: str, raise_exception: bool = False) -> str | None:
 	"""Returns the mailbox ID for the given role."""
 
 	client = get_jmap_client(account)
-	return client.get_mailbox_id_by_role(role)
+	return client.get_mailbox_id_by_role(role, raise_exception=raise_exception)
 
 
-def get_mailbox_role_by_id(account: str, id: str) -> str | None:
+def get_mailbox_role_by_id(account: str, id: str, raise_exception: bool = False) -> str | None:
 	"""Returns the mailbox role for the given ID."""
 
 	client = get_jmap_client(account)
-	return client.get_mailbox_role_by_id(id)
+	return client.get_mailbox_role_by_id(id, raise_exception=raise_exception)
 
 
-def get_mailbox_name_by_id(account: str, id: str) -> str | None:
+def get_mailbox_name_by_id(account: str, id: str, raise_exception: bool = False) -> str | None:
 	"""Returns the mailbox name for the given ID."""
 
 	client = get_jmap_client(account)
-	return client.get_mailbox_name_by_id(id)
+	return client.get_mailbox_name_by_id(id, raise_exception=raise_exception)
 
 
 @frappe.whitelist()
@@ -864,19 +885,19 @@ def get_mailboxes_for_account(account: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def get_mailbox_id_for_account(account: str, role: str) -> str | None:
+def get_mailbox_id_for_account(account: str, role: str, raise_exception: bool = False) -> str | None:
 	"""Returns the mailbox ID for the given role."""
 
 	validate_permission_for_account(account)
-	return get_mailbox_id_by_role(account, role)
+	return get_mailbox_id_by_role(account, role, raise_exception=raise_exception)
 
 
 @frappe.whitelist()
-def get_mailbox_name_for_account(account: str, id: str) -> str | None:
+def get_mailbox_name_for_account(account: str, id: str, raise_exception: bool = False) -> str | None:
 	"""Returns the mailbox name for the given ID."""
 
 	validate_permission_for_account(account)
-	return get_mailbox_name_by_id(account, id)
+	return get_mailbox_name_by_id(account, id, raise_exception=raise_exception)
 
 
 def raise_for_status(response: requests.Response) -> None:
