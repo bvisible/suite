@@ -6,7 +6,6 @@
 			:key="resizeHandle.direction"
 			:direction="resizeHandle.direction"
 			@startResize="(e) => startResize(e, resizeHandle.direction)"
-			@resizeToFitContent="$emit('resizeToFitContent')"
 		/>
 
 		<ResizeIndicator
