@@ -31,11 +31,11 @@ const editor = initTextEditor(element.value.content, element.value.editorMetadat
 const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
-	cursor: focusElementId.value == element.value.id ? 'text' : '',
+	cursor: isEditable.value ? 'text' : 'default',
 }))
 
 const handleMouseDown = (e) => {
-	if (focusElementId.value == element.value.id) {
+	if (isEditable.value) {
 		e.stopPropagation()
 		return
 	}
