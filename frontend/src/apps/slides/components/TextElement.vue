@@ -14,6 +14,7 @@ import { EditorContent } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
+import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
 
 const { activeEditor, initTextEditor } = useTextEditor()
@@ -26,6 +27,8 @@ const element = defineModel('element', {
 const emit = defineEmits(['clearTimeouts'])
 
 const editor = initTextEditor(element.value.content, element.value.editorMetadata)
+
+const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
 	cursor: focusElementId.value == element.value.id ? 'text' : '',
@@ -50,7 +53,7 @@ const makeElementEditable = () => {
 }
 
 const handleDoubleClick = (e) => {
-	if (focusElementId.value == element.value.id) {
+	if (inSlideShow.value || isEditable.value) {
 		e.stopPropagation()
 		return
 	}
