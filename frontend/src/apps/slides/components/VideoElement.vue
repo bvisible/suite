@@ -148,8 +148,8 @@ const seekTimestamp = (e) => {
 }
 
 const gradientOverlayStyles = computed(() => ({
-	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0) 100%),
-	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0) 100%)`,
+	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 5%, rgba(0, 0, 0, 0) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 15%, rgba(0, 0, 0, 0) 100%)`,
 	opacity: showProgressBar.value ? 1 : 0,
 	borderRadius: `${element.value.borderRadius}px`,
 }))
