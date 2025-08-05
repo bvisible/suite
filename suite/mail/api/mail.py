@@ -21,14 +21,13 @@ from mail.utils.validation import validate_permission_for_account
 def get_mails_from_mailbox(mailbox: str, limit: int, filter_by: str | None = None) -> list:
 	"""Returns mails from the selected mailbox for the current user."""
 
-	user = frappe.session.user
-
+	account = get_account_for_user(frappe.session.user)
 	is_unseen = filter_by == "unread"
 	is_has_attachment = filter_by == "has_attachments"
 	is_flagged = filter_by == "starred" or mailbox == "starred"
 	mailboxes = None if mailbox == "starred" else [mailbox]
 
-	return EmailMessage.get_threads(user, mailboxes, is_unseen, is_flagged, is_has_attachment, 0, limit)
+	return EmailMessage.get_threads(account, mailboxes, is_unseen, is_flagged, is_has_attachment, 0, limit)
 
 
 @frappe.whitelist()
@@ -64,6 +63,8 @@ def get_mail_thread(thread_id: str) -> list[dict]:
 def get_thread_rows(thread_id: str) -> list[dict]:
 	"""Returns mail thread rows for the given id."""
 
+	account = get_account_for_user(frappe.session.user)
+
 	EM = frappe.qb.DocType("Email Message")
 	EMR = frappe.qb.DocType("Email Message Recipient")
 	EMRT = frappe.qb.DocType("Email Message Reply To")
@@ -93,7 +94,7 @@ def get_thread_rows(thread_id: str) -> list[dict]:
 			EMR.display_name,
 			EMRT.email.as_("reply_to"),
 		)
-		.where((EM.account == frappe.session.user) & (EM.thread_id == thread_id) & (EM.destroyed == 0))
+		.where((EM.account == account) & (EM.thread_id == thread_id) & (EM.destroyed == 0))
 	).run(as_dict=True)
 
 
@@ -137,6 +138,7 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 def add_mail_attachments(messages: list[dict]) -> list[dict]:
 	"""Returns thread with attachments."""
 
+	account = get_account_for_user(frappe.session.user)
 	attachments = get_mail_attachments(list(messages.keys()))
 
 	for attachment in attachments:
@@ -150,7 +152,7 @@ def add_mail_attachments(messages: list[dict]) -> list[dict]:
 			messages[parent].setdefault("attachments", []).append(attachment)
 
 		elif attachment.disposition == "inline":
-			blob = EmailMessage.fetch_blob(frappe.session.user, attachment.blob_id)
+			blob = EmailMessage.fetch_blob(account, attachment.blob_id)
 			base64_content = base64.b64encode(blob).decode("utf-8")
 			message = messages[attachment.parent]
 			message["html_body"] = convert_img_src_from_cid_to_base64(
@@ -189,7 +191,8 @@ def get_mail_attachments(messages: list[str]) -> list[dict]:
 def fetch_attachment(blob_id: str) -> bytes:
 	"""Returns the content of an attachment."""
 
-	return EmailMessage.fetch_blob(frappe.session.user, blob_id)
+	account = get_account_for_user(frappe.session.user)
+	return EmailMessage.fetch_blob(account, blob_id)
 
 
 @frappe.whitelist()
@@ -227,7 +230,7 @@ def create_mail(
 ) -> None:
 	"""Creates new mail queue."""
 
-	account = frappe.session.user
+	account = get_account_for_user(frappe.session.user)
 
 	doc_attachments = []
 	for d in attachments:
@@ -346,7 +349,8 @@ def convert_img_src_from_cid_to_base64(html_body: str, cid: str, type: str, base
 def destroy_mail(name: str) -> None:
 	"""Destroys the given mail."""
 
-	EmailMessage.destroy_emails(frappe.session.user, [name])
+	account = get_account_for_user(frappe.session.user)
+	EmailMessage.destroy_emails(account, [name])
 
 
 @frappe.whitelist()
@@ -395,10 +399,10 @@ def get_mime_message(name: str) -> dict:
 def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 	"""Sets seen for mails."""
 
-	user = frappe.session.user
-	mailbox_id = ["!=", get_mailbox_id_by_role(user, "trash")] if mailbox == "starred" else mailbox
-	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_id)
-	EmailMessage.mark_emails_as_seen_unseen(user, messages, seen)
+	account = get_account_for_user(frappe.session.user)
+	mailbox_id = ["!=", get_mailbox_id_by_role(account, "trash")] if mailbox == "starred" else mailbox
+	messages = EmailMessage.get_message_ids(account, thread_ids, mailbox_id)
+	EmailMessage.mark_emails_as_seen_unseen(account, messages, seen)
 
 	return {"thread_ids": thread_ids, "seen": seen}
 
@@ -407,7 +411,8 @@ def set_seen(thread_ids: list[str], seen: bool, mailbox: str) -> dict:
 def set_flagged(names: list[str], flagged: bool) -> dict:
 	"""Sets flagged for mails."""
 
-	EmailMessage.mark_emails_as_flagged_unflagged(frappe.session.user, names, flagged)
+	account = get_account_for_user(frappe.session.user)
+	EmailMessage.mark_emails_as_flagged_unflagged(account, names, flagged)
 
 	return {"names": names, "flagged": flagged}
 
@@ -416,30 +421,31 @@ def set_flagged(names: list[str], flagged: bool) -> dict:
 def set_mails_mailbox(mail_ids: list[str], mailbox: str) -> None:
 	"""Sets mailbox for mails."""
 
-	EmailMessage.move_emails_to_mailbox(frappe.session.user, mail_ids, mailbox)
+	account = get_account_for_user(frappe.session.user)
+	EmailMessage.move_emails_to_mailbox(account, mail_ids, mailbox)
 
 
 @frappe.whitelist()
 def empty_mailbox(mailbox_id: str) -> None:
 	"""Empties selected mailbox for current user."""
 
-	user = frappe.session.user
+	account = get_account_for_user(frappe.session.user)
 	messages = frappe.get_all(
 		"Email Message",
-		{"account": user, "mailbox_id": ["in", mailbox_id], "destroyed": 0},
+		{"account": account, "mailbox_id": ["in", mailbox_id], "destroyed": 0},
 		pluck="name",
 	)
-	EmailMessage.destroy_emails(user, messages)
+	EmailMessage.destroy_emails(account, messages)
 
 
 @frappe.whitelist()
 def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) -> list[str]:
 	"""Sets mailbox for threads."""
 
-	user = frappe.session.user
-	mailbox_filter = ["!=", get_mailbox_id_by_role(user, "trash")] if mailbox == "starred" else mailbox
-	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox_filter)
-	EmailMessage.move_emails_to_mailbox(user, messages, move_to_mailbox)
+	account = get_account_for_user(frappe.session.user)
+	mailbox_filter = ["!=", get_mailbox_id_by_role(account, "trash")] if mailbox == "starred" else mailbox
+	messages = EmailMessage.get_message_ids(account, thread_ids, mailbox_filter)
+	EmailMessage.move_emails_to_mailbox(account, messages, move_to_mailbox)
 	return thread_ids
 
 
@@ -447,9 +453,9 @@ def set_threads_mailbox(thread_ids: list[str], mailbox: str, move_to_mailbox) ->
 def delete_threads(thread_ids: list[str], mailbox: str) -> list[str]:
 	"""Destroys mails belonging to the given threads."""
 
-	user = frappe.session.user
-	messages = EmailMessage.get_message_ids(user, thread_ids, mailbox)
-	EmailMessage.destroy_emails(user, messages)
+	account = get_account_for_user(frappe.session.user)
+	messages = EmailMessage.get_message_ids(account, thread_ids, mailbox)
+	EmailMessage.destroy_emails(account, messages)
 	return thread_ids
 
 
@@ -458,7 +464,7 @@ def delete_threads(thread_ids: list[str], mailbox: str) -> list[str]:
 def fetch_changes() -> None:
 	"""Fetches changes for the current user's account."""
 
-	account = frappe.session.user
+	account = get_account_for_user(frappe.session.user)
 	validate_permission_for_account(account)
 	enqueue_fetch_changes(account)
 
