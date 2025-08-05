@@ -7,7 +7,7 @@ from frappe import _
 from frappe.query_builder.functions import Count
 from frappe.utils import format_datetime, random_string
 
-from mail.jmap import get_mailbox_id_by_role, get_mailboxes_for_account
+from mail.jmap import get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
 from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
@@ -43,32 +43,6 @@ def get_mails_from_mailbox(mailbox: str, limit: int, filter_by: str | None = Non
 
 
 @frappe.whitelist()
-def get_mailbox_thread_count(mailbox_id: str) -> int:
-	"""Returns no. of mails for the given mailbox."""
-
-	EM = frappe.qb.DocType("Email Message")
-	account = get_account_for_user(frappe.session.user)
-	distinct_threads = (
-		frappe.qb.from_(EM)
-		.select(EM.thread_id)
-		.distinct()
-		.where((EM.account == account) & (EM.destroyed == 0))
-	)
-
-	if mailbox_id == "starred":
-		distinct_threads = distinct_threads.where(EM.flagged == 1)
-
-		if trash_mailbox_id := get_mailbox_id_by_role(account, "trash"):
-			distinct_threads = distinct_threads.where(EM.mailbox_id != trash_mailbox_id)
-	else:
-		distinct_threads = distinct_threads.where(EM.mailbox_id == mailbox_id)
-
-	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
-
-	return count[0][0]
-
-
-@frappe.whitelist()
 def get_mailboxes() -> list[dict]:
 	"""Returns the user's mailboxes along with no. of unseen mails."""
 
@@ -76,20 +50,17 @@ def get_mailboxes() -> list[dict]:
 	if not has_role(user, "Mail User") or user == "Administrator":
 		return []
 
-	EmailMessage = frappe.qb.DocType("Email Message")
-	unseen_counts = (
-		frappe.qb.from_(EmailMessage)
-		.select(EmailMessage.mailbox_id, Count("*").as_("count"))
-		.where((EmailMessage.account == user) & (EmailMessage.destroyed == 0) & (EmailMessage.seen == 0))
-		.groupby(EmailMessage.mailbox_id)
-	).run(as_dict=True)
-	unseen_map = {item["mailbox_id"]: item["count"] for item in unseen_counts}
-
-	mailboxes = get_mailboxes_for_account(user)
-	for mailbox in mailboxes:
-		mailbox["count"] = unseen_map.get(mailbox["id"], 0)
-
-	return mailboxes
+	mailboxes = frappe.get_all("Mailbox", filters={"account": get_account_for_user(user)})
+	return [
+		{
+			"id": mailbox["id"],
+			"_name": mailbox["_name"],
+			"role": mailbox["role"],
+			"total_threads": mailbox["total_threads"],
+			"unread_threads": mailbox["unread_threads"],
+		}
+		for mailbox in mailboxes
+	]
 
 
 @frappe.whitelist()

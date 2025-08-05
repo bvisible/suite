@@ -6,15 +6,8 @@
 			<Breadcrumbs
 				:items="[{ label: mailboxName, route: { name: 'Mailbox', params: { mailbox } } }]"
 			>
-				<template #suffix>
-					<div class="text-ink-gray-5 ml-2 self-end text-xs">
-						{{
-							__('{0} {1}', [
-								mailCount?.data || 0,
-								mailCount?.data == 1 ? 'thread' : 'threads',
-							])
-						}}
-					</div>
+				<template v-if="mailbox !== 'starred'" #suffix>
+					<div class="text-ink-gray-5 ml-2 self-end text-xs">{{ noOfThreads }}</div>
 				</template>
 			</Breadcrumbs>
 		</div>
@@ -400,15 +393,8 @@ const groupedThreads = computed(() =>
 	}, {}),
 )
 
-const mailCount = createResource({
-	url: 'mail.api.mail.get_mailbox_thread_count',
-	makeParams: () => ({ mailbox }),
-	cache: [`${mailbox}MailCount`, user.data?.name],
-})
-
 const reloadMails = () => {
 	threads.reload()
-	mailCount.reload()
 	mailboxes.reload()
 	resetSelections()
 }
@@ -497,8 +483,8 @@ const moveThreads = createResource({
 })
 
 const moveToOptions = computed(() =>
-	user.data.mailboxes
-		.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
+	mailboxes.data
+		?.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
 		.map((m) => ({
 			label: m.name,
 			onClick: () =>
@@ -581,10 +567,13 @@ const LAYOUT_OPTIONS = [
 
 // UI formatting
 
+const mailboxObj = computed(() => mailboxes.data?.find((m) => m.id === mailbox))
 const mailboxName = computed(() =>
-	mailbox === 'starred'
-		? __('Starred')
-		: user.data.mailboxes.find((m) => m.id === mailbox)?.name,
+	mailbox === 'starred' ? __('Starred') : mailboxObj.value?._name,
+)
+const noOfThreads = computed(
+	() =>
+		`${mailboxObj.value?.total_threads || 0} ${mailboxObj.value?.total_threads == 1 ? __('thread') : __('threads')}`,
 )
 
 const title = computed(() => {
