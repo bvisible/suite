@@ -66,7 +66,7 @@ class EmailSearch:
 				"from_name",
 				"from_email",
 				"thread_id",
-				"mailbox_role",
+				"mailbox_id",
 				"received_at",
 			],
 		)
@@ -104,7 +104,7 @@ class EmailSearch:
 			"from_email": cstr(doc.from_email),
 			"recipients": cstr(doc.recipients),
 			"thread_id": cstr(doc.thread_id),
-			"mailbox_role": cstr(doc.mailbox_role),
+			"mailbox_id": cstr(doc.mailbox_id),
 			"received_at": cstr(doc.received_at),
 		}
 		self.ft.add_document(key, replace=True, **mapping)
