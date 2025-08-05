@@ -236,7 +236,7 @@ const emit = defineEmits(['reloadMails', 'setSeen', 'moveThread', 'deleteThread'
 const { isMobile } = useScreenSize()
 const dayjs = inject('$dayjs')
 const router = useRouter()
-const { getMailboxId } = userStore()
+const { mailboxes, getMailboxId } = userStore()
 
 const trashMailboxId = computed(() => getMailboxId('trash'))
 
@@ -285,8 +285,8 @@ defineExpose({ reload })
 const user = inject('$user')
 
 const moveToOptions = computed(() =>
-	user.data.mailboxes
-		.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
+	mailboxes.data
+		?.filter((m) => ![mailbox, getMailboxId('sent'), getMailboxId('drafts')].includes(m.id))
 		.map((m) => ({ label: m.name, onClick: () => emit('moveThread', m.id) })),
 )
 
