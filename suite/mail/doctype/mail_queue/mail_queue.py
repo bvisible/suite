@@ -592,8 +592,8 @@ class MailQueue(Document):
 
 		try:
 			client = get_jmap_client(self.account)
-			draft_mailbox_id = get_mailbox_id_by_role(self.account, role="drafts")
-			sent_mailbox_id = get_mailbox_id_by_role(self.account, role="sent")
+			draft_mailbox_id = get_mailbox_id_by_role(self.account, role="drafts", raise_exception=True)
+			sent_mailbox_id = get_mailbox_id_by_role(self.account, role="sent", raise_exception=True)
 
 			using = ["urn:ietf:params:jmap:mail"]
 			method_calls = []
