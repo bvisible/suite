@@ -430,8 +430,6 @@ export interface EmailMessage extends DocType {
 	text_body?: string
 	/** Draft: Check */
 	draft: 0 | 1
-	/** Mailbox Role: Data */
-	mailbox_role?: string
 	/** Flagged: Check */
 	flagged: 0 | 1
 	/** Answered: Check */

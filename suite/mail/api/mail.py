@@ -7,11 +7,12 @@ from frappe import _
 from frappe.query_builder.functions import Count
 from frappe.utils import format_datetime, random_string
 
-from mail.jmap import get_mailboxes_for_account
+from mail.jmap import get_mailbox_id_by_role, get_mailboxes_for_account
 from mail.mail.doctype.email_message.email_message import EmailMessage, enqueue_fetch_changes
 from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.mail_queue.mail_queue import MailQueue
 from mail.utils import convert_html_to_text
+from mail.utils.cache import get_account_for_user
 from mail.utils.rate_limiter import dynamic_rate_limit
 from mail.utils.user import has_role
 from mail.utils.validation import validate_permission_for_account
@@ -42,22 +43,25 @@ def get_mails_from_mailbox(mailbox: str, limit: int, filter_by: str | None = Non
 
 
 @frappe.whitelist()
-def get_mailbox_thread_count(mailbox: str) -> int:
+def get_mailbox_thread_count(mailbox_id: str) -> int:
 	"""Returns no. of mails for the given mailbox."""
 
 	EM = frappe.qb.DocType("Email Message")
-
+	account = get_account_for_user(frappe.session.user)
 	distinct_threads = (
 		frappe.qb.from_(EM)
 		.select(EM.thread_id)
 		.distinct()
-		.where((EM.account == frappe.session.user) & (EM.destroyed == 0))
+		.where((EM.account == account) & (EM.destroyed == 0))
 	)
 
-	if mailbox == "starred":
-		distinct_threads = distinct_threads.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
+	if mailbox_id == "starred":
+		distinct_threads = distinct_threads.where(EM.flagged == 1)
+
+		if trash_mailbox_id := get_mailbox_id_by_role(account, "trash"):
+			distinct_threads = distinct_threads.where(EM.mailbox_id != trash_mailbox_id)
 	else:
-		distinct_threads = distinct_threads.where(EM.mailbox_id == mailbox)
+		distinct_threads = distinct_threads.where(EM.mailbox_id == mailbox_id)
 
 	count = (frappe.qb.from_(distinct_threads).select(Count("*").as_("count"))).run()
 
@@ -123,7 +127,7 @@ def get_thread_rows(thread_id: str) -> list[dict]:
 			EM.draft,
 			EM.seen,
 			EM.flagged,
-			EM.mailbox_role,
+			EM.mailbox_id,
 			EMR.type,
 			EMR.email,
 			EMR.display_name,
@@ -155,7 +159,7 @@ def group_thread_mail_recipients(rows: list[dict]) -> tuple[dict, set]:
 				"draft": row["draft"],
 				"seen": row["seen"],
 				"flagged": row["flagged"],
-				"mailbox_role": row["mailbox_role"],
+				"mailbox_id": row["mailbox_id"],
 				"recipients": defaultdict(list),
 				"reply_to": [],
 			}
@@ -456,13 +460,13 @@ def set_mails_mailbox(mail_ids: list[str], mailbox: str) -> None:
 
 
 @frappe.whitelist()
-def empty_mailbox(mailbox: str) -> None:
+def empty_mailbox(mailbox_id: str) -> None:
 	"""Empties selected mailbox for current user."""
 
 	user = frappe.session.user
 	messages = frappe.get_all(
 		"Email Message",
-		{"account": user, "mailbox_id": ["in", mailbox], "destroyed": 0},
+		{"account": user, "mailbox_id": ["in", mailbox_id], "destroyed": 0},
 		pluck="name",
 	)
 	EmailMessage.destroy_emails(user, messages)
