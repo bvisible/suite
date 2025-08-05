@@ -32,6 +32,7 @@ const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
 	cursor: isEditable.value ? 'text' : 'default',
+	userSelect: isEditable.value ? 'text' : 'none',
 }))
 
 const handleMouseDown = (e) => {
