@@ -111,16 +111,14 @@ const progress = ref(0)
 
 const updateProgress = () => {
 	const video = el.value
-	if (duration.value) {
-		progress.value = Math.round((video.currentTime / duration.value) * 100)
-	}
+	if (!video || !duration.value) return
+	progress.value = Math.round((video.currentTime / duration.value) * 100)
 }
 
 const updateDuration = () => {
 	const video = el.value
-	if (video.duration) {
-		duration.value = video.duration
-	}
+	if (!video || !video.duration) return
+	duration.value = video.duration
 }
 
 const hoverOver = ref(false)
