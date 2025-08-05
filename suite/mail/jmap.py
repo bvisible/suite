@@ -167,18 +167,24 @@ class JMAPClient:
 		return self.capabilities["urn:ietf:params:jmap:core"].get("maxConcurrentUpload", 4)
 
 	@property
-	def mailboxes(self) -> dict[list[dict]]:
+	def mailboxes(self) -> list[dict]:
 		"""Returns the mailboxes for the logged-in user."""
 
-		def generator() -> dict[list[dict]]:
-			mailboxes = {}
-			for account_id in [self.account_id]:
-				response = self._make_request(
-					["urn:ietf:params:jmap:mail"], [["Mailbox/get", {"accountId": account_id}, "0"]]
-				)
-				mailboxes[account_id] = response["methodResponses"][0][1]["list"]
-
-			return mailboxes
+		def generator() -> list[dict]:
+			mailboxes = frappe.db.get_all("Mailbox", {"account": self.__session.auth[0]})
+			return [
+				{
+					"id": mailbox["id"],
+					"name": mailbox["name"],
+					"role": mailbox["role"],
+					"_name": mailbox["_name"],
+					"_parent": mailbox["_parent"],
+					"parent_id": mailbox["parent_id"],
+					"subscribed": mailbox["subscribed"],
+					"_sort_order": mailbox["_sort_order"],
+				}
+				for mailbox in mailboxes
+			]
 
 		return frappe.cache.hget("jmap:mailboxes", self.__session.auth[0], generator)
 
@@ -194,52 +200,161 @@ class JMAPClient:
 
 		return frappe.cache.hget("jmap:identities", self.__session.auth[0], generator)
 
-	def get_mailboxes(self) -> list[dict]:
-		"""Returns the mailboxes for the logged-in user."""
+	def get_mailbox_id_by_role(self, role: str, raise_exception: bool = False) -> str | None:
+		"""Returns the mailbox ID for the given role."""
 
-		mailboxes = []
-		for mailbox in self.mailboxes[self.account_id]:
-			mailboxes.append(
-				{
-					"id": mailbox["id"],
-					"name": mailbox["name"],
-					"role": mailbox["role"],
-				}
-			)
-
-		if mailboxes:
-			role_order = ["inbox", "sent", "drafts", "junk", "trash"]
-			role_priority = {role: i for i, role in enumerate(role_order)}
-
-			return sorted(mailboxes, key=lambda m: (role_priority.get(m["role"], len(role_order))))
-
-		return mailboxes
-
-	def get_mailbox_id(self, role: str | None = None, name: str | None = None) -> str | None:
-		"""Returns the mailbox ID for the given role or name."""
-
-		for mailbox in self.mailboxes[self.account_id]:
+		for mailbox in self.mailboxes:
 			mailbox_role = mailbox.get("role") or ""
-			mailbox_name = mailbox.get("name") or ""
-			if (role and mailbox_role.lower() == role.lower()) or (
-				name and mailbox_name.lower() == name.lower()
-			):
+			if role and mailbox_role.lower() == role.lower():
 				return mailbox["id"]
 
-	def get_mailbox_role(self, id: str) -> str | None:
+		if raise_exception:
+			frappe.throw(
+				_("Mailbox with role {0} not found for account {1}.").format(
+					frappe.bold(role), frappe.bold(self.__session.auth[0])
+				)
+			)
+
+	def get_mailbox_role_by_id(self, id: str, raise_exception: bool = False) -> str | None:
 		"""Returns the mailbox role for the given ID."""
 
-		for mailbox in self.mailboxes[self.account_id]:
-			if mailbox.get("id") == id:
+		for mailbox in self.mailboxes:
+			if mailbox["id"] == id:
 				return mailbox["role"]
 
-	def get_mailbox_name(self, id: str | None = None, role: str | None = None) -> str | None:
-		"""Returns the mailbox name for the given ID or role."""
+		if raise_exception:
+			frappe.throw(
+				_("Mailbox with ID {0} not found for account {1}.").format(
+					frappe.bold(id), frappe.bold(self.__session.auth[0])
+				)
+			)
 
-		for mailbox in self.mailboxes[self.account_id]:
-			mailbox_role = mailbox.get("role") or ""
-			if (id and mailbox.get("id") == id) or (role and mailbox_role.lower() == role.lower()):
-				return mailbox["name"]
+	def get_mailbox_name_by_id(self, id: str, raise_exception: bool = False) -> str | None:
+		"""Returns the mailbox name for the given ID."""
+
+		for mailbox in self.mailboxes:
+			if id and mailbox["id"] == id:
+				return mailbox["_name"]
+
+		if raise_exception:
+			frappe.throw(
+				_("Mailbox with ID {0} not found for account {1}.").format(
+					frappe.bold(id), frappe.bold(self.__session.auth[0])
+				)
+			)
+
+	def mailbox_get(self, mailbox_ids: list[str] | None = None) -> list[dict]:
+		"""Returns the mailboxes for the provided mailbox IDs."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Mailbox/get",
+					{
+						"accountId": self.account_id,
+						"ids": mailbox_ids,
+					},
+					"0",
+				]
+			],
+		)
+
+		return response["methodResponses"][0][1]["list"]
+
+	def mailbox_create(
+		self,
+		unique_id: str,
+		name: str,
+		role: str | None = None,
+		parent: str | None = None,
+		sort_order: int = 0,
+		subscribed: bool = True,
+	) -> dict:
+		"""Creates a mailbox with the given parameters."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Mailbox/set",
+					{
+						"accountId": self.account_id,
+						"create": {
+							unique_id: {
+								"name": name,
+								"role": role or None,
+								"parentId": parent or None,
+								"sortOrder": sort_order or 0,
+								"isSubscribed": subscribed or False,
+							}
+						},
+					},
+					"0",
+				]
+			],
+		)
+		return response["methodResponses"][0][1]
+
+	def mailbox_set(
+		self,
+		mailbox_id: str,
+		name: str,
+		role: str | None = None,
+		parent: str | None = None,
+		sort_order: int = 0,
+		subscribed: bool = True,
+	) -> dict:
+		"""Updates the mailbox with the given parameters."""
+
+		response = self._make_request(
+			using=["urn:ietf:params:jmap:mail"],
+			method_calls=[
+				[
+					"Mailbox/set",
+					{
+						"accountId": self.account_id,
+						"update": {
+							mailbox_id: {
+								"name": name,
+								"role": role or None,
+								"parentId": parent or None,
+								"sortOrder": sort_order or 0,
+								"isSubscribed": subscribed or False,
+							}
+						},
+					},
+					"0",
+				]
+			],
+		)
+		return response["methodResponses"][0][1]
+
+	def mailbox_destroy(self, mailbox_ids: list[str], remove_emails: bool = False) -> dict:
+		"""Destroys the mailboxes with the given IDs."""
+
+		result = {"destroyed": [], "notDestroyed": {}}
+		for ids_batch in create_batch(mailbox_ids, self.max_objects_in_set):
+			response = self._make_request(
+				using=["urn:ietf:params:jmap:mail"],
+				method_calls=[
+					[
+						"Mailbox/set",
+						{
+							"accountId": self.account_id,
+							"destroy": ids_batch,
+							"onDestroyRemoveEmails": remove_emails,
+						},
+						"0",
+					]
+				],
+			)
+
+			result["destroyed"].extend(response["methodResponses"][0][1].get("destroyed", []))
+			if not_destroyed := response["methodResponses"][0][1].get("notDestroyed", {}):
+				result["notDestroyed"].update(not_destroyed)
+
+		return result
 
 	def email_query(self, filter: dict, position: int = 0, limit: int = 50) -> dict:
 		"""Query emails based on the provided filter."""
@@ -424,8 +539,8 @@ class JMAPClient:
 		"""Update emails mailbox."""
 
 		update_data = {}
-		junk_mailbox_id = self.get_mailbox_id(role="junk")
-		trash_mailbox_id = self.get_mailbox_id(role="trash")
+		junk_mailbox_id = self.get_mailbox_id_by_role(role="junk")
+		trash_mailbox_id = self.get_mailbox_id_by_role(role="trash")
 
 		for email in emails_to_move:
 			email_id, from_mailbox_id = email
@@ -731,7 +846,7 @@ def get_mailboxes(account: str) -> list[dict]:
 	"""Returns the mailboxes for the given account."""
 
 	client = get_jmap_client(account)
-	return client.get_mailboxes()
+	return client.mailboxes
 
 
 def get_identities(account: str) -> list[dict]:
@@ -741,25 +856,25 @@ def get_identities(account: str) -> list[dict]:
 	return client.identities
 
 
-def get_mailbox_id(account: str, role: str | None = None, name: str | None = None) -> str | None:
-	"""Returns the mailbox ID for the given role or name."""
+def get_mailbox_id_by_role(account: str, role: str, raise_exception: bool = False) -> str | None:
+	"""Returns the mailbox ID for the given role."""
 
 	client = get_jmap_client(account)
-	return client.get_mailbox_id(role, name)
+	return client.get_mailbox_id_by_role(role, raise_exception=raise_exception)
 
 
-def get_mailbox_role(account: str, id: str) -> str | None:
+def get_mailbox_role_by_id(account: str, id: str, raise_exception: bool = False) -> str | None:
 	"""Returns the mailbox role for the given ID."""
 
 	client = get_jmap_client(account)
-	return client.get_mailbox_role(id)
+	return client.get_mailbox_role_by_id(id, raise_exception=raise_exception)
 
 
-def get_mailbox_name(account: str, id: str | None = None, role: str | None = None) -> str | None:
-	"""Returns the mailbox name for the given ID or role."""
+def get_mailbox_name_by_id(account: str, id: str, raise_exception: bool = False) -> str | None:
+	"""Returns the mailbox name for the given ID."""
 
 	client = get_jmap_client(account)
-	return client.get_mailbox_name(id, role)
+	return client.get_mailbox_name_by_id(id, raise_exception=raise_exception)
 
 
 @frappe.whitelist()
@@ -771,19 +886,19 @@ def get_mailboxes_for_account(account: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def get_mailbox_id_for_account(account: str, role: str | None = None, name: str | None = None) -> str | None:
-	"""Returns the mailbox ID for the given role or name."""
+def get_mailbox_id_for_account(account: str, role: str, raise_exception: bool = False) -> str | None:
+	"""Returns the mailbox ID for the given role."""
 
 	validate_permission_for_account(account)
-	return get_mailbox_id(account, role, name)
+	return get_mailbox_id_by_role(account, role, raise_exception=raise_exception)
 
 
 @frappe.whitelist()
-def get_mailbox_name_for_account(account: str, id: str | None = None, role: str | None = None) -> str | None:
-	"""Returns the mailbox name for the given ID or role."""
+def get_mailbox_name_for_account(account: str, id: str, raise_exception: bool = False) -> str | None:
+	"""Returns the mailbox name for the given ID."""
 
 	validate_permission_for_account(account)
-	return get_mailbox_name(account, id, role)
+	return get_mailbox_name_by_id(account, id, raise_exception=raise_exception)
 
 
 def raise_for_status(response: requests.Response) -> None:

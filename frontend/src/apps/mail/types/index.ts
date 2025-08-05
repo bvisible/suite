@@ -55,7 +55,6 @@ export interface Mail {
 	draft: 0 | 1
 	flagged: 0 | 1
 	seen: 0 | 1
-	mailbox_role: string
 	recipients: {
 		To: Recipient[]
 		Cc: Recipient[]

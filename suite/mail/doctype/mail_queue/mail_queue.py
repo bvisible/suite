@@ -28,7 +28,7 @@ from frappe.utils import (
 )
 from uuid_utils import uuid7
 
-from mail.jmap import get_identities, get_jmap_client, get_mailbox_id
+from mail.jmap import get_identities, get_jmap_client, get_mailbox_id_by_role
 from mail.utils.cache import get_account_for_email, get_account_for_user
 from mail.utils.dt import convert_to_utc, parsedate_to_datetime
 from mail.utils.user import get_account_email_addresses, is_account_owner, is_system_manager
@@ -592,8 +592,8 @@ class MailQueue(Document):
 
 		try:
 			client = get_jmap_client(self.account)
-			draft_mailbox_id = get_mailbox_id(self.account, role="drafts")
-			sent_mailbox_id = get_mailbox_id(self.account, role="sent")
+			draft_mailbox_id = get_mailbox_id_by_role(self.account, role="drafts", raise_exception=True)
+			sent_mailbox_id = get_mailbox_id_by_role(self.account, role="sent", raise_exception=True)
 
 			using = ["urn:ietf:params:jmap:mail"]
 			method_calls = []

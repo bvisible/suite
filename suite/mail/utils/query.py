@@ -1,5 +1,8 @@
 import frappe
 
+from mail.mail.doctype.mailbox.mailbox import fetch_mailboxes
+from mail.utils.cache import get_account_for_user
+
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
@@ -83,3 +86,32 @@ def get_personal_signup_domains(
 			& (MAIL_TENANT.allow_personal_signup == 1)
 		)
 	).run(as_dict=False)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_account_mailboxes(
+	doctype: str | None = None,
+	txt: str | None = None,
+	searchfield: str | None = None,
+	start: int = 0,
+	page_len: int = 20,
+	filters: dict | None = None,
+) -> list:
+	"""Returns a list of mailboxes for the account."""
+
+	filters = filters or {}
+	account = filters.get("account") or get_account_for_user(frappe.session.user)
+
+	if not account:
+		return []
+
+	result = []
+	if mailboxes := fetch_mailboxes(account):
+		for mailbox in mailboxes:
+			if txt and txt.lower() not in mailbox["id"].lower():
+				continue
+
+			result.append([mailbox["name"]])
+
+	return result[start : start + page_len]
