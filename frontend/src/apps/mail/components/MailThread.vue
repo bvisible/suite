@@ -19,6 +19,15 @@
 					{{ mailThread?.data?.[0].subject || __('[No subject]') }}
 				</h2>
 				<div class="ml-auto shrink-0 space-x-2">
+					<Tooltip v-if="mailbox !== 'starred'" :text="__('Move To')">
+						<Dropdown :options="moveToOptions">
+							<Button variant="ghost">
+								<template #icon>
+									<component :is="FolderInput" class="text-ink-gray-5 h-4 w-4" />
+								</template>
+							</Button>
+						</Dropdown>
+					</Tooltip>
 					<Tooltip
 						v-for="action in threadActions"
 						:key="action.label"
@@ -29,16 +38,6 @@
 								<component :is="action.icon" class="text-ink-gray-5 h-4 w-4" />
 							</template>
 						</Button>
-					</Tooltip>
-
-					<Tooltip v-if="mailbox !== 'starred'" :text="__('Move To')">
-						<Dropdown :options="moveToOptions">
-							<Button variant="ghost">
-								<template #icon>
-									<component :is="FolderInput" class="text-ink-gray-5 h-4 w-4" />
-								</template>
-							</Button>
-						</Dropdown>
 					</Tooltip>
 				</div>
 			</template>
@@ -301,6 +300,11 @@ interface MailAction {
 const threadActions = computed((): MailAction[] =>
 	[
 		{
+			label: __('Mark as Unread'),
+			onClick: () => emit('setSeen', false),
+			icon: MailIcon,
+		},
+		{
 			label: __('Move to Trash'),
 			onClick: () => emit('moveThread', trashMailboxId.value),
 			icon: Trash2,
@@ -311,11 +315,6 @@ const threadActions = computed((): MailAction[] =>
 			onClick: () => emit('deleteThread'),
 			icon: Trash2,
 			condition: mailbox === trashMailboxId.value,
-		},
-		{
-			label: __('Mark as Unread'),
-			onClick: () => emit('setSeen', false),
-			icon: MailIcon,
 		},
 	].filter((action) => action.condition !== false),
 )
