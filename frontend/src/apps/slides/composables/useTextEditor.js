@@ -220,7 +220,7 @@ export const useTextEditor = () => {
 	const getEditorProps = (editorMetadata) => {
 		return {
 			attributes: {
-				style: `line-height: ${editorMetadata?.lineHeight || 1}`,
+				style: `line-height: ${editorMetadata?.lineHeight || 1.5}`,
 			},
 		}
 	}
