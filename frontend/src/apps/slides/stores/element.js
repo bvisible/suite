@@ -1,5 +1,5 @@
 import { ref, computed, nextTick } from 'vue'
-import { call } from 'frappe-ui'
+import { call, createResource } from 'frappe-ui'
 
 import { selectionBounds, slide, slideBounds, updateSelectionBounds } from './slide'
 
@@ -116,6 +116,81 @@ const addTextElement = async (text) => {
 	selectAndCenterElement(element.id)
 }
 
+const savePoster = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.save_base64_thumbnail',
+	makeParams: (posterDataUrl) => ({
+		presentation_name: presentationId.value,
+		base64_data: posterDataUrl,
+		prefix: 'poster',
+	}),
+})
+
+const generatePoster = async (video) => {
+	// create a canvas of the size of the video
+	const canvas = document.createElement('canvas')
+	canvas.width = video.videoWidth
+	canvas.height = video.videoHeight
+
+	const context = canvas.getContext('2d')
+	// draw the current frame of the video onto the canvas
+	context.drawImage(video, 0, 0, canvas.width, canvas.height)
+	const posterDataUrl = canvas.toDataURL('image/jpeg')
+
+	// save the poster as an attachment and return the url for the poster
+	return await savePoster.submit(posterDataUrl)
+}
+
+const getVideoElementClone = (videoUrl) => {
+	const videoElement = document.createElement('video')
+
+	videoElement.src = videoUrl
+	videoElement.crossOrigin = 'anonymous'
+	videoElement.style.position = 'absolute'
+	videoElement.style.left = '-9999px'
+	videoElement.style.width = '300px'
+	videoElement.style.height = 'auto'
+
+	return videoElement
+}
+
+const handleVideoCloneDataLoad = async (videoClone, resolve, reject) => {
+	try {
+		const poster = await generatePoster(videoClone)
+		resolve(poster)
+	} catch (err) {
+		reject(err)
+	} finally {
+		// remove the video element from the DOM after poster is generated
+		document.body.removeChild(videoClone)
+	}
+}
+
+const getVideoPoster = async (videoUrl) => {
+	return new Promise((resolve, reject) => {
+		// create a clone of the video element to generate a poster
+		// without making the original video visible so there's no flicker
+		const videoClone = getVideoElementClone(videoUrl)
+		document.body.appendChild(videoClone)
+
+		// we cannot directly capture the poster without data load event
+		videoClone.addEventListener(
+			'loadeddata',
+			() => handleVideoCloneDataLoad(videoClone, resolve, reject),
+			{ once: true },
+		)
+
+		videoClone.addEventListener(
+			'error',
+			() => {
+				// if video fails to load, don't leave cloned element in the DOM
+				document.body.removeChild(videoClone)
+				reject(new Error('Failed to load video for poster generation'))
+			},
+			{ once: true },
+		)
+	})
+}
+
 const addMediaElement = async (file, type) => {
 	let element = {
 		id: generateUniqueId(),
@@ -136,6 +211,7 @@ const addMediaElement = async (file, type) => {
 		shadowColor: '#000000',
 	}
 	if (type == 'video') {
+		element.poster = await getVideoPoster(file.file_url)
 		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
