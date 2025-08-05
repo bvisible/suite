@@ -50,7 +50,10 @@ const makeElementEditable = () => {
 
 	activeEditor.value.setEditable(true)
 	activeEditor.value.commands.focus()
-	activeEditor.value.commands.selectAll()
+	activeEditor.value.commands.setTextSelection({
+		from: 0,
+		to: activeEditor.value.state.doc.content.size,
+	})
 }
 
 const handleDoubleClick = (e) => {

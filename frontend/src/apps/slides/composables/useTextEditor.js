@@ -23,6 +23,8 @@ const editorStyles = reactive({
 	orderedList: false,
 })
 
+const lastUsedStyles = reactive({ ...editorStyles })
+
 export const useTextEditor = () => {
 	const setEditorStyles = (editor) => {
 		if (!editor) return
@@ -47,8 +49,47 @@ export const useTextEditor = () => {
 		})
 	}
 
+	const applyLastUsedStyles = (editor) => {
+		const oldStyles = JSON.parse(JSON.stringify(lastUsedStyles))
+
+		let chain = editor.chain().focus()
+
+		chain = chain.setMark('textStyle', {
+			fontSize: oldStyles.fontSize,
+			fontFamily: oldStyles.fontFamily,
+			letterSpacing: oldStyles.letterSpacing,
+			opacity: oldStyles.opacity,
+			textTransform: oldStyles.uppercase ? 'uppercase' : null,
+		})
+
+		if (oldStyles.bold) chain = chain.setBold()
+		if (oldStyles.italic) chain = chain.setItalic()
+		if (oldStyles.underline) chain = chain.setUnderline()
+		if (oldStyles.strike) chain = chain.setStrike()
+
+		chain.run()
+	}
+
+	let isRestoringStyles = false
+
 	const updateEditor = ({ transaction, editor }) => {
+		const textContent = editor.getText().trim()
+
+		if (transaction.docChanged && textContent.length == 0 && !isRestoringStyles) {
+			isRestoringStyles = true
+			applyLastUsedStyles(editor)
+			setTimeout(() => {
+				isRestoringStyles = false
+			}, 0)
+
+			return
+		}
+
 		setEditorStyles(editor)
+
+		for (const key in editorStyles) {
+			lastUsedStyles[key] = editorStyles[key]
+		}
 
 		const changeListMarkers = !editor.isEditable || editor.state.selection.empty
 		changeListMarkers && updateListStyles({ transaction, editor })
@@ -241,6 +282,9 @@ export const useTextEditor = () => {
 		() => activeEditor.value,
 		(newEditor) => {
 			setEditorStyles(newEditor)
+			for (const key in editorStyles) {
+				lastUsedStyles[key] = editorStyles[key]
+			}
 		},
 	)
 
