@@ -175,8 +175,9 @@ class JMAPClient:
 			return [
 				{
 					"id": mailbox["id"],
+					"name": mailbox["name"],
 					"role": mailbox["role"],
-					"name": mailbox["_name"],
+					"_name": mailbox["_name"],
 					"_parent": mailbox["_parent"],
 					"parent_id": mailbox["parent_id"],
 					"subscribed": mailbox["subscribed"],
@@ -233,7 +234,7 @@ class JMAPClient:
 
 		for mailbox in self.mailboxes:
 			if id and mailbox["id"] == id:
-				return mailbox["name"]
+				return mailbox["_name"]
 
 		if raise_exception:
 			frappe.throw(

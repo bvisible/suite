@@ -18,7 +18,7 @@ from frappe.utils import add_to_date, cint, escape_html, get_datetime, now, time
 from pypika import Case
 from uuid_utils import uuid7
 
-from mail.jmap import get_jmap_client, get_mailbox_id_by_role, get_mailbox_name_by_id, get_mailbox_role_by_id
+from mail.jmap import get_jmap_client, get_mailbox_id_by_role, get_mailbox_name_by_id
 from mail.mail.doctype.email_message.search import EmailSearch
 from mail.mail.doctype.jmap_sync_state.jmap_sync_state import (
 	create_jmap_sync_state,
@@ -70,7 +70,10 @@ class EmailMessage(Document):
 			subquery = subquery.where(EM.seen == 0)
 
 		if is_flagged:
-			subquery = subquery.where((EM.flagged == 1) & (EM.mailbox_role != "trash"))
+			subquery = subquery.where(EM.flagged == 1)
+
+			if trash_mailbox_id := get_mailbox_id_by_role(account, "trash"):
+				subquery = subquery.where(EM.mailbox_id != trash_mailbox_id)
 
 		if is_has_attachment:
 			subquery = subquery.where(EM.has_attachment == 1)
@@ -86,7 +89,7 @@ class EmailMessage(Document):
 				EM.from_name,
 				EM.from_email,
 				EM.subject,
-				EM.mailbox_role,
+				EM.mailbox_id,
 				Case().when(EM.html_body.isnotnull(), EM.html_body).else_(EM.text_body).as_("preview"),
 				EM.has_attachment,
 				EM.received_at,
@@ -195,16 +198,11 @@ class EmailMessage(Document):
 		return messages
 
 	@staticmethod
-	def move_emails_to_mailbox(
-		account: str,
-		message_ids: list[str],
-		mailbox_id: str | None = None,
-		mailbox_role: str | None = None,
-	) -> None:
+	def move_emails_to_mailbox(account: str, message_ids: list[str], mailbox_id: str) -> None:
 		"""Move emails to a specified mailbox."""
 
-		if not account or not message_ids or not (mailbox_id or mailbox_role):
-			frappe.throw(_("Account, message IDs, and mailbox ID/role/name are required."))
+		if not account or not message_ids or not mailbox_id:
+			frappe.throw(_("Account, message IDs, and mailbox ID are required."))
 
 		validate_permission_for_account(account)
 
@@ -214,24 +212,17 @@ class EmailMessage(Document):
 		if not emails_to_move:
 			return
 
-		target_mailbox_id = mailbox_id or get_mailbox_id_by_role(account, role=mailbox_role)
-
-		if not target_mailbox_id:
-			frappe.throw(_("Mailbox not found."))
-
 		try:
 			client = get_jmap_client(account)
-			client.email_set_mailbox(list(emails_to_move), target_mailbox_id)
-			target_mailbox_role = mailbox_role or get_mailbox_role_by_id(account, target_mailbox_id)
-			target_mailbox_name = get_mailbox_name_by_id(account, target_mailbox_id)
+			client.email_set_mailbox(list(emails_to_move), mailbox_id)
+			target_mailbox_name = get_mailbox_name_by_id(account, mailbox_id)
 
 			# This database update could potentially cause a deadlock.
 			frappe.db.set_value(
 				"Email Message",
 				filters,
 				{
-					"mailbox_id": target_mailbox_id,
-					"mailbox_role": target_mailbox_role,
+					"mailbox_id": mailbox_id,
 					"folder": target_mailbox_name,
 				},
 			)
@@ -382,7 +373,7 @@ class EmailMessage(Document):
 
 		if notify:
 			frappe.publish_realtime(
-				"mail_created_or_updated", email_message.mailbox_role, user=email_message.account
+				"mail_created_or_updated", email_message.mailbox_id, user=email_message.account
 			)
 
 	@staticmethod
@@ -395,7 +386,6 @@ class EmailMessage(Document):
 		email_message._id = email_data["id"]
 		email_message.account = account
 		email_message.mailbox_id = list(email_data["mailboxIds"].keys())[0]
-		email_message.mailbox_role = get_mailbox_role_by_id(account, email_message.mailbox_id)
 		email_message.folder = get_mailbox_name_by_id(account, email_message.mailbox_id)
 		email_message.subject = email_data["subject"]
 		email_message.sent_at = parse_iso_datetime(email_data["sentAt"])
@@ -481,7 +471,6 @@ class EmailMessage(Document):
 		_id = email_data["id"]
 
 		mailbox_id = list(email_data["mailboxIds"].keys())[0]
-		mailbox_role = get_mailbox_role_by_id(account, mailbox_id)
 		folder = get_mailbox_name_by_id(account, mailbox_id)
 
 		_keywords = json.dumps(email_data["keywords"])
@@ -497,7 +486,6 @@ class EmailMessage(Document):
 			filters,
 			{
 				"mailbox_id": mailbox_id,
-				"mailbox_role": mailbox_role,
 				"folder": folder,
 				"_keywords": _keywords,
 				"draft": draft,
@@ -772,12 +760,12 @@ class EmailMessage(Document):
 		EmailMessage.destroy_emails(self.account, [self.name])
 
 	@frappe.whitelist()
-	def move_to_mailbox(self, mailbox_id: str | None = None, mailbox_role: str | None = None) -> None:
+	def move_to_mailbox(self, mailbox_id: str) -> None:
 		"""Move the email message to a specified folder."""
 
 		self.validate_draft()
 		self.validate_destroyed()
-		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id, mailbox_role)
+		EmailMessage.move_emails_to_mailbox(self.account, [self.name], mailbox_id)
 		self.reload()
 
 	@frappe.whitelist()
@@ -1160,9 +1148,9 @@ def fetch_changes(account: str, email_state: str | None = None) -> None:
 			for d in frappe.get_all(
 				"Email Message",
 				filters={"account": account, "_id": ["in", updated_ids], "destroyed": 0},
-				fields=["name", "mailbox_role"],
+				fields=["name", "mailbox_id"],
 			):
-				search.set_value(d.name, "mailbox_role", d.mailbox_role)
+				search.set_value(d.name, "mailbox_id", d.mailbox_id)
 
 		if destroyed_ids := result["destroyed"]:
 			filters = {"account": account, "_id": ["in", destroyed_ids], "destroyed": 0}
