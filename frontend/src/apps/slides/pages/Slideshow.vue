@@ -107,7 +107,8 @@ const transitionMap = {
 }
 
 const applyTransitionStyles = (hook) => {
-	const styles = transitionMap[slide.value.transition][hook]
+	const styles = transitionMap[slide.value.transition]?.[hook]
+	if (!styles) return
 
 	let transformVal = styles.transform
 	if (transformVal && Array.isArray(transformVal)) {
