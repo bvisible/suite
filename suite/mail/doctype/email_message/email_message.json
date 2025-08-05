@@ -35,7 +35,6 @@
   "sender_name",
   "sender_email",
   "in_reply_to",
-  "mailbox_role",
   "mailbox_id",
   "thread_id",
   "keywords_section",
@@ -514,15 +513,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "mailbox_role",
-   "fieldtype": "Data",
-   "label": "Mailbox Role",
-   "no_copy": 1,
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "default": "0",
    "depends_on": "eval: !doc.__islocal",
    "fieldname": "flagged",
@@ -568,7 +558,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:59:27.169419",
+ "modified": "2025-08-05 10:10:00.447666",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Email Message",
