@@ -51,8 +51,23 @@ const isSlideDirty = () => {
 
 	return !isEqual(data, updatedData)
 }
+const replaceVideoWithPoster = async (videoElement) => {
+	if (!videoElement.poster) return null
 
-const getThumbnailHtml = () => {
+	const img = document.createElement('img')
+	img.src = videoElement.poster
+	img.style.width = videoElement.style.width
+	img.style.height = videoElement.style.height
+	img.style.objectFit = 'cover'
+	img.style.objectPosition = 'center'
+	img.style.position = 'absolute'
+	img.style.left = videoElement.style.left
+	img.style.top = videoElement.style.top
+
+	await videoElement.replaceWith(img)
+}
+
+const getThumbnailHtml = async () => {
 	const slideRef = document.querySelector('.slide')
 
 	const clone = slideRef.cloneNode(true)
@@ -62,7 +77,7 @@ const getThumbnailHtml = () => {
 	clone.style.top = '0'
 	clone.style.transform = 'scale(1)'
 
-	clone.querySelectorAll('*').forEach((element) => {
+	await clone.querySelectorAll('*').forEach(async (element) => {
 		if (element.hasAttribute('data-index')) {
 			element.style.position = 'absolute'
 			// compensate for baseline alignment done by html2canvas for text
@@ -71,13 +86,17 @@ const getThumbnailHtml = () => {
 				element.style.top = `${parseFloat(element.style.top) - offsetTop}px`
 			}
 		}
+
+		if (element.tagName == 'VIDEO') {
+			await replaceVideoWithPoster(element)
+		}
 	})
 
 	return clone
 }
 
 const getSlideThumbnail = async () => {
-	const thumbnailHtml = getThumbnailHtml()
+	const thumbnailHtml = await getThumbnailHtml()
 
 	document.body.appendChild(thumbnailHtml)
 
