@@ -57,7 +57,7 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 
-import { presentationId, presentation, slides } from '@/stores/presentation'
+import { presentationId, presentation, slides, historyControl } from '@/stores/presentation'
 import {
 	slide,
 	slideIndex,
@@ -187,6 +187,11 @@ const handleGlobalShortcuts = (e) => {
 				e.preventDefault()
 				openLayoutDialog('insert')
 			}
+			break
+		case 'z':
+			e.preventDefault()
+			if (e.metaKey) historyControl.undo()
+			else if (e.shiftKey) historyControl.redo()
 			break
 	}
 }
