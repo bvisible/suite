@@ -10,6 +10,7 @@
 			@loadedmetadata="updateDuration"
 			@ended="resetProgress"
 			preload="auto"
+			:poster="element.poster"
 		>
 			<source :src="`/api/method/slides.api.file.get_video_file?src=${element.src}`" />
 		</video>
@@ -110,16 +111,14 @@ const progress = ref(0)
 
 const updateProgress = () => {
 	const video = el.value
-	if (duration.value) {
-		progress.value = Math.round((video.currentTime / duration.value) * 100)
-	}
+	if (!video || !duration.value) return
+	progress.value = Math.round((video.currentTime / duration.value) * 100)
 }
 
 const updateDuration = () => {
 	const video = el.value
-	if (video.duration) {
-		duration.value = video.duration
-	}
+	if (!video || !video.duration) return
+	duration.value = video.duration
 }
 
 const hoverOver = ref(false)
@@ -145,8 +144,8 @@ const seekTimestamp = (e) => {
 }
 
 const gradientOverlayStyles = computed(() => ({
-	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0) 100%),
-	linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.2) 20%, rgba(0, 0, 0, 0) 100%)`,
+	background: `radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 5%, rgba(0, 0, 0, 0) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 15%, rgba(0, 0, 0, 0) 100%)`,
 	opacity: showProgressBar.value ? 1 : 0,
 	borderRadius: `${element.value.borderRadius}px`,
 }))

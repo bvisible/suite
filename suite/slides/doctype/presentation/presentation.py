@@ -25,7 +25,7 @@ class Presentation(Document):
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
 				old_thumbnail = old_slides[slide.idx - 1].thumbnail
 				delete_old_thumbnail(slide.name, old_thumbnail)
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
 
 	def validate(self):
 		self.update_thumbnails()
@@ -42,10 +42,11 @@ def delete_old_thumbnail(slide_id: Document, old_thumbnail: str | None = None):
 			frappe.log_error(f"Failed to remove old thumbnail: {e}")
 
 
-def save_base64_thumbnail(base64_data: str, presentation_name: str) -> str:
+@frappe.whitelist()
+def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
-	filename = f"thumbnail-{uuid.uuid4().hex[:6]}.{ext}"
+	filename = f"{prefix}-{uuid.uuid4().hex[:6]}.{ext}"
 
 	file_doc = frappe.get_doc(
 		{
