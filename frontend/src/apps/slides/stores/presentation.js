@@ -3,10 +3,19 @@ import { createResource, call } from 'frappe-ui'
 
 const presentationId = ref('')
 
+const slides = ref([])
+
 const presentation = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
 	cache: 'presentation',
 	makeParams: () => ({ name: presentationId.value }),
+	onSuccess: (data) => {
+		const slidesCopy = JSON.parse(JSON.stringify(data.slides))
+		slides.value = slidesCopy.map((slide) => ({
+			...slide,
+			elements: JSON.parse(slide.elements || '[]'),
+		}))
+	},
 })
 
 const inSlideShow = ref(false)
@@ -48,4 +57,5 @@ export {
 	applyReverseTransition,
 	createPresentationResource,
 	updatePresentationTitle,
+	slides,
 }

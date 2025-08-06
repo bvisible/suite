@@ -5,7 +5,13 @@
 <script setup>
 import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
 
-import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
+import {
+	slide,
+	slideBounds,
+	selectionBounds,
+	updateSelectionBounds,
+	slideIndex,
+} from '@/stores/slide'
 import {
 	activeElementIds,
 	setActiveElements,
@@ -13,6 +19,7 @@ import {
 	resetFocus,
 	focusElementId,
 } from '@/stores/element'
+import { presentation, slides } from '@/stores/presentation'
 
 const slideDiv = inject('slideDiv')
 const slideContainerDiv = inject('slideContainerDiv')
@@ -95,7 +102,9 @@ const getElementsWithinBoxSurface = () => {
 	const boxRight = selectionBounds.left + selectionBounds.width
 	const boxBottom = selectionBounds.top + selectionBounds.height
 
-	slide.value.elements.forEach((element) => {
+	const currentSlide = slides.value[slideIndex.value]
+
+	currentSlide.elements.forEach((element) => {
 		const {
 			left: elementLeft,
 			top: elementTop,
@@ -207,7 +216,8 @@ const handleMouseUp = (e) => {
 }
 
 const moveElement = (elementId, movement) => {
-	let element = slide.value.elements.find((el) => el.id === elementId)
+	const currentSlide = slides.value[slideIndex.value]
+	let element = currentSlide.elements.find((el) => el.id === elementId)
 
 	element.left += movement.dx
 	element.top += movement.dy

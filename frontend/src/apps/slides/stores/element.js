@@ -1,12 +1,12 @@
 import { ref, computed, nextTick } from 'vue'
 import { call, createResource } from 'frappe-ui'
 
-import { selectionBounds, slide, slideBounds, updateSelectionBounds } from './slide'
+import { selectionBounds, slide, slideBounds, updateSelectionBounds, slideIndex } from './slide'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
-import { presentation, presentationId } from './presentation'
+import { presentation, presentationId, slides } from './presentation'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -14,7 +14,7 @@ const pairElementId = ref(null)
 
 const activeElements = computed(() => {
 	let elements = []
-	slide.value.elements.forEach((element) => {
+	slides.value[slideIndex.value].elements.forEach((element) => {
 		if (activeElementIds.value.includes(element.id)) {
 			elements.push(element)
 		}
@@ -24,7 +24,9 @@ const activeElements = computed(() => {
 
 const activeElement = computed(() => {
 	if (focusElementId.value) {
-		return slide.value.elements.find((element) => element.id === focusElementId.value)
+		return slides.value[slideIndex.value].elements.find(
+			(element) => element.id === focusElementId.value,
+		)
 	} else if (activeElementIds.value.length == 1) {
 		return activeElements.value[0]
 	}
@@ -103,7 +105,7 @@ const addTextElement = async (text) => {
 		textAlign: 'left',
 		fontSize: 28,
 		fontFamily: 'Arial',
-		color: guessTextColorFromBackground(slide.value.background),
+		color: guessTextColorFromBackground(slides.value[slideIndex.value].background),
 		innerText: text,
 	}
 
@@ -118,7 +120,7 @@ const addTextElement = async (text) => {
 		},
 	}
 
-	slide.value.elements.push(element)
+	slides.value[slideIndex.value].elements.push(element)
 	selectAndCenterElement(element.id)
 }
 
@@ -222,7 +224,7 @@ const addMediaElement = async (file, type) => {
 		element.loop = false
 		element.playbackRate = 1
 	}
-	slide.value.elements.push(element)
+	slides.value[slideIndex.value].elements.push(element)
 	selectAndCenterElement(element.id)
 }
 
@@ -240,7 +242,7 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 		newElement.id = generateUniqueId()
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
-		slide.value.elements.push(newElement)
+		slides.value[slideIndex.value].elements.push(newElement)
 		newSelection.push(newElement.id)
 	})
 
@@ -274,15 +276,17 @@ const deleteElements = async (e, ids) => {
 	const idsToDelete = ids || activeElementIds.value
 	resetFocus()
 	nextTick(() => {
-		slide.value.elements = slide.value.elements.filter((element) => {
-			return !idsToDelete.includes(element.id)
-		})
+		slides.value[slideIndex.value].elements = slides.value[slideIndex.value].elements.filter(
+			(element) => {
+				return !idsToDelete.includes(element.id)
+			},
+		)
 	})
 }
 
 const selectAllElements = (e) => {
 	e.preventDefault()
-	activeElementIds.value = slide.value.elements.map((element) => element.id)
+	activeElementIds.value = slides.value[slideIndex.value].elements.map((element) => element.id)
 }
 
 const resetFocus = () => {

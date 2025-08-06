@@ -19,7 +19,7 @@
 					@click="changeSlide(slideIndex + 1, false)"
 				>
 					<SlideElement
-						v-for="element in slide.elements"
+						v-for="element in slides[slideIndex].elements"
 						:key="element.id"
 						:element="element"
 						:data-index="element.id"
@@ -40,10 +40,11 @@ import SlideElement from '@/components/SlideElement.vue'
 import {
 	presentationId,
 	presentation,
+	slides,
 	inSlideShow,
 	applyReverseTransition,
 } from '@/stores/presentation'
-import { slide, slideIndex, loadSlide } from '@/stores/slide'
+import { slide, slideIndex } from '@/stores/slide'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -65,7 +66,7 @@ const slideStyles = computed(() => {
 	return {
 		width: '960px',
 		height: '540px',
-		backgroundColor: slide.value.background || 'white',
+		backgroundColor: slides.value[slideIndex.value].background || 'white',
 		cursor: slideCursor.value,
 		transform: `${transform.value} scale(${widthScale})`,
 		transition: transition.value,
@@ -81,14 +82,14 @@ const transitionMap = {
 		},
 		enter: {
 			transform: 'translateX(0)',
-			transition: `transform ${slide.value.transitionDuration}s ease-out`,
+			transition: `transform ${slides.value[slideIndex.value].transitionDuration}s ease-out`,
 		},
 		beforeLeave: {
 			transition: 'none',
 		},
 		leave: {
 			transform: ['translateX(100%)', 'translateX(-100%)'],
-			transition: `transform ${slide.value.transitionDuration}s ease-out`,
+			transition: `transform ${slides.value[slideIndex.value].transitionDuration}s ease-out`,
 		},
 	},
 	Fade: {
@@ -96,18 +97,18 @@ const transitionMap = {
 			opacity: 0,
 		},
 		enter: {
-			transition: `opacity ${slide.value.transitionDuration}s`,
+			transition: `opacity ${slides.value[slideIndex.value].transitionDuration}s`,
 		},
 		beforeLeave: {},
 		leave: {
-			transition: `opacity ${slide.value.transitionDuration}s`,
+			transition: `opacity ${slides.value[slideIndex.value].transitionDuration}s`,
 			opacity: 0,
 		},
 	},
 }
 
 const applyTransitionStyles = (hook) => {
-	const styles = transitionMap[slide.value.transition][hook]
+	const styles = transitionMap[slides.value[slideIndex.value].transition][hook]
 
 	let transformVal = styles.transform
 	if (transformVal && Array.isArray(transformVal)) {
@@ -120,24 +121,24 @@ const applyTransitionStyles = (hook) => {
 }
 
 const beforeSlideEnter = (el) => {
-	if (!slide.value.transition) return
+	if (!slides.value[slideIndex.value].transition) return
 	applyTransitionStyles('beforeEnter')
 }
 
 const slideEnter = (el, done) => {
-	if (!slide.value.transition) return done()
+	if (!slides.value[slideIndex.value].transition) return done()
 	el.offsetWidth
 	applyTransitionStyles('enter')
 	done()
 }
 
 const beforeSlideLeave = (el) => {
-	if (!slide.value.transition) return
+	if (!slides.value[slideIndex.value].transition) return
 	applyTransitionStyles('beforeLeave')
 }
 
 const slideLeave = (el, done) => {
-	if (!slide.value.transition) return done()
+	if (!slides.value[slideIndex.value].transition) return done()
 	applyTransitionStyles('leave')
 	done()
 }
@@ -211,7 +212,6 @@ const changeSlide = (index) => {
 
 	nextTick(() => {
 		slideIndex.value = index
-		loadSlide()
 	})
 }
 
@@ -219,7 +219,6 @@ const loadPresentation = async () => {
 	if (presentation.fetched) return
 	presentationId.value = route.params.presentationId
 	await presentation.fetch()
-	loadSlide()
 }
 
 onMounted(async () => {

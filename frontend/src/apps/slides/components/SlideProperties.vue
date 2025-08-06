@@ -20,7 +20,7 @@
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Background Color</div>
-				<ColorPicker v-model="slide.background" />
+				<ColorPicker v-model="slides[slideIndex].background" />
 			</div>
 		</div>
 	</div>
@@ -29,17 +29,17 @@
 		<template #default>
 			<Select
 				:options="['Slide In', 'Fade', 'None']"
-				:modelValue="slide.transition || 'None'"
+				:modelValue="slides[slideIndex].transition || 'None'"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>
 
 			<SliderInput
-				v-show="slide.transition && slide.transition != 'None'"
+				v-show="slides[slideIndex].transition && slides[slideIndex].transition != 'None'"
 				label="Duration"
 				:rangeStart="0"
 				:rangeEnd="4"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(slide.transitionDuration)"
+				:modelValue="parseFloat(slides[slideIndex].transitionDuration)"
 				@update:modelValue="(value) => setTransitionDuration(value)"
 			/>
 		</template>
@@ -49,7 +49,7 @@
 <script setup>
 import { Select } from 'frappe-ui'
 
-import { presentation } from '@/stores/presentation'
+import { presentation, slides } from '@/stores/presentation'
 import { slide, slideIndex } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
 
@@ -60,12 +60,12 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 const emit = defineEmits(['openLayoutDialog'])
 
 const setSlideTransition = (option) => {
-	slide.value.transition = option
-	if (option.value == 'None') slide.value.transitionDuration = 0
-	else slide.value.transitionDuration = 1
+	slides.value[slideIndex.value].transition = option
+	if (option.value == 'None') slides.value[slideIndex.value].transitionDuration = 0
+	else slides.value[slideIndex.value].transitionDuration = 1
 }
 
 const setTransitionDuration = (value) => {
-	slide.value.transitionDuration = value
+	slides.value[slideIndex.value].transitionDuration = value
 }
 </script>

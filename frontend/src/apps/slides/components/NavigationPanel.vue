@@ -12,7 +12,7 @@
 			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
 		>
-			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
+			<Draggable v-model="slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
 						:class="getThumbnailClasses(slide)"
@@ -23,10 +23,7 @@
 				</template>
 			</Draggable>
 
-			<div
-				:class="insertButtonClasses"
-				@click="emit('openLayoutDialog', presentation.data.slides.length - 1)"
-			>
+			<div :class="insertButtonClasses" @click="emit('openLayoutDialog', slides.length - 1)">
 				<LucidePlus class="size-3.5" />
 			</div>
 		</div>
@@ -56,7 +53,7 @@ import { call } from 'frappe-ui'
 
 import Draggable from 'vuedraggable'
 
-import { presentation } from '@/stores/presentation'
+import { presentation, slides } from '@/stores/presentation'
 import { slide, slideIndex } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
@@ -105,7 +102,8 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	const img = slideIndex.value == s.idx - 1 ? slide.value.thumbnail : s.thumbnail
+	const currentSlide = slides.value[slideIndex.value]
+	const img = slideIndex.value == s.idx - 1 ? currentSlide.thumbnail : s.thumbnail
 	return {
 		backgroundImage: `url(${img})`,
 	}
