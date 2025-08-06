@@ -59,7 +59,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Role",
-   "options": "\narchive\ndrafts\nimportant\ninbox\njunk\nsent\ntrash"
+   "options": "\ninbox\nimportant\nsent\ndrafts\njunk\narchive\ntrash",
+   "sort_options": 1
   },
   {
    "default": "0",
@@ -176,7 +177,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-08-04 17:25:23.516057",
+ "modified": "2025-08-06 09:52:53.537831",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mailbox",

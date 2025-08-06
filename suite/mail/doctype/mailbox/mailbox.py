@@ -211,12 +211,12 @@ def format_mailbox(account: str, mailbox: dict) -> dict:
 def get_sort_order(role: str | None = None) -> int:
 	"""Returns the sort order for the mailbox based on its role."""
 
-	sort_order = ["inbox", "sent", "drafts", "junk", "trash"]
+	role_order = ["inbox", "important", "sent", "drafts", "junk", "archive", "trash"]
 
-	if not role or role not in sort_order:
+	if not role or role not in role_order:
 		return 0
 
-	return sort_order.index(role) + 1
+	return role_order.index(role) + 1
 
 
 def has_permission(doc: "Document", ptype: str, user: str | None = None) -> bool:
