@@ -21,8 +21,8 @@ from mail.utils import (
 	get_mbox_files,
 	get_stalwart_cli_path,
 )
-from mail.utils.cache import get_account_for_user
-from mail.utils.user import is_account_owner, is_system_manager
+from mail.utils.cache import get_account_for_user, get_tenant_for_user
+from mail.utils.user import has_role, is_account_owner, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	validate_jmap_structure,
 	validate_maildir_or_maildirpp,
@@ -39,7 +39,7 @@ class MailDataExchange(Document):
 			self.validate_import_format()
 			self.validate_import_file()
 		elif self.operation == "Export":
-			self.validate_export_format()
+			self.validate_export_archive_type()
 
 	def before_submit(self) -> None:
 		self.status = "Queued"
@@ -71,11 +71,11 @@ class MailDataExchange(Document):
 				)
 			)
 
-	def validate_export_format(self) -> None:
-		"""Validate the export format."""
+	def validate_export_archive_type(self) -> None:
+		"""Validate the export archive type."""
 
-		if not self.export_format:
-			frappe.throw(_("Export Format is required."))
+		if not self.export_archive_type:
+			frappe.throw(_("Archive Type is required."))
 
 	def process(self) -> None:
 		"""Enqueue the import or export based on the operation type."""
@@ -197,7 +197,7 @@ class MailDataExchange(Document):
 
 		self._mark_started()
 		export_base = os.path.join(get_export_directory(), self.name)
-		export_file_name = f"{self.name}{self.export_format}"
+		export_file_name = f"{self.name}{self.export_archive_type}"
 		export_file_url = f"/private/files/{export_file_name}"
 		export_file = os.path.join(get_bench_path(), f"sites/{frappe.local.site}{export_file_url}")
 		os.makedirs(export_base, exist_ok=True)
@@ -280,10 +280,15 @@ def get_permission_query_condition(user: str | None = None) -> str:
 	if is_system_manager(user):
 		return ""
 
-	if account := get_account_for_user(user):
-		return f"(`tabMail Data Exchange`.account = '{account}')"
-	else:
-		return "1=0"
+	if has_role(user, "Mail Admin"):
+		if tenant := get_tenant_for_user(user):
+			return f"(`tabMail Data Exchange`.tenant = '{tenant}')"
+
+	if has_role(user, "Mail User"):
+		if account := get_account_for_user(user):
+			return f"(`tabMail Data Exchange`.account = '{account}')"
+
+	return "1=0"
 
 
 def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
@@ -291,11 +296,13 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 		return False
 
 	user = user or frappe.session.user
-	user_is_system_manager = is_system_manager(user)
-	user_is_account_owner = is_account_owner(doc.account, user)
 
-	if user_is_system_manager or user_is_account_owner:
+	if is_system_manager(user):
 		return True
+	elif is_tenant_admin(doc.tenant, user):
+		return True
+	elif has_role(user, "Mail User"):
+		return is_account_owner(doc.account, user)
 
 	return False
 

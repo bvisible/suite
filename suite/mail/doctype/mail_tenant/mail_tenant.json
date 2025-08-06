@@ -125,9 +125,14 @@
    "group": "List & Alias",
    "link_doctype": "Mail Alias",
    "link_fieldname": "tenant"
+  },
+  {
+   "group": "Data Exchange",
+   "link_doctype": "Mail Data Exchange",
+   "link_fieldname": "tenant"
   }
  ],
- "modified": "2025-06-02 14:52:59.122386",
+ "modified": "2025-08-06 15:04:33.093678",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Tenant",
