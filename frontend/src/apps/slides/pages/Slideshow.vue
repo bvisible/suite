@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed left-0 top-0 h-full w-full bg-black">
+	<div class="absolute left-0 top-0 h-full w-full bg-black">
 		<div
 			ref="slideContainer"
 			class="flex h-screen w-full items-center justify-center"

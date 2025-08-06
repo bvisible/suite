@@ -44,6 +44,8 @@ export const useDragAndDrop = () => {
 
 		isDragging.value = false
 
+		positionDelta.value = { x: 0, y: 0 }
+
 		window.removeEventListener('mousemove', drag)
 		window.removeEventListener('mouseup', stopDragging)
 	}

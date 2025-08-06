@@ -52,10 +52,16 @@ const selectAndCenterElement = (elementId) => {
 			const elementWidth = elementRect.width / slideBounds.scale
 			const elementHeight = elementRect.height / slideBounds.scale
 
+			const elementLeft = (slideWidth - elementWidth) / 2
+			const elementTop = (slideHeight - elementHeight) / 2
+
 			updateSelectionBounds({
-				left: (slideWidth - elementWidth) / 2,
-				top: (slideHeight - elementHeight) / 2,
+				left: elementLeft,
+				top: elementTop,
 			})
+
+			activeElement.value.left = elementLeft
+			activeElement.value.top = elementTop
 		})
 	})
 }

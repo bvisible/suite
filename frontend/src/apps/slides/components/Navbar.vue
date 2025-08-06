@@ -1,5 +1,8 @@
 <template>
-	<div class="z-10 flex items-center justify-between border-b bg-white p-2" @wheel.prevent>
+	<div
+		class="relative z-10 flex items-center justify-between border-b bg-white p-2"
+		@wheel.prevent
+	>
 		<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 			<img src="/slides-logo.svg" class="h-7" />
 			<div class="text-base font-semibold">Slides</div>

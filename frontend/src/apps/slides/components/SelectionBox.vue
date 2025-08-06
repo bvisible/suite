@@ -28,7 +28,6 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'absolute',
-	zIndex: 1000,
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
 	width: `${selectionBounds.width}px`,
@@ -240,11 +239,11 @@ const handleSelection = (elementIds) => {
 	if (!elementIds.length) return
 	document.removeEventListener('mouseup', endSelection)
 	cropSelectionToFitContent(elementIds)
-	moveElementsToBox(elementIds)
+	// moveElementsToBox(elementIds)
 }
 
 const handleSelectionChange = (elementIds, oldIds) => {
-	moveElementsToSlide(oldIds)
+	// moveElementsToSlide(oldIds)
 	resetSelection(oldIds)
 	nextTick(() => handleSelection(elementIds))
 }

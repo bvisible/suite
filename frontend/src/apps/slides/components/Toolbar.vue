@@ -1,6 +1,7 @@
 <template>
 	<div
-		class="fixed bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		@wheel="handleScrollBarWheelEvent"
 	>
 		<Tooltip text="Text" :hover-delay="0.7" placement="bottom">
 			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
@@ -55,6 +56,8 @@ import { presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
 
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
+
 const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
 
 const slideActions = [
@@ -85,12 +88,12 @@ const handleUploadSuccess = (file) => {
 	const imageTypes = allowedImageFileTypes.map((type) => type.split('/')[1].toUpperCase())
 	const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
 
-	addMediaElement(file, fileType)
+	const toastProps = {
+		loading: `Uploading: ${file.file_name}`,
+		success: (data) => `Uploaded: ${file.file_name}`,
+		error: (data) => 'Upload failed. Please try again.',
+	}
 
-	toast.success('Uploaded: ' + file.file_name)
-}
-
-const handleUploadFailure = () => {
-	toast.error('Upload failed. Please try again.')
+	toast.promise(addMediaElement(file, fileType), toastProps)
 }
 </script>
