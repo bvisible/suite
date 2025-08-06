@@ -92,6 +92,15 @@ const getThumbnailHtml = async () => {
 		if (element.tagName == 'VIDEO') {
 			await replaceVideoWithPoster(element)
 		}
+
+		const isEmpty =
+			element.tagName == 'DIV' &&
+			element.textContent.trim() == '' &&
+			element.children.length == 0
+		const removeDiv = isEmpty || element.classList.contains('overlay')
+		if (removeDiv) {
+			element.remove()
+		}
 	})
 
 	return clone
