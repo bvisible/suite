@@ -463,6 +463,21 @@ def get_config_toml(server: str) -> str | None:
 				"enable": True,
 			}
 		},
+		"metrics": {
+			"open-telemetry": {
+				"transport": cluster.metrics_open_telemetry_transport.lower(),
+				"endpoint": cluster.metrics_open_telemetry_endpoint,
+				"timeout": format_value_or_zero(cluster.metrics_open_telemetry_timeout, "s"),
+				"interval": format_value_or_zero(cluster.metrics_open_telemetry_interval, "s"),
+			},
+			"prometheus": {
+				"enable": bool(cluster.metrics_prometheus_enable),
+				"auth": {
+					"username": cluster.metrics_prometheus_auth_username,
+					"secret": password_or_none(cluster, "metrics_prometheus_auth_secret"),
+				},
+			},
+		},
 	}
 
 	if server.outbound_only:
