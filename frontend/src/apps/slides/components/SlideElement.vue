@@ -6,12 +6,7 @@
 			@clearTimeouts="$emit('clearTimeouts')"
 		/>
 
-		<Resizer
-			v-if="showResizers"
-			:elementType="element.type"
-			:dimensions="selectionBounds"
-			@resizeToFitContent="resizeToFitContent"
-		/>
+		<Resizer v-if="showResizers" :elementType="element.type" :dimensions="selectionBounds" />
 	</div>
 </template>
 
@@ -87,20 +82,4 @@ const showResizers = computed(() => {
 	if (!activeElement.value || focusElementId.value) return false
 	return activeElement.value.id == element.value.id && !props.isDragging
 })
-
-const resizeToFitContent = () => {
-	// create range of the text node within TextElement
-	const target = elementDivRef.value
-	const range = document.createRange()
-	const textNode = target.firstChild
-	const originalWidth = target.offsetWidth
-	range.selectNodeContents(textNode)
-
-	// find out width of text content
-	const textWidth = range.getBoundingClientRect().width
-
-	const newWidth = textWidth - originalWidth + 5 / slideBounds.scale
-
-	updateElementWidth(newWidth)
-}
 </script>
