@@ -36,10 +36,9 @@
 				<div class="flex items-center justify-between border-b px-3.5 py-2.5 sm:px-5">
 					<div class="text-base">
 						<span v-if="selections.length">{{
-							__('{0} {1} selected', [
-								String(selections.length),
-								selections.length === 1 ? 'item' : 'items',
-							])
+							selections.length === 1
+								? __('1 item selected')
+								: __('{0} items selected', [String(selections.length)])
 						}}</span>
 						<span v-else>{{ title }}</span>
 					</div>
