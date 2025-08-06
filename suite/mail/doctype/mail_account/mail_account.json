@@ -384,9 +384,14 @@
    "group": "Mail",
    "link_doctype": "Email Message",
    "link_fieldname": "account"
+  },
+  {
+   "group": "Data Exchange",
+   "link_doctype": "Mail Data Exchange",
+   "link_fieldname": "account"
   }
  ],
- "modified": "2025-07-17 13:01:33.729262",
+ "modified": "2025-08-06 15:05:28.556234",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Account",
