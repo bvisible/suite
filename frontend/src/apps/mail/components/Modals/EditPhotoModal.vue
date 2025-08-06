@@ -3,7 +3,7 @@
 		<template #body-content>
 			<FileUploader
 				class="mb-2 w-full"
-				:validate-file="validateFile"
+				:file-types="['image/*']"
 				@success="(file) => setProfilePhoto.submit({ image: file.file_url })"
 			>
 				<template #default="{ error, uploading, openFileSelector }">
@@ -50,11 +50,6 @@ import { raiseToast } from '@/utils'
 const show = defineModel<boolean>()
 
 const user = inject('$user')
-
-const validateFile = (file) => {
-	const extension = file.name.split('.').pop().toLowerCase()
-	if (!['png', 'jpg'].includes(extension)) return __('Only PNGs and JPGs are allowed.')
-}
 
 const setProfilePhoto = createResource({
 	url: 'frappe.client.set_value',
