@@ -5,6 +5,7 @@
 		</template>
 		<template #body-content>
 			<FormControl
+				ref="inputRef"
 				v-if="['Duplicate', 'Rename'].includes(dialogAction)"
 				:type="'text'"
 				size="md"
@@ -35,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick, useTemplateRef } from 'vue'
 
 import { Dialog, FormControl, call } from 'frappe-ui'
 
@@ -49,6 +50,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['reloadList', 'navigate', 'closeDialog'])
+
+const inputRef = useTemplateRef('inputRef')
 
 const newPresentationTitle = ref('')
 
@@ -98,7 +101,7 @@ const duplicatePresentation = async () => {
 	return await createPresentationResource.submit({
 		title: newPresentationTitle.value,
 		duplicateFrom: props.presentation.name,
-	}).name
+	})
 }
 
 const deletePresentation = async () => {
@@ -129,6 +132,9 @@ watch(
 		}
 
 		newPresentationTitle.value = newTitle
+		nextTick(() => {
+			document.querySelector('input')?.focus()
+		})
 	},
 )
 </script>

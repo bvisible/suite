@@ -5,11 +5,13 @@
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<div v-if="!activeElement">
-			<SlideProperties />
+			<SlideProperties @openLayoutDialog="$emit('openLayoutDialog')" />
+
 			<AlignmentControls v-if="activeElementIds.length" />
 		</div>
 		<div v-else>
 			<AlignmentControls v-if="activeElementIds.length" />
+
 			<component :is="activeProperties" />
 		</div>
 	</div>
@@ -18,21 +20,17 @@
 <script setup>
 import { computed } from 'vue'
 
-import { FormControl } from 'frappe-ui'
-
 import SlideProperties from '@/components/SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
 
-import SliderInput from '@/components/controls/SliderInput.vue'
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
-
 import { presentation } from '@/stores/presentation'
-import { slide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
+
+const emit = defineEmits(['openLayoutDialog'])
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type

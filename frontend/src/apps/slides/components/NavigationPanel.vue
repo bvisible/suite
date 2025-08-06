@@ -24,7 +24,7 @@
 
 			<div
 				:class="insertButtonClasses"
-				@click="emit('insertSlide', presentation.data.slides.length - 1)"
+				@click="emit('openLayoutDialog', presentation.data.slides.length - 1)"
 			>
 				<LucidePlus class="size-3.5" />
 			</div>
@@ -68,7 +68,7 @@ const showNavigator = defineModel('showNavigator', {
 	default: true,
 })
 
-const emit = defineEmits(['changeSlide', 'insertSlide'])
+const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
 
 const insertButtonClasses =
 	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'

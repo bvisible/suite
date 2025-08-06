@@ -5,28 +5,35 @@
 				<PresentationHeader />
 			</template>
 		</Navbar>
-		<div
-			class="relative flex h-screen"
-			:class="!activeElementIds.length ? 'bg-gray-300' : 'bg-gray-100'"
-		>
+		<div class="relative flex h-screen bg-gray-300">
 			<NavigationPanel
-				class="absolute bottom-0 top-0 z-50"
+				class="absolute bottom-0 top-0 z-10"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
-				@insertSlide="insertSlide"
+				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
 
 			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
 			<Toolbar
 				@setHighlight="setHighlight"
-				@insert="insertSlide"
+				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide"
 			/>
 
-			<PropertiesPanel class="absolute bottom-0 right-0 top-0 z-10" />
+			<PropertiesPanel
+				class="absolute bottom-0 right-0 top-0 z-10"
+				@openLayoutDialog="openLayoutDialog('replace')"
+			/>
 		</div>
+
+		<LayoutDialog
+			v-if="presentation.data"
+			v-model="showLayoutDialog"
+			:theme="presentation.data.theme"
+			@insert="(layoutId) => handleInsertSlide(layoutId)"
+		/>
 	</div>
 </template>
 
@@ -44,6 +51,7 @@ import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
+import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import { presentationId, presentation } from '@/stores/presentation'
 import {
@@ -170,6 +178,12 @@ const handleGlobalShortcuts = (e) => {
 		case 's':
 			if (e.metaKey) saveSlide(e)
 			break
+		case 'n':
+			if (e.ctrlKey) {
+				e.preventDefault()
+				openLayoutDialog('insert')
+			}
+			break
 	}
 }
 
@@ -222,7 +236,7 @@ const changeSlide = async (index, updateCurrent = true) => {
 	})
 }
 
-const performSlideAction = async (action, index) => {
+const performSlideAction = async (action, index, layoutId) => {
 	if (!index) index = slideIndex.value
 	let url = ''
 
@@ -233,6 +247,9 @@ const performSlideAction = async (action, index) => {
 		case 'duplicate':
 			url = 'slides.slides.doctype.presentation.presentation.duplicate_slide'
 			break
+		case 'replace':
+			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
+			break
 		case 'delete':
 			url = 'slides.slides.doctype.presentation.presentation.delete_slide'
 			break
@@ -241,6 +258,8 @@ const performSlideAction = async (action, index) => {
 	const args = {
 		name: presentationId.value,
 		index: index,
+		layout_id: layoutId,
+		replace: action == 'replace',
 	}
 
 	resetFocus()
@@ -254,10 +273,10 @@ const performSlideAction = async (action, index) => {
 	})
 }
 
-const insertSlide = async (index) => {
+const insertSlide = async (index, layoutId) => {
 	if (!index) index = slideIndex.value
 	const previousBackground = slide.value.background
-	await performSlideAction('insert', index)
+	await performSlideAction('insert', index, layoutId)
 	await changeSlide(index + 1)
 	slide.value.background = previousBackground
 	nextTick(() => {
@@ -355,4 +374,21 @@ onBeforeRouteLeave((to, from, next) => {
 	}
 	next()
 })
+
+const showLayoutDialog = ref(false)
+const layoutAction = ref('')
+
+const openLayoutDialog = (action) => {
+	showLayoutDialog.value = true
+	layoutAction.value = action
+}
+
+const handleInsertSlide = async (layoutId) => {
+	if (layoutAction.value == 'replace') {
+		await performSlideAction('replace', slideIndex.value, layoutId)
+		loadSlide()
+	} else {
+		insertSlide(null, layoutId)
+	}
+}
 </script>
