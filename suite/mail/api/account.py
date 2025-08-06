@@ -1,3 +1,5 @@
+from typing import Literal
+
 import frappe
 from frappe import _
 from frappe.utils import cint, get_datetime, get_url, now_datetime
@@ -7,6 +9,7 @@ from mail.api.admin import add_member
 from mail.mail.doctype.mail_account.mail_account import create_user
 from mail.utils import user_context
 from mail.utils.cache import (
+	get_account_for_user,
 	get_default_outgoing_email_for_user,
 	get_personal_signup_domains,
 	get_tenant_for_domain,
@@ -228,3 +231,22 @@ def get_user_for_reset_password_key(key: str) -> str:
 
 	hashed_key = sha256_hash(key)
 	return frappe.db.get_value("User", {"reset_password_key": hashed_key}, "name")
+
+
+@frappe.whitelist()
+def create_mail_data_exchange(
+	operation: Literal["Import", "Export"],
+	import_format: Literal["jmap", "mbox", "maildir", "maildir-nested"],
+	import_file: str,
+	export_archive_type: Literal[".zip", ".tgz", ".tar.gz"],
+) -> None:
+	"""Creates mail data exchange"""
+
+	doc = frappe.new_doc("Mail Data Exchange")
+	doc.account = get_account_for_user(frappe.session.user)
+	doc.operation = operation
+	doc.import_format = import_format
+	doc.import_file = import_file
+	doc.export_archive_type = export_archive_type
+	doc.insert()
+	doc.submit()
