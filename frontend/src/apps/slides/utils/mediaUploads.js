@@ -66,7 +66,6 @@ export const handleUploadedMedia = (files) => {
 			error: (data) => 'Upload failed. Please try again.',
 		}
 
-		// run after current call stack so toast's expand animation works
-		setTimeout(() => toast.promise(uploadMedia(file, fileType), toastProps), 0)
+		toast.promise(uploadMedia(file, fileType), toastProps)
 	})
 }
