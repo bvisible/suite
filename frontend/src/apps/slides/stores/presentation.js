@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import { createResource, call } from 'frappe-ui'
+import { useDebouncedRefHistory } from '@vueuse/core'
 
 const presentationId = ref('')
 
@@ -14,9 +15,23 @@ const presentation = createResource({
 		slides.value = slidesCopy.map((slide) => ({
 			...slide,
 			elements: JSON.parse(slide.elements || '[]'),
+			background: slide.background || '#ffffff',
 		}))
 	},
 })
+
+let historyControl
+
+watch(
+	() => presentation.fetched,
+	() => {
+		historyControl = useDebouncedRefHistory(slides, {
+			deep: true,
+			debounce: 2000,
+			maxLength: 10,
+		})
+	},
+)
 
 const inSlideShow = ref(false)
 
@@ -58,4 +73,5 @@ export {
 	createPresentationResource,
 	updatePresentationTitle,
 	slides,
+	historyControl,
 }
