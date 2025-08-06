@@ -11,6 +11,7 @@
   "failed_count",
   "column_break_3krp",
   "account",
+  "tenant",
   "operation",
   "import_format",
   "import_file",
@@ -191,13 +192,26 @@
    "label": "Format",
    "mandatory_depends_on": "eval: doc.operation == \"Export\"",
    "options": "jmap"
+  },
+  {
+   "fetch_from": "account.tenant",
+   "fieldname": "tenant",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Tenant",
+   "no_copy": 1,
+   "options": "Mail Tenant",
+   "read_only": 1,
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-06 14:42:37.527325",
+ "modified": "2025-08-06 15:03:07.049029",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Data Exchange",
@@ -222,6 +236,14 @@
    "delete": 1,
    "read": 1,
    "role": "Mail User",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Mail Admin",
    "submit": 1,
    "write": 1
   }

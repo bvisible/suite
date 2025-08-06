@@ -21,8 +21,8 @@ from mail.utils import (
 	get_mbox_files,
 	get_stalwart_cli_path,
 )
-from mail.utils.cache import get_account_for_user
-from mail.utils.user import is_account_owner, is_system_manager
+from mail.utils.cache import get_account_for_user, get_tenant_for_user
+from mail.utils.user import has_role, is_account_owner, is_system_manager, is_tenant_admin
 from mail.utils.validation import (
 	validate_jmap_structure,
 	validate_maildir_or_maildirpp,
@@ -280,10 +280,15 @@ def get_permission_query_condition(user: str | None = None) -> str:
 	if is_system_manager(user):
 		return ""
 
-	if account := get_account_for_user(user):
-		return f"(`tabMail Data Exchange`.account = '{account}')"
-	else:
-		return "1=0"
+	if has_role(user, "Mail Admin"):
+		if tenant := get_tenant_for_user(user):
+			return f"(`tabMail Data Exchange`.tenant = '{tenant}')"
+
+	if has_role(user, "Mail User"):
+		if account := get_account_for_user(user):
+			return f"(`tabMail Data Exchange`.account = '{account}')"
+
+	return "1=0"
 
 
 def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
@@ -291,11 +296,13 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 		return False
 
 	user = user or frappe.session.user
-	user_is_system_manager = is_system_manager(user)
-	user_is_account_owner = is_account_owner(doc.account, user)
 
-	if user_is_system_manager or user_is_account_owner:
+	if is_system_manager(user):
 		return True
+	elif is_tenant_admin(doc.tenant, user):
+		return True
+	elif has_role(user, "Mail User"):
+		return is_account_owner(doc.account, user)
 
 	return False
 
