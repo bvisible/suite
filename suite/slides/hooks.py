@@ -240,3 +240,7 @@ website_route_rules = [
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+fixtures = [
+	{"dt": "Presentation", "filters": [["is_template", "=", "1"]]},
+]

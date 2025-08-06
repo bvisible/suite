@@ -41,7 +41,6 @@ import SlideElement from '@/components/SlideElement.vue'
 import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
 
-import { presentation } from '@/stores/presentation'
 import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
 	activeElementIds,
@@ -72,19 +71,19 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 const { dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
+
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(
 	slideContainerRef,
 	slideTargetRef,
 )
 
 const slideClasses = computed(() => {
-	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl']
+	const classes = ['slide', 'h-[540px]', 'w-[960px]', 'shadow-2xl', 'shadow-gray-400']
 
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
-	const shadowClasses = activeElementIds.value.length ? ['shadow-gray-200'] : ['shadow-gray-400']
 
-	return [...classes, outlineClasses, shadowClasses]
+	return [...classes, outlineClasses]
 })
 
 const targetStyles = computed(() => ({
@@ -93,7 +92,7 @@ const targetStyles = computed(() => ({
 }))
 
 const slideStyles = computed(() => ({
-	backgroundColor: slide.value.background || 'white',
+	backgroundColor: slide.value.background || '#ffffff',
 	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
 }))
 
@@ -130,7 +129,7 @@ const triggerSelection = (e, id) => {
 		if (!activeElementIds.value.includes(id)) {
 			activeElementIds.value = [id]
 			focusElementId.value = null
-		} else {
+		} else if (activeElement.value?.type == 'text') {
 			focusElementId.value = id
 		}
 	}

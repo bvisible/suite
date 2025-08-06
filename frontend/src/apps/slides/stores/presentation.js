@@ -20,7 +20,11 @@ const createPresentationResource = createResource({
 		return {
 			title: args.title,
 			duplicate_from: args.duplicateFrom,
+			theme: args.theme,
 		}
+	},
+	transform: (response) => {
+		return response.name
 	},
 })
 
