@@ -57,12 +57,11 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 
-import { presentationId, presentation } from '@/stores/presentation'
+import { presentationId, presentation, slides } from '@/stores/presentation'
 import {
 	slide,
 	slideIndex,
 	saveChanges,
-	loadSlide,
 	selectionBounds,
 	updateSelectionBounds,
 	updateSlideThumbnail,
@@ -234,7 +233,6 @@ const changeSlide = async (index, updateCurrent = true) => {
 			await saveChanges()
 		}
 		slideIndex.value = index
-		loadSlide()
 
 		// re-enable pan and zoom
 		slideContainerRef.value.togglePanZoom()
@@ -280,10 +278,10 @@ const performSlideAction = async (action, index, layoutId) => {
 
 const insertSlide = async (index, layoutId) => {
 	if (!index) index = slideIndex.value
-	const previousBackground = slide.value.background
+	const previousBackground = slides.value[slideIndex.value].background
 	await performSlideAction('insert', index, layoutId)
 	await changeSlide(index + 1)
-	slide.value.background = previousBackground
+	slides.value[slideIndex.value].background = previousBackground
 	nextTick(() => {
 		updateSlideThumbnail()
 	})
@@ -293,13 +291,11 @@ const loadSlidePostDeletion = async (index) => {
 	// if last slide is deleted, load the previous slide
 	if (slideIndex.value == presentation.data.slides.length)
 		changeSlide(slideIndex.value - 1, false)
-	// otherwise load next one
-	else loadSlide()
 }
 
 const deleteSlide = async () => {
 	// store elements to delete attachments later
-	const elements = slide.value.elements
+	const elements = slides.value[slideIndex.value].elements
 
 	// if there is only one slide, reset the slide state instead of deleting
 	if (presentation.data.slides.length == 1) return resetSlideState()
@@ -329,7 +325,7 @@ const resetAndSave = () => {
 }
 
 const resetSlideState = () => {
-	slide.value = {
+	slides.value[slideIndex.value] = {
 		thumbnail: '',
 		elements: [],
 		background: '',
@@ -354,13 +350,12 @@ watch(
 		presentationId.value = id
 		await presentation.fetch()
 		addRouteSlug()
-		loadSlide()
 	},
 	{ immediate: true },
 )
 
 onMounted(() => {
-	autosaveInterval = setInterval(handleAutoSave, 2000)
+	// autosaveInterval = setInterval(handleAutoSave, 2000)
 	document.addEventListener('keydown', handleKeyDown)
 })
 
@@ -391,7 +386,6 @@ const openLayoutDialog = (action) => {
 const handleInsertSlide = async (layoutId) => {
 	if (layoutAction.value == 'replace') {
 		await performSlideAction('replace', slideIndex.value, layoutId)
-		loadSlide()
 	} else {
 		insertSlide(null, layoutId)
 	}

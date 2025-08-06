@@ -1,7 +1,7 @@
 import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
-import { presentationId, presentation, inSlideShow } from './presentation'
+import { presentationId, presentation, inSlideShow, slides } from './presentation'
 import { activeElementIds } from './element'
 
 import { isEqual } from 'lodash'
@@ -40,12 +40,12 @@ const getSavedData = () => {
 }
 
 const getCurrentData = () => {
-	if (!slide.value) return {}
+	if (!slides.value[slideIndex.value]) return {}
 	return {
-		elements: slide.value.elements,
-		transition: slide.value.transition,
-		transition_duration: slide.value.transitionDuration,
-		background: slide.value.background,
+		elements: slides.value[slideIndex.value].elements,
+		transition: slides.value[slideIndex.value].transition,
+		transition_duration: slides.value[slideIndex.value].transitionDuration,
+		background: slides.value[slideIndex.value].background,
 	}
 }
 
@@ -121,7 +121,7 @@ const getSlideThumbnail = async () => {
 }
 
 const updateSlideState = async () => {
-	const { elements, transition, transitionDuration, background } = slide.value
+	const { elements, transition, transitionDuration, background } = slides.value[slideIndex.value]
 	presentation.data.slides[slideIndex.value] = {
 		...presentation.data.slides[slideIndex.value],
 		background,
@@ -133,10 +133,10 @@ const updateSlideState = async () => {
 }
 
 const updateSlideThumbnail = async () => {
-	if (!presentation.data || !slide.value) return
+	if (!presentation.data || !slides.value[slideIndex.value]) return
 
 	const thumbnail = await getSlideThumbnail()
-	slide.value.thumbnail = thumbnail
+	slides.value[slideIndex.value].thumbnail = thumbnail
 	presentation.data.slides[slideIndex.value].thumbnail = thumbnail
 }
 
@@ -144,7 +144,7 @@ const loadSlide = () => {
 	const { background, transition, transition_duration, elements, thumbnail } =
 		presentation.data.slides[slideIndex.value]
 
-	slide.value = {
+	slides.value[slideIndex.value] = {
 		background,
 		transition,
 		thumbnail,
@@ -164,8 +164,6 @@ const saveChanges = async () => {
 	await call('frappe.client.save', {
 		doc: presentation.data,
 	})
-
-	slide.value.thumbnail = presentation.data.slides[slideIndex.value].thumbnail
 
 	await presentation.reload()
 }
