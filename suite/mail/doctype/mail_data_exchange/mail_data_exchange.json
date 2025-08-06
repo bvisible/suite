@@ -165,36 +165,39 @@
    "no_copy": 1
   },
   {
+   "default": "jmap",
    "depends_on": "eval: doc.operation == \"Import\"",
    "fieldname": "import_format",
    "fieldtype": "Select",
    "label": "Format",
    "mandatory_depends_on": "eval: doc.operation == \"Import\"",
    "no_copy": 1,
-   "options": "\njmap\nmbox\nmaildir\nmaildir-nested"
+   "options": "jmap\nmbox\nmaildir\nmaildir-nested"
   },
   {
+   "default": ".zip",
    "depends_on": "eval: doc.operation == \"Export\"",
    "fieldname": "export_archive_type",
    "fieldtype": "Select",
    "label": "Archive Type",
    "mandatory_depends_on": "eval: doc.operation == \"Export\"",
-   "options": "\n.zip\n.tgz\n.tar.gz"
+   "options": ".zip\n.tgz\n.tar.gz"
   },
   {
+   "default": "jmap",
    "depends_on": "eval: doc.operation == \"Export\"",
    "fieldname": "export_format",
    "fieldtype": "Select",
    "label": "Format",
    "mandatory_depends_on": "eval: doc.operation == \"Export\"",
-   "options": "\njmap"
+   "options": "jmap"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-06 14:32:38.073440",
+ "modified": "2025-08-06 14:42:37.527325",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Data Exchange",
