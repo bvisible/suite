@@ -117,6 +117,11 @@ const handleArrowKeys = (key) => {
 		left: selectionBounds.left + dx,
 		top: selectionBounds.top + dy,
 	})
+
+	activeElements.value.forEach((element) => {
+		element.left += dx
+		element.top += dy
+	})
 }
 
 const saveSlide = (e) => {
