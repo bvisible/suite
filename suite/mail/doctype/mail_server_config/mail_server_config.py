@@ -95,43 +95,43 @@ def get_mail_server_config(server: str) -> MailServerConfig | None:
 def get_config_toml(server: str) -> str | None:
 	"""Returns the TOML configuration for the Mail Server."""
 
-	def format_value_or_zero(value: int, postfix: str) -> str | int:
+	def _format_value_or_zero(value: int, postfix: str) -> str | int:
 		return f"{value}{postfix}" if value else 0
 
-	def wrap_in_triple_quotes(value: str) -> str:
+	def _wrap_in_triple_quotes(value: str) -> str:
 		return f"'''{value}'''"
 
-	def split_lines(value: str) -> list:
+	def _split_lines(value: str) -> list:
 		return value.split("\n")
 
-	def split_lines_or_empty(value: str) -> list:
-		return split_lines(value) if value else []
+	def _split_lines_or_empty(value: str) -> list:
+		return _split_lines(value) if value else []
 
-	def format_keys(keys: list) -> dict:
+	def _format_keys(keys: list) -> dict:
 		width = len(str(len(keys) - 1))
 		return {str(i).zfill(width): key for i, key in enumerate(keys)}
 
-	def get_acme_config(acme) -> dict:
+	def _get_acme_config(acme) -> dict:
 		config = {
 			"default": bool(acme.default),
 			"directory": acme.directory,
 			"challenge": acme.challenge.lower(),
-			"contact": split_lines_or_empty(acme.contact),
-			"domains": split_lines_or_empty(acme.domains),
+			"contact": _split_lines_or_empty(acme.contact),
+			"domains": _split_lines_or_empty(acme.domains),
 			"cache": "%{BASE_PATH}%/etc/acme",
-			"renew-before": format_value_or_zero(acme.renew_before, "d"),
+			"renew-before": _format_value_or_zero(acme.renew_before, "d"),
 			"eab": {"kid": acme.eab_kid, "hmac-key": password_or_none(acme, "eab_hmac_key")},
 		}
 
 		return {acme.directory_id: config}
 
-	def get_acme_providers(acme_providers: list) -> dict:
-		return {k: v for acme in acme_providers for k, v in get_acme_config(acme).items()}
+	def _get_acme_providers(acme_providers: list) -> dict:
+		return {k: v for acme in acme_providers for k, v in _get_acme_config(acme).items()}
 
-	def get_tls_config(tls) -> dict:
-		cert = wrap_in_triple_quotes(tls.cert) if tls.cert else f"%{{file:{tls.cert_path}}}%"
+	def _get_tls_config(tls) -> dict:
+		cert = _wrap_in_triple_quotes(tls.cert) if tls.cert else f"%{{file:{tls.cert_path}}}%"
 		private_key = (
-			wrap_in_triple_quotes(tls.private_key)
+			_wrap_in_triple_quotes(tls.private_key)
 			if tls.private_key
 			else f"%{{file:{tls.private_key_path}}}%"
 		)
@@ -139,28 +139,28 @@ def get_config_toml(server: str) -> str | None:
 			"default": bool(tls.default),
 			"cert": cert,
 			"private-key": private_key,
-			"subjects": split_lines_or_empty(tls.subjects),
+			"subjects": _split_lines_or_empty(tls.subjects),
 		}
 
 		return {tls.certificate_id: config}
 
-	def get_tls_certificates(tls_certificates: list) -> dict:
-		return {k: v for tls in tls_certificates for k, v in get_tls_config(tls).items()}
+	def _get_tls_certificates(tls_certificates: list) -> dict:
+		return {k: v for tls in tls_certificates for k, v in _get_tls_config(tls).items()}
 
-	def get_listeners(listeners: list) -> dict:
+	def _get_listeners(listeners: list) -> dict:
 		result = {}
 
 		for listener in listeners:
-			binds = split_lines(listener.bind)
+			binds = _split_lines(listener.bind)
 			result[listener.listener_id] = {
-				"bind": format_keys(binds) if len(binds) > 1 else binds[0],
+				"bind": _format_keys(binds) if len(binds) > 1 else binds[0],
 				"protocol": PROTOCOL_MAP[listener.protocol],
 				"tls": {"implicit": bool(listener.tls_implicit)},
 			}
 
 		return result
 
-	def get_seed_nodes(server: str, cluster: str) -> dict:
+	def _get_seed_nodes(server: str, cluster: str) -> dict:
 		seed_nodes = [
 			s[frappe.scrub(s["cluster_advertise_addr"])]
 			for s in frappe.db.get_all(
@@ -176,15 +176,15 @@ def get_config_toml(server: str) -> str | None:
 			)
 			if s["cluster_advertise_addr"]
 		]
-		return format_keys(seed_nodes)
+		return _format_keys(seed_nodes)
 
-	def get_local_keys(outbound_only: bool = False) -> dict:
+	def _get_local_keys(outbound_only: bool = False) -> dict:
 		local_keys = LOCAL_KEYS + (
 			["session.rcpt.directory", "queue.outbound.next-hop"] if outbound_only else []
 		)
-		return format_keys(local_keys)
+		return _format_keys(local_keys)
 
-	def get_store_config(store) -> dict:
+	def _get_store_config(store) -> dict:
 		config = {"type": STORE_TYPE_MAP[store.type]}
 
 		if store.type in ["SQLite", "PostgreSQL", "mySQL"]:
@@ -198,7 +198,7 @@ def get_config_toml(server: str) -> str | None:
 				config.update({"user": store.user, "password": password_or_none(store, "password")})
 
 		if store.type in ["PostgreSQL", "mySQL", "S3-compatible", "Redis/Memcached", "Azure Blob Storage"]:
-			config["timeout"] = format_value_or_zero(store.timeout, "s")
+			config["timeout"] = _format_value_or_zero(store.timeout, "s")
 
 		if store.type in [
 			"RocksDB",
@@ -239,9 +239,9 @@ def get_config_toml(server: str) -> str | None:
 					{
 						"cluster-file": store.cluster_file,
 						"transaction": {
-							"timeout": format_value_or_zero(store.transaction_timeout, "s"),
+							"timeout": _format_value_or_zero(store.transaction_timeout, "s"),
 							"retry-limit": store.transaction_retry_limit,
-							"max-retry-delay": format_value_or_zero(store.transaction_max_retry_delay, "s"),
+							"max-retry-delay": _format_value_or_zero(store.transaction_max_retry_delay, "s"),
 						},
 						"ids": {
 							"machine": store.machine,
@@ -285,7 +285,7 @@ def get_config_toml(server: str) -> str | None:
 				config.update(
 					{
 						"redis-type": redis_type,
-						"urls": split_lines_or_empty(store.urls),
+						"urls": _split_lines_or_empty(store.urls),
 					}
 				)
 
@@ -295,8 +295,8 @@ def get_config_toml(server: str) -> str | None:
 							"read-from-replicas": bool(store.read_from_replicas),
 							"retry": {
 								"total": store.retry_total,
-								"max-wait": format_value_or_zero(store.retry_max_wait, "ms"),
-								"min-wait": format_value_or_zero(store.retry_min_wait, "ms"),
+								"max-wait": _format_value_or_zero(store.retry_max_wait, "ms"),
+								"min-wait": _format_value_or_zero(store.retry_min_wait, "ms"),
 							},
 						}
 					)
@@ -326,8 +326,59 @@ def get_config_toml(server: str) -> str | None:
 
 		return {store.store_id: config}
 
-	def get_stores(stores: list) -> dict:
-		return {k: v for store in stores for k, v in get_store_config(store).items()}
+	def _get_stores(stores: list) -> dict:
+		return {k: v for store in stores for k, v in _get_store_config(store).items()}
+
+	def _get_traces(traces: list) -> dict:
+		result = {}
+		trace_types = {
+			"Log file": "log",
+			"Console": "console",
+			"Systemd Journal": "journal",
+			"Open Telemetry": "open-telemetry",
+		}
+
+		for trace in traces:
+			result[trace.tracer_id] = {
+				"enable": True,
+				"type": trace_types[trace.type],
+				"level": trace.level.lower(),
+				"lossy": bool(trace.lossy),
+			}
+
+			if trace.type == "Log file":
+				result[trace.tracer_id].update(
+					{
+						"path": trace.path,
+						"prefix": trace.prefix,
+						"rotate": trace.rotate.lower(),
+						"ansi": bool(trace.ansi),
+						"multiline": bool(trace.multiline),
+					}
+				)
+			elif trace.type == "Console":
+				result[trace.tracer_id].update(
+					{
+						"ansi": bool(trace.ansi),
+						"multiline": bool(trace.multiline),
+						"buffer": bool(trace.buffer),
+					}
+				)
+			elif trace.type == "Open Telemetry":
+				result[trace.tracer_id].update(
+					{
+						"transport": trace.transport.lower(),
+						"endpoint": trace.endpoint,
+						"timeout": _format_value_or_zero(trace.timeout, "s"),
+						"throttle": _format_value_or_zero(trace.throttle, "ms"),
+						"enable": {
+							"log-exporter": bool(trace.enable_log_exporter),
+							"span-exporter": bool(trace.enable_span_exporter),
+						},
+					}
+				)
+
+		return result
 
 	server = frappe.get_doc("Mail Server", server)
 	cluster = frappe.get_doc("Mail Cluster", server.cluster)
@@ -339,13 +390,13 @@ def get_config_toml(server: str) -> str | None:
 				"secret": cluster.fallback_admin_secret,
 			}
 		},
-		"acme": get_acme_providers(server.acme_providers),
-		"certificate": get_tls_certificates(server.tls_certificates),
+		"acme": _get_acme_providers(server.acme_providers),
+		"certificate": _get_tls_certificates(server.tls_certificates),
 		"server": {
 			"hostname": server.hostname,
-			"proxy": {"trusted-networks": split_lines_or_empty(cluster.server_proxy_trusted_networks)},
+			"proxy": {"trusted-networks": _split_lines_or_empty(cluster.server_proxy_trusted_networks)},
 			"max-connections": server.server_max_connections,
-			"listener": get_listeners(server.listeners or cluster.listeners),
+			"listener": _get_listeners(server.listeners or cluster.listeners),
 			"socket": {
 				"backlog": 1024,
 				"nodelay": True,
@@ -359,11 +410,11 @@ def get_config_toml(server: str) -> str | None:
 			"bind-port": cluster.cluster_bind_port,
 			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_addr)),
 			"key": password_or_none(cluster, "cluster_key"),
-			"heartbeat": format_value_or_zero(server.cluster_heartbeat, "s"),
-			"seed-nodes": get_seed_nodes(server.name, cluster.name),
+			"heartbeat": _format_value_or_zero(server.cluster_heartbeat, "s"),
+			"seed-nodes": _get_seed_nodes(server.name, cluster.name),
 		},
 		"config": {
-			"local-keys": get_local_keys(bool(server.outbound_only)),
+			"local-keys": _get_local_keys(bool(server.outbound_only)),
 		},
 		"directory": {
 			f"{cluster.storage_directory}": {
@@ -392,7 +443,7 @@ def get_config_toml(server: str) -> str | None:
 				"enable": bool(cluster.email_encryption_enable),
 				"append": bool(cluster.email_encryption_append),
 			},
-			"auto-expunge": format_value_or_zero(cluster.email_auto_expunge, "d"),
+			"auto-expunge": _format_value_or_zero(cluster.email_auto_expunge, "d"),
 		},
 		"changes": {"max-history": cluster.changes_max_history},
 		"jmap": {
@@ -416,7 +467,7 @@ def get_config_toml(server: str) -> str | None:
 				"upload": {
 					"max-size": cluster.jmap_protocol_upload_max_size,
 					"max-concurrent": cluster.jmap_protocol_upload_max_concurrent,
-					"ttl": format_value_or_zero(cluster.jmap_protocol_upload_ttl, "h"),
+					"ttl": _format_value_or_zero(cluster.jmap_protocol_upload_ttl, "h"),
 					"quota": {
 						"files": cluster.jmap_protocol_upload_quota_files,
 						"size": cluster.jmap_protocol_upload_quota_size,
@@ -429,17 +480,17 @@ def get_config_toml(server: str) -> str | None:
 			},
 			"push": {
 				"max-total": cluster.jmap_push_max_total,
-				"throttle": format_value_or_zero(cluster.jmap_push_throttle, "ms"),
+				"throttle": _format_value_or_zero(cluster.jmap_push_throttle, "ms"),
 				"attempts": {
-					"interval": format_value_or_zero(cluster.jmap_push_attempts_interval, "ms"),
+					"interval": _format_value_or_zero(cluster.jmap_push_attempts_interval, "ms"),
 					"max": cluster.jmap_push_attempts_max,
 				},
 				"retry": {
-					"interval": format_value_or_zero(cluster.jmap_push_retry_interval, "ms"),
+					"interval": _format_value_or_zero(cluster.jmap_push_retry_interval, "ms"),
 				},
 				"timeout": {
-					"request": format_value_or_zero(cluster.jmap_push_timeout_request, "ms"),
-					"verify": format_value_or_zero(cluster.jmap_push_timeout_verify, "ms"),
+					"request": _format_value_or_zero(cluster.jmap_push_timeout_request, "ms"),
+					"verify": _format_value_or_zero(cluster.jmap_push_timeout_verify, "ms"),
 				},
 			},
 		},
@@ -451,24 +502,13 @@ def get_config_toml(server: str) -> str | None:
 				}
 			}
 		},
-		"store": get_stores(cluster.stores),
-		"tracer": {
-			"log": {
-				"type": "log",
-				"path": "/opt/stalwart/logs",
-				"prefix": "stalwart.log",
-				"rotate": "daily",
-				"level": "info",
-				"ansi": False,
-				"enable": True,
-			}
-		},
+		"store": _get_stores(cluster.stores),
 		"metrics": {
 			"open-telemetry": {
 				"transport": cluster.metrics_open_telemetry_transport.lower(),
 				"endpoint": cluster.metrics_open_telemetry_endpoint,
-				"timeout": format_value_or_zero(cluster.metrics_open_telemetry_timeout, "s"),
-				"interval": format_value_or_zero(cluster.metrics_open_telemetry_interval, "s"),
+				"timeout": _format_value_or_zero(cluster.metrics_open_telemetry_timeout, "s"),
+				"interval": _format_value_or_zero(cluster.metrics_open_telemetry_interval, "s"),
 			},
 			"prometheus": {
 				"enable": bool(cluster.metrics_prometheus_enable),
@@ -478,6 +518,7 @@ def get_config_toml(server: str) -> str | None:
 				},
 			},
 		},
+		"tracer": _get_traces(cluster.traces),
 	}
 
 	if server.outbound_only:
