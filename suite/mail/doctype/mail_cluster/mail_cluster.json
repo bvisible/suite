@@ -96,6 +96,8 @@
   "column_break_wuz8",
   "jmap_email_parse_max_items",
   "log_metrics_tab",
+  "section_break_rsr9",
+  "traces",
   "opentelemetry_push_metrics_section",
   "metrics_open_telemetry_transport",
   "column_break_lkbk",
@@ -804,6 +806,17 @@
    "fieldtype": "Int",
    "label": "Push Interval (Seconds)",
    "mandatory_depends_on": "eval: [\"HTTP\", \"gRPC\"].includes(doc.metrics_open_telemetry_transport)"
+  },
+  {
+   "fieldname": "section_break_rsr9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Manage logging and tracing methods.",
+   "fieldname": "traces",
+   "fieldtype": "Table",
+   "label": "Traces",
+   "options": "Mail Cluster Trace"
   }
  ],
  "grid_page_length": 50,
@@ -825,7 +838,7 @@
    "link_fieldname": "backend_name"
   }
  ],
- "modified": "2025-08-06 13:51:29.662261",
+ "modified": "2025-08-06 20:34:40.144994",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
