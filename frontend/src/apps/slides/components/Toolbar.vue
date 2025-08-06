@@ -88,12 +88,12 @@ const handleUploadSuccess = (file) => {
 	const imageTypes = allowedImageFileTypes.map((type) => type.split('/')[1].toUpperCase())
 	const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
 
-	addMediaElement(file, fileType)
+	const toastProps = {
+		loading: `Uploading: ${file.file_name}`,
+		success: (data) => `Uploaded: ${file.file_name}`,
+		error: (data) => 'Upload failed. Please try again.',
+	}
 
-	toast.success('Uploaded: ' + file.file_name)
-}
-
-const handleUploadFailure = () => {
-	toast.error('Upload failed. Please try again.')
+	toast.promise(addMediaElement(file, fileType), toastProps)
 }
 </script>
