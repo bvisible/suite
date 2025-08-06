@@ -108,6 +108,7 @@ const createPresentation = async (theme) => {
 		title: 'Untitled',
 		theme: theme,
 	})
+	reloadList()
 	if (newPresentation) {
 		navigateToPresentation(newPresentation)
 	} else {
