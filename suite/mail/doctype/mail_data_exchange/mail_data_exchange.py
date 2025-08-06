@@ -39,7 +39,7 @@ class MailDataExchange(Document):
 			self.validate_import_format()
 			self.validate_import_file()
 		elif self.operation == "Export":
-			self.validate_export_format()
+			self.validate_export_archive_type()
 
 	def before_submit(self) -> None:
 		self.status = "Queued"
@@ -71,11 +71,11 @@ class MailDataExchange(Document):
 				)
 			)
 
-	def validate_export_format(self) -> None:
-		"""Validate the export format."""
+	def validate_export_archive_type(self) -> None:
+		"""Validate the export archive type."""
 
-		if not self.export_format:
-			frappe.throw(_("Export Format is required."))
+		if not self.export_archive_type:
+			frappe.throw(_("Archive Type is required."))
 
 	def process(self) -> None:
 		"""Enqueue the import or export based on the operation type."""
@@ -197,7 +197,7 @@ class MailDataExchange(Document):
 
 		self._mark_started()
 		export_base = os.path.join(get_export_directory(), self.name)
-		export_file_name = f"{self.name}{self.export_format}"
+		export_file_name = f"{self.name}{self.export_archive_type}"
 		export_file_url = f"/private/files/{export_file_name}"
 		export_file = os.path.join(get_bench_path(), f"sites/{frappe.local.site}{export_file_url}")
 		os.makedirs(export_base, exist_ok=True)
