@@ -7,6 +7,10 @@ import { activeElementIds } from './element'
 import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
+const slideRef = ref(null)
+
+const setSlideRef = (ref) => (slideRef.value = ref)
+
 const slideIndex = ref(0)
 
 const slide = ref({
@@ -68,9 +72,7 @@ const replaceVideoWithPoster = async (videoElement) => {
 }
 
 const getThumbnailHtml = async () => {
-	const slideRef = document.querySelector('.slide')
-
-	const clone = slideRef.cloneNode(true)
+	const clone = slideRef.value.cloneNode(true)
 
 	clone.style.position = 'absolute'
 	clone.style.left = '-9999px'
@@ -89,6 +91,15 @@ const getThumbnailHtml = async () => {
 
 		if (element.tagName == 'VIDEO') {
 			await replaceVideoWithPoster(element)
+		}
+
+		const isEmpty =
+			element.tagName == 'DIV' &&
+			element.textContent.trim() == '' &&
+			element.children.length == 0
+		const removeDiv = isEmpty || element.classList.contains('overlay')
+		if (removeDiv) {
+			element.remove()
 		}
 	})
 
@@ -185,4 +196,5 @@ export {
 	saveChanges,
 	updateSelectionBounds,
 	updateSlideThumbnail,
+	setSlideRef,
 }

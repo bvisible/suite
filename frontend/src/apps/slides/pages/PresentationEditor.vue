@@ -6,14 +6,18 @@
 			</template>
 		</Navbar>
 		<div class="relative flex h-screen bg-gray-300">
+			<SlideContainer
+				ref="slideContainer"
+				:highlight="slideHighlight"
+				v-model:hasOngoingInteraction="hasOngoingInteraction"
+			/>
+
 			<NavigationPanel
-				class="absolute bottom-0 top-0 z-10"
+				class="absolute bottom-0 top-0"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
 				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
-
-			<SlideContainer ref="slideContainer" :highlight="slideHighlight" />
 
 			<Toolbar
 				@setHighlight="setHighlight"
@@ -23,7 +27,7 @@
 			/>
 
 			<PropertiesPanel
-				class="absolute bottom-0 right-0 top-0 z-10"
+				class="absolute bottom-0 right-0 top-0"
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
@@ -94,6 +98,7 @@ const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
 const slideHighlight = ref(false)
+const hasOngoingInteraction = ref(false)
 
 const setHighlight = (value) => {
 	slideHighlight.value = value
@@ -111,6 +116,11 @@ const handleArrowKeys = (key) => {
 	updateSelectionBounds({
 		left: selectionBounds.left + dx,
 		top: selectionBounds.top + dy,
+	})
+
+	activeElements.value.forEach((element) => {
+		element.left += dx
+		element.top += dy
 	})
 }
 
@@ -212,7 +222,7 @@ const startSlideShow = () => {
 }
 
 const handleAutoSave = () => {
-	if (activeElementIds.value.length || focusElementId.value != null) return
+	if (hasOngoingInteraction.value || focusElementId.value != null) return
 	saveChanges()
 }
 

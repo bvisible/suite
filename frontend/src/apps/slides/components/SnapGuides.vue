@@ -20,9 +20,8 @@ const props = defineProps({
 })
 
 const commonStyles = {
-	backgroundColor: '#70b6f080',
-	position: 'fixed',
-	zIndex: 1000,
+	position: 'absolute',
+	zIndex: 5,
 }
 
 const isVisible = (axis) => {
@@ -34,6 +33,7 @@ const isVisible = (axis) => {
 const getCenterStyles = (axis) => {
 	return {
 		...commonStyles,
+		backgroundColor: '#70b6f080',
 		width: axis === 'centerY' ? '1px' : '100%',
 		height: axis === 'centerX' ? '1px' : '100%',
 		left: axis === 'centerY' ? '50%' : '0',
@@ -78,13 +78,14 @@ const getVerticalStyles = (direction) => {
 	const height = Math.abs(pairedBounds.top - selectionBounds.top) + lastElementHeight
 
 	return {
-		position: 'fixed',
+		...commonStyles,
 		borderColor: '#70b6f080',
 		borderStyle: 'dashed',
 		borderWidth: '0 0 0 1px',
 		left: `${left}px`,
 		top: `${top}px`,
 		height: `${height}px`,
+		display: isVisible(direction) ? 'block' : 'none',
 	}
 }
 
@@ -102,13 +103,14 @@ const getHorizontalStyles = (direction) => {
 	const width = Math.abs(pairedBounds.left - selectionBounds.left) + lastElementWidth
 
 	return {
-		position: 'fixed',
+		...commonStyles,
 		borderColor: '#70b6f080',
 		borderStyle: 'dashed',
 		borderWidth: '1px 0 0 0',
 		top: `${top}px`,
 		left: `${left}px`,
 		width: `${width}px`,
+		display: isVisible(direction) ? 'block' : 'none',
 	}
 }
 

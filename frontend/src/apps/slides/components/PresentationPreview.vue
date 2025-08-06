@@ -51,7 +51,7 @@
 			</div>
 		</div>
 
-		<div class="absolute bottom-0 left-0 z-10 h-[53%] w-full bg-white" @click.stop></div>
+		<div class="absolute bottom-0 left-0 h-[53%] w-full bg-white" @click.stop></div>
 	</div>
 </template>
 
@@ -86,7 +86,7 @@ const slideThumbnails = createResource({
 
 const previewOverlayClasses = computed(() => {
 	const baseClasses =
-		'fixed left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
+		'absolute left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
 	if (props.presentation) {
 		return `${baseClasses} top-0`
 	}

@@ -7,6 +7,7 @@
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<div
+			ref="scrollableArea"
 			v-if="presentation.data"
 			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
@@ -63,6 +64,8 @@ import { useAttrs } from 'vue'
 
 const attrs = useAttrs()
 
+const scrollableArea = useTemplateRef('scrollableArea')
+
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
 	default: true,
@@ -109,7 +112,7 @@ const getThumbnailStyles = (s) => {
 }
 
 const toggleButtonClasses = computed(() => {
-	const baseClasses = 'z-20 flex cursor-pointer items-center border bg-white'
+	const baseClasses = 'flex cursor-pointer items-center border bg-white'
 	if (showNavigator.value) {
 		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
 	}
@@ -142,15 +145,27 @@ const scrollbarStyles = computed(() => ({
 
 const slideThumbnailsRef = ref([])
 
+const scrollThumbnailToView = (element) => {
+	if (!scrollableArea.value) return
+
+	const isScrollable = scrollableArea.value.scrollHeight > scrollableArea.value.clientHeight
+
+	if (isScrollable) {
+		// adjust offset for top padding - 16px
+		const offset = element.offsetTop - scrollableArea.value.offsetTop - 16
+
+		scrollableArea.value.scrollTo({
+			top: offset,
+			behavior: 'smooth',
+		})
+	}
+}
+
 const handleScrollChange = (index) => {
 	const el = slideThumbnailsRef.value[index]
 
 	if (!el) return
-	el.scrollIntoView({
-		behavior: 'smooth',
-		block: 'start',
-		inline: 'nearest',
-	})
+	scrollThumbnailToView(el)
 }
 
 watch(
