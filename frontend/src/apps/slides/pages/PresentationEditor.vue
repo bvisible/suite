@@ -36,6 +36,7 @@
 			v-if="presentationDoc"
 			v-model="showLayoutDialog"
 			:theme="presentationDoc.theme"
+			:layouts="layoutResource.data"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
 	</div>
@@ -58,7 +59,7 @@ import {
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory } from '@vueuse/core'
 
-import { call, toast } from 'frappe-ui'
+import { call, toast, createResource } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -274,7 +275,7 @@ const insertSlide = async (index, layoutId) => {
 	await changeSlide(index + 1)
 }
 
-const deleteSlide = async () => {
+const deleteSlide = () => {
 	// if there is only one slide, reset the slide state instead of deleting
 	const totalLength = slides.value.length
 
@@ -321,14 +322,39 @@ const addRouteSlug = async (slug) => {
 
 const presentationDoc = ref(null)
 
+const initPresentationDoc = async (id) => {
+	presentationId.value = id
+	const resource = getPresentationResource(props.presentationId)
+	await resource.get.fetch()
+	presentationDoc.value = resource.doc
+}
+
+const initHistory = () => {
+	historyControl = useDebouncedRefHistory(slides, {
+		deep: true,
+		debounce: 2000,
+		maxLength: 10,
+	})
+}
+
+const initAutosave = () => {
+	autosaveInterval = setInterval(handleAutoSave, 2000)
+}
+
+const loadPresentation = async (id) => {
+	await initPresentationDoc(id)
+	addRouteSlug(presentationDoc.slug)
+	layoutResource.fetch()
+	initHistory()
+	initAutosave()
+	document.addEventListener('keydown', handleKeyDown)
+}
+
 watch(
 	() => props.presentationId,
 	async (id) => {
 		if (!id) return
-		presentationId.value = id
-		const resource = getPresentationResource(props.presentationId)
-		await resource.get.fetch()
-		presentationDoc.value = resource.doc
+		loadPresentation(id)
 	},
 	{ immediate: true },
 )
@@ -344,19 +370,8 @@ onBeforeRouteLeave((to, from, next) => {
 let historyControl
 
 onActivated(async () => {
-	const resource = getPresentationResource(props.presentationId)
-	await resource.get.fetch()
-	presentationDoc.value = resource.doc
-	addRouteSlug(resource.doc.slug)
-
-	historyControl = useDebouncedRefHistory(slides, {
-		deep: true,
-		debounce: 2000,
-		maxLength: 10,
-	})
-
-	// autosaveInterval = setInterval(handleAutoSave, 2000)
-	document.addEventListener('keydown', handleKeyDown)
+	if (!props.presentationId) return
+	loadPresentation(props.presentationId)
 })
 
 onDeactivated(() => {
@@ -395,4 +410,14 @@ const saveChanges = async () => {
 
 	presentationDoc.value = await savePresentationDoc()
 }
+
+const layoutResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
+	method: 'GET',
+	makeParams: () => {
+		return {
+			theme: presentationDoc.value?.theme,
+		}
+	},
+})
 </script>
