@@ -67,11 +67,17 @@ const routes = [
 		props: true,
 	},
 	{
+		path: '/mail-transfers',
+		name: 'MailTransfers',
+		component: () => import('@/pages/MailTransfersView.vue'),
+		meta: { noLayout: true },
+	},
+	{
 		path: '/mime-message/:id',
 		name: 'MimeMessage',
 		component: () => import('@/pages/MimeMessageView.vue'),
 		props: true,
-		meta: { isMimeMessage: true },
+		meta: { noLayout: true },
 	},
 	{
 		path: '/dashboard',

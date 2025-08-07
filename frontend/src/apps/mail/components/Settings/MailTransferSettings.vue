@@ -21,8 +21,12 @@
 		>
 			<template #default="{ openFileSelector }">
 				<Button class="w-full" :label="__('Upload File')" @click="openFileSelector" />
-				<p v-if="mailDataExchange.import_file" class="mt-2 text-sm">
-					{{ __('File uploaded: {0}', [mailDataExchange.import_file]) }}
+				<p class="text-ink-gray-5 mt-2 flex text-sm">
+					{{
+						mailDataExchange.import_file
+							? __('File uploaded: {0}', [mailDataExchange.import_file])
+							: __(' Supported file formats: .zip, .tar, .tgz')
+					}}
 				</p>
 			</template>
 		</FileUploader>
