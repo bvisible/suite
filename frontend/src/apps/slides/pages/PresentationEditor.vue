@@ -269,22 +269,23 @@ const insertSlide = async (index, layoutId) => {
 	await changeSlide(index + 1)
 }
 
-const loadSlidePostDeletion = async (index) => {
-	// if last slide is deleted, load the previous slide
-	if (slideIndex.value == slides.value.length) changeSlide(slideIndex.value - 1, false)
-}
-
 const deleteSlide = async () => {
-	// store elements to delete attachments later
-	const elements = currentSlide.value.elements
-
 	// if there is only one slide, reset the slide state instead of deleting
-	if (slides.value.length == 1) return resetSlideState()
+	const totalLength = slides.value.length
 
-	await performSlideAction('delete')
-	loadSlidePostDeletion()
+	if (totalLength == 1) {
+		slides.value[0].elements = []
+		return
+	}
 
-	deleteAttachments(elements)
+	// delete the current slide
+	slides.value = slides.value.filter((slide, i) => i != slideIndex.value)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
+
+	// if last slide is deleted, switch to previous slide since no slide at current index
+	if (slideIndex.value == totalLength) changeSlide(slideIndex.value - 1, false)
 }
 
 const duplicateSlide = async (e) => {
@@ -403,19 +404,4 @@ const handleInsertSlide = async (layoutId) => {
 		insertSlide(null, layoutId)
 	}
 }
-
-let historyControl
-
-watch(
-	() => presentation?.isFinished,
-	() => {
-		historyControl = useDebouncedRefHistory(slides, {
-			deep: true,
-			debounce: 2000,
-			maxLength: 10,
-		})
-	},
-)
-
-const saveChanges = async () => {}
 </script>
