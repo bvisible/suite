@@ -14,6 +14,7 @@ const routes = [
 		path: '/presentation/:presentationId/:slug?',
 		name: 'PresentationEditor',
 		component: () => import('@/pages/PresentationEditor.vue'),
+		props: true,
 	},
 	{
 		path: '/slideshow/:presentationId',

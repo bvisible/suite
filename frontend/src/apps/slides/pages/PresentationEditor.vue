@@ -42,8 +42,20 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import {
+	ref,
+	reactive,
+	watch,
+	computed,
+	useTemplateRef,
+	onMounted,
+	onBeforeUnmount,
+	nextTick,
+	onDeactivated,
+	onActivated,
+	shallowRef,
+} from 'vue'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory } from '@vueuse/core'
 
 import { call, toast, useDoc } from 'frappe-ui'
@@ -89,7 +101,11 @@ const primaryButtonProps = {
 	onClick: () => startSlideShow(),
 }
 
-const route = useRoute()
+const props = defineProps({
+	presentationId: String,
+	slug: String,
+})
+
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -286,9 +302,8 @@ const resetAndSave = () => {
 	})
 }
 
-const addRouteSlug = async () => {
-	const slug = presentation.doc.slug
-	if (route.params.slug === slug) return
+const addRouteSlug = async (slug) => {
+	if (props.slug == slug) return
 	router.replace({
 		name: 'PresentationEditor',
 		params: { presentationId: presentationId.value, slug: slug },
@@ -307,40 +322,33 @@ const parseElements = (value) => {
 	return Array.isArray(value) ? value : []
 }
 
-const presentation = useDoc({
-	doctype: 'Presentation',
-	name: route.params.presentationId,
-})
+const presentation = ref()
 
-presentation.onSuccess((doc) => {
-	for (const slide of doc.slides || []) {
-		slide.elements = parseElements(slide.elements)
-	}
-	slides.value = JSON.parse(JSON.stringify(doc.slides || []))
-	console.log('Slides after onSuccess:', slides.value)
+const fetchPresentationDoc = async (presentationId) => {
+	presentation.value = useDoc({
+		doctype: 'Presentation',
+		name: presentationId,
+	})
 
-	addRouteSlug()
-})
+	presentation.value.onSuccess((doc) => {
+		for (const slide of doc.slides || []) {
+			slide.elements = parseElements(slide.elements)
+		}
+		slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+
+		addRouteSlug(doc.slug)
+	})
+}
 
 watch(
-	() => route.params.presentationId,
+	() => props.presentationId,
 	async (id) => {
 		if (!id) return
 		presentationId.value = id
+		fetchPresentationDoc(id)
 	},
 	{ immediate: true },
 )
-
-onMounted(() => {
-	// autosaveInterval = setInterval(handleAutoSave, 2000)
-	document.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-	clearInterval(autosaveInterval)
-	resetFocus()
-	document.removeEventListener('keydown', handleKeyDown)
-})
 
 onBeforeRouteLeave((to, from, next) => {
 	if (to.name !== 'Slideshow') {
@@ -348,6 +356,18 @@ onBeforeRouteLeave((to, from, next) => {
 		presentationId.value = ''
 	}
 	next()
+})
+
+onActivated(() => {
+	fetchPresentationDoc(props.presentationId)
+	// autosaveInterval = setInterval(handleAutoSave, 2000)
+	document.addEventListener('keydown', handleKeyDown)
+})
+
+onDeactivated(() => {
+	clearInterval(autosaveInterval)
+	resetFocus()
+	document.removeEventListener('keydown', handleKeyDown)
 })
 
 const showLayoutDialog = ref(false)
