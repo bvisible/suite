@@ -2,7 +2,7 @@
 	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
-				<PresentationHeader />
+				<PresentationHeader :title="presentation.doc?.title" />
 			</template>
 		</Navbar>
 		<div class="relative flex h-screen bg-gray-300">
@@ -33,9 +33,9 @@
 		</div>
 
 		<LayoutDialog
-			v-if="presentation.data"
+			v-if="presentation.doc"
 			v-model="showLayoutDialog"
-			:theme="presentation.data.theme"
+			:theme="presentation.doc.theme"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
 	</div>
@@ -44,8 +44,9 @@
 <script setup>
 import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useDebouncedRefHistory } from '@vueuse/core'
 
-import { call, toast } from 'frappe-ui'
+import { call, toast, useDoc } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -57,14 +58,13 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 
-import { presentationId, presentation, slides, historyControl } from '@/stores/presentation'
+import { presentationId } from '@/stores/presentation'
 import {
-	slide,
+	slides,
 	slideIndex,
-	saveChanges,
+	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
-	updateSlideThumbnail,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -226,7 +226,7 @@ const handleAutoSave = () => {
 }
 
 const changeSlide = async (index, updateCurrent = true) => {
-	if (index < 0 || index >= presentation.data.slides.length) return
+	if (index < 0 || index >= slides.value.length) return
 
 	resetFocus()
 	// reset the pan and zoom to capture thumbnail
@@ -244,43 +244,6 @@ const changeSlide = async (index, updateCurrent = true) => {
 	})
 }
 
-const performSlideAction = async (action, index, layoutId) => {
-	if (!index) index = slideIndex.value
-	let url = ''
-
-	switch (action) {
-		case 'insert':
-			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
-			break
-		case 'duplicate':
-			url = 'slides.slides.doctype.presentation.presentation.duplicate_slide'
-			break
-		case 'replace':
-			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
-			break
-		case 'delete':
-			url = 'slides.slides.doctype.presentation.presentation.delete_slide'
-			break
-	}
-
-	const args = {
-		name: presentationId.value,
-		index: index,
-		layout_id: layoutId,
-		replace: action == 'replace',
-	}
-
-	resetFocus()
-
-	// make sure nextTick call completes before completing the action
-	// to ensure slide index is not updated before the action is completed
-	await nextTick(async () => {
-		await saveChanges()
-		await call(url, args)
-		await presentation.reload()
-	})
-}
-
 const insertSlide = async (index, layoutId) => {
 	if (!index) index = slideIndex.value
 	await performSlideAction('insert', index, layoutId)
@@ -289,16 +252,15 @@ const insertSlide = async (index, layoutId) => {
 
 const loadSlidePostDeletion = async (index) => {
 	// if last slide is deleted, load the previous slide
-	if (slideIndex.value == presentation.data.slides.length)
-		changeSlide(slideIndex.value - 1, false)
+	if (slideIndex.value == slides.value.length) changeSlide(slideIndex.value - 1, false)
 }
 
 const deleteSlide = async () => {
 	// store elements to delete attachments later
-	const elements = slides.value[slideIndex.value].elements
+	const elements = currentSlide.value.elements
 
 	// if there is only one slide, reset the slide state instead of deleting
-	if (presentation.data.slides.length == 1) return resetSlideState()
+	if (slides.value.length == 1) return resetSlideState()
 
 	await performSlideAction('delete')
 	loadSlidePostDeletion()
@@ -324,18 +286,8 @@ const resetAndSave = () => {
 	})
 }
 
-const resetSlideState = () => {
-	slides.value[slideIndex.value] = {
-		thumbnail: '',
-		elements: [],
-		background: '',
-		transition: '',
-		transitionDuration: '0',
-	}
-}
-
 const addRouteSlug = async () => {
-	const slug = presentation.data.slug
+	const slug = presentation.doc.slug
 	if (route.params.slug === slug) return
 	router.replace({
 		name: 'PresentationEditor',
@@ -343,13 +295,38 @@ const addRouteSlug = async () => {
 	})
 }
 
+const parseElements = (value) => {
+	if (!value) return []
+	if (typeof value === 'string') {
+		try {
+			return JSON.parse(value)
+		} catch {
+			return []
+		}
+	}
+	return Array.isArray(value) ? value : []
+}
+
+const presentation = useDoc({
+	doctype: 'Presentation',
+	name: route.params.presentationId,
+})
+
+presentation.onSuccess((doc) => {
+	for (const slide of doc.slides || []) {
+		slide.elements = parseElements(slide.elements)
+	}
+	slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+	console.log('Slides after onSuccess:', slides.value)
+
+	addRouteSlug()
+})
+
 watch(
 	() => route.params.presentationId,
 	async (id) => {
 		if (!id) return
 		presentationId.value = id
-		await presentation.fetch()
-		addRouteSlug()
 	},
 	{ immediate: true },
 )
@@ -368,9 +345,7 @@ onBeforeUnmount(() => {
 onBeforeRouteLeave((to, from, next) => {
 	if (to.name !== 'Slideshow') {
 		slideIndex.value = 0
-		resetSlideState()
 		presentationId.value = ''
-		presentation.reset()
 	}
 	next()
 })
@@ -390,4 +365,19 @@ const handleInsertSlide = async (layoutId) => {
 		insertSlide(null, layoutId)
 	}
 }
+
+let historyControl
+
+watch(
+	() => presentation?.isFinished,
+	() => {
+		historyControl = useDebouncedRefHistory(slides, {
+			deep: true,
+			debounce: 2000,
+			maxLength: 10,
+		})
+	},
+)
+
+const saveChanges = async () => {}
 </script>
