@@ -215,7 +215,7 @@ frappe.ui.form.on('Mail Cluster', {
 	},
 })
 
-frappe.ui.form.on('Mail Server Store', {
+frappe.ui.form.on('Mail Cluster Store', {
 	type(frm, cdt, cdn) {
 		const row = locals[cdt][cdn]
 

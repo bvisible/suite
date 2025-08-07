@@ -570,7 +570,7 @@
  "modified": "2025-06-06 23:03:43.299954",
  "modified_by": "Administrator",
  "module": "Mail",
- "name": "Mail Server Store",
+ "name": "Mail Cluster Store",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
