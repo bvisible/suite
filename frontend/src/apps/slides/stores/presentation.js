@@ -106,6 +106,22 @@ const savePresentationDoc = async () => {
 	return presentationResource.doc
 }
 
+const layoutResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
+	method: 'GET',
+	auto: false,
+	transform: (data) => {
+		for (const slide of data || []) {
+			slide.elements = parseElements(slide.elements)
+		}
+	},
+	makeParams: ({ theme }) => {
+		return {
+			theme: theme,
+		}
+	},
+})
+
 export {
 	presentationId,
 	inSlideShow,
@@ -115,4 +131,5 @@ export {
 	getPresentationResource,
 	hasStateChanged,
 	savePresentationDoc,
+	layoutResource,
 }
