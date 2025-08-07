@@ -1,34 +1,36 @@
 <template>
-	<div class="bg-surface-white mx-auto space-y-8 rounded-md border p-12 sm:w-[75rem]">
-		<template v-if="mime.data">
-			<div class="flex items-center justify-between">
-				<h1 class="text-xl !font-medium">{{ __('MIME Message') }}</h1>
-				<Button
-					:label="__('Copy to Clipboard')"
-					size="md"
-					@click="copyToClipBoard(message)"
-				/>
-			</div>
-			<div class="rounded-md border">
-				<div class="border-b px-6 py-4">
-					<h2>{{ __('Message Information') }}</h2>
+	<div class="sm:bg-surface-gray-1 min-h-screen py-12">
+		<div class="bg-surface-white mx-auto space-y-8 rounded-md border p-12 sm:w-[75rem]">
+			<template v-if="mime.data">
+				<div class="flex items-center justify-between">
+					<h1 class="text-xl !font-medium">{{ __('MIME Message') }}</h1>
+					<Button
+						:label="__('Copy to Clipboard')"
+						size="md"
+						@click="copyToClipBoard(message)"
+					/>
 				</div>
-				<div
-					v-for="[key, value] of Object.entries(mime.data)"
-					:key="key"
-					class="even:bg-surface-gray-1 flex items-center px-6 py-4 text-base last:rounded-b"
-				>
-					<div class="text-ink-gray-5 w-1/4">{{ value.label }}</div>
-					<div class="flex w-3/4 items-center">{{ value.value }}</div>
+				<div class="rounded-md border">
+					<div class="border-b px-6 py-4">
+						<h2>{{ __('Message Information') }}</h2>
+					</div>
+					<div
+						v-for="[key, value] of Object.entries(mime.data)"
+						:key="key"
+						class="even:bg-surface-gray-1 flex items-center px-6 py-4 text-base last:rounded-b"
+					>
+						<div class="text-ink-gray-5 w-1/4">{{ value.label }}</div>
+						<div class="flex w-3/4 items-center">{{ value.value }}</div>
+					</div>
 				</div>
-			</div>
-			<pre class="text-wrap break-words" style="font-size: 0.875rem">{{ message }}</pre>
-		</template>
+				<pre class="text-wrap break-words" style="font-size: 0.875rem">{{ message }}</pre>
+			</template>
 
-		<div v-else-if="mime.error" class="space-y-4 text-center">
-			<h1 class="text-xl !font-medium text-red-500">{{ __('Error') }}</h1>
-			<div class="text-ink-gray-5" v-html="mime.error.messages[0]" />
-			<Button :label="__('Return to Home')" size="md" @click="$router.push('/')" />
+			<div v-else-if="mime.error" class="space-y-4 text-center">
+				<h1 class="text-xl !font-medium text-red-500">{{ __('Error') }}</h1>
+				<div class="text-ink-gray-5" v-html="mime.error.messages[0]" />
+				<Button :label="__('Return to Home')" size="md" @click="$router.push('/')" />
+			</div>
 		</div>
 	</div>
 </template>

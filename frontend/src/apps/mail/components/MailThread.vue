@@ -92,7 +92,7 @@
 									</span>
 									<MailDetailsPopover
 										v-if="!(mail.draft || isCollapsed(mail))"
-										:mail="mail"
+										:mail
 									/>
 								</div>
 								<div class="truncate">{{ getAllRecipients(mail) }}</div>

@@ -13,7 +13,6 @@ import { FrappeUIProvider } from 'frappe-ui'
 
 import { type Theme, useScreenSize, useTheme } from '@/utils/composables'
 import DefaultLayout from '@/components/DefaultLayout.vue'
-import EmptyLayout from '@/components/EmptyLayout.vue'
 import InstallPrompt from '@/components/InstallPrompt.vue'
 import LoginLayout from '@/components/LoginLayout.vue'
 
@@ -23,7 +22,7 @@ const route = useRoute()
 
 const Layout = computed(() => {
 	if (route.meta.isLogin || route.meta.isSetup) return LoginLayout
-	if (route.meta.isMimeMessage) return EmptyLayout
+	if (route.meta.noLayout) return 'div'
 	return DefaultLayout
 })
 
