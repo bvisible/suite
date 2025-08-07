@@ -54,6 +54,16 @@ DEFAULT_LISTENERS = [
 		"tls_implicit": 1,
 	},
 ]
+DEFAULT_TRACES = [
+	{
+		"tracer_id": "log",
+		"type": "Log file",
+		"level": "Info",
+		"path": "/opt/stalwart/logs",
+		"prefix": "stalwart.log",
+		"rotate": "Daily",
+	}
+]
 STORAGE_OPTIONS = {
 	"storage_directory": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
 	"storage_data": ["RocksDB", "FoundationDB", "PostgreSQL", "mySQL", "SQLite"],
@@ -89,6 +99,7 @@ class MailCluster(Document):
 		self.validate_stores()
 		self.validate_storage()
 		self.validate_listeners()
+		self.validate_traces()
 
 	def on_update(self) -> None:
 		if self.has_value_changed("enabled"):
@@ -223,12 +234,27 @@ class MailCluster(Document):
 
 			listener_ids.append(listener.listener_id)
 
+	def validate_traces(self) -> None:
+		"""Validates the traces."""
+
+		tracer_ids = []
+		for trace in self.traces:
+			if trace.tracer_id in tracer_ids:
+				frappe.throw(
+					_("Row #{0}: Tracer ID {1} is duplicated.").format(
+						trace.idx, frappe.bold(trace.tracer_id)
+					)
+				)
+
+			tracer_ids.append(trace.tracer_id)
+
 	@frappe.whitelist()
 	def initialize_defaults(self) -> None:
 		"""Initializes the default values."""
 
 		self.initialize_default_stores()
 		self.initialize_default_listeners()
+		self.initialize_default_traces()
 
 	def initialize_default_stores(self) -> None:
 		"""Initializes the default stores."""
@@ -250,6 +276,13 @@ class MailCluster(Document):
 		self.listeners = []
 		for listener in DEFAULT_LISTENERS:
 			self.append("listeners", listener)
+
+	def initialize_default_traces(self) -> None:
+		"""Initializes the default traces."""
+
+		self.traces = []
+		for trace in DEFAULT_TRACES:
+			self.append("traces", trace)
 
 	@frappe.whitelist()
 	def get_fallback_admin_password(self) -> str:
