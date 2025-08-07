@@ -295,7 +295,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	return slide
 }
 
-const insertSlide = async (index, layoutId, toDuplicate) => {
+const insertSlide = (index, layoutId, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
 	const newSlide = getNewSlide(toDuplicate, layoutId)
@@ -327,10 +327,20 @@ const deleteSlide = () => {
 	if (slideIndex.value == totalLength) changeSlide(slideIndex.value - 1, false)
 }
 
-const duplicateSlide = async (e) => {
+const duplicateSlide = (e) => {
 	e.preventDefault()
 
 	insertSlide(slideIndex.value, null, true)
+}
+
+const replaceSlide = (layoutId) => {
+	const index = slideIndex.value
+	const newSlide = getNewSlide(false, layoutId)
+
+	slides.value.splice(index, 1, newSlide)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
 }
 
 const resetAndSave = () => {
@@ -418,9 +428,9 @@ const openLayoutDialog = (action, index) => {
 	insertIndex.value = index
 }
 
-const handleInsertSlide = async (layoutId) => {
+const handleInsertSlide = (layoutId) => {
 	if (layoutAction.value == 'replace') {
-		await performSlideAction('replace', slideIndex.value, layoutId)
+		replaceSlide(layoutId)
 	} else {
 		insertSlide(insertIndex.value, layoutId)
 	}
