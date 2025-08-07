@@ -26,7 +26,7 @@ FIELD_RENAMES = {
 		"cluster_bind_address": "cluster_bind_addr",
 		"cluster_advertise_address": "cluster_advertise_addr",
 	},
-	"Mail Server Store": {
+	"Mail Cluster Store": {
 		"hostname": "host",
 		"redis_server_type": "redis_type",
 		"redis_urls": "urls",
