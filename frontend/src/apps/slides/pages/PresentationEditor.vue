@@ -59,7 +59,7 @@ import {
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory } from '@vueuse/core'
 
-import { call, toast, createResource } from 'frappe-ui'
+import { call, toast } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -76,6 +76,7 @@ import {
 	getPresentationResource,
 	hasStateChanged,
 	savePresentationDoc,
+	layoutResource,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -98,6 +99,7 @@ import {
 } from '@/stores/element'
 
 import html2canvas from 'html2canvas'
+import { generateUniqueId } from '@/utils/helpers'
 
 let autosaveInterval = null
 
@@ -269,10 +271,35 @@ const changeSlide = async (index, updateCurrent = true) => {
 	})
 }
 
+const getNewSlide = (layoutId) => {
+	const layout = layoutResource.data.find((l) => l.name == layoutId)
+
+	const slide = {}
+	if (layout) {
+		Object.assign(slide, layout)
+	}
+
+	// override metadata and generate unique IDs for elements
+	slide.name = ''
+	slide.parent = presentationId.value
+	slide.elements.forEach((element) => {
+		element.id = generateUniqueId()
+	})
+
+	return slide
+}
+
 const insertSlide = async (index, layoutId) => {
 	if (!index) index = slideIndex.value
-	await performSlideAction('insert', index, layoutId)
-	await changeSlide(index + 1)
+
+	const newSlide = getNewSlide(layoutId)
+
+	slides.value.splice(index + 1, 0, newSlide)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
+
+	changeSlide(index + 1)
 }
 
 const deleteSlide = () => {
@@ -343,8 +370,8 @@ const initAutosave = () => {
 
 const loadPresentation = async (id) => {
 	await initPresentationDoc(id)
-	addRouteSlug(presentationDoc.slug)
-	layoutResource.fetch()
+	addRouteSlug(presentationDoc.value.slug)
+	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initHistory()
 	initAutosave()
 	document.addEventListener('keydown', handleKeyDown)
@@ -368,11 +395,6 @@ onBeforeRouteLeave((to, from, next) => {
 })
 
 let historyControl
-
-onActivated(async () => {
-	if (!props.presentationId) return
-	loadPresentation(props.presentationId)
-})
 
 onDeactivated(() => {
 	clearInterval(autosaveInterval)
@@ -410,14 +432,4 @@ const saveChanges = async () => {
 
 	presentationDoc.value = await savePresentationDoc()
 }
-
-const layoutResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
-	method: 'GET',
-	makeParams: () => {
-		return {
-			theme: presentationDoc.value?.theme,
-		}
-	},
-})
 </script>
