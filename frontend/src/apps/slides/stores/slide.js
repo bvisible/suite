@@ -132,14 +132,6 @@ const updateSlideState = async () => {
 	}
 }
 
-const updateSlideThumbnail = async () => {
-	if (!presentation.data || !slides.value[slideIndex.value]) return
-
-	const thumbnail = await getSlideThumbnail()
-	slides.value[slideIndex.value].thumbnail = thumbnail
-	presentation.data.slides[slideIndex.value].thumbnail = thumbnail
-}
-
 const loadSlide = () => {
 	const { background, transition, transition_duration, elements, thumbnail } =
 		presentation.data.slides[slideIndex.value]
@@ -193,6 +185,5 @@ export {
 	updateSlideState,
 	saveChanges,
 	updateSelectionBounds,
-	updateSlideThumbnail,
 	setSlideRef,
 }
