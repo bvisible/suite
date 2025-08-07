@@ -23,7 +23,7 @@
 				</template>
 			</Draggable>
 
-			<div :class="insertButtonClasses" @click="emit('openLayoutDialog', slides.length - 1)">
+			<div :class="insertButtonClasses" @click="emit('openLayoutDialog')">
 				<LucidePlus class="size-3.5" />
 			</div>
 		</div>

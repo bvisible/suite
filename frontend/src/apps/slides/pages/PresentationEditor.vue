@@ -16,7 +16,7 @@
 				class="absolute bottom-0 top-0"
 				:showNavigator="showNavigator"
 				@changeSlide="changeSlide"
-				@openLayoutDialog="openLayoutDialog('insert')"
+				@openLayoutDialog="openLayoutDialog('insert', slides.length - 1)"
 			/>
 
 			<Toolbar
@@ -404,18 +404,21 @@ onDeactivated(() => {
 
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
+const insertIndex = ref(null)
 
-const openLayoutDialog = (action) => {
+const openLayoutDialog = (action, index) => {
 	showLayoutDialog.value = true
 	layoutAction.value = action
+	insertIndex.value = index
 }
 
 const handleInsertSlide = async (layoutId) => {
 	if (layoutAction.value == 'replace') {
 		await performSlideAction('replace', slideIndex.value, layoutId)
 	} else {
-		insertSlide(null, layoutId)
+		insertSlide(insertIndex.value, layoutId)
 	}
+	insertIndex.value = null
 }
 
 const isDirty = computed(() => {
