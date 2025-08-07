@@ -283,13 +283,8 @@ const performSlideAction = async (action, index, layoutId) => {
 
 const insertSlide = async (index, layoutId) => {
 	if (!index) index = slideIndex.value
-	const previousBackground = slides.value[slideIndex.value].background
 	await performSlideAction('insert', index, layoutId)
 	await changeSlide(index + 1)
-	slides.value[slideIndex.value].background = previousBackground
-	nextTick(() => {
-		updateSlideThumbnail()
-	})
 }
 
 const loadSlidePostDeletion = async (index) => {
