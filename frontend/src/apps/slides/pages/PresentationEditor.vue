@@ -206,8 +206,11 @@ const handleGlobalShortcuts = (e) => {
 			break
 		case 'z':
 			e.preventDefault()
-			if (e.metaKey) historyControl.undo()
-			else if (e.shiftKey) historyControl.redo()
+			if (e.shiftKey && e.metaKey && historyControl?.canRedo) {
+				historyControl.redo()
+			} else if (e.metaKey && historyControl?.canUndo) {
+				historyControl.undo()
+			}
 			break
 	}
 }
@@ -362,10 +365,19 @@ onBeforeRouteLeave((to, from, next) => {
 	next()
 })
 
+let historyControl
+
 onActivated(async () => {
 	const resource = getPresentationResource(props.presentationId)
 	await resource.get.fetch()
 	presentationDoc.value = resource.doc
+
+	historyControl = useDebouncedRefHistory(slides, {
+		deep: true,
+		debounce: 2000,
+		maxLength: 10,
+	})
+
 	// autosaveInterval = setInterval(handleAutoSave, 2000)
 	document.addEventListener('keydown', handleKeyDown)
 })
