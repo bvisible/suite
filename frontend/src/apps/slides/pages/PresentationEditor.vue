@@ -2,7 +2,7 @@
 	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
-				<PresentationHeader :title="presentation.doc?.title" />
+				<PresentationHeader :title="presentationDoc?.title" />
 			</template>
 		</Navbar>
 		<div class="relative flex h-screen bg-gray-300">
@@ -33,9 +33,9 @@
 		</div>
 
 		<LayoutDialog
-			v-if="presentation.doc"
+			v-if="presentationDoc"
 			v-model="showLayoutDialog"
-			:theme="presentation.doc.theme"
+			:theme="presentationDoc.theme"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
 	</div>
@@ -58,7 +58,7 @@ import {
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory } from '@vueuse/core'
 
-import { call, toast, useDoc } from 'frappe-ui'
+import { call, toast, createDocumentResource } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -322,21 +322,23 @@ const parseElements = (value) => {
 	return Array.isArray(value) ? value : []
 }
 
-const presentation = ref()
+const presentationDoc = ref(null)
 
-const fetchPresentationDoc = async (presentationId) => {
-	presentation.value = useDoc({
+const getPresentationResource = (name) => {
+	return createDocumentResource({
 		doctype: 'Presentation',
-		name: presentationId,
-	})
+		name: name,
+		auto: false,
+		transform(doc) {
+			for (const slide of doc.slides || []) {
+				slide.elements = parseElements(slide.elements)
+			}
+		},
+		onSuccess(doc) {
+			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
 
-	presentation.value.onSuccess((doc) => {
-		for (const slide of doc.slides || []) {
-			slide.elements = parseElements(slide.elements)
-		}
-		slides.value = JSON.parse(JSON.stringify(doc.slides || []))
-
-		addRouteSlug(doc.slug)
+			addRouteSlug(doc.slug)
+		},
 	})
 }
 
@@ -345,7 +347,9 @@ watch(
 	async (id) => {
 		if (!id) return
 		presentationId.value = id
-		fetchPresentationDoc(id)
+		const resource = getPresentationResource(props.presentationId)
+		await resource.get.fetch()
+		presentationDoc.value = resource.doc
 	},
 	{ immediate: true },
 )
@@ -358,8 +362,10 @@ onBeforeRouteLeave((to, from, next) => {
 	next()
 })
 
-onActivated(() => {
-	fetchPresentationDoc(props.presentationId)
+onActivated(async () => {
+	const resource = getPresentationResource(props.presentationId)
+	await resource.get.fetch()
+	presentationDoc.value = resource.doc
 	// autosaveInterval = setInterval(handleAutoSave, 2000)
 	document.addEventListener('keydown', handleKeyDown)
 })
