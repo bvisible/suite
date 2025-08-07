@@ -58,7 +58,7 @@ import {
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory } from '@vueuse/core'
 
-import { call, toast, createDocumentResource } from 'frappe-ui'
+import { call, toast } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -70,7 +70,12 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 
-import { presentationId } from '@/stores/presentation'
+import {
+	presentationId,
+	getPresentationResource,
+	hasStateChanged,
+	savePresentationDoc,
+} from '@/stores/presentation'
 import {
 	slides,
 	slideIndex,
@@ -314,37 +319,7 @@ const addRouteSlug = async (slug) => {
 	})
 }
 
-const parseElements = (value) => {
-	if (!value) return []
-	if (typeof value === 'string') {
-		try {
-			return JSON.parse(value)
-		} catch {
-			return []
-		}
-	}
-	return Array.isArray(value) ? value : []
-}
-
 const presentationDoc = ref(null)
-
-const getPresentationResource = (name) => {
-	return createDocumentResource({
-		doctype: 'Presentation',
-		name: name,
-		auto: false,
-		transform(doc) {
-			for (const slide of doc.slides || []) {
-				slide.elements = parseElements(slide.elements)
-			}
-		},
-		onSuccess(doc) {
-			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
-
-			addRouteSlug(doc.slug)
-		},
-	})
-}
 
 watch(
 	() => props.presentationId,
@@ -372,6 +347,7 @@ onActivated(async () => {
 	const resource = getPresentationResource(props.presentationId)
 	await resource.get.fetch()
 	presentationDoc.value = resource.doc
+	addRouteSlug(resource.doc.slug)
 
 	historyControl = useDebouncedRefHistory(slides, {
 		deep: true,
@@ -403,5 +379,20 @@ const handleInsertSlide = async (layoutId) => {
 	} else {
 		insertSlide(null, layoutId)
 	}
+}
+
+const isDirty = computed(() => {
+	if (!presentationDoc.value || !slides.value) return false
+
+	const original = presentationDoc.value.slides || []
+	const current = slides.value || []
+
+	return hasStateChanged(original, current)
+})
+
+const saveChanges = async () => {
+	if (!isDirty.value) return
+
+	presentationDoc.value = await savePresentationDoc()
 }
 </script>
