@@ -1,14 +1,13 @@
 import { FileUploadHandler, toast } from 'frappe-ui'
 
-import { presentationId, slides } from '../stores/presentation'
-import { slide, slideIndex } from '../stores/slide'
+import { presentationId } from '../stores/presentation'
+import { currentSlide } from '../stores/slide'
 import { addMediaElement } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
 
 const performPostUploadActions = (fileDoc, fileType, resolve) => {
-	const currentSlide = slides.value[slideIndex.value]
-	for (const element of currentSlide.elements) {
+	for (const element of currentSlide.value.elements) {
 		if (!element.useTemplateDimensions) continue
 
 		element.src = fileDoc.file_url

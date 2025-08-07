@@ -1,11 +1,10 @@
 <template>
 	<div
-		v-if="presentation.data"
 		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<div v-if="!activeElement">
-			<SlideProperties @openLayoutDialog="$emit('openLayoutDialog')" />
+			<SlideProperties v-if="currentSlide" @openLayoutDialog="$emit('openLayoutDialog')" />
 
 			<AlignmentControls v-if="activeElementIds.length" />
 		</div>
@@ -26,7 +25,7 @@ import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
 
-import { presentation } from '@/stores/presentation'
+import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 

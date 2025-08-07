@@ -8,7 +8,7 @@
 			<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
 
 			<SlideElement
-				v-for="element in slides[slideIndex]?.elements"
+				v-for="element in currentSlide?.elements"
 				:key="element.id"
 				:element
 				:elementOffset
@@ -35,12 +35,11 @@ import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
 
 import {
-	slide,
+	currentSlide,
 	slideBounds,
 	selectionBounds,
 	updateSelectionBounds,
 	setSlideRef,
-	slideIndex,
 } from '@/stores/slide'
 import {
 	activeElementIds,
@@ -56,7 +55,6 @@ import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
-import { slides } from '@/stores/presentation'
 
 const props = defineProps({
 	highlight: Boolean,
@@ -96,7 +94,7 @@ const slideClasses = computed(() => {
 const slideStyles = computed(() => ({
 	transformOrigin: transformOrigin.value,
 	transform: transform.value,
-	backgroundColor: slides.value[slideIndex.value]?.background || '#ffffff',
+	backgroundColor: currentSlide.value?.background || '#ffffff',
 	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
 	zIndex: 0,
 }))
@@ -362,9 +360,8 @@ const hasOngoingInteraction = computed(() => isDragging.value || isResizing.valu
 
 const applyInteractionOffset = () => {
 	requestAnimationFrame(() => {
-		const currentSlide = slides.value[slideIndex.value]
 		activeElementIds.value.forEach((id) => {
-			const element = currentSlide.elements.find((el) => el.id === id)
+			const element = currentSlide.value.elements.find((el) => el.id === id)
 			if (element) {
 				element.left += elementOffset.left
 				element.top += elementOffset.top
