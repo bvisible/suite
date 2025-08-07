@@ -8,7 +8,7 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="presentation.data"
+			v-if="slides"
 			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
 		>
@@ -53,8 +53,7 @@ import { call } from 'frappe-ui'
 
 import Draggable from 'vuedraggable'
 
-import { presentation, slides } from '@/stores/presentation'
-import { slide, slideIndex } from '@/stores/slide'
+import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
@@ -102,8 +101,7 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	const currentSlide = slides.value[slideIndex.value]
-	const img = slideIndex.value == s.idx - 1 ? currentSlide.thumbnail : s.thumbnail
+	const img = slideIndex.value == s.idx - 1 ? currentSlide.value.thumbnail : s.thumbnail
 	return {
 		backgroundImage: `url(${img})`,
 	}
@@ -118,15 +116,10 @@ const toggleButtonClasses = computed(() => {
 })
 
 const handleSortEnd = async (event) => {
-	const data = presentation.data
 	emit('changeSlide', event.newIndex)
-	data.slides.forEach((slide) => {
-		slide.idx = data.slides.indexOf(slide) + 1
+	slides.value.forEach((slide) => {
+		slide.idx = slides.value.indexOf(slide) + 1
 	})
-	await call('frappe.client.save', {
-		doc: data,
-	})
-	await presentation.reload()
 }
 
 const handleHoverChange = (e) => {
