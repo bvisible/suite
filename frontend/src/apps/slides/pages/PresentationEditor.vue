@@ -271,8 +271,14 @@ const changeSlide = async (index, updateCurrent = true) => {
 	})
 }
 
-const getNewSlide = (layoutId) => {
-	const layout = layoutResource.data.find((l) => l.name == layoutId)
+const getNewSlide = (toDuplicate = false, layoutId) => {
+	let layout = null
+
+	if (toDuplicate) {
+		layout = currentSlide.value
+	} else {
+		layout = layoutResource.data.find((l) => l.name == layoutId)
+	}
 
 	const slide = {}
 	if (layout) {
@@ -289,10 +295,10 @@ const getNewSlide = (layoutId) => {
 	return slide
 }
 
-const insertSlide = async (index, layoutId) => {
-	if (!index) index = slideIndex.value
+const insertSlide = async (index, layoutId, toDuplicate) => {
+	if (toDuplicate || !index) index = slideIndex.value
 
-	const newSlide = getNewSlide(layoutId)
+	const newSlide = getNewSlide(toDuplicate, layoutId)
 
 	slides.value.splice(index + 1, 0, newSlide)
 	slides.value.forEach((slide, index) => {
@@ -323,8 +329,8 @@ const deleteSlide = () => {
 
 const duplicateSlide = async (e) => {
 	e.preventDefault()
-	await performSlideAction('duplicate')
-	changeSlide(slideIndex.value + 1)
+
+	insertSlide(slideIndex.value, null, true)
 }
 
 const resetAndSave = () => {
