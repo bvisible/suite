@@ -1,7 +1,7 @@
 import { ref, computed, nextTick, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
-import { presentationId, presentation, inSlideShow, slides } from './presentation'
+import { presentationId, inSlideShow } from './presentation'
 import { activeElementIds } from './element'
 
 import { isEqual } from 'lodash'
@@ -11,14 +11,11 @@ const slideRef = ref(null)
 
 const setSlideRef = (ref) => (slideRef.value = ref)
 
+const slides = ref([])
+
 const slideIndex = ref(0)
 
-const slide = ref({
-	background: '#ffffff',
-	elements: [],
-	transition: null,
-	transitionDuration: 0,
-})
+const currentSlide = computed(() => slides.value[slideIndex.value])
 
 const selectionBounds = reactive({
 	left: 0,
@@ -27,34 +24,6 @@ const selectionBounds = reactive({
 	height: 0,
 })
 
-const getSavedData = () => {
-	const currentSlide = presentation.data?.slides[slideIndex.value]
-	if (!currentSlide) return {}
-
-	return {
-		elements: JSON.parse(currentSlide.elements || '[]'),
-		transition: currentSlide.transition,
-		transition_duration: currentSlide.transition_duration,
-		background: currentSlide.background,
-	}
-}
-
-const getCurrentData = () => {
-	if (!slides.value[slideIndex.value]) return {}
-	return {
-		elements: slides.value[slideIndex.value].elements,
-		transition: slides.value[slideIndex.value].transition,
-		transition_duration: slides.value[slideIndex.value].transitionDuration,
-		background: slides.value[slideIndex.value].background,
-	}
-}
-
-const isSlideDirty = () => {
-	const data = JSON.parse(JSON.stringify(getSavedData()))
-	const updatedData = JSON.parse(JSON.stringify(getCurrentData()))
-
-	return !isEqual(data, updatedData)
-}
 const replaceVideoWithPoster = async (videoElement) => {
 	if (!videoElement.poster) return null
 
@@ -120,46 +89,6 @@ const getSlideThumbnail = async () => {
 	return canvas.toDataURL('image/png')
 }
 
-const updateSlideState = async () => {
-	const { elements, transition, transitionDuration, background } = slides.value[slideIndex.value]
-	presentation.data.slides[slideIndex.value] = {
-		...presentation.data.slides[slideIndex.value],
-		background,
-		transition,
-		elements: JSON.stringify(elements, null, 2),
-		transition_duration: transitionDuration,
-		thumbnail: await getSlideThumbnail(),
-	}
-}
-
-const loadSlide = () => {
-	const { background, transition, transition_duration, elements, thumbnail } =
-		presentation.data.slides[slideIndex.value]
-
-	slides.value[slideIndex.value] = {
-		background,
-		transition,
-		thumbnail,
-		transitionDuration: transition_duration,
-		elements: elements ? JSON.parse(elements) : [],
-	}
-}
-
-const saveChanges = async () => {
-	const dirty = isSlideDirty()
-
-	if (!presentation.data || !dirty) return
-
-	// update presentation object with the latest slide data
-	await updateSlideState()
-
-	await call('frappe.client.save', {
-		doc: presentation.data,
-	})
-
-	await presentation.reload()
-}
-
 const slideBounds = reactive({})
 
 const updateSelectionBounds = (newBounds) => {
@@ -177,13 +106,11 @@ const guideVisibilityMap = reactive({
 
 export {
 	slideIndex,
-	slide,
+	slides,
+	currentSlide,
 	slideBounds,
 	selectionBounds,
 	guideVisibilityMap,
-	loadSlide,
-	updateSlideState,
-	saveChanges,
 	updateSelectionBounds,
 	setSlideRef,
 }
