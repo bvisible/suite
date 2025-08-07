@@ -1,37 +1,8 @@
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { createResource, call } from 'frappe-ui'
 import { useDebouncedRefHistory } from '@vueuse/core'
 
 const presentationId = ref('')
-
-const slides = ref([])
-
-const presentation = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_presentation',
-	cache: 'presentation',
-	makeParams: () => ({ name: presentationId.value }),
-	onSuccess: (data) => {
-		const slidesCopy = JSON.parse(JSON.stringify(data.slides))
-		slides.value = slidesCopy.map((slide) => ({
-			...slide,
-			elements: JSON.parse(slide.elements || '[]'),
-			background: slide.background || '#ffffff',
-		}))
-	},
-})
-
-let historyControl
-
-watch(
-	() => presentation.fetched,
-	() => {
-		historyControl = useDebouncedRefHistory(slides, {
-			deep: true,
-			debounce: 2000,
-			maxLength: 10,
-		})
-	},
-)
 
 const inSlideShow = ref(false)
 
@@ -67,11 +38,8 @@ const updatePresentationTitle = async (id, newTitle) => {
 
 export {
 	presentationId,
-	presentation,
 	inSlideShow,
 	applyReverseTransition,
 	createPresentationResource,
 	updatePresentationTitle,
-	slides,
-	historyControl,
 }
