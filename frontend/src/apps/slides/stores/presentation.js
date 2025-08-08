@@ -2,7 +2,7 @@ import { ref, watch } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides, getSlideThumbnail, currentSlide } from './slide'
+import { slides, slideIndex, getSlideThumbnail } from './slide'
 
 const presentationId = ref('')
 
@@ -90,14 +90,14 @@ const hasStateChanged = (original, current) => {
 }
 
 const savePresentationDoc = async () => {
-	currentSlide.value.thumbnail = await getSlideThumbnail()
-
 	const presentationResource = getPresentationResource(presentationId.value)
 
 	const newSlides = slides.value.map((slide) => ({
 		...slide,
 		elements: JSON.stringify(slide.elements, null, 2),
 	}))
+
+	newSlides[slideIndex.value].thumbnail = await getSlideThumbnail()
 
 	await presentationResource.setValue.submit({
 		slides: newSlides,

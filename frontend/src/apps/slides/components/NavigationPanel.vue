@@ -104,6 +104,8 @@ const getThumbnailStyles = (s) => {
 	const img = slideIndex.value == s.idx - 1 ? currentSlide.value.thumbnail : s.thumbnail
 	return {
 		backgroundImage: `url(${img})`,
+		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
+		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
 	}
 }
 
