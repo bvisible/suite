@@ -183,15 +183,17 @@ def duplicate_slide(name, index):
 
 
 @frappe.whitelist()
-def create_presentation(title, theme, duplicate_from=None):
+def create_presentation(title, theme=None, duplicate_from=None):
 	new_presentation = frappe.new_doc("Presentation")
 	new_presentation.title = title
 	new_presentation.theme = theme
 	new_presentation.insert()
 	if duplicate_from:
 		presentation = frappe.get_doc("Presentation", duplicate_from)
-		new_presentation.name = None
 		new_presentation.slides = presentation.slides
+		new_presentation.theme = presentation.theme
+		for slide in new_presentation.slides:
+			slide.parent = new_presentation.name
 	else:
 		template = frappe.get_doc("Presentation", theme)
 		first_slide_layout = template.slides[2].name
