@@ -19,7 +19,7 @@
 					@click="changeSlide(slideIndex + 1, false)"
 				>
 					<SlideElement
-						v-for="element in slides[slideIndex].elements"
+						v-for="element in currentSlide?.elements"
 						:key="element.id"
 						:element="element"
 						:data-index="element.id"
@@ -32,24 +32,38 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {
+	ref,
+	computed,
+	watch,
+	useTemplateRef,
+	onMounted,
+	onBeforeUnmount,
+	nextTick,
+	onActivated,
+} from 'vue'
+import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
 
 import {
 	presentationId,
-	presentation,
-	slides,
 	inSlideShow,
 	applyReverseTransition,
+	initPresentationDoc,
 } from '@/stores/presentation'
-import { slide, slideIndex } from '@/stores/slide'
+import { slides, slideIndex, currentSlide } from '@/stores/slide'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
-const route = useRoute()
 const router = useRouter()
+
+const props = defineProps({
+	presentationId: {
+		type: String,
+		required: true,
+	},
+})
 
 const transition = ref('none')
 const transform = ref('')
@@ -66,7 +80,7 @@ const slideStyles = computed(() => {
 	return {
 		width: '960px',
 		height: '540px',
-		backgroundColor: slides.value[slideIndex.value].background || 'white',
+		backgroundColor: currentSlide.value?.background || '#ffffff',
 		cursor: slideCursor.value,
 		transform: `${transform.value} scale(${widthScale})`,
 		transition: transition.value,
@@ -74,38 +88,41 @@ const slideStyles = computed(() => {
 	}
 })
 
-const transitionMap = {
-	'Slide In': {
-		beforeEnter: {
-			transform: ['translateX(100%)', 'translateX(-100%)'],
-			transition: 'none',
+const transitionMap = computed(() => {
+	if (!currentSlide.value) return {}
+	return {
+		'Slide In': {
+			beforeEnter: {
+				transform: ['translateX(100%)', 'translateX(-100%)'],
+				transition: 'none',
+			},
+			enter: {
+				transform: 'translateX(0)',
+				transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
+			},
+			beforeLeave: {
+				transition: 'none',
+			},
+			leave: {
+				transform: ['translateX(100%)', 'translateX(-100%)'],
+				transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
+			},
 		},
-		enter: {
-			transform: 'translateX(0)',
-			transition: `transform ${slides.value[slideIndex.value].transitionDuration}s ease-out`,
+		Fade: {
+			beforeEnter: {
+				opacity: 0,
+			},
+			enter: {
+				transition: `opacity ${currentSlide.value.transitionDuration}s`,
+			},
+			beforeLeave: {},
+			leave: {
+				transition: `opacity ${currentSlide.value.transitionDuration}s`,
+				opacity: 0,
+			},
 		},
-		beforeLeave: {
-			transition: 'none',
-		},
-		leave: {
-			transform: ['translateX(100%)', 'translateX(-100%)'],
-			transition: `transform ${slides.value[slideIndex.value].transitionDuration}s ease-out`,
-		},
-	},
-	Fade: {
-		beforeEnter: {
-			opacity: 0,
-		},
-		enter: {
-			transition: `opacity ${slides.value[slideIndex.value].transitionDuration}s`,
-		},
-		beforeLeave: {},
-		leave: {
-			transition: `opacity ${slides.value[slideIndex.value].transitionDuration}s`,
-			opacity: 0,
-		},
-	},
-}
+	}
+})
 
 const applyTransitionStyles = (hook) => {
 	const styles = transitionMap[slide.value.transition]?.[hook]
@@ -122,24 +139,24 @@ const applyTransitionStyles = (hook) => {
 }
 
 const beforeSlideEnter = (el) => {
-	if (!slides.value[slideIndex.value].transition) return
+	if (!currentSlide.value.transition) return
 	applyTransitionStyles('beforeEnter')
 }
 
 const slideEnter = (el, done) => {
-	if (!slides.value[slideIndex.value].transition) return done()
+	if (!currentSlide.value.transition) return done()
 	el.offsetWidth
 	applyTransitionStyles('enter')
 	done()
 }
 
 const beforeSlideLeave = (el) => {
-	if (!slides.value[slideIndex.value].transition) return
+	if (!currentSlide.value.transition) return
 	applyTransitionStyles('beforeLeave')
 }
 
 const slideLeave = (el, done) => {
-	if (!slides.value[slideIndex.value].transition) return done()
+	if (!currentSlide.value.transition) return done()
 	applyTransitionStyles('leave')
 	done()
 }
@@ -161,7 +178,10 @@ const handleFullScreenChange = () => {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-		router.replace({ name: 'PresentationEditor' })
+		router.replace({
+			name: 'PresentationEditor',
+			params: { presentationId: props.presentationId },
+		})
 	}
 }
 
@@ -208,7 +228,7 @@ const initFullscreenMode = async () => {
 }
 
 const changeSlide = (index) => {
-	if (index < 0 || index >= presentation.data.slides.length) return
+	if (index < 0 || index >= slides.value.length) return
 	applyReverseTransition.value = index < slideIndex.value
 
 	nextTick(() => {
@@ -217,12 +237,11 @@ const changeSlide = (index) => {
 }
 
 const loadPresentation = async () => {
-	if (presentation.fetched) return
-	presentationId.value = route.params.presentationId
-	await presentation.fetch()
+	if (slides.value.length) return
+	initPresentationDoc(props.presentationId)
 }
 
-onMounted(async () => {
+onActivated(() => {
 	loadPresentation()
 	initFullscreenMode()
 	document.addEventListener('keydown', handleKeyDown)
