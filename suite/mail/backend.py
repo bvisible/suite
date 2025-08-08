@@ -68,7 +68,7 @@ class MailBackendAPI:
 		json: dict | None = None,
 		files: dict | None = None,
 		headers: dict[str, str] | None = None,
-		timeout: int | tuple[int, int] = (60, 120),
+		timeout: int | tuple[int, int] = (5, 30),
 	) -> Any:
 		"""Makes an HTTP request to the Mail Backend API."""
 
