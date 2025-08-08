@@ -20,6 +20,7 @@ const routes = [
 		path: '/slideshow/:presentationId',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
+		props: true,
 	},
 	{
 		path: '/not-permitted',

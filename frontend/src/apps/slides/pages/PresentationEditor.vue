@@ -77,6 +77,7 @@ import {
 	hasStateChanged,
 	savePresentationDoc,
 	layoutResource,
+	initPresentationDoc,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -248,7 +249,7 @@ const startSlideShow = () => {
 
 	router.replace({
 		name: 'Slideshow',
-		params: { presentationId: presentationId.value },
+		params: { presentationId: props.presentationId },
 	})
 }
 
@@ -370,13 +371,6 @@ const addRouteSlug = async (slug) => {
 
 const presentationDoc = ref(null)
 
-const initPresentationDoc = async (id) => {
-	presentationId.value = id
-	const resource = getPresentationResource(props.presentationId)
-	await resource.get.fetch()
-	presentationDoc.value = resource.doc
-}
-
 const initHistory = () => {
 	historyControl = useDebouncedRefHistory(slides, {
 		deep: true,
@@ -390,22 +384,13 @@ const initAutosave = () => {
 }
 
 const loadPresentation = async (id) => {
-	await initPresentationDoc(id)
+	presentationDoc.value = await initPresentationDoc(id)
 	addRouteSlug(presentationDoc.value.slug)
 	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initHistory()
 	initAutosave()
 	document.addEventListener('keydown', handleKeyDown)
 }
-
-watch(
-	() => props.presentationId,
-	async (id) => {
-		if (!id) return
-		loadPresentation(id)
-	},
-	{ immediate: true },
-)
 
 onBeforeRouteLeave((to, from, next) => {
 	if (to.name !== 'Slideshow') {
@@ -416,6 +401,12 @@ onBeforeRouteLeave((to, from, next) => {
 })
 
 let historyControl
+
+onActivated(() => {
+	const id = props.presentationId
+	if (!id) return
+	loadPresentation(id)
+})
 
 onDeactivated(() => {
 	clearInterval(autosaveInterval)

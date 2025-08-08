@@ -90,8 +90,7 @@ const hasStateChanged = (original, current) => {
 }
 
 const savePresentationDoc = async () => {
-	const thumbnail = await getSlideThumbnail()
-	currentSlide.value.thumbnail = thumbnail
+	currentSlide.value.thumbnail = await getSlideThumbnail()
 
 	const presentationResource = getPresentationResource(presentationId.value)
 
@@ -125,6 +124,13 @@ const layoutResource = createResource({
 	},
 })
 
+const initPresentationDoc = async (id) => {
+	presentationId.value = id
+	const resource = getPresentationResource(id)
+	await resource.get.fetch()
+	return resource.doc
+}
+
 export {
 	presentationId,
 	inSlideShow,
@@ -134,5 +140,6 @@ export {
 	getPresentationResource,
 	hasStateChanged,
 	savePresentationDoc,
+	initPresentationDoc,
 	layoutResource,
 }
