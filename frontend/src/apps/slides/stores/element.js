@@ -114,7 +114,7 @@ const addTextElement = async (text) => {
 		type: 'text',
 		content: getElementContent(elementPresets),
 		editorMetadata: {
-			lineHeight: 1.4,
+			lineHeight: 1.5,
 		},
 	}
 
