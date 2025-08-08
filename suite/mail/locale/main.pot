@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mail VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-08-07 13:05+0553\n"
-"PO-Revision-Date: 2025-08-07 13:05+0553\n"
+"POT-Creation-Date: 2025-08-08 09:48+0553\n"
+"PO-Revision-Date: 2025-08-08 09:48+0553\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -33,17 +33,17 @@ msgstr ""
 msgid "+{0} more"
 msgstr ""
 
-#. Option for the 'Format' (Select) field in DocType 'Mail Data Exchange'
+#. Option for the 'Archive Type' (Select) field in DocType 'Mail Data Exchange'
 #: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
 msgid ".tar.gz"
 msgstr ""
 
-#. Option for the 'Format' (Select) field in DocType 'Mail Data Exchange'
+#. Option for the 'Archive Type' (Select) field in DocType 'Mail Data Exchange'
 #: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
 msgid ".tgz"
 msgstr ""
 
-#. Option for the 'Format' (Select) field in DocType 'Mail Data Exchange'
+#. Option for the 'Archive Type' (Select) field in DocType 'Mail Data Exchange'
 #: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
 msgid ".zip"
 msgstr ""
@@ -478,6 +478,16 @@ msgstr ""
 
 #: frontend/src/components/AppsMenu.vue:11
 msgid "Apps"
+msgstr ""
+
+#. Label of the export_archive_type (Select) field in DocType 'Mail Data
+#. Exchange'
+#: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
+msgid "Archive Type"
+msgstr ""
+
+#: mail/mail/doctype/mail_data_exchange/mail_data_exchange.py:78
+msgid "Archive Type is required."
 msgstr ""
 
 #: frontend/src/pages/dashboard/MailAliasesView.vue:159
@@ -1265,6 +1275,13 @@ msgstr ""
 #. Label of the datacenter (Data) field in DocType 'Mail Cluster Store'
 #: mail/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Data Center ID"
+msgstr ""
+
+#. Group in Mail Account's connections
+#. Group in Mail Tenant's connections
+#: mail/mail/doctype/mail_account/mail_account.json
+#: mail/mail/doctype/mail_tenant/mail_tenant.json
+msgid "Data Exchange"
 msgstr ""
 
 #. Label of the data_storage_section (Section Break) field in DocType 'Mail
@@ -2102,10 +2119,6 @@ msgstr ""
 #. Option for the 'Operation' (Select) field in DocType 'Mail Data Exchange'
 #: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
 msgid "Export"
-msgstr ""
-
-#: mail/mail/doctype/mail_data_exchange/mail_data_exchange.py:78
-msgid "Export Format is required."
 msgstr ""
 
 #. Label of the enable_log_exporter (Check) field in DocType 'Mail Cluster
@@ -3275,6 +3288,7 @@ msgstr ""
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_account_request/mail_account_request.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
+#: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
 #: mail/mail/doctype/mail_tenant/mail_tenant.json
@@ -5941,6 +5955,11 @@ msgstr ""
 msgid "Subscription already verified."
 msgstr ""
 
+#. Description of the 'File' (Attach) field in DocType 'Mail Data Exchange'
+#: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
+msgid "Supported: <code>.zip</code>, <code>.tgz</code>, <code>.tar.gz</code>"
+msgstr ""
+
 #: mail/mail/doctype/dns_record/dns_record.js:21
 msgid "Sync DNS Record"
 msgstr ""
@@ -6055,6 +6074,7 @@ msgstr ""
 #. Label of the tenant (Link) field in DocType 'Mail Account'
 #. Label of the tenant (Link) field in DocType 'Mail Account Request'
 #. Label of the tenant (Link) field in DocType 'Mail Alias'
+#. Label of the tenant (Link) field in DocType 'Mail Data Exchange'
 #. Label of the tenant (Link) field in DocType 'Mail Domain'
 #. Label of the tenant (Link) field in DocType 'Mail Domain Request'
 #. Label of the tenant (Link) field in DocType 'Mail Tenant Member'
@@ -6063,6 +6083,7 @@ msgstr ""
 #: mail/mail/doctype/mail_account/mail_account.json
 #: mail/mail/doctype/mail_account_request/mail_account_request.json
 #: mail/mail/doctype/mail_alias/mail_alias.json
+#: mail/mail/doctype/mail_data_exchange/mail_data_exchange.json
 #: mail/mail/doctype/mail_domain/mail_domain.json
 #: mail/mail/doctype/mail_domain_request/mail_domain_request.json
 #: mail/mail/doctype/mail_tenant_member/mail_tenant_member.json
