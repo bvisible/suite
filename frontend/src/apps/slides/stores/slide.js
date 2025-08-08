@@ -113,4 +113,5 @@ export {
 	guideVisibilityMap,
 	updateSelectionBounds,
 	setSlideRef,
+	getSlideThumbnail,
 }

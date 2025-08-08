@@ -2,7 +2,7 @@ import { ref, watch } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides } from './slide'
+import { slides, getSlideThumbnail, currentSlide } from './slide'
 
 const presentationId = ref('')
 
@@ -67,7 +67,7 @@ const getPresentationResource = (name) => {
 }
 
 const compareSlideState = (originalState, slideState) => {
-	const keysToCompare = ['name', 'background', 'thumbnail', 'transition', 'transition_duration']
+	const keysToCompare = ['name', 'background', 'transition', 'transition_duration']
 
 	for (const key of keysToCompare) {
 		if (slideState[key] != originalState[key]) return true
@@ -90,6 +90,9 @@ const hasStateChanged = (original, current) => {
 }
 
 const savePresentationDoc = async () => {
+	const thumbnail = await getSlideThumbnail()
+	currentSlide.value.thumbnail = thumbnail
+
 	const presentationResource = getPresentationResource(presentationId.value)
 
 	const newSlides = slides.value.map((slide) => ({
