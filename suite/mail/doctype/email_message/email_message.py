@@ -1025,9 +1025,13 @@ class EmailMessage(Document):
 		self.validate_draft()
 		self.validate_destroyed()
 
+		subject = None
+		if self.subject:
+			subject = f"Re: {self.subject}" if not self.subject.lower().startswith("re:") else self.subject
+
 		return MailQueue._create(
 			account=self.account,
-			subject=f"Re: {self.subject}" if not self.subject.lower().startswith("re:") else self.subject,
+			subject=subject,
 			recipients=recipients,
 			in_reply_to=self.message_id,
 			in_reply_to_id=self._id,
