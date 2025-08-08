@@ -801,7 +801,7 @@ class EmailMessage(Document):
 		elif self.email_type == "Received":
 			# To = Reply-To if present, else From
 			if self.reply_to:
-				recipients.append(
+				recipients.extend(
 					{"type": "To", "display_name": rt.display_name, "email": rt.email} for rt in self.reply_to
 				)
 			else:
@@ -827,7 +827,7 @@ class EmailMessage(Document):
 		elif self.email_type == "Received":
 			# To = Reply-To if present, else From
 			if self.reply_to:
-				recipients.append(
+				recipients.extend(
 					{"type": "To", "display_name": rt.display_name, "email": rt.email} for rt in self.reply_to
 				)
 			else:
