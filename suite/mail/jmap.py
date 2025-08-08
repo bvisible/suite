@@ -70,7 +70,7 @@ class JMAPClient:
 		headers = {"Content-Type": "application/json", "Accept": "application/json"}
 		payload = {"using": using, "methodCalls": method_calls}
 		response = self.__session.post(
-			self.api_url, headers=headers, data=json.dumps(payload, ensure_ascii=False)
+			self.api_url, headers=headers, data=json.dumps(payload, ensure_ascii=False), timeout=(5, 30)
 		)
 		raise_for_status(response)
 
