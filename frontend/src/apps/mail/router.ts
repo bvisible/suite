@@ -73,6 +73,13 @@ const routes = [
 		meta: { noLayout: true },
 	},
 	{
+		path: '/mail-transfers/:id',
+		name: 'MailTransfer',
+		component: () => import('@/pages/MailTransferView.vue'),
+		meta: { noLayout: true },
+		props: true,
+	},
+	{
 		path: '/mime-message/:id',
 		name: 'MimeMessage',
 		component: () => import('@/pages/MimeMessageView.vue'),
