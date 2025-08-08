@@ -26,3 +26,4 @@ app.mount('#app')
 const { userResource } = userStore()
 app.provide('$user', userResource)
 app.config.globalProperties.$user = userResource
+app.config.globalProperties.window = window

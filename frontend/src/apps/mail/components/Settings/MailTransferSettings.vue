@@ -60,6 +60,14 @@
 		:message="createMailDataExchange.error"
 		class="mb-2.5"
 	/>
+	<span v-if="mailDataExchanges.data?.length">
+		<a
+			class="text-ink-gray-5 cursor-pointer text-sm hover:underline"
+			@click="window.open('/mail/mail-transfers', '_blank')"
+		>
+			{{ __('View Past Operations') }}
+		</a>
+	</span>
 </template>
 
 <script setup lang="ts">
@@ -80,20 +88,23 @@ const mailDataExchange = reactive({
 const createMailDataExchange = createResource({
 	url: 'mail.api.account.create_mail_data_exchange',
 	makeParams: () => mailDataExchange,
-	onSuccess: () => activeOperations.reload(),
+	onSuccess: () => mailDataExchanges.reload(),
 })
 
-const activeOperations = useList({
+const mailDataExchanges = useList({
 	doctype: 'Mail Data Exchange',
 	immediate: true,
 	fields: ['name', 'operation'],
-	filters: { account: user.data.name, status: ['in', ['Queued', 'In Progress']] },
+	filters: { account: user.data.name },
 })
 
 const noOfActiveOperations = computed(
 	() =>
-		activeOperations.data?.filter((d) => d.operation === mailDataExchange.operation)?.length ||
-		0,
+		mailDataExchanges.data?.filter(
+			(d) =>
+				d.operation === mailDataExchange.operation &&
+				['Queued', 'In Progress'].includes(d.status),
+		)?.length || 0,
 )
 
 const activeOperationMessage = computed(() =>

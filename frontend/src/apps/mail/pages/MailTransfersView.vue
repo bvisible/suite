@@ -1,7 +1,7 @@
 <template>
 	<div class="flex h-screen flex-col">
 		<header class="flex items-center border-b px-5 py-2.5">
-			<h1>{{ __('Mail Transfers') }}</h1>
+			<Breadcrumbs :items="[{ label: __('Mail Transfers') }]" />
 		</header>
 		<div class="m-5 flex flex-1 flex-col space-y-5 overflow-y-auto">
 			<div class="flex items-center space-x-3">
@@ -58,6 +58,7 @@
 import { computed, inject, ref } from 'vue'
 import {
 	Badge,
+	Breadcrumbs,
 	ErrorMessage,
 	FormControl,
 	ListEmptyState,
@@ -97,7 +98,6 @@ const mailTransfers = useList({
 		'status',
 		'import_format',
 		'export_archive_type',
-		'import_file',
 		'started_at',
 		'completed_at',
 	],
@@ -120,11 +120,7 @@ const mailTransfers = useList({
 
 const listColumns = computed(() => {
 	const columns = []
-	if (operation.value === 'Import')
-		columns.push(
-			{ label: __('Format'), key: 'import_format' },
-			{ label: __('File'), key: 'import_file' },
-		)
+	if (operation.value === 'Import') columns.push({ label: __('Format'), key: 'import_format' })
 	else columns.push({ label: __('Archive Type'), key: 'export_archive_type' })
 	columns.push(
 		{ label: __('Started At'), key: 'started_at' },
@@ -136,6 +132,7 @@ const listColumns = computed(() => {
 
 const LIST_OPTIONS = {
 	selectable: false,
+	getRowRoute: (row) => ({ name: 'MailTransfer', params: { id: row.name } }),
 	emptyState: { description: __('No mail transfers found.') },
 }
 
