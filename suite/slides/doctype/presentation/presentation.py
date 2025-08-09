@@ -247,3 +247,23 @@ def get_updated_json(presentation, json):
 @frappe.whitelist()
 def get_layouts(theme):
 	return frappe.get_doc("Presentation", theme).slides if frappe.db.exists("Presentation", theme) else []
+
+
+def get_permission_query_conditions(user):
+	if user == "Administrator":
+		return ""
+
+	if frappe.has_permission("Presentation", "read", user=user):
+		return f"`tabPresentation`.owner = '{user}' OR `tabPresentation`.is_template = 1"
+
+
+def has_permission(doc, ptype="read", user=None):
+	if user == "Administrator":
+		return True
+
+	user_roles = set(frappe.get_roles(user))
+
+	if "Slides User" in user_roles:
+		return doc.owner == user or (doc.is_template and ptype == "read")
+
+	return False
