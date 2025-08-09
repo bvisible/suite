@@ -17,11 +17,13 @@
   {
    "fieldname": "background",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Background"
   },
   {
    "fieldname": "elements",
    "fieldtype": "JSON",
+   "in_list_view": 1,
    "label": "Elements"
   },
   {
@@ -31,6 +33,7 @@
   {
    "fieldname": "thumbnail",
    "fieldtype": "Long Text",
+   "in_list_view": 1,
    "label": "Thumbnail"
   },
   {
@@ -50,7 +53,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-30 17:21:17.635084",
+ "modified": "2025-08-09 20:18:36.388809",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Slide",
