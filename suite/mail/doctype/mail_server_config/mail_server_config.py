@@ -180,7 +180,7 @@ def get_config_toml(server: str) -> str | None:
 
 	def _get_local_keys(outbound_only: bool = False) -> dict:
 		local_keys = LOCAL_KEYS + (
-			["session.rcpt.directory", "queue.outbound.next-hop"] if outbound_only else []
+			["session.rcpt.directory", "queue.strategy.route"] if outbound_only else []
 		)
 		return _format_keys(local_keys)
 
@@ -494,14 +494,6 @@ def get_config_toml(server: str) -> str | None:
 				},
 			},
 		},
-		"queue": {
-			"outbound": {
-				"tls": {
-					"allow-invalid-certs": """[ { if = "retry_num > 0 && last_error == 'tls'", then = true}, { else = false } ]""",
-					"starttls": """[ { if = "retry_num > 1 && last_error == 'tls'", then = "disable"}, { else = "require" } ]""",
-				}
-			}
-		},
 		"store": _get_stores(cluster.stores),
 		"metrics": {
 			"open-telemetry": {
@@ -523,7 +515,7 @@ def get_config_toml(server: str) -> str | None:
 
 	if server.outbound_only:
 		config.setdefault("session", {}).setdefault("rcpt", {})["directory"] = False
-		config.setdefault("queue", {}).setdefault("outbound", {})["next-hop"] = False
+		config.setdefault("queue", {}).setdefault("strategy", {})["route"] = "'mx'"
 
 	toml_lines = []
 	for key, value in sorted(flatten_dict(config).items()):
