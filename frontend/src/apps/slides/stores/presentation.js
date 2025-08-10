@@ -61,6 +61,8 @@ const getPresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
+				// remove the transition_duration field to avoid confusion
+				delete slide.transition_duration
 			}
 		},
 		onSuccess(doc) {
@@ -74,8 +76,9 @@ const hasSlideChanged = (originalState, slideState) => {
 
 	for (const key of keysToCompare) {
 		if (slideState[key] != originalState[key]) return true
-		if (slideState.name != '' && slideState.name != originalState.name) return true
 	}
+
+	if (slideState.name != '' && slideState.name != originalState.name) return true
 
 	const currElements = parseElements(slideState.elements)
 	const origElements = parseElements(originalState.elements)
@@ -118,6 +121,9 @@ const layoutResource = createResource({
 	transform: (data) => {
 		for (const slide of data || []) {
 			slide.elements = parseElements(slide.elements)
+			slide.transitionDuration = slide.transition_duration
+			// remove the transition_duration field to avoid confusion
+			delete slide.transition_duration
 		}
 	},
 	makeParams: ({ theme }) => {
