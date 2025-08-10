@@ -115,7 +115,7 @@ const addBorder = (style) => {
 	activeElement.value.borderStyle = style
 	if (style != 'none') {
 		activeElement.value.borderWidth = 0.5
-		activeElement.value.borderColor = 'hsl(0, 1%, 80%)'
+		activeElement.value.borderColor = '#d2d2d2ff'
 		activeElement.value.borderRadius = 10
 	} else {
 		activeElement.value.borderWidth = 0
