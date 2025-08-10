@@ -210,17 +210,17 @@ const addMediaElement = async (file, type) => {
 		borderStyle: 'none',
 		borderWidth: 0,
 		borderRadius: 0,
-		borderColor: '#000000',
+		borderColor: '',
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
 		shadowSpread: 0,
-		shadowColor: '#000000',
+		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
 		element.poster = await getVideoPoster(file.file_url)
 		element.autoplay = false
 		element.loop = false
-		element.playbackRate = 1
+		element.playbackRate = '1'
 	}
 	currentSlide.value.elements.push(element)
 	selectAndCenterElement(element.id)
@@ -251,8 +251,7 @@ const isFileDocUsed = (element) => {
 	return slides.value.some((slide) => {
 		if (!slide.elements) return false
 
-		const elements = JSON.parse(slide.elements)
-		return elements.some((el) => el.id !== element.id && el.src === element.src)
+		return slide.elements.some((el) => el.id !== element.id && el.src === element.src)
 	})
 }
 
