@@ -81,7 +81,7 @@ const isEditorEmpty = () => {
 	return false
 }
 
-const blurAndSaveContent = async (id) => {
+const blurAndSaveContent = (id) => {
 	activeEditor.value.setEditable(false)
 	activeEditor.value.commands.blur()
 
@@ -95,9 +95,6 @@ const blurAndSaveContent = async (id) => {
 watch(
 	() => focusElementId.value,
 	(newId, oldId) => {
-		if (oldId && oldId != newId) {
-			blurAndSaveContent(oldId)
-		}
 		if (newId == element.value.id) {
 			makeElementEditable()
 		}
