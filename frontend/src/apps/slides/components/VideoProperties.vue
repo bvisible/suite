@@ -82,6 +82,6 @@ const togglePlaybackOption = (option) => {
 }
 
 const setPlaybackRate = (value) => {
-	activeElement.value.playbackRate = value
+	activeElement.value.playbackRate = parseFloat(value)
 }
 </script>

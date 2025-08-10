@@ -213,14 +213,14 @@ const addMediaElement = async (file, type) => {
 		borderColor: '',
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
-		shadowSpread: 0,
+		shadowSpread: 1,
 		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
 		element.poster = await getVideoPoster(file.file_url)
 		element.autoplay = false
 		element.loop = false
-		element.playbackRate = '1'
+		element.playbackRate = 1
 	}
 	currentSlide.value.elements.push(element)
 	selectAndCenterElement(element.id)
