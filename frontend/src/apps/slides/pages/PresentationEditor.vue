@@ -2,6 +2,7 @@
 	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
+				{{ isDirty ? 'dirty' : 'not dirty' }}
 				<PresentationHeader :title="presentationDoc?.title" />
 			</template>
 		</Navbar>
@@ -320,14 +321,16 @@ const deleteSlide = () => {
 		return
 	}
 
+	if (slideIndex.value == totalLength - 1) {
+		// if last slide is deleted, switch to previous slide since no slide at current index
+		changeSlide(slideIndex.value - 1, false)
+	}
+
 	// delete the current slide
 	slides.value = slides.value.filter((slide, i) => i != slideIndex.value)
 	slides.value.forEach((slide, index) => {
 		slide.idx = index + 1
 	})
-
-	// if last slide is deleted, switch to previous slide since no slide at current index
-	if (slideIndex.value == totalLength) changeSlide(slideIndex.value - 1, false)
 }
 
 const duplicateSlide = (e) => {
