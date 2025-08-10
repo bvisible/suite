@@ -78,6 +78,7 @@ import {
 	savePresentationDoc,
 	layoutResource,
 	initPresentationDoc,
+	presentationDoc,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -254,8 +255,8 @@ const startSlideShow = () => {
 }
 
 const handleAutoSave = () => {
-	if (hasOngoingInteraction.value || focusElementId.value != null) return
-	saveChanges()
+	// if (hasOngoingInteraction.value || focusElementId.value != null) return
+	// saveChanges()
 }
 
 const changeSlide = async (index, updateCurrent = true) => {
@@ -266,10 +267,6 @@ const changeSlide = async (index, updateCurrent = true) => {
 	slideContainerRef.value.togglePanZoom()
 
 	await nextTick(async () => {
-		// update the current slide along with thumbnail
-		if (updateCurrent) {
-			await saveChanges()
-		}
 		slideIndex.value = index
 
 		// re-enable pan and zoom
@@ -352,6 +349,10 @@ const replaceSlide = (layoutId) => {
 const resetAndSave = () => {
 	resetFocus()
 	nextTick(() => {
+		if (!isDirty.value) {
+			toast.info('No changes to save')
+			return
+		}
 		const toastProps = {
 			loading: `Saving ...`,
 			success: () => `Saved`,
@@ -368,8 +369,6 @@ const addRouteSlug = async (slug) => {
 		params: { presentationId: presentationId.value, slug: slug },
 	})
 }
-
-const presentationDoc = ref(null)
 
 const initHistory = () => {
 	historyControl = useDebouncedRefHistory(slides, {
@@ -436,8 +435,8 @@ const handleInsertSlide = (layoutId) => {
 const isDirty = computed(() => {
 	if (!presentationDoc.value || !slides.value) return false
 
-	const original = presentationDoc.value.slides || []
-	const current = slides.value || []
+	const original = JSON.parse(JSON.stringify(presentationDoc.value.slides || []))
+	const current = JSON.parse(JSON.stringify(slides.value || []))
 
 	return hasStateChanged(original, current)
 })
@@ -445,6 +444,6 @@ const isDirty = computed(() => {
 const saveChanges = async () => {
 	if (!isDirty.value) return
 
-	presentationDoc.value = await savePresentationDoc()
+	await savePresentationDoc()
 }
 </script>
