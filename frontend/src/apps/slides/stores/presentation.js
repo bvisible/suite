@@ -4,6 +4,8 @@ import { isEqual } from 'lodash'
 
 import { slides, slideIndex, getSlideThumbnail } from './slide'
 
+const presentationDoc = ref()
+
 const presentationId = ref('')
 
 const inSlideShow = ref(false)
@@ -66,7 +68,7 @@ const getPresentationResource = (name) => {
 	})
 }
 
-const compareSlideState = (originalState, slideState) => {
+const hasSlideChanged = (originalState, slideState) => {
 	const keysToCompare = ['name', 'background', 'transition', 'transition_duration']
 
 	for (const key of keysToCompare) {
@@ -76,36 +78,34 @@ const compareSlideState = (originalState, slideState) => {
 	const currElements = parseElements(slideState.elements)
 	const origElements = parseElements(originalState.elements)
 
-	if (!isEqual(currElements, origElements)) return true
+	return !isEqual(currElements, origElements)
 }
 
 const hasStateChanged = (original, current) => {
 	if (original.length != current.length) return true
 
+	let hasChanged = false
 	for (let i = 0; i < current.length; i++) {
-		return compareSlideState(original[i], current[i])
+		if (hasSlideChanged(original[i], current[i])) {
+			hasChanged = true
+			break
+		}
 	}
 
-	return false
+	return hasChanged
 }
 
 const savePresentationDoc = async () => {
-	const presentationResource = getPresentationResource(presentationId.value)
-
 	const newSlides = slides.value.map((slide) => ({
 		...slide,
 		elements: JSON.stringify(slide.elements, null, 2),
 	}))
 
-	newSlides[slideIndex.value].thumbnail = await getSlideThumbnail()
-
-	await presentationResource.setValue.submit({
+	await presentationResource.value.setValue.submit({
 		slides: newSlides,
 	})
 
-	await presentationResource.reload()
-
-	return presentationResource.doc
+	presentationDoc.value = presentationResource.value.doc
 }
 
 const layoutResource = createResource({
@@ -124,11 +124,13 @@ const layoutResource = createResource({
 	},
 })
 
+const presentationResource = ref(null)
+
 const initPresentationDoc = async (id) => {
 	presentationId.value = id
-	const resource = getPresentationResource(id)
-	await resource.get.fetch()
-	return resource.doc
+	presentationResource.value = getPresentationResource(id)
+	await presentationResource.value.get.fetch()
+	return presentationResource.value.doc
 }
 
 export {
@@ -142,4 +144,5 @@ export {
 	savePresentationDoc,
 	initPresentationDoc,
 	layoutResource,
+	presentationDoc,
 }
