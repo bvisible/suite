@@ -221,6 +221,9 @@ const addMediaElement = async (file, type) => {
 		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
+	} else {
+		element.invertX = 1
+		element.invertY = 1
 	}
 	currentSlide.value.elements.push(element)
 	selectAndCenterElement(element.id)
