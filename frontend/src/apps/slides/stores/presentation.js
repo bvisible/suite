@@ -60,6 +60,7 @@ const getPresentationResource = (name) => {
 		transform(doc) {
 			for (const slide of doc.slides || []) {
 				slide.elements = parseElements(slide.elements)
+				slide.transitionDuration = slide.transition_duration
 			}
 		},
 		onSuccess(doc) {
@@ -69,7 +70,7 @@ const getPresentationResource = (name) => {
 }
 
 const hasSlideChanged = (originalState, slideState) => {
-	const keysToCompare = ['background', 'transition', 'transition_duration']
+	const keysToCompare = ['background', 'transition', 'transitionDuration']
 
 	for (const key of keysToCompare) {
 		if (slideState[key] != originalState[key]) return true
@@ -100,6 +101,7 @@ const savePresentationDoc = async () => {
 	const newSlides = slides.value.map((slide) => ({
 		...slide,
 		elements: JSON.stringify(slide.elements, null, 2),
+		transition_duration: slide.transitionDuration,
 	}))
 
 	await presentationResource.value.setValue.submit({
