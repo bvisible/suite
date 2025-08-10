@@ -69,10 +69,11 @@ const getPresentationResource = (name) => {
 }
 
 const hasSlideChanged = (originalState, slideState) => {
-	const keysToCompare = ['name', 'background', 'transition', 'transition_duration']
+	const keysToCompare = ['background', 'transition', 'transition_duration']
 
 	for (const key of keysToCompare) {
 		if (slideState[key] != originalState[key]) return true
+		if (slideState.name != '' && slideState.name != originalState.name) return true
 	}
 
 	const currElements = parseElements(slideState.elements)
