@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import os
+import re
 import shlex
 import shutil
 
@@ -20,6 +21,7 @@ from mail.utils import (
 	get_import_directory,
 	get_mbox_files,
 	get_stalwart_cli_path,
+	sanitize_cli_output,
 )
 from mail.utils.cache import get_account_for_user, get_tenant_for_user
 from mail.utils.user import has_role, is_account_owner, is_system_manager, is_tenant_admin
@@ -182,6 +184,14 @@ class MailDataExchange(Document):
 				command.append(import_base)
 
 			output = _run_stalwart_cli_command(command, _credentials)
+
+			try:
+				output = clean_import_output(output)
+			except Exception:
+				frappe.log_error(
+					title=_("Failed to clean import output"), message=frappe.get_traceback(with_context=True)
+				)
+
 			kwargs.update({"status": "Completed", "output": output})
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
@@ -322,6 +332,27 @@ def _run_stalwart_cli_command(command: str | list[str], _credentials: str, timeo
 
 	if child.exitstatus != 0:
 		raise Exception(output)
+
+	return output
+
+
+def clean_import_output(output: str) -> str:
+	"""Cleans the output of the import operation."""
+
+	if output:
+		output = sanitize_cli_output(output)
+
+		cleaned_lines = []
+		for line in output.splitlines():
+			stripped = line.strip()
+			if not stripped:
+				continue
+
+			# Keep only lines like "[n/m] ..." or "Successfully imported ..."
+			if re.match(r"^\[\d+/\d+\]\s+.+", stripped) or stripped.startswith("Successfully imported"):
+				cleaned_lines.append(stripped)
+
+		return "\n".join(cleaned_lines)
 
 	return output
 
