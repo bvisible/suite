@@ -44,7 +44,7 @@ import { Button, Dialog } from 'frappe-ui'
 
 import AccountSettings from '@/components/Settings/AccountSettings.vue'
 import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
-import MailTransferSettings from '@/components/Settings/MailTransferSettings.vue'
+import MailDataExchangeSettings from '@/components/Settings/MailDataExchangeSettings.vue'
 import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
 import VacationResponseSettings from '@/components/Settings/VacationResponseSettings.vue'
 
@@ -67,9 +67,9 @@ const tabs = [
 		component: markRaw(VacationResponseSettings),
 	},
 	{
-		label: __('Mail Transfer'),
+		label: __('Mail Data Exchange'),
 		icon: DatabaseBackup,
-		component: markRaw(MailTransferSettings),
+		component: markRaw(MailDataExchangeSettings),
 	},
 	{
 		label: __('Advanced'),
