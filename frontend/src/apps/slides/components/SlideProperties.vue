@@ -29,7 +29,7 @@
 		<template #default>
 			<Select
 				:options="['Slide In', 'Fade', 'None']"
-				:modelValue="currentSlide.transition || 'None'"
+				:modelValue="currentSlide.transition"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>
 
@@ -60,7 +60,7 @@ const emit = defineEmits(['openLayoutDialog'])
 
 const setSlideTransition = (option) => {
 	currentSlide.value.transition = option
-	if (option.value == 'None') currentSlide.value.transitionDuration = 0
+	if (option == 'None') currentSlide.value.transitionDuration = 0
 	else currentSlide.value.transitionDuration = 1
 }
 
