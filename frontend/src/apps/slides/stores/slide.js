@@ -75,9 +75,7 @@ const getThumbnailHtml = async () => {
 	return clone
 }
 
-const getSlideThumbnail = async () => {
-	const thumbnailHtml = await getThumbnailHtml()
-
+const getSlideThumbnail = async (thumbnailHtml) => {
 	document.body.appendChild(thumbnailHtml)
 
 	const canvas = await html2canvas(thumbnailHtml, {
@@ -114,4 +112,5 @@ export {
 	updateSelectionBounds,
 	setSlideRef,
 	getSlideThumbnail,
+	getThumbnailHtml,
 }
