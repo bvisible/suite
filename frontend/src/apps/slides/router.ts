@@ -58,6 +58,15 @@ router.beforeEach(async (to, _, next) => {
 		if (to.path !== '/login') window.location.href = '/login?redirect-to=' + to.path
 		next()
 	} else {
+		if (session.isSlidesUser === null) {
+			await session.setIsSlidesUser()
+		}
+
+		if (!session.isSlidesUser && to.name !== 'NotPermitted') {
+			next({ name: 'NotPermitted' })
+			return
+		}
+
 		if (to.path === '/login') {
 			next({ name: 'Home' })
 		} else if (['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
