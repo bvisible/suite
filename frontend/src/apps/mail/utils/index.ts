@@ -145,3 +145,19 @@ export const textEditorButtons = [
 ]
 
 export const getFirstAlphabet = (str?: string) => str?.match(/[A-Za-z]/)?.[0]
+
+export const getTheme = (
+	status: 'Draft' | 'Queued' | 'In Progress' | 'Completed' | 'Failed' | 'Cancelled',
+) => {
+	switch (status) {
+		case 'Draft':
+			return 'gray'
+		case 'Completed':
+			return 'green'
+		case 'Failed':
+		case 'Cancelled':
+			return 'red'
+		default:
+			return 'blue'
+	}
+}

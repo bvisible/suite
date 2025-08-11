@@ -1,7 +1,7 @@
 <template>
 	<div class="flex h-screen flex-col">
 		<header class="flex items-center border-b px-5 py-2.5">
-			<Breadcrumbs :items="[{ label: __('Mail Transfers') }]" />
+			<Breadcrumbs :items="[{ label: __('Mail Data Exchanges') }]" />
 		</header>
 		<div class="m-5 flex flex-1 flex-col space-y-5 overflow-y-auto">
 			<div class="flex items-center space-x-3">
@@ -21,18 +21,18 @@
 				/>
 			</div>
 			<ListView
-				v-if="mailTransfers.data"
+				v-if="mailDataExchanges.data"
 				:columns="listColumns"
-				:rows="mailTransfers.data"
+				:rows="mailDataExchanges.data"
 				:options="LIST_OPTIONS"
 				row-key="name"
 				class="flex-1"
 			>
 				<ListHeader />
 				<ListRows>
-					<template v-if="mailTransfers.data.length">
+					<template v-if="mailDataExchanges.data.length">
 						<ListRow
-							v-for="row in mailTransfers.data"
+							v-for="row in mailDataExchanges.data"
 							:key="row.name"
 							v-slot="{ item, column }"
 							:row="row"
@@ -49,13 +49,13 @@
 					<ListEmptyState v-else />
 				</ListRows>
 			</ListView>
-			<ErrorMessage v-if="mailTransfers.error" :message="mailTransfers.error" />
+			<ErrorMessage v-if="mailDataExchanges.error" :message="mailDataExchanges.error" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import {
 	Badge,
 	Breadcrumbs,
@@ -70,11 +70,13 @@ import {
 } from 'frappe-ui'
 import { useList } from 'frappe-ui/src/data-fetching'
 
+import { getTheme } from '@/utils'
+
 const user = inject('$user')
 const dayjs = inject('$dayjs')
 
-const operation = ref('Import')
-const status = ref('')
+const operation = ref(localStorage.getItem('mailDataExchangeOperation') || 'Import')
+const status = ref(localStorage.getItem('mailDataExchangeStatus') || '')
 
 const OPERATION_OPTIONS = [
 	{ label: __('Import'), value: 'Import' },
@@ -91,7 +93,7 @@ const STATUS_OPTIONS = [
 	{ label: __('Cancelled'), value: 'Cancelled' },
 ]
 
-const mailTransfers = useList({
+const mailDataExchanges = useList({
 	doctype: 'Mail Data Exchange',
 	fields: [
 		'name',
@@ -119,36 +121,22 @@ const mailTransfers = useList({
 })
 
 const listColumns = computed(() => {
-	const columns = []
-	if (operation.value === 'Import') columns.push({ label: __('Format'), key: 'import_format' })
-	else columns.push({ label: __('Archive Type'), key: 'export_archive_type' })
-	columns.push(
+	const columns = [
 		{ label: __('Started At'), key: 'started_at' },
 		{ label: __('Completed At'), key: 'completed_at' },
 		{ label: __('Status'), key: 'status' },
-	)
+	]
+	if (operation.value === 'Import') columns.push({ label: __('Format'), key: 'import_format' })
+	else columns.push({ label: __('Archive Type'), key: 'export_archive_type' })
 	return columns
 })
 
 const LIST_OPTIONS = {
 	selectable: false,
-	getRowRoute: (row) => ({ name: 'MailTransfer', params: { id: row.name } }),
-	emptyState: { description: __('No mail transfers found.') },
+	getRowRoute: (row) => ({ name: 'MailDataExchange', params: { id: row.name } }),
+	emptyState: { description: __('No mail data exchanges found.') },
 }
 
-const getTheme = (
-	status: 'Draft' | 'Queued' | 'In Progress' | 'Completed' | 'Failed' | 'Cancelled',
-) => {
-	switch (status) {
-		case 'Draft':
-			return 'gray'
-		case 'Completed':
-			return 'green'
-		case 'Failed':
-		case 'Cancelled':
-			return 'red'
-		default:
-			return 'blue'
-	}
-}
+watch(operation, (val) => localStorage.setItem('mailDataExchangeOperation', val))
+watch(status, (val) => localStorage.setItem('mailDataExchangeStatus', val))
 </script>

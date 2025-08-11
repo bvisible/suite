@@ -1,9 +1,10 @@
 <template>
-	<h1>{{ __('Mail Transfer') }}</h1>
+	<h1>{{ __('Mail Data Exchange') }}</h1>
 	<FormControl
 		v-model="mailDataExchange.operation"
 		:label="__('Operation')"
 		type="select"
+		variant="outline"
 		:options="['Import', 'Export']"
 	/>
 
@@ -12,6 +13,7 @@
 			v-model="mailDataExchange.import_format"
 			:label="__('Format')"
 			type="select"
+			variant="outline"
 			:options="['jmap', 'mbox', 'maildir', 'maildir-nested']"
 		/>
 		<FileUploader
@@ -63,7 +65,7 @@
 	<span v-if="mailDataExchanges.data?.length">
 		<a
 			class="text-ink-gray-5 cursor-pointer text-sm hover:underline"
-			@click="window.open('/mail/mail-transfers', '_blank')"
+			@click="window.open('/mail/mail-data-exchanges', '_blank')"
 		>
 			{{ __('View Past Operations') }}
 		</a>

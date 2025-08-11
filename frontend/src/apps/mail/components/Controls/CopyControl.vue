@@ -1,12 +1,12 @@
 <template>
 	<div class="block pt-2 text-sm">
-		<span class="text-ink-gray-6 mb-2 block leading-4">{{ props.label }}</span>
+		<span class="text-ink-gray-6 mb-2 block leading-4">{{ label }}</span>
 		<button
 			class="bg-surface-gray-2 flex w-full items-center rounded-lg border-2 p-1"
-			@click="copyToClipBoard(props.value)"
+			@click="copyToClipBoard(value)"
 		>
 			<span class="scrollbar-none text-ink-gray-7 mr-1.5 overflow-x-scroll text-nowrap">
-				{{ props.value }}
+				{{ value }}
 			</span>
 			<span class="bg-surface-white text-ink-gray-5 ml-auto rounded border p-1 text-xs">
 				{{ message }}
@@ -19,16 +19,7 @@ import { ref } from 'vue'
 
 const message = ref('Copy')
 
-const props = defineProps({
-	label: {
-		type: String,
-		required: true,
-	},
-	value: {
-		type: String,
-		required: true,
-	},
-})
+defineProps<{ label: string; value: string }>()
 
 const copyToClipBoard = async (text: string) => {
 	try {
