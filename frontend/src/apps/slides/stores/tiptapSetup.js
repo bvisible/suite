@@ -15,7 +15,7 @@ const CustomTextStyle = TextStyle.extend({
 	addAttributes() {
 		const attrs = {}
 
-		const attributes = [
+		const attributesList = [
 			'fontSize',
 			'textTransform',
 			'fontFamily',
@@ -30,16 +30,16 @@ const CustomTextStyle = TextStyle.extend({
 			opacity: '%',
 		}
 
-		attributes.forEach((attr) => {
+		attributesList.forEach((attr) => {
 			attrs[attr] = {
 				default: null,
 				parseHTML: (element) => element.style[attr] || null,
 				renderHTML: (attributes) => {
 					if (!attributes[attr] && attr != 'opacity') return {}
 					const attrName = attr.replace(/([A-Z])/g, '-$1').toLowerCase()
-					return {
-						style: `${attrName}: ${attributes[attr]}${suffixes[attr] || ''}`,
-					}
+					return attributes[attr]
+						? { style: `${attrName}: ${attributes[attr]}${suffixes[attr] || ''}` }
+						: {}
 				},
 			}
 		})
