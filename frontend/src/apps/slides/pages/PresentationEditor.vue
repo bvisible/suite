@@ -2,7 +2,6 @@
 	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
-				{{ isDirty ? 'dirty' : 'not dirty' }}
 				<PresentationHeader :title="presentationDoc?.title" />
 			</template>
 		</Navbar>
@@ -88,6 +87,7 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	getSlideThumbnail,
+	getThumbnailHtml,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -265,10 +265,14 @@ const handleAutoSave = () => {
 const dirtySince = ref(null)
 let lastThumbnailTime = 0
 
-const handleThumbnailGeneration = async () => {
+const handleThumbnailGeneration = async (index, thumbnailHtml) => {
 	if (hasOngoingInteraction.value || focusElementId.value != null) return
 	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
-		currentSlide.value.thumbnail = await getSlideThumbnail()
+		if (!thumbnailHtml) {
+			index = slideIndex.value
+			thumbnailHtml = await getThumbnailHtml()
+		}
+		slides.value[index].thumbnail = await getSlideThumbnail(thumbnailHtml)
 		lastThumbnailTime = Date.now()
 	}
 }
@@ -282,7 +286,8 @@ const changeSlide = async (index, updateCurrent = true) => {
 	slideContainerRef.value.togglePanZoom()
 
 	await nextTick(async () => {
-		await handleThumbnailGeneration()
+		const thumbnailHtml = await getThumbnailHtml()
+		handleThumbnailGeneration(slideIndex.value, thumbnailHtml)
 
 		slideIndex.value = index
 
@@ -461,10 +466,19 @@ const isDirty = computed(() => {
 	return hasStateChanged(original, current)
 })
 
-const saveChanges = async () => {
-	if (!isDirty.value) return
+const isSaving = ref(false)
 
-	await savePresentationDoc()
+const saveChanges = async () => {
+	if (!isDirty.value || isSaving.value) return
+
+	isSaving.value = true
+	try {
+		await savePresentationDoc()
+	} catch (error) {
+		console.error('Error saving presentation:', error)
+	} finally {
+		isSaving.value = false
+	}
 }
 
 watch(
