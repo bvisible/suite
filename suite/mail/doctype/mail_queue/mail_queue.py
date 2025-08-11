@@ -868,6 +868,27 @@ class MailQueue(Document):
 		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
+@frappe.whitelist()
+def bulk_retry(names: str | list[str]) -> None:
+	"""Retries the emails with the given names."""
+
+	frappe.only_for("System Manager")
+
+	if isinstance(names, str):
+		names = json.loads(names)
+
+	for name in names:
+		doc = frappe.get_doc("Mail Queue", name)
+		if doc.status in ["Failed", "Failed to Draft", "Failed to Submit"]:
+			doc.retry()
+
+	frappe.msgprint(
+		_("Successfully retried {0} emails.").format(frappe.bold(len(names))),
+		indicator="green",
+		alert=True,
+	)
+
+
 def json_loads(data: str | None, default: Any = None) -> list | dict | None:
 	"""Loads the given JSON data and returns it as a list or dict."""
 
