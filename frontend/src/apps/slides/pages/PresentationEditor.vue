@@ -87,6 +87,7 @@ import {
 	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
+	getSlideThumbnail,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -105,6 +106,7 @@ import html2canvas from 'html2canvas'
 import { generateUniqueId } from '@/utils/helpers'
 
 let autosaveInterval = null
+let thumbnailGenerationInterval = null
 
 const primaryButtonProps = {
 	label: 'Present',
@@ -256,18 +258,32 @@ const startSlideShow = () => {
 }
 
 const handleAutoSave = () => {
-	// if (hasOngoingInteraction.value || focusElementId.value != null) return
-	// saveChanges()
+	if (hasOngoingInteraction.value || focusElementId.value != null) return
+	saveChanges()
+}
+
+const dirtySince = ref(null)
+let lastThumbnailTime = 0
+
+const handleThumbnailGeneration = async () => {
+	if (hasOngoingInteraction.value || focusElementId.value != null) return
+	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
+		currentSlide.value.thumbnail = await getSlideThumbnail()
+		lastThumbnailTime = Date.now()
+	}
 }
 
 const changeSlide = async (index, updateCurrent = true) => {
 	if (index < 0 || index >= slides.value.length) return
 
 	resetFocus()
+
 	// reset the pan and zoom to capture thumbnail
 	slideContainerRef.value.togglePanZoom()
 
 	await nextTick(async () => {
+		await handleThumbnailGeneration()
+
 		slideIndex.value = index
 
 		// re-enable pan and zoom
@@ -381,8 +397,9 @@ const initHistory = () => {
 	})
 }
 
-const initAutosave = () => {
-	autosaveInterval = setInterval(handleAutoSave, 2000)
+const initIntervals = () => {
+	autosaveInterval = setInterval(handleAutoSave, 500)
+	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 5000)
 }
 
 const loadPresentation = async (id) => {
@@ -390,7 +407,7 @@ const loadPresentation = async (id) => {
 	addRouteSlug(presentationDoc.value.slug)
 	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initHistory()
-	initAutosave()
+	initIntervals()
 	document.addEventListener('keydown', handleKeyDown)
 }
 
@@ -449,4 +466,13 @@ const saveChanges = async () => {
 
 	await savePresentationDoc()
 }
+
+watch(
+	() => isDirty.value,
+	(val) => {
+		if (val) {
+			dirtySince.value = Date.now()
+		}
+	},
+)
 </script>
