@@ -53,6 +53,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
+import { activeElements } from '@/stores/element'
 
 const horizontalAlignmentOptions = [
 	{
@@ -141,10 +142,16 @@ const getAlignmentButtonClasses = (direction) => {
 
 const alignHorizontally = (direction) => {
 	selectionBounds.left = Math.round(alignmentPositions.value[direction])
+	activeElements.value.forEach((element) => {
+		element.left = selectionBounds.left
+	})
 }
 
 const alignVertically = (direction) => {
 	selectionBounds.top = Math.round(alignmentPositions.value[direction])
+	activeElements.value.forEach((element) => {
+		element.top = selectionBounds.top
+	})
 }
 
 const performAlignment = (direction) => {
