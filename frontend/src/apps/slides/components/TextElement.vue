@@ -115,6 +115,10 @@ watch(
 </script>
 
 <style>
+.ProseMirror {
+	caret-color: currentColor;
+}
+
 .tiptap > ul {
 	list-style: none;
 	padding-left: 0;
