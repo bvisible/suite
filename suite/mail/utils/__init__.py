@@ -222,6 +222,23 @@ def extract_filter_values(filters: list, conditions: list[dict]) -> tuple:
 	return tuple(values[key] for key in values)
 
 
+def sanitize_cli_output(text: str) -> str:
+	"""Remove ANSI escape sequences and control characters from text."""
+
+	if text:
+		ansi_escape = re.compile(r"(?:\x1B[@-Z\\-_]|\x1B\[[0-?]*[ -/]*[@-~])")
+
+		# Remove ANSI escape codes
+		text = ansi_escape.sub("", text)
+
+		# Remove other control characters except newline/tab
+		text = re.sub(r"[^\x20-\x7E\n\t]", "", text)
+
+		return text.strip()
+
+	return text
+
+
 @frappe.whitelist()
 @redis_cache(ttl=3600)
 def check_deliverability(email: str) -> bool:
