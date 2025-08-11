@@ -22,6 +22,9 @@ class Presentation(Document):
 		old_slides = doc_before_save.slides
 
 		for slide in self.slides:
+			old_slide = old_slides[slide.idx - 1] if slide.idx <= len(old_slides) else None
+			if not old_slide:
+				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
 				old_thumbnail = old_slides[slide.idx - 1].thumbnail
 				delete_old_thumbnail(slide.name, old_thumbnail)
