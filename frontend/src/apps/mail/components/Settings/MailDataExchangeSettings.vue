@@ -63,11 +63,8 @@
 		class="mb-2.5"
 	/>
 	<span v-if="mailDataExchanges.data?.length">
-		<a
-			class="text-ink-gray-5 cursor-pointer text-sm hover:underline"
-			@click="window.open('/mail/mail-data-exchanges', '_blank')"
-		>
-			{{ __('View Past Operations') }}
+		<a class="text-ink-gray-5 cursor-pointer text-sm hover:underline" @click="openOperations">
+			{{ __('View All Operations') }}
 		</a>
 	</span>
 </template>
@@ -96,7 +93,7 @@ const createMailDataExchange = createResource({
 const mailDataExchanges = useList({
 	doctype: 'Mail Data Exchange',
 	immediate: true,
-	fields: ['name', 'operation'],
+	fields: ['name', 'operation', 'status'],
 	filters: { account: user.data.name },
 })
 
@@ -114,4 +111,6 @@ const activeOperationMessage = computed(() =>
 		mailDataExchange.operation === 'Import' ? __('import') : __('export'),
 	]),
 )
+
+const openOperations = () => window.open('/mail/mail-data-exchanges', '_blank')
 </script>

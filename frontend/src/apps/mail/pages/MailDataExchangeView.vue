@@ -11,18 +11,12 @@
 					:label="mailDataExchange.data?.status"
 				/>
 			</div>
-			<p class="text-base">
-				{{
-					__('{0} · Started at {1} · Completed at {2}', [
-						mailDataExchange.data?.operation,
-						dayjs(mailDataExchange.data?.started_at).format('MMM D, YYYY h:mm A'),
-						dayjs(mailDataExchange.data?.completed_at).format('MMM D, YYYY h:mm A'),
-					])
-				}}
-			</p>
-			<hr class="my-8" />
-			<h2 class="mb-4">{{ __('Output') }}</h2>
-			<CopyCode :code="mailDataExchange.data?.output" class="max-h-80 overflow-y-auto" />
+			<p class="text-base">{{ operationDetails }}</p>
+			<template v-if="mailDataExchange.data?.output">
+				<hr class="my-8" />
+				<h2 class="mb-4">{{ __('Output') }}</h2>
+				<CopyCode :code="mailDataExchange.data?.output" class="max-h-80 overflow-y-auto" />
+			</template>
 			<template v-if="attachment.data?.file_url">
 				<hr class="my-8" />
 				<h2 class="mb-4">{{ __('File') }}</h2>
@@ -47,7 +41,8 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { Badge, Breadcrumbs, Button, createResource } from 'frappe-ui'
 
 import { formatBytes, getTheme } from '@/utils'
@@ -57,18 +52,34 @@ const { id } = defineProps<{ id: string }>()
 
 const dayjs = inject('$dayjs')
 
+const router = useRouter()
+
 const mailDataExchange = createResource({
 	url: 'frappe.client.get_value',
+	auto: true,
 	makeParams: () => ({
 		doctype: 'Mail Data Exchange',
 		filters: { name: id },
 		fieldname: ['status', 'operation', 'started_at', 'completed_at', 'output'],
 	}),
-	auto: true,
+	onSuccess: (data) => {
+		if (!data?.operation) router.replace('/mail-data-exchanges')
+	},
+	onError: () => router.replace('/mail-data-exchanges'),
+})
+
+const operationDetails = computed(() => {
+	let details = mailDataExchange.data?.operation
+	if (mailDataExchange.data?.started_at)
+		details += ` · Started at ${dayjs(mailDataExchange.data?.started_at).format('MMM D, YYYY h:mm A')}`
+	if (mailDataExchange.data?.completed_at)
+		details += ` · Completed at ${dayjs(mailDataExchange.data?.completed_at).format('MMM D, YYYY h:mm A')}`
+	return details
 })
 
 const attachment = createResource({
 	url: 'frappe.client.get_value',
+	auto: true,
 	makeParams: () => ({
 		doctype: 'File',
 		fieldname: ['file_size', 'file_url', 'file_type', 'file_name'],
@@ -78,7 +89,6 @@ const attachment = createResource({
 			attached_to_field: 'file',
 		},
 	}),
-	auto: true,
 })
 
 const triggerDownload = () => {

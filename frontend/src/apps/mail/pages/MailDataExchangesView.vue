@@ -115,8 +115,10 @@ const mailDataExchanges = useList({
 	transform: (data) =>
 		data.map((row) => ({
 			...row,
-			started_at: dayjs(row.started_at).format('MMM D, YYYY h:mm A'),
-			completed_at: dayjs(row.completed_at).format('MMM D, YYYY h:mm A'),
+			started_at: row.started_at ? dayjs(row.started_at).format('MMM D, YYYY h:mm A') : '-',
+			completed_at: row.completed_at
+				? dayjs(row.completed_at).format('MMM D, YYYY h:mm A')
+				: '-',
 		})),
 })
 
