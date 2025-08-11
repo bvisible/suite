@@ -11,7 +11,7 @@ import pexpect
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import Order
-from frappe.utils import add_to_date, get_bench_path, get_datetime, now, time_diff_in_seconds
+from frappe.utils import add_to_date, get_bench_path, get_datetime, get_url, now, time_diff_in_seconds
 from uuid_utils import uuid7
 
 from mail.utils import (
@@ -193,11 +193,40 @@ class MailDataExchange(Document):
 				)
 
 			kwargs.update({"status": "Completed", "output": output})
+
+			mail_details = {
+				"subject": _("Mail Data Import Completed"),
+				"title": _("Mail data import for account {0} has been completed successfully.").format(
+					frappe.bold(self.account)
+				),
+				"description": _("Click the button below to view the imported data."),
+			}
+
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
 
+			mail_details = {
+				"subject": _("Mail Data Import Failed"),
+				"title": _("Mail data import for account {0} has failed.").format(frappe.bold(self.account)),
+				"description": _("Click the button below to view the reason for failure."),
+			}
+
 		shutil.rmtree(import_base, ignore_errors=True)
 		self._mark_completed(**kwargs)
+
+		if account := get_account_for_user(self.owner):
+			frappe.sendmail(
+				recipients=account,
+				subject=mail_details["subject"],
+				template="generic",
+				args={
+					"title": mail_details["title"],
+					"description": mail_details["description"],
+					"button": _("View Import"),
+					"link": get_url(f"/mail/mail-data-exchanges/{self.name}"),
+				},
+				now=True,
+			)
 
 	def _export(self) -> None:
 		"""Exports the account data."""
@@ -235,11 +264,40 @@ class MailDataExchange(Document):
 			)
 
 			kwargs.update({"status": "Completed", "output": output})
+
+			mail_details = {
+				"subject": _("Mail Data Export Ready"),
+				"title": _("Mail data export for account {0} is ready for download.").format(
+					frappe.bold(self.account)
+				),
+				"description": _("Click the button below to view and download the exported data."),
+			}
+
 		except Exception as e:
 			kwargs.update({"status": "Failed", "output": str(e)})
 
+			mail_details = {
+				"subject": _("Mail Data Export Failed"),
+				"title": _("Mail data export for account {0} has failed.").format(frappe.bold(self.account)),
+				"description": _("Click the button below to view the reason for failure."),
+			}
+
 		shutil.rmtree(export_base, ignore_errors=True)
 		self._mark_completed(**kwargs)
+
+		if account := get_account_for_user(self.owner):
+			frappe.sendmail(
+				recipients=account,
+				subject=mail_details["subject"],
+				template="generic",
+				args={
+					"title": mail_details["title"],
+					"description": mail_details["description"],
+					"button": _("View Export"),
+					"link": get_url(f"/mail/mail-data-exchanges/{self.name}"),
+				},
+				now=True,
+			)
 
 	def _mark_started(self) -> None:
 		"""Marks the data exchange as started and updates the started_at and started_after fields."""

@@ -1,0 +1,22 @@
+{% import "templates/emails/macros.html" as utils %}
+{% extends "templates/emails/base.html" %}
+
+{% set title = title %}
+{% set description = description %}
+{% set button = button %}
+{% set link = link %}
+
+{% block content %}
+
+<td class="text-base leading-6 text-gray-900">
+	<div class="bg-white p-8">
+		<p>{{ _('Hello,') }}</p>
+		<p class="mb-4 font-bold">{{ title }}</p>
+		<p class="mb-6">{{ description }}</p>
+		{{ utils.button(button, link) }}
+		{{ utils.separator() }}
+		<p class="my-0">{{ _('Team Frappe') }}</p>
+	</div>
+</td>
+
+{% endblock %}

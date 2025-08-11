@@ -6,7 +6,7 @@
 	</p>
 	<Button
 		class="min-h-7"
-		:label="__(user.data?.api_key ? 'Regenerate Secret' : 'Generate Keys')"
+		:label="user.data?.api_key ? __('Regenerate Secret') : __('Generate Keys')"
 		@click="generateKeys.submit()"
 	/>
 
@@ -27,6 +27,7 @@ import { Button, Dialog, createResource } from 'frappe-ui'
 import CopyControl from '@/components/Controls/CopyControl.vue'
 
 const user = inject('$user')
+
 const showSecret = ref(false)
 const apiSecret = ref('')
 

@@ -67,11 +67,24 @@ const routes = [
 		props: true,
 	},
 	{
+		path: '/mail-data-exchanges',
+		name: 'MailDataExchanges',
+		component: () => import('@/pages/MailDataExchangesView.vue'),
+		meta: { noLayout: true },
+	},
+	{
+		path: '/mail-data-exchanges/:id',
+		name: 'MailDataExchange',
+		component: () => import('@/pages/MailDataExchangeView.vue'),
+		meta: { noLayout: true },
+		props: true,
+	},
+	{
 		path: '/mime-message/:id',
 		name: 'MimeMessage',
 		component: () => import('@/pages/MimeMessageView.vue'),
 		props: true,
-		meta: { isMimeMessage: true },
+		meta: { noLayout: true },
 	},
 	{
 		path: '/dashboard',
