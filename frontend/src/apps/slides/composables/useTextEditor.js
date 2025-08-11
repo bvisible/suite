@@ -159,6 +159,8 @@ export const useTextEditor = () => {
 				textTransform: newVal,
 			})
 			.run()
+
+		activeElement.value.content = activeEditor.value.getJSON()
 	}
 
 	const toggleMark = (property) => {
@@ -172,6 +174,8 @@ export const useTextEditor = () => {
 		if (property == 'uppercase') return toggleCapitalize(chain)
 
 		chain[markCommands[property]](property).run()
+
+		activeElement.value.content = currentEditor.getJSON()
 	}
 
 	const selectListBlock = () => {
@@ -218,6 +222,8 @@ export const useTextEditor = () => {
 		} else {
 			chain.wrapInList('bulletList').run()
 		}
+
+		activeElement.value.content = activeEditor.value.getJSON()
 	}
 
 	const setLineHeight = (value) => {
@@ -245,20 +251,23 @@ export const useTextEditor = () => {
 		switch (property) {
 			case 'textAlign':
 				chain.setTextAlign(value).run()
-				return
+				break
 			case 'color':
 				chain.setColor(value).run()
-				return
+				break
 			case 'lineHeight':
-				return setLineHeight(value)
+				setLineHeight(value)
+				break
 			default:
 				chain
 					.setMark('textStyle', {
 						[property]: value,
 					})
 					.run()
-				return
+				break
 		}
+
+		activeElement.value.content = currentEditor.getJSON()
 	}
 
 	const getEditorProps = (editorMetadata) => {
