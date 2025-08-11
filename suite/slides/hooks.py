@@ -116,13 +116,13 @@ website_route_rules = [
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"Presentation": "slides.slides.doctype.presentation.presentation.get_permission_query_conditions",
+}
+
+has_permission = {
+	"Presentation": "slides.slides.doctype.presentation.presentation.has_permission",
+}
 
 # DocType Class
 # ---------------
