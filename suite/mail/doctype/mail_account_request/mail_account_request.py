@@ -168,16 +168,23 @@ class MailAccountRequest(Document):
 		self.validate_expired()
 
 		link = get_url("/mail/signup/business/" + self.request_key)
-		args = {"link": link, "otp": self.otp}
 
 		if self.is_invite and self.invited_by:
 			subject = _("You have been invited by {0} to join Frappe Mail").format(self.invited_by)
-			template = "invite_signup"
+			template = "generic"
 			tenant_name = frappe.db.get_value("Mail Tenant", self.tenant, "tenant_name")
-			args.update({"invited_by": self.invited_by, "tenant": tenant_name})
+			args = {
+				"title": _('You have been invited by {0} to join tenant "{1}" on Frappe Mail.').format(
+					self.invited_by, tenant_name
+				),
+				"description": _("Please confirm your email address by clicking the button below."),
+				"button": _("Verify Account"),
+				"link": link,
+			}
 		else:
 			subject = _("{0} - OTP for Frappe Mail Account Verification").format(self.otp)
 			template = "business_signup"
+			args = {"link": link, "otp": self.otp}
 
 		frappe.sendmail(
 			recipients=self.email,
