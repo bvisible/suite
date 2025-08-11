@@ -98,7 +98,6 @@
 				label="Letter Spacing"
 				:rangeStart="-10"
 				:rangeEnd="50"
-				:rangeStep="0.1"
 				:modelValue="editorStyles.letterSpacing"
 				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
 			/>

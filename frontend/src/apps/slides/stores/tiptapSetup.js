@@ -19,7 +19,6 @@ const CustomTextStyle = TextStyle.extend({
 			'fontSize',
 			'textTransform',
 			'fontFamily',
-			'lineHeight',
 			'letterSpacing',
 			'opacity',
 		]

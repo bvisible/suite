@@ -376,7 +376,7 @@ const addRouteSlug = async (slug) => {
 const initHistory = () => {
 	historyControl = useDebouncedRefHistory(slides, {
 		deep: true,
-		debounce: 2000,
+		debounce: 200,
 		maxLength: 10,
 	})
 }
