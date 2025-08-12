@@ -141,17 +141,21 @@ const getAlignmentButtonClasses = (direction) => {
 }
 
 const alignHorizontally = (direction) => {
-	selectionBounds.left = Math.round(alignmentPositions.value[direction])
+	const newLeft = Math.round(alignmentPositions.value[direction])
 	activeElements.value.forEach((element) => {
-		element.left = selectionBounds.left
+		const offset = selectionBounds.left - element.left
+		element.left = newLeft - offset
 	})
+	selectionBounds.left = newLeft
 }
 
 const alignVertically = (direction) => {
-	selectionBounds.top = Math.round(alignmentPositions.value[direction])
+	const newTop = Math.round(alignmentPositions.value[direction])
 	activeElements.value.forEach((element) => {
-		element.top = selectionBounds.top
+		const offset = selectionBounds.top - element.top
+		element.top = newTop - offset
 	})
+	selectionBounds.top = newTop
 }
 
 const performAlignment = (direction) => {
