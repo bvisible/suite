@@ -44,10 +44,7 @@ export async function getRouterCapabilities(meetingId) {
 			await sfuClient.connect(meetingId);
 		}
 
-		// Get capabilities directly from SFU
 		const capabilities = await sfuClient.getRouterRtpCapabilities();
-
-		// Initialize mediasoup device with the capabilities
 		await initializeMediasoupDevice(capabilities);
 
 		return {
@@ -553,7 +550,7 @@ export async function subscribeToProducer(meetingId, producerId) {
 
 		consumers.set(consumer.id, consumer);
 
-		// CRITICAL: Ensure consumer is resumed (MediaSoup consumers are created paused by default)
+		// Ensure consumer is resumed if paused
 		if (consumer.paused) {
 			try {
 				await consumer.resume();
@@ -561,49 +558,6 @@ export async function subscribeToProducer(meetingId, producerId) {
 				console.error(
 					`❌ Failed to resume consumer ${consumer.id}:`,
 					resumeError,
-				);
-				// Don't throw here, continue and see if video works anyway
-			}
-		}
-
-		// Wait a moment for video track to initialize after resume
-		if (consumer.kind === "video") {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-		}
-
-		// CRITICAL: Verify video track has dimensions (with multiple attempts)
-		if (consumer.kind === "video" && consumer.track) {
-			let dimensionCheckAttempts = 0;
-			const maxDimensionChecks = 5;
-			let hasValidDimensions = false;
-
-			while (
-				dimensionCheckAttempts < maxDimensionChecks &&
-				!hasValidDimensions
-			) {
-				const settings = consumer.track.getSettings();
-				dimensionCheckAttempts++;
-
-				if (
-					settings.width &&
-					settings.height &&
-					settings.width > 0 &&
-					settings.height > 0
-				) {
-					hasValidDimensions = true;
-					break;
-				}
-
-				// If no dimensions yet, wait and try again
-				if (dimensionCheckAttempts < maxDimensionChecks) {
-					await new Promise((resolve) => setTimeout(resolve, 1500));
-				}
-			}
-
-			// If we exhausted all attempts without getting dimensions
-			if (!hasValidDimensions) {
-				console.warn(
-					`⚠️ Video consumer created but track has no dimensions after ${maxDimensionChecks} attempts - continuing anyway`,
 				);
 			}
 		}
@@ -807,12 +761,8 @@ export async function runNetworkDiagnostics() {
 	}
 }
 
-/**
- * Helper function to ensure device is ready
- */
 async function ensureDeviceReady(meetingId) {
 	if (!mediasoupDevice || !mediasoupDevice.loaded) {
-		console.log("Device not ready, requesting router capabilities...");
 		await getRouterCapabilities(meetingId);
 	}
 
@@ -821,9 +771,6 @@ async function ensureDeviceReady(meetingId) {
 	}
 }
 
-/**
- * Clean up all mediasoup resources
- */
 export function cleanupMediasoup() {
 	// Close all producers
 	for (const producer of producers.values()) {

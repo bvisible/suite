@@ -108,12 +108,32 @@ export class SFUMeetingManager {
 		const results = {};
 
 		try {
-			if (localStream && shouldPublishVideo) {
-				results.videoProducer = await publishVideo(this.meetingId, localStream);
+			const attemptPublish = async (label) => {
+				const out = {};
+				if (localStream && shouldPublishVideo) {
+					out.videoProducer = await publishVideo(this.meetingId, localStream);
+				}
+				if (localStream && shouldPublishAudio) {
+					out.audioProducer = await publishAudio(this.meetingId, localStream);
+				}
+				return out;
+			};
+
+			// First attempt
+			Object.assign(results, await attemptPublish("attempt-1"));
+
+			// If nothing created, retry once after a short delay
+			if (!results.videoProducer && !results.audioProducer) {
+				console.warn(
+					"⚠️ No producers created on first attempt, retrying shortly...",
+				);
+				await new Promise((r) => setTimeout(r, 400));
+				const second = await attemptPublish("attempt-2");
+				Object.assign(results, second);
 			}
 
-			if (localStream && shouldPublishAudio) {
-				results.audioProducer = await publishAudio(this.meetingId, localStream);
+			if (!results.videoProducer && !results.audioProducer) {
+				console.warn("⚠️ No producers created by publishMedia after retries");
 			}
 
 			return results;
@@ -489,7 +509,7 @@ export class SFUMeetingManager {
 	/**
 	 * Find video element for a participant with comprehensive search
 	 */
-	async findVideoElement(participantId, maxAttempts = 30) {
+	async findVideoElement(participantId, maxAttempts = 10) {
 		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 			// Search in remoteVideos Map
 			const remoteVideo = this.remoteVideos.value.get(participantId);
@@ -523,7 +543,7 @@ export class SFUMeetingManager {
 			}
 
 			if (attempt < maxAttempts) {
-				await new Promise((resolve) => setTimeout(resolve, 200)); // Wait 200ms between attempts
+				await new Promise((resolve) => setTimeout(resolve, 100));
 			}
 		}
 
@@ -574,23 +594,15 @@ export class SFUMeetingManager {
 					`Video track is muted for user ${userId} - likely producer has muted their stream`,
 				);
 
-				// Set up a listener for when the producer unmutes
+				// On unmute, simply attempt to play without detaching/reattaching the stream
 				const handleTrackUnmute = () => {
-					console.log(
-						`Video track unmuted for user ${userId} - producer enabled their stream`,
-					);
-					// Force video element to recognize the unmuted stream
 					const videoElement = this.remoteVideos.value.get(userId);
 					if (videoElement?.srcObject) {
-						// Trigger a refresh by briefly removing and re-adding the stream
-						const currentStream = videoElement.srcObject;
-						videoElement.srcObject = null;
-						setTimeout(() => {
-							videoElement.srcObject = currentStream;
-							videoElement
-								.play()
-								.catch((e) => console.warn("Play after unmute failed:", e));
-						}, 10);
+						videoElement
+							.play()
+							.catch((e) =>
+								console.warn("Play after unmute failed:", e?.message || e),
+							);
 					}
 				};
 
@@ -810,50 +822,39 @@ export class SFUMeetingManager {
 				const existingStream = videoElement.srcObject;
 
 				if (existingStream) {
-					// Get existing tracks
+					// Add the new audio track to the existing MediaStream to avoid aborting playback
 					const existingTracks = existingStream.getTracks();
-					const newTracks = [...existingTracks];
-
-					// Add the new audio track if it's not already present
 					if (
 						audioConsumer.track &&
 						!existingTracks.find((t) => t.id === audioConsumer.track.id)
 					) {
-						newTracks.push(audioConsumer.track);
-
-						// Create new stream with all tracks
-						const newStream = new MediaStream(newTracks);
-						videoElement.srcObject = newStream;
-
-						console.log(
-							`🎵 Added audio track to existing video stream for user ${userId}`,
-						);
+						existingStream.addTrack(audioConsumer.track);
 					}
 				} else {
 					// No existing stream, create audio-only stream
 					if (audioConsumer.track) {
 						const audioStream = new MediaStream([audioConsumer.track]);
 						videoElement.srcObject = audioStream;
-
-						console.log(`🎵 Created audio-only stream for user ${userId}`);
 					}
 				}
 
 				// Ensure the video element is not muted so we can hear audio
 				videoElement.muted = false;
 
-				// Try to play to ensure audio starts
-				try {
-					await videoElement.play();
-					console.log(`✅ Audio playback started for user ${userId}`);
-				} catch (playError) {
-					console.warn(
-						`⚠️ Audio play failed for user ${userId}:`,
-						playError.message,
-					);
-
-					// Add user interaction handler for autoplay restrictions
-					this.addUserInteractionHandler(videoElement, userId);
+				// Start playback if currently paused
+				if (videoElement.paused) {
+					try {
+						await videoElement.play();
+					} catch (playError) {
+						console.warn(
+							`⚠️ Audio play failed for user ${userId}:`,
+							playError.message,
+						);
+						// Add user interaction handler for autoplay restrictions
+						if (playError?.name === "NotAllowedError") {
+							this.addUserInteractionHandler(videoElement, userId);
+						}
+					}
 				}
 			} else {
 				// No video element found, create an audio-only element
@@ -892,106 +893,49 @@ export class SFUMeetingManager {
 	 * Play video stream with robust retry logic
 	 */
 	async playVideoStream(videoElement, stream, userId) {
-		// Log track details
-		const videoTracks = stream.getVideoTracks();
-		videoTracks.forEach((track, index) => {
-			console.log(`📹 Video track ${index}:`, {
-				id: track.id,
-				kind: track.kind,
-				enabled: track.enabled,
-				muted: track.muted,
-				readyState: track.readyState,
-				label: track.label,
-				settings: track.getSettings?.(),
-			});
-		});
+		videoElement.srcObject = stream;
+		videoElement.autoplay = true;
+		videoElement.playsInline = true;
+		videoElement.preload = "auto";
+		// Mute only for local preview to avoid echo
+		videoElement.muted = userId === this.currentUser.value?.user_id;
 
-		const playVideo = async () => {
-			// Set the stream
-			videoElement.srcObject = stream;
-			// Only mute if this is the local user to prevent echo, otherwise allow audio
-			videoElement.muted = userId === this.currentUser.value?.user_id;
-			videoElement.playsInline = true;
-
-			// Wait for metadata and canplay
-			await new Promise((resolve, reject) => {
-				let resolved = false;
-				const timeout = setTimeout(() => {
-					if (!resolved) {
-						console.error(
-							`⏰ Timeout waiting for video to be ready for user ${userId}`,
-						);
-						reject(new Error("Timeout waiting for video to be ready"));
-					}
-				}, 8000); // Increase timeout to 8 seconds for better debugging
-
-				const onReady = () => {
-					if (!resolved) {
-						resolved = true;
-						clearTimeout(timeout);
-						resolve();
-					}
-				};
-
-				const onError = (error) => {
-					console.error(`❌ Video element error for user ${userId}: ${error}`);
-					console.error("📱 Video element error state:", {
-						error: videoElement.error,
-						readyState: videoElement.readyState,
-						networkState: videoElement.networkState,
-					});
-					if (!resolved) {
-						resolved = true;
-						clearTimeout(timeout);
-						reject(error);
-					}
-				};
-
-				// Add event listeners
-				videoElement.addEventListener("loadedmetadata", onReady, {
-					once: true,
-				});
-				videoElement.addEventListener("canplay", onReady, { once: true });
-				videoElement.addEventListener("error", onError, { once: true });
-
-				// Check if already loaded
-				if (videoElement.readyState >= 3) {
-					onReady();
-				}
-			});
-
-			// Add a short delay to ensure browser is ready
-			await new Promise((r) => setTimeout(r, 50));
-
-			// Try to play with retry logic
-			let attempts = 0;
-			while (attempts < 3) {
+		// Try immediate playback without blocking waits
+		try {
+			await videoElement.play();
+			return;
+		} catch (err) {
+			const tryPlay = async () => {
 				try {
 					await videoElement.play();
-					return;
-				} catch (playError) {
-					attempts++;
-					console.warn(
-						`⚠️ Video play failed (attempt ${attempts}):`,
-						playError.message,
-					);
+					cleanup();
+				} catch (_) {}
+			};
 
-					if (playError.name === "AbortError" && attempts < 3) {
-						await new Promise((r) => setTimeout(r, 150));
-					} else if (playError.name === "NotAllowedError") {
-						console.log(
-							`💡 User interaction required for video playback for ${userId}`,
-						);
-						this.addUserInteractionHandler(videoElement, userId);
-						break;
-					} else {
-						break;
-					}
-				}
+			const onLoadedMetadata = () => tryPlay();
+			const onCanPlay = () => tryPlay();
+			const onPlaying = () => cleanup();
+			const onError = () => cleanup();
+
+			const cleanup = () => {
+				videoElement.removeEventListener("loadedmetadata", onLoadedMetadata);
+				videoElement.removeEventListener("canplay", onCanPlay);
+				videoElement.removeEventListener("playing", onPlaying);
+				videoElement.removeEventListener("error", onError);
+			};
+
+			videoElement.addEventListener("loadedmetadata", onLoadedMetadata, {
+				once: true,
+			});
+			videoElement.addEventListener("canplay", onCanPlay, { once: true });
+			videoElement.addEventListener("playing", onPlaying, { once: true });
+			videoElement.addEventListener("error", onError, { once: true });
+
+			// If autoplay is blocked, prepare user interaction fallback
+			if (err?.name === "NotAllowedError") {
+				this.addUserInteractionHandler(videoElement, userId);
 			}
-		};
-
-		await playVideo();
+		}
 	}
 
 	/**

@@ -437,14 +437,29 @@ const joinMeetingRoom = async () => {
 				},
 			},
 		});
-
 		await sfuManager.connect();
 
 		// Hide loading indicator once we've joined
 		isConnecting.value = false;
 
 		// Step 3: Initialize mediasoup device with router capabilities from SFU
-		await sfuManager.initializeDevice();
+		try {
+			const initPromise = sfuManager.initializeDevice();
+			const timeoutPromise = new Promise((resolve) =>
+				setTimeout(resolve, 3000),
+			);
+			const result = await Promise.race([initPromise, timeoutPromise]);
+			if (result === undefined) {
+				console.warn(
+					"⏳ Device initialization took too long, continuing; will lazy-load on publish",
+				);
+			}
+		} catch (devErr) {
+			console.warn(
+				"⚠️ Device initialization error (will continue):",
+				devErr?.message || devErr,
+			);
+		}
 
 		// Step 4: Start publishing media if we have local stream
 		if (localStream && sfuManager) {
@@ -452,13 +467,21 @@ const joinMeetingRoom = async () => {
 				publishVideo: isCameraOn.value,
 				publishAudio: isMicOn.value,
 			};
-
-			const mediaResults = await sfuManager.publishMedia(
-				localStream,
-				publishOptions,
-			);
-			videoProducer = mediaResults.videoProducer;
-			audioProducer = mediaResults.audioProducer;
+			try {
+				const mediaResults = await sfuManager.publishMedia(
+					localStream,
+					publishOptions,
+				);
+				videoProducer = mediaResults.videoProducer;
+				audioProducer = mediaResults.audioProducer;
+			} catch (pubErr) {
+				console.error("❌ publishMedia failed", pubErr);
+			}
+		} else {
+			console.warn("⚠️ Skipping publish: localStream or sfuManager missing", {
+				hasStream: !!localStream,
+				hasManager: !!sfuManager,
+			});
 		}
 
 		// Step 5: Request existing participants and their media streams
