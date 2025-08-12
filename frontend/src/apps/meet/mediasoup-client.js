@@ -337,7 +337,8 @@ function setupSendTransportEvents(transport, meetingId) {
 					false,
 					appData,
 				);
-				callback({ id: response.producerId });
+				const producerId = response?.producerId || response?.id;
+				callback({ id: producerId });
 			} catch (error) {
 				console.error(`❌ Send transport produce failed for ${kind}:`, error);
 				errback(error);
@@ -643,8 +644,6 @@ export async function subscribeToProducer(meetingId, producerId) {
  */
 export async function requestExistingProducers(meetingId) {
 	try {
-		// Get existing producers directly from SFU instead of through Frappe server
-		const { getSFUClient } = await import("./utils/sfu-client.js");
 		const sfuClient = getSFUClient();
 
 		const existingProducers = await sfuClient.getExistingProducers(meetingId);

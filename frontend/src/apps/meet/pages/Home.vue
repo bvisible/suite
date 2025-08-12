@@ -45,84 +45,6 @@
 					<JoinMeetingForm />
 				</div>
 			</div>
-
-			<!-- Quick Stats for Non-Admin Users -->
-			<div v-if="!isAdmin" class="mt-12">
-				<h2 class="text-2xl font-bold text-gray-900 mb-6">System Status</h2>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-					<div class="bg-white p-6 rounded-lg shadow">
-						<div class="flex items-center">
-							<div
-								class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3"
-							>
-								<svg
-									class="w-4 h-4 text-white"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-										clip-rule="evenodd"
-									></path>
-								</svg>
-							</div>
-							<div>
-								<p class="text-sm font-medium text-gray-600">SFU Status</p>
-								<p class="text-lg font-semibold text-gray-900">Connected</p>
-							</div>
-						</div>
-					</div>
-
-					<div class="bg-white p-6 rounded-lg shadow">
-						<div class="flex items-center">
-							<div
-								class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3"
-							>
-								<svg
-									class="w-4 h-4 text-white"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"
-									></path>
-								</svg>
-							</div>
-							<div>
-								<p class="text-sm font-medium text-gray-600">Active Meetings</p>
-								<p class="text-lg font-semibold text-gray-900">
-									{{ activeMeetingsCount }}
-								</p>
-							</div>
-						</div>
-					</div>
-
-					<div class="bg-white p-6 rounded-lg shadow">
-						<div class="flex items-center">
-							<div
-								class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3"
-							>
-								<svg
-									class="w-4 h-4 text-white"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-										clip-rule="evenodd"
-									></path>
-								</svg>
-							</div>
-							<div>
-								<p class="text-sm font-medium text-gray-600">Server Load</p>
-								<p class="text-lg font-semibold text-gray-900">Normal</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 	</div>
 </template>
@@ -130,29 +52,4 @@
 <script setup>
 import JoinMeetingForm from "@/components/JoinMeetingForm.vue";
 import VideoPreview from "@/components/VideoPreview.vue";
-import { userResource } from "@/data/user";
-import { computed, onMounted, ref } from "vue";
-
-const activeMeetingsCount = ref(0);
-
-const isAdmin = computed(() => {
-	const user = userResource.data;
-	return (
-		user?.roles?.includes("System Manager") ||
-		user?.roles?.includes("Administrator") ||
-		false
-	);
-});
-
-onMounted(async () => {
-	// Load basic stats for non-admin users
-	if (!isAdmin.value) {
-		try {
-			// Simulate API call to get basic stats
-			activeMeetingsCount.value = Math.floor(Math.random() * 10);
-		} catch (error) {
-			console.error("Failed to load basic stats:", error);
-		}
-	}
-});
 </script>
