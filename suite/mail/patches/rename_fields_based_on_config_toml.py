@@ -7,7 +7,6 @@ FIELD_RENAMES = {
 		"admin_username": "fallback_admin_user",
 		"admin_password": "fallback_admin_password",
 		"admin_password_hash": "fallback_admin_secret",
-		"cluster_encryption_key": "cluster_key",
 		"proxy_trusted_networks": "server_proxy_trusted_networks",
 		"directory_storage": "storage_directory",
 		"data_storage": "storage_data",
@@ -23,8 +22,6 @@ FIELD_RENAMES = {
 	},
 	"Mail Server": {
 		"server": "hostname",
-		"cluster_bind_address": "cluster_bind_addr",
-		"cluster_advertise_address": "cluster_advertise_addr",
 	},
 	"Mail Cluster Store": {
 		"hostname": "host",

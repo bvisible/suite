@@ -18,10 +18,6 @@
   "column_break_9jti",
   "base_url",
   "api_key",
-  "cluster_settings_section",
-  "cluster_key",
-  "column_break_trr0",
-  "cluster_bind_port",
   "proxy_section",
   "server_proxy_trusted_networks",
   "column_break_egzt",
@@ -166,11 +162,6 @@
    "label": "Authentication"
   },
   {
-   "fieldname": "cluster_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Cluster Settings"
-  },
-  {
    "description": "Key for authenticating HTTP requests. Generate one via <i>Actions &gt; Generate API Key</i>.",
    "fieldname": "api_key",
    "fieldtype": "Password",
@@ -276,19 +267,6 @@
    "label": "In-Memory Storage"
   },
   {
-   "fieldname": "column_break_trr0",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "1179",
-   "description": "The UDP port the gossip protocol will bind to.",
-   "fieldname": "cluster_bind_port",
-   "fieldtype": "Int",
-   "label": "Bind Port",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "proxy_section",
    "fieldtype": "Section Break",
    "label": "Proxy"
@@ -390,14 +368,6 @@
    "label": "Verification Timeout (Milliseconds)",
    "non_negative": 1,
    "reqd": 1
-  },
-  {
-   "description": "The key used to encrypt gossip messages.",
-   "fieldname": "cluster_key",
-   "fieldtype": "Password",
-   "label": "Encryption Key",
-   "no_copy": 1,
-   "read_only": 1
   },
   {
    "description": "Enable proxy protocol for connections from these networks.",
@@ -838,7 +808,7 @@
    "link_fieldname": "backend_name"
   }
  ],
- "modified": "2025-08-07 13:01:43.104819",
+ "modified": "2025-08-12 11:43:32.833381",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Cluster",
