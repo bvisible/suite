@@ -4,6 +4,7 @@ import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
 import { activeElement } from '@/stores/element'
 
+export const editorMap = reactive({})
 const activeEditor = ref(null)
 
 const editorStyles = reactive({
@@ -278,8 +279,8 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const initTextEditor = (content, editorMetadata) => {
-		return new Editor({
+	const initTextEditor = (id, content, editorMetadata) => {
+		const editorInstance = new Editor({
 			extensions: extensions,
 			editable: false,
 			content: content,
@@ -288,6 +289,10 @@ export const useTextEditor = () => {
 			onSelectionUpdate: ({ editor }) =>
 				updateEditor({ transaction: editor.state.tr, editor }),
 		})
+
+		editorMap[id] = editorInstance
+
+		return editorInstance
 	}
 
 	watch(

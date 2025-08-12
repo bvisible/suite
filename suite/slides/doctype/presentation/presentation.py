@@ -26,8 +26,8 @@ class Presentation(Document):
 			if not old_slide:
 				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
-				old_thumbnail = old_slides[slide.idx - 1].thumbnail
-				delete_old_thumbnail(slide.name, old_thumbnail)
+				# old_thumbnail = old_slides[slide.idx - 1].thumbnail
+				# delete_old_thumbnail(slide.name, old_thumbnail)
 				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
 
 	def validate(self):

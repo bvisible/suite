@@ -57,7 +57,7 @@ import {
 	shallowRef,
 } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { useDebouncedRefHistory } from '@vueuse/core'
+import { useManualRefHistory } from '@vueuse/core'
 
 import { call, toast } from 'frappe-ui'
 
@@ -104,6 +104,8 @@ import {
 
 import html2canvas from 'html2canvas'
 import { generateUniqueId } from '@/utils/helpers'
+
+import { editorMap } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
 let thumbnailGenerationInterval = null
@@ -222,18 +224,54 @@ const handleGlobalShortcuts = (e) => {
 				openLayoutDialog('insert')
 			}
 			break
-		case 'z':
-			e.preventDefault()
-			if (e.shiftKey && e.metaKey && historyControl?.canRedo) {
-				historyControl.redo()
-			} else if (e.metaKey && historyControl?.canUndo) {
-				historyControl.undo()
+	}
+}
+
+const ongoingHistoryUpdate = ref(false)
+
+const handleUndo = async () => {
+	const snapshot = historyControl.undoStack.value[snapshotIndex]?.snapshot
+	if (!snapshot) return
+
+	const snapshotActiveSlide = snapshot.slideIndex
+	if (snapshotActiveSlide != slideIndex.value) {
+		await changeSlide(snapshotActiveSlide)
+	}
+
+	ongoingHistoryUpdate.value = true
+
+	slides.value = snapshot.slides
+	historyControl.undo()
+
+	slides.value.forEach((slide, index) => {
+		slide.elements.forEach((element) => {
+			if (element.type == 'text') {
+				const content = snapshot.slides[index].elements.find(
+					(el) => el.id == element.id,
+				)?.content
+				if (content) {
+					editorMap[element.id]?.commands.setContent(content)
+				}
 			}
-			break
+		})
+	})
+
+	ongoingHistoryUpdate.value = false
+	snapshotIndex += 1
+}
+
+const handleUndoRedo = (e) => {
+	if (historyControl.canRedo && e.shiftKey && e.metaKey) {
+		e.preventDefault()
+		historyControl.redo()
+	} else if (historyControl.canUndo && e.metaKey) {
+		e.preventDefault()
+		handleUndo()
 	}
 }
 
 const handleKeyDown = (e) => {
+	if (e.key == 'z') return handleUndoRedo(e)
 	const editingText =
 		document.activeElement.getAttribute('contenteditable') ||
 		document.activeElement.tagName == 'INPUT' ||
@@ -272,12 +310,13 @@ const handleThumbnailGeneration = async (index, thumbnailHtml) => {
 			index = slideIndex.value
 			thumbnailHtml = await getThumbnailHtml()
 		}
+		if (!thumbnailHtml || !slides.value) return
 		slides.value[index].thumbnail = await getSlideThumbnail(thumbnailHtml)
 		lastThumbnailTime = Date.now()
 	}
 }
 
-const changeSlide = async (index, updateCurrent = true) => {
+const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
 	resetFocus()
@@ -285,10 +324,7 @@ const changeSlide = async (index, updateCurrent = true) => {
 	// reset the pan and zoom to capture thumbnail
 	slideContainerRef.value.togglePanZoom()
 
-	await nextTick(async () => {
-		const thumbnailHtml = await getThumbnailHtml()
-		handleThumbnailGeneration(slideIndex.value, thumbnailHtml)
-
+	nextTick(() => {
 		slideIndex.value = index
 
 		// re-enable pan and zoom
@@ -344,7 +380,7 @@ const deleteSlide = () => {
 
 	if (slideIndex.value == totalLength - 1) {
 		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeSlide(slideIndex.value - 1, false)
+		changeSlide(slideIndex.value - 1)
 	}
 
 	// delete the current slide
@@ -394,17 +430,26 @@ const addRouteSlug = async (slug) => {
 	})
 }
 
+let snapshotIndex = null
+
+const historyState = ref({
+	slides: [],
+	slideIndex: 0,
+	activeElementId: null,
+})
+
 const initHistory = () => {
-	historyControl = useDebouncedRefHistory(slides, {
+	updateHistoryState()
+	historyControl = useManualRefHistory(historyState, {
 		deep: true,
-		debounce: 200,
-		maxLength: 10,
+		maxLength: 20,
 	})
+	snapshotIndex = 0
 }
 
 const initIntervals = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
-	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 5000)
+	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 1000)
 }
 
 const loadPresentation = async (id) => {
@@ -425,6 +470,24 @@ onBeforeRouteLeave((to, from, next) => {
 })
 
 let historyControl
+
+const updateHistoryState = () => {
+	historyState.value = {
+		slides: JSON.parse(JSON.stringify(slides.value)),
+		slideIndex: slideIndex.value,
+		activeElementId: activeElement.value?.id || null,
+	}
+}
+
+watch(
+	() => slides.value,
+	(newSlides) => {
+		if (!newSlides || !historyControl || ongoingHistoryUpdate.value) return
+		updateHistoryState()
+		historyControl.commit()
+	},
+	{ deep: true },
+)
 
 onActivated(() => {
 	const id = props.presentationId
