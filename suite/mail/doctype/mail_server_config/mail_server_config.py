@@ -1,9 +1,14 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
+from mail.backend import get_mail_backend_api
+from mail.jmap import raise_for_status
 from mail.utils import flatten_dict, password_or_none
 
 LOCAL_KEYS = [
@@ -79,6 +84,49 @@ class MailServerConfig(Document):
 		"""Generates the TOML configuration for the Mail Server."""
 
 		self.config_toml = get_config_toml(self.server)
+
+	@frappe.whitelist()
+	def deploy(self) -> None:
+		"""Deploys the configuration to the Mail Server."""
+
+		frappe.only_for("System Manager")
+
+		values = []
+		for cfg in self.get_password("config_toml").split("\n"):
+			key, value = cfg.split("=", 1)
+			key = key.strip()
+			value = value.strip().strip('"')
+			values.append([key, value])
+
+		data = [
+			{
+				"type": "insert",
+				"prefix": None,
+				"values": values,
+				"assert_empty": False,
+			}
+		]
+		backend_api = get_mail_backend_api("Mail Server", self.server)
+		response = backend_api.request("POST", "/api/settings", data=json.dumps(data))
+		raise_for_status(response)
+
+		if response_json := response.json():
+			if response_json.get("error"):
+				frappe.throw(
+					title=_("Failed to deploy configuration"), msg=json.dumps(response_json, indent=4)
+				)
+			elif response_json.get("data") is None:
+				frappe.msgprint(
+					_("Configuration deployed successfully."),
+					alert=True,
+					indicator="green",
+				)
+			else:
+				frappe.msgprint(
+					_(
+						"Configuration deployed successfully, but the response from the server was unexpected: {response}"
+					).format(response=json.dumps(response_json))
+				)
 
 
 def create_mail_server_config(server: str) -> "MailServerConfig":
