@@ -13,11 +13,7 @@
 				@before-leave="beforeSlideLeave"
 				@leave="slideLeave"
 			>
-				<div
-					:key="slideIndex"
-					:style="slideStyles"
-					@click="changeSlide(slideIndex + 1, false)"
-				>
+				<div :key="slideIndex" :style="slideStyles" @click="changeSlide(slideIndex + 1)">
 					<SlideElement
 						v-for="element in currentSlide?.elements"
 						:key="element.id"
@@ -187,9 +183,9 @@ const handleFullScreenChange = () => {
 
 const handleKeyDown = (e) => {
 	if (e.key == 'ArrowRight' || e.key == 'ArrowDown') {
-		changeSlide(slideIndex.value + 1, false)
+		changeSlide(slideIndex.value + 1)
 	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
-		changeSlide(slideIndex.value - 1, false)
+		changeSlide(slideIndex.value - 1)
 	}
 }
 

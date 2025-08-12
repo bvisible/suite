@@ -26,7 +26,7 @@ const element = defineModel('element', {
 
 const emit = defineEmits(['clearTimeouts'])
 
-const editor = initTextEditor(element.value.content, element.value.editorMetadata)
+const editor = initTextEditor(element.value.id, element.value.content, element.value.editorMetadata)
 
 const isEditable = computed(() => focusElementId.value == element.value.id)
 
