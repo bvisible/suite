@@ -214,24 +214,6 @@ def get_config_toml(server: str) -> str | None:
 
 		return result
 
-	def _get_seed_nodes(server: str, cluster: str) -> dict:
-		seed_nodes = [
-			s[frappe.scrub(s["cluster_advertise_addr"])]
-			for s in frappe.db.get_all(
-				"Mail Server",
-				filters={"enabled": 1, "cluster": cluster, "name": ["!=", server]},
-				fields=[
-					"private_ipv4",
-					"private_ipv6",
-					"public_ipv4",
-					"public_ipv6",
-					"cluster_advertise_addr",
-				],
-			)
-			if s["cluster_advertise_addr"]
-		]
-		return _format_keys(seed_nodes)
-
 	def _get_local_keys(outbound_only: bool = False) -> dict:
 		local_keys = LOCAL_KEYS + (
 			["session.rcpt.directory", "queue.strategy.route"] if outbound_only else []
@@ -460,12 +442,6 @@ def get_config_toml(server: str) -> str | None:
 		},
 		"cluster": {
 			"node-id": server.cluster_node_id,
-			"bind-addr": server.cluster_bind_addr,
-			"bind-port": cluster.cluster_bind_port,
-			"advertise-addr": server.get(frappe.scrub(server.cluster_advertise_addr)),
-			"key": password_or_none(cluster, "cluster_key"),
-			"heartbeat": _format_value_or_zero(server.cluster_heartbeat, "s"),
-			"seed-nodes": _get_seed_nodes(server.name, cluster.name),
 		},
 		"config": {
 			"local-keys": _get_local_keys(bool(server.outbound_only)),

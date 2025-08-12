@@ -15,17 +15,11 @@
   "base_url",
   "network_settings_section",
   "server_max_connections",
-  "private_ipv4",
-  "private_ipv6",
   "column_break_3m4p",
   "public_ipv4",
   "public_ipv6",
   "cluster_settings_section",
   "cluster_node_id",
-  "cluster_bind_addr",
-  "column_break_m8qz",
-  "cluster_advertise_addr",
-  "cluster_heartbeat",
   "tls_tab",
   "acme_providers",
   "tls_certificates",
@@ -71,19 +65,6 @@
   },
   {
    "default": "1",
-   "description": "The interval between heartbeats in the cluster.",
-   "fieldname": "cluster_heartbeat",
-   "fieldtype": "Int",
-   "label": "Heartbeat (Seconds)",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_m8qz",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "1",
    "depends_on": "eval: !doc.__islocal",
    "description": "Disable to stop this mail server from sending or receiving emails.",
    "fieldname": "enabled",
@@ -101,13 +82,6 @@
    "read_only": 1
   },
   {
-   "description": "Private IPv4 address of this mail server (used for internal communication).",
-   "fieldname": "private_ipv4",
-   "fieldtype": "Data",
-   "label": "Private IPv4",
-   "no_copy": 1
-  },
-  {
    "fieldname": "column_break_3m4p",
    "fieldtype": "Column Break"
   },
@@ -118,13 +92,6 @@
    "label": "Public IPv6",
    "no_copy": 1,
    "read_only": 1
-  },
-  {
-   "description": "Private IPv6 address of this mail server (used for internal communication).",
-   "fieldname": "private_ipv6",
-   "fieldtype": "Data",
-   "label": "Private IPv6",
-   "no_copy": 1
   },
   {
    "fieldname": "listeners_tab",
@@ -188,21 +155,6 @@
    "label": "Base URL"
   },
   {
-   "description": "The address the gossip protocol will bind to.",
-   "fieldname": "cluster_bind_addr",
-   "fieldtype": "Data",
-   "label": "Bind Address",
-   "no_copy": 1
-  },
-  {
-   "default": "Private IPv4",
-   "description": "The address the gossip protocol will advertise to other nodes in the cluster.",
-   "fieldname": "cluster_advertise_addr",
-   "fieldtype": "Select",
-   "label": "Advertise Address",
-   "options": "\nPrivate IPv4\nPrivate IPv6\nPublic IPv4\nPublic IPv6"
-  },
-  {
    "description": "Hostname of the mail server.",
    "fieldname": "hostname",
    "fieldtype": "Data",
@@ -233,7 +185,7 @@
    "link_fieldname": "server"
   }
  ],
- "modified": "2025-06-03 15:34:02.200496",
+ "modified": "2025-08-12 11:52:15.761533",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Server",
