@@ -8,6 +8,9 @@ import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
 
+import { generateHTML } from '@tiptap/core'
+import { extensions } from '@/stores/tiptapSetup'
+
 const activeElementIds = ref([])
 const focusElementId = ref(null)
 const pairElementId = ref(null)
@@ -67,7 +70,7 @@ const selectAndCenterElement = (elementId) => {
 }
 
 const getElementContent = (element) => {
-	return {
+	const contentJSON = {
 		type: 'doc',
 		content: [
 			{
@@ -86,7 +89,7 @@ const getElementContent = (element) => {
 									fontSize: element.fontSize,
 									fontFamily: element.fontFamily,
 									color: element.color,
-									letterSpacing: 0,
+									letterSpacing: element.letterSpacing,
 									opacity: 100,
 								},
 							},
@@ -96,15 +99,18 @@ const getElementContent = (element) => {
 			},
 		],
 	}
+
+	return generateHTML(contentJSON, extensions)
 }
 
 const addTextElement = async (text) => {
 	const elementPresets = {
 		textAlign: 'left',
 		fontSize: 28,
-		fontFamily: 'Arial',
+		fontFamily: 'Inter',
 		color: guessTextColorFromBackground(currentSlide.value.background),
 		innerText: text,
+		letterSpacing: 0,
 	}
 
 	const element = {
@@ -119,6 +125,7 @@ const addTextElement = async (text) => {
 	}
 
 	currentSlide.value.elements.push(element)
+
 	selectAndCenterElement(element.id)
 }
 

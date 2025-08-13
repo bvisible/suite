@@ -46,7 +46,7 @@ export const useTextEditor = () => {
 			color: activeStyles.color || null,
 			lineHeight: activeStyles.lineHeight,
 			letterSpacing: parseInt(activeStyles.letterSpacing, 10),
-			opacity: parseInt(activeStyles.opacity, 10),
+			opacity: activeStyles.opacity,
 		})
 	}
 
@@ -268,7 +268,7 @@ export const useTextEditor = () => {
 				break
 		}
 
-		activeElement.value.content = currentEditor.getJSON()
+		activeElement.value.content = currentEditor.getHTML()
 	}
 
 	const getEditorProps = (editorMetadata) => {
@@ -280,7 +280,7 @@ export const useTextEditor = () => {
 	}
 
 	const initTextEditor = (id, content, editorMetadata) => {
-		const editorInstance = new Editor({
+		activeEditor.value = new Editor({
 			extensions: extensions,
 			editable: false,
 			content: content,
@@ -289,10 +289,6 @@ export const useTextEditor = () => {
 			onSelectionUpdate: ({ editor }) =>
 				updateEditor({ transaction: editor.state.tr, editor }),
 		})
-
-		editorMap[id] = editorInstance
-
-		return editorInstance
 	}
 
 	watch(

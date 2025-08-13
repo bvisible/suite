@@ -1,10 +1,18 @@
 <template>
 	<EditorContent
-		:editor="editor"
+		v-if="activeElement?.id == element.id"
+		:editor="activeEditor"
 		:style="editorStyles"
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
+	<div
+		v-else
+		v-html="element.content"
+		class="textElement"
+		:style="element.editorMetadata"
+		@dblclick="handleDoubleClick"
+	></div>
 </template>
 
 <script setup>
@@ -26,8 +34,6 @@ const element = defineModel('element', {
 
 const emit = defineEmits(['clearTimeouts'])
 
-const editor = initTextEditor(element.value.id, element.value.content, element.value.editorMetadata)
-
 const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
@@ -45,7 +51,6 @@ const handleMouseDown = (e) => {
 const makeElementEditable = () => {
 	emit('clearTimeouts')
 
-	activeEditor.value = editor
 	activeElementIds.value = []
 
 	activeEditor.value.setEditable(true)
@@ -88,7 +93,10 @@ const blurAndSaveContent = (id) => {
 	if (isEditorEmpty()) {
 		deleteElements(null, [id])
 	} else {
-		element.value.content = editor.getJSON()
+		element.value.content = activeEditor.value.getHTML()
+		element.value.editorMetadata = {
+			lineHeight: parseFloat(activeEditor.value.view.dom.style['line-height']),
+		}
 	}
 }
 
@@ -103,12 +111,12 @@ watch(
 
 watch(
 	() => activeElement.value,
-	(el, oldEl) => {
-		if (oldEl?.type == 'text' && oldEl.id == element.value.id) {
-			blurAndSaveContent(oldEl.id)
+	(newVal, oldVal) => {
+		if (oldVal?.type == 'text') {
+			blurAndSaveContent(oldVal.id)
 		}
-		if (el?.type == 'text' && el.id == element.value.id) {
-			activeEditor.value = editor
+		if (newVal?.type == 'text') {
+			initTextEditor(newVal.id, newVal.content, newVal.editorMetadata)
 		}
 	},
 )
@@ -119,38 +127,44 @@ watch(
 	caret-color: currentColor;
 }
 
-.tiptap > ul {
+.tiptap ul,
+.textElement > ul {
 	list-style: none;
 	padding-left: 0;
 }
 
-.tiptap > ul li {
+.tiptap > ul li,
+.textElement > ul li {
 	position: relative;
 	padding-left: 0.6em;
 }
 
-.tiptap > ul li::before {
+.tiptap > ul li::before,
+.textElement > ul li::before {
 	content: '•';
 	position: absolute;
 	left: 0;
-	top: 0.1em;
+	top: 0;
 	font-size: 1em;
 }
 
-.tiptap ol {
+.tiptap ol,
+.textElement ol {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	counter-reset: step;
 }
 
-.tiptap ol li {
+.tiptap ol li,
+.textElement ol li {
 	counter-increment: step;
 	position: relative;
 	padding-left: calc(2ch + 0.2em);
 }
 
-.tiptap ol li::before {
+.tiptap ol li::before,
+.textElement ol li::before {
 	content: counter(step) '.';
 	position: absolute;
 	left: 0;
