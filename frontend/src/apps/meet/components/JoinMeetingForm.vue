@@ -6,7 +6,7 @@
 
 		<div class="space-y-4">
 			<Card class="p-6">
-				<div class="space-y-4">
+				<form class="space-y-4" @submit="joinMeeting">
 					<FormControl
 						label="Meeting Code"
 						class="m-0.5"
@@ -18,12 +18,11 @@
 						variant="solid"
 						size="lg"
 						class="w-full"
-						@click="joinMeeting"
 						:disabled="!isMeetingCodeValid(meetingCode)"
 					>
 						Join
 					</Button>
-				</div>
+				</form>
 			</Card>
 
 			<div class="text-center">
@@ -42,18 +41,16 @@
 <script setup>
 import { Button, Card, FormControl, createResource, toast } from "frappe-ui";
 import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const meetingCode = ref("");
 
 const joinMeeting = () => {
 	if (meetingCode.value.trim()) {
-		console.log("Joining meeting:", meetingCode.value);
-		toast.promise(createMeeting.submit(), {
-			loading: "Joining meeting...",
-			success: "Meeting joined successfully!",
-			error: "Failed to join meeting. Please try again.",
+		router.push({
+			name: "Meeting",
+			params: { meetingId: meetingCode.value.trim() },
 		});
 	} else {
 		toast.error("Please enter a valid meeting code.");
