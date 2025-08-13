@@ -55,7 +55,7 @@
 				:options="textFonts"
 				size="sm"
 				variant="subtle"
-				:modelValue="editorStyles.fontFamily"
+				:modelValue="displayFont"
 				@update:modelValue="(font) => updateProperty('fontFamily', font.value)"
 			/>
 
@@ -98,7 +98,7 @@
 				label="Letter Spacing"
 				:rangeStart="-10"
 				:rangeEnd="50"
-				:modelValue="editorStyles.letterSpacing"
+				:modelValue="editorStyles.letterSpacing || 0"
 				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
 			/>
 		</template>
@@ -110,7 +110,7 @@
 				label="Opacity"
 				:rangeStart="0"
 				:rangeEnd="100"
-				:modelValue="editorStyles.opacity"
+				:modelValue="parseFloat(editorStyles.opacity)"
 				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
 			/>
 		</template>
@@ -281,6 +281,10 @@ const getTabClasses = (alignValue) => {
 	}
 	return `${baseClasses} text-gray-600`
 }
+
+const displayFont = computed(() => {
+	return editorStyles.fontFamily?.replace(/['"]/g, '')
+})
 </script>
 
 <style scoped>
