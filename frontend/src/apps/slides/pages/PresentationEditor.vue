@@ -343,15 +343,21 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 
 	const slide = {}
 	if (layout) {
-		Object.assign(slide, layout)
+		slide.background = layout.background
+		slide.transition = layout.transition
+		slide.transitionDuration = layout.transitionDuration
+		slide.thumbnail = layout.thumbnail
+		slide.elements = layout.elements.map((element) => {
+			return {
+				...element,
+				id: generateUniqueId(),
+			}
+		})
 	}
 
 	// override metadata and generate unique IDs for elements
 	slide.name = ''
 	slide.parent = presentationId.value
-	slide.elements.forEach((element) => {
-		element.id = generateUniqueId()
-	})
 
 	return slide
 }

@@ -112,10 +112,13 @@ watch(
 watch(
 	() => activeElement.value,
 	(newVal, oldVal) => {
-		if (oldVal?.type == 'text') {
+		if (oldVal?.type == 'text' && oldVal.id == element.value.id) {
 			blurAndSaveContent(oldVal.id)
 		}
 		if (newVal?.type == 'text') {
+			if (activeEditor.value) {
+				activeEditor.value.destroy()
+			}
 			initTextEditor(newVal.id, newVal.content, newVal.editorMetadata)
 		}
 	},
