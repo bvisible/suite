@@ -220,7 +220,7 @@ const presetTextStyles = [
 		value: 'subtitle',
 		bold: true,
 		fontSize: 40,
-		lineHeight: 1,
+		lineHeight: 1.5,
 		textAlign: 'center',
 	},
 	{

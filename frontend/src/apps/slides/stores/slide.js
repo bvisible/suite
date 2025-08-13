@@ -40,6 +40,29 @@ const replaceVideoWithPoster = async (videoElement) => {
 	await videoElement.replaceWith(img)
 }
 
+const getFirstElementWithStyle = (container, property) => {
+	const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+		acceptNode: (node) => {
+			return node.style[property] ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+		},
+	})
+
+	return walker.nextNode()
+}
+
+const getVerticalOffset = (element) => {
+	// in order to get correct baseline offset, find first element with font size and line height
+	const fontSizeNode = getFirstElementWithStyle(element, 'font-size')
+	const lineHeightNode = getFirstElementWithStyle(element, 'line-height')
+
+	const fontSize = parseFloat(fontSizeNode.style.fontSize)
+	let lineHeight = lineHeightNode.style.lineHeight
+
+	lineHeight = lineHeight == 'normal' ? fontSize * 1.2 : parseFloat(lineHeight)
+
+	return (lineHeight - fontSize) / 2
+}
+
 const getThumbnailHtml = async () => {
 	const clone = slideRef.value.cloneNode(true)
 
@@ -52,9 +75,9 @@ const getThumbnailHtml = async () => {
 		if (element.hasAttribute('data-index')) {
 			element.style.position = 'absolute'
 			// compensate for baseline alignment done by html2canvas for text
-			if (element.firstChild.hasAttribute('contenteditable')) {
-				const offsetTop = element.firstChild.style.fontSize.replace('px', '') * 0.4
-				element.style.top = `${parseFloat(element.style.top) - offsetTop}px`
+			if (element.firstChild.firstChild.hasAttribute('contenteditable')) {
+				const verticalOffset = getVerticalOffset(element)
+				element.style.top = `${parseFloat(element.style.top) + verticalOffset}px`
 			}
 		}
 
@@ -66,7 +89,9 @@ const getThumbnailHtml = async () => {
 			element.tagName == 'DIV' &&
 			element.textContent.trim() == '' &&
 			element.children.length == 0
+
 		const removeDiv = isEmpty || element.classList.contains('overlay')
+
 		if (removeDiv) {
 			element.remove()
 		}
