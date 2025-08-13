@@ -31,9 +31,12 @@ export class SFUMeetingManager {
 	initialize(options) {
 		this.meetingId = options.meetingId;
 		this.currentUser = options.currentUser;
-		this.participants = options.participants;
-		this.consumers = options.consumers;
-		this.remoteVideos = options.remoteVideos;
+		this.participants = options.participants ||
+			this.participants || { value: new Map() };
+		this.consumers = options.consumers ||
+			this.consumers || { value: new Map() };
+		this.remoteVideos = options.remoteVideos ||
+			this.remoteVideos || { value: new Map() };
 		this.eventHandlers = options.eventHandlers || {};
 	}
 
@@ -1045,6 +1048,8 @@ export class SFUMeetingManager {
 				audio_enabled: true,
 				video_enabled: true,
 			};
+			console.log("👥 Participant joined:", participant);
+
 			this.participants.value.set(data.participantId, participant);
 
 			// Notify parent component
@@ -1054,15 +1059,41 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("participant_left", (data) => {
-			console.log("👋 Participant left via SFU:", data);
-			this.participants.value.delete(data.participantId);
+			// Avoid dereferencing possibly null refs
+			const hasParticipantsRef = !!this.participants?.value;
+			console.log(
+				"👋 Participant left via SFU:",
+				data,
+				hasParticipantsRef ? this.participants.value : null,
+			);
 
-			// Clean up consumers for this participant
-			for (const [consumerId, consumer] of this.consumers.value.entries()) {
-				if (consumer.appData?.userId === data.participantId) {
-					consumer.close();
-					this.consumers.value.delete(consumerId);
+			// Remove participant from participants map
+			this.participants?.value?.delete(data.participantId);
+
+			// Clean up consumers for this participant (check both appData.userId and our participantId tag)
+			for (const [consumerId, consumer] of this.consumers?.value?.entries?.() ||
+				[]) {
+				if (
+					consumer.appData?.userId === data.participantId ||
+					consumer.participantId === data.participantId
+				) {
+					try {
+						consumer.close();
+					} catch (_) {}
+					this.consumers?.value?.delete(consumerId);
 				}
+			}
+
+			// Clean up remote video element if present
+			const videoEl = this.remoteVideos?.value?.get?.(data.participantId);
+			if (videoEl) {
+				try {
+					for (const track of videoEl.srcObject?.getTracks?.() || []) {
+						track.stop();
+					}
+					videoEl.srcObject = null;
+				} catch (_) {}
+				this.remoteVideos?.value?.delete?.(data.participantId);
 			}
 
 			// Notify parent component
