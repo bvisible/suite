@@ -172,7 +172,7 @@
 </template>
 
 <script setup>
-import { Avatar, Button, getCachedDocumentResource } from "frappe-ui";
+import { Avatar, Button, getCachedDocumentResource, toast } from "frappe-ui";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session.js";
@@ -426,9 +426,14 @@ const joinMeetingRoom = async () => {
 			eventHandlers: {
 				onParticipantJoined: (participant) => {
 					console.log("📋 SFU participant joined handler:", participant);
+					const name =
+						participant?.user_name || participant?.user_id || "Participant";
+					toast.success(`${name} joined`);
 				},
 				onParticipantLeft: (data) => {
 					console.log("📋 SFU participant left handler:", data);
+					const name = data?.user_name || data?.user_id || "Participant";
+					toast.success(`${name} left`);
 				},
 				onConsumerCreated: (consumer, data) => {
 					console.log("📋 SFU consumer created handler:", consumer, data);
