@@ -319,17 +319,7 @@ const handleThumbnailGeneration = async (index, thumbnailHtml) => {
 const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
-	resetFocus()
-
-	// reset the pan and zoom to capture thumbnail
-	slideContainerRef.value.togglePanZoom()
-
-	nextTick(() => {
-		slideIndex.value = index
-
-		// re-enable pan and zoom
-		slideContainerRef.value.togglePanZoom()
-	})
+	slideIndex.value = index
 }
 
 const getNewSlide = (toDuplicate = false, layoutId) => {
