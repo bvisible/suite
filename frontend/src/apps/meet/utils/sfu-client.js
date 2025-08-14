@@ -328,6 +328,23 @@ class SFUClient {
 		});
 	}
 
+	async getRoomParticipants() {
+		return new Promise((resolve, reject) => {
+			if (!this.connected) {
+				reject(new Error("Not connected to SFU"));
+				return;
+			}
+
+			this.socket.emit("get_room_participants", {}, (response) => {
+				if (response.success) {
+					resolve(response.participants);
+				} else {
+					reject(new Error(response.error));
+				}
+			});
+		});
+	}
+
 	async closeProducer(producerId) {
 		return new Promise((resolve, reject) => {
 			if (!this.connected) {

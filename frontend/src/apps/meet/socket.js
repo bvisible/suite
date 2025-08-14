@@ -243,11 +243,6 @@ export async function joinMeeting(meetingId) {
 			throw new Error(response.error || "Failed to join meeting");
 		}
 
-		console.log("✅ Successfully joined meeting in Frappe:", response);
-
-		// Note: SFU connection will be established separately via SFUClient
-		// when WebRTC operations are initiated
-
 		return response;
 	} catch (error) {
 		console.error("❌ Error joining meeting:", error);
@@ -258,6 +253,10 @@ export async function joinMeeting(meetingId) {
 export async function leaveMeeting(meetingId) {
 	if (!socket) {
 		throw new Error("Socket not initialized");
+	}
+
+	if (!meetingId) {
+		throw new Error("Invalid meeting ID");
 	}
 
 	try {
@@ -328,22 +327,12 @@ export async function sendMediaControl(meetingId, action) {
 	}
 
 	try {
-		// Send through socket for immediate feedback to participants
 		socket.emit("media_control", {
 			meeting_id: meetingId,
 			action: action,
 		});
 
-		// Also call API for SFU coordination if needed
-		const response = await frappeRequest({
-			url: "sae.utils.socket_handlers.handle_media_control",
-			params: {
-				meeting_id: meetingId,
-				action: action,
-			},
-		});
-
-		return response;
+		return { success: true };
 	} catch (error) {
 		console.error("Error sending media control:", error);
 		throw error;

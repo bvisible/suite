@@ -23,6 +23,8 @@ export class SFUMeetingManager {
 		this.remoteVideos = null;
 		this.eventHandlers = {};
 		this.isConnected = false;
+		this.initialSyncInProgress = false;
+		this.bufferedProducerEvents = [];
 	}
 
 	/**
@@ -151,13 +153,178 @@ export class SFUMeetingManager {
 	 */
 	async setupExistingParticipants() {
 		try {
+			this.initialSyncInProgress = true;
+			// Seed participants list from SFU room roster
+			try {
+				const roster = await this.sfuClient.getRoomParticipants();
+				if (Array.isArray(roster)) {
+					for (const p of roster) {
+						if (p.user_id && p.user_id !== this.currentUser.value?.user_id) {
+							const existing = this.participants.value.get(p.user_id);
+							if (!existing) {
+								this.participants.value.set(p.user_id, {
+									user_id: p.user_id,
+									user_name: p.info?.name || p.user_id,
+									initials: (p.info?.name || p.user_id)
+										.split(" ")
+										.map((n) => n[0])
+										.join("")
+										.toUpperCase()
+										.slice(0, 2),
+									audio_enabled:
+										typeof p.info?.audio_enabled === "boolean"
+											? p.info.audio_enabled
+											: false,
+									video_enabled:
+										typeof p.info?.video_enabled === "boolean"
+											? p.info.video_enabled
+											: false,
+								});
+							}
+						}
+					}
+					this.participants.value = new Map(this.participants.value);
+				}
+			} catch (e) {
+				console.warn("Failed to fetch room roster:", e?.message || e);
+			}
 			// Request existing producers from the SFU
 			await this.requestExistingProducers();
+
+			// Reconcile: ensure all consumers are attached based on current flags/tiles
+			try {
+				await this.reconcileAllAttachments();
+			} catch (e) {
+				console.warn("Reconcile attachments failed:", e?.message || e);
+			}
+
+			// Flush any producers announced during initial sync that we skipped
+			try {
+				await this.flushBufferedProducers();
+			} catch (e) {
+				console.warn("Flush buffered producers failed:", e?.message || e);
+			}
+
+			this.initialSyncInProgress = false;
 
 			return true;
 		} catch (error) {
 			console.error("❌ Error setting up existing participants:", error);
 			throw error;
+		}
+	}
+
+	/**
+	 * Subscribe/attach any producer_created events buffered during initial sync
+	 */
+	async flushBufferedProducers() {
+		if (!this.bufferedProducerEvents.length) return;
+		const pending = this.bufferedProducerEvents.splice(0);
+		for (const data of pending) {
+			// Skip if already have a consumer for this participant/kind
+			const hasConsumer = Array.from(this.consumers.value.values()).some(
+				(c) => c.participantId === data.participantId && c.kind === data.kind,
+			);
+			if (hasConsumer) continue;
+
+			// Ensure participant exists with flags from paused
+			let participant = this.participants.value.get(data.participantId);
+			if (!participant) {
+				participant = {
+					user_id: data.participantId,
+					user_name: data.participantId,
+					initials: String(data.participantId).substring(0, 2).toUpperCase(),
+					audio_enabled: false,
+					video_enabled: false,
+				};
+			}
+			if (data.kind === "audio") participant.audio_enabled = !data.paused;
+			if (data.kind === "video") participant.video_enabled = !data.paused;
+			this.participants.value.set(data.participantId, { ...participant });
+			this.participants.value = new Map(this.participants.value);
+			await nextTick();
+
+			try {
+				const consumer = await this.subscribeToNewProducer(
+					data.producerId,
+					data.participantId,
+				);
+				if (consumer?.track) {
+					consumer.participantId = data.participantId;
+					this.consumers.value.set(consumer.id, consumer);
+					if (consumer.kind === "video") {
+						await this.attachVideoStream(
+							data.participantId,
+							consumer,
+							"buffered",
+						);
+					} else if (consumer.kind === "audio") {
+						await this.attachAudioStream(data.participantId, consumer);
+					}
+				}
+			} catch (e) {
+				console.warn(
+					"Failed to subscribe to buffered producer:",
+					data,
+					e?.message || e,
+				);
+			}
+		}
+	}
+
+	/**
+	 * Ensure all known consumers are attached to their DOM elements
+	 */
+	async reconcileAllAttachments() {
+		// Build index of consumers by participant and kind
+		const byParticipant = new Map();
+		for (const consumer of this.consumers.value.values()) {
+			if (!consumer.participantId) continue;
+			const entry = byParticipant.get(consumer.participantId) || {};
+			entry[consumer.kind] = consumer;
+			byParticipant.set(consumer.participantId, entry);
+		}
+
+		for (const [participantId, kinds] of byParticipant.entries()) {
+			// Skip local user
+			if (participantId === this.currentUser.value?.user_id) continue;
+
+			// Ensure participant exists so a tile is rendered
+			if (!this.participants.value.has(participantId)) {
+				this.participants.value.set(participantId, {
+					user_id: participantId,
+					user_name: String(participantId),
+					initials: String(participantId).substring(0, 2).toUpperCase(),
+					audio_enabled: false,
+					video_enabled: false,
+				});
+				this.participants.value = new Map(this.participants.value);
+				await nextTick();
+			}
+
+			// Attach available streams
+			if (kinds.video) {
+				try {
+					await this.attachVideoStream(participantId, kinds.video, "reconcile");
+				} catch (e) {
+					console.warn(
+						"Attach video during reconcile failed:",
+						participantId,
+						e?.message || e,
+					);
+				}
+			}
+			if (kinds.audio) {
+				try {
+					await this.attachAudioStream(participantId, kinds.audio);
+				} catch (e) {
+					console.warn(
+						"Attach audio during reconcile failed:",
+						participantId,
+						e?.message || e,
+					);
+				}
+			}
 		}
 	}
 
@@ -169,21 +336,53 @@ export class SFUMeetingManager {
 			const existingResult = await requestExistingProducers(this.meetingId);
 			console.log("Requested existing producers successfully:", existingResult);
 
-			if (existingResult?.subscriptions) {
+			if (existingResult?.subscriptions?.length) {
 				console.log("Processing existing subscriptions...");
-				await nextTick();
 
 				for (const { consumer, producer } of existingResult.subscriptions) {
-					if (producer.user_id) {
-						if (consumer.kind === "video") {
-							await this.attachVideoStream(
-								producer.user_id,
-								consumer,
-								"existing",
-							);
-						} else if (consumer.kind === "audio") {
-							await this.attachAudioStream(producer.user_id, consumer);
-						}
+					if (!producer?.user_id) continue;
+
+					// Ensure participant exists with sensible defaults
+					let participant = this.participants.value.get(producer.user_id);
+					if (!participant) {
+						participant = {
+							user_id: producer.user_id,
+							user_name: producer.user_id,
+							initials: String(producer.user_id).substring(0, 2).toUpperCase(),
+							audio_enabled: false,
+							video_enabled: false,
+						};
+					}
+
+					// Initialize flags from producer paused state
+					if (consumer.kind === "audio") {
+						participant.audio_enabled = !producer.paused;
+					} else if (consumer.kind === "video") {
+						participant.video_enabled = !producer.paused;
+					}
+
+					// Save participant and force reactivity
+					this.participants.value.set(producer.user_id, { ...participant });
+					this.participants.value = new Map(this.participants.value);
+
+					// Wait a tick so UI renders the remote tile and sets ref
+					await nextTick();
+
+					// Track consumer with participant mapping for later controls
+					try {
+						consumer.participantId = producer.user_id;
+						this.consumers.value.set(consumer.id, consumer);
+					} catch (_) {}
+
+					// Attach streams
+					if (consumer.kind === "video") {
+						await this.attachVideoStream(
+							producer.user_id,
+							consumer,
+							"existing",
+						);
+					} else if (consumer.kind === "audio") {
+						await this.attachAudioStream(producer.user_id, consumer);
 					}
 				}
 			}
@@ -198,316 +397,6 @@ export class SFUMeetingManager {
 	/**
 	 * Analyze video element to detect black/empty streams
 	 */
-	async analyzeVideoStream(participantId) {
-		const videoElement = this.remoteVideos.value.get(participantId);
-		if (!videoElement) {
-			console.log(`❌ No video element found for participant ${participantId}`);
-			return null;
-		}
-
-		const analysis = {
-			participantId,
-			timestamp: new Date().toISOString(),
-			videoElement: {
-				readyState: videoElement.readyState,
-				networkState: videoElement.networkState,
-				videoWidth: videoElement.videoWidth,
-				videoHeight: videoElement.videoHeight,
-				currentTime: videoElement.currentTime,
-				duration: videoElement.duration,
-				paused: videoElement.paused,
-				ended: videoElement.ended,
-				muted: videoElement.muted,
-				hasStream: !!videoElement.srcObject,
-				streamId: videoElement.srcObject?.id,
-				streamActive: videoElement.srcObject?.active,
-			},
-			stream: null,
-			track: null,
-			consumer: null,
-			pixelAnalysis: null,
-		};
-
-		// Analyze stream
-		if (videoElement.srcObject) {
-			const stream = videoElement.srcObject;
-			const videoTracks = stream.getVideoTracks();
-
-			analysis.stream = {
-				id: stream.id,
-				active: stream.active,
-				videoTrackCount: videoTracks.length,
-				tracks: videoTracks.map((track) => ({
-					id: track.id,
-					kind: track.kind,
-					enabled: track.enabled,
-					muted: track.muted,
-					readyState: track.readyState,
-					label: track.label,
-					settings: track.getSettings?.() || null,
-				})),
-			};
-
-			// Analyze the video track
-			if (videoTracks.length > 0) {
-				const track = videoTracks[0];
-				analysis.track = {
-					id: track.id,
-					enabled: track.enabled,
-					muted: track.muted,
-					readyState: track.readyState,
-					settings: track.getSettings?.() || null,
-					capabilities: track.getCapabilities?.() || null,
-				};
-			}
-		}
-
-		// Find associated consumer
-		for (const [consumerId, consumer] of this.consumers.value.entries()) {
-			if (
-				consumer.participantId === participantId &&
-				consumer.kind === "video"
-			) {
-				analysis.consumer = {
-					id: consumer.id,
-					paused: consumer.paused,
-					producerId: consumer.producerId,
-					trackId: consumer.track?.id,
-					trackMuted: consumer.track?.muted,
-					trackEnabled: consumer.track?.enabled,
-					trackReadyState: consumer.track?.readyState,
-				};
-				break;
-			}
-		}
-
-		// Pixel analysis to detect black video
-		if (
-			videoElement.videoWidth > 0 &&
-			videoElement.videoHeight > 0 &&
-			videoElement.readyState >= 2
-		) {
-			analysis.pixelAnalysis = await this.analyzeVideoPixels(videoElement);
-		}
-
-		return analysis;
-	}
-
-	/**
-	 * Analyze video pixels to detect black/empty frames
-	 */
-	async analyzeVideoPixels(videoElement) {
-		try {
-			// Create a canvas to capture video frame
-			const canvas = document.createElement("canvas");
-			const ctx = canvas.getContext("2d");
-
-			canvas.width = Math.min(videoElement.videoWidth, 320); // Limit size for performance
-			canvas.height = Math.min(videoElement.videoHeight, 240);
-
-			// Draw current video frame to canvas
-			ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-
-			// Get image data
-			const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-			const pixels = imageData.data;
-
-			let totalPixels = 0;
-			let blackPixels = 0;
-			let totalBrightness = 0;
-			let colorVariance = 0;
-			const rgbSums = { r: 0, g: 0, b: 0 };
-
-			// Analyze pixels (RGBA format)
-			for (let i = 0; i < pixels.length; i += 4) {
-				const r = pixels[i];
-				const g = pixels[i + 1];
-				const b = pixels[i + 2];
-				const a = pixels[i + 3]; // Alpha channel
-
-				totalPixels++;
-
-				// Calculate brightness (luminance)
-				const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-				totalBrightness += brightness;
-
-				// Count near-black pixels (threshold of 10 for very dark)
-				if (brightness < 10 && a > 0) {
-					blackPixels++;
-				}
-
-				// Sum RGB values
-				rgbSums.r += r;
-				rgbSums.g += g;
-				rgbSums.b += b;
-			}
-
-			const avgBrightness = totalBrightness / totalPixels;
-			const blackPercentage = (blackPixels / totalPixels) * 100;
-			const avgColors = {
-				r: rgbSums.r / totalPixels,
-				g: rgbSums.g / totalPixels,
-				b: rgbSums.b / totalPixels,
-			};
-
-			// Calculate color variance to detect uniform colors
-			let varianceSum = 0;
-			for (let i = 0; i < pixels.length; i += 4) {
-				const r = pixels[i];
-				const g = pixels[i + 1];
-				const b = pixels[i + 2];
-				const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-				varianceSum += brightness - avgBrightness ** 2;
-			}
-			colorVariance = varianceSum / totalPixels;
-
-			const analysis = {
-				dimensions: { width: canvas.width, height: canvas.height },
-				totalPixels,
-				avgBrightness: Math.round(avgBrightness),
-				blackPixels,
-				blackPercentage: Math.round(blackPercentage * 100) / 100,
-				avgColors: {
-					r: Math.round(avgColors.r),
-					g: Math.round(avgColors.g),
-					b: Math.round(avgColors.b),
-				},
-				colorVariance: Math.round(colorVariance),
-				isLikelyBlack: blackPercentage > 95 || avgBrightness < 5,
-				isLikelyEmpty: colorVariance < 10 && avgBrightness < 20,
-				hasContent: avgBrightness > 30 && colorVariance > 50,
-			};
-
-			// Clean up canvas
-			canvas.remove();
-
-			return analysis;
-		} catch (error) {
-			console.warn(`⚠️ Failed to analyze video pixels: ${error}`);
-			return {
-				error: error.message,
-				isLikelyBlack: false,
-				isLikelyEmpty: false,
-				hasContent: false,
-			};
-		}
-	}
-
-	/**
-	 * Comprehensive video stream health check
-	 */
-	async checkVideoStreamHealth(participantId) {
-		console.log(`🏥 Performing video stream health check for ${participantId}`);
-
-		const analysis = await this.analyzeVideoStream(participantId);
-		if (!analysis) return null;
-
-		const issues = [];
-		const suggestions = [];
-
-		// Check for common issues
-		if (!analysis.videoElement.hasStream) {
-			issues.push("No stream attached to video element");
-			suggestions.push("Check if consumer track is properly attached");
-		}
-
-		if (analysis.consumer?.paused) {
-			issues.push("Consumer is paused");
-			suggestions.push("Call consumer.resume() to start receiving media");
-		}
-
-		if (analysis.track?.muted) {
-			issues.push("Video track is muted by producer");
-			suggestions.push("Producer needs to unmute their video");
-		}
-
-		if (!analysis.track?.enabled) {
-			issues.push("Video track is disabled");
-			suggestions.push("Check track.enabled property");
-		}
-
-		if (analysis.track?.readyState === "ended") {
-			issues.push("Video track has ended");
-			suggestions.push("Track may have been stopped by producer");
-		}
-
-		if (analysis.videoElement.readyState < 2) {
-			issues.push("Video element not ready (no metadata loaded)");
-			suggestions.push("Wait for video metadata to load");
-		}
-
-		if (
-			analysis.videoElement.videoWidth === 0 ||
-			analysis.videoElement.videoHeight === 0
-		) {
-			issues.push("Video has no dimensions");
-			suggestions.push("Check if video track has proper resolution");
-		}
-
-		if (analysis.pixelAnalysis?.isLikelyBlack) {
-			issues.push("Video appears to be completely black");
-			suggestions.push(
-				"Producer may have camera issues or be in dark environment",
-			);
-		}
-
-		if (analysis.pixelAnalysis?.isLikelyEmpty) {
-			issues.push("Video appears to be empty/static");
-			suggestions.push(
-				"Producer may have paused their camera or have technical issues",
-			);
-		}
-
-		const healthScore = Math.max(0, 100 - issues.length * 15);
-		const isHealthy = healthScore > 70 && analysis.pixelAnalysis?.hasContent;
-
-		const healthReport = {
-			participantId,
-			timestamp: new Date().toISOString(),
-			isHealthy,
-			healthScore,
-			issues,
-			suggestions,
-			analysis,
-		};
-
-		return healthReport;
-	}
-
-	/**
-	 * Check video stream health for all participants
-	 */
-	async checkAllVideoStreams() {
-		const results = new Map();
-
-		for (const participantId of this.remoteVideos.value.keys()) {
-			try {
-				const healthReport = await this.checkVideoStreamHealth(participantId);
-				if (healthReport) {
-					results.set(participantId, healthReport);
-				}
-			} catch (error) {
-				console.error(
-					`❌ Failed to check video stream for ${participantId}:`,
-					error,
-				);
-				results.set(participantId, {
-					participantId,
-					error: error.message,
-					isHealthy: false,
-					healthScore: 0,
-				});
-			}
-		}
-
-		// Summary report
-		const healthyCount = Array.from(results.values()).filter(
-			(r) => r.isHealthy,
-		).length;
-		const totalCount = results.size;
-
-		return results;
-	}
 
 	/**
 	 * Find video element for a participant with comprehensive search
@@ -526,6 +415,7 @@ export class SFUMeetingManager {
 				`.remote-video-${participantId}`,
 				`#remote-video-${participantId}`,
 				`[participant-id="${participantId}"] video`,
+				`video[participant-id="${participantId}"]`,
 				`.participant-${participantId} video`,
 			];
 
@@ -574,20 +464,34 @@ export class SFUMeetingManager {
 				(c) => c.participantId === userId && c.kind === "video",
 			);
 
-			// Resume all consumers for this participant
-			const consumersToResume = [audioConsumer, videoConsumer].filter(
-				(c) => c?.paused,
-			);
+			// Respect participant state: pause/resume based on audio_enabled/video_enabled
+			const participant = this.participants.value.get(userId) || {};
+			const wantAudio = participant.audio_enabled === true; // strict
+			const wantVideo = participant.video_enabled === true; // strict
 
-			for (const consumerToResume of consumersToResume) {
+			// Toggle audio consumer
+			if (audioConsumer) {
 				try {
-					await consumerToResume.resume();
+					if (!wantAudio && !audioConsumer.paused) await audioConsumer.pause();
+					if (wantAudio && audioConsumer.paused) await audioConsumer.resume();
 				} catch (resumeError) {
 					console.error(
-						`Failed to resume ${consumerToResume.kind} consumer for user ${userId}:`,
+						`Failed to toggle audio consumer for user ${userId}:`,
 						resumeError,
 					);
-					throw resumeError; // This is critical, so throw the error
+				}
+			}
+
+			// Toggle video consumer
+			if (videoConsumer) {
+				try {
+					if (!wantVideo && !videoConsumer.paused) await videoConsumer.pause();
+					if (wantVideo && videoConsumer.paused) await videoConsumer.resume();
+				} catch (resumeError) {
+					console.error(
+						`Failed to toggle video consumer for user ${userId}:`,
+						resumeError,
+					);
 				}
 			}
 
@@ -614,7 +518,6 @@ export class SFUMeetingManager {
 				});
 			}
 
-			// Use the new helper function to find video element
 			const videoElement = await this.findVideoElement(userId);
 
 			if (videoElement) {
@@ -757,27 +660,6 @@ export class SFUMeetingManager {
 					}
 					console.log(`✅ Direct play method succeeded for user ${userId}`);
 				}
-
-				// Run a health check after a short delay to allow video to stabilize
-				setTimeout(async () => {
-					try {
-						const healthReport = await this.checkVideoStreamHealth(userId);
-						if (healthReport && !healthReport.isHealthy) {
-							console.warn(
-								`⚠️ Video stream health issues detected for ${userId}:`,
-								{
-									healthScore: healthReport.healthScore,
-									issues: healthReport.issues,
-								},
-							);
-						}
-					} catch (error) {
-						console.warn(
-							`⚠️ Failed to run health check for ${userId}:`,
-							error.message,
-						);
-					}
-				}, 2000); // Wait 2 seconds for video to stabilize
 			} else {
 				console.error(
 					`❌ Video element not found for ${userType} user ${userId}`,
@@ -803,17 +685,21 @@ export class SFUMeetingManager {
 		try {
 			console.log(`🎵 Attaching audio stream for user ${userId}`);
 
-			// Resume the audio consumer if it's paused
-			if (audioConsumer?.paused) {
+			// Respect participant state before resuming
+			const participant = this.participants.value.get(userId) || {};
+			const wantAudio = participant.audio_enabled === true; // strict
+			if (audioConsumer) {
 				try {
-					await audioConsumer.resume();
-					console.log(`✅ Resumed audio consumer for user ${userId}`);
+					if (!wantAudio && !audioConsumer.paused) await audioConsumer.pause();
+					if (wantAudio && audioConsumer.paused) await audioConsumer.resume();
+					if (wantAudio)
+						console.log(`✅ Audio consumer active for user ${userId}`);
+					else console.log(`⏸️ Audio consumer paused for user ${userId}`);
 				} catch (resumeError) {
 					console.error(
-						`Failed to resume audio consumer for user ${userId}:`,
+						`Failed to toggle audio consumer for user ${userId}:`,
 						resumeError,
 					);
-					throw resumeError;
 				}
 			}
 
@@ -841,8 +727,8 @@ export class SFUMeetingManager {
 					}
 				}
 
-				// Ensure the video element is not muted so we can hear audio
-				videoElement.muted = false;
+				// Ensure the video element is not muted so we can hear audio when enabled
+				videoElement.muted = !wantAudio;
 
 				// Start playback if currently paused
 				if (videoElement.paused) {
@@ -1045,8 +931,8 @@ export class SFUMeetingManager {
 					.join("")
 					.toUpperCase()
 					.slice(0, 2),
-				audio_enabled: true,
-				video_enabled: true,
+				audio_enabled: false,
+				video_enabled: false,
 			};
 			console.log("👥 Participant joined:", participant);
 
@@ -1111,20 +997,54 @@ export class SFUMeetingManager {
 				data.participantId !== this.currentUser.value?.user_id
 			) {
 				try {
+					// During initial sync, buffer events to process after requestExistingProducers completes
+					if (this.initialSyncInProgress) {
+						this.bufferedProducerEvents.push(data);
+						return;
+					}
+					// Skip if we already have a consumer for this participant and kind
+					const alreadyHasConsumer = Array.from(
+						this.consumers.value.values(),
+					).some(
+						(c) =>
+							c.participantId === data.participantId && c.kind === data.kind,
+					);
+					if (alreadyHasConsumer) return;
+
 					// Ensure participant exists
 					if (!this.participants.value.has(data.participantId)) {
 						const participant = {
 							user_id: data.participantId,
 							user_name: data.participantId, // Will be updated when participant data is available
 							initials: data.participantId.substring(0, 2).toUpperCase(),
-							audio_enabled: true,
-							video_enabled: true,
+							audio_enabled: false,
+							video_enabled: false,
 						};
+						if (data.kind === "audio")
+							participant.audio_enabled = data.paused !== true;
+						if (data.kind === "video")
+							participant.video_enabled = data.paused !== true;
 						this.participants.value.set(data.participantId, participant);
+						// Force reactivity
+						this.participants.value = new Map(this.participants.value);
 
 						// Wait for DOM update
 						await nextTick();
 						await new Promise((resolve) => setTimeout(resolve, 200)); // Give more time for DOM
+					}
+					// If participant exists, ensure flags are defined and set current kind to true
+					else {
+						const existing = this.participants.value.get(data.participantId);
+						if (typeof existing.audio_enabled === "undefined")
+							existing.audio_enabled = false;
+						if (typeof existing.video_enabled === "undefined")
+							existing.video_enabled = false;
+						if (data.kind === "audio")
+							existing.audio_enabled = data.paused !== true;
+						if (data.kind === "video")
+							existing.video_enabled = data.paused !== true;
+						this.participants.value.set(data.participantId, { ...existing });
+						this.participants.value = new Map(this.participants.value);
 					}
 
 					const consumer = await this.subscribeToNewProducer(
@@ -1186,14 +1106,77 @@ export class SFUMeetingManager {
 		});
 
 		// Media control events
-		this.sfuClient.on("media_control_update", (data) => {
+		this.sfuClient.on("media_control_update", async (data) => {
 			console.log("🎛️ Media control update via SFU:", data);
-			const participant = this.participants.value.get(data.participantId);
+			// Ignore self updates to avoid duplicating local user as a remote participant
+			if (data.participantId === this.currentUser.value?.user_id) {
+				return;
+			}
+			let participant = this.participants.value.get(data.participantId);
+			// If participant not present yet (race), create a minimal placeholder
+			if (!participant) {
+				participant = {
+					user_id: data.participantId,
+					user_name: data.participantId,
+					initials: String(data.participantId).substring(0, 2).toUpperCase(),
+					audio_enabled: false,
+					video_enabled: false,
+				};
+				this.participants.value.set(data.participantId, participant);
+			}
 			if (participant) {
-				if (data.action === "mute" || data.action === "unmute") {
-					participant.audio_enabled = data.action === "unmute";
-				} else if (data.action === "video_off" || data.action === "video_on") {
-					participant.video_enabled = data.action === "video_on";
+				try {
+					if (data.action === "mute" || data.action === "unmute") {
+						participant.audio_enabled = data.action === "unmute";
+						// Pause/resume remote audio consumers for this participant
+						for (const consumer of this.consumers.value.values()) {
+							if (
+								consumer.participantId === data.participantId &&
+								consumer.kind === "audio"
+							) {
+								try {
+									if (data.action === "mute" && !consumer.paused) {
+										await consumer.pause();
+									}
+									if (data.action === "unmute" && consumer.paused) {
+										await consumer.resume();
+									}
+								} catch (e) {
+									console.warn("Failed to toggle audio consumer state:", e);
+								}
+							}
+						}
+					} else if (
+						data.action === "video_off" ||
+						data.action === "video_on"
+					) {
+						participant.video_enabled = data.action === "video_on";
+
+						// Pause/resume remote video consumers for this participant
+						for (const consumer of this.consumers.value.values()) {
+							if (
+								consumer.participantId === data.participantId &&
+								consumer.kind === "video"
+							) {
+								try {
+									if (data.action === "video_off" && !consumer.paused) {
+										await consumer.pause();
+									}
+									if (data.action === "video_on" && consumer.paused) {
+										await consumer.resume();
+									}
+								} catch (e) {
+									console.warn("Failed to toggle video consumer state:", e);
+								}
+							}
+						}
+					}
+
+					// Force Vue to notice participant flag changes when using Map in a ref
+					this.participants.value.set(data.participantId, { ...participant });
+					this.participants.value = new Map(this.participants.value);
+				} catch (err) {
+					console.warn("media_control_update handling error:", err);
 				}
 
 				// Notify parent component

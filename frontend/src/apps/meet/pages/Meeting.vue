@@ -76,6 +76,7 @@
 					>
 						<video
 							:ref="(el) => remoteVideos.set(participant.user_id, el)"
+							:participant-id="participant.user_id"
 							class="w-full h-full object-cover"
 							autoplay
 							playsinline
@@ -175,18 +176,13 @@ import { Avatar, Button, getCachedDocumentResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session.js";
+import { cleanupMediasoup } from "../mediasoup-client.js";
 import {
-	cleanupMediasoup,
-	publishAudio,
-	publishVideo,
-} from "../mediasoup-client.js";
-import {
-	initSocket,
 	joinMeeting,
 	leaveMeeting,
-	registerWebRTCEventHandlers,
 	unregisterWebRTCEventHandlers,
 } from "../socket.js";
+import { getSFUClient } from "../utils/sfu-client.js";
 import {
 	getSFUMeetingManager,
 	resetSFUMeetingManager,
@@ -265,6 +261,17 @@ const toggleMicrophone = async () => {
 			}
 		}
 
+		// Notify others via SFU socket so UI updates everywhere
+		try {
+			const sfu = getSFUClient();
+			sfu.sendMediaControl(isMicOn.value ? "mute" : "unmute");
+		} catch (e) {
+			console.warn(
+				"Failed to send media control (audio) via SFU:",
+				e?.message || e,
+			);
+		}
+
 		isMicOn.value = !isMicOn.value;
 	} catch (error) {
 		console.error("Error toggling microphone:", error);
@@ -287,6 +294,17 @@ const toggleCamera = async () => {
 			if (videoTrack) {
 				videoTrack.enabled = !isCameraOn.value;
 			}
+		}
+
+		// Notify others via SFU socket so UI updates everywhere
+		try {
+			const sfu = getSFUClient();
+			sfu.sendMediaControl(isCameraOn.value ? "video_off" : "video_on");
+		} catch (e) {
+			console.warn(
+				"Failed to send media control (video) via SFU:",
+				e?.message || e,
+			);
 		}
 
 		isCameraOn.value = !isCameraOn.value;
@@ -396,7 +414,6 @@ const joinMeetingRoom = async () => {
 
 		// Step 1: Join the meeting in Frappe (authentication and permissions)
 		const joinResult = await joinMeeting(meetingId.value);
-		console.log("✅ Joined meeting in Frappe:", joinResult);
 
 		// Step 2: Connect directly to SFU for WebRTC operations
 		sfuManager = getSFUMeetingManager();
@@ -557,7 +574,6 @@ onUnmounted(async () => {
 	// Leave meeting in Frappe
 	try {
 		await leaveMeeting(meetingId.value);
-		console.log("✅ Left meeting in Frappe");
 	} catch (error) {
 		console.error("❌ Error leaving meeting:", error);
 	}
