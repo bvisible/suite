@@ -6,7 +6,7 @@
 
 		<div class="space-y-4">
 			<Card class="p-6">
-				<form class="space-y-4" @submit="joinMeeting">
+				<form class="space-y-4" @submit.prevent="joinMeeting">
 					<FormControl
 						label="Meeting Code"
 						class="m-0.5"
