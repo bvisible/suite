@@ -31,16 +31,21 @@ const router = useRouter();
 
 function submit(e) {
 	const formData = new FormData(e.target);
-	session.login
-		.submit({
+	session.login.submit(
+		{
 			email: formData.get("email"),
 			password: formData.get("password"),
-		})
-		.then(() => {
-			router.push("/");
-		})
-		.catch((error) => {
-			toast.error("Login failed");
-		});
+		},
+		{
+			onSuccess: () => {
+				router.push({
+					name: "Home",
+				});
+			},
+			onError: (error) => {
+				toast.error(`Login failed: ${error.message}`);
+			},
+		},
+	);
 }
 </script>

@@ -34,33 +34,39 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
 	let isLoggedIn = session.isLoggedIn;
 	let user = null;
-
-	try {
-		await userResource.promise;
-		user = userResource.data;
-	} catch (error) {
-		isLoggedIn = false;
-	}
-
-	// Check if route requires admin access
-	if (to.meta?.requiresAdmin && user) {
-		const isAdmin =
-			user.roles?.includes("System Manager") ||
-			user.roles?.includes("Administrator");
-		if (!isAdmin) {
-			// Redirect non-admin users to home
-			next({ name: "Home" });
-			return;
+	if (isLoggedIn || to.meta?.requiresAdmin) {
+		try {
+			if (!userResource.data) {
+				await userResource.promise;
+			}
+			user = userResource.data;
+		} catch (error) {
+			isLoggedIn = false;
 		}
 	}
 
-	if (to.name === "Login" && isLoggedIn) {
-		next({ name: "Home" });
-	} else if (to.name !== "Login" && !isLoggedIn) {
-		next({ name: "Login" });
-	} else {
-		next();
+	if (to.meta?.requiresAdmin) {
+		if (!isLoggedIn) {
+			return next({ name: "Login", query: { next: to.fullPath } });
+		}
+		const isAdmin = user?.roles?.some((r) =>
+			["System Manager", "Administrator"].includes(r),
+		);
+		if (!isAdmin) {
+			return next({ name: "Home" });
+		}
 	}
+
+	if (to.name === "Login") {
+		if (isLoggedIn) return next({ name: "Home" });
+		return next();
+	}
+
+	if (!isLoggedIn) {
+		return next({ name: "Login", query: { next: to.fullPath } });
+	}
+
+	next();
 });
 
 export default router;

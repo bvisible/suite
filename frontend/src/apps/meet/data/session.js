@@ -22,9 +22,9 @@ export const session = reactive({
 				pwd: password,
 			};
 		},
-		onSuccess(data) {
-			userResource.reload();
-			session.login.reset();
+		onSuccess: async (data) => {
+			await userResource.reload();
+			await session.login.reset();
 			router.replace(data.default_route || "/");
 		},
 	}),

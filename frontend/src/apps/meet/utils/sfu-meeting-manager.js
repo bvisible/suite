@@ -634,9 +634,7 @@ export class SFUMeetingManager {
 						sameAsConsumerTrack: streamAudioTrack === audioConsumer?.track,
 					});
 				} else {
-					console.log(
-						"ℹ️ No audio tracks found in created stream (audio-only streams are handled separately)",
-					);
+					console.log("ℹ️ No audio tracks found in created stream");
 				}
 
 				try {
