@@ -425,14 +425,16 @@ const joinMeetingRoom = async () => {
 			remoteVideos,
 			eventHandlers: {
 				onParticipantJoined: (participant) => {
-					console.log("📋 SFU participant joined handler:", participant);
 					const name =
 						participant?.user_name || participant?.user_id || "Participant";
 					toast.success(`${name} joined`);
 				},
 				onParticipantLeft: (data) => {
-					console.log("📋 SFU participant left handler:", data);
-					const name = data?.user_name || data?.user_id || "Participant";
+					const name =
+						data?.user_name ||
+						data?.user_id ||
+						data.participantId ||
+						"Participant";
 					toast.success(`${name} left`);
 				},
 				onConsumerCreated: (consumer, data) => {
