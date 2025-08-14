@@ -96,17 +96,12 @@ class SFUClient {
 			this.sfuPort = sfu_port;
 
 			let sfuEndpoint;
-			try {
-				const urlObj = new URL(sfu_url);
-				const defaultPort = urlObj.protocol === "https:" ? "443" : "80";
-				// If port is empty/null OR matches default for the scheme, omit.
-				if (!sfu_port || String(sfu_port) === defaultPort) {
-					sfuEndpoint = urlObj.origin;
-				} else {
-					sfuEndpoint = `${urlObj.protocol}//${urlObj.hostname}:${sfu_port}`;
-				}
-			} catch (e) {
-				sfuEndpoint = sfu_port ? `${sfu_url}:${sfu_port}` : sfu_url;
+			const urlObj = new URL(sfu_url);
+			const isSecured = urlObj.protocol === "https:";
+			if (isSecured) {
+				sfuEndpoint = urlObj.origin;
+			} else {
+				sfuEndpoint = `${urlObj.protocol}//${urlObj.hostname}:${sfu_port}`;
 			}
 
 			try {
