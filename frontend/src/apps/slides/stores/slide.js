@@ -1,4 +1,4 @@
-import { ref, computed, nextTick, reactive } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { call } from 'frappe-ui'
 
 import { presentationId, inSlideShow } from './presentation'

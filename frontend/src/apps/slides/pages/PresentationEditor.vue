@@ -54,7 +54,6 @@ import {
 	nextTick,
 	onDeactivated,
 	onActivated,
-	shallowRef,
 } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory } from '@vueuse/core'
@@ -104,7 +103,7 @@ import {
 import html2canvas from 'html2canvas'
 import { generateUniqueId } from '@/utils/helpers'
 
-import { editorMap } from '@/composables/useTextEditor'
+import { activeEditor } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
 let thumbnailGenerationInterval = null
@@ -226,23 +225,30 @@ const handleGlobalShortcuts = (e) => {
 	}
 }
 
-const ongoingHistoryUpdate = ref(false)
+const ignoreStateChanges = ref(false)
 
-const handleUndo = async () => {
-	historyControl.undo()
-	ongoingHistoryUpdate.value = true
+const handleHistoryOperation = async (operation) => {
+	if (operation == 'undo') historyControl.undo()
+	else if (operation == 'redo') historyControl.redo()
+
+	ignoreStateChanges.value = true
 	slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
 	await nextTick()
-	ongoingHistoryUpdate.value = false
+	ignoreStateChanges.value = false
 }
 
 const handleUndoRedo = (e) => {
+	if (activeEditor.value?.isEditable) {
+		e.stopPropagation()
+		return
+	}
+
 	if (historyControl.canRedo.value && e.shiftKey && e.metaKey) {
 		e.preventDefault()
-		historyControl.redo()
+		handleHistoryOperation('redo')
 	} else if (historyControl.canUndo.value && e.metaKey) {
 		e.preventDefault()
-		handleUndo()
+		handleHistoryOperation('undo')
 	}
 }
 
@@ -452,7 +458,7 @@ const updateHistoryState = () => {
 watch(
 	() => slides.value,
 	(newSlides) => {
-		if (!newSlides || !historyControl || ongoingHistoryUpdate.value) return
+		if (!newSlides || !historyControl || ignoreStateChanges.value) return
 
 		updateHistoryState()
 	},
