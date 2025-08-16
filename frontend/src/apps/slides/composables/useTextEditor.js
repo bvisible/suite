@@ -4,8 +4,7 @@ import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
 import { activeElement } from '@/stores/element'
 
-export const editorMap = reactive({})
-const activeEditor = ref(null)
+export const activeEditor = ref(null)
 
 const editorStyles = reactive({
 	textAlign: 'left',
