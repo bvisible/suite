@@ -99,7 +99,6 @@ import {
 	addTextElement,
 	selectAllElements,
 	activeElements,
-	deleteAttachments,
 } from '@/stores/element'
 
 import html2canvas from 'html2canvas'
