@@ -2,10 +2,8 @@
 	<div class="h-screen bg-gray-900 flex flex-col overflow-hidden">
 		<!-- Loading state -->
 		<div v-if="isConnecting" class="flex-1 flex items-center justify-center">
-			<div class="text-center text-white">
-				<div
-					class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"
-				></div>
+			<div class="text-center text-white space-y-4">
+				<Spinner class="h-24 mx-auto" />
 				<p class="text-lg">Joining meeting...</p>
 			</div>
 		</div>
@@ -172,7 +170,13 @@
 </template>
 
 <script setup>
-import { Avatar, Button, getCachedDocumentResource, toast } from "frappe-ui";
+import {
+	Avatar,
+	Button,
+	Spinner,
+	getCachedDocumentResource,
+	toast,
+} from "frappe-ui";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session.js";

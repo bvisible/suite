@@ -9,7 +9,7 @@
 				class="w-full h-full object-cover transform scale-x-[-1]"
 			/>
 			<div
-				v-if="!stream || isVideoOff"
+				v-if="!videoTrack"
 				class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center"
 			>
 				<div class="text-white text-center">
@@ -55,60 +55,134 @@
 </template>
 
 <script setup>
-import { Avatar, Button, Tooltip } from "frappe-ui";
+import { Avatar, Button } from "frappe-ui";
 import { onMounted, onUnmounted, ref } from "vue";
 
 const videoElement = ref(null);
 const isMuted = ref(false);
 const isVideoOff = ref(false);
-const stream = ref(null);
+
+const audioTrack = ref(null);
+const videoTrack = ref(null);
+const composedStream = ref(null);
 
 const userName = ref("You");
 const userInitials = ref("Y");
 const userAvatar = ref("");
 
-const startCamera = async () => {
-	try {
-		stream.value = await navigator.mediaDevices.getUserMedia({
-			video: true,
-			audio: true,
-		});
+function rebuildStream() {
+	const tracks = [];
+	if (videoTrack.value) tracks.push(videoTrack.value);
+	if (audioTrack.value) tracks.push(audioTrack.value);
+	if (tracks.length) {
+		composedStream.value = new MediaStream(tracks);
 		if (videoElement.value) {
-			videoElement.value.srcObject = stream.value;
+			// Re-attach only if changed
+			if (videoElement.value.srcObject !== composedStream.value) {
+				videoElement.value.srcObject = composedStream.value;
+			}
 		}
-	} catch (error) {
-		console.error("Error accessing camera:", error);
+	} else {
+		composedStream.value = null;
+		if (videoElement.value) videoElement.value.srcObject = null;
 	}
-};
+}
 
-const stopCamera = () => {
-	if (stream.value) {
-		for (const track of stream.value.getTracks()) {
-			track.stop();
+async function acquire(kind) {
+	try {
+		if (kind === "video" && !videoTrack.value) {
+			const stream = await navigator.mediaDevices.getUserMedia({
+				video: true,
+				audio: false,
+			});
+			videoTrack.value = stream.getVideoTracks()[0] || null;
+			if (videoTrack.value)
+				videoTrack.value.onended = () => {
+					videoTrack.value = null;
+					rebuildStream();
+				};
+		} else if (kind === "audio" && !audioTrack.value) {
+			const stream = await navigator.mediaDevices.getUserMedia({
+				audio: true,
+				video: false,
+			});
+			audioTrack.value = stream.getAudioTracks()[0] || null;
+			if (audioTrack.value)
+				audioTrack.value.onended = () => {
+					audioTrack.value = null;
+					rebuildStream();
+				};
 		}
-		stream.value = null;
+		rebuildStream();
+	} catch (err) {
+		console.error(`Error acquiring ${kind} track:`, err);
+		// Revert toggle state on failure
+		if (kind === "video") isVideoOff.value = true;
+		else isMuted.value = true;
 	}
-};
+}
 
-const toggleMute = () => {
-	isMuted.value = !isMuted.value;
-	if (stream.value) {
-		const audioTrack = stream.value.getAudioTracks()[0];
-		if (audioTrack) {
-			audioTrack.enabled = !isMuted.value;
+async function acquireBoth() {
+	try {
+		const stream = await navigator.mediaDevices.getUserMedia({
+			audio: true,
+			video: true,
+		});
+		videoTrack.value = stream.getVideoTracks()[0] || null;
+		audioTrack.value = stream.getAudioTracks()[0] || null;
+		if (videoTrack.value)
+			videoTrack.value.onended = () => {
+				videoTrack.value = null;
+				rebuildStream();
+			};
+		if (audioTrack.value)
+			audioTrack.value.onended = () => {
+				audioTrack.value = null;
+				rebuildStream();
+			};
+		rebuildStream();
+	} catch (err) {
+		console.error("Error acquiring audio+video:", err);
+		if (err && err.name === "NotAllowedError") {
+			// Reflect denied permissions in UI
+			isVideoOff.value = true;
+			isMuted.value = true;
 		}
 	}
-};
+}
 
-const toggleVideo = () => {
-	isVideoOff.value = !isVideoOff.value;
-	if (stream.value) {
-		const videoTrack = stream.value.getVideoTracks()[0];
-		if (videoTrack) {
-			videoTrack.enabled = !isVideoOff.value;
+function stopTrack(kind) {
+	const t = kind === "video" ? videoTrack : audioTrack;
+	if (t.value) {
+		try {
+			t.value.stop();
+		} catch (_) {
+			/* ignore */
 		}
+		t.value = null;
 	}
-};
+	rebuildStream();
+}
+
+async function toggleVideo() {
+	if (isVideoOff.value) {
+		isVideoOff.value = false;
+		await acquire("video");
+	} else {
+		isVideoOff.value = true;
+		stopTrack("video");
+	}
+}
+
+async function toggleMute() {
+	if (isMuted.value) {
+		isMuted.value = false;
+		await acquire("audio");
+	} else {
+		isMuted.value = true;
+		stopTrack("audio");
+	}
+}
 
 const handleKeyDown = (event) => {
 	if ((event.metaKey || event.ctrlKey) && event.key === "d") {
@@ -122,12 +196,13 @@ const handleKeyDown = (event) => {
 };
 
 onMounted(() => {
-	startCamera();
+	acquireBoth();
 	window.addEventListener("keydown", handleKeyDown);
 });
 
 onUnmounted(() => {
-	stopCamera();
+	stopTrack("video");
+	stopTrack("audio");
 	window.removeEventListener("keydown", handleKeyDown);
 });
 </script>
