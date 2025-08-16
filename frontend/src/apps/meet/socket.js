@@ -352,16 +352,6 @@ export async function sendScreenShare(meetingId, action, shareData = {}) {
 			share_data: shareData,
 		});
 
-		// Also call API for SFU coordination if needed
-		const response = await frappeRequest({
-			url: "sae.utils.socket_handlers.handle_screen_share",
-			params: {
-				meeting_id: meetingId,
-				action: action,
-				share_data: shareData,
-			},
-		});
-
 		return response;
 	} catch (error) {
 		console.error("Error sending screen share:", error);

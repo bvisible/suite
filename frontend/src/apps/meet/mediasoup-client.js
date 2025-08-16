@@ -258,15 +258,16 @@ export async function consumeMedia(
  */
 export async function pauseResumeProducer(meetingId, producerId, action) {
 	try {
-		const response = await frappeRequest({
-			url: "sae.utils.socket_handlers.handle_pause_resume_producer",
-			params: {
-				meeting_id: meetingId,
-				producer_id: producerId,
-				action: action,
-			},
-		});
-		return response;
+		const sfuClient = getSFUClient();
+		if (!sfuClient.isConnected()) await sfuClient.connect(meetingId);
+		if (action === "pause") {
+			await sfuClient.pauseProducer(producerId);
+		} else if (action === "resume") {
+			await sfuClient.resumeProducer(producerId);
+		} else {
+			throw new Error(`Unknown action ${action}`);
+		}
+		return { success: true };
 	} catch (error) {
 		console.error("Error controlling producer:", error);
 		throw error;
@@ -278,15 +279,16 @@ export async function pauseResumeProducer(meetingId, producerId, action) {
  */
 export async function pauseResumeConsumer(meetingId, consumerId, action) {
 	try {
-		const response = await frappeRequest({
-			url: "sae.utils.socket_handlers.handle_pause_resume_consumer",
-			params: {
-				meeting_id: meetingId,
-				consumer_id: consumerId,
-				action: action,
-			},
-		});
-		return response;
+		const sfuClient = getSFUClient();
+		if (!sfuClient.isConnected()) await sfuClient.connect(meetingId);
+		if (action === "pause") {
+			await sfuClient.pauseConsumer(consumerId);
+		} else if (action === "resume") {
+			await sfuClient.resumeConsumer(consumerId);
+		} else {
+			throw new Error(`Unknown action ${action}`);
+		}
+		return { success: true };
 	} catch (error) {
 		console.error("Error controlling consumer:", error);
 		throw error;
