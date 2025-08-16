@@ -9,7 +9,7 @@
 	<div
 		v-else
 		v-html="element.content"
-		class="textElement"
+		class="textElement cursor-default select-none"
 		:style="element.editorMetadata"
 		@dblclick="handleDoubleClick"
 	></div>
@@ -37,7 +37,7 @@ const emit = defineEmits(['clearTimeouts'])
 const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
-	cursor: isEditable.value ? 'text' : 'default',
+	cursor: isEditable.value ? 'text' : '',
 	userSelect: isEditable.value ? 'text' : 'none',
 }))
 
@@ -49,8 +49,6 @@ const handleMouseDown = (e) => {
 }
 
 const makeElementEditable = () => {
-	emit('clearTimeouts')
-
 	activeElementIds.value = []
 
 	activeEditor.value.setEditable(true)
@@ -66,6 +64,8 @@ const handleDoubleClick = (e) => {
 		e.stopPropagation()
 		return
 	}
+
+	emit('clearTimeouts')
 
 	focusElementId.value = element.value.id
 }
