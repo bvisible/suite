@@ -240,12 +240,8 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	e?.preventDefault()
 
 	let newSelection = []
-	const oldElements = elements
-	activeElementIds.value = []
 
-	await nextTick()
-
-	oldElements.forEach((element) => {
+	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
 		newElement.top += displaceByPx
