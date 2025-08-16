@@ -275,7 +275,6 @@ const deleteAttachments = async (elements) => {
 }
 
 const deleteElements = async (e, ids) => {
-	deleteAttachments(activeElements.value)
 	const idsToDelete = ids || activeElementIds.value
 	resetFocus()
 	nextTick(() => {

@@ -206,46 +206,15 @@ const handleMouseUp = (e) => {
 	}
 }
 
-const moveElement = (elementId, movement) => {
-	let element = currentSlide.value.elements.find((el) => el.id === elementId)
-
-	element.left += movement.dx
-	element.top += movement.dy
-}
-
-const moveElementsToSlide = (elementIds) => {
-	elementIds.forEach((elementId) => {
-		let elementDiv = document.querySelector(`[data-index="${elementId}"]`)
-		slideDiv.value.appendChild(elementDiv)
-		moveElement(elementId, {
-			dx: selectionBounds.left,
-			dy: selectionBounds.top,
-		})
-	})
-}
-
-const moveElementsToBox = (elementIds) => {
-	elementIds.forEach((elementId) => {
-		const elementDiv = document.querySelector(`[data-index="${elementId}"]`)
-		selectedRef.value?.appendChild(elementDiv)
-		moveElement(elementId, {
-			dx: -selectionBounds.left,
-			dy: -selectionBounds.top,
-		})
-	})
-}
-
 const handleSelection = (elementIds) => {
 	if (!elementIds.length) return
 	document.removeEventListener('mouseup', endSelection)
 	cropSelectionToFitContent(elementIds)
-	// moveElementsToBox(elementIds)
 }
 
 const handleSelectionChange = (elementIds, oldIds) => {
-	// moveElementsToSlide(oldIds)
 	resetSelection(oldIds)
-	nextTick(() => handleSelection(elementIds))
+	handleSelection(elementIds)
 }
 
 const selectSlide = (e) => {
