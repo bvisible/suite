@@ -57,7 +57,7 @@ import {
 	shallowRef,
 } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { useManualRefHistory } from '@vueuse/core'
+import { useDebouncedRefHistory } from '@vueuse/core'
 
 import { call, toast } from 'frappe-ui'
 
@@ -230,41 +230,18 @@ const handleGlobalShortcuts = (e) => {
 const ongoingHistoryUpdate = ref(false)
 
 const handleUndo = async () => {
-	const snapshot = historyControl.undoStack.value[snapshotIndex]?.snapshot
-	if (!snapshot) return
-
-	const snapshotActiveSlide = snapshot.slideIndex
-	if (snapshotActiveSlide != slideIndex.value) {
-		await changeSlide(snapshotActiveSlide)
-	}
-
-	ongoingHistoryUpdate.value = true
-
-	slides.value = snapshot.slides
 	historyControl.undo()
-
-	slides.value.forEach((slide, index) => {
-		slide.elements.forEach((element) => {
-			if (element.type == 'text') {
-				const content = snapshot.slides[index].elements.find(
-					(el) => el.id == element.id,
-				)?.content
-				if (content) {
-					editorMap[element.id]?.commands.setContent(content)
-				}
-			}
-		})
-	})
-
+	ongoingHistoryUpdate.value = true
+	slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+	await nextTick()
 	ongoingHistoryUpdate.value = false
-	snapshotIndex += 1
 }
 
 const handleUndoRedo = (e) => {
-	if (historyControl.canRedo && e.shiftKey && e.metaKey) {
+	if (historyControl.canRedo.value && e.shiftKey && e.metaKey) {
 		e.preventDefault()
 		historyControl.redo()
-	} else if (historyControl.canUndo && e.metaKey) {
+	} else if (historyControl.canUndo.value && e.metaKey) {
 		e.preventDefault()
 		handleUndo()
 	}
@@ -426,8 +403,6 @@ const addRouteSlug = async (slug) => {
 	})
 }
 
-let snapshotIndex = null
-
 const historyState = ref({
 	slides: [],
 	slideIndex: 0,
@@ -436,11 +411,11 @@ const historyState = ref({
 
 const initHistory = () => {
 	updateHistoryState()
-	historyControl = useManualRefHistory(historyState, {
+	historyControl = useDebouncedRefHistory(historyState, {
 		deep: true,
 		maxLength: 20,
+		debounce: 500,
 	})
-	snapshotIndex = 0
 }
 
 const initIntervals = () => {
@@ -479,8 +454,8 @@ watch(
 	() => slides.value,
 	(newSlides) => {
 		if (!newSlides || !historyControl || ongoingHistoryUpdate.value) return
+
 		updateHistoryState()
-		historyControl.commit()
 	},
 	{ deep: true },
 )
