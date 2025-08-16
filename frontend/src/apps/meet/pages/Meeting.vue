@@ -249,34 +249,79 @@ const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
 // Control functions
 const toggleMicrophone = async () => {
 	try {
-		if (audioProducer) {
-			if (isMicOn.value) {
-				await audioProducer.pause();
-			} else {
-				await audioProducer.resume();
+		if (isMicOn.value) {
+			if (localStream) {
+				const track = localStream.getAudioTracks()[0];
+				if (track) {
+					try {
+						track.stop();
+					} catch (_) {}
+					localStream.removeTrack(track);
+				}
+			}
+			if (audioProducer) {
+				try {
+					audioProducer.close();
+				} catch (_) {}
+				audioProducer = null;
+			}
+			// Notify others
+			try {
+				getSFUClient().sendMediaControl("mute");
+			} catch (e) {
+				console.warn(
+					"Failed to send media control (audio off)",
+					e?.message || e,
+				);
+			}
+			isMicOn.value = false;
+		} else {
+			try {
+				const audioStream = await navigator.mediaDevices.getUserMedia({
+					audio: {
+						echoCancellation: true,
+						noiseSuppression: true,
+						autoGainControl: true,
+					},
+					video: false,
+				});
+				const newTrack = audioStream.getAudioTracks()[0];
+				if (!localStream) {
+					localStream = new MediaStream();
+				}
+				if (newTrack) {
+					localStream.addTrack(newTrack);
+				}
+				// Attach to element if not already attached
+				if (localVideo.value && localVideo.value.srcObject !== localStream) {
+					localVideo.value.srcObject = localStream;
+				}
+				// Publish just audio via existing manager
+				if (sfuManager) {
+					try {
+						const results = await sfuManager.publishMedia(localStream, {
+							publishAudio: true,
+							publishVideo: false,
+						});
+						if (results.audioProducer) audioProducer = results.audioProducer;
+					} catch (pubErr) {
+						console.error("Failed to publish audio after re-acquire", pubErr);
+					}
+				}
+				try {
+					getSFUClient().sendMediaControl("unmute");
+				} catch (e) {
+					console.warn(
+						"Failed to send media control (audio on)",
+						e?.message || e,
+					);
+				}
+				isMicOn.value = true;
+			} catch (err) {
+				console.error("Error re-acquiring microphone:", err);
+				toast.error("Could not access microphone");
 			}
 		}
-
-		// Also update the local track
-		if (localStream) {
-			const audioTrack = localStream.getAudioTracks()[0];
-			if (audioTrack) {
-				audioTrack.enabled = !isMicOn.value;
-			}
-		}
-
-		// Notify others via SFU socket so UI updates everywhere
-		try {
-			const sfu = getSFUClient();
-			sfu.sendMediaControl(isMicOn.value ? "mute" : "unmute");
-		} catch (e) {
-			console.warn(
-				"Failed to send media control (audio) via SFU:",
-				e?.message || e,
-			);
-		}
-
-		isMicOn.value = !isMicOn.value;
 	} catch (error) {
 		console.error("Error toggling microphone:", error);
 	}
@@ -284,34 +329,73 @@ const toggleMicrophone = async () => {
 
 const toggleCamera = async () => {
 	try {
-		if (videoProducer) {
-			if (isCameraOn.value) {
-				await videoProducer.pause();
-			} else {
-				await videoProducer.resume();
+		if (isCameraOn.value) {
+			// Turning OFF: stop track & close producer
+			if (localStream) {
+				const track = localStream.getVideoTracks()[0];
+				if (track) {
+					try {
+						track.stop();
+					} catch (_) {}
+					localStream.removeTrack(track);
+				}
+			}
+			if (videoProducer) {
+				try {
+					videoProducer.close();
+				} catch (_) {}
+				videoProducer = null;
+			}
+			try {
+				getSFUClient().sendMediaControl("video_off");
+			} catch (e) {
+				console.warn(
+					"Failed to send media control (video off)",
+					e?.message || e,
+				);
+			}
+			isCameraOn.value = false;
+		} else {
+			try {
+				const vidStream = await navigator.mediaDevices.getUserMedia({
+					video: {
+						width: { ideal: 1280 },
+						height: { ideal: 720 },
+						frameRate: { ideal: 30 },
+					},
+					audio: false,
+				});
+				const newTrack = vidStream.getVideoTracks()[0];
+				if (!localStream) localStream = new MediaStream();
+				if (newTrack) localStream.addTrack(newTrack);
+				if (localVideo.value && localVideo.value.srcObject !== localStream) {
+					localVideo.value.srcObject = localStream;
+				}
+				if (sfuManager) {
+					try {
+						const results = await sfuManager.publishMedia(localStream, {
+							publishVideo: true,
+							publishAudio: false,
+						});
+						if (results.videoProducer) videoProducer = results.videoProducer;
+					} catch (pubErr) {
+						console.error("Failed to publish video after re-acquire", pubErr);
+					}
+				}
+				try {
+					getSFUClient().sendMediaControl("video_on");
+				} catch (e) {
+					console.warn(
+						"Failed to send media control (video on)",
+						e?.message || e,
+					);
+				}
+				isCameraOn.value = true;
+			} catch (err) {
+				console.error("Error re-acquiring camera:", err);
+				toast.error("Could not access camera");
 			}
 		}
-
-		// Also update the local track
-		if (localStream) {
-			const videoTrack = localStream.getVideoTracks()[0];
-			if (videoTrack) {
-				videoTrack.enabled = !isCameraOn.value;
-			}
-		}
-
-		// Notify others via SFU socket so UI updates everywhere
-		try {
-			const sfu = getSFUClient();
-			sfu.sendMediaControl(isCameraOn.value ? "video_off" : "video_on");
-		} catch (e) {
-			console.warn(
-				"Failed to send media control (video) via SFU:",
-				e?.message || e,
-			);
-		}
-
-		isCameraOn.value = !isCameraOn.value;
 	} catch (error) {
 		console.error("Error toggling camera:", error);
 	}
