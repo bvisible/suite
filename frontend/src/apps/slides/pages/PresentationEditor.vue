@@ -43,22 +43,11 @@
 </template>
 
 <script setup>
-import {
-	ref,
-	reactive,
-	watch,
-	computed,
-	useTemplateRef,
-	onMounted,
-	onBeforeUnmount,
-	nextTick,
-	onDeactivated,
-	onActivated,
-} from 'vue'
+import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { useDebouncedRefHistory } from '@vueuse/core'
+import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
-import { call, toast } from 'frappe-ui'
+import { toast } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -72,7 +61,6 @@ import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import {
 	presentationId,
-	getPresentationResource,
 	hasStateChanged,
 	savePresentationDoc,
 	layoutResource,
@@ -100,7 +88,6 @@ import {
 	activeElements,
 } from '@/stores/element'
 
-import html2canvas from 'html2canvas'
 import { generateUniqueId } from '@/utils/helpers'
 
 import { activeEditor } from '@/composables/useTextEditor'
@@ -225,16 +212,13 @@ const handleGlobalShortcuts = (e) => {
 	}
 }
 
-const ignoreStateChanges = ref(false)
-
 const handleHistoryOperation = async (operation) => {
-	if (operation == 'undo') historyControl.undo()
-	else if (operation == 'redo') historyControl.redo()
+	if (operation == 'undo') await historyControl.undo()
+	else if (operation == 'redo') await historyControl.redo()
 
-	ignoreStateChanges.value = true
-	slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
-	await nextTick()
-	ignoreStateChanges.value = false
+	ignoreUpdates(() => {
+		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+	})
 }
 
 const handleUndoRedo = (e) => {
@@ -418,8 +402,9 @@ const initHistory = () => {
 	updateHistoryState()
 	historyControl = useDebouncedRefHistory(historyState, {
 		deep: true,
-		maxLength: 20,
-		debounce: 500,
+		debounce: 50,
+		capacity: 3,
+		clone: (val) => JSON.parse(JSON.stringify(val)),
 	})
 }
 
@@ -455,12 +440,14 @@ const updateHistoryState = () => {
 	}
 }
 
-watch(
+const { ignoreUpdates } = watchIgnorable(
 	() => slides.value,
-	(newSlides) => {
-		if (!newSlides || !historyControl || ignoreStateChanges.value) return
+	(newVal) => {
+		if (!newVal || !historyControl) return
 
 		updateHistoryState()
+
+		historyControl.commit()
 	},
 	{ deep: true },
 )
