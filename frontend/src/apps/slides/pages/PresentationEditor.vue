@@ -94,6 +94,7 @@ import { activeEditor } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
 let thumbnailGenerationInterval = null
+let historyControl = null
 
 const primaryButtonProps = {
 	label: 'Present',
@@ -269,15 +270,19 @@ const handleAutoSave = () => {
 const dirtySince = ref(null)
 let lastThumbnailTime = 0
 
-const handleThumbnailGeneration = async (index, thumbnailHtml) => {
-	if (hasOngoingInteraction.value || focusElementId.value != null) return
+const handleThumbnailGeneration = async () => {
+	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
+
 	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
-		if (!thumbnailHtml) {
-			index = slideIndex.value
-			thumbnailHtml = await getThumbnailHtml()
-		}
-		if (!thumbnailHtml || !slides.value) return
-		slides.value[index].thumbnail = await getSlideThumbnail(thumbnailHtml)
+		const thumbnailHtml = await getThumbnailHtml()
+		if (!thumbnailHtml) return
+
+		const thumbnail = await getSlideThumbnail(thumbnailHtml)
+
+		ignoreUpdates(() => {
+			slides.value[slideIndex.value].thumbnail = thumbnail
+		})
+
 		lastThumbnailTime = Date.now()
 	}
 }
@@ -410,7 +415,7 @@ const initHistory = () => {
 
 const initIntervals = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
-	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 1000)
+	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 2000)
 }
 
 const loadPresentation = async (id) => {
@@ -429,8 +434,6 @@ onBeforeRouteLeave((to, from, next) => {
 	}
 	next()
 })
-
-let historyControl
 
 const updateHistoryState = () => {
 	historyState.value = {
