@@ -1,7 +1,8 @@
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { call, createResource } from 'frappe-ui'
 
 import { selectionBounds, slides, slideBounds, updateSelectionBounds, currentSlide } from './slide'
+import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
@@ -375,6 +376,59 @@ const updateElementWidth = (deltaWidth) => {
 	}
 }
 
+const { initTextEditor, activeEditor } = useTextEditor()
+
+const updateElementContent = (id) => {
+	const element = currentSlide.value.elements.find((el) => el.id == id)
+	element.content = activeEditor.value.getHTML()
+	element.editorMetadata = {
+		lineHeight: parseFloat(activeEditor.value.view.dom.style['line-height']),
+	}
+}
+
+const blurAndSaveContent = (elementId) => {
+	activeEditor.value.setEditable(false)
+	activeEditor.value.commands.blur()
+
+	if (activeEditor.value.isEmpty) {
+		deleteElements(null, [elementId])
+	} else {
+		updateElementContent(elementId)
+	}
+}
+
+const setEditableState = () => {
+	activeEditor.value.setEditable(true)
+	activeEditor.value.commands.focus()
+	activeEditor.value.commands.setTextSelection({
+		from: 0,
+		to: activeEditor.value.state.doc.content.size,
+	})
+}
+
+const initEditorForElement = (element) => {
+	if (element?.type == 'text') {
+		const isEditable = focusElementId.value == element.id
+		initTextEditor(element.id, element.content, element.editorMetadata, isEditable)
+
+		if (isEditable) setEditableState()
+	}
+}
+
+watch(
+	() => activeElement.value,
+	(element, oldElement) => {
+		if (oldElement?.type == 'text') {
+			blurAndSaveContent(oldElement.id)
+		}
+
+		nextTick(() => {
+			activeEditor.value?.destroy()
+			initEditorForElement(element)
+		})
+	},
+)
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -393,4 +447,5 @@ export {
 	handlePaste,
 	updateElementWidth,
 	deleteAttachments,
+	setEditableState,
 }

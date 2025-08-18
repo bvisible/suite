@@ -278,10 +278,10 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const initTextEditor = (id, content, editorMetadata) => {
+	const initTextEditor = (id, content, editorMetadata, isEditable = false) => {
 		activeEditor.value = new Editor({
 			extensions: extensions,
-			editable: false,
+			editable: isEditable,
 			content: content,
 			editorProps: getEditorProps(editorMetadata),
 			onTransaction: ({ transaction, editor }) => updateEditor({ transaction, editor }),
