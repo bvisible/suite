@@ -4,6 +4,17 @@ import { createResource } from 'frappe-ui'
 
 import { session } from '@/stores/session'
 
+const withPresentationProps = (route: RouteLocationNormalized) => {
+	const slide = parseInt(route.query.slide as string)
+  	const activeSlideId = Number.isFinite(slide) ? slide : 1
+
+	return {
+		presentationId: route.params.presentationId,
+		activeSlideId: activeSlideId,
+	}
+}
+
+
 const routes = [
 	{
 		path: '/',
@@ -14,19 +25,13 @@ const routes = [
 		path: '/presentation/:presentationId/:slug?',
 		name: 'PresentationEditor',
 		component: () => import('@/pages/PresentationEditor.vue'),
-		props: (route: RouteLocationNormalized) => ({
-			presentationId: route.params.presentationId,
-			activeSlideId: route.query.slide ? parseInt(route.query.slide as string) : 1,
-		}),
+		props: withPresentationProps,
 	},
 	{
 		path: '/slideshow/:presentationId',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
-		props: (route: RouteLocationNormalized) => ({
-			presentationId: route.params.presentationId,
-			activeSlideId: route.query.slide ? parseInt(route.query.slide as string) : 1,
-		}),
+		props: withPresentationProps,
 	},
 	{
 		path: '/not-permitted',
