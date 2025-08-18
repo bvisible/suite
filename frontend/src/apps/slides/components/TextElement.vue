@@ -16,23 +16,17 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, onMounted, watch, nextTick } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 
 import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { inSlideShow } from '@/stores/presentation'
-import {
-	focusElementId,
-	deleteElements,
-	activeElement,
-	activeElementIds,
-	setEditableState,
-} from '@/stores/element'
+import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { extensions } from '@/stores/tiptapSetup'
 
-const { activeEditor, initTextEditor } = useTextEditor()
+const { activeEditor } = useTextEditor()
 
 const element = defineModel('element', {
 	type: Object,
@@ -49,10 +43,9 @@ const editorStyles = computed(() => ({
 }))
 
 const handleMouseDown = (e) => {
-	if (isEditable.value) {
-		e.stopPropagation()
-		return
-	}
+	if (!isEditable.value) return
+
+	e.stopPropagation()
 }
 
 const handleDoubleClick = (e) => {
@@ -65,10 +58,20 @@ const handleDoubleClick = (e) => {
 
 	activeElementIds.value = [element.value.id]
 	focusElementId.value = element.value.id
+
 	if (activeElement.value.id == element.value.id && activeEditor.value) {
 		setEditableState()
 	}
 }
+
+const normalizeContent = () => {
+	const content = element.value.content
+	if (content && typeof content == 'object') {
+		element.value.content = generateHTML(content, extensions)
+	}
+}
+
+onBeforeMount(() => normalizeContent())
 </script>
 
 <style>
