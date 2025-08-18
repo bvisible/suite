@@ -59,6 +59,10 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
+	activeSlideId: {
+		type: Number,
+		required: true,
+	},
 })
 
 const transition = ref('none')
@@ -228,7 +232,11 @@ const changeSlide = (index) => {
 	applyReverseTransition.value = index < slideIndex.value
 
 	nextTick(() => {
-		slideIndex.value = index
+		router.replace({
+			name: 'Slideshow',
+			params: { presentationId: props.presentationId },
+			query: { slide: index + 1 },
+		})
 	})
 }
 
@@ -248,4 +256,12 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
 })
+
+watch(
+	() => props.activeSlideId,
+	(index) => {
+		slideIndex.value = parseInt(index) - 1
+	},
+	{ immediate: true },
+)
 </script>

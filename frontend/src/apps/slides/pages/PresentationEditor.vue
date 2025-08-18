@@ -44,7 +44,7 @@
 
 <script setup>
 import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
 import { toast } from 'frappe-ui'
@@ -105,9 +105,12 @@ const primaryButtonProps = {
 const props = defineProps({
 	presentationId: String,
 	slug: String,
+	activeSlideId: {
+		type: Number,
+		required: true,
+	},
 })
 
-const route = useRoute()
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -260,6 +263,7 @@ const startSlideShow = () => {
 	router.replace({
 		name: 'Slideshow',
 		params: { presentationId: props.presentationId },
+		query: { slide: props.activeSlideId },
 	})
 }
 
@@ -292,10 +296,7 @@ const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
 	router.replace({
-		query: {
-			...route.query,
-			slide: index + 1,
-		},
+		query: { slide: index + 1 },
 	})
 }
 
@@ -519,9 +520,9 @@ watch(
 )
 
 watch(
-	() => route.query.slide,
+	() => props.activeSlideId,
 	(index) => {
-		slideIndex.value = index ? parseInt(index) - 1 : 0
+		slideIndex.value = parseInt(index) - 1
 	},
 	{ immediate: true },
 )
