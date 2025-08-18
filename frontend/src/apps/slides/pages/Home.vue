@@ -79,6 +79,7 @@ const navigateToPresentation = (name, present) => {
 		router.push({
 			name: 'PresentationEditor',
 			params: { presentationId: name },
+			query: { slide: 1 },
 		})
 	}
 }
