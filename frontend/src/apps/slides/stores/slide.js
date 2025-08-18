@@ -13,7 +13,7 @@ const setSlideRef = (ref) => (slideRef.value = ref)
 
 const slides = ref([])
 
-const slideIndex = ref(0)
+const slideIndex = ref()
 
 const currentSlide = computed(() => slides.value[slideIndex.value])
 

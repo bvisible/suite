@@ -44,7 +44,7 @@
 
 <script setup>
 import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
 import { toast } from 'frappe-ui'
@@ -107,6 +107,7 @@ const props = defineProps({
 	slug: String,
 })
 
+const route = useRoute()
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -290,7 +291,12 @@ const handleThumbnailGeneration = async () => {
 const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
-	slideIndex.value = index
+	router.replace({
+		query: {
+			...route.query,
+			slide: index + 1,
+		},
+	})
 }
 
 const getNewSlide = (toDuplicate = false, layoutId) => {
@@ -389,11 +395,12 @@ const resetAndSave = () => {
 	})
 }
 
-const addRouteSlug = async (slug) => {
+const updateRoute = async (slug) => {
 	if (props.slug == slug) return
 	router.replace({
 		name: 'PresentationEditor',
 		params: { presentationId: presentationId.value, slug: slug },
+		query: { slide: slideIndex.value + 1 },
 	})
 }
 
@@ -408,7 +415,7 @@ const initHistory = () => {
 	historyControl = useDebouncedRefHistory(historyState, {
 		deep: true,
 		debounce: 50,
-		capacity: 3,
+		capacity: 25,
 		clone: (val) => JSON.parse(JSON.stringify(val)),
 	})
 }
@@ -420,20 +427,12 @@ const initIntervals = () => {
 
 const loadPresentation = async (id) => {
 	presentationDoc.value = await initPresentationDoc(id)
-	addRouteSlug(presentationDoc.value.slug)
+	updateRoute(presentationDoc.value.slug)
 	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initHistory()
 	initIntervals()
 	document.addEventListener('keydown', handleKeyDown)
 }
-
-onBeforeRouteLeave((to, from, next) => {
-	if (to.name !== 'Slideshow') {
-		slideIndex.value = 0
-		presentationId.value = ''
-	}
-	next()
-})
 
 const updateHistoryState = () => {
 	historyState.value = {
@@ -517,5 +516,13 @@ watch(
 			dirtySince.value = Date.now()
 		}
 	},
+)
+
+watch(
+	() => route.query.slide,
+	(index) => {
+		slideIndex.value = index ? parseInt(index) - 1 : 0
+	},
+	{ immediate: true },
 )
 </script>
