@@ -16,14 +16,21 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, onBeforeMount, onMounted, watch, nextTick } from 'vue'
 
-import { EditorContent } from '@tiptap/vue-3'
+import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { inSlideShow } from '@/stores/presentation'
-import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
+import {
+	focusElementId,
+	deleteElements,
+	activeElement,
+	activeElementIds,
+	setEditableState,
+} from '@/stores/element'
+import { extensions } from '@/stores/tiptapSetup'
 
 const { activeEditor, initTextEditor } = useTextEditor()
 
@@ -48,17 +55,6 @@ const handleMouseDown = (e) => {
 	}
 }
 
-const makeElementEditable = () => {
-	activeElementIds.value = []
-
-	activeEditor.value.setEditable(true)
-	activeEditor.value.commands.focus()
-	activeEditor.value.commands.setTextSelection({
-		from: 0,
-		to: activeEditor.value.state.doc.content.size,
-	})
-}
-
 const handleDoubleClick = (e) => {
 	if (inSlideShow.value || isEditable.value) {
 		e.stopPropagation()
@@ -67,62 +63,12 @@ const handleDoubleClick = (e) => {
 
 	emit('clearTimeouts')
 
+	activeElementIds.value = [element.value.id]
 	focusElementId.value = element.value.id
-}
-
-const isEditorEmpty = () => {
-	const json = activeEditor.value.getJSON()
-
-	if (!json || !json.content) return true
-
-	if (
-		json.content.length == 1 &&
-		json.content[0].type == 'paragraph' &&
-		(!json.content[0].content || json.content[0].content.length == 0)
-	) {
-		return true
-	}
-
-	return false
-}
-
-const blurAndSaveContent = (id) => {
-	activeEditor.value.setEditable(false)
-	activeEditor.value.commands.blur()
-
-	if (isEditorEmpty()) {
-		deleteElements(null, [id])
-	} else {
-		element.value.content = activeEditor.value.getHTML()
-		element.value.editorMetadata = {
-			lineHeight: parseFloat(activeEditor.value.view.dom.style['line-height']),
-		}
+	if (activeElement.value.id == element.value.id && activeEditor.value) {
+		setEditableState()
 	}
 }
-
-watch(
-	() => focusElementId.value,
-	(newId, oldId) => {
-		if (newId == element.value.id) {
-			makeElementEditable()
-		}
-	},
-)
-
-watch(
-	() => activeElement.value,
-	(newVal, oldVal) => {
-		if (oldVal?.type == 'text' && oldVal.id == element.value.id) {
-			blurAndSaveContent(oldVal.id)
-		}
-		if (newVal?.type == 'text') {
-			if (activeEditor.value) {
-				activeEditor.value.destroy()
-			}
-			initTextEditor(newVal.id, newVal.content, newVal.editorMetadata)
-		}
-	},
-)
 </script>
 
 <style>

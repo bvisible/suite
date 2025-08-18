@@ -49,6 +49,7 @@ import {
 	focusElementId,
 	pairElementId,
 	updateElementWidth,
+	setEditableState,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
@@ -134,6 +135,8 @@ const triggerSelection = (e, id) => {
 			focusElementId.value = null
 		} else if (activeElement.value?.type == 'text') {
 			focusElementId.value = id
+
+			setEditableState()
 		}
 	}
 }
