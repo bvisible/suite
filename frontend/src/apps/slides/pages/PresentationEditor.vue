@@ -295,6 +295,8 @@ const handleThumbnailGeneration = async () => {
 const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
+	resetFocus()
+
 	router.replace({
 		query: { slide: index + 1 },
 	})
