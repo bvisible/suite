@@ -1,10 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import { call } from 'frappe-ui'
 
-import { presentationId, inSlideShow } from './presentation'
-import { activeElementIds } from './element'
-
-import { isEqual } from 'lodash'
 import html2canvas from 'html2canvas'
 
 const slideRef = ref(null)
@@ -63,39 +58,52 @@ const getVerticalOffset = (element) => {
 	return (lineHeight - fontSize) / 2
 }
 
-const getThumbnailHtml = async () => {
-	const clone = slideRef.value.cloneNode(true)
-
+const setCloneStyles = (clone) => {
 	clone.style.position = 'absolute'
 	clone.style.left = '-9999px'
 	clone.style.top = '0'
 	clone.style.transform = 'scale(1)'
+}
 
-	await clone.querySelectorAll('*').forEach(async (element) => {
-		if (element.hasAttribute('data-index')) {
-			element.style.position = 'absolute'
-			// compensate for baseline alignment done by html2canvas for text
-			if (element.firstChild.firstChild.hasAttribute('contenteditable')) {
-				const verticalOffset = getVerticalOffset(element)
-				element.style.top = `${parseFloat(element.style.top) + verticalOffset}px`
-			}
-		}
+const canRemoveDiv = (element) => {
+	const isEmpty =
+		element.tagName == 'DIV' && element.textContent.trim() == '' && element.children.length == 0
 
-		if (element.tagName == 'VIDEO') {
-			await replaceVideoWithPoster(element)
-		}
+	return isEmpty || element.classList.contains('overlay')
+}
 
-		const isEmpty =
-			element.tagName == 'DIV' &&
-			element.textContent.trim() == '' &&
-			element.children.length == 0
+const adjustTextBaseline = (element) => {
+	// compensate for baseline alignment done by html2canvas for text
+	if (
+		element.firstChild?.classList?.contains('textElement') ||
+		element.firstChild?.firstChild?.classList?.contains('tiptap')
+	) {
+		const verticalOffset = getVerticalOffset(element)
+		element.style.top = `${parseFloat(element.style.top) + verticalOffset}px`
+	}
+}
 
-		const removeDiv = isEmpty || element.classList.contains('overlay')
+const getThumbnailHtml = async () => {
+	const clone = slideRef.value.cloneNode(true)
+	setCloneStyles(clone)
 
-		if (removeDiv) {
+	const elements = clone.querySelectorAll('*')
+
+	for (const element of elements) {
+		// remove empty, guide and overlay divs
+		const isRemovableDiv = canRemoveDiv(element)
+
+		if (isRemovableDiv) {
 			element.remove()
+			continue
 		}
-	})
+
+		// for text elements, add vertical offset for same vertical position
+		if (element.hasAttribute('data-index')) adjustTextBaseline(element)
+
+		// for video elements, replace with poster image
+		if (element.tagName == 'VIDEO') await replaceVideoWithPoster(element)
+	}
 
 	return clone
 }
