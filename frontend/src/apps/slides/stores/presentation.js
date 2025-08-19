@@ -1,8 +1,12 @@
 import { ref, watch } from 'vue'
+import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides, slideIndex, getSlideThumbnail } from './slide'
+import { slides, slideIndex } from './slide'
+import { activeElementIds } from '@/stores/element'
+
+import { activeEditor } from '@/composables/useTextEditor'
 
 const presentationDoc = ref()
 
@@ -142,6 +146,51 @@ const initPresentationDoc = async (id) => {
 	return presentationResource.value.doc
 }
 
+let historyControl = null
+
+const historyState = ref({
+	elementIds: '',
+	activeSlide: 0,
+	slides: [],
+})
+
+const deepClone = (obj) => JSON.parse(JSON.stringify(obj))
+
+const updateHistoryState = (slides, activeSlide, elementIds) => {
+	const slidesClone = [...slides].map((slide) => {
+		return {
+			...slide,
+			elements: slide.elements.map((el) => deepClone(el)),
+		}
+	})
+
+	historyState.value = {
+		elementIds: elementIds,
+		activeSlide: Number(activeSlide),
+		slides: slidesClone,
+	}
+}
+
+const { ignoreUpdates } = watchIgnorable(
+	() => slides.value,
+	(newVal) => {
+		if (!newVal.length) return
+
+		updateHistoryState(newVal, slideIndex.value, activeElementIds.value)
+
+		historyControl.commit()
+	},
+	{ deep: true },
+)
+
+const initHistory = () => {
+	historyControl = useManualRefHistory(historyState, {
+		capacity: 25,
+		clone: true,
+		deep: true,
+	})
+}
+
 export {
 	presentationId,
 	inSlideShow,
@@ -154,4 +203,8 @@ export {
 	initPresentationDoc,
 	layoutResource,
 	presentationDoc,
+	historyControl,
+	historyState,
+	initHistory,
+	ignoreUpdates,
 }
