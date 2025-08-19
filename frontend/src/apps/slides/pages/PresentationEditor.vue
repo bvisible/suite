@@ -66,6 +66,10 @@ import {
 	layoutResource,
 	initPresentationDoc,
 	presentationDoc,
+	historyControl,
+	historyState,
+	initHistory,
+	ignoreUpdates,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -94,7 +98,6 @@ import { activeEditor } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
 let thumbnailGenerationInterval = null
-let historyControl = null
 
 const primaryButtonProps = {
 	label: 'Present',
@@ -218,11 +221,19 @@ const handleGlobalShortcuts = (e) => {
 }
 
 const handleHistoryOperation = async (operation) => {
+	activeElementIds.value = []
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
+	if (slideIndex.value != historyState.value.activeSlide) {
+		await changeSlide(historyState.value.activeSlide)
+	}
+
 	ignoreUpdates(() => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+		if (activeElementIds.value != historyState.value.elementIds) {
+			activeElementIds.value = [...historyState.value.elementIds]
+		}
 	})
 }
 
@@ -232,10 +243,10 @@ const handleUndoRedo = (e) => {
 		return
 	}
 
-	if (historyControl.canRedo.value && e.shiftKey && e.metaKey) {
+	if (historyControl.redoStack.value.length > 1 && e.shiftKey && e.metaKey) {
 		e.preventDefault()
 		handleHistoryOperation('redo')
-	} else if (historyControl.canUndo.value && e.metaKey) {
+	} else if (historyControl.undoStack.value.length > 1 && e.metaKey) {
 		e.preventDefault()
 		handleHistoryOperation('undo')
 	}
@@ -297,7 +308,7 @@ const changeSlide = async (index) => {
 
 	resetFocus()
 
-	router.replace({
+	await router.replace({
 		query: { slide: index + 1 },
 	})
 }
@@ -407,55 +418,19 @@ const updateRoute = async (slug) => {
 	})
 }
 
-const historyState = ref({
-	slides: [],
-	slideIndex: 0,
-	activeElementId: null,
-})
-
-const initHistory = () => {
-	updateHistoryState()
-	historyControl = useDebouncedRefHistory(historyState, {
-		deep: true,
-		debounce: 50,
-		capacity: 25,
-		clone: (val) => JSON.parse(JSON.stringify(val)),
-	})
-}
-
 const initIntervals = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
 	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 2000)
 }
 
 const loadPresentation = async (id) => {
+	initHistory()
 	presentationDoc.value = await initPresentationDoc(id)
 	updateRoute(presentationDoc.value.slug)
 	layoutResource.fetch({ theme: presentationDoc.value.theme })
-	initHistory()
 	initIntervals()
 	document.addEventListener('keydown', handleKeyDown)
 }
-
-const updateHistoryState = () => {
-	historyState.value = {
-		slides: JSON.parse(JSON.stringify(slides.value)),
-		slideIndex: slideIndex.value,
-		activeElementId: activeElement.value?.id || null,
-	}
-}
-
-const { ignoreUpdates } = watchIgnorable(
-	() => slides.value,
-	(newVal) => {
-		if (!newVal || !historyControl) return
-
-		updateHistoryState()
-
-		historyControl.commit()
-	},
-	{ deep: true },
-)
 
 onActivated(() => {
 	const id = props.presentationId

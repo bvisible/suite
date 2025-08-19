@@ -88,7 +88,7 @@ onBeforeMount(() => normalizeContent())
 .tiptap > ul li,
 .textElement > ul li {
 	position: relative;
-	padding-left: 0.6em;
+	padding-left: 0.8em;
 }
 
 .tiptap > ul li::before,

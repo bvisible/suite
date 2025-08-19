@@ -160,7 +160,7 @@ export const useTextEditor = () => {
 			})
 			.run()
 
-		activeElement.value.content = activeEditor.value.getJSON()
+		activeElement.value.content = activeEditor.value.getHTML()
 	}
 
 	const toggleMark = (property) => {
@@ -175,7 +175,7 @@ export const useTextEditor = () => {
 
 		chain[markCommands[property]](property).run()
 
-		activeElement.value.content = currentEditor.getJSON()
+		activeElement.value.content = currentEditor.getHTML()
 	}
 
 	const selectListBlock = () => {
@@ -223,7 +223,7 @@ export const useTextEditor = () => {
 			chain.wrapInList('bulletList').run()
 		}
 
-		activeElement.value.content = activeEditor.value.getJSON()
+		activeElement.value.content = activeEditor.value.getHTML()
 	}
 
 	const setLineHeight = (value) => {
