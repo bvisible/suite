@@ -3,7 +3,11 @@
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
 		<div ref="slideRef" :style="slideStyles" :class="slideClasses">
-			<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
+			<SelectionBox
+				ref="selectionBox"
+				@mousedown="(e) => handleMouseDown(e)"
+				@setIsSelecting="(val) => (isSelecting = val)"
+			/>
 
 			<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
 
@@ -92,11 +96,21 @@ const slideClasses = computed(() => {
 	return [...classes, outlineClasses]
 })
 
+const isSelecting = ref(false)
+
+const getSlideCursor = () => {
+	if (isDragging.value) return 'move'
+	if (isSelecting.value) return 'crosshair'
+	if (resizeCursor.value) return resizeCursor.value
+
+	return 'default'
+}
+
 const slideStyles = computed(() => ({
 	transformOrigin: transformOrigin.value,
 	transform: transform.value,
 	backgroundColor: currentSlide.value?.background || '#ffffff',
-	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
+	cursor: getSlideCursor(),
 	zIndex: 0,
 }))
 
