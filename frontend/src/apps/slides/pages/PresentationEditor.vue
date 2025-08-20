@@ -225,7 +225,10 @@ const handleHistoryOperation = async (operation) => {
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
-	if (slideIndex.value != historyState.value.activeSlide) {
+	if (
+		slideIndex.value != historyState.value.activeSlide &&
+		historyControl.undoStack.value.length > 1
+	) {
 		await changeSlide(historyState.value.activeSlide)
 	}
 
