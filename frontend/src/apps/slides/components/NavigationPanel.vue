@@ -67,6 +67,13 @@ const showNavigator = defineModel('showNavigator', {
 	default: true,
 })
 
+const props = defineProps({
+	recentlyRestored: {
+		type: Boolean,
+		default: false,
+	},
+})
+
 const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
 
 const insertButtonClasses =
@@ -94,10 +101,20 @@ const panelClasses = computed(() => {
 
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
-		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
-	const borderClasses =
-		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
-	return `${baseClasses} ${borderClasses}`
+		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
+
+	const isActiveSlide = slideIndex.value == slide.idx - 1
+
+	let outlineClasses = ''
+	if (isActiveSlide && props.recentlyRestored) {
+		outlineClasses += 'ring-blue-200 ring-[2px] ring-offset-2 scale-[1.01]'
+	} else if (isActiveSlide) {
+		outlineClasses += 'ring-blue-300 ring-[1.5px] ring-offset-1'
+	} else {
+		outlineClasses += 'ring-white hover:border-gray-300'
+	}
+
+	return `${baseClasses} ${outlineClasses}`
 }
 
 const getThumbnailStyles = (s) => {
