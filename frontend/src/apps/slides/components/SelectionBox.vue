@@ -17,6 +17,8 @@ import {
 const slideDiv = inject('slideDiv')
 const slideContainerDiv = inject('slideContainerDiv')
 
+const emit = defineEmits(['setIsSelecting'])
+
 const selectedRef = useTemplateRef('selected')
 
 const startX = ref(0)
@@ -28,7 +30,7 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'absolute',
-	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
+	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f025',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
 	width: `${selectionBounds.width}px`,
 	height: `${selectionBounds.height}px`,
@@ -39,6 +41,7 @@ const boxStyles = computed(() => ({
 
 const initSelection = (e) => {
 	activeElementIds.value = []
+	emit('setIsSelecting', true)
 	nextTick(() => {
 		const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 		const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
@@ -130,6 +133,8 @@ const updateSelectedElements = () => {
 }
 
 const endSelection = (e) => {
+	emit('setIsSelecting', false)
+
 	document.removeEventListener('mousemove', updateSelection)
 
 	updateSelectedElements()
