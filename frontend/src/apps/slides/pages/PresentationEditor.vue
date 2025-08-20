@@ -15,6 +15,7 @@
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
 				:showNavigator="showNavigator"
+				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
 				@openLayoutDialog="openLayoutDialog('insert', slides.length - 1)"
 			/>
@@ -220,6 +221,8 @@ const handleGlobalShortcuts = (e) => {
 	}
 }
 
+const recentlyRestored = ref(false)
+
 const handleHistoryOperation = async (operation) => {
 	activeElementIds.value = []
 	if (operation == 'undo') await historyControl.undo()
@@ -230,6 +233,10 @@ const handleHistoryOperation = async (operation) => {
 		historyControl.undoStack.value.length > 1
 	) {
 		await changeSlide(historyState.value.activeSlide)
+		recentlyRestored.value = true
+		setTimeout(() => {
+			recentlyRestored.value = false
+		}, 700)
 	}
 
 	ignoreUpdates(() => {
