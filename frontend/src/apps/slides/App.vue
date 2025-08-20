@@ -1,6 +1,6 @@
 <template>
 	<FrappeUIProvider>
-		<router-view v-slot="{ Component }">
+		<router-view v-slot="{ Component }" :key="$route.fullPath">
 			<keep-alive :max="5">
 				<component :is="Component" />
 			</keep-alive>
