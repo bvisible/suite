@@ -17,8 +17,8 @@
 					<div
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
-						@click="emit('changeSlide', slide.idx - 1)"
-						:ref="(el) => (slideThumbnailsRef[slide.idx - 1] = el)"
+						@click="emit('changeSlide', slides.indexOf(slide))"
+						:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
 					></div>
 				</template>
 			</Draggable>
@@ -103,7 +103,7 @@ const getThumbnailClasses = (slide) => {
 	const baseClasses =
 		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
 
-	const isActiveSlide = slideIndex.value == slide.idx - 1
+	const isActiveSlide = slideIndex.value == slides.value.indexOf(slide)
 
 	let outlineClasses = ''
 	if (isActiveSlide && props.recentlyRestored) {
@@ -118,7 +118,8 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	const img = slideIndex.value == s.idx - 1 ? currentSlide.value.thumbnail : s.thumbnail
+	const img =
+		slideIndex.value == slides.value.indexOf(s) ? currentSlide.value.thumbnail : s.thumbnail
 	return {
 		backgroundImage: `url(${img})`,
 		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
@@ -136,9 +137,6 @@ const toggleButtonClasses = computed(() => {
 
 const handleSortEnd = async (event) => {
 	emit('changeSlide', event.newIndex)
-	slides.value.forEach((slide) => {
-		slide.idx = slides.value.indexOf(slide) + 1
-	})
 }
 
 const handleHoverChange = (e) => {
