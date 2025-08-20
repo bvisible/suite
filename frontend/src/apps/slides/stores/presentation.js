@@ -157,10 +157,11 @@ const historyState = ref({
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj))
 
 const updateHistoryState = (slides, activeSlide, elementIds) => {
-	const slidesClone = [...slides].map((slide) => {
+	const slidesClone = [...slides].map((slide, idx) => {
 		return {
 			...slide,
 			elements: slide.elements.map((el) => deepClone(el)),
+			thumbnail: idx == activeSlide ? '' : slide.thumbnail,
 		}
 	})
 
