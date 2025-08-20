@@ -42,7 +42,7 @@
 
 	<!-- Slide Navigator Toggle -->
 	<div v-if="!showNavigator" :class="toggleButtonClasses" @click="toggleNavigator">
-		<LucideChevronRight class="size-3.5" />
+		<LucideChevronRight class="size-3.5 text-gray-500" />
 	</div>
 </template>
 
@@ -57,6 +57,7 @@ import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
+import { ignoreUpdates } from '@/stores/presentation'
 
 const attrs = useAttrs()
 
@@ -136,6 +137,11 @@ const toggleButtonClasses = computed(() => {
 })
 
 const handleSortEnd = async (event) => {
+	ignoreUpdates(() => {
+		slides.value.forEach((slide, index) => {
+			slide.idx = index + 1
+		})
+	})
 	emit('changeSlide', event.newIndex)
 }
 
