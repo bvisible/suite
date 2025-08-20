@@ -439,18 +439,22 @@ const loadPresentation = async (id) => {
 	updateRoute(presentationDoc.value.slug)
 	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initIntervals()
-	document.addEventListener('keydown', handleKeyDown)
 }
 
 onActivated(() => {
 	const id = props.presentationId
 	if (!id) return
 	loadPresentation(id)
+
+	document.addEventListener('keydown', handleKeyDown)
 })
 
-onDeactivated(() => {
+onDeactivated(async () => {
 	clearInterval(autosaveInterval)
 	resetFocus()
+	await handleThumbnailGeneration()
+	savePresentation()
+
 	document.removeEventListener('keydown', handleKeyDown)
 })
 
@@ -484,9 +488,7 @@ const isDirty = computed(() => {
 
 const isSaving = ref(false)
 
-const saveChanges = async () => {
-	if (!isDirty.value || isSaving.value) return
-
+const savePresentation = async () => {
 	isSaving.value = true
 	try {
 		await savePresentationDoc()
@@ -495,6 +497,12 @@ const saveChanges = async () => {
 	} finally {
 		isSaving.value = false
 	}
+}
+
+const saveChanges = async () => {
+	if (!isDirty.value || isSaving.value) return
+
+	await savePresentation()
 }
 
 watch(
@@ -509,7 +517,7 @@ watch(
 watch(
 	() => props.activeSlideId,
 	(index) => {
-		slideIndex.value = parseInt(index) - 1
+		slideIndex.value = parseInt(index) - 1 || 0
 	},
 	{ immediate: true },
 )
