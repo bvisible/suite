@@ -1,7 +1,8 @@
 <template>
-	<div ref="elementDiv" :style="elementStyle">
+	<div :style="elementStyle">
 		<component
 			:is="getDynamicComponent(element.type)"
+			:key="mode + '-' + element.id"
 			:element="element"
 			@clearTimeouts="$emit('clearTimeouts')"
 		/>
@@ -28,6 +29,10 @@ import {
 import { selectionBounds, slideBounds } from '@/stores/slide'
 
 const props = defineProps({
+	mode: {
+		type: String,
+		default: 'editor',
+	},
 	outline: {
 		type: String,
 		default: 'none',
@@ -52,8 +57,6 @@ const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
-
-const elementDivRef = useTemplateRef('elementDiv')
 
 const outline = computed(() => {
 	switch (props.outline) {
@@ -94,7 +97,7 @@ const getDynamicComponent = (type) => {
 }
 
 const showResizers = computed(() => {
-	if (!activeElement.value || focusElementId.value) return false
+	if (!activeElement.value || focusElementId.value || props.mode == 'slideshow') return false
 	return activeElement.value.id == element.value.id && !props.isDragging
 })
 </script>

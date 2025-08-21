@@ -16,7 +16,8 @@
 				<div :key="slideIndex" :style="slideStyles" @click="changeSlide(slideIndex + 1)">
 					<SlideElement
 						v-for="element in currentSlide?.elements"
-						:key="element.id"
+						:key="`slideshow-${element.id}`"
+						mode="slideshow"
 						:element="element"
 						:data-index="element.id"
 						@click.stop

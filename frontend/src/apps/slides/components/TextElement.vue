@@ -1,6 +1,6 @@
 <template>
 	<EditorContent
-		v-if="activeElement?.id == element.id"
+		v-if="showEditor"
 		:editor="activeEditor"
 		:style="editorStyles"
 		@mousedown="handleMouseDown"
@@ -27,6 +27,11 @@ import { focusElementId, activeElement, activeElementIds, setEditableState } fro
 import { extensions } from '@/stores/tiptapSetup'
 
 const { activeEditor } = useTextEditor()
+
+const showEditor = computed(() => {
+	if (!activeElement.value) return false
+	return activeElement.value.id == element.id && !inSlideShow.value
+})
 
 const element = defineModel('element', {
 	type: Object,
