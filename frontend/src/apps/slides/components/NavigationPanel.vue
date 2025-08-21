@@ -119,10 +119,8 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	const img =
-		slideIndex.value == slides.value.indexOf(s) ? currentSlide.value.thumbnail : s.thumbnail
 	return {
-		backgroundImage: `url(${img})`,
+		backgroundImage: `url(${s.thumbnail})`,
 		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
 		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
 	}

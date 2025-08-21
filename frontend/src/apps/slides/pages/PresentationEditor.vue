@@ -300,13 +300,14 @@ const handleThumbnailGeneration = async () => {
 	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
 	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
+		const index = slideIndex.value
 		const thumbnailHtml = await getThumbnailHtml()
 		if (!thumbnailHtml) return
 
 		const thumbnail = await getSlideThumbnail(thumbnailHtml)
 
 		ignoreUpdates(() => {
-			slides.value[slideIndex.value].thumbnail = thumbnail
+			slides.value[index].thumbnail = thumbnail
 		})
 
 		lastThumbnailTime = Date.now()
