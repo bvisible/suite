@@ -4,6 +4,7 @@
 			:is="getDynamicComponent(element.type)"
 			:key="mode + '-' + element.id"
 			:element="element"
+			:mode="mode"
 			@clearTimeouts="$emit('clearTimeouts')"
 		/>
 
