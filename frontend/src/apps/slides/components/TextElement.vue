@@ -28,9 +28,16 @@ import { extensions } from '@/stores/tiptapSetup'
 
 const { activeEditor } = useTextEditor()
 
+const props = defineProps({
+	mode: {
+		type: String,
+		default: 'editor',
+	},
+})
+
 const showEditor = computed(() => {
 	if (!activeElement.value) return false
-	return activeElement.value.id == element.id && !inSlideShow.value
+	return activeElement.value.id == element.value.id && props.mode == 'editor'
 })
 
 const element = defineModel('element', {
