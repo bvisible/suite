@@ -13,7 +13,8 @@
 
 			<SlideElement
 				v-for="element in currentSlide?.elements"
-				:key="element.id"
+				:key="`editor-${element.id}`"
+				mode="editor"
 				:element
 				:elementOffset
 				:isDragging
