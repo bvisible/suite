@@ -307,6 +307,7 @@ const handleThumbnailGeneration = async () => {
 		const thumbnail = await getSlideThumbnail(thumbnailHtml)
 
 		ignoreUpdates(() => {
+			if (!slides.value[index]) return
 			slides.value[index].thumbnail = thumbnail
 		})
 
@@ -452,6 +453,7 @@ onActivated(() => {
 
 onDeactivated(async () => {
 	clearInterval(autosaveInterval)
+	clearInterval(thumbnailGenerationInterval)
 	resetFocus()
 	await handleThumbnailGeneration()
 	savePresentation()
