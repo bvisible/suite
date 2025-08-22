@@ -50,6 +50,8 @@ const getVerticalOffset = (element) => {
 	const fontSizeNode = getFirstElementWithStyle(element, 'font-size')
 	const lineHeightNode = getFirstElementWithStyle(element, 'line-height')
 
+	if (!fontSizeNode || !lineHeightNode) return 0
+
 	const fontSize = parseFloat(fontSizeNode.style.fontSize)
 	let lineHeight = lineHeightNode.style.lineHeight
 
