@@ -80,6 +80,7 @@ import {
 	updateSelectionBounds,
 	getSlideThumbnail,
 	getThumbnailHtml,
+	focusedSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -323,6 +324,7 @@ const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
 	resetFocus()
+	focusedSlide.value = null
 
 	await router.replace({
 		query: { slide: index + 1 },
@@ -373,24 +375,32 @@ const insertSlide = (index, layoutId, toDuplicate) => {
 }
 
 const deleteSlide = () => {
+	if (focusedSlide.value == null) return
+
+	const deleteIndex = focusedSlide.value
+
 	// if there is only one slide, reset the slide state instead of deleting
 	const totalLength = slides.value.length
 
 	if (totalLength == 1) {
 		slides.value[0].elements = []
+		focusedSlide.value = null
 		return
 	}
 
-	if (slideIndex.value == totalLength - 1) {
-		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeSlide(slideIndex.value - 1)
-	}
-
 	// delete the current slide
-	slides.value = slides.value.filter((slide, i) => i != slideIndex.value)
+	slides.value = slides.value.filter((slide, i) => {
+		return i != deleteIndex
+	})
 	slides.value.forEach((slide, index) => {
 		slide.idx = index + 1
 	})
+
+	if (deleteIndex == totalLength - 1) {
+		// if last slide is deleted, switch to previous slide since no slide at current index
+		changeSlide(deleteIndex - 1)
+		focusedSlide.value = deleteIndex - 1
+	}
 }
 
 const duplicateSlide = (e) => {
