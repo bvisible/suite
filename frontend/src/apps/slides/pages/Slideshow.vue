@@ -7,7 +7,34 @@
 				clipPath: clipPath,
 			}"
 		>
+			<div v-if="slideshowEnded" class="flex flex-col items-center gap-8">
+				<div class="flex gap-8">
+					<Button
+						label="Back"
+						size="lg"
+						:variant="'outline'"
+						class="bg-transparent text-white opacity-70 transition-opacity duration-300 hover:opacity-100"
+						@click="endSlideShow"
+					>
+						<template #prefix>
+							<LucideChevronLeft class="size-4 stroke-[1.5]" />
+						</template>
+					</Button>
+					<Button
+						label="Replay"
+						size="lg"
+						class="opacity-90 transition-opacity duration-200 hover:opacity-100"
+						@click="changeSlide(0)"
+					>
+						<template #prefix>
+							<LucideRotateCcw class="size-4 stroke-[1.5]" />
+						</template>
+					</Button>
+				</div>
+			</div>
+
 			<Transition
+				v-else
 				@before-enter="beforeSlideEnter"
 				@enter="slideEnter"
 				@before-leave="beforeSlideLeave"
@@ -173,16 +200,12 @@ const resetCursorVisibility = () => {
 }
 
 const handleFullScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement != null
-
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
+		inSlideShow.value = true
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-		router.replace({
-			name: 'PresentationEditor',
-			params: { presentationId: props.presentationId },
-		})
+		endSlideShow()
 	}
 }
 
@@ -228,8 +251,23 @@ const initFullscreenMode = async () => {
 	}
 }
 
+const slideshowEnded = computed(() => {
+	return slideIndex.value >= slides.value.length
+})
+
+const endSlideShow = () => {
+	inSlideShow.value = false
+	const slide =
+		slideIndex.value == slides.value.length ? slides.value.length : slideIndex.value + 1
+	router.replace({
+		name: 'PresentationEditor',
+		params: { presentationId: props.presentationId },
+		query: { slide: slide },
+	})
+}
+
 const changeSlide = (index) => {
-	if (index < 0 || index >= slides.value.length) return
+	if (index < 0 || index >= slides.value.length + 1) return
 	applyReverseTransition.value = index < slideIndex.value
 
 	nextTick(() => {
