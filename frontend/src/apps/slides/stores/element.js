@@ -157,8 +157,8 @@ const generatePoster = async (video) => {
 const getVideoElementClone = (videoUrl) => {
 	const videoElement = document.createElement('video')
 
-	videoElement.src = videoUrl
 	videoElement.crossOrigin = 'anonymous'
+	videoElement.src = videoUrl
 	videoElement.style.position = 'absolute'
 	videoElement.style.left = '-9999px'
 	videoElement.style.width = '300px'
