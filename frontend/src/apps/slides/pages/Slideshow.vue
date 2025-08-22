@@ -270,7 +270,9 @@ const endSlideShow = () => {
 }
 
 const changeSlide = (index) => {
-	if (index < 0 || index >= slides.value.length + 1) return
+	if (index < 0) return
+	if (index >= slides.value.length + 1) return endSlideShow()
+
 	applyReverseTransition.value = index < slideIndex.value
 
 	nextTick(() => {
