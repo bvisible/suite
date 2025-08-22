@@ -7,7 +7,7 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
-import { ignoreUpdates, presentationId } from './presentation'
+import { presentationId } from './presentation'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions } from '@/stores/tiptapSetup'
@@ -377,12 +377,15 @@ const updateElementWidth = (deltaWidth) => {
 }
 
 const { initTextEditor, activeEditor } = useTextEditor()
+let editorOldText = ''
 
 const updateElementContent = (id) => {
-	ignoreUpdates(() => {
-		const element = currentSlide.value.elements.find((el) => el.id == id)
-		element.content = activeEditor.value.getHTML()
-	})
+	const currentText = activeEditor.value.getText()
+	if (editorOldText == currentText) return
+
+	const element = currentSlide.value.elements.find((el) => el.id == id)
+	element.content = activeEditor.value.getHTML()
+	editorOldText = currentText
 }
 
 const blurAndSaveContent = (elementId) => {
@@ -424,6 +427,7 @@ watch(
 		nextTick(() => {
 			activeEditor.value?.destroy()
 			initEditorForElement(element)
+			editorOldText = activeEditor.value.getText()
 		})
 	},
 )
