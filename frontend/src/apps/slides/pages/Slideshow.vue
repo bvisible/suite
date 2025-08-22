@@ -196,7 +196,7 @@ const resetCursorVisibility = () => {
 	clearTimeout(cursorTimer)
 	cursorTimer = setTimeout(() => {
 		slideCursor.value = 'none'
-	}, 5000)
+	}, 3000)
 }
 
 const handleFullScreenChange = () => {

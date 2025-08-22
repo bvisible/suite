@@ -9,7 +9,7 @@
 	<div
 		v-else
 		v-html="element.content"
-		class="textElement cursor-default select-none"
+		class="textElement select-none"
 		:style="element.editorMetadata"
 		@dblclick="handleDoubleClick"
 	></div>
