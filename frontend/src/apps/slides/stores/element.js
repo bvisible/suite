@@ -148,7 +148,7 @@ const generatePoster = async (video) => {
 	const context = canvas.getContext('2d')
 	// draw the current frame of the video onto the canvas
 	context.drawImage(video, 0, 0, canvas.width, canvas.height)
-	const posterDataUrl = canvas.toDataURL('image/jpeg')
+	const posterDataUrl = canvas.toDataURL('image/png')
 
 	// save the poster as an attachment and return the url for the poster
 	return await savePoster.submit(posterDataUrl)
