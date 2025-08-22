@@ -218,6 +218,10 @@ const handleGlobalShortcuts = (e) => {
 				openLayoutDialog('insert')
 			}
 			break
+		case 'F5':
+			e.preventDefault()
+			startSlideShow()
+			break
 	}
 }
 

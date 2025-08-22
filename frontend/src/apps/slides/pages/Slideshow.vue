@@ -62,9 +62,9 @@ import {
 	watch,
 	useTemplateRef,
 	onMounted,
-	onBeforeUnmount,
 	nextTick,
 	onActivated,
+	onDeactivated,
 } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -214,6 +214,9 @@ const handleKeyDown = (e) => {
 		changeSlide(slideIndex.value + 1)
 	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
 		changeSlide(slideIndex.value - 1)
+	} else if (e.key == 'F5') {
+		e.preventDefault()
+		changeSlide(0)
 	}
 }
 
@@ -291,7 +294,7 @@ onActivated(() => {
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
 })
 
-onBeforeUnmount(() => {
+onDeactivated(() => {
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
 })
