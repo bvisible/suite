@@ -257,7 +257,7 @@ const handleUndoRedo = (e) => {
 		return
 	}
 
-	if (historyControl.redoStack.value.length > 1 && e.shiftKey && e.metaKey) {
+	if (historyControl.canRedo.value && e.shiftKey && e.metaKey) {
 		e.preventDefault()
 		handleHistoryOperation('redo')
 	} else if (historyControl.undoStack.value.length > 1 && e.metaKey) {

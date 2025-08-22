@@ -427,7 +427,7 @@ watch(
 		nextTick(() => {
 			activeEditor.value?.destroy()
 			initEditorForElement(element)
-			editorOldText = activeEditor.value.getText()
+			editorOldText = activeEditor.value?.getText()
 		})
 	},
 )
