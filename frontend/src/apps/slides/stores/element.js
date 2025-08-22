@@ -158,6 +158,8 @@ const getVideoElementClone = (videoUrl) => {
 	const videoElement = document.createElement('video')
 
 	videoElement.crossOrigin = 'anonymous'
+	videoElement.preload = 'auto'
+	videoElement.muted = true
 	videoElement.src = videoUrl
 	videoElement.style.position = 'absolute'
 	videoElement.style.left = '-9999px'
