@@ -73,11 +73,15 @@ const outline = computed(() => {
 const elementStyle = computed(() => {
 	const offsetLeft = isActive.value ? props.elementOffset.left : 0
 	const offsetTop = isActive.value ? props.elementOffset.top : 0
+	const offsetWidth = isActive.value ? props.elementOffset.width : 0
+
 	const elementLeft = element.value.left + offsetLeft
 	const elementTop = element.value.top + offsetTop
+	const elementWidth = element.value.width + offsetWidth
+
 	return {
 		position: 'absolute',
-		width: `${element.value.width}px` || 'auto',
+		width: `${elementWidth}px` || 'auto',
 		height: 'auto',
 		left: `${elementLeft}px`,
 		top: `${elementTop}px`,
