@@ -9,6 +9,7 @@ const setSlideRef = (ref) => (slideRef.value = ref)
 const slides = ref([])
 
 const slideIndex = ref()
+const focusedSlide = ref(null)
 
 const currentSlide = computed(() => slides.value[slideIndex.value])
 
@@ -148,4 +149,5 @@ export {
 	setSlideRef,
 	getSlideThumbnail,
 	getThumbnailHtml,
+	focusedSlide,
 }

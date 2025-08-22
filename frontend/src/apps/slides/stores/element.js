@@ -1,7 +1,14 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { call, createResource } from 'frappe-ui'
 
-import { selectionBounds, slides, slideBounds, updateSelectionBounds, currentSlide } from './slide'
+import {
+	selectionBounds,
+	slides,
+	slideBounds,
+	updateSelectionBounds,
+	currentSlide,
+	focusedSlide,
+} from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId } from '../utils/helpers'
@@ -296,6 +303,7 @@ const resetFocus = () => {
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
+	focusedSlide.value = null
 }
 
 const getElementPosition = (elementId) => {

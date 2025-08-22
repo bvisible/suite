@@ -17,7 +17,7 @@
 					<div
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
-						@click="emit('changeSlide', slides.indexOf(slide))"
+						@click="handleSlideClick(slide)"
 						:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
 					></div>
 				</template>
@@ -53,7 +53,7 @@ import { call } from 'frappe-ui'
 
 import Draggable from 'vuedraggable'
 
-import { slides, slideIndex, currentSlide } from '@/stores/slide'
+import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
@@ -100,17 +100,32 @@ const panelClasses = computed(() => {
 	return [...baseClasses, positionClass]
 })
 
+const isSlideActive = (slide) => {
+	return slideIndex.value == slides.value.indexOf(slide)
+}
+
+const handleSlideClick = async (slide) => {
+	if (isSlideActive(slide)) {
+		focusedSlide.value = slideIndex.value
+		return
+	}
+	emit('changeSlide', slides.value.indexOf(slide))
+}
+
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
 		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
 
-	const isActiveSlide = slideIndex.value == slides.value.indexOf(slide)
+	const isActive = isSlideActive(slide)
+	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
 
 	let outlineClasses = ''
-	if (isActiveSlide && props.recentlyRestored) {
+	if (isFocused) {
+		outlineClasses += 'ring-blue-300 ring-2 ring-offset-1'
+	} else if (isActive && props.recentlyRestored) {
 		outlineClasses += 'ring-blue-200 ring-[2px] ring-offset-2 scale-[1.01]'
-	} else if (isActiveSlide) {
-		outlineClasses += 'ring-blue-300 ring-[1.5px] ring-offset-1'
+	} else if (isActive) {
+		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-1'
 	} else {
 		outlineClasses += 'ring-white hover:border-gray-300'
 	}
