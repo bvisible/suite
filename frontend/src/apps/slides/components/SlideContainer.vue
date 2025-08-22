@@ -259,6 +259,7 @@ const getTotalPositionDelta = (delta) => {
 const elementOffset = reactive({
 	left: 0,
 	top: 0,
+	width: 0,
 })
 
 const handlePositionChange = (delta) => {
@@ -295,6 +296,14 @@ const applyPositionDelta = (delta) => {
 	elementOffset.top += deltaTop
 }
 
+const applyDimensionDelta = (delta) => {
+	if (!delta.width) return
+
+	const deltaWidth = delta.width / slideBounds.scale
+
+	elementOffset.width += deltaWidth
+}
+
 const handleDimensionChange = (delta) => {
 	if (!delta.width || !validateMinWidth(delta.width)) return
 
@@ -302,8 +311,7 @@ const handleDimensionChange = (delta) => {
 
 	applyPositionDelta(delta)
 
-	const newWidth = delta.width / slideBounds.scale || 0
-	updateElementWidth(newWidth)
+	applyDimensionDelta(delta)
 }
 
 const updateSlideBounds = () => {
@@ -376,24 +384,26 @@ defineExpose({
 
 const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
-const applyInteractionOffset = () => {
+const applyInteractionOffsets = () => {
 	requestAnimationFrame(() => {
 		activeElementIds.value.forEach((id) => {
 			const element = currentSlide.value.elements.find((el) => el.id === id)
 			if (element) {
 				element.left += elementOffset.left
 				element.top += elementOffset.top
+				element.width += elementOffset.width
 			}
 		})
 		elementOffset.left = 0
 		elementOffset.top = 0
+		elementOffset.width = 0
 	})
 }
 
 watch(
 	() => hasOngoingInteraction.value,
 	(newVal, oldVal) => {
-		if (oldVal && !newVal) applyInteractionOffset()
+		if (oldVal && !newVal) applyInteractionOffsets()
 		emit('update:hasOngoingInteraction', newVal)
 	},
 )
