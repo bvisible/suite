@@ -17,7 +17,7 @@
 		<div
 			ref="overlay"
 			v-show="showOverlay"
-			class="overlay absolute left-0 top-0 size-full overflow-hidden transition-opacity duration-500 ease-in-out"
+			class="overlay absolute left-0 top-0 size-full cursor-default overflow-hidden transition-opacity duration-500 ease-in-out"
 			:style="gradientOverlayStyles"
 		>
 			<div v-if="showProgressBar" :class="toggleButtonClasses">

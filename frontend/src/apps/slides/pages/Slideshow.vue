@@ -153,7 +153,7 @@ const transitionMap = computed(() => {
 })
 
 const applyTransitionStyles = (hook) => {
-	const styles = transitionMap[currentSlide.value.transition]?.[hook]
+	const styles = transitionMap.value?.[currentSlide.value.transition]?.[hook]
 	if (!styles) return
 
 	let transformVal = styles.transform
