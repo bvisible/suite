@@ -10,7 +10,7 @@
 <script setup>
 import { computed } from 'vue'
 
-import { slide } from '@/stores/slide'
+import { currentSlide } from '@/stores/slide'
 import { isBackgroundColorDark } from '@/utils/color'
 
 const props = defineProps({
@@ -36,7 +36,7 @@ const styles = computed(() => ({
 
 const indicatorClasses = computed(() => {
 	const baseClasses = 'backdrop-blur-sm opacity-85 text-black'
-	const bgClass = isBackgroundColorDark(slide.value.background)
+	const bgClass = isBackgroundColorDark(currentSlide.value.background)
 		? 'bg-white-overlay-600'
 		: 'bg-gray-100'
 	return `${baseClasses} ${bgClass}`

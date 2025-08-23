@@ -1,23 +1,44 @@
 <template>
 	<EditorContent
-		:editor="editor"
+		v-if="showEditor"
+		:editor="activeEditor"
 		:style="editorStyles"
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
+	<div
+		v-else
+		v-html="element.content"
+		class="textElement select-none"
+		:style="element.editorMetadata"
+		@dblclick="handleDoubleClick"
+	></div>
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 
-import { EditorContent } from '@tiptap/vue-3'
+import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { inSlideShow } from '@/stores/presentation'
-import { focusElementId, deleteElements, activeElement, activeElementIds } from '@/stores/element'
+import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
+import { extensions } from '@/stores/tiptapSetup'
 
-const { activeEditor, initTextEditor } = useTextEditor()
+const { activeEditor } = useTextEditor()
+
+const props = defineProps({
+	mode: {
+		type: String,
+		default: 'editor',
+	},
+})
+
+const showEditor = computed(() => {
+	if (!activeElement.value) return false
+	return activeElement.value.id == element.value.id && props.mode == 'editor'
+})
 
 const element = defineModel('element', {
 	type: Object,
@@ -26,34 +47,17 @@ const element = defineModel('element', {
 
 const emit = defineEmits(['clearTimeouts'])
 
-const editor = initTextEditor(element.value.content, element.value.editorMetadata)
-
 const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
-	cursor: isEditable.value ? 'text' : 'default',
+	cursor: isEditable.value ? 'text' : '',
 	userSelect: isEditable.value ? 'text' : 'none',
 }))
 
 const handleMouseDown = (e) => {
-	if (isEditable.value) {
-		e.stopPropagation()
-		return
-	}
-}
+	if (!isEditable.value) return
 
-const makeElementEditable = () => {
-	emit('clearTimeouts')
-
-	activeEditor.value = editor
-	activeElementIds.value = []
-
-	activeEditor.value.setEditable(true)
-	activeEditor.value.commands.focus()
-	activeEditor.value.commands.setTextSelection({
-		from: 0,
-		to: activeEditor.value.state.doc.content.size,
-	})
+	e.stopPropagation()
 }
 
 const handleDoubleClick = (e) => {
@@ -62,59 +66,24 @@ const handleDoubleClick = (e) => {
 		return
 	}
 
+	emit('clearTimeouts')
+
+	activeElementIds.value = [element.value.id]
 	focusElementId.value = element.value.id
-}
 
-const isEditorEmpty = () => {
-	const json = activeEditor.value.getJSON()
-
-	if (!json || !json.content) return true
-
-	if (
-		json.content.length == 1 &&
-		json.content[0].type == 'paragraph' &&
-		(!json.content[0].content || json.content[0].content.length == 0)
-	) {
-		return true
-	}
-
-	return false
-}
-
-const blurAndSaveContent = async (id) => {
-	activeEditor.value.setEditable(false)
-	activeEditor.value.commands.blur()
-
-	if (isEditorEmpty()) {
-		deleteElements(null, [id])
-	} else {
-		element.value.content = editor.getJSON()
+	if (activeElement.value.id == element.value.id && activeEditor.value) {
+		setEditableState()
 	}
 }
 
-watch(
-	() => focusElementId.value,
-	(newId, oldId) => {
-		if (oldId && oldId != newId) {
-			blurAndSaveContent(oldId)
-		}
-		if (newId == element.value.id) {
-			makeElementEditable()
-		}
-	},
-)
+const normalizeContent = () => {
+	const content = element.value.content
+	if (content && typeof content == 'object') {
+		element.value.content = generateHTML(content, extensions)
+	}
+}
 
-watch(
-	() => activeElement.value,
-	(el, oldEl) => {
-		if (oldEl?.type == 'text' && oldEl.id == element.value.id) {
-			blurAndSaveContent(oldEl.id)
-		}
-		if (el?.type == 'text' && el.id == element.value.id) {
-			activeEditor.value = editor
-		}
-	},
-)
+onBeforeMount(() => normalizeContent())
 </script>
 
 <style>
@@ -122,38 +91,44 @@ watch(
 	caret-color: currentColor;
 }
 
-.tiptap > ul {
+.tiptap ul,
+.textElement > ul {
 	list-style: none;
 	padding-left: 0;
 }
 
-.tiptap > ul li {
+.tiptap > ul li,
+.textElement > ul li {
 	position: relative;
-	padding-left: 0.6em;
+	padding-left: 0.8em;
 }
 
-.tiptap > ul li::before {
+.tiptap > ul li::before,
+.textElement > ul li::before {
 	content: '•';
 	position: absolute;
 	left: 0;
-	top: 0.1em;
+	top: 0;
 	font-size: 1em;
 }
 
-.tiptap ol {
+.tiptap ol,
+.textElement ol {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	counter-reset: step;
 }
 
-.tiptap ol li {
+.tiptap ol li,
+.textElement ol li {
 	counter-increment: step;
 	position: relative;
 	padding-left: calc(2ch + 0.2em);
 }
 
-.tiptap ol li::before {
+.tiptap ol li::before,
+.textElement ol li::before {
 	content: counter(step) '.';
 	position: absolute;
 	left: 0;

@@ -5,7 +5,7 @@
 <script setup>
 import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
 
-import { slide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
+import { currentSlide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
 	activeElementIds,
 	setActiveElements,
@@ -16,6 +16,8 @@ import {
 
 const slideDiv = inject('slideDiv')
 const slideContainerDiv = inject('slideContainerDiv')
+
+const emit = defineEmits(['setIsSelecting'])
 
 const selectedRef = useTemplateRef('selected')
 
@@ -28,7 +30,7 @@ let mousedownStart
 
 const boxStyles = computed(() => ({
 	position: 'absolute',
-	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f018',
+	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f025',
 	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
 	width: `${selectionBounds.width}px`,
 	height: `${selectionBounds.height}px`,
@@ -39,6 +41,7 @@ const boxStyles = computed(() => ({
 
 const initSelection = (e) => {
 	activeElementIds.value = []
+	emit('setIsSelecting', true)
 	nextTick(() => {
 		const currentX = (e.clientX - slideBounds.left) / slideBounds.scale
 		const currentY = (e.clientY - slideBounds.top) / slideBounds.scale
@@ -95,7 +98,7 @@ const getElementsWithinBoxSurface = () => {
 	const boxRight = selectionBounds.left + selectionBounds.width
 	const boxBottom = selectionBounds.top + selectionBounds.height
 
-	slide.value.elements.forEach((element) => {
+	currentSlide.value.elements.forEach((element) => {
 		const {
 			left: elementLeft,
 			top: elementTop,
@@ -130,6 +133,8 @@ const updateSelectedElements = () => {
 }
 
 const endSelection = (e) => {
+	emit('setIsSelecting', false)
+
 	document.removeEventListener('mousemove', updateSelection)
 
 	updateSelectedElements()
@@ -206,46 +211,15 @@ const handleMouseUp = (e) => {
 	}
 }
 
-const moveElement = (elementId, movement) => {
-	let element = slide.value.elements.find((el) => el.id === elementId)
-
-	element.left += movement.dx
-	element.top += movement.dy
-}
-
-const moveElementsToSlide = (elementIds) => {
-	elementIds.forEach((elementId) => {
-		let elementDiv = document.querySelector(`[data-index="${elementId}"]`)
-		slideDiv.value.appendChild(elementDiv)
-		moveElement(elementId, {
-			dx: selectionBounds.left,
-			dy: selectionBounds.top,
-		})
-	})
-}
-
-const moveElementsToBox = (elementIds) => {
-	elementIds.forEach((elementId) => {
-		const elementDiv = document.querySelector(`[data-index="${elementId}"]`)
-		selectedRef.value?.appendChild(elementDiv)
-		moveElement(elementId, {
-			dx: -selectionBounds.left,
-			dy: -selectionBounds.top,
-		})
-	})
-}
-
 const handleSelection = (elementIds) => {
 	if (!elementIds.length) return
 	document.removeEventListener('mouseup', endSelection)
 	cropSelectionToFitContent(elementIds)
-	// moveElementsToBox(elementIds)
 }
 
 const handleSelectionChange = (elementIds, oldIds) => {
-	// moveElementsToSlide(oldIds)
 	resetSelection(oldIds)
-	nextTick(() => handleSelection(elementIds))
+	handleSelection(elementIds)
 }
 
 const selectSlide = (e) => {

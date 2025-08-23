@@ -4,7 +4,7 @@ import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
 import { activeElement } from '@/stores/element'
 
-const activeEditor = ref(null)
+export const activeEditor = ref(null)
 
 const editorStyles = reactive({
 	textAlign: 'left',
@@ -45,7 +45,7 @@ export const useTextEditor = () => {
 			color: activeStyles.color || null,
 			lineHeight: activeStyles.lineHeight,
 			letterSpacing: parseInt(activeStyles.letterSpacing, 10),
-			opacity: parseInt(activeStyles.opacity, 10),
+			opacity: activeStyles.opacity,
 		})
 	}
 
@@ -159,6 +159,8 @@ export const useTextEditor = () => {
 				textTransform: newVal,
 			})
 			.run()
+
+		activeElement.value.content = activeEditor.value.getHTML()
 	}
 
 	const toggleMark = (property) => {
@@ -172,6 +174,8 @@ export const useTextEditor = () => {
 		if (property == 'uppercase') return toggleCapitalize(chain)
 
 		chain[markCommands[property]](property).run()
+
+		activeElement.value.content = currentEditor.getHTML()
 	}
 
 	const selectListBlock = () => {
@@ -218,6 +222,8 @@ export const useTextEditor = () => {
 		} else {
 			chain.wrapInList('bulletList').run()
 		}
+
+		activeElement.value.content = activeEditor.value.getHTML()
 	}
 
 	const setLineHeight = (value) => {
@@ -245,20 +251,23 @@ export const useTextEditor = () => {
 		switch (property) {
 			case 'textAlign':
 				chain.setTextAlign(value).run()
-				return
+				break
 			case 'color':
 				chain.setColor(value).run()
-				return
+				break
 			case 'lineHeight':
-				return setLineHeight(value)
+				setLineHeight(value)
+				break
 			default:
 				chain
 					.setMark('textStyle', {
 						[property]: value,
 					})
 					.run()
-				return
+				break
 		}
+
+		activeElement.value.content = currentEditor.getHTML()
 	}
 
 	const getEditorProps = (editorMetadata) => {
@@ -269,10 +278,10 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const initTextEditor = (content, editorMetadata) => {
-		return new Editor({
+	const initTextEditor = (id, content, editorMetadata, isEditable = false) => {
+		activeEditor.value = new Editor({
 			extensions: extensions,
-			editable: false,
+			editable: isEditable,
 			content: content,
 			editorProps: getEditorProps(editorMetadata),
 			onTransaction: ({ transaction, editor }) => updateEditor({ transaction, editor }),

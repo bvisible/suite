@@ -1,12 +1,16 @@
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { call, createResource } from 'frappe-ui'
 
-import { selectionBounds, slide, slideBounds, updateSelectionBounds } from './slide'
+import { selectionBounds, slides, slideBounds, updateSelectionBounds, currentSlide } from './slide'
+import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
-import { presentation, presentationId } from './presentation'
+import { presentationId } from './presentation'
+
+import { generateHTML } from '@tiptap/core'
+import { extensions } from '@/stores/tiptapSetup'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -14,7 +18,7 @@ const pairElementId = ref(null)
 
 const activeElements = computed(() => {
 	let elements = []
-	slide.value.elements.forEach((element) => {
+	currentSlide.value.elements.forEach((element) => {
 		if (activeElementIds.value.includes(element.id)) {
 			elements.push(element)
 		}
@@ -24,7 +28,7 @@ const activeElements = computed(() => {
 
 const activeElement = computed(() => {
 	if (focusElementId.value) {
-		return slide.value.elements.find((element) => element.id === focusElementId.value)
+		return currentSlide.value.elements.find((element) => element.id === focusElementId.value)
 	} else if (activeElementIds.value.length == 1) {
 		return activeElements.value[0]
 	}
@@ -67,7 +71,7 @@ const selectAndCenterElement = (elementId) => {
 }
 
 const getElementContent = (element) => {
-	return {
+	const contentJSON = {
 		type: 'doc',
 		content: [
 			{
@@ -86,7 +90,7 @@ const getElementContent = (element) => {
 									fontSize: element.fontSize,
 									fontFamily: element.fontFamily,
 									color: element.color,
-									letterSpacing: 0,
+									letterSpacing: element.letterSpacing,
 									opacity: 100,
 								},
 							},
@@ -96,15 +100,18 @@ const getElementContent = (element) => {
 			},
 		],
 	}
+
+	return generateHTML(contentJSON, extensions)
 }
 
 const addTextElement = async (text) => {
 	const elementPresets = {
 		textAlign: 'left',
 		fontSize: 28,
-		fontFamily: 'Arial',
-		color: guessTextColorFromBackground(slide.value.background),
+		fontFamily: 'Inter',
+		color: guessTextColorFromBackground(currentSlide.value.background),
 		innerText: text,
+		letterSpacing: 0,
 	}
 
 	const element = {
@@ -118,7 +125,8 @@ const addTextElement = async (text) => {
 		},
 	}
 
-	slide.value.elements.push(element)
+	currentSlide.value.elements.push(element)
+
 	selectAndCenterElement(element.id)
 }
 
@@ -140,7 +148,7 @@ const generatePoster = async (video) => {
 	const context = canvas.getContext('2d')
 	// draw the current frame of the video onto the canvas
 	context.drawImage(video, 0, 0, canvas.width, canvas.height)
-	const posterDataUrl = canvas.toDataURL('image/jpeg')
+	const posterDataUrl = canvas.toDataURL('image/png')
 
 	// save the poster as an attachment and return the url for the poster
 	return await savePoster.submit(posterDataUrl)
@@ -149,8 +157,10 @@ const generatePoster = async (video) => {
 const getVideoElementClone = (videoUrl) => {
 	const videoElement = document.createElement('video')
 
-	videoElement.src = videoUrl
 	videoElement.crossOrigin = 'anonymous'
+	videoElement.preload = 'auto'
+	videoElement.muted = true
+	videoElement.src = videoUrl
 	videoElement.style.position = 'absolute'
 	videoElement.style.left = '-9999px'
 	videoElement.style.width = '300px'
@@ -210,19 +220,22 @@ const addMediaElement = async (file, type) => {
 		borderStyle: 'none',
 		borderWidth: 0,
 		borderRadius: 0,
-		borderColor: '#000000',
+		borderColor: '',
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
-		shadowSpread: 0,
-		shadowColor: '#000000',
+		shadowSpread: 1,
+		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
 		element.poster = await getVideoPoster(file.file_url)
 		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
+	} else {
+		element.invertX = 1
+		element.invertY = 1
 	}
-	slide.value.elements.push(element)
+	currentSlide.value.elements.push(element)
 	selectAndCenterElement(element.id)
 }
 
@@ -230,17 +243,13 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	e?.preventDefault()
 
 	let newSelection = []
-	const oldElements = elements
-	activeElementIds.value = []
 
-	await nextTick()
-
-	oldElements.forEach((element) => {
+	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
-		slide.value.elements.push(newElement)
+		currentSlide.value.elements.push(newElement)
 		newSelection.push(newElement.id)
 	})
 
@@ -248,11 +257,10 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 }
 
 const isFileDocUsed = (element) => {
-	return presentation.data.slides.some((slide) => {
+	return slides.value.some((slide) => {
 		if (!slide.elements) return false
 
-		const elements = JSON.parse(slide.elements)
-		return elements.some((el) => el.id !== element.id && el.src === element.src)
+		return slide.elements.some((el) => el.id !== element.id && el.src === element.src)
 	})
 }
 
@@ -270,11 +278,10 @@ const deleteAttachments = async (elements) => {
 }
 
 const deleteElements = async (e, ids) => {
-	deleteAttachments(activeElements.value)
 	const idsToDelete = ids || activeElementIds.value
 	resetFocus()
 	nextTick(() => {
-		slide.value.elements = slide.value.elements.filter((element) => {
+		currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
 			return !idsToDelete.includes(element.id)
 		})
 	})
@@ -282,7 +289,7 @@ const deleteElements = async (e, ids) => {
 
 const selectAllElements = (e) => {
 	e.preventDefault()
-	activeElementIds.value = slide.value.elements.map((element) => element.id)
+	activeElementIds.value = currentSlide.value.elements.map((element) => element.id)
 }
 
 const resetFocus = () => {
@@ -371,6 +378,62 @@ const updateElementWidth = (deltaWidth) => {
 	}
 }
 
+const { initTextEditor, activeEditor } = useTextEditor()
+let editorOldText = ''
+
+const updateElementContent = (id) => {
+	const currentText = activeEditor.value.getText()
+	if (editorOldText == currentText) return
+
+	const element = currentSlide.value.elements.find((el) => el.id == id)
+	element.content = activeEditor.value.getHTML()
+	editorOldText = currentText
+}
+
+const blurAndSaveContent = (elementId) => {
+	activeEditor.value.setEditable(false)
+	activeEditor.value.commands.blur()
+
+	if (activeEditor.value.isEmpty) {
+		deleteElements(null, [elementId])
+	} else {
+		updateElementContent(elementId)
+	}
+}
+
+const setEditableState = () => {
+	activeEditor.value.setEditable(true)
+	activeEditor.value.commands.focus()
+	activeEditor.value.commands.setTextSelection({
+		from: 0,
+		to: activeEditor.value.state.doc.content.size,
+	})
+}
+
+const initEditorForElement = (element) => {
+	if (element?.type == 'text') {
+		const isEditable = focusElementId.value == element.id
+		initTextEditor(element.id, element.content, element.editorMetadata, isEditable)
+
+		if (isEditable) setEditableState()
+	}
+}
+
+watch(
+	() => activeElement.value,
+	(element, oldElement) => {
+		if (oldElement?.type == 'text') {
+			blurAndSaveContent(oldElement.id)
+		}
+
+		nextTick(() => {
+			activeEditor.value?.destroy()
+			initEditorForElement(element)
+			editorOldText = activeEditor.value?.getText()
+		})
+	},
+)
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -389,4 +452,5 @@ export {
 	handlePaste,
 	updateElementWidth,
 	deleteAttachments,
+	setEditableState,
 }

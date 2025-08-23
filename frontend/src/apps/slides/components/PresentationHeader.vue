@@ -8,7 +8,7 @@
 		@blur="saveTitle"
 		@keydown.enter.prevent
 	>
-		{{ presentation.data?.title }}
+		{{ title }}
 	</div>
 </template>
 
@@ -18,8 +18,12 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
-import { presentation, updatePresentationTitle } from '@/stores/presentation'
+import { updatePresentationTitle } from '@/stores/presentation'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
+
+const props = defineProps({
+	title: String,
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -56,11 +60,11 @@ const saveTitle = async (e) => {
 	const newTitle = e.target.innerText.trim()
 
 	if (!newTitle) {
-		e.target.innerText = presentation.data.title
+		e.target.innerText = props.title
 		return
 	}
 
-	if (newTitle != presentation.data.title) {
+	if (newTitle != props.title) {
 		const slug = await updatePresentationTitle(route.params.presentationId, newTitle)
 		router.replace({
 			name: 'PresentationEditor',

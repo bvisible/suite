@@ -3,14 +3,16 @@
 		<template #default>
 			<div class="flex items-center gap-3">
 				<NumberInput
-					v-model="selectionBounds.left"
+					:modelValue="selectionBounds.left"
+					@update:modelValue="(val) => updatePosition('X', val)"
 					prefix="x"
 					:rangeStart="0"
 					:rangeStep="1"
 					:hideButtons="true"
 				/>
 				<NumberInput
-					v-model="selectionBounds.top"
+					:modelValue="selectionBounds.top"
+					@update:modelValue="(val) => updatePosition('Y', val)"
 					prefix="y"
 					:rangeStart="0"
 					:rangeStep="1"
@@ -140,35 +142,25 @@ const getAlignmentButtonClasses = (direction) => {
 	return `${baseClasses} ${activeClasses}`
 }
 
-const alignHorizontally = (direction) => {
-	selectionBounds.left = Math.round(alignmentPositions.value[direction])
-	activeElements.value.forEach((element) => {
-		element.left = selectionBounds.left
-	})
-}
-
-const alignVertically = (direction) => {
-	selectionBounds.top = Math.round(alignmentPositions.value[direction])
-	activeElements.value.forEach((element) => {
-		element.top = selectionBounds.top
-	})
-}
-
 const performAlignment = (direction) => {
-	switch (direction) {
-		case 'left':
-		case 'centerY':
-		case 'right':
-			alignHorizontally(direction)
-			break
-		default:
-			// 'top', 'centerY', 'bottom'
-			alignVertically(direction)
-			break
-	}
+	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
+	const value = Math.round(alignmentPositions.value[direction])
+	updatePosition(axis, value)
 }
 
 const updateGuideVisibilityMap = (direction, value) => {
 	guideVisibilityMap[direction] = value
+}
+
+const updatePosition = (axis, value) => {
+	const property = axis == 'X' ? 'left' : 'top'
+
+	const delta = value - selectionBounds[property]
+
+	activeElements.value.forEach((element) => {
+		element[property] += delta
+	})
+
+	selectionBounds[property] = value
 }
 </script>

@@ -8,25 +8,22 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="presentation.data"
+			v-if="slides"
 			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
 		>
-			<Draggable v-model="presentation.data.slides" item-key="name" @end="handleSortEnd">
+			<Draggable v-model="slides" item-key="name" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
 						:class="getThumbnailClasses(slide)"
 						:style="getThumbnailStyles(slide)"
-						@click="emit('changeSlide', slide.idx - 1)"
-						:ref="(el) => (slideThumbnailsRef[slide.idx - 1] = el)"
+						@click="emit('changeSlide', slides.indexOf(slide))"
+						:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
 					></div>
 				</template>
 			</Draggable>
 
-			<div
-				:class="insertButtonClasses"
-				@click="emit('openLayoutDialog', presentation.data.slides.length - 1)"
-			>
+			<div :class="insertButtonClasses" @click="emit('openLayoutDialog')">
 				<LucidePlus class="size-3.5" />
 			</div>
 		</div>
@@ -45,7 +42,7 @@
 
 	<!-- Slide Navigator Toggle -->
 	<div v-if="!showNavigator" :class="toggleButtonClasses" @click="toggleNavigator">
-		<LucideChevronRight class="size-3.5" />
+		<LucideChevronRight class="size-3.5 text-gray-500" />
 	</div>
 </template>
 
@@ -56,11 +53,11 @@ import { call } from 'frappe-ui'
 
 import Draggable from 'vuedraggable'
 
-import { presentation } from '@/stores/presentation'
-import { slide, slideIndex } from '@/stores/slide'
+import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
+import { ignoreUpdates } from '@/stores/presentation'
 
 const attrs = useAttrs()
 
@@ -69,6 +66,13 @@ const scrollableArea = useTemplateRef('scrollableArea')
 const showNavigator = defineModel('showNavigator', {
 	type: Boolean,
 	default: true,
+})
+
+const props = defineProps({
+	recentlyRestored: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
@@ -98,16 +102,27 @@ const panelClasses = computed(() => {
 
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
-		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border'
-	const borderClasses =
-		slide.idx - 1 == slideIndex.value ? 'border-2 border-blue-400' : 'border border-gray-300'
-	return `${baseClasses} ${borderClasses}`
+		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
+
+	const isActiveSlide = slideIndex.value == slides.value.indexOf(slide)
+
+	let outlineClasses = ''
+	if (isActiveSlide && props.recentlyRestored) {
+		outlineClasses += 'ring-blue-200 ring-[2px] ring-offset-2 scale-[1.01]'
+	} else if (isActiveSlide) {
+		outlineClasses += 'ring-blue-300 ring-[1.5px] ring-offset-1'
+	} else {
+		outlineClasses += 'ring-white hover:border-gray-300'
+	}
+
+	return `${baseClasses} ${outlineClasses}`
 }
 
 const getThumbnailStyles = (s) => {
-	const img = slideIndex.value == s.idx - 1 ? slide.value.thumbnail : s.thumbnail
 	return {
-		backgroundImage: `url(${img})`,
+		backgroundImage: `url(${s.thumbnail})`,
+		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
+		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
 	}
 }
 
@@ -120,15 +135,12 @@ const toggleButtonClasses = computed(() => {
 })
 
 const handleSortEnd = async (event) => {
-	const data = presentation.data
+	ignoreUpdates(() => {
+		slides.value.forEach((slide, index) => {
+			slide.idx = index + 1
+		})
+	})
 	emit('changeSlide', event.newIndex)
-	data.slides.forEach((slide) => {
-		slide.idx = data.slides.indexOf(slide) + 1
-	})
-	await call('frappe.client.save', {
-		doc: data,
-	})
-	await presentation.reload()
 }
 
 const handleHoverChange = (e) => {

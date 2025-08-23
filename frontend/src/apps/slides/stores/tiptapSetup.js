@@ -11,36 +11,54 @@ import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 import { Plugin } from 'prosemirror-state'
 
+const parseElementStyle = (attribute, value) => {
+	if (!value) return null
+
+	if (attribute == 'opacity') {
+		const val = parseFloat(value)
+		return isNaN(val) ? null : Math.round(val * 100)
+	}
+
+	return value
+}
+
+const renderAttributeHTML = (attribute, value) => {
+	const suffixes = {
+		fontSize: 'px',
+		letterSpacing: 'px',
+	}
+
+	const name = attribute.replace(/([A-Z])/g, '-$1').toLowerCase()
+
+	if (attribute == 'opacity') {
+		value = Number(value) / 100
+		return { style: `${name}: ${value}` }
+	}
+
+	const suffix = suffixes[attribute] || ''
+	const skipSuffix = typeof value == 'string' && value.includes(suffix)
+	value = skipSuffix ? value : `${value}${suffix}`
+
+	return value ? { style: `${name}: ${value}` } : {}
+}
+
 const CustomTextStyle = TextStyle.extend({
 	addAttributes() {
 		const attrs = {}
 
-		const attributes = [
+		const attributesList = [
 			'fontSize',
 			'textTransform',
 			'fontFamily',
-			'lineHeight',
 			'letterSpacing',
 			'opacity',
 		]
 
-		const suffixes = {
-			fontSize: 'px',
-			letterSpacing: 'px',
-			opacity: '%',
-		}
-
-		attributes.forEach((attr) => {
+		attributesList.forEach((attr) => {
 			attrs[attr] = {
 				default: null,
-				parseHTML: (element) => element.style[attr] || null,
-				renderHTML: (attributes) => {
-					if (!attributes[attr] && attr != 'opacity') return {}
-					const attrName = attr.replace(/([A-Z])/g, '-$1').toLowerCase()
-					return {
-						style: `${attrName}: ${attributes[attr]}${suffixes[attr] || ''}`,
-					}
-				},
+				parseHTML: (element) => parseElementStyle(attr, element.style[attr]),
+				renderHTML: (attributes) => renderAttributeHTML(attr, attributes[attr]),
 			}
 		})
 

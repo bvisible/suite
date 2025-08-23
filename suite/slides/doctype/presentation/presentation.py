@@ -22,6 +22,9 @@ class Presentation(Document):
 		old_slides = doc_before_save.slides
 
 		for slide in self.slides:
+			old_slide = old_slides[slide.idx - 1] if slide.idx <= len(old_slides) else None
+			if not old_slide:
+				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
 				old_thumbnail = old_slides[slide.idx - 1].thumbnail
 				delete_old_thumbnail(slide.name, old_thumbnail)
@@ -109,11 +112,6 @@ def get_slide_thumbnails(presentation: str) -> list[str]:
 	return [slide["thumbnail"] for slide in slides]
 
 
-@frappe.whitelist()
-def get_presentation(name: str) -> Document:
-	return frappe.get_doc("Presentation", name)
-
-
 def create_new_slide(presentation, index, layout_id=None):
 	"""
 	Creates a new slide with the given layout_id.
@@ -134,52 +132,6 @@ def create_new_slide(presentation, index, layout_id=None):
 	new_slide.save()
 
 	return new_slide
-
-
-@frappe.whitelist()
-def insert_slide(name, index, layout_id=None, replace=False):
-	presentation = frappe.get_doc("Presentation", name)
-	new_slide = create_new_slide(name, index, layout_id)
-	range_end = index if replace else index + 1
-	presentation.slides = presentation.slides[:range_end] + [new_slide] + presentation.slides[index + 1 :]
-	for i in range(len(presentation.slides)):
-		presentation.slides[i].idx = i + 1
-	presentation.save()
-	return presentation
-
-
-@frappe.whitelist()
-def delete_slide(name, index):
-	presentation = frappe.get_doc("Presentation", name)
-	slide = presentation.slides[index]
-	delete_old_thumbnail(slide.name, slide.thumbnail)
-	presentation.slides = presentation.slides[:index] + presentation.slides[index + 1 :]
-	for i in range(index, len(presentation.slides)):
-		presentation.slides[i].idx -= 1
-	presentation.save()
-	return presentation
-
-
-def add_duplicate_slide(old_slide, idx):
-	new_slide = frappe.new_doc("Slide")
-	new_slide.update(old_slide.as_dict())
-	elements = json.loads(old_slide.elements)
-	for element in elements:
-		element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
-	new_slide.elements = json.dumps(elements)
-	new_slide.idx = idx
-	return new_slide.save()
-
-
-@frappe.whitelist()
-def duplicate_slide(name, index):
-	presentation = frappe.get_doc("Presentation", name)
-	new_slide = add_duplicate_slide(presentation.slides[index], index + 1)
-	presentation.slides = presentation.slides[: index + 1] + [new_slide] + presentation.slides[index + 1 :]
-	for i in range(index + 1, len(presentation.slides)):
-		presentation.slides[i].idx += 1
-	presentation.save()
-	return presentation
 
 
 @frappe.whitelist()

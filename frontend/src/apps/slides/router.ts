@@ -1,8 +1,19 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router'
 
 import { createResource } from 'frappe-ui'
 
 import { session } from '@/stores/session'
+
+const withPresentationProps = (route: RouteLocationNormalized) => {
+	const slide = parseInt(route.query.slide as string)
+  	const activeSlideId = Number.isFinite(slide) ? slide : 1
+
+	return {
+		presentationId: route.params.presentationId,
+		activeSlideId: activeSlideId,
+	}
+}
+
 
 const routes = [
 	{
@@ -14,11 +25,13 @@ const routes = [
 		path: '/presentation/:presentationId/:slug?',
 		name: 'PresentationEditor',
 		component: () => import('@/pages/PresentationEditor.vue'),
+		props: withPresentationProps,
 	},
 	{
 		path: '/slideshow/:presentationId',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
+		props: withPresentationProps,
 	},
 	{
 		path: '/not-permitted',
