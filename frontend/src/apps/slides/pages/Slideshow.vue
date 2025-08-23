@@ -7,20 +7,44 @@
 				clipPath: clipPath,
 			}"
 		>
+			<div v-if="slideshowEnded" class="flex flex-col items-center gap-8">
+				<div class="flex gap-8">
+					<Button
+						label="Back"
+						size="lg"
+						:variant="'outline'"
+						class="bg-transparent text-white opacity-70 transition-opacity duration-300 hover:opacity-100"
+						@click="endSlideShow"
+					>
+						<template #prefix>
+							<LucideChevronLeft class="size-4 stroke-[1.5]" />
+						</template>
+					</Button>
+					<Button
+						label="Replay"
+						size="lg"
+						class="opacity-90 transition-opacity duration-200 hover:opacity-100"
+						@click="changeSlide(0)"
+					>
+						<template #prefix>
+							<LucideRotateCcw class="size-4 stroke-[1.5]" />
+						</template>
+					</Button>
+				</div>
+			</div>
+
 			<Transition
+				v-else
 				@before-enter="beforeSlideEnter"
 				@enter="slideEnter"
 				@before-leave="beforeSlideLeave"
 				@leave="slideLeave"
 			>
-				<div
-					:key="slideIndex"
-					:style="slideStyles"
-					@click="changeSlide(slideIndex + 1, false)"
-				>
+				<div :key="slideIndex" :style="slideStyles" @click="changeSlide(slideIndex + 1)">
 					<SlideElement
-						v-for="element in slide.elements"
-						:key="element.id"
+						v-for="element in currentSlide?.elements"
+						:key="`slideshow-${element.id}`"
+						mode="slideshow"
 						:element="element"
 						:data-index="element.id"
 						@click.stop
@@ -32,23 +56,42 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {
+	ref,
+	computed,
+	watch,
+	useTemplateRef,
+	onMounted,
+	nextTick,
+	onActivated,
+	onDeactivated,
+} from 'vue'
+import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
 
 import {
 	presentationId,
-	presentation,
 	inSlideShow,
 	applyReverseTransition,
+	initPresentationDoc,
 } from '@/stores/presentation'
-import { slide, slideIndex, loadSlide } from '@/stores/slide'
+import { slides, slideIndex, currentSlide } from '@/stores/slide'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
-const route = useRoute()
 const router = useRouter()
+
+const props = defineProps({
+	presentationId: {
+		type: String,
+		required: true,
+	},
+	activeSlideId: {
+		type: Number,
+		required: true,
+	},
+})
 
 const transition = ref('none')
 const transform = ref('')
@@ -65,7 +108,7 @@ const slideStyles = computed(() => {
 	return {
 		width: '960px',
 		height: '540px',
-		backgroundColor: slide.value.background || 'white',
+		backgroundColor: currentSlide.value?.background || '#ffffff',
 		cursor: slideCursor.value,
 		transform: `${transform.value} scale(${widthScale})`,
 		transition: transition.value,
@@ -73,41 +116,44 @@ const slideStyles = computed(() => {
 	}
 })
 
-const transitionMap = {
-	'Slide In': {
-		beforeEnter: {
-			transform: ['translateX(100%)', 'translateX(-100%)'],
-			transition: 'none',
+const transitionMap = computed(() => {
+	if (!currentSlide.value) return {}
+	return {
+		'Slide In': {
+			beforeEnter: {
+				transform: ['translateX(100%)', 'translateX(-100%)'],
+				transition: 'none',
+			},
+			enter: {
+				transform: 'translateX(0)',
+				transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
+			},
+			beforeLeave: {
+				transition: 'none',
+			},
+			leave: {
+				transform: ['translateX(100%)', 'translateX(-100%)'],
+				transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
+			},
 		},
-		enter: {
-			transform: 'translateX(0)',
-			transition: `transform ${slide.value.transitionDuration}s ease-out`,
+		Fade: {
+			beforeEnter: {
+				opacity: 0,
+			},
+			enter: {
+				transition: `opacity ${currentSlide.value.transitionDuration}s`,
+			},
+			beforeLeave: {},
+			leave: {
+				transition: `opacity ${currentSlide.value.transitionDuration}s`,
+				opacity: 0,
+			},
 		},
-		beforeLeave: {
-			transition: 'none',
-		},
-		leave: {
-			transform: ['translateX(100%)', 'translateX(-100%)'],
-			transition: `transform ${slide.value.transitionDuration}s ease-out`,
-		},
-	},
-	Fade: {
-		beforeEnter: {
-			opacity: 0,
-		},
-		enter: {
-			transition: `opacity ${slide.value.transitionDuration}s`,
-		},
-		beforeLeave: {},
-		leave: {
-			transition: `opacity ${slide.value.transitionDuration}s`,
-			opacity: 0,
-		},
-	},
-}
+	}
+})
 
 const applyTransitionStyles = (hook) => {
-	const styles = transitionMap[slide.value.transition]?.[hook]
+	const styles = transitionMap.value?.[currentSlide.value.transition]?.[hook]
 	if (!styles) return
 
 	let transformVal = styles.transform
@@ -121,24 +167,24 @@ const applyTransitionStyles = (hook) => {
 }
 
 const beforeSlideEnter = (el) => {
-	if (!slide.value.transition) return
+	if (!currentSlide.value.transition) return
 	applyTransitionStyles('beforeEnter')
 }
 
 const slideEnter = (el, done) => {
-	if (!slide.value.transition) return done()
+	if (!currentSlide.value.transition) return done()
 	el.offsetWidth
 	applyTransitionStyles('enter')
 	done()
 }
 
 const beforeSlideLeave = (el) => {
-	if (!slide.value.transition) return
+	if (!currentSlide.value.transition) return
 	applyTransitionStyles('beforeLeave')
 }
 
 const slideLeave = (el, done) => {
-	if (!slide.value.transition) return done()
+	if (!currentSlide.value.transition) return done()
 	applyTransitionStyles('leave')
 	done()
 }
@@ -150,25 +196,27 @@ const resetCursorVisibility = () => {
 	clearTimeout(cursorTimer)
 	cursorTimer = setTimeout(() => {
 		slideCursor.value = 'none'
-	}, 5000)
+	}, 3000)
 }
 
 const handleFullScreenChange = () => {
-	inSlideShow.value = document.fullscreenElement != null
-
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
+		inSlideShow.value = true
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-		router.replace({ name: 'PresentationEditor' })
+		endSlideShow()
 	}
 }
 
 const handleKeyDown = (e) => {
 	if (e.key == 'ArrowRight' || e.key == 'ArrowDown') {
-		changeSlide(slideIndex.value + 1, false)
+		changeSlide(slideIndex.value + 1)
 	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
-		changeSlide(slideIndex.value - 1, false)
+		changeSlide(slideIndex.value - 1)
+	} else if (e.key == 'F5') {
+		e.preventDefault()
+		changeSlide(0)
 	}
 }
 
@@ -206,32 +254,58 @@ const initFullscreenMode = async () => {
 	}
 }
 
+const slideshowEnded = computed(() => {
+	return slideIndex.value >= slides.value.length
+})
+
+const endSlideShow = () => {
+	inSlideShow.value = false
+	const slide =
+		slideIndex.value == slides.value.length ? slides.value.length : slideIndex.value + 1
+	router.replace({
+		name: 'PresentationEditor',
+		params: { presentationId: props.presentationId },
+		query: { slide: slide },
+	})
+}
+
 const changeSlide = (index) => {
-	if (index < 0 || index >= presentation.data.slides.length) return
+	if (index < 0) return
+	if (index >= slides.value.length + 1) return endSlideShow()
+
 	applyReverseTransition.value = index < slideIndex.value
 
 	nextTick(() => {
-		slideIndex.value = index
-		loadSlide()
+		router.replace({
+			name: 'Slideshow',
+			params: { presentationId: props.presentationId },
+			query: { slide: index + 1 },
+		})
 	})
 }
 
 const loadPresentation = async () => {
-	if (presentation.fetched) return
-	presentationId.value = route.params.presentationId
-	await presentation.fetch()
-	loadSlide()
+	if (slides.value.length) return
+	initPresentationDoc(props.presentationId)
 }
 
-onMounted(async () => {
+onActivated(() => {
 	loadPresentation()
 	initFullscreenMode()
 	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
 })
 
-onBeforeUnmount(() => {
+onDeactivated(() => {
 	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
 })
+
+watch(
+	() => props.activeSlideId,
+	(index) => {
+		slideIndex.value = parseInt(index) - 1
+	},
+	{ immediate: true },
+)
 </script>

@@ -74,11 +74,13 @@ const navigateToPresentation = (name, present) => {
 		router.replace({
 			name: 'Slideshow',
 			params: { presentationId: name },
+			query: { slide: 1 },
 		})
 	} else {
 		router.push({
 			name: 'PresentationEditor',
 			params: { presentationId: name },
+			query: { slide: 1 },
 		})
 	}
 }

@@ -3,13 +3,18 @@
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
 		<div ref="slideRef" :style="slideStyles" :class="slideClasses">
-			<SelectionBox ref="selectionBox" @mousedown="(e) => handleMouseDown(e)" />
+			<SelectionBox
+				ref="selectionBox"
+				@mousedown="(e) => handleMouseDown(e)"
+				@setIsSelecting="(val) => (isSelecting = val)"
+			/>
 
 			<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
 
 			<SlideElement
-				v-for="element in slide.elements"
-				:key="element.id"
+				v-for="element in currentSlide?.elements"
+				:key="`editor-${element.id}`"
+				mode="editor"
 				:element
 				:elementOffset
 				:isDragging
@@ -35,7 +40,7 @@ import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
 import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
 
 import {
-	slide,
+	currentSlide,
 	slideBounds,
 	selectionBounds,
 	updateSelectionBounds,
@@ -49,6 +54,7 @@ import {
 	focusElementId,
 	pairElementId,
 	updateElementWidth,
+	setEditableState,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
@@ -91,11 +97,21 @@ const slideClasses = computed(() => {
 	return [...classes, outlineClasses]
 })
 
+const isSelecting = ref(false)
+
+const getSlideCursor = () => {
+	if (isDragging.value) return 'move'
+	if (isSelecting.value) return 'crosshair'
+	if (resizeCursor.value) return resizeCursor.value
+
+	return 'default'
+}
+
 const slideStyles = computed(() => ({
 	transformOrigin: transformOrigin.value,
 	transform: transform.value,
-	backgroundColor: slide.value.background || '#ffffff',
-	cursor: isDragging.value ? 'move' : resizeCursor.value || 'default',
+	backgroundColor: currentSlide.value?.background || '#ffffff',
+	cursor: getSlideCursor(),
 	zIndex: 0,
 }))
 
@@ -134,6 +150,8 @@ const triggerSelection = (e, id) => {
 			focusElementId.value = null
 		} else if (activeElement.value?.type == 'text') {
 			focusElementId.value = id
+
+			setEditableState()
 		}
 	}
 }
@@ -143,7 +161,7 @@ const handleMouseUp = (e, id) => {
 
 	pairElementId.value = null
 
-	if (!isDragging.value) clickTimeout = setTimeout(() => triggerSelection(e, id), 100)
+	if (!isDragging.value) clickTimeout = setTimeout(() => triggerSelection(e, id), 200)
 }
 
 const triggerDrag = (e, id) => {
@@ -241,6 +259,7 @@ const getTotalPositionDelta = (delta) => {
 const elementOffset = reactive({
 	left: 0,
 	top: 0,
+	width: 0,
 })
 
 const handlePositionChange = (delta) => {
@@ -277,6 +296,14 @@ const applyPositionDelta = (delta) => {
 	elementOffset.top += deltaTop
 }
 
+const applyDimensionDelta = (delta) => {
+	if (!delta.width) return
+
+	const deltaWidth = delta.width / slideBounds.scale
+
+	elementOffset.width += deltaWidth
+}
+
 const handleDimensionChange = (delta) => {
 	if (!delta.width || !validateMinWidth(delta.width)) return
 
@@ -284,8 +311,7 @@ const handleDimensionChange = (delta) => {
 
 	applyPositionDelta(delta)
 
-	const newWidth = delta.width / slideBounds.scale || 0
-	updateElementWidth(newWidth)
+	applyDimensionDelta(delta)
 }
 
 const updateSlideBounds = () => {
@@ -358,24 +384,26 @@ defineExpose({
 
 const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
-const applyInteractionOffset = () => {
+const applyInteractionOffsets = () => {
 	requestAnimationFrame(() => {
 		activeElementIds.value.forEach((id) => {
-			const element = slide.value.elements.find((el) => el.id === id)
+			const element = currentSlide.value.elements.find((el) => el.id === id)
 			if (element) {
 				element.left += elementOffset.left
 				element.top += elementOffset.top
+				element.width += elementOffset.width
 			}
 		})
 		elementOffset.left = 0
 		elementOffset.top = 0
+		elementOffset.width = 0
 	})
 }
 
 watch(
 	() => hasOngoingInteraction.value,
 	(newVal, oldVal) => {
-		if (oldVal && !newVal) applyInteractionOffset()
+		if (oldVal && !newVal) applyInteractionOffsets()
 		emit('update:hasOngoingInteraction', newVal)
 	},
 )

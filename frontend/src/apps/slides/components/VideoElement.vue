@@ -16,7 +16,8 @@
 		</video>
 		<div
 			ref="overlay"
-			class="overlay absolute left-0 top-0 size-full overflow-hidden transition-opacity duration-500 ease-in-out"
+			v-show="showOverlay"
+			class="overlay absolute left-0 top-0 size-full cursor-default overflow-hidden transition-opacity duration-500 ease-in-out"
 			:style="gradientOverlayStyles"
 		>
 			<div v-if="showProgressBar" :class="toggleButtonClasses">
@@ -88,9 +89,11 @@ const togglePlaying = () => {
 	if (video.paused) {
 		isPlaying.value = true
 		video.play()
+		if (inSlideShow.value) showOverlay.value = false
 	} else {
 		isPlaying.value = false
 		video.pause()
+		if (inSlideShow.value) showOverlay.value = true
 	}
 }
 
@@ -162,4 +165,6 @@ const handleHoverChange = (e) => {
 		hoverOver.value = false
 	}
 }
+
+const showOverlay = ref(inSlideShow.value ? false : true)
 </script>

@@ -2,7 +2,7 @@
 	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
-				<PresentationHeader />
+				<PresentationHeader :title="presentationDoc?.title" />
 			</template>
 		</Navbar>
 		<div class="relative flex h-screen bg-gray-300">
@@ -15,8 +15,9 @@
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
 				:showNavigator="showNavigator"
+				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
-				@openLayoutDialog="openLayoutDialog('insert')"
+				@openLayoutDialog="openLayoutDialog('insert', slides.length - 1)"
 			/>
 
 			<Toolbar
@@ -33,19 +34,21 @@
 		</div>
 
 		<LayoutDialog
-			v-if="presentation.data"
+			v-if="presentationDoc"
 			v-model="showLayoutDialog"
-			:theme="presentation.data.theme"
+			:theme="presentationDoc.theme"
+			:layouts="layoutResource.data"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch, computed, useTemplateRef, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
-import { call, toast } from 'frappe-ui'
+import { toast } from 'frappe-ui'
 
 import { Presentation } from 'lucide-vue-next'
 
@@ -57,15 +60,26 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 
-import { presentationId, presentation } from '@/stores/presentation'
 import {
-	slide,
+	presentationId,
+	hasStateChanged,
+	savePresentationDoc,
+	layoutResource,
+	initPresentationDoc,
+	presentationDoc,
+	historyControl,
+	historyState,
+	initHistory,
+	ignoreUpdates,
+} from '@/stores/presentation'
+import {
+	slides,
 	slideIndex,
-	saveChanges,
-	loadSlide,
+	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
-	updateSlideThumbnail,
+	getSlideThumbnail,
+	getThumbnailHtml,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -77,12 +91,14 @@ import {
 	addTextElement,
 	selectAllElements,
 	activeElements,
-	deleteAttachments,
 } from '@/stores/element'
 
-import html2canvas from 'html2canvas'
+import { generateUniqueId } from '@/utils/helpers'
+
+import { activeEditor } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
+let thumbnailGenerationInterval = null
 
 const primaryButtonProps = {
 	label: 'Present',
@@ -90,7 +106,15 @@ const primaryButtonProps = {
 	onClick: () => startSlideShow(),
 }
 
-const route = useRoute()
+const props = defineProps({
+	presentationId: String,
+	slug: String,
+	activeSlideId: {
+		type: Number,
+		required: true,
+	},
+})
+
 const router = useRouter()
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -194,10 +218,56 @@ const handleGlobalShortcuts = (e) => {
 				openLayoutDialog('insert')
 			}
 			break
+		case 'F5':
+			e.preventDefault()
+			startSlideShow()
+			break
+	}
+}
+
+const recentlyRestored = ref(false)
+
+const handleHistoryOperation = async (operation) => {
+	activeElementIds.value = []
+	if (operation == 'undo') await historyControl.undo()
+	else if (operation == 'redo') await historyControl.redo()
+
+	if (
+		slideIndex.value != historyState.value.activeSlide &&
+		historyControl.undoStack.value.length > 1
+	) {
+		await changeSlide(historyState.value.activeSlide)
+		recentlyRestored.value = true
+		setTimeout(() => {
+			recentlyRestored.value = false
+		}, 700)
+	}
+
+	ignoreUpdates(() => {
+		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+		if (activeElementIds.value != historyState.value.elementIds) {
+			activeElementIds.value = [...historyState.value.elementIds]
+		}
+	})
+}
+
+const handleUndoRedo = (e) => {
+	if (activeEditor.value?.isEditable) {
+		e.stopPropagation()
+		return
+	}
+
+	if (historyControl.canRedo.value && e.shiftKey && e.metaKey) {
+		e.preventDefault()
+		handleHistoryOperation('redo')
+	} else if (historyControl.undoStack.value.length > 1 && e.metaKey) {
+		e.preventDefault()
+		handleHistoryOperation('undo')
 	}
 }
 
 const handleKeyDown = (e) => {
+	if (e.key == 'z') return handleUndoRedo(e)
 	const editingText =
 		document.activeElement.getAttribute('contenteditable') ||
 		document.activeElement.tagName == 'INPUT' ||
@@ -217,7 +287,8 @@ const startSlideShow = () => {
 
 	router.replace({
 		name: 'Slideshow',
-		params: { presentationId: presentationId.value },
+		params: { presentationId: props.presentationId },
+		query: { slide: props.activeSlideId },
 	})
 }
 
@@ -226,104 +297,125 @@ const handleAutoSave = () => {
 	saveChanges()
 }
 
-const changeSlide = async (index, updateCurrent = true) => {
-	if (index < 0 || index >= presentation.data.slides.length) return
+const dirtySince = ref(null)
+let lastThumbnailTime = 0
 
-	resetFocus()
-	// reset the pan and zoom to capture thumbnail
-	slideContainerRef.value.togglePanZoom()
+const handleThumbnailGeneration = async () => {
+	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
-	await nextTick(async () => {
-		// update the current slide along with thumbnail
-		if (updateCurrent) {
-			await saveChanges()
-		}
-		slideIndex.value = index
-		loadSlide()
+	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
+		const index = slideIndex.value
+		const thumbnailHtml = await getThumbnailHtml()
+		if (!thumbnailHtml) return
 
-		// re-enable pan and zoom
-		slideContainerRef.value.togglePanZoom()
-	})
+		const thumbnail = await getSlideThumbnail(thumbnailHtml)
+
+		ignoreUpdates(() => {
+			if (!slides.value[index]) return
+			slides.value[index].thumbnail = thumbnail
+		})
+
+		lastThumbnailTime = Date.now()
+	}
 }
 
-const performSlideAction = async (action, index, layoutId) => {
-	if (!index) index = slideIndex.value
-	let url = ''
-
-	switch (action) {
-		case 'insert':
-			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
-			break
-		case 'duplicate':
-			url = 'slides.slides.doctype.presentation.presentation.duplicate_slide'
-			break
-		case 'replace':
-			url = 'slides.slides.doctype.presentation.presentation.insert_slide'
-			break
-		case 'delete':
-			url = 'slides.slides.doctype.presentation.presentation.delete_slide'
-			break
-	}
-
-	const args = {
-		name: presentationId.value,
-		index: index,
-		layout_id: layoutId,
-		replace: action == 'replace',
-	}
+const changeSlide = async (index) => {
+	if (index < 0 || index >= slides.value.length) return
 
 	resetFocus()
 
-	// make sure nextTick call completes before completing the action
-	// to ensure slide index is not updated before the action is completed
-	await nextTick(async () => {
-		await saveChanges()
-		await call(url, args)
-		await presentation.reload()
+	await router.replace({
+		query: { slide: index + 1 },
 	})
 }
 
-const insertSlide = async (index, layoutId) => {
-	if (!index) index = slideIndex.value
-	const previousBackground = slide.value.background
-	await performSlideAction('insert', index, layoutId)
-	await changeSlide(index + 1)
-	slide.value.background = previousBackground
-	nextTick(() => {
-		updateSlideThumbnail()
+const getNewSlide = (toDuplicate = false, layoutId) => {
+	let layout = null
+
+	if (toDuplicate) {
+		layout = currentSlide.value
+	} else {
+		layout = layoutResource.data.find((l) => l.name == layoutId)
+	}
+
+	const slide = {}
+	if (layout) {
+		slide.background = layout.background
+		slide.transition = layout.transition
+		slide.transitionDuration = layout.transitionDuration
+		slide.thumbnail = layout.thumbnail
+		slide.elements = layout.elements.map((element) => {
+			return {
+				...element,
+				id: generateUniqueId(),
+			}
+		})
+	}
+
+	// override metadata and generate unique IDs for elements
+	slide.name = ''
+	slide.parent = presentationId.value
+
+	return slide
+}
+
+const insertSlide = (index, layoutId, toDuplicate) => {
+	if (toDuplicate || !index) index = slideIndex.value
+
+	const newSlide = getNewSlide(toDuplicate, layoutId)
+
+	slides.value.splice(index + 1, 0, newSlide)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
 	})
+
+	changeSlide(index + 1)
 }
 
-const loadSlidePostDeletion = async (index) => {
-	// if last slide is deleted, load the previous slide
-	if (slideIndex.value == presentation.data.slides.length)
-		changeSlide(slideIndex.value - 1, false)
-	// otherwise load next one
-	else loadSlide()
-}
-
-const deleteSlide = async () => {
-	// store elements to delete attachments later
-	const elements = slide.value.elements
-
+const deleteSlide = () => {
 	// if there is only one slide, reset the slide state instead of deleting
-	if (presentation.data.slides.length == 1) return resetSlideState()
+	const totalLength = slides.value.length
 
-	await performSlideAction('delete')
-	loadSlidePostDeletion()
+	if (totalLength == 1) {
+		slides.value[0].elements = []
+		return
+	}
 
-	deleteAttachments(elements)
+	if (slideIndex.value == totalLength - 1) {
+		// if last slide is deleted, switch to previous slide since no slide at current index
+		changeSlide(slideIndex.value - 1)
+	}
+
+	// delete the current slide
+	slides.value = slides.value.filter((slide, i) => i != slideIndex.value)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
 }
 
-const duplicateSlide = async (e) => {
+const duplicateSlide = (e) => {
 	e.preventDefault()
-	await performSlideAction('duplicate')
-	changeSlide(slideIndex.value + 1)
+
+	insertSlide(slideIndex.value, null, true)
+}
+
+const replaceSlide = (layoutId) => {
+	const index = slideIndex.value
+	const newSlide = getNewSlide(false, layoutId)
+
+	slides.value.splice(index, 1, newSlide)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
 }
 
 const resetAndSave = () => {
 	resetFocus()
 	nextTick(() => {
+		if (!isDirty.value) {
+			toast.info('No changes to save')
+			return
+		}
 		const toastProps = {
 			loading: `Saving ...`,
 			success: () => `Saved`,
@@ -333,72 +425,107 @@ const resetAndSave = () => {
 	})
 }
 
-const resetSlideState = () => {
-	slide.value = {
-		thumbnail: '',
-		elements: [],
-		background: '',
-		transition: '',
-		transitionDuration: '0',
-	}
-}
-
-const addRouteSlug = async () => {
-	const slug = presentation.data.slug
-	if (route.params.slug === slug) return
+const updateRoute = async (slug) => {
+	if (props.slug == slug) return
 	router.replace({
 		name: 'PresentationEditor',
 		params: { presentationId: presentationId.value, slug: slug },
+		query: { slide: slideIndex.value + 1 },
 	})
 }
 
-watch(
-	() => route.params.presentationId,
-	async (id) => {
-		if (!id) return
-		presentationId.value = id
-		await presentation.fetch()
-		addRouteSlug()
-		loadSlide()
-	},
-	{ immediate: true },
-)
+const initIntervals = () => {
+	autosaveInterval = setInterval(handleAutoSave, 500)
+	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 2000)
+}
 
-onMounted(() => {
-	autosaveInterval = setInterval(handleAutoSave, 2000)
+const loadPresentation = async (id) => {
+	initHistory()
+	presentationDoc.value = await initPresentationDoc(id)
+	updateRoute(presentationDoc.value.slug)
+	layoutResource.fetch({ theme: presentationDoc.value.theme })
+	initIntervals()
+}
+
+onActivated(() => {
+	const id = props.presentationId
+	if (!id) return
+	loadPresentation(id)
+
 	document.addEventListener('keydown', handleKeyDown)
 })
 
-onBeforeUnmount(() => {
+onDeactivated(async () => {
 	clearInterval(autosaveInterval)
+	clearInterval(thumbnailGenerationInterval)
 	resetFocus()
-	document.removeEventListener('keydown', handleKeyDown)
-})
+	await handleThumbnailGeneration()
+	savePresentation()
 
-onBeforeRouteLeave((to, from, next) => {
-	if (to.name !== 'Slideshow') {
-		slideIndex.value = 0
-		resetSlideState()
-		presentationId.value = ''
-		presentation.reset()
-	}
-	next()
+	document.removeEventListener('keydown', handleKeyDown)
 })
 
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
+const insertIndex = ref(null)
 
-const openLayoutDialog = (action) => {
+const openLayoutDialog = (action, index) => {
 	showLayoutDialog.value = true
 	layoutAction.value = action
+	insertIndex.value = index
 }
 
-const handleInsertSlide = async (layoutId) => {
+const handleInsertSlide = (layoutId) => {
 	if (layoutAction.value == 'replace') {
-		await performSlideAction('replace', slideIndex.value, layoutId)
-		loadSlide()
+		replaceSlide(layoutId)
 	} else {
-		insertSlide(null, layoutId)
+		insertSlide(insertIndex.value, layoutId)
+	}
+	insertIndex.value = null
+}
+
+const isDirty = computed(() => {
+	if (!presentationDoc.value || !slides.value) return false
+
+	const original = JSON.parse(JSON.stringify(presentationDoc.value.slides || []))
+	const current = JSON.parse(JSON.stringify(slides.value || []))
+
+	return hasStateChanged(original, current)
+})
+
+const isSaving = ref(false)
+
+const savePresentation = async () => {
+	isSaving.value = true
+	try {
+		await savePresentationDoc()
+	} catch (error) {
+		console.error('Error saving presentation:', error)
+	} finally {
+		isSaving.value = false
 	}
 }
+
+const saveChanges = async () => {
+	if (!isDirty.value || isSaving.value) return
+
+	await savePresentation()
+}
+
+watch(
+	() => isDirty.value,
+	(val) => {
+		if (val) {
+			dirtySince.value = Date.now()
+		}
+	},
+)
+
+watch(
+	() => props.activeSlideId,
+	(index) => {
+		slideIndex.value = parseInt(index) - 1 || 0
+	},
+	{ immediate: true },
+)
 </script>

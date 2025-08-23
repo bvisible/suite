@@ -55,7 +55,7 @@
 				:options="textFonts"
 				size="sm"
 				variant="subtle"
-				:modelValue="editorStyles.fontFamily"
+				:modelValue="displayFont"
 				@update:modelValue="(font) => updateProperty('fontFamily', font.value)"
 			/>
 
@@ -98,8 +98,7 @@
 				label="Letter Spacing"
 				:rangeStart="-10"
 				:rangeEnd="50"
-				:rangeStep="0.1"
-				:modelValue="editorStyles.letterSpacing"
+				:modelValue="editorStyles.letterSpacing || 0"
 				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
 			/>
 		</template>
@@ -111,7 +110,7 @@
 				label="Opacity"
 				:rangeStart="0"
 				:rangeEnd="100"
-				:modelValue="editorStyles.opacity"
+				:modelValue="parseFloat(editorStyles.opacity)"
 				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
 			/>
 		</template>
@@ -140,7 +139,6 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { slide } from '@/stores/slide'
 import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
@@ -222,7 +220,7 @@ const presetTextStyles = [
 		value: 'subtitle',
 		bold: true,
 		fontSize: 40,
-		lineHeight: 1,
+		lineHeight: 1.5,
 		textAlign: 'center',
 	},
 	{
@@ -283,6 +281,10 @@ const getTabClasses = (alignValue) => {
 	}
 	return `${baseClasses} text-gray-600`
 }
+
+const displayFont = computed(() => {
+	return editorStyles.fontFamily?.replace(/['"]/g, '')
+})
 </script>
 
 <style scoped>

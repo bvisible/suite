@@ -65,7 +65,7 @@
 				:rangeStart="-50"
 				:rangeEnd="50"
 				:modelValue="parseFloat(activeElement.shadowOffsetX)"
-				@update:modelValue="(value) => (activeElement.shadowOffsetX = value)"
+				@update:modelValue="(value) => setProperty('shadowOffsetX', value)"
 			/>
 
 			<SliderInput
@@ -73,7 +73,7 @@
 				:rangeStart="-50"
 				:rangeEnd="50"
 				:modelValue="parseFloat(activeElement.shadowOffsetY)"
-				@update:modelValue="(value) => (activeElement.shadowOffsetY = value)"
+				@update:modelValue="(value) => setProperty('shadowOffsetY', value)"
 			/>
 
 			<SliderInput
@@ -81,7 +81,7 @@
 				:rangeStart="1"
 				:rangeEnd="500"
 				:modelValue="parseFloat(activeElement.shadowSpread)"
-				@update:modelValue="(value) => (activeElement.shadowSpread = value)"
+				@update:modelValue="(value) => setProperty('shadowSpread', value)"
 			/>
 		</template>
 	</CollapsibleSection>
@@ -93,7 +93,7 @@
 				:rangeStart="0"
 				:rangeEnd="100"
 				:modelValue="activeElement.opacity"
-				@update:modelValue="(value) => (activeElement.opacity = parseFloat(value))"
+				@update:modelValue="(value) => setProperty('opacity', value)"
 			/>
 		</template>
 	</CollapsibleSection>
@@ -115,7 +115,7 @@ const addBorder = (style) => {
 	activeElement.value.borderStyle = style
 	if (style != 'none') {
 		activeElement.value.borderWidth = 0.5
-		activeElement.value.borderColor = 'hsl(0, 1%, 80%)'
+		activeElement.value.borderColor = '#d2d2d2ff'
 		activeElement.value.borderRadius = 10
 	} else {
 		activeElement.value.borderWidth = 0
@@ -139,5 +139,9 @@ const getTabIconClasses = (style) => {
 	} else {
 		return `h-4 w-5 rounded-sm border ${isActive ? 'border-gray-800' : 'border-gray-500'}`
 	}
+}
+
+const setProperty = (property, value) => {
+	activeElement.value[property] = parseFloat(value)
 }
 </script>
