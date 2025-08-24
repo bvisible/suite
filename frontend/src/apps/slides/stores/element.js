@@ -303,7 +303,6 @@ const resetFocus = () => {
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
-	focusedSlide.value = null
 }
 
 const getElementPosition = (elementId) => {
