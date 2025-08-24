@@ -74,6 +74,7 @@ import {
 	historyState,
 	initHistory,
 	ignoreUpdates,
+	unsyncedPresentationRecord,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -463,7 +464,16 @@ onActivated(() => {
 	document.addEventListener('keydown', handleKeyDown)
 })
 
+const updateUnsyncedRecord = () => {
+	unsyncedPresentationRecord.value = {
+		...unsyncedPresentationRecord.value,
+		modified: presentationDoc.value.modified,
+		thumbnail: slides.value[0]?.thumbnail,
+	}
+}
+
 onDeactivated(async () => {
+	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
 	clearInterval(thumbnailInterval)
 	await resetFocus()

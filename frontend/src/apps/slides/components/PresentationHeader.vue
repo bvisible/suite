@@ -18,7 +18,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
-import { updatePresentationTitle } from '@/stores/presentation'
+import { unsyncedPresentationRecord, updatePresentationTitle } from '@/stores/presentation'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const props = defineProps({
@@ -66,6 +66,7 @@ const saveTitle = async (e) => {
 
 	if (newTitle != props.title) {
 		const slug = await updatePresentationTitle(route.params.presentationId, newTitle)
+		unsyncedPresentationRecord.value.title = newTitle
 		router.replace({
 			name: 'PresentationEditor',
 			params: { presentationId: route.params.presentationId, slug: slug },

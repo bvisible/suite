@@ -193,6 +193,8 @@ const initHistory = () => {
 	})
 }
 
+const unsyncedPresentationRecord = ref({})
+
 export {
 	presentationId,
 	inSlideShow,
@@ -209,4 +211,5 @@ export {
 	historyState,
 	initHistory,
 	ignoreUpdates,
+	unsyncedPresentationRecord,
 }
