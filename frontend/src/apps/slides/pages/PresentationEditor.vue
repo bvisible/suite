@@ -81,8 +81,8 @@ import {
 	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
-	getSlideThumbnail,
-	getThumbnailHtml,
+	updateThumbnail,
+	lastThumbnailTime,
 	focusedSlide,
 } from '@/stores/slide'
 import {
@@ -289,11 +289,9 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
-const startSlideShow = () => {
-	resetFocus()
-	nextTick(() => {
-		saveChanges()
-	})
+const startSlideShow = async () => {
+	await resetFocus()
+	saveChanges()
 
 	router.replace({
 		name: 'Slideshow',
@@ -308,26 +306,11 @@ const handleAutoSave = () => {
 }
 
 const dirtySince = ref(null)
-let lastThumbnailTime = 0
-
-const updateThumbnail = async (index) => {
-	const thumbnailHtml = await getThumbnailHtml()
-	if (!thumbnailHtml) return
-
-	const thumbnail = await getSlideThumbnail(thumbnailHtml)
-
-	ignoreUpdates(() => {
-		if (!slides.value[index]) return
-		slides.value[index].thumbnail = thumbnail
-	})
-
-	lastThumbnailTime = Date.now()
-}
 
 const handleThumbnailGeneration = async (index) => {
 	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
-	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime) {
+	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime.value) {
 		await updateThumbnail(index)
 	}
 }
@@ -337,19 +320,13 @@ const changeSlide = async (index) => {
 
 	const oldIndex = slideIndex.value
 
-	resetFocus()
+	await resetFocus()
 
 	focusedSlide.value = null
-
-	await nextTick()
-
-	await updateThumbnail(oldIndex)
 
 	await router.replace({
 		query: { slide: index + 1 },
 	})
-
-	updateThumbnail(index)
 }
 
 const getNewSlide = (toDuplicate = false, layoutId) => {
@@ -440,20 +417,18 @@ const replaceSlide = (layoutId) => {
 	})
 }
 
-const resetAndSave = () => {
-	resetFocus()
-	nextTick(() => {
-		if (!isDirty.value) {
-			toast.info('No changes to save')
-			return
-		}
-		const toastProps = {
-			loading: `Saving ...`,
-			success: () => `Saved`,
-			error: () => 'Could not save presentation. Please try again.',
-		}
-		toast.promise(saveChanges(), toastProps)
-	})
+const resetAndSave = async () => {
+	await resetFocus()
+	if (!isDirty.value) {
+		toast.info('No changes to save')
+		return
+	}
+	const toastProps = {
+		loading: `Saving ...`,
+		success: () => `Saved`,
+		error: () => 'Could not save presentation. Please try again.',
+	}
+	toast.promise(saveChanges(), toastProps)
 }
 
 const updateRoute = async (slug) => {
@@ -491,8 +466,7 @@ onActivated(() => {
 onDeactivated(async () => {
 	clearInterval(autosaveInterval)
 	clearInterval(thumbnailInterval)
-	resetFocus()
-	await handleThumbnailGeneration()
+	await resetFocus()
 	savePresentation()
 
 	document.removeEventListener('keydown', handleKeyDown)

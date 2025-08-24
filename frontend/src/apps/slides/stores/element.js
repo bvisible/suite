@@ -8,6 +8,8 @@ import {
 	updateSelectionBounds,
 	currentSlide,
 	focusedSlide,
+	slideIndex,
+	updateThumbnail,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
@@ -286,11 +288,9 @@ const deleteAttachments = async (elements) => {
 
 const deleteElements = async (e, ids) => {
 	const idsToDelete = ids || activeElementIds.value
-	resetFocus()
-	nextTick(() => {
-		currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
-			return !idsToDelete.includes(element.id)
-		})
+	await resetFocus()
+	currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
+		return !idsToDelete.includes(element.id)
 	})
 }
 
@@ -299,10 +299,16 @@ const selectAllElements = (e) => {
 	activeElementIds.value = currentSlide.value.elements.map((element) => element.id)
 }
 
-const resetFocus = () => {
+const resetFocus = async () => {
+	const index = slideIndex.value
+
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
+
+	await nextTick()
+
+	await updateThumbnail(index)
 }
 
 const getElementPosition = (elementId) => {
@@ -342,8 +348,8 @@ const handleCopy = (e) => {
 	copiedFromId.value = presentationId.value
 }
 
-const handlePastedText = (clipboardText) => {
-	resetFocus()
+const handlePastedText = async (clipboardText) => {
+	await resetFocus()
 	addTextElement(clipboardText)
 }
 
