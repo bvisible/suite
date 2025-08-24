@@ -1,5 +1,8 @@
 <template>
-	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
+	<div
+		class="flex h-screen w-screen select-none flex-col overflow-hidden"
+		@click="focusedSlide = null"
+	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
 				<PresentationHeader :title="presentationDoc?.title" />

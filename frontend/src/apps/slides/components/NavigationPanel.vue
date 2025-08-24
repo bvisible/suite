@@ -5,6 +5,7 @@
 		@mouseenter="handleHoverChange"
 		@mouseleave="handleHoverChange"
 		@wheel="handleScrollBarWheelEvent"
+		@click.stop
 	>
 		<div
 			ref="scrollableArea"
