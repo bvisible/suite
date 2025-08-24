@@ -102,7 +102,7 @@ import { generateUniqueId } from '@/utils/helpers'
 import { activeEditor } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
-let thumbnailGenerationInterval = null
+let thumbnailInterval = null
 
 const primaryButtonProps = {
 	label: 'Present',
@@ -232,26 +232,32 @@ const handleGlobalShortcuts = (e) => {
 const recentlyRestored = ref(false)
 
 const handleHistoryOperation = async (operation) => {
-	activeElementIds.value = []
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
-	if (
-		slideIndex.value != historyState.value.activeSlide &&
-		historyControl.undoStack.value.length > 1
-	) {
-		await changeSlide(historyState.value.activeSlide)
-		recentlyRestored.value = true
-		setTimeout(() => {
-			recentlyRestored.value = false
-		}, 700)
-	}
+	const slideToFocus = historyState.value.activeSlide
+	const elementsToFocus = [...historyState.value.elementIds]
 
 	ignoreUpdates(() => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
-		if (activeElementIds.value != historyState.value.elementIds) {
-			activeElementIds.value = [...historyState.value.elementIds]
-		}
+	})
+
+	const onActiveSlide = slideIndex.value == slideToFocus
+
+	if (!onActiveSlide) {
+		await changeSlide(slideToFocus)
+
+		recentlyRestored.value = true
+		setTimeout(() => {
+			recentlyRestored.value = false
+		}, 1000)
+	}
+
+	if (activeElementIds.value != elementsToFocus) {
+		activeElementIds.value = elementsToFocus
+	}
+	nextTick(() => {
+		updateThumbnail(slideToFocus)
 	})
 }
 
@@ -304,34 +310,46 @@ const handleAutoSave = () => {
 const dirtySince = ref(null)
 let lastThumbnailTime = 0
 
-const handleThumbnailGeneration = async () => {
+const updateThumbnail = async (index) => {
+	const thumbnailHtml = await getThumbnailHtml()
+	if (!thumbnailHtml) return
+
+	const thumbnail = await getSlideThumbnail(thumbnailHtml)
+
+	ignoreUpdates(() => {
+		if (!slides.value[index]) return
+		slides.value[index].thumbnail = thumbnail
+	})
+
+	lastThumbnailTime = Date.now()
+}
+
+const handleThumbnailGeneration = async (index) => {
 	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
-	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
-		const index = slideIndex.value
-		const thumbnailHtml = await getThumbnailHtml()
-		if (!thumbnailHtml) return
-
-		const thumbnail = await getSlideThumbnail(thumbnailHtml)
-
-		ignoreUpdates(() => {
-			if (!slides.value[index]) return
-			slides.value[index].thumbnail = thumbnail
-		})
-
-		lastThumbnailTime = Date.now()
+	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime) {
+		await updateThumbnail(index)
 	}
 }
 
 const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
+	const oldIndex = slideIndex.value
+
 	resetFocus()
+
 	focusedSlide.value = null
+
+	await nextTick()
+
+	await updateThumbnail(oldIndex)
 
 	await router.replace({
 		query: { slide: index + 1 },
 	})
+
+	updateThumbnail(index)
 }
 
 const getNewSlide = (toDuplicate = false, layoutId) => {
@@ -449,7 +467,9 @@ const updateRoute = async (slug) => {
 
 const initIntervals = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
-	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 2000)
+	thumbnailInterval = setInterval(() => {
+		handleThumbnailGeneration(slideIndex.value)
+	}, 1000)
 }
 
 const loadPresentation = async (id) => {
@@ -470,7 +490,7 @@ onActivated(() => {
 
 onDeactivated(async () => {
 	clearInterval(autosaveInterval)
-	clearInterval(thumbnailGenerationInterval)
+	clearInterval(thumbnailInterval)
 	resetFocus()
 	await handleThumbnailGeneration()
 	savePresentation()
