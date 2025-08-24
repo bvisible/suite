@@ -13,7 +13,7 @@
 			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
 			:style="scrollbarStyles"
 		>
-			<Draggable v-model="slides" item-key="name" @end="handleSortEnd">
+			<Draggable v-model="slides" item-key="name" @start="resetFocus" @end="handleSortEnd">
 				<template #item="{ element: slide }">
 					<div
 						:class="getThumbnailClasses(slide)"
@@ -59,6 +59,7 @@ import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
 import { ignoreUpdates } from '@/stores/presentation'
+import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
 
