@@ -112,47 +112,63 @@ def get_slide_thumbnails(presentation: str) -> list[str]:
 	return [slide["thumbnail"] for slide in slides]
 
 
-def create_new_slide(presentation, index, layout_id=None):
-	"""
-	Creates a new slide with the given layout_id.
-	If no layout_id is provided, it creates a blank slide.
-	"""
-	new_slide = frappe.new_doc("Slide")
-	if layout_id:
-		layout_slide = frappe.get_doc("Slide", layout_id)
-		new_slide.update(layout_slide.as_dict())
-		elements = json.loads(layout_slide.elements)
-		for element in elements:
-			element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
-		new_slide.elements = json.dumps(elements)
-	new_slide.parent = presentation
-	new_slide.parentfield = "slides"
-	new_slide.parenttype = "Presentation"
-	new_slide.idx = index + 1
-	new_slide.save()
+def apply_slide_layout(slide, ref_id):
+	layout_slide = frappe.get_doc("Slide", ref_id)
 
-	return new_slide
+	slide.update(layout_slide.as_dict())
+
+	elements = json.loads(layout_slide.elements)
+	for element in elements:
+		element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
+
+	slide.elements = json.dumps(elements)
+
+
+def create_new_slide(parent, ref_id):
+	"""
+	Creates a new slide with the given reference slide id.
+	"""
+	slide = frappe.new_doc("Slide")
+
+	apply_slide_layout(slide, ref_id)
+
+	slide.parent = parent
+	slide.parentfield = "slides"
+	slide.parenttype = "Presentation"
+	slide.save()
+
+	return slide
+
+
+def get_slides_from_ref(parent, theme, duplicate_from):
+	ref_name = duplicate_from or theme or "Light"
+	ref_presentation = frappe.get_doc("Presentation", ref_name)
+	slides = []
+
+	if duplicate_from:
+		for slide in ref_presentation.slides:
+			new_slide = create_new_slide(parent, slide.name)
+			new_slide.idx = slide.idx
+			slides.append(new_slide)
+	else:
+		first_slide = create_new_slide(parent, ref_presentation.slides[2].name)
+		first_slide.idx = 1
+		slides.append(first_slide)
+
+	return slides
 
 
 @frappe.whitelist()
 def create_presentation(title, theme=None, duplicate_from=None):
-	new_presentation = frappe.new_doc("Presentation")
-	new_presentation.title = title
-	new_presentation.theme = theme
-	new_presentation.insert()
-	if duplicate_from:
-		presentation = frappe.get_doc("Presentation", duplicate_from)
-		new_presentation.slides = presentation.slides
-		new_presentation.theme = presentation.theme
-		for slide in new_presentation.slides:
-			slide.parent = new_presentation.name
-	else:
-		template = frappe.get_doc("Presentation", theme)
-		first_slide_layout = template.slides[2].name
-		first_slide = create_new_slide(new_presentation.name, 0, first_slide_layout)
-		new_presentation.slides = [first_slide]
-	new_presentation.save()
-	return new_presentation
+	presentation = frappe.new_doc("Presentation")
+	presentation.title = title
+	presentation.theme = theme
+	presentation.insert()
+
+	presentation.slides = get_slides_from_ref(presentation.name, theme, duplicate_from)
+
+	presentation.save()
+	return presentation
 
 
 @frappe.whitelist()
