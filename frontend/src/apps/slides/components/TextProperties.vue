@@ -241,7 +241,7 @@ const applyPresetTextStyles = (textStyle) => {
 		.focus()
 		.selectAll()
 		.setMark('textStyle', {
-			fontFamily: 'Arial',
+			fontFamily: 'Inter',
 			fontSize: presetStyles.fontSize,
 			lineHeight: presetStyles.lineHeight,
 			letterSpacing: 0,

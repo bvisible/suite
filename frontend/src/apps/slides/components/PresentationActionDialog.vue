@@ -1,5 +1,5 @@
 <template>
-	<Dialog class="pb-0" :options="{ size: 'sm' }">
+	<Dialog class="pb-0" :options="{ size: 'sm' }" @close="handleDialogClose">
 		<template #body-title>
 			<div class="font-semibold">{{ dialogAction }} Presentation</div>
 		</template>
@@ -75,7 +75,7 @@ const performAction = async () => {
 
 	if (!props.dialogAction || !props.presentation) return
 
-	emit('closeDialog')
+	handleDialogClose()
 
 	let newPresentationId
 	switch (action) {
@@ -132,9 +132,27 @@ watch(
 		}
 
 		newPresentationTitle.value = newTitle
-		nextTick(() => {
-			document.querySelector('input')?.focus()
-		})
+		handleDialogOpen()
 	},
 )
+
+const handleEnterKey = (e) => {
+	if (e.key === 'Enter') {
+		e.preventDefault()
+		performAction()
+	}
+}
+
+const handleDialogOpen = () => {
+	document.addEventListener('keydown', handleEnterKey)
+
+	nextTick(() => {
+		document.querySelector('input')?.focus()
+	})
+}
+
+const handleDialogClose = () => {
+	document.removeEventListener('keydown', handleEnterKey)
+	emit('closeDialog')
+}
 </script>

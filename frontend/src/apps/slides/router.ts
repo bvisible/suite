@@ -62,7 +62,11 @@ const hasAccess = async (presentationId: string) => {
 	}
 }
 
-router.beforeEach(async (to, _, next) => {
+let previousRoute = null
+
+
+router.beforeEach(async (to, from, next) => {
+	previousRoute = from
 	const isLoggedIn = session.isLoggedIn
 
 	if (!isLoggedIn) {
@@ -94,4 +98,4 @@ router.beforeEach(async (to, _, next) => {
 	}
 })
 
-export default router
+export { router, previousRoute }
