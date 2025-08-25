@@ -219,7 +219,7 @@ def get_updated_json(presentation, json):
 @frappe.whitelist()
 def get_layouts(theme):
 	layout_doc = frappe.get_doc("Presentation", theme) if frappe.db.exists("Presentation", theme) else None
-	if layout_doc and layout_doc.is_template and frappe.has_permission("Presentation", "read", layout_doc):
+	if layout_doc and layout_doc.is_template:
 		return layout_doc.slides
 	return []
 
