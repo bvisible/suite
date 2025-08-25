@@ -321,9 +321,9 @@ const changeSlide = async (index) => {
 
 	const oldIndex = slideIndex.value
 
-	await resetFocus()
-
 	focusedSlide.value = null
+
+	await resetFocus()
 
 	await router.replace({
 		query: { slide: index + 1 },
@@ -445,7 +445,7 @@ const initIntervals = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
 	thumbnailInterval = setInterval(() => {
 		handleThumbnailGeneration(slideIndex.value)
-	}, 1000)
+	}, 1500)
 }
 
 const loadPresentation = async (id) => {
