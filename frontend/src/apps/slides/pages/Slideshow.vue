@@ -7,7 +7,10 @@
 				clipPath: clipPath,
 			}"
 		>
-			<div v-if="slideshowEnded" class="flex flex-col items-center gap-8">
+			<div
+				v-if="slideshowEnded"
+				class="flex h-full w-full items-center justify-center bg-black"
+			>
 				<div class="flex gap-8">
 					<Button
 						label="Back"
