@@ -61,6 +61,14 @@
 			</div>
 
 			<SliderInput
+				label="Spread"
+				:rangeStart="0"
+				:rangeEnd="500"
+				:modelValue="parseFloat(activeElement.shadowSpread)"
+				@update:modelValue="(value) => setProperty('shadowSpread', value)"
+			/>
+
+			<SliderInput
 				label="Offset X"
 				:rangeStart="-50"
 				:rangeEnd="50"
@@ -74,14 +82,6 @@
 				:rangeEnd="50"
 				:modelValue="parseFloat(activeElement.shadowOffsetY)"
 				@update:modelValue="(value) => setProperty('shadowOffsetY', value)"
-			/>
-
-			<SliderInput
-				label="Spread"
-				:rangeStart="1"
-				:rangeEnd="500"
-				:modelValue="parseFloat(activeElement.shadowSpread)"
-				@update:modelValue="(value) => setProperty('shadowSpread', value)"
 			/>
 		</template>
 	</CollapsibleSection>
