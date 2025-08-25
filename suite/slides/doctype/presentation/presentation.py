@@ -144,9 +144,6 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 	ref_name = duplicate_from or theme or "Light"
 	ref_presentation = frappe.get_doc("Presentation", ref_name)
 
-	if ref_presentation and not frappe.has_permission("Presentation", "read", ref_presentation):
-		return []
-
 	slides = []
 
 	if duplicate_from:
@@ -219,7 +216,7 @@ def get_updated_json(presentation, json):
 @frappe.whitelist()
 def get_layouts(theme):
 	layout_doc = frappe.get_doc("Presentation", theme) if frappe.db.exists("Presentation", theme) else None
-	if layout_doc and layout_doc.is_template and frappe.has_permission("Presentation", "read", layout_doc):
+	if layout_doc and layout_doc.is_template and "Slides User" in frappe.get_roles():
 		return layout_doc.slides
 	return []
 
