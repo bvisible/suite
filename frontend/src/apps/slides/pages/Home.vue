@@ -9,7 +9,7 @@
 		/>
 
 		<PresentationList
-			:presentations="presentationList.data"
+			:presentations="presentationList"
 			@setPreview="setPreview"
 			@navigate="(name, present) => navigateToPresentation(name, present)"
 			@openDialog="openDialog"
@@ -37,8 +37,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onActivated, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { previousRoute } from '@/router'
 
 import { createResource } from 'frappe-ui'
 
@@ -50,7 +51,7 @@ import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 
-import { createPresentationResource } from '@/stores/presentation'
+import { createPresentationResource, unsyncedPresentationRecord } from '@/stores/presentation'
 
 const router = useRouter()
 
@@ -61,11 +62,16 @@ const showDialog = ref(false)
 const showThemeDialog = ref(false)
 const dialogAction = ref('')
 
-const presentationList = createResource({
+const presentationList = ref([])
+
+const presentationListResource = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
 	method: 'GET',
 	auto: true,
 	cache: 'presentations',
+	onSuccess: (data) => {
+		presentationList.value = data
+	},
 })
 
 const navigateToPresentation = (name, present) => {
@@ -77,6 +83,7 @@ const navigateToPresentation = (name, present) => {
 			query: { slide: 1 },
 		})
 	} else {
+		reloadList()
 		router.push({
 			name: 'PresentationEditor',
 			params: { presentationId: name },
@@ -96,7 +103,7 @@ const closeDialog = () => {
 }
 
 const reloadList = async () => {
-	await presentationList.reload()
+	await presentationListResource.reload()
 	previewPresentation.value = null
 }
 
@@ -110,7 +117,6 @@ const createPresentation = async (theme) => {
 		title: 'Untitled',
 		theme: theme,
 	})
-	reloadList()
 	if (newPresentation) {
 		navigateToPresentation(newPresentation)
 	} else {
@@ -121,4 +127,25 @@ const createPresentation = async (theme) => {
 const openThemeDialog = () => {
 	showThemeDialog.value = true
 }
+
+const syncPresentationRecord = () => {
+	const presentationRecord = presentationList.value.find(
+		(p) => p.name == previousRoute.params.presentationId,
+	)
+	if (!presentationRecord) return
+
+	const newValues = unsyncedPresentationRecord.value
+
+	Object.entries(newValues).forEach(([key, val]) => {
+		if (![null, undefined, ''].includes(val)) {
+			presentationRecord[key] = val
+		}
+	})
+}
+
+onActivated(() => {
+	if (previousRoute?.name == 'PresentationEditor') {
+		syncPresentationRecord()
+	}
+})
 </script>

@@ -1,7 +1,16 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { call, createResource } from 'frappe-ui'
 
-import { selectionBounds, slides, slideBounds, updateSelectionBounds, currentSlide } from './slide'
+import {
+	selectionBounds,
+	slides,
+	slideBounds,
+	updateSelectionBounds,
+	currentSlide,
+	focusedSlide,
+	slideIndex,
+	updateThumbnail,
+} from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId } from '../utils/helpers'
@@ -279,11 +288,9 @@ const deleteAttachments = async (elements) => {
 
 const deleteElements = async (e, ids) => {
 	const idsToDelete = ids || activeElementIds.value
-	resetFocus()
-	nextTick(() => {
-		currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
-			return !idsToDelete.includes(element.id)
-		})
+	await resetFocus()
+	currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
+		return !idsToDelete.includes(element.id)
 	})
 }
 
@@ -292,10 +299,16 @@ const selectAllElements = (e) => {
 	activeElementIds.value = currentSlide.value.elements.map((element) => element.id)
 }
 
-const resetFocus = () => {
+const resetFocus = async () => {
+	const index = slideIndex.value
+
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
+
+	await nextTick()
+
+	await updateThumbnail(index)
 }
 
 const getElementPosition = (elementId) => {
@@ -335,8 +348,8 @@ const handleCopy = (e) => {
 	copiedFromId.value = presentationId.value
 }
 
-const handlePastedText = (clipboardText) => {
-	resetFocus()
+const handlePastedText = async (clipboardText) => {
+	await resetFocus()
 	addTextElement(clipboardText)
 }
 
@@ -365,16 +378,11 @@ const handlePaste = (e) => {
 	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
 }
 
-const updateElementWidth = (deltaWidth) => {
-	const element = activeElement.value
-
-	if (element.width) {
-		element.width += deltaWidth
-	} else {
-		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
-		const width = elementDiv.getBoundingClientRect().width
-
-		element.width = width + deltaWidth
+const addFixedWidthToElement = (deltaWidth) => {
+	const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
+	if (elementDiv) {
+		const rect = elementDiv.getBoundingClientRect()
+		activeElement.value.width = rect.width
 	}
 }
 
@@ -450,7 +458,7 @@ export {
 	getElementPosition,
 	handleCopy,
 	handlePaste,
-	updateElementWidth,
+	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,
 }

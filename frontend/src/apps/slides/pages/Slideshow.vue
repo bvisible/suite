@@ -2,12 +2,15 @@
 	<div class="absolute left-0 top-0 h-full w-full bg-black">
 		<div
 			ref="slideContainer"
-			class="flex h-screen w-full items-center justify-center"
+			class="flex h-screen w-full items-center justify-center bg-white"
 			:style="{
 				clipPath: clipPath,
 			}"
 		>
-			<div v-if="slideshowEnded" class="flex flex-col items-center gap-8">
+			<div
+				v-if="slideshowEnded"
+				class="flex h-full w-full items-center justify-center bg-black"
+			>
 				<div class="flex gap-8">
 					<Button
 						label="Back"

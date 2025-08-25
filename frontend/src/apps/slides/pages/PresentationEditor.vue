@@ -1,5 +1,8 @@
 <template>
-	<div class="flex h-screen w-screen select-none flex-col overflow-hidden">
+	<div
+		class="flex h-screen w-screen select-none flex-col overflow-hidden"
+		@click="focusedSlide = null"
+	>
 		<Navbar :primaryButton="primaryButtonProps">
 			<template #default>
 				<PresentationHeader :title="presentationDoc?.title" />
@@ -71,6 +74,8 @@ import {
 	historyState,
 	initHistory,
 	ignoreUpdates,
+	unsyncedPresentationRecord,
+	inSlideShow,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -78,8 +83,9 @@ import {
 	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
-	getSlideThumbnail,
-	getThumbnailHtml,
+	updateThumbnail,
+	lastThumbnailTime,
+	focusedSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -98,7 +104,7 @@ import { generateUniqueId } from '@/utils/helpers'
 import { activeEditor } from '@/composables/useTextEditor'
 
 let autosaveInterval = null
-let thumbnailGenerationInterval = null
+let thumbnailInterval = null
 
 const primaryButtonProps = {
 	label: 'Present',
@@ -228,26 +234,32 @@ const handleGlobalShortcuts = (e) => {
 const recentlyRestored = ref(false)
 
 const handleHistoryOperation = async (operation) => {
-	activeElementIds.value = []
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
-	if (
-		slideIndex.value != historyState.value.activeSlide &&
-		historyControl.undoStack.value.length > 1
-	) {
-		await changeSlide(historyState.value.activeSlide)
-		recentlyRestored.value = true
-		setTimeout(() => {
-			recentlyRestored.value = false
-		}, 700)
-	}
+	const slideToFocus = historyState.value.activeSlide
+	const elementsToFocus = [...historyState.value.elementIds]
 
 	ignoreUpdates(() => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
-		if (activeElementIds.value != historyState.value.elementIds) {
-			activeElementIds.value = [...historyState.value.elementIds]
-		}
+	})
+
+	const onActiveSlide = slideIndex.value == slideToFocus
+
+	if (!onActiveSlide) {
+		await changeSlide(slideToFocus)
+
+		recentlyRestored.value = true
+		setTimeout(() => {
+			recentlyRestored.value = false
+		}, 1000)
+	}
+
+	if (activeElementIds.value != elementsToFocus) {
+		activeElementIds.value = elementsToFocus
+	}
+	nextTick(() => {
+		updateThumbnail(slideToFocus)
 	})
 }
 
@@ -279,11 +291,9 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
-const startSlideShow = () => {
-	resetFocus()
-	nextTick(() => {
-		saveChanges()
-	})
+const startSlideShow = async () => {
+	await resetFocus()
+	saveChanges()
 
 	router.replace({
 		name: 'Slideshow',
@@ -298,31 +308,23 @@ const handleAutoSave = () => {
 }
 
 const dirtySince = ref(null)
-let lastThumbnailTime = 0
 
-const handleThumbnailGeneration = async () => {
+const handleThumbnailGeneration = async (index) => {
 	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
-	if (dirtySince.value && dirtySince.value > lastThumbnailTime) {
-		const index = slideIndex.value
-		const thumbnailHtml = await getThumbnailHtml()
-		if (!thumbnailHtml) return
-
-		const thumbnail = await getSlideThumbnail(thumbnailHtml)
-
-		ignoreUpdates(() => {
-			if (!slides.value[index]) return
-			slides.value[index].thumbnail = thumbnail
-		})
-
-		lastThumbnailTime = Date.now()
+	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime.value) {
+		await updateThumbnail(index)
 	}
 }
 
 const changeSlide = async (index) => {
 	if (index < 0 || index >= slides.value.length) return
 
-	resetFocus()
+	const oldIndex = slideIndex.value
+
+	focusedSlide.value = null
+
+	await resetFocus()
 
 	await router.replace({
 		query: { slide: index + 1 },
@@ -373,24 +375,32 @@ const insertSlide = (index, layoutId, toDuplicate) => {
 }
 
 const deleteSlide = () => {
+	if (focusedSlide.value == null) return
+
+	const deleteIndex = focusedSlide.value
+
 	// if there is only one slide, reset the slide state instead of deleting
 	const totalLength = slides.value.length
 
 	if (totalLength == 1) {
 		slides.value[0].elements = []
+		focusedSlide.value = null
 		return
 	}
 
-	if (slideIndex.value == totalLength - 1) {
-		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeSlide(slideIndex.value - 1)
-	}
-
 	// delete the current slide
-	slides.value = slides.value.filter((slide, i) => i != slideIndex.value)
+	slides.value = slides.value.filter((slide, i) => {
+		return i != deleteIndex
+	})
 	slides.value.forEach((slide, index) => {
 		slide.idx = index + 1
 	})
+
+	if (deleteIndex == totalLength - 1) {
+		// if last slide is deleted, switch to previous slide since no slide at current index
+		changeSlide(deleteIndex - 1)
+		focusedSlide.value = deleteIndex - 1
+	}
 }
 
 const duplicateSlide = (e) => {
@@ -409,20 +419,18 @@ const replaceSlide = (layoutId) => {
 	})
 }
 
-const resetAndSave = () => {
-	resetFocus()
-	nextTick(() => {
-		if (!isDirty.value) {
-			toast.info('No changes to save')
-			return
-		}
-		const toastProps = {
-			loading: `Saving ...`,
-			success: () => `Saved`,
-			error: () => 'Could not save presentation. Please try again.',
-		}
-		toast.promise(saveChanges(), toastProps)
-	})
+const resetAndSave = async () => {
+	await resetFocus()
+	if (!isDirty.value) {
+		toast.info('No changes to save')
+		return
+	}
+	const toastProps = {
+		loading: `Saving ...`,
+		success: () => `Saved`,
+		error: () => 'Could not save presentation. Please try again.',
+	}
+	toast.promise(saveChanges(), toastProps)
 }
 
 const updateRoute = async (slug) => {
@@ -436,7 +444,9 @@ const updateRoute = async (slug) => {
 
 const initIntervals = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
-	thumbnailGenerationInterval = setInterval(handleThumbnailGeneration, 2000)
+	thumbnailInterval = setInterval(() => {
+		handleThumbnailGeneration(slideIndex.value)
+	}, 1500)
 }
 
 const loadPresentation = async (id) => {
@@ -455,11 +465,19 @@ onActivated(() => {
 	document.addEventListener('keydown', handleKeyDown)
 })
 
+const updateUnsyncedRecord = () => {
+	unsyncedPresentationRecord.value = {
+		...unsyncedPresentationRecord.value,
+		modified: presentationDoc.value.modified,
+		thumbnail: slides.value[0]?.thumbnail,
+	}
+}
+
 onDeactivated(async () => {
+	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
-	clearInterval(thumbnailGenerationInterval)
-	resetFocus()
-	await handleThumbnailGeneration()
+	clearInterval(thumbnailInterval)
+	await resetFocus()
 	savePresentation()
 
 	document.removeEventListener('keydown', handleKeyDown)
@@ -524,6 +542,7 @@ watch(
 watch(
 	() => props.activeSlideId,
 	(index) => {
+		if (inSlideShow.value) return
 		slideIndex.value = parseInt(index) - 1 || 0
 	},
 	{ immediate: true },

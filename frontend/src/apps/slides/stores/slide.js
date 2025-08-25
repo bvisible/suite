@@ -1,3 +1,4 @@
+import { ignoreUpdates } from '@/stores/presentation'
 import { ref, computed, reactive } from 'vue'
 
 import html2canvas from 'html2canvas'
@@ -9,6 +10,7 @@ const setSlideRef = (ref) => (slideRef.value = ref)
 const slides = ref([])
 
 const slideIndex = ref()
+const focusedSlide = ref(null)
 
 const currentSlide = computed(() => slides.value[slideIndex.value])
 
@@ -122,6 +124,22 @@ const getSlideThumbnail = async (thumbnailHtml) => {
 	return canvas.toDataURL('image/png')
 }
 
+const lastThumbnailTime = ref(0)
+
+const updateThumbnail = async (index) => {
+	const thumbnailHtml = await getThumbnailHtml()
+	if (!thumbnailHtml) return
+
+	const thumbnail = await getSlideThumbnail(thumbnailHtml)
+
+	ignoreUpdates(() => {
+		if (!slides.value[index]) return
+		slides.value[index].thumbnail = thumbnail
+	})
+
+	lastThumbnailTime.value = Date.now()
+}
+
 const slideBounds = reactive({})
 
 const updateSelectionBounds = (newBounds) => {
@@ -146,6 +164,7 @@ export {
 	guideVisibilityMap,
 	updateSelectionBounds,
 	setSlideRef,
-	getSlideThumbnail,
-	getThumbnailHtml,
+	updateThumbnail,
+	focusedSlide,
+	lastThumbnailTime,
 }

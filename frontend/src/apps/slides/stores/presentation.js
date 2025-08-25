@@ -167,7 +167,7 @@ const updateHistoryState = (slides, activeSlide, elementIds) => {
 
 	historyState.value = {
 		elementIds: elementIds,
-		activeSlide: Number(activeSlide),
+		activeSlide: activeSlide,
 		slides: slidesClone,
 	}
 }
@@ -185,12 +185,15 @@ const { ignoreUpdates } = watchIgnorable(
 )
 
 const initHistory = () => {
+	historyState.value.activeSlide = slideIndex.value
 	historyControl = useManualRefHistory(historyState, {
 		capacity: 25,
 		clone: true,
 		deep: true,
 	})
 }
+
+const unsyncedPresentationRecord = ref({})
 
 export {
 	presentationId,
@@ -208,4 +211,5 @@ export {
 	historyState,
 	initHistory,
 	ignoreUpdates,
+	unsyncedPresentationRecord,
 }
