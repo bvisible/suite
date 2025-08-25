@@ -20,12 +20,7 @@ import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 import Resizer from '@/components/Resizer.vue'
 
-import {
-	activeElement,
-	activeElementIds,
-	focusElementId,
-	updateElementWidth,
-} from '@/stores/element'
+import { activeElement, activeElementIds, focusElementId } from '@/stores/element'
 
 import { selectionBounds, slideBounds } from '@/stores/slide'
 
@@ -77,11 +72,17 @@ const elementStyle = computed(() => {
 
 	const elementLeft = element.value.left + offsetLeft
 	const elementTop = element.value.top + offsetTop
-	const elementWidth = element.value.width + offsetWidth
+
+	let elementWidth = element.value.width
+	if (elementWidth) {
+		elementWidth = `${elementWidth + offsetWidth}px`
+	} else {
+		elementWidth = 'auto'
+	}
 
 	return {
 		position: 'absolute',
-		width: `${elementWidth}px` || 'auto',
+		width: elementWidth,
 		height: 'auto',
 		left: `${elementLeft}px`,
 		top: `${elementTop}px`,

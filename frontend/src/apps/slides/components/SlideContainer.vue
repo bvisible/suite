@@ -53,7 +53,7 @@ import {
 	handlePaste,
 	focusElementId,
 	pairElementId,
-	updateElementWidth,
+	addFixedWidthToElement,
 	setEditableState,
 } from '@/stores/element'
 
@@ -310,6 +310,8 @@ const handleDimensionChange = (delta) => {
 	delta.top = applyAspectRatio(delta.top)
 
 	applyPositionDelta(delta)
+
+	if (!activeElement.value.width) addFixedWidthToElement()
 
 	applyDimensionDelta(delta)
 }

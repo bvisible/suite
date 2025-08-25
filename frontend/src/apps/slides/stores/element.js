@@ -378,16 +378,11 @@ const handlePaste = (e) => {
 	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
 }
 
-const updateElementWidth = (deltaWidth) => {
-	const element = activeElement.value
-
-	if (element.width) {
-		element.width += deltaWidth
-	} else {
-		const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
-		const width = elementDiv.getBoundingClientRect().width
-
-		element.width = width + deltaWidth
+const addFixedWidthToElement = (deltaWidth) => {
+	const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
+	if (elementDiv) {
+		const rect = elementDiv.getBoundingClientRect()
+		activeElement.value.width = rect.width
 	}
 }
 
@@ -463,7 +458,7 @@ export {
 	getElementPosition,
 	handleCopy,
 	handlePaste,
-	updateElementWidth,
+	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,
 }
