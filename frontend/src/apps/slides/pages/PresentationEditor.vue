@@ -75,6 +75,7 @@ import {
 	initHistory,
 	ignoreUpdates,
 	unsyncedPresentationRecord,
+	inSlideShow,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -541,6 +542,7 @@ watch(
 watch(
 	() => props.activeSlideId,
 	(index) => {
+		if (inSlideShow.value) return
 		slideIndex.value = parseInt(index) - 1 || 0
 	},
 	{ immediate: true },
