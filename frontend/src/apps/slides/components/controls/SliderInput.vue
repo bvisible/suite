@@ -95,8 +95,13 @@ input::-webkit-inner-spin-button {
 	margin: 0;
 }
 
+input[type='number'] {
+	-moz-appearance: textfield;
+}
+
 .slider {
 	-webkit-appearance: none;
+	-moz-appearance: none;
 	width: 100%;
 	height: 2.5px;
 	background: #d3d3d3;
@@ -117,9 +122,25 @@ input::-webkit-inner-spin-button {
 	height: 10px;
 	background: #000000;
 	border-radius: 50%;
+	cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 10px;
+	height: 10px;
+	background: #000000;
+	border-radius: 50%;
+	border: none;
 }
 
 .slider:hover::-webkit-slider-thumb {
+	transform: scale(1.1);
+	transition: transform 0.2s;
+}
+
+.slider:hover::-moz-range-thumb {
 	transform: scale(1.1);
 	transition: transform 0.2s;
 }
