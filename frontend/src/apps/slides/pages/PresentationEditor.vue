@@ -543,7 +543,8 @@ watch(
 	() => props.activeSlideId,
 	(index) => {
 		if (inSlideShow.value) return
-		slideIndex.value = parseInt(index) - 1 || 0
+		index = parseInt(index) - 1 || 0
+		slideIndex.value = Math.min(index, slides.value.length - 1)
 	},
 	{ immediate: true },
 )
