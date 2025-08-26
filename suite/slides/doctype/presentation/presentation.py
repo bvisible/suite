@@ -26,21 +26,19 @@ class Presentation(Document):
 			if not old_slide:
 				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
-				old_thumbnail = old_slides[slide.idx - 1].thumbnail
-				delete_old_thumbnail(slide.name, old_thumbnail)
+				old_thumbnail = old_slide.thumbnail
+				delete_old_thumbnail(old_thumbnail)
 				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
 
 	def validate(self):
 		self.update_thumbnails()
 
 
-def delete_old_thumbnail(slide_id: Document, old_thumbnail: str | None = None):
+def delete_old_thumbnail(old_thumbnail: str | None = None):
 	if old_thumbnail and old_thumbnail.startswith("/private/files/"):
-		if frappe.db.exists("Slide", {"thumbnail": old_thumbnail, "name": ["!=", slide_id]}):
-			return
 		try:
-			file_doc = frappe.db.get_value("File", {"file_url": old_thumbnail})
-			frappe.delete_doc("File", file_doc)
+			file_docname = frappe.db.get_value("File", {"file_url": old_thumbnail})
+			frappe.delete_doc("File", file_docname)
 		except Exception as e:
 			frappe.log_error(f"Failed to remove old thumbnail: {e}")
 
