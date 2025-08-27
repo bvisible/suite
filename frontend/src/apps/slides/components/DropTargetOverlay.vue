@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef } from 'vue'
+import { nextTick, ref, useTemplateRef } from 'vue'
 
 import { presentationId } from '@/stores/presentation'
 import { handleUploadedMedia } from '@/utils/mediaUploads'
@@ -20,12 +20,19 @@ const overlayRef = useTemplateRef('overlay')
 
 const handleDragLeave = (e) => {
 	e.preventDefault()
-	emit('hideOverlay', false)
+	emit('hideOverlay')
 }
 
 const handleMediaDrop = async (e) => {
 	e.preventDefault()
-	emit('hideOverlay', false)
-	handleUploadedMedia(e.dataTransfer.files)
+	emit('hideOverlay')
+	nextTick(() => {
+		let targetId = null
+		const target = document.elementFromPoint(e.clientX, e.clientY)
+		if (target.tagName == 'IMG') {
+			targetId = target.parentElement.parentElement.getAttribute('data-index')
+		}
+		handleUploadedMedia(e.dataTransfer.files, targetId)
+	})
 }
 </script>
