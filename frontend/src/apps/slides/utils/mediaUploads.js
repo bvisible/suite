@@ -6,13 +6,13 @@ import { addMediaElement } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
 
-const performPostUploadActions = (fileDoc, fileType, resolve) => {
-	for (const element of currentSlide.value.elements) {
-		if (!element.useTemplateDimensions) continue
-
-		element.src = fileDoc.file_url
-		element.attachmentName = fileDoc.name
-
+const performPostUploadActions = (fileDoc, fileType, targetId, resolve) => {
+	if (targetId) {
+		const targetElement = currentSlide.value.elements.find((el) => el.id == targetId)
+		if (targetElement) {
+			targetElement.src = fileDoc.file_url
+			targetElement.attachmentName = fileDoc.name
+		}
 		resolve(fileDoc)
 		return
 	}
@@ -21,7 +21,7 @@ const performPostUploadActions = (fileDoc, fileType, resolve) => {
 	resolve(fileDoc)
 }
 
-const uploadMedia = (file, fileType) => {
+const uploadMedia = (file, fileType, targetId) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
 			.upload(file, {
@@ -29,7 +29,7 @@ const uploadMedia = (file, fileType) => {
 				docname: presentationId.value,
 				private: true,
 			})
-			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, resolve))
+			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetId, resolve))
 			.catch((error) => {
 				reject(error)
 			})
@@ -52,20 +52,28 @@ const getFileObject = (file) => {
 	}
 }
 
-export const handleUploadedMedia = (files) => {
+const handleFile = (file, index, length, targetId) => {
+	file = getFileObject(file)
+	if (!file) return
+
+	const fileType = file.type.split('/')[0]
+	if (!['image', 'video'].includes(fileType)) return
+
+	const toastProps = {
+		loading: `Uploading (${index + 1}/${length}): ${file.name}`,
+		success: (data) => `Uploaded: ${file.name}`,
+		error: (data) => 'Upload failed. Please try again.',
+	}
+
+	toast.promise(uploadMedia(file, fileType, targetId), toastProps)
+}
+
+export const handleUploadedMedia = (files, targetId) => {
+	if (files.length == 1) {
+		return handleFile(files[0], 0, 1, targetId)
+	}
+
 	files.forEach((file, index) => {
-		file = getFileObject(file)
-		if (!file) return
-
-		const fileType = file.type.split('/')[0]
-		if (!['image', 'video'].includes(fileType)) return
-
-		const toastProps = {
-			loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
-			success: (data) => `Uploaded: ${file.name}`,
-			error: (data) => 'Upload failed. Please try again.',
-		}
-
-		toast.promise(uploadMedia(file, fileType), toastProps)
+		handleFile(file, index, files.length)
 	})
 }

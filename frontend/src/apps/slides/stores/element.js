@@ -232,7 +232,7 @@ const addMediaElement = async (file, type) => {
 		borderColor: '',
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
-		shadowSpread: 1,
+		shadowSpread: 0,
 		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
