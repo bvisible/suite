@@ -995,25 +995,29 @@ export class SFUMeetingManager {
 				data.participantId !== this.currentUser.value?.user_id
 			) {
 				try {
-					// During initial sync, buffer events to process after requestExistingProducers completes
 					if (this.initialSyncInProgress) {
 						this.bufferedProducerEvents.push(data);
 						return;
 					}
-					// Skip if we already have a consumer for this participant and kind
-					const alreadyHasConsumer = Array.from(
-						this.consumers.value.values(),
-					).some(
-						(c) =>
-							c.participantId === data.participantId && c.kind === data.kind,
-					);
-					if (alreadyHasConsumer) return;
+
+					// Always remove any existing consumer for this participant/kind
+					for (const [consumerId, consumer] of this.consumers.value.entries()) {
+						if (
+							consumer.participantId === data.participantId &&
+							consumer.kind === data.kind
+						) {
+							try {
+								consumer.close();
+							} catch (_) {}
+							this.consumers.value.delete(consumerId);
+						}
+					}
 
 					// Ensure participant exists
 					if (!this.participants.value.has(data.participantId)) {
 						const participant = {
 							user_id: data.participantId,
-							user_name: data.participantId, // Will be updated when participant data is available
+							user_name: data.participantId,
 							initials: data.participantId.substring(0, 2).toUpperCase(),
 							audio_enabled: false,
 							video_enabled: false,
@@ -1023,15 +1027,10 @@ export class SFUMeetingManager {
 						if (data.kind === "video")
 							participant.video_enabled = data.paused !== true;
 						this.participants.value.set(data.participantId, participant);
-						// Force reactivity
 						this.participants.value = new Map(this.participants.value);
-
-						// Wait for DOM update
 						await nextTick();
-						await new Promise((resolve) => setTimeout(resolve, 200)); // Give more time for DOM
-					}
-					// If participant exists, ensure flags are defined and set current kind to true
-					else {
+						await new Promise((resolve) => setTimeout(resolve, 200));
+					} else {
 						const existing = this.participants.value.get(data.participantId);
 						if (typeof existing.audio_enabled === "undefined")
 							existing.audio_enabled = false;
@@ -1051,20 +1050,15 @@ export class SFUMeetingManager {
 					);
 
 					if (consumer?.track) {
-						// Store consumer with participant info
 						consumer.participantId = data.participantId;
 						this.consumers.value.set(consumer.id, consumer);
 
-						// Handle both audio and video streams
 						if (consumer.kind === "video") {
 							await this.attachVideoStream(data.participantId, consumer, "new");
 						} else if (consumer.kind === "audio") {
-							// For audio-only consumers, we still need to check if there's a video element
-							// and update its stream to include the audio track
 							await this.attachAudioStream(data.participantId, consumer);
 						}
 
-						// Notify parent component
 						if (this.eventHandlers.onConsumerCreated) {
 							this.eventHandlers.onConsumerCreated(consumer, data);
 						}
@@ -1078,8 +1072,6 @@ export class SFUMeetingManager {
 						`❌ Failed to subscribe to producer ${data.producerId}:`,
 						error,
 					);
-
-					// Notify parent component of error
 					if (this.eventHandlers.onSubscriptionError) {
 						this.eventHandlers.onSubscriptionError(error, data);
 					}
@@ -1126,21 +1118,19 @@ export class SFUMeetingManager {
 				try {
 					if (data.action === "mute" || data.action === "unmute") {
 						participant.audio_enabled = data.action === "unmute";
-						// Pause/resume remote audio consumers for this participant
-						for (const consumer of this.consumers.value.values()) {
+						for (const [
+							consumerId,
+							consumer,
+						] of this.consumers.value.entries()) {
 							if (
 								consumer.participantId === data.participantId &&
 								consumer.kind === "audio"
 							) {
-								try {
-									if (data.action === "mute" && !consumer.paused) {
-										await consumer.pause();
-									}
-									if (data.action === "unmute" && consumer.paused) {
-										await consumer.resume();
-									}
-								} catch (e) {
-									console.warn("Failed to toggle audio consumer state:", e);
+								if (data.action === "mute") {
+									try {
+										consumer.close();
+									} catch (_) {}
+									this.consumers.value.delete(consumerId);
 								}
 							}
 						}
@@ -1149,22 +1139,19 @@ export class SFUMeetingManager {
 						data.action === "video_on"
 					) {
 						participant.video_enabled = data.action === "video_on";
-
-						// Pause/resume remote video consumers for this participant
-						for (const consumer of this.consumers.value.values()) {
+						for (const [
+							consumerId,
+							consumer,
+						] of this.consumers.value.entries()) {
 							if (
 								consumer.participantId === data.participantId &&
 								consumer.kind === "video"
 							) {
-								try {
-									if (data.action === "video_off" && !consumer.paused) {
-										await consumer.pause();
-									}
-									if (data.action === "video_on" && consumer.paused) {
-										await consumer.resume();
-									}
-								} catch (e) {
-									console.warn("Failed to toggle video consumer state:", e);
+								if (data.action === "video_off") {
+									try {
+										consumer.close();
+									} catch (_) {}
+									this.consumers.value.delete(consumerId);
 								}
 							}
 						}
