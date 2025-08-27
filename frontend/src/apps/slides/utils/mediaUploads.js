@@ -2,16 +2,16 @@ import { FileUploadHandler, toast } from 'frappe-ui'
 
 import { presentationId } from '../stores/presentation'
 import { currentSlide } from '../stores/slide'
-import { addMediaElement } from '../stores/element'
+import { addMediaElement, updateVideoPoster } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
 
-const performPostUploadActions = (fileDoc, fileType, targetId, resolve) => {
-	if (targetId) {
-		const targetElement = currentSlide.value.elements.find((el) => el.id == targetId)
-		if (targetElement) {
-			targetElement.src = fileDoc.file_url
-			targetElement.attachmentName = fileDoc.name
+const performPostUploadActions = (fileDoc, fileType, targetElement, resolve) => {
+	if (targetElement) {
+		targetElement.src = fileDoc.file_url
+		targetElement.attachmentName = fileDoc.name
+		if (fileType == 'video') {
+			updateVideoPoster(targetElement, fileDoc.file_url)
 		}
 		resolve(fileDoc)
 		return
@@ -21,7 +21,7 @@ const performPostUploadActions = (fileDoc, fileType, targetId, resolve) => {
 	resolve(fileDoc)
 }
 
-const uploadMedia = (file, fileType, targetId) => {
+const uploadMedia = (file, fileType, targetElement) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
 			.upload(file, {
@@ -29,7 +29,7 @@ const uploadMedia = (file, fileType, targetId) => {
 				docname: presentationId.value,
 				private: true,
 			})
-			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetId, resolve))
+			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetElement, resolve))
 			.catch((error) => {
 				reject(error)
 			})
@@ -52,7 +52,7 @@ const getFileObject = (file) => {
 	}
 }
 
-const handleFile = (file, index, length, targetId) => {
+const handleFile = (file, index, length, targetElement) => {
 	file = getFileObject(file)
 	if (!file) return
 
@@ -65,12 +65,12 @@ const handleFile = (file, index, length, targetId) => {
 		error: (data) => 'Upload failed. Please try again.',
 	}
 
-	toast.promise(uploadMedia(file, fileType, targetId), toastProps)
+	toast.promise(uploadMedia(file, fileType, targetElement), toastProps)
 }
 
-export const handleUploadedMedia = (files, targetId) => {
+export const handleUploadedMedia = (files, targetElement) => {
 	if (files.length == 1) {
-		return handleFile(files[0], 0, 1, targetId)
+		return handleFile(files[0], 0, 1, targetElement)
 	}
 
 	files.forEach((file, index) => {
