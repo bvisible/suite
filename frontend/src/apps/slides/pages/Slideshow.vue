@@ -232,7 +232,7 @@ const performNextStep = () => {
 }
 
 const handleKeyDown = (e) => {
-	if (e.key == 'ArrowRight' || e.key == 'ArrowDown') {
+	if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space') {
 		performNextStep()
 	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
 		performPreviousStep()
