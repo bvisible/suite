@@ -48,7 +48,7 @@ const getFileObject = (file) => {
 	}
 }
 
-const handleFile = (file, index, length, targetElement) => {
+const handleFile = (file, toastProps, targetElement) => {
 	file = getFileObject(file)
 	if (!file) return
 
@@ -57,21 +57,27 @@ const handleFile = (file, index, length, targetElement) => {
 
 	if (targetElement && targetElement.type != fileType) targetElement = null
 
-	const toastProps = {
+	toast.promise(uploadMedia(file, fileType, targetElement), toastProps)
+}
+
+const getToastProps = (file, index, length) => {
+	return {
 		loading: `Uploading (${index + 1}/${length}): ${file.name}`,
 		success: (data) => `Uploaded: ${file.name}`,
 		error: (data) => 'Upload failed. Please try again.',
 	}
-
-	toast.promise(uploadMedia(file, fileType, targetElement), toastProps)
 }
 
 export const handleUploadedMedia = (files, targetElement) => {
+	let toastProps = {}
+
 	if (files.length == 1) {
-		return handleFile(files[0], 0, 1, targetElement)
+		toastProps = getToastProps(files[0], 0, 1)
+		return handleFile(files[0], toastProps, targetElement)
 	}
 
 	files.forEach((file, index) => {
-		handleFile(file, index, files.length)
+		toastProps = getToastProps(file, index, files.length)
+		handleFile(file, toastProps)
 	})
 }
