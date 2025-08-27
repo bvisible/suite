@@ -17,10 +17,11 @@ export class SFUMeetingManager {
 	constructor() {
 		this.sfuClient = null;
 		this.meetingId = null;
-		this.currentUser = null;
-		this.participants = null;
-		this.consumers = null;
-		this.remoteVideos = null;
+		this.currentUser = { value: null };
+		// Always initialize participants/consumers/remoteVideos as refs with a value property
+		this.participants = { value: new Map() };
+		this.consumers = { value: new Map() };
+		this.remoteVideos = { value: new Map() };
 		this.eventHandlers = {};
 		this.isConnected = false;
 		this.initialSyncInProgress = false;
@@ -32,9 +33,31 @@ export class SFUMeetingManager {
 	 */
 	initialize(options) {
 		this.meetingId = options.meetingId;
-		this.currentUser = options.currentUser;
-		this.participants = options.participants ||
-			this.participants || { value: new Map() };
+		// Always ensure currentUser is an object with a value property
+		if (
+			options.currentUser &&
+			typeof options.currentUser === "object" &&
+			"value" in options.currentUser
+		) {
+			this.currentUser = options.currentUser;
+		} else if (
+			typeof options.currentUser === "object" &&
+			options.currentUser !== null
+		) {
+			this.currentUser = { value: options.currentUser };
+		} else {
+			this.currentUser = { value: options.currentUser || null };
+		}
+		// Ensure participants is always an object with a value property
+		if (
+			options.participants &&
+			typeof options.participants === "object" &&
+			"value" in options.participants
+		) {
+			this.participants = options.participants;
+		} else {
+			this.participants = { value: options.participants || new Map() };
+		}
 		this.consumers = options.consumers ||
 			this.consumers || { value: new Map() };
 		this.remoteVideos = options.remoteVideos ||
@@ -159,7 +182,15 @@ export class SFUMeetingManager {
 				const roster = await this.sfuClient.getRoomParticipants();
 				if (Array.isArray(roster)) {
 					for (const p of roster) {
-						if (p.user_id && p.user_id !== this.currentUser.value?.user_id) {
+						if (
+							p.user_id &&
+							p.user_id !==
+								(this.currentUser &&
+								typeof this.currentUser === "object" &&
+								"value" in this.currentUser
+									? this.currentUser.value?.user_id
+									: null)
+						) {
 							const existing = this.participants.value.get(p.user_id);
 							if (!existing) {
 								this.participants.value.set(p.user_id, {
@@ -287,7 +318,15 @@ export class SFUMeetingManager {
 
 		for (const [participantId, kinds] of byParticipant.entries()) {
 			// Skip local user
-			if (participantId === this.currentUser.value?.user_id) continue;
+			if (
+				participantId ===
+				(this.currentUser &&
+				typeof this.currentUser === "object" &&
+				"value" in this.currentUser
+					? this.currentUser.value?.user_id
+					: null)
+			)
+				continue;
 
 			// Ensure participant exists so a tile is rendered
 			if (!this.participants.value.has(participantId)) {
@@ -403,28 +442,51 @@ export class SFUMeetingManager {
 	 */
 	async findVideoElement(participantId, maxAttempts = 10) {
 		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-			// Search in remoteVideos Map
+			// 1) Check map first
 			const remoteVideo = this.remoteVideos.value.get(participantId);
-			if (remoteVideo && remoteVideo instanceof HTMLVideoElement) {
+			if (remoteVideo && remoteVideo instanceof HTMLVideoElement)
 				return remoteVideo;
+
+			// 2) Try attribute-based selectors which are safe for arbitrary IDs
+			try {
+				const attrSel = `video[data-participant-id="${participantId}"]`;
+				const byData = document.querySelector(attrSel);
+				if (byData && byData instanceof HTMLVideoElement) {
+					this.remoteVideos.value.set(participantId, byData);
+					return byData;
+				}
+				const byParticipantAttr = document.querySelector(
+					`[participant-id="${participantId}"] video`,
+				);
+				if (
+					byParticipantAttr &&
+					byParticipantAttr instanceof HTMLVideoElement
+				) {
+					this.remoteVideos.value.set(participantId, byParticipantAttr);
+					return byParticipantAttr;
+				}
+				const byVideoAttr = document.querySelector(
+					`video[participant-id="${participantId}"]`,
+				);
+				if (byVideoAttr && byVideoAttr instanceof HTMLVideoElement) {
+					this.remoteVideos.value.set(participantId, byVideoAttr);
+					return byVideoAttr;
+				}
+			} catch (e) {
+				// Some browsers may throw if participantId contains unexpected characters in selector;
+				// fall back to scanning all video elements below.
 			}
 
-			// Search in DOM using multiple selectors
-			const selectors = [
-				`video[data-participant-id="${participantId}"]`,
-				`.remote-video-${participantId}`,
-				`#remote-video-${participantId}`,
-				`[participant-id="${participantId}"] video`,
-				`video[participant-id="${participantId}"]`,
-				`.participant-${participantId} video`,
-			];
-
-			for (const selector of selectors) {
-				const element = document.querySelector(selector);
-				if (element) {
-					// Update remoteVideos Map
-					this.remoteVideos.value.set(participantId, element);
-					return element;
+			// 3) Fallback: scan all video elements and compare attributes directly
+			const allVideos = document.querySelectorAll("video");
+			for (const v of allVideos) {
+				if (
+					v.dataset?.participantId === participantId ||
+					v.getAttribute("participant-id") === participantId ||
+					v.id === `remote-video-${participantId}`
+				) {
+					this.remoteVideos.value.set(participantId, v);
+					return v;
 				}
 			}
 
@@ -472,36 +534,51 @@ export class SFUMeetingManager {
 			// Toggle audio consumer
 			if (audioConsumer) {
 				try {
-					if (!wantAudio && !audioConsumer.paused) await audioConsumer.pause();
-					if (wantAudio && audioConsumer.paused) await audioConsumer.resume();
+					if (!audioConsumer.closed) {
+						if (!wantAudio && !audioConsumer.paused)
+							await audioConsumer.pause();
+						if (wantAudio && audioConsumer.paused) await audioConsumer.resume();
+					}
 				} catch (resumeError) {
-					console.error(
-						`Failed to toggle audio consumer for user ${userId}:`,
-						resumeError,
-					);
+					if (!audioConsumer?.closed) {
+						console.error(
+							`Failed to toggle audio consumer for user ${userId}:`,
+							resumeError,
+						);
+					}
 				}
 			}
 
 			// Toggle video consumer
 			if (videoConsumer) {
 				try {
-					if (!wantVideo && !videoConsumer.paused) await videoConsumer.pause();
-					if (wantVideo && videoConsumer.paused) await videoConsumer.resume();
+					if (!videoConsumer.closed) {
+						if (!wantVideo && !videoConsumer.paused)
+							await videoConsumer.pause();
+						if (wantVideo && videoConsumer.paused) await videoConsumer.resume();
+					}
 				} catch (resumeError) {
-					console.error(
-						`Failed to toggle video consumer for user ${userId}:`,
-						resumeError,
-					);
+					if (!videoConsumer?.closed) {
+						console.error(
+							`Failed to toggle video consumer for user ${userId}:`,
+							resumeError,
+						);
+					}
 				}
 			}
 
 			// Handle muted tracks (usually means the producer has muted their stream)
 			if (videoConsumer?.track?.muted) {
-				console.log(
-					`Video track is muted for user ${userId} - likely producer has muted their stream`,
-				);
+				const participantRecord = this.participants.value.get(userId) || {};
+				if (!participantRecord._lastVideoMuted) {
+					console.log(
+						`Video track is muted for user ${userId} - likely producer has muted their stream`,
+					);
+					participantRecord._lastVideoMuted = true;
+					this.participants.value.set(userId, { ...participantRecord });
+					this.participants.value = new Map(this.participants.value);
+				}
 
-				// On unmute, simply attempt to play without detaching/reattaching the stream
 				const handleTrackUnmute = () => {
 					const videoElement = this.remoteVideos.value.get(userId);
 					if (videoElement?.srcObject) {
@@ -511,6 +588,12 @@ export class SFUMeetingManager {
 								console.warn("Play after unmute failed:", e?.message || e),
 							);
 					}
+					try {
+						const pr = this.participants.value.get(userId) || {};
+						pr._lastVideoMuted = false;
+						this.participants.value.set(userId, { ...pr });
+						this.participants.value = new Map(this.participants.value);
+					} catch (_) {}
 				};
 
 				videoConsumer.track.addEventListener("unmute", handleTrackUnmute, {
@@ -569,23 +652,16 @@ export class SFUMeetingManager {
 					});
 				}
 
-				console.log("📺 Stream details before attachment:", {
-					streamId: stream.id,
-					tracks: stream.getTracks().length,
-					audioTracks: stream.getAudioTracks().length,
-					videoTracks: stream.getVideoTracks().length,
-					active: stream.active,
-					trackStates: stream.getTracks().map((t) => ({
-						id: t.id,
-						kind: t.kind,
-						readyState: t.readyState,
-						enabled: t.enabled,
-						muted: t.muted,
-					})),
-				});
-
 				// Attach stream to video element
 				videoElement.srcObject = stream;
+
+				// Save combined stream on participant for debugging/inspection and possible reuse
+				try {
+					const p = this.participants.value.get(userId) || {};
+					p.videoStream = stream;
+					this.participants.value.set(userId, { ...p });
+					this.participants.value = new Map(this.participants.value);
+				} catch (_) {}
 
 				// Provide feedback based on video track state
 				if (videoTrack?.muted) {
@@ -601,40 +677,6 @@ export class SFUMeetingManager {
 					console.log(
 						`🎵 Attached audio-only stream for user ${userId} - no video track available`,
 					);
-				}
-
-				// Verify tracks in the combined stream
-				const streamVideoTracks = stream.getVideoTracks();
-				const streamAudioTracks = stream.getAudioTracks();
-
-				if (streamVideoTracks.length > 0) {
-					const streamVideoTrack = streamVideoTracks[0];
-					console.log("🎞️ Video track verification: ", {
-						id: streamVideoTrack.id,
-						kind: streamVideoTrack.kind,
-						enabled: streamVideoTrack.enabled,
-						muted: streamVideoTrack.muted,
-						readyState: streamVideoTrack.readyState,
-						label: streamVideoTrack.label,
-						sameAsConsumerTrack: streamVideoTrack === videoConsumer?.track,
-					});
-				} else {
-					console.warn("⚠️ No video tracks found in created stream!");
-				}
-
-				if (streamAudioTracks.length > 0) {
-					const streamAudioTrack = streamAudioTracks[0];
-					console.log("🎵 Audio track verification: ", {
-						id: streamAudioTrack.id,
-						kind: streamAudioTrack.kind,
-						enabled: streamAudioTrack.enabled,
-						muted: streamAudioTrack.muted,
-						readyState: streamAudioTrack.readyState,
-						label: streamAudioTrack.label,
-						sameAsConsumerTrack: streamAudioTrack === audioConsumer?.track,
-					});
-				} else {
-					console.log("ℹ️ No audio tracks found in created stream");
 				}
 
 				try {
@@ -785,7 +827,13 @@ export class SFUMeetingManager {
 		videoElement.playsInline = true;
 		videoElement.preload = "auto";
 		// Mute only for local preview to avoid echo
-		videoElement.muted = userId === this.currentUser.value?.user_id;
+		videoElement.muted =
+			userId ===
+			(this.currentUser &&
+			typeof this.currentUser === "object" &&
+			"value" in this.currentUser
+				? this.currentUser.value?.user_id
+				: null);
 
 		// Try immediate playback without blocking waits
 		try {
@@ -833,7 +881,13 @@ export class SFUMeetingManager {
 			// Set the stream
 			videoElement.srcObject = stream;
 			// Only mute if this is the local user to prevent echo, otherwise allow audio
-			videoElement.muted = userId === this.currentUser.value?.user_id;
+			videoElement.muted =
+				userId ===
+				(this.currentUser &&
+				typeof this.currentUser === "object" &&
+				"value" in this.currentUser
+					? this.currentUser.value?.user_id
+					: null);
 			videoElement.playsInline = true;
 
 			// Try to play immediately without waiting for metadata
@@ -918,7 +972,39 @@ export class SFUMeetingManager {
 		console.log("🔧 Setting up SFU event handlers for direct communication");
 
 		// Participant management
+		const ensureRefs = () => {
+			if (
+				!this.currentUser ||
+				typeof this.currentUser !== "object" ||
+				!("value" in this.currentUser)
+			) {
+				this.currentUser = { value: null };
+			}
+			if (
+				!this.participants ||
+				typeof this.participants !== "object" ||
+				!("value" in this.participants)
+			) {
+				this.participants = { value: new Map() };
+			}
+			if (
+				!this.consumers ||
+				typeof this.consumers !== "object" ||
+				!("value" in this.consumers)
+			) {
+				this.consumers = { value: new Map() };
+			}
+			if (
+				!this.remoteVideos ||
+				typeof this.remoteVideos !== "object" ||
+				!("value" in this.remoteVideos)
+			) {
+				this.remoteVideos = { value: new Map() };
+			}
+		};
+
 		this.sfuClient.on("participant_joined", (data) => {
+			ensureRefs();
 			console.log("👥 Participant joined via SFU:", data);
 			const participant = {
 				user_id: data.participantId,
@@ -943,6 +1029,7 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("participant_left", (data) => {
+			ensureRefs();
 			// Avoid dereferencing possibly null refs
 			const hasParticipantsRef = !!this.participants?.value;
 			console.log(
@@ -988,11 +1075,17 @@ export class SFUMeetingManager {
 
 		// Media events
 		this.sfuClient.on("producer_created", async (data) => {
+			ensureRefs();
 			console.log("🎥 New producer available via SFU:", data);
 
 			if (
 				data.producerId &&
-				data.participantId !== this.currentUser.value?.user_id
+				data.participantId !==
+					(this.currentUser &&
+					typeof this.currentUser === "object" &&
+					"value" in this.currentUser
+						? this.currentUser.value?.user_id
+						: null)
 			) {
 				try {
 					if (this.initialSyncInProgress) {
@@ -1080,6 +1173,7 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("producer_closed", (data) => {
+			ensureRefs();
 			console.log("❌ Producer closed via SFU:", data);
 			// Find and close related consumers
 			for (const [consumerId, consumer] of this.consumers.value.entries()) {
@@ -1097,13 +1191,18 @@ export class SFUMeetingManager {
 
 		// Media control events
 		this.sfuClient.on("media_control_update", async (data) => {
+			ensureRefs();
+			const consumersRef = this.consumers;
+			const participantsRef = this.participants;
+			const currentUserRef = this.currentUser;
+			const remoteVideosRef = this.remoteVideos;
+
 			console.log("🎛️ Media control update via SFU:", data);
-			// Ignore self updates to avoid duplicating local user as a remote participant
-			if (data.participantId === this.currentUser.value?.user_id) {
-				return;
-			}
-			let participant = this.participants.value.get(data.participantId);
-			// If participant not present yet (race), create a minimal placeholder
+			// Ignore self updates
+			if (data.participantId === currentUserRef.value?.user_id) return;
+
+			// Safely get or create participant
+			let participant = participantsRef.value.get(data.participantId);
 			if (!participant) {
 				participant = {
 					user_id: data.participantId,
@@ -1112,67 +1211,95 @@ export class SFUMeetingManager {
 					audio_enabled: false,
 					video_enabled: false,
 				};
-				this.participants.value.set(data.participantId, participant);
+				participantsRef.value.set(data.participantId, participant);
 			}
-			if (participant) {
-				try {
-					if (data.action === "mute" || data.action === "unmute") {
-						participant.audio_enabled = data.action === "unmute";
-						for (const [
-							consumerId,
-							consumer,
-						] of this.consumers.value.entries()) {
-							if (
-								consumer.participantId === data.participantId &&
-								consumer.kind === "audio"
-							) {
-								if (data.action === "mute") {
-									try {
-										consumer.close();
-									} catch (_) {}
-									this.consumers.value.delete(consumerId);
-								}
-							}
-						}
-					} else if (
-						data.action === "video_off" ||
-						data.action === "video_on"
-					) {
-						participant.video_enabled = data.action === "video_on";
-						for (const [
-							consumerId,
-							consumer,
-						] of this.consumers.value.entries()) {
-							if (
-								consumer.participantId === data.participantId &&
-								consumer.kind === "video"
-							) {
-								if (data.action === "video_off") {
-									try {
-										consumer.close();
-									} catch (_) {}
-									this.consumers.value.delete(consumerId);
+
+			try {
+				if (data.action === "mute" || data.action === "unmute") {
+					participant.audio_enabled = data.action === "unmute";
+
+					for (const [consumerId, consumer] of consumersRef.value.entries()) {
+						if (
+							consumer.participantId === data.participantId &&
+							consumer.kind === "audio"
+						) {
+							if (data.action === "mute") {
+								try {
+									await consumer.pause();
+								} catch (_) {}
+								// soft-pause: keep the consumer client-side so resume can happen locally without re-subscribing
+								consumer._softPaused = true;
+							} else {
+								try {
+									consumer._softPaused = false;
+								} catch (_) {}
+								try {
+									await consumer.resume();
+								} catch (_) {}
+								try {
+									await this.attachAudioStream(data.participantId, consumer);
+								} catch (e) {
+									console.warn(
+										"Failed to resume/attach audio consumer on unmute:",
+										e,
+									);
 								}
 							}
 						}
 					}
+				} else if (data.action === "video_off" || data.action === "video_on") {
+					participant.video_enabled = data.action === "video_on";
 
-					// Force Vue to notice participant flag changes when using Map in a ref
-					this.participants.value.set(data.participantId, { ...participant });
-					this.participants.value = new Map(this.participants.value);
-				} catch (err) {
-					console.warn("media_control_update handling error:", err);
+					for (const [consumerId, consumer] of consumersRef.value.entries()) {
+						if (
+							consumer.participantId === data.participantId &&
+							consumer.kind === "video"
+						) {
+							if (data.action === "video_off") {
+								try {
+									await consumer.pause();
+								} catch (_) {}
+								// soft-pause: keep the consumer client-side so resume can happen locally without re-subscribing
+								consumer._softPaused = true;
+							} else if (data.action === "video_on") {
+								try {
+									consumer._softPaused = false;
+								} catch (_) {}
+								try {
+									await consumer.resume();
+								} catch (_) {}
+								try {
+									await this.attachVideoStream(
+										data.participantId,
+										consumer,
+										"reattach",
+									);
+								} catch (e) {
+									console.warn(
+										"Failed to re-attach/resume video consumer on video_on:",
+										e,
+									);
+								}
+							}
+						}
+					}
 				}
 
-				// Notify parent component
-				if (this.eventHandlers.onMediaControlUpdate) {
-					this.eventHandlers.onMediaControlUpdate(data, participant);
-				}
+				// Force Vue reactivity for participant map
+				participantsRef.value.set(data.participantId, { ...participant });
+				participantsRef.value = new Map(participantsRef.value);
+			} catch (err) {
+				console.warn("media_control_update handling error:", err);
+			}
+
+			if (this.eventHandlers.onMediaControlUpdate) {
+				this.eventHandlers.onMediaControlUpdate(data, participant);
 			}
 		});
 
 		// Screen sharing events
 		this.sfuClient.on("screen_share_started", (data) => {
+			ensureRefs();
 			console.log("🖥️ Screen share started via SFU:", data);
 			if (this.eventHandlers.onScreenShareStarted) {
 				this.eventHandlers.onScreenShareStarted(data);
@@ -1180,6 +1307,7 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("screen_share_stopped", (data) => {
+			ensureRefs();
 			console.log("🖥️ Screen share stopped via SFU:", data);
 			if (this.eventHandlers.onScreenShareStopped) {
 				this.eventHandlers.onScreenShareStopped(data);
@@ -1220,10 +1348,10 @@ export class SFUMeetingManager {
 		// Reset state
 		this.sfuClient = null;
 		this.meetingId = null;
-		this.currentUser = null;
-		this.participants = null;
-		this.consumers = null;
-		this.remoteVideos = null;
+		this.currentUser = { value: null };
+		this.participants = { value: new Map() };
+		this.consumers = { value: new Map() };
+		this.remoteVideos = { value: new Map() };
 		this.eventHandlers = {};
 		this.isConnected = false;
 	}

@@ -205,9 +205,8 @@ const localVideo = ref(null);
 const isConnecting = ref(true);
 const connectionError = ref(null);
 
-// User and participant data
-const currentUser = ref(null);
-const participants = ref(new Map());
+let currentUser = ref({});
+let participants = ref(new Map());
 const remoteVideos = ref(new Map());
 
 // MediaSoup state
@@ -250,22 +249,13 @@ const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
 const toggleMicrophone = async () => {
 	try {
 		if (isMicOn.value) {
-			if (localStream) {
-				const track = localStream.getAudioTracks()[0];
-				if (track) {
-					try {
-						track.stop();
-					} catch (_) {}
-					localStream.removeTrack(track);
-				}
-			}
 			if (audioProducer) {
 				try {
-					audioProducer.close();
-				} catch (_) {}
-				audioProducer = null;
+					await audioProducer.pause();
+				} catch (e) {
+					console.warn("Failed to pause audio producer:", e);
+				}
 			}
-			// Notify others
 			try {
 				getSFUClient().sendMediaControl("mute");
 			} catch (e) {
@@ -276,51 +266,60 @@ const toggleMicrophone = async () => {
 			}
 			isMicOn.value = false;
 		} else {
-			try {
-				const audioStream = await navigator.mediaDevices.getUserMedia({
-					audio: {
-						echoCancellation: true,
-						noiseSuppression: true,
-						autoGainControl: true,
-					},
-					video: false,
-				});
-				const newTrack = audioStream.getAudioTracks()[0];
-				if (!localStream) {
-					localStream = new MediaStream();
+			let needNewProducer = false;
+			if (localStream) {
+				for (const track of localStream.getAudioTracks()) {
+					if (track.readyState === "ended") localStream.removeTrack(track);
 				}
-				if (newTrack) {
+			}
+			if (!localStream || localStream.getAudioTracks().length === 0) {
+				try {
+					const audioStream = await navigator.mediaDevices.getUserMedia({
+						audio: true,
+					});
+					const newTrack = audioStream.getAudioTracks()[0];
+					newTrack.enabled = true;
+					if (!localStream) localStream = new MediaStream();
 					localStream.addTrack(newTrack);
-				}
-				// Attach to element if not already attached
-				if (localVideo.value && localVideo.value.srcObject !== localStream) {
-					localVideo.value.srcObject = localStream;
-				}
-				// Publish just audio via existing manager
-				if (sfuManager) {
-					try {
+					if (audioProducer) {
+						try {
+							await audioProducer.close();
+						} catch (e) {}
+						audioProducer = null;
+					}
+					if (sfuManager) {
 						const results = await sfuManager.publishMedia(localStream, {
 							publishAudio: true,
 							publishVideo: false,
 						});
-						if (results.audioProducer) audioProducer = results.audioProducer;
-					} catch (pubErr) {
-						console.error("Failed to publish audio after re-acquire", pubErr);
+						audioProducer = results.audioProducer;
 					}
+					needNewProducer = true;
+				} catch (err) {
+					console.error("Error reacquiring microphone:", err);
+					toast.error("Could not access microphone");
 				}
-				try {
-					getSFUClient().sendMediaControl("unmute");
-				} catch (e) {
-					console.warn(
-						"Failed to send media control (audio on)",
-						e?.message || e,
-					);
+			} else {
+				for (const track of localStream.getAudioTracks()) {
+					track.enabled = true;
 				}
-				isMicOn.value = true;
-			} catch (err) {
-				console.error("Error re-acquiring microphone:", err);
-				toast.error("Could not access microphone");
 			}
+			if (!needNewProducer && audioProducer) {
+				try {
+					await audioProducer.resume();
+				} catch (e) {
+					console.warn("Failed to resume audio producer:", e);
+				}
+			}
+			try {
+				getSFUClient().sendMediaControl("unmute");
+			} catch (e) {
+				console.warn(
+					"Failed to send media control (audio on)",
+					e?.message || e,
+				);
+			}
+			isMicOn.value = true;
 		}
 	} catch (error) {
 		console.error("Error toggling microphone:", error);
@@ -330,21 +329,12 @@ const toggleMicrophone = async () => {
 const toggleCamera = async () => {
 	try {
 		if (isCameraOn.value) {
-			// Turning OFF: stop track & close producer
-			if (localStream) {
-				const track = localStream.getVideoTracks()[0];
-				if (track) {
-					try {
-						track.stop();
-					} catch (_) {}
-					localStream.removeTrack(track);
-				}
-			}
 			if (videoProducer) {
 				try {
-					videoProducer.close();
-				} catch (_) {}
-				videoProducer = null;
+					await videoProducer.pause();
+				} catch (e) {
+					console.warn("Failed to pause video producer:", e);
+				}
 			}
 			try {
 				getSFUClient().sendMediaControl("video_off");
@@ -356,45 +346,60 @@ const toggleCamera = async () => {
 			}
 			isCameraOn.value = false;
 		} else {
-			try {
-				const vidStream = await navigator.mediaDevices.getUserMedia({
-					video: {
-						width: { ideal: 1280 },
-						height: { ideal: 720 },
-						frameRate: { ideal: 30 },
-					},
-					audio: false,
-				});
-				const newTrack = vidStream.getVideoTracks()[0];
-				if (!localStream) localStream = new MediaStream();
-				if (newTrack) localStream.addTrack(newTrack);
-				if (localVideo.value && localVideo.value.srcObject !== localStream) {
-					localVideo.value.srcObject = localStream;
+			let needNewProducer = false;
+			if (localStream) {
+				for (const track of localStream.getVideoTracks()) {
+					if (track.readyState === "ended") localStream.removeTrack(track);
 				}
-				if (sfuManager) {
-					try {
+			}
+			if (!localStream || localStream.getVideoTracks().length === 0) {
+				try {
+					const videoStream = await navigator.mediaDevices.getUserMedia({
+						video: true,
+					});
+					const newTrack = videoStream.getVideoTracks()[0];
+					newTrack.enabled = true;
+					if (!localStream) localStream = new MediaStream();
+					localStream.addTrack(newTrack);
+					if (videoProducer) {
+						try {
+							await videoProducer.close();
+						} catch (e) {}
+						videoProducer = null;
+					}
+					if (sfuManager) {
 						const results = await sfuManager.publishMedia(localStream, {
 							publishVideo: true,
 							publishAudio: false,
 						});
-						if (results.videoProducer) videoProducer = results.videoProducer;
-					} catch (pubErr) {
-						console.error("Failed to publish video after re-acquire", pubErr);
+						videoProducer = results.videoProducer;
 					}
+					needNewProducer = true;
+				} catch (err) {
+					console.error("Error reacquiring camera:", err);
+					toast.error("Could not access camera");
 				}
-				try {
-					getSFUClient().sendMediaControl("video_on");
-				} catch (e) {
-					console.warn(
-						"Failed to send media control (video on)",
-						e?.message || e,
-					);
+			} else {
+				for (const track of localStream.getVideoTracks()) {
+					track.enabled = true;
 				}
-				isCameraOn.value = true;
-			} catch (err) {
-				console.error("Error re-acquiring camera:", err);
-				toast.error("Could not access camera");
 			}
+			if (!needNewProducer && videoProducer) {
+				try {
+					await videoProducer.resume();
+				} catch (e) {
+					console.warn("Failed to resume video producer:", e);
+				}
+			}
+			try {
+				getSFUClient().sendMediaControl("video_on");
+			} catch (e) {
+				console.warn(
+					"Failed to send media control (video on)",
+					e?.message || e,
+				);
+			}
+			isCameraOn.value = true;
 		}
 	} catch (error) {
 		console.error("Error toggling camera:", error);
@@ -470,8 +475,6 @@ const initializeCamera = async () => {
 					playError,
 				);
 			}
-		} else {
-			console.error("Local video element not found");
 		}
 	} catch (error) {
 		console.error("Error accessing camera:", error);
@@ -496,6 +499,22 @@ const joinMeetingRoom = async () => {
 			full_name: session.user.full_name,
 			avatar: session.user.avatar,
 		};
+		// Ensure currentUser is always a ref object with a value property
+		if (
+			!currentUser ||
+			typeof currentUser !== "object" ||
+			!("value" in currentUser)
+		) {
+			currentUser = ref(currentUser);
+		}
+		// Ensure participants is always a ref object with a value property
+		if (
+			!participants ||
+			typeof participants !== "object" ||
+			!("value" in participants)
+		) {
+			participants = ref(new Map());
+		}
 
 		// Initialize camera/audio first to show local stream
 		await initializeCamera();
@@ -665,6 +684,9 @@ onUnmounted(async () => {
 
 	// Reset SFU manager instance
 	resetSFUMeetingManager();
+
+	// Always reset participants to a ref with a Map after cleanup
+	participants.value = new Map();
 
 	// Leave meeting in Frappe
 	try {
