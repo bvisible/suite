@@ -212,11 +212,30 @@ const handleFullScreenChange = () => {
 	}
 }
 
+const performPreviousStep = () => {
+	const videoEl = document.querySelector('video')
+	if (videoEl && videoEl.currentTime > 0) {
+		videoEl.currentTime = 0
+		videoEl.pause()
+		return
+	}
+	changeSlide(slideIndex.value - 1)
+}
+
+const performNextStep = () => {
+	const videoEl = document.querySelector('video')
+	if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
+		videoEl.play()
+		return
+	}
+	changeSlide(slideIndex.value + 1)
+}
+
 const handleKeyDown = (e) => {
 	if (e.key == 'ArrowRight' || e.key == 'ArrowDown') {
-		changeSlide(slideIndex.value + 1)
+		performNextStep()
 	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
-		changeSlide(slideIndex.value - 1)
+		performPreviousStep()
 	} else if (e.key == 'F5') {
 		e.preventDefault()
 		changeSlide(0)
