@@ -13,6 +13,7 @@ import { nextTick, ref, useTemplateRef } from 'vue'
 
 import { presentationId } from '@/stores/presentation'
 import { handleUploadedMedia } from '@/utils/mediaUploads'
+import { currentSlide } from '@/stores/slide'
 
 const emit = defineEmits(['hideOverlay'])
 
@@ -27,12 +28,17 @@ const handleMediaDrop = async (e) => {
 	e.preventDefault()
 	emit('hideOverlay')
 	nextTick(() => {
-		let targetId = null
+		let targetElement = null
 		const target = document.elementFromPoint(e.clientX, e.clientY)
-		if (target.tagName == 'IMG') {
-			targetId = target.parentElement.parentElement.getAttribute('data-index')
+		const closestElement = target.closest('[data-index]')
+		if (closestElement) {
+			const elementId = closestElement.getAttribute('data-index')
+			const element = currentSlide.value.elements.find((el) => el.id == elementId)
+			if (element && ['image', 'video'].includes(element.type)) {
+				targetElement = element
+			}
 		}
-		handleUploadedMedia(e.dataTransfer.files, targetId)
+		handleUploadedMedia(e.dataTransfer.files, targetElement)
 	})
 }
 </script>

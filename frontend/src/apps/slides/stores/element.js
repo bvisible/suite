@@ -248,6 +248,10 @@ const addMediaElement = async (file, type) => {
 	selectAndCenterElement(element.id)
 }
 
+const updateVideoPoster = async (element, videoUrl) => {
+	element.poster = await getVideoPoster(videoUrl)
+}
+
 const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	e?.preventDefault()
 
@@ -461,4 +465,5 @@ export {
 	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,
+	updateVideoPoster,
 }
