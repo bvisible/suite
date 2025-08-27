@@ -449,9 +449,15 @@ const initIntervals = () => {
 	}, 1500)
 }
 
+const setSlideIndex = (index) => {
+	index = parseInt(index) - 1 || 0
+	slideIndex.value = Math.min(index, slides.value.length - 1)
+}
+
 const loadPresentation = async (id) => {
 	initHistory()
 	presentationDoc.value = await initPresentationDoc(id)
+	setSlideIndex(props.activeSlideId)
 	updateRoute(presentationDoc.value.slug)
 	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initIntervals()
@@ -542,9 +548,8 @@ watch(
 watch(
 	() => props.activeSlideId,
 	(index) => {
-		if (inSlideShow.value) return
-		index = parseInt(index) - 1 || 0
-		slideIndex.value = Math.min(index, slides.value.length - 1)
+		if (!slides.value.length) return
+		setSlideIndex(index)
 	},
 	{ immediate: true },
 )
