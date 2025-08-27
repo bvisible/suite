@@ -2,17 +2,13 @@ import { FileUploadHandler, toast } from 'frappe-ui'
 
 import { presentationId } from '../stores/presentation'
 import { currentSlide } from '../stores/slide'
-import { addMediaElement, updateVideoPoster } from '../stores/element'
+import { addMediaElement, replaceMediaElement } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
 
 const performPostUploadActions = (fileDoc, fileType, targetElement, resolve) => {
 	if (targetElement) {
-		targetElement.src = fileDoc.file_url
-		targetElement.attachmentName = fileDoc.name
-		if (fileType == 'video') {
-			updateVideoPoster(targetElement, fileDoc.file_url)
-		}
+		replaceMediaElement(targetElement, fileDoc, fileType)
 		resolve(fileDoc)
 		return
 	}

@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { nextTick, ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef, nextTick } from 'vue'
 
 import { presentationId } from '@/stores/presentation'
 import { handleUploadedMedia } from '@/utils/mediaUploads'
@@ -24,20 +24,24 @@ const handleDragLeave = (e) => {
 	emit('hideOverlay')
 }
 
+const getTargetElement = (e) => {
+	const target = document.elementFromPoint(e.clientX, e.clientY).closest('[data-index]')
+
+	if (!target) return null
+
+	const elementId = target.getAttribute('data-index')
+	const element = currentSlide.value.elements.find((el) => el.id == elementId)
+
+	if (element && ['image', 'video'].includes(element.type)) {
+		return element
+	}
+}
+
 const handleMediaDrop = async (e) => {
 	e.preventDefault()
 	emit('hideOverlay')
 	nextTick(() => {
-		let targetElement = null
-		const target = document.elementFromPoint(e.clientX, e.clientY)
-		const closestElement = target.closest('[data-index]')
-		if (closestElement) {
-			const elementId = closestElement.getAttribute('data-index')
-			const element = currentSlide.value.elements.find((el) => el.id == elementId)
-			if (element && ['image', 'video'].includes(element.type)) {
-				targetElement = element
-			}
-		}
+		const targetElement = getTargetElement(e)
 		handleUploadedMedia(e.dataTransfer.files, targetElement)
 	})
 }
