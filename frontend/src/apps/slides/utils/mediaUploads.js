@@ -55,6 +55,8 @@ const handleFile = (file, index, length, targetElement) => {
 	const fileType = file.type.split('/')[0]
 	if (!['image', 'video'].includes(fileType)) return
 
+	if (targetElement && targetElement.type != fileType) targetElement = null
+
 	const toastProps = {
 		loading: `Uploading (${index + 1}/${length}): ${file.name}`,
 		success: (data) => `Uploaded: ${file.name}`,
