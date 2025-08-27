@@ -232,7 +232,7 @@ const addMediaElement = async (file, type) => {
 		borderColor: '',
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
-		shadowSpread: 1,
+		shadowSpread: 0,
 		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
@@ -246,6 +246,14 @@ const addMediaElement = async (file, type) => {
 	}
 	currentSlide.value.elements.push(element)
 	selectAndCenterElement(element.id)
+}
+
+const replaceMediaElement = async (element, fileDoc) => {
+	element.src = fileDoc.file_url
+	element.attachmentName = fileDoc.name
+	if (element.type == 'video') {
+		element.poster = await getVideoPoster(fileDoc.file_url)
+	}
 }
 
 const duplicateElements = async (e, elements, displaceByPx = 0) => {
@@ -461,4 +469,5 @@ export {
 	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,
+	replaceMediaElement,
 }

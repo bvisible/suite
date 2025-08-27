@@ -2,17 +2,13 @@ import { FileUploadHandler, toast } from 'frappe-ui'
 
 import { presentationId } from '../stores/presentation'
 import { currentSlide } from '../stores/slide'
-import { addMediaElement } from '../stores/element'
+import { addMediaElement, replaceMediaElement } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
 
-const performPostUploadActions = (fileDoc, fileType, resolve) => {
-	for (const element of currentSlide.value.elements) {
-		if (!element.useTemplateDimensions) continue
-
-		element.src = fileDoc.file_url
-		element.attachmentName = fileDoc.name
-
+const performPostUploadActions = (fileDoc, fileType, targetElement, resolve) => {
+	if (targetElement) {
+		replaceMediaElement(targetElement, fileDoc, fileType)
 		resolve(fileDoc)
 		return
 	}
@@ -21,7 +17,7 @@ const performPostUploadActions = (fileDoc, fileType, resolve) => {
 	resolve(fileDoc)
 }
 
-const uploadMedia = (file, fileType) => {
+const uploadMedia = (file, fileType, targetElement) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
 			.upload(file, {
@@ -29,7 +25,7 @@ const uploadMedia = (file, fileType) => {
 				docname: presentationId.value,
 				private: true,
 			})
-			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, resolve))
+			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetElement, resolve))
 			.catch((error) => {
 				reject(error)
 			})
@@ -52,20 +48,36 @@ const getFileObject = (file) => {
 	}
 }
 
-export const handleUploadedMedia = (files) => {
+const handleFile = (file, toastProps, targetElement) => {
+	file = getFileObject(file)
+	if (!file) return
+
+	const fileType = file.type.split('/')[0]
+	if (!['image', 'video'].includes(fileType)) return
+
+	if (targetElement && targetElement.type != fileType) targetElement = null
+
+	toast.promise(uploadMedia(file, fileType, targetElement), toastProps)
+}
+
+const getToastProps = (file, index, length) => {
+	return {
+		loading: `Uploading (${index + 1}/${length}): ${file.name}`,
+		success: (data) => `Uploaded: ${file.name}`,
+		error: (data) => 'Upload failed. Please try again.',
+	}
+}
+
+export const handleUploadedMedia = (files, targetElement) => {
+	let toastProps = {}
+
+	if (files.length == 1) {
+		toastProps = getToastProps(files[0], 0, 1)
+		return handleFile(files[0], toastProps, targetElement)
+	}
+
 	files.forEach((file, index) => {
-		file = getFileObject(file)
-		if (!file) return
-
-		const fileType = file.type.split('/')[0]
-		if (!['image', 'video'].includes(fileType)) return
-
-		const toastProps = {
-			loading: `Uploading (${index + 1}/${files.length}): ${file.name}`,
-			success: (data) => `Uploaded: ${file.name}`,
-			error: (data) => 'Upload failed. Please try again.',
-		}
-
-		toast.promise(uploadMedia(file, fileType), toastProps)
+		toastProps = getToastProps(file, index, files.length)
+		handleFile(file, toastProps)
 	})
 }
