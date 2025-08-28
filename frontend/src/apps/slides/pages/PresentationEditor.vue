@@ -101,7 +101,9 @@ import {
 
 import { generateUniqueId } from '@/utils/helpers'
 
-import { activeEditor } from '@/composables/useTextEditor'
+import { useTextEditor } from '@/composables/useTextEditor'
+
+const { activeEditor, toggleMark } = useTextEditor()
 
 let autosaveInterval = null
 let thumbnailInterval = null
@@ -179,6 +181,15 @@ const handleElementShortcuts = (e) => {
 			break
 		case 'd':
 			if (e.metaKey) duplicateElements(e, activeElements.value, 40)
+			break
+		case 'b':
+			if (activeEditor.value) toggleMark('bold')
+			break
+		case 'i':
+			if (activeEditor.value) toggleMark('italic')
+			break
+		case 'u':
+			if (activeEditor.value) toggleMark('underline')
 			break
 	}
 }

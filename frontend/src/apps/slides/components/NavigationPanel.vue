@@ -108,6 +108,7 @@ const isSlideActive = (slide) => {
 
 const handleSlideClick = async (slide) => {
 	if (isSlideActive(slide)) {
+		resetFocus()
 		focusedSlide.value = slideIndex.value
 		return
 	}

@@ -23,7 +23,7 @@ const editorStyles = reactive({
 	orderedList: false,
 })
 
-const lastUsedStyles = reactive({ ...editorStyles })
+export const lastUsedStyles = reactive({ ...editorStyles })
 
 export const useTextEditor = () => {
 	const setEditorStyles = (editor) => {
@@ -75,71 +75,41 @@ export const useTextEditor = () => {
 
 	let isRestoringStyles = false
 
-	const updateEditor = ({ transaction, editor }) => {
-		const textContent = editor.getText().trim()
+	const updateElementContent = (editor) => {
+		const didStylesChange = Object.keys(lastUsedStyles).some((key) => {
+			return lastUsedStyles[key] != editorStyles[key]
+		})
 
-		if (transaction.docChanged && textContent.length == 0 && !isRestoringStyles) {
-			isRestoringStyles = true
-			applyLastUsedStyles(editor)
-			setTimeout(() => {
-				isRestoringStyles = false
-			}, 0)
-
-			return
+		if (didStylesChange) {
+			activeElement.value.content = editor.getHTML()
 		}
+	}
 
-		setEditorStyles(editor)
-
+	const updateLastUsedStyles = () => {
 		for (const key in editorStyles) {
 			lastUsedStyles[key] = editorStyles[key]
 		}
-
-		const changeListMarkers = !editor.isEditable || editor.state.selection.empty
-		changeListMarkers && updateListStyles({ transaction, editor })
 	}
 
-	const updateListStyles = ({ transaction, editor }) => {
-		if (!transaction.docChanged || transaction.getMeta('custom-list-style-applied')) return
+	const updateEditor = ({ transaction, editor }) => {
+		if (transaction.docChanged) {
+			const textContent = editor.getText().trim()
 
-		const styles = {
-			fontSize: editorStyles.fontSize,
-			fontFamily: editorStyles.fontFamily,
-			color: editorStyles.color,
-			opacity: editorStyles.opacity,
-		}
+			if (textContent.length == 0 && !isRestoringStyles) {
+				isRestoringStyles = true
+				applyLastUsedStyles(editor)
+				setTimeout(() => {
+					isRestoringStyles = false
+				}, 0)
 
-		const { state } = editor
-		const listItemType = state.schema.nodes.listItem
-		const tr = state.tr
-
-		if (!listItemType || !tr) return
-
-		let hasChanged = false
-		state.doc.descendants((node, pos) => {
-			if (!node.type || node.type.name != 'listItem') return
-
-			if (node.type == listItemType) {
-				let currentStyle = typeof node.attrs.style == 'string' ? node.attrs.style : ''
-				let newStyle = currentStyle
-
-				Object.entries(styles).forEach(([property, value]) => {
-					if (value == null) return
-					newStyle = getCSSString(newStyle, property, value)
-				})
-
-				if (newStyle != currentStyle) {
-					tr.setNodeMarkup(pos, listItemType, {
-						...node.attrs,
-						style: newStyle,
-					})
-					hasChanged = true
-				}
+				return
 			}
-		})
 
-		if (hasChanged) {
-			tr.setMeta('custom-list-style-applied', true)
-			editor.view.dispatch(tr)
+			setEditorStyles(editor)
+			updateElementContent(editor)
+			updateLastUsedStyles(editor)
+		} else if (transaction.selectionSet) {
+			setEditorStyles(editor)
 		}
 	}
 
@@ -159,8 +129,6 @@ export const useTextEditor = () => {
 				textTransform: newVal,
 			})
 			.run()
-
-		activeElement.value.content = activeEditor.value.getHTML()
 	}
 
 	const toggleMark = (property) => {
@@ -174,8 +142,6 @@ export const useTextEditor = () => {
 		if (property == 'uppercase') return toggleCapitalize(chain)
 
 		chain[markCommands[property]](property).run()
-
-		activeElement.value.content = currentEditor.getHTML()
 	}
 
 	const selectListBlock = () => {
@@ -222,8 +188,6 @@ export const useTextEditor = () => {
 		} else {
 			chain.wrapInList('bulletList').run()
 		}
-
-		activeElement.value.content = activeEditor.value.getHTML()
 	}
 
 	const setLineHeight = (value) => {
@@ -266,8 +230,6 @@ export const useTextEditor = () => {
 					.run()
 				break
 		}
-
-		activeElement.value.content = currentEditor.getHTML()
 	}
 
 	const getEditorProps = (editorMetadata) => {
@@ -285,8 +247,6 @@ export const useTextEditor = () => {
 			content: content,
 			editorProps: getEditorProps(editorMetadata),
 			onTransaction: ({ transaction, editor }) => updateEditor({ transaction, editor }),
-			onSelectionUpdate: ({ editor }) =>
-				updateEditor({ transaction: editor.state.tr, editor }),
 		})
 	}
 
