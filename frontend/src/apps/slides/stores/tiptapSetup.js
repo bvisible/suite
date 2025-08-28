@@ -11,6 +11,8 @@ import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 import { Plugin } from 'prosemirror-state'
 
+import { lastUsedStyles } from '@/composables/useTextEditor'
+
 const parseElementStyle = (attribute, value) => {
 	if (!value) return null
 
@@ -89,17 +91,49 @@ const PastePlainText = Extension.create({
 	},
 })
 
-const CustomListItem = ListItem.extend({
-	addAttributes() {
-		return {
-			style: {
-				default: null,
-				parseHTML: (element) => element.getAttribute('style') || null,
-				renderHTML: (attributes) => {
-					return attributes.style ? { style: attributes.style } : {}
-				},
-			},
+const getItemAttributes = (node) => {
+	const paragraphNode = node.content?.firstChild
+	const textNode = paragraphNode?.firstChild
+
+	const attrs = {
+		color: null,
+		fontSize: null,
+		fontFamily: null,
+		letterSpacing: null,
+		opacity: null,
+	}
+
+	if (textNode?.marks) {
+		for (const mark of textNode.marks) {
+			if (mark.type.name == 'textStyle') {
+				const styleAttrs = mark.attrs
+				styleAttrs.fontSize = parseInt(styleAttrs.fontSize)
+				Object.assign(attrs, styleAttrs)
+				return attrs
+			}
 		}
+	}
+
+	Object.assign(attrs, lastUsedStyles)
+	return attrs
+}
+
+const CustomListItem = ListItem.extend({
+	renderHTML({ node, HTMLAttributes, ...rest }) {
+		const liAttrs = { ...HTMLAttributes }
+
+		const { color, fontSize, fontFamily, letterSpacing, opacity } = getItemAttributes(node)
+
+		liAttrs.style = [
+			liAttrs.style || '',
+			`color: ${color};`,
+			`font-size: ${fontSize}px;`,
+			`font-family: ${fontFamily};`,
+			`letter-spacing: ${letterSpacing};`,
+			`opacity: ${opacity};`,
+		].join(' ')
+
+		return ['li', liAttrs, 0]
 	},
 })
 
