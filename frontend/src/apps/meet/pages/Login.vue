@@ -18,16 +18,44 @@
 				/>
 				<Button :loading="session.login.loading" variant="solid">Login</Button>
 			</form>
+			<div v-if="oAuthProviders.data?.length" class="mt-6 border-t text-center">
+				<div class="-translate-y-1/2 transform">
+					<span
+						class="relative bg-surface-white px-2 text-sm font-medium leading-8 text-ink-gray-8"
+					>
+						or
+					</span>
+				</div>
+			</div>
+			<Button
+				v-for="provider in oAuthProviders.data"
+				:key="provider.name"
+				class="mb-2 w-full"
+				:link="provider.auth_url"
+			>
+				<div class="flex items-center">
+					<div v-html="provider.icon" />
+					<span class="ml-2">
+						Continue with
+						{{ provider.provider_name }}
+					</span>
+				</div>
+			</Button>
 		</Card>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { Button, Card, Input, toast } from "frappe-ui";
+import { Button, Card, Input, createResource, toast } from "frappe-ui";
 import { useRouter } from "vue-router";
 import { session } from "../data/session";
 
 const router = useRouter();
+
+const oAuthProviders = createResource({
+	url: "sae.api.account.oauth_providers",
+	auto: true,
+});
 
 function submit(e) {
 	const formData = new FormData(e.target);
