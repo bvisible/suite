@@ -1,6 +1,7 @@
 <template>
 	<CollapsibleSection title="Alignment">
 		<template #default>
+			<Button label="Backward" @click="sendBackward" :disabled="!canMoveBackward" />
 			<div class="flex items-center gap-3">
 				<NumberInput
 					:modelValue="selectionBounds.left"
@@ -53,7 +54,7 @@ import {
 
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
+import { slideBounds, selectionBounds, guideVisibilityMap, currentSlide } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
 import { activeElements } from '@/stores/element'
 
@@ -163,4 +164,11 @@ const updatePosition = (axis, value) => {
 
 	selectionBounds[property] = value
 }
+
+const canMoveBackward = computed(() => {
+	return (
+		activeElements.value.some((el) => el.zIndex > 1) &&
+		currentSlide.value.elements.length > activeElements.value.length
+	)
+})
 </script>
