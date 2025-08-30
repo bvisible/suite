@@ -31,10 +31,6 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	isDragging: {
-		type: Boolean,
-		default: false,
-	},
 	elementOffset: {
 		type: Object,
 		default: () => ({ left: 0, top: 0 }),

@@ -18,9 +18,8 @@
 				mode="editor"
 				:element
 				:elementOffset
-				:isDragging
 				:data-index="element.id"
-				:highlight="pairElementId == element.id"
+				:highlight="highlightElement(element)"
 				@mousedown="(e) => handleMouseDown(e, element)"
 				@clearTimeouts="clearTimeouts"
 			/>
@@ -106,6 +105,12 @@ const getSlideCursor = () => {
 	if (resizeCursor.value) return resizeCursor.value
 
 	return 'default'
+}
+
+const highlightElement = (element) => {
+	const toHighlight =
+		activeElementIds.value.length > 1 && activeElementIds.value.includes(element.id)
+	return toHighlight || pairElementId.value == element.id
 }
 
 const slideStyles = computed(() => ({
