@@ -7,6 +7,7 @@ import { slides, slideIndex } from './slide'
 import { activeElementIds } from '@/stores/element'
 
 import { activeEditor } from '@/composables/useTextEditor'
+import { cloneObj } from '@/utils/helpers'
 
 const presentationDoc = ref()
 
@@ -169,13 +170,11 @@ const historyState = ref({
 	slides: [],
 })
 
-const deepClone = (obj) => JSON.parse(JSON.stringify(obj))
-
 const updateHistoryState = (slides, activeSlide, elementIds) => {
 	const slidesClone = [...slides].map((slide, idx) => {
 		return {
 			...slide,
-			elements: slide.elements.map((el) => deepClone(el)),
+			elements: slide.elements.map((el) => cloneObj(el)),
 			thumbnail: idx == activeSlide ? '' : slide.thumbnail,
 		}
 	})

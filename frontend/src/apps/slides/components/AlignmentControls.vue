@@ -58,6 +58,8 @@ import { slideBounds, selectionBounds, guideVisibilityMap, currentSlide } from '
 import { fieldLabelClasses } from '@/utils/constants'
 import { activeElements } from '@/stores/element'
 
+import { cloneObj } from '@/utils/helpers'
+
 const horizontalAlignmentOptions = [
 	{
 		direction: 'left',
@@ -171,4 +173,31 @@ const canMoveBackward = computed(() => {
 		currentSlide.value.elements.length > activeElements.value.length
 	)
 })
+
+const sendBackward = () => {
+	const elements = cloneObj(currentSlide.value.elements)
+	const active = cloneObj(activeElements.value)
+
+	const sortedActiveElements = active.sort((a, b) => {
+		return a.zIndex - b.zIndex
+	})
+
+	let moveToIndex = sortedActiveElements[0].zIndex - 1
+
+	sortedActiveElements.forEach((element) => {
+		const movingElement = elements.find((el) => el.id == element.id)
+
+		elements.forEach((el) => {
+			if (el.zIndex >= moveToIndex && el.zIndex < movingElement.zIndex) {
+				el.zIndex += 1
+			}
+		})
+
+		movingElement.zIndex = moveToIndex
+
+		moveToIndex += 1
+	})
+
+	currentSlide.value.elements = elements
+}
 </script>
