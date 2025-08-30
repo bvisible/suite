@@ -365,6 +365,17 @@ const handlePastedText = async (clipboardText) => {
 }
 
 const handlePastedJSON = async (json) => {
+	const pastedArray = Array.isArray(json) ? json : []
+
+	if (
+		pastedArray[0]?.type == 'text' &&
+		focusElementId.value &&
+		focusElementId.value != pastedArray[0].id
+	) {
+		activeEditor.value.commands.insertContent(pastedArray[0].content)
+		return
+	}
+
 	const { srcPresentation, srcSlide } = copiedFrom.value
 
 	if (srcPresentation !== presentationId.value) {
