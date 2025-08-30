@@ -174,30 +174,42 @@ const canMoveBackward = computed(() => {
 	)
 })
 
-const sendBackward = () => {
-	const elements = cloneObj(currentSlide.value.elements)
+const getSortedActiveElements = () => {
 	const active = cloneObj(activeElements.value)
 
-	const sortedActiveElements = active.sort((a, b) => {
+	return active.sort((a, b) => {
 		return a.zIndex - b.zIndex
 	})
+}
+
+const moveElement = (elements, elementId, moveToIndex) => {
+	const movingElement = elements.find((el) => el.id == elementId)
+
+	elements.forEach((el) => {
+		if (el.zIndex >= moveToIndex && el.zIndex < movingElement.zIndex) {
+			el.zIndex += 1
+		}
+	})
+
+	movingElement.zIndex = moveToIndex
+}
+
+const getElementsWithUpdatedZIndices = () => {
+	const elements = cloneObj(currentSlide.value.elements)
+	const sortedActiveElements = getSortedActiveElements()
 
 	let moveToIndex = sortedActiveElements[0].zIndex - 1
 
 	sortedActiveElements.forEach((element) => {
-		const movingElement = elements.find((el) => el.id == element.id)
-
-		elements.forEach((el) => {
-			if (el.zIndex >= moveToIndex && el.zIndex < movingElement.zIndex) {
-				el.zIndex += 1
-			}
-		})
-
-		movingElement.zIndex = moveToIndex
+		moveElement(elements, element.id, moveToIndex)
 
 		moveToIndex += 1
 	})
 
-	currentSlide.value.elements = elements
+	return elements
+}
+
+const sendBackward = () => {
+	currentSlide.value.elements = getElementsWithUpdatedZIndices()
 }
 </script>
