@@ -2,7 +2,7 @@
 	<CollapsibleSection title="Alignment">
 		<template #default>
 			<Button label="Backward" @click="sendBackward" :disabled="!canMoveBackward" />
-			<Button label="Back" @click="sendToBack" />
+			<Button label="Back" @click="sendToBack" :disabled="!canMoveBack" />
 			<div class="flex items-center gap-3">
 				<NumberInput
 					:modelValue="selectionBounds.left"
@@ -173,6 +173,11 @@ const canMoveBackward = computed(() => {
 		activeElements.value.some((el) => el.zIndex > 1) &&
 		currentSlide.value.elements.length > activeElements.value.length
 	)
+})
+
+const canMoveBack = computed(() => {
+	const maxZIndex = Math.max(...activeElements.value.map((el) => el.zIndex))
+	return maxZIndex > activeElements.value.length
 })
 
 const moveElement = (elements, elementId, moveToIndex) => {
