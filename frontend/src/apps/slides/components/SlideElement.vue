@@ -88,6 +88,7 @@ const elementStyle = computed(() => {
 		top: `${elementTop}px`,
 		outline: outline.value,
 		boxSizing: 'border-box',
+		zIndex: element.value.zIndex,
 	}
 })
 
