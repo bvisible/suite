@@ -4,7 +4,7 @@ import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
 import { slides, slideIndex } from './slide'
-import { activeElementIds } from '@/stores/element'
+import { activeElementIds, normalizeZIndices } from '@/stores/element'
 
 import { activeEditor } from '@/composables/useTextEditor'
 import { cloneObj } from '@/utils/helpers'
@@ -45,14 +45,6 @@ const updatePresentationTitle = async (id, newTitle) => {
 	})
 }
 
-const addMissingZIndex = (elements) => {
-	elements.forEach((el, index) => {
-		if (!('zIndex' in el)) {
-			el.zIndex = index + 1
-		}
-	})
-}
-
 const parseElements = (value) => {
 	if (!value) return []
 
@@ -67,9 +59,7 @@ const parseElements = (value) => {
 		}
 	}
 
-	addMissingZIndex(parsed)
-
-	return parsed
+	return normalizeZIndices(parsed)
 }
 
 const getPresentationResource = (name) => {
