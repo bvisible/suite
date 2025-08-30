@@ -146,7 +146,8 @@ const clearTimeouts = () => {
 const triggerSelection = (e, id) => {
 	if (id) {
 		if (!activeElementIds.value.includes(id)) {
-			activeElementIds.value = [id]
+			if (e.metaKey) activeElementIds.value.push(id)
+			else activeElementIds.value = [id]
 			focusElementId.value = null
 		} else if (activeElement.value?.type == 'text') {
 			focusElementId.value = id
