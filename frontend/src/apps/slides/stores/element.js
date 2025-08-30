@@ -125,6 +125,7 @@ const addTextElement = async (text) => {
 
 	const element = {
 		id: generateUniqueId(),
+		zIndex: currentSlide.value.elements.length + 1,
 		left: 0,
 		top: 0,
 		type: 'text',
@@ -219,6 +220,7 @@ const getVideoPoster = async (videoUrl) => {
 const addMediaElement = async (file, type) => {
 	let element = {
 		id: generateUniqueId(),
+		zIndex: currentSlide.value.elements.length + 1,
 		width: 300,
 		left: 0,
 		top: 0,
@@ -264,6 +266,7 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
+		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
 		currentSlide.value.elements.push(newElement)
