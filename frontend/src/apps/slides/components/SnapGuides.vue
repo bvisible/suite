@@ -21,7 +21,7 @@ const props = defineProps({
 
 const commonStyles = {
 	position: 'absolute',
-	zIndex: 5,
+	zIndex: 9999,
 }
 
 const isVisible = (axis) => {

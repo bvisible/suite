@@ -5,6 +5,7 @@
 		<div ref="slideRef" :style="slideStyles" :class="slideClasses">
 			<SelectionBox
 				ref="selectionBox"
+				:isDragging
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
 			/>
@@ -19,7 +20,7 @@
 				:elementOffset
 				:isDragging
 				:data-index="element.id"
-				:outline="getElementOutline(element)"
+				:highlight="pairElementId == element.id"
 				@mousedown="(e) => handleMouseDown(e, element)"
 				@clearTimeouts="clearTimeouts"
 			/>
@@ -115,16 +116,6 @@ const slideStyles = computed(() => ({
 	zIndex: 0,
 }))
 
-const getElementOutline = (element) => {
-	if (activeElementIds.value.concat([focusElementId.value]).includes(element.id)) {
-		return 'primary'
-	} else if (pairElementId.value === element.id) {
-		return 'secondary'
-	} else {
-		return 'none'
-	}
-}
-
 const mediaDragOver = ref(false)
 
 const showOverlay = (e) => {
@@ -146,8 +137,9 @@ const clearTimeouts = () => {
 const triggerSelection = (e, id) => {
 	if (id) {
 		if (!activeElementIds.value.includes(id)) {
-			if (e.metaKey) activeElementIds.value.push(id)
-			else activeElementIds.value = [id]
+			if (e.metaKey) {
+				activeElementIds.value = [...activeElementIds.value, id]
+			} else activeElementIds.value = [id]
 			focusElementId.value = null
 		} else if (activeElement.value?.type == 'text') {
 			focusElementId.value = id
@@ -388,6 +380,7 @@ defineExpose({
 const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
 const applyInteractionOffsets = () => {
+	pairElementId.value = null
 	requestAnimationFrame(() => {
 		activeElementIds.value.forEach((id) => {
 			const element = currentSlide.value.elements.find((el) => el.id === id)
