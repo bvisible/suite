@@ -44,16 +44,31 @@ const updatePresentationTitle = async (id, newTitle) => {
 	})
 }
 
+const addMissingZIndex = (elements) => {
+	elements.forEach((el, index) => {
+		if (!('zIndex' in el)) {
+			el.zIndex = index + 1
+		}
+	})
+}
+
 const parseElements = (value) => {
 	if (!value) return []
-	if (typeof value === 'string') {
+
+	let parsed = []
+	if (Array.isArray(value)) {
+		parsed = value
+	} else if (typeof value === 'string') {
 		try {
-			return JSON.parse(value)
+			parsed = JSON.parse(value)
 		} catch {
 			return []
 		}
 	}
-	return Array.isArray(value) ? value : []
+
+	addMissingZIndex(parsed)
+
+	return parsed
 }
 
 const getPresentationResource = (name) => {
