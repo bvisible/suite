@@ -13,7 +13,7 @@ import {
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { generateUniqueId } from '../utils/helpers'
+import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
@@ -453,6 +453,26 @@ watch(
 	},
 )
 
+const normalizeZIndices = (elements) => {
+	const els = cloneObj(elements).sort((a, b) => {
+		const zIndexA = a.zIndex || 1
+		const zIndexB = b.zIndex || 1
+
+		return zIndexA - zIndexB
+	})
+
+	els.forEach((el, index) => {
+		el.zIndex = index + 1
+	})
+
+	elements.forEach((el) => {
+		const updatedElement = els.find((e) => e.id == el.id)
+		el.zIndex = updatedElement.zIndex
+	})
+
+	return elements
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -473,4 +493,5 @@ export {
 	deleteAttachments,
 	setEditableState,
 	replaceMediaElement,
+	normalizeZIndices,
 }

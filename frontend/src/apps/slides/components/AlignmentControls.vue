@@ -56,7 +56,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap, currentSlide } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
-import { activeElements } from '@/stores/element'
+import { activeElements, normalizeZIndices } from '@/stores/element'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -174,14 +174,6 @@ const canMoveBackward = computed(() => {
 	)
 })
 
-const getSortedActiveElements = () => {
-	const active = cloneObj(activeElements.value)
-
-	return active.sort((a, b) => {
-		return a.zIndex - b.zIndex
-	})
-}
-
 const moveElement = (elements, elementId, moveToIndex) => {
 	const movingElement = elements.find((el) => el.id == elementId)
 
@@ -194,19 +186,35 @@ const moveElement = (elements, elementId, moveToIndex) => {
 	movingElement.zIndex = moveToIndex
 }
 
-const getElementsWithUpdatedZIndices = () => {
+const getElementLists = () => {
+	// use cloned objects so changes are applied all at once
+	// for cleaner history updation
 	const elements = cloneObj(currentSlide.value.elements)
-	const sortedActiveElements = getSortedActiveElements()
+	const active = cloneObj(activeElements.value)
 
-	let moveToIndex = sortedActiveElements[0].zIndex - 1
+	return {
+		elements,
+		sortedActiveElements: active.sort((a, b) => a.zIndex - b.zIndex),
+	}
+}
+
+const getElementsWithUpdatedZIndices = () => {
+	const { elements, sortedActiveElements } = getElementLists()
+
+	// start moving elements to one position below least zIndex
+	const leastZIndex = sortedActiveElements[0].zIndex
+	let moveToIndex = Math.max(
+		...elements.filter((el) => el.zIndex < leastZIndex).map((el) => el.zIndex),
+	)
 
 	sortedActiveElements.forEach((element) => {
 		moveElement(elements, element.id, moveToIndex)
 
+		// next element will move one position above the previous one
 		moveToIndex += 1
 	})
 
-	return elements
+	return normalizeZIndices(elements)
 }
 
 const sendBackward = () => {
