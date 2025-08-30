@@ -2,6 +2,7 @@
 	<CollapsibleSection title="Alignment">
 		<template #default>
 			<Button label="Backward" @click="sendBackward" :disabled="!canMoveBackward" />
+			<Button label="Back" @click="sendToBack" />
 			<div class="flex items-center gap-3">
 				<NumberInput
 					:modelValue="selectionBounds.left"
@@ -198,14 +199,21 @@ const getElementLists = () => {
 	}
 }
 
-const getElementsWithUpdatedZIndices = () => {
+const getElementsWithUpdatedZIndices = (action) => {
 	const { elements, sortedActiveElements } = getElementLists()
 
-	// start moving elements to one position below least zIndex
-	const leastZIndex = sortedActiveElements[0].zIndex
-	let moveToIndex = Math.max(
-		...elements.filter((el) => el.zIndex < leastZIndex).map((el) => el.zIndex),
-	)
+	let moveToIndex = null
+
+	if (action == 'back') {
+		// start moving elements to bottom
+		moveToIndex = 1
+	} else {
+		// start moving elements to one position below least zIndex
+		const leastZIndex = sortedActiveElements[0].zIndex
+		moveToIndex = Math.max(
+			...elements.filter((el) => el.zIndex < leastZIndex).map((el) => el.zIndex),
+		)
+	}
 
 	sortedActiveElements.forEach((element) => {
 		moveElement(elements, element.id, moveToIndex)
@@ -218,6 +226,10 @@ const getElementsWithUpdatedZIndices = () => {
 }
 
 const sendBackward = () => {
-	currentSlide.value.elements = getElementsWithUpdatedZIndices()
+	currentSlide.value.elements = getElementsWithUpdatedZIndices('backward')
+}
+
+const sendToBack = () => {
+	currentSlide.value.elements = getElementsWithUpdatedZIndices('back')
 }
 </script>
