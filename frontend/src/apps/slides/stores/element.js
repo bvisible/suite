@@ -300,9 +300,10 @@ const deleteAttachments = async (elements) => {
 const deleteElements = async (e, ids) => {
 	const idsToDelete = ids || activeElementIds.value
 	await resetFocus()
-	currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
-		return !idsToDelete.includes(element.id)
-	})
+	const elements = currentSlide.value.elements.filter(
+		(element) => !idsToDelete.includes(element.id),
+	)
+	currentSlide.value.elements = normalizeZIndices(elements)
 }
 
 const selectAllElements = (e) => {
