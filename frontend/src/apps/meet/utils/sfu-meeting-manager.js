@@ -415,7 +415,34 @@ export class SFUMeetingManager {
 					} catch (_) {}
 
 					// Attach streams
+					// Detect screen share for existing producer
+					const isScreen =
+						!!producer.isScreen ||
+						(producer.kind === "video" && producer.appData?.type === "screen");
+					consumer.isScreen = isScreen;
 					if (consumer.kind === "video") {
+						if (isScreen) {
+							// Track screen share producer so UI logic can locate it
+							this.screenShareProducers.set(producer.id, {
+								participantId: producer.user_id,
+							});
+							// Fire handler similar to live producer_created path
+							if (this.eventHandlers.onScreenShareProducerAdded) {
+								try {
+									this.eventHandlers.onScreenShareProducerAdded({
+										participantId: producer.user_id,
+										producerId: producer.id,
+										consumerId: consumer.id,
+										consumer,
+									});
+								} catch (e) {
+									console.warn(
+										"Failed invoking onScreenShareProducerAdded for existing producer",
+										e,
+									);
+								}
+							}
+						}
 						await this.attachVideoStream(
 							producer.user_id,
 							consumer,
