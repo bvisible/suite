@@ -21,6 +21,7 @@ import {
 	resetFocus,
 	focusElementId,
 	activeElement,
+	isWithinOverlappingBounds,
 } from '@/stores/element'
 
 const slideDiv = inject('slideDiv')
@@ -120,30 +121,19 @@ const removeSelectionBox = () => {
 const getElementsWithinBoxSurface = () => {
 	let elements = []
 
-	const boxLeft = selectionBounds.left
-	const boxTop = selectionBounds.top
-	const boxRight = selectionBounds.left + selectionBounds.width
-	const boxBottom = selectionBounds.top + selectionBounds.height
+	const boxBounds = {
+		left: selectionBounds.left,
+		top: selectionBounds.top,
+		right: selectionBounds.left + selectionBounds.width,
+		bottom: selectionBounds.top + selectionBounds.height,
+	}
 
 	currentSlide.value.elements.forEach((element) => {
-		const {
-			left: elementLeft,
-			top: elementTop,
-			right: elementRight,
-			bottom: elementBottom,
-		} = getElementPosition(element.id)
+		const elementPosition = getElementPosition(element.id)
 
-		const withinWidth =
-			(boxRight >= elementLeft && boxLeft <= elementLeft) ||
-			(elementRight >= boxLeft && elementLeft <= boxLeft)
+		const isWithinBounds = isWithinOverlappingBounds(boxBounds, elementPosition)
 
-		const withinHeight =
-			(boxBottom >= elementTop && boxTop <= elementTop) ||
-			(elementBottom >= boxTop && elementTop <= boxTop)
-
-		if (withinWidth && withinHeight) {
-			elements.push(element.id)
-		}
+		if (isWithinBounds) elements.push(element.id)
 	})
 
 	return elements

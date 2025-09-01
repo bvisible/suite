@@ -341,6 +341,21 @@ const getElementPosition = (elementId) => {
 	}
 }
 
+const isWithinOverlappingBounds = (outer, inner) => {
+	const { left: outerLeft, top: outerTop, right: outerRight, bottom: outerBottom } = outer
+	const { left: innerLeft, top: innerTop, right: innerRight, bottom: innerBottom } = inner
+
+	const withinWidth =
+		(outerRight >= innerLeft && outerLeft <= innerLeft) ||
+		(innerRight >= outerLeft && innerLeft <= outerLeft)
+
+	const withinHeight =
+		(outerBottom >= innerTop && outerTop <= innerTop) ||
+		(innerBottom >= outerTop && innerTop <= outerTop)
+
+	return withinWidth && withinHeight
+}
+
 const getCopiedJSON = () => {
 	const elementsCopy = JSON.parse(JSON.stringify(activeElements.value))
 	elementsCopy.forEach((element) => {
@@ -495,4 +510,5 @@ export {
 	setEditableState,
 	replaceMediaElement,
 	normalizeZIndices,
+	isWithinOverlappingBounds,
 }
