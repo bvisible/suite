@@ -59,7 +59,12 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap, currentSlide } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
-import { activeElements, getElementPosition, normalizeZIndices } from '@/stores/element'
+import {
+	activeElements,
+	getElementPosition,
+	isWithinOverlappingBounds,
+	normalizeZIndices,
+} from '@/stores/element'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -207,29 +212,10 @@ const getElementLists = (action) => {
 }
 
 const isElementWithinBounds = (activeId, elementId) => {
-	const {
-		left: activeLeft,
-		top: activeTop,
-		right: activeRight,
-		bottom: activeBottom,
-	} = getElementPosition(activeId)
+	const activePosition = getElementPosition(activeId)
+	const elementPosition = getElementPosition(elementId)
 
-	const {
-		left: elementLeft,
-		top: elementTop,
-		right: elementRight,
-		bottom: elementBottom,
-	} = getElementPosition(elementId)
-
-	const withinWidth =
-		(activeRight >= elementLeft && activeLeft <= elementLeft) ||
-		(elementRight >= activeLeft && elementLeft <= activeLeft)
-
-	const withinHeight =
-		(activeBottom >= elementTop && activeTop <= elementTop) ||
-		(elementBottom >= activeTop && elementTop <= activeTop)
-
-	return withinWidth && withinHeight
+	return isWithinOverlappingBounds(activePosition, elementPosition)
 }
 
 const initMoveToIndexAndFactor = (elements, sortedActiveElements, action) => {
