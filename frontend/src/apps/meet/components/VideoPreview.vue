@@ -55,12 +55,18 @@
 </template>
 
 <script setup>
+import {
+	cameraEnabled,
+	micEnabled,
+	setCameraEnabled,
+	setMicEnabled,
+} from "@/data/mediaPreferences.js";
 import { Avatar, Button } from "frappe-ui";
 import { onMounted, onUnmounted, ref } from "vue";
 
 const videoElement = ref(null);
-const isMuted = ref(false);
-const isVideoOff = ref(false);
+const isMuted = ref(!micEnabled.value);
+const isVideoOff = ref(!cameraEnabled.value);
 
 const audioTrack = ref(null);
 const videoTrack = ref(null);
@@ -172,6 +178,7 @@ async function toggleVideo() {
 		isVideoOff.value = true;
 		stopTrack("video");
 	}
+	setCameraEnabled(!isVideoOff.value);
 }
 
 async function toggleMute() {
@@ -182,6 +189,7 @@ async function toggleMute() {
 		isMuted.value = true;
 		stopTrack("audio");
 	}
+	setMicEnabled(!isMuted.value);
 }
 
 const handleKeyDown = (event) => {
@@ -196,7 +204,13 @@ const handleKeyDown = (event) => {
 };
 
 onMounted(() => {
-	acquireBoth();
+	// Only acquire what user has enabled in preferences
+	if (!isMuted.value && !isVideoOff.value) {
+		acquireBoth();
+	} else {
+		if (!isMuted.value) acquire("audio");
+		if (!isVideoOff.value) acquire("video");
+	}
 	window.addEventListener("keydown", handleKeyDown);
 });
 

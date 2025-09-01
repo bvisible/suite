@@ -292,6 +292,10 @@
 
 <script setup>
 import {
+	cameraEnabled as prefCameraEnabled,
+	micEnabled as prefMicEnabled,
+} from "@/data/mediaPreferences.js";
+import {
 	Avatar,
 	Button,
 	Spinner,
@@ -320,8 +324,9 @@ const router = useRouter();
 const meetingId = computed(() => route.params.meetingId);
 
 // Reactive state
-const isMicOn = ref(true);
-const isCameraOn = ref(true);
+// Initialize mic/camera from saved preview preferences
+const isMicOn = ref(prefMicEnabled.value);
+const isCameraOn = ref(prefCameraEnabled.value);
 const isScreenSharing = ref(false);
 const screenShareStream = ref(null);
 const activeScreenShareConsumers = ref([]); // list of { participantId, consumerId, startedAt }
@@ -646,19 +651,33 @@ const copyMeetingUrl = async () => {
 
 const initializeCamera = async () => {
 	try {
-		console.log("Initializing camera and microphone...");
-		localStream = await navigator.mediaDevices.getUserMedia({
-			video: {
+		if (!isMicOn.value && !isCameraOn.value) {
+			console.log(
+				"Skipping initial getUserMedia (both mic & camera disabled by user)",
+			);
+			localStream = null; // Will be acquired lazily when user enables
+			return;
+		}
+		console.log("Initializing media with preferences", {
+			audio: isMicOn.value,
+			video: isCameraOn.value,
+		});
+		const constraints = {};
+		if (isCameraOn.value) {
+			constraints.video = {
 				width: { ideal: 1280 },
 				height: { ideal: 720 },
 				frameRate: { ideal: 30 },
-			},
-			audio: {
+			};
+		}
+		if (isMicOn.value) {
+			constraints.audio = {
 				echoCancellation: true,
 				noiseSuppression: true,
 				autoGainControl: true,
-			},
-		});
+			};
+		}
+		localStream = await navigator.mediaDevices.getUserMedia(constraints);
 
 		console.log("Media stream obtained:", localStream);
 
