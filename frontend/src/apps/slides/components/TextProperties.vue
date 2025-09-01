@@ -127,7 +127,7 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
+import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
 import { useTextEditor } from '@/composables/useTextEditor'

@@ -7,7 +7,6 @@ import {
 	slideBounds,
 	updateSelectionBounds,
 	currentSlide,
-	focusedSlide,
 	slideIndex,
 	updateThumbnail,
 } from './slide'

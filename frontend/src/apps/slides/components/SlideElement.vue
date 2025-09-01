@@ -11,16 +11,15 @@
 </template>
 
 <script setup>
-import { computed, useTemplateRef } from 'vue'
+import { computed } from 'vue'
 
 import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
-import Resizer from '@/components/Resizer.vue'
 
-import { activeElement, activeElementIds, focusElementId } from '@/stores/element'
+import { activeElementIds } from '@/stores/element'
 
-import { selectionBounds, slideBounds } from '@/stores/slide'
+import { slideBounds } from '@/stores/slide'
 
 const props = defineProps({
 	mode: {

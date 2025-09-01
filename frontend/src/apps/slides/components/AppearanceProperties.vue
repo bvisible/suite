@@ -28,7 +28,7 @@ import SliderInput from '@/components/controls/SliderInput.vue'
 import { activeElement } from '@/stores/element'
 import { useTextEditor } from '@/composables/useTextEditor'
 
-const { activeEditor, editorStyles, updateProperty } = useTextEditor()
+const { editorStyles, updateProperty } = useTextEditor()
 
 const setOpacity = (value) => {
 	activeElement.value['opacity'] = parseFloat(value)
