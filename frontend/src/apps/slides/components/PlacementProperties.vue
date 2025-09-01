@@ -25,53 +25,19 @@
 
 			<div class="flex flex-col gap-1.5">
 				<div :class="fieldLabelClasses">Arrange</div>
-				<div class="flex flex-col gap-3">
-					<div class="flex items-center gap-3">
-						<Button
-							variant="outline"
-							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-							label="Backward"
-							@click="sendBackward"
-						>
-							<template #prefix>
-								<Backward size="16" :strokeWidth="1.5" />
-							</template>
-						</Button>
-
-						<Button
-							variant="outline"
-							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-							label="Forward"
-							@click="sendForward"
-						>
-							<template #prefix>
-								<Forward size="16" :strokeWidth="1.5" />
-							</template>
-						</Button>
-					</div>
-					<div class="flex items-center gap-3">
-						<Button
-							variant="outline"
-							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-							label="To Back"
-							@click="sendToBack"
-						>
-							<template #prefix>
-								<SendToBack size="16" :strokeWidth="1.5" />
-							</template>
-						</Button>
-
-						<Button
-							variant="outline"
-							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-							label="To Front"
-							@click="bringToFront"
-						>
-							<template #prefix>
-								<BringToFront size="16" :strokeWidth="1.5" />
-							</template>
-						</Button>
-					</div>
+				<div class="grid grid-cols-2 gap-3">
+					<Button
+						v-for="option in arrangeOptions"
+						:key="option.label"
+						variant="outline"
+						class="text-sm opacity-85"
+						:label="option.label"
+						@click="option.action"
+					>
+						<template #prefix>
+							<component :is="option.icon" />
+						</template>
+					</Button>
 				</div>
 			</div>
 		</template>
@@ -79,6 +45,12 @@
 </template>
 
 <script setup>
+import Forward from '@/icons/Forward.vue'
+import Backward from '@/icons/Backward.vue'
+import SendToBack from '@/icons/SendToBack.vue'
+import BringToFront from '@/icons/BringToFront.vue'
+import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+
 import { selectionBounds, currentSlide } from '@/stores/slide'
 import {
 	activeElements,
@@ -87,14 +59,32 @@ import {
 	isWithinOverlappingBounds,
 	normalizeZIndices,
 } from '@/stores/element'
+
 import { fieldLabelClasses } from '@/utils/constants'
 import { cloneObj } from '@/utils/helpers'
 
-import Forward from '@/icons/Forward.vue'
-import Backward from '@/icons/Backward.vue'
-import SendToBack from '@/icons/SendToBack.vue'
-import BringToFront from '@/icons/BringToFront.vue'
-import CollapsibleSection from './controls/CollapsibleSection.vue'
+const arrangeOptions = [
+	{
+		label: 'Backward',
+		icon: Backward,
+		action: () => sendBackward(),
+	},
+	{
+		label: 'Forward',
+		icon: Forward,
+		action: () => bringForward(),
+	},
+	{
+		label: 'To Back',
+		icon: SendToBack,
+		action: () => sendToBack(),
+	},
+	{
+		label: 'To Front',
+		icon: BringToFront,
+		action: () => bringToFront(),
+	},
+]
 
 const moveElement = (elements, elementId, moveToIndex, action) => {
 	const movingElement = elements.find((el) => el.id == elementId)
@@ -104,7 +94,11 @@ const moveElement = (elements, elementId, moveToIndex, action) => {
 		const zIndex = el.zIndex
 		if (action.includes('back') && zIndex >= moveToIndex && zIndex < currentZIndex) {
 			el.zIndex += 1
-		} else if (action.includes('front') && zIndex <= moveToIndex && zIndex > currentZIndex) {
+		} else if (
+			['front', 'forward'].includes(action) &&
+			zIndex <= moveToIndex &&
+			zIndex > currentZIndex
+		) {
 			el.zIndex -= 1
 		}
 	})
@@ -198,7 +192,7 @@ const sendToBack = () => {
 	currentSlide.value.elements = getElementsWithUpdatedZIndices('back')
 }
 
-const sendForward = () => {
+const bringForward = () => {
 	currentSlide.value.elements = getElementsWithUpdatedZIndices('forward')
 }
 
