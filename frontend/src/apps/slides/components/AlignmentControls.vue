@@ -59,7 +59,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap, currentSlide } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
-import { activeElements, normalizeZIndices } from '@/stores/element'
+import { activeElements, getElementPosition, normalizeZIndices } from '@/stores/element'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -206,26 +206,20 @@ const getElementLists = (action) => {
 	}
 }
 
-const isElementOverlapping = (activeBounds, element) => {
-	let elements = []
+const isElementWithinBounds = (activeId, elementId) => {
+	const {
+		left: activeLeft,
+		top: activeTop,
+		right: activeRight,
+		bottom: activeBottom,
+	} = getElementPosition(activeId)
 
-	const activeRect = document
-		.querySelector(`[data-index="${activeBounds.id}"]`)
-		.getBoundingClientRect()
-
-	const activeLeft = activeRect.left - slideBounds.left / slideBounds.scale
-	const activeTop = activeRect.top - slideBounds.top / slideBounds.scale
-	const activeRight = activeLeft + activeRect.width / slideBounds.scale
-	const activeBottom = activeTop + activeRect.height / slideBounds.scale
-
-	const elementRect = document
-		.querySelector(`[data-index="${element.id}"]`)
-		.getBoundingClientRect()
-
-	const elementLeft = elementRect.left - slideBounds.left / slideBounds.scale
-	const elementTop = elementRect.top - slideBounds.top / slideBounds.scale
-	const elementRight = elementLeft + elementRect.width / slideBounds.scale
-	const elementBottom = elementTop + elementRect.height / slideBounds.scale
+	const {
+		left: elementLeft,
+		top: elementTop,
+		right: elementRight,
+		bottom: elementBottom,
+	} = getElementPosition(elementId)
 
 	const withinWidth =
 		(activeRight >= elementLeft && activeLeft <= elementLeft) ||
@@ -235,51 +229,53 @@ const isElementOverlapping = (activeBounds, element) => {
 		(activeBottom >= elementTop && activeTop <= elementTop) ||
 		(elementBottom >= activeTop && elementTop <= activeTop)
 
-	if (withinWidth && withinHeight) {
-		return true
+	return withinWidth && withinHeight
+}
+
+const initMoveToIndexAndFactor = (elements, sortedActiveElements, action) => {
+	const baseIndex = sortedActiveElements[0].zIndex
+	let moveToIndex = null
+
+	const isOverlappingElement = (el) => {
+		const isBackward = action == 'backward' && el.zIndex < baseIndex
+		const isForward = action == 'forward' && el.zIndex > baseIndex
+
+		if (isBackward || isForward) {
+			return isElementWithinBounds(sortedActiveElements[0].id, el.id)
+		}
+		return false
 	}
 
-	return false
+	switch (action) {
+		case 'back':
+			return { moveToIndex: 1, factor: 1 }
+		case 'front':
+			return { moveToIndex: elements.length, factor: -1 }
+		case 'backward':
+			const lowerZIndices = elements
+				.filter((el) => isOverlappingElement(el))
+				.map((el) => el.zIndex)
+			return {
+				moveToIndex: lowerZIndices.length ? Math.max(...lowerZIndices) : 1,
+				factor: 1,
+			}
+		case 'forward':
+			const higherZIndices = elements
+				.filter((el) => isOverlappingElement(el))
+				.map((el) => el.zIndex)
+			return {
+				moveToIndex: higherZIndices.length ? Math.min(...higherZIndices) : elements.length,
+				factor: -1,
+			}
+		default:
+			return { moveToIndex: baseIndex, factor: 1 }
+	}
 }
 
 const getElementsWithUpdatedZIndices = (action) => {
 	const { elements, sortedActiveElements } = getElementLists(action)
 
-	let moveToIndex = null
-	let factor = 1
-
-	if (action == 'back') {
-		// start moving elements to bottom
-		moveToIndex = 1
-	} else if (action == 'backward') {
-		// start moving elements to one position below least zIndex
-		const leastZIndex = sortedActiveElements[0].zIndex
-
-		const lower = [...elements]
-			.filter(
-				(el) =>
-					el.zIndex < leastZIndex && isElementOverlapping(sortedActiveElements[0], el),
-			)
-			.map((el) => el.zIndex)
-
-		moveToIndex = lower.length ? Math.max(...lower) : 1
-	} else if (action == 'front') {
-		// start moving elements to top
-		moveToIndex = elements.length
-		factor = -1
-	} else if (action == 'forward') {
-		// start moving elements to one position above highest zIndex
-		const highestZIndex = sortedActiveElements[0].zIndex
-		const higher = [...elements]
-			.filter(
-				(el) =>
-					el.zIndex > highestZIndex && isElementOverlapping(sortedActiveElements[0], el),
-			)
-			.map((el) => el.zIndex)
-
-		moveToIndex = higher.length ? Math.min(...higher) : highestZIndex
-		factor = -1
-	}
+	let { moveToIndex, factor } = initMoveToIndexAndFactor(elements, sortedActiveElements, action)
 
 	sortedActiveElements.forEach((element) => {
 		moveElement(elements, element.id, moveToIndex, action)
