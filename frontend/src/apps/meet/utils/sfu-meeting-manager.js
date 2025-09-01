@@ -1116,6 +1116,28 @@ export class SFUMeetingManager {
 			if (this.eventHandlers.onParticipantLeft) {
 				this.eventHandlers.onParticipantLeft(data);
 			}
+
+			// Clear any screen share producers / consumers owned by this participant
+			try {
+				const toRemove = [];
+				for (const [pid, meta] of this.screenShareProducers.entries()) {
+					if (meta.participantId === data.participantId) toRemove.push(pid);
+				}
+				for (const pid of toRemove) {
+					this.screenShareProducers.delete(pid);
+					if (this.eventHandlers.onScreenShareProducerRemoved) {
+						this.eventHandlers.onScreenShareProducerRemoved({
+							participantId: data.participantId,
+							producerId: pid,
+						});
+					}
+				}
+			} catch (e) {
+				console.warn(
+					"Failed to cleanup screen share state on participant_left",
+					e,
+				);
+			}
 		});
 
 		// Media events

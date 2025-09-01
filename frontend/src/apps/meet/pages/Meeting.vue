@@ -39,7 +39,10 @@
 			<!-- Main content area -->
 			<div class="flex-1 p-4 flex flex-col min-h-0 overflow-auto">
 				<!-- Screen share active view (Google Meet style) -->
-				<div v-if="displayScreenShares.length" class="flex-1 flex min-h-0 overflow-hidden mb-2">
+				<div
+					v-if="displayScreenShares.length"
+					class="flex-1 flex min-h-0 overflow-hidden mb-2"
+				>
 					<!-- Main screen share area -->
 					<div
 						class="flex-1 relative bg-black rounded-lg overflow-hidden flex items-center justify-center"
