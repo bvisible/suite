@@ -1,5 +1,5 @@
 <template>
-	<div class="h-screen bg-gray-900 flex flex-col overflow-hidden">
+	<div class="h-screen bg-gray-900 flex flex-col">
 		<!-- Loading state -->
 		<div v-if="isConnecting" class="flex-1 flex items-center justify-center">
 			<div class="text-center text-white space-y-4">
@@ -37,9 +37,9 @@
 			</div>
 
 			<!-- Main content area -->
-			<div class="flex-1 p-4 overflow-hidden flex flex-col">
+			<div class="flex-1 p-4 flex flex-col min-h-0 overflow-auto">
 				<!-- Screen share active view (Google Meet style) -->
-				<div v-if="displayScreenShares.length" class="flex-1 flex overflow-hidden mb-2">
+				<div v-if="displayScreenShares.length" class="flex-1 flex min-h-0 overflow-hidden mb-2">
 					<!-- Main screen share area -->
 					<div
 						class="flex-1 relative bg-black rounded-lg overflow-hidden flex items-center justify-center"
@@ -141,7 +141,7 @@
 				</div>
 
 				<!-- Video grid (hidden when screen sharing) -->
-				<div v-else class="flex-1 grid gap-2" :class="gridClass">
+				<div v-else class="flex-1 grid gap-2 min-h-0" :class="gridClass">
 					<!-- Local user video -->
 					<div class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0">
 						<video
