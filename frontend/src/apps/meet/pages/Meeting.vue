@@ -36,9 +36,112 @@
 				</div>
 			</div>
 
-			<!-- Main video grid area -->
-			<div class="flex-1 p-4 overflow-hidden">
-				<div class="h-full grid gap-2" :class="gridClass">
+			<!-- Main content area -->
+			<div class="flex-1 p-4 overflow-hidden flex flex-col">
+				<!-- Screen share active view (Google Meet style) -->
+				<div v-if="displayScreenShares.length" class="flex-1 flex overflow-hidden mb-2">
+					<!-- Main screen share area -->
+					<div
+						class="flex-1 relative bg-black rounded-lg overflow-hidden flex items-center justify-center"
+					>
+						<template
+							v-for="(share, idx) in displayScreenShares"
+							:key="share.consumerId"
+						>
+							<!-- Render only the first (focused) screen share. Local & remote handled uniformly -->
+							<video
+								v-if="idx === 0"
+								:ref="setScreenShareVideoRef"
+								:data-participant-id="share.participantId"
+								class="w-full h-full object-contain bg-gray-900"
+								autoplay
+								playsinline
+								muted
+							></video>
+						</template>
+						<!-- Single label for active screen share -->
+						<div class="absolute top-2 left-2">
+							<span
+								v-if="displayScreenShares.length"
+								class="px-2 py-1 bg-black/60 text-white text-xs rounded"
+								>{{ getParticipantName(displayScreenShares[0].participantId) }}'s
+								screen</span
+							>
+						</div>
+					</div>
+					<!-- Sidebar tiles -->
+					<div class="w-64 ml-3 flex flex-col space-y-3 overflow-y-auto pr-1">
+						<!-- Local camera tile -->
+						<div
+							class="relative w-full aspect-video bg-gray-800 rounded overflow-hidden"
+						>
+							<video
+								ref="localVideo"
+								class="w-full h-full object-cover transform scale-x-[-1]"
+								autoplay
+								muted
+								playsinline
+							/>
+							<div
+								v-if="!isCameraOn"
+								class="absolute inset-0 bg-gray-700 flex items-center justify-center"
+							>
+								<Avatar size="lg" :label="userInitials" :image="userAvatar" />
+							</div>
+							<div
+								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
+							>
+								You
+							</div>
+						</div>
+						<!-- Remote participants -->
+						<div
+							v-for="participant in participantsList"
+							:key="'side-' + participant.user_id"
+							class="relative w-full aspect-video bg-gray-800 rounded overflow-hidden"
+						>
+							<video
+								:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
+								:participant-id="participant.user_id"
+								class="w-full h-full object-cover"
+								autoplay
+								playsinline
+							></video>
+							<!-- Avatar / placeholder when camera off -->
+							<div
+								v-if="!participant.video_enabled"
+								class="absolute inset-0 flex items-center justify-center bg-gray-700"
+							>
+								<div class="text-white text-center">
+									<div
+										class="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-1"
+									>
+										<span class="text-sm font-semibold">{{
+											participant.initials
+										}}</span>
+									</div>
+									<p class="text-[10px] leading-tight">
+										{{ participant.user_name }}
+									</p>
+								</div>
+							</div>
+							<div
+								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
+							>
+								{{ participant.user_name }}
+							</div>
+							<div
+								v-if="!participant.audio_enabled"
+								class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
+							>
+								<lucide-mic-off class="w-3 h-3 text-white" />
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Video grid (hidden when screen sharing) -->
+				<div v-else class="flex-1 grid gap-2" :class="gridClass">
 					<!-- Local user video -->
 					<div class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0">
 						<video
@@ -73,7 +176,7 @@
 						class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
 					>
 						<video
-							:ref="(el) => remoteVideos.set(participant.user_id, el)"
+							:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
 							:participant-id="participant.user_id"
 							class="w-full h-full object-cover"
 							autoplay
@@ -149,6 +252,24 @@
 							</template>
 						</Button>
 
+						<!-- Screen Share -->
+						<Button
+							@click="toggleScreenShare"
+							:variant="isScreenSharing ? 'solid' : 'solid'"
+							:theme="isScreenSharing ? 'red' : 'gray'"
+							size="lg"
+							class="w-12 h-12 rounded-full p-0"
+							title="Toggle Screen Share"
+						>
+							<template #icon>
+								<lucide-monitor-up
+									v-if="!isScreenSharing"
+									class="w-6 h-6 text-white"
+								/>
+								<lucide-monitor-pause v-else class="w-6 h-6 text-white" />
+							</template>
+						</Button>
+
 						<!-- End call -->
 						<Button
 							@click="endCall"
@@ -177,10 +298,11 @@ import {
 	getCachedDocumentResource,
 	toast,
 } from "frappe-ui";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session.js";
 import { cleanupMediasoup } from "../mediasoup-client.js";
+import { publishScreenShare } from "../mediasoup-client.js";
 import {
 	joinMeeting,
 	leaveMeeting,
@@ -201,6 +323,63 @@ const meetingId = computed(() => route.params.meetingId);
 const isMicOn = ref(true);
 const isCameraOn = ref(true);
 const isScreenSharing = ref(false);
+const screenShareStream = ref(null);
+const activeScreenShareConsumers = ref([]); // list of { participantId, consumerId, startedAt }
+const localScreenShareStartedAt = ref(0);
+const screenShareVideoElements = new Map();
+const screenShareStreams = ref(new Map()); // participantId -> MediaStream
+
+const attachScreenStreamIfReady = (participantId) => {
+	const el = screenShareVideoElements.get(participantId);
+	const stream = screenShareStreams.value.get(participantId);
+	if (el && stream) {
+		console.log("🔗 Attaching screen stream", {
+			participantId,
+			track: stream.getVideoTracks()[0]?.id,
+		});
+		if (el.srcObject !== stream) {
+			el.srcObject = stream;
+			el.play?.().catch(() => {});
+		}
+	}
+};
+
+const setScreenShareVideoRef = (el) => {
+	if (!el) return;
+	const participantId = el.dataset?.participantId;
+	if (participantId) {
+		screenShareVideoElements.set(participantId, el);
+		console.log("📺 Screen share video element set", { participantId });
+		attachScreenStreamIfReady(participantId);
+	}
+};
+
+// Display logic: pick the single most recently started share (remote or local)
+const displayScreenShares = computed(() => {
+	let latest = null;
+	for (const share of activeScreenShareConsumers.value) {
+		if (!latest || (share.startedAt || 0) > (latest.startedAt || 0)) {
+			latest = share;
+		}
+	}
+	if (isScreenSharing.value && currentUser.value?.user_id) {
+		const localEntry = {
+			participantId: currentUser.value.user_id,
+			consumerId: "local-screen",
+			local: true,
+			startedAt: localScreenShareStartedAt.value || 0,
+		};
+		if (!latest || localEntry.startedAt >= (latest.startedAt || 0)) {
+			latest = localEntry;
+		}
+	}
+	return latest ? [latest] : [];
+});
+
+function getParticipantName(pid) {
+	const p = participants.value.get(pid);
+	return p?.user_name || pid;
+}
 const localVideo = ref(null);
 const isConnecting = ref(true);
 const connectionError = ref(null);
@@ -209,10 +388,33 @@ let currentUser = ref({});
 let participants = ref(new Map());
 const remoteVideos = ref(new Map());
 
+function setRemoteVideoRef(participantId, el) {
+	if (!el) return;
+	if (!remoteVideos.value || !(remoteVideos.value instanceof Map)) {
+		remoteVideos.value = new Map();
+	}
+	remoteVideos.value.set(participantId, el);
+	// If participant has an already attached combined stream (camera) reuse it immediately.
+	try {
+		const p = participants.value.get(participantId);
+		if (p?.videoStream && !el.srcObject) {
+			el.srcObject = p.videoStream;
+			el.play?.().catch(() => {});
+			console.log(
+				"🔄 Rebound existing camera stream to new element after layout change",
+				{
+					participantId,
+				},
+			);
+		}
+	} catch (_) {}
+}
+
 // MediaSoup state
 let localStream = null;
 let videoProducer = null;
 let audioProducer = null;
+let screenProducer = null;
 const consumers = ref(new Map());
 
 // SFU Meeting Manager
@@ -332,6 +534,7 @@ const toggleCamera = async () => {
 			if (videoProducer) {
 				try {
 					await videoProducer.pause();
+					console.log("🛑 Paused camera video producer", videoProducer.id);
 				} catch (e) {
 					console.warn("Failed to pause video producer:", e);
 				}
@@ -387,6 +590,7 @@ const toggleCamera = async () => {
 			if (!needNewProducer && videoProducer) {
 				try {
 					await videoProducer.resume();
+					console.log("▶️ Resumed camera video producer", videoProducer.id);
 				} catch (e) {
 					console.warn("Failed to resume video producer:", e);
 				}
@@ -561,10 +765,50 @@ const joinMeetingRoom = async () => {
 					);
 				},
 				onScreenShareStarted: (data) => {
-					console.log("� SFU screen share started handler:", data);
+					console.log("📋 SFU screen share started handler:", data);
 				},
 				onScreenShareStopped: (data) => {
 					console.log("📋 SFU screen share stopped handler:", data);
+					// Remove any consumers belonging to participant if we had them marked screen
+					activeScreenShareConsumers.value =
+						activeScreenShareConsumers.value.filter(
+							(c) => c.participantId !== data.participantId,
+						);
+				},
+				onScreenShareProducerAdded: ({
+					participantId,
+					consumerId,
+					consumer,
+				}) => {
+					if (consumer?.track) {
+						const ms = new MediaStream([consumer.track]);
+						screenShareStreams.value.set(participantId, ms);
+						attachScreenStreamIfReady(participantId);
+					}
+					if (
+						!activeScreenShareConsumers.value.find(
+							(c) => c.consumerId === consumerId,
+						)
+					) {
+						activeScreenShareConsumers.value = [
+							...activeScreenShareConsumers.value,
+							{ participantId, consumerId, startedAt: Date.now() },
+						];
+					}
+				},
+				onScreenShareProducerRemoved: ({ participantId }) => {
+					activeScreenShareConsumers.value =
+						activeScreenShareConsumers.value.filter(
+							(c) => c.participantId !== participantId,
+						);
+					const el = screenShareVideoElements.get(participantId);
+					if (el?.srcObject) {
+						try {
+							for (const t of el.srcObject.getTracks()) t.stop();
+						} catch (_) {}
+						el.srcObject = null;
+					}
+					screenShareStreams.value.delete(participantId);
 				},
 			},
 		});
@@ -698,6 +942,14 @@ onUnmounted(async () => {
 	// Clean up mediasoup resources
 	cleanupMediasoup();
 
+	// Stop screen share if active
+	try {
+		if (screenProducer) await screenProducer.close();
+	} catch (_) {}
+	if (screenShareStream.value) {
+		for (const track of screenShareStream.value.getTracks()) track.stop();
+	}
+
 	// Clean up media streams
 	if (localStream) {
 		for (const track of localStream.getTracks()) {
@@ -707,4 +959,79 @@ onUnmounted(async () => {
 
 	window.removeEventListener("keydown", handleKeyDown);
 });
+
+// Screen share toggle
+const toggleScreenShare = async () => {
+	if (isScreenSharing.value) {
+		// Stop
+		try {
+			if (screenProducer) {
+				await getSFUClient()
+					.closeProducer?.(screenProducer.id)
+					.catch(() => {});
+				try {
+					screenProducer.close();
+				} catch (_) {}
+				screenProducer = null;
+			}
+			getSFUClient().sendScreenShare("stop_share");
+		} catch (e) {
+			console.warn("Error stopping screen share", e);
+		}
+		try {
+			if (screenShareStream.value) {
+				for (const t of screenShareStream.value.getTracks()) t.stop();
+			}
+		} catch (_) {}
+		screenShareStream.value = null;
+		isScreenSharing.value = false;
+		return;
+	}
+
+	// Start
+	try {
+		const displayStream = await navigator.mediaDevices.getDisplayMedia({
+			video: { frameRate: 15 },
+			audio: false,
+		});
+		screenShareStream.value = displayStream;
+		// When user stops from system UI
+		displayStream.getVideoTracks()[0].addEventListener("ended", () => {
+			if (isScreenSharing.value) toggleScreenShare();
+		});
+		// Publish
+		if (sfuManager) {
+			try {
+				// Reuse existing send transport via publishScreenShare helper
+				screenProducer = await publishScreenShare(
+					meetingId.value,
+					displayStream,
+				);
+			} catch (e) {
+				console.error("Failed to publish screen share", e);
+				toast.error("Failed to share screen");
+				return;
+			}
+		}
+		try {
+			getSFUClient().sendScreenShare("start_share", {});
+		} catch (e) {
+			console.warn("Failed to send start_share signal", e);
+		}
+		isScreenSharing.value = true;
+		localScreenShareStartedAt.value = Date.now();
+
+		// Register local screen share stream for unified handling
+		if (currentUser.value?.user_id) {
+			const pid = currentUser.value.user_id;
+			screenShareStreams.value.set(pid, displayStream);
+			// Ensure attachment after DOM update
+			await nextTick();
+			attachScreenStreamIfReady(pid);
+		}
+	} catch (err) {
+		console.error("Screen share error", err);
+		toast.error("Screen share cancelled or failed");
+	}
+};
 </script>

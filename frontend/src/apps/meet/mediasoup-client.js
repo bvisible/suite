@@ -187,6 +187,7 @@ export async function produceMedia(
 			transportId,
 			rtpParameters,
 			kind,
+			appData,
 		);
 
 		// Store producer reference
@@ -460,6 +461,45 @@ export async function publishVideo(meetingId, stream) {
 	} catch (error) {
 		console.error("Error publishing video:", error);
 		throw error;
+	}
+}
+
+/**
+ * Publish screen share stream (separate producer)
+ */
+export async function publishScreenShare(meetingId, stream) {
+	await ensureDeviceReady(meetingId);
+
+	if (!sendTransport) {
+		await createTransport(meetingId, "send");
+	}
+
+	try {
+		const videoTrack = stream.getVideoTracks()[0];
+		if (!videoTrack) throw new Error("No video track in screen share stream");
+
+		const producer = await sendTransport.produce({
+			track: videoTrack,
+			appData: { type: "screen" },
+			encodings: [{ maxBitrate: 800000 }, { maxBitrate: 1500000 }],
+			codecOptions: {
+				videoGoogleStartBitrate: 1200,
+			},
+		});
+
+		producers.set(producer.id, producer);
+
+		producer.on("trackended", () => {
+			console.log("Screen share track ended");
+		});
+		producer.on("transportclose", () => {
+			console.log("Screen share producer transport closed");
+		});
+
+		return producer;
+	} catch (e) {
+		console.error("Error publishing screen share:", e);
+		throw e;
 	}
 }
 

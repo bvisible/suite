@@ -26,6 +26,7 @@ export class SFUMeetingManager {
 		this.isConnected = false;
 		this.initialSyncInProgress = false;
 		this.bufferedProducerEvents = [];
+		this.screenShareProducers = new Map(); // producerId -> { participantId }
 	}
 
 	/**
@@ -518,18 +519,35 @@ export class SFUMeetingManager {
 				throw new Error(`Consumer ${consumer.id} has no track`);
 			}
 
-			// Find both audio and video consumers for this participant
+			// If this is a screen share consumer, avoid applying camera-based pause/resume logic.
+			if (consumer.isScreen) {
+				try {
+					const existingEl = this.remoteVideos.value.get(userId);
+					if (existingEl?.srcObject) {
+						// Ensure playback
+						if (existingEl.paused) {
+							existingEl.play().catch(() => {});
+						}
+					}
+				} catch (_) {}
+				return;
+			}
+
+			// Find audio consumer and the primary (non-screen) video consumer for this participant
 			const audioConsumer = Array.from(this.consumers.value.values()).find(
 				(c) => c.participantId === userId && c.kind === "audio",
 			);
 			const videoConsumer = Array.from(this.consumers.value.values()).find(
-				(c) => c.participantId === userId && c.kind === "video",
+				(c) =>
+					c.participantId === userId &&
+					c.kind === "video" &&
+					c.isScreen !== true,
 			);
 
 			// Respect participant state: pause/resume based on audio_enabled/video_enabled
 			const participant = this.participants.value.get(userId) || {};
-			const wantAudio = participant.audio_enabled === true; // strict
-			const wantVideo = participant.video_enabled === true; // strict
+			const wantAudio = !!participant.audio_enabled;
+			const wantVideo = !!participant.video_enabled;
 
 			// Toggle audio consumer
 			if (audioConsumer) {
@@ -727,7 +745,7 @@ export class SFUMeetingManager {
 
 			// Respect participant state before resuming
 			const participant = this.participants.value.get(userId) || {};
-			const wantAudio = participant.audio_enabled === true; // strict
+			const wantAudio = !!participant.audio_enabled;
 			if (audioConsumer) {
 				try {
 					if (!wantAudio && !audioConsumer.paused) await audioConsumer.pause();
@@ -1078,6 +1096,15 @@ export class SFUMeetingManager {
 			ensureRefs();
 			console.log("🎥 New producer available via SFU:", data);
 
+			const isScreen =
+				!!data.isScreen ||
+				(data.kind === "video" && data.appData?.type === "screen");
+			if (isScreen) {
+				this.screenShareProducers.set(data.producerId, {
+					participantId: data.participantId,
+				});
+			}
+
 			if (
 				data.producerId &&
 				data.participantId !==
@@ -1093,17 +1120,19 @@ export class SFUMeetingManager {
 						return;
 					}
 
-					// Always remove any existing consumer for this participant/kind
+					// Remove existing consumer of same media kind ONLY if both are screen shares or both are regular camera feeds.
+					// This allows concurrent camera (video) + screen share (also video kind) for a participant.
 					for (const [consumerId, consumer] of this.consumers.value.entries()) {
-						if (
-							consumer.participantId === data.participantId &&
-							consumer.kind === data.kind
-						) {
-							try {
-								consumer.close();
-							} catch (_) {}
-							this.consumers.value.delete(consumerId);
+						if (consumer.participantId !== data.participantId) continue;
+						if (consumer.kind !== data.kind) continue;
+						const consumerIsScreen = consumer.isScreen;
+						if (consumerIsScreen !== isScreen) {
+							continue;
 						}
+						try {
+							consumer.close();
+						} catch (_) {}
+						this.consumers.value.delete(consumerId);
 					}
 
 					// Ensure participant exists
@@ -1117,7 +1146,7 @@ export class SFUMeetingManager {
 						};
 						if (data.kind === "audio")
 							participant.audio_enabled = data.paused !== true;
-						if (data.kind === "video")
+						if (data.kind === "video" && !isScreen)
 							participant.video_enabled = data.paused !== true;
 						this.participants.value.set(data.participantId, participant);
 						this.participants.value = new Map(this.participants.value);
@@ -1131,8 +1160,9 @@ export class SFUMeetingManager {
 							existing.video_enabled = false;
 						if (data.kind === "audio")
 							existing.audio_enabled = data.paused !== true;
-						if (data.kind === "video")
+						if (data.kind === "video" && !isScreen) {
 							existing.video_enabled = data.paused !== true;
+						}
 						this.participants.value.set(data.participantId, { ...existing });
 						this.participants.value = new Map(this.participants.value);
 					}
@@ -1144,10 +1174,70 @@ export class SFUMeetingManager {
 
 					if (consumer?.track) {
 						consumer.participantId = data.participantId;
+						consumer.isScreen = !!isScreen;
 						this.consumers.value.set(consumer.id, consumer);
 
 						if (consumer.kind === "video") {
-							await this.attachVideoStream(data.participantId, consumer, "new");
+							if (isScreen) {
+								if (this.eventHandlers.onScreenShareProducerAdded) {
+									console.log(
+										"🧩 Invoking onScreenShareProducerAdded handler",
+										{
+											participantId: data.participantId,
+											producerId: data.producerId,
+											consumerId: consumer.id,
+											trackId: consumer.track?.id,
+										},
+									);
+									this.eventHandlers.onScreenShareProducerAdded({
+										participantId: data.participantId,
+										producerId: data.producerId,
+										consumerId: consumer.id,
+										consumer,
+									});
+								}
+
+								const cameraConsumer = Array.from(
+									this.consumers.value.values(),
+								).find(
+									(c) =>
+										c.participantId === data.participantId &&
+										c.kind === "video" &&
+										c.isScreen !== true,
+								);
+								if (cameraConsumer) {
+									const videoEl = this.remoteVideos.value.get(
+										data.participantId,
+									);
+									if (
+										videoEl &&
+										(!videoEl.srcObject ||
+											!videoEl.srcObject
+												.getVideoTracks()
+												.some((t) => t.id === cameraConsumer.track?.id))
+									) {
+										console.log(
+											"♻️ Re-attaching camera stream after screen share start for",
+											data.participantId,
+										);
+										try {
+											await this.attachVideoStream(
+												data.participantId,
+												cameraConsumer,
+												"re-attach",
+											);
+										} catch (e) {
+											console.warn("Failed to re-attach camera stream", e);
+										}
+									}
+								}
+							} else {
+								await this.attachVideoStream(
+									data.participantId,
+									consumer,
+									"new",
+								);
+							}
 						} else if (consumer.kind === "audio") {
 							await this.attachAudioStream(data.participantId, consumer);
 						}
@@ -1175,6 +1265,21 @@ export class SFUMeetingManager {
 		this.sfuClient.on("producer_closed", (data) => {
 			ensureRefs();
 			console.log("❌ Producer closed via SFU:", data);
+			if (data.isScreen) {
+				// Remove from screen share tracking
+				for (const [pid, meta] of this.screenShareProducers.entries()) {
+					if (pid === data.producerId) {
+						this.screenShareProducers.delete(pid);
+						if (this.eventHandlers.onScreenShareProducerRemoved) {
+							this.eventHandlers.onScreenShareProducerRemoved({
+								participantId: data.participantId,
+								producerId: data.producerId,
+							});
+						}
+						break;
+					}
+				}
+			}
 			// Find and close related consumers
 			for (const [consumerId, consumer] of this.consumers.value.entries()) {
 				if (consumer.producerId === data.producerId) {
@@ -1255,6 +1360,18 @@ export class SFUMeetingManager {
 							consumer.participantId === data.participantId &&
 							consumer.kind === "video"
 						) {
+							if (consumer.isScreen) {
+								if (consumer.paused) {
+									try {
+										await consumer.resume();
+										console.log(
+											"🖥️ Ensured screen share consumer stays active on camera toggle",
+											{ participantId: data.participantId, consumerId },
+										);
+									} catch (_) {}
+								}
+								continue; // skip camera pause/resume logic
+							}
 							if (data.action === "video_off") {
 								try {
 									await consumer.pause();

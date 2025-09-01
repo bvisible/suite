@@ -264,7 +264,7 @@ class SFUClient {
 		});
 	}
 
-	async createProducer(transportId, rtpParameters, kind) {
+	async createProducer(transportId, rtpParameters, kind, appData = {}) {
 		return new Promise((resolve, reject) => {
 			if (!this.connected) {
 				reject(new Error("Not connected to SFU"));
@@ -277,6 +277,7 @@ class SFUClient {
 					transportId,
 					rtpParameters,
 					kind,
+					appData,
 				},
 				(response) => {
 					if (response.success) {
