@@ -13,7 +13,7 @@
 		<div v-if="activeElementIds.length">
 			<AppearanceProperties v-if="activeElement" />
 			<AlignmentControls />
-			<PositionArrangementProperties />
+			<PlacementProperties />
 		</div>
 	</div>
 </template>
@@ -26,7 +26,7 @@ import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
-import PositionArrangementProperties from '@/components/PositionArrangementProperties.vue'
+import PlacementProperties from '@/components/PlacementProperties.vue'
 import AppearanceProperties from '@/components/AppearanceProperties.vue'
 
 import { currentSlide } from '@/stores/slide'

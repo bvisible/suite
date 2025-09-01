@@ -1,72 +1,78 @@
 <template>
-	<CollapsibleSection title="Position & Arrange" :initialState="false">
+	<CollapsibleSection title="Placement" :initialState="activeElements?.length > 1">
 		<template #default>
-			<div :class="fieldLabelClasses">Position</div>
-			<div class="flex items-center gap-3">
-				<NumberInput
-					:modelValue="selectionBounds.left"
-					@update:modelValue="(val) => updatePosition('X', val)"
-					prefix="x"
-					:rangeStart="0"
-					:rangeStep="1"
-					:hideButtons="true"
-				/>
-				<NumberInput
-					:modelValue="selectionBounds.top"
-					@update:modelValue="(val) => updatePosition('Y', val)"
-					prefix="y"
-					:rangeStart="0"
-					:rangeStep="1"
-					:hideButtons="true"
-				/>
+			<div class="flex flex-col gap-1.5">
+				<div :class="fieldLabelClasses">Position</div>
+				<div class="flex items-center gap-3">
+					<NumberInput
+						:modelValue="selectionBounds.left"
+						@update:modelValue="(val) => updatePosition('X', val)"
+						prefix="x"
+						:rangeStart="0"
+						:rangeStep="1"
+						:hideButtons="true"
+					/>
+					<NumberInput
+						:modelValue="selectionBounds.top"
+						@update:modelValue="(val) => updatePosition('Y', val)"
+						prefix="y"
+						:rangeStart="0"
+						:rangeStep="1"
+						:hideButtons="true"
+					/>
+				</div>
 			</div>
 
-			<div :class="fieldLabelClasses">Arrange</div>
-			<div class="flex items-center gap-3">
-				<Button
-					variant="outline"
-					class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-					label="Backward"
-					@click="sendBackward"
-				>
-					<template #prefix>
-						<Backward size="16" :strokeWidth="1.5" />
-					</template>
-				</Button>
+			<div class="flex flex-col gap-1.5">
+				<div :class="fieldLabelClasses">Arrange</div>
+				<div class="flex flex-col gap-3">
+					<div class="flex items-center gap-3">
+						<Button
+							variant="outline"
+							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
+							label="Backward"
+							@click="sendBackward"
+						>
+							<template #prefix>
+								<Backward size="16" :strokeWidth="1.5" />
+							</template>
+						</Button>
 
-				<Button
-					variant="outline"
-					class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-					label="Forward"
-					@click="sendForward"
-				>
-					<template #prefix>
-						<Forward size="16" :strokeWidth="1.5" />
-					</template>
-				</Button>
-			</div>
-			<div class="flex items-center gap-3">
-				<Button
-					variant="outline"
-					class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-					label="To Back"
-					@click="sendToBack"
-				>
-					<template #prefix>
-						<SendToBack size="16" :strokeWidth="1.5" />
-					</template>
-				</Button>
+						<Button
+							variant="outline"
+							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
+							label="Forward"
+							@click="sendForward"
+						>
+							<template #prefix>
+								<Forward size="16" :strokeWidth="1.5" />
+							</template>
+						</Button>
+					</div>
+					<div class="flex items-center gap-3">
+						<Button
+							variant="outline"
+							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
+							label="To Back"
+							@click="sendToBack"
+						>
+							<template #prefix>
+								<SendToBack size="16" :strokeWidth="1.5" />
+							</template>
+						</Button>
 
-				<Button
-					variant="outline"
-					class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
-					label="To Front"
-					@click="bringToFront"
-				>
-					<template #prefix>
-						<BringToFront size="16" :strokeWidth="1.5" />
-					</template>
-				</Button>
+						<Button
+							variant="outline"
+							class="w-1/2 border-gray-200 text-sm text-gray-600 opacity-85"
+							label="To Front"
+							@click="bringToFront"
+						>
+							<template #prefix>
+								<BringToFront size="16" :strokeWidth="1.5" />
+							</template>
+						</Button>
+					</div>
+				</div>
 			</div>
 		</template>
 	</CollapsibleSection>
