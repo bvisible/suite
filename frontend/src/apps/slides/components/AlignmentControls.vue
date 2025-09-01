@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Alignment" :initialState="false">
+	<CollapsibleSection title="Alignment" :initialState="activeElementIds?.length > 1">
 		<template #default>
 			<div v-for="axis in axes" :key="axis" class="flex flex-col gap-1.5">
 				<div :class="fieldLabelClasses">{{ axis.label }}</div>
@@ -36,7 +36,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
-import { updatePosition } from '@/stores/element'
+import { updatePosition, activeElementIds } from '@/stores/element'
 
 const horizontalAlignmentOptions = [
 	{

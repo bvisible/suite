@@ -92,7 +92,6 @@ import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
-import PositionArrangementProperties from './PositionArrangementProperties.vue'
 
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
