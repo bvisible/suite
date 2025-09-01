@@ -489,6 +489,18 @@ const normalizeZIndices = (elements) => {
 	return elements
 }
 
+const updatePosition = (axis, value) => {
+	const property = axis == 'X' ? 'left' : 'top'
+
+	const delta = value - selectionBounds[property]
+
+	activeElements.value.forEach((element) => {
+		element[property] += delta
+	})
+
+	selectionBounds[property] = value
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -511,4 +523,5 @@ export {
 	replaceMediaElement,
 	normalizeZIndices,
 	isWithinOverlappingBounds,
+	updatePosition,
 }
