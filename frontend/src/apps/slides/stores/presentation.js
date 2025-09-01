@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
@@ -6,7 +6,6 @@ import { isEqual } from 'lodash'
 import { slides, slideIndex } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
 
-import { activeEditor } from '@/composables/useTextEditor'
 import { cloneObj } from '@/utils/helpers'
 
 const presentationDoc = ref()

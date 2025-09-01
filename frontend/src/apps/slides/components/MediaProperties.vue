@@ -95,7 +95,6 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
-import { computed } from 'vue'
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
