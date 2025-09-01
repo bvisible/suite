@@ -103,18 +103,6 @@
 			/>
 		</template>
 	</CollapsibleSection>
-
-	<CollapsibleSection title="Other" :initialState="false">
-		<template #default>
-			<SliderInput
-				label="Opacity"
-				:rangeStart="0"
-				:rangeEnd="100"
-				:modelValue="parseFloat(editorStyles.opacity)"
-				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
-			/>
-		</template>
-	</CollapsibleSection>
 </template>
 
 <script setup>
