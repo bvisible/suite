@@ -772,14 +772,25 @@ export class SFUMeetingManager {
 
 			// Respect participant state before resuming
 			const participant = this.participants.value.get(userId) || {};
-			const wantAudio = !!participant.audio_enabled;
+			let wantAudio = participant.audio_enabled;
+
+			if (typeof wantAudio === "undefined") {
+				wantAudio = !audioConsumer?.paused;
+				participant.audio_enabled = wantAudio;
+				this.participants.value.set(userId, participant);
+				console.log(
+					`🔍 Inferred initial audio preference for ${userId}: ${wantAudio ? "enabled" : "muted"}`,
+				);
+			}
 			if (audioConsumer) {
 				try {
-					if (!wantAudio && !audioConsumer.paused) await audioConsumer.pause();
+					if (participant.audio_enabled === false && !audioConsumer.paused)
+						await audioConsumer.pause();
 					if (wantAudio && audioConsumer.paused) await audioConsumer.resume();
 					if (wantAudio)
 						console.log(`✅ Audio consumer active for user ${userId}`);
-					else console.log(`⏸️ Audio consumer paused for user ${userId}`);
+					else if (participant.audio_enabled === false)
+						console.log(`⏸️ Audio consumer paused for user ${userId}`);
 				} catch (resumeError) {
 					console.error(
 						`Failed to toggle audio consumer for user ${userId}:`,
@@ -812,8 +823,8 @@ export class SFUMeetingManager {
 					}
 				}
 
-				// Ensure the video element is not muted so we can hear audio when enabled
-				videoElement.muted = !wantAudio;
+				const currentUserId = this.currentUser?.value?.user_id;
+				videoElement.muted = userId === currentUserId;
 
 				// Start playback if currently paused
 				if (videoElement.paused) {
@@ -1060,8 +1071,10 @@ export class SFUMeetingManager {
 					.join("")
 					.toUpperCase()
 					.slice(0, 2),
-				audio_enabled: false,
-				video_enabled: false,
+				// Use undefined as initial state.
+				// man I feel like building sae with hacks on top of hacks
+				audio_enabled: undefined,
+				video_enabled: undefined,
 			};
 			console.log("👥 Participant joined:", participant);
 
