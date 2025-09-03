@@ -73,13 +73,16 @@
 						</div>
 					</div>
 					<!-- Sidebar tiles -->
-					<div
+					<TransitionGroup
+						name="tile"
+						tag="div"
 						class="ml-3 overflow-y-auto pr-1 grid gap-2 h-full"
 						:class="screenShareSidebarClass"
 						:style="screenShareSidebarStyle"
 					>
 						<!-- Local camera tile -->
 						<div
+							key="local-camera-sidebar"
 							class="relative w-full bg-gray-800 rounded overflow-hidden flex"
 							:style="singleSidebarTileStyle"
 						>
@@ -141,6 +144,7 @@
 						<!-- Grouping tile -->
 						<Tooltip
 							v-if="sidebarRemotesDisplay.extra > 0"
+							key="sidebar-group"
 							:label="hiddenParticipantsTooltip"
 							:text="hiddenParticipantsTooltip"
 							placement="top"
@@ -153,18 +157,23 @@
 								</div>
 							</div>
 						</Tooltip>
-					</div>
+					</TransitionGroup>
 				</div>
 
 				<!-- Video grid (hidden when screen sharing) -->
-				<div
+				<TransitionGroup
 					v-else
+					name="tile"
+					tag="div"
 					class="flex-1 grid gap-2 min-h-0 call-grid"
 					:class="gridClass"
 					:style="callGridStyle"
 				>
 					<!-- Local user video -->
-					<div class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0">
+					<div
+						key="local-camera"
+						class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
+					>
 						<video
 							ref="localVideo"
 							class="w-full h-full object-cover transform scale-x-[-1]"
@@ -188,7 +197,7 @@
 					<!-- Remote participants -->
 					<div
 						v-for="participant in gridRemotesDisplay.list"
-						:key="participant.user_id"
+						:key="'grid-' + participant.user_id"
 						class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
 					>
 						<video
@@ -223,6 +232,7 @@
 					<!-- Grouping tile for normal layout -->
 					<Tooltip
 						v-if="gridRemotesDisplay.extra > 0"
+						key="grid-group"
 						:label="hiddenGridParticipantsTooltip"
 						:text="hiddenGridParticipantsTooltip"
 						placement="top"
@@ -235,7 +245,7 @@
 							</div>
 						</div>
 					</Tooltip>
-				</div>
+				</TransitionGroup>
 			</div>
 
 			<!-- Bottom controls -->
@@ -1212,3 +1222,25 @@ const toggleScreenShare = async () => {
 	}
 };
 </script>
+
+<!-- these are for transition when a user joins/leaves -->
+<style scoped>
+.tile-enter-from,
+.tile-leave-to {
+	opacity: 0;
+	transform: scale(0.85) translateY(8px);
+}
+.tile-enter-active,
+.tile-leave-active {
+	transition:
+		opacity 180ms ease,
+		transform 180ms ease;
+}
+.tile-move {
+	transition: transform 200ms ease;
+}
+/* Prevent layout jump when leaving */
+.tile-leave-active {
+	position: relative;
+}
+</style>
