@@ -251,3 +251,8 @@ def set_public(name, is_public):
 		attachment_doc.is_private = not is_public
 		attachment_doc.save()
 	frappe.db.set_value("Presentation", name, "is_public", is_public)
+
+
+@frappe.whitelist(allow_guest=True)
+def is_public_presentation(name):
+	return frappe.db.get_value("Presentation", name, "is_public") == 1
