@@ -73,14 +73,19 @@
 						</div>
 					</div>
 					<!-- Sidebar tiles -->
-					<div class="w-64 ml-3 flex flex-col space-y-3 overflow-y-auto pr-1">
+					<div
+						class="ml-3 overflow-y-auto pr-1 grid gap-2 h-full"
+						:class="screenShareSidebarClass"
+						:style="screenShareSidebarStyle"
+					>
 						<!-- Local camera tile -->
 						<div
-							class="relative w-full aspect-video bg-gray-800 rounded overflow-hidden"
+							class="relative w-full bg-gray-800 rounded overflow-hidden flex"
+							:style="singleSidebarTileStyle"
 						>
 							<video
 								ref="localVideo"
-								class="w-full h-full object-cover transform scale-x-[-1]"
+								class="w-full h-full object-cover transform scale-x-[-1] flex-1"
 								autoplay
 								muted
 								playsinline
@@ -99,18 +104,18 @@
 						</div>
 						<!-- Remote participants -->
 						<div
-							v-for="participant in participantsList"
+							v-for="participant in sidebarRemotesDisplay.list"
 							:key="'side-' + participant.user_id"
-							class="relative w-full aspect-video bg-gray-800 rounded overflow-hidden"
+							class="relative w-full bg-gray-800 rounded overflow-hidden flex"
+							:style="singleSidebarTileStyle"
 						>
 							<video
 								:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
 								:participant-id="participant.user_id"
-								class="w-full h-full object-cover"
+								class="w-full h-full object-cover flex-1"
 								autoplay
 								playsinline
 							></video>
-							<!-- Avatar / placeholder when camera off -->
 							<div
 								v-if="!participant.video_enabled"
 								class="absolute inset-0 flex items-center justify-center bg-gray-700"
@@ -133,11 +138,31 @@
 								<lucide-mic-off class="w-3 h-3 text-white" />
 							</div>
 						</div>
+						<!-- Grouping tile -->
+						<Tooltip
+							v-if="sidebarRemotesDisplay.extra > 0"
+							:label="hiddenParticipantsTooltip"
+							:text="hiddenParticipantsTooltip"
+							placement="top"
+						>
+							<div
+								class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
+							>
+								<div class="text-xs text-white text-center px-2 leading-snug">
+									and {{ sidebarRemotesDisplay.extra }} others
+								</div>
+							</div>
+						</Tooltip>
 					</div>
 				</div>
 
 				<!-- Video grid (hidden when screen sharing) -->
-				<div v-else class="flex-1 grid gap-2 min-h-0" :class="gridClass">
+				<div
+					v-else
+					class="flex-1 grid gap-2 min-h-0 call-grid"
+					:class="gridClass"
+					:style="callGridStyle"
+				>
 					<!-- Local user video -->
 					<div class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0">
 						<video
@@ -162,7 +187,7 @@
 
 					<!-- Remote participants -->
 					<div
-						v-for="participant in participantsList"
+						v-for="participant in gridRemotesDisplay.list"
 						:key="participant.user_id"
 						class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
 					>
@@ -195,6 +220,21 @@
 							<lucide-mic-off class="w-4 h-4 text-white" />
 						</div>
 					</div>
+					<!-- Grouping tile for normal layout -->
+					<Tooltip
+						v-if="gridRemotesDisplay.extra > 0"
+						:label="hiddenGridParticipantsTooltip"
+						:text="hiddenGridParticipantsTooltip"
+						placement="top"
+					>
+						<div
+							class="relative bg-gray-800/70 rounded-lg overflow-hidden min-h-0 flex items-center justify-center cursor-pointer"
+						>
+							<div class="text-sm text-white text-center px-3 leading-snug">
+								and {{ gridRemotesDisplay.extra }} others
+							</div>
+						</div>
+					</Tooltip>
 				</div>
 			</div>
 
@@ -284,6 +324,7 @@ import {
 	Avatar,
 	Button,
 	Spinner,
+	Tooltip,
 	getCachedDocumentResource,
 	toast,
 } from "frappe-ui";
@@ -412,13 +453,20 @@ let sfuManager = null;
 
 // Computed grid class based on participant count
 const gridClass = computed(() => {
-	const totalParticipants = participants.value.size + 1; // +1 for local user
-	if (totalParticipants === 1) return "grid-cols-1";
-	if (totalParticipants === 2) return "grid-cols-2";
-	if (totalParticipants <= 4) return "grid-cols-2 grid-rows-2";
-	if (totalParticipants <= 6) return "grid-cols-3 grid-rows-2";
-	return "grid-cols-4 grid-rows-2";
+	const count = participants.value.size + 1; // include local
+	let cols;
+	if (count <= 1) cols = 1;
+	else if (count === 2) cols = 2;
+	else if (count <= 4) cols = 2;
+	else if (count <= 6) cols = 3;
+	else if (count <= 9)
+		cols = 3; // 3x3 fits up to 9
+	else cols = 4; // 4 columns for 10+
+	return `grid-cols-${cols}`;
 });
+
+// Style to enforce equal row heights – each implicit row is 1fr (prevents last row shrink)
+const callGridStyle = computed(() => ({ "grid-auto-rows": "1fr" }));
 
 const userInitials = computed(() => {
 	const name = currentUser.value.full_name || currentUser.value.name || "You";
@@ -433,6 +481,131 @@ const userAvatar = computed(() => currentUser.value.avatar || "");
 
 const participantsList = computed(() => {
 	return Array.from(participants.value.values());
+});
+
+// Normal grid display logic: if total (local + remotes) > 16, reserve the 16th tile for grouping
+// Result: Max visible tiles = 16 => 1 local + 14 remote participant tiles + 1 group tile
+// Preference: show all video-on remotes first; if they exceed capacity, excess video-on also get grouped.
+const gridRemotesDisplay = computed(() => {
+	const remotes = Array.from(participants.value.values());
+	const total = remotes.length + 1; // include local
+	const threshold = 16; // point at which grouping activates
+	if (total <= threshold) {
+		return { list: remotes, hidden: [], extra: 0 };
+	}
+	const remoteCapacity = 14; // because: 1 local + 14 remotes + 1 group tile = 16
+	const videoOn = remotes.filter((p) => p.video_enabled);
+	const videoOff = remotes.filter((p) => !p.video_enabled);
+	const visibleRemotes = [];
+	// Fill with as many video-on as possible up to capacity
+	for (const p of videoOn) {
+		if (visibleRemotes.length < remoteCapacity) visibleRemotes.push(p);
+		else break;
+	}
+	// If capacity not filled, add video-off participants
+	if (visibleRemotes.length < remoteCapacity) {
+		for (const p of videoOff) {
+			if (visibleRemotes.length < remoteCapacity) visibleRemotes.push(p);
+			else break;
+		}
+	}
+	// Hidden are all remaining not in visibleRemotes
+	const visibleIds = new Set(visibleRemotes.map((p) => p.user_id));
+	const hidden = remotes.filter((p) => !visibleIds.has(p.user_id));
+	return { list: visibleRemotes, hidden, extra: hidden.length };
+});
+
+// Tooltip for grouped remotes in normal layout
+const hiddenGridParticipantsTooltip = computed(() => {
+	const hidden = gridRemotesDisplay.value.hidden || [];
+	if (!hidden.length) return "";
+	const names = hidden.map((p) => p.user_name || p.user_id);
+	const shown = names.slice(0, 8);
+	const remaining = names.length - shown.length;
+	if (remaining > 0) {
+		return `${shown.join(", ")} and ${remaining} more`;
+	}
+	if (shown.length === 1) return shown[0];
+	if (shown.length === 2) return `${shown[0]} and ${shown[1]}`;
+	return `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}`;
+});
+
+// Screen share sidebar display logic (two-column when >4, group when >8 total including self)
+const sidebarRemotesDisplay = computed(() => {
+	const remotes = Array.from(participants.value.values());
+	const total = remotes.length + 1; // include local user
+	if (total <= 8) {
+		return { list: remotes, hidden: [], extra: 0 };
+	}
+	// Prioritize participants with video enabled so they are never grouped.
+	const videoOn = remotes.filter((p) => p.video_enabled);
+	const videoOff = remotes.filter((p) => !p.video_enabled);
+
+	const baseCapacity = 6;
+	const capacity = Math.max(baseCapacity, videoOn.length);
+	const visibleRemotes = [
+		...videoOn,
+		...videoOff.slice(0, Math.max(0, capacity - videoOn.length)),
+	];
+	const hidden = videoOff.slice(Math.max(0, capacity - videoOn.length));
+	return { list: visibleRemotes, hidden, extra: hidden.length };
+});
+
+const screenShareSidebarClass = computed(() => {
+	const total = participants.value.size + 1;
+	const base = total > 4 ? "w-72 grid-cols-2" : "w-64 grid-cols-1";
+	// Determine number of visible tiles including local + remotes + group tile
+	const visible =
+		1 +
+		sidebarRemotesDisplay.value.list.length +
+		(sidebarRemotesDisplay.value.extra > 0 ? 1 : 0);
+
+	const columns = total > 4 ? 2 : 1;
+	const rows = Math.ceil(visible / columns);
+	return `${base} grid-rows-${rows}`;
+});
+
+const screenShareSidebarStyle = computed(() => {
+	const total = participants.value.size + 1;
+	const columns = total > 4 ? 2 : 1;
+	const visible =
+		1 +
+		sidebarRemotesDisplay.value.list.length +
+		(sidebarRemotesDisplay.value.extra > 0 ? 1 : 0);
+	const rows = Math.ceil(visible / columns);
+	// subtract total vertical gaps (rows-1)*0.5rem (gap-2 = 0.5rem) from 100%
+	const gapRem = 0.5;
+	const gapTotal = (rows - 1) * gapRem;
+	return {
+		display: "grid",
+		"grid-auto-rows":
+			rows === 1 ? undefined : `calc((100% - ${gapTotal}rem) / ${rows})`,
+	};
+});
+
+const singleSidebarTileStyle = computed(() => {
+	const totalSidebarTiles =
+		1 +
+		sidebarRemotesDisplay.value.list.length +
+		(sidebarRemotesDisplay.value.extra > 0 ? 1 : 0);
+	if (totalSidebarTiles === 1) {
+		return { maxHeight: "25%", height: "auto" };
+	}
+	return {};
+});
+
+const hiddenParticipantsTooltip = computed(() => {
+	const hidden = sidebarRemotesDisplay.value.hidden || [];
+	if (!hidden.length) return "";
+	const names = hidden.map((p) => p.user_name || p.user_id);
+	const shown = names.slice(0, 5);
+	const remaining = names.length - shown.length;
+	if (remaining > 0) {
+		return `${shown.join(", ")} and ${remaining} more`;
+	}
+	if (shown.length === 1) return shown[0];
+	if (shown.length === 2) return `${shown[0]} and ${shown[1]}`;
+	return `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}`;
 });
 
 const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
