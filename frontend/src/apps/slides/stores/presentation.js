@@ -183,7 +183,7 @@ const { ignoreUpdates } = watchIgnorable(
 
 		updateHistoryState(newVal, slideIndex.value, activeElementIds.value)
 
-		historyControl.commit()
+		historyControl?.commit()
 	},
 	{ deep: true },
 )
