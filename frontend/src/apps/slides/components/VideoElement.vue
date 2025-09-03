@@ -10,9 +10,9 @@
 			@loadedmetadata="updateDuration"
 			@ended="resetProgress"
 			preload="auto"
-			:poster="element.poster"
+			:poster="videoPoster"
 		>
-			<source :src="`/api/method/slides.api.file.get_video_file?src=${element.src}`" />
+			<source :src="`/api/method/slides.api.file.get_video_file?src=${videoSrc}`" />
 		</video>
 		<div
 			ref="overlay"
@@ -45,7 +45,7 @@ import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { inSlideShow } from '@/stores/presentation'
+import { inSlideShow, isPublicPresentation } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
 
 const element = defineModel('element', {
@@ -55,6 +55,20 @@ const element = defineModel('element', {
 
 const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')
+
+const videoSrc = computed(() => {
+	const src = element.value.src
+	const isPublic = isPublicPresentation.value
+	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
+	return requiresPrefix ? `/private${src}` : src
+})
+
+const videoPoster = computed(() => {
+	const poster = element.value.poster
+	const isPublic = isPublicPresentation.value
+	const requiresPrefix = !isPublic && poster && poster.startsWith('/files/')
+	return requiresPrefix ? `/private${poster}` : poster
+})
 
 const toggleButtonClasses =
 	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-95'

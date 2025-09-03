@@ -63,8 +63,13 @@ const backgroundClasses = 'size-full bg-gray-100 flex flex-col pt-8 overflow-y-a
 const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
 
 const getCardStyles = (presentation) => {
+	const thumbnail = presentation.thumbnail || ''
+	const isPublic = presentation.is_public
+	const requiresPrefix = !isPublic && thumbnail && thumbnail.startsWith('/files/')
+	const thumbnailUrl = requiresPrefix ? `/private${thumbnail}` : thumbnail
+
 	return {
-		backgroundImage: `url(${presentation.thumbnail || ''})`,
+		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
 		backgroundPosition: 'center',
 	}

@@ -17,6 +17,7 @@ class Presentation(Document):
 
 	def update_thumbnails(self):
 		doc_before_save = self.get_doc_before_save()
+		is_private = not self.is_public
 		if not doc_before_save or not doc_before_save.slides:
 			return
 		old_slides = doc_before_save.slides
@@ -27,24 +28,25 @@ class Presentation(Document):
 				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
 				old_thumbnail = old_slide.thumbnail
-				delete_old_thumbnail(old_thumbnail)
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
+				delete_old_thumbnail(old_thumbnail, is_private)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail", is_private)
 
 	def validate(self):
 		self.update_thumbnails()
 
 
-def delete_old_thumbnail(old_thumbnail: str | None = None):
-	if old_thumbnail and old_thumbnail.startswith("/private/files/"):
+def delete_old_thumbnail(old_thumbnail: str | None = None, is_private: bool = False):
+	if old_thumbnail and old_thumbnail.startswith("/files"):
 		try:
-			file_docname = frappe.db.get_value("File", {"file_url": old_thumbnail})
+			url = "/private" + old_thumbnail if is_private else old_thumbnail
+			file_docname = frappe.db.get_value("File", {"file_url": url})
 			frappe.delete_doc("File", file_docname)
 		except Exception as e:
 			frappe.log_error(f"Failed to remove old thumbnail: {e}")
 
 
 @frappe.whitelist()
-def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str) -> str:
+def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str, is_private: bool) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"{prefix}-{uuid.uuid4().hex[:6]}.{ext}"
@@ -54,13 +56,13 @@ def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str)
 			"doctype": "File",
 			"file_name": filename,
 			"content": base64.b64decode(b64),
-			"is_private": 1,
+			"is_private": is_private,
 			"attached_to_doctype": "Presentation",
 			"attached_to_name": presentation_name,
 		}
 	).insert()
 
-	return file_doc.file_url
+	return file_doc.file_url.replace("/private", "") if is_private else file_doc.file_url
 
 
 def slug(text: str) -> str:
@@ -84,7 +86,7 @@ def get_all_presentations() -> list[dict]:
 	"""
 	presentations = frappe.get_list(
 		"Presentation",
-		fields=["name", "title", "owner", "creation", "modified_by", "modified"],
+		fields=["name", "title", "owner", "creation", "modified_by", "modified", "is_public"],
 		filters={"owner": frappe.session.user, "is_template": 0},
 		order_by="modified desc",
 	)
