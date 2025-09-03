@@ -258,7 +258,7 @@ const handleHistoryOperation = async (operation) => {
 	const onActiveSlide = slideIndex.value == slideToFocus
 
 	if (!onActiveSlide) {
-		await changeSlide(slideToFocus)
+		await changeSlide(slideToFocus, false)
 
 		recentlyRestored.value = true
 		setTimeout(() => {
@@ -328,18 +328,22 @@ const handleThumbnailGeneration = async (index) => {
 	}
 }
 
-const changeSlide = async (index) => {
+const changeSlide = async (index, focus = true) => {
 	if (index < 0 || index >= slides.value.length) return
 
 	const oldIndex = slideIndex.value
-
-	focusedSlide.value = null
 
 	await resetFocus()
 
 	await router.replace({
 		query: { slide: index + 1 },
 	})
+
+	if (focus) {
+		focusedSlide.value = index
+	} else {
+		focusedSlide.value = null
+	}
 }
 
 const getNewSlide = (toDuplicate = false, layoutId) => {
@@ -410,7 +414,6 @@ const deleteSlide = () => {
 	if (deleteIndex == totalLength - 1) {
 		// if last slide is deleted, switch to previous slide since no slide at current index
 		changeSlide(deleteIndex - 1)
-		focusedSlide.value = deleteIndex - 1
 	}
 }
 
