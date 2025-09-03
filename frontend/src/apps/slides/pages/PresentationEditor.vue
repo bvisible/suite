@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
+import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
@@ -480,6 +480,7 @@ onActivated(() => {
 	loadPresentation(id)
 
 	document.addEventListener('keydown', handleKeyDown)
+	window.addEventListener('beforeunload', handleBeforeUnload)
 })
 
 const updateUnsyncedRecord = () => {
@@ -498,6 +499,7 @@ onDeactivated(async () => {
 	savePresentation()
 
 	document.removeEventListener('keydown', handleKeyDown)
+	window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
 const showLayoutDialog = ref(false)
@@ -541,8 +543,14 @@ const savePresentation = async () => {
 	}
 }
 
+let syncThumbnail = 0
+
 const saveChanges = async () => {
-	if (!isDirty.value || isSaving.value) return
+	if (isSaving.value) return
+	if (!isDirty.value && syncThumbnail == 0) return
+
+	if (isDirty.value) syncThumbnail = 1
+	else syncThumbnail = 0
 
 	await savePresentation()
 }
@@ -564,4 +572,11 @@ watch(
 	},
 	{ immediate: true },
 )
+
+const handleBeforeUnload = (e) => {
+	if (isDirty.value || syncThumbnail > 0) {
+		e.preventDefault()
+		e.returnValue = ''
+	}
+}
 </script>
