@@ -89,7 +89,7 @@
 								v-if="!isCameraOn"
 								class="absolute inset-0 bg-gray-700 flex items-center justify-center"
 							>
-								<Avatar size="lg" :label="userInitials" :image="userAvatar" />
+								<Avatar size="3xl" :label="userInitials" :image="userAvatar" />
 							</div>
 							<div
 								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
@@ -115,18 +115,11 @@
 								v-if="!participant.video_enabled"
 								class="absolute inset-0 flex items-center justify-center bg-gray-700"
 							>
-								<div class="text-white text-center">
-									<div
-										class="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-1"
-									>
-										<span class="text-sm font-semibold">{{
-											participant.initials
-										}}</span>
-									</div>
-									<p class="text-[10px] leading-tight">
-										{{ participant.user_name }}
-									</p>
-								</div>
+								<Avatar
+									size="3xl"
+									:image="participant.avatar"
+									:label="participant.initials"
+								/>
 							</div>
 							<div
 								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
@@ -155,20 +148,15 @@
 							playsinline
 						/>
 						<div
-							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm"
+							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
 						>
 							{{ currentUser?.full_name || currentUser?.name || "You" }}
 						</div>
 						<div
 							v-if="!isCameraOn"
-							class="absolute inset-0 bg-gray-700 flex items-center justify-center"
+							class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
 						>
-							<Avatar
-								size="3xl"
-								:label="userInitials"
-								:image="userAvatar"
-								class="mx-auto mb-4"
-							/>
+							<Avatar size="3xl" :label="userInitials" :image="userAvatar" />
 						</div>
 					</div>
 
@@ -186,25 +174,19 @@
 							playsinline
 						></video>
 						<div
-							v-if="participant.video_enabled"
-							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm"
+							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
 						>
-							{{ participant.user_name }}
+							{{ participant.user_name || participant.user_id }}
 						</div>
 						<div
 							v-if="!participant.video_enabled"
-							class="absolute inset-0 bg-gray-700 flex items-center justify-center"
+							class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
 						>
-							<div class="text-white text-center">
-								<div
-									class="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-2"
-								>
-									<span class="text-white text-xl font-semibold">{{
-										participant.initials
-									}}</span>
-								</div>
-								<p class="text-sm">{{ participant.user_name }}</p>
-							</div>
+							<Avatar
+								size="3xl"
+								:image="participant.avatar"
+								:label="participant.initials"
+							/>
 						</div>
 						<div
 							v-if="!participant.audio_enabled"
@@ -439,7 +421,7 @@ const gridClass = computed(() => {
 });
 
 const userInitials = computed(() => {
-	const name = currentUser.value.full_name || currentUser.value.name || "User";
+	const name = currentUser.value.full_name || currentUser.value.name || "You";
 	return name
 		.split(" ")
 		.map((n) => n[0])

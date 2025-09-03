@@ -197,6 +197,7 @@ export class SFUMeetingManager {
 								this.participants.value.set(p.user_id, {
 									user_id: p.user_id,
 									user_name: p.info?.name || p.user_id,
+									avatar: p.info?.avatar || null,
 									initials: (p.info?.name || p.user_id)
 										.split(" ")
 										.map((n) => n[0])
@@ -388,6 +389,7 @@ export class SFUMeetingManager {
 						participant = {
 							user_id: producer.user_id,
 							user_name: producer.user_id,
+							avatar: producer.info?.avatar || null,
 							initials: String(producer.user_id).substring(0, 2).toUpperCase(),
 							audio_enabled: false,
 							video_enabled: false,
@@ -1065,14 +1067,13 @@ export class SFUMeetingManager {
 			const participant = {
 				user_id: data.participantId,
 				user_name: data.userData?.name || data.participantId,
+				avatar: data.userData?.avatar || null,
 				initials: (data.userData?.name || data.participantId)
 					.split(" ")
 					.map((n) => n[0])
 					.join("")
 					.toUpperCase()
 					.slice(0, 2),
-				// Use undefined as initial state.
-				// man I feel like building sae with hacks on top of hacks
 				audio_enabled: undefined,
 				video_enabled: undefined,
 			};
@@ -1202,6 +1203,7 @@ export class SFUMeetingManager {
 						const participant = {
 							user_id: data.participantId,
 							user_name: data.participantId,
+							avatar: data.userData?.avatar || null,
 							initials: data.participantId.substring(0, 2).toUpperCase(),
 							audio_enabled: false,
 							video_enabled: false,
@@ -1216,6 +1218,8 @@ export class SFUMeetingManager {
 						await new Promise((resolve) => setTimeout(resolve, 200));
 					} else {
 						const existing = this.participants.value.get(data.participantId);
+						if (!existing.avatar && data.userData?.avatar)
+							existing.avatar = data.userData.avatar;
 						if (typeof existing.audio_enabled === "undefined")
 							existing.audio_enabled = false;
 						if (typeof existing.video_enabled === "undefined")
