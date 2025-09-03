@@ -239,3 +239,15 @@ def has_permission(doc, ptype="read", user=None):
 		return doc.owner == user or (doc.is_template and ptype == "read")
 
 	return False
+
+
+@frappe.whitelist()
+def set_public(name, is_public):
+	attachments = frappe.get_all(
+		"File", filters={"attached_to_name": name, "attached_to_doctype": "Presentation"}, pluck="name"
+	)
+	for attachment in attachments:
+		attachment_doc = frappe.get_doc("File", attachment)
+		attachment_doc.is_private = not is_public
+		attachment_doc.save()
+	frappe.db.set_value("Presentation", name, "is_public", is_public)

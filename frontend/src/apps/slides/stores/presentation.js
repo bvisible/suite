@@ -76,6 +76,7 @@ const getPresentationResource = (name) => {
 		},
 		onSuccess(doc) {
 			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+			isPublicPresentation.value = Boolean(doc.is_public)
 		},
 	})
 }
@@ -198,9 +199,7 @@ const initHistory = () => {
 
 const unsyncedPresentationRecord = ref({})
 
-const isPublicPresentation = computed(() => {
-	return presentationDoc.value?.is_public
-})
+const isPublicPresentation = ref(false)
 
 export {
 	presentationId,
