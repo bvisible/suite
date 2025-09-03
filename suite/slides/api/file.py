@@ -55,6 +55,8 @@ def get_file_metadata(src: str) -> tuple[str, int, str]:
 	"""
 	Returns file metadata including path, size, and MIME type.
 	"""
+	if src.startswith("/files"):
+		src = "/public" + src
 	file_path = frappe.get_site_path() + src
 	file_size = get_file_size(file_path)
 	mimetype = mimetypes.guess_type(file_path)[0] or "video/mp4"
