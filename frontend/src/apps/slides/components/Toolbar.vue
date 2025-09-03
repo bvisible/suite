@@ -12,7 +12,11 @@
 		<Tooltip text="Media" :hover-delay="0.7" placement="bottom">
 			<FileUploader
 				:fileTypes="allowedImageFileTypes.concat(['video/*'])"
-				:uploadArgs="{ doctype: 'Presentation', docname: presentationId, private: true }"
+				:uploadArgs="{
+					doctype: 'Presentation',
+					docname: presentationId,
+					private: !isPublicPresentation,
+				}"
 				@success="(file) => handleUploadSuccess(file)"
 			>
 				<template #default="{ openFileSelector }">
@@ -52,7 +56,7 @@ import { ref } from 'vue'
 import { Type, ImagePlus, Trash, Copy, Square } from 'lucide-vue-next'
 
 import { Tooltip, FileUploader, toast } from 'frappe-ui'
-import { presentationId } from '@/stores/presentation'
+import { isPublicPresentation, presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
 

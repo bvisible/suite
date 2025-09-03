@@ -111,8 +111,11 @@ const getActionIconClasses = (action) => {
 
 const previewStyles = computed(() => {
 	const thumbnail = slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail
+	const isPublic = props.presentation.is_public
+	const requiresPrefix = !isPublic && thumbnail && thumbnail.startsWith('/files/')
+	const thumbnailUrl = requiresPrefix ? `/private${thumbnail}` : thumbnail
 	return {
-		backgroundImage: `url(${thumbnail})`,
+		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
 		backgroundPosition: 'center',
 	}

@@ -15,7 +15,7 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
-import { presentationId } from './presentation'
+import { isPublicPresentation, presentationId } from './presentation'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions } from '@/stores/tiptapSetup'
@@ -145,6 +145,7 @@ const savePoster = createResource({
 		presentation_name: presentationId.value,
 		base64_data: posterDataUrl,
 		prefix: 'poster',
+		is_private: !isPublicPresentation.value,
 	}),
 })
 
@@ -217,6 +218,7 @@ const getVideoPoster = async (videoUrl) => {
 }
 
 const addMediaElement = async (file, type) => {
+	const src = isPublicPresentation.value ? file.file_url : file.file_url.replace('/private', '')
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
@@ -225,7 +227,7 @@ const addMediaElement = async (file, type) => {
 		top: 0,
 		opacity: 100,
 		type: type,
-		src: file.file_url,
+		src: src,
 		attachmentName: file.name,
 		borderStyle: 'none',
 		borderWidth: 0,
@@ -237,7 +239,8 @@ const addMediaElement = async (file, type) => {
 		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
-		element.poster = await getVideoPoster(file.file_url)
+		const posterURL = await getVideoPoster(file.file_url)
+		element.poster = isPublicPresentation.value ? posterURL : posterURL.replace('/private', '')
 		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
@@ -250,10 +253,14 @@ const addMediaElement = async (file, type) => {
 }
 
 const replaceMediaElement = async (element, fileDoc) => {
-	element.src = fileDoc.file_url
+	const src = isPublicPresentation.value
+		? fileDoc.file_url
+		: fileDoc.file_url.replace('/private', '')
+	element.src = src
 	element.attachmentName = fileDoc.name
 	if (element.type == 'video') {
-		element.poster = await getVideoPoster(fileDoc.file_url)
+		const posterURL = await getVideoPoster(fileDoc.file_url)
+		element.poster = isPublicPresentation.value ? posterURL : posterURL.replace('/private', '')
 	}
 }
 
@@ -395,7 +402,7 @@ const handlePaste = (e) => {
 	e.preventDefault()
 
 	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) handleUploadedMedia(clipboardItems)
+	if (clipboardItems) handleUploadedMedia(clipboardItems, isPublicPresentation.value)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
 	if (clipboardText && !focusElementId.value) handlePastedText(clipboardText)

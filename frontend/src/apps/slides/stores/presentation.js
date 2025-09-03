@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
@@ -198,6 +198,10 @@ const initHistory = () => {
 
 const unsyncedPresentationRecord = ref({})
 
+const isPublicPresentation = computed(() => {
+	return presentationDoc.value?.is_public
+})
+
 export {
 	presentationId,
 	inSlideShow,
@@ -215,4 +219,5 @@ export {
 	initHistory,
 	ignoreUpdates,
 	unsyncedPresentationRecord,
+	isPublicPresentation,
 }

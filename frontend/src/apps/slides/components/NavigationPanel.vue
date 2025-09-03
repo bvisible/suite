@@ -58,7 +58,7 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
-import { ignoreUpdates } from '@/stores/presentation'
+import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
@@ -137,8 +137,11 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
+	const isPublic = isPublicPresentation.value
+	const requiresPrefix = !isPublic && s.thumbnail && s.thumbnail.startsWith('/files/')
+	const thumbnailUrl = requiresPrefix ? `/private${s.thumbnail}` : s.thumbnail
 	return {
-		backgroundImage: `url(${s.thumbnail})`,
+		backgroundImage: `url(${thumbnailUrl})`,
 		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
 		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
 	}
