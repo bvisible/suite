@@ -36,8 +36,8 @@ router.beforeEach(async (to, from, next) => {
 	let user = null;
 	if (isLoggedIn || to.meta?.requiresAdmin) {
 		try {
-			if (!userResource.data) {
-				await userResource.promise;
+			if (!userResource.fetched) {
+				await userResource.fetch();
 			}
 			user = userResource.data;
 		} catch (error) {
