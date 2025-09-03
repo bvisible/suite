@@ -28,6 +28,12 @@ const routes = [
 		props: withPresentationProps,
 	},
 	{
+		path: '/presentation/view/:presentationId/:slug?',
+		name: 'PresentationView',
+		component: () => import('@/pages/PresentationEditor.vue'),
+		props: withPresentationProps,
+	},
+	{
 		path: '/slideshow/:presentationId',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
@@ -46,6 +52,7 @@ let router = createRouter({
 })
 
 const hasAccess = async (presentationId: string) => {
+	if (!session.isLoggedIn) return false
 	try {
 		const response = await createResource({
 			url: "frappe.client.has_permission",
@@ -62,40 +69,71 @@ const hasAccess = async (presentationId: string) => {
 	}
 }
 
+const isPublicPresentation = async (presentationId: string) => {
+	try {
+		const response = await createResource({
+			url: "slides.slides.doctype.presentation.presentation.is_public_presentation",
+			method: "GET",
+		}).submit({
+			doctype: "Presentation",
+			name: presentationId,
+		})
+		return response
+	} catch (error) {
+		console.error('Failed to fetch presentation access level:', error)
+		return false
+	}
+}
+
 let previousRoute = null
 
 
 router.beforeEach(async (to, from, next) => {
 	previousRoute = from
+
 	const isLoggedIn = session.isLoggedIn
+
+	if (isLoggedIn && to.path === '/login') {
+		return next({ name: 'Home' })
+	}
+
+	const protectedRoutes = ['PresentationEditor', 'Slideshow', 'PresentationView', 'Home']
+	if (!protectedRoutes.includes(to.name as string)) {
+		return next()
+	}
+
+	if (['Slideshow', 'PresentationView', 'PresentationEditor'].includes(to.name as string)) {
+		const canAccess = await hasAccess(to.params.presentationId as string)
+		if (canAccess && ['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
+			return next()
+		} else if (canAccess) {
+			return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
+		}
+		else {
+			const isPublic = await isPublicPresentation(to.params.presentationId as string)
+			if (isPublic && ['Slideshow', 'PresentationView'].includes(to.name as string)) {
+				return next()
+			} else if (isPublic) {
+				return next({ name: 'PresentationView', params: to.params, query: to.query } )
+			} else {
+				return next({ name: 'NotPermitted' })
+			}
+		}
+	}
 
 	if (!isLoggedIn) {
 		if (to.path !== '/login') window.location.href = '/login?redirect-to=' + to.path
-		next()
-	} else {
-		if (session.isSlidesUser === null) {
-			await session.setIsSlidesUser()
-		}
-
-		if (!session.isSlidesUser && to.name !== 'NotPermitted') {
-			next({ name: 'NotPermitted' })
-			return
-		}
-
-		if (to.path === '/login') {
-			next({ name: 'Home' })
-		} else if (['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
-			const canAccess = await hasAccess(to.params.presentationId as string)
-
-			if (canAccess) {
-				next()
-			} else {
-				next({ name: 'NotPermitted' })
-			}
-		} else {
-			next()
-		}
+		return next()
 	}
+
+	if (session.isSlidesUser === null) {
+		await session.setIsSlidesUser()
+	}
+
+	if (!session.isSlidesUser && to.name !== 'NotPermitted') {
+		return next({ name: 'NotPermitted' })
+	}
+	return next()
 })
 
 export { router, previousRoute }

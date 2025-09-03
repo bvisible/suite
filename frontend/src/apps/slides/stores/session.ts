@@ -12,7 +12,12 @@ const sessionUser = () => {
 }
 
 const setIsSlidesUser = async () => {
-	if (!session.user || session.isSlidesUser !== null) return
+	if (session.isSlidesUser !== null) return
+
+	if (!session.isLoggedIn) {
+		session.isSlidesUser = false
+		return
+	}
 
 	try {
 		const response = await call('slides.api.is_slides_user')
