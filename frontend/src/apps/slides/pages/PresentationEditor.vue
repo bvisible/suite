@@ -7,6 +7,9 @@
 			<template #default>
 				<PresentationHeader :title="presentationDoc?.title" />
 			</template>
+			<template #actions>
+				<SharePopover v-if="presentationDoc" />
+			</template>
 		</Navbar>
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
@@ -62,6 +65,7 @@ import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import SharePopover from '@/components/SharePopover.vue'
 
 import {
 	presentationId,
