@@ -3,14 +3,8 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<Navbar :primaryButton="primaryButtonProps">
-			<template #default>
-				<PresentationHeader :title="presentationDoc?.title" />
-			</template>
-			<template #actions>
-				<SharePopover v-if="presentationDoc" />
-			</template>
-		</Navbar>
+		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow" />
+
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
 				ref="slideContainer"
@@ -56,16 +50,12 @@ import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
 import { toast } from 'frappe-ui'
 
-import { Presentation } from 'lucide-vue-next'
-
-import Navbar from '@/components/Navbar.vue'
-import PresentationHeader from '@/components/PresentationHeader.vue'
+import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
-import SharePopover from '@/components/SharePopover.vue'
 
 import {
 	presentationId,
@@ -112,12 +102,6 @@ const { activeEditor, toggleMark } = useTextEditor()
 
 let autosaveInterval = null
 let thumbnailInterval = null
-
-const primaryButtonProps = {
-	label: 'Present',
-	icon: Presentation,
-	onClick: () => startSlideShow(),
-}
 
 const props = defineProps({
 	presentationId: String,
@@ -308,8 +292,10 @@ const handleKeyDown = (e) => {
 }
 
 const startSlideShow = async () => {
-	await resetFocus()
-	saveChanges()
+	if (!readonlyMode.value) {
+		await resetFocus()
+		saveChanges()
+	}
 
 	router.replace({
 		name: 'Slideshow',
@@ -506,11 +492,13 @@ const updateUnsyncedRecord = () => {
 }
 
 onDeactivated(async () => {
-	updateUnsyncedRecord()
-	clearInterval(autosaveInterval)
-	clearInterval(thumbnailInterval)
-	await resetFocus()
-	savePresentation()
+	if (!readonlyMode.value) {
+		updateUnsyncedRecord()
+		clearInterval(autosaveInterval)
+		clearInterval(thumbnailInterval)
+		await resetFocus()
+		savePresentation()
+	}
 
 	document.removeEventListener('keydown', handleKeyDown)
 })
