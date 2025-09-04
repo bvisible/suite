@@ -208,10 +208,8 @@ export class SFUMeetingManager {
 										typeof p.info?.audio_enabled === "boolean"
 											? p.info.audio_enabled
 											: false,
-									video_enabled:
-										typeof p.info?.video_enabled === "boolean"
-											? p.info.video_enabled
-											: false,
+									// Never trust roster for camera state; set false until a non-screen video producer is observed
+									video_enabled: false,
 								});
 							}
 						}
@@ -272,7 +270,10 @@ export class SFUMeetingManager {
 				};
 			}
 			if (data.kind === "audio") participant.audio_enabled = !data.paused;
-			if (data.kind === "video") participant.video_enabled = !data.paused;
+			if (data.kind === "video") {
+				const isScreen = !!data.isScreen || data.appData?.type === "screen";
+				if (!isScreen) participant.video_enabled = !data.paused; // only set for real camera
+			}
 			this.participants.value.set(data.participantId, { ...participant });
 			this.participants.value = new Map(this.participants.value);
 			await nextTick();
@@ -379,9 +380,13 @@ export class SFUMeetingManager {
 
 			if (existingResult?.subscriptions?.length) {
 				console.log("Processing existing subscriptions...");
-
 				for (const { consumer, producer } of existingResult.subscriptions) {
 					if (!producer?.user_id) continue;
+
+					// Determine if this existing producer represents a screen share BEFORE mutating participant flags
+					const isScreen =
+						!!producer.isScreen ||
+						(producer.kind === "video" && producer.appData?.type === "screen");
 
 					// Ensure participant exists with sensible defaults
 					let participant = this.participants.value.get(producer.user_id);
@@ -396,11 +401,18 @@ export class SFUMeetingManager {
 						};
 					}
 
-					// Initialize flags from producer paused state
+					// Initialize flags from producer paused state. Only set video_enabled for NON-screen video producers.
 					if (consumer.kind === "audio") {
 						participant.audio_enabled = !producer.paused;
-					} else if (consumer.kind === "video") {
+					} else if (consumer.kind === "video" && !isScreen) {
 						participant.video_enabled = !producer.paused;
+					} else if (isScreen) {
+						// Ensure a screen-share-only participant (no camera) stays marked as video off
+						participant.video_enabled =
+							participant.video_enabled &&
+							participant.video_enabled !== undefined
+								? participant.video_enabled
+								: false;
 					}
 
 					// Save participant and force reactivity
@@ -417,42 +429,59 @@ export class SFUMeetingManager {
 					} catch (_) {}
 
 					// Attach streams
-					// Detect screen share for existing producer
-					const isScreen =
-						!!producer.isScreen ||
-						(producer.kind === "video" && producer.appData?.type === "screen");
 					consumer.isScreen = isScreen;
-					if (consumer.kind === "video") {
-						if (isScreen) {
-							// Track screen share producer so UI logic can locate it
-							this.screenShareProducers.set(producer.id, {
-								participantId: producer.user_id,
-							});
-							// Fire handler similar to live producer_created path
-							if (this.eventHandlers.onScreenShareProducerAdded) {
-								try {
-									this.eventHandlers.onScreenShareProducerAdded({
-										participantId: producer.user_id,
-										producerId: producer.id,
-										consumerId: consumer.id,
-										consumer,
-									});
-								} catch (e) {
-									console.warn(
-										"Failed invoking onScreenShareProducerAdded for existing producer",
-										e,
-									);
-								}
+					if (consumer.kind === "video" && isScreen) {
+						// Track screen share producer so UI logic can locate it & fire handler
+						this.screenShareProducers.set(producer.id, {
+							participantId: producer.user_id,
+						});
+						if (this.eventHandlers.onScreenShareProducerAdded) {
+							try {
+								this.eventHandlers.onScreenShareProducerAdded({
+									participantId: producer.user_id,
+									producerId: producer.id,
+									consumerId: consumer.id,
+									consumer,
+								});
+							} catch (e) {
+								console.warn(
+									"Failed invoking onScreenShareProducerAdded for existing producer",
+									e,
+								);
 							}
 						}
-						await this.attachVideoStream(
-							producer.user_id,
-							consumer,
-							"existing",
-						);
+					}
+					if (consumer.kind === "video") {
+						if (!isScreen) {
+							await this.attachVideoStream(
+								producer.user_id,
+								consumer,
+								"existing",
+							);
+						}
 					} else if (consumer.kind === "audio") {
 						await this.attachAudioStream(producer.user_id, consumer);
 					}
+				}
+
+				// Final guard: ensure participants without a non-screen video consumer have video_enabled=false
+				try {
+					const cameraConsumersByParticipant = new Set(
+						Array.from(this.consumers.value.values())
+							.filter((c) => c.kind === "video" && c.isScreen !== true)
+							.map((c) => c.participantId),
+					);
+					for (const [pid, participant] of this.participants.value.entries()) {
+						if (!cameraConsumersByParticipant.has(pid)) {
+							if (participant.video_enabled) {
+								participant.video_enabled = false;
+								this.participants.value.set(pid, { ...participant });
+							}
+						}
+					}
+					this.participants.value = new Map(this.participants.value);
+				} catch (e) {
+					console.warn("Camera consumer guard failed:", e?.message || e);
 				}
 			}
 
@@ -1419,7 +1448,21 @@ export class SFUMeetingManager {
 						}
 					}
 				} else if (data.action === "video_off" || data.action === "video_on") {
-					participant.video_enabled = data.action === "video_on";
+					// Only apply camera state if there's a non-screen video consumer present
+					const hasCameraConsumer = Array.from(
+						consumersRef.value.values(),
+					).some(
+						(c) =>
+							c.participantId === data.participantId &&
+							c.kind === "video" &&
+							c.isScreen !== true,
+					);
+					if (hasCameraConsumer) {
+						participant.video_enabled = data.action === "video_on";
+					} else {
+						// Ignore video_on for screen-share-only case; ensure remains false on video_off
+						if (data.action === "video_off") participant.video_enabled = false;
+					}
 
 					for (const [consumerId, consumer] of consumersRef.value.entries()) {
 						if (
@@ -1427,6 +1470,7 @@ export class SFUMeetingManager {
 							consumer.kind === "video"
 						) {
 							if (consumer.isScreen) {
+								// Keep screen share always resumed regardless of camera toggles
 								if (consumer.paused) {
 									try {
 										await consumer.resume();
@@ -1438,11 +1482,11 @@ export class SFUMeetingManager {
 								}
 								continue; // skip camera pause/resume logic
 							}
+							if (!hasCameraConsumer) continue; // no camera to toggle
 							if (data.action === "video_off") {
 								try {
 									await consumer.pause();
 								} catch (_) {}
-								// soft-pause: keep the consumer client-side so resume can happen locally without re-subscribing
 								consumer._softPaused = true;
 							} else if (data.action === "video_on") {
 								try {
