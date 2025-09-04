@@ -598,6 +598,15 @@ const screenShareSidebarStyle = computed(() => {
 	// subtract total vertical gaps (rows-1)*0.5rem (gap-2 = 0.5rem) from 100%
 	const gapRem = 0.5;
 	const gapTotal = (rows - 1) * gapRem;
+
+	// if only 2/3 users cap it to 25%
+	if (columns === 1 && visible <= 4) {
+		return {
+			display: "grid",
+			"grid-auto-rows": "25%",
+		};
+	}
+
 	return {
 		display: "grid",
 		"grid-auto-rows":
