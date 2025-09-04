@@ -51,7 +51,7 @@
 
 <script setup>
 import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
 import { toast } from 'frappe-ui'
@@ -80,6 +80,7 @@ import {
 	ignoreUpdates,
 	unsyncedPresentationRecord,
 	inSlideShow,
+	readonlyMode,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -478,10 +479,20 @@ const loadPresentation = async (id) => {
 	initIntervals()
 }
 
+const loadPresentationInReadonlyMode = async (id) => {
+	presentationDoc.value = await initPresentationDoc(id, true)
+	setSlideIndex(props.activeSlideId)
+	updateRoute(presentationDoc.value.slug)
+}
+
+const route = useRoute()
+
 onActivated(() => {
+	readonlyMode.value = route.name === 'PresentationView'
 	const id = props.presentationId
 	if (!id) return
-	loadPresentation(id)
+	if (readonlyMode.value) loadPresentationInReadonlyMode(id)
+	else loadPresentation(id)
 
 	document.addEventListener('keydown', handleKeyDown)
 })

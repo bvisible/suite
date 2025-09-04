@@ -81,6 +81,29 @@ const getPresentationResource = (name) => {
 	})
 }
 
+const getPublicPresentationResource = (name) => {
+	return createResource({
+		url: 'slides.slides.doctype.presentation.presentation.get_public_presentation',
+		method: 'GET',
+		auto: false,
+		makeParams: () => {
+			return { name: name }
+		},
+		transform(doc) {
+			for (const slide of doc.slides || []) {
+				slide.elements = parseElements(slide.elements)
+				slide.transitionDuration = slide.transition_duration
+				// remove the transition_duration field to avoid confusion
+				delete slide.transition_duration
+			}
+		},
+		onSuccess(doc) {
+			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+			isPublicPresentation.value = Boolean(doc.is_public)
+		},
+	})
+}
+
 const hasSlideChanged = (originalState, slideState) => {
 	const keysToCompare = ['background', 'transition', 'transitionDuration']
 
@@ -145,11 +168,17 @@ const layoutResource = createResource({
 
 const presentationResource = ref(null)
 
-const initPresentationDoc = async (id) => {
+const initPresentationDoc = async (id, readonly = false) => {
 	presentationId.value = id
-	presentationResource.value = getPresentationResource(id)
-	await presentationResource.value.get.fetch()
-	return presentationResource.value.doc
+	if (readonly) {
+		presentationResource.value = getPublicPresentationResource(id)
+		await presentationResource.value.fetch()
+		return presentationResource.value.data
+	} else {
+		presentationResource.value = getPresentationResource(id)
+		await presentationResource.value.get.fetch()
+		return presentationResource.value.doc
+	}
 }
 
 let historyControl = null
@@ -201,6 +230,8 @@ const unsyncedPresentationRecord = ref({})
 
 const isPublicPresentation = ref(false)
 
+const readonlyMode = ref(false)
+
 export {
 	presentationId,
 	inSlideShow,
@@ -219,4 +250,5 @@ export {
 	ignoreUpdates,
 	unsyncedPresentationRecord,
 	isPublicPresentation,
+	readonlyMode,
 }

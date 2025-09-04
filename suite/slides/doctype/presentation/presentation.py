@@ -256,3 +256,11 @@ def set_public(name, is_public):
 @frappe.whitelist(allow_guest=True)
 def is_public_presentation(name):
 	return frappe.db.get_value("Presentation", name, "is_public") == 1
+
+
+@frappe.whitelist(allow_guest=True)
+def get_public_presentation(name):
+	if not is_public_presentation(name):
+		frappe.throw("Presentation is not public", frappe.PermissionError)
+
+	return frappe.get_doc("Presentation", name).as_dict()
