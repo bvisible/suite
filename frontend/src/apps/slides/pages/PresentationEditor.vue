@@ -14,6 +14,7 @@
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
+				:readonlyMode="readonlyMode"
 				:showNavigator="showNavigator"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
