@@ -5,6 +5,7 @@
 		<div ref="slideRef" :style="slideStyles" :class="slideClasses">
 			<SelectionBox
 				ref="selectionBox"
+				v-if="!readonlyMode"
 				:isDragging
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
@@ -125,6 +126,7 @@ const mediaDragOver = ref(false)
 
 const showOverlay = (e) => {
 	e.preventDefault()
+	if (props.readonlyMode) return
 	mediaDragOver.value = true
 }
 
@@ -181,6 +183,7 @@ const triggerDrag = (e, id) => {
 }
 
 const handleMouseDown = (e, element) => {
+	if (props.readonlyMode) return
 	const id = element?.id
 
 	e.stopPropagation()

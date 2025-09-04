@@ -329,9 +329,10 @@ const changeSlide = async (index) => {
 
 	const oldIndex = slideIndex.value
 
-	focusedSlide.value = null
-
-	await resetFocus()
+	if (!readonlyMode.value) {
+		focusedSlide.value = null
+		await resetFocus()
+	}
 
 	await router.replace({
 		query: { slide: index + 1 },
