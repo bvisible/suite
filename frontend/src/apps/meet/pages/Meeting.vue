@@ -115,7 +115,7 @@
 							<video
 								:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
 								:participant-id="participant.user_id"
-								class="w-full h-full object-cover flex-1"
+								class="w-full h-full object-cover flex-1 remote-video"
 								autoplay
 								playsinline
 							></video>
@@ -203,7 +203,7 @@
 						<video
 							:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
 							:participant-id="participant.user_id"
-							class="w-full h-full object-cover"
+							class="w-full h-full object-cover remote-video"
 							autoplay
 							playsinline
 						></video>
@@ -609,8 +609,10 @@ const screenShareSidebarStyle = computed(() => {
 
 	return {
 		display: "grid",
+		// Always enforce a row height. When rows==1 previously it was 'auto',
+		// which could collapse to 0 until the first video painted, making it appear transparent.
 		"grid-auto-rows":
-			rows === 1 ? undefined : `calc((100% - ${gapTotal}rem) / ${rows})`,
+			rows === 1 ? "1fr" : `calc((100% - ${gapTotal}rem) / ${rows})`,
 	};
 });
 
@@ -1263,5 +1265,22 @@ const toggleScreenShare = async () => {
 /* Prevent layout jump when leaving */
 .tile-leave-active {
 	position: relative;
+}
+
+/* Firefox blank video mitigation */
+.remote-video {
+	background-color: #000; /* ensure paint layer */
+	will-change: transform;
+	transform: translateZ(0); /* create its own layer */
+}
+
+@-moz-document url-prefix() {
+	.remote-video {
+		/* Slight 3d translate helps Firefox keep the frame updated */
+		transform: translate3d(0, 0, 0);
+	}
+}
+video.remote-video::-moz-focus-inner {
+	border: 0;
 }
 </style>
