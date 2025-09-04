@@ -130,7 +130,7 @@ const isSlideActive = (slide) => {
 }
 
 const handleSlideClick = async (slide) => {
-	if (isSlideActive(slide)) {
+	if (isSlideActive(slide) && !props.readonlyMode) {
 		resetFocus()
 		focusedSlide.value = slideIndex.value
 		return

@@ -296,6 +296,21 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
+const handleKeyDownForReadonly = (e) => {
+	switch (e.key) {
+		case 'ArrowUp':
+			changeSlide(slideIndex.value - 1)
+			break
+		case 'ArrowDown':
+			changeSlide(slideIndex.value + 1)
+			break
+		case 'F5':
+			e.preventDefault()
+			startSlideShow()
+			break
+	}
+}
+
 const startSlideShow = async () => {
 	if (!readonlyMode.value) {
 		await resetFocus()
@@ -483,10 +498,13 @@ onActivated(() => {
 	readonlyMode.value = route.name === 'PresentationView'
 	const id = props.presentationId
 	if (!id) return
-	if (readonlyMode.value) loadPresentationInReadonlyMode(id)
-	else loadPresentation(id)
-
-	document.addEventListener('keydown', handleKeyDown)
+	if (readonlyMode.value) {
+		loadPresentationInReadonlyMode(id)
+		document.addEventListener('keydown', handleKeyDownForReadonly)
+	} else {
+		loadPresentation(id)
+		document.addEventListener('keydown', handleKeyDown)
+	}
 })
 
 const updateUnsyncedRecord = () => {
@@ -498,15 +516,17 @@ const updateUnsyncedRecord = () => {
 }
 
 onDeactivated(async () => {
-	if (!readonlyMode.value) {
+	if (readonlyMode.value) {
+		document.removeEventListener('keydown', handleKeyDownForReadonly)
+	} else {
 		updateUnsyncedRecord()
 		clearInterval(autosaveInterval)
 		clearInterval(thumbnailInterval)
 		await resetFocus()
 		savePresentation()
-	}
 
-	document.removeEventListener('keydown', handleKeyDown)
+		document.removeEventListener('keydown', handleKeyDown)
+	}
 })
 
 const showLayoutDialog = ref(false)
