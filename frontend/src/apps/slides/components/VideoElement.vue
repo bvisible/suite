@@ -45,7 +45,7 @@ import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { inSlideShow, isPublicPresentation } from '@/stores/presentation'
+import { inSlideShow, isPublicPresentation, readonlyMode } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
 
 const element = defineModel('element', {
@@ -117,7 +117,7 @@ const handleVideoClick = (e) => {
 	// in slideshow, always toggle playing on click anywhere
 	// in editor, toggle playing only when center play button is clicked
 
-	if (inSlideShow.value || (isActive && e.target !== overlay.value)) {
+	if (readonlyMode.value || inSlideShow.value || (isActive && e.target !== overlay.value)) {
 		e.stopPropagation()
 		togglePlaying()
 	}
@@ -147,7 +147,7 @@ const showProgressBar = computed(() => {
 	// During slideshow, show it only if user is hovering over video
 	const slideshowHovering = inSlideShow.value && hoverOver.value
 
-	return isActive || slideshowHovering
+	return isActive || slideshowHovering || (readonlyMode.value && !inSlideShow.value)
 })
 
 const progressBarRef = useTemplateRef('progressBar')

@@ -10,7 +10,8 @@
 		<div
 			ref="scrollableArea"
 			v-if="slides"
-			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
+			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
+			:class="{ 'pb-14': !props.readonlyMode }"
 			:style="scrollbarStyles"
 		>
 			<template v-if="props.readonlyMode">
