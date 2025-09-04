@@ -25,7 +25,7 @@
 			/>
 		</div>
 		<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
-		<OverflowContentOverlay />
+		<OverflowContentOverlay :transform="transform" :readonlyMode="readonlyMode" />
 	</div>
 </template>
 
@@ -64,6 +64,10 @@ import { useSnapping } from '@/composables/useSnapping'
 
 const props = defineProps({
 	highlight: Boolean,
+	readonlyMode: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['update:hasOngoingInteraction'])

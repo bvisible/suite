@@ -8,6 +8,7 @@
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
 				ref="slideContainer"
+				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
 			/>
@@ -22,6 +23,7 @@
 			/>
 
 			<Toolbar
+				v-if="!readonlyMode"
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
@@ -29,6 +31,7 @@
 			/>
 
 			<PropertiesPanel
+				v-if="!readonlyMode"
 				class="absolute bottom-0 right-0 top-0"
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
