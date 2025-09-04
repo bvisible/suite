@@ -8,6 +8,7 @@
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
 				ref="slideContainer"
+				v-if="presentationDoc"
 				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"

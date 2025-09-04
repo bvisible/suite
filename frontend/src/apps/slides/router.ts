@@ -105,6 +105,9 @@ router.beforeEach(async (to, from, next) => {
 	if (['Slideshow', 'PresentationView', 'PresentationEditor'].includes(to.name as string)) {
 		const canAccess = await hasAccess(to.params.presentationId as string)
 		if (canAccess && ['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
+			if (to.name === 'Slideshow' && !from.name) {
+				return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
+			}
 			return next()
 		} else if (canAccess) {
 			return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
@@ -112,6 +115,9 @@ router.beforeEach(async (to, from, next) => {
 		else {
 			const isPublic = await isPublicPresentation(to.params.presentationId as string)
 			if (isPublic && ['Slideshow', 'PresentationView'].includes(to.name as string)) {
+				if (to.name === 'Slideshow' && !from.name) {
+					return next({ name: 'PresentationView', params: to.params, query: to.query } )
+				}
 				return next()
 			} else if (isPublic) {
 				return next({ name: 'PresentationView', params: to.params, query: to.query } )

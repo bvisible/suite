@@ -85,20 +85,16 @@ const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBo
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(slideContainerRef, slideRef)
 
 const slideClasses = computed(() => {
-	const classes = [
-		'absolute',
-		'left-[calc(50%-512px)]',
-		'top-[calc(50%-270px)]',
-		'h-[540px]',
-		'w-[960px]',
-		'shadow-2xl',
-		'shadow-gray-400',
-	]
+	const classes = ['absolute', 'h-[540px]', 'w-[960px]', 'shadow-2xl', 'shadow-gray-400']
 
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
 
-	return [...classes, outlineClasses]
+	const positionClasses = props.readonlyMode
+		? ['left-[calc(50%-384.5px)]', 'top-[calc(50%-270px)]']
+		: ['left-[calc(50%-512px)]', 'top-[calc(50%-270px)]']
+
+	return [...classes, outlineClasses, positionClasses]
 })
 
 const isSelecting = ref(false)

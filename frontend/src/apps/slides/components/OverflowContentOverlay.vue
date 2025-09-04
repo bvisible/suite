@@ -59,7 +59,9 @@ const rectAttributes = computed(() => {
 		.split(',')
 		.map((num) => parseFloat(num))
 
-	const tx = (windowWidth.value - 960) / 2 - 32
+	const factor = props.readonlyMode ? -95.5 : 32
+
+	const tx = (windowWidth.value - 960) / 2 - factor
 	const ty = (windowHeight.value - 540) / 2 - 22.5
 
 	const combinedTx = e + tx
