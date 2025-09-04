@@ -463,20 +463,38 @@ let sfuManager = null;
 
 // Computed grid class based on participant count
 const gridClass = computed(() => {
-	const count = participants.value.size + 1; // include local
+	const totalVisibleTiles =
+		1 + // local
+		gridRemotesDisplay.value.list.length +
+		(gridRemotesDisplay.value.extra > 0 ? 1 : 0); // grouped tile if present
 	let cols;
-	if (count <= 1) cols = 1;
-	else if (count === 2) cols = 2;
-	else if (count <= 4) cols = 2;
-	else if (count <= 6) cols = 3;
-	else if (count <= 9)
-		cols = 3; // 3x3 fits up to 9
-	else cols = 4; // 4 columns for 10+
+	if (totalVisibleTiles <= 1) cols = 1;
+	else if (totalVisibleTiles === 2) cols = 2;
+	else if (totalVisibleTiles <= 4)
+		cols = 2; // 2x2
+	else if (totalVisibleTiles <= 9)
+		cols = 3; // up to 3x3
+	else cols = 4; // 4 columns for 10+ (capped at 4x4 with grouping)
 	return `grid-cols-${cols}`;
 });
 
-// Style to enforce equal row heights – each implicit row is 1fr (prevents last row shrink)
-const callGridStyle = computed(() => ({ "grid-auto-rows": "1fr" }));
+// Enforce equal row heights and explicit column template.
+const callGridStyle = computed(() => {
+	const totalVisibleTiles =
+		1 +
+		gridRemotesDisplay.value.list.length +
+		(gridRemotesDisplay.value.extra > 0 ? 1 : 0);
+	let cols;
+	if (totalVisibleTiles <= 1) cols = 1;
+	else if (totalVisibleTiles === 2) cols = 2;
+	else if (totalVisibleTiles <= 4) cols = 2;
+	else if (totalVisibleTiles <= 9) cols = 3;
+	else cols = 4;
+	return {
+		"grid-auto-rows": "1fr",
+		"grid-template-columns": `repeat(${cols}, minmax(0, 1fr))`,
+	};
+});
 
 const userInitials = computed(() => {
 	const name = currentUser.value.full_name || currentUser.value.name || "You";
@@ -489,13 +507,7 @@ const userInitials = computed(() => {
 });
 const userAvatar = computed(() => currentUser.value.avatar || "");
 
-const participantsList = computed(() => {
-	return Array.from(participants.value.values());
-});
-
-// Normal grid display logic: if total (local + remotes) > 16, reserve the 16th tile for grouping
-// Result: Max visible tiles = 16 => 1 local + 14 remote participant tiles + 1 group tile
-// Preference: show all video-on remotes first; if they exceed capacity, excess video-on also get grouped.
+// Normal grid logic: cap visible tiles at 16 (4x4); extra participants are grouped.
 const gridRemotesDisplay = computed(() => {
 	const remotes = Array.from(participants.value.values());
 	const total = remotes.length + 1; // include local
