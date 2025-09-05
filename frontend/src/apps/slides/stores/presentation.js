@@ -1,12 +1,12 @@
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
 import { slides, slideIndex } from './slide'
-import { activeElementIds } from '@/stores/element'
+import { activeElementIds, normalizeZIndices } from '@/stores/element'
 
-import { activeEditor } from '@/composables/useTextEditor'
+import { cloneObj } from '@/utils/helpers'
 
 const presentationDoc = ref()
 
@@ -46,14 +46,19 @@ const updatePresentationTitle = async (id, newTitle) => {
 
 const parseElements = (value) => {
 	if (!value) return []
-	if (typeof value === 'string') {
+
+	let parsed = []
+	if (Array.isArray(value)) {
+		parsed = value
+	} else if (typeof value === 'string') {
 		try {
-			return JSON.parse(value)
+			parsed = JSON.parse(value)
 		} catch {
 			return []
 		}
 	}
-	return Array.isArray(value) ? value : []
+
+	return normalizeZIndices(parsed)
 }
 
 const getPresentationResource = (name) => {
@@ -154,13 +159,11 @@ const historyState = ref({
 	slides: [],
 })
 
-const deepClone = (obj) => JSON.parse(JSON.stringify(obj))
-
 const updateHistoryState = (slides, activeSlide, elementIds) => {
 	const slidesClone = [...slides].map((slide, idx) => {
 		return {
 			...slide,
-			elements: slide.elements.map((el) => deepClone(el)),
+			elements: slide.elements.map((el) => cloneObj(el)),
 			thumbnail: idx == activeSlide ? '' : slide.thumbnail,
 		}
 	})

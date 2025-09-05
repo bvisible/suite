@@ -85,18 +85,6 @@
 			/>
 		</template>
 	</CollapsibleSection>
-
-	<CollapsibleSection title="Other" :initialState="false">
-		<template #default>
-			<SliderInput
-				label="Opacity"
-				:rangeStart="0"
-				:rangeEnd="100"
-				:modelValue="activeElement.opacity"
-				@update:modelValue="(value) => setProperty('opacity', value)"
-			/>
-		</template>
-	</CollapsibleSection>
 </template>
 
 <script setup>
@@ -107,7 +95,6 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
-import { computed } from 'vue'
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 

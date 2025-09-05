@@ -103,18 +103,6 @@
 			/>
 		</template>
 	</CollapsibleSection>
-
-	<CollapsibleSection title="Other" :initialState="false">
-		<template #default>
-			<SliderInput
-				label="Opacity"
-				:rangeStart="0"
-				:rangeEnd="100"
-				:modelValue="parseFloat(editorStyles.opacity)"
-				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
-			/>
-		</template>
-	</CollapsibleSection>
 </template>
 
 <script setup>
@@ -139,7 +127,7 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { activeElementIds, focusElementId, activeElement } from '@/stores/element'
+import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
 import { useTextEditor } from '@/composables/useTextEditor'

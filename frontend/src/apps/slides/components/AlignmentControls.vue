@@ -1,25 +1,6 @@
 <template>
-	<CollapsibleSection title="Alignment">
+	<CollapsibleSection title="Alignment" :initialState="activeElementIds?.length > 1">
 		<template #default>
-			<div class="flex items-center gap-3">
-				<NumberInput
-					:modelValue="selectionBounds.left"
-					@update:modelValue="(val) => updatePosition('X', val)"
-					prefix="x"
-					:rangeStart="0"
-					:rangeStep="1"
-					:hideButtons="true"
-				/>
-				<NumberInput
-					:modelValue="selectionBounds.top"
-					@update:modelValue="(val) => updatePosition('Y', val)"
-					prefix="y"
-					:rangeStart="0"
-					:rangeStep="1"
-					:hideButtons="true"
-				/>
-			</div>
-
 			<div v-for="axis in axes" :key="axis" class="flex flex-col gap-1.5">
 				<div :class="fieldLabelClasses">{{ axis.label }}</div>
 				<div class="grid grid-cols-3 gap-3">
@@ -55,7 +36,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
-import { activeElements } from '@/stores/element'
+import { updatePosition, activeElementIds } from '@/stores/element'
 
 const horizontalAlignmentOptions = [
 	{
@@ -150,17 +131,5 @@ const performAlignment = (direction) => {
 
 const updateGuideVisibilityMap = (direction, value) => {
 	guideVisibilityMap[direction] = value
-}
-
-const updatePosition = (axis, value) => {
-	const property = axis == 'X' ? 'left' : 'top'
-
-	const delta = value - selectionBounds[property]
-
-	activeElements.value.forEach((element) => {
-		element[property] += delta
-	})
-
-	selectionBounds[property] = value
 }
 </script>
