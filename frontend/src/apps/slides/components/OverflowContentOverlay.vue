@@ -16,18 +16,8 @@
 </template>
 
 <script setup>
-import { computed, onActivated, onDeactivated, onBeforeUnmount, onMounted, ref } from 'vue'
-
-const props = defineProps({
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
-	transform: {
-		type: String,
-		default: '',
-	},
-})
+import { slideBounds } from '@/stores/slide'
+import { computed } from 'vue'
 
 const maskStyles = computed(() => ({
 	position: 'absolute',
@@ -42,61 +32,14 @@ const maskStyles = computed(() => ({
 	pointerEvents: 'none',
 }))
 
-const windowWidth = ref(0)
-const windowHeight = ref(0)
-
 const rectAttributes = computed(() => {
-	if (!windowWidth.value) {
-		windowWidth.value = window.innerWidth
-	}
-	if (!windowHeight.value) {
-		windowHeight.value = window.innerHeight
-	}
-
-	const [a, b, c, d, e, f] = props.transform
-		.replace('matrix(', '')
-		.replace(')', '')
-		.split(',')
-		.map((num) => parseFloat(num))
-
-	const factor = props.readonlyMode ? -95.5 : 32
-
-	const tx = (windowWidth.value - 960) / 2 - factor
-	const ty = (windowHeight.value - 540) / 2 - 22.5
-
-	const combinedTx = e + tx
-	const combinedTy = f + ty
-
-	const combinedMatrix = `matrix(${a},${b},${c},${d},${combinedTx},${combinedTy})`
-
+	if (!slideBounds.left) return {}
 	return {
-		x: 0,
-		y: 0,
-		width: '960px',
-		height: '540px',
+		x: slideBounds.left,
+		y: slideBounds.top - 45,
+		width: slideBounds.width,
+		height: slideBounds.height,
 		fill: 'black',
-		transform: combinedMatrix,
 	}
-})
-
-const updateWindowSize = () => {
-	windowWidth.value = window.innerWidth
-	windowHeight.value = window.innerHeight
-}
-
-onMounted(() => {
-	window.addEventListener('resize', updateWindowSize)
-})
-
-onBeforeUnmount(() => {
-	window.removeEventListener('resize', updateWindowSize)
-})
-
-onActivated(() => {
-	window.addEventListener('resize', updateWindowSize)
-})
-
-onDeactivated(() => {
-	window.removeEventListener('resize', updateWindowSize)
 })
 </script>
