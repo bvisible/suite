@@ -28,7 +28,7 @@
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
-				@delete="deleteSlide"
+				@delete="deleteSlide(true)"
 			/>
 
 			<PropertiesPanel
@@ -402,10 +402,10 @@ const insertSlide = (index, layoutId, toDuplicate) => {
 	changeSlide(index + 1)
 }
 
-const deleteSlide = () => {
-	if (focusedSlide.value == null) return
-
-	const deleteIndex = focusedSlide.value
+const deleteSlide = (deleteActive) => {
+	let deleteIndex = focusedSlide.value
+	if (!deleteIndex && deleteActive) deleteIndex = slideIndex.value
+	if (deleteIndex == null) return
 
 	// if there is only one slide, reset the slide state instead of deleting
 	const totalLength = slides.value.length

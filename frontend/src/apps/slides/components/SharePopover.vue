@@ -1,10 +1,7 @@
 <template>
 	<Popover :placement="'bottom-end'">
 		<template #target="{ togglePopover }">
-			<Button
-				@click="openSharePopover(togglePopover)"
-				:label="`Share ${isPublicPresentation}`"
-			>
+			<Button @click="openSharePopover(togglePopover)" label="Share">
 				<template #prefix>
 					<LucideShare2 class="size-4 stroke-[1.5]" />
 				</template>
