@@ -26,12 +26,22 @@
 			/>
 		</div>
 		<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
-		<OverflowContentOverlay :transform="transform" :readonlyMode="readonlyMode" />
+		<OverflowContentOverlay />
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
+import {
+	ref,
+	computed,
+	watch,
+	useTemplateRef,
+	nextTick,
+	onMounted,
+	onBeforeUnmount,
+	provide,
+	reactive,
+} from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
 import SnapGuides from '@/components/SnapGuides.vue'
@@ -372,6 +382,13 @@ onMounted(() => {
 
 	document.addEventListener('copy', handleCopy)
 	document.addEventListener('paste', handlePaste)
+	window.addEventListener('resize', updateSlideBounds)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('copy', handleCopy)
+	document.removeEventListener('paste', handlePaste)
+	window.removeEventListener('resize', updateSlideBounds)
 })
 
 provide('slideDiv', slideRef)
