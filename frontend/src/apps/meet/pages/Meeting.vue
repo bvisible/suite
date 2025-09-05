@@ -2,8 +2,8 @@
 	<div class="h-screen bg-gray-900 flex flex-col">
 		<!-- Loading state -->
 		<div v-if="isConnecting" class="flex-1 flex items-center justify-center">
-			<div class="text-center text-white space-y-4">
-				<Spinner class="h-24 mx-auto" />
+			<div class="flex items-center justify-center text-white space-x-4">
+				<Spinner class="h-12" />
 				<p class="text-lg">Joining meeting...</p>
 			</div>
 		</div>
