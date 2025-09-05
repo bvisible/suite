@@ -1,9 +1,17 @@
 <template>
-	<div v-show="selectionBounds.width && !focusElementId" ref="selected" :style="boxStyles"></div>
+	<div v-show="selectionBounds.width" ref="selected" :style="boxStyles">
+		<Resizer
+			v-if="showResizers"
+			:elementType="activeElement.type"
+			:dimensions="selectionBounds"
+			:style="{ pointerEvents: 'auto' }"
+		/>
+	</div>
 </template>
-
 <script setup>
 import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
+
+import Resizer from '@/components/Resizer.vue'
 
 import { currentSlide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
 import {
@@ -12,14 +20,27 @@ import {
 	getElementPosition,
 	resetFocus,
 	focusElementId,
+	activeElement,
+	isWithinOverlappingBounds,
 } from '@/stores/element'
 
 const slideDiv = inject('slideDiv')
 const slideContainerDiv = inject('slideContainerDiv')
 
+const props = defineProps({
+	isDragging: {
+		type: Boolean,
+		default: false,
+	},
+})
+
 const emit = defineEmits(['setIsSelecting'])
 
 const selectedRef = useTemplateRef('selected')
+
+const showResizers = computed(() => {
+	return activeElementIds.value.length == 1 && !focusElementId.value && !props.isDragging
+})
 
 const startX = ref(0)
 const startY = ref(0)
@@ -28,15 +49,22 @@ let mousedownTimer = 0
 let longpressDuration = 200
 let mousedownStart
 
+const outline = computed(() => {
+	if (activeElementIds.value.length == 1) return `#70B6F0 solid ${2 / slideBounds.scale}px`
+	return `#70B6F092 solid ${0.1 / slideBounds.scale}px`
+})
+
 const boxStyles = computed(() => ({
 	position: 'absolute',
 	backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f025',
-	border: activeElementIds.value.length == 1 ? '' : '0.1px solid #70b6f092',
+	outline: outline.value,
 	width: `${selectionBounds.width}px`,
 	height: `${selectionBounds.height}px`,
 	left: `${selectionBounds.left}px`,
 	top: `${selectionBounds.top}px`,
 	boxSizing: 'border-box',
+	zIndex: 9999,
+	pointerEvents: activeElementIds.value.length == 1 ? 'none' : 'auto',
 }))
 
 const initSelection = (e) => {
@@ -93,30 +121,19 @@ const removeSelectionBox = () => {
 const getElementsWithinBoxSurface = () => {
 	let elements = []
 
-	const boxLeft = selectionBounds.left
-	const boxTop = selectionBounds.top
-	const boxRight = selectionBounds.left + selectionBounds.width
-	const boxBottom = selectionBounds.top + selectionBounds.height
+	const boxBounds = {
+		left: selectionBounds.left,
+		top: selectionBounds.top,
+		right: selectionBounds.left + selectionBounds.width,
+		bottom: selectionBounds.top + selectionBounds.height,
+	}
 
 	currentSlide.value.elements.forEach((element) => {
-		const {
-			left: elementLeft,
-			top: elementTop,
-			right: elementRight,
-			bottom: elementBottom,
-		} = getElementPosition(element.id)
+		const elementPosition = getElementPosition(element.id)
 
-		const withinWidth =
-			(boxRight >= elementLeft && boxLeft <= elementLeft) ||
-			(elementRight >= boxLeft && elementLeft <= boxLeft)
+		const isWithinBounds = isWithinOverlappingBounds(boxBounds, elementPosition)
 
-		const withinHeight =
-			(boxBottom >= elementTop && boxTop <= elementTop) ||
-			(elementBottom >= boxTop && elementTop <= boxTop)
-
-		if (withinWidth && withinHeight) {
-			elements.push(element.id)
-		}
+		if (isWithinBounds) elements.push(element.id)
 	})
 
 	return elements

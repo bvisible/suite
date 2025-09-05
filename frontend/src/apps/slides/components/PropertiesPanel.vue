@@ -5,13 +5,15 @@
 	>
 		<div v-if="!activeElement">
 			<SlideProperties v-if="currentSlide" @openLayoutDialog="$emit('openLayoutDialog')" />
-
-			<AlignmentControls v-if="activeElementIds.length" />
 		</div>
 		<div v-else>
-			<AlignmentControls v-if="activeElementIds.length" />
-
 			<component :is="activeProperties" />
+		</div>
+
+		<div v-if="activeElementIds.length">
+			<AppearanceProperties v-if="activeElement" />
+			<AlignmentControls />
+			<PlacementProperties />
 		</div>
 	</div>
 </template>
@@ -24,6 +26,8 @@ import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
+import PlacementProperties from '@/components/PlacementProperties.vue'
+import AppearanceProperties from '@/components/AppearanceProperties.vue'
 
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'

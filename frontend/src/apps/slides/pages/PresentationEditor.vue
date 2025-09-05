@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated, h } from 'vue'
+import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
@@ -258,7 +258,7 @@ const handleHistoryOperation = async (operation) => {
 	const onActiveSlide = slideIndex.value == slideToFocus
 
 	if (!onActiveSlide) {
-		await changeSlide(slideToFocus)
+		await changeSlide(slideToFocus, false)
 
 		recentlyRestored.value = true
 		setTimeout(() => {
@@ -328,18 +328,22 @@ const handleThumbnailGeneration = async (index) => {
 	}
 }
 
-const changeSlide = async (index) => {
+const changeSlide = async (index, focus = true) => {
 	if (index < 0 || index >= slides.value.length) return
 
 	const oldIndex = slideIndex.value
-
-	focusedSlide.value = null
 
 	await resetFocus()
 
 	await router.replace({
 		query: { slide: index + 1 },
 	})
+
+	if (focus) {
+		focusedSlide.value = index
+	} else {
+		focusedSlide.value = null
+	}
 }
 
 const getNewSlide = (toDuplicate = false, layoutId) => {
@@ -410,7 +414,6 @@ const deleteSlide = () => {
 	if (deleteIndex == totalLength - 1) {
 		// if last slide is deleted, switch to previous slide since no slide at current index
 		changeSlide(deleteIndex - 1)
-		focusedSlide.value = deleteIndex - 1
 	}
 }
 
@@ -480,6 +483,7 @@ onActivated(() => {
 	loadPresentation(id)
 
 	document.addEventListener('keydown', handleKeyDown)
+	window.addEventListener('beforeunload', handleBeforeUnload)
 })
 
 const updateUnsyncedRecord = () => {
@@ -498,6 +502,7 @@ onDeactivated(async () => {
 	savePresentation()
 
 	document.removeEventListener('keydown', handleKeyDown)
+	window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
 const showLayoutDialog = ref(false)
@@ -541,8 +546,14 @@ const savePresentation = async () => {
 	}
 }
 
+let syncThumbnail = 0
+
 const saveChanges = async () => {
-	if (!isDirty.value || isSaving.value) return
+	if (isSaving.value) return
+	if (!isDirty.value && syncThumbnail == 0) return
+
+	if (isDirty.value) syncThumbnail = 1
+	else syncThumbnail = 0
 
 	await savePresentation()
 }
@@ -564,4 +575,11 @@ watch(
 	},
 	{ immediate: true },
 )
+
+const handleBeforeUnload = (e) => {
+	if (isDirty.value || syncThumbnail > 0) {
+		e.preventDefault()
+		e.returnValue = ''
+	}
+}
 </script>

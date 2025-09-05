@@ -7,13 +7,12 @@ import {
 	slideBounds,
 	updateSelectionBounds,
 	currentSlide,
-	focusedSlide,
 	slideIndex,
 	updateThumbnail,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { generateUniqueId } from '../utils/helpers'
+import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
@@ -125,6 +124,7 @@ const addTextElement = async (text) => {
 
 	const element = {
 		id: generateUniqueId(),
+		zIndex: currentSlide.value.elements.length + 1,
 		left: 0,
 		top: 0,
 		type: 'text',
@@ -219,6 +219,7 @@ const getVideoPoster = async (videoUrl) => {
 const addMediaElement = async (file, type) => {
 	let element = {
 		id: generateUniqueId(),
+		zIndex: currentSlide.value.elements.length + 1,
 		width: 300,
 		left: 0,
 		top: 0,
@@ -264,6 +265,7 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
+		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
 		currentSlide.value.elements.push(newElement)
@@ -297,9 +299,10 @@ const deleteAttachments = async (elements) => {
 const deleteElements = async (e, ids) => {
 	const idsToDelete = ids || activeElementIds.value
 	await resetFocus()
-	currentSlide.value.elements = currentSlide.value.elements.filter((element) => {
-		return !idsToDelete.includes(element.id)
-	})
+	const elements = currentSlide.value.elements.filter(
+		(element) => !idsToDelete.includes(element.id),
+	)
+	currentSlide.value.elements = normalizeZIndices(elements)
 }
 
 const selectAllElements = (e) => {
@@ -335,6 +338,21 @@ const getElementPosition = (elementId) => {
 		right: elementRight,
 		bottom: elementBottom,
 	}
+}
+
+const isWithinOverlappingBounds = (outer, inner) => {
+	const { left: outerLeft, top: outerTop, right: outerRight, bottom: outerBottom } = outer
+	const { left: innerLeft, top: innerTop, right: innerRight, bottom: innerBottom } = inner
+
+	const withinWidth =
+		(outerRight >= innerLeft && outerLeft <= innerLeft) ||
+		(innerRight >= outerLeft && innerLeft <= outerLeft)
+
+	const withinHeight =
+		(outerBottom >= innerTop && outerTop <= innerTop) ||
+		(innerBottom >= outerTop && innerTop <= outerTop)
+
+	return withinWidth && withinHeight
 }
 
 const getCopiedJSON = () => {
@@ -472,6 +490,38 @@ watch(
 	},
 )
 
+const normalizeZIndices = (elements) => {
+	const els = cloneObj(elements).sort((a, b) => {
+		const zIndexA = a.zIndex || 1
+		const zIndexB = b.zIndex || 1
+
+		return zIndexA - zIndexB
+	})
+
+	els.forEach((el, index) => {
+		el.zIndex = index + 1
+	})
+
+	elements.forEach((el) => {
+		const updatedElement = els.find((e) => e.id == el.id)
+		el.zIndex = updatedElement.zIndex
+	})
+
+	return elements
+}
+
+const updatePosition = (axis, value) => {
+	const property = axis == 'X' ? 'left' : 'top'
+
+	const delta = value - selectionBounds[property]
+
+	activeElements.value.forEach((element) => {
+		element[property] += delta
+	})
+
+	selectionBounds[property] = value
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -492,4 +542,7 @@ export {
 	deleteAttachments,
 	setEditableState,
 	replaceMediaElement,
+	normalizeZIndices,
+	isWithinOverlappingBounds,
+	updatePosition,
 }

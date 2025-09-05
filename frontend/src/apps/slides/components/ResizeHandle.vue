@@ -21,7 +21,7 @@ const emit = defineEmits(['startResize'])
 
 const baseStyles = {
 	position: 'absolute',
-	zIndex: 5,
+	zIndex: 9999,
 	backgroundColor: '#70b6f0',
 	borderRadius: '10px',
 }

@@ -2,9 +2,10 @@
 	<div class="absolute left-0 top-0 h-full w-full bg-black">
 		<div
 			ref="slideContainer"
-			class="flex h-screen w-full items-center justify-center bg-white"
+			class="flex h-screen w-full items-center justify-center"
 			:style="{
 				clipPath: clipPath,
+				backgroundColor: currentSlide?.background || '#ffffff',
 			}"
 		>
 			<div

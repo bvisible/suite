@@ -60,4 +60,6 @@ const handleScrollBarWheelEvent = (e: WheelEvent) => {
 	e.stopPropagation()
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent }
+const cloneObj = (obj: any) => JSON.parse(JSON.stringify(obj))
+
+export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj }
