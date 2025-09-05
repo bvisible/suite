@@ -1,3 +1,5 @@
+import { toast } from 'frappe-ui'
+
 let isClicked = false
 let delay = 200
 let clickTimeout: ReturnType<typeof setTimeout> | null = null
@@ -62,4 +64,19 @@ const handleScrollBarWheelEvent = (e: WheelEvent) => {
 
 const cloneObj = (obj: any) => JSON.parse(JSON.stringify(obj))
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj }
+const copyToClipboard = async (text: string) => {
+	if (navigator.clipboard && window.isSecureContext) {
+		await navigator.clipboard.writeText(text)
+	} else {
+		let input = document.createElement('textarea')
+		document.body.appendChild(input)
+		input.value = text
+		input.select()
+		document.execCommand('copy')
+		document.body.removeChild(input)
+	}
+
+	toast.success('Copied to clipboard')
+}
+
+export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard }
