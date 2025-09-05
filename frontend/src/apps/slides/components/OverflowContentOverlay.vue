@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { computed, onActivated, onDeactivated, ref } from 'vue'
+import { computed, onActivated, onDeactivated, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps({
 	readonlyMode: {
@@ -83,6 +83,14 @@ const updateWindowSize = () => {
 	windowWidth.value = window.innerWidth
 	windowHeight.value = window.innerHeight
 }
+
+onMounted(() => {
+	window.addEventListener('resize', updateWindowSize)
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', updateWindowSize)
+})
 
 onActivated(() => {
 	window.addEventListener('resize', updateWindowSize)
