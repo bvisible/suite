@@ -372,13 +372,16 @@ const getCopiedJSON = () => {
 	return JSON.stringify(elementsCopy)
 }
 
-const copiedFromId = ref(null)
+const copiedFrom = ref({})
 
 const handleCopy = (e) => {
 	e.preventDefault()
 	const clipboardJSON = getCopiedJSON()
 	e.clipboardData.setData('application/json', clipboardJSON)
-	copiedFromId.value = presentationId.value
+	copiedFrom.value = {
+		srcPresentation: presentationId.value,
+		srcSlide: slideIndex.value,
+	}
 }
 
 const handlePastedText = async (clipboardText) => {
@@ -387,7 +390,20 @@ const handlePastedText = async (clipboardText) => {
 }
 
 const handlePastedJSON = async (json) => {
-	if (copiedFromId.value !== presentationId.value) {
+	const pastedArray = Array.isArray(json) ? json : []
+
+	if (
+		pastedArray[0]?.type == 'text' &&
+		focusElementId.value &&
+		focusElementId.value != pastedArray[0].id
+	) {
+		activeEditor.value.commands.insertContent(pastedArray[0].content)
+		return
+	}
+
+	const { srcPresentation, srcSlide } = copiedFrom.value
+
+	if (srcPresentation !== presentationId.value) {
 		// if pasted elements are from a different presentation
 		// add file attachments correctly to current presentation + update docnames in json
 		json = await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
@@ -395,6 +411,12 @@ const handlePastedJSON = async (json) => {
 			json: json,
 		})
 	}
+
+	if (srcSlide == slideIndex.value) {
+		duplicateElements(null, json, 40)
+		return
+	}
+
 	duplicateElements(null, json)
 }
 
