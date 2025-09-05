@@ -130,12 +130,13 @@ const isSlideActive = (slide) => {
 }
 
 const handleSlideClick = async (slide) => {
+	const index = slides.value.indexOf(slide)
 	if (isSlideActive(slide) && !props.readonlyMode) {
 		resetFocus()
-		focusedSlide.value = slideIndex.value
+		focusedSlide.value = index
 		return
 	}
-	emit('changeSlide', slides.value.indexOf(slide))
+	emit('changeSlide', index)
 }
 
 const getThumbnailClasses = (slide) => {
