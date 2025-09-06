@@ -248,16 +248,86 @@ def has_permission(doc, ptype="read", user=None):
 	return False
 
 
+def exists_in_public_folder(file_name):
+	return frappe.db.exists("File", {"file_name": file_name, "is_private": 0})
+
+
+def create_attachment_with_unique_name(doc):
+	import os
+
+	file_name = doc.file_name
+	file_extension = os.path.splitext(file_name)[1]
+	base_name = os.path.splitext(file_name)[0]
+	unique_name = f"{base_name}_{uuid.uuid4().hex}{file_extension}"
+
+	file_content = doc.get_content()
+	new_file_doc = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": unique_name,
+			"file_url": f"/files/{unique_name}",
+			"attached_to_doctype": doc.attached_to_doctype,
+			"attached_to_name": doc.attached_to_name,
+			"is_private": 0,
+			"content": file_content,
+		}
+	)
+
+	new_file_doc.insert()
+
+	return new_file_doc
+
+
+def get_updated_elements(presentation_name, old_file_name, new_file_doc):
+	presentation = frappe.get_doc("Presentation", presentation_name)
+	updated_slides = []
+
+	for slide in presentation.slides:
+		elements = json.loads(slide.elements or "[]")
+
+		for element in elements:
+			if element.get("type") in ["image", "video"]:
+				if element.get("attachmentName") == old_file_name:
+					element["attachmentName"] = new_file_doc.name
+					element["src"] = new_file_doc.file_url.replace(frappe.local.site_name, "")
+
+		slide.elements = json.dumps(elements, indent=2)
+		updated_slides.append(slide)
+
+	return updated_slides
+
+
 @frappe.whitelist()
 def set_public(name, is_public):
+	presentation_doc = frappe.get_doc("Presentation", name)
+
 	attachments = frappe.get_all(
 		"File", filters={"attached_to_name": name, "attached_to_doctype": "Presentation"}, pluck="name"
 	)
+
+	slides = []
+
 	for attachment in attachments:
 		attachment_doc = frappe.get_doc("File", attachment)
-		attachment_doc.is_private = not is_public
-		attachment_doc.save()
-	frappe.db.set_value("Presentation", name, "is_public", is_public)
+		if is_public and exists_in_public_folder(attachment_doc.file_name):
+			unique_attachment = create_attachment_with_unique_name(attachment_doc)
+			attachment_doc.delete()
+			slides = get_updated_elements(name, attachment_doc.name, unique_attachment)
+		else:
+			attachment_doc.is_private = not is_public
+			attachment_doc.save()
+
+	presentation_doc.is_public = is_public
+
+	if len(slides):
+		presentation_doc.slides = slides
+
+	presentation_doc.save()
+
+	return {
+		"slides": presentation_doc.slides,
+		"to_update": len(slides),
+	}
 
 
 @frappe.whitelist(allow_guest=True)
