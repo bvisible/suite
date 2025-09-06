@@ -40,7 +40,12 @@
 <script setup>
 import { ref } from 'vue'
 import { Popover, Switch, call, toast } from 'frappe-ui'
-import { presentationId, isPublicPresentation } from '@/stores/presentation'
+import {
+	presentationId,
+	isPublicPresentation,
+	ignoreUpdates,
+	parseElements,
+} from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { copyToClipboard } from '@/utils/helpers'
 
@@ -60,7 +65,17 @@ const updateAccessLevel = async (isPublic) => {
 	call('slides.slides.doctype.presentation.presentation.set_public', {
 		name: presentationId.value,
 		is_public: isPublic,
-	}).then(async () => {
+	}).then(async (data) => {
+		if (data?.to_update) {
+			ignoreUpdates(() => {
+				for (const slide of data.slides || []) {
+					slide.elements = parseElements(slide.elements)
+					slide.transitionDuration = slide.transition_duration
+					// remove the transition_duration field to avoid confusion
+					delete slide.transition_duration
+				}
+			})
+		}
 		isPublicPresentation.value = isPublic
 		toast.success('Access level updated')
 	})
