@@ -122,6 +122,7 @@ def apply_slide_layout(slide, ref_id):
 		element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
 
 	slide.elements = json.dumps(elements)
+	slide.thumbnail = ""
 
 
 def create_new_slide(parent, ref_id):
