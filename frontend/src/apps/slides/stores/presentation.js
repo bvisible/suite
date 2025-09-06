@@ -152,7 +152,7 @@ const layoutResource = createResource({
 	method: 'GET',
 	auto: false,
 	transform: (data) => {
-		for (const slide of data || []) {
+		for (const slide of data.slides || []) {
 			slide.elements = parseElements(slide.elements)
 			slide.transitionDuration = slide.transition_duration
 			// remove the transition_duration field to avoid confusion

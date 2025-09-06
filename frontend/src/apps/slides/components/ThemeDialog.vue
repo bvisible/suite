@@ -23,29 +23,21 @@
 </template>
 
 <script setup>
-import { Dialog, createListResource } from 'frappe-ui'
+import { Dialog, createResource } from 'frappe-ui'
+import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const emit = defineEmits(['create'])
 
-const themeResource = createListResource({
-	doctype: 'Presentation',
-	fields: ['name', 'title', 'slug'],
-	filters: {
-		is_template: '1',
-	},
+const themeResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_themes',
 	cache: 'themes',
 	auto: true,
-	transform: (data) => {
-		for (const theme of data) {
-			theme.thumbnail = `/assets/slides/frontend/images/layouts/${theme.slug}/thumbnail-3.png`
-		}
-		return data
-	},
 })
 
 const getThumbnailStyles = (theme) => {
+	const thumbnailUrl = getAttachmentUrl(theme.is_public, theme.thumbnail || '')
 	return {
-		backgroundImage: `url(${theme.thumbnail})`,
+		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
 		backgroundPosition: 'center',
 	}

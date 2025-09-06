@@ -39,7 +39,7 @@
 		</div>
 
 		<LayoutDialog
-			v-if="presentationDoc"
+			v-if="layoutResource.data"
 			v-model="showLayoutDialog"
 			:theme="presentationDoc.theme"
 			:layouts="layoutResource.data"
@@ -365,7 +365,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	if (toDuplicate) {
 		layout = currentSlide.value
 	} else {
-		layout = layoutResource.data.find((l) => l.name == layoutId)
+		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
 	}
 
 	const slide = {}

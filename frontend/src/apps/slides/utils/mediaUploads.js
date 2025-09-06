@@ -81,3 +81,10 @@ export const handleUploadedMedia = (files, isPrivate, targetElement) => {
 		handleFile(file, isPrivate, toastProps)
 	})
 }
+
+export const getAttachmentUrl = (isPublic, fileUrl) => {
+	if (!fileUrl) return ''
+
+	const requiresPrefix = !isPublic && fileUrl.startsWith('/files/')
+	return requiresPrefix ? `/private${fileUrl}` : fileUrl
+}

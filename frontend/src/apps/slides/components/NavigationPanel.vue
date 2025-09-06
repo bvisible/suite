@@ -75,6 +75,7 @@ import Draggable from 'vuedraggable'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
+import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 import { useAttrs } from 'vue'
 import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
@@ -161,9 +162,7 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && s.thumbnail && s.thumbnail.startsWith('/files/')
-	const thumbnailUrl = requiresPrefix ? `/private${s.thumbnail}` : s.thumbnail
+	const thumbnailUrl = getAttachmentUrl(isPublicPresentation.value, s.thumbnail)
 	return {
 		backgroundImage: `url(${thumbnailUrl})`,
 		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting

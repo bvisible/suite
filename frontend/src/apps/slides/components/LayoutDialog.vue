@@ -6,7 +6,7 @@
 		<template #body-content>
 			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto p-2">
 				<div
-					v-for="layout in layouts"
+					v-for="layout in layouts.slides"
 					:key="layout.idx"
 					class="aspect-video cursor-pointer rounded-lg border border-gray-300 hover:border-gray-400"
 					:style="getThumbnailStyles(layout)"
@@ -21,13 +21,15 @@
 import { watch, nextTick, computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
+import { getAttachmentUrl } from '@/utils/mediaUploads'
+
 const emit = defineEmits(['insert'])
 
 const props = defineProps({
 	theme: String,
 	layouts: {
-		type: Array,
-		default: () => [],
+		type: Object,
+		required: true,
 	},
 })
 
@@ -37,8 +39,9 @@ const showLayoutDialog = defineModel({
 })
 
 const getThumbnailStyles = (layout) => {
+	const thumbnailUrl = getAttachmentUrl(layout.is_public, layout.thumbnail || '')
 	return {
-		backgroundImage: `url(${layout.thumbnail || ''})`,
+		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
 		backgroundPosition: 'center',
 	}
