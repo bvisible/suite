@@ -62,9 +62,9 @@ const handleFile = (file, isPrivate, toastProps, targetElement) => {
 
 const getToastProps = (file, index, length) => {
 	return {
-		loading: `Uploading (${index + 1}/${length}): ${file.name}`,
-		success: (data) => `Uploaded: ${file.name}`,
-		error: (data) => 'Upload failed. Please try again.',
+		loading: `Uploading (${index + 1}/${length})${file.name ? `: ${file.name}` : ' ...'}`,
+		success: `Uploaded (${index + 1}/${length})${file.name ? `: ${file.name}` : ''}`,
+		error: 'Upload failed. Please try again.',
 	}
 }
 

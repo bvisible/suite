@@ -93,8 +93,8 @@ const handleUploadSuccess = (file) => {
 	const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
 
 	const toastProps = {
-		loading: `Uploading: ${file.file_name}`,
-		success: (data) => `Uploaded: ${file.file_name}`,
+		loading: file.file_name ? `Uploading: ${file.file_name}` : 'Uploading...',
+		success: (data) => (file.file_name ? `Uploaded: ${file.file_name}` : 'Uploaded'),
 		error: (data) => 'Upload failed. Please try again.',
 	}
 
