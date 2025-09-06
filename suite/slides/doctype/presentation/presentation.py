@@ -69,11 +69,11 @@ def slug(text: str) -> str:
 	return text.lower().replace(" ", "-")
 
 
-def get_presentation_thumbnail(presentation_name: str) -> str:
+def get_presentation_thumbnail(presentation_name: str, index: int | None = 1) -> str:
 	"""Returns the thumbnail of the first slide in a presentation"""
 	return frappe.get_value(
 		"Slide",
-		{"parent": presentation_name, "idx": 1},
+		{"parent": presentation_name, "idx": index},
 		"thumbnail",
 	)
 
@@ -152,7 +152,8 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 			new_slide.idx = slide.idx
 			slides.append(new_slide)
 	else:
-		first_slide = create_new_slide(parent, ref_presentation.slides[2].name)
+		first_index = 2 if ref_name in ("Light", "Dark") else 0
+		first_slide = create_new_slide(parent, ref_presentation.slides[first_index].name)
 		first_slide.idx = 1
 		slides.append(first_slide)
 
@@ -216,9 +217,14 @@ def get_updated_json(presentation, json):
 @frappe.whitelist()
 def get_layouts(theme):
 	layout_doc = frappe.get_doc("Presentation", theme) if frappe.db.exists("Presentation", theme) else None
+	slides = []
 	if layout_doc and layout_doc.is_template and "Slides User" in frappe.get_roles():
-		return layout_doc.slides
-	return []
+		slides = layout_doc.slides
+
+	return {
+		"slides": slides,
+		"is_public": layout_doc.is_public if layout_doc else 0,
+	}
 
 
 def get_permission_query_conditions(user):
@@ -264,3 +270,21 @@ def get_public_presentation(name):
 		frappe.throw("Presentation is not public", frappe.PermissionError)
 
 	return frappe.get_doc("Presentation", name).as_dict()
+
+
+@frappe.whitelist()
+def get_themes():
+	themes = frappe.get_all(
+		"Presentation",
+		filters={"is_template": 1},
+		fields=["name", "title", "slug", "is_public"],
+		order_by="title",
+	)
+
+	for theme in themes:
+		if theme["title"] in ("Light", "Dark"):
+			theme["thumbnail"] = get_presentation_thumbnail(theme["name"], 3)
+		else:
+			theme["thumbnail"] = get_presentation_thumbnail(theme["name"])
+
+	return themes
