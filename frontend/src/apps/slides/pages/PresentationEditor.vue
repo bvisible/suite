@@ -207,6 +207,12 @@ const handleSlideShortcuts = (e) => {
 }
 
 const handleGlobalShortcuts = (e) => {
+	if (e.code === 'KeyP' && e.metaKey) {
+		e.preventDefault()
+		startSlideShow()
+		return
+	}
+
 	switch (e.key) {
 		case 'Escape':
 			resetFocus()
