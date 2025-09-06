@@ -389,7 +389,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	return slide
 }
 
-const insertSlide = (index, layoutId, toDuplicate) => {
+const insertSlide = async (index, layoutId, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
 	const newSlide = getNewSlide(toDuplicate, layoutId)
@@ -399,11 +399,9 @@ const insertSlide = (index, layoutId, toDuplicate) => {
 		slide.idx = index + 1
 	})
 
-	changeSlide(index + 1)
+	await changeSlide(index + 1)
 
-	nextTick(() => {
-		updateThumbnail(index + 1)
-	})
+	updateThumbnail(index + 1)
 }
 
 const deleteSlide = (deleteActive) => {
