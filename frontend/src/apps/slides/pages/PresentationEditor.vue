@@ -308,6 +308,9 @@ const handleKeyDownForReadonly = (e) => {
 			e.preventDefault()
 			startSlideShow()
 			break
+		case 'b':
+			if (e.metaKey) toggleSlideNavigator()
+			break
 	}
 }
 
