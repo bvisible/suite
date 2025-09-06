@@ -3,20 +3,20 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<Navbar :primaryButton="primaryButtonProps">
-			<template #default>
-				<PresentationHeader :title="presentationDoc?.title" />
-			</template>
-		</Navbar>
+		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow" />
+
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
 				ref="slideContainer"
+				v-if="presentationDoc"
+				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
 			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
+				:readonlyMode="readonlyMode"
 				:showNavigator="showNavigator"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
@@ -24,20 +24,22 @@
 			/>
 
 			<Toolbar
+				v-if="!readonlyMode"
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
-				@delete="deleteSlide"
+				@delete="deleteSlide(true)"
 			/>
 
 			<PropertiesPanel
+				v-if="!readonlyMode"
 				class="absolute bottom-0 right-0 top-0"
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
 
 		<LayoutDialog
-			v-if="presentationDoc"
+			v-if="layoutResource.data"
 			v-model="showLayoutDialog"
 			:theme="presentationDoc.theme"
 			:layouts="layoutResource.data"
@@ -48,15 +50,12 @@
 
 <script setup>
 import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated } from 'vue'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
 import { toast } from 'frappe-ui'
 
-import { Presentation } from 'lucide-vue-next'
-
-import Navbar from '@/components/Navbar.vue'
-import PresentationHeader from '@/components/PresentationHeader.vue'
+import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
@@ -76,6 +75,7 @@ import {
 	ignoreUpdates,
 	unsyncedPresentationRecord,
 	inSlideShow,
+	readonlyMode,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -107,12 +107,6 @@ const { activeEditor, toggleMark } = useTextEditor()
 
 let autosaveInterval = null
 let thumbnailInterval = null
-
-const primaryButtonProps = {
-	label: 'Present',
-	icon: Presentation,
-	onClick: () => startSlideShow(),
-}
 
 const props = defineProps({
 	presentationId: String,
@@ -302,9 +296,29 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
+const handleKeyDownForReadonly = (e) => {
+	switch (e.key) {
+		case 'ArrowUp':
+			changeSlide(slideIndex.value - 1)
+			break
+		case 'ArrowDown':
+			changeSlide(slideIndex.value + 1)
+			break
+		case 'F5':
+			e.preventDefault()
+			startSlideShow()
+			break
+		case 'b':
+			if (e.metaKey) toggleSlideNavigator()
+			break
+	}
+}
+
 const startSlideShow = async () => {
-	await resetFocus()
-	saveChanges()
+	if (!readonlyMode.value) {
+		await resetFocus()
+		saveChanges()
+	}
 
 	router.replace({
 		name: 'Slideshow',
@@ -333,7 +347,9 @@ const changeSlide = async (index, focus = true) => {
 
 	const oldIndex = slideIndex.value
 
-	await resetFocus()
+	if (!readonlyMode.value) {
+		await resetFocus()
+	}
 
 	await router.replace({
 		query: { slide: index + 1 },
@@ -352,7 +368,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	if (toDuplicate) {
 		layout = currentSlide.value
 	} else {
-		layout = layoutResource.data.find((l) => l.name == layoutId)
+		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
 	}
 
 	const slide = {}
@@ -360,7 +376,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 		slide.background = layout.background
 		slide.transition = layout.transition
 		slide.transitionDuration = layout.transitionDuration
-		slide.thumbnail = layout.thumbnail
+		// slide.thumbnail = layout.thumbnail
 		slide.elements = layout.elements.map((element) => {
 			return {
 				...element,
@@ -376,7 +392,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	return slide
 }
 
-const insertSlide = (index, layoutId, toDuplicate) => {
+const insertSlide = async (index, layoutId, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
 	const newSlide = getNewSlide(toDuplicate, layoutId)
@@ -386,13 +402,15 @@ const insertSlide = (index, layoutId, toDuplicate) => {
 		slide.idx = index + 1
 	})
 
-	changeSlide(index + 1)
+	await changeSlide(index + 1)
+
+	updateThumbnail(index + 1)
 }
 
-const deleteSlide = () => {
-	if (focusedSlide.value == null) return
-
-	const deleteIndex = focusedSlide.value
+const deleteSlide = (deleteActive) => {
+	let deleteIndex = focusedSlide.value
+	if (!deleteIndex && deleteActive) deleteIndex = slideIndex.value
+	if (deleteIndex == null) return
 
 	// if there is only one slide, reset the slide state instead of deleting
 	const totalLength = slides.value.length
@@ -477,13 +495,26 @@ const loadPresentation = async (id) => {
 	initIntervals()
 }
 
+const loadPresentationInReadonlyMode = async (id) => {
+	presentationDoc.value = await initPresentationDoc(id, true)
+	setSlideIndex(props.activeSlideId)
+	updateRoute(presentationDoc.value.slug)
+}
+
+const route = useRoute()
+
 onActivated(() => {
+	readonlyMode.value = route.name === 'PresentationView'
 	const id = props.presentationId
 	if (!id) return
-	loadPresentation(id)
-
-	document.addEventListener('keydown', handleKeyDown)
-	window.addEventListener('beforeunload', handleBeforeUnload)
+	if (readonlyMode.value) {
+		loadPresentationInReadonlyMode(id)
+		document.addEventListener('keydown', handleKeyDownForReadonly)
+	} else {
+		loadPresentation(id)
+		document.addEventListener('keydown', handleKeyDown)
+		window.addEventListener('beforeunload', handleBeforeUnload)
+	}
 })
 
 const updateUnsyncedRecord = () => {
@@ -495,14 +526,18 @@ const updateUnsyncedRecord = () => {
 }
 
 onDeactivated(async () => {
-	updateUnsyncedRecord()
-	clearInterval(autosaveInterval)
-	clearInterval(thumbnailInterval)
-	await resetFocus()
-	savePresentation()
+	if (readonlyMode.value) {
+		document.removeEventListener('keydown', handleKeyDownForReadonly)
+	} else {
+		updateUnsyncedRecord()
+		clearInterval(autosaveInterval)
+		clearInterval(thumbnailInterval)
+		await resetFocus()
+		savePresentation()
 
-	document.removeEventListener('keydown', handleKeyDown)
-	window.removeEventListener('beforeunload', handleBeforeUnload)
+		document.removeEventListener('keydown', handleKeyDown)
+		window.removeEventListener('beforeunload', handleBeforeUnload)
+	}
 })
 
 const showLayoutDialog = ref(false)

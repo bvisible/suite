@@ -9,6 +9,7 @@
   "column_break_axws",
   "theme",
   "is_template",
+  "is_public",
   "slides_section",
   "slides"
  ],
@@ -51,11 +52,17 @@
    "fieldname": "slides_section",
    "fieldtype": "Section Break",
    "label": "Slides"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "label": "Is Public"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 15:02:44.412226",
+ "modified": "2025-09-02 13:30:33.840405",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
@@ -80,6 +87,10 @@
    "role": "Slides User",
    "select": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
   }
  ],
  "row_format": "Dynamic",

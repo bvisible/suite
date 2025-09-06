@@ -1,4 +1,4 @@
-import { ignoreUpdates } from '@/stores/presentation'
+import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
 import { ref, computed, reactive } from 'vue'
 
 import html2canvas from 'html2canvas'
@@ -25,7 +25,10 @@ const replaceVideoWithPoster = async (videoElement) => {
 	if (!videoElement.poster) return null
 
 	const img = document.createElement('img')
-	img.src = videoElement.poster
+	const src = videoElement.poster
+	const isPublic = isPublicPresentation.value
+	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
+	img.src = requiresPrefix ? `/private${src}` : src
 	img.style.width = videoElement.style.width
 	img.style.height = videoElement.style.height
 	img.style.objectFit = 'cover'

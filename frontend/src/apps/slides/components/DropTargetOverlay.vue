@@ -11,7 +11,7 @@
 <script setup>
 import { ref, useTemplateRef, nextTick } from 'vue'
 
-import { presentationId } from '@/stores/presentation'
+import { isPublicPresentation, presentationId } from '@/stores/presentation'
 import { handleUploadedMedia } from '@/utils/mediaUploads'
 import { currentSlide } from '@/stores/slide'
 
@@ -42,7 +42,7 @@ const handleMediaDrop = async (e) => {
 	emit('hideOverlay')
 	nextTick(() => {
 		const targetElement = getTargetElement(e)
-		handleUploadedMedia(e.dataTransfer.files, targetElement)
+		handleUploadedMedia(e.dataTransfer.files, !isPublicPresentation.value, targetElement)
 	})
 }
 </script>
