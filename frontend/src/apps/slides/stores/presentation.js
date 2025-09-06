@@ -251,4 +251,5 @@ export {
 	unsyncedPresentationRecord,
 	isPublicPresentation,
 	readonlyMode,
+	parseElements,
 }
