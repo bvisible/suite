@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
@@ -76,6 +76,30 @@ const getPresentationResource = (name) => {
 		},
 		onSuccess(doc) {
 			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+			isPublicPresentation.value = Boolean(doc.is_public)
+		},
+	})
+}
+
+const getPublicPresentationResource = (name) => {
+	return createResource({
+		url: 'slides.slides.doctype.presentation.presentation.get_public_presentation',
+		method: 'GET',
+		auto: false,
+		makeParams: () => {
+			return { name: name }
+		},
+		transform(doc) {
+			for (const slide of doc.slides || []) {
+				slide.elements = parseElements(slide.elements)
+				slide.transitionDuration = slide.transition_duration
+				// remove the transition_duration field to avoid confusion
+				delete slide.transition_duration
+			}
+		},
+		onSuccess(doc) {
+			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+			isPublicPresentation.value = Boolean(doc.is_public)
 		},
 	})
 }
@@ -128,7 +152,7 @@ const layoutResource = createResource({
 	method: 'GET',
 	auto: false,
 	transform: (data) => {
-		for (const slide of data || []) {
+		for (const slide of data.slides || []) {
 			slide.elements = parseElements(slide.elements)
 			slide.transitionDuration = slide.transition_duration
 			// remove the transition_duration field to avoid confusion
@@ -144,11 +168,17 @@ const layoutResource = createResource({
 
 const presentationResource = ref(null)
 
-const initPresentationDoc = async (id) => {
+const initPresentationDoc = async (id, readonly = false) => {
 	presentationId.value = id
-	presentationResource.value = getPresentationResource(id)
-	await presentationResource.value.get.fetch()
-	return presentationResource.value.doc
+	if (readonly) {
+		presentationResource.value = getPublicPresentationResource(id)
+		await presentationResource.value.fetch()
+		return presentationResource.value.data
+	} else {
+		presentationResource.value = getPresentationResource(id)
+		await presentationResource.value.get.fetch()
+		return presentationResource.value.doc
+	}
 }
 
 let historyControl = null
@@ -182,7 +212,7 @@ const { ignoreUpdates } = watchIgnorable(
 
 		updateHistoryState(newVal, slideIndex.value, activeElementIds.value)
 
-		historyControl.commit()
+		historyControl?.commit()
 	},
 	{ deep: true },
 )
@@ -197,6 +227,10 @@ const initHistory = () => {
 }
 
 const unsyncedPresentationRecord = ref({})
+
+const isPublicPresentation = ref(false)
+
+const readonlyMode = ref(false)
 
 export {
 	presentationId,
@@ -215,4 +249,7 @@ export {
 	initHistory,
 	ignoreUpdates,
 	unsyncedPresentationRecord,
+	isPublicPresentation,
+	readonlyMode,
+	parseElements,
 }

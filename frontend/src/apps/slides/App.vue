@@ -9,5 +9,24 @@
 </template>
 
 <script setup>
-import { FrappeUIProvider } from 'frappe-ui'
+import { onMounted, h } from 'vue'
+import { FrappeUIProvider, toast } from 'frappe-ui'
+
+import { Wifi, WifiOff } from 'lucide-vue-next'
+
+onMounted(() => {
+	window.addEventListener('online', () => {
+		toast.create({
+			message: 'You are back online.',
+			icon: h(Wifi, { color: 'white' }),
+		})
+	})
+
+	window.addEventListener('offline', () => {
+		toast.create({
+			message: 'Lost internet connection.',
+			icon: h(WifiOff, { color: 'white' }),
+		})
+	})
+})
 </script>

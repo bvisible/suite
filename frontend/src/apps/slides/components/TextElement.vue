@@ -22,7 +22,7 @@ import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { inSlideShow } from '@/stores/presentation'
+import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { extensions } from '@/stores/tiptapSetup'
 
@@ -55,13 +55,13 @@ const editorStyles = computed(() => ({
 }))
 
 const handleMouseDown = (e) => {
-	if (!isEditable.value) return
+	if (!isEditable.value || readonlyMode.value) return
 
 	e.stopPropagation()
 }
 
 const handleDoubleClick = (e) => {
-	if (inSlideShow.value || isEditable.value) {
+	if (inSlideShow.value || isEditable.value || readonlyMode.value) {
 		e.stopPropagation()
 		return
 	}

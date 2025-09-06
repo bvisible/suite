@@ -10,23 +10,42 @@
 		<div
 			ref="scrollableArea"
 			v-if="slides"
-			class="flex h-full flex-col overflow-y-auto p-4 pb-14 custom-scrollbar"
+			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
+			:class="{ 'pb-14': !props.readonlyMode }"
 			:style="scrollbarStyles"
 		>
-			<Draggable v-model="slides" item-key="name" @start="resetFocus" @end="handleSortEnd">
-				<template #item="{ element: slide }">
-					<div
-						:class="getThumbnailClasses(slide)"
-						:style="getThumbnailStyles(slide)"
-						@click="handleSlideClick(slide)"
-						:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
-					></div>
-				</template>
-			</Draggable>
+			<template v-if="props.readonlyMode">
+				<div
+					v-for="slide in slides"
+					:key="slide.name"
+					:class="getThumbnailClasses(slide)"
+					:style="getThumbnailStyles(slide)"
+					@click="handleSlideClick(slide)"
+					:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+				></div>
+			</template>
 
-			<div :class="insertButtonClasses" @click="emit('openLayoutDialog')">
-				<LucidePlus class="size-3.5" />
-			</div>
+			<template v-else>
+				<Draggable
+					v-model="slides"
+					item-key="name"
+					@start="resetFocus"
+					@end="handleSortEnd"
+				>
+					<template #item="{ element: slide }">
+						<div
+							:class="getThumbnailClasses(slide)"
+							:style="getThumbnailStyles(slide)"
+							@click="handleSlideClick(slide)"
+							:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+						></div>
+					</template>
+				</Draggable>
+
+				<div :class="insertButtonClasses" @click="emit('openLayoutDialog')">
+					<LucidePlus class="size-3.5" />
+				</div>
+			</template>
 		</div>
 
 		<div
@@ -56,9 +75,10 @@ import Draggable from 'vuedraggable'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
+import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 import { useAttrs } from 'vue'
-import { ignoreUpdates } from '@/stores/presentation'
+import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
@@ -71,6 +91,10 @@ const showNavigator = defineModel('showNavigator', {
 })
 
 const props = defineProps({
+	readonlyMode: {
+		type: Boolean,
+		default: false,
+	},
 	recentlyRestored: {
 		type: Boolean,
 		default: false,
@@ -108,7 +132,7 @@ const isSlideActive = (slide) => {
 
 const handleSlideClick = async (slide) => {
 	const index = slides.value.indexOf(slide)
-	if (isSlideActive(slide)) {
+	if (isSlideActive(slide) && !props.readonlyMode) {
 		resetFocus()
 		focusedSlide.value = index
 		return
@@ -118,7 +142,7 @@ const handleSlideClick = async (slide) => {
 
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
-		'my-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
+		'mb-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
 
 	const isActive = isSlideActive(slide)
 	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
@@ -138,8 +162,9 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
+	const thumbnailUrl = getAttachmentUrl(isPublicPresentation.value, s.thumbnail)
 	return {
-		backgroundImage: `url(${s.thumbnail})`,
+		backgroundImage: `url(${thumbnailUrl})`,
 		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
 		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
 	}

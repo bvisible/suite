@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<img class="object-cover" :src="element.src" :style="imageStyle" />
+		<img class="object-cover" :src="imageSrc" :style="imageStyle" />
 		<div
 			v-if="showReplaceImageButton"
 			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
@@ -8,7 +8,11 @@
 		>
 			<FileUploader
 				:fileTypes="allowedImageFileTypes"
-				:uploadArgs="{ doctype: 'Presentation', docname: presentationId, private: true }"
+				:uploadArgs="{
+					doctype: 'Presentation',
+					docname: presentationId,
+					private: !isPublicPresentation,
+				}"
 				@success="replaceTemplateImage"
 			>
 				<template #default="{ openFileSelector }">
@@ -26,13 +30,20 @@ import { computed } from 'vue'
 
 import { FileUploader } from 'frappe-ui'
 
-import { presentationId } from '@/stores/presentation'
+import { presentationId, isPublicPresentation } from '@/stores/presentation'
 import { allowedImageFileTypes } from '@/utils/constants'
 import { activeElement } from '@/stores/element'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
+})
+
+const imageSrc = computed(() => {
+	const src = element.value.src
+	const isPublic = isPublicPresentation.value
+	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
+	return requiresPrefix ? `/private${src}` : src
 })
 
 const replaceButtonClasses =
@@ -65,7 +76,8 @@ const imageStyle = computed(() => {
 })
 
 const replaceTemplateImage = (file) => {
-	element.value.src = file.file_url
+	const src = isPublicPresentation.value ? file.file_url : file.file_url.replace('/private', '')
+	element.value.src = src
 	element.value.attachmentName = file.name
 }
 

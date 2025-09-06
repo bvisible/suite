@@ -16,8 +16,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { slideBounds } from '@/stores/slide'
+import { computed } from 'vue'
 
 const maskStyles = computed(() => ({
 	position: 'absolute',
@@ -36,7 +36,7 @@ const rectAttributes = computed(() => {
 	if (!slideBounds.left) return {}
 	return {
 		x: slideBounds.left,
-		y: slideBounds.top - 45, // subtract navbar height
+		y: slideBounds.top - 45,
 		width: slideBounds.width,
 		height: slideBounds.height,
 		fill: 'black',

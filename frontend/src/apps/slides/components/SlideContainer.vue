@@ -5,6 +5,7 @@
 		<div ref="slideRef" :style="slideStyles" :class="slideClasses">
 			<SelectionBox
 				ref="selectionBox"
+				v-if="!readonlyMode"
 				:isDragging
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
@@ -30,7 +31,17 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick, onMounted, provide, reactive } from 'vue'
+import {
+	ref,
+	computed,
+	watch,
+	useTemplateRef,
+	nextTick,
+	onMounted,
+	onBeforeUnmount,
+	provide,
+	reactive,
+} from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
 import SnapGuides from '@/components/SnapGuides.vue'
@@ -64,6 +75,10 @@ import { useSnapping } from '@/composables/useSnapping'
 
 const props = defineProps({
 	highlight: Boolean,
+	readonlyMode: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['update:hasOngoingInteraction'])
@@ -81,20 +96,16 @@ const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBo
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(slideContainerRef, slideRef)
 
 const slideClasses = computed(() => {
-	const classes = [
-		'absolute',
-		'left-[calc(50%-512px)]',
-		'top-[calc(50%-270px)]',
-		'h-[540px]',
-		'w-[960px]',
-		'shadow-2xl',
-		'shadow-gray-400',
-	]
+	const classes = ['absolute', 'h-[540px]', 'w-[960px]', 'shadow-2xl', 'shadow-gray-400']
 
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
 
-	return [...classes, outlineClasses]
+	const positionClasses = props.readonlyMode
+		? ['left-[calc(50%-384.5px)]', 'top-[calc(50%-270px)]']
+		: ['left-[calc(50%-512px)]', 'top-[calc(50%-270px)]']
+
+	return [...classes, outlineClasses, positionClasses]
 })
 
 const isSelecting = ref(false)
@@ -125,6 +136,7 @@ const mediaDragOver = ref(false)
 
 const showOverlay = (e) => {
 	e.preventDefault()
+	if (props.readonlyMode) return
 	mediaDragOver.value = true
 }
 
@@ -181,6 +193,7 @@ const triggerDrag = (e, id) => {
 }
 
 const handleMouseDown = (e, element) => {
+	if (props.readonlyMode) return
 	const id = element?.id
 
 	e.stopPropagation()
@@ -369,6 +382,13 @@ onMounted(() => {
 
 	document.addEventListener('copy', handleCopy)
 	document.addEventListener('paste', handlePaste)
+	window.addEventListener('resize', updateSlideBounds)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('copy', handleCopy)
+	document.removeEventListener('paste', handlePaste)
+	window.removeEventListener('resize', updateSlideBounds)
 })
 
 provide('slideDiv', slideRef)
