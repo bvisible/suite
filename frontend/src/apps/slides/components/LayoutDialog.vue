@@ -39,7 +39,7 @@ const showLayoutDialog = defineModel({
 })
 
 const getThumbnailStyles = (layout) => {
-	const thumbnailUrl = getAttachmentUrl(layout.is_public, layout.thumbnail || '')
+	const thumbnailUrl = getAttachmentUrl(props.layouts.is_public, layout.thumbnail || '')
 	return {
 		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',

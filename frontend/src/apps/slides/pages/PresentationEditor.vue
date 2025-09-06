@@ -373,7 +373,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 		slide.background = layout.background
 		slide.transition = layout.transition
 		slide.transitionDuration = layout.transitionDuration
-		slide.thumbnail = layout.thumbnail
+		// slide.thumbnail = layout.thumbnail
 		slide.elements = layout.elements.map((element) => {
 			return {
 				...element,
@@ -400,6 +400,10 @@ const insertSlide = (index, layoutId, toDuplicate) => {
 	})
 
 	changeSlide(index + 1)
+
+	nextTick(() => {
+		updateThumbnail(index + 1)
+	})
 }
 
 const deleteSlide = (deleteActive) => {
