@@ -152,7 +152,7 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 			new_slide.idx = slide.idx
 			slides.append(new_slide)
 	else:
-		first_index = 2 if ref_name in ("Light", "Dark") else 0
+		first_index = 2 if ref_presentation.title in ("Light", "Dark") else 0
 		first_slide = create_new_slide(parent, ref_presentation.slides[first_index].name)
 		first_slide.idx = 1
 		slides.append(first_slide)
