@@ -233,9 +233,9 @@ const performNextStep = () => {
 }
 
 const handleKeyDown = (e) => {
-	if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space') {
+	if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space' || e.key == 'PageDown') {
 		performNextStep()
-	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp') {
+	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
 		performPreviousStep()
 	} else if (e.key == 'F5') {
 		e.preventDefault()
