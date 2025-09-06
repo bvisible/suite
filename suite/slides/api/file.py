@@ -55,6 +55,8 @@ def get_file_metadata(src: str) -> tuple[str, int, str]:
 	"""
 	Returns file metadata including path, size, and MIME type.
 	"""
+	if src.startswith("/files"):
+		src = "/public" + src
 	file_path = frappe.get_site_path() + src
 	file_size = get_file_size(file_path)
 	mimetype = mimetypes.guess_type(file_path)[0] or "video/mp4"
@@ -93,7 +95,7 @@ def get_media_response(src: str) -> Response:
 	return response
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_video_file(src: str) -> Response:
 	"""
 	Fetches permitted video file and returns a response.
@@ -103,7 +105,8 @@ def get_video_file(src: str) -> Response:
 	if not file_doc:
 		raise NotFound
 
-	if not frappe.has_permission("File", "read", file_doc):
+	# check if the user has read permission on the file
+	if file_doc.is_private and not frappe.has_permission("File", "read", file_doc):
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	return get_media_response(src)
