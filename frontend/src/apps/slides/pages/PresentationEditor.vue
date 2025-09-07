@@ -49,7 +49,16 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated } from 'vue'
+import {
+	ref,
+	watch,
+	computed,
+	useTemplateRef,
+	nextTick,
+	onDeactivated,
+	onActivated,
+	provide,
+} from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
@@ -623,4 +632,6 @@ const handleBeforeUnload = (e) => {
 		e.returnValue = ''
 	}
 }
+
+provide('savePresentation', savePresentation)
 </script>
