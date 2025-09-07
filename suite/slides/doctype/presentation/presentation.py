@@ -258,7 +258,7 @@ def create_attachment_with_unique_name(doc):
 	file_name = doc.file_name
 	file_extension = os.path.splitext(file_name)[1]
 	base_name = os.path.splitext(file_name)[0]
-	unique_name = f"{base_name}_{uuid.uuid4().hex}{file_extension}"
+	unique_name = f"{base_name}_{uuid.uuid4().hex[:6]}{file_extension}"
 
 	file_content = doc.get_content()
 	new_file_doc = frappe.get_doc(
