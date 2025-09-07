@@ -424,7 +424,7 @@ const handlePaste = (e) => {
 	e.preventDefault()
 
 	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) handleUploadedMedia(clipboardItems, isPublicPresentation.value)
+	if (clipboardItems) handleUploadedMedia(clipboardItems, !isPublicPresentation.value)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
 	if (clipboardText && !focusElementId.value) handlePastedText(clipboardText)
