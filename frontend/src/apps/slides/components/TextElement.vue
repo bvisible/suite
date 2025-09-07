@@ -105,7 +105,7 @@ onBeforeMount(() => normalizeContent())
 
 .tiptap > ul li::before,
 .textElement > ul li::before {
-	content: '•';
+	content: '\2022';
 	position: absolute;
 	left: 0;
 	top: 0;
