@@ -47,17 +47,6 @@
 				</div>
 			</template>
 		</div>
-
-		<div
-			v-if="showNavigator && showCollapseShortcut"
-			:class="toggleButtonClasses"
-			@click="toggleNavigator"
-		>
-			<div class="text-2xs text-gray-500">Toggle Sidebar</div>
-			<div class="flex h-5 w-1/3 items-center justify-center rounded-sm border bg-gray-100">
-				<span class="text-xs text-gray-500">{{ getMetaKey() }} + B</span>
-			</div>
-		</div>
 	</div>
 
 	<!-- Slide Navigator Toggle -->
@@ -233,16 +222,6 @@ watch(
 		})
 	},
 )
-
-const getMetaKey = () => {
-	const platform = navigator?.platform?.toLowerCase()
-
-	if (platform.includes('mac')) {
-		return '⌘'
-	}
-
-	return 'Ctrl'
-}
 </script>
 
 <style scoped>
