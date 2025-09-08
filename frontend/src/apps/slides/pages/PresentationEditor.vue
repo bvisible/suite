@@ -49,7 +49,16 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, useTemplateRef, nextTick, onDeactivated, onActivated } from 'vue'
+import {
+	ref,
+	watch,
+	computed,
+	useTemplateRef,
+	nextTick,
+	onDeactivated,
+	onActivated,
+	provide,
+} from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
 
@@ -161,6 +170,10 @@ const toggleSlideNavigator = () => {
 	}
 }
 
+const isCmdOrCtrl = (e) => {
+	return e.metaKey || e.ctrlKey
+}
+
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
@@ -174,7 +187,7 @@ const handleElementShortcuts = (e) => {
 			deleteElements(e)
 			break
 		case 'd':
-			if (e.metaKey) duplicateElements(e, activeElements.value, 40)
+			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value, 40)
 			break
 		case 'b':
 			if (activeEditor.value) toggleMark('bold')
@@ -201,12 +214,18 @@ const handleSlideShortcuts = (e) => {
 			deleteSlide()
 			break
 		case 'd':
-			if (e.metaKey) duplicateSlide(e)
+			if (isCmdOrCtrl(e)) duplicateSlide(e)
 			break
 	}
 }
 
 const handleGlobalShortcuts = (e) => {
+	if (isCmdOrCtrl(e) && e.code === 'KeyP') {
+		e.preventDefault()
+		startSlideShow()
+		return
+	}
+
 	switch (e.key) {
 		case 'Escape':
 			resetFocus()
@@ -215,13 +234,13 @@ const handleGlobalShortcuts = (e) => {
 			addTextElement()
 			break
 		case 'b':
-			if (e.metaKey) toggleSlideNavigator()
+			if (isCmdOrCtrl(e)) toggleSlideNavigator()
 			break
 		case 'a':
-			if (e.metaKey) selectAllElements(e)
+			if (isCmdOrCtrl(e)) selectAllElements(e)
 			break
 		case 's':
-			if (e.metaKey) saveSlide(e)
+			if (isCmdOrCtrl(e)) saveSlide(e)
 			break
 		case 'n':
 			if (e.ctrlKey) {
@@ -274,10 +293,10 @@ const handleUndoRedo = (e) => {
 		return
 	}
 
-	if (historyControl.canRedo.value && e.shiftKey && e.metaKey) {
+	if (isCmdOrCtrl(e) && e.shiftKey && historyControl.canRedo.value) {
 		e.preventDefault()
 		handleHistoryOperation('redo')
-	} else if (historyControl.undoStack.value.length > 1 && e.metaKey) {
+	} else if (isCmdOrCtrl(e) && historyControl.undoStack.value.length > 1) {
 		e.preventDefault()
 		handleHistoryOperation('undo')
 	}
@@ -309,7 +328,7 @@ const handleKeyDownForReadonly = (e) => {
 			startSlideShow()
 			break
 		case 'b':
-			if (e.metaKey) toggleSlideNavigator()
+			if (isCmdOrCtrl(e)) toggleSlideNavigator()
 			break
 	}
 }
@@ -617,4 +636,6 @@ const handleBeforeUnload = (e) => {
 		e.returnValue = ''
 	}
 }
+
+provide('savePresentation', savePresentation)
 </script>
