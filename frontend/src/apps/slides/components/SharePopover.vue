@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { Popover, Switch, call, toast } from 'frappe-ui'
 import {
 	presentationId,
@@ -48,6 +48,8 @@ import {
 } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { copyToClipboard } from '@/utils/helpers'
+
+const savePresentation = inject('savePresentation', async () => {})
 
 const publicPresentation = ref()
 
@@ -61,6 +63,8 @@ const updateAccessLevel = async (isPublic) => {
 	if (!presentationId.value) return
 
 	publicPresentation.value = isPublic
+
+	await savePresentation()
 
 	call('slides.slides.doctype.presentation.presentation.set_public', {
 		name: presentationId.value,

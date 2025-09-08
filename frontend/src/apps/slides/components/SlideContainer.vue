@@ -41,6 +41,8 @@ import {
 	onBeforeUnmount,
 	provide,
 	reactive,
+	onActivated,
+	onDeactivated,
 } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
@@ -373,7 +375,7 @@ watch(
 	},
 )
 
-onMounted(() => {
+const initSlideAndListeners = () => {
 	if (!slideRef.value) return
 
 	setSlideRef(slideRef.value)
@@ -383,13 +385,21 @@ onMounted(() => {
 	document.addEventListener('copy', handleCopy)
 	document.addEventListener('paste', handlePaste)
 	window.addEventListener('resize', updateSlideBounds)
-})
+}
 
-onBeforeUnmount(() => {
+const clearListeners = () => {
 	document.removeEventListener('copy', handleCopy)
 	document.removeEventListener('paste', handlePaste)
 	window.removeEventListener('resize', updateSlideBounds)
-})
+}
+
+onMounted(() => initSlideAndListeners())
+
+onActivated(() => initSlideAndListeners())
+
+onDeactivated(() => clearListeners())
+
+onBeforeUnmount(() => clearListeners())
 
 provide('slideDiv', slideRef)
 provide('slideContainerDiv', slideContainerRef)

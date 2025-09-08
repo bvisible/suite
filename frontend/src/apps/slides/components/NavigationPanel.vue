@@ -47,17 +47,6 @@
 				</div>
 			</template>
 		</div>
-
-		<div
-			v-if="showNavigator && showCollapseShortcut"
-			:class="toggleButtonClasses"
-			@click="toggleNavigator"
-		>
-			<div class="text-2xs text-gray-500">Toggle Sidebar</div>
-			<div class="flex h-5 w-1/3 items-center justify-center rounded-sm border bg-gray-100">
-				<div class="text-xs text-gray-500">⌘ + B</div>
-			</div>
-		</div>
 	</div>
 
 	<!-- Slide Navigator Toggle -->
@@ -204,14 +193,17 @@ const slideThumbnailsRef = ref([])
 const scrollThumbnailToView = (element) => {
 	if (!scrollableArea.value) return
 
-	const isScrollable = scrollableArea.value.scrollHeight > scrollableArea.value.clientHeight
+	const areaTop = scrollableArea.value.scrollTop
+	const areaHeight = scrollableArea.value.clientHeight
+	const thumbnailTop = element.offsetTop - scrollableArea.value.offsetTop
+	const thumbnailHeight = element.offsetHeight
+	const thumbnailBottom = thumbnailTop + thumbnailHeight
 
-	if (isScrollable) {
-		// adjust offset for top padding - 16px
-		const offset = element.offsetTop - scrollableArea.value.offsetTop - 16
-
+	// Only scroll if thumbnail is partially visible
+	if (thumbnailTop < areaTop || thumbnailBottom > areaTop + areaHeight) {
+		const targetScroll = thumbnailTop - areaHeight / 2 + thumbnailHeight / 2
 		scrollableArea.value.scrollTo({
-			top: offset,
+			top: targetScroll,
 			behavior: 'smooth',
 		})
 	}

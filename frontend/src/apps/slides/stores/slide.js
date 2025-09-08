@@ -70,6 +70,7 @@ const setCloneStyles = (clone) => {
 	clone.style.left = '-9999px'
 	clone.style.top = '0'
 	clone.style.transform = 'scale(1)'
+	clone.style.boxShadow = 'none'
 }
 
 const canRemoveDiv = (element) => {
@@ -116,15 +117,27 @@ const getThumbnailHtml = async () => {
 }
 
 const getSlideThumbnail = async (thumbnailHtml) => {
-	document.body.appendChild(thumbnailHtml)
+	return new Promise((resolve, reject) => {
+		document.body.appendChild(thumbnailHtml)
 
-	const canvas = await html2canvas(thumbnailHtml, {
-		scale: window.devicePixelRatio,
+		document.fonts.ready.then(() => {
+			requestAnimationFrame(async () => {
+				try {
+					const canvas = await html2canvas(thumbnailHtml, {
+						scale: window.devicePixelRatio,
+						useCORS: true,
+					})
+
+					document.body.removeChild(thumbnailHtml)
+
+					const dataUrl = canvas.toDataURL('image/png')
+					resolve(dataUrl)
+				} catch (error) {
+					reject(error)
+				}
+			})
+		})
 	})
-
-	document.body.removeChild(thumbnailHtml)
-
-	return canvas.toDataURL('image/png')
 }
 
 const lastThumbnailTime = ref(0)
