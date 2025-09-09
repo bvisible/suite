@@ -420,6 +420,12 @@ const handlePastedJSON = async (json) => {
 	duplicateElements(null, json)
 }
 
+const handleSvgText = (svgText) => {
+	const svgBlob = new Blob([svgText], { type: 'image/svg+xml' })
+	const svgFile = new File([svgBlob], 'pasted-image.svg', { type: 'image/svg+xml' })
+	handleUploadedMedia([{ kind: 'file', getAsFile: () => svgFile }], !isPublicPresentation.value)
+}
+
 const handlePaste = (e) => {
 	e.preventDefault()
 
@@ -427,7 +433,11 @@ const handlePaste = (e) => {
 	if (clipboardItems) handleUploadedMedia(clipboardItems, !isPublicPresentation.value)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText && !focusElementId.value) handlePastedText(clipboardText)
+	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
+		handleSvgText(clipboardText)
+	} else if (clipboardText && !focusElementId.value) {
+		handlePastedText(clipboardText)
+	}
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
 	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
