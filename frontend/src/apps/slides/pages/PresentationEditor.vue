@@ -551,8 +551,11 @@ onDeactivated(async () => {
 		updateUnsyncedRecord()
 		clearInterval(autosaveInterval)
 		clearInterval(thumbnailInterval)
-		await resetFocus()
-		savePresentation()
+
+		if (router.currentRoute.value.name !== 'Slideshow') {
+			await resetFocus()
+			savePresentation()
+		}
 
 		document.removeEventListener('keydown', handleKeyDown)
 		window.removeEventListener('beforeunload', handleBeforeUnload)
