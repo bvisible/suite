@@ -421,8 +421,13 @@ const handlePastedJSON = async (json) => {
 }
 
 const handlePaste = (e) => {
-	e.preventDefault()
+	// do not override paste event if current element is input or content editable
+	const activeElement = document.activeElement
+	if (activeElement?.tagName == 'INPUT' || activeElement?.tagName == 'TEXTAREA' || activeElement?.isContentEditable) {
+		return
+	}
 
+	e.preventDefault()
 	const clipboardItems = e.clipboardData.items
 	if (clipboardItems) handleUploadedMedia(clipboardItems, !isPublicPresentation.value)
 
