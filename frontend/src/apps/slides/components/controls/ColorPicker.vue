@@ -51,6 +51,30 @@
 							</div>
 						</div>
 					</div>
+					<div class="flex items-center justify-between gap-2">
+						<Input
+							type="text"
+							placeholder="Set Color"
+							:aria-label="'Hex color input'"
+							:value="currentColor"
+							class="w-32"
+							@update:modelValue="
+								(val) => {
+									setColor(val)
+								}
+							"
+						/>
+						<div class="flex justify-center">
+							<Button
+								v-if="isSupported"
+								@click="openEyeDropper"
+								class="flex items-center justify-center rounded p-1.5 transition-colors hover:bg-gray-100"
+								title="Pick color from screen"
+							>
+								<EyeDropper class="size-4 text-gray-600" />
+							</Button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</template>
@@ -58,18 +82,23 @@
 </template>
 
 <script setup>
-import { ref, unref, computed, useTemplateRef } from 'vue'
-import { useElementBounding } from '@vueuse/core'
+import { ref, unref, computed, useTemplateRef, watch } from 'vue'
+import { useElementBounding, useEyeDropper } from '@vueuse/core'
 
 import { Popover } from 'frappe-ui'
+import EyeDropper from '../../icons/EyeDropper.vue'
 
 import tinycolor from 'tinycolor2'
+import { Input } from 'frappe-ui'
 
 const shadeSlider = useTemplateRef('shadeSlider')
 const colorSlider = useTemplateRef('colorSlider')
 
 let colorRect = useElementBounding(colorSlider)
 let shadeRect = useElementBounding(shadeSlider)
+
+// EyeDropper functionality
+const { isSupported, sRGBHex, open } = useEyeDropper()
 
 const SLIDER_WIDTH = 125
 const SHADE_RECT_WIDTH = 170
@@ -224,6 +253,31 @@ const handlePopoverOpen = () => {
 	colorValue.value = initialHsv.v
 	currentOpacity.value = initialHsv.a
 
+	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+}
+
+const openEyeDropper = async () => {
+	try {
+		await open()
+	} catch (error) {
+		console.error('Error opening eyedropper:', error)
+	}
+}
+
+// Watch for eyedropper color changes
+watch(sRGBHex, (newColor) => {
+	if (newColor) {
+		setColor(newColor)
+	}
+})
+
+const setColor = (newColor) => {
+	currentColor.value = newColor
+	const initialHsv = tinycolor(newColor).toHsv()
+	colorHue.value = initialHsv.h
+	colorSaturation.value = initialHsv.s
+	colorValue.value = initialHsv.v
+	currentOpacity.value = initialHsv.a
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 }
 </script>
