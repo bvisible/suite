@@ -320,6 +320,8 @@ const selectAllElements = (e) => {
 const resetFocus = async () => {
 	const index = slideIndex.value
 
+	if (!activeElementIds.value.length) return
+
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null

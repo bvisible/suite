@@ -86,6 +86,7 @@ const isPublicPresentation = async (presentationId: string) => {
 }
 
 let previousRoute = null
+let canAccess = false
 
 
 router.beforeEach(async (to, from, next) => {
@@ -103,7 +104,11 @@ router.beforeEach(async (to, from, next) => {
 	}
 
 	if (['Slideshow', 'PresentationView', 'PresentationEditor'].includes(to.name as string)) {
-		const canAccess = await hasAccess(to.params.presentationId as string)
+
+		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
+			canAccess = await hasAccess(to.params.presentationId as string)
+		}
+
 		if (canAccess && ['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
 			if (to.name === 'Slideshow' && !from.name) {
 				return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
