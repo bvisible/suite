@@ -60,27 +60,18 @@
 </template>
 
 <script setup>
-import {
-	ref,
-	computed,
-	watch,
-	useTemplateRef,
-	onMounted,
-	nextTick,
-	onActivated,
-	onDeactivated,
-} from 'vue'
+import { computed, nextTick, onActivated, onDeactivated, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
 
 import {
-	presentationId,
-	inSlideShow,
 	applyReverseTransition,
 	initPresentationDoc,
+	inSlideShow,
+	isPublicPresentation,
 } from '@/stores/presentation'
-import { slides, slideIndex, currentSlide } from '@/stores/slide'
+import { currentSlide, slideIndex, slides } from '@/stores/slide'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -103,6 +94,54 @@ const opacity = ref(1)
 const clipPath = ref('')
 
 const slideCursor = ref('none')
+
+const prefetchedAssets = ref(new Set())
+
+const prefetchNextSlide = () => {
+	const nextSlideIndex = slideIndex.value + 1
+	if (nextSlideIndex >= slides.value.length) return
+
+	const nextSlide = slides.value[nextSlideIndex]
+	nextSlide?.elements?.forEach((element) => {
+		if (element.type === 'image' && element.src) {
+			prefetchAsset(element.src, 'image')
+		} else if (element.type === 'video') {
+			element.src && prefetchAsset(element.src, 'video')
+			element.poster && prefetchAsset(element.poster, 'image')
+		}
+	})
+}
+
+const prefetchAsset = async (src, type) => {
+	if (prefetchedAssets.value.has(src)) return
+	prefetchedAssets.value.add(src)
+
+	try {
+		const url = buildAssetUrl(src, type)
+
+		if (type === 'image') {
+			// Use link prefetch for images
+			const link = document.createElement('link')
+			link.rel = 'prefetch'
+			link.href = url
+			link.as = 'image'
+			link.crossOrigin = 'anonymous'
+			document.head.appendChild(link)
+		}
+	} catch (error) {
+		console.warn('Failed to prefetch asset:', src, error)
+	}
+}
+
+const buildAssetUrl = (src, type) => {
+	if (type === 'video') {
+		return `/api/method/slides.api.file.get_video_file?src=${encodeURIComponent(src)}`
+	}
+
+	// Handle private/public file URLs
+	const requiresPrefix = !isPublicPresentation.value && src?.startsWith('/files/')
+	return requiresPrefix ? `/private${src}` : src
+}
 
 const slideStyles = computed(() => {
 	// scale slide to fit current screen size while maintaining 16:9 aspect ratio
@@ -304,6 +343,11 @@ const changeSlide = (index) => {
 			params: { presentationId: props.presentationId },
 			query: { slide: index + 1 },
 		})
+
+		// Prefetch next slide assets after navigation
+		setTimeout(() => {
+			prefetchNextSlide()
+		}, 100)
 	})
 }
 
@@ -317,6 +361,11 @@ onActivated(() => {
 	initFullscreenMode()
 	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
+
+	// Initial prefetch of next slide
+	setTimeout(() => {
+		prefetchNextSlide()
+	}, 500)
 })
 
 onDeactivated(() => {
@@ -328,6 +377,10 @@ watch(
 	() => props.activeSlideId,
 	(index) => {
 		slideIndex.value = parseInt(index) - 1
+		// Prefetch next slide when current slide changes
+		setTimeout(() => {
+			prefetchNextSlide()
+		}, 200)
 	},
 	{ immediate: true },
 )
