@@ -606,18 +606,22 @@ const screenShareSidebarStyle = computed(() => {
 
 	// if only 2/3 users cap it to 25%
 	if (columns === 1 && visible <= 4) {
-		return {
-			display: "grid",
-			"grid-auto-rows": "25%",
-		};
+		// Dynamic height minus gaps, but never let any tile exceed 25% of sidebar height.
+		// gap-2 => 0.5rem vertical gap between tiles.
+		const perRowBase = `calc((100% - ${(visible - 1).toString()} * 0.5rem) / ${visible})`;
+		const perRow = `min(25%, ${perRowBase})`;
+		return { display: "grid", "grid-auto-rows": perRow };
 	}
 
 	return {
 		display: "grid",
 		// Always enforce a row height. When rows==1 previously it was 'auto',
 		// which could collapse to 0 until the first video painted, making it appear transparent.
+		// Cap single-row case too so a lone tile can't exceed 25% height.
 		"grid-auto-rows":
-			rows === 1 ? "1fr" : `calc((100% - ${gapTotal}rem) / ${rows})`,
+			rows === 1
+				? "min(25%, 1fr)"
+				: `min(25%, calc((100% - ${gapTotal}rem) / ${rows}))`,
 	};
 });
 
@@ -627,7 +631,7 @@ const singleSidebarTileStyle = computed(() => {
 		sidebarRemotesDisplay.value.list.length +
 		(sidebarRemotesDisplay.value.extra > 0 ? 1 : 0);
 	if (totalSidebarTiles === 1) {
-		return { maxHeight: "25%", height: "auto" };
+		return { minHeight: "25%" };
 	}
 	return {};
 });
@@ -1277,7 +1281,12 @@ const toggleScreenShare = async () => {
 }
 /* Prevent layout jump when leaving */
 .tile-leave-active {
-	position: relative;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
 }
 
 /* Firefox blank video mitigation */
