@@ -14,7 +14,7 @@ from frappe.model.document import Document
 class Presentation(Document):
 	def before_save(self):
 		self.slug = slug(self.title)
-		if self.is_combined:
+		if self.is_composite:
 			self.is_public = 1
 
 	def update_thumbnails(self):
@@ -34,10 +34,10 @@ class Presentation(Document):
 				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail", is_private)
 
 	def validate(self):
-		if self.is_combined:
+		if self.is_composite:
 			if not self.reference_presentations:
 				frappe.throw(
-					"Please add at least one reference presentation to create a combined presentation."
+					"Please add at least one reference presentation to create a composite presentation."
 				)
 
 			for ref in self.reference_presentations:
@@ -46,7 +46,7 @@ class Presentation(Document):
 				ref_name = ref_doc.title
 				if not is_public:
 					frappe.throw(
-						f"Reference presentation '{ref_name}' must be public to create a combined presentation."
+						f"Reference presentation '{ref_name}' must be public to create a composite presentation."
 					)
 
 		self.update_thumbnails()
@@ -353,8 +353,8 @@ def is_public_presentation(name):
 
 
 @frappe.whitelist(allow_guest=True)
-def is_combined_presentation(name):
-	return frappe.db.get_value("Presentation", name, "is_combined") == 1
+def is_composite_presentation(name):
+	return frappe.db.get_value("Presentation", name, "is_composite") == 1
 
 
 @frappe.whitelist(allow_guest=True)
@@ -384,16 +384,16 @@ def get_themes():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_combined_presentation(name):
+def get_composite_presentation(name):
 	doc = frappe.get_doc("Presentation", name)
 
-	combined_slides = []
+	composite_slides = []
 
 	for reference in doc.reference_presentations:
 		ref_doc = frappe.get_doc("Presentation", reference.presentation)
 		for slide in ref_doc.slides:
-			combined_slides.append(slide)
+			composite_slides.append(slide)
 
-	doc.slides = combined_slides
+	doc.slides = composite_slides
 
 	return doc.as_dict()
