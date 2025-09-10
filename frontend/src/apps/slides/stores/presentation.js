@@ -104,6 +104,29 @@ const getPublicPresentationResource = (name) => {
 	})
 }
 
+const getCombinedPresentationResource = (name) => {
+	return createResource({
+		url: 'slides.slides.doctype.presentation.presentation.get_combined_presentation',
+		method: 'GET',
+		auto: false,
+		makeParams: () => {
+			return { name: name }
+		},
+		transform(doc) {
+			for (const slide of doc.slides || []) {
+				slide.elements = parseElements(slide.elements)
+				slide.transitionDuration = slide.transition_duration
+				// remove the transition_duration field to avoid confusion
+				delete slide.transition_duration
+			}
+		},
+		onSuccess(doc) {
+			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
+			isPublicPresentation.value = true
+		},
+	})
+}
+
 const hasSlideChanged = (originalState, slideState) => {
 	const keysToCompare = ['background', 'transition', 'transitionDuration']
 
@@ -173,6 +196,10 @@ const initPresentationDoc = async (id, readonly = false) => {
 	if (readonly) {
 		presentationResource.value = getPublicPresentationResource(id)
 		await presentationResource.value.fetch()
+		if (presentationResource.value.data.is_combined) {
+			presentationResource.value = getCombinedPresentationResource(id)
+			await presentationResource.value.fetch()
+		}
 		return presentationResource.value.data
 	} else {
 		presentationResource.value = getPresentationResource(id)
