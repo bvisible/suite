@@ -8,6 +8,7 @@ import string
 import uuid
 
 import frappe
+from frappe.core.doctype.file.file import get_local_image
 from frappe.model.document import Document
 
 
@@ -397,3 +398,60 @@ def get_composite_presentation(name):
 	doc.slides = composite_slides
 
 	return doc.as_dict()
+
+
+def can_convert_image(extn):
+	return extn.lower() in ["png", "jpeg", "jpg"]
+
+
+def convert_and_save_image(image, path):
+	image.save(path, "WEBP")
+	return path
+
+
+def create_new_webp_file_doc(presentation, file_url, image, extn):
+	files = frappe.get_all(
+		"File",
+		filters={
+			"attached_to_name": presentation,
+			"file_url": file_url,
+		},
+		fields=["name"],
+		limit=1,
+	)
+	if files:
+		_file = frappe.get_doc("File", files[0].name)
+		webp_path = _file.get_full_path().replace(extn, "webp")
+		convert_and_save_image(image, webp_path)
+		new_file = frappe.copy_doc(_file)
+		new_file.file_name = f"{_file.file_name.replace(extn, 'webp')}"
+		new_file.file_url = f"{_file.file_url.replace(extn, 'webp')}"
+		new_file.save()
+		return new_file.file_url
+	return file_url
+
+
+def update_element_urls(is_public, presentation, element):
+	attribute = "poster" if element.get("type") == "video" else "src"
+	image_url = element.get(attribute, "") if is_public else f"/private{element.get(attribute, '')}"
+	image, filename, extn = get_local_image(image_url)
+
+	if can_convert_image(extn):
+		new_url = create_new_webp_file_doc(presentation, image_url, image, extn)
+		element[attribute] = new_url.replace("/private", "")
+
+
+@frappe.whitelist()
+def optimize_images(name):
+	doc = frappe.get_doc("Presentation", name)
+
+	for slide in doc.slides:
+		elements = json.loads(slide.elements or "[]")
+
+		for element in elements:
+			if element.get("type") in ["image", "video"]:
+				update_element_urls(doc.is_public, doc.name, element)
+
+		slide.elements = json.dumps(elements, indent=2)
+
+	return doc.save()
