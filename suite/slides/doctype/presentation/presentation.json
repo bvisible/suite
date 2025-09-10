@@ -6,11 +6,11 @@
  "field_order": [
   "title",
   "slug",
+  "is_combined",
   "column_break_axws",
   "theme",
   "is_template",
   "is_public",
-  "is_combined",
   "slides_section",
   "slides",
   "reference_section",
@@ -37,12 +37,14 @@
    "label": "Slug"
   },
   {
+   "depends_on": "eval:!doc.is_combined",
    "fieldname": "theme",
    "fieldtype": "Data",
    "label": "Theme"
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.is_combined",
    "fieldname": "is_template",
    "fieldtype": "Check",
    "label": "Is Template"
@@ -59,6 +61,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.is_combined",
    "fieldname": "is_public",
    "fieldtype": "Check",
    "label": "Is Public"
@@ -84,7 +87,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-10 13:00:58.465356",
+ "modified": "2025-09-10 15:01:23.814213",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
