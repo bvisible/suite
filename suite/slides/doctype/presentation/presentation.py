@@ -41,7 +41,7 @@ class Presentation(Document):
 				)
 
 			for ref in self.reference_presentations:
-				ref_doc = frappe.get_doc("Presentation", ref.presentation)
+				ref_doc = frappe.get_cached_doc("Presentation", ref.presentation)
 				is_public = ref_doc.is_public
 				ref_name = ref_doc.title
 				if not is_public:
@@ -390,7 +390,7 @@ def get_composite_presentation(name):
 	composite_slides = []
 
 	for reference in doc.reference_presentations:
-		ref_doc = frappe.get_doc("Presentation", reference.presentation)
+		ref_doc = frappe.get_cached_doc("Presentation", reference.presentation)
 		for slide in ref_doc.slides:
 			composite_slides.append(slide)
 
