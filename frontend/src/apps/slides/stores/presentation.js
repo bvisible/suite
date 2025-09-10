@@ -104,9 +104,9 @@ const getPublicPresentationResource = (name) => {
 	})
 }
 
-const getCombinedPresentationResource = (name) => {
+const getCompositePresentationResource = (name) => {
 	return createResource({
-		url: 'slides.slides.doctype.presentation.presentation.get_combined_presentation',
+		url: 'slides.slides.doctype.presentation.presentation.get_composite_presentation',
 		method: 'GET',
 		auto: false,
 		makeParams: () => {
@@ -196,8 +196,8 @@ const initPresentationDoc = async (id, readonly = false) => {
 	if (readonly) {
 		presentationResource.value = getPublicPresentationResource(id)
 		await presentationResource.value.fetch()
-		if (presentationResource.value.data.is_combined) {
-			presentationResource.value = getCombinedPresentationResource(id)
+		if (presentationResource.value.data.is_composite) {
+			presentationResource.value = getCompositePresentationResource(id)
 			await presentationResource.value.fetch()
 		}
 		return presentationResource.value.data

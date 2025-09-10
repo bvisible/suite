@@ -85,10 +85,10 @@ const isPublicPresentation = async (presentationId: string) => {
 	}
 }
 
-const isCombinedPresentation = async (presentationId: string) => {
+const isCompositePresentation = async (presentationId: string) => {
 	try {
 		const response = await createResource({
-			url: "slides.slides.doctype.presentation.presentation.is_combined_presentation",
+			url: "slides.slides.doctype.presentation.presentation.is_composite_presentation",
 			method: "GET",
 		}).submit({
 			doctype: "Presentation",
@@ -103,7 +103,7 @@ const isCombinedPresentation = async (presentationId: string) => {
 
 let previousRoute = null
 let canAccess = false
-let isCombined = false
+let isComposite = false
 
 
 router.beforeEach(async (to, from, next) => {
@@ -123,10 +123,10 @@ router.beforeEach(async (to, from, next) => {
 	if (['Slideshow', 'PresentationView', 'PresentationEditor'].includes(to.name as string)) {
 
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
-			isCombined = await isCombinedPresentation(to.params.presentationId as string)
+			isComposite = await isCompositePresentation(to.params.presentationId as string)
 			canAccess = await hasAccess(to.params.presentationId as string)
 		}
-		if (isCombined) {
+		if (isComposite) {
 			if (to.name == 'Slideshow' || to.name == 'PresentationView') {
 				return next()
 			} else {
