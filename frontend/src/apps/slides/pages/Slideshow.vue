@@ -106,7 +106,6 @@ const prefetchNextSlide = () => {
 		if (element.type === 'image' && element.src) {
 			prefetchAsset(element.src, 'image')
 		} else if (element.type === 'video') {
-			element.src && prefetchAsset(element.src, 'video')
 			element.poster && prefetchAsset(element.poster, 'image')
 		}
 	})
