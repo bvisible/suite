@@ -14,6 +14,8 @@ from frappe.model.document import Document
 class Presentation(Document):
 	def before_save(self):
 		self.slug = slug(self.title)
+		if self.is_composite:
+			self.is_public = 1
 
 	def update_thumbnails(self):
 		doc_before_save = self.get_doc_before_save()
@@ -32,6 +34,21 @@ class Presentation(Document):
 				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail", is_private)
 
 	def validate(self):
+		if self.is_composite:
+			if not self.reference_presentations:
+				frappe.throw(
+					"Please add at least one reference presentation to create a composite presentation."
+				)
+
+			for ref in self.reference_presentations:
+				ref_doc = frappe.get_cached_doc("Presentation", ref.presentation)
+				is_public = ref_doc.is_public
+				ref_name = ref_doc.title
+				if not is_public:
+					frappe.throw(
+						f"Reference presentation '{ref_name}' must be public to create a composite presentation."
+					)
+
 		self.update_thumbnails()
 
 
@@ -336,6 +353,11 @@ def is_public_presentation(name):
 
 
 @frappe.whitelist(allow_guest=True)
+def is_composite_presentation(name):
+	return frappe.db.get_value("Presentation", name, "is_composite") == 1
+
+
+@frappe.whitelist(allow_guest=True)
 def get_public_presentation(name):
 	if not is_public_presentation(name):
 		frappe.throw("Presentation is not public", frappe.PermissionError)
@@ -359,3 +381,19 @@ def get_themes():
 			theme["thumbnail"] = get_presentation_thumbnail(theme["name"])
 
 	return themes
+
+
+@frappe.whitelist(allow_guest=True)
+def get_composite_presentation(name):
+	doc = frappe.get_doc("Presentation", name)
+
+	composite_slides = []
+
+	for reference in doc.reference_presentations:
+		ref_doc = frappe.get_cached_doc("Presentation", reference.presentation)
+		for slide in ref_doc.slides:
+			composite_slides.append(slide)
+
+	doc.slides = composite_slides
+
+	return doc.as_dict()
