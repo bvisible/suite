@@ -101,7 +101,11 @@
 								v-if="!isCameraOn"
 								class="absolute inset-0 bg-gray-700 flex items-center justify-center"
 							>
-								<Avatar size="3xl" :label="userInitials" :image="userAvatar" />
+								<MeetingAvatar
+									:label="userInitials"
+									:image="userAvatar"
+									:tiles="sidebarVisibleTileCount"
+								/>
 							</div>
 							<div
 								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
@@ -127,10 +131,10 @@
 								v-if="!participant.video_enabled"
 								class="absolute inset-0 flex items-center justify-center bg-gray-700"
 							>
-								<Avatar
-									size="3xl"
+								<MeetingAvatar
 									:image="participant.avatar"
 									:label="participant.initials"
+									:tiles="sidebarVisibleTileCount"
 								/>
 							</div>
 							<div
@@ -194,7 +198,11 @@
 							v-if="!isCameraOn"
 							class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
 						>
-							<Avatar size="3xl" :label="userInitials" :image="userAvatar" />
+							<MeetingAvatar
+								:label="userInitials"
+								:image="userAvatar"
+								:tiles="gridVisibleTileCount"
+							/>
 						</div>
 					</div>
 
@@ -220,10 +228,10 @@
 							v-if="!participant.video_enabled"
 							class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
 						>
-							<Avatar
-								size="3xl"
+							<MeetingAvatar
 								:image="participant.avatar"
 								:label="participant.initials"
+								:tiles="gridVisibleTileCount"
 							/>
 						</div>
 						<div
@@ -335,7 +343,6 @@ import {
 	micEnabled as prefMicEnabled,
 } from "@/data/mediaPreferences.js";
 import {
-	Avatar,
 	Button,
 	Spinner,
 	Tooltip,
@@ -344,6 +351,7 @@ import {
 } from "frappe-ui";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import MeetingAvatar from "../components/MeetingAvatar.vue";
 import { session } from "../data/session.js";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 import { cleanupMediasoup } from "../mediasoup-client.js";
@@ -511,6 +519,24 @@ const userInitials = computed(() => {
 		.slice(0, 2);
 });
 const userAvatar = computed(() => currentUser.value.avatar || "");
+
+// Visible tile count for dynamic avatar sizing in grid (local + visible remotes + grouping tile if any)
+const gridVisibleTileCount = computed(() => {
+	return (
+		1 +
+		gridRemotesDisplay.value.list.length +
+		(gridRemotesDisplay.value.extra > 0 ? 1 : 0)
+	);
+});
+
+// Visible tile count for screen-share sidebar sizing (local + visible remotes + grouping tile if any)
+const sidebarVisibleTileCount = computed(() => {
+	return (
+		1 +
+		sidebarRemotesDisplay.value.list.length +
+		(sidebarRemotesDisplay.value.extra > 0 ? 1 : 0)
+	);
+});
 
 // Normal grid logic: cap visible tiles at 16 (4x4); extra participants are grouped.
 const gridRemotesDisplay = computed(() => {

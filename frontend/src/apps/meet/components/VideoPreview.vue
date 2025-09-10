@@ -13,10 +13,10 @@
 				class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center"
 			>
 				<div class="text-white text-center">
-					<Avatar
-						size="2xl"
+					<MeetingAvatar
 						:label="userInitials"
 						:image="userAvatar"
+						:tiles="videoPreviewTiles"
 						class="mx-auto mb-4"
 					/>
 					<p class="text-lg font-medium">{{ userName }}</p>
@@ -61,8 +61,9 @@ import {
 	setCameraEnabled,
 	setMicEnabled,
 } from "@/data/mediaPreferences.js";
-import { Avatar, Button } from "frappe-ui";
+import { Button } from "frappe-ui";
 import { onMounted, onUnmounted, ref } from "vue";
+import MeetingAvatar from "./MeetingAvatar.vue";
 
 const videoElement = ref(null);
 const isMuted = ref(!micEnabled.value);
@@ -75,6 +76,8 @@ const composedStream = ref(null);
 const userName = ref("You");
 const userInitials = ref("Y");
 const userAvatar = ref("");
+// When preview is shown in different layouts this helps scale placeholder
+const videoPreviewTiles = 1;
 
 function rebuildStream() {
 	const tracks = [];
