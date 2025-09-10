@@ -10,8 +10,11 @@
   "theme",
   "is_template",
   "is_public",
+  "is_combined",
   "slides_section",
-  "slides"
+  "slides",
+  "reference_section",
+  "reference_presentations"
  ],
  "fields": [
   {
@@ -49,6 +52,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:!doc.is_combined",
    "fieldname": "slides_section",
    "fieldtype": "Section Break",
    "label": "Slides"
@@ -58,11 +62,29 @@
    "fieldname": "is_public",
    "fieldtype": "Check",
    "label": "Is Public"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_combined",
+   "fieldtype": "Check",
+   "label": "Is Combined"
+  },
+  {
+   "fieldname": "reference_presentations",
+   "fieldtype": "Table",
+   "label": "Reference Presentations",
+   "options": "Reference Presentation"
+  },
+  {
+   "depends_on": "is_combined",
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 13:30:33.840405",
+ "modified": "2025-09-10 13:00:58.465356",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
