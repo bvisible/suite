@@ -85,8 +85,25 @@ const isPublicPresentation = async (presentationId: string) => {
 	}
 }
 
+const isCompositePresentation = async (presentationId: string) => {
+	try {
+		const response = await createResource({
+			url: "slides.slides.doctype.presentation.presentation.is_composite_presentation",
+			method: "GET",
+		}).submit({
+			doctype: "Presentation",
+			name: presentationId,
+		})
+		return response
+	} catch (error) {
+		console.error('Failed to fetch presentation access level:', error)
+		return false
+	}
+}
+
 let previousRoute = null
 let canAccess = false
+let isComposite = false
 
 
 router.beforeEach(async (to, from, next) => {
@@ -106,7 +123,15 @@ router.beforeEach(async (to, from, next) => {
 	if (['Slideshow', 'PresentationView', 'PresentationEditor'].includes(to.name as string)) {
 
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
+			isComposite = await isCompositePresentation(to.params.presentationId as string)
 			canAccess = await hasAccess(to.params.presentationId as string)
+		}
+		if (isComposite) {
+			if (to.name == 'Slideshow' || to.name == 'PresentationView') {
+				return next()
+			} else {
+				return next({ name: 'PresentationView', params: to.params, query: to.query } )
+			}
 		}
 
 		if (canAccess && ['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
