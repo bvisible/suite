@@ -1,14 +1,10 @@
 <template>
 	<div class="min-h-screen bg-gray-50 p-4">
-		<div class="max-w-7xl mx-auto space-y-8">
+		<div class="max-w-7xl mx-auto space-y-20">
 			<!-- Header with Navigation -->
-			<div class="flex justify-between items-center py-6">
-				<div class="text-center flex-1">
-					<h1 class="text-4xl font-bold text-gray-900 mb-2">Sae Video Conferencing</h1>
-					<p class="text-lg text-gray-600">
-						Connect, collaborate, and communicate seamlessly
-					</p>
-				</div>
+			<div class="flex gap-3 items-center py-6">
+				<FrappeMeetingLogo />
+				<h1 class="text-xl font-semibold text-gray-900">Frappe Meet</h1>
 			</div>
 
 			<!-- Main content -->
@@ -30,4 +26,5 @@
 <script setup>
 import JoinMeetingForm from "@/components/JoinMeetingForm.vue";
 import VideoPreview from "@/components/VideoPreview.vue";
+import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 </script>

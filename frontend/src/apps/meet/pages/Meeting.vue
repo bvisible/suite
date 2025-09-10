@@ -24,14 +24,18 @@
 			<!-- Meeting info bar -->
 			<div class="bg-gray-800 px-6 py-2 flex-shrink-0 border-b border-gray-700">
 				<div class="flex items-center justify-between">
-					<div class="text-white">
-						<span
-							class="text-sm cursor-pointer hover:text-gray-300 transition-colors"
-							@click="copyMeetingUrl"
-							:title="'Click to copy meeting URL'"
-						>
+					<div class="flex items-center gap-2">
+						<FrappeMeetingLogo class="h-8" />
+						<h4 class="text-white text-base">Frappe Meet</h4>
+					</div>
+					<div
+						class="text-white cursor-pointer hover:text-gray-300 transition-colors space-x-2"
+						@click="copyMeetingUrl"
+					>
+						<span class="text-sm" :title="'Click to copy meeting URL'">
 							{{ meetingDoc?.data?.title || meetingId }}
 						</span>
+						<lucide-copy class="w-4 h-4 inline-block ml-1" />
 					</div>
 				</div>
 			</div>
@@ -341,6 +345,7 @@ import {
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session.js";
+import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 import { cleanupMediasoup } from "../mediasoup-client.js";
 import { publishScreenShare } from "../mediasoup-client.js";
 import {

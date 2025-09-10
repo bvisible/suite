@@ -1,6 +1,6 @@
 <template>
 	<div class="m-3 flex flex-row items-center justify-center">
-		<Card title="Login to Sae" class="w-full max-w-md mt-4">
+		<Card title="Login to Frappe Meet" class="w-full max-w-md mt-4">
 			<form class="flex flex-col space-y-2 w-full px-1" @submit.prevent="submit">
 				<Input
 					required

@@ -27,7 +27,7 @@ const routes = [
 ];
 
 const router = createRouter({
-	history: createWebHistory("/sae"),
+	history: createWebHistory("/meet"),
 	routes,
 });
 

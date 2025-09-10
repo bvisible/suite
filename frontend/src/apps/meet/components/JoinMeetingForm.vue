@@ -1,7 +1,7 @@
 <template>
-	<div class="space-y-6">
+	<div class="space-y-4">
 		<div class="text-center lg:text-left">
-			<h1 class="text-4xl font-bold text-gray-900 mb-4">Join or Start a Meeting</h1>
+			<h1 class="text-lg text-gray-900">Join or Start a Meeting</h1>
 		</div>
 
 		<div class="space-y-4">
