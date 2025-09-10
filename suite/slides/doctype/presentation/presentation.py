@@ -140,16 +140,18 @@ def apply_slide_layout(slide, ref_id):
 		element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
 
 	slide.elements = json.dumps(elements)
-	slide.thumbnail = ""
 
 
-def create_new_slide(parent, ref_id):
+def create_new_slide(parent, ref_id, copy_thumbnail=False):
 	"""
 	Creates a new slide with the given reference slide id.
 	"""
 	slide = frappe.new_doc("Slide")
 
 	apply_slide_layout(slide, ref_id)
+
+	if not copy_thumbnail:
+		slide.thumbnail = ""
 
 	slide.parent = parent
 	slide.parentfield = "slides"
@@ -167,7 +169,7 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 
 	if duplicate_from:
 		for slide in ref_presentation.slides:
-			new_slide = create_new_slide(parent, slide.name)
+			new_slide = create_new_slide(parent, slide.name, True)
 			new_slide.idx = slide.idx
 			slides.append(new_slide)
 	else:
