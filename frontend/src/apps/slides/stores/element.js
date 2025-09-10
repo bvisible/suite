@@ -431,7 +431,11 @@ const handleSvgText = (svgText) => {
 const handlePaste = (e) => {
 	// do not override paste event if current element is input or content editable
 	const activeElement = document.activeElement
-	if (activeElement?.tagName == 'INPUT' || activeElement?.tagName == 'TEXTAREA' || activeElement?.isContentEditable) {
+	if (
+		activeElement?.tagName == 'INPUT' ||
+		activeElement?.tagName == 'TEXTAREA' ||
+		activeElement?.isContentEditable
+	) {
 		return
 	}
 

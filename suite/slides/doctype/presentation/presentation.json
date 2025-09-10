@@ -6,7 +6,7 @@
  "field_order": [
   "title",
   "slug",
-  "is_combined",
+  "is_composite",
   "column_break_axws",
   "theme",
   "is_template",
@@ -37,14 +37,14 @@
    "label": "Slug"
   },
   {
-   "depends_on": "eval:!doc.is_combined",
+   "depends_on": "eval:!doc.is_composite",
    "fieldname": "theme",
    "fieldtype": "Data",
    "label": "Theme"
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.is_combined",
+   "depends_on": "eval:!doc.is_composite",
    "fieldname": "is_template",
    "fieldtype": "Check",
    "label": "Is Template"
@@ -54,23 +54,23 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:!doc.is_combined",
+   "depends_on": "eval:!doc.is_composite",
    "fieldname": "slides_section",
    "fieldtype": "Section Break",
    "label": "Slides"
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.is_combined",
+   "depends_on": "eval:!doc.is_composite",
    "fieldname": "is_public",
    "fieldtype": "Check",
    "label": "Is Public"
   },
   {
    "default": "0",
-   "fieldname": "is_combined",
+   "fieldname": "is_composite",
    "fieldtype": "Check",
-   "label": "Is Combined"
+   "label": "Is Composite"
   },
   {
    "fieldname": "reference_presentations",
@@ -79,7 +79,7 @@
    "options": "Reference Presentation"
   },
   {
-   "depends_on": "is_combined",
+   "depends_on": "is_composite",
    "fieldname": "reference_section",
    "fieldtype": "Section Break",
    "label": "Reference"
