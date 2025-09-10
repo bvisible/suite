@@ -457,7 +457,7 @@ function setRemoteVideoRef(participantId, el) {
 }
 
 // MediaSoup state
-let localStream = null;
+const localStream = ref(null);
 let videoProducer = null;
 let audioProducer = null;
 let screenProducer = null;
@@ -670,20 +670,24 @@ const toggleMicrophone = async () => {
 			isMicOn.value = false;
 		} else {
 			let needNewProducer = false;
-			if (localStream) {
-				for (const track of localStream.getAudioTracks()) {
-					if (track.readyState === "ended") localStream.removeTrack(track);
+			if (localStream.value) {
+				for (const track of localStream.value.getAudioTracks()) {
+					if (track.readyState === "ended")
+						localStream.value.removeTrack(track);
 				}
 			}
-			if (!localStream || localStream.getAudioTracks().length === 0) {
+			if (
+				!localStream.value ||
+				localStream.value.getAudioTracks().length === 0
+			) {
 				try {
 					const audioStream = await navigator.mediaDevices.getUserMedia({
 						audio: true,
 					});
 					const newTrack = audioStream.getAudioTracks()[0];
 					newTrack.enabled = true;
-					if (!localStream) localStream = new MediaStream();
-					localStream.addTrack(newTrack);
+					if (!localStream.value) localStream.value = new MediaStream();
+					localStream.value.addTrack(newTrack);
 					if (audioProducer) {
 						try {
 							await audioProducer.close();
@@ -691,7 +695,7 @@ const toggleMicrophone = async () => {
 						audioProducer = null;
 					}
 					if (sfuManager) {
-						const results = await sfuManager.publishMedia(localStream, {
+						const results = await sfuManager.publishMedia(localStream.value, {
 							publishAudio: true,
 							publishVideo: false,
 						});
@@ -703,7 +707,7 @@ const toggleMicrophone = async () => {
 					toast.error("Could not access microphone");
 				}
 			} else {
-				for (const track of localStream.getAudioTracks()) {
+				for (const track of localStream.value.getAudioTracks()) {
 					track.enabled = true;
 				}
 			}
@@ -751,20 +755,24 @@ const toggleCamera = async () => {
 			isCameraOn.value = false;
 		} else {
 			let needNewProducer = false;
-			if (localStream) {
-				for (const track of localStream.getVideoTracks()) {
-					if (track.readyState === "ended") localStream.removeTrack(track);
+			if (localStream.value) {
+				for (const track of localStream.value.getVideoTracks()) {
+					if (track.readyState === "ended")
+						localStream.value.removeTrack(track);
 				}
 			}
-			if (!localStream || localStream.getVideoTracks().length === 0) {
+			if (
+				!localStream.value ||
+				localStream.value.getVideoTracks().length === 0
+			) {
 				try {
 					const videoStream = await navigator.mediaDevices.getUserMedia({
 						video: true,
 					});
 					const newTrack = videoStream.getVideoTracks()[0];
 					newTrack.enabled = true;
-					if (!localStream) localStream = new MediaStream();
-					localStream.addTrack(newTrack);
+					if (!localStream.value) localStream.value = new MediaStream();
+					localStream.value.addTrack(newTrack);
 					if (videoProducer) {
 						try {
 							await videoProducer.close();
@@ -772,7 +780,7 @@ const toggleCamera = async () => {
 						videoProducer = null;
 					}
 					if (sfuManager) {
-						const results = await sfuManager.publishMedia(localStream, {
+						const results = await sfuManager.publishMedia(localStream.value, {
 							publishVideo: true,
 							publishAudio: false,
 						});
@@ -784,7 +792,7 @@ const toggleCamera = async () => {
 					toast.error("Could not access camera");
 				}
 			} else {
-				for (const track of localStream.getVideoTracks()) {
+				for (const track of localStream.value.getVideoTracks()) {
 					track.enabled = true;
 				}
 			}
@@ -851,7 +859,7 @@ const initializeCamera = async () => {
 			console.log(
 				"Skipping initial getUserMedia (both mic & camera disabled by user)",
 			);
-			localStream = null; // Will be acquired lazily when user enables
+			localStream.value = null; // Will be acquired lazily when user enables
 			return;
 		}
 		console.log("Initializing media with preferences", {
@@ -873,7 +881,7 @@ const initializeCamera = async () => {
 				autoGainControl: true,
 			};
 		}
-		localStream = await navigator.mediaDevices.getUserMedia(constraints);
+		localStream.value = await navigator.mediaDevices.getUserMedia(constraints);
 
 		console.log("Media stream obtained:", localStream);
 
@@ -881,7 +889,7 @@ const initializeCamera = async () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		if (localVideo.value) {
-			localVideo.value.srcObject = localStream;
+			localVideo.value.srcObject = localStream.value;
 			console.log("Local video stream assigned to video element");
 
 			// Ensure the video plays
@@ -1052,14 +1060,14 @@ const joinMeetingRoom = async () => {
 		}
 
 		// Step 4: Start publishing media if we have local stream
-		if (localStream && sfuManager) {
+		if (localStream.value && sfuManager) {
 			const publishOptions = {
 				publishVideo: isCameraOn.value,
 				publishAudio: isMicOn.value,
 			};
 			try {
 				const mediaResults = await sfuManager.publishMedia(
-					localStream,
+					localStream.value,
 					publishOptions,
 				);
 				videoProducer = mediaResults.videoProducer;
@@ -1069,7 +1077,7 @@ const joinMeetingRoom = async () => {
 			}
 		} else {
 			console.warn("⚠️ Skipping publish: localStream or sfuManager missing", {
-				hasStream: !!localStream,
+				hasStream: !!localStream.value,
 				hasManager: !!sfuManager,
 			});
 		}
@@ -1116,7 +1124,7 @@ onMounted(async () => {
 
 // Watch for localVideo element and localStream to ensure they connect
 watch(
-	[localVideo, () => localStream],
+	[localVideo, () => localStream.value],
 	async ([videoElement, stream]) => {
 		if (videoElement && stream && !videoElement.srcObject) {
 			console.log("Connecting local stream to video element");
@@ -1166,8 +1174,8 @@ onUnmounted(async () => {
 	}
 
 	// Clean up media streams
-	if (localStream) {
-		for (const track of localStream.getTracks()) {
+	if (localStream.value) {
+		for (const track of localStream.value.getTracks()) {
 			track.stop();
 		}
 	}
