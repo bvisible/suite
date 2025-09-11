@@ -436,6 +436,10 @@ def create_new_webp_file_doc(presentation, file_url, image, extn):
 def update_element_urls(is_public, presentation, element):
 	attribute = "poster" if element.get("type") == "video" else "src"
 	image_url = element.get(attribute, "") if is_public else f"/private{element.get(attribute, '')}"
+
+	if image_url.endswith((".webp", ".svg")):
+		return
+
 	image, filename, extn = get_local_image(image_url)
 
 	if can_convert_image(extn):
