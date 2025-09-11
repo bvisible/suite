@@ -121,10 +121,9 @@ const prefetchAsset = async (src, type) => {
 		if (type === 'image') {
 			// Use link prefetch for images
 			const link = document.createElement('link')
-			link.rel = 'prefetch'
+			link.rel = 'preload'
 			link.href = url
 			link.as = 'image'
-			link.crossOrigin = 'anonymous'
 			document.head.appendChild(link)
 		}
 	} catch (error) {
