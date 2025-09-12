@@ -1,41 +1,57 @@
-### Slides
+<div align="center">
 
-Open Source App to help you create presentations
+<a href="https://frappe.io/products/">
+    <img src="https://github.com/user-attachments/assets/21642db8-1170-4a0d-b973-53bbedcd6259" height="80" alt="Frappe slides Logo">
+</a>
 
-### Installation
+<h1>Frappe Slides</h1>
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+<div>
+    <picture>
+        <!-- <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/7b013cc1-fe40-4b3c-a765-d8c3697bf81e"> -->
+        <img width="1402" alt="Frappe Slide Screenshot" src="https://github.com/user-attachments/assets/3bb8ba8c-a5a1-4223-bf04-cd07372128a0">
+    </picture>
+</div>
+</div>
+
+## Local Setup
+
+1. [Setup Bench](https://docs.frappe.io/framework/user/en/installation).
+1. In the frappe-bench directory, run `bench start` and keep it running.
+1. Open a new terminal session and cd into `frappe-bench` directory and run following commands:
 
 ```bash
-cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch develop
-bench install-app slides
+bench get-app slides
+bench new-site slides.localhost --install-app slides
+bench browse slides.localhost --user Administrator
+bench --site slides.localhost set-config ignore_csrf 1 # prevents CSRFToken errors while using the vite dev server
 ```
 
-### Contributing
+1. Access the slides page at `slides.localhost:8000/slides` in your web browser.
 
-This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
+**For Frontend Development**
+
+1. Open a new terminal session and run the following commands:
 
 ```bash
-cd apps/slides
-pre-commit install
+cd frappe-bench/apps/slides
+yarn install
+yarn dev --host
 ```
 
-Pre-commit is configured to use the following tools for checking and formatting your code:
+1. Now, you can access the site on vite dev server at `http://slides.localhost:8080`
 
-- ruff
-- eslint
-- prettier
-- pyupgrade
+**Note:** You'll find all the code related to slides's frontend inside `frappe-bench/apps/slides/frontend`
 
-### CI
+<h2></h2>
 
-This app can use GitHub Actions for CI. The following workflows are configured:
-
-- CI: Installs this app and runs unit tests on every push to `develop` branch.
-- Linters: Runs [Frappe Semgrep Rules](https://github.com/frappe/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
-
-
-### License
-
-mit
+<br>
+<br>
+<div align="center">
+	<a href="https://frappe.io" target="_blank">
+		<picture>
+			<source media="(prefers-color-scheme: dark)" srcset="https://frappe.io/files/Frappe-white.png">
+			<img src="https://frappe.io/files/Frappe-black.png" alt="Frappe Technologies" height="28"/>
+		</picture>
+	</a>
+</div>
