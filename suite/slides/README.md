@@ -9,7 +9,7 @@
 <div>
     <picture>
         <!-- <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/7b013cc1-fe40-4b3c-a765-d8c3697bf81e"> -->
-        <img width="1402" alt="Frappe Slide Screenshot" src="https://github.com/user-attachments/assets/55b5e9b3-21e7-4edf-a69e-9e78894e8a39">
+        <img width="1402" alt="Frappe Slide Screenshot" src="https://github.com/user-attachments/assets/3bb8ba8c-a5a1-4223-bf04-cd07372128a0">
     </picture>
 </div>
 </div>
