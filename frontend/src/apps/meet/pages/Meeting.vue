@@ -19,10 +19,26 @@
 			</div>
 		</div>
 
+		<!-- Preview mode -->
+		<MeetingPreview
+			v-else-if="isInPreview"
+			:isCameraOn="isCameraOn"
+			:isMicOn="isMicOn"
+			:currentUser="currentUser"
+			:userInitials="userInitials"
+			:userAvatar="userAvatar"
+			:isConnecting="isConnecting"
+			:meetingTitle="meetingDoc?.data?.title || meetingId"
+			:setLocalVideoRef="setLocalVideoRef"
+			@toggle-microphone="toggleMicrophone"
+			@toggle-camera="toggleCamera"
+			@join-from-preview="joinMeetingFromPreview"
+		/>
+
 		<!-- Main video interface -->
 		<template v-else>
 			<!-- Meeting info bar -->
-			<div class="bg-gray-800 px-6 py-2 flex-shrink-0 border-b border-gray-700">
+			<div class="bg-gray-800 px-6 py-2 flex-shrink-0">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						<FrappeMeetingLogo class="h-8" />
@@ -341,6 +357,8 @@
 import {
 	cameraEnabled as prefCameraEnabled,
 	micEnabled as prefMicEnabled,
+	setCameraEnabled,
+	setMicEnabled,
 } from "@/data/mediaPreferences.js";
 import {
 	Button,
@@ -352,6 +370,7 @@ import {
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
+import MeetingPreview from "../components/MeetingPreview.vue";
 import { session } from "../data/session.js";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 import { cleanupMediasoup } from "../mediasoup-client.js";
@@ -435,8 +454,12 @@ function getParticipantName(pid) {
 	return p?.user_name || pid;
 }
 const localVideo = ref(null);
-const isConnecting = ref(true);
+function setLocalVideoRef(el) {
+	localVideo.value = el;
+}
+const isConnecting = ref(false);
 const connectionError = ref(null);
+const isInPreview = ref(true);
 
 let currentUser = ref({});
 let participants = ref(new Map());
@@ -698,6 +721,9 @@ const toggleMicrophone = async () => {
 				);
 			}
 			isMicOn.value = false;
+			try {
+				setMicEnabled(false);
+			} catch (_) {}
 		} else {
 			let needNewProducer = false;
 			if (localStream.value) {
@@ -757,6 +783,9 @@ const toggleMicrophone = async () => {
 				);
 			}
 			isMicOn.value = true;
+			try {
+				setMicEnabled(true);
+			} catch (_) {}
 		}
 	} catch (error) {
 		console.error("Error toggling microphone:", error);
@@ -783,6 +812,9 @@ const toggleCamera = async () => {
 				);
 			}
 			isCameraOn.value = false;
+			try {
+				setCameraEnabled(false);
+			} catch (_) {}
 		} else {
 			let needNewProducer = false;
 			if (localStream.value) {
@@ -843,6 +875,9 @@ const toggleCamera = async () => {
 				);
 			}
 			isCameraOn.value = true;
+			try {
+				setCameraEnabled(true);
+			} catch (_) {}
 		}
 	} catch (error) {
 		console.error("Error toggling camera:", error);
@@ -938,6 +973,11 @@ const initializeCamera = async () => {
 		isCameraOn.value = false;
 		connectionError.value = "Failed to access camera and microphone";
 	}
+};
+
+const joinMeetingFromPreview = async () => {
+	isInPreview.value = false;
+	await joinMeetingRoom();
 };
 
 const joinMeetingRoom = async () => {
@@ -1148,8 +1188,11 @@ const handleKeyDown = (event) => {
 onMounted(async () => {
 	window.addEventListener("keydown", handleKeyDown);
 
-	// Join the meeting room
-	await joinMeetingRoom();
+	await initializeCamera();
+
+	if (session.isLoggedIn) {
+		currentUser.value = session.user;
+	}
 });
 
 // Watch for localVideo element and localStream to ensure they connect
