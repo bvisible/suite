@@ -9,94 +9,104 @@
 			</div>
 		</div>
 
-		<div class="flex-1 flex md:flex-row flex-col p-8 bg-gray-50 text-gray-900 gap-6">
-			<div
-				class="w-full md:flex-[3] flex flex-col justify-center space-y-8 max-w-4xl mx-auto md:mx-0"
-			>
-				<div
-					class="relative bg-black rounded-lg overflow-hidden aspect-video max-h-[480px]"
-				>
-					<video
-						:ref="(el) => setLocalVideoRef && setLocalVideoRef(el)"
-						class="w-full h-full object-cover transform scale-x-[-1]"
-						autoplay
-						muted
-						playsinline
-					/>
-
-					<div
-						v-if="!isCameraOn"
-						class="absolute inset-0 bg-gray-700 flex items-center justify-center"
-					>
-						<div class="text-center text-white">
-							<MeetingAvatar
-								:label="userInitials"
-								:image="userAvatar"
-								:tiles="1"
-								class="mx-auto mb-4"
+		<div class="flex-1 flex lg:flex-row flex-col bg-gray-50 text-gray-900">
+			<div class="max-w-7xl mx-auto w-full flex lg:flex-row flex-col px-6 lg:px-8">
+				<!-- Video Section -->
+				<div class="lg:flex-[2] flex flex-col justify-center p-6 lg:pr-4">
+					<div class="max-w-3xl mx-auto w-full">
+						<div
+							class="relative bg-black rounded-xl overflow-hidden aspect-video shadow-xl"
+						>
+							<video
+								:ref="(el) => setLocalVideoRef && setLocalVideoRef(el)"
+								class="w-full h-full object-cover transform scale-x-[-1]"
+								autoplay
+								muted
+								playsinline
 							/>
-							<p class="text-xl font-medium">{{ currentUserName }}</p>
+
+							<div
+								v-if="!isCameraOn"
+								class="absolute inset-0 bg-gray-800 flex items-center justify-center"
+							>
+								<div class="text-center text-white">
+									<MeetingAvatar
+										:label="userInitials"
+										:image="userAvatar"
+										:tiles="1"
+										class="mx-auto mb-4 w-20 h-20"
+									/>
+									<p class="text-xl font-medium">{{ currentUserName }}</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Controls -->
+						<div class="flex items-center justify-center space-x-4 mt-6">
+							<Button
+								@click="$emit('toggle-microphone')"
+								:variant="isMicOn ? 'solid' : 'solid'"
+								:theme="isMicOn ? 'gray' : 'red'"
+								size="lg"
+								:title="
+									'Toggle Audio (' +
+									($platform === 'mac' ? '⌘+D' : 'Ctrl+D') +
+									')'
+								"
+							>
+								<template #icon>
+									<lucide-mic-off v-if="!isMicOn" class="w-5 h-5" />
+									<lucide-mic v-else class="w-5 h-5" />
+								</template>
+							</Button>
+
+							<Button
+								@click="$emit('toggle-camera')"
+								:variant="isCameraOn ? 'solid' : 'solid'"
+								:theme="isCameraOn ? 'gray' : 'red'"
+								size="lg"
+								:title="
+									'Toggle Video (' +
+									($platform === 'mac' ? '⌘+E' : 'Ctrl+E') +
+									')'
+								"
+							>
+								<template #icon>
+									<lucide-video-off v-if="!isCameraOn" class="w-5 h-5" />
+									<lucide-video v-else class="w-5 h-5" />
+								</template>
+							</Button>
 						</div>
 					</div>
 				</div>
 
-				<!-- Controls -->
-				<div class="flex items-center space-x-6 justify-center">
-					<Button
-						@click="$emit('toggle-microphone')"
-						:variant="isMicOn ? 'solid' : 'solid'"
-						:theme="isMicOn ? 'gray' : 'red'"
-						size="lg"
-						class="w-12 h-12 rounded-full p-0"
-						:title="'Toggle Audio (' + ($platform === 'mac' ? '⌘+D' : 'Ctrl+D') + ')'"
-					>
-						<template #icon>
-							<lucide-mic-off v-if="!isMicOn" class="w-6 h-6 text-white" />
-							<lucide-mic v-else class="w-6 h-6 text-white" />
-						</template>
-					</Button>
+				<!-- Join Section -->
+				<div class="lg:flex-[1] flex items-center justify-center p-6 lg:pl-4">
+					<div class="text-center max-w-sm">
+						<div>
+							<h2 class="text-2xl font-semibold text-gray-900 mb-2">
+								Ready to join?
+							</h2>
+							<p class="text-lg text-gray-600 mb-8">{{ meetingTitle }}</p>
+						</div>
 
-					<Button
-						@click="$emit('toggle-camera')"
-						:variant="isCameraOn ? 'solid' : 'solid'"
-						:theme="isCameraOn ? 'gray' : 'red'"
-						size="lg"
-						class="w-12 h-12 rounded-full p-0"
-						:title="'Toggle Video (' + ($platform === 'mac' ? '⌘+E' : 'Ctrl+E') + ')'"
-					>
-						<template #icon>
-							<lucide-video-off v-if="!isCameraOn" class="w-6 h-6 text-white" />
-							<lucide-video v-else class="w-6 h-6 text-white" />
-						</template>
-					</Button>
-				</div>
-			</div>
+						<div v-if="!isNaN(participantsCount)" class="text-sm text-gray-500 mb-4">
+							<span v-if="participantsCount > 0">
+								{{ getParticipantText(participantsCount) }}
+							</span>
+							<span v-else>No one in this call</span>
+						</div>
 
-			<div class="w-full md:flex-[1] flex items-center justify-center">
-				<div
-					class="w-full h-full flex flex-col items-center justify-center md:justify-center"
-				>
-					<div class="text-center text-gray-700 mb-6">
-						<div class="text-xl font-medium">Ready to join {{ meetingTitle }}?</div>
-					</div>
-					<div
-						v-if="!isNaN(participantsCount)"
-						class="text-center text-gray-600 text-base mb-4"
-					>
-						<span v-if="participantsCount > 0">
-							{{ getParticipantText(participantsCount) }}
-						</span>
-						<span v-else>No one else is here</span>
-					</div>
-					<div>
-						<Button
-							@click="$emit('join-from-preview')"
-							variant="solid"
-							size="lg"
-							:loading="isConnecting"
-						>
-							Join Meeting
-						</Button>
+						<div>
+							<Button
+								@click="$emit('join-from-preview')"
+								variant="solid"
+								:loading="isConnecting"
+								class="px-10 py-6 text-lg"
+							>
+								Join Meeting
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -51,7 +51,7 @@
 					<template #prefix>
 						<lucide-plus class="h-4 w-4" />
 					</template>
-					Start New Meeting
+					Start new meeting
 				</Button>
 			</div>
 		</div>
