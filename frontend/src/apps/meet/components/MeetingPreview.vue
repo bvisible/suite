@@ -74,10 +74,19 @@
 
 			<div class="w-full md:flex-[1] flex items-center justify-center">
 				<div
-					class="w-full h-full flex flex-col items-center justify-center md:justify-center space-y-8"
+					class="w-full h-full flex flex-col items-center justify-center md:justify-center"
 				>
-					<div class="text-center text-gray-700">
+					<div class="text-center text-gray-700 mb-6">
 						<div class="text-xl font-medium">Ready to join {{ meetingTitle }}?</div>
+					</div>
+					<div
+						v-if="!isNaN(participantsCount)"
+						class="text-center text-gray-600 text-base mb-4"
+					>
+						<span v-if="participantsCount > 0">
+							{{ getParticipantText(participantsCount) }}
+						</span>
+						<span v-else>No one else is here</span>
 					</div>
 					<div>
 						<Button
@@ -96,8 +105,17 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from "vue";
+import { frappeRequest } from "frappe-ui";
+import {
+	computed,
+	defineEmits,
+	defineProps,
+	onMounted,
+	onUnmounted,
+	ref,
+} from "vue";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
+import { session } from "../data/session.js";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 
 const props = defineProps({
@@ -108,6 +126,7 @@ const props = defineProps({
 	userAvatar: String,
 	isConnecting: Boolean,
 	meetingTitle: { type: String, default: "" },
+	meetingId: { type: String, required: true },
 	setLocalVideoRef: Function,
 });
 
@@ -117,7 +136,54 @@ const emit = defineEmits([
 	"join-from-preview",
 ]);
 
+const participantsCount = ref(0);
+let pollInterval = null;
+
+const fetchParticipants = async () => {
+	try {
+		if (!session.isLoggedIn) return;
+
+		const result = await frappeRequest({
+			url: "sae.api.meeting.get_sfu_connection_details",
+			params: { meeting_id: props.meetingId },
+		});
+
+		if (!result?.success) {
+			throw new Error(result?.error || "Failed to get SFU details");
+		}
+
+		const sfuUrl = `${result.sfu_url}${result.sfu_url.startsWith("http://") ? `:${result.sfu_port}` : ""}`;
+
+		const roomsResponse = await fetch(`${sfuUrl}/rooms`);
+		const roomsData = await roomsResponse.json();
+
+		const ourRoom = roomsData.rooms.find((room) => room.id === props.meetingId);
+		participantsCount.value = ourRoom ? ourRoom.peerCount : 0;
+	} catch (err) {
+		console.warn("Could not fetch participants count:", err?.message || err);
+	}
+};
+
+onMounted(() => {
+	fetchParticipants();
+	pollInterval = setInterval(fetchParticipants, 10000);
+});
+
+onUnmounted(() => {
+	if (pollInterval) {
+		clearInterval(pollInterval);
+		pollInterval = null;
+	}
+});
+
 const currentUserName = computed(
 	() => props.currentUser?.full_name || props.currentUser?.name || "You",
 );
+
+const getParticipantText = (count) => {
+	if (count === 1) {
+		return "1 user in the call";
+	}
+	return `${count} users in the call`;
+};
 </script>

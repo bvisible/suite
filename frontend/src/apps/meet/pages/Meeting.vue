@@ -29,6 +29,7 @@
 			:userAvatar="userAvatar"
 			:isConnecting="isConnecting"
 			:meetingTitle="meetingDoc?.data?.title || meetingId"
+			:meetingId="meetingId"
 			:setLocalVideoRef="setLocalVideoRef"
 			@toggle-microphone="toggleMicrophone"
 			@toggle-camera="toggleCamera"
