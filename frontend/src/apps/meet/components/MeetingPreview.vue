@@ -15,7 +15,7 @@
 				<div class="lg:flex-[2] flex flex-col justify-center p-6 lg:pr-4">
 					<div class="max-w-3xl mx-auto w-full">
 						<div
-							class="relative bg-black rounded-xl overflow-hidden aspect-video shadow-xl group"
+							class="relative bg-black rounded-xl overflow-hidden aspect-video shadow-xl group h-full"
 						>
 							<video
 								:ref="(el) => setLocalVideoRef && setLocalVideoRef(el)"
@@ -53,10 +53,12 @@
 				</div>
 
 				<!-- Join Section -->
-				<div class="lg:flex-[1] flex items-center justify-center p-6 lg:pl-4">
-					<div class="text-center max-w-md w-full">
-						<Card class="p-8 mb-6">
-							<div class="mb-6">
+				<div
+					class="lg:flex-[1] flex items-center lg:justify-end justify-center p-6 lg:pl-4"
+				>
+					<div class="max-w-md w-full">
+						<div class="p-8 mb-6 w-full h-full flex flex-col justify-center">
+							<div class="mb-6 text-center">
 								<div class="mb-4">
 									<div
 										class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
@@ -80,7 +82,7 @@
 									</div>
 								</div>
 
-								<h2 class="text-3xl font-bold text-gray-900 mb-3">
+								<h2 class="text-3xl text-gray-900 mb-3">
 									<span v-if="isJoinRequestRejected" class="text-red-800">
 										Join request denied
 									</span>
@@ -91,7 +93,7 @@
 								</h2>
 
 								<div class="bg-gray-50 rounded-lg px-4 py-3 mb-4">
-									<p class="text-lg font-medium text-gray-700">
+									<p class="text-lg font-medium text-gray-700 truncate">
 										{{ meetingTitle }}
 									</p>
 								</div>
@@ -132,7 +134,7 @@
 								</div>
 							</div>
 
-							<div class="space-y-3 mt-6">
+							<div class="space-y-3">
 								<Button
 									v-if="!isWaitingForApproval && !isJoinRequestRejected"
 									@click="$emit('join-from-preview')"
@@ -188,7 +190,7 @@
 									Leave waiting room
 								</Button>
 							</div>
-						</Card>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -197,7 +199,7 @@
 </template>
 
 <script setup>
-import { Card, frappeRequest } from "frappe-ui";
+import { frappeRequest } from "frappe-ui";
 import {
 	computed,
 	defineEmits,
