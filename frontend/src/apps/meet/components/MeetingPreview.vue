@@ -1,6 +1,6 @@
 <template>
 	<div class="flex-1 flex flex-col">
-		<div class="bg-gray-50 px-6 py-3 flex-shrink-0">
+		<div class="bg-gray-50 px-6 pt-4 flex-shrink-0">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 cursor-pointer" @click="$router.push('/')">
 					<FrappeMeetingLogo class="h-8" />
@@ -10,7 +10,7 @@
 		</div>
 
 		<div class="flex-1 flex lg:flex-row flex-col bg-gray-50 text-gray-900">
-			<div class="max-w-7xl mx-auto w-full flex lg:flex-row flex-col px-6 lg:px-8">
+			<div class="max-w-7xl mx-auto w-full flex lg:flex-row flex-col">
 				<!-- Video Section -->
 				<div class="lg:flex-[2] flex flex-col justify-center p-6 lg:pr-4">
 					<div class="max-w-3xl mx-auto w-full">
