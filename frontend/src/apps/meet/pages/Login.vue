@@ -47,31 +47,44 @@
 
 <script lang="ts" setup>
 import { Button, Card, Input, createResource, toast } from "frappe-ui";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session";
+import { userResource } from "../data/user";
 
 const router = useRouter();
+const route = useRoute();
 
 const oAuthProviders = createResource({
 	url: "sae.api.account.oauth_providers",
 	auto: true,
 });
 
-function submit(e) {
-	const formData = new FormData(e.target);
+function submit(e: Event) {
+	const formData = new FormData(e.target as HTMLFormElement);
 	session.login.submit(
 		{
 			email: formData.get("email"),
 			password: formData.get("password"),
 		},
 		{
-			onSuccess: () => {
-				router.push({
-					name: "Home",
-				});
+			onSuccess: async () => {
+				await userResource.reload();
+				await session.login.reset();
+				const nextPath = route.query.next;
+				if (typeof nextPath === "string" && nextPath.length) {
+					if (nextPath.startsWith("/")) {
+						router.push({
+							name: "Meeting",
+							params: { meetingId: nextPath.slice(1) },
+						});
+						return;
+					}
+				}
+				router.push({ name: "Home" });
 			},
-			onError: (error) => {
-				toast.error(`Login failed: ${error.message}`);
+			onError: (error: { message?: string } | Error) => {
+				const msg = (error as { message?: string })?.message ?? String(error);
+				toast.error(`Login failed: ${msg}`);
 			},
 		},
 	);
