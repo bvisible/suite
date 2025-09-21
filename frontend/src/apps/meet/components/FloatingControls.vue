@@ -1,0 +1,169 @@
+<template>
+	<Transition
+		enter-active-class="transition-all duration-300 ease-out"
+		enter-from-class="opacity-0 transform translate-y-4"
+		enter-to-class="opacity-100 transform translate-y-0"
+		leave-active-class="transition-all duration-300 ease-in"
+		leave-from-class="opacity-100 transform translate-y-0"
+		leave-to-class="opacity-0 transform translate-y-4"
+	>
+		<div
+			v-show="isVisible"
+			:class="[
+				'z-50 pointer-events-none w-auto max-w-3xl px-4 md:px-0',
+				isPreview
+					? 'absolute bottom-4 left-1/2 transform -translate-x-1/2'
+					: 'fixed bottom-8 left-1/2 transform -translate-x-1/2',
+			]"
+		>
+			<div
+				class="flex items-center gap-3 px-6 py-3 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-300 mx-auto"
+			>
+				<!-- Microphone -->
+				<Button
+					@click="$emit('toggle-microphone')"
+					variant="solid"
+					size="2xl"
+					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+					:class="{
+						'!bg-[#e54e17] hover:!bg-[#e54e17]': !isMicOn,
+					}"
+					:title="'Toggle Audio (' + ($platform === 'mac' ? '⌘+D' : 'Ctrl+D') + ')'"
+				>
+					<template #icon>
+						<lucide-mic-off v-if="!isMicOn" class="w-5 h-5 text-white" />
+						<lucide-mic v-else class="w-5 h-5 text-white" />
+					</template>
+				</Button>
+
+				<!-- Camera -->
+				<Button
+					@click="$emit('toggle-camera')"
+					variant="solid"
+					:theme="isCameraOn ? 'gray' : 'orange'"
+					size="2xl"
+					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+					:class="{
+						'!bg-[#e54e17] hover:!bg-[#e54e17]': !isCameraOn,
+					}"
+					:title="'Toggle Video (' + ($platform === 'mac' ? '⌘+E' : 'Ctrl+E') + ')'"
+				>
+					<template #icon>
+						<lucide-video-off v-if="!isCameraOn" class="w-5 h-5 text-white" />
+						<lucide-video v-else class="w-5 h-5 text-white" />
+					</template>
+				</Button>
+
+				<!-- Screen Share -->
+				<Button
+					v-if="!isPreview"
+					@click="$emit('toggle-screen-share')"
+					variant="solid"
+					:theme="isScreenSharing ? 'orange' : 'gray'"
+					size="2xl"
+					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+					:class="{
+						'!bg-[#e54e17] hover:!bg-[#e54e17]': isScreenSharing,
+					}"
+					title="Toggle Screen Share"
+				>
+					<template #icon>
+						<lucide-monitor-up v-if="!isScreenSharing" class="w-5 h-5 text-white" />
+						<lucide-monitor-pause v-else class="w-5 h-5 text-white" />
+					</template>
+				</Button>
+
+				<!-- End Call -->
+				<Button
+					v-if="!isPreview"
+					@click="$emit('end-call')"
+					variant="solid"
+					theme="red"
+					size="2xl"
+					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95 !bg-red-600 hover:!bg-red-500"
+					title="End Call"
+				>
+					<template #icon>
+						<lucide-phone-off class="w-5 h-5 text-white" />
+					</template>
+				</Button>
+			</div>
+		</div>
+	</Transition>
+</template>
+
+<script setup>
+import { Button } from "frappe-ui";
+import { onMounted, onUnmounted, ref, toRefs } from "vue";
+
+const props = defineProps({
+	isMicOn: {
+		type: Boolean,
+		required: true,
+	},
+	isCameraOn: {
+		type: Boolean,
+		required: true,
+	},
+	isScreenSharing: {
+		type: Boolean,
+		required: true,
+	},
+	isPreview: {
+		type: Boolean,
+		default: false,
+	},
+});
+
+const { isPreview } = toRefs(props);
+
+defineEmits([
+	"toggle-microphone",
+	"toggle-camera",
+	"toggle-screen-share",
+	"end-call",
+]);
+
+const isVisible = ref(true);
+let hideTimeout = null;
+
+const showControls = () => {
+	isVisible.value = true;
+	resetHideTimer();
+};
+
+const resetHideTimer = () => {
+	if (hideTimeout) {
+		clearTimeout(hideTimeout);
+	}
+	hideTimeout = setTimeout(() => {
+		isVisible.value = false;
+	}, 3000);
+};
+
+const handleActivity = () => {
+	showControls();
+};
+
+onMounted(() => {
+	resetHideTimer();
+
+	document.addEventListener("mousemove", handleActivity);
+	document.addEventListener("mousedown", handleActivity);
+	document.addEventListener("keydown", handleActivity);
+	document.addEventListener("touchstart", handleActivity);
+	document.addEventListener("touchmove", handleActivity);
+});
+
+onUnmounted(() => {
+	if (hideTimeout) {
+		clearTimeout(hideTimeout);
+	}
+
+	document.removeEventListener("mousemove", handleActivity);
+	document.removeEventListener("mousedown", handleActivity);
+	document.removeEventListener("keydown", handleActivity);
+	document.removeEventListener("touchstart", handleActivity);
+	document.removeEventListener("touchmove", handleActivity);
+});
+</script>

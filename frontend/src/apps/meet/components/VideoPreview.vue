@@ -24,33 +24,14 @@
 			</div>
 		</div>
 
-		<!-- Video controls -->
-		<div class="flex justify-center mt-4 space-x-4">
-			<Button
-				:variant="isMuted ? 'solid' : 'outline'"
-				@click="toggleMute"
-				size="lg"
-				class="p-2"
-				:title="'Toggle Audio (' + ($platform === 'mac' ? '⌘+D' : 'Ctrl+D') + ')'"
-			>
-				<template #icon>
-					<lucide-mic-off v-if="isMuted" />
-					<lucide-mic v-else />
-				</template>
-			</Button>
-			<Button
-				:variant="isVideoOff ? 'solid' : 'outline'"
-				@click="toggleVideo"
-				size="lg"
-				class="p-2"
-				:title="'Toggle Video (' + ($platform === 'mac' ? '⌘+E' : 'Ctrl+E') + ')'"
-			>
-				<template #icon>
-					<lucide-video-off v-if="isVideoOff" />
-					<lucide-video v-else />
-				</template>
-			</Button>
-		</div>
+		<!-- Floating controls overlaid on video -->
+		<FloatingControls
+			:is-mic-on="!isMuted"
+			:is-camera-on="!isVideoOff"
+			:is-preview="true"
+			@toggle-microphone="toggleMute"
+			@toggle-camera="toggleVideo"
+		/>
 	</div>
 </template>
 
@@ -63,6 +44,7 @@ import {
 } from "@/data/mediaPreferences.js";
 import { Button } from "frappe-ui";
 import { onMounted, onUnmounted, ref } from "vue";
+import FloatingControls from "./FloatingControls.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
 
 const videoElement = ref(null);

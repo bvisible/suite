@@ -1,6 +1,6 @@
 <template>
 	<div class="flex-1 flex flex-col">
-		<div class="bg-gray-50 px-6 py-2 flex-shrink-0">
+		<div class="bg-gray-50 px-6 py-3 flex-shrink-0">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 cursor-pointer" @click="$router.push('/')">
 					<FrappeMeetingLogo class="h-8" />
@@ -15,7 +15,7 @@
 				<div class="lg:flex-[2] flex flex-col justify-center p-6 lg:pr-4">
 					<div class="max-w-3xl mx-auto w-full">
 						<div
-							class="relative bg-black rounded-xl overflow-hidden aspect-video shadow-xl"
+							class="relative bg-black rounded-xl overflow-hidden aspect-video shadow-xl group"
 						>
 							<video
 								:ref="(el) => setLocalVideoRef && setLocalVideoRef(el)"
@@ -39,43 +39,15 @@
 									<p class="text-xl font-medium">{{ currentUserName }}</p>
 								</div>
 							</div>
-						</div>
 
-						<!-- Controls -->
-						<div class="flex items-center justify-center space-x-4 mt-6">
-							<Button
-								@click="$emit('toggle-microphone')"
-								:variant="isMicOn ? 'solid' : 'solid'"
-								:theme="isMicOn ? 'gray' : 'red'"
-								size="lg"
-								:title="
-									'Toggle Audio (' +
-									($platform === 'mac' ? '⌘+D' : 'Ctrl+D') +
-									')'
-								"
-							>
-								<template #icon>
-									<lucide-mic-off v-if="!isMicOn" class="w-5 h-5" />
-									<lucide-mic v-else class="w-5 h-5" />
-								</template>
-							</Button>
-
-							<Button
-								@click="$emit('toggle-camera')"
-								:variant="isCameraOn ? 'solid' : 'solid'"
-								:theme="isCameraOn ? 'gray' : 'red'"
-								size="lg"
-								:title="
-									'Toggle Video (' +
-									($platform === 'mac' ? '⌘+E' : 'Ctrl+E') +
-									')'
-								"
-							>
-								<template #icon>
-									<lucide-video-off v-if="!isCameraOn" class="w-5 h-5" />
-									<lucide-video v-else class="w-5 h-5" />
-								</template>
-							</Button>
+							<FloatingControls
+								:isPreview="true"
+								:isMicOn="isMicOn"
+								:isCameraOn="isCameraOn"
+								:isScreenSharing="false"
+								@toggle-microphone="$emit('toggle-microphone')"
+								@toggle-camera="$emit('toggle-camera')"
+							/>
 						</div>
 					</div>
 				</div>
@@ -234,6 +206,7 @@ import {
 	onUnmounted,
 	ref,
 } from "vue";
+import FloatingControls from "../components/FloatingControls.vue";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
 import { session } from "../data/session.js";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";

@@ -43,23 +43,7 @@
 		<!-- Main video interface -->
 		<template v-else>
 			<!-- Meeting info bar -->
-			<div class="bg-gray-800 px-6 py-2 flex-shrink-0">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<FrappeMeetingLogo class="h-8" />
-						<h4 class="text-white text-base">Frappe Meet</h4>
-					</div>
-					<div
-						class="text-white cursor-pointer hover:text-gray-300 transition-colors space-x-2"
-						@click="copyMeetingUrl"
-					>
-						<span class="text-sm" :title="'Click to copy meeting URL'">
-							{{ meetingDoc?.data?.title || meetingId }}
-						</span>
-						<lucide-copy class="w-4 h-4 inline-block ml-1" />
-					</div>
-				</div>
-			</div>
+			<MeetingTopBar :meetingTitle="meetingDoc?.data?.title" :meetingId="meetingId" />
 
 			<!-- Main content area -->
 			<div class="flex-1 p-4 flex flex-col min-h-0 overflow-auto">
@@ -281,79 +265,16 @@
 				</TransitionGroup>
 			</div>
 
-			<!-- Bottom controls -->
-			<div class="bg-gray-800 px-6 py-4 flex-shrink-0">
-				<div class="flex items-center justify-center">
-					<!-- Main controls -->
-					<div class="flex items-center space-x-6">
-						<!-- Microphone -->
-						<Button
-							@click="toggleMicrophone"
-							:variant="isMicOn ? 'solid' : 'solid'"
-							:theme="isMicOn ? 'gray' : 'red'"
-							size="lg"
-							class="w-12 h-12 rounded-full p-0"
-							:title="
-								'Toggle Audio (' + ($platform === 'mac' ? '⌘+D' : 'Ctrl+D') + ')'
-							"
-						>
-							<template #icon>
-								<lucide-mic-off v-if="!isMicOn" class="w-6 h-6 text-white" />
-								<lucide-mic v-else class="w-6 h-6 text-white" />
-							</template>
-						</Button>
-
-						<!-- Camera -->
-						<Button
-							@click="toggleCamera"
-							:variant="isCameraOn ? 'solid' : 'solid'"
-							:theme="isCameraOn ? 'gray' : 'red'"
-							size="lg"
-							class="w-12 h-12 rounded-full p-0"
-							:title="
-								'Toggle Video (' + ($platform === 'mac' ? '⌘+E' : 'Ctrl+E') + ')'
-							"
-						>
-							<template #icon>
-								<lucide-video-off v-if="!isCameraOn" class="w-6 h-6 text-white" />
-								<lucide-video v-else class="w-6 h-6 text-white" />
-							</template>
-						</Button>
-
-						<!-- Screen Share -->
-						<Button
-							@click="toggleScreenShare"
-							:variant="isScreenSharing ? 'solid' : 'solid'"
-							:theme="isScreenSharing ? 'red' : 'gray'"
-							size="lg"
-							class="w-12 h-12 rounded-full p-0"
-							title="Toggle Screen Share"
-						>
-							<template #icon>
-								<lucide-monitor-up
-									v-if="!isScreenSharing"
-									class="w-6 h-6 text-white"
-								/>
-								<lucide-monitor-pause v-else class="w-6 h-6 text-white" />
-							</template>
-						</Button>
-
-						<!-- End call -->
-						<Button
-							@click="endCall"
-							variant="solid"
-							size="lg"
-							theme="red"
-							class="w-12 h-12 rounded-full p-0"
-							title="End Call"
-						>
-							<template #icon>
-								<lucide-phone-off class="w-6 h-6 text-white" />
-							</template>
-						</Button>
-					</div>
-				</div>
-			</div>
+			<!-- Floating Controls -->
+			<FloatingControls
+				:isMicOn="isMicOn"
+				:isCameraOn="isCameraOn"
+				:isScreenSharing="isScreenSharing"
+				@toggle-microphone="toggleMicrophone"
+				@toggle-camera="toggleCamera"
+				@toggle-screen-share="toggleScreenShare"
+				@end-call="endCall"
+			/>
 		</template>
 
 		<JoinRequestNotifications
@@ -384,11 +305,12 @@ import {
 } from "frappe-ui";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import FloatingControls from "../components/FloatingControls.vue";
 import JoinRequestNotifications from "../components/JoinRequestNotifications.vue";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
 import MeetingPreview from "../components/MeetingPreview.vue";
+import MeetingTopBar from "../components/MeetingTopBar.vue";
 import { session } from "../data/session.js";
-import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 import { cleanupMediasoup } from "../mediasoup-client.js";
 import { publishScreenShare } from "../mediasoup-client.js";
 import { useSocket } from "../socket.js";
@@ -1054,16 +976,6 @@ const endCall = async () => {
 		console.error("Error ending call:", error);
 		// Still navigate away even if there's an error
 		router.push({ name: "Home" });
-	}
-};
-
-const copyMeetingUrl = async () => {
-	try {
-		const meetingUrl = window.location.href;
-		await navigator.clipboard.writeText(meetingUrl);
-		console.log("Meeting URL copied to clipboard:", meetingUrl);
-	} catch (error) {
-		console.error("Failed to copy meeting URL:", error);
 	}
 };
 
