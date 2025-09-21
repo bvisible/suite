@@ -882,7 +882,11 @@ const toggleMicrophone = async () => {
 			) {
 				try {
 					const audioStream = await navigator.mediaDevices.getUserMedia({
-						audio: true,
+						audio: {
+							echoCancellation: true,
+							noiseSuppression: true,
+							autoGainControl: true,
+						},
 					});
 					const newTrack = audioStream.getAudioTracks()[0];
 					newTrack.enabled = true;
@@ -973,7 +977,11 @@ const toggleCamera = async () => {
 			) {
 				try {
 					const videoStream = await navigator.mediaDevices.getUserMedia({
-						video: true,
+						video: {
+							width: { ideal: 1280 },
+							height: { ideal: 720 },
+							frameRate: { ideal: 30 },
+						},
 					});
 					const newTrack = videoStream.getVideoTracks()[0];
 					newTrack.enabled = true;
