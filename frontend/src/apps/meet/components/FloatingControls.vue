@@ -10,7 +10,7 @@
 		<div
 			v-show="isVisible"
 			:class="[
-				'z-50 pointer-events-none w-auto max-w-3xl px-4 md:px-0 bottom-4 left-1/2 transform -translate-x-1/2',
+				'pointer-events-none w-auto max-w-3xl px-4 md:px-0 bottom-4 left-1/2 transform -translate-x-1/2',
 				isPreview ? 'absolute' : 'fixed',
 			]"
 		>
@@ -18,7 +18,7 @@
 				class="flex items-center gap-3 px-6 py-3 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-300 mx-auto"
 			>
 				<!-- Chat -->
-				<div class="relative">
+				<div v-if="!isPreview" class="relative">
 					<Button
 						@click="$emit('toggle-chat')"
 						variant="solid"
@@ -28,7 +28,7 @@
 						:class="{
 							'!bg-gray-800 hover:!bg-gray-800': isChatOpen,
 						}"
-						:title="'Toggle Chat (' + ($platform === 'mac' ? '⌘+C' : 'Ctrl+C') + ')'"
+						title="Toggle Chat"
 					>
 						<template #icon>
 							<lucide-message-square-off
@@ -100,6 +100,30 @@
 					</template>
 				</Button>
 
+				<!-- More Options -->
+				<div
+					v-if="!isPreview"
+					class="relative"
+					ref="dropdownContainer"
+					@click="handleDropdownClick"
+				>
+					<Dropdown :options="moreOptions" placement="top">
+						<template #default="{ open }">
+							<Button
+								variant="solid"
+								theme="gray"
+								size="2xl"
+								class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+								title="More options"
+							>
+								<template #icon>
+									<lucide-more-horizontal class="w-5 h-5 text-white" />
+								</template>
+							</Button>
+						</template>
+					</Dropdown>
+				</div>
+
 				<!-- End Call -->
 				<Button
 					v-if="!isPreview"
@@ -117,11 +141,26 @@
 			</div>
 		</div>
 	</Transition>
+
+	<MeetingInfoDialog
+		v-model="showMeetingInfoDialog"
+		:meetingId="meetingId"
+		:meetingTitle="meetingTitle"
+	/>
 </template>
 
 <script setup>
-import { Button } from "frappe-ui";
-import { onMounted, onUnmounted, ref, toRefs } from "vue";
+import { Button, Dropdown } from "frappe-ui";
+import {
+	computed,
+	nextTick,
+	onMounted,
+	onUnmounted,
+	ref,
+	toRefs,
+	watch,
+} from "vue";
+import MeetingInfoDialog from "./MeetingInfoDialog.vue";
 
 const props = defineProps({
 	isChatOpen: {
@@ -148,11 +187,19 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	meetingId: {
+		type: String,
+		default: "",
+	},
+	meetingTitle: {
+		type: String,
+		default: "",
+	},
 });
 
 const { isPreview } = toRefs(props);
 
-defineEmits([
+const emit = defineEmits([
 	"toggle-chat",
 	"toggle-microphone",
 	"toggle-camera",
@@ -160,7 +207,21 @@ defineEmits([
 	"end-call",
 ]);
 
+const moreOptions = computed(() => [
+	{
+		icon: "info",
+		label: "Meeting information",
+		onClick: () => {
+			showMeetingInfoDialog.value = true;
+			resetHideTimer();
+		},
+	},
+]);
+
 const isVisible = ref(true);
+const isDropdownOpen = ref(false);
+const dropdownContainer = ref(null);
+const showMeetingInfoDialog = ref(false);
 let hideTimeout = null;
 
 const showControls = () => {
@@ -172,13 +233,42 @@ const resetHideTimer = () => {
 	if (hideTimeout) {
 		clearTimeout(hideTimeout);
 	}
-	hideTimeout = setTimeout(() => {
-		isVisible.value = false;
-	}, 3000);
+	if (!isDropdownOpen.value) {
+		hideTimeout = setTimeout(() => {
+			isVisible.value = false;
+		}, 3000);
+	}
 };
 
 const handleActivity = () => {
 	showControls();
+};
+
+const handleDropdownClick = (event) => {
+	// for not hiding controls when clicked on dropdown
+	isDropdownOpen.value = !isDropdownOpen.value;
+
+	if (isDropdownOpen.value) {
+		if (hideTimeout) {
+			clearTimeout(hideTimeout);
+			hideTimeout = null;
+		}
+		isVisible.value = true;
+	} else {
+		resetHideTimer();
+	}
+};
+
+const handleDocumentClick = (event) => {
+	if (
+		dropdownContainer.value &&
+		!dropdownContainer.value.contains(event.target)
+	) {
+		if (isDropdownOpen.value) {
+			isDropdownOpen.value = false;
+			resetHideTimer();
+		}
+	}
 };
 
 onMounted(() => {
@@ -189,6 +279,7 @@ onMounted(() => {
 	document.addEventListener("keydown", handleActivity);
 	document.addEventListener("touchstart", handleActivity);
 	document.addEventListener("touchmove", handleActivity);
+	document.addEventListener("click", handleDocumentClick);
 });
 
 onUnmounted(() => {
@@ -201,5 +292,6 @@ onUnmounted(() => {
 	document.removeEventListener("keydown", handleActivity);
 	document.removeEventListener("touchstart", handleActivity);
 	document.removeEventListener("touchmove", handleActivity);
+	document.removeEventListener("click", handleDocumentClick);
 });
 </script>

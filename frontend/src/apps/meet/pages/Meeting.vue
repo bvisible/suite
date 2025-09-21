@@ -42,9 +42,6 @@
 
 		<!-- Main video interface -->
 		<template v-else>
-			<!-- Meeting info bar -->
-			<MeetingTopBar :meetingTitle="meetingDoc?.data?.title" :meetingId="meetingId" />
-
 			<!-- Main content area -->
 			<div class="flex flex-1 min-h-0">
 				<!-- Video area -->
@@ -277,6 +274,8 @@
 					:isMicOn="isMicOn"
 					:isCameraOn="isCameraOn"
 					:isScreenSharing="isScreenSharing"
+					:meetingId="meetingId"
+					:meetingTitle="meetingDoc?.data?.title"
 					@toggle-chat="toggleChat"
 					@toggle-microphone="toggleMicrophone"
 					@toggle-camera="toggleCamera"
@@ -338,7 +337,6 @@ import FloatingControls from "../components/FloatingControls.vue";
 import JoinRequestNotifications from "../components/JoinRequestNotifications.vue";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
 import MeetingPreview from "../components/MeetingPreview.vue";
-import MeetingTopBar from "../components/MeetingTopBar.vue";
 import { session } from "../data/session.js";
 import { cleanupMediasoup } from "../mediasoup-client.js";
 import { publishScreenShare } from "../mediasoup-client.js";
