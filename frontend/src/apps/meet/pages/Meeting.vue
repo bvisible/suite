@@ -739,7 +739,6 @@ const approveJoinRequest = createResource({
 	onSuccess: (data) => {
 		if (data.success) {
 			getWaitingRoom.submit();
-			toast.success("User approved successfully");
 		}
 	},
 	onError: (error) => {
@@ -753,7 +752,6 @@ const rejectJoinRequest = createResource({
 	onSuccess: (data) => {
 		if (data.success) {
 			getWaitingRoom.submit();
-			toast.success("User rejected");
 		}
 	},
 	onError: (error) => {
@@ -1328,7 +1326,6 @@ onMounted(async () => {
 			) {
 				isConnecting.value = true;
 				isWaitingForApproval.value = false;
-				toast.success("You have been approved to join the meeting");
 
 				startMeetingAfterApproval();
 
@@ -1349,7 +1346,6 @@ onMounted(async () => {
 				}
 
 				getWaitingRoom.reload();
-				toast.info(`${eventUser} has been admitted`);
 			} else {
 				console.log("❌ Ignoring approval event:", {
 					expectedMeeting: meetingId.value,
@@ -1401,7 +1397,6 @@ onMounted(async () => {
 			) {
 				isConnecting.value = true;
 				isWaitingForApproval.value = false;
-				toast.success("You have been approved to join the meeting");
 
 				startMeetingAfterApproval();
 			}
