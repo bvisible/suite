@@ -1,5 +1,5 @@
 <template>
-	<div class="h-screen bg-gray-900 flex flex-col">
+	<div class="h-screen bg-gray-900 flex flex-col" data-meeting-component>
 		<!-- Loading state -->
 		<div v-if="isConnecting" class="flex-1 flex items-center justify-center">
 			<div class="flex items-center justify-center text-white space-x-4">
@@ -46,236 +46,263 @@
 			<MeetingTopBar :meetingTitle="meetingDoc?.data?.title" :meetingId="meetingId" />
 
 			<!-- Main content area -->
-			<div class="flex-1 p-4 flex flex-col min-h-0 overflow-auto">
-				<!-- Screen share active view (Google Meet style) -->
+			<div class="flex flex-1 min-h-0">
+				<!-- Video area -->
 				<div
-					v-if="displayScreenShares.length"
-					class="flex-1 flex min-h-0 overflow-hidden mb-2"
+					class="flex-1 p-4 flex flex-col min-h-0 overflow-auto"
+					:class="{ 'pr-2': isChatOpen }"
 				>
-					<!-- Main screen share area -->
+					<!-- Screen share active view -->
 					<div
-						class="flex-1 relative bg-black rounded-lg overflow-hidden flex items-center justify-center"
+						v-if="displayScreenShares.length"
+						class="flex-1 flex min-h-0 overflow-hidden mb-2"
 					>
-						<template
-							v-for="(share, idx) in displayScreenShares"
-							:key="share.consumerId"
+						<!-- Main screen share area -->
+						<div
+							class="flex-1 relative bg-black rounded-lg overflow-hidden flex items-center justify-center"
 						>
-							<!-- Render only the first (focused) screen share. Local & remote handled uniformly -->
-							<video
-								v-if="idx === 0"
-								:ref="setScreenShareVideoRef"
-								:data-participant-id="share.participantId"
-								class="w-full h-full object-contain bg-gray-900"
-								autoplay
-								playsinline
-								muted
-							></video>
-						</template>
-						<!-- Single label for active screen share -->
-						<div class="absolute top-2 left-2">
-							<span
-								v-if="displayScreenShares.length"
-								class="px-2 py-1 bg-black/60 text-white text-xs rounded"
-								>{{ getParticipantName(displayScreenShares[0].participantId) }}'s
-								screen</span
+							<template
+								v-for="(share, idx) in displayScreenShares"
+								:key="share.consumerId"
 							>
+								<!-- Render only the first (focused) screen share. Local & remote handled uniformly -->
+								<video
+									v-if="idx === 0"
+									:ref="setScreenShareVideoRef"
+									:data-participant-id="share.participantId"
+									class="w-full h-full object-contain bg-gray-900"
+									autoplay
+									playsinline
+									muted
+								></video>
+							</template>
+							<!-- Single label for active screen share -->
+							<div class="absolute top-2 left-2">
+								<span
+									v-if="displayScreenShares.length"
+									class="px-2 py-1 bg-black/60 text-white text-xs rounded"
+									>{{
+										getParticipantName(displayScreenShares[0].participantId)
+									}}'s screen</span
+								>
+							</div>
 						</div>
+						<!-- Sidebar tiles -->
+						<TransitionGroup
+							name="tile"
+							tag="div"
+							class="ml-3 overflow-y-auto pr-1 grid gap-2 h-full"
+							:class="screenShareSidebarClass"
+							:style="screenShareSidebarStyle"
+						>
+							<!-- Local camera tile -->
+							<div
+								key="local-camera-sidebar"
+								class="relative w-full bg-gray-800 rounded overflow-hidden flex"
+								:style="singleSidebarTileStyle"
+							>
+								<video
+									ref="localVideo"
+									class="w-full h-full object-cover transform scale-x-[-1] flex-1"
+									autoplay
+									muted
+									playsinline
+								/>
+								<div
+									v-if="!isCameraOn"
+									class="absolute inset-0 bg-gray-700 flex items-center justify-center"
+								>
+									<MeetingAvatar
+										:label="userInitials"
+										:image="userAvatar"
+										:tiles="sidebarVisibleTileCount"
+									/>
+								</div>
+								<div
+									class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
+								>
+									You
+								</div>
+							</div>
+							<!-- Remote participants -->
+							<div
+								v-for="participant in sidebarRemotesDisplay.list"
+								:key="'side-' + participant.user_id"
+								class="relative w-full bg-gray-800 rounded overflow-hidden flex"
+								:style="singleSidebarTileStyle"
+							>
+								<video
+									:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
+									:participant-id="participant.user_id"
+									class="w-full h-full object-cover flex-1 remote-video"
+									autoplay
+									playsinline
+								></video>
+								<div
+									v-if="!participant.video_enabled"
+									class="absolute inset-0 flex items-center justify-center bg-gray-700"
+								>
+									<MeetingAvatar
+										:image="participant.avatar"
+										:label="participant.initials"
+										:tiles="sidebarVisibleTileCount"
+									/>
+								</div>
+								<div
+									class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
+								>
+									{{ participant.user_name }}
+								</div>
+								<div
+									v-if="!participant.audio_enabled"
+									class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
+								>
+									<lucide-mic-off class="w-3 h-3 text-white" />
+								</div>
+							</div>
+							<!-- Grouping tile -->
+							<Tooltip
+								v-if="sidebarRemotesDisplay.extra > 0"
+								key="sidebar-group"
+								:label="hiddenParticipantsTooltip"
+								:text="hiddenParticipantsTooltip"
+								placement="top"
+							>
+								<div
+									class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
+								>
+									<div class="text-xs text-white text-center px-2 leading-snug">
+										and {{ sidebarRemotesDisplay.extra }} others
+									</div>
+								</div>
+							</Tooltip>
+						</TransitionGroup>
 					</div>
-					<!-- Sidebar tiles -->
+
+					<!-- Video grid (hidden when screen sharing) -->
 					<TransitionGroup
+						v-else
 						name="tile"
 						tag="div"
-						class="ml-3 overflow-y-auto pr-1 grid gap-2 h-full"
-						:class="screenShareSidebarClass"
-						:style="screenShareSidebarStyle"
+						class="flex-1 grid gap-2 min-h-0 call-grid"
+						:class="gridClass"
+						:style="callGridStyle"
 					>
-						<!-- Local camera tile -->
+						<!-- Local user video -->
 						<div
-							key="local-camera-sidebar"
-							class="relative w-full bg-gray-800 rounded overflow-hidden flex"
-							:style="singleSidebarTileStyle"
+							key="local-camera"
+							class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
 						>
 							<video
 								ref="localVideo"
-								class="w-full h-full object-cover transform scale-x-[-1] flex-1"
+								class="w-full h-full object-cover transform scale-x-[-1]"
 								autoplay
 								muted
 								playsinline
 							/>
 							<div
+								class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
+							>
+								{{ currentUser?.full_name || currentUser?.name || "You" }}
+							</div>
+							<div
 								v-if="!isCameraOn"
-								class="absolute inset-0 bg-gray-700 flex items-center justify-center"
+								class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
 							>
 								<MeetingAvatar
 									:label="userInitials"
 									:image="userAvatar"
-									:tiles="sidebarVisibleTileCount"
+									:tiles="gridVisibleTileCount"
 								/>
 							</div>
-							<div
-								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
-							>
-								You
-							</div>
 						</div>
+
 						<!-- Remote participants -->
 						<div
-							v-for="participant in sidebarRemotesDisplay.list"
-							:key="'side-' + participant.user_id"
-							class="relative w-full bg-gray-800 rounded overflow-hidden flex"
-							:style="singleSidebarTileStyle"
+							v-for="participant in gridRemotesDisplay.list"
+							:key="'grid-' + participant.user_id"
+							class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
 						>
 							<video
 								:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
 								:participant-id="participant.user_id"
-								class="w-full h-full object-cover flex-1 remote-video"
+								class="w-full h-full object-cover remote-video"
 								autoplay
 								playsinline
 							></video>
 							<div
+								class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
+							>
+								{{ participant.user_name || participant.user_id }}
+							</div>
+							<div
 								v-if="!participant.video_enabled"
-								class="absolute inset-0 flex items-center justify-center bg-gray-700"
+								class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
 							>
 								<MeetingAvatar
 									:image="participant.avatar"
 									:label="participant.initials"
-									:tiles="sidebarVisibleTileCount"
+									:tiles="gridVisibleTileCount"
 								/>
 							</div>
 							<div
-								class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded"
-							>
-								{{ participant.user_name }}
-							</div>
-							<div
 								v-if="!participant.audio_enabled"
-								class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
+								class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5"
 							>
-								<lucide-mic-off class="w-3 h-3 text-white" />
+								<lucide-mic-off class="w-4 h-4 text-white" />
 							</div>
 						</div>
-						<!-- Grouping tile -->
+						<!-- Grouping tile for normal layout -->
 						<Tooltip
-							v-if="sidebarRemotesDisplay.extra > 0"
-							key="sidebar-group"
-							:label="hiddenParticipantsTooltip"
-							:text="hiddenParticipantsTooltip"
+							v-if="gridRemotesDisplay.extra > 0"
+							key="grid-group"
+							:label="hiddenGridParticipantsTooltip"
+							:text="hiddenGridParticipantsTooltip"
 							placement="top"
 						>
 							<div
-								class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
+								class="relative bg-gray-800/70 rounded-lg overflow-hidden min-h-0 flex items-center justify-center cursor-pointer"
 							>
-								<div class="text-xs text-white text-center px-2 leading-snug">
-									and {{ sidebarRemotesDisplay.extra }} others
+								<div class="text-sm text-white text-center px-3 leading-snug">
+									and {{ gridRemotesDisplay.extra }} others
 								</div>
 							</div>
 						</Tooltip>
 					</TransitionGroup>
 				</div>
 
-				<!-- Video grid (hidden when screen sharing) -->
-				<TransitionGroup
-					v-else
-					name="tile"
-					tag="div"
-					class="flex-1 grid gap-2 min-h-0 call-grid"
-					:class="gridClass"
-					:style="callGridStyle"
-				>
-					<!-- Local user video -->
-					<div
-						key="local-camera"
-						class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
-					>
-						<video
-							ref="localVideo"
-							class="w-full h-full object-cover transform scale-x-[-1]"
-							autoplay
-							muted
-							playsinline
-						/>
-						<div
-							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
-						>
-							{{ currentUser?.full_name || currentUser?.name || "You" }}
-						</div>
-						<div
-							v-if="!isCameraOn"
-							class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
-						>
-							<MeetingAvatar
-								:label="userInitials"
-								:image="userAvatar"
-								:tiles="gridVisibleTileCount"
-							/>
-						</div>
-					</div>
+				<FloatingControls
+					:isChatOpen="isChatOpen"
+					:hasUnread="hasUnreadMessages"
+					:isMicOn="isMicOn"
+					:isCameraOn="isCameraOn"
+					:isScreenSharing="isScreenSharing"
+					@toggle-chat="toggleChat"
+					@toggle-microphone="toggleMicrophone"
+					@toggle-camera="toggleCamera"
+					@toggle-screen-share="toggleScreenShare"
+					@end-call="endCall"
+				/>
 
-					<!-- Remote participants -->
-					<div
-						v-for="participant in gridRemotesDisplay.list"
-						:key="'grid-' + participant.user_id"
-						class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0"
-					>
-						<video
-							:ref="(el) => setRemoteVideoRef(participant.user_id, el)"
-							:participant-id="participant.user_id"
-							class="w-full h-full object-cover remote-video"
-							autoplay
-							playsinline
-						></video>
-						<div
-							class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
-						>
-							{{ participant.user_name || participant.user_id }}
-						</div>
-						<div
-							v-if="!participant.video_enabled"
-							class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
-						>
-							<MeetingAvatar
-								:image="participant.avatar"
-								:label="participant.initials"
-								:tiles="gridVisibleTileCount"
-							/>
-						</div>
-						<div
-							v-if="!participant.audio_enabled"
-							class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5"
-						>
-							<lucide-mic-off class="w-4 h-4 text-white" />
-						</div>
-					</div>
-					<!-- Grouping tile for normal layout -->
-					<Tooltip
-						v-if="gridRemotesDisplay.extra > 0"
-						key="grid-group"
-						:label="hiddenGridParticipantsTooltip"
-						:text="hiddenGridParticipantsTooltip"
-						placement="top"
-					>
-						<div
-							class="relative bg-gray-800/70 rounded-lg overflow-hidden min-h-0 flex items-center justify-center cursor-pointer"
-						>
-							<div class="text-sm text-white text-center px-3 leading-snug">
-								and {{ gridRemotesDisplay.extra }} others
-							</div>
-						</div>
-					</Tooltip>
-				</TransitionGroup>
+				<!-- Chat Panel -->
+				<ChatPanel
+					:open="isChatOpen"
+					v-model:messages="chatMessages"
+					:user-id="currentUser?.user_id || ''"
+					:user-name="currentUser?.full_name || currentUser?.name || 'You'"
+					@close="toggleChat"
+					@send="onSendChat"
+				/>
 			</div>
-
-			<!-- Floating Controls -->
-			<FloatingControls
-				:isMicOn="isMicOn"
-				:isCameraOn="isCameraOn"
-				:isScreenSharing="isScreenSharing"
-				@toggle-microphone="toggleMicrophone"
-				@toggle-camera="toggleCamera"
-				@toggle-screen-share="toggleScreenShare"
-				@end-call="endCall"
-			/>
 		</template>
+
+		<ChatNotificationQueue
+			ref="chatNotificationQueue"
+			:auto-dismiss-delay="5000"
+			:max-visible="3"
+			:chat-open="isChatOpen"
+			@notification-click="handleNotificationClick"
+		/>
 
 		<JoinRequestNotifications
 			ref="joinRequestsComponent"
@@ -305,6 +332,8 @@ import {
 } from "frappe-ui";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import ChatNotificationQueue from "../components/ChatNotificationQueue.vue";
+import ChatPanel from "../components/ChatPanel.vue";
 import FloatingControls from "../components/FloatingControls.vue";
 import JoinRequestNotifications from "../components/JoinRequestNotifications.vue";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
@@ -404,6 +433,7 @@ const loadingUsers = ref([]);
 const isCreator = ref(false);
 const meetingInfo = ref(null);
 const joinRequestsComponent = ref(null);
+const chatNotificationQueue = ref(null);
 
 let currentUser = ref({});
 let participants = ref(new Map());
@@ -462,8 +492,11 @@ let audioProducer = null;
 let screenProducer = null;
 const consumers = ref(new Map());
 
-// SFU Meeting Manager
 let sfuManager = null;
+
+const isChatOpen = ref(false);
+const chatMessages = ref([]);
+const hasUnreadMessages = ref(false);
 
 // Computed grid class based on participant count
 const gridClass = computed(() => {
@@ -765,7 +798,19 @@ const joinMeetingAPI = createResource({
 	makeParams: () => ({ meeting_id: meetingId.value }),
 });
 
-// Control functions
+const toggleChat = () => {
+	isChatOpen.value = !isChatOpen.value;
+	if (isChatOpen.value) {
+		hasUnreadMessages.value = false;
+	}
+};
+
+const handleNotificationClick = () => {
+	if (!isChatOpen.value) {
+		toggleChat();
+	}
+};
+
 const toggleMicrophone = async () => {
 	try {
 		if (isMicOn.value) {
@@ -1146,6 +1191,8 @@ const setupSFUConnection = async () => {
 
 	await sfuManager.connect();
 
+	setupChatEvents();
+
 	const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1));
 	await Promise.race([timeoutPromise]);
 
@@ -1172,6 +1219,46 @@ const setupSFUConnection = async () => {
 	}
 
 	await requestExistingParticipants();
+};
+
+const setupChatEvents = () => {
+	try {
+		const sfu = getSFUClient();
+		if (sfu?.on) {
+			// Deduplicate handlers on hot reloads by off then on
+			sfu.off?.("chat:message");
+			sfu.on("chat:message", (data) => {
+				try {
+					const mine = data?.fromUser === currentUser.value?.user_id;
+					chatMessages.value.push({
+						id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+						message: String(data?.message || ""),
+						fromUser: data?.fromUser || "unknown",
+						fromName: data?.fromName || data?.fromUser || "Unknown",
+						timestamp: data?.timestamp || new Date().toISOString(),
+						mine,
+					});
+
+					if (!isChatOpen.value && !mine) {
+						hasUnreadMessages.value = true;
+
+						if (chatNotificationQueue.value) {
+							chatNotificationQueue.value.addNotification({
+								message: String(data?.message || ""),
+								fromUser: data?.fromUser || "unknown",
+								fromName: data?.fromName || data?.fromUser || "Unknown",
+								timestamp: data?.timestamp || new Date().toISOString(),
+							});
+						}
+					}
+				} catch (e) {
+					console.warn("Error processing chat message:", e);
+				}
+			});
+		}
+	} catch (e) {
+		console.warn("Chat event hookup failed:", e?.message || e);
+	}
 };
 
 const joinMeetingRoom = async () => {
@@ -1445,6 +1532,10 @@ onUnmounted(async () => {
 		sfuManager.cleanup();
 	}
 
+	try {
+		getSFUClient().off?.("chat:message");
+	} catch {}
+
 	// Reset SFU manager instance
 	resetSFUMeetingManager();
 
@@ -1546,6 +1637,24 @@ const toggleScreenShare = async () => {
 		toast.error("Screen share cancelled or failed");
 	}
 };
+
+function onSendChat(text) {
+	try {
+		const sfu = getSFUClient();
+		if (!sfu || !sfu.isConnected()) {
+			console.warn("SFU not connected, cannot send chat message");
+			toast.error("Lost connection, cannot send message");
+			return;
+		}
+
+		sfu.sendChatMessage(text, {
+			clientId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+		});
+	} catch (e) {
+		console.error("Failed to send chat message:", e);
+		toast.error("Failed to send message");
+	}
+}
 </script>
 
 <!-- these are for transition when a user joins/leaves -->

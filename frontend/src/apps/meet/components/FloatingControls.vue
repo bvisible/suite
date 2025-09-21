@@ -10,15 +10,42 @@
 		<div
 			v-show="isVisible"
 			:class="[
-				'z-50 pointer-events-none w-auto max-w-3xl px-4 md:px-0',
-				isPreview
-					? 'absolute bottom-4 left-1/2 transform -translate-x-1/2'
-					: 'fixed bottom-8 left-1/2 transform -translate-x-1/2',
+				'z-50 pointer-events-none w-auto max-w-3xl px-4 md:px-0 bottom-4 left-1/2 transform -translate-x-1/2',
+				isPreview ? 'absolute' : 'fixed',
 			]"
 		>
 			<div
 				class="flex items-center gap-3 px-6 py-3 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-300 mx-auto"
 			>
+				<!-- Chat -->
+				<div class="relative">
+					<Button
+						@click="$emit('toggle-chat')"
+						variant="solid"
+						size="2xl"
+						theme="gray"
+						class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+						:class="{
+							'!bg-gray-800 hover:!bg-gray-800': isChatOpen,
+						}"
+						:title="'Toggle Chat (' + ($platform === 'mac' ? '⌘+C' : 'Ctrl+C') + ')'"
+					>
+						<template #icon>
+							<lucide-message-square-off
+								v-if="isChatOpen"
+								class="w-5 h-5 text-white"
+							/>
+							<lucide-message-square v-else class="w-5 h-5 text-white" />
+						</template>
+					</Button>
+
+					<!-- Unread Badge -->
+					<div
+						v-if="hasUnread && !isChatOpen"
+						class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+					/>
+				</div>
+
 				<!-- Microphone -->
 				<Button
 					@click="$emit('toggle-microphone')"
@@ -97,6 +124,14 @@ import { Button } from "frappe-ui";
 import { onMounted, onUnmounted, ref, toRefs } from "vue";
 
 const props = defineProps({
+	isChatOpen: {
+		type: Boolean,
+		required: true,
+	},
+	hasUnread: {
+		type: Boolean,
+		default: false,
+	},
 	isMicOn: {
 		type: Boolean,
 		required: true,
@@ -118,6 +153,7 @@ const props = defineProps({
 const { isPreview } = toRefs(props);
 
 defineEmits([
+	"toggle-chat",
 	"toggle-microphone",
 	"toggle-camera",
 	"toggle-screen-share",

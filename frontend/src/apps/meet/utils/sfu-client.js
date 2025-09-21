@@ -69,6 +69,9 @@ class SFUClient {
 			ice_candidate: (data) => {
 				console.log("🧊 ICE candidate received:", data);
 			},
+			"chat:message": (data) => {
+				console.log("💬 Chat message:", data);
+			},
 		};
 	}
 
@@ -413,6 +416,13 @@ class SFUClient {
 			throw new Error("Not connected to SFU");
 		}
 		this.socket.emit("media_control", { action });
+	}
+
+	sendChatMessage(message, options = {}) {
+		if (!this.connected) throw new Error("Not connected to SFU");
+		const payload = { message: String(message || "") };
+		if (options.clientId) payload.clientId = String(options.clientId);
+		this.socket.emit("chat:send", payload);
 	}
 
 	// Screen sharing
