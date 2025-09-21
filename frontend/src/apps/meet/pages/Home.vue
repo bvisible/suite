@@ -42,24 +42,50 @@
 					<div class="flex-grow h-px bg-gray-300"></div>
 				</div>
 
-				<Button
-					variant="solid"
-					size="lg"
-					@click="startNewMeeting"
-					:loading="createMeeting.loading"
-				>
-					<template #prefix>
-						<lucide-plus class="h-4 w-4" />
-					</template>
-					Start new meeting
-				</Button>
+				<div class="relative inline-block">
+					<div class="flex items-center justify-center">
+						<Button
+							variant="solid"
+							size="lg"
+							:loading="createMeeting.loading"
+							class="whitespace-nowrap px-6 py-3 rounded-r-none"
+							@click="() => startNewMeeting('open')"
+						>
+							<template #prefix>
+								<lucide-plus class="h-4 w-4" />
+							</template>
+							Start new meeting
+						</Button>
+
+						<Dropdown
+							size="lg"
+							variant="solid"
+							class="rounded-l-none"
+							icon="chevron-down"
+							:disabled="createMeeting.loading"
+							:options="[
+								{
+									icon: 'lock',
+									label: 'Create a restricted meeting',
+									onClick: () => startNewMeeting('restricted'),
+								},
+							]"
+						/>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { Button, FormControl, createResource, toast } from "frappe-ui";
+import {
+	Button,
+	Dropdown,
+	FormControl,
+	createResource,
+	toast,
+} from "frappe-ui";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
@@ -83,8 +109,8 @@ const createMeeting = createResource({
 	},
 });
 
-const startNewMeeting = () => {
-	toast.promise(createMeeting.submit(), {
+const startNewMeeting = (meetingType) => {
+	toast.promise(createMeeting.submit({ meeting_type: meetingType }), {
 		loading: "Creating meeting...",
 		success: "Meeting created successfully!",
 		error: "Failed to create meeting. Please try again.",

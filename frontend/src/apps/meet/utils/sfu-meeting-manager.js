@@ -219,15 +219,8 @@ export class SFUMeetingManager {
 			} catch (e) {
 				console.warn("Failed to fetch room roster:", e?.message || e);
 			}
-			// Request existing producers from the SFU
-			await this.requestExistingProducers();
 
-			// Reconcile: ensure all consumers are attached based on current flags/tiles
-			try {
-				await this.reconcileAllAttachments();
-			} catch (e) {
-				console.warn("Reconcile attachments failed:", e?.message || e);
-			}
+			await this.requestExistingProducers();
 
 			// Flush any producers announced during initial sync that we skipped
 			try {
@@ -235,12 +228,10 @@ export class SFUMeetingManager {
 			} catch (e) {
 				console.warn("Flush buffered producers failed:", e?.message || e);
 			}
-
 			this.initialSyncInProgress = false;
-
-			return true;
 		} catch (error) {
-			console.error("❌ Error setting up existing participants:", error);
+			console.error("❌ Error in setupExistingParticipants:", error);
+			this.initialSyncInProgress = false;
 			throw error;
 		}
 	}
@@ -376,10 +367,11 @@ export class SFUMeetingManager {
 	async requestExistingProducers() {
 		try {
 			const existingResult = await requestExistingProducers(this.meetingId);
-			console.log("Requested existing producers successfully:", existingResult);
 
 			if (existingResult?.subscriptions?.length) {
-				console.log("Processing existing subscriptions...");
+				// Add all participants to state first
+				const consumersToProcess = [];
+
 				for (const { consumer, producer } of existingResult.subscriptions) {
 					if (!producer?.user_id) continue;
 
@@ -417,19 +409,20 @@ export class SFUMeetingManager {
 
 					// Save participant and force reactivity
 					this.participants.value.set(producer.user_id, { ...participant });
-					this.participants.value = new Map(this.participants.value);
-
-					// Wait a tick so UI renders the remote tile and sets ref
-					await nextTick();
 
 					// Track consumer with participant mapping for later controls
-					try {
-						consumer.participantId = producer.user_id;
-						this.consumers.value.set(consumer.id, consumer);
-					} catch (_) {}
-
-					// Attach streams
+					consumer.participantId = producer.user_id;
 					consumer.isScreen = isScreen;
+					this.consumers.value.set(consumer.id, consumer);
+
+					consumersToProcess.push({ consumer, producer, isScreen });
+				}
+
+				this.participants.value = new Map(this.participants.value);
+
+				// Store consumers for deferred attachment when video elements become available
+				for (const { consumer, producer, isScreen } of consumersToProcess) {
+					// Handle screen share producers immediately (they use different logic)
 					if (consumer.kind === "video" && isScreen) {
 						// Track screen share producer so UI logic can locate it & fire handler
 						this.screenShareProducers.set(producer.id, {
@@ -451,16 +444,23 @@ export class SFUMeetingManager {
 							}
 						}
 					}
-					if (consumer.kind === "video") {
-						if (!isScreen) {
-							await this.attachVideoStream(
-								producer.user_id,
-								consumer,
-								"existing",
-							);
+
+					if (consumer.kind === "video" && !isScreen) {
+						if (!this.deferredVideoAttachments) {
+							this.deferredVideoAttachments = new Map();
 						}
+						this.deferredVideoAttachments.set(producer.user_id, {
+							consumer,
+							producer,
+						});
 					} else if (consumer.kind === "audio") {
-						await this.attachAudioStream(producer.user_id, consumer);
+						if (!this.deferredAudioAttachments) {
+							this.deferredAudioAttachments = new Map();
+						}
+						this.deferredAudioAttachments.set(producer.user_id, {
+							consumer,
+							producer,
+						});
 					}
 				}
 
@@ -831,7 +831,7 @@ export class SFUMeetingManager {
 			}
 
 			// Check if there's already a video element for this participant
-			const videoElement = this.remoteVideos.value.get(userId);
+			const videoElement = await this.findVideoElement(userId);
 
 			if (videoElement) {
 				// If video element exists, update its stream to include audio

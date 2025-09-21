@@ -21,7 +21,7 @@
 
 		<!-- Preview mode -->
 		<MeetingPreview
-			v-else-if="isInPreview"
+			v-else-if="isInPreview || isWaitingForApproval || isJoinRequestRejected"
 			:isCameraOn="isCameraOn"
 			:isMicOn="isMicOn"
 			:currentUser="currentUser"
@@ -31,9 +31,13 @@
 			:meetingTitle="meetingDoc?.data?.title || meetingId"
 			:meetingId="meetingId"
 			:setLocalVideoRef="setLocalVideoRef"
+			:isWaitingForApproval="isWaitingForApproval"
+			:isJoinRequestRejected="isJoinRequestRejected"
 			@toggle-microphone="toggleMicrophone"
 			@toggle-camera="toggleCamera"
 			@join-from-preview="joinMeetingFromPreview"
+			@leave-waiting-room="leaveWaitingRoom"
+			@try-join-again="tryJoinAgain"
 		/>
 
 		<!-- Main video interface -->
@@ -351,6 +355,15 @@
 				</div>
 			</div>
 		</template>
+
+		<JoinRequestNotifications
+			ref="joinRequestsComponent"
+			v-if="isCreator && !isInPreview"
+			:waitingUsers="waitingUsers"
+			:loadingUsers="loadingUsers"
+			@approve-user="approveUser"
+			@reject-user="rejectUser"
+		/>
 	</div>
 </template>
 
@@ -365,22 +378,20 @@ import {
 	Button,
 	Spinner,
 	Tooltip,
+	createResource,
 	getCachedDocumentResource,
 	toast,
 } from "frappe-ui";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import JoinRequestNotifications from "../components/JoinRequestNotifications.vue";
 import MeetingAvatar from "../components/MeetingAvatar.vue";
 import MeetingPreview from "../components/MeetingPreview.vue";
 import { session } from "../data/session.js";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 import { cleanupMediasoup } from "../mediasoup-client.js";
 import { publishScreenShare } from "../mediasoup-client.js";
-import {
-	joinMeeting,
-	leaveMeeting,
-	unregisterWebRTCEventHandlers,
-} from "../socket.js";
+import { useSocket } from "../socket.js";
 import { getSFUClient } from "../utils/sfu-client.js";
 import {
 	getSFUMeetingManager,
@@ -462,6 +473,16 @@ const isConnecting = ref(false);
 const connectionError = ref(null);
 const isInPreview = ref(true);
 
+// Waiting room states
+const isWaitingForApproval = ref(false);
+const isJoinRequestRejected = ref(false);
+const waitingUsers = ref([]);
+const waitingCount = ref(0);
+const loadingUsers = ref([]);
+const isCreator = ref(false);
+const meetingInfo = ref(null);
+const joinRequestsComponent = ref(null);
+
 let currentUser = ref({});
 let participants = ref(new Map());
 const remoteVideos = ref(new Map());
@@ -471,19 +492,43 @@ function setRemoteVideoRef(participantId, el) {
 	if (!remoteVideos.value || !(remoteVideos.value instanceof Map)) {
 		remoteVideos.value = new Map();
 	}
+
 	remoteVideos.value.set(participantId, el);
+
+	if (sfuManager) {
+		if (sfuManager.deferredVideoAttachments?.has(participantId)) {
+			const { consumer, producer } =
+				sfuManager.deferredVideoAttachments.get(participantId);
+			sfuManager
+				.attachVideoStream(participantId, consumer, "deferred")
+				.then(() => {
+					sfuManager.deferredVideoAttachments.delete(participantId);
+				})
+				.catch((error) => {
+					console.error("❌ Failed to attach deferred video stream:", error);
+				});
+		}
+
+		if (sfuManager.deferredAudioAttachments?.has(participantId)) {
+			const { consumer, producer } =
+				sfuManager.deferredAudioAttachments.get(participantId);
+			sfuManager
+				.attachAudioStream(participantId, consumer)
+				.then(() => {
+					sfuManager.deferredAudioAttachments.delete(participantId);
+				})
+				.catch((error) => {
+					console.error("❌ Failed to attach deferred audio stream:", error);
+				});
+		}
+	}
+
 	// If participant has an already attached combined stream (camera) reuse it immediately.
 	try {
 		const p = participants.value.get(participantId);
 		if (p?.videoStream && !el.srcObject) {
 			el.srcObject = p.videoStream;
 			el.play?.().catch(() => {});
-			console.log(
-				"🔄 Rebound existing camera stream to new element after layout change",
-				{
-					participantId,
-				},
-			);
 		}
 	} catch (_) {}
 }
@@ -702,6 +747,104 @@ const hiddenParticipantsTooltip = computed(() => {
 
 const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
 
+// Waiting room methods
+const approveUser = async (userId) => {
+	loadingUsers.value.push(userId);
+	try {
+		await approveJoinRequest.submit({
+			meeting_id: meetingId.value,
+			user_id: userId,
+		});
+		waitingUsers.value = waitingUsers.value.filter((u) => u.user_id !== userId);
+	} finally {
+		loadingUsers.value = loadingUsers.value.filter((id) => id !== userId);
+	}
+};
+
+const rejectUser = async (userId) => {
+	loadingUsers.value.push(userId);
+	try {
+		await rejectJoinRequest.submit({
+			meeting_id: meetingId.value,
+			user_id: userId,
+		});
+		// Remove user from waiting list immediately
+		waitingUsers.value = waitingUsers.value.filter((u) => u.user_id !== userId);
+	} finally {
+		loadingUsers.value = loadingUsers.value.filter((id) => id !== userId);
+	}
+};
+
+const leaveWaitingRoom = () => {
+	isWaitingForApproval.value = false;
+	isJoinRequestRejected.value = false;
+	router.push({ name: "Home" });
+};
+
+const tryJoinAgain = async () => {
+	isJoinRequestRejected.value = false;
+	await joinMeetingRoom();
+};
+
+const getMeetingInfo = createResource({
+	url: "sae.api.meeting.get_meeting_info",
+	method: "POST",
+	makeParams: () => ({ meeting_id: meetingId.value }),
+	onSuccess: (data) => {
+		if (data.success) {
+			meetingInfo.value = data;
+			isCreator.value = data.is_creator;
+			waitingCount.value = data.waiting_count || 0;
+		}
+	},
+});
+
+const getWaitingRoom = createResource({
+	url: "sae.api.meeting.get_waiting_room",
+	method: "POST",
+	makeParams: () => ({ meeting_id: meetingId.value }),
+	onSuccess: (data) => {
+		if (data.success) {
+			waitingUsers.value = data.waiting_users || [];
+			waitingCount.value = data.waiting_users?.length || 0;
+		}
+	},
+});
+
+const approveJoinRequest = createResource({
+	url: "sae.api.meeting.approve_join_request",
+	method: "POST",
+	onSuccess: (data) => {
+		if (data.success) {
+			getWaitingRoom.submit();
+			toast.success("User approved successfully");
+		}
+	},
+	onError: (error) => {
+		toast.error(error.message || "Failed to approve user");
+	},
+});
+
+const rejectJoinRequest = createResource({
+	url: "sae.api.meeting.reject_join_request",
+	method: "POST",
+	onSuccess: (data) => {
+		if (data.success) {
+			getWaitingRoom.submit();
+			toast.success("User rejected");
+		}
+	},
+	onError: (error) => {
+		toast.error(error.message || "Failed to reject user");
+	},
+});
+
+const joinMeetingAPI = createResource({
+	url: "sae.api.meeting.join_meeting",
+	method: "POST",
+	makeParams: () => ({ meeting_id: meetingId.value }),
+});
+
 // Control functions
 const toggleMicrophone = async () => {
 	try {
@@ -887,9 +1030,6 @@ const toggleCamera = async () => {
 
 const endCall = async () => {
 	try {
-		// Leave the meeting
-		await leaveMeeting(meetingId.value);
-
 		// Clean up mediasoup resources
 		cleanupMediasoup();
 
@@ -977,187 +1117,183 @@ const initializeCamera = async () => {
 };
 
 const joinMeetingFromPreview = async () => {
-	isInPreview.value = false;
 	await joinMeetingRoom();
+};
+
+// Helper function to setup current user object
+const setupCurrentUser = () => {
+	currentUser.value = {
+		user_id: session.user.sessionUser,
+		name: session.user.full_name,
+		full_name: session.user.full_name,
+		avatar: session.user.avatar,
+	};
+
+	if (
+		!currentUser ||
+		typeof currentUser !== "object" ||
+		!("value" in currentUser)
+	) {
+		currentUser = ref(currentUser);
+	}
+	if (
+		!participants ||
+		typeof participants !== "object" ||
+		!("value" in participants)
+	) {
+		participants = ref(new Map());
+	}
+};
+
+const createSFUEventHandlers = () => {
+	return {
+		onParticipantJoined: (participant) => {
+			const name =
+				participant?.user_name || participant?.user_id || "Participant";
+			toast.success(`${name} joined`);
+		},
+		onParticipantLeft: (data) => {
+			const name =
+				data?.user_name || data?.user_id || data.participantId || "Participant";
+			toast.success(`${name} left`);
+		},
+		onConsumerCreated: (consumer, data) => {
+			console.log("📋 SFU consumer created handler:", consumer, data);
+		},
+		onSubscriptionError: (error, data) => {
+			console.error("📋 SFU subscription error handler:", error, data);
+		},
+		onProducerClosed: (data) => {
+			console.log("📋 SFU producer closed handler:", data);
+		},
+		onMediaControlUpdate: (data, participant) => {
+			console.log("📋 SFU media control update handler:", data, participant);
+		},
+		onScreenShareStarted: (data) => {
+			console.log("📋 SFU screen share started handler:", data);
+		},
+		onScreenShareStopped: (data) => {
+			console.log("📋 SFU screen share stopped handler:", data);
+			// Remove any consumers belonging to participant if we had them marked screen
+			activeScreenShareConsumers.value =
+				activeScreenShareConsumers.value.filter(
+					(c) => c.participantId !== data.participantId,
+				);
+		},
+		onScreenShareProducerAdded: ({ participantId, consumerId, consumer }) => {
+			if (consumer?.track) {
+				const ms = new MediaStream([consumer.track]);
+				screenShareStreams.value.set(participantId, ms);
+				attachScreenStreamIfReady(participantId);
+			}
+			if (
+				!activeScreenShareConsumers.value.find(
+					(c) => c.consumerId === consumerId,
+				)
+			) {
+				activeScreenShareConsumers.value = [
+					...activeScreenShareConsumers.value,
+					{ participantId, consumerId, startedAt: Date.now() },
+				];
+			}
+		},
+		onScreenShareProducerRemoved: ({ participantId }) => {
+			activeScreenShareConsumers.value =
+				activeScreenShareConsumers.value.filter(
+					(c) => c.participantId !== participantId,
+				);
+			const el = screenShareVideoElements.get(participantId);
+			if (el?.srcObject) {
+				try {
+					for (const t of el.srcObject.getTracks()) t.stop();
+				} catch (_) {}
+				el.srcObject = null;
+			}
+			screenShareStreams.value.delete(participantId);
+		},
+	};
+};
+
+// Helper function to setup SFU connection and media publishing
+const setupSFUConnection = async () => {
+	sfuManager = getSFUMeetingManager();
+	sfuManager.initialize({
+		meetingId: meetingId.value,
+		currentUser,
+		participants,
+		consumers,
+		remoteVideos,
+		eventHandlers: createSFUEventHandlers(),
+	});
+
+	await sfuManager.connect();
+
+	const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1));
+	await Promise.race([timeoutPromise]);
+
+	if (localStream.value && sfuManager) {
+		const publishOptions = {
+			publishVideo: isCameraOn.value,
+			publishAudio: isMicOn.value,
+		};
+		try {
+			const mediaResults = await sfuManager.publishMedia(
+				localStream.value,
+				publishOptions,
+			);
+			videoProducer = mediaResults.videoProducer;
+			audioProducer = mediaResults.audioProducer;
+		} catch (pubErr) {
+			console.error("❌ publishMedia failed", pubErr);
+		}
+	} else {
+		console.warn("⚠️ Skipping publish: localStream or sfuManager missing", {
+			hasStream: !!localStream.value,
+			hasManager: !!sfuManager,
+		});
+	}
+
+	await requestExistingParticipants();
 };
 
 const joinMeetingRoom = async () => {
 	try {
-		isConnecting.value = true;
-		connectionError.value = null;
-
-		// Get current user info from session
-		if (!session.isLoggedIn) {
-			throw new Error("User not logged in");
-		}
-
-		currentUser.value = {
-			user_id: session.user.sessionUser,
-			name: session.user.full_name,
-			full_name: session.user.full_name,
-			avatar: session.user.avatar,
-		};
-		// Ensure currentUser is always a ref object with a value property
-		if (
-			!currentUser ||
-			typeof currentUser !== "object" ||
-			!("value" in currentUser)
-		) {
-			currentUser = ref(currentUser);
-		}
-		// Ensure participants is always a ref object with a value property
-		if (
-			!participants ||
-			typeof participants !== "object" ||
-			!("value" in participants)
-		) {
-			participants = ref(new Map());
-		}
-
-		// Initialize camera/audio first to show local stream
-		await initializeCamera();
+		await initializeMeeting();
+		await getMeetingInfo.submit();
 
 		// Step 1: Join the meeting in Frappe (authentication and permissions)
-		const joinResult = await joinMeeting(meetingId.value);
+		const joinResult = await joinMeetingAPI.submit();
+		console.log("📋 Join result:", joinResult);
 
-		// Step 2: Connect directly to SFU for WebRTC operations
-		sfuManager = getSFUMeetingManager();
-		sfuManager.initialize({
-			meetingId: meetingId.value,
-			currentUser,
-			participants,
-			consumers,
-			remoteVideos,
-			eventHandlers: {
-				onParticipantJoined: (participant) => {
-					const name =
-						participant?.user_name || participant?.user_id || "Participant";
-					toast.success(`${name} joined`);
-				},
-				onParticipantLeft: (data) => {
-					const name =
-						data?.user_name ||
-						data?.user_id ||
-						data.participantId ||
-						"Participant";
-					toast.success(`${name} left`);
-				},
-				onConsumerCreated: (consumer, data) => {
-					console.log("📋 SFU consumer created handler:", consumer, data);
-				},
-				onSubscriptionError: (error, data) => {
-					console.error("📋 SFU subscription error handler:", error, data);
-				},
-				onProducerClosed: (data) => {
-					console.log("📋 SFU producer closed handler:", data);
-				},
-				onMediaControlUpdate: (data, participant) => {
-					console.log(
-						"📋 SFU media control update handler:",
-						data,
-						participant,
-					);
-				},
-				onScreenShareStarted: (data) => {
-					console.log("📋 SFU screen share started handler:", data);
-				},
-				onScreenShareStopped: (data) => {
-					console.log("📋 SFU screen share stopped handler:", data);
-					// Remove any consumers belonging to participant if we had them marked screen
-					activeScreenShareConsumers.value =
-						activeScreenShareConsumers.value.filter(
-							(c) => c.participantId !== data.participantId,
-						);
-				},
-				onScreenShareProducerAdded: ({
-					participantId,
-					consumerId,
-					consumer,
-				}) => {
-					if (consumer?.track) {
-						const ms = new MediaStream([consumer.track]);
-						screenShareStreams.value.set(participantId, ms);
-						attachScreenStreamIfReady(participantId);
-					}
-					if (
-						!activeScreenShareConsumers.value.find(
-							(c) => c.consumerId === consumerId,
-						)
-					) {
-						activeScreenShareConsumers.value = [
-							...activeScreenShareConsumers.value,
-							{ participantId, consumerId, startedAt: Date.now() },
-						];
-					}
-				},
-				onScreenShareProducerRemoved: ({ participantId }) => {
-					activeScreenShareConsumers.value =
-						activeScreenShareConsumers.value.filter(
-							(c) => c.participantId !== participantId,
-						);
-					const el = screenShareVideoElements.get(participantId);
-					if (el?.srcObject) {
-						try {
-							for (const t of el.srcObject.getTracks()) t.stop();
-						} catch (_) {}
-						el.srcObject = null;
-					}
-					screenShareStreams.value.delete(participantId);
-				},
-			},
-		});
-		await sfuManager.connect();
-
-		// Hide loading indicator once we've joined
-		isConnecting.value = false;
-
-		// Step 3: Initialize mediasoup device with router capabilities from SFU
-		try {
-			const initPromise = sfuManager.initializeDevice();
-			const timeoutPromise = new Promise((resolve) =>
-				setTimeout(resolve, 3000),
-			);
-			const result = await Promise.race([initPromise, timeoutPromise]);
-			if (result === undefined) {
-				console.warn(
-					"⏳ Device initialization took too long, continuing; will lazy-load on publish",
-				);
-			}
-		} catch (devErr) {
-			console.warn(
-				"⚠️ Device initialization error (will continue):",
-				devErr?.message || devErr,
-			);
+		if (joinResult && !joinResult.success) {
+			throw new Error(joinResult.error || "Failed to join meeting");
 		}
 
-		// Step 4: Start publishing media if we have local stream
-		if (localStream.value && sfuManager) {
-			const publishOptions = {
-				publishVideo: isCameraOn.value,
-				publishAudio: isMicOn.value,
-			};
+		if (joinResult?.status === "waiting_for_approval") {
+			console.log("⏳ User is waiting for approval");
+			isWaitingForApproval.value = true;
+			isConnecting.value = false;
+			return;
+		}
+
+		if (joinResult?.status !== "joined" && joinResult?.success !== true) {
+			throw new Error("Unexpected join result");
+		}
+
+		isInPreview.value = false;
+
+		await setupSFUConnection();
+
+		// If this user is the creator, fetch any pending join requests they might have missed
+		if (isCreator.value) {
 			try {
-				const mediaResults = await sfuManager.publishMedia(
-					localStream.value,
-					publishOptions,
-				);
-				videoProducer = mediaResults.videoProducer;
-				audioProducer = mediaResults.audioProducer;
-			} catch (pubErr) {
-				console.error("❌ publishMedia failed", pubErr);
+				await getWaitingRoom.submit();
+			} catch (error) {
+				console.warn("Failed to fetch pending join requests:", error);
 			}
-		} else {
-			console.warn("⚠️ Skipping publish: localStream or sfuManager missing", {
-				hasStream: !!localStream.value,
-				hasManager: !!sfuManager,
-			});
 		}
 
-		// Step 5: Request existing participants and their media streams
-		// This will create receive transport on-demand when needed
-		await requestExistingParticipants();
-
-		console.log("🎉 Meeting join complete - using direct SFU architecture");
+		isConnecting.value = false;
 	} catch (error) {
 		console.error("❌ Error joining meeting:", error);
 		connectionError.value = error.message || "Failed to join meeting";
@@ -1165,14 +1301,52 @@ const joinMeetingRoom = async () => {
 	}
 };
 
+const startMeetingAfterApproval = async () => {
+	try {
+		await initializeMeeting();
+
+		isInPreview.value = false;
+		isWaitingForApproval.value = false;
+		isConnecting.value = false;
+
+		// Setup SFU connection, device, and media (Step 1 in normal flow isn't needed here since user was already approved)
+		await setupSFUConnection();
+
+		console.log(
+			"🎉 Meeting setup complete after approval - using direct SFU architecture",
+		);
+	} catch (error) {
+		console.error("❌ Error setting up meeting after approval:", error);
+		connectionError.value = error.message || "Failed to setup meeting";
+		isConnecting.value = false;
+	}
+};
+
 const requestExistingParticipants = async () => {
 	try {
-		console.log("Requesting existing participants and their streams...");
-
+		if (!sfuManager) {
+			console.error(
+				"❌ sfuManager is null/undefined - cannot request existing participants",
+			);
+			return;
+		}
 		await sfuManager.setupExistingParticipants();
 	} catch (error) {
-		console.error("Error requesting existing participants:", error);
+		console.error("❌ Error requesting existing participants:", error);
 	}
+};
+
+const initializeMeeting = async () => {
+	isConnecting.value = true;
+	connectionError.value = null;
+
+	if (!session.isLoggedIn) {
+		throw new Error("User not logged in");
+	}
+
+	setupCurrentUser();
+
+	await initializeCamera();
 };
 
 const handleKeyDown = (event) => {
@@ -1188,6 +1362,131 @@ const handleKeyDown = (event) => {
 
 onMounted(async () => {
 	window.addEventListener("keydown", handleKeyDown);
+
+	await getMeetingInfo.submit();
+
+	const socket = useSocket();
+
+	if (socket) {
+		socket.emit("doc_subscribe", "Sae Meeting", meetingId.value);
+
+		socket.on("meeting_join_request", (data) => {
+			if (data.meeting === meetingId.value && isCreator.value) {
+				waitingCount.value = data.waiting_count || 0;
+
+				const existingUser = waitingUsers.value.find(
+					(u) => u.user_id === data.user,
+				);
+				if (!existingUser) {
+					waitingUsers.value.push({
+						user_id: data.user,
+						full_name: data.user_name || data.user,
+						user_image: data.user_image || null,
+						requested_at: new Date().toISOString(),
+					});
+				}
+
+				getWaitingRoom.reload();
+			} else {
+				console.log("❌ Ignoring join request:", {
+					expectedMeeting: meetingId.value,
+					actualMeeting: data.meeting,
+					isCreator: isCreator.value,
+				});
+			}
+		});
+
+		socket.on("meeting_join_approved", (data) => {
+			const eventData = data.message || data;
+			const eventMeeting = eventData.meeting;
+			const eventUser = eventData.user;
+
+			if (
+				eventMeeting === meetingId.value &&
+				eventUser === session.user.sessionUser &&
+				isWaitingForApproval.value === true
+			) {
+				isConnecting.value = true;
+				isWaitingForApproval.value = false;
+				toast.success("You have been approved to join the meeting");
+
+				startMeetingAfterApproval();
+
+				return;
+			}
+
+			if (eventMeeting === meetingId.value && isCreator.value) {
+				waitingUsers.value = waitingUsers.value.filter(
+					(u) => u.user_id !== eventUser,
+				);
+
+				try {
+					if (joinRequestsComponent.value?.forceHide) {
+						joinRequestsComponent.value.forceHide(eventUser);
+					}
+				} catch (e) {
+					console.warn("Failed to call joinRequestsComponent.forceHide:", e);
+				}
+
+				getWaitingRoom.reload();
+				toast.info(`${eventUser} has been admitted`);
+			} else {
+				console.log("❌ Ignoring approval event:", {
+					expectedMeeting: meetingId.value,
+					actualMeeting: eventMeeting,
+					expectedUser: session.user.sessionUser,
+					actualUser: eventUser,
+					isWaitingForApproval: isWaitingForApproval.value,
+					reason: !isWaitingForApproval.value
+						? "User not currently waiting for approval"
+						: "Meeting or user mismatch",
+				});
+			}
+		});
+
+		socket.on("meeting_join_rejected", (data) => {
+			const eventData = data.message || data;
+			const eventMeeting = eventData.meeting;
+			const eventUser = eventData.user;
+
+			if (
+				eventMeeting === meetingId.value &&
+				eventUser === session.user.sessionUser
+			) {
+				isWaitingForApproval.value = false;
+				isJoinRequestRejected.value = true;
+				toast.error("Your join request was rejected");
+			} else {
+				console.log("❌ Ignoring rejection event:", {
+					expectedMeeting: meetingId.value,
+					actualMeeting: eventMeeting,
+					expectedUser: session.user.sessionUser,
+					actualUser: eventUser,
+				});
+			}
+		});
+
+		socket.on("meeting_waiting_room_updated", (data) => {
+			if (data.meeting === meetingId.value && isCreator.value) {
+				waitingCount.value = data.waiting_count || 0;
+				getWaitingRoom.reload();
+			}
+		});
+
+		socket.on("meeting_joined", (data) => {
+			if (
+				data.meeting === meetingId.value &&
+				data.user === session.user.sessionUser &&
+				isWaitingForApproval.value === true
+			) {
+				isConnecting.value = true;
+				isWaitingForApproval.value = false;
+				toast.success("You have been approved to join the meeting");
+
+				startMeetingAfterApproval();
+			}
+		});
+	}
 
 	await initializeCamera();
 
@@ -1215,8 +1514,16 @@ watch(
 );
 
 onUnmounted(async () => {
-	// Clean up WebRTC event handlers
-	unregisterWebRTCEventHandlers();
+	const socket = useSocket();
+	if (socket) {
+		socket.emit("doc_unsubscribe", "Sae Meeting", meetingId.value);
+
+		socket.off("meeting_join_request");
+		socket.off("meeting_join_approved");
+		socket.off("meeting_join_rejected");
+		socket.off("meeting_waiting_room_updated");
+		socket.off("meeting_joined");
+	}
 
 	// Clean up SFU manager
 	if (sfuManager) {
@@ -1228,13 +1535,6 @@ onUnmounted(async () => {
 
 	// Always reset participants to a ref with a Map after cleanup
 	participants.value = new Map();
-
-	// Leave meeting in Frappe
-	try {
-		await leaveMeeting(meetingId.value);
-	} catch (error) {
-		console.error("❌ Error leaving meeting:", error);
-	}
 
 	// Clean up mediasoup resources
 	cleanupMediasoup();
