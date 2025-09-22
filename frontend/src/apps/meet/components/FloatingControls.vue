@@ -10,7 +10,7 @@
 		<div
 			v-show="isVisible"
 			:class="[
-				'pointer-events-none w-auto max-w-3xl px-4 md:px-0 bottom-4 left-1/2 transform -translate-x-1/2',
+				'z-10 pointer-events-none w-auto max-w-3xl px-4 md:px-0 bottom-4 left-1/2 transform -translate-x-1/2',
 				isPreview ? 'absolute' : 'fixed',
 			]"
 		>
