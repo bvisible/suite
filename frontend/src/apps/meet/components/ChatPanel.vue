@@ -13,16 +13,10 @@
 		>
 			<div class="flex items-center justify-between px-3 py-3 border-b border-gray-800">
 				<div class="text-white font-medium">Chat</div>
-				<Button
+				<lucide-x
 					@click="$emit('close')"
-					variant="ghost"
-					size="sm"
-					class="p-1 hover:text-gray-300"
-				>
-					<template #icon>
-						<lucide-x class="w-4 h-4 text-white" />
-					</template>
-				</Button>
+					class="w-4 h-4 text-white cursor-pointer hover:text-gray-300"
+				/>
 			</div>
 
 			<div ref="listEl" class="flex-1 overflow-y-auto px-3 py-2 space-y-4">
