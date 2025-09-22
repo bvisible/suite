@@ -228,13 +228,13 @@
 								playsinline
 							></video>
 							<div
-								class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm z-20 pointer-events-none"
+								class="-z-10 absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm pointer-events-none"
 							>
 								{{ participant.user_name || participant.user_id }}
 							</div>
 							<div
 								v-if="!participant.video_enabled"
-								class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
+								class="absolute inset-0 bg-gray-700 flex items-center justify-center pointer-events-none"
 							>
 								<MeetingAvatar
 									:image="participant.avatar"
