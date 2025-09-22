@@ -192,7 +192,7 @@
 						>
 							<video
 								ref="localVideo"
-								class="w-full h-full object-cover transform scale-x-[-1] -z-10"
+								class="w-full h-full object-cover transform scale-x-[-1]"
 								autoplay
 								muted
 								playsinline
