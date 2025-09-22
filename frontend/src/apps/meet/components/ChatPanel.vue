@@ -59,30 +59,20 @@
 
 <script setup>
 import { Button, FormControl } from "frappe-ui";
-import { nextTick, ref, watch } from "vue";
+import { nextTick, ref, toRefs, watch } from "vue";
 
 const props = defineProps({
 	open: { type: Boolean, default: false },
 	userId: { type: String, default: "" },
 	userName: { type: String, default: "" },
+	messages: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["close", "send"]);
 const listEl = ref(null);
-const messages = defineModel("messages", { type: Array, default: () => [] });
+const { messages } = toRefs(props);
 const draft = ref("");
 
-function initials(name = "") {
-	return (
-		String(name)
-			.split(" ")
-			.map((s) => s[0])
-			.filter(Boolean)
-			.join("")
-			.toUpperCase()
-			.slice(0, 2) || "U"
-	);
-}
 function time(ts) {
 	try {
 		return new Date(ts).toLocaleTimeString([], {

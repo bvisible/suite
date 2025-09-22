@@ -101,6 +101,7 @@ const createMeeting = createResource({
 		router.push({
 			name: "Meeting",
 			params: { meetingId: meeting_code },
+			query: { created: "true" },
 		});
 	},
 	onError: (error) => {

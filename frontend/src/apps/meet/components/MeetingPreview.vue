@@ -42,6 +42,7 @@
 
 							<FloatingControls
 								:isPreview="true"
+								:isChatOpen="false"
 								:isMicOn="isMicOn"
 								:isCameraOn="isCameraOn"
 								:isScreenSharing="false"

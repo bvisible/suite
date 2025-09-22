@@ -15,7 +15,7 @@
 					<lucide-alert-circle class="w-12 h-12 mx-auto" />
 				</div>
 				<p class="text-lg mb-4">{{ connectionError }}</p>
-				<Button @click="joinMeetingRoom" variant="outline" theme="red"> Try Again </Button>
+				<Button @click="resetToPreview" variant="outline" theme="red"> Try Again </Button>
 			</div>
 		</div>
 
@@ -421,6 +421,7 @@ function setLocalVideoRef(el) {
 const isConnecting = ref(false);
 const connectionError = ref(null);
 const isInPreview = ref(true);
+const isSetupComplete = ref(false);
 
 // Waiting room states
 const isWaitingForApproval = ref(false);
@@ -739,6 +740,13 @@ const tryJoinAgain = async () => {
 	await joinMeetingRoom();
 };
 
+const resetToPreview = () => {
+	connectionError.value = null;
+	isConnecting.value = false;
+	isInPreview.value = true;
+	isSetupComplete.value = false;
+};
+
 const getMeetingInfo = createResource({
 	url: "sae.api.meeting.get_meeting_info",
 	method: "POST",
@@ -1022,6 +1030,14 @@ const endCall = async () => {
 
 const initializeCamera = async () => {
 	try {
+		if (localStream.value) {
+			console.log("🧹 Cleaning up existing local stream");
+			for (const track of localStream.value.getTracks()) {
+				track.stop();
+			}
+			localStream.value = null;
+		}
+
 		if (!isMicOn.value && !isCameraOn.value) {
 			console.log(
 				"Skipping initial getUserMedia (both mic & camera disabled by user)",
@@ -1177,6 +1193,13 @@ const createSFUEventHandlers = () => {
 
 // Helper function to setup SFU connection and media publishing
 const setupSFUConnection = async () => {
+	if (isSetupComplete.value) {
+		console.log(
+			"⚠️ SFU connection already established, skipping duplicate setup",
+		);
+		return;
+	}
+
 	sfuManager = getSFUMeetingManager();
 	sfuManager.initialize({
 		meetingId: meetingId.value,
@@ -1217,6 +1240,8 @@ const setupSFUConnection = async () => {
 	}
 
 	await requestExistingParticipants();
+
+	isSetupComplete.value = true;
 };
 
 const setupChatEvents = () => {
@@ -1301,11 +1326,21 @@ const joinMeetingRoom = async () => {
 		console.error("❌ Error joining meeting:", error);
 		connectionError.value = error.message || "Failed to join meeting";
 		isConnecting.value = false;
+		isSetupComplete.value = false;
 	}
 };
 
 const startMeetingAfterApproval = async () => {
 	try {
+		if (isSetupComplete.value) {
+			console.log(
+				"⚠️ Meeting already set up, ignoring duplicate approval event",
+			);
+			isWaitingForApproval.value = false;
+			isConnecting.value = false;
+			return;
+		}
+
 		await initializeMeeting();
 
 		isInPreview.value = false;
@@ -1322,6 +1357,7 @@ const startMeetingAfterApproval = async () => {
 		console.error("❌ Error setting up meeting after approval:", error);
 		connectionError.value = error.message || "Failed to setup meeting";
 		isConnecting.value = false;
+		isSetupComplete.value = false;
 	}
 };
 
@@ -1349,7 +1385,9 @@ const initializeMeeting = async () => {
 
 	setupCurrentUser();
 
-	await initializeCamera();
+	if (!localStream.value) {
+		await initializeCamera();
+	}
 };
 
 const handleKeyDown = (event) => {
@@ -1367,6 +1405,21 @@ onMounted(async () => {
 	window.addEventListener("keydown", handleKeyDown);
 
 	await getMeetingInfo.submit();
+
+	setupCurrentUser();
+	await initializeCamera();
+
+	const wasJustCreated = route.query.created === "true";
+	if (isCreator.value && wasJustCreated) {
+		const url = new URL(window.location);
+		url.searchParams.delete("created");
+		window.history.replaceState({}, "", url);
+
+		joinMeetingRoom().catch((error) => {
+			console.error("Auto-join failed:", error);
+			isInPreview.value = true;
+		});
+	}
 
 	const socket = useSocket();
 
@@ -1407,7 +1460,8 @@ onMounted(async () => {
 			if (
 				eventMeeting === meetingId.value &&
 				eventUser === session.user.sessionUser &&
-				isWaitingForApproval.value === true
+				isWaitingForApproval.value === true &&
+				!isSetupComplete.value
 			) {
 				isConnecting.value = true;
 				isWaitingForApproval.value = false;
@@ -1478,7 +1532,8 @@ onMounted(async () => {
 			if (
 				data.meeting === meetingId.value &&
 				data.user === session.user.sessionUser &&
-				isWaitingForApproval.value === true
+				isWaitingForApproval.value === true &&
+				!isSetupComplete.value
 			) {
 				isConnecting.value = true;
 				isWaitingForApproval.value = false;
@@ -1486,12 +1541,6 @@ onMounted(async () => {
 				startMeetingAfterApproval();
 			}
 		});
-	}
-
-	await initializeCamera();
-
-	if (session.isLoggedIn) {
-		currentUser.value = session.user;
 	}
 });
 
@@ -1539,6 +1588,8 @@ onUnmounted(async () => {
 
 	// Always reset participants to a ref with a Map after cleanup
 	participants.value = new Map();
+
+	isSetupComplete.value = false;
 
 	// Clean up mediasoup resources
 	cleanupMediasoup();
@@ -1645,9 +1696,21 @@ function onSendChat(text) {
 			return;
 		}
 
-		sfu.sendChatMessage(text, {
-			clientId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+		// create a clientId so we can match server ack later
+		const clientId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+		// optimistic append to chatMessages (parent owns messages state)
+		chatMessages.value.push({
+			id: `local-${clientId}`,
+			fromUser: currentUser.value?.user_id || "me",
+			fromName:
+				currentUser.value?.full_name || currentUser.value?.name || "You",
+			message: text,
+			timestamp: new Date().toISOString(),
+			clientId,
+			local: true,
 		});
+
+		sfu.sendChatMessage(text, { clientId });
 	} catch (e) {
 		console.error("Failed to send chat message:", e);
 		toast.error("Failed to send message");
