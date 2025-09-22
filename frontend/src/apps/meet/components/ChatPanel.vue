@@ -50,7 +50,7 @@
 						placeholder="Type a message"
 						class="flex-1"
 					/>
-					<Button size="md" type="submit" variant="solid" theme="blue"> Send </Button>
+					<Button size="md" type="submit" variant="outline"> Send </Button>
 				</div>
 			</form>
 		</div>
