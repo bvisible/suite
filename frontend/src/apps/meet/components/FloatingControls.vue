@@ -108,7 +108,7 @@
 					@click="handleDropdownClick"
 				>
 					<Dropdown :options="moreOptions" placement="top">
-						<template #default="{ open }">
+						<template #default>
 							<Button
 								variant="solid"
 								theme="gray"
@@ -151,15 +151,7 @@
 
 <script setup>
 import { Button, Dropdown } from "frappe-ui";
-import {
-	computed,
-	nextTick,
-	onMounted,
-	onUnmounted,
-	ref,
-	toRefs,
-	watch,
-} from "vue";
+import { computed, onMounted, onUnmounted, ref, toRefs } from "vue";
 import MeetingInfoDialog from "./MeetingInfoDialog.vue";
 
 const props = defineProps({

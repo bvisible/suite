@@ -192,7 +192,7 @@
 						>
 							<video
 								ref="localVideo"
-								class="w-full h-full object-cover transform scale-x-[-1]"
+								class="w-full h-full object-cover transform scale-x-[-1] -z-10"
 								autoplay
 								muted
 								playsinline
@@ -204,7 +204,7 @@
 							</div>
 							<div
 								v-if="!isCameraOn"
-								class="absolute inset-0 bg-gray-700 flex items-center justify-center z-10 pointer-events-none"
+								class="absolute inset-0 bg-gray-700 flex items-center justify-center pointer-events-none"
 							>
 								<MeetingAvatar
 									:label="userInitials"
