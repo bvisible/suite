@@ -41,9 +41,8 @@ const sizeClasses = computed(() => {
 });
 
 const textClasses = computed(() => {
-	if (props.tiles <= 4) return "text-2xl tracking-wide";
-	if (props.tiles <= 9) return "text-xl tracking-wide";
-	if (props.tiles <= 16) return "text-lg";
+	if (props.tiles <= 9) return "text-3xl tracking-wide";
+	if (props.tiles <= 16) return "text-xl";
 	return "text-sm";
 });
 </script>
