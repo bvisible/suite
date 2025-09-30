@@ -22,7 +22,7 @@
 			<div ref="listEl" class="flex-1 overflow-y-auto px-3 py-2 space-y-4">
 				<div v-for="m in messages" :key="m.id" class="min-w-0">
 					<div class="text-xs text-gray-300 flex items-center gap-2">
-						<span class="truncate font-medium">{{ m.fromName || m.fromUser }}</span>
+						<span class="truncate font-medium">{{ m.user_name }}</span>
 						<span class="text-gray-500">•</span>
 						<span class="text-gray-500">{{ time(m.timestamp) }}</span>
 					</div>
@@ -59,7 +59,7 @@ const props = defineProps({
 	open: { type: Boolean, default: false },
 	userId: { type: String, default: "" },
 	userName: { type: String, default: "" },
-	messages: { type: Array, default: () => [] },
+	messages: { type: [Array, Object], default: () => [] },
 });
 
 const emit = defineEmits(["close", "send"]);
