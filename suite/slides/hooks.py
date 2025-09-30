@@ -3,7 +3,7 @@ app_title = "Slides"
 app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Tool to create and present slideshows."
 app_email = "gursheen@frappe.io"
-app_license = "mit"
+app_license = "GNU AGPL v3"
 
 # required_apps = []
 add_to_apps_screen = [
