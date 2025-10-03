@@ -1,6 +1,12 @@
+/**
+ * Video Element Manager
+ *
+ * Manages video and audio elements for participants.
+ */
 export class VideoElementManager {
 	constructor() {
 		this.videoElements = new Map();
+		this.audioElements = new Map();
 		this.deferredAttachments = new Map();
 	}
 
@@ -8,23 +14,30 @@ export class VideoElementManager {
 		if (!element || !participantId) return;
 
 		const previousElement = this.videoElements.get(participantId);
-		const previousStream = previousElement?.srcObject;
+		const previousVideoStream = previousElement?.srcObject;
 
-		if (previousStream && !element.srcObject) {
+		// Only update srcObject if element doesn't have one, or if we're re-registering with a different track
+		if (previousVideoStream && !element.srcObject) {
 			console.log("📺 Preserving stream during video element re-registration", {
 				participantId,
-				streamId: previousStream.id,
-				trackCount: previousStream.getTracks().length,
+				streamId: previousVideoStream.id,
+				trackCount: previousVideoStream.getTracks().length,
 			});
-			element.srcObject = previousStream;
-			element.muted = previousElement?.muted || false;
-			if (!previousElement?.muted) {
-				element
-					.play()
-					.catch((err) =>
-						console.warn("Play failed during re-registration:", err),
-					);
+
+			const videoTracks = previousVideoStream.getVideoTracks();
+			if (videoTracks.length > 0) {
+				const previousVideoTrack = videoTracks[0];
+				const existingVideoTrack = element.srcObject?.getVideoTracks?.()?.[0];
+				const videoTrackChanged =
+					!existingVideoTrack ||
+					existingVideoTrack.id !== previousVideoTrack.id;
+
+				if (!element.srcObject || videoTrackChanged) {
+					element.srcObject = new MediaStream(videoTracks);
+				}
 			}
+			// we have a separate audio element for audio playback
+			element.muted = true;
 		}
 
 		this.videoElements.set(participantId, element);
@@ -41,24 +54,83 @@ export class VideoElementManager {
 	}
 
 	async attachStream(participantId, stream, isLocal = false) {
-		const element = this.videoElements.get(participantId);
+		const videoElement = this.videoElements.get(participantId);
 
-		if (!element && !isLocal) {
+		if (!videoElement && !isLocal) {
 			this.deferredAttachments.set(participantId, { stream, isLocal });
 			return;
 		}
 
-		if (element) {
-			element.srcObject = stream;
-			element.muted = isLocal;
+		if (videoElement) {
+			const videoTracks = stream.getVideoTracks();
+			const audioTracks = stream.getAudioTracks();
 
-			if (!isLocal) {
-				try {
-					await element.play();
-				} catch (err) {
-					console.error(`❌ Error playing video for ${participantId}:`, err);
+			if (videoTracks.length > 0) {
+				const newVideoTrack = videoTracks[0];
+				const existingVideoTrack =
+					videoElement.srcObject?.getVideoTracks?.()?.[0];
+				const videoTrackChanged =
+					!existingVideoTrack || existingVideoTrack.id !== newVideoTrack.id;
+
+				if (!videoElement.srcObject || videoTrackChanged) {
+					console.log(`📺 Attaching video track for ${participantId}`, {
+						trackId: newVideoTrack.id,
+						hadExisting: !!existingVideoTrack,
+						changed: videoTrackChanged,
+					});
+					const videoStream = new MediaStream(videoTracks);
+					videoElement.srcObject = videoStream;
+					// we have a separate audio element for audio playback
+					videoElement.muted = true;
+
+					try {
+						await videoElement.play();
+					} catch (err) {
+						console.error(`❌ Error playing video for ${participantId}:`, err);
+					}
+				} else {
+					console.log(
+						`✓ Skipping video re-attach for ${participantId} - same track`,
+					);
 				}
+			} else if (!isLocal) {
+				videoElement.srcObject = null;
 			}
+
+			// attach audio separately for remote participants
+			if (!isLocal && audioTracks.length > 0) {
+				this.attachAudioStream(participantId, audioTracks);
+			}
+		}
+	}
+
+	attachAudioStream(participantId, audioTracks) {
+		let audioElement = this.audioElements.get(participantId);
+
+		if (!audioElement) {
+			audioElement = document.createElement("audio");
+			audioElement.autoplay = true;
+			audioElement.playsinline = true;
+			this.audioElements.set(participantId, audioElement);
+			console.log(`🔊 Created separate audio element for ${participantId}`);
+		}
+
+		const newAudioTrack = audioTracks[0];
+		const existingAudioTrack = audioElement.srcObject?.getAudioTracks?.()?.[0];
+		const audioTrackChanged =
+			!existingAudioTrack || existingAudioTrack.id !== newAudioTrack.id;
+
+		if (!audioElement.srcObject || audioTrackChanged) {
+			const audioStream = new MediaStream(audioTracks);
+			audioElement.srcObject = audioStream;
+
+			// Try to play audio
+			audioElement.play().catch((err) => {
+				console.warn(
+					`⚠️ Audio autoplay failed for ${participantId}:`,
+					err.message,
+				);
+			});
 		}
 	}
 
@@ -114,13 +186,27 @@ export class VideoElementManager {
 			element.srcObject = null;
 		}
 
+		const audioElement = this.audioElements.get(participantId);
+		if (audioElement) {
+			if (audioElement.srcObject) {
+				try {
+					for (const track of audioElement.srcObject.getTracks()) {
+						track.stop();
+					}
+				} catch (_) {}
+				audioElement.srcObject = null;
+			}
+			this.audioElements.delete(participantId);
+		}
+
 		this.videoElements.delete(participantId);
 		this.deferredAttachments.delete(participantId);
 
 		try {
-			console.log(`🗑️ Video element removed for ${participantId}`, {
+			console.log(`🗑️ Video/Audio elements removed for ${participantId}`, {
 				hadStream,
 				elementExists: !!element,
+				hadAudioElement: !!audioElement,
 			});
 		} catch (_) {}
 	}
@@ -135,7 +221,17 @@ export class VideoElementManager {
 			}
 		}
 
+		for (const [participantId, audioElement] of this.audioElements.entries()) {
+			if (audioElement?.srcObject) {
+				for (const track of audioElement.srcObject.getTracks()) {
+					track.stop();
+				}
+				audioElement.srcObject = null;
+			}
+		}
+
 		this.videoElements.clear();
+		this.audioElements.clear();
 		this.deferredAttachments.clear();
 	}
 }

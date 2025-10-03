@@ -405,13 +405,28 @@ watch(
 );
 
 // Watch for localVideo element and localStream connection
+// Check the data attribute to avoid unnecessary updates when ref callback already handled it
 watch(
 	[() => meetingState.localVideo, () => meetingState.localStream],
 	async ([videoElement, stream]) => {
 		if (videoElement && stream) {
 			try {
-				videoElement.srcObject = stream;
-				await videoElement.play();
+				// only update srcObject if the source stream ID has changed
+				// to prevent flashing when re-rendering
+				const currentStreamId = stream.id;
+				const trackedStreamId = videoElement.dataset.sourceStreamId;
+
+				if (trackedStreamId !== currentStreamId) {
+					const videoTracks = stream.getVideoTracks();
+					if (videoTracks.length > 0) {
+						videoElement.srcObject = new MediaStream(videoTracks);
+					} else {
+						videoElement.srcObject = stream;
+					}
+					videoElement.dataset.sourceStreamId = currentStreamId;
+					videoElement.muted = true;
+					await videoElement.play();
+				}
 
 				if (
 					selectedSpeakerId.value &&

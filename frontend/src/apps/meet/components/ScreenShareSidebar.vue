@@ -46,6 +46,7 @@
 				:participant-id="participant.user_id"
 				class="w-full h-full object-cover flex-1 remote-video"
 				autoplay
+				muted
 				playsinline
 			></video>
 			<div
