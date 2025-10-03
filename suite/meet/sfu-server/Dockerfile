@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 build-essential python3-pip pkg-config libssl-dev git ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 COPY package*.json tsconfig.json ./
-ENV NODE_ENV=production
 RUN npm ci
 COPY src ./src
 RUN npm run build
