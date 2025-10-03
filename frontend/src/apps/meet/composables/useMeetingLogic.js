@@ -339,14 +339,6 @@ export function useMeetingLogic(meetingState, meetingId) {
 					}
 				}
 
-				// Attach/refresh local video element (only if not screen sharing)
-				if (localVideo.value && stream && !meetingState.isScreenSharing.value) {
-					localVideo.value.srcObject = stream;
-					try {
-						await localVideo.value.play();
-					} catch (_) {}
-				}
-
 				// Publish or resume producer
 				const track = stream.getVideoTracks()[0];
 				if (mh?.videoProducer) {
@@ -917,7 +909,24 @@ export function useMeetingLogic(meetingState, meetingId) {
 	const setLocalVideoRef = (el) => {
 		localVideo.value = el;
 		if (el && meetingState.localStream.value) {
-			el.srcObject = meetingState.localStream.value;
+			// we are tracking the stream ID to detect real changes
+			// to prevent flashing when re-rendering
+			const currentStreamId = meetingState.localStream.value.id;
+			const trackedStreamId = el.dataset.sourceStreamId;
+
+			if (!el.srcObject || trackedStreamId !== currentStreamId) {
+				// only attach video tracks since it's local
+				const videoTracks = meetingState.localStream.value.getVideoTracks();
+				if (videoTracks.length > 0) {
+					el.srcObject = new MediaStream(videoTracks);
+					el.dataset.sourceStreamId = currentStreamId;
+				} else {
+					el.srcObject = meetingState.localStream.value;
+					el.dataset.sourceStreamId = currentStreamId;
+				}
+				// muted since it's local
+				el.muted = true;
+			}
 		}
 		// Expose on meetingState for external watchers that auto-play
 		meetingState.localVideo = el;
@@ -960,8 +969,15 @@ export function useMeetingLogic(meetingState, meetingId) {
 			}
 			// If no stream yet, registration will allow onScreenShareStarted to attach later
 			if (stream instanceof MediaStream) {
-				el.srcObject = stream;
-				el.play?.().catch(() => {});
+				// we are comparing the stream ID to detect real changes
+				// to prevent flashing when re-rendering
+				const currentStreamId = stream.id;
+				const existingStreamId = el.srcObject?.id;
+
+				if (!el.srcObject || existingStreamId !== currentStreamId) {
+					el.srcObject = stream;
+					el.play?.().catch(() => {});
+				}
 			}
 		}
 	};

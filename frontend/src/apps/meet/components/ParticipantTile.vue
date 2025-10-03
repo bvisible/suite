@@ -6,7 +6,7 @@
 			class="w-full h-full object-cover remote-video"
 			:style="{ transform: isLocal ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)' }"
 			autoplay
-			:muted="isLocal"
+			muted
 			playsinline
 		/>
 
