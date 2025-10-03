@@ -11,8 +11,8 @@ function readString(key, def = "") {
 	return v !== null ? v : def;
 }
 
-export const micEnabled = ref(readBool("mediaPref.mic", true));
-export const cameraEnabled = ref(readBool("mediaPref.camera", true));
+export const micEnabled = ref(readBool("mediaPref.mic", false));
+export const cameraEnabled = ref(readBool("mediaPref.camera", false));
 export const selectedCameraId = ref(readString("mediaPref.cameraId", ""));
 export const selectedMicId = ref(readString("mediaPref.micId", ""));
 export const selectedSpeakerId = ref(readString("mediaPref.speakerId", ""));

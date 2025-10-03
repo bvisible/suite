@@ -46,6 +46,8 @@
 								:isMicOn="isMicOn"
 								:isCameraOn="isCameraOn"
 								:isScreenSharing="false"
+								:cameraPermissionGranted="cameraPermissionGranted"
+								:microphonePermissionGranted="microphonePermissionGranted"
 								@toggle-microphone="$emit('toggle-microphone')"
 								@toggle-camera="$emit('toggle-camera')"
 								@device-changed="$emit('device-changed', $event)"
@@ -227,6 +229,8 @@ const props = defineProps({
 	setLocalVideoRef: Function,
 	isWaitingForApproval: { type: Boolean, default: false },
 	isJoinRequestRejected: { type: Boolean, default: false },
+	cameraPermissionGranted: { type: Boolean, default: false },
+	microphonePermissionGranted: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([

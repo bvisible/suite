@@ -103,11 +103,29 @@ export function useMeetingLogic(meetingState, meetingId) {
 				if (meetingState.connectionError.value) {
 					meetingState.connectionError.value = null;
 				}
+				if (meetingState.isCameraOn.value) {
+					meetingState.cameraPermissionGranted.value = true;
+				}
+				if (meetingState.isMicOn.value) {
+					meetingState.microphonePermissionGranted.value = true;
+				}
 				console.log("📹 Camera initialized successfully");
 			}
 		} catch (error) {
 			console.error("❌ Failed to initialize camera:", error);
-			meetingState.connectionError.value = "Failed to access camera/microphone";
+
+			meetingState.setMediaState(false, false);
+			setMicEnabled(false);
+			setCameraEnabled(false);
+
+			const isPermissionError =
+				error.name === "NotAllowedError" ||
+				error.name === "PermissionDeniedError";
+			toast.warning(
+				isPermissionError
+					? "Media access denied. Enable permissions in browser settings."
+					: "Media access failed. You can join without media.",
+			);
 		}
 	};
 
@@ -131,9 +149,18 @@ export function useMeetingLogic(meetingState, meetingId) {
 						);
 						stream = await navigator.mediaDevices.getUserMedia(constraints);
 						meetingState.localStream.value = stream;
+						meetingState.cameraPermissionGranted.value = true;
+						meetingState.microphonePermissionGranted.value = true;
 					} catch (err) {
 						console.error("❌ Failed to get microphone stream:", err);
-						toast.error("Failed to access microphone");
+						const isPermissionError =
+							err.name === "NotAllowedError" ||
+							err.name === "PermissionDeniedError";
+						toast.error(
+							isPermissionError
+								? "Microphone access denied. Enable in browser settings."
+								: "Failed to access microphone",
+						);
 						return;
 					}
 				} else {
@@ -150,10 +177,18 @@ export function useMeetingLogic(meetingState, meetingId) {
 							const newTrack = audioOnly.getAudioTracks()[0];
 							if (newTrack) {
 								stream.addTrack(newTrack);
+								meetingState.microphonePermissionGranted.value = true;
 							}
 						} catch (err) {
 							console.error("❌ Failed to add audio track:", err);
-							toast.error("Could not enable microphone");
+							const isPermissionError =
+								err.name === "NotAllowedError" ||
+								err.name === "PermissionDeniedError";
+							toast.error(
+								isPermissionError
+									? "Microphone access denied. Enable in browser settings."
+									: "Could not enable microphone",
+							);
 							return;
 						}
 					} else {
@@ -172,10 +207,18 @@ export function useMeetingLogic(meetingState, meetingId) {
 								if (newTrack) {
 									stream.removeTrack(at);
 									stream.addTrack(newTrack);
+									meetingState.microphonePermissionGranted.value = true;
 								}
 							} catch (err) {
 								console.error("❌ Failed to replace audio track:", err);
-								toast.error("Could not enable microphone");
+								const isPermissionError =
+									err.name === "NotAllowedError" ||
+									err.name === "PermissionDeniedError";
+								toast.error(
+									isPermissionError
+										? "Microphone access denied. Enable in browser settings."
+										: "Could not enable microphone",
+								);
 								return;
 							}
 						} else {
@@ -286,9 +329,20 @@ export function useMeetingLogic(meetingState, meetingId) {
 						);
 						stream = await navigator.mediaDevices.getUserMedia(constraints);
 						meetingState.localStream.value = stream;
+						meetingState.cameraPermissionGranted.value = true;
+						if (meetingState.isMicOn.value) {
+							meetingState.microphonePermissionGranted.value = true;
+						}
 					} catch (err) {
 						console.error("❌ Failed to get camera stream:", err);
-						toast.error("Failed to access camera");
+						const isPermissionError =
+							err.name === "NotAllowedError" ||
+							err.name === "PermissionDeniedError";
+						toast.error(
+							isPermissionError
+								? "Camera access denied. Enable in browser settings."
+								: "Failed to access camera",
+						);
 						return;
 					}
 				} else {
@@ -305,10 +359,27 @@ export function useMeetingLogic(meetingState, meetingId) {
 							const newTrack = videoOnly.getVideoTracks()[0];
 							if (newTrack) {
 								stream.addTrack(newTrack);
+								meetingState.cameraPermissionGranted.value = true;
+								// Force video element update
+								if (meetingState.localVideo) {
+									const videoTracks = stream.getVideoTracks();
+									if (videoTracks.length > 0) {
+										meetingState.localVideo.srcObject = new MediaStream(
+											videoTracks,
+										);
+									}
+								}
 							}
 						} catch (err) {
 							console.error("❌ Failed to add video track:", err);
-							toast.error("Could not enable camera");
+							const isPermissionError =
+								err.name === "NotAllowedError" ||
+								err.name === "PermissionDeniedError";
+							toast.error(
+								isPermissionError
+									? "Camera access denied. Enable in browser settings."
+									: "Could not enable camera",
+							);
 							return;
 						}
 					} else {
@@ -327,10 +398,26 @@ export function useMeetingLogic(meetingState, meetingId) {
 								if (newTrack) {
 									stream.removeTrack(vt);
 									stream.addTrack(newTrack);
+									meetingState.cameraPermissionGranted.value = true;
+									if (meetingState.localVideo) {
+										const videoTracks = stream.getVideoTracks();
+										if (videoTracks.length > 0) {
+											meetingState.localVideo.srcObject = new MediaStream(
+												videoTracks,
+											);
+										}
+									}
 								}
 							} catch (err) {
 								console.error("❌ Failed to replace video track:", err);
-								toast.error("Could not enable camera");
+								const isPermissionError =
+									err.name === "NotAllowedError" ||
+									err.name === "PermissionDeniedError";
+								toast.error(
+									isPermissionError
+										? "Camera access denied. Enable in browser settings."
+										: "Could not enable camera",
+								);
 								return;
 							}
 						} else {
