@@ -41,12 +41,6 @@ export class RoomManager {
 
 		loggers.roomManager.info('Closing room: %s', roomId);
 
-		// Close all peers in the room
-		for (const [_peerId] of room.peers) {
-			// Note: Peer cleanup is handled by PeerManager
-		}
-
-		// Close router
 		try {
 			room.router.close();
 			loggers.roomManager.info('Router closed for room: %s', roomId);
