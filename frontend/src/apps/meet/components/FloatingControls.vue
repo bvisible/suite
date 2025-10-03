@@ -102,7 +102,7 @@
 
 				<!-- Device Settings -->
 				<Button
-					v-if="isPreview"
+					v-if="isPreview && (cameraPermissionGranted || microphonePermissionGranted)"
 					@click="showDeviceSettingsDialog = true"
 					variant="solid"
 					theme="gray"
@@ -208,6 +208,14 @@ const props = defineProps({
 		type: String,
 		default: "",
 	},
+	cameraPermissionGranted: {
+		type: Boolean,
+		default: false,
+	},
+	microphonePermissionGranted: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const { isPreview } = toRefs(props);
@@ -225,6 +233,8 @@ const moreOptions = computed(() => [
 	{
 		icon: "settings",
 		label: "Device settings",
+		condition: () =>
+			props.cameraPermissionGranted || props.microphonePermissionGranted,
 		onClick: () => {
 			showDeviceSettingsDialog.value = true;
 			resetHideTimer();

@@ -8,6 +8,12 @@ let meetingStateInstance = null;
  */
 export function useMeetingState() {
 	if (meetingStateInstance) {
+		if (!meetingStateInstance.cameraPermissionGranted) {
+			meetingStateInstance.cameraPermissionGranted = ref(false);
+		}
+		if (!meetingStateInstance.microphonePermissionGranted) {
+			meetingStateInstance.microphonePermissionGranted = ref(false);
+		}
 		return meetingStateInstance;
 	}
 
@@ -22,6 +28,8 @@ export function useMeetingState() {
 	const isCameraOn = ref(false);
 	const isScreenSharing = ref(false);
 	const localStream = ref(null);
+	const cameraPermissionGranted = ref(false);
+	const microphonePermissionGranted = ref(false);
 
 	// Participants
 	const currentUser = ref({});
@@ -94,6 +102,11 @@ export function useMeetingState() {
 		activeScreenShareConsumers.value = [];
 		localScreenShareStartedAt.value = 0;
 		screenShareStreams.value = {};
+		isMicOn.value = false;
+		isCameraOn.value = false;
+		localStream.value = null;
+		cameraPermissionGranted.value = false;
+		microphonePermissionGranted.value = false;
 	};
 
 	const setMediaState = (mic, camera) => {
@@ -144,6 +157,8 @@ export function useMeetingState() {
 		isCameraOn,
 		isScreenSharing,
 		localStream,
+		cameraPermissionGranted,
+		microphonePermissionGranted,
 		currentUser,
 		participants,
 		remoteVideos,
