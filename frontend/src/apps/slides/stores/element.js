@@ -218,7 +218,7 @@ const getVideoPoster = async (videoUrl) => {
 }
 
 const addMediaElement = async (file, type) => {
-	const src = isPublicPresentation.value ? file.file_url : file.file_url.replace('/private', '')
+	const src = file.file_url
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
@@ -240,7 +240,7 @@ const addMediaElement = async (file, type) => {
 	}
 	if (type == 'video') {
 		const posterURL = await getVideoPoster(file.file_url)
-		element.poster = isPublicPresentation.value ? posterURL : posterURL.replace('/private', '')
+		element.poster = posterURL
 		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
@@ -425,7 +425,7 @@ const handlePastedJSON = async (json) => {
 const handleSvgText = (svgText) => {
 	const svgBlob = new Blob([svgText], { type: 'image/svg+xml' })
 	const svgFile = new File([svgBlob], 'pasted-image.svg', { type: 'image/svg+xml' })
-	handleUploadedMedia([{ kind: 'file', getAsFile: () => svgFile }], !isPublicPresentation.value)
+	handleUploadedMedia([{ kind: 'file', getAsFile: () => svgFile }])
 }
 
 const handlePaste = (e) => {
@@ -441,7 +441,7 @@ const handlePaste = (e) => {
 
 	e.preventDefault()
 	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) handleUploadedMedia(clipboardItems, !isPublicPresentation.value)
+	if (clipboardItems) handleUploadedMedia(clipboardItems)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
 	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
