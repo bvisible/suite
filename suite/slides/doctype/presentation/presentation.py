@@ -64,7 +64,7 @@ def delete_old_thumbnail(old_thumbnail: str | None = None, is_private: bool = Fa
 
 
 @frappe.whitelist()
-def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str, is_private: bool) -> str:
+def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"{prefix}-{uuid.uuid4().hex[:6]}.{ext}"
@@ -74,13 +74,13 @@ def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str,
 			"doctype": "File",
 			"file_name": filename,
 			"content": base64.b64decode(b64),
-			"is_private": is_private,
+			"is_private": 1,
 			"attached_to_doctype": "Presentation",
 			"attached_to_name": presentation_name,
 		}
 	).insert()
 
-	return file_doc.file_url.replace("/private", "") if is_private else file_doc.file_url
+	return file_doc.file_url
 
 
 def slug(text: str) -> str:

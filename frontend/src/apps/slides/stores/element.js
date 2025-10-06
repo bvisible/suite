@@ -145,7 +145,6 @@ const savePoster = createResource({
 		presentation_name: presentationId.value,
 		base64_data: posterDataUrl,
 		prefix: 'poster',
-		is_private: !isPublicPresentation.value,
 	}),
 })
 
