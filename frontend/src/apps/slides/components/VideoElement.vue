@@ -57,17 +57,13 @@ const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')
 
 const videoSrc = computed(() => {
-	const src = element.value.src
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
-	return requiresPrefix ? `/private${src}` : src
+	if (element.value.src.startsWith('/private')) return element.value.src
+	return `/private${element.value.src}`
 })
 
 const videoPoster = computed(() => {
-	const poster = element.value.poster
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && poster && poster.startsWith('/files/')
-	return requiresPrefix ? `/private${poster}` : poster
+	if (element.value.poster.startsWith('/private')) return element.value.poster
+	return `/private${element.value.poster}`
 })
 
 const toggleButtonClasses =

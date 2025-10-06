@@ -40,10 +40,8 @@ const element = defineModel('element', {
 })
 
 const imageSrc = computed(() => {
-	const src = element.value.src
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
-	return requiresPrefix ? `/private${src}` : src
+	if (element.value.src.startsWith('/private')) return element.value.src
+	return `/private${element.value.src}`
 })
 
 const replaceButtonClasses =

@@ -64,22 +64,12 @@ const updateAccessLevel = async (isPublic) => {
 
 	publicPresentation.value = isPublic
 
-	await savePresentation()
-
-	call('slides.slides.doctype.presentation.presentation.set_public', {
+	call('frappe.client.set_value', {
+		doctype: 'Presentation',
 		name: presentationId.value,
-		is_public: isPublic,
-	}).then(async (data) => {
-		if (data?.to_update) {
-			ignoreUpdates(() => {
-				for (const slide of data.slides || []) {
-					slide.elements = parseElements(slide.elements)
-					slide.transitionDuration = slide.transition_duration
-					// remove the transition_duration field to avoid confusion
-					delete slide.transition_duration
-				}
-			})
-		}
+		fieldname: 'is_public',
+		value: isPublic,
+	}).then(() => {
 		isPublicPresentation.value = isPublic
 		toast.success('Access level updated')
 	})
