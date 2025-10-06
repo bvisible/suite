@@ -88,3 +88,8 @@ export const getAttachmentUrl = (isPublic, fileUrl) => {
 	const requiresPrefix = !isPublic && fileUrl.startsWith('/files/')
 	return requiresPrefix ? `/private${fileUrl}` : fileUrl
 }
+
+export const getAttachmentUrl2 = (fileUrl) => {
+	if (fileUrl.startsWith('/private') || fileUrl.startsWith('data:')) return fileUrl
+	return `/private${fileUrl}`
+}
