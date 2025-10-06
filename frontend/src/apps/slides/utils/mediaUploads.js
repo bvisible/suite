@@ -17,13 +17,13 @@ const performPostUploadActions = (fileDoc, fileType, targetElement, resolve) => 
 	resolve(fileDoc)
 }
 
-const uploadMedia = (file, fileType, targetElement, isPrivate) => {
+const uploadMedia = (file, fileType, targetElement) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
 			.upload(file, {
 				doctype: 'Presentation',
 				docname: presentationId.value,
-				private: isPrivate,
+				private: true,
 			})
 			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetElement, resolve))
 			.catch((error) => {
@@ -48,7 +48,7 @@ const getFileObject = (file) => {
 	}
 }
 
-const handleFile = (file, isPrivate, toastProps, targetElement) => {
+const handleFile = (file, toastProps, targetElement) => {
 	file = getFileObject(file)
 	if (!file) return
 
@@ -57,7 +57,7 @@ const handleFile = (file, isPrivate, toastProps, targetElement) => {
 
 	if (targetElement && targetElement.type != fileType) targetElement = null
 
-	toast.promise(uploadMedia(file, fileType, targetElement, isPrivate), toastProps)
+	toast.promise(uploadMedia(file, fileType, targetElement), toastProps)
 }
 
 const getToastProps = (file, index, length) => {
@@ -68,17 +68,17 @@ const getToastProps = (file, index, length) => {
 	}
 }
 
-export const handleUploadedMedia = (files, isPrivate, targetElement) => {
+export const handleUploadedMedia = (files, targetElement) => {
 	let toastProps = {}
 
 	if (files.length == 1) {
 		toastProps = getToastProps(files[0], 0, 1)
-		return handleFile(files[0], isPrivate, toastProps, targetElement)
+		return handleFile(files[0], toastProps, targetElement)
 	}
 
 	files.forEach((file, index) => {
 		toastProps = getToastProps(file, index, files.length)
-		handleFile(file, isPrivate, toastProps)
+		handleFile(file, toastProps)
 	})
 }
 
