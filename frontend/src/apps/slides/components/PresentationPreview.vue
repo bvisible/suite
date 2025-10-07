@@ -112,7 +112,6 @@ const getActionIconClasses = (action) => {
 
 const previewStyles = computed(() => {
 	const thumbnailUrl = getAttachmentUrl(
-		props.presentation.is_public,
 		slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail,
 	)
 	return {

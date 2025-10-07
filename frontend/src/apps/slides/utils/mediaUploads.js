@@ -82,14 +82,12 @@ export const handleUploadedMedia = (files, targetElement) => {
 	})
 }
 
-export const getAttachmentUrl = (isPublic, fileUrl) => {
-	if (!fileUrl) return ''
-
-	const requiresPrefix = !isPublic && fileUrl.startsWith('/files/')
-	return requiresPrefix ? `/private${fileUrl}` : fileUrl
-}
-
-export const getAttachmentUrl2 = (fileUrl) => {
-	if (fileUrl.startsWith('/private') || fileUrl.startsWith('data:')) return fileUrl
+export const getAttachmentUrl = (fileUrl) => {
+	if (
+		fileUrl.startsWith('/private') ||
+		fileUrl.startsWith('data:') ||
+		fileUrl.startsWith('/assets')
+	)
+		return fileUrl
 	return `/private${fileUrl}`
 }

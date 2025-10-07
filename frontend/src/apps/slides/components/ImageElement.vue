@@ -74,8 +74,7 @@ const imageStyle = computed(() => {
 })
 
 const replaceTemplateImage = (file) => {
-	const src = isPublicPresentation.value ? file.file_url : file.file_url.replace('/private', '')
-	element.value.src = src
+	element.value.src = file.file_url
 	element.value.attachmentName = file.name
 }
 
