@@ -134,11 +134,11 @@ const prefetchAsset = async (src, type) => {
 const buildAssetUrl = (src, type) => {
 	if (type === 'video') {
 		return `/api/method/slides.api.file.get_video_file?src=${encodeURIComponent(src)}`
+	} else if (src.startsWith('/private') || src.startsWith('/assets')) {
+		return src
 	}
 
-	// Handle private/public file URLs
-	const requiresPrefix = !isPublicPresentation.value && src?.startsWith('/files/')
-	return requiresPrefix ? `/private${src}` : src
+	return `/private${src}`
 }
 
 const slideStyles = computed(() => {
