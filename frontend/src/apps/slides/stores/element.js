@@ -252,14 +252,10 @@ const addMediaElement = async (file, type) => {
 }
 
 const replaceMediaElement = async (element, fileDoc) => {
-	const src = isPublicPresentation.value
-		? fileDoc.file_url
-		: fileDoc.file_url.replace('/private', '')
-	element.src = src
+	element.src = fileDoc.file_url
 	element.attachmentName = fileDoc.name
 	if (element.type == 'video') {
-		const posterURL = await getVideoPoster(fileDoc.file_url)
-		element.poster = isPublicPresentation.value ? posterURL : posterURL.replace('/private', '')
+		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
 }
 
