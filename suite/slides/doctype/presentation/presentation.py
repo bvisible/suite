@@ -20,7 +20,6 @@ class Presentation(Document):
 
 	def update_thumbnails(self):
 		doc_before_save = self.get_doc_before_save()
-		is_private = not self.is_public
 		if not doc_before_save or not doc_before_save.slides:
 			return
 		old_slides = doc_before_save.slides
@@ -31,8 +30,8 @@ class Presentation(Document):
 				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
 				old_thumbnail = old_slide.thumbnail
-				delete_old_thumbnail(old_thumbnail, is_private)
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail", is_private)
+				delete_old_thumbnail(old_thumbnail)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
 
 	def validate(self):
 		if self.is_composite:
@@ -53,10 +52,10 @@ class Presentation(Document):
 		self.update_thumbnails()
 
 
-def delete_old_thumbnail(old_thumbnail: str | None = None, is_private: bool = False):
+def delete_old_thumbnail(old_thumbnail: str | None = None):
 	if old_thumbnail and old_thumbnail.startswith("/files"):
 		try:
-			url = "/private" + old_thumbnail if is_private else old_thumbnail
+			url = "/private" + old_thumbnail
 			file_docname = frappe.db.get_value("File", {"file_url": url})
 			frappe.delete_doc("File", file_docname)
 		except Exception as e:
@@ -351,9 +350,9 @@ def create_new_webp_file_doc(presentation, file_url, image, extn):
 	return file_url
 
 
-def update_element_urls(is_public, presentation, element):
+def update_element_urls(presentation, element):
 	attribute = "poster" if element.get("type") == "video" else "src"
-	image_url = element.get(attribute, "") if is_public else f"/private{element.get(attribute, '')}"
+	image_url = f"/private{element.get(attribute, '')}"
 
 	if image_url.endswith((".webp", ".svg")):
 		return
@@ -362,7 +361,7 @@ def update_element_urls(is_public, presentation, element):
 
 	if can_convert_image(extn):
 		new_url = create_new_webp_file_doc(presentation, image_url, image, extn)
-		element[attribute] = new_url.replace("/private", "")
+		element[attribute] = new_url
 
 
 @frappe.whitelist()
@@ -374,7 +373,7 @@ def optimize_images(name):
 
 		for element in elements:
 			if element.get("type") in ["image", "video"]:
-				update_element_urls(doc.is_public, doc.name, element)
+				update_element_urls(doc.name, element)
 
 		slide.elements = json.dumps(elements, indent=2)
 

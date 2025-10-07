@@ -35,7 +35,7 @@ const themeResource = createResource({
 })
 
 const getThumbnailStyles = (theme) => {
-	const thumbnailUrl = getAttachmentUrl(theme.is_public, theme.thumbnail || '')
+	const thumbnailUrl = getAttachmentUrl(theme.thumbnail || '')
 	return {
 		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
