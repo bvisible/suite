@@ -2,7 +2,7 @@
 	<TransitionGroup
 		name="tile"
 		tag="div"
-		class="flex-1 grid gap-2 min-h-0 call-grid"
+		class="flex-1 grid gap-2 min-h-0 call-grid transition-all duration-300 ease-out"
 		:class="gridClass"
 		:style="gridStyle"
 	>

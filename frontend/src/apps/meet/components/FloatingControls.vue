@@ -19,35 +19,6 @@
 				@mouseenter="onMouseEnter"
 				@mouseleave="onMouseLeave"
 			>
-				<!-- Chat -->
-				<div v-if="!isPreview" class="relative">
-					<Button
-						@click="$emit('toggle-chat')"
-						variant="solid"
-						size="2xl"
-						theme="gray"
-						class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-						:class="{
-							'!bg-gray-800 hover:!bg-gray-800': isChatOpen,
-						}"
-						title="Toggle Chat"
-					>
-						<template #icon>
-							<lucide-message-square-off
-								v-if="isChatOpen"
-								class="w-5 h-5 text-white"
-							/>
-							<lucide-message-square v-else class="w-5 h-5 text-white" />
-						</template>
-					</Button>
-
-					<!-- Unread Badge -->
-					<div
-						v-if="hasUnread && !isChatOpen"
-						class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
-					/>
-				</div>
-
 				<!-- Microphone -->
 				<Button
 					@click="$emit('toggle-microphone')"
@@ -101,6 +72,36 @@
 						<lucide-monitor-pause v-else class="w-5 h-5 text-white" />
 					</template>
 				</Button>
+
+
+				<!-- Chat -->
+				<div v-if="!isPreview" class="relative">
+					<Button
+						@click="$emit('toggle-chat')"
+						variant="solid"
+						size="2xl"
+						theme="gray"
+						class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+						:class="{
+							'!bg-gray-800 hover:!bg-gray-800': isChatOpen,
+						}"
+						title="Toggle Chat"
+					>
+						<template #icon>
+							<lucide-message-square-off
+								v-if="isChatOpen"
+								class="w-5 h-5 text-white"
+							/>
+							<lucide-message-square v-else class="w-5 h-5 text-white" />
+						</template>
+					</Button>
+
+					<!-- Unread Badge -->
+					<div
+						v-if="hasUnread && !isChatOpen"
+						class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+					/>
+				</div>
 
 				<!-- Device Settings -->
 				<Button
