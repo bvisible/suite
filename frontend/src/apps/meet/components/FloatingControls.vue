@@ -16,6 +16,8 @@
 		>
 			<div
 				class="flex items-center gap-3 px-6 py-3 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-300 mx-auto"
+				@mouseenter="onMouseEnter"
+				@mouseleave="onMouseLeave"
 			>
 				<!-- Chat -->
 				<div v-if="!isPreview" class="relative">
@@ -251,6 +253,7 @@ const moreOptions = computed(() => [
 ]);
 
 const isVisible = ref(true);
+const isHovering = ref(false);
 const isDropdownOpen = ref(false);
 const dropdownContainer = ref(null);
 const showMeetingInfoDialog = ref(false);
@@ -266,15 +269,40 @@ const resetHideTimer = () => {
 	if (hideTimeout) {
 		clearTimeout(hideTimeout);
 	}
-	if (!isDropdownOpen.value) {
-		hideTimeout = setTimeout(() => {
-			isVisible.value = false;
-		}, 3000);
+	if (isDropdownOpen.value || isHovering.value) {
+		return;
 	}
+
+	hideTimeout = setTimeout(() => {
+		isVisible.value = false;
+	}, 3000);
 };
 
 const handleActivity = () => {
 	showControls();
+};
+
+const onMouseEnter = () => {
+	isHovering.value = true;
+	if (hideTimeout) {
+		clearTimeout(hideTimeout);
+		hideTimeout = null;
+	}
+	isVisible.value = true;
+};
+
+const onMouseLeave = () => {
+	isHovering.value = false;
+	resetHideTimer();
+};
+
+const handleShortcut = (event) => {
+	if (
+		(event.ctrlKey || event.metaKey) &&
+		["d", "e"].includes(event.key.toLowerCase())
+	) {
+		showControls();
+	}
 };
 
 const handleDropdownClick = (event) => {
@@ -309,9 +337,9 @@ onMounted(() => {
 
 	document.addEventListener("mousemove", handleActivity);
 	document.addEventListener("mousedown", handleActivity);
-	document.addEventListener("keydown", handleActivity);
 	document.addEventListener("touchstart", handleActivity);
 	document.addEventListener("touchmove", handleActivity);
+	document.addEventListener("keydown", handleShortcut);
 	document.addEventListener("click", handleDocumentClick);
 });
 
@@ -322,9 +350,9 @@ onUnmounted(() => {
 
 	document.removeEventListener("mousemove", handleActivity);
 	document.removeEventListener("mousedown", handleActivity);
-	document.removeEventListener("keydown", handleActivity);
 	document.removeEventListener("touchstart", handleActivity);
 	document.removeEventListener("touchmove", handleActivity);
+	document.removeEventListener("keydown", handleShortcut);
 	document.removeEventListener("click", handleDocumentClick);
 });
 </script>
