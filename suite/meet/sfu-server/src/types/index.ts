@@ -75,9 +75,14 @@ export interface ServerToClientEvents {
 	webrtc_answer: (data: WebRTCSignalData) => void;
 	ice_candidate: (data: WebRTCSignalData) => void;
 	sfu_error: (data: { error: string; timestamp: string }) => void;
+	'auth:expired': (data: { timestamp: string; reason: string }) => void;
 }
 
 export interface ClientToServerEvents {
+	'auth:update_token': (
+		data: { token: string },
+		callback: (response: SFUResponse) => void,
+	) => void;
 	get_router_rtp_capabilities: (
 		data: Record<string, never>,
 		callback: (response: RouterRtpCapabilitiesResponse) => void,
@@ -344,6 +349,8 @@ export interface JWTPayload {
 	user_name: string;
 	meeting_id: string;
 	user_avatar?: string;
+	exp?: number;
+	iat?: number;
 }
 
 // Server types
@@ -369,5 +376,8 @@ declare module 'socket.io' {
 		meetingId: string;
 		roomId?: string;
 		participantId?: string;
+		currentToken?: string;
+		tokenExpiresAt?: number;
+		tokenExpiryTimer?: NodeJS.Timeout;
 	}
 }

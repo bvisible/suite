@@ -41,6 +41,16 @@ export class SocketHandlerManager {
 				socket.userId,
 			);
 
+			socket.use((_packet, next) => {
+				if (this.authManager.isTokenExpired(socket)) {
+					this.authManager.triggerTokenExpiry(socket, 'middleware_guard');
+					return;
+				}
+
+				next();
+			});
+
+			this.setupAuthHandlers(socket);
 			this.handleAutoJoin(socket);
 
 			this.setupRoomHandlers(socket);
@@ -50,6 +60,30 @@ export class SocketHandlerManager {
 			this.setupChatHandlers(socket);
 			this.setupDisconnectHandlers(socket);
 			this.setupErrorHandlers(socket);
+		});
+	}
+
+	private setupAuthHandlers(socket: Socket): void {
+		socket.on('auth:update_token', (data, callback) => {
+			try {
+				const token = typeof data?.token === 'string' ? data.token : null;
+				if (!token) {
+					callback({ success: false, error: 'Missing token' });
+					return;
+				}
+
+				this.authManager.updateSocketToken(socket, token);
+				callback({ success: true });
+			} catch (error) {
+				const message = (error as Error).message || 'Token update failed';
+				loggers.socketHandler.warn(
+					'auth:update_token failed for socket %s: %s',
+					socket.id,
+					message,
+				);
+				callback({ success: false, error: message });
+				this.authManager.triggerTokenExpiry(socket, 'invalid_refresh_token');
+			}
 		});
 	}
 
@@ -476,6 +510,8 @@ export class SocketHandlerManager {
 
 	private setupDisconnectHandlers(socket: Socket): void {
 		socket.on('disconnect', async () => {
+			this.authManager.cleanupSocket(socket);
+
 			loggers.socketHandler.info(
 				'Disconnected: %s (User: %s)',
 				socket.id,
