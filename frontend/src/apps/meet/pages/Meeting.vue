@@ -46,35 +46,63 @@
 		<!-- Main meeting interface -->
 		<template v-else>
 			<div class="flex flex-1 min-h-0">
-				<!-- Video area -->
 				<div
-					class="flex-1 p-4 flex flex-col min-h-0 overflow-auto text-white"
-					:class="{ 'pr-2': meetingState.isChatOpen }"
+					class="grid flex-1 min-h-0 transition-[grid-template-columns] duration-300 ease-out"
+					:style="{
+						'--chat-width': chatWidth,
+						gridTemplateColumns: 'minmax(0, 1fr) var(--chat-width)',
+					}"
 				>
-					<!-- Screen share active view -->
-					<ScreenShareLayout
-						v-if="meetingState.displayScreenShares.value.length"
-						:displayScreenShares="meetingState.displayScreenShares.value"
-						:participants="meetingState.participants.value"
-						:currentUser="meetingState.currentUser.value"
-						:isCameraOn="meetingState.isCameraOn.value"
-						:isMicOn="meetingState.isMicOn.value"
-						:setScreenShareVideoRef="setScreenShareVideoRef"
-						:setLocalVideoRef="setLocalVideoRef"
-						:setRemoteVideoRef="setRemoteVideoRef"
-						:getParticipantName="meetingState.getParticipantName"
-					/>
+					<!-- Video area -->
+					<div class="p-4 flex flex-col min-h-0 overflow-auto text-white">
+						<!-- Screen share active view -->
+						<ScreenShareLayout
+							v-if="meetingState.displayScreenShares.value.length"
+							:displayScreenShares="meetingState.displayScreenShares.value"
+							:participants="meetingState.participants.value"
+							:currentUser="meetingState.currentUser.value"
+							:isCameraOn="meetingState.isCameraOn.value"
+							:isMicOn="meetingState.isMicOn.value"
+							:setScreenShareVideoRef="setScreenShareVideoRef"
+							:setLocalVideoRef="setLocalVideoRef"
+							:setRemoteVideoRef="setRemoteVideoRef"
+							:getParticipantName="meetingState.getParticipantName"
+						/>
 
-					<!-- Normal video grid -->
-					<VideoGrid
-						v-else
-						:participants="meetingState.participants.value"
-						:currentUser="meetingState.currentUser.value"
-						:isCameraOn="meetingState.isCameraOn.value"
-						:isMicOn="meetingState.isMicOn.value"
-						:setLocalVideoRef="setLocalVideoRef"
-						:setRemoteVideoRef="setRemoteVideoRef"
-					/>
+						<!-- Normal video grid -->
+						<VideoGrid
+							v-if="!meetingState.displayScreenShares.value.length"
+							:participants="meetingState.participants.value"
+							:currentUser="meetingState.currentUser.value"
+							:isCameraOn="meetingState.isCameraOn.value"
+							:isMicOn="meetingState.isMicOn.value"
+							:setLocalVideoRef="setLocalVideoRef"
+							:setRemoteVideoRef="setRemoteVideoRef"
+						/>
+					</div>
+
+					<!-- Chat Panel -->
+					<div
+						class="h-full overflow-hidden transition-opacity duration-300 ease-out"
+						:style="{ width: chatWidth }"
+						:class="{
+							'pointer-events-auto opacity-100': meetingState.isChatOpen.value,
+							'pointer-events-none opacity-0': !meetingState.isChatOpen.value,
+						}"
+					>
+						<ChatPanel
+							:open="meetingState.isChatOpen.value"
+							:messages="meetingState.chatMessages.value"
+							:user-id="meetingState.currentUser.value?.user_id || ''"
+							:user-name="
+								meetingState.currentUser.value?.full_name ||
+								meetingState.currentUser.value?.name ||
+								'You'
+							"
+							@close="toggleChat"
+							@send="onSendChat"
+						/>
+					</div>
 				</div>
 
 				<!-- Floating controls -->
@@ -94,21 +122,6 @@
 					@toggle-screen-share="toggleScreenShare"
 					@end-call="endCall"
 					@device-changed="handleDeviceChanged"
-				/>
-
-				<!-- Chat Panel -->
-				<ChatPanel
-					v-if="meetingState.isChatOpen.value"
-					:open="true"
-					:messages="meetingState.chatMessages.value"
-					:user-id="meetingState.currentUser.value?.user_id || ''"
-					:user-name="
-						meetingState.currentUser.value?.full_name ||
-						meetingState.currentUser.value?.name ||
-						'You'
-					"
-					@close="toggleChat"
-					@send="onSendChat"
 				/>
 			</div>
 		</template>
@@ -192,8 +205,9 @@ const showPreview = computed(() => {
 	return inPreview || waitingForApproval || joinRequestRejected;
 });
 
-// Add a watcher to debug state changes
-// State watcher removed after debugging
+const chatWidth = computed(() =>
+	meetingState.isChatOpen.value ? "24rem" : "0rem",
+);
 
 const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
 
@@ -246,27 +260,16 @@ const setSinkIdOnVideoElements = async (sinkId) => {
 
 	const promises = [];
 	for (const videoEl of videoElements) {
-		const promise = videoEl
-			.setSinkId(sinkId)
-			.then(() => {
-				console.log(
-					"✅ Successfully set speaker for video element to:",
-					sinkId,
-				);
-			})
-			.catch((error) => {
-				console.error("❌ Failed to set speaker for video element:", error);
-			});
+		const promise = videoEl.setSinkId(sinkId).catch((error) => {
+			console.error("❌ Failed to set speaker for video element:", error);
+		});
 		promises.push(promise);
 	}
 
 	await Promise.all(promises);
-	console.log("🔊 Finished setting speaker on all video elements");
 };
 
 const handleDeviceChanged = async (event) => {
-	console.log("🔄 Device changed:", event);
-
 	if (event.type === "speaker") {
 		const speakerId = event.deviceId;
 
