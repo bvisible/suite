@@ -17,12 +17,12 @@
 			</template>
 
 			<div class="absolute top-2 left-2">
-				<span
+				<NamePill
 					v-if="displayScreenShares.length"
-					class="px-2 py-1 bg-black/60 text-white text-xs rounded"
-				>
-					{{ getParticipantName(displayScreenShares[0].participantId) }}'s screen
-				</span>
+					:name="getParticipantName(displayScreenShares[0].participantId) + `'s screen`"
+					size="sm"
+					position="top-left"
+				/>
 			</div>
 		</div>
 
@@ -39,6 +39,7 @@
 </template>
 
 <script setup>
+import NamePill from "./NamePill.vue";
 import ScreenShareSidebar from "./ScreenShareSidebar.vue";
 
 const props = defineProps({

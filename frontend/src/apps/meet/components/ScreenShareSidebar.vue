@@ -29,9 +29,7 @@
 					:tiles="visibleTileCount"
 				/>
 			</div>
-			<div class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded">
-				You
-			</div>
+			<NamePill name="You" size="sm" position="bottom-left" />
 		</div>
 
 		<!-- Remote participants -->
@@ -59,9 +57,7 @@
 					:tiles="visibleTileCount"
 				/>
 			</div>
-			<div class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded">
-				{{ participant.user_name }}
-			</div>
+			<NamePill :name="participant.user_name" size="sm" position="bottom-left" />
 			<div
 				v-if="!participant.audio_enabled"
 				class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
@@ -94,6 +90,7 @@ import { Tooltip } from "frappe-ui";
 import { computed } from "vue";
 import { useScreenShareSidebar } from "../composables/useScreenShareSidebar.js";
 import MeetingAvatar from "./MeetingAvatar.vue";
+import NamePill from "./NamePill.vue";
 
 const props = defineProps({
 	participants: {

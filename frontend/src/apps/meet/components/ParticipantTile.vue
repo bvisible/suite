@@ -21,11 +21,11 @@
 			/>
 		</div>
 
-		<div
-			class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm pointer-events-none"
-		>
-			{{ participant.user_name || participant.user_id }}
-		</div>
+		<NamePill
+			:name="participant.user_name || participant.user_id"
+			size="md"
+			position="bottom-left"
+		/>
 
 		<div v-if="!isAudioEnabled" class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5">
 			<lucide-mic-off class="w-4 h-4 text-white" />
@@ -35,6 +35,7 @@
 
 <script setup>
 import MeetingAvatar from "./MeetingAvatar.vue";
+import NamePill from "./NamePill.vue";
 
 defineProps({
 	participant: {
