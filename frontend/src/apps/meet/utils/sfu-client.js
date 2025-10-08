@@ -14,8 +14,11 @@ class SFUClient {
 			userId: null,
 			sfuUrl: null,
 			sfuPort: null,
+			tokenExpiresAt: null,
 		};
 		this.eventHandlers = new Map();
+		this.isRefreshingToken = false;
+		this.tokenRefreshTimer = null;
 		this.setupDefaultHandlers();
 	}
 
@@ -25,6 +28,7 @@ class SFUClient {
 		try {
 			const connectionDetails = await this.getConnectionDetails(meetingId);
 			this.connectionDetails = connectionDetails;
+			this.scheduleTokenRefresh();
 
 			await this.validateSFUHealth();
 
@@ -47,8 +51,18 @@ class SFUClient {
 			throw new Error(response.error || "Failed to get SFU connection details");
 		}
 
-		const { sfu_url, sfu_port, auth_token, user_id, meeting_id, user_data } =
-			response;
+		const {
+			sfu_url,
+			sfu_port,
+			auth_token,
+			user_id,
+			meeting_id,
+			user_data,
+			expires_in,
+		} = response;
+
+		const expiresInSeconds = typeof expires_in === "number" ? expires_in : 3600;
+		const tokenExpiresAt = Date.now() + expiresInSeconds * 1000;
 
 		return {
 			authToken: auth_token,
@@ -57,6 +71,7 @@ class SFUClient {
 			sfuUrl: sfu_url,
 			sfuPort: sfu_port,
 			userData: user_data,
+			tokenExpiresAt,
 		};
 	}
 
@@ -131,6 +146,32 @@ class SFUClient {
 				this.connected = false;
 			});
 
+			this.socket.on("reconnect_attempt", async (attemptNumber) => {
+				if (this.isTokenExpiringSoon()) {
+					try {
+						const newToken = await this.refreshToken({
+							skipServerUpdate: true,
+						});
+						this.socket.auth.token = newToken;
+						console.log("🔑 Updated socket auth token for reconnection");
+					} catch (error) {
+						console.error(
+							"❌ Failed to refresh token during reconnection:",
+							error,
+						);
+					}
+				}
+			});
+
+			this.socket.on("reconnect", (attemptNumber) => {
+				console.log(`✅ SFU reconnected after ${attemptNumber} attempts`);
+				this.connected = true;
+			});
+
+			this.socket.on("reconnect_error", (error) => {
+				console.error("❌ SFU reconnection failed:", error);
+			});
+
 			setTimeout(() => {
 				if (!this.connected) {
 					console.error("❌ SFU connection timeout after 10 seconds");
@@ -145,6 +186,7 @@ class SFUClient {
 			this.socket.disconnect();
 			this.socket = null;
 		}
+		this.clearTokenRefreshTimer();
 		this.connected = false;
 		this.connectionDetails = {
 			authToken: null,
@@ -152,7 +194,129 @@ class SFUClient {
 			userId: null,
 			sfuUrl: null,
 			sfuPort: null,
+			tokenExpiresAt: null,
 		};
+		this.isRefreshingToken = false;
+	}
+
+	// ==================== TOKEN MANAGEMENT ====================
+
+	clearTokenRefreshTimer() {
+		if (this.tokenRefreshTimer) {
+			clearTimeout(this.tokenRefreshTimer);
+			this.tokenRefreshTimer = null;
+		}
+	}
+
+	scheduleTokenRefresh(bufferMs = 5 * 60 * 1000) {
+		// 5 minutes before expiry
+		this.clearTokenRefreshTimer();
+
+		const { tokenExpiresAt, meetingId } = this.connectionDetails;
+
+		if (!tokenExpiresAt || !meetingId) {
+			return;
+		}
+
+		const delay = tokenExpiresAt - Date.now() - bufferMs;
+
+		if (delay <= 0) {
+			this.refreshToken().catch((error) => {
+				console.error("❌ Immediate token refresh failed:", error);
+			});
+			return;
+		}
+
+		this.tokenRefreshTimer = setTimeout(async () => {
+			try {
+				await this.refreshToken();
+			} catch (error) {
+				console.error("❌ Scheduled token refresh failed:", error);
+			}
+		}, delay);
+	}
+
+	async refreshToken(options = {}) {
+		const { skipServerUpdate = false } = options;
+		if (this.isRefreshingToken) {
+			return;
+		}
+
+		try {
+			this.isRefreshingToken = true;
+
+			const response = await frappeRequest({
+				url: "sae.api.meeting.refresh_sfu_token",
+				params: { meeting_id: this.connectionDetails.meetingId },
+			});
+
+			if (!response.success) {
+				throw new Error(response.error || "Failed to refresh token");
+			}
+
+			const expiresInSeconds =
+				typeof response.expires_in === "number" ? response.expires_in : 3600;
+
+			this.connectionDetails.authToken = response.auth_token;
+			this.connectionDetails.tokenExpiresAt =
+				Date.now() + expiresInSeconds * 1000;
+
+			if (this.socket) {
+				this.socket.auth = this.socket.auth || {};
+				this.socket.auth.token = response.auth_token;
+
+				if (this.socket.io?.opts) {
+					this.socket.io.opts.auth = {
+						...(this.socket.io.opts.auth || {}),
+						token: response.auth_token,
+					};
+				}
+			}
+
+			if (!skipServerUpdate && this.connected) {
+				await this.sendRequest("auth:update_token", {
+					token: response.auth_token,
+				});
+			} else {
+				if (!this.connected) {
+					console.log(
+						"⚠️ Skipping server token sync because socket is disconnected",
+					);
+				}
+			}
+
+			this.scheduleTokenRefresh();
+
+			return response.auth_token;
+		} catch (error) {
+			console.error("❌ Token refresh failed:", error);
+			throw error;
+		} finally {
+			this.isRefreshingToken = false;
+		}
+	}
+
+	isTokenExpiringSoon() {
+		const { tokenExpiresAt, authToken } = this.connectionDetails;
+
+		if (tokenExpiresAt) {
+			return tokenExpiresAt - Date.now() < 5 * 60 * 1000; // 5 minutes
+		}
+
+		if (!authToken) {
+			return false;
+		}
+
+		try {
+			const payload = JSON.parse(atob(authToken.split(".")[1]));
+			const expiryTime = payload.exp * 1000;
+			const timeUntilExpiry = expiryTime - Date.now();
+
+			return timeUntilExpiry < 5 * 60 * 1000;
+		} catch (error) {
+			console.warn("⚠️ Could not check token expiry:", error);
+			return false;
+		}
 	}
 
 	// ==================== EVENT HANDLING ====================
@@ -168,6 +332,13 @@ class SFUClient {
 			connect_error: (error) => {
 				console.error("❌ SFU connection error:", error);
 				this.connected = false;
+			},
+			reconnect: (attemptNumber) => {
+				console.log(`✅ SFU reconnected after ${attemptNumber} attempts`);
+				this.connected = true;
+			},
+			reconnect_error: (error) => {
+				console.error("❌ SFU reconnection failed:", error);
 			},
 			participant_joined: () => {},
 			participant_left: () => {},
