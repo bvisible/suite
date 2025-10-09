@@ -471,6 +471,16 @@ class SFUClient {
 		return response.participants;
 	}
 
+	// ==================== ROOM MANAGEMENT ====================
+
+	async joinRoom(roomId, userData, mediaState) {
+		return this.sendRequest("join_room", {
+			roomId,
+			userData,
+			mediaState,
+		});
+	}
+
 	// ==================== SIGNALING OPERATIONS ====================
 
 	sendWebRtcOffer(targetUser, signalData) {

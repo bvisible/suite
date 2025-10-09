@@ -755,6 +755,24 @@ export function useMeetingLogic(meetingState, meetingId) {
 
 			// Connect to SFU
 			await sfuManager.value.connect();
+
+			// Join the room with user details and initial media states
+			await sfuManager.value.joinRoom(
+				{
+					name:
+						meetingState.currentUser.value?.full_name ||
+						meetingState.currentUser.value?.name ||
+						"You",
+					userId: meetingState.currentUser.value?.user_id || "",
+					avatar: meetingState.currentUser.value?.avatar || "",
+				},
+				{
+					audio_enabled: meetingState.isMicOn.value,
+					video_enabled: meetingState.isCameraOn.value,
+				},
+			);
+
+			// Now initialize device and create transports
 			await sfuManager.value.initializeDevice();
 			await sfuManager.value.createReceiveTransport();
 
