@@ -2,7 +2,7 @@
 	<TransitionGroup
 		name="tile"
 		tag="div"
-		class="overflow-y-auto pr-1 grid gap-2 h-full"
+		class="overflow-y-auto p-1 grid gap-2 h-full"
 		:class="sidebarClass"
 		:style="sidebarStyle"
 	>
@@ -10,6 +10,7 @@
 		<div
 			key="local-camera-sidebar"
 			class="relative w-full bg-gray-800 rounded overflow-hidden flex"
+			:class="{ 'ring-2 ring-blue-400': activeSpeakerIds.includes(currentUser?.user_id) }"
 			:style="singleTileStyle"
 		>
 			<video
@@ -37,6 +38,7 @@
 			v-for="participant in sidebarDisplay.list"
 			:key="'side-' + participant.user_id"
 			class="relative w-full bg-gray-800 rounded overflow-hidden flex"
+			:class="{ 'ring-2 ring-blue-400': activeSpeakerIds.includes(participant.user_id) }"
 			:style="singleTileStyle"
 		>
 			<video
@@ -67,21 +69,16 @@
 		</div>
 
 		<!-- Grouping tile -->
-		<Tooltip
+		<div
 			v-if="sidebarDisplay.extra > 0"
 			key="sidebar-group"
-			:label="hiddenParticipantsTooltip"
-			:text="hiddenParticipantsTooltip"
-			placement="top"
-		>
-			<div
+			:title="hiddenParticipantsTooltip"
 				class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
-			>
-				<div class="text-xs text-white text-center px-2 leading-snug">
-					and {{ sidebarDisplay.extra }} others
-				</div>
+		>
+			<div class="text-xs text-white text-center px-2 leading-snug">
+				and {{ sidebarDisplay.extra }} others
 			</div>
-		</Tooltip>
+		</div>
 	</TransitionGroup>
 </template>
 
@@ -117,6 +114,10 @@ const props = defineProps({
 		type: Function,
 		required: true,
 	},
+	activeSpeakerIds: {
+		type: Array,
+		default: () => [],
+	},
 });
 
 const userInitials = computed(() => {
@@ -130,6 +131,7 @@ const userInitials = computed(() => {
 });
 
 const userAvatar = computed(() => props.currentUser?.avatar || "");
+const activeSpeakerIds = computed(() => props.activeSpeakerIds);
 
 const {
 	sidebarDisplay,
@@ -138,7 +140,7 @@ const {
 	singleTileStyle,
 	visibleTileCount,
 	hiddenParticipantsTooltip,
-} = useScreenShareSidebar(props.participants);
+} = useScreenShareSidebar(props.participants, activeSpeakerIds);
 </script>
 
 <style scoped>
