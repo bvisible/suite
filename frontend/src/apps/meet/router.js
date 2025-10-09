@@ -15,6 +15,12 @@ const routes = [
 		meta: { requiresAdmin: true },
 	},
 	{
+		path: "/audio-test",
+		name: "AudioTest",
+		component: () => import("@/pages/AudioTest.vue"),
+		meta: { requiresAdmin: true },
+	},
+	{
 		path: "/:meetingId",
 		name: "Meeting",
 		component: () => import("@/pages/Meeting.vue"),

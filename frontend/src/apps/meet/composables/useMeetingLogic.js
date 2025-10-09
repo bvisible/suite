@@ -8,12 +8,10 @@ import {
 	selectedMicId,
 	setCameraEnabled,
 	setMicEnabled,
-	setSelectedCameraId,
-	setSelectedMicId,
 } from "../data/mediaPreferences.js";
 import { publishScreenShare } from "../mediasoup-client.js";
 import { useSocket } from "../socket.js";
-import { deviceManager } from "../utils/media/DeviceManager.js";
+import audioNotificationManager from "../utils/audioNotifications";
 import { getSFUClient } from "../utils/sfu-client.js";
 import {
 	getSFUMeetingManager,
@@ -809,6 +807,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					requested_at: new Date().toISOString(),
 				};
 				sfuManager.value?.waitingRoomManager?.addWaitingUser(userData);
+				audioNotificationManager.playJoinRequestNotification();
 			}
 		});
 
@@ -844,11 +843,15 @@ export function useMeetingLogic(meetingState, meetingId) {
 			onParticipantJoined: (participant) => {
 				meetingState.addParticipant(participant);
 				console.log("👥 Participant joined:", participant);
+
+				audioNotificationManager.playJoinNotification();
 			},
 
 			onParticipantLeft: ({ participantId }) => {
 				meetingState.removeParticipant(participantId);
 				console.log("👋 Participant left:", participantId);
+
+				audioNotificationManager.playLeaveNotification();
 			},
 
 			onParticipantUpdated: (participantId, participant, updates) => {
@@ -1106,6 +1109,8 @@ export function useMeetingLogic(meetingState, meetingId) {
 							timestamp: message.timestamp,
 						});
 					}
+
+					audioNotificationManager.playChatNotification();
 				}
 			});
 		} catch (error) {
