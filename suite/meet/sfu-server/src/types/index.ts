@@ -86,6 +86,14 @@ export interface ClientToServerEvents {
 		data: { token: string },
 		callback: (response: SFUResponse) => void,
 	) => void;
+	join_room: (
+		data: {
+			roomId: string;
+			userData: UserData;
+			mediaState: { audio_enabled: boolean; video_enabled: boolean };
+		},
+		callback: (response: SFUResponse) => void,
+	) => void;
 	get_router_rtp_capabilities: (
 		data: Record<string, never>,
 		callback: (response: RouterRtpCapabilitiesResponse) => void,
@@ -160,6 +168,8 @@ export interface UserData {
 	name: string;
 	userId: string;
 	avatar?: string;
+	audio_enabled: boolean;
+	video_enabled: boolean;
 }
 
 export interface SFUResponse {
@@ -289,13 +299,7 @@ export interface Peer {
 	joined: Date;
 }
 
-export interface PeerInfo {
-	name?: string;
-	userId: string;
-	avatar?: string;
-	audio_enabled: boolean;
-	video_enabled: boolean;
-}
+export interface PeerInfo extends UserData {}
 
 export interface TransportData {
 	roomId: string;

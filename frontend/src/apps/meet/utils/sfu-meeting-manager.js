@@ -122,6 +122,17 @@ export class SFUMeetingManager {
 		}
 	}
 
+	async joinRoom(userData, mediaState) {
+		try {
+			await this.sfuClient.joinRoom(this.meetingId, userData, mediaState);
+			console.log("✅ Successfully joined room:", this.meetingId);
+			return true;
+		} catch (error) {
+			console.error("❌ Failed to join room:", error);
+			throw error;
+		}
+	}
+
 	async initializeDevice() {
 		try {
 			await this.transportManager.initializeDevice();

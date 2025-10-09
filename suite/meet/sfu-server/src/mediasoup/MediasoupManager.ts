@@ -62,6 +62,7 @@ export class MediasoupManager {
 		roomId: string,
 		peerId: string,
 		peerInfo: PeerInfo = {
+			name: peerId,
 			userId: peerId,
 			audio_enabled: true,
 			video_enabled: true,

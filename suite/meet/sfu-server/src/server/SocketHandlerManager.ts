@@ -51,7 +51,6 @@ export class SocketHandlerManager {
 			});
 
 			this.setupAuthHandlers(socket);
-			this.handleAutoJoin(socket);
 
 			this.setupRoomHandlers(socket);
 			this.setupWebRTCHandlers(socket);
@@ -87,94 +86,31 @@ export class SocketHandlerManager {
 		});
 	}
 
-	private handleAutoJoin(socket: Socket): void {
-		const roomId = socket.meetingId;
-		if (roomId) {
-			this.handleJoinRoom(socket, {
-				roomId: roomId,
-				participantId: socket.userId,
-				userData: {
-					name: socket.userName,
-					userId: socket.userId,
-					avatar: this.authManager.getUserAvatar(
-						socket.handshake.auth.token || socket.handshake.query.token,
-					),
-				},
-			}).catch((error) => {
-				loggers.socketHandler.error(
-					'Failed to auto-join user %s to room %s: %s',
-					socket.userId,
-					roomId,
-					error,
-				);
-			});
-		}
-	}
-
-	private async handleJoinRoom(
-		socket: Socket,
-		data: { roomId: string; participantId: string; userData: UserData },
-	): Promise<void> {
-		try {
-			const { roomId, participantId, userData } = data;
-
-			loggers.socketHandler.info(
-				'Handling join room for user %s in room %s',
-				participantId,
-				roomId,
-			);
-
-			// Ensure room exists
-			let room = this.mediasoup.rooms.getRoom(roomId);
-			if (!room) {
-				loggers.socketHandler.info('Creating new room: %s', roomId);
-				room = await this.mediasoup.createRoom(
-					roomId,
-					(roomId, participantIds) => {
-						this.io.to(roomId).emit('active_speaker', { participantIds });
-					},
-				);
-			} else {
-				loggers.socketHandler.info('Room %s already exists', roomId);
-			}
-
-			loggers.socketHandler.info(
-				'Adding peer %s to room %s',
-				participantId,
-				roomId,
-			);
-			const peerInfo: PeerInfo = {
-				...userData,
-				audio_enabled: true,
-				video_enabled: true,
-			};
-			await this.mediasoup.addPeer(roomId, participantId, peerInfo);
-
-			socket.join(roomId);
-			socket.roomId = roomId;
-			socket.participantId = participantId;
-
-			socket.to(roomId).emit('participant_joined', {
-				roomId,
-				participantId,
-				userData,
-			});
-
-			loggers.socketHandler.info(
-				'Peer %s joined room %s',
-				participantId,
-				roomId,
-			);
-		} catch (error) {
-			loggers.socketHandler.error(
-				'Error joining room: %s',
-				(error as Error).message,
-			);
-			throw error;
-		}
-	}
-
 	private setupRoomHandlers(socket: Socket): void {
+		socket.on('join_room', async (data, callback) => {
+			try {
+				const { roomId, userData, mediaState } = data;
+				await this.handleJoinRoom(socket, {
+					roomId,
+					participantId: socket.userId,
+					userData: {
+						name: userData.name,
+						userId: userData.userId,
+						avatar: userData.avatar,
+						audio_enabled: mediaState.audio_enabled,
+						video_enabled: mediaState.video_enabled,
+					},
+				});
+				callback({ success: true });
+			} catch (error) {
+				loggers.socketHandler.error(
+					'Error joining room: %s',
+					(error as Error).message,
+				);
+				callback({ success: false, error: (error as Error).message });
+			}
+		});
+
 		socket.on('get_router_rtp_capabilities', async (_data, callback) => {
 			try {
 				const roomId = socket.meetingId;
@@ -273,6 +209,48 @@ export class SocketHandlerManager {
 				}
 			}
 		});
+	}
+
+	private async handleJoinRoom(
+		socket: Socket,
+		data: { roomId: string; participantId: string; userData: UserData },
+	): Promise<void> {
+		const { roomId, participantId, userData } = data;
+
+		try {
+			await this.mediasoup.createRoom(roomId, (roomId, participantIds) => {
+				this.io.to(roomId).emit('active_speaker', { participantIds });
+			});
+
+			this.mediasoup.addPeer(roomId, participantId, userData);
+
+			socket.join(roomId);
+
+			socket.meetingId = roomId;
+			socket.roomId = roomId;
+			socket.participantId = participantId;
+
+			socket.to(roomId).emit('participant_joined', {
+				roomId,
+				participantId,
+				userData,
+			});
+
+			loggers.socketHandler.info(
+				'User %s joined room %s with media state: audio=%s, video=%s',
+				participantId,
+				roomId,
+				userData.audio_enabled,
+				userData.video_enabled,
+			);
+		} catch (error) {
+			loggers.socketHandler.error(
+				'Error in handleJoinRoom for user %s: %s',
+				participantId,
+				(error as Error).message,
+			);
+			throw error;
+		}
 	}
 
 	private setupWebRTCHandlers(socket: Socket): void {

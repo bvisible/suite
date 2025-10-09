@@ -23,7 +23,7 @@ export class RoomManager {
 		});
 
 		const audioLevelObserver = await router.createAudioLevelObserver({
-			maxEntries: 1,
+			maxEntries: 5,
 			threshold: -70,
 			interval: 800,
 		});
