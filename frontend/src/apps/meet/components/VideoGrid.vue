@@ -13,6 +13,7 @@
 			:isLocal="true"
 			:isVideoEnabled="isCameraOn"
 			:isAudioEnabled="isMicOn"
+			:isActiveSpeaker="activeSpeakerIds.includes(localParticipant.user_id)"
 			:videoRef="setLocalVideoRef"
 			:tileCount="visibleTileCount"
 		/>
@@ -25,6 +26,7 @@
 			:isLocal="false"
 			:isVideoEnabled="participant.video_enabled"
 			:isAudioEnabled="participant.audio_enabled"
+			:isActiveSpeaker="activeSpeakerIds.includes(participant.user_id)"
 			:videoRef="(el) => setRemoteVideoRef(participant.user_id, el)"
 			:tileCount="visibleTileCount"
 		/>
@@ -40,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useVideoGridLayout } from "../composables/useVideoGridLayout.js";
 import { getInitials } from "../utils/text";
 import GroupTile from "./GroupTile.vue";
@@ -70,6 +72,10 @@ const props = defineProps({
 	setRemoteVideoRef: {
 		type: Function,
 		required: true,
+	},
+	activeSpeakerIds: {
+		type: Array,
+		default: () => [],
 	},
 });
 
@@ -105,11 +111,14 @@ const localParticipant = computed(() => {
 	};
 });
 
+// to ensure reactivity, else the grid doesn't update when activeSpeakerIds changes
+const activeSpeakerIdsComputed = computed(() => props.activeSpeakerIds);
+
 const {
 	displayParticipants,
 	gridClass,
 	gridStyle,
 	visibleTileCount,
 	hiddenParticipantsTooltip,
-} = useVideoGridLayout(props.participants);
+} = useVideoGridLayout(props.participants, activeSpeakerIdsComputed);
 </script>
