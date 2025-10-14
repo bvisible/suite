@@ -1,10 +1,6 @@
 <template>
 	<div>
-		<img
-			class="object-cover"
-			:style="imageStyle"
-			:src="`/api/method/slides.api.file.get_media_file?src=${imageSrc}`"
-		/>
+		<img class="object-cover" :style="imageStyle" :src="imageSrc" />
 		<div
 			v-if="showReplaceImageButton"
 			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
@@ -44,8 +40,12 @@ const element = defineModel('element', {
 })
 
 const imageSrc = computed(() => {
-	if (element.value.src.startsWith('/private')) return element.value.src
-	return `/private${element.value.src}`
+	if (element.value.src.startsWith('/assets')) return element.value.src
+
+	if (!element.value.src.startsWith('/private'))
+		element.value.src = `/private${element.value.src}`
+
+	return `/api/method/slides.api.file.get_media_file?src=${element.value.src}`
 })
 
 const replaceButtonClasses =
