@@ -4,24 +4,29 @@
 			v-for="(bar, index) in bars"
 			:key="index"
 			class="audio-bar"
+			:class="bar.className"
 			:style="{
 				height: bar.height + 'px',
 				maxHeight: (props.maxHeight || 80) + 'px',
-				backgroundColor: bar.color,
-				transition: 'height 0.1s ease-out, background-color 0.1s ease-out',
+				transition: 'height 0.1s ease-out',
 			}"
 		></div>
 	</div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 const props = defineProps({
 	deviceId: {
 		type: String,
 		required: false,
 		default: "",
+	},
+	mediaStream: {
+		type: MediaStream,
+		required: false,
+		default: null,
 	},
 	isActive: {
 		type: Boolean,
@@ -35,12 +40,16 @@ const props = defineProps({
 		type: Number,
 		default: 80,
 	},
+	activeColorClass: {
+		type: String,
+		default: "bg-blue-700",
+	},
 });
 
 const bars = ref(
 	Array.from({ length: 3 }, () => ({
 		height: 4,
-		color: "#e5e7eb",
+		className: props.activeColorClass,
 	})),
 );
 
@@ -57,13 +66,19 @@ const startListening = async () => {
 	try {
 		isListening = true;
 
-		mediaStream = await navigator.mediaDevices.getUserMedia({
-			audio: {
-				deviceId: props.deviceId,
-				echoCancellation: true,
-				noiseSuppression: true,
-			},
-		});
+		// Device settings doesn't need mediaStream
+		// But participant tiles do need for analysing
+		if (props.mediaStream) {
+			mediaStream = props.mediaStream;
+		} else {
+			mediaStream = await navigator.mediaDevices.getUserMedia({
+				audio: {
+					deviceId: props.deviceId,
+					echoCancellation: true,
+					noiseSuppression: true,
+				},
+			});
+		}
 
 		audioContext = new window.AudioContext();
 		analyser = audioContext.createAnalyser();
@@ -132,9 +147,9 @@ const startListening = async () => {
 					4,
 					Math.min(maxHeight, smoothedLevels[i] * maxHeight),
 				);
-				const color = smoothedLevels[i] > 0.02 ? "#e54e17" : "#e5e7eb";
+				const className = props.activeColorClass;
 
-				bars.value[i] = { height: displayHeight, color };
+				bars.value[i] = { height: displayHeight, className };
 			}
 
 			animationFrame = requestAnimationFrame(animate);
@@ -147,7 +162,7 @@ const startListening = async () => {
 
 		bars.value = bars.value.map(() => ({
 			height: 4,
-			color: "#e5e7eb",
+			className: props.activeColorClass,
 		}));
 	}
 };
@@ -167,12 +182,12 @@ const stopListening = () => {
 		microphone = null;
 	}
 
-	if (mediaStream) {
+	if (mediaStream && !props.mediaStream) {
 		for (const track of mediaStream.getTracks()) {
 			track.stop();
 		}
-		mediaStream = null;
 	}
+	mediaStream = null;
 
 	if (audioContext && audioContext.state !== "closed") {
 		audioContext.close();
@@ -183,7 +198,7 @@ const stopListening = () => {
 
 	bars.value = bars.value.map(() => ({
 		height: 4,
-		color: "#e5e7eb",
+		className: props.activeColorClass,
 	}));
 };
 
@@ -191,9 +206,35 @@ const stopListening = () => {
 watch(
 	() => props.deviceId,
 	() => {
-		stopListening();
-		if (props.isActive) {
-			startListening();
+		if (!props.mediaStream) {
+			stopListening();
+			if (props.isActive) {
+				startListening();
+			}
+		}
+	},
+);
+
+// Watch mediaStream changes (needed for mute/unmute)
+let lastStreamId = null;
+watch(
+	() => props.mediaStream,
+	(newStream) => {
+		if (!newStream) return;
+
+		// unique ID from stream tracks
+		const currentStreamId = newStream
+			.getAudioTracks()
+			.map((t) => t.id)
+			.join(",");
+
+		// restart listening if not same id
+		if (currentStreamId !== lastStreamId) {
+			lastStreamId = currentStreamId;
+			stopListening();
+			if (props.isActive) {
+				startListening();
+			}
 		}
 	},
 );
@@ -225,8 +266,6 @@ onUnmounted(() => {
 .audio-bar {
 	width: 3px;
 	border-radius: 1px;
-	transition:
-		height 0.1s ease-out,
-		background-color 0.1s ease-out;
+	transition: height 0.1s ease-out;
 }
 </style>
