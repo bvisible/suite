@@ -83,6 +83,7 @@ export const handleUploadedMedia = (files, targetElement) => {
 }
 
 export const getAttachmentUrl = (fileUrl) => {
+	if (!fileUrl) return ''
 	if (
 		fileUrl.startsWith('/private') ||
 		fileUrl.startsWith('data:') ||
