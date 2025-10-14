@@ -10,7 +10,6 @@
 		<div
 			key="local-camera-sidebar"
 			class="relative w-full bg-gray-800 rounded overflow-hidden flex"
-			:class="{ 'ring-2 ring-blue-400': activeSpeakerIds.includes(currentUser?.user_id) }"
 			:style="singleTileStyle"
 		>
 			<video
@@ -31,6 +30,21 @@
 				/>
 			</div>
 			<NamePill name="You" size="sm" position="bottom-left" />
+
+			<div v-if="isMicOn && localStream" class="absolute top-1 right-1">
+				<AudioIndicator
+					:mediaStream="localStream"
+					:isActive="true"
+					:maxHeight="12"
+					:sensitivity="3.0"
+				/>
+			</div>
+			<div
+				v-if="!isMicOn"
+				class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
+			>
+				<lucide-mic-off class="w-3 h-3 text-white" />
+			</div>
 		</div>
 
 		<!-- Remote participants -->
@@ -38,7 +52,6 @@
 			v-for="participant in sidebarDisplay.list"
 			:key="'side-' + participant.user_id"
 			class="relative w-full bg-gray-800 rounded overflow-hidden flex"
-			:class="{ 'ring-2 ring-blue-400': activeSpeakerIds.includes(participant.user_id) }"
 			:style="singleTileStyle"
 		>
 			<video
@@ -60,6 +73,15 @@
 				/>
 			</div>
 			<NamePill :name="participant.user_name" size="sm" position="bottom-left" />
+
+			<div v-if="participant.audio_enabled && participantStreams[participant.user_id]" class="absolute top-1 right-1">
+				<AudioIndicator
+					:mediaStream="participantStreams[participant.user_id]"
+					:isActive="true"
+					:maxHeight="12"
+					:sensitivity="3.0"
+				/>
+			</div>
 			<div
 				v-if="!participant.audio_enabled"
 				class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
@@ -83,9 +105,11 @@
 </template>
 
 <script setup>
-import { Tooltip } from "frappe-ui";
 import { computed } from "vue";
+import { useAudioStream } from "../composables/useAudioLevels.js";
 import { useScreenShareSidebar } from "../composables/useScreenShareSidebar.js";
+import { getSFUMeetingManager } from "../utils/sfu-meeting-manager.js";
+import AudioIndicator from "./AudioIndicator.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
 import NamePill from "./NamePill.vue";
 
@@ -141,6 +165,32 @@ const {
 	visibleTileCount,
 	hiddenParticipantsTooltip,
 } = useScreenShareSidebar(props.participants, activeSpeakerIds);
+
+const { stream: localStream } = useAudioStream(props.currentUser?.user_id);
+
+const participantStreams = computed(() => {
+	const streams = {};
+	for (const participant of Object.values(props.participants)) {
+		try {
+			const sfuManager = getSFUMeetingManager();
+			if (sfuManager?.consumerManager) {
+				const audioConsumer = sfuManager.consumerManager.getAudioConsumer(
+					participant.user_id,
+				);
+				if (audioConsumer?.track) {
+					streams[participant.user_id] = new MediaStream([audioConsumer.track]);
+				}
+			}
+		} catch (error) {
+			console.error(
+				"Error getting stream for participant:",
+				participant.user_id,
+				error,
+			);
+		}
+	}
+	return streams;
+});
 </script>
 
 <style scoped>

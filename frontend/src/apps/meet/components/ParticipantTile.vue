@@ -1,5 +1,5 @@
 <template>
-	<div class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0" :class="{ 'ring-2 ring-blue-400': isActiveSpeaker }">
+	<div class="relative bg-gray-800 rounded-lg overflow-hidden min-h-0">
 		<video
 			:ref="videoRef"
 			:participant-id="participant.user_id"
@@ -27,6 +27,16 @@
 			position="bottom-left"
 		/>
 
+		<div v-if="isAudioEnabled && stream" class="absolute top-2 right-2 rounded-full bg-gray-700 p-1.5">
+			<AudioIndicator
+				:mediaStream="stream"
+				:isActive="true"
+				:maxHeight="16"
+				:sensitivity="3.0"
+				activeColorClass="bg-gray-100"
+			/>
+		</div>
+
 		<div v-if="!isAudioEnabled" class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5">
 			<lucide-mic-off class="w-4 h-4 text-white" />
 		</div>
@@ -34,10 +44,12 @@
 </template>
 
 <script setup>
+import { useAudioStream } from "../composables/useAudioLevels.js";
+import AudioIndicator from "./AudioIndicator.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
 import NamePill from "./NamePill.vue";
 
-defineProps({
+const props = defineProps({
 	participant: {
 		type: Object,
 		required: true,
@@ -67,6 +79,8 @@ defineProps({
 		default: 1,
 	},
 });
+
+const { stream } = useAudioStream(props.participant.user_id);
 </script>
 
 <style scoped>
