@@ -1,6 +1,10 @@
 <template>
 	<div>
-		<img class="object-cover" :src="imageSrc" :style="imageStyle" />
+		<img
+			class="object-cover"
+			:style="imageStyle"
+			:src="`/api/method/slides.api.file.get_media_file?src=${imageSrc}`"
+		/>
 		<div
 			v-if="showReplaceImageButton"
 			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
