@@ -195,6 +195,7 @@ const {
 	setupChatEvents,
 	handleKeyDown,
 	sfuManager,
+	applySpeakerDevice,
 } = useMeetingLogic(meetingState, meetingId.value);
 
 // Computed properties
@@ -268,16 +269,26 @@ const setSinkIdOnVideoElements = async (sinkId) => {
 		promises.push(promise);
 	}
 
+	if (sfuManager.value?.videoManager) {
+		const audioElements = sfuManager.value.videoManager.audioElements;
+
+		for (const [participantId, audioElement] of audioElements) {
+			const promise = audioElement.setSinkId(sinkId).catch((error) => {
+				console.warn(
+					`⚠️ Failed to set speaker for audio element ${participantId}:`,
+					error,
+				);
+			});
+			promises.push(promise);
+		}
+	}
+
 	await Promise.all(promises);
 };
 
 const handleDeviceChanged = async (event) => {
 	if (event.type === "speaker") {
-		const speakerId = event.deviceId;
-
-		if (speakerId) {
-			await setSinkIdOnVideoElements(speakerId);
-		}
+		await applySpeakerDevice();
 		return;
 	}
 
@@ -379,7 +390,7 @@ onMounted(async () => {
 	await initializeCamera();
 
 	if (selectedSpeakerId.value) {
-		await setSinkIdOnVideoElements(selectedSpeakerId.value);
+		await applySpeakerDevice();
 	}
 
 	// Setup chat events

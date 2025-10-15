@@ -6,12 +6,17 @@ import {
 	micEnabled as prefMicEnabled,
 	selectedCameraId,
 	selectedMicId,
+	selectedSpeakerId,
 	setCameraEnabled,
 	setMicEnabled,
+	setSelectedCameraId,
+	setSelectedMicId,
+	setSelectedSpeakerId,
 } from "../data/mediaPreferences.js";
 import { publishScreenShare } from "../mediasoup-client.js";
 import { useSocket } from "../socket.js";
 import audioNotificationManager from "../utils/audioNotifications";
+import { deviceManager } from "../utils/media/DeviceManager.js";
 import { getSFUClient } from "../utils/sfu-client.js";
 import {
 	getSFUMeetingManager,
@@ -53,34 +58,112 @@ export function useMeetingLogic(meetingState, meetingId) {
 
 	// ==================== CAMERA & MEDIA SETUP ====================
 
-	const buildMediaConstraints = (videoEnabled, audioEnabled) => {
+	/**
+	 * Ensure devices are enumerated and return a valid device ID for the given type
+	 * Falls back to default device if stored device is not available
+	 */
+	const getValidDeviceId = async (storedDeviceId, deviceType) => {
+		if (!storedDeviceId) return null;
+
+		try {
+			await deviceManager.enumerateDevices({ video: false, audio: false });
+
+			if (deviceManager.isDeviceAvailable(storedDeviceId, deviceType)) {
+				return storedDeviceId;
+			}
+
+			const defaultDevice = deviceManager.getDefaultDevice(deviceType);
+			if (defaultDevice) {
+				if (deviceType === "camera") {
+					setSelectedCameraId(defaultDevice.deviceId);
+				} else if (deviceType === "microphone") {
+					setSelectedMicId(defaultDevice.deviceId);
+				} else if (deviceType === "speaker") {
+					setSelectedSpeakerId(defaultDevice.deviceId);
+				}
+
+				return defaultDevice.deviceId;
+			}
+
+			if (deviceType === "camera") {
+				setSelectedCameraId("");
+			} else if (deviceType === "microphone") {
+				setSelectedMicId("");
+			} else if (deviceType === "speaker") {
+				setSelectedSpeakerId("");
+			}
+			return null;
+		} catch (error) {
+			console.warn(
+				`⚠️ Could not validate ${deviceType} device availability:`,
+				error,
+			);
+			return storedDeviceId;
+		}
+	};
+
+	const buildMediaConstraints = async (videoEnabled, audioEnabled) => {
 		const constraints = {};
 		const deviceIds = {};
 
 		if (videoEnabled) {
 			constraints.video = {};
 
-			// Use stored camera ID if available (don't check if device exists to avoid enumeration)
-			// If the device doesn't exist, getUserMedia will fail gracefully and we can handle it
-			if (selectedCameraId.value) {
-				constraints.video.deviceId = { exact: selectedCameraId.value };
-				deviceIds.camera = selectedCameraId.value;
+			const validCameraId = await getValidDeviceId(
+				selectedCameraId.value,
+				"camera",
+			);
+			if (validCameraId) {
+				constraints.video.deviceId = { exact: validCameraId };
+				deviceIds.camera = validCameraId;
 			}
-			// If no stored device ID, let browser use its default (don't enumerate)
+			// If no valid device ID, let browser use its default
 		}
 
 		if (audioEnabled) {
 			constraints.audio = {};
 
-			// Use stored microphone ID if available (don't check if device exists to avoid enumeration)
-			if (selectedMicId.value) {
-				constraints.audio.deviceId = { exact: selectedMicId.value };
-				deviceIds.microphone = selectedMicId.value;
+			const validMicId = await getValidDeviceId(
+				selectedMicId.value,
+				"microphone",
+			);
+			if (validMicId) {
+				constraints.audio.deviceId = { exact: validMicId };
+				deviceIds.microphone = validMicId;
 			}
-			// If no stored device ID, let browser use its default (don't enumerate)
+			// If no valid device ID, let browser use its default
 		}
 
 		return { constraints, deviceIds };
+	};
+
+	/**
+	 * Apply speaker device to all audio elements
+	 */
+	const applySpeakerDevice = async () => {
+		try {
+			const validSpeakerId = await getValidDeviceId(
+				selectedSpeakerId.value,
+				"speaker",
+			);
+
+			if (validSpeakerId && sfuManager.value?.videoManager) {
+				const audioElements = sfuManager.value.videoManager.audioElements;
+
+				for (const [participantId, audioElement] of audioElements) {
+					try {
+						await audioElement.setSinkId(validSpeakerId);
+					} catch (error) {
+						console.warn(
+							`⚠️ Failed to set speaker for ${participantId}:`,
+							error,
+						);
+					}
+				}
+			}
+		} catch (error) {
+			console.warn("⚠️ Failed to apply speaker device:", error);
+		}
 	};
 
 	/**
@@ -91,7 +174,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 			meetingState.setMediaState(prefMicEnabled.value, prefCameraEnabled.value);
 
 			if (meetingState.isCameraOn.value || meetingState.isMicOn.value) {
-				const { constraints, deviceIds } = buildMediaConstraints(
+				const { constraints, deviceIds } = await buildMediaConstraints(
 					meetingState.isCameraOn.value,
 					meetingState.isMicOn.value,
 				);
@@ -142,7 +225,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				// Turning mic ON
 				if (!stream) {
 					try {
-						const { constraints, deviceIds } = buildMediaConstraints(
+						const { constraints, deviceIds } = await buildMediaConstraints(
 							true,
 							enable,
 						);
@@ -167,7 +250,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					const hasAudio = stream.getAudioTracks().length > 0;
 					if (!hasAudio) {
 						try {
-							const { constraints, deviceIds } = buildMediaConstraints(
+							const { constraints, deviceIds } = await buildMediaConstraints(
 								false,
 								true,
 							);
@@ -196,7 +279,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 						if (at.readyState === "ended") {
 							// Track was stopped, get a new one
 							try {
-								const { constraints, deviceIds } = buildMediaConstraints(
+								const { constraints, deviceIds } = await buildMediaConstraints(
 									false,
 									true,
 								);
@@ -322,7 +405,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				if (!stream) {
 					// No existing stream: request both video and current audio state
 					try {
-						const { constraints, deviceIds } = buildMediaConstraints(
+						const { constraints, deviceIds } = await buildMediaConstraints(
 							true,
 							meetingState.isMicOn.value,
 						);
@@ -349,7 +432,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					const hasVideo = stream.getVideoTracks().length > 0;
 					if (!hasVideo) {
 						try {
-							const { constraints, deviceIds } = buildMediaConstraints(
+							const { constraints, deviceIds } = await buildMediaConstraints(
 								true,
 								false,
 							);
@@ -387,7 +470,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 						if (vt.readyState === "ended") {
 							// Track was stopped, get a new one
 							try {
-								const { constraints, deviceIds } = buildMediaConstraints(
+								const { constraints, deviceIds } = await buildMediaConstraints(
 									true,
 									false,
 								);
@@ -1247,6 +1330,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 		toggleMicrophone,
 		toggleCamera,
 		toggleScreenShare,
+		applySpeakerDevice,
 
 		// Methods - Meeting
 		joinMeetingRoom,
