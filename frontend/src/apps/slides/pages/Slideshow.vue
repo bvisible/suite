@@ -122,7 +122,7 @@ const prefetchAsset = async (src, type) => {
 			// Use link prefetch for images
 			const link = document.createElement('link')
 			link.rel = 'preload'
-			link.href = url
+			link.href = `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
 			link.as = 'image'
 			document.head.appendChild(link)
 		}
@@ -132,9 +132,7 @@ const prefetchAsset = async (src, type) => {
 }
 
 const buildAssetUrl = (src, type) => {
-	if (type === 'video') {
-		return `/api/method/slides.api.file.get_video_file?src=${encodeURIComponent(src)}`
-	} else if (src.startsWith('/private') || src.startsWith('/assets')) {
+	if (src.startsWith('/private') || src.startsWith('/assets')) {
 		return src
 	}
 
