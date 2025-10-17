@@ -259,10 +259,13 @@ const performPreviousStep = () => {
 }
 
 const performNextStep = () => {
-	const videoEl = document.querySelector('video')
-	if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
-		videoEl.play()
-		return
+	const videoEls = document.querySelectorAll('video')
+
+	for (const videoEl of videoEls) {
+		if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
+			videoEl.play()
+			return
+		}
 	}
 	changeSlide(slideIndex.value + 1)
 }
