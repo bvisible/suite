@@ -96,7 +96,7 @@ def get_media_response(src: str) -> Response:
 	return response
 
 
-def validate_media_file(src) -> None:
+def validate_media_file(src, public) -> None:
 	# check for existence and permissions of the file
 	file_doc = frappe.get_doc("File", {"file_url": src})
 
@@ -104,15 +104,15 @@ def validate_media_file(src) -> None:
 		raise NotFound
 
 	# check if the user has read permission on the file
-	if file_doc.is_private and not frappe.has_permission("File", "read", file_doc):
+	if not public and not frappe.has_permission("File", "read", file_doc):
 		raise Forbidden(_("You don't have permission to access this file"))
 
 
 @frappe.whitelist(allow_guest=True)
-def get_media_file(src: str) -> Response:
+def get_media_file(src: str, public: str) -> Response:
 	"""
 	Fetches permitted video file and returns a response.
 	"""
-	validate_media_file(src)
+	validate_media_file(src, public)
 
 	return get_media_response(src)

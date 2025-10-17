@@ -45,7 +45,7 @@ const imageSrc = computed(() => {
 	if (!element.value.src.startsWith('/private'))
 		element.value.src = `/private${element.value.src}`
 
-	return `/api/method/slides.api.file.get_media_file?src=${element.value.src}`
+	return `/api/method/slides.api.file.get_media_file?src=${element.value.src}&public=${isPublicPresentation.value}`
 })
 
 const replaceButtonClasses =
