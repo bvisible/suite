@@ -152,8 +152,11 @@ const getThumbnailClasses = (slide) => {
 
 const getThumbnailStyles = (s) => {
 	const thumbnailUrl = getAttachmentUrl(s.thumbnail)
+	const bgImage = thumbnailUrl.startsWith('data:')
+		? thumbnailUrl
+		: `url(/api/method/slides.api.file.get_media_file?src=${thumbnailUrl}&public=${isPublicPresentation.value})`
 	return {
-		backgroundImage: `url(/api/method/slides.api.file.get_media_file?src=${thumbnailUrl}&public=${isPublicPresentation.value})`,
+		backgroundImage: bgImage,
 		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
 		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
 	}
