@@ -10,9 +10,11 @@
 			@loadedmetadata="updateDuration"
 			@ended="resetProgress"
 			preload="auto"
-			:poster="`/api/method/slides.api.file.get_media_file?src=${videoPoster}`"
+			:poster="`/api/method/slides.api.file.get_media_file?src=${videoPoster}&public=${isPublicPresentation}`"
 		>
-			<source :src="`/api/method/slides.api.file.get_media_file?src=${videoSrc}`" />
+			<source
+				:src="`/api/method/slides.api.file.get_media_file?src=${videoSrc}&public=${isPublicPresentation}`"
+			/>
 		</video>
 		<div
 			ref="overlay"
