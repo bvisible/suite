@@ -139,8 +139,14 @@ export class MediasoupManager {
 		}
 
 		const { roomId, peerId, transport } = transportData;
-		const room = this.roomManager.getRoom(roomId)!;
-		const peer = room.peers.get(peerId)!;
+		const room = this.roomManager.getRoom(roomId);
+		if (!room) {
+			throw new Error(`Room ${roomId} not found`);
+		}
+		const peer = room.peers.get(peerId);
+		if (!peer) {
+			throw new Error(`Peer ${peerId} not found in room ${roomId}`);
+		}
 
 		const result = await this.producerManager.createProducer(
 			transport,
@@ -151,7 +157,11 @@ export class MediasoupManager {
 			appData,
 		);
 
-		peer.producers.set(result.id, this.producerManager.getProducer(result.id)!);
+		const producer = this.producerManager.getProducer(result.id);
+		if (!producer) {
+			throw new Error(`Failed to create producer ${result.id}`);
+		}
+		peer.producers.set(result.id, producer);
 
 		// Add audio producers to the audio level observer for active speaker detection
 		if (kind === 'audio') {
@@ -183,7 +193,10 @@ export class MediasoupManager {
 		}
 
 		const { roomId, peerId, transport } = transportData;
-		const room = this.roomManager.getRoom(roomId)!;
+		const room = this.roomManager.getRoom(roomId);
+		if (!room) {
+			throw new Error(`Room ${roomId} not found`);
+		}
 
 		// Validate router can consume
 		if (!room.router.canConsume({ producerId, rtpCapabilities })) {
@@ -201,14 +214,33 @@ export class MediasoupManager {
 			rtpCapabilities,
 		);
 
-		const peer = room.peers.get(peerId)!;
-		peer.consumers.set(result.id, this.consumerManager.getConsumer(result.id)!);
+		const peer = room.peers.get(peerId);
+		if (!peer) {
+			throw new Error(`Peer ${peerId} not found in room ${roomId}`);
+		}
+
+		const consumer = this.consumerManager.getConsumer(result.id);
+		if (!consumer) {
+			throw new Error(`Failed to create consumer ${result.id}`);
+		}
+		peer.consumers.set(result.id, consumer);
 
 		return result;
 	}
 
 	closeProducer(producerId: string): CloseProducerResult {
+		const producerData = this.producerManager.getProducerData(producerId);
+		if (!producerData) return { isScreen: false, removedConsumers: [] };
+
 		const result = this.producerManager.closeProducer(producerId);
+
+		const room = this.roomManager.getRoom(producerData.roomId);
+		if (room) {
+			const peer = room.peers.get(producerData.peerId);
+			if (peer) {
+				peer.producers.delete(producerId);
+			}
+		}
 
 		// Close related consumers
 		const removedConsumers: CloseProducerResult['removedConsumers'] = [];
