@@ -12,7 +12,7 @@
 				>
 					<div
 						class="aspect-video cursor-pointer rounded-lg px-2 outline outline-1 outline-offset-2 outline-gray-200 hover:outline-gray-400"
-						:style="getThumbnailCardStyles(theme.thumbnail || '')"
+						:style="getThumbnailCardStyles(theme.thumbnail)"
 						@click="$emit('create', theme.name)"
 					></div>
 					<div class="px-1 text-base text-gray-600">{{ theme.title }}</div>

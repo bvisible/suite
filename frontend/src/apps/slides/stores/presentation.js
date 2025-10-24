@@ -68,6 +68,7 @@ const getPresentationResource = (name) => {
 		auto: false,
 		transform(doc) {
 			for (const slide of doc.slides || []) {
+				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
 				// remove the transition_duration field to avoid confusion
@@ -91,6 +92,7 @@ const getPublicPresentationResource = (name) => {
 		},
 		transform(doc) {
 			for (const slide of doc.slides || []) {
+				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
 				// remove the transition_duration field to avoid confusion
@@ -114,6 +116,7 @@ const getCompositePresentationResource = (name) => {
 		},
 		transform(doc) {
 			for (const slide of doc.slides || []) {
+				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
 				// remove the transition_duration field to avoid confusion
@@ -176,6 +179,7 @@ const layoutResource = createResource({
 	auto: false,
 	transform: (data) => {
 		for (const slide of data.slides || []) {
+			slide.thumbnail = slide.thumbnail || ''
 			slide.elements = parseElements(slide.elements)
 			slide.transitionDuration = slide.transition_duration
 			// remove the transition_duration field to avoid confusion

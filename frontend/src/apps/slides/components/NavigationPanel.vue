@@ -150,7 +150,7 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	let styles = getThumbnailCardStyles(s.thumbnail || '', isPublicPresentation.value)
+	let styles = getThumbnailCardStyles(s.thumbnail)
 
 	// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
 	styles.backgroundColor = currentSlide.value?.background || '#ffffff' //fallback color
