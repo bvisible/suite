@@ -1,4 +1,5 @@
 import { toast } from 'frappe-ui'
+import { getAttachmentUrl } from './mediaUploads'
 
 let isClicked = false
 let delay = 200
@@ -79,4 +80,14 @@ const copyToClipboard = async (text: string) => {
 	toast.success('Copied to clipboard')
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard }
+const getThumbnailCardStyles = (thumbnail: string) => {
+	const thumbnailUrl = getAttachmentUrl(thumbnail)
+	const bgImage = thumbnailUrl.startsWith('data:') ? thumbnailUrl : `url(${thumbnailUrl})`
+	return {
+		backgroundImage: bgImage,
+		backgroundSize: 'cover',
+		backgroundPosition: 'center',
+	}
+}
+
+export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard, getThumbnailCardStyles }

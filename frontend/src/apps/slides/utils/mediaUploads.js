@@ -1,6 +1,6 @@
 import { FileUploadHandler, toast } from 'frappe-ui'
 
-import { presentationId } from '../stores/presentation'
+import { presentationId, isPublicPresentation } from '../stores/presentation'
 import { currentSlide } from '../stores/slide'
 import { addMediaElement, replaceMediaElement } from '../stores/element'
 
@@ -84,11 +84,14 @@ export const handleUploadedMedia = (files, targetElement) => {
 
 export const getAttachmentUrl = (fileUrl) => {
 	if (!fileUrl) return ''
-	if (
-		fileUrl.startsWith('/private') ||
-		fileUrl.startsWith('data:') ||
-		fileUrl.startsWith('/assets')
-	)
-		return fileUrl
-	return `/private${fileUrl}`
+
+	// if starts with data: or /assets return as it is
+	if (fileUrl.startsWith('data:') || fileUrl.startsWith('/assets')) return fileUrl
+
+	// if it starts with /files add /private prefix
+	if (fileUrl.startsWith('/files')) fileUrl = `/private${fileUrl}`
+
+	if (fileUrl.startsWith('/private')) {
+		return `/api/method/slides.api.file.get_media_file?src=${fileUrl}&public=${isPublicPresentation.value}`
+	}
 }

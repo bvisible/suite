@@ -63,8 +63,7 @@ import { call } from 'frappe-ui'
 import Draggable from 'vuedraggable'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
-import { handleScrollBarWheelEvent } from '@/utils/helpers'
-import { getAttachmentUrl } from '@/utils/mediaUploads'
+import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 
 import { useAttrs } from 'vue'
 import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
@@ -151,15 +150,12 @@ const getThumbnailClasses = (slide) => {
 }
 
 const getThumbnailStyles = (s) => {
-	const thumbnailUrl = getAttachmentUrl(s.thumbnail)
-	const bgImage = thumbnailUrl.startsWith('data:')
-		? thumbnailUrl
-		: `url(/api/method/slides.api.file.get_media_file?src=${thumbnailUrl}&public=${isPublicPresentation.value})`
-	return {
-		backgroundImage: bgImage,
-		// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
-		backgroundColor: currentSlide.value?.background || '#ffffff', //fallback color
-	}
+	let styles = getThumbnailCardStyles(s.thumbnail || '', isPublicPresentation.value)
+
+	// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
+	styles.backgroundColor = currentSlide.value?.background || '#ffffff' //fallback color
+
+	return styles
 }
 
 const toggleButtonClasses = computed(() => {
