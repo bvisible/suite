@@ -88,10 +88,13 @@ def slug(text: str) -> str:
 
 def get_presentation_thumbnail(presentation_name: str, index: int | None = 1) -> str:
 	"""Returns the thumbnail of the first slide in a presentation"""
-	return frappe.get_value(
-		"Slide",
-		{"parent": presentation_name, "idx": index},
-		"thumbnail",
+	return (
+		frappe.get_value(
+			"Slide",
+			{"parent": presentation_name, "idx": index},
+			"thumbnail",
+		)
+		or ""
 	)
 
 

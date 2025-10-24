@@ -9,7 +9,7 @@
 					v-for="layout in layouts.slides"
 					:key="layout.idx"
 					class="aspect-video cursor-pointer rounded-lg border border-gray-300 hover:border-gray-400"
-					:style="getThumbnailCardStyles(layout.thumbnail || '', isPublicPresentation)"
+					:style="getThumbnailCardStyles(layout.thumbnail)"
 					@click="insertSlideWithLayout(layout)"
 				></div>
 			</div>
@@ -21,7 +21,6 @@
 import { watch, nextTick, computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
-import { isPublicPresentation } from '@/stores/presentation'
 import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const emit = defineEmits(['insert'])
