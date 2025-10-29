@@ -53,13 +53,17 @@ class Presentation(Document):
 
 
 def delete_old_thumbnail(old_thumbnail: str | None = None):
-	if old_thumbnail and old_thumbnail.startswith("/files"):
-		try:
-			url = "/private" + old_thumbnail
-			file_docname = frappe.db.get_value("File", {"file_url": url})
-			frappe.delete_doc("File", file_docname)
-		except Exception as e:
-			frappe.log_error(f"Failed to remove old thumbnail: {e}")
+	if not old_thumbnail or old_thumbnail.startswith("/assets"):
+		return
+
+	if old_thumbnail.startswith("/files"):
+		old_thumbnail = f"/private{old_thumbnail}"
+
+	try:
+		file_docname = frappe.db.get_value("File", {"file_url": old_thumbnail})
+		frappe.delete_doc("File", file_docname)
+	except Exception as e:
+		frappe.log_error(f"Failed to remove old thumbnail: {e}")
 
 
 @frappe.whitelist()
