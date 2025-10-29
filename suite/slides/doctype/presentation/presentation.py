@@ -411,11 +411,11 @@ def convert_and_save_image(image, path):
 	return path
 
 
-def create_new_webp_file_doc(presentation, file_url, image, extn):
+def create_new_webp_file_doc(presentation_name, file_url, image, extn):
 	files = frappe.get_all(
 		"File",
 		filters={
-			"attached_to_name": presentation,
+			"attached_to_name": presentation_name,
 			"file_url": file_url,
 		},
 		fields=["name"],
@@ -429,22 +429,30 @@ def create_new_webp_file_doc(presentation, file_url, image, extn):
 		new_file.file_name = f"{_file.file_name.replace(extn, 'webp')}"
 		new_file.file_url = f"{_file.file_url.replace(extn, 'webp')}"
 		new_file.save()
-		return new_file.file_url
+		return new_file
 	return file_url
+
+
+@frappe.whitelist()
+def get_webp_doc(presentation_name, file_url):
+	if file_url.endswith((".webp", ".svg")):
+		return
+
+	image, filename, extn = get_local_image(file_url)
+
+	if can_convert_image(extn):
+		return create_new_webp_file_doc(presentation_name, file_url, image, extn)
 
 
 def update_element_urls(is_public, presentation, element):
 	attribute = "poster" if element.get("type") == "video" else "src"
 	image_url = element.get(attribute, "") if is_public else f"/private{element.get(attribute, '')}"
 
-	if image_url.endswith((".webp", ".svg")):
-		return
+	webp_doc = get_webp_doc(presentation, image_url)
 
-	image, filename, extn = get_local_image(image_url)
-
-	if can_convert_image(extn):
-		new_url = create_new_webp_file_doc(presentation, image_url, image, extn)
-		element[attribute] = new_url.replace("/private", "")
+	if webp_doc.file_url:
+		element["attachmentName"] = webp_doc.name
+		element[attribute] = webp_doc.file_url
 
 
 @frappe.whitelist()
