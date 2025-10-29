@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<img class="object-cover" :style="imageStyle" :src="imageSrc" />
+		<img class="object-cover" :style="imageStyle" :src="getAttachmentUrl(element.src)" />
 		<div
 			v-if="showReplaceImageButton"
 			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
@@ -33,19 +33,11 @@ import { FileUploader } from 'frappe-ui'
 import { presentationId, isPublicPresentation } from '@/stores/presentation'
 import { allowedImageFileTypes } from '@/utils/constants'
 import { activeElement } from '@/stores/element'
+import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const element = defineModel('element', {
 	type: Object,
 	default: null,
-})
-
-const imageSrc = computed(() => {
-	if (element.value.src.startsWith('/assets')) return element.value.src
-
-	if (!element.value.src.startsWith('/private'))
-		element.value.src = `/private${element.value.src}`
-
-	return `/api/method/slides.api.file.get_media_file?src=${element.value.src}&public=${isPublicPresentation.value}`
 })
 
 const replaceButtonClasses =
