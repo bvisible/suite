@@ -429,6 +429,7 @@ def create_new_webp_file_doc(presentation_name, file_url, image, extn):
 		new_file.file_name = f"{_file.file_name.replace(extn, 'webp')}"
 		new_file.file_url = f"{_file.file_url.replace(extn, 'webp')}"
 		new_file.save()
+		_file.delete()
 		return new_file
 	return file_url
 
