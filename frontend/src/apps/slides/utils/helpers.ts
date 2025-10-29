@@ -82,9 +82,8 @@ const copyToClipboard = async (text: string) => {
 
 const getThumbnailCardStyles = (thumbnail: string) => {
 	const thumbnailUrl = getAttachmentUrl(thumbnail)
-	const bgImage = thumbnailUrl.startsWith('data:') ? thumbnailUrl : `url(${thumbnailUrl})`
 	return {
-		backgroundImage: bgImage,
+		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
 		backgroundPosition: 'center',
 	}
