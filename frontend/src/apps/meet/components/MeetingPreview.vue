@@ -219,21 +219,31 @@ import { session } from "../data/session.js";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 
 const props = defineProps({
-	isCameraOn: Boolean,
-	isMicOn: Boolean,
-	currentUser: Object,
-	userInitials: String,
-	userAvatar: String,
-	isConnecting: Boolean,
-	meetingTitle: { type: String, default: "" },
 	meetingId: { type: String, required: true },
-	isWaitingForApproval: { type: Boolean, default: false },
-	isJoinRequestRejected: { type: Boolean, default: false },
-	cameraPermissionGranted: { type: Boolean, default: false },
-	microphonePermissionGranted: { type: Boolean, default: false },
 });
 
+const meetingState = inject("meetingState");
 const setLocalVideoRef = inject("setLocalVideoRef");
+const meetingTitle = inject("meetingTitle");
+
+const isCameraOn = computed(() => meetingState.isCameraOn.value);
+const isMicOn = computed(() => meetingState.isMicOn.value);
+const currentUser = computed(() => meetingState.currentUser.value);
+const userInitials = computed(() => meetingState.userInitials.value);
+const userAvatar = computed(() => meetingState.userAvatar.value);
+const isConnecting = computed(() => meetingState.isConnecting.value);
+const isWaitingForApproval = computed(
+	() => meetingState.isWaitingForApproval.value,
+);
+const isJoinRequestRejected = computed(
+	() => meetingState.isJoinRequestRejected.value,
+);
+const cameraPermissionGranted = computed(
+	() => meetingState.cameraPermissionGranted.value,
+);
+const microphonePermissionGranted = computed(
+	() => meetingState.microphonePermissionGranted.value,
+);
 
 const emit = defineEmits([
 	"toggle-microphone",
@@ -297,7 +307,7 @@ onUnmounted(() => {
 });
 
 const currentUserName = computed(
-	() => props.currentUser?.full_name || props.currentUser?.name || "You",
+	() => currentUser.value?.full_name || currentUser.value?.name || "You",
 );
 
 const getParticipantText = (count) => {

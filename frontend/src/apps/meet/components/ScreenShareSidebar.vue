@@ -115,34 +115,19 @@ import AudioIndicator from "./AudioIndicator.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
 import NamePill from "./NamePill.vue";
 
-const props = defineProps({
-	participants: {
-		type: Object,
-		required: true,
-	},
-	currentUser: {
-		type: Object,
-		required: true,
-	},
-	isCameraOn: {
-		type: Boolean,
-		default: false,
-	},
-	isMicOn: {
-		type: Boolean,
-		default: false,
-	},
-	activeSpeakerIds: {
-		type: Array,
-		default: () => [],
-	},
-});
-
+// Inject meeting state and functions
+const meetingState = inject("meetingState");
 const setLocalVideoRef = inject("setLocalVideoRef");
 const setRemoteVideoRef = inject("setRemoteVideoRef");
 
+const participants = computed(() => meetingState.participants.value);
+const currentUser = computed(() => meetingState.currentUser.value);
+const isCameraOn = computed(() => meetingState.isCameraOn.value);
+const isMicOn = computed(() => meetingState.isMicOn.value);
+const activeSpeakerIds = computed(() => meetingState.activeSpeakerIds.value);
+
 const userInitials = computed(() => {
-	const name = props.currentUser?.full_name || props.currentUser?.name || "You";
+	const name = currentUser.value?.full_name || currentUser.value?.name || "You";
 	return name
 		.split(" ")
 		.map((n) => n[0])
@@ -151,8 +136,7 @@ const userInitials = computed(() => {
 		.slice(0, 2);
 });
 
-const userAvatar = computed(() => props.currentUser?.avatar || "");
-const activeSpeakerIds = computed(() => props.activeSpeakerIds);
+const userAvatar = computed(() => currentUser.value?.avatar || "");
 
 const {
 	sidebarDisplay,
@@ -161,13 +145,13 @@ const {
 	singleTileStyle,
 	visibleTileCount,
 	hiddenParticipantsTooltip,
-} = useScreenShareSidebar(props.participants, activeSpeakerIds);
+} = useScreenShareSidebar(participants, activeSpeakerIds);
 
-const { stream: localStream } = useAudioStream(props.currentUser?.user_id);
+const { stream: localStream } = useAudioStream(currentUser.value?.user_id);
 
 const participantStreams = computed(() => {
 	const streams = {};
-	for (const participant of Object.values(props.participants)) {
+	for (const participant of Object.values(participants.value)) {
 		try {
 			const sfuManager = getSFUMeetingManager();
 			if (sfuManager?.consumerManager) {

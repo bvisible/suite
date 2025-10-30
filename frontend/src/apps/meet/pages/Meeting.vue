@@ -22,18 +22,7 @@
 		<!-- Preview mode -->
 		<MeetingPreview
 			v-else-if="showPreview"
-			:isCameraOn="meetingState.isCameraOn.value"
-			:isMicOn="meetingState.isMicOn.value"
-			:currentUser="meetingState.currentUser.value"
-			:userInitials="meetingState.userInitials.value"
-			:userAvatar="meetingState.userAvatar.value"
-			:isConnecting="meetingState.isConnecting.value"
-			:meetingTitle="meetingDoc?.value?.data?.title || meetingId"
 			:meetingId="meetingId"
-			:cameraPermissionGranted="meetingState.cameraPermissionGranted.value"
-			:microphonePermissionGranted="meetingState.microphonePermissionGranted.value"
-			:isWaitingForApproval="meetingState.isWaitingForApproval.value"
-			:isJoinRequestRejected="meetingState.isJoinRequestRejected.value"
 			@toggle-microphone="toggleMicrophone"
 			@toggle-camera="toggleCamera"
 			@join-from-preview="joinMeetingFromPreview"
@@ -57,23 +46,10 @@
 						<!-- Screen share active view -->
 						<ScreenShareLayout
 							v-if="meetingState.displayScreenShares.value.length"
-							:displayScreenShares="meetingState.displayScreenShares.value"
-							:participants="meetingState.participants.value"
-							:currentUser="meetingState.currentUser.value"
-							:isCameraOn="meetingState.isCameraOn.value"
-							:isMicOn="meetingState.isMicOn.value"
-							:activeSpeakerIds="meetingState.activeSpeakerIds.value"
 						/>
 
 						<!-- Normal video grid -->
-						<VideoGrid
-							v-else
-							:participants="meetingState.participants.value"
-							:currentUser="meetingState.currentUser.value"
-							:isCameraOn="meetingState.isCameraOn.value"
-							:isMicOn="meetingState.isMicOn.value"
-							:activeSpeakerIds="meetingState.activeSpeakerIds.value"
-						/>
+						<VideoGrid v-else />
 					</div>
 
 					<!-- Chat Panel -->
@@ -140,7 +116,7 @@
 
 <script setup>
 import { Button, Spinner, getCachedDocumentResource } from "frappe-ui";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import ChatNotificationQueue from "../components/ChatNotificationQueue.vue";
@@ -205,6 +181,12 @@ provide("setLocalVideoRef", setLocalVideoRef);
 provide("setRemoteVideoRef", setRemoteVideoRef);
 provide("setScreenShareVideoRef", setScreenShareVideoRef);
 provide("getParticipantName", meetingState.getParticipantName);
+provide("meetingState", meetingState);
+provide("meetingId", meetingId.value);
+provide(
+	"meetingTitle",
+	computed(() => meetingDoc?.value?.data?.title || ""),
+);
 
 // Computed properties
 const isConnecting = computed(() => meetingState.isConnecting.value);
