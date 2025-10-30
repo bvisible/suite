@@ -36,10 +36,10 @@ export function applyBlurEffect(
 		);
 	}
 
-	let blurredImageData: ImageData;
 	try {
-		blurredImageData = webglManager.applyBlur(
+		return webglManager.applyBlur(
 			imageData,
+			maskData,
 			width,
 			height,
 			blurIntensity / 2,
@@ -47,31 +47,6 @@ export function applyBlurEffect(
 	} catch (error) {
 		throw new CompositingError("WebGL blur failed", "WEBGL_BLUR_FAILED");
 	}
-
-	// Composite: person from original + background from blurred
-	const outputData = new ImageData(width, height);
-	const originalData = imageData.data;
-	const blurredData = blurredImageData.data;
-
-	for (let i = 0; i < maskData.length; i++) {
-		const personConfidence = maskData[i];
-		const pixelIndex = i * 4;
-
-		const alpha = personConfidence;
-
-		// Blend between person (original) and background (blurred) based on confidence
-		outputData.data[pixelIndex] =
-			originalData[pixelIndex] * alpha + blurredData[pixelIndex] * (1 - alpha);
-		outputData.data[pixelIndex + 1] =
-			originalData[pixelIndex + 1] * alpha +
-			blurredData[pixelIndex + 1] * (1 - alpha);
-		outputData.data[pixelIndex + 2] =
-			originalData[pixelIndex + 2] * alpha +
-			blurredData[pixelIndex + 2] * (1 - alpha);
-		outputData.data[pixelIndex + 3] = originalData[pixelIndex + 3]; // Keep original alpha
-	}
-
-	return outputData;
 }
 
 /**
