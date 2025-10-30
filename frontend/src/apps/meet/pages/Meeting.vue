@@ -67,7 +67,6 @@
 							:setScreenShareVideoRef="setScreenShareVideoRef"
 							:setLocalVideoRef="setLocalVideoRef"
 							:setRemoteVideoRef="setRemoteVideoRef"
-							:getParticipantName="meetingState.getParticipantName"
 						/>
 
 						<!-- Normal video grid -->
