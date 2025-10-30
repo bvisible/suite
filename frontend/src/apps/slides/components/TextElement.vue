@@ -3,6 +3,7 @@
 		v-if="showEditor"
 		:editor="activeEditor"
 		:style="editorStyles"
+		class="textElement editor-container"
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
@@ -135,5 +136,9 @@ onBeforeMount(() => normalizeContent())
 	top: 0;
 	width: 2ch;
 	text-align: right;
+}
+
+.editor-container .ProseMirror {
+	white-space: inherit;
 }
 </style>
