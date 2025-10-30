@@ -1071,9 +1071,18 @@ export function useMeetingLogic(meetingState, meetingId) {
 			// Publish local media if available
 			if (meetingState.localStream.value) {
 				try {
-					// Use processed stream for publishing if background effects are enabled
-					const streamToPublish =
-						processedStream.value || meetingState.localStream.value;
+					// Create a combined stream with:
+					// - Video from processedStream (if background effects) or localStream
+					// - Audio always from localStream (there's no audio in processedStream)
+					const videoTracks = processedStream.value
+						? processedStream.value.getVideoTracks()
+						: meetingState.localStream.value.getVideoTracks();
+					const audioTracks = meetingState.localStream.value.getAudioTracks();
+
+					const streamToPublish = new MediaStream([
+						...videoTracks,
+						...audioTracks,
+					]);
 
 					await sfuManager.value.publishMedia(streamToPublish, {
 						publishVideo: meetingState.isCameraOn.value,

@@ -552,10 +552,7 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 
 			// Replace video track
 			const processedVideoTrack = outputStream.getVideoTracks()[0];
-			const newStream = new MediaStream([
-				processedVideoTrack,
-				...inputStream.getAudioTracks(),
-			]);
+			const newStream = new MediaStream([processedVideoTrack]);
 
 			processedStream.value = newStream;
 
