@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { useAudioStream } from "../composables/useAudioLevels.js";
 import { useScreenShareSidebar } from "../composables/useScreenShareSidebar.js";
 import { getSFUMeetingManager } from "../utils/sfu-meeting-manager.js";
@@ -132,19 +132,14 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	setLocalVideoRef: {
-		type: Function,
-		required: true,
-	},
-	setRemoteVideoRef: {
-		type: Function,
-		required: true,
-	},
 	activeSpeakerIds: {
 		type: Array,
 		default: () => [],
 	},
 });
+
+const setLocalVideoRef = inject("setLocalVideoRef");
+const setRemoteVideoRef = inject("setRemoteVideoRef");
 
 const userInitials = computed(() => {
 	const name = props.currentUser?.full_name || props.currentUser?.name || "You";

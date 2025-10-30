@@ -208,6 +208,7 @@ import {
 	computed,
 	defineEmits,
 	defineProps,
+	inject,
 	onMounted,
 	onUnmounted,
 	ref,
@@ -226,12 +227,13 @@ const props = defineProps({
 	isConnecting: Boolean,
 	meetingTitle: { type: String, default: "" },
 	meetingId: { type: String, required: true },
-	setLocalVideoRef: Function,
 	isWaitingForApproval: { type: Boolean, default: false },
 	isJoinRequestRejected: { type: Boolean, default: false },
 	cameraPermissionGranted: { type: Boolean, default: false },
 	microphonePermissionGranted: { type: Boolean, default: false },
 });
+
+const setLocalVideoRef = inject("setLocalVideoRef");
 
 const emit = defineEmits([
 	"toggle-microphone",

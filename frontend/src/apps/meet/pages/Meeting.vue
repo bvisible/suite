@@ -32,7 +32,6 @@
 			:meetingId="meetingId"
 			:cameraPermissionGranted="meetingState.cameraPermissionGranted.value"
 			:microphonePermissionGranted="meetingState.microphonePermissionGranted.value"
-			:setLocalVideoRef="setLocalVideoRef"
 			:isWaitingForApproval="meetingState.isWaitingForApproval.value"
 			:isJoinRequestRejected="meetingState.isJoinRequestRejected.value"
 			@toggle-microphone="toggleMicrophone"
@@ -64,21 +63,16 @@
 							:isCameraOn="meetingState.isCameraOn.value"
 							:isMicOn="meetingState.isMicOn.value"
 							:activeSpeakerIds="meetingState.activeSpeakerIds.value"
-							:setScreenShareVideoRef="setScreenShareVideoRef"
-							:setLocalVideoRef="setLocalVideoRef"
-							:setRemoteVideoRef="setRemoteVideoRef"
 						/>
 
 						<!-- Normal video grid -->
 						<VideoGrid
-							v-if="!meetingState.displayScreenShares.value.length"
+							v-else
 							:participants="meetingState.participants.value"
 							:currentUser="meetingState.currentUser.value"
 							:isCameraOn="meetingState.isCameraOn.value"
 							:isMicOn="meetingState.isMicOn.value"
 							:activeSpeakerIds="meetingState.activeSpeakerIds.value"
-							:setLocalVideoRef="setLocalVideoRef"
-							:setRemoteVideoRef="setRemoteVideoRef"
 						/>
 					</div>
 
@@ -206,6 +200,11 @@ provideMeetingContext({
 	isInMeeting: computed(() => true),
 	onBackgroundEffectsChanged: applyBackgroundEffectsToLocalStream,
 });
+
+provide("setLocalVideoRef", setLocalVideoRef);
+provide("setRemoteVideoRef", setRemoteVideoRef);
+provide("setScreenShareVideoRef", setScreenShareVideoRef);
+provide("getParticipantName", meetingState.getParticipantName);
 
 // Computed properties
 const isConnecting = computed(() => meetingState.isConnecting.value);

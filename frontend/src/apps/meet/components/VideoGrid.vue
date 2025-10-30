@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { useVideoGridLayout } from "../composables/useVideoGridLayout.js";
 import { getInitials } from "../utils/text";
 import GroupTile from "./GroupTile.vue";
@@ -65,19 +65,14 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	setLocalVideoRef: {
-		type: Function,
-		required: true,
-	},
-	setRemoteVideoRef: {
-		type: Function,
-		required: true,
-	},
 	activeSpeakerIds: {
 		type: Array,
 		default: () => [],
 	},
 });
+
+const setLocalVideoRef = inject("setLocalVideoRef");
+const setRemoteVideoRef = inject("setRemoteVideoRef");
 
 const localParticipant = computed(() => {
 	const userIdRaw = props.currentUser?.user_id;
