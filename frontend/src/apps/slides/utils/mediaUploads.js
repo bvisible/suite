@@ -1,4 +1,4 @@
-import { FileUploadHandler, toast } from 'frappe-ui'
+import { FileUploadHandler, toast, call } from 'frappe-ui'
 
 import { presentationId, isPublicPresentation } from '../stores/presentation'
 import { currentSlide } from '../stores/slide'
@@ -6,7 +6,11 @@ import { addMediaElement, replaceMediaElement } from '../stores/element'
 
 const fileUploadHandler = new FileUploadHandler()
 
-const performPostUploadActions = (fileDoc, fileType, targetElement, resolve) => {
+const performPostUploadActions = async (fileDoc, fileType, targetElement, resolve) => {
+	if (fileType === 'image') {
+		fileDoc = await getWebPDoc(fileDoc.file_url)
+	}
+
 	if (targetElement) {
 		replaceMediaElement(targetElement, fileDoc, fileType)
 		resolve(fileDoc)
@@ -46,6 +50,13 @@ const getFileObject = (file) => {
 	} else if (isFile(file)) {
 		return file
 	}
+}
+
+const getWebPDoc = async (fileUrl) => {
+	return await call('slides.slides.doctype.presentation.presentation.get_webp_doc', {
+		presentation_name: presentationId.value,
+		file_url: fileUrl,
+	})
 }
 
 const handleFile = (file, toastProps, targetElement) => {
