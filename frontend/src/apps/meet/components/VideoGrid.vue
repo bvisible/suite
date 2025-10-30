@@ -48,37 +48,21 @@ import { getInitials } from "../utils/text";
 import GroupTile from "./GroupTile.vue";
 import ParticipantTile from "./ParticipantTile.vue";
 
-const props = defineProps({
-	participants: {
-		type: Object,
-		required: true,
-	},
-	currentUser: {
-		type: Object,
-		required: true,
-	},
-	isCameraOn: {
-		type: Boolean,
-		default: false,
-	},
-	isMicOn: {
-		type: Boolean,
-		default: false,
-	},
-	activeSpeakerIds: {
-		type: Array,
-		default: () => [],
-	},
-});
-
+const meetingState = inject("meetingState");
 const setLocalVideoRef = inject("setLocalVideoRef");
 const setRemoteVideoRef = inject("setRemoteVideoRef");
 
+const participants = computed(() => meetingState.participants.value);
+const currentUser = computed(() => meetingState.currentUser.value);
+const isCameraOn = computed(() => meetingState.isCameraOn.value);
+const isMicOn = computed(() => meetingState.isMicOn.value);
+const activeSpeakerIds = computed(() => meetingState.activeSpeakerIds.value);
+
 const localParticipant = computed(() => {
-	const userIdRaw = props.currentUser?.user_id;
-	const fullNameRaw = props.currentUser?.full_name;
-	const nameRaw = props.currentUser?.name;
-	const avatarRaw = props.currentUser?.avatar;
+	const userIdRaw = currentUser.value?.user_id;
+	const fullNameRaw = currentUser.value?.full_name;
+	const nameRaw = currentUser.value?.name;
+	const avatarRaw = currentUser.value?.avatar;
 
 	const user_id =
 		typeof userIdRaw === "string"
@@ -106,14 +90,11 @@ const localParticipant = computed(() => {
 	};
 });
 
-// to ensure reactivity, else the grid doesn't update when activeSpeakerIds changes
-const activeSpeakerIdsComputed = computed(() => props.activeSpeakerIds);
-
 const {
 	displayParticipants,
 	gridClass,
 	gridStyle,
 	visibleTileCount,
 	hiddenParticipantsTooltip,
-} = useVideoGridLayout(props.participants, activeSpeakerIdsComputed);
+} = useVideoGridLayout(participants, activeSpeakerIds);
 </script>

@@ -26,14 +26,7 @@
 			</div>
 		</div>
 
-		<ScreenShareSidebar
-			:participants="participants"
-			:currentUser="currentUser"
-			:isCameraOn="isCameraOn"
-			:isMicOn="isMicOn"
-			:activeSpeakerIds="activeSpeakerIds"
-			class="ml-3"
-		/>
+		<ScreenShareSidebar class="ml-3" />
 	</div>
 </template>
 
@@ -42,40 +35,20 @@ import { computed, inject } from "vue";
 import NamePill from "./NamePill.vue";
 import ScreenShareSidebar from "./ScreenShareSidebar.vue";
 
-const props = defineProps({
-	displayScreenShares: {
-		type: [Array, Object],
-		required: true,
-	},
-	participants: {
-		type: Object,
-		required: true,
-	},
-	currentUser: {
-		type: Object,
-		required: true,
-	},
-	isCameraOn: {
-		type: Boolean,
-		default: false,
-	},
-	isMicOn: {
-		type: Boolean,
-		default: false,
-	},
-	activeSpeakerIds: {
-		type: Array,
-		default: () => [],
-	},
-});
-
+// Inject meeting state and functions
+const meetingState = inject("meetingState");
 const setScreenShareVideoRef = inject("setScreenShareVideoRef");
 const getParticipantName = inject("getParticipantName");
 
-const getScreensharerName = computed(() => {
-	const firstShare = props.displayScreenShares[0];
+const displayScreenShares = computed(
+	() => meetingState.displayScreenShares.value,
+);
+const currentUser = computed(() => meetingState.currentUser.value);
 
-	if (props.currentUser?.user_id === firstShare?.participantId) {
+const getScreensharerName = computed(() => {
+	const firstShare = displayScreenShares.value[0];
+
+	if (currentUser.value?.user_id === firstShare?.participantId) {
 		return "Your screen";
 	}
 	if (firstShare) {
