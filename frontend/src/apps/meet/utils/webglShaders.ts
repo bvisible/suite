@@ -13,6 +13,7 @@ export const SHADERS = {
 	blurFragment: `
     precision mediump float;
     uniform sampler2D u_image;
+    uniform sampler2D u_mask;
     uniform vec2 u_resolution;
     uniform vec2 u_direction;
     uniform float u_sigma;
@@ -24,6 +25,21 @@ export const SHADERS = {
 
     void main() {
       vec2 texelSize = 1.0 / u_resolution;
+
+      // Get current pixel's mask value (0 = background, 1 = person)
+      float centerMask = texture2D(u_mask, v_texCoord).r;
+      vec4 originalColor = texture2D(u_image, v_texCoord);
+
+	  // If this is clearly foreground (person), just return the original color
+      if (centerMask > 0.95) {
+        gl_FragColor = originalColor;
+        return;
+      }
+
+      // Calculate blur radius based on mask (CoC simulation)
+      // Background gets full blur, foreground edges get partial blur for smooth transition
+      float blurRadius = (1.0 - centerMask) * u_sigma;
+
       vec4 color = vec4(0.0);
       float weightSum = 0.0;
 
@@ -35,12 +51,29 @@ export const SHADERS = {
         if (abs(float(i)) <= 3.0 * u_sigma) {
           float weight = gaussian(float(i), u_sigma);
           vec2 offset = vec2(float(i)) * u_direction * texelSize;
-          color += texture2D(u_image, v_texCoord + offset) * weight;
-          weightSum += weight;
+          vec2 sampleCoord = v_texCoord + offset;
+
+          // Get mask value at sample position
+          float sampleMask = texture2D(u_mask, sampleCoord).r;
+
+          // Only sample background pixels for background blur
+          // This prevents foreground from bleeding into background
+          float maskWeight = 1.0 - max(sampleMask - centerMask, 0.0);
+
+          vec4 sampleColor = texture2D(u_image, sampleCoord);
+          float finalWeight = weight * maskWeight;
+
+          color += sampleColor * finalWeight;
+          weightSum += finalWeight;
         }
       }
 
-      gl_FragColor = color / weightSum;
+      // Normalize blurred color
+      vec4 blurredColor = weightSum > 0.001 ? color / weightSum : originalColor;
+
+      // Blend: sharp foreground + blurred background
+      // Use centerMask to smoothly transition between blurred and original
+      gl_FragColor = mix(blurredColor, originalColor, centerMask);
     }
   `,
 };
@@ -236,6 +269,7 @@ export class WebGLManager {
 
 	renderBlur(
 		texture: WebGLTexture,
+		maskTexture: WebGLTexture,
 		width: number,
 		height: number,
 		sigma: number,
@@ -300,9 +334,15 @@ export class WebGLManager {
 			sigma,
 		);
 
+		// Bind image texture to unit 0
 		this.gl.activeTexture(this.gl.TEXTURE0);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 		this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_image"), 0);
+
+		// Bind mask texture to unit 1
+		this.gl.activeTexture(this.gl.TEXTURE1);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
+		this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_mask"), 1);
 
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
@@ -311,6 +351,7 @@ export class WebGLManager {
 
 	applyBlur(
 		imageData: ImageData,
+		maskData: Float32Array,
 		width: number,
 		height: number,
 		sigma: number,
@@ -321,12 +362,28 @@ export class WebGLManager {
 			throw new WebGLError("Failed to create texture");
 		}
 
-		let verticalTexture: WebGLTexture | null = null;
+		// Create texture from mask data
+		const maskImageData = new ImageData(width, height);
+		for (let i = 0; i < maskData.length; i++) {
+			const pixelIndex = i * 4;
+			const maskValue = maskData[i] * 255;
+			maskImageData.data[pixelIndex] = maskValue;
+			maskImageData.data[pixelIndex + 1] = maskValue;
+			maskImageData.data[pixelIndex + 2] = maskValue;
+			maskImageData.data[pixelIndex + 3] = 255;
+		}
+		const maskTexture = this.createTexture(maskImageData);
+		if (!maskTexture) {
+			throw new WebGLError("Failed to create mask texture");
+		}
+
+		let horizontalTexture: WebGLTexture | null = null;
 
 		try {
 			// First pass: horizontal blur
 			const horizontalResult = this.renderBlur(
 				texture,
+				maskTexture,
 				width,
 				height,
 				sigma,
@@ -334,13 +391,14 @@ export class WebGLManager {
 			);
 
 			// Second pass: vertical blur
-			verticalTexture = this.createTextureFromCanvas(horizontalResult);
-			if (!verticalTexture) {
-				throw new WebGLError("Failed to create vertical texture");
+			horizontalTexture = this.createTextureFromCanvas(horizontalResult);
+			if (!horizontalTexture) {
+				throw new WebGLError("Failed to create horizontal texture");
 			}
 
 			const finalResult = this.renderBlur(
-				verticalTexture,
+				horizontalTexture,
+				maskTexture,
 				width,
 				height,
 				sigma,
@@ -369,8 +427,9 @@ export class WebGLManager {
 		} finally {
 			// Clean up textures
 			this.gl.deleteTexture(texture);
-			if (verticalTexture) {
-				this.gl.deleteTexture(verticalTexture);
+			this.gl.deleteTexture(maskTexture);
+			if (horizontalTexture) {
+				this.gl.deleteTexture(horizontalTexture);
 			}
 		}
 	}
