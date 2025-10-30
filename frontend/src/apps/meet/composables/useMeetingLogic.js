@@ -747,6 +747,17 @@ export function useMeetingLogic(meetingState, meetingId) {
 						}
 					}
 				}
+
+				// Clean up background effects session and processed stream
+				if (backgroundSession) {
+					backgroundSession.cleanup?.();
+					backgroundSession = null;
+				}
+				if (processedStream.value) {
+					stopProcessing();
+					processedStream.value = null;
+				}
+
 				if (mh?.videoProducer) {
 					if (meetingState.isScreenSharing.value) {
 						try {
