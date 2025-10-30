@@ -344,12 +344,8 @@ export class SFUMeetingManager {
 
 	async attachVideoConsumer(participantId, consumer) {
 		try {
-			const audioConsumer =
-				this.consumerManager.getAudioConsumer(participantId);
-			const tracks = audioConsumer
-				? [consumer.track, audioConsumer.track]
-				: [consumer.track];
-			const stream = new MediaStream(tracks);
+			// only attach the video track as audio is managed separately
+			const stream = new MediaStream([consumer.track]);
 
 			await this.videoManager.attachStream(participantId, stream, false);
 
@@ -369,12 +365,8 @@ export class SFUMeetingManager {
 
 	async attachAudioConsumer(participantId, consumer) {
 		try {
-			const videoConsumer =
-				this.consumerManager.getVideoConsumer(participantId);
-			const tracks = videoConsumer
-				? [videoConsumer.track, consumer.track]
-				: [consumer.track];
-			const stream = new MediaStream(tracks);
+			// Only attach the audio track as video is managed separately
+			const stream = new MediaStream([consumer.track]);
 
 			await this.videoManager.attachStream(participantId, stream, false);
 		} catch (error) {
@@ -442,6 +434,18 @@ export class SFUMeetingManager {
 			try {
 				if (!event || !event.producerId || !event.participantId) {
 					console.warn("⚠️ Skipping malformed buffered producer event:", event);
+					continue;
+				}
+
+				// Check if we already have a consumer for this producer
+				const existingConsumers =
+					this.consumerManager.getConsumersByParticipant(event.participantId);
+				const alreadySubscribed = existingConsumers.some((c) => {
+					const consumerProducerId = c.consumer?.producerId || c.producerId;
+					return consumerProducerId === event.producerId;
+				});
+
+				if (alreadySubscribed) {
 					continue;
 				}
 

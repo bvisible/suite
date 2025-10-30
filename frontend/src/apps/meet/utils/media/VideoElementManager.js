@@ -58,7 +58,9 @@ export class VideoElementManager {
 			this.attachAudioStream(participantId, audioTracks);
 		}
 
-		if (!videoElement && !isLocal) {
+		// Only defer if we have video tracks and no video element
+		// Audio-only streams don't need video elements, so don't defer them
+		if (!videoElement && !isLocal && stream.getVideoTracks().length > 0) {
 			this.deferredAttachments.set(participantId, { stream, isLocal });
 			return;
 		}
@@ -94,8 +96,6 @@ export class VideoElementManager {
 						`✓ Skipping video re-attach for ${participantId} - same track`,
 					);
 				}
-			} else if (!isLocal) {
-				videoElement.srcObject = null;
 			}
 		}
 	}
