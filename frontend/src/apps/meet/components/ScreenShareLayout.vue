@@ -19,8 +19,8 @@
 			<div class="absolute top-2 left-2 w-full">
 				<NamePill
 					v-if="displayScreenShares.length"
-					:name="currentUser.name + `'s screen`"
-					size="md"
+					:name="getScreensharerName"
+					size="sm"
 					position="top-left"
 				/>
 			</div>
@@ -32,14 +32,13 @@
 			:isCameraOn="isCameraOn"
 			:isMicOn="isMicOn"
 			:activeSpeakerIds="activeSpeakerIds"
-			:setLocalVideoRef="setLocalVideoRef"
-			:setRemoteVideoRef="setRemoteVideoRef"
 			class="ml-3"
 		/>
 	</div>
 </template>
 
 <script setup>
+import { computed, inject } from "vue";
 import NamePill from "./NamePill.vue";
 import ScreenShareSidebar from "./ScreenShareSidebar.vue";
 
@@ -64,21 +63,23 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	setScreenShareVideoRef: {
-		type: Function,
-		required: true,
-	},
-	setLocalVideoRef: {
-		type: Function,
-		required: true,
-	},
-	setRemoteVideoRef: {
-		type: Function,
-		required: true,
-	},
 	activeSpeakerIds: {
 		type: Array,
 		default: () => [],
 	},
+});
+
+const setScreenShareVideoRef = inject("setScreenShareVideoRef");
+const getParticipantName = inject("getParticipantName");
+
+const getScreensharerName = computed(() => {
+	const firstShare = props.displayScreenShares[0];
+
+	if (props.currentUser?.user_id === firstShare?.participantId) {
+		return "Your screen";
+	}
+	if (firstShare) {
+		return `${getParticipantName(firstShare.participantId)}'s screen`;
+	}
 });
 </script>
