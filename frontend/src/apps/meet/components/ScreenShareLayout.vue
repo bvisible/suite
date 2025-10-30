@@ -16,11 +16,11 @@
 				></video>
 			</template>
 
-			<div class="absolute top-2 left-2">
+			<div class="absolute top-2 left-2 w-full">
 				<NamePill
 					v-if="displayScreenShares.length"
-					:name="getParticipantName(displayScreenShares[0].participantId) + `'s screen`"
-					size="sm"
+					:name="currentUser.name + `'s screen`"
+					size="md"
 					position="top-left"
 				/>
 			</div>
@@ -73,10 +73,6 @@ const props = defineProps({
 		required: true,
 	},
 	setRemoteVideoRef: {
-		type: Function,
-		required: true,
-	},
-	getParticipantName: {
 		type: Function,
 		required: true,
 	},

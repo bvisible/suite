@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import { useVideoGridLayout } from "../composables/useVideoGridLayout.js";
 import { getInitials } from "../utils/text";
 import GroupTile from "./GroupTile.vue";
