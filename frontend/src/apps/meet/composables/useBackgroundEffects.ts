@@ -487,6 +487,9 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 							currentImageData,
 							maskData,
 							backgroundImageData,
+							{
+								webglManager: webglManager || undefined,
+							},
 						);
 
 						outputCtx.putImageData(compositedImageData, 0, 0);

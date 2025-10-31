@@ -50,7 +50,7 @@ export function applyBlurEffect(
 }
 
 /**
- * Apply virtual background effect using person segmentation mask
+ * Apply virtual background effect using person segmentation mask with light wrapping
  */
 export function applyVirtualBackground(
 	imageData: ImageData,
@@ -58,7 +58,27 @@ export function applyVirtualBackground(
 	backgroundImageData: ImageData,
 	options: CompositingOptions = {},
 ): ImageData {
-	// Composite: background image + person from original video
+	const { webglManager } = options;
+
+	// Try if WebGL is available
+	if (webglManager) {
+		try {
+			return webglManager.applyLightWrap(
+				imageData,
+				maskData,
+				backgroundImageData,
+				imageData.width,
+				imageData.height,
+			);
+		} catch (error) {
+			console.warn(
+				"Light wrap failed, falling back to standard compositing:",
+				error,
+			);
+		}
+	}
+
+	// fallback
 	const outputData = new ImageData(imageData.width, imageData.height);
 	const originalData = imageData.data;
 	const backgroundData = backgroundImageData.data;
