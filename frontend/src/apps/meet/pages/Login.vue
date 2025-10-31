@@ -1,16 +1,20 @@
 <template>
-	<div class="m-3 flex flex-row items-center justify-center">
-		<Card title="Login to Frappe Meet" class="w-full max-w-md mt-4">
-			<form class="flex flex-col space-y-2 w-full px-1" @submit.prevent="submit">
-				<Input
+	<div class="flex h-screen overflow-hidden mt-20 justify-center">
+		<div class="w-full max-w-sm mt-4 space-y-6">
+			<FrappeMeetingLogo class="h-10 w-auto" />
+			<h1 class="text-2xl font-bold leading-5 tracking-tight text-gray-900">Login to Frappe Meet</h1>
+			<form class="flex flex-col space-y-4 w-full px-1" @submit.prevent="submit">
+				<FormControl
 					required
+					variant="outline"
 					name="email"
 					type="text"
 					placeholder="johndoe@email.com"
 					label="User ID"
 				/>
-				<Input
+				<FormControl
 					required
+					variant="outline"
 					name="password"
 					type="password"
 					placeholder="••••••"
@@ -18,38 +22,41 @@
 				/>
 				<Button :loading="session.login.loading" variant="solid">Login</Button>
 			</form>
-			<div v-if="oAuthProviders.data?.length" class="mt-6 border-t text-center">
-				<div class="-translate-y-1/2 transform">
-					<span
-						class="relative bg-surface-white px-2 text-sm font-medium leading-8 text-ink-gray-8"
-					>
-						or
-					</span>
+			<div v-if="oAuthProviders.data?.length">
+				<div  class="mt-6 border-t text-center">
+					<div class="-translate-y-1/2 transform">
+						<span
+							class="relative bg-surface-white px-2 text-sm font-medium leading-8 text-ink-gray-8"
+						>
+							or
+						</span>
+					</div>
 				</div>
+				<Button
+					v-for="provider in oAuthProviders.data"
+					:key="provider.name"
+					class="mb-2 w-full"
+					:link="provider.auth_url"
+				>
+					<div class="flex items-center">
+						<div v-html="provider.icon" />
+						<span class="ml-2">
+							Continue with
+							{{ provider.provider_name }}
+						</span>
+					</div>
+				</Button>
 			</div>
-			<Button
-				v-for="provider in oAuthProviders.data"
-				:key="provider.name"
-				class="mb-2 w-full"
-				:link="provider.auth_url"
-			>
-				<div class="flex items-center">
-					<div v-html="provider.icon" />
-					<span class="ml-2">
-						Continue with
-						{{ provider.provider_name }}
-					</span>
-				</div>
-			</Button>
-		</Card>
+		</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { Button, Card, Input, createResource, toast } from "frappe-ui";
+import { Button, FormControl, createResource, toast } from "frappe-ui";
 import { useRoute, useRouter } from "vue-router";
 import { session } from "../data/session";
 import { userResource } from "../data/user";
+import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 
 const router = useRouter();
 const route = useRoute();
