@@ -69,7 +69,11 @@ router.beforeEach(async (to, from, next) => {
 	}
 
 	if (!isLoggedIn) {
-		return next({ name: "Login", query: { next: to.fullPath } });
+		let query = {};
+		if (to.name !== "Home") {
+			query = { next: to.fullPath };
+		}
+		return next({ name: "Login", query });
 	}
 
 	next();
