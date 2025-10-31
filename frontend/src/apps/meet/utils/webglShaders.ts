@@ -76,6 +76,109 @@ export const SHADERS = {
       gl_FragColor = mix(blurredColor, originalColor, centerMask);
     }
   `,
+
+	lightWrapFragment: `
+    precision mediump float;
+    uniform sampler2D u_image;        // Original video frame
+    uniform sampler2D u_mask;         // Segmentation mask
+    uniform sampler2D u_background;   // Virtual background image
+    uniform vec2 u_resolution;
+    varying vec2 v_texCoord;
+
+    void main() {
+      vec2 texelSize = 1.0 / u_resolution;
+
+      // Get current pixel's mask value (0 = background, 1 = person)
+      float centerMask = texture2D(u_mask, v_texCoord).r;
+      vec4 originalColor = texture2D(u_image, v_texCoord);
+      vec4 backgroundColor = texture2D(u_background, v_texCoord);
+
+      // Solid foreground (person interior) - no light wrap needed
+      if (centerMask > 0.9) {
+        gl_FragColor = originalColor;
+        return;
+      }
+
+      // Solid background - use background color
+      if (centerMask < 0.1) {
+        gl_FragColor = backgroundColor;
+        return;
+      }
+
+      // Edge region (0.1 < mask < 0.9) - apply light wrapping
+      // Calculate edge normal by sampling mask gradient
+      float maskLeft = texture2D(u_mask, v_texCoord + vec2(-texelSize.x, 0.0)).r;
+      float maskRight = texture2D(u_mask, v_texCoord + vec2(texelSize.x, 0.0)).r;
+      float maskUp = texture2D(u_mask, v_texCoord + vec2(0.0, -texelSize.y)).r;
+      float maskDown = texture2D(u_mask, v_texCoord + vec2(0.0, texelSize.y)).r;
+
+      // Gradient points from background to foreground
+      vec2 gradient = vec2(maskRight - maskLeft, maskDown - maskUp);
+      float gradientLength = length(gradient);
+
+      // If gradient is too small, just composite normally
+      if (gradientLength < 0.01) {
+        gl_FragColor = mix(backgroundColor, originalColor, centerMask);
+        return;
+      }
+
+      // Normalize gradient to get edge normal (points toward background)
+      vec2 edgeNormal = -gradient / gradientLength;
+
+      // Sample background colors at multiple distances in the normal direction
+      // These distances are in pixels (scaled by texelSize)
+      vec3 sampledColor = vec3(0.0);
+      float totalWeight = 0.0;
+
+      // Sample at 5px, 10px, 15px distances with decreasing weights
+      vec2 sampleOffsets[3];
+      sampleOffsets[0] = edgeNormal * texelSize * 5.0;
+      sampleOffsets[1] = edgeNormal * texelSize * 10.0;
+      sampleOffsets[2] = edgeNormal * texelSize * 15.0;
+
+      float sampleWeights[3];
+      sampleWeights[0] = 0.5;
+      sampleWeights[1] = 0.3;
+      sampleWeights[2] = 0.2;
+
+      for (int i = 0; i < 3; i++) {
+        vec2 sampleCoord = v_texCoord + sampleOffsets[i];
+
+        // Ensure we're sampling within bounds
+        if (sampleCoord.x >= 0.0 && sampleCoord.x <= 1.0 &&
+            sampleCoord.y >= 0.0 && sampleCoord.y <= 1.0) {
+
+          // Sample background color
+          vec4 bgSample = texture2D(u_background, sampleCoord);
+          float weight = sampleWeights[i];
+
+          sampledColor += bgSample.rgb * weight;
+          totalWeight += weight;
+        }
+      }
+
+      // Normalize sampled color
+      if (totalWeight > 0.0) {
+        sampledColor /= totalWeight;
+      } else {
+        // Fallback to current background pixel if sampling failed
+        sampledColor = backgroundColor.rgb;
+      }
+
+      // Calculate light wrap strength based on:
+      // 1. How close to edge (1 - centerMask gives more wrap to background pixels)
+      // 2. Edge falloff (strongest at edges, fades toward center)
+      float edgeStrength = smoothstep(0.3, 0.7, 1.0 - centerMask);
+
+      // Apply light wrap: blend sampled background color into edge pixels
+      vec3 wrappedColor = mix(originalColor.rgb, sampledColor, edgeStrength);
+
+      // Final compositing: blend wrapped foreground with background
+      vec3 finalColor = mix(backgroundColor.rgb, wrappedColor, centerMask);
+
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `,
 };
 
 export class WebGLError extends Error {
@@ -431,6 +534,152 @@ export class WebGLManager {
 			if (horizontalTexture) {
 				this.gl.deleteTexture(horizontalTexture);
 			}
+		}
+	}
+
+	applyLightWrap(
+		imageData: ImageData,
+		maskData: Float32Array,
+		backgroundImageData: ImageData,
+		width: number,
+		height: number,
+	): ImageData {
+		const vertexShader = this.createShader(
+			this.gl.VERTEX_SHADER,
+			SHADERS.vertex,
+		);
+		const fragmentShader = this.createShader(
+			this.gl.FRAGMENT_SHADER,
+			SHADERS.lightWrapFragment,
+		);
+
+		if (!vertexShader || !fragmentShader) {
+			throw new WebGLError("Failed to create light wrap shaders");
+		}
+
+		const lightWrapProgram = this.createProgram(vertexShader, fragmentShader);
+		if (!lightWrapProgram) {
+			throw new WebGLError("Failed to create light wrap shader program");
+		}
+
+		const imageTexture = this.createTexture(imageData);
+		if (!imageTexture) {
+			throw new WebGLError("Failed to create image texture");
+		}
+
+		const maskImageData = new ImageData(width, height);
+		for (let i = 0; i < maskData.length; i++) {
+			const pixelIndex = i * 4;
+			const maskValue = maskData[i] * 255;
+			maskImageData.data[pixelIndex] = maskValue;
+			maskImageData.data[pixelIndex + 1] = maskValue;
+			maskImageData.data[pixelIndex + 2] = maskValue;
+			maskImageData.data[pixelIndex + 3] = 255;
+		}
+		const maskTexture = this.createTexture(maskImageData);
+		if (!maskTexture) {
+			throw new WebGLError("Failed to create mask texture");
+		}
+
+		const backgroundTexture = this.createTexture(backgroundImageData);
+		if (!backgroundTexture) {
+			throw new WebGLError("Failed to create background texture");
+		}
+
+		try {
+			const canvas = this.gl.canvas as HTMLCanvasElement;
+			canvas.width = width;
+			canvas.height = height;
+
+			this.gl.viewport(0, 0, width, height);
+			this.gl.clearColor(0, 0, 0, 0);
+			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+			this.gl.useProgram(lightWrapProgram);
+
+			const positionLocation = 0; // a_position is bound to location 0
+			this.gl.enableVertexAttribArray(positionLocation);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+			this.gl.vertexAttribPointer(
+				positionLocation,
+				2,
+				this.gl.FLOAT,
+				false,
+				0,
+				0,
+			);
+
+			const texCoordLocation = this.gl.getAttribLocation(
+				lightWrapProgram,
+				"a_texCoord",
+			);
+			this.gl.enableVertexAttribArray(texCoordLocation);
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+			this.gl.vertexAttribPointer(
+				texCoordLocation,
+				2,
+				this.gl.FLOAT,
+				false,
+				0,
+				0,
+			);
+
+			this.gl.uniform2f(
+				this.gl.getUniformLocation(lightWrapProgram, "u_resolution"),
+				width,
+				height,
+			);
+
+			// Image texture to unit 0
+			this.gl.activeTexture(this.gl.TEXTURE0);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, imageTexture);
+			this.gl.uniform1i(
+				this.gl.getUniformLocation(lightWrapProgram, "u_image"),
+				0,
+			);
+
+			// Mask texture to unit 1
+			this.gl.activeTexture(this.gl.TEXTURE1);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
+			this.gl.uniform1i(
+				this.gl.getUniformLocation(lightWrapProgram, "u_mask"),
+				1,
+			);
+
+			// Background texture to unit 2
+			this.gl.activeTexture(this.gl.TEXTURE2);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, backgroundTexture);
+			this.gl.uniform1i(
+				this.gl.getUniformLocation(lightWrapProgram, "u_background"),
+				2,
+			);
+
+			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+
+			if (!this.outputCanvas) {
+				throw new WebGLError("Output canvas not initialized");
+			}
+
+			this.outputCanvas.width = width;
+			this.outputCanvas.height = height;
+			const outputCtx = this.outputCanvas.getContext("2d", {
+				willReadFrequently: true,
+			});
+
+			if (!outputCtx) {
+				throw new WebGLError("Failed to create output canvas context");
+			}
+
+			outputCtx.drawImage(canvas, 0, 0);
+			return outputCtx.getImageData(0, 0, width, height);
+		} finally {
+			this.gl.deleteTexture(imageTexture);
+			this.gl.deleteTexture(maskTexture);
+			this.gl.deleteTexture(backgroundTexture);
+
+			this.gl.deleteShader(vertexShader);
+			this.gl.deleteShader(fragmentShader);
+			this.gl.deleteProgram(lightWrapProgram);
 		}
 	}
 
