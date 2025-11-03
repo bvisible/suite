@@ -25,6 +25,10 @@ class SFUClient {
 	// ==================== CONNECTION MANAGEMENT ====================
 
 	async connect(meetingId) {
+		if (this.connected) {
+			return true;
+		}
+
 		try {
 			const connectionDetails = await this.getConnectionDetails(meetingId);
 			this.connectionDetails = connectionDetails;
