@@ -526,16 +526,11 @@ export class SFUMeetingManager {
 				}
 			} catch (_) {}
 
-			try {
-				if (
-					this.eventHandlers &&
-					typeof this.eventHandlers.onScreenShareStopped === "function"
-				) {
-					this.eventHandlers.onScreenShareStopped({
-						participantId: data?.participantId,
-					});
-				}
-			} catch (_) {}
+			if (this.eventHandlers && data?.isScreen) {
+				this.eventHandlers.onScreenShareStopped({
+					participantId: data?.participantId,
+				});
+			}
 		});
 
 		// When server explicitly notifies a consumer was closed, ensure local removal
