@@ -654,25 +654,13 @@ export function useMeetingLogic(meetingState, meetingId) {
 				// Publish or resume producer
 				const track = stream.getVideoTracks()[0];
 				if (mh?.videoProducer) {
-					if (meetingState.isScreenSharing.value) {
-						try {
-							const currentTrack = mh.videoProducer.track;
-							if (currentTrack && currentTrack.readyState === "ended") {
-								await mh.videoProducer.replaceTrack({ track });
-							} else {
-								mh.videoProducer.resume?.();
-								if (track) track.enabled = true;
-							}
-						} catch (_) {}
-					} else {
-						const trackToReplace = processedStream.value
-							? processedStream.value.getVideoTracks()[0]
-							: track;
-						try {
-							await mh.videoProducer.replaceTrack({ track: trackToReplace });
-						} catch (error) {
-							console.warn("⚠️ Failed to replace video track:", error);
-						}
+					const trackToReplace = processedStream.value
+						? processedStream.value.getVideoTracks()[0]
+						: track;
+					try {
+						await mh.videoProducer.replaceTrack({ track: trackToReplace });
+					} catch (error) {
+						console.warn("⚠️ Failed to replace video track:", error);
 					}
 				} else if (track && sfuManager.value?.transportManager) {
 					// use processed stream if available
@@ -695,13 +683,8 @@ export function useMeetingLogic(meetingState, meetingId) {
 				if (stream) {
 					const vt = stream.getVideoTracks()[0];
 					if (vt) {
-						if (meetingState.isScreenSharing.value) {
-							// Keep track alive for resuming, else user can't re-enable after screen share
-							vt.enabled = false;
-						} else {
-							vt.stop();
-							stream.removeTrack(vt);
-						}
+						vt.stop();
+						stream.removeTrack(vt);
 					}
 				}
 
@@ -716,22 +699,14 @@ export function useMeetingLogic(meetingState, meetingId) {
 				}
 
 				if (mh?.videoProducer) {
-					if (meetingState.isScreenSharing.value) {
-						try {
-							mh.videoProducer.pause?.();
-						} catch (_) {}
-					} else {
-						try {
-							mh.videoProducer.close?.();
+					mh.videoProducer.close?.();
 
-							const sfuClient = getSFUClient();
-							if (sfuClient.isConnected()) {
-								sfuClient.closeProducer(mh.videoProducer.id).catch(() => {});
-							}
-						} catch (_) {}
-
-						mh.videoProducer = null;
+					const sfuClient = getSFUClient();
+					if (sfuClient.isConnected()) {
+						sfuClient.closeProducer(mh.videoProducer.id).catch(() => {});
 					}
+
+					mh.videoProducer = null;
 				}
 			}
 
@@ -803,7 +778,6 @@ export function useMeetingLogic(meetingState, meetingId) {
 						sfuClient.sendScreenShare("stop_share");
 					} catch (_) {}
 				}
-				console.log("🖥️ Screen sharing stopped (tracks closed)");
 			} else {
 				// Start screen sharing (Firefox-friendly)
 				let screenStream = null;
