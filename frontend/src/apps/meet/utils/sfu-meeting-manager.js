@@ -104,6 +104,10 @@ export class SFUMeetingManager {
 	}
 
 	async connect() {
+		if (this.isConnected) {
+			return true;
+		}
+
 		try {
 			this.sfuClient = getSFUClient();
 			await this.sfuClient.connect(this.meetingId);

@@ -57,6 +57,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 	const screenShareVideoElements = new Map();
 	const realtimeListenersSetup = ref(false);
 	const activeSpeakerTimeout = ref(null);
+	const joiningInProgress = ref(false);
 
 	// Background effects
 	const { applyBackgroundEffects, stopProcessing, processedStream } =
@@ -968,7 +969,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 	 * Join meeting room
 	 */
 	const joinMeetingRoom = async () => {
+		if (joiningInProgress.value) {
+			return;
+		}
+
 		try {
+			joiningInProgress.value = true;
 			meetingState.isConnecting.value = true;
 			meetingState.connectionError.value = null;
 
@@ -1019,6 +1025,8 @@ export function useMeetingLogic(meetingState, meetingId) {
 			meetingState.connectionError.value =
 				error.message || "Failed to join meeting";
 			meetingState.isConnecting.value = false;
+		} finally {
+			joiningInProgress.value = false;
 		}
 	};
 
