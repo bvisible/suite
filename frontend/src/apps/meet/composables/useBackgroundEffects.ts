@@ -173,10 +173,15 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 				updateOptions: async () => {},
 			};
 
-		await haltProcessing({ disposeWebGL: true });
-		const preStartResetSucceeded = await resetSegmentationState();
-		if (!preStartResetSucceeded) {
-			await releaseSegmentation();
+		await haltProcessing({ disposeWebGL: false });
+		// reset segmentation state only if model is not initialized
+		// or if there was a previous error
+		const shouldReset = !selfieSegmentation || modelInitializationPromise;
+		if (shouldReset) {
+			const preStartResetSucceeded = await resetSegmentationState();
+			if (!preStartResetSucceeded) {
+				await releaseSegmentation();
+			}
 		}
 
 		animationId = null;
