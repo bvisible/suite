@@ -665,65 +665,21 @@ export function useMeetingLogic(meetingState, meetingId) {
 							}
 						} catch (_) {}
 					} else {
-						// Use processed stream if available
-						// otherwise apply effects
-						let trackToPublish = track;
-						if (processedStream.value) {
-							trackToPublish = processedStream.value.getVideoTracks()[0];
-						} else {
-							const bgEffects = getBackgroundEffectsFromStorage();
-							if (bgEffects.anyEnabled) {
-								try {
-									const processedResult = await applyBackgroundEffects(stream, {
-										blurIntensity: bgEffects.blurIntensity,
-										backgroundBlurEnabled: bgEffects.blurEnabled,
-										backgroundImageEnabled: bgEffects.imageEnabled,
-										selectedBackgroundImage: bgEffects.selectedImage,
-									});
-									const processedVideoTrack =
-										processedResult.stream.getVideoTracks()[0];
-									if (processedVideoTrack) {
-										trackToPublish = processedVideoTrack;
-									}
-								} catch (error) {
-									console.warn(
-										"⚠️ Failed to apply background effects, using original track:",
-										error,
-									);
-								}
-							}
+						const trackToReplace = processedStream.value
+							? processedStream.value.getVideoTracks()[0]
+							: track;
+						try {
+							await mh.videoProducer.replaceTrack({ track: trackToReplace });
+						} catch (error) {
+							console.warn("⚠️ Failed to replace video track:", error);
 						}
-
-						const producer =
-							await sfuManager.value.transportManager.createProducer(
-								trackToPublish,
-								{
-									type: "camera",
-								},
-							);
-						mh?.setProducers({ videoProducer: producer });
 					}
 				} else if (track && sfuManager.value?.transportManager) {
-					// Apply background effects if enabled before publishing
-					let trackToPublish = track;
-					const bgEffects = getBackgroundEffectsFromStorage();
-					if (bgEffects.anyEnabled) {
-						try {
-							const processedResult = await applyBackgroundEffects(stream, {
-								blurIntensity: bgEffects.blurIntensity,
-							});
-							const processedVideoTrack =
-								processedResult.stream.getVideoTracks()[0];
-							if (processedVideoTrack) {
-								trackToPublish = processedVideoTrack;
-							}
-						} catch (error) {
-							console.warn(
-								"⚠️ Failed to apply background effects, using original track:",
-								error,
-							);
-						}
-					}
+					// use processed stream if available
+					// since background effects may be applied
+					const trackToPublish = processedStream.value
+						? processedStream.value.getVideoTracks()[0]
+						: track;
 
 					const producer =
 						await sfuManager.value.transportManager.createProducer(
