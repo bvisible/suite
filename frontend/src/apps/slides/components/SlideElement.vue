@@ -71,6 +71,8 @@ const elementStyle = computed(() => {
 		outline: props.highlight ? `#70B6F092 solid ${2 / slideBounds.scale}px` : 'none',
 		boxSizing: 'border-box',
 		zIndex: element.value.zIndex,
+		transform: `translate(-50%, 0%)`,
+		transformOrigin: 'center none',
 	}
 })
 
