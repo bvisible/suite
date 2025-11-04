@@ -231,6 +231,7 @@ useResizeObserver(activeDiv, (entries) => {
 	updateSelectionBounds({
 		width: width,
 		height: height,
+		left: selectionBounds.left + (selectionBounds.width - width) / 2,
 	})
 })
 
