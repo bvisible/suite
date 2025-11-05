@@ -34,7 +34,9 @@ app_license = "agpl-3.0"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "writer/public/scss/website"
-
+website_route_rules = [
+    {"from_route": "/writer/<path:app_path>", "to_route": "writer"},
+]
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
 # webform_include_css = {"doctype": "public/css/doctype.css"}
@@ -244,4 +246,3 @@ app_license = "agpl-3.0"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
