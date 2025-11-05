@@ -8,10 +8,10 @@
 			:side="'top'"
 			:align="'center'"
 			:side-offset="12"
-			class="bg-black/90 rounded-2xl p-6 shadow-xl border border-white/10 max-w-sm w-full"
+			class="bg-black/90 rounded-2xl p-3 shadow-xl border border-white/10 max-w-sm w-full"
 		>
 			<div class="text-center">
-				<div class="grid grid-cols-5 gap-2">
+				<div class="grid grid-cols-5 gap-3">
 					<button
 						v-for="emoji in reactionEmojis"
 						:key="emoji"
