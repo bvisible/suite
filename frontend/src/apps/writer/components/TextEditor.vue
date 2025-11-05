@@ -3,7 +3,7 @@
     <TextEditorFixedMenu
       v-if="editor && editable && !settings.minimal && !current"
       class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0"
-      :buttons="true"
+      :buttons="menuButtons"
     />
     <div
       v-if="current"
@@ -122,6 +122,8 @@ import {
   debounce,
   useFileUpload,
 } from 'frappe-ui'
+
+import { ShareDialog } from 'frappe-ui/frappe/drive'
 import { v4 as uuidv4 } from 'uuid'
 import {
   computed,
@@ -149,7 +151,7 @@ import {
 
 import LucideMessageCircle from '~icons/lucide/message-circle'
 
-// import store from '@/store'
+import store from '@/store'
 import emitter from '@/emitter'
 import { rename } from '@/resources/files'
 import { printDoc, getRandomColor, dynamicList } from '@/utils'
@@ -552,12 +554,6 @@ const syncToWiki = async (wiki_space, group, entity_names) => {
 }
 
 window.run = () => syncToWiki(['uu9pbukv8s', '5fpvulc7so'])
-const socket = inject('socket')
-socket.on('sync_to_wiki', (data) => {
-  for (let [title, pages] of Object.entries(data.groups)) {
-    syncToWiki(data.space, title, pages)
-  }
-})
 </script>
 <style>
 @import url('@/styles/editor.css');

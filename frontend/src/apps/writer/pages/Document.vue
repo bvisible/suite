@@ -217,6 +217,7 @@ const saveDocument = (comment = false) => {
 const inIframe = inject('inIframe')
 
 const onSuccess = (data) => {
+  console.log(store)
   window.document.title = data.title
   updateURLSlug(data.title)
 
