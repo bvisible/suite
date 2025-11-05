@@ -1,5 +1,8 @@
 <template>
-	<div class="flex-1 flex min-h-0 overflow-hidden mb-2">
+	<div
+		ref="screenShareContainer"
+		class="flex-1 flex min-h-0 overflow-hidden mb-2"
+	>
 		<div
 			class="flex-1 relative bg-black rounded-lg overflow-hidden flex items-center justify-center"
 		>
@@ -27,11 +30,17 @@
 		</div>
 
 		<ScreenShareSidebar class="ml-3" />
+
+		<FloatingReactions
+			:reactions="allReactions"
+			:container-ref="screenShareContainer"
+		/>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject } from "vue";
+import { computed, inject, ref } from "vue";
+import FloatingReactions from "./FloatingReactions.vue";
 import NamePill from "./NamePill.vue";
 import ScreenShareSidebar from "./ScreenShareSidebar.vue";
 
@@ -54,5 +63,39 @@ const getScreensharerName = computed(() => {
 	if (firstShare) {
 		return `${getParticipantName(firstShare.participantId)}'s screen`;
 	}
+});
+
+const screenShareContainer = ref(null);
+
+const allReactions = computed(() => {
+	const reactions = meetingState.reactions?.value || {};
+	const allReactions = [];
+	const currentUserId = currentUser.value?.user_id;
+
+	for (const [userId, reaction] of Object.entries(reactions)) {
+		if (reaction && userId !== currentUserId) {
+			const participant = meetingState.participants.value[userId];
+			const userName =
+				participant?.user_name || participant?.user_id || "Unknown";
+
+			allReactions.push({
+				userId,
+				userName,
+				emoji: reaction.emoji,
+				timestamp: reaction.expiresAt - 5000,
+				expiresAt: reaction.expiresAt,
+				uniqueId: `${userId}-${reaction.emoji}-${reaction.expiresAt}`,
+			});
+		}
+	}
+
+	// Sort (most recent first) and limit to 6 reactions
+	const sorted = [...allReactions].sort((a, b) => {
+		const timeDiff = b.timestamp - a.timestamp;
+		if (timeDiff !== 0) return timeDiff;
+		return a.userId.localeCompare(b.userId);
+	});
+
+	return sorted.slice(0, 6);
 });
 </script>
