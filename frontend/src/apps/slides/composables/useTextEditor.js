@@ -98,6 +98,7 @@ export const useTextEditor = () => {
 			if (textContent.length == 0 && !isRestoringStyles) {
 				isRestoringStyles = true
 				applyLastUsedStyles(editor)
+				editor.view.dom.style.fontSize = `${lastUsedStyles.fontSize || 28}px`
 				setTimeout(() => {
 					isRestoringStyles = false
 				}, 0)
