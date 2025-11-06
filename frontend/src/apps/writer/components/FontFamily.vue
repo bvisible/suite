@@ -6,7 +6,7 @@
       :placeholder="font_size + 'px'"
       :open-on-click="true"
       class="w-[5rem]"
-      input-classes="!bg-transparent"
+      variant="ghost"
     />
     <Combobox
       v-model="selected"
@@ -14,7 +14,7 @@
       :placeholder="FONT_FAMILIES.find((k) => k.value === font_family)?.label"
       :open-on-click="true"
       class="min-w-[10rem]"
-      input-classes="!bg-transparent"
+      variant="ghost"
       :style="selected && { fontFamily: `var(--font-${selected})` }"
     />
   </div>

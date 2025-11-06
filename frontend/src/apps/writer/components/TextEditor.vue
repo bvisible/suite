@@ -64,7 +64,7 @@
               const fileUpload = useFileUpload()
               return fileUpload.upload(file, {
                 params: { doc: entity.name },
-                upload_endpoint: `/api/method//api/method/drive.api.files.upload_embed`,
+                upload_endpoint: `/api/method/drive.api.files.upload_embed`,
               })
             }
           "
@@ -99,8 +99,8 @@
           </template>
         </FTextEditor>
       </div>
-      <ToC v-show="anchors.length > 1" :editor :anchors :class="editable ? 'top-24' : 'top-15'" />
-      <FloatingComments
+      <!-- <ToC v-show="anchors.length > 1" :editor :anchors :class="editable ? 'top-24' : 'top-15'" /> -->
+      <!-- <FloatingComments
         v-if="comments.length"
         v-model:show-comments="showComments"
         v-model:active-comment="activeComment"
@@ -109,7 +109,7 @@
         :editor
         @save="$emit('saveComment')"
         @autosave="autosave"
-      />
+      /> -->
     </div>
   </div>
 </template>
@@ -122,8 +122,6 @@ import {
   debounce,
   useFileUpload,
 } from 'frappe-ui'
-
-import { ShareDialog } from 'frappe-ui/frappe/drive'
 import { v4 as uuidv4 } from 'uuid'
 import {
   computed,
@@ -149,6 +147,7 @@ import {
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
 
+
 import LucideMessageCircle from '~icons/lucide/message-circle'
 
 import store from '@/store'
@@ -165,7 +164,7 @@ import { CharacterCount } from '@/extensions/character-count'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { FontSize } from '@/extensions/font-size'
 import EmbedExtension from '@/extensions/embed-extension'
-import FloatingComments from './FloatingComments.vue'
+// import FloatingComments from './FloatingComments.vue'
 
 const rawContent = defineModel('rawContent')
 const yjsContent = defineModel('yjsContent')
@@ -536,7 +535,7 @@ onKeyDown('s', (e) => {
 const syncToWiki = async (wiki_space, group, entity_names) => {
   for (let k of entity_names) {
     const data = await createResource({
-      url: '/api/method/drive.api.wiki_integration.get_yjs_content',
+      url: 'drive.api.wiki_integration.get_yjs_content',
       params: { entity_name: k },
     }).fetch()
     let pre_doc = new Y.Doc({ gc: true })

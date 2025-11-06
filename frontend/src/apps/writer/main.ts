@@ -10,11 +10,14 @@ import {
   FormControl,
   Button
 } from "frappe-ui"
+import {translation} from 'frappe-ui/frappe'
 const app = createApp(App)
 
 setConfig('resourceFetcher', frappeRequest)
 app.use(router)
 app.use(store)
+app.use(translation, "drive.api.product.get_translations")
+
 
 app.component("FormControl", FormControl)
 app.component("Button", Button)

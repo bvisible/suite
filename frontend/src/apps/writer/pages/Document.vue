@@ -14,7 +14,9 @@
     <UsersBar
       v-if="editorValue?.storage?.collaborationCursor?.users?.length > 1"
       :users="
-        editorValue.storage.collaborationCursor.users.filter((k) => k.name !== $store.state.user.id)
+        editorValue.storage.collaborationCursor.users.filter(
+          (k) => k.name !== $store.state.user.id
+        )
       "
     />
 
@@ -43,7 +45,7 @@
       "
     />
   </Teleport> -->
-  <!-- <Navbar
+  <Navbar
     v-if="!inIframe && (docSettings?.doc || !isFrappeDoc)"
     :root-resource="document"
     :actions="isFrappeDoc ? navBarActions : null"
@@ -55,24 +57,23 @@
         </router-link>
       </Button>
     </template>
-  </Navbar> -->
+  </Navbar>
 
   <!-- <ErrorPage v-if="document.error" :error="document.error" /> -->
   <LoadingIndicator
-    v-else-if="!document.data && document.loading"
+    v-if="!document.data && document.loading"
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
   <div v-else class="flex w-full h-full overflow-hidden">
-    <!-- <VersionsSidebar
+    <VersionsSidebar
       v-if="showVersions"
       v-model="current"
       v-model:show-versions="showVersions"
       :editor="editor?.editor"
       :versions="entity.versions"
       @save-document="saveDocument"
-      @save-comment="saveDocument(true)"
-    /> -->
+    />
     <TextEditor
       v-if="!isFrappeDoc || docSettings?.doc?.settings"
       ref="editor"
@@ -88,6 +89,7 @@
       :users="allUsers.data || []"
       :show-resolved
       @save-document="saveDocument"
+      @save-comment="saveDocument(true)"
       @new-version="
         (snap, duration, title) => {
           newVersion.submit({
@@ -112,6 +114,7 @@
 
 <script setup>
 import { fromUint8Array, toUint8Array } from 'js-base64'
+import Navbar from '@/components/Navbar.vue'
 import {
   ref,
   inject,
@@ -127,10 +130,10 @@ import { useStore } from 'vuex'
 import { createResource, LoadingIndicator, useDoc } from 'frappe-ui'
 
 import VersionsSidebar from '@/components/VersionsSidebar.vue'
-import WriterSettings from '@/components/WriterSettings.vue'
-import UsersBar from '@/components/UsersBar.vue'
+// import WriterSettings from '@/components/WriterSettings.vue'
+// import UsersBar from '@/components/UsersBar.vue'
 
-import { prettyData, updateURLSlug, dynamicList, toast } from '@/utils/'
+import { setBreadCrumbs, prettyData, updateURLSlug, dynamicList, toast } from '@/utils/'
 import { entitiesDownload } from '@/utils/download'
 import { allUsers, apps } from '@/resources/permissions'
 
@@ -193,7 +196,7 @@ let docSettings, globalSettings
 const isFrappeDoc = computed(() => entity.value && entity.value.mime_type === 'frappe_doc')
 
 const saveDocument = (comment = false) => {
-  if (!edited.value || current.value) return
+  if ((!comment && !edited.value) || current.value) return
   if (entity.value.write || (comment && entity.value.comment)) {
     if (isFrappeDoc.value) {
       const params = {
@@ -217,19 +220,18 @@ const saveDocument = (comment = false) => {
 const inIframe = inject('inIframe')
 
 const onSuccess = (data) => {
-  console.log(store)
   window.document.title = data.title
   updateURLSlug(data.title)
 
   document.setData(prettyData([data])[0])
   entity.value = data
-  //   store.commit('setActiveEntity', data)
+  store.commit('setActiveEntity', data)
 
   title.value = data.title
   rawContent.value = data.raw_content
   if (data.content) yjsContent.value = toUint8Array(data.content)
   lastFetched.value = Date.now()
-  //   setBreadCrumbs(data)
+  setBreadCrumbs(data)
   if (data.mime_type === 'frappe_doc') {
     docSettings = useDoc({
       doctype: 'Drive Document',
@@ -264,17 +266,17 @@ const settings = computed(() => {
 })
 
 const document = createResource({
-  url: '/api/method/drive.api.permissions.get_entity_with_permissions',
+  url: 'drive.api.permissions.get_entity_with_permissions',
   auto: true,
   params: {
     entity_name: props.entityName,
   },
   onSuccess,
 })
-// store.commit('setCurrentResource', document)
+store.commit('setCurrentResource', document)
 
 const updateDocument = createResource({
-  url: '/api/method/drive.api.files.save_doc',
+  url: 'drive.api.files.save_doc',
   onError() {
     toast({
       title: 'There was an error.',
@@ -285,7 +287,7 @@ const updateDocument = createResource({
 })
 
 const newVersion = createResource({
-  url: '/api/method/drive.api.docs.create_version',
+  url: 'drive.api.docs.create_version',
   makeParams: (k) => ({ ...k, doc: entity.value.document }),
   onSuccess(data) {
     if (data && data.length != entity.value.versions.length) entity.value.versions = data
@@ -416,7 +418,7 @@ const navBarActions = computed(
             icon: MessagesSquare,
             label: 'Hide Comments',
             onClick: () => (showComments.value = false),
-            isEnabled: () => showComments,
+            isEnabled: () => showComments.value,
             cond: entity.value?.comments?.length,
           },
           {
@@ -467,7 +469,7 @@ const exportMedia = async () => {
   toast('Preparing...')
   const urls = editor.value.editor.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: '/api/method/drive.api.docs.get_extension',
+    url: 'drive.api.docs.get_extension',
   })
   for (const i in urls) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
@@ -478,7 +480,7 @@ const exportMedia = async () => {
 const exportBlog = async () => {
   toast('Starting export...')
   createResource({
-    url: '/api/method/drive.api.docs.create_blog',
+    url: 'drive.api.docs.create_blog',
     auto: true,
     params: {
       entity_name: props.entityName,

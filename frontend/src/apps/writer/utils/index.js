@@ -1,5 +1,5 @@
 import router from '@/router'
-// import store from '@/store'
+import store from '@/store'
 import { formatSize } from '@/utils/format'
 import { nextTick, h } from 'vue'
 import { useTimeAgo } from '@vueuse/core'
@@ -178,40 +178,40 @@ export const prettyData = (entities) => {
     return entity
   })
 }
-// export const setBreadCrumbs = (entity) => {
-//   const breadcrumbs = entity.breadcrumbs
-//   const in_home = entity.in_home
-//   let res = [
-//     {
-//       label: __('Shared'),
-//       name: 'Shared',
-//       route: store.getters.isLoggedIn && '/shared',
-//     },
-//   ]
-//   const team = getTeams.data?.[breadcrumbs[0].team]
-//   if (team || in_home)
-//     res = [
-//       {
-//         label: in_home ? __('Home') : team.title,
-//         name: in_home ? 'Home' : team.name,
-//         route: in_home ? { name: 'Home' } : { name: 'Team', params: { team: team.name } },
-//       },
-//     ]
+export const setBreadCrumbs = (entity) => {
+  const breadcrumbs = entity.breadcrumbs
+  const in_home = entity.in_home
+  let res = [
+    {
+      label: __('Shared'),
+      name: 'Shared',
+      route: store.getters.isLoggedIn && '/shared',
+    },
+  ]
+  const team = getTeams.data?.[breadcrumbs[0].team]
+  if (team || in_home)
+    res = [
+      {
+        label: in_home ? __('Home') : team.title,
+        name: in_home ? 'Home' : team.name,
+        route: in_home ? { name: 'Home' } : { name: 'Team', params: { team: team.name } },
+      },
+    ]
 
-//   if (!breadcrumbs[0].parent_entity) breadcrumbs.splice(0, 1)
-//   const popBreadcrumbs = (item) => () => res.splice(res.findIndex((k) => k.name === item.name) + 1)
+  if (!breadcrumbs[0].parent_entity) breadcrumbs.splice(0, 1)
+  const popBreadcrumbs = (item) => () => res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
-//   breadcrumbs.forEach((folder, idx) => {
-//     const final = idx === breadcrumbs.length - 1
-//     res.push({
-//       label: folder.title,
-//       name: folder.name,
-//       onClick: final ? () => entity.write && emitter.emit('rename') : popBreadcrumbs(folder),
-//       route: final ? null : { name: 'Folder', params: { entityName: folder.name } },
-//     })
-//   })
-//   store.commit('setBreadcrumbs', res)
-// }
+  breadcrumbs.forEach((folder, idx) => {
+    const final = idx === breadcrumbs.length - 1
+    res.push({
+      label: folder.title,
+      name: folder.name,
+      onClick: final ? () => entity.write && emitter.emit('rename') : popBreadcrumbs(folder),
+      route: final ? null : { name: 'Folder', params: { entityName: folder.name } },
+    })
+  })
+  store.commit('setBreadcrumbs', res)
+}
 
 export const MIME_LIST_MAP = {
   Folder: [],

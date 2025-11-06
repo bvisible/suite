@@ -17,20 +17,16 @@
       </Breadcrumbs>
     </slot>
 
-    <div class="flex gap-2">
-      <div id="navbar-content" class="flex items-center">
-        <div class="icon mr-2">
-          <LucideGlobe2 v-if="rootEntity?.share_count === -2" class="size-4" />
-          <LucideBuilding2 v-else-if="rootEntity?.share_count === -1" class="size-4" />
-          <LucideUsers v-else-if="rootEntity?.share_count > 0" class="size-4" />
-        </div>
+    <div class="ml-auto flex gap-2">
+      <slot name="content" />
+      <div class="icon mr-2">
+        <LucideGlobe2 v-if="rootEntity?.share_count === -2" class="size-4" />
+        <LucideBuilding2 v-else-if="rootEntity?.share_count === -1" class="size-4" />
+        <LucideUsers v-else-if="rootEntity?.share_count > 0" class="size-4" />
       </div>
-
       <LucideStar
         v-if="rootEntity?.is_favourite"
-        width="16"
-        height="16"
-        class="my-auto stroke-amber-500 fill-amber-500"
+        class="size-4 my-auto stroke-amber-500 fill-amber-500"
       />
       <template v-if="!isLoggedIn">
         <Button variant="outline" @click="$router.push({ name: 'Login' })"> Sign In </Button>
@@ -42,6 +38,13 @@
           @click="open('https://frappecloud.com/dashboard/signup?product=drive')"
         />
       </template>
+      <Button
+        v-else-if="$route.name === 'Home'"
+        label="Create"
+        variant="solid"
+        :icon-left="h(LucidePlus, { class: 'size-4' })"
+        @click="createDocument"
+      />
       <Dropdown
         v-else-if="defaultActions"
         :options="defaultActions"
@@ -50,29 +53,6 @@
           variant: 'ghost',
           icon: LucideMoreHorizontal,
         }"
-      />
-      <Dropdown
-        v-if="
-          ['Folder', 'Home', 'Team'].includes($route.name) &&
-          isLoggedIn &&
-          props.rootResource?.data?.upload
-        "
-        :button="{
-          variant: 'solid',
-          id: 'create-button',
-          label: 'Create',
-          iconLeft: h(LucidePlus, { class: 'size-4' }),
-        }"
-        :options="newEntityOptions"
-        placement="right"
-      />
-      <Button
-        v-else-if="$route.name === 'Documents' || $route.name === 'Slides'"
-        id="create-button"
-        label="Create"
-        variant="solid"
-        :icon-left="h(LucidePlus, { class: 'size-4' })"
-        @click="newExternal($route.name === 'Documents' ? 'Document' : 'Presentation')"
       />
       <Button
         v-if="button"
@@ -98,11 +78,10 @@ import { useStore } from 'vuex'
 import emitter from '@/emitter'
 import { ref, computed, inject, h } from 'vue'
 import { entitiesDownload } from '@/utils/download'
-import { getRecents, getTrash, toggleFav } from '@/resources/files'
+import { getRecents, getTrash, toggleFav, createDocument } from '@/resources/files'
 import { apps } from '@/resources/permissions'
 import { useRoute } from 'vue-router'
-import { getLink, newExternal, dynamicList } from '@/utils'
-
+import { getLink, dynamicList } from '@/utils'
 import LucideClock from '~icons/lucide/clock'
 import LucideHome from '~icons/lucide/home'
 import LucideTrash from '~icons/lucide/trash'
@@ -278,7 +257,7 @@ const newEntityOptions = [
       {
         label: 'Document',
         icon: LucideFilePlus2,
-        onClick: () => newExternal('Document'),
+        onClick: () => createDocument,
       },
       {
         label: 'Presentation',
