@@ -29,7 +29,7 @@
 					:tiles="visibleTileCount"
 				/>
 			</div>
-			<NamePill name="You" size="sm" position="bottom-left" />
+			<NamePill :name="currentUser?.name" size="sm" position="bottom-left" />
 
 			<div v-if="isMicOn && localStream" class="absolute top-1 right-1 rounded-full bg-gray-700 p-1">
 				<AudioIndicator

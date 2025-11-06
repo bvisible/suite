@@ -58,7 +58,7 @@ const getScreensharerName = computed(() => {
 	const firstShare = displayScreenShares.value[0];
 
 	if (currentUser.value?.user_id === firstShare?.participantId) {
-		return "Your screen";
+		return `${currentUser.value?.name}'s screen`;
 	}
 	if (firstShare) {
 		return `${getParticipantName(firstShare.participantId)}'s screen`;
