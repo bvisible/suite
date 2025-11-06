@@ -73,10 +73,16 @@ const allReactions = computed(() => {
 	const currentUserId = currentUser.value?.user_id;
 
 	for (const [userId, reaction] of Object.entries(reactions)) {
-		if (reaction && userId !== currentUserId) {
-			const participant = meetingState.participants.value[userId];
+		if (reaction) {
+			const participant =
+				userId === currentUserId
+					? currentUser.value
+					: meetingState.participants.value[userId];
 			const userName =
-				participant?.user_name || participant?.user_id || "Unknown";
+				participant?.user_name ||
+				participant?.name ||
+				participant?.user_id ||
+				"Unknown";
 
 			allReactions.push({
 				userId,
