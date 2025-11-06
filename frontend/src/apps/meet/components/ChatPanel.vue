@@ -45,7 +45,6 @@
 						<FormControl
 							size="md"
 							v-model="draft"
-							@input="handleInput"
 							@keydown="handleKeydown"
 							placeholder="Type a message"
 							class="flex-1"
@@ -83,15 +82,40 @@ const emit = defineEmits(["close", "send"]);
 const listEl = ref(null);
 const { messages } = toRefs(props);
 const draft = ref("");
-const showEmojiPicker = ref(false);
 const selectedEmojiIndex = ref(0);
 const filteredEmojis = ref([]);
 const isEmojiDataReady = ref(false);
+
+const defaultEmojis = [
+	{ emoji: "😀", keywords: ["smile"] },
+	{ emoji: "😂", keywords: ["laugh"] },
+	{ emoji: "❤️", keywords: ["heart"] },
+	{ emoji: "👍", keywords: ["thumbs up"] },
+	{ emoji: "👏", keywords: ["clap"] },
+	{ emoji: "🔥", keywords: ["fire"] },
+	{ emoji: "💯", keywords: ["100"] },
+	{ emoji: "🙌", keywords: ["raised hands"] },
+	{ emoji: "😊", keywords: ["blush"] },
+	{ emoji: "🎉", keywords: ["party"] },
+];
+
+const recentlyUsedEmojis = ref(defaultEmojis.slice());
 
 onMounted(async () => {
 	try {
 		await init({ data });
 		isEmojiDataReady.value = true;
+
+		const stored = localStorage.getItem("recentEmojis");
+		if (stored) {
+			try {
+				recentlyUsedEmojis.value = JSON.parse(stored);
+			} catch {
+				recentlyUsedEmojis.value = defaultEmojis.slice();
+			}
+		} else {
+			recentlyUsedEmojis.value = defaultEmojis.slice();
+		}
 	} catch (error) {
 		console.error("Failed to initialize emoji data:", error);
 	}
@@ -140,6 +164,13 @@ function linkify(text) {
 	);
 }
 
+const showEmojiPicker = computed(() => {
+	const colonIndex = draft.value.lastIndexOf(":");
+	if (colonIndex === -1) return false;
+	const afterColon = draft.value.slice(colonIndex + 1);
+	return !afterColon.includes(" ") && /^[a-zA-Z0-9]*$/.test(afterColon);
+});
+
 const emojiQuery = computed(() => {
 	const colonIndex = draft.value.lastIndexOf(":");
 	if (colonIndex === -1) return "";
@@ -152,7 +183,13 @@ const emojiQuery = computed(() => {
 });
 
 watch(emojiQuery, async (query) => {
-	if (!isEmojiDataReady.value || !query) {
+	if (!query) {
+		filteredEmojis.value = recentlyUsedEmojis.value;
+		selectedEmojiIndex.value = 0;
+		return;
+	}
+
+	if (!isEmojiDataReady.value) {
 		filteredEmojis.value = [];
 		return;
 	}
@@ -170,14 +207,14 @@ watch(emojiQuery, async (query) => {
 	}
 });
 
-function handleInput() {
-	const wasShown = showEmojiPicker.value;
-	showEmojiPicker.value = emojiQuery.value.length > 0;
-	if (showEmojiPicker.value && !wasShown) {
+// Watch for when emoji picker should be shown
+watch(showEmojiPicker, (isShown) => {
+	if (isShown && emojiQuery.value === "") {
+		// Show recently used emojis when picker first opens with just :
+		filteredEmojis.value = recentlyUsedEmojis.value;
 		selectedEmojiIndex.value = 0;
 	}
-}
-
+});
 function handleKeydown(event) {
 	if (!showEmojiPicker.value) return;
 	const { key } = event;
@@ -194,31 +231,57 @@ function handleKeydown(event) {
 	} else if (key === "Enter") {
 		event.preventDefault();
 		if (filteredEmojis.value.length > 0) {
-			addEmoji(filteredEmojis.value[selectedEmojiIndex.value].emoji);
+			addEmoji(filteredEmojis.value[selectedEmojiIndex.value]);
 		}
 	} else if (key === "Escape") {
 		event.preventDefault();
-		showEmojiPicker.value = false;
+		// Remove the last colon to hide picker
+		const colonIndex = draft.value.lastIndexOf(":");
+		if (colonIndex > -1) {
+			draft.value = draft.value.slice(0, colonIndex);
+		}
 	}
 }
 
-function addEmoji(emoji) {
+function addEmoji(item) {
+	const emoji = item.emoji;
 	const colonIndex = draft.value.lastIndexOf(":");
 	const beforeColon = draft.value.slice(0, colonIndex);
-	draft.value = beforeColon + emoji;
-	showEmojiPicker.value = false;
+	const afterColon = draft.value.slice(colonIndex + 1);
+
+	if (afterColon) {
+		// Replace :<query> with emoji
+		draft.value = beforeColon + emoji;
+	} else {
+		// Replace : with emoji
+		draft.value = beforeColon + emoji;
+	}
+
+	const existingIndex = recentlyUsedEmojis.value.findIndex(
+		(e) => e.emoji === emoji,
+	);
+	if (existingIndex > -1) {
+		recentlyUsedEmojis.value.splice(existingIndex, 1);
+	}
+	recentlyUsedEmojis.value.unshift(item);
+	if (recentlyUsedEmojis.value.length > 10) {
+		recentlyUsedEmojis.value = recentlyUsedEmojis.value.slice(0, 10);
+	}
+	localStorage.setItem(
+		"recentEmojis",
+		JSON.stringify(recentlyUsedEmojis.value),
+	);
 }
 
 function handleSend() {
 	if (showEmojiPicker.value && filteredEmojis.value.length > 0) {
-		addEmoji(filteredEmojis.value[selectedEmojiIndex.value].emoji);
+		addEmoji(filteredEmojis.value[selectedEmojiIndex.value]);
 		return;
 	}
 	const text = draft.value.trim();
 	if (!text) return;
 	emit("send", text);
 	draft.value = "";
-	showEmojiPicker.value = false;
 }
 
 watch(

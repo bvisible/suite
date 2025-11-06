@@ -9,10 +9,10 @@
       :key="item.emoji"
       class="flex items-center gap-2 p-2 hover:bg-gray-200 cursor-pointer"
       :class="{ 'bg-gray-200': index === selectedIndex }"
-      @click="$emit('select', item.emoji)"
+      @click="$emit('select', item)"
     >
       <span class="text-lg">{{ item.emoji }}</span>
-      <span class="text-sm text-gray-800">:{{ item.keywords[0] }}:</span>
+      <span v-if="item.keywords && item.keywords[0]" class="text-sm text-gray-800">:{{ item.keywords[0] }}:</span>
     </div>
     <div v-if="filteredEmojis.length === 0" class="p-2 text-sm text-gray-500">
       No emojis found
@@ -37,7 +37,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-	select: [emoji: string];
+	select: [item: EmojiItem];
 }>();
 
 const dropdown = ref<HTMLDivElement | null>(null);
