@@ -1,5 +1,4 @@
 import frappe
-import json
 
 import frappe
 from pypika import Criterion, CustomFunction, Order
@@ -24,20 +23,27 @@ Binary = CustomFunction("BINARY", ["expression"])
 
 
 @frappe.whitelist()
-def get_document_list(page_length=10, start=0):
+def get_document_list(
+    start=0,
+    limit=20,
+):
     user = frappe.session.user
 
     # Convert string parameters to integers
-    page_length = int(page_length)
+    limit = int(limit)
     start = int(start)
 
     recently_opened = (
         frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
     )
 
+    recent_field = fn.Coalesce(Recents.last_interaction, DriveFile._modified)
     query = (
         frappe.qb.from_(DriveFile)
-        .select(*ENTITY_FIELDS)
+        .select(
+            *ENTITY_FIELDS,
+            recent_field.as_("recent"),
+        )
         .where((DriveFile.is_active == 1) & (DriveFile.mime_type == "frappe_doc"))
         .where((DriveFile.owner == user) | (DriveFile.name.isin(recently_opened)))
     )
@@ -55,17 +61,17 @@ def get_document_list(page_length=10, start=0):
     query = query.select(Recents.last_interaction.as_("accessed"))
 
     # Add ordering
-    query = query.orderby(Recents.last_interaction, order=Order.desc)
+    query = query.orderby(recent_field, order=Order.desc)
     # Fetch one extra record to check if there's a next page
-    query = query.limit(page_length + 1).offset(start)
+    query = query.limit(limit + 1).offset(start)
     res = query.run(as_dict=True)
 
     # Check if there's a next page
-    has_next_page = len(res) > page_length
+    has_next_page = len(res) > limit
 
     # Remove the extra record if it exists
     if has_next_page:
-        res = res[:page_length]
+        res = res[:limit]
 
     # Rest of your processing code
     child_count_query = (
