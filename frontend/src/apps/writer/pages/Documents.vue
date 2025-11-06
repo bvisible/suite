@@ -1,7 +1,7 @@
 <template>
   <Navbar />
-  <div class="flex-grow px-32 pt-8 overflow-y-auto bg-surface-gray-1">
-    <RoundedListView v-if="groupedDocuments" :groups="groupedDocuments" />
+  <div class="flex-grow bg-surface-gray-1 overflow-hidden">
+    <RoundedListView v-if="groupedDocuments" :groups="groupedDocuments" :resource="getDocuments" />
     <LoadingIndicator v-else class="size-5 mx-auto mt-32" />
   </div>
 </template>

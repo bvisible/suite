@@ -1,8 +1,7 @@
 <template>
-  <div class="space-y-8">
+  <div ref="container" class="space-y-8 max-h-screen px-32 pt-8 overflow-y-auto">
     <template v-for="[group, files] in Object.entries(groups)" :key="group">
       <div v-if="files.length" class="space-y-2">
-        <!-- Group Header -->
         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">
           {{ group }}
         </h2>
@@ -59,7 +58,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, h } from 'vue'
 import { Avatar } from 'frappe-ui'
 // import ContextMenu from '@/components/ContextMenu.vue'
@@ -68,12 +67,31 @@ import LucideMoreVertical from '~icons/lucide/more-vertical'
 import { openEntity } from '@/utils/'
 import { formatDate } from '@/utils/format'
 import { useStore } from 'vuex'
+import { useInfiniteScroll } from '@vueuse/core'
 import router from '@/router'
 
 const props = defineProps({
   groups: Object,
+  resource: Object,
   actionItems: Array,
 })
+
+const container = useTemplateRef<HTMLElement>('container')
+useInfiniteScroll(
+  container,
+  () => {
+    if (props.resource.hasNextPage && !props.resource.loading) {
+      console.log('reloading')
+      props.resource.next()
+    }
+  },
+  {
+    distance: 10,
+    canLoadMore: () => {
+      return props.resource.hasNextPage
+    },
+  },
+)
 
 const store = useStore()
 const selectedRow = ref(null)
