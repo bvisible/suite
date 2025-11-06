@@ -26,9 +26,7 @@ const replaceVideoWithPoster = async (videoElement) => {
 
 	const img = document.createElement('img')
 	const src = videoElement.poster
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
-	img.src = requiresPrefix ? `/private${src}` : src
+	img.src = src
 	img.style.width = videoElement.style.width
 	img.style.height = videoElement.style.height
 	img.style.objectFit = 'cover'

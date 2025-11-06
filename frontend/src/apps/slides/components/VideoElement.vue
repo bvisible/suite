@@ -10,9 +10,9 @@
 			@loadedmetadata="updateDuration"
 			@ended="resetProgress"
 			preload="auto"
-			:poster="videoPoster"
+			:poster="getAttachmentUrl(element.poster)"
 		>
-			<source :src="`/api/method/slides.api.file.get_video_file?src=${videoSrc}`" />
+			<source :src="getAttachmentUrl(element.src)" />
 		</video>
 		<div
 			ref="overlay"
@@ -47,6 +47,7 @@ import { Play, Pause } from 'lucide-vue-next'
 
 import { inSlideShow, isPublicPresentation, readonlyMode } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
+import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const element = defineModel('element', {
 	type: Object,
@@ -55,20 +56,6 @@ const element = defineModel('element', {
 
 const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')
-
-const videoSrc = computed(() => {
-	const src = element.value.src
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && src && src.startsWith('/files/')
-	return requiresPrefix ? `/private${src}` : src
-})
-
-const videoPoster = computed(() => {
-	const poster = element.value.poster
-	const isPublic = isPublicPresentation.value
-	const requiresPrefix = !isPublic && poster && poster.startsWith('/files/')
-	return requiresPrefix ? `/private${poster}` : poster
-})
 
 const toggleButtonClasses =
 	'absolute inset-[calc(50%-16px)] flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white-overlay-200 opacity-95'

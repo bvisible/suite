@@ -42,7 +42,7 @@ const handleMediaDrop = async (e) => {
 	emit('hideOverlay')
 	nextTick(() => {
 		const targetElement = getTargetElement(e)
-		handleUploadedMedia(e.dataTransfer.files, !isPublicPresentation.value, targetElement)
+		handleUploadedMedia(e.dataTransfer.files, targetElement)
 	})
 }
 </script>

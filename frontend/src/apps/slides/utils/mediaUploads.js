@@ -1,6 +1,6 @@
 import { FileUploadHandler, toast, call } from 'frappe-ui'
 
-import { presentationId } from '../stores/presentation'
+import { presentationId, isPublicPresentation } from '../stores/presentation'
 import { currentSlide } from '../stores/slide'
 import { addMediaElement, replaceMediaElement } from '../stores/element'
 
@@ -21,13 +21,13 @@ const performPostUploadActions = async (fileDoc, fileType, targetElement, resolv
 	resolve(fileDoc)
 }
 
-const uploadMedia = (file, fileType, targetElement, isPrivate) => {
+const uploadMedia = (file, fileType, targetElement) => {
 	return new Promise((resolve, reject) => {
 		fileUploadHandler
 			.upload(file, {
 				doctype: 'Presentation',
 				docname: presentationId.value,
-				private: isPrivate,
+				private: true,
 			})
 			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetElement, resolve))
 			.catch((error) => {
@@ -59,7 +59,7 @@ const getWebPDoc = async (fileUrl) => {
 	})
 }
 
-const handleFile = (file, isPrivate, toastProps, targetElement) => {
+const handleFile = (file, toastProps, targetElement) => {
 	file = getFileObject(file)
 	if (!file) return
 
@@ -68,7 +68,7 @@ const handleFile = (file, isPrivate, toastProps, targetElement) => {
 
 	if (targetElement && targetElement.type != fileType) targetElement = null
 
-	toast.promise(uploadMedia(file, fileType, targetElement, isPrivate), toastProps)
+	toast.promise(uploadMedia(file, fileType, targetElement), toastProps)
 }
 
 const getToastProps = (file, index, length) => {
@@ -79,23 +79,30 @@ const getToastProps = (file, index, length) => {
 	}
 }
 
-export const handleUploadedMedia = (files, isPrivate, targetElement) => {
+export const handleUploadedMedia = (files, targetElement) => {
 	let toastProps = {}
 
 	if (files.length == 1) {
 		toastProps = getToastProps(files[0], 0, 1)
-		return handleFile(files[0], isPrivate, toastProps, targetElement)
+		return handleFile(files[0], toastProps, targetElement)
 	}
 
 	files.forEach((file, index) => {
 		toastProps = getToastProps(file, index, files.length)
-		handleFile(file, isPrivate, toastProps)
+		handleFile(file, toastProps)
 	})
 }
 
-export const getAttachmentUrl = (isPublic, fileUrl) => {
+export const getAttachmentUrl = (fileUrl) => {
 	if (!fileUrl) return ''
 
-	const requiresPrefix = !isPublic && fileUrl.startsWith('/files/')
-	return requiresPrefix ? `/private${fileUrl}` : fileUrl
+	// if starts with data: or /assets return as it is
+	if (fileUrl.startsWith('data:') || fileUrl.startsWith('/assets')) return fileUrl
+
+	// if it starts with /files add /private prefix
+	if (fileUrl.startsWith('/files')) fileUrl = `/private${fileUrl}`
+
+	if (fileUrl.startsWith('/private')) {
+		return `/api/method/slides.api.file.get_media_file?src=${fileUrl}&public=${isPublicPresentation.value}`
+	}
 }
