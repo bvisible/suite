@@ -156,4 +156,8 @@ onBeforeMount(() => normalizeContent())
 	overflow-wrap: break-word;
 	hyphens: auto;
 }
+
+.textElement p:empty::before {
+	content: '\00a0';
+}
 </style>
