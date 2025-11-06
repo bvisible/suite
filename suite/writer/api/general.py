@@ -24,13 +24,16 @@ Binary = CustomFunction("BINARY", ["expression"])
 
 
 @frappe.whitelist()
-def get_document_list():
+def get_document_list(page_length=10, start=0):
     user = frappe.session.user
+
+    # Convert string parameters to integers
+    page_length = int(page_length)
+    start = int(start)
 
     recently_opened = (
         frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
     )
-    print(recently_opened.run())
 
     query = (
         frappe.qb.from_(DriveFile)
@@ -51,8 +54,20 @@ def get_document_list():
 
     query = query.select(Recents.last_interaction.as_("accessed"))
 
+    # Add ordering
+    query = query.orderby(Recents.last_interaction, order=Order.desc)
+    # Fetch one extra record to check if there's a next page
+    query = query.limit(page_length + 1).offset(start)
     res = query.run(as_dict=True)
 
+    # Check if there's a next page
+    has_next_page = len(res) > page_length
+
+    # Remove the extra record if it exists
+    if has_next_page:
+        res = res[:page_length]
+
+    # Rest of your processing code
     child_count_query = (
         frappe.qb.from_(DriveFile)
         .where((DriveFile.team == get_default_team()) & (DriveFile.is_active == 1))
@@ -83,10 +98,8 @@ def get_document_list():
     children_count = dict(child_count_query.run())
     share_count = dict(share_query.run())
 
-    # default = get_default_access(entity_name)
     default = 0
 
-    # Performance hit is wild, manually checking perms each time without cache.
     for r in res:
         r["children"] = children_count.get(r["name"], 0)
         r["file_type"] = get_file_type(r)
@@ -100,4 +113,7 @@ def get_document_list():
         else:
             r["share_count"] = default
         r |= get_user_access(r["name"])
-    return res
+
+    # Return in the format useList expects
+    frappe.response["data"] = res
+    frappe.response["has_next_page"] = has_next_page
