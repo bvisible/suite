@@ -48,6 +48,7 @@
   <Navbar
     v-if="!inIframe && (docSettings?.doc || !isFrappeDoc)"
     :root-resource="document"
+    :breadcrumbs="document.data.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
     :actions="isFrappeDoc ? navBarActions : null"
   >
     <template #breadcrumbs v-if="docSettings?.doc?.settings?.minimal && entity.write">
@@ -133,7 +134,7 @@ import VersionsSidebar from '@/components/VersionsSidebar.vue'
 // import WriterSettings from '@/components/WriterSettings.vue'
 // import UsersBar from '@/components/UsersBar.vue'
 
-import { setBreadCrumbs, prettyData, updateURLSlug, dynamicList, toast } from '@/utils/'
+import { prettyData, updateURLSlug, dynamicList, toast } from '@/utils/'
 import { entitiesDownload } from '@/utils/download'
 import { allUsers, apps } from '@/resources/permissions'
 
@@ -231,7 +232,6 @@ const onSuccess = (data) => {
   rawContent.value = data.raw_content
   if (data.content) yjsContent.value = toUint8Array(data.content)
   lastFetched.value = Date.now()
-  setBreadCrumbs(data)
   if (data.mime_type === 'frappe_doc') {
     docSettings = useDoc({
       doctype: 'Drive Document',

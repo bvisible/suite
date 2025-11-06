@@ -1,20 +1,12 @@
 <template>
   <nav
-    v-if="store.state.breadcrumbs?.length"
     id="navbar"
     ondragstart="return false;"
     ondrop="return false;"
     class="bg-surface-white border-b px-5 py-2.5 h-12 flex justify-between"
   >
     <slot name="breadcrumbs">
-      <Breadcrumbs :items="store.state.breadcrumbs" class="select-none truncate max-w-[80%]">
-        <template #prefix="{ item, index }">
-          <LoadingIndicator v-if="item.loading" width="20" scale="70" />
-          <div v-if="index == 0" class="mr-1.5">
-            <component :is="COMPONENT_MAP[item.name]" class="size-4 text-ink-gray-6" />
-          </div>
-        </template>
-      </Breadcrumbs>
+      <Breadcrumbs :items="formattedCrumbs" class="select-none truncate max-w-[80%]" />
     </slot>
 
     <div class="ml-auto flex gap-2">
@@ -96,20 +88,7 @@ import LucideLink from '~icons/lucide/link'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
 import LucideSquarePen from '~icons/lucide/square-pen'
 import LucideInfo from '~icons/lucide/info'
-import LucideFileUp from '~icons/lucide/file-up'
-import LucideFolderUp from '~icons/lucide/folder-up'
-import LucideFilePlus2 from '~icons/lucide/file-plus-2'
-import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
-import LucideFolderPlus from '~icons/lucide/folder-plus'
 
-const COMPONENT_MAP = {
-  Home: LucideHome,
-  Team: LucideBuilding2,
-  Favourites: LucideStar,
-  Shared: LucideUsers,
-  Trash: LucideTrash,
-  Recents: LucideClock,
-}
 const store = useStore()
 const route = useRoute()
 const open = (url) => {
@@ -117,8 +96,10 @@ const open = (url) => {
 }
 
 const props = defineProps({
-  rootResource: Object,
-  actions: { type: Array, required: false },
+  breadcrumbs: {
+    default: [],
+  },
+  actions: { type: Array, default: [] },
   // Used to pass into dialogs
   entities: {
     type: Array,
@@ -128,169 +109,10 @@ const props = defineProps({
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
-const rootEntity = computed(() => props.rootResource?.data?.title && props.rootResource?.data)
 
-const defaultActions = computed(() => {
-  if (!rootEntity.value?.title) return
-  let actions = []
-  if (props.actions) {
-    if (props.actions[0] === 'extend') actions = props.actions.slice(1)
-    else return props.actions
-  }
-  return [
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Share'),
-          icon: LucideShare2,
-          onClick: () => {
-            dialog.value = 's'
-          },
-          isEnabled: () => rootEntity.value.share,
-        },
-        {
-          label: __('Download'),
-          icon: LucideDownload,
-          isEnabled: () => rootEntity.value.allow_download,
-          onClick: () => entitiesDownload(route.params.team, [rootEntity.value]),
-        },
-        {
-          label: __('Copy Link'),
-          icon: LucideLink,
-          onClick: () => getLink(rootEntity.value),
-        },
-      ],
-    },
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Move'),
-          icon: LucideArrowLeftRight,
-          onClick: () => (dialog.value = 'm'),
-          isEnabled: () => rootEntity.value.write,
-        },
-        {
-          label: __('Rename'),
-          icon: LucideSquarePen,
-          onClick: () => (dialog.value = 'rn'),
-          isEnabled: () => rootEntity.value.write,
-        },
-        {
-          label: __('Show Info'),
-          icon: LucideInfo,
-          onClick: () => (dialog.value = 'i'),
-          isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
-        },
-        {
-          label: __('Favourite'),
-          icon: LucideStar,
-          onClick: () => {
-            rootEntity.value.is_favourite = true
-            toggleFav.submit({
-              entities: [{ name: rootEntity.value.name, is_favourite: false }],
-            })
-          },
-          isEnabled: () => !rootEntity.value.is_favourite,
-        },
-        {
-          label: __('Unfavourite'),
-          icon: LucideStar,
-          color: 'stroke-amber-500 fill-amber-500',
-          onClick: () => {
-            rootEntity.value.is_favourite = false
-            toggleFav.submit({
-              entities: [{ name: rootEntity.value.name, is_favourite: false }],
-            })
-          },
-          isEnabled: () => rootEntity.value.is_favourite,
-        },
-      ],
-    },
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Delete'),
-          icon: LucideTrash,
-          onClick: () => (dialog.value = 'remove'),
-          isEnabled: () => rootEntity.value.write,
-          theme: 'red',
-        },
-      ],
-    },
-    ...actions,
-  ].map((k) => {
-    return { ...k, items: k.items.filter((l) => !l.isEnabled || l.isEnabled()) }
-  })
+const formattedCrumbs = computed(() => {
+  const ORIG = { label: 'Writer', route: '/' }
+  if (!props.breadcrumbs.length) return [ORIG]
+  return [ORIG, ...props.breadcrumbs.slice(1)]
 })
-const isPrivate = computed(() => (store.state.breadcrumbs[0]?.name === 'Home' ? 1 : 0))
-
-// Functions
-
-// Constants
-const possibleButtons = [
-  {
-    route: 'Recents',
-    label: __('Clear'),
-    icon: LucideClock,
-    entities: getRecents,
-  },
-  {
-    route: 'Trash',
-    label: __('Empty'),
-    icon: LucideTrash,
-    entities: getTrash,
-    theme: 'red',
-  },
-]
-const button = computed(() => possibleButtons.find((k) => k.route == route.name))
-
-const newEntityOptions = [
-  {
-    group: 'Create',
-    items: dynamicList([
-      {
-        label: 'Document',
-        icon: LucideFilePlus2,
-        onClick: () => createDocument,
-      },
-      {
-        label: 'Presentation',
-        icon: LucideGalleryVerticalEnd,
-        onClick: () => (dialog.value = 'p'),
-        cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
-      },
-      {
-        label: 'Folder',
-        icon: LucideFolderPlus,
-        onClick: () => (dialog.value = 'f'),
-      },
-      {
-        label: 'Link',
-        icon: LucideLink,
-        onClick: () => (dialog.value = 'l'),
-      },
-    ]),
-  },
-  {
-    group: 'Upload',
-    items: [
-      {
-        label: 'Upload File',
-        icon: LucideFileUp,
-        onClick: () => emitter.emit('uploadFile'),
-      },
-      {
-        label: 'Upload Folder',
-        icon: LucideFolderUp,
-        onClick: () => emitter.emit('uploadFolder'),
-      },
-    ],
-  },
-]
 </script>
