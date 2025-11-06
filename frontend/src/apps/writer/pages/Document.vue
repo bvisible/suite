@@ -159,7 +159,7 @@ import LucideFileWarning from '~icons/lucide/file-warning'
 const TextEditor = defineAsyncComponent(() => import('@/components/TextEditor.vue'))
 
 const props = defineProps({
-  entityName: String,
+  id: String,
   slug: String,
 })
 
@@ -201,7 +201,7 @@ const saveDocument = (comment = false) => {
   if (entity.value.write || (comment && entity.value.comment)) {
     if (isFrappeDoc.value) {
       const params = {
-        entity_name: props.entityName,
+        entity_name: props.id,
         doc_name: entity.value.document,
         content: rawContent.value,
         yjs: fromUint8Array(yjsContent.value || ''),
@@ -212,7 +212,7 @@ const saveDocument = (comment = false) => {
       updateDocument.submit(params)
     } else
       updateDocument.submit({
-        entity_name: props.entityName,
+        entity_name: props.id,
         content: rawContent.value,
       })
     return true
@@ -269,7 +269,7 @@ const document = createResource({
   url: 'drive.api.permissions.get_entity_with_permissions',
   auto: true,
   params: {
-    entity_name: props.entityName,
+    entity_name: props.id,
   },
   onSuccess,
 })
@@ -483,7 +483,7 @@ const exportBlog = async () => {
     url: 'drive.api.docs.create_blog',
     auto: true,
     params: {
-      entity_name: props.entityName,
+      entity_name: props.id,
       html: editorValue.value.getHTML(),
     },
     onSuccess: (d) => {

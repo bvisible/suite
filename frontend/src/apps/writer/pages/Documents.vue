@@ -1,15 +1,14 @@
 <template>
   <Navbar />
-  <RoundedListView
-    class="px-32 pt-8 size-full bg-surface-gray-1"
-    v-if="groupedDocuments"
-    :groups="groupedDocuments"
-  />
+  <div class="flex-grow px-32 pt-8 overflow-y-auto bg-surface-gray-1">
+    <RoundedListView v-if="groupedDocuments" :groups="groupedDocuments" />
+    <LoadingIndicator v-else class="size-5 mx-auto mt-32" />
+  </div>
 </template>
 <script setup>
-import LucideFileText from '~icons/lucide/file-text'
 import { getDocuments } from '@/resources/files'
 import RoundedListView from '@/components/RoundedListView.vue'
+import { LoadingIndicator } from 'frappe-ui'
 getDocuments.fetch()
 
 const groupedDocuments = computed(() => getDocuments.data && groupByTime(getDocuments.data))
@@ -18,28 +17,36 @@ function groupByTime(entities) {
   const today = new Date()
   const grouped = {
     Today: [],
-    'Earlier this week': [],
+    Yesterday: [],
+    'Last seven days': [],
     'Earlier this month': [],
     'Earlier this year': [],
-    'Older than a year': [],
+    Earlier: [],
   }
-  entities.forEach((file) => {
-    const modifiedDate = new Date(file.accessed)
-    const yearDiff = today.getFullYear() - modifiedDate.getFullYear()
-    const monthDiff = today.getMonth() - modifiedDate.getMonth() + yearDiff * 12 // Adjust for year difference
-    const dayDiff = Math.floor((today - modifiedDate) / (1000 * 60 * 60 * 24))
-    if (dayDiff === 0) {
-      grouped['Today'].push(file)
-    } else if (dayDiff <= 7) {
-      grouped['Earlier this week'].push(file)
-    } else if (monthDiff === 0) {
-      grouped['Earlier this month'].push(file)
-    } else if (yearDiff === 0) {
-      grouped['Earlier this year'].push(file)
-    } else {
-      grouped['Older than a year'].push(file)
-    }
-  })
+  entities
+    .filter((k) => {
+      k.recentDate = new Date(k.accessed || k.modified)
+      return k
+    })
+    .sort((a, b) => b.recentDate - a.recentDate)
+    .forEach((file) => {
+      const yearDiff = today.getFullYear() - file.recentDate.getFullYear()
+      const monthDiff = today.getMonth() - file.recentDate.getMonth() + yearDiff * 12 // Adjust for year difference
+      const dayDiff = Math.floor((today - file.recentDate) / (1000 * 60 * 60 * 24))
+      if (dayDiff === 0) {
+        grouped['Today'].push(file)
+      } else if (dayDiff <= 1) {
+        grouped['Yesterday'].push(file)
+      } else if (dayDiff <= 8) {
+        grouped['Last seven days'].push(file)
+      } else if (monthDiff === 0) {
+        grouped['Earlier this month'].push(file)
+      } else if (yearDiff === 0) {
+        grouped['Earlier this year'].push(file)
+      } else {
+        grouped['Earlier'].push(file)
+      }
+    })
   return grouped
 }
 </script>

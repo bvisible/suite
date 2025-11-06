@@ -65,11 +65,11 @@ export const getFavourites = createResource({
 
 export const getDocuments = createResource({
   ...COMMON_OPTIONS,
-  url: '/api/method/drive.api.list.files',
+  url: 'writer.api.general.get_document_list',
+  cache: 'writer-document-list',
   makeParams: (params) => {
     return { ...params, file_kinds: '["Frappe Document"]' }
   },
-  cache: 'document-folder-contents',
 })
 
 export const getSlides = createResource({

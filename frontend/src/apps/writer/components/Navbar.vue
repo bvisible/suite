@@ -32,10 +32,10 @@
       </template>
       <Button
         v-else-if="$route.name === 'Home'"
-        label="Create"
+        label="New"
         variant="solid"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        @click="createDocument"
+        @click="createDocument.submit"
       />
       <Dropdown
         v-else-if="defaultActions"

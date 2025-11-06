@@ -9,7 +9,7 @@ const router = createRouter({
       component: () => import('@/pages/Documents.vue'),
     },
     {
-      path: '/w/:entityName/:slug?',
+      path: '/w/:id/:slug?',
       name: 'Document',
       meta: { documentPage: true, allowGuest: true },
       component: () => import('@/pages/Document.vue'),

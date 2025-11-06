@@ -11,35 +11,44 @@
           v-for="row in files"
           :key="row.name"
           @contextmenu.prevent="(e) => contextMenu(e, row)"
-          @click="() => openEntity(row)"
-          class="group flex items-center justify-between px-4 py-3 hover:bg-surface-gray-1/60 transition-all duration-100 cursor-pointer rounded-xl bg-surface-white shadow-xs hover:scale-[1.005]"
+          @click="$router.push({ name: 'Document', params: { id: row.name } })"
+          class="group flex items-center justify-between px-4 py-3 hover:bg-surface-gray-1/60 transition-all duration-100 cursor-pointer rounded-xl bg-surface-white hover:ring-1 ring-outline-gray-2"
         >
-          <div class="flex flex-col gap-1.5">
-            <p class="text-sm font-medium text-gray-800 truncate">
-              {{ row.title }}
-            </p>
-            <p class="text-xs text-gray-500">
-              {{ row.file_size_pretty }}
-            </p>
-            <p v-if="row.owner !== $store.state.user.id" class="text-xs text-gray-500">
-              {{ $user(row.owner).full_name }}
-            </p>
+          <div class="flex gap-2">
+            <div class="flex flex-col gap-1">
+              <p class="text-sm font-medium text-ink-gray-8 truncate">
+                {{ row.title }}
+              </p>
+              <div class="text-xs text-ink-gray-5">{{ row.file_size_pretty }}</div>
+            </div>
           </div>
 
           <div class="flex items-center gap-2 text-sm text-gray-600 flex-shrink-0">
-            <Button
-              variant="ghost"
-              class="hidden group-hover:block text-xs"
-              @click.stop="(e) => contextMenu(e, row)"
+            <div
+              v-if="row.owner !== $store.state.user.id"
+              class="text-xs text-ink-gray-5 flex gap-5 items-center"
             >
-              Details
-            </Button>
-            <span>{{ row.relativeAccessed || row.relativeModified }}</span>
+              <LucideGlobe2 v-if="row.share_count == -2" class="size-4 text-ink-gray-6" />
+              <LucideBuilding2 v-else-if="row.share_count == -1" class="size-4 text-ink-gray-6" />
+              <LucideUsers v-else-if="row.share_count > 0" class="size-4 text-ink-gray-6" />
+              <div
+                v-if="row.owner != $store.state.user.id"
+                class="flex items-center gap-1 w-16 justify-end"
+              >
+                <Avatar
+                  :image="$user(row.owner)?.user_image"
+                  :label="$user(row.owner)?.full_name || 'Deleted user'"
+                  size="xs"
+                />
+                <span :title="row.owner">{{ $user(row.owner)?.full_name || 'Deleted user' }}</span>
+              </div>
+            </div>
+
+            <span :title="row.recentDate" class="w-28 text-end">{{ row.relativeModified }}</span>
           </div>
         </div>
       </div>
     </template>
-
     <!-- <ContextMenu
       v-if="rowEvent && selectedRow"
       :key="selectedRow.name"
@@ -54,11 +63,12 @@
 import { computed, ref, h } from 'vue'
 import { Avatar } from 'frappe-ui'
 // import ContextMenu from '@/components/ContextMenu.vue'
-import LucideUsers from '~icons/lucide/users'
+import LucideBookOpen from '~icons/lucide/book-open'
 import LucideMoreVertical from '~icons/lucide/more-vertical'
 import { openEntity } from '@/utils/'
 import { formatDate } from '@/utils/format'
 import { useStore } from 'vuex'
+import router from '@/router'
 
 const props = defineProps({
   groups: Object,
