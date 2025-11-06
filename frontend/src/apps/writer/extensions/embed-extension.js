@@ -1,15 +1,15 @@
-import { Node } from "@tiptap/core"
-import { Plugin } from "@tiptap/pm/state"
-import { getDocuments } from "@/resources/files"
-import DocumentList from "../components/DocumentList.vue"
-import tippy from "tippy.js"
+import { Node } from '@tiptap/core'
+import { Plugin } from '@tiptap/pm/state'
+// import { getDocuments } from "@/resources/files"
+import DocumentList from '../components/DocumentList.vue'
+import tippy from 'tippy.js'
 
-import { watch, ref, computed } from "vue"
-import router from "@/router"
-import { VueRenderer } from "@tiptap/vue-3"
+import { watch, ref, computed } from 'vue'
+import router from '@/router'
+import { VueRenderer } from '@tiptap/vue-3'
 
 const EmbedExtension = Node.create({
-  name: "embed",
+  name: 'embed',
   addCommands() {
     return {
       embedDocument:
@@ -39,24 +39,17 @@ const EmbedExtension = Node.create({
           handleTextInput(view, from, to, text) {
             const { state } = view
             const start = Math.max(0, from - 1)
-            const existingText =
-              state.doc.textBetween(start, from, "", "") + text
-            const charBefore = state.doc.textBetween(
-              start - 1,
-              from - 1,
-              "",
-              ""
-            )
-            if (existingText === "[[") {
-              if (charBefore === "[") closePopup()
+            const existingText = state.doc.textBetween(start, from, '', '') + text
+            const charBefore = state.doc.textBetween(start - 1, from - 1, '', '')
+            if (existingText === '[[') {
+              if (charBefore === '[') closePopup()
               else {
                 triggerPosition = start
                 openEmbedSuggestion(view, from, editor)
               }
             }
-            if (popup && component && text != "[") {
-              search.value =
-                state.doc.textBetween(triggerPosition + 2, to, "", "") + text
+            if (popup && component && text != '[') {
+              search.value = state.doc.textBetween(triggerPosition + 2, to, '', '') + text
               return false
             }
           },
@@ -67,14 +60,11 @@ const EmbedExtension = Node.create({
               const val = component.ref.onKeyDown({ event })
               if (val) return val
             }
-            if (
-              event.key === "Escape" ||
-              (event.key === "Backspace" && !inPopup)
-            ) {
+            if (event.key === 'Escape' || (event.key === 'Backspace' && !inPopup)) {
               closePopup()
               return true
             }
-            if (event.key === "Backspace" && inPopup) {
+            if (event.key === 'Backspace' && inPopup) {
               search.value = search.value.slice(0, -1)
             }
 
@@ -90,9 +80,10 @@ export default EmbedExtension
 let popup, component, triggerPosition
 const search = ref(null)
 const items = computed(() =>
-  getDocuments.data
-    .sort((a, b) => (a.modified > b.modified ? -1 : 1))
-    .filter((k) => k.name !== router.currentRoute.value.params.entityName)
+  // getDocuments.data
+  //   .sort((a, b) => (a.modified > b.modified ? -1 : 1))
+  //   .filter((k) => k.name !== router.currentRoute.value.params.entityName)
+  [],
 )
 export async function openEmbedSuggestion(view, from, editor) {
   component = new VueRenderer(DocumentList, {
@@ -107,7 +98,7 @@ export async function openEmbedSuggestion(view, from, editor) {
   })
 
   // Create the tippy popup
-  popup = tippy("body", {
+  popup = tippy('body', {
     getReferenceClientRect: () => {
       const coords = view.coordsAtPos(from)
       return {
@@ -121,11 +112,11 @@ export async function openEmbedSuggestion(view, from, editor) {
     content: component.element,
     showOnCreate: true,
     interactive: true,
-    trigger: "manual",
-    placement: "bottom-start",
+    trigger: 'manual',
+    placement: 'bottom-start',
   })
   popup[0].show()
-  search.value = ""
+  search.value = ''
 }
 
 // Cleanup function
@@ -139,24 +130,24 @@ function closePopup() {
 watch(
   search,
   async (val) => {
-      if(component)component.updateProps({
+    if (component)
+      component.updateProps({
         loading: true,
       })
-    getDocuments.fetch(
-      {
-        only_parent: 0,
-        search: val,
-      },
-      {
-        onSuccess: () => 
-          component &&
-            component.updateProps({
-              items: items.value,
-              loading: false,
-            })
-        ,
-      }
-    )
+    // getDocuments.fetch(
+    //   {
+    //     only_parent: 0,
+    //     search: val,
+    //   },
+    //   {
+    //     onSuccess: () =>
+    //       component &&
+    //       component.updateProps({
+    //         items: items.value,
+    //         loading: false,
+    //       }),
+    //   },
+    // )
   },
-  { immediate: true }
+  { immediate: true },
 )

@@ -63,15 +63,6 @@ export const getFavourites = createResource({
   },
 })
 
-export const getDocuments = createResource({
-  ...COMMON_OPTIONS,
-  url: 'writer.api.general.get_document_list',
-  cache: 'writer-document-list',
-  makeParams: (params) => {
-    return { ...params, file_kinds: '["Frappe Document"]' }
-  },
-})
-
 export const getSlides = createResource({
   ...COMMON_OPTIONS,
   url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
@@ -331,4 +322,3 @@ setCache(getRecents, 'recents-folder-contents')
 setCache(getFavourites, 'favourite-folder-contents')
 setCache(getPersonal, 'personal-folder-contents')
 setCache(getTrash, 'trash-folder-contents')
-setCache(getDocuments, 'document-folder-contents')

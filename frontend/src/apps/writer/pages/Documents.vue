@@ -6,10 +6,9 @@
   </div>
 </template>
 <script setup>
-import { getDocuments } from '@/resources/files'
+import { getDocuments } from '@/resources/'
 import RoundedListView from '@/components/RoundedListView.vue'
 import { LoadingIndicator } from 'frappe-ui'
-getDocuments.fetch()
 
 const groupedDocuments = computed(() => getDocuments.data && groupByTime(getDocuments.data))
 

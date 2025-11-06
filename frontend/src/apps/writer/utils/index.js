@@ -8,7 +8,6 @@ import {
   mutate,
   createDocument,
   createPresentation,
-  getDocuments,
 } from '@/resources/files'
 import { getTeams } from '@/resources/files'
 import { set } from 'idb-keyval'
