@@ -1,0 +1,103 @@
+import frappe
+import json
+
+import frappe
+from pypika import Criterion, CustomFunction, Order
+from pypika import functions as fn
+
+from drive.utils import MIME_LIST_MAP, get_default_team, get_file_type, get_home_folder
+from drive.utils.api import get_default_access
+from drive.api.permissions import ENTITY_FIELDS, get_user_access
+
+
+DriveUser = frappe.qb.DocType("User")
+UserGroupMember = frappe.qb.DocType("User Group Member")
+DriveFile = frappe.qb.DocType("Drive File")
+DrivePermission = frappe.qb.DocType("Drive Permission")
+Team = frappe.qb.DocType("Drive Team")
+TeamMember = frappe.qb.DocType("Drive Team Member")
+DriveFavourite = frappe.qb.DocType("Drive Favourite")
+Recents = frappe.qb.DocType("Drive Entity Log")
+DriveEntityTag = frappe.qb.DocType("Drive Entity Tag")
+
+Binary = CustomFunction("BINARY", ["expression"])
+
+
+@frappe.whitelist()
+def get_document_list():
+    user = frappe.session.user
+
+    recently_opened = (
+        frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
+    )
+    print(recently_opened.run())
+
+    query = (
+        frappe.qb.from_(DriveFile)
+        .select(*ENTITY_FIELDS)
+        .where((DriveFile.is_active == 1) & (DriveFile.mime_type == "frappe_doc"))
+        .where((DriveFile.owner == user) | (DriveFile.name.isin(recently_opened)))
+    )
+
+    query = (
+        query.left_join(DriveFavourite)
+        .on((DriveFavourite.entity == DriveFile.name) & (DriveFavourite.user == user))
+        .select(DriveFavourite.name.as_("is_favourite"))
+    )
+
+    query = query.left_join(Recents).on(
+        (Recents.entity_name == DriveFile.name) & (Recents.user == frappe.session.user)
+    )
+
+    query = query.select(Recents.last_interaction.as_("accessed"))
+
+    res = query.run(as_dict=True)
+
+    child_count_query = (
+        frappe.qb.from_(DriveFile)
+        .where((DriveFile.team == get_default_team()) & (DriveFile.is_active == 1))
+        .select(DriveFile.parent_entity, fn.Count("*").as_("child_count"))
+        .groupby(DriveFile.parent_entity)
+    )
+    share_query = (
+        frappe.qb.from_(DriveFile)
+        .right_join(DrivePermission)
+        .on(DrivePermission.entity == DriveFile.name)
+        .where((DrivePermission.user != "") & (DrivePermission.user != "$TEAM"))
+        .select(DriveFile.name, fn.Count("*").as_("share_count"))
+        .groupby(DriveFile.name)
+    )
+    public_files_query = (
+        frappe.qb.from_(DrivePermission)
+        .where(DrivePermission.user == "")
+        .select(DrivePermission.entity)
+    )
+    team_files_query = (
+        frappe.qb.from_(DrivePermission)
+        .where(DrivePermission.team == 1)
+        .select(DrivePermission.entity)
+    )
+    public_files = set(k[0] for k in public_files_query.run())
+    team_files = set(k[0] for k in team_files_query.run())
+
+    children_count = dict(child_count_query.run())
+    share_count = dict(share_query.run())
+
+    # default = get_default_access(entity_name)
+    default = 0
+
+    # Performance hit is wild, manually checking perms each time without cache.
+    for r in res:
+        r["children"] = children_count.get(r["name"], 0)
+        r["file_type"] = get_file_type(r)
+
+        if r["name"] in public_files:
+            r["share_count"] = -2
+        elif default > -1 and (r["name"] in team_files):
+            r["share_count"] = -1
+        elif default == 0:
+            r["share_count"] = share_count.get(r["name"], default)
+        else:
+            r["share_count"] = default
+        r |= get_user_access(r["name"])
+    return res
