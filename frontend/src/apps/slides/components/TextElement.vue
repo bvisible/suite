@@ -3,14 +3,16 @@
 		v-if="showEditor"
 		:editor="activeEditor"
 		:style="editorStyles"
-		class="textElement editor-container"
+		class="textElement"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
 	<div
 		v-else
 		v-html="element.content"
-		class="textElement select-none break-words"
+		class="textElement select-none"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 		:style="element.editorMetadata"
 		@dblclick="handleDoubleClick"
 	></div>
@@ -84,6 +86,10 @@ const normalizeContent = () => {
 	}
 }
 
+const isAutoWidth = computed(() => {
+	return !element.value.width || element.value.width == 'auto'
+})
+
 onBeforeMount(() => normalizeContent())
 </script>
 
@@ -138,7 +144,16 @@ onBeforeMount(() => normalizeContent())
 	text-align: right;
 }
 
-.editor-container .ProseMirror {
-	white-space: inherit;
+.text-auto-width,
+.text-auto-width .ProseMirror {
+	white-space: pre;
+}
+
+.text-fixed-width,
+.text-fixed-width .ProseMirror {
+	width: 100%;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	hyphens: auto;
 }
 </style>
