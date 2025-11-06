@@ -63,7 +63,7 @@ import { Tooltip, createResource } from 'frappe-ui'
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
 
 import dayjs from '@/utils/dayjs'
-import { getAttachmentUrl } from '@/utils/mediaUploads'
+import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const props = defineProps({
 	presentation: Object,
@@ -111,15 +111,9 @@ const getActionIconClasses = (action) => {
 }
 
 const previewStyles = computed(() => {
-	const thumbnailUrl = getAttachmentUrl(
-		props.presentation.is_public,
+	return getThumbnailCardStyles(
 		slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail,
 	)
-	return {
-		backgroundImage: `url(${thumbnailUrl})`,
-		backgroundSize: 'cover',
-		backgroundPosition: 'center',
-	}
 })
 
 const previewDetails = computed(() => {

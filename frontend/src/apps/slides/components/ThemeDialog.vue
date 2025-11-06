@@ -12,7 +12,7 @@
 				>
 					<div
 						class="aspect-video cursor-pointer rounded-lg px-2 outline outline-1 outline-offset-2 outline-gray-200 hover:outline-gray-400"
-						:style="getThumbnailStyles(theme)"
+						:style="getThumbnailCardStyles(theme.thumbnail)"
 						@click="$emit('create', theme.name)"
 					></div>
 					<div class="px-1 text-base text-gray-600">{{ theme.title }}</div>
@@ -24,7 +24,8 @@
 
 <script setup>
 import { Dialog, createResource } from 'frappe-ui'
-import { getAttachmentUrl } from '@/utils/mediaUploads'
+
+import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const emit = defineEmits(['create'])
 
@@ -33,13 +34,4 @@ const themeResource = createResource({
 	cache: 'themes',
 	auto: true,
 })
-
-const getThumbnailStyles = (theme) => {
-	const thumbnailUrl = getAttachmentUrl(theme.is_public, theme.thumbnail || '')
-	return {
-		backgroundImage: `url(${thumbnailUrl})`,
-		backgroundSize: 'cover',
-		backgroundPosition: 'center',
-	}
-}
 </script>
