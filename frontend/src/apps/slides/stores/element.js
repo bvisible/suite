@@ -72,7 +72,7 @@ const selectAndCenterElement = (elementId) => {
 				top: elementTop,
 			})
 
-			activeElement.value.left = elementLeft
+			activeElement.value.left = elementLeft + elementWidth / 2
 			activeElement.value.top = elementTop
 		})
 	})
