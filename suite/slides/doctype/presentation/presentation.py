@@ -90,6 +90,8 @@ def slug(text: str) -> str:
 	return text.lower().replace(" ", "-")
 
 
+# whitelist needed for drive integration
+@frappe.whitelist()
 def get_presentation_thumbnail(presentation_name: str, index: int | None = 1) -> str:
 	"""Returns the thumbnail of the first slide in a presentation"""
 	return (
@@ -188,9 +190,12 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 
 
 @frappe.whitelist()
-def create_presentation(title, theme=None, duplicate_from=None):
+def create_presentation(theme=None, duplicate_from=None):
 	presentation = frappe.new_doc("Presentation")
-	presentation.title = title
+	if duplicate_from:
+		presentation.title = f"Copy of {frappe.get_value('Presentation', duplicate_from, 'title')}"
+	else:
+		presentation.title = "Untitled"
 	presentation.theme = theme
 	presentation.insert()
 
