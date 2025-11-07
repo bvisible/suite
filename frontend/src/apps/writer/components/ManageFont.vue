@@ -1,26 +1,28 @@
 <template>
   <div class="flex gap-2">
-    <Combobox
-      v-model="size"
-      :options="FONT_SIZES"
-      :placeholder="font_size + 'px'"
-      :open-on-click="true"
-      class="w-[5rem]"
-      variant="ghost"
-    />
+    <div class="w-20">
+      <NumberInput
+        v-model="size"
+        suffix="px"
+        :range-start="5"
+        :range-end="120"
+        :placeholder="font_size"
+      />
+    </div>
     <Combobox
       v-model="selected"
       :options="FONT_FAMILIES"
       :placeholder="FONT_FAMILIES.find((k) => k.value === font_family)?.label"
       :open-on-click="true"
       class="min-w-[10rem]"
-      variant="ghost"
+      variant="outline"
       :style="selected && { fontFamily: `var(--font-${selected})` }"
     />
   </div>
 </template>
 <script setup>
 import { Combobox } from 'frappe-ui'
+import NumberInput from './controls/NumberInput.vue'
 import { ref, watchEffect, watch } from 'vue'
 import { FONT_FAMILIES } from '@/utils'
 
@@ -48,32 +50,20 @@ const STATIC_FONTS = [
   { value: '92px' },
 ]
 
-const FONT_SIZES = [
-  {
-    type: 'custom',
-    label: 'Clear',
-    onClick: props.editor.commands.unsetFontSize,
-  },
-  ...STATIC_FONTS.map((k) => ({ value: k.value, label: k.value })),
-  // Add custom
-]
-
 const selected = ref(null)
 const size = ref(null)
 
 watchEffect(() => {
   selected.value = FONT_FAMILIES.find((opt) => opt.isActive(props.editor))?.value
-  size.value = STATIC_FONTS.find((opt) =>
-    props.editor.isActive('textStyle', {
-      fontSize: opt.value,
-    }),
-  )?.value
+  let fontSize = props.editor.getAttributes('textStyle')?.fontSize
+  if (fontSize && typeof fontSize !== 'number') fontSize = +fontSize.slice(0, -2)
+  size.value = fontSize
 })
 
 watch(selected, (val) => {
   if (val) FONT_FAMILIES.find((k) => k.value === val).action(props.editor)
 })
 watch(size, (val) => {
-  props.editor.commands.setFontSize(val)
+  props.editor.commands.setFontSize(val + 'px')
 })
 </script>

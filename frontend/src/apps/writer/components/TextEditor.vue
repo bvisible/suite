@@ -147,7 +147,6 @@ import {
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
 
-
 import LucideMessageCircle from '~icons/lucide/message-circle'
 
 import store from '@/store'
@@ -340,8 +339,9 @@ const menuButtons = computed(() =>
     'Separator',
     'Bold',
     'Italic',
-    'Link',
     'Strikethrough',
+    'Link',
+    'FontColor',
     'Separator',
     ['Bullet List', 'Numbered List', 'Task List'],
     'Separator',
@@ -352,7 +352,7 @@ const menuButtons = computed(() =>
           {
             label: 'FontOptions',
             component: h(
-              defineAsyncComponent(() => import('./FontFamily.vue')),
+              defineAsyncComponent(() => import('./ManageFont.vue')),
               {
                 editor,
                 font_size: props.settings.font_size || 15,
@@ -360,7 +360,6 @@ const menuButtons = computed(() =>
               },
             ),
           },
-          'FontColor',
           'Separator',
           {
             label: 'Comment',
