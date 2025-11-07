@@ -11,7 +11,11 @@ export const SHADERS = {
   `,
 
 	blurFragment: `
-    precision mediump float;
+	#ifdef GL_FRAGMENT_PRECISION_HIGH
+	precision highp float;
+	#else
+	precision mediump float;
+	#endif
     uniform sampler2D u_image;
     uniform sampler2D u_mask;
     uniform vec2 u_resolution;
@@ -78,7 +82,11 @@ export const SHADERS = {
   `,
 
 	lightWrapFragment: `
-    precision mediump float;
+	#ifdef GL_FRAGMENT_PRECISION_HIGH
+	precision highp float;
+	#else
+	precision mediump float;
+	#endif
     uniform sampler2D u_image;        // Original video frame
     uniform sampler2D u_mask;         // Segmentation mask
     uniform sampler2D u_background;   // Virtual background image
@@ -200,6 +208,15 @@ export class WebGLManager {
 	private texCoordBuffer: WebGLBuffer | null = null;
 	private outputCanvas: HTMLCanvasElement | null = null;
 
+	// Cached locations for blur program
+	private positionLocation = 0;
+	private texCoordLocation = -1;
+	private resolutionLocation: WebGLUniformLocation | null = null;
+	private directionLocation: WebGLUniformLocation | null = null;
+	private sigmaLocation: WebGLUniformLocation | null = null;
+	private imageLocation: WebGLUniformLocation | null = null;
+	private maskLocation: WebGLUniformLocation | null = null;
+
 	constructor(canvas: HTMLCanvasElement) {
 		const gl =
 			canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -227,6 +244,23 @@ export class WebGLManager {
 		if (!this.program) {
 			throw new WebGLError("Failed to create shader program");
 		}
+
+		// Cache locations
+		this.texCoordLocation = this.gl.getAttribLocation(
+			this.program,
+			"a_texCoord",
+		);
+		this.resolutionLocation = this.gl.getUniformLocation(
+			this.program,
+			"u_resolution",
+		);
+		this.directionLocation = this.gl.getUniformLocation(
+			this.program,
+			"u_direction",
+		);
+		this.sigmaLocation = this.gl.getUniformLocation(this.program, "u_sigma");
+		this.imageLocation = this.gl.getUniformLocation(this.program, "u_image");
+		this.maskLocation = this.gl.getUniformLocation(this.program, "u_mask");
 
 		// reusable buffers and canvas for perf
 		this.positionBuffer = this.gl.createBuffer();
@@ -257,12 +291,6 @@ export class WebGLManager {
 
 		this.gl.shaderSource(shader, source);
 		this.gl.compileShader(shader);
-
-		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-			const error = this.gl.getShaderInfoLog(shader);
-			this.gl.deleteShader(shader);
-			throw new WebGLError(`Shader compilation failed: ${error}`);
-		}
 
 		return shader;
 	}
@@ -406,14 +434,10 @@ export class WebGLManager {
 			0,
 		);
 
-		const texCoordLocation = this.gl.getAttribLocation(
-			this.program,
-			"a_texCoord",
-		);
-		this.gl.enableVertexAttribArray(texCoordLocation);
+		this.gl.enableVertexAttribArray(this.texCoordLocation);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
 		this.gl.vertexAttribPointer(
-			texCoordLocation,
+			this.texCoordLocation,
 			2,
 			this.gl.FLOAT,
 			false,
@@ -422,30 +446,19 @@ export class WebGLManager {
 		);
 
 		// Set uniforms
-		this.gl.uniform2f(
-			this.gl.getUniformLocation(this.program, "u_resolution"),
-			width,
-			height,
-		);
-		this.gl.uniform2f(
-			this.gl.getUniformLocation(this.program, "u_direction"),
-			direction[0],
-			direction[1],
-		);
-		this.gl.uniform1f(
-			this.gl.getUniformLocation(this.program, "u_sigma"),
-			sigma,
-		);
+		this.gl.uniform2f(this.resolutionLocation, width, height);
+		this.gl.uniform2f(this.directionLocation, direction[0], direction[1]);
+		this.gl.uniform1f(this.sigmaLocation, sigma);
 
 		// Bind image texture to unit 0
 		this.gl.activeTexture(this.gl.TEXTURE0);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-		this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_image"), 0);
+		this.gl.uniform1i(this.imageLocation, 0);
 
 		// Bind mask texture to unit 1
 		this.gl.activeTexture(this.gl.TEXTURE1);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
-		this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_mask"), 1);
+		this.gl.uniform1i(this.maskLocation, 1);
 
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
@@ -562,6 +575,25 @@ export class WebGLManager {
 			throw new WebGLError("Failed to create light wrap shader program");
 		}
 
+		// Cache locations for light wrap program
+		const texCoordLocation = this.gl.getAttribLocation(
+			lightWrapProgram,
+			"a_texCoord",
+		);
+		const resolutionLocation = this.gl.getUniformLocation(
+			lightWrapProgram,
+			"u_resolution",
+		);
+		const imageLocation = this.gl.getUniformLocation(
+			lightWrapProgram,
+			"u_image",
+		);
+		const maskLocation = this.gl.getUniformLocation(lightWrapProgram, "u_mask");
+		const backgroundLocation = this.gl.getUniformLocation(
+			lightWrapProgram,
+			"u_background",
+		);
+
 		const imageTexture = this.createTexture(imageData);
 		if (!imageTexture) {
 			throw new WebGLError("Failed to create image texture");
@@ -609,10 +641,6 @@ export class WebGLManager {
 				0,
 			);
 
-			const texCoordLocation = this.gl.getAttribLocation(
-				lightWrapProgram,
-				"a_texCoord",
-			);
 			this.gl.enableVertexAttribArray(texCoordLocation);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
 			this.gl.vertexAttribPointer(
@@ -624,35 +652,22 @@ export class WebGLManager {
 				0,
 			);
 
-			this.gl.uniform2f(
-				this.gl.getUniformLocation(lightWrapProgram, "u_resolution"),
-				width,
-				height,
-			);
+			this.gl.uniform2f(resolutionLocation, width, height);
 
 			// Image texture to unit 0
 			this.gl.activeTexture(this.gl.TEXTURE0);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, imageTexture);
-			this.gl.uniform1i(
-				this.gl.getUniformLocation(lightWrapProgram, "u_image"),
-				0,
-			);
+			this.gl.uniform1i(imageLocation, 0);
 
 			// Mask texture to unit 1
 			this.gl.activeTexture(this.gl.TEXTURE1);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
-			this.gl.uniform1i(
-				this.gl.getUniformLocation(lightWrapProgram, "u_mask"),
-				1,
-			);
+			this.gl.uniform1i(maskLocation, 1);
 
 			// Background texture to unit 2
 			this.gl.activeTexture(this.gl.TEXTURE2);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, backgroundTexture);
-			this.gl.uniform1i(
-				this.gl.getUniformLocation(lightWrapProgram, "u_background"),
-				2,
-			);
+			this.gl.uniform1i(backgroundLocation, 2);
 
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
