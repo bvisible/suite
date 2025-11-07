@@ -73,7 +73,7 @@ const selectAndCenterElement = (elementId) => {
 			})
 
 			activeElement.value.left = elementLeft + elementWidth / 2
-			activeElement.value.top = elementTop
+			activeElement.value.top = elementTop + elementHeight / 2
 		})
 	})
 }
