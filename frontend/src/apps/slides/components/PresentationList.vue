@@ -64,7 +64,7 @@ const props = defineProps({
 	presentations: Object,
 })
 
-const emit = defineEmits(['navigate', 'setPreview', 'openDialog'])
+const emit = defineEmits(['navigate', 'setPreview', 'openDialog', 'duplicatePresentation'])
 
 const backgroundClasses = 'size-full bg-gray-100 flex flex-col pt-8 overflow-y-auto'
 const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
@@ -82,7 +82,7 @@ const getContextMenuOptions = (presentation) => {
 				{
 					label: 'Duplicate',
 					icon: h(Copy, { class: contextMenuIconClasses }),
-					onClick: () => emit('openDialog', 'Duplicate', presentation),
+					onClick: () => emit('duplicatePresentation', presentation.name),
 				},
 				{
 					label: 'Delete',

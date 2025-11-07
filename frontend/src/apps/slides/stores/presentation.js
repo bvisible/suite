@@ -21,7 +21,6 @@ const createPresentationResource = createResource({
 	method: 'POST',
 	makeParams: (args) => {
 		return {
-			title: args.title,
 			duplicate_from: args.duplicateFrom,
 			theme: args.theme,
 		}

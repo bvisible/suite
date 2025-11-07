@@ -70,7 +70,7 @@ const props = defineProps({
 	required: true,
 })
 
-const emit = defineEmits(['setPreview', 'openDialog', 'navigate'])
+const emit = defineEmits(['setPreview', 'openDialog', 'navigate', 'duplicatePresentation'])
 
 let interval = null
 
@@ -147,7 +147,7 @@ const presentationActions = [
 	{
 		icon: Copy,
 		label: 'Duplicate',
-		onClick: (e) => emit('openDialog', 'Duplicate'),
+		onClick: (e) => emit('duplicatePresentation', props.presentation.name),
 	},
 	{
 		icon: Trash,
