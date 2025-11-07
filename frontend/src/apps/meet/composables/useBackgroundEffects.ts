@@ -267,25 +267,46 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 				};
 			}
 
+			// Get track settings to determine canvas size
+			const trackSettings = videoTrack.getSettings();
+			const width = trackSettings.width || 640;
+			const height = trackSettings.height || 480;
+
 			// Create canvas for processing
 			const canvas = document.createElement("canvas");
 			const ctx = canvas.getContext("2d", { willReadFrequently: true });
 			if (!ctx) throw new Error("Failed to get canvas context");
 
-			// Create video element to capture frames
-			const video = document.createElement("video");
-			video.srcObject = new MediaStream([videoTrack]);
-			video.muted = true;
-			video.playsInline = true;
+			canvas.width = width;
+			canvas.height = height;
 
-			try {
-				await video.play();
-			} catch (err) {
-				console.warn("Autoplay prevented, attempting muted playback", err);
+			let trackProcessor: ReadableStreamDefaultReader<VideoFrame> | null = null;
+			let video: HTMLVideoElement | null = null;
+
+			if ("MediaStreamTrackProcessor" in window) {
+				const MediaStreamTrackProcessor = (
+					window as unknown as {
+						MediaStreamTrackProcessor: new (init: {
+							track: MediaStreamTrack;
+						}) => {
+							readable: ReadableStream<VideoFrame>;
+						};
+					}
+				).MediaStreamTrackProcessor;
+				const processor = new MediaStreamTrackProcessor({ track: videoTrack });
+				trackProcessor = processor.readable.getReader();
+			} else {
+				// Fallback to video element for browsers without MediaStreamTrackProcessor
+				video = document.createElement("video");
+				video.srcObject = new MediaStream([videoTrack]);
+				video.muted = true;
+				video.playsInline = true;
+				try {
+					await video.play();
+				} catch (err) {
+					console.warn("Autoplay prevented, attempting muted playback", err);
+				}
 			}
-
-			canvas.width = video.videoWidth;
-			canvas.height = video.videoHeight;
 
 			let backgroundImageData: ImageData | null = null;
 			let backgroundImageKey: string | null = null;
@@ -357,20 +378,217 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 
 			await ensureBackgroundImage();
 
-			// Create output canvas for the processed stream
-			const outputCanvas = document.createElement("canvas");
+			// Create output canvas - use OffscreenCanvas only if MediaStreamTrackGenerator is available
+			// Otherwise use HTMLCanvasElement for captureStream() compatibility
+			// Firefox doesn't support MediaStreamTrackGenerator yet
+			// This is a workaround to keep processing active when tab view is hidden
+			const useOffscreenCanvas =
+				typeof OffscreenCanvas !== "undefined" &&
+				"MediaStreamTrackGenerator" in window;
+
+			const outputCanvas = useOffscreenCanvas
+				? new OffscreenCanvas(canvas.width, canvas.height)
+				: document.createElement("canvas");
 			const outputCtx = outputCanvas.getContext("2d", {
 				willReadFrequently: true,
 			});
 			if (!outputCtx) throw new Error("Failed to get output canvas context");
 
-			outputCanvas.width = canvas.width;
-			outputCanvas.height = canvas.height;
+			if (outputCanvas instanceof HTMLCanvasElement) {
+				outputCanvas.width = canvas.width;
+				outputCanvas.height = canvas.height;
+			}
+
+			// Helper to apply background effects (blur or virtual background)
+			const applyEffectsToFrame = async (maskData: Float32Array) => {
+				if (settings.backgroundBlurEnabled) {
+					try {
+						// Apply blur effect using compositing utilities
+						const currentImageData = ctx.getImageData(
+							0,
+							0,
+							canvas.width,
+							canvas.height,
+						);
+
+						const compositedImageData = applyBlurEffect(
+							currentImageData,
+							maskData,
+							canvas.width,
+							canvas.height,
+							{
+								blurIntensity: settings.blurIntensity,
+								webglManager: webglManager || undefined,
+							},
+						);
+
+						outputCtx.putImageData(compositedImageData, 0, 0);
+					} catch (error) {
+						if (
+							error instanceof CompositingError &&
+							error.code === "WEBGL_UNAVAILABLE"
+						) {
+							toast.error(
+								"Background blur requires WebGL but it's not available on this device. Blur effects have been disabled.",
+							);
+							settings.backgroundBlurEnabled = false;
+						} else if (
+							error instanceof CompositingError &&
+							error.code === "WEBGL_BLUR_FAILED"
+						) {
+							toast.error(
+								"Background blur failed due to WebGL error. Blur effects have been disabled.",
+							);
+							settings.backgroundBlurEnabled = false;
+						} else {
+							console.error("Blur effect failed:", error);
+						}
+						outputCtx.drawImage(canvas, 0, 0);
+					}
+				} else if (backgroundImageData) {
+					const currentImageData = ctx.getImageData(
+						0,
+						0,
+						canvas.width,
+						canvas.height,
+					);
+
+					const compositedImageData = applyVirtualBackground(
+						currentImageData,
+						maskData,
+						backgroundImageData,
+						{
+							webglManager: webglManager || undefined,
+						},
+					);
+
+					outputCtx.putImageData(compositedImageData, 0, 0);
+				} else {
+					outputCtx.drawImage(canvas, 0, 0);
+				}
+
+				if (trackWriter && outputCanvas instanceof OffscreenCanvas) {
+					try {
+						const bitmap = outputCanvas.transferToImageBitmap();
+						const videoFrame = new VideoFrame(bitmap, {
+							timestamp: performance.now() * 1000, // convert to microseconds
+						});
+						await trackWriter.write(videoFrame);
+						videoFrame.close();
+						bitmap.close();
+					} catch (err) {
+						console.warn("Failed to write VideoFrame:", err);
+					}
+				}
+			};
+
+			const processFrame = async () => {
+				if (trackProcessor) {
+					while (shouldContinueProcessing(sessionId, model)) {
+						let videoFrame: VideoFrame | null = null;
+						try {
+							const result = await trackProcessor.read();
+							if (result.done || !result.value) {
+								break;
+							}
+							videoFrame = result.value;
+
+							const bitmap = await createImageBitmap(videoFrame, {
+								resizeWidth: canvas.width,
+								resizeHeight: canvas.height,
+							});
+							ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+							bitmap.close();
+
+							await model.send({ image: canvas });
+
+							videoFrame.close();
+							videoFrame = null;
+
+							if (!shouldContinueProcessing(sessionId, model)) {
+								break;
+							}
+
+							const results = latestResults;
+							if (!results || !results.segmentationMask) {
+								outputCtx.clearRect(
+									0,
+									0,
+									outputCanvas.width,
+									outputCanvas.height,
+								);
+								outputCtx.drawImage(canvas, 0, 0);
+								continue;
+							}
+
+							// we convert segmentation mask to Float32Array
+							// since we need the alpha channel for compositing
+							const maskData = await convertMaskToFloat32Array(
+								results.segmentationMask,
+								canvas.width,
+								canvas.height,
+							);
+
+							outputCtx.clearRect(
+								0,
+								0,
+								outputCanvas.width,
+								outputCanvas.height,
+							);
+							if (maskData.length !== canvas.width * canvas.height) {
+								console.warn(
+									"Segmentation mask size mismatch. Falling back to original frame.",
+									maskData.length,
+									canvas.width * canvas.height,
+								);
+								outputCtx.drawImage(canvas, 0, 0);
+								continue;
+							}
+
+							await applyEffectsToFrame(maskData);
+						} catch (err) {
+							if (videoFrame) videoFrame.close();
+							console.error("Frame processing error:", err);
+
+							const errorName = err instanceof Error ? err.name : "";
+							const errorMessage =
+								err instanceof Error ? err.message : String(err);
+							const isFatalError =
+								errorName === "RuntimeError" ||
+								errorName === "BindingError" ||
+								errorMessage.includes("RuntimeError") ||
+								errorMessage.includes("BindingError") ||
+								errorMessage.includes("index out of bounds");
+
+							if (isFatalError) {
+								try {
+									const resetSucceeded = await resetSegmentationState();
+									if (!resetSucceeded) {
+										await releaseSegmentation();
+									}
+									model = await loadModel();
+									sessionId = ++instanceSessionCounter;
+									activeSessionId = sessionId;
+								} catch (recoveryError) {
+									console.error(
+										"Failed to recover from frame error:",
+										recoveryError,
+									);
+									await haltProcessing();
+									break;
+								}
+							}
+						}
+					}
+				} else {
+					await processFrameWithRAF();
+				}
+			};
 
 			let lastFrameTime = 0;
 			const targetFrameRate = 1000 / 30; // 30 FPS
 
-			const processFrame = async (currentTime = 0) => {
+			const processFrameWithRAF = async (currentTime = 0) => {
 				try {
 					if (!shouldContinueProcessing(sessionId, model)) {
 						return;
@@ -378,37 +596,33 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 
 					// skip frames if we're processing too fast
 					if (currentTime - lastFrameTime < targetFrameRate) {
-						animationId = requestAnimationFrame(processFrame);
+						animationId = requestAnimationFrame(processFrameWithRAF);
 						return;
 					}
 					lastFrameTime = currentTime;
 
 					if (
+						!video ||
 						video.videoWidth === 0 ||
 						video.videoHeight === 0 ||
 						video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
 					) {
-						animationId = requestAnimationFrame(processFrame);
+						animationId = requestAnimationFrame(processFrameWithRAF);
 						return;
 					}
-					// Draw current video frame to canvas
 					ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-					// Send the rendered canvas frame to MediaPipe for segmentation. Firefox can surface
-					// zero-dimension frames while the HTMLVideoElement resolves its layout; providing the
-					// canvas ensures consistent frame sizing across browsers.
 					await model.send({ image: canvas });
 
 					if (!shouldContinueProcessing(sessionId, model)) {
 						return;
 					}
 
-					// Use the latest results from the onResults callback
 					const results = latestResults;
 					if (!results || !results.segmentationMask) {
 						outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
 						outputCtx.drawImage(canvas, 0, 0);
-						animationId = requestAnimationFrame(processFrame);
+						animationId = requestAnimationFrame(processFrameWithRAF);
 						return;
 					}
 
@@ -420,7 +634,7 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 						canvas.height,
 					);
 
-					// Clear output canvas
+					// clear output canvas
 					outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
 					if (maskData.length !== canvas.width * canvas.height) {
 						console.warn(
@@ -429,81 +643,14 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 							canvas.width * canvas.height,
 						);
 						outputCtx.drawImage(canvas, 0, 0);
-						animationId = requestAnimationFrame(processFrame);
+						animationId = requestAnimationFrame(processFrameWithRAF);
 						return;
 					}
-					if (settings.backgroundBlurEnabled) {
-						try {
-							// Apply blur effect using compositing utilities
-							const currentImageData = ctx.getImageData(
-								0,
-								0,
-								canvas.width,
-								canvas.height,
-							);
 
-							const compositedImageData = applyBlurEffect(
-								currentImageData,
-								maskData,
-								canvas.width,
-								canvas.height,
-								{
-									blurIntensity: settings.blurIntensity,
-									webglManager: webglManager || undefined,
-								},
-							);
+					await applyEffectsToFrame(maskData);
 
-							outputCtx.putImageData(compositedImageData, 0, 0);
-						} catch (error) {
-							if (
-								error instanceof CompositingError &&
-								error.code === "WEBGL_UNAVAILABLE"
-							) {
-								toast.error(
-									"Background blur requires WebGL but it's not available on this device. Blur effects have been disabled.",
-								);
-								// Disable blur for future frames
-								settings.backgroundBlurEnabled = false;
-							} else if (
-								error instanceof CompositingError &&
-								error.code === "WEBGL_BLUR_FAILED"
-							) {
-								toast.error(
-									"Background blur failed due to WebGL error. Blur effects have been disabled.",
-								);
-								// Disable blur for future frames
-								settings.backgroundBlurEnabled = false;
-							} else {
-								console.error("Blur effect failed:", error);
-							}
-							// Fall back to no effect for this frame
-							outputCtx.drawImage(canvas, 0, 0);
-						}
-					} else if (backgroundImageData) {
-						// Apply virtual background using compositing utilities
-						const currentImageData = ctx.getImageData(
-							0,
-							0,
-							canvas.width,
-							canvas.height,
-						);
-
-						const compositedImageData = applyVirtualBackground(
-							currentImageData,
-							maskData,
-							backgroundImageData,
-							{
-								webglManager: webglManager || undefined,
-							},
-						);
-
-						outputCtx.putImageData(compositedImageData, 0, 0);
-					} else {
-						// No effect, just draw original
-						outputCtx.drawImage(canvas, 0, 0);
-					}
 					if (isProcessing.value) {
-						animationId = requestAnimationFrame(processFrame);
+						animationId = requestAnimationFrame(processFrameWithRAF);
 					}
 				} catch (err) {
 					console.error("Frame processing error:", err);
@@ -540,7 +687,7 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 						}
 
 						if (isProcessing.value) {
-							animationId = requestAnimationFrame(processFrame);
+							animationId = requestAnimationFrame(processFrameWithRAF);
 						}
 						return;
 					}
@@ -548,15 +695,35 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 					outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
 					outputCtx.drawImage(canvas, 0, 0);
 
-					animationId = requestAnimationFrame(processFrame);
+					animationId = requestAnimationFrame(processFrameWithRAF);
 				}
 			};
 
 			// Start processing
 			processFrame();
 
-			// Create output stream from canvas
-			const outputStream = outputCanvas.captureStream(30); // 30 FPS
+			let outputStream: MediaStream;
+			let trackGenerator: MediaStreamTrack | null = null;
+			let trackWriter: WritableStreamDefaultWriter | null = null;
+
+			if (useOffscreenCanvas) {
+				const MediaStreamTrackGenerator = (
+					window as unknown as {
+						MediaStreamTrackGenerator: new (init: {
+							kind: string;
+						}) => MediaStreamTrack & {
+							writable: WritableStream;
+						};
+					}
+				).MediaStreamTrackGenerator;
+				trackGenerator = new MediaStreamTrackGenerator({ kind: "video" });
+				trackWriter = (
+					trackGenerator as unknown as { writable: WritableStream }
+				).writable.getWriter();
+				outputStream = new MediaStream([trackGenerator]);
+			} else {
+				outputStream = (outputCanvas as HTMLCanvasElement).captureStream(30); // 30 FPS
+			}
 
 			// Replace video track
 			const processedVideoTrack = outputStream.getVideoTracks()[0];
@@ -567,7 +734,25 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 			// Cleanup function
 			const cleanup = (): void => {
 				isProcessing.value = false;
-				video.srcObject = null;
+				if (video) {
+					video.srcObject = null;
+				}
+				if (trackProcessor) {
+					try {
+						void trackProcessor.cancel();
+					} catch (e) {
+						console.warn("Failed to cancel track processor:", e);
+					}
+					trackProcessor = null;
+				}
+				if (trackWriter) {
+					try {
+						void trackWriter.close();
+					} catch (e) {
+						console.warn("Failed to close track writer:", e);
+					}
+					trackWriter = null;
+				}
 				if (processedVideoTrack) {
 					processedVideoTrack.stop();
 				}
