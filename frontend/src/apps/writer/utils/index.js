@@ -6,8 +6,6 @@ import { useTimeAgo } from '@vueuse/core'
 import {
   getRecents,
   mutate,
-  createDocument,
-  createPresentation,
 } from '@/resources/files'
 import { getTeams } from '@/resources/files'
 import { set } from 'idb-keyval'

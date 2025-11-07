@@ -1,4 +1,8 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { provide } from 'vue'
+const inIframe = window.self !== window.top
+provide('inIframe', inIframe)
+</script>
 
 <template>
   <div class="flex flex-col h-screen">

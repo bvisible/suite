@@ -46,14 +46,22 @@
     />
   </Teleport> -->
   <Navbar
-    v-if="!inIframe && (docSettings?.doc || !isFrappeDoc)"
-    :root-resource="document"
-    :breadcrumbs="document.data.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
+    v-if="!inIframe && document.data"
+    :root-entity="document.data"
+    :breadcrumbs="
+      document.data.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
+    "
     :actions="isFrappeDoc ? navBarActions : null"
   >
-    <template #breadcrumbs v-if="docSettings?.doc?.settings?.minimal && entity.write">
+    <template
+      #breadcrumbs
+      v-if="docSettings?.doc?.settings?.minimal && entity.write"
+    >
       <Button variant="ghost">
-        <router-link :to="$store.state.breadcrumbs?.[0]?.route" class="cursor-pointer">
+        <router-link
+          :to="$store.state.breadcrumbs?.[0]?.route"
+          class="cursor-pointer"
+        >
           <LucideArrowLeft class="size-3.5" />
         </router-link>
       </Button>
@@ -156,7 +164,9 @@ import LucideLockOpen from '~icons/lucide/lock-open'
 import LucideWifiOff from '~icons/lucide/wifi-off'
 import LucideFileWarning from '~icons/lucide/file-warning'
 
-const TextEditor = defineAsyncComponent(() => import('@/components/TextEditor.vue'))
+const TextEditor = defineAsyncComponent(
+  () => import('@/components/TextEditor.vue'),
+)
 
 const props = defineProps({
   id: String,
@@ -184,17 +194,24 @@ const edited = ref(false)
 const owner = computed(() => entity.value?.owner)
 const isOldSchema = computed(() => {
   if (!owner.value) return false
-  return !docSettings?.doc?.settings?.collab && store.state.user.id !== owner.value
+  return (
+    !docSettings?.doc?.settings?.collab && store.state.user.id !== owner.value
+  )
 })
 
 const editable = computed(
-  () => !!entity?.value?.write && !docSettings?.doc?.settings?.lock && !isOldSchema.value,
+  () =>
+    !!entity?.value?.write &&
+    !docSettings?.doc?.settings?.lock &&
+    !isOldSchema.value,
 )
 watch(showVersions, (v) => {
   if (!v) current.value = null
 })
 let docSettings, globalSettings
-const isFrappeDoc = computed(() => entity.value && entity.value.mime_type === 'frappe_doc')
+const isFrappeDoc = computed(
+  () => entity.value && entity.value.mime_type === 'frappe_doc',
+)
 
 const saveDocument = (comment = false) => {
   if ((!comment && !edited.value) || current.value) return
@@ -290,7 +307,8 @@ const newVersion = createResource({
   url: 'drive.api.docs.create_version',
   makeParams: (k) => ({ ...k, doc: entity.value.document }),
   onSuccess(data) {
-    if (data && data.length != entity.value.versions.length) entity.value.versions = data
+    if (data && data.length != entity.value.versions.length)
+      entity.value.versions = data
   },
 })
 
@@ -310,7 +328,8 @@ const navBarActions = computed(
             },
             label: 'Collaborate',
             icon: LucideUserPen,
-            cond: editor.value?.editor && editor.value.editor.getText().length == 0,
+            cond:
+              editor.value?.editor && editor.value.editor.getText().length == 0,
             switch: true,
             switchValue: docSettings.doc.settings.collab,
             onClick: async (val) => {
@@ -454,7 +473,9 @@ const toggleMinimal = (val) => {
 }
 
 const clearCache = () => {
-  const DBDeleteRequest = window.indexedDB.deleteDatabase('fdoc-' + entity.value.name)
+  const DBDeleteRequest = window.indexedDB.deleteDatabase(
+    'fdoc-' + entity.value.name,
+  )
 
   DBDeleteRequest.onerror = () => {
     console.error('Error deleting database.')
@@ -519,7 +540,8 @@ let toasted
 watch(isOldSchema, (v) => {
   if (docSettings?.doc?.settings && entity.value.write && v && !toasted) {
     toast({
-      title: 'This document uses an old schema. Collaborative editing is disabled.',
+      title:
+        'This document uses an old schema. Collaborative editing is disabled.',
       type: 'warning',
       duration: 8000,
     })
