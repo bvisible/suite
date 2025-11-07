@@ -232,6 +232,7 @@ useResizeObserver(activeDiv, (entries) => {
 		width: width,
 		height: height,
 		left: selectionBounds.left + (selectionBounds.width - width) / 2,
+		top: selectionBounds.top + (selectionBounds.height - height) / 2,
 	})
 })
 

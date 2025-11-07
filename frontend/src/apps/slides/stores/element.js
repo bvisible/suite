@@ -125,8 +125,8 @@ const addTextElement = async (text) => {
 	const element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
-		transformOrigin: 'center none',
-		transform: 'translate(-50%, 0%)',
+		transformOrigin: 'center center',
+		transform: 'translate(-50%, -50%)',
 		left: 0,
 		top: 0,
 		type: 'text',
@@ -239,8 +239,8 @@ const addMediaElement = async (file, type) => {
 		shadowOffsetY: 0,
 		shadowSpread: 0,
 		shadowColor: '#000000ff',
-		transformOrigin: 'center none',
-		transform: 'translate(-50%, 0%)',
+		transformOrigin: 'center center',
+		transform: 'translate(-50%, -50%)',
 	}
 	if (type == 'video') {
 		const posterURL = await getVideoPoster(file.file_url)

@@ -44,8 +44,9 @@ const updatePresentationTitle = async (id, newTitle) => {
 	})
 }
 
-const getElementWidth = async (el) => {
-	if (el.width) return el.width
+const getElementDimensions = async (el) => {
+	let width = 0,
+		height = 0
 
 	//render outside dom to get width
 	const tempDiv = document.createElement('div')
@@ -60,29 +61,34 @@ const getElementWidth = async (el) => {
 
 	await document.fonts.ready
 
-	const width = tempDiv.offsetWidth
+	width = el.width || tempDiv.offsetWidth
+	height = tempDiv.offsetHeight
+
 	document.body.removeChild(tempDiv)
-	return width
+
+	return { width, height }
 }
 
 const transformElements = async (elements) => {
 	const newEls = []
 
 	for (const el of elements) {
-		if ('transform' in el) {
+		if ('transform' in el || el.type !== 'text') {
 			newEls.push(el)
 			continue
 		}
 
-		const width = await getElementWidth(el)
+		const { width, height } = await getElementDimensions(el)
 
 		const newLeft = el.left + width / 2
+		const newTop = el.top + height / 2
 
 		newEls.push({
 			...el,
-			transform: 'translate(-50%, 0%)',
-			transformOrigin: 'center none',
+			transform: 'translate(-50%, -50%)',
+			transformOrigin: 'center center',
 			left: newLeft,
+			top: newTop,
 		})
 	}
 
