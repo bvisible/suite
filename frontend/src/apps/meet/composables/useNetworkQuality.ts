@@ -47,9 +47,9 @@ export function useNetworkQuality() {
 		if (!connection) return null;
 
 		return {
-			effectiveType: connection.effectiveType, // 'slow-2g', '2g', '3g', '4g'
-			downlink: connection.downlink, // Mbps
-			rtt: connection.rtt, // ms
+			effectiveType: connection.effectiveType,
+			downlink: connection.downlink,
+			rtt: connection.rtt,
 			saveData: connection.saveData,
 		};
 	};

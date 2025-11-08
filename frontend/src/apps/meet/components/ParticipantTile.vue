@@ -123,9 +123,12 @@ const showNetworkIndicator = computed(() => {
 	// Show indicator for poor connections:
 	// below 2 Mbps or poor effective types
 	const isPoorConnection =
-		(downlink !== undefined && downlink < 2) ||
+		// Very slow or no connection
+		(downlink !== undefined && downlink <= 0.5) ||
+		// Poor effective types
 		effectiveType === "slow-2g" ||
-		effectiveType === "2g";
+		effectiveType === "2g" ||
+		(effectiveType === "3g" && downlink !== undefined && downlink < 1);
 
 	return isPoorConnection;
 });
