@@ -5,10 +5,14 @@ from drive.utils import (
     create_drive_file,
     default_team,
     get_home_folder,
+    get_valid_breadcrumbs,
+    get_file_type,
+    get_default_team,
 )
 from drive.api.files import get_new_title
-from drive.api.permissions import user_has_permission
+from drive.api.permissions import user_has_permission, ENTITY_FIELDS, get_user_access
 from drive.utils.files import FileManager
+from drive.utils.users import mark_as_viewed
 
 
 @frappe.whitelist()
@@ -26,6 +30,7 @@ def create_document_entity(team, title=None, parent=None, template=None):
             "Cannot access folder due to insufficient permissions",
             frappe.PermissionError,
         )
+
     drive_doc = frappe.new_doc("Drive Document")
     drive_doc.title = title
     if template:
@@ -35,7 +40,6 @@ def create_document_entity(team, title=None, parent=None, template=None):
         if not template
         else '{"collab": true, "template": "' + template + '"}'
     )
-    print(drive_doc.settings)
     drive_doc.save()
 
     manager = FileManager()
@@ -70,3 +74,77 @@ def create_document_entity(team, title=None, parent=None, template=None):
         document=drive_doc.name,
     )
     return entity
+
+
+@frappe.whitelist()
+def get_document(file_id):
+    entity = frappe.db.get_value(
+        "Drive File",
+        {"is_active": 1, "name": file_id},
+        ENTITY_FIELDS,
+        as_dict=1,
+    )
+    if not entity:
+        frappe.throw(
+            "We couldn't find what you're looking for.", {"error": frappe.NotFound}
+        )
+
+    entity["in_home"] = entity.team == get_default_team()
+    user_access = get_user_access(entity)
+    if user_access.get("read") == 0:
+        frappe.throw("You don't have access to this file.", frappe.PermissionError)
+
+    owner_info = (
+        frappe.db.get_value(
+            "User", entity.owner, ["user_image", "full_name"], as_dict=True
+        )
+        or {}
+    )
+    breadcrumbs = {"breadcrumbs": get_valid_breadcrumbs(entity.name, user_access)}
+    favourite = frappe.db.get_value(
+        "Drive Favourite",
+        {
+            "entity": file_id,
+            "user": frappe.session.user,
+        },
+        ["entity as is_favourite"],
+    )
+    mark_as_viewed(entity)
+    file_type = get_file_type(entity)
+    return_obj = (
+        entity
+        | user_access
+        | owner_info
+        | breadcrumbs
+        | {"is_favourite": favourite, "file_type": file_type}
+    )
+
+    default = 0
+    if file_id:
+        if get_user_access(file_id, "Guest")["read"]:
+            default = -2
+        elif get_user_access(file_id, team=1)["read"]:
+            default = -1
+    return_obj["share_count"] = default
+
+    k = frappe.get_doc("Drive Document", entity.document)
+    entity_doc_content = k.as_dict()
+    entity_doc_content.pop("name")
+    comments = frappe.get_all(
+        "Drive Comment",
+        filters={"parenttype": "Drive File", "parent": entity.name},
+        fields=["content", "owner", "creation", "name", "resolved"],
+    )
+
+    for k in comments:
+        k["replies"] = frappe.get_all(
+            "Drive Comment",
+            filters={"parenttype": "Drive Comment", "parent": k["name"]},
+            fields=["content", "owner", "creation", "name"],
+        )
+
+    return_obj |= entity_doc_content | {
+        "comments": comments,
+        "modified": entity.modified,
+    }
+    frappe.response["data"] = return_obj
