@@ -15,15 +15,15 @@
     <div class="ml-auto flex items-center gap-2">
       <slot name="content" />
       <div class="icon mr-2">
-        <LucideGlobe2 v-if="rootEntity?.share_count === -2" class="size-4" />
+        <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
         <LucideBuilding2
-          v-else-if="rootEntity?.share_count === -1"
+          v-else-if="document.doc.share_count === -1"
           class="size-4"
         />
-        <LucideUsers v-else-if="rootEntity?.share_count > 0" class="size-4" />
+        <LucideUsers v-else-if="document.doc.share_count > 0" class="size-4" />
       </div>
       <LucideStar
-        v-if="rootEntity?.is_favourite"
+        v-if="document.doc.is_favourite"
         class="size-4 my-auto stroke-amber-500 fill-amber-500"
       />
       <template v-if="!isLoggedIn">
@@ -56,8 +56,8 @@
         "
       />
       <Dropdown
-        v-else-if="defaultActions"
-        :options="defaultActions"
+        v-else-if="documentActions"
+        :options="[...fileActions, ...documentActions]"
         placement="right"
         :button="{
           variant: 'ghost',
@@ -67,7 +67,9 @@
     </div>
     <Dialogs
       v-model="dialog"
-      :entities="entities.length ? entities : rootEntity ? [rootEntity] : []"
+      :entities="
+        entities.length ? entities : document.doc ? [document.doc] : []
+      "
     />
   </nav>
 </template>
@@ -78,7 +80,11 @@ import emitter from '@/emitter'
 import { ref, computed, inject, h } from 'vue'
 // import { entitiesDownload } from '@/utils/download'
 import { createDocument } from '@/resources/'
+import { exportMedia, exportBlog } from '@/utils/exports'
 import Dialogs from '@/components/Dialogs.vue'
+import { apps } from '@/resources/permissions'
+import { dynamicList } from '@/utils/'
+
 import { useRoute } from 'vue-router'
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -91,6 +97,17 @@ import LucideLink from '~icons/lucide/link'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
 import LucideSquarePen from '~icons/lucide/square-pen'
 import LucideInfo from '~icons/lucide/info'
+import MessagesSquare from '~icons/lucide/messages-square'
+import LucideRulerDimensionLine from '~icons/lucide/ruler-dimension-line'
+import LucideUserPen from '~icons/lucide/user-pen'
+import LucideEraser from '~icons/lucide/eraser'
+import LucideView from '~icons/lucide/view'
+import LucideSettings from '~icons/lucide/settings'
+import LucideImageDown from '~icons/lucide/image-down'
+import LucideNewspaper from '~icons/lucide/newspaper'
+import LucideListRestart from '~icons/lucide/list-restart'
+import LucideHistory from '~icons/lucide/history'
+import MessageSquareDot from '~icons/lucide/message-square-dot'
 
 const store = useStore()
 const open = (url) => {
@@ -98,11 +115,10 @@ const open = (url) => {
 }
 
 const props = defineProps({
-  rootEntity: { type: Object, default: null },
+  document: { type: Object, default: null },
   breadcrumbs: {
     default: [],
   },
-  actions: { type: Array, default: [] },
   // Used to pass into dialogs
   entities: {
     type: Array,
@@ -125,103 +141,233 @@ const formattedCrumbs = computed(() => {
   ]
 })
 
-const defaultActions = computed(() => {
-  if (!props.rootEntity?.title) return
-  let actions = []
-  if (props.actions) {
-    if (props.actions[0] === 'extend') actions = props.actions.slice(1)
-    else return props.actions
-  }
-  return [
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Share'),
-          icon: LucideShare2,
-          onClick: () => {
-            dialog.value = 's'
-          },
-          isEnabled: () => props.rootEntity.share,
+const fileActions = [
+  {
+    group: true,
+    hideLabel: true,
+    items: [
+      {
+        label: __('Share'),
+        icon: LucideShare2,
+        onClick: () => {
+          dialog.value = 's'
         },
-        {
-          label: __('Download'),
-          icon: LucideDownload,
-          isEnabled: () => props.rootEntity.allow_download,
-          onClick: () =>
-            entitiesDownload(route.params.team, [props.rootEntity]),
+        isEnabled: () => props.document.doc.share,
+      },
+      {
+        label: __('Download'),
+        icon: LucideDownload,
+        isEnabled: () => props.document.doc.allow_download,
+        onClick: () =>
+          entitiesDownload(route.params.team, [props.document.doc]),
+      },
+      {
+        label: __('Copy Link'),
+        icon: LucideLink,
+        onClick: () => getLink(props.document.doc),
+      },
+    ],
+  },
+  {
+    group: true,
+    hideLabel: true,
+    items: [
+      {
+        label: __('Move'),
+        icon: LucideArrowLeftRight,
+        onClick: () => (dialog.value = 'm'),
+        isEnabled: () => props.document.doc.write,
+      },
+      {
+        label: __('Rename'),
+        icon: LucideSquarePen,
+        onClick: () => (dialog.value = 'rn'),
+        isEnabled: () => props.document.doc.write,
+      },
+      {
+        label: __('Show Info'),
+        icon: LucideInfo,
+        onClick: () => (dialog.value = 'i'),
+        isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
+      },
+      {
+        label: __('Favourite'),
+        icon: LucideStar,
+        onClick: () => {
+          props.document.doc.is_favourite = true
+          toggleFav.submit({
+            entities: [{ name: props.document.doc.name, is_favourite: false }],
+          })
         },
-        {
-          label: __('Copy Link'),
-          icon: LucideLink,
-          onClick: () => getLink(props.rootEntity),
+        isEnabled: () => !props.document.doc.is_favourite,
+      },
+      {
+        label: __('Unfavourite'),
+        icon: LucideStar,
+        color: 'stroke-amber-500 fill-amber-500',
+        onClick: () => {
+          props.document.doc.is_favourite = false
+          toggleFav.submit({
+            entities: [{ name: props.document.doc.name, is_favourite: false }],
+          })
         },
-      ],
-    },
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Move'),
-          icon: LucideArrowLeftRight,
-          onClick: () => (dialog.value = 'm'),
-          isEnabled: () => props.rootEntity.write,
-        },
-        {
-          label: __('Rename'),
-          icon: LucideSquarePen,
-          onClick: () => (dialog.value = 'rn'),
-          isEnabled: () => props.rootEntity.write,
-        },
-        {
-          label: __('Show Info'),
-          icon: LucideInfo,
-          onClick: () => (dialog.value = 'i'),
-          isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
-        },
-        {
-          label: __('Favourite'),
-          icon: LucideStar,
-          onClick: () => {
-            props.rootEntity.is_favourite = true
-            toggleFav.submit({
-              entities: [{ name: props.rootEntity.name, is_favourite: false }],
-            })
-          },
-          isEnabled: () => !props.rootEntity.is_favourite,
-        },
-        {
-          label: __('Unfavourite'),
-          icon: LucideStar,
-          color: 'stroke-amber-500 fill-amber-500',
-          onClick: () => {
-            props.rootEntity.is_favourite = false
-            toggleFav.submit({
-              entities: [{ name: props.rootEntity.name, is_favourite: false }],
-            })
-          },
-          isEnabled: () => props.rootEntity.is_favourite,
-        },
-      ],
-    },
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Delete'),
-          icon: LucideTrash,
-          onClick: () => (dialog.value = 'remove'),
-          isEnabled: () => props.rootEntity.write,
-          theme: 'red',
-        },
-      ],
-    },
-    ...actions,
-  ].map((k) => {
-    return { ...k, items: k.items.filter((l) => !l.isEnabled || l.isEnabled()) }
-  })
+        isEnabled: () => props.document.doc.is_favourite,
+      },
+    ],
+  },
+  {
+    group: true,
+    hideLabel: true,
+    items: [
+      {
+        label: __('Delete'),
+        icon: LucideTrash,
+        onClick: () => (dialog.value = 'remove'),
+        isEnabled: () => props.document.doc.write,
+        theme: 'red',
+      },
+    ],
+  },
+].map((k) => {
+  return { ...k, items: k.items.filter((l) => !l.isEnabled || l.isEnabled()) }
 })
+
+// Utility functions for doc
+const clearCache = () => {
+  const DBDeleteRequest = window.indexedDB.deleteDatabase(
+    'fdoc-' + props.document.doc.name,
+  )
+
+  DBDeleteRequest.onerror = () => {
+    console.error('Error deleting database.')
+  }
+
+  DBDeleteRequest.onsuccess = () => {
+    console.log('Database deleted successfully')
+  }
+}
+
+const documentActions = computed(() => [
+  {
+    group: true,
+    hideLabel: true,
+    items: dynamicList([
+      {
+        label: 'View',
+        icon: LucideView,
+        cond: props.document.doc.write,
+        submenu: [
+          {
+            label: 'Lock',
+            switch: true,
+            switchValue: props.document.doc.settings.lock,
+            icon: LucideLock,
+            onClick: (val) => {
+              props.document.doc.settings.lock = val
+              document.setValue.submit({
+                settings: JSON.stringify(props.document.doc.settings),
+              })
+            },
+          },
+          {
+            label: 'Wide',
+            icon: LucideRulerDimensionLine,
+            switch: true,
+            switchValue: props.document.doc.settings.wide,
+            onClick: (val) => {
+              props.document.doc.settings.wide = val
+              document.setValue.submit({
+                settings: JSON.stringify(props.document.doc.settings),
+              })
+            },
+          },
+          {
+            onClick: (val) => {
+              props.document.doc.settings.minimal = val
+              document.setValue.submit({
+                settings: JSON.stringify(props.document.doc.settings),
+              })
+            },
+            switch: true,
+            switchValue: props.document.doc.settings.minimal,
+            label: 'Minimal',
+            icon: LucideEraser,
+          },
+        ],
+      },
+      {
+        onClick: () => {
+          showSettings.value = true
+        },
+        label: 'Settings',
+        icon: LucideSettings,
+      },
+      {
+        label: 'Export',
+        icon: LucideDownload,
+        submenu: dynamicList([
+          {
+            onClick: exportMedia,
+            label: 'Export Media',
+            icon: LucideImageDown,
+          },
+          {
+            onClick: exportBlog,
+            label: 'Export Blog',
+            icon: LucideNewspaper,
+            cond: apps.data && apps.data.find((k) => k.name === 'blog'),
+          },
+        ]),
+      },
+      {
+        onClick: clearCache,
+        label: 'Clear Cache',
+        icon: LucideListRestart,
+      },
+    ]),
+  },
+  {
+    group: true,
+    hideLabel: true,
+    items: dynamicList([
+      {
+        icon: LucideHistory,
+        label: 'Versions',
+        cond: props.document.doc.settings.collab,
+        onClick: () => (showVersions.value = true),
+      },
+      {
+        icon: MessagesSquare,
+        label: 'Show Comments',
+        onClick: () => (showComments.value = true),
+        isEnabled: () => !showComments.value,
+        cond: props.document.doc.comments?.length,
+      },
+      {
+        icon: MessagesSquare,
+        label: 'Hide Comments',
+        onClick: () => (showComments.value = false),
+        isEnabled: () => showComments.value,
+        cond: props.document.doc.comments?.length,
+      },
+      {
+        icon: MessageSquareDot,
+        label: 'Show Resolved',
+        onClick: () => {
+          showResolved.value = true
+          showComments.value = true
+        },
+        isEnabled: () => !showResolved.value,
+        cond: props.document.doc.comments?.filter((k) => k.resolved)?.length,
+      },
+      {
+        icon: MessageSquareDot,
+        label: 'Hide Resolved',
+        onClick: () => (showResolved.value = false),
+        isEnabled: () => showResolved,
+        cond: props.document.doc.comments?.filter((k) => k.resolved)?.length,
+      },
+    ]),
+  },
+])
 </script>
