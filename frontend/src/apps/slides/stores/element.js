@@ -239,8 +239,6 @@ const addMediaElement = async (file, type) => {
 		shadowOffsetY: 0,
 		shadowSpread: 0,
 		shadowColor: '#000000ff',
-		transformOrigin: 'center center',
-		transform: 'translate(-50%, -50%)',
 	}
 	if (type == 'video') {
 		const posterURL = await getVideoPoster(file.file_url)
