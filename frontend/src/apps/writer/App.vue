@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { provide } from 'vue'
+import { allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { FrappeUIProvider } from 'frappe-ui'
 const inIframe = window.self !== window.top
 provide('inIframe', inIframe)
+allUsers.fetch()
 </script>
 
 <template>

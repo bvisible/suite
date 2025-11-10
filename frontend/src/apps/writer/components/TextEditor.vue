@@ -1,21 +1,21 @@
 <template>
   <div class="flex flex-col w-full">
     <TextEditorFixedMenu
-      v-if="editor && editable && !settings.minimal && !current"
+      v-if="editable && !settings.minimal && !versionPreview"
       class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0"
       :buttons="menuButtons"
     />
     <div
-      v-if="current"
+      v-if="versionPreview"
       class="bg-surface-gray-2 text-ink-gray-8 p-3 text-base flex justify-between items-center"
     >
       <div class="flex flex-col gap-1">
-        <div v-if="current.manual">
-          <span class="font-medium">{{ current.title }}</span>
+        <div v-if="versionPreview.manual">
+          <span class="font-medium">{{ versionPreview.title }}</span>
         </div>
         <div v-else>
           This is a automatic snapshot of this document from
-          {{ formatDate(current.title) }}.
+          {{ formatDate(versionPreview.title) }}.
         </div>
         <div class="text-xs text-ink-gray-5">
           Editing is disabled until you exit this preview.
@@ -31,57 +31,39 @@
         <Button
           variant="solid"
           label="Restore"
-          @click="emitter.emit('restore-snapshot', current)"
+          @click="emitter.emit('restore-snapshot', versionPreview)"
         />
       </div>
     </div>
     <div id="editorScrollContainer" class="flex-1 flex w-full overflow-y-auto">
       <div
         class="mx-auto cursor-text w-full flex justify-center h-full"
-        :class="current ? 'pb-15' : ''"
+        :class="versionPreview ? 'pb-15' : ''"
         @click="
           $event.target.tagName === 'DIV' &&
           textEditor.editor?.chain?.().focus?.().run?.()
         "
       >
         <FTextEditor
-          v-if="
-            !collab ||
-            editorExtensions.find((k) => k.name === 'collaborationCursor') ||
-            !isFrappeDoc
-          "
-          :key="editorExtensions.length"
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
           :editor-class="[
             'prose-sm min-h-full mx-auto px-10 overflow-x-auto py-7',
-            `text-[${settings?.font_size || 15}px]`,
-            `leading-[${settings?.line_height || 1.5}]`,
             settings?.wide
               ? 'md:min-w-[100ch] md:max-w-[100ch]'
               : 'md:min-w-[48rem] md:max-w-[48rem]',
-            current ? 'pb-24' : '',
+            versionPreview ? 'pb-24' : '',
           ]"
-          :content="!collab ? rawContent : '<p>Hello world!</p>'"
           :editable
-          :upload-function="
-            (file) => {
-              const fileUpload = useFileUpload()
-              return fileUpload.upload(file, {
-                params: { doc: entity.name },
-                upload_endpoint: `/api/method/drive.api.files.upload_embed`,
-              })
-            }
-          "
-          :mentions="{ mentions: users, selectable: false }"
+          :upload-function
+          :mentions="{ mentions: allUsers.data, selectable: false }"
           placeholder="Start writing here..."
           :bubble-menu="settings.minimal && menuButtons"
           :extensions="editorExtensions"
           :autofocus="true"
+          :starterkit-options="{ history: false }"
           @change="
             (val) => {
-              if (val === rawContent || current) return
-              rawContent = val
               if (collab) yjsContent = Y.encodeStateAsUpdate(doc)
               if (db)
                 db.transaction(['content'], 'readwrite')
@@ -98,6 +80,8 @@
             <EditorContent
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
+                fontSize: `${settings?.font_size || 15}px`,
+                lineHeight: settings?.line_height || 1.5,
               }"
               :editor="editor"
             />
@@ -153,13 +137,14 @@ import {
   default as TableOfContents,
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
+import { isModKey } from '@/utils'
 
 import LucideMessageCircle from '~icons/lucide/message-circle'
 
 import store from '@/store'
 import emitter from '@/emitter'
-import { rename } from 'frappe-ui/frappe/drive/js/resources'
-import { printDoc, getRandomColor, dynamicList } from '@/utils'
+import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
+import { printDoc, getRandomColor } from '@/utils'
 import { formatDate } from '@/utils/format'
 import { toast } from '@/utils/'
 import FontFamily from '@/extensions/font-family'
@@ -172,19 +157,16 @@ import { FontSize } from '@/extensions/font-size'
 import EmbedExtension from '@/extensions/embed-extension'
 // import FloatingComments from './FloatingComments.vue'
 
-const rawContent = defineModel('rawContent')
 const yjsContent = defineModel('yjsContent')
 const showComments = defineModel('showComments')
-const current = defineModel('current')
+const versionPreview = defineModel('versionPreview')
 const edited = defineModel('edited')
 
 const props = defineProps({
   entity: Object,
   settings: Object,
   editable: Boolean,
-  isFrappeDoc: Boolean,
   showResolved: Boolean,
-  users: Object,
   currentVersion: { required: false, type: Object },
 })
 const emit = defineEmits(['newVersion', 'saveComment', 'saveDocument'])
@@ -250,6 +232,36 @@ watch(
   },
 )
 
+const doc = new Y.Doc({ gc: true })
+const prov = new WebrtcProvider('fdoc-' + props.entity.name, doc, {
+  signaling: ['wss://signal.frappe.cloud'],
+  peerOpts: {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        {
+          urls: [
+            'turn:signal.frappe.cloud:3478?transport=udp',
+            'turn:signal.frappe.cloud:3478?transport=tcp',
+          ],
+          username: 'turnuser',
+          credential: 'turnpass',
+        },
+      ],
+    },
+  },
+})
+
+const collab = computed(() => props.settings?.collab)
+const localstorage = new IndexeddbPersistence('fdoc-' + props.entity.name, doc) // eslint-disable-line
+const permanentUserData = new Y.PermanentUserData(doc)
+permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
+const colors = [
+  { light: '#ecd44433', dark: '#ecd444' },
+  { light: '#ee635233', dark: '#ee6352' },
+  { light: '#6eeb8333', dark: '#6eeb83' },
+]
+
 const editorExtensions = [
   FontSize,
   CharacterCount,
@@ -288,63 +300,25 @@ const editorExtensions = [
     },
   }),
   MediaDownload,
+  Collaboration.configure({
+    document: doc,
+    field: 'default',
+    ySyncOptions: {
+      permanentUserData,
+      colors,
+    },
+  }),
+  CollaborationCursor.configure({
+    provider: prov,
+    user: {
+      name: store.state.user.fullName,
+      id: store.state.user.id,
+      avatar: store.state.user.imageURL,
+      color: getRandomColor(),
+    },
+  }),
 ]
 
-let prov, doc, localstorage
-const collab = computed(() => props.settings?.collab)
-import { isModKey } from '@/utils'
-import { Editor } from '@tiptap/core'
-if (collab.value) {
-  doc = new Y.Doc({ gc: true })
-  localstorage = new IndexeddbPersistence('fdoc-' + props.entity.name, doc) // eslint-disable-line
-  // if (yjsContent.value) Y.applyUpdate(doc, yjsContent.value)
-
-  prov = new WebrtcProvider('fdoc-' + props.entity.name, doc, {
-    signaling: ['wss://signal.frappe.cloud'],
-    peerOpts: {
-      config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          {
-            urls: [
-              'turn:signal.frappe.cloud:3478?transport=udp',
-              'turn:signal.frappe.cloud:3478?transport=tcp',
-            ],
-            username: 'turnuser',
-            credential: 'turnpass',
-          },
-        ],
-      },
-    },
-  })
-  const permanentUserData = new Y.PermanentUserData(doc)
-  permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
-  const colors = [
-    { light: '#ecd44433', dark: '#ecd444' },
-    { light: '#ee635233', dark: '#ee6352' },
-    { light: '#6eeb8333', dark: '#6eeb83' },
-  ]
-  editorExtensions.push(
-    Collaboration.configure({
-      document: doc,
-      field: 'default',
-      ySyncOptions: {
-        permanentUserData,
-        colors,
-      },
-    }),
-    CollaborationCursor.configure({
-      provider: prov,
-      user: {
-        name: store.state.user.fullName,
-        id: store.state.user.id,
-        avatar: store.state.user.imageURL,
-        color: getRandomColor(),
-      },
-    }),
-  )
-}
-console.log(props.entity)
 async function applyTemplate() {
   if (!editor.value || !props.settings.template) {
     return
@@ -372,8 +346,8 @@ async function applyTemplate() {
   }
 }
 
-const menuButtons = computed(() =>
-  dynamicList([
+const menuButtons = computed(
+  () => [
     'Paragraph',
     ['Heading 1', 'Heading 2', 'Heading 3'],
     'Separator',
@@ -386,78 +360,48 @@ const menuButtons = computed(() =>
     ['Bullet List', 'Numbered List', 'Task List'],
     'Separator',
     ['Align Left', 'Align Center', 'Align Right'],
-    ...(props.isFrappeDoc
-      ? [
-          'Separator',
-          {
-            label: 'FontOptions',
-            component: h(
-              defineAsyncComponent(() => import('./ManageFont.vue')),
-              {
-                editor,
-                font_size: props.settings.font_size || 15,
-                font_family: props.settings.font_family || 'inter',
-              },
-            ),
-          },
-          'Separator',
-          {
-            label: 'Comment',
-            icon: LucideMessageCircle,
-            action: createNewComment,
-            isActive: () => false,
-          },
-          'Image',
-          'Video',
-          'Iframe',
-        ]
-      : []),
-    'Blockquote',
-    'Code',
-    [
-      'InsertTable',
-      'AddColumnBefore',
-      'AddColumnAfter',
-      'DeleteColumn',
-      'AddRowBefore',
-      'AddRowAfter',
-      'DeleteRow',
-      'MergeCells',
-      'SplitCell',
-      'ToggleHeaderColumn',
-      'ToggleHeaderRow',
-      'ToggleHeaderCell',
-      'DeleteTable',
-    ],
-  ]),
-)
 
-// Local saving
-const db = ref()
-watch(db, (db) => {
-  if (!props.entity.write || collab.value) return
-  db
-    .transaction(['content'])
-    .objectStore('content')
-    .get(props.entity.name).onsuccess = (val) => {
-    // Hack until we get versioning.
-    if (
-      val.target.result?.val?.length > 20 &&
-      val.target.result.saved > new Date(props.entity.modified)
-    )
-      rawContent.value = val.target.result.val
-  }
-})
-if (props.entity.write) {
-  const request = window.indexedDB.open('Writer', 1)
-  request.onsuccess = (event) => {
-    db.value = event.target.result
-  }
-  request.onupgradeneeded = () => {
-    if (!request.result.objectStoreNames.contains('content'))
-      request.result.createObjectStore('content')
-  }
-}
+    'Separator',
+    {
+      label: 'FontOptions',
+      component: h(
+        defineAsyncComponent(() => import('./ManageFont.vue')),
+        {
+          editor,
+          font_size: props.settings.font_size || 15,
+          font_family: props.settings.font_family || 'inter',
+        },
+      ),
+    },
+    'Separator',
+    {
+      label: 'Comment',
+      icon: LucideMessageCircle,
+      action: createNewComment,
+      isActive: () => false,
+    },
+    'Image',
+    'Video',
+    'Iframe',
+  ],
+  'Blockquote',
+  'Code',
+  [
+    'InsertTable',
+    'AddColumnBefore',
+    'AddColumnAfter',
+    'DeleteColumn',
+    'AddRowBefore',
+    'AddRowAfter',
+    'DeleteRow',
+    'MergeCells',
+    'SplitCell',
+    'ToggleHeaderColumn',
+    'ToggleHeaderRow',
+    'ToggleHeaderCell',
+    'DeleteTable',
+  ],
+)
 
 // Util functions
 const autorename = (bypass = false) => {
@@ -508,6 +452,13 @@ const autorename = (bypass = false) => {
     )
 }
 
+const uploadFunction = (file) => {
+  const fileUpload = useFileUpload()
+  return fileUpload.upload(file, {
+    params: { doc: props.entity.name },
+    upload_endpoint: `/api/method/drive.api.files.upload_embed`,
+  })
+}
 const getOrderedComments = (doc) => {
   const comments = []
   doc.descendants((node, pos) => {
@@ -552,7 +503,7 @@ onKeyDown('p', (e) => {
   }
 })
 
-emitter.on('printFile', () => {
+emitter.on('print-file', () => {
   if (editor.value) printDoc(editor.value.getHTML(), props.settings)
 })
 emitter.on('create-version', (title) => {
@@ -561,14 +512,12 @@ emitter.on('create-version', (title) => {
 })
 
 onMounted(() => {
-  if (props.entity.mime_type === 'frappe_doc') {
-    const orderedComments = getOrderedComments(editor.value.state.doc)
-    comments.value = props.entity.comments.toSorted((a, b) => {
-      const pos1 = orderedComments.findIndex((k) => k.id === a.name)
-      const pos2 = orderedComments.findIndex((k) => k.id === b.name)
-      return pos1 - pos2
-    })
-  }
+  const orderedComments = getOrderedComments(editor.value.state.doc)
+  comments.value = props.entity.comments.toSorted((a, b) => {
+    const pos1 = orderedComments.findIndex((k) => k.id === a.name)
+    const pos2 = orderedComments.findIndex((k) => k.id === b.name)
+    return pos1 - pos2
+  })
   editor.value.on('create', applyTemplate)
 })
 

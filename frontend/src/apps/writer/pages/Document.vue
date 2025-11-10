@@ -93,7 +93,6 @@
       :editable="inIframe ? false : editable"
       :is-frappe-doc
       :settings
-      :users="allUsers.data || []"
       :show-resolved
       @save-document="saveDocument"
       @save-comment="saveDocument(true)"
@@ -146,7 +145,6 @@ import VersionsSidebar from '@/components/VersionsSidebar.vue'
 // import UsersBar from '@/components/UsersBar.vue'
 
 import { toast } from '@/utils/'
-import { allUsers } from '@/resources/permissions'
 import useDocument from '@/composables/useDocument'
 import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
@@ -188,6 +186,7 @@ const editable = computed(
   () =>
     !!document.doc?.write &&
     !document.doc?.settings?.lock &&
+    editor.value?.editor &&
     !isOldSchema.value,
 )
 watch(showVersions, (v) => {

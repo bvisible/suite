@@ -23,7 +23,6 @@ app.use(pageMetaPlugin)
 app.directive("focus", focusDirective)
 app.use(translation, "drive.api.product.get_translations")
 app.config.globalProperties.$user = (user) => {
-  if (!allUsers.fetched && !allUsers.loading) allUsers.fetch({ team: "all" })
   return allUsers.data?.find?.((k) => k.name === user)
 }
 
