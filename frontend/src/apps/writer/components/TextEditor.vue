@@ -352,19 +352,21 @@ async function setDefault() {
     return
   }
 
-  // console.log(editor.value.getHTML())
-  // const html = editor.value.getHTML()
-  // if (!html || html === '<p></p>') {
-  //   const getTemplate = useDoc({
-  //     doctype: 'Drive Template',
-  //     name: props.settings.template,
-  //     immediate: true,
-  //     onSuccess: (data) => {
-  //       console.log(data)
-  //       editor.value.commands.setContent(data.content)
-  //     },
-  //   })
-  // }
+  const html = editor.value.getHTML()
+  if (!html || html === '<p></p>') {
+    const getTemplate = useDoc({
+      doctype: 'Drive Template',
+      name: props.settings.template,
+    })
+
+    getTemplate.onSuccess((data) => {
+      console.log(data.content)
+      editor.value.commands.setContent(data.content)
+    })
+
+    // trigger the fetch after registering the callback
+    getTemplate.fetch()
+  }
 }
 
 const menuButtons = computed(() =>

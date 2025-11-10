@@ -246,12 +246,6 @@ export const rename = createResource({
   },
 })
 
-export const createDocument = createResource({
-  method: 'POST',
-  url: '/api/method/drive.api.files.create_document_entity',
-  makeParams: (params) => params,
-})
-
 export const createPresentation = createResource({
   method: 'POST',
   url: '/api/method/drive.api.files.create_presentation',

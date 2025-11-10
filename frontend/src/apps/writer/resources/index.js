@@ -1,4 +1,4 @@
-import { useList } from 'frappe-ui'
+import { useList, createResource } from 'frappe-ui'
 import { prettyData } from '@/utils'
 
 export const getDocuments = useList({
@@ -10,4 +10,10 @@ export const getDocuments = useList({
   transform: (data) => {
     return prettyData(data)
   },
+})
+
+export const createDocument = createResource({
+  method: 'POST',
+  url: 'writer.api.docs.create_document_entity',
+  makeParams: (params) => params,
 })
