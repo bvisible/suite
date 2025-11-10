@@ -81,7 +81,7 @@ function groupByTime(entities) {
 }
 
 const templates = useList({
-  doctype: 'Drive Template',
+  doctype: 'Writer Template',
   fields: ['name', 'title', 'content'],
   limit: 100,
   immediate: true,

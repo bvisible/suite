@@ -148,6 +148,7 @@ import { ySyncPluginKey } from 'y-prosemirror'
 import { WebrtcProvider } from 'y-webrtc'
 import Collaboration from '@tiptap/extension-collaboration'
 import { onKeyDown } from '@vueuse/core'
+import router from '@/router'
 import {
   default as TableOfContents,
   getHierarchicalIndexes,
@@ -157,7 +158,7 @@ import LucideMessageCircle from '~icons/lucide/message-circle'
 
 import store from '@/store'
 import emitter from '@/emitter'
-import { rename } from '@/resources/files'
+import { rename } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, getRandomColor, dynamicList } from '@/utils'
 import { formatDate } from '@/utils/format'
 import { toast } from '@/utils/'
@@ -293,7 +294,6 @@ let prov, doc, localstorage
 const collab = computed(() => props.settings?.collab)
 import { isModKey } from '@/utils'
 import { Editor } from '@tiptap/core'
-
 if (collab.value) {
   doc = new Y.Doc({ gc: true })
   localstorage = new IndexeddbPersistence('fdoc-' + props.entity.name, doc) // eslint-disable-line
@@ -344,24 +344,27 @@ if (collab.value) {
     }),
   )
 }
-
-watch(editor, (now, prev) => now && !prev && setDefault())
-
-async function setDefault() {
-  if (!editor.value) {
+console.log(props.entity)
+async function applyTemplate() {
+  if (!editor.value || !props.settings.template) {
     return
   }
 
   const html = editor.value.getHTML()
   if (!html || html === '<p></p>') {
     const getTemplate = useDoc({
-      doctype: 'Drive Template',
+      doctype: 'Writer Template',
       name: props.settings.template,
     })
 
     getTemplate.onSuccess((data) => {
-      console.log(data.content)
-      editor.value.commands.setContent(data.content)
+      const html = editor.value.getHTML()
+      if (html && html !== '<p></p>') return
+      const content = data.content.replaceAll(
+        /\{\{(date|time|datetime)\}\}/g,
+        (_, type) => formatDate(new Date(), { datetime: type }),
+      )
+      editor.value.commands.setContent(content)
     })
 
     // trigger the fetch after registering the callback
@@ -491,7 +494,9 @@ const autorename = (bypass = false) => {
       },
       {
         onSuccess: () => {
-          if ($router.currentRoute.params.id === rename.params.entity_name) {
+          if (
+            router.currentRoute.value.params.id === rename.params.entity_name
+          ) {
             l.label = rename.params.new_title
             store.state.activeEntity.title = rename.params.new_title
             store.state.activeEntity.modified = new Date()
@@ -564,6 +569,7 @@ onMounted(() => {
       return pos1 - pos2
     })
   }
+  editor.value.on('create', applyTemplate)
 })
 
 onBeforeUnmount(() => {

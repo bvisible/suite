@@ -1,16 +1,16 @@
 <template>
   <div
-    v-if="inIframe && entity"
+    v-if="inIframe && document.doc"
     class="p-1.5 border-b text-base text-ink-gray-7 flex justify-between items-center relative"
   >
     <div class="font-semibold">
-      {{ entity.title }}
+      {{ document.doc.title }}
     </div>
     <div class="flex gap-3 items-center text-ink-gray-5 text-xs">
-      Edited {{ entity.relativeModified }}
+      Edited {{ document.doc.relativeModified }}
     </div>
   </div>
-  <!-- <Teleport v-if="docSettings?.doc?.settings && entity.write" to="#navbar-content" defer>
+  <!-- <Teleport v-if="document?.doc?.settings && entity.write" to="#navbar-content" defer>
     <UsersBar
       v-if="editorValue?.storage?.collaborationCursor?.users?.length > 1"
       :users="
@@ -21,24 +21,24 @@
     />
 
     <Button
-      v-if="docSettings?.doc?.settings?.lock"
+      v-if="document?.doc?.settings?.lock"
       :icon="LucideLock"
       variant="outline"
       @click="
         () => {
-          docSettings.doc.settings.lock = null
+          document.doc.settings.lock = null
           editor.editor.commands.focus()
           toast('Unlocked document temporarily.')
         }
       "
     />
     <Button
-      v-if="docSettings?.doc?.settings?.lock === null"
+      v-if="document?.doc?.settings?.lock === null"
       :icon="LucideLockOpen"
       variant="outline"
       @click="
         () => {
-          docSettings.doc.settings.lock = true
+          document.doc.settings.lock = true
           editor.editor.commands.blur()
           toast('Locked document.')
         }
@@ -46,16 +46,16 @@
     />
   </Teleport> -->
   <Navbar
-    v-if="!inIframe && document.data"
-    :root-entity="document.data"
+    v-if="!inIframe && document.doc"
+    :root-entity="document.doc"
     :breadcrumbs="
-      document.data.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
+      document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
     "
     :actions="isFrappeDoc ? navBarActions : null"
   >
     <template
       #breadcrumbs
-      v-if="docSettings?.doc?.settings?.minimal && entity.write"
+      v-if="document?.doc?.settings?.minimal && entity.write"
     >
       <Button variant="ghost">
         <router-link
@@ -84,14 +84,14 @@
       @save-document="saveDocument"
     />
     <TextEditor
-      v-if="!isFrappeDoc || docSettings?.doc?.settings"
+      v-if="document?.doc?.settings"
       ref="editor"
       v-model:edited="edited"
       v-model:raw-content="rawContent"
       v-model:yjs-content="yjsContent"
       v-model:show-comments="showComments"
       v-model:current="current"
-      :entity
+      :entity="document.doc"
       :editable="inIframe ? false : editable"
       :is-frappe-doc
       :settings
@@ -136,7 +136,12 @@ import {
   useTemplateRef,
 } from 'vue'
 import { useStore } from 'vuex'
-import { createResource, LoadingIndicator, useDoc } from 'frappe-ui'
+import {
+  createResource,
+  LoadingIndicator,
+  useDoc,
+  usePageMeta,
+} from 'frappe-ui'
 
 import VersionsSidebar from '@/components/VersionsSidebar.vue'
 // import WriterSettings from '@/components/WriterSettings.vue'
@@ -145,7 +150,7 @@ import VersionsSidebar from '@/components/VersionsSidebar.vue'
 import { prettyData, updateURLSlug, dynamicList, toast } from '@/utils/'
 import { entitiesDownload } from '@/utils/download'
 import { allUsers, apps } from '@/resources/permissions'
-
+import useDocument from '@/composables/useDocument'
 import MessagesSquare from '~icons/lucide/messages-square'
 import LucideRulerDimensionLine from '~icons/lucide/ruler-dimension-line'
 import LucideUserPen from '~icons/lucide/user-pen'
@@ -186,45 +191,41 @@ const rawContent = ref(null)
 const yjsContent = ref(null)
 const entity = ref(null)
 const current = ref(null)
-const lastFetched = ref(0)
 const showComments = ref(false)
 const showVersions = ref(false)
 const showSettings = ref(false)
 const edited = ref(false)
-const owner = computed(() => entity.value?.owner)
+const owner = computed(() => document.doc?.owner)
 const isOldSchema = computed(() => {
   if (!owner.value) return false
-  return (
-    !docSettings?.doc?.settings?.collab && store.state.user.id !== owner.value
-  )
+  return !document?.doc?.settings?.collab && store.state.user.id !== owner.value
 })
 
 const editable = computed(
   () =>
-    !!entity?.value?.write &&
-    !docSettings?.doc?.settings?.lock &&
+    !!document?.doc?.write &&
+    !document?.doc?.settings?.lock &&
     !isOldSchema.value,
 )
 watch(showVersions, (v) => {
   if (!v) current.value = null
 })
-let docSettings, globalSettings
 const isFrappeDoc = computed(
-  () => entity.value && entity.value.mime_type === 'frappe_doc',
+  () => document.doc && document.doc.mime_type === 'frappe_doc',
 )
 
 const saveDocument = (comment = false) => {
   if ((!comment && !edited.value) || current.value) return
-  if (entity.value.write || (comment && entity.value.comment)) {
+  if (document.doc.write || (comment && document.doc.comment)) {
     if (isFrappeDoc.value) {
       const params = {
         entity_name: props.id,
-        doc_name: entity.value.document,
+        doc_name: document.doc.document,
         content: rawContent.value,
         yjs: fromUint8Array(yjsContent.value || ''),
         comment,
       }
-      if (docSettings.doc.settings.collab) delete params.content
+      if (document.doc.settings.collab) delete params.content
       else delete params.yjs
       updateDocument.submit(params)
     } else
@@ -237,59 +238,41 @@ const saveDocument = (comment = false) => {
 }
 const inIframe = inject('inIframe')
 
-const onSuccess = (data) => {
-  window.document.title = data.title
-  updateURLSlug(data.title)
+const document = useDocument(props.id)
+document.onSuccess((data) => {
+  yjsContent.value = toUint8Array(data.content)
+})
+usePageMeta(() => ({
+  title: document.doc ? document.doc.title : 'Document',
+}))
 
-  document.setData(prettyData([data])[0])
-  entity.value = data
+const globalSettings = useDoc({
+  doctype: 'Drive Settings',
+  name: store.state.user.id,
+  immediate: true,
+  transform: (doc) => {
+    doc.writer_settings = JSON.parse(doc.writer_settings) || {}
+    return doc
+  },
+})
+const onSuccess = (data) => {
+  // document.setData(prettyData([data])[0])
   store.commit('setActiveEntity', data)
 
-  title.value = data.title
   rawContent.value = data.raw_content
-  if (data.content) yjsContent.value = toUint8Array(data.content)
-  lastFetched.value = Date.now()
-  if (data.mime_type === 'frappe_doc') {
-    docSettings = useDoc({
-      doctype: 'Drive Document',
-      name: data.document,
-      immediate: true,
-      transform: (doc) => {
-        doc.settings = JSON.parse(doc.settings)
-        if (entity.value.write) toggleMinimal(doc.settings.minimal)
-        return doc
-      },
-    })
-    globalSettings = useDoc({
-      doctype: 'Drive Settings',
-      name: store.state.user.id,
-      immediate: true,
-      transform: (doc) => {
-        doc.writer_settings = JSON.parse(doc.writer_settings) || {}
-        return doc
-      },
-    })
-  }
 }
+
 const settings = computed(() => {
   if (!isFrappeDoc.value) return {}
-  for (const [k, v] of Object.entries(docSettings.doc?.settings || {})) {
-    if (v === 'global') delete docSettings.doc?.settings[k]
+  for (const [k, v] of Object.entries(document.doc?.settings || {})) {
+    if (v === 'global') delete document.doc?.settings[k]
   }
   return {
     ...(globalSettings.doc?.writer_settings || {}),
-    ...docSettings.doc?.settings,
+    ...document.doc?.settings,
   }
 })
 
-const document = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
-  auto: true,
-  params: {
-    entity_name: props.id,
-  },
-  onSuccess,
-})
 store.commit('setCurrentResource', document)
 
 const updateDocument = createResource({
@@ -305,57 +288,36 @@ const updateDocument = createResource({
 
 const newVersion = createResource({
   url: 'drive.api.docs.create_version',
-  makeParams: (k) => ({ ...k, doc: entity.value.document }),
+  makeParams: (k) => ({ ...k, doc: document.doc.document }),
   onSuccess(data) {
-    if (data && data.length != entity.value.versions.length)
-      entity.value.versions = data
+    if (data && data.length != document.doc.versions.length)
+      document.doc.versions = data
   },
 })
 
 // Functions and constants
 const navBarActions = computed(
   () =>
-    docSettings.doc && [
+    document.doc && [
       'extend',
       {
         group: true,
         hideLabel: true,
         items: dynamicList([
           {
-            onClick: (e) => {
-              e.stopPropagation()
-              e.preventDefault()
-            },
-            label: 'Collaborate',
-            icon: LucideUserPen,
-            cond:
-              editor.value?.editor && editor.value.editor.getText().length == 0,
-            switch: true,
-            switchValue: docSettings.doc.settings.collab,
-            onClick: async (val) => {
-              await docSettings.setValue.submit({
-                settings: JSON.stringify({
-                  ...docSettings.doc.settings,
-                  collab: val,
-                }),
-              })
-              $router.go()
-            },
-          },
-          {
             label: 'View',
             icon: LucideView,
-            cond: entity.value.write,
+            cond: document.doc.write,
             submenu: [
               {
                 label: 'Lock',
                 switch: true,
-                switchValue: docSettings.doc.settings.lock,
+                switchValue: document.doc.settings.lock,
                 icon: LucideLock,
                 onClick: (val) => {
-                  docSettings.doc.settings.lock = val
-                  docSettings.setValue.submit({
-                    settings: JSON.stringify(docSettings.doc.settings),
+                  document.doc.settings.lock = val
+                  document.setValue.submit({
+                    settings: JSON.stringify(document.doc.settings),
                   })
                 },
               },
@@ -363,23 +325,23 @@ const navBarActions = computed(
                 label: 'Wide',
                 icon: LucideRulerDimensionLine,
                 switch: true,
-                switchValue: docSettings.doc.settings.wide,
+                switchValue: document.doc.settings.wide,
                 onClick: (val) => {
-                  docSettings.doc.settings.wide = val
-                  docSettings.setValue.submit({
-                    settings: JSON.stringify(docSettings.doc.settings),
+                  document.doc.settings.wide = val
+                  document.setValue.submit({
+                    settings: JSON.stringify(document.doc.settings),
                   })
                 },
               },
               {
                 onClick: (val) => {
-                  docSettings.doc.settings.minimal = val
-                  docSettings.setValue.submit({
-                    settings: JSON.stringify(docSettings.doc.settings),
+                  document.doc.settings.minimal = val
+                  document.setValue.submit({
+                    settings: JSON.stringify(document.doc.settings),
                   })
                 },
                 switch: true,
-                switchValue: docSettings.doc.settings.minimal,
+                switchValue: document.doc.settings.minimal,
                 label: 'Minimal',
                 icon: LucideEraser,
               },
@@ -423,7 +385,7 @@ const navBarActions = computed(
           {
             icon: LucideHistory,
             label: 'Versions',
-            cond: docSettings?.doc?.settings.collab,
+            cond: document?.doc?.settings.collab,
             onClick: () => (showVersions.value = true),
           },
           {
@@ -431,14 +393,14 @@ const navBarActions = computed(
             label: 'Show Comments',
             onClick: () => (showComments.value = true),
             isEnabled: () => !showComments.value,
-            cond: entity.value?.comments?.length,
+            cond: document.doc?.comments?.length,
           },
           {
             icon: MessagesSquare,
             label: 'Hide Comments',
             onClick: () => (showComments.value = false),
             isEnabled: () => showComments.value,
-            cond: entity.value?.comments?.length,
+            cond: document.doc?.comments?.length,
           },
           {
             icon: MessageSquareDot,
@@ -448,14 +410,14 @@ const navBarActions = computed(
               showComments.value = true
             },
             isEnabled: () => !showResolved.value,
-            cond: entity.value?.comments?.filter((k) => k.resolved)?.length,
+            cond: document.doc?.comments?.filter((k) => k.resolved)?.length,
           },
           {
             icon: MessageSquareDot,
             label: 'Hide Resolved',
             onClick: () => (showResolved.value = false),
             isEnabled: () => showResolved,
-            cond: entity.value?.comments?.filter((k) => k.resolved)?.length,
+            cond: document.doc?.comments?.filter((k) => k.resolved)?.length,
           },
         ]),
       },
@@ -474,7 +436,7 @@ const toggleMinimal = (val) => {
 
 const clearCache = () => {
   const DBDeleteRequest = window.indexedDB.deleteDatabase(
-    'fdoc-' + entity.value.name,
+    'fdoc-' + document.doc.name,
   )
 
   DBDeleteRequest.onerror = () => {
@@ -538,7 +500,7 @@ onBeforeUnmount(() => {
 
 let toasted
 watch(isOldSchema, (v) => {
-  if (docSettings?.doc?.settings && entity.value.write && v && !toasted) {
+  if (document?.doc?.settings && document.doc.write && v && !toasted) {
     toast({
       title:
         'This document uses an old schema. Collaborative editing is disabled.',
