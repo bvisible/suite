@@ -13,6 +13,7 @@
 			@setPreview="setPreview"
 			@navigate="(name, present) => navigateToPresentation(name, present)"
 			@openDialog="openDialog"
+			@duplicatePresentation="(name) => duplicatePresentation(name)"
 		/>
 
 		<PresentationPreview
@@ -21,6 +22,7 @@
 			@setPreview="setPreview"
 			@openDialog="openDialog"
 			@navigate="navigateToPresentation"
+			@duplicatePresentation="(name) => duplicatePresentation(name)"
 		/>
 	</div>
 
@@ -114,8 +116,18 @@ const setPreview = (presentation) => {
 const createPresentation = async (theme) => {
 	showThemeDialog.value = false
 	const newPresentation = await createPresentationResource.submit({
-		title: 'Untitled',
 		theme: theme,
+	})
+	if (newPresentation) {
+		navigateToPresentation(newPresentation)
+	} else {
+		console.error('Failed to create new presentation')
+	}
+}
+
+const duplicatePresentation = async (presentation) => {
+	const newPresentation = await createPresentationResource.submit({
+		duplicateFrom: presentation,
 	})
 	if (newPresentation) {
 		navigateToPresentation(newPresentation)

@@ -19,7 +19,12 @@
 					<!-- added bg-white temporarily to support for first slides with no generated thumbnail -->
 					<div
 						class="aspect-[16/9] cursor-pointer rounded-lg bg-white shadow-xl hover:scale-[1.01]"
-						:style="getCardStyles(presentation)"
+						:style="
+							getThumbnailCardStyles(
+								presentation.thumbnail || '',
+								presentation.is_public,
+							)
+						"
 						@click="$emit('navigate', presentation.name)"
 					></div>
 
@@ -53,25 +58,16 @@ import { h } from 'vue'
 import { Dropdown } from 'frappe-ui'
 import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 
-import { getAttachmentUrl } from '@/utils/mediaUploads'
+import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const props = defineProps({
 	presentations: Object,
 })
 
-const emit = defineEmits(['navigate', 'setPreview', 'openDialog'])
+const emit = defineEmits(['navigate', 'setPreview', 'openDialog', 'duplicatePresentation'])
 
 const backgroundClasses = 'size-full bg-gray-100 flex flex-col pt-8 overflow-y-auto'
 const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
-
-const getCardStyles = (presentation) => {
-	const thumbnailUrl = getAttachmentUrl(presentation.is_public, presentation.thumbnail || '')
-	return {
-		backgroundImage: `url(${thumbnailUrl})`,
-		backgroundSize: 'cover',
-		backgroundPosition: 'center',
-	}
-}
 
 const getContextMenuOptions = (presentation) => {
 	return [
@@ -86,7 +82,7 @@ const getContextMenuOptions = (presentation) => {
 				{
 					label: 'Duplicate',
 					icon: h(Copy, { class: contextMenuIconClasses }),
-					onClick: () => emit('openDialog', 'Duplicate', presentation),
+					onClick: () => emit('duplicatePresentation', presentation.name),
 				},
 				{
 					label: 'Delete',
