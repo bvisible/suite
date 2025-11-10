@@ -20,7 +20,6 @@ class Presentation(Document):
 
 	def update_thumbnails(self):
 		doc_before_save = self.get_doc_before_save()
-		is_private = not self.is_public
 		if not doc_before_save or not doc_before_save.slides:
 			return
 		old_slides = doc_before_save.slides
@@ -31,8 +30,8 @@ class Presentation(Document):
 				continue
 			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
 				old_thumbnail = old_slide.thumbnail
-				delete_old_thumbnail(old_thumbnail, is_private)
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail", is_private)
+				delete_old_thumbnail(old_thumbnail)
+				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
 
 	def validate(self):
 		if self.is_composite:
@@ -53,18 +52,22 @@ class Presentation(Document):
 		self.update_thumbnails()
 
 
-def delete_old_thumbnail(old_thumbnail: str | None = None, is_private: bool = False):
-	if old_thumbnail and old_thumbnail.startswith("/files"):
-		try:
-			url = "/private" + old_thumbnail if is_private else old_thumbnail
-			file_docname = frappe.db.get_value("File", {"file_url": url})
-			frappe.delete_doc("File", file_docname)
-		except Exception as e:
-			frappe.log_error(f"Failed to remove old thumbnail: {e}")
+def delete_old_thumbnail(old_thumbnail: str | None = None):
+	if not old_thumbnail or old_thumbnail.startswith("/assets"):
+		return
+
+	if old_thumbnail.startswith("/files"):
+		old_thumbnail = f"/private{old_thumbnail}"
+
+	try:
+		file_docname = frappe.db.get_value("File", {"file_url": old_thumbnail})
+		frappe.delete_doc("File", file_docname)
+	except Exception as e:
+		frappe.log_error(f"Failed to remove old thumbnail: {e}")
 
 
 @frappe.whitelist()
-def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str, is_private: bool) -> str:
+def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"{prefix}-{uuid.uuid4().hex[:6]}.{ext}"
@@ -74,25 +77,30 @@ def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str,
 			"doctype": "File",
 			"file_name": filename,
 			"content": base64.b64decode(b64),
-			"is_private": is_private,
+			"is_private": 1,
 			"attached_to_doctype": "Presentation",
 			"attached_to_name": presentation_name,
 		}
 	).insert()
 
-	return file_doc.file_url.replace("/private", "") if is_private else file_doc.file_url
+	return file_doc.file_url
 
 
 def slug(text: str) -> str:
 	return text.lower().replace(" ", "-")
 
 
+# whitelist needed for drive integration
+@frappe.whitelist()
 def get_presentation_thumbnail(presentation_name: str, index: int | None = 1) -> str:
 	"""Returns the thumbnail of the first slide in a presentation"""
-	return frappe.get_value(
-		"Slide",
-		{"parent": presentation_name, "idx": index},
-		"thumbnail",
+	return (
+		frappe.get_value(
+			"Slide",
+			{"parent": presentation_name, "idx": index},
+			"thumbnail",
+		)
+		or ""
 	)
 
 
@@ -182,9 +190,12 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 
 
 @frappe.whitelist()
-def create_presentation(title, theme=None, duplicate_from=None):
+def create_presentation(theme=None, duplicate_from=None):
 	presentation = frappe.new_doc("Presentation")
-	presentation.title = title
+	if duplicate_from:
+		presentation.title = f"Copy of {frappe.get_value('Presentation', duplicate_from, 'title')}"
+	else:
+		presentation.title = "Untitled"
 	presentation.theme = theme
 	presentation.insert()
 
@@ -268,88 +279,6 @@ def has_permission(doc, ptype="read", user=None):
 	return False
 
 
-def exists_in_public_folder(file_name):
-	return frappe.db.exists("File", {"file_name": file_name, "is_private": 0})
-
-
-def create_attachment_with_unique_name(doc):
-	import os
-
-	file_name = doc.file_name
-	file_extension = os.path.splitext(file_name)[1]
-	base_name = os.path.splitext(file_name)[0]
-	unique_name = f"{base_name}_{uuid.uuid4().hex[:6]}{file_extension}"
-
-	file_content = doc.get_content()
-	new_file_doc = frappe.get_doc(
-		{
-			"doctype": "File",
-			"file_name": unique_name,
-			"file_url": f"/files/{unique_name}",
-			"attached_to_doctype": doc.attached_to_doctype,
-			"attached_to_name": doc.attached_to_name,
-			"is_private": 0,
-			"content": file_content,
-		}
-	)
-
-	new_file_doc.insert()
-
-	return new_file_doc
-
-
-def get_updated_elements(presentation_name, old_file_name, new_file_doc):
-	presentation = frappe.get_doc("Presentation", presentation_name)
-	updated_slides = []
-
-	for slide in presentation.slides:
-		elements = json.loads(slide.elements or "[]")
-
-		for element in elements:
-			if element.get("type") in ["image", "video"]:
-				if element.get("attachmentName") == old_file_name:
-					element["attachmentName"] = new_file_doc.name
-					element["src"] = new_file_doc.file_url.replace(frappe.local.site_name, "")
-
-		slide.elements = json.dumps(elements, indent=2)
-		updated_slides.append(slide)
-
-	return updated_slides
-
-
-@frappe.whitelist()
-def set_public(name, is_public):
-	presentation_doc = frappe.get_doc("Presentation", name)
-
-	attachments = frappe.get_all(
-		"File", filters={"attached_to_name": name, "attached_to_doctype": "Presentation"}, pluck="name"
-	)
-
-	slides = []
-
-	for attachment in attachments:
-		attachment_doc = frappe.get_doc("File", attachment)
-		if is_public and exists_in_public_folder(attachment_doc.file_name):
-			unique_attachment = create_attachment_with_unique_name(attachment_doc)
-			attachment_doc.delete()
-			slides = get_updated_elements(name, attachment_doc.name, unique_attachment)
-		else:
-			attachment_doc.is_private = not is_public
-			attachment_doc.save()
-
-	presentation_doc.is_public = is_public
-
-	if len(slides):
-		presentation_doc.slides = slides
-
-	presentation_doc.save()
-
-	return {
-		"slides": presentation_doc.slides,
-		"to_update": len(slides),
-	}
-
-
 @frappe.whitelist(allow_guest=True)
 def is_public_presentation(name):
 	return frappe.db.get_value("Presentation", name, "is_public") == 1
@@ -411,11 +340,11 @@ def convert_and_save_image(image, path):
 	return path
 
 
-def create_new_webp_file_doc(presentation, file_url, image, extn):
+def create_new_webp_file_doc(presentation_name, file_url, image, extn):
 	files = frappe.get_all(
 		"File",
 		filters={
-			"attached_to_name": presentation,
+			"attached_to_name": presentation_name,
 			"file_url": file_url,
 		},
 		fields=["name"],
@@ -429,22 +358,31 @@ def create_new_webp_file_doc(presentation, file_url, image, extn):
 		new_file.file_name = f"{_file.file_name.replace(extn, 'webp')}"
 		new_file.file_url = f"{_file.file_url.replace(extn, 'webp')}"
 		new_file.save()
-		return new_file.file_url
+		_file.delete()
+		return new_file
 	return file_url
 
 
-def update_element_urls(is_public, presentation, element):
-	attribute = "poster" if element.get("type") == "video" else "src"
-	image_url = element.get(attribute, "") if is_public else f"/private{element.get(attribute, '')}"
-
-	if image_url.endswith((".webp", ".svg")):
+@frappe.whitelist()
+def get_webp_doc(presentation_name, file_url):
+	if file_url.endswith((".webp", ".svg")):
 		return
 
-	image, filename, extn = get_local_image(image_url)
+	image, filename, extn = get_local_image(file_url)
 
 	if can_convert_image(extn):
-		new_url = create_new_webp_file_doc(presentation, image_url, image, extn)
-		element[attribute] = new_url.replace("/private", "")
+		return create_new_webp_file_doc(presentation_name, file_url, image, extn)
+
+
+def update_element_urls(presentation, element):
+	attribute = "poster" if element.get("type") == "video" else "src"
+	image_url = element.get(attribute, "")
+
+	webp_doc = get_webp_doc(presentation, image_url)
+
+	if webp_doc.file_url:
+		element["attachmentName"] = webp_doc.name
+		element[attribute] = webp_doc.file_url
 
 
 @frappe.whitelist()
@@ -456,7 +394,7 @@ def optimize_images(name):
 
 		for element in elements:
 			if element.get("type") in ["image", "video"]:
-				update_element_urls(doc.is_public, doc.name, element)
+				update_element_urls(doc.name, element)
 
 		slide.elements = json.dumps(elements, indent=2)
 

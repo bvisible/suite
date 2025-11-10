@@ -122,7 +122,7 @@ const prefetchAsset = async (src, type) => {
 			// Use link prefetch for images
 			const link = document.createElement('link')
 			link.rel = 'preload'
-			link.href = url
+			link.href = `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
 			link.as = 'image'
 			document.head.appendChild(link)
 		}
@@ -132,13 +132,11 @@ const prefetchAsset = async (src, type) => {
 }
 
 const buildAssetUrl = (src, type) => {
-	if (type === 'video') {
-		return `/api/method/slides.api.file.get_video_file?src=${encodeURIComponent(src)}`
+	if (src.startsWith('/private') || src.startsWith('/assets')) {
+		return src
 	}
 
-	// Handle private/public file URLs
-	const requiresPrefix = !isPublicPresentation.value && src?.startsWith('/files/')
-	return requiresPrefix ? `/private${src}` : src
+	return `/private${src}`
 }
 
 const slideStyles = computed(() => {
@@ -261,10 +259,13 @@ const performPreviousStep = () => {
 }
 
 const performNextStep = () => {
-	const videoEl = document.querySelector('video')
-	if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
-		videoEl.play()
-		return
+	const videoEls = document.querySelectorAll('video')
+
+	for (const videoEl of videoEls) {
+		if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
+			videoEl.play()
+			return
+		}
 	}
 	changeSlide(slideIndex.value + 1)
 }

@@ -71,6 +71,7 @@ def get_media_response(src: str) -> Response:
 	file_path, file_size, mimetype = get_file_metadata(src)
 
 	range_header = frappe.request.headers.get("Range", None)
+	range_start, range_end = None, None
 
 	# if the request includes a Range header, return a partial content response
 	if range_header:
@@ -95,18 +96,23 @@ def get_media_response(src: str) -> Response:
 	return response
 
 
-@frappe.whitelist(allow_guest=True)
-def get_video_file(src: str) -> Response:
-	"""
-	Fetches permitted video file and returns a response.
-	"""
+def validate_media_file(src, public) -> None:
+	# check for existence and permissions of the file
 	file_doc = frappe.get_doc("File", {"file_url": src})
 
 	if not file_doc:
 		raise NotFound
 
 	# check if the user has read permission on the file
-	if file_doc.is_private and not frappe.has_permission("File", "read", file_doc):
+	if not public and not frappe.has_permission("File", "read", file_doc):
 		raise Forbidden(_("You don't have permission to access this file"))
+
+
+@frappe.whitelist(allow_guest=True)
+def get_media_file(src: str, public: str) -> Response:
+	"""
+	Fetches permitted video file and returns a response.
+	"""
+	validate_media_file(src, public)
 
 	return get_media_response(src)

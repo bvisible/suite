@@ -6,7 +6,7 @@
 		<template #body-content>
 			<FormControl
 				ref="inputRef"
-				v-if="['Duplicate', 'Rename'].includes(dialogAction)"
+				v-if="dialogAction == 'Rename'"
 				:type="'text'"
 				size="md"
 				variant="subtle"
@@ -42,7 +42,7 @@ import { Dialog, FormControl, call } from 'frappe-ui'
 
 import { createPresentationResource, updatePresentationTitle } from '@/stores/presentation'
 
-import { Copy, Trash, PenLine } from 'lucide-vue-next'
+import { Trash, PenLine } from 'lucide-vue-next'
 
 const props = defineProps({
 	presentation: Object,
@@ -56,10 +56,6 @@ const inputRef = useTemplateRef('inputRef')
 const newPresentationTitle = ref('')
 
 const actions = {
-	Duplicate: {
-		label: 'Create Copy',
-		icon: Copy,
-	},
 	Rename: {
 		label: 'Update Title',
 		icon: PenLine,
@@ -85,9 +81,6 @@ const performAction = async () => {
 		case 'Delete':
 			await deletePresentation()
 			break
-		default:
-			newPresentationId = await duplicatePresentation()
-			break
 	}
 
 	if (newPresentationId) {
@@ -95,13 +88,6 @@ const performAction = async () => {
 	} else {
 		emit('reloadList')
 	}
-}
-
-const duplicatePresentation = async () => {
-	return await createPresentationResource.submit({
-		title: newPresentationTitle.value,
-		duplicateFrom: props.presentation.name,
-	})
 }
 
 const deletePresentation = async () => {
@@ -118,17 +104,10 @@ watch(
 	() => [props.dialogAction, props.presentation],
 	(val) => {
 		if (!val) return
-		let newTitle
-		switch (props.dialogAction) {
-			case 'Duplicate':
-				newTitle = `Copy of ${props.presentation.title}`
-				break
-			case 'Rename':
-				newTitle = props.presentation.title
-				break
-			default:
-				newTitle = ''
-				break
+
+		let newTitle = ''
+		if (props.dialogAction == 'Rename') {
+			newTitle = props.presentation.title
 		}
 
 		newPresentationTitle.value = newTitle
