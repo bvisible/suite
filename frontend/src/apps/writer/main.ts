@@ -8,7 +8,8 @@ import {
   setConfig,
   frappeRequest,
   FormControl,
-  Button
+  Button,
+  focusDirective
 } from "frappe-ui"
 import {translation} from 'frappe-ui/frappe'
 import { allUsers } from "@/resources/permissions"
@@ -17,6 +18,7 @@ const app = createApp(App)
 setConfig('resourceFetcher', frappeRequest)
 app.use(router)
 app.use(store)
+app.directive("focus", focusDirective)
 app.use(translation, "drive.api.product.get_translations")
 app.config.globalProperties.$user = (user) => {
   if (!allUsers.fetched && !allUsers.loading) allUsers.fetch({ team: "all" })

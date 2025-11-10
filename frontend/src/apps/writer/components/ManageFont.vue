@@ -1,14 +1,12 @@
 <template>
   <div class="flex gap-2">
-    <div class="w-20">
-      <NumberInput
-        v-model="size"
-        suffix="px"
-        :range-start="5"
-        :range-end="120"
-        :placeholder="font_size"
-      />
-    </div>
+    <FormControl
+      class="w-15"
+      variant="outline"
+      type="number"
+      v-model="size"
+      :placeholder="font_size"
+    />
     <Combobox
       v-model="selected"
       :options="FONT_FAMILIES"
@@ -21,8 +19,7 @@
   </div>
 </template>
 <script setup>
-import { Combobox } from 'frappe-ui'
-import NumberInput from './controls/NumberInput.vue'
+import { Combobox, FormControl } from 'frappe-ui'
 import { ref, watchEffect, watch } from 'vue'
 import { FONT_FAMILIES } from '@/utils'
 
@@ -54,9 +51,12 @@ const selected = ref(null)
 const size = ref(null)
 
 watchEffect(() => {
-  selected.value = FONT_FAMILIES.find((opt) => opt.isActive(props.editor))?.value
+  selected.value = FONT_FAMILIES.find((opt) =>
+    opt.isActive(props.editor),
+  )?.value
   let fontSize = props.editor.getAttributes('textStyle')?.fontSize
-  if (fontSize && typeof fontSize !== 'number') fontSize = +fontSize.slice(0, -2)
+  if (fontSize && typeof fontSize !== 'number')
+    fontSize = +fontSize.slice(0, -2)
   size.value = fontSize
 })
 

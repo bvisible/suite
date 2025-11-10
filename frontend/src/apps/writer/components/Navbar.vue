@@ -45,7 +45,15 @@
         label="New"
         variant="solid"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        @click="createDocument.submit"
+        @click="
+          createDocument.submit(null, {
+            onSuccess: (d) =>
+              $router.push({
+                name: 'Document',
+                params: { id: d.name },
+              }),
+          })
+        "
       />
       <Dropdown
         v-else-if="defaultActions"
@@ -108,7 +116,13 @@ const dialog = inject('dialog', ref(''))
 const formattedCrumbs = computed(() => {
   const ORIG = { label: 'Writer', route: '/' }
   if (!props.breadcrumbs.length) return [ORIG]
-  return [ORIG, ...props.breadcrumbs.slice(1)]
+  return [
+    ORIG,
+    ...props.breadcrumbs
+      .slice(1, -1)
+      .map((k) => ({ ...k, route: '/drive/d/' + k.name })),
+    ...props.breadcrumbs.slice(-1),
+  ]
 })
 
 const defaultActions = computed(() => {
