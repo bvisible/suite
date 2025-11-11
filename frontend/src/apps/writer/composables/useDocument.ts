@@ -2,6 +2,7 @@ import { MaybeRefOrGetter, toValue } from 'vue'
 import { useDoc } from 'frappe-ui/src/data-fetching'
 import { DriveDocument } from '@/types/doctypes'
 import { prettyData } from 'frappe-ui/frappe/drive/js/utils'
+import { kMaxLength } from 'buffer'
 
 let docsCache: Record<string, ReturnType<typeof useDoc>> = {}
 
@@ -9,7 +10,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   interface Document extends DriveDocument {}
 
   interface DocumentMethods {
-    // trackVisit: () => void
+    addYjsUpdate: (params: { update_b64: string }) => void
   }
 
   let name = toValue(docId)
@@ -18,9 +19,8 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       doctype: 'Drive File',
       url: '/api/method/writer.api.docs.get_document?file_id=' +docId,
       name: docId,
-      transform: prettyData,
       methods: {
-        trackVisit: 'track_visit',
+        addYjsUpdate: {name: 'add_yjs_update', skipOverride: true},
       },
     })
   }

@@ -48,7 +48,7 @@
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
           :editor-class="[
-            'prose-sm min-h-full mx-auto px-10 overflow-x-auto py-7',
+            'min-h-full mx-auto px-10 overflow-x-auto py-7',
             settings?.wide
               ? 'md:min-w-[100ch] md:max-w-[100ch]'
               : 'md:min-w-[48rem] md:max-w-[48rem]',
@@ -64,20 +64,21 @@
           :starterkit-options="{ history: false }"
           @change="
             (val) => {
-              if (collab) yjsContent = Y.encodeStateAsUpdate(doc)
-              if (db)
-                db.transaction(['content'], 'readwrite')
-                  .objectStore('content')
-                  .put({ val, saved: new Date() }, props.entity.name)
+              // // if (collab) yjsContent = Y.encodeStateAsUpdate(doc)
+              // if (db)
+              //   db.transaction(['content'], 'readwrite')
+              //     .objectStore('content')
+              //     .put({ val, saved: new Date() }, props.entity.name)
               if (!editable) return
               edited = true
-              autosave()
-              autoversion?.()
+              // autosave()
+              // autoversion?.()
             }
           "
         >
           <template #editor="{ editor }">
             <EditorContent
+              class="prose-sm"
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -126,8 +127,8 @@ import {
 } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
 import { toUint8Array } from 'js-base64'
-import * as Y from 'yjs'
-import { IndexeddbPersistence } from 'y-indexeddb'
+// import * as Y from 'yjs'
+// import { IndexeddbPersistence } from 'y-indexeddb'
 import { ySyncPluginKey } from 'y-prosemirror'
 import { WebrtcProvider } from 'y-webrtc'
 import Collaboration from '@tiptap/extension-collaboration'
@@ -140,6 +141,7 @@ import {
 import { isModKey } from '@/utils'
 
 import LucideMessageCircle from '~icons/lucide/message-circle'
+import { updateURLSlug } from '@/utils'
 
 import store from '@/store'
 import emitter from '@/emitter'
@@ -155,6 +157,7 @@ import { CharacterCount } from '@/extensions/character-count'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { FontSize } from '@/extensions/font-size'
 import EmbedExtension from '@/extensions/embed-extension'
+import { useYjs } from '@/composables/useYjs'
 // import FloatingComments from './FloatingComments.vue'
 
 const yjsContent = defineModel('yjsContent')
@@ -163,6 +166,7 @@ const versionPreview = defineModel('versionPreview')
 const edited = defineModel('edited')
 
 const props = defineProps({
+  document: Object,
   entity: Object,
   settings: Object,
   editable: Boolean,
@@ -187,8 +191,8 @@ const scrollParent = computed(() =>
 )
 defineExpose({ editor })
 
-const autosave = debounce(() => emit('saveDocument'), 2000)
-let autoversion
+// const autosave = debounce(() => emit('saveDocument'), 2000)
+// let autoversion
 
 watch(
   () => props.settings,
@@ -232,35 +236,9 @@ watch(
   },
 )
 
-const doc = new Y.Doc({ gc: true })
-const prov = new WebrtcProvider('fdoc-' + props.entity.name, doc, {
-  signaling: ['wss://signal.frappe.cloud'],
-  peerOpts: {
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        {
-          urls: [
-            'turn:signal.frappe.cloud:3478?transport=udp',
-            'turn:signal.frappe.cloud:3478?transport=tcp',
-          ],
-          username: 'turnuser',
-          credential: 'turnpass',
-        },
-      ],
-    },
-  },
-})
+const { doc, cleanup, provider, permanentUserData } = useYjs(props.document)
 
 const collab = computed(() => props.settings?.collab)
-const localstorage = new IndexeddbPersistence('fdoc-' + props.entity.name, doc) // eslint-disable-line
-const permanentUserData = new Y.PermanentUserData(doc)
-permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
-const colors = [
-  { light: '#ecd44433', dark: '#ecd444' },
-  { light: '#ee635233', dark: '#ee6352' },
-  { light: '#6eeb8333', dark: '#6eeb83' },
-]
 
 const editorExtensions = [
   FontSize,
@@ -305,11 +283,10 @@ const editorExtensions = [
     field: 'default',
     ySyncOptions: {
       permanentUserData,
-      colors,
     },
   }),
   CollaborationCursor.configure({
-    provider: prov,
+    provider,
     user: {
       name: store.state.user.fullName,
       id: store.state.user.id,
@@ -421,15 +398,7 @@ const autorename = (bypass = false) => {
     .replaceAll('#', '')
     .replaceAll('@', '')
     .trim()
-  if (!props.entity.title.startsWith('Untitled Document') && !bypass) {
-    // disable to improve ux
-    // if (implicitTitle !== props.entity.title)
-    //   toast({
-    //     title: `Update title?`,
-    //     buttons: [{ label: "Rename", onClick: () => autorename(true) }],
-    //   })
-    return
-  }
+  if (!props.entity.title.startsWith('Untitled Document') && !bypass) return
   if (implicitTitle.length)
     rename.submit(
       {
@@ -438,15 +407,8 @@ const autorename = (bypass = false) => {
       },
       {
         onSuccess: () => {
-          if (
-            router.currentRoute.value.params.id === rename.params.entity_name
-          ) {
-            l.label = rename.params.new_title
-            store.state.activeEntity.title = rename.params.new_title
-            store.state.activeEntity.modified = new Date()
-            setTitle(rename.params.new_title)
-            updateURLSlug(rename.params.new_title)
-          }
+          props.document.doc.title = rename.params.new_title
+          updateURLSlug(rename.params.new_title)
         },
       },
     )
@@ -525,10 +487,7 @@ onBeforeUnmount(() => {
   comments.value
     .filter((k) => k.new)
     .filter(({ name }) => editor.value.commands.unsetComment(name))
-  if (prov) {
-    prov.disconnect()
-    prov.destroy()
-  }
+  cleanup()
 })
 
 onKeyDown('Enter', () => autorename())

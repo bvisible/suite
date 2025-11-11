@@ -90,6 +90,7 @@
       v-model:show-comments="showComments"
       v-model:current="current"
       :entity="document.doc"
+      :document
       :editable="inIframe ? false : editable"
       :is-frappe-doc
       :settings
