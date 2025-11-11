@@ -324,14 +324,7 @@ export class MediasoupManager {
 				options.width,
 				options.height,
 			);
-			const preferredLayers = (
-				consumer as unknown as {
-					preferredLayers?: {
-						spatialLayer: number;
-						temporalLayer: number;
-					} | null;
-				}
-			).preferredLayers;
+			const preferredLayers = consumer.preferredLayers;
 			const currentlyPreferred = preferredLayers?.spatialLayer ?? null;
 			const currentTemporalLayer = preferredLayers?.temporalLayer ?? null;
 
@@ -359,23 +352,12 @@ export class MediasoupManager {
 						layerResult.spatialLayer,
 						layerResult.temporalLayer,
 					);
-					const currentLayers = (
-						consumer as unknown as {
-							currentLayers?: {
-								spatialLayer: number | null;
-								temporalLayer: number | null;
-							} | null;
-						}
-					).currentLayers;
+					const currentLayers = consumer.currentLayers;
 					const previousSpatial = currentLayers?.spatialLayer ?? null;
 					if (
-						layerResult.spatialLayer !== null &&
-						typeof (
-							consumer as unknown as { requestKeyFrame?: () => Promise<void> }
-						).requestKeyFrame === 'function' &&
-						((previousSpatial !== null &&
+						(previousSpatial !== null &&
 							layerResult.spatialLayer > previousSpatial) ||
-							wasPaused)
+						wasPaused
 					) {
 						try {
 							await consumer.requestKeyFrame();

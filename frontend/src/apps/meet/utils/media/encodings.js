@@ -1,11 +1,11 @@
 // layers for simulcast video streaming (adaptive streaming)
-// layer 0: low quality (100 kbps)
-// layer 1: medium quality (300 kbps)
-// layer 2: high quality (900 kbps)
+// layer 0: low quality (200 kbps)
+// layer 1: medium quality (400 kbps)
+// layer 2: high quality (1000 kbps)
 export const videoEncodings = [
-	{ maxBitrate: 100000 },
-	{ maxBitrate: 300000 },
-	{ maxBitrate: 900000 },
+	{ maxBitrate: 200000 },
+	{ maxBitrate: 400000 },
+	{ maxBitrate: 1000000 },
 ];
 
 // layer 0: medium quality (800 kbps)
