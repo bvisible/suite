@@ -73,19 +73,41 @@ export const useTextEditor = () => {
 		chain.run()
 	}
 
+	const applyWhenPlainSelection = (editor) => {
+		const { state } = editor
+		const { $from } = state.selection
+
+		const hasStoredMarks = (state.storedMarks || []).length > 0
+
+		const style = editor.getAttributes('textStyle')
+		const hasTextStyle = !!(
+			style.color ||
+			style.fontSize ||
+			style.fontFamily ||
+			style.letterSpacing ||
+			style.opacity ||
+			style.textTransform
+		)
+
+		const inParagraph = $from.parent.type.name === 'paragraph'
+
+		const isCursor = state.selection.empty
+
+		if (!hasStoredMarks && !hasTextStyle && inParagraph && isCursor) {
+			applyLastUsedStyles(editor)
+		}
+
+		editor.view.dom.style.fontSize = `${editorStyles.fontSize || 28}px`
+	}
+
 	let isRestoringStyles = false
 
 	const updateElementContent = (editor) => {
-		const didStylesChange = Object.keys(lastUsedStyles).some((key) => {
-			return lastUsedStyles[key] != editorStyles[key]
-		})
-
-		if (didStylesChange) {
-			activeElement.value.content = editor.getHTML()
-		}
+		activeElement.value.content = editor.getHTML()
 	}
 
-	const updateLastUsedStyles = () => {
+	const updateLastUsedStyles = (editor) => {
+		setEditorStyles(editor)
 		for (const key in editorStyles) {
 			lastUsedStyles[key] = editorStyles[key]
 		}
@@ -93,24 +115,7 @@ export const useTextEditor = () => {
 
 	const updateEditor = ({ transaction, editor }) => {
 		if (transaction.docChanged) {
-			const textContent = editor.getText().trim()
-
-			if (textContent.length == 0 && !isRestoringStyles) {
-				isRestoringStyles = true
-				applyLastUsedStyles(editor)
-				editor.view.dom.style.fontSize = `${lastUsedStyles.fontSize || 28}px`
-				setTimeout(() => {
-					isRestoringStyles = false
-				}, 0)
-
-				return
-			}
-
-			setEditorStyles(editor)
 			updateElementContent(editor)
-			updateLastUsedStyles(editor)
-		} else if (transaction.selectionSet) {
-			setEditorStyles(editor)
 		}
 	}
 
@@ -248,16 +253,16 @@ export const useTextEditor = () => {
 			content: content,
 			editorProps: getEditorProps(editorMetadata),
 			onTransaction: ({ transaction, editor }) => updateEditor({ transaction, editor }),
+			onUpdate: ({ editor }) => updateLastUsedStyles(editor),
+			onSelectionUpdate: ({ editor }) => applyWhenPlainSelection(editor),
 		})
 	}
 
 	watch(
 		() => activeEditor.value,
 		(newEditor) => {
-			setEditorStyles(newEditor)
-			for (const key in editorStyles) {
-				lastUsedStyles[key] = editorStyles[key]
-			}
+			updateLastUsedStyles(newEditor)
+			applyWhenPlainSelection(newEditor)
 		},
 	)
 
