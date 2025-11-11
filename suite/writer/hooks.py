@@ -246,3 +246,7 @@ website_route_rules = [
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+override_doctype_class = {
+    "Drive File": "writer.overrides.drive_file.WriterDriveFile",
+}

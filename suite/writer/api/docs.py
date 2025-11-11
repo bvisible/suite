@@ -31,7 +31,7 @@ def create_document_entity(team, title=None, parent=None, template=None):
             frappe.PermissionError,
         )
 
-    drive_doc = frappe.new_doc("Drive Document")
+    drive_doc = frappe.new_doc("Writer Document")
     drive_doc.title = title
     if template:
         drive_doc.template = template
@@ -81,9 +81,10 @@ def get_document(file_id):
     entity = frappe.db.get_value(
         "Drive File",
         {"is_active": 1, "name": file_id},
-        ENTITY_FIELDS,
+        [*ENTITY_FIELDS, "doc"],
         as_dict=1,
     )
+
     if not entity:
         frappe.throw(
             "We couldn't find what you're looking for.", {"error": frappe.NotFound}
@@ -127,7 +128,7 @@ def get_document(file_id):
             default = -1
     return_obj["share_count"] = default
 
-    k = frappe.get_doc("Drive Document", entity.document)
+    k = frappe.get_doc("Writer Document", entity.doc)
     entity_doc_content = k.as_dict()
     entity_doc_content.pop("name")
     comments = frappe.get_all(
