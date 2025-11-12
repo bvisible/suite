@@ -7,7 +7,7 @@ import { debounce, toast } from 'frappe-ui'
 
 import store from '@/store'
 
-export function useYjs(document) {
+export function useYjs(document, edited) {
   const doc = new Y.Doc()
   Y.applyUpdate(
     doc,
@@ -20,7 +20,8 @@ export function useYjs(document) {
   const indexeddb = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
 
   // Saving to server
-  const saveToServer = debounce(async () => {
+  const save = async () => {
+    if(!edited.value) return
     // Compute a diff relative to server’s last known state
     const incrementalDiff = Y.encodeStateAsUpdate(doc, serverStateVector)
     const updateB64 = fromUint8Array(incrementalDiff)
@@ -30,6 +31,7 @@ export function useYjs(document) {
       })
       if (data?.success) {
         serverStateVector = Y.encodeStateVector(doc)
+        edited.value = false
       } else if (data?.skipped) {
         console.log("Server skipped update - probably because other people are collaborating")
       } 
@@ -37,7 +39,8 @@ export function useYjs(document) {
       console.error('Failed to save YJS update:', error)
       toast.error('Could not save document.')
     }
-  }, 2000)
+  }
+  const autosave = debounce(save, 2000)
 
   // WebRTC for real-time P2P collaboration
   const provider = new WebrtcProvider('wdoc-' + document.name, doc, {
@@ -64,7 +67,7 @@ export function useYjs(document) {
 
   doc.on('update', (update, origin) => {
     if (origin === 'server') return 
-    saveToServer()
+    autosave()
   })
 
   return {
@@ -73,6 +76,7 @@ export function useYjs(document) {
       provider.destroy()
       indexeddb.destroy()
     },
+    save,
     provider,
     permanentUserData,
   }

@@ -76,7 +76,7 @@
   <div v-else class="flex w-full h-full overflow-hidden">
     <VersionsSidebar
       v-if="showVersions"
-      v-model="current"
+      v-model="versionPreview"
       v-model:show-versions="showVersions"
       :editor="editor?.editor"
       :versions="entity.versions"
@@ -85,17 +85,13 @@
     <TextEditor
       v-if="document.doc?.settings"
       ref="editor"
-      v-model:edited="edited"
-      v-model:yjs-content="yjsContent"
       v-model:show-comments="showComments"
-      v-model:current="current"
+      v-model:versionPreview="versionPreview"
       :entity="document.doc"
       :document
-      :editable="inIframe ? false : editable"
-      :is-frappe-doc
+      :editable
       :settings
       :show-resolved
-      @save-document="saveDocument"
       @save-comment="saveDocument(true)"
       @new-version="
         (snap, duration, title) => {
@@ -173,10 +169,9 @@ provide('showResolved', showResolved)
 const rawContent = ref(null)
 const yjsContent = ref(null)
 const entity = ref(null)
-const current = ref(null)
+const versionPreview = ref(null)
 const showComments = ref(false)
 const showVersions = ref(false)
-const edited = ref(false)
 const owner = computed(() => document.doc?.owner)
 const isOldSchema = computed(() => {
   if (!owner.value) return false
@@ -185,29 +180,19 @@ const isOldSchema = computed(() => {
 
 const editable = computed(
   () =>
+    !inIframe.value &&
     !!document.doc?.write &&
     !document.doc?.settings?.lock &&
     editor.value?.editor &&
     !isOldSchema.value,
 )
 watch(showVersions, (v) => {
-  if (!v) current.value = null
+  if (!v) versionPreview.value = null
 })
 const isFrappeDoc = computed(
   () => document.doc && document.doc.mime_type === 'frappe_doc',
 )
 
-const saveDocument = (comment = false) => {
-  if ((!comment && !edited.value) || current.value) return
-  if (document.doc.write || (comment && document.doc.comment)) {
-    updateDocument.submit({
-      entity_name: props.id,
-      doc_name: document.doc.document,
-      yjs: fromUint8Array(yjsContent.value || ''),
-      comment,
-    })
-  }
-}
 const inIframe = inject('inIframe')
 
 const document = useDocument(props.id)
@@ -284,7 +269,6 @@ window.addEventListener('online', () => {
 })
 
 onBeforeUnmount(() => {
-  if (edited.value) saveDocument()
   const sidebar = window.document.querySelector('#sidebar')
   if (sidebar) sidebar.style.removeProperty('display')
 })

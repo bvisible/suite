@@ -63,16 +63,9 @@
           :autofocus="true"
           :starterkit-options="{ history: false }"
           @change="
-            (val) => {
-              // // if (collab) yjsContent = Y.encodeStateAsUpdate(doc)
-              // if (db)
-              //   db.transaction(['content'], 'readwrite')
-              //     .objectStore('content')
-              //     .put({ val, saved: new Date() }, props.entity.name)
+            () => {
               if (!editable) return
               edited = true
-              // autosave()
-              // autoversion?.()
             }
           "
         >
@@ -118,6 +111,7 @@ import {
   computed,
   defineAsyncComponent,
   onMounted,
+  onUnmounted,
   ref,
   onBeforeUnmount,
   h,
@@ -160,10 +154,9 @@ import EmbedExtension from '@/extensions/embed-extension'
 import { useYjs } from '@/composables/useYjs'
 // import FloatingComments from './FloatingComments.vue'
 
-const yjsContent = defineModel('yjsContent')
 const showComments = defineModel('showComments')
 const versionPreview = defineModel('versionPreview')
-const edited = defineModel('edited')
+const edited = ref(false)
 
 const props = defineProps({
   document: Object,
@@ -191,16 +184,12 @@ const scrollParent = computed(() =>
 )
 defineExpose({ editor })
 
-// const autosave = debounce(() => emit('saveDocument'), 2000)
-// let autoversion
-
 watch(
   () => props.settings,
   (val, prev) => {
     if (val.versioning === prev?.versioning && autoversion) return
     const duration = Math.max(0.9, +val.versioning - 1) * 1000
     autoversion = debounce(() => {
-      if (!collab.value) return
       const snap = Y.snapshot(doc)
       const prevVersion =
         props.entity.versions[props.entity.versions.length - 1]
@@ -236,9 +225,10 @@ watch(
   },
 )
 
-const { doc, cleanup, provider, permanentUserData } = useYjs(props.document)
-
-const collab = computed(() => props.settings?.collab)
+const { doc, save, cleanup, provider, permanentUserData } = useYjs(
+  props.document,
+  edited,
+)
 
 const editorExtensions = [
   FontSize,
@@ -295,33 +285,6 @@ const editorExtensions = [
     },
   }),
 ]
-
-async function applyTemplate() {
-  if (!editor.value || !props.settings.template) {
-    return
-  }
-
-  const html = editor.value.getHTML()
-  if (!html || html === '<p></p>') {
-    const getTemplate = useDoc({
-      doctype: 'Writer Template',
-      name: props.settings.template,
-    })
-
-    getTemplate.onSuccess((data) => {
-      const html = editor.value.getHTML()
-      if (html && html !== '<p></p>') return
-      const content = data.content.replaceAll(
-        /\{\{(date|time|datetime)\}\}/g,
-        (_, type) => formatDate(new Date(), { datetime: type }),
-      )
-      editor.value.commands.setContent(content)
-    })
-
-    // trigger the fetch after registering the callback
-    getTemplate.fetch()
-  }
-}
 
 const menuButtons = computed(
   () => [
@@ -414,11 +377,38 @@ const autorename = (bypass = false) => {
     )
 }
 
+async function applyTemplate() {
+  if (!editor.value || !props.settings.template) {
+    return
+  }
+
+  const html = editor.value.getHTML()
+  if (!html || html === '<p></p>') {
+    const getTemplate = useDoc({
+      doctype: 'Writer Template',
+      name: props.settings.template,
+    })
+
+    getTemplate.onSuccess((data) => {
+      const html = editor.value.getHTML()
+      if (html && html !== '<p></p>') return
+      const content = data.content.replaceAll(
+        /\{\{(date|time|datetime)\}\}/g,
+        (_, type) => formatDate(new Date(), { datetime: type }),
+      )
+      editor.value.commands.setContent(content)
+    })
+
+    // trigger the fetch after registering the callback
+    getTemplate.fetch()
+  }
+}
+
 const uploadFunction = (file) => {
   const fileUpload = useFileUpload()
   return fileUpload.upload(file, {
-    params: { doc: props.entity.name },
-    upload_endpoint: `/api/method/drive.api.files.upload_embed`,
+    params: { file_id: props.entity.name },
+    upload_endpoint: `/api/method/writer.api.embed.add`,
   })
 }
 const getOrderedComments = (doc) => {
@@ -483,6 +473,11 @@ onMounted(() => {
   editor.value.on('create', applyTemplate)
 })
 
+onUnmounted(() => {
+  emitter.off('print-file')
+  emitter.off('create-version')
+  if (edited.value) save()
+})
 onBeforeUnmount(() => {
   comments.value
     .filter((k) => k.new)
