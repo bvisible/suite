@@ -72,8 +72,8 @@ const selectAndCenterElement = (elementId) => {
 				top: elementTop,
 			})
 
-			activeElement.value.left = elementLeft
-			activeElement.value.top = elementTop
+			activeElement.value.left = elementLeft + elementWidth / 2
+			activeElement.value.top = elementTop + elementHeight / 2
 		})
 	})
 }
@@ -125,6 +125,8 @@ const addTextElement = async (text) => {
 	const element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
+		transformOrigin: 'center center',
+		transform: 'translate(-50%, -50%)',
 		left: 0,
 		top: 0,
 		type: 'text',
