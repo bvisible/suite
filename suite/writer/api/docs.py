@@ -1,6 +1,11 @@
 from pathlib import Path
+import io
+import re
 
 import frappe
+import markdown
+from markdown.extensions.wikilinks import WikiLinkExtension
+
 from drive.utils import (
     create_drive_file,
     default_team,
@@ -127,6 +132,8 @@ def get_document(file_id):
         elif get_user_access(file_id, team=1)["read"]:
             default = -1
     return_obj["share_count"] = default
+    if entity.mime_type.startswith("text/markdown"):
+        return get_markdown_file(entity, return_obj)
 
     k = frappe.get_doc("Writer Document", entity.doc)
     entity_doc_content = k.as_dict()
@@ -149,3 +156,40 @@ def get_document(file_id):
         "modified": entity.modified,
     }
     frappe.response["data"] = return_obj
+
+
+def get_markdown_file(entity, return_obj):
+    manager = FileManager()
+    wrapper = io.TextIOWrapper(manager.get_file(entity))
+    url_builder = (
+        lambda label, base, end: f"/api/method/drive.api.docs.get_wiki_link?team={entity.team}&title={label}"
+    )
+    with wrapper as r:
+        content = r.read()
+        md = markdown.Markdown(
+            extensions=["extra", "meta", WikiLinkExtension(build_url=url_builder)],
+        )
+        content = clean_content_for_obsidian(content)
+        md.set_output_format("html")
+        return_obj["file_content"] = md.convert(content)
+        return_obj["properties"] = md.Meta
+        print(md.Meta)
+        print(
+            repr(content[content.find("hits") : content.find("hits") + 200]),
+            md.convert(content)[-200:],
+        )
+
+    frappe.response["data"] = return_obj
+
+
+def clean_content_for_obsidian(content):
+    property_end = content[3:].find("---")
+    if content.startswith("---") and property_end != -1:
+        content = (
+            content[:property_end].replace("\n  ", " " * 4) + content[property_end:]
+        )
+    content = content[:property_end] + content[property_end:].replace("\n", "\n\n")
+    content = content[:property_end] + content[property_end:].replace(
+        "\n\n\n", "\n<p></p>"
+    )
+    return content
