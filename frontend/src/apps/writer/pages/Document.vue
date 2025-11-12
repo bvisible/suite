@@ -104,6 +104,7 @@
         }
       "
     />
+    <MarkdownEditor v-else :document :settings />
     <!-- 
     <WriterSettings
       v-if="showSettings"
@@ -116,7 +117,7 @@
 </template>
 
 <script setup>
-import { fromUint8Array, toUint8Array } from 'js-base64'
+import { fromUint8Array } from 'js-base64'
 import Navbar from '@/components/Navbar.vue'
 import {
   ref,
@@ -152,6 +153,9 @@ import LucideFileWarning from '~icons/lucide/file-warning'
 const TextEditor = defineAsyncComponent(
   () => import('@/components/TextEditor.vue'),
 )
+const MarkdownEditor = defineAsyncComponent(
+  () => import('@/components/MarkdownEditor.vue'),
+)
 
 const props = defineProps({
   id: String,
@@ -167,7 +171,6 @@ provide('showResolved', showResolved)
 
 // Reactive data properties
 const rawContent = ref(null)
-const yjsContent = ref(null)
 const entity = ref(null)
 const versionPreview = ref(null)
 const showComments = ref(false)
@@ -189,18 +192,12 @@ const editable = computed(
 watch(showVersions, (v) => {
   if (!v) versionPreview.value = null
 })
-const isFrappeDoc = computed(
-  () => document.doc && document.doc.mime_type === 'frappe_doc',
-)
 
 const inIframe = inject('inIframe')
 
 const document = useDocument(props.id)
-document.onSuccess((data) => {
-  yjsContent.value = toUint8Array(data.content)
-})
 usePageMeta(() => ({
-  title: document.doc ? document.doc.title : 'Document',
+  title: document.doc ? document.doc.title : 'Loading...',
 }))
 
 const globalSettings = useDoc({
@@ -214,13 +211,12 @@ const globalSettings = useDoc({
 })
 
 const settings = computed(() => {
-  if (!isFrappeDoc.value) return {}
   for (const [k, v] of Object.entries(document.doc?.settings || {})) {
     if (v === 'global') delete document.doc?.settings[k]
   }
   return {
     ...(globalSettings.doc?.writer_settings || {}),
-    ...document.doc?.settings,
+    ...(document.doc?.settings || {}),
   }
 })
 

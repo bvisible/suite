@@ -257,7 +257,7 @@ const clearCache = () => {
 }
 
 const documentActions = computed(() =>
-  props.document.doc
+  props.document.doc?.settings
     ? [
         {
           group: true,

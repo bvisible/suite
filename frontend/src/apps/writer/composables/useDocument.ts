@@ -21,6 +21,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       name: docId,
       methods: {
         addYjsUpdate: {name: 'add_yjs_update', skipOverride: true},
+        saveToDisk: 'save_to_disk',
       },
     })
   }

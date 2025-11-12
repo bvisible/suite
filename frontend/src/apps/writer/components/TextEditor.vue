@@ -101,7 +101,6 @@
 import {
   TextEditor as FTextEditor,
   TextEditorFixedMenu,
-  createResource,
   useDoc,
   debounce,
   useFileUpload,
@@ -300,7 +299,6 @@ const menuButtons = computed(
     ['Bullet List', 'Numbered List', 'Task List'],
     'Separator',
     ['Align Left', 'Align Center', 'Align Right'],
-
     'Separator',
     {
       label: 'FontOptions',
