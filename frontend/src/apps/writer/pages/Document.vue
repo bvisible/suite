@@ -104,7 +104,11 @@
         }
       "
     />
-    <MarkdownEditor v-else :document :settings />
+    <MarkdownEditor
+      v-else-if="document.doc?.mime_type == 'text/markdown'"
+      :document
+      :settings
+    />
     <!-- 
     <WriterSettings
       v-if="showSettings"

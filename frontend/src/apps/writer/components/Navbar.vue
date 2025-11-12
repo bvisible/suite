@@ -134,9 +134,15 @@ const formattedCrumbs = computed(() => {
   if (!props.breadcrumbs.length) return [ORIG]
   return [
     ORIG,
-    ...props.breadcrumbs
-      .slice(1, -1)
-      .map((k) => ({ ...k, route: '/drive/d/' + k.name })),
+    ...props.breadcrumbs.slice(1, -1).map((k) => ({
+      ...k,
+      route: true,
+      onClick: (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        window.location.replace('/drive/d/' + k.name)
+      },
+    })),
     ...props.breadcrumbs.slice(-1),
   ]
 })

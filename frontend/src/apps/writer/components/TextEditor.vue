@@ -186,26 +186,26 @@ defineExpose({ editor })
 watch(
   () => props.settings,
   (val, prev) => {
-    if (val.versioning === prev?.versioning && autoversion) return
-    const duration = Math.max(0.9, +val.versioning - 1) * 1000
-    autoversion = debounce(() => {
-      const snap = Y.snapshot(doc)
-      const prevVersion =
-        props.entity.versions[props.entity.versions.length - 1]
-      const prevSnapshot = prevVersion
-        ? Y.decodeSnapshot(toUint8Array(prevVersion.snapshot))
-        : Y.emptySnapshot
-      if (prevVersion != null) {
-        // account for the action of adding a version to ydoc
-        prevSnapshot.sv.set(
-          prevVersion.clientID,
-          prevSnapshot.sv.get(prevVersion.clientID) + 1,
-        )
-      }
-      if (!Y.equalSnapshots(prevSnapshot, snap)) {
-        emit('newVersion', Y.encodeSnapshot(snap), +props.settings.versioning)
-      }
-    }, duration)
+    // if (val.versioning === prev?.versioning && autoversion) return
+    // const duration = Math.max(0.9, +val.versioning - 1) * 1000
+    // autoversion = debounce(() => {
+    //   const snap = Y.snapshot(doc)
+    //   const prevVersion =
+    //     props.entity.versions[props.entity.versions.length - 1]
+    //   const prevSnapshot = prevVersion
+    //     ? Y.decodeSnapshot(toUint8Array(prevVersion.snapshot))
+    //     : Y.emptySnapshot
+    //   if (prevVersion != null) {
+    //     // account for the action of adding a version to ydoc
+    //     prevSnapshot.sv.set(
+    //       prevVersion.clientID,
+    //       prevSnapshot.sv.get(prevVersion.clientID) + 1,
+    //     )
+    //   }
+    //   if (!Y.equalSnapshots(prevSnapshot, snap)) {
+    //     emit('newVersion', Y.encodeSnapshot(snap), +props.settings.versioning)
+    //   }
+    // }, duration)
   },
 )
 
