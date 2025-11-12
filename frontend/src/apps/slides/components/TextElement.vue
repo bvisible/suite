@@ -3,13 +3,16 @@
 		v-if="showEditor"
 		:editor="activeEditor"
 		:style="editorStyles"
+		class="textElement"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
 	<div
 		v-else
 		v-html="element.content"
-		class="textElement select-none break-words"
+		class="textElement select-none"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 		:style="element.editorMetadata"
 		@dblclick="handleDoubleClick"
 	></div>
@@ -26,7 +29,7 @@ import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { extensions } from '@/stores/tiptapSetup'
 
-const { activeEditor } = useTextEditor()
+const { activeEditor, baseFontSize } = useTextEditor()
 
 const props = defineProps({
 	mode: {
@@ -83,6 +86,10 @@ const normalizeContent = () => {
 	}
 }
 
+const isAutoWidth = computed(() => {
+	return !element.value.width || element.value.width == 'auto'
+})
+
 onBeforeMount(() => normalizeContent())
 </script>
 
@@ -135,5 +142,23 @@ onBeforeMount(() => normalizeContent())
 	top: 0;
 	width: 2ch;
 	text-align: right;
+}
+
+.text-auto-width,
+.text-auto-width .ProseMirror {
+	white-space: pre;
+}
+
+.text-fixed-width,
+.text-fixed-width .ProseMirror {
+	width: 100%;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	hyphens: auto;
+}
+
+.textElement p:empty::before {
+	content: '\00a0';
+	font-size: calc(v-bind(baseFontSize, 28) * 1px);
 }
 </style>

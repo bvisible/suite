@@ -224,6 +224,7 @@ const activeDiv = computed(() => {
 useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
+	const target = entry.target.getBoundingClientRect()
 
 	// case:
 	// when element dimensions are changed not by resizer
@@ -231,6 +232,8 @@ useResizeObserver(activeDiv, (entries) => {
 	updateSelectionBounds({
 		width: width,
 		height: height,
+		left: (target.left - slideBounds.left) / scale.value,
+		top: (target.top - slideBounds.top) / scale.value,
 	})
 })
 
