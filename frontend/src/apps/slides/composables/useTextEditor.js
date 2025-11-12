@@ -25,6 +25,8 @@ const editorStyles = reactive({
 
 export const lastUsedStyles = reactive({ ...editorStyles })
 
+const baseFontSize = ref()
+
 export const useTextEditor = () => {
 	const setEditorStyles = (editor) => {
 		if (!editor) return
@@ -97,7 +99,10 @@ export const useTextEditor = () => {
 			applyLastUsedStyles(editor)
 		}
 
-		editor.view.dom.style.fontSize = `${editorStyles.fontSize || 28}px`
+		if (!baseFontSize.value) {
+			baseFontSize.value = lastUsedStyles.fontSize || 28
+		}
+		editor.view.dom.style.fontSize = `${baseFontSize.value}px`
 	}
 
 	let isRestoringStyles = false
@@ -269,6 +274,7 @@ export const useTextEditor = () => {
 	return {
 		activeEditor,
 		editorStyles,
+		baseFontSize,
 		toggleMark,
 		updateProperty,
 		initTextEditor,

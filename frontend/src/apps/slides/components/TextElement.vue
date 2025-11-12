@@ -29,7 +29,7 @@ import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { extensions } from '@/stores/tiptapSetup'
 
-const { activeEditor } = useTextEditor()
+const { activeEditor, baseFontSize } = useTextEditor()
 
 const props = defineProps({
 	mode: {
@@ -159,5 +159,6 @@ onBeforeMount(() => normalizeContent())
 
 .textElement p:empty::before {
 	content: '\00a0';
+	font-size: calc(v-bind(baseFontSize, 28) * 1px);
 }
 </style>
