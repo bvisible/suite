@@ -57,6 +57,7 @@ class WriterDocument(Document):
                 )
                 diff = now_time - prev_time
                 if diff < timedelta(minutes=AUTOVERSION_DURATION):
+                    pass
                     return False
             title = datetime.strftime(now_time, "%Y-%m-%d %H:%M")
 
