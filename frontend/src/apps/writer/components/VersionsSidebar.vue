@@ -9,12 +9,12 @@
         >
         {{ title }}
       </div>
-      <div v-else-if="versionPreview.manual">
-        <span class="font-medium">{{ versionPreview.title }}</span>
+      <div v-else-if="versionPreview[0].manual">
+        <span class="font-medium">{{ versionPreview[0].title }}</span>
       </div>
       <div v-else>
         This is a automatic snapshot of this document from
-        {{ formatDate(versionPreview.title) }}.
+        {{ formatDate(versionPreview[0].title) }}.
       </div>
       <div class="text-xs text-ink-gray-5">
         Editing is disabled until you exit.
@@ -93,10 +93,10 @@
           </div>
 
           <Button
-            v-for="version in group"
+            v-for="(version, i) in group"
             :key="version.name"
             :variant="
-              version.name === versionPreview?.name ? 'subtle' : 'ghost'
+              version.name === versionPreview?.[0]?.name ? 'subtle' : 'ghost'
             "
             class="text-start text-sm py-4"
             :label="
@@ -104,7 +104,7 @@
                 ? version.title
                 : formatDate(version.title).slice(10)
             "
-            @click="versionPreview = version"
+            @click="versionPreview = [version, group[i - 1]]"
           />
         </div>
       </div>
@@ -121,7 +121,17 @@
         class="prose-sm prose-v2 md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8"
         :extensions="COMMON_EXTENSIONS"
         :editable="false"
-        :content="versionPreview?.snapshot || editor.getHTML()"
+        :content="
+          versionPreview
+            ? generateHTMLDiff(
+                versionPreview[0]?.snapshot,
+                versionPreview[1]?.snapshot,
+              )
+            : generateHTMLDiff(
+                editor.getHTML(),
+                versions[versions.length - 1]?.snapshot,
+              )
+        "
       >
         <template #editor="{ editor }">
           <EditorContent
@@ -140,7 +150,20 @@
 </template>
 <script setup>
 import { COMMON_EXTENSIONS } from '@/utils'
-import { toUint8Array } from 'js-base64'
+import { diffWords } from 'diff'
+import 'diff2html/bundles/css/diff2html.min.css'
+
+function generateHTMLDiff(newHTML, oldHTML = '') {
+  const diff = diffWords(oldHTML, newHTML)
+  const result = diff
+    .map((part) => {
+      const color = part.added ? 'green' : part.removed ? 'red' : 'gray'
+      return `<span style="color: var(--prose-color-${color});">${part.value}</span>`
+    })
+    .join('')
+  console.log(result)
+  return result
+}
 import LucideX from '~icons/lucide/x'
 import LucidePlus from '~icons/lucide/plus'
 import { formatDate } from '@/utils/format'
