@@ -14,9 +14,10 @@ COLLISION_ERRORS = (
     frappe.exceptions.TimestampMismatchError,
 )
 
+AUTOVERSION_DURATION = 10
+
 
 class WriterDocument(Document):
-    @timing
     def add_yjs_update(self, update_b64):
         """Add a YJS update to this document"""
         try:
@@ -44,54 +45,32 @@ class WriterDocument(Document):
         self.updates = []
         self.save()
 
-    def maybe_create_version(self, current_doc):
-        """Create a version if 10 minutes have passed since last version"""
-        # Check if we need to create a version
-        if self.versions:
-            last_creation = self.versions[-1].creation
-            if (datetime.now() - last_creation) >= timedelta(minutes=10):
-                return
-        self.create_version(current_doc, manual=False)
-        
-    def create_version(self, doc=None, manual=False, title=None):
+    def new_version(self, html, title):
         """Create a new version of the document"""
-        
-        # If no doc provided, reconstruct from current state
-        if doc is None:
-            doc = pycrdt.Doc()
-            doc.get("default", type=pycrdt.XmlFragment)
-            if self.content:
-                doc.apply_update(base64.b64decode(self.content))
-            for upd in self.updates:
-                doc.apply_update(base64.b64decode(upd.data))
-        
-        # Create snapshot
-        snapshot_b64 = base64.b64encode(doc.get_update()).decode()
-        
-        # Get previous version for diff computation (optional for now)
-        prev_version = frappe.get_all(
-            "Writer Version",
-            filters={"document": self.name},
-            fields=["name", "snapshot"],
-            order_by="creation desc",
-            limit=1
+        manual = bool(title)
+        if not manual:
+            now_time = frappe.utils.now_datetime()
+            if self.versions:
+                prev_time = datetime.strptime(
+                    self.versions[-1].title,
+                    "%Y-%m-%d %H:%M",
+                )
+                diff = now_time - prev_time
+                if diff < timedelta(minutes=AUTOVERSION_DURATION):
+                    return False
+            title = datetime.strftime(now_time, "%Y-%m-%d %H:%M")
+
+        self.append(
+            "versions",
+            {
+                "snapshot": html,
+                "manual": manual,
+                "title": title,
+            },
         )
-        
-        # Create version document
-        version = frappe.get_doc({
-            "doctype": "Writer Version",
-            "document": self.name,
-            "snapshot": snapshot_b64,
-            "manual": manual,
-            "title": title or frappe.utils.now(),
-            # Add metadata
-            "character_count": self.get_character_count(doc),
-        })
-        
-        version.insert()
-        frappe.db.commit()  # Commit immediately so it's available
-        
-        return version.name
+        self.save()
+        return self.versions[-1].as_dict()
+
     def update_file(self, **kwargs):
         file = frappe.db.get_value("Drive File", {"doc": self.name}, "name")
         doc = frappe.get_doc("Drive File", file)
