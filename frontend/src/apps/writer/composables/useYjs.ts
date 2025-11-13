@@ -1,4 +1,3 @@
-// composables/useYjsDocument.js
 import * as Y from 'yjs'
 import { IndexeddbPersistence } from 'y-indexeddb'
 import { WebrtcProvider } from 'y-webrtc'
@@ -8,7 +7,7 @@ import { debounce, toast } from 'frappe-ui'
 import store from '@/store'
 
 export function useYjs(document, edited) {
-  const doc = new Y.Doc()
+  const doc = new Y.Doc({ gc: false })
   Y.applyUpdate(
     doc,
     Y.mergeUpdates([
@@ -20,8 +19,8 @@ export function useYjs(document, edited) {
   const indexeddb = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
 
   // Saving to server
-  const save = async () => {
-    if(!edited.value) return
+  const save = async (manual = false) => {
+    if (!manual && !edited.value) return
     // Compute a diff relative to server’s last known state
     const incrementalDiff = Y.encodeStateAsUpdate(doc, serverStateVector)
     const updateB64 = fromUint8Array(incrementalDiff)
@@ -33,8 +32,10 @@ export function useYjs(document, edited) {
         serverStateVector = Y.encodeStateVector(doc)
         edited.value = false
       } else if (data?.skipped) {
-        console.log("Server skipped update - probably because other people are collaborating")
-      } 
+        console.log(
+          'Server skipped update - probably because other people are collaborating',
+        )
+      }
     } catch (error) {
       console.error('Failed to save YJS update:', error)
       toast.error('Could not save document.')
@@ -66,7 +67,7 @@ export function useYjs(document, edited) {
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
 
   doc.on('update', (update, origin) => {
-    if (origin === 'server') return 
+    if (origin === 'server') return
     autosave()
   })
 

@@ -5,9 +5,10 @@
     v-model="dialog"
     :entity="entities[0]"
     @success="
-      ({ name, title }) => {
-        const el = listResource?.data?.find?.((k) => k.name === name)
-        if (el) el.title = title
+      ({ title }) => {
+        entities[0].title = title
+        entities[0].breadcrumbs[entities[0].breadcrumbs.length - 1].title =
+          title
         resetDialog()
       }
     "
@@ -72,6 +73,7 @@ import {
 } from 'frappe-ui/frappe/drive'
 
 const props = defineProps({
+  document: Object,
   entities: Array,
 })
 const store = useStore()

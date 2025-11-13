@@ -2,7 +2,6 @@ import { MaybeRefOrGetter, toValue } from 'vue'
 import { useDoc } from 'frappe-ui/src/data-fetching'
 import { DriveDocument } from '@/types/doctypes'
 import { prettyData } from 'frappe-ui/frappe/drive/js/utils'
-import { kMaxLength } from 'buffer'
 
 let docsCache: Record<string, ReturnType<typeof useDoc>> = {}
 
@@ -17,10 +16,15 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   if (!docsCache[name]) {
     docsCache[name] = useDoc<Document, DocumentMethods>({
       doctype: 'Drive File',
-      url: '/api/method/writer.api.docs.get_document?file_id=' +docId,
+      url: '/api/method/writer.api.docs.get_document?file_id=' + docId,
       name: docId,
+      transform: (doc) => {
+        if (doc.settings) doc.settings = JSON.parse(doc.settings)
+        return prettyData(doc)
+      },
       methods: {
-        addYjsUpdate: {name: 'add_yjs_update', skipOverride: true},
+        addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
+        createVersion: 'create_version',
         saveToDisk: 'save_to_disk',
       },
     })

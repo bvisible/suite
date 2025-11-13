@@ -11,11 +11,13 @@
     </div>
   </div>
   <Navbar
-    v-if="!inIframe && document.doc"
+    v-if="!inIframe && !showVersions && document.doc"
     :document
     :breadcrumbs="
       document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
     "
+    v-model:showComments="showComments"
+    v-model:showVersions="showVersions"
   >
     <template
       #breadcrumbs
@@ -32,9 +34,9 @@
     </template>
     <template #content v-if="document.doc?.settings && document.doc.write">
       <UsersBar
-        v-if="editorValue?.storage?.collaborationCursor?.users?.length > 1"
+        v-if="editor?.storage?.collaborationCursor?.users?.length > 1"
         :users="
-          editorValue.storage.collaborationCursor.users.filter(
+          editor.storage.collaborationCursor.users.filter(
             (k) => k.name !== $store.state.user.id,
           )
         "
@@ -47,7 +49,7 @@
         @click="
           () => {
             document.doc.settings.lock = null
-            editor.editor.commands.focus()
+            editor.commands.focus()
             toast('Unlocked document temporarily.')
           }
         "
@@ -59,13 +61,23 @@
         @click="
           () => {
             document.doc.settings.lock = true
-            editor.editor.commands.blur()
+            editor.commands.blur()
             toast('Locked document.')
           }
         "
       />
     </template>
   </Navbar>
+  <div v-else-if="showVersions" class="flex w-full flex-col">
+    <div
+      class="py-3 px-5 border-b flex items-center justify-between bg-surface-white"
+    >
+      <div class="text-md font-medium text-ink-gray-8">
+        <span class="text-ink-gray-6">Version History - </span>
+        {{ document.doc.title }}
+      </div>
+    </div>
+  </div>
 
   <!-- <ErrorPage v-if="document.error" :error="document.error" /> -->
   <LoadingIndicator
@@ -74,18 +86,11 @@
     class="w-10 h-full text-neutral-100 mx-auto"
   />
   <div v-else class="flex w-full h-full overflow-hidden">
-    <VersionsSidebar
-      v-if="showVersions"
-      v-model="versionPreview"
-      v-model:show-versions="showVersions"
-      :editor="editor?.editor"
-      :versions="entity.versions"
-      @save-document="saveDocument"
-    />
     <TextEditor
       v-if="document.doc?.settings"
-      ref="editor"
+      ref="editorEl"
       v-model:show-comments="showComments"
+      v-model:show-versions="showVersions"
       v-model:versionPreview="versionPreview"
       :entity="document.doc"
       :document
@@ -168,14 +173,12 @@ const props = defineProps({
 
 const store = useStore()
 const showResolved = ref(false)
-const editor = useTemplateRef('editor')
-const editorValue = computed(() => editor.value?.editor)
-provide('editor', editorValue)
+const editorEl = useTemplateRef('editorEl')
+const editor = computed(() => editorEl.value?.editor)
+provide('editor', editor)
 provide('showResolved', showResolved)
 
 // Reactive data properties
-const rawContent = ref(null)
-const entity = ref(null)
 const versionPreview = ref(null)
 const showComments = ref(false)
 const showVersions = ref(false)
@@ -190,7 +193,7 @@ const editable = computed(
     !inIframe.value &&
     !!document.doc?.write &&
     !document.doc?.settings?.lock &&
-    editor.value?.editor &&
+    editor.value &&
     !isOldSchema.value,
 )
 watch(showVersions, (v) => {
@@ -225,17 +228,6 @@ const settings = computed(() => {
 })
 
 store.commit('setCurrentResource', document)
-
-const updateDocument = createResource({
-  url: 'drive.api.files.save_doc',
-  onError() {
-    toast({
-      title: 'There was an error.',
-      icon: LucideFileWarning,
-      text: "We can't save your file. Please contact support.",
-    })
-  },
-})
 
 const newVersion = createResource({
   url: 'drive.api.docs.create_version',

@@ -65,19 +65,14 @@
         }"
       />
     </div>
-    <Dialogs
-      v-model="dialog"
-      :entities="
-        entities.length ? entities : document?.doc ? [document.doc] : []
-      "
-    />
+    <Dialogs v-model="dialog" :entities="document?.doc && [document.doc]" />
   </nav>
 </template>
 <script setup>
 import { Button, Breadcrumbs, LoadingIndicator, Dropdown } from 'frappe-ui'
 import { useStore } from 'vuex'
 import emitter from '@/emitter'
-import { ref, computed, inject, h } from 'vue'
+import { ref, computed, inject, h, defineModel } from 'vue'
 // import { entitiesDownload } from '@/utils/download'
 import { createDocument } from '@/resources/'
 import { exportMedia, exportBlog } from '@/utils/exports'
@@ -119,12 +114,10 @@ const props = defineProps({
   breadcrumbs: {
     default: [],
   },
-  // Used to pass into dialogs
-  entities: {
-    type: Array,
-    default: () => [],
-  },
 })
+
+const showComments = defineModel('showComments')
+const showVersions = defineModel('showVersions')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))

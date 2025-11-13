@@ -1,4 +1,11 @@
 <template>
+  <VersionsSidebar
+    v-if="showVersions"
+    v-model="versionPreview"
+    v-model:show-versions="showVersions"
+    :editor
+    :versions="document.doc.versions"
+  />
   <div class="flex flex-col w-full">
     <TextEditorFixedMenu
       v-if="editable && !settings.minimal && !versionPreview"
@@ -102,7 +109,7 @@ import {
   TextEditor as FTextEditor,
   TextEditorFixedMenu,
   useDoc,
-  debounce,
+  toast,
   useFileUpload,
 } from 'frappe-ui'
 import { v4 as uuidv4 } from 'uuid'
@@ -119,11 +126,9 @@ import {
   provide,
 } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
-import { toUint8Array } from 'js-base64'
-// import * as Y from 'yjs'
-// import { IndexeddbPersistence } from 'y-indexeddb'
+
 import { ySyncPluginKey } from 'y-prosemirror'
-import { WebrtcProvider } from 'y-webrtc'
+
 import Collaboration from '@tiptap/extension-collaboration'
 import { onKeyDown } from '@vueuse/core'
 import router from '@/router'
@@ -141,7 +146,7 @@ import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, getRandomColor } from '@/utils'
 import { formatDate } from '@/utils/format'
-import { toast } from '@/utils/'
+import {} from '@/utils/'
 import FontFamily from '@/extensions/font-family'
 import FloatingQuoteButton from '@/extensions/comment'
 import MediaDownload from '@/extensions/media-download'
@@ -154,6 +159,7 @@ import { useYjs } from '@/composables/useYjs'
 // import FloatingComments from './FloatingComments.vue'
 
 const showComments = defineModel('showComments')
+const showVersions = defineModel('showVersions')
 const versionPreview = defineModel('versionPreview')
 const edited = ref(false)
 
@@ -182,47 +188,6 @@ const scrollParent = computed(() =>
   document.querySelector('#editorScrollContainer'),
 )
 defineExpose({ editor })
-
-watch(
-  () => props.settings,
-  (val, prev) => {
-    // if (val.versioning === prev?.versioning && autoversion) return
-    // const duration = Math.max(0.9, +val.versioning - 1) * 1000
-    // autoversion = debounce(() => {
-    //   const snap = Y.snapshot(doc)
-    //   const prevVersion =
-    //     props.entity.versions[props.entity.versions.length - 1]
-    //   const prevSnapshot = prevVersion
-    //     ? Y.decodeSnapshot(toUint8Array(prevVersion.snapshot))
-    //     : Y.emptySnapshot
-    //   if (prevVersion != null) {
-    //     // account for the action of adding a version to ydoc
-    //     prevSnapshot.sv.set(
-    //       prevVersion.clientID,
-    //       prevSnapshot.sv.get(prevVersion.clientID) + 1,
-    //     )
-    //   }
-    //   if (!Y.equalSnapshots(prevSnapshot, snap)) {
-    //     emit('newVersion', Y.encodeSnapshot(snap), +props.settings.versioning)
-    //   }
-    // }, duration)
-  },
-)
-
-watch(
-  () => props.currentVersion,
-  (val) => {
-    if (!val) return
-    toast('Changing version')
-    const { view } = editor.value
-    view.dispatch(
-      view.state.tr.setMeta(ySyncPluginKey, {
-        snapshot: Y.decodeSnapshot(val[1].snapshot),
-        prevSnapshot: Y.decodeSnapshot(val[0].snapshot),
-      }),
-    )
-  },
-)
 
 const { doc, save, cleanup, provider, permanentUserData } = useYjs(
   props.document,
@@ -409,6 +374,7 @@ const uploadFunction = (file) => {
     upload_endpoint: `/api/method/writer.api.embed.add`,
   })
 }
+
 const getOrderedComments = (doc) => {
   const comments = []
   doc.descendants((node, pos) => {
@@ -458,7 +424,8 @@ emitter.on('print-file', () => {
 })
 emitter.on('create-version', (title) => {
   const snap = Y.snapshot(doc)
-  emit('newVersion', Y.encodeSnapshot(snap), 0, title)
+  document.newVersion(Y.encodeSnapshot(snap))
+  // emit('newVersion', , 0, title)
 })
 
 onMounted(() => {
@@ -482,27 +449,17 @@ onBeforeUnmount(() => {
     .filter(({ name }) => editor.value.commands.unsetComment(name))
   cleanup()
 })
-
-onKeyDown('Enter', () => autorename())
+onKeyDown('Enter', autorename)
 onKeyDown('s', (e) => {
-  if (!e.metaKey || !e.shiftKey) {
-    return
-  }
+  if (!isModKey(e)) return
   e.preventDefault()
-  emit('saveDocument')
-  toast({
-    title: 'Saving document',
-  })
+  save(true)
+  toast.success('Saved document', { duration: 0.75 })
 })
 </script>
 <style>
 @import url('@/styles/editor.css');
 iframe {
   border: 1px solid var(--surface-gray-4) !important;
-}
-
-.h-full.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
 }
 </style>

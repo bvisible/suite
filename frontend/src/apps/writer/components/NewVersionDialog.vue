@@ -3,6 +3,7 @@
     v-model="versionName"
     v-focus
     label="Name:"
+    autocomplete="off"
   >
     <template #prefix>
       <LucideVersion class="size-4" />
@@ -12,7 +13,7 @@
     type="submit"
     label="Create"
     variant="solid"
-    class="w-full mt-4"
+    class="w-full mt-5"
     :disabled="!versionName"
     @click="emitter.emit('create-version', versionName), clearDialogs()"
   />

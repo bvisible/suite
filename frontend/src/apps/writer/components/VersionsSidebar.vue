@@ -27,19 +27,22 @@
         class="absolute right-3 bottom-3"
         variant="outline"
         @click="
-          clearSnapshot(),
-          createDialog({
-            title: 'Create Version',
-            size: 'sm',
-            component: h(NewVersionDialog),
-            props: { editor },
-          })
+          () => {
+            console.log('in')
+            clearSnapshot(false)
+            createDialog({
+              title: 'Create Version',
+              size: 'sm',
+              component: h(NewVersionDialog),
+              props: { editor },
+            })
+          }
         "
       />
       <div
         v-if="
           !Object.entries(groupedVersions).length ||
-            !Object.entries(groupedVersions)[0][1].length
+          !Object.entries(groupedVersions)[0][1].length
         "
         class="text-ink-gray-5 text-sm text-center mt-1"
       >
@@ -73,25 +76,26 @@
   </div>
 </template>
 <script setup>
-import * as Y from "yjs"
-import { ySyncPluginKey } from "y-prosemirror"
-import { toUint8Array } from "js-base64"
-import LucideX from "~icons/lucide/x"
-import LucidePlus from "~icons/lucide/plus"
-import { formatDate } from "@/utils/format"
-import { computed, ref, h, watch } from "vue"
-import emitter from "@/emitter"
-import { Tabs } from "frappe-ui"
-import { createDialog } from "@/utils/dialogs"
-import NewVersionDialog from "./NewVersionDialog.vue"
+import * as Y from 'yjs'
+import { ySyncPluginKey } from 'y-prosemirror'
+import { toUint8Array } from 'js-base64'
+import LucideX from '~icons/lucide/x'
+import LucidePlus from '~icons/lucide/plus'
+import { formatDate } from '@/utils/format'
+import { computed, ref, h, watch } from 'vue'
+import emitter from '@/emitter'
+import { Tabs } from 'frappe-ui'
+import { createDialog } from '@/utils/dialogs'
+import NewVersionDialog from './NewVersionDialog.vue'
 
 const props = defineProps({
   editor: Object,
   versions: Array,
 })
-const emit = defineEmits(["saveDocument", "newVersion"])
+const emit = defineEmits(['saveDocument', 'newVersion'])
 const current = defineModel()
-const showVersions = defineModel("showVersions")
+const showVersions = defineModel('showVersions')
+
 const groupedVersions = computed(() => {
   if (tab.value === 0) {
     return props.versions.reduce((acc, version) => {
@@ -114,7 +118,7 @@ const renderSnapshot = (version) => {
     props.editor.view.state.tr.setMeta(ySyncPluginKey, {
       snapshot: Y.decodeSnapshot(toUint8Array(version.snapshot)),
       prevSnapshot: Y.decodeSnapshot(toUint8Array(version.snapshot)),
-    })
+    }),
   )
 }
 
@@ -128,30 +132,30 @@ const clearSnapshot = (hide = true) => {
 }
 watch(tab, () => clearSnapshot(false))
 
-emitter.on("restore-snapshot", (details) => {
+emitter.on('restore-snapshot', (details) => {
   createDialog({
-    title: "Are you sure?",
+    title: 'Are you sure?',
     message: details.manual
       ? `You are restoring to a previous version: ${details.title}.`
       : `You are restoring the document to how it was at ${details.title}.`,
     actions: [
       {
-        label: "Confirm",
-        variant: "solid",
+        label: 'Confirm',
+        variant: 'solid',
         onClick: () => {
           const view = props.editor.view
           view.dispatch(
             view.state.tr.setMeta(ySyncPluginKey, {
               snapshot: null,
               prevSnapshot: null,
-            })
+            }),
           )
           showVersions.value = false
-          emit("saveDocument")
+          emit('saveDocument')
         },
       },
     ],
   })
 })
-emitter.on("clear-snapshot", clearSnapshot)
+emitter.on('clear-snapshot', clearSnapshot)
 </script>
