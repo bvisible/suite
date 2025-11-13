@@ -141,7 +141,7 @@ def get_document(file_id):
     comments = frappe.get_all(
         "Drive Comment",
         filters={"parenttype": "Drive File", "parent": entity.name},
-        fields=["content", "owner", "creation", "name", "resolved"],
+        fields=["content", "owner", "creation", "name", "resolved", "anchor"],
     )
 
     for k in comments:
