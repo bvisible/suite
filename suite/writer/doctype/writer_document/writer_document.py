@@ -1,6 +1,8 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from datetime import datetime, timedelta
+
 import frappe
 from frappe.model.document import Document
 import base64
@@ -32,25 +34,64 @@ class WriterDocument(Document):
     def compact_yjs_updates(self):
         server_doc = pycrdt.Doc()
         server_doc.get("default", type=pycrdt.XmlFragment)
-
-        # 1) if we have an existing snapshot, apply it first
         if self.content:
             server_doc.apply_update(base64.b64decode(self.content))
 
-        # 2) load pending updates (ordered)
         for upd in self.updates:
             server_doc.apply_update(base64.b64decode(upd.data))
 
-        # 4) produce a new snapshot (binary)
-        # depending on pycrdt version the method to get full state might be get_update() or get_state()
-        new_snapshot_b64 = base64.b64encode(server_doc.get_update()).decode()
-        # 5) persist the snapshot and clear applied updates
-        self.content = new_snapshot_b64
-
-        # delete all pending updates (we applied them)
+        self.content = base64.b64encode(server_doc.get_update()).decode()
         self.updates = []
         self.save()
 
+    def maybe_create_version(self, current_doc):
+        """Create a version if 10 minutes have passed since last version"""
+        # Check if we need to create a version
+        if self.versions:
+            last_creation = self.versions[-1].creation
+            if (datetime.now() - last_creation) >= timedelta(minutes=10):
+                return
+        self.create_version(current_doc, manual=False)
+        
+    def create_version(self, doc=None, manual=False, title=None):
+        """Create a new version of the document"""
+        
+        # If no doc provided, reconstruct from current state
+        if doc is None:
+            doc = pycrdt.Doc()
+            doc.get("default", type=pycrdt.XmlFragment)
+            if self.content:
+                doc.apply_update(base64.b64decode(self.content))
+            for upd in self.updates:
+                doc.apply_update(base64.b64decode(upd.data))
+        
+        # Create snapshot
+        snapshot_b64 = base64.b64encode(doc.get_update()).decode()
+        
+        # Get previous version for diff computation (optional for now)
+        prev_version = frappe.get_all(
+            "Writer Version",
+            filters={"document": self.name},
+            fields=["name", "snapshot"],
+            order_by="creation desc",
+            limit=1
+        )
+        
+        # Create version document
+        version = frappe.get_doc({
+            "doctype": "Writer Version",
+            "document": self.name,
+            "snapshot": snapshot_b64,
+            "manual": manual,
+            "title": title or frappe.utils.now(),
+            # Add metadata
+            "character_count": self.get_character_count(doc),
+        })
+        
+        version.insert()
+        frappe.db.commit()  # Commit immediately so it's available
+        
+        return version.name
     def update_file(self, **kwargs):
         file = frappe.db.get_value("Drive File", {"doc": self.name}, "name")
         doc = frappe.get_doc("Drive File", file)
