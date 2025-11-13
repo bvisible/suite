@@ -9,7 +9,8 @@
   <div class="flex flex-col w-full">
     <TextEditorFixedMenu
       v-if="editable && !settings.minimal && !versionPreview"
-      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0"
+      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0 transition-opacity duration-1"
+      :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
       :buttons="menuButtons"
     />
     <div
@@ -42,7 +43,11 @@
         />
       </div>
     </div>
-    <div id="editorScrollContainer" class="flex-1 flex w-full overflow-y-auto">
+    <div
+      id="editorScrollContainer"
+      class="flex-1 flex w-full overflow-y-auto"
+      @mousemove="hideToolbar = false"
+    >
       <div
         class="mx-auto cursor-text w-full flex justify-center h-full"
         :class="versionPreview ? 'pb-15' : ''"
@@ -69,16 +74,19 @@
           :extensions="editorExtensions"
           :autofocus="true"
           :starterkit-options="{ history: false }"
-          @change="
+          @keydown="
             () => {
-              if (!editable) return
-              edited = true
+              if (!edited) {
+                edited = true
+                autoversion()
+              }
+              hideToolbar = true
             }
           "
         >
           <template #editor="{ editor }">
             <EditorContent
-              class="prose-sm"
+              class="prose-sm prose-v2"
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -162,6 +170,7 @@ const showComments = defineModel('showComments')
 const showVersions = defineModel('showVersions')
 const versionPreview = defineModel('versionPreview')
 const edited = ref(false)
+const hideToolbar = ref(false)
 
 const props = defineProps({
   document: Object,
@@ -171,7 +180,7 @@ const props = defineProps({
   showResolved: Boolean,
   currentVersion: { required: false, type: Object },
 })
-const emit = defineEmits(['newVersion', 'saveComment', 'saveDocument'])
+const emit = defineEmits(['saveComment', 'saveDocument'])
 const inIframe = inject('inIframe')
 
 const comments = ref([])
@@ -411,6 +420,19 @@ const createNewComment = (editor) => {
   activeComment.value = id
 }
 
+const autoversion = async () => {
+  if (!edited.value) return
+  const html = editor.value.getHTML()
+
+  try {
+    const data = await props.document.newVersion.submit({ data: html })
+    if (data) {
+    }
+  } catch (error) {
+    console.error('Failed to create snapshot:', error)
+  }
+}
+
 // Events
 onKeyDown('p', (e) => {
   if (isModKey(e)) {
@@ -422,12 +444,8 @@ onKeyDown('p', (e) => {
 emitter.on('print-file', () => {
   if (editor.value) printDoc(editor.value.getHTML(), props.settings)
 })
-emitter.on('create-version', (title) => {
-  const snap = Y.snapshot(doc)
-  document.newVersion(Y.encodeSnapshot(snap))
-  // emit('newVersion', , 0, title)
-})
 
+let autosave
 onMounted(() => {
   const orderedComments = getOrderedComments(editor.value.state.doc)
   comments.value = props.entity.comments.toSorted((a, b) => {
@@ -436,19 +454,20 @@ onMounted(() => {
     return pos1 - pos2
   })
   editor.value.on('create', applyTemplate)
+  autosave = setInterval(autoversion, 10 * 60 * 1000)
 })
 
-onUnmounted(() => {
-  emitter.off('print-file')
-  emitter.off('create-version')
-  if (edited.value) save()
-})
 onBeforeUnmount(() => {
+  if (edited.value) save()
+  emitter.off('print-file')
+  if (autosave) clearInterval(autosave)
   comments.value
     .filter((k) => k.new)
     .filter(({ name }) => editor.value.commands.unsetComment(name))
   cleanup()
 })
+
+// Events
 onKeyDown('Enter', autorename)
 onKeyDown('s', (e) => {
   if (!isModKey(e)) return

@@ -10,6 +10,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
 
   interface DocumentMethods {
     addYjsUpdate: (params: { update_b64: string }) => void
+    newVersion: (params: { data: string, title: string }) => void
   }
 
   let name = toValue(docId)
@@ -24,7 +25,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       },
       methods: {
         addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
-        createVersion: 'create_version',
+        newVersion: 'new_version',
         saveToDisk: 'save_to_disk',
       },
     })

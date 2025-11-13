@@ -30,7 +30,6 @@ export function useYjs(document, edited) {
       })
       if (data?.success) {
         serverStateVector = Y.encodeStateVector(doc)
-        edited.value = false
       } else if (data?.skipped) {
         console.log(
           'Server skipped update - probably because other people are collaborating',

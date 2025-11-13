@@ -98,16 +98,6 @@
       :settings
       :show-resolved
       @save-comment="saveDocument(true)"
-      @new-version="
-        (snap, duration, title) => {
-          newVersion.submit({
-            snapshot: fromUint8Array(snap),
-            duration,
-            title,
-            manual: !!title,
-          })
-        }
-      "
     />
     <MarkdownEditor
       v-else-if="document.doc?.mime_type == 'text/markdown'"

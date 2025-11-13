@@ -111,7 +111,7 @@ const groupedVersions = computed(() => {
     return { Manual: props.versions.filter((v) => v.manual) }
   }
 })
-const tab = ref(1)
+const tab = ref(props.versions.filter((v) => v.manual).length ? 1 : 0)
 const renderSnapshot = (version) => {
   current.value = version
   props.editor.view.dispatch(
