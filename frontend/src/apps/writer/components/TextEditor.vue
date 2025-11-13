@@ -61,7 +61,7 @@
           </template>
         </FTextEditor>
       </div>
-      <!-- <ToC v-show="anchors.length > 1" :editor :anchors :class="editable ? 'top-24' : 'top-15'" /> -->
+      <ToC v-show="anchors.length > 1" :editor :anchors :class="editable ? 'top-24' : 'top-15'" />
       <!-- <FloatingComments
         v-if="comments.length"
         v-model:show-comments="showComments"

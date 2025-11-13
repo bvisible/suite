@@ -60,7 +60,7 @@
           class="absolute right-3 bottom-3"
           variant="outline"
           @click="
-            () => 
+            () =>
               createDialog({
                 title: 'Create Version',
                 size: 'sm',
@@ -108,7 +108,7 @@
             @click="
               version.name === versionPreview?.[0]?.name
                 ? (versionPreview = null)
-                : (versionPreview = [version, group[i - 1]])
+                : (versionPreview = [version, getPrevious(version)])
             "
           />
         </div>
@@ -162,19 +162,86 @@ import {
   DIFF_EQUAL,
 } from 'diff-match-patch'
 import DiffTag from '@/extensions/diff-tag'
+const dmp = new diff_match_patch()
 
 function generateHTMLDiff(newHTML, oldHTML = '') {
-  const dmp = new diff_match_patch()
-  const diffs = dmp.diff_main(oldHTML, newHTML)
-  dmp.diff_cleanupSemantic(diffs) // crucial for readable diffs
+  const parser = new DOMParser()
+  const oldDoc = parser.parseFromString(oldHTML, 'text/html').body
+  const newDoc = parser.parseFromString(newHTML, 'text/html').body
 
-  return diffs
-    .map(([type, text]) => {
-      if (type === DIFF_INSERT) return `<ins>${text}</ins>`
-      if (type === DIFF_DELETE) return `<del>${text}</del>`
-      return text
-    })
+  const result = diffNode(oldDoc, newDoc)
+  return result
+    .map((node) => (typeof node === 'string' ? node : node.outerHTML))
     .join('')
+}
+
+function diffNode(oldNode, newNode) {
+  // if both missing
+  if (!oldNode && !newNode) return []
+
+  // node removed
+  if (oldNode && !newNode)
+    return [
+      `<del>${oldNode.outerHTML || escapeHTML(oldNode.textContent)}</del>`,
+    ]
+
+  // node added
+  if (!oldNode && newNode)
+    return [
+      `<ins>${newNode.outerHTML || escapeHTML(newNode.textContent)}</ins>`,
+    ]
+
+  // different node type or tag
+  if (oldNode.nodeName !== newNode.nodeName) {
+    return [
+      `<del>${oldNode.outerHTML || escapeHTML(oldNode.textContent)}</del>`,
+      `<ins>${newNode.outerHTML || escapeHTML(newNode.textContent)}</ins>`,
+    ]
+  }
+
+  // text node diff
+  if (
+    oldNode.nodeType === Node.TEXT_NODE &&
+    newNode.nodeType === Node.TEXT_NODE
+  ) {
+    const diffs = dmp.diff_main(oldNode.textContent, newNode.textContent)
+    dmp.diff_cleanupSemantic(diffs)
+    return diffs.map(([type, text]) => {
+      switch (type) {
+        case -1:
+          return `<del>${escapeHTML(text)}</del>`
+        case 1:
+          return `<ins>${escapeHTML(text)}</ins>`
+        default:
+          return escapeHTML(text)
+      }
+    })
+  }
+
+  // recursively diff children
+  const resultNode = newNode.cloneNode(false)
+  const oldChildren = [...oldNode.childNodes]
+  const newChildren = [...newNode.childNodes]
+  const len = Math.max(oldChildren.length, newChildren.length)
+
+  for (let i = 0; i < len; i++) {
+    const childDiff = diffNode(oldChildren[i], newChildren[i])
+    childDiff.forEach((fragment) => {
+      if (typeof fragment === 'string') {
+        const span = document.createElement('span')
+        span.innerHTML = fragment
+        resultNode.append(...span.childNodes)
+      } else {
+        resultNode.append(fragment)
+      }
+    })
+  }
+
+  return [resultNode]
+}
+
+function escapeHTML(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 import LucideX from '~icons/lucide/x'
@@ -197,10 +264,12 @@ const emit = defineEmits(['saveDocument', 'newVersion'])
 const versionPreview = defineModel()
 const showVersions = defineModel('showVersions')
 
+const manualVersions = computed(() => props.versions.filter((v) => v.manual))
+const autoVersions = computed(() => props.versions.filter((v) => !v.manual))
+
 const groupedVersions = computed(() => {
   if (tab.value === 0) {
-    return props.versions.reduce((acc, version) => {
-      if (version.manual) return acc
+    return autoVersions.value.reduce((acc, version) => {
       const date = formatDate(version.title).slice(0, 8)
       if (!acc[date]) {
         acc[date] = []
@@ -209,12 +278,22 @@ const groupedVersions = computed(() => {
       return acc
     }, {})
   } else {
-    return { Manual: props.versions.filter((v) => v.manual) }
+    return { Manual: manualVersions.value }
   }
 })
 
 const tab = ref(props.versions.filter((v) => v.manual).length ? 1 : 0)
 watch(tab, () => (versionPreview.value = null))
+
+const getPrevious = (version) => {
+  const relevantVersions = version.manual
+    ? manualVersions.value
+    : autoVersions.value
+  const currentIndex = relevantVersions.findIndex(
+    (v) => v.name === version.name,
+  )
+  return relevantVersions[currentIndex - 1]
+}
 
 const restore = (version) => {
   createDialog({
