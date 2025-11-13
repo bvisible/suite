@@ -50,14 +50,14 @@ class WriterDocument(Document):
         manual = bool(title)
         if not manual:
             now_time = frappe.utils.now_datetime()
-            if self.versions:
+            auto_versions = [v for v in self.versions if not v.manual]
+            if auto_versions:
                 prev_time = datetime.strptime(
-                    self.versions[-1].title,
+                    auto_versions[-1].title,
                     "%Y-%m-%d %H:%M",
                 )
                 diff = now_time - prev_time
                 if diff < timedelta(minutes=AUTOVERSION_DURATION):
-                    pass
                     return False
             title = datetime.strftime(now_time, "%Y-%m-%d %H:%M")
 
