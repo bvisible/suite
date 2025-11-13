@@ -1,11 +1,4 @@
 <template>
-  <VersionsSidebar
-    v-if="showVersions"
-    v-model="versionPreview"
-    v-model:show-versions="showVersions"
-    :editor
-    :versions="document.doc.versions"
-  />
   <div class="flex flex-col w-full">
     <TextEditorFixedMenu
       v-if="editable && !settings.minimal && !versionPreview"
@@ -13,36 +6,7 @@
       :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
       :buttons="menuButtons"
     />
-    <div
-      v-if="versionPreview"
-      class="bg-surface-gray-2 text-ink-gray-8 p-3 text-base flex justify-between items-center"
-    >
-      <div class="flex flex-col gap-1">
-        <div v-if="versionPreview.manual">
-          <span class="font-medium">{{ versionPreview.title }}</span>
-        </div>
-        <div v-else>
-          This is a automatic snapshot of this document from
-          {{ formatDate(versionPreview.title) }}.
-        </div>
-        <div class="text-xs text-ink-gray-5">
-          Editing is disabled until you exit this preview.
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <Button
-          variant="ghost"
-          label="Exit"
-          class="hover:!bg-surface-gray-2 hover:underline"
-          @click="emitter.emit('clear-snapshot')"
-        />
-        <Button
-          variant="solid"
-          label="Restore"
-          @click="emitter.emit('restore-snapshot', versionPreview)"
-        />
-      </div>
-    </div>
+
     <div
       id="editorScrollContainer"
       class="flex-1 flex w-full overflow-y-auto"
@@ -125,26 +89,18 @@ import {
   computed,
   defineAsyncComponent,
   onMounted,
-  onUnmounted,
   ref,
   onBeforeUnmount,
   h,
-  watch,
   inject,
   provide,
 } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
 
-import { ySyncPluginKey } from 'y-prosemirror'
-
 import Collaboration from '@tiptap/extension-collaboration'
 import { onKeyDown } from '@vueuse/core'
-import router from '@/router'
-import {
-  default as TableOfContents,
-  getHierarchicalIndexes,
-} from '@tiptap/extension-table-of-contents'
-import { isModKey } from '@/utils'
+
+import { isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import LucideMessageCircle from '~icons/lucide/message-circle'
 import { updateURLSlug } from '@/utils'
@@ -155,14 +111,15 @@ import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, getRandomColor } from '@/utils'
 import { formatDate } from '@/utils/format'
 import {} from '@/utils/'
-import FontFamily from '@/extensions/font-family'
 import FloatingQuoteButton from '@/extensions/comment'
 import MediaDownload from '@/extensions/media-download'
 import ExtendedCommentExtension from '@/extensions/extended-comment'
-import { CharacterCount } from '@/extensions/character-count'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
-import { FontSize } from '@/extensions/font-size'
-import EmbedExtension from '@/extensions/embed-extension'
+import { CharacterCount } from '@/extensions/character-count'
+import {
+  default as TableOfContents,
+  getHierarchicalIndexes,
+} from '@tiptap/extension-table-of-contents'
 import { useYjs } from '@/composables/useYjs'
 // import FloatingComments from './FloatingComments.vue'
 
@@ -204,17 +161,13 @@ const { doc, save, cleanup, provider, permanentUserData } = useYjs(
 )
 
 const editorExtensions = [
-  FontSize,
+  COMMON_EXTENSIONS,
   CharacterCount,
   TableOfContents.configure({
     onUpdate: (val) => (anchors.value = val),
     getIndex: getHierarchicalIndexes,
     scrollParent: () => scrollParent.value,
   }),
-  FontFamily.configure({
-    types: ['textStyle'],
-  }),
-  EmbedExtension,
   props.entity.comment &&
     !inIframe &&
     FloatingQuoteButton.configure({

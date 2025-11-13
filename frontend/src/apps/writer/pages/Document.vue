@@ -68,24 +68,27 @@
       />
     </template>
   </Navbar>
-  <div v-else-if="showVersions" class="flex w-full flex-col">
-    <div
-      class="py-3 px-5 border-b flex items-center justify-between bg-surface-white"
-    >
-      <div class="text-md font-medium text-ink-gray-8">
-        <span class="text-ink-gray-6">Version History - </span>
-        {{ document.doc.title }}
-      </div>
-    </div>
-  </div>
 
   <!-- <ErrorPage v-if="document.error" :error="document.error" /> -->
+  <VersionsSidebar
+    v-if="showVersions"
+    v-model="versionPreview"
+    v-model:show-versions="showVersions"
+    :versions="document.doc?.versions || []"
+    :settings
+    :title="document.doc.title"
+    :editor
+  />
   <LoadingIndicator
     v-if="!document.data && document.loading"
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div v-else class="flex w-full h-full overflow-hidden">
+  <div
+    v-else
+    class="flex w-full h-full overflow-hidden"
+    :class="showVersions && 'hidden'"
+  >
     <TextEditor
       v-if="document.doc?.settings"
       ref="editorEl"
@@ -116,7 +119,6 @@
 </template>
 
 <script setup>
-import { fromUint8Array } from 'js-base64'
 import Navbar from '@/components/Navbar.vue'
 import {
   ref,
