@@ -76,7 +76,7 @@
     v-model:show-versions="showVersions"
     :versions="document.doc?.versions || []"
     :settings
-    :title="document.doc.title"
+    :document
     :editor
   />
   <LoadingIndicator

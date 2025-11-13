@@ -7,7 +7,7 @@
         <span class="text-ink-gray-6"
           >You are viewing the version history of</span
         >
-        {{ title }}
+        {{ document.doc.title }}
       </div>
       <div v-else-if="versionPreview[0].manual">
         <span class="font-medium">{{ versionPreview[0].title }}</span>
@@ -30,7 +30,7 @@
       <Button
         variant="solid"
         label="Restore"
-        @click="emitter.emit('restore-snapshot', versionPreview)"
+        @click="restore(versionPreview[0])"
       />
     </div>
   </div>
@@ -60,14 +60,15 @@
           class="absolute right-3 bottom-3"
           variant="outline"
           @click="
-            () => {
+            () => 
               createDialog({
                 title: 'Create Version',
                 size: 'sm',
-                component: h(NewVersionDialog),
-                props: { editor },
+                component: h(NewVersionDialog, {
+                  data: editor.getHTML(),
+                  document,
+                }),
               })
-            }
           "
         />
         <div
@@ -104,7 +105,11 @@
                 ? version.title
                 : formatDate(version.title).slice(10)
             "
-            @click="versionPreview = [version, group[i - 1]]"
+            @click="
+              version.name === versionPreview?.[0]?.name
+                ? (versionPreview = null)
+                : (versionPreview = [version, group[i - 1]])
+            "
           />
         </div>
       </div>
@@ -119,7 +124,7 @@
       <TextEditor
         v-if="editor.getHTML"
         class="prose-sm prose-v2 md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8"
-        :extensions="COMMON_EXTENSIONS"
+        :extensions="[...COMMON_EXTENSIONS, DiffTag]"
         :editable="false"
         :content="
           versionPreview
@@ -150,34 +155,42 @@
 </template>
 <script setup>
 import { COMMON_EXTENSIONS } from '@/utils'
-import { diffWords } from 'diff'
-import 'diff2html/bundles/css/diff2html.min.css'
+import {
+  diff_match_patch,
+  DIFF_INSERT,
+  DIFF_DELETE,
+  DIFF_EQUAL,
+} from 'diff-match-patch'
+import DiffTag from '@/extensions/diff-tag'
 
 function generateHTMLDiff(newHTML, oldHTML = '') {
-  const diff = diffWords(oldHTML, newHTML)
-  const result = diff
-    .map((part) => {
-      const color = part.added ? 'green' : part.removed ? 'red' : 'gray'
-      return `<span style="color: var(--prose-color-${color});">${part.value}</span>`
+  const dmp = new diff_match_patch()
+  const diffs = dmp.diff_main(oldHTML, newHTML)
+  dmp.diff_cleanupSemantic(diffs) // crucial for readable diffs
+
+  return diffs
+    .map(([type, text]) => {
+      if (type === DIFF_INSERT) return `<ins>${text}</ins>`
+      if (type === DIFF_DELETE) return `<del>${text}</del>`
+      return text
     })
     .join('')
-  console.log(result)
-  return result
 }
+
 import LucideX from '~icons/lucide/x'
 import LucidePlus from '~icons/lucide/plus'
 import { formatDate } from '@/utils/format'
 import { computed, ref, h, watch } from 'vue'
 import emitter from '@/emitter'
-import { Tabs, TextEditor } from 'frappe-ui'
-import { createDialog } from '@/utils/dialogs'
+import { Tabs, TextEditor, toast } from 'frappe-ui'
+import { clearDialogs, createDialog } from '@/utils/dialogs'
 import NewVersionDialog from './NewVersionDialog.vue'
 import { EditorContent } from '@tiptap/vue-3'
 
 const props = defineProps({
   settings: Object,
   versions: Array,
-  title: String,
+  document: Object,
   editor: Object,
 })
 const emit = defineEmits(['saveDocument', 'newVersion'])
@@ -203,32 +216,52 @@ const groupedVersions = computed(() => {
 const tab = ref(props.versions.filter((v) => v.manual).length ? 1 : 0)
 watch(tab, () => (versionPreview.value = null))
 
-emitter.on('restore-snapshot', (details) => {
+const restore = (version) => {
   createDialog({
     title: 'Are you sure?',
-    message: details.manual
-      ? `You are restoring to a previous version: ${details.title}.`
-      : `You are restoring the document to how it was at ${details.title}.`,
+    size: 'sm',
+    message: version.manual
+      ? `You are restoring to a previous version: ${version.title}.`
+      : `You are restoring the document to how it was at ${version.title}.`,
     actions: [
       {
         label: 'Confirm',
         variant: 'solid',
         onClick: () => {
-          const view = props.editor.view
-          view.dispatch(
-            view.state.tr.setMeta(ySyncPluginKey, {
-              snapshot: null,
-              prevSnapshot: null,
-            }),
-          )
+          props.editor.commands.setContent(version.snapshot)
+          toast.success(`Restored a previous version - ${version.title}`)
           showVersions.value = false
-          emit('saveDocument')
+          clearDialogs()
+          emitter.emit('manual-save')
         },
       },
     ],
   })
-})
+}
 </script>
 <style>
 @import url('@/styles/fonts.css');
+
+ins,
+s {
+  padding: 0.5px 1px;
+  border-radius: 3px;
+}
+
+ins + s,
+s + ins {
+  margin: 0 2px;
+}
+
+ins {
+  background-color: #dcfce7;
+  color: #166534;
+  text-decoration: none;
+}
+
+s {
+  background-color: #fee2e2;
+  color: #991b1b;
+  text-decoration: line-through;
+}
 </style>

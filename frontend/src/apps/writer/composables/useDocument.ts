@@ -25,7 +25,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       },
       methods: {
         addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
-        newVersion: 'new_version',
+        newVersion: { name: 'new_version', skipOverride: true },
         saveToDisk: 'save_to_disk',
       },
     })

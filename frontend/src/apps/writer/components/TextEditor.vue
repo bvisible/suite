@@ -380,11 +380,13 @@ const autoversion = async () => {
   try {
     const data = await props.document.newVersion.submit({ data: html })
     if (data) {
+      props.document.doc.versions.push(data)
     }
   } catch (error) {
     console.error('Failed to create snapshot:', error)
   }
 }
+const manualSave = () => save(true)
 
 // Events
 onKeyDown('p', (e) => {
@@ -398,6 +400,8 @@ emitter.on('print-file', () => {
   if (editor.value) printDoc(editor.value.getHTML(), props.settings)
 })
 
+emitter.on('manual-save', manualSave)
+
 let autosave
 onMounted(() => {
   const orderedComments = getOrderedComments(editor.value.state.doc)
@@ -407,7 +411,7 @@ onMounted(() => {
     return pos1 - pos2
   })
   editor.value.on('create', applyTemplate)
-  autosave = setInterval(autoversion, 10 * 60 * 1000)
+  autosave = setInterval(autoversion, 2 * 1000)
 })
 
 onBeforeUnmount(() => {
@@ -420,12 +424,11 @@ onBeforeUnmount(() => {
   cleanup()
 })
 
-// Events
 onKeyDown('Enter', autorename)
 onKeyDown('s', (e) => {
   if (!isModKey(e)) return
   e.preventDefault()
-  save(true)
+  manualSave()
   toast.success('Saved document', { duration: 0.75 })
 })
 </script>

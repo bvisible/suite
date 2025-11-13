@@ -1,10 +1,5 @@
 <template>
-  <FormControl
-    v-model="versionName"
-    v-focus
-    label="Name:"
-    autocomplete="off"
-  >
+  <FormControl v-model="versionName" v-focus label="Name:" autocomplete="off">
     <template #prefix>
       <LucideVersion class="size-4" />
     </template>
@@ -14,15 +9,29 @@
     label="Create"
     variant="solid"
     class="w-full mt-5"
+    :loading="document.newVersion.loading"
     :disabled="!versionName"
-    @click="emitter.emit('create-version', versionName), clearDialogs()"
+    @click="
+      async () => {
+        const version = await document.newVersion.submit({
+          data,
+          title: versionName,
+        })
+        document.doc.versions.push(version)
+        clearDialogs()
+      }
+    "
   />
 </template>
 <script setup>
-import { ref } from "vue"
-import { clearDialogs } from "@/utils/dialogs"
-import LucideVersion from "~icons/lucide/git-pull-request-create"
-import emitter from "@/emitter"
+import { ref } from 'vue'
+import { clearDialogs } from '@/utils/dialogs'
+import LucideVersion from '~icons/lucide/git-pull-request-create'
 
-const versionName = ref("")
+const versionName = ref('')
+const props = defineProps({
+  data: String,
+  document: Object,
+})
+console.log(props)
 </script>
