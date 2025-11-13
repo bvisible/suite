@@ -18,7 +18,7 @@
       class="editor flex"
       :class="editable && 'border rounded'"
       :editor-class="[
-        'text-p-sm min-w-2 flex-grow',
+        'text-p-sm min-w-2 flex-grow prose-sm',
         editable && 'pl-2.5 py-1.5',
       ]"
       :placeholder
@@ -71,13 +71,13 @@
   </div>
 </template>
 <script setup>
-import { TextEditor, Button } from "frappe-ui"
-import { allUsers } from "@/resources/permissions"
-import { computed, ref } from "vue"
+import { TextEditor, Button } from 'frappe-ui'
+import { allUsers } from '@/resources/permissions'
+import { computed, ref } from 'vue'
 
 const editorContent = defineModel({ type: String })
 
-const textEditor = ref("textEditor")
+const textEditor = ref('textEditor')
 const editor = computed(() => {
   return textEditor.value?.editor
 })
@@ -87,9 +87,9 @@ defineProps({
   isEmpty: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   editable: { type: Boolean, default: true },
-  content: { type: String, default: "" },
+  content: { type: String, default: '' },
 })
-defineEmits(["submit", "cancel", "change"])
+defineEmits(['submit', 'cancel', 'change'])
 </script>
 <style>
 .editor > div:first-child {

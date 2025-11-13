@@ -4,10 +4,7 @@
     ref="scrollContainer"
     class="relative hidden md:flex min-w-80 border-s-2 flex-col gap-8 justify-start self-stretch pb-5 bg-surface-white"
   >
-    <template
-      v-for="comment in filteredComments"
-      :key="comment.name"
-    >
+    <template v-for="comment in filteredComments" :key="comment.name">
       <div
         :id="'comment-' + comment.name"
         :ref="
@@ -41,7 +38,7 @@
             activeComment === comment.name &&
             $store.state.user.id !== 'Guest' &&
             !comment.new &&
-            (comment.owner == $store.state.user.id || entity.write)
+            (comment.owner == $store.state.user.id || document.doc.write)
           "
           class="p-1.5 text-sm flex gap-1 border-b text-ink-gray-9"
           :class="comment.loading && !comment.edit && 'opacity-70'"
@@ -49,7 +46,7 @@
           <Button
             v-if="
               !comment.resolved &&
-              (comment.owner == $store.state.user.id || entity.write)
+              (comment.owner == $store.state.user.id || document.doc.write)
             "
             :disabled="comment.loading"
             variant="ghost"
@@ -64,7 +61,7 @@
           <Button
             v-if="
               comment.resolved &&
-              (comment.owner == $store.state.user.id || entity.write)
+              (comment.owner == $store.state.user.id || document.doc.write)
             "
             :disabled="comment.loading"
             variant="ghost"
@@ -79,7 +76,7 @@
           <Button
             v-if="
               comment.owner == $store.state.user.id ||
-              (comment.owner === 'Guest' && entity.write)
+              (comment.owner === 'Guest' && document.doc.write)
             "
             :disabled="comment.loading"
             variant="ghost"
@@ -105,7 +102,7 @@
               ? [
                   comment,
                   ...comment.replies.toSorted((a, b) =>
-                    new Date(a.creation) > new Date(b.creation) ? 1 : -1
+                    new Date(a.creation) > new Date(b.creation) ? 1 : -1,
                   ),
                 ]
               : [comment]"
@@ -121,10 +118,7 @@
                 :image="$user(reply.owner)?.user_image"
               />
             </div>
-            <div
-              class="grow flex flex-col"
-              :class="reply.edit && 'gap-1'"
-            >
+            <div class="grow flex flex-col" :class="reply.edit && 'gap-1'">
               <div
                 class="w-full flex justify-between items-start label-group gap-1 text-sm"
               >
@@ -204,10 +198,10 @@
                       reply.content = commentContents[reply.name]
                       reply.edit = false
                       if (reply.new) {
-                        createComment.submit({
-                          entity_name: props.entity.name,
+                        document.addComment.submit({
+                          id: reply.name,
                           content: reply.content,
-                          name: reply.name,
+                          anchor: JSON.stringify(reply.anchor),
                           is_reply: false,
                         })
                         delete reply.new
@@ -269,7 +263,7 @@
           class="replies-count text-ink-gray-6 font-base text-xs p-3 pt-0"
         >
           {{ comment.replies.length }}
-          {{ comment.replies.length === 1 ? "reply" : "replies" }}
+          {{ comment.replies.length === 1 ? 'reply' : 'replies' }}
         </div>
       </div>
     </template>
@@ -298,33 +292,30 @@ import {
   onBeforeUnmount,
   nextTick,
   defineAsyncComponent,
-} from "vue"
-import { Avatar, Button, createResource, Dropdown } from "frappe-ui"
-import { formatDate } from "@/utils/format"
-import { dynamicList } from "@/utils/files"
-import { v4 } from "uuid"
-import { useDebounceFn, useEventListener } from "@vueuse/core"
-import { toast } from "@/utils/toasts"
-import LucideMessageCircleWarning from "~icons/lucide/message-circle-warning"
-import LucideX from "~icons/lucide/x"
-import LucideMoreVertical from "~icons/lucide/more-vertical"
-import { useStore } from "vuex"
+} from 'vue'
+import { Avatar, Button, createResource, Dropdown } from 'frappe-ui'
+import { formatDate } from '@/utils/format'
+import { dynamicList, toast } from '@/utils/'
+import { v4 } from 'uuid'
+import { useDebounceFn, useEventListener } from '@vueuse/core'
+import LucideMessageCircleWarning from '~icons/lucide/message-circle-warning'
+import LucideX from '~icons/lucide/x'
+import LucideMoreVertical from '~icons/lucide/more-vertical'
+import { useStore } from 'vuex'
+import CommentEditor from './CommentEditor.vue'
 
-const CommentEditor = defineAsyncComponent(() =>
-  import("@/components/DocEditor/components/CommentEditor.vue")
-)
 const props = defineProps({
-  entity: Object,
+  document: Object,
   editor: Object,
 })
-const emit = defineEmits(["save"])
+const emit = defineEmits(['save'])
 
 const store = useStore()
 
-const activeComment = defineModel("activeComment")
-const comments = defineModel("comments")
-const showComments = defineModel("showComments")
-const scrollContainer = ref("scrollContainer")
+const activeComment = defineModel('activeComment')
+const comments = defineModel('comments')
+const showComments = defineModel('showComments')
+const scrollContainer = ref('scrollContainer')
 
 const newReplies = reactive({})
 const commentRefs = reactive({})
@@ -339,7 +330,7 @@ const findComment = (name) => {
   }
 }
 
-const showResolved = inject("showResolved")
+const showResolved = inject('showResolved')
 const filteredComments = computed(() => {
   const filtered = showResolved.value
     ? comments.value
@@ -351,30 +342,21 @@ watch(showResolved, async (val) => {
   await nextTick()
   if (val) {
     document
-      .querySelectorAll("[data-resolved=true]")
-      .forEach((k) => k.classList.add("display"))
+      .querySelectorAll('[data-resolved=true]')
+      .forEach((k) => k.classList.add('display'))
   } else {
     document
-      .querySelectorAll("[data-resolved=true]")
-      .forEach((k) => k.classList.remove("display"))
+      .querySelectorAll('[data-resolved=true]')
+      .forEach((k) => k.classList.remove('display'))
   }
 })
 watch(activeComment, (val) => {
-  document
-    .querySelector(`span[data-comment-id].active`)
-    ?.classList?.remove?.("active")
   setCommentHeights()
-  if (val)
-    nextTick(() => {
-      document
-        .querySelector(`span[data-comment-id="${val}"]`)
-        .classList.add("active")
-    })
 })
 
 // Resources
 const createComment = createResource({
-  url: "drive.api.docs.create_comment",
+  url: 'drive.api.docs.create_comment',
   onSuccess: () => {
     findComment(createComment.params.name).loading = false
     emit('save')
@@ -389,19 +371,19 @@ const createComment = createResource({
 const editComment = createResource({
   url: '/api/method/drive.api.docs.edit_comment',
   onSuccess: () => {
-    emit("save")
+    emit('save')
   },
 })
 const deleteComment = createResource({
   url: '/api/method/drive.api.docs.delete_comment',
   onSuccess: () => {
-    emit("save")
+    emit('save')
   },
 })
 const resolveComment = createResource({
   url: '/api/method/drive.api.docs.resolve_comment',
   onSuccess: () => {
-    emit("save")
+    emit('save')
   },
 })
 
@@ -409,7 +391,7 @@ const resolveComment = createResource({
 const newReply = (comment, editor) => {
   const name = v4()
   createComment.submit({
-    entity_name: props.entity.name,
+    entity_name: props.document.doc.name,
     parent_name: comment.name,
     name,
     creation: new Date(),
@@ -459,7 +441,7 @@ const isEmpty = (editorContent) => {
   return (
     !editorContent ||
     !editorContent.length ||
-    editorContent.replace(/\s/g, "") == "<p></p>"
+    editorContent.replace(/\s/g, '') == '<p></p>'
   )
 }
 
@@ -470,7 +452,7 @@ const formatDateOrTime = (datetimeStr) => {
     datetime.getDate() === now.getDate() &&
     datetime.getMonth() === now.getMonth() &&
     datetime.getFullYear() === now.getFullYear()
-  const [dateStr, timeStr] = formatDate(datetime).split(", ")
+  const [dateStr, timeStr] = formatDate(datetime).split(', ')
   return isToday ? timeStr : dateStr
 }
 
@@ -482,8 +464,9 @@ const setCommentHeights = useDebounceFn(() => {
       try {
         const containerTop = scrollContainer.value.getBoundingClientRect().top
         const anchorTop =
-          document.querySelector(`[data-comment-id="${comment.name}"]`).getBoundingClientRect()
-            .top - containerTop
+          document
+            .querySelector(`[data-comment-id="${comment.name}"]`)
+            .getBoundingClientRect().top - containerTop
 
         const adjustedTop = Math.max(anchorTop, lastBottom)
         comment.top = adjustedTop
@@ -503,7 +486,7 @@ props.editor.on('update', () => {
   setCommentHeights()
   props.editor.state.doc.descendants((node) => {
     node.marks.forEach((mark) => {
-      if (mark.type.name === "comment" && mark.attrs.commentId) {
+      if (mark.type.name === 'comment' && mark.attrs.commentId) {
         currentNames.add(mark.attrs.commentId)
       }
     })
@@ -518,5 +501,5 @@ const purgeNewEmptyComments = () => {
     if (comment.new) removeComment(comment.name, true)
 }
 onBeforeUnmount(purgeNewEmptyComments)
-useEventListener(window, "beforeunload", purgeNewEmptyComments)
+useEventListener(window, 'beforeunload', purgeNewEmptyComments)
 </script>

@@ -8,13 +8,14 @@ import store from '@/store'
 
 export function useYjs(document, edited) {
   const doc = new Y.Doc({ gc: false })
-  Y.applyUpdate(
-    doc,
-    Y.mergeUpdates([
-      toUint8Array(document.doc.content || 'AAA='),
-      ...document.doc.updates.map(({ data }) => toUint8Array(data)),
-    ]),
-  )
+  if (document.doc.content || document.doc.updates.length)
+    Y.applyUpdate(
+      doc,
+      Y.mergeUpdates([
+        toUint8Array(document.doc.content),
+        ...document.doc.updates.map(({ data }) => toUint8Array(data)),
+      ]),
+    )
   let serverStateVector = Y.encodeStateVector(doc)
   const indexeddb = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
 

@@ -1,53 +1,48 @@
-import CommentExtension from "@sereneinserenade/tiptap-comment-extension"
+import { Extension } from '@tiptap/core'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import { Plugin } from '@tiptap/pm/state'
 
-export default CommentExtension.extend({
-  addAttributes() {
+const CommentHighlight = Extension.create({
+  name: 'commentHighlight',
+
+  addOptions() {
     return {
-      ...this.parent?.(),
-
-      resolved: {
-        default: false,
-        parseHTML: (el) => el.hasAttribute("data-resolved"),
-        renderHTML: (attrs) =>
-          attrs.resolved ? { "data-resolved": "true" } : {},
-      },
+      comments: [],
+      onActivated: null,
+      activeComment: null,
     }
   },
-  addCommands() {
-    return {
-      ...this.parent?.(),
 
-      resolveComment:
-        (commentId, resolved = true) =>
-        ({ state, tr, dispatch }) => {
-          const { doc } = state
-          const markType = state.schema.marks[this.name]
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          decorations: (state) => {
+            const { comments, activeComment } = this.options
+            if (!comments || !comments.length) return null
+            const decorations = comments.map((comment) =>
+              Decoration.inline(comment.anchor.from, comment.anchor.to, {
+                nodeName: 'span',
+                class: comment.name === activeComment.value ? 'active' : '',
+                'data-comment-id': comment.name,
+              }),
+            )
+            return DecorationSet.create(state.doc, decorations)
+          },
 
-          doc.descendants((node, pos) => {
-            if (!node.isText) return true
-            node.marks.forEach((mark) => {
-              if (
-                mark.type === markType &&
-                mark.attrs.commentId === commentId
-              ) {
-                const updatedMark = markType.create({
-                  ...mark.attrs,
-                  resolved,
-                })
-
-                tr.removeMark(pos, pos + node.nodeSize, markType)
-                tr.addMark(pos, pos + node.nodeSize, updatedMark)
-              }
-            })
-          })
-
-          if (tr.docChanged && dispatch) {
-            dispatch(tr)
-            return true
-          }
-
-          return false
+          handleClick: (view, pos, event) => {
+            const el = event.target.closest('[data-comment-id]')
+            if (el) {
+              const id = el.getAttribute('data-comment-id')
+              this.options.onActivated(id)
+              return true
+            }
+            return false
+          },
         },
-    }
+      }),
+    ]
   },
 })
+
+export default CommentHighlight

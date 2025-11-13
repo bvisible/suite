@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col w-full">
     <TextEditorFixedMenu
-      v-if="editable && !settings.minimal && !versionPreview"
+      v-if="editable && !settings.minimal"
       class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0 transition-opacity duration-1"
       :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
       :buttons="menuButtons"
@@ -14,7 +14,6 @@
     >
       <div
         class="mx-auto cursor-text w-full flex justify-center h-full"
-        :class="versionPreview ? 'pb-15' : ''"
         @click="
           $event.target.tagName === 'DIV' &&
           textEditor.editor?.chain?.().focus?.().run?.()
@@ -28,15 +27,13 @@
             settings?.wide
               ? 'md:min-w-[100ch] md:max-w-[100ch]'
               : 'md:min-w-[48rem] md:max-w-[48rem]',
-            versionPreview ? 'pb-24' : '',
           ]"
-          :editable
           :upload-function
+          :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
           placeholder="Start writing here..."
           :bubble-menu="settings.minimal && menuButtons"
           :extensions="editorExtensions"
-          :autofocus="true"
           :starterkit-options="{ history: false }"
           @keydown="
             () => {
@@ -61,17 +58,20 @@
           </template>
         </FTextEditor>
       </div>
-      <ToC v-show="anchors.length > 1" :editor :anchors :class="editable ? 'top-24' : 'top-15'" />
-      <!-- <FloatingComments
+      <ToC
+        v-show="anchors.length > 1"
+        :editor
+        :anchors
+        :class="editable ? 'top-24' : 'top-15'"
+      />
+      <FloatingComments
         v-if="comments.length"
         v-model:show-comments="showComments"
         v-model:active-comment="activeComment"
         v-model:comments="comments"
-        :entity="entity"
+        :document
         :editor
-        @save="$emit('saveComment')"
-        @autosave="autosave"
-      /> -->
+      />
     </div>
   </div>
 </template>
@@ -96,6 +96,7 @@ import {
   provide,
 } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
+import * as Y from 'yjs'
 
 import Collaboration from '@tiptap/extension-collaboration'
 import { onKeyDown } from '@vueuse/core'
@@ -113,7 +114,7 @@ import { formatDate } from '@/utils/format'
 import {} from '@/utils/'
 import FloatingQuoteButton from '@/extensions/comment'
 import MediaDownload from '@/extensions/media-download'
-import ExtendedCommentExtension from '@/extensions/extended-comment'
+import CommentHighlight from '@/extensions/extended-comment'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { CharacterCount } from '@/extensions/character-count'
 import {
@@ -121,11 +122,9 @@ import {
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
 import { useYjs } from '@/composables/useYjs'
-// import FloatingComments from './FloatingComments.vue'
+import FloatingComments from './FloatingComments.vue'
 
 const showComments = defineModel('showComments')
-const showVersions = defineModel('showVersions')
-const versionPreview = defineModel('versionPreview')
 const edited = ref(false)
 const hideToolbar = ref(false)
 
@@ -137,7 +136,7 @@ const props = defineProps({
   showResolved: Boolean,
   currentVersion: { required: false, type: Object },
 })
-const emit = defineEmits(['saveComment', 'saveDocument'])
+const emit = defineEmits(['saveComment'])
 const inIframe = inject('inIframe')
 
 const comments = ref([])
@@ -163,20 +162,10 @@ const { doc, save, cleanup, provider, permanentUserData } = useYjs(
 const editorExtensions = [
   COMMON_EXTENSIONS,
   CharacterCount,
-  TableOfContents.configure({
-    onUpdate: (val) => (anchors.value = val),
-    getIndex: getHierarchicalIndexes,
-    scrollParent: () => scrollParent.value,
-  }),
-  props.entity.comment &&
-    !inIframe &&
-    FloatingQuoteButton.configure({
-      onClick: () => {
-        createNewComment(editor.value)
-      },
-    }),
-  ExtendedCommentExtension.configure({
-    onCommentActivated: (id) => {
+  CommentHighlight.configure({
+    comments: props.document.doc.comments,
+    activeComment,
+    onActivated: (id) => {
       const isResolved = comments.value.find((k) => id === k.name)?.resolved
       if (id && (!isResolved || showResolved)) {
         activeComment.value = id
@@ -193,6 +182,18 @@ const editorExtensions = [
       }
     },
   }),
+  TableOfContents.configure({
+    onUpdate: (val) => (anchors.value = val),
+    getIndex: getHierarchicalIndexes,
+    scrollParent: () => scrollParent.value,
+  }),
+  props.entity.comment &&
+    !inIframe &&
+    FloatingQuoteButton.configure({
+      onClick: () => {
+        createAnchoredComment()
+      },
+    }),
   MediaDownload,
   Collaboration.configure({
     document: doc,
@@ -353,12 +354,16 @@ const getOrderedComments = (doc) => {
 const createNewComment = (editor) => {
   showComments.value = true
   const id = uuidv4()
-  editor.chain().focus().setComment(id).run()
+  const { from, to } = editor.state.selection
+  if (from === to) return // no selection = no comment
+
+  console.log(from, to)
   const orderedComments = getOrderedComments(editor.state.doc)
   const newComment = {
     name: id,
     owner: store.state.user.id,
     creation: new Date(),
+    anchor: { from, to },
     content: '',
     edit: true,
     new: true,
@@ -411,7 +416,7 @@ onMounted(() => {
     return pos1 - pos2
   })
   editor.value.on('create', applyTemplate)
-  autosave = setInterval(autoversion, 2 * 1000)
+  autosave = setInterval(autoversion, 10 * 60 * 1000)
 })
 
 onBeforeUnmount(() => {

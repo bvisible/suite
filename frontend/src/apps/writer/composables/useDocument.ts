@@ -21,11 +21,13 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       name: docId,
       transform: (doc) => {
         if (doc.settings) doc.settings = JSON.parse(doc.settings)
+          if(doc.comments) doc.comments = doc.comments.map(k => ({...k, anchor: JSON.parse(k.anchor)}))
         return prettyData(doc)
       },
       methods: {
         addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
         newVersion: { name: 'new_version', skipOverride: true },
+        addComment: { name: 'add_comment', skipOverride: true },
         saveToDisk: 'save_to_disk',
       },
     })

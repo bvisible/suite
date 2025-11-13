@@ -10,6 +10,7 @@ import {
   FormControl,
   Button,
   focusDirective,
+  onOutsideClickDirective,
   pageMetaPlugin,
 } from 'frappe-ui'
 import { translation } from 'frappe-ui/frappe'
@@ -21,6 +22,7 @@ app.use(router)
 app.use(store)
 app.use(pageMetaPlugin)
 app.directive('focus', focusDirective)
+app.directive("on-outside-click", onOutsideClickDirective)
 app.use(translation, 'drive.api.product.get_translations')
 app.config.globalProperties.$user = (user) => {
   return allUsers.data?.find?.((k) => k.name === user)

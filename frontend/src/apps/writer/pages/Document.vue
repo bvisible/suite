@@ -172,7 +172,7 @@ provide('showResolved', showResolved)
 
 // Reactive data properties
 const versionPreview = ref(null)
-const showComments = ref(false)
+const showComments = ref(true)
 const showVersions = ref(false)
 const owner = computed(() => document.doc?.owner)
 const isOldSchema = computed(() => {
