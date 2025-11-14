@@ -268,9 +268,9 @@ const handleHistoryOperation = async (operation) => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
 	})
 
-	const onActiveSlide = slideIndex.value == slideToFocus
+	const onActiveSlide = slideToFocus == slideIndex.value
 
-	if (!onActiveSlide) {
+	if (!onActiveSlide && slideToFocus) {
 		await changeSlide(slideToFocus, false)
 
 		recentlyRestored.value = true
