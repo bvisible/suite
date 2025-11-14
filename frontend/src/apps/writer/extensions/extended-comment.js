@@ -9,42 +9,38 @@ import {
 
 import * as Y from 'yjs'
 
-const commentPluginKey = new PluginKey('comment-anchors')
+export const commentPluginKey = new PluginKey('comment-anchors')
 
-const createDecorations = (editor, yDoc, comments, activeComment) => {
+const createDecorations = (editor, yDoc, comments, active) => {
   if (!comments || !comments) return DecorationSet.empty
-
-  const decorations = []
   const ystate = ySyncPluginKey.getState(editor.state)
   if (!ystate) return DecorationSet.empty
+
   const decos = []
   comments.forEach((comment) => {
-    // Decode the stored relative position
-    const relativePos = Y.decodeRelativePosition(comment.anchor)
-    // Convert to absolute ProseMirror position
-    const absPos = relativePositionToAbsolutePosition(
+    const from = relativePositionToAbsolutePosition(
       yDoc,
       ystate.type,
-      relativePos,
+      Y.decodeRelativePosition(comment.anchor.from),
       ystate.binding.mapping,
     )
-    const from = absPos
-    const to = absPos + 1
+    const to = relativePositionToAbsolutePosition(
+      yDoc,
+      ystate.type,
+      Y.decodeRelativePosition(comment.anchor.to),
+      ystate.binding.mapping,
+    )
     decos.push(
       Decoration.inline(from, to, {
         nodeName: 'span',
-        class:
-          comment.name === activeComment
-            ? 'comment-highlight active'
-            : 'comment-highlight',
+        class: comment.id === active && 'active' ,
         'data-comment-id': comment.id,
       }),
     )
   })
   return DecorationSet.create(editor.state.doc, decos)
 }
-
-const CommentHighlight = Extension.create({
+export const CommentHighlight = Extension.create({
   name: 'commentHighlight',
 
   addOptions() {
@@ -53,7 +49,6 @@ const CommentHighlight = Extension.create({
       doc: null,
       activeComment: null,
       onActivated: null,
-      edited: false,
     }
   },
 
@@ -66,20 +61,24 @@ const CommentHighlight = Extension.create({
         state: {
           init(_, state) {
             const { doc, comments, activeComment } = ext.options
-            console.log(comments)
-            return createDecorations(ext.editor, doc, comments, activeComment)
+            return createDecorations(
+              ext.editor,
+              doc,
+              comments,
+              activeComment.value,
+            )
           },
 
           apply(tr, oldSet, oldState, newState) {
-            // Check if we should rebuild decorations
             const shouldRebuild = true
-            // tr.getMeta('commentsChanged') ||
-            // tr.getMeta('activeCommentChanged') ||
-            // tr.docChanged
-
             if (shouldRebuild) {
               const { doc, comments, activeComment } = ext.options
-              return createDecorations(ext.editor, doc, comments, activeComment)
+              return createDecorations(
+                ext.editor,
+                doc,
+                comments,
+                activeComment.value,
+              )
             }
 
             return oldSet
@@ -104,5 +103,3 @@ const CommentHighlight = Extension.create({
     ]
   },
 })
-
-export default CommentHighlight

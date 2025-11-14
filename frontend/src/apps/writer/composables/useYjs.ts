@@ -94,17 +94,30 @@ export function useYjs(document, editor, edited) {
 
   // Comments
   const comments = commentsDoc.getMap('comments')
-  const newComment = (id, absoluteIndex) => {
+  const newComment = (id, from, to, owner) => {
     const ystate = ySyncPluginKey.getState(editor.value.view.state)
-    const relativePos = absolutePositionToRelativePosition(
-      absoluteIndex,
-      ystate.type,
-      ystate.binding.mapping,
-    )
     comments.set(id, {
       id,
-      text: 'Great point!',
-      anchor: Y.encodeRelativePosition(relativePos),
+      new: true,
+      creation: Date.now(),
+      owner,
+      replies: [],
+      anchor: {
+        from: Y.encodeRelativePosition(
+          absolutePositionToRelativePosition(
+            from,
+            ystate.type,
+            ystate.binding.mapping,
+          ),
+        ),
+        to: Y.encodeRelativePosition(
+          absolutePositionToRelativePosition(
+            to,
+            ystate.type,
+            ystate.binding.mapping,
+          ),
+        ),
+      },
       timestamp: Date.now(),
     })
   }
@@ -120,6 +133,6 @@ export function useYjs(document, editor, edited) {
     provider,
     permanentUserData,
     comments,
-    newComment
+    newComment,
   }
 }

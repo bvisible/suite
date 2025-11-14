@@ -1,8 +1,10 @@
-span[data-comment-id].display {
+span[data-comment-id] {
   border-bottom: 2px dashed var(--surface-blue-3);
   user-select: text;
   cursor: pointer;
   scroll-margin: 4rem;
+  border-radius: 2px;
+  padding: 0 1px;
 }
 
 span[data-comment-id].display:hover,
@@ -12,13 +14,11 @@ span[data-comment-id].display.active {
 
 span[data-comment-id]:not([data-resolved="true"]) {
   border-bottom: 2px dashed var(--outline-amber-2);
-  user-select: text;
-  cursor: pointer;
-  scroll-margin: 4rem;
+  background: rgba(250, 204, 21, 0.25);
 }
 
 span[data-comment-id]:not([data-resolved="true"]):hover,
 span[data-comment-id]:not([data-resolved="true"]).active {
-  background: rgba(250, 204, 21, 0.4);
+  background: rgba(250, 204, 21, 0.5);
 }
 

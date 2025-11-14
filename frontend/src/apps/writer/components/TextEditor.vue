@@ -9,7 +9,7 @@
 
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto"
+      class="flex-1 flex w-full overflow-y-auto overflow-x-hidden"
       @mousemove="hideToolbar = false"
     >
       <div
@@ -64,13 +64,14 @@
         :anchors
         :class="editable ? 'top-24' : 'top-15'"
       />
-      <!-- <FloatingComments
+      <FloatingComments
+        v-if="editor"
+        :y-comments="comments"
         v-model:show-comments="showComments"
         v-model:active-comment="activeComment"
-        v-model:comments="comments"
         :document
         :editor
-      /> -->
+      />
     </div>
   </div>
 </template>
@@ -113,7 +114,10 @@ import { formatDate } from '@/utils/format'
 import {} from '@/utils/'
 import FloatingQuoteButton from '@/extensions/comment'
 import MediaDownload from '@/extensions/media-download'
-import CommentHighlight from '@/extensions/extended-comment'
+import {
+  CommentHighlight,
+  commentPluginKey,
+} from '@/extensions/extended-comment'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { CharacterCount } from '@/extensions/character-count'
 import {
@@ -172,20 +176,15 @@ const editorExtensions = [
     activeComment,
     edited,
     onActivated: (id) => {
-      const isResolved = comments.value.find((k) => id === k.name)?.resolved
-      if (id && (!isResolved || showResolved)) {
-        activeComment.value = id
-        showComments.value = true
-        const commentEl = document.querySelector(
-          `span[data-comment-id="${id}"]`,
-        )
-        if (!commentEl.offsetParent)
-          commentEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-            inline: 'nearest',
-          })
-      }
+      activeComment.value = id
+      showComments.value = true
+      const commentEl = document.querySelector(`span[data-comment-id="${id}"]`)
+      if (!commentEl.offsetParent)
+        commentEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest',
+        })
     },
   }),
   TableOfContents.configure({
@@ -361,27 +360,11 @@ const createNewComment = (editor) => {
   showComments.value = true
   const id = uuidv4()
   const { from, to } = editor.state.selection
-  if (from === to) return // no selection = no comment
-  newComment(id, from)
-  return
-  const orderedComments = getOrderedComments(editor.state.doc)
-  const obj = {
-    name: id,
-    owner: store.state.user.id,
-    creation: new Date(),
-    anchor: { from, to },
-    content: '',
-    edit: true,
-    new: true,
-    loading: true,
-    rePlugies: [],
-  }
-  comments.value = [...comments.value, obj].toSorted((a, b) => {
-    const pos1 = orderedComments.findIndex((k) => k.id === a.name)
-    const pos2 = orderedComments.findIndex((k) => k.id === b.name)
-    return pos1 - pos2
-  })
+  if (from === to) return
+  newComment(id, from, to, store.state.user.id)
   activeComment.value = id
+  const tr = editor.state.tr
+  editor.view.dispatch(tr)
 }
 
 const autoversion = async () => {
@@ -421,6 +404,8 @@ onMounted(() => {
   //   const pos2 = orderedComments.findIndex((k) => k.id === b.name)
   //   return pos1 - pos2
   // })
+  const { view, state } = editor.value
+  view.dispatch(state.tr)
   editor.value.on('create', applyTemplate)
   autosave = setInterval(autoversion, 10 * 60 * 1000)
 })

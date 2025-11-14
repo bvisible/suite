@@ -242,17 +242,8 @@ const fileActions = props.document?.doc
 
 // Utility functions for doc
 const clearCache = () => {
-  const DBDeleteRequest = window.indexedDB.deleteDatabase(
-    'fdoc-' + props.document.doc.name,
-  )
-
-  DBDeleteRequest.onerror = () => {
-    console.error('Error deleting database.')
-  }
-
-  DBDeleteRequest.onsuccess = () => {
-    console.log('Database deleted successfully')
-  }
+  window.indexedDB.deleteDatabase('wdoc-' + props.document.doc.name)
+  window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
 }
 
 const documentActions = computed(() =>

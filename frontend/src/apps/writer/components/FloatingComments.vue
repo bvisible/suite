@@ -1,22 +1,21 @@
 <template>
   <div
-    v-show="showComments"
     ref="scrollContainer"
-    class="relative hidden md:flex min-w-80 border-s-2 flex-col gap-8 justify-start self-stretch pb-5 bg-surface-white"
+    class="relative hidden md:flex flex-col gap-8 justify-start self-stretch pb-5 bg-surface-white"
   >
-    <template v-for="comment in filteredComments" :key="comment.name">
+    <template v-for="comment in filteredComments" :key="comment.id">
       <div
-        :id="'comment-' + comment.name"
+        :id="'comment-' + comment.id"
         :ref="
           (el) => {
-            if (el) commentRefs[comment.name] = el
-            else delete commentRefs[comment.name]
+            if (el) commentRefs[comment.id] = el
+            else delete commentRefs[comment.id]
           }
         "
         v-on-outside-click="
           (e) => {
             if (
-              activeComment === comment.name &&
+              activeComment === comment.id &&
               !e.target.getAttribute('data-comment-id') &&
               e.target.nodeName === 'DIV' &&
               !comment.new &&
@@ -25,17 +24,17 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white left-1/2 -translate-x-1/2 opacity-0 transition-[top] duration-100 ease-in-out"
+        class="absolute rounded shadow md:w-72 comment-group scroll-m-24 bg-surface-white -translate-x-[100%] -left-5 opacity-0 transition-[top] duration-100 ease-in-out"
         :class="[
-          activeComment === comment.name && 'shadow-xl ',
+          activeComment === comment.id && 'shadow-xl ',
           comment.top && 'opacity-100',
         ]"
         :style="`top: ${comment.top}px;`"
-        @click="activeComment = comment.name"
+        @click="activeComment = comment.id"
       >
         <div
           v-show="
-            activeComment === comment.name &&
+            activeComment === comment.id &&
             $store.state.user.id !== 'Guest' &&
             !comment.new &&
             (comment.owner == $store.state.user.id || document.doc.write)
@@ -81,7 +80,7 @@
             :disabled="comment.loading"
             variant="ghost"
             class="!h-5 !text-xs !px-1.5 !rounded-sm"
-            @click="removeComment(comment.name, true, true)"
+            @click="removeComment(comment.id, true)"
           >
             <template #prefix>
               <LucideX class="size-3.5" />
@@ -92,13 +91,13 @@
         <div
           class="flex flex-col gap-5 p-3"
           :class="
-            activeComment !== comment.name &&
+            activeComment !== comment.id &&
             comment.replies.length > 0 &&
             'pb-1.5'
           "
         >
           <div
-            v-for="(reply, index) in activeComment === comment.name
+            v-for="(reply, index) in activeComment === comment.id
               ? [
                   comment,
                   ...comment.replies.toSorted((a, b) =>
@@ -106,7 +105,7 @@
                   ),
                 ]
               : [comment]"
-            :key="reply.name"
+            :key="reply.name || reply.id"
             class="group w-full flex gap-3"
             :class="reply.loading && !reply.edit && 'opacity-70'"
           >
@@ -136,7 +135,7 @@
                 <Dropdown
                   class="ml-auto opacity-0"
                   :class="
-                    activeComment === comment.name &&
+                    activeComment === comment.id &&
                     !reply.edit &&
                     !reply.resolved &&
                     comment.owner == $store.state.user.id &&
@@ -151,7 +150,7 @@
                       },
                       {
                         label: 'Delete',
-                        onClick: () => removeComment(reply.name, false, true),
+                        onClick: () => removeReply(comment.id, reply.id),
                         cond:
                           comment.owner == $store.state.user.id && index !== 0,
                       },
@@ -160,13 +159,13 @@
                 >
                   <Button
                     :disabled="
-                      activeComment !== comment.name ||
+                      activeComment !== comment.id ||
                       reply.edit ||
                       reply.resolved
                     "
                     class="!h-5 !text-xs !px-1.5 !rounded-sm opacity-0"
                     :class="
-                      activeComment === comment.name &&
+                      activeComment === comment.id &&
                       !reply.edit &&
                       !reply.resolved &&
                       comment.owner == $store.state.user.id &&
@@ -184,38 +183,26 @@
               </div>
               <div class="comment-content text-sm">
                 <CommentEditor
-                  v-model="commentContents[reply.name]"
+                  v-model="commentContents[reply.id]"
                   placeholder="Edit"
                   :disabled="
-                    isEmpty(commentContents[reply.name]) ||
-                    commentContents[reply.name] == reply.content
+                    isEmpty(commentContents[reply.id]) ||
+                    commentContents[reply.id] == reply.text
                   "
-                  :editable="reply.edit === true"
-                  :content="reply.content"
+                  :editable="!!(reply.edit || reply.new)"
+                  :content="reply.text"
                   @change="setCommentHeights"
                   @submit="
                     () => {
-                      reply.content = commentContents[reply.name]
-                      reply.edit = false
-                      if (reply.new) {
-                        document.addComment.submit({
-                          id: reply.name,
-                          content: reply.content,
-                          anchor: JSON.stringify(reply.anchor),
-                          is_reply: false,
-                        })
-                        delete reply.new
-                      } else {
-                        editComment.submit(reply)
-                      }
+                      updateComment(reply, comment)
                     }
                   "
                   @cancel="
                     (editor) => {
                       if (reply.new) {
-                        removeComment(reply.name, false)
+                        removeComment(reply.id)
                       } else {
-                        editor.commands.setContent(reply.content)
+                        editor.commands.setContent(reply.text)
                         reply.edit = false
                       }
                     }
@@ -227,8 +214,8 @@
 
           <div
             v-show="
-              activeComment === comment.name &&
-              !comment.edit &&
+              activeComment === comment.id &&
+              !(comment.edit || comment.new) &&
               !comment.resolved
             "
             class="flex gap-3"
@@ -243,14 +230,14 @@
             />
 
             <CommentEditor
-              v-model="newReplies[comment.name]"
+              v-model="newReplies[comment.id]"
               placeholder="Reply"
-              :is-empty="isEmpty(newReplies[comment.name])"
+              :is-empty="isEmpty(newReplies[comment.id])"
               @change="setCommentHeights"
               @submit="(editor) => newReply(comment, editor)"
               @cancel="
                 (editor) => {
-                  newReplies[comment.name] = ''
+                  newReplies[comment.id] = ''
                   editor.commands.setContent('')
                   editor.commands.blur()
                 }
@@ -259,7 +246,7 @@
           </div>
         </div>
         <div
-          v-if="activeComment !== comment.name && comment.replies.length > 0"
+          v-if="activeComment !== comment.id && comment.replies.length > 0"
           class="replies-count text-ink-gray-6 font-base text-xs p-3 pt-0"
         >
           {{ comment.replies.length }}
@@ -267,17 +254,6 @@
         </div>
       </div>
     </template>
-    <div
-      class="text-large text-ink-gray-8 font-semibold w-80 px-3 py-2 bg-white dark:bg-black bg-opacity-70 fixed"
-    >
-      Comments
-      <Button
-        :icon="LucideX"
-        variant="ghost"
-        class="float-right"
-        @click="showComments = false"
-      />
-    </div>
   </div>
 </template>
 <script setup>
@@ -291,7 +267,6 @@ import {
   h,
   onBeforeUnmount,
   nextTick,
-  defineAsyncComponent,
 } from 'vue'
 import { Avatar, Button, createResource, Dropdown } from 'frappe-ui'
 import { formatDate } from '@/utils/format'
@@ -307,13 +282,13 @@ import CommentEditor from './CommentEditor.vue'
 const props = defineProps({
   document: Object,
   editor: Object,
+  yComments: Object,
 })
 const emit = defineEmits(['save'])
 
 const store = useStore()
 
 const activeComment = defineModel('activeComment')
-const comments = defineModel('comments')
 const showComments = defineModel('showComments')
 const scrollContainer = ref('scrollContainer')
 
@@ -321,14 +296,25 @@ const newReplies = reactive({})
 const commentRefs = reactive({})
 const commentContents = reactive({})
 
-const findComment = (name) => {
-  const mainComment = comments.value.find((k) => k.name == name)
-  if (mainComment) return mainComment
-  for (const c of comments.value) {
-    const reply = c.replies.find((k) => k.name == name)
-    if (reply) return reply
+function useYMapReactive(yMap) {
+  const local = ref([])
+
+  const update = () => {
+    const arr = []
+    yMap.forEach((v) => {
+      arr.push(v)
+    })
+    local.value = arr
   }
+
+  update()
+  yMap.observe(update)
+
+  onBeforeUnmount(() => yMap.unobserve(update))
+
+  return local
 }
+const comments = useYMapReactive(props.yComments)
 
 const showResolved = inject('showResolved')
 const filteredComments = computed(() => {
@@ -338,6 +324,7 @@ const filteredComments = computed(() => {
   if (!filtered.length) showComments.value = false
   return filtered
 })
+
 watch(showResolved, async (val) => {
   await nextTick()
   if (val) {
@@ -350,36 +337,11 @@ watch(showResolved, async (val) => {
       .forEach((k) => k.classList.remove('display'))
   }
 })
+
 watch(activeComment, (val) => {
   setCommentHeights()
 })
 
-// Resources
-const createComment = createResource({
-  url: 'drive.api.docs.create_comment',
-  onSuccess: () => {
-    findComment(createComment.params.name).loading = false
-    emit('save')
-  },
-  onError: () => {
-    toast({
-      title: 'Your comment did not go through. ',
-      icon: LucideMessageCircleWarning,
-    })
-  },
-})
-const editComment = createResource({
-  url: '/api/method/drive.api.docs.edit_comment',
-  onSuccess: () => {
-    emit('save')
-  },
-})
-const deleteComment = createResource({
-  url: '/api/method/drive.api.docs.delete_comment',
-  onSuccess: () => {
-    emit('save')
-  },
-})
 const resolveComment = createResource({
   url: '/api/method/drive.api.docs.resolve_comment',
   onSuccess: () => {
@@ -387,54 +349,69 @@ const resolveComment = createResource({
   },
 })
 
-// Functions
+const sanitize = (comment) => {
+  const obj = { ...comment }
+  delete obj.edit
+  delete obj.new
+  delete obj.top
+  return obj
+}
+
+const updateComment = (comment, thread) => {
+  comment.text = commentContents[comment.id]
+  comment.edit = false
+  if (comment.id === thread.id) {
+    props.yComments.set(comment.id, sanitize(comment))
+  } else {
+    thread.replies = thread.replies.map((r) =>
+      r.id === comment.id ? sanitize(comment) : r,
+    )
+    props.yComments.set(thread.id, sanitize(thread))
+  }
+}
+
 const newReply = (comment, editor) => {
-  const name = v4()
-  createComment.submit({
-    entity_name: props.document.doc.name,
-    parent_name: comment.name,
-    name,
-    creation: new Date(),
-    content: newReplies[comment.name],
-    is_reply: true,
-  })
-  comment.replies.push({
-    name,
-    content: newReplies[comment.name],
-    owner: store.state.user.id,
-    creation: new Date(),
-    loading: true,
-  })
-  newReplies[comment.name] = ''
+  const id = v4()
+  const reply = {
+    id,
+    text: newReplies[comment.id],
+    owner: comment.owner,
+    creation: Date.now(),
+  }
+  comment.replies.push(reply)
+  props.yComments.set(comment.id, comment)
+
   editor.commands.setContent('')
   setCommentHeights()
 }
 
-const removeComment = (name, entire, server = false) => {
-  if (server) {
-    deleteComment.submit({ name, entire })
-  }
+const removeReply = (commentId, replyId) => {
+  const comment = comments.value.find((c) => c.id === commentId)
+  if (!comment) return
 
-  props.editor.commands.unsetComment(name)
-  for (const [i, val] of Object.entries(comments.value)) {
-    if (val.name === name) {
-      comments.value.splice(i, 1)
-      break
-    }
-    for (const [k, reply] of Object.entries(val.replies)) {
-      if (reply.name === name) {
-        val.replies.splice(k, 1)
-        break
-      }
-    }
-  }
+  // Update Yjs map
+  const updatedReplies = comment.replies.filter((r) => r.id !== replyId)
+  const updatedComment = { ...comment, replies: updatedReplies }
+  props.yComments.set(commentId, updatedComment)
+
+  setCommentHeights()
+}
+
+const removeComment = (commentId) => {
+  props.yComments.delete(commentId)
   setCommentHeights()
 }
 
 const resolve = (comment, value = true) => {
-  resolveComment.submit({ name: comment.name, value })
-  props.editor.commands.resolveComment(comment.name, value)
-  comment.resolved = value
+  // Update Yjs map
+  const updatedComment = { ...comment, resolved: value }
+  props.yComments.set(comment.id, updatedComment)
+
+  // Update editor marks
+  props.editor.commands.resolveComment(comment.id, value)
+
+  // Submit to server
+  resolveComment.submit({ name: comment.id, value })
 }
 
 const isEmpty = (editorContent) => {
@@ -445,9 +422,9 @@ const isEmpty = (editorContent) => {
   )
 }
 
-const formatDateOrTime = (datetimeStr) => {
+const formatDateOrTime = (datetimeNum) => {
   const now = new Date()
-  const datetime = new Date(datetimeStr)
+  const datetime = new Date(datetimeNum)
   const isToday =
     datetime.getDate() === now.getDate() &&
     datetime.getMonth() === now.getMonth() &&
@@ -458,6 +435,7 @@ const formatDateOrTime = (datetimeStr) => {
 
 const setCommentHeights = useDebounceFn(() => {
   let lastBottom = 0
+  if (!showComments.value) return
   nextTick(() => {
     scrollContainer.value.style.height = `max(${scrollContainer.value.parentElement.scrollHeight}px, calc(100vh - 3rem))`
     for (const comment of filteredComments.value) {
@@ -465,14 +443,13 @@ const setCommentHeights = useDebounceFn(() => {
         const containerTop = scrollContainer.value.getBoundingClientRect().top
         const anchorTop =
           document
-            .querySelector(`[data-comment-id="${comment.name}"]`)
+            .querySelector(`[data-comment-id="${comment.id}"]`)
             .getBoundingClientRect().top - containerTop
-
         const adjustedTop = Math.max(anchorTop, lastBottom)
         comment.top = adjustedTop
-        lastBottom = adjustedTop + commentRefs[comment.name].offsetHeight + 12
+        lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
       } catch (e) {
-        // console.log(e)
+        console.log(e)
       }
     }
   })
@@ -480,7 +457,9 @@ const setCommentHeights = useDebounceFn(() => {
 
 onMounted(setCommentHeights)
 watch(() => filteredComments.value.length, setCommentHeights)
+watch(showComments, setCommentHeights)
 useEventListener(window, 'resize', setCommentHeights)
+
 props.editor.on('update', () => {
   const currentNames = new Set()
   setCommentHeights()
@@ -491,15 +470,13 @@ props.editor.on('update', () => {
       }
     })
   })
-  // disable autodeletion
-  // for (const comment of comments.value)
-  //   if (!currentNames.has(comment.name)) removeComment(comment.name, true)
 })
 
 const purgeNewEmptyComments = () => {
   for (const comment of comments.value)
-    if (comment.new) removeComment(comment.name, true)
+    if (comment.new) removeComment(comment.id, true)
 }
+
 onBeforeUnmount(purgeNewEmptyComments)
 useEventListener(window, 'beforeunload', purgeNewEmptyComments)
 </script>
