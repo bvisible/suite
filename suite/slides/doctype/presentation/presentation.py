@@ -364,9 +364,10 @@ def create_new_webp_file_doc(presentation_name, file_url, image, extn):
 
 
 @frappe.whitelist()
-def get_webp_doc(presentation_name, file_url):
+def get_webp_doc(presentation_name, file_doc):
+	file_url = file_doc.get("file_url", "")
 	if file_url.endswith((".webp", ".svg")):
-		return
+		return file_doc
 
 	image, filename, extn = get_local_image(file_url)
 
