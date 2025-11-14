@@ -3,11 +3,35 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { WebrtcProvider } from 'y-webrtc'
 import { toUint8Array, fromUint8Array } from 'js-base64'
 import { debounce, toast } from 'frappe-ui'
+import {
+  absolutePositionToRelativePosition,
+  ySyncPluginKey,
+} from 'y-prosemirror'
 
 import store from '@/store'
 
-export function useYjs(document, edited) {
-  const doc = new Y.Doc({ gc: false })
+const REALTIME_CONFIG = {
+  signaling: ['wss://signal.frappe.cloud'],
+  peerOpts: {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        {
+          urls: [
+            'turn:signal.frappe.cloud:3478?transport=udp',
+            'turn:signal.frappe.cloud:3478?transport=tcp',
+          ],
+          username: 'turnuser',
+          credential: 'turnpass',
+        },
+      ],
+    },
+  },
+}
+
+export function useYjs(document, editor, edited) {
+  const doc = new Y.Doc()
+  const commentsDoc = new Y.Doc()
   if (document.doc.content || document.doc.updates.length)
     Y.applyUpdate(
       doc,
@@ -17,7 +41,12 @@ export function useYjs(document, edited) {
       ]),
     )
   let serverStateVector = Y.encodeStateVector(doc)
-  const indexeddb = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
+
+  const db = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
+  const dbComments = new IndexeddbPersistence(
+    'wdoc-comments-' + document.doc.name,
+    commentsDoc,
+  )
 
   // Saving to server
   const save = async (manual = false) => {
@@ -44,24 +73,16 @@ export function useYjs(document, edited) {
   const autosave = debounce(save, 2000)
 
   // WebRTC for real-time P2P collaboration
-  const provider = new WebrtcProvider('wdoc-' + document.name, doc, {
-    signaling: ['wss://signal.frappe.cloud'],
-    peerOpts: {
-      config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          {
-            urls: [
-              'turn:signal.frappe.cloud:3478?transport=udp',
-              'turn:signal.frappe.cloud:3478?transport=tcp',
-            ],
-            username: 'turnuser',
-            credential: 'turnpass',
-          },
-        ],
-      },
-    },
-  })
+  const provider = new WebrtcProvider(
+    'wdoc-' + document.doc.name,
+    doc,
+    REALTIME_CONFIG,
+  )
+  const providerComments = new WebrtcProvider(
+    'wdoc-comments-' + document.doc.name,
+    commentsDoc,
+    REALTIME_CONFIG,
+  )
 
   const permanentUserData = new Y.PermanentUserData(doc)
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
@@ -71,14 +92,34 @@ export function useYjs(document, edited) {
     autosave()
   })
 
+  // Comments
+  const comments = commentsDoc.getMap('comments')
+  const newComment = (id, absoluteIndex) => {
+    const ystate = ySyncPluginKey.getState(editor.value.view.state)
+    const relativePos = absolutePositionToRelativePosition(
+      absoluteIndex,
+      ystate.type,
+      ystate.binding.mapping,
+    )
+    comments.set(id, {
+      id,
+      text: 'Great point!',
+      anchor: Y.encodeRelativePosition(relativePos),
+      timestamp: Date.now(),
+    })
+  }
   return {
     doc,
     cleanup: () => {
       provider.destroy()
-      indexeddb.destroy()
+      providerComments.destroy()
+      db.destroy()
+      dbComments.destroy()
     },
     save,
     provider,
     permanentUserData,
+    comments,
+    newComment
   }
 }

@@ -64,14 +64,13 @@
         :anchors
         :class="editable ? 'top-24' : 'top-15'"
       />
-      <FloatingComments
-        v-if="comments.length"
+      <!-- <FloatingComments
         v-model:show-comments="showComments"
         v-model:active-comment="activeComment"
         v-model:comments="comments"
         :document
         :editor
-      />
+      /> -->
     </div>
   </div>
 </template>
@@ -123,6 +122,7 @@ import {
 } from '@tiptap/extension-table-of-contents'
 import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
+import { useComments } from '@/composables/useComments'
 
 const showComments = defineModel('showComments')
 const edited = ref(false)
@@ -139,7 +139,6 @@ const props = defineProps({
 const emit = defineEmits(['saveComment'])
 const inIframe = inject('inIframe')
 
-const comments = ref([])
 const anchors = ref([])
 const activeComment = ref(null)
 
@@ -154,17 +153,24 @@ const scrollParent = computed(() =>
 )
 defineExpose({ editor })
 
-const { doc, save, cleanup, provider, permanentUserData } = useYjs(
-  props.document,
-  edited,
-)
+const {
+  doc,
+  save,
+  cleanup,
+  provider,
+  permanentUserData,
+  newComment,
+  comments,
+} = useYjs(props.document, editor, edited)
 
 const editorExtensions = [
   COMMON_EXTENSIONS,
   CharacterCount,
   CommentHighlight.configure({
-    comments: props.document.doc.comments,
+    comments,
+    doc,
     activeComment,
+    edited,
     onActivated: (id) => {
       const isResolved = comments.value.find((k) => id === k.name)?.resolved
       if (id && (!isResolved || showResolved)) {
@@ -356,10 +362,10 @@ const createNewComment = (editor) => {
   const id = uuidv4()
   const { from, to } = editor.state.selection
   if (from === to) return // no selection = no comment
-
-  console.log(from, to)
+  newComment(id, from)
+  return
   const orderedComments = getOrderedComments(editor.state.doc)
-  const newComment = {
+  const obj = {
     name: id,
     owner: store.state.user.id,
     creation: new Date(),
@@ -368,9 +374,9 @@ const createNewComment = (editor) => {
     edit: true,
     new: true,
     loading: true,
-    replies: [],
+    rePlugies: [],
   }
-  comments.value = [...comments.value, newComment].toSorted((a, b) => {
+  comments.value = [...comments.value, obj].toSorted((a, b) => {
     const pos1 = orderedComments.findIndex((k) => k.id === a.name)
     const pos2 = orderedComments.findIndex((k) => k.id === b.name)
     return pos1 - pos2
@@ -409,12 +415,12 @@ emitter.on('manual-save', manualSave)
 
 let autosave
 onMounted(() => {
-  const orderedComments = getOrderedComments(editor.value.state.doc)
-  comments.value = props.entity.comments.toSorted((a, b) => {
-    const pos1 = orderedComments.findIndex((k) => k.id === a.name)
-    const pos2 = orderedComments.findIndex((k) => k.id === b.name)
-    return pos1 - pos2
-  })
+  // const orderedComments = getOrderedComments(editor.value.state.doc)
+  // comments.value = props.entity.comments.toSorted((a, b) => {
+  //   const pos1 = orderedComments.findIndex((k) => k.id === a.name)
+  //   const pos2 = orderedComments.findIndex((k) => k.id === b.name)
+  //   return pos1 - pos2
+  // })
   editor.value.on('create', applyTemplate)
   autosave = setInterval(autoversion, 10 * 60 * 1000)
 })
@@ -423,9 +429,9 @@ onBeforeUnmount(() => {
   if (edited.value) save()
   emitter.off('print-file')
   if (autosave) clearInterval(autosave)
-  comments.value
-    .filter((k) => k.new)
-    .filter(({ name }) => editor.value.commands.unsetComment(name))
+  // comments.value
+  //   .filter((k) => k.new)
+  //   .filter(({ name }) => editor.value.commands.unsetComment(name))
   cleanup()
 })
 
