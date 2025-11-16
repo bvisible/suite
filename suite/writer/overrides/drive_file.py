@@ -14,3 +14,7 @@ class WriterDriveFile(DriveFile):
         return frappe.get_cached_doc("Writer Document", self.doc).new_version(
             data, title
         )
+
+    @frappe.whitelist()
+    def save_comments(self, data):
+        frappe.get_cached_doc("Writer Document", self.doc).new_version(data)

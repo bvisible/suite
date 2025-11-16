@@ -11,7 +11,8 @@
   "content",
   "settings",
   "versions",
-  "updates"
+  "updates",
+  "ycomments"
  ],
  "fields": [
   {
@@ -37,11 +38,16 @@
    "fieldtype": "Table",
    "label": "Updates",
    "options": "Writer Document Update"
+  },
+  {
+   "fieldname": "ycomments",
+   "fieldtype": "Data",
+   "label": "Comments"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-11-13 13:40:06.430981",
+ "modified": "2025-11-15 16:11:19.683339",
  "modified_by": "Administrator",
  "module": "Writer",
  "name": "Writer Document",
