@@ -1,7 +1,7 @@
 <template>
   <div
     ref="scrollContainer"
-    class="relative hidden md:flex flex-col gap-8 justify-start self-stretch pb-5 bg-surface-white"
+    class="relative hidden md:flex min-w-80 flex-col gap-8 justify-start self-stretch px-5 bg-surface-white"
   >
     <template v-for="comment in filteredComments" :key="comment.id">
       <div
@@ -14,6 +14,7 @@
         "
         v-on-outside-click="
           (e) => {
+            console.log(e)
             if (
               activeComment === comment.id &&
               !e.target.getAttribute('data-comment-id') &&
@@ -24,7 +25,7 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow md:w-72 comment-group scroll-m-24 bg-surface-white -translate-x-[100%] -left-5 opacity-0 transition-[top] duration-100 ease-in-out"
+        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white opacity-0 transition-[top] duration-100 ease-in-out"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
           comment.top && 'opacity-100',
@@ -286,10 +287,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['save'])
 
-const store = useStore()
-
 const activeComment = defineModel('activeComment')
-const showComments = defineModel('showComments')
 const scrollContainer = ref('scrollContainer')
 
 const newReplies = reactive({})
@@ -321,7 +319,6 @@ const filteredComments = computed(() => {
   const filtered = showResolved.value
     ? comments.value
     : comments.value.filter((k) => !k.resolved)
-  if (!filtered.length) showComments.value = false
   return filtered
 })
 
@@ -435,7 +432,6 @@ const formatDateOrTime = (datetimeNum) => {
 
 const setCommentHeights = useDebounceFn(() => {
   let lastBottom = 0
-  if (!showComments.value) return
   nextTick(() => {
     scrollContainer.value.style.height = `max(${scrollContainer.value.parentElement.scrollHeight}px, calc(100vh - 3rem))`
     for (const comment of filteredComments.value) {
@@ -457,7 +453,6 @@ const setCommentHeights = useDebounceFn(() => {
 
 onMounted(setCommentHeights)
 watch(() => filteredComments.value.length, setCommentHeights)
-watch(showComments, setCommentHeights)
 useEventListener(window, 'resize', setCommentHeights)
 
 props.editor.on('update', () => {

@@ -338,20 +338,6 @@ const documentActions = computed(() =>
               onClick: () => (showVersions.value = true),
             },
             {
-              icon: MessagesSquare,
-              label: 'Show Comments',
-              onClick: () => (showComments.value = true),
-              isEnabled: () => !showComments.value,
-              cond: props.document.doc.comments?.length,
-            },
-            {
-              icon: MessagesSquare,
-              label: 'Hide Comments',
-              onClick: () => (showComments.value = false),
-              isEnabled: () => showComments.value,
-              cond: props.document.doc.comments?.length,
-            },
-            {
               icon: MessageSquareDot,
               label: 'Show Resolved',
               onClick: () => {

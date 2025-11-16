@@ -1,17 +1,22 @@
 <template>
   <div class="flex flex-col w-full">
-    <TextEditorFixedMenu
-      v-if="editable && !settings.minimal"
-      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0 transition-opacity duration-1"
-      :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
-      :buttons="menuButtons"
-    />
+    <div
+      class="overflow-x-auto border-b border-outline-gray-modals flex shrink-0 transition-opacity duration-1"
+    >
+      <TextEditorFixedMenu
+        class="py-1.5 w-full max-w-[100vw] md:justify-center"
+        v-if="editable && !settings.minimal"
+        :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
+        :buttons="menuButtons"
+      />
+    </div>
 
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto overflow-x-hidden"
+      class="flex-1 flex w-full overflow-y-auto"
       @mousemove="hideToolbar = false"
     >
+      <ToC :editor :anchors />
       <div
         class="mx-auto cursor-text w-full flex justify-center h-full"
         @click="
@@ -58,19 +63,15 @@
           </template>
         </FTextEditor>
       </div>
-      <ToC
-        v-show="anchors.length > 1"
-        :editor
-        :anchors
-        :class="editable ? 'top-24' : 'top-15'"
-      />
+
       <FloatingComments
         v-if="editor"
         :y-comments="comments"
-        v-model:show-comments="showComments"
         v-model:active-comment="activeComment"
+        :class="showComments ? 'opacity-100' : 'opacity-0'"
         :document
         :editor
+        @save="saveComments"
       />
     </div>
   </div>
@@ -165,6 +166,7 @@ const {
   permanentUserData,
   newComment,
   comments,
+  saveComments,
 } = useYjs(props.document, editor, edited)
 
 const editorExtensions = [

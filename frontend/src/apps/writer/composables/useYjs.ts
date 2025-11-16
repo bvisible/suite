@@ -40,6 +40,9 @@ export function useYjs(document, editor, edited) {
         ...document.doc.updates.map(({ data }) => toUint8Array(data)),
       ]),
     )
+  if (document.doc.yComments) {
+    Y.applyUpdate(commentsDoc, document.doc.yComments)
+  }
   let serverStateVector = Y.encodeStateVector(doc)
 
   const db = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
@@ -70,6 +73,7 @@ export function useYjs(document, editor, edited) {
       toast.error('Could not save document.')
     }
   }
+
   const autosave = debounce(save, 2000)
 
   // WebRTC for real-time P2P collaboration
@@ -121,6 +125,10 @@ export function useYjs(document, editor, edited) {
       timestamp: Date.now(),
     })
   }
+  const saveComments = async () => {
+    const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))
+    document.doc.saveComments({ data })
+  }
   return {
     doc,
     cleanup: () => {
@@ -134,5 +142,6 @@ export function useYjs(document, editor, edited) {
     permanentUserData,
     comments,
     newComment,
+    saveComments,
   }
 }

@@ -18,6 +18,7 @@ const createDecorations = (editor, yDoc, comments, active) => {
 
   const decos = []
   comments.forEach((comment) => {
+    console.log(comment)
     const from = relativePositionToAbsolutePosition(
       yDoc,
       ystate.type,
@@ -33,7 +34,7 @@ const createDecorations = (editor, yDoc, comments, active) => {
     decos.push(
       Decoration.inline(from, to, {
         nodeName: 'span',
-        class: comment.id === active && 'active' ,
+        class: comment.id === active && 'active',
         'data-comment-id': comment.id,
       }),
     )

@@ -1,31 +1,5 @@
 <template>
-  <div class="hidden md:flex right-3 absolute max-h-96 pt-1">
-    <div
-      v-show="show"
-      class="p-2 table-of-contents bg-white shadow-lg rounded-sm"
-    >
-      <div
-        v-for="anchor in anchors"
-        :key="anchor.id"
-        class="hover:bg-surface-gray-2 cursor-pointer max-w-52 truncate"
-        :class="{
-          'is-active': anchor.isActive && !anchor.isScrolledOver,
-          'text-ink-gray-5': anchor.isScrolledOver,
-          'text-ink-gray-8': !anchor.isScrolledOver,
-        }"
-        :style="{ '--level': anchor.level - maxLevel }"
-      >
-        <a
-          :href="'#' + anchor.id"
-          class="text-sm px-0.5"
-          :title="anchor.textContent"
-          :data-item-index="anchor.itemIndex"
-          @click.prevent="onAnchorClick(anchor.id)"
-        >
-          {{ anchor.textContent }}
-        </a>
-      </div>
-    </div>
+  <div class="min-w-80 hidden md:flex max-h-96 p-3 gap-2 sticky top-0">
     <Button
       variant="ghost"
       :tooltip="show ? 'Hide' : 'Table of Contents'"
@@ -39,14 +13,37 @@
         />
       </template>
     </Button>
+    <div v-show="show" class="table-of-contents grow">
+      <div
+        v-for="anchor in anchors"
+        :key="anchor.id"
+        class="hover:bg-surface-gray-2 cursor-pointer w-full truncate"
+        :class="{
+          'is-active': anchor.isActive && !anchor.isScrolledOver,
+          'text-ink-gray-5': anchor.isScrolledOver,
+          'text-ink-gray-8': !anchor.isScrolledOver,
+        }"
+        :style="{ '--level': anchor.level - maxLevel }"
+      >
+        <a
+          :href="'#' + anchor.id"
+          class="text-sm px-2"
+          :title="anchor.textContent"
+          :data-item-index="anchor.itemIndex"
+          @click.prevent="onAnchorClick(anchor.id)"
+        >
+          {{ anchor.textContent }}
+        </a>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { TextSelection } from "@tiptap/pm/state"
-import LucideMinus from "~icons/lucide/minus"
-import LucideTableOfContents from "~icons/lucide/table-of-contents"
-import { ref, watch, computed } from "vue"
+import { TextSelection } from '@tiptap/pm/state'
+import LucideMinus from '~icons/lucide/minus'
+import LucideTableOfContents from '~icons/lucide/table-of-contents'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
   editor: Object,
@@ -55,11 +52,11 @@ const props = defineProps({
     default: () => [],
   },
 })
-const show = ref(JSON.parse(localStorage.getItem("showToc") || false))
-watch(show, (v) => localStorage.setItem("showToc", v))
+const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
+watch(show, (v) => localStorage.setItem('showToc', v))
 
 const maxLevel = computed(
-  () => Math.min(...props.anchors.map((k) => k.level)) - 1
+  () => Math.min(...props.anchors.map((k) => k.level)) - 1,
 )
 const onAnchorClick = (id) => {
   if (!props.editor) return
@@ -75,10 +72,10 @@ const onAnchorClick = (id) => {
     history.pushState(null, null, `#${id}`)
   }
 
-  const editorEl = document.querySelector("#editorScrollContainer")
+  const editorEl = document.querySelector('#editorScrollContainer')
   editorEl.scrollTo({
     top: element.offsetTop - 10,
-    behavior: "smooth",
+    behavior: 'smooth',
   })
 }
 </script>
@@ -97,7 +94,7 @@ a {
   text-decoration: none;
 
   &::before {
-    content: "";
+    content: '';
   }
 }
 
