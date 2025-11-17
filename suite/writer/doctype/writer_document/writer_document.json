@@ -41,13 +41,13 @@
   },
   {
    "fieldname": "ycomments",
-   "fieldtype": "Data",
+   "fieldtype": "Long Text",
    "label": "Comments"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-11-15 16:11:19.683339",
+ "modified": "2025-11-17 14:21:45.746601",
  "modified_by": "Administrator",
  "module": "Writer",
  "name": "Writer Document",
