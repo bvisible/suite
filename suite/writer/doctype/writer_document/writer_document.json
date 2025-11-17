@@ -47,7 +47,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-11-17 14:21:45.746601",
+ "modified": "2025-11-17 16:34:57.625922",
  "modified_by": "Administrator",
  "module": "Writer",
  "name": "Writer Document",
@@ -73,7 +73,8 @@
    "read": 1,
    "report": 1,
    "role": "Guest",
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",

@@ -1,21 +1,24 @@
 from drive.drive.doctype.drive_file.drive_file import DriveFile
 import frappe
+from drive.api.permissions import requires
 
 
 class WriterDriveFile(DriveFile):
-    @frappe.whitelist()
+    @frappe.whitelist(allow_guest=True)
+    @requires("write")
     def add_yjs_update(self, update_b64):
         return frappe.get_cached_doc("Writer Document", self.doc).add_yjs_update(
             update_b64
         )
 
-    @frappe.whitelist()
+    @frappe.whitelist(allow_guest=True)
+    @requires("write")
     def new_version(self, data, title=False):
         return frappe.get_cached_doc("Writer Document", self.doc).new_version(
             data, title
         )
 
-    @frappe.whitelist()
+    @frappe.whitelist(allow_guest=True)
     def save_comments(self, data):
         doc = frappe.get_cached_doc("Writer Document", self.doc)
         doc.ycomments = data

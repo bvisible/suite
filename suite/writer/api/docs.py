@@ -81,7 +81,7 @@ def create_document_entity(team, title=None, parent=None, template=None):
     return entity
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_document(file_id):
     entity = frappe.db.get_value(
         "Drive File",
@@ -89,10 +89,9 @@ def get_document(file_id):
         [*ENTITY_FIELDS, "doc"],
         as_dict=1,
     )
-
     if not entity:
         frappe.throw(
-            "We couldn't find what you're looking for.", {"error": frappe.NotFound}
+            "We couldn't find what you're looking for.", frappe.DoesNotExistError
         )
 
     entity["in_home"] = entity.team == get_default_team()
