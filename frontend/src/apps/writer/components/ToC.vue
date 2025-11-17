@@ -1,6 +1,10 @@
 <template>
-  <div class="min-w-80 hidden md:flex max-h-96 p-3 gap-2 sticky top-0">
+  <div
+    v-if="editor"
+    class="min-w-80 hidden md:flex max-h-96 p-3 gap-2 sticky top-0"
+  >
     <Button
+      v-if="anchors.length > 1"
       variant="ghost"
       :tooltip="show ? 'Hide' : 'Table of Contents'"
       class="!w-5.5 !h-5.5 mr-1.5 ml-1"
@@ -15,6 +19,7 @@
     </Button>
     <div v-show="show" class="table-of-contents grow">
       <div
+        v-if="anchors.length > 1"
         v-for="anchor in anchors"
         :key="anchor.id"
         class="hover:bg-surface-gray-2 cursor-pointer w-full truncate"
@@ -36,6 +41,7 @@
         </a>
       </div>
     </div>
+    <Button label="Make tab" @click="editor.commands.wrapInTab" />
   </div>
 </template>
 

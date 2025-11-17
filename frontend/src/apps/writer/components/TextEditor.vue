@@ -115,10 +115,7 @@ import { formatDate } from '@/utils/format'
 import {} from '@/utils/'
 import FloatingQuoteButton from '@/extensions/comment'
 import MediaDownload from '@/extensions/media-download'
-import {
-  CommentHighlight,
-  commentPluginKey,
-} from '@/extensions/extended-comment'
+import { CommentHighlight } from '@/extensions/extended-comment'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { CharacterCount } from '@/extensions/character-count'
 import {
@@ -127,7 +124,7 @@ import {
 } from '@tiptap/extension-table-of-contents'
 import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
-import { useComments } from '@/composables/useComments'
+import { Tab, TabsExtension } from '@/extensions/tabs'
 
 const showComments = defineModel('showComments')
 const edited = ref(false)
@@ -172,6 +169,8 @@ const {
 const editorExtensions = [
   COMMON_EXTENSIONS,
   CharacterCount,
+  Tab,
+  TabsExtension,
   CommentHighlight.configure({
     comments,
     doc,
