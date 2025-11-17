@@ -38,17 +38,8 @@
   />
 
   <!-- Confirmation dialogs -->
-  <!-- <ConfirmDialog
-    v-if="
-      [
-        'remove',
-        'restore',
-        'd',
-        'cta-favourites',
-        'cta-recents',
-        'cta-trash',
-      ].includes(dialog)
-    "
+  <RemoveDialog
+    v-if="dialog === 'remove'"
     v-model="dialog"
     :entities="entities"
     @success="
@@ -56,7 +47,7 @@
         ? resetDialog
         : removeFromList(entities, dialog === 'restore')
     "
-  /> -->
+  />
 </template>
 <script setup>
 import { ref, watch, computed } from 'vue'
@@ -71,6 +62,7 @@ import {
   InfoDialog,
   RenameDialog,
 } from 'frappe-ui/frappe/drive'
+import RemoveDialog from './RemoveDialog.vue'
 
 const props = defineProps({
   document: Object,

@@ -69,9 +69,9 @@
     </template>
   </Navbar>
 
-  <!-- <ErrorPage v-if="document.error" :error="document.error" /> -->
+  <ErrorPage v-if="document.error" :error="document.error" />
   <VersionsSidebar
-    v-if="showVersions"
+    v-else-if="showVersions"
     v-model="versionPreview"
     v-model:show-versions="showVersions"
     :versions="document.doc?.versions || []"
@@ -80,7 +80,7 @@
     :editor
   />
   <LoadingIndicator
-    v-if="!document.data && document.loading"
+    v-else-if="!document.data && document.loading"
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
@@ -120,6 +120,7 @@
 
 <script setup>
 import Navbar from '@/components/Navbar.vue'
+import ErrorPage from '@/components/ErrorPage.vue'
 import {
   ref,
   inject,
@@ -177,7 +178,10 @@ const showVersions = ref(false)
 const owner = computed(() => document.doc?.owner)
 const isOldSchema = computed(() => {
   if (!owner.value) return false
-  return !document.doc?.settings?.collab && store.state.user.id !== owner.value
+  return (
+    document.doc?.settings?.collab === false &&
+    store.state.user.id !== owner.value
+  )
 })
 
 const editable = computed(
@@ -199,15 +203,18 @@ usePageMeta(() => ({
   title: document.doc ? document.doc.title : 'Loading...',
 }))
 
-const globalSettings = useDoc({
-  doctype: 'Drive Settings',
-  name: store.state.user.id,
-  immediate: true,
-  transform: (doc) => {
-    doc.writer_settings = JSON.parse(doc.writer_settings) || {}
-    return doc
-  },
-})
+const globalSettings =
+  store.state.user.id === 'Guest'
+    ? { doc: {} }
+    : useDoc({
+        doctype: 'Drive Settings',
+        name: store.state.user.id,
+        immediate: true,
+        transform: (doc) => {
+          doc.writer_settings = JSON.parse(doc.writer_settings) || {}
+          return doc
+        },
+      })
 
 const settings = computed(() => {
   for (const [k, v] of Object.entries(document.doc?.settings || {})) {
@@ -220,15 +227,6 @@ const settings = computed(() => {
 })
 
 store.commit('setCurrentResource', document)
-
-const newVersion = createResource({
-  url: 'drive.api.docs.create_version',
-  makeParams: (k) => ({ ...k, doc: document.doc.document }),
-  onSuccess(data) {
-    if (data && data.length != document.doc.versions.length)
-      document.doc.versions = data
-  },
-})
 
 const toggleMinimal = (val) => {
   const sidebar = window.document.querySelector('#sidebar')

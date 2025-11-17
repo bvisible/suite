@@ -28,24 +28,6 @@ const props = defineProps({
   font_size: String,
   font_family: String,
 })
-// redo without combobox, and show font family in font family part
-const STATIC_FONTS = [
-  { value: '6px' },
-  { value: '10px' },
-  { value: '12px' },
-  { value: '14px' },
-  { value: '15px' },
-  { value: '16px' },
-  { value: '17px' },
-  { value: '18px' },
-  { value: '19px' },
-  { value: '20px' },
-  { value: '24px' },
-  { value: '30px' },
-  { value: '48px' },
-  { value: '60px' },
-  { value: '92px' },
-]
 
 const selected = ref(null)
 const size = ref(null)

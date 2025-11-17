@@ -114,7 +114,7 @@
         </div>
       </div>
     </div>
-    <div class="flex-1">
+    <div class="flex-1 overflow-hidden">
       <div
         v-if="!versionPreview"
         class="text-base border-b text-ink-gray-8 p-3 select-none"
@@ -123,7 +123,7 @@
       </div>
       <TextEditor
         v-if="editor.getHTML"
-        class="prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8"
+        class="prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8 px-10 h-full overflow-y-auto"
         :extensions="[...COMMON_EXTENSIONS, DiffTag]"
         :editable="false"
         :content="

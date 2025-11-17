@@ -108,10 +108,10 @@ export const TabsExtension = Node.create({
           return false
         },
       wrapInTab:
-        (attrs: { id: string; label: string }) =>
+        (attrs: { id?: string; label?: string } = {}) =>
         ({ tr, dispatch }) => {
           if (dispatch) {
-            if (!attrs.id) attrs.id = v4()
+            if (!attrs?.id) attrs.id = v4()
             const tabType = this.editor.schema.nodes.tab
             tr.replaceWith(
               0,

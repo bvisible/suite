@@ -5,7 +5,7 @@ export const getDocuments = useList({
   url: '/api/method/writer.api.general.get_document_list',
   start: 0,
   limit: 50,
-  immediate: true,
+  immediate: false,
   cacheKey: 'writer-document-list',
   transform: (data) => {
     return prettyData(data)

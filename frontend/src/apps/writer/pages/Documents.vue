@@ -1,11 +1,11 @@
 <template>
   <Navbar />
-  <div class="flex-grow overflow-hidden">
+  <div class="flex-grow overflow-y-auto">
     <div class="px-15 py-5 bg-surface-gray-1">
       <h3 class="font-semibold text-base mb-4">Templates</h3>
       <div
         v-for="template in templates.data"
-        class="cursor-pointer rounded w-48 border flex flex-col divide-y bg-surface-white"
+        class="cursor-pointer rounded w-48"
         @click="
           createDocument.submit(
             { template: template.name },
@@ -19,7 +19,14 @@
           )
         "
       >
-        <div v-html="template.content" class="scale-[0.5] p-3"></div>
+        <div
+          class="aspect-[37/50] cursor-pointer overflow-hidden rounded-md dark:bg-gray-900 bg-surface-white w-48 p-3 shadow-lg transition-shadow hover:shadow-xl"
+        >
+          <div
+            class="prose prose-sm pointer-events-none w-[200%] origin-top-left scale-[.55] prose-p:my-1 md:w-[250%] md:scale-[.39]"
+            v-html="template.content"
+          ></div>
+        </div>
         <div class="p-3 text-ink-gray-7 text-base">{{ template.title }}</div>
       </div>
     </div>
@@ -39,6 +46,7 @@ import { LoadingIndicator, useList } from 'frappe-ui'
 const groupedDocuments = computed(
   () => getDocuments.data && groupByTime(getDocuments.data),
 )
+getDocuments.fetch()
 
 function groupByTime(entities) {
   const today = new Date()

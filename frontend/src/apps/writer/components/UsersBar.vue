@@ -1,9 +1,5 @@
 <template>
-  <Dropdown
-    transition="default"
-    placement="right"
-    :options="users"
-  >
+  <Dropdown transition="default" placement="right" :options="users">
     <template #default>
       <div class="ml-2.5 flex items-center rounded-md cursor-pointer">
         <div
@@ -15,7 +11,7 @@
             class="-"
             :size="'md'"
             :style="{
-              border: '2px solid',
+              border: '1.5px solid',
               borderRadius: '100%',
               borderColor: user.color,
             }"
@@ -64,7 +60,7 @@
   </Dropdown>
 </template>
 <script setup>
-import { Avatar, Dropdown } from "frappe-ui"
+import { Avatar, Dropdown } from 'frappe-ui'
 
 defineProps({
   users: Array,

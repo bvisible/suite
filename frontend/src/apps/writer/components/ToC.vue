@@ -84,9 +84,13 @@
       <Button
         class="!justify-start text-xs opacity-50 hover:opacity-100"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        label="Add new"
+        :label="tabs.length ? 'Add' : 'Create tab'"
         variant="ghost"
-        @click="editor.commands.createTab({ label: 'Another Tab' })"
+        @click="
+          tabs.length
+            ? editor.commands.createTab({ label: 'Untitled' })
+            : editor.commands.wrapInTab()
+        "
       />
     </div>
   </div>
@@ -95,8 +99,6 @@
 <script setup>
 import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/Plus'
-import LucideX from '~icons/lucide/x'
-import LucideTableOfContents from '~icons/lucide/table-of-contents'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucidePanelRightClose from '~icons/lucide/panel-right-close'
 import { ref, watch, computed, h } from 'vue'

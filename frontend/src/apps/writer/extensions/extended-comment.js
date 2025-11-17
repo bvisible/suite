@@ -30,6 +30,7 @@ const createDecorations = (editor, yDoc, comments, active) => {
       Y.decodeRelativePosition(comment.anchor.to),
       ystate.binding.mapping,
     )
+    console.log('inn!', from, to)
     decos.push(
       Decoration.inline(from, to, {
         nodeName: 'span',

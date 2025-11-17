@@ -24,7 +24,7 @@
       </div>
       <LucideStar
         v-if="document?.doc?.is_favourite"
-        class="size-4 my-auto stroke-amber-500 fill-amber-500"
+        class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
       />
       <template v-if="!isLoggedIn">
         <Button variant="outline" @click="$router.push({ name: 'Login' })">
@@ -56,8 +56,8 @@
         "
       />
       <Dropdown
-        v-else-if="documentActions"
-        :options="[...fileActions, ...documentActions]"
+        v-else-if="fileActions.length"
+        :options="fileActions"
         placement="right"
         :button="{
           variant: 'ghost',
@@ -140,115 +140,79 @@ const formattedCrumbs = computed(() => {
   ]
 })
 
-const fileActions = props.document?.doc
-  ? [
-      {
-        group: true,
-        hideLabel: true,
-        items: [
-          {
-            label: __('Share'),
-            icon: LucideShare2,
-            onClick: () => {
-              dialog.value = 's'
-            },
-            isEnabled: () => props.document.doc.share,
-          },
-          {
-            label: __('Download'),
-            icon: LucideDownload,
-            isEnabled: () => props.document.doc.allow_download,
-            onClick: () =>
-              entitiesDownload(route.params.team, [props.document.doc]),
-          },
-          {
-            label: __('Copy Link'),
-            icon: LucideLink,
-            onClick: () => getLink(props.document.doc),
-          },
-        ],
-      },
-      {
-        group: true,
-        hideLabel: true,
-        items: [
-          {
-            label: __('Move'),
-            icon: LucideArrowLeftRight,
-            onClick: () => (dialog.value = 'm'),
-            isEnabled: () => props.document.doc.write,
-          },
-          {
-            label: __('Rename'),
-            icon: LucideSquarePen,
-            onClick: () => (dialog.value = 'rn'),
-            isEnabled: () => props.document.doc.write,
-          },
-          {
-            label: __('Show Info'),
-            icon: LucideInfo,
-            onClick: () => (dialog.value = 'i'),
-            isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
-          },
-          {
-            label: __('Favourite'),
-            icon: LucideStar,
-            onClick: () => {
-              props.document.doc.is_favourite = true
-              toggleFav.submit({
-                entities: [
-                  { name: props.document.doc.name, is_favourite: false },
-                ],
-              })
-            },
-            isEnabled: () => !props.document.doc.is_favourite,
-          },
-          {
-            label: __('Unfavourite'),
-            icon: LucideStar,
-            color: 'stroke-amber-500 fill-amber-500',
-            onClick: () => {
-              props.document.doc.is_favourite = false
-              toggleFav.submit({
-                entities: [
-                  { name: props.document.doc.name, is_favourite: false },
-                ],
-              })
-            },
-            isEnabled: () => props.document.doc.is_favourite,
-          },
-        ],
-      },
-      {
-        group: true,
-        hideLabel: true,
-        items: [
-          {
-            label: __('Delete'),
-            icon: LucideTrash,
-            onClick: () => (dialog.value = 'remove'),
-            isEnabled: () => props.document.doc.write,
-            theme: 'red',
-          },
-        ],
-      },
-    ].map((k) => {
-      return {
-        ...k,
-        items: k.items.filter((l) => !l.isEnabled || l.isEnabled()),
-      }
-    })
-  : []
-
-// Utility functions for doc
-const clearCache = () => {
-  window.indexedDB.deleteDatabase('wdoc-' + props.document.doc.name)
-  window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
-}
-
-const documentActions = computed(() =>
-  props.document.doc?.settings
+const fileActions = computed(() =>
+  props.document?.doc?.settings
     ? [
+        {
+          group: true,
+          hideLabel: true,
+          items: [
+            {
+              label: __('Share'),
+              icon: LucideShare2,
+              onClick: () => {
+                dialog.value = 's'
+              },
+              isEnabled: () => props.document.doc.share,
+            },
+            {
+              label: __('Download'),
+              icon: LucideDownload,
+              isEnabled: () => props.document.doc.allow_download,
+              onClick: () =>
+                entitiesDownload(route.params.team, [props.document.doc]),
+            },
+            {
+              label: __('Copy Link'),
+              icon: LucideLink,
+              onClick: () => getLink(props.document.doc),
+            },
+          ],
+        },
+        {
+          group: true,
+          hideLabel: true,
+          items: [
+            {
+              label: __('Move'),
+              icon: LucideArrowLeftRight,
+              onClick: () => (dialog.value = 'm'),
+              isEnabled: () => props.document.doc.write,
+            },
+            {
+              label: __('Rename'),
+              icon: LucideSquarePen,
+              onClick: () => (dialog.value = 'rn'),
+              isEnabled: () => props.document.doc.write,
+            },
+            {
+              label: __('Show Info'),
+              icon: LucideInfo,
+              onClick: () => (dialog.value = 'i'),
+              isEnabled: () =>
+                !store.state.activeEntity || !store.state.showInfo,
+            },
+            {
+              label: __('Favourite'),
+              icon: LucideStar,
+              onClick: () => {
+                props.document.doc.is_favourite = true
+                props.document.toggleFav.submit()
+              },
+              isEnabled: () => !props.document.doc.is_favourite,
+            },
+            {
+              label: __('Unfavourite'),
+              icon: LucideStar,
+              color: 'stroke-amber-500 fill-amber-500',
+              onClick: () => {
+                props.document.doc.is_favourite = false
+                props.document.toggleFav.submit()
+              },
+              isEnabled: () => props.document.doc.is_favourite,
+            },
+          ],
+        },
         {
           group: true,
           hideLabel: true,
@@ -297,13 +261,6 @@ const documentActions = computed(() =>
               ],
             },
             {
-              onClick: () => {
-                showSettings.value = true
-              },
-              label: 'Settings',
-              icon: LucideSettings,
-            },
-            {
               label: 'Export',
               icon: LucideDownload,
               submenu: dynamicList([
@@ -321,44 +278,51 @@ const documentActions = computed(() =>
               ]),
             },
             {
-              onClick: clearCache,
-              label: 'Clear Cache',
-              icon: LucideListRestart,
+              icon: LucideHistory,
+              label: 'Versions',
+              cond: props.document.doc.write,
+              onClick: () => (showVersions.value = true),
+            },
+            {
+              onClick: () => {
+                showSettings.value = true
+              },
+              label: 'Settings',
+              cond: props.document.doc.write,
+              icon: LucideSettings,
             },
           ]),
         },
         {
           group: true,
           hideLabel: true,
-          items: dynamicList([
+          items: [
             {
-              icon: LucideHistory,
-              label: 'Versions',
-              cond: props.document.doc.settings.collab,
-              onClick: () => (showVersions.value = true),
+              onClick: () => clearCache(),
+              label: 'Clear Cache',
+              icon: LucideListRestart,
             },
             {
-              icon: MessageSquareDot,
-              label: 'Show Resolved',
-              onClick: () => {
-                showResolved.value = true
-                showComments.value = true
-              },
-              isEnabled: () => !showResolved.value,
-              cond: props.document.doc.comments?.filter((k) => k.resolved)
-                ?.length,
+              label: __('Delete'),
+              icon: LucideTrash,
+              onClick: () => (dialog.value = 'remove'),
+              isEnabled: () => props.document.doc.write,
+              theme: 'red',
             },
-            {
-              icon: MessageSquareDot,
-              label: 'Hide Resolved',
-              onClick: () => (showResolved.value = false),
-              isEnabled: () => showResolved,
-              cond: props.document.doc.comments?.filter((k) => k.resolved)
-                ?.length,
-            },
-          ]),
+          ],
         },
-      ]
+      ].map((k) => {
+        return {
+          ...k,
+          items: k.items.filter((l) => !l.isEnabled || l.isEnabled()),
+        }
+      })
     : [],
 )
+
+// Utility functions for doc
+const clearCache = () => {
+  window.indexedDB.deleteDatabase('wdoc-' + props.document.doc.name)
+  window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
+}
 </script>
