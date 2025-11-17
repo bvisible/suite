@@ -41,7 +41,6 @@ export function useYjs(document, editor, edited) {
       ]),
     )
   if (document.doc.ycomments) {
-    console.log(document.doc.ycomments)
     Y.applyUpdate(commentsDoc, toUint8Array(document.doc.ycomments))
   }
   let serverStateVector = Y.encodeStateVector(doc)

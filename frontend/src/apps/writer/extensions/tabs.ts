@@ -7,6 +7,8 @@ export const TabsExtension = Node.create({
   name: 'tab',
   group: 'block',
   content: 'block+',
+  defining: true,
+  isolating: true,
 
   addStorage() {
     return {
@@ -140,7 +142,7 @@ export const TabsExtension = Node.create({
         },
     }
   },
-  addKeyboardShortcuts() {
+ addKeyboardShortcuts() {
     return {
       // Cmd/Ctrl + A: Select all content in current tab
       'Mod-a': () => {
@@ -169,6 +171,26 @@ export const TabsExtension = Node.create({
 
         return false
       },
+      // Prevent backspace at start of tab from merging with previous
+      // 'Backspace': () => {
+      //   const { state } = this.editor
+      //   const { $from } = state.selection
+        
+      //   // Find if we're inside a tab at any depth
+      //   for (let d = $from.depth; d > 0; d--) {
+      //     if ($from.node(d).type.name === 'tab') {
+      //       // Check if we're at the very start of the first node in the tab
+      //       const beforePos = $from.before(d)
+      //       if ($from.pos <= beforePos + 2) {
+      //         // At the start of tab content, prevent default backspace
+      //         return true
+      //       }
+      //       break
+      //     }
+      //   }
+        
+      //   return false
+      // },
     }
   },
 })

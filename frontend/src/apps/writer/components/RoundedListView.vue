@@ -104,7 +104,6 @@ useInfiniteScroll(
   container,
   () => {
     if (props.resource.hasNextPage && !props.resource.loading) {
-      console.log('reloading')
       props.resource.next()
     }
   },

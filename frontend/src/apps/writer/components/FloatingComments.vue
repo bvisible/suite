@@ -14,7 +14,6 @@
         "
         v-on-outside-click="
           (e) => {
-            console.log(e)
             if (
               activeComment === comment.id &&
               !e.target.getAttribute('data-comment-id') &&
