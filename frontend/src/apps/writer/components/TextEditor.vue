@@ -93,7 +93,6 @@ import {
   provide,
 } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
-import * as Y from 'yjs'
 
 import Collaboration from '@tiptap/extension-collaboration'
 import { onKeyDown } from '@vueuse/core'
@@ -108,7 +107,6 @@ import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, getRandomColor } from '@/utils'
 import { formatDate } from '@/utils/format'
-import {} from '@/utils/'
 import FloatingQuoteButton from '@/extensions/comment'
 import MediaDownload from '@/extensions/media-download'
 import { CommentHighlight } from '@/extensions/extended-comment'
@@ -392,18 +390,11 @@ emitter.on('print-file', () => {
 
 emitter.on('manual-save', manualSave)
 
-let autosave
+const autosave = setInterval(autoversion, 10 * 60 * 1000)
 onMounted(() => {
-  // const orderedComments = getOrderedComments(editor.value.state.doc)
-  // comments.value = props.entity.comments.toSorted((a, b) => {
-  //   const pos1 = orderedComments.findIndex((k) => k.id === a.name)
-  //   const pos2 = orderedComments.findIndex((k) => k.id === b.name)
-  //   return pos1 - pos2
-  // })
   const { view, state } = editor.value
   view.dispatch(state.tr)
   editor.value.on('create', applyTemplate)
-  autosave = setInterval(autoversion, 10 * 60 * 1000)
 })
 
 onBeforeUnmount(() => {

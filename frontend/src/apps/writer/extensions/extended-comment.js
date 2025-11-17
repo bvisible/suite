@@ -69,9 +69,8 @@ export const CommentHighlight = Extension.create({
             )
           },
 
-          apply(tr, oldSet, oldState, newState) {
-            const shouldRebuild = true
-            if (shouldRebuild) {
+          apply(tr, oldSet) {
+            if (tr.docChanged || tr.getMeta(commentPluginKey)?.rebuild) {
               const { doc, comments, activeComment } = ext.options
               return createDecorations(
                 ext.editor,

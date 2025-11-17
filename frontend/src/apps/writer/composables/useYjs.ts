@@ -7,6 +7,7 @@ import {
   absolutePositionToRelativePosition,
   ySyncPluginKey,
 } from 'y-prosemirror'
+import { commentPluginKey } from '@/extensions/extended-comment'
 
 import store from '@/store'
 
@@ -99,6 +100,7 @@ export function useYjs(document, editor, edited) {
   const comments = commentsDoc.getMap('comments')
   const newComment = (id, from, to, owner) => {
     const ystate = ySyncPluginKey.getState(editor.value.view.state)
+
     comments.set(id, {
       id,
       new: true,
@@ -123,6 +125,10 @@ export function useYjs(document, editor, edited) {
       },
       timestamp: Date.now(),
     })
+    editor.value.chain().command(({ tr }) => {
+      tr.setMeta(commentPluginKey, { rebuild: true })
+      return true
+    }).run()
   }
   const saveComments = async () => {
     const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))
