@@ -3,8 +3,8 @@
 // layer 1: medium quality (400 kbps)
 // layer 2: high quality (1000 kbps)
 export const videoEncodings = [
-	{ maxBitrate: 200000 },
-	{ maxBitrate: 400000 },
+	{ maxBitrate: 200000, scaleResolutionDownBy: 2 },
+	{ maxBitrate: 400000, scaleResolutionDownBy: 1 },
 	{ maxBitrate: 1000000 },
 ];
 
