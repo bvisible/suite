@@ -124,7 +124,7 @@ import {
 } from '@tiptap/extension-table-of-contents'
 import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
-import { Tab, TabsExtension } from '@/extensions/tabs'
+import { TabsExtension } from '@/extensions/tabs'
 
 const showComments = defineModel('showComments')
 const edited = ref(false)
@@ -169,7 +169,6 @@ const {
 const editorExtensions = [
   COMMON_EXTENSIONS,
   CharacterCount,
-  Tab,
   TabsExtension,
   CommentHighlight.configure({
     comments,

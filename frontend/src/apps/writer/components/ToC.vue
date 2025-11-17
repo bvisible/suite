@@ -3,23 +3,46 @@
     v-if="editor"
     class="min-w-80 hidden md:flex max-h-96 p-3 gap-2 sticky top-0"
   >
-    <Button
-      v-if="anchors.length > 1"
-      variant="ghost"
-      :tooltip="show ? 'Hide' : 'Table of Contents'"
-      class="!w-5.5 !h-5.5 mr-1.5 ml-1"
-      @click="show = !show"
-    >
-      <template #icon>
-        <component
-          :is="show ? LucideMinus : LucideTableOfContents"
-          class="size-4"
-        />
-      </template>
-    </Button>
     <div v-show="show" class="table-of-contents grow">
+      <!-- Tab list with nested TOC -->
+      <div v-if="tabs.length > 0" class="gap-1">
+        <div v-for="tab in tabs" :key="tab.id">
+          <Button
+            :variant="tab.id === activeTabId ? 'subtle' : 'ghost'"
+            class="w-full text-sm !justify-start my-1"
+            :class="tab.id === activeTabId && 'font-medium'"
+            :label="tab.label"
+            @click="editor.commands.changeTab(tab.id)"
+          />
+
+          <div
+            v-if="tab.id === activeTabId"
+            v-for="anchor in currentTabAnchors"
+            :key="anchor.id"
+            class="hover:bg-surface-gray-2 rounded-sm ms-2 cursor-pointer truncate"
+            :class="{
+              'is-active': anchor.isActive && !anchor.isScrolledOver,
+              'text-ink-gray-5': anchor.isScrolledOver,
+              'text-ink-gray-8': !anchor.isScrolledOver,
+            }"
+            :style="{ '--level': anchor.level - maxLevel }"
+          >
+            <a
+              :href="'#' + anchor.id"
+              class="text-sm px-2"
+              :title="anchor.textContent"
+              :data-item-index="anchor.itemIndex"
+              @click.prevent="onAnchorClick(anchor.id)"
+            >
+              {{ anchor.textContent }}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- No tabs: show TOC normally -->
       <div
-        v-if="anchors.length > 1"
+        v-else-if="anchors.length > 1"
         v-for="anchor in anchors"
         :key="anchor.id"
         class="hover:bg-surface-gray-2 cursor-pointer w-full truncate"
@@ -40,14 +63,35 @@
           {{ anchor.textContent }}
         </a>
       </div>
+      <Button
+        class="!justify-start text-xs opacity-50 hover:opacity-100"
+        :icon-left="LucidePlus"
+        label="Add new"
+        variant="ghost"
+        @click="editor.commands.createTab({ label: 'Another Tab' })"
+      />
     </div>
-    <Button label="Make tab" @click="editor.commands.wrapInTab" />
+    <Button
+      v-if="anchors.length > 1"
+      variant="ghost"
+      :tooltip="show ? 'Hide' : 'Table of Contents'"
+      class="!w-5.5 !h-5.5"
+      @click="show = !show"
+    >
+      <template #icon>
+        <component
+          :is="show ? LucideX : LucideTableOfContents"
+          class="size-4"
+        />
+      </template>
+    </Button>
   </div>
 </template>
 
 <script setup>
 import { TextSelection } from '@tiptap/pm/state'
-import LucideMinus from '~icons/lucide/minus'
+import LucidePlus from '~icons/lucide/Plus'
+import LucideX from '~icons/lucide/x'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
 import { ref, watch, computed } from 'vue'
 
@@ -58,12 +102,62 @@ const props = defineProps({
     default: () => [],
   },
 })
+
 const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
 watch(show, (v) => localStorage.setItem('showToc', v))
 
-const maxLevel = computed(
-  () => Math.min(...props.anchors.map((k) => k.level)) - 1,
+// Get all tabs from the document
+const tabs = computed(() => {
+  if (!props.editor) return []
+  const t = []
+  props.editor.state.doc.descendants((node) => {
+    if (node.type.name === 'tab') {
+      t.push({ id: node.attrs.id, label: node.attrs.label })
+    }
+  })
+  return t
+})
+
+// Get active tab ID
+const activeTabId = computed(
+  () => props.editor && props.editor.commands.getCurrentTab(),
 )
+
+// Filter anchors to only show those in the current tab
+const currentTabAnchors = computed(() => {
+  if (tabs.value.length === 0) return props.anchors
+  if (!activeTabId.value) return props.anchors
+
+  // Find the tab node position in the document
+  let tabStart = null
+  let tabEnd = null
+
+  props.editor.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'tab' && node.attrs.id === activeTabId.value) {
+      tabStart = pos
+      tabEnd = pos + node.nodeSize
+      return false
+    }
+  })
+
+  if (tabStart === null) return []
+
+  // Filter anchors that are within the active tab's position range
+  return props.anchors.filter((anchor) => {
+    const element = props.editor.view.dom.querySelector(
+      `[data-toc-id="${anchor.id}"]`,
+    )
+    if (!element) return false
+
+    const pos = props.editor.view.posAtDOM(element, 0)
+    return pos >= tabStart && pos < tabEnd
+  })
+})
+
+const maxLevel = computed(
+  () => Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1,
+)
+
 const onAnchorClick = (id) => {
   if (!props.editor) return
   const view = props.editor.view
@@ -85,6 +179,7 @@ const onAnchorClick = (id) => {
   })
 }
 </script>
+
 <style scoped>
 .table-of-contents {
   display: flex;

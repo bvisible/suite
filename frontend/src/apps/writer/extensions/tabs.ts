@@ -1,15 +1,18 @@
-import { Extension } from '@tiptap/core'
 import { Node } from '@tiptap/core'
-import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TabView from './components/TabView.vue'
 import { v4 } from 'uuid'
 
-export const Tab = Node.create({
+export const TabsExtension = Node.create({
   name: 'tab',
   group: 'block',
   content: 'block+',
 
+  addStorage() {
+    return {
+      activeTabId: null,
+    }
+  },
   addAttributes() {
     return {
       id: {
@@ -32,16 +35,9 @@ export const Tab = Node.create({
   renderHTML({ HTMLAttributes }) {
     return ['div', HTMLAttributes, 0]
   },
-})
 
-// Extension for tab management
-export const TabsExtension = Extension.create({
-  name: 'tabs',
-
-  addStorage() {
-    return {
-      activeTabId: null,
-    }
+  addNodeView() {
+    return VueNodeViewRenderer(TabView)
   },
 
   onCreate() {
@@ -50,7 +46,7 @@ export const TabsExtension = Extension.create({
     let set = false
     doc.descendants((node) => {
       if (!set && node.type.name === 'tab') {
-        this.storage.activeTabId = node.attrs.id
+        this.editor.commands.changeTab(node.attrs.id)
         set = true
       }
     })
@@ -58,15 +54,26 @@ export const TabsExtension = Extension.create({
 
   addCommands() {
     return {
-      changeTab: (tabId: string) => () => {
-        this.storage.activeTabId = tabId
-        this.editor.view.dispatch(this.editor.state.tr)
-        return true
-      },
+      changeTab:
+        (tabId: string) =>
+        ({ tr, dispatch }) => {
+          console.log(tabId)
+          if (this.editor.view.dom) {
+              this.editor.view.dom.setAttribute(
+                'data-active-tab',
+                this.storage.activeTabId || '',
+              )
+            }
+          this.storage.activeTabId = tabId
+          dispatch(tr)
+          return true
+        },
+      getCurrentTab: () => () => this.storage.activeTabId,
       wrapInTab:
         (attrs: { id: string; label: string }) =>
         ({ tr, dispatch }) => {
           if (dispatch) {
+            
             if (!attrs.id) attrs.id = v4()
             const tabType = this.editor.schema.nodes.tab
             tr.replaceWith(
@@ -79,12 +86,23 @@ export const TabsExtension = Extension.create({
             return true
           }
         },
-    }
-  },
+      createTab:
+        (attrs: { id: string; label: string }) =>
+        ({ tr, dispatch, state }) => {
+          if (dispatch) {
+            const paragraphType = this.editor.schema.nodes.paragraph
+            if (!attrs.id) attrs.id = v4()
+            const tab = this.editor.schema.nodes.tab.create(
+              attrs,
+              paragraphType.create(),
+            )
+            tr.insert(state.doc.content.size, tab)
 
-  addNodeView() {
-    return VueNodeViewRenderer(TabView, {
-      props: { activeId: () => this.options.activeId },
-    })
+            this.storage.activeTabId = attrs.id
+            dispatch(tr)
+          }
+          return true
+        },
+    }
   },
 })
