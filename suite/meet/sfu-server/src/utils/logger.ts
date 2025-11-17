@@ -56,17 +56,34 @@ export class Logger {
 	}
 }
 
-// Create loggers for each component
+function parseLogLevel(env?: string): LogLevel {
+	if (!env) return LogLevel.INFO;
+	switch (env.toLowerCase()) {
+		case 'debug':
+			return LogLevel.DEBUG;
+		case 'info':
+			return LogLevel.INFO;
+		case 'warn':
+			return LogLevel.WARN;
+		case 'error':
+			return LogLevel.ERROR;
+		default:
+			return LogLevel.INFO;
+	}
+}
+
+const defaultLevel = parseLogLevel(process.env.SFU_LOG_LEVEL);
+
 export const loggers = {
-	workerManager: new Logger('WorkerManager'),
-	roomManager: new Logger('RoomManager'),
-	peerManager: new Logger('PeerManager'),
-	transportManager: new Logger('TransportManager'),
-	producerManager: new Logger('ProducerManager'),
-	consumerManager: new Logger('ConsumerManager'),
-	mediasoupManager: new Logger('MediasoupManager'),
-	socketHandler: new Logger('SocketHandler'),
-	authManager: new Logger('AuthManager'),
-	server: new Logger('Server'),
-	config: new Logger('Config'),
+	workerManager: new Logger('WorkerManager', defaultLevel),
+	roomManager: new Logger('RoomManager', defaultLevel),
+	peerManager: new Logger('PeerManager', defaultLevel),
+	transportManager: new Logger('TransportManager', defaultLevel),
+	producerManager: new Logger('ProducerManager', defaultLevel),
+	consumerManager: new Logger('ConsumerManager', defaultLevel),
+	mediasoupManager: new Logger('MediasoupManager', defaultLevel),
+	socketHandler: new Logger('SocketHandler', defaultLevel),
+	authManager: new Logger('AuthManager', defaultLevel),
+	server: new Logger('Server', defaultLevel),
+	config: new Logger('Config', defaultLevel),
 } as const;
