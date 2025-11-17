@@ -123,7 +123,7 @@
       </div>
       <TextEditor
         v-if="editor.getHTML"
-        class="prose-sm prose-v2 md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8"
+        class="prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8"
         :extensions="[...COMMON_EXTENSIONS, DiffTag]"
         :editable="false"
         :content="

@@ -1,25 +1,46 @@
 <template>
   <div
     v-if="editor"
-    class="min-w-80 hidden md:flex max-h-96 p-3 gap-2 sticky top-0"
+    class="min-w-80 hidden md:block max-h-96 p-3 gap-2 sticky top-0"
   >
-    <div v-show="show" class="table-of-contents grow">
-      <!-- Tab list with nested TOC -->
-      <div v-if="tabs.length > 0" class="gap-1">
-        <div v-for="tab in tabs" :key="tab.id">
+    <Button
+      v-if="anchors.length > 1"
+      variant="ghost"
+      :icon="
+        h(show ? LucidePanelLeftClose : LucidePanelRightClose, {
+          class: 'text-ink-gray-6',
+        })
+      "
+      :tooltip="show ? 'Hide' : 'Table of Contents'"
+      class="!w-5.5 !h-5.5 mb-2"
+      @click="show = !show"
+    />
+    <div v-show="show" class="grow">
+      <div v-if="tabs.length > 0" class="flex flex-col gap-0.5">
+        <div v-for="tab in tabs" :key="tab.id" class="table-of-contents">
+          <TextInput
+            v-if="editingTabId === tab.id"
+            v-model="editingTabLabel"
+            v-focus
+            @keydown.enter="finishRenaming(false)"
+            @keydown.esc="finishRenaming(true)"
+            class="p-1"
+          />
           <Button
+            v-else
             :variant="tab.id === activeTabId ? 'subtle' : 'ghost'"
-            class="w-full text-sm !justify-start my-1"
+            class="w-full text-sm !justify-start"
             :class="tab.id === activeTabId && 'font-medium'"
             :label="tab.label"
             @click="editor.commands.changeTab(tab.id)"
+            @dblclick="startRenaming(tab)"
           />
 
           <div
             v-if="tab.id === activeTabId"
             v-for="anchor in currentTabAnchors"
             :key="anchor.id"
-            class="hover:bg-surface-gray-2 rounded-sm ms-2 cursor-pointer truncate"
+            class="link hover:bg-surface-gray-2 py-0.5 rounded-sm ms-2 cursor-pointer truncate"
             :class="{
               'is-active': anchor.isActive && !anchor.isScrolledOver,
               'text-ink-gray-5': anchor.isScrolledOver,
@@ -65,26 +86,12 @@
       </div>
       <Button
         class="!justify-start text-xs opacity-50 hover:opacity-100"
-        :icon-left="LucidePlus"
+        :icon-left="h(LucidePlus, { class: 'size-4' })"
         label="Add new"
         variant="ghost"
         @click="editor.commands.createTab({ label: 'Another Tab' })"
       />
     </div>
-    <Button
-      v-if="anchors.length > 1"
-      variant="ghost"
-      :tooltip="show ? 'Hide' : 'Table of Contents'"
-      class="!w-5.5 !h-5.5"
-      @click="show = !show"
-    >
-      <template #icon>
-        <component
-          :is="show ? LucideX : LucideTableOfContents"
-          class="size-4"
-        />
-      </template>
-    </Button>
   </div>
 </template>
 
@@ -93,7 +100,10 @@ import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/Plus'
 import LucideX from '~icons/lucide/x'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
-import { ref, watch, computed } from 'vue'
+import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
+import LucidePanelRightClose from '~icons/lucide/panel-right-close'
+import { ref, watch, computed, h } from 'vue'
+import TextInput from 'frappe-ui/src/components/TextInput/TextInput.vue'
 
 const props = defineProps({
   editor: Object,
@@ -178,6 +188,26 @@ const onAnchorClick = (id) => {
     behavior: 'smooth',
   })
 }
+
+const editingTabId = ref(null)
+const editingTabLabel = ref('')
+const tabInput = ref(null)
+
+const startRenaming = (tab) => {
+  editingTabId.value = tab.id
+  editingTabLabel.value = tab.label
+}
+
+const finishRenaming = (esc = false) => {
+  if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
+    props.editor.commands.renameTab(
+      editingTabId.value,
+      editingTabLabel.value.trim(),
+    )
+  }
+  editingTabId.value = null
+  editingTabLabel.value = ''
+}
 </script>
 
 <style scoped>
@@ -199,7 +229,7 @@ a {
   }
 }
 
-.table-of-contents > div {
+.table-of-contents .link {
   border-radius: 0.25rem;
   padding-left: calc(0.875rem * (var(--level) - 1));
   transition: all 0.2s cubic-bezier(0.65, 0.05, 0.36, 1);

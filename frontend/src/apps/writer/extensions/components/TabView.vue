@@ -14,6 +14,7 @@ const isActive = computed(() => {
 
 <template>
   <node-view-wrapper
+    v-focus
     as="div"
     :data-tab-id="node.attrs.id"
     :data-tab-label="node.attrs.label"
