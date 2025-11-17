@@ -63,6 +63,9 @@ const route = useRoute();
 
 const oAuthProviders = createResource({
 	url: "sae.api.account.oauth_providers",
+	params: {
+		redirect_url: route.query.next || "",
+	},
 	auto: true,
 });
 
