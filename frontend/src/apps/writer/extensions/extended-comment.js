@@ -18,7 +18,6 @@ const createDecorations = (editor, yDoc, comments, active) => {
 
   const decos = []
   comments.forEach((comment) => {
-    console.log(comment)
     const from = relativePositionToAbsolutePosition(
       yDoc,
       ystate.type,

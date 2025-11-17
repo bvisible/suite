@@ -46,7 +46,7 @@ export const TabsExtension = Node.create({
     let set = false
     doc.descendants((node) => {
       if (!set && node.type.name === 'tab') {
-        this.editor.commands.changeTab(node.attrs.id)
+        this.editor.commands.changeTab(node.attrs.id, false)
         set = true
       }
     })
@@ -55,7 +55,7 @@ export const TabsExtension = Node.create({
   addCommands() {
     return {
       changeTab:
-        (tabId: string) =>
+        (tabId: string, changed: boolean = true) =>
         ({ tr, dispatch, state }) => {
           if (this.editor.view.dom) {
             this.editor.view.dom.setAttribute(
@@ -65,20 +65,20 @@ export const TabsExtension = Node.create({
           }
           this.storage.activeTabId = tabId
           dispatch(tr)
-          setTimeout(() => {
-            let focusPos = null
-            state.doc.descendants((node, pos) => {
-              if (node.type.name === 'tab' && node.attrs.id === tabId) {
-                // Focus at the start of the tab's content (pos + 1)
-                focusPos = pos + 1
-                return false // Stop searching
-              }
-            })
+          if (changed)
+            setTimeout(() => {
+              let focusPos = null
+              state.doc.descendants((node, pos) => {
+                if (node.type.name === 'tab' && node.attrs.id === tabId) {
+                  focusPos = pos + 1
+                  return false
+                }
+              })
 
-            if (focusPos !== null) {
-              this.editor.commands.focus(focusPos)
-            }
-          }, 0)
+              if (focusPos !== null) {
+                this.editor.commands.focus(focusPos)
+              }
+            }, 0)
           return true
         },
       getCurrentTab: () => () => this.storage.activeTabId,
@@ -104,7 +104,7 @@ export const TabsExtension = Node.create({
             return true
           }
           return false
-      },
+        },
       wrapInTab:
         (attrs: { id: string; label: string }) =>
         ({ tr, dispatch }) => {
@@ -133,11 +133,42 @@ export const TabsExtension = Node.create({
             )
             tr.insert(state.doc.content.size, tab)
 
-            this.storage.activeTabId = attrs.id
             dispatch(tr)
+            this.editor.commands.changeTab(attrs.id)
           }
           return true
         },
+    }
+  },
+  addKeyboardShortcuts() {
+    return {
+      // Cmd/Ctrl + A: Select all content in current tab
+      'Mod-a': () => {
+        const activeTabId = this.storage.activeTabId
+        if (!activeTabId) return false
+
+        const { state, view } = this.editor
+        let tabStart = null
+        let tabEnd = null
+
+        state.doc.descendants((node, pos) => {
+          if (node.type.name === 'tab' && node.attrs.id === activeTabId) {
+            tabStart = pos + 1 // Start of content inside tab
+            tabEnd = pos + node.nodeSize - 1 // End of content inside tab
+            return false
+          }
+        })
+
+        if (tabStart !== null && tabEnd !== null) {
+          const tr = state.tr.setSelection(
+            TextSelection.create(state.doc, tabStart, tabEnd),
+          )
+          view.dispatch(tr)
+          return true
+        }
+
+        return false
+      },
     }
   },
 })

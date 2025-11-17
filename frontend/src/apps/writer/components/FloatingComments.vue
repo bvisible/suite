@@ -365,6 +365,7 @@ const updateComment = (comment, thread) => {
     )
     props.yComments.set(thread.id, sanitize(thread))
   }
+  emit('save')
 }
 
 const newReply = (comment, editor) => {
@@ -380,6 +381,7 @@ const newReply = (comment, editor) => {
 
   editor.commands.setContent('')
   setCommentHeights()
+  emit('save')
 }
 
 const removeReply = (commentId, replyId) => {
@@ -392,11 +394,13 @@ const removeReply = (commentId, replyId) => {
   props.yComments.set(commentId, updatedComment)
 
   setCommentHeights()
+  emit('save')
 }
 
 const removeComment = (commentId) => {
   props.yComments.delete(commentId)
   setCommentHeights()
+  emit('save')
 }
 
 const resolve = (comment, value = true) => {

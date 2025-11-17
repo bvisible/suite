@@ -1,10 +1,10 @@
 <template>
   <div
     v-if="editor"
-    class="min-w-80 hidden md:block max-h-96 p-3 gap-2 sticky top-0"
+    class="min-w-80 hidden md:block max-h-96 p-5 gap-2 sticky top-0"
   >
     <Button
-      v-if="anchors.length > 1"
+      v-if="tabs.length || anchors.length > 1"
       variant="ghost"
       :icon="
         h(show ? LucidePanelLeftClose : LucidePanelRightClose, {
@@ -15,9 +15,9 @@
       class="!w-5.5 !h-5.5 mb-2"
       @click="show = !show"
     />
-    <div v-show="show" class="grow">
+    <div v-show="show" class="grow max-w-52 flex flex-col gap-0.5">
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5">
-        <div v-for="tab in tabs" :key="tab.id" class="table-of-contents">
+        <div v-for="tab in tabs" :key="tab.id">
           <TextInput
             v-if="editingTabId === tab.id"
             v-model="editingTabLabel"
@@ -29,57 +29,54 @@
           <Button
             v-else
             :variant="tab.id === activeTabId ? 'subtle' : 'ghost'"
-            class="w-full text-sm !justify-start"
+            class="w-full !justify-start"
             :class="tab.id === activeTabId && 'font-medium'"
             :label="tab.label"
             @click="editor.commands.changeTab(tab.id)"
             @dblclick="startRenaming(tab)"
           />
-
           <div
             v-if="tab.id === activeTabId"
-            v-for="anchor in currentTabAnchors"
-            :key="anchor.id"
-            class="link hover:bg-surface-gray-2 py-0.5 rounded-sm ms-2 cursor-pointer truncate"
-            :class="{
-              'is-active': anchor.isActive && !anchor.isScrolledOver,
-              'text-ink-gray-5': anchor.isScrolledOver,
-              'text-ink-gray-8': !anchor.isScrolledOver,
-            }"
-            :style="{ '--level': anchor.level - maxLevel }"
+            class="table-of-contents flex flex-col gap-0.5 ms-2 my-1"
           >
             <a
+              v-for="anchor in currentTabAnchors"
               :href="'#' + anchor.id"
-              class="text-sm px-2"
+              class="link hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate"
               :title="anchor.textContent"
               :data-item-index="anchor.itemIndex"
               @click.prevent="onAnchorClick(anchor.id)"
+              :key="anchor.id"
+              :class="{
+                'is-active': anchor.isActive && !anchor.isScrolledOver,
+                'text-ink-gray-5': anchor.isScrolledOver,
+                'text-ink-gray-8': !anchor.isScrolledOver,
+              }"
+              :style="{ '--level': anchor.level - maxLevel }"
             >
               {{ anchor.textContent }}
             </a>
           </div>
         </div>
       </div>
-
-      <!-- No tabs: show TOC normally -->
       <div
         v-else-if="anchors.length > 1"
-        v-for="anchor in anchors"
-        :key="anchor.id"
-        class="hover:bg-surface-gray-2 cursor-pointer w-full truncate"
-        :class="{
-          'is-active': anchor.isActive && !anchor.isScrolledOver,
-          'text-ink-gray-5': anchor.isScrolledOver,
-          'text-ink-gray-8': !anchor.isScrolledOver,
-        }"
-        :style="{ '--level': anchor.level - maxLevel }"
+        class="table-of-contents flex flex-col gap-0.5"
       >
         <a
+          v-for="anchor in anchors"
           :href="'#' + anchor.id"
-          class="text-sm px-2"
+          class="link hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate"
           :title="anchor.textContent"
           :data-item-index="anchor.itemIndex"
           @click.prevent="onAnchorClick(anchor.id)"
+          :key="anchor.id"
+          :class="{
+            'is-active': anchor.isActive && !anchor.isScrolledOver,
+            'text-ink-gray-5': anchor.isScrolledOver,
+            'text-ink-gray-8': !anchor.isScrolledOver,
+          }"
+          :style="{ '--level': anchor.level - maxLevel }"
         >
           {{ anchor.textContent }}
         </a>
@@ -212,16 +209,11 @@ const finishRenaming = (esc = false) => {
 
 <style scoped>
 .table-of-contents {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.875rem;
-  gap: 0.25rem;
   overflow: auto;
   text-decoration: none;
 }
 
-a {
-  color: var(--black);
+.table-of-contents a {
   text-decoration: none;
 
   &::before {
@@ -231,7 +223,7 @@ a {
 
 .table-of-contents .link {
   border-radius: 0.25rem;
-  padding-left: calc(0.875rem * (var(--level) - 1));
+  margin-left: calc(0.875rem * (var(--level) - 1));
   transition: all 0.2s cubic-bezier(0.65, 0.05, 0.36, 1);
 }
 </style>

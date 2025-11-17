@@ -40,8 +40,9 @@ export function useYjs(document, editor, edited) {
         ...document.doc.updates.map(({ data }) => toUint8Array(data)),
       ]),
     )
-  if (document.doc.yComments) {
-    Y.applyUpdate(commentsDoc, document.doc.yComments)
+  if (document.doc.ycomments) {
+    console.log(document.doc.ycomments)
+    Y.applyUpdate(commentsDoc, toUint8Array(document.doc.ycomments))
   }
   let serverStateVector = Y.encodeStateVector(doc)
 
@@ -91,9 +92,8 @@ export function useYjs(document, editor, edited) {
   const permanentUserData = new Y.PermanentUserData(doc)
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
 
-  doc.on('update', (update, origin) => {
-    if (origin === 'server') return
-    autosave()
+  doc.on('update', (_, origin) => {
+    if (origin !== 'server') autosave()
   })
 
   // Comments
@@ -127,7 +127,7 @@ export function useYjs(document, editor, edited) {
   }
   const saveComments = async () => {
     const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))
-    document.doc.saveComments({ data })
+    document.saveComments.submit({ data })
   }
   return {
     doc,
