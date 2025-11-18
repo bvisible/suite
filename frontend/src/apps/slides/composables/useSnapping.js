@@ -2,7 +2,7 @@ import { ref, reactive, computed } from 'vue'
 import { selectionBounds, currentSlide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
-export const useSnapping = (target, parent) => {
+export const useSnapping = (target, parent, currentResizer) => {
 	const directionKeys = ['left', 'centerX', 'right', 'top', 'centerY', 'bottom']
 
 	const snapMovement = ref({ x: 0, y: 0 })
@@ -17,6 +17,8 @@ export const useSnapping = (target, parent) => {
 	const diffs = reactive(initDiffs())
 	const prevDiffs = reactive(initDiffs())
 	const resistanceMap = reactive(initDiffs())
+
+	const mode = ref(null)
 
 	const visibilityMap = computed(() => {
 		if (!target.value) return
@@ -76,8 +78,15 @@ export const useSnapping = (target, parent) => {
 	const setCenterDiffs = () => {
 		if (!target.value) return
 
-		diffs.centerX = getDiffFromCenter('X')
-		diffs.centerY = getDiffFromCenter('Y')
+		if (mode.value == 'dragging') {
+			diffs.centerX = getDiffFromCenter('X')
+			diffs.centerY = getDiffFromCenter('Y')
+		} else {
+			diffs.leftEdge =
+				getDiffFromCenter('Y') + (selectionBounds.width * slideBounds.scale) / 2
+			diffs.rightEdge =
+				getDiffFromCenter('Y') - (selectionBounds.width * slideBounds.scale) / 2
+		}
 	}
 
 	const canElementPair = (diffsFromElement) => {
@@ -191,9 +200,17 @@ export const useSnapping = (target, parent) => {
 	}
 
 	const getDiffsForAxis = (axis) => {
-		return {
-			diff: diffs[axis],
-			prevDiff: prevDiffs[axis],
+		if (mode.value == 'dragging') {
+			return {
+				diff: diffs[axis],
+				prevDiff: prevDiffs[axis],
+			}
+		}
+		if (currentResizer.value == 'right') {
+			return {
+				diff: diffs.rightEdge,
+				prevDiff: prevDiffs.rightEdge,
+			}
 		}
 	}
 
@@ -238,13 +255,20 @@ export const useSnapping = (target, parent) => {
 
 		setResistanceMap()
 
+		if (mode.value == 'resizing' && axis == 'centerY') {
+			return { offsetX: 0, offsetWidth: getSnapOffset() }
+		}
 		return getSnapOffset()
 	}
 
 	const getCenterOffsets = () => {
+		const { offsetX, offsetWidth } = handleSnapMovement('centerY')
+		const { offsetY } = handleSnapMovement('centerX')
+
 		return {
-			offsetX: handleSnapMovement('centerY'),
-			offsetY: handleSnapMovement('centerX'),
+			offsetX: offsetX,
+			offsetWidth: offsetWidth,
+			offsetY: offsetY,
 		}
 	}
 
@@ -274,17 +298,20 @@ export const useSnapping = (target, parent) => {
 	const getSnapDelta = () => {
 		if (!target.value) return
 
-		const { offsetX, offsetY } = getCenterOffsets()
+		const { offsetX, offsetY, offsetWidth } = getCenterOffsets()
 
 		const { offsetLeft, offsetTop } = getPairedOffsets()
 
 		return {
 			x: offsetX - offsetLeft,
 			y: offsetY - offsetTop,
+			width: offsetWidth || 0,
 		}
 	}
 
-	const handleSnapping = () => {
+	const handleSnapping = (interaction = 'dragging') => {
+		mode.value = interaction
+
 		// update diffs based on current position
 		updateDiffs()
 
