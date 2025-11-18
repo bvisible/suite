@@ -93,7 +93,11 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
-const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
+const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(
+	selectionBoxRef,
+	slideRef,
+	currentResizer,
+)
 
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(slideContainerRef, slideRef)
 
@@ -248,7 +252,7 @@ const applyResistance = (axis, delta) => {
 
 	if (axis == 'X') {
 		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
-		pullDelta = delta.x
+		pullDelta = currentResizer.value ? delta.width : delta.x
 	} else if (axis == 'Y') {
 		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
 		pullDelta = delta.y
@@ -266,6 +270,16 @@ const getTotalPositionDelta = (delta) => {
 	return {
 		left: applyResistance('X', delta) ? 0 : left,
 		top: applyResistance('Y', delta) ? 0 : top,
+	}
+}
+
+const getTotalDimensionDelta = (delta) => {
+	const snapDelta = handleSnapping('resizing')
+
+	const width = snapDelta.width || delta.width
+
+	return {
+		width: applyResistance('X', delta) ? 0 : width,
 	}
 }
 
@@ -326,7 +340,9 @@ const handleDimensionChange = (delta) => {
 
 	if (!activeElement.value.width) addFixedWidthToElement()
 
-	applyDimensionDelta(delta)
+	const totalDelta = getTotalDimensionDelta(delta)
+
+	applyDimensionDelta(totalDelta)
 }
 
 const updateSlideBounds = () => {
