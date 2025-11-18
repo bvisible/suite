@@ -137,21 +137,20 @@ def get_document(file_id):
     k = frappe.get_doc("Writer Document", entity.doc)
     entity_doc_content = k.as_dict()
     entity_doc_content.pop("name")
-    comments = frappe.get_all(
-        "Drive Comment",
-        filters={"parenttype": "Drive File", "parent": entity.name},
-        fields=["content", "owner", "creation", "name", "resolved", "anchor"],
-    )
+    # comments = frappe.get_all(
+    #     "Drive Comment",
+    #     filters={"parenttype": "Drive File", "parent": entity.name},
+    #     fields=["content", "owner", "creation", "name", "resolved"],
+    # )
 
-    for k in comments:
-        k["replies"] = frappe.get_all(
-            "Drive Comment",
-            filters={"parenttype": "Drive Comment", "parent": k["name"]},
-            fields=["content", "owner", "creation", "name"],
-        )
+    # for k in comments:
+    #     k["replies"] = frappe.get_all(
+    #         "Drive Comment",
+    #         filters={"parenttype": "Drive Comment", "parent": k["name"]},
+    #         fields=["content", "owner", "creation", "name"],
+    #     )
 
     return_obj |= entity_doc_content | {
-        "comments": comments,
         "modified": entity.modified,
     }
     frappe.response["data"] = return_obj
