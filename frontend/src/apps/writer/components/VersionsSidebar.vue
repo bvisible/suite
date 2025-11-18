@@ -13,7 +13,7 @@
         <span class="font-medium">{{ versionPreview[0].title }}</span>
       </div>
       <div v-else>
-        This is a automatic snapshot of this document from
+        This is an automatic snapshot of this document from
         {{ formatDate(versionPreview[0].title) }}.
       </div>
       <div class="text-xs text-ink-gray-5">
@@ -34,11 +34,8 @@
       />
     </div>
   </div>
-  <div class="flex h-full">
-    <div class="self-stretch w-72 border-e h-full overflow-hidden relative">
-      <!-- <h3
-      class="ps-3 p-1.5 flex items-center justify-between text-xs text-ink-gray-9 font-medium mb-1"
-    ></h3> -->
+  <div class="flex h-full overflow-hidden">
+    <div class="self-stretch w-72 border-e h-full relative">
       <div class="flex flex-col items-center w-full">
         <Tabs
           v-model="tab"
@@ -122,7 +119,7 @@
         This is the current version.
       </div>
       <TextEditor
-        v-if="editor.getHTML"
+        v-if="editor?.getHTML"
         class="prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8 px-10 h-full overflow-y-auto"
         :extensions="[...COMMON_EXTENSIONS, DiffTag]"
         :editable="false"

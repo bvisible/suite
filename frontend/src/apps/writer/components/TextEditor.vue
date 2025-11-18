@@ -9,7 +9,7 @@
 
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto"
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
       @mousemove="hideToolbar = false"
     >
       <ToC :editor :anchors />
@@ -37,12 +37,14 @@
           :extensions="editorExtensions"
           :starterkit-options="{ history: false }"
           @keydown="
-            () => {
-              if (!edited) {
-                edited = true
-                autoversion()
+            (e) => {
+              if (!e.metaKey && !e.ctrlKey) {
+                hideToolbar = true
+                if (!edited) {
+                  edited = true
+                  autoversion()
+                }
               }
-              hideToolbar = true
             }
           "
         >
@@ -215,7 +217,7 @@ const editorExtensions = [
 const menuButtons = computed(
   () => [
     'Paragraph',
-    ['Heading 1', 'Heading 2', 'Heading 3'],
+    ['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
     'Separator',
     'Bold',
     'Italic',

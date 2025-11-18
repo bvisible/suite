@@ -15,7 +15,6 @@ const createDecorations = (editor, yDoc, comments, active) => {
   if (!comments || !comments) return DecorationSet.empty
   const ystate = ySyncPluginKey.getState(editor.state)
   if (!ystate) return DecorationSet.empty
-
   const decos = []
   comments.forEach((comment) => {
     const from = relativePositionToAbsolutePosition(
@@ -71,17 +70,19 @@ export const CommentHighlight = Extension.create({
           },
 
           apply(tr, oldSet) {
-            if (tr.docChanged || tr.getMeta(commentPluginKey)?.rebuild) {
-              const { doc, comments, activeComment } = ext.options
-              return createDecorations(
+            const { doc, comments, activeComment } = ext.options
+            const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
+            if (isRemote || tr.getMeta(commentPluginKey)?.rebuild) {
+              const decos = createDecorations(
                 ext.editor,
                 doc,
                 comments,
                 activeComment.value,
               )
+              return decos
             }
 
-            return oldSet
+            return oldSet.map(tr.mapping, tr.doc)
           },
         },
         props: {

@@ -1,7 +1,7 @@
 <template>
   <div
     ref="scrollContainer"
-    class="relative hidden md:flex min-w-80 flex-col gap-8 justify-start self-stretch px-5 bg-surface-white"
+    class="relative hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white"
   >
     <template v-for="comment in filteredComments" :key="comment.id">
       <div
@@ -436,7 +436,7 @@ const formatDateOrTime = (datetimeNum) => {
 const setCommentHeights = useDebounceFn(() => {
   let lastBottom = 0
   nextTick(() => {
-    scrollContainer.value.style.height = `max(${scrollContainer.value.parentElement.scrollHeight}px, calc(100vh - 3rem))`
+    // scrollContainer.value.style.height = `max(${scrollContainer.value.parentElement.scrollHeight}px, calc(100vh - 3rem))`
     for (const comment of filteredComments.value) {
       try {
         const containerTop = scrollContainer.value.getBoundingClientRect().top
@@ -448,7 +448,7 @@ const setCommentHeights = useDebounceFn(() => {
         comment.top = adjustedTop
         lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
       } catch (e) {
-        console.log(e)
+        console.error(e)
       }
     }
   })

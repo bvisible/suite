@@ -1,6 +1,7 @@
 import { Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TabView from './components/TabView.vue'
+import {TextSelection} from '@tiptap/pm/state'
 import { v4 } from 'uuid'
 
 export const TabsExtension = Node.create({

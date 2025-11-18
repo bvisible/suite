@@ -1,8 +1,5 @@
 <template>
-  <div
-    v-if="editor"
-    class="min-w-80 hidden md:block max-h-96 p-5 gap-2 sticky top-0"
-  >
+  <div v-if="editor" class="hidden md:block p-5 gap-2 sticky top-0">
     <Button
       v-if="tabs.length || anchors.length > 1"
       variant="ghost"
@@ -82,7 +79,7 @@
         </a>
       </div>
       <Button
-        class="!justify-start text-xs opacity-50 hover:opacity-100"
+        class="!justify-start text-xs opacity-50 hover:opacity-100 mt-2"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
         :label="tabs.length ? 'Add' : 'Create tab'"
         variant="ghost"
@@ -100,7 +97,7 @@
 import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/Plus'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
-import LucidePanelRightClose from '~icons/lucide/panel-right-close'
+import LucidePanelRightClose from '~icons/lucide/table-of-contents'
 import { ref, watch, computed, h } from 'vue'
 import TextInput from 'frappe-ui/src/components/TextInput/TextInput.vue'
 

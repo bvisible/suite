@@ -69,9 +69,8 @@
     </template>
   </Navbar>
 
-  <ErrorPage v-if="document.error" :error="document.error" />
   <VersionsSidebar
-    v-else-if="showVersions"
+    v-if="showVersions"
     v-model="versionPreview"
     v-model:show-versions="showVersions"
     :versions="document.doc?.versions || []"
@@ -79,16 +78,13 @@
     :document
     :editor
   />
+  <ErrorPage v-if="document.error" :error="document.error" />
   <LoadingIndicator
     v-else-if="!document.data && document.loading"
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div
-    v-else
-    class="flex w-full h-full overflow-hidden"
-    :class="showVersions && 'hidden'"
-  >
+  <div v-else class="flex w-full h-full overflow-hidden" v-show="!showVersions">
     <TextEditor
       v-if="document.doc?.settings"
       ref="editorEl"
@@ -133,16 +129,11 @@ import {
   useTemplateRef,
 } from 'vue'
 import { useStore } from 'vuex'
-import {
-  createResource,
-  LoadingIndicator,
-  useDoc,
-  usePageMeta,
-} from 'frappe-ui'
+import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
 
 import VersionsSidebar from '@/components/VersionsSidebar.vue'
 // import WriterSettings from '@/components/WriterSettings.vue'
-// import UsersBar from '@/components/UsersBar.vue'
+import UsersBar from '@/components/UsersBar.vue'
 
 import { toast } from '@/utils/'
 import useDocument from '@/composables/useDocument'
@@ -150,7 +141,6 @@ import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
 import LucideLockOpen from '~icons/lucide/lock-open'
 import LucideWifiOff from '~icons/lucide/wifi-off'
-import LucideFileWarning from '~icons/lucide/file-warning'
 
 const TextEditor = defineAsyncComponent(
   () => import('@/components/TextEditor.vue'),
