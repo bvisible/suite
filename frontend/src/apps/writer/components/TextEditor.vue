@@ -163,7 +163,7 @@ const {
 } = useYjs(props.document, editor, edited)
 
 const editorExtensions = [
-  COMMON_EXTENSIONS,
+  ...COMMON_EXTENSIONS,
   CharacterCount,
   TabsExtension,
   CommentHighlight.configure({

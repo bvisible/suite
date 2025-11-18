@@ -9,13 +9,26 @@
     />
     <Combobox
       v-model="selected"
-      :options="FONT_FAMILIES"
+      :options="
+        FONT_FAMILIES.map((k) => ({
+          ...k,
+          type: 'custom',
+          slotName: 'font',
+          key: k.value,
+          onClick: () => k.action(editor),
+        }))
+      "
       :placeholder="FONT_FAMILIES.find((k) => k.value === font_family)?.label"
       :open-on-click="true"
       class="min-w-[10rem]"
       variant="outline"
-      :style="selected && { fontFamily: `var(--font-${selected})` }"
-    />
+    >
+      <template #font="{ option }"
+        ><span :style="{ fontFamily: `var(--font-${option.value})` }">
+          {{ option.label }}</span
+        ></template
+      >
+    </Combobox>
   </div>
 </template>
 <script setup>
@@ -33,17 +46,14 @@ const selected = ref(null)
 const size = ref(null)
 
 watchEffect(() => {
+  // potential perf?
   selected.value = FONT_FAMILIES.find((opt) =>
     opt.isActive(props.editor),
   )?.value
   let fontSize = props.editor.getAttributes('textStyle')?.fontSize
   if (fontSize && typeof fontSize !== 'number')
     fontSize = +fontSize.slice(0, -2)
-  size.value = fontSize
-})
-
-watch(selected, (val) => {
-  if (val) FONT_FAMILIES.find((k) => k.value === val).action(props.editor)
+  if (!Number.isNaN(fontSize)) size.value = fontSize
 })
 watch(size, (val) => {
   props.editor.commands.setFontSize(val + 'px')

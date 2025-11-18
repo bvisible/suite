@@ -229,9 +229,9 @@ const fileActions = computed(() =>
                   icon: LucideLock,
                   onClick: (val) => {
                     props.document.doc.settings.lock = val
-                    document.setValue.submit({
-                      settings: JSON.stringify(props.document.doc.settings),
-                    })
+                    props.document.updateSettings.submit(
+                      JSON.stringify(props.document.doc.settings),
+                    )
                   },
                 },
                 {
@@ -241,17 +241,18 @@ const fileActions = computed(() =>
                   switchValue: props.document.doc.settings.wide,
                   onClick: (val) => {
                     props.document.doc.settings.wide = val
-                    document.setValue.submit({
-                      settings: JSON.stringify(props.document.doc.settings),
-                    })
+                    props.document.updateSettings.submit(
+                      JSON.stringify(props.document.doc.settings),
+                    )
                   },
                 },
                 {
                   onClick: (val) => {
+                    console.log(props.document)
                     props.document.doc.settings.minimal = val
-                    document.setValue.submit({
-                      settings: JSON.stringify(props.document.doc.settings),
-                    })
+                    props.document.updateSettings.submit(
+                      JSON.stringify(props.document.doc.settings),
+                    )
                   },
                   switch: true,
                   switchValue: props.document.doc.settings.minimal,

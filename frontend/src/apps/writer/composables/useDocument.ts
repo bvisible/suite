@@ -29,6 +29,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
         newVersion: { name: 'new_version', skipOverride: true },
         saveComments: { name: 'save_comments', skipOverride: true },
         toggleFav: {name: 'toggle_favourite', skipOverride: true},
+        updateSettings: {name: 'update_settings', skipOverride: true},
         saveToDisk: 'save_to_disk',
       },
     })

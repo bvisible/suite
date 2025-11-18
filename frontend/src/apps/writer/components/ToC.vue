@@ -160,8 +160,10 @@ const currentTabAnchors = computed(() => {
   })
 })
 
-const maxLevel = computed(
-  () => Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1,
+const maxLevel = computed(() =>
+  currentTabAnchors.value.length
+    ? Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1
+    : 0,
 )
 
 const onAnchorClick = (id) => {
