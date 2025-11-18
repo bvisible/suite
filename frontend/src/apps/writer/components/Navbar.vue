@@ -103,8 +103,17 @@ import LucideNewspaper from '~icons/lucide/newspaper'
 import LucideListRestart from '~icons/lucide/list-restart'
 import LucideHistory from '~icons/lucide/history'
 import MessageSquareDot from '~icons/lucide/message-square-dot'
+import LucideMarkdown from "~icons/lucide/pilcrow"
+import {
+  downloadZippedHTML,
+  downloadMD,
+} from "@/utils"
+import { downloadDocxFromHtml } from "../utils/docxexporter"
+import { entitiesDownload } from '@/utils/download'
+import { getLink } from '@/utils'
 
 const store = useStore()
+const route = useRoute()
 const open = (url) => {
   window.open(url, '_blank')
 }
@@ -121,6 +130,12 @@ const showVersions = defineModel('showVersions')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
+const editor = inject('editor')
+
+// Aliases for convenience in download functions
+const entity = computed(() => props.document?.doc)
+const editorValue = editor // editor is already a ref, no need to wrap in computed
+const settings = computed(() => props.document?.doc?.settings)
 
 const formattedCrumbs = computed(() => {
   const ORIG = { label: 'Writer', route: '/' }
@@ -260,23 +275,62 @@ const fileActions = computed(() =>
                 },
               ],
             },
+            // {
+            //   label: 'Export',
+            //   icon: LucideDownload,
+            //   submenu: dynamicList([
+            //     {
+            //       onClick: exportMedia,
+            //       label: 'Export Media',
+            //       icon: LucideImageDown,
+            //     },
+            //     {
+            //       onClick: exportBlog,
+            //       label: 'Export Blog',
+            //       icon: LucideNewspaper,
+            //       cond: apps.data && apps.data.find((k) => k.name === 'blog'),
+            //     },
+            //   ]),
+            // },
             {
-              label: 'Export',
-              icon: LucideDownload,
-              submenu: dynamicList([
-                {
-                  onClick: exportMedia,
-                  label: 'Export Media',
-                  icon: LucideImageDown,
+            label: "Download",
+            icon: LucideDownload,
+            submenu: [
+              {
+                label: "PDF",
+                icon: LucideFile,
+                onClick: () => {
+                  emitter.emit('print-file')
                 },
-                {
-                  onClick: exportBlog,
-                  label: 'Export Blog',
-                  icon: LucideNewspaper,
-                  cond: apps.data && apps.data.find((k) => k.name === 'blog'),
+              },
+              {
+                label: "DOCX",
+                icon: LucideFileText,
+                onClick: () => {
+                  downloadDocxFromHtml(editorValue.value.getHTML(), `${entity.value.title}.docx`, settings.value);
                 },
-              ]),
-            },
+              },
+              {
+                label: "Folder",
+                icon: LucideFolderArchive,
+                onClick: () => {
+                  console.log(entity.value.title)
+                  downloadZippedHTML(editorValue, entity.value.title)
+                },
+              },
+              {
+                label: "Markdown",
+                icon: LucideMarkdown,
+                onClick: () => downloadMD(editorValue, entity.value.title),
+              },
+              {
+                onClick: exportBlog,
+                label: "Blog",
+                icon: LucideFileUser,
+                cond: apps.data && apps.data.find((k) => k.name === "blog"),
+              },
+            ],
+          },
             {
               icon: LucideHistory,
               label: 'Versions',
