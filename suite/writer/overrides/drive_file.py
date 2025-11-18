@@ -23,3 +23,9 @@ class WriterDriveFile(DriveFile):
         doc = frappe.get_cached_doc("Writer Document", self.doc)
         doc.ycomments = data
         doc.save()
+
+    @frappe.whitelist(allow_guest=True)
+    def update_settings(self, data):
+        doc = frappe.get_cached_doc("Writer Document", self.doc)
+        doc.settings = data
+        doc.save()
