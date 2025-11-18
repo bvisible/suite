@@ -22,3 +22,28 @@ span[data-comment-id]:not([data-resolved="true"]).active {
   background: rgba(250, 204, 21, 0.5);
 }
 
+
+span[data-comment-name] {
+  border-bottom: 2px dashed var(--surface-blue-3);
+  user-select: text;
+  cursor: pointer;
+  scroll-margin: 4rem;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+span[data-comment-name].display:hover,
+span[data-comment-name].display.active {
+  background: var(--surface-blue-2);
+}
+
+span[data-comment-name]:not([data-resolved="true"]) {
+  border-bottom: 2px dashed var(--outline-amber-2);
+  background: rgba(250, 204, 21, 0.25);
+}
+
+span[data-comment-name]:not([data-resolved="true"]):hover,
+span[data-comment-name]:not([data-resolved="true"]).active {
+  background: rgba(250, 204, 21, 0.5);
+}
+

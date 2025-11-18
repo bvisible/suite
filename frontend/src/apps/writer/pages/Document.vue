@@ -68,7 +68,6 @@
       />
     </template>
   </Navbar>
-
   <VersionsSidebar
     v-if="showVersions"
     v-model="versionPreview"

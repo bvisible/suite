@@ -2,7 +2,6 @@ import { Extension } from '@tiptap/core'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import {
-  absolutePositionToRelativePosition,
   relativePositionToAbsolutePosition,
   ySyncPluginKey,
 } from 'y-prosemirror'
@@ -17,6 +16,7 @@ const createDecorations = (editor, yDoc, comments, active) => {
   if (!ystate) return DecorationSet.empty
   const decos = []
   comments.forEach((comment) => {
+    if (!comment.anchor.from) return
     const from = relativePositionToAbsolutePosition(
       yDoc,
       ystate.type,
@@ -33,14 +33,14 @@ const createDecorations = (editor, yDoc, comments, active) => {
       Decoration.inline(from, to, {
         nodeName: 'span',
         class: comment.id === active && 'active',
-        'data-comment-id': comment.id,
+        'data-comment-name': comment.id,
       }),
     )
   })
   return DecorationSet.create(editor.state.doc, decos)
 }
-export const CommentHighlight = Extension.create({
-  name: 'commentHighlight',
+export const CommentExtension = Extension.create({
+  name: 'commentExtension',
 
   addOptions() {
     return {
@@ -60,6 +60,7 @@ export const CommentHighlight = Extension.create({
         state: {
           init(_, state) {
             const { doc, comments, activeComment } = ext.options
+            console.log(comments)
             return createDecorations(
               ext.editor,
               doc,
@@ -90,9 +91,9 @@ export const CommentHighlight = Extension.create({
           },
 
           handleClick(view, pos, event) {
-            const el = event.target.closest('[data-comment-id]')
+            const el = event.target.closest('[data-comment-name]')
             if (el) {
-              const id = el.getAttribute('data-comment-id')
+              const id = el.getAttribute('data-comment-name')
               ext.options.onActivated?.(id)
               return true
             }

@@ -35,6 +35,7 @@
           placeholder="Start writing here..."
           :bubble-menu="settings.minimal && menuButtons"
           :extensions="editorExtensions"
+          :editable
           :starterkit-options="{ history: false }"
           @keydown="
             (e) => {
@@ -109,15 +110,16 @@ import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, getRandomColor } from '@/utils'
 import { formatDate } from '@/utils/format'
-import FloatingQuoteButton from '@/extensions/comment'
+import FloatingQuoteButton from '@/extensions/comment-button'
 import MediaDownload from '@/extensions/media-download'
-import { CommentHighlight } from '@/extensions/extended-comment'
+import { CommentExtension } from '@/extensions/comments'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { CharacterCount } from '@/extensions/character-count'
 import {
   default as TableOfContents,
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
+import OldCommentExtension from '@/extensions/old-comment'
 import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
 import { TabsExtension } from '@/extensions/tabs'
@@ -166,7 +168,7 @@ const editorExtensions = [
   ...COMMON_EXTENSIONS,
   CharacterCount,
   TabsExtension,
-  CommentHighlight.configure({
+  CommentExtension.configure({
     comments,
     doc,
     activeComment,
@@ -183,6 +185,24 @@ const editorExtensions = [
         })
     },
   }),
+  OldCommentExtension.configure({
+    onCommentActivated: (id) => {
+      const isResolved = comments.value.find((k) => id === k.name)?.resolved
+      if (id && (!isResolved || showResolved)) {
+        activeComment.value = id
+        showComments.value = true
+        const commentEl = document.querySelector(
+          `span[data-comment-id="${id}"]`,
+        )
+        if (!commentEl.offsetParent)
+          commentEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
+          })
+      }
+    },
+  }),
   TableOfContents.configure({
     onUpdate: (val) => (anchors.value = val),
     getIndex: getHierarchicalIndexes,
@@ -191,9 +211,7 @@ const editorExtensions = [
   props.entity.comment &&
     !inIframe &&
     FloatingQuoteButton.configure({
-      onClick: () => {
-        createAnchoredComment()
-      },
+      onClick: () => addComment(),
     }),
   MediaDownload,
   Collaboration.configure({
@@ -244,7 +262,7 @@ const menuButtons = computed(
     {
       label: 'Comment',
       icon: LucideMessageCircle,
-      action: createNewComment,
+      action: addComment,
       isActive: () => false,
     },
     'Image',
@@ -339,28 +357,16 @@ const uploadFunction = (file) => {
   })
 }
 
-const getOrderedComments = (doc) => {
-  const comments = []
-  doc.descendants((node, pos) => {
-    node.marks.forEach((mark) => {
-      if (mark.type.name === 'comment' && mark.attrs.commentId) {
-        comments.push({ id: mark.attrs.commentId, pos })
-      }
-    })
-  })
-
-  return comments.sort((a, b) => a.pos - b.pos)
-}
-
-const createNewComment = (editor) => {
+const addComment = () => {
   showComments.value = true
   const id = uuidv4()
-  const { from, to } = editor.state.selection
+  const { state } = editor.value
+  const { from, to } = state.selection
   if (from === to) return
   newComment(id, from, to, store.state.user.id)
   activeComment.value = id
-  const tr = editor.state.tr
-  editor.view.dispatch(tr)
+  const tr = state.tr
+  editor.value.view.dispatch(tr)
 }
 
 const autoversion = async () => {

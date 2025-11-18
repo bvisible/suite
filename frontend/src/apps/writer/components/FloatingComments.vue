@@ -14,9 +14,10 @@
         "
         v-on-outside-click="
           (e) => {
+            console.log(comment)
             if (
               activeComment === comment.id &&
-              !e.target.getAttribute('data-comment-id') &&
+              !e.target.getAttribute('data-comment-name') &&
               e.target.nodeName === 'DIV' &&
               !comment.new &&
               !e.target.classList?.contains?.('replies-count')
@@ -106,7 +107,7 @@
                 ]
               : [comment]"
             :key="reply.name || reply.id"
-            class="group w-full flex gap-3"
+            class="group flex-grow flex gap-3"
             :class="reply.loading && !reply.edit && 'opacity-70'"
           >
             <div class="w-8 flex justify-center">
@@ -117,7 +118,10 @@
                 :image="$user(reply.owner)?.user_image"
               />
             </div>
-            <div class="grow flex flex-col" :class="reply.edit && 'gap-1'">
+            <div
+              class="grow flex flex-col min-w-0"
+              :class="reply.edit && 'gap-1'"
+            >
               <div
                 class="w-full flex justify-between items-start label-group gap-1 text-sm"
               >
@@ -273,10 +277,9 @@ import { formatDate } from '@/utils/format'
 import { dynamicList, toast } from '@/utils/'
 import { v4 } from 'uuid'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
-import LucideMessageCircleWarning from '~icons/lucide/message-circle-warning'
 import LucideX from '~icons/lucide/x'
 import LucideMoreVertical from '~icons/lucide/more-vertical'
-import { useStore } from 'vuex'
+import store from '@/store'
 import CommentEditor from './CommentEditor.vue'
 
 const props = defineProps({
@@ -300,6 +303,7 @@ function useYMapReactive(yMap) {
     const arr = []
     yMap.forEach((v) => {
       arr.push(v)
+      console.log(v.id, v.text)
     })
     local.value = arr
   }
@@ -346,6 +350,8 @@ const resolveComment = createResource({
 })
 
 const sanitize = (comment) => {
+  delete comment.new
+  comment.edit = false
   const obj = { ...comment }
   delete obj.edit
   delete obj.new
@@ -372,7 +378,7 @@ const newReply = (comment, editor) => {
   const reply = {
     id,
     text: newReplies[comment.id],
-    owner: comment.owner,
+    owner: store.state.user.id,
     creation: Date.now(),
   }
   comment.replies.push(reply)
@@ -440,15 +446,15 @@ const setCommentHeights = useDebounceFn(() => {
     for (const comment of filteredComments.value) {
       try {
         const containerTop = scrollContainer.value.getBoundingClientRect().top
-        const anchorTop =
-          document
-            .querySelector(`[data-comment-id="${comment.id}"]`)
-            .getBoundingClientRect().top - containerTop
+        const el =
+          document.querySelector(`[data-comment-name="${comment.id}"]`) ||
+          document.querySelector(`[data-comment-id="${comment.id}"]`)
+        const anchorTop = el.getBoundingClientRect().top - containerTop
         const adjustedTop = Math.max(anchorTop, lastBottom)
         comment.top = adjustedTop
         lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
       } catch (e) {
-        console.error(e)
+        console.log(e)
       }
     }
   })

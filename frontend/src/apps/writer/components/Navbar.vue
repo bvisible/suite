@@ -12,9 +12,9 @@
       />
     </slot>
 
-    <div class="ml-auto flex items-center gap-2">
+    <div class="ml-auto flex items-center gap-3">
       <slot name="content" />
-      <div v-if="document?.doc" class="icon mr-2">
+      <div v-if="document?.doc?.share_count" class="icon">
         <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
         <LucideBuilding2
           v-else-if="document.doc.share_count === -1"
@@ -229,9 +229,9 @@ const fileActions = computed(() =>
                   icon: LucideLock,
                   onClick: (val) => {
                     props.document.doc.settings.lock = val
-                    props.document.updateSettings.submit(
-                      JSON.stringify(props.document.doc.settings),
-                    )
+                    props.document.updateSettings.submit({
+                      data: JSON.stringify(props.document.doc.settings),
+                    })
                   },
                 },
                 {
@@ -241,18 +241,17 @@ const fileActions = computed(() =>
                   switchValue: props.document.doc.settings.wide,
                   onClick: (val) => {
                     props.document.doc.settings.wide = val
-                    props.document.updateSettings.submit(
-                      JSON.stringify(props.document.doc.settings),
-                    )
+                    props.document.updateSettings.submit({
+                      data: JSON.stringify(props.document.doc.settings),
+                    })
                   },
                 },
                 {
                   onClick: (val) => {
-                    console.log(props.document)
                     props.document.doc.settings.minimal = val
-                    props.document.updateSettings.submit(
-                      JSON.stringify(props.document.doc.settings),
-                    )
+                    props.document.updateSettings.submit({
+                      data: JSON.stringify(props.document.doc.settings),
+                    })
                   },
                   switch: true,
                   switchValue: props.document.doc.settings.minimal,

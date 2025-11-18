@@ -12,7 +12,7 @@
       class="!w-5.5 !h-5.5 mb-2"
       @click="show = !show"
     />
-    <div v-show="show" class="grow max-w-52 flex flex-col gap-0.5">
+    <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5">
         <div v-for="tab in tabs" :key="tab.id">
           <TextInput
@@ -30,7 +30,7 @@
             :class="tab.id === activeTabId && 'font-medium'"
             :label="tab.label"
             @click="editor.commands.changeTab(tab.id)"
-            @dblclick="startRenaming(tab)"
+            @dblclick="editor.isEditable && startRenaming(tab)"
           />
           <div
             v-if="tab.id === activeTabId"
@@ -79,6 +79,7 @@
         </a>
       </div>
       <Button
+        v-if="editor.isEditable"
         class="!justify-start text-xs opacity-50 hover:opacity-100 mt-2"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
         :label="tabs.length ? 'Add' : 'Create tab'"

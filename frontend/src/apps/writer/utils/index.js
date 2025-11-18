@@ -738,7 +738,7 @@ export function isModKey(e) {
 }
 
 export function toast(obj) {
-  if (typeof obj === 'string') return fToast.success(obj)
+  if (typeof obj === 'string') return nToast.success(obj)
   const { title, buttons, icon, duration, type } = obj
   nToast.create({
     message: title,
