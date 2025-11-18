@@ -274,7 +274,7 @@ import {
 } from 'vue'
 import { Avatar, Button, createResource, Dropdown } from 'frappe-ui'
 import { formatDate } from '@/utils/format'
-import { dynamicList, toast } from '@/utils/'
+import { dynamicList } from '@/utils/'
 import { v4 } from 'uuid'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
 import LucideX from '~icons/lucide/x'

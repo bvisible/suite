@@ -60,7 +60,6 @@ export const CommentExtension = Extension.create({
         state: {
           init(_, state) {
             const { doc, comments, activeComment } = ext.options
-            console.log(comments)
             return createDecorations(
               ext.editor,
               doc,

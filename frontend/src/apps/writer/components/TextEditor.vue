@@ -164,6 +164,20 @@ const {
   saveComments,
 } = useYjs(props.document, editor, edited)
 
+const onCommentActivated = (id) => {
+  if (!id) return
+  activeComment.value = id
+  showComments.value = true
+  const commentEl =
+    document.querySelector(`span[data-comment-name="${id}"]`) ||
+    document.querySelector(`span[data-comment-id="${id}"]`)
+  if (!commentEl.offsetParent)
+    commentEl.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest',
+    })
+}
 const editorExtensions = [
   ...COMMON_EXTENSIONS,
   CharacterCount,
@@ -173,35 +187,10 @@ const editorExtensions = [
     doc,
     activeComment,
     edited,
-    onActivated: (id) => {
-      activeComment.value = id
-      showComments.value = true
-      const commentEl = document.querySelector(`span[data-comment-id="${id}"]`)
-      if (!commentEl.offsetParent)
-        commentEl.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-          inline: 'nearest',
-        })
-    },
+    onActivated: onCommentActivated,
   }),
   OldCommentExtension.configure({
-    onCommentActivated: (id) => {
-      const isResolved = comments.value.find((k) => id === k.name)?.resolved
-      if (id && (!isResolved || showResolved)) {
-        activeComment.value = id
-        showComments.value = true
-        const commentEl = document.querySelector(
-          `span[data-comment-id="${id}"]`,
-        )
-        if (!commentEl.offsetParent)
-          commentEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-            inline: 'nearest',
-          })
-      }
-    },
+    onCommentActivated: onCommentActivated,
   }),
   TableOfContents.configure({
     onUpdate: (val) => (anchors.value = val),
