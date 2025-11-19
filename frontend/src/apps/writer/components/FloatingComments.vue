@@ -130,7 +130,10 @@
                     >{{ $user(reply.owner)?.full_name || reply.owner }}</label
                   >
 
-                  <label class="text-ink-gray-6 truncate">
+                  <label
+                    class="text-ink-gray-6 truncate"
+                    :title="new Date(reply.creation)"
+                  >
                     &#183;
                     {{ formatDateOrTime(reply.creation) }}</label
                   >
@@ -264,7 +267,6 @@ import {
   computed,
   reactive,
   watch,
-  inject,
   onMounted,
   ref,
   h,
@@ -280,11 +282,13 @@ import LucideX from '~icons/lucide/x'
 import LucideMoreVertical from '~icons/lucide/more-vertical'
 import store from '@/store'
 import CommentEditor from './CommentEditor.vue'
+import { rebuild } from '@/extensions/comments'
 
 const props = defineProps({
   document: Object,
   editor: Object,
   yComments: Object,
+  showResolved: Boolean,
 })
 const emit = defineEmits(['save'])
 
@@ -315,26 +319,16 @@ function useYMapReactive(yMap) {
 }
 const comments = useYMapReactive(props.yComments)
 
-const showResolved = inject('showResolved')
 const filteredComments = computed(() => {
-  const filtered = showResolved.value
+  const filtered = props.showResolved
     ? comments.value
     : comments.value.filter((k) => !k.resolved)
   return filtered
 })
-
-watch(showResolved, async (val) => {
-  await nextTick()
-  if (val) {
-    document
-      .querySelectorAll('[data-resolved=true]')
-      .forEach((k) => k.classList.add('display'))
-  } else {
-    document
-      .querySelectorAll('[data-resolved=true]')
-      .forEach((k) => k.classList.remove('display'))
-  }
-})
+watch(
+  () => props.showResolved,
+  () => rebuild(props.editor),
+)
 
 watch(activeComment, (val) => {
   setCommentHeights()
@@ -407,15 +401,9 @@ const removeComment = (commentId) => {
 }
 
 const resolve = (comment, value = true) => {
-  // Update Yjs map
   const updatedComment = { ...comment, resolved: value }
-  props.yComments.set(comment.id, updatedComment)
-
-  // Update editor marks
-  props.editor.commands.resolveComment(comment.id, value)
-
-  // Submit to server
-  resolveComment.submit({ name: comment.id, value })
+  props.yComments.set(comment.id, sanitize(updatedComment))
+  emit('save')
 }
 
 const isEmpty = (editorContent) => {

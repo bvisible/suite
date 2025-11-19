@@ -154,11 +154,9 @@ const props = defineProps({
 })
 
 const store = useStore()
-const showResolved = ref(false)
 const editorEl = useTemplateRef('editorEl')
 const editor = computed(() => editorEl.value?.editor)
 provide('editor', editor)
-provide('showResolved', showResolved)
 
 // Reactive data properties
 const versionPreview = ref(null)

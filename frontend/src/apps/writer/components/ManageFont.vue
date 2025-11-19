@@ -5,13 +5,13 @@
       variant="outline"
       type="number"
       v-model="size"
-      :placeholder="font_size"
+      :placeholder="`${font_size}`"
     />
     <FontSelect v-model="selected" :font_family :editor />
   </div>
 </template>
 <script setup>
-import { Combobox, FormControl } from 'frappe-ui'
+import { FormControl } from 'frappe-ui'
 import { ref, watchEffect, watch } from 'vue'
 import { FONT_FAMILIES } from '@/utils'
 import FontSelect from './FontSelect.vue'

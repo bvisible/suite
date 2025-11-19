@@ -7,7 +7,7 @@ import {
   absolutePositionToRelativePosition,
   ySyncPluginKey,
 } from 'y-prosemirror'
-import { commentPluginKey } from '@/extensions/comments'
+import { rebuild } from '@/extensions/comments'
 
 import store from '@/store'
 
@@ -125,10 +125,7 @@ export function useYjs(document, editor, edited) {
         ),
       },
     })
-    editor.value.chain().command(({ tr }) => {
-      tr.setMeta(commentPluginKey, { rebuild: true })
-      return true
-    }).run()
+    rebuild(editor.value)
   }
   const saveComments = async () => {
     const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))

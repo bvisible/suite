@@ -4,7 +4,6 @@ export default CommentExtension.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
-
       resolved: {
         default: false,
         parseHTML: (el) => el.hasAttribute('data-resolved'),

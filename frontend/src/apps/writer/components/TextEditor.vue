@@ -1,11 +1,34 @@
 <template>
   <div class="flex flex-col w-full">
-    <TextEditorFixedMenu
-      class="py-1.5 w-full max-w-[100vw] md:justify-center overflow-x-auto border-b border-outline-gray-modals flex shrink-0 transition-opacity duration-1"
-      v-if="editable && !settings.minimal"
-      :buttons="menuButtons"
-      :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
-    />
+    <div
+      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals grid md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
+    >
+      <div />
+      <TextEditorFixedMenu
+        class="py-1.5 mx-auto flex justify-center shrink-0 transition-opacity duration-1"
+        v-if="editable && !settings.minimal"
+        :buttons="menuButtons"
+        :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
+      />
+      <div class="flex items-center justify-end pr-4">
+        <Button
+          v-if="comments._map.size"
+          :icon="
+            showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
+          "
+          variant="ghost"
+          :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+          @click="showComments = !showComments"
+        ></Button>
+        <Button
+          v-if="showResolvedButton"
+          :icon="LucideMessageSquareDot"
+          variant="ghost"
+          tooltip="Toggle resolved"
+          @click="showResolved = !showResolved"
+        ></Button>
+      </div>
+    </div>
 
     <div
       id="editorScrollContainer"
@@ -69,6 +92,7 @@
         v-model:active-comment="activeComment"
         :class="showComments ? 'opacity-100' : 'opacity-0'"
         :document
+        :show-resolved
         :editor
         @save="saveComments"
       />
@@ -102,7 +126,10 @@ import { onKeyDown } from '@vueuse/core'
 
 import { isModKey, COMMON_EXTENSIONS } from '@/utils'
 
-import LucideMessageCircle from '~icons/lucide/message-circle'
+import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
+import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
+import LucideMessageSquareOff from '~icons/lucide/message-square-off'
+import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
 import { updateURLSlug } from '@/utils'
 
 import store from '@/store'
@@ -112,7 +139,7 @@ import { printDoc, getRandomColor } from '@/utils'
 import { formatDate } from '@/utils/format'
 import FloatingQuoteButton from '@/extensions/comment-button'
 import MediaDownload from '@/extensions/media-download'
-import { CommentExtension } from '@/extensions/comments'
+import { CommentExtension, rebuild } from '@/extensions/comments'
 import { CollaborationCursor } from '@/extensions/collaboration-cursor'
 import { CharacterCount } from '@/extensions/character-count'
 import {
@@ -124,7 +151,10 @@ import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
 import { TabsExtension } from '@/extensions/tabs'
 
+const activeComment = ref(null)
 const showComments = defineModel('showComments')
+watch([showComments, activeComment], () => rebuild(editor.value))
+const showResolved = ref(true)
 const edited = ref(false)
 const hideToolbar = ref(false)
 
@@ -133,14 +163,12 @@ const props = defineProps({
   entity: Object,
   settings: Object,
   editable: Boolean,
-  showResolved: Boolean,
   currentVersion: { required: false, type: Object },
 })
 const emit = defineEmits(['saveComment'])
 const inIframe = inject('inIframe')
 
 const anchors = ref([])
-const activeComment = ref(null)
 
 const textEditor = ref('textEditor')
 const editor = computed(() => {
@@ -163,6 +191,11 @@ const {
   comments,
   saveComments,
 } = useYjs(props.document, editor, edited)
+const showResolvedButton = computed(() => {
+  let show = false
+  comments.forEach((k) => k.resolved && (show = true))
+  return show
+})
 
 const onCommentActivated = (id) => {
   if (!id) return
@@ -186,6 +219,8 @@ const editorExtensions = [
     comments,
     doc,
     activeComment,
+    showComments,
+    showResolved,
     edited,
     onActivated: onCommentActivated,
   }),
@@ -221,43 +256,35 @@ const editorExtensions = [
   }),
 ]
 
-const menuButtons = computed(
-  () => [
-    'Paragraph',
-    ['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
-    'Separator',
-    'Bold',
-    'Italic',
-    'Strikethrough',
-    'Link',
-    'FontColor',
-    'Separator',
-    ['Bullet List', 'Numbered List', 'Task List'],
-    'Separator',
-    ['Align Left', 'Align Center', 'Align Right'],
-    'Separator',
-    {
-      label: 'FontOptions',
-      component: h(
-        defineAsyncComponent(() => import('./ManageFont.vue')),
-        {
-          editor,
-          font_size: props.settings.font_size || 15,
-          font_family: props.settings.font_family || 'inter',
-        },
-      ),
-    },
-    'Separator',
-    {
-      label: 'Comment',
-      icon: LucideMessageCircle,
-      action: addComment,
-      isActive: () => false,
-    },
-    'Image',
-    'Video',
-    'Iframe',
-  ],
+const menuButtons = computed(() => [
+  'Paragraph',
+  ['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
+  'Separator',
+  'Bold',
+  'Italic',
+  'Strikethrough',
+  'Link',
+  'FontColor',
+  'Separator',
+  ['Bullet List', 'Numbered List', 'Task List'],
+  'Separator',
+  ['Align Left', 'Align Center', 'Align Right'],
+  'Separator',
+  {
+    label: 'FontOptions',
+    component: h(
+      defineAsyncComponent(() => import('./ManageFont.vue')),
+      {
+        editor,
+        font_size: props.settings.font_size || 15,
+        font_family: props.settings.font_family || 'inter',
+      },
+    ),
+  },
+  'Separator',
+  'Image',
+  'Video',
+  'Iframe',
   'Blockquote',
   'Code',
   [
@@ -275,7 +302,14 @@ const menuButtons = computed(
     'ToggleHeaderCell',
     'DeleteTable',
   ],
-)
+  'Separator',
+  {
+    label: 'Comment',
+    icon: LucideMessageSquarePlus,
+    action: () => addComment(),
+    isActive: () => false,
+  },
+])
 
 // Util functions
 const autorename = (bypass = false) => {
