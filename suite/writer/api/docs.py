@@ -1,6 +1,5 @@
 from pathlib import Path
 import io
-import re
 
 import frappe
 import markdown

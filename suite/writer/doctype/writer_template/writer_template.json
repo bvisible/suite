@@ -6,24 +6,35 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "content"
+  "content",
+  "team"
  ],
  "fields": [
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Title"
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
   },
   {
    "fieldname": "content",
    "fieldtype": "HTML Editor",
-   "label": "Content"
+   "in_list_view": 1,
+   "label": "Content",
+   "reqd": 1
+  },
+  {
+   "fieldname": "team",
+   "fieldtype": "Link",
+   "label": "Team",
+   "options": "Drive Team"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-10 14:15:15.385914",
+ "modified": "2025-11-19 15:32:32.893345",
  "modified_by": "Administrator",
  "module": "Writer",
  "name": "Writer Template",
