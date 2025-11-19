@@ -10,6 +10,7 @@ def migrate_doc(file):
             {
                 "doctype": "Writer Document",
                 "content": old_doc.content,
+                "html": old_doc.raw_content,
                 "settings": old_doc.settings,
             }
         )
@@ -18,12 +19,31 @@ def migrate_doc(file):
             commentsDoc = Doc()
             comments = commentsDoc.get("comments", type=Map)
             for comment in file.comments:
+                replies = []
+                reply_docs = frappe.get_all(
+                    "Drive Comment",
+                    filters={"parenttype": "Drive Comment", "parent": comment.name},
+                    fields=["content", "owner", "creation", "name"],
+                )
+                print(reply_docs)
+                for r in reply_docs:
+                    replies.append(
+                        {
+                            "id": r.name,
+                            "creation": r.creation.timestamp() * 1000,
+                            "owner": r.owner,
+                            "text": r.content,
+                            "anchor": {},
+                        }
+                    )
+                print(replies)
+
                 comments[comment.name] = {
                     "id": comment.name,
                     "creation": comment.creation.timestamp() * 1000,
                     "owner": comment.owner,
                     "text": comment.content,
-                    "replies": [],
+                    "replies": replies,
                     "anchor": {},
                 }
             new_doc.ycomments = base64.b64encode(commentsDoc.get_update()).decode()
@@ -31,8 +51,8 @@ def migrate_doc(file):
 
         file.doc = new_doc.name
         file.save()
-    except:
-        print("Failed to migrate:", file.name)
+    except BaseException as e:
+        print(f"{e}\nFailed to migrate:", file.name)
 
 
 def execute():

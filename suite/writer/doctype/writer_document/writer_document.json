@@ -9,10 +9,11 @@
  "engine": "InnoDB",
  "field_order": [
   "content",
+  "html",
   "settings",
-  "versions",
   "updates",
-  "ycomments"
+  "ycomments",
+  "versions"
  ],
  "fields": [
   {
@@ -43,12 +44,18 @@
    "fieldname": "ycomments",
    "fieldtype": "Long Text",
    "label": "Comments"
+  },
+  {
+   "default": "AAA=",
+   "fieldname": "html",
+   "fieldtype": "Long Text",
+   "label": "HTML"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-11-17 16:34:57.625922",
- "modified_by": "Administrator",
+ "modified": "2025-11-19 13:12:48.829825",
+ "modified_by": "safwan@frappe.io",
  "module": "Writer",
  "name": "Writer Document",
  "naming_rule": "Random",
