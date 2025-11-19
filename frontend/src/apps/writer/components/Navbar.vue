@@ -116,7 +116,7 @@ const props = defineProps({
   },
 })
 
-const showComments = defineModel('showComments')
+const showSettings = defineModel('showSettings')
 const showVersions = defineModel('showVersions')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)

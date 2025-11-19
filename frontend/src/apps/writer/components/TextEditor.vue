@@ -242,7 +242,7 @@ const menuButtons = computed(
         defineAsyncComponent(() => import('./ManageFont.vue')),
         {
           editor,
-          font_size: props.settings.font_size || '15',
+          font_size: props.settings.font_size || 15,
           font_family: props.settings.font_family || 'inter',
         },
       ),

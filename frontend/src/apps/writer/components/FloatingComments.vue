@@ -14,7 +14,6 @@
         "
         v-on-outside-click="
           (e) => {
-            console.log(comment)
             if (
               activeComment === comment.id &&
               !e.target.getAttribute('data-comment-name') &&
@@ -303,7 +302,6 @@ function useYMapReactive(yMap) {
     const arr = []
     yMap.forEach((v) => {
       arr.push(v)
-      console.log(v.id, v.text)
     })
     local.value = arr
   }

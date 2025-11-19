@@ -16,7 +16,7 @@
     :breadcrumbs="
       document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
     "
-    v-model:showComments="showComments"
+    v-model:showSettings="showSettings"
     v-model:showVersions="showVersions"
   >
     <template
@@ -102,14 +102,14 @@
       :document
       :settings
     />
-    <!-- 
+
     <WriterSettings
       v-if="showSettings"
       v-model="showSettings"
-      :doc-settings
+      :doc-settings="document"
       :global-settings
       :editable
-    /> -->
+    />
   </div>
 </template>
 
@@ -131,7 +131,7 @@ import { useStore } from 'vuex'
 import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
 
 import VersionsSidebar from '@/components/VersionsSidebar.vue'
-// import WriterSettings from '@/components/WriterSettings.vue'
+import WriterSettings from '@/components/WriterSettings.vue'
 import UsersBar from '@/components/UsersBar.vue'
 
 import { toast } from '@/utils/'
@@ -163,7 +163,9 @@ provide('showResolved', showResolved)
 // Reactive data properties
 const versionPreview = ref(null)
 const showComments = ref(true)
+const showSettings = ref(false)
 const showVersions = ref(false)
+
 const owner = computed(() => document.doc?.owner)
 const isOldSchema = computed(() => {
   if (!owner.value) return false

@@ -7,38 +7,18 @@
       v-model="size"
       :placeholder="font_size"
     />
-    <Combobox
-      v-model="selected"
-      :options="
-        FONT_FAMILIES.map((k) => ({
-          ...k,
-          type: 'custom',
-          slotName: 'font',
-          key: k.value,
-          onClick: () => k.action(editor),
-        }))
-      "
-      :placeholder="FONT_FAMILIES.find((k) => k.value === font_family)?.label"
-      :open-on-click="true"
-      class="min-w-[10rem]"
-      variant="outline"
-    >
-      <template #font="{ option }"
-        ><span :style="{ fontFamily: `var(--font-${option.value})` }">
-          {{ option.label }}</span
-        ></template
-      >
-    </Combobox>
+    <FontSelect v-model="selected" :font_family :editor />
   </div>
 </template>
 <script setup>
 import { Combobox, FormControl } from 'frappe-ui'
 import { ref, watchEffect, watch } from 'vue'
 import { FONT_FAMILIES } from '@/utils'
+import FontSelect from './FontSelect.vue'
 
 const props = defineProps({
   editor: Object,
-  font_size: String,
+  font_size: Number,
   font_family: String,
 })
 

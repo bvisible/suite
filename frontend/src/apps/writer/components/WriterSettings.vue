@@ -12,37 +12,22 @@
           <div class="overflow-y-auto ps-1 pt-4">
             <Form>
               <template #default="{ dirty, setDirty, error }">
-                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">Configuration</h3>
                 <div class="flex flex-col gap-4 pb-5 pr-5">
-                  <FormControl
-                    v-model="settings.versioning"
-                    type="number"
-                    min="1"
-                    label="Versioning Frequency"
-                    placeholder="Default"
-                    :options="[]"
-                    :validate="
-                      (k) =>
-                        k >= 1
-                          ? true
-                          : 'Please give a positive whole number for versioning frequency.'
-                    "
-                    :description="`How often to take automated versions for ${
-                      tabIndex === 1 ? 'this document' : 'new documents'
-                    } (minutes).`"
-                  />
-                </div>
-                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">Styles</h3>
-                <div class="flex flex-col gap-4 pb-5 pr-5">
-                  <FormControl
-                    v-model="settings.font_family"
-                    type="select"
-                    label="Font Family"
-                    :options="fontOptions"
-                    :description="`Choose the default font family for ${
-                      tabIndex === 1 ? 'this document' : 'new documents'
-                    }.`"
-                  />
+                  <div class="space-y-1.5">
+                    <FormLabel label="Font Family" />
+                    <FontSelect
+                      v-model="settings.font_family"
+                      variant="subtle"
+                      :options="fontOptions"
+                    />
+                    <div class="text-xs text-ink-gray-5">
+                      {{
+                        `Choose the default font family for ${
+                          tabIndex === 1 ? 'this document' : 'new documents'
+                        }.`
+                      }}
+                    </div>
+                  </div>
                   <FormControl
                     v-model="settings.font_size"
                     type="select"
@@ -74,7 +59,17 @@
                       class="w-full mt-3"
                       :disabled="!dirty || error"
                       :loading="resource.loading"
-                      @click="(resource.setValue.submit({ [key]: settings }), setDirty(false))"
+                      @click="
+                        () => {
+                          if (key === 'writer_settings')
+                            resource.setValue.submit({ [key]: settings })
+                          else
+                            resource.updateSettings.submit({
+                              data: JSON.stringify(settings),
+                            })
+                          setDirty(false)
+                        }
+                      "
                     />
                   </div>
                 </div>
@@ -89,9 +84,10 @@
 
 <script setup>
 import { computed, ref, reactive, watchEffect } from 'vue'
-import { FormControl, Dialog, Tabs } from 'frappe-ui'
+import { FormControl, Dialog, Tabs, FormLabel } from 'frappe-ui'
 import { FONT_FAMILIES, dynamicList } from '@/utils'
 import Form from '@/components/Form.vue'
+import FontSelect from './FontSelect.vue'
 
 const open = ref(true)
 const model = defineModel()
@@ -152,8 +148,12 @@ const lineHeightOptions = computed(() =>
   ]),
 )
 
-const resource = computed(() => (tabIndex.value === 1 ? props.docSettings : props.globalSettings))
-const key = computed(() => (tabIndex.value === 1 ? 'settings' : 'writer_settings'))
+const resource = computed(() =>
+  tabIndex.value === 1 ? props.docSettings : props.globalSettings,
+)
+const key = computed(() =>
+  tabIndex.value === 1 ? 'settings' : 'writer_settings',
+)
 
 const KEYS = ['font_family', 'font_size', 'line_height', 'versioning']
 
