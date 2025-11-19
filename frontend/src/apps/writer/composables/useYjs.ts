@@ -30,58 +30,15 @@ const REALTIME_CONFIG = {
   },
 }
 
-export function useYjs(document, editor, edited) {
-  const doc = new Y.Doc()
+export const useComments = (document, editor) => {
   const commentsDoc = new Y.Doc()
-  if (document.doc.content || document.doc.updates.length)
-    Y.applyUpdate(
-      doc,
-      Y.mergeUpdates([
-        toUint8Array(document.doc.content),
-        ...document.doc.updates.map(({ data }) => toUint8Array(data)),
-      ]),
-    )
   if (document.doc.ycomments) {
     Y.applyUpdate(commentsDoc, toUint8Array(document.doc.ycomments))
   }
-  let serverStateVector = Y.encodeStateVector(doc)
 
-  const db = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
   const dbComments = new IndexeddbPersistence(
     'wdoc-comments-' + document.doc.name,
     commentsDoc,
-  )
-
-  // Saving to server
-  const save = async (manual = false) => {
-    if (!manual && !edited.value) return
-    // Compute a diff relative to server’s last known state
-    const incrementalDiff = Y.encodeStateAsUpdate(doc, serverStateVector)
-    const updateB64 = fromUint8Array(incrementalDiff)
-    try {
-      const data = await document.addYjsUpdate.submit({
-        update_b64: updateB64,
-      })
-      if (data?.success) {
-        serverStateVector = Y.encodeStateVector(doc)
-      } else if (data?.skipped) {
-        console.log(
-          'Server skipped update - probably because other people are collaborating',
-        )
-      }
-    } catch (error) {
-      console.error('Failed to save YJS update:', error)
-      toast.error('Could not save document.')
-    }
-  }
-
-  const autosave = debounce(save, 2000)
-
-  // WebRTC for real-time P2P collaboration
-  const provider = new WebrtcProvider(
-    'wdoc-' + document.doc.name,
-    doc,
-    REALTIME_CONFIG,
   )
   const providerComments = new WebrtcProvider(
     'wdoc-comments-' + document.doc.name,
@@ -89,14 +46,6 @@ export function useYjs(document, editor, edited) {
     REALTIME_CONFIG,
   )
 
-  const permanentUserData = new Y.PermanentUserData(doc)
-  permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
-
-  doc.on('update', (_, origin) => {
-    if (origin !== 'server') autosave()
-  })
-
-  // Comments
   const comments = commentsDoc.getMap('comments')
   const newComment = (id, from, to, owner, anchorText) => {
     const ystate = ySyncPluginKey.getState(editor.value.view.state)
@@ -131,19 +80,80 @@ export function useYjs(document, editor, edited) {
     const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))
     document.saveComments.submit({ data })
   }
+  const cleanup = () => {
+    providerComments.destroy()
+    dbComments.destroy()
+  }
+  return { saveComments, newComment, comments, cleanup }
+}
+
+
+export function useYjs(document, editor, edited) {
+  const doc = new Y.Doc()
+  if (document.doc.content || document.doc.updates.length)
+    Y.applyUpdate(
+      doc,
+      Y.mergeUpdates([
+        toUint8Array(document.doc.content),
+        ...document.doc.updates.map(({ data }) => toUint8Array(data)),
+      ]),
+    )
+
+  let serverStateVector = Y.encodeStateVector(doc)
+
+  const db = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
+
+  // Saving to server
+  const save = async (manual = false) => {
+    if (!manual && !edited.value) return
+    // Compute a diff relative to server’s last known state
+    const incrementalDiff = Y.encodeStateAsUpdate(doc, serverStateVector)
+    const updateB64 = fromUint8Array(incrementalDiff)
+    try {
+      const data = await document.addYjsUpdate.submit({
+        update_b64: updateB64,
+      })
+      if (data?.success) {
+        serverStateVector = Y.encodeStateVector(doc)
+      } else if (data?.skipped) {
+        console.log(
+          'Server skipped update - probably because other people are collaborating',
+        )
+      }
+    } catch (error) {
+      console.error('Failed to save YJS update:', error)
+      toast.error('Could not save document.')
+    }
+  }
+
+  const autosave = debounce(save, 2000)
+
+  // WebRTC for real-time P2P collaboration
+  const provider = new WebrtcProvider(
+    'wdoc-' + document.doc.name,
+    doc,
+    REALTIME_CONFIG,
+  )
+  const permanentUserData = new Y.PermanentUserData(doc)
+  permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
+
+  doc.on('update', (_, origin) => {
+    if (origin !== 'server') autosave()
+  })
+
+  // Comments
+  const { cleanup: cleanupComments, ...commentsData } = useComments(document, editor)
+
   return {
     doc,
     cleanup: () => {
       provider.destroy()
-      providerComments.destroy()
       db.destroy()
-      dbComments.destroy()
+      cleanupComments()
     },
     save,
     provider,
     permanentUserData,
-    comments,
-    newComment,
-    saveComments,
+    ...commentsData 
   }
 }

@@ -49,11 +49,11 @@
                   >
                     <Avatar
                       :image="$user(row.owner)?.user_image"
-                      :label="$user(row.owner)?.full_name || 'Deleted user'"
+                      :label="$user(row.owner)?.full_name || 'Deleted'"
                       size="xs"
                     />
                     <span :title="row.owner">{{
-                      $user(row.owner)?.full_name || 'Deleted user'
+                      $user(row.owner)?.full_name || 'Deleted'
                     }}</span>
                   </div>
                 </div>

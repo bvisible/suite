@@ -32,7 +32,7 @@
 
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
       @mousemove="hideToolbar = false"
     >
       <ToC :editor :anchors />

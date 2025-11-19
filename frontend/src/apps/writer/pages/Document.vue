@@ -84,8 +84,18 @@
     class="w-10 h-full text-neutral-100 mx-auto"
   />
   <div v-else class="flex w-full h-full overflow-hidden" v-show="!showVersions">
+    <NonCollabEditor
+      v-if="document.doc?.settings?.collab === false"
+      v-model:show-comments="showComments"
+      v-model:versionPreview="versionPreview"
+      :entity="document.doc"
+      :document
+      :settings
+      :editable
+      :show-resolved
+    />
     <TextEditor
-      v-if="document.doc?.settings"
+      v-else-if="document.doc?.settings"
       ref="editorEl"
       v-model:show-comments="showComments"
       v-model:show-versions="showVersions"
@@ -95,7 +105,6 @@
       :editable
       :settings
       :show-resolved
-      @save-comment="saveDocument(true)"
     />
     <MarkdownEditor
       v-else-if="document.doc?.mime_type == 'text/markdown'"
