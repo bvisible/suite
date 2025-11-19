@@ -299,15 +299,31 @@ const newReplies = reactive({})
 const commentRefs = reactive({})
 const commentContents = reactive({})
 
+const commentPositions = computed(() => {
+  const positions = new Map()
+
+  props.editor.state.doc.descendants((node, pos) => {
+    node.marks.forEach((mark) => {
+      if (mark.type.name === 'comment' && mark.attrs.commentId) {
+        if (!positions.has(mark.attrs.commentId)) {
+          positions.set(mark.attrs.commentId, pos)
+        }
+      }
+    })
+  })
+  return positions
+})
+
 function useYMapReactive(yMap) {
   const local = ref([])
 
   const update = () => {
     const arr = []
     yMap.forEach((v) => {
-      arr.push(v)
+      arr.push({ ...v, pos: commentPositions.value.get(v.id) ?? 0 })
     })
-    local.value = arr
+    local.value = arr.sort((a, b) => a.pos - b.pos)
+    console.log(local.value)
   }
 
   update()

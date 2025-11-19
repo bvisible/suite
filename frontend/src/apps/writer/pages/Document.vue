@@ -94,6 +94,11 @@
       :editable
       :show-resolved
     />
+    <MarkdownEditor
+      v-else-if="document.doc?.mime_type == 'text/markdown'"
+      :document
+      :settings
+    />
     <TextEditor
       v-else-if="document.doc?.settings"
       ref="editorEl"
@@ -105,11 +110,6 @@
       :editable
       :settings
       :show-resolved
-    />
-    <MarkdownEditor
-      v-else-if="document.doc?.mime_type == 'text/markdown'"
-      :document
-      :settings
     />
 
     <WriterSettings

@@ -1,4 +1,20 @@
 <template>
+  <Teleport to="#navbar-content" defer>
+    <Button
+      v-if="comments._map.size"
+      :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
+      variant="outline"
+      :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+      @click="showComments = !showComments"
+    ></Button>
+    <Button
+      v-if="showResolvedButton"
+      :icon="LucideMessageSquareDot"
+      variant="outline"
+      tooltip="Toggle resolved"
+      @click="showResolved = !showResolved"
+    ></Button>
+  </Teleport>
   <div class="flex flex-col w-full">
     <div
       class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals grid md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
@@ -10,24 +26,7 @@
         :buttons="menuButtons"
         :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
       />
-      <div class="flex items-center justify-end pr-4">
-        <Button
-          v-if="comments._map.size"
-          :icon="
-            showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
-          "
-          variant="ghost"
-          :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-          @click="showComments = !showComments"
-        ></Button>
-        <Button
-          v-if="showResolvedButton"
-          :icon="LucideMessageSquareDot"
-          variant="ghost"
-          tooltip="Toggle resolved"
-          @click="showResolved = !showResolved"
-        ></Button>
-      </div>
+      <div class="flex items-center justify-end pr-4"></div>
     </div>
 
     <div

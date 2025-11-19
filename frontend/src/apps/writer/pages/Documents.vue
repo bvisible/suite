@@ -3,31 +3,33 @@
   <div class="flex-grow overflow-y-auto">
     <div class="px-15 py-5 bg-surface-gray-1">
       <h3 class="font-semibold text-base mb-4">Templates</h3>
-      <div
-        v-for="template in templates.data"
-        class="cursor-pointer rounded w-48"
-        @click="
-          createDocument.submit(
-            { template: template.name },
-            {
-              onSuccess: (d) =>
-                $router.push({
-                  name: 'Document',
-                  params: { id: d.name },
-                }),
-            },
-          )
-        "
-      >
+      <div class="flex gap-10 overflow-x-scroll p-1">
         <div
-          class="aspect-[37/50] cursor-pointer overflow-hidden rounded-md dark:bg-gray-900 bg-surface-white w-48 p-3 shadow-lg transition-shadow hover:shadow-xl"
+          v-for="template in templates.data"
+          class="cursor-pointer rounded w-48"
+          @click="
+            createDocument.submit(
+              { template: template.name },
+              {
+                onSuccess: (d) =>
+                  $router.push({
+                    name: 'Document',
+                    params: { id: d.name },
+                  }),
+              },
+            )
+          "
         >
           <div
-            class="prose prose-sm pointer-events-none w-[200%] origin-top-left scale-[.55] prose-p:my-1 md:w-[250%] md:scale-[.39]"
-            v-html="template.content"
-          ></div>
+            class="aspect-[37/50] cursor-pointer overflow-hidden rounded-md dark:bg-gray-900 bg-surface-white w-48 p-3 shadow-lg transition-shadow hover:shadow-xl"
+          >
+            <div
+              class="prose prose-sm pointer-events-none w-[200%] origin-top-left scale-[.55] prose-p:my-1 md:w-[250%] md:scale-[.39]"
+              v-html="template.content"
+            ></div>
+          </div>
+          <div class="p-3 text-ink-gray-7 text-base">{{ template.title }}</div>
         </div>
-        <div class="p-3 text-ink-gray-7 text-base">{{ template.title }}</div>
       </div>
     </div>
     <RoundedListView
@@ -58,11 +60,14 @@ function groupByTime(entities) {
     'Earlier this year': [],
     Earlier: [],
   }
+  entities.forEach((k) => {
+    const modified = new Date(k.modified)
+    const accessed = new Date(k.accessed)
+    k.recentDate = modified > accessed ? modified : accessed
+    console.log(accessed, k.recentDate)
+    return k
+  })
   entities
-    .filter((k) => {
-      k.recentDate = new Date(k.accessed || k.modified)
-      return k
-    })
     .sort((a, b) => b.recentDate - a.recentDate)
     .forEach((file) => {
       const yearDiff = today.getFullYear() - file.recentDate.getFullYear()

@@ -45,7 +45,7 @@
                   />
                   <div
                     v-if="row.owner != $store.state.user.id"
-                    class="flex items-center gap-1 w-16 justify-end"
+                    class="flex items-center gap-1 w-32 justify-start"
                   >
                     <Avatar
                       :image="$user(row.owner)?.user_image"
@@ -110,27 +110,4 @@ useInfiniteScroll(
     },
   },
 )
-
-const store = useStore()
-const selectedRow = ref(null)
-const rowEvent = ref(null)
-
-const contextMenu = (event, row) => {
-  rowEvent.value = event
-  selectedRow.value = row
-}
-
-const dropdownActionItems = (row) => {
-  if (!row) return []
-  return props.actionItems
-    .filter((a) => !a.isEnabled || a.isEnabled(row))
-    .map((a) => ({
-      ...a,
-      handler: () => {
-        rowEvent.value = false
-        store.commit('setActiveEntity', row)
-        a.action([row])
-      },
-    }))
-}
 </script>

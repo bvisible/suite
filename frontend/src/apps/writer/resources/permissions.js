@@ -41,7 +41,7 @@ export const userList = createResource({
 })
 
 export const allUsers = createResource({
-  url: '/api/method/drive.api.product.get_all_users',
+  url: 'drive.api.product.get_drive_users',
   method: 'GET',
   transform: (data) => {
     data.map((item) => {
