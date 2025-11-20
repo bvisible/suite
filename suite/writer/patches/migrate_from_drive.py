@@ -42,6 +42,7 @@ def migrate_doc(file):
                 "owner": comment.owner,
                 "text": comment.content,
                 "replies": replies,
+                "resolved": comment.resolved,
                 "anchor": {},
             }
         new_doc.ycomments = base64.b64encode(commentsDoc.get_update()).decode()
