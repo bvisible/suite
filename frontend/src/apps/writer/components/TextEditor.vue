@@ -316,7 +316,7 @@ const menuButtons = computed(() => [
 ])
 
 // Util functions
-const autorename = (bypass = false) => {
+const autorename = () => {
   const { $anchor } = editor.value.view.state.selection
   // Check if we're in the very first textblock
   if (!($anchor.index(0) === 1 && $anchor.depth === 1)) {
@@ -333,7 +333,7 @@ const autorename = (bypass = false) => {
     .replaceAll('#', '')
     .replaceAll('@', '')
     .trim()
-  if (!props.entity.title.startsWith('Untitled Document') && !bypass) return
+  if (!props.entity.title.startsWith('Untitled Document')) return
   if (implicitTitle.length)
     rename.submit(
       {
@@ -343,6 +343,9 @@ const autorename = (bypass = false) => {
       {
         onSuccess: () => {
           props.document.doc.title = rename.params.new_title
+          props.document.doc.breadcrumbs[
+            props.document.doc.breadcrumbs.length - 1
+          ].title = rename.params.new_title
           updateURLSlug(rename.params.new_title)
         },
       },

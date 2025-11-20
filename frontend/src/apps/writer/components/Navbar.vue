@@ -137,7 +137,10 @@ const formattedCrumbs = computed(() => {
         window.location.replace('/drive/d/' + k.name)
       },
     })),
-    ...props.breadcrumbs.slice(-1),
+    {
+      ...props.breadcrumbs[props.breadcrumbs.length - 1],
+      onClick: () => emitter.emit('rename'),
+    },
   ]
 })
 

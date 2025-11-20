@@ -71,11 +71,8 @@ export const TabsExtension = Node.create({
       }
     }
     selectFirstTab()
-    // if (this.options.ydoc) {
-    //   this.options.ydoc.on('sync', selectFirstTab)
-    // } else {
-    //   this.editor.on('update', selectFirstTab)
-    // }
+    // BROKEN: somehow stop constant re-firing of this
+    this.editor.on('update', selectFirstTab)
   },
 
   onDestroy() {
