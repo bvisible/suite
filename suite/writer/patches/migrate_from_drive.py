@@ -32,7 +32,6 @@ def migrate_doc(file):
                             "creation": r.creation.timestamp() * 1000,
                             "owner": r.owner,
                             "text": r.content,
-                            "anchor": {},
                         }
                     )
 
@@ -47,6 +46,28 @@ def migrate_doc(file):
                 }
             new_doc.ycomments = base64.b64encode(commentsDoc.get_update()).decode()
             new_doc.save()
+
+        frappe.db.set_value(
+            "Writer Document",
+            new_doc.name,
+            "owner",
+            old_doc.owner,
+            update_modified=False,
+        )
+        frappe.db.set_value(
+            "Writer Document",
+            new_doc.name,
+            "creation",
+            old_doc.creation,
+            update_modified=False,
+        )
+        frappe.db.set_value(
+            "Writer Document",
+            new_doc.name,
+            "modified",
+            old_doc.modified,
+            update_modified=False,
+        )
 
         file.doc = new_doc.name
         file.save()
