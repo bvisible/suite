@@ -8,7 +8,7 @@ app_license = "agpl-3.0"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["drive"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -88,7 +88,7 @@ website_route_rules = [
 # ------------
 
 # before_install = "writer.install.before_install"
-# after_install = "writer.install.after_install"
+after_install = "writer.patches.migrate_from_drive.execute"
 
 # Uninstallation
 # ------------
