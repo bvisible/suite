@@ -252,10 +252,10 @@ const applyResistance = (axis, delta) => {
 
 	if (axis == 'X') {
 		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
-		pullDelta = currentResizer.value ? delta.width : delta.x
+		pullDelta = currentResizer.value ? delta.width : delta.left
 	} else if (axis == 'Y') {
 		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
-		pullDelta = delta.y
+		pullDelta = delta.top
 	}
 
 	return useResistance && Math.abs(pullDelta) < escapeDelta
