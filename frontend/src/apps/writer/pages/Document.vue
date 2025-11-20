@@ -37,7 +37,7 @@
         v-if="editor?.storage?.collaborationCursor?.users?.length > 1"
         :users="
           editor.storage.collaborationCursor.users.filter(
-            (k) => k.name !== $store.state.user.id,
+            (k) => k.id !== $store.state.user.id,
           )
         "
       />

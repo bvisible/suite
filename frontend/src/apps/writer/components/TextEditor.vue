@@ -1,7 +1,9 @@
 <template>
   <Teleport to="#navbar-content" defer>
     <Button
-      v-if="showResolvedButton"
+      v-if="
+        Array.from(commentsMap).find((k) => k[1].content?.arr?.[0].resolved)
+      "
       :icon="LucideMessageSquareDot"
       variant="outline"
       tooltip="Toggle resolved"
@@ -153,7 +155,7 @@ import { TabsExtension } from '@/extensions/tabs'
 const activeComment = ref(null)
 const showComments = defineModel('showComments')
 watch([showComments, activeComment], () => rebuild(editor.value))
-const showResolved = ref(true)
+const showResolved = ref(false)
 const edited = ref(false)
 const hideToolbar = ref(false)
 
@@ -190,8 +192,11 @@ const {
   comments,
   saveComments,
 } = useYjs(props.document, editor, edited)
+const commentsMap = computed(() => comments._map)
 const showResolvedButton = computed(() => {
   let show = false
+  console.log(comments._map.size)
+  if (!comments._map.size) return false
   comments.forEach((k) => k.resolved && (show = true))
   return show
 })
@@ -385,7 +390,13 @@ const addComment = () => {
   const { state } = editor.value
   const { from, to } = state.selection
   if (from === to) return
-  newComment(id, from, to, store.state.user.id)
+  newComment(
+    id,
+    from,
+    to,
+    store.state.user.id,
+    state.doc.textBetween(from, to, ' '),
+  )
   activeComment.value = id
   const tr = state.tr
   editor.value.view.dispatch(tr)

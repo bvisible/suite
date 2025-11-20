@@ -2,7 +2,7 @@
   <Navbar />
   <div class="flex-grow overflow-y-auto">
     <div v-if="templates.data?.length" class="px-15 py-5 bg-surface-gray-1">
-      <h3 class="font-semibold text-base mb-4">Templates</h3>
+      <h3 class="font-semibold text-base mb-3">Templates</h3>
       <div class="flex gap-10 overflow-x-scroll p-1">
         <div
           v-for="template in templates.data"
@@ -28,7 +28,9 @@
               v-html="template.content"
             ></div>
           </div>
-          <div class="p-3 text-ink-gray-7 text-base">{{ template.title }}</div>
+          <div class="pt-3 pl-1 text-ink-gray-7 text-base">
+            {{ template.title }}
+          </div>
         </div>
       </div>
     </div>

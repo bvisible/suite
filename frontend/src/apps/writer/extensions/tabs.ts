@@ -3,7 +3,6 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TabView from './components/TabView.vue'
 import {TextSelection} from '@tiptap/pm/state'
 import { v4 } from 'uuid'
-import { nextTick } from 'vue'
 
 export const TabsExtension = Node.create({
   name: 'tab',
@@ -15,8 +14,16 @@ export const TabsExtension = Node.create({
   addStorage() {
     return {
       activeTabId: null,
+      hasInitialized: false,
     }
   },
+
+  addOptions() {
+    return {
+      ydoc: null,
+    }
+  },
+
   addAttributes() {
     return {
       id: {
@@ -45,17 +52,36 @@ export const TabsExtension = Node.create({
   },
 
   onCreate() {
-    // Select first tab on mount
-    const { doc } = this.editor.state
-    let set = false
-    doc.descendants((node) => {
-      if (!set && node.type.name === 'tab') {
-        console.log('HAHAHAHA', node)
-        this.editor.commands.changeTab(node.attrs.id, false)
-        set = true
+    const selectFirstTab = () => {
+      if (this.storage.hasInitialized) return
+      
+      const { doc } = this.editor.state
+      let firstTabId = null
+      
+      doc.descendants((node) => {
+        if (node.type.name === 'tab' && !firstTabId) {
+          firstTabId = node.attrs.id
+          return false
+        }
+      })
+      
+      if (firstTabId) {
+        this.storage.hasInitialized = true
+        this.editor.commands.changeTab(firstTabId, false)
       }
-    })
-    console.log(this.editor)
+    }
+    selectFirstTab()
+    // if (this.options.ydoc) {
+    //   this.options.ydoc.on('sync', selectFirstTab)
+    // } else {
+    //   this.editor.on('update', selectFirstTab)
+    // }
+  },
+
+  onDestroy() {
+    if (this.options.ydoc) {
+      this.options.ydoc.off('sync', () => {})
+    }
   },
 
   addCommands() {
@@ -101,7 +127,7 @@ export const TabsExtension = Node.create({
                 label: newLabel,
               })
               updated = true
-              return false // Stop traversing
+              return false
             }
           })
 
@@ -148,7 +174,6 @@ export const TabsExtension = Node.create({
   },
  addKeyboardShortcuts() {
     return {
-      // Cmd/Ctrl + A: Select all content in current tab
       'Mod-a': () => {
         const activeTabId = this.storage.activeTabId
         if (!activeTabId) return false
@@ -159,8 +184,8 @@ export const TabsExtension = Node.create({
 
         state.doc.descendants((node, pos) => {
           if (node.type.name === 'tab' && node.attrs.id === activeTabId) {
-            tabStart = pos + 1 // Start of content inside tab
-            tabEnd = pos + node.nodeSize - 1 // End of content inside tab
+            tabStart = pos + 1
+            tabEnd = pos + node.nodeSize - 1
             return false
           }
         })
@@ -175,26 +200,6 @@ export const TabsExtension = Node.create({
 
         return false
       },
-      // Prevent backspace at start of tab from merging with previous
-      // 'Backspace': () => {
-      //   const { state } = this.editor
-      //   const { $from } = state.selection
-        
-      //   // Find if we're inside a tab at any depth
-      //   for (let d = $from.depth; d > 0; d--) {
-      //     if ($from.node(d).type.name === 'tab') {
-      //       // Check if we're at the very start of the first node in the tab
-      //       const beforePos = $from.before(d)
-      //       if ($from.pos <= beforePos + 2) {
-      //         // At the start of tab content, prevent default backspace
-      //         return true
-      //       }
-      //       break
-      //     }
-      //   }
-        
-      //   return false
-      // },
     }
   },
 })

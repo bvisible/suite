@@ -5,13 +5,13 @@
         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">
           {{ group }}
         </h2>
-        <div class="divide-y divide-surface-gray-2">
+        <div class="divide-y divide-surface-gray-2 px-2">
           <div v-for="row in files" :key="row.name">
             <div
               @click="
                 $router.push({ name: 'Document', params: { id: row.name } })
               "
-              class="group flex items-center justify-between px-4 py-3 hover:bg-surface-gray-1 rounded cursor-pointer"
+              class="group flex items-center justify-between px-4 py-3 hover:bg-surface-gray-1 rounded cursor-pointer my-px"
             >
               <div class="flex gap-2">
                 <div class="flex flex-col gap-1">
