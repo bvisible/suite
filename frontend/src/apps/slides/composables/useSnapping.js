@@ -204,10 +204,18 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 				prevDiff: prevDiffs[axis],
 			}
 		}
-		const diff = currentResizer.value.includes('left') ? diffs.leftEdge : diffs.rightEdge
-		const prevDiff = currentResizer.value.includes('left')
-			? prevDiffs.leftEdge
-			: prevDiffs.rightEdge
+		let diff, prevDiff
+		if (axis == 'centerY') {
+			diff = currentResizer.value.includes('left') ? diffs.leftEdge : diffs.rightEdge
+			prevDiff = currentResizer.value.includes('left')
+				? prevDiffs.leftEdge
+				: prevDiffs.rightEdge
+		} else if (axis == 'centerX') {
+			diff = currentResizer.value.includes('top') ? diffs.topEdge : diffs.bottomEdge
+			prevDiff = currentResizer.value.includes('top')
+				? prevDiffs.topEdge
+				: prevDiffs.bottomEdge
+		}
 
 		return { diff, prevDiff }
 	}
