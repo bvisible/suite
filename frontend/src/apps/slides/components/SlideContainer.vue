@@ -286,7 +286,7 @@ const elementOffset = reactive({
 })
 
 const handlePositionChange = (delta) => {
-	if (!delta.x && !delta.y) return
+	if (!delta.left && !delta.top) return
 
 	const totalDelta = getTotalInteractionDelta(delta)
 
