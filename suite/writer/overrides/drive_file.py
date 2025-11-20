@@ -29,3 +29,11 @@ class WriterDriveFile(DriveFile):
         doc = frappe.get_cached_doc("Writer Document", self.doc)
         doc.settings = data
         doc.save()
+
+    @frappe.whitelist(allow_guest=True)
+    def save_html(self, html):
+        doc = frappe.get_cached_doc("Writer Document", self.doc)
+        doc.html = html
+        doc.save()
+        self._modified = frappe.utils.now()
+        self.save()
