@@ -2,7 +2,7 @@ import { ref, reactive, computed } from 'vue'
 import { selectionBounds, currentSlide, slideBounds } from '../stores/slide'
 import { activeElementIds, pairElementId } from '../stores/element'
 
-export const useSnapping = (target, parent, currentResizer) => {
+export const useSnapping = (target, parent, currentResizer, hasOngoingInteraction) => {
 	const directionKeys = ['left', 'centerX', 'right', 'top', 'centerY', 'bottom']
 
 	const initDiffs = () => {
@@ -19,10 +19,10 @@ export const useSnapping = (target, parent, currentResizer) => {
 	const mode = ref(null)
 
 	const visibilityMap = computed(() => {
-		if (!target.value) return
+		if (!target.value || !hasOngoingInteraction.value) return
 
 		return directionKeys.reduce((visibility, direction) => {
-			const diff = Math.abs(diffs[direction])
+			const diff = Math.abs(getDiffsForAxis(direction).diff)
 			const threshold = getDynamicThresholds(direction).threshold
 
 			visibility[direction] = Math.abs(diff) < threshold
@@ -198,7 +198,7 @@ export const useSnapping = (target, parent, currentResizer) => {
 	}
 
 	const getDiffsForAxis = (axis) => {
-		if (mode.value == 'dragging') {
+		if (mode.value == 'dragging' || !currentResizer.value) {
 			return {
 				diff: diffs[axis],
 				prevDiff: prevDiffs[axis],

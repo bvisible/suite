@@ -11,7 +11,10 @@
 				@setIsSelecting="(val) => (isSelecting = val)"
 			/>
 
-			<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
+			<SnapGuides
+				:ongoingInteraction="hasOngoingInteraction"
+				:visibilityMap="visibilityMap"
+			/>
 
 			<SlideElement
 				v-for="element in currentSlide?.elements"
@@ -93,10 +96,13 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
+const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
+
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(
 	selectionBoxRef,
 	slideRef,
 	currentResizer,
+	hasOngoingInteraction,
 )
 
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(slideContainerRef, slideRef)
@@ -423,8 +429,6 @@ provide('resizer', {
 defineExpose({
 	togglePanZoom,
 })
-
-const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
 const applyInteractionOffsets = () => {
 	pairElementId.value = null
