@@ -253,18 +253,34 @@ export const useSnapping = (target, parent, currentResizer) => {
 
 		setResistanceMap()
 
+		let offsetX = 0
+		let offsetY = 0
+		let offsetWidth = 0
+
 		if (mode.value == 'resizing') {
 			if (currentResizer.value == 'right') {
-				return { offsetX: 0, offsetWidth: getSnapOffset() }
+				offsetX = 0
+				offsetWidth = getSnapOffset()
 			} else if (currentResizer.value == 'left') {
-				return { offsetX: getSnapOffset(), offsetWidth: -getSnapOffset() }
+				offsetX = getSnapOffset()
+				offsetWidth = -getSnapOffset()
 			}
+		} else if (['centerY', 'left', 'right'].includes(axis)) {
+			offsetX = getSnapOffset()
+		} else if (['centerX', 'top', 'bottom'].includes(axis)) {
+			offsetY = getSnapOffset()
 		}
-		return getSnapOffset()
+
+		return {
+			offsetX: offsetX,
+			offsetY: offsetY,
+			offsetWidth: offsetWidth,
+		}
 	}
 
 	const getCenterOffsets = () => {
 		const { offsetX, offsetWidth } = handleSnapMovement('centerY')
+
 		const { offsetY } = handleSnapMovement('centerX')
 
 		return {
