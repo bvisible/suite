@@ -21,7 +21,7 @@
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
           :editor-class="[
-            'prose-sm min-h-full mx-auto px-10 overflow-x-auto py-7',
+            'min-h-full mx-auto px-10 overflow-x-auto py-7',
             settings?.wide
               ? 'md:min-w-[100ch] md:max-w-[100ch]'
               : 'md:min-w-[48rem] md:max-w-[48rem]',
@@ -50,6 +50,7 @@
         >
           <template #editor="{ editor }">
             <EditorContent
+              class="bg-surface-white prose prose-sm prose-v2"
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -107,7 +108,6 @@ import store from '@/store'
 import emitter from '@/emitter'
 import { rename } from '@/resources/files'
 import { printDoc, dynamicList, toast, isModKey } from '@/utils/'
-import { formatDate } from '@/utils/format'
 import FontFamily from '@/extensions/font-family'
 import FloatingQuoteButton from '@/extensions/comment-button'
 import MediaDownload from '@/extensions/media-download'

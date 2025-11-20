@@ -75,7 +75,7 @@
         >
           <template #editor="{ editor }">
             <EditorContent
-              class="prose-sm prose-v2"
+              class="bg-surface-white prose prose-sm prose-v2"
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,

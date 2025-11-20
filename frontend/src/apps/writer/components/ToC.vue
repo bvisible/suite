@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="hidden md:block p-5 gap-2 sticky top-0 self-start"
+    class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white"
   >
     <Button
       v-if="tabs.length || anchors.length > 1"
