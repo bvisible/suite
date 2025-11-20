@@ -79,13 +79,14 @@
   />
   <ErrorPage v-if="document.error" :error="document.error" />
   <LoadingIndicator
-    v-else-if="!document.data && document.loading"
+    v-else-if="!document.doc && document.loading"
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
   <div v-else class="flex w-full h-full overflow-hidden" v-show="!showVersions">
     <NonCollabEditor
       v-if="document.doc?.settings?.collab === false"
+      ref="editorEl"
       v-model:show-comments="showComments"
       v-model:versionPreview="versionPreview"
       :entity="document.doc"
@@ -182,21 +183,21 @@ const isOldSchema = computed(() => {
   )
 })
 
-const editable = computed(
-  () =>
-    !inIframe.value &&
-    !!document.doc?.write &&
-    !document.doc?.settings?.lock &&
-    editor.value &&
-    !isOldSchema.value,
+const inIframe = inject('inIframe')
+const document = useDocument(props.id)
+const editable = computed(() =>
+  !inIframe.value &&
+  !!document.doc?.write &&
+  !document.doc?.settings?.lock &&
+  editor.value &&
+  !isOldSchema.value
+    ? true
+    : false,
 )
 watch(showVersions, (v) => {
   if (!v) versionPreview.value = null
 })
 
-const inIframe = inject('inIframe')
-
-const document = useDocument(props.id)
 usePageMeta(() => ({
   title: document.doc ? document.doc.title : 'Loading...',
 }))
@@ -246,11 +247,6 @@ window.addEventListener('offline', () => {
 })
 window.addEventListener('online', () => {
   toast({ title: 'Back online!', icon: h(LucideWifi) })
-})
-
-onBeforeUnmount(() => {
-  const sidebar = window.document.querySelector('#sidebar')
-  if (sidebar) sidebar.style.removeProperty('display')
 })
 
 let toasted

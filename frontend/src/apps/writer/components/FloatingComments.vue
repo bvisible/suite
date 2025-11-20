@@ -323,7 +323,6 @@ function useYMapReactive(yMap) {
       arr.push({ ...v, pos: commentPositions.value.get(v.id) ?? 0 })
     })
     local.value = arr.sort((a, b) => a.pos - b.pos)
-    console.log(local.value)
   }
 
   update()

@@ -10,7 +10,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
 
   interface DocumentMethods {
     addYjsUpdate: (params: { update_b64: string }) => void
-    newVersion: (params: { data: string, title: string }) => void
+    newVersion: (params: { data: string; title: string }) => void
   }
 
   let name = toValue(docId)
@@ -21,15 +21,20 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       name: docId,
       transform: (doc) => {
         if (doc.settings) doc.settings = JSON.parse(doc.settings)
-          if(doc.comments) doc.comments = doc.comments.map(k => ({...k, anchor: JSON.parse(k.anchor)}))
+        if (doc.comments)
+          doc.comments = doc.comments.map((k) => ({
+            ...k,
+            anchor: JSON.parse(k.anchor),
+          }))
         return prettyData(doc)
       },
       methods: {
         addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
         newVersion: { name: 'new_version', skipOverride: true },
         saveComments: { name: 'save_comments', skipOverride: true },
-        toggleFav: {name: 'toggle_favourite', skipOverride: true},
-        updateSettings: {name: 'update_settings', skipOverride: true},
+        saveHtml: { name: 'save_html', skipOverride: true },
+        toggleFav: { name: 'toggle_favourite', skipOverride: true },
+        updateSettings: { name: 'update_settings', skipOverride: true },
         saveToDisk: 'save_to_disk',
       },
     })

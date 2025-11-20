@@ -27,7 +27,6 @@
     v-else-if="dialog === 'm'"
     v-model="dialog"
     :entities="entities"
-    @success="removeFromList(entities)"
     @complete="entity_open && resource.fetch(resource.params)"
   />
   <InfoDialog
@@ -42,11 +41,7 @@
     v-if="dialog === 'remove'"
     v-model="dialog"
     :entities="entities"
-    @success="
-      dialog === 'cta'
-        ? resetDialog
-        : removeFromList(entities, dialog === 'restore')
-    "
+    @success="$router.push({ name: 'Documents' })"
   />
 </template>
 <script setup>

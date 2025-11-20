@@ -1,18 +1,18 @@
 <template>
   <Teleport to="#navbar-content" defer>
     <Button
-      v-if="comments._map.size"
-      :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
-      variant="outline"
-      :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-      @click="showComments = !showComments"
-    ></Button>
-    <Button
       v-if="showResolvedButton"
       :icon="LucideMessageSquareDot"
       variant="outline"
       tooltip="Toggle resolved"
       @click="showResolved = !showResolved"
+    ></Button>
+    <Button
+      v-if="comments._map.size"
+      :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
+      variant="outline"
+      :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+      @click="showComments = !showComments"
     ></Button>
   </Teleport>
   <div class="flex flex-col w-full">
@@ -420,7 +420,7 @@ emitter.on('print-file', () => {
 
 emitter.on('manual-save', manualSave)
 
-const autosave = setInterval(autoversion, 10 * 60 * 1000)
+const autoversionInterval = setInterval(autoversion, 10 * 60 * 1000)
 onMounted(() => {
   const { view, state } = editor.value
   view.dispatch(state.tr)
@@ -430,10 +430,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (edited.value) save()
   emitter.off('print-file')
-  if (autosave) clearInterval(autosave)
-  // comments.value
-  //   .filter((k) => k.new)
-  //   .filter(({ name }) => editor.value.commands.unsetComment(name))
+  if (autoversionInterval) clearInterval(autoversionInterval)
   cleanup()
 })
 

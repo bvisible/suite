@@ -1,7 +1,7 @@
 <template>
   <Navbar />
   <div class="flex-grow overflow-y-auto">
-    <div class="px-15 py-5 bg-surface-gray-1">
+    <div v-if="templates.data?.length" class="px-15 py-5 bg-surface-gray-1">
       <h3 class="font-semibold text-base mb-4">Templates</h3>
       <div class="flex gap-10 overflow-x-scroll p-1">
         <div
@@ -64,7 +64,6 @@ function groupByTime(entities) {
     const modified = new Date(k.modified)
     const accessed = new Date(k.accessed)
     k.recentDate = modified > accessed ? modified : accessed
-    console.log(accessed, k.recentDate)
     return k
   })
   entities

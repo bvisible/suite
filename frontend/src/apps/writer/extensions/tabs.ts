@@ -3,6 +3,7 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TabView from './components/TabView.vue'
 import {TextSelection} from '@tiptap/pm/state'
 import { v4 } from 'uuid'
+import { nextTick } from 'vue'
 
 export const TabsExtension = Node.create({
   name: 'tab',
@@ -49,10 +50,12 @@ export const TabsExtension = Node.create({
     let set = false
     doc.descendants((node) => {
       if (!set && node.type.name === 'tab') {
+        console.log('HAHAHAHA', node)
         this.editor.commands.changeTab(node.attrs.id, false)
         set = true
       }
     })
+    console.log(this.editor)
   },
 
   addCommands() {

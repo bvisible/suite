@@ -71,7 +71,6 @@ export const CommentExtension = Extension.create({
           init(_, state) {
             const { doc, comments, activeComment, showResolved, showComments } =
               ext.options
-            console.log(comments, showComments.value)
             if (!showComments.value) return DecorationSet.empty
             return createDecorations(
               ext.editor,

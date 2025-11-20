@@ -26,10 +26,10 @@
               ? 'md:min-w-[100ch] md:max-w-[100ch]'
               : 'md:min-w-[48rem] md:max-w-[48rem]',
           ]"
-          :content="entity.html"
+          :content="rawContent"
           :editable
           :upload-function="uploadFunction"
-          :mentions="{ mentions: users, selectable: false }"
+          :mentions="{ mentions: allUsers.data }"
           placeholder="Start writing here..."
           :bubble-menu="settings.minimal && menuButtons"
           :extensions="editorExtensions"
@@ -81,6 +81,7 @@ import {
   debounce,
   useFileUpload,
 } from 'frappe-ui'
+import { allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { v4 as uuidv4 } from 'uuid'
 import {
   computed,
@@ -118,10 +119,9 @@ import EmbedExtension from '@/extensions/embed-extension'
 import FloatingComments from '@/components/FloatingComments.vue'
 import { useComments } from '@/composables/useYjs'
 
-const rawContent = defineModel('rawContent')
 const showComments = defineModel('showComments')
 const showResolved = ref(false)
-const edited = defineModel('edited')
+const edited = ref(false)
 
 const props = defineProps({
   entity: Object,
@@ -129,8 +129,8 @@ const props = defineProps({
   settings: Object,
   editable: Boolean,
   isFrappeDoc: Boolean,
-  users: Object,
 })
+const rawContent = ref(props.document.doc.html)
 const emit = defineEmits(['saveComment', 'saveDocument'])
 const inIframe = inject('inIframe')
 
@@ -143,15 +143,23 @@ const editor = computed(() => {
   return editor
 })
 provide('editor', editor)
-const { comments, saveComments } = useComments(props.document, editor)
+const { comments, saveComments, newComment } = useComments(
+  props.document,
+  editor,
+)
 
 const scrollParent = computed(() =>
   document.querySelector('#editorScrollContainer'),
 )
 defineExpose({ editor })
 
-const autosave = debounce(() => emit('saveDocument'), 2000)
+const save = () => props.document.saveHtml.submit({ html: rawContent.value })
+const autosave = debounce(save, 5000)
 
+onBeforeUnmount(() => {
+  console.log('savin')
+  if (edited.value) save()
+})
 const onCommentActivated = (id) => {
   if (!id) return
   activeComment.value = id
@@ -201,65 +209,54 @@ const editorExtensions = [
   MediaDownload,
 ]
 
-const menuButtons = computed(() =>
-  dynamicList([
-    'Paragraph',
-    ['Heading 1', 'Heading 2', 'Heading 3'],
-    'Separator',
-    'Bold',
-    'Italic',
-    'Link',
-    'Strikethrough',
-    'Separator',
-    ['Bullet List', 'Numbered List', 'Task List'],
-    'Separator',
-    ['Align Left', 'Align Center', 'Align Right'],
-    ...(props.isFrappeDoc
-      ? [
-          'Separator',
-          {
-            label: 'FontOptions',
-            component: h(
-              defineAsyncComponent(() => import('@/components/ManageFont.vue')),
-              {
-                editor,
-                font_size: props.settings.font_size || 15,
-                font_family: props.settings.font_family || 'inter',
-              },
-            ),
-          },
-          'FontColor',
-          'Separator',
-          {
-            label: 'Comment',
-            icon: LucideMessageCircle,
-            action: createNewComment,
-            isActive: () => false,
-          },
-          'Image',
-          'Video',
-          'Iframe',
-        ]
-      : []),
-    'Blockquote',
-    'Code',
-    [
-      'InsertTable',
-      'AddColumnBefore',
-      'AddColumnAfter',
-      'DeleteColumn',
-      'AddRowBefore',
-      'AddRowAfter',
-      'DeleteRow',
-      'MergeCells',
-      'SplitCell',
-      'ToggleHeaderColumn',
-      'ToggleHeaderRow',
-      'ToggleHeaderCell',
-      'DeleteTable',
-    ],
-  ]),
-)
+const menuButtons = computed(() => [
+  'Paragraph',
+  ['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
+  'Separator',
+  'Bold',
+  'Italic',
+  'Strikethrough',
+  'Link',
+  'FontColor',
+  'Separator',
+  ['Bullet List', 'Numbered List', 'Task List'],
+  'Separator',
+  ['Align Left', 'Align Center', 'Align Right'],
+  'Separator',
+  {
+    label: 'FontOptions',
+    component: h(
+      defineAsyncComponent(() => import('./ManageFont.vue')),
+      {
+        editor,
+        font_size: props.settings.font_size || 15,
+        font_family: props.settings.font_family || 'inter',
+      },
+    ),
+  },
+  'Separator',
+  'Image',
+  'Video',
+  'Iframe',
+  'Blockquote',
+  'Code',
+  [
+    'InsertTable',
+    'AddColumnBefore',
+    'AddColumnAfter',
+    'DeleteColumn',
+    'AddRowBefore',
+    'AddRowAfter',
+    'DeleteRow',
+    'MergeCells',
+    'SplitCell',
+    'ToggleHeaderColumn',
+    'ToggleHeaderRow',
+    'ToggleHeaderCell',
+    'DeleteTable',
+  ],
+  'Separator',
+])
 
 // Local saving with IndexedDB
 const db = ref()
@@ -388,10 +385,5 @@ onKeyDown('s', (e) => {
 
 iframe {
   border: 1px solid var(--surface-gray-4) !important;
-}
-
-.h-full.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
 }
 </style>
