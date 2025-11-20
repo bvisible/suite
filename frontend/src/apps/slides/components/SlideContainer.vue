@@ -261,26 +261,22 @@ const applyResistance = (axis, delta) => {
 	return useResistance && Math.abs(pullDelta) < escapeDelta
 }
 
-const getTotalPositionDelta = (delta) => {
-	const snapDelta = handleSnapping()
+const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
+	const snapDelta = handleSnapping(interaction)
 
-	const left = snapDelta.x || delta.x
-	const top = snapDelta.y || delta.y
+	const left = snapDelta.x || delta.left
+	const top = snapDelta.y || delta.top
 
-	return {
+	const totalDelta = {
 		left: applyResistance('X', delta) ? 0 : left,
 		top: applyResistance('Y', delta) ? 0 : top,
 	}
-}
 
-const getTotalDimensionDelta = (delta) => {
-	const snapDelta = handleSnapping('resizing')
-
-	const width = snapDelta.width || delta.width
-
-	return {
-		width: applyResistance('X', delta) ? 0 : width,
+	if (interaction == 'resizing') {
+		const width = snapDelta.width || delta.width
+		totalDelta.width = applyResistance('X', delta) ? 0 : width
 	}
+	return totalDelta
 }
 
 const elementOffset = reactive({
@@ -292,7 +288,7 @@ const elementOffset = reactive({
 const handlePositionChange = (delta) => {
 	if (!delta.x && !delta.y) return
 
-	const totalDelta = getTotalPositionDelta(delta)
+	const totalDelta = getTotalInteractionDelta(delta)
 
 	applyPositionDelta(totalDelta)
 }
@@ -336,11 +332,11 @@ const handleDimensionChange = (delta) => {
 
 	delta.top = applyAspectRatio(delta.top)
 
-	applyPositionDelta(delta)
+	const totalDelta = getTotalInteractionDelta(delta, 'resizing')
+
+	applyPositionDelta(totalDelta)
 
 	if (!activeElement.value.width) addFixedWidthToElement()
-
-	const totalDelta = getTotalDimensionDelta(delta)
 
 	applyDimensionDelta(totalDelta)
 }

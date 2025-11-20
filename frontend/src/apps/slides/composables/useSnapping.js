@@ -5,8 +5,6 @@ import { activeElementIds, pairElementId } from '../stores/element'
 export const useSnapping = (target, parent, currentResizer) => {
 	const directionKeys = ['left', 'centerX', 'right', 'top', 'centerY', 'bottom']
 
-	const snapMovement = ref({ x: 0, y: 0 })
-
 	const initDiffs = () => {
 		return directionKeys.reduce((map, direction) => {
 			map[direction] = null
@@ -206,12 +204,12 @@ export const useSnapping = (target, parent, currentResizer) => {
 				prevDiff: prevDiffs[axis],
 			}
 		}
-		if (currentResizer.value == 'right') {
-			return {
-				diff: diffs.rightEdge,
-				prevDiff: prevDiffs.rightEdge,
-			}
-		}
+		const diff = currentResizer.value.includes('left') ? diffs.leftEdge : diffs.rightEdge
+		const prevDiff = currentResizer.value.includes('left')
+			? prevDiffs.leftEdge
+			: prevDiffs.rightEdge
+
+		return { diff, prevDiff }
 	}
 
 	const getThresholdsAndMargin = (axis) => {
@@ -255,8 +253,12 @@ export const useSnapping = (target, parent, currentResizer) => {
 
 		setResistanceMap()
 
-		if (mode.value == 'resizing' && axis == 'centerY') {
-			return { offsetX: 0, offsetWidth: getSnapOffset() }
+		if (mode.value == 'resizing') {
+			if (currentResizer.value == 'right') {
+				return { offsetX: 0, offsetWidth: getSnapOffset() }
+			} else if (currentResizer.value == 'left') {
+				return { offsetX: getSnapOffset(), offsetWidth: -getSnapOffset() }
+			}
 		}
 		return getSnapOffset()
 	}
@@ -290,8 +292,8 @@ export const useSnapping = (target, parent, currentResizer) => {
 
 	const getPairedOffsets = () => {
 		return {
-			offsetLeft: getOffset('X'),
-			offsetTop: getOffset('Y'),
+			offsetLeft: 0,
+			offsetTop: 0,
 		}
 	}
 
@@ -303,8 +305,8 @@ export const useSnapping = (target, parent, currentResizer) => {
 		const { offsetLeft, offsetTop } = getPairedOffsets()
 
 		return {
-			x: offsetX - offsetLeft,
-			y: offsetY - offsetTop,
+			x: offsetX - offsetLeft || 0,
+			y: offsetY - offsetTop || 0,
 			width: offsetWidth || 0,
 		}
 	}
