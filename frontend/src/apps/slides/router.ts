@@ -162,13 +162,6 @@ router.beforeEach(async (to, from, next) => {
 		return next()
 	}
 
-	if (session.isSlidesUser === null) {
-		await session.setIsSlidesUser()
-	}
-
-	if (!session.isSlidesUser && to.name !== 'NotPermitted') {
-		return next({ name: 'NotPermitted' })
-	}
 	return next()
 })
 
