@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="absolute bg-black/60 text-white rounded-full pointer-events-none"
+		class="absolute bg-black/60 text-white rounded-full pointer-events-none max-w-[calc(100%-0.5rem)] whitespace-nowrap overflow-hidden text-ellipsis w-fit"
 		:class="pillClasses"
 	>
 		{{ name }}
