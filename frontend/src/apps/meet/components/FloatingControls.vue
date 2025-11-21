@@ -269,7 +269,9 @@ const moreOptions = computed(() => [
 		icon: "settings",
 		label: "Settings",
 		condition: () =>
-			props.cameraPermissionGranted || props.microphonePermissionGranted,
+			props.cameraPermissionGranted ||
+			props.microphonePermissionGranted ||
+			!isPreview.value,
 		onClick: () => {
 			showSettingsDialog.value = true;
 			resetHideTimer();

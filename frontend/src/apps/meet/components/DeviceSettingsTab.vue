@@ -18,7 +18,7 @@
 					<template #prefix>
 						<lucide-camera class="mr-2 h-4 w-4" />
 					</template>
-					<template #item-prefix="{ active, selected, option }">
+					<template #item-prefix="{ selected }">
 						<lucide-check v-if="selected" class="w-4 h-4" />
 					</template>
 				</FormControl>
@@ -30,7 +30,7 @@
 					<template #prefix>
 						<lucide-mic class="mr-2 h-4 w-4" />
 					</template>
-					<template #item-prefix="{ active, selected, option }">
+					<template #item-prefix="{ selected }">
 						<lucide-check v-if="selected" class="w-4 h-4" />
 					</template>
 				</FormControl>
@@ -47,7 +47,7 @@
 					<template #prefix>
 						<lucide-speaker class="mr-2 h-4 w-4" />
 					</template>
-					<template #item-prefix="{ active, selected, option }">
+					<template #item-prefix="{ selected }">
 						<lucide-check v-if="selected" class="w-4 h-4" />
 					</template>
 				</FormControl>
