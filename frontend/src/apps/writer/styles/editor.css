@@ -4,6 +4,7 @@
 @import "frappe-ui/src/components/TextEditor/extensions/color/color-styles.css";
 @import "frappe-ui/src/components/TextEditor/extensions/highlight/highlight-styles.css";
 
+
 .prose-sm {
   caret-color: theme("colors.blue.600");
 }
@@ -12,24 +13,34 @@
   color: inherit !important;
 }
 
-.collaboration-cursor__caret {
-  border-left: 0px solid currentColor;
-  border-right: 2px solid currentColor;
-  margin-left: 0px;
-  margin-right: -2px;
-  pointer-events: none;
-  position: relative;
-  word-break: normal;
-}
+.collaboration-carets__caret {
+    border-left: 1px solid #0d0d0d;
+    border-right: 1px solid #0d0d0d;
+    margin-left: -1px;
+    margin-right: -1px;
+    pointer-events: none;
+    position: relative;
+    word-break: normal;
+  }
 
-/* Render the username above the caret */
-.collaboration-cursor__label {
-  border-radius: 60px;
-  border: 2px solid #0000001a;
-  color: #ffffffdf;
-  position: absolute;
-  top: -1.5em;
-  left: 0.25em;
-  user-select: none;
-  white-space: nowrap;
-}
+  /* Render the username above the caret */
+  .collaboration-carets__label {
+    border-radius: 3px 3px 3px 0;
+    color: var(--ink-white);
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 600;
+    left: -1px;
+    line-height: normal;
+    padding: 0.15rem 0.3rem;
+    position: absolute;
+    top: -1.4em;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+
+.selection {
+    background: rgba(175, 204, 246, 0.95);
+    padding: 0.2em 0;
+  }

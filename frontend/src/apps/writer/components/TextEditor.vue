@@ -17,16 +17,16 @@
       @click="showComments = !showComments"
     ></Button>
   </Teleport>
-  <div class="flex flex-col w-full">
+  <div class="flex flex-col w-full bg-surface-white">
     <div
       class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals grid md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
+      :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
     >
       <div />
       <TextEditorFixedMenu
         class="py-1.5 mx-auto flex justify-center shrink-0 transition-opacity duration-1"
         v-if="editable && !settings.minimal"
         :buttons="menuButtons"
-        :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
       />
       <div class="flex items-center justify-end pr-4"></div>
     </div>
@@ -64,7 +64,6 @@
           @keydown="
             (e) => {
               if (!e.metaKey && !e.ctrlKey) {
-                hideToolbar = true
                 if (!edited) {
                   edited = true
                   autoversion()
@@ -121,13 +120,19 @@ import {
   provide,
 } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
+import 'katex/dist/katex.min.css'
 
 import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCaret from '@tiptap/extension-collaboration-caret'
+import { Selection, CharacterCount } from '@tiptap/extensions'
+// import { MathematicsExtension } from '@/extensions/mathematics'
+
 import { onKeyDown } from '@vueuse/core'
 
 import { isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
+import LucideSquareFunction from '~icons/lucide/square-function'
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
 import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
@@ -141,8 +146,6 @@ import { formatDate } from '@/utils/format'
 import FloatingQuoteButton from '@/extensions/comment-button'
 import MediaDownload from '@/extensions/media-download'
 import { CommentExtension, rebuild } from '@/extensions/comments'
-import { CollaborationCursor } from '@/extensions/collaboration-cursor'
-import { CharacterCount } from '@/extensions/character-count'
 import {
   default as TableOfContents,
   getHierarchicalIndexes,
@@ -218,6 +221,7 @@ const onCommentActivated = (id) => {
 const editorExtensions = [
   ...COMMON_EXTENSIONS,
   CharacterCount,
+  Selection,
   TabsExtension,
   CommentExtension.configure({
     comments,
@@ -249,7 +253,7 @@ const editorExtensions = [
       permanentUserData,
     },
   }),
-  CollaborationCursor.configure({
+  CollaborationCaret.configure({
     provider,
     user: {
       name: store.state.user.fullName,
@@ -286,11 +290,17 @@ const menuButtons = computed(() => [
     ),
   },
   'Separator',
+  'Blockquote',
+  'Code',
+  {
+    label: 'Mathematics',
+    icon: LucideSquareFunction,
+    action: (editor) => editor.commands.openMathEditor('inline'),
+  },
+  'Separator',
   'Image',
   'Video',
   'Iframe',
-  'Blockquote',
-  'Code',
   [
     'InsertTable',
     'AddColumnBefore',
