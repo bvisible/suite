@@ -17,6 +17,7 @@ import { publishScreenShare } from "../mediasoup-client.js";
 import { useSocket } from "../socket.js";
 import audioNotificationManager from "../utils/audioNotifications";
 import { deviceManager } from "../utils/media/DeviceManager.js";
+import notificationContextManager from "../utils/notificationContext";
 import { getSFUClient } from "../utils/sfu-client.js";
 import {
 	getSFUMeetingManager,
@@ -1112,8 +1113,6 @@ export function useMeetingLogic(meetingState, meetingId) {
 			onParticipantLeft: ({ participantId }) => {
 				meetingState.removeParticipant(participantId);
 				console.log("👋 Participant left:", participantId);
-
-				audioNotificationManager.playLeaveNotification();
 			},
 
 			onParticipantUpdated: (participantId, participant, updates) => {
@@ -1219,6 +1218,9 @@ export function useMeetingLogic(meetingState, meetingId) {
 				clearTimeout(activeSpeakerTimeout.value);
 				activeSpeakerTimeout.value = null;
 			}
+
+			// leave sound for local user only
+			audioNotificationManager.playLeaveNotification(true);
 
 			// Cleanup SFU manager
 			if (sfuManager.value) {
@@ -1521,6 +1523,24 @@ export function useMeetingLogic(meetingState, meetingId) {
 			toggleCamera();
 		}
 	};
+
+	// ==================== NOTIFICATION CONTEXT WATCHERS ====================
+
+	// Watch chat state to update notification context
+	watch(
+		() => meetingState.isChatOpen.value,
+		(isOpen) => {
+			notificationContextManager.updateChatState(isOpen);
+		},
+	);
+
+	// Watch screen sharing state to update notification context
+	watch(
+		() => meetingState.isScreenSharing.value,
+		(isSharing) => {
+			notificationContextManager.updateScreenShareState(isSharing);
+		},
+	);
 
 	// ==================== CLEANUP ====================
 
