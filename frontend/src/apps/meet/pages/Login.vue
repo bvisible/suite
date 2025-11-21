@@ -20,7 +20,7 @@
 					placeholder="••••••"
 					label="Password"
 				/>
-				<Button :loading="session.login.loading" variant="solid">Login</Button>
+				<Button :loading="session.login.loading" variant="solid" type="submit">Login</Button>
 			</form>
 			<div v-if="oAuthProviders.data?.length">
 				<div  class="mt-6 border-t text-center">
