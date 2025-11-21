@@ -3,6 +3,8 @@
  *
  * Manages video and audio elements for participants.
  */
+import { selectedSpeakerId } from "../../data/mediaPreferences.js";
+
 export class VideoElementManager {
 	constructor() {
 		this.videoElements = new Map();
@@ -107,6 +109,18 @@ export class VideoElementManager {
 			audioElement = document.createElement("audio");
 			audioElement.autoplay = true;
 			audioElement.playsinline = true;
+			audioElement.style.display = "none";
+			document.body.appendChild(audioElement);
+
+			if (selectedSpeakerId.value) {
+				audioElement.setSinkId(selectedSpeakerId.value).catch((err) => {
+					console.warn(
+						`⚠️ Failed to set initial speaker for ${participantId}:`,
+						err,
+					);
+				});
+			}
+
 			this.audioElements.set(participantId, audioElement);
 			console.log(`🔊 Created separate audio element for ${participantId}`);
 		}
@@ -192,6 +206,7 @@ export class VideoElementManager {
 				} catch (_) {}
 				audioElement.srcObject = null;
 			}
+			audioElement.remove();
 			this.audioElements.delete(participantId);
 		}
 
@@ -224,6 +239,7 @@ export class VideoElementManager {
 				}
 				audioElement.srcObject = null;
 			}
+			audioElement.remove();
 		}
 
 		this.videoElements.clear();
