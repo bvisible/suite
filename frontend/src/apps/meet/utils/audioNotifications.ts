@@ -3,6 +3,8 @@
  * Generates notification tones using Web Audio API
  */
 
+import notificationContextManager from "./notificationContext";
+
 type FrequencyPoint = [number, number]; // [frequency, timeOffset]
 type FrequencyInput = number | FrequencyPoint[];
 
@@ -84,6 +86,9 @@ class AudioNotificationManager {
 	}
 
 	async playJoinNotification(): Promise<void> {
+		if (!notificationContextManager.shouldPlayNotification("join")) {
+			return;
+		}
 		await this.playTone(
 			[
 				[262, 0], // C4 (warmer start)
@@ -96,7 +101,14 @@ class AudioNotificationManager {
 		);
 	}
 
-	async playLeaveNotification(): Promise<void> {
+	async playLeaveNotification(isLocalUser = false): Promise<void> {
+		if (
+			!notificationContextManager.shouldPlayNotification("leave", {
+				isLocalUser,
+			})
+		) {
+			return;
+		}
 		await this.playTone(
 			[
 				[392, 0], // G4
@@ -109,6 +121,9 @@ class AudioNotificationManager {
 	}
 
 	async playJoinRequestNotification(): Promise<void> {
+		if (!notificationContextManager.shouldPlayNotification("joinRequest")) {
+			return;
+		}
 		await this.playTone(
 			[
 				[349, 0], // F4
@@ -122,6 +137,9 @@ class AudioNotificationManager {
 	}
 
 	async playChatNotification(): Promise<void> {
+		if (!notificationContextManager.shouldPlayNotification("chat")) {
+			return;
+		}
 		await this.playTone(
 			[
 				[330, 0], // E4
