@@ -250,7 +250,7 @@ def get_updated_json(presentation, json):
 def get_layouts(theme):
 	layout_doc = frappe.get_doc("Presentation", theme) if frappe.db.exists("Presentation", theme) else None
 	slides = []
-	if layout_doc and layout_doc.is_template and "Slides User" in frappe.get_roles():
+	if layout_doc and layout_doc.is_template:
 		slides = layout_doc.slides
 
 	return {
@@ -271,12 +271,7 @@ def has_permission(doc, ptype="read", user=None):
 	if user == "Administrator":
 		return True
 
-	user_roles = set(frappe.get_roles(user))
-
-	if "Slides User" in user_roles:
-		return doc.owner == user or (doc.is_template and ptype == "read")
-
-	return False
+	return doc.owner == user or (doc.is_template and ptype == "read")
 
 
 @frappe.whitelist(allow_guest=True)

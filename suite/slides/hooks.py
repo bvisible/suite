@@ -12,7 +12,6 @@ add_to_apps_screen = [
 		"logo": "/assets/slides/frontend/slides-logo.svg",
 		"title": app_title,
 		"route": "/slides",
-		"has_permission": "slides.api.check_app_permission",
 	}
 ]
 
