@@ -35,35 +35,26 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		bottom: false,
 	})
 
-	const mode = ref(null)
-
-	const visibilityMap = computed(() => {
-		if (!target.value || !hasOngoingInteraction.value) return
-
-		const directionKeys = ['slideCenterX', 'slideCenterY', 'startX', 'startY', 'endX', 'endY']
-
-		return directionKeys.reduce((visibility, direction) => {
-			const guide = getGuideForDirection(direction)
-
-			if (visibility[guide] === true) return visibility
-
-			const diff = Math.abs(getDiffsForAxis(direction, guide).diff)
-			const threshold = getDynamicThresholds(direction).threshold
-
-			visibility[guide] = Math.abs(diff) < threshold
-			return visibility
-		}, {})
+	const visibilityMap = reactive({
+		centerX: true,
+		centerY: true,
+		left: true,
+		right: true,
+		top: true,
+		bottom: true,
 	})
+
+	const mode = ref(null)
 
 	const getGuideForDirection = (direction) => {
 		switch (direction) {
-			case 'slideCenterX':
-			case 'startX':
-			case 'endX':
-				return 'centerX'
 			case 'slideCenterY':
 			case 'startY':
 			case 'endY':
+				return 'centerX'
+			case 'slideCenterX':
+			case 'startX':
+			case 'endX':
 				return 'centerY'
 			default:
 				return direction
@@ -116,8 +107,8 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	const updateDiffsRelativeToSlide = () => {
 		if (!target.value) return
 
-		diffs.slideCenter.centerY = getDiffFromCenter('Y')
-		diffs.slideCenter.centerX = getDiffFromCenter('X')
+		diffs.slideCenter.centerX = getDiffFromCenter('Y')
+		diffs.slideCenter.centerY = getDiffFromCenter('X')
 
 		if (mode.value == 'dragging') return
 
@@ -254,10 +245,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	const getDiffsForAxis = (axis, point) => {
 		let diff, prevDiff
 
-		if (axis == 'slideCenterY') {
-			diff = diffs.slideCenter[point]
-			prevDiff = prevDiffs.slideCenter[point]
-		} else if (axis == 'slideCenterX') {
+		if (['slideCenterY', 'slideCenterX'].includes(axis)) {
 			diff = diffs.slideCenter[point]
 			prevDiff = prevDiffs.slideCenter[point]
 		}
@@ -292,12 +280,14 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			return 0
 		}
 
-		const setResistanceMap = () => {
-			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
-
+		const setGuideMaps = () => {
 			const guide = getGuideForDirection(axis)
 
+			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
+			const withinVisibilityRange = Math.abs(diff) < threshold
+
 			resistanceMap[guide] = diff !== null && withinResistanceRange
+			visibilityMap[guide] = withinVisibilityRange
 		}
 
 		const { diff, prevDiff } = getDiffsForAxis(axis, point)
@@ -306,7 +296,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 
 		const movingAway = isMovingAway()
 
-		setResistanceMap()
+		setGuideMaps()
 
 		let offsetX = 0
 		let offsetY = 0
@@ -326,9 +316,20 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	}
 
 	const getCenterOffsets = () => {
-		const { offsetX, offsetWidth } = handleSnapMovement('slideCenterX', 'centerX')
+		let pointX = 'centerX',
+			pointY = 'centerY'
 
-		const { offsetY } = handleSnapMovement('slideCenterY', 'centerY')
+		if (mode.value == 'resizing') {
+			if (currentResizer.value.includes('left')) pointX = 'startX'
+			else if (currentResizer.value.includes('right')) pointX = 'endX'
+
+			if (currentResizer.value.includes('top')) pointY = 'startY'
+			else if (currentResizer.value.includes('bottom')) pointY = 'endY'
+		}
+
+		const { offsetX, offsetWidth } = handleSnapMovement('slideCenterX', pointX)
+
+		const { offsetY } = handleSnapMovement('slideCenterY', pointY)
 
 		return {
 			centerOffsetX: offsetX,
