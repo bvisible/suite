@@ -1,5 +1,5 @@
 import { createResource, toast } from "frappe-ui";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { defineAsyncComponent, h, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
 	cameraEnabled as prefCameraEnabled,
@@ -1108,11 +1108,65 @@ export function useMeetingLogic(meetingState, meetingId) {
 				console.log("👥 Participant joined:", participant);
 
 				audioNotificationManager.playJoinNotification();
+
+				const participantName = participant?.user_name || participant?.user_id;
+
+				if (
+					!participantName ||
+					participant.participantId === meetingState.currentUser.value?.user_id
+				)
+					return;
+
+				// without this check, multiple toasts show up on join
+				if (sfuManager.value?.initialSyncInProgress) {
+					return;
+				}
+
+				const LucideUserIcon = defineAsyncComponent(
+					() => import("~icons/lucide/user"),
+				);
+
+				toast.create({
+					message: `${participantName} joined the meeting`,
+					icon: participant.avatar
+						? h("img", {
+								src: participant.avatar,
+								class: "rounded-full",
+							})
+						: h(LucideUserIcon, {
+								class: "text-white",
+							}),
+					duration: 3,
+				});
 			},
 
 			onParticipantLeft: ({ participantId }) => {
+				const participant = meetingState.participants.value[participantId];
+				const participantName = participant?.user_name || participantId;
+
 				meetingState.removeParticipant(participantId);
 				console.log("👋 Participant left:", participantId);
+
+				if (participantId === meetingState.currentUser.value?.user_id) {
+					return;
+				}
+
+				const LucideUserIcon = defineAsyncComponent(
+					() => import("~icons/lucide/user"),
+				);
+
+				toast.create({
+					message: `${participantName} left the meeting`,
+					icon: participant?.avatar
+						? h("img", {
+								src: participant.avatar,
+								class: "rounded-full",
+							})
+						: h(LucideUserIcon, {
+								class: "text-white",
+							}),
+					duration: 3,
+				});
 			},
 
 			onParticipantUpdated: (participantId, participant, updates) => {
