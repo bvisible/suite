@@ -196,13 +196,6 @@ const {
   saveComments,
 } = useYjs(props.document, editor, edited)
 const commentsMap = computed(() => comments._map)
-const showResolvedButton = computed(() => {
-  let show = false
-  console.log(comments._map.size)
-  if (!comments._map.size) return false
-  comments.forEach((k) => k.resolved && (show = true))
-  return show
-})
 
 const onCommentActivated = (id) => {
   if (!id) return
@@ -223,15 +216,6 @@ const editorExtensions = [
   CharacterCount,
   Selection,
   TabsExtension,
-  CommentExtension.configure({
-    comments,
-    doc,
-    activeComment,
-    showComments,
-    showResolved,
-    edited,
-    onActivated: onCommentActivated,
-  }),
   OldCommentExtension.configure({
     onCommentActivated: onCommentActivated,
   }),
@@ -261,6 +245,15 @@ const editorExtensions = [
       avatar: store.state.user.imageURL,
       color: getRandomColor(),
     },
+  }),
+  CommentExtension.configure({
+    comments,
+    doc,
+    activeComment,
+    showComments,
+    showResolved,
+    edited,
+    onActivated: onCommentActivated,
   }),
 ]
 

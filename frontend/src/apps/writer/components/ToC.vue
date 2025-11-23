@@ -16,7 +16,7 @@
       @click="show = !show"
     />
     <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
-      <div v-if="tabs.length > 0" class="flex flex-col gap-0.5">
+      <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2">
         <div v-for="tab in tabs" :key="tab.id">
           <TextInput
             v-if="editingTabId === tab.id"
@@ -61,7 +61,7 @@
       </div>
       <div
         v-else-if="anchors.length > 1"
-        class="table-of-contents flex flex-col gap-0.5"
+        class="table-of-contents flex flex-col gap-0.5 mb-2"
       >
         <a
           v-for="anchor in anchors"
@@ -83,7 +83,7 @@
       </div>
       <Button
         v-if="editor.isEditable"
-        class="!justify-start text-xs opacity-50 hover:opacity-100 mt-2"
+        class="!justify-start text-xs opacity-50 hover:opacity-100"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
         :label="tabs.length ? 'Add' : 'Create tab'"
         variant="ghost"

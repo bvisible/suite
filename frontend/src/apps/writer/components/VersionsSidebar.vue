@@ -315,7 +315,7 @@ const restore = (version) => {
   })
 }
 </script>
-<style scoped>
+<style>
 @import url('@/styles/fonts.css');
 
 ins,

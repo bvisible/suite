@@ -6,7 +6,7 @@ import { debounce, toast } from 'frappe-ui'
 import {
   absolutePositionToRelativePosition,
   ySyncPluginKey,
-} from 'y-prosemirror'
+} from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
 
 import store from '@/store'
@@ -49,7 +49,6 @@ export const useComments = (document, editor) => {
   const comments = commentsDoc.getMap('comments')
   const newComment = (id, from, to, owner, anchorText) => {
     const ystate = ySyncPluginKey.getState(editor.value.view.state)
-
     comments.set(id, {
       id,
       new: true,
@@ -143,7 +142,7 @@ export function useYjs(document, editor, edited) {
 
   // Comments
   const { cleanup: cleanupComments, ...commentsData } = useComments(document, editor)
-
+  console.log(doc)
   return {
     doc,
     cleanup: () => {
