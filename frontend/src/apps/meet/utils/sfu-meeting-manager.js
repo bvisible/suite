@@ -613,6 +613,45 @@ export class SFUMeetingManager {
 			}
 		});
 
+		this.sfuClient.on("host_control_update", (data) => {
+			const { action, targetParticipantId, hostId } = data;
+
+			const myParticipantId = this.currentUser.value?.user_id;
+
+			console.log("📡 SFU event: host_control_update", {
+				action,
+				targetParticipantId,
+				hostId,
+				myParticipantId,
+			});
+
+			// isForMe 👉👈?
+			const isForMe = targetParticipantId === myParticipantId;
+
+			switch (action) {
+				case "mute_participant":
+					if (isForMe) {
+						if (this.eventHandlers.onHostMutedYou) {
+							this.eventHandlers.onHostMutedYou();
+						}
+					} else {
+						this.participantManager.updateMediaState(targetParticipantId, {
+							audioEnabled: false,
+						});
+					}
+					break;
+				case "kick_participant":
+					if (isForMe) {
+						if (this.eventHandlers.onHostKickedYou) {
+							this.eventHandlers.onHostKickedYou({ hostId });
+						}
+					}
+					break;
+				default:
+					console.warn("Unknown host control action:", action);
+			}
+		});
+
 		this.sfuClient.on("screen_share_started", (data) => {
 			try {
 				console.log("📡 SFU event: screen_share_started (from signaling)", {

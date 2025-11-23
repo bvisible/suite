@@ -37,8 +37,8 @@
 				<div
 					class="grid flex-1 min-h-0 transition-[grid-template-columns] duration-300 ease-out"
 					:style="{
-						'--chat-width': chatWidth,
-						gridTemplateColumns: 'minmax(0, 1fr) var(--chat-width)',
+						'--panel-width': panelWidth,
+						gridTemplateColumns: 'minmax(0, 1fr) var(--panel-width)',
 					}"
 				>
 					<!-- Video area -->
@@ -52,33 +52,56 @@
 						<VideoGrid v-else />
 					</div>
 
-					<!-- Chat Panel -->
-					<div
-						class="h-full overflow-hidden transition-opacity duration-300 ease-out"
-						:style="{ width: chatWidth }"
-						:class="{
-							'pointer-events-auto opacity-100': meetingState.isChatOpen.value,
-							'pointer-events-none opacity-0': !meetingState.isChatOpen.value,
-						}"
+					<!-- Panel Container -->
+					<Transition
+						enter-active-class="transition-all duration-300 ease-out"
+						enter-from-class="opacity-0 transform translate-x-full w-0"
+						enter-to-class="opacity-100 transform translate-x-0"
+						leave-active-class="transition-all duration-300 ease-in"
+						leave-from-class="opacity-100 transform translate-x-0"
+						leave-to-class="opacity-0 transform translate-x-full"
 					>
-						<ChatPanel
-							:open="meetingState.isChatOpen.value"
-							:messages="meetingState.chatMessages.value"
-							:user-id="meetingState.currentUser.value?.user_id || ''"
-							:user-name="
-								meetingState.currentUser.value?.full_name ||
-								meetingState.currentUser.value?.name ||
-								'You'
-							"
-							@close="toggleChat"
-							@send="onSendChat"
-						/>
-					</div>
+						<div
+							v-if="activePanel"
+							class="h-full overflow-hidden relative"
+							:style="{ width: '24rem' }"
+						>
+							<!-- Chat Panel -->
+							<ChatPanel
+								v-if="activePanel === 'chat'"
+								:open="true"
+								:messages="meetingState.chatMessages.value"
+								:user-id="meetingState.currentUser.value?.user_id || ''"
+								:user-name="
+									meetingState.currentUser.value?.full_name ||
+									meetingState.currentUser.value?.name ||
+									'You'
+								"
+								@close="toggleChat"
+								@send="onSendChat"
+							/>
+
+							<!-- People Panel -->
+							<PeoplePanel
+								v-if="activePanel === 'people'"
+								:open="true"
+								:currentUser="meetingState.currentUser.value"
+								:participants="meetingState.participants.value"
+								:isMicOn="meetingState.isMicOn.value"
+								:isCameraOn="meetingState.isCameraOn.value"
+								:creatorUserId="creatorUserId"
+								@close="togglePeople"
+								@muteParticipant="handleMuteParticipant"
+								@kickParticipant="handleKickParticipant"
+							/>
+						</div>
+					</Transition>
 				</div>
 
 				<!-- Floating controls -->
 				<FloatingControls
 					:isChatOpen="meetingState.isChatOpen.value"
+					:isPeopleOpen="meetingState.isPeopleOpen.value"
 					:hasUnread="meetingState.hasUnreadMessages.value"
 					:isMicOn="meetingState.isMicOn.value"
 					:isCameraOn="meetingState.isCameraOn.value"
@@ -90,6 +113,7 @@
 					:cameraPermissionGranted="meetingState.cameraPermissionGranted.value"
 					:microphonePermissionGranted="meetingState.microphonePermissionGranted.value"
 					@toggle-chat="toggleChat"
+					@toggle-people="togglePeople"
 					@toggle-reactions="toggleReactions($event)"
 					@toggle-microphone="toggleMicrophone"
 					@toggle-camera="toggleCamera"
@@ -118,7 +142,7 @@
 </template>
 
 <script setup>
-import { Button, Spinner, getCachedDocumentResource } from "frappe-ui";
+import { Button, Spinner, createDocumentResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -127,6 +151,7 @@ import ChatPanel from "../components/ChatPanel.vue";
 import FloatingControls from "../components/FloatingControls.vue";
 import JoinRequestNotifications from "../components/JoinRequestNotifications.vue";
 import MeetingPreview from "../components/MeetingPreview.vue";
+import PeoplePanel from "../components/PeoplePanel.vue";
 import ScreenShareLayout from "../components/ScreenShareLayout.vue";
 import VideoGrid from "../components/VideoGrid.vue";
 
@@ -205,11 +230,23 @@ const showPreview = computed(() => {
 	return inPreview || waitingForApproval || joinRequestRejected;
 });
 
-const chatWidth = computed(() =>
-	meetingState.isChatOpen.value ? "24rem" : "0rem",
-);
+const activePanel = computed(() => {
+	if (meetingState.isChatOpen.value) return "chat";
+	if (meetingState.isPeopleOpen.value) return "people";
+	return null;
+});
 
-const meetingDoc = getCachedDocumentResource("Sae Meeting", meetingId.value);
+const panelWidth = computed(() => (activePanel.value ? "24rem" : "0rem"));
+
+const meetingDoc = createDocumentResource({
+	doctype: "Sae Meeting",
+	name: meetingId.value,
+	auto: true,
+});
+
+const creatorUserId = computed(() => {
+	return meetingDoc?.doc?.owner || meetingDoc?.data?.owner || "";
+});
 
 // Refs
 const chatNotificationQueue = ref(null);
@@ -247,6 +284,64 @@ const toggleChat = () => {
 	meetingState.isChatOpen.value = !meetingState.isChatOpen.value;
 	if (meetingState.isChatOpen.value) {
 		meetingState.hasUnreadMessages.value = false;
+		// Close people panel when opening chat
+		meetingState.isPeopleOpen.value = false;
+	}
+};
+
+const togglePeople = () => {
+	meetingState.isPeopleOpen.value = !meetingState.isPeopleOpen.value;
+	if (meetingState.isPeopleOpen.value) {
+		// Close chat when opening people panel
+		meetingState.isChatOpen.value = false;
+	}
+};
+
+const handleMuteParticipant = async (participantId) => {
+	try {
+		console.log("Muting participant:", participantId);
+
+		if (sfuManager.value?.sfuClient) {
+			sfuManager.value.sfuClient.sendEvent("host_control", {
+				action: "mute_participant",
+				targetParticipantId: participantId,
+			});
+		} else {
+			console.error("SFU client not available");
+		}
+
+		// Note: the remote participant will receive `host_control_update` event
+		// and that will handle muting their microphone
+	} catch (error) {
+		console.error("Failed to mute participant:", error);
+	}
+};
+
+const handleKickParticipant = async (participantId, ban = false) => {
+	try {
+		if (ban) {
+			try {
+				await meetingDoc.setValue.submit({
+					banned_users: [
+						...(meetingDoc.doc?.banned_users || []),
+						{ user: participantId },
+					],
+				});
+			} catch (error) {
+				console.error("Failed to ban user:", error);
+			}
+		}
+
+		if (sfuManager.value?.sfuClient) {
+			sfuManager.value.sfuClient.sendEvent("host_control", {
+				action: "kick_participant",
+				targetParticipantId: participantId,
+			});
+		} else {
+			console.error("SFU client not available");
+		}
+	} catch (error) {
+		console.error("Failed to kick participant:", error);
 	}
 };
 
@@ -414,21 +509,6 @@ onUnmounted(() => {
 
 	// Cleanup will be handled by the meeting logic composable
 });
-
-// Watch for meetingId and initialize meetingDoc
-watch(
-	meetingId,
-	async (newMeetingId) => {
-		if (newMeetingId && meetingDoc) {
-			try {
-				await meetingDoc.submit();
-			} catch (error) {
-				console.error("Failed to load meeting document:", error);
-			}
-		}
-	},
-	{ immediate: true },
-);
 
 // Watch for localVideo element and localStream connection
 // Check the data attribute to avoid unnecessary updates when ref callback already handled it

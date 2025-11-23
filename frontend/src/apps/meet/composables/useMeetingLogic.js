@@ -1206,6 +1206,18 @@ export function useMeetingLogic(meetingState, meetingId) {
 					}, 1000);
 				}
 			},
+			onHostMutedYou: () => {
+				if (meetingState.isMicOn.value) {
+					toggleMicrophone();
+				}
+			},
+			onHostKickedYou: (data) => {
+				toast.error("You have been removed from the meeting by the host");
+
+				setTimeout(() => {
+					endCall();
+				}, 1000);
+			},
 		};
 	};
 
