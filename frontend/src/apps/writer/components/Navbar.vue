@@ -287,7 +287,7 @@ const fileActions = computed(() =>
                   label: 'Folder',
                   icon: LucideFolderArchive,
                   onClick: () => {
-                    downloadZippedHTML(editorValue, entity.value.title)
+                    downloadZippedHTML(editorValue, entity.value.title, settings.value)
                   },
                 },
                 {

@@ -17,6 +17,8 @@ async function getPdfFromDoc(entity_name, settings = {}) {
     size: settings?.watermark_size || 90,
     angle: settings?.watermark_angle || -45
   }
+  // Show watermark if apply_watermark is true AND text is not empty
+  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ""
   const content = `
           <!DOCTYPE html>
           <html>
@@ -39,7 +41,7 @@ async function getPdfFromDoc(entity_name, settings = {}) {
               </style>
             </head>
             <body>
-              ${applyWatermark && watermark.text ? `<div class="watermark">${watermark.text}</div>` : ""}
+              ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ""}
               <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
                 ${raw_html}
               </div>

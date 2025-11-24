@@ -53,9 +53,7 @@
                     type="text"
                     label="Watermark Text"
                     placeholder="Enter watermark text"
-                    :description="`Default watermark text for ${
-                      tabIndex === 1 ? 'this document' : 'new documents'
-                    } when exporting to PDF.`"
+                    :description="`Set the text for watermark.`"
                   />
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormControl
@@ -67,9 +65,7 @@
                       :min="10"
                       :max="300"
                       :step="5"
-                      :description="`Default watermark size for ${
-                        tabIndex === 1 ? 'this document' : 'new documents'
-                      }.`"
+                      :description="`Set the watermark text size (px).`"
                       class="w-full"
                     />
                     <FormControl
@@ -81,9 +77,7 @@
                       :min="-180"
                       :max="180"
                       :step="15"
-                      :description="`Default watermark angle for ${
-                        tabIndex === 1 ? 'this document' : 'new documents'
-                      }.`"
+                      :description="`Set the watermark text angle (°).`"
                       class="w-full"
                     />
                   </div>
@@ -226,7 +220,7 @@ watchEffect(() => {
     if (k === 'apply_watermark') {
       settings[k] = base[k] === true
     } else {
-      settings[k] = base[k] || 'global'
+      settings[k] = base[k]
     }
   }
   if (tabIndex.value === 1) settings.collab = base.collab
