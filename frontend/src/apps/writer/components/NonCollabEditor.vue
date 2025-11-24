@@ -1,4 +1,22 @@
 <template>
+  <Teleport to="#navbar-content" defer>
+    <Button
+      v-if="
+        Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
+      "
+      :icon="LucideMessageSquareDot"
+      variant="outline"
+      tooltip="Toggle resolved"
+      @click="showResolved = !showResolved"
+    ></Button>
+    <Button
+      v-if="comments._map.size"
+      :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
+      variant="outline"
+      :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+      @click="showComments = !showComments"
+    ></Button>
+  </Teleport>
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
       v-if="editor && editable && !settings.minimal"
@@ -7,11 +25,16 @@
     />
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1"
+      :class="
+        settings.wide
+          ? 'md:grid-cols-[minmax(10rem,1fr)_minmax(auto,95ch)_minmax(0,1fr)]'
+          : ' md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]'
+      "
     >
       <ToC :editor :anchors />
       <div
-        class="mx-auto cursor-text w-full flex justify-center h-full"
+        class="cursor-text w-full flex justify-center h-full"
         @click="
           $event.target.tagName === 'DIV' &&
           textEditor.editor?.chain?.().focus?.().run?.()
@@ -20,12 +43,7 @@
         <FTextEditor
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
-          :editor-class="[
-            'min-h-full mx-auto px-10 overflow-x-auto py-7',
-            settings?.wide
-              ? 'md:min-w-[100ch] md:max-w-[100ch]'
-              : 'md:min-w-[48rem] md:max-w-[48rem]',
-          ]"
+          editor-class="min-h-full mx-auto px-10 overflow-x-auto py-7"
           :content="rawContent"
           :editable
           :upload-function="uploadFunction"
@@ -50,7 +68,7 @@
         >
           <template #editor="{ editor }">
             <EditorContent
-              class="bg-surface-white prose prose-sm prose-v2"
+              class="bg-surface-white prose prose-sm prose-v2 max-w-none mx-auto"
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -102,7 +120,9 @@ import {
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
 
-import LucideMessageCircle from '~icons/lucide/message-circle'
+import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
+import LucideMessageSquareOff from '~icons/lucide/message-square-off'
+import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
 
 import store from '@/store'
 import emitter from '@/emitter'

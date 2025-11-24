@@ -250,18 +250,6 @@ const fileActions = computed(() =>
                     })
                   },
                 },
-                {
-                  onClick: (val) => {
-                    props.document.doc.settings.minimal = val
-                    props.document.updateSettings.submit({
-                      data: JSON.stringify(props.document.doc.settings),
-                    })
-                  },
-                  switch: true,
-                  switchValue: props.document.doc.settings.minimal,
-                  label: 'Minimal',
-                  icon: LucideEraser,
-                },
               ],
             },
             {

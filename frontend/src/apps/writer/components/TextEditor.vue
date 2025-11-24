@@ -2,7 +2,7 @@
   <Teleport to="#navbar-content" defer>
     <Button
       v-if="
-        Array.from(commentsMap).find((k) => k[1].content?.arr?.[0].resolved)
+        Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
       "
       :icon="LucideMessageSquareDot"
       variant="outline"
@@ -33,12 +33,17 @@
 
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1"
+      :class="
+        settings.wide
+          ? 'md:grid-cols-[minmax(10rem,1fr)_minmax(auto,95ch)_minmax(0,1fr)]'
+          : ' md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]'
+      "
       @mousemove="hideToolbar = false"
     >
       <ToC :editor :anchors />
       <div
-        class="mx-auto cursor-text w-full flex justify-center h-full"
+        class="min-w-full h-full flex flex-col"
         @click="
           $event.target.tagName === 'DIV' &&
           textEditor.editor?.chain?.().focus?.().run?.()
@@ -47,12 +52,7 @@
         <FTextEditor
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
-          :editor-class="[
-            'min-h-full mx-auto px-10 overflow-x-auto py-7',
-            settings?.wide
-              ? 'md:min-w-[100ch] md:max-w-[100ch]'
-              : 'md:min-w-[48rem] md:max-w-[48rem]',
-          ]"
+          editor-class="min-h-full mx-auto px-10 overflow-x-auto py-7"
           :upload-function
           :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
@@ -74,7 +74,12 @@
         >
           <template #editor="{ editor }">
             <EditorContent
-              class="bg-surface-white prose prose-sm prose-v2"
+              class="bg-surface-white prose prose-sm prose-v2 max-w-none mx-auto"
+              :class="
+                settings?.wide
+                  ? 'md:min-w-[100ch] md:max-w-[100ch]'
+                  : 'md:min-w-[48rem] md:max-w-[48rem]'
+              "
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -195,7 +200,6 @@ const {
   comments,
   saveComments,
 } = useYjs(props.document, editor, edited)
-const commentsMap = computed(() => comments._map)
 
 const onCommentActivated = (id) => {
   if (!id) return
@@ -277,7 +281,7 @@ const menuButtons = computed(() => [
       defineAsyncComponent(() => import('./ManageFont.vue')),
       {
         editor,
-        font_size: props.settings.font_size || 15,
+        font_size: +props.settings.font_size || 15,
         font_family: props.settings.font_family || 'inter',
       },
     ),

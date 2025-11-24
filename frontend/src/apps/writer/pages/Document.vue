@@ -19,19 +19,6 @@
     v-model:showSettings="showSettings"
     v-model:showVersions="showVersions"
   >
-    <template
-      #breadcrumbs
-      v-if="document.doc?.settings?.minimal && entity.write"
-    >
-      <Button variant="ghost">
-        <router-link
-          :to="$store.state.breadcrumbs?.[0]?.route"
-          class="cursor-pointer"
-        >
-          <LucideArrowLeft class="size-3.5" />
-        </router-link>
-      </Button>
-    </template>
     <template #content v-if="document.doc?.settings && document.doc.write">
       <UsersBar
         v-if="editor?.storage?.collaborationCursor?.users?.length > 1"
@@ -83,9 +70,13 @@
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div v-else class="flex w-full h-full overflow-hidden" v-show="!showVersions">
+  <div
+    v-else-if="document.doc"
+    class="flex w-full h-full overflow-hidden"
+    v-show="!showVersions"
+  >
     <NonCollabEditor
-      v-if="document.doc?.settings?.collab === false"
+      v-if="!document.doc?.collab"
       ref="editorEl"
       v-model:show-comments="showComments"
       v-model:versionPreview="versionPreview"
@@ -131,7 +122,6 @@ import {
   inject,
   defineAsyncComponent,
   provide,
-  onBeforeUnmount,
   watch,
   h,
   computed,
@@ -174,13 +164,9 @@ const showComments = ref(true)
 const showSettings = ref(false)
 const showVersions = ref(false)
 
-const owner = computed(() => document.doc?.owner)
 const isOldSchema = computed(() => {
-  if (!owner.value) return false
-  return (
-    document.doc?.settings?.collab === false &&
-    store.state.user.id !== owner.value
-  )
+  if (!document.doc) return false
+  return !document.doc.collab && store.state.user.id !== document.doc.owner
 })
 
 const inIframe = inject('inIframe')
@@ -197,7 +183,6 @@ const editable = computed(() =>
 watch(showVersions, (v) => {
   if (!v) versionPreview.value = null
 })
-
 usePageMeta(() => ({
   title: document.doc ? document.doc.title : 'Loading...',
 }))
@@ -226,16 +211,6 @@ const settings = computed(() => {
 })
 
 store.commit('setCurrentResource', document)
-
-const toggleMinimal = (val) => {
-  const sidebar = window.document.querySelector('#sidebar')
-  if (!sidebar) return
-  if (val) {
-    sidebar.style.display = 'none'
-  } else {
-    sidebar.style.removeProperty('display')
-  }
-}
 
 // Events
 window.addEventListener('offline', () => {

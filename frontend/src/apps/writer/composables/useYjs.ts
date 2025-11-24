@@ -142,7 +142,6 @@ export function useYjs(document, editor, edited) {
 
   // Comments
   const { cleanup: cleanupComments, ...commentsData } = useComments(document, editor)
-  console.log(doc)
   return {
     doc,
     cleanup: () => {
