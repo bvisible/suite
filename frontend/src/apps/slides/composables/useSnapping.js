@@ -7,8 +7,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	const slideCenterAlignmentKeys = ['centerX', 'centerY', 'startX', 'startY', 'endX', 'endY']
 
 	// element wrt other elements
-	const matchedStartAlignmentKeys = ['startX', 'startY', 'endX', 'endY']
-	const matchedEndAlignmentKeys = ['startX', 'startY', 'endX', 'endY']
+	const matchedAlignmentKeys = ['left', 'right', 'top', 'bottom']
 
 	const initDiffs = () => {
 		const makeNullMap = (keys) => {
@@ -19,8 +18,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 
 		return {
 			slideCenter: makeNullMap(slideCenterAlignmentKeys),
-			matchedStart: makeNullMap(matchedStartAlignmentKeys),
-			matchedEnd: makeNullMap(matchedStartAlignmentKeys),
+			matched: makeNullMap(matchedAlignmentKeys),
 		}
 	}
 
@@ -35,13 +33,29 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		bottom: false,
 	})
 
-	const visibilityMap = reactive({
-		centerX: true,
-		centerY: true,
-		left: true,
-		right: true,
-		top: true,
-		bottom: true,
+	const visibilityMap = computed(() => {
+		if (!hasOngoingInteraction.value) return {}
+
+		const keys = ['centerX', 'centerY', 'left', 'right', 'top', 'bottom']
+
+		const map = {}
+		// center guides
+		keys.forEach((key) => {
+			let diff
+
+			if (key == 'centerY') {
+				diff = getDiffsForAxis('slideCenterY', 'centerX').diff
+			} else if (key == 'centerX') {
+				diff = getDiffsForAxis('slideCenterY', 'centerY').diff
+			} else {
+				diff = diffs.matched[key]
+			}
+			const threshold = getDynamicThresholds(key).threshold
+
+			map[key] = diff !== null && Math.abs(diff) < threshold
+		})
+
+		return map
 	})
 
 	const mode = ref(null)
@@ -49,12 +63,8 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	const getGuideForDirection = (direction) => {
 		switch (direction) {
 			case 'slideCenterY':
-			case 'startY':
-			case 'endY':
 				return 'centerX'
 			case 'slideCenterX':
-			case 'startX':
-			case 'endX':
 				return 'centerY'
 			default:
 				return direction
@@ -164,31 +174,24 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 
 		pairElementId.value = id
 
-		diffs.matchedStart.startX = diffFromElement.left
-		diffs.matchedEnd.endX = diffFromElement.right
-
-		diffs.matchedStart.startY = diffFromElement.top
-		diffs.matchedEnd.endY = diffFromElement.bottom
+		Object.entries(diffFromElement).forEach(([direction, diff]) => {
+			diffs.matched[direction] = diff
+		})
 	}
 
 	const unpairElement = () => {
 		pairElementId.value = null
 
 		const resetDiffs = () => {
-			return ['startX', 'startY', 'endX', 'endY'].reduce((map, direction) => {
+			return ['left', 'right', 'top', 'bottom'].reduce((map, direction) => {
 				map[direction] = null
 				return map
 			}, {})
 		}
 
-		Object.assign(diffs.matchedStart, resetDiffs())
-		Object.assign(diffs.matchedEnd, resetDiffs())
-
-		Object.assign(resistanceMap.matchedStart, resetDiffs())
-		Object.assign(resistanceMap.matchedEnd, resetDiffs())
-
-		Object.assign(prevDiffs.matchedStart, resetDiffs())
-		Object.assign(prevDiffs.matchedEnd, resetDiffs())
+		Object.assign(diffs.matched, resetDiffs())
+		Object.assign(prevDiffs.matched, resetDiffs())
+		Object.assign(resistanceMap, resetDiffs())
 	}
 
 	const updateDiffsRelativeToPairedElement = () => {
@@ -248,6 +251,9 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		if (['slideCenterY', 'slideCenterX'].includes(axis)) {
 			diff = diffs.slideCenter[point]
 			prevDiff = prevDiffs.slideCenter[point]
+		} else if (['left', 'right', 'top', 'bottom'].includes(axis)) {
+			diff = diffs.matched[axis]
+			prevDiff = prevDiffs.matched[axis]
 		}
 
 		return { diff, prevDiff }
@@ -280,14 +286,10 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			return 0
 		}
 
-		const setGuideMaps = () => {
+		const setResistanceMap = () => {
 			const guide = getGuideForDirection(axis)
-
 			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
-			const withinVisibilityRange = Math.abs(diff) < threshold
-
 			resistanceMap[guide] = diff !== null && withinResistanceRange
-			visibilityMap[guide] = withinVisibilityRange
 		}
 
 		const { diff, prevDiff } = getDiffsForAxis(axis, point)
@@ -296,15 +298,15 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 
 		const movingAway = isMovingAway()
 
-		setGuideMaps()
+		setResistanceMap()
 
 		let offsetX = 0
 		let offsetY = 0
 		let offsetWidth = 0
 
-		if (axis == 'slideCenterY') {
+		if (['slideCenterY', 'left', 'right'].includes(axis)) {
 			offsetX = getSnapOffset()
-		} else if (axis == 'slideCenterX') {
+		} else if (['slideCenterX', 'top', 'bottom'].includes(axis)) {
 			offsetY = getSnapOffset()
 		}
 
@@ -349,16 +351,20 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			end = 'bottom'
 		}
 
-		if (Math.abs(diffs[end]) < Math.abs(diffs[start])) return handleSnapMovement(end)
+		if (Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start]))
+			return handleSnapMovement(end)
 
 		return handleSnapMovement(start)
 	}
 
 	const getPairedOffsets = () => {
+		const { offsetX, offsetWidth } = getOffset('X')
+		const { offsetY } = getOffset('Y')
+
 		return {
-			pairedOffsetX: getOffset('X').offsetX,
-			pairedOffsetY: getOffset('Y').offsetY,
-			pairedOffsetWidth: getOffset('X').offsetWidth,
+			pairedOffsetX: offsetX,
+			pairedOffsetY: offsetY,
+			pairedOffsetWidth: offsetWidth,
 		}
 	}
 
