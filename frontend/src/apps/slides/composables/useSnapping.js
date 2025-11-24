@@ -39,14 +39,29 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		const keys = ['centerX', 'centerY', 'left', 'right', 'top', 'bottom']
 
 		const map = {}
-		// center guides
 		keys.forEach((key) => {
 			let diff
 
 			if (key == 'centerY') {
-				diff = getDiffsForAxis('slideCenterY', 'centerX').diff
+				let point = 'centerX'
+				if (mode.value == 'resizing' && currentResizer.value) {
+					point = currentResizer.value.includes('left')
+						? 'startX'
+						: currentResizer.value.includes('right')
+							? 'endX'
+							: 'centerX'
+				}
+				diff = getDiffsForAxis('slideCenterY', point).diff
 			} else if (key == 'centerX') {
-				diff = getDiffsForAxis('slideCenterY', 'centerY').diff
+				let point = 'centerY'
+				if (mode.value == 'resizing' && currentResizer.value) {
+					point = currentResizer.value.includes('top')
+						? 'startY'
+						: currentResizer.value.includes('bottom')
+							? 'endY'
+							: 'centerY'
+				}
+				diff = getDiffsForAxis('slideCenterY', point).diff
 			} else {
 				diff = diffs.matched[key]
 			}
