@@ -21,6 +21,7 @@ def migrate_doc(file):
         for key in list(settings):
             if key not in ACCEPTED_SETTINGS:
                 settings.pop(key)
+        settings["old_schema"] = True
 
         new_doc = frappe.get_doc(
             {
@@ -28,7 +29,7 @@ def migrate_doc(file):
                 "content": old_doc.content,
                 "html": old_doc.raw_content,
                 "settings": json.dumps(settings),
-                "collab": collab,
+                "collab": int(collab),
             }
         )
 
