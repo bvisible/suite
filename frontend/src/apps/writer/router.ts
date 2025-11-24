@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import store from './store'
 
 const router = createRouter({
   history: createWebHistory('/writer'),
@@ -7,6 +8,9 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: () => import('@/pages/Documents.vue'),
+      beforeEnter: () => {
+        if (!store.getters.isLoggedIn) return '/login'
+      },
     },
     {
       path: '/w/:id/:slug?',

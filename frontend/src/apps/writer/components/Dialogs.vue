@@ -41,7 +41,7 @@
     v-if="dialog === 'remove'"
     v-model="dialog"
     :entities="entities"
-    @success="$router.push({ name: 'Documents' })"
+    @success="$router.push({ name: 'Home' })"
   />
 </template>
 <script setup>

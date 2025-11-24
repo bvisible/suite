@@ -45,12 +45,16 @@
 <script setup>
 import { getDocuments, createDocument } from '@/resources/'
 import RoundedListView from '@/components/RoundedListView.vue'
-import { LoadingIndicator, useList } from 'frappe-ui'
+import { LoadingIndicator, useList, usePageMeta } from 'frappe-ui'
 
 const groupedDocuments = computed(
   () => getDocuments.data && groupByTime(getDocuments.data),
 )
 getDocuments.fetch()
+
+usePageMeta(() => ({
+  title: 'Writer',
+}))
 
 function groupByTime(entities) {
   const today = new Date()

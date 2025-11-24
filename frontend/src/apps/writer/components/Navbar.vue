@@ -13,7 +13,7 @@
     </slot>
 
     <div class="ml-auto flex items-center gap-3">
-      <div id="navbar-content" class="flex gap-3 mx-3" />
+      <div id="navbar-content" class="flex gap-3" />
       <slot name="content" />
       <div v-if="document?.doc?.share_count" class="icon">
         <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />

@@ -53,13 +53,11 @@ const props = defineProps({ error: Object })
 
 watchEffect(() => {
   if (
-    props.error.exc_type === 'PermissionError' &&
-    (!store.state.user.id || store.state.user.id === 'Guest')
+    (String(props.error).includes('FORBIDDEN') ||
+      props.error.exc_type === 'PermissionError') &&
+    !store.getters.isLoggedIn
   ) {
-    router.replace({
-      name: 'Login',
-      query: { 'redirect-to': '/drive' + router.currentRoute.value.path },
-    })
+    window.location.href = '/login'
   }
   store.commit('setBreadcrumbs', [])
 })
