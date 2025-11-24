@@ -17,6 +17,7 @@ def migrate_doc(file):
     try:
         old_doc = frappe.get_doc("Drive Document", file.document)
         settings = json.loads(old_doc.settings)
+        collab = settings.get("collab", 0)
         for key in list(settings):
             if key not in ACCEPTED_SETTINGS:
                 settings.pop(key)
@@ -27,7 +28,7 @@ def migrate_doc(file):
                 "content": old_doc.content,
                 "html": old_doc.raw_content,
                 "settings": json.dumps(settings),
-                "collab": settings.get("collab", 0),
+                "collab": collab,
             }
         )
 
