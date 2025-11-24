@@ -399,6 +399,7 @@ export function printDoc(html, settings = {}) {
     size: settings?.watermark_size || 90,
     angle: settings?.watermark_angle || -45
   }
+  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ""
   const content = `
             <!DOCTYPE html>
             <html>
@@ -424,7 +425,7 @@ export function printDoc(html, settings = {}) {
               </style>
               </head>
               <body>
-                ${applyWatermark && watermark.text ? `<div class="watermark">${watermark.text}</div>` : ""}
+                ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ""}
                 <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
                   ${highlightedHtml}
                 </div>
@@ -824,14 +825,15 @@ export async function downloadMD(editor, foldername) {
   saveAs(blobzip, `${foldername}.zip`)
 }
 
-export async function downloadZippedHTML(editor, foldername) {
+export async function downloadZippedHTML(editor, foldername, settings = {}) {
   const html = editor.value.getHTML()
-    const applyWatermark = settings?.apply_watermark || false
+  const applyWatermark = settings?.apply_watermark || false
   const watermark = {
     text: settings?.watermark_text || "",
     size: settings?.watermark_size || 90,
     angle: settings?.watermark_angle || -45
   }
+  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ""
   let content = `
             <!DOCTYPE html>
             <html>
@@ -854,7 +856,7 @@ export async function downloadZippedHTML(editor, foldername) {
                 </style>
               </head>
               <body>
-                ${applyWatermark && watermark.text ? `<div class="watermark">${watermark.text}</div>` : ""}
+                ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ""}
                 <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
                   ${html}
                 </div>
