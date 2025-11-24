@@ -36,7 +36,7 @@
             @dblclick="editor.isEditable && startRenaming(tab)"
           />
           <div
-            v-if="tab.id === activeTabId"
+            v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-2 my-1"
           >
             <a

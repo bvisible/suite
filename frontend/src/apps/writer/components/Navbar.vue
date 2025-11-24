@@ -76,7 +76,7 @@ import emitter from '@/emitter'
 import { ref, computed, inject, h, defineModel } from 'vue'
 // import { entitiesDownload } from '@/utils/download'
 import { createDocument } from '@/resources/'
-import { exportMedia, exportBlog } from '@/utils/exports'
+import { exportBlog } from '@/utils/exports'
 import Dialogs from '@/components/Dialogs.vue'
 import { apps } from '@/resources/permissions'
 import { dynamicList } from '@/utils/'
@@ -93,10 +93,7 @@ import LucideLink from '~icons/lucide/link'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
 import LucideSquarePen from '~icons/lucide/square-pen'
 import LucideInfo from '~icons/lucide/info'
-import MessagesSquare from '~icons/lucide/messages-square'
 import LucideRulerDimensionLine from '~icons/lucide/ruler-dimension-line'
-import LucideUserPen from '~icons/lucide/user-pen'
-import LucideEraser from '~icons/lucide/eraser'
 import LucideView from '~icons/lucide/view'
 import LucideSettings from '~icons/lucide/settings'
 import LucideImageDown from '~icons/lucide/image-down'
@@ -104,8 +101,14 @@ import LucideNewspaper from '~icons/lucide/newspaper'
 import LucideListRestart from '~icons/lucide/list-restart'
 import LucideHistory from '~icons/lucide/history'
 import MessageSquareDot from '~icons/lucide/message-square-dot'
+import LucideMarkdown from '~icons/lucide/pilcrow'
+import { downloadZippedHTML, downloadMD } from '@/utils'
+import { downloadDocxFromHtml } from '../utils/docxexporter'
+import { entitiesDownload } from '@/utils/download'
+import { getLink } from '@/utils'
 
 const store = useStore()
+const route = useRoute()
 const open = (url) => {
   window.open(url, '_blank')
 }
@@ -122,6 +125,12 @@ const showVersions = defineModel('showVersions')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
+const editor = inject('editor')
+
+// Aliases for convenience in download functions
+const entity = computed(() => props.document?.doc)
+const editorValue = editor // editor is already a ref, no need to wrap in computed
+const settings = computed(() => props.document?.doc?.settings)
 
 const formattedCrumbs = computed(() => {
   const ORIG = { label: 'Writer', route: '/' }
@@ -255,19 +264,44 @@ const fileActions = computed(() =>
             {
               label: 'Export',
               icon: LucideDownload,
-              submenu: dynamicList([
+              submenu: [
                 {
-                  onClick: exportMedia,
-                  label: 'Export Media',
-                  icon: LucideImageDown,
+                  label: 'PDF',
+                  icon: LucideFile,
+                  onClick: () => {
+                    emitter.emit('print-file')
+                  },
+                },
+                {
+                  label: 'DOCX',
+                  icon: LucideFileText,
+                  onClick: () => {
+                    downloadDocxFromHtml(
+                      editorValue.value.getHTML(),
+                      `${entity.value.title}.docx`,
+                      settings.value,
+                    )
+                  },
+                },
+                {
+                  label: 'Folder',
+                  icon: LucideFolderArchive,
+                  onClick: () => {
+                    downloadZippedHTML(editorValue, entity.value.title)
+                  },
+                },
+                {
+                  label: 'Markdown',
+                  icon: LucideMarkdown,
+                  onClick: () => downloadMD(editorValue, entity.value.title),
                 },
                 {
                   onClick: exportBlog,
-                  label: 'Export Blog',
-                  icon: LucideNewspaper,
+                  label: 'Blog',
+                  icon: LucideFileUser,
                   cond: apps.data && apps.data.find((k) => k.name === 'blog'),
                 },
-              ]),
+              ],
             },
             {
               icon: LucideHistory,

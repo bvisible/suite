@@ -6,19 +6,40 @@ import html2pdf from 'html2pdf.js'
 import editorStyle from '@/styles/editor.css?inline'
 import globalStyle from '@/index.css?inline'
 
-async function getPdfFromDoc(entity_name) {
+async function getPdfFromDoc(entity_name, settings = {}) {
   const res = await fetch(
-    `/api/method//api/method/drive.api.files.get_file_content?entity_name=${entity_name}`,
+    `/api/method/drive.api.files.get_file_content?entity_name=${entity_name}`,
   )
   const raw_html = (await res.json()).message
+  const applyWatermark = settings?.apply_watermark || false
+  const watermark = {
+    text: settings?.watermark_text || "",
+    size: settings?.watermark_size || 90,
+    angle: settings?.watermark_angle || -45
+  }
   const content = `
           <!DOCTYPE html>
           <html>
             <head>
               <style>${globalStyle}</style>
               <style>${editorStyle}</style>
+              <style>
+                .watermark {
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%) rotate(${watermark.angle}deg);
+                  opacity: 0.12;
+                  font-size: ${watermark.size}px;
+                  color: #999;
+                  pointer-events: none;
+                  z-index: 9999;
+                  white-space: nowrap;
+                }
+              </style>
             </head>
             <body>
+              ${applyWatermark && watermark.text ? `<div class="watermark">${watermark.text}</div>` : ""}
               <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
                 ${raw_html}
               </div>
@@ -30,23 +51,22 @@ async function getPdfFromDoc(entity_name) {
   await pdfBlob
   return pdfBlob.prop.pdf.output('arraybuffer')
 }
-export function entitiesDownload(team, entities, transfer = false) {
+export function entitiesDownload(team, entities, settings = {}, transfer = false) {
   if (entities.length === 1) {
     if (entities[0].mime_type === 'frappe_doc') {
-      if (router.currentRoute.value.name) {
+      if (router.currentRoute.value.name === 'Document') {
         return emitter.emit('printFile')
       }
-      // BROKEN
       return fetch(
-        `/api/method//api/method/drive.api.files.get_file_content?entity_name=${entities[0].name}`,
+        `/api/method/drive.api.files.get_file_content?entity_name=${entities[0].name}`,
       ).then(async (data) => {
         const raw_html = (await data.json()).message
-        printDoc(raw_html)
+        printDoc(raw_html, settings)
       })
     }
     return entities[0].is_group
       ? folderDownload(team, entities[0])
-      : (window.location.href = `/api/method//api/method/drive.api.files.get_file_content?entity_name=${
+      : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${
           entities[0].name
         }&trigger_download=1${transfer ? '&transfer=1' : ''}`)
   }
@@ -62,7 +82,8 @@ export function entitiesDownload(team, entities, transfer = false) {
         return Promise.all(promises)
       })
     } else if (entity.document) {
-      const content = await getPdfFromDoc(entities[0].name)
+      // TODO: Get settings from document/user preferences
+      const content = await getPdfFromDoc(entities[0].name, {})
       parentFolder.file(entity.title + '.pdf', content)
     } else {
       const fileContent = await get_file_content(entity)

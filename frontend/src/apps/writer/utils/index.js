@@ -9,10 +9,13 @@ import { set } from 'idb-keyval'
 import editorStyle from '@/styles/editor.css?inline'
 import globalStyle from '@/index.css?inline'
 import slugify from 'slugify'
-import { useFileUpload, toast as nToast } from 'frappe-ui'
+import { useFileUpload, toast as nToast, createResource } from 'frappe-ui'
 import emitter from '@/emitter'
 import { createLowlight, common } from 'lowlight'
 import { toHtml } from 'hast-util-to-html'
+import JSZip from 'jszip'
+import { saveAs } from 'file-saver'
+import TurndownService from 'turndown'
 
 import {
   default as TableOfContents,
@@ -390,6 +393,12 @@ export function printDoc(html, settings = {}) {
     nunito: 'var(--font-nunito)',
   }
   const fontFamily = fontMap[settings?.font_family]
+  const applyWatermark = settings?.apply_watermark || false
+  const watermark = {
+    text: settings?.watermark_text || "",
+    size: settings?.watermark_size || 90,
+    angle: settings?.watermark_angle || -45
+  }
   const content = `
             <!DOCTYPE html>
             <html>
@@ -400,9 +409,22 @@ export function printDoc(html, settings = {}) {
                 .ProseMirror {
                   font-family: ${fontFamily} !important;
                 }
+                .watermark {
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%) rotate(${watermark.angle}deg);
+                  opacity: 0.12;
+                  font-size: ${watermark.size}px;
+                  color: #999;
+                  pointer-events: none;
+                  z-index: 9999;
+                  white-space: nowrap;
+                }
               </style>
               </head>
               <body>
+                ${applyWatermark && watermark.text ? `<div class="watermark">${watermark.text}</div>` : ""}
                 <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
                   ${highlightedHtml}
                 </div>
@@ -756,3 +778,110 @@ export const COMMON_EXTENSIONS = [
   }),
   EmbedExtension,
 ]
+
+export async function downloadMD(editor, foldername) {
+  var html = editor.value.getHTML()
+  const turndownService = new TurndownService({
+    headingStyle: "atx",
+    codeBlockStyle: "fenced",
+    bulletListMarker: "-",
+  })
+
+  const zip = new JSZip()
+  const urls = editor.value.commands.getEmbedUrls()
+  const getExtension = createResource({
+    url: "drive.api.docs.get_extension",
+  })
+  const parent = router.currentRoute.value.params.entityName
+  const markdown = turndownService.turndown(html)
+  const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" })
+  
+  if(urls.length === 0){
+    saveAs(blob, `${foldername}.md`)
+    return
+  }
+
+  for (const i in urls) {
+    const ext = await getExtension.fetch({ entity_name: urls[i].name })
+    const pattern =
+      /src="\/api\/method\/drive\.api\.embed\.get_file_content[^"]+"/
+    html = html.replace(pattern, `src="./${i}.${ext}"`)
+    const fileUrl = `/api/method/drive.api.embed.get_file_content?embed_name=${encodeURIComponent(
+      urls[i].name
+    )}&parent_entity_name=${encodeURIComponent(parent)}`
+    const res = await fetch(fileUrl)
+    const embedBlob = await res.blob()
+    zip.file(`${i}.${ext}`, embedBlob)
+  }
+
+  zip.file(`${foldername}.md`, blob)
+
+  const blobzip = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+  })
+
+  saveAs(blobzip, `${foldername}.zip`)
+}
+
+export async function downloadZippedHTML(editor, foldername) {
+  const html = editor.value.getHTML()
+    const applyWatermark = settings?.apply_watermark || false
+  const watermark = {
+    text: settings?.watermark_text || "",
+    size: settings?.watermark_size || 90,
+    angle: settings?.watermark_angle || -45
+  }
+  let content = `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <style>${globalStyle}</style>
+                <style>${editorStyle}</style>
+                <style>
+                  .watermark {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(${watermark.angle}deg);
+                    opacity: 0.12;
+                    font-size: ${watermark.size}px;
+                    color: #999;
+                    pointer-events: none;
+                    z-index: 9999;
+                    white-space: nowrap;
+                  }
+                </style>
+              </head>
+              <body>
+                ${applyWatermark && watermark.text ? `<div class="watermark">${watermark.text}</div>` : ""}
+                <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
+                  ${html}
+                </div>
+              </body>
+            </html>
+          `
+  const zip = new JSZip()
+  const urls = editor.value.commands.getEmbedUrls()
+  const getExtension = createResource({
+    url: "drive.api.docs.get_extension",
+  })
+  const parent = router.currentRoute.value.params.entityName
+  
+  for (const i in urls) {
+    const ext = await getExtension.fetch({ entity_name: urls[i].name })
+    const pattern =
+      /src="\/api\/method\/drive\.api\.embed\.get_file_content[^"]+"/
+    content = content.replace(pattern, `src="./${i}.${ext}"`)
+    const fileUrl = `/api/method/drive.api.embed.get_file_content?embed_name=${encodeURIComponent(
+      urls[i].name
+    )}&parent_entity_name=${encodeURIComponent(parent)}`
+    const res = await fetch(fileUrl)
+    const blob = await res.blob()
+    zip.file(`${i}.${ext}`, blob)
+  }
+  
+  zip.file("index.html", content)
+  const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" })
+  saveAs(blob, `${foldername}.zip`)
+}

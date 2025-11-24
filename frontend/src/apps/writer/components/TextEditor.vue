@@ -219,6 +219,7 @@ const editorExtensions = [
   ...COMMON_EXTENSIONS,
   CharacterCount,
   Selection,
+  // MathematicsExtension,
   TabsExtension,
   OldCommentExtension.configure({
     onCommentActivated: onCommentActivated,
@@ -289,11 +290,11 @@ const menuButtons = computed(() => [
   'Separator',
   'Blockquote',
   'Code',
-  {
-    label: 'Mathematics',
-    icon: LucideSquareFunction,
-    action: (editor) => editor.commands.openMathEditor('inline'),
-  },
+  // {
+  //   label: 'Mathematics',
+  //   icon: LucideSquareFunction,
+  //   action: (editor) => editor.commands.openMathEditor('block'),
+  // },
   'Separator',
   'Image',
   'Video',

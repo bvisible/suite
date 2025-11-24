@@ -7,6 +7,7 @@ export const exportMedia = async (editor) => {
   const getExtension = createResource({
     url: 'drive.api.docs.get_extension',
   })
+  console.log(urls)
   for (const i in urls) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
     if (ext) urls[i].title += '.' + ext
