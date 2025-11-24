@@ -1,19 +1,36 @@
 import frappe
+import json
 from pycrdt import Doc, Map
 import base64
+
+ACCEPTED_SETTINGS = [
+    "minimal",
+    "wide",
+    "lock",
+    "font_family",
+    "font_size",
+    "line_height",
+]
 
 
 def migrate_doc(file):
     try:
         old_doc = frappe.get_doc("Drive Document", file.document)
+        settings = json.loads(old_doc.settings)
+        for key in list(settings):
+            if key not in ACCEPTED_SETTINGS:
+                settings.pop(key)
+
         new_doc = frappe.get_doc(
             {
                 "doctype": "Writer Document",
                 "content": old_doc.content,
                 "html": old_doc.raw_content,
-                "settings": old_doc.settings,
+                "settings": json.dumps(settings),
+                "collab": settings.get("collab", 0),
             }
         )
+
         new_doc.insert()
         if file.comments:
             commentsDoc = Doc()

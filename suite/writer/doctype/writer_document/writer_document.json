@@ -13,7 +13,8 @@
   "settings",
   "updates",
   "ycomments",
-  "versions"
+  "versions",
+  "collab"
  ],
  "fields": [
   {
@@ -50,12 +51,18 @@
    "fieldname": "html",
    "fieldtype": "Long Text",
    "label": "HTML"
+  },
+  {
+   "default": "1",
+   "fieldname": "collab",
+   "fieldtype": "Check",
+   "label": "Collab"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-11-19 13:12:48.829825",
- "modified_by": "safwan@frappe.io",
+ "modified": "2025-11-24 12:00:05.353083",
+ "modified_by": "Administrator",
  "module": "Writer",
  "name": "Writer Document",
  "naming_rule": "Random",
