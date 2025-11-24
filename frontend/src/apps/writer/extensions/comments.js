@@ -70,6 +70,7 @@ export const CommentExtension = Extension.create({
       doc: null,
       activeComment: null,
       onActivated: null,
+      onDecorationsPainted: null,
     }
   },
 
@@ -81,15 +82,22 @@ export const CommentExtension = Extension.create({
         key: commentPluginKey,
         state: {
           init(_, state) {
-            const { doc, comments, activeComment, showResolved } = ext.options
-            // if (!showComments.value) return DecorationSet.empty
-            return createDecorations(
+            const {
+              doc,
+              comments,
+              activeComment,
+              showResolved,
+              onDecorationsPainted,
+            } = ext.options
+            const decos = createDecorations(
               ext.editor,
               doc,
               comments,
               activeComment.value,
               showResolved.value,
             )
+            if (onDecorationsPainted) setTimeout(onDecorationsPainted, 100)
+            return decos
           },
 
           apply(tr, oldSet) {

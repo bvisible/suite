@@ -1,22 +1,4 @@
 <template>
-  <Teleport to="#navbar-content" defer>
-    <Button
-      v-if="
-        Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
-      "
-      :icon="LucideMessageSquareDot"
-      variant="outline"
-      tooltip="Toggle resolved"
-      @click="showResolved = !showResolved"
-    ></Button>
-    <Button
-      v-if="comments._map.size"
-      :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
-      variant="outline"
-      :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-      @click="showComments = !showComments"
-    ></Button>
-  </Teleport>
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
       v-if="editor && editable && !settings.minimal"
@@ -25,7 +7,7 @@
     />
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1"
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 relative"
       :class="
         settings.wide
           ? 'md:grid-cols-[minmax(10rem,1fr)_minmax(auto,95ch)_minmax(0,1fr)]'
@@ -89,6 +71,25 @@
         :editor
         @save="saveComments"
       />
+      <Button
+        class="absolute right-3 top-3"
+        v-if="comments._map.size"
+        :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
+        variant="ghost"
+        :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+        @click="showComments = !showComments"
+      ></Button>
+      <Button
+        class="absolute right-3 top-12"
+        v-if="
+          showComments &&
+          Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
+        "
+        :icon="LucideMessageSquareDot"
+        variant="ghost"
+        tooltip="Toggle resolved"
+        @click="showResolved = !showResolved"
+      ></Button>
     </div>
   </div>
 </template>
@@ -105,7 +106,6 @@ import { v4 as uuidv4 } from 'uuid'
 import {
   computed,
   defineAsyncComponent,
-  onMounted,
   ref,
   onBeforeUnmount,
   h,

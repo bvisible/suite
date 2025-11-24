@@ -1,22 +1,4 @@
 <template>
-  <Teleport to="#navbar-content" defer>
-    <Button
-      v-if="
-        Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
-      "
-      :icon="LucideMessageSquareDot"
-      variant="outline"
-      tooltip="Toggle resolved"
-      @click="showResolved = !showResolved"
-    ></Button>
-    <Button
-      v-if="comments._map.size"
-      :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
-      variant="outline"
-      :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-      @click="showComments = !showComments"
-    ></Button>
-  </Teleport>
   <div class="flex flex-col w-full bg-surface-white">
     <div
       class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals grid md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
@@ -33,7 +15,7 @@
 
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1"
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 relative"
       :class="
         settings.wide
           ? 'md:grid-cols-[minmax(10rem,1fr)_minmax(auto,95ch)_minmax(0,1fr)]'
@@ -90,9 +72,8 @@
           </template>
         </FTextEditor>
       </div>
-
       <FloatingComments
-        v-if="editor"
+        v-if="commentsPainted"
         :y-comments="comments"
         v-model:active-comment="activeComment"
         :class="showComments ? 'opacity-100' : 'opacity-0'"
@@ -101,6 +82,25 @@
         :editor
         @save="saveComments"
       />
+      <Button
+        class="absolute right-3 top-3"
+        v-if="comments._map.size"
+        :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
+        variant="ghost"
+        :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+        @click="showComments = !showComments"
+      ></Button>
+      <Button
+        class="absolute right-3 top-12"
+        v-if="
+          showComments &&
+          Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
+        "
+        :icon="LucideMessageSquareDot"
+        variant="ghost"
+        tooltip="Toggle resolved"
+        @click="showResolved = !showResolved"
+      ></Button>
     </div>
   </div>
 </template>
@@ -164,6 +164,7 @@ const activeComment = ref(null)
 const showComments = defineModel('showComments')
 watch([showComments, activeComment], () => rebuild(editor.value))
 const showResolved = ref(false)
+const commentsPainted = ref(false)
 const edited = ref(false)
 const hideToolbar = ref(false)
 
@@ -259,6 +260,7 @@ const editorExtensions = [
     showResolved,
     edited,
     onActivated: onCommentActivated,
+    onDecorationsPainted: () => (commentsPainted.value = true),
   }),
 ]
 

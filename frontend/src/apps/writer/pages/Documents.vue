@@ -1,7 +1,7 @@
 <template>
   <Navbar />
   <div class="flex-grow overflow-y-auto">
-    <div v-if="templates.data?.length" class="px-15 py-5 bg-surface-gray-1">
+    <!-- <div v-if="templates.data?.length" class="px-15 py-5 bg-surface-gray-1">
       <h3 class="font-semibold text-base mb-3">Templates</h3>
       <div class="flex gap-10 overflow-x-scroll p-1">
         <div
@@ -24,7 +24,7 @@
             class="aspect-[37/50] cursor-pointer overflow-hidden rounded-md dark:bg-gray-900 bg-surface-white w-48 p-3 shadow-lg transition-shadow hover:shadow-xl"
           >
             <div
-              class="prose prose-sm pointer-events-none w-[200%] origin-top-left scale-[.55] prose-p:my-1 md:w-[250%] md:scale-[.39]"
+              class="prose prose-sm pointer-events-none w-[200%] origin-top-left scale-[.35] prose-p:my-1 md:w-[250%] md:scale-[.19]"
               v-html="template.content"
             ></div>
           </div>
@@ -33,7 +33,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     <RoundedListView
       v-if="groupedDocuments"
       :groups="groupedDocuments"

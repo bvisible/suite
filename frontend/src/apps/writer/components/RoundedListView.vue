@@ -1,5 +1,8 @@
 <template>
-  <div ref="container" class="px-32 pt-8 h-screen space-y-8 pb-64">
+  <div
+    ref="container"
+    class="mx-auto max-w-[60%] pt-8 h-screen space-y-8 pb-64"
+  >
     <template v-for="[group, files] in Object.entries(groups)" :key="group">
       <template v-if="files.length">
         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">

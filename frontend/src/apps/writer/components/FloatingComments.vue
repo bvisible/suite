@@ -463,7 +463,10 @@ const setCommentHeights = useDebounceFn(() => {
         if (!el && comment.anchorText) {
           comment.detached = 1
           anchorTop = 12
-        } else anchorTop = el.getBoundingClientRect().top - containerTop
+        } else {
+          anchorTop = el.getBoundingClientRect().top - containerTop
+          comment.detached = 0
+        }
         const adjustedTop = Math.max(anchorTop, lastBottom)
         comment.top = adjustedTop
         lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12

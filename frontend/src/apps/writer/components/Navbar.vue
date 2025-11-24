@@ -3,8 +3,11 @@
     id="navbar"
     ondragstart="return false;"
     ondrop="return false;"
-    class="bg-surface-white border-b px-5 py-2.5 h-12 flex justify-between"
+    class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
   >
+    <div class="pl-2.5 pr-0.25">
+      <WriterLogo class="scale-[0.7]" />
+    </div>
     <slot name="breadcrumbs">
       <Breadcrumbs
         :items="formattedCrumbs"
@@ -106,6 +109,7 @@ import { downloadZippedHTML, downloadMD } from '@/utils'
 import { downloadDocxFromHtml } from '../utils/docxexporter'
 import { entitiesDownload } from '@/utils/download'
 import { getLink } from '@/utils'
+import WriterLogo from './WriterLogo.vue'
 
 const store = useStore()
 const route = useRoute()

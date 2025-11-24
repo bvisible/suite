@@ -85,7 +85,7 @@
         v-if="editor.isEditable"
         class="!justify-start text-xs opacity-50 hover:opacity-100"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        :label="tabs.length ? 'Add' : 'Create tab'"
+        :label="tabs.length ? 'Add tab' : 'Create tab'"
         variant="ghost"
         @click="
           tabs.length
