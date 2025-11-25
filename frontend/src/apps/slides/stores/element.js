@@ -261,6 +261,17 @@ const replaceMediaElement = async (element, fileDoc) => {
 	}
 }
 
+const getDuplicateElementId = (element, displaceByPx) => {
+	let refId = null
+
+	if (!displaceByPx) {
+		const prevSlide = slides.value[slideIndex.value - 1]
+		if (prevSlide?.transition == 'Move') return element.id
+	}
+
+	return generateUniqueId()
+}
+
 const duplicateElements = async (e, elements, displaceByPx = 0) => {
 	e?.preventDefault()
 
@@ -268,7 +279,7 @@ const duplicateElements = async (e, elements, displaceByPx = 0) => {
 
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
-		newElement.id = generateUniqueId()
+		newElement.id = getDuplicateElementId(element, displaceByPx)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
