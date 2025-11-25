@@ -35,25 +35,15 @@
 				</div>
 
 				<div class="flex-1 overflow-y-auto">
-					<!-- Current User -->
-					<div v-if="showCurrentUser" class="border-b border-gray-200">
+					<!-- All Participants -->
+					<div v-if="allVisibleParticipants.length > 0">
 						<PeopleParticipantTile
-							:participant="currentUserData"
-							:isCurrentUser="true"
-							:showHostBadge="isCreator"
-							:canControlParticipant="false"
-						/>
-					</div>
-
-					<!-- Remote Participants -->
-					<div v-if="filteredParticipants.length > 0">
-						<PeopleParticipantTile
-							v-for="participant in filteredParticipants"
+							v-for="participant in allVisibleParticipants"
 							:key="participant.user_id"
-							:participant="participant"
-							:isCurrentUser="false"
-							:showHostBadge="participant.user_id === creatorUserId"
-							:canControlParticipant="isCreator"
+							:participant="participant.participantData"
+							:isCurrentUser="participant.isCurrentUser"
+							:showHostBadge="participant.showHostBadge"
+							:canControlParticipant="participant.canControlParticipant"
 							@muteParticipant="handleMuteParticipant"
 							@kickParticipant="handleKickParticipant"
 							@lowerHand="handleLowerHand"
@@ -61,7 +51,7 @@
 					</div>
 
 					<div
-						v-if="!showCurrentUser && filteredParticipants.length === 0"
+						v-if="allVisibleParticipants.length === 0"
 						class="text-ink-gray-5 text-sm text-center mt-8 px-4"
 					>
 						{{ searchQuery ? "No participants found" : "No other participants" }}
@@ -182,6 +172,32 @@ const showCurrentUser = computed(() => {
 		""
 	).toLowerCase();
 	return name.includes(query);
+});
+
+const allVisibleParticipants = computed(() => {
+	const participants = [];
+
+	if (showCurrentUser.value) {
+		participants.push({
+			user_id: props.currentUser?.user_id || "",
+			participantData: currentUserData.value,
+			isCurrentUser: true,
+			showHostBadge: isCreator.value,
+			canControlParticipant: false,
+		});
+	}
+
+	for (const participant of filteredParticipants.value) {
+		participants.push({
+			user_id: participant.user_id,
+			participantData: participant,
+			isCurrentUser: false,
+			showHostBadge: participant.user_id === props.creatorUserId,
+			canControlParticipant: isCreator.value,
+		});
+	}
+
+	return participants;
 });
 
 const currentUserData = computed<Participant>(() => ({
