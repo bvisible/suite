@@ -473,23 +473,49 @@ const addFixedWidthToElement = (deltaWidth) => {
 const { initTextEditor, activeEditor } = useTextEditor()
 let editorOldText = ''
 
-const updateElementContent = (id) => {
+const getReferenceElement = (nextElement) => {
+	const prevSlide = slides.value[slideIndex.value - 1]
+
+	for (const element of prevSlide.elements) {
+		if (element.type != nextElement.type) continue
+
+		if (element.type == 'text') {
+			// TODO: check for same inner text - different styles possible
+			if (element.content == nextElement.content) {
+				return element
+			}
+		}
+	}
+}
+
+const getUpdatedIdForElementContent = (element, currentText) => {
+	const prevSlide = slides.value[slideIndex.value - 1]
+	if (prevSlide?.transition == 'Move') {
+		const refElement = getReferenceElement(element)
+
+		if (refElement) return refElement.id
+	}
+
+	return generateUniqueId()
+}
+
+const updateElementContent = (element) => {
 	const currentText = activeEditor.value.getText()
 	if (editorOldText == currentText) return
 
-	const element = currentSlide.value.elements.find((el) => el.id == id)
+	element.id = getUpdatedIdForElementContent(element)
 	element.content = activeEditor.value.getHTML()
 	editorOldText = currentText
 }
 
-const blurAndSaveContent = (elementId) => {
+const blurAndSaveContent = (element) => {
 	activeEditor.value.setEditable(false)
 	activeEditor.value.commands.blur()
 
 	if (activeEditor.value.isEmpty) {
-		deleteElements(null, [elementId])
+		deleteElements(null, [element.id])
 	} else {
-		updateElementContent(elementId)
+		updateElementContent(element)
 	}
 }
 
@@ -515,7 +541,7 @@ watch(
 	() => activeElement.value,
 	(element, oldElement) => {
 		if (oldElement?.type == 'text') {
-			blurAndSaveContent(oldElement.id)
+			blurAndSaveContent(oldElement)
 		}
 
 		nextTick(() => {
