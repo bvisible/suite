@@ -51,6 +51,7 @@ import { Select } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
+import { getReferenceElement } from '@/stores/element'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -64,21 +65,6 @@ const setSlideTransition = (option) => {
 	else currentSlide.value.transitionDuration = 1
 
 	if (option == 'Move') addMoveTransition()
-}
-
-const getReferenceElement = (nextElement) => {
-	const prevSlide = slides.value[slideIndex.value]
-
-	for (const element of prevSlide.elements) {
-		if (element.type != nextElement.type) continue
-
-		if (element.type == 'text') {
-			// TODO: check for same inner text - different styles possible
-			if (element.content == nextElement.content) {
-				return element
-			}
-		}
-	}
 }
 
 const addMoveTransition = () => {

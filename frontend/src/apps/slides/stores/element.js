@@ -259,6 +259,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.type == 'video') {
 		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
+	element.id = getUpdatedIdForElementContent(element)
 }
 
 const getDuplicateElementId = (element, displaceByPx) => {
@@ -484,6 +485,8 @@ const getReferenceElement = (nextElement) => {
 			if (element.content == nextElement.content) {
 				return element
 			}
+		} else if (element.src == nextElement.src) {
+			return element
 		}
 	}
 }
@@ -607,4 +610,5 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
+	getReferenceElement,
 }

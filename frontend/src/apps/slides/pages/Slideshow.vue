@@ -150,10 +150,12 @@ const slideStyles = computed(() => {
 const getElementStyles = (element) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const duration = prevSlide?.transitionDuration
-	const transition = prevSlide?.transition == 'Move' ? `left, top ${duration}s ease-in-out` : ''
+	const transitionProperty = prevSlide?.transition == 'Move' ? 'left, top' : ''
 
 	return {
-		transition: transition,
+		transitionTimingFunction: 'ease-in-out',
+		transitionDuration: duration ? `${duration}s` : '0s',
+		transitionProperty: transition,
 	}
 }
 
