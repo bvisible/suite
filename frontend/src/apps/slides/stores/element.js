@@ -474,18 +474,30 @@ const addFixedWidthToElement = (deltaWidth) => {
 const { initTextEditor, activeEditor } = useTextEditor()
 let editorOldText = ''
 
+const compareTextContentForHTML = (currentContent, nextContent) => {
+	const parser = new DOMParser()
+
+	const doc = parser.parseFromString(currentContent, 'text/html')
+	const nextDoc = parser.parseFromString(nextContent, 'text/html')
+
+	const currentText = doc.body.textContent || ''
+	const nextText = nextDoc.body.textContent || ''
+
+	return currentText === nextText
+}
+
 const getReferenceElement = (nextElement) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 
 	for (const element of prevSlide.elements) {
 		if (element.type != nextElement.type) continue
 
-		if (element.type == 'text') {
-			// TODO: check for same inner text - different styles possible
-			if (element.content == nextElement.content) {
-				return element
-			}
-		} else if (element.src == nextElement.src) {
+		const hasSameText =
+			element.type == 'text' &&
+			compareTextContentForHTML(element.content, nextElement.content)
+		const hasSameSrc = element.type != 'text' && element.src == nextElement.src
+
+		if (hasSameText || hasSameSrc) {
 			return element
 		}
 	}
