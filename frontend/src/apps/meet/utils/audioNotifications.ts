@@ -151,6 +151,9 @@ class AudioNotificationManager {
 	}
 
 	async playRaiseHandNotification(): Promise<void> {
+		if (!notificationContextManager.shouldPlayNotification("raiseHand")) {
+			return;
+		}
 		await this.playTone(
 			[
 				[523.25, 0], // C5
