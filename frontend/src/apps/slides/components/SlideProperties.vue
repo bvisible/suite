@@ -28,7 +28,7 @@
 	<CollapsibleSection title="Transition">
 		<template #default>
 			<Select
-				:options="['Slide In', 'Fade', 'None']"
+				:options="['Slide In', 'Fade', 'None', 'Move']"
 				:modelValue="currentSlide.transition"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>
@@ -62,6 +62,38 @@ const setSlideTransition = (option) => {
 	currentSlide.value.transition = option
 	if (option == 'None') currentSlide.value.transitionDuration = 0
 	else currentSlide.value.transitionDuration = 1
+
+	if (option == 'Move') addMoveTransition()
+}
+
+const getReferenceElement = (nextElement) => {
+	const prevSlide = slides.value[slideIndex.value]
+
+	for (const element of prevSlide.elements) {
+		if (element.type != nextElement.type) continue
+
+		if (element.type == 'text') {
+			// TODO: check for same inner text - different styles possible
+			if (element.content == nextElement.content) {
+				return element
+			}
+		}
+	}
+}
+
+const addMoveTransition = () => {
+	// adding move to last slide changes nothing
+	if (slideIndex.value == slides.value.length - 1) return
+
+	const nextSlide = slides.value[slideIndex.value + 1]
+	nextSlide.elements.forEach((nextElement) => {
+		const refElement = getReferenceElement(nextElement)
+
+		if (refElement) {
+			// update current element id to match reference from previous slide
+			nextElement.id = refElement.id
+		}
+	})
 }
 
 const setTransitionDuration = (value) => {
