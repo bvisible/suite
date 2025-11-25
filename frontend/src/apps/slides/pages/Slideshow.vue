@@ -37,24 +37,17 @@
 				</div>
 			</div>
 
-			<Transition
-				v-else
-				@before-enter="beforeSlideEnter"
-				@enter="slideEnter"
-				@before-leave="beforeSlideLeave"
-				@leave="slideLeave"
-			>
-				<div :key="slideIndex" :style="slideStyles" @click="changeSlide(slideIndex + 1)">
-					<SlideElement
-						v-for="element in currentSlide?.elements"
-						:key="`slideshow-${element.id}`"
-						mode="slideshow"
-						:element="element"
-						:data-index="element.id"
-						@click.stop
-					/>
-				</div>
-			</Transition>
+			<div v-else :style="slideStyles" @click="changeSlide(slideIndex + 1)">
+				<SlideElement
+					v-for="element in currentSlide?.elements"
+					:key="`slideshow-${element.id}`"
+					mode="slideshow"
+					:element="element"
+					:data-index="element.id"
+					:style="getElementStyles(element)"
+					@click.stop
+				/>
+			</div>
 		</div>
 	</div>
 </template>
@@ -150,10 +143,19 @@ const slideStyles = computed(() => {
 		backgroundColor: currentSlide.value?.background || '#ffffff',
 		cursor: slideCursor.value,
 		transform: `${transform.value} scale(${widthScale})`,
-		transition: transition.value,
 		opacity: opacity.value,
 	}
 })
+
+const getElementStyles = (element) => {
+	const prevSlide = slides.value[slideIndex.value - 1]
+	const duration = prevSlide?.transitionDuration
+	const transition = prevSlide?.transition == 'Move' ? `left, top ${duration}s ease-in-out` : ''
+
+	return {
+		transition: transition,
+	}
+}
 
 const transitionMap = computed(() => {
 	if (!currentSlide.value) return {}
