@@ -2,7 +2,7 @@
 	<div @click="handleVideoClick" @mouseenter="handleHoverChange" @mouseleave="handleHoverChange">
 		<video
 			ref="videoElement"
-			:style="videoStyle"
+			:style="videoStyles"
 			:autoplay="inSlideShow ? element.autoplay : false"
 			:loop="element.loop"
 			:playbackRate="element.playbackRate"
@@ -49,6 +49,13 @@ import { inSlideShow, isPublicPresentation, readonlyMode } from '@/stores/presen
 import { activeElementIds } from '@/stores/element'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
+const props = defineProps({
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
+	},
+})
+
 const element = defineModel('element', {
 	type: Object,
 	default: null,
@@ -75,15 +82,18 @@ const progressBarClasses = computed(() => {
 
 const isPlaying = ref(false)
 
-const videoStyle = computed(() => ({
-	width: '100%',
-	opacity: element.value.opacity / 100,
-	borderRadius: `${element.value.borderRadius}px`,
-	borderStyle: element.value.borderStyle || 'none',
-	borderColor: element.value.borderColor,
-	borderWidth: `${element.value.borderWidth}px`,
-	boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
-}))
+const videoStyles = computed(() => {
+	return {
+		width: '100%',
+		opacity: element.value.opacity / 100,
+		borderRadius: `${element.value.borderRadius}px`,
+		borderStyle: element.value.borderStyle || 'none',
+		borderColor: element.value.borderColor,
+		borderWidth: `${element.value.borderWidth}px`,
+		boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
+		...props.transitionStyles,
+	}
+})
 
 const togglePlaying = () => {
 	const video = el.value
