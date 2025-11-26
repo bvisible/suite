@@ -137,6 +137,9 @@ const slideStyles = computed(() => {
 	const screenWidth = window.screen.width
 	const widthScale = screenWidth / 960
 
+	const prevSlide = slides.value[slideIndex.value - 1]
+	const duration = prevSlide?.transitionDuration
+
 	return {
 		width: '960px',
 		height: '540px',
@@ -144,6 +147,9 @@ const slideStyles = computed(() => {
 		cursor: slideCursor.value,
 		transform: `${transform.value} scale(${widthScale})`,
 		opacity: opacity.value,
+		transitionProperty: 'all',
+		transitionDuration: duration ? `${duration}s` : '0s',
+		transitionTimingFunction: 'ease-in-out',
 	}
 })
 
