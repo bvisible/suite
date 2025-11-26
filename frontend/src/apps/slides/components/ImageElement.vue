@@ -35,6 +35,13 @@ import { allowedImageFileTypes } from '@/utils/constants'
 import { activeElement } from '@/stores/element'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
+const props = defineProps({
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
+	},
+})
+
 const element = defineModel('element', {
 	type: Object,
 	default: null,
@@ -66,7 +73,10 @@ const imageStyle = computed(() => {
 	if (element.value.useTemplateDimensions) {
 		styles.height = `${element.value.height}px`
 	}
-	return styles
+	return {
+		...styles,
+		...props.transitionStyles,
+	}
 })
 
 const replaceTemplateImage = (file) => {

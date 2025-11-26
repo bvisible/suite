@@ -148,6 +148,8 @@ const slideStyles = computed(() => {
 })
 
 const getElementStyles = (element) => {
+	if (applyReverseTransition.value) return {}
+
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const duration = prevSlide?.transitionDuration
 	const transitionProperty = prevSlide?.transition == 'Move' ? 'left, top' : ''
