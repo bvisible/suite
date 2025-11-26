@@ -262,25 +262,29 @@ const replaceMediaElement = async (element, fileDoc) => {
 	element.id = getUpdatedIdForElementContent(element)
 }
 
-const getDuplicateElementId = (element, displaceByPx) => {
+const getDuplicateElementId = (element, srcSlide) => {
 	let refId = null
 
-	if (!displaceByPx) {
+	if (srcSlide == slideIndex.value - 1) {
 		const prevSlide = slides.value[slideIndex.value - 1]
 		if (prevSlide?.transition == 'Move') return element.id
+	} else if (srcSlide == slideIndex.value + 1) {
+		if (currentSlide.value?.transition == 'Move') return element.id
 	}
 
 	return generateUniqueId()
 }
 
-const duplicateElements = async (e, elements, displaceByPx = 0) => {
+const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
+
+	const displaceByPx = srcSlide == slideIndex.value ? 40 : 0
 
 	let newSelection = []
 
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
-		newElement.id = getDuplicateElementId(element, displaceByPx)
+		newElement.id = getDuplicateElementId(element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
@@ -423,12 +427,7 @@ const handlePastedJSON = async (json) => {
 		})
 	}
 
-	if (srcSlide == slideIndex.value) {
-		duplicateElements(null, json, 40)
-		return
-	}
-
-	duplicateElements(null, json)
+	duplicateElements(null, json, srcSlide)
 }
 
 const handleSvgText = (svgText) => {
