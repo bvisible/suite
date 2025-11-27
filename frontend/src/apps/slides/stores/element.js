@@ -479,10 +479,19 @@ const compareTextContentForHTML = (currentContent, nextContent) => {
 	const doc = parser.parseFromString(currentContent, 'text/html')
 	const nextDoc = parser.parseFromString(nextContent, 'text/html')
 
-	const currentText = doc.body.textContent || ''
-	const nextText = nextDoc.body.textContent || ''
+	const currentBlocks = doc.body.children
+	const nextBlocks = nextDoc.body.children
 
-	return currentText === nextText
+	if (currentBlocks.length != nextBlocks.length) return false
+
+	for (let i = 0; i < currentBlocks.length; i++) {
+		// within each block, compare text content only (ignore styles and tags)
+		if (currentBlocks[i].textContent != nextBlocks[i].textContent) {
+			return false
+		}
+	}
+
+	return true
 }
 
 const getReferenceElement = (nextElement, slide) => {
