@@ -165,6 +165,7 @@ const getElementStyles = (element) => {
 		transitionTimingFunction: 'ease-in-out',
 		transitionDuration: duration ? `${duration}s` : '0s',
 		transitionProperty: transition,
+		'--transition-duration': duration ? `${duration}s` : '0s',
 	}
 }
 
@@ -400,6 +401,8 @@ watch(
 
 <style>
 .forward-transition .textElement span {
-	transition: all 1s ease-in-out;
+	transition-property: all;
+	transition-duration: var(--transition-duration);
+	transition-timing-function: ease-in-out;
 }
 </style>
