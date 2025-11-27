@@ -485,10 +485,8 @@ const compareTextContentForHTML = (currentContent, nextContent) => {
 	return currentText === nextText
 }
 
-const getReferenceElement = (nextElement) => {
-	const prevSlide = slides.value[slideIndex.value - 1]
-
-	for (const element of prevSlide.elements) {
+const getReferenceElement = (nextElement, slide) => {
+	for (const element of slide.elements) {
 		if (element.type != nextElement.type) continue
 
 		const hasSameText =
@@ -504,9 +502,23 @@ const getReferenceElement = (nextElement) => {
 
 const getUpdatedIdForElementContent = (element, currentText) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
-	if (prevSlide?.transition == 'Move') {
-		const refElement = getReferenceElement(element)
+	const nextSlide = slides.value[slideIndex.value + 1]
 
+	let candidateSlide = null
+	if (prevSlide?.transition === 'Move') {
+		// if transition begins on previous slide -
+		// check if any element in current slide refers to element from previous slide
+		candidateSlide = prevSlide
+	} else if (currentSlide.value?.transition === 'Move' && nextSlide) {
+		// if transition begins on current slide -
+		// check if any element in next slide refers to this element
+		candidateSlide = nextSlide
+	}
+
+	if (candidateSlide) {
+		// find reference element in candidate slide
+		const refElement = getReferenceElement(element, candidateSlide)
+		// if found copy its id so that it does not re-render during transition
 		if (refElement) return refElement.id
 	}
 

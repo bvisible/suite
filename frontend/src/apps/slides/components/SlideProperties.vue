@@ -73,7 +73,7 @@ const addMoveTransition = () => {
 
 	const nextSlide = slides.value[slideIndex.value + 1]
 	nextSlide.elements.forEach((nextElement) => {
-		const refElement = getReferenceElement(nextElement)
+		const refElement = getReferenceElement(nextElement, currentSlide.value)
 
 		if (refElement) {
 			// update current element id to match reference from previous slide
