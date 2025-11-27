@@ -45,6 +45,7 @@
 					:element="element"
 					:data-index="element.id"
 					:style="getElementStyles(element)"
+					:class="applyReverseTransition ? 'reverse-transition' : 'forward-transition'"
 					@click.stop
 				/>
 			</div>
@@ -396,3 +397,9 @@ watch(
 	{ immediate: true },
 )
 </script>
+
+<style>
+.forward-transition .textElement span {
+	transition: all 1s ease-in-out;
+}
+</style>
