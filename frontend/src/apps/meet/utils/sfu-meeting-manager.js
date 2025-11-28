@@ -468,12 +468,16 @@ export class SFUMeetingManager {
 					continue;
 				}
 
-				const metadata = { isScreen: !!event.isScreen };
-				await this.subscribeToProducer(
-					event.producerId,
-					event.participantId,
-					metadata,
-				);
+				const isSelf = event.participantId === this.currentUser.value?.user_id;
+				const isScreen = !!event.isScreen;
+				if (!isSelf || isScreen) {
+					const metadata = { isScreen: !!event.isScreen };
+					await this.subscribeToProducer(
+						event.producerId,
+						event.participantId,
+						metadata,
+					);
+				}
 			} catch (error) {
 				console.warn("⚠️ Failed to process buffered producer:", error);
 			}
