@@ -364,7 +364,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				if (!stream) {
 					try {
 						const { constraints, deviceIds } = await buildMediaConstraints(
-							true,
+							meetingState.isCameraOn.value,
 							enable,
 						);
 						stream = await navigator.mediaDevices.getUserMedia(constraints);
