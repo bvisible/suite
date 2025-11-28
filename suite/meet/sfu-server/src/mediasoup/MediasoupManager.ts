@@ -542,11 +542,15 @@ export class MediasoupManager {
 				let audioEnabled = false;
 				let videoEnabled = false;
 				for (const producer of peer.producers.values()) {
+					const isScreen =
+						(producer.appData && producer.appData.type === 'screen') || false;
 					if (producer.kind === 'audio' && !producer.paused)
 						audioEnabled = true;
-					if (producer.kind === 'video' && !producer.paused)
+					// Count video as enabled only if it's NOT a screen share producer
+					if (producer.kind === 'video' && !producer.paused && !isScreen)
 						videoEnabled = true;
 				}
+
 				return {
 					id: peerId,
 					user_id: peerId,
