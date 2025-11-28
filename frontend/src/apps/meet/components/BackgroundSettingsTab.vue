@@ -127,6 +127,13 @@ import {
 } from "../data/backgroundEffects";
 import { selectedCameraId } from "../data/mediaPreferences.js";
 
+const props = defineProps({
+	isVisible: {
+		type: Boolean,
+		default: true,
+	},
+});
+
 const meetingContext = useMeetingContext();
 const isInMeeting = computed(() => !!meetingContext?.isInMeeting?.value);
 const processedStream = computed(
@@ -138,8 +145,11 @@ const onBackgroundEffectsChanged = meetingContext?.onBackgroundEffectsChanged;
 const videoPreviewRef = ref(null);
 const previewStream = ref(null);
 const isLoadingPreview = ref(false);
+const pendingPreviewRefresh = ref(false);
 const fileInputRef = ref(null);
 let previewSession = null;
+let previewInputStream = null; // Raw stream feeding the preview pipeline
+let isPreviewStreamDedicated = false; // Track if preview stream is dedicated (not meeting's processed stream; needed when cam is off in meeting)
 
 // Background effects
 const backgroundBlurEnabledLocal = ref(backgroundBlurEnabled.value);
@@ -179,36 +189,41 @@ const selectedBackgroundOption = computed({
 		if (value === "none") {
 			handleBackgroundBlurToggle(false);
 			handleBackgroundImageToggle(false);
-		} else if (value === "blur-low") {
+			return;
+		}
+		if (value === "blur-low") {
 			blurIntensityLocal.value = 9;
 			setBlurIntensity(9);
 			handleBackgroundBlurToggle(true);
-		} else if (value === "blur-high") {
+			return;
+		}
+		if (value === "blur-high") {
 			blurIntensityLocal.value = 20;
 			setBlurIntensity(20);
 			handleBackgroundBlurToggle(true);
-		} else {
-			// Select background image (predefined or custom)
-			const predefinedImage = backgroundImageOptions.value.find(
-				(opt) => opt.value === value,
-			);
-			if (predefinedImage) {
-				selectedBackgroundImageLocal.value = predefinedImage;
-				setSelectedBackgroundImage(predefinedImage.value);
-				handleBackgroundImageToggle(true);
-			} else {
-				const customImage = customBackgroundImages.value.find(
-					(img) => img.name === value,
-				);
-				if (customImage) {
-					selectedBackgroundImageLocal.value = {
-						label: customImage.label,
-						value: customImage.name,
-					};
-					setSelectedBackgroundImage(customImage.name);
-					handleBackgroundImageToggle(true);
-				}
-			}
+			return;
+		}
+
+		const predefinedImage = backgroundImageOptions.value.find(
+			(opt) => opt.value === value,
+		);
+		if (predefinedImage) {
+			selectedBackgroundImageLocal.value = predefinedImage;
+			setSelectedBackgroundImage(predefinedImage.value);
+			handleBackgroundImageToggle(true);
+			return;
+		}
+
+		const customImage = customBackgroundImages.value.find(
+			(img) => img.name === value,
+		);
+		if (customImage) {
+			selectedBackgroundImageLocal.value = {
+				label: customImage.label,
+				value: customImage.name,
+			};
+			setSelectedBackgroundImage(customImage.name);
+			handleBackgroundImageToggle(true);
 		}
 	},
 });
@@ -251,6 +266,30 @@ async function startVideoPreview(deviceId) {
 	try {
 		isLoadingPreview.value = true;
 
+		// Stop any existing processing before creating a new preview session
+		stopBackgroundProcessing();
+
+		if (previewSession) {
+			previewSession.cleanup();
+			previewSession = null;
+		}
+
+		if (previewStream.value && isPreviewStreamDedicated) {
+			for (const track of previewStream.value.getTracks()) {
+				track.stop();
+			}
+		}
+
+		if (previewInputStream) {
+			for (const track of previewInputStream.getTracks()) {
+				track.stop();
+			}
+			previewInputStream = null;
+		}
+
+		previewStream.value = null;
+		isPreviewStreamDedicated = false;
+
 		// If in a meeting, don't create a new stream
 		// Reuse processedStream to avoid breaking
 		if (isInMeeting.value && processedStream.value) {
@@ -262,19 +301,9 @@ async function startVideoPreview(deviceId) {
 			return;
 		}
 
-		// Stop any existing processing before creating a new preview session
-		stopBackgroundProcessing();
-
-		if (previewSession) {
-			previewSession.cleanup();
-			previewSession = null;
-		}
-
-		if (previewStream.value) {
-			for (const track of previewStream.value.getTracks()) {
-				track.stop();
-			}
-		}
+		// This is a dedicated stream that we created
+		// for when we don't have a cam on in a meeting
+		isPreviewStreamDedicated = true;
 
 		const constraints = {
 			video: deviceId ? { deviceId: { exact: deviceId } } : true,
@@ -282,6 +311,7 @@ async function startVideoPreview(deviceId) {
 		};
 
 		const rawStream = await navigator.mediaDevices.getUserMedia(constraints);
+		previewInputStream = rawStream;
 
 		const hasBackgroundEffects =
 			backgroundBlurEnabledLocal.value || backgroundImageEnabledLocal.value;
@@ -316,6 +346,12 @@ async function startVideoPreview(deviceId) {
 		console.error("Failed to start video preview:", error);
 		previewStream.value = null;
 		previewSession = null;
+		if (previewInputStream) {
+			for (const track of previewInputStream.getTracks()) {
+				track.stop();
+			}
+			previewInputStream = null;
+		}
 		isLoadingPreview.value = false;
 	}
 }
@@ -329,11 +365,19 @@ function stopVideoPreview() {
 		previewSession = null;
 	}
 
-	if (previewStream.value) {
+	if (previewStream.value && isPreviewStreamDedicated) {
 		for (const track of previewStream.value.getTracks()) {
 			track.stop();
 		}
 		previewStream.value = null;
+		isPreviewStreamDedicated = false;
+	}
+
+	if (previewInputStream) {
+		for (const track of previewInputStream.getTracks()) {
+			track.stop();
+		}
+		previewInputStream = null;
 	}
 
 	if (videoPreviewRef.value) {
@@ -344,7 +388,9 @@ function stopVideoPreview() {
 async function applyPreviewOptions() {
 	// the meeting logic will handle it
 	// via the localStorage watcher in useMeetingLogic
-	if (isInMeeting.value) {
+	const shouldSkipPreviewUpdate =
+		isInMeeting.value && !isPreviewStreamDedicated;
+	if (shouldSkipPreviewUpdate) {
 		return;
 	}
 
@@ -438,17 +484,34 @@ watch(
 		blurIntensityLocal,
 	],
 	() => {
-		if (isLoadingPreview.value) {
+		const shouldUpdateMeeting =
+			isInMeeting.value && typeof onBackgroundEffectsChanged === "function";
+		const shouldUpdatePreview =
+			!isInMeeting.value || isPreviewStreamDedicated || !processedStream.value;
+
+		if (shouldUpdateMeeting) {
+			onBackgroundEffectsChanged();
+		}
+
+		if (!shouldUpdatePreview) {
 			return;
 		}
 
-		if (isInMeeting.value && onBackgroundEffectsChanged) {
-			onBackgroundEffectsChanged();
-		} else {
-			void applyPreviewOptions();
+		if (isLoadingPreview.value) {
+			pendingPreviewRefresh.value = true;
+			return;
 		}
+
+		void applyPreviewOptions();
 	},
 );
+
+watch(isLoadingPreview, (loading) => {
+	if (!loading && pendingPreviewRefresh.value) {
+		pendingPreviewRefresh.value = false;
+		void applyPreviewOptions();
+	}
+});
 
 watch(backgroundBlurEnabled, (newVal) => {
 	backgroundBlurEnabledLocal.value = newVal;
@@ -515,10 +578,17 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-	// Only stop preview if not in a meeting
-	if (!isInMeeting.value) {
-		stopVideoPreview();
-		stopBackgroundProcessing();
-	}
+	stopVideoPreview();
+	stopBackgroundProcessing();
 });
+
+watch(
+	() => props.isVisible,
+	(isVisible) => {
+		if (!isVisible) {
+			stopVideoPreview();
+			stopBackgroundProcessing();
+		}
+	},
+);
 </script>

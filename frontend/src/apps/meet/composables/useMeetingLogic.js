@@ -65,6 +65,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 		useBackgroundEffects();
 
 	let backgroundSession = null;
+	let shouldApplyBackgroundEffectsWhenVideoAvailable = false;
 
 	const replacePublishedVideoTrack = async (
 		stream,
@@ -115,8 +116,14 @@ export function useMeetingLogic(meetingState, meetingId) {
 	 */
 	const applyBackgroundEffectsToLocalStream = async () => {
 		const bgEffects = getBackgroundEffectsFromStorage();
+		const wantsEffects = bgEffects.anyEnabled;
+		const localStream = meetingState.localStream.value;
+		const hasLiveVideoTrack =
+			!!localStream &&
+			localStream.getVideoTracks().some((track) => track.readyState === "live");
 
-		if (!meetingState.localStream.value) {
+		if (!localStream || !hasLiveVideoTrack) {
+			shouldApplyBackgroundEffectsWhenVideoAvailable = wantsEffects;
 			if (backgroundSession) {
 				backgroundSession.cleanup?.();
 				backgroundSession = null;
@@ -127,6 +134,8 @@ export function useMeetingLogic(meetingState, meetingId) {
 			}
 			return;
 		}
+
+		shouldApplyBackgroundEffectsWhenVideoAvailable = false;
 
 		try {
 			if (backgroundSession) {
@@ -139,15 +148,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 				return;
 			}
 
-			const result = await applyBackgroundEffects(
-				meetingState.localStream.value,
-				{
-					blurIntensity: bgEffects.blurIntensity,
-					backgroundBlurEnabled: bgEffects.blurEnabled,
-					backgroundImageEnabled: bgEffects.imageEnabled,
-					selectedBackgroundImage: bgEffects.selectedImage,
-				},
-			);
+			const result = await applyBackgroundEffects(localStream, {
+				blurIntensity: bgEffects.blurIntensity,
+				backgroundBlurEnabled: bgEffects.blurEnabled,
+				backgroundImageEnabled: bgEffects.imageEnabled,
+				selectedBackgroundImage: bgEffects.selectedImage,
+			});
 			backgroundSession = result;
 			processedStream.value = result.stream;
 			await replacePublishedVideoTrack(result.stream, "background-enabled");
@@ -157,10 +163,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				error,
 			);
 			// Fallback to original stream
-			await replacePublishedVideoTrack(
-				meetingState.localStream.value,
-				"background-error",
-			);
+			await replacePublishedVideoTrack(localStream, "background-error");
 			if (backgroundSession) {
 				backgroundSession.cleanup?.();
 				backgroundSession = null;
@@ -171,7 +174,6 @@ export function useMeetingLogic(meetingState, meetingId) {
 			}
 		}
 	};
-
 	// API Resources
 	const joinMeetingAPI = createResource({
 		url: "sae.api.meeting.join_meeting",
@@ -652,7 +654,10 @@ export function useMeetingLogic(meetingState, meetingId) {
 
 				// Apply background effects to local stream for preview if enabled
 				const bgEffects = getBackgroundEffectsFromStorage();
-				if (bgEffects.anyEnabled) {
+				if (
+					bgEffects.anyEnabled ||
+					shouldApplyBackgroundEffectsWhenVideoAvailable
+				) {
 					await applyBackgroundEffectsToLocalStream();
 				}
 
