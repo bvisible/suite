@@ -159,7 +159,7 @@ const getElementStyles = (element) => {
 
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const duration = prevSlide?.transitionDuration
-	const transitionProperty = prevSlide?.transition == 'Move' ? 'left, top' : ''
+	const transitionProperty = prevSlide?.transition == 'Magic Move' ? 'left, top' : ''
 
 	return {
 		transitionTimingFunction: 'ease-in-out',

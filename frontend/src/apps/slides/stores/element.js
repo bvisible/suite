@@ -267,9 +267,9 @@ const getDuplicateElementId = (element, srcSlide) => {
 
 	if (srcSlide == slideIndex.value - 1) {
 		const prevSlide = slides.value[slideIndex.value - 1]
-		if (prevSlide?.transition == 'Move') return element.id
+		if (prevSlide?.transition == 'Magic Move') return element.id
 	} else if (srcSlide == slideIndex.value + 1) {
-		if (currentSlide.value?.transition == 'Move') return element.id
+		if (currentSlide.value?.transition == 'Magic Move') return element.id
 	}
 
 	return generateUniqueId()
@@ -514,11 +514,11 @@ const getUpdatedIdForElementContent = (element, currentText) => {
 	const nextSlide = slides.value[slideIndex.value + 1]
 
 	let candidateSlide = null
-	if (prevSlide?.transition === 'Move') {
+	if (prevSlide?.transition === 'Magic Move') {
 		// if transition begins on previous slide -
 		// check if any element in current slide refers to element from previous slide
 		candidateSlide = prevSlide
-	} else if (currentSlide.value?.transition === 'Move' && nextSlide) {
+	} else if (currentSlide.value?.transition === 'Magic Move' && nextSlide) {
 		// if transition begins on current slide -
 		// check if any element in next slide refers to this element
 		candidateSlide = nextSlide
