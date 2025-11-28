@@ -128,7 +128,16 @@ const groupedMessages = computed(() => {
 	let currentGroup = null;
 
 	for (const message of messages.value) {
-		if (!currentGroup || currentGroup.user_name !== message.user_name) {
+		const shouldStartNewGroup =
+			!currentGroup ||
+			currentGroup.user_name !== message.user_name ||
+			(currentGroup.messages.length > 0 &&
+				new Date(message.timestamp).getMinutes() !==
+					new Date(
+						currentGroup.messages[currentGroup.messages.length - 1].timestamp,
+					).getMinutes());
+
+		if (shouldStartNewGroup) {
 			currentGroup = {
 				id: message.id,
 				user_name: message.user_name,
