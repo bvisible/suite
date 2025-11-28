@@ -84,9 +84,15 @@ export function useMeetingPreviewPresence(meetingId: string) {
 			return;
 		}
 
-		const sfuUrl = tokenData.sfu_url.startsWith("http")
-			? `${tokenData.sfu_url}${tokenData.sfu_port ? `:${tokenData.sfu_port}` : ""}`
-			: `http://localhost:${tokenData.sfu_port || 3000}`;
+		let sfuUrl: string;
+		const urlObj = new URL(tokenData.sfu_url);
+		const isSecured = urlObj.protocol === "https:";
+
+		if (isSecured) {
+			sfuUrl = urlObj.origin;
+		} else {
+			sfuUrl = `${urlObj.protocol}//${urlObj.hostname}:${tokenData.sfu_port || 3000}`;
+		}
 
 		socket = io(sfuUrl, {
 			auth: { token: tokenData.auth_token },
