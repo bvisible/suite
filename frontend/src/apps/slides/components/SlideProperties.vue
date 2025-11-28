@@ -28,7 +28,7 @@
 	<CollapsibleSection title="Transition">
 		<template #default>
 			<Select
-				:options="['Slide In', 'Fade', 'None', 'Move']"
+				:options="['Slide In', 'Fade', 'None', 'Magic Move']"
 				:modelValue="currentSlide.transition"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>
@@ -64,10 +64,10 @@ const setSlideTransition = (option) => {
 	if (option == 'None') currentSlide.value.transitionDuration = 0
 	else currentSlide.value.transitionDuration = 1
 
-	if (option == 'Move') addMoveTransition()
+	if (option == 'Magic Move') addMagicMoveTransition()
 }
 
-const addMoveTransition = () => {
+const addMagicMoveTransition = () => {
 	// adding move to last slide changes nothing
 	if (slideIndex.value == slides.value.length - 1) return
 
