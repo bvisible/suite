@@ -297,7 +297,9 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		const getSnapOffset = () => {
 			// check for threshold + / - margin
 			const canSnap = Math.abs(Math.abs(diff) - threshold) < margin
-			if (canSnap && !movingAway) return diff
+			if (canSnap && !movingAway) {
+				return diff
+			}
 			return 0
 		}
 
@@ -319,10 +321,20 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		let offsetY = 0
 		let offsetWidth = 0
 
-		if (['slideCenterY', 'left', 'right'].includes(axis)) {
-			offsetX = getSnapOffset()
-		} else if (['slideCenterX', 'top', 'bottom'].includes(axis)) {
-			offsetY = getSnapOffset()
+		if (mode.value == 'resizing') {
+			if (axis == 'right') {
+				offsetX = 0
+				offsetWidth = -getSnapOffset()
+			} else if (axis == 'left') {
+				offsetX = getSnapOffset()
+				offsetWidth = getSnapOffset()
+			}
+		} else {
+			if (['slideCenterY', 'left', 'right'].includes(axis)) {
+				offsetX = getSnapOffset()
+			} else if (['slideCenterX', 'top', 'bottom'].includes(axis)) {
+				offsetY = getSnapOffset()
+			}
 		}
 
 		return {
