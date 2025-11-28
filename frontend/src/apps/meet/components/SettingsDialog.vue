@@ -7,7 +7,10 @@
 						v-if="tab.value === 'devices'"
 						@device-changed="$emit('device-changed', $event)"
 					/>
-					<BackgroundSettingsTab v-if="tab.value === 'background'" />
+					<BackgroundSettingsTab
+						v-if="tab.value === 'background'"
+						:is-visible="show"
+					/>
 				</template>
 			</Tabs>
 		</template>
