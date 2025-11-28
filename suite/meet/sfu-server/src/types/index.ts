@@ -193,6 +193,7 @@ export interface SocketData {
 	isHost: boolean;
 	roomId?: string;
 	participantId?: string;
+	scope?: 'presence-preview' | 'full';
 }
 
 // Core data types
@@ -244,7 +245,7 @@ export interface ExistingProducersResponse extends SFUResponse {
 }
 
 export interface RoomParticipantsResponse extends SFUResponse {
-	participants: ParticipantInfo[];
+	participants: ParticipantInfo[] | PreviewParticipantInfo[];
 }
 export interface WebRTCTransportParams {
 	id: string;
@@ -293,6 +294,14 @@ export interface ParticipantInfo {
 		avatar?: string;
 		audio_enabled: boolean;
 		video_enabled: boolean;
+	};
+}
+
+export interface PreviewParticipantInfo {
+	id: string;
+	info: {
+		name?: string;
+		avatar?: string;
 	};
 }
 
@@ -412,6 +421,8 @@ export interface JWTPayload {
 	meeting_id: string;
 	user_avatar?: string;
 	is_host: boolean;
+	scope?: 'presence-preview' | 'full';
+	session_id?: string;
 	exp?: number;
 	iat?: number;
 }
@@ -443,5 +454,6 @@ declare module 'socket.io' {
 		currentToken?: string;
 		tokenExpiresAt?: number;
 		tokenExpiryTimer?: NodeJS.Timeout;
+		scope?: 'presence-preview' | 'full';
 	}
 }
