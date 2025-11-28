@@ -27,6 +27,8 @@ export class SocketHandlerManager {
 	private authManager: AuthManager;
 	private raisedHands: Record<string, Record<string, string>> = {};
 	private rateLimiter: RateLimiter;
+	private fullAccessSockets: Map<string, Set<string>> = new Map(); // roomId -> Set<socketId>
+	private previewSockets: Map<string, Set<string>> = new Map(); // roomId -> Set<socketId>
 
 	constructor(
 		io: Server<ClientToServerEvents, ServerToClientEvents>,
@@ -90,6 +92,98 @@ export class SocketHandlerManager {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Emit event only to full-access participants in the room (excludes preview users)
+	 */
+	private emitToFullAccessParticipants(
+		roomId: string,
+		event: string,
+		data: unknown,
+	): void {
+		const socketIds = this.fullAccessSockets.get(roomId);
+		if (!socketIds) return;
+
+		for (const socketId of socketIds) {
+			const socket = this.io.sockets.sockets.get(socketId);
+			if (socket) {
+				// biome-ignore lint/suspicious/noExplicitAny: Internal utility method for type-safe event emission
+				(socket as any).emit(event, data);
+			}
+		}
+	}
+
+	/**
+	 * Emit event only to preview participants in the room
+	 */
+	private emitToPreviewParticipants(
+		roomId: string,
+		event: string,
+		data: unknown,
+	): void {
+		const socketIds = this.previewSockets.get(roomId);
+		if (!socketIds) return;
+
+		for (const socketId of socketIds) {
+			const socket = this.io.sockets.sockets.get(socketId);
+			if (socket) {
+				// biome-ignore lint/suspicious/noExplicitAny: Internal utility method for type-safe event emission
+				(socket as any).emit(event, data);
+			}
+		}
+	}
+
+	/**
+	 * Emit participant events to all participants with proper data sanitization
+	 */
+	private emitParticipantEvent(
+		roomId: string,
+		event: 'participant_joined' | 'participant_left',
+		participantId: string,
+		userData?: UserData,
+	): void {
+		// Send full data to full-access participants
+		if (event === 'participant_joined' && userData) {
+			this.emitToFullAccessParticipants(roomId, event, {
+				roomId,
+				participantId,
+				userData,
+			});
+		} else if (event === 'participant_left') {
+			this.emitToFullAccessParticipants(roomId, event, {
+				roomId,
+				participantId,
+			});
+		}
+
+		// Send sanitized data to preview participants (only for real participants)
+		if (!participantId.startsWith('preview-')) {
+			if (event === 'participant_joined' && userData) {
+				this.emitToPreviewParticipants(roomId, event, {
+					roomId,
+					participantId,
+					userData: {
+						name: userData.name,
+						avatar: userData.avatar,
+					},
+				});
+			} else if (event === 'participant_left') {
+				this.emitToPreviewParticipants(roomId, event, {
+					roomId,
+					participantId,
+				});
+			}
+		}
+	}
+
+	/**
+	 * Clean up room tracking when it becomes empty
+	 */
+	private cleanupRoom(roomId: string): void {
+		this.fullAccessSockets.delete(roomId);
+		this.previewSockets.delete(roomId);
+		delete this.raisedHands[roomId];
 	}
 
 	setupSocketHandlers(): void {
@@ -312,7 +406,7 @@ export class SocketHandlerManager {
 
 					if (this.raisedHands[roomId]?.[participantId]) {
 						delete this.raisedHands[roomId][participantId];
-						socket.to(roomId).emit('hand_raised', {
+						this.emitToFullAccessParticipants(roomId, 'hand_raised', {
 							participantId,
 							raised: false,
 							timestamp: new Date().toISOString(),
@@ -340,7 +434,9 @@ export class SocketHandlerManager {
 
 		try {
 			await this.mediasoup.createRoom(roomId, (roomId, participantIds) => {
-				this.io.to(roomId).emit('active_speaker', { participantIds });
+				this.emitToFullAccessParticipants(roomId, 'active_speaker', {
+					participantIds,
+				});
 			});
 
 			this.mediasoup.addPeer(roomId, participantId, userData);
@@ -351,12 +447,26 @@ export class SocketHandlerManager {
 			socket.roomId = roomId;
 			socket.participantId = participantId;
 
+			// Track socket by scope
+			if (socket.scope === 'full') {
+				if (!this.fullAccessSockets.has(roomId)) {
+					this.fullAccessSockets.set(roomId, new Set());
+				}
+				this.fullAccessSockets.get(roomId)?.add(socket.id);
+			} else if (socket.scope === 'presence-preview') {
+				if (!this.previewSockets.has(roomId)) {
+					this.previewSockets.set(roomId, new Set());
+				}
+				this.previewSockets.get(roomId)?.add(socket.id);
+			}
+
 			if (this.isRealParticipant(userData.userId)) {
-				socket.to(roomId).emit('participant_joined', {
+				this.emitParticipantEvent(
 					roomId,
+					'participant_joined',
 					participantId,
 					userData,
-				});
+				);
 			}
 
 			socket.emit('existing_raised_hands', {
@@ -441,7 +551,7 @@ export class SocketHandlerManager {
 				callback({ success: true, ...producer, isScreen });
 
 				const roomId = socket.meetingId;
-				socket.to(roomId).emit('producer_created', {
+				this.emitToFullAccessParticipants(roomId, 'producer_created', {
 					roomId: roomId,
 					participantId: socket.userId,
 					producerId: producer.id,
@@ -487,7 +597,7 @@ export class SocketHandlerManager {
 				callback({ success: true, ...result });
 
 				const roomId = socket.meetingId;
-				socket.to(roomId).emit('producer_closed', {
+				this.emitToFullAccessParticipants(roomId, 'producer_closed', {
 					roomId: roomId,
 					participantId: socket.userId,
 					producerId,
@@ -504,7 +614,7 @@ export class SocketHandlerManager {
 								consumerId: rc.consumerId,
 							});
 						} else {
-							socket.to(roomId).emit('consumer_closed', {
+							this.emitToFullAccessParticipants(roomId, 'consumer_closed', {
 								consumerId: rc.consumerId,
 								peerId: rc.peerId,
 							});
@@ -594,14 +704,14 @@ export class SocketHandlerManager {
 				this.raisedHands[roomId]?.[socket.participantId]
 			) {
 				delete this.raisedHands[roomId][socket.participantId];
-				socket.to(roomId).emit('hand_raised', {
+				this.emitToFullAccessParticipants(roomId, 'hand_raised', {
 					participantId: socket.participantId,
 					raised: false,
 					timestamp: new Date().toISOString(),
 				});
 			}
 
-			socket.to(roomId).emit('media_control_update', {
+			this.emitToFullAccessParticipants(roomId, 'media_control_update', {
 				participantId: socket.participantId,
 				action,
 				timestamp: new Date().toISOString(),
@@ -700,7 +810,7 @@ export class SocketHandlerManager {
 				case 'lower_hand':
 					if (this.raisedHands[roomId]?.[targetParticipantId]) {
 						delete this.raisedHands[roomId][targetParticipantId];
-						this.io.to(roomId).emit('hand_raised', {
+						this.emitToFullAccessParticipants(roomId, 'hand_raised', {
 							participantId: targetParticipantId,
 							raised: false,
 							timestamp: new Date().toISOString(),
@@ -736,13 +846,13 @@ export class SocketHandlerManager {
 			if (!roomId) return;
 
 			if (action === 'start_share') {
-				socket.to(roomId).emit('screen_share_started', {
+				this.emitToFullAccessParticipants(roomId, 'screen_share_started', {
 					participantId: socket.participantId,
 					shareData,
 					timestamp: new Date().toISOString(),
 				});
 			} else if (action === 'stop_share') {
-				socket.to(roomId).emit('screen_share_stopped', {
+				this.emitToFullAccessParticipants(roomId, 'screen_share_stopped', {
 					participantId: socket.participantId,
 					timestamp: new Date().toISOString(),
 				});
@@ -777,7 +887,7 @@ export class SocketHandlerManager {
 				};
 				if (data.clientId) payload.clientId = String(data.clientId);
 
-				socket.to(roomId).emit('chat:message', payload);
+				this.emitToFullAccessParticipants(roomId, 'chat:message', payload);
 			} catch (e) {
 				loggers.socketHandler.warn(
 					'chat:send handling failed: %s',
@@ -807,7 +917,7 @@ export class SocketHandlerManager {
 					timestamp: new Date().toISOString(),
 				};
 
-				socket.to(roomId).emit('reaction:message', payload);
+				this.emitToFullAccessParticipants(roomId, 'reaction:message', payload);
 			} catch (e) {
 				loggers.socketHandler.warn(
 					'reaction:send handling failed: %s',
@@ -840,7 +950,7 @@ export class SocketHandlerManager {
 					delete this.raisedHands[roomId][socket.participantId];
 				}
 
-				socket.to(roomId).emit('hand_raised', {
+				this.emitToFullAccessParticipants(roomId, 'hand_raised', {
 					participantId: socket.participantId,
 					raised,
 					timestamp: new Date().toISOString(),
@@ -874,16 +984,31 @@ export class SocketHandlerManager {
 				try {
 					await this.mediasoup.removePeer(roomId, participantId);
 
+					// Remove from scope tracking
+					if (socket.scope === 'full') {
+						this.fullAccessSockets.get(roomId)?.delete(socket.id);
+					} else if (socket.scope === 'presence-preview') {
+						this.previewSockets.get(roomId)?.delete(socket.id);
+					}
+
+					// Clean up room if empty
+					const fullAccessCount = this.fullAccessSockets.get(roomId)?.size || 0;
+					const previewCount = this.previewSockets.get(roomId)?.size || 0;
+					if (fullAccessCount === 0 && previewCount === 0) {
+						this.cleanupRoom(roomId);
+					}
+
 					if (this.isRealParticipant(participantId)) {
-						socket.to(roomId).emit('participant_left', {
-							roomId: roomId,
-							participantId: participantId,
-						});
+						this.emitParticipantEvent(
+							roomId,
+							'participant_left',
+							participantId,
+						);
 					}
 
 					if (this.raisedHands[roomId]?.[participantId]) {
 						delete this.raisedHands[roomId][participantId];
-						socket.to(roomId).emit('hand_raised', {
+						this.emitToFullAccessParticipants(roomId, 'hand_raised', {
 							participantId,
 							raised: false,
 							timestamp: new Date().toISOString(),
