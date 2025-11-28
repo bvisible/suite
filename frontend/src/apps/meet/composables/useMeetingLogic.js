@@ -173,17 +173,6 @@ export function useMeetingLogic(meetingState, meetingId) {
 	};
 
 	// API Resources
-	const getMeetingInfo = createResource({
-		url: "sae.api.meeting.get_meeting_info",
-		method: "POST",
-		makeParams: () => ({ meeting_id: meetingId }),
-		onSuccess: (data) => {
-			if (data.is_creator) {
-				meetingState.isCreator.value = true;
-			}
-		},
-	});
-
 	const joinMeetingAPI = createResource({
 		url: "sae.api.meeting.join_meeting",
 		method: "POST",
