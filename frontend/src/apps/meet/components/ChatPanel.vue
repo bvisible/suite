@@ -41,7 +41,7 @@
 				</div>
 
 				<form class="p-2 relative" @submit.prevent="handleSend">
-					<div class="flex gap-2 py-2">
+					<div class="flex gap-2">
 						<FormControl
 							size="md"
 							v-model="draft"
