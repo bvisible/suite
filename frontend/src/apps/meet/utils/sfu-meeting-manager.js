@@ -470,8 +470,8 @@ export class SFUMeetingManager {
 
 				const isSelf = event.participantId === this.currentUser.value?.user_id;
 				const isScreen = !!event.isScreen;
-				if (!isSelf || isScreen) {
-					const metadata = { isScreen: !!event.isScreen };
+				if (!isSelf) {
+					const metadata = { isScreen };
 					await this.subscribeToProducer(
 						event.producerId,
 						event.participantId,
@@ -505,7 +505,7 @@ export class SFUMeetingManager {
 
 			const isSelf = data.participantId === this.currentUser.value?.user_id;
 			const isScreen = !!data.isScreen;
-			if (!isSelf || isScreen) {
+			if (!isSelf) {
 				const metadata = { isScreen };
 				await this.subscribeToProducer(
 					data.producerId,
