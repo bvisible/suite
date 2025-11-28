@@ -147,9 +147,6 @@ export function useMeetingPreviewPresence(meetingId: string) {
 		});
 
 		currentSocket.on("participant_joined", (data: ParticipantJoinedData) => {
-			if (data.userData.userId.startsWith("preview-")) {
-				return;
-			}
 			const newParticipant: Participant = {
 				user_id: data.userData.userId,
 				full_name: data.userData.name || data.userData.userId,
