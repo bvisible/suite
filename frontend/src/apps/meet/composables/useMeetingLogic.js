@@ -1451,6 +1451,11 @@ export function useMeetingLogic(meetingState, meetingId) {
 			const sfuClient = getSFUClient();
 
 			sfuClient.on("chat:message", (data) => {
+				// Skip adding our own messages to avoid duplicates
+				if (data.fromUser === meetingState.currentUser.value?.user_id) {
+					return;
+				}
+
 				const message = {
 					id: Date.now() + Math.random(),
 					user_id: data.fromUser,
