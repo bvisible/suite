@@ -132,10 +132,10 @@ const groupedMessages = computed(() => {
 			!currentGroup ||
 			currentGroup.user_name !== message.user_name ||
 			(currentGroup.messages.length > 0 &&
-				new Date(message.timestamp).getMinutes() !==
-					new Date(
-						currentGroup.messages[currentGroup.messages.length - 1].timestamp,
-					).getMinutes());
+				Math.abs(
+					new Date(message.timestamp) -
+						new Date(currentGroup.messages[0].timestamp),
+				) > 300000);
 
 		if (shouldStartNewGroup) {
 			currentGroup = {
