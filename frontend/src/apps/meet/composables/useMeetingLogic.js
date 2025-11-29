@@ -480,22 +480,14 @@ export function useMeetingLogic(meetingState, meetingId) {
 					}
 				}
 				if (mh?.audioProducer) {
-					if (meetingState.isScreenSharing.value) {
-						try {
-							mh.audioProducer.pause?.();
-						} catch (_) {}
-					} else {
-						try {
-							mh.audioProducer.close?.();
+					mh.audioProducer.close?.();
 
-							const sfuClient = getSFUClient();
-							if (sfuClient.isConnected()) {
-								sfuClient.closeProducer(mh.audioProducer.id).catch(() => {});
-							}
-						} catch (_) {}
-
-						mh.audioProducer = null;
+					const sfuClient = getSFUClient();
+					if (sfuClient.isConnected()) {
+						sfuClient.closeProducer(mh.audioProducer.id).catch(() => {});
 					}
+
+					mh.audioProducer = null;
 				}
 			}
 
