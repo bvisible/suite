@@ -29,7 +29,7 @@
 			</div>
 		</div>
 
-		<ScreenShareSidebar class="ml-3" />
+		<ScreenShareSidebar class="ml-3" @open-people-panel="emit('openPeoplePanel')" />
 
 		<FloatingReactions
 			:reactions="allReactions"
@@ -45,6 +45,7 @@ import NamePill from "./NamePill.vue";
 import ScreenShareSidebar from "./ScreenShareSidebar.vue";
 
 // Inject meeting state and functions
+const emit = defineEmits(["openPeoplePanel"]);
 const meetingState = inject("meetingState");
 const setScreenShareVideoRef = inject("setScreenShareVideoRef");
 const getParticipantName = inject("getParticipantName");
