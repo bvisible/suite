@@ -50,59 +50,14 @@
 		</div>
 
 		<!-- Remote participants -->
-		<div
+		<ScreenShareSidebarParticipantTile
 			v-for="participant in sidebarDisplay.list"
 			:key="'side-' + participant.user_id"
-			class="relative w-full bg-gray-800 rounded overflow-hidden flex"
-			:style="singleTileStyle"
-		>
-			<video
-				:ref="(el) => handleRemoteVideoRef(participant.user_id, el)"
-				:participant-id="participant.user_id"
-				class="w-full h-full object-cover flex-1 remote-video"
-				autoplay
-				muted
-				playsinline
-			></video>
-			<div
-				v-if="!participant.video_enabled"
-				class="absolute inset-0 flex items-center justify-center bg-gray-700"
-			>
-				<MeetingAvatar
-					:image="participant.avatar"
-					:label="participant.initials"
-					:tiles="visibleTileCount"
-				/>
-			</div>
-			<NamePill :name="participant.user_name" size="sm" position="bottom-left" />
-
-			<div
-				v-if="participant.audio_enabled && participantStreams[participant.user_id]"
-				class="absolute top-1 right-1 rounded-full bg-gray-700 p-1"
-			>
-				<AudioIndicator
-					:mediaStream="participantStreams[participant.user_id]"
-					:isActive="true"
-					:maxHeight="12"
-					:sensitivity="3.0"
-					activeColorClass="bg-gray-100"
-				/>
-			</div>
-			<div
-				v-if="!participant.audio_enabled"
-				class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
-			>
-				<lucide-mic-off class="w-3 h-3 text-white" />
-			</div>
-
-			<div
-				v-if="isHandRaised(participant.user_id)"
-				class="absolute bottom-1 right-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none"
-				:aria-label="`${participant.user_name || participant.user_id} has raised their hand`"
-			>
-				<lucide-hand class="w-3.5 h-3.5" />
-			</div>
-		</div>
+			:participant="participant"
+			:videoRef="handleRemoteVideoRef"
+			:tileStyle="singleTileStyle"
+			:visibleTileCount="visibleTileCount"
+		/>
 
 		<!-- Grouping tile -->
 		<div
@@ -123,10 +78,10 @@ import { computed, inject } from "vue";
 import { useAudioStream } from "../composables/useAudioLevels.js";
 import { useScreenShareSidebar } from "../composables/useScreenShareSidebar.js";
 import { useTileAdaptiveStreaming } from "../composables/useTileAdaptiveStreaming";
-import { getSFUMeetingManager } from "../utils/sfu-meeting-manager.js";
 import AudioIndicator from "./AudioIndicator.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
 import NamePill from "./NamePill.vue";
+import ScreenShareSidebarParticipantTile from "./ScreenShareSidebarParticipantTile.vue";
 
 // Inject meeting state and functions
 const meetingState = inject("meetingState");
@@ -182,35 +137,6 @@ const {
 } = useScreenShareSidebar(participants, activeSpeakerIds, meetingState);
 
 const { stream: localStream } = useAudioStream(currentUser.value?.user_id);
-
-const participantStreams = computed(() => {
-	const streams = {};
-	for (const participant of Object.values(participants.value)) {
-		try {
-			const sfuManager = getSFUMeetingManager();
-			if (sfuManager?.consumerManager) {
-				const audioConsumer = sfuManager.consumerManager.getAudioConsumer(
-					participant.user_id,
-				);
-				if (audioConsumer?.track) {
-					streams[participant.user_id] = new MediaStream([audioConsumer.track]);
-				}
-			}
-		} catch (error) {
-			console.error(
-				"Error getting stream for participant:",
-				participant.user_id,
-				error,
-			);
-		}
-	}
-	return streams;
-});
-
-const isHandRaised = (participantId) => {
-	if (!meetingState?.raisedHands?.value) return false;
-	return !!meetingState.raisedHands.value[participantId];
-};
 </script>
 
 <style scoped>
