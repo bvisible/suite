@@ -32,7 +32,10 @@
 			</div>
 			<NamePill :name="currentUser?.name" size="sm" position="bottom-left" />
 
-			<div v-if="isMicOn && localStream" class="absolute top-1 right-1 rounded-full bg-gray-700 p-1">
+			<div
+				v-if="isMicOn && localStream"
+				class="absolute top-1 right-1 rounded-full bg-gray-700 p-1"
+			>
 				<AudioIndicator
 					:mediaStream="localStream"
 					:isActive="true"
@@ -41,10 +44,7 @@
 					activeColorClass="bg-gray-100"
 				/>
 			</div>
-			<div
-				v-if="!isMicOn"
-				class="absolute top-1 right-1 bg-gray-700 rounded-full p-1"
-			>
+			<div v-if="!isMicOn" class="absolute top-1 right-1 bg-gray-700 rounded-full p-1">
 				<lucide-mic-off class="w-3 h-3 text-white" />
 			</div>
 		</div>
@@ -76,7 +76,10 @@
 			</div>
 			<NamePill :name="participant.user_name" size="sm" position="bottom-left" />
 
-			<div v-if="participant.audio_enabled && participantStreams[participant.user_id]" class="absolute top-1 right-1">
+			<div
+				v-if="participant.audio_enabled && participantStreams[participant.user_id]"
+				class="absolute top-1 right-1 rounded-full bg-gray-700 p-1"
+			>
 				<AudioIndicator
 					:mediaStream="participantStreams[participant.user_id]"
 					:isActive="true"
@@ -106,7 +109,7 @@
 			v-if="sidebarDisplay.extra > 0"
 			key="sidebar-group"
 			:title="hiddenParticipantsTooltip"
-				class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
+			class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
 		>
 			<div class="text-xs text-white text-center px-2 leading-snug">
 				and {{ sidebarDisplay.extra }} others
