@@ -38,6 +38,8 @@
 				key="grid-group"
 				:count="displayParticipants.extra"
 				:tooltip="hiddenParticipantsTooltip"
+				:participants="displayParticipants.hidden"
+				size="medium"
 				@click="handleGroupTileClick"
 			/>
 		</TransitionGroup>

@@ -46,6 +46,7 @@
 						<!-- Screen share active view -->
 						<ScreenShareLayout
 							v-if="meetingState.displayScreenShares.value.length"
+							@open-people-panel="togglePeople"
 						/>
 
 						<!-- Normal video grid -->

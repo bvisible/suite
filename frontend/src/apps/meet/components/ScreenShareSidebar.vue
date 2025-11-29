@@ -60,16 +60,14 @@
 		/>
 
 		<!-- Grouping tile -->
-		<div
+		<GroupTile
 			v-if="sidebarDisplay.extra > 0"
 			key="sidebar-group"
-			:title="hiddenParticipantsTooltip"
-			class="relative w-full bg-gray-800/70 rounded overflow-hidden flex items-center justify-center cursor-pointer"
-		>
-			<div class="text-xs text-white text-center px-2 leading-snug">
-				and {{ sidebarDisplay.extra }} others
-			</div>
-		</div>
+			:count="sidebarDisplay.extra"
+			:tooltip="hiddenParticipantsTooltip"
+			:participants="sidebarDisplay.hidden"
+			@click="handleOpenPeoplePanel"
+		/>
 	</TransitionGroup>
 </template>
 
@@ -79,9 +77,12 @@ import { useAudioStream } from "../composables/useAudioLevels.js";
 import { useScreenShareSidebar } from "../composables/useScreenShareSidebar.js";
 import { useTileAdaptiveStreaming } from "../composables/useTileAdaptiveStreaming";
 import AudioIndicator from "./AudioIndicator.vue";
+import GroupTile from "./GroupTile.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
 import NamePill from "./NamePill.vue";
 import ScreenShareSidebarParticipantTile from "./ScreenShareSidebarParticipantTile.vue";
+
+const emit = defineEmits(["openPeoplePanel"]);
 
 // Inject meeting state and functions
 const meetingState = inject("meetingState");
@@ -137,6 +138,10 @@ const {
 } = useScreenShareSidebar(participants, activeSpeakerIds, meetingState);
 
 const { stream: localStream } = useAudioStream(currentUser.value?.user_id);
+
+const handleOpenPeoplePanel = () => {
+	emit("openPeoplePanel");
+};
 </script>
 
 <style scoped>
