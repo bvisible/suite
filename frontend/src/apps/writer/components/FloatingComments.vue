@@ -98,7 +98,7 @@
         >
           <blockquote
             v-if="comment.detached"
-            class="text-sm text-ink-gray-8 mb-4"
+            class="text-xs text-ink-gray-8 mb-4"
           >
             Replying to:
             <span class="text-ink-gray-5 italic">{{ comment.anchorText }}</span>

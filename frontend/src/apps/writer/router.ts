@@ -9,7 +9,9 @@ const router = createRouter({
       name: 'Home',
       component: () => import('@/pages/Documents.vue'),
       beforeEnter: () => {
-        if (!store.getters.isLoggedIn) return '/login'
+        if (!store.getters.isLoggedIn) {
+          window.location.href = '/login'
+        }
       },
     },
     {

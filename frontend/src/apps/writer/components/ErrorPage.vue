@@ -30,12 +30,7 @@
       >
         <div class="flex gap-2"><LucideHome class="size-4" />Go Home</div>
       </Button>
-      <Button
-        v-else
-        variant="solid"
-        size="md"
-        @click="$router.replace('/drive/login')"
-      >
+      <Button v-else variant="solid" size="md" @click="redirectLogin()">
         <div class="flex gap-2"><LucideUser class="size-4" />Login</div>
       </Button>
     </div>
@@ -51,14 +46,14 @@ import LucideFileUser from '~icons/lucide/file-user'
 
 const props = defineProps({ error: Object })
 
+const redirectLogin = () => (window.location.href = '/login')
 watchEffect(() => {
   if (
     (String(props.error).includes('FORBIDDEN') ||
       props.error.exc_type === 'PermissionError') &&
     !store.getters.isLoggedIn
-  ) {
-    window.location.href = '/login'
-  }
+  )
+    redirectLogin()
   store.commit('setBreadcrumbs', [])
 })
 </script>

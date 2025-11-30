@@ -38,7 +38,7 @@
           :upload-function
           :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
-          placeholder="Start writing here..."
+          :placeholder="false"
           :bubble-menu="settings.minimal && menuButtons"
           :extensions="editorExtensions"
           :editable
@@ -86,7 +86,7 @@
         class="absolute right-3 top-3"
         v-if="comments._map.size"
         :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
-        variant="ghost"
+        variant="outline"
         :tooltip="showComments ? 'Hide comments' : 'Show comments'"
         @click="showComments = !showComments"
       ></Button>
@@ -97,7 +97,7 @@
           Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
         "
         :icon="LucideMessageSquareDot"
-        variant="ghost"
+        variant="outline"
         tooltip="Toggle resolved"
         @click="showResolved = !showResolved"
       ></Button>

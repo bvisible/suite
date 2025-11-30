@@ -1,15 +1,15 @@
 <template>
   <div
     ref="container"
-    class="mx-auto max-w-[60%] pt-8 h-screen space-y-8 pb-64"
+    class="mx-auto max-w-[60%] pt-8 h-screen space-y-4 pb-64"
   >
     <template v-for="[group, files] in Object.entries(groups)" :key="group">
       <template v-if="files.length">
         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">
           {{ group }}
         </h2>
-        <div class="divide-y divide-surface-gray-2 px-2">
-          <div v-for="row in files" :key="row.name">
+        <div>
+          <div v-for="(row, i) in files" :key="row.name">
             <div
               @click="
                 $router.push({ name: 'Document', params: { id: row.name } })
@@ -66,6 +66,7 @@
                 }}</span>
               </div>
             </div>
+            <hr v-if="i !== files.length - 1" class="mx-4" />
           </div>
         </div>
       </template>

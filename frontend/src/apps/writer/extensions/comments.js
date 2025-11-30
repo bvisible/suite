@@ -22,6 +22,7 @@ export const rebuild = (editor) => {
 const createDecorations = (editor, yDoc, comments, active, showResolved) => {
   try {
     if (!comments._map.size) return DecorationSet.empty
+    console.log('redrawing comments')
     const ystate = ySyncPluginKey.getState(editor.state)
     const decos = []
     comments.forEach((comment) => {
@@ -102,20 +103,19 @@ export const CommentExtension = Extension.create({
 
           apply(tr, oldSet) {
             const { doc, comments, activeComment, showResolved } = ext.options
-            // if (!showComments.value) return DecorationSet.empty
+            if (!tr.docChanged || !comments._map.size) return
 
             const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
             if (isRemote || tr.getMeta(commentPluginKey)?.rebuild) {
-              const decos = createDecorations(
+              return createDecorations(
                 ext.editor,
                 doc,
                 comments,
                 activeComment.value,
                 showResolved.value,
               )
-              return decos
             }
-
+            console.log('remapping comments')
             return oldSet.map(tr.mapping, tr.doc)
           },
         },

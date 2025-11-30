@@ -18,14 +18,20 @@
     <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2">
         <div v-for="tab in tabs" :key="tab.id">
-          <TextInput
-            v-if="editingTabId === tab.id"
-            v-model="editingTabLabel"
-            v-focus
-            @keydown.enter="finishRenaming(false)"
-            @keydown.esc="finishRenaming(true)"
-            class="p-1"
-          />
+          <div v-if="editingTabId === tab.id" class="flex items-center">
+            <TextInput
+              v-model="editingTabLabel"
+              v-focus
+              @keydown.enter="finishRenaming(false)"
+              @keydown.esc="finishRenaming(true)"
+              class="p-1"
+            />
+            <Button
+              variant="outline"
+              :icon="LucideTrash"
+              @click="editor.commands.deleteTab(tab.id)"
+            />
+          </div>
           <Button
             v-else
             :variant="tab.id === activeTabId ? 'subtle' : 'ghost'"
@@ -102,6 +108,7 @@ import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/Plus'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucidePanelRightClose from '~icons/lucide/table-of-contents'
+import LucideTrash from '~icons/lucide/trash'
 import { ref, watch, computed, h } from 'vue'
 import TextInput from 'frappe-ui/src/components/TextInput/TextInput.vue'
 
@@ -193,7 +200,6 @@ const onAnchorClick = (id) => {
 
 const editingTabId = ref(null)
 const editingTabLabel = ref('')
-const tabInput = ref(null)
 
 const startRenaming = (tab) => {
   editingTabId.value = tab.id
