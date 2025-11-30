@@ -39,7 +39,7 @@
           :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
           :placeholder="false"
-          :bubble-menu="settings.minimal && menuButtons"
+          :bubble-menu="bubbleButtons"
           :extensions="editorExtensions"
           :editable
           :starterkit-options="{ history: false }"
@@ -265,17 +265,8 @@ const editorExtensions = [
 ]
 
 const menuButtons = computed(() => [
-  'Paragraph',
-  ['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
-  'Separator',
-  'Bold',
-  'Italic',
-  'Strikethrough',
-  'Link',
-  'FontColor',
-  'Separator',
-  ['Bullet List', 'Numbered List', 'Task List'],
-  'Separator',
+  ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
+  ['Bold', 'Italic', 'Underline', 'Strikethrough', 'Link', 'FontColor'],
   ['Align Left', 'Align Center', 'Align Right'],
   'Separator',
   {
@@ -290,6 +281,7 @@ const menuButtons = computed(() => [
     ),
   },
   'Separator',
+  ['Bullet List', 'Numbered List', 'Task List'],
   'Blockquote',
   'Code',
   // {
@@ -316,6 +308,31 @@ const menuButtons = computed(() => [
     'ToggleHeaderCell',
     'DeleteTable',
   ],
+  'Separator',
+  {
+    label: 'Comment',
+    icon: LucideMessageSquarePlus,
+    action: () => addComment(),
+    isActive: () => false,
+  },
+])
+
+const bubbleButtons = computed(() => [
+  ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
+  ['Bold', 'Italic', 'Underline', 'Strikethrough', 'Link', 'FontColor'],
+  ['Align Left', 'Align Center', 'Align Right'],
+  'Separator',
+  {
+    label: 'FontOptions',
+    component: h(
+      defineAsyncComponent(() => import('./ManageFont.vue')),
+      {
+        editor,
+        font_size: +props.settings.font_size || 15,
+        font_family: props.settings.font_family || 'inter',
+      },
+    ),
+  },
   'Separator',
   {
     label: 'Comment',

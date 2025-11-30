@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    class="mx-auto max-w-[60%] pt-8 h-screen space-y-4 pb-64"
+    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space-y-4 pb-64"
   >
     <template v-for="[group, files] in Object.entries(groups)" :key="group">
       <template v-if="files.length">
@@ -16,14 +16,12 @@
               "
               class="group flex items-center justify-between px-4 py-3 hover:bg-surface-gray-1 rounded cursor-pointer my-px"
             >
-              <div class="flex gap-2">
-                <div class="flex flex-col gap-1">
-                  <p class="text-sm font-medium text-ink-gray-8 truncate">
-                    {{ row.title }}
-                  </p>
-                  <div class="text-xs text-ink-gray-5">
-                    {{ row.file_size_pretty }}
-                  </div>
+              <div class="flex flex-col gap-1 w-[60%]">
+                <p class="text-sm font-medium text-ink-gray-8 truncate">
+                  {{ row.title }}
+                </p>
+                <div class="text-xs text-ink-gray-5">
+                  {{ row.file_size_pretty }}
                 </div>
               </div>
 

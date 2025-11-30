@@ -14,7 +14,7 @@
       </div>
       <div v-else>
         This is an automatic snapshot of this document from
-        {{ formatDate(versionPreview[0].title) }}.
+        {{ formatDateDDMMYY(versionPreview[0].title) }}.
       </div>
       <div class="text-xs text-ink-gray-5">
         Editing is disabled until you exit.
@@ -81,33 +81,34 @@
           v-for="[title, group] in Object.entries(groupedVersions)"
           v-else
           :key="title"
-          class="flex flex-col gap-0.5 justify-start bg-surface-white"
+          class="flex flex-col gap-1 mb-2 justify-start bg-surface-white"
         >
           <div
             v-if="title !== 'Manual'"
             class="text-ink-gray-5 text-sm font-medium mb-1 my-2"
           >
-            {{ title }}:
+            {{ title }}
           </div>
-
-          <Button
-            v-for="(version, i) in group"
-            :key="version.name"
-            :variant="
-              version.name === versionPreview?.[0]?.name ? 'subtle' : 'ghost'
-            "
-            class="text-start text-sm py-4"
-            :label="
-              version.manual
-                ? version.title
-                : formatDate(version.title).slice(10)
-            "
-            @click="
-              version.name === versionPreview?.[0]?.name
-                ? (versionPreview = null)
-                : (versionPreview = [version, getPrevious(version)])
-            "
-          />
+          <div class="grid grid-cols-3 gap-0.5">
+            <Button
+              v-for="(version, i) in group"
+              :key="version.name"
+              :variant="
+                version.name === versionPreview?.[0]?.name ? 'solid' : 'ghost'
+              "
+              class="text-start text-sm py-4"
+              :label="
+                version.manual
+                  ? version.title
+                  : formatDateDDMMYY(version.title).slice(9, 14)
+              "
+              @click="
+                version.name === versionPreview?.[0]?.name
+                  ? (versionPreview = null)
+                  : (versionPreview = [version, getPrevious(version)])
+              "
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -253,7 +254,7 @@ import { EditorContent } from '@tiptap/vue-3'
 
 const props = defineProps({
   settings: Object,
-  versions: Array,
+  versions: Object,
   document: Object,
   editor: Object,
 })
@@ -264,18 +265,42 @@ const showVersions = defineModel('showVersions')
 const manualVersions = computed(() => props.versions.filter((v) => v.manual))
 const autoVersions = computed(() => props.versions.filter((v) => !v.manual))
 
+// Helper function to format date as DD/MM/YY HH:MM:SS
+function formatDateDDMMYY(dateStr) {
+  const date = new Date(dateStr)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = String(date.getFullYear()).slice(-2)
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+}
+
 const groupedVersions = computed(() => {
   if (tab.value === 0) {
-    return autoVersions.value.reduce((acc, version) => {
-      const date = formatDate(version.title).slice(0, 8)
+    // First, sort all auto versions by date (newest first)
+    const sortedAutoVersions = [...autoVersions.value].sort((a, b) => {
+      return new Date(b.title) - new Date(a.title)
+    })
+
+    const grouped = sortedAutoVersions.reduce((acc, version) => {
+      const date = formatDateDDMMYY(version.title).slice(0, 8) // Get DD/MM/YY part
       if (!acc[date]) {
         acc[date] = []
       }
       acc[date].push(version)
       return acc
     }, {})
+
+    return grouped
   } else {
-    return { Manual: manualVersions.value }
+    // Sort manual versions by creation date (newest first)
+    return {
+      Manual: [...manualVersions.value].sort((a, b) => {
+        return new Date(b.title) - new Date(a.title)
+      }),
+    }
   }
 })
 
@@ -283,9 +308,10 @@ const tab = ref(props.versions.filter((v) => v.manual).length ? 1 : 0)
 watch(tab, () => (versionPreview.value = null))
 
 const getPrevious = (version) => {
+  // Important: Use the original arrays, not the reversed ones
   const relevantVersions = version.manual
-    ? manualVersions.value
-    : autoVersions.value
+    ? props.versions.filter((v) => v.manual)
+    : props.versions.filter((v) => !v.manual)
   const currentIndex = relevantVersions.findIndex(
     (v) => v.name === version.name,
   )
@@ -298,14 +324,16 @@ const restore = (version) => {
     size: 'sm',
     message: version.manual
       ? `You are restoring to a previous version: ${version.title}.`
-      : `You are restoring the document to how it was at ${version.title}.`,
+      : `You are restoring the document to how it was at ${formatDateDDMMYY(version.title)}.`,
     actions: [
       {
         label: 'Confirm',
         variant: 'solid',
         onClick: () => {
           props.editor.commands.setContent(version.snapshot)
-          toast.success(`Restored a previous version - ${version.title}`)
+          toast.success(
+            `Restored a previous version - ${version.manual ? version.title : formatDateDDMMYY(version.title)}`,
+          )
           showVersions.value = false
           clearDialogs()
           emitter.emit('manual-save')

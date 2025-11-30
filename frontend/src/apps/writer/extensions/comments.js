@@ -106,7 +106,7 @@ export const CommentExtension = Extension.create({
             if (!tr.docChanged || !comments._map.size) return
 
             const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
-            if (isRemote || tr.getMeta(commentPluginKey)?.rebuild) {
+            if (!oldSet || isRemote || tr.getMeta(commentPluginKey)?.rebuild) {
               return createDecorations(
                 ext.editor,
                 doc,
