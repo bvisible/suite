@@ -38,11 +38,14 @@
           :upload-function
           :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
-          :placeholder="false"
+          placeholder="Start thinking..."
           :bubble-menu="bubbleButtons"
           :extensions="editorExtensions"
           :editable
-          :starterkit-options="{ history: false }"
+          :starterkit-options="{
+            history: false,
+            trailingNode: { node: 'paragraph', notAfter: 'tab' },
+          }"
           @keydown="
             (e) => {
               if (!e.metaKey && !e.ctrlKey) {

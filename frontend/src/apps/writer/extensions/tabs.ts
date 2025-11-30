@@ -1,7 +1,7 @@
 import { Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TabView from './components/TabView.vue'
-import {TextSelection} from '@tiptap/pm/state'
+import { TextSelection } from '@tiptap/pm/state'
 import { v4 } from 'uuid'
 
 export const TabsExtension = Node.create({
@@ -54,22 +54,23 @@ export const TabsExtension = Node.create({
   onCreate() {
     const selectFirstTab = () => {
       if (this.storage.hasInitialized) return
-      
+
       const { doc } = this.editor.state
       let firstTabId = null
-      
+
       doc.descendants((node) => {
         if (node.type.name === 'tab' && !firstTabId) {
           firstTabId = node.attrs.id
           return false
         }
       })
-      
+
       if (firstTabId) {
         this.storage.hasInitialized = true
         this.editor.commands.changeTab(firstTabId, false)
       }
     }
+
     selectFirstTab()
     // BROKEN: somehow stop constant re-firing of this
     this.editor.on('update', selectFirstTab)
@@ -87,14 +88,14 @@ export const TabsExtension = Node.create({
         (tabId: string, changed: boolean = true) =>
         ({ tr, dispatch, state }) => {
           if (this.editor.view.dom) {
-            this.editor.view.dom.setAttribute(
-              'data-active-tab',
-              this.storage.activeTabId || '',
-            )
+            this.editor.view.dom.setAttribute('data-active-tab', tabId || '')
           }
           this.storage.activeTabId = tabId
-          dispatch(tr)
-          if (changed)
+          if (dispatch) {
+            dispatch(tr)
+          }
+
+          if (changed) {
             setTimeout(() => {
               let focusPos = null
               state.doc.descendants((node, pos) => {
@@ -108,6 +109,7 @@ export const TabsExtension = Node.create({
                 this.editor.commands.focus(focusPos)
               }
             }, 0)
+          }
           return true
         },
       getCurrentTab: () => () => this.storage.activeTabId,
@@ -134,6 +136,37 @@ export const TabsExtension = Node.create({
           }
           return false
         },
+      deleteTab:
+        (tabId: string) =>
+        ({ tr, dispatch, state }) => {
+          if (!dispatch) return false
+
+          let deleted = false
+          let deletedPos = null
+
+          state.doc.descendants((node, pos) => {
+            if (node.type.name === 'tab' && node.attrs.id === tabId) {
+              tr.delete(pos, pos + node.nodeSize)
+              deletedPos = pos
+              deleted = true
+              return false
+            }
+          })
+
+          if (deleted) {
+            if (this.storage.activeTabId === tabId) {
+              let newActiveTabId = null
+              tr.doc.descendants((node) => {
+                if (node.type.name === 'tab' && !newActiveTabId) {
+                  newActiveTabId = node.attrs.id
+                  return false
+                }
+              })
+              return this.editor.commands.changeTab(newActiveTabId)
+            }
+          }
+          return false
+        },
       wrapInTab:
         (attrs: { id?: string; label?: string } = {}) =>
         ({ tr, dispatch }) => {
@@ -149,27 +182,31 @@ export const TabsExtension = Node.create({
             dispatch(tr)
             return true
           }
+          return false
         },
       createTab:
-        (attrs: { id: string; label: string }) =>
+        (attrs: { id?: string; label?: string } = {}) =>
         ({ tr, dispatch, state }) => {
           if (dispatch) {
-            const paragraphType = this.editor.schema.nodes.paragraph
             if (!attrs.id) attrs.id = v4()
+            if (!attrs.label) attrs.label = 'Untitled'
+
+            const paragraphType = this.editor.schema.nodes.paragraph
             const tab = this.editor.schema.nodes.tab.create(
               attrs,
               paragraphType.create(),
             )
-            tr.insert(state.doc.content.size, tab)
-
+            tr.insert(state.doc.content.size , tab)
             dispatch(tr)
-            this.editor.commands.changeTab(attrs.id)
+
+            setTimeout(() => this.editor.commands.changeTab(attrs.id), 10)
           }
           return true
         },
     }
   },
- addKeyboardShortcuts() {
+
+  addKeyboardShortcuts() {
     return {
       'Mod-a': () => {
         const activeTabId = this.storage.activeTabId
