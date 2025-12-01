@@ -33,9 +33,9 @@
                   </div>
                   <FormControl
                     v-model="settings.font_size"
-                    type="select"
+                    type="number"
                     label="Font Size"
-                    :options="fontSizeOptions"
+                    placeholder="Automatic"
                     :description="'Set the font size  of the editor (px).'"
                   />
                   <FormControl
@@ -46,43 +46,45 @@
                     description="Set the line height of the editor."
                   />
                 </div>
-                <div class="flex flex-col gap-4 pb-5 pr-5">
-                  <FormControl
-                    v-if="tabIndex === 0"
-                    v-model="settings.watermark_text"
-                    type="text"
-                    label="Watermark Text"
-                    placeholder="Enter watermark text"
-                    :description="`Set the text for watermark.`"
-                  />
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-4">
+                  <template v-if="tabIndex === 0">
+                    <h3 class="text-sm font-medium text-ink-gray-7">
+                      Watermark
+                    </h3>
                     <FormControl
-                      v-if="tabIndex === 0"
-                      v-model.number="settings.watermark_size"
-                      type="number"
-                      label="Watermark Size (px)"
-                      placeholder="40"
-                      :min="10"
-                      :max="300"
-                      :step="5"
-                      :description="`Set the watermark text size (px).`"
-                      class="w-full"
+                      v-model="settings.watermark_text"
+                      type="text"
+                      label="Text"
+                      placeholder="Your company name.."
+                      :description="`Set the text for the watermark.`"
                     />
-                    <FormControl
-                      v-if="tabIndex === 0"
-                      v-model.number="settings.watermark_angle"
-                      type="number"
-                      label="Watermark Angle (°)"
-                      placeholder="-45"
-                      :min="-180"
-                      :max="180"
-                      :step="15"
-                      :description="`Set the watermark text angle (°).`"
-                      class="w-full"
-                    />
-                  </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormControl
+                        v-model.number="settings.watermark_size"
+                        type="number"
+                        label="Size"
+                        placeholder="40"
+                        :min="10"
+                        :max="300"
+                        :step="5"
+                        :description="`Set the watermark text size (px).`"
+                        class="w-full"
+                      />
+                      <FormControl
+                        v-model.number="settings.watermark_angle"
+                        type="number"
+                        label="Angle"
+                        placeholder="-45"
+                        :min="-180"
+                        :max="180"
+                        :step="15"
+                        :description="`Set the watermark text angle (°).`"
+                        class="w-full"
+                      />
+                    </div>
+                  </template>
                   <FormControl
-                    v-if="tabIndex === 1"
+                    v-else
                     v-model="settings.apply_watermark"
                     type="checkbox"
                     label="Apply Watermark to PDF"
@@ -107,16 +109,16 @@
                     :disabled="!dirty || error"
                     :loading="resource.loading"
                     @click="
-                        () => {
-                          if (key === 'writer_settings')
-                            resource.setValue.submit({ [key]: settings })
-                          else
-                            resource.updateSettings.submit({
-                              data: JSON.stringify(settings),
-                            })
-                          setDirty(false)
-                        }
-                      "
+                      () => {
+                        if (key === 'writer_settings')
+                          resource.setValue.submit({ [key]: settings })
+                        else
+                          resource.updateSettings.submit({
+                            data: JSON.stringify(settings),
+                          })
+                        setDirty(false)
+                      }
+                    "
                   />
                 </div>
               </template>
@@ -159,21 +161,6 @@ const fontOptions = computed(() =>
     ...FONT_FAMILIES,
   ]),
 )
-const fontSizeOptions = computed(() =>
-  dynamicList([
-    {
-      label: 'Automatic',
-      value: 'global',
-      cond: tabIndex.value === 1,
-    },
-    { label: '13px', value: 13 },
-    { label: '14px', value: 14 },
-    { label: '15px', value: 15 },
-    { label: '16px', value: 16 },
-    { label: '17px', value: 17 },
-    { label: '18px', value: 18 },
-  ]),
-)
 
 const lineHeightOptions = computed(() =>
   dynamicList([
@@ -201,28 +188,26 @@ const key = computed(() =>
   tabIndex.value === 1 ? 'settings' : 'writer_settings',
 )
 
-const KEYS = [
+const KEYS = computed(() => [
   'font_family',
   'font_size',
   'line_height',
-  'versioning',
-  'watermark_text',
-  'watermark_size',
-  'watermark_angle',
-  'apply_watermark',
-]
+  ...(tabIndex.value === 0
+    ? ['watermark_text', 'watermark_size', 'watermark_angle']
+    : ['apply_watermark']),
+])
 
 const settings = reactive({})
 
 watchEffect(() => {
   const base = { ...resource.value.doc[key.value] }
-  for (const k of KEYS) {
+  console.log(KEYS.value)
+  for (const k of KEYS.value) {
     if (k === 'apply_watermark') {
       settings[k] = base[k] === true
     } else {
-      settings[k] = base[k]
+      settings[k] = base[k] || 'global'
     }
   }
-  if (tabIndex.value === 1) settings.collab = base.collab
 })
 </script>

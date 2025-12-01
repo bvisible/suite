@@ -152,6 +152,7 @@ import { isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
 import LucideSquareFunction from '~icons/lucide/square-function'
+import LucideSettings from '~icons/lucide/settings'
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
 import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
@@ -175,8 +176,10 @@ import FloatingComments from './FloatingComments.vue'
 import { TabsExtension } from '@/extensions/tabs'
 
 const activeComment = ref(null)
-const showComments = defineModel('showComments')
-watch([showComments, activeComment], () => rebuild(editor.value))
+const showComments = ref(true)
+const showSettings = defineModel('showSettings')
+
+watch(activeComment, () => rebuild(editor.value))
 const showResolved = ref(false)
 const commentsPainted = ref(false)
 const edited = ref(false)
@@ -325,6 +328,11 @@ const menuButtons = computed(() => [
     'ToggleHeaderCell',
     'DeleteTable',
   ],
+  {
+    icon: LucideSettings,
+    label: 'Settings',
+    action: () => (showSettings.value = true),
+  },
   'Separator',
   {
     label: 'Comment',

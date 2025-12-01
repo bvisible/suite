@@ -139,7 +139,7 @@ import EmbedExtension from '@/extensions/embed-extension'
 import FloatingComments from '@/components/FloatingComments.vue'
 import { useComments } from '@/composables/useYjs'
 
-const showComments = defineModel('showComments')
+const showComments = ref(true)
 const showResolved = ref(false)
 const edited = ref(false)
 

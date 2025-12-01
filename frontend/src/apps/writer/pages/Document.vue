@@ -16,7 +16,6 @@
     :breadcrumbs="
       document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
     "
-    v-model:showSettings="showSettings"
     v-model:showVersions="showVersions"
   >
     <template #content v-if="document.doc?.settings && document.doc.write">
@@ -78,7 +77,6 @@
     <NonCollabEditor
       v-if="!document.doc?.collab"
       ref="editorEl"
-      v-model:show-comments="showComments"
       v-model:versionPreview="versionPreview"
       :entity="document.doc"
       :document
@@ -94,9 +92,9 @@
     <TextEditor
       v-else-if="document.doc?.settings"
       ref="editorEl"
-      v-model:show-comments="showComments"
       v-model:show-versions="showVersions"
       v-model:versionPreview="versionPreview"
+      v-model:showSettings="showSettings"
       :entity="document.doc"
       :document
       :editable
@@ -108,7 +106,7 @@
       v-if="showSettings"
       v-model="showSettings"
       :doc-settings="document"
-      :global-settings
+      :global-settings="globalSettings"
       :editable
     />
   </div>
@@ -158,9 +156,7 @@ const editorEl = useTemplateRef('editorEl')
 const editor = computed(() => editorEl.value?.editor)
 provide('editor', editor)
 
-// Reactive data properties
 const versionPreview = ref(null)
-const showComments = ref(true)
 const showSettings = ref(false)
 const showVersions = ref(false)
 

@@ -124,7 +124,6 @@ const props = defineProps({
   },
 })
 
-const showSettings = defineModel('showSettings')
 const showVersions = defineModel('showVersions')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
@@ -291,7 +290,11 @@ const fileActions = computed(() =>
                   label: 'Folder',
                   icon: LucideFolderArchive,
                   onClick: () => {
-                    downloadZippedHTML(editorValue, entity.value.title, settings.value)
+                    downloadZippedHTML(
+                      editorValue,
+                      entity.value.title,
+                      settings.value,
+                    )
                   },
                 },
                 {
@@ -312,14 +315,6 @@ const fileActions = computed(() =>
               label: 'Versions',
               cond: props.document.doc.write,
               onClick: () => (showVersions.value = true),
-            },
-            {
-              onClick: () => {
-                showSettings.value = true
-              },
-              label: 'Settings',
-              cond: props.document.doc.write,
-              icon: LucideSettings,
             },
           ]),
         },
