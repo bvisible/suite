@@ -20,6 +20,20 @@ export class MediaStreamHandler {
 		this._audioCtx = null;
 	}
 
+	applyDefaultVideoConstraints(videoConstraints = {}) {
+		const next = { ...videoConstraints };
+		if (!next.width) {
+			next.width = { ideal: 1280, min: 960 };
+		}
+		if (!next.height) {
+			next.height = { ideal: 720, min: 540 };
+		}
+		if (!next.frameRate) {
+			next.frameRate = { ideal: 30, max: 30 };
+		}
+		return next;
+	}
+
 	async getUserMedia(
 		constraints = { video: true, audio: true },
 		deviceIds = {},
@@ -40,12 +54,14 @@ export class MediaStreamHandler {
 		const constraints = { ...baseConstraints };
 
 		if (constraints.video && typeof constraints.video === "object") {
-			constraints.video = { ...constraints.video };
+			constraints.video = this.applyDefaultVideoConstraints({
+				...constraints.video,
+			});
 			if (deviceIds.camera) {
 				constraints.video.deviceId = { exact: deviceIds.camera };
 			}
 		} else if (constraints.video === true) {
-			constraints.video = {};
+			constraints.video = this.applyDefaultVideoConstraints();
 			if (deviceIds.camera) {
 				constraints.video.deviceId = { exact: deviceIds.camera };
 			}

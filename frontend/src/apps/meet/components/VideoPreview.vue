@@ -169,9 +169,14 @@ async function acquire(kind) {
 	try {
 		if (kind === "video" && !videoTrack.value) {
 			const constraints = {
-				video: props.cameraDeviceId
-					? { deviceId: { exact: props.cameraDeviceId } }
-					: true,
+				video: {
+					width: { ideal: 1280, min: 960 },
+					height: { ideal: 720, min: 540 },
+					frameRate: { ideal: 30, max: 30 },
+					...(props.cameraDeviceId
+						? { deviceId: { exact: props.cameraDeviceId } }
+						: {}),
+				},
 				audio: false,
 			};
 			const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -206,9 +211,14 @@ async function acquireBoth() {
 	try {
 		const constraints = {
 			audio: true,
-			video: props.cameraDeviceId
-				? { deviceId: { exact: props.cameraDeviceId } }
-				: true,
+			video: {
+				width: { ideal: 1280, min: 960 },
+				height: { ideal: 720, min: 540 },
+				frameRate: { ideal: 30, max: 30 },
+				...(props.cameraDeviceId
+					? { deviceId: { exact: props.cameraDeviceId } }
+					: {}),
+			},
 		};
 		const stream = await navigator.mediaDevices.getUserMedia(constraints);
 		videoTrack.value = stream.getVideoTracks()[0] || null;
