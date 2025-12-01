@@ -11,6 +11,11 @@ export const videoEncodings = [
 export const svcEncodingTemplate = (scalabilityMode = "L3T1") => [
 	{
 		scalabilityMode,
+		maxBitrate: scalabilityMode?.startsWith("L3")
+			? 1000000
+			: scalabilityMode?.startsWith("L2")
+				? 700000
+				: 500000,
 	},
 ];
 
