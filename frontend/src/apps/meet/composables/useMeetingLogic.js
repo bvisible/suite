@@ -232,7 +232,11 @@ export function useMeetingLogic(meetingState, meetingId) {
 		const deviceIds = {};
 
 		if (videoEnabled) {
-			constraints.video = {};
+			constraints.video = {
+				width: { ideal: 1280, min: 960 },
+				height: { ideal: 720, min: 540 },
+				frameRate: { ideal: 30, max: 30 },
+			};
 
 			const validCameraId = await getValidDeviceId(
 				selectedCameraId.value,
