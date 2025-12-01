@@ -347,7 +347,7 @@ const fileActions = computed(() =>
 
 // Utility functions for doc
 const clearCache = () => {
-  window.indexedDB.deleteDatabase('wdoc-' + props.document.doc.name)
+  window.indexedDB.deleteDatabase('fdoc-' + props.document.doc.name)
   window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
 }
 </script>
