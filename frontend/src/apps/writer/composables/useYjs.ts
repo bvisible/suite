@@ -86,21 +86,25 @@ export const useComments = (document, editor) => {
   return { saveComments, newComment, comments, cleanup }
 }
 
-
 export function useYjs(document, editor, edited) {
   const doc = new Y.Doc()
-  if (document.doc.content || document.doc.updates.length)
-    Y.applyUpdate(
-      doc,
-      Y.mergeUpdates([
-        toUint8Array(document.doc.content),
-        ...document.doc.updates.map(({ data }) => toUint8Array(data)),
-      ]),
-    )
+  const roomName = 'fdoc-' + document.doc.name
+  // const db = new IndexeddbPersistence(roomName, doc)
+
+  doc.on('update', (_, origin) => {
+    if (origin && origin !== 'server') autosave()
+  })
+
+  if (document.doc.content || document.doc.updates.length) {
+    const updates = [
+      toUint8Array(document.doc.content),
+      ...document.doc.updates.map(({ data }) => toUint8Array(data)),
+    ]
+    Y.applyUpdate(doc, Y.mergeUpdates(updates), 'server')
+  }
 
   let serverStateVector = Y.encodeStateVector(doc)
 
-  const db = new IndexeddbPersistence('wdoc-' + document.doc.name, doc)
 
   // Saving to server
   const save = async (manual = false) => {
@@ -125,33 +129,34 @@ export function useYjs(document, editor, edited) {
     }
   }
 
-  const autosave = debounce(save, 2000)
+  const autosave = debounce(save, 500)
 
   // WebRTC for real-time P2P collaboration
   const provider = new WebrtcProvider(
-    'wdoc-' + document.doc.name,
+    roomName,
     doc,
     REALTIME_CONFIG,
   )
   const permanentUserData = new Y.PermanentUserData(doc)
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
 
-  doc.on('update', (_, origin) => {
-    if (origin !== 'server') autosave()
-  })
 
   // Comments
-  const { cleanup: cleanupComments, ...commentsData } = useComments(document, editor)
+  const { cleanup: cleanupComments, ...commentsData } = useComments(
+    document,
+    editor,
+  )
   return {
     doc,
     cleanup: () => {
+      console.log('cleant up')
       provider.destroy()
-      db.destroy()
+      // db.destroy()
       cleanupComments()
     },
     save,
     provider,
     permanentUserData,
-    ...commentsData 
+    ...commentsData,
   }
 }
