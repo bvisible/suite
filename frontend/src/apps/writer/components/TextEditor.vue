@@ -34,7 +34,7 @@
         <FTextEditor
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
-          editor-class="min-h-full mx-auto px-10 overflow-x-auto py-7"
+          editor-class="min-h-full  px-10 overflow-x-auto py-7"
           :upload-function
           :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
@@ -54,7 +54,7 @@
           :extensions="editorExtensions"
           :editable
           :starterkit-options="{
-            history: false,
+            undoRedo: false,
             trailingNode: { node: 'paragraph', notAfter: 'tab' },
           }"
           @keydown="
@@ -70,7 +70,7 @@
         >
           <template #editor="{ editor }">
             <EditorContent
-              class="bg-surface-white prose prose-sm prose-v2 max-w-none mx-auto"
+              class="bg-surface-white prose prose-sm prose-v2"
               :class="
                 settings?.wide
                   ? 'md:min-w-[100ch] md:max-w-[100ch]'
