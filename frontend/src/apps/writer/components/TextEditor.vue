@@ -46,7 +46,8 @@
               const { empty } = selection
               if (!empty) {
                 const node = doc.nodeAt(selection.from)
-                if (node && node.type.name !== 'text') return false
+                if (!node || ['image', 'video'].includes(node.type.image))
+                  return false
               }
               return !empty
             },
