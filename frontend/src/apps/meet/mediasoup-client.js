@@ -26,14 +26,20 @@ function buildVideoEncodingConfig(source = "camera") {
 		deviceCapabilities: mediasoupDevice?.rtpCapabilities,
 	});
 
-	const fallbackEncodings =
-		source === "screen" ? screenEncodings : videoEncodings;
+	const isScreen = source === "screen";
+	const fallbackEncodings = isScreen ? screenEncodings : videoEncodings;
+	const strategy = isScreen ? "simulcast" : decision.strategy;
+	const scalabilityMode = strategy === "svc" ? decision.scalabilityMode : null;
 
 	return {
-		decision,
+		decision: {
+			...decision,
+			strategy,
+			scalabilityMode,
+		},
 		encodings:
-			decision.strategy === "svc"
-				? svcEncodingTemplate(decision.scalabilityMode)
+			strategy === "svc"
+				? svcEncodingTemplate(scalabilityMode)
 				: fallbackEncodings,
 	};
 }
@@ -458,15 +464,19 @@ export async function publishVideo(meetingId, stream) {
 		}
 
 		const encodingConfig = buildVideoEncodingConfig("camera");
+		const appData = {
+			codecStrategy: encodingConfig.decision.strategy,
+		};
+
+		if (encodingConfig.decision.scalabilityMode) {
+			appData.scalabilityMode = encodingConfig.decision.scalabilityMode;
+		}
 
 		const producer = await sendTransport.produce({
 			track: videoTrack,
 			encodings: encodingConfig.encodings,
 			codecOptions: videoCodecOptions,
-			appData: {
-				codecStrategy: encodingConfig.decision.strategy,
-				scalabilityMode: encodingConfig.decision.scalabilityMode,
-			},
+			appData,
 		});
 
 		producers.set(producer.id, producer);
@@ -501,14 +511,18 @@ export async function publishScreenShare(meetingId, stream) {
 		if (!videoTrack) throw new Error("No video track in screen share stream");
 
 		const encodingConfig = buildVideoEncodingConfig("screen");
+		const appData = {
+			type: "screen",
+			codecStrategy: encodingConfig.decision.strategy,
+		};
+
+		if (encodingConfig.decision.scalabilityMode) {
+			appData.scalabilityMode = encodingConfig.decision.scalabilityMode;
+		}
 
 		const producer = await sendTransport.produce({
 			track: videoTrack,
-			appData: {
-				type: "screen",
-				codecStrategy: encodingConfig.decision.strategy,
-				scalabilityMode: encodingConfig.decision.scalabilityMode,
-			},
+			appData,
 			encodings: encodingConfig.encodings,
 			codecOptions: videoCodecOptions,
 		});
