@@ -82,7 +82,6 @@
       :document
       :settings
       :editable
-      :show-resolved
     />
     <MarkdownEditor
       v-else-if="document.doc?.mime_type == 'text/markdown'"
@@ -99,7 +98,6 @@
       :document
       :editable
       :settings
-      :show-resolved
     />
 
     <WriterSettings

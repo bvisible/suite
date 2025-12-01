@@ -22,7 +22,6 @@ export const rebuild = (editor) => {
 const createDecorations = (editor, yDoc, comments, active, showResolved) => {
   try {
     if (!comments._map.size) return DecorationSet.empty
-    console.log('redrawing comments')
     const ystate = ySyncPluginKey.getState(editor.state)
     const decos = []
     comments.forEach((comment) => {
@@ -54,7 +53,6 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
         }),
       )
     })
-    console.log(decos[0])
     return DecorationSet.create(editor.state.doc, decos)
   } catch (e) {
     return DecorationSet.empty

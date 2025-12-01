@@ -773,10 +773,10 @@ export function toast(obj) {
 }
 
 export const COMMON_EXTENSIONS = [
-  FontSize,
-  FontFamily.configure({
-    types: ['textStyle'],
-  }),
+  // FontSize,
+  // FontFamily.configure({
+  //   types: ['textStyle'],
+  // }),
   EmbedExtension,
 ]
 
