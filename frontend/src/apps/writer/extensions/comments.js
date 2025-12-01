@@ -101,10 +101,12 @@ export const CommentExtension = Extension.create({
 
           apply(tr, oldSet) {
             const { doc, comments, activeComment, showResolved } = ext.options
-            if (!tr.docChanged || !comments._map.size) return oldSet
+            const rebuild = tr.getMeta(commentPluginKey)?.rebuild
+            if ((!tr.docChanged && !rebuild) || !comments._map.size)
+              return oldSet
 
             const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
-            if (!oldSet || isRemote || tr.getMeta(commentPluginKey)?.rebuild) {
+            if (isRemote || rebuild) {
               return createDecorations(
                 ext.editor,
                 doc,

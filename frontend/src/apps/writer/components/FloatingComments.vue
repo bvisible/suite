@@ -359,13 +359,6 @@ watch(activeComment, (val) => {
   setCommentHeights()
 })
 
-const resolveComment = createResource({
-  url: '/api/method/drive.api.docs.resolve_comment',
-  onSuccess: () => {
-    emit('save')
-  },
-})
-
 const sanitize = (comment) => {
   delete comment.new
   comment.edit = false
@@ -423,6 +416,7 @@ const removeComment = (commentId) => {
   props.yComments.delete(commentId)
   setCommentHeights()
   emit('save')
+  rebuild(props.editor)
 }
 
 const resolve = (comment, value = true) => {

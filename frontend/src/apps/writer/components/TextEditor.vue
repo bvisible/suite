@@ -40,6 +40,17 @@
           :mentions="{ mentions: allUsers.data, selectable: false }"
           placeholder="Start thinking..."
           :bubble-menu="bubbleButtons"
+          :bubble-menu-options="{
+            shouldShow: ({ state }) => {
+              const { doc, selection } = state
+              const { empty } = selection
+              if (!empty) {
+                const node = doc.nodeAt(selection.from)
+                if (node && node.type.name !== 'text') return false
+              }
+              return !empty
+            },
+          }"
           :extensions="editorExtensions"
           :editable
           :starterkit-options="{
@@ -269,7 +280,9 @@ const editorExtensions = [
 
 const menuButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
-  ['Bold', 'Italic', 'Underline', 'Strikethrough', 'Link', 'FontColor'],
+  ['Bold', 'Italic', 'Underline', 'Strikethrough'],
+  'Link',
+  'FontColor',
   ['Align Left', 'Align Center', 'Align Right'],
   'Separator',
   {
@@ -323,7 +336,9 @@ const menuButtons = computed(() => [
 
 const bubbleButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
-  ['Bold', 'Italic', 'Underline', 'Strikethrough', 'Link', 'FontColor'],
+  ['Bold', 'Italic', 'Underline', 'Strikethrough'],
+  'Link',
+  'FontColor',
   ['Align Left', 'Align Center', 'Align Right'],
   'Separator',
   {
