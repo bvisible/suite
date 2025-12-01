@@ -109,7 +109,7 @@
 					:class="{
 						'!bg-[#e54e17] hover:!bg-[#e54e17]': isHandRaised,
 					}"
-					title="Raise Hand"
+					:title="isHandRaised ? 'Lower Hand' : 'Raise Hand'"
 				>
 					<template #icon>
 						<lucide-hand class="w-5 h-5 text-white" />
