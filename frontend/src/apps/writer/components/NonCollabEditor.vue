@@ -51,6 +51,11 @@
           <template #editor="{ editor }">
             <EditorContent
               class="bg-surface-white prose prose-sm prose-v2"
+              :class="
+                settings?.wide
+                  ? 'md:min-w-[100ch] md:max-w-[100ch]'
+                  : 'md:min-w-[48rem] md:max-w-[48rem]'
+              "
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -140,6 +145,7 @@ import FloatingComments from '@/components/FloatingComments.vue'
 import { useComments } from '@/composables/useYjs'
 
 const showComments = ref(true)
+const showSettings = defineModel('showSettings')
 const showResolved = ref(false)
 const edited = ref(false)
 
@@ -275,6 +281,11 @@ const menuButtons = computed(() => [
     'ToggleHeaderCell',
     'DeleteTable',
   ],
+  {
+    icon: LucideSettings,
+    label: 'Settings',
+    action: () => (showSettings.value = true),
+  },
   'Separator',
 ])
 

@@ -78,6 +78,7 @@
       v-if="!document.doc?.collab"
       ref="editorEl"
       v-model:versionPreview="versionPreview"
+      v-model:showSettings="showSettings"
       :entity="document.doc"
       :document
       :settings
