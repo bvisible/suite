@@ -44,16 +44,16 @@
 
 		<div
 			v-if="isHandRaised"
-			class="absolute bottom-1 right-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none"
+			class="absolute bottom-1 right-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
 			:aria-label="`${participant.user_name || participant.user_id} has raised their hand`"
 		>
-			<lucide-hand class="w-3.5 h-3.5" />
+			<lucide-hand class="w-3.5 h-3.5" :class="{ wave: isAnimating }" />
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useAudioStream } from "../composables/useAudioLevels.js";
 import AudioIndicator from "./AudioIndicator.vue";
 import MeetingAvatar from "./MeetingAvatar.vue";
@@ -84,5 +84,16 @@ const { stream } = useAudioStream(props.participant.user_id);
 const isHandRaised = computed(() => {
 	if (!meetingState?.raisedHands?.value) return false;
 	return !!meetingState.raisedHands.value[props.participant.user_id];
+});
+
+const isAnimating = ref(false);
+
+watch(isHandRaised, (newValue, oldValue) => {
+	if (newValue && !oldValue) {
+		isAnimating.value = true;
+		setTimeout(() => {
+			isAnimating.value = false;
+		}, 1500);
+	}
 });
 </script>

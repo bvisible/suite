@@ -39,12 +39,11 @@
 
 		<!-- Raised Hand -->
 		<div
-			v-if="isHandRaised &&!isLocal"
-			class="absolute bottom-2 right-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none"
-			:class="{ 'animate-bounce': isAnimating }"
+			v-if="isHandRaised && !isLocal"
+			class="absolute bottom-2 right-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
 			:aria-label="`${participant.user_name || participant.user_id} has raised their hand`"
 		>
-			<lucide-hand class="w-4 h-4" />
+			<lucide-hand class="w-4 h-4" :class="{ wave: isAnimating }" />
 		</div>
 
 		<div v-if="isAudioEnabled && stream" class="absolute top-2 right-2 rounded-full bg-gray-700 p-1.5">

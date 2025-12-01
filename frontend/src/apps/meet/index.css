@@ -4,3 +4,27 @@
 .dropdown-content {
 	z-index: 9999 !important;
 }
+
+.wave {
+	display: inline-block;
+	transform-origin: 70% 70%;
+	animation: hand-wave 900ms ease-in-out infinite;
+}
+
+@keyframes hand-wave {
+	0% {
+		transform: rotate(0deg);
+	}
+	15% {
+		transform: rotate(20deg);
+	}
+	40% {
+		transform: rotate(-12deg);
+	}
+	65% {
+		transform: rotate(8deg);
+	}
+	100% {
+		transform: rotate(0deg);
+	}
+}
