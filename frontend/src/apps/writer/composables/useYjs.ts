@@ -87,24 +87,26 @@ export const useComments = (document, editor) => {
 }
 
 export function useYjs(document, editor, edited) {
-  const doc = new Y.Doc()
+  const doc = new Y.Doc({ gc: true })
   const roomName = 'fdoc-' + document.doc.name
-  // const db = new IndexeddbPersistence(roomName, doc)
-
+  const db = new IndexeddbPersistence(roomName, doc)
+  let serverStateVector;
   doc.on('update', (_, origin) => {
     if (origin && origin !== 'server') autosave()
   })
-
-  if (document.doc.content || document.doc.updates.length) {
-    const updates = [
-      toUint8Array(document.doc.content),
-      ...document.doc.updates.map(({ data }) => toUint8Array(data)),
-    ]
-    Y.applyUpdate(doc, Y.mergeUpdates(updates), 'server')
-  }
-
-  let serverStateVector = Y.encodeStateVector(doc)
-
+  db.on('synced', () => {
+    console.log('synced!')
+    if (document.doc.content || document.doc.updates.length) {
+      const stateVector = Y.encodeStateVector(doc)
+      const serverSnapshot = Y.mergeUpdates([
+        toUint8Array(document.doc.content),
+        ...document.doc.updates.map(({ data }) => toUint8Array(data)),
+      ])
+      const diff = Y.diffUpdate(serverSnapshot, stateVector)
+      Y.applyUpdate(doc, diff, 'server')
+      serverStateVector = Y.encodeStateVectorFromUpdate(serverSnapshot)
+    }
+  })
 
   // Saving to server
   const save = async (manual = false) => {
@@ -129,17 +131,12 @@ export function useYjs(document, editor, edited) {
     }
   }
 
-  const autosave = debounce(save, 500)
+  const autosave = debounce(save, 2000)
 
   // WebRTC for real-time P2P collaboration
-  const provider = new WebrtcProvider(
-    roomName,
-    doc,
-    REALTIME_CONFIG,
-  )
+  const provider = new WebrtcProvider(roomName, doc, REALTIME_CONFIG)
   const permanentUserData = new Y.PermanentUserData(doc)
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
-
 
   // Comments
   const { cleanup: cleanupComments, ...commentsData } = useComments(

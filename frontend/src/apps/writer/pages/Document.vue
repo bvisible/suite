@@ -182,18 +182,17 @@ usePageMeta(() => ({
   title: document.doc ? document.doc.title : 'Loading...',
 }))
 
-const globalSettings =
-  store.state.user.id === 'Guest'
-    ? { doc: {} }
-    : useDoc({
-        doctype: 'Drive Settings',
-        name: store.state.user.id,
-        immediate: true,
-        transform: (doc) => {
-          doc.writer_settings = JSON.parse(doc.writer_settings) || {}
-          return doc
-        },
-      })
+const globalSettings = !store.getters.isLoggedIn
+  ? { doc: {} }
+  : useDoc({
+      doctype: 'Drive Settings',
+      name: store.state.user.id,
+      immediate: true,
+      transform: (doc) => {
+        doc.writer_settings = JSON.parse(doc.writer_settings) || {}
+        return doc
+      },
+    })
 
 const settings = computed(() => {
   for (const [k, v] of Object.entries(document.doc?.settings || {})) {

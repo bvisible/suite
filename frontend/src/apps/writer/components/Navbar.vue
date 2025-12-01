@@ -5,8 +5,8 @@
     ondrop="return false;"
     class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
   >
-    <div class="pl-2.5 pr-0.25">
-      <WriterLogo class="scale-[0.7]" />
+    <div class="pl-2.5 pr-1">
+      <WriterLogo class="size-7" />
     </div>
     <slot name="breadcrumbs">
       <Breadcrumbs

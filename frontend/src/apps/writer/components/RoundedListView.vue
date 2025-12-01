@@ -1,10 +1,10 @@
 <template>
   <div
     ref="container"
-    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space-y-4 pb-64"
+    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space-y-5 pb-64"
   >
     <template v-for="[group, files] in Object.entries(groups)" :key="group">
-      <template v-if="files.length">
+      <div v-if="files.length" class="space-y-1.5">
         <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">
           {{ group }}
         </h2>
@@ -67,7 +67,7 @@
             <hr v-if="i !== files.length - 1" class="mx-4" />
           </div>
         </div>
-      </template>
+      </div>
     </template>
   </div>
   <!-- <ContextMenu
