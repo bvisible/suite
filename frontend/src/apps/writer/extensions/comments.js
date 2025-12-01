@@ -54,10 +54,8 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
         }),
       )
     })
-    return DecorationSet.create(
-      editor.state.doc,
-      decos.filter((k) => k),
-    )
+    console.log(decos[0])
+    return DecorationSet.create(editor.state.doc, decos)
   } catch (e) {
     return DecorationSet.empty
   }
@@ -103,7 +101,7 @@ export const CommentExtension = Extension.create({
 
           apply(tr, oldSet) {
             const { doc, comments, activeComment, showResolved } = ext.options
-            if (!tr.docChanged || !comments._map.size) return
+            if (!tr.docChanged || !comments._map.size) return oldSet
 
             const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
             if (!oldSet || isRemote || tr.getMeta(commentPluginKey)?.rebuild) {
@@ -115,7 +113,6 @@ export const CommentExtension = Extension.create({
                 showResolved.value,
               )
             }
-            console.log('remapping comments')
             return oldSet.map(tr.mapping, tr.doc)
           },
         },

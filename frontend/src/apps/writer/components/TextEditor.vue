@@ -296,6 +296,7 @@ const menuButtons = computed(() => [
   'Image',
   'Video',
   'Iframe',
+  'TableOfContents',
   [
     'InsertTable',
     'AddColumnBefore',
