@@ -343,7 +343,7 @@ const restore = (version) => {
   })
 }
 </script>
-<style>
+<style scoped>
 @import url('@/styles/fonts.css');
 
 ins,

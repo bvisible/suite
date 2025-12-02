@@ -42,6 +42,7 @@
           :bubble-menu="bubbleButtons"
           :bubble-menu-options="{
             shouldShow: ({ state }) => {
+              if (isPainting) return false
               const { doc, selection } = state
               const { empty } = selection
               if (!empty) {
@@ -72,11 +73,12 @@
           <template #editor="{ editor }">
             <EditorContent
               class="bg-surface-white prose prose-sm prose-v2"
-              :class="
+              :class="[
                 settings?.wide
                   ? 'md:min-w-[100ch] md:max-w-[100ch]'
-                  : 'md:min-w-[48rem] md:max-w-[48rem]'
-              "
+                  : 'md:min-w-[48rem] md:max-w-[48rem]',
+                isPainting && 'cursor-crosshair',
+              ]"
               :style="{
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
@@ -153,6 +155,8 @@ import { isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
 import LucideSquareFunction from '~icons/lucide/square-function'
+import LucidePaintRoller from '~icons/lucide/paint-roller'
+import LucideBrushCleaning from '~icons/lucide/brush-cleaning'
 import LucideSettings from '~icons/lucide/settings'
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
@@ -207,6 +211,16 @@ provide('editor', editor)
 const scrollParent = computed(() =>
   document.querySelector('#editorScrollContainer'),
 )
+const isPainting = computed(() => {
+  console.log(
+    editor.value && editor.value.storage.styleClipboard.styleClipboard
+      ? true
+      : false,
+  )
+  return editor.value && editor.value.storage.styleClipboard.styleClipboard
+    ? true
+    : false
+})
 defineExpose({ editor })
 
 const {
@@ -284,10 +298,38 @@ const editorExtensions = [
 
 const menuButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
-  ['Bold', 'Italic', 'Underline', 'Strikethrough'],
+  'Bold',
+  'Italic',
+  'Underline',
+  'Strikethrough',
   'Link',
   'FontColor',
   ['Align Left', 'Align Center', 'Align Right'],
+  {
+    label: 'Paint Styles',
+    icon: LucidePaintRoller,
+    isActive: () => isPainting.value,
+    action: (editor) => {
+      console.log(editor, editor.storage.styleClipboard.styleClipboard)
+      editor.commands.focus()
+      if (editor.storage.styleClipboard.styleClipboard) {
+        editor.commands.applyStyles()
+      } else {
+        editor.commands.storeStyles()
+      }
+    },
+  },
+  {
+    label: 'Clear formatting',
+    icon: LucideBrushCleaning,
+    isActive: (editor) =>
+      editor.storage.styleClipboard.styleClipboard ? true : false,
+    action: (editor) => {
+      editor.commands.focus()
+      editor.commands.clearStyles()
+    },
+    isActive: () => false,
+  },
   'Separator',
   {
     label: 'FontOptions',
@@ -310,9 +352,7 @@ const menuButtons = computed(() => [
   //   action: (editor) => editor.commands.openMathEditor('block'),
   // },
   'Separator',
-  'Image',
-  'Video',
-  'Iframe',
+  ['Image', 'Video', 'Iframe'],
   'TableOfContents',
   [
     'InsertTable',
@@ -334,34 +374,9 @@ const menuButtons = computed(() => [
     label: 'Settings',
     action: () => (showSettings.value = true),
   },
-  'Separator',
-  {
-    label: 'Comment',
-    icon: LucideMessageSquarePlus,
-    action: () => addComment(),
-    isActive: () => false,
-  },
 ])
 
 const bubbleButtons = computed(() => [
-  ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
-  ['Bold', 'Italic', 'Underline', 'Strikethrough'],
-  'Link',
-  'FontColor',
-  ['Align Left', 'Align Center', 'Align Right'],
-  'Separator',
-  {
-    label: 'FontOptions',
-    component: h(
-      defineAsyncComponent(() => import('./ManageFont.vue')),
-      {
-        editor,
-        font_size: +props.settings.font_size || 15,
-        font_family: props.settings.font_family || 'inter',
-      },
-    ),
-  },
-  'Separator',
   {
     label: 'Comment',
     icon: LucideMessageSquarePlus,
