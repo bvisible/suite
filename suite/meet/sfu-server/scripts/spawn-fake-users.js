@@ -327,9 +327,7 @@ async function spawnUser(index) {
 	process.on("SIGINT", () => {
 		console.log("\n🛑 Caught SIGINT, disconnecting fake users...");
 		for (const s of sockets) {
-			try {
-				s.disconnect();
-			} catch (_) {}
+			s.disconnect();
 		}
 		process.exit(0);
 	});

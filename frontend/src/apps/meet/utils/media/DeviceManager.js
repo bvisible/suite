@@ -20,19 +20,15 @@ export class DeviceManager {
 	async checkExistingPermissions() {
 		if (!navigator.permissions) return;
 
-		try {
-			const cameraPermission = await navigator.permissions.query({
-				name: "camera",
-			});
-			this.hasVideoPermission = cameraPermission.state === "granted";
+		const cameraPermission = await navigator.permissions.query({
+			name: "camera",
+		});
+		this.hasVideoPermission = cameraPermission.state === "granted";
 
-			const micPermission = await navigator.permissions.query({
-				name: "microphone",
-			});
-			this.hasAudioPermission = micPermission.state === "granted";
-		} catch (_) {
-			// Permissions API might not be fully supported, don't break
-		}
+		const micPermission = await navigator.permissions.query({
+			name: "microphone",
+		});
+		this.hasAudioPermission = micPermission.state === "granted";
 	}
 
 	/**

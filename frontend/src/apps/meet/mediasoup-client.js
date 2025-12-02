@@ -304,27 +304,6 @@ export async function pauseResumeProducer(meetingId, producerId, action) {
 }
 
 /**
- * Pause or resume a consumer
- */
-export async function pauseResumeConsumer(meetingId, consumerId, action) {
-	try {
-		const sfuClient = getSFUClient();
-		if (!sfuClient.isConnected()) await sfuClient.connect(meetingId);
-		if (action === "pause") {
-			await sfuClient.pauseConsumer(consumerId);
-		} else if (action === "resume") {
-			await sfuClient.resumeConsumer(consumerId);
-		} else {
-			throw new Error(`Unknown action ${action}`);
-		}
-		return { success: true };
-	} catch (error) {
-		console.error("Error controlling consumer:", error);
-		throw error;
-	}
-}
-
-/**
  * Set up event handlers for send transport
  */
 function setupSendTransportEvents(transport, meetingId) {

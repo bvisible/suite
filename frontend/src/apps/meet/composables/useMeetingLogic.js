@@ -446,15 +446,13 @@ export function useMeetingLogic(meetingState, meetingId) {
 				const track = stream.getAudioTracks()[0];
 				if (mh?.audioProducer) {
 					if (meetingState.isScreenSharing.value) {
-						try {
-							const currentTrack = mh.audioProducer.track;
-							if (currentTrack && currentTrack.readyState === "ended") {
-								await mh.audioProducer.replaceTrack({ track });
-							} else {
-								mh.audioProducer.resume?.();
-								if (track) track.enabled = true;
-							}
-						} catch (_) {}
+						const currentTrack = mh.audioProducer.track;
+						if (currentTrack && currentTrack.readyState === "ended") {
+							await mh.audioProducer.replaceTrack({ track });
+						} else {
+							mh.audioProducer.resume?.();
+							if (track) track.enabled = true;
+						}
 					} else {
 						const producer =
 							await sfuManager.value.transportManager.createProducer(track, {
@@ -741,34 +739,27 @@ export function useMeetingLogic(meetingState, meetingId) {
 			if (meetingState.isScreenSharing.value) {
 				// Stop screen sharing
 				if (sfuManager.value?.mediaHandler) {
-					try {
-						// If there is a screen producer, close it (local producer cleanup)
-						const sp = sfuManager.value.mediaHandler.screenProducer;
-						if (sp?.id) {
-							try {
-								sp.close?.();
-							} catch (_) {}
-							// Ask SFU to close the producer so it notifies other peers
-							try {
-								const sfuClient = getSFUClient();
-								if (sfuClient.isConnected()) {
-									sfuClient.closeProducer(sp.id).catch(() => {});
-								}
-							} catch (_) {}
-						}
-						// Local media handler track cleanup
-						sfuManager.value.mediaHandler.stopScreenShare();
-					} catch (_) {}
-				}
-				// Proactively stop all local display tracks so browser indicator clears
-				try {
-					const tracks = meetingState.screenShareStream.value?.getTracks?.();
-					if (tracks) {
-						for (const t of tracks) {
-							t.stop();
+					// If there is a screen producer, close it (local producer cleanup)
+					const sp = sfuManager.value.mediaHandler.screenProducer;
+					if (sp?.id) {
+						sp.close?.();
+						// Ask SFU to close the producer so it notifies other peers
+						const sfuClient = getSFUClient();
+						if (sfuClient.isConnected()) {
+							sfuClient.closeProducer(sp.id);
 						}
 					}
-				} catch (_) {}
+					// Local media handler track cleanup
+					sfuManager.value.mediaHandler.stopScreenShare();
+				}
+
+				// Proactively stop all local display tracks so browser indicator clears
+				const tracks = meetingState.screenShareStream.value?.getTracks?.();
+				if (tracks) {
+					for (const t of tracks) {
+						t.stop();
+					}
+				}
 				meetingState.isScreenSharing.value = false;
 				// Remove local entry from stream map (if stored)
 				const selfId = meetingState.currentUser.value?.user_id;
@@ -780,9 +771,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				meetingState.screenShareStream.value = null;
 				const sfuClient = getSFUClient();
 				if (sfuClient.isConnected()) {
-					try {
-						sfuClient.sendScreenShare("stop_share");
-					} catch (_) {}
+					sfuClient.sendScreenShare("stop_share");
 				}
 			} else {
 				// Start screen sharing (Firefox-friendly)
@@ -811,13 +800,11 @@ export function useMeetingLogic(meetingState, meetingId) {
 				try {
 					const producer = await publishScreenShare(meetingId, screenStream);
 					// Store reference on mediaHandler so we can close it when stopping
-					try {
-						if (sfuManager.value?.mediaHandler) {
-							sfuManager.value.mediaHandler.setProducers({
-								screenProducer: producer,
-							});
-						}
-					} catch (_) {}
+					if (sfuManager.value?.mediaHandler) {
+						sfuManager.value.mediaHandler.setProducers({
+							screenProducer: producer,
+						});
+					}
 
 					// Ensure audio producer remains active/independent of screen producer
 					try {
@@ -874,9 +861,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				// Auto-stop when user ends share from browser UI
 				screenStream.getVideoTracks()[0].addEventListener("ended", () => {
 					if (meetingState.isScreenSharing.value) {
-						try {
-							toggleScreenShare();
-						} catch (_) {}
+						toggleScreenShare();
 					}
 				});
 
@@ -1186,17 +1171,15 @@ export function useMeetingLogic(meetingState, meetingId) {
 			onScreenShareStarted: (data) => {
 				const pid = data.participantId;
 				if (!pid) return;
-				try {
-					console.log("🔎 onScreenShareStarted raw payload", {
-						participantId: pid,
-						hasStream: data.stream instanceof MediaStream,
-						consumerId: data.consumer?.id,
-						consumerKind: data.consumer?.kind,
-						consumerIsScreen:
-							data.consumer?.isScreen ||
-							data.consumer?.appData?.type === "screen",
-					});
-				} catch (_) {}
+				console.log("🔎 onScreenShareStarted raw payload", {
+					participantId: pid,
+					hasStream: data.stream instanceof MediaStream,
+					consumerId: data.consumer?.id,
+					consumerKind: data.consumer?.kind,
+					consumerIsScreen:
+						data.consumer?.isScreen ||
+						data.consumer?.appData?.type === "screen",
+				});
 				const prev = meetingState.activeScreenShareConsumers.value || [];
 				const filtered = prev.filter((s) => s.participantId !== pid);
 				meetingState.activeScreenShareConsumers.value = [
@@ -1233,20 +1216,18 @@ export function useMeetingLogic(meetingState, meetingId) {
 				meetingState.activeScreenShareConsumers.value = list.filter(
 					(share) => share.participantId !== pid,
 				);
-				try {
-					const store = meetingState.screenShareStreams?.value || {};
-					if (pid && store[pid]) {
-						const stream = store[pid];
-						const tracks = stream?.getTracks?.();
-						if (tracks) {
-							for (const t of tracks) {
-								t.stop();
-							}
+				const store = meetingState.screenShareStreams?.value || {};
+				if (pid && store[pid]) {
+					const stream = store[pid];
+					const tracks = stream?.getTracks?.();
+					if (tracks) {
+						for (const t of tracks) {
+							t.stop();
 						}
-						delete store[pid];
-						meetingState.screenShareStreams.value = store;
 					}
-				} catch (_) {}
+					delete store[pid];
+					meetingState.screenShareStreams.value = store;
+				}
 				console.log("🖥️ Screen share stopped:", data);
 			},
 			onWaitingRoomUpdated: (waitingUsers) => {
@@ -1719,23 +1700,17 @@ export function useMeetingLogic(meetingState, meetingId) {
 		}
 
 		// Cleanup SFU manager (disconnect and free resources)
-		try {
-			sfuManager.value?.cleanup?.();
-		} catch (_) {}
+		sfuManager.value?.cleanup?.();
 
 		// Reset SFU manager instance
-		try {
-			resetSFUMeetingManager();
-		} catch (_) {}
+		resetSFUMeetingManager();
 
 		// Cleanup background effects
-		try {
-			if (backgroundSession) {
-				backgroundSession.cleanup?.();
-				backgroundSession = null;
-			}
-			stopProcessing();
-		} catch (_) {}
+		if (backgroundSession) {
+			backgroundSession.cleanup?.();
+			backgroundSession = null;
+		}
+		stopProcessing();
 
 		// Cleanup local streams
 		if (meetingState.localStream.value) {

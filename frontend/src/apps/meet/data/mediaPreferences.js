@@ -19,37 +19,27 @@ export const selectedSpeakerId = ref(readString("mediaPref.speakerId", ""));
 
 export function setMicEnabled(val) {
 	micEnabled.value = !!val;
-	try {
-		localStorage.setItem("mediaPref.mic", micEnabled.value ? "1" : "0");
-	} catch (_) {}
+	localStorage.setItem("mediaPref.mic", micEnabled.value ? "1" : "0");
 }
 
 export function setCameraEnabled(val) {
 	cameraEnabled.value = !!val;
-	try {
-		localStorage.setItem("mediaPref.camera", cameraEnabled.value ? "1" : "0");
-	} catch (_) {}
+	localStorage.setItem("mediaPref.camera", cameraEnabled.value ? "1" : "0");
 }
 
 export function setSelectedCameraId(deviceId) {
 	selectedCameraId.value = deviceId || "";
-	try {
-		localStorage.setItem("mediaPref.cameraId", selectedCameraId.value);
-	} catch (_) {}
+	localStorage.setItem("mediaPref.cameraId", selectedCameraId.value);
 }
 
 export function setSelectedMicId(deviceId) {
 	selectedMicId.value = deviceId || "";
-	try {
-		localStorage.setItem("mediaPref.micId", selectedMicId.value);
-	} catch (_) {}
+	localStorage.setItem("mediaPref.micId", selectedMicId.value);
 }
 
 export function setSelectedSpeakerId(deviceId) {
 	selectedSpeakerId.value = deviceId || "";
-	try {
-		localStorage.setItem("mediaPref.speakerId", selectedSpeakerId.value);
-	} catch (_) {}
+	localStorage.setItem("mediaPref.speakerId", selectedSpeakerId.value);
 }
 
 export function loadMediaPreferences() {

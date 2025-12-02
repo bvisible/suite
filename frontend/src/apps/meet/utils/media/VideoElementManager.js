@@ -188,22 +188,18 @@ export class VideoElementManager {
 		let hadStream = false;
 		if (element?.srcObject) {
 			hadStream = true;
-			try {
-				for (const track of element.srcObject.getTracks()) {
-					track.stop();
-				}
-			} catch (_) {}
+			for (const track of element.srcObject.getTracks()) {
+				track.stop();
+			}
 			element.srcObject = null;
 		}
 
 		const audioElement = this.audioElements.get(participantId);
 		if (audioElement) {
 			if (audioElement.srcObject) {
-				try {
-					for (const track of audioElement.srcObject.getTracks()) {
-						track.stop();
-					}
-				} catch (_) {}
+				for (const track of audioElement.srcObject.getTracks()) {
+					track.stop();
+				}
 				audioElement.srcObject = null;
 			}
 			audioElement.remove();
@@ -213,13 +209,11 @@ export class VideoElementManager {
 		this.videoElements.delete(participantId);
 		this.deferredAttachments.delete(participantId);
 
-		try {
-			console.log(`🗑️ Video/Audio elements removed for ${participantId}`, {
-				hadStream,
-				elementExists: !!element,
-				hadAudioElement: !!audioElement,
-			});
-		} catch (_) {}
+		console.log(`🗑️ Video/Audio elements removed for ${participantId}`, {
+			hadStream,
+			elementExists: !!element,
+			hadAudioElement: !!audioElement,
+		});
 	}
 
 	cleanup() {

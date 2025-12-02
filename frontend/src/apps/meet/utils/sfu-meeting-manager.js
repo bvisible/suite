@@ -82,12 +82,8 @@ export class SFUMeetingManager {
 						consumer &&
 						(consumer.isScreen || consumer?.appData?.type === "screen")
 					) {
-						try {
-							this.processedConsumers?.delete?.(consumerId);
-						} catch (_) {}
-						try {
-							this.isScreenShareActive = false;
-						} catch (_) {}
+						this.processedConsumers?.delete?.(consumerId);
+						this.isScreenShareActive = false;
 						if (this.eventHandlers.onScreenShareStopped) {
 							this.eventHandlers.onScreenShareStopped({
 								participantId: consumer.participantId,
@@ -419,13 +415,11 @@ export class SFUMeetingManager {
 			}
 
 			const screenStream = new MediaStream([track]);
-			try {
-				if (consumer?.appData && !consumer.appData.type) {
-					consumer.appData.type = "screen";
-				} else if (consumer && !consumer.appData) {
-					consumer.appData = { type: "screen" };
-				}
-			} catch (_) {}
+			if (consumer?.appData && !consumer.appData.type) {
+				consumer.appData.type = "screen";
+			} else if (consumer && !consumer.appData) {
+				consumer.appData = { type: "screen" };
+			}
 
 			if (this.eventHandlers.onScreenShareStarted) {
 				this.eventHandlers.onScreenShareStarted({
@@ -516,34 +510,30 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("producer_closed", (data) => {
-			try {
-				const pid = data?.participantId;
-				const closedProducerId = data?.producerId;
-				const closedIsScreen = data?.isScreen;
-				if (pid) {
-					const allForPid = this.consumerManager.getConsumersByParticipant(pid);
-					for (const c of allForPid) {
-						const producedMatch =
-							closedProducerId &&
-							(c.consumer?.producerId === closedProducerId ||
-								c.producerId === closedProducerId ||
-								(c.appData && c.appData.producerId === closedProducerId));
-						const isScreenLike =
-							c.isScreen ||
-							c.appData?.type === "screen" ||
-							c.consumer?.appData?.type === "screen";
-						// Only remove screen consumers if the closed producer was also screen
-						const shouldRemove =
-							producedMatch || (isScreenLike && closedIsScreen);
-						if (shouldRemove) {
-							this.consumerManager.removeConsumer(c.id);
-							try {
-								this.processedConsumers.delete(c.id);
-							} catch (_) {}
-						}
+			const pid = data?.participantId;
+			const closedProducerId = data?.producerId;
+			const closedIsScreen = data?.isScreen;
+			if (pid) {
+				const allForPid = this.consumerManager.getConsumersByParticipant(pid);
+				for (const c of allForPid) {
+					const producedMatch =
+						closedProducerId &&
+						(c.consumer?.producerId === closedProducerId ||
+							c.producerId === closedProducerId ||
+							(c.appData && c.appData.producerId === closedProducerId));
+					const isScreenLike =
+						c.isScreen ||
+						c.appData?.type === "screen" ||
+						c.consumer?.appData?.type === "screen";
+					// Only remove screen consumers if the closed producer was also screen
+					const shouldRemove =
+						producedMatch || (isScreenLike && closedIsScreen);
+					if (shouldRemove) {
+						this.consumerManager.removeConsumer(c.id);
+						this.processedConsumers.delete(c.id);
 					}
 				}
-			} catch (_) {}
+			}
 
 			if (this.eventHandlers && data?.isScreen) {
 				this.eventHandlers.onScreenShareStopped({
@@ -657,15 +647,10 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("screen_share_started", (data) => {
-			try {
-				console.log("📡 SFU event: screen_share_started (from signaling)", {
-					participantId: data.participantId,
-					hasDirectStream: !!data.stream,
-				});
-			} catch (_) {}
-			console.log(
-				"📡 Deferring screen share notification until consumer creation",
-			);
+			console.log("📡 SFU event: screen_share_started (from signaling)", {
+				participantId: data.participantId,
+				hasDirectStream: !!data.stream,
+			});
 		});
 
 		this.sfuClient.on("screen_share_stopped", (data) => {
@@ -676,38 +661,36 @@ export class SFUMeetingManager {
 				this.eventHandlers.onScreenShareStopped(data);
 			}
 
-			try {
-				const pid = data?.participantId;
-				if (pid) {
-					const screenConsumers = this.consumerManager
-						.getScreenShareConsumers()
-						.filter((c) => c.participantId === pid);
-					for (const sc of screenConsumers) {
-						console.log("🧹 Removing screen-share consumer on stop:", {
-							consumerId: sc.id,
+			const pid = data?.participantId;
+			if (pid) {
+				const screenConsumers = this.consumerManager
+					.getScreenShareConsumers()
+					.filter((c) => c.participantId === pid);
+				for (const sc of screenConsumers) {
+					console.log("🧹 Removing screen-share consumer on stop:", {
+						consumerId: sc.id,
+						participantId: pid,
+					});
+					this.consumerManager.removeConsumer(sc.id);
+					this.processedConsumers.delete(sc.id);
+				}
+				// Safety scan across participant consumers for any with screen-like appData
+				const allForPid = this.consumerManager.getConsumersByParticipant(pid);
+				for (const c of allForPid) {
+					const maybeScreen =
+						c.isScreen ||
+						c.appData?.type === "screen" ||
+						c.consumer?.appData?.type === "screen";
+					if (maybeScreen) {
+						console.log("🧹 (safety) Removing screen-like consumer on stop:", {
+							consumerId: c.id,
 							participantId: pid,
 						});
-						this.consumerManager.removeConsumer(sc.id);
-						this.processedConsumers.delete(sc.id);
-					}
-					// Safety scan across participant consumers for any with screen-like appData
-					const allForPid = this.consumerManager.getConsumersByParticipant(pid);
-					for (const c of allForPid) {
-						const maybeScreen =
-							c.isScreen ||
-							c.appData?.type === "screen" ||
-							c.consumer?.appData?.type === "screen";
-						if (maybeScreen) {
-							console.log(
-								"🧹 (safety) Removing screen-like consumer on stop:",
-								{ consumerId: c.id, participantId: pid },
-							);
-							this.consumerManager.removeConsumer(c.id);
-							this.processedConsumers.delete(c.id);
-						}
+						this.consumerManager.removeConsumer(c.id);
+						this.processedConsumers.delete(c.id);
 					}
 				}
-			} catch (_) {}
+			}
 		});
 
 		this.sfuClient.on("active_speaker", (data) => {
@@ -750,15 +733,9 @@ export class SFUMeetingManager {
 	async disconnect() {
 		try {
 			// Close producers/consumers and transports first
-			try {
-				this.consumerManager?.clear?.();
-			} catch (_) {}
-			try {
-				this.mediaHandler?.cleanup?.();
-			} catch (_) {}
-			try {
-				this.transportManager?.cleanup?.();
-			} catch (_) {}
+			this.consumerManager?.clear?.();
+			this.mediaHandler?.cleanup?.();
+			this.transportManager?.cleanup?.();
 			if (this.sfuClient) {
 				await this.sfuClient.disconnect();
 			}
@@ -772,24 +749,12 @@ export class SFUMeetingManager {
 	 * Clean up all resources
 	 */
 	cleanup() {
-		try {
-			this.mediaHandler.cleanup();
-		} catch (_) {}
-		try {
-			this.videoManager.cleanup();
-		} catch (_) {}
-		try {
-			this.participantManager.clear();
-		} catch (_) {}
-		try {
-			this.consumerManager.clear();
-		} catch (_) {}
-		try {
-			this.transportManager.cleanup();
-		} catch (_) {}
-		try {
-			this.waitingRoomManager.cleanup();
-		} catch (_) {}
+		this.mediaHandler.cleanup();
+		this.videoManager.cleanup();
+		this.participantManager.clear();
+		this.consumerManager.clear();
+		this.transportManager.cleanup();
+		this.waitingRoomManager.cleanup();
 
 		this.disconnect();
 
