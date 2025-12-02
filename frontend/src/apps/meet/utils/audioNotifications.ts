@@ -85,8 +85,10 @@ class AudioNotificationManager {
 		}
 	}
 
-	async playJoinNotification(): Promise<void> {
-		if (!notificationContextManager.shouldPlayNotification("join")) {
+	async playJoinNotification(userId?: string): Promise<void> {
+		if (
+			!notificationContextManager.shouldPlayNotification("join", { userId })
+		) {
 			return;
 		}
 		await this.playTone(
