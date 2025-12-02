@@ -15,7 +15,7 @@ export type CodecDecision = {
 
 const VALID_STRATEGIES = new Set(["auto", "svc", "simulcast"]);
 // multi-spatial single-temporal modes (L3T1/L2T1/L1T1).
-const PREFERRED_SVC_MODES = ["L3T1", "L3T1_KEY", "L2T1", "L2T1_KEY", "L1T1"];
+const PREFERRED_SVC_MODES = ["L3T1_KEY", "L3T1", "L2T1", "L2T1_KEY", "L1T1"];
 
 type SupportInfo = {
 	supportsVP9: boolean;
