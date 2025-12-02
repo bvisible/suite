@@ -94,25 +94,32 @@ export const TabsExtension = Node.create({
           if (dispatch) {
             dispatch(tr)
           }
+          this.editor.view.dom.dispatchEvent(
+            new CustomEvent('tab-changed', {
+              detail: { tabId },
+            }),
+          )
 
           if (changed) {
-            setTimeout(() => {
-              let focusPos = null
-              state.doc.descendants((node, pos) => {
-                if (node.type.name === 'tab' && node.attrs.id === tabId) {
-                  focusPos = pos + 1
-                  return false
-                }
-              })
-
-              if (focusPos !== null) {
-                this.editor.commands.focus(focusPos)
-              }
-            }, 0)
+            this.editor.commands.focusTab(tabId)
           }
           return true
         },
-      getCurrentTab: () => () => this.storage.activeTabId,
+      focusTab:
+        (tabId: string) =>
+        ({ state }) => {
+          setTimeout(() => {
+            let focusPos = null
+            state.doc.descendants((node, pos) => {
+              if (node.type.name === 'tab' && node.attrs.id === tabId) {
+                focusPos = pos + 1
+                return false
+              }
+            })
+
+            if (focusPos !== null) this.editor.commands.focus(focusPos)
+          }, 0)
+        },
       renameTab:
         (tabId: string, newLabel: string) =>
         ({ tr, dispatch, state }) => {
@@ -132,6 +139,7 @@ export const TabsExtension = Node.create({
 
           if (updated) {
             dispatch(tr)
+            this.editor.commands.focusTab(tabId)
             return true
           }
           return false
@@ -196,7 +204,7 @@ export const TabsExtension = Node.create({
               attrs,
               paragraphType.create(),
             )
-            tr.insert(state.doc.content.size , tab)
+            tr.insert(state.doc.content.size, tab)
             dispatch(tr)
 
             setTimeout(() => this.editor.commands.changeTab(attrs.id), 10)

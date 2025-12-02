@@ -148,7 +148,7 @@ export function useYjs(document, editor, edited) {
     cleanup: () => {
       console.log('cleant up')
       provider.destroy()
-      // db.destroy()
+      db.destroy()
       cleanupComments()
     },
     save,

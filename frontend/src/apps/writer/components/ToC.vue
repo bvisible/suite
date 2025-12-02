@@ -109,7 +109,7 @@ import LucidePlus from '~icons/lucide/Plus'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucidePanelRightClose from '~icons/lucide/table-of-contents'
 import LucideTrash from '~icons/lucide/trash'
-import { ref, watch, computed, h } from 'vue'
+import { ref, watch, computed, h, onMounted } from 'vue'
 import TextInput from 'frappe-ui/src/components/TextInput/TextInput.vue'
 
 const props = defineProps({
@@ -125,7 +125,6 @@ watch(show, (v) => localStorage.setItem('showToc', v))
 
 // Get all tabs from the document
 const tabs = computed(() => {
-  if (!props.editor) return []
   const t = []
   props.editor.state.doc.descendants((node) => {
     if (node.type.name === 'tab') {
@@ -136,9 +135,17 @@ const tabs = computed(() => {
 })
 
 // Get active tab ID
-const activeTabId = computed(
-  () => props.editor && props.editor.commands.getCurrentTab(),
-)
+const activeTabId = ref()
+onMounted(() => {
+  const handleTabChange = (e) => {
+    activeTabId.value = e.detail.tabId
+  }
+
+  props.editor.view.dom.addEventListener('tab-changed', handleTabChange)
+  onBeforeUnmount(() => {
+    props.editor.view.dom.removeEventListener('tab-changed', handleTabChange)
+  })
+})
 
 // Filter anchors to only show those in the current tab
 const currentTabAnchors = computed(() => {

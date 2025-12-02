@@ -14,7 +14,7 @@
           : ' md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]'
       "
     >
-      <ToC :editor :anchors />
+      <ToC v-if="editor" :editor :anchors />
       <div
         class="cursor-text w-full flex justify-center h-full"
         @click="

@@ -23,7 +23,7 @@
       "
       @mousemove="hideToolbar = false"
     >
-      <ToC :editor :anchors />
+      <ToC v-if="editor" :editor :anchors />
       <div
         class="min-w-full h-full flex flex-col"
         @click="
