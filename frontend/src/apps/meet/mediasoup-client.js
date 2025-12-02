@@ -59,7 +59,7 @@ export async function initializeMediasoupDevice(routerRtpCapabilities) {
 
 		return mediasoupDevice;
 	} catch (error) {
-		console.error("❌ Failed to load mediasoup device:", error);
+		console.error("Failed to load mediasoup device:", error);
 		throw error;
 	}
 }
@@ -84,7 +84,7 @@ export async function getRouterCapabilities(meetingId) {
 			status: "success",
 		};
 	} catch (error) {
-		console.error("❌ Error getting router capabilities:", error);
+		console.error("Error getting router capabilities:", error);
 		throw error;
 	}
 }
@@ -138,7 +138,7 @@ export async function createTransport(
 				)
 			) {
 				console.error(
-					"🚨 CRITICAL SERVER CONFIGURATION ERROR: MediaSoup server advertising localhost ICE candidates",
+					"CRITICAL SERVER CONFIGURATION ERROR: MediaSoup server advertising localhost ICE candidates",
 				);
 				console.error(
 					"Clients cannot connect from outside the server machine. Check WEBRTC_ANNOUNCED_IP configuration.",
@@ -167,7 +167,7 @@ export async function createTransport(
 
 		throw new Error(`Unknown transport type: ${transportType}`);
 	} catch (error) {
-		console.error(`❌ Error creating ${transportType} transport:`, error);
+		console.error(`Error creating ${transportType} transport:`, error);
 		throw error;
 	}
 }
@@ -187,7 +187,7 @@ export async function connectTransport(meetingId, transportId, dtlsParameters) {
 
 		return { success: true };
 	} catch (error) {
-		console.error(`❌ Error connecting transport ${transportId}:`, error);
+		console.error(`Error connecting transport ${transportId}:`, error);
 		throw error;
 	}
 }
@@ -230,7 +230,7 @@ export async function produceMedia(
 
 		return response;
 	} catch (error) {
-		console.error(`❌ Error producing ${kind} media:`, error);
+		console.error(`Error producing ${kind} media:`, error);
 		throw error;
 	}
 }
@@ -274,10 +274,7 @@ export async function consumeMedia(
 
 		return response;
 	} catch (error) {
-		console.error(
-			`❌ Error consuming media from producer ${producerId}:`,
-			error,
-		);
+		console.error(`Error consuming media from producer ${producerId}:`, error);
 		throw error;
 	}
 }
@@ -309,13 +306,13 @@ export async function pauseResumeProducer(meetingId, producerId, action) {
 function setupSendTransportEvents(transport, meetingId) {
 	transport.on("icestatechange", (iceState) => {
 		if (iceState === "failed") {
-			console.error(`❌ Send transport ICE failed: ${transport.id}`);
+			console.error(`Send transport ICE failed: ${transport.id}`);
 		}
 	});
 
 	transport.on("dtlsstatechange", (dtlsState) => {
 		if (dtlsState === "failed") {
-			console.error(`❌ Send transport DTLS failed: ${transport.id}`);
+			console.error(`Send transport DTLS failed: ${transport.id}`);
 		}
 	});
 
@@ -325,7 +322,7 @@ function setupSendTransportEvents(transport, meetingId) {
 			callback();
 		} catch (error) {
 			console.error(
-				`❌ Send transport connect failed for ${transport.id}:`,
+				`Send transport connect failed for ${transport.id}:`,
 				error,
 			);
 			errback(error);
@@ -347,7 +344,7 @@ function setupSendTransportEvents(transport, meetingId) {
 				const producerId = response?.producerId || response?.id;
 				callback({ id: producerId });
 			} catch (error) {
-				console.error(`❌ Send transport produce failed for ${kind}:`, error);
+				console.error(`Send transport produce failed for ${kind}:`, error);
 				errback(error);
 			}
 		},
@@ -355,7 +352,7 @@ function setupSendTransportEvents(transport, meetingId) {
 
 	transport.on("connectionstatechange", (state) => {
 		if (state === "failed" || state === "closed") {
-			console.error(`❌ Send transport connection ${state}: ${transport.id}`);
+			console.error(`Send transport connection ${state}: ${transport.id}`);
 		}
 
 		if (mediasoupEventHandlers.onTransportConnectionStateChange) {
@@ -374,17 +371,13 @@ function setupSendTransportEvents(transport, meetingId) {
 function setupRecvTransportEvents(transport, meetingId) {
 	transport.on("icestatechange", (iceState) => {
 		if (iceState === "failed") {
-			console.error(
-				`❌ ICE connection failed for recv transport ${transport.id}`,
-			);
+			console.error(`ICE connection failed for recv transport ${transport.id}`);
 		}
 	});
 
 	transport.on("dtlsstatechange", (dtlsState) => {
 		if (dtlsState === "failed") {
-			console.error(
-				`❌ DTLS handshake failed for recv transport ${transport.id}`,
-			);
+			console.error(`DTLS handshake failed for recv transport ${transport.id}`);
 		}
 	});
 
@@ -394,7 +387,7 @@ function setupRecvTransportEvents(transport, meetingId) {
 			callback();
 		} catch (error) {
 			console.error(
-				`❌ Recv transport connect failed for ${transport.id}:`,
+				`Recv transport connect failed for ${transport.id}:`,
 				error,
 			);
 			errback(error);
@@ -403,7 +396,7 @@ function setupRecvTransportEvents(transport, meetingId) {
 
 	transport.on("connectionstatechange", (state) => {
 		if (state === "failed") {
-			console.error(`❌ Recv transport failed for ${transport.id}`);
+			console.error(`Recv transport failed for ${transport.id}`);
 
 			// Clean up the failed transport
 			if (recvTransport && recvTransport.id === transport.id) {
@@ -616,10 +609,7 @@ export async function subscribeToProducer(meetingId, producerId) {
 			try {
 				await consumer.resume();
 			} catch (resumeError) {
-				console.error(
-					`❌ Failed to resume consumer ${consumer.id}:`,
-					resumeError,
-				);
+				console.error(`Failed to resume consumer ${consumer.id}:`, resumeError);
 			}
 		}
 
@@ -634,7 +624,7 @@ export async function subscribeToProducer(meetingId, producerId) {
 
 		return consumer;
 	} catch (error) {
-		console.error(`❌ Error subscribing to producer ${producerId}:`, error);
+		console.error(`Error subscribing to producer ${producerId}:`, error);
 
 		// If transport connection failed during consume, clean it up
 		if (
@@ -816,7 +806,7 @@ export async function runNetworkDiagnostics() {
 
 		return diagnostics;
 	} catch (error) {
-		console.error("❌ Network diagnostics failed:", error);
+		console.error("Network diagnostics failed:", error);
 		diagnostics.error = error.message;
 		return diagnostics;
 	}

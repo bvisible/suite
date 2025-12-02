@@ -386,13 +386,13 @@ const setSinkIdOnVideoElements = async (sinkId) => {
 	const videoElements = document.querySelectorAll("video");
 
 	if (videoElements.length === 0) {
-		console.warn("⚠️ No video elements found yet");
+		console.warn("No video elements found yet");
 	}
 
 	const promises = [];
 	for (const videoEl of videoElements) {
 		const promise = videoEl.setSinkId(sinkId).catch((error) => {
-			console.error("❌ Failed to set speaker for video element:", error);
+			console.error("Failed to set speaker for video element:", error);
 		});
 		promises.push(promise);
 	}
@@ -403,7 +403,7 @@ const setSinkIdOnVideoElements = async (sinkId) => {
 		for (const [participantId, audioElement] of audioElements) {
 			const promise = audioElement.setSinkId(sinkId).catch((error) => {
 				console.warn(
-					`⚠️ Failed to set speaker for audio element ${participantId}:`,
+					`Failed to set speaker for audio element ${participantId}:`,
 					error,
 				);
 			});
@@ -479,7 +479,7 @@ const handleDeviceChanged = async (event) => {
 				}
 			}
 		} catch (error) {
-			console.error("❌ Failed to update media with new device:", error);
+			console.error("Failed to update media with new device:", error);
 		}
 	}
 };
@@ -574,11 +574,11 @@ watch(
 					try {
 						await videoElement.setSinkId(selectedSpeakerId.value);
 					} catch (error) {
-						console.warn("⚠️ Could not set speaker for local video:", error);
+						console.warn("Could not set speaker for local video:", error);
 					}
 				}
 			} catch (error) {
-				console.warn("⚠️ Could not play local video:", error);
+				console.warn("Could not play local video:", error);
 			}
 		}
 	},

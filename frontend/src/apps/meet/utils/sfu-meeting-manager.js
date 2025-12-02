@@ -93,7 +93,7 @@ export class SFUMeetingManager {
 					}
 				} catch (err) {
 					console.warn(
-						"⚠️ Error while handling consumer removal for screen-share cleanup",
+						"Error while handling consumer removal for screen-share cleanup",
 						err,
 					);
 				}
@@ -119,7 +119,7 @@ export class SFUMeetingManager {
 
 			return true;
 		} catch (error) {
-			console.error("❌ Failed to connect to SFU:", error);
+			console.error("Failed to connect to SFU:", error);
 			throw error;
 		}
 	}
@@ -127,10 +127,10 @@ export class SFUMeetingManager {
 	async joinRoom(userData, mediaState) {
 		try {
 			await this.sfuClient.joinRoom(this.meetingId, userData, mediaState);
-			console.log("✅ Successfully joined room:", this.meetingId);
+			console.log("Successfully joined room:", this.meetingId);
 			return true;
 		} catch (error) {
-			console.error("❌ Failed to join room:", error);
+			console.error("Failed to join room:", error);
 			throw error;
 		}
 	}
@@ -140,7 +140,7 @@ export class SFUMeetingManager {
 			await this.transportManager.initializeDevice();
 			return true;
 		} catch (error) {
-			console.error("❌ Failed to initialize MediaSoup device:", error);
+			console.error("Failed to initialize MediaSoup device:", error);
 			throw error;
 		}
 	}
@@ -150,7 +150,7 @@ export class SFUMeetingManager {
 			await this.transportManager.createReceiveTransport();
 			return true;
 		} catch (error) {
-			console.warn("⚠️ Failed to create receive transport:", error);
+			console.warn("Failed to create receive transport:", error);
 			return false;
 		}
 	}
@@ -174,10 +174,10 @@ export class SFUMeetingManager {
 						);
 						results.videoProducer = videoProducer;
 						this.mediaHandler.setProducers({ videoProducer });
-						console.log("✅ Video published successfully");
+						console.log("Video published successfully");
 					} catch (error) {
 						console.warn(
-							"⚠️ Failed to publish video, continuing without video:",
+							"Failed to publish video, continuing without video:",
 							error.message,
 						);
 					}
@@ -194,19 +194,19 @@ export class SFUMeetingManager {
 						);
 						results.audioProducer = audioProducer;
 						this.mediaHandler.setProducers({ audioProducer });
-						console.log("✅ Audio published successfully");
+						console.log("Audio published successfully");
 					} catch (error) {
 						console.warn(
-							"⚠️ Failed to publish audio, continuing without audio:",
+							"Failed to publish audio, continuing without audio:",
 							error.message,
 						);
 					}
 				}
 			}
-			console.log("📡 Media published successfully");
+			console.log("Media published successfully");
 			return results;
 		} catch (error) {
-			console.error("❌ Failed to publish media:", error);
+			console.error("Failed to publish media:", error);
 			throw error;
 		}
 	}
@@ -244,7 +244,7 @@ export class SFUMeetingManager {
 
 			this.initialSyncInProgress = false;
 		} catch (error) {
-			console.error("❌ Error in setupExistingParticipants:", error);
+			console.error("Error in setupExistingParticipants:", error);
 			this.initialSyncInProgress = false;
 			throw error;
 		}
@@ -256,7 +256,7 @@ export class SFUMeetingManager {
 
 			if (existingProducers?.length) {
 				console.log(
-					`📡 Found ${existingProducers.length} existing producers:`,
+					`Found ${existingProducers.length} existing producers:`,
 					existingProducers.map((p) => ({
 						id: p.id,
 						participantId: p.participantId || p.user_id || p.userId,
@@ -271,7 +271,7 @@ export class SFUMeetingManager {
 						producerInfo.user_id ||
 						producerInfo.userId;
 					const metadata = { isScreen: !!producerInfo.isScreen };
-					console.log("📡 Subscribing to existing producer:", {
+					console.log("Subscribing to existing producer:", {
 						producerId: producerInfo.id,
 						participantId: pid,
 						kind: producerInfo.kind,
@@ -280,7 +280,7 @@ export class SFUMeetingManager {
 					await this.subscribeToProducer(producerInfo.id, pid, metadata);
 				}
 			} else {
-				console.log("📡 No existing producers found");
+				console.log("No existing producers found");
 			}
 
 			return existingProducers;
@@ -317,7 +317,7 @@ export class SFUMeetingManager {
 
 			return enhancedConsumer;
 		} catch (error) {
-			console.error(`❌ Failed to subscribe to producer ${producerId}:`, error);
+			console.error(`Failed to subscribe to producer ${producerId}:`, error);
 			throw error;
 		}
 	}
@@ -372,7 +372,7 @@ export class SFUMeetingManager {
 			}
 		} catch (error) {
 			console.error(
-				`❌ Failed to attach video consumer for ${participantId}:`,
+				`Failed to attach video consumer for ${participantId}:`,
 				error,
 			);
 		}
@@ -386,7 +386,7 @@ export class SFUMeetingManager {
 			await this.videoManager.attachStream(participantId, stream, false);
 		} catch (error) {
 			console.error(
-				`❌ Failed to attach audio consumer for ${participantId}:`,
+				`Failed to attach audio consumer for ${participantId}:`,
 				error,
 			);
 		}
@@ -429,24 +429,24 @@ export class SFUMeetingManager {
 				});
 			}
 		} catch (error) {
-			console.error("❌ Failed to handle screen share consumer:", error);
+			console.error("Failed to handle screen share consumer:", error);
 		}
 	}
 
 	async flushBufferedProducers() {
 		if (!this.bufferedProducerEvents.length) {
-			console.log("📡 No buffered producer events to flush");
+			console.log("No buffered producer events to flush");
 			return;
 		}
 
 		console.log(
-			`📡 Flushing ${this.bufferedProducerEvents.length} buffered producer events`,
+			`Flushing ${this.bufferedProducerEvents.length} buffered producer events`,
 		);
 		const pending = this.bufferedProducerEvents.splice(0);
 		for (const event of pending) {
 			try {
 				if (!event || !event.producerId || !event.participantId) {
-					console.warn("⚠️ Skipping malformed buffered producer event:", event);
+					console.warn("Skipping malformed buffered producer event:", event);
 					continue;
 				}
 
@@ -473,7 +473,7 @@ export class SFUMeetingManager {
 					);
 				}
 			} catch (error) {
-				console.warn("⚠️ Failed to process buffered producer:", error);
+				console.warn("Failed to process buffered producer:", error);
 			}
 		}
 	}
@@ -566,7 +566,7 @@ export class SFUMeetingManager {
 					}
 				}
 			} catch (e) {
-				console.warn("⚠️ Error handling consumer_closed", e.message);
+				console.warn("Error handling consumer_closed", e.message);
 			}
 		});
 
@@ -612,7 +612,7 @@ export class SFUMeetingManager {
 
 			const myParticipantId = this.currentUser.value?.user_id;
 
-			console.log("📡 SFU event: host_control_update", {
+			console.log("SFU event: host_control_update", {
 				action,
 				targetParticipantId,
 				hostId,
@@ -647,14 +647,14 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("screen_share_started", (data) => {
-			console.log("📡 SFU event: screen_share_started (from signaling)", {
+			console.log("SFU event: screen_share_started (from signaling)", {
 				participantId: data.participantId,
 				hasDirectStream: !!data.stream,
 			});
 		});
 
 		this.sfuClient.on("screen_share_stopped", (data) => {
-			console.log("🖥️ Screen share stopped - resetting sidebar mode flag");
+			console.log("Screen share stopped - resetting sidebar mode flag");
 			this.isScreenShareActive = false;
 
 			if (this.eventHandlers.onScreenShareStopped) {
@@ -667,7 +667,7 @@ export class SFUMeetingManager {
 					.getScreenShareConsumers()
 					.filter((c) => c.participantId === pid);
 				for (const sc of screenConsumers) {
-					console.log("🧹 Removing screen-share consumer on stop:", {
+					console.log("Removing screen-share consumer on stop:", {
 						consumerId: sc.id,
 						participantId: pid,
 					});
@@ -682,7 +682,7 @@ export class SFUMeetingManager {
 						c.appData?.type === "screen" ||
 						c.consumer?.appData?.type === "screen";
 					if (maybeScreen) {
-						console.log("🧹 (safety) Removing screen-like consumer on stop:", {
+						console.log("(safety) Removing screen-like consumer on stop:", {
 							consumerId: c.id,
 							participantId: pid,
 						});
@@ -722,7 +722,7 @@ export class SFUMeetingManager {
 			});
 		} catch (error) {
 			console.warn(
-				"⚠️ Failed to update consumer preferences",
+				"Failed to update consumer preferences",
 				consumerId,
 				error?.message || error,
 			);
@@ -741,7 +741,7 @@ export class SFUMeetingManager {
 			}
 			this.isConnected = false;
 		} catch (error) {
-			console.error("❌ Error disconnecting from SFU:", error);
+			console.error("Error disconnecting from SFU:", error);
 		}
 	}
 

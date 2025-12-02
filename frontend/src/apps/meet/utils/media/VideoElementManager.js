@@ -20,7 +20,7 @@ export class VideoElementManager {
 
 		// Only update srcObject if element doesn't have one, or if we're re-registering with a different track
 		if (previousVideoStream && !element.srcObject) {
-			console.log("📺 Preserving stream during video element re-registration", {
+			console.log("Preserving stream during video element re-registration", {
 				participantId,
 				streamId: previousVideoStream.id,
 				trackCount: previousVideoStream.getTracks().length,
@@ -78,7 +78,7 @@ export class VideoElementManager {
 					!existingVideoTrack || existingVideoTrack.id !== newVideoTrack.id;
 
 				if (!videoElement.srcObject || videoTrackChanged) {
-					console.log(`📺 Attaching video track for ${participantId}`, {
+					console.log(`Attaching video track for ${participantId}`, {
 						trackId: newVideoTrack.id,
 						hadExisting: !!existingVideoTrack,
 						changed: videoTrackChanged,
@@ -91,11 +91,11 @@ export class VideoElementManager {
 					try {
 						await videoElement.play();
 					} catch (err) {
-						console.error(`❌ Error playing video for ${participantId}:`, err);
+						console.error(`Error playing video for ${participantId}:`, err);
 					}
 				} else {
 					console.log(
-						`✓ Skipping video re-attach for ${participantId} - same track`,
+						`Skipping video re-attach for ${participantId} - same track`,
 					);
 				}
 			}
@@ -115,14 +115,14 @@ export class VideoElementManager {
 			if (selectedSpeakerId.value) {
 				audioElement.setSinkId(selectedSpeakerId.value).catch((err) => {
 					console.warn(
-						`⚠️ Failed to set initial speaker for ${participantId}:`,
+						`Failed to set initial speaker for ${participantId}:`,
 						err,
 					);
 				});
 			}
 
 			this.audioElements.set(participantId, audioElement);
-			console.log(`🔊 Created separate audio element for ${participantId}`);
+			console.log(`Created separate audio element for ${participantId}`);
 		}
 
 		const newAudioTrack = audioTracks[0];
@@ -137,7 +137,7 @@ export class VideoElementManager {
 			// Try to play audio
 			audioElement.play().catch((err) => {
 				console.warn(
-					`⚠️ Audio autoplay failed for ${participantId}:`,
+					`Audio autoplay failed for ${participantId}:`,
 					err.message,
 				);
 			});
@@ -151,14 +151,11 @@ export class VideoElementManager {
 		} catch (error) {
 			if (error.name === "NotAllowedError") {
 				console.warn(
-					`⚠️ Autoplay blocked for ${participantId}, will play on user interaction`,
+					`Autoplay blocked for ${participantId}, will play on user interaction`,
 				);
 				this.addUserInteractionHandler(element, participantId);
 			} else {
-				console.warn(
-					`⚠️ Video play failed for ${participantId}:`,
-					error.message,
-				);
+				console.warn(`Video play failed for ${participantId}:`, error.message);
 			}
 			return false;
 		}
@@ -173,7 +170,7 @@ export class VideoElementManager {
 				document.removeEventListener("touchstart", playOnInteraction);
 			} catch (error) {
 				console.warn(
-					`⚠️ Unable to play video for ${participantId}:`,
+					`Unable to play video for ${participantId}:`,
 					error.message,
 				);
 			}
@@ -209,7 +206,7 @@ export class VideoElementManager {
 		this.videoElements.delete(participantId);
 		this.deferredAttachments.delete(participantId);
 
-		console.log(`🗑️ Video/Audio elements removed for ${participantId}`, {
+		console.log(`Video/Audio elements removed for ${participantId}`, {
 			hadStream,
 			elementExists: !!element,
 			hadAudioElement: !!audioElement,

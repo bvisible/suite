@@ -85,13 +85,13 @@ export function useMeetingLogic(meetingState, meetingId) {
 		const [track] = targetStream.getVideoTracks();
 		if (!track) {
 			console.warn(
-				`🔄 Skipped video track swap (${reason}) - no video track available`,
+				`Skipped video track swap (${reason}) - no video track available`,
 			);
 			return;
 		}
 		if (track.readyState === "ended") {
 			console.warn(
-				`🔄 Skipped video track swap (${reason}) - track already ended`,
+				`Skipped video track swap (${reason}) - track already ended`,
 			);
 			return;
 		}
@@ -99,14 +99,14 @@ export function useMeetingLogic(meetingState, meetingId) {
 		try {
 			await mediaHandler.videoProducer.replaceTrack({ track });
 			track.enabled = true;
-			console.log(`🔄 Replaced video track (${reason})`);
+			console.log(`Replaced video track (${reason})`);
 
 			// Update local video element after track replacement
 			if (localVideo.value) {
 				setLocalVideoRef(localVideo.value);
 			}
 		} catch (error) {
-			console.warn(`⚠️ Failed to replace video track (${reason}):`, error);
+			console.warn(`Failed to replace video track (${reason}):`, error);
 		}
 	};
 
@@ -159,7 +159,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 			await replacePublishedVideoTrack(result.stream, "background-enabled");
 		} catch (error) {
 			console.warn(
-				"⚠️ Failed to apply background effects to local stream:",
+				"Failed to apply background effects to local stream:",
 				error,
 			);
 			// Fallback to original stream
@@ -220,7 +220,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 			return null;
 		} catch (error) {
 			console.warn(
-				`⚠️ Could not validate ${deviceType} device availability:`,
+				`Could not validate ${deviceType} device availability:`,
 				error,
 			);
 			return storedDeviceId;
@@ -283,15 +283,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 					try {
 						await audioElement.setSinkId(validSpeakerId);
 					} catch (error) {
-						console.warn(
-							`⚠️ Failed to set speaker for ${participantId}:`,
-							error,
-						);
+						console.warn(`Failed to set speaker for ${participantId}:`, error);
 					}
 				}
 			}
 		} catch (error) {
-			console.warn("⚠️ Failed to apply speaker device:", error);
+			console.warn("Failed to apply speaker device:", error);
 		}
 	};
 
@@ -324,10 +321,10 @@ export function useMeetingLogic(meetingState, meetingId) {
 				if (meetingState.isMicOn.value) {
 					meetingState.microphonePermissionGranted.value = true;
 				}
-				console.log("📹 Camera initialized successfully");
+				console.log("Camera initialized successfully");
 			}
 		} catch (error) {
-			console.error("❌ Failed to initialize camera:", error);
+			console.error("Failed to initialize camera:", error);
 
 			meetingState.setMediaState(false, false);
 			setMicEnabled(false);
@@ -367,7 +364,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 						meetingState.cameraPermissionGranted.value = true;
 						meetingState.microphonePermissionGranted.value = true;
 					} catch (err) {
-						console.error("❌ Failed to get microphone stream:", err);
+						console.error("Failed to get microphone stream:", err);
 						const isPermissionError =
 							err.name === "NotAllowedError" ||
 							err.name === "PermissionDeniedError";
@@ -395,7 +392,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 								meetingState.microphonePermissionGranted.value = true;
 							}
 						} catch (err) {
-							console.error("❌ Failed to add audio track:", err);
+							console.error("Failed to add audio track:", err);
 							const isPermissionError =
 								err.name === "NotAllowedError" ||
 								err.name === "PermissionDeniedError";
@@ -425,7 +422,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 									meetingState.microphonePermissionGranted.value = true;
 								}
 							} catch (err) {
-								console.error("❌ Failed to replace audio track:", err);
+								console.error("Failed to replace audio track:", err);
 								const isPermissionError =
 									err.name === "NotAllowedError" ||
 									err.name === "PermissionDeniedError";
@@ -507,7 +504,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					delete newHands[getSFUClient().getUserId()];
 					meetingState.raisedHands.value = newHands;
 				} catch (error) {
-					console.error("❌ Failed to lower hand on unmute:", error);
+					console.error("Failed to lower hand on unmute:", error);
 				}
 			}
 
@@ -521,9 +518,9 @@ export function useMeetingLogic(meetingState, meetingId) {
 				}
 			}
 
-			console.log(`🎤 Microphone ${enable ? "enabled" : "disabled"}`);
+			console.log(`Microphone ${enable ? "enabled" : "disabled"}`);
 		} catch (error) {
-			console.error("❌ Failed to toggle microphone:", error);
+			console.error("Failed to toggle microphone:", error);
 			toast.error("Failed to toggle microphone");
 		}
 	};
@@ -554,7 +551,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 							meetingState.microphonePermissionGranted.value = true;
 						}
 					} catch (err) {
-						console.error("❌ Failed to get camera stream:", err);
+						console.error("Failed to get camera stream:", err);
 						const isPermissionError =
 							err.name === "NotAllowedError" ||
 							err.name === "PermissionDeniedError";
@@ -591,7 +588,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 								}
 							}
 						} catch (err) {
-							console.error("❌ Failed to add video track:", err);
+							console.error("Failed to add video track:", err);
 							const isPermissionError =
 								err.name === "NotAllowedError" ||
 								err.name === "PermissionDeniedError";
@@ -629,7 +626,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 									}
 								}
 							} catch (err) {
-								console.error("❌ Failed to replace video track:", err);
+								console.error("Failed to replace video track:", err);
 								const isPermissionError =
 									err.name === "NotAllowedError" ||
 									err.name === "PermissionDeniedError";
@@ -664,7 +661,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					try {
 						await mh.videoProducer.replaceTrack({ track: trackToReplace });
 					} catch (error) {
-						console.warn("⚠️ Failed to replace video track:", error);
+						console.warn("Failed to replace video track:", error);
 					}
 				} else if (track && sfuManager.value?.transportManager) {
 					// use processed stream if available
@@ -727,9 +724,9 @@ export function useMeetingLogic(meetingState, meetingId) {
 				}
 			}
 
-			console.log(`📹 Camera ${enable ? "enabled" : "disabled"}`);
+			console.log(`Camera ${enable ? "enabled" : "disabled"}`);
 		} catch (error) {
-			console.error("❌ Failed to toggle camera:", error);
+			console.error("Failed to toggle camera:", error);
 			toast.error("Failed to toggle camera");
 		}
 	};
@@ -815,7 +812,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 								mh.audioProducer.resume?.();
 							} catch (_) {
 								console.warn(
-									"⚠️ Failed to resume audioProducer after starting screen share",
+									"Failed to resume audioProducer after starting screen share",
 								);
 							}
 						}
@@ -832,11 +829,11 @@ export function useMeetingLogic(meetingState, meetingId) {
 										);
 									mh?.setProducers({ audioProducer: newProducer });
 									console.log(
-										"🎧 Re-published microphone producer after starting screen share",
+										"Re-published microphone producer after starting screen share",
 									);
 								} catch (err) {
 									console.warn(
-										"⚠️ Failed to publish mic producer after starting screen share",
+										"Failed to publish mic producer after starting screen share",
 										err,
 									);
 								}
@@ -844,12 +841,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 						}
 					} catch (err) {
 						console.warn(
-							"⚠️ Error ensuring audio producer after screen share start:",
+							"Error ensuring audio producer after screen share start:",
 							err,
 						);
 					}
 				} catch (pubErr) {
-					console.error("❌ Failed to publish screen share producer:", pubErr);
+					console.error("Failed to publish screen share producer:", pubErr);
 					meetingState.isScreenSharing.value = false;
 					meetingState.screenShareStream.value = null;
 					for (const t of screenStream.getTracks()) {
@@ -872,13 +869,13 @@ export function useMeetingLogic(meetingState, meetingId) {
 					});
 				}
 
-				console.log("🖥️ Screen sharing started (published)");
+				console.log("Screen sharing started (published)");
 			}
 		} catch (error) {
 			if (error.name === "NotAllowedError") {
-				console.log("👤 User cancelled screen share");
+				console.log("User cancelled screen share");
 			} else {
-				console.error("❌ Screen share failed:", error);
+				console.error("Screen share failed:", error);
 				toast.error("Failed to start screen sharing");
 			}
 		}
@@ -918,12 +915,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 			}
 
 			// Initialize SFU connection
-			console.log("🔄 Starting SFU connection setup...");
+			console.log("Starting SFU connection setup...");
 			await setupSFUConnection();
 
 			setupFrappeRealtimeEventListeners();
 
-			console.log("🔄 Updating meeting state after successful SFU setup...");
+			console.log("Updating meeting state after successful SFU setup...");
 			meetingState.isInPreview.value = false;
 			meetingState.isConnecting.value = false;
 
@@ -936,13 +933,13 @@ export function useMeetingLogic(meetingState, meetingId) {
 				});
 			}
 
-			console.log("✅ Successfully joined meeting", {
+			console.log("Successfully joined meeting", {
 				isInPreview: meetingState.isInPreview.value,
 				isConnecting: meetingState.isConnecting.value,
 				isWaitingForApproval: meetingState.isWaitingForApproval.value,
 			});
 		} catch (error) {
-			console.error("❌ Failed to join meeting:", error);
+			console.error("Failed to join meeting:", error);
 			meetingState.connectionError.value =
 				error.message || "Failed to join meeting";
 			meetingState.isConnecting.value = false;
@@ -956,7 +953,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 	 */
 	const setupSFUConnection = async () => {
 		if (meetingState.isSetupComplete.value) {
-			console.log("✅ SFU setup already complete");
+			console.log("SFU setup already complete");
 			// Still need to update meeting state even if SFU is already set up
 			meetingState.isInPreview.value = false;
 			meetingState.isConnecting.value = false;
@@ -1019,10 +1016,10 @@ export function useMeetingLogic(meetingState, meetingId) {
 						publishVideo: meetingState.isCameraOn.value,
 						publishAudio: meetingState.isMicOn.value,
 					});
-					console.log("✅ Media publishing completed");
+					console.log("Media publishing completed");
 				} catch (error) {
 					console.warn(
-						"⚠️ Media publishing failed, continuing without media:",
+						"Media publishing failed, continuing without media:",
 						error.message,
 					);
 					// Continue with meeting setup even if media publishing fails
@@ -1033,12 +1030,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 			await sfuManager.value.setupExistingParticipants();
 
 			meetingState.isSetupComplete.value = true;
-			console.log("✅ SFU connection setup complete");
+			console.log("SFU connection setup complete");
 
 			// Fetch waiting room, so that owner can approve/reject pending requests
 			sfuManager.value?.waitingRoomManager?.getWaitingRoom();
 		} catch (error) {
-			console.error("❌ SFU setup failed:", error);
+			console.error("SFU setup failed:", error);
 			throw error;
 		}
 	};
@@ -1049,7 +1046,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 		}
 
 		if (!socket) {
-			console.warn("⚠️ Socket not available for realtime events");
+			console.warn("Socket not available for realtime events");
 			return;
 		}
 
@@ -1097,7 +1094,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 		return {
 			onParticipantJoined: (participant) => {
 				meetingState.addParticipant(participant);
-				console.log("👥 Participant joined:", participant);
+				console.log("Participant joined:", participant);
 
 				audioNotificationManager.playJoinNotification();
 
@@ -1137,7 +1134,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				const participantName = participant?.user_name || participantId;
 
 				meetingState.removeParticipant(participantId);
-				console.log("👋 Participant left:", participantId);
+				console.log("Participant left:", participantId);
 
 				if (participantId === meetingState.currentUser.value?.user_id) {
 					return;
@@ -1166,12 +1163,12 @@ export function useMeetingLogic(meetingState, meetingId) {
 				if (participantId) {
 					meetingState.updateParticipant(participantId, updates || {});
 				}
-				console.log("📝 Participant updated:", participantId, updates);
+				console.log("Participant updated:", participantId, updates);
 			},
 			onScreenShareStarted: (data) => {
 				const pid = data.participantId;
 				if (!pid) return;
-				console.log("🔎 onScreenShareStarted raw payload", {
+				console.log("onScreenShareStarted raw payload", {
 					participantId: pid,
 					hasStream: data.stream instanceof MediaStream,
 					consumerId: data.consumer?.id,
@@ -1202,10 +1199,10 @@ export function useMeetingLogic(meetingState, meetingId) {
 							el.play?.().catch(() => {});
 						}
 					} catch (err) {
-						console.warn("⚠️ Failed to store screen share stream:", err);
+						console.warn("Failed to store screen share stream:", err);
 					}
 				}
-				console.log("🖥️ Screen share started:", {
+				console.log("Screen share started:", {
 					participantId: pid,
 					hasStream: !!data.stream,
 				});
@@ -1228,7 +1225,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					delete store[pid];
 					meetingState.screenShareStreams.value = store;
 				}
-				console.log("🖥️ Screen share stopped:", data);
+				console.log("Screen share stopped:", data);
 			},
 			onWaitingRoomUpdated: (waitingUsers) => {
 				meetingState.waitingUsers.value = waitingUsers;
@@ -1287,9 +1284,9 @@ export function useMeetingLogic(meetingState, meetingId) {
 			// Navigate to home
 			router.push({ name: "Home" });
 
-			console.log("📞 Call ended");
+			console.log("Call ended");
 		} catch (error) {
-			console.error("❌ Error ending call:", error);
+			console.error("Error ending call:", error);
 			// Still navigate away even if cleanup fails
 			router.push({ name: "Home" });
 		}
@@ -1306,7 +1303,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 			await setupSFUConnection();
 			meetingState.isInPreview.value = false;
 		} catch (error) {
-			console.error("❌ Failed to start meeting after approval:", error);
+			console.error("Failed to start meeting after approval:", error);
 			meetingState.connectionError.value = error.message;
 		}
 	};
@@ -1397,7 +1394,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 					stream = meetingState.screenShareStream?.value || null;
 				}
 			} catch (err) {
-				console.warn("⚠️ Failed to access screenShareStreams store", err);
+				console.warn("Failed to access screenShareStreams store", err);
 			}
 			// If no stream yet, registration will allow onScreenShareStarted to attach later
 			if (stream instanceof MediaStream) {
@@ -1461,7 +1458,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				}
 			});
 		} catch (error) {
-			console.error("❌ Failed to setup chat events:", error);
+			console.error("Failed to setup chat events:", error);
 		}
 	};
 
@@ -1492,7 +1489,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				});
 			}
 		} catch (error) {
-			console.error("❌ Failed to send chat message:", error);
+			console.error("Failed to send chat message:", error);
 			toast.error("Failed to send message");
 		}
 	};
@@ -1534,7 +1531,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				}
 			});
 		} catch (error) {
-			console.error("❌ Failed to setup reaction events:", error);
+			console.error("Failed to setup reaction events:", error);
 		}
 	};
 
@@ -1563,7 +1560,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				});
 			}
 		} catch (error) {
-			console.error("❌ Failed to send reaction message:", error);
+			console.error("Failed to send reaction message:", error);
 		}
 	};
 
@@ -1598,7 +1595,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 				meetingState.raisedHands.value = data.hands || {};
 			});
 		} catch (error) {
-			console.error("❌ Failed to setup raise hand events:", error);
+			console.error("Failed to setup raise hand events:", error);
 		}
 	};
 
@@ -1636,10 +1633,7 @@ export function useMeetingLogic(meetingState, meetingId) {
 						delete revertedHands[currentUserId];
 					}
 					meetingState.raisedHands.value = revertedHands;
-					console.error(
-						"❌ Failed to toggle raise hand on server:",
-						serverError,
-					);
+					console.error("Failed to toggle raise hand on server:", serverError);
 				}
 			} else {
 				const currentHands = meetingState.raisedHands.value || {};
@@ -1650,10 +1644,10 @@ export function useMeetingLogic(meetingState, meetingId) {
 					delete revertedHands[currentUserId];
 				}
 				meetingState.raisedHands.value = revertedHands;
-				console.error("❌ Cannot toggle raise hand: not connected to SFU");
+				console.error("Cannot toggle raise hand: not connected to SFU");
 			}
 		} catch (error) {
-			console.error("❌ Failed to toggle raise hand:", error);
+			console.error("Failed to toggle raise hand:", error);
 		}
 	};
 

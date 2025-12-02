@@ -82,7 +82,7 @@ function detectBrowserSupport() {
 			result.supportsSVC = isChromiumLike;
 		}
 	} catch (error) {
-		console.warn("⚠️ Failed to detect VP9 SVC capabilities:", error);
+		console.warn("Failed to detect VP9 SVC capabilities:", error);
 	}
 
 	cache.support = result;
