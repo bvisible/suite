@@ -9,6 +9,7 @@ interface NotificationContext {
 	isScreenSharing: boolean;
 	lastNotificationTime: Record<string, number>;
 	playedNotificationsWhenHidden: Record<string, boolean>;
+	joinedUsers: Set<string>;
 }
 
 class NotificationContextManager {
@@ -18,6 +19,7 @@ class NotificationContextManager {
 		isScreenSharing: false,
 		lastNotificationTime: {},
 		playedNotificationsWhenHidden: {},
+		joinedUsers: new Set(),
 	};
 
 	private readonly MIN_NOTIFICATION_INTERVAL = 5000; // 5 seconds between same type
@@ -56,9 +58,13 @@ class NotificationContextManager {
 		this.context.isScreenSharing = isSharing;
 	}
 
+	resetJoinedUsers() {
+		this.context.joinedUsers.clear();
+	}
+
 	shouldPlayNotification(
 		type: "join" | "leave" | "chat" | "joinRequest" | "raiseHand",
-		options?: { isLocalUser?: boolean },
+		options?: { isLocalUser?: boolean; userId?: string },
 	): boolean {
 		const now = Date.now();
 
@@ -92,10 +98,26 @@ class NotificationContextManager {
 				return false;
 			}
 
+			const userId = options?.userId;
+			if (userId && this.context.joinedUsers.has(userId)) {
+				return false;
+			}
+
+			const now = Date.now();
+			const lastTime = this.context.lastNotificationTime[type] || 0;
+			if (now - lastTime < this.MIN_NOTIFICATION_INTERVAL) {
+				return false;
+			}
+
 			this.context.lastNotificationTime[type] = now;
 			if (!this.context.isTabVisible) {
 				this.context.playedNotificationsWhenHidden[type] = true;
 			}
+
+			if (userId) {
+				this.context.joinedUsers.add(userId);
+			}
+
 			return true;
 		}
 

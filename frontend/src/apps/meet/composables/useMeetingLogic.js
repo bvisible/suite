@@ -1096,7 +1096,9 @@ export function useMeetingLogic(meetingState, meetingId) {
 				meetingState.addParticipant(participant);
 				console.log("Participant joined:", participant);
 
-				audioNotificationManager.playJoinNotification();
+				audioNotificationManager.playJoinNotification(
+					participant.participantId,
+				);
 
 				const participantName = participant?.user_name || participant?.user_id;
 
