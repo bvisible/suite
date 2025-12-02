@@ -133,7 +133,7 @@ watch(selectedCameraIdLocal, (newDeviceId) => {
 	if (deviceId && deviceId !== selectedCameraId.value) {
 		setSelectedCameraId(deviceId);
 		emit("device-changed", { type: "camera", deviceId });
-		console.log("📹 Camera changed to:", deviceId);
+		console.log("Camera changed to:", deviceId);
 	}
 });
 
@@ -145,7 +145,7 @@ watch(selectedMicIdLocal, (newDeviceId) => {
 	if (deviceId && deviceId !== selectedMicId.value) {
 		setSelectedMicId(deviceId);
 		emit("device-changed", { type: "microphone", deviceId });
-		console.log("🎤 Microphone changed to:", deviceId);
+		console.log("Microphone changed to:", deviceId);
 	}
 });
 
@@ -210,7 +210,7 @@ const testSpeaker = async () => {
 			try {
 				await audioContext.setSinkId(speakerId);
 			} catch (error) {
-				console.warn("⚠️ Could not set audio context sink:", error);
+				console.warn("Could not set audio context sink:", error);
 			}
 		}
 
@@ -222,7 +222,7 @@ const testSpeaker = async () => {
 			isTestingAudio.value = false;
 		}, 500);
 	} catch (error) {
-		console.error("❌ Failed to test speaker:", error);
+		console.error("Failed to test speaker:", error);
 		isTestingAudio.value = false;
 	}
 };
@@ -253,7 +253,7 @@ const loadDevices = async () => {
 			setSelectedSpeakerId(selectedSpeakerIdLocal.value);
 		}
 	} catch (error) {
-		console.error("❌ Failed to load devices:", error);
+		console.error("Failed to load devices:", error);
 	}
 };
 
@@ -322,7 +322,7 @@ const handleDeviceChange = () => {
 			type: "microphone",
 			deviceId: selectedMicIdLocal.value,
 		});
-		console.log("🎤 Auto-selected new microphone:", newMics[0].label);
+		console.log("Auto-selected new microphone:", newMics[0].label);
 	} else if (newMics.length > 0) {
 		// if we already have a mic selected, still switch to the new one
 		selectedMicIdLocal.value = newMics[0].deviceId;
@@ -339,7 +339,7 @@ const handleDeviceChange = () => {
 			type: "speaker",
 			deviceId: selectedSpeakerIdLocal.value,
 		});
-		console.log("🔈 Auto-selected new speaker:", newSpeakers[0].label);
+		console.log("Auto-selected new speaker:", newSpeakers[0].label);
 	}
 };
 

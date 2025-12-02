@@ -15,7 +15,7 @@ export class ConsumerManager {
 
 	addConsumer(consumer, participantIdOverride = null) {
 		if (!consumer || !consumer.id) {
-			console.error("❌ Invalid consumer provided");
+			console.error("Invalid consumer provided");
 			return false;
 		}
 
@@ -52,7 +52,7 @@ export class ConsumerManager {
 				try {
 					consumer.close();
 				} catch (error) {
-					console.warn(`⚠️ Error closing consumer ${consumerId}:`, error);
+					console.warn(`Error closing consumer ${consumerId}:`, error);
 				}
 			}
 
@@ -108,10 +108,10 @@ export class ConsumerManager {
 		if (consumer && typeof consumer.pause === "function") {
 			try {
 				await consumer.pause();
-				console.log(`⏸️ Consumer paused: ${consumerId}`);
+				console.log(`Consumer paused: ${consumerId}`);
 				return true;
 			} catch (error) {
-				console.error(`❌ Failed to pause consumer ${consumerId}:`, error);
+				console.error(`Failed to pause consumer ${consumerId}:`, error);
 			}
 		}
 		return false;
@@ -122,10 +122,10 @@ export class ConsumerManager {
 		if (consumer && typeof consumer.resume === "function") {
 			try {
 				await consumer.resume();
-				console.log(`▶️ Consumer resumed: ${consumerId}`);
+				console.log(`Consumer resumed: ${consumerId}`);
 				return true;
 			} catch (error) {
-				console.error(`❌ Failed to resume consumer ${consumerId}:`, error);
+				console.error(`Failed to resume consumer ${consumerId}:`, error);
 			}
 		}
 		return false;
@@ -142,7 +142,7 @@ export class ConsumerManager {
 		);
 
 		console.log(
-			`⏸️ Paused ${filteredConsumers.length} consumers for ${participantId}`,
+			`Paused ${filteredConsumers.length} consumers for ${participantId}`,
 		);
 		return results;
 	}
@@ -158,7 +158,7 @@ export class ConsumerManager {
 		);
 
 		console.log(
-			`▶️ Resumed ${filteredConsumers.length} consumers for ${participantId}`,
+			`Resumed ${filteredConsumers.length} consumers for ${participantId}`,
 		);
 		return results;
 	}
@@ -231,7 +231,7 @@ export class ConsumerManager {
 				try {
 					consumer.close();
 				} catch (error) {
-					console.warn("⚠️ Error closing consumer during cleanup:", error);
+					console.warn("Error closing consumer during cleanup:", error);
 				}
 			}
 		}

@@ -29,7 +29,7 @@ export class WaitingRoomManager {
 				this.updateWaitingRoom(data);
 			},
 			onError: (error) => {
-				console.error("❌ Failed to get waiting room:", error);
+				console.error("Failed to get waiting room:", error);
 			},
 		});
 
@@ -42,7 +42,7 @@ export class WaitingRoomManager {
 			},
 			onError: (error) => {
 				toast.error(error.message || "Failed to approve user");
-				console.error("❌ Failed to approve user:", error);
+				console.error("Failed to approve user:", error);
 			},
 		});
 
@@ -55,7 +55,7 @@ export class WaitingRoomManager {
 			},
 			onError: (error) => {
 				toast.error(error.message || "Failed to reject user");
-				console.error("❌ Failed to reject user:", error);
+				console.error("Failed to reject user:", error);
 			},
 		});
 	}
@@ -65,7 +65,7 @@ export class WaitingRoomManager {
 			await this.getWaitingRoomResource.submit();
 			return this.waitingUsers;
 		} catch (error) {
-			console.error("❌ Failed to get waiting room:", error);
+			console.error("Failed to get waiting room:", error);
 			throw error;
 		}
 	}
@@ -82,7 +82,7 @@ export class WaitingRoomManager {
 
 	async approveUser(userId) {
 		if (this.loadingUsers.includes(userId)) {
-			console.warn("⚠️ User approval already in progress:", userId);
+			console.warn("User approval already in progress:", userId);
 			return;
 		}
 
@@ -104,7 +104,7 @@ export class WaitingRoomManager {
 				this.eventHandlers.onUserApprovedLocally(userId);
 			}
 		} catch (error) {
-			console.error("❌ Failed to approve user:", error);
+			console.error("Failed to approve user:", error);
 			throw error;
 		} finally {
 			this.loadingUsers = this.loadingUsers.filter((id) => id !== userId);
@@ -113,7 +113,7 @@ export class WaitingRoomManager {
 
 	async rejectUser(userId) {
 		if (this.loadingUsers.includes(userId)) {
-			console.warn("⚠️ User rejection already in progress:", userId);
+			console.warn("User rejection already in progress:", userId);
 			return;
 		}
 
@@ -135,7 +135,7 @@ export class WaitingRoomManager {
 				this.eventHandlers.onUserRejectedLocally(userId);
 			}
 		} catch (error) {
-			console.error("❌ Failed to reject user:", error);
+			console.error("Failed to reject user:", error);
 			throw error;
 		} finally {
 			this.loadingUsers = this.loadingUsers.filter((id) => id !== userId);

@@ -132,7 +132,7 @@ export class TransportManager {
 
 		this.recvTransport.on("connectionstatechange", (state) => {
 			if (state === "failed") {
-				console.error("❌ Receive transport failed");
+				console.error("Receive transport failed");
 			}
 		});
 	}
@@ -143,7 +143,7 @@ export class TransportManager {
 			throw new Error("Unsupported");
 
 		const safeAppData = { type: "camera", ...(appData || {}) };
-		console.log("📡 createProducer called", {
+		console.log("createProducer called", {
 			trackId: track?.id,
 			trackKind: track?.kind,
 			trackReadyState: track?.readyState,

@@ -43,7 +43,7 @@ class SFUClient {
 
 			return true;
 		} catch (error) {
-			console.error("❌ SFU connection failed:", error);
+			console.error("SFU connection failed:", error);
 			throw error;
 		}
 	}
@@ -101,12 +101,12 @@ class SFUClient {
 			const healthResponse = await fetch(`${sfuEndpoint}/health`);
 			if (!healthResponse.ok) {
 				console.warn(
-					"⚠️ SFU health check failed, but attempting connection anyway",
+					"SFU health check failed, but attempting connection anyway",
 				);
 			}
 		} catch (fetchError) {
 			console.warn(
-				"⚠️ SFU health check failed:",
+				"SFU health check failed:",
 				fetchError.message,
 				"- attempting socket connection anyway",
 			);
@@ -140,7 +140,7 @@ class SFUClient {
 			});
 
 			this.socket.on("connect_error", (error) => {
-				console.error("❌ Socket connection failed:", {
+				console.error("Socket connection failed:", {
 					message: error.message,
 					description: error.description,
 					context: error.context,
@@ -162,10 +162,10 @@ class SFUClient {
 							skipServerUpdate: true,
 						});
 						this.socket.auth.token = newToken;
-						console.log("🔑 Updated socket auth token for reconnection");
+						console.log("Updated socket auth token for reconnection");
 					} catch (error) {
 						console.error(
-							"❌ Failed to refresh token during reconnection:",
+							"Failed to refresh token during reconnection:",
 							error,
 						);
 					}
@@ -173,17 +173,17 @@ class SFUClient {
 			});
 
 			this.socket.on("reconnect", (attemptNumber) => {
-				console.log(`✅ SFU reconnected after ${attemptNumber} attempts`);
+				console.log(`SFU reconnected after ${attemptNumber} attempts`);
 				this.connected = true;
 			});
 
 			this.socket.on("reconnect_error", (error) => {
-				console.error("❌ SFU reconnection failed:", error);
+				console.error("SFU reconnection failed:", error);
 			});
 
 			setTimeout(() => {
 				if (!this.connected) {
-					console.error("❌ SFU connection timeout after 10 seconds");
+					console.error("SFU connection timeout after 10 seconds");
 					reject(new Error("SFU connection timeout"));
 				}
 			}, 10000);
@@ -232,7 +232,7 @@ class SFUClient {
 
 		if (delay <= 0) {
 			this.refreshToken().catch((error) => {
-				console.error("❌ Immediate token refresh failed:", error);
+				console.error("Immediate token refresh failed:", error);
 			});
 			return;
 		}
@@ -241,7 +241,7 @@ class SFUClient {
 			try {
 				await this.refreshToken();
 			} catch (error) {
-				console.error("❌ Scheduled token refresh failed:", error);
+				console.error("Scheduled token refresh failed:", error);
 			}
 		}, delay);
 	}
@@ -293,7 +293,7 @@ class SFUClient {
 			} else {
 				if (!this.connected) {
 					console.log(
-						"⚠️ Skipping server token sync because socket is disconnected",
+						"Skipping server token sync because socket is disconnected",
 					);
 				}
 			}
@@ -302,7 +302,7 @@ class SFUClient {
 
 			return response.auth_token;
 		} catch (error) {
-			console.error("❌ Token refresh failed:", error);
+			console.error("Token refresh failed:", error);
 			throw error;
 		} finally {
 			this.isRefreshingToken = false;
@@ -327,7 +327,7 @@ class SFUClient {
 
 			return timeUntilExpiry < 5 * 60 * 1000;
 		} catch (error) {
-			console.warn("⚠️ Could not check token expiry:", error);
+			console.warn("Could not check token expiry:", error);
 			return false;
 		}
 	}
@@ -343,15 +343,15 @@ class SFUClient {
 				this.connected = false;
 			},
 			connect_error: (error) => {
-				console.error("❌ SFU connection error:", error);
+				console.error("SFU connection error:", error);
 				this.connected = false;
 			},
 			reconnect: (attemptNumber) => {
-				console.log(`✅ SFU reconnected after ${attemptNumber} attempts`);
+				console.log(`SFU reconnected after ${attemptNumber} attempts`);
 				this.connected = true;
 			},
 			reconnect_error: (error) => {
-				console.error("❌ SFU reconnection failed:", error);
+				console.error("SFU reconnection failed:", error);
 			},
 			participant_joined: () => {},
 			participant_left: () => {},
@@ -432,15 +432,15 @@ class SFUClient {
 	}
 
 	async connectWebRtcTransport(transportId, dtlsParameters) {
-		console.log(`🔗 Connecting transport ${transportId} to SFU...`);
-		console.log("📋 DTLS Parameters:", dtlsParameters);
+		console.log(`Connecting transport ${transportId} to SFU...`);
+		console.log("DTLS Parameters:", dtlsParameters);
 
 		await this.sendRequest("connect_webrtc_transport", {
 			transportId,
 			dtlsParameters,
 		});
 
-		console.log(`✅ Transport ${transportId} connected successfully`);
+		console.log(`Transport ${transportId} connected successfully`);
 	}
 
 	async createProducer(transportId, rtpParameters, kind, appData = {}) {
@@ -453,9 +453,7 @@ class SFUClient {
 	}
 
 	async createConsumer(transportId, producerId, rtpCapabilities) {
-		console.log(
-			`📡 Creating consumer for producer ${producerId} @ ${Date.now()}`,
-		);
+		console.log(`Creating consumer for producer ${producerId} @ ${Date.now()}`);
 		return this.sendRequest("create_consumer", {
 			transportId,
 			producerId,
@@ -585,7 +583,7 @@ class SFUClient {
 					resolve(response);
 				} else {
 					const error = new Error(response.error || `Request failed: ${event}`);
-					console.error(`❌ SFU request failed (${event}):`, response.error);
+					console.error(`SFU request failed (${event}):`, response.error);
 					reject(error);
 				}
 			});

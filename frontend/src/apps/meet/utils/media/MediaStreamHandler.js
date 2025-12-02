@@ -44,7 +44,7 @@ export class MediaStreamHandler {
 			this.localStream = stream;
 			return stream;
 		} catch (error) {
-			console.error("❌ Failed to get user media:", error);
+			console.error("Failed to get user media:", error);
 			throw error;
 		}
 	}
@@ -83,7 +83,7 @@ export class MediaStreamHandler {
 	}
 	async getScreenShare() {
 		try {
-			console.log("🖥️ Requesting screen share");
+			console.log("Requesting screen share");
 			const stream = await navigator.mediaDevices.getDisplayMedia({
 				video: true,
 				audio: false,
@@ -91,7 +91,7 @@ export class MediaStreamHandler {
 			this.screenShareStream = stream;
 			return stream;
 		} catch (error) {
-			console.error("❌ Failed to get screen share:", error);
+			console.error("Failed to get screen share:", error);
 			throw error;
 		}
 	}
@@ -101,7 +101,7 @@ export class MediaStreamHandler {
 			const videoTrack = this.localStream.getVideoTracks()[0];
 			if (videoTrack) {
 				videoTrack.enabled = enabled;
-				console.log(`🎥 Video ${enabled ? "enabled" : "disabled"}`);
+				console.log(`Video ${enabled ? "enabled" : "disabled"}`);
 				return true;
 			}
 		}
@@ -113,7 +113,7 @@ export class MediaStreamHandler {
 			const audioTrack = this.localStream.getAudioTracks()[0];
 			if (audioTrack) {
 				audioTrack.enabled = enabled;
-				console.log(`🎵 Audio ${enabled ? "enabled" : "disabled"}`);
+				console.log(`Audio ${enabled ? "enabled" : "disabled"}`);
 				return true;
 			}
 		}
@@ -136,7 +136,7 @@ export class MediaStreamHandler {
 				try {
 					await this.videoProducer.replaceTrack({ track: newVideoTrack });
 				} catch (err) {
-					console.warn("⚠️ replaceTrack failed for videoProducer", err);
+					console.warn("replaceTrack failed for videoProducer", err);
 				}
 			}
 
@@ -151,7 +151,7 @@ export class MediaStreamHandler {
 
 			return newVideoTrack;
 		} catch (error) {
-			console.error("❌ Failed to replace video track:", error);
+			console.error("Failed to replace video track:", error);
 			throw error;
 		}
 	}
@@ -162,7 +162,7 @@ export class MediaStreamHandler {
 				track.stop();
 			}
 			this.screenShareStream = null;
-			console.log("🖥️ Screen share stopped");
+			console.log("Screen share stopped");
 		}
 	}
 

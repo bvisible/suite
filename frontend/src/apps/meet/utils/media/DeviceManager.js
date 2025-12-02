@@ -118,7 +118,7 @@ export class DeviceManager {
 					groupId: device.groupId,
 				}));
 		} catch (error) {
-			console.error("❌ Failed to enumerate devices:", error);
+			console.error("Failed to enumerate devices:", error);
 			throw error;
 		} finally {
 			this.isEnumerating = false;
@@ -164,7 +164,7 @@ export class DeviceManager {
 	setupDeviceChangeListener() {
 		if (navigator.mediaDevices?.addEventListener) {
 			navigator.mediaDevices.addEventListener("devicechange", async () => {
-				console.log("📱 Device change detected, re-enumerating devices...");
+				console.log("Device change detected, re-enumerating devices...");
 
 				try {
 					const changes = await this.detectDeviceChanges();
@@ -175,7 +175,7 @@ export class DeviceManager {
 					const requestVideo = changes.videoChanged && this.hasVideoPermission;
 					const requestAudio = changes.audioChanged && this.hasAudioPermission;
 
-					console.log("📱 Device change type:", {
+					console.log("Device change type:", {
 						videoChanged: changes.videoChanged,
 						audioChanged: changes.audioChanged,
 						willRequestVideo: requestVideo,
