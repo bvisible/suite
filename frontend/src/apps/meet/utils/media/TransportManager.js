@@ -143,14 +143,12 @@ export class TransportManager {
 			throw new Error("Unsupported");
 
 		const safeAppData = { type: "camera", ...(appData || {}) };
-		try {
-			console.log("📡 createProducer called", {
-				trackId: track?.id,
-				trackKind: track?.kind,
-				trackReadyState: track?.readyState,
-				appData: safeAppData,
-			});
-		} catch (_) {}
+		console.log("📡 createProducer called", {
+			trackId: track?.id,
+			trackKind: track?.kind,
+			trackReadyState: track?.readyState,
+			appData: safeAppData,
+		});
 
 		const produceOptions = {
 			track,

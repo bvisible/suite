@@ -185,32 +185,22 @@ export class MediaStreamHandler {
 		this.audioProducer = null;
 		this.screenProducer = null;
 		// Stop and clear blank placeholder tracks and audio oscillator/context
-		try {
-			if (this._blankVideoTrack) {
-				try {
-					this._blankVideoTrack.stop();
-				} catch (_) {}
-				this._blankVideoTrack = null;
-			}
-			if (this._blankAudioTrack) {
-				try {
-					this._blankAudioTrack.stop();
-				} catch (_) {}
-				this._blankAudioTrack = null;
-			}
-			if (this._blankAudioOsc) {
-				try {
-					this._blankAudioOsc.stop();
-				} catch (_) {}
-				this._blankAudioOsc = null;
-			}
-			if (this._audioCtx) {
-				try {
-					this._audioCtx.close?.();
-				} catch (_) {}
-				this._audioCtx = null;
-			}
-		} catch (_) {}
+		if (this._blankVideoTrack) {
+			this._blankVideoTrack.stop();
+			this._blankVideoTrack = null;
+		}
+		if (this._blankAudioTrack) {
+			this._blankAudioTrack.stop();
+			this._blankAudioTrack = null;
+		}
+		if (this._blankAudioOsc) {
+			this._blankAudioOsc.stop();
+			this._blankAudioOsc = null;
+		}
+		if (this._audioCtx) {
+			this._audioCtx.close?.();
+			this._audioCtx = null;
+		}
 	}
 
 	getMediaState() {

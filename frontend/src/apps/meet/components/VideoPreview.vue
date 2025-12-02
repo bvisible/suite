@@ -247,11 +247,7 @@ async function acquireBoth() {
 function stopTrack(kind) {
 	const t = kind === "video" ? videoTrack : audioTrack;
 	if (t.value) {
-		try {
-			t.value.stop();
-		} catch (_) {
-			/* ignore */
-		}
+		t.value.stop();
 		t.value = null;
 	}
 	rebuildStream();
