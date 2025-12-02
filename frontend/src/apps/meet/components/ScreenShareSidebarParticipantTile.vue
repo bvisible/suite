@@ -44,7 +44,7 @@
 
 		<div
 			v-if="isHandRaised"
-			class="absolute bottom-1 right-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
+			class="absolute top-1 left-1 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
 			:aria-label="`${participant.user_name || participant.user_id} has raised their hand`"
 		>
 			<lucide-hand class="w-3.5 h-3.5" :class="{ wave: isAnimating }" />
