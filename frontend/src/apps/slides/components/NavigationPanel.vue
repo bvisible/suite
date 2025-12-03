@@ -38,7 +38,11 @@
 							:style="getThumbnailStyles(slide)"
 							@click="handleSlideClick(slide)"
 							:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
-						></div>
+						>
+							<div class="relative -left-4 ms-0.5 mt-0.5 text-sm text-gray-600">
+								{{ slide.idx }}
+							</div>
+						</div>
 					</template>
 				</Draggable>
 
