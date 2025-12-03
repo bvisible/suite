@@ -58,7 +58,7 @@ class WriterDocument(Document):
                 )
                 diff = now_time - prev_time
                 if diff < timedelta(minutes=AUTOVERSION_DURATION):
-                    return False
+                    frappe.response["data"] = False
             title = datetime.strftime(now_time, "%Y-%m-%d %H:%M")
 
         self.append(
@@ -70,7 +70,7 @@ class WriterDocument(Document):
             },
         )
         self.save()
-        return self.versions[-1].as_dict()
+        frappe.response["data"] = self.versions[-1].as_dict()
 
     def update_file(self, **kwargs):
         file = frappe.db.get_value("Drive File", {"doc": self.name}, "name")
