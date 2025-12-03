@@ -8,6 +8,7 @@ import {
   ySyncPluginKey,
 } from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
+import { ref } from 'vue'
 
 import store from '@/store'
 
@@ -90,22 +91,31 @@ export function useYjs(document, editor, edited) {
   const doc = new Y.Doc({ gc: true })
   const roomName = 'fdoc-' + document.doc.name
   const db = new IndexeddbPersistence(roomName, doc)
-  let serverStateVector
-  doc.on('update', (_, origin) => {
-    if (origin && origin !== 'server') autosave()
+
+  // Ensure both indexedb and fresh server data is loaded before applying.
+  const idbReady = new Promise((resolve) => {
+    db.on('synced', () => {
+      resolve()
+    })
   })
-  db.on('synced', () => {
-    console.log('synced!')
-    if (document.doc.content || document.doc.updates.length) {
-      const stateVector = Y.encodeStateVector(doc)
-      const serverSnapshot = Y.mergeUpdates([
-        toUint8Array(document.doc.content),
-        ...document.doc.updates.map(({ data }) => toUint8Array(data)),
-      ])
-      const diff = Y.diffUpdate(serverSnapshot, stateVector)
-      Y.applyUpdate(doc, diff, 'server')
-      serverStateVector = Y.encodeStateVectorFromUpdate(serverSnapshot)
-    }
+  const serverReady = new Promise((resolve) => {
+    const stop = document.onSuccess((freshDoc) => {
+      resolve(freshDoc)
+      stop()
+    })
+  })
+
+  let serverStateVector
+  Promise.all([idbReady, serverReady]).then(([_, freshDoc]) => {
+    console.log('both here')
+    const serverSnapshot = Y.mergeUpdates([
+      toUint8Array(freshDoc.content),
+      ...freshDoc.updates.map((u) => toUint8Array(u.data)),
+    ])
+
+    const diff = Y.diffUpdate(serverSnapshot, Y.encodeStateVector(doc))
+    Y.applyUpdate(doc, diff, 'server')
+    serverStateVector = Y.encodeStateVectorFromUpdate(serverSnapshot)
   })
 
   // Saving to server
@@ -133,6 +143,9 @@ export function useYjs(document, editor, edited) {
   }
 
   const autosave = debounce(save, 2000)
+  doc.on('update', (_, origin) => {
+    if (origin && origin !== 'server') autosave()
+  })
 
   // WebRTC for real-time P2P collaboration
   const provider = new WebrtcProvider(roomName, doc, REALTIME_CONFIG)

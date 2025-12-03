@@ -1,9 +1,10 @@
 <template>
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
-      v-if="editor && editable && !settings.minimal"
-      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0"
+      v-if="editable"
+      class="py-1.5 w-full max-w-[100vw] mx-auto flex justify-center shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
       :buttons="menuButtons"
+      :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
     />
     <div
       id="editorScrollContainer"

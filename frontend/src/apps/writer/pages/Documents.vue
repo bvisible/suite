@@ -1,6 +1,6 @@
 <template>
   <Navbar />
-  <div class="flex-grow overflow-y-auto">
+  <div class="flex-grow overflow-y-auto bg-surface-white">
     <!-- <div v-if="templates.data?.length" class="px-15 py-5 bg-surface-gray-1">
       <h3 class="font-semibold text-base mb-3">Templates</h3>
       <div class="flex gap-10 overflow-x-scroll p-1">

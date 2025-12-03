@@ -1,17 +1,11 @@
 <template>
   <div class="flex flex-col w-full bg-surface-white">
-    <div
-      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals grid md:grid-cols-[minmax(0,1fr)_minmax(auto,48rem)_minmax(0,1fr)]"
+    <TextEditorFixedMenu
+      v-if="editable"
+      class="py-1.5 w-full max-w-[100vw] mx-auto flex justify-center shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
+      :buttons="menuButtons"
       :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
-    >
-      <div />
-      <TextEditorFixedMenu
-        class="py-1.5 mx-auto flex justify-center shrink-0 transition-opacity duration-1"
-        v-if="editable && !settings.minimal"
-        :buttons="menuButtons"
-      />
-      <div class="flex items-center justify-end pr-4"></div>
-    </div>
+    />
 
     <div
       id="editorScrollContainer"
