@@ -456,6 +456,7 @@ const addComment = () => {
 const autoversion = async () => {
   if (!edited.value) return
   const html = editor.value.getHTML()
+  if (!html || html === '<p></p>') return
   const data = await props.document.newVersion.submit({ data: html })
   if (data) {
     props.document.doc.versions.push(data)
@@ -489,7 +490,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (edited.value) save()
+  if (edited.value) {
+    save()
+    // fix: call autoversion on unmount with savee
+  }
   emitter.off('print-file')
   if (autoversionInterval) clearInterval(autoversionInterval)
   cleanup()
