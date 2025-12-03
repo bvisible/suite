@@ -44,6 +44,7 @@
           :starterkit-options="{
             undoRedo: false,
             trailingNode: { node: 'paragraph', notAfter: 'tab' },
+            paragraph: false,
             gapcursor: false,
           }"
           @keydown="
@@ -126,6 +127,7 @@ import {
   inject,
   provide,
 } from 'vue'
+import { clearDialogs, createDialog } from '@/utils/dialogs'
 import { EditorContent } from '@tiptap/vue-3'
 import 'katex/dist/katex.min.css'
 
@@ -146,6 +148,13 @@ import LucideSettings from '~icons/lucide/settings'
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
 import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
+import LucideArrowDownUp from '~icons/lucide/arrow-down-up'
+import LucideArrowUpWideNarrow from '~icons/lucide/arrow-up-wide-narrow'
+import LucideArrowDownWideNarrow from '~icons/lucide/arrow-down-wide-narrow'
+import LucideScanLine from '~icons/lucide/scan-line'
+import LucideScan from '~icons/lucide/scan'
+import LucideSeparatorHorizontal from '~icons/lucide/separator-horizontal'
+
 import { updateURLSlug } from '@/utils'
 
 import store from '@/store'
@@ -164,6 +173,7 @@ import OldCommentExtension from '@/extensions/old-comment'
 import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
 import { TabsExtension } from '@/extensions/tabs'
+import SpacingDialog from './SpacingDialog.vue'
 
 const activeComment = ref(null)
 const showComments = ref(true)
@@ -276,6 +286,28 @@ const editorExtensions = [
   }),
 ]
 
+function getCurrentParagraphAttrs(editor) {
+  const { $from } = editor.state.selection
+  const node = $from.node($from.depth)
+
+  if (node.type.name === 'paragraph') {
+    return node.attrs
+  }
+
+  // Walk up until we find a paragraph
+  for (let d = $from.depth; d >= 0; d--) {
+    const n = $from.node(d)
+    if (n.type.name === 'paragraph') return n.attrs
+  }
+
+  return {} // fallback
+}
+
+const LINE_HEIGHT_STEP = 0.25
+function getParagraphAttr(editor, attr, def) {
+  return getCurrentParagraphAttrs(editor)[attr] || def
+}
+
 const menuButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
   'Bold',
@@ -320,6 +352,39 @@ const menuButtons = computed(() => [
         font_size: +props.settings.font_size || 15,
         font_family: props.settings.font_family || 'inter',
       },
+    ),
+  },
+  [
+    {
+      label: 'Increase line height',
+      icon: LucideArrowUpWideNarrow,
+      action: (editor) =>
+        editor.commands.setLineHeight(
+          +getParagraphAttr(editor, 'lineHeight', 2) + LINE_HEIGHT_STEP,
+        ),
+    },
+    {
+      label: 'Decrease line height',
+      icon: LucideArrowDownWideNarrow,
+      action: (editor) =>
+        editor.commands.setLineHeight(
+          +getParagraphAttr(editor, 'lineHeight', 2) - LINE_HEIGHT_STEP,
+        ),
+    },
+    {
+      label: 'Reset spacing',
+      icon: LucideArrowDownUp,
+      action: (editor) => {
+        editor.commands.focus()
+        editor.commands.clearSpacing()
+      },
+    },
+  ],
+  {
+    label: 'Custom',
+    icon: LucideArrowDownUp,
+    component: defineAsyncComponent(
+      () => import('@/components/SpacingDialog.vue'),
     ),
   },
   'Separator',
