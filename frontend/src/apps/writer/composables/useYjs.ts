@@ -90,7 +90,7 @@ export function useYjs(document, editor, edited) {
   const doc = new Y.Doc({ gc: true })
   const roomName = 'fdoc-' + document.doc.name
   const db = new IndexeddbPersistence(roomName, doc)
-  let serverStateVector;
+  let serverStateVector
   doc.on('update', (_, origin) => {
     if (origin && origin !== 'server') autosave()
   })
@@ -114,20 +114,21 @@ export function useYjs(document, editor, edited) {
     // Compute a diff relative to server’s last known state
     const incrementalDiff = Y.encodeStateAsUpdate(doc, serverStateVector)
     const updateB64 = fromUint8Array(incrementalDiff)
-    try {
-      const data = await document.addYjsUpdate.submit({
-        update_b64: updateB64,
-      })
-      if (data?.success) {
-        serverStateVector = Y.encodeStateVector(doc)
-      } else if (data?.skipped) {
-        console.log(
-          'Server skipped update - probably because other people are collaborating',
-        )
-      }
-    } catch (error) {
-      console.error('Failed to save YJS update:', error)
-      toast.error('Could not save document.')
+    const data = await document.addYjsUpdate.submit({
+      update_b64: updateB64,
+    })
+    if (data?.success) {
+      serverStateVector = Y.encodeStateVector(doc)
+    } else if (data?.skipped) {
+      console.log(
+        'Server skipped update - probably because other people are collaborating',
+      )
+    } else if (document.addYjsUpdate.error) {
+      toast.error('Could not save the document - please contact support.')
+      localStorage.setItem(
+        'errored-save-out-' + Date.now(),
+        editor.value.getHTML(),
+      )
     }
   }
 

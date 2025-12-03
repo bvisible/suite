@@ -48,11 +48,9 @@
           }"
           @keydown="
             (e) => {
-              if (!e.metaKey && !e.ctrlKey) {
-                if (!edited) {
-                  edited = true
-                  autoversion()
-                }
+              if (editable && !e.metaKey && !e.ctrlKey & !edited) {
+                edited = true
+                autoversion()
               }
             }
           "
@@ -459,7 +457,6 @@ const autoversion = async () => {
   if (!edited.value) return
   const html = editor.value.getHTML()
   const data = await props.document.newVersion.submit({ data: html })
-  console.log()
   if (data) {
     props.document.doc.versions.push(data)
   } else if (props.document.newVersion.error) {
@@ -500,6 +497,7 @@ onBeforeUnmount(() => {
 
 onKeyDown('Enter', autorename)
 onKeyDown('s', (e) => {
+  if (!props.editable) return
   if (!isModKey(e) || e.shiftKey) return
   e.preventDefault()
   manualSave()
