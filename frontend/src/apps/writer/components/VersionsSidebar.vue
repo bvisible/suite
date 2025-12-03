@@ -121,7 +121,7 @@
       </div>
       <TextEditor
         v-if="editor?.getHTML"
-        class="prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8 px-10 h-full overflow-y-auto"
+        class="diff-view prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8 px-10 h-full overflow-y-auto"
         :extensions="[...COMMON_EXTENSIONS, DiffTag]"
         :editable="false"
         :content="
@@ -244,7 +244,7 @@ function escapeHTML(str) {
 
 import LucideX from '~icons/lucide/x'
 import LucidePlus from '~icons/lucide/plus'
-import { formatDate } from '@/utils/format'
+import { onKeyDown } from '@vueuse/core'
 import { computed, ref, h, watch } from 'vue'
 import emitter from '@/emitter'
 import { Tabs, TextEditor, toast } from 'frappe-ui'
@@ -265,7 +265,6 @@ const showVersions = defineModel('showVersions')
 const manualVersions = computed(() => props.versions.filter((v) => v.manual))
 const autoVersions = computed(() => props.versions.filter((v) => !v.manual))
 
-// Helper function to format date as DD/MM/YY HH:MM:SS
 function formatDateDDMMYY(dateStr) {
   const date = new Date(dateStr)
   const day = String(date.getDate()).padStart(2, '0')
@@ -279,13 +278,12 @@ function formatDateDDMMYY(dateStr) {
 
 const groupedVersions = computed(() => {
   if (tab.value === 0) {
-    // First, sort all auto versions by date (newest first)
     const sortedAutoVersions = [...autoVersions.value].sort((a, b) => {
       return new Date(b.title) - new Date(a.title)
     })
 
     const grouped = sortedAutoVersions.reduce((acc, version) => {
-      const date = formatDateDDMMYY(version.title).slice(0, 8) // Get DD/MM/YY part
+      const date = formatDateDDMMYY(version.title).slice(0, 8)
       if (!acc[date]) {
         acc[date] = []
       }
@@ -295,7 +293,6 @@ const groupedVersions = computed(() => {
 
     return grouped
   } else {
-    // Sort manual versions by creation date (newest first)
     return {
       Manual: [...manualVersions.value].sort((a, b) => {
         return new Date(b.title) - new Date(a.title)
@@ -342,28 +339,29 @@ const restore = (version) => {
     ],
   })
 }
+onKeyDown('Escape', () => (showVersions.value = false))
 </script>
-<style scoped>
+<style>
 @import url('@/styles/fonts.css');
 
-ins,
-s {
+.diff-view ins,
+.diff-view s {
   padding: 0.5px 1px;
   border-radius: 3px;
 }
 
-ins + s,
-s + ins {
+.diff-view ins + s,
+.diff-view s + ins {
   margin: 0 2px;
 }
 
-ins {
+.diff-view ins {
   background-color: #dcfce7;
   color: #166534;
   text-decoration: none;
 }
 
-s {
+.diff-view s {
   background-color: #fee2e2;
   color: #991b1b;
   text-decoration: line-through;

@@ -20,9 +20,9 @@
   >
     <template #content v-if="document.doc?.settings && document.doc.write">
       <UsersBar
-        v-if="editor?.storage?.collaborationCursor?.users?.length > 1"
+        v-if="editor?.storage?.collaborationCaret?.users?.length"
         :users="
-          editor.storage.collaborationCursor.users.filter(
+          editor.storage.collaborationCaret.users.filter(
             (k) => k.id !== $store.state.user.id,
           )
         "

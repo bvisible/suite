@@ -39,25 +39,12 @@
           :autofocus="true"
           :mentions="{ mentions: allUsers.data, selectable: false }"
           placeholder="Start thinking..."
-          :bubble-menu="bubbleButtons"
-          :bubble-menu-options="{
-            shouldShow: ({ state }) => {
-              if (isPainting) return false
-              const { doc, selection } = state
-              const { empty } = selection
-              if (!empty) {
-                const node = doc.nodeAt(selection.from)
-                if (!node || ['image', 'video'].includes(node.type.image))
-                  return false
-              }
-              return !empty
-            },
-          }"
           :extensions="editorExtensions"
           :editable
           :starterkit-options="{
             undoRedo: false,
             trailingNode: { node: 'paragraph', notAfter: 'tab' },
+            gapcursor: false,
           }"
           @keydown="
             (e) => {
@@ -211,16 +198,11 @@ provide('editor', editor)
 const scrollParent = computed(() =>
   document.querySelector('#editorScrollContainer'),
 )
-const isPainting = computed(() => {
-  console.log(
-    editor.value && editor.value.storage.styleClipboard.styleClipboard
-      ? true
-      : false,
-  )
-  return editor.value && editor.value.storage.styleClipboard.styleClipboard
+const isPainting = computed(() =>
+  editor.value && editor.value.storage.styleClipboard.styleClipboard
     ? true
-    : false
-})
+    : false,
+)
 defineExpose({ editor })
 
 const {
@@ -374,9 +356,7 @@ const menuButtons = computed(() => [
     label: 'Settings',
     action: () => (showSettings.value = true),
   },
-])
-
-const bubbleButtons = computed(() => [
+  'Separator',
   {
     label: 'Comment',
     icon: LucideMessageSquarePlus,
@@ -478,14 +458,14 @@ const addComment = () => {
 const autoversion = async () => {
   if (!edited.value) return
   const html = editor.value.getHTML()
-
-  try {
-    const data = await props.document.newVersion.submit({ data: html })
-    if (data) {
-      props.document.doc.versions.push(data)
-    }
-  } catch (error) {
-    console.error('Failed to create snapshot:', error)
+  const data = await props.document.newVersion.submit({ data: html })
+  console.log()
+  if (data) {
+    props.document.doc.versions.push(data)
+  } else if (props.document.newVersion.error) {
+    toast.error(
+      'Something has gone wrong - please copy the file content and contact support.',
+    )
   }
 }
 const manualSave = () => save(true)
@@ -520,7 +500,7 @@ onBeforeUnmount(() => {
 
 onKeyDown('Enter', autorename)
 onKeyDown('s', (e) => {
-  if (!isModKey(e)) return
+  if (!isModKey(e) || e.shiftKey) return
   e.preventDefault()
   manualSave()
   toast.success('Saved document', { duration: 0.75 })
