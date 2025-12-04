@@ -40,14 +40,28 @@
 				:rangeEnd="4"
 				:rangeStep="0.1"
 				:modelValue="parseFloat(currentSlide.transitionDuration)"
-				@update:modelValue="(value) => setTransitionDuration(value)"
+				@update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
 			/>
+
+			<div
+				class="flex items-center justify-between"
+				v-if="currentSlide.transition == 'Magic Move'"
+			>
+				<div :class="fieldLabelClasses">Fade In Other Elements</div>
+
+				<Checkbox
+					size="sm"
+					class="cursor-pointer px-1"
+					:modelValue="currentSlide.fadeUnmatchedElements"
+					@update:modelValue="(v) => setTransitionAttribute('fadeUnmatchedElements', v)"
+				/>
+			</div>
 		</template>
 	</CollapsibleSection>
 </template>
 
 <script setup>
-import { Select } from 'frappe-ui'
+import { Select, Checkbox } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
@@ -73,7 +87,7 @@ const setSlideTransition = (option) => {
 	if (option == 'Magic Move') createConnectionsForMagicMove()
 }
 
-const setTransitionDuration = (value) => {
-	currentSlide.value.transitionDuration = value
+const setTransitionAttribute = (property, value) => {
+	currentSlide.value[property] = value
 }
 </script>
