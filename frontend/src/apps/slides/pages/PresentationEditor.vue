@@ -393,6 +393,7 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 		slide.background = layout.background
 		slide.transition = layout.transition
 		slide.transitionDuration = layout.transitionDuration
+		slide.fadeUnmatchedElements = layout.fadeUnmatchedElements
 		slide.elements = layout.elements.map((e) => ({ ...e }))
 	}
 
