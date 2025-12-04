@@ -108,8 +108,6 @@ import {
 	activeElements,
 } from '@/stores/element'
 
-import { generateUniqueId } from '@/utils/helpers'
-
 import { useTextEditor } from '@/composables/useTextEditor'
 
 const { activeEditor, toggleMark } = useTextEditor()
