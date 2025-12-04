@@ -39,9 +39,21 @@
 							@click="handleSlideClick(slide)"
 							:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
 						>
-							<div class="relative -left-4 ms-0.5 mt-0.5 text-sm text-gray-600">
-								{{ slide.idx }}
+							<div
+								class="absolute inset-0 flex justify-between rounded p-2"
+								:style="getGradientOverlayStyles(slide)"
+							>
+								<div class="text-[10px] font-medium">{{ slide.idx }}</div>
+								<LucideWandSparkles
+									v-if="['Magic Move', 'Fade'].includes(slide.transition)"
+									class="stroke-1.5 size-2.5"
+								/>
 							</div>
+
+							<div
+								v-if="isSlideActive(slide)"
+								class="absolute -left-5 h-full w-2 rounded-r bg-blue-400 opacity-90"
+							></div>
 						</div>
 					</template>
 				</Draggable>
@@ -68,10 +80,12 @@ import Draggable from 'vuedraggable'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
+import { isBackgroundColorDark } from '@/utils/color'
 
 import { useAttrs } from 'vue'
 import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
+import { LucideWandSparkles } from 'lucide-vue-next'
 
 const attrs = useAttrs()
 
@@ -92,6 +106,19 @@ const props = defineProps({
 		default: false,
 	},
 })
+
+const getGradientOverlayStyles = (slide) => {
+	const hasDarkBg = isBackgroundColorDark(slide.background)
+	const textColor = hasDarkBg ? '#ffffff' : '#00000090'
+	const background = hasDarkBg
+		? 'linear-gradient(140deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 20%, rgba(0, 0, 0, 0) 100%)'
+		: 'linear-gradient(140deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 100%)'
+
+	return {
+		background,
+		color: textColor,
+	}
+}
 
 const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
 
@@ -134,7 +161,7 @@ const handleSlideClick = async (slide) => {
 
 const getThumbnailClasses = (slide) => {
 	const baseClasses =
-		'mb-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
+		'relative mb-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
 
 	const isActive = isSlideActive(slide)
 	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
@@ -145,7 +172,7 @@ const getThumbnailClasses = (slide) => {
 	} else if (isActive && props.recentlyRestored) {
 		outlineClasses += 'ring-blue-300 ring-[2px] ring-offset-2 scale-[1.01]'
 	} else if (isActive) {
-		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-1'
+		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
 	} else {
 		outlineClasses += 'ring-white hover:border-gray-300'
 	}
