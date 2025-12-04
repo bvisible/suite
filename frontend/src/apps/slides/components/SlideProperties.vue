@@ -51,7 +51,7 @@ import { Select } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
-import { getReferenceElement } from '@/stores/element'
+import { createConnectionsForMagicMove } from '@/stores/transition'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -60,26 +60,17 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 const emit = defineEmits(['openLayoutDialog'])
 
 const setSlideTransition = (option) => {
-	currentSlide.value.transition = option
-	if (option == 'None') currentSlide.value.transitionDuration = 0
-	else currentSlide.value.transitionDuration = 1
+	const slide = currentSlide.value
 
-	if (option == 'Magic Move') addMagicMoveTransition()
-}
+	slide.transition = option
 
-const addMagicMoveTransition = () => {
-	// adding move to last slide changes nothing
-	if (slideIndex.value == slides.value.length - 1) return
+	if (option == 'None') {
+		slide.transitionDuration = 0
+	} else {
+		slide.transitionDuration = 1
+	}
 
-	const nextSlide = slides.value[slideIndex.value + 1]
-	nextSlide.elements.forEach((nextElement) => {
-		const refElement = getReferenceElement(nextElement, currentSlide.value)
-
-		if (refElement) {
-			// update current element id to match reference from previous slide
-			nextElement.id = refElement.id
-		}
-	})
+	if (option == 'Magic Move') createConnectionsForMagicMove()
 }
 
 const setTransitionDuration = (value) => {

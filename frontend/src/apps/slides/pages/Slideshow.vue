@@ -152,10 +152,12 @@ const slideStyles = computed(() => {
 
 const getElementTransitionStyles = (element) => {
 	const styles = transitionStyles.value
-	const transitionProperty = styles.transitionProperty == 'all' ? 'left, top' : ''
+
+	// limit transition property in element container to dimensions and position only
+	const transitionProperty = styles.transitionProperty == 'all' ? 'left, top, width, height' : ''
 
 	return {
-		...t,
+		...styles,
 		transitionProperty: transitionProperty,
 		'--transition-duration': styles.transitionDuration,
 	}
