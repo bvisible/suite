@@ -44,6 +44,7 @@
 					mode="slideshow"
 					:element="element"
 					:data-index="element.id"
+					:transitionStyles="transitionStyles"
 					:style="getElementStyles(element)"
 					:class="applyReverseTransition ? 'reverse-transition' : 'forward-transition'"
 					@click.stop
@@ -168,6 +169,19 @@ const getElementStyles = (element) => {
 		'--transition-duration': duration ? `${duration}s` : '0s',
 	}
 }
+
+const transitionStyles = computed(() => {
+	if (applyReverseTransition.value) return {}
+
+	const prevSlide = slides.value[slideIndex.value - 1]
+	const duration = prevSlide?.transitionDuration
+
+	return {
+		transitionProperty: 'all',
+		transitionDuration: duration ? `${duration}s` : '0s',
+		transitionTimingFunction: 'ease-in-out',
+	}
+})
 
 const transitionMap = computed(() => {
 	if (!currentSlide.value) return {}

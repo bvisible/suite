@@ -18,10 +18,9 @@ import TextElement from '@/components/TextElement.vue'
 import ImageElement from '@/components/ImageElement.vue'
 import VideoElement from '@/components/VideoElement.vue'
 
-import { applyReverseTransition, inSlideShow } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
 
-import { slideBounds, slides, slideIndex } from '@/stores/slide'
+import { slideBounds } from '@/stores/slide'
 
 const props = defineProps({
 	mode: {
@@ -35,6 +34,10 @@ const props = defineProps({
 	elementOffset: {
 		type: Object,
 		default: () => ({ left: 0, top: 0 }),
+	},
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
 	},
 })
 
@@ -88,17 +91,4 @@ const getDynamicComponent = (type) => {
 			return TextElement
 	}
 }
-
-const transitionStyles = computed(() => {
-	if (!inSlideShow.value || applyReverseTransition.value) return {}
-
-	const prevSlide = slides.value[slideIndex.value - 1]
-	const duration = prevSlide?.transitionDuration
-
-	return {
-		transitionProperty: 'all',
-		transitionDuration: duration ? `${duration}s` : '0s',
-		transitionTimingFunction: 'ease-in-out',
-	}
-})
 </script>
