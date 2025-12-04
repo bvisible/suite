@@ -37,18 +37,27 @@
 				</div>
 			</div>
 
-			<div v-else :style="slideStyles" @click="changeSlide(slideIndex + 1)">
-				<SlideElement
-					v-for="element in currentSlide?.elements"
-					:key="`slideshow-${element.id}`"
-					mode="slideshow"
-					:element="element"
-					:data-index="element.id"
-					:transitionStyles="transitionStyles"
-					:style="getElementTransitionStyles(element)"
-					:class="applyReverseTransition ? 'reverse-transition' : 'forward-transition'"
-					@click.stop
-				/>
+			<div
+				v-else-if="isMagicMoveApplied"
+				:style="slideStyles"
+				@click="changeSlide(slideIndex + 1)"
+			>
+				<FadeElementTransition
+					:duration="prevSlide?.transitionDuration"
+					:skip="!prevSlide?.fadeUnmatchedElements"
+				>
+					<SlideElement
+						v-for="element in currentSlide?.elements"
+						:key="`slideshow-${element.id}`"
+						mode="slideshow"
+						:element="element"
+						:data-index="element.id"
+						:transitionStyles="transitionStyles"
+						:style="getElementTransitionStyles(element)"
+						class="forward-transition"
+						@click.stop
+					/>
+				</FadeElementTransition>
 			</div>
 		</div>
 	</div>
@@ -59,6 +68,7 @@ import { computed, nextTick, onActivated, onDeactivated, ref, useTemplateRef, wa
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
+import FadeElementTransition from './FadeElementTransition.vue'
 
 import {
 	applyReverseTransition,
@@ -134,19 +144,44 @@ const buildAssetUrl = (src, type) => {
 	return `/private${src}`
 }
 
+const prevSlide = computed(() => {
+	if (slideIndex.value == 0) return null
+	return slides.value[slideIndex.value - 1]
+})
+
+const isMagicMoveApplied = computed(() => {
+	if (applyReverseTransition.value) return false
+
+	return (
+		currentSlide.value?.transition == 'Magic Move' ||
+		prevSlide.value?.transition == 'Magic Move'
+	)
+})
+
 const slideStyles = computed(() => {
 	// scale slide to fit current screen size while maintaining 16:9 aspect ratio
 	const screenWidth = window.screen.width
 	const widthScale = screenWidth / 960
 
-	return {
+	const baseStyles = {
 		width: '960px',
 		height: '540px',
 		backgroundColor: currentSlide.value?.background || '#ffffff',
 		cursor: slideCursor.value,
-		transform: `${transform.value} scale(${widthScale})`,
-		opacity: opacity.value,
-		...transitionStyles.value,
+		transform: `scale(${widthScale})`,
+		opacity: 1,
+	}
+
+	if (prevSlide.value?.transition == 'Magic Move') {
+		return {
+			...baseStyles,
+			...transitionStyles.value,
+		}
+	}
+
+	return {
+		...baseStyles,
+		transition: transition.value,
 	}
 })
 
@@ -166,10 +201,8 @@ const getElementTransitionStyles = (element) => {
 const transitionStyles = computed(() => {
 	if (applyReverseTransition.value) return {}
 
-	const prevSlide = slides.value[slideIndex.value - 1]
-
-	const transitionProperty = prevSlide?.transition == 'Magic Move' ? 'all' : ''
-	const transitionDuration = prevSlide?.transitionDuration
+	const transitionProperty = prevSlide.value?.transition == 'Magic Move' ? 'all' : ''
+	const transitionDuration = prevSlide.value?.transitionDuration
 
 	return {
 		transitionProperty: transitionProperty,
