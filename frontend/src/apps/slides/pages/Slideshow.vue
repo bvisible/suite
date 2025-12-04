@@ -139,9 +139,6 @@ const slideStyles = computed(() => {
 	const screenWidth = window.screen.width
 	const widthScale = screenWidth / 960
 
-	const prevSlide = slides.value[slideIndex.value - 1]
-	const duration = prevSlide?.transitionDuration
-
 	return {
 		width: '960px',
 		height: '540px',
@@ -149,24 +146,18 @@ const slideStyles = computed(() => {
 		cursor: slideCursor.value,
 		transform: `${transform.value} scale(${widthScale})`,
 		opacity: opacity.value,
-		transitionProperty: 'all',
-		transitionDuration: duration ? `${duration}s` : '0s',
-		transitionTimingFunction: 'ease-in-out',
+		...transitionStyles.value,
 	}
 })
 
 const getElementStyles = (element) => {
-	if (applyReverseTransition.value) return {}
-
-	const prevSlide = slides.value[slideIndex.value - 1]
-	const duration = prevSlide?.transitionDuration
-	const transitionProperty = prevSlide?.transition == 'Magic Move' ? 'left, top' : ''
+	const t = transitionStyles.value
+	const transitionProperty = t.transitionProperty == 'all' ? 'left, top' : ''
 
 	return {
-		transitionTimingFunction: 'ease-in-out',
-		transitionDuration: duration ? `${duration}s` : '0s',
-		transitionProperty: transition,
-		'--transition-duration': duration ? `${duration}s` : '0s',
+		...t,
+		transitionProperty: transitionProperty,
+		'--transition-duration': t.transitionDuration,
 	}
 }
 
@@ -174,11 +165,13 @@ const transitionStyles = computed(() => {
 	if (applyReverseTransition.value) return {}
 
 	const prevSlide = slides.value[slideIndex.value - 1]
-	const duration = prevSlide?.transitionDuration
+
+	const transitionProperty = prevSlide?.transition == 'Magic Move' ? 'all' : ''
+	const transitionDuration = prevSlide?.transitionDuration
 
 	return {
-		transitionProperty: 'all',
-		transitionDuration: duration ? `${duration}s` : '0s',
+		transitionProperty: transitionProperty,
+		transitionDuration: transitionDuration ? `${transitionDuration}s` : '0s',
 		transitionTimingFunction: 'ease-in-out',
 	}
 })
