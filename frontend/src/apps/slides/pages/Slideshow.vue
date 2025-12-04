@@ -59,6 +59,30 @@
 					/>
 				</FadeElementTransition>
 			</div>
+
+			<div v-else>
+				<Transition
+					@before-enter="beforeSlideEnter"
+					@enter="slideEnter"
+					@before-leave="beforeSlideLeave"
+					@leave="slideLeave"
+				>
+					<div
+						:key="slideIndex"
+						:style="slideStyles"
+						@click="changeSlide(slideIndex + 1)"
+					>
+						<SlideElement
+							v-for="element in currentSlide?.elements"
+							:key="`slideshow-${element.id}`"
+							mode="slideshow"
+							:element="element"
+							:data-index="element.id"
+							@click.stop
+						/>
+					</div>
+				</Transition>
+			</div>
 		</div>
 	</div>
 </template>
