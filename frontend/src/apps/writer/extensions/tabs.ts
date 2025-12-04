@@ -94,15 +94,16 @@ export const TabsExtension = Node.create({
           if (dispatch) {
             dispatch(tr)
           }
+
+          if (changed) {
+            this.editor.commands.focusTab(tabId)
+          }
+
           this.editor.view.dom.dispatchEvent(
             new CustomEvent('tab-changed', {
               detail: { tabId },
             }),
           )
-
-          if (changed) {
-            this.editor.commands.focusTab(tabId)
-          }
           return true
         },
       focusTab:
