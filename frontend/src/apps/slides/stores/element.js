@@ -279,6 +279,8 @@ const getDuplicateElementId = (element, srcSlide) => {
 const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
 
+	if (!srcSlide) srcSlide = slideIndex.value
+
 	const displaceByPx = srcSlide == slideIndex.value ? 40 : 0
 
 	let newSelection = []

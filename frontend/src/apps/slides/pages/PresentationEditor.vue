@@ -185,7 +185,7 @@ const handleElementShortcuts = (e) => {
 			deleteElements(e)
 			break
 		case 'd':
-			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value, slideIndex.value)
+			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
 			break
 		case 'b':
 			if (activeEditor.value) toggleMark('bold')
