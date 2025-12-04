@@ -1,7 +1,7 @@
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { generateUniqueId } from '@/utils/helpers'
 
-const compareTextContentForHTML = (currentContent, nextContent) => {
+const canCreateTextConnection = (currentContent, nextContent) => {
 	const parser = new DOMParser()
 
 	const doc = parser.parseFromString(currentContent, 'text/html')
@@ -22,16 +22,22 @@ const compareTextContentForHTML = (currentContent, nextContent) => {
 	return true
 }
 
+const canCreateMediaConnection = (currentSrc, nextSrc) => {
+	return currentSrc == nextSrc
+}
+
+const canCreateConnection = (element, nextElement) => {
+	if (element.type == 'text') {
+		return canCreateTextConnection(element.content, nextElement.content)
+	}
+	return canCreateMediaConnection(element.src, nextElement.src)
+}
+
 const getReferenceElement = (nextElement, slide) => {
 	for (const element of slide.elements) {
 		if (element.type != nextElement.type) continue
 
-		const hasSameText =
-			element.type == 'text' &&
-			compareTextContentForHTML(element.content, nextElement.content)
-		const hasSameSrc = element.type != 'text' && element.src == nextElement.src
-
-		if (hasSameText || hasSameSrc) {
+		if (canCreateConnection(element, nextElement)) {
 			return element
 		}
 	}
