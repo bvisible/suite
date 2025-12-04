@@ -45,7 +45,7 @@
 					:element="element"
 					:data-index="element.id"
 					:transitionStyles="transitionStyles"
-					:style="getElementStyles(element)"
+					:style="getElementTransitionStyles(element)"
 					:class="applyReverseTransition ? 'reverse-transition' : 'forward-transition'"
 					@click.stop
 				/>
@@ -150,14 +150,14 @@ const slideStyles = computed(() => {
 	}
 })
 
-const getElementStyles = (element) => {
-	const t = transitionStyles.value
-	const transitionProperty = t.transitionProperty == 'all' ? 'left, top' : ''
+const getElementTransitionStyles = (element) => {
+	const styles = transitionStyles.value
+	const transitionProperty = styles.transitionProperty == 'all' ? 'left, top' : ''
 
 	return {
 		...t,
 		transitionProperty: transitionProperty,
-		'--transition-duration': t.transitionDuration,
+		'--transition-duration': styles.transitionDuration,
 	}
 }
 
