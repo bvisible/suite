@@ -474,9 +474,10 @@ const setCommentHeights = useDebounceFn(() => {
 onMounted(() => {
   setCommentHeights()
   props.editor.view.dom.addEventListener('tab-changed', setCommentHeights)
-  onBeforeUnmount(() => {
-    props.editor.view.dom.removeEventListener('tab-changed', setCommentHeights)
-  })
+  const dom = props.editor?.view?.dom
+  if (dom && dom instanceof HTMLElement) {
+    dom.removeEventListener('tab-changed', setCommentHeights)
+  }
 })
 watch(() => filteredComments.value.length, setCommentHeights)
 useEventListener(window, 'resize', setCommentHeights)

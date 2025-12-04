@@ -99,6 +99,7 @@ export function useYjs(document, editor, edited) {
     })
   })
   const serverReady = new Promise((resolve) => {
+    if (document.isFinished) resolve()
     const stop = document.onSuccess((freshDoc) => {
       resolve(freshDoc)
       stop()
@@ -107,7 +108,6 @@ export function useYjs(document, editor, edited) {
 
   let serverStateVector
   Promise.all([idbReady, serverReady]).then(([_, freshDoc]) => {
-    console.log('both here')
     const serverSnapshot = Y.mergeUpdates([
       toUint8Array(freshDoc.content),
       ...freshDoc.updates.map((u) => toUint8Array(u.data)),

@@ -128,11 +128,10 @@ const showVersions = defineModel('showVersions')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
-const editor = inject('editor')
+const editor = inject('editor', null)
 
 // Aliases for convenience in download functions
 const entity = computed(() => props.document?.doc)
-const editorValue = editor // editor is already a ref, no need to wrap in computed
 const settings = computed(() => props.document?.doc?.settings)
 
 const formattedCrumbs = computed(() => {
@@ -280,7 +279,7 @@ const fileActions = computed(() =>
                   icon: LucideFileText,
                   onClick: () => {
                     downloadDocxFromHtml(
-                      editorValue.value.getHTML(),
+                      editor.getHTML(),
                       `${entity.value.title}.docx`,
                       settings.value,
                     )
@@ -291,7 +290,7 @@ const fileActions = computed(() =>
                   icon: LucideFolderArchive,
                   onClick: () => {
                     downloadZippedHTML(
-                      editorValue,
+                      editor,
                       entity.value.title,
                       settings.value,
                     )
@@ -300,7 +299,7 @@ const fileActions = computed(() =>
                 {
                   label: 'Markdown',
                   icon: LucideMarkdown,
-                  onClick: () => downloadMD(editorValue, entity.value.title),
+                  onClick: () => downloadMD(editor, entity.value.title),
                 },
                 {
                   onClick: exportBlog,

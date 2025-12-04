@@ -121,7 +121,7 @@
       </div>
       <TextEditor
         v-if="editor?.getHTML"
-        class="diff-view prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8 px-10 h-full overflow-y-auto"
+        class="diff-view prose prose-sm md:min-w-[48rem] md:max-w-[48rem] mx-auto py-8 px-10 h-full overflow-y-auto"
         :extensions="[...COMMON_EXTENSIONS, DiffTag]"
         :editable="false"
         :content="
@@ -153,12 +153,7 @@
 </template>
 <script setup>
 import { COMMON_EXTENSIONS } from '@/utils'
-import {
-  diff_match_patch,
-  DIFF_INSERT,
-  DIFF_DELETE,
-  DIFF_EQUAL,
-} from 'diff-match-patch'
+import { diff_match_patch } from 'diff-match-patch'
 import DiffTag from '@/extensions/diff-tag'
 const dmp = new diff_match_patch()
 
