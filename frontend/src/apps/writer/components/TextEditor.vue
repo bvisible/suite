@@ -336,15 +336,11 @@ const menuButtons = computed(() => [
   {
     label: 'Paint Styles',
     icon: LucidePaintRoller,
+    // how do we get this prop into f-ui?
     isActive: () => isPainting.value,
     action: (editor) => {
-      console.log(editor, editor.storage.styleClipboard.styleClipboard)
       editor.commands.focus()
-      if (editor.storage.styleClipboard.styleClipboard) {
-        editor.commands.applyStyles()
-      } else {
-        editor.commands.storeStyles()
-      }
+      editor.commands.storeStyles()
     },
   },
   {
