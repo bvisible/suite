@@ -9,17 +9,26 @@
 		@dblclick="handleDoubleClick"
 	/>
 	<div
-		v-else
+		v-else-if="!inSlideShow"
 		v-html="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 		:style="element.editorMetadata"
 		@dblclick="handleDoubleClick"
 	></div>
+	<SlideshowText
+		v-else
+		:content="element.content"
+		class="textElement select-none"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+		:style="element.editorMetadata"
+	/>
 </template>
 
 <script setup>
 import { computed, onBeforeMount } from 'vue'
+
+import SlideshowText from '@/components/SlideshowText.vue'
 
 import { EditorContent, generateHTML } from '@tiptap/vue-3'
 

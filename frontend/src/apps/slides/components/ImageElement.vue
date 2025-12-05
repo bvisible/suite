@@ -31,9 +31,16 @@ import { computed } from 'vue'
 import { FileUploader } from 'frappe-ui'
 
 import { presentationId, isPublicPresentation } from '@/stores/presentation'
-import { allowedImageFileTypes } from '@/utils/constants'
 import { activeElement } from '@/stores/element'
+import { allowedImageFileTypes } from '@/utils/constants'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
+
+const props = defineProps({
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
+	},
+})
 
 const element = defineModel('element', {
 	type: Object,
@@ -66,7 +73,10 @@ const imageStyle = computed(() => {
 	if (element.value.useTemplateDimensions) {
 		styles.height = `${element.value.height}px`
 	}
-	return styles
+	return {
+		...styles,
+		...props.transitionStyles,
+	}
 })
 
 const replaceTemplateImage = (file) => {
