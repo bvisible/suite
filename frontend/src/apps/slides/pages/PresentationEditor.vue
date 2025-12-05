@@ -503,7 +503,8 @@ const initIntervals = () => {
 }
 
 const setSlideIndex = (index) => {
-	index = parseInt(index) - 1 || 0
+	if (!index) index = 1
+	index = parseInt(index) - 1
 	slideIndex.value = Math.min(index, slides.value.length - 1)
 }
 
