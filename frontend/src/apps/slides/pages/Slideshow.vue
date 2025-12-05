@@ -21,7 +21,7 @@
 				@click="changeSlide(slideIndex + 1)"
 			>
 				<FadeElementTransition
-					:duration="prevSlide?.transitionDuration"
+					:duration="parseFloat(prevSlide?.transitionDuration)"
 					:skip="!prevSlide?.fadeUnmatchedElements"
 				>
 					<SlideElement
