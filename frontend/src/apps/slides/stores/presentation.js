@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
@@ -121,8 +121,10 @@ const getPresentationResource = (name) => {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
+				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
+				delete slide.fade_unmatched_elements
 			}
 		},
 		async onSuccess(doc) {
@@ -148,8 +150,10 @@ const getPublicPresentationResource = (name) => {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
+				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
+				delete slide.fade_unmatched_elements
 			}
 		},
 		onSuccess(doc) {
@@ -172,8 +176,10 @@ const getCompositePresentationResource = (name) => {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.transitionDuration = slide.transition_duration
+				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
+				delete slide.fade_unmatched_elements
 			}
 		},
 		onSuccess(doc) {
@@ -184,7 +190,12 @@ const getCompositePresentationResource = (name) => {
 }
 
 const hasSlideChanged = (originalState, slideState) => {
-	const keysToCompare = ['background', 'transition', 'transitionDuration']
+	const keysToCompare = [
+		'background',
+		'transition',
+		'transitionDuration',
+		'fadeUnmatchedElements',
+	]
 
 	for (const key of keysToCompare) {
 		if (slideState[key] != originalState[key]) return true
@@ -217,6 +228,7 @@ const savePresentationDoc = async () => {
 		...slide,
 		elements: JSON.stringify(slide.elements, null, 2),
 		transition_duration: slide.transitionDuration,
+		fade_unmatched_elements: slide.fadeUnmatchedElements,
 	}))
 
 	await presentationResource.value.setValue.submit({

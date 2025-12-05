@@ -15,7 +15,8 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
-import { isPublicPresentation, presentationId } from './presentation'
+import { presentationId } from './presentation'
+import { getUpdatedIdAfterConnections } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions } from '@/stores/tiptapSetup'
@@ -259,16 +260,34 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.type == 'video') {
 		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
+	element.id = getUpdatedIdAfterConnections(element)
 }
 
-const duplicateElements = async (e, elements, displaceByPx = 0) => {
+const getDuplicateElementId = (element, srcSlide) => {
+	let refId = null
+
+	if (srcSlide == slideIndex.value - 1) {
+		const prevSlide = slides.value[slideIndex.value - 1]
+		if (prevSlide?.transition == 'Magic Move') return element.id
+	} else if (srcSlide == slideIndex.value + 1) {
+		if (currentSlide.value?.transition == 'Magic Move') return element.id
+	}
+
+	return generateUniqueId()
+}
+
+const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
+
+	if (!srcSlide) srcSlide = slideIndex.value
+
+	const displaceByPx = srcSlide == slideIndex.value ? 40 : 0
 
 	let newSelection = []
 
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
-		newElement.id = generateUniqueId()
+		newElement.id = getDuplicateElementId(element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
@@ -411,12 +430,7 @@ const handlePastedJSON = async (json) => {
 		})
 	}
 
-	if (srcSlide == slideIndex.value) {
-		duplicateElements(null, json, 40)
-		return
-	}
-
-	duplicateElements(null, json)
+	duplicateElements(null, json, srcSlide)
 }
 
 const handleSvgText = (svgText) => {
@@ -462,23 +476,23 @@ const addFixedWidthToElement = (deltaWidth) => {
 const { initTextEditor, activeEditor } = useTextEditor()
 let editorOldText = ''
 
-const updateElementContent = (id) => {
+const updateElementContent = (element) => {
 	const currentText = activeEditor.value.getText()
 	if (editorOldText == currentText) return
 
-	const element = currentSlide.value.elements.find((el) => el.id == id)
+	element.id = getUpdatedIdAfterConnections(element)
 	element.content = activeEditor.value.getHTML()
 	editorOldText = currentText
 }
 
-const blurAndSaveContent = (elementId) => {
+const blurAndSaveContent = (element) => {
 	activeEditor.value.setEditable(false)
 	activeEditor.value.commands.blur()
 
 	if (activeEditor.value.isEmpty) {
-		deleteElements(null, [elementId])
+		deleteElements(null, [element.id])
 	} else {
-		updateElementContent(elementId)
+		updateElementContent(element)
 	}
 }
 
@@ -504,7 +518,7 @@ watch(
 	() => activeElement.value,
 	(element, oldElement) => {
 		if (oldElement?.type == 'text') {
-			blurAndSaveContent(oldElement.id)
+			blurAndSaveContent(oldElement)
 		}
 
 		nextTick(() => {

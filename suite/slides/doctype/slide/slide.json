@@ -11,7 +11,8 @@
   "column_break_pcnr",
   "thumbnail",
   "transition",
-  "transition_duration"
+  "transition_duration",
+  "fade_unmatched_elements"
  ],
  "fields": [
   {
@@ -47,13 +48,19 @@
    "fieldname": "transition_duration",
    "fieldtype": "Data",
    "label": "Transition Duration"
+  },
+  {
+   "default": "1",
+   "fieldname": "fade_unmatched_elements",
+   "fieldtype": "Check",
+   "label": "Fade Unmatched Elements"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-09 20:18:36.388809",
+ "modified": "2025-12-05 01:20:50.333224",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Slide",

@@ -6,6 +6,7 @@
 			:element="element"
 			:mode="mode"
 			@clearTimeouts="$emit('clearTimeouts')"
+			:transitionStyles="transitionStyles"
 		/>
 	</div>
 </template>
@@ -33,6 +34,10 @@ const props = defineProps({
 	elementOffset: {
 		type: Object,
 		default: () => ({ left: 0, top: 0 }),
+	},
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
 	},
 })
 
