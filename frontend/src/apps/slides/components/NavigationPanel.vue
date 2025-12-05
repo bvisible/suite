@@ -44,9 +44,9 @@
 								:style="getGradientOverlayStyles(slide)"
 							>
 								<div class="text-[10px] font-medium">{{ slide.idx }}</div>
-								<LucideWandSparkles
+								<TransitionIcon
 									v-if="slide.transition != 'None'"
-									class="size-2.5 stroke-[1.5]"
+									class="h-3 opacity-80"
 								/>
 							</div>
 
@@ -76,7 +76,7 @@ import { ref, computed, watch, nextTick, useTemplateRef, useAttrs } from 'vue'
 
 import Draggable from 'vuedraggable'
 
-import { LucideWandSparkles } from 'lucide-vue-next'
+import TransitionIcon from '@/icons/TransitionIcon.vue'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
