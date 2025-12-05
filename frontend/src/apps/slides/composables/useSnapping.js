@@ -307,6 +307,12 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			const guide = getGuideForDirection(axis)
 			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
 			resistanceMap[guide] = diff !== null && withinResistanceRange
+
+			if (currentResizer.value?.includes('left') && resistanceMap['right']) {
+				resistanceMap['right'] = false
+			} else if (currentResizer.value?.includes('right') && resistanceMap['left']) {
+				resistanceMap['left'] = false
+			}
 		}
 
 		const { diff, prevDiff } = getDiffsForAxis(axis, point)
@@ -322,10 +328,10 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		let offsetWidth = 0
 
 		if (mode.value == 'resizing') {
-			if (axis == 'right') {
+			if (axis == 'right' && currentResizer.value?.includes('right')) {
 				offsetX = 0
 				offsetWidth = -getSnapOffset()
-			} else if (axis == 'left') {
+			} else if (axis == 'left' && currentResizer.value?.includes('left')) {
 				offsetX = getSnapOffset()
 				offsetWidth = getSnapOffset()
 			}
@@ -378,8 +384,12 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			end = 'bottom'
 		}
 
-		if (Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start]))
+		if (
+			Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start]) &&
+			Math.abs(diffs.matched[end]) > 1
+		) {
 			return handleSnapMovement(end)
+		}
 
 		return handleSnapMovement(start)
 	}
