@@ -56,6 +56,17 @@
 					@update:modelValue="(v) => setTransitionAttribute('fadeUnmatchedElements', v)"
 				/>
 			</div>
+
+			<Button
+				label="Apply To All Slides"
+				variant="outline"
+				class="text-sm"
+				@click="applyTransitionToAllSlides"
+			>
+				<template #prefix>
+					<LucideCheckCheck class="size-3.5 stroke-[1.5]" />
+				</template>
+			</Button>
 		</template>
 	</CollapsibleSection>
 </template>
@@ -84,10 +95,24 @@ const setSlideTransition = (option) => {
 		slide.transitionDuration = 1
 	}
 
-	if (option == 'Magic Move') createConnectionsForMagicMove()
+	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
 }
 
 const setTransitionAttribute = (property, value) => {
 	currentSlide.value[property] = value
+}
+
+const applyTransitionToAllSlides = () => {
+	const sourceSlide = currentSlide.value
+
+	slides.value.forEach((slide, index) => {
+		if (index !== slideIndex.value) {
+			slide.transition = sourceSlide.transition
+			slide.transitionDuration = sourceSlide.transitionDuration
+			slide.fadeUnmatchedElements = sourceSlide.fadeUnmatchedElements
+
+			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
+		}
+	})
 }
 </script>
