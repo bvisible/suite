@@ -59,8 +59,7 @@ import {
 	onActivated,
 	provide,
 } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
-import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
+import { useRoute, useRouter } from 'vue-router'
 
 import { toast } from 'frappe-ui'
 
@@ -83,7 +82,6 @@ import {
 	initHistory,
 	ignoreUpdates,
 	unsyncedPresentationRecord,
-	inSlideShow,
 	readonlyMode,
 } from '@/stores/presentation'
 import {

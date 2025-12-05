@@ -26,7 +26,9 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount } from 'vue'
+
+import SlideshowText from '@/components/SlideshowText.vue'
 
 import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
@@ -35,7 +37,6 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { extensions } from '@/stores/tiptapSetup'
-import SlideshowText from './SlideshowText.vue'
 
 const { activeEditor, baseFontSize } = useTextEditor()
 
