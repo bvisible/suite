@@ -46,7 +46,7 @@
 								<div class="text-[10px] font-medium">{{ slide.idx }}</div>
 								<LucideWandSparkles
 									v-if="slide.transition != 'None'"
-									class="stroke-1.5 size-2.5"
+									class="size-2.5 stroke-[1.5]"
 								/>
 							</div>
 

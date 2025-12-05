@@ -68,13 +68,15 @@ const getUpdatedIdAfterConnections = (element, currentText) => {
 	return generateUniqueId()
 }
 
-const createConnectionsForMagicMove = () => {
+const createConnectionsForMagicMove = (index) => {
 	// adding magic move to last slide changes nothing
-	if (slideIndex.value == slides.value.length - 1) return
+	if (index == slides.value.length - 1) return
 
-	const nextSlide = slides.value[slideIndex.value + 1]
-	nextSlide.elements.forEach((nextElement) => {
-		const refElement = getReferenceElement(nextElement, currentSlide.value)
+	const current = slides.value[index]
+	const next = slides.value[index + 1]
+
+	next.elements.forEach((nextElement) => {
+		const refElement = getReferenceElement(nextElement, current)
 
 		if (refElement) {
 			// update current element id to match reference from previous slide
