@@ -12,7 +12,7 @@
 <script setup>
 const props = defineProps({
 	duration: {
-		type: String,
+		type: Number,
 		default: 0,
 	},
 	skip: {
