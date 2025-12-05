@@ -28,7 +28,7 @@
 	<CollapsibleSection title="Transition">
 		<template #default>
 			<Select
-				:options="['Slide In', 'Fade', 'None', 'Magic Move']"
+				:options="['Magic Move', 'Fade', 'Slide In', 'None']"
 				:modelValue="currentSlide.transition"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>

@@ -192,19 +192,21 @@ const slideStyles = computed(() => {
 		height: '540px',
 		backgroundColor: currentSlide.value?.background || '#ffffff',
 		cursor: slideCursor.value,
-		transform: `scale(${widthScale})`,
-		opacity: 1,
 	}
 
 	if (prevSlide.value?.transition == 'Magic Move') {
 		return {
 			...baseStyles,
+			transform: `scale(${widthScale})`,
+			opacity: 1,
 			...transitionStyles.value,
 		}
 	}
 
 	return {
 		...baseStyles,
+		transform: `${transform.value} scale(${widthScale})`,
+		opacity: opacity.value,
 		transition: transition.value,
 	}
 })
