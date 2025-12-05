@@ -78,15 +78,30 @@
         :editor
         @save="saveComments"
       />
-      <Button
-        class="absolute right-3 top-3"
-        v-if="comments._map.size"
-        :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
-        variant="outline"
-        :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-        @click="showComments = !showComments"
-      ></Button>
-      <Button
+      <div class="absolute right-3 top-3 flex items-center gap-1">
+        <Button
+          :label="showResolved ? 'Hide resolved' : 'Show resolved'"
+          v-if="
+            showComments &&
+            Array.from(comments._map).find(
+              (k) => k[1].content?.arr?.[0].resolved,
+            )
+          "
+          class="text-sm text-ink-gray-5"
+          variant="ghost"
+          @click="showResolved = !showResolved"
+        />
+        <Button
+          v-if="comments._map.size"
+          :icon="
+            showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
+          "
+          variant="outline"
+          :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+          @click="showComments = !showComments"
+        ></Button>
+      </div>
+      <!-- <Button
         class="absolute right-3 top-12"
         v-if="
           showComments &&
@@ -96,7 +111,7 @@
         variant="outline"
         tooltip="Toggle resolved"
         @click="showResolved = !showResolved"
-      ></Button>
+      ></Button> -->
     </div>
   </div>
 </template>
@@ -120,7 +135,7 @@ import {
   inject,
   provide,
 } from 'vue'
-import { EditorContent } from '@tiptap/vue-3'
+import { EditorContent, Extension } from '@tiptap/vue-3'
 import 'katex/dist/katex.min.css'
 
 import Collaboration from '@tiptap/extension-collaboration'
@@ -224,6 +239,45 @@ const onCommentActivated = (id) => {
 }
 const editorExtensions = [
   ...COMMON_EXTENSIONS,
+  Extension.create({
+    addCommands: () => {
+      return {
+        removeEmptyTextStyle:
+          () =>
+          ({ tr }) => {
+            const { selection } = tr
+
+            // Gather all of the nodes within the selection range.
+            // We would need to go through each node individually
+            // to check if it has any inline style attributes.
+            // Otherwise, calling commands.unsetMark(this.name)
+            // removes everything from all the nodes
+            // within the selection range.
+            tr.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+              // Check if it's a paragraph element, if so, skip this node as we apply
+              // the text style to inline text nodes only (span).
+              console.log(pos, node, node.isTextblock, node.isText, node.marks)
+              if (!node.isText) {
+                return true
+              }
+
+              // Check if the node has no inline style attributes.
+              // Filter out non-`textStyle` marks.
+              const TYPE = 'textStyle'
+              const styleMark = !node.marks
+                .filter((mark) => mark.type.name === TYPE)
+                .some((mark) =>
+                  Object.values(mark.attrs).some((value) => !!value),
+                )
+              if (styleMark) {
+                console.log(styleMark)
+                tr.removeMark(pos, pos + node.nodeSize, styleMark.type)
+              }
+            })
+          },
+      }
+    },
+  }),
   CharacterCount,
   Selection,
   // MathematicsExtension,

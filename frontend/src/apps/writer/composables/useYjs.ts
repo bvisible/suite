@@ -99,7 +99,7 @@ export function useYjs(document, editor, edited) {
     })
   })
   const serverReady = new Promise((resolve) => {
-    if (document.isFinished) resolve()
+    if (document.isFinished) resolve(document.doc)
     const stop = document.onSuccess((freshDoc) => {
       resolve(freshDoc)
       stop()

@@ -174,8 +174,7 @@ const fileActions = computed(() =>
               label: __('Download'),
               icon: LucideDownload,
               isEnabled: () => props.document.doc.allow_download,
-              onClick: () =>
-                entitiesDownload(route.params.team, [props.document.doc]),
+              onClick: () => emitter.emit('print-file'),
             },
             {
               label: __('Copy Link'),
