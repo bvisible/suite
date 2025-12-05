@@ -3,38 +3,16 @@
 		<div
 			ref="slideContainer"
 			class="flex h-screen w-full items-center justify-center"
-			:style="{
-				clipPath: clipPath,
-				backgroundColor: currentSlide?.background || '#ffffff',
-			}"
+			:style="slideContainerStyles"
 		>
 			<div
 				v-if="slideshowEnded"
 				class="flex h-full w-full items-center justify-center bg-black"
 			>
-				<div class="flex gap-8">
-					<Button
-						label="Back"
-						size="lg"
-						:variant="'outline'"
-						class="bg-transparent text-white opacity-70 transition-opacity duration-300 hover:opacity-100"
-						@click="endSlideShow"
-					>
-						<template #prefix>
-							<LucideChevronLeft class="size-4 stroke-[1.5]" />
-						</template>
-					</Button>
-					<Button
-						label="Replay"
-						size="lg"
-						class="opacity-90 transition-opacity duration-200 hover:opacity-100"
-						@click="changeSlide(0)"
-					>
-						<template #prefix>
-							<LucideRotateCcw class="size-4 stroke-[1.5]" />
-						</template>
-					</Button>
-				</div>
+				<SlideshowEndScreen
+					@restartSlideShow="changeSlide(0)"
+					@endSlideShow="endSlideShow"
+				/>
 			</div>
 
 			<div
@@ -92,7 +70,8 @@ import { computed, nextTick, onActivated, onDeactivated, ref, useTemplateRef, wa
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
-import FadeElementTransition from './FadeElementTransition.vue'
+import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
+import FadeElementTransition from '@/components/FadeElementTransition.vue'
 
 import {
 	applyReverseTransition,
@@ -373,6 +352,13 @@ const setClipPath = () => {
 
 	clipPath.value = `inset(${inset}px 0px ${inset}px 0px)`
 }
+
+const slideContainerStyles = computed(() => {
+	return {
+		clipPath: clipPath.value,
+		backgroundColor: currentSlide.value?.background || '#ffffff',
+	}
+})
 
 const initFullscreenMode = async () => {
 	const container = slideContainerRef.value
