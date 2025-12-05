@@ -280,7 +280,9 @@ const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
 
 	if (interaction == 'resizing') {
 		const width = snapDelta.width || delta.width
-		totalDelta.width = applyResistance('X', delta) ? 0 : width
+		const totalWidth = applyResistance('X', delta) ? 0 : width
+		totalDelta.width = totalWidth
+		if (totalDelta.width === 0) totalDelta.top = 0
 	}
 	return totalDelta
 }

@@ -258,6 +258,8 @@ const handleGlobalShortcuts = (e) => {
 const recentlyRestored = ref(false)
 
 const handleHistoryOperation = async (operation) => {
+	activeElementIds.value = []
+
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
