@@ -72,20 +72,18 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
-
-import { call } from 'frappe-ui'
+import { ref, computed, watch, nextTick, useTemplateRef, useAttrs } from 'vue'
 
 import Draggable from 'vuedraggable'
+
+import { LucideWandSparkles } from 'lucide-vue-next'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { useAttrs } from 'vue'
-import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
+import { ignoreUpdates } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
-import { LucideWandSparkles } from 'lucide-vue-next'
 
 const attrs = useAttrs()
 

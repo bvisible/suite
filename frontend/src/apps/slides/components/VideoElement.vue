@@ -41,11 +41,11 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef, inject } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { inSlideShow, isPublicPresentation, readonlyMode } from '@/stores/presentation'
+import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 

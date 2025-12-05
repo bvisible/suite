@@ -31,8 +31,8 @@ import { computed } from 'vue'
 import { FileUploader } from 'frappe-ui'
 
 import { presentationId, isPublicPresentation } from '@/stores/presentation'
-import { allowedImageFileTypes } from '@/utils/constants'
 import { activeElement } from '@/stores/element'
+import { allowedImageFileTypes } from '@/utils/constants'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const props = defineProps({

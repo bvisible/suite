@@ -15,7 +15,7 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
-import { isPublicPresentation, presentationId } from './presentation'
+import { presentationId } from './presentation'
 import { getUpdatedIdAfterConnections } from './transition'
 
 import { generateHTML } from '@tiptap/core'
