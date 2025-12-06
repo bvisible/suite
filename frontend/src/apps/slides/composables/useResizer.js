@@ -53,7 +53,11 @@ export const useResizer = () => {
 
 		switch (currentResizer.value) {
 			case 'left':
-				diffLeft = -diffX
+				diffLeft = -diffX / 2
+				break
+			case 'right':
+				diffLeft = -diffX / 2
+				diffX = -diffX
 				break
 			case 'top-right':
 				diffX = -diffX

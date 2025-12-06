@@ -59,8 +59,7 @@ import {
 	onActivated,
 	provide,
 } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
-import { useDebouncedRefHistory, watchIgnorable } from '@vueuse/core'
+import { useRoute, useRouter } from 'vue-router'
 
 import { toast } from 'frappe-ui'
 
@@ -83,7 +82,6 @@ import {
 	initHistory,
 	ignoreUpdates,
 	unsyncedPresentationRecord,
-	inSlideShow,
 	readonlyMode,
 } from '@/stores/presentation'
 import {
@@ -107,8 +105,6 @@ import {
 	selectAllElements,
 	activeElements,
 } from '@/stores/element'
-
-import { generateUniqueId } from '@/utils/helpers'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
@@ -187,7 +183,7 @@ const handleElementShortcuts = (e) => {
 			deleteElements(e)
 			break
 		case 'd':
-			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value, 40)
+			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
 			break
 		case 'b':
 			if (activeEditor.value) toggleMark('bold')
@@ -397,13 +393,8 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 		slide.background = layout.background
 		slide.transition = layout.transition
 		slide.transitionDuration = layout.transitionDuration
-		// slide.thumbnail = layout.thumbnail
-		slide.elements = layout.elements.map((element) => {
-			return {
-				...element,
-				id: generateUniqueId(),
-			}
-		})
+		slide.fadeUnmatchedElements = layout.fadeUnmatchedElements
+		slide.elements = layout.elements.map((e) => ({ ...e }))
 	}
 
 	// override metadata and generate unique IDs for elements

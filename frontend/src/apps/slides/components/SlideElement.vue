@@ -6,6 +6,7 @@
 			:element="element"
 			:mode="mode"
 			@clearTimeouts="$emit('clearTimeouts')"
+			:transitionStyles="transitionStyles"
 		/>
 	</div>
 </template>
@@ -33,6 +34,10 @@ const props = defineProps({
 	elementOffset: {
 		type: Object,
 		default: () => ({ left: 0, top: 0 }),
+	},
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
 	},
 })
 
@@ -71,6 +76,8 @@ const elementStyle = computed(() => {
 		outline: props.highlight ? `#70B6F092 solid ${2 / slideBounds.scale}px` : 'none',
 		boxSizing: 'border-box',
 		zIndex: element.value.zIndex,
+		transform: element.value.type == 'text' ? element.value.transform : '',
+		transformOrigin: element.value.type == 'text' ? element.value.transformOrigin : '',
 	}
 })
 
