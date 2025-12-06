@@ -23,10 +23,6 @@ const editorStyles = reactive({
 	orderedList: false,
 })
 
-export const lastUsedStyles = reactive({ ...editorStyles })
-
-const baseFontSize = ref()
-
 export const useTextEditor = () => {
 	const setEditorStyles = (editor) => {
 		if (!editor) return
@@ -51,77 +47,19 @@ export const useTextEditor = () => {
 		})
 	}
 
-	const applyLastUsedStyles = (editor) => {
-		const oldStyles = JSON.parse(JSON.stringify(lastUsedStyles))
-
-		let chain = editor.chain().focus()
-
-		if (oldStyles.textAlign) chain = chain.setTextAlign(oldStyles.textAlign)
-		if (oldStyles.color) chain = chain.setColor(oldStyles.color)
-
-		chain = chain.setMark('textStyle', {
-			fontSize: oldStyles.fontSize,
-			fontFamily: oldStyles.fontFamily,
-			letterSpacing: oldStyles.letterSpacing,
-			opacity: oldStyles.opacity,
-			textTransform: oldStyles.uppercase ? 'uppercase' : null,
-		})
-
-		if (oldStyles.bold) chain = chain.setBold()
-		if (oldStyles.italic) chain = chain.setItalic()
-		if (oldStyles.underline) chain = chain.setUnderline()
-		if (oldStyles.strike) chain = chain.setStrike()
-
-		chain.run()
-	}
-
-	const applyWhenPlainSelection = (editor) => {
-		const { state } = editor
-		const { $from } = state.selection
-
-		const hasStoredMarks = (state.storedMarks || []).length > 0
-
-		const style = editor.getAttributes('textStyle')
-		const hasTextStyle = !!(
-			style.color ||
-			style.fontSize ||
-			style.fontFamily ||
-			style.letterSpacing ||
-			style.opacity ||
-			style.textTransform
-		)
-
-		const inParagraph = $from.parent.type.name === 'paragraph'
-
-		const isCursor = state.selection.empty
-
-		if (!hasStoredMarks && !hasTextStyle && inParagraph && isCursor) {
-			applyLastUsedStyles(editor)
-		}
-
-		if (!baseFontSize.value) {
-			baseFontSize.value = lastUsedStyles.fontSize || 28
-		}
-		editor.view.dom.style.fontSize = `${baseFontSize.value}px`
-	}
-
-	let isRestoringStyles = false
-
 	const updateElementContent = (editor) => {
 		activeElement.value.content = editor.getHTML()
 	}
 
-	const updateLastUsedStyles = (editor) => {
-		setEditorStyles(editor)
-		for (const key in editorStyles) {
-			lastUsedStyles[key] = editorStyles[key]
-		}
-	}
+	const handleOnTransaction = (editor, transaction) => {
+		if (!transaction.docChanged) return
 
-	const updateEditor = ({ transaction, editor }) => {
-		if (transaction.docChanged) {
-			updateElementContent(editor)
-		}
+		// purposefully using onTransaction + docChanged instead of onUpdate
+		// since onUpdate also triggers when activeEditor changes from one text box to another
+		// leading to overwriting content for second one with first one's content
+
+		updateElementContent(editor)
+		setEditorStyles(editor)
 	}
 
 	const markCommands = {
@@ -257,24 +195,18 @@ export const useTextEditor = () => {
 			editable: isEditable,
 			content: content,
 			editorProps: getEditorProps(editorMetadata),
-			onTransaction: ({ transaction, editor }) => updateEditor({ transaction, editor }),
-			onUpdate: ({ editor }) => updateLastUsedStyles(editor),
-			onSelectionUpdate: ({ editor }) => applyWhenPlainSelection(editor),
+			// to update styles in sidebar based on cursor position
+			onSelectionUpdate: ({ editor }) => setEditorStyles(editor),
+			// to update element content on every change
+			onTransaction: ({ editor, transaction }) => handleOnTransaction(editor, transaction),
 		})
-	}
 
-	watch(
-		() => activeEditor.value,
-		(newEditor) => {
-			updateLastUsedStyles(newEditor)
-			applyWhenPlainSelection(newEditor)
-		},
-	)
+		setEditorStyles(activeEditor.value)
+	}
 
 	return {
 		activeEditor,
 		editorStyles,
-		baseFontSize,
 		toggleMark,
 		updateProperty,
 		initTextEditor,
