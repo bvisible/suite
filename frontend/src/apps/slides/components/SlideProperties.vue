@@ -28,7 +28,7 @@
 	<CollapsibleSection title="Transition">
 		<template #default>
 			<Select
-				:options="['Slide In', 'Fade', 'None']"
+				:options="['Magic Move', 'Fade', 'Slide In', 'None']"
 				:modelValue="currentSlide.transition"
 				@update:modelValue="(option) => setSlideTransition(option)"
 			/>
@@ -40,17 +40,43 @@
 				:rangeEnd="4"
 				:rangeStep="0.1"
 				:modelValue="parseFloat(currentSlide.transitionDuration)"
-				@update:modelValue="(value) => setTransitionDuration(value)"
+				@update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
 			/>
+
+			<div
+				class="flex items-center justify-between"
+				v-if="currentSlide.transition == 'Magic Move'"
+			>
+				<div :class="fieldLabelClasses">Fade In Other Elements</div>
+
+				<Checkbox
+					size="sm"
+					class="cursor-pointer px-1"
+					:modelValue="currentSlide.fadeUnmatchedElements"
+					@update:modelValue="(v) => setTransitionAttribute('fadeUnmatchedElements', v)"
+				/>
+			</div>
+
+			<Button
+				label="Apply To All Slides"
+				variant="outline"
+				class="text-sm"
+				@click="applyTransitionToAllSlides"
+			>
+				<template #prefix>
+					<LucideCheckCheck class="size-3.5 stroke-[1.5]" />
+				</template>
+			</Button>
 		</template>
 	</CollapsibleSection>
 </template>
 
 <script setup>
-import { Select } from 'frappe-ui'
+import { Select, Checkbox } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
+import { createConnectionsForMagicMove } from '@/stores/transition'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -59,12 +85,34 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 const emit = defineEmits(['openLayoutDialog'])
 
 const setSlideTransition = (option) => {
-	currentSlide.value.transition = option
-	if (option == 'None') currentSlide.value.transitionDuration = 0
-	else currentSlide.value.transitionDuration = 1
+	const slide = currentSlide.value
+
+	slide.transition = option
+
+	if (option == 'None') {
+		slide.transitionDuration = 0
+	} else {
+		slide.transitionDuration = 1
+	}
+
+	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
 }
 
-const setTransitionDuration = (value) => {
-	currentSlide.value.transitionDuration = value
+const setTransitionAttribute = (property, value) => {
+	currentSlide.value[property] = value
+}
+
+const applyTransitionToAllSlides = () => {
+	const sourceSlide = currentSlide.value
+
+	slides.value.forEach((slide, index) => {
+		if (index !== slideIndex.value) {
+			slide.transition = sourceSlide.transition
+			slide.transitionDuration = sourceSlide.transitionDuration
+			slide.fadeUnmatchedElements = sourceSlide.fadeUnmatchedElements
+
+			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
+		}
+	})
 }
 </script>

@@ -3,58 +3,64 @@
 		<div
 			ref="slideContainer"
 			class="flex h-screen w-full items-center justify-center"
-			:style="{
-				clipPath: clipPath,
-				backgroundColor: currentSlide?.background || '#ffffff',
-			}"
+			:style="slideContainerStyles"
 		>
 			<div
 				v-if="slideshowEnded"
 				class="flex h-full w-full items-center justify-center bg-black"
 			>
-				<div class="flex gap-8">
-					<Button
-						label="Back"
-						size="lg"
-						:variant="'outline'"
-						class="bg-transparent text-white opacity-70 transition-opacity duration-300 hover:opacity-100"
-						@click="endSlideShow"
-					>
-						<template #prefix>
-							<LucideChevronLeft class="size-4 stroke-[1.5]" />
-						</template>
-					</Button>
-					<Button
-						label="Replay"
-						size="lg"
-						class="opacity-90 transition-opacity duration-200 hover:opacity-100"
-						@click="changeSlide(0)"
-					>
-						<template #prefix>
-							<LucideRotateCcw class="size-4 stroke-[1.5]" />
-						</template>
-					</Button>
-				</div>
+				<SlideshowEndScreen
+					@restartSlideShow="changeSlide(0)"
+					@endSlideShow="endSlideShow"
+				/>
 			</div>
 
-			<Transition
-				v-else
-				@before-enter="beforeSlideEnter"
-				@enter="slideEnter"
-				@before-leave="beforeSlideLeave"
-				@leave="slideLeave"
+			<div
+				v-else-if="isMagicMoveApplied"
+				:style="slideStyles"
+				@click="changeSlide(slideIndex + 1)"
 			>
-				<div :key="slideIndex" :style="slideStyles" @click="changeSlide(slideIndex + 1)">
+				<FadeElementTransition
+					:duration="parseFloat(prevSlide?.transitionDuration)"
+					:skip="!prevSlide?.fadeUnmatchedElements"
+				>
 					<SlideElement
 						v-for="element in currentSlide?.elements"
 						:key="`slideshow-${element.id}`"
 						mode="slideshow"
 						:element="element"
 						:data-index="element.id"
+						:transitionStyles="transitionStyles"
+						:style="getElementTransitionStyles(element)"
+						class="forward-transition"
 						@click.stop
 					/>
-				</div>
-			</Transition>
+				</FadeElementTransition>
+			</div>
+
+			<div v-else>
+				<Transition
+					@before-enter="beforeSlideEnter"
+					@enter="slideEnter"
+					@before-leave="beforeSlideLeave"
+					@leave="slideLeave"
+				>
+					<div
+						:key="slideIndex"
+						:style="slideStyles"
+						@click="changeSlide(slideIndex + 1)"
+					>
+						<SlideElement
+							v-for="element in currentSlide?.elements"
+							:key="`slideshow-${element.id}`"
+							mode="slideshow"
+							:element="element"
+							:data-index="element.id"
+							@click.stop
+						/>
+					</div>
+				</Transition>
+			</div>
 		</div>
 	</div>
 </template>
@@ -64,6 +70,8 @@ import { computed, nextTick, onActivated, onDeactivated, ref, useTemplateRef, wa
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
+import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
+import FadeElementTransition from '@/components/FadeElementTransition.vue'
 
 import {
 	applyReverseTransition,
@@ -139,19 +147,72 @@ const buildAssetUrl = (src, type) => {
 	return `/private${src}`
 }
 
+const prevSlide = computed(() => {
+	if (slideIndex.value == 0) return null
+	return slides.value[slideIndex.value - 1]
+})
+
+const isMagicMoveApplied = computed(() => {
+	if (applyReverseTransition.value) return false
+
+	return (
+		currentSlide.value?.transition == 'Magic Move' ||
+		prevSlide.value?.transition == 'Magic Move'
+	)
+})
+
 const slideStyles = computed(() => {
 	// scale slide to fit current screen size while maintaining 16:9 aspect ratio
 	const screenWidth = window.screen.width
 	const widthScale = screenWidth / 960
 
-	return {
+	const baseStyles = {
 		width: '960px',
 		height: '540px',
 		backgroundColor: currentSlide.value?.background || '#ffffff',
 		cursor: slideCursor.value,
+	}
+
+	if (prevSlide.value?.transition == 'Magic Move') {
+		return {
+			...baseStyles,
+			transform: `scale(${widthScale})`,
+			opacity: 1,
+			...transitionStyles.value,
+		}
+	}
+
+	return {
+		...baseStyles,
 		transform: `${transform.value} scale(${widthScale})`,
-		transition: transition.value,
 		opacity: opacity.value,
+		transition: transition.value,
+	}
+})
+
+const getElementTransitionStyles = (element) => {
+	const styles = transitionStyles.value
+
+	// limit transition property in element container to dimensions and position only
+	const transitionProperty = styles.transitionProperty == 'all' ? 'left, top, width, height' : ''
+
+	return {
+		...styles,
+		transitionProperty: transitionProperty,
+		'--transition-duration': styles.transitionDuration,
+	}
+}
+
+const transitionStyles = computed(() => {
+	if (applyReverseTransition.value) return {}
+
+	const transitionProperty = prevSlide.value?.transition == 'Magic Move' ? 'all' : ''
+	const transitionDuration = prevSlide.value?.transitionDuration
+
+	return {
+		transitionProperty: transitionProperty,
+		transitionDuration: transitionDuration ? `${transitionDuration}s` : '0s',
+		transitionTimingFunction: 'ease-in-out',
 	}
 })
 
@@ -292,6 +353,13 @@ const setClipPath = () => {
 	clipPath.value = `inset(${inset}px 0px ${inset}px 0px)`
 }
 
+const slideContainerStyles = computed(() => {
+	return {
+		clipPath: clipPath.value,
+		backgroundColor: currentSlide.value?.background || '#ffffff',
+	}
+})
+
 const initFullscreenMode = async () => {
 	const container = slideContainerRef.value
 	if (!container) return
@@ -384,3 +452,11 @@ watch(
 	{ immediate: true },
 )
 </script>
+
+<style>
+.forward-transition .textElement span {
+	transition-property: all;
+	transition-duration: var(--transition-duration);
+	transition-timing-function: ease-in-out;
+}
+</style>

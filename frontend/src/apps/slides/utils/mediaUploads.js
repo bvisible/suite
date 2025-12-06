@@ -8,7 +8,7 @@ const fileUploadHandler = new FileUploadHandler()
 
 const performPostUploadActions = async (fileDoc, fileType, targetElement, resolve) => {
 	if (fileType === 'image') {
-		fileDoc = await getWebPDoc(fileDoc.file_url)
+		fileDoc = await getWebPDoc(fileDoc)
 	}
 
 	if (targetElement) {
@@ -52,10 +52,10 @@ const getFileObject = (file) => {
 	}
 }
 
-const getWebPDoc = async (fileUrl) => {
+const getWebPDoc = async (fileDoc) => {
 	return await call('slides.slides.doctype.presentation.presentation.get_webp_doc', {
 		presentation_name: presentationId.value,
-		file_url: fileUrl,
+		file_doc: fileDoc,
 	})
 }
 
