@@ -9,8 +9,10 @@ import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
+
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { joinBackward } from 'prosemirror-commands'
+import { TextSelection } from 'prosemirror-state'
 
 const parseElementStyle = (attribute, value) => {
 	if (!value) return null
@@ -117,6 +119,8 @@ const getItemAttributes = (node) => {
 }
 
 const CustomListItem = ListItem.extend({
+	// needed to ensure that <li> tag renders the span styles (e.g. font size, color etc.)
+	// they need to be present at <li> level so that CSS ::before element can work for bullet styling
 	renderHTML({ node, HTMLAttributes, ...rest }) {
 		const liAttrs = { ...HTMLAttributes }
 
@@ -146,15 +150,37 @@ const isInList = ($pos) => {
 	return false
 }
 
+const handleListItemEnterKey = (editor, pos, marks) => {
+	const { state, view } = editor
+
+	const endPos = pos.end()
+
+	// before splitting to next list item, insert ZWSP at end of current item
+	// move cursor to end of current item and then split
+	// so new list already has placeholder
+
+	let tr = state.tr.insertText(ZWSP, endPos, endPos, marks)
+	tr = tr.setSelection(TextSelection.create(tr.doc, endPos))
+	view.dispatch(tr)
+
+	// intentional since if we split and then add placeholder
+	// ProseMirror will not automatically re-trigger renderHTML for CustomListItem - line 122
+	editor.commands.splitListItem('listItem')
+
+	return true
+}
+
 const handleEnterKey = (editor) => {
 	const { state, view } = editor
 	const { selection, storedMarks } = state
 	const $pos = selection.$from
 
-	if (isInList($pos)) return false
-
 	// fetch current marks before splitting to next line
 	const marks = storedMarks || $pos.marks()
+
+	if (isInList($pos)) {
+		return handleListItemEnterKey(editor, $pos, marks)
+	}
 
 	const didSplit = editor.commands.splitBlock()
 
