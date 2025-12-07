@@ -184,6 +184,7 @@ const handleKeyDown = (view, event) => {
 	const { selection, storedMarks } = state
 
 	const $from = selection.$from
+	const $to = selection.$to
 
 	if (isInList($from)) return false
 
@@ -196,9 +197,12 @@ const handleKeyDown = (view, event) => {
 	const start = $from.start()
 	const end = $from.end()
 
+	const from = $from.pos
+	const to = $to.pos
+
 	// if the last non-ZWSP character is being deleted, replace with ZWSP + re-apply marks
 	// so <br class="ProseMirror-trailingBreak"> is not added
-	if (text.length === 1 && text !== ZWSP) {
+	if ((text.length === 1 && text !== ZWSP) || (from === start && to === end)) {
 		event.preventDefault()
 
 		let tr = state.tr
