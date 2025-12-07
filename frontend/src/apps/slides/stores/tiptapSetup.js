@@ -231,6 +231,7 @@ const addPlaceholderAndRetainMarks = (event, view, start, end) => {
 	let tr = state.tr
 	tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
 	tr = tr.setStoredMarks(marks)
+	tr = tr.setSelection(TextSelection.create(tr.doc, start + 1))
 	view.dispatch(tr)
 
 	return true
