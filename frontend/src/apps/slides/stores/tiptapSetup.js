@@ -281,6 +281,18 @@ const handleTextInput = (view, from, to, text) => {
 	return removePlaceholderAndInsertText(view, $pos, text)
 }
 
+const styledSpanPlugin = new Plugin({
+	key: new PluginKey('styledSpanPlugin'),
+	props: {
+		// before adding an unstyled empty line on clearing content
+		// add a ZWSP with stored marks to retain styles
+		handleKeyDown,
+		// before typing new text to styled empty line
+		// remove the placeholder ZWSP
+		handleTextInput,
+	},
+})
+
 export const StyledEmptyLine = Extension.create({
 	name: 'StyledEmptyLine',
 
@@ -291,19 +303,7 @@ export const StyledEmptyLine = Extension.create({
 	},
 
 	addProseMirrorPlugins() {
-		return [
-			new Plugin({
-				key: new PluginKey('styledSpanPlugin'),
-				props: {
-					// before adding an unstyled empty line on clearing content
-					// add a ZWSP with stored marks to retain styles
-					handleKeyDown,
-					// before typing new text to styled empty line
-					// remove the placeholder ZWSP
-					handleTextInput,
-				},
-			}),
-		]
+		return [styledSpanPlugin]
 	},
 })
 
