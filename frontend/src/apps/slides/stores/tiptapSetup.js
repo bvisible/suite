@@ -10,6 +10,7 @@ import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import { joinBackward } from 'prosemirror-commands'
 
 const parseElementStyle = (attribute, value) => {
 	if (!value) return null
@@ -210,6 +211,21 @@ const handleKeyDown = (view, event) => {
 		tr = tr.setStoredMarks(marks)
 
 		dispatch(tr)
+
+		return true
+	}
+
+	if (text === ZWSP) {
+		// if only ZWSP is present, default behavior will lead to
+		// deleting it and adding <br class="ProseMirror-trailingBreak">
+		// so manually delete ZWSP and join with previous line which is expected behavior without the placeholder
+
+		event.preventDefault()
+
+		let tr = state.tr.delete(start, end)
+		dispatch(tr)
+
+		joinBackward(view.state, view.dispatch)
 
 		return true
 	}
