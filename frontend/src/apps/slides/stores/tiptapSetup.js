@@ -162,14 +162,31 @@ const handleEnterKey = (editor) => {
 	if (!didSplit) return false
 
 	const parent = $pos.parent
+	const cursorAtStart = $pos.parentOffset === 0
 	const cursorAtEnd = $pos.parentOffset === parent.content.size
 
 	// insert ZWSP char so ProseMirror does not add <br class="ProseMirror-trailingBreak">
 	// instead adds an empty styled span - so line height, font size etc. are consistent
 	let tr = view.state.tr
-	if (cursorAtEnd) {
+
+	if (cursorAtStart) {
+		const startOfCurrentPos = $pos.start()
+		const $before = state.doc.resolve(startOfCurrentPos - 1)
+		const prevNode = $before.nodeBefore
+
+		if (prevNode && prevNode.isTextblock) {
+			const prevEnd = startOfCurrentPos - 1
+			// insert ZWSP inside previous node as placeholder so
+			// <br class="ProseMirror-trailingBreak"> is not added
+			tr.insert(prevEnd + 1, state.schema.text(ZWSP, marks))
+			tr = tr.setStoredMarks(marks)
+			view.dispatch(tr)
+			return true
+		}
+	} else if (cursorAtEnd) {
 		tr.insertText(ZWSP)
 	}
+
 	// re-apply marks to new span (created after split)
 	tr = tr.setStoredMarks(marks)
 
