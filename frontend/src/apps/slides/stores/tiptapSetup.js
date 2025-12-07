@@ -177,6 +177,43 @@ const handleEnterKey = (editor) => {
 	return true
 }
 
+const handleKeyDown = (view, event) => {
+	if (event.key !== 'Backspace') return false
+
+	// before adding an unstyled empty line, check for last styles
+	const { state, dispatch } = view
+	const { selection, storedMarks } = state
+
+	const $from = selection.$from
+
+	if (isInList($from)) return false
+
+	const firstChild = $from.parent.content.firstChild
+	if (!firstChild || !firstChild.isText) return false
+
+	const text = firstChild.text
+	const marks = storedMarks || $from.marks()
+
+	const start = $from.start()
+	const end = $from.end()
+
+	// if the last non-ZWSP character is being deleted, replace with ZWSP + re-apply marks
+	// so <br class="ProseMirror-trailingBreak"> is not added
+	if (text.length === 1 && text !== ZWSP) {
+		event.preventDefault()
+
+		let tr = state.tr
+		tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
+		tr = tr.setStoredMarks(marks)
+
+		dispatch(tr)
+
+		return true
+	}
+
+	return false
+}
+
 export const StyledEmptyLine = Extension.create({
 	name: 'StyledEmptyLine',
 
@@ -191,39 +228,7 @@ export const StyledEmptyLine = Extension.create({
 			new Plugin({
 				key: new PluginKey('styledSpanPlugin'),
 				props: {
-					handleKeyDown(view, event) {
-						if (event.key !== 'Backspace') return false
-
-						const { state, dispatch } = view
-						const { selection, storedMarks } = state
-
-						const $from = selection.$from
-
-						if (isInList($from)) return false
-
-						const firstChild = $from.parent.content.firstChild
-						if (!firstChild || !firstChild.isText) return false
-
-						const text = firstChild.text
-						const marks = storedMarks || $from.marks()
-
-						const start = $from.start()
-						const end = $from.end()
-
-						if (text.length === 1 && text !== ZWSP) {
-							event.preventDefault()
-
-							let tr = state.tr
-							tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
-							tr = tr.setStoredMarks(marks)
-
-							dispatch(tr)
-
-							return true
-						}
-
-						return false
-					},
+					handleKeyDown,
 				},
 			}),
 		]
