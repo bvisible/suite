@@ -9,7 +9,7 @@ import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
-import { Plugin } from 'prosemirror-state'
+import { Plugin, PluginKey } from 'prosemirror-state'
 
 const parseElementStyle = (attribute, value) => {
 	if (!value) return null
@@ -164,7 +164,7 @@ const handleEnterKey = (editor) => {
 	const cursorAtEnd = $pos.parentOffset === parent.content.size
 
 	// insert ZWSP char so ProseMirror does not add <br class="ProseMirror-trailingBreak">
-	// instead adds an empty styled span - so line height, font size etc are consistent
+	// instead adds an empty styled span - so line height, font size etc. are consistent
 	let tr = view.state.tr
 	if (cursorAtEnd) {
 		tr.insertText(ZWSP)
@@ -184,6 +184,49 @@ export const StyledEmptyLine = Extension.create({
 		return {
 			Enter: ({ editor }) => handleEnterKey(editor),
 		}
+	},
+
+	addProseMirrorPlugins() {
+		return [
+			new Plugin({
+				key: new PluginKey('styledSpanPlugin'),
+				props: {
+					handleKeyDown(view, event) {
+						if (event.key !== 'Backspace') return false
+
+						const { state, dispatch } = view
+						const { selection, storedMarks } = state
+
+						const $from = selection.$from
+
+						if (isInList($from)) return false
+
+						const firstChild = $from.parent.content.firstChild
+						if (!firstChild || !firstChild.isText) return false
+
+						const text = firstChild.text
+						const marks = storedMarks || $from.marks()
+
+						const start = $from.start()
+						const end = $from.end()
+
+						if (text.length === 1 && text !== ZWSP) {
+							event.preventDefault()
+
+							let tr = state.tr
+							tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
+							tr = tr.setStoredMarks(marks)
+
+							dispatch(tr)
+
+							return true
+						}
+
+						return false
+					},
+				},
+			}),
+		]
 	},
 })
 
