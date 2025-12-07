@@ -180,7 +180,6 @@ const handleEnterKey = (editor) => {
 const handleKeyDown = (view, event) => {
 	if (event.key !== 'Backspace') return false
 
-	// before adding an unstyled empty line, check for last styles
 	const { state, dispatch } = view
 	const { selection, storedMarks } = state
 
@@ -214,6 +213,29 @@ const handleKeyDown = (view, event) => {
 	return false
 }
 
+const handleTextInput = (view, from, to, text) => {
+	const { state, dispatch } = view
+	const { selection, storedMarks } = state
+	const marks = storedMarks || selection.$from.marks()
+
+	const $pos = selection.$from
+	const nodeBefore = $pos.nodeBefore
+
+	// if the prev char is not ZWSP, use default behavior
+	if (!nodeBefore || nodeBefore.text !== ZWSP) return false
+
+	// remove ZWSP when user enters actual text
+	let tr = state.tr
+
+	tr = tr.delete($pos.pos - 1, $pos.pos)
+	tr = tr.setStoredMarks(marks)
+	tr = tr.insertText(text)
+
+	dispatch(tr)
+
+	return true
+}
+
 export const StyledEmptyLine = Extension.create({
 	name: 'StyledEmptyLine',
 
@@ -228,7 +250,12 @@ export const StyledEmptyLine = Extension.create({
 			new Plugin({
 				key: new PluginKey('styledSpanPlugin'),
 				props: {
+					// before adding an unstyled empty line on clearing content
+					// add a ZWSP with stored marks to retain styles
 					handleKeyDown,
+					// before typing new text to styled empty line
+					// remove the placeholder ZWSP
+					handleTextInput,
 				},
 			}),
 		]
