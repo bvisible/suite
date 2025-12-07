@@ -195,6 +195,17 @@ const handleEnterKey = (editor) => {
 	return true
 }
 
+const removePlaceholderAndJoinBackward = (event, view, start, end) => {
+	event.preventDefault()
+
+	let tr = view.state.tr.delete(start, end)
+	view.dispatch(tr)
+
+	joinBackward(view.state, view.dispatch)
+
+	return true
+}
+
 const handleKeyDown = (view, event) => {
 	if (event.key !== 'Backspace') return false
 
@@ -236,15 +247,7 @@ const handleKeyDown = (view, event) => {
 		// if only ZWSP is present, default behavior will lead to
 		// deleting it and adding <br class="ProseMirror-trailingBreak">
 		// so manually delete ZWSP and join with previous line which is expected behavior without the placeholder
-
-		event.preventDefault()
-
-		let tr = state.tr.delete(start, end)
-		dispatch(tr)
-
-		joinBackward(view.state, view.dispatch)
-
-		return true
+		return removePlaceholderAndJoinBackward(event, view, start, end)
 	}
 
 	return false
