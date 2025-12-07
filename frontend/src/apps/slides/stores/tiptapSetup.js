@@ -200,7 +200,7 @@ const handleEnterKey = (editor) => {
 		const $before = state.doc.resolve(startOfCurrentPos - 1)
 		const prevNode = $before.nodeBefore
 
-		if (prevNode && prevNode.isTextblock) {
+		if (!prevNode || prevNode.isTextblock) {
 			const prevEnd = startOfCurrentPos - 1
 			// insert ZWSP inside previous node as placeholder so
 			// <br class="ProseMirror-trailingBreak"> is not added
