@@ -91,33 +91,42 @@ const PastePlainText = Extension.create({
 
 const ZWSP = '\u200B'
 
+const handleEnterKey = (editor) => {
+	const { state, view } = editor
+	const { selection, storedMarks } = state
+	const $pos = selection.$from
+
+	// fetch current marks before splitting to next line
+	const marks = storedMarks || $pos.marks()
+
+	const didSplit = editor.commands.splitBlock()
+
+	// splitting to new line failed so don't change anything
+	if (!didSplit) return false
+
+	const parent = $pos.parent
+	const cursorAtEnd = $pos.parentOffset === parent.content.size
+
+	// insert ZWSP char so ProseMirror does not add <br class="ProseMirror-trailingBreak">
+	// instead adds an empty styled span - so line height, font size etc are consistent
+	let tr = view.state.tr
+	if (cursorAtEnd) {
+		tr.insertText(ZWSP)
+	}
+	// re-apply marks to new span (created after split)
+	tr = tr.setStoredMarks(marks)
+
+	view.dispatch(tr)
+
+	return true
+}
+
 export const StyledEmptyLine = Extension.create({
 	name: 'StyledEmptyLine',
 
 	addKeyboardShortcuts() {
 		return {
-			Enter: ({ editor }) => {
-				const { state, view } = editor
-				const { selection, storedMarks } = state
-				const $pos = selection.$from
-
-				// fetch current marks before splitting to next line
-				const marks = storedMarks || $pos.marks()
-
-				const didSplit = editor.commands.splitBlock()
-				// splitting to new line failed so don't change anything
-				if (!didSplit) return false
-
-				// insert ZWSP char so ProseMirror does not add <br class="ProseMirror-trailingBreak">
-				// instead adds an empty styled span - so line height, font size etc are consistent
-				let tr = view.state.tr
-				tr.insertText(ZWSP)
-				tr = tr.setStoredMarks(marks)
-
-				view.dispatch(tr)
-
-				return true
-			},
+			Enter: ({ editor }) => handleEnterKey(editor),
 		}
 	},
 })
