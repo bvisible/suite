@@ -195,6 +195,21 @@ const handleEnterKey = (editor) => {
 	return true
 }
 
+const addPlaceholderAndRetainMarks = (event, view, start, end) => {
+	event.preventDefault()
+
+	const state = view.state
+
+	const marks = state.storedMarks || state.selection.$from.marks()
+
+	let tr = state.tr
+	tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
+	tr = tr.setStoredMarks(marks)
+	view.dispatch(tr)
+
+	return true
+}
+
 const removePlaceholderAndJoinBackward = (event, view, start, end) => {
 	event.preventDefault()
 
@@ -206,47 +221,51 @@ const removePlaceholderAndJoinBackward = (event, view, start, end) => {
 	return true
 }
 
-const handleKeyDown = (view, event) => {
-	if (event.key !== 'Backspace') return false
-
-	const { state, dispatch } = view
-	const { selection, storedMarks } = state
-
+const getSelectionRange = (selection) => {
 	const $from = selection.$from
 	const $to = selection.$to
 
+	return {
+		from: $from.pos,
+		to: $to.pos,
+		start: $from.start(),
+		end: $from.end(),
+	}
+}
+
+const getTextForSelection = (from) => {
+	const firstChild = from.parent.content.firstChild
+
+	if (!firstChild || !firstChild.isText) return undefined
+
+	return firstChild.text
+}
+
+const handleKeyDown = (view, event) => {
+	if (event.key !== 'Backspace') return false
+
+	const { selection } = view.state
+	const $from = selection.$from
+
 	if (isInList($from)) return false
 
-	const firstChild = $from.parent.content.firstChild
-	if (!firstChild || !firstChild.isText) return false
+	const text = getTextForSelection($from)
+	if (text === undefined) return false
 
-	const text = firstChild.text
-	const marks = storedMarks || $from.marks()
+	const { from, to, start, end } = getSelectionRange(selection)
 
-	const start = $from.start()
-	const end = $from.end()
-
-	const from = $from.pos
-	const to = $to.pos
-
-	// if the last non-ZWSP character is being deleted, replace with ZWSP + re-apply marks
-	// so <br class="ProseMirror-trailingBreak"> is not added
 	if ((text.length === 1 && text !== ZWSP) || (from === start && to === end)) {
-		event.preventDefault()
+		// if the last non-ZWSP character is being deleted, replace with ZWSP + re-apply marks
+		// so <br class="ProseMirror-trailingBreak"> is not added
 
-		let tr = state.tr
-		tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
-		tr = tr.setStoredMarks(marks)
-
-		dispatch(tr)
-
-		return true
+		return addPlaceholderAndRetainMarks(event, view, start, end)
 	}
 
 	if (text === ZWSP) {
 		// if only ZWSP is present, default behavior will lead to
 		// deleting it and adding <br class="ProseMirror-trailingBreak">
 		// so manually delete ZWSP and join with previous line which is expected behavior without the placeholder
+
 		return removePlaceholderAndJoinBackward(event, view, start, end)
 	}
 
@@ -281,8 +300,8 @@ const handleTextInput = (view, from, to, text) => {
 	return removePlaceholderAndInsertText(view, $pos, text)
 }
 
-const styledSpanPlugin = new Plugin({
-	key: new PluginKey('styledSpanPlugin'),
+const styledEmptyLinePlugin = new Plugin({
+	key: new PluginKey('styledEmptyLinePlugin'),
 	props: {
 		// before adding an unstyled empty line on clearing content
 		// add a ZWSP with stored marks to retain styles
@@ -303,7 +322,7 @@ export const StyledEmptyLine = Extension.create({
 	},
 
 	addProseMirrorPlugins() {
-		return [styledSpanPlugin]
+		return [styledEmptyLinePlugin]
 	},
 })
 
