@@ -170,12 +170,37 @@ const handleListItemEnterKey = (editor, pos, marks) => {
 	return true
 }
 
+const addEmptyLineBefore = (state, view, pos, marks) => {
+	const startOfCurrentPos = pos.start()
+	const $before = state.doc.resolve(startOfCurrentPos - 1)
+	const prevNode = $before.nodeBefore
+
+	if (prevNode && !prevNode.isTextblock) return false
+
+	let tr = view.state.tr
+	const prevEnd = startOfCurrentPos - 1
+	// insert ZWSP inside previous node as placeholder so
+	// <br class="ProseMirror-trailingBreak"> is not added
+	tr.insert(prevEnd + 1, state.schema.text(ZWSP, marks))
+	tr = tr.setStoredMarks(marks)
+	view.dispatch(tr)
+	return true
+}
+
+const getCursorPositionFlags = (pos) => {
+	const parent = pos.parent
+
+	return {
+		isCursorAtStart: pos.parentOffset === 0,
+		isCursorAtEnd: pos.parentOffset === parent.content.size,
+	}
+}
+
 const handleEnterKey = (editor) => {
 	const { state, view } = editor
 	const { selection, storedMarks } = state
 	const $pos = selection.$from
 
-	// fetch current marks before splitting to next line
 	const marks = storedMarks || $pos.marks()
 
 	if (isInList($pos)) {
@@ -187,29 +212,13 @@ const handleEnterKey = (editor) => {
 	// splitting to new line failed so don't change anything
 	if (!didSplit) return false
 
-	const parent = $pos.parent
-	const cursorAtStart = $pos.parentOffset === 0
-	const cursorAtEnd = $pos.parentOffset === parent.content.size
+	const { isCursorAtStart, isCursorAtEnd } = getCursorPositionFlags($pos)
 
-	// insert ZWSP char so ProseMirror does not add <br class="ProseMirror-trailingBreak">
-	// instead adds an empty styled span - so line height, font size etc. are consistent
 	let tr = view.state.tr
 
-	if (cursorAtStart) {
-		const startOfCurrentPos = $pos.start()
-		const $before = state.doc.resolve(startOfCurrentPos - 1)
-		const prevNode = $before.nodeBefore
-
-		if (!prevNode || prevNode.isTextblock) {
-			const prevEnd = startOfCurrentPos - 1
-			// insert ZWSP inside previous node as placeholder so
-			// <br class="ProseMirror-trailingBreak"> is not added
-			tr.insert(prevEnd + 1, state.schema.text(ZWSP, marks))
-			tr = tr.setStoredMarks(marks)
-			view.dispatch(tr)
-			return true
-		}
-	} else if (cursorAtEnd) {
+	if (isCursorAtStart) {
+		return addEmptyLineBefore(state, view, $pos, marks)
+	} else if (isCursorAtEnd) {
 		tr.insertText(ZWSP)
 	}
 
@@ -344,6 +353,8 @@ export const StyledEmptyLine = Extension.create({
 
 	addKeyboardShortcuts() {
 		return {
+			// insert ZWSP char so ProseMirror does not add <br class="ProseMirror-trailingBreak">
+			// instead adds an empty styled span - so line height, font size etc. are consistent
 			Enter: ({ editor }) => handleEnterKey(editor),
 		}
 	},
