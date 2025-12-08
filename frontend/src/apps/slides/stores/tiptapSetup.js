@@ -244,16 +244,22 @@ function getFirstTextNodeInsideSelection(state) {
 	return foundText
 }
 
+const getMarksForPlaceholder = (state) => {
+	let marks = state.storedMarks || state.selection.$from.marks()
+
+	if (!marks || marks.length === 0) {
+		const firstText = getFirstTextNodeInsideSelection(state)
+		marks = firstText ? firstText.marks : []
+	}
+
+	return marks
+}
+
 const addPlaceholderAndRetainMarks = (event, view, start, end) => {
 	event.preventDefault()
 
 	const state = view.state
-
-	let marks = state.storedMarks || state.selection.$from.marks()
-	if (!marks || marks.length === 0) {
-		const firstText = getFirstTextNodeInsideSelection(view.state)
-		marks = firstText ? firstText.marks : []
-	}
+	const marks = getMarksForPlaceholder(state)
 
 	let tr = state.tr
 	tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
@@ -293,8 +299,6 @@ const getTextForSelection = ($from) => {
 
 const getPrevNode = ($from, view) => {
 	const blockDepth = $from.depth
-
-	// Position before the current block
 	const posBeforeBlock = $from.before(blockDepth)
 
 	const resolved = view.state.doc.resolve(posBeforeBlock)
@@ -303,10 +307,12 @@ const getPrevNode = ($from, view) => {
 
 const joinBackwardAfterPlaceholder = (view) => {
 	joinBackward(view.state, view.dispatch)
+
 	let tr = view.state.tr
 	const newPos = view.state.selection.$from.pos
 	tr = tr.delete(newPos - 1, newPos)
 	view.dispatch(tr)
+
 	return true
 }
 
