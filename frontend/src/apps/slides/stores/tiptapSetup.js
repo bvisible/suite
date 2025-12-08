@@ -277,6 +277,16 @@ const getTextForSelection = (from) => {
 	return firstChild.text
 }
 
+const getPrevNode = ($from, view) => {
+	const blockDepth = $from.depth
+
+	// Position before the current block
+	const posBeforeBlock = $from.before(blockDepth)
+
+	const resolved = view.state.doc.resolve(posBeforeBlock)
+	return resolved.nodeBefore
+}
+
 const handleKeyDown = (view, event) => {
 	if (event.key !== 'Backspace') return false
 
@@ -297,12 +307,19 @@ const handleKeyDown = (view, event) => {
 		return addPlaceholderAndRetainMarks(event, view, start, end)
 	}
 
-	if (text === ZWSP) {
+	const prevNode = getPrevNode($from, view)
+
+	if (text === ZWSP && prevNode && prevNode.isTextblock) {
 		// if only ZWSP is present, default behavior will lead to
 		// deleting it and adding <br class="ProseMirror-trailingBreak">
 		// so manually delete ZWSP and join with previous line which is expected behavior without the placeholder
-
 		return removePlaceholderAndJoinBackward(event, view, start, end)
+	}
+
+	if (text === ZWSP) {
+		// if only ZWSP is present but no previous textblock, do nothing
+		event.preventDefault()
+		return true
 	}
 
 	return false
