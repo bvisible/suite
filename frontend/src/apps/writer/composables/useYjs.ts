@@ -110,7 +110,7 @@ export function useYjs(document, editor, edited) {
   Promise.all([idbReady, serverReady]).then(([_, freshDoc]) => {
     const serverSnapshot = Y.mergeUpdates([
       toUint8Array(freshDoc.content),
-      ...freshDoc.updates.map((u) => toUint8Array(u.data)),
+      // ...freshDoc.updates.map((u) => toUint8Array(u.data)),
     ])
 
     const diff = Y.diffUpdate(serverSnapshot, Y.encodeStateVector(doc))
@@ -122,18 +122,15 @@ export function useYjs(document, editor, edited) {
   const save = async (manual = false) => {
     if (!manual && !edited.value) return
     // Compute a diff relative to server’s last known state
-    const incrementalDiff = Y.encodeStateAsUpdate(doc, serverStateVector)
-    const updateB64 = fromUint8Array(incrementalDiff)
-    const data = await document.addYjsUpdate.submit({
-      update_b64: updateB64,
+    const yjsState = Y.encodeStateAsUpdate(doc)
+    const data = await document.saveDoc.submit({
+      data: fromUint8Array(yjsState),
     })
-    if (data?.success) {
-      serverStateVector = Y.encodeStateVector(doc)
-    } else if (data?.skipped) {
+    if (data?.skipped) {
       console.log(
         'Server skipped update - probably because other people are collaborating',
       )
-    } else if (document.addYjsUpdate.error) {
+    } else if (document.saveDoc.error) {
       toast.error('Could not save the document - please contact support.')
       localStorage.setItem(
         'errored-save-out-' + Date.now(),
@@ -142,7 +139,7 @@ export function useYjs(document, editor, edited) {
     }
   }
 
-  const autosave = debounce(save, 2000)
+  const autosave = debounce(save, 5000)
   doc.on('update', (_, origin) => {
     if (origin && origin !== 'server') autosave()
   })

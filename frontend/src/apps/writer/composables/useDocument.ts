@@ -31,6 +31,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       methods: {
         addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
         newVersion: { name: 'new_version', skipOverride: true },
+        saveDoc: { name: 'save_yjs', skipOverride: true },
         saveComments: { name: 'save_comments', skipOverride: true },
         saveHtml: { name: 'save_html', skipOverride: true },
         toggleFav: { name: 'toggle_favourite', skipOverride: true },
