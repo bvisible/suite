@@ -32,6 +32,14 @@ class WriterDocument(Document):
         except COLLISION_ERRORS:
             pass
 
+    def save_yjs(self, data):
+        try:
+            self.content = data
+            self.save()
+            self.update_file(file_size=len(self.content))
+        except COLLISION_ERRORS:
+            pass
+
     def compact_yjs_updates(self):
         server_doc = pycrdt.Doc()
         server_doc.get("default", type=pycrdt.XmlFragment)

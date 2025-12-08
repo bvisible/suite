@@ -11,6 +11,11 @@ class WriterDriveFile(DriveFile):
 
     @frappe.whitelist(allow_guest=True)
     @requires("write")
+    def save_yjs(self, data):
+        frappe.get_doc("Writer Document", self.doc).save_yjs(data)
+
+    @frappe.whitelist(allow_guest=True)
+    @requires("write")
     def new_version(self, data, title=False):
         return frappe.get_doc("Writer Document", self.doc).new_version(data, title)
 
