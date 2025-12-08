@@ -14,6 +14,7 @@
           min="0.75"
           max="10"
           step="0.2"
+          @update:modelValue="apply"
           label="Line Height"
         />
         <div class="space-y-1">
@@ -21,13 +22,15 @@
           <div class="grid grid-cols-2 gap-2">
             <FormControl
               type="number"
-              v-model.number="local.spacingAbove"
+              v-model.number="local.spacingAfter"
+              @update:modelValue="apply"
               placeholder="0"
               description="Above"
             />
             <FormControl
               type="number"
-              v-model.number="local.spacingBelow"
+              v-model.number="local.spacingBefore"
+              @update:modelValue="apply"
               placeholder="0"
               description="Below"
             />
@@ -42,10 +45,10 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { Popover } from 'frappe-ui'
 import { FormControl, FormLabel } from 'frappe-ui'
-import LucideX from '~icons/lucide/x'
 
 const props = defineProps({
   editor: Object,
+  settings: Object,
 })
 
 const current = computed(() => {
@@ -65,44 +68,50 @@ const current = computed(() => {
   return {} // fallback
 })
 
-function parsePx(v) {
-  if (!v) return 0
+function parsePx(v, def) {
+  if (!v) return def
   if (typeof v !== 'string') return v
-  return parseInt(v.replace('px', ''), 10) || 0
-}
-
-const defaults = {
-  lineHeight: 1.5,
-  spacingAbove: 0,
-  spacingBelow: 0,
+  return parseInt(v.replace('px', ''), 10) || def
 }
 
 const local = reactive({
-  lineHeight: +(current.value.lineHeight || defaults.lineHeight),
-  spacingAbove: parsePx(current.value.marginTop),
-  spacingBelow: parsePx(current.value.marginBottom),
+  lineHeight: +(current.value.lineHeight || props.settings.line_height),
+  spacingAfter: parsePx(
+    current.value.marginTop,
+    props.settings.paragraph_spacing_above,
+  ),
+  spacingBefore: parsePx(
+    current.value.marginBottom,
+    props.settings.paragraph_spacing_below,
+  ),
 })
 
-// watch(current, (cur) => {
-//   local.lineHeight = cur.lineHeight ? +cur.lineHeight : 1.5
-//   local.spacingAbove = parsePx(cur.spacingAbove)
-//   local.spacingBelow = parsePx(cur.spacingBelow)
-// })
+watch(current, (cur) => {
+  local.lineHeight = cur.lineHeight
+    ? +cur.lineHeight
+    : props.settings.line_height
+  local.spacingAfter = parsePx(
+    cur.spacingAfter,
+    props.settings.paragraph_spacing_after,
+  )
+  local.spacingBefore = parsePx(
+    cur.spacingBefore,
+    props.settings.paragraph_spacing_before,
+  )
+})
 
 function apply() {
   props.editor.commands.updateAttributes('paragraph', {
     lineHeight:
-      local.lineHeight === defaults.lineHeight ? null : local.lineHeight,
-    spacingAbove:
-      local.spacingAbove === defaults.spacingAbove
+      local.lineHeight === props.settings.line_height ? null : local.lineHeight,
+    spacingAfter:
+      local.spacingAfter === props.settings.paragraph_spacing_above
         ? null
-        : `${local.spacingAbove}px`,
-    spacingBelow:
-      local.spacingAbove === defaults.spacingAbove
+        : `${local.spacingAfter}px`,
+    spacingBefore:
+      local.spacingAfter === props.settings.paragraph_spacing_below
         ? null
-        : `${local.spacingBelow}px`,
+        : `${local.spacingBefore}px`,
   })
 }
-
-watch(local, apply)
 </script>

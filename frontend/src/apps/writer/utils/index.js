@@ -410,6 +410,10 @@ export function printDoc(html, settings = {}) {
                 .ProseMirror {
                   font-family: ${fontFamily} !important;
                 }
+                div[data-page-break='true'] {
+                  border: none;
+                  margin: none;
+                }  
                 .watermark {
                   position: fixed;
                   top: 50%;

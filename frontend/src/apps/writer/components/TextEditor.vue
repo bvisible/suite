@@ -10,7 +10,6 @@
         v-if="editable && !settings.minimal"
         :buttons="menuButtons"
       />
-      <div class="flex items-center justify-end pr-4"></div>
     </div>
 
     <div
@@ -69,6 +68,8 @@
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
                 lineHeight: settings?.line_height || 1.5,
+                '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
+                '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
               }"
               :editor="editor"
             />
@@ -127,7 +128,6 @@ import {
   inject,
   provide,
 } from 'vue'
-import { clearDialogs, createDialog } from '@/utils/dialogs'
 import { EditorContent } from '@tiptap/vue-3'
 import 'katex/dist/katex.min.css'
 
@@ -135,6 +135,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { Selection, CharacterCount } from '@tiptap/extensions'
 // import { MathematicsExtension } from '@/extensions/mathematics'
+import { PageBreakExtension } from '@/extensions/page-break'
 
 import { onKeyDown } from '@vueuse/core'
 
@@ -152,7 +153,8 @@ import LucideArrowDownUp from '~icons/lucide/arrow-down-up'
 import LucideArrowUpWideNarrow from '~icons/lucide/arrow-up-wide-narrow'
 import LucideArrowDownWideNarrow from '~icons/lucide/arrow-down-wide-narrow'
 import LucideScanLine from '~icons/lucide/scan-line'
-import LucideScan from '~icons/lucide/scan'
+import LucideForm from '~icons/lucide/sticky-note'
+import LucideAlignVerticalSpacingAround from '~icons/lucide/align-vertical-space-around'
 import LucideSeparatorHorizontal from '~icons/lucide/separator-horizontal'
 
 import { updateURLSlug } from '@/utils'
@@ -173,7 +175,6 @@ import OldCommentExtension from '@/extensions/old-comment'
 import { useYjs } from '@/composables/useYjs'
 import FloatingComments from './FloatingComments.vue'
 import { TabsExtension } from '@/extensions/tabs'
-import SpacingDialog from './SpacingDialog.vue'
 
 const activeComment = ref(null)
 const showComments = ref(true)
@@ -240,6 +241,7 @@ const onCommentActivated = (id) => {
 }
 const editorExtensions = [
   ...COMMON_EXTENSIONS,
+  PageBreakExtension,
   CharacterCount,
   Selection,
   // MathematicsExtension,
@@ -322,7 +324,6 @@ const menuButtons = computed(() => [
     icon: LucidePaintRoller,
     isActive: () => isPainting.value,
     action: (editor) => {
-      console.log(editor, editor.storage.styleClipboard.styleClipboard)
       editor.commands.focus()
       if (editor.storage.styleClipboard.styleClipboard) {
         editor.commands.applyStyles()
@@ -354,39 +355,6 @@ const menuButtons = computed(() => [
       },
     ),
   },
-  [
-    {
-      label: 'Increase line height',
-      icon: LucideArrowUpWideNarrow,
-      action: (editor) =>
-        editor.commands.setLineHeight(
-          +getParagraphAttr(editor, 'lineHeight', 2) + LINE_HEIGHT_STEP,
-        ),
-    },
-    {
-      label: 'Decrease line height',
-      icon: LucideArrowDownWideNarrow,
-      action: (editor) =>
-        editor.commands.setLineHeight(
-          +getParagraphAttr(editor, 'lineHeight', 2) - LINE_HEIGHT_STEP,
-        ),
-    },
-    {
-      label: 'Reset spacing',
-      icon: LucideArrowDownUp,
-      action: (editor) => {
-        editor.commands.focus()
-        editor.commands.clearSpacing()
-      },
-    },
-  ],
-  {
-    label: 'Custom',
-    icon: LucideArrowDownUp,
-    component: defineAsyncComponent(
-      () => import('@/components/SpacingDialog.vue'),
-    ),
-  },
   'Separator',
   ['Bullet List', 'Numbered List', 'Task List'],
   'Blockquote',
@@ -396,9 +364,14 @@ const menuButtons = computed(() => [
   //   icon: LucideSquareFunction,
   //   action: (editor) => editor.commands.openMathEditor('block'),
   // },
-  'Separator',
   ['Image', 'Video', 'Iframe'],
+  'Separator',
   'TableOfContents',
+  {
+    label: 'Page Break',
+    icon: LucideForm,
+    action: (editor) => editor.commands.setPageBreak(),
+  },
   [
     'InsertTable',
     'AddColumnBefore',
@@ -414,6 +387,15 @@ const menuButtons = computed(() => [
     'ToggleHeaderCell',
     'DeleteTable',
   ],
+  'Separator',
+  {
+    label: 'Custom Spacing',
+    icon: LucideAlignVerticalSpacingAround,
+    component: h(
+      defineAsyncComponent(() => import('@/components/SpacingDialog.vue')),
+      { settings: props.settings, editor: editor },
+    ),
+  },
   {
     icon: LucideSettings,
     label: 'Settings',
@@ -577,5 +559,11 @@ onKeyDown('s', (e) => {
 @import url('@/styles/editor.css');
 iframe {
   border: 1px solid var(--surface-gray-4) !important;
+}
+.prose-v2 p + p {
+  margin-top: var(--paragraph-spacing-before, 0);
+}
+.prose-v2 p {
+  margin-bottom: var(--paragraph-spacing-after, 0);
 }
 </style>
