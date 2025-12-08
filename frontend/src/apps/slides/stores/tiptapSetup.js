@@ -287,6 +287,15 @@ const getPrevNode = ($from, view) => {
 	return resolved.nodeBefore
 }
 
+const joinBackwardAfterPlaceholder = (view) => {
+	joinBackward(view.state, view.dispatch)
+	let tr = view.state.tr
+	const newPos = view.state.selection.$from.pos
+	tr = tr.delete(newPos - 1, newPos)
+	view.dispatch(tr)
+	return true
+}
+
 const handleKeyDown = (view, event) => {
 	if (event.key !== 'Backspace') return false
 
@@ -320,6 +329,10 @@ const handleKeyDown = (view, event) => {
 		// if only ZWSP is present but no previous textblock, do nothing
 		event.preventDefault()
 		return true
+	}
+
+	if (prevNode && prevNode.isTextblock && prevNode.textContent === ZWSP) {
+		return joinBackwardAfterPlaceholder(event, view, $from)
 	}
 
 	return false
