@@ -230,12 +230,30 @@ const handleEnterKey = (editor) => {
 	return true
 }
 
+function getFirstTextNodeInsideSelection(state) {
+	const { from, to } = state.selection
+	let foundText = null
+
+	state.doc.nodesBetween(from, to, (node) => {
+		if (node.isText) {
+			foundText = node
+			return false
+		}
+	})
+
+	return foundText
+}
+
 const addPlaceholderAndRetainMarks = (event, view, start, end) => {
 	event.preventDefault()
 
 	const state = view.state
 
-	const marks = state.storedMarks || state.selection.$from.marks()
+	let marks = state.storedMarks || state.selection.$from.marks()
+	if (!marks || marks.length === 0) {
+		const firstText = getFirstTextNodeInsideSelection(view.state)
+		marks = firstText ? firstText.marks : []
+	}
 
 	let tr = state.tr
 	tr = tr.replaceWith(start, end, state.schema.text(ZWSP, marks))
@@ -269,12 +287,8 @@ const getSelectionRange = (selection) => {
 	}
 }
 
-const getTextForSelection = (from) => {
-	const firstChild = from.parent.content.firstChild
-
-	if (!firstChild || !firstChild.isText) return undefined
-
-	return firstChild.text
+const getTextForSelection = ($from) => {
+	return $from.parent.textContent || ''
 }
 
 const getPrevNode = ($from, view) => {
@@ -309,10 +323,13 @@ const handleKeyDown = (view, event) => {
 
 	const { from, to, start, end } = getSelectionRange(selection)
 
-	if ((text.length === 1 && text !== ZWSP) || (from === start && to === end)) {
+	const lastCharOnLine = text.length === 1 && text !== ZWSP
+	const isEntireParagraphSelected = from === start && to === end
+	const isFullDocSelected = from === 0 && to === view.state.doc.content.size
+
+	if (lastCharOnLine || isEntireParagraphSelected || isFullDocSelected) {
 		// if the last non-ZWSP character is being deleted, replace with ZWSP + re-apply marks
 		// so <br class="ProseMirror-trailingBreak"> is not added
-
 		return addPlaceholderAndRetainMarks(event, view, start, end)
 	}
 
