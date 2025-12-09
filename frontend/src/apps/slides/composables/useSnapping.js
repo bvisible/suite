@@ -236,27 +236,37 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		updateDiffsRelativeToPairedElement()
 	}
 
+	const getDynamicMargin = (axis) => {
+		if (['centerX', 'centerY'].includes(axis)) {
+			return selectionBounds.width * slideBounds.scale * 0.1
+		}
+		return selectionBounds.height * slideBounds.scale * 0.08
+	}
+
 	const getDynamicThresholds = (axis) => {
 		const scaleFactor = 0.1
-		const scaledWidth = selectionBounds.width * slideBounds.scale * scaleFactor
+		const scaledHeight = selectionBounds.height * slideBounds.scale * scaleFactor
 
 		const isCenterAxis = ['centerX', 'centerY'].includes(axis)
 
 		let minThreshold, maxThreshold, maxResistanceThreshold
 
 		if (isCenterAxis) {
-			minThreshold = scaledWidth > 50 ? scaledWidth / 6 : scaledWidth / 5
-			maxThreshold = scaledWidth > 50 ? scaledWidth / 4 : scaledWidth / 3
+			minThreshold = scaledHeight > 50 ? scaledHeight / 6 : scaledHeight / 5
+			maxThreshold = scaledHeight > 50 ? scaledHeight / 4 : scaledHeight / 3
 			maxResistanceThreshold = 5
 		} else {
-			minThreshold = scaledWidth > 50 ? scaledWidth / 8 : scaledWidth / 7
-			maxThreshold = scaledWidth > 50 ? scaledWidth / 6 : scaledWidth / 5
+			minThreshold = scaledHeight > 50 ? scaledHeight / 4 : scaledHeight / 3
+			maxThreshold = scaledHeight > 50 ? scaledHeight / 3 : scaledHeight / 2
 			maxResistanceThreshold = 3
 		}
 
 		return {
-			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaledWidth)),
-			resistance_threshold: Math.max(1, Math.min(maxResistanceThreshold, scaledWidth * 0.15)),
+			threshold: Math.max(minThreshold, Math.min(maxThreshold, scaledHeight)),
+			resistance_threshold: Math.max(
+				1,
+				Math.min(maxResistanceThreshold, scaledHeight * 0.15),
+			),
 		}
 	}
 
@@ -277,7 +287,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	const getThresholdsAndMargin = (axis) => {
 		return {
 			...getDynamicThresholds(axis),
-			margin: ['centerX', 'centerY'].includes(axis) ? 1 : 5,
+			margin: getDynamicMargin(axis),
 		}
 	}
 
@@ -384,10 +394,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			end = 'bottom'
 		}
 
-		if (
-			Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start]) &&
-			Math.abs(diffs.matched[end]) > 1
-		) {
+		if (Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start])) {
 			return handleSnapMovement(end)
 		}
 
