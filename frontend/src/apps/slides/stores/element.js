@@ -380,19 +380,13 @@ const isWithinOverlappingBounds = (outer, inner) => {
 	return withinWidth && withinHeight
 }
 
-const getCopiedJSON = () => {
-	const elementsCopy = JSON.parse(JSON.stringify(activeElements.value))
-	elementsCopy.forEach((element) => {
-		const { left, top } = getElementPosition(element.id)
-		element.left = left
-		element.top = top
-	})
-	return JSON.stringify(elementsCopy)
-}
+const getCopiedJSON = () => JSON.stringify(activeElements.value)
 
 const copiedFrom = ref({})
 
 const handleCopy = (e) => {
+	if (!activeElements.value.length) return
+
 	e.preventDefault()
 	const clipboardJSON = getCopiedJSON()
 	e.clipboardData.setData('application/json', clipboardJSON)

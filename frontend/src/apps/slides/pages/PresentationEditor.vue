@@ -83,6 +83,7 @@ import {
 	ignoreUpdates,
 	unsyncedPresentationRecord,
 	readonlyMode,
+	slidesLength,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -254,6 +255,8 @@ const handleGlobalShortcuts = (e) => {
 const recentlyRestored = ref(false)
 
 const handleHistoryOperation = async (operation) => {
+	activeElementIds.value = []
+
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
@@ -264,9 +267,9 @@ const handleHistoryOperation = async (operation) => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
 	})
 
-	const onActiveSlide = slideIndex.value == slideToFocus
+	const onActiveSlide = slideToFocus == slideIndex.value
 
-	if (!onActiveSlide) {
+	if (!onActiveSlide && slideToFocus) {
 		await changeSlide(slideToFocus, false)
 
 		recentlyRestored.value = true
@@ -492,8 +495,8 @@ const initIntervals = () => {
 }
 
 const setSlideIndex = (index) => {
-	index = parseInt(index) - 1 || 0
-	slideIndex.value = Math.min(index, slides.value.length - 1)
+	index = parseInt(index) - 1
+	slideIndex.value = Math.min(index, slidesLength.value - 1)
 }
 
 const loadPresentation = async (id) => {

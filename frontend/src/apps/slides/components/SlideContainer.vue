@@ -11,7 +11,10 @@
 				@setIsSelecting="(val) => (isSelecting = val)"
 			/>
 
-			<SnapGuides :isDragging="isDragging" :visibilityMap="visibilityMap" />
+			<SnapGuides
+				:ongoingInteraction="hasOngoingInteraction"
+				:visibilityMap="visibilityMap"
+			/>
 
 			<SlideElement
 				v-for="element in currentSlide?.elements"
@@ -93,7 +96,14 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
-const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(selectionBoxRef, slideRef)
+const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
+
+const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(
+	selectionBoxRef,
+	slideRef,
+	currentResizer,
+	hasOngoingInteraction,
+)
 
 const { allowPanAndZoom, transform, transformOrigin } = usePanAndZoom(slideContainerRef, slideRef)
 
@@ -246,30 +256,51 @@ const applyResistance = (axis, delta) => {
 
 	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
 
-	let useResistance = false
+	let useResistanceKeys = []
 	let pullDelta = null
 
 	if (axis == 'X') {
-		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
-		pullDelta = delta.x
+		useResistanceKeys = ['left', 'right', 'centerY']
+		pullDelta = delta.left
 	} else if (axis == 'Y') {
-		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
-		pullDelta = delta.y
+		useResistanceKeys = ['top', 'bottom', 'centerX']
+		pullDelta = delta.top
+	} else if (axis == null && currentResizer.value) {
+		useResistanceKeys = ['left', 'right', 'top', 'bottom', 'centerX', 'centerY']
+		pullDelta = delta.width
 	}
+
+	const useResistance = useResistanceKeys.some((key) => resistanceMap[key])
 
 	return useResistance && Math.abs(pullDelta) < escapeDelta
 }
 
-const getTotalPositionDelta = (delta) => {
-	const snapDelta = handleSnapping()
+const updateTotalDeltaForResize = (totalDelta, delta, width) => {
+	totalDelta.width = applyResistance(null, delta) ? 0 : width
 
-	const left = snapDelta.x || delta.x
-	const top = snapDelta.y || delta.y
+	// if resisting width change, don't apply top change either otherwise
+	// element sticks to one axis and drags on other which shouldn't happen on resize
+	if (totalDelta.width === 0) totalDelta.top = 0
+}
 
-	return {
+const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
+	const snapDelta = handleSnapping(interaction)
+
+	const left = snapDelta.x || delta.left
+	const top = snapDelta.y || delta.top
+
+	const totalDelta = {
 		left: applyResistance('X', delta) ? 0 : left,
 		top: applyResistance('Y', delta) ? 0 : top,
 	}
+
+	const width = snapDelta.width || delta.width
+
+	if (interaction === 'resizing') {
+		updateTotalDeltaForResize(totalDelta, delta, width)
+	}
+
+	return totalDelta
 }
 
 const elementOffset = reactive({
@@ -279,9 +310,9 @@ const elementOffset = reactive({
 })
 
 const handlePositionChange = (delta) => {
-	if (!delta.x && !delta.y) return
+	if (!delta.left && !delta.top) return
 
-	const totalDelta = getTotalPositionDelta(delta)
+	const totalDelta = getTotalInteractionDelta(delta)
 
 	applyPositionDelta(totalDelta)
 }
@@ -325,11 +356,13 @@ const handleDimensionChange = (delta) => {
 
 	delta.top = applyAspectRatio(delta.top)
 
-	applyPositionDelta(delta)
+	const totalDelta = getTotalInteractionDelta(delta, 'resizing')
+
+	applyPositionDelta(totalDelta)
 
 	if (!activeElement.value.width) addFixedWidthToElement()
 
-	applyDimensionDelta(delta)
+	applyDimensionDelta(totalDelta)
 }
 
 const updateSlideBounds = () => {
@@ -414,8 +447,6 @@ provide('resizer', {
 defineExpose({
 	togglePanZoom,
 })
-
-const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
 const applyInteractionOffsets = () => {
 	pairElementId.value = null

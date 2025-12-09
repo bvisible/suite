@@ -13,7 +13,7 @@ const props = defineProps({
 		type: Object,
 		default: null,
 	},
-	isDragging: {
+	ongoingInteraction: {
 		type: Boolean,
 		default: false,
 	},
@@ -25,7 +25,7 @@ const commonStyles = {
 }
 
 const isVisible = (axis) => {
-	const closeToSnap = props.isDragging && props.visibilityMap?.[axis]
+	const closeToSnap = props.ongoingInteraction && props.visibilityMap?.[axis]
 	const hoveringOverControl = guideVisibilityMap[axis]
 	return closeToSnap || hoveringOverControl
 }
