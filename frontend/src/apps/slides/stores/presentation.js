@@ -111,6 +111,8 @@ const parseElements = (value) => {
 	return normalizeZIndices(parsed)
 }
 
+const slidesLength = ref(0)
+
 const getPresentationResource = (name) => {
 	return createDocumentResource({
 		doctype: 'Presentation',
@@ -128,6 +130,7 @@ const getPresentationResource = (name) => {
 			}
 		},
 		async onSuccess(doc) {
+			slidesLength.value = doc.slides?.length || 0
 			for (const slide of doc.slides || []) {
 				slide.elements = await transformElements(slide.elements)
 			}
@@ -157,6 +160,7 @@ const getPublicPresentationResource = (name) => {
 			}
 		},
 		onSuccess(doc) {
+			slidesLength.value = doc.slides?.length || 0
 			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
 			isPublicPresentation.value = Boolean(doc.is_public)
 		},
@@ -183,6 +187,7 @@ const getCompositePresentationResource = (name) => {
 			}
 		},
 		onSuccess(doc) {
+			slidesLength.value = doc.slides?.length || 0
 			slides.value = JSON.parse(JSON.stringify(doc.slides || []))
 			isPublicPresentation.value = true
 		},
@@ -347,5 +352,6 @@ export {
 	unsyncedPresentationRecord,
 	isPublicPresentation,
 	readonlyMode,
+	slidesLength,
 	parseElements,
 }
