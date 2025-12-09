@@ -256,28 +256,31 @@ const applyResistance = (axis, delta) => {
 
 	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
 
-	let useResistance = false
+	let useResistanceKeys = []
 	let pullDelta = null
 
 	if (axis == 'X') {
-		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
+		useResistanceKeys = ['left', 'right', 'centerY']
 		pullDelta = delta.left
 	} else if (axis == 'Y') {
-		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
+		useResistanceKeys = ['top', 'bottom', 'centerX']
 		pullDelta = delta.top
 	} else if (axis == null && currentResizer.value) {
-		// for resizing both axes
-		useResistance =
-			resistanceMap.left ||
-			resistanceMap.right ||
-			resistanceMap.top ||
-			resistanceMap.bottom ||
-			resistanceMap.centerX ||
-			resistanceMap.centerY
+		useResistanceKeys = ['left', 'right', 'top', 'bottom', 'centerX', 'centerY']
 		pullDelta = delta.width
 	}
 
+	const useResistance = useResistanceKeys.some((key) => resistanceMap[key])
+
 	return useResistance && Math.abs(pullDelta) < escapeDelta
+}
+
+const updateTotalDeltaForResize = (totalDelta, delta, width) => {
+	totalDelta.width = applyResistance(null, delta) ? 0 : width
+
+	// if resisting width change, don't apply top change either otherwise
+	// element sticks to one axis and drags on other which shouldn't happen on resize
+	if (totalDelta.width === 0) totalDelta.top = 0
 }
 
 const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
@@ -291,12 +294,12 @@ const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
 		top: applyResistance('Y', delta) ? 0 : top,
 	}
 
-	if (interaction == 'resizing') {
-		const width = snapDelta.width || delta.width
-		const totalWidth = applyResistance(null, delta) ? 0 : width
-		totalDelta.width = totalWidth
-		if (totalDelta.width === 0) totalDelta.top = 0
+	const width = snapDelta.width || delta.width
+
+	if (interaction === 'resizing') {
+		updateTotalDeltaForResize(totalDelta, delta, width)
 	}
+
 	return totalDelta
 }
 
