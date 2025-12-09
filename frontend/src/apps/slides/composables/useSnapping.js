@@ -157,6 +157,11 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			getDiffFromCenter('Y') + (selectionBounds.width * slideBounds.scale) / 2
 		diffs.slideCenter.endX =
 			getDiffFromCenter('Y') - (selectionBounds.width * slideBounds.scale) / 2
+
+		diffs.slideCenter.startY =
+			getDiffFromCenter('X') + (selectionBounds.height * slideBounds.scale) / 2
+		diffs.slideCenter.endY =
+			getDiffFromCenter('X') - (selectionBounds.height * slideBounds.scale) / 2
 	}
 
 	const canElementPair = (diffsFromElement) => {
@@ -400,11 +405,11 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 
 		const { offsetX, offsetWidth } = handleSnapMovement('slideCenterX', pointX)
 
-		const { offsetY } = handleSnapMovement('slideCenterY', pointY)
+		const { offsetY, offsetWidth: offsetWidthY } = handleSnapMovement('slideCenterY', pointY)
 
 		return {
 			centerOffsetX: offsetX,
-			centerOffsetWidth: offsetWidth,
+			centerOffsetWidth: offsetWidth + offsetWidthY,
 			centerOffsetY: offsetY,
 		}
 	}
