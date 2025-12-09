@@ -361,7 +361,7 @@ const handleThumbnailGeneration = async (index) => {
 }
 
 const changeSlide = async (index, focus = true) => {
-	if (index < 0 || index >= slides.value.length) return
+	index = Math.max(0, Math.min(index, slides.value.length - 1))
 
 	const oldIndex = slideIndex.value
 
@@ -415,6 +415,8 @@ const insertSlide = async (index, layoutId, toDuplicate) => {
 		slide.idx = index + 1
 	})
 
+	slidesLength.value = slides.value.length
+
 	await changeSlide(index + 1)
 
 	updateThumbnail(index + 1)
@@ -441,6 +443,8 @@ const deleteSlide = (deleteActive) => {
 	slides.value.forEach((slide, index) => {
 		slide.idx = index + 1
 	})
+
+	slidesLength.value = slides.value.length
 
 	if (deleteIndex == totalLength - 1) {
 		// if last slide is deleted, switch to previous slide since no slide at current index
