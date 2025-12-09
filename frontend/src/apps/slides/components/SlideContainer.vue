@@ -261,10 +261,20 @@ const applyResistance = (axis, delta) => {
 
 	if (axis == 'X') {
 		useResistance = resistanceMap.left || resistanceMap.right || resistanceMap.centerY
-		pullDelta = currentResizer.value ? delta.width : delta.left
+		pullDelta = delta.left
 	} else if (axis == 'Y') {
 		useResistance = resistanceMap.top || resistanceMap.bottom || resistanceMap.centerX
 		pullDelta = delta.top
+	} else if (axis == null && currentResizer.value) {
+		// for resizing both axes
+		useResistance =
+			resistanceMap.left ||
+			resistanceMap.right ||
+			resistanceMap.top ||
+			resistanceMap.bottom ||
+			resistanceMap.centerX ||
+			resistanceMap.centerY
+		pullDelta = delta.width
 	}
 
 	return useResistance && Math.abs(pullDelta) < escapeDelta
@@ -283,7 +293,7 @@ const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
 
 	if (interaction == 'resizing') {
 		const width = snapDelta.width || delta.width
-		const totalWidth = applyResistance('X', delta) ? 0 : width
+		const totalWidth = applyResistance(null, delta) ? 0 : width
 		totalDelta.width = totalWidth
 		if (totalDelta.width === 0) totalDelta.top = 0
 	}
