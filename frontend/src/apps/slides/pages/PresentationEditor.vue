@@ -83,6 +83,7 @@ import {
 	ignoreUpdates,
 	unsyncedPresentationRecord,
 	readonlyMode,
+	slidesLength,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -494,9 +495,8 @@ const initIntervals = () => {
 }
 
 const setSlideIndex = (index) => {
-	if (!index) index = 1
 	index = parseInt(index) - 1
-	slideIndex.value = Math.min(index, slides.value.length - 1)
+	slideIndex.value = Math.min(index, slidesLength.value - 1)
 }
 
 const loadPresentation = async (id) => {
