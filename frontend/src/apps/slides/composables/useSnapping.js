@@ -331,45 +331,56 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			return 0
 		}
 
+		const limitResistanceToOneSide = (activeGuide) => {
+			const resizer = currentResizer.value || ''
+
+			const oppositeGuides = {
+				left: 'right',
+				right: 'left',
+				top: 'bottom',
+				bottom: 'top',
+			}
+
+			Object.entries(oppositeGuides).forEach(([side, opposite]) => {
+				if (resizer.includes(side)) {
+					resistanceMap[opposite] = false
+				}
+			})
+		}
+
 		const setResistanceMap = () => {
 			const guide = getGuideForDirection(axis)
 			const withinResistanceRange = movingAway && Math.abs(diff) < resistance_threshold
 			resistanceMap[guide] = diff !== null && withinResistanceRange
 
-			if (currentResizer.value?.includes('left') && resistanceMap['right']) {
-				resistanceMap['right'] = false
-			} else if (currentResizer.value?.includes('right') && resistanceMap['left']) {
-				resistanceMap['left'] = false
-			} else if (currentResizer.value?.includes('top') && resistanceMap['bottom']) {
-				resistanceMap['bottom'] = false
-			} else if (currentResizer.value?.includes('bottom') && resistanceMap['top']) {
-				resistanceMap['top'] = false
-			}
+			limitResistanceToOneSide(guide)
 		}
 
 		const setResizeSnapOffsets = () => {
 			const resizer = currentResizer.value || ''
+			const snapOffset = getSnapOffset()
 
 			if (axis == 'right' && resizer.includes('right')) {
 				offsetX = 0
-				offsetWidth = -getSnapOffset()
+				offsetWidth = -snapOffset
 			} else if (axis == 'left' && resizer.includes('left')) {
-				offsetX = getSnapOffset()
-				offsetWidth = getSnapOffset()
+				offsetX = snapOffset
+				offsetWidth = snapOffset
 			} else if (axis == 'bottom' && resizer.includes('bottom')) {
 				offsetY = 0
-				offsetWidth = -getSnapOffset()
+				offsetWidth = -snapOffset
 			} else if (axis == 'top' && resizer.includes('top')) {
-				offsetY = getSnapOffset()
-				offsetWidth = getSnapOffset()
+				offsetY = snapOffset
+				offsetWidth = snapOffset
 			}
 		}
 
 		const setDragSnapOffsets = () => {
+			const snapOffset = getSnapOffset()
 			if (['slideCenterY', 'left', 'right'].includes(axis)) {
-				offsetX = getSnapOffset()
+				offsetX = snapOffset
 			} else if (['slideCenterX', 'top', 'bottom'].includes(axis)) {
-				offsetY = getSnapOffset()
+				offsetY = snapOffset
 			}
 		}
 
