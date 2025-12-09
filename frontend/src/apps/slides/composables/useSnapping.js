@@ -92,14 +92,11 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 	const mode = ref(null)
 
 	const getGuideForDirection = (direction) => {
-		switch (direction) {
-			case 'slideCenterY':
-				return 'centerX'
-			case 'slideCenterX':
-				return 'centerY'
-			default:
-				return direction
+		const guideMap = {
+			slideCenterY: 'centerX',
+			slideCenterX: 'centerY',
 		}
+		return guideMap[direction] || direction
 	}
 
 	const getSlideCenter = (axis) => {
@@ -350,6 +347,32 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			}
 		}
 
+		const setResizeSnapOffsets = () => {
+			const resizer = currentResizer.value || ''
+
+			if (axis == 'right' && resizer.includes('right')) {
+				offsetX = 0
+				offsetWidth = -getSnapOffset()
+			} else if (axis == 'left' && resizer.includes('left')) {
+				offsetX = getSnapOffset()
+				offsetWidth = getSnapOffset()
+			} else if (axis == 'bottom' && resizer.includes('bottom')) {
+				offsetY = 0
+				offsetWidth = -getSnapOffset()
+			} else if (axis == 'top' && resizer.includes('top')) {
+				offsetY = getSnapOffset()
+				offsetWidth = getSnapOffset()
+			}
+		}
+
+		const setDragSnapOffsets = () => {
+			if (['slideCenterY', 'left', 'right'].includes(axis)) {
+				offsetX = getSnapOffset()
+			} else if (['slideCenterX', 'top', 'bottom'].includes(axis)) {
+				offsetY = getSnapOffset()
+			}
+		}
+
 		const { diff, prevDiff } = getDiffsForAxis(axis, point)
 
 		const { threshold, resistance_threshold, margin } = getThresholdsAndMargin(axis)
@@ -363,25 +386,9 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		let offsetWidth = 0
 
 		if (mode.value == 'resizing') {
-			if (axis == 'right' && currentResizer.value?.includes('right')) {
-				offsetX = 0
-				offsetWidth = -getSnapOffset()
-			} else if (axis == 'left' && currentResizer.value?.includes('left')) {
-				offsetX = getSnapOffset()
-				offsetWidth = getSnapOffset()
-			} else if (axis == 'bottom' && currentResizer.value?.includes('bottom')) {
-				offsetY = 0
-				offsetWidth = -getSnapOffset()
-			} else if (axis == 'top' && currentResizer.value?.includes('top')) {
-				offsetY = getSnapOffset()
-				offsetWidth = getSnapOffset()
-			}
+			setResizeSnapOffsets()
 		} else {
-			if (['slideCenterY', 'left', 'right'].includes(axis)) {
-				offsetX = getSnapOffset()
-			} else if (['slideCenterX', 'top', 'bottom'].includes(axis)) {
-				offsetY = getSnapOffset()
-			}
+			setDragSnapOffsets()
 		}
 
 		return {
@@ -395,12 +402,14 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		let pointX = 'centerX',
 			pointY = 'centerY'
 
-		if (mode.value == 'resizing') {
-			if (currentResizer.value.includes('left')) pointX = 'startX'
-			else if (currentResizer.value.includes('right')) pointX = 'endX'
+		const resizer = currentResizer.value || ''
 
-			if (currentResizer.value.includes('top')) pointY = 'startY'
-			else if (currentResizer.value.includes('bottom')) pointY = 'endY'
+		if (mode.value == 'resizing') {
+			if (resizer.includes('left')) pointX = 'startX'
+			else if (resizer.includes('right')) pointX = 'endX'
+
+			if (resizer.includes('top')) pointY = 'startY'
+			else if (resizer.includes('bottom')) pointY = 'endY'
 		}
 
 		const { offsetX, offsetWidth } = handleSnapMovement('slideCenterX', pointX)
