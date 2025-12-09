@@ -33,6 +33,36 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		bottom: false,
 	})
 
+	const getPointMap = (key) => {
+		if (key == 'centerY') {
+			return {
+				left: 'startX',
+				right: 'endX',
+				def: 'centerX',
+			}
+		}
+
+		return {
+			top: 'startY',
+			bottom: 'endY',
+			def: 'centerY',
+		}
+	}
+
+	const getPointForVisibilityKey = (key) => {
+		const pointMap = getPointMap(key)
+
+		let point = pointMap.def
+
+		if (mode.value == 'dragging' || !currentResizer.value) return point
+
+		point =
+			pointMap[Object.keys(pointMap).find((key) => currentResizer.value.includes(key))] ||
+			point
+
+		return point
+	}
+
 	const visibilityMap = computed(() => {
 		if (!hasOngoingInteraction.value) return {}
 
@@ -43,25 +73,11 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			let diff
 
 			if (key == 'centerY') {
-				let point = 'centerX'
-				if (mode.value == 'resizing' && currentResizer.value) {
-					point = currentResizer.value.includes('left')
-						? 'startX'
-						: currentResizer.value.includes('right')
-							? 'endX'
-							: 'centerX'
-				}
+				const point = getPointForVisibilityKey(key)
 				diff = getDiffsForAxis('slideCenterY', point).diff
 			} else if (key == 'centerX') {
-				let point = 'centerY'
-				if (mode.value == 'resizing' && currentResizer.value) {
-					point = currentResizer.value.includes('top')
-						? 'startY'
-						: currentResizer.value.includes('bottom')
-							? 'endY'
-							: 'centerY'
-				}
-				diff = getDiffsForAxis('slideCenterY', point).diff
+				const point = getPointForVisibilityKey(key)
+				diff = getDiffsForAxis('slideCenterX', point).diff
 			} else {
 				diff = diffs.matched[key]
 			}
