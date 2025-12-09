@@ -240,7 +240,7 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 		if (['centerX', 'centerY'].includes(axis)) {
 			return selectionBounds.width * slideBounds.scale * 0.1
 		}
-		return selectionBounds.height * slideBounds.scale * 0.08
+		return selectionBounds.height * slideBounds.scale * 0.05
 	}
 
 	const getDynamicThresholds = (axis) => {
@@ -256,8 +256,8 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			maxThreshold = scaledHeight > 50 ? scaledHeight / 4 : scaledHeight / 3
 			maxResistanceThreshold = 5
 		} else {
-			minThreshold = scaledHeight > 50 ? scaledHeight / 4 : scaledHeight / 3
-			maxThreshold = scaledHeight > 50 ? scaledHeight / 3 : scaledHeight / 2
+			minThreshold = scaledHeight > 50 ? scaledHeight / 6 : scaledHeight / 5
+			maxThreshold = scaledHeight > 50 ? scaledHeight / 4 : scaledHeight / 3
 			maxResistanceThreshold = 3
 		}
 
@@ -322,6 +322,10 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 				resistanceMap['right'] = false
 			} else if (currentResizer.value?.includes('right') && resistanceMap['left']) {
 				resistanceMap['left'] = false
+			} else if (currentResizer.value?.includes('top') && resistanceMap['bottom']) {
+				resistanceMap['bottom'] = false
+			} else if (currentResizer.value?.includes('bottom') && resistanceMap['top']) {
+				resistanceMap['top'] = false
 			}
 		}
 
@@ -343,6 +347,12 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 				offsetWidth = -getSnapOffset()
 			} else if (axis == 'left' && currentResizer.value?.includes('left')) {
 				offsetX = getSnapOffset()
+				offsetWidth = getSnapOffset()
+			} else if (axis == 'bottom' && currentResizer.value?.includes('bottom')) {
+				offsetY = 0
+				offsetWidth = -getSnapOffset()
+			} else if (axis == 'top' && currentResizer.value?.includes('top')) {
+				offsetY = getSnapOffset()
 				offsetWidth = getSnapOffset()
 			}
 		} else {
@@ -394,7 +404,13 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			end = 'bottom'
 		}
 
-		if (Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start])) {
+		const dragEnd =
+			mode.value == 'dragging' &&
+			Math.abs(diffs.matched[end]) < Math.abs(diffs.matched[start])
+		const resizeEnd =
+			mode.value == 'resizing' && currentResizer.value?.includes(end.toLowerCase())
+
+		if (dragEnd || resizeEnd) {
 			return handleSnapMovement(end)
 		}
 
@@ -403,12 +419,12 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 
 	const getPairedOffsets = () => {
 		const { offsetX, offsetWidth } = getOffset('X')
-		const { offsetY } = getOffset('Y')
+		const { offsetY, offsetWidth: offsetWidthY } = getOffset('Y')
 
 		return {
 			pairedOffsetX: offsetX,
 			pairedOffsetY: offsetY,
-			pairedOffsetWidth: offsetWidth,
+			pairedOffsetWidth: offsetWidth + offsetWidthY,
 		}
 	}
 
