@@ -269,7 +269,7 @@ const handleHistoryOperation = async (operation) => {
 
 	const onActiveSlide = slideToFocus == slideIndex.value
 
-	if (!onActiveSlide && slideToFocus) {
+	if (!onActiveSlide && slideToFocus != null) {
 		await changeSlide(slideToFocus, false)
 
 		recentlyRestored.value = true
