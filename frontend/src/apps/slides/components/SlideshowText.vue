@@ -4,6 +4,8 @@
 <script setup>
 import { ref, watch } from 'vue'
 
+import { getDocFromHTML } from '@/utils/helpers'
+
 const props = defineProps({
 	content: {
 		type: String,
@@ -12,11 +14,6 @@ const props = defineProps({
 })
 
 const textRef = ref(null)
-
-const getDocFromHTML = (html) => {
-	const parser = new DOMParser()
-	return parser.parseFromString(html, 'text/html')
-}
 
 const encodeCharForHtml = (c) => {
 	switch (c) {
