@@ -401,7 +401,7 @@ const styledEmptyLinePlugin = new Plugin({
 	},
 })
 
-export const StyledEmptyLine = Extension.create({
+const StyledEmptyLine = Extension.create({
 	name: 'StyledEmptyLine',
 
 	addKeyboardShortcuts() {
@@ -416,6 +416,43 @@ export const StyledEmptyLine = Extension.create({
 		return [styledEmptyLinePlugin]
 	},
 })
+
+export const patchEmptyParagraphs = (htmlString) => {
+	let didUpdate = false
+
+	const parser = new DOMParser()
+	const doc = parser.parseFromString(htmlString, 'text/html')
+
+	const allParagraphs = Array.from(doc.body.querySelectorAll('p'))
+	let prevSpanStyles = null
+
+	allParagraphs.forEach((p, index) => {
+		const isEmpty = p.textContent.trim() === ''
+		const firstSpan = p.querySelector('span')
+
+		if (!isEmpty && firstSpan) {
+			prevSpanStyles = firstSpan.getAttribute('style') || ''
+			return
+		}
+
+		if (isEmpty && prevSpanStyles) {
+			p.innerHTML = ''
+
+			if (!didUpdate) didUpdate = true
+
+			const span = doc.createElement('span')
+			span.setAttribute('style', prevSpanStyles)
+			span.innerHTML = '\u200B'
+
+			p.appendChild(span)
+		}
+	})
+
+	return {
+		wasUpdated: didUpdate,
+		updatedHTML: didUpdate ? doc.body.innerHTML : htmlString,
+	}
+}
 
 export const extensions = [
 	StarterKit.configure({
