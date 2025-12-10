@@ -228,6 +228,18 @@ const hasStateChanged = (original, current) => {
 	return hasChanged
 }
 
+const updateNewlyAddedSlideUUIDs = () => {
+	// for newly added slides, update their names from server response
+	// required for correct jumping to slide during undo / redo operations
+	ignoreUpdates(() => {
+		slides.value.forEach((slide, idx) => {
+			if (slide.name === '') {
+				slide.name = presentationResource.value.doc.slides[idx].name
+			}
+		})
+	})
+}
+
 const savePresentationDoc = async () => {
 	const newSlides = slides.value.map((slide) => ({
 		...slide,
@@ -241,6 +253,8 @@ const savePresentationDoc = async () => {
 	})
 
 	presentationDoc.value = presentationResource.value.doc
+
+	updateNewlyAddedSlideUUIDs()
 }
 
 const layoutResource = createResource({
