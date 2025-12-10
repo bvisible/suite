@@ -310,13 +310,19 @@ const { ignoreUpdates } = watchIgnorable(
 	() => slides.value,
 	(newVal) => {
 		if (!newVal.length) return
-
-		updateHistoryState(newVal, slideIndex.value, activeElementIds.value)
-
-		historyControl?.commit()
+		commitToHistory(newVal)
 	},
 	{ deep: true },
 )
+
+const commitToHistory = (state) => {
+	const activeSlide = currentSlide.value?.name
+	const elementIds = activeElementIds.value
+
+	updateHistoryState(state, activeSlide, elementIds)
+
+	historyControl?.commit()
+}
 
 const initHistory = () => {
 	historyState.value.activeSlide = currentSlide.value?.name
