@@ -182,7 +182,7 @@ const getThumbnailStyles = (s) => {
 	let styles = getThumbnailCardStyles(s.thumbnail)
 
 	// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
-	styles.backgroundColor = currentSlide.value?.background || '#ffffff' //fallback color
+	styles.backgroundColor = s.background || '#ffffff' //fallback color
 
 	return styles
 }
