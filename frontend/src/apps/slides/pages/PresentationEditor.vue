@@ -265,6 +265,7 @@ const handleHistoryOperation = async (operation) => {
 
 	ignoreUpdates(() => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+		slidesLength.value = slides.value.length
 	})
 
 	const onActiveSlide = slideToFocus == slideIndex.value
@@ -281,6 +282,7 @@ const handleHistoryOperation = async (operation) => {
 	if (activeElementIds.value != elementsToFocus) {
 		activeElementIds.value = elementsToFocus
 	}
+
 	nextTick(() => {
 		updateThumbnail(slideToFocus)
 	})
@@ -361,7 +363,7 @@ const handleThumbnailGeneration = async (index) => {
 }
 
 const changeSlide = async (index, focus = true) => {
-	index = Math.max(0, Math.min(index, slides.value.length - 1))
+	index = Math.max(0, Math.min(index, slidesLength.value - 1))
 
 	const oldIndex = slideIndex.value
 
