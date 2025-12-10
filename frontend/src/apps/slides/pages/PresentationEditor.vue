@@ -279,10 +279,10 @@ const handleHistoryOperation = async (operation) => {
 
 	await nextTick()
 
-	const onActiveSlide = slideToFocus == slideIndex.value
+	const onActiveSlide = jumpToSlideId == slideIndex.value
 
-	if (!onActiveSlide && slideToFocus != null) {
-		await changeSlide(slideToFocus, false)
+	if (!onActiveSlide && jumpToSlideId != null) {
+		await changeSlide(jumpToSlideId, false)
 
 		recentlyRestored.value = true
 		setTimeout(() => {
@@ -295,21 +295,21 @@ const handleHistoryOperation = async (operation) => {
 	}
 
 	nextTick(() => {
-		updateThumbnail(slideToFocus)
+		updateThumbnail(jumpToSlideId)
 	})
 }
 
 const handleUndoRedo = (e) => {
+	e.preventDefault()
+
 	if (activeEditor.value?.isEditable) {
 		e.stopPropagation()
 		return
 	}
 
 	if (isCmdOrCtrl(e) && e.shiftKey && historyControl.canRedo.value) {
-		e.preventDefault()
 		handleHistoryOperation('redo')
 	} else if (isCmdOrCtrl(e) && historyControl.undoStack.value.length > 1) {
-		e.preventDefault()
 		handleHistoryOperation('undo')
 	}
 }
