@@ -3,7 +3,7 @@ import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides, slideIndex } from './slide'
+import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
 
 import { cloneObj } from '@/utils/helpers'
@@ -286,7 +286,7 @@ let historyControl = null
 
 const historyState = ref({
 	elementIds: '',
-	activeSlide: 0,
+	activeSlide: '',
 	slides: [],
 })
 
@@ -319,7 +319,7 @@ const { ignoreUpdates } = watchIgnorable(
 )
 
 const initHistory = () => {
-	historyState.value.activeSlide = slideIndex.value
+	historyState.value.activeSlide = currentSlide.value?.name
 	historyControl = useManualRefHistory(historyState, {
 		capacity: 25,
 		clone: true,
