@@ -254,19 +254,30 @@ const handleGlobalShortcuts = (e) => {
 
 const recentlyRestored = ref(false)
 
+const getJumpToSlideId = (operation) => {
+	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
+		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
+	}
+
+	const slideId = historyState.value.activeSlide
+	return slides.value.findIndex((slide) => slide.name === slideId)
+}
+
 const handleHistoryOperation = async (operation) => {
 	activeElementIds.value = []
 
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
-	const slideToFocus = historyState.value.activeSlide
-	const elementsToFocus = [...historyState.value.elementIds]
-
 	ignoreUpdates(() => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
 		slidesLength.value = slides.value.length
 	})
+
+	const jumpToSlideId = getJumpToSlideId(operation)
+	const elementsToFocus = [...historyState.value.elementIds]
+
+	await nextTick()
 
 	const onActiveSlide = slideToFocus == slideIndex.value
 
