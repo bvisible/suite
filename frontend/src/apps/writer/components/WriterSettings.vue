@@ -9,12 +9,9 @@
     <template #body-content>
       <Tabs v-model="tabIndex" :tabs>
         <template #tab-panel>
-          <div class="overflow-y-auto ps-1 pt-4">
-            <Form>
-              <template #default="{ dirty, setDirty, error }">
-                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">
-                  Configuration
-                </h3>
+          <Form>
+            <template #default="{ dirty, setDirty, error }">
+              <div class="overflow-y-auto max-h-96 p-2 pt-3">
                 <div class="flex flex-col gap-4 pb-5 pr-5">
                   <div class="space-y-1.5">
                     <FormLabel label="Font Family" />
@@ -36,15 +33,39 @@
                     type="number"
                     label="Font Size"
                     placeholder="Automatic"
-                    :description="'Set the font size  of the editor (px).'"
+                    description="Set the font size of the editor (px)."
                   />
                   <FormControl
                     v-model="settings.line_height"
-                    type="select"
+                    type="number"
                     label="Line Height"
-                    :options="lineHeightOptions"
+                    placeholder="Automatic"
                     description="Set the line height of the editor."
                   />
+                  <div class="space-y-1.5">
+                    <FormLabel label="Paragraph Spacing" />
+                    <div class="grid grid-cols-2 gap-2">
+                      <FormControl
+                        v-model.number="settings.paragraph_spacing_before"
+                        type="number"
+                        placeholder="0"
+                        :min="0"
+                        :step="1"
+                        description="Before"
+                      />
+                      <FormControl
+                        v-model.number="settings.paragraph_spacing_after"
+                        type="number"
+                        placeholder="0"
+                        :min="0"
+                        :step="1"
+                        description="After"
+                      />
+                    </div>
+                    <div class="text-xs text-ink-gray-5">
+                      Set the default spacing around paragraphs.
+                    </div>
+                  </div>
                 </div>
                 <div class="flex flex-col gap-4">
                   <template v-if="tabIndex === 0">
@@ -91,39 +112,32 @@
                     :description="'Enable this to automatically apply watermark when downloading PDF for this document.'"
                   />
                 </div>
-                <!-- <FormControl
-                  label="Custom Classes"
-                  placeholder="font-semibold"
-                  v-model="settings.custom_css"
-                  description="Any additional classes to apply."
-                  type="textarea"
-                /> -->
-                <div class="mt-2">
-                  <div v-if="error" class="text-xs text-ink-red-4">
-                    {{ error }}
-                  </div>
-                  <Button
-                    label="Update"
-                    variant="solid"
-                    class="w-full mt-3"
-                    :disabled="!dirty || error"
-                    :loading="resource.loading"
-                    @click="
-                      () => {
-                        if (key === 'writer_settings')
-                          resource.setValue.submit({ [key]: settings })
-                        else
-                          resource.updateSettings.submit({
-                            data: JSON.stringify(settings),
-                          })
-                        setDirty(false)
-                      }
-                    "
-                  />
+              </div>
+              <div class="mt-2">
+                <div v-if="error" class="text-xs text-ink-red-4">
+                  {{ error }}
                 </div>
-              </template>
-            </Form>
-          </div>
+                <Button
+                  label="Update"
+                  variant="solid"
+                  class="w-full mt-3"
+                  :disabled="!dirty || error"
+                  :loading="resource.loading"
+                  @click="
+                    () => {
+                      if (key === 'writer_settings')
+                        resource.setValue.submit({ [key]: settings })
+                      else
+                        resource.updateSettings.submit({
+                          data: JSON.stringify(settings),
+                        })
+                      setDirty(false)
+                    }
+                  "
+                />
+              </div>
+            </template>
+          </Form>
         </template>
       </Tabs>
     </template>
@@ -162,25 +176,6 @@ const fontOptions = computed(() =>
   ]),
 )
 
-const lineHeightOptions = computed(() =>
-  dynamicList([
-    {
-      label: 'Automatic',
-      value: 'global',
-      cond: tabIndex.value === 1,
-    },
-    { label: '1.2', value: '1.2' },
-    { label: '1.4', value: '1.4' },
-    { label: '1.5', value: '1.5' },
-    { label: '1.6', value: '1.6' },
-    { label: '1.8', value: '1.8' },
-    { label: '2', value: '2' },
-    { label: '2.5', value: '2.2' },
-    { label: '2.5', value: '2.5' },
-    { label: '3', value: '3' },
-  ]),
-)
-
 const resource = computed(() =>
   tabIndex.value === 1 ? props.docSettings : props.globalSettings,
 )
@@ -192,6 +187,8 @@ const KEYS = computed(() => [
   'font_family',
   'font_size',
   'line_height',
+  'paragraph_spacing_before',
+  'paragraph_spacing_after',
   ...(tabIndex.value === 0
     ? ['watermark_text', 'watermark_size', 'watermark_angle']
     : ['apply_watermark']),
@@ -201,7 +198,6 @@ const settings = reactive({})
 
 watchEffect(() => {
   const base = { ...resource.value.doc[key.value] }
-  console.log(KEYS.value)
   for (const k of KEYS.value) {
     if (k === 'apply_watermark') {
       settings[k] = base[k] === true

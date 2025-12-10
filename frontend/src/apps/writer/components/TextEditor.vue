@@ -38,6 +38,7 @@
           :starterkit-options="{
             undoRedo: false,
             trailingNode: { node: 'paragraph', notAfter: 'tab' },
+            paragraph: false,
             gapcursor: false,
           }"
           @keydown="
@@ -62,6 +63,8 @@
                 fontFamily: `var(--font-${settings?.font_family})`,
                 fontSize: `${settings?.font_size || 15}px`,
                 lineHeight: settings?.line_height || 1.5,
+                '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
+                '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
               }"
               :editor="editor"
             />
@@ -142,6 +145,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { Selection, CharacterCount } from '@tiptap/extensions'
 // import { MathematicsExtension } from '@/extensions/mathematics'
+import { PageBreakExtension } from '@/extensions/page-break'
 
 import { onKeyDown } from '@vueuse/core'
 
@@ -155,6 +159,14 @@ import LucideSettings from '~icons/lucide/settings'
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
 import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
+import LucideArrowDownUp from '~icons/lucide/arrow-down-up'
+import LucideArrowUpWideNarrow from '~icons/lucide/arrow-up-wide-narrow'
+import LucideArrowDownWideNarrow from '~icons/lucide/arrow-down-wide-narrow'
+import LucideScanLine from '~icons/lucide/scan-line'
+import LucideForm from '~icons/lucide/sticky-note'
+import LucideAlignVerticalSpacingAround from '~icons/lucide/align-vertical-space-around'
+import LucideSeparatorHorizontal from '~icons/lucide/separator-horizontal'
+
 import { updateURLSlug } from '@/utils'
 
 import store from '@/store'
@@ -278,6 +290,7 @@ const editorExtensions = [
       }
     },
   }),
+  PageBreakExtension,
   CharacterCount,
   Selection,
   // MathematicsExtension,
@@ -323,6 +336,28 @@ const editorExtensions = [
     onDecorationsPainted: () => (commentsPainted.value = true),
   }),
 ]
+
+function getCurrentParagraphAttrs(editor) {
+  const { $from } = editor.state.selection
+  const node = $from.node($from.depth)
+
+  if (node.type.name === 'paragraph') {
+    return node.attrs
+  }
+
+  // Walk up until we find a paragraph
+  for (let d = $from.depth; d >= 0; d--) {
+    const n = $from.node(d)
+    if (n.type.name === 'paragraph') return n.attrs
+  }
+
+  return {} // fallback
+}
+
+const LINE_HEIGHT_STEP = 0.25
+function getParagraphAttr(editor, attr, def) {
+  return getCurrentParagraphAttrs(editor)[attr] || def
+}
 
 const menuButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
@@ -375,9 +410,14 @@ const menuButtons = computed(() => [
   //   icon: LucideSquareFunction,
   //   action: (editor) => editor.commands.openMathEditor('block'),
   // },
-  'Separator',
   ['Image', 'Video', 'Iframe'],
+  'Separator',
   'TableOfContents',
+  {
+    label: 'Page Break',
+    icon: LucideForm,
+    action: (editor) => editor.commands.setPageBreak(),
+  },
   [
     'InsertTable',
     'AddColumnBefore',
@@ -393,6 +433,15 @@ const menuButtons = computed(() => [
     'ToggleHeaderCell',
     'DeleteTable',
   ],
+  'Separator',
+  {
+    label: 'Custom Spacing',
+    icon: LucideAlignVerticalSpacingAround,
+    component: h(
+      defineAsyncComponent(() => import('@/components/SpacingDialog.vue')),
+      { settings: props.settings, editor: editor },
+    ),
+  },
   {
     icon: LucideSettings,
     label: 'Settings',
@@ -556,5 +605,11 @@ onKeyDown('s', (e) => {
 @import url('@/styles/editor.css');
 iframe {
   border: 1px solid var(--surface-gray-4) !important;
+}
+.prose-v2 p + p {
+  margin-top: var(--paragraph-spacing-before, 0);
+}
+.prose-v2 p {
+  margin-bottom: var(--paragraph-spacing-after, 0);
 }
 </style>
