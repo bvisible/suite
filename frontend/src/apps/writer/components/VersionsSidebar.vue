@@ -132,7 +132,7 @@
               )
             : generateHTMLDiff(
                 editor.getHTML(),
-                versions[versions.length - 1]?.snapshot,
+                versions.data[versions.data.length - 1]?.snapshot,
               )
         "
       >
@@ -242,23 +242,29 @@ import LucidePlus from '~icons/lucide/plus'
 import { onKeyDown } from '@vueuse/core'
 import { computed, ref, h, watch } from 'vue'
 import emitter from '@/emitter'
-import { Tabs, TextEditor, toast } from 'frappe-ui'
+import { createResource, Tabs, TextEditor, toast, useList } from 'frappe-ui'
 import { clearDialogs, createDialog } from '@/utils/dialogs'
 import NewVersionDialog from './NewVersionDialog.vue'
 import { EditorContent } from '@tiptap/vue-3'
 
 const props = defineProps({
   settings: Object,
-  versions: Object,
   document: Object,
   editor: Object,
 })
 const emit = defineEmits(['saveDocument', 'newVersion'])
 const versionPreview = defineModel()
 const showVersions = defineModel('showVersions')
+const versions = createResource({
+  url: '/api/method/writer.api.general.get_versions',
+  params: { id: props.document.doc.name },
+  cache: ['versions', props.document.doc?.name],
+  initialData: [],
+  auto: true,
+})
 
-const manualVersions = computed(() => props.versions.filter((v) => v.manual))
-const autoVersions = computed(() => props.versions.filter((v) => !v.manual))
+const manualVersions = computed(() => versions.data.filter((v) => v.manual))
+const autoVersions = computed(() => versions.data.filter((v) => !v.manual))
 
 function formatDateDDMMYY(dateStr) {
   const date = new Date(dateStr)
@@ -296,14 +302,14 @@ const groupedVersions = computed(() => {
   }
 })
 
-const tab = ref(props.versions.filter((v) => v.manual).length ? 1 : 0)
+const tab = ref(versions.data.filter((v) => v.manual).length ? 1 : 0)
 watch(tab, () => (versionPreview.value = null))
 
 const getPrevious = (version) => {
   // Important: Use the original arrays, not the reversed ones
   const relevantVersions = version.manual
-    ? props.versions.filter((v) => v.manual)
-    : props.versions.filter((v) => !v.manual)
+    ? versions.data.filter((v) => v.manual)
+    : versions.data.filter((v) => !v.manual)
   const currentIndex = relevantVersions.findIndex(
     (v) => v.name === version.name,
   )

@@ -58,7 +58,6 @@
     v-if="showVersions"
     v-model="versionPreview"
     v-model:show-versions="showVersions"
-    :versions="document.doc?.versions || []"
     :settings
     :document
     :editor
