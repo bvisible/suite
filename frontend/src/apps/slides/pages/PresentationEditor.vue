@@ -254,9 +254,20 @@ const handleGlobalShortcuts = (e) => {
 
 const recentlyRestored = ref(false)
 
-const getJumpToSlideId = (operation) => {
+const getJumpToSlideId = (operation, oldList, newList) => {
 	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
 		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
+	}
+
+	if (oldList.length < newList.length) {
+		// slide was restored, jump to that slide
+		let restoredId = ''
+		newList.forEach((slide) => {
+			if (!oldList.find((s) => s.name === slide.name)) {
+				restoredId = slide.name
+			}
+		})
+		return slides.value.findIndex((slide) => slide.name === restoredId)
 	}
 
 	const slideId = historyState.value.activeSlide
@@ -269,15 +280,18 @@ const handleHistoryOperation = async (operation) => {
 	if (operation == 'undo') await historyControl.undo()
 	else if (operation == 'redo') await historyControl.redo()
 
+	const oldList = JSON.parse(JSON.stringify(slides.value))
+	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
+
 	ignoreUpdates(() => {
 		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
 		slidesLength.value = slides.value.length
 	})
 
-	const jumpToSlideId = getJumpToSlideId(operation)
-	const elementsToFocus = [...historyState.value.elementIds]
-
 	await nextTick()
+
+	const jumpToSlideId = getJumpToSlideId(operation, oldList, newList)
+	const elementsToFocus = [...historyState.value.elementIds]
 
 	const onActiveSlide = jumpToSlideId == slideIndex.value
 
