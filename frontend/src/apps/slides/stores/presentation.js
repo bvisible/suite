@@ -234,7 +234,7 @@ const updateNewlyAddedSlideUUIDs = () => {
 	ignoreUpdates(() => {
 		slides.value.forEach((slide, idx) => {
 			if (slide.name === '') {
-				slide.name = presentationResource.value.doc.slides[idx].name
+				slide.name = presentationResource.value.doc.slides[idx]?.name
 			}
 		})
 	})

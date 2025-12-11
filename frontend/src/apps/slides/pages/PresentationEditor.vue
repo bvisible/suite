@@ -256,12 +256,22 @@ const recentlyRestored = ref(false)
 
 const getRestoredSlideId = (oldList, newList) => {
 	let restoredId = ''
-	newList.forEach((slide) => {
+	newList.forEach((slide, index) => {
 		if (!oldList.find((s) => s.name === slide.name)) {
-			restoredId = slide.name
+			restoredId = index
 		}
 	})
-	return slides.value.findIndex((slide) => slide.name === restoredId)
+	return restoredId
+}
+
+const getPrevToDeletedSlideId = (oldList, newList) => {
+	let prevId = null
+	oldList.forEach((slide, index) => {
+		if (!newList.find((s) => s.name === slide.name)) {
+			prevId = index - 1
+		}
+	})
+	return prevId
 }
 
 const getJumpToSlideId = (operation, oldList, newList) => {
@@ -271,6 +281,10 @@ const getJumpToSlideId = (operation, oldList, newList) => {
 
 	if (oldList.length < newList.length) {
 		return getRestoredSlideId(oldList, newList)
+	}
+
+	if (oldList.length > newList.length) {
+		return getPrevToDeletedSlideId(oldList, newList)
 	}
 
 	const slideId = historyState.value.activeSlide
