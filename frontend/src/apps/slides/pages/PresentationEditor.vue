@@ -277,25 +277,15 @@ const getJumpToSlideId = (operation, oldList, newList) => {
 	return slides.value.findIndex((slide) => slide.name === slideId)
 }
 
-const handleHistoryOperation = async (operation) => {
-	activeElementIds.value = []
-
-	if (operation == 'undo') await historyControl.undo()
-	else if (operation == 'redo') await historyControl.redo()
-
-	const oldList = JSON.parse(JSON.stringify(slides.value))
-	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
-
+const restoreState = (state) => {
 	ignoreUpdates(() => {
-		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+		slides.value = JSON.parse(JSON.stringify(state))
 		slidesLength.value = slides.value.length
 	})
+}
 
-	await nextTick()
-
+const jumpToSlide = async (operation, oldList, newList) => {
 	const jumpToSlideId = getJumpToSlideId(operation, oldList, newList)
-	const elementsToFocus = [...historyState.value.elementIds]
-
 	const onActiveSlide = jumpToSlideId == slideIndex.value
 
 	if (!onActiveSlide && jumpToSlideId != null) {
@@ -307,9 +297,33 @@ const handleHistoryOperation = async (operation) => {
 		}, 1000)
 	}
 
+	return jumpToSlideId
+}
+
+const jumpToActiveElements = () => {
+	const elementsToFocus = [...historyState.value.elementIds]
+
 	if (activeElementIds.value != elementsToFocus) {
 		activeElementIds.value = elementsToFocus
 	}
+}
+
+const handleHistoryOperation = async (operation) => {
+	activeElementIds.value = []
+
+	if (operation == 'undo') await historyControl.undo()
+	else if (operation == 'redo') await historyControl.redo()
+
+	const oldList = JSON.parse(JSON.stringify(slides.value))
+	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
+
+	restoreState(historyState.value.slides)
+
+	await nextTick()
+
+	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
+
+	jumpToActiveElements()
 
 	nextTick(() => {
 		updateThumbnail(jumpToSlideId)
