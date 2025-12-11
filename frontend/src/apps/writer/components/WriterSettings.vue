@@ -51,7 +51,7 @@
                         placeholder="0"
                         :min="0"
                         :step="1"
-                        description="Before"
+                        description="Above"
                       />
                       <FormControl
                         v-model.number="settings.paragraph_spacing_after"
@@ -59,7 +59,7 @@
                         placeholder="0"
                         :min="0"
                         :step="1"
-                        description="After"
+                        description="Below"
                       />
                     </div>
                     <div class="text-xs text-ink-gray-5">
