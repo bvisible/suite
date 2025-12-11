@@ -254,20 +254,23 @@ const handleGlobalShortcuts = (e) => {
 
 const recentlyRestored = ref(false)
 
+const getRestoredSlideId = (oldList, newList) => {
+	let restoredId = ''
+	newList.forEach((slide) => {
+		if (!oldList.find((s) => s.name === slide.name)) {
+			restoredId = slide.name
+		}
+	})
+	return slides.value.findIndex((slide) => slide.name === restoredId)
+}
+
 const getJumpToSlideId = (operation, oldList, newList) => {
 	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
 		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
 	}
 
 	if (oldList.length < newList.length) {
-		// slide was restored, jump to that slide
-		let restoredId = ''
-		newList.forEach((slide) => {
-			if (!oldList.find((s) => s.name === slide.name)) {
-				restoredId = slide.name
-			}
-		})
-		return slides.value.findIndex((slide) => slide.name === restoredId)
+		return getRestoredSlideId(oldList, newList)
 	}
 
 	const slideId = historyState.value.activeSlide
