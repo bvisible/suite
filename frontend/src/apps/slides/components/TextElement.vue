@@ -165,9 +165,4 @@ onBeforeMount(() => normalizeContent())
 	overflow-wrap: break-word;
 	hyphens: auto;
 }
-
-.textElement p:empty::before {
-	content: '\00a0';
-	font-size: calc(v-bind(baseFontSize, 28) * 1px);
-}
 </style>

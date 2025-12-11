@@ -89,4 +89,19 @@ const getThumbnailCardStyles = (thumbnail: string) => {
 	}
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard, getThumbnailCardStyles }
+const getDocFromHTML = (html: string) => {
+	const parser = new DOMParser()
+	return parser.parseFromString(html, 'text/html')
+}
+
+export {
+	handleSingleAndDoubleClick,
+	debounce,
+	generateUniqueId,
+	setCursorPositionAtEnd,
+	handleScrollBarWheelEvent,
+	cloneObj,
+	copyToClipboard,
+	getThumbnailCardStyles,
+	getDocFromHTML
+}
