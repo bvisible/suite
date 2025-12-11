@@ -28,6 +28,7 @@
         @click="showVersions = false"
       />
       <Button
+        v-if="versionPreview"
         variant="solid"
         label="Restore"
         @click="restore(versionPreview[0])"

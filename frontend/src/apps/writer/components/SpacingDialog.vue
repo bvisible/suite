@@ -11,6 +11,7 @@
           type="number"
           class="grow"
           v-model.number="local.lineHeight"
+          autocomplete="off"
           min="0.75"
           max="10"
           step="0.2"
@@ -22,14 +23,16 @@
           <div class="grid grid-cols-2 gap-2">
             <FormControl
               type="number"
-              v-model.number="local.spacingAfter"
+              autocomplete="off"
+              v-model.number="local.spacingBefore"
               @update:modelValue="apply"
               placeholder="0"
               description="Above"
             />
             <FormControl
               type="number"
-              v-model.number="local.spacingBefore"
+              autocomplete="off"
+              v-model.number="local.spacingAfter"
               @update:modelValue="apply"
               placeholder="0"
               description="Below"
@@ -77,11 +80,11 @@ function parsePx(v, def) {
 const local = reactive({
   lineHeight: +(current.value.lineHeight || props.settings.line_height),
   spacingAfter: parsePx(
-    current.value.marginTop,
+    current.value.marginBottom,
     props.settings.paragraph_spacing_above,
   ),
   spacingBefore: parsePx(
-    current.value.marginBottom,
+    current.value.marginTop,
     props.settings.paragraph_spacing_below,
   ),
 })
@@ -109,7 +112,7 @@ function apply() {
         ? null
         : `${local.spacingAfter}px`,
     spacingBefore:
-      local.spacingAfter === props.settings.paragraph_spacing_below
+      local.spacingBefore === props.settings.paragraph_spacing_below
         ? null
         : `${local.spacingBefore}px`,
   })

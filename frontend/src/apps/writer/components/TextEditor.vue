@@ -2,7 +2,7 @@
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
       v-if="editable"
-      class="py-1.5 w-full max-w-[100vw] mx-auto flex justify-center shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
+      class="py-1.5 w-full max-w-[100vw] overflow-x-auto flex md:justify-center shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
       :buttons="menuButtons"
       :class="hideToolbar ? 'opacity-0' : 'opacity-100'"
     />
@@ -410,14 +410,9 @@ const menuButtons = computed(() => [
   //   icon: LucideSquareFunction,
   //   action: (editor) => editor.commands.openMathEditor('block'),
   // },
-  ['Image', 'Video', 'Iframe'],
+  ['Image', 'Video'],
   'Separator',
-  'TableOfContents',
-  {
-    label: 'Page Break',
-    icon: LucideForm,
-    action: (editor) => editor.commands.setPageBreak(),
-  },
+  'Iframe',
   [
     'InsertTable',
     'AddColumnBefore',
@@ -433,7 +428,13 @@ const menuButtons = computed(() => [
     'ToggleHeaderCell',
     'DeleteTable',
   ],
+  'TableOfContents',
   'Separator',
+  {
+    label: 'Page Break',
+    icon: LucideForm,
+    action: (editor) => editor.commands.setPageBreak(),
+  },
   {
     label: 'Custom Spacing',
     icon: LucideAlignVerticalSpacingAround,
@@ -550,10 +551,8 @@ const autoversion = async () => {
   if (!edited.value) return
   const html = editor.value.getHTML()
   if (!html || html === '<p></p>') return
-  const data = await props.document.newVersion.submit({ data: html })
-  if (data) {
-    props.document.doc.versions.push(data)
-  } else if (props.document.newVersion.error) {
+  await props.document.newVersion.submit({ data: html })
+  if (props.document.newVersion.error) {
     toast.error(
       'Something has gone wrong - please copy the file content and contact support.',
     )
