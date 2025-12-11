@@ -137,6 +137,7 @@ def get_document(file_id):
     entity_doc_content = k.as_dict()
     entity_doc_content.pop("name")
     entity_doc_content.pop("owner")
+    entity_doc_content.pop("versions")
 
     return_obj |= entity_doc_content | {
         "modified": entity.modified,

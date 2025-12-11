@@ -123,3 +123,12 @@ def get_document_list(
     # Return in the format useList expects
     frappe.response["data"] = res
     frappe.response["has_next_page"] = has_next_page
+
+
+@frappe.whitelist()
+def get_versions(id):
+    if not get_user_access(id).get("write"):
+        frappe.throw("You don't have write access.", frappe.PermissionError)
+    return frappe.get_doc(
+        "Writer Document", frappe.db.get_value("Drive File", id, "doc")
+    ).versions
