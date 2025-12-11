@@ -34,8 +34,7 @@ class WriterDocument(Document):
 
     def save_yjs(self, data):
         try:
-            self.content = data
-            self.save()
+            frappe.db.set_value("Writer Document", self.name, "content", data)
             self.update_file(file_size=len(self.content))
         except COLLISION_ERRORS:
             pass
@@ -58,15 +57,26 @@ class WriterDocument(Document):
         manual = bool(title)
         if not manual:
             now_time = frappe.utils.now_datetime()
-            auto_versions = [v for v in self.versions if not v.manual]
-            if auto_versions:
+            last_auto_version = frappe.db.get_value(
+                "Writer Doc Version",  # Child table doctype name
+                filters={
+                    "parent": self.name,
+                    "parenttype": "Writer Document",
+                    "manual": 0,
+                },
+                fieldname=["title", "name"],
+                order_by="idx desc",
+                as_dict=True,
+            )
+            if last_auto_version:
                 prev_time = datetime.strptime(
-                    auto_versions[-1].title,
+                    last_auto_version.title,
                     "%Y-%m-%d %H:%M",
                 )
                 diff = now_time - prev_time
                 if diff < timedelta(minutes=AUTOVERSION_DURATION):
                     frappe.response["data"] = False
+                    return
             title = datetime.strftime(now_time, "%Y-%m-%d %H:%M")
 
         self.append(
