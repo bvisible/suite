@@ -407,13 +407,32 @@ export function printDoc(html, settings = {}) {
               <style>${globalStyle}</style>
               <style>${editorStyle}</style>
               <style>
+              @page {
+                margin: 1.25cm 0.5cm;
+                
+                @top-left {
+                  content: "Caffeine Tech Pvt. Ltd.";  
+                  font-family: var(--font-inter);
+                  font-size: 8pt;  
+                  color: var(--ink-gray-600); 
+                }
+
+                @bottom-right {  
+                  content: "Page " counter(page) " of " counter(pages);
+                  font-family: var(--font-inter);
+                  font-size: 8pt;  
+                  color: var(--ink-gray-600); 
+                }
+              }
+              </style>
+              <style>
                 .ProseMirror {
                   font-family: ${fontFamily} !important;
                 }
                 div[data-page-break='true'] {
                   border: none;
                   margin: none;
-                }  
+                }
                 .watermark {
                   position: fixed;
                   top: 50%;

@@ -82,10 +82,12 @@ const local = reactive({
   spacingAfter: parsePx(
     current.value.marginBottom,
     props.settings.paragraph_spacing_above,
+    current.value.marginTop,
+    props.settings.paragraph_spacing_above || 0,
   ),
   spacingBefore: parsePx(
     current.value.marginTop,
-    props.settings.paragraph_spacing_below,
+    props.settings.paragraph_spacing_below || 0,
   ),
 })
 
@@ -95,20 +97,22 @@ watch(current, (cur) => {
     : props.settings.line_height
   local.spacingAfter = parsePx(
     cur.spacingAfter,
-    props.settings.paragraph_spacing_after,
+    props.settings.paragraph_spacing_after || 0,
   )
   local.spacingBefore = parsePx(
     cur.spacingBefore,
-    props.settings.paragraph_spacing_before,
+    props.settings.paragraph_spacing_before || 0,
   )
 })
 
 function apply() {
   props.editor.commands.updateAttributes('paragraph', {
     lineHeight:
-      local.lineHeight === props.settings.line_height ? null : local.lineHeight,
+      local.lineHeight === (props.settings.line_height || 1.5)
+        ? null
+        : local.lineHeight,
     spacingAfter:
-      local.spacingAfter === props.settings.paragraph_spacing_above
+      local.spacingAfter === (props.settings.paragraph_spacing_above || 0)
         ? null
         : `${local.spacingAfter}px`,
     spacingBefore:

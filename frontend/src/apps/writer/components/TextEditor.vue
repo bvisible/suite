@@ -34,6 +34,7 @@
           :mentions="{ mentions: allUsers.data, selectable: false }"
           placeholder="Start thinking..."
           :extensions="editorExtensions"
+          :bubble-menu="bubbleButtons"
           :editable
           :starterkit-options="{
             undoRedo: false,
@@ -152,20 +153,13 @@ import { onKeyDown } from '@vueuse/core'
 import { isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
-import LucideSquareFunction from '~icons/lucide/square-function'
 import LucidePaintRoller from '~icons/lucide/paint-roller'
 import LucideBrushCleaning from '~icons/lucide/brush-cleaning'
 import LucideSettings from '~icons/lucide/settings'
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
-import LucideMessageSquareDot from '~icons/lucide/message-square-dot'
-import LucideArrowDownUp from '~icons/lucide/arrow-down-up'
-import LucideArrowUpWideNarrow from '~icons/lucide/arrow-up-wide-narrow'
-import LucideArrowDownWideNarrow from '~icons/lucide/arrow-down-wide-narrow'
-import LucideScanLine from '~icons/lucide/scan-line'
 import LucideForm from '~icons/lucide/sticky-note'
 import LucideAlignVerticalSpacingAround from '~icons/lucide/align-vertical-space-around'
-import LucideSeparatorHorizontal from '~icons/lucide/separator-horizontal'
 
 import { updateURLSlug } from '@/utils'
 
@@ -173,7 +167,6 @@ import store from '@/store'
 import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, getRandomColor } from '@/utils'
-import { formatDate } from '@/utils/format'
 import FloatingQuoteButton from '@/extensions/comment-button'
 import MediaDownload from '@/extensions/media-download'
 import { CommentExtension, rebuild } from '@/extensions/comments'
@@ -448,14 +441,16 @@ const menuButtons = computed(() => [
     label: 'Settings',
     action: () => (showSettings.value = true),
   },
-  'Separator',
+])
+
+const bubbleButtons = [
   {
     label: 'Comment',
     icon: LucideMessageSquarePlus,
     action: () => addComment(),
     isActive: () => false,
   },
-])
+]
 
 // Util functions
 const autorename = () => {
@@ -492,33 +487,6 @@ const autorename = () => {
         },
       },
     )
-}
-
-async function applyTemplate() {
-  if (!editor.value || !props.settings.template) {
-    return
-  }
-
-  const html = editor.value.getHTML()
-  if (!html || html === '<p></p>') {
-    const getTemplate = useDoc({
-      doctype: 'Writer Template',
-      name: props.settings.template,
-    })
-
-    getTemplate.onSuccess((data) => {
-      const html = editor.value.getHTML()
-      if (html && html !== '<p></p>') return
-      const content = data.content.replaceAll(
-        /\{\{(date|time|datetime)\}\}/g,
-        (_, type) => formatDate(new Date(), { datetime: type }),
-      )
-      editor.value.commands.setContent(content)
-    })
-
-    // trigger the fetch after registering the callback
-    getTemplate.fetch()
-  }
 }
 
 const uploadFunction = (file) => {
@@ -578,7 +546,6 @@ const autoversionInterval = setInterval(autoversion, 10 * 60 * 1000)
 onMounted(() => {
   const { view, state } = editor.value
   view.dispatch(state.tr)
-  editor.value.on('create', applyTemplate)
 })
 
 onBeforeUnmount(() => {

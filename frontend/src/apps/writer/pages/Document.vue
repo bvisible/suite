@@ -107,6 +107,7 @@
       :global-settings="globalSettings"
       :editable
     />
+    <TemplateDialog v-if="showTemplates" v-model="showTemplates" :editor />
   </div>
 </template>
 
@@ -125,12 +126,14 @@ import {
 } from 'vue'
 import { useStore } from 'vuex'
 import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
+import { onKeyDown } from '@vueuse/core'
 
 import VersionsSidebar from '@/components/VersionsSidebar.vue'
 import WriterSettings from '@/components/WriterSettings.vue'
+import TemplateDialog from '@/components/TemplateDialog.vue'
 import UsersBar from '@/components/UsersBar.vue'
 
-import { toast } from '@/utils/'
+import { toast, isModKey } from '@/utils/'
 import useDocument from '@/composables/useDocument'
 import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
@@ -156,6 +159,7 @@ provide('editor', editor)
 
 const versionPreview = ref(null)
 const showSettings = ref(false)
+const showTemplates = ref(false)
 const showVersions = ref(false)
 
 const isOldSchema = computed(() => {
@@ -194,6 +198,7 @@ const globalSettings = !store.getters.isLoggedIn
     })
 
 const settings = computed(() => {
+  console.log(globalSettings.doc?.writer_settings)
   for (const [k, v] of Object.entries(document.doc?.settings || {})) {
     if (v === 'global') delete document.doc?.settings[k]
   }
@@ -227,6 +232,12 @@ watch(isOldSchema, (v) => {
       duration: 8000,
     })
     toasted = true
+  }
+})
+onKeyDown('k', (e) => {
+  if (isModKey(e)) {
+    e.preventDefault()
+    showTemplates.value = true
   }
 })
 </script>

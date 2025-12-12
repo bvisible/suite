@@ -189,7 +189,7 @@ const onAnchorClick = (id) => {
   const view = props.editor.view
   const tr = view.state.tr
 
-  const element = view.dom.querySelector(`[data-toc-id="${id}"`)
+  const element = view.dom.querySelector(`[data-toc-id="${id}]"`)
   const pos = view.posAtDOM(element, 0)
   tr.setSelection(new TextSelection(tr.doc.resolve(pos)))
   props.editor.view.dispatch(tr)
