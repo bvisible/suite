@@ -45,6 +45,7 @@ b {
 
 div[data-page-break='true'] {
   page-break-after: always;
+  break-after: always;
   border: 2px dashed lightgray;
   margin: 25px 0px;
 }

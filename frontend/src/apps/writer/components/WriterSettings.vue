@@ -67,8 +67,75 @@
                     </div>
                   </div>
                 </div>
-                <div class="flex flex-col gap-4">
-                  <template v-if="tabIndex === 0">
+
+                <!-- Print Settings Section -->
+                <div class="flex flex-col gap-3 pb-5 pr-5">
+                  <template v-if="tabIndex === 1">
+                    <div class="space-y-2">
+                      <h3 class="text-sm font-medium text-ink-gray-7">
+                        Print Settings
+                      </h3>
+                      <FormLabel label="Header & Footer" />
+                      <div class="grid grid-cols-2 gap-2">
+                        <FormControl
+                          v-model="settings.print_header_left"
+                          type="text"
+                          placeholder="Header Left"
+                          description="Top Left"
+                        />
+                        <FormControl
+                          v-model="settings.print_header_right"
+                          type="text"
+                          placeholder="Header Right"
+                          description="Top Right"
+                        />
+                        <FormControl
+                          v-model="settings.print_footer_left"
+                          type="text"
+                          placeholder="Footer Left"
+                          description="Bottom Left"
+                        />
+                        <FormControl
+                          v-model="settings.print_footer_right"
+                          :disabled="settings.print_show_pages"
+                          type="text"
+                          placeholder="Footer Right"
+                          description="Bottom Right"
+                        />
+                      </div>
+                      <div class="text-xs text-ink-gray-5 mt-2">
+                        Set the text to appear in headers and footers when
+                        printing.
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-2.5">
+                      <FormControl
+                        v-model="settings.print_show_pages"
+                        type="checkbox"
+                        label="Show Page Numbers"
+                        description="Add a line below the header when printing."
+                      />
+                      <FormControl
+                        v-model="settings.print_header_separator"
+                        type="checkbox"
+                        label="Header Separator Line"
+                        description="Add a line below the header when printing."
+                      />
+                      <FormControl
+                        v-model="settings.print_footer_separator"
+                        type="checkbox"
+                        label="Footer Separator Line"
+                        description="Add a line above the footer when printing."
+                      />
+                      <FormControl
+                        v-model="settings.apply_watermark"
+                        type="checkbox"
+                        label="Apply Watermark to PDF"
+                        :description="'Enable this to automatically apply watermark when downloading PDF for this document.'"
+                      />
+                    </div>
+                  </template>
+                  <template v-else>
                     <h3 class="text-sm font-medium text-ink-gray-7">
                       Watermark
                     </h3>
@@ -104,13 +171,6 @@
                       />
                     </div>
                   </template>
-                  <FormControl
-                    v-else
-                    v-model="settings.apply_watermark"
-                    type="checkbox"
-                    label="Apply Watermark to PDF"
-                    :description="'Enable this to automatically apply watermark when downloading PDF for this document.'"
-                  />
                 </div>
               </div>
               <div class="mt-2">
@@ -127,10 +187,12 @@
                     () => {
                       if (key === 'writer_settings')
                         resource.setValue.submit({ [key]: settings })
-                      else
+                      else {
                         resource.updateSettings.submit({
                           data: JSON.stringify(settings),
                         })
+                        Object.assign(resource.doc.settings, settings)
+                      }
                       setDirty(false)
                     }
                   "
@@ -189,6 +251,13 @@ const KEYS = computed(() => [
   'line_height',
   'paragraph_spacing_before',
   'paragraph_spacing_after',
+  'print_header_left',
+  'print_header_right',
+  'print_footer_left',
+  'print_footer_right',
+  'print_show_pages',
+  'print_header_separator',
+  'print_footer_separator',
   ...(tabIndex.value === 0
     ? ['watermark_text', 'watermark_size', 'watermark_angle']
     : ['apply_watermark']),
@@ -196,13 +265,25 @@ const KEYS = computed(() => [
 
 const settings = reactive({})
 
+const LOCAL_ONLY = [
+  'print_header_left',
+  'print_header_right',
+  'print_footer_left',
+  'print_footer_right',
+]
+const BOOLS = [
+  'apply_watermark',
+  'print_header_separator',
+  'print_footer_separator',
+  'print_show_pages',
+]
 watchEffect(() => {
   const base = { ...resource.value.doc[key.value] }
   for (const k of KEYS.value) {
-    if (k === 'apply_watermark') {
+    if (BOOLS.includes(k)) {
       settings[k] = base[k] === true
     } else {
-      settings[k] = base[k] || 'global'
+      settings[k] = LOCAL_ONLY.includes(k) ? base[k] : base[k] || 'global'
     }
   }
 })

@@ -400,6 +400,7 @@ export function printDoc(html, settings = {}) {
     angle: settings?.watermark_angle || -45,
   }
   const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ''
+  console.log(settings)
   const content = `
             <!DOCTYPE html>
             <html>
@@ -411,17 +412,36 @@ export function printDoc(html, settings = {}) {
                 margin: 1.25cm 0.5cm;
                 
                 @top-left {
-                  content: "Caffeine Tech Pvt. Ltd.";  
-                  font-family: var(--font-inter);
-                  font-size: 8pt;  
-                  color: var(--ink-gray-600); 
+                  content: "${settings?.print_header_left || ''}";  
+                  font-family: ${fontFamily};
+                  font-size: 10px;  
+                  line-height: 1;
+                  color: var(--ink-gray-7); 
+                  ${settings?.print_header_separator ? ' border-bottom: 0.25pt solid var(--ink-gray-4); margin-bottom: 10px;' : ''}
                 }
-
+                @top-right {
+                  content: "${settings?.print_header_right || ''}";  
+                  font-family: ${fontFamily};
+                  font-size: 10px;  
+                  line-height: 1;
+                  color: var(--ink-gray-7); 
+                  ${settings?.print_header_separator ? ' border-bottom: 0.25pt solid var(--ink-gray-4); margin-bottom: 10px;' : ''}
+                }
+                @bottom-left {  
+                  content: "${settings?.print_footer_left || ''}";  
+                  font-family: ${fontFamily};
+                  font-size: 10px;  
+                  line-height: 1;
+                  color: var(--ink-gray-7); 
+                  ${settings?.print_footer_separator ? 'border-top: 0.25pt solid var(--ink-gray-6); margin-top: 2px;' : ''}
+                }
                 @bottom-right {  
-                  content: "Page " counter(page) " of " counter(pages);
+                  content: ${settings?.print_show_pages ? '"Page " counter(page) " of " counter(pages)' : `"${settings?.print_footer_right || ''}"`};
                   font-family: var(--font-inter);
-                  font-size: 8pt;  
-                  color: var(--ink-gray-600); 
+                  font-size: 10px;
+                  line-height: 1;
+                  color: var(--ink-gray-7); 
+                  ${settings?.print_footer_separator ? 'border-top: 0.25pt solid var(--ink-gray-6); margin-top: 2px;' : ''}
                 }
               }
               </style>
@@ -432,7 +452,7 @@ export function printDoc(html, settings = {}) {
                 div[data-page-break='true'] {
                   border: none;
                   margin: none;
-                }
+                }  
                 .watermark {
                   position: fixed;
                   top: 50%;
