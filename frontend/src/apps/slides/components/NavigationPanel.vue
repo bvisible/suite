@@ -29,7 +29,7 @@
 				<Draggable
 					v-model="slides"
 					item-key="name"
-					@start="resetFocus"
+					@start="handleSortStart"
 					@end="handleSortEnd"
 				>
 					<template #item="{ element: slide }">
@@ -82,7 +82,7 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { ignoreUpdates } from '@/stores/presentation'
+import { ignoreUpdates, historyMetadata } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
@@ -195,7 +195,13 @@ const toggleButtonClasses = computed(() => {
 	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
 })
 
+const handleSortStart = (event) => {
+	historyMetadata.focusIndexPostUndo = event.oldIndex
+	resetFocus()
+}
+
 const handleSortEnd = async (event) => {
+	historyMetadata.focusIndexPostRedo = event.newIndex
 	ignoreUpdates(() => {
 		slides.value.forEach((slide, index) => {
 			slide.idx = index + 1

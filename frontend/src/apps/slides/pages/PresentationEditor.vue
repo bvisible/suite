@@ -84,6 +84,7 @@ import {
 	unsyncedPresentationRecord,
 	readonlyMode,
 	slidesLength,
+	historyMetadata,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -274,7 +275,21 @@ const getPrevToDeletedSlideId = (oldList, newList) => {
 	return prevId
 }
 
+const wereSlidesReordered = (oldList, newList) => {
+	for (let i = 0; i < newList.length; i++) {
+		if (oldList[i] && oldList[i].name !== newList[i].name) {
+			return true
+		}
+	}
+	return false
+}
+
 const getJumpToSlideId = (operation, oldList, newList) => {
+	// reordered slides -> the jump to index becomes the slide that was moved
+	const didReorder = wereSlidesReordered(oldList, newList)
+	if (didReorder && operation == 'undo') return historyMetadata.focusIndexPostUndo
+	if (didReorder && operation == 'redo') return historyMetadata.focusIndexPostRedo
+
 	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
 		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
 	}
@@ -337,10 +352,10 @@ const handleHistoryOperation = async (operation) => {
 
 	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
 
-	jumpToActiveElements()
+	updateThumbnail(jumpToSlideId)
 
 	nextTick(() => {
-		updateThumbnail(jumpToSlideId)
+		jumpToActiveElements()
 	})
 }
 

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
@@ -304,12 +304,13 @@ const historyState = ref({
 	slides: [],
 })
 
+const historyMetadata = reactive({})
+
 const updateHistoryState = (slides, activeSlide, elementIds) => {
 	const slidesClone = [...slides].map((slide, idx) => {
 		return {
 			...slide,
 			elements: slide.elements.map((el) => cloneObj(el)),
-			thumbnail: idx == activeSlide ? '' : slide.thumbnail,
 		}
 	})
 
@@ -374,4 +375,5 @@ export {
 	readonlyMode,
 	slidesLength,
 	parseElements,
+	historyMetadata,
 }
