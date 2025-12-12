@@ -306,9 +306,14 @@ const getJumpToSlideId = (operation, oldList, newList) => {
 	return slides.value.findIndex((slide) => slide.name === slideId)
 }
 
-const restoreState = (state) => {
+const restoreState = (state, jumpToSlideId) => {
 	ignoreUpdates(() => {
-		slides.value = JSON.parse(JSON.stringify(state))
+		slides.value = JSON.parse(JSON.stringify(state)).map((slide, idx) => {
+			if (idx === jumpToSlideId) {
+				slide.thumbnail = ''
+			}
+			return slide
+		})
 		slidesLength.value = slides.value.length
 	})
 }
@@ -346,11 +351,11 @@ const handleHistoryOperation = async (operation) => {
 	const oldList = JSON.parse(JSON.stringify(slides.value))
 	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
 
-	restoreState(historyState.value.slides)
+	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
+
+	restoreState(historyState.value.slides, jumpToSlideId)
 
 	await nextTick()
-
-	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
 
 	updateThumbnail(jumpToSlideId)
 
