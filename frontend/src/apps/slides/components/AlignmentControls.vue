@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Alignment" :initialState="activeElementIds?.length > 1">
+	<CollapsibleSection title="Alignment">
 		<template #default>
 			<div v-for="axis in axes" :key="axis" class="flex flex-col gap-1.5">
 				<div :class="fieldLabelClasses">{{ axis.label }}</div>
