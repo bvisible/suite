@@ -56,7 +56,7 @@ const setCursorPositionAtEnd = (e: Event) => {
 
 const handleScrollBarWheelEvent = (e: WheelEvent) => {
 	// allow normal scroll behaviour
-	if (!e.ctrlKey && !e.metaKey) return
+	if (!isCmdOrCtrl(e)) return
 
 	// prevent zoom event from triggering
 	e.preventDefault()
@@ -89,4 +89,8 @@ const getThumbnailCardStyles = (thumbnail: string) => {
 	}
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard, getThumbnailCardStyles }
+const isCmdOrCtrl = (e: KeyboardEvent | MouseEvent) => {
+	return e.metaKey || e.ctrlKey
+}
+
+export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard, getThumbnailCardStyles, isCmdOrCtrl }

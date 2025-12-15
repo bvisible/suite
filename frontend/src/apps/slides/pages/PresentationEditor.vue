@@ -110,6 +110,8 @@ import {
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
+import { isCmdOrCtrl } from '@/utils/helpers'
+
 const { activeEditor, toggleMark } = useTextEditor()
 
 let autosaveInterval = null
@@ -166,10 +168,6 @@ const toggleSlideNavigator = () => {
 	if (!activeElementIds.value.length || activeElement.value.type != 'text') {
 		showNavigator.value = !showNavigator.value
 	}
-}
-
-const isCmdOrCtrl = (e) => {
-	return e.metaKey || e.ctrlKey
 }
 
 const handleElementShortcuts = (e) => {
