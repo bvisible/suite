@@ -292,16 +292,16 @@ const getJumpToSlideId = (operation, oldList, newList) => {
 	if (didReorder && operation == 'undo') return historyMetadata.focusIndexPostUndo
 	if (didReorder && operation == 'redo') return historyMetadata.focusIndexPostRedo
 
-	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
-		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
-	}
-
 	if (oldList.length < newList.length) {
 		return getRestoredSlideId(oldList, newList)
 	}
 
 	if (oldList.length > newList.length) {
 		return getPrevToDeletedSlideId(oldList, newList)
+	}
+
+	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
+		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
 	}
 
 	const slideId = historyState.value.activeSlide
