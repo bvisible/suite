@@ -78,6 +78,8 @@ import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 
+import { isCmdOrCtrl } from '@/utils/helpers'
+
 const props = defineProps({
 	highlight: Boolean,
 	readonlyMode: {
@@ -166,7 +168,7 @@ const clearTimeouts = () => {
 const triggerSelection = (e, id) => {
 	if (id) {
 		if (!activeElementIds.value.includes(id)) {
-			if (e.metaKey) {
+			if (isCmdOrCtrl(e) || e.shiftKey) {
 				activeElementIds.value = [...activeElementIds.value, id]
 			} else activeElementIds.value = [id]
 			focusElementId.value = null
