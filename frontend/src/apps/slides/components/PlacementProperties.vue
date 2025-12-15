@@ -1,5 +1,9 @@
 <template>
-	<CollapsibleSection title="Placement" :initialState="activeElements?.length > 1">
+	<CollapsibleSection
+		title="Placement"
+		:key="activeElements?.length"
+		:initialState="activeElements?.length > 1"
+	>
 		<template #default>
 			<div class="flex flex-col gap-1.5">
 				<div :class="fieldLabelClasses">Position</div>
