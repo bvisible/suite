@@ -84,6 +84,7 @@ import {
 	unsyncedPresentationRecord,
 	readonlyMode,
 	slidesLength,
+	historyMetadata,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -254,23 +255,77 @@ const handleGlobalShortcuts = (e) => {
 
 const recentlyRestored = ref(false)
 
-const handleHistoryOperation = async (operation) => {
-	activeElementIds.value = []
-
-	if (operation == 'undo') await historyControl.undo()
-	else if (operation == 'redo') await historyControl.redo()
-
-	const slideToFocus = historyState.value.activeSlide
-	const elementsToFocus = [...historyState.value.elementIds]
-
-	ignoreUpdates(() => {
-		slides.value = JSON.parse(JSON.stringify(historyState.value.slides))
+const getRestoredSlideId = (oldList, newList) => {
+	let restoredId = ''
+	newList.forEach((slide, index) => {
+		if (!oldList.find((s) => s.name === slide.name)) {
+			restoredId = index
+		}
 	})
+	return restoredId
+}
 
-	const onActiveSlide = slideToFocus == slideIndex.value
+const getPrevToDeletedSlideId = (oldList, newList) => {
+	let prevId = null
+	oldList.forEach((slide, index) => {
+		if (!newList.find((s) => s.name === slide.name)) {
+			prevId = index - 1
+		}
+	})
+	return prevId
+}
 
-	if (!onActiveSlide && slideToFocus != null) {
-		await changeSlide(slideToFocus, false)
+const wereSlidesReordered = (oldList, newList) => {
+	if (oldList.length !== newList.length) return false
+
+	for (let i = 0; i < newList.length; i++) {
+		if (oldList[i] && oldList[i].name !== newList[i].name) {
+			return true
+		}
+	}
+	return false
+}
+
+const getJumpToSlideId = (operation, oldList, newList) => {
+	// reordered slides -> the jump to index becomes the slide that was moved
+	const didReorder = wereSlidesReordered(oldList, newList)
+	if (didReorder && operation == 'undo') return historyMetadata.focusIndexPostUndo
+	if (didReorder && operation == 'redo') return historyMetadata.focusIndexPostRedo
+
+	if (oldList.length < newList.length) {
+		return getRestoredSlideId(oldList, newList)
+	}
+
+	if (oldList.length > newList.length) {
+		return getPrevToDeletedSlideId(oldList, newList)
+	}
+
+	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
+		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
+	}
+
+	const slideId = historyState.value.activeSlide
+	return slides.value.findIndex((slide) => slide.name === slideId)
+}
+
+const restoreState = (state, jumpToSlideId) => {
+	ignoreUpdates(() => {
+		slides.value = JSON.parse(JSON.stringify(state)).map((slide, idx) => {
+			if (idx === jumpToSlideId) {
+				slide.thumbnail = ''
+			}
+			return slide
+		})
+		slidesLength.value = slides.value.length
+	})
+}
+
+const jumpToSlide = async (operation, oldList, newList) => {
+	const jumpToSlideId = getJumpToSlideId(operation, oldList, newList)
+	const onActiveSlide = jumpToSlideId == slideIndex.value
+
+	if (!onActiveSlide && jumpToSlideId != null) {
+		await changeSlide(jumpToSlideId, false)
 
 		recentlyRestored.value = true
 		setTimeout(() => {
@@ -278,25 +333,50 @@ const handleHistoryOperation = async (operation) => {
 		}, 1000)
 	}
 
+	return jumpToSlideId
+}
+
+const jumpToActiveElements = () => {
+	const elementsToFocus = [...historyState.value.elementIds]
+
 	if (activeElementIds.value != elementsToFocus) {
 		activeElementIds.value = elementsToFocus
 	}
+}
+
+const handleHistoryOperation = async (operation) => {
+	activeElementIds.value = []
+
+	if (operation == 'undo') await historyControl.undo()
+	else if (operation == 'redo') await historyControl.redo()
+
+	const oldList = JSON.parse(JSON.stringify(slides.value))
+	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
+
+	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
+
+	restoreState(historyState.value.slides, jumpToSlideId)
+
+	await nextTick()
+
+	updateThumbnail(jumpToSlideId)
+
 	nextTick(() => {
-		updateThumbnail(slideToFocus)
+		jumpToActiveElements()
 	})
 }
 
 const handleUndoRedo = (e) => {
+	e.preventDefault()
+
 	if (activeEditor.value?.isEditable) {
 		e.stopPropagation()
 		return
 	}
 
 	if (isCmdOrCtrl(e) && e.shiftKey && historyControl.canRedo.value) {
-		e.preventDefault()
 		handleHistoryOperation('redo')
 	} else if (isCmdOrCtrl(e) && historyControl.undoStack.value.length > 1) {
-		e.preventDefault()
 		handleHistoryOperation('undo')
 	}
 }
@@ -361,7 +441,7 @@ const handleThumbnailGeneration = async (index) => {
 }
 
 const changeSlide = async (index, focus = true) => {
-	index = Math.max(0, Math.min(index, slides.value.length - 1))
+	index = Math.max(0, Math.min(index, slidesLength.value - 1))
 
 	const oldIndex = slideIndex.value
 

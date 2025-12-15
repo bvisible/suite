@@ -1,9 +1,9 @@
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides, slideIndex } from './slide'
+import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
 
 import { cloneObj } from '@/utils/helpers'
@@ -228,6 +228,18 @@ const hasStateChanged = (original, current) => {
 	return hasChanged
 }
 
+const updateNewlyAddedSlideUUIDs = () => {
+	// for newly added slides, update their names from server response
+	// required for correct jumping to slide during undo / redo operations
+	ignoreUpdates(() => {
+		slides.value.forEach((slide, idx) => {
+			if (slide.name === '') {
+				slide.name = presentationResource.value.doc.slides[idx]?.name
+			}
+		})
+	})
+}
+
 const savePresentationDoc = async () => {
 	const newSlides = slides.value.map((slide) => ({
 		...slide,
@@ -241,6 +253,8 @@ const savePresentationDoc = async () => {
 	})
 
 	presentationDoc.value = presentationResource.value.doc
+
+	updateNewlyAddedSlideUUIDs()
 }
 
 const layoutResource = createResource({
@@ -286,16 +300,17 @@ let historyControl = null
 
 const historyState = ref({
 	elementIds: '',
-	activeSlide: 0,
+	activeSlide: '',
 	slides: [],
 })
+
+const historyMetadata = reactive({})
 
 const updateHistoryState = (slides, activeSlide, elementIds) => {
 	const slidesClone = [...slides].map((slide, idx) => {
 		return {
 			...slide,
 			elements: slide.elements.map((el) => cloneObj(el)),
-			thumbnail: idx == activeSlide ? '' : slide.thumbnail,
 		}
 	})
 
@@ -310,16 +325,22 @@ const { ignoreUpdates } = watchIgnorable(
 	() => slides.value,
 	(newVal) => {
 		if (!newVal.length) return
-
-		updateHistoryState(newVal, slideIndex.value, activeElementIds.value)
-
-		historyControl?.commit()
+		commitToHistory(newVal)
 	},
 	{ deep: true },
 )
 
+const commitToHistory = (state) => {
+	const activeSlide = currentSlide.value?.name
+	const elementIds = activeElementIds.value
+
+	updateHistoryState(state, activeSlide, elementIds)
+
+	historyControl?.commit()
+}
+
 const initHistory = () => {
-	historyState.value.activeSlide = slideIndex.value
+	historyState.value.activeSlide = currentSlide.value?.name
 	historyControl = useManualRefHistory(historyState, {
 		capacity: 25,
 		clone: true,
@@ -354,4 +375,5 @@ export {
 	readonlyMode,
 	slidesLength,
 	parseElements,
+	historyMetadata,
 }
