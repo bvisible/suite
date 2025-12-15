@@ -117,7 +117,6 @@ export const TabsExtension = Node.create({
                 return false
               }
             })
-
             if (focusPos !== null) this.editor.commands.focus(focusPos)
           }, 0)
         },
@@ -151,12 +150,10 @@ export const TabsExtension = Node.create({
           if (!dispatch) return false
 
           let deleted = false
-          let deletedPos = null
 
           state.doc.descendants((node, pos) => {
             if (node.type.name === 'tab' && node.attrs.id === tabId) {
               tr.delete(pos, pos + node.nodeSize)
-              deletedPos = pos
               deleted = true
               return false
             }
@@ -242,6 +239,12 @@ export const TabsExtension = Node.create({
         }
 
         return false
+      },
+      Backspace: () => {
+        // prevent clearing of document when tab is empty
+        const { $to } = this.editor.state.selection
+        if ($to.parent.type.name === 'tab' && $to.parent.content.size == 2)
+          return true
       },
     }
   },

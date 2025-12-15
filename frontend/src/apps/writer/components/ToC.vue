@@ -18,7 +18,11 @@
     <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2">
         <div v-for="tab in tabs" :key="tab.id">
-          <div v-if="editingTabId === tab.id" class="flex items-center">
+          <div
+            v-if="editingTabId === tab.id"
+            class="flex items-center"
+            v-on-outside-click="() => finishRenaming(true)"
+          >
             <TextInput
               v-model="editingTabLabel"
               v-focus
@@ -38,8 +42,8 @@
             class="w-full !justify-start"
             :class="tab.id === activeTabId && 'font-medium'"
             :label="tab.label"
-            @click="editor.commands.changeTab(tab.id)"
-            @dblclick="editor.isEditable && startRenaming(tab)"
+            @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
+            @dblclick.stop="editor.isEditable && startRenaming(tab)"
           />
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
@@ -48,15 +52,15 @@
             <a
               v-for="anchor in currentTabAnchors"
               :href="'#' + anchor.id"
-              class="link hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate"
+              class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate"
               :title="anchor.textContent"
               :data-item-index="anchor.itemIndex"
               @click.prevent="onAnchorClick(anchor.id)"
               :key="anchor.id"
               :class="{
-                'is-active': anchor.isActive && !anchor.isScrolledOver,
-                'text-ink-gray-5': anchor.isScrolledOver,
-                'text-ink-gray-8': !anchor.isScrolledOver,
+                // 'text-ink-gray-8': anchor.isActive,
+                // '': anchor.isScrolledOver,
+                // 'text-ink-gray-8': !anchor.isScrolledOver,
               }"
               :style="{ '--level': anchor.level - maxLevel }"
             >
@@ -69,23 +73,27 @@
         v-else-if="anchors.length > 1"
         class="table-of-contents flex flex-col gap-0.5 mb-2"
       >
-        <a
+        <div
           v-for="anchor in anchors"
-          :href="'#' + anchor.id"
-          class="link hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate"
-          :title="anchor.textContent"
-          :data-item-index="anchor.itemIndex"
+          class="hover:bg-surface-gray-2 text-sm rounded-sm cursor-pointer px-2 py-1"
           @click.prevent="onAnchorClick(anchor.id)"
-          :key="anchor.id"
-          :class="{
-            'is-active': anchor.isActive && !anchor.isScrolledOver,
-            'text-ink-gray-5': anchor.isScrolledOver,
-            'text-ink-gray-8': !anchor.isScrolledOver,
-          }"
-          :style="{ '--level': anchor.level - maxLevel }"
+          :class="
+            anchor.id === activeAnchorId
+              ? 'text-ink-gray-8 bg-surface-gray-2'
+              : 'text-ink-gray-5'
+          "
         >
-          {{ anchor.textContent }}
-        </a>
+          <a
+            :href="'#' + anchor.id"
+            class="link truncate"
+            :title="anchor.textContent"
+            :data-item-index="anchor.itemIndex"
+            :key="anchor.id"
+            :style="{ '--level': anchor.level - maxLevel }"
+          >
+            {{ anchor.textContent }}
+          </a>
+        </div>
       </div>
       <Button
         v-if="editor.isEditable"
@@ -110,7 +118,7 @@ import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucidePanelRightClose from '~icons/lucide/table-of-contents'
 import LucideTrash from '~icons/lucide/trash'
 import { ref, watch, computed, h, onMounted } from 'vue'
-import TextInput from 'frappe-ui/src/components/TextInput/TextInput.vue'
+import { TextInput } from 'frappe-ui'
 
 const props = defineProps({
   editor: Object,
@@ -189,7 +197,7 @@ const onAnchorClick = (id) => {
   const view = props.editor.view
   const tr = view.state.tr
 
-  const element = view.dom.querySelector(`[data-toc-id="${id}]"`)
+  const element = view.dom.querySelector(`[data-toc-id="${id}"]`)
   const pos = view.posAtDOM(element, 0)
   tr.setSelection(new TextSelection(tr.doc.resolve(pos)))
   props.editor.view.dispatch(tr)
@@ -222,7 +230,29 @@ const finishRenaming = (esc = false) => {
   }
   editingTabId.value = null
   editingTabLabel.value = ''
+  props.editor.commands.focus()
 }
+
+const activeAnchorId = computed(() => {
+  if (!currentTabAnchors.value.length) return null
+  let activeId = null
+  const curPos = props.editor.isFocused
+    ? props.editor.view.domAtPos(props.editor.state.selection.from).top
+    : props.editor.storage.tableOfContents?.scrollPosition + 25
+
+  for (let i = 0; i < currentTabAnchors.value.length; i++) {
+    const anchor = currentTabAnchors.value[i]
+
+    if (anchor.dom.offsetTop <= curPos) {
+      activeId = anchor.id
+    } else {
+      break
+    }
+  }
+
+  // If no anchor is active yet, use the first one
+  return activeId
+})
 </script>
 
 <style scoped>
