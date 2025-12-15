@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { Select, Checkbox } from 'frappe-ui'
+import { Select, Checkbox, toast } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
@@ -114,5 +114,7 @@ const applyTransitionToAllSlides = () => {
 			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
 		}
 	})
+
+	toast.success('Applied transition to all slides')
 }
 </script>
