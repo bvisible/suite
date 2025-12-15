@@ -276,6 +276,8 @@ const getPrevToDeletedSlideId = (oldList, newList) => {
 }
 
 const wereSlidesReordered = (oldList, newList) => {
+	if (oldList.length !== newList.length) return false
+
 	for (let i = 0; i < newList.length; i++) {
 		if (oldList[i] && oldList[i].name !== newList[i].name) {
 			return true
