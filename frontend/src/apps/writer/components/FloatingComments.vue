@@ -3,7 +3,12 @@
     ref="scrollContainer"
     class="relative hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white"
   >
-    <template v-for="comment in filteredComments" :key="comment.id">
+    <slot />
+    <template
+      v-if="showComments"
+      v-for="comment in filteredComments"
+      :key="comment.id"
+    >
       <div
         :id="'comment-' + comment.id"
         :ref="
@@ -298,6 +303,7 @@ const props = defineProps({
   document: Object,
   editor: Object,
   yComments: Object,
+  showComments: Boolean,
   showResolved: Boolean,
 })
 const emit = defineEmits(['save'])

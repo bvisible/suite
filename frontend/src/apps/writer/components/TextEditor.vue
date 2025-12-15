@@ -35,6 +35,38 @@
           placeholder="Start thinking..."
           :extensions="editorExtensions"
           :bubble-menu="bubbleButtons"
+          :bubble-menu-options="{
+            shouldShow: ({ from, to }) => {
+              if (from === to) return false
+              let hide = false
+              comments.forEach((k) => (k.new || k.edit) && (hide = true))
+              return !hide
+            },
+            getReferencedVirtualElement: () => {
+              const { selection } = editor.state
+              const { from, to } = selection
+
+              const start = editor.view.coordsAtPos(from)
+              const end = editor.view.coordsAtPos(to)
+
+              const editorElement = editor.view.dom
+              const editorRect = editorElement.getBoundingClientRect()
+
+              const verticalCenter = (start.bottom + end.bottom) / 2 + 15
+              return {
+                getBoundingClientRect: () => ({
+                  width: 0,
+                  height: 0,
+                  x: editorRect.right,
+                  y: verticalCenter,
+                  top: verticalCenter,
+                  right: editorRect.right,
+                  bottom: verticalCenter,
+                  left: editorRect.right,
+                }),
+              }
+            },
+          }"
           :editable
           :starterkit-options="{
             undoRedo: false,
@@ -76,46 +108,36 @@
         v-if="commentsPainted"
         :y-comments="comments"
         v-model:active-comment="activeComment"
-        :class="showComments ? 'opacity-100' : 'opacity-0'"
+        :showComments
         :document
         :show-resolved
         :editor
         @save="saveComments"
-      />
-      <div class="absolute right-3 top-3 flex items-center gap-1">
-        <Button
-          :label="showResolved ? 'Hide resolved' : 'Show resolved'"
-          v-if="
-            showComments &&
-            Array.from(comments._map).find(
-              (k) => k[1].content?.arr?.[0].resolved,
-            )
-          "
-          class="text-sm text-ink-gray-5"
-          variant="ghost"
-          @click="showResolved = !showResolved"
-        />
-        <Button
-          v-if="comments._map.size"
-          :icon="
-            showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
-          "
-          variant="outline"
-          :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-          @click="showComments = !showComments"
-        ></Button>
-      </div>
-      <!-- <Button
-        class="absolute right-3 top-12"
-        v-if="
-          showComments &&
-          Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
-        "
-        :icon="LucideMessageSquareDot"
-        variant="outline"
-        tooltip="Toggle resolved"
-        @click="showResolved = !showResolved"
-      ></Button> -->
+      >
+        <div class="sticky self-end top-3 flex items-center gap-1">
+          <Button
+            :label="showResolved ? 'Hide resolved' : 'Show resolved'"
+            v-if="
+              showComments &&
+              Array.from(comments._map).find(
+                (k) => k[1].content?.arr?.[0].resolved,
+              )
+            "
+            class="text-sm text-ink-gray-5"
+            variant="ghost"
+            @click="showResolved = !showResolved"
+          />
+          <Button
+            v-if="comments._map.size"
+            :icon="
+              showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
+            "
+            variant="outline"
+            :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+            @click="showComments = !showComments"
+          ></Button>
+        </div>
+      </FloatingComments>
     </div>
   </div>
 </template>
@@ -124,11 +146,11 @@
 import {
   TextEditor as FTextEditor,
   TextEditorFixedMenu,
-  useDoc,
   toast,
   useFileUpload,
 } from 'frappe-ui'
-import { createDialog } from '@/utils/dialogs'
+import { Slice } from '@tiptap/pm/model'
+import ManageFont from './ManageFont.vue'
 import { v4 as uuidv4 } from 'uuid'
 import {
   computed,
@@ -141,12 +163,11 @@ import {
   provide,
 } from 'vue'
 import { EditorContent, Extension } from '@tiptap/vue-3'
-import 'katex/dist/katex.min.css'
+import { Plugin } from '@tiptap/pm/state'
 
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { Selection, CharacterCount } from '@tiptap/extensions'
-// import { MathematicsExtension } from '@/extensions/mathematics'
 import { PageBreakExtension } from '@/extensions/page-break'
 
 import { onKeyDown } from '@vueuse/core'
@@ -243,32 +264,23 @@ const onCommentActivated = (id) => {
       inline: 'nearest',
     })
 }
+
 const editorExtensions = [
   ...COMMON_EXTENSIONS,
   Extension.create({
     addCommands: () => {
       return {
+        // override tiptap's as all marks are removed while using tabs
         removeEmptyTextStyle:
           () =>
           ({ tr }) => {
             const { selection } = tr
 
-            // Gather all of the nodes within the selection range.
-            // We would need to go through each node individually
-            // to check if it has any inline style attributes.
-            // Otherwise, calling commands.unsetMark(this.name)
-            // removes everything from all the nodes
-            // within the selection range.
             tr.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
-              // Check if it's a paragraph element, if so, skip this node as we apply
-              // the text style to inline text nodes only (span).
-              console.log(pos, node, node.isTextblock, node.isText, node.marks)
               if (!node.isText) {
                 return true
               }
 
-              // Check if the node has no inline style attributes.
-              // Filter out non-`textStyle` marks.
               const TYPE = 'textStyle'
               const styleMark = !node.marks
                 .filter((mark) => mark.type.name === TYPE)
@@ -276,12 +288,32 @@ const editorExtensions = [
                   Object.values(mark.attrs).some((value) => !!value),
                 )
               if (styleMark) {
-                console.log(styleMark)
                 tr.removeMark(pos, pos + node.nodeSize, styleMark.type)
               }
             })
           },
       }
+    },
+    addProseMirrorPlugins() {
+      return [
+        new Plugin({
+          props: {
+            // remove tab container while copying
+            transformCopied(slice) {
+              const frag = slice.content
+              if (frag.childCount === 1 && frag.child(0).type.name === 'tab') {
+                const tabNode = frag.child(0)
+                return new Slice(
+                  tabNode.content,
+                  slice.openStart,
+                  slice.openEnd,
+                )
+              }
+              return slice
+            },
+          },
+        }),
+      ]
     },
   }),
   PageBreakExtension,
@@ -331,28 +363,6 @@ const editorExtensions = [
   }),
 ]
 
-function getCurrentParagraphAttrs(editor) {
-  const { $from } = editor.state.selection
-  const node = $from.node($from.depth)
-
-  if (node.type.name === 'paragraph') {
-    return node.attrs
-  }
-
-  // Walk up until we find a paragraph
-  for (let d = $from.depth; d >= 0; d--) {
-    const n = $from.node(d)
-    if (n.type.name === 'paragraph') return n.attrs
-  }
-
-  return {} // fallback
-}
-
-const LINE_HEIGHT_STEP = 0.25
-function getParagraphAttr(editor, attr, def) {
-  return getCurrentParagraphAttrs(editor)[attr] || def
-}
-
 const menuButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
   'Bold',
@@ -386,14 +396,11 @@ const menuButtons = computed(() => [
   'Separator',
   {
     label: 'FontOptions',
-    component: h(
-      defineAsyncComponent(() => import('./ManageFont.vue')),
-      {
-        editor,
-        font_size: +props.settings.font_size || 15,
-        font_family: props.settings.font_family || 'inter',
-      },
-    ),
+    component: h(ManageFont, {
+      editor,
+      font_size: +props.settings.font_size || 15,
+      font_family: props.settings.font_family || 'inter',
+    }),
   },
   'Separator',
   ['Bullet List', 'Numbered List', 'Task List'],

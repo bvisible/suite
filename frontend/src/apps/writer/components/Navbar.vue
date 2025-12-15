@@ -5,9 +5,11 @@
     ondrop="return false;"
     class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
   >
-    <div class="pl-2.5 pr-1">
-      <WriterLogo class="size-7" />
-    </div>
+    <a href="/writer">
+      <div class="pl-2.5 pr-1">
+        <WriterLogo class="size-7" />
+      </div>
+    </a>
     <slot name="breadcrumbs">
       <Breadcrumbs
         :items="formattedCrumbs"

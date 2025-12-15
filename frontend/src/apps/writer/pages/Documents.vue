@@ -43,7 +43,7 @@
   </div>
 </template>
 <script setup>
-import { getDocuments, createDocument } from '@/resources/'
+import { getDocuments } from '@/resources/'
 import RoundedListView from '@/components/RoundedListView.vue'
 import { LoadingIndicator, useList, usePageMeta } from 'frappe-ui'
 
@@ -97,11 +97,4 @@ function groupByTime(entities) {
     })
   return grouped
 }
-
-const templates = useList({
-  doctype: 'Writer Template',
-  fields: ['name', 'title', 'content'],
-  limit: 100,
-  immediate: true,
-})
 </script>

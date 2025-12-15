@@ -3,18 +3,19 @@
     v-if="editor"
     class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white max-h-screen overflow-auto"
   >
-    <Button
-      v-if="tabs.length || anchors.length > 1"
-      variant="ghost"
-      :icon="
-        h(show ? LucidePanelLeftClose : LucidePanelRightClose, {
-          class: 'text-ink-gray-6',
-        })
-      "
-      :tooltip="show ? 'Hide' : 'Table of Contents'"
-      class="!w-5.5 !h-5.5 mb-2"
-      @click="show = !show"
-    />
+    <template v-if="tabs.length || anchors.length > 1">
+      <Button
+        variant="ghost"
+        :icon="
+          h(show ? LucidePanelLeftClose : LucideTableOfContents, {
+            class: 'text-ink-gray-6',
+          })
+        "
+        :tooltip="show ? 'Hide' : 'Table of Contents'"
+        class="!w-5.5 !h-5.5 mb-2"
+        @click="show = !show"
+      />
+    </template>
     <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2">
         <div v-for="tab in tabs" :key="tab.id">
@@ -38,10 +39,11 @@
           </div>
           <Button
             v-else
-            :variant="tab.id === activeTabId ? 'subtle' : 'ghost'"
-            class="w-full !justify-start"
-            :class="tab.id === activeTabId && 'font-medium'"
+            variant="ghost"
+            class="w-full !text-ink-gray-5 !justify-start"
+            :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
             :label="tab.label"
+            :icon-left="h(LucideFileText, { class: 'size-3.5' })"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
           />
@@ -49,23 +51,27 @@
             v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-2 my-1"
           >
-            <a
-              v-for="anchor in currentTabAnchors"
-              :href="'#' + anchor.id"
-              class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate"
-              :title="anchor.textContent"
-              :data-item-index="anchor.itemIndex"
-              @click.prevent="onAnchorClick(anchor.id)"
-              :key="anchor.id"
-              :class="{
-                // 'text-ink-gray-8': anchor.isActive,
-                // '': anchor.isScrolledOver,
-                // 'text-ink-gray-8': !anchor.isScrolledOver,
-              }"
-              :style="{ '--level': anchor.level - maxLevel }"
-            >
-              {{ anchor.textContent }}
-            </a>
+            <div v-for="anchor in currentTabAnchors" class="flex">
+              <!-- <div
+                v-if="anchor.isActive"
+                class="border-l border-outline-gray-3 w-px"
+              ></div> -->
+              <a
+                :href="'#' + anchor.id"
+                class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
+                :title="anchor.textContent"
+                :data-item-index="anchor.itemIndex"
+                @click.prevent="onAnchorClick(anchor.id)"
+                :key="anchor.id"
+                :class="
+                  anchor.isActive &&
+                  'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
+                "
+                :style="{ '--level': anchor.level - maxLevel }"
+              >
+                {{ anchor.textContent }}
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -73,22 +79,19 @@
         v-else-if="anchors.length > 1"
         class="table-of-contents flex flex-col gap-0.5 mb-2"
       >
-        <div
-          v-for="anchor in anchors"
-          class="hover:bg-surface-gray-2 text-sm rounded-sm cursor-pointer px-2 py-1"
-          @click.prevent="onAnchorClick(anchor.id)"
-          :class="
-            anchor.id === activeAnchorId
-              ? 'text-ink-gray-8 bg-surface-gray-2'
-              : 'text-ink-gray-5'
-          "
-        >
+        <div v-for="anchor in anchors" class="flex">
+          <!-- <div
+            v-if="anchor.isActive"
+            class="border-l border-outline-gray-3 w-px"
+          ></div> -->
           <a
             :href="'#' + anchor.id"
-            class="link truncate"
+            class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
             :title="anchor.textContent"
             :data-item-index="anchor.itemIndex"
+            @click.prevent="onAnchorClick(anchor.id)"
             :key="anchor.id"
+            :class="anchor.isActive && 'text-ink-gray-8'"
             :style="{ '--level': anchor.level - maxLevel }"
           >
             {{ anchor.textContent }}
@@ -115,7 +118,8 @@
 import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/Plus'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
-import LucidePanelRightClose from '~icons/lucide/table-of-contents'
+import LucideFileText from '~icons/lucide/file-text'
+import LucideTableOfContents from '~icons/lucide/table-of-contents'
 import LucideTrash from '~icons/lucide/trash'
 import { ref, watch, computed, h, onMounted } from 'vue'
 import { TextInput } from 'frappe-ui'
@@ -208,8 +212,7 @@ const onAnchorClick = (id) => {
 
   const editorEl = document.querySelector('#editorScrollContainer')
   editorEl.scrollTo({
-    top: element.offsetTop - 10,
-    behavior: 'smooth',
+    top: element.offsetTop,
   })
 }
 

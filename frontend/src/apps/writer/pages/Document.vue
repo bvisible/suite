@@ -65,7 +65,6 @@
   <ErrorPage v-if="document.error" :error="document.error" />
   <LoadingIndicator
     v-else-if="!document.doc && document.loading"
-    :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
   <div
@@ -139,10 +138,8 @@ import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
 import LucideLockOpen from '~icons/lucide/lock-open'
 import LucideWifiOff from '~icons/lucide/wifi-off'
+import TextEditor from '@/components/TextEditor.vue'
 
-const TextEditor = defineAsyncComponent(
-  () => import('@/components/TextEditor.vue'),
-)
 const MarkdownEditor = defineAsyncComponent(
   () => import('@/components/MarkdownEditor.vue'),
 )
@@ -198,7 +195,6 @@ const globalSettings = !store.getters.isLoggedIn
     })
 
 const settings = computed(() => {
-  console.log(globalSettings.doc?.writer_settings)
   for (const [k, v] of Object.entries(document.doc?.settings || {})) {
     if (v === 'global') delete document.doc?.settings[k]
   }
@@ -234,7 +230,7 @@ watch(isOldSchema, (v) => {
     toasted = true
   }
 })
-onKeyDown('k', (e) => {
+onKeyDown('t', (e) => {
   if (isModKey(e)) {
     e.preventDefault()
     showTemplates.value = true

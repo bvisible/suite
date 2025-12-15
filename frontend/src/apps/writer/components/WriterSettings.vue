@@ -32,6 +32,7 @@
                     v-model="settings.font_size"
                     type="number"
                     label="Font Size"
+                    autocomplete="off"
                     placeholder="Automatic"
                     description="Set the font size of the editor (px)."
                   />
@@ -39,6 +40,7 @@
                     v-model="settings.line_height"
                     type="number"
                     label="Line Height"
+                    autocomplete="off"
                     placeholder="Automatic"
                     description="Set the line height of the editor."
                   />
@@ -51,6 +53,7 @@
                         placeholder="0"
                         :min="0"
                         :step="1"
+                        autocomplete="off"
                         description="Above"
                       />
                       <FormControl
@@ -58,6 +61,7 @@
                         type="number"
                         placeholder="0"
                         :min="0"
+                        autocomplete="off"
                         :step="1"
                         description="Below"
                       />
@@ -82,18 +86,21 @@
                           type="text"
                           placeholder="Header Left"
                           description="Top Left"
+                          autocomplete="off"
                         />
                         <FormControl
                           v-model="settings.print_header_right"
                           type="text"
                           placeholder="Header Right"
                           description="Top Right"
+                          autocomplete="off"
                         />
                         <FormControl
                           v-model="settings.print_footer_left"
                           type="text"
                           placeholder="Footer Left"
                           description="Bottom Left"
+                          autocomplete="off"
                         />
                         <FormControl
                           v-model="settings.print_footer_right"
@@ -101,6 +108,7 @@
                           type="text"
                           placeholder="Footer Right"
                           description="Bottom Right"
+                          autocomplete="off"
                         />
                       </div>
                       <div class="text-xs text-ink-gray-5 mt-2">

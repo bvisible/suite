@@ -89,35 +89,23 @@ export const useComments = (document, editor) => {
 
 export function useYjs(document, editor, edited) {
   const doc = new Y.Doc({ gc: true })
+  if (document.doc.content)
+    Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
   const roomName = 'fdoc-' + document.doc.name
   const db = new IndexeddbPersistence(roomName, doc)
-
-  // Ensure both indexedb and fresh server data is loaded before applying.
-  const idbReady = new Promise((resolve) => {
-    db.on('synced', () => {
-      resolve()
-    })
-  })
-  const serverReady = new Promise((resolve) => {
+  new Promise((resolve) => {
     if (document.isFinished) resolve(document.doc)
-    const stop = document.onSuccess((freshDoc) => {
-      resolve(freshDoc)
-      stop()
-    })
+    else {
+      const stop = document.onSuccess((freshDoc) => {
+        const diff = Y.diffUpdate(
+          toUint8Array(freshDoc.content),
+          Y.encodeStateVector(doc),
+        )
+        Y.applyUpdate(doc, diff, 'server')
+        stop()
+      })
+    }
   })
-
-  let serverStateVector
-  Promise.all([idbReady, serverReady]).then(([_, freshDoc]) => {
-    const serverSnapshot = Y.mergeUpdates([
-      toUint8Array(freshDoc.content),
-      // ...freshDoc.updates.map((u) => toUint8Array(u.data)),
-    ])
-
-    const diff = Y.diffUpdate(serverSnapshot, Y.encodeStateVector(doc))
-    Y.applyUpdate(doc, diff, 'server')
-    serverStateVector = Y.encodeStateVectorFromUpdate(serverSnapshot)
-  })
-
   // Saving to server
   const save = async (manual = false) => {
     if (!manual && !edited.value) return
@@ -157,7 +145,6 @@ export function useYjs(document, editor, edited) {
   return {
     doc,
     cleanup: () => {
-      console.log('cleant up')
       provider.destroy()
       db.destroy()
       cleanupComments()
