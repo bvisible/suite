@@ -19,7 +19,7 @@ import { presentationId } from './presentation'
 import { getUpdatedIdAfterConnections } from './transition'
 
 import { generateHTML } from '@tiptap/core'
-import { extensions } from '@/stores/tiptapSetup'
+import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -470,12 +470,19 @@ const addFixedWidthToElement = (deltaWidth) => {
 const { initTextEditor, activeEditor } = useTextEditor()
 let editorOldText = ''
 
+const getEditorHTML = () => {
+	const html = activeEditor.value.getHTML()
+	return patchEmptyParagraphs(html)
+}
+
 const updateElementContent = (element) => {
+	const { wasUpdated, updatedHTML } = getEditorHTML()
 	const currentText = activeEditor.value.getText()
-	if (editorOldText == currentText) return
+
+	if (editorOldText == currentText && !wasUpdated) return
 
 	element.id = getUpdatedIdAfterConnections(element)
-	element.content = activeEditor.value.getHTML()
+	element.content = updatedHTML
 	editorOldText = currentText
 }
 

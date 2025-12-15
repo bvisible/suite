@@ -14,6 +14,8 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 import { joinBackward } from 'prosemirror-commands'
 import { TextSelection } from 'prosemirror-state'
 
+import { getDocFromHTML } from '@/utils/helpers'
+
 const parseElementStyle = (attribute, value) => {
 	if (!value) return null
 
@@ -401,7 +403,7 @@ const styledEmptyLinePlugin = new Plugin({
 	},
 })
 
-export const StyledEmptyLine = Extension.create({
+const StyledEmptyLine = Extension.create({
 	name: 'StyledEmptyLine',
 
 	addKeyboardShortcuts() {
@@ -416,6 +418,48 @@ export const StyledEmptyLine = Extension.create({
 		return [styledEmptyLinePlugin]
 	},
 })
+
+const updateParagraphHTML = (doc, p, prevSpanStyles) => {
+	p.innerHTML = ''
+
+	const span = doc.createElement('span')
+	span.setAttribute('style', prevSpanStyles)
+	span.innerHTML = ZWSP
+
+	p.appendChild(span)
+}
+
+export const patchEmptyParagraphs = (htmlString) => {
+	// to patch <br class="ProseMirror-trailingBreak"> -> ZWSP
+	// before StyledEmptyLine plugin was added
+	let didUpdate = false
+
+	const doc = getDocFromHTML(htmlString)
+
+	const allParagraphs = Array.from(doc.body.querySelectorAll('p'))
+	let prevSpanStyles = null
+
+	allParagraphs.forEach((p) => {
+		const isEmpty = p.textContent.trim() === ''
+		const firstSpan = p.querySelector('span')
+
+		if (!isEmpty && firstSpan) {
+			prevSpanStyles = firstSpan.getAttribute('style') || ''
+			return
+		}
+
+		if (isEmpty && prevSpanStyles) {
+			if (!didUpdate) didUpdate = true
+
+			updateParagraphHTML(doc, p, prevSpanStyles)
+		}
+	})
+
+	return {
+		wasUpdated: didUpdate,
+		updatedHTML: didUpdate ? doc.body.innerHTML : htmlString,
+	}
+}
 
 export const extensions = [
 	StarterKit.configure({

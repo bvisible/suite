@@ -89,8 +89,24 @@ const getThumbnailCardStyles = (thumbnail: string) => {
 	}
 }
 
+const getDocFromHTML = (html: string) => {
+	const parser = new DOMParser()
+	return parser.parseFromString(html, 'text/html')
+}
+
 const isCmdOrCtrl = (e: KeyboardEvent | MouseEvent) => {
 	return e.metaKey || e.ctrlKey
 }
 
-export { handleSingleAndDoubleClick, debounce, generateUniqueId, setCursorPositionAtEnd, handleScrollBarWheelEvent, cloneObj, copyToClipboard, getThumbnailCardStyles, isCmdOrCtrl }
+export {
+	handleSingleAndDoubleClick,
+	debounce,
+	generateUniqueId,
+	setCursorPositionAtEnd,
+	handleScrollBarWheelEvent,
+	cloneObj,
+	copyToClipboard,
+	getThumbnailCardStyles,
+	getDocFromHTML,
+	isCmdOrCtrl
+}
