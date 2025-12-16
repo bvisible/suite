@@ -3,17 +3,14 @@
 		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
 		@wheel="handleScrollBarWheelEvent"
 	>
-		<div v-if="!activeElement">
-			<SlideProperties v-if="currentSlide" @openLayoutDialog="$emit('openLayoutDialog')" />
-		</div>
-		<div v-else>
-			<component :is="activeProperties" />
-		</div>
-
 		<div v-if="activeElementIds.length">
-			<AppearanceProperties v-if="activeElement" />
 			<AlignmentControls />
 			<PlacementProperties />
+			<component :is="activeProperties" />
+			<AppearanceProperties v-if="activeElement" />
+		</div>
+		<div v-else>
+			<SlideProperties v-if="currentSlide" @openLayoutDialog="$emit('openLayoutDialog')" />
 		</div>
 	</div>
 </template>
