@@ -12,6 +12,7 @@
 				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
+				@changeSlide="changeSlide"
 			/>
 
 			<NavigationPanel
@@ -95,6 +96,7 @@ import {
 	updateThumbnail,
 	lastThumbnailTime,
 	focusedSlide,
+	insertSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -211,6 +213,9 @@ const handleSlideShortcuts = (e) => {
 			break
 		case 'd':
 			if (isCmdOrCtrl(e)) duplicateSlide(e)
+			break
+		case 'c':
+			if (isCmdOrCtrl(e)) copySlide(e)
 			break
 	}
 }
@@ -441,8 +446,6 @@ const handleThumbnailGeneration = async (index) => {
 const changeSlide = async (index, focus = true) => {
 	index = Math.max(0, Math.min(index, slidesLength.value - 1))
 
-	const oldIndex = slideIndex.value
-
 	if (!readonlyMode.value) {
 		await resetFocus()
 	}
@@ -483,17 +486,12 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	return slide
 }
 
-const insertSlide = async (index, layoutId, toDuplicate) => {
+const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
 	const newSlide = getNewSlide(toDuplicate, layoutId)
 
-	slides.value.splice(index + 1, 0, newSlide)
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-
-	slidesLength.value = slides.value.length
+	insertSlide(newSlide, index)
 
 	await changeSlide(index + 1)
 
@@ -533,7 +531,7 @@ const deleteSlide = (deleteActive) => {
 const duplicateSlide = (e) => {
 	e.preventDefault()
 
-	insertSlide(slideIndex.value, null, true)
+	insertDuplicateSlide(slideIndex.value, null, true)
 }
 
 const replaceSlide = (layoutId) => {
@@ -544,6 +542,18 @@ const replaceSlide = (layoutId) => {
 	slides.value.forEach((slide, index) => {
 		slide.idx = index + 1
 	})
+}
+
+const getCopiedSlideJSON = () => {
+	const slide = getNewSlide(true)
+	return JSON.stringify(slide)
+}
+
+const copySlide = (e) => {
+	e.preventDefault()
+	const clipboardJSON = getCopiedSlideJSON()
+	e.clipboardData?.setData('application/json', clipboardJSON)
+	toast.success('Slide copied to clipboard')
 }
 
 const resetAndSave = async () => {
@@ -652,7 +662,7 @@ const handleInsertSlide = (layoutId) => {
 	if (layoutAction.value == 'replace') {
 		replaceSlide(layoutId)
 	} else {
-		insertSlide(insertIndex.value, layoutId)
+		insertDuplicateSlide(insertIndex.value, layoutId)
 	}
 	insertIndex.value = null
 }
