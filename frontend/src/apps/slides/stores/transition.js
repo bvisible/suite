@@ -78,13 +78,9 @@ const createConnectionsForMagicMove = (index) => {
 	const current = slides.value[index]
 	const next = slides.value[index + 1]
 
-	next.elements.forEach((nextElement) => {
-		const refElement = getReferenceElement(nextElement, current)
-
-		if (refElement) {
-			// update current element id to match reference from previous slide
-			nextElement.id = refElement.id
-		}
+	current.elements.forEach((currElement) => {
+		const refElement = getReferenceElement(currElement, next)
+		if (refElement) currElement.id = refElement.id
 	})
 }
 
