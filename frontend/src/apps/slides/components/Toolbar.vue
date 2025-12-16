@@ -3,13 +3,13 @@
 		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
 		@wheel="handleScrollBarWheelEvent"
 	>
-		<Tooltip text="Text" :hover-delay="0.7" placement="bottom">
+		<Tooltip text="Text" :hover-delay="0.7">
 			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
 				<Type size="16" class="stroke-[1.5]" />
 			</div>
 		</Tooltip>
 
-		<Tooltip text="Media" :hover-delay="0.7" placement="bottom">
+		<Tooltip text="Media" :hover-delay="0.7">
 			<FileUploader
 				:fileTypes="allowedImageFileTypes.concat(['video/*'])"
 				:uploadArgs="{
@@ -32,12 +32,7 @@
 
 		<div class="h-6 border-l"></div>
 
-		<Tooltip
-			v-for="option in slideActions"
-			:text="option.label"
-			:hover-delay="0.5"
-			placement="bottom"
-		>
+		<Tooltip v-for="option in slideActions" :text="option.label" :hover-delay="0.5">
 			<div
 				class="cursor-pointer rounded p-2 hover:bg-gray-100"
 				@click="option.onClick"

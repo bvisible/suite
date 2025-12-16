@@ -52,7 +52,7 @@
 
 							<div
 								v-if="isSlideActive(slide)"
-								class="absolute -left-5 h-full w-2 rounded-r bg-blue-400 opacity-90"
+								class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
 							></div>
 						</div>
 					</template>
@@ -166,9 +166,9 @@ const getThumbnailClasses = (slide) => {
 
 	let outlineClasses = ''
 	if (isFocused) {
-		outlineClasses += 'ring-blue-300 ring-2 ring-offset-1'
+		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
 	} else if (isActive && props.recentlyRestored) {
-		outlineClasses += 'ring-blue-300 ring-[2px] ring-offset-2 scale-[1.01]'
+		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.01]'
 	} else if (isActive) {
 		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
 	} else {

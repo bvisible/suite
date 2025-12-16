@@ -56,7 +56,7 @@ const setCursorPositionAtEnd = (e: Event) => {
 
 const handleScrollBarWheelEvent = (e: WheelEvent) => {
 	// allow normal scroll behaviour
-	if (!e.ctrlKey && !e.metaKey) return
+	if (!isCmdOrCtrl(e)) return
 
 	// prevent zoom event from triggering
 	e.preventDefault()
@@ -94,6 +94,10 @@ const getDocFromHTML = (html: string) => {
 	return parser.parseFromString(html, 'text/html')
 }
 
+const isCmdOrCtrl = (e: KeyboardEvent | MouseEvent) => {
+	return e.metaKey || e.ctrlKey
+}
+
 export {
 	handleSingleAndDoubleClick,
 	debounce,
@@ -103,5 +107,6 @@ export {
 	cloneObj,
 	copyToClipboard,
 	getThumbnailCardStyles,
-	getDocFromHTML
+	getDocFromHTML,
+	isCmdOrCtrl
 }
