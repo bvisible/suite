@@ -61,12 +61,16 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	setSlideRef,
+	insertSlide,
+	slideIndex,
 } from '@/stores/slide'
 import {
 	activeElementIds,
 	activeElement,
 	handleCopy,
-	handlePaste,
+	handleSvgText,
+	handlePastedText,
+	handlePastedJSON,
 	focusElementId,
 	pairElementId,
 	addFixedWidthToElement,
@@ -79,6 +83,7 @@ import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
+import { handleUploadedMedia } from '../utils/mediaUploads'
 
 const props = defineProps({
 	highlight: Boolean,
@@ -88,7 +93,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['update:hasOngoingInteraction'])
+const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideRef = useTemplateRef('slideRef')
@@ -412,6 +417,42 @@ watch(
 		handleDimensionChange(delta)
 	},
 )
+
+const handlePastedSlideJSON = async (json) => {
+	const index = slideIndex.value
+
+	insertSlide(JSON.parse(json), index)
+
+	emit('changeSlide', index + 1)
+}
+
+const handlePaste = (e) => {
+	// do not override paste event if current element is input or content editable
+	const activeElement = document.activeElement
+	if (
+		activeElement?.tagName == 'INPUT' ||
+		activeElement?.tagName == 'TEXTAREA' ||
+		activeElement?.isContentEditable
+	) {
+		return
+	}
+
+	e.preventDefault()
+	const clipboardItems = e.clipboardData.items
+	if (clipboardItems) handleUploadedMedia(clipboardItems)
+
+	const clipboardText = e.clipboardData.getData('text/plain')
+	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
+		handleSvgText(clipboardText)
+	} else if (clipboardText && !focusElementId.value) {
+		handlePastedText(clipboardText)
+	}
+
+	const clipboardJSON = e.clipboardData.getData('application/json')
+	if (!Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"'))
+		return handlePastedSlideJSON(clipboardJSON)
+	return handlePastedJSON(clipboardJSON)
+}
 
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return

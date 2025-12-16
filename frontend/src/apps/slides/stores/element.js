@@ -9,6 +9,7 @@ import {
 	currentSlide,
 	slideIndex,
 	updateThumbnail,
+	insertSlide,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
@@ -449,32 +450,6 @@ const handleSvgText = (svgText) => {
 	handleUploadedMedia([{ kind: 'file', getAsFile: () => svgFile }])
 }
 
-const handlePaste = (e) => {
-	// do not override paste event if current element is input or content editable
-	const activeElement = document.activeElement
-	if (
-		activeElement?.tagName == 'INPUT' ||
-		activeElement?.tagName == 'TEXTAREA' ||
-		activeElement?.isContentEditable
-	) {
-		return
-	}
-
-	e.preventDefault()
-	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) handleUploadedMedia(clipboardItems)
-
-	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
-		handleSvgText(clipboardText)
-	} else if (clipboardText && !focusElementId.value) {
-		handlePastedText(clipboardText)
-	}
-
-	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
-}
-
 const addFixedWidthToElement = (deltaWidth) => {
 	const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
 	if (elementDiv) {
@@ -593,7 +568,9 @@ export {
 	selectAllElements,
 	getElementPosition,
 	handleCopy,
-	handlePaste,
+	handleSvgText,
+	handlePastedText,
+	handlePastedJSON,
 	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,
