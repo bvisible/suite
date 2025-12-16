@@ -264,8 +264,6 @@ const replaceMediaElement = async (element, fileDoc) => {
 }
 
 const getDuplicateElementId = (element, srcSlide) => {
-	let refId = null
-
 	if (srcSlide == slideIndex.value - 1) {
 		const prevSlide = slides.value[slideIndex.value - 1]
 		if (prevSlide?.transition == 'Magic Move') return element.id
@@ -279,7 +277,7 @@ const getDuplicateElementId = (element, srcSlide) => {
 const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
 
-	if (!srcSlide) srcSlide = slideIndex.value
+	if (srcSlide == null) srcSlide = slideIndex.value
 
 	const displaceByPx = srcSlide == slideIndex.value ? 40 : 0
 
