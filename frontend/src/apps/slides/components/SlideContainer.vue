@@ -426,32 +426,45 @@ const handlePastedSlideJSON = async (json) => {
 	emit('changeSlide', index + 1)
 }
 
-const handlePaste = (e) => {
-	// do not override paste event if current element is input or content editable
+const isInputElement = (el) => {
 	const activeElement = document.activeElement
-	if (
+	return (
 		activeElement?.tagName == 'INPUT' ||
 		activeElement?.tagName == 'TEXTAREA' ||
 		activeElement?.isContentEditable
-	) {
-		return
-	}
+	)
+}
 
-	e.preventDefault()
-	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) handleUploadedMedia(clipboardItems)
-
-	const clipboardText = e.clipboardData.getData('text/plain')
+const handleClipboardText = (clipboardText) => {
 	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
 		handleSvgText(clipboardText)
 	} else if (clipboardText && !focusElementId.value) {
 		handlePastedText(clipboardText)
 	}
+}
+
+const handleClipboardJSON = (clipboardJSON) => {
+	const isSlideJSON = !Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"')
+	if (isSlideJSON) {
+		return handlePastedSlideJSON(clipboardJSON)
+	}
+	return handlePastedJSON(clipboardJSON)
+}
+
+const handlePaste = (e) => {
+	// do not override paste event if current element is input or content editable
+	if (isInputElement()) return
+
+	e.preventDefault()
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (!Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"'))
-		return handlePastedSlideJSON(clipboardJSON)
-	return handlePastedJSON(clipboardJSON)
+	if (clipboardJSON) return handleClipboardJSON(clipboardJSON)
+
+	const clipboardItems = e.clipboardData.items
+	if (clipboardItems) return handleUploadedMedia(clipboardItems)
+
+	const clipboardText = e.clipboardData.getData('text/plain')
+	if (clipboardText) return handleClipboardText(clipboardText)
 }
 
 const initSlideAndListeners = () => {
