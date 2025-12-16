@@ -139,6 +139,8 @@ const addTextElement = async (text) => {
 
 	currentSlide.value.elements.push(element)
 
+	element.id = getUpdatedIdAfterConnections(element)
+
 	selectAndCenterElement(element.id)
 }
 
@@ -251,6 +253,9 @@ const addMediaElement = async (file, type) => {
 		element.invertY = 1
 	}
 	currentSlide.value.elements.push(element)
+
+	element.id = getUpdatedIdAfterConnections(element)
+
 	selectAndCenterElement(element.id)
 }
 
