@@ -263,12 +263,25 @@ const replaceMediaElement = async (element, fileDoc) => {
 	element.id = getUpdatedIdAfterConnections(element)
 }
 
+const isElementInSlide = (slideIndex, elementId) => {
+	const slide = slides.value[slideIndex]
+	return slide.elements?.some((element) => element.id == elementId)
+}
+
 const getDuplicateElementId = (element, srcSlide) => {
 	if (srcSlide == slideIndex.value - 1) {
 		const prevSlide = slides.value[slideIndex.value - 1]
-		if (prevSlide?.transition == 'Magic Move') return element.id
+		if (
+			prevSlide?.transition == 'Magic Move' &&
+			!isElementInSlide(slideIndex.value, element.id)
+		)
+			return element.id
 	} else if (srcSlide == slideIndex.value + 1) {
-		if (currentSlide.value?.transition == 'Magic Move') return element.id
+		if (
+			currentSlide.value?.transition == 'Magic Move' &&
+			!isElementInSlide(slideIndex.value, element.id)
+		)
+			return element.id
 	}
 
 	return generateUniqueId()
@@ -583,4 +596,5 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
+	isElementInSlide,
 }
