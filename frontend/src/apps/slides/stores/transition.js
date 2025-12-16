@@ -1,4 +1,5 @@
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
+import { isElementInSlide } from '@/stores/element'
 import { generateUniqueId } from '@/utils/helpers'
 
 const canCreateTextConnection = (currentContent, nextContent) => {
@@ -26,24 +27,26 @@ const canCreateMediaConnection = (currentSrc, nextSrc) => {
 	return currentSrc == nextSrc
 }
 
-const canCreateConnection = (element, nextElement) => {
-	if (element.type == 'text') {
-		return canCreateTextConnection(element.content, nextElement.content)
+const canCreateConnection = (currElement, potentialConnectionElement) => {
+	if (currElement.type == 'text') {
+		return canCreateTextConnection(currElement.content, potentialConnectionElement.content)
 	}
-	return canCreateMediaConnection(element.src, nextElement.src)
+	return canCreateMediaConnection(currElement.src, potentialConnectionElement.src)
 }
 
-const getReferenceElement = (nextElement, slide) => {
+const getReferenceElement = (currElement, slide) => {
 	for (const element of slide.elements) {
-		if (element.type != nextElement.type) continue
+		if (element.type != currElement.type) continue
 
-		if (canCreateConnection(element, nextElement)) {
+		if (isElementInSlide(slideIndex.value, element.id)) continue
+
+		if (canCreateConnection(currElement, element)) {
 			return element
 		}
 	}
 }
 
-const getUpdatedIdAfterConnections = (element, currentText) => {
+const getUpdatedIdAfterConnections = (element) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const nextSlide = slides.value[slideIndex.value + 1]
 
