@@ -17,7 +17,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
-import { getUpdatedIdAfterConnections } from './transition'
+import { updateElementId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -140,7 +140,7 @@ const addTextElement = async (text) => {
 
 	currentSlide.value.elements.push(element)
 
-	element.id = getUpdatedIdAfterConnections(element)
+	updateElementId(element)
 
 	selectAndCenterElement(element.id)
 }
@@ -268,7 +268,7 @@ const addMediaElement = async (file, type) => {
 	}
 	currentSlide.value.elements.push(element)
 
-	element.id = getUpdatedIdAfterConnections(element)
+	updateElementId(element)
 
 	selectAndCenterElement(element.id)
 }
@@ -279,7 +279,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.type == 'video') {
 		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
-	element.id = getUpdatedIdAfterConnections(element)
+	updateElementId(element)
 }
 
 const isElementInSlide = (slideIndex, elementId) => {
@@ -485,7 +485,8 @@ const updateElementContent = (element) => {
 
 	if (editorOldText == currentText && !wasUpdated) return
 
-	element.id = getUpdatedIdAfterConnections(element)
+	updateElementId(element)
+
 	element.content = updatedHTML
 	editorOldText = currentText
 }

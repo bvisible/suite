@@ -46,29 +46,30 @@ const getReferenceElement = (currElement, slide) => {
 	}
 }
 
+const getElementId = (candidateSlide, element) => {
+	if (!candidateSlide) return null
+
+	// find reference element in candidate slide
+	const refElement = getReferenceElement(element, candidateSlide)
+	// if found copy its id so that it does not re-render during transition
+	return refElement?.id
+}
+
 const getUpdatedIdAfterConnections = (element) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const nextSlide = slides.value[slideIndex.value + 1]
 
-	let candidateSlide = null
-	if (prevSlide?.transition === 'Magic Move') {
-		// if transition begins on previous slide -
-		// check if any element in current slide refers to element from previous slide
-		candidateSlide = prevSlide
-	} else if (currentSlide.value?.transition === 'Magic Move' && nextSlide) {
-		// if transition begins on current slide -
-		// check if any element in next slide refers to this element
-		candidateSlide = nextSlide
+	let id = getElementId(prevSlide, element)
+
+	if (!id && currentSlide.value?.transition === 'Magic Move') {
+		id = getElementId(nextSlide, element)
 	}
 
-	if (candidateSlide) {
-		// find reference element in candidate slide
-		const refElement = getReferenceElement(element, candidateSlide)
-		// if found copy its id so that it does not re-render during transition
-		if (refElement) return refElement.id
+	if (!id) {
+		id = generateUniqueId()
 	}
 
-	return generateUniqueId()
+	return id
 }
 
 const createConnectionsForMagicMove = (index) => {
@@ -84,4 +85,22 @@ const createConnectionsForMagicMove = (index) => {
 	})
 }
 
-export { createConnectionsForMagicMove, getUpdatedIdAfterConnections }
+const updateIdsForNextSlides = (fromSlideIndex, element, newId) => {
+	while (slides.value[fromSlideIndex]?.transition === 'Magic Move') {
+		const nextSlide = slides.value[fromSlideIndex + 1]
+		if (!nextSlide) break
+
+		const refElement = getReferenceElement(element, nextSlide)
+		if (refElement) refElement.id = newId
+
+		fromSlideIndex++
+	}
+}
+
+const updateElementId = (element) => {
+	const id = getUpdatedIdAfterConnections(element)
+	element.id = id
+	updateIdsForNextSlides(slideIndex.value, element, id)
+}
+
+export { createConnectionsForMagicMove, updateElementId }
