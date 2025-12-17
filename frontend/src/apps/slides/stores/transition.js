@@ -97,7 +97,17 @@ const updateIdsForNextSlides = (fromSlideIndex, element, newId) => {
 	}
 }
 
+const isAffectedByMagicMove = (slideIndex) => {
+	const prevSlide = slides.value[slideIndex - 1]
+	const currentSlide = slides.value[slideIndex]
+
+	return prevSlide?.transition === 'Magic Move' || currentSlide?.transition === 'Magic Move'
+}
+
 const updateElementId = (element) => {
+	const needsUpdate = isAffectedByMagicMove(slideIndex.value)
+	if (!needsUpdate) return
+
 	const id = getUpdatedIdAfterConnections(element)
 	element.id = id
 	updateIdsForNextSlides(slideIndex.value, element, id)
