@@ -448,7 +448,7 @@ const handleClipboardJSON = (clipboardJSON) => {
 	if (isSlideJSON) {
 		return handlePastedSlideJSON(clipboardJSON)
 	}
-	return handlePastedJSON(clipboardJSON)
+	return handlePastedJSON(JSON.parse(clipboardJSON))
 }
 
 const dataURLToFile = (dataURL, filename) => {
