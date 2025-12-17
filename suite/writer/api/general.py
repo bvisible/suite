@@ -129,6 +129,14 @@ def get_document_list(
 def get_versions(id):
     if not get_user_access(id).get("write"):
         frappe.throw("You don't have write access.", frappe.PermissionError)
-    return frappe.get_doc(
-        "Writer Document", frappe.db.get_value("Drive File", id, "doc")
-    ).versions
+
+    doc_name = frappe.db.get_value("Drive File", id, "doc")
+
+    versions = frappe.get_all(
+        "Writer Version",
+        filters={"doc": doc_name},
+        fields=["name", "snapshot", "title", "manual", "creation"],
+        order_by="creation asc",
+    )
+
+    return versions

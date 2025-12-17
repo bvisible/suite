@@ -59,16 +59,16 @@ class WriterDocument(Document):
         if not manual:
             now_time = frappe.utils.now_datetime()
             last_auto_version = frappe.db.get_value(
-                "Writer Doc Version",  # Child table doctype name
+                "Writer Version",
                 filters={
-                    "parent": self.name,
-                    "parenttype": "Writer Document",
+                    "doc": self.name,
                     "manual": 0,
                 },
-                fieldname=["title", "name"],
-                order_by="idx desc",
+                fieldname=["title", "name", "creation"],
+                order_by="creation desc",
                 as_dict=True,
             )
+
             if last_auto_version:
                 prev_time = datetime.strptime(
                     last_auto_version.title,
@@ -78,18 +78,22 @@ class WriterDocument(Document):
                 if diff < timedelta(minutes=AUTOVERSION_DURATION):
                     frappe.response["data"] = False
                     return
+
             title = datetime.strftime(now_time, "%Y-%m-%d %H:%M")
 
-        self.append(
-            "versions",
+        # Create a new Writer Version document
+        version = frappe.get_doc(
             {
+                "doctype": "Writer Version",
+                "doc": self.name,
                 "snapshot": html,
                 "manual": manual,
                 "title": title,
-            },
+            }
         )
-        self.save()
-        frappe.response["data"] = self.versions[-1].as_dict()
+        version.insert()
+
+        frappe.response["data"] = version.as_dict()
 
     def update_file(self, **kwargs):
         file = frappe.db.get_value("Drive File", {"doc": self.name}, "name")
