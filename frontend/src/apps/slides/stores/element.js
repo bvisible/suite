@@ -222,12 +222,25 @@ const getVideoPoster = async (videoUrl) => {
 	})
 }
 
+const getNaturalSize = async (dataURL) => {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () =>
+			resolve({
+				width: (img.naturalWidth / 2) * slideBounds.scale,
+			})
+		img.onerror = reject
+		img.src = dataURL
+	})
+}
+
 const addMediaElement = async (file, type) => {
 	const src = file.file_url
+	const { width } = await getNaturalSize(src)
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
-		width: 300,
+		width: Math.max(Math.min(width, 800), 30),
 		left: 0,
 		top: 0,
 		opacity: 100,
