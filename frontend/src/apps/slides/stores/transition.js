@@ -65,11 +65,7 @@ const getUpdatedIdAfterConnections = (element) => {
 		id = getElementId(nextSlide, element)
 	}
 
-	if (!id) {
-		id = generateUniqueId()
-	}
-
-	return id
+	return id || element.id || generateUniqueId()
 }
 
 const createConnectionsForMagicMove = (index) => {
