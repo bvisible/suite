@@ -17,3 +17,10 @@ export const createDocument = createResource({
   url: 'writer.api.docs.create_document_entity',
   makeParams: (params) => params,
 })
+
+export const getTemplates = useList({
+  doctype: 'Writer Template',
+  fields: ['name', 'title', 'content', 'keymap'],
+  cacheKey: 'writer-templates',
+  immediate: true,
+})

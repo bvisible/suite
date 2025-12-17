@@ -14,7 +14,7 @@
               v-model="query"
               @update:model-value="activeIndex = 0"
               type="text"
-              placeholder="Search templates..."
+              placeholder="Search getTemplates..."
               @keydown="onKeyDown"
               autocomplete="off"
             >
@@ -34,7 +34,7 @@
             >
               <LucideFileText class="mx-auto size-6" />
               <p class="text-base">
-                {{ query ? 'No templates found' : 'No templates available' }}
+                {{ query ? 'No getTemplates found' : 'No getTemplates available' }}
               </p>
             </div>
             <div v-else class="py-2">
@@ -104,8 +104,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import fuzzysort from 'fuzzysort'
-import { Dialog, useList, TextInput } from 'frappe-ui'
-import { formatDate } from '@/utils/format'
+import { Dialog, TextInput } from 'frappe-ui'
+import {insertTemplate} from '@/utils'
+import { getTemplates } from '@/resources'
 
 import LucideSearch from '~icons/lucide/search'
 import LucideFileText from '~icons/lucide/file-text'
@@ -131,18 +132,11 @@ const activeIndex = ref(0)
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
 const activeItemRef = ref<HTMLDivElement | null>(null)
 
-const templates = useList({
-  doctype: 'Writer Template',
-  fields: ['name', 'title', 'content'],
-  cacheKey: 'writer-templates',
-  immediate: true,
-})
-
 const filteredTemplates = computed(() => {
-  if (!templates.data) return []
-  if (!query.value) return templates.data
+  if (!getTemplates.data) return []
+  if (!query.value) return getTemplates.data
 
-  const results = fuzzysort.go(query.value, templates.data, {
+  const results = fuzzysort.go(query.value, getTemplates.data, {
     keys: ['title', 'content'],
     threshold: -10000,
     limit: 10,
@@ -152,13 +146,7 @@ const filteredTemplates = computed(() => {
 })
 
 function onSelection(template: Template) {
-  if (!template.content) return
-  const content = template.content.replaceAll(
-    /\{\{(date|time|datetime)\}\}/g,
-    (_, type) => formatDate(new Date(), { datetime: type }),
-  )
-  props.editor.commands.insertContent(content)
-  props.editor.commands.focus()
+  insertTemplate(template, props.editor)
   show.value = false
 }
 

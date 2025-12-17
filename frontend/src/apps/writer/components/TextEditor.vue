@@ -266,9 +266,27 @@ const onCommentActivated = (id) => {
     })
 }
 
+import { getTemplates } from '@/resources'
+import { insertTemplate } from '@/utils'
+
 const editorExtensions = [
   ...COMMON_EXTENSIONS,
   Extension.create({
+    addKeyboardShortcuts() {
+      if (!getTemplates.data) return
+      const shortcuts = Object.fromEntries(
+        getTemplates.data
+          .filter((t) => t.keymap)
+          .map((t) => [
+            t.keymap,
+            () => {
+              return insertTemplate(t, this.editor)
+            },
+          ]),
+      )
+      console.log(shortcuts)
+      return shortcuts
+    },
     addCommands: () => {
       return {
         // override tiptap's as all marks are removed while using tabs

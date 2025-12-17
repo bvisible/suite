@@ -16,6 +16,7 @@ import { toHtml } from 'hast-util-to-html'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import TurndownService from 'turndown'
+import { formatDate } from '@/utils/format'
 
 import {
   default as TableOfContents,
@@ -923,4 +924,15 @@ export async function downloadZippedHTML(editor, foldername, settings = {}) {
   zip.file('index.html', content)
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
   saveAs(blob, `${foldername}.zip`)
+}
+
+export const insertTemplate = (template, editor) => {
+  if (!template.content) return false
+  const content = template.content.replaceAll(
+    /\{\{(date|time|datetime)\}\}/g,
+    (_, type) => formatDate(new Date(), { datetime: type }),
+  )
+  editor.commands.insertContent(content)
+  editor.commands.focus()
+  return true
 }
