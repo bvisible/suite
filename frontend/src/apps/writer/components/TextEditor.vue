@@ -329,11 +329,6 @@ const editorExtensions = [
     getIndex: getHierarchicalIndexes,
     scrollParent: () => scrollParent.value,
   }),
-  props.entity.comment &&
-    !inIframe &&
-    FloatingQuoteButton.configure({
-      onClick: () => addComment(),
-    }),
   MediaDownload,
   Collaboration.configure({
     document: doc,
@@ -451,14 +446,16 @@ const menuButtons = computed(() => [
   },
 ])
 
-const bubbleButtons = [
-  {
-    label: 'Comment',
-    icon: LucideMessageSquarePlus,
-    action: () => addComment(),
-    isActive: () => false,
-  },
-]
+const bubbleButtons = props.entity.comment
+  ? [
+      {
+        label: 'Comment',
+        icon: LucideMessageSquarePlus,
+        action: () => addComment(),
+        isActive: () => false,
+      },
+    ]
+  : []
 
 // Util functions
 const autorename = () => {
