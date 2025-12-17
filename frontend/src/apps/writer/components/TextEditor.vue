@@ -150,6 +150,7 @@ import {
   useFileUpload,
 } from 'frappe-ui'
 import { Slice } from '@tiptap/pm/model'
+import { TextSelection } from '@tiptap/pm/state'
 import ManageFont from './ManageFont.vue'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -517,6 +518,7 @@ const addComment = () => {
   )
   activeComment.value = id
   const tr = state.tr
+  tr.setSelection(TextSelection.create(state.doc, from))
   editor.value.view.dispatch(tr)
 }
 
