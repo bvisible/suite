@@ -19,6 +19,20 @@ export const rebuild = (editor) => {
     .run()
 }
 
+export const getEditorPos = (relativePos, editor) => {
+  const ystate = ySyncPluginKey.getState(editor.state)
+  const collab = editor.extensionManager.extensions.find(
+    (ext) => ext.name === 'collaboration',
+  )
+
+  return relativePositionToAbsolutePosition(
+    collab?.options.document,
+    ystate.type,
+    Y.decodeRelativePosition(relativePos),
+    ystate.binding.mapping,
+  )
+}
+
 const createDecorations = (editor, yDoc, comments, active, showResolved) => {
   try {
     if (!comments._map.size) return DecorationSet.empty
@@ -105,6 +119,7 @@ export const CommentExtension = Extension.create({
 
             const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
             if (isRemote || rebuild) {
+              const ySyncMeta = tr.getMeta('y-sync$')
               return createDecorations(
                 ext.editor,
                 doc,

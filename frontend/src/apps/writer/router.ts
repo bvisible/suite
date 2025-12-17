@@ -15,6 +15,13 @@ const router = createRouter({
       },
     },
     {
+      path: '/login',
+      name: 'Login',
+      redirect: () => {
+        window.location.href = '/login'
+      },
+    },
+    {
       path: '/w/:id/:slug?',
       name: 'Document',
       meta: { documentPage: true, allowGuest: true },

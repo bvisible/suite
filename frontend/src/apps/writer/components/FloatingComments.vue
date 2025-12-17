@@ -29,10 +29,10 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white opacity-0 transition-[top] duration-100 ease-in-out"
+        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white opacity-0 pointer-events-none transition-[top] duration-100 ease-in-out"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
-          comment.top && 'opacity-100',
+          comment.top && 'opacity-100 pointer-events-auto',
         ]"
         :style="`top: ${comment.top}px;`"
         @click="activeComment = comment.id"
@@ -213,8 +213,8 @@
                     :content="reply.text"
                     @change="setCommentHeights"
                     @submit="
-                      () => {
-                        updateComment(reply, comment)
+                      (editor) => {
+                        updateComment(reply, comment, editor)
                       }
                     "
                     @cancel="
@@ -287,6 +287,7 @@ import {
   h,
   onBeforeUnmount,
   nextTick,
+  onUnmounted,
 } from 'vue'
 import { Avatar, Button, createResource, Dropdown } from 'frappe-ui'
 import { formatDate } from '@/utils/format'
@@ -297,7 +298,7 @@ import LucideX from '~icons/lucide/x'
 import LucideMoreVertical from '~icons/lucide/more-vertical'
 import store from '@/store'
 import CommentEditor from './CommentEditor.vue'
-import { rebuild } from '@/extensions/comments'
+import { rebuild, getEditorPos } from '@/extensions/comments'
 
 const props = defineProps({
   document: Object,
@@ -315,6 +316,7 @@ const newReplies = reactive({})
 const commentRefs = reactive({})
 const commentContents = reactive({})
 
+// for old schema, where comment positions isn't in the map
 const commentPositions = computed(() => {
   const positions = new Map()
 
@@ -336,7 +338,10 @@ function useYMapReactive(yMap) {
   const update = () => {
     const arr = []
     yMap.forEach((v) => {
-      arr.push({ ...v, pos: commentPositions.value.get(v.id) ?? 0 })
+      let pos
+      if (!v.anchor?.from) pos = commentPositions.value.get(v.id) ?? 0
+      else pos = getEditorPos(v.anchor.from, props.editor)
+      arr.push({ ...v, pos })
     })
     local.value = arr.sort((a, b) => a.pos - b.pos)
   }
@@ -375,9 +380,10 @@ const sanitize = (comment) => {
   return obj
 }
 
-const updateComment = (comment, thread) => {
+const updateComment = (comment, thread, editor) => {
   comment.text = commentContents[comment.id]
   comment.edit = false
+  comment.mentions = editor.commands.getMentions()
   if (comment.id === thread.id) {
     props.yComments.set(comment.id, sanitize(comment))
   } else {
@@ -396,6 +402,7 @@ const newReply = (comment, editor) => {
     text: newReplies[comment.id],
     owner: store.state.user.id,
     creation: Date.now(),
+    mentions: editor.commands.getMentions(),
   }
   comment.replies.push(reply)
   props.yComments.set(comment.id, comment)
@@ -453,6 +460,7 @@ const formatDateOrTime = (datetimeNum) => {
 const setCommentHeights = useDebounceFn(() => {
   let lastBottom = 0
   nextTick(() => {
+    console.log('revaluating')
     for (const comment of filteredComments.value) {
       try {
         const containerTop = scrollContainer.value.getBoundingClientRect().top
@@ -469,7 +477,8 @@ const setCommentHeights = useDebounceFn(() => {
         }
         const adjustedTop = Math.max(anchorTop, lastBottom)
         comment.top = adjustedTop
-        lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
+        if (adjustedTop)
+          lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
       } catch (e) {
         console.log(e)
       }
@@ -479,25 +488,24 @@ const setCommentHeights = useDebounceFn(() => {
 
 onMounted(() => {
   setCommentHeights()
-  props.editor.view.dom.addEventListener('tab-changed', setCommentHeights)
-  const dom = props.editor?.view?.dom
-  if (dom && dom instanceof HTMLElement) {
-    dom.removeEventListener('tab-changed', setCommentHeights)
+  const onTabChange = () => {
+    activeComment.value = null
+    setCommentHeights()
   }
+  props.editor.view.dom.addEventListener('tab-changed', onTabChange)
+  onBeforeUnmount(() => {
+    const dom = props.editor?.view?.dom
+    if (dom && dom instanceof HTMLElement) {
+      dom.removeEventListener('tab-changed', onTabChange)
+    }
+  })
 })
+
 watch(() => filteredComments.value.length, setCommentHeights)
 useEventListener(window, 'resize', setCommentHeights)
 
 props.editor.on('update', () => {
-  const currentNames = new Set()
-  setCommentHeights()
-  props.editor.state.doc.descendants((node) => {
-    node.marks.forEach((mark) => {
-      if (mark.type.name === 'comment' && mark.attrs.commentId) {
-        currentNames.add(mark.attrs.commentId)
-      }
-    })
-  })
+  // setCommentHeights()
 })
 
 const purgeNewEmptyComments = () => {

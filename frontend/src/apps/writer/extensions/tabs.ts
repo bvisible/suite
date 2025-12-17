@@ -98,7 +98,6 @@ export const TabsExtension = Node.create({
           if (changed) {
             this.editor.commands.focusTab(tabId)
           }
-
           this.editor.view.dom.dispatchEvent(
             new CustomEvent('tab-changed', {
               detail: { tabId },
