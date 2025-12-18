@@ -4,7 +4,7 @@
 			<div class="font-semibold">Select a Template Layout</div>
 		</template>
 		<template #body-content>
-			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto p-2">
+			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto">
 				<div
 					v-for="layout in layouts.slides"
 					:key="layout.idx"
