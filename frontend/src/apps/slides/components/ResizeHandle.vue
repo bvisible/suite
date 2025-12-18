@@ -27,12 +27,14 @@ const baseStyles = {
 }
 
 const getWidthResizerStyles = () => {
+	const resizer = props.direction
+
 	const offsetX = `-${3 / slideBounds.scale}px`
 	return {
 		...baseStyles,
 		cursor: 'ew-resize',
-		left: props.direction === 'left' ? offsetX : 'auto',
-		right: props.direction === 'right' ? offsetX : 'auto',
+		left: resizer.includes('left') ? offsetX : 'auto',
+		right: resizer.includes('right') ? offsetX : 'auto',
 		top: `calc(50% - ${7 / slideBounds.scale}px)`,
 		width: `${4 / slideBounds.scale}px`,
 		height: `${14 / slideBounds.scale}px`,
@@ -65,6 +67,8 @@ const getDimensionResizerStyles = () => {
 
 const resizerStyles = computed(() => {
 	switch (props.direction) {
+		case 'text-left':
+		case 'text-right':
 		case 'left':
 		case 'right':
 			return getWidthResizerStyles()

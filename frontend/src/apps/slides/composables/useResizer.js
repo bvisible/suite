@@ -9,6 +9,8 @@ export const useResizer = () => {
 		'top-right': 'nesw-resize',
 		'bottom-left': 'nesw-resize',
 		'bottom-right': 'nwse-resize',
+		'text-left': 'ew-resize',
+		'text-right': 'ew-resize',
 		left: 'ew-resize',
 		right: 'ew-resize',
 	}
@@ -52,10 +54,10 @@ export const useResizer = () => {
 		if (!diffX) return
 
 		switch (currentResizer.value) {
-			case 'left':
+			case 'text-left':
 				diffLeft = -diffX / 2
 				break
-			case 'right':
+			case 'text-right':
 				diffLeft = -diffX / 2
 				diffX = -diffX
 				break
@@ -69,6 +71,9 @@ export const useResizer = () => {
 			case 'top-left':
 				diffLeft = -diffX
 				diffTop = -diffX
+				break
+			case 'left':
+				diffLeft = -diffX
 				break
 			default:
 				diffX = -diffX
