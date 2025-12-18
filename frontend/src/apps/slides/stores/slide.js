@@ -1,4 +1,4 @@
-import { ignoreUpdates, isPublicPresentation } from '@/stores/presentation'
+import { ignoreUpdates, isPublicPresentation, slidesLength } from '@/stores/presentation'
 import { ref, computed, reactive } from 'vue'
 
 import html2canvas from 'html2canvas'
@@ -169,6 +169,15 @@ const guideVisibilityMap = reactive({
 	bottomEdge: false,
 })
 
+const insertSlide = async (newSlide, index) => {
+	slides.value.splice(index + 1, 0, newSlide)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
+
+	slidesLength.value = slides.value.length
+}
+
 export {
 	slideIndex,
 	slides,
@@ -181,4 +190,5 @@ export {
 	updateThumbnail,
 	focusedSlide,
 	lastThumbnailTime,
+	insertSlide,
 }

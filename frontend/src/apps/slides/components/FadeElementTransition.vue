@@ -4,6 +4,7 @@
 		@before-enter="beforeEnter"
 		@enter="enter"
 		@after-enter="afterEnter"
+		@before-leave="beforeLeave"
 	>
 		<slot></slot>
 	</transition-group>
@@ -33,7 +34,10 @@ const enter = (el, done) => {
 
 	el.offsetWidth
 
-	el.style.transition = `opacity ${props.duration}s ease-in-out`
+	el.style.transitionProperty = 'all'
+	el.style.transitionTimingFunction = 'ease-in-out'
+	el.style.transitionDuration = `${1}s`
+	el.style.transitionDelay = `${props.duration}s`
 	el.style.opacity = 1
 
 	el.addEventListener('transitionend', done, { once: true })
@@ -43,5 +47,10 @@ const afterEnter = (el) => {
 	if (props.skip) return
 
 	el.style.transition = ''
+}
+
+const beforeLeave = (el) => {
+	el.style.transition = 'none'
+	el.style.opacity = 0
 }
 </script>

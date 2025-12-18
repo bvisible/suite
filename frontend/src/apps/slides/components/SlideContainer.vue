@@ -61,12 +61,16 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	setSlideRef,
+	insertSlide,
+	slideIndex,
 } from '@/stores/slide'
 import {
 	activeElementIds,
 	activeElement,
 	handleCopy,
-	handlePaste,
+	handleSvgText,
+	handlePastedText,
+	handlePastedJSON,
 	focusElementId,
 	pairElementId,
 	addFixedWidthToElement,
@@ -78,7 +82,8 @@ import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 
-import { isCmdOrCtrl } from '@/utils/helpers'
+import { getDocFromHTML, isCmdOrCtrl } from '@/utils/helpers'
+import { handleUploadedMedia } from '../utils/mediaUploads'
 
 const props = defineProps({
 	highlight: Boolean,
@@ -88,7 +93,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['update:hasOngoingInteraction'])
+const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideRef = useTemplateRef('slideRef')
@@ -412,6 +417,89 @@ watch(
 		handleDimensionChange(delta)
 	},
 )
+
+const handlePastedSlideJSON = async (json) => {
+	const index = slideIndex.value
+
+	insertSlide(JSON.parse(json), index)
+
+	emit('changeSlide', index + 1)
+}
+
+const isInputElement = (el) => {
+	const activeElement = document.activeElement
+	return (
+		activeElement?.tagName == 'INPUT' ||
+		activeElement?.tagName == 'TEXTAREA' ||
+		activeElement?.isContentEditable
+	)
+}
+
+const handleClipboardText = (clipboardText) => {
+	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
+		handleSvgText(clipboardText)
+	} else if (clipboardText && !focusElementId.value) {
+		handlePastedText(clipboardText)
+	}
+}
+
+const handleClipboardJSON = (clipboardJSON) => {
+	const isSlideJSON = !Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"')
+	if (isSlideJSON) {
+		return handlePastedSlideJSON(clipboardJSON)
+	}
+	return handlePastedJSON(JSON.parse(clipboardJSON))
+}
+
+const dataURLToFile = (dataURL, filename) => {
+	const [meta, base64] = dataURL.split(',')
+	const mime = meta.match(/:(.*?);/)[1]
+	const binary = atob(base64)
+	const len = binary.length
+	const buffer = new Uint8Array(len)
+
+	for (let i = 0; i < len; i++) {
+		buffer[i] = binary.charCodeAt(i)
+	}
+
+	return new File([buffer], filename, {
+		type: mime,
+		lastModified: Date.now(),
+	})
+}
+
+const getImageSrcFromHTML = (clipboardTextHTML) => {
+	const doc = getDocFromHTML(clipboardTextHTML)
+	const img = doc.querySelector('img')
+
+	if (img) return img.src
+	return null
+}
+
+const handleClipboardTextHTML = (imgSrc) => {
+	const file = dataURLToFile(imgSrc, 'pasted-image.png')
+	handleUploadedMedia([{ kind: 'file', getAsFile: () => file }])
+}
+
+const handlePaste = (e) => {
+	// do not override paste event if current element is input or content editable
+	if (isInputElement()) return
+
+	e.preventDefault()
+
+	const clipboardTextHTML = e.clipboardData.getData('text/html')
+	const imgSrc = getImageSrcFromHTML(clipboardTextHTML)
+	if (clipboardTextHTML && imgSrc) return handleClipboardTextHTML(clipboardTextHTML)
+
+	const clipboardJSON = e.clipboardData.getData('application/json')
+	if (clipboardJSON) return handleClipboardJSON(clipboardJSON)
+
+	const clipboardText = e.clipboardData.getData('text/plain')
+	if (clipboardText) return handleClipboardText(clipboardText)
+
+	const clipboardItems = e.clipboardData.items
+	if (clipboardItems) return handleUploadedMedia(clipboardItems)
+}
 
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
