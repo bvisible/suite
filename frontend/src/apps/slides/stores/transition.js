@@ -46,7 +46,7 @@ const getReferenceElement = (currElement, slide) => {
 	}
 }
 
-const getElementId = (candidateSlide, element) => {
+const getReferenceIdFromSlide = (candidateSlide, element) => {
 	if (!candidateSlide) return null
 
 	// find reference element in candidate slide
@@ -59,10 +59,10 @@ const getUpdatedIdAfterConnections = (element) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const nextSlide = slides.value[slideIndex.value + 1]
 
-	let id = getElementId(prevSlide, element)
+	let id = getReferenceIdFromSlide(prevSlide, element)
 
 	if (!id && currentSlide.value?.transition === 'Magic Move') {
-		id = getElementId(nextSlide, element)
+		id = getReferenceIdFromSlide(nextSlide, element)
 	}
 
 	return id || element.id || generateUniqueId()
