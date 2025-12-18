@@ -4,6 +4,7 @@
 		@before-enter="beforeEnter"
 		@enter="enter"
 		@after-enter="afterEnter"
+		@before-leave="beforeLeave"
 	>
 		<slot></slot>
 	</transition-group>
@@ -46,5 +47,10 @@ const afterEnter = (el) => {
 	if (props.skip) return
 
 	el.style.transition = ''
+}
+
+const beforeLeave = (el) => {
+	el.style.transition = 'none'
+	el.style.opacity = 0
 }
 </script>
