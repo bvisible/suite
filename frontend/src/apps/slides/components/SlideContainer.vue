@@ -282,8 +282,9 @@ const applyResistance = (axis, delta) => {
 	return useResistance && Math.abs(pullDelta) < escapeDelta
 }
 
-const updateTotalDeltaForResize = (totalDelta, delta, width) => {
+const updateTotalDeltaForResize = (totalDelta, delta, width, height) => {
 	totalDelta.width = applyResistance(null, delta) ? 0 : width
+	totalDelta.height = applyResistance(null, delta) ? 0 : height
 
 	// if resisting width change, don't apply top change either otherwise
 	// element sticks to one axis and drags on other which shouldn't happen on resize
@@ -302,9 +303,10 @@ const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
 	}
 
 	const width = snapDelta.width || delta.width
+	const height = snapDelta.height || delta.height
 
 	if (interaction === 'resizing') {
-		updateTotalDeltaForResize(totalDelta, delta, width)
+		updateTotalDeltaForResize(totalDelta, delta, width, height)
 	}
 
 	return totalDelta
@@ -314,6 +316,7 @@ const elementOffset = reactive({
 	left: 0,
 	top: 0,
 	width: 0,
+	height: 0,
 })
 
 const handlePositionChange = (delta) => {
@@ -335,6 +338,11 @@ const validateMinWidth = (width) => {
 	return width + selectionBounds.width > minWidth
 }
 
+const validateMinHeight = (height) => {
+	const minHeight = activeElement.value.type === 'text' ? 7 : 29
+	return height + selectionBounds.height > minHeight
+}
+
 const applyPositionDelta = (delta) => {
 	if (!delta.left && !delta.top) return
 
@@ -351,15 +359,21 @@ const applyPositionDelta = (delta) => {
 }
 
 const applyDimensionDelta = (delta) => {
-	if (!delta.width) return
+	if (!delta.width && !delta.height) return
 
 	const deltaWidth = delta.width / slideBounds.scale
+	const deltaHeight = delta.height / slideBounds.scale
 
 	elementOffset.width += deltaWidth
+	elementOffset.height += deltaHeight
 }
 
 const handleDimensionChange = (delta) => {
-	if (!delta.width || !validateMinWidth(delta.width)) return
+	if (
+		(!delta.width || !validateMinWidth(delta.width)) &&
+		(!delta.height || !validateMinHeight(delta.height))
+	)
+		return
 
 	delta.top = applyAspectRatio(delta.top)
 
@@ -547,11 +561,13 @@ const applyInteractionOffsets = () => {
 				element.left += elementOffset.left
 				element.top += elementOffset.top
 				element.width += elementOffset.width
+				element.height += elementOffset.height
 			}
 		})
 		elementOffset.left = 0
 		elementOffset.top = 0
 		elementOffset.width = 0
+		elementOffset.height = 0
 	})
 }
 

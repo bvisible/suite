@@ -13,6 +13,8 @@ export const useResizer = () => {
 		'text-right': 'ew-resize',
 		left: 'ew-resize',
 		right: 'ew-resize',
+		top: 'ns-resize',
+		bottom: 'ns-resize',
 	}
 
 	const resizeCursor = computed(() => cursorMap[currentResizer.value] ?? 'default')
@@ -75,12 +77,17 @@ export const useResizer = () => {
 			case 'left':
 				diffLeft = -diffX
 				break
+			case 'bottom':
+				diffY = -diffY
+				diffX = 0
+				break
 			default:
 				diffX = -diffX
 				break
 		}
 
 		dimensionDelta.value = {
+			height: diffY,
 			width: diffX,
 			left: diffLeft,
 			top: diffTop,

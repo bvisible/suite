@@ -5,6 +5,7 @@
 			:key="mode + '-' + element.id"
 			:element="element"
 			:mode="mode"
+			:elementOffset="elementOffset"
 			@clearTimeouts="$emit('clearTimeouts')"
 			:transitionStyles="transitionStyles"
 		/>
