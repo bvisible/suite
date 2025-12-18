@@ -72,13 +72,29 @@ const createConnectionsForMagicMove = (index) => {
 	// adding magic move to last slide changes nothing
 	if (index == slides.value.length - 1) return
 
-	const current = slides.value[index]
-	const next = slides.value[index + 1]
+	const currentSlide = slides.value[index]
+	const nextSlide = slides.value[index + 1]
 
-	current.elements.forEach((currElement) => {
-		const refElement = getReferenceElement(currElement, next)
-		if (refElement) currElement.id = refElement.id
+	currentSlide.elements.forEach((currElement) => {
+		const refElement = getReferenceElement(currElement, nextSlide)
+		if (refElement) {
+			const id = refElement.id
+			currElement.id = id
+			updateIdsForPrevSlides(slideIndex.value, currElement, id)
+		}
 	})
+}
+
+const updateIdsForPrevSlides = (fromSlideIndex, element, newId) => {
+	while (slides.value[fromSlideIndex - 1]?.transition === 'Magic Move') {
+		const prevSlide = slides.value[fromSlideIndex - 1]
+		if (!prevSlide) break
+
+		const refElement = getReferenceElement(element, prevSlide)
+		if (refElement) refElement.id = newId
+
+		fromSlideIndex--
+	}
 }
 
 const updateIdsForNextSlides = (fromSlideIndex, element, newId) => {
