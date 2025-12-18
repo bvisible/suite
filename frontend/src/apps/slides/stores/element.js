@@ -9,6 +9,7 @@ import {
 	currentSlide,
 	slideIndex,
 	updateThumbnail,
+	insertSlide,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
@@ -16,7 +17,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
-import { getUpdatedIdAfterConnections } from './transition'
+import { updateElementId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -139,6 +140,8 @@ const addTextElement = async (text) => {
 
 	currentSlide.value.elements.push(element)
 
+	updateElementId(element)
+
 	selectAndCenterElement(element.id)
 }
 
@@ -219,12 +222,25 @@ const getVideoPoster = async (videoUrl) => {
 	})
 }
 
+const getNaturalSize = async (dataURL) => {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () =>
+			resolve({
+				width: (img.naturalWidth / 2) * slideBounds.scale,
+			})
+		img.onerror = reject
+		img.src = dataURL
+	})
+}
+
 const addMediaElement = async (file, type) => {
 	const src = file.file_url
+	const { width } = await getNaturalSize(src)
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
-		width: 300,
+		width: Math.max(Math.min(width, 800), 30),
 		left: 0,
 		top: 0,
 		opacity: 100,
@@ -251,6 +267,9 @@ const addMediaElement = async (file, type) => {
 		element.invertY = 1
 	}
 	currentSlide.value.elements.push(element)
+
+	updateElementId(element)
+
 	selectAndCenterElement(element.id)
 }
 
@@ -260,17 +279,28 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.type == 'video') {
 		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
-	element.id = getUpdatedIdAfterConnections(element)
+	updateElementId(element)
+}
+
+const isElementInSlide = (slideIndex, elementId) => {
+	const slide = slides.value[slideIndex]
+	return slide.elements?.some((element) => element.id == elementId)
 }
 
 const getDuplicateElementId = (element, srcSlide) => {
-	let refId = null
-
 	if (srcSlide == slideIndex.value - 1) {
 		const prevSlide = slides.value[slideIndex.value - 1]
-		if (prevSlide?.transition == 'Magic Move') return element.id
+		if (
+			prevSlide?.transition == 'Magic Move' &&
+			!isElementInSlide(slideIndex.value, element.id)
+		)
+			return element.id
 	} else if (srcSlide == slideIndex.value + 1) {
-		if (currentSlide.value?.transition == 'Magic Move') return element.id
+		if (
+			currentSlide.value?.transition == 'Magic Move' &&
+			!isElementInSlide(slideIndex.value, element.id)
+		)
+			return element.id
 	}
 
 	return generateUniqueId()
@@ -279,7 +309,7 @@ const getDuplicateElementId = (element, srcSlide) => {
 const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
 
-	if (!srcSlide) srcSlide = slideIndex.value
+	if (srcSlide == null) srcSlide = slideIndex.value
 
 	const displaceByPx = srcSlide == slideIndex.value ? 40 : 0
 
@@ -433,32 +463,6 @@ const handleSvgText = (svgText) => {
 	handleUploadedMedia([{ kind: 'file', getAsFile: () => svgFile }])
 }
 
-const handlePaste = (e) => {
-	// do not override paste event if current element is input or content editable
-	const activeElement = document.activeElement
-	if (
-		activeElement?.tagName == 'INPUT' ||
-		activeElement?.tagName == 'TEXTAREA' ||
-		activeElement?.isContentEditable
-	) {
-		return
-	}
-
-	e.preventDefault()
-	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) handleUploadedMedia(clipboardItems)
-
-	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
-		handleSvgText(clipboardText)
-	} else if (clipboardText && !focusElementId.value) {
-		handlePastedText(clipboardText)
-	}
-
-	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) handlePastedJSON(JSON.parse(clipboardJSON))
-}
-
 const addFixedWidthToElement = (deltaWidth) => {
 	const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
 	if (elementDiv) {
@@ -481,7 +485,8 @@ const updateElementContent = (element) => {
 
 	if (editorOldText == currentText && !wasUpdated) return
 
-	element.id = getUpdatedIdAfterConnections(element)
+	updateElementId(element)
+
 	element.content = updatedHTML
 	editorOldText = currentText
 }
@@ -577,7 +582,9 @@ export {
 	selectAllElements,
 	getElementPosition,
 	handleCopy,
-	handlePaste,
+	handleSvgText,
+	handlePastedText,
+	handlePastedJSON,
 	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,
@@ -585,4 +592,5 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
+	isElementInSlide,
 }

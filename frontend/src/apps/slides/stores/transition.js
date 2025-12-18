@@ -1,4 +1,5 @@
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
+import { isElementInSlide } from '@/stores/element'
 import { generateUniqueId } from '@/utils/helpers'
 
 const canCreateTextConnection = (currentContent, nextContent) => {
@@ -26,63 +27,97 @@ const canCreateMediaConnection = (currentSrc, nextSrc) => {
 	return currentSrc == nextSrc
 }
 
-const canCreateConnection = (element, nextElement) => {
-	if (element.type == 'text') {
-		return canCreateTextConnection(element.content, nextElement.content)
+const canCreateConnection = (currElement, potentialConnectionElement) => {
+	if (currElement.type == 'text') {
+		return canCreateTextConnection(currElement.content, potentialConnectionElement.content)
 	}
-	return canCreateMediaConnection(element.src, nextElement.src)
+	return canCreateMediaConnection(currElement.src, potentialConnectionElement.src)
 }
 
-const getReferenceElement = (nextElement, slide) => {
+const getReferenceElement = (currElement, slide) => {
 	for (const element of slide.elements) {
-		if (element.type != nextElement.type) continue
+		if (element.type != currElement.type) continue
 
-		if (canCreateConnection(element, nextElement)) {
+		if (isElementInSlide(slideIndex.value, element.id)) continue
+
+		if (canCreateConnection(currElement, element)) {
 			return element
 		}
 	}
 }
 
-const getUpdatedIdAfterConnections = (element, currentText) => {
+const getReferenceIdFromSlide = (candidateSlide, element) => {
+	if (!candidateSlide) return null
+
+	// find reference element in candidate slide
+	const refElement = getReferenceElement(element, candidateSlide)
+	// if found copy its id so that it does not re-render during transition
+	return refElement?.id
+}
+
+const getUpdatedIdAfterConnections = (element) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const nextSlide = slides.value[slideIndex.value + 1]
 
-	let candidateSlide = null
-	if (prevSlide?.transition === 'Magic Move') {
-		// if transition begins on previous slide -
-		// check if any element in current slide refers to element from previous slide
-		candidateSlide = prevSlide
-	} else if (currentSlide.value?.transition === 'Magic Move' && nextSlide) {
-		// if transition begins on current slide -
-		// check if any element in next slide refers to this element
-		candidateSlide = nextSlide
+	let id = getReferenceIdFromSlide(prevSlide, element)
+
+	if (!id && currentSlide.value?.transition === 'Magic Move') {
+		id = getReferenceIdFromSlide(nextSlide, element)
 	}
 
-	if (candidateSlide) {
-		// find reference element in candidate slide
-		const refElement = getReferenceElement(element, candidateSlide)
-		// if found copy its id so that it does not re-render during transition
-		if (refElement) return refElement.id
-	}
-
-	return generateUniqueId()
+	return id || element.id || generateUniqueId()
 }
 
 const createConnectionsForMagicMove = (index) => {
 	// adding magic move to last slide changes nothing
 	if (index == slides.value.length - 1) return
 
-	const current = slides.value[index]
-	const next = slides.value[index + 1]
+	const currentSlide = slides.value[index]
+	const nextSlide = slides.value[index + 1]
 
-	next.elements.forEach((nextElement) => {
-		const refElement = getReferenceElement(nextElement, current)
-
+	currentSlide.elements.forEach((currElement) => {
+		const refElement = getReferenceElement(currElement, nextSlide)
 		if (refElement) {
-			// update current element id to match reference from previous slide
-			nextElement.id = refElement.id
+			const id = refElement.id
+			currElement.id = id
+			updateIdsAcrossSlides(slideIndex.value, currElement, id, false)
 		}
 	})
 }
 
-export { createConnectionsForMagicMove, getUpdatedIdAfterConnections }
+const updateIdsAcrossSlides = (fromSlideIndex, element, newId, isForward) => {
+	let i = isForward ? fromSlideIndex + 1 : fromSlideIndex - 1
+
+	while (i >= 0 && i < slides.value.length) {
+		const slide = slides.value[i]
+		const transition = isForward ? slides.value[i - 1]?.transition : slide.transition
+		const hasTransition = transition === 'Magic Move'
+
+		if (!hasTransition) break
+
+		const refElement = getReferenceElement(element, slide)
+		if (refElement) {
+			refElement.id = newId
+		}
+
+		i += isForward ? 1 : -1
+	}
+}
+
+const isAffectedByMagicMove = (slideIndex) => {
+	const prevSlide = slides.value[slideIndex - 1]
+	const currentSlide = slides.value[slideIndex]
+
+	return prevSlide?.transition === 'Magic Move' || currentSlide?.transition === 'Magic Move'
+}
+
+const updateElementId = (element) => {
+	const needsUpdate = isAffectedByMagicMove(slideIndex.value)
+	if (!needsUpdate) return
+
+	const id = getUpdatedIdAfterConnections(element)
+	element.id = id
+	updateIdsAcrossSlides(slideIndex.value, element, id, true)
+}
+
+export { createConnectionsForMagicMove, updateElementId }
