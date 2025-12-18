@@ -96,6 +96,8 @@ const setSlideTransition = (option) => {
 	}
 
 	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
+
+	slide.fadeUnmatchedElements = option == 'Magic Move'
 }
 
 const setTransitionAttribute = (property, value) => {
