@@ -41,6 +41,21 @@ const getWidthResizerStyles = () => {
 	}
 }
 
+const getHeightResizerStyles = () => {
+	const resizer = props.direction
+
+	const offsetX = `-${3 / slideBounds.scale}px`
+	return {
+		...baseStyles,
+		cursor: 'ns-resize',
+		left: `calc(50% - ${7 / slideBounds.scale}px)`,
+		top: resizer.includes('top') ? offsetX : 'auto',
+		bottom: resizer.includes('bottom') ? offsetX : 'auto',
+		width: `${14 / slideBounds.scale}px`,
+		height: `${4 / slideBounds.scale}px`,
+	}
+}
+
 const getDimensionResizerStyles = () => {
 	const resizer = props.direction
 	const cursorStyles = {
@@ -72,6 +87,9 @@ const resizerStyles = computed(() => {
 		case 'left':
 		case 'right':
 			return getWidthResizerStyles()
+		case 'top':
+		case 'bottom':
+			return getHeightResizerStyles()
 		case 'top-left':
 		case 'top-right':
 		case 'bottom-left':

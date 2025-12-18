@@ -46,7 +46,7 @@ const isResizeHandleVisible = (resizer) => {
 const resizeHandles = computed(() => {
 	let directions = []
 	if (props.elementType === 'shape') {
-		directions = ['left', 'right']
+		directions = ['left', 'right', 'top', 'bottom']
 	} else if (props.elementType === 'text') {
 		directions = ['text-left', 'text-right']
 	} else {
