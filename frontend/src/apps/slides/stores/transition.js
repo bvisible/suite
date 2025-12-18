@@ -80,32 +80,27 @@ const createConnectionsForMagicMove = (index) => {
 		if (refElement) {
 			const id = refElement.id
 			currElement.id = id
-			updateIdsForPrevSlides(slideIndex.value, currElement, id)
+			updateIdsAcrossSlides(slideIndex.value, currElement, id, false)
 		}
 	})
 }
 
-const updateIdsForPrevSlides = (fromSlideIndex, element, newId) => {
-	while (slides.value[fromSlideIndex - 1]?.transition === 'Magic Move') {
-		const prevSlide = slides.value[fromSlideIndex - 1]
-		if (!prevSlide) break
+const updateIdsAcrossSlides = (fromSlideIndex, element, newId, isForward) => {
+	let i = isForward ? fromSlideIndex + 1 : fromSlideIndex - 1
 
-		const refElement = getReferenceElement(element, prevSlide)
-		if (refElement) refElement.id = newId
+	while (i >= 0 && i < slides.value.length) {
+		const slide = slides.value[i]
+		const transition = isForward ? slides.value[i - 1]?.transition : slide.transition
+		const hasTransition = transition === 'Magic Move'
 
-		fromSlideIndex--
-	}
-}
+		if (!hasTransition) break
 
-const updateIdsForNextSlides = (fromSlideIndex, element, newId) => {
-	while (slides.value[fromSlideIndex]?.transition === 'Magic Move') {
-		const nextSlide = slides.value[fromSlideIndex + 1]
-		if (!nextSlide) break
+		const refElement = getReferenceElement(element, slide)
+		if (refElement) {
+			refElement.id = newId
+		}
 
-		const refElement = getReferenceElement(element, nextSlide)
-		if (refElement) refElement.id = newId
-
-		fromSlideIndex++
+		i += isForward ? 1 : -1
 	}
 }
 
@@ -122,7 +117,7 @@ const updateElementId = (element) => {
 
 	const id = getUpdatedIdAfterConnections(element)
 	element.id = id
-	updateIdsForNextSlides(slideIndex.value, element, id)
+	updateIdsAcrossSlides(slideIndex.value, element, id, true)
 }
 
 export { createConnectionsForMagicMove, updateElementId }
