@@ -45,8 +45,10 @@ const isResizeHandleVisible = (resizer) => {
 
 const resizeHandles = computed(() => {
 	let directions = []
-	if (props.elementType === 'text') {
+	if (props.elementType === 'shape') {
 		directions = ['left', 'right']
+	} else if (props.elementType === 'text') {
+		directions = ['text-left', 'text-right']
 	} else {
 		directions = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
 	}
@@ -65,8 +67,8 @@ const getTextIndicatorPosition = () => {
 	const offsetY = getScaledValue(12)
 
 	return {
-		left: resizer.includes('right') ? offsetX : 'auto',
-		right: resizer.includes('left') ? offsetX : 'auto',
+		left: resizer.includes('text-right') ? offsetX : 'auto',
+		right: resizer.includes('text-left') ? offsetX : 'auto',
 		top: `calc(50% - ${offsetY})`,
 	}
 }
