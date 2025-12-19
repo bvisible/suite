@@ -17,7 +17,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
-import { updateElementId } from './transition'
+import { updateElementId, updateRefId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -287,25 +287,6 @@ const isElementInSlide = (slideIndex, elementId) => {
 	return slide.elements?.some((element) => element.id == elementId)
 }
 
-const getDuplicateElementId = (element, srcSlide) => {
-	if (srcSlide == slideIndex.value - 1) {
-		const prevSlide = slides.value[slideIndex.value - 1]
-		if (
-			prevSlide?.transition == 'Magic Move' &&
-			!isElementInSlide(slideIndex.value, element.id)
-		)
-			return element.id
-	} else if (srcSlide == slideIndex.value + 1) {
-		if (
-			currentSlide.value?.transition == 'Magic Move' &&
-			!isElementInSlide(slideIndex.value, element.id)
-		)
-			return element.id
-	}
-
-	return generateUniqueId()
-}
-
 const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
 
@@ -317,7 +298,8 @@ const duplicateElements = async (e, elements, srcSlide) => {
 
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
-		newElement.id = getDuplicateElementId(element, srcSlide)
+		newElement.id = generateUniqueId()
+		updateRefId(newElement, element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
