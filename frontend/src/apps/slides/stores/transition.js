@@ -71,32 +71,14 @@ const createConnectionsForMagicMove = (index) => {
 	const nextSlide = slides.value[index + 1]
 
 	currentSlide.elements.forEach((currElement) => {
-		const refElement = getReferenceElement(currElement, nextSlide)
+		const refElement = getReferenceElementOnSlide(nextSlide, currElement)
 		if (refElement) {
-			const id = refElement.id
-			currElement.id = id
-			updateIdsAcrossSlides(slideIndex.value, currElement, id, false)
+			const refId = generateUniqueId()
+			currElement.refId = refId
+			refElement.refId = refId
+			updateRefIdsAcrossSlides(slideIndex.value, currElement, refId, true)
 		}
 	})
-}
-
-const updateIdsAcrossSlides = (fromSlideIndex, element, newId, isForward) => {
-	let i = isForward ? fromSlideIndex + 1 : fromSlideIndex - 1
-
-	while (i >= 0 && i < slides.value.length) {
-		const slide = slides.value[i]
-		const transition = isForward ? slides.value[i - 1]?.transition : slide.transition
-		const hasTransition = transition === 'Magic Move'
-
-		if (!hasTransition) break
-
-		const refElement = getReferenceElement(element, slide)
-		if (refElement) {
-			refElement.id = newId
-		}
-
-		i += isForward ? 1 : -1
-	}
 }
 
 const isAffectedByMagicMove = (slideIndex) => {
