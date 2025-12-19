@@ -17,7 +17,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
-import { updateElementId, updateRefId } from './transition'
+import { initRefId, updateElementRefId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -140,7 +140,7 @@ const addTextElement = async (text) => {
 
 	currentSlide.value.elements.push(element)
 
-	updateElementId(element)
+	updateElementRefId(element)
 
 	selectAndCenterElement(element.id)
 }
@@ -268,7 +268,7 @@ const addMediaElement = async (file, type) => {
 	}
 	currentSlide.value.elements.push(element)
 
-	updateElementId(element)
+	updateElementRefId(element)
 
 	selectAndCenterElement(element.id)
 }
@@ -279,7 +279,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.type == 'video') {
 		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
-	updateElementId(element)
+	updateElementRefId(element)
 }
 
 const isElementInSlide = (slideIndex, elementId) => {
@@ -299,7 +299,7 @@ const duplicateElements = async (e, elements, srcSlide) => {
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
-		updateRefId(newElement, element, srcSlide)
+		initRefId(newElement, element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
@@ -467,7 +467,7 @@ const updateElementContent = (element) => {
 
 	if (editorOldText == currentText && !wasUpdated) return
 
-	updateElementId(element)
+	updateElementRefId(element)
 
 	element.content = updatedHTML
 	editorOldText = currentText
