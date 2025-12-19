@@ -112,7 +112,7 @@ import {
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { isCmdOrCtrl } from '@/utils/helpers'
+import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
@@ -466,6 +466,10 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 
 	if (toDuplicate) {
 		layout = currentSlide.value
+		layout.elements = layout.elements.map((e) => ({
+			...e,
+			refId: e.refId || generateUniqueId(),
+		}))
 	} else {
 		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
 	}
