@@ -17,7 +17,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
-import { initRefId, updateElementRefId } from './transition'
+import { initElementRefId, updateElementRefId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -299,7 +299,7 @@ const duplicateElements = async (e, elements, srcSlide) => {
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
-		initRefId(newElement, element, srcSlide)
+		initElementRefId(newElement, element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
