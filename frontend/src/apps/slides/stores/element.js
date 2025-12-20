@@ -282,11 +282,6 @@ const replaceMediaElement = async (element, fileDoc) => {
 	updateElementRefId(element)
 }
 
-const isElementInSlide = (slideIndex, elementId) => {
-	const slide = slides.value[slideIndex]
-	return slide.elements?.some((element) => element.id == elementId)
-}
-
 const duplicateElements = async (e, elements, srcSlide) => {
 	e?.preventDefault()
 
@@ -574,5 +569,4 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
-	isElementInSlide,
 }
