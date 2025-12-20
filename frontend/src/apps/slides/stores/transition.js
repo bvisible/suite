@@ -76,6 +76,7 @@ const createConnectionsForMagicMove = (index) => {
 			const refId = generateUniqueId()
 			currElement.refId = refId
 			refElement.refId = refId
+			updateRefIdsAcrossSlides(slideIndex.value, currElement, refId, false)
 			updateRefIdsAcrossSlides(slideIndex.value, currElement, refId, true)
 		}
 	})
@@ -96,8 +97,8 @@ const updateElementRefId = (element) => {
 	if (el) {
 		const refId = generateUniqueId()
 		element.refId = refId
-		el.refId = refId
 		updateRefIdsAcrossSlides(slideIndex.value, element, refId, onPrev)
+		updateRefIdsAcrossSlides(slideIndex.value, element, refId, !onPrev)
 	} else {
 		element.refId = null
 	}
@@ -110,7 +111,7 @@ const isSrcElementConnected = (srcElement) => {
 	return currentSlide.value.elements.some((el) => el.refId == refIdToCheck)
 }
 
-const initRefId = (newElement, src, srcSlide) => {
+const initElementRefId = (newElement, src, srcSlide) => {
 	newElement.refId = null
 
 	if (srcSlide !== slideIndex.value - 1 && srcSlide !== slideIndex.value + 1) return
@@ -153,4 +154,4 @@ const updateRefIdsAcrossSlides = (fromSlideIndex, element, refId, isForward) => 
 	}
 }
 
-export { createConnectionsForMagicMove, initRefId, updateElementRefId }
+export { createConnectionsForMagicMove, initElementRefId, updateElementRefId }
