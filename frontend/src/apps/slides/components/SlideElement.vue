@@ -2,7 +2,7 @@
 	<div :style="elementStyle">
 		<component
 			:is="getDynamicComponent(element.type)"
-			:key="mode + '-' + element.id"
+			:key="getElementKey(element)"
 			:element="element"
 			:mode="mode"
 			@clearTimeouts="$emit('clearTimeouts')"
@@ -42,6 +42,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['clearTimeouts'])
+
+const getElementKey = (element) => {
+	const id = element.refId || element.id
+	return `${props.mode}-${id}`
+}
 
 const isActive = computed(() => {
 	return activeElementIds.value.includes(element.value.id)
