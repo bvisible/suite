@@ -22,7 +22,20 @@
 					:style="getThumbnailStyles(slide)"
 					@click="handleSlideClick(slide)"
 					:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
-				></div>
+				>
+					<div
+						class="absolute inset-0 flex justify-between rounded p-2"
+						:style="getGradientOverlayStyles(slide)"
+					>
+						<div class="text-[10px] font-medium">{{ slide.idx }}</div>
+						<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
+					</div>
+
+					<div
+						v-if="isSlideActive(slide)"
+						class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
+					></div>
+				</div>
 			</template>
 
 			<template v-else>
