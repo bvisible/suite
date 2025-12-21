@@ -26,7 +26,7 @@
 				>
 					<SlideElement
 						v-for="element in currentSlide?.elements"
-						:key="`slideshow-${element.id}`"
+						:key="`slideshow-${getElementKey(element)}`"
 						mode="slideshow"
 						:element="element"
 						:data-index="element.id"
@@ -52,7 +52,7 @@
 					>
 						<SlideElement
 							v-for="element in currentSlide?.elements"
-							:key="`slideshow-${element.id}`"
+							:key="`slideshow-${getElementKey(element)}`"
 							mode="slideshow"
 							:element="element"
 							:data-index="element.id"
@@ -100,6 +100,10 @@ const transition = ref('none')
 const transform = ref('')
 const opacity = ref(1)
 const clipPath = ref('')
+
+const getElementKey = (element) => {
+	return element.refId || element.id
+}
 
 const slideCursor = ref('none')
 

@@ -17,7 +17,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
-import { updateElementId } from './transition'
+import { initElementRefId, updateElementRefId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -140,7 +140,7 @@ const addTextElement = async (text) => {
 
 	currentSlide.value.elements.push(element)
 
-	updateElementId(element)
+	updateElementRefId(element)
 
 	selectAndCenterElement(element.id)
 }
@@ -268,7 +268,7 @@ const addMediaElement = async (file, type) => {
 	}
 	currentSlide.value.elements.push(element)
 
-	updateElementId(element)
+	updateElementRefId(element)
 
 	selectAndCenterElement(element.id)
 }
@@ -279,31 +279,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.type == 'video') {
 		element.poster = await getVideoPoster(fileDoc.file_url)
 	}
-	updateElementId(element)
-}
-
-const isElementInSlide = (slideIndex, elementId) => {
-	const slide = slides.value[slideIndex]
-	return slide.elements?.some((element) => element.id == elementId)
-}
-
-const getDuplicateElementId = (element, srcSlide) => {
-	if (srcSlide == slideIndex.value - 1) {
-		const prevSlide = slides.value[slideIndex.value - 1]
-		if (
-			prevSlide?.transition == 'Magic Move' &&
-			!isElementInSlide(slideIndex.value, element.id)
-		)
-			return element.id
-	} else if (srcSlide == slideIndex.value + 1) {
-		if (
-			currentSlide.value?.transition == 'Magic Move' &&
-			!isElementInSlide(slideIndex.value, element.id)
-		)
-			return element.id
-	}
-
-	return generateUniqueId()
+	updateElementRefId(element)
 }
 
 const duplicateElements = async (e, elements, srcSlide) => {
@@ -317,7 +293,8 @@ const duplicateElements = async (e, elements, srcSlide) => {
 
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
-		newElement.id = getDuplicateElementId(element, srcSlide)
+		newElement.id = generateUniqueId()
+		initElementRefId(newElement, element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
@@ -485,7 +462,7 @@ const updateElementContent = (element) => {
 
 	if (editorOldText == currentText && !wasUpdated) return
 
-	updateElementId(element)
+	updateElementRefId(element)
 
 	element.content = updatedHTML
 	editorOldText = currentText
@@ -592,5 +569,4 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
-	isElementInSlide,
 }
