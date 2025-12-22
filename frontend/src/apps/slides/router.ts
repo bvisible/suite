@@ -115,39 +115,36 @@ router.beforeEach(async (to, from, next) => {
 		return next({ name: 'Home' })
 	}
 
-	const protectedRoutes = ['PresentationEditor', 'Slideshow', 'PresentationView', 'Home']
+	if (to.name === 'Slideshow' && !from.name) {
+		return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
+	}
+
+	const protectedRoutes = ['PresentationEditor', 'PresentationView', 'Home']
 	if (!protectedRoutes.includes(to.name as string)) {
 		return next()
 	}
 
-	if (['Slideshow', 'PresentationView', 'PresentationEditor'].includes(to.name as string)) {
-
+	if (['PresentationView', 'PresentationEditor'].includes(to.name as string)) {
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
 			isComposite = await isCompositePresentation(to.params.presentationId as string)
 			canAccess = await hasAccess(to.params.presentationId as string)
 		}
 		if (isComposite) {
-			if (to.name == 'Slideshow' || to.name == 'PresentationView') {
+			if (to.name == 'PresentationView') {
 				return next()
 			} else {
 				return next({ name: 'PresentationView', params: to.params, query: to.query } )
 			}
 		}
 
-		if (canAccess && ['PresentationEditor', 'Slideshow'].includes(to.name as string)) {
-			if (to.name === 'Slideshow' && !from.name) {
-				return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
-			}
+		if (canAccess && to.name  === 'PresentationEditor') {
 			return next()
 		} else if (canAccess) {
 			return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
 		}
 		else {
 			const isPublic = await isPublicPresentation(to.params.presentationId as string)
-			if (isPublic && ['Slideshow', 'PresentationView'].includes(to.name as string)) {
-				if (to.name === 'Slideshow' && !from.name) {
-					return next({ name: 'PresentationView', params: to.params, query: to.query } )
-				}
+			if (isPublic && 'PresentationView' === to.name) {
 				return next()
 			} else if (isPublic) {
 				return next({ name: 'PresentationView', params: to.params, query: to.query } )
