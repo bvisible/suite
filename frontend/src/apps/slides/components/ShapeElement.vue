@@ -1,13 +1,21 @@
 <template>
 	<svg :style="shapeStyle">
 		<rect
+			v-if="element.shapeType == 'rectangle'"
 			x="0"
 			y="0"
 			:width="'100%'"
 			:height="'100%'"
 			:fill="element.fillColor"
-			:stroke="element.borderColor"
-			:stroke-width="element.borderWidth"
+		/>
+
+		<ellipse
+			v-else-if="element.shapeType == 'circle'"
+			cx="50%"
+			cy="50%"
+			rx="50%"
+			ry="50%"
+			:fill="element.fillColor"
 		/>
 	</svg>
 </template>

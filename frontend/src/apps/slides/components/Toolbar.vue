@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<Tooltip text="Text" :hover-delay="0.7">
@@ -30,6 +30,8 @@
 			</FileUploader>
 		</Tooltip>
 
+		<ShapesPopover />
+
 		<div class="h-6 border-l"></div>
 
 		<Tooltip v-for="option in slideActions" :text="option.label" :hover-delay="0.5">
@@ -54,6 +56,8 @@ import { Tooltip, FileUploader, toast } from 'frappe-ui'
 import { isPublicPresentation, presentationId } from '@/stores/presentation'
 import { addTextElement, addMediaElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
+
+import ShapesPopover from '@/components/ShapesPopover.vue'
 
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
