@@ -8,12 +8,12 @@
 			@startResize="(e) => startResize(e, resizeHandle.direction)"
 		/>
 
-		<ResizeIndicator
+		<!-- <ResizeIndicator
 			v-show="currentResizer"
 			:type="elementType"
 			:dimensions="dimensions"
 			:indicatorStyles="indicatorStyles"
-		/>
+		/> -->
 	</div>
 </template>
 
@@ -45,8 +45,19 @@ const isResizeHandleVisible = (resizer) => {
 
 const resizeHandles = computed(() => {
 	let directions = []
-	if (props.elementType === 'shape') {
-		directions = ['left', 'right', 'top', 'bottom']
+	if (['rectangle', 'circle'].includes(props.elementType)) {
+		directions = [
+			'left',
+			'right',
+			'top',
+			'bottom',
+			'top-left',
+			'top-right',
+			'bottom-left',
+			'bottom-right',
+		]
+	} else if (props.elementType === 'line') {
+		directions = ['start', 'end']
 	} else if (props.elementType === 'text') {
 		directions = ['text-left', 'text-right']
 	} else {

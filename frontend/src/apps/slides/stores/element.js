@@ -114,6 +114,41 @@ const getElementContent = (element) => {
 	return generateHTML(contentJSON, extensions)
 }
 
+const addShapeElement = async (shapeType) => {
+	if (!shapeType) return
+
+	const width = 300
+	let height
+
+	if (shapeType === 'rectangle') {
+		height = 200
+	} else if (shapeType === 'circle') {
+		height = 300
+	}
+
+	const slideWidth = slideBounds.width / slideBounds.scale
+	const slideHeight = slideBounds.height / slideBounds.scale
+
+	const element = {
+		id: generateUniqueId(),
+		zIndex: currentSlide.value.elements.length + 1,
+		width: width,
+		height: height,
+		left: (slideWidth - width) / 2,
+		top: (slideHeight - height) / 2,
+		opacity: 100,
+		type: 'shape',
+		shapeType: shapeType,
+		fillColor: guessTextColorFromBackground(currentSlide.value.background),
+	}
+
+	currentSlide.value.elements.push(element)
+
+	nextTick(() => {
+		setActiveElements([element.id])
+	})
+}
+
 const addTextElement = async (text) => {
 	const elementPresets = {
 		textAlign: 'left',
@@ -577,6 +612,7 @@ export {
 	resetFocus,
 	addTextElement,
 	addMediaElement,
+	addShapeElement,
 	duplicateElements,
 	deleteElements,
 	selectAllElements,
