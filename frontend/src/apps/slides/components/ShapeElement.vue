@@ -1,7 +1,15 @@
 <template>
-	<div>
-		<div :style="shapeStyle"></div>
-	</div>
+	<svg :style="shapeStyle">
+		<rect
+			x="0"
+			y="0"
+			:width="'100%'"
+			:height="'100%'"
+			:fill="element.fillColor"
+			:stroke="element.borderColor"
+			:stroke-width="element.borderWidth"
+		/>
+	</svg>
 </template>
 
 <script setup>
@@ -29,20 +37,10 @@ const isActive = computed(() => {
 })
 
 const shapeStyle = computed(() => {
-	const offsetHeight = isActive.value ? props.elementOffset.height : 0
-
-	let elementHeight = element.value.height
-	if (elementHeight) {
-		elementHeight = `${elementHeight + offsetHeight}px`
-	} else {
-		elementHeight = 'auto'
-	}
-
 	const styles = {
 		width: '100%',
-		height: elementHeight,
+		height: '100%',
 		opacity: element.value.opacity / 100,
-		backgroundColor: element.value.fillColor,
 	}
 	return {
 		...styles,

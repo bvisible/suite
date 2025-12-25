@@ -58,6 +58,7 @@ const elementStyle = computed(() => {
 	const offsetLeft = isActive.value ? props.elementOffset.left : 0
 	const offsetTop = isActive.value ? props.elementOffset.top : 0
 	const offsetWidth = isActive.value ? props.elementOffset.width : 0
+	const offsetHeight = isActive.value ? props.elementOffset.height : 0
 
 	const elementLeft = element.value.left + offsetLeft
 	const elementTop = element.value.top + offsetTop
@@ -69,10 +70,17 @@ const elementStyle = computed(() => {
 		elementWidth = 'auto'
 	}
 
+	let elementHeight = element.value.height
+	if (elementHeight) {
+		elementHeight = `${elementHeight + offsetHeight}px`
+	} else {
+		elementHeight = 'auto'
+	}
+
 	return {
 		position: 'absolute',
 		width: elementWidth,
-		height: 'auto',
+		height: elementHeight,
 		left: `${elementLeft}px`,
 		top: `${elementTop}px`,
 		outline: props.highlight ? `#70B6F092 solid ${2 / slideBounds.scale}px` : 'none',

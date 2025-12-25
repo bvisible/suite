@@ -76,22 +76,33 @@ export const useResizer = () => {
 				break
 			case 'left':
 				diffLeft = -diffX
+				diffY = 0
 				break
 			case 'bottom':
 				diffY = -diffY
 				diffX = 0
+				break
+			case 'top':
+				diffTop = -diffY
+				diffX = 0
+				break
+			case 'right':
+				diffX = -diffX
+				diffY = 0
 				break
 			default:
 				diffX = -diffX
 				break
 		}
 
-		dimensionDelta.value = {
-			height: diffY,
-			width: diffX,
-			left: diffLeft,
-			top: diffTop,
-		}
+		requestAnimationFrame(() => {
+			dimensionDelta.value = {
+				height: diffY,
+				width: diffX,
+				left: diffLeft,
+				top: diffTop,
+			}
+		})
 
 		prevX = e.clientX
 		prevY = e.clientY

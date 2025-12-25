@@ -246,11 +246,13 @@ useResizeObserver(activeDiv, (entries) => {
 	// case:
 	// when element dimensions are changed not by resizer
 	// but by other updates on properties - font size, line height, letter spacing etc.
-	updateSelectionBounds({
-		width: width,
-		height: height,
-		left: (target.left - slideBounds.left) / scale.value,
-		top: (target.top - slideBounds.top) / scale.value,
+	requestAnimationFrame(() => {
+		updateSelectionBounds({
+			width: width,
+			height: height,
+			left: (target.left - slideBounds.left) / scale.value,
+			top: (target.top - slideBounds.top) / scale.value,
+		})
 	})
 })
 
@@ -349,13 +351,15 @@ const applyPositionDelta = (delta) => {
 	const deltaLeft = delta.left / slideBounds.scale
 	const deltaTop = delta.top / slideBounds.scale
 
-	updateSelectionBounds({
-		left: selectionBounds.left + deltaLeft,
-		top: selectionBounds.top + deltaTop,
-	})
+	requestAnimationFrame(() => {
+		updateSelectionBounds({
+			left: selectionBounds.left + deltaLeft,
+			top: selectionBounds.top + deltaTop,
+		})
 
-	elementOffset.left += deltaLeft
-	elementOffset.top += deltaTop
+		elementOffset.left += deltaLeft
+		elementOffset.top += deltaTop
+	})
 }
 
 const applyDimensionDelta = (delta) => {
