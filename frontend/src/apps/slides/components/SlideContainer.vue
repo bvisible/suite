@@ -246,13 +246,11 @@ useResizeObserver(activeDiv, (entries) => {
 	// case:
 	// when element dimensions are changed not by resizer
 	// but by other updates on properties - font size, line height, letter spacing etc.
-	requestAnimationFrame(() => {
-		updateSelectionBounds({
-			width: width,
-			height: height,
-			left: (target.left - slideBounds.left) / scale.value,
-			top: (target.top - slideBounds.top) / scale.value,
-		})
+	updateSelectionBounds({
+		width: width,
+		height: height,
+		left: (target.left - slideBounds.left) / scale.value,
+		top: (target.top - slideBounds.top) / scale.value,
 	})
 })
 
@@ -290,7 +288,9 @@ const updateTotalDeltaForResize = (totalDelta, delta, width, height) => {
 
 	// if resisting width change, don't apply top change either otherwise
 	// element sticks to one axis and drags on other which shouldn't happen on resize
-	if (totalDelta.width === 0) totalDelta.top = 0
+	if (totalDelta.width === 0 && !['top', 'bottom'].includes(currentResizer.value)) {
+		totalDelta.top = 0
+	}
 }
 
 const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
@@ -329,10 +329,17 @@ const handlePositionChange = (delta) => {
 	applyPositionDelta(totalDelta)
 }
 
-const applyAspectRatio = (offset) => {
-	if (!offset) return 0
+const applyAspectRatio = (delta, type) => {
+	if (!['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(currentResizer.value))
+		return
+
+	if (type == 'shape') {
+		delta.height = delta.width
+	}
+
+	if (!delta.top || !['image', 'video'].includes(type)) return
 	const ratio = selectionBounds.width / selectionBounds.height
-	return (offset ?? 0) / ratio
+	delta.top = (delta.top ?? 0) / ratio
 }
 
 const validateMinWidth = (width) => {
@@ -351,15 +358,13 @@ const applyPositionDelta = (delta) => {
 	const deltaLeft = delta.left / slideBounds.scale
 	const deltaTop = delta.top / slideBounds.scale
 
-	requestAnimationFrame(() => {
-		updateSelectionBounds({
-			left: selectionBounds.left + deltaLeft,
-			top: selectionBounds.top + deltaTop,
-		})
-
-		elementOffset.left += deltaLeft
-		elementOffset.top += deltaTop
+	updateSelectionBounds({
+		left: selectionBounds.left + deltaLeft,
+		top: selectionBounds.top + deltaTop,
 	})
+
+	elementOffset.left += deltaLeft
+	elementOffset.top += deltaTop
 }
 
 const applyDimensionDelta = (delta) => {
@@ -373,13 +378,13 @@ const applyDimensionDelta = (delta) => {
 }
 
 const handleDimensionChange = (delta) => {
-	if (
-		(!delta.width || !validateMinWidth(delta.width)) &&
-		(!delta.height || !validateMinHeight(delta.height))
-	)
-		return
+	if (!delta.width && !delta.height) return
+	if (!validateMinWidth(delta.width)) delta.width = 0
+	if (!validateMinHeight(delta.height)) delta.height = 0
 
-	delta.top = applyAspectRatio(delta.top)
+	if (['shape', 'image', 'video'].includes(activeElement.value.type)) {
+		applyAspectRatio(delta, activeElement.value.type)
+	}
 
 	const totalDelta = getTotalInteractionDelta(delta, 'resizing')
 
@@ -558,21 +563,19 @@ defineExpose({
 
 const applyInteractionOffsets = () => {
 	pairElementId.value = null
-	requestAnimationFrame(() => {
-		activeElementIds.value.forEach((id) => {
-			const element = currentSlide.value.elements.find((el) => el.id === id)
-			if (element) {
-				element.left += elementOffset.left
-				element.top += elementOffset.top
-				element.width += elementOffset.width
-				element.height += elementOffset.height
-			}
-		})
-		elementOffset.left = 0
-		elementOffset.top = 0
-		elementOffset.width = 0
-		elementOffset.height = 0
+	activeElementIds.value.forEach((id) => {
+		const element = currentSlide.value.elements.find((el) => el.id === id)
+		if (element) {
+			element.left += elementOffset.left
+			element.top += elementOffset.top
+			element.width += elementOffset.width
+			element.height += elementOffset.height
+		}
 	})
+	elementOffset.left = 0
+	elementOffset.top = 0
+	elementOffset.width = 0
+	elementOffset.height = 0
 }
 
 watch(

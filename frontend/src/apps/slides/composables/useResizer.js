@@ -43,6 +43,28 @@ export const useResizer = () => {
 		window.addEventListener('mouseup', stopResize, { once: true })
 	}
 
+	const getDimensionDelta = (diffX, diffY, diffLeft, diffTop) => {
+		let width = 0,
+			height = 0,
+			left = 0,
+			top = 0
+		if (['top', 'bottom'].includes(currentResizer.value)) {
+			height = diffY
+			top = diffTop
+		} else {
+			width = diffX
+			left = diffLeft
+			top = diffTop
+		}
+
+		return {
+			width: width,
+			height: height,
+			left: left,
+			top: top,
+		}
+	}
+
 	const resize = (e) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
@@ -95,14 +117,7 @@ export const useResizer = () => {
 				break
 		}
 
-		requestAnimationFrame(() => {
-			dimensionDelta.value = {
-				height: diffY,
-				width: diffX,
-				left: diffLeft,
-				top: diffTop,
-			}
-		})
+		dimensionDelta.value = getDimensionDelta(diffX, diffY, diffLeft, diffTop)
 
 		prevX = e.clientX
 		prevY = e.clientY
