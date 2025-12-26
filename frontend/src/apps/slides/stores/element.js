@@ -124,6 +124,8 @@ const addShapeElement = async (shapeType) => {
 		height = 200
 	} else if (shapeType === 'circle') {
 		height = 300
+	} else {
+		height = 1
 	}
 
 	const slideWidth = slideBounds.width / slideBounds.scale
@@ -146,6 +148,10 @@ const addShapeElement = async (shapeType) => {
 
 	if (shapeType == 'rectangle') {
 		element.borderRadius = 0
+	} else if (shapeType == 'line') {
+		element.strokeColor = element.fillColor
+		element.fillColor = 'transparent'
+		element.strokeWidth = 1
 	}
 
 	currentSlide.value.elements.push(element)

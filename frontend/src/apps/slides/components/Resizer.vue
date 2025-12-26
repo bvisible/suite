@@ -57,7 +57,7 @@ const resizeHandles = computed(() => {
 			'bottom-right',
 		]
 	} else if (props.elementType === 'line') {
-		directions = ['start', 'end']
+		directions = ['line-left', 'line-right']
 	} else if (props.elementType === 'text') {
 		directions = ['text-left', 'text-right']
 	} else {

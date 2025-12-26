@@ -80,6 +80,24 @@ const getDimensionResizerStyles = () => {
 	}
 }
 
+const getLineResizerStyles = () => {
+	const resizer = props.direction
+
+	const offsetX = props.currentResizer
+		? `-${5 / slideBounds.scale}px`
+		: `-${4.5 / slideBounds.scale}px`
+	const size = props.currentResizer ? `${10 / slideBounds.scale}px` : `${7 / slideBounds.scale}px`
+	return {
+		...baseStyles,
+		cursor: 'ew-resize',
+		left: resizer === 'line-left' ? offsetX : 'auto',
+		right: resizer === 'line-right' ? offsetX : 'auto',
+		top: `calc(50% - ${size} / 2)`,
+		width: size,
+		height: size,
+	}
+}
+
 const resizerStyles = computed(() => {
 	switch (props.direction) {
 		case 'text-left':
@@ -95,6 +113,9 @@ const resizerStyles = computed(() => {
 		case 'bottom-left':
 		case 'bottom-right':
 			return getDimensionResizerStyles()
+		case 'line-left':
+		case 'line-right':
+			return getLineResizerStyles()
 		default:
 			return {}
 	}
