@@ -50,6 +50,8 @@ let longpressDuration = 200
 let mousedownStart
 
 const outline = computed(() => {
+	if (activeElement.value?.shapeType == 'line') return 'none'
+
 	if (activeElementIds.value.length == 1) return `#70B6F0 solid ${2 / slideBounds.scale}px`
 	return `#70B6F092 solid ${0.1 / slideBounds.scale}px`
 })

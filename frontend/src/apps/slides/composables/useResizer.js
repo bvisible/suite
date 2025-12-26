@@ -96,6 +96,7 @@ export const useResizer = () => {
 				diffLeft = -diffX
 				diffTop = -diffX
 				break
+			case 'line-left':
 			case 'left':
 				diffLeft = -diffX
 				diffY = 0
@@ -108,6 +109,7 @@ export const useResizer = () => {
 				diffTop = -diffY
 				diffX = 0
 				break
+			case 'line-right':
 			case 'right':
 				diffX = -diffX
 				diffY = 0
