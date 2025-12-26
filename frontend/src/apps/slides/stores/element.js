@@ -140,6 +140,12 @@ const addShapeElement = async (shapeType) => {
 		type: 'shape',
 		shapeType: shapeType,
 		fillColor: guessTextColorFromBackground(currentSlide.value.background),
+		strokeColor: '#000000ff',
+		strokeWidth: 0,
+	}
+
+	if (shapeType == 'rectangle') {
+		element.borderRadius = 0
 	}
 
 	currentSlide.value.elements.push(element)

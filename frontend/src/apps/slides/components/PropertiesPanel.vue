@@ -22,6 +22,7 @@ import SlideProperties from '@/components/SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
+import ShapeProperties from '@/components/ShapeProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
 import PlacementProperties from '@/components/PlacementProperties.vue'
 import AppearanceProperties from '@/components/AppearanceProperties.vue'
@@ -42,6 +43,8 @@ const activeProperties = computed(() => {
 			return ImageProperties
 		case 'video':
 			return VideoProperties
+		case 'shape':
+			return ShapeProperties
 	}
 })
 </script>
