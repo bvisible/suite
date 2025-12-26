@@ -7,15 +7,21 @@
 			:width="'100%'"
 			:height="'100%'"
 			:fill="element.fillColor"
+			:stroke="element.strokeColor"
+			:stroke-width="`${element.strokeWidth}px`"
+			:rx="element.borderRadius"
+			:ry="element.borderRadius"
 		/>
 
 		<ellipse
 			v-else-if="element.shapeType == 'circle'"
 			cx="50%"
 			cy="50%"
-			rx="50%"
-			ry="50%"
+			:rx="'calc(50% - ' + element.strokeWidth / 2 + 'px)'"
+			:ry="'calc(50% - ' + element.strokeWidth / 2 + 'px)'"
 			:fill="element.fillColor"
+			:stroke="element.strokeColor"
+			:stroke-width="`${element.strokeWidth}px`"
 		/>
 	</svg>
 </template>
