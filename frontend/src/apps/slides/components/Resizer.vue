@@ -84,6 +84,16 @@ const getTextIndicatorPosition = () => {
 	}
 }
 
+const getLineIndicatorPosition = () => {
+	const offset = getScaledValue(8)
+
+	return {
+		left: currentResizer.value === 'line-left' ? offset : 'auto',
+		right: currentResizer.value === 'line-right' ? offset : 'auto',
+		top: offset,
+	}
+}
+
 const getMediaIndicatorPosition = () => {
 	const resizer = currentResizer.value
 	const offset = getScaledValue(8)
@@ -99,6 +109,8 @@ const getMediaIndicatorPosition = () => {
 const getPositionStyles = () => {
 	if (props.elementType === 'text') {
 		return getTextIndicatorPosition()
+	} else if (props.elementType === 'line') {
+		return getLineIndicatorPosition()
 	}
 	return getMediaIndicatorPosition()
 }
