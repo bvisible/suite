@@ -16,6 +16,7 @@
   <ShareDialog
     v-else-if="dialog === 's'"
     v-model="dialog"
+    :add-users="params || []"
     :entity="entities[0]"
     @success="
       () => {
@@ -43,11 +44,12 @@
     :entities="entities"
     @success="$router.push({ name: 'Home' })"
   />
+
+  <SearchDialog v-if="dialog === 'search'" v-model="dialog"/>
 </template>
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useStore } from 'vuex'
-import { openEntity } from '@/utils/'
 
 import emitter from '@/emitter'
 
@@ -58,6 +60,8 @@ import {
   RenameDialog,
 } from 'frappe-ui/frappe/drive'
 import RemoveDialog from './RemoveDialog.vue'
+import SearchDialog from './SearchDialog.vue'
+import { onKeyDown } from '@vueuse/core'
 
 const props = defineProps({
   document: Object,
@@ -77,6 +81,7 @@ const entity_open = computed(
 )
 
 const dialog = defineModel(String)
+const params = ref(null)
 const open = ref(false)
 watch(dialog, (val) => {
   if (val) open.value = true
@@ -84,39 +89,21 @@ watch(dialog, (val) => {
 
 const resetDialog = () => (dialog.value = '')
 
-emitter.on('share', () => (dialog.value = 's'))
+emitter.on('share', (data) => {
+  params.value = data
+  dialog.value = 's'
+})
 emitter.on('newFolder', () => (dialog.value = 'f'))
 emitter.on('rename', () => (dialog.value = 'rn'))
 emitter.on('remove', () => (dialog.value = 'remove'))
 emitter.on('move', () => (dialog.value = 'm'))
 emitter.on('newLink', () => (dialog.value = 'l'))
 
-function removeFromList(entities, move = true) {
-  if (entity_open.value) {
-    if (move) {
-      store.state.breadcrumbs.splice(1)
-      store.state.breadcrumbs.push({ loading: true })
-    } else {
-      resetDialog()
-      listResource.value.setData(
-        listResource.value.data.filter(
-          ({ name }) => name !== resource.value.data.name,
-        ),
-      )
-      openEntity({
-        is_group: 1,
-        name: resource.value.data.parent_entity,
-        breadcrumbs: resource.value.data.breadcrumbs.slice(0, -1),
-      })
-    }
-  } else {
-    resetDialog()
-    if (listResource.value) {
-      const names = entities.map((o) => o.name)
-      listResource.value.setData(
-        listResource.value.data.filter(({ name }) => !names.includes(name)),
-      )
-    }
+onKeyDown('k', (e) => {
+  console.log(e, e.metaKey && e.shiftKey)
+  if (e.metaKey && e.shiftKey) {
+    e.preventDefault()
+    dialog.value = 'search'
   }
-}
+})
 </script>

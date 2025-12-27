@@ -6,7 +6,7 @@
       ></slot>
     </template>
     <template #body-main>
-      <div class="p-4 flex flex-col gap-4">
+      <div class="p-4 flex flex-col gap-4 w-64">
         <FormControl
           type="number"
           class="grow"

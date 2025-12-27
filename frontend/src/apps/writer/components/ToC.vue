@@ -11,8 +11,8 @@
             class: 'text-ink-gray-6',
           })
         "
+        class="mb-3"
         :tooltip="show ? 'Hide' : 'Table of Contents'"
-        class="!w-5.5 !h-5.5 mb-2"
         @click="show = !show"
       />
     </template>
@@ -43,13 +43,13 @@
             class="w-full !text-ink-gray-5 !justify-start"
             :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
             :label="tab.label"
-            :icon-left="h(LucideFileText, { class: 'size-3.5' })"
+            :icon-left="h(LucideFileText, { class: 'size-4' })"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
           />
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
-            class="table-of-contents flex flex-col gap-0.5 ms-2 my-1"
+            class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
           >
             <div v-for="anchor in currentTabAnchors" class="flex">
               <!-- <div

@@ -287,9 +287,8 @@ import {
   h,
   onBeforeUnmount,
   nextTick,
-  onUnmounted,
 } from 'vue'
-import { Avatar, Button, createResource, Dropdown } from 'frappe-ui'
+import { Avatar, Button, Dropdown } from 'frappe-ui'
 import { formatDate } from '@/utils/format'
 import { dynamicList } from '@/utils/'
 import { v4 } from 'uuid'
@@ -384,6 +383,17 @@ const updateComment = (comment, thread, editor) => {
   comment.text = commentContents[comment.id]
   comment.edit = false
   comment.mentions = editor.commands.getMentions()
+
+  // // Prompt to share for users without access.
+  // const usersMentioned = comment.mentions.filter((k) => k.id)
+
+  // if (usersMentioned.length)
+  //   toast.info('Share with the tagged people?', {
+  //     action: {
+  //       label: 'Go',
+  //       onClick: () => emitter.emit('share', usersMentioned),
+  //     },
+  //   })
   if (comment.id === thread.id) {
     props.yComments.set(comment.id, sanitize(comment))
   } else {
@@ -416,7 +426,6 @@ const removeReply = (commentId, replyId) => {
   const comment = comments.value.find((c) => c.id === commentId)
   if (!comment) return
 
-  // Update Yjs map
   const updatedReplies = comment.replies.filter((r) => r.id !== replyId)
   const updatedComment = { ...comment, replies: updatedReplies }
   props.yComments.set(commentId, updatedComment)
@@ -460,7 +469,6 @@ const formatDateOrTime = (datetimeNum) => {
 const setCommentHeights = useDebounceFn(() => {
   let lastBottom = 0
   nextTick(() => {
-    console.log('revaluating')
     for (const comment of filteredComments.value) {
       try {
         const containerTop = scrollContainer.value.getBoundingClientRect().top
@@ -494,10 +502,10 @@ onMounted(() => {
   }
   props.editor.view.dom.addEventListener('tab-changed', onTabChange)
   onBeforeUnmount(() => {
-    const dom = props.editor?.view?.dom
-    if (dom && dom instanceof HTMLElement) {
+    try {
+      const dom = props.editor?.view?.dom
       dom.removeEventListener('tab-changed', onTabChange)
-    }
+    } catch {}
   })
 })
 
@@ -505,7 +513,7 @@ watch(() => filteredComments.value.length, setCommentHeights)
 useEventListener(window, 'resize', setCommentHeights)
 
 props.editor.on('update', () => {
-  // setCommentHeights()
+  setCommentHeights()
 })
 
 const purgeNewEmptyComments = () => {

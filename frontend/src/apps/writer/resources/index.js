@@ -1,4 +1,4 @@
-import { useList, createResource } from 'frappe-ui'
+import { useList, createResource, useCall } from 'frappe-ui'
 import { prettyData } from '@/utils'
 
 export const getDocuments = useList({
@@ -23,4 +23,13 @@ export const getTemplates = useList({
   fields: ['name', 'title', 'content', 'keymap'],
   cacheKey: 'writer-templates',
   immediate: true,
+})
+
+export const search = createResource({
+  url: '/api/method/writer.api.general.search',
+  method: 'GET',
+  makeParams: (params) => {
+    console.log('PARAMSS', params)
+    return params
+  },
 })

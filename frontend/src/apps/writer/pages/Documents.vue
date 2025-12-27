@@ -39,13 +39,18 @@
       :groups="groupedDocuments"
       :resource="getDocuments"
     />
-    <LoadingIndicator v-else class="size-5 mx-auto mt-32" />
+    <LoadingIndicator
+      v-else-if="getDocuments.loading"
+      class="size-5 mx-auto mt-32"
+    />
+    <ErrorPage v-else error="There was an error fetching documents." />
   </div>
 </template>
 <script setup>
 import { getDocuments } from '@/resources/'
 import RoundedListView from '@/components/RoundedListView.vue'
-import { LoadingIndicator, useList, usePageMeta } from 'frappe-ui'
+import { LoadingIndicator, usePageMeta } from 'frappe-ui'
+import ErrorPage from '@/components/ErrorPage.vue'
 
 const groupedDocuments = computed(
   () => getDocuments.data && groupByTime(getDocuments.data),

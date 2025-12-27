@@ -22,17 +22,19 @@
           <LucideArrowBigLeft class="size-4" />Go Back
         </div>
       </Button>
-      <Button
-        v-if="$store.state.user.id && $store.state.user.id !== 'Guest'"
-        variant="solid"
-        size="md"
-        @click="$router.replace({ name: 'Home' })"
-      >
-        <div class="flex gap-2"><LucideHome class="size-4" />Go Home</div>
-      </Button>
-      <Button v-else variant="solid" size="md" @click="redirectLogin()">
-        <div class="flex gap-2"><LucideUser class="size-4" />Login</div>
-      </Button>
+      <template v-if="$route.name != 'Home'">
+        <Button
+          v-if="$store.state.user.id && $store.state.user.id !== 'Guest'"
+          variant="solid"
+          size="md"
+          @click="$router.replace({ name: 'Home' })"
+        >
+          <div class="flex gap-2"><LucideHome class="size-4" />Go Home</div>
+        </Button>
+        <Button v-else variant="solid" size="md" @click="redirectLogin()">
+          <div class="flex gap-2"><LucideUser class="size-4" />Login</div>
+        </Button>
+      </template>
     </div>
   </div>
 </template>
