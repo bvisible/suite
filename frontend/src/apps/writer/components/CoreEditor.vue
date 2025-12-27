@@ -267,7 +267,7 @@ const editorExtensions = [
   ...COMMON_EXTENSIONS,
   Extension.create({
     addKeyboardShortcuts() {
-      if (!getTemplates.data) return
+      if (!getTemplates.data) return {}
       const shortcuts = Object.fromEntries(
         getTemplates.data
           .filter((t) => t.keymap)
@@ -278,7 +278,6 @@ const editorExtensions = [
             },
           ]),
       )
-      console.log(getTemplates.data)
       return shortcuts
     },
     addCommands: () => {

@@ -34,9 +34,7 @@
             >
               <LucideFileText class="mx-auto size-6" />
               <p class="text-base">
-                {{
-                  query ? 'No getTemplates found' : 'No getTemplates available'
-                }}
+                {{ query ? 'No templates found' : 'No templates available' }}
               </p>
             </div>
             <div v-else class="py-2">
