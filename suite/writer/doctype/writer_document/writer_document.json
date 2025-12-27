@@ -47,7 +47,6 @@
    "label": "Comments"
   },
   {
-   "default": "AAA=",
    "fieldname": "html",
    "fieldtype": "Long Text",
    "label": "HTML"
@@ -61,7 +60,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-11-24 12:00:05.353083",
+ "modified": "2025-12-18 14:21:53.667962",
  "modified_by": "Administrator",
  "module": "Writer",
  "name": "Writer Document",

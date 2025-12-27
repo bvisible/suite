@@ -33,9 +33,11 @@ class WriterDocument(Document):
         except COLLISION_ERRORS:
             pass
 
-    def save_yjs(self, data):
+    def save_doc(self, data, html=None):
         try:
             frappe.db.set_value("Writer Document", self.name, "content", data)
+            if html is not None:
+                frappe.db.set_value("Writer Document", self.name, "html", html)
             self.update_file(file_size=len(self.content))
         except COLLISION_ERRORS:
             pass
@@ -106,31 +108,37 @@ class WriterDocument(Document):
     def save_comments(self, data, file):
         try:
             frappe.db.set_value("Writer Document", self.name, "ycomments", data)
+
+            # Go over every comment in the YJS data and check replies for mentions
+            comments_doc = pycrdt.Doc()
+            comments_doc.apply_update(base64.b64decode(data))
+            comments_map = comments_doc.get("comments", type=pycrdt.Map)
+            for comment_id, comment_data in comments_map.items():
+                mentions = [
+                    {**k, "owner": comment_data["owner"]}
+                    for k in comment_data.get("mentions", [])
+                ]
+                for reply in comment_data["replies"]:
+                    mentions.extend(
+                        [
+                            {**k, "owner": reply["owner"]}
+                            for k in reply.get("mentions", [])
+                        ]
+                    )
+                print(mentions)
+                if mentions:
+                    frappe.enqueue(
+                        notify_comments,
+                        job_id=f"doc_comments_{self.name}_{comment_id}",
+                        now=True,
+                        deduplicate=True,
+                        mentions=mentions,
+                        file=file,
+                    )
         except COLLISION_ERRORS:
             pass
-
-        # Go over every comment in the YJS data and check replies for mentions
-        comments_doc = pycrdt.Doc()
-        comments_doc.apply_update(base64.b64decode(data))
-        comments_map = comments_doc.get("comments", type=pycrdt.Map)
-        for comment_id, comment_data in comments_map.items():
-            mentions = [
-                {**k, "owner": comment_data["owner"]}
-                for k in comment_data.get("mentions", [])
-            ]
-            for reply in comment_data["replies"]:
-                mentions.extend(
-                    [{**k, "owner": reply["owner"]} for k in reply.get("mentions", [])]
-                )
-            if mentions:
-                frappe.enqueue(
-                    notify_comments,
-                    job_id=f"doc_comments_{self.name}_{comment_id}",
-                    now=True,
-                    deduplicate=True,
-                    mentions=mentions,
-                    file=file,
-                )
+    def rename(self):
+        frappe.get_value({'doc': self.name}).rename()
 
 
 def notify_comments(file, mentions):
@@ -141,8 +149,9 @@ def notify_comments(file, mentions):
             mention["id"],
             "Mention",
             file,
-            f"{from_owner} mentioned you in a comment in {file.title}",
+            f'{from_owner} mentioned you in a comment in "{file.title}".',
         )
+        print("Shared with", mention["owner"])
         try:
             frappe.sendmail(
                 recipients=[mention["id"]],

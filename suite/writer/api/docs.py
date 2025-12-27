@@ -160,11 +160,6 @@ def get_markdown_file(entity, return_obj):
         md.set_output_format("html")
         return_obj["file_content"] = md.convert(content)
         return_obj["properties"] = md.Meta
-        print(md.Meta)
-        print(
-            repr(content[content.find("hits") : content.find("hits") + 200]),
-            md.convert(content)[-200:],
-        )
 
     frappe.response["data"] = return_obj
 

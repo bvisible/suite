@@ -1,13 +1,12 @@
 import frappe
 
 import frappe
-from pypika import Criterion, CustomFunction, Order
+from pypika import CustomFunction, Order
 from pypika import functions as fn
 
-from drive.utils import MIME_LIST_MAP, get_default_team, get_file_type, get_home_folder
-from drive.utils.api import get_default_access
+from drive.utils import get_default_team
 from drive.api.permissions import ENTITY_FIELDS, get_user_access
-
+from writer.search import WriterSearch
 
 DriveUser = frappe.qb.DocType("User")
 UserGroupMember = frappe.qb.DocType("User Group Member")
@@ -108,8 +107,7 @@ def get_document_list(
 
     for r in res:
         r["children"] = children_count.get(r["name"], 0)
-        r["file_type"] = get_file_type(r)
-
+        r["html"] = frappe.get_cached_value("Writer Document", r["doc"], "html")
         if r["name"] in public_files:
             r["share_count"] = -2
         elif default > -1 and (r["name"] in team_files):
@@ -140,3 +138,58 @@ def get_versions(id):
     )
 
     return versions
+
+
+@frappe.whitelist()
+def search(query, filters=None):
+    client = WriterSearch()
+    search = client.search(query, filters=filters)
+    metadata = get_drive_file_meta([k["name"] for k in search["results"]])
+    cleaned_results = []
+    for k in search["results"]:
+        if k["name"] not in metadata:
+            continue
+        k.update(metadata[k["name"]])
+        cleaned_results.append(k)
+    search["results"] = cleaned_results
+    return search
+
+
+def get_drive_file_meta(names, ttl=3600):
+    """
+    Fetch {name: {title, file_id}} using Redis first, DB as fallback.
+    """
+    if not names:
+        return {}
+
+    cache = frappe.cache()
+
+    keys = {name: f"search:drive_file:{name}" for name in names}
+    cached = {"name": cache.get_value(k) for k in keys.values()}
+
+    result = {}
+    missing = []
+    for name, key in keys.items():
+        value = cached.get(key)
+        if value:
+            result[name] = value
+        else:
+            missing.append(name)
+
+    if missing:
+        rows = frappe.get_all(
+            "Drive File",
+            filters={"doc": ["in", missing]},
+            fields=["name", "title", "doc"],
+        )
+
+        for r in rows:
+            meta = {
+                "title": r["title"],
+                "name": r["name"],
+            }
+            key = f"search:drive_file:{r['name']}"
+            cache.set_value(key, meta, expires_in_sec=ttl)
+            result[r["doc"]] = meta
+
+    return result
