@@ -57,6 +57,7 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
         Y.decodeRelativePosition(comment.anchor.to),
         ystate.binding.mapping,
       )
+      console.log('HOHOHO', from, to)
 
       decos.push(
         Decoration.inline(from, to, {

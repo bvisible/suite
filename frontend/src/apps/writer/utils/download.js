@@ -13,12 +13,12 @@ async function getPdfFromDoc(entity_name, settings = {}) {
   const raw_html = (await res.json()).message
   const applyWatermark = settings?.apply_watermark || false
   const watermark = {
-    text: settings?.watermark_text || "",
+    text: settings?.watermark_text || '',
     size: settings?.watermark_size || 90,
-    angle: settings?.watermark_angle || -45
+    angle: settings?.watermark_angle || -45,
   }
   // Show watermark if apply_watermark is true AND text is not empty
-  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ""
+  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ''
   const content = `
           <!DOCTYPE html>
           <html>
@@ -41,7 +41,7 @@ async function getPdfFromDoc(entity_name, settings = {}) {
               </style>
             </head>
             <body>
-              ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ""}
+              ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ''}
               <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
                 ${raw_html}
               </div>
@@ -53,11 +53,16 @@ async function getPdfFromDoc(entity_name, settings = {}) {
   await pdfBlob
   return pdfBlob.prop.pdf.output('arraybuffer')
 }
-export function entitiesDownload(team, entities, settings = {}, transfer = false) {
+export function entitiesDownload(
+  team,
+  entities,
+  settings = {},
+  transfer = false,
+) {
   if (entities.length === 1) {
     if (entities[0].mime_type === 'frappe_doc') {
       if (router.currentRoute.value.name === 'Document') {
-        return emitter.emit('printFile')
+        return emitter.emit('print-file')
       }
       return fetch(
         `/api/method/drive.api.files.get_file_content?entity_name=${entities[0].name}`,
@@ -80,7 +85,9 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
     if (entity.is_group) {
       const folder = parentFolder.folder(entity.title)
       return get_children(team, entity.name).then((children) => {
-        const promises = children.map((childEntity) => processEntity(childEntity, folder))
+        const promises = children.map((childEntity) =>
+          processEntity(childEntity, folder),
+        )
         return Promise.all(promises)
       })
     } else if (entity.document) {
@@ -172,7 +179,8 @@ function temp(team, entity_name, parentZip) {
 function get_file_content(entity) {
   const fileUrl =
     entity.src ||
-    '/api/method/' + `/api/method/drive.api.files.get_file_content?entity_name=${entity.name}`
+    '/api/method/' +
+      `/api/method/drive.api.files.get_file_content?entity_name=${entity.name}`
 
   return fetch(fileUrl).then((response) => {
     if (response.ok) {
@@ -187,7 +195,8 @@ function get_file_content(entity) {
 
 function get_children(team, entity_name) {
   const url =
-    '/api/method/' + `/api/method/drive.api.list.files?team=${team}&entity_name=${entity_name}`
+    '/api/method/' +
+    `/api/method/drive.api.list.files?team=${team}&entity_name=${entity_name}`
   return fetch(url, {
     method: 'GET',
     headers: {

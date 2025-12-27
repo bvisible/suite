@@ -7,12 +7,12 @@
     :doc
     :extensions
     @save="(manual = false) => save(manual)"
+    @cleanup="cleanup"
   />
 </template>
 
 <script setup>
-import { toast } from 'frappe-ui'
-import { computed, onMounted, ref, onBeforeUnmount, provide } from 'vue'
+import { computed, onMounted, ref, provide } from 'vue'
 
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
@@ -71,9 +71,5 @@ const extensions = [
 onMounted(() => {
   const { view, state } = editor.value
   view.dispatch(state.tr)
-})
-
-onBeforeUnmount(() => {
-  cleanup()
 })
 </script>

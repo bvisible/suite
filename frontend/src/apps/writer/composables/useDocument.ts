@@ -4,7 +4,6 @@ import { DriveDocument } from '@/types/doctypes'
 import { prettyData } from 'frappe-ui/frappe/drive/js/utils'
 import { getDocuments } from '@/resources/'
 
-
 export default function useDocument(docId: MaybeRefOrGetter<string>) {
   interface Document extends DriveDocument {}
 
@@ -29,7 +28,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
     methods: {
       addYjsUpdate: { name: 'add_yjs_update', skipOverride: true },
       newVersion: { name: 'new_version', skipOverride: true },
-      saveDoc: { name: 'save_yjs', skipOverride: true },
+      saveDoc: { name: 'save_doc', skipOverride: true },
       saveComments: { name: 'save_comments', skipOverride: true },
       saveHtml: { name: 'save_html', skipOverride: true },
       toggleFav: { name: 'toggle_favourite', skipOverride: true },
