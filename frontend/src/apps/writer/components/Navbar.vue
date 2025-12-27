@@ -100,21 +100,16 @@ import LucideSquarePen from '~icons/lucide/square-pen'
 import LucideInfo from '~icons/lucide/info'
 import LucideRulerDimensionLine from '~icons/lucide/ruler-dimension-line'
 import LucideView from '~icons/lucide/view'
-import LucideSettings from '~icons/lucide/settings'
-import LucideImageDown from '~icons/lucide/image-down'
-import LucideNewspaper from '~icons/lucide/newspaper'
 import LucideListRestart from '~icons/lucide/list-restart'
 import LucideHistory from '~icons/lucide/history'
-import MessageSquareDot from '~icons/lucide/message-square-dot'
+import LucideLayoutTemplate from '~icons/lucide/layout-template'
 import LucideMarkdown from '~icons/lucide/pilcrow'
 import { downloadZippedHTML, downloadMD } from '@/utils'
 import { downloadDocxFromHtml } from '../utils/docxexporter'
-import { entitiesDownload } from '@/utils/download'
 import { getLink } from '@/utils'
 import WriterLogo from './WriterLogo.vue'
 
 const store = useStore()
-const route = useRoute()
 const open = (url) => {
   window.open(url, '_blank')
 }
@@ -127,6 +122,7 @@ const props = defineProps({
 })
 
 const showVersions = defineModel('showVersions')
+const showTemplates = defineModel('showTemplates')
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
@@ -315,6 +311,12 @@ const fileActions = computed(() =>
               label: 'Versions',
               cond: props.document.doc.write,
               onClick: () => (showVersions.value = true),
+            },
+            {
+              icon: LucideLayoutTemplate,
+              label: 'Templates',
+              cond: props.document.doc.write,
+              onClick: () => (showTemplates.value = true),
             },
           ]),
         },

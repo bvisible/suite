@@ -14,7 +14,7 @@
               v-model="query"
               @update:model-value="activeIndex = 0"
               type="text"
-              placeholder="Search getTemplates..."
+              placeholder="Search templates..."
               @keydown="onKeyDown"
               autocomplete="off"
             >
@@ -34,7 +34,9 @@
             >
               <LucideFileText class="mx-auto size-6" />
               <p class="text-base">
-                {{ query ? 'No getTemplates found' : 'No getTemplates available' }}
+                {{
+                  query ? 'No getTemplates found' : 'No getTemplates available'
+                }}
               </p>
             </div>
             <div v-else class="py-2">
@@ -104,8 +106,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import fuzzysort from 'fuzzysort'
-import { Dialog, TextInput } from 'frappe-ui'
-import {insertTemplate} from '@/utils'
+import { Dialog, TextInput, debounce } from 'frappe-ui'
+import { insertTemplate } from '@/utils'
 import { getTemplates } from '@/resources'
 
 import LucideSearch from '~icons/lucide/search'

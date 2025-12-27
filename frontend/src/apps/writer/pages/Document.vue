@@ -17,6 +17,7 @@
       document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
     "
     v-model:showVersions="showVersions"
+    v-model:showTemplates="showTemplates"
   >
     <template #content v-if="document.doc?.settings && document.doc.write">
       <UsersBar
@@ -125,14 +126,13 @@ import {
 } from 'vue'
 import { useStore } from 'vuex'
 import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
-import { onKeyDown } from '@vueuse/core'
 
 import VersionsSidebar from '@/components/VersionsSidebar.vue'
 import WriterSettings from '@/components/WriterSettings.vue'
 import TemplateDialog from '@/components/TemplateDialog.vue'
 import UsersBar from '@/components/UsersBar.vue'
 
-import { toast, isModKey } from '@/utils/'
+import { toast } from '@/utils/'
 import useDocument from '@/composables/useDocument'
 import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
@@ -182,6 +182,7 @@ usePageMeta(() => ({
   title: document.doc ? document.doc.title : 'Loading...',
 }))
 
+// fix: bad pattern
 const globalSettings = !store.getters.isLoggedIn
   ? { doc: {} }
   : useDoc({
@@ -228,12 +229,6 @@ watch(isOldSchema, (v) => {
       duration: 8000,
     })
     toasted = true
-  }
-})
-onKeyDown('t', (e) => {
-  if (isModKey(e)) {
-    e.preventDefault()
-    showTemplates.value = true
   }
 })
 </script>
