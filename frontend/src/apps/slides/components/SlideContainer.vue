@@ -213,18 +213,20 @@ const triggerDrag = (e, id) => {
 	}
 }
 
+const duplicateAndDrag = (e, id) => {
+	duplicateElements(e, activeElements.value, slideIndex.value, false).then(() => {
+		triggerDrag(e, id)
+	})
+}
+
 const handleMouseDown = (e, element) => {
 	if (props.readonlyMode) return
 	const id = element?.id
 
 	e.stopPropagation()
 	e.preventDefault()
-	if (e.altKey) {
-		duplicateElements(e, activeElements.value, slideIndex.value, false).then(() => {
-			triggerDrag(e, id)
-		})
-		return
-	}
+
+	if (e.altKey || e.ctrlKey) return duplicateAndDrag(e, id)
 
 	// wait for click to be registered
 	// if the click is not registered, it means the user is dragging
