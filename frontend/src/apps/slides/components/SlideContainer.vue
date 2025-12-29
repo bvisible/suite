@@ -269,9 +269,9 @@ const togglePanZoom = () => {
 }
 
 const applyResistance = (axis, delta) => {
-	const scaledThreshold = (0.02 * selectionBounds.width) / slideBounds.scale
+	const scaledThreshold = (0.01 * selectionBounds.width) / slideBounds.scale
 
-	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
+	const escapeDelta = Math.max(1.5, Math.min(5, scaledThreshold))
 
 	let useResistanceKeys = []
 	let pullDelta = null
