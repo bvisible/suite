@@ -1,6 +1,7 @@
 import { createResource } from "frappe-ui";
 import { type Socket, io } from "socket.io-client";
 import { computed, onUnmounted, readonly, ref } from "vue";
+import type { FrappeRequestError } from "../types";
 
 interface Participant {
 	user_id: string;
@@ -72,9 +73,10 @@ export function useMeetingPreviewPresence(meetingId: string) {
 				error.value = data.error || "Failed to get presence token";
 			}
 		},
-		onError(err: Error) {
-			console.error("Presence token error:", err);
-			error.value = err.message || "Failed to fetch presence token";
+		onError(err: FrappeRequestError) {
+			error.value = err.messages.length
+				? err.messages.join(", ")
+				: "Failed to fetch presence token";
 		},
 	});
 
