@@ -9,6 +9,7 @@
 		/>
 
 		<PresentationList
+			:loading="presentationListResource.loading"
 			:presentations="presentationList"
 			@setPreview="setPreview"
 			@navigate="(name, present) => navigateToPresentation(name, present)"
