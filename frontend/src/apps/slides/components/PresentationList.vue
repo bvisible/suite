@@ -47,6 +47,7 @@
 					</div>
 				</div>
 			</div>
+			<Spinner v-else-if="loading" class="w-4" />
 			<div v-else class="text-sm text-gray-600">No presentations created yet.</div>
 		</div>
 	</div>
@@ -55,13 +56,17 @@
 <script setup>
 import { h } from 'vue'
 
-import { Dropdown } from 'frappe-ui'
+import { Dropdown, Spinner } from 'frappe-ui'
 import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 
 import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const props = defineProps({
 	presentations: Object,
+	loading: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['navigate', 'setPreview', 'openDialog', 'duplicatePresentation'])
