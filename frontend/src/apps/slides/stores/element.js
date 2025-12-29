@@ -282,12 +282,12 @@ const replaceMediaElement = async (element, fileDoc) => {
 	updateElementRefId(element)
 }
 
-const duplicateElements = async (e, elements, srcSlide) => {
+const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 	e?.preventDefault()
 
 	if (srcSlide == null) srcSlide = slideIndex.value
 
-	const displaceByPx = srcSlide == slideIndex.value ? 40 : 0
+	const displaceByPx = srcSlide == slideIndex.value && toDisplace ? 40 : 0
 
 	let newSelection = []
 
