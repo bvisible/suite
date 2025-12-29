@@ -75,6 +75,8 @@ import {
 	pairElementId,
 	addFixedWidthToElement,
 	setEditableState,
+	duplicateElements,
+	activeElements,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
@@ -211,12 +213,20 @@ const triggerDrag = (e, id) => {
 	}
 }
 
+const duplicateAndDrag = (e, id) => {
+	duplicateElements(e, activeElements.value, slideIndex.value, false).then(() => {
+		triggerDrag(e, id)
+	})
+}
+
 const handleMouseDown = (e, element) => {
 	if (props.readonlyMode) return
 	const id = element?.id
 
 	e.stopPropagation()
 	e.preventDefault()
+
+	if (e.altKey || e.ctrlKey) return duplicateAndDrag(e, id)
 
 	// wait for click to be registered
 	// if the click is not registered, it means the user is dragging
@@ -259,9 +269,9 @@ const togglePanZoom = () => {
 }
 
 const applyResistance = (axis, delta) => {
-	const scaledThreshold = (0.02 * selectionBounds.width) / slideBounds.scale
+	const scaledThreshold = (0.01 * selectionBounds.width) / slideBounds.scale
 
-	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
+	const escapeDelta = Math.max(1.5, Math.min(5, scaledThreshold))
 
 	let useResistanceKeys = []
 	let pullDelta = null
