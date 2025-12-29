@@ -75,6 +75,8 @@ import {
 	pairElementId,
 	addFixedWidthToElement,
 	setEditableState,
+	duplicateElements,
+	activeElements,
 } from '@/stores/element'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
@@ -217,6 +219,12 @@ const handleMouseDown = (e, element) => {
 
 	e.stopPropagation()
 	e.preventDefault()
+	if (e.altKey) {
+		duplicateElements(e, activeElements.value, slideIndex.value, false).then(() => {
+			triggerDrag(e, id)
+		})
+		return
+	}
 
 	// wait for click to be registered
 	// if the click is not registered, it means the user is dragging
