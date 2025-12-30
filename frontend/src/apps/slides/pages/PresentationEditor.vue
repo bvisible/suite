@@ -385,13 +385,15 @@ const handleUndoRedo = (e) => {
 }
 
 const handleKeyDown = (e) => {
-	if (e.key == 'z') return handleUndoRedo(e)
 	const editingText =
 		document.activeElement.getAttribute('contenteditable') ||
 		document.activeElement.tagName == 'INPUT' ||
 		focusElementId.value != null
 
 	if (editingText) return
+
+	if (e.key == 'z') return handleUndoRedo(e)
+
 	handleGlobalShortcuts(e)
 
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
