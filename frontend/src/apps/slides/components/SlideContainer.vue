@@ -489,7 +489,8 @@ const handlePaste = (e) => {
 
 	const clipboardTextHTML = e.clipboardData.getData('text/html')
 	const imgSrc = getImageSrcFromHTML(clipboardTextHTML)
-	if (clipboardTextHTML && imgSrc) return handleClipboardTextHTML(clipboardTextHTML)
+	if (clipboardTextHTML && imgSrc && imgSrc.startsWith('data:'))
+		return handleClipboardTextHTML(imgSrc)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
 	if (clipboardJSON) return handleClipboardJSON(clipboardJSON)
