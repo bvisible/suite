@@ -236,7 +236,7 @@ const getNaturalSize = async (dataURL) => {
 
 const addMediaElement = async (file, type) => {
 	const src = file.file_url
-	const { width } = await getNaturalSize(src)
+	const { width } = type === 'image' ? await getNaturalSize(src) : { width: 400 }
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
