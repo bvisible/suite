@@ -27,13 +27,16 @@ class SFUClient {
 
 	// ==================== CONNECTION MANAGEMENT ====================
 
-	async connect(meetingId) {
+	async connect(meetingId, guestAuthToken = null) {
 		if (this.connected) {
 			return true;
 		}
 
 		try {
-			const connectionDetails = await this.getConnectionDetails(meetingId);
+			const connectionDetails = await this.getConnectionDetails(
+				meetingId,
+				guestAuthToken,
+			);
 			this.connectionDetails = connectionDetails;
 			this.scheduleTokenRefresh();
 
@@ -48,8 +51,48 @@ class SFUClient {
 		}
 	}
 
-	async getConnectionDetails(meetingId) {
-		const response = await frappeRequest({
+	async getConnectionDetails(meetingId, guestAuthToken = null) {
+		let response;
+
+		if (guestAuthToken) {
+			const guestId = sessionStorage.getItem("guest_id");
+			const guestName = sessionStorage.getItem("guest_name");
+			const guestMeetingId = sessionStorage.getItem("guest_meeting_id");
+
+			if (!guestId || guestMeetingId !== meetingId) {
+				throw new Error("Guest session incomplete or invalid for this meeting");
+			}
+
+			response = await frappeRequest({
+				url: "sae.api.meeting.get_guest_sfu_connection_details",
+				params: {
+					meeting_id: meetingId,
+					guest_token: guestAuthToken,
+				},
+			});
+
+			if (!response.success) {
+				throw new Error(
+					response.error || "Failed to get SFU connection details",
+				);
+			}
+
+			return {
+				authToken: guestAuthToken,
+				meetingId: meetingId,
+				userId: guestId,
+				sfuUrl: response.sfu_url,
+				sfuPort: response.sfu_port,
+				userData: {
+					name: guestName,
+					is_guest: true,
+				},
+				tokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+				codecStrategy: response.codec_strategy || "auto",
+			};
+		}
+
+		response = await frappeRequest({
 			url: "sae.api.meeting.get_sfu_connection_details",
 			params: { meeting_id: meetingId },
 		});
@@ -124,8 +167,9 @@ class SFUClient {
 			reconnection: true,
 			reconnectionAttempts: 5,
 			reconnectionDelay: 1000,
-			transports: ["websocket", "polling"],
 			upgrade: true,
+			reconnectionDelayMax: 5000,
+			transports: ["websocket", "polling"],
 			timeout: 20000,
 			forceNew: true,
 			withCredentials: false,

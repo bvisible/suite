@@ -177,9 +177,6 @@ export class SocketHandlerManager {
 		}
 	}
 
-	/**
-	 * Clean up room tracking when it becomes empty
-	 */
 	private cleanupRoom(roomId: string): void {
 		this.fullAccessSockets.delete(roomId);
 		this.previewSockets.delete(roomId);
@@ -263,6 +260,7 @@ export class SocketHandlerManager {
 						avatar: userData.avatar,
 						audio_enabled: mediaState.audio_enabled,
 						video_enabled: mediaState.video_enabled,
+						is_guest: userData.is_guest,
 					},
 				});
 				callback({ success: true });
@@ -372,6 +370,7 @@ export class SocketHandlerManager {
 						info: {
 							name: p.info.name,
 							avatar: p.info.avatar,
+							is_guest: p.info.is_guest || false,
 						},
 					}));
 				}
@@ -433,6 +432,13 @@ export class SocketHandlerManager {
 		const { roomId, participantId, userData } = data;
 
 		try {
+			// Validate that roomId matches the token's meeting_id
+			if (socket.meetingId && socket.meetingId !== roomId) {
+				throw new Error(
+					`Room ID mismatch: token has ${socket.meetingId}, trying to join ${roomId}`,
+				);
+			}
+
 			await this.mediasoup.createRoom(roomId, (roomId, participantIds) => {
 				this.emitToFullAccessParticipants(roomId, 'active_speaker', {
 					participantIds,
@@ -443,7 +449,9 @@ export class SocketHandlerManager {
 
 			socket.join(roomId);
 
-			socket.meetingId = roomId;
+			if (!socket.meetingId) {
+				socket.meetingId = roomId;
+			}
 			socket.roomId = roomId;
 			socket.participantId = participantId;
 

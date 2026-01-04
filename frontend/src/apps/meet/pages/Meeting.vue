@@ -26,6 +26,7 @@
 			@toggle-microphone="toggleMicrophone"
 			@toggle-camera="toggleCamera"
 			@join-from-preview="joinMeetingFromPreview"
+			@guest-join-complete="handleGuestJoinComplete"
 			@leave-waiting-room="leaveWaitingRoom"
 			@try-join-again="tryJoinAgain"
 			@device-changed="handleDeviceChanged"
@@ -95,6 +96,8 @@
 								@muteParticipant="handleMuteParticipant"
 								@kickParticipant="handleKickParticipant"
 								@lowerHand="handleLowerHand"
+								@approveLobbyUser="handleApproveLobbyUser"
+								@rejectLobbyUser="handleRejectLobbyUser"
 							/>
 						</div>
 					</Transition>
@@ -105,6 +108,7 @@
 					:isChatOpen="meetingState.isChatOpen.value"
 					:isPeopleOpen="meetingState.isPeopleOpen.value"
 					:hasUnread="meetingState.hasUnreadMessages.value"
+					:lobbyUserCount="meetingState.lobbyUsers?.value?.length || 0"
 					:isMicOn="meetingState.isMicOn.value"
 					:isCameraOn="meetingState.isCameraOn.value"
 					:isScreenSharing="meetingState.isScreenSharing.value"
@@ -126,6 +130,16 @@
 					@device-changed="handleDeviceChanged"
 				/>
 			</div>
+
+			<LobbyOverlay
+				v-if="(isInLobby || isWaitingForApproval) && !isRejected"
+				@leave="leaveLobby"
+			/>
+
+			<RejectionOverlay
+				v-if="isRejected && isGuestSession"
+				@leave="goHome"
+			/>
 		</template>
 
 		<!-- Chat notifications -->
@@ -137,8 +151,7 @@
 
 		<!-- Join request notifications -->
 		<JoinRequestNotifications
-			:waitingUsers="meetingState.waitingUsers"
-			:loadingUsers="meetingState.loadingUsers"
+			:waitingUsers="lobbyUsersForNotifications"
 			@approve-user="approveUser"
 			@reject-user="rejectUser"
 		/>
@@ -154,8 +167,10 @@ import ChatNotificationQueue from "../components/ChatNotificationQueue.vue";
 import ChatPanel from "../components/ChatPanel.vue";
 import FloatingControls from "../components/FloatingControls.vue";
 import JoinRequestNotifications from "../components/JoinRequestNotifications.vue";
+import LobbyOverlay from "../components/LobbyOverlay.vue";
 import MeetingPreview from "../components/MeetingPreview.vue";
 import PeoplePanel from "../components/PeoplePanel.vue";
+import RejectionOverlay from "../components/RejectionOverlay.vue";
 import ScreenShareLayout from "../components/ScreenShareLayout.vue";
 import VideoGrid from "../components/VideoGrid.vue";
 
@@ -170,6 +185,7 @@ import {
 import { session } from "../data/session.js";
 import { useSocket } from "../socket.js";
 import { deviceManager } from "../utils/media/DeviceManager.js";
+import { getSFUClient } from "../utils/sfu-client.js";
 
 // Router access
 const route = useRoute();
@@ -179,6 +195,9 @@ const meetingId = computed(() => route.params.meetingId);
 // Meeting state management
 const meetingState = useMeetingState();
 const socket = useSocket();
+
+// Lobby user notification tracking
+const notifiedLobbyUsers = ref(new Set());
 
 // Meeting logic composable
 const {
@@ -204,12 +223,22 @@ const {
 	processedStream,
 	applyBackgroundEffectsToLocalStream,
 	onSendReaction,
-} = useMeetingLogic(meetingState, meetingId.value);
+} = useMeetingLogic(meetingState, meetingId.value, {
+	notifiedLobbyUsers,
+});
+
+const isGuestSession = computed(
+	() =>
+		!session.isLoggedIn &&
+		(!!meetingState.guestAuthToken.value ||
+			meetingState.isWaitingForApproval.value ||
+			!!sessionStorage.getItem("guest_status")),
+);
 
 const meetingDoc = createDocumentResource({
 	doctype: "Sae Meeting",
 	name: meetingId.value,
-	auto: true,
+	auto: session.isLoggedIn,
 });
 
 // Provide meeting context for child components
@@ -229,17 +258,42 @@ provide("sfuManager", sfuManager);
 provide("socket", socket);
 provide(
 	"meetingTitle",
-	computed(() => meetingDoc?.doc?.title || meetingDoc?.doc?.name || "Meeting"),
+	computed(() => {
+		if (isGuestSession.value) {
+			return meetingId.value;
+		}
+		return meetingDoc?.doc?.title || meetingDoc?.doc?.name || meetingId.value;
+	}),
 );
 
 // Computed properties
 const isConnecting = computed(() => meetingState.isConnecting.value);
 const hasConnectionError = computed(() => !!meetingState.connectionError.value);
+const isInLobby = computed(() => meetingState.isInLobby?.value || false);
+const isWaitingForApproval = computed(
+	() => meetingState.isWaitingForApproval?.value || false,
+);
+const isRejected = computed(
+	() => meetingState.isJoinRequestRejected?.value || false,
+);
 const showPreview = computed(() => {
+	const isUnauthenticatedGuest = !session.isLoggedIn && !isGuestSession.value;
+	if (isUnauthenticatedGuest) {
+		return true;
+	}
+
+	if (isGuestSession.value) {
+		return false;
+	}
+	if (meetingState.isInLobby?.value) {
+		return false;
+	}
+	if (meetingState.isWaitingForApproval?.value) {
+		return false;
+	}
 	const inPreview = meetingState.isInPreview.value;
-	const waitingForApproval = meetingState.isWaitingForApproval.value;
 	const joinRequestRejected = meetingState.isJoinRequestRejected.value;
-	return inPreview || waitingForApproval || joinRequestRejected;
+	return inPreview || joinRequestRejected;
 });
 
 const activePanel = computed(() => {
@@ -261,6 +315,21 @@ const creatorUserId = computed(() => {
 	return meetingDoc?.doc?.owner || meetingDoc?.data?.owner || "";
 });
 
+const isCurrentUserHost = computed(() => {
+	const currentUserId = meetingState.currentUser.value?.user_id;
+	return currentUserId && currentUserId === creatorUserId.value;
+});
+
+const lobbyUsersForNotifications = computed(() => {
+	return meetingState.lobbyUsers.value
+		.filter((user) => !notifiedLobbyUsers.value.has(user.userId))
+		.map((user) => ({
+			user_id: user.userId,
+			user_name: user.name,
+			user_image: user.avatar,
+		}));
+});
+
 // Refs
 const chatNotificationQueue = ref(null);
 const isReactionPickerOpen = ref(false);
@@ -277,14 +346,79 @@ const joinMeetingFromPreview = async () => {
 	await joinMeetingRoom();
 };
 
+const handleGuestJoinComplete = async () => {
+	const guestId = sessionStorage.getItem("guest_id");
+	const guestName = sessionStorage.getItem("guest_name");
+
+	if (guestId && guestName) {
+		meetingState.guestId.value = guestId;
+		meetingState.currentUser.value = {
+			user_id: guestId,
+			name: guestName,
+			full_name: guestName,
+			avatar: null,
+			is_guest: true,
+		};
+	}
+
+	await joinMeetingRoom(guestName);
+};
+
 const leaveWaitingRoom = () => {
 	meetingState.isWaitingForApproval.value = false;
 	meetingState.isJoinRequestRejected.value = false;
 	router.push({ name: "Home" });
 };
 
+const leaveLobby = async () => {
+	const sfuClient = getSFUClient();
+	if (sfuClient?.isInLobby?.()) {
+		await sfuClient.leaveLobby();
+		sfuClient.disconnect();
+	}
+
+	meetingState.isInLobby.value = false;
+	meetingState.isWaitingForApproval.value = false;
+	meetingState.lobbyParticipantCount.value = 0;
+
+	sessionStorage.removeItem("guest_status");
+	sessionStorage.removeItem("guest_auth_token");
+	sessionStorage.removeItem("guest_sfu_url");
+	sessionStorage.removeItem("guest_sfu_port");
+	sessionStorage.removeItem("guest_id");
+	sessionStorage.removeItem("guest_name");
+	sessionStorage.removeItem("guest_meeting_id");
+
+	router.push({ name: "Home" });
+};
+
+const goHome = () => {
+	meetingState.isJoinRequestRejected.value = false;
+	meetingState.isInLobby.value = false;
+
+	sessionStorage.removeItem("guest_status");
+	sessionStorage.removeItem("guest_sfu_url");
+	sessionStorage.removeItem("guest_sfu_port");
+	sessionStorage.removeItem("guest_id");
+	sessionStorage.removeItem("guest_name");
+	sessionStorage.removeItem("guest_auth_token");
+
+	router.push({ name: "Home" });
+};
+
 const tryJoinAgain = async () => {
 	meetingState.isJoinRequestRejected.value = false;
+
+	if (isGuestSession.value || sessionStorage.getItem("guest_id")) {
+		sessionStorage.removeItem("guest_status");
+		sessionStorage.removeItem("guest_auth_token");
+		sessionStorage.removeItem("guest_sfu_url");
+		sessionStorage.removeItem("guest_sfu_port");
+
+		meetingState.isInPreview.value = true;
+		return;
+	}
+
 	await joinMeetingRoom();
 };
 
@@ -372,6 +506,28 @@ const handleLowerHand = async (participantId) => {
 		}
 	} catch (error) {
 		console.error("Failed to lower hand for participant:", error);
+	}
+};
+
+const handleApproveLobbyUser = async (participantId) => {
+	try {
+		console.log("Approving lobby user:", participantId);
+
+		await approveUser(participantId);
+		notifiedLobbyUsers.value.add(participantId);
+	} catch (error) {
+		console.error("Failed to approve lobby user:", error);
+	}
+};
+
+const handleRejectLobbyUser = async (participantId) => {
+	try {
+		console.log("Rejecting lobby user:", participantId);
+
+		await rejectUser(participantId);
+		notifiedLobbyUsers.value.add(participantId);
+	} catch (error) {
+		console.error("Failed to reject lobby user:", error);
 	}
 };
 
@@ -500,9 +656,68 @@ onMounted(async () => {
 		}
 	}
 
-	// Initialize meeting
+	// Check authentication and handle guest sessions
 	if (!session.isLoggedIn) {
-		router.push({ name: "Login" });
+		const guestId = sessionStorage.getItem("guest_id");
+		const guestName = sessionStorage.getItem("guest_name");
+		const guestMeetingId = sessionStorage.getItem("guest_meeting_id");
+
+		if (guestMeetingId && guestMeetingId !== meetingId.value) {
+			console.log("Clearing stale guest session for different meeting");
+			sessionStorage.removeItem("guest_auth_token");
+			sessionStorage.removeItem("guest_status");
+			sessionStorage.removeItem("guest_id");
+			sessionStorage.removeItem("guest_name");
+			sessionStorage.removeItem("guest_meeting_id");
+			sessionStorage.removeItem("guest_sfu_url");
+			sessionStorage.removeItem("guest_sfu_port");
+
+			meetingState.isInPreview.value = true;
+			return;
+		}
+
+		if (guestId && guestName) {
+			meetingState.guestId.value = guestId;
+			meetingState.currentUser.value = {
+				user_id: guestId,
+				name: guestName,
+				full_name: guestName,
+				avatar: null,
+				is_guest: true,
+			};
+
+			await initializeCamera();
+
+			if (selectedSpeakerId.value) {
+				await applySpeakerDevice();
+			}
+
+			await joinMeetingRoom(guestName);
+			return;
+		}
+
+		if (meetingState.guestAuthToken.value && guestId && guestName) {
+			meetingState.guestId.value = guestId;
+			meetingState.currentUser.value = {
+				user_id: guestId,
+				name: guestName,
+				full_name: guestName,
+				avatar: null,
+				is_guest: true,
+			};
+
+			await initializeCamera();
+
+			if (selectedSpeakerId.value) {
+				await applySpeakerDevice();
+			}
+
+			// Connect to SFU with auth token
+			meetingState.isInPreview.value = false;
+			await joinMeetingRoom(guestName);
+			return;
+		}
+
 		return;
 	}
 
@@ -593,6 +808,24 @@ watch(selectedSpeakerId, async (newSpeakerId) => {
 		await setSinkIdOnVideoElements(newSpeakerId);
 	}
 });
+
+// this is to avoid showing notifications for existing lobby users
+// when the host joins the meeting
+watch(
+	() => meetingState.lobbyUsers?.value,
+	(newUsers, oldUsers) => {
+		if (isCurrentUserHost.value) {
+			const newUserIds = new Set((newUsers || []).map((u) => u.userId));
+			const oldUserIds = new Set((oldUsers || []).map((u) => u.userId));
+			for (const userId of oldUserIds) {
+				if (!newUserIds.has(userId)) {
+					notifiedLobbyUsers.value.add(userId);
+				}
+			}
+		}
+	},
+	{ immediate: true },
+);
 </script>
 
 <style scoped>

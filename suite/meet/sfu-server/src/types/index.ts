@@ -191,6 +191,7 @@ export interface SocketData {
 	userName: string;
 	meetingId: string;
 	isHost: boolean;
+	isGuest?: boolean;
 	roomId?: string;
 	participantId?: string;
 	scope?: 'presence-preview' | 'full';
@@ -203,6 +204,7 @@ export interface UserData {
 	avatar?: string;
 	audio_enabled: boolean;
 	video_enabled: boolean;
+	is_guest?: boolean;
 }
 
 export interface SFUResponse {
@@ -247,6 +249,7 @@ export interface ExistingProducersResponse extends SFUResponse {
 export interface RoomParticipantsResponse extends SFUResponse {
 	participants: ParticipantInfo[] | PreviewParticipantInfo[];
 }
+
 export interface WebRTCTransportParams {
 	id: string;
 	iceParameters: IceParameters;
@@ -294,6 +297,7 @@ export interface ParticipantInfo {
 		avatar?: string;
 		audio_enabled: boolean;
 		video_enabled: boolean;
+		is_guest?: boolean;
 	};
 }
 
