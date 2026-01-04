@@ -49,6 +49,17 @@ export function useMeetingState() {
 	const loadingUsers = ref([]);
 	const isCreator = ref(false);
 
+	const isInLobby = ref(false);
+	const lobbyUsers = ref([]);
+	const lobbyParticipantCount = ref(0);
+
+	// Guest user states
+	const guestSessionToken = ref(null);
+	const guestId = ref(null);
+	const guestAuthToken = ref(null);
+	const guestSfuUrl = ref(null);
+	const guestSfuPort = ref(null);
+
 	// Chat states
 	const isChatOpen = ref(false);
 	const chatMessages = ref([]);
@@ -191,6 +202,14 @@ export function useMeetingState() {
 		waitingUsers,
 		loadingUsers,
 		isCreator,
+		isInLobby,
+		lobbyUsers,
+		lobbyParticipantCount,
+		guestSessionToken,
+		guestId,
+		guestAuthToken,
+		guestSfuUrl,
+		guestSfuPort,
 		isChatOpen,
 		chatMessages,
 		hasUnreadMessages,

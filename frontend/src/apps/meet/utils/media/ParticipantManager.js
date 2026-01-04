@@ -29,6 +29,7 @@ export class ParticipantManager {
 			),
 			audio_enabled: participantData.userData?.audio_enabled,
 			video_enabled: participantData.userData?.video_enabled,
+			is_guest: participantData.userData?.is_guest,
 			...participantData,
 		};
 

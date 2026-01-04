@@ -8,7 +8,6 @@ import { MediaStreamHandler } from "./media/MediaStreamHandler.js";
 import { ParticipantManager } from "./media/ParticipantManager.js";
 import { TransportManager } from "./media/TransportManager.js";
 import { VideoElementManager } from "./media/VideoElementManager.js";
-import { WaitingRoomManager } from "./media/WaitingRoomManager.js";
 import { getSFUClient } from "./sfu-client.js";
 
 export class SFUMeetingManager {
@@ -27,7 +26,6 @@ export class SFUMeetingManager {
 		this.participantManager = new ParticipantManager();
 		this.consumerManager = new ConsumerManager();
 		this.transportManager = new TransportManager();
-		this.waitingRoomManager = new WaitingRoomManager();
 
 		this.sfuClient = null;
 		this.eventHandlers = {};
@@ -41,7 +39,6 @@ export class SFUMeetingManager {
 		this.eventHandlers = options.eventHandlers || {};
 
 		this.setupManagerEventHandlers();
-		this.waitingRoomManager.initialize(this.meetingId, this.eventHandlers);
 	}
 
 	setupManagerEventHandlers() {
@@ -101,14 +98,14 @@ export class SFUMeetingManager {
 		});
 	}
 
-	async connect() {
+	async connect(authToken = null) {
 		if (this.isConnected) {
 			return true;
 		}
 
 		try {
 			this.sfuClient = getSFUClient();
-			await this.sfuClient.connect(this.meetingId);
+			await this.sfuClient.connect(this.meetingId, authToken);
 			this.isConnected = true;
 
 			// Initialize transport manager with SFU client
@@ -128,6 +125,7 @@ export class SFUMeetingManager {
 		try {
 			await this.sfuClient.joinRoom(this.meetingId, userData, mediaState);
 			console.log("Successfully joined room:", this.meetingId);
+
 			return true;
 		} catch (error) {
 			console.error("Failed to join room:", error);
@@ -217,24 +215,31 @@ export class SFUMeetingManager {
 
 			const participants = await this.sfuClient.getRoomParticipants();
 
-			const normalized = (participants || []).map((p) => {
-				const pid = p.user_id || p.id;
-				const info = p.info || {};
-				return {
-					participantId: pid,
-					user_id: pid,
-					user_name: info.name || info.user_name || pid,
-					avatar: info.avatar || null,
-					audio_enabled:
-						typeof info.audio_enabled === "boolean"
-							? info.audio_enabled
-							: false,
-					video_enabled:
-						typeof info.video_enabled === "boolean"
-							? info.video_enabled
-							: false,
-				};
-			});
+			// Get current user ID to filter out self from participants
+			const currentUserId =
+				this.currentUser?.user_id || this.currentUser?.userId;
+
+			const normalized = (participants || [])
+				.map((p) => {
+					const pid = p.user_id || p.id;
+					const info = p.info || {};
+					return {
+						participantId: pid,
+						user_id: pid,
+						user_name: info.name || info.user_name || pid,
+						avatar: info.avatar || null,
+						audio_enabled:
+							typeof info.audio_enabled === "boolean"
+								? info.audio_enabled
+								: false,
+						video_enabled:
+							typeof info.video_enabled === "boolean"
+								? info.video_enabled
+								: false,
+						is_guest: info.is_guest || false,
+					};
+				})
+				.filter((p) => p.user_id !== currentUserId);
 
 			this.participantManager.syncParticipants(normalized);
 
@@ -265,11 +270,19 @@ export class SFUMeetingManager {
 					})),
 				);
 
+				const currentUserId =
+					this.currentUser?.user_id || this.currentUser?.userId;
+
 				for (const producerInfo of existingProducers) {
 					const pid =
 						producerInfo.participantId ||
 						producerInfo.user_id ||
 						producerInfo.userId;
+
+					if (pid === currentUserId) {
+						continue;
+					}
+
 					const metadata = { isScreen: !!producerInfo.isScreen };
 					console.log("Subscribing to existing producer:", {
 						producerId: producerInfo.id,
@@ -335,6 +348,11 @@ export class SFUMeetingManager {
 		this.processedConsumers.add(consumer?.id);
 
 		if (!participantId) {
+			return;
+		}
+
+		const currentUserId = this.currentUser?.user_id || this.currentUser?.userId;
+		if (participantId === currentUserId) {
 			return;
 		}
 
@@ -480,7 +498,13 @@ export class SFUMeetingManager {
 
 	setupSFUEventHandlers() {
 		this.sfuClient.on("participant_joined", (data) => {
-			this.participantManager.addParticipant(data);
+			const currentUserId =
+				this.currentUser?.user_id || this.currentUser?.userId;
+			const joinedUserId = data.participantId || data.user_id;
+
+			if (joinedUserId && joinedUserId !== currentUserId) {
+				this.participantManager.addParticipant(data);
+			}
 		});
 
 		this.sfuClient.on("participant_left", (data) => {
@@ -488,6 +512,8 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("producer_created", async (data) => {
+			if (data.participantId === this.currentUser.value?.user_id) return;
+
 			// If we're syncing or the device isn't ready yet, buffer this event
 			if (
 				this.initialSyncInProgress ||
@@ -754,7 +780,6 @@ export class SFUMeetingManager {
 		this.participantManager.clear();
 		this.consumerManager.clear();
 		this.transportManager.cleanup();
-		this.waitingRoomManager.cleanup();
 
 		this.disconnect();
 
