@@ -63,6 +63,7 @@
 									setColor(val)
 								}
 							"
+							@click="handleColorInputClick"
 						/>
 
 						<div class="flex justify-center">
@@ -291,5 +292,9 @@ const setColor = (newColor) => {
 	colorValue.value = initialHsv.v
 	currentOpacity.value = initialHsv.a
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+}
+
+const handleColorInputClick = (e) => {
+	e.target.select()
 }
 </script>
