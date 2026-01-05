@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { FormControl } from "frappe-ui";
+import { FormControl, frappeRequest } from "frappe-ui";
 import { computed, inject, ref } from "vue";
 import { getInitials } from "../utils/text.ts";
 import PeopleParticipantTile from "./PeopleParticipantTile.vue";
@@ -134,6 +134,7 @@ const emit = defineEmits<{
 	kickParticipant: [participantId: string, ban: boolean];
 	lowerHand: [participantId: string];
 	approveLobbyUser: [participantId: string];
+	approveAllLobbyUsers: [participantIds: string[]];
 	rejectLobbyUser: [participantId: string];
 }>();
 
@@ -276,8 +277,9 @@ const handleRejectLobbyUser = (participantId: string) => {
 };
 
 const handleApproveAllLobbyUsers = () => {
-	for (const user of lobbyUsers.value) {
-		emit("approveLobbyUser", user.userId);
-	}
+	emit(
+		"approveAllLobbyUsers",
+		lobbyUsers.value.map((user) => user.userId),
+	);
 };
 </script>
