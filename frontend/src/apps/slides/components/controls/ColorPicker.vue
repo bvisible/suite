@@ -56,7 +56,7 @@
 							type="text"
 							placeholder="Set Color"
 							:aria-label="'Hex color input'"
-							:value="currentColor"
+							:value="getDisplayColor()"
 							class="max-w-[94px] border-none text-sm uppercase"
 							@update:modelValue="
 								(val) => {
@@ -292,6 +292,10 @@ const setColor = (newColor) => {
 	colorValue.value = initialHsv.v
 	currentOpacity.value = initialHsv.a
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+}
+
+const getDisplayColor = () => {
+	return tinycolor(currentColor.value).toHex8String()
 }
 
 const handleColorInputClick = (e) => {
