@@ -134,15 +134,7 @@
 
 <script setup>
 import { Button, FormControl, createResource } from "frappe-ui";
-import {
-	computed,
-	defineEmits,
-	defineProps,
-	inject,
-	nextTick,
-	ref,
-	watch,
-} from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import FloatingControls from "../components/FloatingControls.vue";
 import ParticipantAvatarGroup from "../components/ParticipantAvatarGroup.vue";
 import { useMeetingPreviewPresence } from "../composables/useMeetingPreviewPresence";

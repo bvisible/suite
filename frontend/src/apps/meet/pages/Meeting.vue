@@ -97,6 +97,7 @@
 								@kickParticipant="handleKickParticipant"
 								@lowerHand="handleLowerHand"
 								@approveLobbyUser="handleApproveLobbyUser"
+								@approveAllLobbyUsers="handleApproveAllLobbyUsers"
 								@rejectLobbyUser="handleRejectLobbyUser"
 							/>
 						</div>
@@ -208,6 +209,7 @@ const {
 	toggleScreenShare,
 	endCall,
 	approveUser,
+	approveAllUsers,
 	rejectUser,
 	setLocalVideoRef,
 	setRemoteVideoRef,
@@ -517,6 +519,19 @@ const handleApproveLobbyUser = async (participantId) => {
 		notifiedLobbyUsers.value.add(participantId);
 	} catch (error) {
 		console.error("Failed to approve lobby user:", error);
+	}
+};
+
+const handleApproveAllLobbyUsers = async (participantIds) => {
+	try {
+		console.log("Approving all lobby users");
+
+		await approveAllUsers(participantIds);
+		for (const userId of participantIds) {
+			notifiedLobbyUsers.value.add(userId);
+		}
+	} catch (error) {
+		console.error("Failed to approve all lobby users:", error);
 	}
 };
 

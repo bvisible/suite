@@ -4,6 +4,7 @@
 import json
 import secrets
 import time
+from typing import TYPE_CHECKING
 
 import frappe
 import jwt
@@ -18,6 +19,9 @@ from meet.utils.user import (
 	validate_guest_name,
 )
 
+if TYPE_CHECKING:
+	from meet.meet.doctype.sae_meeting.sae_meeting import SaeMeeting
+
 
 def _get_codec_strategy() -> str:
 	return frappe.get_cached_doc("Sae Settings").codec_strategy or "auto"
@@ -27,7 +31,7 @@ def _get_codec_strategy() -> str:
 @rate_limit(limit=10, seconds=60 * 60)
 def create(meeting_type: str = "open") -> str:
 	"""Create a new meeting with specified type"""
-	meeting = frappe.get_doc(
+	meeting: SaeMeeting = frappe.get_doc(
 		{
 			"doctype": "Sae Meeting",
 			"meeting_type": meeting_type,
@@ -43,7 +47,7 @@ def get_sfu_connection_details(meeting_id: str) -> dict:
 	Get SFU connection details for direct client-to-SFU communication
 	"""
 	try:
-		meeting = frappe.get_doc("Sae Meeting", meeting_id)
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 
 		if meeting.is_user_banned(frappe.session.user):
 			frappe.throw(_("You are banned from this meeting"), frappe.PermissionError)
@@ -99,7 +103,7 @@ def get_sfu_connection_details(meeting_id: str) -> dict:
 
 @frappe.whitelist()
 def join_meeting(meeting_id: str) -> dict:
-	meeting = frappe.get_doc("Sae Meeting", meeting_id)
+	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 
 	if meeting.is_user_banned(frappe.session.user):
 		frappe.throw(_("You are banned from this meeting"), frappe.PermissionError)
@@ -161,7 +165,7 @@ def join_meeting(meeting_id: str) -> dict:
 @frappe.whitelist()
 def leave_meeting(meeting_id: str) -> dict:
 	try:
-		meeting = frappe.get_doc("Sae Meeting", meeting_id)
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 		meeting.leave(frappe.session.user)
 
 		return {"success": True, "meeting_id": meeting_id, "user_id": frappe.session.user}
@@ -207,26 +211,8 @@ def cleanup_user_meetings(user_id: str | None = None) -> dict:
 def approve_join_request(meeting_id: str, user_id: str) -> dict:
 	"""Approve a user's join request from waiting room"""
 	try:
-		meeting = frappe.get_doc("Sae Meeting", meeting_id)
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 		meeting.approve_user(user_id)
-
-		# For guests, publish realtime event in a guest-specific room
-		if user_id.startswith("guest_"):
-			session_data = get_guest_session(user_id)
-			if session_data:
-				guest_name = session_data.get("guest_name", f"Guest-{user_id[:8]}")
-
-				frappe.publish_realtime(
-					"meet:guest_join_approved",
-					{
-						"meeting_id": meeting_id,
-						"guest_id": user_id,
-						"guest_name": guest_name,
-						"message": "Your join request has been approved",
-					},
-					room=f"guest:{user_id}",
-					after_commit=True,
-				)
 
 		return {
 			"success": True,
@@ -240,10 +226,23 @@ def approve_join_request(meeting_id: str, user_id: str) -> dict:
 
 
 @frappe.whitelist()
+def approve_all_join_requests(meeting_id: str) -> dict:
+	"""Approve all users' join requests from waiting room"""
+	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
+	meeting.approve_all_users()
+
+	return {
+		"success": True,
+		"meeting_id": meeting_id,
+		"message": "All users approved successfully",
+	}
+
+
+@frappe.whitelist()
 def reject_join_request(meeting_id: str, user_id: str) -> dict:
 	"""Reject a user's join request from waiting room"""
 	try:
-		meeting = frappe.get_doc("Sae Meeting", meeting_id)
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 		meeting.reject_user(user_id)
 
 		# For guests, publish realtime event in a guest-specific room
@@ -270,7 +269,7 @@ def reject_join_request(meeting_id: str, user_id: str) -> dict:
 def get_waiting_room(meeting_id: str) -> dict:
 	"""Get list of users waiting for approval"""
 	try:
-		meeting = frappe.get_doc("Sae Meeting", meeting_id)
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 
 		if frappe.session.user != meeting.owner:
 			return {"success": False, "error": "Access denied"}
@@ -302,7 +301,7 @@ def refresh_sfu_token(meeting_id: str) -> dict:
 	Refresh SFU authentication token for ongoing meetings
 	"""
 	try:
-		meeting = frappe.get_doc("Sae Meeting", meeting_id)
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 
 		if not meeting.is_active:
 			return {"success": False, "error": "Meeting has ended"}
@@ -353,7 +352,7 @@ def get_sfu_presence_preview_token(meeting_id: str) -> dict:
 	This is used by the meeting preview page to fetch live participants
 	from the SFU without granting any media capabilities.
 	"""
-	meeting = frappe.get_doc("Sae Meeting", meeting_id)
+	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
 
 	if meeting.is_user_banned(frappe.session.user):
 		frappe.throw(_("You are banned from this meeting"), frappe.PermissionError)

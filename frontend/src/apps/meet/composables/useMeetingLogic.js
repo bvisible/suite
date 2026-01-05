@@ -1568,6 +1568,27 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 		}
 	};
 
+	const approveAllUsers = async () => {
+		try {
+			const result = await frappeRequest({
+				url: "meet.api.meeting.approve_all_join_requests",
+				params: {
+					meeting_id: meetingId,
+				},
+			});
+
+			if (result?.success) {
+				meetingState.lobbyUsers.value = [];
+			} else {
+				console.error("Failed to approve all users:", result);
+				toast.error("Failed to approve all users");
+			}
+		} catch (error) {
+			console.error("Failed to approve all users:", error);
+			toast.error("Failed to approve all users");
+		}
+	};
+
 	/**
 	 * Reject user join request
 	 */
@@ -2017,6 +2038,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 
 		// Methods - Waiting Room
 		approveUser,
+		approveAllUsers,
 		rejectUser,
 
 		// Methods - Video Elements
