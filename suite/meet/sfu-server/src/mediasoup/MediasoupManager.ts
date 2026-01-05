@@ -11,6 +11,7 @@ import type {
 	PeerInfo,
 	Room,
 	RtpCapabilities,
+	RtpCodecCapability,
 	RtpParameters,
 } from '../types';
 import { loggers } from '../utils/logger';
@@ -49,7 +50,7 @@ export class MediasoupManager {
 		return this.roomManager.createRoom(
 			roomId,
 			worker,
-			mediasoupConfig.router.mediaCodecs,
+			mediasoupConfig.router.mediaCodecs as RtpCodecCapability[],
 			onActiveSpeaker,
 		);
 	}

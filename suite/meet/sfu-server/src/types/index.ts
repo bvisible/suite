@@ -13,7 +13,10 @@ import type {
 	WorkerLogTag,
 	WorkerSettings,
 } from 'mediasoup/node/lib/WorkerTypes';
-import type { RtpCodecCapability } from 'mediasoup/node/lib/rtpParametersTypes';
+import type {
+	RouterRtpCodecCapability,
+	RtpCodecCapability,
+} from 'mediasoup/node/lib/rtpParametersTypes';
 import type { RtpCapabilities, RtpParameters } from 'mediasoup/node/lib/types';
 import type { AppData } from 'mediasoup/node/lib/types';
 
@@ -25,6 +28,7 @@ export type {
 	Consumer,
 	Router,
 	AudioLevelObserver,
+	RouterRtpCodecCapability,
 	RtpCodecCapability,
 	IceParameters,
 	IceCandidate,
@@ -402,7 +406,7 @@ export interface MediasoupConfig {
 }
 
 export interface RouterConfig {
-	mediaCodecs: RtpCodecCapability[];
+	mediaCodecs: RouterRtpCodecCapability[];
 }
 
 export interface WebRTCTransportOptions {
