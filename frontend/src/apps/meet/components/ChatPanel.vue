@@ -20,7 +20,7 @@
 				</div>
 
 				<div ref="listEl" class="flex-1 overflow-y-auto p-4 space-y-4">
-					<div v-for="group in groupedMessages" :key="group.id" class="min-w-0">
+					<div v-for="group in groupedMessages" :key="group.id" class="min-w-0 break-all">
 						<div class="text-xs flex items-center gap-2">
 							<span class="truncate font-medium">{{ group.user_name }}</span>
 							<span class="text-gray-600">{{ time(group.timestamp) }}</span>
