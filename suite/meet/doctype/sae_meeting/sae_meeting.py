@@ -9,6 +9,11 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from meet.utils.user import (
+	get_guest_session,
+	get_user_info,
+)
+
 
 class SaeMeeting(Document):
 	# begin: auto-generated types
@@ -64,12 +69,7 @@ class SaeMeeting(Document):
 			self.update_members(members)
 			self.remove_from_waiting_room(user)
 
-		# Send join confirmation to the user
-		frappe.publish_realtime(
-			"meeting_joined",
-			{"meeting": self.name, "user": user, "members": members, "member_count": len(members)},
-			user=user,
-		)
+			self.save()
 
 		return {"status": "joined", "message": "Successfully joined the meeting"}
 
@@ -130,8 +130,6 @@ class SaeMeeting(Document):
 		for user in members_list:
 			self.append("members", {"user": user})
 
-		self.save(ignore_permissions=True)
-
 	def add_guest_to_members(self, guest_id: str):
 		self.validate_guest_id(guest_id)
 		members = self.get_members()
@@ -151,9 +149,6 @@ class SaeMeeting(Document):
 		waiting_users = self.get_waiting_room()
 		if user not in waiting_users:
 			self.append("waiting_room", {"user": user})
-			self.save(ignore_permissions=True)
-
-		from meet.utils.user import get_user_info
 
 		user_info = get_user_info(user)
 
@@ -185,9 +180,7 @@ class SaeMeeting(Document):
 		waiting_users = self.get_waiting_room()
 		if guest_id not in waiting_users:
 			self.append("waiting_room", {"user": guest_id})
-			self.save(ignore_permissions=True)
-
-			from meet.utils.user import get_user_info
+			self.save(ignore_permissions=True)  # needed
 
 			user_info = get_user_info(guest_id)
 
@@ -212,8 +205,6 @@ class SaeMeeting(Document):
 		"""Remove user from waiting room"""
 		self.waiting_room = [row for row in self.waiting_room if row.user != user]
 
-		self.save()
-
 	def approve_user(self, user):
 		"""Approve a user from waiting room to join the meeting"""
 		if frappe.session.user != self.owner:
@@ -230,12 +221,31 @@ class SaeMeeting(Document):
 			self.update_members(members)
 
 		self.remove_from_waiting_room(user)
+		self.save()
 
+		# for signed-in users
 		frappe.publish_realtime(
 			"meeting_join_approved",
 			user=user,
 			message={"meeting": self.name, "user": user, "approved_by": frappe.session.user},
 		)
+
+		# for guests
+		if user.startswith("guest_"):
+			session_data = get_guest_session(user)
+			if session_data:
+				guest_name = session_data.get("guest_name")
+				frappe.publish_realtime(
+					"meet:guest_join_approved",
+					{
+						"meeting_id": self.name,
+						"guest_id": user,
+						"guest_name": guest_name,
+						"message": "Your join request has been approved",
+					},
+					room=f"guest:{user}",
+					after_commit=True,
+				)
 
 		updated_waiting_users = self.get_waiting_room()
 		frappe.publish_realtime(
@@ -246,6 +256,16 @@ class SaeMeeting(Document):
 		)
 
 		return {"status": "joined", "message": "Successfully joined the meeting"}
+
+	def approve_all_users(self):
+		if frappe.session.user != self.owner:
+			frappe.throw(_("Only the meeting creator can approve join requests"))
+
+		users = self.get_waiting_room()
+		for user in users:
+			self.approve_user(user)
+
+		self.save()
 
 	def reject_user(self, user, rejected_by=None):
 		"""Reject a user from waiting room"""
@@ -267,7 +287,8 @@ class SaeMeeting(Document):
 		already_banned = any(row.user == user for row in self.banned_users)
 		if not already_banned:
 			self.append("banned_users", {"user": user})
-			self.save()
+
+		self.save()
 
 		frappe.publish_realtime(
 			"meeting_join_rejected",
