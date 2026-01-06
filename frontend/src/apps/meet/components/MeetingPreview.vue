@@ -10,7 +10,7 @@
 					v-if="!session.isLoggedIn"
 					variant="ghost"
 					size="sm"
-					@click="$router.push({ name: 'Login' })"
+					@click="$router.push({ name: 'Login', query: { next: $route.fullPath } })"
 				>
 					Sign In
 				</Button>
