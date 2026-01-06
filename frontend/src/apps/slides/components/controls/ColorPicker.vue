@@ -68,7 +68,7 @@
 
 						<div class="flex justify-center">
 							<Button
-								@click="copyToClipboard(currentColor.toUpperCase())"
+								@click="handleClipboardCopy"
 								class="flex items-center justify-center rounded text-gray-600 transition-colors hover:bg-gray-100"
 								title="Copy Color"
 							>
@@ -295,7 +295,13 @@ const setColor = (newColor) => {
 }
 
 const getDisplayColor = () => {
+	if (!currentColor.value) return ''
 	return tinycolor(currentColor.value).toHex8String()
+}
+
+const handleClipboardCopy = () => {
+	const color = getDisplayColor().toUpperCase()
+	copyToClipboard(color)
 }
 
 const handleColorInputClick = (e) => {
