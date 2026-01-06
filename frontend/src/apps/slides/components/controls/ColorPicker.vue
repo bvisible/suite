@@ -51,27 +51,39 @@
 							</div>
 						</div>
 					</div>
-					<div class="flex items-center justify-between gap-2">
+					<div class="flex items-center gap-2">
 						<Input
 							type="text"
 							placeholder="Set Color"
 							:aria-label="'Hex color input'"
-							:value="currentColor"
-							class="w-32"
+							:value="getDisplayColor()"
+							class="max-w-[94px] border-none text-sm uppercase"
 							@update:modelValue="
 								(val) => {
 									setColor(val)
 								}
 							"
+							@click="handleColorInputClick"
 						/>
+
+						<div class="flex justify-center">
+							<Button
+								@click="handleClipboardCopy"
+								class="flex items-center justify-center rounded text-gray-600 transition-colors hover:bg-gray-100"
+								title="Copy Color"
+							>
+								<LucideClipboard class="size-3.5 text-gray-700" />
+							</Button>
+						</div>
+
 						<div class="flex justify-center">
 							<Button
 								v-if="isSupported"
 								@click="openEyeDropper"
-								class="flex items-center justify-center rounded p-1.5 transition-colors hover:bg-gray-100"
+								class="flex items-center justify-center rounded transition-colors hover:bg-gray-100"
 								title="Pick color from screen"
 							>
-								<EyeDropper class="size-4 text-gray-600" />
+								<EyeDropper class="size-3.5 text-gray-700" />
 							</Button>
 						</div>
 					</div>
@@ -86,10 +98,11 @@ import { ref, unref, computed, useTemplateRef, watch } from 'vue'
 import { useElementBounding, useEyeDropper } from '@vueuse/core'
 
 import { Popover } from 'frappe-ui'
-import EyeDropper from '../../icons/EyeDropper.vue'
+import EyeDropper from '@/icons/EyeDropper.vue'
 
 import tinycolor from 'tinycolor2'
 import { Input } from 'frappe-ui'
+import { copyToClipboard } from '@/utils/helpers'
 
 const shadeSlider = useTemplateRef('shadeSlider')
 const colorSlider = useTemplateRef('colorSlider')
@@ -279,5 +292,19 @@ const setColor = (newColor) => {
 	colorValue.value = initialHsv.v
 	currentOpacity.value = initialHsv.a
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+}
+
+const getDisplayColor = () => {
+	if (!currentColor.value) return ''
+	return tinycolor(currentColor.value).toHex8String()
+}
+
+const handleClipboardCopy = () => {
+	const color = getDisplayColor().toUpperCase()
+	copyToClipboard(color)
+}
+
+const handleColorInputClick = (e) => {
+	e.target.select()
 }
 </script>
