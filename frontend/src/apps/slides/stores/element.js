@@ -13,7 +13,7 @@ import {
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { generateUniqueId, cloneObj } from '../utils/helpers'
+import { generateUniqueId, cloneObj, isCopyTriggeredByButton } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
@@ -392,7 +392,7 @@ const getCopiedJSON = () => JSON.stringify(activeElements.value)
 const copiedFrom = ref({})
 
 const handleCopy = (e) => {
-	if (!activeElements.value.length) return
+	if (!activeElements.value.length || isCopyTriggeredByButton.value) return
 
 	e.preventDefault()
 	const clipboardJSON = getCopiedJSON()

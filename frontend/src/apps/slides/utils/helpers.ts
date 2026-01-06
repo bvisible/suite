@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import { toast } from 'frappe-ui'
 import { getAttachmentUrl } from './mediaUploads'
 
@@ -65,7 +66,11 @@ const handleScrollBarWheelEvent = (e: WheelEvent) => {
 
 const cloneObj = (obj: any) => JSON.parse(JSON.stringify(obj))
 
+const isCopyTriggeredByButton = ref(false)
+
 const copyToClipboard = async (text: string) => {
+	isCopyTriggeredByButton.value = true
+
 	if (navigator.clipboard && window.isSecureContext) {
 		await navigator.clipboard.writeText(text)
 	} else {
@@ -77,6 +82,7 @@ const copyToClipboard = async (text: string) => {
 		document.body.removeChild(input)
 	}
 
+	isCopyTriggeredByButton.value = false
 	toast.success('Copied to clipboard')
 }
 
@@ -108,5 +114,6 @@ export {
 	copyToClipboard,
 	getThumbnailCardStyles,
 	getDocFromHTML,
-	isCmdOrCtrl
+	isCmdOrCtrl,
+	isCopyTriggeredByButton
 }
