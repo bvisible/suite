@@ -101,7 +101,7 @@ class AudioNotificationManager {
 				[523, 0.24], // C5 (resolution)
 			],
 			0.5,
-			0.2,
+			0.075,
 		);
 	}
 
@@ -121,7 +121,7 @@ class AudioNotificationManager {
 				[262, 0.2], // C4
 			],
 			0.4,
-			0.2,
+			0.075,
 		);
 	}
 
