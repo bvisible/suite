@@ -1,5 +1,7 @@
 <template>
 	<div>
+		<RotateHandle />
+
 		<ResizeHandle
 			v-for="resizeHandle in resizeHandles"
 			v-show="resizeHandle.isVisible"
@@ -21,6 +23,7 @@
 import { computed, inject } from 'vue'
 
 import ResizeHandle from '@/components/ResizeHandle.vue'
+import RotateHandle from '@/components/RotateHandle.vue'
 import ResizeIndicator from '@/components/ResizeIndicator.vue'
 
 import { selectionBounds, slideBounds } from '@/stores/slide'
