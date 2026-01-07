@@ -417,12 +417,7 @@ const handleKeyDownForReadonly = (e) => {
 	}
 }
 
-const startSlideShow = async () => {
-	if (!readonlyMode.value) {
-		await resetFocus()
-		saveChanges()
-	}
-
+const startSlideShow = () => {
 	router.replace({
 		name: 'Slideshow',
 		params: { presentationId: props.presentationId },
