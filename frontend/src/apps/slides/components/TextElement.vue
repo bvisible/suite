@@ -9,7 +9,7 @@
 		@dblclick="handleDoubleClick"
 	/>
 	<div
-		v-else-if="!inSlideShow"
+		v-else-if="!inSlideShow || [null, undefined, ''].includes(element.refId)"
 		v-html="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
