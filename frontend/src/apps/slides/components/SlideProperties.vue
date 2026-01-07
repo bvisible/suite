@@ -76,7 +76,7 @@ import { Select, Checkbox, toast } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
-import { createConnectionsForMagicMove } from '@/stores/transition'
+import { createConnectionsForMagicMove, removeConnectionsForMagicMove } from '@/stores/transition'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -96,6 +96,7 @@ const setSlideTransition = (option) => {
 	}
 
 	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
+	else removeConnectionsForMagicMove(slideIndex.value)
 
 	slide.fadeUnmatchedElements = option == 'Magic Move'
 }
@@ -114,6 +115,7 @@ const applyTransitionToAllSlides = () => {
 			slide.fadeUnmatchedElements = sourceSlide.fadeUnmatchedElements
 
 			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
+			else removeConnectionsForMagicMove(index)
 		}
 	})
 
