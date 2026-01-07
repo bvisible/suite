@@ -8,21 +8,21 @@
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
+	<SlideshowText
+		v-else-if="showMagicMoveText"
+		:content="element.content"
+		class="textElement select-none"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+		:style="element.editorMetadata"
+	/>
 	<div
-		v-else-if="!inSlideShow || [null, undefined, ''].includes(element.refId)"
+		v-else
 		v-html="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 		:style="element.editorMetadata"
 		@dblclick="handleDoubleClick"
 	></div>
-	<SlideshowText
-		v-else
-		:content="element.content"
-		class="textElement select-none"
-		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		:style="element.editorMetadata"
-	/>
 </template>
 
 <script setup>
@@ -36,7 +36,9 @@ import { useTextEditor } from '@/composables/useTextEditor'
 
 import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
+import { isAffectedByMagicMove } from '@/stores/transition'
 import { extensions } from '@/stores/tiptapSetup'
+import { slideIndex } from '@/stores/slide'
 
 const { activeEditor, baseFontSize } = useTextEditor()
 
@@ -98,6 +100,13 @@ const normalizeContent = () => {
 const isAutoWidth = computed(() => {
 	return !element.value.width || element.value.width == 'auto'
 })
+
+const showMagicMoveText = computed(
+	() =>
+		inSlideShow.value &&
+		isAffectedByMagicMove(slideIndex.value) &&
+		![null, undefined, ''].includes(element.value.refId),
+)
 
 onBeforeMount(() => normalizeContent())
 </script>
