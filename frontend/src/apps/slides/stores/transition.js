@@ -80,6 +80,24 @@ const createConnectionsForMagicMove = (index) => {
 	})
 }
 
+const removeConnectionsForMagicMove = (index) => {
+	// removing magic move from last slide changes nothing
+	if (index == slides.value.length - 1) return
+
+	const prevSlide = slides.value[index - 1]
+	const currentSlide = slides.value[index]
+
+	currentSlide.elements.forEach((currElement) => {
+		const refId = currElement.refId
+		if (!refId) return
+
+		const refIdPresentInPrev = prevSlide?.elements.some((el) => el.refId == refId)
+		if (refIdPresentInPrev) return
+
+		currElement.refId = null
+	})
+}
+
 const isAffectedByMagicMove = (slideIndex) => {
 	const prevSlide = slides.value[slideIndex - 1]
 	const currentSlide = slides.value[slideIndex]
@@ -155,4 +173,10 @@ const updateRefIdsAcrossSlides = (fromSlideIndex, element, refId, isForward) => 
 	}
 }
 
-export { createConnectionsForMagicMove, initElementRefId, updateElementRefId }
+export {
+	createConnectionsForMagicMove,
+	initElementRefId,
+	updateElementRefId,
+	isAffectedByMagicMove,
+	removeConnectionsForMagicMove,
+}
