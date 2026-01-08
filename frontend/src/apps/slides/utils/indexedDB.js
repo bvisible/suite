@@ -1,3 +1,7 @@
+const DB_NAME = 'slides-db'
+const DB_VERSION = 1
+const STORE = 'presentations'
+
 let db = null
 
 const openDB = () => {
@@ -6,13 +10,13 @@ const openDB = () => {
 	}
 
 	return new Promise((resolve, reject) => {
-		const req = indexedDB.open('slides_db', 1)
+		const req = indexedDB.open(DB_NAME, DB_VERSION)
 
 		req.onupgradeneeded = () => {
 			const db = req.result
 
-			if (!db.objectStoreNames.contains('presentations')) {
-				db.createObjectStore('presentations', { keyPath: 'id' })
+			if (!db.objectStoreNames.contains(STORE)) {
+				db.createObjectStore(STORE, { keyPath: 'id' })
 			}
 		}
 
@@ -31,8 +35,8 @@ const savePresentationToLocalDB = async (data) => {
 	const db = await openDB()
 
 	return new Promise((resolve, reject) => {
-		const tx = db.transaction('presentations', 'readwrite')
-		const store = tx.objectStore('presentations')
+		const tx = db.transaction(STORE, 'readwrite')
+		const store = tx.objectStore(STORE)
 
 		const req = store.put(data)
 		req.onerror = () => {
