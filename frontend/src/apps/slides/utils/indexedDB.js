@@ -100,7 +100,8 @@ const isDirty = computed(() => {
 const isSaving = ref(false)
 
 let syncThumbnail = 0
-const syncOfflineChangesStatus = ref(null)
+
+const syncOfflineStatus = ref(null)
 
 const syncPresentationToServer = async (hadDroppedConnection) => {
 	isSaving.value = true
@@ -111,15 +112,15 @@ const syncPresentationToServer = async (hadDroppedConnection) => {
 		if (!snapshot || !snapshot.dirty) return
 
 		if (hadDroppedConnection) {
-			syncOfflineChangesStatus.value = 'Syncing local changes...'
+			syncOfflineStatus.value = 'Syncing local changes'
 		}
 
 		await savePresentationDoc(snapshot.content)
 
 		if (hadDroppedConnection) {
-			syncOfflineChangesStatus.value = 'All changes synced'
+			syncOfflineStatus.value = 'Changes synced'
 			setTimeout(() => {
-				syncOfflineChangesStatus.value = null
+				syncOfflineStatus.value = null
 			}, 2000)
 		}
 
@@ -140,16 +141,10 @@ const getLatestSlideContent = () => {
 	return cloneObj(latestContent)
 }
 
-const saveChanges = async () => {
-	if (isSaving.value) return
-
-	if (!isDirty.value && syncThumbnail === 0) return
-
-	if (isDirty.value) syncThumbnail = 1
-	else syncThumbnail = 0
-
+const saveCurrentState = async () => {
 	const content = getLatestSlideContent()
 
+	// save latest content to indexedDB with dirty flag since it's not yet synced to server
 	await savePresentationToLocalDB({
 		id: presentationId.value,
 		content: content,
@@ -157,9 +152,22 @@ const saveChanges = async () => {
 		dirty: true,
 	})
 
+	// if offline, do not attempt to sync to server
 	if (!navigator.onLine) return
 
+	// if online, sync to server
 	await syncPresentationToServer()
 }
 
-export { syncPresentationToServer, saveChanges, dirtySince, isDirty, syncOfflineChangesStatus }
+const saveChanges = () => {
+	if (isSaving.value) return
+
+	if (!isDirty.value && syncThumbnail === 0) return
+
+	if (isDirty.value) syncThumbnail = 1
+	else syncThumbnail = 0
+
+	saveCurrentState()
+}
+
+export { syncPresentationToServer, saveChanges, dirtySince, isDirty, syncOfflineStatus }
