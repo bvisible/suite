@@ -5,7 +5,7 @@ import { isEqual } from 'lodash'
 
 import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
-import { savePresentationToLocalDB } from '@/utils/indexedDB'
+import { savePresentationToLocalDB, getPresentationFromLocalDB } from '@/utils/indexedDB'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -241,8 +241,8 @@ const updateNewlyAddedSlideUUIDs = () => {
 	})
 }
 
-const savePresentationDoc = async () => {
-	const newSlides = slides.value.map((slide) => ({
+const savePresentationDoc = async (updatedSlides) => {
+	const newSlides = updatedSlides.map((slide) => ({
 		...slide,
 		elements: JSON.stringify(slide.elements, null, 2),
 		transition_duration: slide.transitionDuration,
@@ -370,6 +370,30 @@ const isSaving = ref(false)
 
 let syncThumbnail = 0
 
+const syncPresentationToServer = async () => {
+	isSaving.value = true
+
+	try {
+		const snapshot = await getPresentationFromLocalDB(presentationId.value)
+
+		if (!snapshot || !snapshot.dirty) {
+			return
+		}
+
+		await savePresentationDoc(snapshot.content)
+
+		await savePresentationToLocalDB({
+			...snapshot,
+			dirty: false,
+			updatedAt: Date.now(),
+		})
+	} catch (err) {
+		console.error('Sync to server failed: ', err)
+	} finally {
+		isSaving.value = false
+	}
+}
+
 const getLatestSlideContent = () => {
 	const latestContent = slides.value
 	return cloneObj(latestContent)
@@ -391,6 +415,10 @@ const saveChanges = async () => {
 		updatedAt: Date.now(),
 		dirty: true,
 	})
+
+	if (!navigator.onLine) return
+
+	await syncPresentationToServer()
 }
 
 export {
@@ -418,4 +446,5 @@ export {
 	dirtySince,
 	saveChanges,
 	isDirty,
+	syncPresentationToServer,
 }

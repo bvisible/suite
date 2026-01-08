@@ -53,4 +53,27 @@ const savePresentationToLocalDB = async (data) => {
 	})
 }
 
-export { savePresentationToLocalDB }
+const getPresentationFromLocalDB = async (id) => {
+	if (id === undefined || id === null || id === '') {
+		return null
+	}
+
+	const db = await openDB()
+
+	return new Promise((resolve, reject) => {
+		const tx = db.transaction(STORE, 'readonly')
+		const store = tx.objectStore(STORE)
+
+		const req = store.get(id)
+
+		req.onsuccess = () => {
+			resolve(req.result)
+		}
+
+		req.onerror = () => {
+			reject(req.error)
+		}
+	})
+}
+
+export { savePresentationToLocalDB, getPresentationFromLocalDB }

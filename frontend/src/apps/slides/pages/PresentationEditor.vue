@@ -74,7 +74,7 @@ import LayoutDialog from '@/components/LayoutDialog.vue'
 import {
 	presentationId,
 	hasStateChanged,
-	savePresentationDoc,
+	syncPresentationToServer,
 	layoutResource,
 	initPresentationDoc,
 	presentationDoc,
@@ -640,7 +640,7 @@ onDeactivated(async () => {
 
 		if (router.currentRoute.value.name !== 'Slideshow') {
 			await resetFocus()
-			savePresentation()
+			syncPresentationToServer()
 		}
 
 		document.removeEventListener('keydown', handleKeyDown)
@@ -667,16 +667,6 @@ const handleInsertSlide = (layoutId) => {
 	insertIndex.value = null
 }
 
-const savePresentation = async () => {
-	isSaving.value = true
-	try {
-		await savePresentationDoc()
-	} catch (error) {
-		console.error('Error saving presentation:', error)
-	} finally {
-		isSaving.value = false
-	}
-}
 watch(
 	() => isDirty.value,
 	(val) => {
@@ -701,6 +691,4 @@ const handleBeforeUnload = (e) => {
 		e.returnValue = ''
 	}
 }
-
-provide('savePresentation', savePresentation)
 </script>
