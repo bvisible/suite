@@ -103,32 +103,39 @@ let syncThumbnail = 0
 
 const syncOfflineStatus = ref(null)
 
-const syncPresentationToServer = async (hadDroppedConnection) => {
+const syncSnapshotToServer = async (wasConnectionRestored, snapshot) => {
+	// if connection was restored, syncing was not triggered by auto-save
+	// so add badge after coming back online
+	if (wasConnectionRestored) {
+		syncOfflineStatus.value = 'Syncing local changes'
+	}
+
+	await savePresentationDoc(snapshot.content)
+
+	if (wasConnectionRestored) {
+		syncOfflineStatus.value = 'Changes synced'
+		setTimeout(() => {
+			syncOfflineStatus.value = null
+		}, 2000)
+	}
+
+	// after successful sync, make sure local copy is marked as clean so it's not synced again
+	await savePresentationToLocalDB({
+		...snapshot,
+		dirty: false,
+		updatedAt: Date.now(),
+	})
+}
+
+const syncPresentationToServer = async (wasConnectionRestored) => {
 	isSaving.value = true
 
 	try {
 		const snapshot = await getPresentationFromLocalDB(presentationId.value)
-
 		if (!snapshot || !snapshot.dirty) return
 
-		if (hadDroppedConnection) {
-			syncOfflineStatus.value = 'Syncing local changes'
-		}
-
-		await savePresentationDoc(snapshot.content)
-
-		if (hadDroppedConnection) {
-			syncOfflineStatus.value = 'Changes synced'
-			setTimeout(() => {
-				syncOfflineStatus.value = null
-			}, 2000)
-		}
-
-		await savePresentationToLocalDB({
-			...snapshot,
-			dirty: false,
-			updatedAt: Date.now(),
-		})
+		// if there's an unsynced snapshot locally, sync it to server
+		syncSnapshotToServer(wasConnectionRestored, snapshot)
 	} catch (err) {
 		console.error('Sync to server failed: ', err)
 	} finally {
