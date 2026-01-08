@@ -113,6 +113,7 @@ import {
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
+import { saveChanges, dirtySince, isDirty } from '@/stores/presentation'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
@@ -430,8 +431,6 @@ const handleAutoSave = () => {
 	saveChanges()
 }
 
-const dirtySince = ref(null)
-
 const handleThumbnailGeneration = async (index) => {
 	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
@@ -668,17 +667,6 @@ const handleInsertSlide = (layoutId) => {
 	insertIndex.value = null
 }
 
-const isDirty = computed(() => {
-	if (!presentationDoc.value || !slides.value) return false
-
-	const original = JSON.parse(JSON.stringify(presentationDoc.value.slides || []))
-	const current = JSON.parse(JSON.stringify(slides.value || []))
-
-	return hasStateChanged(original, current)
-})
-
-const isSaving = ref(false)
-
 const savePresentation = async () => {
 	isSaving.value = true
 	try {
@@ -689,19 +677,6 @@ const savePresentation = async () => {
 		isSaving.value = false
 	}
 }
-
-let syncThumbnail = 0
-
-const saveChanges = async () => {
-	if (isSaving.value) return
-	if (!isDirty.value && syncThumbnail == 0) return
-
-	if (isDirty.value) syncThumbnail = 1
-	else syncThumbnail = 0
-
-	await savePresentation()
-}
-
 watch(
 	() => isDirty.value,
 	(val) => {

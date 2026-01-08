@@ -1,10 +1,11 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
 import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
+import { savePresentationToLocalDB } from '@/utils/indexedDB'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -354,6 +355,44 @@ const isPublicPresentation = ref(false)
 
 const readonlyMode = ref(false)
 
+const dirtySince = ref(null)
+
+const isDirty = computed(() => {
+	if (!presentationDoc.value || !slides.value) return false
+
+	const original = JSON.parse(JSON.stringify(presentationDoc.value.slides || []))
+	const current = JSON.parse(JSON.stringify(slides.value || []))
+
+	return hasStateChanged(original, current)
+})
+
+const isSaving = ref(false)
+
+let syncThumbnail = 0
+
+const getLatestSlideContent = () => {
+	const latestContent = slides.value
+	return cloneObj(latestContent)
+}
+
+const saveChanges = async () => {
+	if (isSaving.value) return
+
+	if (!isDirty.value && syncThumbnail === 0) return
+
+	if (isDirty.value) syncThumbnail = 1
+	else syncThumbnail = 0
+
+	const content = getLatestSlideContent()
+
+	await savePresentationToLocalDB({
+		id: presentationId.value,
+		content: content,
+		updatedAt: Date.now(),
+		dirty: true,
+	})
+}
+
 export {
 	presentationId,
 	inSlideShow,
@@ -376,4 +415,7 @@ export {
 	slidesLength,
 	parseElements,
 	historyMetadata,
+	dirtySince,
+	saveChanges,
+	isDirty,
 }
