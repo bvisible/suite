@@ -8,8 +8,8 @@
 				<LucideWifiOff class="mr-1 size-3.5 stroke-[1.5]" />
 				<span>Offline &ndash; Saving locally</span>
 			</Badge>
-			<Badge v-if="syncOfflineChangesStatus" variant="subtle" theme="blue" size="md">
-				{{ syncOfflineChangesStatus }}
+			<Badge v-if="syncOfflineStatus" variant="subtle" theme="blue" size="md">
+				{{ syncOfflineStatus }}
 			</Badge>
 			<SharePopover v-if="presentationDoc" />
 		</template>
@@ -27,7 +27,7 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import SharePopover from '@/components/SharePopover.vue'
 
 import { presentationDoc, readonlyMode } from '@/stores/presentation'
-import { syncOfflineChangesStatus } from '@/utils/indexedDB'
+import { syncOfflineStatus } from '@/utils/indexedDB'
 
 const isOnline = inject('isOnline', null)
 
