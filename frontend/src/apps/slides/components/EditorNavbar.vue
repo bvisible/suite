@@ -27,7 +27,7 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import SharePopover from '@/components/SharePopover.vue'
 
 import { presentationDoc, readonlyMode } from '@/stores/presentation'
-import { syncOfflineStatus } from '@/utils/indexedDB'
+import { syncOfflineStatus } from '@/stores/saving'
 
 const isOnline = inject('isOnline', null)
 
