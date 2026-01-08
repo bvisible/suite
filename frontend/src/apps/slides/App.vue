@@ -13,7 +13,7 @@ import { onMounted, h, ref, provide } from 'vue'
 import { FrappeUIProvider, toast } from 'frappe-ui'
 
 import { Wifi, WifiOff } from 'lucide-vue-next'
-import { syncPresentationToServer } from '@/utils/indexedDB'
+import { syncPresentationToServer } from '@/stores/saving'
 
 const isOnline = ref(false)
 

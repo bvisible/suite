@@ -111,7 +111,7 @@ import {
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
-import { saveChanges, dirtySince, isDirty, syncPresentationToServer } from '@/utils/indexedDB'
+import { saveChanges, dirtySince, isDirty, syncPresentationToServer } from '@/stores/saving'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
