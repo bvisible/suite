@@ -17,24 +17,28 @@ import { syncPresentationToServer } from '@/stores/saving'
 
 const isOnline = ref(false)
 
+const handleLostConnection = () => {
+	isOnline.value = false
+	toast.create({
+		message: 'Lost internet connection.',
+		icon: h(WifiOff, { color: 'white' }),
+	})
+}
+
+const handleConnectionRestored = () => {
+	isOnline.value = true
+	syncPresentationToServer(true)
+	toast.create({
+		message: 'You are back online.',
+		icon: h(Wifi, { color: 'white' }),
+	})
+}
+
 onMounted(() => {
 	isOnline.value = navigator?.onLine
-	window.addEventListener('online', () => {
-		isOnline.value = true
-		syncPresentationToServer(true)
-		toast.create({
-			message: 'You are back online.',
-			icon: h(Wifi, { color: 'white' }),
-		})
-	})
 
-	window.addEventListener('offline', () => {
-		isOnline.value = false
-		toast.create({
-			message: 'Lost internet connection.',
-			icon: h(WifiOff, { color: 'white' }),
-		})
-	})
+	window.addEventListener('online', handleConnectionRestored)
+	window.addEventListener('offline', handleLostConnection)
 })
 
 provide('isOnline', isOnline)
