@@ -13,12 +13,14 @@ import { onMounted, h, ref, provide } from 'vue'
 import { FrappeUIProvider, toast } from 'frappe-ui'
 
 import { Wifi, WifiOff } from 'lucide-vue-next'
+import { syncPresentationToServer } from '@/stores/presentation'
 
 const isOnline = ref(false)
 
 onMounted(() => {
 	isOnline.value = navigator?.onLine
 	window.addEventListener('online', () => {
+		syncPresentationToServer()
 		isOnline.value = true
 		toast.create({
 			message: 'You are back online.',
