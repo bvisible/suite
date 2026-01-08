@@ -1,7 +1,9 @@
 <template>
 	<Navbar :primaryButton="primaryButtonProps">
 		<template #default>
-			<PresentationHeader :title="presentationDoc?.title" />
+			<div class="flex w-full justify-center">
+				<PresentationHeader :title="presentationDoc?.title" />
+			</div>
 		</template>
 		<template v-if="!readonlyMode" #actions>
 			<Badge v-if="!isOnline" variant="subtle" theme="orange" size="md">

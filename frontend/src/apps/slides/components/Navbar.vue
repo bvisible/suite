@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="relative z-10 flex items-center justify-between border-b bg-white p-2"
+		class="relative z-10 grid grid-cols-3 items-center justify-between border-b bg-white p-2"
 		@wheel.prevent
 	>
 		<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
