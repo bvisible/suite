@@ -5,7 +5,6 @@ import { isEqual } from 'lodash'
 
 import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
-import { savePresentationToLocalDB, getPresentationFromLocalDB } from '@/utils/indexedDB'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -355,84 +354,6 @@ const isPublicPresentation = ref(false)
 
 const readonlyMode = ref(false)
 
-const dirtySince = ref(null)
-
-const isDirty = computed(() => {
-	if (!presentationDoc.value || !slides.value) return false
-
-	const original = JSON.parse(JSON.stringify(presentationDoc.value.slides || []))
-	const current = JSON.parse(JSON.stringify(slides.value || []))
-
-	return hasStateChanged(original, current)
-})
-
-const isSaving = ref(false)
-
-let syncThumbnail = 0
-const syncOfflineChangesStatus = ref('')
-
-const syncPresentationToServer = async (hadDroppedConnection) => {
-	isSaving.value = true
-
-	try {
-		const snapshot = await getPresentationFromLocalDB(presentationId.value)
-
-		if (!snapshot || !snapshot.dirty) {
-			return
-		}
-
-		if (hadDroppedConnection) {
-			syncOfflineChangesStatus.value = 'Syncing local changes...'
-		}
-
-		await savePresentationDoc(snapshot.content)
-
-		if (hadDroppedConnection) {
-			syncOfflineChangesStatus.value = 'All changes synced'
-			setTimeout(() => {
-				syncOfflineChangesStatus.value = ''
-			}, 2000)
-		}
-
-		await savePresentationToLocalDB({
-			...snapshot,
-			dirty: false,
-			updatedAt: Date.now(),
-		})
-	} catch (err) {
-		console.error('Sync to server failed: ', err)
-	} finally {
-		isSaving.value = false
-	}
-}
-
-const getLatestSlideContent = () => {
-	const latestContent = slides.value
-	return cloneObj(latestContent)
-}
-
-const saveChanges = async () => {
-	if (isSaving.value) return
-
-	if (!isDirty.value && syncThumbnail === 0) return
-
-	if (isDirty.value) syncThumbnail = 1
-	else syncThumbnail = 0
-
-	const content = getLatestSlideContent()
-
-	await savePresentationToLocalDB({
-		id: presentationId.value,
-		content: content,
-		updatedAt: Date.now(),
-		dirty: true,
-	})
-
-	if (!navigator.onLine) return
-
-	await syncPresentationToServer()
-}
-
 export {
 	presentationId,
 	inSlideShow,
@@ -455,9 +376,4 @@ export {
 	slidesLength,
 	parseElements,
 	historyMetadata,
-	dirtySince,
-	saveChanges,
-	isDirty,
-	syncPresentationToServer,
-	syncOfflineChangesStatus,
 }

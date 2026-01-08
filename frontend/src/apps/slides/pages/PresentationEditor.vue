@@ -73,8 +73,6 @@ import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import {
 	presentationId,
-	hasStateChanged,
-	syncPresentationToServer,
 	layoutResource,
 	initPresentationDoc,
 	presentationDoc,
@@ -113,7 +111,7 @@ import {
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
-import { saveChanges, dirtySince, isDirty } from '@/stores/presentation'
+import { saveChanges, dirtySince, isDirty, syncPresentationToServer } from '@/utils/indexedDB'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
