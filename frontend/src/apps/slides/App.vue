@@ -20,8 +20,8 @@ const isOnline = ref(false)
 onMounted(() => {
 	isOnline.value = navigator?.onLine
 	window.addEventListener('online', () => {
-		syncPresentationToServer()
 		isOnline.value = true
+		syncPresentationToServer(true)
 		toast.create({
 			message: 'You are back online.',
 			icon: h(Wifi, { color: 'white' }),

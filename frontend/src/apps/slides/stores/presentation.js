@@ -369,8 +369,9 @@ const isDirty = computed(() => {
 const isSaving = ref(false)
 
 let syncThumbnail = 0
+const syncOfflineChangesStatus = ref('')
 
-const syncPresentationToServer = async () => {
+const syncPresentationToServer = async (hadDroppedConnection) => {
 	isSaving.value = true
 
 	try {
@@ -380,7 +381,18 @@ const syncPresentationToServer = async () => {
 			return
 		}
 
+		if (hadDroppedConnection) {
+			syncOfflineChangesStatus.value = 'Syncing local changes...'
+		}
+
 		await savePresentationDoc(snapshot.content)
+
+		if (hadDroppedConnection) {
+			syncOfflineChangesStatus.value = 'All changes synced'
+			setTimeout(() => {
+				syncOfflineChangesStatus.value = ''
+			}, 2000)
+		}
 
 		await savePresentationToLocalDB({
 			...snapshot,
@@ -447,4 +459,5 @@ export {
 	saveChanges,
 	isDirty,
 	syncPresentationToServer,
+	syncOfflineChangesStatus,
 }
