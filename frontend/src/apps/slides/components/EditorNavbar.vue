@@ -8,10 +8,7 @@
 		<template v-if="!readonlyMode" #actions>
 			<Badge v-if="!isOnline" variant="subtle" theme="orange" size="md">
 				<LucideWifiOff class="mr-1 size-3.5 stroke-[1.5]" />
-				<span>Offline &ndash; Saving locally</span>
-			</Badge>
-			<Badge v-if="syncOfflineStatus" variant="subtle" theme="blue" size="md">
-				{{ syncOfflineStatus }}
+				<span>Offline</span>
 			</Badge>
 			<SharePopover v-if="presentationDoc" />
 		</template>
@@ -29,7 +26,6 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import SharePopover from '@/components/SharePopover.vue'
 
 import { presentationDoc, readonlyMode } from '@/stores/presentation'
-import { syncOfflineStatus } from '@/stores/saving'
 
 const isOnline = inject('isOnline', null)
 
