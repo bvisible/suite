@@ -120,7 +120,7 @@ const syncPresentationToServer = async () => {
 		if (!snapshot || !snapshot.dirty) return
 
 		// if there's an unsynced snapshot locally, sync it to server
-		syncSnapshotToServer(snapshot)
+		await syncSnapshotToServer(snapshot)
 	} catch (err) {
 		console.error('Sync to server failed: ', err)
 	} finally {
