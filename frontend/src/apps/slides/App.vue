@@ -27,7 +27,7 @@ const handleLostConnection = () => {
 
 const handleConnectionRestored = () => {
 	isOnline.value = true
-	syncPresentationToServer(true)
+	syncPresentationToServer()
 	toast.create({
 		message: 'You are back online.',
 		icon: h(Wifi, { color: 'white' }),
