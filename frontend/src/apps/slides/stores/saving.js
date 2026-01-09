@@ -107,13 +107,13 @@ const syncSnapshotToServer = async (wasConnectionRestored, snapshot) => {
 	// if connection was restored, syncing was not triggered by auto-save
 	// so add badge after coming back online
 	if (wasConnectionRestored) {
-		syncOfflineStatus.value = 'Syncing local changes'
+		syncOfflineStatus.value = 'Syncing'
 	}
 
 	await savePresentationDoc(snapshot.content)
 
 	if (wasConnectionRestored) {
-		syncOfflineStatus.value = 'Changes synced'
+		syncOfflineStatus.value = 'Synced'
 		setTimeout(() => {
 			syncOfflineStatus.value = null
 		}, 2000)
