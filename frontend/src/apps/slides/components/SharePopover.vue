@@ -47,7 +47,7 @@ import {
 	parseElements,
 } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
-import { copyToClipboard } from '@/utils/helpers'
+import { copyToClipboard } from '@/stores/copyPaste'
 
 const savePresentation = inject('savePresentation', async () => {})
 

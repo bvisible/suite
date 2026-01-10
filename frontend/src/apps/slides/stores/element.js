@@ -13,7 +13,7 @@ import {
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { generateUniqueId, cloneObj, isCopyTriggeredByButton } from '../utils/helpers'
+import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
@@ -387,59 +387,6 @@ const isWithinOverlappingBounds = (outer, inner) => {
 	return withinWidth && withinHeight
 }
 
-const getCopiedJSON = () => JSON.stringify(activeElements.value)
-
-const copiedFrom = ref({})
-
-const handleCopy = (e) => {
-	if (!activeElements.value.length || isCopyTriggeredByButton.value) return
-
-	e.preventDefault()
-	const clipboardJSON = getCopiedJSON()
-	e.clipboardData.setData('application/json', clipboardJSON)
-	copiedFrom.value = {
-		srcPresentation: presentationId.value,
-		srcSlide: slideIndex.value,
-	}
-}
-
-const handlePastedText = async (clipboardText) => {
-	await resetFocus()
-	addTextElement(clipboardText)
-}
-
-const handlePastedJSON = async (json) => {
-	const pastedArray = Array.isArray(json) ? json : []
-
-	if (
-		pastedArray[0]?.type == 'text' &&
-		focusElementId.value &&
-		focusElementId.value != pastedArray[0].id
-	) {
-		activeEditor.value.commands.insertContent(pastedArray[0].content)
-		return
-	}
-
-	const { srcPresentation, srcSlide } = copiedFrom.value
-
-	if (srcPresentation !== presentationId.value) {
-		// if pasted elements are from a different presentation
-		// add file attachments correctly to current presentation + update docnames in json
-		json = await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
-			presentation: presentationId.value,
-			json: json,
-		})
-	}
-
-	duplicateElements(null, json, srcSlide)
-}
-
-const handleSvgText = (svgText) => {
-	const svgBlob = new Blob([svgText], { type: 'image/svg+xml' })
-	const svgFile = new File([svgBlob], 'pasted-image.svg', { type: 'image/svg+xml' })
-	handleUploadedMedia([{ kind: 'file', getAsFile: () => svgFile }])
-}
-
 const addFixedWidthToElement = (deltaWidth) => {
 	const elementDiv = document.querySelector(`[data-index="${activeElement.value.id}"]`)
 	if (elementDiv) {
@@ -558,10 +505,6 @@ export {
 	deleteElements,
 	selectAllElements,
 	getElementPosition,
-	handleCopy,
-	handleSvgText,
-	handlePastedText,
-	handlePastedJSON,
 	addFixedWidthToElement,
 	deleteAttachments,
 	setEditableState,

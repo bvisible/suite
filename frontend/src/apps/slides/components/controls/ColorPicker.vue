@@ -102,7 +102,7 @@ import EyeDropper from '@/icons/EyeDropper.vue'
 
 import tinycolor from 'tinycolor2'
 import { Input } from 'frappe-ui'
-import { copyToClipboard } from '@/utils/helpers'
+import { copyToClipboard } from '@/stores/copyPaste'
 
 const shadeSlider = useTemplateRef('shadeSlider')
 const colorSlider = useTemplateRef('colorSlider')
