@@ -112,7 +112,7 @@ const getElementContent = (element) => {
 	return generateHTML(contentJSON, extensions)
 }
 
-const addTextElement = async (text) => {
+const addTextElement = async (text, position) => {
 	const elementPresets = {
 		textAlign: 'left',
 		fontSize: 28,
@@ -127,8 +127,8 @@ const addTextElement = async (text) => {
 		zIndex: currentSlide.value.elements.length + 1,
 		transformOrigin: 'center center',
 		transform: 'translate(-50%, -50%)',
-		left: 0,
-		top: 0,
+		left: position ? position.x : 0,
+		top: position ? position.y : 0,
 		type: 'text',
 		content: getElementContent(elementPresets),
 		editorMetadata: {
@@ -140,7 +140,16 @@ const addTextElement = async (text) => {
 
 	updateElementRefId(element)
 
-	selectAndCenterElement(element.id)
+	if (!position) selectAndCenterElement(element.id)
+	else {
+		nextTick(() => {
+			setActiveElements([element.id])
+			nextTick(() => {
+				focusElementId.value = element.id
+				setEditableState()
+			})
+		})
+	}
 }
 
 const savePoster = createResource({
