@@ -61,9 +61,9 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	setSlideRef,
-	insertSlide,
 	slideIndex,
 } from '@/stores/slide'
+
 import {
 	activeElementIds,
 	activeElement,
@@ -82,8 +82,7 @@ import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 
-import { getDocFromHTML, isCmdOrCtrl } from '@/utils/helpers'
-import { handleUploadedMedia } from '../utils/mediaUploads'
+import { isCmdOrCtrl } from '@/utils/helpers'
 
 const props = defineProps({
 	highlight: Boolean,
