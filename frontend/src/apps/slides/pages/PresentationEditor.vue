@@ -90,7 +90,6 @@ import {
 import {
 	slides,
 	slideIndex,
-	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
 	updateThumbnail,
@@ -113,7 +112,7 @@ import {
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
+import { isCmdOrCtrl } from '@/utils/helpers'
 
 const { activeEditor, toggleMark } = useTextEditor()
 

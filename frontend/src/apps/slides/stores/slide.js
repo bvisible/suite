@@ -1,11 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import {
-	ignoreUpdates,
-	isPublicPresentation,
-	slidesLength,
-	presentationId,
-	layoutResource,
-} from '@/stores/presentation'
+import { ignoreUpdates, slidesLength, presentationId, layoutResource } from '@/stores/presentation'
 import { generateUniqueId } from '@/utils/helpers'
 
 import html2canvas from 'html2canvas'
@@ -221,11 +215,11 @@ export {
 	slideBounds,
 	selectionBounds,
 	guideVisibilityMap,
+	focusedSlide,
+	lastThumbnailTime,
 	updateSelectionBounds,
 	setSlideRef,
 	updateThumbnail,
-	focusedSlide,
-	lastThumbnailTime,
 	insertSlide,
 	getNewSlide,
 }

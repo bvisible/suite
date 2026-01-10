@@ -9,13 +9,11 @@ import {
 	currentSlide,
 	slideIndex,
 	updateThumbnail,
-	insertSlide,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
-import { handleUploadedMedia } from '../utils/mediaUploads'
 import { presentationId } from './presentation'
 import { initElementRefId, updateElementRefId } from './transition'
 
