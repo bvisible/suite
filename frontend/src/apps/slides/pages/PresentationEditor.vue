@@ -172,6 +172,17 @@ const toggleSlideNavigator = () => {
 	}
 }
 
+const handleShowLayoutDialogShortcut = (e) => {
+	e.preventDefault()
+	openLayoutDialog('insert')
+}
+
+const addEmptySlide = (e) => {
+	e.preventDefault()
+	const layoutId = layoutResource.data?.slides[0]?.name
+	if (layoutId) handleInsertSlide(layoutId)
+}
+
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
@@ -241,10 +252,10 @@ const handleGlobalShortcuts = (e) => {
 			if (isCmdOrCtrl(e)) saveSlide(e)
 			break
 		case 'n':
-			if (e.ctrlKey) {
-				e.preventDefault()
-				openLayoutDialog('insert')
-			}
+			if (e.ctrlKey) handleShowLayoutDialogShortcut(e)
+			break
+		case 'Enter':
+			addEmptySlide(e)
 			break
 		case 'F5':
 			e.preventDefault()
