@@ -440,7 +440,7 @@ const initSlideAndListeners = () => {
 	updateSlideBounds()
 
 	document.addEventListener('copy', handleCopy)
-	document.addEventListener('paste', handlePaste)
+	document.addEventListener('paste', (e) => handlePaste(e, emit.bind(null, 'changeSlide')))
 	window.addEventListener('resize', updateSlideBounds)
 }
 
