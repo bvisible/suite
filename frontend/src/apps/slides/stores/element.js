@@ -48,33 +48,12 @@ const setActiveElements = (ids, focus = false) => {
 	focusElementId.value = null
 }
 
-const selectAndCenterElement = (elementId) => {
-	const slideWidth = slideBounds.width / slideBounds.scale
-	const slideHeight = slideBounds.height / slideBounds.scale
-
+const selectAddedElement = (elementId, type) => {
 	nextTick(() => {
 		setActiveElements([elementId])
-		// to allow centering element only after it's rendered in order to correctly calculate its offset from center
-		requestAnimationFrame(async () => {
-			await nextTick()
-			const elementRect = document
-				.querySelector(`[data-index="${elementId}"]`)
-				.getBoundingClientRect()
+		if (type !== 'text') return
 
-			const elementWidth = elementRect.width / slideBounds.scale
-			const elementHeight = elementRect.height / slideBounds.scale
-
-			const elementLeft = (slideWidth - elementWidth) / 2
-			const elementTop = (slideHeight - elementHeight) / 2
-
-			updateSelectionBounds({
-				left: elementLeft,
-				top: elementTop,
-			})
-
-			activeElement.value.left = elementLeft + elementWidth / 2
-			activeElement.value.top = elementTop + elementHeight / 2
-		})
+		focusElementId.value = elementId
 	})
 }
 
@@ -112,6 +91,32 @@ const getElementContent = (element) => {
 	return generateHTML(contentJSON, extensions)
 }
 
+const getTextElementDimensions = (presets) => {
+	const tempTextElement = document.createElement('div')
+
+	Object.assign(tempTextElement.style, {
+		position: 'absolute',
+		visibility: 'hidden',
+		height: 'auto',
+		width: 'auto',
+		whiteSpace: 'pre',
+		fontSize: `${presets.fontSize}px`,
+		fontFamily: presets.fontFamily,
+		letterSpacing: `${presets.letterSpacing}px`,
+		color: presets.color || '#000000',
+	})
+	tempTextElement.innerHTML = presets.innerText || 'Text'
+
+	document.body.appendChild(tempTextElement)
+
+	const elementWidth = tempTextElement.offsetWidth
+	const elementHeight = tempTextElement.offsetHeight
+
+	document.body.removeChild(tempTextElement)
+
+	return { elementWidth, elementHeight }
+}
+
 const addTextElement = async (text, position) => {
 	const elementPresets = {
 		textAlign: 'left',
@@ -122,13 +127,20 @@ const addTextElement = async (text, position) => {
 		letterSpacing: 0,
 	}
 
+	if (!position) {
+		const { elementWidth, elementHeight } = getTextElementDimensions(elementPresets)
+		position = getLeftTopForCenteredElement(elementWidth, elementHeight)
+		position.left += elementWidth / 2
+		position.top += elementHeight / 2
+	}
+
 	const element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
 		transformOrigin: 'center center',
 		transform: 'translate(-50%, -50%)',
-		left: position ? position.x : 0,
-		top: position ? position.y : 0,
+		left: position.left,
+		top: position.top,
 		type: 'text',
 		content: getElementContent(elementPresets),
 		editorMetadata: {
@@ -140,16 +152,7 @@ const addTextElement = async (text, position) => {
 
 	updateElementRefId(element)
 
-	if (!position) selectAndCenterElement(element.id)
-	else {
-		nextTick(() => {
-			setActiveElements([element.id])
-			nextTick(() => {
-				focusElementId.value = element.id
-				setEditableState()
-			})
-		})
-	}
+	selectAddedElement(element.id, 'text')
 }
 
 const savePoster = createResource({
@@ -185,7 +188,7 @@ const getVideoElementClone = (videoUrl) => {
 	videoElement.src = videoUrl
 	videoElement.style.position = 'absolute'
 	videoElement.style.left = '-9999px'
-	videoElement.style.width = '300px'
+	videoElement.style.width = '400px'
 	videoElement.style.height = 'auto'
 
 	return videoElement
@@ -194,7 +197,8 @@ const getVideoElementClone = (videoUrl) => {
 const handleVideoCloneDataLoad = async (videoClone, resolve, reject) => {
 	try {
 		const poster = await generatePoster(videoClone)
-		resolve(poster)
+		const aspectRatio = videoClone.videoWidth / videoClone.videoHeight
+		resolve({ posterURL: poster, aspectRatio: aspectRatio })
 	} catch (err) {
 		reject(err)
 	} finally {
@@ -235,21 +239,55 @@ const getNaturalSize = async (dataURL) => {
 		img.onload = () =>
 			resolve({
 				width: (img.naturalWidth / 2) * slideBounds.scale,
+				aspectRatio: img.naturalWidth / img.naturalHeight,
 			})
 		img.onerror = reject
 		img.src = dataURL
 	})
 }
 
+const getLeftTopForCenteredElement = (elementWidth, elementHeight) => {
+	const slideWidth = slideBounds.width / slideBounds.scale
+	const slideHeight = slideBounds.height / slideBounds.scale
+
+	const elementLeft = (slideWidth - elementWidth) / 2
+	const elementTop = (slideHeight - elementHeight) / 2
+
+	return { left: elementLeft, top: elementTop }
+}
+
 const addMediaElement = async (file, type) => {
 	const src = file.file_url
-	const { width } = type === 'image' ? await getNaturalSize(src) : { width: 400 }
+
+	let elementWidth = 0
+
+	let position = {
+		left: 0,
+		top: 0,
+	}
+
+	let videoPoster = null
+
+	if (type == 'image') {
+		const { width, aspectRatio } = await getNaturalSize(src)
+		elementWidth = Math.max(Math.min(width, 800), 30)
+		const elementHeight = elementWidth / aspectRatio
+		position = getLeftTopForCenteredElement(elementWidth, elementHeight)
+	} else {
+		elementWidth = 400
+		const { posterURL, aspectRatio } = await getVideoPoster(src)
+		const elementHeight = elementWidth / aspectRatio
+		position = getLeftTopForCenteredElement(elementWidth, elementHeight)
+		videoPoster = posterURL
+	}
+
+	const { width, height } = type === 'image' ? await getNaturalSize(src) : { width: 400 }
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
-		width: Math.max(Math.min(width, 800), 30),
-		left: 0,
-		top: 0,
+		width: elementWidth,
+		left: position.left,
+		top: position.top,
 		opacity: 100,
 		type: type,
 		src: src,
@@ -264,8 +302,7 @@ const addMediaElement = async (file, type) => {
 		shadowColor: '#000000ff',
 	}
 	if (type == 'video') {
-		const posterURL = await getVideoPoster(file.file_url)
-		element.poster = posterURL
+		element.poster = videoPoster
 		element.autoplay = false
 		element.loop = false
 		element.playbackRate = 1
@@ -277,7 +314,7 @@ const addMediaElement = async (file, type) => {
 
 	updateElementRefId(element)
 
-	selectAndCenterElement(element.id)
+	selectAddedElement(element.id, type)
 }
 
 const replaceMediaElement = async (element, fileDoc) => {
