@@ -141,10 +141,14 @@ const handleClipboardText = (clipboardText) => {
 	}
 }
 
-const handleClipboardJSON = (clipboardJSON) => {
+const handleClipboardJSON = (clipboardJSON, changeSlide) => {
 	const isSlideJSON = !Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"')
 	if (isSlideJSON) {
-		return handlePastedSlideJSON(clipboardJSON)
+		handlePastedSlideJSON(clipboardJSON)
+		if (changeSlide) {
+			changeSlide(slideIndex.value + 1)
+		}
+		return
 	}
 	return handlePastedJSON(JSON.parse(clipboardJSON))
 }
@@ -179,7 +183,7 @@ const handleClipboardTextHTML = (imgSrc) => {
 	handleUploadedMedia([{ kind: 'file', getAsFile: () => file }])
 }
 
-const handlePaste = (e) => {
+const handlePaste = (e, changeSlide) => {
 	// do not override paste event if current element is input or content editable
 	if (isInputElement()) return
 
@@ -191,7 +195,7 @@ const handlePaste = (e) => {
 		return handleClipboardTextHTML(imgSrc)
 
 	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) return handleClipboardJSON(clipboardJSON)
+	if (clipboardJSON) return handleClipboardJSON(clipboardJSON, changeSlide)
 
 	const clipboardText = e.clipboardData.getData('text/plain')
 	if (clipboardText) return handleClipboardText(clipboardText)
