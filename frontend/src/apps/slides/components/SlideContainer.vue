@@ -497,8 +497,8 @@ watch(
 const handleSlideDoubleClick = (e) => {
 	if (props.readonlyMode || e.target !== e.currentTarget) return
 	addTextElement('', {
-		x: (e.clientX - slideBounds.left) / scale.value,
-		y: (e.clientY - slideBounds.top) / scale.value,
+		left: (e.clientX - slideBounds.left) / scale.value,
+		top: (e.clientY - slideBounds.top) / scale.value,
 	})
 }
 </script>
