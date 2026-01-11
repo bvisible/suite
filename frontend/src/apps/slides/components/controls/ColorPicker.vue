@@ -97,12 +97,12 @@
 import { ref, unref, computed, useTemplateRef, watch } from 'vue'
 import { useElementBounding, useEyeDropper } from '@vueuse/core'
 
-import { Popover } from 'frappe-ui'
+import { Popover, Input } from 'frappe-ui'
+
+import { copyToClipboard } from '@/stores/copyPaste'
 import EyeDropper from '@/icons/EyeDropper.vue'
 
 import tinycolor from 'tinycolor2'
-import { Input } from 'frappe-ui'
-import { copyToClipboard } from '@/utils/helpers'
 
 const shadeSlider = useTemplateRef('shadeSlider')
 const colorSlider = useTemplateRef('colorSlider')
