@@ -43,7 +43,7 @@
       v-else-if="getDocuments.loading"
       class="size-5 mx-auto mt-32"
     />
-    <ErrorPage v-else error="There was an error fetching documents." />
+    <ErrorPage v-else error="There was an error fetching the documents." />
   </div>
 </template>
 <script setup>

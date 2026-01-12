@@ -22,7 +22,7 @@ apps.fetch()
 <template>
   <FrappeUIProvider>
     <div class="flex flex-col h-screen">
-      <AppSwitcher v-if="apps?.data" :apps="apps?.data" />
+      <!-- <AppSwitcher v-if="apps?.data" :apps="apps?.data" /> -->
       <router-view :key="$route.fullPath" v-slot="{ Component }">
         <component :is="Component" />
       </router-view>

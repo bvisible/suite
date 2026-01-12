@@ -6,7 +6,7 @@
     v-bind="{ ...props, ...commentsDetail }"
     :doc
     :extensions
-    @save="(manual = false) => save(manual)"
+    @save="(manual = false, html) => save(manual, html)"
     @cleanup="cleanup"
   />
 </template>

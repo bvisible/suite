@@ -176,6 +176,7 @@ import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
 import { printDoc, updateURLSlug, isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import MediaDownload from '@/extensions/media-download'
+import CleanStyles from '@/extensions/clean-styles'
 import { CommentExtension, rebuild } from '@/extensions/comments'
 import {
   default as TableOfContents,
@@ -331,6 +332,13 @@ const editorExtensions = [
   PageBreakExtension,
   CharacterCount,
   Selection,
+  CleanStyles.configure({
+    allowProperty: (prop, value) => value !== '',
+    validators: {
+      lineHeight: (value) => !value.endsWith('%'),
+      fontFamily: (value) => value.trim() !== '""',
+    },
+  }),
   // MathematicsExtension,
   TabsExtension,
   OldCommentExtension.configure({
@@ -383,6 +391,7 @@ const menuButtons = computed(() => [
     action: (editor) => {
       editor.commands.focus()
       editor.commands.clearStyles()
+      editor.commands.cleanStyles()
     },
     isActive: () => false,
   },

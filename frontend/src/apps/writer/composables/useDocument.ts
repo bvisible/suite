@@ -17,7 +17,6 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
     url: '/api/method/writer.api.docs.get_document?file_id=' + docId,
     name: docId,
     transform: (doc) => {
-      console.log('overriding', doc)
       if (doc.settings) doc.settings = JSON.parse(doc.settings)
       if (doc.comments)
         doc.comments = doc.comments.map((k) => ({
