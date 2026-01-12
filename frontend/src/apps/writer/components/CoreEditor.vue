@@ -26,7 +26,7 @@
         <FTextEditor
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
-          editor-class="min-h-full px-10 overflow-x-auto pt-7 pb-15"
+          editor-class="min-h-full px-10 overflow-x-auto pt-10 pb-24"
           :upload-function
           :autofocus="true"
           :content="rawContent"
@@ -404,9 +404,11 @@ const menuButtons = computed(() => [
   //   icon: LucideSquareFunction,
   //   action: (editor) => editor.commands.openMathEditor('block'),
   // },
-  ['Image', 'Video'],
   'Separator',
+  'Image',
+  'Video',
   'Iframe',
+  'Separator',
   [
     'InsertTable',
     'AddColumnBefore',
@@ -550,7 +552,7 @@ onKeyDown('s', (e) => {
 onBeforeUnmount(() => {
   if (edited.value) {
     // fix: call autoversion on unmount with savee
-    emit('save')
+    emit('save', false, editor.value.getHTML())
   }
   if (autoversionInterval) clearInterval(autoversionInterval)
   emitter.off('print-file')

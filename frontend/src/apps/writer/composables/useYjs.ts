@@ -8,7 +8,6 @@ import {
   ySyncPluginKey,
 } from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
-import { ref } from 'vue'
 
 import store from '@/store'
 
@@ -107,13 +106,15 @@ export function useYjs(document, editor, edited) {
     }
   })
   // Saving to server
-  const save = async (manual = false) => {
+  const save = async (manual = false, oldHtml) => {
     if (!manual && !edited.value) return
     // Compute a diff relative to server’s last known state
+    const html = editor.value ? editor.value.getHTML() : oldHtml || ''
     const yjsState = Y.encodeStateAsUpdate(doc)
     const data = await document.saveDoc.submit({
       data: fromUint8Array(yjsState),
-      html: editor.value ? editor.value.getHTML() : '',
+      // weird logic
+      html,
     })
     if (data?.skipped) {
       console.log(
@@ -122,8 +123,8 @@ export function useYjs(document, editor, edited) {
     } else if (document.saveDoc.error) {
       toast.error('Could not save the document - please contact support.')
       localStorage.setItem(
-        'errored-save-out-' + Date.now(),
-        editor.value.getHTML(),
+        'errored-save-out-' + document.doc.name + '-' + Date.now(),
+        html,
       )
     }
   }
