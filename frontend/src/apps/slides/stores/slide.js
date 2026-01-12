@@ -1,5 +1,6 @@
-import { ignoreUpdates, isPublicPresentation, slidesLength } from '@/stores/presentation'
 import { ref, computed, reactive } from 'vue'
+import { ignoreUpdates, slidesLength, presentationId, layoutResource } from '@/stores/presentation'
+import { generateUniqueId } from '@/utils/helpers'
 
 import html2canvas from 'html2canvas'
 
@@ -178,6 +179,35 @@ const insertSlide = async (newSlide, index) => {
 	slidesLength.value = slides.value.length
 }
 
+const getNewSlide = (toDuplicate = false, layoutId) => {
+	let layout = null
+
+	if (toDuplicate) {
+		layout = currentSlide.value
+		layout.elements = layout.elements.map((e) => ({
+			...e,
+			refId: e.refId || generateUniqueId(),
+		}))
+	} else {
+		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
+	}
+
+	const slide = {}
+	if (layout) {
+		slide.background = layout.background
+		slide.transition = layout.transition
+		slide.transitionDuration = layout.transitionDuration
+		slide.fadeUnmatchedElements = layout.fadeUnmatchedElements
+		slide.elements = layout.elements.map((e) => ({ ...e }))
+	}
+
+	// override metadata and generate unique IDs for elements
+	slide.name = ''
+	slide.parent = presentationId.value
+
+	return slide
+}
+
 export {
 	slideIndex,
 	slides,
@@ -185,10 +215,11 @@ export {
 	slideBounds,
 	selectionBounds,
 	guideVisibilityMap,
+	focusedSlide,
+	lastThumbnailTime,
 	updateSelectionBounds,
 	setSlideRef,
 	updateThumbnail,
-	focusedSlide,
-	lastThumbnailTime,
 	insertSlide,
+	getNewSlide,
 }

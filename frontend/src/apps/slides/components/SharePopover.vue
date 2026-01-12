@@ -40,14 +40,9 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { Popover, Switch, call, toast } from 'frappe-ui'
-import {
-	presentationId,
-	isPublicPresentation,
-	ignoreUpdates,
-	parseElements,
-} from '@/stores/presentation'
+import { presentationId, isPublicPresentation } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
-import { copyToClipboard } from '@/utils/helpers'
+import { copyToClipboard } from '@/stores/copyPaste'
 
 const publicPresentation = ref()
 
