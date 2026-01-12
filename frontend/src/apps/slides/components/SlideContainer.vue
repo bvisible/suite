@@ -2,7 +2,13 @@
 	<div ref="slideContainer" class="flex size-full" @dragenter="showOverlay">
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
-		<div ref="slideRef" :style="slideStyles" :class="slideClasses" @contextmenu.prevent>
+		<div
+			ref="slideRef"
+			:style="slideStyles"
+			:class="slideClasses"
+			@contextmenu.prevent
+			@dblclick="handleSlideDoubleClick"
+		>
 			<SelectionBox
 				ref="selectionBox"
 				v-if="!readonlyMode"
@@ -61,31 +67,29 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	setSlideRef,
-	insertSlide,
 	slideIndex,
 } from '@/stores/slide'
+
 import {
 	activeElementIds,
 	activeElement,
-	handleCopy,
-	handleSvgText,
-	handlePastedText,
-	handlePastedJSON,
 	focusElementId,
 	pairElementId,
 	addFixedWidthToElement,
 	setEditableState,
 	duplicateElements,
 	activeElements,
+	addTextElement,
 } from '@/stores/element'
+
+import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 
-import { getDocFromHTML, isCmdOrCtrl } from '@/utils/helpers'
-import { handleUploadedMedia } from '../utils/mediaUploads'
+import { isCmdOrCtrl } from '@/utils/helpers'
 
 const props = defineProps({
 	highlight: Boolean,
@@ -428,90 +432,6 @@ watch(
 	},
 )
 
-const handlePastedSlideJSON = async (json) => {
-	const index = slideIndex.value
-
-	insertSlide(JSON.parse(json), index)
-
-	emit('changeSlide', index + 1)
-}
-
-const isInputElement = (el) => {
-	const activeElement = document.activeElement
-	return (
-		activeElement?.tagName == 'INPUT' ||
-		activeElement?.tagName == 'TEXTAREA' ||
-		activeElement?.isContentEditable
-	)
-}
-
-const handleClipboardText = (clipboardText) => {
-	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
-		handleSvgText(clipboardText)
-	} else if (clipboardText && !focusElementId.value) {
-		handlePastedText(clipboardText)
-	}
-}
-
-const handleClipboardJSON = (clipboardJSON) => {
-	const isSlideJSON = !Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"')
-	if (isSlideJSON) {
-		return handlePastedSlideJSON(clipboardJSON)
-	}
-	return handlePastedJSON(JSON.parse(clipboardJSON))
-}
-
-const dataURLToFile = (dataURL, filename) => {
-	const [meta, base64] = dataURL.split(',')
-	const mime = meta.match(/:(.*?);/)[1]
-	const binary = atob(base64)
-	const len = binary.length
-	const buffer = new Uint8Array(len)
-
-	for (let i = 0; i < len; i++) {
-		buffer[i] = binary.charCodeAt(i)
-	}
-
-	return new File([buffer], filename, {
-		type: mime,
-		lastModified: Date.now(),
-	})
-}
-
-const getImageSrcFromHTML = (clipboardTextHTML) => {
-	const doc = getDocFromHTML(clipboardTextHTML)
-	const img = doc.querySelector('img')
-
-	if (img) return img.src
-	return null
-}
-
-const handleClipboardTextHTML = (imgSrc) => {
-	const file = dataURLToFile(imgSrc, 'pasted-image.png')
-	handleUploadedMedia([{ kind: 'file', getAsFile: () => file }])
-}
-
-const handlePaste = (e) => {
-	// do not override paste event if current element is input or content editable
-	if (isInputElement()) return
-
-	e.preventDefault()
-
-	const clipboardTextHTML = e.clipboardData.getData('text/html')
-	const imgSrc = getImageSrcFromHTML(clipboardTextHTML)
-	if (clipboardTextHTML && imgSrc && imgSrc.startsWith('data:'))
-		return handleClipboardTextHTML(imgSrc)
-
-	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) return handleClipboardJSON(clipboardJSON)
-
-	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) return handleClipboardText(clipboardText)
-
-	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) return handleUploadedMedia(clipboardItems)
-}
-
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
 
@@ -520,7 +440,7 @@ const initSlideAndListeners = () => {
 	updateSlideBounds()
 
 	document.addEventListener('copy', handleCopy)
-	document.addEventListener('paste', handlePaste)
+	document.addEventListener('paste', (e) => handlePaste(e, emit.bind(null, 'changeSlide')))
 	window.addEventListener('resize', updateSlideBounds)
 }
 
@@ -573,4 +493,12 @@ watch(
 		emit('update:hasOngoingInteraction', newVal)
 	},
 )
+
+const handleSlideDoubleClick = (e) => {
+	if (props.readonlyMode || e.target !== e.currentTarget) return
+	addTextElement('', {
+		left: (e.clientX - slideBounds.left) / scale.value,
+		top: (e.clientY - slideBounds.top) / scale.value,
+	})
+}
 </script>

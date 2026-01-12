@@ -360,7 +360,6 @@ export {
 	applyReverseTransition,
 	createPresentationResource,
 	updatePresentationTitle,
-	getPresentationResource,
 	hasStateChanged,
 	savePresentationDoc,
 	initPresentationDoc,
@@ -374,6 +373,5 @@ export {
 	isPublicPresentation,
 	readonlyMode,
 	slidesLength,
-	parseElements,
 	historyMetadata,
 }

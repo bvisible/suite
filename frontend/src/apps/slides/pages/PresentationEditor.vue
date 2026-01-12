@@ -88,13 +88,13 @@ import {
 import {
 	slides,
 	slideIndex,
-	currentSlide,
 	selectionBounds,
 	updateSelectionBounds,
 	updateThumbnail,
 	lastThumbnailTime,
 	focusedSlide,
 	insertSlide,
+	getNewSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -171,6 +171,17 @@ const toggleSlideNavigator = () => {
 	}
 }
 
+const handleShowLayoutDialogShortcut = (e) => {
+	e.preventDefault()
+	openLayoutDialog('insert')
+}
+
+const addEmptySlide = (e) => {
+	e.preventDefault()
+	const layoutId = layoutResource.data?.slides[0]?.name
+	if (layoutId) handleInsertSlide(layoutId)
+}
+
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
@@ -213,9 +224,6 @@ const handleSlideShortcuts = (e) => {
 		case 'd':
 			if (isCmdOrCtrl(e)) duplicateSlide(e)
 			break
-		case 'c':
-			if (isCmdOrCtrl(e)) copySlide(e)
-			break
 	}
 }
 
@@ -243,10 +251,10 @@ const handleGlobalShortcuts = (e) => {
 			if (isCmdOrCtrl(e)) saveSlide(e)
 			break
 		case 'n':
-			if (e.ctrlKey) {
-				e.preventDefault()
-				openLayoutDialog('insert')
-			}
+			if (e.ctrlKey) handleShowLayoutDialogShortcut(e)
+			break
+		case 'Enter':
+			addEmptySlide(e)
 			break
 		case 'F5':
 			e.preventDefault()
@@ -455,35 +463,6 @@ const changeSlide = async (index, focus = true) => {
 	}
 }
 
-const getNewSlide = (toDuplicate = false, layoutId) => {
-	let layout = null
-
-	if (toDuplicate) {
-		layout = currentSlide.value
-		layout.elements = layout.elements.map((e) => ({
-			...e,
-			refId: e.refId || generateUniqueId(),
-		}))
-	} else {
-		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
-	}
-
-	const slide = {}
-	if (layout) {
-		slide.background = layout.background
-		slide.transition = layout.transition
-		slide.transitionDuration = layout.transitionDuration
-		slide.fadeUnmatchedElements = layout.fadeUnmatchedElements
-		slide.elements = layout.elements.map((e) => ({ ...e }))
-	}
-
-	// override metadata and generate unique IDs for elements
-	slide.name = ''
-	slide.parent = presentationId.value
-
-	return slide
-}
-
 const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
@@ -540,18 +519,6 @@ const replaceSlide = (layoutId) => {
 	slides.value.forEach((slide, index) => {
 		slide.idx = index + 1
 	})
-}
-
-const getCopiedSlideJSON = () => {
-	const slide = getNewSlide(true)
-	return JSON.stringify(slide)
-}
-
-const copySlide = (e) => {
-	e.preventDefault()
-	const clipboardJSON = getCopiedSlideJSON()
-	e.clipboardData?.setData('application/json', clipboardJSON)
-	toast.success('Slide copied to clipboard')
 }
 
 const resetAndSave = async () => {
