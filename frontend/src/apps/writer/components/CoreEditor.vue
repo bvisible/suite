@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
-      v-if="editable"
+      v-if="editable && editor"
       class="py-1.5 w-full max-w-[100vw] overflow-x-auto flex md:justify-center shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
       :buttons="menuButtons"
     />
@@ -26,7 +26,7 @@
         <FTextEditor
           ref="textEditor"
           class="min-w-full h-full flex flex-col"
-          editor-class="min-h-full  px-10 overflow-x-auto py-7"
+          editor-class="min-h-full px-10 overflow-x-auto pt-7 pb-15"
           :upload-function
           :autofocus="true"
           :content="rawContent"

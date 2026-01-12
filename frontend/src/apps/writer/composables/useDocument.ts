@@ -5,7 +5,7 @@ import { prettyData } from 'frappe-ui/frappe/drive/js/utils'
 import { getDocuments } from '@/resources/'
 
 export default function useDocument(docId: MaybeRefOrGetter<string>) {
-  interface Document extends DriveDocument {}
+  interface Document extends DriveDocument { }
 
   interface DocumentMethods {
     addYjsUpdate: (params: { update_b64: string }) => void
@@ -17,6 +17,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
     url: '/api/method/writer.api.docs.get_document?file_id=' + docId,
     name: docId,
     transform: (doc) => {
+      console.log('overriding', doc)
       if (doc.settings) doc.settings = JSON.parse(doc.settings)
       if (doc.comments)
         doc.comments = doc.comments.map((k) => ({

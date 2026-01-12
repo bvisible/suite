@@ -64,16 +64,6 @@
                       {{ row.title }}
                     </h1>
                   </div>
-                  <div class="shrink-0 ml-1 invisible group-hover:visible">
-                    <Dropdown
-                      :button="{
-                        icon: 'more-horizontal',
-                        label: 'Page Options',
-                        variant: 'ghost',
-                      }"
-                      :options="[]"
-                    />
-                  </div>
                 </div>
               </section>
             </template>
@@ -138,6 +128,21 @@
         </div>
       </div>
     </template>
+
+    <div
+      v-if="props.resource.data?.length === 0"
+      class="flex flex-col items-center gap-2.5 my-10"
+    >
+      <div class="flex flex-col gap-1.5 items-center">
+        <LucideFileText class="size-8" />
+        <p class="text-base text-ink-gray-6 font-medium">
+          {{ __('No documents yet.') }}
+        </p>
+      </div>
+      <p class="text-sm text-ink-gray-5">
+        {{ __('Create a document to get started.') }}
+      </p>
+    </div>
   </div>
   <!-- <ContextMenu
       v-if="rowEvent && selectedRow"
@@ -149,8 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, TabButtons } from 'frappe-ui'
-// import ContextMenu from '@/components/ContextMenu.vue'
+import { Avatar, TabButtons, Dropdown } from 'frappe-ui'
 import { useInfiniteScroll } from '@vueuse/core'
 import LucideGrid from '~icons/lucide/grid'
 import LucideList from '~icons/lucide/list'

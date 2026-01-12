@@ -71,27 +71,7 @@ export const isAdmin = createResource({
 export const apps = createResource({
   url: 'frappe.apps.get_apps',
   cache: 'apps',
-  transform: (data) => {
-    let apps = [
-      {
-        name: 'frappe',
-        logo: '/assets/frappe/images/framework.png',
-        title: 'Desk',
-        route: '/app',
-      },
-    ]
-    data.map((app) => {
-      if (app.name === 'drive') return
-      apps.push({
-        name: app.name,
-        logo: app.logo,
-        title: app.title,
-        route: app.route,
-      })
-    })
-
-    return apps
-  },
+  transform: (data) => data.filter((app) => app.name !== 'writer'),
 })
 
 export const diskSettings = createResource({

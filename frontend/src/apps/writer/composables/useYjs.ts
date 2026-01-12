@@ -113,7 +113,7 @@ export function useYjs(document, editor, edited) {
     const yjsState = Y.encodeStateAsUpdate(doc)
     const data = await document.saveDoc.submit({
       data: fromUint8Array(yjsState),
-      html: editor.value.getHTML(),
+      html: editor.value ? editor.value.getHTML() : '',
     })
     if (data?.skipped) {
       console.log(
