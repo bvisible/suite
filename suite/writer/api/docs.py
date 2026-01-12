@@ -21,7 +21,7 @@ from drive.utils.users import mark_as_viewed
 
 @frappe.whitelist()
 @default_team
-def create_document_entity(team, title=None, parent=None, template=None):
+def create_document(team, title=None, parent=None, template=None):
     home_directory = get_home_folder(team)
     parent = parent or home_directory.name
     parent_doc = frappe.get_cached_doc("Drive File", parent)
