@@ -23,6 +23,7 @@ class SFUClient {
 		this.isRefreshingToken = false;
 		this.tokenRefreshTimer = null;
 		this.setupDefaultHandlers();
+		this.isConnecting = false;
 	}
 
 	// ==================== CONNECTION MANAGEMENT ====================
@@ -31,6 +32,20 @@ class SFUClient {
 		if (this.connected) {
 			return true;
 		}
+
+		if (this.isConnecting) {
+			console.log("SFU connection already in progress, waiting...");
+			return new Promise((resolve) => {
+				const checkInterval = setInterval(() => {
+					if (!this.isConnecting) {
+						clearInterval(checkInterval);
+						resolve(this.connected);
+					}
+				}, 100);
+			});
+		}
+
+		this.isConnecting = true;
 
 		try {
 			const connectionDetails = await this.getConnectionDetails(
@@ -48,6 +63,8 @@ class SFUClient {
 		} catch (error) {
 			console.error("SFU connection failed:", error);
 			throw error;
+		} finally {
+			this.isConnecting = false;
 		}
 	}
 
@@ -241,6 +258,7 @@ class SFUClient {
 		}
 		this.clearTokenRefreshTimer();
 		this.connected = false;
+		this.isConnecting = false;
 		this.connectionDetails = {
 			authToken: null,
 			meetingId: null,
@@ -674,6 +692,13 @@ export function getSFUClient() {
 		sfuClient = new SFUClient();
 	}
 	return sfuClient;
+}
+
+export function resetSFUClient() {
+	if (sfuClient) {
+		sfuClient.disconnect();
+		sfuClient = null;
+	}
 }
 
 export function createSFUClient() {
