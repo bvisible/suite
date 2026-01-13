@@ -192,12 +192,9 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
 	}
 
-	const slide = {}
+	let slide = {}
 	if (layout) {
-		slide.background = layout.background
-		slide.transition = layout.transition
-		slide.transitionDuration = layout.transitionDuration
-		slide.fadeUnmatchedElements = layout.fadeUnmatchedElements
+		slide = { ...layout }
 		slide.elements = layout.elements.map((e) => ({ ...e }))
 	}
 
