@@ -262,7 +262,7 @@ provide("socket", socket);
 provide(
 	"meetingTitle",
 	computed(() => {
-		if (isGuestSession.value) {
+		if (!session.isLoggedIn) {
 			return meetingId.value;
 		}
 		return meetingTitle.value;

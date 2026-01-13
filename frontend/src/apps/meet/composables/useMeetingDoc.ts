@@ -20,7 +20,7 @@ interface DocumentResource {
 
 interface UseMeetingDocReturn {
 	getMeetingDoc: (meetingId: string) => DocumentResource;
-	getCurrentMeetingDoc: () => DocumentResource | null;
+	getCurrentMeetingDoc: () => MeetingDocument | null;
 	clearMeetingDoc: () => void;
 	meetingTitle: ComputedRef<string>;
 	meetingOwner: ComputedRef<string>;
@@ -34,7 +34,7 @@ const currentMeetingId: Ref<string | null> = ref(null);
 
 export function useMeetingDoc(): UseMeetingDocReturn {
 	const getMeetingDoc = (meetingId: string): DocumentResource => {
-		if (meetingDoc.value && currentMeetingId.value === meetingId) {
+		if (meetingDoc.value) {
 			return meetingDoc.value;
 		}
 
@@ -50,8 +50,8 @@ export function useMeetingDoc(): UseMeetingDocReturn {
 		return docResource;
 	};
 
-	const getCurrentMeetingDoc = (): DocumentResource | null => {
-		return meetingDoc.value;
+	const getCurrentMeetingDoc = (): MeetingDocument | null => {
+		return meetingDoc.value?.doc ?? null;
 	};
 
 	const clearMeetingDoc = (): void => {
@@ -60,7 +60,7 @@ export function useMeetingDoc(): UseMeetingDocReturn {
 	};
 
 	const meetingTitle = computed((): string => {
-		const doc = meetingDoc.value?.doc;
+		const doc = getCurrentMeetingDoc();
 		return doc?.title || doc?.name || currentMeetingId.value || "";
 	});
 
