@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from meet.utils.user import (
 	get_guest_session,
 	get_user_info,
+	unique_users,
 )
 
 
@@ -42,6 +43,12 @@ class SaeMeeting(Document):
 		"""Initialize meeting room"""
 		if not hasattr(self, "is_active"):
 			self.is_active = 1
+
+	def validate(self):
+		"""Ensure unique users in all child tables"""
+		self.members = unique_users(self.members) if self.members else []
+		self.waiting_room = unique_users(self.waiting_room) if self.waiting_room else []
+		self.banned_users = unique_users(self.banned_users) if self.banned_users else []
 
 	def after_insert(self):
 		self.join(frappe.session.user)

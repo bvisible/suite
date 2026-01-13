@@ -8,6 +8,17 @@ import frappe
 from frappe.core.doctype.user.user import User
 
 
+def unique_users(user_list: list[dict]) -> list[str]:
+	"""Return a list of unique user IDs, preserving order."""
+	seen = set()
+	unique_list = []
+	for user in user_list:
+		if user not in seen:
+			seen.add(user)
+			unique_list.append(user)
+	return unique_list
+
+
 def assign_meet_role(user: User, method: str) -> None:
 	"""Assign the "Meet User" role to a newly created User."""
 	role_name = "Meet User"
