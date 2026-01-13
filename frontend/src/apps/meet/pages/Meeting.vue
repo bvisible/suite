@@ -701,6 +701,10 @@ onMounted(async () => {
 				await applySpeakerDevice();
 			}
 
+			setupChatEvents(chatNotificationQueue.value);
+			setupReactionEvents();
+			setupRaiseHandEvents();
+
 			await joinMeetingRoom(guestName);
 			return;
 		}
@@ -720,6 +724,10 @@ onMounted(async () => {
 			if (selectedSpeakerId.value) {
 				await applySpeakerDevice();
 			}
+
+			setupChatEvents(chatNotificationQueue.value);
+			setupReactionEvents();
+			setupRaiseHandEvents();
 
 			// Connect to SFU with auth token
 			meetingState.isInPreview.value = false;
