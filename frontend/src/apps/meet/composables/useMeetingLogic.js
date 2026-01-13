@@ -1112,6 +1112,13 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 			}
 		} catch (error) {
 			console.error("SFU setup failed:", error);
+			try {
+				if (sfuManager.value) {
+					await sfuManager.value.disconnect();
+				}
+			} catch (cleanupError) {
+				console.warn("Failed to cleanup after SFU error:", cleanupError);
+			}
 			throw error;
 		}
 	};

@@ -8,7 +8,7 @@ import { MediaStreamHandler } from "./media/MediaStreamHandler.js";
 import { ParticipantManager } from "./media/ParticipantManager.js";
 import { TransportManager } from "./media/TransportManager.js";
 import { VideoElementManager } from "./media/VideoElementManager.js";
-import { getSFUClient } from "./sfu-client.js";
+import { getSFUClient, resetSFUClient } from "./sfu-client.js";
 
 export class SFUMeetingManager {
 	constructor() {
@@ -815,4 +815,5 @@ export function resetSFUMeetingManager() {
 		sfuManagerInstance.cleanup();
 		sfuManagerInstance = null;
 	}
+	resetSFUClient();
 }
