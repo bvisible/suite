@@ -161,7 +161,12 @@
 </template>
 
 <script setup>
-import { Button, Spinner, createDocumentResource } from "frappe-ui";
+import {
+	Button,
+	Spinner,
+	createDocumentResource,
+	frappeRequest,
+} from "frappe-ui";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -662,6 +667,29 @@ onMounted(async () => {
 		if (meetingState.connectionError?.value) {
 			meetingState.connectionError.value = null;
 			// Cleared connectionError on mount
+		}
+	}
+
+	// Check meeting access for unauthenticated users
+	if (!session.isLoggedIn) {
+		try {
+			const accessData = await frappeRequest({
+				url: "/api/method/meet.api.meeting.check_meeting_access",
+				params: {
+					meeting_id: meetingId.value,
+				},
+			});
+
+			if (!accessData.allow_guest) {
+				router.push({
+					name: "Login",
+					query: { next: `/${meetingId.value}` },
+				});
+				return;
+			}
+		} catch (error) {
+			console.error("Failed to check meeting access:", error);
+			return;
 		}
 	}
 
