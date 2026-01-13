@@ -651,3 +651,34 @@ def update_meeting_settings(meeting_id: str, allow_guest: int, meeting_type: str
 		"updated_fields": updated_fields,
 		"message": "Meeting settings updated successfully",
 	}
+
+
+@frappe.whitelist(allow_guest=True)
+@rate_limit(limit=10, seconds=5 * 60)
+def check_meeting_access(meeting_id: str) -> dict:
+	"""
+	Check if a meeting allows guest access without authentication
+
+	Args:
+		meeting_id: The meeting ID to check
+
+	Returns:
+		dict: Access information for the meeting
+	"""
+	try:
+		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
+
+		return {
+			"success": True,
+			"allow_guest": meeting.allow_guest,
+		}
+	except frappe.DoesNotExistError:
+		return {
+			"success": False,
+			"error": "Meeting not found",
+		}
+	except Exception as e:
+		return {
+			"success": False,
+			"error": str(e),
+		}
