@@ -477,8 +477,6 @@ def join_meeting_as_guest(meeting_id: str, guest_name: str, guest_id: str | None
 				"meeting_id": meeting_id,
 				"guest_id": guest_id,
 				"guest_name": guest_name_clean,
-				"sfu_url": sfu_config["sfu_server_url"],
-				"sfu_port": sfu_config["sfu_server_port"],
 				"message": "Waiting for host approval",
 			}
 
