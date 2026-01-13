@@ -127,7 +127,7 @@ def join_meeting(meeting_id: str) -> dict:
 					"user_avatar": user_avatar,
 					"is_host": False,
 					"is_guest": False,
-					"scope": "lobby",
+					"scope": "presence-preview",
 					"exp": int(time.time()) + 60 * 60,
 					"iat": int(time.time()),
 				}
