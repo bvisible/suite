@@ -119,9 +119,23 @@ const handleSvgText = (svgText) => {
 const handlePastedSlideJSON = async (json) => {
 	const index = slideIndex.value
 
-	insertSlide(JSON.parse(json), index)
+	let slideJSON = JSON.parse(json)
+	if (slideJSON.parent != presentationId.value) {
+		// if pasted slide is from a different presentation
+		// add file attachments correctly to current presentation + update docnames in json
+		slideJSON = await call(
+			'slides.slides.doctype.presentation.presentation.update_slide_attachments',
+			{
+				parent: presentationId.value,
+				slide: slideJSON,
+			},
+		)
+		if (typeof slideJSON.elements === 'string') {
+			slideJSON.elements = JSON.parse(slideJSON.elements)
+		}
+	}
 
-	// emit('changeSlide', index + 1)
+	insertSlide(slideJSON, index)
 }
 
 const isInputElement = (el) => {
@@ -141,10 +155,10 @@ const handleClipboardText = (clipboardText) => {
 	}
 }
 
-const handleClipboardJSON = (clipboardJSON, changeSlide) => {
+const handleClipboardJSON = async (clipboardJSON, changeSlide) => {
 	const isSlideJSON = !Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"')
 	if (isSlideJSON) {
-		handlePastedSlideJSON(clipboardJSON)
+		await handlePastedSlideJSON(clipboardJSON)
 		if (changeSlide) {
 			changeSlide(slideIndex.value + 1)
 		}

@@ -432,6 +432,8 @@ watch(
 	},
 )
 
+const handlePasteWrapper = (e) => handlePaste(e, emit.bind(null, 'changeSlide'))
+
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
 
@@ -440,13 +442,13 @@ const initSlideAndListeners = () => {
 	updateSlideBounds()
 
 	document.addEventListener('copy', handleCopy)
-	document.addEventListener('paste', (e) => handlePaste(e, emit.bind(null, 'changeSlide')))
+	document.addEventListener('paste', handlePasteWrapper)
 	window.addEventListener('resize', updateSlideBounds)
 }
 
 const clearListeners = () => {
 	document.removeEventListener('copy', handleCopy)
-	document.removeEventListener('paste', handlePaste)
+	document.removeEventListener('paste', handlePasteWrapper)
 	window.removeEventListener('resize', updateSlideBounds)
 }
 
