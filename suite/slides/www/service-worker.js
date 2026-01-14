@@ -1,4 +1,40 @@
-const CACHE_NAME = 'slides-private-files-v1'
+const CACHE_NAME = 'slides-private-files'
+const MAX_AGE = 24 * 60 * 60 * 1000 // 1 day
+
+const cleanupOldCacheEntry = async (cache, request, response) => {
+	const now = Date.now()
+
+	const cachedTimeHeader = response.headers.get('x-cached-time')
+	if (!cachedTimeHeader) return
+
+	const cachedTime = parseInt(cachedTimeHeader, 10)
+	if (isNaN(cachedTime)) return
+
+	const age = now - cachedTime
+
+	if (age > MAX_AGE) {
+		await cache.delete(request)
+	}
+}
+
+const cleanupOldCache = async () => {
+	const cache = await caches.open(CACHE_NAME)
+	const keys = await cache.keys()
+
+	await Promise.all(
+		keys.map(async (request) => {
+			const response = await cache.match(request)
+			if (!response) return
+
+			cleanupOldCacheEntry(cache, request, response)
+		}),
+	)
+}
+
+self.addEventListener('install', () => {
+	self.skipWaiting()
+	cleanupOldCache()
+})
 
 self.addEventListener('activate', (event) => {
 	event.waitUntil(
@@ -8,6 +44,18 @@ self.addEventListener('activate', (event) => {
 		})(),
 	)
 })
+
+const getModifiedResponse = (response) => {
+	const responseToCache = response.clone()
+	const headers = new Headers(responseToCache.headers)
+	headers.set('x-cached-time', Date.now().toString())
+
+	return new Response(responseToCache.body, {
+		status: responseToCache.status,
+		statusText: responseToCache.statusText,
+		headers: headers,
+	})
+}
 
 self.addEventListener('fetch', (event) => {
 	const request = event.request
@@ -33,9 +81,10 @@ self.addEventListener('fetch', (event) => {
 				// check for valid response here - basically avoid caching if 404 or other error
 				if (response.ok && response.status === 200) {
 					const ct = response.headers.get('content-type') || ''
-					// Avoid caching HTML/error pages
 					if (ct.startsWith('image/')) {
-						cache.put(request, response.clone())
+						// Clone response and add cache timestamp header
+						const modifiedResponse = getModifiedResponse(response)
+						cache.put(request, modifiedResponse)
 					}
 				}
 				return response
