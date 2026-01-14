@@ -138,16 +138,33 @@ def get_slide_thumbnails(presentation: str) -> list[str]:
 	return [slide["thumbnail"] for slide in slides]
 
 
-def apply_slide_layout(slide, ref_id):
-	layout_slide = frappe.get_doc("Slide", ref_id)
+@frappe.whitelist()
+def update_slide_attachments(parent, slide):
+	slide = json.loads(slide) if isinstance(slide, str) else slide
 
-	slide.update(layout_slide.as_dict())
+	if slide.get("thumbnail") and slide["thumbnail"].startswith("/private"):
+		get_attachment(parent, slide["thumbnail"])
 
-	elements = json.loads(layout_slide.elements)
+	elements_data = slide.get("elements") or "[]"
+	elements = elements_data if isinstance(elements_data, list) else json.loads(elements_data)
 	for element in elements:
 		element["id"] = "".join(random.choices(string.ascii_lowercase + string.digits, k=9))
+		if element.get("src") and element["src"].startswith("/private"):
+			element["attachmentName"] = get_attachment(parent, element["src"])
 
-	slide.elements = json.dumps(elements)
+	slide["elements"] = json.dumps(elements)
+
+	return slide
+
+
+def apply_slide_layout(slide, ref_id, parent):
+	layout_slide = frappe.get_doc("Slide", ref_id)
+
+	slide_dict = layout_slide.as_dict()
+	slide_dict = update_slide_attachments(parent, slide_dict)
+
+	for key, value in slide_dict.items():
+		setattr(slide, key, value)
 
 
 def create_new_slide(parent, ref_id, copy_thumbnail=False):
@@ -156,7 +173,7 @@ def create_new_slide(parent, ref_id, copy_thumbnail=False):
 	"""
 	slide = frappe.new_doc("Slide")
 
-	apply_slide_layout(slide, ref_id)
+	apply_slide_layout(slide, ref_id, parent)
 
 	if not copy_thumbnail:
 		slide.thumbnail = ""
