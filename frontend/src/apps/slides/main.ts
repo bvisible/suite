@@ -18,3 +18,13 @@ app.use(resourcesPlugin)
 app.component('Button', Button)
 app.provide('session', session)
 app.mount('#app')
+
+// Register Service Worker for Prod Environment
+// intentional to avoid caching + HMR conflict issues during dev
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    // service worker is served from root so that
+    // "/private/files/" can be intercepted correctly
+    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+        console.warn('Service Worker Registration Failed:', err)
+    })
+}
