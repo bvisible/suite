@@ -1,6 +1,10 @@
 const CACHE_NAME = 'slides-private-files'
 const MAX_AGE = 24 * 60 * 60 * 1000 // 1 day
 
+self.addEventListener('install', () => {
+	self.skipWaiting()
+})
+
 const cleanupOldCacheEntry = async (cache, request, response) => {
 	const now = Date.now()
 
@@ -31,18 +35,14 @@ const cleanupOldCache = async () => {
 	)
 }
 
-self.addEventListener('install', () => {
-	self.skipWaiting()
+const handleSWActivate = async () => {
 	cleanupOldCache()
-})
+	// this takes control of all client pages that are already open
+	await self.clients.claim()
+}
 
 self.addEventListener('activate', (event) => {
-	event.waitUntil(
-		(async () => {
-			// this takes control of the client page basically
-			await self.clients.claim()
-		})(),
-	)
+	event.waitUntil(handleSWActivate())
 })
 
 const getModifiedResponse = (response) => {
