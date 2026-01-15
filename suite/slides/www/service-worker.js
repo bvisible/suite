@@ -1,4 +1,6 @@
-const CACHE_NAME = 'slides-private-files'
+const MEDIA_CACHE_NAME = 'slides-media'
+const ASSETS_CACHE_NAME = `slides-assets`
+
 const MAX_AGE = 24 * 60 * 60 * 1000 // 1 day
 
 self.addEventListener('install', () => {
@@ -22,7 +24,7 @@ const cleanupOldCacheEntry = async (cache, request, response) => {
 }
 
 const cleanupOldCache = async () => {
-	const cache = await caches.open(CACHE_NAME)
+	const cache = await caches.open(MEDIA_CACHE_NAME)
 	const keys = await cache.keys()
 
 	await Promise.all(
@@ -57,37 +59,66 @@ const getModifiedResponse = (response) => {
 	})
 }
 
-const getResponseForRequest = async (request) => {
-	// if the image is there in the cache, don't fetch from network
-	const cache = await caches.open(CACHE_NAME)
-	const cached = await cache.match(request, { ignoreSearch: false })
+const isFile = (url) => url.pathname.startsWith('/private/files/')
+const isAsset = (url) => url.pathname.startsWith('/assets/')
+
+const getCacheObject = async (type) => {
+	switch (type) {
+		case 'asset':
+			return await caches.open(ASSETS_CACHE_NAME)
+		case 'file':
+			return await caches.open(MEDIA_CACHE_NAME)
+		default:
+			return null
+	}
+}
+
+const addCacheEntry = async (type, cache, request, response) => {
+	if (type === 'file') {
+		const contentType = response.headers.get('Content-Type') || ''
+		if (!contentType.startsWith('image/')) return
+	}
+
+	// clone response and add cache timestamp header
+	const modifiedResponse = getModifiedResponse(response)
+	cache.put(request, modifiedResponse)
+}
+
+const getResponseForRequest = async (request, type) => {
+	// if response is in cache, return it
+	const cache = await getCacheObject(type)
+	const cached = await cache.match(request)
 	if (cached) return cached
 
 	// else fetch from network and cache it
 	const response = await fetch(request)
 
-	// check for valid response here - basically avoid caching if 404 or other error
 	if (response.ok && response.status === 200) {
-		const ct = response.headers.get('content-type') || ''
-		if (ct.startsWith('image/')) {
-			// clone response and add cache timestamp header
-			const modifiedResponse = getModifiedResponse(response)
-			cache.put(request, modifiedResponse)
-		}
+		// if a valid response, cache it
+		addCacheEntry(type, cache, request, response)
 	}
+
 	return response
+}
+
+const getRequestType = (url) => {
+	if (isFile(url)) return 'file'
+	if (isAsset(url)) return 'asset'
+	return 'other'
 }
 
 const handleSWFetch = async (event) => {
 	const request = event.request
 	if (request.method !== 'GET') return
 
-	// before fetching, check if it's a file request
 	const url = new URL(request.url)
 	if (url.origin !== self.location.origin) return
-	if (!url.pathname.startsWith('/private/files/')) return
 
-	const response = getResponseForRequest(request)
+	const requestType = getRequestType(url)
+	const isAffectedByCache = ['file', 'asset'].includes(requestType)
+	if (!isAffectedByCache) return
+
+	const response = getResponseForRequest(request, requestType)
 	event.respondWith(response)
 }
 
