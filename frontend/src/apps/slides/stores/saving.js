@@ -162,4 +162,4 @@ const saveChanges = () => {
 	saveCurrentState()
 }
 
-export { syncPresentationToServer, saveChanges, dirtySince, isDirty }
+export { syncPresentationToServer, saveChanges, dirtySince, isDirty, syncThumbnail }
