@@ -29,6 +29,7 @@ class SaeMeeting(Document):
 
 		allow_guest: DF.Check
 		banned_users: DF.Table[SaeMeetingUser]
+		co_hosts: DF.Table[SaeMeetingUser]
 		meeting_type: DF.Literal["open", "restricted"]
 		members: DF.Table[SaeMeetingUser]
 		waiting_room: DF.Table[SaeMeetingUser]
@@ -47,6 +48,7 @@ class SaeMeeting(Document):
 	def validate(self):
 		"""Ensure unique users in all child tables"""
 		self.members = unique_users(self.members) if self.members else []
+		self.co_hosts = unique_users(self.co_hosts) if self.co_hosts else []
 		self.waiting_room = unique_users(self.waiting_room) if self.waiting_room else []
 		self.banned_users = unique_users(self.banned_users) if self.banned_users else []
 
@@ -105,6 +107,10 @@ class SaeMeeting(Document):
 	def get_members(self):
 		"""Get list of current members"""
 		return [row.user for row in self.members] if self.members else []
+
+	def get_co_hosts(self):
+		"""Get list of current co-hosts"""
+		return [row.user for row in self.co_hosts] if self.co_hosts else []
 
 	def can_join(self, user=None):
 		"""
@@ -168,17 +174,20 @@ class SaeMeeting(Document):
 			user_name = user
 			user_image = None
 
-		frappe.publish_realtime(
-			"meeting_join_request",
-			user=self.owner,
-			message={
-				"meeting": self.name,
-				"user": user,
-				"user_name": user_name,
-				"user_image": user_image,
-				"waiting_count": len(waiting_users) + 1,
-			},
-		)
+		authorized_users = [self.owner, *self.get_co_hosts()]
+
+		for authorized_user in authorized_users:
+			frappe.publish_realtime(
+				"meeting_join_request",
+				user=authorized_user,
+				message={
+					"meeting": self.name,
+					"user": user,
+					"user_name": user_name,
+					"user_image": user_image,
+					"waiting_count": len(waiting_users) + 1,
+				},
+			)
 
 	def add_guest_to_waiting_room(self, guest_id: str):
 		self.validate_guest_id(guest_id)
@@ -198,17 +207,20 @@ class SaeMeeting(Document):
 			else:
 				user_name = guest_id
 
-			frappe.publish_realtime(
-				"meeting_join_request",
-				user=self.owner,
-				message={
-					"meeting": self.name,
-					"user": guest_id,
-					"user_name": user_name,
-					"user_image": None,
-					"waiting_count": len(waiting_users) + 1,
-				},
-			)
+			authorized_users = [self.owner, *self.get_co_hosts()]
+
+			for authorized_user in authorized_users:
+				frappe.publish_realtime(
+					"meeting_join_request",
+					user=authorized_user,
+					message={
+						"meeting": self.name,
+						"user": guest_id,
+						"user_name": user_name,
+						"user_image": None,
+						"waiting_count": len(waiting_users) + 1,
+					},
+				)
 
 	def remove_from_waiting_room(self, user):
 		"""Remove user from waiting room"""
@@ -216,8 +228,8 @@ class SaeMeeting(Document):
 
 	def approve_user(self, user):
 		"""Approve a user from waiting room to join the meeting"""
-		if frappe.session.user != self.owner:
-			frappe.throw("Only the meeting creator can approve join requests")
+		if not self.is_host_or_cohost(frappe.session.user):
+			frappe.throw(_("Only hosts and co-hosts can approve join requests"))
 
 		waiting_users = self.get_waiting_room()
 		if user not in waiting_users:
@@ -257,6 +269,15 @@ class SaeMeeting(Document):
 				)
 
 		updated_waiting_users = self.get_waiting_room()
+
+		authorized_users = [self.owner, *self.get_co_hosts()]
+		for authorized_user in authorized_users:
+			frappe.publish_realtime(
+				"meeting_user_approved",
+				user=authorized_user,
+				message={"meeting": self.name, "user": user, "approved_by": frappe.session.user},
+			)
+
 		frappe.publish_realtime(
 			"meeting_waiting_room_updated",
 			doctype=self.doctype,
@@ -267,8 +288,8 @@ class SaeMeeting(Document):
 		return {"status": "joined", "message": "Successfully joined the meeting"}
 
 	def approve_all_users(self):
-		if frappe.session.user != self.owner:
-			frappe.throw(_("Only the meeting creator can approve join requests"))
+		if not self.is_host_or_cohost(frappe.session.user):
+			frappe.throw(_("Only hosts and co-hosts can approve join requests"))
 
 		users = self.get_waiting_room()
 		for user in users:
@@ -281,8 +302,8 @@ class SaeMeeting(Document):
 		if not rejected_by:
 			rejected_by = frappe.session.user
 
-		if rejected_by != self.owner:
-			frappe.throw("Only the meeting creator can reject join requests")
+		if not self.is_host_or_cohost(rejected_by):
+			frappe.throw(_("Only hosts and co-hosts can reject join requests"))
 
 		waiting_users = self.get_waiting_room()
 		if user not in waiting_users:
@@ -305,6 +326,14 @@ class SaeMeeting(Document):
 			message={"meeting": self.name, "user": user, "rejected_by": rejected_by},
 		)
 
+		authorized_users = [self.owner, *self.get_co_hosts()]
+		for authorized_user in authorized_users:
+			frappe.publish_realtime(
+				"meeting_user_rejected",
+				user=authorized_user,
+				message={"meeting": self.name, "user": user, "rejected_by": rejected_by},
+			)
+
 		updated_waiting_users = self.get_waiting_room()
 		frappe.publish_realtime(
 			"meeting_waiting_room_updated",
@@ -321,6 +350,42 @@ class SaeMeeting(Document):
 
 		members = self.get_members()
 		return user in members
+
+	def is_host_or_cohost(self, user: str) -> bool:
+		"""Check if user is the host or a co-host"""
+		if user == self.owner:
+			return True
+
+		co_hosts = self.get_co_hosts()
+		return user in co_hosts
+
+	def validate_can_promote_to_cohost(self, user: str, target_user: str) -> None:
+		"""Validate that a user can promote another user to co-host"""
+		if user != self.owner:
+			frappe.throw(_("Only the meeting host can promote users to co-host"))
+
+		if target_user.startswith("guest_"):
+			frappe.throw(_("Guests cannot be promoted to co-host"))
+
+		if self.is_host_or_cohost(target_user):
+			frappe.throw(_("User is already a host or co-host"))
+
+		if target_user not in self.get_members():
+			frappe.throw(_("User is not currently in the meeting"))
+
+	def promote_to_cohost(self, user: str, target_user: str) -> dict:
+		"""Promote a user to co-host during an active meeting (host only)"""
+		self.validate_can_promote_to_cohost(user, target_user)
+
+		self.append("co_hosts", {"user": target_user})
+		self.save()
+
+		return {
+			"success": True,
+			"meeting_id": self.name,
+			"user_id": target_user,
+			"message": _("User promoted to co-host successfully"),
+		}
 
 	def is_user_banned(self, user):
 		"""Check if user is banned from this meeting"""
