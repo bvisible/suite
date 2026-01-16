@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_mm5y",
-  "codec_strategy"
+  "codec_strategy",
+  "allow_guest"
  ],
  "fields": [
   {
@@ -20,13 +21,20 @@
    "fieldtype": "Select",
    "label": "Codec Strategy",
    "options": "auto\nsvc\nsimulcast"
+  },
+  {
+   "default": "1",
+   "description": "Allow guest users to join meetings without authentication",
+   "fieldname": "allow_guest",
+   "fieldtype": "Check",
+   "label": "Allow Guest Access"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-01 15:30:48.579220",
+ "modified": "2026-01-16 09:49:10.774663",
  "modified_by": "Administrator",
  "module": "Meet",
  "name": "Sae Settings",
