@@ -31,6 +31,10 @@ def _get_codec_strategy() -> str:
 @rate_limit(limit=10, seconds=60 * 60)
 def create(meeting_type: str = "open", allow_guest: bool = True) -> str:
 	"""Create a new meeting with specified type"""
+	global_settings = frappe.get_cached_doc("Sae Settings")
+	if not global_settings.allow_guest:
+		allow_guest = False
+
 	meeting: SaeMeeting = frappe.get_doc(
 		{
 			"doctype": "Sae Meeting",
@@ -427,7 +431,8 @@ def join_meeting_as_guest(meeting_id: str, guest_name: str, guest_id: str | None
 
 		meeting = frappe.get_doc("Sae Meeting", meeting_id)
 
-		if not meeting.allow_guest:
+		global_settings = frappe.get_cached_doc("Sae Settings")
+		if not global_settings.allow_guest or not meeting.allow_guest:
 			return {"success": False, "error": "Guests are not allowed in this meeting"}
 
 		# Check if reusing existing guest_id
@@ -651,6 +656,9 @@ def update_meeting_settings(meeting_id: str, allow_guest: int, meeting_type: str
 
 	updated_fields = {}
 	if allow_guest is not None:
+		global_settings = frappe.get_cached_doc("Sae Settings")
+		if not global_settings.allow_guest and allow_guest:
+			return {"success": False, "error": "Guest access is disabled globally"}
 		meeting.allow_guest = bool(allow_guest)
 		updated_fields["allow_guest"] = meeting.allow_guest
 
@@ -694,10 +702,12 @@ def check_meeting_access(meeting_id: str) -> dict:
 	"""
 	try:
 		meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
+		settings = frappe.get_cached_doc("Sae Settings")
+		allow_guest = settings.allow_guest and meeting.allow_guest
 
 		return {
 			"success": True,
-			"allow_guest": meeting.allow_guest,
+			"allow_guest": allow_guest,
 		}
 	except frappe.DoesNotExistError:
 		return {

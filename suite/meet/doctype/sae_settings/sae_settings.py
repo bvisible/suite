@@ -14,6 +14,7 @@ class SaeSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		allow_guest: DF.Check
 		codec_strategy: DF.Literal["auto", "svc", "simulcast"]
 	# end: auto-generated types
 
