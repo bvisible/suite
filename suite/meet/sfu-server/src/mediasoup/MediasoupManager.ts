@@ -82,11 +82,6 @@ export class MediasoupManager {
 		if (!room) return;
 
 		this.peerManager.removePeer(room, peerId);
-
-		// Close room if empty
-		if (room.peers.size === 0) {
-			await this.closeRoom(roomId);
-		}
 	}
 
 	async createWebRtcTransport(

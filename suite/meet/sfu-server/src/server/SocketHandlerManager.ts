@@ -181,6 +181,7 @@ export class SocketHandlerManager {
 		this.fullAccessSockets.delete(roomId);
 		this.previewSockets.delete(roomId);
 		delete this.raisedHands[roomId];
+		this.mediasoup.closeRoom(roomId);
 	}
 
 	setupSocketHandlers(): void {
@@ -445,8 +446,6 @@ export class SocketHandlerManager {
 				});
 			});
 
-			this.mediasoup.addPeer(roomId, participantId, userData);
-
 			socket.join(roomId);
 
 			if (!socket.meetingId) {
@@ -461,33 +460,41 @@ export class SocketHandlerManager {
 					this.fullAccessSockets.set(roomId, new Set());
 				}
 				this.fullAccessSockets.get(roomId)?.add(socket.id);
+
+				this.mediasoup.addPeer(roomId, participantId, userData);
+
+				if (this.isRealParticipant(userData.userId)) {
+					this.emitParticipantEvent(
+						roomId,
+						'participant_joined',
+						participantId,
+						userData,
+					);
+				}
+
+				loggers.socketHandler.info(
+					'User %s joined room %s with media state: audio=%s, video=%s',
+					participantId,
+					roomId,
+					userData.audio_enabled,
+					userData.video_enabled,
+				);
 			} else if (socket.scope === 'presence-preview') {
 				if (!this.previewSockets.has(roomId)) {
 					this.previewSockets.set(roomId, new Set());
 				}
 				this.previewSockets.get(roomId)?.add(socket.id);
-			}
 
-			if (this.isRealParticipant(userData.userId)) {
-				this.emitParticipantEvent(
-					roomId,
-					'participant_joined',
+				loggers.socketHandler.info(
+					'Preview user %s observing room %s (not added as peer)',
 					participantId,
-					userData,
+					roomId,
 				);
 			}
 
 			socket.emit('existing_raised_hands', {
 				hands: this.raisedHands[roomId] || {},
 			});
-
-			loggers.socketHandler.info(
-				'User %s joined room %s with media state: audio=%s, video=%s',
-				participantId,
-				roomId,
-				userData.audio_enabled,
-				userData.video_enabled,
-			);
 		} catch (error) {
 			loggers.socketHandler.error(
 				'Error in handleJoinRoom for user %s: %s',
@@ -980,9 +987,10 @@ export class SocketHandlerManager {
 			this.authManager.cleanupSocket(socket);
 
 			loggers.socketHandler.info(
-				'Disconnected: %s (User: %s)',
+				'Disconnected: %s (User: %s, Scope: %s)',
 				socket.id,
 				socket.participantId,
+				socket.scope,
 			);
 
 			const roomId = socket.roomId;
@@ -990,8 +998,6 @@ export class SocketHandlerManager {
 
 			if (roomId && participantId) {
 				try {
-					await this.mediasoup.removePeer(roomId, participantId);
-
 					// Remove from scope tracking
 					if (socket.scope === 'full') {
 						this.fullAccessSockets.get(roomId)?.delete(socket.id);
@@ -999,35 +1005,46 @@ export class SocketHandlerManager {
 						this.previewSockets.get(roomId)?.delete(socket.id);
 					}
 
-					// Clean up room if empty
+					// Only remove peer if full access
+					if (socket.scope === 'full') {
+						await this.mediasoup.removePeer(roomId, participantId);
+
+						if (this.isRealParticipant(participantId)) {
+							this.emitParticipantEvent(
+								roomId,
+								'participant_left',
+								participantId,
+							);
+						}
+
+						if (this.raisedHands[roomId]?.[participantId]) {
+							delete this.raisedHands[roomId][participantId];
+							this.emitToFullAccessParticipants(roomId, 'hand_raised', {
+								participantId,
+								raised: false,
+								timestamp: new Date().toISOString(),
+							});
+						}
+
+						loggers.socketHandler.info(
+							'Cleaned up user %s from room %s',
+							participantId,
+							roomId,
+						);
+					} else if (socket.scope === 'presence-preview') {
+						loggers.socketHandler.info(
+							'Preview socket %s disconnected for user %s (no peer to remove)',
+							socket.id,
+							participantId,
+						);
+					}
+
+					// Clean up room if empty (no full access or preview sockets)
 					const fullAccessCount = this.fullAccessSockets.get(roomId)?.size || 0;
 					const previewCount = this.previewSockets.get(roomId)?.size || 0;
 					if (fullAccessCount === 0 && previewCount === 0) {
 						this.cleanupRoom(roomId);
 					}
-
-					if (this.isRealParticipant(participantId)) {
-						this.emitParticipantEvent(
-							roomId,
-							'participant_left',
-							participantId,
-						);
-					}
-
-					if (this.raisedHands[roomId]?.[participantId]) {
-						delete this.raisedHands[roomId][participantId];
-						this.emitToFullAccessParticipants(roomId, 'hand_raised', {
-							participantId,
-							raised: false,
-							timestamp: new Date().toISOString(),
-						});
-					}
-
-					loggers.socketHandler.info(
-						'Cleaned up user %s from room %s',
-						participantId,
-						roomId,
-					);
 				} catch (error) {
 					loggers.socketHandler.error('Error handling disconnect: %s', error);
 				}
