@@ -268,6 +268,7 @@ const layoutResource = createResource({
 			slide.transitionDuration = slide.transition_duration
 			// remove the transition_duration field to avoid confusion
 			delete slide.transition_duration
+			delete slide.fade_unmatched_elements
 		}
 	},
 	makeParams: ({ theme }) => {
