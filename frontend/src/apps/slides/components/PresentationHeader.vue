@@ -6,7 +6,7 @@
 		@click="makeTitleEditable"
 		@focus="setCursorPositionAtEnd"
 		@blur="saveTitle"
-		@keydown.enter.prevent="(e) => e.target.blur()"
+		@keydown.enter.prevent.stop="(e) => e.target.blur()"
 	>
 		{{ title }}
 	</div>
