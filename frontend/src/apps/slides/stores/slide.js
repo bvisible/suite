@@ -201,6 +201,9 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 	// override metadata and generate unique IDs for elements
 	slide.name = ''
 	slide.parent = presentationId.value
+	slide.fadeUnmatchedElements = 1
+	slide.transitionDuration = 0
+	slide.transition = 'None'
 
 	return slide
 }
