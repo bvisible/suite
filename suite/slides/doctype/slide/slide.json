@@ -38,19 +38,16 @@
    "label": "Thumbnail"
   },
   {
-   "default": "None",
    "fieldname": "transition",
    "fieldtype": "Data",
    "label": "Transition"
   },
   {
-   "default": "0",
    "fieldname": "transition_duration",
    "fieldtype": "Data",
    "label": "Transition Duration"
   },
   {
-   "default": "1",
    "fieldname": "fade_unmatched_elements",
    "fieldtype": "Check",
    "label": "Fade Unmatched Elements"
@@ -60,7 +57,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-05 01:20:50.333224",
+ "modified": "2026-01-18 00:24:21.114521",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Slide",
