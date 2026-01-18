@@ -45,6 +45,7 @@
 						class="h-full flex flex-col w-full"
 						@device-changed="$emit('device-changed', $event)"
 						:is-visible="show"
+						:meeting-id="meetingId"
 					/>
 				</div>
 			</div>
@@ -58,9 +59,12 @@ import { Dialog } from "frappe-ui";
 import { computed, h, markRaw, ref } from "vue";
 import LucideBell from "~icons/lucide/bell";
 import LucideCamera from "~icons/lucide/camera";
+import LucideMonitorSmartphone from "~icons/lucide/monitor-smartphone";
 import LucideSettings from "~icons/lucide/settings";
+import { useMeetingDoc } from "../../composables/useMeetingDoc";
 import BackgroundSettingsTab from "./BackgroundSettingsTab.vue";
 import DeviceSettingsTab from "./DeviceSettingsTab.vue";
+import HostSettingsTab from "./HostSettingsTab.vue";
 import NotificationSettingsTab from "./NotificationSettingsTab.vue";
 
 const props = defineProps({
@@ -68,9 +72,19 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	meetingId: {
+		type: String,
+		default: "",
+	},
+	isPreview: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(["device-changed", "update:modelValue"]);
+
+const { isCurrentUserHost } = useMeetingDoc();
 
 const show = computed({
 	get: () => props.modelValue,
@@ -78,13 +92,28 @@ const show = computed({
 });
 
 // Settings tabs structure
-const tabs = [
-	{
-		label: "",
+const tabs = computed(() => {
+	const allTabs = [];
+
+	if (isCurrentUserHost.value && !props.isPreview) {
+		allTabs.push({
+			label: "Host Settings",
+			items: [
+				{
+					label: "General",
+					icon: h(LucideSettings),
+					component: markRaw(HostSettingsTab),
+				},
+			],
+		});
+	}
+
+	allTabs.push({
+		label: "General",
 		items: [
 			{
 				label: "Devices",
-				icon: h(LucideSettings),
+				icon: h(LucideMonitorSmartphone),
 				component: markRaw(DeviceSettingsTab),
 			},
 			{
@@ -98,10 +127,12 @@ const tabs = [
 				component: markRaw(BackgroundSettingsTab),
 			},
 		],
-	},
-];
+	});
 
-const activeTab = ref(tabs[0].items[0]);
+	return allTabs;
+});
+
+const activeTab = ref(tabs.value[0].items[0]);
 
 function onTabChange(tab) {
 	activeTab.value = tab;

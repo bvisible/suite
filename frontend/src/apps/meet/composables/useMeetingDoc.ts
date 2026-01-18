@@ -17,6 +17,15 @@ interface DocumentResource {
 		submit(params: Record<string, unknown>): Promise<unknown>;
 	};
 	reload(): Promise<void>;
+	updateSettings: {
+		submit(params: Record<string, unknown>): Promise<unknown>;
+		loading: boolean;
+	};
+	get: {
+		loading: boolean;
+		error: unknown;
+		submit(): Promise<void>;
+	};
 }
 
 interface UseMeetingDocReturn {
@@ -45,6 +54,9 @@ export function useMeetingDoc(): UseMeetingDocReturn {
 			doctype: "Sae Meeting",
 			name: meetingId,
 			auto: session.isLoggedIn,
+			whitelistedMethods: {
+				updateSettings: "update_settings",
+			},
 		});
 
 		meetingDoc.value = docResource;
