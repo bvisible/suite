@@ -408,6 +408,31 @@ class SaeMeeting(Document):
 		if self.is_user_banned(guest_id):
 			frappe.throw(_("Guest is banned from this meeting"))
 
+	@frappe.whitelist()
+	def update_settings(self, allow_guest: int | None = None, meeting_type: str | None = None) -> None:
+		"""
+		Update meeting settings (host or co-host only)
+		"""
+		if not self.is_host_or_cohost(frappe.session.user):
+			frappe.throw(_("Only the meeting host or co-host can update settings"))
+
+		updated_fields = {}
+		if allow_guest is not None:
+			global_settings = frappe.get_cached_doc("Sae Settings")
+			if not global_settings.allow_guest and allow_guest:
+				frappe.throw(_("Guest access is disabled globally"))
+			self.allow_guest = bool(allow_guest)
+			updated_fields["allow_guest"] = self.allow_guest
+
+		if meeting_type is not None:
+			if meeting_type not in ["open", "restricted"]:
+				frappe.throw(_("Invalid meeting type"))
+			self.meeting_type = meeting_type
+			updated_fields["meeting_type"] = self.meeting_type
+
+		if updated_fields:
+			self.save()
+
 
 def generate(segment_length=4, num_segments=3, separator="-"):
 	# Define the character set: only lowercase letters

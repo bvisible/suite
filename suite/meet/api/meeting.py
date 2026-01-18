@@ -645,41 +645,6 @@ def validate_guest_session(guest_id: str) -> dict:
 
 
 @frappe.whitelist()
-def update_meeting_settings(meeting_id: str, allow_guest: int, meeting_type: str) -> dict:
-	"""
-	Update meeting settings (host or co-host only)
-	"""
-	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
-
-	if not meeting.is_host_or_cohost(frappe.session.user):
-		return {"success": False, "error": "Only the meeting host or co-host can update settings"}
-
-	updated_fields = {}
-	if allow_guest is not None:
-		global_settings = frappe.get_cached_doc("Sae Settings")
-		if not global_settings.allow_guest and allow_guest:
-			return {"success": False, "error": "Guest access is disabled globally"}
-		meeting.allow_guest = bool(allow_guest)
-		updated_fields["allow_guest"] = meeting.allow_guest
-
-	if meeting_type is not None:
-		if meeting_type not in ["open", "restricted"]:
-			return {"success": False, "error": "Invalid meeting type"}
-		meeting.meeting_type = meeting_type
-		updated_fields["meeting_type"] = meeting.meeting_type
-
-	if updated_fields:
-		meeting.save()
-
-	return {
-		"success": True,
-		"meeting_id": meeting_id,
-		"updated_fields": updated_fields,
-		"message": "Meeting settings updated successfully",
-	}
-
-
-@frappe.whitelist()
 def promote_to_cohost(meeting_id: str, user_id: str) -> dict:
 	"""
 	Promote a user to co-host during an active meeting (host only)
