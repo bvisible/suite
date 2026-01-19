@@ -86,7 +86,7 @@ const addCacheEntry = async (type, cache, request, response) => {
 	if (type === 'media') {
 		const contentType = response.headers.get('Content-Type') || ''
 		const validContentTypes = ['image/', 'video/']
-		if (!validContentTypes.includes(contentType)) return
+		if (!validContentTypes.some((ct) => contentType.startsWith(ct))) return
 	}
 
 	// clone response and add cache timestamp header
@@ -96,7 +96,6 @@ const addCacheEntry = async (type, cache, request, response) => {
 
 const getResponseForRequest = async (request, type) => {
 	const cache = await getCacheObject(type)
-	const url = new URL(request.url)
 
 	if (type === 'api') {
 		try {
@@ -106,7 +105,6 @@ const getResponseForRequest = async (request, type) => {
 			}
 			return response
 		} catch {
-			// Network failed, try cache
 			const cached = await cache.match(request)
 			if (cached) return cached
 			throw new Error('No cached API response available')
