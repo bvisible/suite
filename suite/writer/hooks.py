@@ -11,15 +11,15 @@ app_license = "agpl-3.0"
 required_apps = ["drive"]
 sqlite_search = ["writer.search.WriterSearch"]
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "writer",
-# 		"logo": "/assets/writer/logo.png",
-# 		"title": "Frappe Writer",
-# 		"route": "/writer",
-# 		"has_permission": "writer.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+    {
+        "name": "writer",
+        "logo": "/assets/writer/favicon.png",
+        "title": "Writer",
+        "route": "/writer",
+        "has_permission": "drive.api.product.access_app",
+    }
+]
 
 # Includes in <head>
 # ------------------
@@ -250,3 +250,7 @@ permission_query_conditions = {
 override_doctype_class = {
     "Drive File": "writer.overrides.drive_file.WriterDriveFile",
 }
+
+ALLOWED_WILDCARD_PATHS = [
+    "/api/method/writer.api.",
+]
