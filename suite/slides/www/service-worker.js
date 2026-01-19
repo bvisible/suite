@@ -61,7 +61,10 @@ const getModifiedResponse = (response) => {
 }
 
 const isMedia = (url) => {
-	return url.pathname.startsWith('/private/files/')
+	return (
+		url.pathname.startsWith('/private/files/') ||
+		url.pathname.startsWith('/api/method/slides.api.file.get_media_file')
+	)
 }
 const isAsset = (url) => url.pathname.startsWith('/assets/')
 const isAPI = (url) => url.pathname.startsWith('/api/')
