@@ -114,6 +114,7 @@ onBeforeMount(() => normalizeContent())
 <style>
 .ProseMirror {
 	caret-color: currentColor;
+	outline: none;
 }
 
 .tiptap ul,
