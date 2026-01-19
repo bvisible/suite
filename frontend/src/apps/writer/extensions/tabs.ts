@@ -56,18 +56,16 @@ export const TabsExtension = Node.create({
       if (this.storage.hasInitialized) return
 
       const { doc } = this.editor.state
-      let firstTabId = null
+      let tabToChange = window.location.hash.slice(1)
+      const tabs = []
+      doc.descendants(
+        (node) => node.type.name === 'tab' && tabs.push(node.attrs.id),
+      )
+      if (!tabToChange || !tabs.includes(tabToChange)) tabToChange = tabs[0]
 
-      doc.descendants((node) => {
-        if (node.type.name === 'tab' && !firstTabId) {
-          firstTabId = node.attrs.id
-          return false
-        }
-      })
-
-      if (firstTabId) {
+      if (tabToChange) {
         this.storage.hasInitialized = true
-        this.editor.commands.changeTab(firstTabId, false)
+        this.editor.commands.changeTab(tabToChange, false)
       }
     }
 
@@ -86,7 +84,7 @@ export const TabsExtension = Node.create({
     return {
       changeTab:
         (tabId: string, changed: boolean = true) =>
-        ({ tr, dispatch, state }) => {
+        ({ tr, dispatch }) => {
           if (this.editor.view.dom) {
             this.editor.view.dom.setAttribute('data-active-tab', tabId || '')
           }
@@ -97,12 +95,66 @@ export const TabsExtension = Node.create({
 
           if (changed) {
             this.editor.commands.focusTab(tabId)
+            window.location.hash = '#' + tabId
           }
           this.editor.view.dom.dispatchEvent(
             new CustomEvent('tab-changed', {
               detail: { tabId },
             }),
           )
+          return true
+        },
+      reorderTab:
+        (tabId: string, newIndex: number) =>
+        ({ tr, dispatch, state }) => {
+          const tabs = []
+          state.doc.descendants((node, pos) => {
+            if (node.type.name === 'tab') {
+              tabs.push({ node, pos })
+            }
+          })
+
+          // Find the tab to move
+          const tabIndex = tabs.findIndex((t) => t.node.attrs.id === tabId)
+          if (tabIndex === -1) return false
+
+          // Validate new index
+          if (
+            newIndex < 0 ||
+            newIndex >= tabs.length ||
+            newIndex === tabIndex
+          ) {
+            return false
+          }
+
+          const { node: tabNode, pos: tabPos } = tabs[tabIndex]
+
+          // Delete the tab from its current position
+          tr.delete(tabPos, tabPos + tabNode.nodeSize)
+
+          // Calculate the new position after deletion
+          let insertPos
+          if (newIndex === 0) {
+            // Insert at the beginning
+            insertPos = 0
+          } else if (newIndex > tabIndex) {
+            // Moving down: use the position of the tab at newIndex (before deletion)
+            insertPos = tabs[newIndex].pos
+          } else {
+            // Moving up: use the position of the tab at newIndex (after deletion adjust)
+            insertPos = tabs[newIndex].pos
+          }
+
+          // Insert the tab at the new position
+          tr.insert(insertPos, tabNode)
+
+          dispatch(tr)
+
+          // Keep focus on the moved tab
+          setTimeout(() => {
+            this.editor.commands.changeTab(tabId, false)
+          }, 0)
+
           return true
         },
       focusTab:

@@ -18,7 +18,19 @@
     </template>
     <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2">
-        <div v-for="tab in tabs" :key="tab.id">
+        <div
+          v-for="(tab, index) in tabs"
+          :key="tab.id"
+          :class="[
+            'relative transition-all duration-200',
+            dragState.isDragging &&
+              dragState.draggedId === tab.id &&
+              'opacity-0',
+            dragState.isDragging && dragState.dropIndex === index && 'mt-10',
+          ]"
+        >
+          <!-- @dragover.prevent="onDragOver($event, index)"
+          @drop.prevent="onDrop" -->
           <div
             v-if="editingTabId === tab.id"
             class="flex items-center"
@@ -40,22 +52,20 @@
           <Button
             v-else
             variant="ghost"
-            class="w-full !text-ink-gray-5 !justify-start"
+            class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
             :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
             :label="tab.label"
             :icon-left="h(LucideFileText, { class: 'size-4' })"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
           />
+          <!-- :draggable="editor.isEditable"@dragstart="onDragStart($event, tab, index)"
+            @dragend.prevent="onDragEnd" -->
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
           >
             <div v-for="anchor in currentTabAnchors" class="flex">
-              <!-- <div
-                v-if="anchor.isActive"
-                class="border-l border-outline-gray-3 w-px"
-              ></div> -->
               <a
                 :href="'#' + anchor.id"
                 class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
@@ -80,10 +90,6 @@
         class="table-of-contents flex flex-col gap-0.5 mb-2"
       >
         <div v-for="anchor in anchors" class="flex">
-          <!-- <div
-            v-if="anchor.isActive"
-            class="border-l border-outline-gray-3 w-px"
-          ></div> -->
           <a
             :href="'#' + anchor.id"
             class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
@@ -121,7 +127,7 @@ import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
 import LucideTrash from '~icons/lucide/trash'
-import { ref, watch, computed, h, onMounted } from 'vue'
+import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import { TextInput } from 'frappe-ui'
 
 const props = defineProps({
@@ -234,6 +240,84 @@ const finishRenaming = (esc = false) => {
   editingTabId.value = null
   editingTabLabel.value = ''
   props.editor.commands.focus()
+}
+
+const tabEvent = ref(null)
+const selectedTab = ref(null)
+
+// Drag and drop state
+const dragState = ref({
+  isDragging: false,
+  draggedId: null,
+  draggedIndex: null,
+  dropIndex: null,
+})
+
+let ghostElement = null
+
+const onDragStart = (event, tab, index) => {
+  if (!props.editor.isEditable) return
+
+  dragState.value.isDragging = true
+  dragState.value.draggedId = tab.id
+  dragState.value.draggedIndex = index
+
+  // Create ghost element
+  const target = event.target.closest('button')
+  ghostElement = target.cloneNode(true)
+  ghostElement.style.position = 'fixed'
+  ghostElement.style.pointerEvents = 'none'
+  ghostElement.style.opacity = '0.6'
+  document.body.appendChild(ghostElement)
+
+  event.dataTransfer.setDragImage(ghostElement, 0, 0)
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+const onDragOver = (event, index) => {
+  if (!dragState.value.isDragging) return
+
+  const rect = event.currentTarget.getBoundingClientRect()
+  const midpoint = rect.top + rect.height / 2
+
+  // Determine if we should drop before or after this element
+  if (event.clientY < midpoint) {
+    dragState.value.dropIndex = index
+  } else {
+    dragState.value.dropIndex = index + 1
+  }
+}
+
+const onDrop = () => {
+  console.log('in!')
+  if (!dragState.value.isDragging) return
+
+  const fromIndex = dragState.value.draggedIndex
+  const toIndex = dragState.value.dropIndex
+
+  // Only reorder if position actually changed
+  if (fromIndex !== toIndex && toIndex !== fromIndex + 1) {
+    const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex
+    props.editor.commands.reorderTab(dragState.value.draggedId, adjustedToIndex)
+  }
+
+  onDragEnd()
+}
+
+const onDragEnd = (event) => {
+  if (event?.target?._cleanupDrag) {
+    event.target._cleanupDrag()
+  }
+
+  if (ghostElement) {
+    document.body.removeChild(ghostElement)
+    ghostElement = null
+  }
+
+  dragState.value.isDragging = false
+  dragState.value.draggedId = null
+  dragState.value.draggedIndex = null
+  dragState.value.dropIndex = null
 }
 
 const activeAnchorId = computed(() => {
