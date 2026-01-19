@@ -1,5 +1,6 @@
 const MEDIA_CACHE_NAME = 'slides-media'
-const ASSETS_CACHE_NAME = `slides-assets`
+const ASSET_CACHE_NAME = 'slides-assets'
+const API_CACHE_NAME = 'slides-api'
 
 const MAX_AGE = 24 * 60 * 60 * 1000 // 1 day
 
@@ -59,24 +60,30 @@ const getModifiedResponse = (response) => {
 	})
 }
 
-const isFile = (url) => url.pathname.startsWith('/private/files/')
+const isMedia = (url) => {
+	return url.pathname.startsWith('/private/files/')
+}
 const isAsset = (url) => url.pathname.startsWith('/assets/')
+const isAPI = (url) => url.pathname.startsWith('/api/')
 
 const getCacheObject = async (type) => {
 	switch (type) {
 		case 'asset':
-			return await caches.open(ASSETS_CACHE_NAME)
-		case 'file':
+			return await caches.open(ASSET_CACHE_NAME)
+		case 'media':
 			return await caches.open(MEDIA_CACHE_NAME)
+		case 'api':
+			return await caches.open(API_CACHE_NAME)
 		default:
 			return null
 	}
 }
 
 const addCacheEntry = async (type, cache, request, response) => {
-	if (type === 'file') {
+	if (type === 'media') {
 		const contentType = response.headers.get('Content-Type') || ''
-		if (!contentType.startsWith('image/')) return
+		const validContentTypes = ['image/', 'video/']
+		if (!validContentTypes.includes(contentType)) return
 	}
 
 	// clone response and add cache timestamp header
@@ -85,8 +92,24 @@ const addCacheEntry = async (type, cache, request, response) => {
 }
 
 const getResponseForRequest = async (request, type) => {
-	// if response is in cache, return it
 	const cache = await getCacheObject(type)
+	const url = new URL(request.url)
+
+	if (type === 'api') {
+		try {
+			const response = await fetch(request)
+			if (response.ok && response.status === 200) {
+				addCacheEntry(type, cache, request, response)
+			}
+			return response
+		} catch {
+			// Network failed, try cache
+			const cached = await cache.match(request)
+			if (cached) return cached
+			throw new Error('No cached API response available')
+		}
+	}
+
 	const cached = await cache.match(request)
 	if (cached) return cached
 
@@ -102,20 +125,23 @@ const getResponseForRequest = async (request, type) => {
 }
 
 const getRequestType = (url) => {
-	if (isFile(url)) return 'file'
+	if (isMedia(url)) return 'media'
 	if (isAsset(url)) return 'asset'
+	if (isAPI(url)) return 'api'
 	return 'other'
 }
 
 const handleSWFetch = async (event) => {
 	const request = event.request
-	if (request.method !== 'GET') return
 
 	const url = new URL(request.url)
+	const isDocGet = url.pathname.includes('/api/method/frappe.client.get')
+
+	if (request.method !== 'GET' && !isDocGet) return
 	if (url.origin !== self.location.origin) return
 
 	const requestType = getRequestType(url)
-	const isAffectedByCache = ['file', 'asset'].includes(requestType)
+	const isAffectedByCache = ['media', 'asset', 'api'].includes(requestType)
 	if (!isAffectedByCache) return
 
 	const response = getResponseForRequest(request, requestType)
