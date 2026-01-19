@@ -129,13 +129,9 @@ const getRequestType = (url) => {
 
 const handleSWFetch = async (event) => {
 	const request = event.request
-
 	const url = new URL(request.url)
-	const isDocGet = url.pathname.includes('/api/method/frappe.client.get')
-	if (isDocGet) return
 
-	if (request.method !== 'GET') return
-	if (url.origin !== self.location.origin) return
+	if (request.method !== 'GET' || url.origin !== self.location.origin) return
 
 	const requestType = getRequestType(url)
 	const isAffectedByCache = ['media', 'asset', 'api'].includes(requestType)
