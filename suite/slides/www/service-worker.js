@@ -94,35 +94,30 @@ const addCacheEntry = async (type, cache, request, response) => {
 	cache.put(request, modifiedResponse)
 }
 
+const fetchAndCache = async (request, type, cache) => {
+	const response = await fetch(request)
+	if (response.ok && response.status === 200) {
+		addCacheEntry(type, cache, request, response)
+	}
+	return response
+}
+
 const getResponseForRequest = async (request, type) => {
 	const cache = await getCacheObject(type)
 
 	if (type === 'api') {
 		try {
-			const response = await fetch(request)
-			if (response.ok && response.status === 200) {
-				addCacheEntry(type, cache, request, response)
-			}
-			return response
+			await fetchAndCache(request, type, cache)
 		} catch {
 			const cached = await cache.match(request)
 			if (cached) return cached
-			throw new Error('No cached API response available')
+			throw new Error('No cached response available')
 		}
 	}
 
 	const cached = await cache.match(request)
 	if (cached) return cached
-
-	// else fetch from network and cache it
-	const response = await fetch(request)
-
-	if (response.ok && response.status === 200) {
-		// if a valid response, cache it
-		addCacheEntry(type, cache, request, response)
-	}
-
-	return response
+	return await fetchAndCache(request, type, cache)
 }
 
 const getRequestType = (url) => {
@@ -137,8 +132,9 @@ const handleSWFetch = async (event) => {
 
 	const url = new URL(request.url)
 	const isDocGet = url.pathname.includes('/api/method/frappe.client.get')
+	if (isDocGet) return
 
-	if (request.method !== 'GET' && !isDocGet) return
+	if (request.method !== 'GET') return
 	if (url.origin !== self.location.origin) return
 
 	const requestType = getRequestType(url)
