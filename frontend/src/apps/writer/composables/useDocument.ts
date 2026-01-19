@@ -5,7 +5,7 @@ import { prettyData } from 'frappe-ui/frappe/drive/js/utils'
 import { getDocuments } from '@/resources/'
 
 export default function useDocument(docId: MaybeRefOrGetter<string>) {
-  interface Document extends DriveDocument { }
+  interface Document extends DriveDocument {}
 
   interface DocumentMethods {
     addYjsUpdate: (params: { update_b64: string }) => void

@@ -28,9 +28,9 @@
               'opacity-0',
             dragState.isDragging && dragState.dropIndex === index && 'mt-10',
           ]"
+          @dragover.prevent="onDragOver($event, index)"
+          @drop.prevent="onDrop"
         >
-          <!-- @dragover.prevent="onDragOver($event, index)"
-          @drop.prevent="onDrop" -->
           <div
             v-if="editingTabId === tab.id"
             class="flex items-center"
@@ -56,11 +56,12 @@
             :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
             :label="tab.label"
             :icon-left="h(LucideFileText, { class: 'size-4' })"
+            :draggable="editor.isEditable"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
+            @dragstart="onDragStart($event, tab, index)"
+            @dragend.prevent="onDragEnd"
           />
-          <!-- :draggable="editor.isEditable"@dragstart="onDragStart($event, tab, index)"
-            @dragend.prevent="onDragEnd" -->
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
