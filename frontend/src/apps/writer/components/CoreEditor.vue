@@ -172,7 +172,7 @@ import { onKeyDown } from '@vueuse/core'
 
 import store from '@/store'
 import emitter from '@/emitter'
-import { rename, allUsers } from 'frappe-ui/frappe/drive/js/resources'
+import { rename, allUsers } from 'frappe-ui/drive/js/resources'
 import { printDoc, updateURLSlug, isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import MediaDownload from '@/extensions/media-download'

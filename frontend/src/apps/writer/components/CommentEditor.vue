@@ -72,7 +72,7 @@
 </template>
 <script setup>
 import { TextEditor, Button } from 'frappe-ui'
-import { allUsers } from 'frappe-ui/frappe/drive/js/resources'
+import { allUsers } from 'frappe-ui/drive/js/resources'
 import { computed, ref } from 'vue'
 
 const editorContent = defineModel({ type: String })

@@ -58,7 +58,7 @@ import {
   MoveDialog,
   InfoDialog,
   RenameDialog,
-} from 'frappe-ui/frappe/drive'
+} from 'frappe-ui/drive'
 import RemoveDialog from './RemoveDialog.vue'
 import SearchDialog from './SearchDialog.vue'
 import { onKeyDown } from '@vueuse/core'

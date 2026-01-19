@@ -1,7 +1,7 @@
 import { MaybeRefOrGetter, toValue } from 'vue'
-import { useDoc } from 'frappe-ui/src/data-fetching'
+import { useDoc } from 'frappe-ui'
 import { DriveDocument } from '@/types/doctypes'
-import { prettyData } from 'frappe-ui/frappe/drive/js/utils'
+import { prettyData } from 'frappe-ui/drive/js/utils'
 import { getDocuments } from '@/resources/'
 
 export default function useDocument(docId: MaybeRefOrGetter<string>) {
