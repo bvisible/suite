@@ -78,8 +78,10 @@ import {
 	initPresentationDoc,
 	inSlideShow,
 	isPublicPresentation,
+	presentationDoc,
 } from '@/stores/presentation'
 import { currentSlide, slideIndex, slides } from '@/stores/slide'
+import { session } from '@/stores/session'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -123,6 +125,13 @@ const prefetchNextSlide = () => {
 	})
 }
 
+const getAssetUrl = (url) => {
+	if (presentationDoc.value?.owner === session.user || session.user === 'Administrator') {
+		return url
+	}
+	return `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
+}
+
 const prefetchAsset = async (src, type) => {
 	if (prefetchedAssets.value.has(src)) return
 	prefetchedAssets.value.add(src)
@@ -134,7 +143,7 @@ const prefetchAsset = async (src, type) => {
 			// Use link prefetch for images
 			const link = document.createElement('link')
 			link.rel = 'preload'
-			link.href = `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
+			link.href = getAssetUrl(url)
 			link.as = 'image'
 			document.head.appendChild(link)
 		}

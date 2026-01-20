@@ -44,8 +44,6 @@ import { presentationId, isPublicPresentation } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { copyToClipboard } from '@/stores/copyPaste'
 
-const savePresentation = inject('savePresentation', async () => {})
-
 const publicPresentation = ref()
 
 const openSharePopover = async (togglePopover) => {

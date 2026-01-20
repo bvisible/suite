@@ -73,8 +73,6 @@ import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import {
 	presentationId,
-	hasStateChanged,
-	savePresentationDoc,
 	layoutResource,
 	initPresentationDoc,
 	presentationDoc,
@@ -112,7 +110,14 @@ import {
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { isCmdOrCtrl } from '@/utils/helpers'
+import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
+import {
+	saveChanges,
+	dirtySince,
+	isDirty,
+	syncPresentationToServer,
+	syncThumbnail,
+} from '@/stores/saving'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
@@ -438,8 +443,6 @@ const handleAutoSave = () => {
 	saveChanges()
 }
 
-const dirtySince = ref(null)
-
 const handleThumbnailGeneration = async (index) => {
 	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
 
@@ -608,7 +611,7 @@ onDeactivated(async () => {
 
 		if (router.currentRoute.value.name !== 'Slideshow') {
 			await resetFocus()
-			savePresentation()
+			syncPresentationToServer()
 		}
 
 		document.removeEventListener('keydown', handleKeyDown)
@@ -635,40 +638,6 @@ const handleInsertSlide = (layoutId) => {
 	insertIndex.value = null
 }
 
-const isDirty = computed(() => {
-	if (!presentationDoc.value || !slides.value) return false
-
-	const original = JSON.parse(JSON.stringify(presentationDoc.value.slides || []))
-	const current = JSON.parse(JSON.stringify(slides.value || []))
-
-	return hasStateChanged(original, current)
-})
-
-const isSaving = ref(false)
-
-const savePresentation = async () => {
-	isSaving.value = true
-	try {
-		await savePresentationDoc()
-	} catch (error) {
-		console.error('Error saving presentation:', error)
-	} finally {
-		isSaving.value = false
-	}
-}
-
-let syncThumbnail = 0
-
-const saveChanges = async () => {
-	if (isSaving.value) return
-	if (!isDirty.value && syncThumbnail == 0) return
-
-	if (isDirty.value) syncThumbnail = 1
-	else syncThumbnail = 0
-
-	await savePresentation()
-}
-
 watch(
 	() => isDirty.value,
 	(val) => {
@@ -693,6 +662,4 @@ const handleBeforeUnload = (e) => {
 		e.returnValue = ''
 	}
 }
-
-provide('savePresentation', savePresentation)
 </script>
