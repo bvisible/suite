@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
@@ -240,8 +240,8 @@ const updateNewlyAddedSlideUUIDs = () => {
 	})
 }
 
-const savePresentationDoc = async () => {
-	const newSlides = slides.value.map((slide) => ({
+const savePresentationDoc = async (updatedSlides) => {
+	const newSlides = updatedSlides.map((slide) => ({
 		...slide,
 		elements: JSON.stringify(slide.elements, null, 2),
 		transition_duration: slide.transitionDuration,

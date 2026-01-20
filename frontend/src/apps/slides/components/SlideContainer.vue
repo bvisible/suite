@@ -345,7 +345,7 @@ const applyAspectRatio = (offset) => {
 }
 
 const validateMinWidth = (width) => {
-	const minWidth = activeElement.value.type === 'text' ? 7 : 29
+	const minWidth = activeElement.value.type === 'text' ? 7 : 1
 	return width + selectionBounds.width > minWidth
 }
 

@@ -1,10 +1,15 @@
 <template>
 	<Navbar :primaryButton="primaryButtonProps">
 		<template #default>
-			<PresentationHeader :title="presentationDoc?.title" />
+			<div class="flex w-full justify-center">
+				<PresentationHeader :title="presentationDoc?.title" />
+			</div>
 		</template>
 		<template v-if="!readonlyMode" #actions>
-			<Badge v-if="!isOnline" variant="subtle" theme="red" size="sm">Offline</Badge>
+			<Badge v-if="!isOnline" variant="subtle" theme="orange" size="md">
+				<LucideWifiOff class="mr-1 size-3.5 stroke-[1.5]" />
+				<span>Offline</span>
+			</Badge>
 			<SharePopover v-if="presentationDoc" />
 		</template>
 	</Navbar>
