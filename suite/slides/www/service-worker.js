@@ -66,8 +66,10 @@ const isMedia = (url) => {
 		url.pathname.startsWith('/api/method/slides.api.file.get_media_file')
 	)
 }
-const isAsset = (url) => url.pathname.startsWith('/assets/')
-const isAPI = (url) => url.pathname.startsWith('/api/')
+const isAsset = (url) => url.pathname.startsWith('/assets/') || url.pathname.startsWith('/slides/')
+const isAPI = (url) =>
+	url.pathname.startsWith('/api/method/frappe.client.') ||
+	url.pathname.startsWith('/api/method/slides.slides.')
 
 const getCacheObject = async (type) => {
 	switch (type) {
