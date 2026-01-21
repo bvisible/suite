@@ -4,11 +4,7 @@
     class="relative hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white"
   >
     <slot />
-    <template
-      v-if="showComments"
-      v-for="comment in filteredComments"
-      :key="comment.id"
-    >
+    <template v-if="showComments" v-for="comment in filteredComments" :key="comment.id">
       <div
         :id="'comment-' + comment.id"
         :ref="
@@ -29,7 +25,7 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white opacity-0 pointer-events-none transition-[top] duration-100 ease-in-out"
+        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white opacity-0 pointer-events-none"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
           comment.top && 'opacity-100 pointer-events-auto',
@@ -49,8 +45,7 @@
         >
           <Button
             v-if="
-              !comment.resolved &&
-              (comment.owner == $store.state.user.id || document.doc.write)
+              !comment.resolved && (comment.owner == $store.state.user.id || document.doc.write)
             "
             :disabled="comment.loading"
             variant="ghost"
@@ -63,10 +58,7 @@
             Resolve
           </Button>
           <Button
-            v-if="
-              comment.resolved &&
-              (comment.owner == $store.state.user.id || document.doc.write)
-            "
+            v-if="comment.resolved && (comment.owner == $store.state.user.id || document.doc.write)"
             :disabled="comment.loading"
             variant="ghost"
             class="!h-5 !text-xs !px-1.5 !rounded-sm"
@@ -95,16 +87,9 @@
         </div>
         <div
           class="p-3"
-          :class="
-            activeComment !== comment.id &&
-            comment.replies.length > 0 &&
-            'pb-1.5'
-          "
+          :class="activeComment !== comment.id && comment.replies.length > 0 && 'pb-1.5'"
         >
-          <blockquote
-            v-if="comment.detached"
-            class="text-xs text-ink-gray-8 mb-4"
-          >
+          <blockquote v-if="comment.detached" class="text-xs text-ink-gray-8 mb-4">
             Replying to:
             <span class="text-ink-gray-5 italic">{{ comment.anchorText }}</span>
           </blockquote>
@@ -130,23 +115,14 @@
                   :image="$user(reply.owner)?.user_image"
                 />
               </div>
-              <div
-                class="grow flex flex-col min-w-0"
-                :class="reply.edit && 'gap-1'"
-              >
-                <div
-                  class="w-full flex justify-between items-start label-group gap-1 text-sm"
-                >
+              <div class="grow flex flex-col min-w-0" :class="reply.edit && 'gap-1'">
+                <div class="w-full flex justify-between items-start label-group gap-1 text-sm">
                   <div class="flex gap-1">
-                    <label
-                      class="font-medium text-ink-gray-8 max-w-[70%] truncate"
-                      >{{ $user(reply.owner)?.full_name || reply.owner }}</label
-                    >
+                    <label class="font-medium text-ink-gray-8 max-w-[70%] truncate">{{
+                      $user(reply.owner)?.full_name || reply.owner
+                    }}</label>
 
-                    <label
-                      class="text-ink-gray-6 truncate"
-                      :title="new Date(reply.creation)"
-                    >
+                    <label class="text-ink-gray-6 truncate" :title="new Date(reply.creation)">
                       &#183;
                       {{ formatDateOrTime(reply.creation) }}</label
                     >
@@ -170,19 +146,13 @@
                         {
                           label: 'Delete',
                           onClick: () => removeReply(comment.id, reply.id),
-                          cond:
-                            comment.owner == $store.state.user.id &&
-                            index !== 0,
+                          cond: comment.owner == $store.state.user.id && index !== 0,
                         },
                       ])
                     "
                   >
                     <Button
-                      :disabled="
-                        activeComment !== comment.id ||
-                        reply.edit ||
-                        reply.resolved
-                      "
+                      :disabled="activeComment !== comment.id || reply.edit || reply.resolved"
                       class="!h-5 !text-xs !px-1.5 !rounded-sm opacity-0"
                       :class="
                         activeComment === comment.id &&
@@ -196,18 +166,14 @@
                       @click="triggerRoot"
                     />
                   </Dropdown>
-                  <LucideBadgeCheck
-                    v-if="comment.resolved"
-                    class="text-ink-gray-6 size-4"
-                  />
+                  <LucideBadgeCheck v-if="comment.resolved" class="text-ink-gray-6 size-4" />
                 </div>
                 <div class="comment-content text-sm">
                   <CommentEditor
                     v-model="commentContents[reply.id]"
                     placeholder="Edit"
                     :disabled="
-                      isEmpty(commentContents[reply.id]) ||
-                      commentContents[reply.id] == reply.text
+                      isEmpty(commentContents[reply.id]) || commentContents[reply.id] == reply.text
                     "
                     :editable="!!(reply.edit || reply.new) && reply.owner === $store.state.user.id"
                     :content="reply.text"
@@ -234,18 +200,14 @@
 
             <div
               v-show="
-                activeComment === comment.id &&
-                !(comment.edit || comment.new) &&
-                !comment.resolved
+                activeComment === comment.id && !(comment.edit || comment.new) && !comment.resolved
               "
               class="flex gap-3"
             >
               <Avatar
                 size="xl"
                 class="self-center"
-                :label="
-                  $user($store.state.user.id)?.full_name || $store.state.user.id
-                "
+                :label="$user($store.state.user.id)?.full_name || $store.state.user.id"
                 :image="$user($store.state.user.id)?.user_image"
               />
 
@@ -278,16 +240,7 @@
   </div>
 </template>
 <script setup>
-import {
-  computed,
-  reactive,
-  watch,
-  onMounted,
-  ref,
-  h,
-  onBeforeUnmount,
-  nextTick,
-} from 'vue'
+import { computed, reactive, watch, onMounted, ref, h, onBeforeUnmount, nextTick } from 'vue'
 import { Avatar, Button, Dropdown } from 'frappe-ui'
 import { formatDate } from '@/utils/format'
 import { dynamicList } from '@/utils/'
@@ -355,9 +308,7 @@ function useYMapReactive(yMap) {
 const comments = useYMapReactive(props.yComments)
 
 const filteredComments = computed(() => {
-  const filtered = props.showResolved
-    ? comments.value
-    : comments.value.filter((k) => !k.resolved)
+  const filtered = props.showResolved ? comments.value : comments.value.filter((k) => !k.resolved)
   return filtered
 })
 watch(
@@ -397,9 +348,7 @@ const updateComment = (comment, thread, editor) => {
   if (comment.id === thread.id) {
     props.yComments.set(comment.id, sanitize(comment))
   } else {
-    thread.replies = thread.replies.map((r) =>
-      r.id === comment.id ? sanitize(comment) : r,
-    )
+    thread.replies = thread.replies.map((r) => (r.id === comment.id ? sanitize(comment) : r))
     props.yComments.set(thread.id, sanitize(thread))
   }
   emit('save')
@@ -448,11 +397,7 @@ const resolve = (comment, value = true) => {
 }
 
 const isEmpty = (editorContent) => {
-  return (
-    !editorContent ||
-    !editorContent.length ||
-    editorContent.replace(/\s/g, '') == '<p></p>'
-  )
+  return !editorContent || !editorContent.length || editorContent.replace(/\s/g, '') == '<p></p>'
 }
 
 const formatDateOrTime = (datetimeNum) => {
@@ -469,24 +414,24 @@ const formatDateOrTime = (datetimeNum) => {
 const setCommentHeights = useDebounceFn(() => {
   let lastBottom = 0
   nextTick(() => {
+    const containerTop = scrollContainer.value.getBoundingClientRect().top
     for (const comment of filteredComments.value) {
       try {
-        const containerTop = scrollContainer.value.getBoundingClientRect().top
         const el =
           document.querySelector(`[data-comment-name="${comment.id}"]`) ||
           document.querySelector(`[data-comment-id="${comment.id}"]`)
         let anchorTop
-        if (!el && comment.anchorText) {
+        if (!el && comment.anchorText && !comment.new) {
           comment.detached = 1
           anchorTop = 48
         } else {
-          anchorTop = el.getBoundingClientRect().top - containerTop
+          const elTop = el.getBoundingClientRect().top
+          anchorTop = elTop ? elTop - containerTop : 0
           comment.detached = 0
         }
-        const adjustedTop = Math.max(anchorTop, lastBottom)
+        const adjustedTop = anchorTop ? Math.max(anchorTop, lastBottom) : 0
         comment.top = adjustedTop
-        if (adjustedTop)
-          lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
+        if (adjustedTop) lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
       } catch (e) {
         console.log(e)
       }
@@ -517,8 +462,7 @@ props.editor.on('update', () => {
 })
 
 const purgeNewEmptyComments = () => {
-  for (const comment of comments.value)
-    if (comment.new) removeComment(comment.id, true)
+  for (const comment of comments.value) if (comment.new) removeComment(comment.id, true)
 }
 
 onBeforeUnmount(purgeNewEmptyComments)
