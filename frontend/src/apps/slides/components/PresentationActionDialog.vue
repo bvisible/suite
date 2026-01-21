@@ -40,7 +40,7 @@ import { ref, watch, nextTick, useTemplateRef } from 'vue'
 
 import { Dialog, FormControl, call } from 'frappe-ui'
 
-import { createPresentationResource, updatePresentationTitle } from '@/stores/presentation'
+import { updatePresentationTitle } from '@/stores/presentation'
 
 import { Trash, PenLine } from 'lucide-vue-next'
 

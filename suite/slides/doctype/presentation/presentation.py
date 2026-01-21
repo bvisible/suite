@@ -105,16 +105,16 @@ def get_presentation_thumbnail(presentation_name: str, index: int | None = 1) ->
 
 
 @frappe.whitelist()
-def get_all_presentations() -> list[dict]:
+def get_presentations() -> list[dict]:
 	"""
 	Returns a list of presentation details
 	- info and first thumbnail
 	"""
 	presentations = frappe.get_list(
 		"Presentation",
-		fields=["name", "title", "owner", "creation", "modified_by", "modified", "is_public"],
-		filters={"owner": frappe.session.user, "is_template": 0},
+		fields=["name", "title", "owner", "creation", "modified_by", "modified", "is_template"],
 		order_by="modified desc",
+		or_filters=[["owner", "=", frappe.session.user], ["is_template", "=", 1]],
 	)
 
 	for presentation in presentations:
@@ -310,21 +310,19 @@ def get_public_presentation(name):
 
 
 @frappe.whitelist()
-def get_themes():
-	themes = frappe.get_all(
+def get_templates():
+	templates = frappe.get_all(
 		"Presentation",
 		filters={"is_template": 1},
-		fields=["name", "title", "slug", "is_public"],
-		order_by="title",
+		fields=["name", "title", "slug", "creation"],
+		order_by="creation",
 	)
 
-	for theme in themes:
-		if theme["title"] in ("Light", "Dark"):
-			theme["thumbnail"] = get_presentation_thumbnail(theme["name"], 3)
-		else:
-			theme["thumbnail"] = get_presentation_thumbnail(theme["name"])
+	for template in templates:
+		doc = frappe.get_doc("Presentation", template["name"])
+		template["layouts"] = doc.slides
 
-	return themes
+	return templates
 
 
 @frappe.whitelist(allow_guest=True)
