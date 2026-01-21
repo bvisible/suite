@@ -4,7 +4,7 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => openThemeDialog(),
+				onClick: () => createPresentation(),
 			}"
 		/>
 
@@ -35,8 +35,6 @@
 		@closeDialog="closeDialog"
 		@navigate="navigateToPresentation"
 	/>
-
-	<ThemeDialog v-model="showThemeDialog" @create="(theme) => createPresentation(theme)" />
 </template>
 
 <script setup>
@@ -52,7 +50,6 @@ import Navbar from '@/components/Navbar.vue'
 import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
-import ThemeDialog from '@/components/ThemeDialog.vue'
 
 import { createPresentationResource, unsyncedPresentationRecord } from '@/stores/presentation'
 
@@ -62,18 +59,28 @@ const previewPresentation = ref(null)
 const selectedPresentation = ref(null)
 
 const showDialog = ref(false)
-const showThemeDialog = ref(false)
 const dialogAction = ref('')
 
 const presentationList = ref([])
+const templateList = ref([])
 
 const presentationListResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
+	url: 'slides.slides.doctype.presentation.presentation.get_presentations',
 	method: 'GET',
 	auto: true,
 	cache: 'presentations',
 	onSuccess: (data) => {
 		presentationList.value = data
+	},
+})
+
+const templateListResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_templates',
+	method: 'GET',
+	auto: true,
+	cache: 'templates',
+	onSuccess: (data) => {
+		templateList.value = data
 	},
 })
 
@@ -114,10 +121,12 @@ const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
 
-const createPresentation = async (theme) => {
-	showThemeDialog.value = false
+const createPresentation = async (template) => {
+	if (!template) {
+		template = templateList.value.find((t) => t.title === 'Light')?.name
+	}
 	const newPresentation = await createPresentationResource.submit({
-		theme: theme,
+		theme: template,
 	})
 	if (newPresentation) {
 		navigateToPresentation(newPresentation)
@@ -135,10 +144,6 @@ const duplicatePresentation = async (presentation) => {
 	} else {
 		console.error('Failed to create new presentation')
 	}
-}
-
-const openThemeDialog = () => {
-	showThemeDialog.value = true
 }
 
 const syncPresentationRecord = () => {
