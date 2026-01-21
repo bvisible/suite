@@ -22,7 +22,7 @@ const createPresentationResource = createResource({
 	makeParams: (args) => {
 		return {
 			duplicate_from: args.duplicateFrom,
-			theme: args.theme,
+			template: args.template,
 		}
 	},
 	transform: (response) => {

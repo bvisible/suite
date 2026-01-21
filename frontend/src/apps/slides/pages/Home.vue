@@ -126,7 +126,7 @@ const createPresentation = async (template) => {
 		template = templateList.value.find((t) => t.title === 'Light')?.name
 	}
 	const newPresentation = await createPresentationResource.submit({
-		theme: template,
+		template: template,
 	})
 	if (newPresentation) {
 		navigateToPresentation(newPresentation)
