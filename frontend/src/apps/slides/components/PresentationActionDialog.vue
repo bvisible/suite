@@ -49,7 +49,7 @@ const props = defineProps({
 	dialogAction: String,
 })
 
-const emit = defineEmits(['reloadList', 'closeDialog'])
+const emit = defineEmits(['closeDialog', 'updatePresentationList'])
 
 const inputRef = useTemplateRef('inputRef')
 
@@ -76,7 +76,7 @@ const performAction = async () => {
 	if (action == 'Rename') await renamePresentation()
 	else await deletePresentation()
 
-	emit('reloadList')
+	emit('updatePresentationList', action, newPresentationTitle.value)
 }
 
 const deletePresentation = async () => {
