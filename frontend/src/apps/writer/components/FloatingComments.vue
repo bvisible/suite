@@ -446,11 +446,6 @@ onMounted(() => {
     activeComment.value = null
     setCommentHeights()
   }
-  console.log()
-  useEventListener(document.getElementById('editorScrollContainer'), 'scroll', (e) => {
-    console.trace()
-    console.log(e.target.scrollTop)
-  })
   props.editor.view.dom.addEventListener('tab-changed', onTabChange)
   onBeforeUnmount(() => {
     try {

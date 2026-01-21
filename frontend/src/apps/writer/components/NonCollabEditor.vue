@@ -54,7 +54,6 @@ const save = () => props.document.saveHtml.submit({ html: rawContent.value })
 const autosave = debounce(save, 5000)
 
 onBeforeUnmount(() => {
-  console.log('savin')
   if (edited.value) save()
 })
 

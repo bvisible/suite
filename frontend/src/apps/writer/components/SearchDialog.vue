@@ -50,7 +50,6 @@
                       class="line-clamp-3 text-sm text-ink-gray-5"
                       v-html="doc.content.replace('\n', '<enter>')"
                     />
-                    {{ console.log(doc.content) }}
                   </div>
                 </div>
               </div>

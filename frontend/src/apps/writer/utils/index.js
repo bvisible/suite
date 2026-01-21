@@ -370,7 +370,6 @@ export function printDoc(html, settings = {}) {
     angle: settings?.watermark_angle || -45,
   }
   const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ''
-  console.log(settings)
   const content = `
             <!DOCTYPE html>
             <html>
