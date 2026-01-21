@@ -14,7 +14,7 @@ sqlite_search = ["writer.search.WriterSearch"]
 add_to_apps_screen = [
     {
         "name": "writer",
-        "logo": "/assets/writer/favicon.png",
+        "logo": "/assets/writer/frontend/favicon.png",
         "title": "Writer",
         "route": "/writer",
         "has_permission": "drive.api.product.access_app",
