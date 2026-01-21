@@ -1,4 +1,4 @@
-import { MaybeRefOrGetter, toValue } from 'vue'
+import { MaybeRefOrGetter } from 'vue'
 import { useDoc } from 'frappe-ui'
 import { DriveDocument } from '@/types/doctypes'
 import { prettyData } from 'frappe-ui/drive/js/utils'

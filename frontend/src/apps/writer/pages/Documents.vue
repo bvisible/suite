@@ -72,9 +72,10 @@ function groupByTime(entities) {
     Earlier: [],
   }
   entities.forEach((k) => {
+    // remove complex logic; replace with something smarter?
     const modified = new Date(k.modified)
     const accessed = new Date(k.accessed)
-    k.recentDate = modified > accessed ? modified : accessed
+    k.recentDate = accessed
     return k
   })
   entities

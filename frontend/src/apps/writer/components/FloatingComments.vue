@@ -209,7 +209,7 @@
                       isEmpty(commentContents[reply.id]) ||
                       commentContents[reply.id] == reply.text
                     "
-                    :editable="!!(reply.edit || reply.new)"
+                    :editable="!!(reply.edit || reply.new) && reply.owner === $store.state.user.id"
                     :content="reply.text"
                     @change="setCommentHeights"
                     @submit="

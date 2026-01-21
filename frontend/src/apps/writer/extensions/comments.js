@@ -57,7 +57,6 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
         Y.decodeRelativePosition(comment.anchor.to),
         ystate.binding.mapping,
       )
-      console.log('HOHOHO', from, to)
 
       decos.push(
         Decoration.inline(from, to, {
@@ -108,6 +107,9 @@ export const CommentExtension = Extension.create({
               activeComment.value,
               showResolved.value,
             )
+            // comments.observe((val) => {
+            //   console.log(val)
+            // })
             if (onDecorationsPainted) setTimeout(onDecorationsPainted, 100)
             return decos
           },
