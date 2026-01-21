@@ -25,9 +25,17 @@ const createPresentationResource = createResource({
 			template: args.template,
 		}
 	},
-	transform: (response) => {
-		return response.name
-	},
+	transform: (doc) => {
+		return {
+			name: doc.name,
+			title: doc.title,
+			owner: doc.owner,
+			creation: doc.creation,
+			modified_by: doc.modified_by,
+			modified: doc.modified,
+			thumbnail: doc.thumbnail || '',
+		}
+	}
 })
 
 const updatePresentationTitle = async (id, newTitle) => {
