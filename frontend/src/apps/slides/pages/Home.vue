@@ -31,8 +31,8 @@
 		v-model="showDialog"
 		:dialogAction="dialogAction"
 		:presentation="selectedPresentation"
-		@reloadList="reloadList"
 		@closeDialog="closeDialog"
+		@updatePresentationList="updatePresentationList"
 	/>
 </template>
 
@@ -85,6 +85,7 @@ const templateListResource = createResource({
 
 const navigateToPresentation = (name, present) => {
 	name = name || previewPresentation.value?.name
+	previewPresentation.value = null
 	if (present) {
 		router.replace({
 			name: 'Slideshow',
@@ -110,9 +111,15 @@ const closeDialog = () => {
 	showDialog.value = false
 }
 
-const reloadList = async () => {
-	await presentationListResource.reload()
-	previewPresentation.value = null
+const updatePresentationList = (action, newTitle) => {
+	if (action == 'Delete') {
+		previewPresentation.value = null
+		presentationList.value = presentationList.value.filter(
+			(p) => p.name !== selectedPresentation.value.name,
+		)
+	} else if (action == 'Rename' && newTitle) {
+		selectedPresentation.value.title = newTitle
+	}
 }
 
 const setPreview = (presentation) => {
