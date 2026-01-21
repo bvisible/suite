@@ -12,9 +12,9 @@
 			:loading="presentationListResource.loading"
 			:presentations="presentationList"
 			@setPreview="setPreview"
-			@navigate="(name, present) => navigateToPresentation(name, present)"
+			@navigate="navigateToPresentation"
 			@openDialog="openDialog"
-			@duplicatePresentation="(name) => duplicatePresentation(name)"
+			@duplicatePresentation="duplicatePresentation"
 		/>
 
 		<PresentationPreview
@@ -23,7 +23,7 @@
 			@setPreview="setPreview"
 			@openDialog="openDialog"
 			@navigate="navigateToPresentation"
-			@duplicatePresentation="(name) => duplicatePresentation(name)"
+			@duplicatePresentation="duplicatePresentation"
 		/>
 	</div>
 
@@ -92,7 +92,6 @@ const navigateToPresentation = (name, present) => {
 			query: { slide: 1 },
 		})
 	} else {
-		reloadList()
 		router.push({
 			name: 'PresentationEditor',
 			params: { presentationId: name },
@@ -121,28 +120,16 @@ const setPreview = (presentation) => {
 }
 
 const createPresentation = async (template) => {
-	if (!template) {
-		template = templateList.value.find((t) => t.title === 'Light')?.name
-	}
-	const newPresentation = await createPresentationResource.submit({
-		template: template,
-	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation)
-	} else {
-		console.error('Failed to create new presentation')
-	}
+	template = template || templateList.value.find((t) => t.title === 'Light')?.name
+	const newPresentation = await createPresentationResource.submit({ template })
+	presentationList.value.unshift(newPresentation)
+	navigateToPresentation(newPresentation?.name)
 }
 
-const duplicatePresentation = async (presentation) => {
-	const newPresentation = await createPresentationResource.submit({
-		duplicateFrom: presentation,
-	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation)
-	} else {
-		console.error('Failed to create new presentation')
-	}
+const duplicatePresentation = async (duplicateFrom) => {
+	const newPresentation = await createPresentationResource.submit({ duplicateFrom })
+	presentationList.value.unshift(newPresentation)
+	navigateToPresentation(newPresentation?.name)
 }
 
 const syncPresentationRecord = () => {

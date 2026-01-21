@@ -112,9 +112,9 @@ def get_presentations() -> list[dict]:
 	"""
 	presentations = frappe.get_list(
 		"Presentation",
-		fields=["name", "title", "owner", "creation", "modified_by", "modified", "is_template"],
+		fields=["name", "title", "owner", "creation", "modified_by", "modified"],
 		order_by="modified desc",
-		or_filters=[["owner", "=", frappe.session.user], ["is_template", "=", 1]],
+		filters=[["owner", "=", frappe.session.user]],
 	)
 
 	for presentation in presentations:

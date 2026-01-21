@@ -19,12 +19,7 @@
 					<!-- added bg-white temporarily to support for first slides with no generated thumbnail -->
 					<div
 						class="aspect-[16/9] cursor-pointer rounded-lg bg-white shadow-xl hover:scale-[1.01]"
-						:style="
-							getThumbnailCardStyles(
-								presentation.thumbnail || '',
-								presentation.is_public,
-							)
-						"
+						:style="getThumbnailCardStyles(presentation.thumbnail || '')"
 						@click="$emit('navigate', presentation.name)"
 					></div>
 
