@@ -49,7 +49,7 @@ const props = defineProps({
 	dialogAction: String,
 })
 
-const emit = defineEmits(['reloadList', 'navigate', 'closeDialog'])
+const emit = defineEmits(['reloadList', 'closeDialog'])
 
 const inputRef = useTemplateRef('inputRef')
 
@@ -73,21 +73,10 @@ const performAction = async () => {
 
 	handleDialogClose()
 
-	let newPresentationId
-	switch (action) {
-		case 'Rename':
-			await renamePresentation()
-			break
-		case 'Delete':
-			await deletePresentation()
-			break
-	}
+	if (action == 'Rename') await renamePresentation()
+	else await deletePresentation()
 
-	if (newPresentationId) {
-		emit('navigate', newPresentationId)
-	} else {
-		emit('reloadList')
-	}
+	emit('reloadList')
 }
 
 const deletePresentation = async () => {

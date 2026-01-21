@@ -33,7 +33,6 @@
 		:presentation="selectedPresentation"
 		@reloadList="reloadList"
 		@closeDialog="closeDialog"
-		@navigate="navigateToPresentation"
 	/>
 </template>
 
