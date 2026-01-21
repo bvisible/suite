@@ -13,17 +13,13 @@ const ExtendedParagraph = Paragraph.extend({
         default: null,
         parseHTML: (el) => el.style.marginTop || null,
         renderHTML: (attrs) =>
-          attrs.spacingBefore
-            ? { style: `margin-top: ${attrs.spacingBefore}` }
-            : {},
+          attrs.spacingBefore ? { style: `margin-top: ${attrs.spacingBefore}` } : {},
       },
       spacingAfter: {
         default: null,
         parseHTML: (el) => el.style.marginBottom || null,
         renderHTML: (attrs) =>
-          attrs.spacingAfter
-            ? { style: `margin-bottom: ${attrs.spacingAfter}` }
-            : {},
+          attrs.spacingAfter ? { style: `margin-bottom: ${attrs.spacingAfter}` } : {},
       },
     }
   },

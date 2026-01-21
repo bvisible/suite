@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white max-h-screen overflow-auto"
+    class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white max-h-screen overflow-y-auto"
   >
     <template v-if="tabs.length || anchors.length > 1">
       <Button
@@ -23,15 +23,13 @@
           :key="tab.id"
           :class="[
             'relative transition-all duration-200',
-            dragState.isDragging &&
-              dragState.draggedId === tab.id &&
-              'opacity-0',
+            dragState.isDragging && dragState.draggedId === tab.id && 'opacity-0',
             dragState.isDragging && dragState.dropIndex === index && 'mt-10',
           ]"
           @dragover.prevent="onDragOver($event, index)"
           @drop.prevent="onDrop"
         >
-          <div
+          <!-- <div
             v-if="editingTabId === tab.id"
             class="flex items-center"
             v-on-outside-click="() => finishRenaming(true)"
@@ -48,12 +46,15 @@
               :icon="LucideTrash"
               @click="editor.commands.deleteTab(tab.id)"
             />
-          </div>
+          </div> -->
           <Button
-            v-else
             variant="ghost"
             class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
-            :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
+            :contenteditable="editingTabId === tab.id"
+            :class="[
+              tab.id === activeTabId && 'font-medium !text-ink-gray-8',
+              editingTabId === tab.id && 'ring-2 ring-outline-gray-2',
+            ]"
             :label="tab.label"
             :icon-left="h(LucideFileText, { class: 'size-4' })"
             :draggable="editor.isEditable"
@@ -75,8 +76,7 @@
                 @click.prevent="onAnchorClick(anchor.id)"
                 :key="anchor.id"
                 :class="
-                  anchor.isActive &&
-                  'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
+                  anchor.isActive && 'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
                 "
                 :style="{ '--level': anchor.level - maxLevel }"
               >
@@ -86,10 +86,7 @@
           </div>
         </div>
       </div>
-      <div
-        v-else-if="anchors.length > 1"
-        class="table-of-contents flex flex-col gap-0.5 mb-2"
-      >
+      <div v-else-if="anchors.length > 1" class="table-of-contents flex flex-col gap-0.5 mb-2">
         <div v-for="anchor in anchors" class="flex">
           <a
             :href="'#' + anchor.id"
@@ -109,7 +106,7 @@
         v-if="editor.isEditable"
         class="!justify-start text-xs opacity-50 hover:opacity-100"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        :label="tabs.length ? 'Add tab' : 'Create tab'"
+        :label="tabs.length ? 'Add page' : 'Create page'"
         variant="ghost"
         @click="
           tabs.length
@@ -187,9 +184,7 @@ const currentTabAnchors = computed(() => {
 
   // Filter anchors that are within the active tab's position range
   return props.anchors.filter((anchor) => {
-    const element = props.editor.view.dom.querySelector(
-      `[data-toc-id="${anchor.id}"]`,
-    )
+    const element = props.editor.view.dom.querySelector(`[data-toc-id="${anchor.id}"]`)
     if (!element) return false
 
     const pos = props.editor.view.posAtDOM(element, 0)
@@ -198,9 +193,7 @@ const currentTabAnchors = computed(() => {
 })
 
 const maxLevel = computed(() =>
-  currentTabAnchors.value.length
-    ? Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1
-    : 0,
+  currentTabAnchors.value.length ? Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1 : 0,
 )
 
 const onAnchorClick = (id) => {
@@ -233,10 +226,7 @@ const startRenaming = (tab) => {
 
 const finishRenaming = (esc = false) => {
   if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
-    props.editor.commands.renameTab(
-      editingTabId.value,
-      editingTabLabel.value.trim(),
-    )
+    props.editor.commands.renameTab(editingTabId.value, editingTabLabel.value.trim())
   }
   editingTabId.value = null
   editingTabLabel.value = ''

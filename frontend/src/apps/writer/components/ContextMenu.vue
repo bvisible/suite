@@ -31,10 +31,7 @@
           class="mr-2 size-4 flex-shrink-0"
           :class="item.theme ? 'text-[#E03636]' : 'text-ink-gray-7'"
         />
-        <span
-          class="whitespace-nowrap"
-          :class="item.theme ? 'text-ink-red-4' : 'text-ink-gray-7'"
-        >
+        <span class="whitespace-nowrap" :class="item.theme ? 'text-ink-red-4' : 'text-ink-gray-7'">
           {{ item.label }}
         </span>
       </button>
@@ -77,16 +74,14 @@ onBeforeUnmount(() => {
 
 function calculateY() {
   if (props.event.y >= parentHeight.value - childHeight.value) {
-    return (contextMenu.value.style.top =
-      props.event.y - childHeight.value + 'px')
+    return (contextMenu.value.style.top = props.event.y - childHeight.value + 'px')
   } else {
     return (contextMenu.value.style.top = props.event.y + 'px')
   }
 }
 function calculateX() {
   if (props.event.x >= parentWidth.value - childWidth.value) {
-    return (contextMenu.value.style.left =
-      props.event.x - childWidth.value + 'px')
+    return (contextMenu.value.style.left = props.event.x - childWidth.value + 'px')
   } else {
     return (contextMenu.value.style.left = props.event.x + 'px')
   }

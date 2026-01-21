@@ -62,10 +62,7 @@ onBeforeUnmount(() => {
 const db = ref()
 watch(db, (db) => {
   if (!props.entity.write) return
-  db
-    .transaction(['content'])
-    .objectStore('content')
-    .get(props.entity.name).onsuccess = (val) => {
+  db.transaction(['content']).objectStore('content').get(props.entity.name).onsuccess = (val) => {
     if (
       val.target.result?.val?.length > 20 &&
       val.target.result.saved > new Date(props.entity.modified)

@@ -1,17 +1,10 @@
 <template>
-  <div
-    ref="container"
-    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space-y-3 pb-64"
-  >
+  <div ref="container" class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space-y-3 pb-64">
     <template
-      v-for="([group, files], i) in Object.entries(groups).filter(
-        ([_, f]) => f.length,
-      )"
+      v-for="([group, files], i) in Object.entries(groups).filter(([_, f]) => f.length)"
       :key="group"
     >
-      <div
-        class="flex justify-between items-center sticky top-0 bg-surface-white h-10 z-10"
-      >
+      <div class="flex justify-between items-center sticky top-0 bg-surface-white h-10 z-10">
         <h2 class="text-sm font-medium text-ink-gray-5">
           {{ group }}
         </h2>
@@ -45,9 +38,7 @@
           <template v-if="thumbnail === 'grid'">
             <section
               class="group"
-              @click="
-                $router.push({ name: 'Document', params: { id: row.name } })
-              "
+              @click="$router.push({ name: 'Document', params: { id: row.name } })"
             >
               <div
                 class="aspect-[37/50] cursor-pointer overflow-hidden rounded-md dark:bg-gray-900 border border-gray-50 dark:border-outline-gray-1 px-2.5 py-1 shadow-lg transition-shadow hover:shadow-xl"
@@ -70,9 +61,7 @@
           </template>
           <template v-else>
             <div
-              @click="
-                $router.push({ name: 'Document', params: { id: row.name } })
-              "
+              @click="$router.push({ name: 'Document', params: { id: row.name } })"
               class="group flex items-center justify-between px-3 h-10 py-3 hover:bg-surface-gray-1 rounded cursor-pointer my-px -mx-3"
             >
               <div class="flex flex-col gap-1 w-[60%]">
@@ -84,25 +73,17 @@
                   </div> -->
               </div>
 
-              <div
-                class="flex items-center gap-2 text-sm text-gray-600 flex-shrink-0"
-              >
+              <div class="flex items-center gap-2 text-sm text-gray-600 flex-shrink-0">
                 <div
                   v-if="row.owner !== $store.state.user.id"
                   class="text-xs text-ink-gray-5 flex gap-5 items-center"
                 >
-                  <LucideGlobe2
-                    v-if="row.share_count == -2"
-                    class="size-4 text-ink-gray-6"
-                  />
+                  <LucideGlobe2 v-if="row.share_count == -2" class="size-4 text-ink-gray-6" />
                   <LucideBuilding2
                     v-else-if="row.share_count == -1"
                     class="size-4 text-ink-gray-6"
                   />
-                  <LucideUsers
-                    v-else-if="row.share_count > 0"
-                    class="size-4 text-ink-gray-6"
-                  />
+                  <LucideUsers v-else-if="row.share_count > 0" class="size-4 text-ink-gray-6" />
                   <div
                     v-if="row.owner != $store.state.user.id"
                     class="flex items-center gap-1 w-32 justify-start"
@@ -112,9 +93,7 @@
                       :label="$user(row.owner)?.full_name || 'Deleted'"
                       size="xs"
                     />
-                    <span :title="row.owner">{{
-                      $user(row.owner)?.full_name || 'Deleted'
-                    }}</span>
+                    <span :title="row.owner">{{ $user(row.owner)?.full_name || 'Deleted' }}</span>
                   </div>
                 </div>
 
@@ -129,10 +108,7 @@
       </div>
     </template>
 
-    <div
-      v-if="props.resource.data?.length === 0"
-      class="flex flex-col items-center gap-2.5 my-10"
-    >
+    <div v-if="props.resource.data?.length === 0" class="flex flex-col items-center gap-2.5 my-10">
       <div class="flex flex-col gap-1.5 items-center">
         <LucideFileText class="size-8" />
         <p class="text-base text-ink-gray-6 font-medium">
@@ -159,9 +135,7 @@ import { useInfiniteScroll } from '@vueuse/core'
 import LucideGrid from '~icons/lucide/grid'
 import LucideList from '~icons/lucide/list'
 
-const thumbnail = ref(
-  JSON.parse(localStorage.getItem('writer-view') || '"list"'),
-)
+const thumbnail = ref(JSON.parse(localStorage.getItem('writer-view') || '"list"'))
 watch(thumbnail, (v) => localStorage.setItem('writer-view', JSON.stringify(v)))
 const props = defineProps({
   groups: Object,

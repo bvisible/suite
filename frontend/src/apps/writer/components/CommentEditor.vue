@@ -1,12 +1,8 @@
 <template>
   <div
     class="w-full"
-    @keydown.ctrl.enter.capture.stop="
-      !disabled && !isEmpty && $emit('submit', editor)
-    "
-    @keydown.meta.enter.capture.stop="
-      !disabled && !isEmpty && $emit('submit', editor)
-    "
+    @keydown.ctrl.enter.capture.stop="!disabled && !isEmpty && $emit('submit', editor)"
+    @keydown.meta.enter.capture.stop="!disabled && !isEmpty && $emit('submit', editor)"
     @keydown.esc.stop="$emit('cancel', editor)"
   >
     <TextEditor
@@ -17,10 +13,7 @@
       :mentions="allUsers.data"
       class="editor flex"
       :class="editable && 'border rounded'"
-      :editor-class="[
-        'text-p-sm min-w-2 flex-grow prose-sm',
-        editable && 'pl-2.5 py-1.5',
-      ]"
+      :editor-class="['text-p-sm min-w-2 flex-grow prose-sm', editable && 'pl-2.5 py-1.5']"
       :placeholder
       :bubble-menu="[
         'Bold',
@@ -40,10 +33,7 @@
       "
     >
       <template #bottom="{ editor }">
-        <div
-          v-if="editable"
-          class="self-end me-1 flex-shrink-0 flex gap-1 mb-1.5"
-        >
+        <div v-if="editable" class="self-end me-1 flex-shrink-0 flex gap-1 mb-1.5">
           <Button
             v-if="!isEmpty"
             :disabled

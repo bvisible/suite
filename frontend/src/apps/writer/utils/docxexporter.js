@@ -122,10 +122,8 @@ function inlineToRuns(node, inherited = {}) {
   if (!(node instanceof HTMLElement)) return []
 
   const tag = node.tagName.toLowerCase()
-  const isU =
-    tag === 'u' || (node.style.textDecoration || '').includes('underline')
-  const isS =
-    tag === 's' || (node.style.textDecoration || '').includes('line-through')
+  const isU = tag === 'u' || (node.style.textDecoration || '').includes('underline')
+  const isS = tag === 's' || (node.style.textDecoration || '').includes('line-through')
 
   let fontFromInline
   if (node.style && node.style.fontFamily) {
@@ -161,11 +159,8 @@ function inlineToRuns(node, inherited = {}) {
 
 function paragraphFromP(p, defaultFont) {
   const runs = []
-  p.childNodes.forEach((n) =>
-    runs.push(...inlineToRuns(n, { font: defaultFont })),
-  )
-  if (!runs.length)
-    runs.push(new TextRun({ text: '\u00A0', font: defaultFont }))
+  p.childNodes.forEach((n) => runs.push(...inlineToRuns(n, { font: defaultFont })))
+  if (!runs.length) runs.push(new TextRun({ text: '\u00A0', font: defaultFont }))
 
   const alignMap = {
     left: AlignmentType.LEFT,
@@ -188,9 +183,7 @@ function headingFromHx(hx, defaultFont) {
 
   return new Paragraph({
     spacing: { before: 240, after: 120 },
-    children: runs.length
-      ? runs
-      : [new TextRun({ text: '', bold: true, size, font: defaultFont })],
+    children: runs.length ? runs : [new TextRun({ text: '', bold: true, size, font: defaultFont })],
   })
 }
 
@@ -199,8 +192,7 @@ function paragraphsFromUL(ul, defaultFont) {
   const out = []
 
   ul.querySelectorAll(':scope > li').forEach((li) => {
-    const checked =
-      (li.getAttribute('data-checked') || '').toLowerCase() === 'true'
+    const checked = (li.getAttribute('data-checked') || '').toLowerCase() === 'true'
 
     const runs = []
     const collect = (n) => {
@@ -220,9 +212,7 @@ function paragraphsFromUL(ul, defaultFont) {
           spacing: { before: 120, after: 120 },
           children: [
             new TextRun({ text: checkbox, font: defaultFont, size: 28 }),
-            ...(runs.length
-              ? runs
-              : [new TextRun({ text: '', font: defaultFont })]),
+            ...(runs.length ? runs : [new TextRun({ text: '', font: defaultFont })]),
           ],
         }),
       )
@@ -230,9 +220,7 @@ function paragraphsFromUL(ul, defaultFont) {
       out.push(
         new Paragraph({
           spacing: { before: 120, after: 120 },
-          children: runs.length
-            ? runs
-            : [new TextRun({ text: '', font: defaultFont })],
+          children: runs.length ? runs : [new TextRun({ text: '', font: defaultFont })],
           numbering: { reference: 'bullets', level: 0 },
         }),
       )
@@ -256,9 +244,7 @@ function paragraphsFromOL(ol, defaultFont) {
     out.push(
       new Paragraph({
         spacing: { before: 120, after: 120 },
-        children: runs.length
-          ? runs
-          : [new TextRun({ text: '', font: defaultFont })],
+        children: runs.length ? runs : [new TextRun({ text: '', font: defaultFont })],
         numbering: { reference: 'numbers', level: 0 },
       }),
     )
@@ -279,9 +265,7 @@ function tableFromTABLE(tbl, defaultFont) {
   const borderColor = COLOR_MAP['var(--outline-gray-2)'] || 'E2E2E2'
   const headerFill = COLOR_MAP['var(--surface-gray-2)'] || 'F3F3F3'
 
-  const trs = tbl.querySelectorAll(
-    ':scope > thead > tr, :scope > tbody > tr, :scope > tr',
-  )
+  const trs = tbl.querySelectorAll(':scope > thead > tr, :scope > tbody > tr, :scope > tr')
   let totalCols = 0
   trs.forEach((tr) => (totalCols = Math.max(totalCols, countCols(tr))))
   if (!totalCols) totalCols = 1
@@ -300,15 +284,11 @@ function tableFromTABLE(tbl, defaultFont) {
         if (n.nodeName === 'P') {
           const runs = inlineToRuns(
             n,
-            isHeader
-              ? { bold: true, font: defaultFont }
-              : { font: defaultFont },
+            isHeader ? { bold: true, font: defaultFont } : { font: defaultFont },
           )
           paras.push(
             new Paragraph({
-              children: runs.length
-                ? runs
-                : [new TextRun({ text: '\u00A0', font: defaultFont })],
+              children: runs.length ? runs : [new TextRun({ text: '\u00A0', font: defaultFont })],
             }),
           )
         } else {
@@ -368,10 +348,7 @@ function paragraphsFromBlockquote(el, defaultFont) {
     if (n.nodeName === 'P') {
       const runs = inlineToRuns(n, { italics: true, font: defaultFont })
       const children = isFirst
-        ? [
-            new TextRun({ text: openQuote, italics: true, font: defaultFont }),
-            ...runs,
-          ]
+        ? [new TextRun({ text: openQuote, italics: true, font: defaultFont }), ...runs]
         : runs
       lastChildren = children.length
         ? children
@@ -419,9 +396,7 @@ function paragraphsFromBlockquote(el, defaultFont) {
   el.childNodes.forEach(collectP)
 
   if (paras.length > 0 && lastChildren) {
-    lastChildren.push(
-      new TextRun({ text: closeQuote, italics: true, font: defaultFont }),
-    )
+    lastChildren.push(new TextRun({ text: closeQuote, italics: true, font: defaultFont }))
   }
 
   if (!paras.length) {
@@ -464,9 +439,7 @@ function paragraphWithAlignedImage(bytes, el) {
             horizontalPosition: {
               relative: HorizontalPositionRelativeFrom.MARGIN,
               align:
-                datafloat === 'left'
-                  ? HorizontalPositionAlign.LEFT
-                  : HorizontalPositionAlign.RIGHT,
+                datafloat === 'left' ? HorizontalPositionAlign.LEFT : HorizontalPositionAlign.RIGHT,
             },
             verticalPosition: {
               relative: VerticalPositionRelativeFrom.PARAGRAPH,
@@ -499,9 +472,7 @@ function paragraphWithAlignedImage(bytes, el) {
   return new Paragraph({
     alignment,
     spacing: { before: IMG_SPACE_BEFORE, after: IMG_SPACE_AFTER },
-    children: [
-      new ImageRun({ data: bytes, transformation: { width, height } }),
-    ],
+    children: [new ImageRun({ data: bytes, transformation: { width, height } })],
   })
 }
 
@@ -580,20 +551,15 @@ export async function downloadDocxFromHtml(html, filename, settings = {}) {
     else if (tag === 'ul') children.push(...paragraphsFromUL(el, defaultFont))
     else if (tag === 'ol') children.push(...paragraphsFromOL(el, defaultFont))
     else if (/^h[1-3]$/.test(tag)) children.push(headingFromHx(el, defaultFont))
-    else if (tag === 'blockquote')
-      children.push(...paragraphsFromBlockquote(el, defaultFont))
+    else if (tag === 'blockquote') children.push(...paragraphsFromBlockquote(el, defaultFont))
     else if (tag === 'pre') {
       const runs = []
-      el.childNodes.forEach((n) =>
-        runs.push(...inlineToRuns(n, { font: defaultFont })),
-      )
+      el.childNodes.forEach((n) => runs.push(...inlineToRuns(n, { font: defaultFont })))
       children.push(
         new Paragraph({
           spacing: { before: 120, after: 120 },
           shading: { fill: '0D0D0D' },
-          children: runs.length
-            ? runs
-            : [new TextRun({ text: '', font: defaultFont })],
+          children: runs.length ? runs : [new TextRun({ text: '', font: defaultFont })],
         }),
       )
     } else if (tag === 'table') {
@@ -672,10 +638,7 @@ export async function downloadDocxFromHtml(html, filename, settings = {}) {
   })
 
   const blob = await Packer.toBlob(docx)
-  fileSaver.saveAs(
-    blob,
-    filename.endsWith('.docx') ? filename : `${filename}.docx`,
-  )
+  fileSaver.saveAs(blob, filename.endsWith('.docx') ? filename : `${filename}.docx`)
 }
 
 export default downloadDocxFromHtml

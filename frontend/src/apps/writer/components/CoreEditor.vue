@@ -2,7 +2,7 @@
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
       v-if="editable && editor"
-      class="py-1.5 w-full max-w-[100vw] overflow-x-auto flex md:justify-center shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
+      class="py-1.5 w-full max-w-[100vw] overflow-x-auto flex md:justify-center px-2 md:px-0 shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
       :buttons="menuButtons"
     />
 
@@ -18,10 +18,7 @@
       <ToC v-if="editor" :editor :anchors />
       <div
         class="min-w-full h-full flex flex-col"
-        @click="
-          $event.target.tagName === 'DIV' &&
-          textEditor.editor?.chain?.().focus?.().run?.()
-        "
+        @click="$event.target.tagName === 'DIV' && textEditor.editor?.chain?.().focus?.().run?.()"
       >
         <FTextEditor
           ref="textEditor"
@@ -115,24 +112,19 @@
         :editor
         @save="saveComments"
       >
-        <div class="sticky self-end top-3 flex items-center gap-1">
+        <div class="sticky self-end top-3 flex items-center gap-1 z-10">
           <Button
             :label="showResolved ? 'Hide resolved' : 'Show resolved'"
             v-if="
-              showComments &&
-              Array.from(comments._map).find(
-                (k) => k[1].content?.arr?.[0].resolved,
-              )
+              showComments && Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
             "
-            class="text-sm text-ink-gray-5"
+            class="text-sm text-ink-gray-5 bg-surface-white"
             variant="ghost"
             @click="showResolved = !showResolved"
           />
           <Button
             v-if="comments._map.size"
-            :icon="
-              showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
-            "
+            :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
             variant="outline"
             :tooltip="showComments ? 'Hide comments' : 'Show comments'"
             @click="showComments = !showComments"
@@ -144,25 +136,12 @@
 </template>
 <script setup>
 import { EditorContent, Extension } from '@tiptap/vue-3'
-import {
-  TextEditor as FTextEditor,
-  TextEditorFixedMenu,
-  toast,
-  useFileUpload,
-} from 'frappe-ui'
+import { TextEditor as FTextEditor, TextEditorFixedMenu, toast, useFileUpload } from 'frappe-ui'
 import { Slice } from '@tiptap/pm/model'
 import { TextSelection } from '@tiptap/pm/state'
 import ManageFont from './ManageFont.vue'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  computed,
-  defineAsyncComponent,
-  ref,
-  onBeforeUnmount,
-  h,
-  provide,
-  nextTick,
-} from 'vue'
+import { computed, defineAsyncComponent, ref, onBeforeUnmount, h, provide, nextTick } from 'vue'
 import { Plugin } from '@tiptap/pm/state'
 
 import FloatingComments from './FloatingComments.vue'
@@ -211,9 +190,7 @@ const props = defineProps({
   rawContent: String,
 })
 const emit = defineEmits(['save', 'editor-change'])
-const scrollParent = computed(() =>
-  document.querySelector('#editorScrollContainer'),
-)
+const scrollParent = computed(() => document.querySelector('#editorScrollContainer'))
 const anchors = ref([])
 const textEditor = ref('textEditor')
 const editor = computed(() => {
@@ -231,9 +208,7 @@ const showComments = ref(true)
 const showResolved = ref(false)
 const commentsPainted = ref(false)
 const isPainting = computed(() =>
-  editor.value && editor.value.storage.styleClipboard.styleClipboard
-    ? true
-    : false,
+  editor.value && editor.value.storage.styleClipboard.styleClipboard ? true : false,
 )
 
 const autoversion = async () => {
@@ -242,9 +217,7 @@ const autoversion = async () => {
   if (!html || html === '<p></p>') return
   await props.document.newVersion.submit({ data: html })
   if (props.document.newVersion.error) {
-    toast.error(
-      'Something has gone wrong - please copy the file content and contact support.',
-    )
+    toast.error('Something has gone wrong - please copy the file content and contact support.')
   }
 }
 const autoversionInterval = setInterval(autoversion, 10 * 60 * 1000)
@@ -297,9 +270,7 @@ const editorExtensions = [
               const TYPE = 'textStyle'
               const styleMark = !node.marks
                 .filter((mark) => mark.type.name === TYPE)
-                .some((mark) =>
-                  Object.values(mark.attrs).some((value) => !!value),
-                )
+                .some((mark) => Object.values(mark.attrs).some((value) => !!value))
               if (styleMark) {
                 tr.removeMark(pos, pos + node.nodeSize, styleMark.type)
               }
@@ -316,11 +287,7 @@ const editorExtensions = [
               const frag = slice.content
               if (frag.childCount === 1 && frag.child(0).type.name === 'tab') {
                 const tabNode = frag.child(0)
-                return new Slice(
-                  tabNode.content,
-                  slice.openStart,
-                  slice.openEnd,
-                )
+                return new Slice(tabNode.content, slice.openStart, slice.openEnd)
               }
               return slice
             },
@@ -386,8 +353,7 @@ const menuButtons = computed(() => [
   {
     label: 'Clear formatting',
     icon: LucideBrushCleaning,
-    isActive: (editor) =>
-      editor.storage.styleClipboard.styleClipboard ? true : false,
+    isActive: (editor) => (editor.storage.styleClipboard.styleClipboard ? true : false),
     action: (editor) => {
       editor.commands.focus()
       editor.commands.clearStyles()
@@ -482,10 +448,7 @@ const autorename = () => {
   // Check if we're in the very first textblock
   if (!($anchor.index(0) === 1 && $anchor.depth === 1)) {
     // scroll down if in the last line
-    if (
-      $anchor.depth === 1 &&
-      editor.value.state.doc.childCount - 1 === $anchor.index(0)
-    ) {
+    if ($anchor.depth === 1 && editor.value.state.doc.childCount - 1 === $anchor.index(0)) {
       scrollParent.value.scroll(0, scrollParent.value.scrollHeight)
     }
     return
@@ -504,9 +467,8 @@ const autorename = () => {
       {
         onSuccess: () => {
           props.document.doc.title = rename.params.new_title
-          props.document.doc.breadcrumbs[
-            props.document.doc.breadcrumbs.length - 1
-          ].title = rename.params.new_title
+          props.document.doc.breadcrumbs[props.document.doc.breadcrumbs.length - 1].title =
+            rename.params.new_title
           updateURLSlug(rename.params.new_title)
         },
       },
@@ -515,20 +477,14 @@ const autorename = () => {
 
 const addComment = () => {
   if (!props.doc) {
-    return toast.error("New comments aren't supported on old schema.")
+    return toast.warning("New comments aren't supported on this doc.")
   }
   showComments.value = true
   const id = uuidv4()
   const { state } = editor.value
   const { from, to } = state.selection
   if (from === to) return
-  props.newComment(
-    id,
-    from,
-    to,
-    store.state.user.id,
-    state.doc.textBetween(from, to, ' '),
-  )
+  props.newComment(id, from, to, store.state.user.id, state.doc.textBetween(from, to, ' '))
   activeComment.value = id
   const tr = state.tr
   tr.setSelection(TextSelection.create(state.doc, from))

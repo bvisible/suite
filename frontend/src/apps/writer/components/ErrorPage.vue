@@ -1,16 +1,11 @@
 <template>
-  <div
-    class="flex flex-col items-center h-screen p-6 text-center mt-[10%] w-full"
-  >
+  <div class="flex flex-col items-center h-screen p-6 text-center mt-[10%] w-full">
     <div class="rounded-full flex items-center justify-center">
       <LucideFileUser v-if="error.exc_type === 'PermissionError'" />
       <LucideFileQuestionMark v-else />
     </div>
     <h1 class="text-3xl font-bold text-ink-gray-8 mt-4">Uh oh!</h1>
-    <p
-      class="text-lg text-ink-gray-5 mt-4"
-      v-html="error.messages?.join?.('\n') || error"
-    />
+    <p class="text-lg text-ink-gray-5 mt-4" v-html="error.messages?.join?.('\n') || error" />
     <div class="w-50 flex gap-8 my-12">
       <Button
         v-if="$router.options.history.state.back"
@@ -18,9 +13,7 @@
         size="md"
         @click="$router.go(-1)"
       >
-        <div class="flex gap-2">
-          <LucideArrowBigLeft class="size-4" />Go Back
-        </div>
+        <div class="flex gap-2"><LucideArrowBigLeft class="size-4" />Go Back</div>
       </Button>
       <template v-if="$route.name != 'Home'">
         <Button
@@ -51,8 +44,7 @@ const props = defineProps({ error: Object })
 const redirectLogin = () => (window.location.href = '/login')
 watchEffect(() => {
   if (
-    (String(props.error).includes('FORBIDDEN') ||
-      props.error.exc_type === 'PermissionError') &&
+    (String(props.error).includes('FORBIDDEN') || props.error.exc_type === 'PermissionError') &&
     !store.getters.isLoggedIn
   )
     redirectLogin()

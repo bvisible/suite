@@ -1,7 +1,5 @@
 const canUseDOM = () =>
-  typeof window !== 'undefined' &&
-  !!window.document &&
-  !!window.document.createElement
+  typeof window !== 'undefined' && !!window.document && !!window.document.createElement
 
 interface Options {
   authorizedInInputs: number[]
@@ -59,10 +57,7 @@ class DisableScroll {
 
     /* istanbul ignore else */
     if (disableScroll) {
-      this.lockToScrollPos = [
-        this.element?.scrollLeft ?? 0,
-        this.element?.scrollTop ?? 0,
-      ]
+      this.lockToScrollPos = [this.element?.scrollLeft ?? 0, this.element?.scrollTop ?? 0]
       document.addEventListener('scroll', this.handleScroll, {
         passive: false,
       })
@@ -101,13 +96,9 @@ class DisableScroll {
 
     /* istanbul ignore else */
     if (
-      ['INPUT', 'TEXTAREA'].includes(
-        (e.target as HTMLInputElement | HTMLTextAreaElement).tagName,
-      )
+      ['INPUT', 'TEXTAREA'].includes((e.target as HTMLInputElement | HTMLTextAreaElement).tagName)
     ) {
-      keys = keys.filter(
-        (key) => !this.options.authorizedInInputs.includes(key),
-      )
+      keys = keys.filter((key) => !this.options.authorizedInInputs.includes(key))
     }
 
     /* istanbul ignore else */

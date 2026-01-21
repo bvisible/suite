@@ -34,15 +34,8 @@
         </div>
       </div>
     </div> -->
-    <RoundedListView
-      v-if="groupedDocuments"
-      :groups="groupedDocuments"
-      :resource="getDocuments"
-    />
-    <LoadingIndicator
-      v-else-if="getDocuments.loading"
-      class="size-5 mx-auto mt-32"
-    />
+    <RoundedListView v-if="groupedDocuments" :groups="groupedDocuments" :resource="getDocuments" />
+    <LoadingIndicator v-else-if="getDocuments.loading" class="size-5 mx-auto mt-32" />
     <ErrorPage v-else error="There was an error fetching the documents." />
   </div>
 </template>
@@ -52,9 +45,7 @@ import RoundedListView from '@/components/RoundedListView.vue'
 import { LoadingIndicator, usePageMeta } from 'frappe-ui'
 import ErrorPage from '@/components/ErrorPage.vue'
 
-const groupedDocuments = computed(
-  () => getDocuments.data && groupByTime(getDocuments.data),
-)
+const groupedDocuments = computed(() => getDocuments.data && groupByTime(getDocuments.data))
 getDocuments.fetch()
 
 usePageMeta(() => ({
@@ -82,11 +73,8 @@ function groupByTime(entities) {
     .sort((a, b) => b.recentDate - a.recentDate)
     .forEach((file) => {
       const yearDiff = today.getFullYear() - file.recentDate.getFullYear()
-      const monthDiff =
-        today.getMonth() - file.recentDate.getMonth() + yearDiff * 12 // Adjust for year difference
-      const dayDiff = Math.floor(
-        (today - file.recentDate) / (1000 * 60 * 60 * 24),
-      )
+      const monthDiff = today.getMonth() - file.recentDate.getMonth() + yearDiff * 12 // Adjust for year difference
+      const dayDiff = Math.floor((today - file.recentDate) / (1000 * 60 * 60 * 24))
       if (dayDiff === 0) {
         grouped['Today'].push(file)
       } else if (dayDiff <= 1) {

@@ -58,9 +58,7 @@ export const TabsExtension = Node.create({
       const { doc } = this.editor.state
       let tabToChange = window.location.hash.slice(1)
       const tabs = []
-      doc.descendants(
-        (node) => node.type.name === 'tab' && tabs.push(node.attrs.id),
-      )
+      doc.descendants((node) => node.type.name === 'tab' && tabs.push(node.attrs.id))
       if (!tabToChange || !tabs.includes(tabToChange)) tabToChange = tabs[0]
 
       if (tabToChange) {
@@ -119,11 +117,7 @@ export const TabsExtension = Node.create({
           if (tabIndex === -1) return false
 
           // Validate new index
-          if (
-            newIndex < 0 ||
-            newIndex >= tabs.length ||
-            newIndex === tabIndex
-          ) {
+          if (newIndex < 0 || newIndex >= tabs.length || newIndex === tabIndex) {
             return false
           }
 
@@ -230,11 +224,7 @@ export const TabsExtension = Node.create({
           if (dispatch) {
             if (!attrs?.id) attrs.id = v4()
             const tabType = this.editor.schema.nodes.tab
-            tr.replaceWith(
-              0,
-              tr.doc.content.size,
-              tabType.create(attrs, tr.doc.content),
-            )
+            tr.replaceWith(0, tr.doc.content.size, tabType.create(attrs, tr.doc.content))
             this.storage.activeTabId = attrs.id
             dispatch(tr)
             return true
@@ -249,10 +239,7 @@ export const TabsExtension = Node.create({
             if (!attrs.label) attrs.label = 'Untitled'
 
             const paragraphType = this.editor.schema.nodes.paragraph
-            const tab = this.editor.schema.nodes.tab.create(
-              attrs,
-              paragraphType.create(),
-            )
+            const tab = this.editor.schema.nodes.tab.create(attrs, paragraphType.create())
             tr.insert(state.doc.content.size, tab)
             dispatch(tr)
 
@@ -282,9 +269,7 @@ export const TabsExtension = Node.create({
         })
 
         if (tabStart !== null && tabEnd !== null) {
-          const tr = state.tr.setSelection(
-            TextSelection.create(state.doc, tabStart, tabEnd),
-          )
+          const tr = state.tr.setSelection(TextSelection.create(state.doc, tabStart, tabEnd))
           view.dispatch(tr)
           return true
         }
@@ -294,8 +279,7 @@ export const TabsExtension = Node.create({
       Backspace: () => {
         // prevent clearing of document when tab is empty
         const { $to } = this.editor.state.selection
-        if ($to.parent.type.name === 'tab' && $to.parent.content.size == 2)
-          return true
+        if ($to.parent.type.name === 'tab' && $to.parent.content.size == 2) return true
       },
     }
   },

@@ -18,10 +18,7 @@
       />
     </template>
     <template #body>
-      <div
-        ref="colorPicker"
-        class="rounded-lg bg-surface-white p-3 shadow-lg dark:bg-zinc-900"
-      >
+      <div ref="colorPicker" class="rounded-lg bg-surface-white p-3 shadow-lg dark:bg-zinc-900">
         <div
           ref="colorMap"
           :style="{
@@ -255,12 +252,8 @@ const hue = computed(() => {
 const updateColor = () => {
   nextTick(() => {
     const colorMapBounds = colorMap.value.getBoundingClientRect()
-    const s = Math.round(
-      (colorSelectorPosition.value.x / colorMapBounds.width) * 100,
-    )
-    const v =
-      100 -
-      Math.round((colorSelectorPosition.value.y / colorMapBounds.height) * 100)
+    const s = Math.round((colorSelectorPosition.value.x / colorMapBounds.width) * 100)
+    const v = 100 - Math.round((colorSelectorPosition.value.y / colorMapBounds.height) * 100)
     const h = hue.value
     currentColor = HSVToHex(h, s, v)
     emit('update:modelValue', currentColor)

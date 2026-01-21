@@ -7,8 +7,7 @@
     @success="
       ({ title }) => {
         entities[0].title = title
-        entities[0].breadcrumbs[entities[0].breadcrumbs.length - 1].title =
-          title
+        entities[0].breadcrumbs[entities[0].breadcrumbs.length - 1].title = title
         resetDialog()
       }
     "
@@ -30,12 +29,7 @@
     :entities="entities"
     @complete="entity_open && resource.fetch(resource.params)"
   />
-  <InfoDialog
-    v-else-if="dialog === 'i'"
-    v-model="dialog"
-    :entity="entities[0]"
-    :emitter
-  />
+  <InfoDialog v-else-if="dialog === 'i'" v-model="dialog" :entity="entities[0]" :emitter />
 
   <!-- Confirmation dialogs -->
   <RemoveDialog
@@ -53,12 +47,7 @@ import { useStore } from 'vuex'
 
 import emitter from '@/emitter'
 
-import {
-  ShareDialog,
-  MoveDialog,
-  InfoDialog,
-  RenameDialog,
-} from 'frappe-ui/drive'
+import { ShareDialog, MoveDialog, InfoDialog, RenameDialog } from 'frappe-ui/drive'
 import RemoveDialog from './RemoveDialog.vue'
 import SearchDialog from './SearchDialog.vue'
 import { onKeyDown } from '@vueuse/core'
@@ -75,9 +64,7 @@ const resource = computed(() =>
     : listResource.value,
 )
 const entity_open = computed(
-  () =>
-    resource.value.data?.name &&
-    props.entities[0]?.name === resource.value.data?.name,
+  () => resource.value.data?.name && props.entities[0]?.name === resource.value.data?.name,
 )
 
 const dialog = defineModel(String)

@@ -49,10 +49,8 @@ const store = createStore({
     isLoggedIn: (state) => {
       return state.user.id && state.user.id !== 'Guest'
     },
-    uploadsInProgress: (state) =>
-      state.uploads.filter((u) => !u.completed && !u.completed),
-    uploadsCompleted: (state) =>
-      state.uploads.filter((u) => u.completed && !u.error),
+    uploadsInProgress: (state) => state.uploads.filter((u) => !u.completed && !u.completed),
+    uploadsCompleted: (state) => state.uploads.filter((u) => u.completed && !u.error),
     uploadsFailed: (state) => state.uploads.filter((u) => u.error),
   },
   mutations: {
@@ -97,22 +95,12 @@ const store = createStore({
     },
     setCurrentFolder(state, payload) {
       // Don't clear cache for performance's sake (state is cleared on every reroute)
-      if (payload === null)
-        state.currentFolder = { name: null, team: null, entities: [] }
+      if (payload === null) state.currentFolder = { name: null, team: null, entities: [] }
       else {
         state.currentFolder = { ...state.currentFolder, ...payload }
-        localStorage.setItem(
-          'currentFolder',
-          JSON.stringify(state.currentFolder.name),
-        )
-        localStorage.setItem(
-          'currentFolderTeam',
-          JSON.stringify(state.currentFolder.team),
-        )
-        localStorage.setItem(
-          'currentEntitites',
-          JSON.stringify(state.currentFolder.entities),
-        )
+        localStorage.setItem('currentFolder', JSON.stringify(state.currentFolder.name))
+        localStorage.setItem('currentFolderTeam', JSON.stringify(state.currentFolder.team))
+        localStorage.setItem('currentEntitites', JSON.stringify(state.currentFolder.entities))
       }
     },
     setPasteData(state, payload) {

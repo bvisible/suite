@@ -101,13 +101,7 @@ export const getTrash = createResource({
 })
 
 // SETTERS
-export const LISTS = [
-  getPersonal,
-  getTeam,
-  getRecents,
-  getShared,
-  getFavourites,
-]
+export const LISTS = [getPersonal, getTeam, getRecents, getShared, getFavourites]
 export const mutate = (entities, func) => {
   LISTS.forEach((l) =>
     l.setData((d) => {
@@ -166,10 +160,7 @@ export const toggleFav = createResource({
         ? [...d, ...data.entities]
         : d.filter(({ name }) => !entity_names.includes(name))
     })
-    mutate(
-      data.entities,
-      (el, { is_favourite }) => (el.is_favourite = is_favourite),
-    )
+    mutate(data.entities, (el, { is_favourite }) => (el.is_favourite = is_favourite))
     return {
       entities: data.entities,
     }
@@ -191,9 +182,7 @@ export const clearRecent = createResource({
       return { clear_all: true }
     }
     const entity_names = data.entities.map(({ name }) => name)
-    getRecents.setData((d) =>
-      d.filter(({ name }) => !entity_names.includes(name)),
-    )
+    getRecents.setData((d) => d.filter(({ name }) => !entity_names.includes(name)))
     return {
       entity_names,
     }
@@ -218,9 +207,7 @@ export const clearTrash = createResource({
   onSuccess: () => {
     // Buggy for some reason
     const files = clearTrash.params.entity_names?.length
-    toast(
-      `Permanently deleted ${files || 'all'} file${files === 1 ? '' : 's'}.`,
-    )
+    toast(`Permanently deleted ${files || 'all'} file${files === 1 ? '' : 's'}.`)
   },
   onError(error) {
     toast({

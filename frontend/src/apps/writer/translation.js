@@ -7,9 +7,7 @@ export default function translation(app, options = {}) {
     }
   }
   if (!options.translationMethod) {
-    return console.error(
-      'You have to provide a method to fetch translations from.',
-    )
+    return console.error('You have to provide a method to fetch translations from.')
   }
   const config = {
     translationMethod: options.translationMethod,

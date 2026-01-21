@@ -27,12 +27,7 @@
         class="flex items-center justify-between py-1.5 px-2 rounded cursor-pointer hover:bg-surface-gray-1 focus:outline-none"
       >
         <div class="flex gap-2 items-center">
-          <Avatar
-            :size="'md'"
-            :image="item.avatar"
-            :label="item.name"
-            :title="item.name"
-          />
+          <Avatar :size="'md'" :image="item.avatar" :label="item.name" :title="item.name" />
           <div class="text-sm text-ink-gray-8 mr-4 flex flex-col gap-0.5">
             <span>{{ item.name }}</span>
             <span class="text-xs text-ink-gray-5">{{ item.id }}</span>
@@ -46,14 +41,7 @@
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <circle
-            cx="8"
-            cy="8"
-            r="4.5"
-            fill="transparent"
-            :stroke="item.color"
-            stroke-width="3"
-          />
+          <circle cx="8" cy="8" r="4.5" fill="transparent" :stroke="item.color" stroke-width="3" />
         </svg>
       </div>
     </template>

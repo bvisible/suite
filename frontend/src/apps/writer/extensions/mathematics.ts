@@ -1,12 +1,6 @@
 import { createApp, h } from 'vue'
 import { Mathematics } from '@tiptap/extension-mathematics'
-import {
-  computePosition,
-  flip,
-  shift,
-  offset,
-  autoUpdate,
-} from '@floating-ui/dom'
+import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom'
 import { Editor } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import MathPopup from './components/MathPopup.vue'
@@ -73,9 +67,7 @@ export const MathematicsExtension = Mathematics.extend({
             mathType = type || 'inline'
           }
 
-          openMathEditor(existingLatex, mathType, nodePos, editor).catch(
-            () => {},
-          )
+          openMathEditor(existingLatex, mathType, nodePos, editor).catch(() => {})
 
           return true
         },
@@ -98,11 +90,7 @@ export const MathematicsExtension = Mathematics.extend({
         props: {
           handleDoubleClick: (view, pos, event) => {
             const node = view.state.doc.nodeAt(pos)
-            if (
-              node &&
-              (node.type.name === 'inlineMath' ||
-                node.type.name === 'blockMath')
-            ) {
+            if (node && (node.type.name === 'inlineMath' || node.type.name === 'blockMath')) {
               event.preventDefault()
               this.editor.commands.openMathEditor(
                 node.type.name === 'inlineMath' ? 'inline' : 'block',
@@ -239,14 +227,9 @@ function openMathEditor(
 
     app.mount(container)
 
-    cleanupAutoUpdate = autoUpdate(
-      virtualReference,
-      container,
-      updatePosition,
-      {
-        animationFrame: true,
-      },
-    )
+    cleanupAutoUpdate = autoUpdate(virtualReference, container, updatePosition, {
+      animationFrame: true,
+    })
 
     updatePosition()
 

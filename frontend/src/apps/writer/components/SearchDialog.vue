@@ -1,9 +1,5 @@
 <template>
-  <Dialog
-    v-model="show"
-    :options="{ size: 'xl', position: 'top' }"
-    class="z-11"
-  >
+  <Dialog v-model="show" :options="{ size: 'xl', position: 'top' }" class="z-11">
     <template #body>
       <div class="flex flex-col">
         <div class="relative">
@@ -23,9 +19,7 @@
               "
               autocomplete="off"
             >
-              <template #prefix
-                ><LucideSearch class="size-4 text-ink-gray-6"
-              /></template>
+              <template #prefix><LucideSearch class="size-4 text-ink-gray-6" /></template>
               <template #suffix v-if="searching">
                 <span class="text-ink-gray-5 text-xs flex items-center gap-1"
                   ><KeyboardShortcut combo="Enter" /> to search</span
@@ -38,10 +32,7 @@
             v-if="query"
             class="max-h-96 overflow-auto border-t border-outline-gray-1 dark:border-outline-gray-2 p-2.5"
           >
-            <LoadingIndicator
-              v-if="search.loading"
-              class="size-5 my-10 mx-auto"
-            />
+            <LoadingIndicator v-if="search.loading" class="size-5 my-10 mx-auto" />
             <div v-else-if="searchResults.length" class="space-y-1">
               <div class="text-sm text-ink-gray-5 ps-3">
                 Showing results for "<span class="font-medium">{{ query }}</span
@@ -69,9 +60,7 @@
               class="px-4.5 py-5 text-center flex flex-col gap-2 text-ink-gray-5"
             >
               <LucideFileText class="mx-auto size-5" />
-              <p class="text-sm">
-                There doesn't seem to be anything with "{{ query }}".
-              </p>
+              <p class="text-sm">There doesn't seem to be anything with "{{ query }}".</p>
             </div>
           </div>
         </div>
@@ -97,9 +86,7 @@ const query = ref('')
 const searchResults = computed(() => {
   return search.data?.results ? search.data.results : []
 })
-watch(query, (v) =>
-  v ? search.fetch({ query: v }) : (search.data.results = []),
-)
+watch(query, (v) => (v ? search.fetch({ query: v }) : (search.data.results = [])))
 const setDebouncedQuery = debounce(() => (query.value = searching.value), 500)
 watch(searching, (v) => (v ? setDebouncedQuery() : (query.value = '')))
 </script>

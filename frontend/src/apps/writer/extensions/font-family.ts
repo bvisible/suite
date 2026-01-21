@@ -49,8 +49,7 @@ const FontFamily = Extension.create<FontFamilyOptions>({
         attributes: {
           fontFamily: {
             default: null,
-            parseHTML: (element) =>
-              element.style.fontFamily?.replace(/['"]+/g, ''),
+            parseHTML: (element) => element.style.fontFamily?.replace(/['"]+/g, ''),
             renderHTML: (attributes) => {
               if (!attributes.fontFamily) {
                 return {}
@@ -76,10 +75,7 @@ const FontFamily = Extension.create<FontFamilyOptions>({
       unsetFontFamily:
         () =>
         ({ chain }) => {
-          return chain()
-            .setMark('textStyle', { fontFamily: null })
-            .removeEmptyTextStyle()
-            .run()
+          return chain().setMark('textStyle', { fontFamily: null }).removeEmptyTextStyle().run()
         },
     }
   },

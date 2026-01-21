@@ -30,11 +30,7 @@ const CommentExtension = Mark.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      'span',
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      0,
-    ]
+    return ['span', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
   },
 
   onSelectionUpdate() {
@@ -81,9 +77,7 @@ const CommentExtension = Mark.create({
 
           tr.doc.descendants((node, pos) => {
             const commentMark = node.marks.find(
-              (mark) =>
-                mark.type.name === 'comment' &&
-                mark.attrs.commentId === commentId,
+              (mark) => mark.type.name === 'comment' && mark.attrs.commentId === commentId,
             )
 
             if (!commentMark) return
@@ -114,8 +108,7 @@ export default CommentExtension.extend({
       resolved: {
         default: false,
         parseHTML: (el) => el.hasAttribute('data-resolved'),
-        renderHTML: (attrs) =>
-          attrs.resolved ? { 'data-resolved': 'true' } : {},
+        renderHTML: (attrs) => (attrs.resolved ? { 'data-resolved': 'true' } : {}),
       },
     }
   },
@@ -132,10 +125,7 @@ export default CommentExtension.extend({
           doc.descendants((node, pos) => {
             if (!node.isText) return true
             node.marks.forEach((mark) => {
-              if (
-                mark.type === markType &&
-                mark.attrs.commentId === commentId
-              ) {
+              if (mark.type === markType && mark.attrs.commentId === commentId) {
                 const updatedMark = markType.create({
                   ...mark.attrs,
                   resolved,

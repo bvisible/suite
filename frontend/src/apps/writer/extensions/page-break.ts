@@ -37,8 +37,7 @@ export const PageBreakExtension = Node.create<PageBreakRuleOptions>({
     return [
       {
         tag: 'div',
-        getAttrs: (node) =>
-          (node as HTMLElement).dataset.pageBreak === 'true' && null,
+        getAttrs: (node) => (node as HTMLElement).dataset.pageBreak === 'true' && null,
       },
     ]
   },
@@ -65,13 +64,12 @@ export const PageBreakExtension = Node.create<PageBreakRuleOptions>({
                     tr.setSelection(TextSelection.create(tr.doc, $to.pos))
                   } else {
                     // add node after page break if it’s the end of the document
-                    const node =
-                      $to.parent.type.contentMatch.defaultType?.create({
-                        style: {
-                          pageBreakAfter: 'always',
-                        },
-                        'data-page-break': 'true',
-                      })
+                    const node = $to.parent.type.contentMatch.defaultType?.create({
+                      style: {
+                        pageBreakAfter: 'always',
+                      },
+                      'data-page-break': 'true',
+                    })
                     if (node) {
                       tr.insert(posAfter, node)
                       tr.setSelection(TextSelection.create(tr.doc, posAfter))

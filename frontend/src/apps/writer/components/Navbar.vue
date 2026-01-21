@@ -5,16 +5,17 @@
     ondrop="return false;"
     class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
   >
-    <a href="/writer">
+    <a href="/writer/">
       <div class="pl-2.5 pr-1">
-        <WriterLogo class="size-7" />
+        <Dropdown
+          :options="[{ label: 'Drive', onClick: () => navigate('/drive'), icon: DriveLogo }]"
+        >
+          <WriterLogo class="size-7" />
+        </Dropdown>
       </div>
     </a>
     <slot name="breadcrumbs">
-      <Breadcrumbs
-        :items="formattedCrumbs"
-        class="select-none truncate max-w-[80%]"
-      />
+      <Breadcrumbs :items="formattedCrumbs" class="select-none truncate max-w-[80%]" />
     </slot>
 
     <div class="ml-auto flex items-center gap-3">
@@ -22,10 +23,7 @@
       <slot name="content" />
       <div v-if="document?.doc?.share_count" class="icon">
         <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
-        <LucideBuilding2
-          v-else-if="document.doc.share_count === -1"
-          class="size-4"
-        />
+        <LucideBuilding2 v-else-if="document.doc.share_count === -1" class="size-4" />
         <LucideUsers v-else-if="document.doc.share_count > 0" class="size-4" />
       </div>
       <LucideStar
@@ -33,17 +31,13 @@
         class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
       />
       <template v-if="!isLoggedIn">
-        <Button variant="outline" @click="$router.push({ name: 'Login' })">
-          Sign In
-        </Button>
+        <Button variant="outline" @click="$router.push({ name: 'Login' })"> Sign In </Button>
         <Button
           v-if="!isLoggedIn"
           class="hidden md:block"
           variant="solid"
           label="Try out Drive"
-          @click="
-            open('https://frappecloud.com/dashboard/signup?product=drive')
-          "
+          @click="open('https://frappecloud.com/dashboard/signup?product=drive')"
         />
       </template>
       <Button
@@ -75,7 +69,8 @@
   </nav>
 </template>
 <script setup>
-import { Button, Breadcrumbs, LoadingIndicator, Dropdown } from 'frappe-ui'
+import { Button, Breadcrumbs, Dropdown } from 'frappe-ui'
+import { DriveLogo } from 'frappe-ui/drive'
 import { useStore } from 'vuex'
 import emitter from '@/emitter'
 import { ref, computed, inject, h, defineModel } from 'vue'
@@ -86,7 +81,6 @@ import Dialogs from '@/components/Dialogs.vue'
 import { apps } from '@/resources/permissions'
 import { dynamicList } from '@/utils/'
 
-import { useRoute } from 'vue-router'
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideStar from '~icons/lucide/star'
@@ -196,8 +190,7 @@ const fileActions = computed(() =>
               label: __('Show Info'),
               icon: LucideInfo,
               onClick: () => (dialog.value = 'i'),
-              isEnabled: () =>
-                !store.state.activeEntity || !store.state.showInfo,
+              isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
             },
             {
               label: __('Favourite'),
@@ -281,11 +274,7 @@ const fileActions = computed(() =>
                   label: 'Folder',
                   icon: LucideFolderArchive,
                   onClick: () => {
-                    downloadZippedHTML(
-                      editor,
-                      entity.value.title,
-                      settings.value,
-                    )
+                    downloadZippedHTML(editor, entity.value.title, settings.value)
                   },
                 },
                 {
@@ -347,4 +336,6 @@ const clearCache = () => {
   window.indexedDB.deleteDatabase('fdoc-' + props.document.doc.name)
   window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
 }
+
+const navigate = (href) => (window.href = href)
 </script>

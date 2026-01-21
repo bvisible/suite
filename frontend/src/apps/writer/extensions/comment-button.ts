@@ -124,8 +124,7 @@ export const FloatingQuoteButton = Extension.create({
     return [
       new Plugin({
         key: new PluginKey('floatingQuoteButton'),
-        view: (editorView) =>
-          new FloatingQuoteButtonView(editorView, this.editor),
+        view: (editorView) => new FloatingQuoteButtonView(editorView, this.editor),
       }),
     ]
   },

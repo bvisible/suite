@@ -1,9 +1,5 @@
 <template>
-  <Dialog
-    v-model="show"
-    :options="{ size: 'xl', position: 'top' }"
-    @after-leave="resetState"
-  >
+  <Dialog v-model="show" :options="{ size: 'xl', position: 'top' }" @after-leave="resetState">
     <template #body>
       <div class="flex flex-col">
         <div class="relative">
@@ -18,9 +14,7 @@
               @keydown="onKeyDown"
               autocomplete="off"
             >
-              <template #prefix
-                ><LucideSearch class="size-4 text-ink-gray-6"
-              /></template>
+              <template #prefix><LucideSearch class="size-4 text-ink-gray-6" /></template>
             </TextInput>
           </div>
           <div
@@ -47,15 +41,10 @@
                   @click="onSelection(template)"
                   @mouseover="setActiveIndex(index)"
                   class="flex cursor-pointer items-center gap-3 rounded px-3 py-2.5 transition-colors"
-                  :class="[
-                    activeIndex === index
-                      ? 'bg-surface-gray-3'
-                      : 'hover:bg-surface-gray-2',
-                  ]"
+                  :class="[activeIndex === index ? 'bg-surface-gray-3' : 'hover:bg-surface-gray-2']"
                   :ref="
                     (el) => {
-                      if (activeIndex === index)
-                        activeItemRef = el as HTMLDivElement
+                      if (activeIndex === index) activeItemRef = el as HTMLDivElement
                     }
                   "
                 >

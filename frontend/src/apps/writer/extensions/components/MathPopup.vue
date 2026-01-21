@@ -3,16 +3,9 @@
     class="bg-white rounded-lg shadow-2xl w-[420px] max-w-[90vw] border border-gray-200"
     @click.stop
   >
-    <div
-      class="flex items-center justify-between px-3 border-b border-surface-gray-2"
-    >
+    <div class="flex items-center justify-between px-3 border-b border-surface-gray-2">
       <span class="text-xs font-medium text-gray-700">LaTeX</span>
-      <Button
-        :icon="IconX"
-        variant="ghost"
-        @click="handleClose"
-        tooltip="Close (Esc)"
-      />
+      <Button :icon="IconX" variant="ghost" @click="handleClose" tooltip="Close (Esc)" />
     </div>
 
     <div class="p-3 flex flex-col gap-2">
@@ -37,9 +30,7 @@
       </div>
     </div>
 
-    <div
-      class="flex items-center justify-between px-3 py-2 border-t border-gray-200"
-    >
+    <div class="flex items-center justify-between px-3 py-2 border-t border-gray-200">
       <Checkbox v-model="isBlock" label="Block" />
       <Button label="Apply" variant="solid" @click="handleSubmit" />
     </div>
@@ -117,8 +108,7 @@ const handleClose = () => {
 <style scoped>
 :deep(textarea) {
   font-family:
-    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
-    monospace !important;
+    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
   font-size: 12px !important;
   line-height: 1.5 !important;
 }

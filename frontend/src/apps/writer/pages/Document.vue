@@ -13,9 +13,7 @@
   <Navbar
     v-if="!inIframe && !showVersions && document.doc"
     :document
-    :breadcrumbs="
-      document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))
-    "
+    :breadcrumbs="document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
     v-model:showVersions="showVersions"
     v-model:showTemplates="showTemplates"
   >
@@ -23,9 +21,7 @@
       <UsersBar
         v-if="editor?.storage?.collaborationCaret?.users?.length"
         :users="
-          editor.storage.collaborationCaret.users.filter(
-            (k) => k.id !== $store.state.user.id,
-          )
+          editor.storage.collaborationCaret.users.filter((k) => k.id !== $store.state.user.id)
         "
       />
 
@@ -68,11 +64,7 @@
     v-else-if="!document.doc && document.loading"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div
-    v-else-if="document.doc"
-    class="flex w-full h-full overflow-hidden"
-    v-show="!showVersions"
-  >
+  <div v-else-if="document.doc" class="flex w-full h-full overflow-hidden" v-show="!showVersions">
     <NonCollabEditor
       v-if="!document.doc?.collab"
       ref="editorEl"
@@ -83,11 +75,7 @@
       :settings
       :editable
     />
-    <MarkdownEditor
-      v-else-if="document.doc?.mime_type == 'text/markdown'"
-      :document
-      :settings
-    />
+    <MarkdownEditor v-else-if="document.doc?.mime_type == 'text/markdown'" :document :settings />
     <TextEditor
       v-else-if="document.doc?.settings"
       ref="editorEl"
@@ -114,16 +102,7 @@
 <script setup>
 import Navbar from '@/components/Navbar.vue'
 import ErrorPage from '@/components/ErrorPage.vue'
-import {
-  ref,
-  inject,
-  defineAsyncComponent,
-  provide,
-  watch,
-  h,
-  computed,
-  useTemplateRef,
-} from 'vue'
+import { ref, inject, defineAsyncComponent, provide, watch, h, computed, useTemplateRef } from 'vue'
 import { useStore } from 'vuex'
 import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
 
@@ -140,9 +119,7 @@ import LucideLockOpen from '~icons/lucide/lock-open'
 import LucideWifiOff from '~icons/lucide/wifi-off'
 import TextEditor from '@/components/TextEditor.vue'
 
-const MarkdownEditor = defineAsyncComponent(
-  () => import('@/components/MarkdownEditor.vue'),
-)
+const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor.vue'))
 
 const props = defineProps({
   id: String,
@@ -223,8 +200,7 @@ let toasted
 watch(isOldSchema, (v) => {
   if (document.doc?.settings && document.doc.write && v && !toasted) {
     toast({
-      title:
-        'This document uses an old schema. Collaborative editing is disabled.',
+      title: 'This document uses an old schema. Collaborative editing is disabled.',
       type: 'warning',
       duration: 8000,
     })

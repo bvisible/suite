@@ -76,9 +76,7 @@
                 <div class="flex flex-col gap-3 pb-5 pr-5">
                   <template v-if="tabIndex === 1">
                     <div class="space-y-2">
-                      <h3 class="text-sm font-medium text-ink-gray-7">
-                        Print Settings
-                      </h3>
+                      <h3 class="text-sm font-medium text-ink-gray-7">Print Settings</h3>
                       <FormLabel label="Header & Footer" />
                       <div class="grid grid-cols-2 gap-2">
                         <FormControl
@@ -112,8 +110,7 @@
                         />
                       </div>
                       <div class="text-xs text-ink-gray-5 mt-2">
-                        Set the text to appear in headers and footers when
-                        printing.
+                        Set the text to appear in headers and footers when printing.
                       </div>
                     </div>
                     <div class="flex flex-col gap-2.5">
@@ -144,9 +141,7 @@
                     </div>
                   </template>
                   <template v-else>
-                    <h3 class="text-sm font-medium text-ink-gray-7">
-                      Watermark
-                    </h3>
+                    <h3 class="text-sm font-medium text-ink-gray-7">Watermark</h3>
                     <FormControl
                       v-model="settings.watermark_text"
                       type="text"
@@ -193,8 +188,7 @@
                   :loading="resource.loading"
                   @click="
                     () => {
-                      if (key === 'writer_settings')
-                        resource.setValue.submit({ [key]: settings })
+                      if (key === 'writer_settings') resource.setValue.submit({ [key]: settings })
                       else {
                         resource.updateSettings.submit({
                           data: JSON.stringify(settings),
@@ -246,12 +240,8 @@ const fontOptions = computed(() =>
   ]),
 )
 
-const resource = computed(() =>
-  tabIndex.value === 1 ? props.docSettings : props.globalSettings,
-)
-const key = computed(() =>
-  tabIndex.value === 1 ? 'settings' : 'writer_settings',
-)
+const resource = computed(() => (tabIndex.value === 1 ? props.docSettings : props.globalSettings))
+const key = computed(() => (tabIndex.value === 1 ? 'settings' : 'writer_settings'))
 
 const KEYS = computed(() => [
   'font_family',

@@ -4,9 +4,7 @@
   >
     <div class="flex flex-col gap-1">
       <div v-if="!versionPreview">
-        <span class="text-ink-gray-6"
-          >You are viewing the version history of</span
-        >
+        <span class="text-ink-gray-6">You are viewing the version history of</span>
         {{ document.doc.title }}
       </div>
       <div v-else-if="versionPreview[0].manual">
@@ -16,9 +14,7 @@
         This is an automatic snapshot of this document from
         {{ formatDateDDMMYY(versionPreview[0].title) }}.
       </div>
-      <div class="text-xs text-ink-gray-5">
-        Editing is disabled until you exit.
-      </div>
+      <div class="text-xs text-ink-gray-5">Editing is disabled until you exit.</div>
     </div>
     <div class="flex gap-2">
       <Button
@@ -71,8 +67,7 @@
         />
         <div
           v-if="
-            !Object.entries(groupedVersions).length ||
-            !Object.entries(groupedVersions)[0][1].length
+            !Object.entries(groupedVersions).length || !Object.entries(groupedVersions)[0][1].length
           "
           class="text-ink-gray-5 text-sm text-center mt-1"
         >
@@ -84,25 +79,16 @@
           :key="title"
           class="flex flex-col gap-1 mb-2 justify-start bg-surface-white"
         >
-          <div
-            v-if="title !== 'Manual'"
-            class="text-ink-gray-5 text-sm font-medium mb-1 my-2"
-          >
+          <div v-if="title !== 'Manual'" class="text-ink-gray-5 text-sm font-medium mb-1 my-2">
             {{ title }}
           </div>
           <div class="grid grid-cols-3 gap-0.5">
             <Button
               v-for="(version, i) in group"
               :key="version.name"
-              :variant="
-                version.name === versionPreview?.[0]?.name ? 'solid' : 'ghost'
-              "
+              :variant="version.name === versionPreview?.[0]?.name ? 'solid' : 'ghost'"
               class="text-start text-sm py-4"
-              :label="
-                version.manual
-                  ? version.title
-                  : formatDateDDMMYY(version.title).slice(9, 14)
-              "
+              :label="version.manual ? version.title : formatDateDDMMYY(version.title).slice(9, 14)"
               @click="
                 version.name === versionPreview?.[0]?.name
                   ? (versionPreview = null)
@@ -114,10 +100,7 @@
       </div>
     </div>
     <div class="flex-1 overflow-hidden">
-      <div
-        v-if="!versionPreview"
-        class="text-base border-b text-ink-gray-8 p-3 select-none"
-      >
+      <div v-if="!versionPreview" class="text-base border-b text-ink-gray-8 p-3 select-none">
         This is the current version.
       </div>
       <TextEditor
@@ -127,14 +110,8 @@
         :editable="false"
         :content="
           versionPreview
-            ? generateHTMLDiff(
-                versionPreview[0]?.snapshot,
-                versionPreview[1]?.snapshot,
-              )
-            : generateHTMLDiff(
-                editor.getHTML(),
-                versions.data[versions.data.length - 1]?.snapshot,
-              )
+            ? generateHTMLDiff(versionPreview[0]?.snapshot, versionPreview[1]?.snapshot)
+            : generateHTMLDiff(editor.getHTML(), versions.data[versions.data.length - 1]?.snapshot)
         "
       >
         <template #editor="{ editor }">
@@ -164,9 +141,7 @@ function generateHTMLDiff(newHTML, oldHTML = '') {
   const newDoc = parser.parseFromString(newHTML, 'text/html').body
 
   const result = diffNode(oldDoc, newDoc)
-  return result
-    .map((node) => (typeof node === 'string' ? node : node.outerHTML))
-    .join('')
+  return result.map((node) => (typeof node === 'string' ? node : node.outerHTML)).join('')
 }
 
 function diffNode(oldNode, newNode) {
@@ -175,15 +150,11 @@ function diffNode(oldNode, newNode) {
 
   // node removed
   if (oldNode && !newNode)
-    return [
-      `<del>${oldNode.outerHTML || escapeHTML(oldNode.textContent)}</del>`,
-    ]
+    return [`<del>${oldNode.outerHTML || escapeHTML(oldNode.textContent)}</del>`]
 
   // node added
   if (!oldNode && newNode)
-    return [
-      `<ins>${newNode.outerHTML || escapeHTML(newNode.textContent)}</ins>`,
-    ]
+    return [`<ins>${newNode.outerHTML || escapeHTML(newNode.textContent)}</ins>`]
 
   // different node type or tag
   if (oldNode.nodeName !== newNode.nodeName) {
@@ -194,10 +165,7 @@ function diffNode(oldNode, newNode) {
   }
 
   // text node diff
-  if (
-    oldNode.nodeType === Node.TEXT_NODE &&
-    newNode.nodeType === Node.TEXT_NODE
-  ) {
+  if (oldNode.nodeType === Node.TEXT_NODE && newNode.nodeType === Node.TEXT_NODE) {
     const diffs = dmp.diff_main(oldNode.textContent, newNode.textContent)
     dmp.diff_cleanupSemantic(diffs)
     return diffs.map(([type, text]) => {
@@ -311,9 +279,7 @@ const getPrevious = (version) => {
   const relevantVersions = version.manual
     ? versions.data.filter((v) => v.manual)
     : versions.data.filter((v) => !v.manual)
-  const currentIndex = relevantVersions.findIndex(
-    (v) => v.name === version.name,
-  )
+  const currentIndex = relevantVersions.findIndex((v) => v.name === version.name)
   return relevantVersions[currentIndex - 1]
 }
 

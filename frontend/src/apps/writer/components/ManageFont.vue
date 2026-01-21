@@ -5,9 +5,7 @@
       variant="outline"
       type="number"
       v-model="size"
-      @update:modelValue="
-        (val) => val && props.editor.commands.setFontSize(val + 'px')
-      "
+      @update:modelValue="(val) => val && props.editor.commands.setFontSize(val + 'px')"
     />
     <FontSelect v-model="selected" :font_family :editor />
   </div>
@@ -30,12 +28,9 @@ const size = ref(props.font_size)
 watchEffect(() => {
   // potential perf?
   selected.value =
-    FONT_FAMILIES.find((opt) => opt.isActive(props.editor))?.value ||
-    props.font_family
-  let fontSize =
-    props.editor.getAttributes('textStyle')?.fontSize || props.font_size
-  if (fontSize && typeof fontSize !== 'number')
-    fontSize = +fontSize.slice(0, -2)
+    FONT_FAMILIES.find((opt) => opt.isActive(props.editor))?.value || props.font_family
+  let fontSize = props.editor.getAttributes('textStyle')?.fontSize || props.font_size
+  if (fontSize && typeof fontSize !== 'number') fontSize = +fontSize.slice(0, -2)
   if (!Number.isNaN(fontSize)) size.value = fontSize
 })
 </script>

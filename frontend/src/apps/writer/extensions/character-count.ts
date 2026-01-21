@@ -25,10 +25,7 @@ export interface CharacterCountStorage {
    * @param options.node The node to get the characters from. Defaults to the current document.
    * @param options.mode The mode by which the size is calculated. If set to `textSize`, the textContent of the document is used.
    */
-  characters: (options?: {
-    node?: ProseMirrorNode
-    mode?: 'textSize' | 'nodeSize'
-  }) => number
+  characters: (options?: { node?: ProseMirrorNode; mode?: 'textSize' | 'nodeSize' }) => number
 
   /**
    * Get the number of words for the current document.
@@ -42,10 +39,7 @@ export interface CharacterCountStorage {
  * This extension allows you to count the characters and words of your document.
  * @see https://tiptap.dev/api/extensions/character-count
  */
-export const CharacterCount = Extension.create<
-  CharacterCountOptions,
-  CharacterCountStorage
->({
+export const CharacterCount = Extension.create<CharacterCountOptions, CharacterCountStorage>({
   name: 'characterCount',
 
   addOptions() {
@@ -93,12 +87,7 @@ export const CharacterCount = Extension.create<
           const limit = this.options.limit
 
           // Nothing has changed or no limit is defined. Ignore it.
-          if (
-            !transaction.docChanged ||
-            limit === 0 ||
-            limit === null ||
-            limit === undefined
-          ) {
+          if (!transaction.docChanged || limit === 0 || limit === null || limit === undefined) {
             return true
           }
 

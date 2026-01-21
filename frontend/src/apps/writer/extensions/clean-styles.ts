@@ -69,9 +69,7 @@ const CleanStyles = Extension.create<CleanStylesOptions>({
               (mark) => mark.type.name === textStyleType.name,
             )?.[0]
 
-            for (let [key, validator] of Object.entries(
-              this.options.validators,
-            )) {
+            for (let [key, validator] of Object.entries(this.options.validators)) {
               const value = node.attrs[key]
               if (value && !validator(`${value}`)) {
                 delete node.attrs[key]

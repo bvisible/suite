@@ -37,8 +37,7 @@ body {
 /* EB Garamond */
 @font-face {
   font-family: 'EB Garamond';
-  src: url('/assets/drive/fonts/EB_Garamond/EBGaramond-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/EB_Garamond/EBGaramond-VariableFont_wght.ttf') format('truetype');
   font-weight: 400 800;
   font-style: normal;
   font-display: swap;
@@ -55,16 +54,14 @@ body {
 /* Comic Sans MS */
 @font-face {
   font-family: 'Comic Sans MS';
-  src: url('/assets/drive/fonts/Comic_Sans_MS/Comic-Sans-MS.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Comic_Sans_MS/Comic-Sans-MS.ttf') format('truetype');
   font-weight: 400 800;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Comic Sans MS';
-  src: url('/assets/drive/fonts/Comic_Sans_MS/Comic-Sans-MS-Italics.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Comic_Sans_MS/Comic-Sans-MS-Italics.ttf') format('truetype');
   font-weight: 400 800;
   font-style: italic;
   font-display: swap;
@@ -73,8 +70,7 @@ body {
 /* Comfortaa */
 @font-face {
   font-family: 'Comfortaa';
-  src: url('/assets/drive/fonts/Comfortaa/Comfortaa-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Comfortaa/Comfortaa-VariableFont_wght.ttf') format('truetype');
   font-weight: 300 700;
   font-style: normal;
   font-display: swap;
@@ -83,8 +79,7 @@ body {
 /* Cormorant */
 @font-face {
   font-family: 'Cormorant';
-  src: url('/assets/drive/fonts/Cormorant/Cormorant-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Cormorant/Cormorant-VariableFont_wght.ttf') format('truetype');
   font-weight: 300 700;
   font-style: normal;
   font-display: swap;
@@ -123,16 +118,14 @@ body {
 /* Lora */
 @font-face {
   font-family: 'Lora';
-  src: url('/assets/drive/fonts/Lora/Lora-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Lora/Lora-VariableFont_wght.ttf') format('truetype');
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Lora';
-  src: url('/assets/drive/fonts/Lora/Lora-Italic-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Lora/Lora-Italic-VariableFont_wght.ttf') format('truetype');
   font-weight: 400 700;
   font-style: italic;
   font-display: swap;
@@ -141,8 +134,7 @@ body {
 /* Nunito */
 @font-face {
   font-family: 'Nunito';
-  src: url('/assets/drive/fonts/Nunito/Nunito-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Nunito/Nunito-VariableFont_wght.ttf') format('truetype');
   font-weight: 200 1000;
   font-style: normal;
   font-display: swap;
@@ -151,16 +143,14 @@ body {
 /* Roboto */
 @font-face {
   font-family: 'Roboto';
-  src: url('/assets/drive/fonts/Roboto/Roboto-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Roboto/Roboto-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
-  src: url('/assets/drive/fonts/Roboto/Roboto-Italic-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Roboto/Roboto-Italic-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
@@ -169,16 +159,14 @@ body {
 /* Geist */
 @font-face {
   font-family: 'Geist';
-  src: url('/assets/drive/fonts/Geist/Geist-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Geist/Geist-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Geist';
-  src: url('/assets/drive/fonts/Geist/Geist-VariableItalic.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Geist/Geist-VariableItalic.ttf') format('truetype');
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
@@ -187,8 +175,7 @@ body {
 /* Caveat */
 @font-face {
   font-family: 'Caveat';
-  src: url('/assets/drive/fonts/Caveat/Caveat-VariableFont_wght.ttf')
-    format('truetype');
+  src: url('/assets/drive/fonts/Caveat/Caveat-VariableFont_wght.ttf') format('truetype');
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;

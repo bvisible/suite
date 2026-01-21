@@ -1,9 +1,7 @@
 <template>
   <Popover transition="default">
     <template #target="{ togglePopover, isOpen }">
-      <slot
-        v-bind="{ onClick: () => togglePopover(), isActive: isOpen }"
-      ></slot>
+      <slot v-bind="{ onClick: () => togglePopover(), isActive: isOpen }"></slot>
     </template>
     <template #body-main>
       <div class="p-4 flex flex-col gap-4 w-64">
@@ -85,32 +83,18 @@ const local = reactive({
     current.value.marginTop,
     props.settings.paragraph_spacing_above || 0,
   ),
-  spacingBefore: parsePx(
-    current.value.marginTop,
-    props.settings.paragraph_spacing_below || 0,
-  ),
+  spacingBefore: parsePx(current.value.marginTop, props.settings.paragraph_spacing_below || 0),
 })
 
 watch(current, (cur) => {
-  local.lineHeight = cur.lineHeight
-    ? +cur.lineHeight
-    : props.settings.line_height
-  local.spacingAfter = parsePx(
-    cur.spacingAfter,
-    props.settings.paragraph_spacing_after || 0,
-  )
-  local.spacingBefore = parsePx(
-    cur.spacingBefore,
-    props.settings.paragraph_spacing_before || 0,
-  )
+  local.lineHeight = cur.lineHeight ? +cur.lineHeight : props.settings.line_height
+  local.spacingAfter = parsePx(cur.spacingAfter, props.settings.paragraph_spacing_after || 0)
+  local.spacingBefore = parsePx(cur.spacingBefore, props.settings.paragraph_spacing_before || 0)
 })
 
 function apply() {
   props.editor.commands.updateAttributes('paragraph', {
-    lineHeight:
-      local.lineHeight === (props.settings.line_height || 1.5)
-        ? null
-        : local.lineHeight,
+    lineHeight: local.lineHeight === (props.settings.line_height || 1.5) ? null : local.lineHeight,
     spacingAfter:
       local.spacingAfter === (props.settings.paragraph_spacing_above || 0)
         ? null
