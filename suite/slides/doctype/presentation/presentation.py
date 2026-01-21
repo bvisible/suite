@@ -207,16 +207,16 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 
 
 @frappe.whitelist()
-def create_presentation(theme=None, duplicate_from=None):
+def create_presentation(template=None, duplicate_from=None):
 	presentation = frappe.new_doc("Presentation")
 	if duplicate_from:
 		presentation.title = f"Copy of {frappe.get_value('Presentation', duplicate_from, 'title')}"
 	else:
 		presentation.title = "Untitled"
-	presentation.theme = theme
+	presentation.theme = template
 	presentation.insert()
 
-	presentation.slides = get_slides_from_ref(presentation.name, theme, duplicate_from)
+	presentation.slides = get_slides_from_ref(presentation.name, template, duplicate_from)
 
 	presentation.save()
 	return presentation
