@@ -45,7 +45,7 @@
     @success="$router.push({ name: 'Home' })"
   />
 
-  <SearchDialog v-if="dialog === 'search'" v-model="dialog"/>
+  <SearchDialog v-if="dialog === 'search'" v-model="dialog" />
 </template>
 <script setup>
 import { ref, watch, computed } from 'vue'

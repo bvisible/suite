@@ -27,10 +27,7 @@
           Edited {{ item.relativeModified }}
         </div>
       </button>
-      <span
-        v-if="loading"
-        class="text-xs text-ink-gray-5 p-1"
-      >Loading...</span>
+      <span v-if="loading" class="text-xs text-ink-gray-5 p-1">Loading...</span>
     </div>
   </div>
 </template>
@@ -60,15 +57,15 @@ export default {
   },
   methods: {
     onKeyDown({ event }) {
-      if (event.key === "ArrowUp") {
+      if (event.key === 'ArrowUp') {
         this.upHandler()
         return true
       }
-      if (event.key === "ArrowDown") {
+      if (event.key === 'ArrowDown') {
         this.downHandler()
         return true
       }
-      if (event.key === "Enter") {
+      if (event.key === 'Enter') {
         this.enterHandler()
         return true
       }

@@ -20,7 +20,7 @@
       "
     >
       <div v-if="item.divider">
-        <hr class="my-1 bg-surface-gray-4">
+        <hr class="my-1 bg-surface-gray-4" />
       </div>
       <button
         v-else
@@ -42,8 +42,8 @@
   </div>
 </template>
 <script setup>
-import { onBeforeUnmount, onMounted, onUpdated, ref } from "vue"
-import disableScroll from "@/utils/disable-scroll"
+import { onBeforeUnmount, onMounted, onUpdated, ref } from 'vue'
+import disableScroll from '@/utils/disable-scroll'
 
 const props = defineProps({
   actionItems: Array,
@@ -78,17 +78,17 @@ onBeforeUnmount(() => {
 function calculateY() {
   if (props.event.y >= parentHeight.value - childHeight.value) {
     return (contextMenu.value.style.top =
-      props.event.y - childHeight.value + "px")
+      props.event.y - childHeight.value + 'px')
   } else {
-    return (contextMenu.value.style.top = props.event.y + "px")
+    return (contextMenu.value.style.top = props.event.y + 'px')
   }
 }
 function calculateX() {
   if (props.event.x >= parentWidth.value - childWidth.value) {
     return (contextMenu.value.style.left =
-      props.event.x - childWidth.value + "px")
+      props.event.x - childWidth.value + 'px')
   } else {
-    return (contextMenu.value.style.left = props.event.x + "px")
+    return (contextMenu.value.style.left = props.event.x + 'px')
   }
 }
 </script>

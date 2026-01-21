@@ -1,13 +1,20 @@
 <template>
-  <nav id="navbar" ondragstart="return false;" ondrop="return false;"
-    class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between">
+  <nav
+    id="navbar"
+    ondragstart="return false;"
+    ondrop="return false;"
+    class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
+  >
     <a href="/writer">
       <div class="pl-2.5 pr-1">
         <WriterLogo class="size-7" />
       </div>
     </a>
     <slot name="breadcrumbs">
-      <Breadcrumbs :items="formattedCrumbs" class="select-none truncate max-w-[80%]" />
+      <Breadcrumbs
+        :items="formattedCrumbs"
+        class="select-none truncate max-w-[80%]"
+      />
     </slot>
 
     <div class="ml-auto flex items-center gap-3">
@@ -15,20 +22,36 @@
       <slot name="content" />
       <div v-if="document?.doc?.share_count" class="icon">
         <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
-        <LucideBuilding2 v-else-if="document.doc.share_count === -1" class="size-4" />
+        <LucideBuilding2
+          v-else-if="document.doc.share_count === -1"
+          class="size-4"
+        />
         <LucideUsers v-else-if="document.doc.share_count > 0" class="size-4" />
       </div>
-      <LucideStar v-if="document?.doc?.is_favourite" class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5" />
+      <LucideStar
+        v-if="document?.doc?.is_favourite"
+        class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
+      />
       <template v-if="!isLoggedIn">
         <Button variant="outline" @click="$router.push({ name: 'Login' })">
           Sign In
         </Button>
-        <Button v-if="!isLoggedIn" class="hidden md:block" variant="solid" label="Try out Drive" @click="
-          open('https://frappecloud.com/dashboard/signup?product=drive')
-          " />
+        <Button
+          v-if="!isLoggedIn"
+          class="hidden md:block"
+          variant="solid"
+          label="Try out Drive"
+          @click="
+            open('https://frappecloud.com/dashboard/signup?product=drive')
+          "
+        />
       </template>
-      <Button v-else-if="$route.name === 'Home'" label="New" variant="solid"
-        :icon-left="h(LucidePlus, { class: 'size-4' })" @click="
+      <Button
+        v-else-if="$route.name === 'Home'"
+        label="New"
+        variant="solid"
+        :icon-left="h(LucidePlus, { class: 'size-4' })"
+        @click="
           createDocument.submit(null, {
             onSuccess: (d) =>
               $router.push({
@@ -36,11 +59,17 @@
                 params: { id: d.name },
               }),
           })
-          " />
-      <Dropdown v-else-if="fileActions.length" :options="fileActions" placement="right" :button="{
-        variant: 'ghost',
-        icon: LucideMoreHorizontal,
-      }" />
+        "
+      />
+      <Dropdown
+        v-else-if="fileActions.length"
+        :options="fileActions"
+        placement="right"
+        :button="{
+          variant: 'ghost',
+          icon: LucideMoreHorizontal,
+        }"
+      />
     </div>
     <Dialogs v-model="dialog" :entities="document?.doc && [document.doc]" />
   </nav>
@@ -122,194 +151,194 @@ const formattedCrumbs = computed(() => {
 const fileActions = computed(() =>
   props.document?.doc?.settings
     ? [
-      {
-        group: true,
-        hideLabel: true,
-        items: [
-          {
-            label: __('Share'),
-            icon: LucideShare2,
-            onClick: () => {
-              dialog.value = 's'
+        {
+          group: true,
+          hideLabel: true,
+          items: [
+            {
+              label: __('Share'),
+              icon: LucideShare2,
+              onClick: () => {
+                dialog.value = 's'
+              },
+              isEnabled: () => props.document.doc.share,
             },
-            isEnabled: () => props.document.doc.share,
-          },
-          {
-            label: __('Download'),
-            icon: LucideDownload,
-            isEnabled: () => props.document.doc.allow_download,
-            onClick: () => emitter.emit('print-file'),
-          },
-          {
-            label: __('Copy Link'),
-            icon: LucideLink,
-            onClick: () => getLink(props.document.doc),
-          },
-        ],
-      },
-      {
-        group: true,
-        hideLabel: true,
-        items: [
-          {
-            label: __('Move'),
-            icon: LucideArrowLeftRight,
-            onClick: () => (dialog.value = 'm'),
-            isEnabled: () => props.document.doc.write,
-          },
-          {
-            label: __('Rename'),
-            icon: LucideSquarePen,
-            onClick: () => (dialog.value = 'rn'),
-            isEnabled: () => props.document.doc.write,
-          },
-          {
-            label: __('Show Info'),
-            icon: LucideInfo,
-            onClick: () => (dialog.value = 'i'),
-            isEnabled: () =>
-              !store.state.activeEntity || !store.state.showInfo,
-          },
-          {
-            label: __('Favourite'),
-            icon: LucideStar,
-            onClick: () => {
-              props.document.doc.is_favourite = true
-              props.document.toggleFav.submit()
+            {
+              label: __('Download'),
+              icon: LucideDownload,
+              isEnabled: () => props.document.doc.allow_download,
+              onClick: () => emitter.emit('print-file'),
             },
-            isEnabled: () => !props.document.doc.is_favourite,
-          },
-          {
-            label: __('Unfavourite'),
-            icon: LucideStar,
-            color: 'stroke-amber-500 fill-amber-500',
-            onClick: () => {
-              props.document.doc.is_favourite = false
-              props.document.toggleFav.submit()
+            {
+              label: __('Copy Link'),
+              icon: LucideLink,
+              onClick: () => getLink(props.document.doc),
             },
-            isEnabled: () => props.document.doc.is_favourite,
-          },
-        ],
-      },
-      {
-        group: true,
-        hideLabel: true,
-        items: dynamicList([
-          {
-            label: 'View',
-            icon: LucideView,
-            cond: props.document.doc.write,
-            submenu: [
-              {
-                label: 'Lock',
-                switch: true,
-                switchValue: props.document.doc.settings.lock,
-                icon: LucideLock,
-                onClick: (val) => {
-                  props.document.doc.settings.lock = val
-                  props.document.updateSettings.submit({
-                    data: JSON.stringify(props.document.doc.settings),
-                  })
+          ],
+        },
+        {
+          group: true,
+          hideLabel: true,
+          items: [
+            {
+              label: __('Move'),
+              icon: LucideArrowLeftRight,
+              onClick: () => (dialog.value = 'm'),
+              isEnabled: () => props.document.doc.write,
+            },
+            {
+              label: __('Rename'),
+              icon: LucideSquarePen,
+              onClick: () => (dialog.value = 'rn'),
+              isEnabled: () => props.document.doc.write,
+            },
+            {
+              label: __('Show Info'),
+              icon: LucideInfo,
+              onClick: () => (dialog.value = 'i'),
+              isEnabled: () =>
+                !store.state.activeEntity || !store.state.showInfo,
+            },
+            {
+              label: __('Favourite'),
+              icon: LucideStar,
+              onClick: () => {
+                props.document.doc.is_favourite = true
+                props.document.toggleFav.submit()
+              },
+              isEnabled: () => !props.document.doc.is_favourite,
+            },
+            {
+              label: __('Unfavourite'),
+              icon: LucideStar,
+              color: 'stroke-amber-500 fill-amber-500',
+              onClick: () => {
+                props.document.doc.is_favourite = false
+                props.document.toggleFav.submit()
+              },
+              isEnabled: () => props.document.doc.is_favourite,
+            },
+          ],
+        },
+        {
+          group: true,
+          hideLabel: true,
+          items: dynamicList([
+            {
+              label: 'View',
+              icon: LucideView,
+              cond: props.document.doc.write,
+              submenu: [
+                {
+                  label: 'Lock',
+                  switch: true,
+                  switchValue: props.document.doc.settings.lock,
+                  icon: LucideLock,
+                  onClick: (val) => {
+                    props.document.doc.settings.lock = val
+                    props.document.updateSettings.submit({
+                      data: JSON.stringify(props.document.doc.settings),
+                    })
+                  },
                 },
-              },
-              {
-                label: 'Wide',
-                icon: LucideRulerDimensionLine,
-                switch: true,
-                switchValue: props.document.doc.settings.wide,
-                onClick: (val) => {
-                  props.document.doc.settings.wide = val
-                  props.document.updateSettings.submit({
-                    data: JSON.stringify(props.document.doc.settings),
-                  })
+                {
+                  label: 'Wide',
+                  icon: LucideRulerDimensionLine,
+                  switch: true,
+                  switchValue: props.document.doc.settings.wide,
+                  onClick: (val) => {
+                    props.document.doc.settings.wide = val
+                    props.document.updateSettings.submit({
+                      data: JSON.stringify(props.document.doc.settings),
+                    })
+                  },
                 },
-              },
-            ],
-          },
-          {
-            label: 'Export',
-            icon: LucideDownload,
-            submenu: [
-              {
-                label: 'PDF',
-                icon: LucideFile,
-                onClick: () => {
-                  emitter.emit('print-file')
+              ],
+            },
+            {
+              label: 'Export',
+              icon: LucideDownload,
+              submenu: [
+                {
+                  label: 'PDF',
+                  icon: LucideFile,
+                  onClick: () => {
+                    emitter.emit('print-file')
+                  },
                 },
-              },
-              {
-                label: 'DOCX',
-                icon: LucideFileText,
-                onClick: () => {
-                  downloadDocxFromHtml(
-                    editor.getHTML(),
-                    `${entity.value.title}.docx`,
-                    settings.value,
-                  )
+                {
+                  label: 'DOCX',
+                  icon: LucideFileText,
+                  onClick: () => {
+                    downloadDocxFromHtml(
+                      editor.getHTML(),
+                      `${entity.value.title}.docx`,
+                      settings.value,
+                    )
+                  },
                 },
-              },
-              {
-                label: 'Folder',
-                icon: LucideFolderArchive,
-                onClick: () => {
-                  downloadZippedHTML(
-                    editor,
-                    entity.value.title,
-                    settings.value,
-                  )
+                {
+                  label: 'Folder',
+                  icon: LucideFolderArchive,
+                  onClick: () => {
+                    downloadZippedHTML(
+                      editor,
+                      entity.value.title,
+                      settings.value,
+                    )
+                  },
                 },
-              },
-              {
-                label: 'Markdown',
-                icon: LucideMarkdown,
-                onClick: () => downloadMD(editor, entity.value.title),
-              },
-              {
-                onClick: exportBlog,
-                label: 'Blog',
-                icon: LucideFileUser,
-                cond: apps.data && apps.data.find((k) => k.name === 'blog'),
-              },
-            ],
-          },
-          {
-            icon: LucideHistory,
-            label: 'Versions',
-            cond: props.document.doc.write,
-            onClick: () => (showVersions.value = true),
-          },
-          {
-            icon: LucideLayoutTemplate,
-            label: 'Templates',
-            cond: props.document.doc.write,
-            onClick: () => (showTemplates.value = true),
-          },
-        ]),
-      },
-      {
-        group: true,
-        hideLabel: true,
-        items: [
-          {
-            onClick: () => clearCache(),
-            label: 'Clear Cache',
-            icon: LucideListRestart,
-          },
-          {
-            label: __('Delete'),
-            icon: LucideTrash,
-            onClick: () => (dialog.value = 'remove'),
-            isEnabled: () => props.document.doc.write,
-            theme: 'red',
-          },
-        ],
-      },
-    ].map((k) => {
-      return {
-        ...k,
-        items: k.items.filter((l) => !l.isEnabled || l.isEnabled()),
-      }
-    })
+                {
+                  label: 'Markdown',
+                  icon: LucideMarkdown,
+                  onClick: () => downloadMD(editor, entity.value.title),
+                },
+                {
+                  onClick: exportBlog,
+                  label: 'Blog',
+                  icon: LucideFileUser,
+                  cond: apps.data && apps.data.find((k) => k.name === 'blog'),
+                },
+              ],
+            },
+            {
+              icon: LucideHistory,
+              label: 'Versions',
+              cond: props.document.doc.write,
+              onClick: () => (showVersions.value = true),
+            },
+            {
+              icon: LucideLayoutTemplate,
+              label: 'Templates',
+              cond: props.document.doc.write,
+              onClick: () => (showTemplates.value = true),
+            },
+          ]),
+        },
+        {
+          group: true,
+          hideLabel: true,
+          items: [
+            {
+              onClick: () => clearCache(),
+              label: 'Clear Cache',
+              icon: LucideListRestart,
+            },
+            {
+              label: __('Delete'),
+              icon: LucideTrash,
+              onClick: () => (dialog.value = 'remove'),
+              isEnabled: () => props.document.doc.write,
+              theme: 'red',
+            },
+          ],
+        },
+      ].map((k) => {
+        return {
+          ...k,
+          items: k.items.filter((l) => !l.isEnabled || l.isEnabled()),
+        }
+      })
     : [],
 )
 

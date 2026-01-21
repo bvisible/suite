@@ -39,8 +39,14 @@ const EmbedExtension = Node.create({
           handleTextInput(view, from, to, text) {
             const { state } = view
             const start = Math.max(0, from - 1)
-            const existingText = state.doc.textBetween(start, from, '', '') + text
-            const charBefore = state.doc.textBetween(start - 1, from - 1, '', '')
+            const existingText =
+              state.doc.textBetween(start, from, '', '') + text
+            const charBefore = state.doc.textBetween(
+              start - 1,
+              from - 1,
+              '',
+              '',
+            )
             if (existingText === '[[') {
               if (charBefore === '[') closePopup()
               else {
@@ -49,7 +55,8 @@ const EmbedExtension = Node.create({
               }
             }
             if (popup && component && text != '[') {
-              search.value = state.doc.textBetween(triggerPosition + 2, to, '', '') + text
+              search.value =
+                state.doc.textBetween(triggerPosition + 2, to, '', '') + text
               return false
             }
           },
@@ -60,7 +67,10 @@ const EmbedExtension = Node.create({
               const val = component.ref.onKeyDown({ event })
               if (val) return val
             }
-            if (event.key === 'Escape' || (event.key === 'Backspace' && !inPopup)) {
+            if (
+              event.key === 'Escape' ||
+              (event.key === 'Backspace' && !inPopup)
+            ) {
               closePopup()
               return true
             }

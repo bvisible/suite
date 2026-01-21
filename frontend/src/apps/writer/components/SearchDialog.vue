@@ -88,7 +88,7 @@ import { search } from '@/resources'
 import LucideSearch from '~icons/lucide/search'
 import LucideFileText from '~icons/lucide/file-text'
 
-import {LoadingIndicator, KeyboardShortcut} from 'frappe-ui'
+import { LoadingIndicator, KeyboardShortcut } from 'frappe-ui'
 
 const show = defineModel<boolean>()
 

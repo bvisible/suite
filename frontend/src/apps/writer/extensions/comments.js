@@ -1,7 +1,10 @@
 import { Extension } from '@tiptap/core'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
-import { relativePositionToAbsolutePosition, ySyncPluginKey } from '@tiptap/y-tiptap'
+import {
+  relativePositionToAbsolutePosition,
+  ySyncPluginKey,
+} from '@tiptap/y-tiptap'
 
 import * as Y from 'yjs'
 export const commentPluginKey = new PluginKey('comment-anchors')
@@ -18,7 +21,9 @@ export const rebuild = (editor) => {
 
 export const getEditorPos = (relativePos, editor) => {
   const ystate = ySyncPluginKey.getState(editor.state)
-  const collab = editor.extensionManager.extensions.find((ext) => ext.name === 'collaboration')
+  const collab = editor.extensionManager.extensions.find(
+    (ext) => ext.name === 'collaboration',
+  )
 
   return relativePositionToAbsolutePosition(
     collab?.options.document,
@@ -34,7 +39,12 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
     const ystate = ySyncPluginKey.getState(editor.state)
     const decos = []
     comments.forEach((comment) => {
-      if (!comment.anchor.from || (!showResolved && comment.resolved) || !ystate) return
+      if (
+        !comment.anchor.from ||
+        (!showResolved && comment.resolved) ||
+        !ystate
+      )
+        return
       const from = relativePositionToAbsolutePosition(
         yDoc,
         ystate.type,
@@ -83,7 +93,13 @@ export const CommentExtension = Extension.create({
         key: commentPluginKey,
         state: {
           init(_, state) {
-            const { doc, comments, activeComment, showResolved, onDecorationsPainted } = ext.options
+            const {
+              doc,
+              comments,
+              activeComment,
+              showResolved,
+              onDecorationsPainted,
+            } = ext.options
             const decos = createDecorations(
               ext.editor,
               doc,
@@ -101,7 +117,8 @@ export const CommentExtension = Extension.create({
           apply(tr, oldSet) {
             const { doc, comments, activeComment, showResolved } = ext.options
             const rebuild = tr.getMeta(commentPluginKey)?.rebuild
-            if ((!tr.docChanged && !rebuild) || !comments._map.size) return oldSet
+            if ((!tr.docChanged && !rebuild) || !comments._map.size)
+              return oldSet
 
             const isRemote = tr.getMeta('y-sync$')?.isChangeOrigin
             if (isRemote || rebuild) {

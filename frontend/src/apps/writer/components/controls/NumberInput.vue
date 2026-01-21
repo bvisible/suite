@@ -1,6 +1,11 @@
 <template>
-  <div class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80">
-    <div v-if="prefix" class="w-1/2 text-center text-xs font-medium text-gray-500">
+  <div
+    class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80"
+  >
+    <div
+      v-if="prefix"
+      class="w-1/2 text-center text-xs font-medium text-gray-500"
+    >
       {{ prefix }}
     </div>
     <input
@@ -10,7 +15,10 @@
       :placeholder
       @change="changeValue"
     />
-    <div v-if="suffix" class="w-1/2 text-center text-xs font-medium text-gray-500">
+    <div
+      v-if="suffix"
+      class="w-1/2 text-center text-xs font-medium text-gray-500"
+    >
       {{ suffix }}
     </div>
     <div v-if="!hideButtons" class="flex h-full w-12 flex-col border-l">
@@ -72,9 +80,15 @@ const changeValue = (e) => {
 
 const updateValue = (change) => {
   if (change == 'increment') {
-    modelValue.value = Math.min(modelValue.value + props.rangeStep, props.rangeEnd)
+    modelValue.value = Math.min(
+      modelValue.value + props.rangeStep,
+      props.rangeEnd,
+    )
   } else if (change == 'decrement') {
-    modelValue.value = Math.max(modelValue.value - props.rangeStep, props.rangeStart)
+    modelValue.value = Math.max(
+      modelValue.value - props.rangeStep,
+      props.rangeStart,
+    )
   }
 }
 </script>
