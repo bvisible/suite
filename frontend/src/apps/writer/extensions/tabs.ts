@@ -117,30 +117,30 @@ export const TabsExtension = Node.create({
           if (tabIndex === -1) return false
 
           // Validate new index
-          if (newIndex < 0 || newIndex >= tabs.length || newIndex === tabIndex) {
+          if (newIndex < 0 || newIndex > tabs.length || newIndex === tabIndex) {
             return false
           }
 
-          const { node: tabNode, pos: tabPos } = tabs[tabIndex]
+          const { node, pos } = tabs[tabIndex]
+          const size = node.nodeSize
+          tr.delete(pos, pos + size)
+
+          let insertPos
+          let i = 0
+          tr.doc.descendants((n, p) => {
+            if (insertPos !== undefined) return false
+            if (n.type.name === 'tab') {
+              if (i === newIndex) {
+                insertPos = p
+                return false
+              }
+              i++
+            }
+          })
 
           // Delete the tab from its current position
-          tr.delete(tabPos, tabPos + tabNode.nodeSize)
-
-          // Calculate the new position after deletion
-          let insertPos
-          if (newIndex === 0) {
-            // Insert at the beginning
-            insertPos = 0
-          } else if (newIndex > tabIndex) {
-            // Moving down: use the position of the tab at newIndex (before deletion)
-            insertPos = tabs[newIndex].pos
-          } else {
-            // Moving up: use the position of the tab at newIndex (after deletion adjust)
-            insertPos = tabs[newIndex].pos
-          }
-
-          // Insert the tab at the new position
-          tr.insert(insertPos, tabNode)
+          if (insertPos === undefined) insertPos = tr.doc.content.size
+          tr.insert(insertPos, node)
 
           dispatch(tr)
 
@@ -166,7 +166,7 @@ export const TabsExtension = Node.create({
           }, 0)
         },
       renameTab:
-        (tabId: string, newLabel: string) =>
+        (tabId: string, newLabel: string, refocus: boolean = true) =>
         ({ tr, dispatch, state }) => {
           if (!dispatch) return false
 
@@ -184,7 +184,7 @@ export const TabsExtension = Node.create({
 
           if (updated) {
             dispatch(tr)
-            this.editor.commands.focusTab(tabId)
+            if (refocus) this.editor.commands.focusTab(tabId)
             return true
           }
           return false
@@ -280,6 +280,43 @@ export const TabsExtension = Node.create({
         // prevent clearing of document when tab is empty
         const { $to } = this.editor.state.selection
         if ($to.parent.type.name === 'tab' && $to.parent.content.size == 2) return true
+      },
+      Enter: () => {
+        const { state } = this.editor
+        const { selection } = state
+        const { $from } = selection
+
+        // Must be inside a tab
+        let tabNode = null
+        let tabPos = null
+
+        state.doc.descendants((node, pos) => {
+          if (node.type.name === 'tab' && pos < $from.pos && $from.pos < pos + node.nodeSize) {
+            tabNode = node
+            tabPos = pos
+            return false
+          }
+        })
+
+        if (!tabNode || tabNode.attrs.label !== 'Untitled' || !tabNode.content.firstChild)
+          return false
+
+        const firstChildStart = tabPos + 1
+        if ($from.before($from.depth) !== firstChildStart) return false
+
+        // Let Enter happen first
+        requestAnimationFrame(() => {
+          const updatedTab = this.editor.state.doc.nodeAt(tabPos)
+          const updatedFirst = updatedTab?.content.firstChild
+          if (!updatedFirst) return
+
+          const text = updatedFirst.textContent.trim()
+          if (!text) return
+
+          this.editor.commands.renameTab(tabNode.attrs.id, text, false)
+        })
+
+        return false
       },
     }
   },

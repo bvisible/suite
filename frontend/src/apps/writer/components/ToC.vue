@@ -17,18 +17,25 @@
       />
     </template>
     <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
-      <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2">
+      <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2" @drop.prevent="onDrop">
         <div
           v-for="(tab, index) in tabs"
           :key="tab.id"
           :class="[
             'relative transition-all duration-200',
             dragState.isDragging && dragState.draggedId === tab.id && 'opacity-0',
-            dragState.isDragging && dragState.dropIndex === index && 'mt-10',
           ]"
+          @dragover.prevent="onDragOver($event, index)"
         >
-          <!-- @dragover.prevent="onDragOver($event, index)"
-          @drop.prevent="onDrop" -->
+          <div
+            v-if="
+              dragState.isDragging &&
+              dragState.dropIndex === index &&
+              dragState.dropIndex !== dragState.draggedIndex &&
+              dragState.dropIndex !== dragState.draggedIndex + 1
+            "
+            class="h-8 my-0.5 border border-dashed rounded-sm mx-2"
+          />
           <div
             v-if="editingTabId === tab.id"
             class="flex items-center"
@@ -56,9 +63,11 @@
             :icon-left="h(LucideFileText, { class: 'size-4' })"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
+            :draggable="editor.isEditable"
+            @dragstart="onDragStart($event, tab, index)"
+            @dragend.prevent="onDragEnd"
           />
-          <!-- :draggable="editor.isEditable"@dragstart="onDragStart($event, tab, index)"
-            @dragend.prevent="onDragEnd" -->
+
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
@@ -81,6 +90,11 @@
             </div>
           </div>
         </div>
+        <div
+          v-if="dragState.isDragging && dragState.dropIndex === tabs.length"
+          @dragover.prevent
+          class="h-8 my-0.5 border border-dashed rounded-sm mx-2"
+        />
       </div>
       <div v-else-if="anchors.length > 1" class="table-of-contents flex flex-col gap-0.5 mb-2">
         <div v-for="anchor in anchors" class="flex">
@@ -276,7 +290,6 @@ const onDragOver = (event, index) => {
 }
 
 const onDrop = () => {
-  console.log('in!')
   if (!dragState.value.isDragging) return
 
   const fromIndex = dragState.value.draggedIndex
