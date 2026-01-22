@@ -258,8 +258,7 @@ const isGuestSession = computed(
 	() =>
 		!session.isLoggedIn &&
 		(!!meetingState.guestAuthToken.value ||
-			meetingState.isWaitingForApproval.value ||
-			!!sessionStorage.getItem("guest_status")),
+			meetingState.isWaitingForApproval.value),
 );
 
 // Provide meeting context for child components
@@ -370,11 +369,10 @@ const joinMeetingFromPreview = async () => {
 };
 
 const handleGuestJoinComplete = async () => {
-	const guestId = sessionStorage.getItem("guest_id");
-	const guestName = sessionStorage.getItem("guest_name");
+	const guestId = meetingState.guestId.value;
+	const guestName = localStorage.getItem("guest_name");
 
 	if (guestId && guestName) {
-		meetingState.guestId.value = guestId;
 		meetingState.currentUser.value = {
 			user_id: guestId,
 			name: guestName,
@@ -404,14 +402,6 @@ const leaveLobby = async () => {
 	meetingState.isWaitingForApproval.value = false;
 	meetingState.lobbyParticipantCount.value = 0;
 
-	sessionStorage.removeItem("guest_status");
-	sessionStorage.removeItem("guest_auth_token");
-	sessionStorage.removeItem("guest_sfu_url");
-	sessionStorage.removeItem("guest_sfu_port");
-	sessionStorage.removeItem("guest_id");
-	sessionStorage.removeItem("guest_name");
-	sessionStorage.removeItem("guest_meeting_id");
-
 	router.push({ name: "Home" });
 };
 
@@ -419,25 +409,13 @@ const goHome = () => {
 	meetingState.isJoinRequestRejected.value = false;
 	meetingState.isInLobby.value = false;
 
-	sessionStorage.removeItem("guest_status");
-	sessionStorage.removeItem("guest_sfu_url");
-	sessionStorage.removeItem("guest_sfu_port");
-	sessionStorage.removeItem("guest_id");
-	sessionStorage.removeItem("guest_name");
-	sessionStorage.removeItem("guest_auth_token");
-
 	router.push({ name: "Home" });
 };
 
 const tryJoinAgain = async () => {
 	meetingState.isJoinRequestRejected.value = false;
 
-	if (isGuestSession.value || sessionStorage.getItem("guest_id")) {
-		sessionStorage.removeItem("guest_status");
-		sessionStorage.removeItem("guest_auth_token");
-		sessionStorage.removeItem("guest_sfu_url");
-		sessionStorage.removeItem("guest_sfu_port");
-
+	if (isGuestSession.value) {
 		meetingState.isInPreview.value = true;
 		return;
 	}
@@ -745,74 +723,11 @@ onMounted(async () => {
 
 	// Check authentication and handle guest sessions
 	if (!session.isLoggedIn) {
-		const guestId = sessionStorage.getItem("guest_id");
-		const guestName = sessionStorage.getItem("guest_name");
-		const guestMeetingId = sessionStorage.getItem("guest_meeting_id");
-
-		if (guestMeetingId && guestMeetingId !== meetingId.value) {
-			console.log("Clearing stale guest session for different meeting");
-			sessionStorage.removeItem("guest_auth_token");
-			sessionStorage.removeItem("guest_status");
-			sessionStorage.removeItem("guest_id");
-			sessionStorage.removeItem("guest_name");
-			sessionStorage.removeItem("guest_meeting_id");
-			sessionStorage.removeItem("guest_sfu_url");
-			sessionStorage.removeItem("guest_sfu_port");
-
-			meetingState.isInPreview.value = true;
-			return;
+		await initializeCamera();
+		if (selectedSpeakerId.value) {
+			await applySpeakerDevice();
 		}
-
-		if (guestId && guestName) {
-			meetingState.guestId.value = guestId;
-			meetingState.currentUser.value = {
-				user_id: guestId,
-				name: guestName,
-				full_name: guestName,
-				avatar: null,
-				is_guest: true,
-			};
-
-			await initializeCamera();
-
-			if (selectedSpeakerId.value) {
-				await applySpeakerDevice();
-			}
-
-			setupChatEvents(chatNotificationQueue.value);
-			setupReactionEvents();
-			setupRaiseHandEvents();
-
-			await joinMeetingRoom(guestName);
-			return;
-		}
-
-		if (meetingState.guestAuthToken.value && guestId && guestName) {
-			meetingState.guestId.value = guestId;
-			meetingState.currentUser.value = {
-				user_id: guestId,
-				name: guestName,
-				full_name: guestName,
-				avatar: null,
-				is_guest: true,
-			};
-
-			await initializeCamera();
-
-			if (selectedSpeakerId.value) {
-				await applySpeakerDevice();
-			}
-
-			setupChatEvents(chatNotificationQueue.value);
-			setupReactionEvents();
-			setupRaiseHandEvents();
-
-			// Connect to SFU with auth token
-			meetingState.isInPreview.value = false;
-			await joinMeetingRoom(guestName);
-			return;
-		}
-
+		meetingState.isInPreview.value = true;
 		return;
 	}
 

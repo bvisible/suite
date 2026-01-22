@@ -1016,13 +1016,6 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				meetingState.guestAuthToken.value = null;
 				meetingState.guestSfuUrl.value = null;
 				meetingState.guestSfuPort.value = null;
-				sessionStorage.removeItem("guest_auth_token");
-				sessionStorage.removeItem("guest_id");
-				sessionStorage.removeItem("guest_name");
-				sessionStorage.removeItem("guest_meeting_id");
-				sessionStorage.removeItem("guest_status");
-				sessionStorage.removeItem("guest_sfu_url");
-				sessionStorage.removeItem("guest_sfu_port");
 
 				const response = await joinMeetingAPI.fetch();
 
