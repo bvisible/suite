@@ -63,18 +63,17 @@ class SFUClient {
 				throw new Error("Guest session incomplete or invalid for this meeting");
 			}
 
-			response = await frappeRequest({
-				url: "meet.api.meeting.get_guest_sfu_connection_details",
-				params: {
-					meeting_id: meetingId,
-					guest_token: guestAuthToken,
-				},
-			});
-
-			if (!response.success) {
-				throw new Error(
-					response.error || "Failed to get SFU connection details",
-				);
+			try {
+				response = await frappeRequest({
+					url: "meet.api.meeting.get_guest_sfu_connection_details",
+					params: {
+						meeting_id: meetingId,
+						guest_token: guestAuthToken,
+					},
+				});
+			} catch (error) {
+				console.error("Failed to get guest SFU connection details:", error);
+				throw error;
 			}
 
 			return {
@@ -96,10 +95,6 @@ class SFUClient {
 			url: "meet.api.meeting.get_sfu_connection_details",
 			params: { meeting_id: meetingId },
 		});
-
-		if (!response.success) {
-			throw new Error(response.error || "Failed to get SFU connection details");
-		}
 
 		const {
 			sfu_url,
@@ -303,10 +298,6 @@ class SFUClient {
 				url: "meet.api.meeting.refresh_sfu_token",
 				params: { meeting_id: this.connectionDetails.meetingId },
 			});
-
-			if (!response.success) {
-				throw new Error(response.error || "Failed to refresh token");
-			}
 
 			const expiresInSeconds =
 				typeof response.expires_in === "number" ? response.expires_in : 3600;

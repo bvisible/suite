@@ -5,7 +5,6 @@ import { session } from "../data/session";
 import type { FrappeRequestError, ParticipantPreview } from "../types";
 
 interface TokenResponse {
-	success: boolean;
 	auth_token?: string;
 	sfu_url?: string;
 	sfu_port?: number;
@@ -61,7 +60,7 @@ export function useMeetingPreviewPresence(meetingId: string) {
 		params: { meeting_id: meetingId },
 		auto: false,
 		onSuccess(data: TokenResponse) {
-			if (data.success) {
+			if (data && (data.auth_token || data.sfu_url)) {
 				connectToSFU(data);
 			} else {
 				error.value = data.error || "Failed to get presence token";

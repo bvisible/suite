@@ -1007,10 +1007,6 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					},
 				});
 
-				if (!apiResult.success) {
-					throw new Error(apiResult.error || "Failed to join as guest");
-				}
-
 				joinResult = apiResult;
 			} else {
 				meetingState.guestAuthToken.value = null;
@@ -1018,11 +1014,6 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				meetingState.guestSfuPort.value = null;
 
 				const response = await joinMeetingAPI.fetch();
-
-				if (!response.success) {
-					throw new Error(response.error || "Failed to join meeting");
-				}
-
 				joinResult = response;
 			}
 
@@ -1211,7 +1202,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				params: { meeting_id: meetingId },
 			});
 
-			if (result?.success && result?.waiting_users) {
+			if (result?.waiting_users) {
 				const transformedUsers = result.waiting_users.map((user) => ({
 					userId: user.user_id,
 					name: user.full_name || user.user_id,
@@ -1274,11 +1265,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					},
 				});
 
-				if (
-					response.success &&
-					response.status === "joined" &&
-					response.auth_token
-				) {
+				if (response?.status === "joined" && response.auth_token) {
 					meetingState.guestAuthToken.value = response.auth_token;
 					meetingState.guestSfuUrl.value = response.sfu_url || null;
 					meetingState.guestSfuPort.value = response.sfu_port || null;
@@ -1385,7 +1372,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 						},
 					});
 
-					if (sfuResult?.success) {
+					if (sfuResult) {
 						await setupSFUConnection(null, sfuResult.is_host);
 						meetingState.isInPreview.value = false;
 					} else {
@@ -1652,7 +1639,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 	 */
 	const approveUser = async (userId) => {
 		try {
-			const result = await frappeRequest({
+			await frappeRequest({
 				url: "meet.api.meeting.approve_join_request",
 				params: {
 					meeting_id: meetingId,
@@ -1660,38 +1647,39 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				},
 			});
 
-			if (result?.success) {
-				meetingState.lobbyUsers.value = (
-					meetingState.lobbyUsers.value || []
-				).filter((u) => u.userId !== userId);
-			} else {
-				console.error("Failed to approve user:", result);
-				toast.error("Failed to approve user");
-			}
+			meetingState.lobbyUsers.value = (
+				meetingState.lobbyUsers.value || []
+			).filter((u) => u.userId !== userId);
 		} catch (error) {
-			console.error("Failed to approve user:", error);
-			toast.error("Failed to approve user");
+			console.error(
+				"Failed to approve user:",
+				error.messages?.length ? error.messages.join(", ") : error,
+			);
+			toast.error(
+				error.messages?.length
+					? error.messages.join(", ")
+					: error || "Failed to approve user",
+			);
 		}
 	};
 
 	const approveAllUsers = async () => {
 		try {
-			const result = await frappeRequest({
+			await frappeRequest({
 				url: "meet.api.meeting.approve_all_join_requests",
 				params: {
 					meeting_id: meetingId,
 				},
 			});
 
-			if (result?.success) {
-				meetingState.lobbyUsers.value = [];
-			} else {
-				console.error("Failed to approve all users:", result);
-				toast.error("Failed to approve all users");
-			}
+			meetingState.lobbyUsers.value = [];
 		} catch (error) {
 			console.error("Failed to approve all users:", error);
-			toast.error("Failed to approve all users");
+			toast.error(
+				error.messages?.length
+					? error.messages.join(", ")
+					: error || "Failed to approve all users",
+			);
 		}
 	};
 
@@ -1700,7 +1688,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 	 */
 	const rejectUser = async (userId) => {
 		try {
-			const result = await frappeRequest({
+			await frappeRequest({
 				url: "meet.api.meeting.reject_join_request",
 				params: {
 					meeting_id: meetingId,
@@ -1708,17 +1696,16 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				},
 			});
 
-			if (result?.success) {
-				meetingState.lobbyUsers.value = (
-					meetingState.lobbyUsers.value || []
-				).filter((u) => u.userId !== userId);
-			} else {
-				console.error("Failed to reject user:", result);
-				toast.error("Failed to reject user");
-			}
+			meetingState.lobbyUsers.value = (
+				meetingState.lobbyUsers.value || []
+			).filter((u) => u.userId !== userId);
 		} catch (error) {
 			console.error("Failed to reject user:", error);
-			toast.error("Failed to reject user");
+			toast.error(
+				error.messages?.length
+					? error.messages.join(", ")
+					: error || "Failed to reject user",
+			);
 		}
 	};
 
