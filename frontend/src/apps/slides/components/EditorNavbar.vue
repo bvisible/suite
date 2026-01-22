@@ -25,7 +25,7 @@ import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
 import SharePopover from '@/components/SharePopover.vue'
 
-import { presentationDoc, readonlyMode } from '@/stores/presentation'
+import { presentationDoc } from '@/stores/presentation'
 
 const isOnline = inject('isOnline', null)
 

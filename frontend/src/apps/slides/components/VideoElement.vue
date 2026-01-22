@@ -45,7 +45,7 @@ import { ref, computed, useTemplateRef } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { inSlideShow, readonlyMode } from '@/stores/presentation'
+import { inSlideShow } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
@@ -60,6 +60,8 @@ const element = defineModel('element', {
 	type: Object,
 	default: null,
 })
+
+const readonlyMode = inject('readonlyMode', false)
 
 const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')

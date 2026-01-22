@@ -74,7 +74,6 @@ import {
 	initHistory,
 	ignoreUpdates,
 	unsyncedPresentationRecord,
-	readonlyMode,
 	slidesLength,
 	historyMetadata,
 	templateList,
@@ -126,6 +125,10 @@ const props = defineProps({
 	activeSlideId: {
 		type: Number,
 		required: true,
+	},
+	editorAcess: {
+		type: String,
+		default: 'edit',
 	},
 })
 
@@ -576,8 +579,11 @@ const loadPresentationInReadonlyMode = async (id) => {
 
 const route = useRoute()
 
+const readonlyMode = computed(() => {
+	return props.editorAcess == 'view'
+})
+
 onActivated(() => {
-	readonlyMode.value = route.name === 'PresentationView'
 	const id = props.presentationId
 	if (!id) return
 	if (readonlyMode.value) {
@@ -663,4 +669,6 @@ onMounted(() => {
 		templateListResource.fetch()
 	}
 })
+
+provide('readonlyMode', readonlyMode)
 </script>
