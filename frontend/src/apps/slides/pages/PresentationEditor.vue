@@ -21,7 +21,7 @@
 				:showNavigator="showNavigator"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
-				@openLayoutDialog="openLayoutDialog('insert', slides.length - 1)"
+				@addEmptySlide="addEmptySlide"
 			/>
 
 			<Toolbar
