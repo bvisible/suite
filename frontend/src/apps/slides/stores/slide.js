@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import { ignoreUpdates, slidesLength, presentationId, layoutResource } from '@/stores/presentation'
+import { ignoreUpdates, slidesLength, presentationId, templateList } from '@/stores/presentation'
 import { generateUniqueId } from '@/utils/helpers'
 
 import html2canvas from 'html2canvas'
@@ -179,7 +179,7 @@ const insertSlide = async (newSlide, index) => {
 	slidesLength.value = slides.value.length
 }
 
-const getNewSlide = (toDuplicate = false, layoutId) => {
+const getNewSlide = (toDuplicate = false, layoutObject) => {
 	let layout = null
 
 	if (toDuplicate) {
@@ -189,7 +189,9 @@ const getNewSlide = (toDuplicate = false, layoutId) => {
 			refId: e.refId || generateUniqueId(),
 		}))
 	} else {
-		layout = layoutResource.data?.slides?.find((l) => l.name == layoutId)
+		console
+		layout = layoutObject || null
+		layout.elements = JSON.parse(layout?.elements || [])
 	}
 
 	let slide = {}

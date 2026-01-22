@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { onActivated, ref } from 'vue'
+import { onActivated, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { previousRoute } from '@/router'
 
@@ -54,6 +54,7 @@ import {
 	createPresentationResource,
 	unsyncedPresentationRecord,
 	templateList,
+	templateListResource,
 } from '@/stores/presentation'
 
 const router = useRouter()
@@ -73,16 +74,6 @@ const presentationListResource = createResource({
 	cache: 'presentations',
 	onSuccess: (data) => {
 		presentationList.value = data
-	},
-})
-
-const templateListResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_templates',
-	method: 'GET',
-	auto: true,
-	cache: 'templates',
-	onSuccess: (data) => {
-		templateList.value = data
 	},
 })
 
@@ -160,6 +151,12 @@ const syncPresentationRecord = () => {
 onActivated(() => {
 	if (previousRoute?.name == 'PresentationEditor') {
 		syncPresentationRecord()
+	}
+})
+
+onMounted(() => {
+	if (!templateList.value.length) {
+		templateListResource.fetch()
 	}
 })
 </script>

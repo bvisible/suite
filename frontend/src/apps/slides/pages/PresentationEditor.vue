@@ -40,14 +40,6 @@
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
-
-		<LayoutDialog
-			v-if="layoutResource.data"
-			v-model="showLayoutDialog"
-			:theme="presentationDoc.theme"
-			:layouts="layoutResource.data"
-			@insert="(layoutId) => handleInsertSlide(layoutId)"
-		/>
 	</div>
 </template>
 
@@ -61,6 +53,7 @@ import {
 	onDeactivated,
 	onActivated,
 	provide,
+	onMounted,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -75,7 +68,6 @@ import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import {
 	presentationId,
-	layoutResource,
 	initPresentationDoc,
 	presentationDoc,
 	historyControl,
@@ -86,6 +78,8 @@ import {
 	readonlyMode,
 	slidesLength,
 	historyMetadata,
+	templateList,
+	templateListResource,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -112,7 +106,7 @@ import {
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
+import { cloneObj, generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
 import {
 	saveChanges,
 	dirtySince,
@@ -186,8 +180,10 @@ const handleShowLayoutDialogShortcut = (e) => {
 
 const addEmptySlide = (e) => {
 	e.preventDefault()
-	const layoutId = layoutResource.data?.slides[0]?.name
-	if (layoutId) handleInsertSlide(layoutId)
+	const layout = templateList.value.find(
+		(template) => template.name === presentationDoc.value.theme,
+	)?.layouts[0]
+	if (layout) handleInsertSlide(cloneObj(layout))
 }
 
 const handleElementShortcuts = (e) => {
@@ -569,7 +565,6 @@ const loadPresentation = async (id) => {
 	presentationDoc.value = await initPresentationDoc(id)
 	setSlideIndex(props.activeSlideId)
 	updateRoute(presentationDoc.value.slug)
-	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initIntervals()
 }
 
@@ -670,4 +665,10 @@ const showLayoutTab = ref(false)
 const toggleLayoutTab = () => {
 	showLayoutTab.value = !showLayoutTab.value
 }
+
+onMounted(() => {
+	if (!templateList.value.length) {
+		templateListResource.fetch()
+	}
+})
 </script>

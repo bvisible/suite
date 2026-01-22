@@ -265,27 +265,6 @@ const savePresentationDoc = async (updatedSlides) => {
 	updateNewlyAddedSlideUUIDs()
 }
 
-const layoutResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
-	method: 'GET',
-	auto: false,
-	transform: (data) => {
-		for (const slide of data.slides || []) {
-			slide.thumbnail = slide.thumbnail || ''
-			slide.elements = parseElements(slide.elements)
-			slide.transitionDuration = slide.transition_duration
-			// remove the transition_duration field to avoid confusion
-			delete slide.transition_duration
-			delete slide.fade_unmatched_elements
-		}
-	},
-	makeParams: ({ theme }) => {
-		return {
-			theme: theme,
-		}
-	},
-})
-
 const presentationResource = ref(null)
 
 const initPresentationDoc = async (id, readonly = false) => {
@@ -365,6 +344,15 @@ const readonlyMode = ref(false)
 
 const templateList = ref([])
 
+const templateListResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_templates',
+	method: 'GET',
+	cache: 'templates',
+	onSuccess: (data) => {
+		templateList.value = data
+	},
+})
+
 export {
 	presentationId,
 	inSlideShow,
@@ -374,7 +362,6 @@ export {
 	hasStateChanged,
 	savePresentationDoc,
 	initPresentationDoc,
-	layoutResource,
 	presentationDoc,
 	historyControl,
 	historyState,
@@ -386,4 +373,5 @@ export {
 	slidesLength,
 	historyMetadata,
 	templateList,
+	templateListResource
 }
