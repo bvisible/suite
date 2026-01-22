@@ -5,6 +5,7 @@ import { toUint8Array, fromUint8Array } from 'js-base64'
 import { debounce, toast } from 'frappe-ui'
 import { absolutePositionToRelativePosition, ySyncPluginKey } from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
+import { ref } from 'vue'
 
 import store from '@/store'
 
@@ -77,6 +78,9 @@ export function useYjs(document, editor, edited) {
   if (document.doc.content) Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
   const roomName = 'fdoc-' + document.doc.name
   const db = new IndexeddbPersistence(roomName, doc)
+  const loaded = ref(false)
+  db.on('synced', () => (loaded.value = true))
+
   new Promise((resolve) => {
     if (document.isFinished) resolve(document.doc)
     else {
@@ -128,6 +132,7 @@ export function useYjs(document, editor, edited) {
     save,
     provider,
     permanentUserData,
+    loaded,
     ...commentsData,
   }
 }

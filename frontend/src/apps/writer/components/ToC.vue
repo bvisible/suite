@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white max-h-screen overflow-y-auto"
+    class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white max-h-screen overflow-auto"
   >
     <template v-if="tabs.length || anchors.length > 1">
       <Button
@@ -26,10 +26,10 @@
             dragState.isDragging && dragState.draggedId === tab.id && 'opacity-0',
             dragState.isDragging && dragState.dropIndex === index && 'mt-10',
           ]"
-          @dragover.prevent="onDragOver($event, index)"
-          @drop.prevent="onDrop"
         >
-          <!-- <div
+          <!-- @dragover.prevent="onDragOver($event, index)"
+          @drop.prevent="onDrop" -->
+          <div
             v-if="editingTabId === tab.id"
             class="flex items-center"
             v-on-outside-click="() => finishRenaming(true)"
@@ -46,23 +46,19 @@
               :icon="LucideTrash"
               @click="editor.commands.deleteTab(tab.id)"
             />
-          </div> -->
+          </div>
           <Button
+            v-else
             variant="ghost"
             class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
-            :contenteditable="editingTabId === tab.id"
-            :class="[
-              tab.id === activeTabId && 'font-medium !text-ink-gray-8',
-              editingTabId === tab.id && 'ring-2 ring-outline-gray-2',
-            ]"
+            :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
             :label="tab.label"
             :icon-left="h(LucideFileText, { class: 'size-4' })"
-            :draggable="editor.isEditable"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
-            @dragstart="onDragStart($event, tab, index)"
-            @dragend.prevent="onDragEnd"
           />
+          <!-- :draggable="editor.isEditable"@dragstart="onDragStart($event, tab, index)"
+            @dragend.prevent="onDragEnd" -->
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
@@ -106,7 +102,7 @@
         v-if="editor.isEditable"
         class="!justify-start text-xs opacity-50 hover:opacity-100"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        :label="tabs.length ? 'Add page' : 'Create page'"
+        :label="tabs.length ? 'Add tab' : 'Create tab'"
         variant="ghost"
         @click="
           tabs.length

@@ -45,11 +45,12 @@ const editor = computed(() => {
 provide('editor', editor)
 defineExpose({ editor })
 
-const { doc, save, cleanup, provider, permanentUserData, ...commentsDetail } = useYjs(
+const { doc, save, cleanup, provider, permanentUserData, loaded, ...commentsDetail } = useYjs(
   props.document,
   editor,
   edited,
 )
+watch(loaded, () => rebuild(editor.value))
 
 const extensions = [
   Collaboration.configure({

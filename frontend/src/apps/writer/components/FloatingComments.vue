@@ -316,7 +316,7 @@ watch(
   () => rebuild(props.editor),
 )
 
-watch(activeComment, (val) => {
+watch(activeComment, () => {
   setCommentHeights()
 })
 
@@ -432,7 +432,9 @@ const setCommentHeights = useDebounceFn(() => {
         }
         const adjustedTop = anchorTop ? Math.max(anchorTop, lastBottom) : 0
         comment.top = adjustedTop
-        if (adjustedTop) lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
+        if (adjustedTop)
+          lastBottom =
+            adjustedTop + commentRefs[comment.id].offsetHeight + 12 + (comment.detached ? 29.8 : 0)
       } catch (e) {
         console.log(e)
       }
