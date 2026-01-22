@@ -13,7 +13,8 @@
 		<div class="flex flex-col gap-3 overflow-y-auto">
 			<div
 				v-if="selectedTab === 'themes'"
-				class="aspect-video rounded border"
+				class="aspect-video cursor-pointer rounded border"
+				:class="presentationTheme == template.name ? 'border-2 border-gray-700' : ''"
 				v-for="template in templateList"
 				:style="getThumbnailCardStyles(template.layouts[0].thumbnail)"
 			></div>
@@ -22,12 +23,12 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
 import { TabButtons } from 'frappe-ui'
 import { getThumbnailCardStyles } from '@/utils/helpers'
-import { templateList } from '@/stores/presentation'
+import { presentationTheme, templateList } from '@/stores/presentation'
 
-const selectedTab = ref('themes')
+const selectedTab = ref('layouts')
 </script>
 
 <style>
