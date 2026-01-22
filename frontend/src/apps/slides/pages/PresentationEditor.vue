@@ -21,7 +21,7 @@
 				:showNavigator="showNavigator"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
-				@addEmptySlide="addEmptySlide"
+				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
 			/>
 
 			<Toolbar
@@ -178,11 +178,11 @@ const handleShowLayoutDialogShortcut = (e) => {
 	openLayoutDialog('insert')
 }
 
-const addEmptySlide = (e) => {
+const addEmptySlide = (e, index) => {
 	e?.preventDefault()
 	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
 		?.layouts[0]
-	if (layout) handleInsertSlide(cloneObj(layout))
+	if (layout) handleInsertSlide(index, cloneObj(layout))
 	showLayoutTab.value = true
 }
 
@@ -618,21 +618,13 @@ onDeactivated(async () => {
 
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
-const insertIndex = ref(null)
 
-const openLayoutDialog = (action, index) => {
-	showLayoutDialog.value = true
-	layoutAction.value = action
-	insertIndex.value = index
-}
-
-const handleInsertSlide = (layoutId) => {
+const handleInsertSlide = (index, layoutId) => {
 	if (layoutAction.value == 'replace') {
 		replaceSlide(layoutId)
 	} else {
-		insertDuplicateSlide(insertIndex.value, layoutId)
+		insertDuplicateSlide(index, layoutId)
 	}
-	insertIndex.value = null
 }
 
 watch(

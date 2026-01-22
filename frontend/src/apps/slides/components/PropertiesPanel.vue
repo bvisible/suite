@@ -3,16 +3,14 @@
 		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
 		@wheel="handleScrollBarWheelEvent"
 	>
-		<div v-if="activeElementIds.length">
+		<LayoutControls v-if="showLayoutTab" />
+		<div v-else-if="activeElementIds.length">
 			<AlignmentControls />
 			<PlacementProperties />
 			<component :is="activeProperties" />
 			<AppearanceProperties v-if="activeElement" />
 		</div>
-		<div v-else>
-			<LayoutControls v-if="showLayoutTab" />
-			<SlideProperties v-else-if="currentSlide" />
-		</div>
+		<SlideProperties v-else-if="currentSlide" />
 	</div>
 </template>
 
