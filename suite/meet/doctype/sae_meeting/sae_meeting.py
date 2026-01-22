@@ -381,7 +381,6 @@ class SaeMeeting(Document):
 		self.save()
 
 		return {
-			"success": True,
 			"meeting_id": self.name,
 			"user_id": target_user,
 			"message": _("User promoted to co-host successfully"),
