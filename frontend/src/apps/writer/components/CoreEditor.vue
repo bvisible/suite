@@ -217,7 +217,7 @@ const autoversion = async () => {
   if (!html || html === '<p></p>') return
   await props.document.newVersion.submit({ data: html })
   if (props.document.newVersion.error) {
-    toast.error('Something has gone wrong - please copy the file content and contact support.')
+    toast.error('Something has gone wrong - please contact support.')
   }
 }
 const autoversionInterval = setInterval(autoversion, 10 * 60 * 1000)

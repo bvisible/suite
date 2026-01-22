@@ -12,7 +12,7 @@
 </template>
 <script setup>
 import { FormControl } from 'frappe-ui'
-import { ref, watchEffect, watch } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { FONT_FAMILIES } from '@/utils'
 import FontSelect from './FontSelect.vue'
 
