@@ -410,3 +410,20 @@ def optimize_images(name):
 		slide.elements = json.dumps(elements, indent=2)
 
 	return doc.save()
+
+
+@frappe.whitelist(allow_guest=True)
+def get_editor_access(presentation_id: str) -> str:
+	is_composite = frappe.db.get_value("Presentation", presentation_id, "is_composite")
+	if is_composite:
+		return "view"
+
+	has_access = frappe.has_permission("Presentation", "write", presentation_id)
+	if has_access:
+		return "edit"
+	else:
+		is_public = frappe.db.get_value("Presentation", presentation_id, "is_public")
+		if is_public:
+			return "view"
+
+	return "none"
