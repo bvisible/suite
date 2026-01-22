@@ -27,6 +27,7 @@
 			<Toolbar
 				v-if="!readonlyMode"
 				@setHighlight="setHighlight"
+				@toggleLayoutTab="toggleLayoutTab"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide(true)"
@@ -35,6 +36,7 @@
 			<PropertiesPanel
 				v-if="!readonlyMode"
 				class="absolute bottom-0 right-0 top-0"
+				:showLayoutTab="showLayoutTab"
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
@@ -661,5 +663,11 @@ const handleBeforeUnload = (e) => {
 		e.preventDefault()
 		e.returnValue = ''
 	}
+}
+
+const showLayoutTab = ref(false)
+
+const toggleLayoutTab = () => {
+	showLayoutTab.value = !showLayoutTab.value
 }
 </script>

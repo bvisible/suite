@@ -50,7 +50,11 @@ import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
-import { createPresentationResource, unsyncedPresentationRecord } from '@/stores/presentation'
+import {
+	createPresentationResource,
+	unsyncedPresentationRecord,
+	templateList,
+} from '@/stores/presentation'
 
 const router = useRouter()
 
@@ -61,7 +65,6 @@ const showDialog = ref(false)
 const dialogAction = ref('')
 
 const presentationList = ref([])
-const templateList = ref([])
 
 const presentationListResource = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_presentations',

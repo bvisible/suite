@@ -363,6 +363,8 @@ const isPublicPresentation = ref(false)
 
 const readonlyMode = ref(false)
 
+const templateList = ref([])
+
 export {
 	presentationId,
 	inSlideShow,
@@ -383,4 +385,5 @@ export {
 	readonlyMode,
 	slidesLength,
 	historyMetadata,
+	templateList,
 }
