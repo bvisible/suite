@@ -44,7 +44,7 @@ export function useVideoGridLayout(
 
 	const getOptimalColumns = (tileCount: number, maxCols: number): number => {
 		if (tileCount <= 1) return Math.min(1, maxCols);
-		if (tileCount === 2) return Math.min(2, maxCols);
+		if (tileCount === 2) return Math.min(1, maxCols); // Stack vertically on mobile for 2 participants
 		if (tileCount <= 4) return Math.min(2, maxCols); // 2x2
 		if (tileCount <= 6) return Math.min(3, maxCols); // up to 2x3
 		if (tileCount <= 9) return Math.min(3, maxCols); // up to 3x3
