@@ -53,6 +53,7 @@ import {
 	onActivated,
 	provide,
 	onMounted,
+	onBeforeUnmount,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -583,19 +584,6 @@ const readonlyMode = computed(() => {
 	return props.editorAcess == 'view'
 })
 
-onActivated(() => {
-	const id = props.presentationId
-	if (!id) return
-	if (readonlyMode.value) {
-		loadPresentationInReadonlyMode(id)
-		document.addEventListener('keydown', handleKeyDownForReadonly)
-	} else {
-		loadPresentation(id)
-		document.addEventListener('keydown', handleKeyDown)
-		window.addEventListener('beforeunload', handleBeforeUnload)
-	}
-})
-
 const updateUnsyncedRecord = () => {
 	unsyncedPresentationRecord.value = {
 		...unsyncedPresentationRecord.value,
@@ -603,24 +591,6 @@ const updateUnsyncedRecord = () => {
 		thumbnail: slides.value[0]?.thumbnail,
 	}
 }
-
-onDeactivated(async () => {
-	if (readonlyMode.value) {
-		document.removeEventListener('keydown', handleKeyDownForReadonly)
-	} else {
-		updateUnsyncedRecord()
-		clearInterval(autosaveInterval)
-		clearInterval(thumbnailInterval)
-
-		if (router.currentRoute.value.name !== 'Slideshow') {
-			await resetFocus()
-			syncPresentationToServer()
-		}
-
-		document.removeEventListener('keydown', handleKeyDown)
-		window.removeEventListener('beforeunload', handleBeforeUnload)
-	}
-})
 
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
@@ -630,6 +600,61 @@ const handleInsertSlide = (index, layoutId) => {
 		replaceSlide(layoutId)
 	} else {
 		insertDuplicateSlide(index, layoutId)
+	}
+}
+
+const handleBeforeUnload = (e) => {
+	if (isDirty.value || syncThumbnail > 0) {
+		e.preventDefault()
+		e.returnValue = ''
+	}
+}
+
+const showLayoutTab = ref(false)
+
+const toggleLayoutTab = () => {
+	showLayoutTab.value = !showLayoutTab.value
+}
+
+const handleActivated = () => {
+	if (readonlyMode.value) {
+		document.addEventListener('keydown', handleKeyDownForReadonly)
+	} else {
+		document.addEventListener('keydown', handleKeyDown)
+		window.addEventListener('beforeunload', handleBeforeUnload)
+	}
+}
+
+const handleDeactivated = () => {
+	if (readonlyMode.value) {
+		document.removeEventListener('keydown', handleKeyDownForReadonly)
+	} else {
+		document.removeEventListener('keydown', handleKeyDown)
+		window.removeEventListener('beforeunload', handleBeforeUnload)
+	}
+}
+
+const handleMounted = () => {
+	if (!templateList.value.length) {
+		templateListResource.fetch()
+	}
+	const id = props.presentationId
+	if (!id) return
+	if (readonlyMode.value) {
+		loadPresentationInReadonlyMode(id)
+	} else {
+		loadPresentation(id)
+	}
+}
+
+const handleBeforeUnmount = () => {
+	updateUnsyncedRecord()
+	clearInterval(autosaveInterval)
+	clearInterval(thumbnailInterval)
+
+	if (router.currentRoute.value.name !== 'Slideshow') {
+		resetFocus()
+		syncPresentationToServer()
 	}
 }
 
@@ -651,24 +676,25 @@ watch(
 	{ immediate: true },
 )
 
-const handleBeforeUnload = (e) => {
-	if (isDirty.value || syncThumbnail > 0) {
-		e.preventDefault()
-		e.returnValue = ''
-	}
-}
+watch(
+	() => props.presentationId,
+	(presentationId) => {
+		if (!presentationId) return
+		if (readonlyMode.value) {
+			loadPresentationInReadonlyMode(presentationId)
+		} else {
+			loadPresentation(presentationId)
+		}
+	},
+)
 
-const showLayoutTab = ref(false)
+onActivated(() => handleActivated())
 
-const toggleLayoutTab = () => {
-	showLayoutTab.value = !showLayoutTab.value
-}
+onDeactivated(() => handleDeactivated())
 
-onMounted(() => {
-	if (!templateList.value.length) {
-		templateListResource.fetch()
-	}
-})
+onMounted(() => handleMounted())
+
+onBeforeUnmount(() => handleBeforeUnmount())
 
 provide('readonlyMode', readonlyMode)
 </script>
