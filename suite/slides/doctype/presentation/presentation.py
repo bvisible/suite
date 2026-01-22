@@ -10,6 +10,7 @@ import uuid
 import frappe
 from frappe.core.doctype.file.file import get_local_image
 from frappe.model.document import Document
+from frappe.utils.caching import redis_cache
 
 
 class Presentation(Document):
@@ -310,6 +311,7 @@ def get_public_presentation(name):
 
 
 @frappe.whitelist()
+@redis_cache()
 def get_templates():
 	templates = frappe.get_all(
 		"Presentation",
