@@ -1,6 +1,6 @@
 <template>
 	<SettingsLayoutBase
-		title="General"
+		title="Host settings"
 		description="Manage how participants can join and interact in the meeting."
 	>
 		<template #content>
