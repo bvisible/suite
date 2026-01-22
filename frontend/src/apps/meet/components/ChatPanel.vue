@@ -20,7 +20,7 @@
 				</div>
 
 				<div ref="listEl" class="flex-1 overflow-y-auto p-4 space-y-4">
-					<div v-for="group in groupedMessages" :key="group.id" class="min-w-0 break-all">
+					<div v-for="group in groupedMessages" :key="group.id" class="min-w-0">
 						<div class="text-xs flex items-center gap-2">
 							<span class="truncate font-medium">{{ group.user_name }}</span>
 							<span class="text-gray-600">{{ time(group.timestamp) }}</span>
@@ -29,7 +29,7 @@
 							<div
 								v-for="message in group.messages"
 								:key="message.id"
-								class="text-sm text-gray-900 whitespace-pre-wrap break-words"
+								class="text-sm text-gray-900 whitespace-pre-wrap [overflow-wrap:anywhere]"
 							>
 								<span v-html="linkify(message.message)"></span>
 							</div>
