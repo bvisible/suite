@@ -353,6 +353,10 @@ const templateListResource = createResource({
 	},
 })
 
+const presentationTheme = computed(() => {
+	return presentationDoc.value?.theme
+})
+
 export {
 	presentationId,
 	inSlideShow,
@@ -373,5 +377,6 @@ export {
 	slidesLength,
 	historyMetadata,
 	templateList,
-	templateListResource
+	templateListResource,
+	presentationTheme,
 }

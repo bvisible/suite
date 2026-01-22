@@ -80,6 +80,7 @@ import {
 	historyMetadata,
 	templateList,
 	templateListResource,
+	presentationTheme,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -180,10 +181,10 @@ const handleShowLayoutDialogShortcut = (e) => {
 
 const addEmptySlide = (e) => {
 	e.preventDefault()
-	const layout = templateList.value.find(
-		(template) => template.name === presentationDoc.value.theme,
-	)?.layouts[0]
+	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
+		?.layouts[0]
 	if (layout) handleInsertSlide(cloneObj(layout))
+	showLayoutTab.value = true
 }
 
 const handleElementShortcuts = (e) => {
