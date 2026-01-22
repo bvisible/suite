@@ -331,8 +331,11 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 		}
 
 		if (audioEnabled) {
-			constraints.audio = {};
-
+			constraints.audio = {
+				echoCancellation: true,
+				noiseSuppression: true,
+				autoGainControl: false,
+			};
 			const validMicId = await getValidDeviceId(
 				selectedMicId.value,
 				"microphone",
