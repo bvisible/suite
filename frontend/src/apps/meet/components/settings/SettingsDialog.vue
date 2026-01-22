@@ -97,7 +97,7 @@ import { isMobile } from "../../utils/device";
 import AudioSettingsTab from "./AudioSettingsTab.vue";
 import BackgroundSettingsTab from "./BackgroundSettingsTab.vue";
 import DeviceSettingsTab from "./DeviceSettingsTab.vue";
-import HostSettingsTab from "./HostSettingsTab.vue";
+import MeetingAccessSettingsTab from "./MeetingAccessSettingsTab.vue";
 import NotificationSettingsTab from "./NotificationSettingsTab.vue";
 
 const props = defineProps({
@@ -117,7 +117,14 @@ const props = defineProps({
 
 const emit = defineEmits(["device-changed", "update:modelValue"]);
 
-const { isCurrentUserHost } = useMeetingDoc();
+const { isCurrentUserHost, isCurrentUserCohost, getMeetingDoc } =
+	useMeetingDoc();
+
+// sometimes we won't see meeting access tab right after creating a meeting
+// this loads the meeting doc to avoid that
+if (props.meetingId) {
+	getMeetingDoc(props.meetingId);
+}
 
 const show = computed({
 	get: () => props.modelValue,
@@ -128,15 +135,18 @@ const show = computed({
 const tabs = computed(() => {
 	const allTabs = [];
 
-	if (isCurrentUserHost.value && !props.isPreview) {
+	if (
+		(isCurrentUserHost.value || isCurrentUserCohost.value) &&
+		!props.isPreview
+	) {
 		allTabs.push({
 			label: "Meeting",
 			items: [
 				{
-					label: "Host",
-					value: "host-settings",
+					label: "Meeting Access",
+					value: "meeting-access",
 					icon: h(LucideUser),
-					component: markRaw(HostSettingsTab),
+					component: markRaw(MeetingAccessSettingsTab),
 				},
 			],
 		});
