@@ -11,10 +11,7 @@
 		</div>
 		<div v-else>
 			<LayoutControls v-if="showLayoutTab" />
-			<SlideProperties
-				v-else-if="currentSlide"
-				@openLayoutDialog="$emit('openLayoutDialog')"
-			/>
+			<SlideProperties v-else-if="currentSlide" />
 		</div>
 	</div>
 </template>
@@ -34,8 +31,6 @@ import LayoutControls from '@/components/LayoutControls.vue'
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
-
-const emit = defineEmits(['openLayoutDialog'])
 
 const props = defineProps({
 	showLayoutTab: {
