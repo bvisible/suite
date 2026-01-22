@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, computed, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
