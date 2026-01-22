@@ -231,12 +231,6 @@ const handleJoin = async () => {
 		try {
 			const result = await joinGuestAPI.submit();
 
-			if (!result.success) {
-				console.error("Guest join failed:", result.error);
-				toast.error(result.error || "Failed to join meeting");
-				return;
-			}
-
 			localStorage.setItem("guest_name", guestName.value.trim());
 
 			meetingState.guestId.value = result.guest_id;

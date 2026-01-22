@@ -168,12 +168,7 @@
 </template>
 
 <script setup>
-import {
-	Button,
-	Spinner,
-	createDocumentResource,
-	frappeRequest,
-} from "frappe-ui";
+import { Button, Spinner, frappeRequest } from "frappe-ui";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -522,11 +517,9 @@ const handlePromoteToCohost = async (participantId) => {
 			},
 		});
 
-		if (response.success) {
+		if (response?.meeting_id) {
 			toast.success("User promoted to co-host");
 			await meetingDoc.reload();
-		} else {
-			toast.error(response.error || "Failed to promote user to co-host");
 		}
 	} catch (error) {
 		console.error("Failed to promote participant to co-host:", error);
@@ -702,7 +695,7 @@ onMounted(async () => {
 	if (!session.isLoggedIn) {
 		try {
 			const accessData = await frappeRequest({
-				url: "/api/method/meet.api.meeting.check_meeting_access",
+				url: "meet.api.meeting.check_meeting_access",
 				params: {
 					meeting_id: meetingId.value,
 				},
