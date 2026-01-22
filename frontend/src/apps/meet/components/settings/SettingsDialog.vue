@@ -61,7 +61,7 @@ import LucideAudioLines from "~icons/lucide/audio-lines";
 import LucideBell from "~icons/lucide/bell";
 import LucideCamera from "~icons/lucide/camera";
 import LucideMonitorSmartphone from "~icons/lucide/monitor-smartphone";
-import LucideSettings from "~icons/lucide/settings";
+import LucideUser from "~icons/lucide/user";
 import { useMeetingDoc } from "../../composables/useMeetingDoc";
 import AudioSettingsTab from "./AudioSettingsTab.vue";
 import BackgroundSettingsTab from "./BackgroundSettingsTab.vue";
@@ -99,11 +99,11 @@ const tabs = computed(() => {
 
 	if (isCurrentUserHost.value && !props.isPreview) {
 		allTabs.push({
-			label: "Host Settings",
+			label: "Meeting",
 			items: [
 				{
-					label: "General",
-					icon: h(LucideSettings),
+					label: "Host Settings",
+					icon: h(LucideUser),
 					component: markRaw(HostSettingsTab),
 				},
 			],
