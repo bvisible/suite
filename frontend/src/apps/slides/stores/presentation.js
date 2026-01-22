@@ -340,8 +340,6 @@ const unsyncedPresentationRecord = ref({})
 
 const isPublicPresentation = ref(false)
 
-const readonlyMode = ref(false)
-
 const templateList = ref([])
 
 const templateListResource = createResource({
@@ -373,7 +371,6 @@ export {
 	ignoreUpdates,
 	unsyncedPresentationRecord,
 	isPublicPresentation,
-	readonlyMode,
 	slidesLength,
 	historyMetadata,
 	templateList,

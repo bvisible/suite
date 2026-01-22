@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount } from 'vue'
+import { computed, onBeforeMount, inject } from 'vue'
 
 import SlideshowText from '@/components/SlideshowText.vue'
 
@@ -34,7 +34,7 @@ import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { inSlideShow, readonlyMode } from '@/stores/presentation'
+import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { isAffectedByMagicMove } from '@/stores/transition'
 import { extensions } from '@/stores/tiptapSetup'
@@ -48,6 +48,8 @@ const props = defineProps({
 		default: 'editor',
 	},
 })
+
+const readonlyMode = inject('readonlyMode', false)
 
 const showEditor = computed(() => {
 	if (!activeElement.value) return false
