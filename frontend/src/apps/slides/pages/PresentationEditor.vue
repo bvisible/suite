@@ -28,7 +28,7 @@
 				v-if="!readonlyMode"
 				@setHighlight="setHighlight"
 				@toggleLayoutTab="toggleLayoutTab"
-				@openLayoutDialog="openLayoutDialog('insert')"
+				@addEmptySlide="addEmptySlide"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide(true)"
 			/>
@@ -180,7 +180,7 @@ const handleShowLayoutDialogShortcut = (e) => {
 }
 
 const addEmptySlide = (e) => {
-	e.preventDefault()
+	e?.preventDefault()
 	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
 		?.layouts[0]
 	if (layout) handleInsertSlide(cloneObj(layout))

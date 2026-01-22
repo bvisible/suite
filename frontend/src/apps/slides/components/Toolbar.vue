@@ -71,7 +71,7 @@ import { allowedImageFileTypes } from '@/utils/constants'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 const emit = defineEmits([
-	'openLayoutDialog',
+	'addEmptySlide',
 	'delete',
 	'duplicate',
 	'setHighlight',
@@ -83,7 +83,7 @@ const slideActions = [
 		label: 'Insert Slide',
 		icon: Square,
 		onClick: () => {
-			emit('openLayoutDialog')
+			emit('addEmptySlide')
 		},
 	},
 	{
