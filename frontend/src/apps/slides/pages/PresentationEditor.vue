@@ -37,7 +37,6 @@
 				v-if="!readonlyMode"
 				class="absolute bottom-0 right-0 top-0"
 				:showLayoutTab="showLayoutTab"
-				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
 	</div>
