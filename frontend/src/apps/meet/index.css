@@ -1,6 +1,11 @@
 @import "./assets/Inter/inter.css";
 @import "frappe-ui/src/style.css";
 
+html,
+body {
+	overscroll-behavior: none;
+}
+
 .dropdown-content {
 	z-index: 9999 !important;
 }
