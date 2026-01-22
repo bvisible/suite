@@ -134,7 +134,7 @@
 
 <script setup>
 import { Button, FormControl, createResource, toast } from "frappe-ui";
-import { computed, inject, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import FloatingControls from "../components/FloatingControls.vue";
 import ParticipantAvatarGroup from "../components/ParticipantAvatarGroup.vue";
 import { useMeetingPreviewPresence } from "../composables/useMeetingPreviewPresence";
@@ -147,20 +147,22 @@ const props = defineProps({
 });
 
 const guestName = ref("");
+
+onMounted(() => {
+	const savedGuestName = localStorage.getItem("guest_name");
+	if (savedGuestName && !session.isLoggedIn) {
+		guestName.value = savedGuestName;
+	}
+});
 const guestNameInputRef = ref(null);
 
 const joinGuestAPI = createResource({
 	url: "meet.api.meeting.join_meeting_as_guest",
 	makeParams: () => {
-		const params = {
+		return {
 			meeting_id: props.meetingId,
 			guest_name: guestName.value.trim(),
 		};
-		const existingGuestId = sessionStorage.getItem("guest_id");
-		if (existingGuestId) {
-			params.guest_id = existingGuestId;
-		}
-		return params;
 	},
 });
 
@@ -235,12 +237,8 @@ const handleJoin = async () => {
 				return;
 			}
 
-			sessionStorage.setItem("guest_id", result.guest_id);
-			sessionStorage.setItem(
-				"guest_name",
-				result.guest_name || guestName.value.trim(),
-			);
-			sessionStorage.setItem("guest_meeting_id", result.meeting_id);
+			localStorage.setItem("guest_name", guestName.value.trim());
+
 			meetingState.guestId.value = result.guest_id;
 			meetingState.guestSfuUrl.value = result.sfu_url || null;
 			meetingState.guestSfuPort.value = result.sfu_port || null;
