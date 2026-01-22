@@ -4,10 +4,12 @@
 		:class="$slots.default ? 'grid-cols-3' : 'grid-cols-2'"
 		@wheel.prevent
 	>
-		<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-			<img src="/slides-logo.svg" class="h-7" />
-			<div class="text-base font-semibold">Slides</div>
-		</router-link>
+		<div class="w-full">
+			<router-link class="flex w-fit items-center gap-2" :to="{ name: 'Home' }">
+				<img src="/slides-logo.svg" class="h-7" />
+				<div class="text-base font-semibold">Slides</div>
+			</router-link>
+		</div>
 
 		<slot></slot>
 
