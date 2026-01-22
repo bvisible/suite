@@ -137,8 +137,9 @@ class WriterDocument(Document):
                     )
         except COLLISION_ERRORS:
             pass
+
     def rename(self):
-        frappe.get_value({'doc': self.name}).rename()
+        frappe.get_value({"doc": self.name}).rename()
 
 
 def notify_comments(file, mentions):
