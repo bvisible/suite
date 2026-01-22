@@ -11,9 +11,9 @@ const withPresentationProps = (route: RouteLocationNormalized) => {
 	return {
 		presentationId: route.params.presentationId,
 		activeSlideId: activeSlideId,
+		editorAccess: editorAccess,
 	}
 }
-
 
 const routes = [
 	{
@@ -51,48 +51,14 @@ let router = createRouter({
 	routes,
 })
 
-const hasAccess = async (presentationId: string) => {
-	if (!session.isLoggedIn) return false
+const getEditorAccess = async (presentationId: string) => {
 	try {
 		const response = await createResource({
-			url: "frappe.client.has_permission",
+			url: "slides.slides.doctype.presentation.presentation.get_editor_access",
 			method: "GET",
 		}).submit({
 			doctype: "Presentation",
-			docname: presentationId,
-			perm_type: "write",
-		})
-		return response.has_permission
-	} catch (error) {
-		console.error('Permission check failed:', error)
-		return false
-	}
-}
-
-const isPublicPresentation = async (presentationId: string) => {
-	try {
-		const response = await createResource({
-			url: "slides.slides.doctype.presentation.presentation.is_public_presentation",
-			method: "GET",
-		}).submit({
-			doctype: "Presentation",
-			name: presentationId,
-		})
-		return response
-	} catch (error) {
-		console.error('Failed to fetch presentation access level:', error)
-		return false
-	}
-}
-
-const isCompositePresentation = async (presentationId: string) => {
-	try {
-		const response = await createResource({
-			url: "slides.slides.doctype.presentation.presentation.is_composite_presentation",
-			method: "GET",
-		}).submit({
-			doctype: "Presentation",
-			name: presentationId,
+			presentation_id: presentationId,
 		})
 		return response
 	} catch (error) {
@@ -102,64 +68,39 @@ const isCompositePresentation = async (presentationId: string) => {
 }
 
 let previousRoute = null
-let canAccess = false
-let isComposite = false
-
+let editorAccess = "none"
 
 router.beforeEach(async (to, from, next) => {
 	previousRoute = from
 
 	const isLoggedIn = session.isLoggedIn
 
-	if (isLoggedIn && to.path === '/login') {
-		return next({ name: 'Home' })
+	if (!['Slideshow', 'PresentationEditor', 'Home'].includes(to.name as string)) {
+		return next()
 	}
 
 	if (to.name === 'Slideshow' && !from.name) {
 		return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
-	}
-
-	const protectedRoutes = ['PresentationEditor', 'PresentationView', 'Home']
-	if (!protectedRoutes.includes(to.name as string)) {
+	} else if (to.name === 'Slideshow') {
 		return next()
-	}
-
-	if (['PresentationView', 'PresentationEditor'].includes(to.name as string)) {
+	} else if (to.name === 'PresentationEditor') {
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
-			isComposite = await isCompositePresentation(to.params.presentationId as string)
-			canAccess = await hasAccess(to.params.presentationId as string)
+			editorAccess = await getEditorAccess(to.params.presentationId as string)
 		}
-		if (isComposite) {
-			if (to.name == 'PresentationView') {
-				return next()
-			} else {
-				return next({ name: 'PresentationView', params: to.params, query: to.query } )
-			}
-		}
-
-		if (canAccess && to.name  === 'PresentationEditor') {
+		if (['edit', 'view'].includes(editorAccess)) {
 			return next()
-		} else if (canAccess) {
-			return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
 		}
 		else {
-			const isPublic = await isPublicPresentation(to.params.presentationId as string)
-			if (isPublic && 'PresentationView' === to.name) {
-				return next()
-			} else if (isPublic) {
-				return next({ name: 'PresentationView', params: to.params, query: to.query } )
-			} else {
-				return next({ name: 'NotPermitted' })
-			}
+			return next({ name: 'NotPermitted' })
 		}
-	}
+	} else {
+		if (!isLoggedIn) {
+			if (to.path !== '/login') window.location.href = '/login?redirect-to=' + to.path
+			return next()
+		}
 
-	if (!isLoggedIn) {
-		if (to.path !== '/login') window.location.href = '/login?redirect-to=' + to.path
 		return next()
 	}
-
-	return next()
 })
 
-export { router, previousRoute }
+export { router, previousRoute, editorAccess }
