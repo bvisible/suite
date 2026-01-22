@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-48 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		class="absolute bottom-10 left-[calc(50%-128px)] flex h-10 w-fit items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<Tooltip text="Text" :hover-delay="0.7">
@@ -42,6 +42,19 @@
 				<component :is="option.icon" size="16" class="stroke-[1.5]" />
 			</div>
 		</Tooltip>
+
+		<div class="h-6 border-l"></div>
+
+		<Tooltip text="Layouts" :hover-delay="0.5">
+			<div
+				class="cursor-pointer rounded p-2 hover:bg-gray-100"
+				@click="emit('toggleLayoutTab')"
+				@mouseenter="emit('setHighlight', true)"
+				@mouseleave="emit('setHighlight', false)"
+			>
+				<LucideLayoutTemplate class="size-4" />
+			</div>
+		</Tooltip>
 	</div>
 </template>
 
@@ -57,7 +70,13 @@ import { allowedImageFileTypes } from '@/utils/constants'
 
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
-const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
+const emit = defineEmits([
+	'openLayoutDialog',
+	'delete',
+	'duplicate',
+	'setHighlight',
+	'toggleLayoutTab',
+])
 
 const slideActions = [
 	{
