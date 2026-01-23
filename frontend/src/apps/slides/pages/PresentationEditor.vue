@@ -64,7 +64,6 @@ import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
-import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import {
 	presentationId,
@@ -177,11 +176,6 @@ const toggleSlideNavigator = () => {
 	}
 }
 
-const handleShowLayoutDialogShortcut = (e) => {
-	e.preventDefault()
-	openLayoutDialog('insert')
-}
-
 const addEmptySlide = (e, index) => {
 	e?.preventDefault()
 	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
@@ -257,9 +251,6 @@ const handleGlobalShortcuts = (e) => {
 			break
 		case 's':
 			if (isCmdOrCtrl(e)) saveSlide(e)
-			break
-		case 'n':
-			if (e.ctrlKey) handleShowLayoutDialogShortcut(e)
 			break
 		case 'Enter':
 			addEmptySlide(e)
@@ -592,7 +583,6 @@ const updateUnsyncedRecord = () => {
 	}
 }
 
-const showLayoutDialog = ref(false)
 const layoutAction = ref('')
 
 const handleInsertSlide = (index, layoutId) => {
@@ -678,14 +668,7 @@ watch(
 
 watch(
 	() => props.presentationId,
-	(presentationId) => {
-		if (!presentationId) return
-		if (readonlyMode.value) {
-			loadPresentationInReadonlyMode(presentationId)
-		} else {
-			loadPresentation(presentationId)
-		}
-	},
+	() => handleMounted(),
 )
 
 onActivated(() => handleActivated())
