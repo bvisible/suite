@@ -3,7 +3,7 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow" />
+		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="" />
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
@@ -18,7 +18,6 @@
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
 				:readonlyMode="readonlyMode"
-				:showNavigator="showNavigator"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeSlide"
 				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
@@ -138,7 +137,6 @@ const router = useRouter()
 const slideContainerRef = useTemplateRef('slideContainer')
 const dropTargetRef = useTemplateRef('dropTarget')
 
-const showNavigator = ref(true)
 const slideHighlight = ref(false)
 const hasOngoingInteraction = ref(false)
 
@@ -169,12 +167,6 @@ const handleArrowKeys = (key) => {
 const saveSlide = (e) => {
 	e.preventDefault()
 	resetAndSave()
-}
-
-const toggleSlideNavigator = () => {
-	if (!activeElementIds.value.length || activeElement.value.type != 'text') {
-		showNavigator.value = !showNavigator.value
-	}
 }
 
 const addEmptySlide = (e, index) => {
@@ -422,14 +414,6 @@ const handleKeyDownForReadonly = (e) => {
 			if (isCmdOrCtrl(e)) toggleSlideNavigator()
 			break
 	}
-}
-
-const startSlideShow = () => {
-	router.replace({
-		name: 'Slideshow',
-		params: { presentationId: props.presentationId },
-		query: { slide: props.activeSlideId },
-	})
 }
 
 const handleAutoSave = () => {
