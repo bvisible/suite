@@ -79,7 +79,7 @@
 	</div>
 
 	<!-- Slide Navigator Toggle -->
-	<div v-if="!showNavigator" :class="toggleButtonClasses" @click="toggleNavigator">
+	<div v-if="!isNavigationPanelOpen" :class="toggleButtonClasses" @click="toggleNavigationPanel">
 		<LucideChevronRight class="size-3.5 text-gray-500" />
 	</div>
 </template>
@@ -90,6 +90,8 @@ import { ref, computed, watch, nextTick, useTemplateRef, useAttrs } from 'vue'
 import Draggable from 'vuedraggable'
 
 import TransitionIcon from '@/icons/TransitionIcon.vue'
+
+import { useNavigationPanel } from '@/composables/useNavigationPanel'
 
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
@@ -102,10 +104,7 @@ const attrs = useAttrs()
 
 const scrollableArea = useTemplateRef('scrollableArea')
 
-const showNavigator = defineModel('showNavigator', {
-	type: Boolean,
-	default: true,
-})
+const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
 const props = defineProps({
 	readonlyMode: {
@@ -138,13 +137,9 @@ const insertButtonClasses =
 
 const showCollapseShortcut = ref(false)
 
-const toggleNavigator = () => {
-	showNavigator.value = !showNavigator.value
-}
-
 const panelClasses = computed(() => {
 	// can't add it from parent attrs.class since attrs is not reactive
-	const positionClass = showNavigator.value ? 'left-0' : '-left-48'
+	const positionClass = isNavigationPanelOpen.value ? 'left-0' : '-left-48'
 	const baseClasses = [
 		'w-48',
 		'border-r',
@@ -202,7 +197,7 @@ const getThumbnailStyles = (s) => {
 
 const toggleButtonClasses = computed(() => {
 	const baseClasses = 'flex cursor-pointer items-center border bg-white'
-	if (showNavigator.value) {
+	if (isNavigationPanelOpen.value) {
 		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
 	}
 	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
@@ -266,7 +261,7 @@ const handleScrollChange = (index) => {
 watch(
 	() => slideIndex.value,
 	() => {
-		if (!showNavigator.value) return
+		if (!isNavigationPanelOpen.value) return
 		nextTick(() => {
 			handleScrollChange(slideIndex.value)
 		})
