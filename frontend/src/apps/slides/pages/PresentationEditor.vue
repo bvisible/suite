@@ -126,9 +126,9 @@ const props = defineProps({
 		type: Number,
 		required: true,
 	},
-	editorAcess: {
+	editorAccess: {
 		type: String,
-		default: 'edit',
+		default: 'none',
 	},
 })
 
@@ -572,7 +572,7 @@ const loadPresentationInReadonlyMode = async (id) => {
 const route = useRoute()
 
 const readonlyMode = computed(() => {
-	return props.editorAcess == 'view'
+	return props.editorAccess == 'view'
 })
 
 const updateUnsyncedRecord = () => {
@@ -625,7 +625,7 @@ const handleDeactivated = () => {
 }
 
 const handleMounted = () => {
-	if (!templateList.value.length) {
+	if (!templateList.value.length && !readonlyMode.value) {
 		templateListResource.fetch()
 	}
 	const id = props.presentationId
