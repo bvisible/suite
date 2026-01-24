@@ -104,6 +104,7 @@ import {
 } from '@/stores/element'
 
 import { useTextEditor } from '@/composables/useTextEditor'
+import { useShortcuts } from '@/composables/useShortcuts'
 
 import { cloneObj, generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
 import {
@@ -593,35 +594,10 @@ const handleInsertSlide = (index, layoutId) => {
 	}
 }
 
-const handleBeforeUnload = (e) => {
-	if (isDirty.value || syncThumbnail > 0) {
-		e.preventDefault()
-		e.returnValue = ''
-	}
-}
-
 const showLayoutTab = ref(false)
 
 const toggleLayoutTab = () => {
 	showLayoutTab.value = !showLayoutTab.value
-}
-
-const handleActivated = () => {
-	if (readonlyMode.value) {
-		document.addEventListener('keydown', handleKeyDownForReadonly)
-	} else {
-		document.addEventListener('keydown', handleKeyDown)
-		window.addEventListener('beforeunload', handleBeforeUnload)
-	}
-}
-
-const handleDeactivated = () => {
-	if (readonlyMode.value) {
-		document.removeEventListener('keydown', handleKeyDownForReadonly)
-	} else {
-		document.removeEventListener('keydown', handleKeyDown)
-		window.removeEventListener('beforeunload', handleBeforeUnload)
-	}
 }
 
 const handleMounted = () => {
@@ -671,13 +647,14 @@ watch(
 	() => handleMounted(),
 )
 
-onActivated(() => handleActivated())
-
-onDeactivated(() => handleDeactivated())
-
 onMounted(() => handleMounted())
 
 onBeforeUnmount(() => handleBeforeUnmount())
 
 provide('readonlyMode', readonlyMode)
+
+useShortcuts({
+	readonlyMode,
+	router,
+})
 </script>
