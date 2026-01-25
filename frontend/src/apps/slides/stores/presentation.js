@@ -12,8 +12,6 @@ const presentationDoc = ref()
 
 const presentationId = ref('')
 
-const inSlideShow = ref(false)
-
 const applyReverseTransition = ref(false)
 
 const createPresentationResource = createResource({
@@ -357,7 +355,6 @@ const presentationTheme = computed(() => {
 
 export {
 	presentationId,
-	inSlideShow,
 	applyReverseTransition,
 	createPresentationResource,
 	updatePresentationTitle,

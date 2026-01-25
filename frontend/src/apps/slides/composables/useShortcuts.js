@@ -2,6 +2,7 @@ import { watch, onActivated, onDeactivated } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
+import { startSlideShow } from '@/stores/slideshow'
 
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { isCmdOrCtrl } from '@/utils/helpers'
@@ -22,14 +23,6 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         }
     }
 
-    const startSlideShow = () => {
-        router.replace({
-            name: 'Slideshow',
-            params: router.currentRoute.value.params,
-            query: router.currentRoute.value.query,
-        })
-    }
-
     const handleKeyDownForReadonly = (e) => {
         switch (e.key) {
             case 'b':
@@ -37,7 +30,7 @@ export const useShortcuts = ({ readonlyMode, router }) => {
                 break
             case 'F5':
                 e.preventDefault()
-                startSlideShow()
+                startSlideShow(router)
                 break
         }
     }
