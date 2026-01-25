@@ -3,6 +3,7 @@ import { ignoreUpdates, slidesLength, presentationId, templateList } from '@/sto
 import { generateUniqueId } from '@/utils/helpers'
 
 import html2canvas from 'html2canvas'
+import { inSlideShow } from './slideshow'
 
 const slideRef = ref(null)
 
@@ -210,6 +211,13 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 	return slide
 }
 
+const setSlideIndex = (index) => {
+	index = parseInt(index) - 1
+	if (!inSlideShow.value)
+		index = Math.min(index, slidesLength.value - 1)
+	slideIndex.value = index
+}
+
 export {
 	slideIndex,
 	slides,
@@ -224,4 +232,5 @@ export {
 	updateThumbnail,
 	insertSlide,
 	getNewSlide,
+	setSlideIndex
 }

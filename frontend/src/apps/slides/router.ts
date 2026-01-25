@@ -34,7 +34,7 @@ const routes = [
 		props: withPresentationProps,
 	},
 	{
-		path: '/slideshow/:presentationId',
+		path: '/slideshow/:presentationId/:slug?',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
 		props: withPresentationProps,

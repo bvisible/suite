@@ -81,7 +81,7 @@ import {
 	isPublicPresentation,
 	presentationDoc,
 } from '@/stores/presentation'
-import { currentSlide, slideIndex, slides } from '@/stores/slide'
+import { currentSlide, setSlideIndex, slideIndex, slides } from '@/stores/slide'
 import { session } from '@/stores/session'
 
 const slideContainerRef = useTemplateRef('slideContainer')
@@ -405,7 +405,7 @@ const changeSlide = (index) => {
 	nextTick(() => {
 		router.replace({
 			name: 'Slideshow',
-			params: { presentationId: props.presentationId },
+			params: router.currentRoute.value.params,
 			query: { slide: index + 1 },
 		})
 
@@ -441,7 +441,7 @@ onDeactivated(() => {
 watch(
 	() => props.activeSlideId,
 	(index) => {
-		slideIndex.value = parseInt(index) - 1
+		setSlideIndex(index)
 		// Prefetch next slide when current slide changes
 		setTimeout(() => {
 			prefetchNextSlide()
