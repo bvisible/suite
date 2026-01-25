@@ -89,6 +89,7 @@ import {
 	focusedSlide,
 	insertSlide,
 	getNewSlide,
+	setSlideIndex,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -533,11 +534,6 @@ const initIntervals = () => {
 	thumbnailInterval = setInterval(() => {
 		handleThumbnailGeneration(slideIndex.value)
 	}, 1500)
-}
-
-const setSlideIndex = (index) => {
-	index = parseInt(index) - 1
-	slideIndex.value = Math.min(index, slidesLength.value - 1)
 }
 
 const loadPresentation = async (id) => {
