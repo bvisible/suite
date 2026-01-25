@@ -3,7 +3,7 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" />
+		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow(router)" />
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
@@ -114,6 +114,7 @@ import {
 	syncPresentationToServer,
 	syncThumbnail,
 } from '@/stores/saving'
+import { startSlideShow } from '@/stores/slideshow'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
