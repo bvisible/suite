@@ -45,8 +45,8 @@ import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { inSlideShow } from '@/stores/presentation'
 import { activeElementIds } from '@/stores/element'
+import { inSlideShow } from '@/stores/slideshow'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const props = defineProps({

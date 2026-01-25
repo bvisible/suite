@@ -3,7 +3,7 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="" />
+		<EditorNavbar :readonlyMode="readonlyMode" />
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer

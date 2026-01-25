@@ -34,9 +34,9 @@ import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { inSlideShow } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { isAffectedByMagicMove } from '@/stores/transition'
+import { inSlideShow } from '@/stores/slideshow'
 import { extensions } from '@/stores/tiptapSetup'
 import { slideIndex } from '@/stores/slide'
 

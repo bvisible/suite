@@ -6,12 +6,12 @@
 			:style="slideContainerStyles"
 		>
 			<div
-				v-if="slideshowEnded"
+				v-if="showSlideshowEndScreen"
 				class="flex h-full w-full items-center justify-center bg-black"
 			>
 				<SlideshowEndScreen
 					@restartSlideShow="changeSlide(0)"
-					@endSlideShow="endSlideShow"
+					@endSlideShow="endSlideShow(router)"
 				/>
 			</div>
 
@@ -73,10 +73,11 @@ import SlideElement from '@/components/SlideElement.vue'
 import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
 import FadeElementTransition from '@/components/FadeElementTransition.vue'
 
+import { inSlideShow, showSlideshowEndScreen, endSlideShow } from '@/stores/slideshow'
+
 import {
 	applyReverseTransition,
 	initPresentationDoc,
-	inSlideShow,
 	isPublicPresentation,
 	presentationDoc,
 } from '@/stores/presentation'
@@ -318,7 +319,7 @@ const handleFullScreenChange = () => {
 		inSlideShow.value = true
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-		endSlideShow()
+		endSlideShow(router)
 	}
 }
 
@@ -390,30 +391,14 @@ const initFullscreenMode = async () => {
 		fullscreenMethod.call(container).catch((e) => {
 			router.replace({ name: 'PresentationEditor' })
 		})
-		inSlideShow.value = true
 
 		setClipPath()
 	}
 }
 
-const slideshowEnded = computed(() => {
-	return slideIndex.value >= slides.value.length
-})
-
-const endSlideShow = () => {
-	inSlideShow.value = false
-	const slide =
-		slideIndex.value == slides.value.length ? slides.value.length : slideIndex.value + 1
-	router.replace({
-		name: 'PresentationEditor',
-		params: { presentationId: props.presentationId },
-		query: { slide: slide },
-	})
-}
-
 const changeSlide = (index) => {
 	if (index < 0) return
-	if (index >= slides.value.length + 1) return endSlideShow()
+	if (index >= slides.value.length + 1) return endSlideShow(router)
 
 	applyReverseTransition.value = index < slideIndex.value
 
