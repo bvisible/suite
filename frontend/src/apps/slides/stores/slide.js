@@ -218,6 +218,21 @@ const setSlideIndex = (index) => {
 	slideIndex.value = index
 }
 
+const changeSlide = async (router, index, focus = true) => {
+	index = Math.max(0, Math.min(index, slidesLength.value - 1))
+
+	await router.replace({
+		query: { slide: index + 1 },
+	})
+
+	if (focus) {
+		focusedSlide.value = index
+	} else {
+		focusedSlide.value = null
+	}
+}
+
+
 export {
 	slideIndex,
 	slides,
@@ -232,5 +247,6 @@ export {
 	updateThumbnail,
 	insertSlide,
 	getNewSlide,
-	setSlideIndex
+	setSlideIndex,
+	changeSlide
 }
