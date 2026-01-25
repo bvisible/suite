@@ -12,14 +12,14 @@
 				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
-				@changeSlide="changeSlide"
+				@changeSlide="changeEditorSlide"
 			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
 				:readonlyMode="readonlyMode"
 				:recentlyRestored="recentlyRestored"
-				@changeSlide="changeSlide"
+				@changeSlide="changeEditorSlide"
 				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
 			/>
 
@@ -90,6 +90,7 @@ import {
 	insertSlide,
 	getNewSlide,
 	setSlideIndex,
+	changeSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -179,6 +180,13 @@ const addEmptySlide = (e, index) => {
 	showLayoutTab.value = true
 }
 
+const changeEditorSlide = async (index, focus = true) => {
+	if (!readonlyMode.value) {
+		await resetFocus()
+	}
+	return changeSlide(router, index, focus)
+}
+
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
@@ -209,10 +217,10 @@ const handleElementShortcuts = (e) => {
 const handleSlideShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowUp':
-			changeSlide(slideIndex.value - 1)
+			changeEditorSlide(slideIndex.value - 1)
 			break
 		case 'ArrowDown':
-			changeSlide(slideIndex.value + 1)
+			changeEditorSlide(slideIndex.value + 1)
 			break
 		case 'Delete':
 		case 'Backspace':
@@ -329,7 +337,7 @@ const jumpToSlide = async (operation, oldList, newList) => {
 	const onActiveSlide = jumpToSlideId == slideIndex.value
 
 	if (!onActiveSlide && jumpToSlideId != null) {
-		await changeSlide(jumpToSlideId, false)
+		await changeEditorSlide(jumpToSlideId, false)
 
 		recentlyRestored.value = true
 		setTimeout(() => {
@@ -403,10 +411,10 @@ const handleKeyDown = (e) => {
 const handleKeyDownForReadonly = (e) => {
 	switch (e.key) {
 		case 'ArrowUp':
-			changeSlide(slideIndex.value - 1)
+			changeEditorSlide(slideIndex.value - 1)
 			break
 		case 'ArrowDown':
-			changeSlide(slideIndex.value + 1)
+			changeEditorSlide(slideIndex.value + 1)
 			break
 		case 'F5':
 			e.preventDefault()
@@ -431,24 +439,6 @@ const handleThumbnailGeneration = async (index) => {
 	}
 }
 
-const changeSlide = async (index, focus = true) => {
-	index = Math.max(0, Math.min(index, slidesLength.value - 1))
-
-	if (!readonlyMode.value) {
-		await resetFocus()
-	}
-
-	await router.replace({
-		query: { slide: index + 1 },
-	})
-
-	if (focus) {
-		focusedSlide.value = index
-	} else {
-		focusedSlide.value = null
-	}
-}
-
 const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
@@ -456,7 +446,7 @@ const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
 
 	insertSlide(newSlide, index)
 
-	await changeSlide(index + 1)
+	await changeEditorSlide(index + 1)
 
 	updateThumbnail(index + 1)
 }
@@ -487,7 +477,7 @@ const deleteSlide = (deleteActive) => {
 
 	if (deleteIndex == totalLength - 1) {
 		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeSlide(deleteIndex - 1)
+		changeEditorSlide(deleteIndex - 1)
 	}
 }
 

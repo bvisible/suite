@@ -2,8 +2,9 @@ import { watch, onActivated, onDeactivated } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
-import { startSlideShow } from '@/stores/slideshow'
 
+import { slideIndex, changeSlide } from '@/stores/slide'
+import { startSlideShow } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { isCmdOrCtrl } from '@/utils/helpers'
 
@@ -25,6 +26,12 @@ export const useShortcuts = ({ readonlyMode, router }) => {
 
     const handleKeyDownForReadonly = (e) => {
         switch (e.key) {
+            case 'ArrowUp':
+                changeSlide(router, slideIndex.value - 1)
+                break
+            case 'ArrowDown':
+                changeSlide(router, slideIndex.value + 1)
+                break
             case 'b':
                 if (isCmdOrCtrl(e)) toggleNavigationPanel()
                 break
