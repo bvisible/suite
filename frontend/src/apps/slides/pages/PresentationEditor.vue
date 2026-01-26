@@ -118,6 +118,7 @@ import {
 	syncPresentationToServer,
 	syncThumbnail,
 } from '@/stores/saving'
+import { previousRoute } from '@/router'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
@@ -563,11 +564,14 @@ const setSlideIndex = (index) => {
 }
 
 const loadPresentation = async (id) => {
-	initHistory()
-	presentationDoc.value = await initPresentationDoc(id)
+	// TODO: remove on router refactor
+	if (!previousRoute || previousRoute.name != 'Slideshow') {
+		initHistory()
+		presentationDoc.value = await initPresentationDoc(id)
+		layoutResource.fetch({ theme: presentationDoc.value.theme })
+	}
 	setSlideIndex(props.activeSlideId)
 	updateRoute(presentationDoc.value.slug)
-	layoutResource.fetch({ theme: presentationDoc.value.theme })
 	initIntervals()
 }
 
