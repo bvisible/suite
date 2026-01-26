@@ -25,7 +25,7 @@ const cleanupOldCacheEntry = async (cache, request, response) => {
     }
 }
 
-const cleanupOldCache = async () => {
+const cleanupOldMediaCache = async () => {
     const cache = await caches.open(MEDIA_CACHE_NAME)
     const keys = await cache.keys()
 
@@ -39,20 +39,24 @@ const cleanupOldCache = async () => {
     )
 }
 
-const handleSWActivate = async () => {
-    const cleanupOldAssetCache = async () => {
-        const cacheNames = await caches.keys()
-        await Promise.all(
-            cacheNames.map((cacheName) => {
-                if (cacheName !== ASSET_CACHE_NAME) {
-                    return caches.delete(cacheName)
-                }
-            }),
-        )
-    }
+const cleanupOldAssetCache = async () => {
+    const cacheNames = await caches.keys()
+    await Promise.all(
+        cacheNames.map((cacheName) => {
+            if (cacheName.startsWith('slides-assets') && cacheName !== ASSET_CACHE_NAME) {
+                return caches.delete(cacheName)
+            }
+        }),
+    )
+}
 
+const cleanupOldCaches = () => {
     cleanupOldAssetCache()
-    cleanupOldCache()
+    cleanupOldMediaCache()
+}
+
+const handleSWActivate = async () => {
+    cleanupOldCaches()
     // this takes control of all client pages that are already open
     await self.clients.claim()
 }
