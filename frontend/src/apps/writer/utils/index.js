@@ -605,7 +605,7 @@ async function uploadImage(file, params) {
 export const FONT_FAMILIES = [
   {
     label: 'Caveat',
-    value: 'caveat',
+    key: 'caveat',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-caveat)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -614,7 +614,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Comic Sans',
-    value: 'comic-sans',
+    key: 'comic-sans',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-comic-sans)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -623,7 +623,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Comfortaa',
-    value: 'comfortaa',
+    key: 'comfortaa',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-comfortaa)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -632,7 +632,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'EB Garamond',
-    value: 'eb-garamond',
+    key: 'eb-garamond',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-eb-garamond)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -641,7 +641,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Fantasy',
-    value: 'fantasy',
+    key: 'fantasy',
     action: (editor) => editor.chain().focus().setFontFamily('fantasy').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -650,7 +650,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Geist',
-    value: 'geist',
+    key: 'geist',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-geist)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -659,7 +659,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'IBM Plex Sans',
-    value: 'ibm-plex',
+    key: 'ibm-plex',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-ibm-plex)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -668,7 +668,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Inter',
-    value: 'inter',
+    key: 'inter',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-inter)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -677,7 +677,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'JetBrains Mono',
-    value: 'jetbrains',
+    key: 'jetbrains',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-jetbrains)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -686,7 +686,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Lora',
-    value: 'lora',
+    key: 'lora',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-lora)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -695,7 +695,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Merriweather',
-    value: 'merriweather',
+    key: 'merriweather',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-merriweather)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
@@ -704,7 +704,7 @@ export const FONT_FAMILIES = [
   },
   {
     label: 'Nunito',
-    value: 'nunito',
+    key: 'nunito',
     action: (editor) => editor.chain().focus().setFontFamily('var(--font-nunito)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {

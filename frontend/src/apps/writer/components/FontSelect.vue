@@ -7,17 +7,16 @@
         ...k,
         type: 'custom',
         slotName: 'font',
-        key: k.value,
-        onClick: () => (editor ? k.action(editor) : (selected = k.value)),
+        onClick: () => (editor ? k.action(editor) : (selected = k.key)),
       }))
     "
-    :placeholder="options.find((k) => k.value === font_family)?.label"
+    :placeholder="options.find((k) => k.key === font_family)?.label"
     :open-on-click="true"
     class="min-w-[10rem]"
     variant="outline"
   >
     <template #font="{ option }"
-      ><span :style="{ fontFamily: `var(--font-${option.value})` }">
+      ><span :style="{ fontFamily: `var(--font-${option.key})` }">
         {{ option.label }}</span
       ></template
     >
@@ -26,7 +25,7 @@
 <script setup>
 import { Combobox } from 'frappe-ui'
 import { FONT_FAMILIES } from '@/utils'
-import { watch } from 'vue'
+
 const selected = defineModel()
 const props = defineProps({
   font_family: String,
