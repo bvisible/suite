@@ -633,11 +633,7 @@ const handleDeviceChanged = async (event) => {
 			}
 
 			if (meetingState.isMicOn.value) {
-				constraints.audio = {
-					echoCancellation: true,
-					noiseSuppression: true,
-					autoGainControl: false,
-				};
+				constraints.audio = {};
 				const micDeviceId =
 					event.type === "microphone" ? event.deviceId : selectedMicId.value;
 				if (
