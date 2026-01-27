@@ -68,21 +68,12 @@ export class MediaStreamHandler {
 		}
 
 		if (constraints.audio && typeof constraints.audio === "object") {
-			constraints.audio = {
-				echoCancellation: true,
-				noiseSuppression: true,
-				autoGainControl: false,
-				...constraints.audio,
-			};
+			constraints.audio = { ...constraints.audio };
 			if (deviceIds.microphone) {
 				constraints.audio.deviceId = { exact: deviceIds.microphone };
 			}
 		} else if (constraints.audio === true) {
-			constraints.audio = {
-				echoCancellation: true,
-				noiseSuppression: true,
-				autoGainControl: false,
-			};
+			constraints.audio = {};
 			if (deviceIds.microphone) {
 				constraints.audio.deviceId = { exact: deviceIds.microphone };
 			}

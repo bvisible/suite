@@ -76,7 +76,6 @@ const startListening = async () => {
 					deviceId: props.deviceId,
 					echoCancellation: true,
 					noiseSuppression: true,
-					autoGainControl: false,
 				},
 			});
 		}

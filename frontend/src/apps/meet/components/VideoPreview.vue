@@ -188,11 +188,7 @@ async function acquire(kind) {
 				};
 		} else if (kind === "audio" && !audioTrack.value) {
 			const stream = await navigator.mediaDevices.getUserMedia({
-				audio: {
-					echoCancellation: true,
-					noiseSuppression: true,
-					autoGainControl: false,
-				},
+				audio: true,
 				video: false,
 			});
 			audioTrack.value = stream.getAudioTracks()[0] || null;
@@ -214,11 +210,7 @@ async function acquire(kind) {
 async function acquireBoth() {
 	try {
 		const constraints = {
-			audio: {
-				echoCancellation: true,
-				noiseSuppression: true,
-				autoGainControl: false,
-			},
+			audio: true,
 			video: {
 				width: { ideal: 1280, min: 960 },
 				height: { ideal: 720, min: 540 },
