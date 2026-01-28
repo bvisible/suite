@@ -337,5 +337,5 @@ const clearCache = () => {
   window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
 }
 
-const navigate = (href) => (window.href = href)
+const navigate = (href) => (window.location.href = href)
 </script>
