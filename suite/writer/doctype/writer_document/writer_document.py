@@ -55,7 +55,7 @@ class WriterDocument(Document):
         self.updates = []
         self.save()
 
-    def new_version(self, html, title):
+    def new_version(self, data, title):
         """Create a new version of the document"""
         manual = bool(title)
         if not manual:
@@ -88,7 +88,7 @@ class WriterDocument(Document):
             {
                 "doctype": "Writer Version",
                 "doc": self.name,
-                "snapshot": html,
+                "snapshot": data,
                 "manual": manual,
                 "title": title,
             }
