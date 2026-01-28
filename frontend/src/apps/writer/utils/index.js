@@ -769,7 +769,7 @@ export function toast(obj) {
 export const COMMON_EXTENSIONS = [EmbedExtension, ExtendedParagraph]
 
 export async function downloadMD(editor, foldername) {
-  var html = editor.value.getHTML()
+  let html = editor.value.getHTML()
   const turndownService = new TurndownService({
     headingStyle: 'atx',
     codeBlockStyle: 'fenced',
@@ -789,20 +789,19 @@ export async function downloadMD(editor, foldername) {
     saveAs(blob, `${foldername}.md`)
     return
   }
+  zip.file(`${foldername}.md`, blob)
 
   for (const i in urls) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
-    const pattern = /src="\/api\/method\/drive\.api\.embed\.get_file_content[^"]+"/
-    html = html.replace(pattern, `src="./${i}.${ext}"`)
-    const fileUrl = `/api/method/drive.api.embed.get_file_content?embed_name=${encodeURIComponent(
-      urls[i].name,
-    )}&parent_entity_name=${encodeURIComponent(parent)}`
-    const res = await fetch(fileUrl)
-    const embedBlob = await res.blob()
-    zip.file(`${i}.${ext}`, embedBlob)
+    const title = `${urls[i].title}.${ext}`
+    html = html.replace(
+      `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+      `src="./${title}"`,
+    )
+    const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+    const blob = await (await fetch(fileUrl)).blob()
+    zip.file(title, blob)
   }
-
-  zip.file(`${foldername}.md`, blob)
 
   const blobzip = await zip.generateAsync({
     type: 'blob',
@@ -813,44 +812,9 @@ export async function downloadMD(editor, foldername) {
 }
 
 export async function downloadZippedHTML(editor, foldername, settings = {}) {
-  const html = editor.value.getHTML()
-  const applyWatermark = settings?.apply_watermark || false
-  const watermark = {
-    text: settings?.watermark_text || '',
-    size: settings?.watermark_size || 90,
-    angle: settings?.watermark_angle || -45,
-  }
-  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ''
-  let content = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>${globalStyle}</style>
-                <style>${editorStyle}</style>
-                <style>
-                  .watermark {
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(${watermark.angle}deg);
-                    opacity: 0.12;
-                    font-size: ${watermark.size}px;
-                    color: #999;
-                    pointer-events: none;
-                    z-index: 9999;
-                    white-space: nowrap;
-                  }
-                </style>
-              </head>
-              <body>
-                ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ''}
-                <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
-                  ${html}
-                </div>
-              </body>
-            </html>
-          `
+  let html = editor.value.getHTML()
   const zip = new JSZip()
+  zip.file(`${foldername}.html`, html)
   const urls = editor.value.commands.getEmbedUrls()
   const getExtension = createResource({
     url: 'drive.api.docs.get_extension',
@@ -859,17 +823,16 @@ export async function downloadZippedHTML(editor, foldername, settings = {}) {
 
   for (const i in urls) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
-    const pattern = /src="\/api\/method\/drive\.api\.embed\.get_file_content[^"]+"/
-    content = content.replace(pattern, `src="./${i}.${ext}"`)
-    const fileUrl = `/api/method/drive.api.embed.get_file_content?embed_name=${encodeURIComponent(
-      urls[i].name,
-    )}&parent_entity_name=${encodeURIComponent(parent)}`
-    const res = await fetch(fileUrl)
-    const blob = await res.blob()
-    zip.file(`${i}.${ext}`, blob)
+    const title = `${urls[i].title}.${ext}`
+    html = html.replace(
+      `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+      `src="./${title}"`,
+    )
+    const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+    const blob = await (await fetch(fileUrl)).blob()
+    zip.file(title, blob)
   }
 
-  zip.file('index.html', content)
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
   saveAs(blob, `${foldername}.zip`)
 }

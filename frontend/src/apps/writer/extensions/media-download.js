@@ -4,7 +4,7 @@ function extractEntityName(url) {
     const query = url.split('?')[1]
     if (!query) return null
     const params = new URLSearchParams(query)
-    return params.get('embed_name')
+    return params.get('id')
   } catch {
     return null
   }
