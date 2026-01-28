@@ -65,7 +65,7 @@
           }"
           :editable
           :starterkit-options="{
-            undoRedo: doc ? false : true,
+            // undoRedo: doc ? false : true,
             trailingNode: { node: 'paragraph', notAfter: 'tab' },
             paragraph: false,
             gapcursor: false,
