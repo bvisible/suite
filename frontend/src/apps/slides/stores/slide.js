@@ -1,8 +1,11 @@
 import { ref, computed, reactive } from 'vue'
 import { ignoreUpdates, slidesLength, presentationId, templateList } from '@/stores/presentation'
+import { resetFocus } from '@/stores/element'
+import { saveChanges, isDirty } from '@/stores/saving'
 import { generateUniqueId } from '@/utils/helpers'
 
 import html2canvas from 'html2canvas'
+import { toast } from 'frappe-ui'
 import { inSlideShow } from './slideshow'
 
 const slideRef = ref(null)
@@ -232,6 +235,24 @@ const changeSlide = async (router, index, focus = true) => {
 	}
 }
 
+const resetAndSave = async () => {
+	await resetFocus()
+	if (!isDirty.value) {
+		toast.info('No changes to save')
+		return
+	}
+	const toastProps = {
+		loading: `Saving ...`,
+		success: () => `Saved`,
+		error: () => 'Could not save presentation. Please try again.',
+	}
+	toast.promise(saveChanges(), toastProps)
+}
+
+const saveSlide = (e) => {
+	e.preventDefault()
+	resetAndSave()
+}
 
 export {
 	slideIndex,
@@ -248,5 +269,6 @@ export {
 	insertSlide,
 	getNewSlide,
 	setSlideIndex,
-	changeSlide
+	changeSlide,
+	saveSlide
 }

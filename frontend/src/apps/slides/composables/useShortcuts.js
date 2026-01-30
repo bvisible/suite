@@ -3,8 +3,8 @@ import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
 
-import { slideIndex, changeSlide } from '@/stores/slide'
-import { focusElementId } from '@/stores/element'
+import { slideIndex, changeSlide, saveSlide } from '@/stores/slide'
+import { focusElementId, resetFocus, addTextElement, selectAllElements } from '@/stores/element'
 import { startSlideShow } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { isCmdOrCtrl } from '@/utils/helpers'
@@ -43,6 +43,40 @@ export const useShortcuts = ({ readonlyMode, router }) => {
 
     const handleUndoRedo = (e) => { }
 
+
+    const handleGlobalShortcuts = (e) => {
+        if (isCmdOrCtrl(e) && e.code === 'KeyP') {
+            e.preventDefault()
+            startSlideShow(router)
+            return
+        }
+
+        switch (e.key) {
+            case 'Escape':
+                resetFocus()
+                break
+            case 't':
+                addTextElement()
+                break
+            case 'b':
+                if (isCmdOrCtrl(e)) toggleNavigationPanel()
+                break
+            case 'a':
+                if (isCmdOrCtrl(e)) selectAllElements(e)
+                break
+            case 's':
+                if (isCmdOrCtrl(e)) saveSlide(e)
+                break
+            // case 'Enter':
+            //     addEmptySlide(e)
+            //     break
+            case 'F5':
+                e.preventDefault()
+                startSlideShow(router)
+                break
+        }
+    }
+
     const handleShortcuts = (e) => {
         const editingText =
             document.activeElement.getAttribute('contenteditable') ||
@@ -52,6 +86,8 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         if (editingText) return
 
         if (e.key == 'z') return handleUndoRedo(e)
+
+        handleGlobalShortcuts(e)
     }
 
     const handleKeyDown = (e) => {

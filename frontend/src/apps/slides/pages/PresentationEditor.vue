@@ -26,7 +26,7 @@
 			<Toolbar
 				v-if="!readonlyMode"
 				@setHighlight="setHighlight"
-				@toggleLayoutTab="toggleLayoutTab"
+				@toggleLayoutView="toggleLayoutView"
 				@addEmptySlide="addEmptySlide"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide(true)"
@@ -35,7 +35,7 @@
 			<PropertiesPanel
 				v-if="!readonlyMode"
 				class="absolute bottom-0 right-0 top-0"
-				:showLayoutTab="showLayoutTab"
+				:showLayouts="showLayouts"
 			/>
 		</div>
 	</div>
@@ -167,17 +167,12 @@ const handleArrowKeys = (key) => {
 	})
 }
 
-const saveSlide = (e) => {
-	e.preventDefault()
-	resetAndSave()
-}
-
 const addEmptySlide = (e, index) => {
 	e?.preventDefault()
 	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
 		?.layouts[0]
 	if (layout) handleInsertSlide(index, cloneObj(layout))
-	showLayoutTab.value = true
+	showLayouts.value = true
 }
 
 const changeEditorSlide = async (index, focus = true) => {
@@ -497,20 +492,6 @@ const replaceSlide = (layoutId) => {
 	})
 }
 
-const resetAndSave = async () => {
-	await resetFocus()
-	if (!isDirty.value) {
-		toast.info('No changes to save')
-		return
-	}
-	const toastProps = {
-		loading: `Saving ...`,
-		success: () => `Saved`,
-		error: () => 'Could not save presentation. Please try again.',
-	}
-	toast.promise(saveChanges(), toastProps)
-}
-
 const updateRoute = async (slug) => {
 	if (props.slug == slug) return
 	router.replace({
@@ -564,10 +545,10 @@ const handleInsertSlide = (index, layoutId) => {
 	}
 }
 
-const showLayoutTab = ref(false)
+const showLayouts = ref(false)
 
-const toggleLayoutTab = () => {
-	showLayoutTab.value = !showLayoutTab.value
+const toggleLayoutView = () => {
+	showLayouts.value = !showLayouts.value
 }
 
 const handleMounted = () => {
