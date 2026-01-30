@@ -12,14 +12,14 @@
 				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
-				@changeSlide="changeEditorSlide"
+				@changeSlide="goToSlide"
 			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
 				:readonlyMode="readonlyMode"
 				:recentlyRestored="recentlyRestored"
-				@changeSlide="changeEditorSlide"
+				@changeSlide="goToSlide"
 				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
 			/>
 
@@ -29,7 +29,7 @@
 				@toggleLayoutView="toggleLayoutView"
 				@addEmptySlide="addEmptySlide"
 				@duplicate="duplicateSlide"
-				@delete="deleteSlide(true)"
+				@delete="deleteSlide(router, true)"
 			/>
 
 			<PropertiesPanel
@@ -78,6 +78,7 @@ import {
 	templateList,
 	templateListResource,
 	presentationTheme,
+	readonlyMode,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -90,7 +91,7 @@ import {
 	insertSlide,
 	getNewSlide,
 	setSlideIndex,
-	changeSlide,
+	changeEditorSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -175,13 +176,6 @@ const addEmptySlide = (e, index) => {
 	showLayouts.value = true
 }
 
-const changeEditorSlide = async (index, focus = true) => {
-	if (!readonlyMode.value) {
-		await resetFocus()
-	}
-	return changeSlide(router, index, focus)
-}
-
 const handleElementShortcuts = (e) => {
 	switch (e.key) {
 		case 'ArrowLeft':
@@ -205,24 +199,6 @@ const handleElementShortcuts = (e) => {
 			break
 		case 'u':
 			if (activeEditor.value) toggleMark('underline')
-			break
-	}
-}
-
-const handleSlideShortcuts = (e) => {
-	switch (e.key) {
-		case 'ArrowUp':
-			changeEditorSlide(slideIndex.value - 1)
-			break
-		case 'ArrowDown':
-			changeEditorSlide(slideIndex.value + 1)
-			break
-		case 'Delete':
-		case 'Backspace':
-			deleteSlide()
-			break
-		case 'd':
-			if (isCmdOrCtrl(e)) duplicateSlide(e)
 			break
 	}
 }
@@ -403,24 +379,6 @@ const handleKeyDown = (e) => {
 	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
 }
 
-const handleKeyDownForReadonly = (e) => {
-	switch (e.key) {
-		case 'ArrowUp':
-			changeEditorSlide(slideIndex.value - 1)
-			break
-		case 'ArrowDown':
-			changeEditorSlide(slideIndex.value + 1)
-			break
-		case 'F5':
-			e.preventDefault()
-			startSlideShow()
-			break
-		case 'b':
-			if (isCmdOrCtrl(e)) toggleSlideNavigator()
-			break
-	}
-}
-
 const handleAutoSave = () => {
 	if (hasOngoingInteraction.value || focusElementId.value != null) return
 	saveChanges()
@@ -444,36 +402,6 @@ const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
 	await changeEditorSlide(index + 1)
 
 	updateThumbnail(index + 1)
-}
-
-const deleteSlide = (deleteActive) => {
-	let deleteIndex = focusedSlide.value
-	if (!deleteIndex && deleteActive) deleteIndex = slideIndex.value
-	if (deleteIndex == null) return
-
-	// if there is only one slide, reset the slide state instead of deleting
-	const totalLength = slides.value.length
-
-	if (totalLength == 1) {
-		slides.value[0].elements = []
-		focusedSlide.value = null
-		return
-	}
-
-	// delete the current slide
-	slides.value = slides.value.filter((slide, i) => {
-		return i != deleteIndex
-	})
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-
-	slidesLength.value = slides.value.length
-
-	if (deleteIndex == totalLength - 1) {
-		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeEditorSlide(deleteIndex - 1)
-	}
 }
 
 const duplicateSlide = (e) => {
@@ -522,10 +450,6 @@ const loadPresentationInReadonlyMode = async (id) => {
 }
 
 const route = useRoute()
-
-const readonlyMode = computed(() => {
-	return props.editorAccess == 'view'
-})
 
 const updateUnsyncedRecord = () => {
 	unsyncedPresentationRecord.value = {
@@ -608,4 +532,15 @@ useShortcuts({
 	readonlyMode,
 	router,
 })
+
+watch(
+	() => props.editorAccess,
+	(doc) => {
+		readonlyMode.value = doc === 'view'
+	},
+)
+
+const goToSlide = (index) => {
+	changeEditorSlide(router, index)
+}
 </script>
