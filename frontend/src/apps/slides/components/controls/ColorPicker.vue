@@ -1,14 +1,14 @@
 <template>
 	<Popover @open="handlePopoverOpen">
-		<template #target="{ togglePopover }">
+		<template #target="{ togglePopover, isOpen }">
 			<div
 				class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-gray-300 ring-offset-1"
 				:style="{ backgroundColor: currentColor }"
-				@click="togglePopover"
+				@click="handleColorPickerClick(togglePopover, isOpen)"
 			></div>
 		</template>
 		<template #body>
-			<div class="mt-2 rounded-lg border bg-surface-modal p-3 shadow-xl">
+			<div class="m-2 rounded-lg border bg-surface-modal p-3 shadow-xl">
 				<div class="flex flex-col gap-3">
 					<div
 						ref="shadeSlider"
@@ -306,5 +306,10 @@ const handleClipboardCopy = () => {
 
 const handleColorInputClick = (e) => {
 	e.target.select()
+}
+
+const handleColorPickerClick = (togglePopover, isOpen) => {
+	if (!isOpen) handlePopoverOpen()
+	togglePopover()
 }
 </script>
