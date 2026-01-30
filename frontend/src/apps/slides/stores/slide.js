@@ -292,6 +292,24 @@ const changeEditorSlide = async (index, focus = true) => {
 	return changeSlide(index, focus)
 }
 
+const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
+	if (toDuplicate || !index) index = slideIndex.value
+
+	const newSlide = getNewSlide(toDuplicate, layoutId)
+
+	insertSlide(newSlide, index)
+
+	await changeEditorSlide(index + 1)
+
+	updateThumbnail(index + 1)
+}
+
+const duplicateSlide = (e) => {
+	e.preventDefault()
+
+	insertDuplicateSlide(slideIndex.value, null, true)
+}
+
 export {
 	slideIndex,
 	slides,
@@ -310,5 +328,7 @@ export {
 	changeSlide,
 	saveSlide,
 	deleteSlide,
-	changeEditorSlide
+	changeEditorSlide,
+	insertDuplicateSlide,
+	duplicateSlide,
 }
