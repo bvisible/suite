@@ -12,14 +12,14 @@
 				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
-				@changeSlide="goToSlide"
+				@changeSlide="changeEditorSlide"
 			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
 				:readonlyMode="readonlyMode"
 				:recentlyRestored="recentlyRestored"
-				@changeSlide="goToSlide"
+				@changeSlide="changeEditorSlide"
 				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
 			/>
 
@@ -93,6 +93,8 @@ import {
 	setSlideIndex,
 	changeEditorSlide,
 	deleteSlide,
+	insertDuplicateSlide,
+	duplicateSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -393,24 +395,6 @@ const handleThumbnailGeneration = async (index) => {
 	}
 }
 
-const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
-	if (toDuplicate || !index) index = slideIndex.value
-
-	const newSlide = getNewSlide(toDuplicate, layoutId)
-
-	insertSlide(newSlide, index)
-
-	await changeEditorSlide(index + 1)
-
-	updateThumbnail(index + 1)
-}
-
-const duplicateSlide = (e) => {
-	e.preventDefault()
-
-	insertDuplicateSlide(slideIndex.value, null, true)
-}
-
 const replaceSlide = (layoutId) => {
 	const index = slideIndex.value
 	const newSlide = getNewSlide(false, layoutId)
@@ -539,8 +523,4 @@ watch(
 		readonlyMode.value = doc === 'view'
 	},
 )
-
-const goToSlide = (index) => {
-	changeEditorSlide(index)
-}
 </script>
