@@ -3,7 +3,7 @@
 		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
 		@wheel="handleScrollBarWheelEvent"
 	>
-		<LayoutControls v-if="showLayoutTab" />
+		<LayoutControls v-if="showLayouts" />
 		<div v-else-if="activeElementIds.length">
 			<AlignmentControls />
 			<PlacementProperties />
@@ -31,7 +31,7 @@ import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 const props = defineProps({
-	showLayoutTab: {
+	showLayouts: {
 		type: Boolean,
 		default: false,
 	},
