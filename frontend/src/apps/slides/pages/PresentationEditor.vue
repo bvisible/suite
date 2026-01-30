@@ -35,7 +35,7 @@
 			<PropertiesPanel
 				v-if="!readonlyMode"
 				class="absolute bottom-0 right-0 top-0"
-				:showLayouts="showLayouts"
+				:showLayoutsView="showLayoutsView"
 			/>
 		</div>
 	</div>
@@ -79,6 +79,7 @@ import {
 	templateListResource,
 	presentationTheme,
 	readonlyMode,
+	showLayoutsView,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -95,6 +96,7 @@ import {
 	deleteSlide,
 	insertDuplicateSlide,
 	duplicateSlide,
+	addEmptySlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -169,14 +171,6 @@ const handleArrowKeys = (key) => {
 		element.left += dx
 		element.top += dy
 	})
-}
-
-const addEmptySlide = (e, index) => {
-	e?.preventDefault()
-	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
-		?.layouts[0]
-	if (layout) handleInsertSlide(index, cloneObj(layout))
-	showLayouts.value = true
 }
 
 const handleElementShortcuts = (e) => {
@@ -395,16 +389,6 @@ const handleThumbnailGeneration = async (index) => {
 	}
 }
 
-const replaceSlide = (layoutId) => {
-	const index = slideIndex.value
-	const newSlide = getNewSlide(false, layoutId)
-
-	slides.value.splice(index, 1, newSlide)
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-}
-
 const updateRoute = async (slug) => {
 	if (props.slug == slug) return
 	router.replace({
@@ -446,18 +430,8 @@ const updateUnsyncedRecord = () => {
 
 const layoutAction = ref('')
 
-const handleInsertSlide = (index, layoutId) => {
-	if (layoutAction.value == 'replace') {
-		replaceSlide(layoutId)
-	} else {
-		insertDuplicateSlide(index, layoutId)
-	}
-}
-
-const showLayouts = ref(false)
-
 const toggleLayoutView = () => {
-	showLayouts.value = !showLayouts.value
+	showLayoutsView.value = !showLayoutsView.value
 }
 
 const handleMounted = () => {

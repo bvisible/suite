@@ -1,8 +1,8 @@
 import { ref, computed, reactive } from 'vue'
-import { ignoreUpdates, slidesLength, presentationId, templateList, readonlyMode } from '@/stores/presentation'
+import { ignoreUpdates, slidesLength, presentationId, templateList, readonlyMode, presentationTheme, showLayoutsView } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
-import { generateUniqueId } from '@/utils/helpers'
+import { generateUniqueId, cloneObj } from '@/utils/helpers'
 import { router } from '@/router'
 
 import html2canvas from 'html2canvas'
@@ -310,6 +310,34 @@ const duplicateSlide = (e) => {
 	insertDuplicateSlide(slideIndex.value, null, true)
 }
 
+const addEmptySlide = (e, index) => {
+	e?.preventDefault()
+	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
+		?.layouts[0]
+	if (layout) handleInsertSlide(index, cloneObj(layout))
+	showLayoutsView.value = true
+}
+
+const replaceSlide = (layoutId) => {
+	const index = slideIndex.value
+	const newSlide = getNewSlide(false, layoutId)
+
+	slides.value.splice(index, 1, newSlide)
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
+}
+
+const handleInsertSlide = (index, layoutId) => {
+	// TODO: change this to use replace
+	let replace = false
+	if (replace) {
+		replaceSlide(layoutId)
+	} else {
+		insertDuplicateSlide(index, layoutId)
+	}
+}
+
 export {
 	slideIndex,
 	slides,
@@ -331,4 +359,5 @@ export {
 	changeEditorSlide,
 	insertDuplicateSlide,
 	duplicateSlide,
+	addEmptySlide,
 }

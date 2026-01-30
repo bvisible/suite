@@ -48,7 +48,7 @@
 		<Tooltip text="Layouts" :hover-delay="0.5">
 			<div
 				class="cursor-pointer rounded p-2 hover:bg-gray-100"
-				@click="emit('toggleLayoutTab')"
+				@click="emit('toggleLayoutView')"
 				@mouseenter="emit('setHighlight', true)"
 				@mouseleave="emit('setHighlight', false)"
 			>
@@ -75,7 +75,7 @@ const emit = defineEmits([
 	'delete',
 	'duplicate',
 	'setHighlight',
-	'toggleLayoutTab',
+	'toggleLayoutView',
 ])
 
 const slideActions = [
