@@ -4,6 +4,7 @@ import { useEventListener } from '@vueuse/core'
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
 
 import { slideIndex, changeSlide } from '@/stores/slide'
+import { focusElementId } from '@/stores/element'
 import { startSlideShow } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { isCmdOrCtrl } from '@/utils/helpers'
@@ -14,9 +15,7 @@ export const useShortcuts = ({ readonlyMode, router }) => {
     let keydownListener
     let beforeUnloadListener
 
-    const handleKeyDown = (e) => {
-    }
-
+    // TODO: add this
     const handleBeforeUnload = (e) => {
         if (isDirty.value || syncThumbnail > 0) {
             e.preventDefault()
@@ -24,7 +23,7 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         }
     }
 
-    const handleKeyDownForReadonly = (e) => {
+    const handleReadonlyShortcuts = (e) => {
         switch (e.key) {
             case 'ArrowUp':
                 changeSlide(router, slideIndex.value - 1)
@@ -42,13 +41,22 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         }
     }
 
-    const bindReadonly = () => {
-        keydownListener = useEventListener(document, 'keydown', handleKeyDownForReadonly)
+    const handleUndoRedo = (e) => { }
+
+    const handleShortcuts = (e) => {
+        const editingText =
+            document.activeElement.getAttribute('contenteditable') ||
+            document.activeElement.tagName == 'INPUT' ||
+            focusElementId.value != null
+
+        if (editingText) return
+
+        if (e.key == 'z') return handleUndoRedo(e)
     }
 
-    const bindEditable = () => {
-        keydownListener = useEventListener(document, 'keydown', handleKeyDown)
-        beforeUnloadListener = useEventListener(window, 'beforeunload', handleBeforeUnload)
+    const handleKeyDown = (e) => {
+        if (readonlyMode.value) handleReadonlyShortcuts(e)
+        else handleShortcuts(e)
     }
 
     const cleanup = () => {
@@ -60,15 +68,10 @@ export const useShortcuts = ({ readonlyMode, router }) => {
 
     onActivated(() => {
         cleanup()
-        readonlyMode.value ? bindReadonly() : bindEditable()
+        keydownListener = useEventListener(document, 'keydown', handleKeyDown)
     })
 
     onDeactivated(() => {
         cleanup()
-    })
-
-    watch(readonlyMode, () => {
-        cleanup()
-        readonlyMode.value ? bindReadonly() : bindEditable()
     })
 }
