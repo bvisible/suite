@@ -11,7 +11,7 @@
 			>
 				<SlideshowEndScreen
 					@restartSlideShow="changeSlide(0)"
-					@endSlideShow="endSlideShow(router)"
+					@endSlideShow="endSlideShow()"
 				/>
 			</div>
 
@@ -319,7 +319,7 @@ const handleFullScreenChange = () => {
 		inSlideShow.value = true
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
-		endSlideShow(router)
+		endSlideShow()
 	}
 }
 
@@ -398,7 +398,7 @@ const initFullscreenMode = async () => {
 
 const changeSlide = (index) => {
 	if (index < 0) return
-	if (index >= slides.value.length + 1) return endSlideShow(router)
+	if (index >= slides.value.length + 1) return endSlideShow()
 
 	applyReverseTransition.value = index < slideIndex.value
 
