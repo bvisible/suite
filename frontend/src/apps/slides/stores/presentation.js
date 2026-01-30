@@ -354,6 +354,7 @@ const presentationTheme = computed(() => {
 })
 
 const readonlyMode = ref(false)
+const showLayoutsView = ref(false)
 
 export {
 	presentationId,
@@ -375,5 +376,6 @@ export {
 	templateList,
 	templateListResource,
 	presentationTheme,
-	readonlyMode
+	readonlyMode,
+	showLayoutsView
 }
