@@ -3,6 +3,7 @@ import { ignoreUpdates, slidesLength, presentationId, templateList, readonlyMode
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
 import { generateUniqueId } from '@/utils/helpers'
+import { router } from '@/router'
 
 import html2canvas from 'html2canvas'
 import { toast } from 'frappe-ui'
@@ -221,7 +222,7 @@ const setSlideIndex = (index) => {
 	slideIndex.value = index
 }
 
-const changeSlide = async (router, index, focus = true) => {
+const changeSlide = async (index, focus = true) => {
 	index = Math.max(0, Math.min(index, slidesLength.value - 1))
 
 	await router.replace({
@@ -254,7 +255,7 @@ const saveSlide = (e) => {
 	resetAndSave()
 }
 
-const deleteSlide = (router, deleteActive) => {
+const deleteSlide = (deleteActive) => {
 	let deleteIndex = focusedSlide.value
 	if (!deleteIndex && deleteActive) deleteIndex = slideIndex.value
 	if (deleteIndex == null) return
@@ -280,15 +281,15 @@ const deleteSlide = (router, deleteActive) => {
 
 	if (deleteIndex == totalLength - 1) {
 		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeEditorSlide(router, deleteIndex - 1)
+		changeEditorSlide(deleteIndex - 1)
 	}
 }
 
-const changeEditorSlide = async (router, index, focus = true) => {
+const changeEditorSlide = async (index, focus = true) => {
 	if (!readonlyMode.value) {
 		await resetFocus()
 	}
-	return changeSlide(router, index, focus)
+	return changeSlide(index, focus)
 }
 
 export {

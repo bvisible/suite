@@ -3,7 +3,7 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow(router)" />
+		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow()" />
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
@@ -29,7 +29,7 @@
 				@toggleLayoutView="toggleLayoutView"
 				@addEmptySlide="addEmptySlide"
 				@duplicate="duplicateSlide"
-				@delete="deleteSlide(router, true)"
+				@delete="deleteSlide(true)"
 			/>
 
 			<PropertiesPanel
@@ -92,6 +92,7 @@ import {
 	getNewSlide,
 	setSlideIndex,
 	changeEditorSlide,
+	deleteSlide,
 } from '@/stores/slide'
 import {
 	resetFocus,
@@ -530,7 +531,6 @@ provide('readonlyMode', readonlyMode)
 
 useShortcuts({
 	readonlyMode,
-	router,
 })
 
 watch(
@@ -541,6 +541,6 @@ watch(
 )
 
 const goToSlide = (index) => {
-	changeEditorSlide(router, index)
+	changeEditorSlide(index)
 }
 </script>

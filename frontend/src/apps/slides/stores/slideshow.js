@@ -1,9 +1,11 @@
 import { ref, computed } from 'vue'
 import { focusedSlide, slideIndex, slides, setSlideIndex } from '@/stores/slide'
 
+import { router } from '@/router'
+
 const inSlideShow = ref(false)
 
-const startSlideShow = (router) => {
+const startSlideShow = () => {
     router.replace({
         name: 'Slideshow',
         params: router.currentRoute.value.params,
@@ -11,7 +13,7 @@ const startSlideShow = (router) => {
     })
 }
 
-const endSlideShow = (router) => {
+const endSlideShow = () => {
     inSlideShow.value = false
     focusedSlide.value = null
     const slide =

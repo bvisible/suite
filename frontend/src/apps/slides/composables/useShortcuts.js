@@ -13,7 +13,7 @@ import { isCmdOrCtrl } from '@/utils/helpers'
 const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()
 
-export const useShortcuts = ({ readonlyMode, router }) => {
+export const useShortcuts = ({ readonlyMode }) => {
     let keydownListener
     let beforeUnloadListener
 
@@ -28,17 +28,17 @@ export const useShortcuts = ({ readonlyMode, router }) => {
     const handleReadonlyShortcuts = (e) => {
         switch (e.key) {
             case 'ArrowUp':
-                changeSlide(router, slideIndex.value - 1)
+                changeSlide(slideIndex.value - 1)
                 break
             case 'ArrowDown':
-                changeSlide(router, slideIndex.value + 1)
+                changeSlide(slideIndex.value + 1)
                 break
             case 'b':
                 if (isCmdOrCtrl(e)) toggleNavigationPanel()
                 break
             case 'F5':
                 e.preventDefault()
-                startSlideShow(router)
+                startSlideShow()
                 break
         }
     }
@@ -49,7 +49,7 @@ export const useShortcuts = ({ readonlyMode, router }) => {
     const handleGlobalShortcuts = (e) => {
         if (isCmdOrCtrl(e) && e.code === 'KeyP') {
             e.preventDefault()
-            startSlideShow(router)
+            startSlideShow()
             return
         }
 
@@ -74,7 +74,7 @@ export const useShortcuts = ({ readonlyMode, router }) => {
             //     break
             case 'F5':
                 e.preventDefault()
-                startSlideShow(router)
+                startSlideShow()
                 break
         }
     }
@@ -129,14 +129,14 @@ export const useShortcuts = ({ readonlyMode, router }) => {
     const handleSlideShortcuts = (e) => {
         switch (e.key) {
             case 'ArrowUp':
-                changeEditorSlide(router, slideIndex.value - 1)
+                changeEditorSlide(slideIndex.value - 1)
                 break
             case 'ArrowDown':
-                changeEditorSlide(router, slideIndex.value + 1)
+                changeEditorSlide(slideIndex.value + 1)
                 break
             case 'Delete':
             case 'Backspace':
-                deleteSlide(router)
+                deleteSlide()
                 break
             // case 'd':
             //     if (isCmdOrCtrl(e)) duplicateSlide(e)
