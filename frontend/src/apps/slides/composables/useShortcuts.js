@@ -2,14 +2,16 @@ import { watch, onActivated, onDeactivated } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
+import { useTextEditor } from '@/composables/useTextEditor'
 
-import { slideIndex, changeSlide, saveSlide } from '@/stores/slide'
-import { focusElementId, resetFocus, addTextElement, selectAllElements } from '@/stores/element'
+import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBounds } from '@/stores/slide'
+import { focusElementId, resetFocus, addTextElement, selectAllElements, activeElementIds, activeElements, deleteElements, duplicateElements } from '@/stores/element'
 import { startSlideShow } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { isCmdOrCtrl } from '@/utils/helpers'
 
 const { toggleNavigationPanel } = useNavigationPanel()
+const { activeEditor, toggleMark } = useTextEditor()
 
 export const useShortcuts = ({ readonlyMode, router }) => {
     let keydownListener
@@ -77,6 +79,55 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         }
     }
 
+    const handleArrowKeys = (key) => {
+        let dx = 0
+        let dy = 0
+
+        if (key == 'ArrowLeft') dx = -1
+        else if (key == 'ArrowRight') dx = 1
+        else if (key == 'ArrowUp') dy = -1
+        else if (key == 'ArrowDown') dy = 1
+
+        updateSelectionBounds({
+            left: selectionBounds.left + dx,
+            top: selectionBounds.top + dy,
+        })
+
+        activeElements.value.forEach((element) => {
+            element.left += dx
+            element.top += dy
+        })
+    }
+
+    const handleElementShortcuts = (e) => {
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'ArrowRight':
+            case 'ArrowUp':
+            case 'ArrowDown':
+                handleArrowKeys(e.key)
+                break
+            case 'Delete':
+            case 'Backspace':
+                deleteElements(e)
+                break
+            case 'd':
+                if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
+                break
+            case 'b':
+                if (activeEditor.value) toggleMark('bold')
+                break
+            case 'i':
+                if (activeEditor.value) toggleMark('italic')
+                break
+            case 'u':
+                if (activeEditor.value) toggleMark('underline')
+                break
+        }
+    }
+
+    const handleSlideShortcuts = (e) => { }
+
     const handleShortcuts = (e) => {
         const editingText =
             document.activeElement.getAttribute('contenteditable') ||
@@ -88,6 +139,8 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         if (e.key == 'z') return handleUndoRedo(e)
 
         handleGlobalShortcuts(e)
+
+        activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
     }
 
     const handleKeyDown = (e) => {
