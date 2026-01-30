@@ -4,7 +4,7 @@ import { useEventListener } from '@vueuse/core'
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBounds } from '@/stores/slide'
+import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBounds, deleteSlide, changeEditorSlide } from '@/stores/slide'
 import { focusElementId, resetFocus, addTextElement, selectAllElements, activeElementIds, activeElements, deleteElements, duplicateElements } from '@/stores/element'
 import { startSlideShow } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
@@ -126,7 +126,23 @@ export const useShortcuts = ({ readonlyMode, router }) => {
         }
     }
 
-    const handleSlideShortcuts = (e) => { }
+    const handleSlideShortcuts = (e) => {
+        switch (e.key) {
+            case 'ArrowUp':
+                changeEditorSlide(router, slideIndex.value - 1)
+                break
+            case 'ArrowDown':
+                changeEditorSlide(router, slideIndex.value + 1)
+                break
+            case 'Delete':
+            case 'Backspace':
+                deleteSlide(router)
+                break
+            // case 'd':
+            //     if (isCmdOrCtrl(e)) duplicateSlide(e)
+            //     break
+        }
+    }
 
     const handleShortcuts = (e) => {
         const editingText =

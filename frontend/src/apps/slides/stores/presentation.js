@@ -353,6 +353,8 @@ const presentationTheme = computed(() => {
 	return presentationDoc.value?.theme
 })
 
+const readonlyMode = ref(false)
+
 export {
 	presentationId,
 	applyReverseTransition,
@@ -373,4 +375,5 @@ export {
 	templateList,
 	templateListResource,
 	presentationTheme,
+	readonlyMode
 }

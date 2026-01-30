@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import { ignoreUpdates, slidesLength, presentationId, templateList } from '@/stores/presentation'
+import { ignoreUpdates, slidesLength, presentationId, templateList, readonlyMode } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
 import { generateUniqueId } from '@/utils/helpers'
@@ -254,6 +254,43 @@ const saveSlide = (e) => {
 	resetAndSave()
 }
 
+const deleteSlide = (router, deleteActive) => {
+	let deleteIndex = focusedSlide.value
+	if (!deleteIndex && deleteActive) deleteIndex = slideIndex.value
+	if (deleteIndex == null) return
+
+	// if there is only one slide, reset the slide state instead of deleting
+	const totalLength = slides.value.length
+
+	if (totalLength == 1) {
+		slides.value[0].elements = []
+		focusedSlide.value = null
+		return
+	}
+
+	// delete the current slide
+	slides.value = slides.value.filter((slide, i) => {
+		return i != deleteIndex
+	})
+	slides.value.forEach((slide, index) => {
+		slide.idx = index + 1
+	})
+
+	slidesLength.value = slides.value.length
+
+	if (deleteIndex == totalLength - 1) {
+		// if last slide is deleted, switch to previous slide since no slide at current index
+		changeEditorSlide(router, deleteIndex - 1)
+	}
+}
+
+const changeEditorSlide = async (router, index, focus = true) => {
+	if (!readonlyMode.value) {
+		await resetFocus()
+	}
+	return changeSlide(router, index, focus)
+}
+
 export {
 	slideIndex,
 	slides,
@@ -270,5 +307,7 @@ export {
 	getNewSlide,
 	setSlideIndex,
 	changeSlide,
-	saveSlide
+	saveSlide,
+	deleteSlide,
+	changeEditorSlide
 }
