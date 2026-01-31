@@ -6,15 +6,16 @@ import { useTextEditor } from '@/composables/useTextEditor'
 
 import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBounds, deleteSlide, changeEditorSlide, duplicateSlide, addEmptySlide } from '@/stores/slide'
 import { focusElementId, resetFocus, addTextElement, selectAllElements, activeElementIds, activeElements, deleteElements, duplicateElements } from '@/stores/element'
-import { changeSlideInSlideshow, inSlideShow, startSlideShow, performNextStep, performPreviousStep } from '@/stores/slideshow'
+import { changeSlideInSlideshow, startSlideShow, performNextStep, performPreviousStep } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { handleUndoRedo } from '@/stores/history'
+
 import { isCmdOrCtrl } from '@/utils/helpers'
 
 const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()
 
-export const useShortcuts = (readonlyMode) => {
+export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
     let keydownListener
     let beforeUnloadListener
 
@@ -26,7 +27,7 @@ export const useShortcuts = (readonlyMode) => {
         }
     }
 
-    const handleReadonlyShortcuts = (e) => {
+    const handleReadonlyModeShortcuts = (e) => {
         switch (e.key) {
             case 'ArrowUp':
                 changeSlide(slideIndex.value - 1)
@@ -142,7 +143,7 @@ export const useShortcuts = (readonlyMode) => {
         }
     }
 
-    const handleShortcuts = (e) => {
+    const handleEditModeShortcuts = (e) => {
         const editingText =
             document.activeElement.getAttribute('contenteditable') ||
             document.activeElement.tagName == 'INPUT' ||
@@ -157,7 +158,7 @@ export const useShortcuts = (readonlyMode) => {
         activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
     }
 
-    const handleSlideShowShortcuts = (e) => {
+    const handleSlideShowModeShortcuts = (e) => {
         if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space' || e.key == 'PageDown') {
             performNextStep()
         } else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
@@ -169,9 +170,9 @@ export const useShortcuts = (readonlyMode) => {
     }
 
     const handleKeyDown = (e) => {
-        if (inSlideShow.value) handleSlideShowShortcuts(e)
-        else if (readonlyMode.value) handleReadonlyShortcuts(e)
-        else handleShortcuts(e)
+        if (inSlideShowMode.value) handleSlideShowModeShortcuts(e)
+        else if (inReadonlyMode.value) handleReadonlyModeShortcuts(e)
+        else handleEditModeShortcuts(e)
     }
 
     const cleanup = () => {

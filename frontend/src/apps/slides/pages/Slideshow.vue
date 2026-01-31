@@ -74,7 +74,7 @@ import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
 import FadeElementTransition from '@/components/FadeElementTransition.vue'
 
 import {
-	inSlideShow,
+	inSlideShowMode,
 	showSlideshowEndScreen,
 	endSlideShow,
 	prefetchNextSlide,
@@ -264,7 +264,7 @@ const resetCursorVisibility = () => {
 const handleFullScreenChange = () => {
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
-		inSlideShow.value = true
+		inSlideShowMode.value = true
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 		endSlideShow()

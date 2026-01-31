@@ -11,7 +11,7 @@
 		>
 			<SelectionBox
 				ref="selectionBox"
-				v-if="!readonlyMode"
+				v-if="!inReadonlyMode"
 				:isDragging
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
@@ -52,6 +52,7 @@ import {
 	reactive,
 	onActivated,
 	onDeactivated,
+	inject,
 } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
@@ -93,13 +94,11 @@ import { isCmdOrCtrl } from '@/utils/helpers'
 
 const props = defineProps({
 	highlight: Boolean,
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
 })
 
 const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
+
+const inReadonlyMode = inject('inReadonlyMode', false)
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideRef = useTemplateRef('slideRef')
@@ -126,7 +125,7 @@ const slideClasses = computed(() => {
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
 
-	const positionClasses = props.readonlyMode
+	const positionClasses = inReadonlyMode.value
 		? ['left-[calc(50%-384.5px)]', 'top-[calc(50%-270px)]']
 		: ['left-[calc(50%-512px)]', 'top-[calc(50%-270px)]']
 
@@ -161,7 +160,7 @@ const mediaDragOver = ref(false)
 
 const showOverlay = (e) => {
 	e.preventDefault()
-	if (props.readonlyMode) return
+	if (inReadonlyMode.value) return
 	mediaDragOver.value = true
 }
 
@@ -224,7 +223,7 @@ const duplicateAndDrag = (e, id) => {
 }
 
 const handleMouseDown = (e, element) => {
-	if (props.readonlyMode) return
+	if (inReadonlyMode.value) return
 	const id = element?.id
 
 	e.stopPropagation()
@@ -497,7 +496,7 @@ watch(
 )
 
 const handleSlideDoubleClick = (e) => {
-	if (props.readonlyMode || e.target !== e.currentTarget) return
+	if (inReadonlyMode.value || e.target !== e.currentTarget) return
 	addTextElement('', {
 		left: (e.clientX - slideBounds.left) / scale.value,
 		top: (e.clientY - slideBounds.top) / scale.value,

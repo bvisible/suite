@@ -25,7 +25,7 @@ const props = defineProps({
 	title: String,
 })
 
-const readonlyMode = inject('readonlyMode', false)
+const inReadonlyMode = inject('inReadonlyMode', false)
 
 const route = useRoute()
 const router = useRouter()
@@ -49,7 +49,7 @@ const inputClasses = computed(() => {
 })
 
 const makeTitleEditable = (e) => {
-	if (editingTitle.value || readonlyMode.value) return
+	if (editingTitle.value || inReadonlyMode.value) return
 
 	editingTitle.value = true
 	e.target.focus()

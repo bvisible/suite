@@ -3,13 +3,12 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow()" />
+		<EditorNavbar @startSlideShow="startSlideShow()" />
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
 				ref="slideContainer"
 				v-if="presentationDoc"
-				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
 				@changeSlide="changeEditorSlide"
@@ -17,14 +16,13 @@
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
-				:readonlyMode="readonlyMode"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeEditorSlide"
 				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
 			/>
 
 			<Toolbar
-				v-if="!readonlyMode"
+				v-if="!inReadonlyMode"
 				@setHighlight="setHighlight"
 				@toggleLayoutView="toggleLayoutView"
 				@addEmptySlide="addEmptySlide"
@@ -33,7 +31,7 @@
 			/>
 
 			<PropertiesPanel
-				v-if="!readonlyMode"
+				v-if="!inReadonlyMode"
 				class="absolute bottom-0 right-0 top-0"
 				:showLayoutsView="showLayoutsView"
 			/>
@@ -60,7 +58,7 @@ import {
 	slidesLength,
 	templateList,
 	templateListResource,
-	readonlyMode,
+	inReadonlyMode,
 	showLayoutsView,
 } from '@/stores/presentation'
 import {
@@ -86,7 +84,7 @@ import {
 	syncPresentationToServer,
 	syncThumbnail,
 } from '@/stores/saving'
-import { startSlideShow } from '@/stores/slideshow'
+import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 
 let autosaveInterval = null
 let thumbnailInterval = null
@@ -105,7 +103,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
-useShortcuts(readonlyMode)
+useShortcuts(inReadonlyMode, inSlideShowMode)
 
 const layoutAction = ref('')
 const slideHighlight = ref(false)
@@ -149,11 +147,11 @@ const initIntervals = () => {
 }
 
 const loadPresentation = async (id) => {
-	!readonlyMode.value && initHistory()
-	presentationDoc.value = await initPresentationDoc(id, readonlyMode.value)
+	!inReadonlyMode.value && initHistory()
+	presentationDoc.value = await initPresentationDoc(id, inReadonlyMode.value)
 	setSlideIndex(props.activeSlideId)
 	updateRoute(presentationDoc.value.slug)
-	!readonlyMode.value && initIntervals()
+	!inReadonlyMode.value && initIntervals()
 }
 
 const updateUnsyncedRecord = () => {
@@ -165,7 +163,7 @@ const updateUnsyncedRecord = () => {
 }
 
 const handleMounted = () => {
-	if (!templateList.value.length && !readonlyMode.value) {
+	if (!templateList.value.length && !inReadonlyMode.value) {
 		templateListResource.fetch()
 	}
 	const id = props.presentationId
@@ -210,7 +208,7 @@ watch(
 watch(
 	() => props.editorAccess,
 	(doc) => {
-		readonlyMode.value = doc === 'view'
+		inReadonlyMode.value = doc === 'view'
 	},
 )
 
@@ -218,5 +216,6 @@ onMounted(() => handleMounted())
 
 onBeforeUnmount(() => handleBeforeUnmount())
 
-provide('readonlyMode', readonlyMode)
+provide('inReadonlyMode', inReadonlyMode)
+provide('inSlideShowMode', inSlideShowMode)
 </script>

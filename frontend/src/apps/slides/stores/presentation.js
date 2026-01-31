@@ -299,7 +299,7 @@ const presentationTheme = computed(() => {
 	return presentationDoc.value?.theme
 })
 
-const readonlyMode = ref(false)
+const inReadonlyMode = ref(false)
 const showLayoutsView = ref(false)
 
 export {
@@ -313,7 +313,7 @@ export {
 	templateList,
 	templateListResource,
 	presentationTheme,
-	readonlyMode,
+	inReadonlyMode,
 	showLayoutsView,
 	updatePresentationTitle,
 	hasStateChanged,

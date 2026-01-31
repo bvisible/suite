@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
 import { Popover, Switch, call, toast } from 'frappe-ui'
 import { presentationId, isPublicPresentation } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'

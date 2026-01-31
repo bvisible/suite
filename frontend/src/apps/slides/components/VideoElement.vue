@@ -3,7 +3,7 @@
 		<video
 			ref="videoElement"
 			:style="videoStyles"
-			:autoplay="inSlideShow ? element.autoplay : false"
+			:autoplay="inSlideShowMode ? element.autoplay : false"
 			:loop="element.loop"
 			:playbackRate="element.playbackRate"
 			@timeupdate="updateProgress"
@@ -46,7 +46,6 @@ import { ref, computed, useTemplateRef, inject } from 'vue'
 import { Play, Pause } from 'lucide-vue-next'
 
 import { activeElementIds } from '@/stores/element'
-import { inSlideShow } from '@/stores/slideshow'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const props = defineProps({
@@ -61,7 +60,8 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const readonlyMode = inject('readonlyMode', false)
+const inReadonlyMode = inject('inReadonlyMode', false)
+const inSlideShowMode = inject('inSlideShowMode', false)
 
 const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')
@@ -79,7 +79,7 @@ const getBarClasses = (type) => {
 
 const progressBarClasses = computed(() => {
 	const baseClasses = 'absolute w-full bottom-0 left-0 cursor-pointer h-2'
-	return `${baseClasses} ${inSlideShow.value ? 'bottom-0' : 'bottom-[10px]'}`
+	return `${baseClasses} ${inSlideShowMode.value ? 'bottom-0' : 'bottom-[10px]'}`
 })
 
 const isPlaying = ref(false)
@@ -102,11 +102,11 @@ const togglePlaying = () => {
 	if (video.paused) {
 		isPlaying.value = true
 		video.play()
-		if (inSlideShow.value) showOverlay.value = false
+		if (inSlideShowMode.value) showOverlay.value = false
 	} else {
 		isPlaying.value = false
 		video.pause()
-		if (inSlideShow.value) showOverlay.value = true
+		if (inSlideShowMode.value) showOverlay.value = true
 	}
 }
 
@@ -116,7 +116,7 @@ const handleVideoClick = (e) => {
 	// in slideshow, always toggle playing on click anywhere
 	// in editor, toggle playing only when center play button is clicked
 
-	if (readonlyMode.value || inSlideShow.value || (isActive && e.target !== overlay.value)) {
+	if (inReadonlyMode.value || inSlideShowMode.value || (isActive && e.target !== overlay.value)) {
 		e.stopPropagation()
 		togglePlaying()
 	}
@@ -144,9 +144,9 @@ const showProgressBar = computed(() => {
 	const isActive = activeElementIds.value.includes(element.value.id)
 
 	// During slideshow, show it only if user is hovering over video
-	const slideshowHovering = inSlideShow.value && hoverOver.value
+	const slideshowHovering = inSlideShowMode.value && hoverOver.value
 
-	return isActive || slideshowHovering || (readonlyMode.value && !inSlideShow.value)
+	return isActive || slideshowHovering || (inReadonlyMode.value && !inSlideShowMode.value)
 })
 
 const progressBarRef = useTemplateRef('progressBar')
@@ -179,5 +179,5 @@ const handleHoverChange = (e) => {
 	}
 }
 
-const showOverlay = ref(inSlideShow.value ? false : true)
+const showOverlay = ref(inSlideShowMode.value ? false : true)
 </script>
