@@ -3,8 +3,8 @@ import { activeElementIds, activeElement } from '@/stores/element'
 
 const isNavigationPanelOpen = ref(true)
 
-const toggleNavigationPanel = () => {
-    if (!activeElementIds.value.length || activeElement.value.type != 'text') {
+const toggleNavigationPanel = (e) => {
+    if (!activeElementIds.value.length || e.type === 'click') {
         isNavigationPanelOpen.value = !isNavigationPanelOpen.value
     }
 }

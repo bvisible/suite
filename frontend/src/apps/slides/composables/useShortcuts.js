@@ -35,7 +35,7 @@ export const useShortcuts = (readonlyMode) => {
                 changeSlide(slideIndex.value + 1)
                 break
             case 'b':
-                if (isCmdOrCtrl(e)) toggleNavigationPanel()
+                if (isCmdOrCtrl(e)) toggleNavigationPanel(e)
                 break
             case 'F5':
                 e.preventDefault()
@@ -59,7 +59,7 @@ export const useShortcuts = (readonlyMode) => {
                 addTextElement()
                 break
             case 'b':
-                if (isCmdOrCtrl(e)) toggleNavigationPanel()
+                if (isCmdOrCtrl(e)) toggleNavigationPanel(e)
                 break
             case 'a':
                 if (isCmdOrCtrl(e)) selectAllElements(e)
