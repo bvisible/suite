@@ -42,21 +42,8 @@
 </template>
 
 <script setup>
-import {
-	ref,
-	watch,
-	computed,
-	useTemplateRef,
-	nextTick,
-	onDeactivated,
-	onActivated,
-	provide,
-	onMounted,
-	onBeforeUnmount,
-} from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-
-import { toast } from 'frappe-ui'
+import { ref, watch, useTemplateRef, provide, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
@@ -73,7 +60,6 @@ import {
 	slidesLength,
 	templateList,
 	templateListResource,
-	presentationTheme,
 	readonlyMode,
 	showLayoutsView,
 } from '@/stores/presentation'
@@ -81,35 +67,18 @@ import {
 	slides,
 	slideIndex,
 	selectionBounds,
-	updateSelectionBounds,
 	updateThumbnail,
 	lastThumbnailTime,
 	focusedSlide,
-	insertSlide,
-	getNewSlide,
 	setSlideIndex,
 	changeEditorSlide,
 	deleteSlide,
-	insertDuplicateSlide,
 	duplicateSlide,
 	addEmptySlide,
 } from '@/stores/slide'
-import {
-	resetFocus,
-	activeElementIds,
-	activeElement,
-	focusElementId,
-	deleteElements,
-	duplicateElements,
-	addTextElement,
-	selectAllElements,
-	activeElements,
-} from '@/stores/element'
+import { resetFocus, focusElementId } from '@/stores/element'
 
-import { useTextEditor } from '@/composables/useTextEditor'
 import { useShortcuts } from '@/composables/useShortcuts'
-
-import { cloneObj, generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
 import {
 	saveChanges,
 	dirtySince,
@@ -118,8 +87,6 @@ import {
 	syncThumbnail,
 } from '@/stores/saving'
 import { startSlideShow } from '@/stores/slideshow'
-
-const { activeEditor, toggleMark } = useTextEditor()
 
 let autosaveInterval = null
 let thumbnailInterval = null
@@ -138,15 +105,18 @@ const props = defineProps({
 })
 
 const router = useRouter()
+useShortcuts(readonlyMode)
 
-const slideContainerRef = useTemplateRef('slideContainer')
-const dropTargetRef = useTemplateRef('dropTarget')
-
+const layoutAction = ref('')
 const slideHighlight = ref(false)
 const hasOngoingInteraction = ref(false)
 
 const setHighlight = (value) => {
 	slideHighlight.value = value
+}
+
+const toggleLayoutView = () => {
+	showLayoutsView.value = !showLayoutsView.value
 }
 
 const handleAutoSave = () => {
@@ -186,20 +156,12 @@ const loadPresentation = async (id) => {
 	!readonlyMode.value && initIntervals()
 }
 
-const route = useRoute()
-
 const updateUnsyncedRecord = () => {
 	unsyncedPresentationRecord.value = {
 		...unsyncedPresentationRecord.value,
 		modified: presentationDoc.value.modified,
 		thumbnail: slides.value[0]?.thumbnail,
 	}
-}
-
-const layoutAction = ref('')
-
-const toggleLayoutView = () => {
-	showLayoutsView.value = !showLayoutsView.value
 }
 
 const handleMounted = () => {
@@ -245,20 +207,16 @@ watch(
 	() => handleMounted(),
 )
 
-onMounted(() => handleMounted())
-
-onBeforeUnmount(() => handleBeforeUnmount())
-
-provide('readonlyMode', readonlyMode)
-
-useShortcuts({
-	readonlyMode,
-})
-
 watch(
 	() => props.editorAccess,
 	(doc) => {
 		readonlyMode.value = doc === 'view'
 	},
 )
+
+onMounted(() => handleMounted())
+
+onBeforeUnmount(() => handleBeforeUnmount())
+
+provide('readonlyMode', readonlyMode)
 </script>
