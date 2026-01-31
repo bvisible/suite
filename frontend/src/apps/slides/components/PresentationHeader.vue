@@ -25,7 +25,7 @@ const props = defineProps({
 	title: String,
 })
 
-const inReadonlyMode = inject('inReadonlyMode', false)
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const route = useRoute()
 const router = useRouter()

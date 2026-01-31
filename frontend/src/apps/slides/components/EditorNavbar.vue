@@ -27,8 +27,8 @@ import SharePopover from '@/components/SharePopover.vue'
 
 import { presentationDoc } from '@/stores/presentation'
 
-const isOnline = inject('isOnline', null)
-const inReadonlyMode = inject('inReadonlyMode', false)
+const isOnline = inject('isOnline', ref(false))
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const emit = defineEmits(['startSlideShow'])
 
