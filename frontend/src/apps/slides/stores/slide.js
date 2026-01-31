@@ -358,7 +358,6 @@ export {
 	saveSlide,
 	deleteSlide,
 	changeEditorSlide,
-	insertDuplicateSlide,
 	duplicateSlide,
 	addEmptySlide,
 }
