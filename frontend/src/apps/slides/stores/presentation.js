@@ -1,12 +1,10 @@
-import { ref, reactive, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides, slideIndex, currentSlide } from './slide'
-import { activeElementIds, normalizeZIndices } from '@/stores/element'
+import { slides } from './slide'
+import { normalizeZIndices } from '@/stores/element'
 import { ignoreUpdates } from '@/stores/history'
-
-import { cloneObj } from '@/utils/helpers'
 
 const presentationDoc = ref()
 
@@ -308,10 +306,6 @@ export {
 	presentationId,
 	applyReverseTransition,
 	createPresentationResource,
-	updatePresentationTitle,
-	hasStateChanged,
-	savePresentationDoc,
-	initPresentationDoc,
 	presentationDoc,
 	unsyncedPresentationRecord,
 	isPublicPresentation,
@@ -320,5 +314,9 @@ export {
 	templateListResource,
 	presentationTheme,
 	readonlyMode,
-	showLayoutsView
+	showLayoutsView,
+	updatePresentationTitle,
+	hasStateChanged,
+	savePresentationDoc,
+	initPresentationDoc,
 }
