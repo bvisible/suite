@@ -8,6 +8,7 @@ import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBou
 import { focusElementId, resetFocus, addTextElement, selectAllElements, activeElementIds, activeElements, deleteElements, duplicateElements } from '@/stores/element'
 import { startSlideShow } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
+import { handleUndoRedo } from '@/stores/history'
 import { isCmdOrCtrl } from '@/utils/helpers'
 
 const { toggleNavigationPanel } = useNavigationPanel()
@@ -42,9 +43,6 @@ export const useShortcuts = ({ readonlyMode }) => {
                 break
         }
     }
-
-    const handleUndoRedo = (e) => { }
-
 
     const handleGlobalShortcuts = (e) => {
         if (isCmdOrCtrl(e) && e.code === 'KeyP') {

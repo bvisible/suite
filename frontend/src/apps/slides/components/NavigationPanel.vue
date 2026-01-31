@@ -97,7 +97,7 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { ignoreUpdates, historyMetadata } from '@/stores/presentation'
+import { ignoreUpdates, historyMetadata } from '@/stores/history'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
