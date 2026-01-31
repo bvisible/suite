@@ -1,4 +1,4 @@
-import { watch, onActivated, onDeactivated } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
@@ -6,7 +6,7 @@ import { useTextEditor } from '@/composables/useTextEditor'
 
 import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBounds, deleteSlide, changeEditorSlide, duplicateSlide, addEmptySlide } from '@/stores/slide'
 import { focusElementId, resetFocus, addTextElement, selectAllElements, activeElementIds, activeElements, deleteElements, duplicateElements } from '@/stores/element'
-import { startSlideShow } from '@/stores/slideshow'
+import { changeSlideInSlideshow, inSlideShow, startSlideShow, performNextStep, performPreviousStep } from '@/stores/slideshow'
 import { isDirty, syncThumbnail } from '@/stores/saving'
 import { handleUndoRedo } from '@/stores/history'
 import { isCmdOrCtrl } from '@/utils/helpers'
@@ -157,8 +157,20 @@ export const useShortcuts = (readonlyMode) => {
         activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
     }
 
+    const handleSlideShowShortcuts = (e) => {
+        if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space' || e.key == 'PageDown') {
+            performNextStep()
+        } else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
+            performPreviousStep()
+        } else if (e.key == 'F5') {
+            e.preventDefault()
+            changeSlideInSlideshow(0)
+        }
+    }
+
     const handleKeyDown = (e) => {
-        if (readonlyMode.value) handleReadonlyShortcuts(e)
+        if (inSlideShow.value) handleSlideShowShortcuts(e)
+        else if (readonlyMode.value) handleReadonlyShortcuts(e)
         else handleShortcuts(e)
     }
 
@@ -169,12 +181,12 @@ export const useShortcuts = (readonlyMode) => {
         beforeUnloadListener = null
     }
 
-    onActivated(() => {
+    onMounted(() => {
         cleanup()
         keydownListener = useEventListener(document, 'keydown', handleKeyDown)
     })
 
-    onDeactivated(() => {
+    onBeforeUnmount(() => {
         cleanup()
     })
 }

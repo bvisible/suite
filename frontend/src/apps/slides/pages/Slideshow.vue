@@ -10,7 +10,7 @@
 				class="flex h-full w-full items-center justify-center bg-black"
 			>
 				<SlideshowEndScreen
-					@restartSlideShow="changeSlide(0)"
+					@restartSlideShow="changeSlideInSlideshow(0)"
 					@endSlideShow="endSlideShow()"
 				/>
 			</div>
@@ -18,7 +18,7 @@
 			<div
 				v-else-if="isMagicMoveApplied"
 				:style="slideStyles"
-				@click="changeSlide(slideIndex + 1)"
+				@click="changeSlideInSlideshow(slideIndex + 1)"
 			>
 				<FadeElementTransition
 					:duration="parseFloat(prevSlide?.transitionDuration)"
@@ -48,7 +48,7 @@
 					<div
 						:key="slideIndex"
 						:style="slideStyles"
-						@click="changeSlide(slideIndex + 1)"
+						@click="changeSlideInSlideshow(slideIndex + 1)"
 					>
 						<SlideElement
 							v-for="element in currentSlide?.elements"
@@ -66,23 +66,22 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onActivated, onDeactivated, ref, useTemplateRef, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
 import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
 import FadeElementTransition from '@/components/FadeElementTransition.vue'
 
-import { inSlideShow, showSlideshowEndScreen, endSlideShow } from '@/stores/slideshow'
-
 import {
-	applyReverseTransition,
-	initPresentationDoc,
-	isPublicPresentation,
-	presentationDoc,
-} from '@/stores/presentation'
+	inSlideShow,
+	showSlideshowEndScreen,
+	endSlideShow,
+	prefetchNextSlide,
+} from '@/stores/slideshow'
+
+import { applyReverseTransition, initPresentationDoc } from '@/stores/presentation'
 import { currentSlide, setSlideIndex, slideIndex, slides } from '@/stores/slide'
-import { session } from '@/stores/session'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -109,57 +108,6 @@ const getElementKey = (element) => {
 }
 
 const slideCursor = ref('none')
-
-const prefetchedAssets = ref(new Set())
-
-const prefetchNextSlide = () => {
-	const nextSlideIndex = slideIndex.value + 1
-	if (nextSlideIndex >= slides.value.length) return
-
-	const nextSlide = slides.value[nextSlideIndex]
-	nextSlide?.elements?.forEach((element) => {
-		if (element.type === 'image' && element.src) {
-			prefetchAsset(element.src, 'image')
-		} else if (element.type === 'video') {
-			element.poster && prefetchAsset(element.poster, 'image')
-		}
-	})
-}
-
-const getAssetUrl = (url) => {
-	if (presentationDoc.value?.owner === session.user || session.user === 'Administrator') {
-		return url
-	}
-	return `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
-}
-
-const prefetchAsset = async (src, type) => {
-	if (prefetchedAssets.value.has(src)) return
-	prefetchedAssets.value.add(src)
-
-	try {
-		const url = buildAssetUrl(src, type)
-
-		if (type === 'image') {
-			// Use link prefetch for images
-			const link = document.createElement('link')
-			link.rel = 'preload'
-			link.href = getAssetUrl(url)
-			link.as = 'image'
-			document.head.appendChild(link)
-		}
-	} catch (error) {
-		console.warn('Failed to prefetch asset:', src, error)
-	}
-}
-
-const buildAssetUrl = (src, type) => {
-	if (src.startsWith('/private') || src.startsWith('/assets')) {
-		return src
-	}
-
-	return `/private${src}`
-}
 
 const prevSlide = computed(() => {
 	if (slideIndex.value == 0) return null
@@ -323,39 +271,6 @@ const handleFullScreenChange = () => {
 	}
 }
 
-const performPreviousStep = () => {
-	const videoEl = document.querySelector('video')
-	if (videoEl && videoEl.currentTime > 0) {
-		videoEl.currentTime = 0
-		videoEl.pause()
-		return
-	}
-	changeSlide(slideIndex.value - 1)
-}
-
-const performNextStep = () => {
-	const videoEls = document.querySelectorAll('video')
-
-	for (const videoEl of videoEls) {
-		if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
-			videoEl.play()
-			return
-		}
-	}
-	changeSlide(slideIndex.value + 1)
-}
-
-const handleKeyDown = (e) => {
-	if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space' || e.key == 'PageDown') {
-		performNextStep()
-	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
-		performPreviousStep()
-	} else if (e.key == 'F5') {
-		e.preventDefault()
-		changeSlide(0)
-	}
-}
-
 const setClipPath = () => {
 	const screenHeight = window.screen.height
 	const scale = window.screen.width / 960
@@ -396,26 +311,6 @@ const initFullscreenMode = async () => {
 	}
 }
 
-const changeSlide = (index) => {
-	if (index < 0) return
-	if (index >= slides.value.length + 1) return endSlideShow()
-
-	applyReverseTransition.value = index < slideIndex.value
-
-	nextTick(() => {
-		router.replace({
-			name: 'Slideshow',
-			params: router.currentRoute.value.params,
-			query: { slide: index + 1 },
-		})
-
-		// Prefetch next slide assets after navigation
-		setTimeout(() => {
-			prefetchNextSlide()
-		}, 100)
-	})
-}
-
 const loadPresentation = async () => {
 	if (slides.value.length) return
 	initPresentationDoc(props.presentationId)
@@ -424,7 +319,6 @@ const loadPresentation = async () => {
 onActivated(() => {
 	loadPresentation()
 	initFullscreenMode()
-	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
 
 	// Initial prefetch of next slide
@@ -434,7 +328,6 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
-	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
 })
 
