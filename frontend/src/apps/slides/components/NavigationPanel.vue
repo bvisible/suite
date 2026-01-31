@@ -11,10 +11,10 @@
 			ref="scrollableArea"
 			v-if="slides"
 			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
-			:class="{ 'pb-14': !props.readonlyMode }"
+			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
-			<template v-if="props.readonlyMode">
+			<template v-if="inReadonlyMode">
 				<div
 					v-for="slide in slides"
 					:key="slide.name"
@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, useTemplateRef, useAttrs } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef, useAttrs, inject } from 'vue'
 
 import Draggable from 'vuedraggable'
 
@@ -106,11 +106,9 @@ const scrollableArea = useTemplateRef('scrollableArea')
 
 const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
+const inReadonlyMode = inject('inReadonlyMode', false)
+
 const props = defineProps({
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
 	recentlyRestored: {
 		type: Boolean,
 		default: false,
@@ -157,7 +155,7 @@ const isSlideActive = (slide) => {
 
 const handleSlideClick = async (slide) => {
 	const index = slides.value.indexOf(slide)
-	if (isSlideActive(slide) && !props.readonlyMode) {
+	if (isSlideActive(slide) && !inReadonlyMode.value) {
 		resetFocus()
 		focusedSlide.value = index
 		return

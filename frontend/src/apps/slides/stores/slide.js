@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import { slidesLength, presentationId, templateList, readonlyMode, presentationTheme, showLayoutsView } from '@/stores/presentation'
+import { slidesLength, presentationId, templateList, inReadonlyMode, presentationTheme, showLayoutsView } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
 import { ignoreUpdates } from '@/stores/history'
@@ -8,7 +8,7 @@ import { router } from '@/router'
 
 import html2canvas from 'html2canvas'
 import { toast } from 'frappe-ui'
-import { inSlideShow } from './slideshow'
+import { inSlideShowMode } from './slideshow'
 
 const slideRef = ref(null)
 
@@ -218,7 +218,7 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 
 const setSlideIndex = (index) => {
 	index = parseInt(index) - 1
-	if (!inSlideShow.value)
+	if (!inSlideShowMode.value)
 		index = Math.min(index, slidesLength.value - 1)
 	slideIndex.value = index
 }
@@ -287,7 +287,7 @@ const deleteSlide = (deleteActive) => {
 }
 
 const changeEditorSlide = async (index, focus = true) => {
-	if (!readonlyMode.value) {
+	if (!inReadonlyMode.value) {
 		await resetFocus()
 	}
 	return changeSlide(index, focus)

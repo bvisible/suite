@@ -9,7 +9,7 @@ import { focusedSlide, slideIndex, slides, setSlideIndex } from '@/stores/slide'
 import { router } from '@/router'
 import { session } from '@/stores/session'
 
-const inSlideShow = ref(false)
+const inSlideShowMode = ref(false)
 
 const startSlideShow = () => {
     router.replace({
@@ -20,7 +20,7 @@ const startSlideShow = () => {
 }
 
 const endSlideShow = () => {
-    inSlideShow.value = false
+    inSlideShowMode.value = false
     focusedSlide.value = null
     const slide =
         slideIndex.value == slides.value.length ? slides.value.length : slideIndex.value + 1
@@ -131,7 +131,7 @@ const changeSlideInSlideshow = (index) => {
 }
 
 export {
-    inSlideShow,
+    inSlideShowMode,
     showSlideshowEndScreen,
     startSlideShow,
     endSlideShow,

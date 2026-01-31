@@ -5,7 +5,7 @@
 				<PresentationHeader :title="presentationDoc?.title" />
 			</div>
 		</template>
-		<template v-if="!readonlyMode" #actions>
+		<template v-if="!inReadonlyMode" #actions>
 			<Badge v-if="!isOnline" variant="subtle" theme="orange" size="md">
 				<LucideWifiOff class="mr-1 size-3.5 stroke-[1.5]" />
 				<span>Offline</span>
@@ -28,13 +28,7 @@ import SharePopover from '@/components/SharePopover.vue'
 import { presentationDoc } from '@/stores/presentation'
 
 const isOnline = inject('isOnline', null)
-
-const props = defineProps({
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
-})
+const inReadonlyMode = inject('inReadonlyMode', false)
 
 const emit = defineEmits(['startSlideShow'])
 

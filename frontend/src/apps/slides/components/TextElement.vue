@@ -36,7 +36,6 @@ import { useTextEditor } from '@/composables/useTextEditor'
 
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { isAffectedByMagicMove } from '@/stores/transition'
-import { inSlideShow } from '@/stores/slideshow'
 import { extensions } from '@/stores/tiptapSetup'
 import { slideIndex } from '@/stores/slide'
 
@@ -49,7 +48,8 @@ const props = defineProps({
 	},
 })
 
-const readonlyMode = inject('readonlyMode', false)
+const inReadonlyMode = inject('inReadonlyMode', false)
+const inSlideShowMode = inject('inSlideShowMode', false)
 
 const showEditor = computed(() => {
 	if (!activeElement.value) return false
@@ -71,13 +71,13 @@ const editorStyles = computed(() => ({
 }))
 
 const handleMouseDown = (e) => {
-	if (!isEditable.value || readonlyMode.value) return
+	if (!isEditable.value || inReadonlyMode.value) return
 
 	e.stopPropagation()
 }
 
 const handleDoubleClick = (e) => {
-	if (inSlideShow.value || isEditable.value || readonlyMode.value) {
+	if (inSlideShowMode.value || isEditable.value || inReadonlyMode.value) {
 		e.stopPropagation()
 		return
 	}
@@ -105,7 +105,7 @@ const isAutoWidth = computed(() => {
 
 const showMagicMoveText = computed(
 	() =>
-		inSlideShow.value &&
+		inSlideShowMode.value &&
 		isAffectedByMagicMove(slideIndex.value) &&
 		![null, undefined, ''].includes(element.value.refId),
 )
