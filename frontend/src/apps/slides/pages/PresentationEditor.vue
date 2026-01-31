@@ -64,17 +64,13 @@ import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 
+import { initHistory, recentlyRestored } from '@/stores/history'
 import {
 	presentationId,
 	initPresentationDoc,
 	presentationDoc,
-	historyControl,
-	historyState,
-	initHistory,
-	ignoreUpdates,
 	unsyncedPresentationRecord,
 	slidesLength,
-	historyMetadata,
 	templateList,
 	templateListResource,
 	presentationTheme,
@@ -153,229 +149,6 @@ const setHighlight = (value) => {
 	slideHighlight.value = value
 }
 
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateSelectionBounds({
-		left: selectionBounds.left + dx,
-		top: selectionBounds.top + dy,
-	})
-
-	activeElements.value.forEach((element) => {
-		element.left += dx
-		element.top += dy
-	})
-}
-
-const handleElementShortcuts = (e) => {
-	switch (e.key) {
-		case 'ArrowLeft':
-		case 'ArrowRight':
-		case 'ArrowUp':
-		case 'ArrowDown':
-			handleArrowKeys(e.key)
-			break
-		case 'Delete':
-		case 'Backspace':
-			deleteElements(e)
-			break
-		case 'd':
-			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
-			break
-		case 'b':
-			if (activeEditor.value) toggleMark('bold')
-			break
-		case 'i':
-			if (activeEditor.value) toggleMark('italic')
-			break
-		case 'u':
-			if (activeEditor.value) toggleMark('underline')
-			break
-	}
-}
-
-const handleGlobalShortcuts = (e) => {
-	if (isCmdOrCtrl(e) && e.code === 'KeyP') {
-		e.preventDefault()
-		startSlideShow()
-		return
-	}
-
-	switch (e.key) {
-		case 'Escape':
-			resetFocus()
-			break
-		case 't':
-			addTextElement()
-			break
-		case 'b':
-			if (isCmdOrCtrl(e)) toggleSlideNavigator()
-			break
-		case 'a':
-			if (isCmdOrCtrl(e)) selectAllElements(e)
-			break
-		case 's':
-			if (isCmdOrCtrl(e)) saveSlide(e)
-			break
-		case 'Enter':
-			addEmptySlide(e)
-			break
-		case 'F5':
-			e.preventDefault()
-			startSlideShow()
-			break
-	}
-}
-
-const recentlyRestored = ref(false)
-
-const getRestoredSlideId = (oldList, newList) => {
-	let restoredId = ''
-	newList.forEach((slide, index) => {
-		if (!oldList.find((s) => s.name === slide.name)) {
-			restoredId = index
-		}
-	})
-	return restoredId
-}
-
-const getPrevToDeletedSlideId = (oldList, newList) => {
-	let prevId = null
-	oldList.forEach((slide, index) => {
-		if (!newList.find((s) => s.name === slide.name)) {
-			prevId = index - 1
-		}
-	})
-	return prevId
-}
-
-const wereSlidesReordered = (oldList, newList) => {
-	if (oldList.length !== newList.length) return false
-
-	for (let i = 0; i < newList.length; i++) {
-		if (oldList[i] && oldList[i].name !== newList[i].name) {
-			return true
-		}
-	}
-	return false
-}
-
-const getJumpToSlideId = (operation, oldList, newList) => {
-	// reordered slides -> the jump to index becomes the slide that was moved
-	const didReorder = wereSlidesReordered(oldList, newList)
-	if (didReorder && operation == 'undo') return historyMetadata.focusIndexPostUndo
-	if (didReorder && operation == 'redo') return historyMetadata.focusIndexPostRedo
-
-	if (oldList.length < newList.length) {
-		return getRestoredSlideId(oldList, newList)
-	}
-
-	if (oldList.length > newList.length) {
-		return getPrevToDeletedSlideId(oldList, newList)
-	}
-
-	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
-		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
-	}
-
-	const slideId = historyState.value.activeSlide
-	return slides.value.findIndex((slide) => slide.name === slideId)
-}
-
-const restoreState = (state, jumpToSlideId) => {
-	ignoreUpdates(() => {
-		slides.value = JSON.parse(JSON.stringify(state)).map((slide, idx) => {
-			if (idx === jumpToSlideId) {
-				slide.thumbnail = ''
-			}
-			return slide
-		})
-		slidesLength.value = slides.value.length
-	})
-}
-
-const jumpToSlide = async (operation, oldList, newList) => {
-	const jumpToSlideId = getJumpToSlideId(operation, oldList, newList)
-	const onActiveSlide = jumpToSlideId == slideIndex.value
-
-	if (!onActiveSlide && jumpToSlideId != null) {
-		await changeEditorSlide(jumpToSlideId, false)
-
-		recentlyRestored.value = true
-		setTimeout(() => {
-			recentlyRestored.value = false
-		}, 1000)
-	}
-
-	return jumpToSlideId
-}
-
-const jumpToActiveElements = () => {
-	const elementsToFocus = [...historyState.value.elementIds]
-
-	if (activeElementIds.value != elementsToFocus) {
-		activeElementIds.value = elementsToFocus
-	}
-}
-
-const handleHistoryOperation = async (operation) => {
-	activeElementIds.value = []
-
-	if (operation == 'undo') await historyControl.undo()
-	else if (operation == 'redo') await historyControl.redo()
-
-	const oldList = JSON.parse(JSON.stringify(slides.value))
-	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
-
-	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
-
-	restoreState(historyState.value.slides, jumpToSlideId)
-
-	await nextTick()
-
-	updateThumbnail(jumpToSlideId)
-
-	nextTick(() => {
-		jumpToActiveElements()
-	})
-}
-
-const handleUndoRedo = (e) => {
-	e.preventDefault()
-
-	if (activeEditor.value?.isEditable) {
-		e.stopPropagation()
-		return
-	}
-
-	if (isCmdOrCtrl(e) && e.shiftKey && historyControl.canRedo.value) {
-		handleHistoryOperation('redo')
-	} else if (isCmdOrCtrl(e) && historyControl.undoStack.value.length > 1) {
-		handleHistoryOperation('undo')
-	}
-}
-
-const handleKeyDown = (e) => {
-	const editingText =
-		document.activeElement.getAttribute('contenteditable') ||
-		document.activeElement.tagName == 'INPUT' ||
-		focusElementId.value != null
-
-	if (editingText) return
-
-	if (e.key == 'z') return handleUndoRedo(e)
-
-	handleGlobalShortcuts(e)
-
-	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
-}
-
 const handleAutoSave = () => {
 	if (hasOngoingInteraction.value || focusElementId.value != null) return
 	saveChanges()
@@ -406,16 +179,11 @@ const initIntervals = () => {
 }
 
 const loadPresentation = async (id) => {
-	presentationDoc.value = await initPresentationDoc(id)
+	!readonlyMode.value && initHistory()
+	presentationDoc.value = await initPresentationDoc(id, readonlyMode.value)
 	setSlideIndex(props.activeSlideId)
 	updateRoute(presentationDoc.value.slug)
-	initIntervals()
-}
-
-const loadPresentationInReadonlyMode = async (id) => {
-	presentationDoc.value = await initPresentationDoc(id, true)
-	setSlideIndex(props.activeSlideId)
-	updateRoute(presentationDoc.value.slug)
+	!readonlyMode.value && initIntervals()
 }
 
 const route = useRoute()
@@ -440,11 +208,7 @@ const handleMounted = () => {
 	}
 	const id = props.presentationId
 	if (!id) return
-	if (readonlyMode.value) {
-		loadPresentationInReadonlyMode(id)
-	} else {
-		loadPresentation(id)
-	}
+	loadPresentation(id)
 }
 
 const handleBeforeUnmount = () => {

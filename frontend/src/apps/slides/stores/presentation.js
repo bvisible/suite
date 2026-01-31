@@ -1,10 +1,10 @@
 import { ref, reactive, computed } from 'vue'
-import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
 import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
+import { ignoreUpdates } from '@/stores/history'
 
 import { cloneObj } from '@/utils/helpers'
 
@@ -282,58 +282,6 @@ const initPresentationDoc = async (id, readonly = false) => {
 	}
 }
 
-let historyControl = null
-
-const historyState = ref({
-	elementIds: '',
-	activeSlide: '',
-	slides: [],
-})
-
-const historyMetadata = reactive({})
-
-const updateHistoryState = (slides, activeSlide, elementIds) => {
-	const slidesClone = [...slides].map((slide, idx) => {
-		return {
-			...slide,
-			elements: slide.elements.map((el) => cloneObj(el)),
-		}
-	})
-
-	historyState.value = {
-		elementIds: elementIds,
-		activeSlide: activeSlide,
-		slides: slidesClone,
-	}
-}
-
-const { ignoreUpdates } = watchIgnorable(
-	() => slides.value,
-	(newVal) => {
-		if (!newVal.length) return
-		commitToHistory(newVal)
-	},
-	{ deep: true },
-)
-
-const commitToHistory = (state) => {
-	const activeSlide = currentSlide.value?.name
-	const elementIds = activeElementIds.value
-
-	updateHistoryState(state, activeSlide, elementIds)
-
-	historyControl?.commit()
-}
-
-const initHistory = () => {
-	historyState.value.activeSlide = currentSlide.value?.name
-	historyControl = useManualRefHistory(historyState, {
-		capacity: 25,
-		clone: true,
-		deep: true,
-	})
-}
-
 const unsyncedPresentationRecord = ref({})
 
 const isPublicPresentation = ref(false)
@@ -365,14 +313,9 @@ export {
 	savePresentationDoc,
 	initPresentationDoc,
 	presentationDoc,
-	historyControl,
-	historyState,
-	initHistory,
-	ignoreUpdates,
 	unsyncedPresentationRecord,
 	isPublicPresentation,
 	slidesLength,
-	historyMetadata,
 	templateList,
 	templateListResource,
 	presentationTheme,
