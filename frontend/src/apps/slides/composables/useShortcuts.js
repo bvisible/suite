@@ -14,7 +14,7 @@ import { isCmdOrCtrl } from '@/utils/helpers'
 const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()
 
-export const useShortcuts = ({ readonlyMode }) => {
+export const useShortcuts = (readonlyMode) => {
     let keydownListener
     let beforeUnloadListener
 
