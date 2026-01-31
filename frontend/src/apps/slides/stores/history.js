@@ -194,7 +194,7 @@ const handleUndoRedo = (e) => {
 export {
     recentlyRestored,
     historyMetadata,
-    initHistory,
     ignoreUpdates,
+    initHistory,
     handleUndoRedo
 }
