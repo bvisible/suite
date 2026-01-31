@@ -60,8 +60,8 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const inReadonlyMode = inject('inReadonlyMode', false)
-const inSlideShowMode = inject('inSlideShowMode', false)
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
+const inSlideShowMode = inject('inSlideShowMode', ref(false))
 
 const el = useTemplateRef('videoElement')
 const overlay = useTemplateRef('overlay')

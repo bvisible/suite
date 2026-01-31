@@ -98,7 +98,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
 
-const inReadonlyMode = inject('inReadonlyMode', false)
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideRef = useTemplateRef('slideRef')

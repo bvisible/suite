@@ -106,7 +106,7 @@ const scrollableArea = useTemplateRef('scrollableArea')
 
 const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
-const inReadonlyMode = inject('inReadonlyMode', false)
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const props = defineProps({
 	recentlyRestored: {
