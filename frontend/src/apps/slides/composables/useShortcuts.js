@@ -7,7 +7,6 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { slideIndex, changeSlide, saveSlide, selectionBounds, updateSelectionBounds, deleteSlide, changeEditorSlide, duplicateSlide, addEmptySlide } from '@/stores/slide'
 import { focusElementId, resetFocus, addTextElement, selectAllElements, activeElementIds, activeElements, deleteElements, duplicateElements } from '@/stores/element'
 import { changeSlideInSlideshow, startSlideShow, performNextStep, performPreviousStep } from '@/stores/slideshow'
-import { isDirty, syncThumbnail } from '@/stores/saving'
 import { handleUndoRedo } from '@/stores/history'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
@@ -17,15 +16,6 @@ const { activeEditor, toggleMark } = useTextEditor()
 
 export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
     let keydownListener
-    let beforeUnloadListener
-
-    // TODO: add this
-    const handleBeforeUnload = (e) => {
-        if (isDirty.value || syncThumbnail > 0) {
-            e.preventDefault()
-            e.returnValue = ''
-        }
-    }
 
     const handleReadonlyModeShortcuts = (e) => {
         switch (e.key) {
@@ -177,9 +167,7 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 
     const cleanup = () => {
         keydownListener?.()
-        beforeUnloadListener?.()
         keydownListener = null
-        beforeUnloadListener = null
     }
 
     onMounted(() => {

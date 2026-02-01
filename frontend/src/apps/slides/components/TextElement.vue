@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, inject } from 'vue'
+import { computed, onBeforeMount, inject, ref } from 'vue'
 
 import SlideshowText from '@/components/SlideshowText.vue'
 

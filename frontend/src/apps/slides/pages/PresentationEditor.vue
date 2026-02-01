@@ -147,11 +147,7 @@ const initIntervals = () => {
 }
 
 const loadPresentation = async (id) => {
-	!inReadonlyMode.value && initHistory()
 	presentationDoc.value = await initPresentationDoc(id, inReadonlyMode.value)
-	setSlideIndex(props.activeSlideId)
-	updateRoute(presentationDoc.value.slug)
-	!inReadonlyMode.value && initIntervals()
 }
 
 const updateUnsyncedRecord = () => {
@@ -162,13 +158,44 @@ const updateUnsyncedRecord = () => {
 	}
 }
 
-const handleMounted = () => {
-	if (!templateList.value.length && !inReadonlyMode.value) {
-		templateListResource.fetch()
+const handleBeforeUnload = (e) => {
+	if (isDirty.value || syncThumbnail > 0) {
+		e.preventDefault()
+		e.returnValue = ''
 	}
+}
+
+const loadTemplates = () => {
+	if (templateList.value.length || inReadonlyMode.value) return
+	templateListResource.fetch()
+}
+
+const performBeforeLoadOperations = () => {
+	if (inReadonlyMode.value) return
+
+	window.addEventListener('beforeunload', handleBeforeUnload)
+
+	initHistory()
+}
+
+const performAfterLoadOperations = () => {
+	setSlideIndex(props.activeSlideId)
+	updateRoute(presentationDoc.value.slug)
+
+	if (inReadonlyMode.value) return
+
+	initIntervals()
+}
+
+const handleMounted = async () => {
+	loadTemplates()
+
 	const id = props.presentationId
 	if (!id) return
-	loadPresentation(id)
+
+	performBeforeLoadOperations()
+	await loadPresentation(id)
+	performAfterLoadOperations()
 }
 
 const handleBeforeUnmount = () => {
@@ -180,6 +207,7 @@ const handleBeforeUnmount = () => {
 		resetFocus()
 		syncPresentationToServer()
 	}
+	window.removeEventListener('beforeunload', handleBeforeUnload)
 }
 
 watch(

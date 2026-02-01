@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { ref, inject } from 'vue'
 import { Presentation } from 'lucide-vue-next'
 
 import { Badge } from 'frappe-ui'
