@@ -8,7 +8,7 @@
 		<template #content>
 			<div class="space-y-6">
 				<Switch
-					class="w-full"
+					class="w-full !px-0"
 					label="Noise Cancellation"
 					description="Reduce background noise from your microphone"
 					v-model="noiseCancellationEnabledLocal"

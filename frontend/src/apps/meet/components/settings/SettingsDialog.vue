@@ -43,7 +43,7 @@
 						<div v-for="tab in tabs">
 							<div
 								v-if="!tab.hideLabel"
-								class="mb-2 mt-3 hidden md:flex gap-1.5 px-1 text-base font-medium text-ink-gray-5"
+								class="mb-2 ml-1 mt-3 hidden md:flex gap-1.5 px-1 text-base font-medium text-ink-gray-5"
 							>
 								<span>{{ tab.label }}</span>
 							</div>
