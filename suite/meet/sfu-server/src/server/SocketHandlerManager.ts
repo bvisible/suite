@@ -51,7 +51,13 @@ export class SocketHandlerManager {
 		ipLimit: number,
 		windowMs: number,
 	): boolean {
-		const clientIp = socket.handshake.address || 'unknown';
+		const forwardedFor = socket.handshake.headers['x-forwarded-for'];
+		const clientIp = Array.isArray(forwardedFor)
+			? forwardedFor[0]
+			: typeof forwardedFor === 'string'
+				? forwardedFor.split(',')[0].trim()
+				: socket.handshake.address;
+
 		const userKey = `user:${socket.userId}`;
 		const ipKey = `ip:${clientIp}`;
 
