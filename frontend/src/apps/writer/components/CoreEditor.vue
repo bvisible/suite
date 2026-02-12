@@ -474,7 +474,7 @@ const autorename = () => {
     rename.submit(
       {
         entity_name: props.entity.name,
-        new_title: implicitTitle,
+        new_title: implicitTitle.slice(0, 100),
       },
       {
         onSuccess: () => {
