@@ -113,15 +113,25 @@
         @save="saveComments"
       >
         <div class="sticky self-end top-3 flex items-center gap-1 z-10">
-          <Button
-            :label="showResolved ? 'Hide resolved' : 'Show resolved'"
-            v-if="
-              showComments && Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
-            "
-            class="text-sm text-ink-gray-5 bg-surface-white"
-            variant="ghost"
-            @click="showResolved = !showResolved"
-          />
+          <div class="flex flex-col gap-0.5">
+            <Button
+              :label="showResolved ? 'Hide resolved' : 'Show resolved'"
+              v-if="
+                showComments &&
+                Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
+              "
+              class="text-sm text-ink-gray-5 bg-surface-white"
+              variant="ghost"
+              @click="showResolved = !showResolved"
+            />
+            <Button
+              :label="showUnanchored ? 'Hide unanchored' : 'Show unanchered'"
+              v-if="showComments && showResolved"
+              class="text-sm text-ink-gray-5 bg-surface-white"
+              variant="ghost"
+              @click="showUnanchored = !showUnanchored"
+            />
+          </div>
           <Button
             v-if="comments._map.size"
             :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
@@ -204,8 +214,10 @@ const showSettings = defineModel('showSettings')
 const edited = defineModel('edited')
 
 watch(activeComment, () => rebuild(editor.value))
-const showComments = ref(true)
+const showComments = ref(JSON.parse(localStorage.getItem('show-comments') || 'false'))
+watch(showComments, (val) => localStorage.setItem('show-comments', val))
 const showResolved = ref(false)
+const showUnanchored = ref(false)
 const commentsPainted = ref(false)
 const isPainting = computed(() =>
   editor.value && editor.value.storage.styleClipboard.styleClipboard ? true : false,

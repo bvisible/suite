@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import fuzzysort from 'fuzzysort'
-import { Dialog, TextInput, debounce } from 'frappe-ui'
+import { Dialog, TextInput } from 'frappe-ui'
 import { insertTemplate } from '@/utils'
 import { getTemplates } from '@/resources'
 

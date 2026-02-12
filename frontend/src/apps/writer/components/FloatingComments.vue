@@ -258,6 +258,7 @@ const props = defineProps({
   yComments: Object,
   showComments: Boolean,
   showResolved: Boolean,
+  showUnanchored: Boolean,
 })
 const emit = defineEmits(['save'])
 
@@ -424,7 +425,7 @@ const setCommentHeights = useDebounceFn(() => {
         if (comment.new && comment.owner !== store.state.user.id) anchorTop = 0
         else if (!el && comment.anchorText) {
           comment.detached = 1
-          anchorTop = 48
+          anchorTop = props.showUnanchored ? 48 : 0
         } else {
           const elTop = el.getBoundingClientRect().top
           anchorTop = elTop ? elTop - containerTop : 0
