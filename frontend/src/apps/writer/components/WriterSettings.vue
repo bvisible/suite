@@ -11,7 +11,7 @@
         <template #tab-panel>
           <Form>
             <template #default="{ dirty, setDirty, error }">
-              <div class="overflow-y-auto max-h-96 p-2 pt-3">
+              <div class="overflow-y-auto max-h-96 px-2 pt-3">
                 <div class="flex flex-col gap-4 pb-5 pr-5">
                   <div class="space-y-1.5">
                     <FormLabel label="Font Family" />
@@ -75,8 +75,8 @@
                 <!-- Print Settings Section -->
                 <div class="flex flex-col gap-3 pb-5 pr-5">
                   <template v-if="tabIndex === 1">
+                    <h3 class="text-sm font-medium text-ink-gray-7">Print Settings</h3>
                     <div class="space-y-2">
-                      <h3 class="text-sm font-medium text-ink-gray-7">Print Settings</h3>
                       <FormLabel label="Header & Footer" />
                       <div class="grid grid-cols-2 gap-2">
                         <FormControl
@@ -113,29 +113,29 @@
                         Set the text to appear in headers and footers when printing.
                       </div>
                     </div>
-                    <div class="flex flex-col gap-2.5">
+                    <div class="flex flex-col gap-3">
                       <FormControl
                         v-model="settings.print_show_pages"
                         type="checkbox"
-                        label="Show Page Numbers"
+                        label="Show page numbers"
                         description="Add a line below the header when printing."
                       />
                       <FormControl
                         v-model="settings.print_header_separator"
                         type="checkbox"
-                        label="Header Separator Line"
+                        label="Header separator line"
                         description="Add a line below the header when printing."
                       />
                       <FormControl
                         v-model="settings.print_footer_separator"
                         type="checkbox"
-                        label="Footer Separator Line"
+                        label="Footer separator line"
                         description="Add a line above the footer when printing."
                       />
                       <FormControl
                         v-model="settings.apply_watermark"
                         type="checkbox"
-                        label="Apply Watermark to PDF"
+                        label="Apply watermark to PDF"
                         :description="'Enable this to automatically apply watermark when downloading PDF for this document.'"
                       />
                     </div>
@@ -234,6 +234,7 @@ const fontOptions = computed(() =>
     {
       label: 'Automatic',
       value: 'global',
+      key: 'global',
       cond: tabIndex.value === 1,
     },
     ...FONT_FAMILIES,
