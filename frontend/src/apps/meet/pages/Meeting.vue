@@ -223,6 +223,7 @@ const meetingDoc = getMeetingDoc(meetingId.value);
 // Meeting logic composable
 const {
 	initializeCamera,
+	acquireUserMedia,
 	joinMeetingRoom,
 	toggleMicrophone,
 	toggleCamera,
@@ -617,35 +618,17 @@ const handleDeviceChanged = async (event) => {
 				}
 			}
 
-			const constraints = {};
+			// Use selected devices unless this event overrides a specific one
+			const cameraDeviceId =
+				event.type === "camera" ? event.deviceId : selectedCameraId.value;
+			const micDeviceId =
+				event.type === "microphone" ? event.deviceId : selectedMicId.value;
 
-			if (meetingState.isCameraOn.value) {
-				constraints.video = {};
-				// Use the deviceId from the event if it's a camera change, otherwise use current selection
-				const cameraDeviceId =
-					event.type === "camera" ? event.deviceId : selectedCameraId.value;
-				if (
-					cameraDeviceId &&
-					deviceManager.isDeviceAvailable(cameraDeviceId, "camera")
-				) {
-					constraints.video.deviceId = { exact: cameraDeviceId };
-				}
-			}
-
-			if (meetingState.isMicOn.value) {
-				constraints.audio = {};
-				const micDeviceId =
-					event.type === "microphone" ? event.deviceId : selectedMicId.value;
-				if (
-					micDeviceId &&
-					deviceManager.isDeviceAvailable(micDeviceId, "microphone")
-				) {
-					constraints.audio.deviceId = { exact: micDeviceId };
-				}
-			}
-
-			// use new device
-			const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+			const { stream: newStream } = await acquireUserMedia(
+				meetingState.isCameraOn.value,
+				meetingState.isMicOn.value,
+				{ cameraDeviceId, micDeviceId },
+			);
 			meetingState.localStream.value = newStream;
 
 			if (meetingState.localVideo) {
