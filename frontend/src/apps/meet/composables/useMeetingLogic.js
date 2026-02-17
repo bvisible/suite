@@ -185,13 +185,9 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 
 	const getFreshMicTrack = async () => {
 		try {
-			const constraints = {
-				audio: selectedMicId.value
-					? { deviceId: { exact: selectedMicId.value } }
-					: true,
-			};
-			const freshStream =
-				await navigator.mediaDevices.getUserMedia(constraints);
+			const { stream: freshStream } = await acquireUserMedia(false, true, {
+				micDeviceId: selectedMicId.value || null,
+			});
 			const freshTrack = freshStream.getAudioTracks()[0];
 
 			if (!freshTrack) {
@@ -311,7 +307,12 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 
 	const buildMediaConstraints = async (videoEnabled, audioEnabled) => {
 		const constraints = {};
-		const deviceIds = {};
+
+		const audioConstraints = {
+			echoCancellation: true,
+			noiseSuppression: true,
+			autoGainControl: true,
+		};
 
 		if (videoEnabled) {
 			constraints.video = {
@@ -326,13 +327,12 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 			);
 			if (validCameraId) {
 				constraints.video.deviceId = { exact: validCameraId };
-				deviceIds.camera = validCameraId;
 			}
 			// If no valid device ID, let browser use its default
 		}
 
 		if (audioEnabled) {
-			constraints.audio = {};
+			constraints.audio = { ...audioConstraints };
 
 			const validMicId = await getValidDeviceId(
 				selectedMicId.value,
@@ -340,12 +340,46 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 			);
 			if (validMicId) {
 				constraints.audio.deviceId = { exact: validMicId };
-				deviceIds.microphone = validMicId;
 			}
 			// If no valid device ID, let browser use its default
 		}
 
-		return { constraints, deviceIds };
+		return constraints;
+	};
+
+	const acquireUserMedia = async (
+		videoEnabled,
+		audioEnabled,
+		deviceOverrides = {},
+	) => {
+		const constraints = await buildMediaConstraints(videoEnabled, audioEnabled);
+
+		if (videoEnabled && Object.hasOwn(deviceOverrides, "cameraDeviceId")) {
+			const validCameraId = await getValidDeviceId(
+				deviceOverrides.cameraDeviceId,
+				"camera",
+			);
+			if (validCameraId && constraints.video) {
+				constraints.video.deviceId = { exact: validCameraId };
+			} else if (constraints.video?.deviceId) {
+				constraints.video.deviceId = undefined;
+			}
+		}
+
+		if (audioEnabled && Object.hasOwn(deviceOverrides, "micDeviceId")) {
+			const validMicId = await getValidDeviceId(
+				deviceOverrides.micDeviceId,
+				"microphone",
+			);
+			if (validMicId && constraints.audio) {
+				constraints.audio.deviceId = { exact: validMicId };
+			} else if (constraints.audio?.deviceId) {
+				constraints.audio.deviceId = undefined;
+			}
+		}
+
+		const stream = await navigator.mediaDevices.getUserMedia(constraints);
+		return { stream, constraints };
 	};
 
 	/**
@@ -382,12 +416,10 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 			meetingState.setMediaState(prefMicEnabled.value, prefCameraEnabled.value);
 
 			if (meetingState.isCameraOn.value || meetingState.isMicOn.value) {
-				const { constraints, deviceIds } = await buildMediaConstraints(
+				const { stream } = await acquireUserMedia(
 					meetingState.isCameraOn.value,
 					meetingState.isMicOn.value,
 				);
-
-				const stream = await navigator.mediaDevices.getUserMedia(constraints);
 				meetingState.localStream.value = stream;
 				// Clear any stale connection error on successful media acquisition
 				if (meetingState.connectionError.value) {
@@ -437,11 +469,11 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				// Turning mic ON
 				if (!stream) {
 					try {
-						const { constraints, deviceIds } = await buildMediaConstraints(
+						const { stream: nextStream } = await acquireUserMedia(
 							meetingState.isCameraOn.value,
 							enable,
 						);
-						stream = await navigator.mediaDevices.getUserMedia(constraints);
+						stream = nextStream;
 						meetingState.localStream.value = stream;
 						meetingState.cameraPermissionGranted.value = true;
 						meetingState.microphonePermissionGranted.value = true;
@@ -462,12 +494,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					const hasAudio = stream.getAudioTracks().length > 0;
 					if (!hasAudio) {
 						try {
-							const { constraints, deviceIds } = await buildMediaConstraints(
-								false,
-								true,
-							);
-							const audioOnly =
-								await navigator.mediaDevices.getUserMedia(constraints);
+							const { stream: audioOnly } = await acquireUserMedia(false, true);
 							const newTrack = audioOnly.getAudioTracks()[0];
 							if (newTrack) {
 								stream.addTrack(newTrack);
@@ -491,12 +518,10 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 						if (at.readyState === "ended") {
 							// Track was stopped, get a new one
 							try {
-								const { constraints, deviceIds } = await buildMediaConstraints(
+								const { stream: audioOnly } = await acquireUserMedia(
 									false,
 									true,
 								);
-								const audioOnly =
-									await navigator.mediaDevices.getUserMedia(constraints);
 								const newTrack = audioOnly.getAudioTracks()[0];
 								if (newTrack) {
 									stream.removeTrack(at);
@@ -629,11 +654,11 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				if (!stream) {
 					// No existing stream: request both video and current audio state
 					try {
-						const { constraints, deviceIds } = await buildMediaConstraints(
+						const { stream: nextStream } = await acquireUserMedia(
 							true,
 							meetingState.isMicOn.value,
 						);
-						stream = await navigator.mediaDevices.getUserMedia(constraints);
+						stream = nextStream;
 						meetingState.localStream.value = stream;
 						meetingState.cameraPermissionGranted.value = true;
 						if (meetingState.isMicOn.value) {
@@ -656,12 +681,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					const hasVideo = stream.getVideoTracks().length > 0;
 					if (!hasVideo) {
 						try {
-							const { constraints, deviceIds } = await buildMediaConstraints(
-								true,
-								false,
-							);
-							const videoOnly =
-								await navigator.mediaDevices.getUserMedia(constraints);
+							const { stream: videoOnly } = await acquireUserMedia(true, false);
 							const newTrack = videoOnly.getVideoTracks()[0];
 							if (newTrack) {
 								stream.addTrack(newTrack);
@@ -694,12 +714,10 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 						if (vt.readyState === "ended") {
 							// Track was stopped, get a new one
 							try {
-								const { constraints, deviceIds } = await buildMediaConstraints(
+								const { stream: videoOnly } = await acquireUserMedia(
 									true,
 									false,
 								);
-								const videoOnly =
-									await navigator.mediaDevices.getUserMedia(constraints);
 								const newTrack = videoOnly.getVideoTracks()[0];
 								if (newTrack) {
 									stream.removeTrack(vt);
@@ -2232,6 +2250,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 
 		// Methods - Media
 		initializeCamera,
+		acquireUserMedia,
 		toggleMicrophone,
 		toggleCamera,
 		toggleScreenShare,
