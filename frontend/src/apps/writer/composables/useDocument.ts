@@ -34,7 +34,6 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       methods: {
         newVersion: 'new_version',
         saveDoc: 'save_doc',
-        saveComments: 'save_comments',
         saveHtml: 'save_html',
         updateSettings: 'update_settings',
       },

@@ -17,8 +17,6 @@
 import { ref, computed } from 'vue'
 import { createResource, Dialog, ErrorMessage, toast } from 'frappe-ui'
 
-import { mutate, getTrash, toggleFav, clearRecent, clearTrash } from '@/resources/files'
-
 import LucideRotateCcw from '~icons/lucide/rotate-ccw'
 
 const props = defineProps({
@@ -40,11 +38,6 @@ const dialogData = computed(() => {
         props.entities.length === 1 ? 'its original location' : 'their original locations'
       }.`,
       url: 'drive.api.files.remove_or_restore',
-      onSuccess: () => {
-        getTrash.setData((d) =>
-          d.filter((k) => !props.entities.map((l) => l.name).includes(k.name)),
-        )
-      },
       button: {
         variant: 'solid',
         label: 'Restore',
@@ -63,38 +56,6 @@ const dialogData = computed(() => {
         variant: 'subtle',
       },
       toastMessage: `Moved ${itemString} to Trash.`,
-    },
-    d: {
-      title: `Delete ${itemString}`,
-      url: 'drive.api.files.delete_entities',
-      message:
-        ' will be deleted - you can no longer access it.<br/><br/> <span class=font-semibold>This is an irreversible action.<span>',
-      button: {
-        label: 'Delete — forever.',
-        theme: 'red',
-        iconLeft: LucideTrash,
-        variant: 'solid',
-      },
-      toastMessage: `Deleted ${itemString}.`,
-    },
-    'cta-recents': {
-      title: 'Are you sure?',
-      message: 'All your recently viewed files will be cleared.',
-      button: { label: 'Clear' },
-      resource: clearRecent,
-    },
-    'cta-favourites': {
-      title: 'Are you sure?',
-      message: 'All your favourite items will be cleared.',
-      button: { label: 'Clear' },
-      resource: toggleFav,
-    },
-    'cta-trash': {
-      title: 'Clear your Trash',
-      message:
-        'All items in your Trash will be deleted forever. <br/><br/> <span class=font-semibold>This is an irreversible process.</span>',
-      button: { label: 'Delete', variant: 'solid', iconLeft: LucideTrash },
-      resource: clearTrash,
     },
   }
   return MAP[dialogType.value]
@@ -136,7 +97,6 @@ const updateResource = createResource({
   onSuccess(data) {
     emit('success', data)
     updateResource.reset()
-    if (dialogData.value.mutate) mutate(props.entities, props.dialogData.mutate)
     if (dialogData.value.onSuccess) dialogData.value.onSuccess(props.entities, data)
     toast.success(dialogData.value.toastMessage)
   },

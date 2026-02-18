@@ -12,6 +12,7 @@
   </div>
   <Navbar
     v-if="!inIframe && !showVersions && file.doc"
+    :file
     :document
     :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
     v-model:showVersions="showVersions"

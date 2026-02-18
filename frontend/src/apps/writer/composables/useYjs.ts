@@ -6,6 +6,7 @@ import { debounce, toast } from 'frappe-ui'
 import { absolutePositionToRelativePosition, ySyncPluginKey } from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
 import { ref } from 'vue'
+import { updateComments } from '@/resources'
 
 import store from '@/store'
 
@@ -64,7 +65,7 @@ export const useComments = (document, editor) => {
   }
   const saveComments = async () => {
     const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))
-    document.saveComments.submit({ data })
+    updateComments.submit({ doc: document.doc.name, data })
   }
   const cleanup = () => {
     providerComments.destroy()
@@ -74,7 +75,6 @@ export const useComments = (document, editor) => {
 }
 
 export function useYjs(id, document, editor, edited) {
-  console.log(document)
   const doc = new Y.Doc({ gc: true })
   if (document.doc.content) Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
   const roomName = 'fdoc-' + id

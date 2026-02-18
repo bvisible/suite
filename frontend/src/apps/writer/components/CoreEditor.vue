@@ -433,7 +433,7 @@ const menuButtons = computed(() => [
   },
 ])
 
-const bubbleButtons = props.file.comment
+const bubbleButtons = props.file.doc.comment
   ? [
       {
         label: 'Comment',
@@ -443,13 +443,14 @@ const bubbleButtons = props.file.comment
       },
     ]
   : []
+console.log(bubbleButtons)
 
 // Scripts
 
 const uploadFunction = (file) => {
   const fileUpload = useFileUpload()
   return fileUpload.upload(file, {
-    params: { file_id: props.file.name },
+    params: { file_id: props.file.doc.name },
     upload_endpoint: `/api/method/writer.api.embed.add`,
   })
 }
@@ -469,11 +470,11 @@ const autorename = () => {
     .replaceAll('#', '')
     .replaceAll('@', '')
     .trim()
-  if (!props.file.title.startsWith('Untitled Document')) return
+  if (!props.file.doc.title.startsWith('Untitled Document')) return
   if (implicitTitle.length)
     rename.submit(
       {
-        entity_name: props.file.name,
+        entity_name: props.file.doc.name,
         new_title: implicitTitle.slice(0, 100),
       },
       {
