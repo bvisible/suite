@@ -38,14 +38,14 @@
             activeComment === comment.id &&
             $store.state.user.id !== 'Guest' &&
             !comment.new &&
-            (comment.owner == $store.state.user.id || document.doc.write)
+            (comment.owner == $store.state.user.id || file.doc.write)
           "
           class="p-1.5 text-sm flex gap-1 border-b text-ink-gray-9"
           :class="comment.loading && !comment.edit && 'opacity-70'"
         >
           <Button
             v-if="
-              !comment.resolved && (comment.owner == $store.state.user.id || document.doc.write)
+              !comment.resolved && (comment.owner == $store.state.user.id || file.doc.write)
             "
             :disabled="comment.loading"
             variant="ghost"
@@ -58,7 +58,7 @@
             Resolve
           </Button>
           <Button
-            v-if="comment.resolved && (comment.owner == $store.state.user.id || document.doc.write)"
+            v-if="comment.resolved && (comment.owner == $store.state.user.id || file.doc.write)"
             :disabled="comment.loading"
             variant="ghost"
             class="!h-5 !text-xs !px-1.5 !rounded-sm"
@@ -72,7 +72,7 @@
           <Button
             v-if="
               comment.owner == $store.state.user.id ||
-              (comment.owner === 'Guest' && document.doc.write)
+              (comment.owner === 'Guest' && file.doc.write)
             "
             :disabled="comment.loading"
             variant="ghost"
@@ -253,7 +253,7 @@ import CommentEditor from './CommentEditor.vue'
 import { rebuild, getEditorPos } from '@/extensions/comments'
 
 const props = defineProps({
-  document: Object,
+  file: Object,
   editor: Object,
   yComments: Object,
   showComments: Boolean,

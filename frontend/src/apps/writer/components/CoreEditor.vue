@@ -104,10 +104,10 @@
       </div>
       <FloatingComments
         v-if="commentsPainted"
-        :y-comments="comments"
         v-model:active-comment="activeComment"
+        :y-comments="comments"
+        :file
         :show-comments
-        :document
         :show-resolved
         :editor
         @save="saveComments"
@@ -187,11 +187,11 @@ import LucideAlignVerticalSpacingAround from '~icons/lucide/align-vertical-space
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
 
 const props = defineProps({
+  file: Object,
   document: Object,
-  entity: Object,
   settings: Object,
   editable: Boolean,
-  doc: { required: false, default: null },
+  yjsDoc: { required: false, default: null },
   extensions: { type: Array, default: [] },
   comments: Object,
   newComment: Function,
@@ -332,7 +332,7 @@ const editorExtensions = [
 
   CommentExtension.configure({
     comments: props.comments,
-    doc: props.doc,
+    doc: props.yjsDoc,
     activeComment,
     showComments,
     showResolved,
@@ -433,7 +433,7 @@ const menuButtons = computed(() => [
   },
 ])
 
-const bubbleButtons = props.entity.comment
+const bubbleButtons = props.file.comment
   ? [
       {
         label: 'Comment',
@@ -449,7 +449,7 @@ const bubbleButtons = props.entity.comment
 const uploadFunction = (file) => {
   const fileUpload = useFileUpload()
   return fileUpload.upload(file, {
-    params: { file_id: props.entity.name },
+    params: { file_id: props.file.name },
     upload_endpoint: `/api/method/writer.api.embed.add`,
   })
 }
@@ -469,17 +469,17 @@ const autorename = () => {
     .replaceAll('#', '')
     .replaceAll('@', '')
     .trim()
-  if (!props.entity.title.startsWith('Untitled Document')) return
+  if (!props.file.title.startsWith('Untitled Document')) return
   if (implicitTitle.length)
     rename.submit(
       {
-        entity_name: props.entity.name,
+        entity_name: props.file.name,
         new_title: implicitTitle.slice(0, 100),
       },
       {
         onSuccess: () => {
-          props.document.doc.title = rename.params.new_title
-          props.document.doc.breadcrumbs[props.document.doc.breadcrumbs.length - 1].title =
+          props.file.doc.title = rename.params.new_title
+          props.file.doc.breadcrumbs[props.file.doc.breadcrumbs.length - 1].title =
             rename.params.new_title
           updateURLSlug(rename.params.new_title)
         },
@@ -488,7 +488,7 @@ const autorename = () => {
 }
 
 const addComment = () => {
-  if (!props.doc) {
+  if (!props.yjsDoc) {
     return toast.warning("New comments aren't supported on this doc.")
   }
   showComments.value = true

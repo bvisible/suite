@@ -1,23 +1,23 @@
 <template>
   <div
-    v-if="inIframe && document.doc"
+    v-if="inIframe && file.doc"
     class="p-1.5 border-b text-base text-ink-gray-7 flex justify-between items-center relative"
   >
     <div class="font-semibold">
-      {{ document.doc.title }}
+      {{ file.doc.title }}
     </div>
     <div class="flex gap-3 items-center text-ink-gray-5 text-xs">
-      Edited {{ document.doc.relativeModified }}
+      Edited {{ file.doc.relativeModified }}
     </div>
   </div>
   <Navbar
-    v-if="!inIframe && !showVersions && document.doc"
+    v-if="!inIframe && !showVersions && file.doc"
     :document
-    :breadcrumbs="document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
+    :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
     v-model:showVersions="showVersions"
     v-model:showTemplates="showTemplates"
   >
-    <template #content v-if="document.doc?.settings && document.doc.write">
+    <template #content v-if="document.doc?.settings && file.doc.write">
       <UsersBar
         v-if="editor?.storage?.collaborationCaret?.users?.length"
         :users="
@@ -59,12 +59,12 @@
     :document
     :editor
   />
-  <ErrorPage v-if="document.error" :error="document.error" />
+  <ErrorPage v-if="file.error" :error="file.error" />
   <LoadingIndicator
-    v-else-if="!document.doc && document.loading"
+    v-else-if="!file.doc && file.loading"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div v-else-if="document.doc" class="flex w-full h-full overflow-hidden" v-show="!showVersions">
+  <div v-else-if="document?.doc" class="flex w-full h-full overflow-hidden" v-show="!showVersions">
     <NonCollabEditor
       v-if="!document.doc?.collab"
       ref="editorEl"
@@ -75,14 +75,14 @@
       :settings
       :editable
     />
-    <MarkdownEditor v-else-if="document.doc?.mime_type == 'text/markdown'" :document :settings />
+    <MarkdownEditor v-else-if="file.doc?.mime_type == 'text/markdown'" :document :settings />
     <TextEditor
       v-else-if="document.doc?.settings"
       ref="editorEl"
       v-model:show-versions="showVersions"
       v-model:versionPreview="versionPreview"
       v-model:showSettings="showSettings"
-      :entity="document.doc"
+      :file
       :document
       :editable
       :settings
@@ -142,10 +142,10 @@ const isOldSchema = computed(() => {
 })
 
 const inIframe = inject('inIframe')
-const document = useDocument(props.id)
+const { file, document } = useDocument(() => props.id)
 const editable = computed(() =>
   !inIframe.value &&
-  !!document.doc?.write &&
+  !!file.doc?.write &&
   !document.doc?.settings?.lock &&
   editor.value &&
   !isOldSchema.value
@@ -156,7 +156,7 @@ watch(showVersions, (v) => {
   if (!v) versionPreview.value = null
 })
 usePageMeta(() => ({
-  title: document.doc ? document.doc.title : 'Loading...',
+  title: file.doc ? file.doc.title : 'Loading...',
 }))
 
 // fix: bad pattern
@@ -182,7 +182,7 @@ const settings = computed(() => {
   }
 })
 
-store.commit('setCurrentResource', document)
+store.commit('setCurrentResource', file)
 
 // Events
 window.addEventListener('offline', () => {
@@ -198,7 +198,7 @@ window.addEventListener('online', () => {
 
 let toasted
 watch(isOldSchema, (v) => {
-  if (document.doc?.settings && document.doc.write && v && !toasted) {
+  if (document.doc?.settings && file.doc.write && v && !toasted) {
     toast({
       title: 'This document uses an old schema. Collaborative editing is disabled.',
       type: 'warning',

@@ -73,10 +73,11 @@ export const useComments = (document, editor) => {
   return { saveComments, newComment, comments, cleanup }
 }
 
-export function useYjs(document, editor, edited) {
+export function useYjs(id, document, editor, edited) {
+  console.log(document)
   const doc = new Y.Doc({ gc: true })
   if (document.doc.content) Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
-  const roomName = 'fdoc-' + document.doc.name
+  const roomName = 'fdoc-' + id
   const db = new IndexeddbPersistence(roomName, doc)
   const loaded = ref(false)
   db.on('synced', () => (loaded.value = true))
@@ -106,7 +107,7 @@ export function useYjs(document, editor, edited) {
       console.log('Server skipped update - probably because other people are collaborating')
     } else if (document.saveDoc.error) {
       toast.error('Could not save the document - please contact support.')
-      localStorage.setItem('errored-save-out-' + document.doc.name + '-' + Date.now(), html)
+      localStorage.setItem('errored-save-out-' + id + '-' + Date.now(), html)
     }
   }
 
