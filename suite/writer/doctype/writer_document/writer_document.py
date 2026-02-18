@@ -23,6 +23,7 @@ class WriterDocument(Document):
     @frappe.whitelist(allow_guest=True)
     @requires("write")
     def save_doc(self, data: str, html: str | None = None):
+        raise hahah
         try:
             frappe.db.set_value("Writer Document", self.name, "content", data)
             if html is not None:
