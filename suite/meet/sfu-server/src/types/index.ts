@@ -123,6 +123,10 @@ export interface ClientToServerEvents {
 		data: { transportId: string; dtlsParameters: DtlsParameters },
 		callback: (response: SFUResponse) => void,
 	) => void;
+	restart_webrtc_transport_ice: (
+		data: { transportId: string },
+		callback: (response: TransportIceRestartResponse) => void,
+	) => void;
 	create_producer: (
 		data: {
 			transportId: string;
@@ -225,6 +229,10 @@ export interface WebRTCTransportResponse extends SFUResponse {
 	iceParameters: IceParameters;
 	iceCandidates: IceCandidate[];
 	dtlsParameters: DtlsParameters;
+}
+
+export interface TransportIceRestartResponse extends SFUResponse {
+	iceParameters: IceParameters;
 }
 
 export interface ProducerResponse extends SFUResponse, ProducerInfo {
@@ -395,6 +403,8 @@ export interface RoomStats {
 	created: Date;
 	peerCount: number;
 	peers: string[];
+	producerCount?: number;
+	consumerCount?: number;
 }
 
 // Configuration types

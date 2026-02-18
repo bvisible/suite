@@ -478,6 +478,13 @@ class SFUClient {
 		console.log(`Transport ${transportId} connected successfully`);
 	}
 
+	async restartWebRtcTransportIce(transportId) {
+		const response = await this.sendRequest("restart_webrtc_transport_ice", {
+			transportId,
+		});
+		return response.iceParameters;
+	}
+
 	async createProducer(transportId, rtpParameters, kind, appData = {}) {
 		return this.sendRequest("create_producer", {
 			transportId,

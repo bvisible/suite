@@ -123,6 +123,10 @@ export class MediasoupManager {
 		);
 	}
 
+	async restartWebRtcTransportIce(transportId: string): Promise<IceParameters> {
+		return this.transportManager.restartWebRtcTransportIce(transportId);
+	}
+
 	async createPlainTransport(
 		roomId: string,
 		peerId: string,

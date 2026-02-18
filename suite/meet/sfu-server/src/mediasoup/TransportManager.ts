@@ -80,6 +80,15 @@ export class TransportManager {
 		}
 	}
 
+	async restartWebRtcTransportIce(transportId: string): Promise<IceParameters> {
+		const transportData = this.transports.get(transportId);
+		if (!transportData) {
+			throw new Error(`Transport ${transportId} not found`);
+		}
+
+		return transportData.transport.restartIce();
+	}
+
 	getTransport(transportId: string): WebRtcTransport | undefined {
 		return this.transports.get(transportId)?.transport;
 	}

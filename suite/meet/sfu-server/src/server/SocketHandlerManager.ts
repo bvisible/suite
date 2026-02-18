@@ -558,6 +558,23 @@ export class SocketHandlerManager {
 			}
 		});
 
+		socket.on('restart_webrtc_transport_ice', async (data, callback) => {
+			try {
+				this.authManager.ensureFullAccess(socket);
+				const { transportId } = data;
+				const iceParameters =
+					await this.mediasoup.restartWebRtcTransportIce(transportId);
+
+				callback({ success: true, iceParameters });
+			} catch (error) {
+				loggers.socketHandler.error(
+					'Error restarting WebRTC transport ICE: %s',
+					(error as Error).message,
+				);
+				callback({ success: false, error: (error as Error).message });
+			}
+		});
+
 		socket.on('create_plain_transport', async (_data, callback) => {
 			try {
 				const isDev = process.env.NODE_ENV === 'development';

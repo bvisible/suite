@@ -19,6 +19,19 @@ export class TransportManager {
 		this.sfuClient = null;
 		this.routerRtpCapabilities = null;
 		this.activeVideoStrategy = "simulcast";
+		this.eventHandlers = {};
+	}
+
+	setEventHandlers(handlers = {}) {
+		this.eventHandlers = { ...this.eventHandlers, ...handlers };
+	}
+
+	emitTransportConnectionState(direction, state) {
+		if (
+			typeof this.eventHandlers.onTransportConnectionStateChange === "function"
+		) {
+			this.eventHandlers.onTransportConnectionStateChange({ direction, state });
+		}
 	}
 
 	getVideoEncodingDecision() {
@@ -97,6 +110,13 @@ export class TransportManager {
 				errback(error);
 			}
 		});
+
+		this.sendTransport.on("connectionstatechange", (state) => {
+			if (state === "failed") {
+				console.error("Send transport failed");
+			}
+			this.emitTransportConnectionState("send", state);
+		});
 	}
 
 	async createReceiveTransport() {
@@ -138,7 +158,33 @@ export class TransportManager {
 			if (state === "failed") {
 				console.error("Receive transport failed");
 			}
+			this.emitTransportConnectionState("recv", state);
 		});
+	}
+
+	async restartTransportIce(direction) {
+		const transport =
+			direction === "send" ? this.sendTransport : this.recvTransport;
+		if (!transport) {
+			return false;
+		}
+
+		const iceParameters = await this.sfuClient.restartWebRtcTransportIce(
+			transport.id,
+		);
+		await transport.restartIce({ iceParameters });
+		return true;
+	}
+
+	async restartAllTransportIce() {
+		const results = await Promise.allSettled([
+			this.restartTransportIce("send"),
+			this.restartTransportIce("recv"),
+		]);
+
+		return results.some(
+			(result) => result.status === "fulfilled" && result.value === true,
+		);
 	}
 
 	async createProducer(track, appData = {}) {
