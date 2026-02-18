@@ -32,4 +32,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD curl -fsS http://127.0.0.1:3000/health || exit 1
 
 ENTRYPOINT ["/usr/bin/tini","--"]
-CMD ["node","dist/server.js"]
+CMD ["node","dist/sfu-server/src/server.js"]
