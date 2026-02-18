@@ -228,7 +228,7 @@ const autoversion = async () => {
   const html = editor.value.getHTML()
   if (!html || html === '<p></p>') return
   await props.document.newVersion.submit({ data: html })
-  if (props.document.newVersion.error) {
+  if (props.document.newVersion.error && props.document.newVersion.error !== 'Client is offline') {
     toast.error('Something has gone wrong - please contact support.')
   }
 }
@@ -515,7 +515,7 @@ onKeyDown('p', (e) => {
 emitter.on('print-file', () => {
   if (editor.value) printDoc(editor.value.getHTML(), props.settings)
 })
-const manualSave = () => emit('save', true)
+const manualSave = (func) => emit('save', true, null, func)
 emitter.on('manual-save', manualSave)
 
 onKeyDown('Enter', autorename)
@@ -523,8 +523,7 @@ onKeyDown('s', (e) => {
   if (!props.editable) return
   if (!isModKey(e) || e.shiftKey) return
   e.preventDefault()
-  manualSave()
-  toast.success('Saved document', { duration: 0.75 })
+  manualSave(() => toast.success('Saved document', { duration: 0.75 }))
 })
 
 onBeforeUnmount(() => {

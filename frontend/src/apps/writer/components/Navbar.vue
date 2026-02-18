@@ -21,6 +21,14 @@
     <div class="ml-auto flex items-center gap-3">
       <div id="navbar-content" class="flex gap-3" />
       <slot name="content" />
+      <Button
+        v-if="offline"
+        label="Offline"
+        variant="subtle"
+        size="sm"
+        class="pointer-events-none"
+        :icon-left="h(LucideWifiOff, { class: 'size-4' })"
+      />
       <div v-if="document?.doc?.share_count" class="icon">
         <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
         <LucideBuilding2 v-else-if="document.doc.share_count === -1" class="size-4" />
@@ -79,6 +87,9 @@ import { exportBlog } from '@/utils/exports'
 import Dialogs from '@/components/Dialogs.vue'
 import { apps } from '@/resources/permissions'
 import { dynamicList } from '@/utils/'
+import { downloadZippedHTML, downloadMD } from '@/utils'
+import { downloadDocxFromHtml } from '../utils/docxexporter'
+import { getLink } from '@/utils'
 
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -97,9 +108,8 @@ import LucideListRestart from '~icons/lucide/list-restart'
 import LucideHistory from '~icons/lucide/history'
 import LucideLayoutTemplate from '~icons/lucide/layout-template'
 import LucideMarkdown from '~icons/lucide/pilcrow'
-import { downloadZippedHTML, downloadMD } from '@/utils'
-import { downloadDocxFromHtml } from '../utils/docxexporter'
-import { getLink } from '@/utils'
+import LucideWifiOff from '~icons/lucide/wifi-off'
+
 import WriterLogo from './WriterLogo.vue'
 
 const store = useStore()
@@ -113,6 +123,7 @@ const props = defineProps({
   breadcrumbs: {
     default: [],
   },
+  offline: Boolean,
 })
 
 const showVersions = defineModel('showVersions')

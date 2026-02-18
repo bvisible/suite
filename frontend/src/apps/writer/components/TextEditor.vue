@@ -6,7 +6,11 @@
     v-bind="{ ...props, ...commentsDetail }"
     :yjs-doc="doc"
     :extensions
-    @save="(manual = false, html) => save(manual, html)"
+    @save="
+      (manual = false, html, func) => {
+        save(manual, html).then(func)
+      }
+    "
     @cleanup="cleanup"
   />
 </template>

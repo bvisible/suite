@@ -12,11 +12,12 @@
   </div>
   <Navbar
     v-if="!inIframe && !showVersions && file.doc"
+    v-model:showVersions="showVersions"
+    v-model:showTemplates="showTemplates"
     :file
     :document
     :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
-    v-model:showVersions="showVersions"
-    v-model:showTemplates="showTemplates"
+    :offline
   >
     <template #content v-if="document.doc?.settings && file.doc.write">
       <UsersBar
@@ -114,10 +115,8 @@ import UsersBar from '@/components/UsersBar.vue'
 
 import { toast } from '@/utils/'
 import useDocument from '@/composables/useDocument'
-import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
 import LucideLockOpen from '~icons/lucide/lock-open'
-import LucideWifiOff from '~icons/lucide/wifi-off'
 import TextEditor from '@/components/TextEditor.vue'
 
 const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor.vue'))
@@ -136,6 +135,7 @@ const versionPreview = ref(null)
 const showSettings = ref(false)
 const showTemplates = ref(false)
 const showVersions = ref(false)
+const offline = ref(false)
 
 const isOldSchema = computed(() => {
   if (!document.doc) return false
@@ -186,16 +186,8 @@ const settings = computed(() => {
 store.commit('setCurrentResource', file)
 
 // Events
-window.addEventListener('offline', () => {
-  toast({
-    title: "You're offline",
-    icon: LucideWifiOff,
-    text: "Don't worry, your changes will be saved locally.",
-  })
-})
-window.addEventListener('online', () => {
-  toast({ title: 'Back online!', icon: h(LucideWifi) })
-})
+window.addEventListener('offline', () => (offline.value = true))
+window.addEventListener('online', () => (offline.value = false))
 
 let toasted
 watch(isOldSchema, (v) => {

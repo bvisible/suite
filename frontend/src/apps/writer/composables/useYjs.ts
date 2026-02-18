@@ -106,8 +106,11 @@ export function useYjs(id, document, editor, edited) {
     if (data?.skipped) {
       console.log('Server skipped update - probably because other people are collaborating')
     } else if (document.saveDoc.error) {
-      toast.error('Could not save the document - please contact support.')
-      localStorage.setItem('errored-save-out-' + id + '-' + Date.now(), html)
+      if (document.saveDoc.error !== 'Client is offline') {
+        toast.error('Could not save the document.')
+        localStorage.setItem('errored-save-out-' + id + '-' + Date.now(), html)
+      }
+      throw new Error(`Server error during save: ${document.saveDoc.error}`)
     }
   }
 
