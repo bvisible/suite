@@ -29,6 +29,8 @@ export class SFUMeetingManager {
 
 		this.sfuClient = null;
 		this.eventHandlers = {};
+		this.recoveryInProgress = false;
+		this.lastRecoveryAt = 0;
 
 		this.eventTarget = new EventTarget();
 	}
@@ -94,6 +96,12 @@ export class SFUMeetingManager {
 						err,
 					);
 				}
+			},
+		});
+
+		this.transportManager.setEventHandlers({
+			onTransportConnectionStateChange: ({ direction, state }) => {
+				this.handleTransportConnectionStateChange(direction, state);
 			},
 		});
 	}
@@ -497,6 +505,10 @@ export class SFUMeetingManager {
 	}
 
 	setupSFUEventHandlers() {
+		this.sfuClient.on("reconnect", () => {
+			this.recoverTransportIce("socket_reconnect");
+		});
+
 		this.sfuClient.on("participant_joined", (data) => {
 			const currentUserId =
 				this.currentUser?.user_id || this.currentUser?.userId;
@@ -726,6 +738,50 @@ export class SFUMeetingManager {
 		});
 	}
 
+	handleTransportConnectionStateChange(direction, state) {
+		if (state === "failed" || state === "closed") {
+			this.recoverTransportIce(`transport_${direction}_${state}`);
+		}
+	}
+
+	async recoverTransportIce(reason) {
+		if (this.recoveryInProgress) {
+			return false;
+		}
+
+		if (!this.sfuClient?.isConnected?.()) {
+			return false;
+		}
+
+		const now = Date.now();
+		if (now - this.lastRecoveryAt < 7000) {
+			return false;
+		}
+
+		this.recoveryInProgress = true;
+		this.lastRecoveryAt = now;
+
+		try {
+			console.warn("Restarting SFU transport ICE", {
+				reason,
+				meetingId: this.meetingId,
+			});
+
+			const restarted = await this.transportManager.restartAllTransportIce();
+			if (!restarted) {
+				return false;
+			}
+
+			console.log("SFU transport ICE restart completed", { reason });
+			return true;
+		} catch (error) {
+			console.error("SFU transport ICE restart failed:", error);
+			return false;
+		} finally {
+			this.recoveryInProgress = false;
+		}
+	}
+
 	registerVideoElement(participantId, element) {
 		this.videoManager.registerVideoElement(participantId, element);
 	}
@@ -758,6 +814,8 @@ export class SFUMeetingManager {
 
 	async disconnect() {
 		try {
+			this.recoveryInProgress = false;
+
 			// Close producers/consumers and transports first
 			this.consumerManager?.clear?.();
 			this.mediaHandler?.cleanup?.();
@@ -788,6 +846,8 @@ export class SFUMeetingManager {
 		this.eventHandlers = {};
 		this.isConnected = false;
 		this.isSetupComplete = false;
+		this.recoveryInProgress = false;
+		this.lastRecoveryAt = 0;
 	}
 
 	/**
