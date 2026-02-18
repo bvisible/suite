@@ -224,8 +224,7 @@ export class SFUMeetingManager {
 			const participants = await this.sfuClient.getRoomParticipants();
 
 			// Get current user ID to filter out self from participants
-			const currentUserId =
-				this.currentUser?.user_id || this.currentUser?.userId;
+			const currentUserId = this.getCurrentUserId();
 
 			const normalized = (participants || [])
 				.map((p) => {
@@ -278,8 +277,7 @@ export class SFUMeetingManager {
 					})),
 				);
 
-				const currentUserId =
-					this.currentUser?.user_id || this.currentUser?.userId;
+				const currentUserId = this.getCurrentUserId();
 
 				for (const producerInfo of existingProducers) {
 					const pid =
@@ -359,7 +357,7 @@ export class SFUMeetingManager {
 			return;
 		}
 
-		const currentUserId = this.currentUser?.user_id || this.currentUser?.userId;
+		const currentUserId = this.getCurrentUserId();
 		if (participantId === currentUserId) {
 			return;
 		}
@@ -488,7 +486,7 @@ export class SFUMeetingManager {
 					continue;
 				}
 
-				const isSelf = event.participantId === this.currentUser.value?.user_id;
+				const isSelf = event.participantId === this.getCurrentUserId();
 				const isScreen = !!event.isScreen;
 				if (!isSelf) {
 					const metadata = { isScreen };
@@ -510,8 +508,7 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("participant_joined", (data) => {
-			const currentUserId =
-				this.currentUser?.user_id || this.currentUser?.userId;
+			const currentUserId = this.getCurrentUserId();
 			const joinedUserId = data.participantId || data.user_id;
 
 			if (joinedUserId && joinedUserId !== currentUserId) {
@@ -524,7 +521,7 @@ export class SFUMeetingManager {
 		});
 
 		this.sfuClient.on("producer_created", async (data) => {
-			if (data.participantId === this.currentUser.value?.user_id) return;
+			if (data.participantId === this.getCurrentUserId()) return;
 
 			// If we're syncing or the device isn't ready yet, buffer this event
 			if (
@@ -535,7 +532,7 @@ export class SFUMeetingManager {
 				return;
 			}
 
-			const isSelf = data.participantId === this.currentUser.value?.user_id;
+			const isSelf = data.participantId === this.getCurrentUserId();
 			const isScreen = !!data.isScreen;
 			if (!isSelf) {
 				const metadata = { isScreen };
@@ -648,7 +645,7 @@ export class SFUMeetingManager {
 		this.sfuClient.on("host_control_update", (data) => {
 			const { action, targetParticipantId, hostId } = data;
 
-			const myParticipantId = this.currentUser.value?.user_id;
+			const myParticipantId = this.getCurrentUserId();
 
 			console.log("SFU event: host_control_update", {
 				action,
@@ -858,6 +855,11 @@ export class SFUMeetingManager {
 			return obj;
 		}
 		return { value: obj };
+	}
+
+	getCurrentUserId() {
+		const currentUser = this.currentUser?.value || this.currentUser;
+		return currentUser?.user_id || currentUser?.userId || null;
 	}
 }
 
