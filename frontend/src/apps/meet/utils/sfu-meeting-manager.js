@@ -277,26 +277,23 @@ export class SFUMeetingManager {
 					})),
 				);
 
-				const currentUserId = this.getCurrentUserId();
-
 				for (const producerInfo of existingProducers) {
-					const pid =
+					const participantId =
 						producerInfo.participantId ||
 						producerInfo.user_id ||
 						producerInfo.userId;
 
-					if (pid === currentUserId) {
-						continue;
-					}
-
-					const metadata = { isScreen: !!producerInfo.isScreen };
 					console.log("Subscribing to existing producer:", {
 						producerId: producerInfo.id,
-						participantId: pid,
+						participantId,
 						kind: producerInfo.kind,
 						isScreen: !!producerInfo.isScreen,
 					});
-					await this.subscribeToProducer(producerInfo.id, pid, metadata);
+					await this.subscribeToRemoteProducer({
+						producerId: producerInfo.id,
+						participantId,
+						isScreen: producerInfo.isScreen,
+					});
 				}
 			} else {
 				console.log("No existing producers found");
@@ -339,6 +336,20 @@ export class SFUMeetingManager {
 			console.error(`Failed to subscribe to producer ${producerId}:`, error);
 			throw error;
 		}
+	}
+
+	async subscribeToRemoteProducer({ producerId, participantId, isScreen }) {
+		if (!producerId || !participantId) {
+			return null;
+		}
+
+		if (participantId === this.getCurrentUserId()) {
+			return null;
+		}
+
+		return this.subscribeToProducer(producerId, participantId, {
+			isScreen: !!isScreen,
+		});
 	}
 
 	async handleNewConsumer(consumer) {
@@ -486,16 +497,11 @@ export class SFUMeetingManager {
 					continue;
 				}
 
-				const isSelf = event.participantId === this.getCurrentUserId();
-				const isScreen = !!event.isScreen;
-				if (!isSelf) {
-					const metadata = { isScreen };
-					await this.subscribeToProducer(
-						event.producerId,
-						event.participantId,
-						metadata,
-					);
-				}
+				await this.subscribeToRemoteProducer({
+					producerId: event.producerId,
+					participantId: event.participantId,
+					isScreen: event.isScreen,
+				});
 			} catch (error) {
 				console.warn("Failed to process buffered producer:", error);
 			}
@@ -532,16 +538,11 @@ export class SFUMeetingManager {
 				return;
 			}
 
-			const isSelf = data.participantId === this.getCurrentUserId();
-			const isScreen = !!data.isScreen;
-			if (!isSelf) {
-				const metadata = { isScreen };
-				await this.subscribeToProducer(
-					data.producerId,
-					data.participantId,
-					metadata,
-				);
-			}
+			await this.subscribeToRemoteProducer({
+				producerId: data.producerId,
+				participantId: data.participantId,
+				isScreen: data.isScreen,
+			});
 		});
 
 		this.sfuClient.on("producer_closed", (data) => {
