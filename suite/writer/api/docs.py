@@ -14,7 +14,12 @@ from drive.utils import (
     get_default_team,
 )
 from drive.api.files import get_new_title
-from drive.api.permissions import user_has_permission, ENTITY_FIELDS, get_user_access
+from drive.api.permissions import (
+    user_has_permission,
+    ENTITY_FIELDS,
+    get_user_access,
+    requires,
+)
 from drive.utils.files import FileManager
 from drive.utils.users import mark_as_viewed
 
@@ -175,3 +180,12 @@ def clean_content_for_obsidian(content):
         "\n\n\n", "\n<p></p>"
     )
     return content
+
+
+@frappe.whitelist(allow_guest=True)
+def save_comments(doc: str, data: str):
+    file = frappe.get_doc("Drive File", {"doc": doc})
+    if not user_has_permission(file, "comment"):
+        frappe.throw("You cannot comment on this file.")
+
+    frappe.get_doc("Writer Document", doc).save_comments(data, file)
