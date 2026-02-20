@@ -23,7 +23,6 @@ class WriterDocument(Document):
     @frappe.whitelist(allow_guest=True)
     @requires("write")
     def save_doc(self, data: str, html: str | None = None):
-        raise hahah
         try:
             frappe.db.set_value("Writer Document", self.name, "content", data)
             if html is not None:
@@ -132,8 +131,8 @@ class WriterDocument(Document):
     def rename(self):
         frappe.get_value({"doc": self.name}).rename()
 
-    def as_dict(self):
-        result = super().as_dict(self)
+    def as_dict(self, *args, **kwargs):
+        result = super().as_dict(*args, **kwargs)
         result.pop("versions")
         return result
 

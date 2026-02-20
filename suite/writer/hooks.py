@@ -127,7 +127,7 @@ permission_query_conditions = {
 }
 #
 has_permission = {
-	"Writer Document": "writer.writer.perms.has_permission",
+    "Writer Document": "writer.perms.has_permission",
 }
 
 # Document Events
@@ -246,7 +246,6 @@ has_permission = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
 
 
 ALLOWED_WILDCARD_PATHS = [
