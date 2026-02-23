@@ -6,7 +6,6 @@ from io import BytesIO
 from pathlib import Path
 
 import frappe
-import html2text
 import jwt
 import magic
 import mimemapper
@@ -15,7 +14,6 @@ from werkzeug.utils import secure_filename, send_file
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
-from drive.api.notifications import notify_mentions
 from drive.api.storage import storage_bar_data
 from drive.utils import (
     create_drive_file,
@@ -612,7 +610,7 @@ def set_favourite(entities: list[str] | None = None, clear_all: bool = False):
 
 
 @frappe.whitelist()
-def remove_or_restore(entity_names: list[str]):
+def remove_or_restore(entity_names: list[str] | str):
     """
     To move entities to or restore entities from the trash
 
