@@ -616,6 +616,8 @@ def remove_or_restore(entity_names: list[str] | str):
 
     :param entity_names: List of document-names
     """
+    if isinstance(entity_names, str):
+        entity_names = json.loads(entity_names)
     if not isinstance(entity_names, list):
         frappe.throw(f"Expected list but got {type(entity_names)}", ValueError)
     manager = FileManager()
