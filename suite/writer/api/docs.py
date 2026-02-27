@@ -4,6 +4,7 @@ import io
 import frappe
 import markdown
 from markdown.extensions.wikilinks import WikiLinkExtension
+import mimemapper
 
 from drive.utils import (
     create_drive_file,
@@ -17,6 +18,12 @@ from drive.api.files import get_new_title
 from drive.api.permissions import user_has_permission, ENTITY_FIELDS, get_user_access
 from drive.utils.files import FileManager
 from drive.utils.users import mark_as_viewed
+
+# To be moved to mimemapper
+QUICK_MAP = {
+    "video/quicktime": "mov",
+    "image/gif": "gif",
+}
 
 
 @frappe.whitelist()
@@ -149,7 +156,7 @@ def get_markdown_file(entity, return_obj):
     manager = FileManager()
     wrapper = io.TextIOWrapper(manager.get_file(entity))
     url_builder = (
-        lambda label, base, end: f"/api/method/drive.api.docs.get_wiki_link?team={entity.team}&title={label}"
+        lambda label, base, end: f"/api/method/writer.api.docs.get_wiki_link?team={entity.team}&title={label}"
     )
     with wrapper as r:
         content = r.read()
@@ -175,3 +182,62 @@ def clean_content_for_obsidian(content):
         "\n\n\n", "\n<p></p>"
     )
     return content
+
+
+@frappe.whitelist()
+def get_extension(entity_name):
+    mime_type = frappe.get_value("Drive File", entity_name, "mime_type")
+    try:
+        return mimemapper.get_extension(mime_type)
+    except:
+        return QUICK_MAP.get(mime_type, "")
+
+
+@frappe.whitelist()
+def create_blog(entity_name, html, attachments=None):
+    """
+    If the blog app is installed, creates a blog
+    """
+    file = frappe.get_doc("Drive File", entity_name)
+    blogger = frappe.db.exists("Blogger", {"user": frappe.session.user})
+    if not blogger:
+        frappe.throw("Please create a Blogger for your user first.")
+
+    if not frappe.db.exists("Blog Category", {"name": "writer-export"}):
+        category = frappe.get_doc(
+            {"doctype": "Blog Category", "title": "Writer Export"}
+        )
+        category.insert()
+        print("insrted", category, category.name)
+    else:
+        category = frappe.get_doc("Blog Category", "writer-export")
+
+    blog = frappe.get_doc(
+        {
+            "doctype": "Blog Post",
+            "title": file.title,
+            "content_type": "HTML",
+            "blog_category": category.name,
+            "blogger": blogger,
+            "content_html": html,
+        }
+    )
+    blog.insert()
+    return blog.name
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_wiki_link(title: str, team: str):
+    title = title.strip("/")
+    possible_titles = [title, title + ".md", title + ".txt"]
+    names = (frappe.get_value("Drive File", {"title": k, "team": team, "is_group": 0}, "name") for k in possible_titles)
+    try:
+        name = next(k for k in names if k)
+    except StopIteration:
+        frappe.throw("Cannot get this wikilink in this team.", frappe.NotFound)
+
+    frappe.local.response["type"] = "redirect"
+    frappe.local.response["location"] = "/drive/f/" + name
+    return title
