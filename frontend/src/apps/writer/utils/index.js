@@ -63,11 +63,18 @@ export const openEntity = (entity, new_tab = false) => {
     })
   } else if (entity.is_link) {
     const origin = new URL(entity.path).origin
-    if (confirm(`This will open an external link to ${origin} - are you sure you want to open?`))
+    if (
+      confirm(
+        `This will open an external link to ${origin} - are you sure you want to open?`,
+      )
+    )
       window.open(entity.path, '_blank')
   } else if (entity.mime_type === 'frappe/slides') {
     window.open('/slides/presentation/' + entity.path, '_blank')
-  } else if (entity.mime_type === 'frappe_doc' || entity.mime_type === 'text/markdown') {
+  } else if (
+    entity.mime_type === 'frappe_doc' ||
+    entity.mime_type === 'text/markdown'
+  ) {
     router.push({
       name: 'Document',
       params: { entityName: entity.name },
@@ -82,8 +89,12 @@ export const openEntity = (entity, new_tab = false) => {
 
 function trimCommonPrefix(a, b) {
   let i = 0
-  while (i < a.length && i < b.length && !/^\d+$/.test(a[i]) && a[i] === b[i]) i++
-  return [a.slice(i).split(/[\W]/)[0].toLowerCase(), b.slice(i).split(/[\W]/)[0].toLowerCase()]
+  while (i < a.length && i < b.length && !/^\d+$/.test(a[i]) && a[i] === b[i])
+    i++
+  return [
+    a.slice(i).split(/[\W]/)[0].toLowerCase(),
+    b.slice(i).split(/[\W]/)[0].toLowerCase(),
+  ]
 }
 
 function extractNum(name) {
@@ -201,20 +212,27 @@ export const setBreadCrumbs = (entity) => {
       {
         label: in_home ? __('Home') : team.title,
         name: in_home ? 'Home' : team.name,
-        route: in_home ? { name: 'Home' } : { name: 'Team', params: { team: team.name } },
+        route: in_home
+          ? { name: 'Home' }
+          : { name: 'Team', params: { team: team.name } },
       },
     ]
 
   if (!breadcrumbs[0].parent_entity) breadcrumbs.splice(0, 1)
-  const popBreadcrumbs = (item) => () => res.splice(res.findIndex((k) => k.name === item.name) + 1)
+  const popBreadcrumbs = (item) => () =>
+    res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
   breadcrumbs.forEach((folder, idx) => {
     const final = idx === breadcrumbs.length - 1
     res.push({
       label: folder.title,
       name: folder.name,
-      onClick: final ? () => entity.write && emitter.emit('rename') : popBreadcrumbs(folder),
-      route: final ? null : { name: 'Folder', params: { entityName: folder.name } },
+      onClick: final
+        ? () => entity.write && emitter.emit('rename')
+        : popBreadcrumbs(folder),
+      route: final
+        ? null
+        : { name: 'Folder', params: { entityName: folder.name } },
     })
   })
   store.commit('setBreadcrumbs', res)
@@ -281,8 +299,21 @@ export const MIME_LIST_MAP = {
     'application/vnd.oasis.opendocument.presentation',
     'application/vnd.apple.keynote',
   ],
-  Audio: ['audio/mpeg', 'audio/wav', 'audio/x-midi', 'audio/ogg', 'audio/mp4', 'audio/mp3'],
-  Video: ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-matroska'],
+  Audio: [
+    'audio/mpeg',
+    'audio/wav',
+    'audio/x-midi',
+    'audio/ogg',
+    'audio/mp4',
+    'audio/mp3',
+  ],
+  Video: [
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',
+    'video/x-matroska',
+  ],
   Book: ['application/epub+zip', 'application/x-mobipocket-ebook'],
   Application: [
     'application/octet-stream',
@@ -446,11 +477,16 @@ export function printDoc(html, settings = {}) {
           `
   const iframe = document.createElement('iframe')
   iframe.id = 'el-tiptap-iframe'
-  iframe.setAttribute('style', 'position: absolute; width: 0; height: 0; top: -10px; left: -10px;')
+  iframe.setAttribute(
+    'style',
+    'position: absolute; width: 0; height: 0; top: -10px; left: -10px;',
+  )
   document.body.appendChild(iframe)
 
   const frameWindow = iframe.contentWindow
-  const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document)
+  const doc =
+    iframe.contentDocument ||
+    (iframe.contentWindow && iframe.contentWindow.document)
 
   if (doc) {
     doc.open()
@@ -496,7 +532,8 @@ function getLinkStem(entity) {
     {
       true: 'f',
       [new Boolean(entity.is_group)]: 'd',
-      [new Boolean(entity.document || entity.mime_type === 'text/markdown')]: 'w',
+      [new Boolean(entity.document || entity.mime_type === 'text/markdown')]:
+        'w',
     }[true]
   }/${entity.name}/${slugger(entity.title)}`
 }
@@ -558,7 +595,8 @@ export function dynamicList(k) {
 }
 
 export const setTitle = (title) =>
-  (document.title = (router.currentRoute.value.name === 'Folder' ? 'Folder - ' : '') + title)
+  (document.title =
+    (router.currentRoute.value.name === 'Folder' ? 'Folder - ' : '') + title)
 
 async function uploadImage(file, params) {
   const uploader = useFileUpload()
@@ -606,7 +644,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Caveat',
     key: 'caveat',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-caveat)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-caveat)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-caveat)',
@@ -615,7 +654,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Comic Sans',
     key: 'comic-sans',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-comic-sans)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-comic-sans)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-comic-sans)',
@@ -624,7 +664,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Comfortaa',
     key: 'comfortaa',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-comfortaa)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-comfortaa)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-comfortaa)',
@@ -633,7 +674,8 @@ export const FONT_FAMILIES = [
   {
     label: 'EB Garamond',
     key: 'eb-garamond',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-eb-garamond)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-eb-garamond)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-eb-garamond)',
@@ -651,7 +693,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Geist',
     key: 'geist',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-geist)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-geist)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-geist)',
@@ -660,7 +703,8 @@ export const FONT_FAMILIES = [
   {
     label: 'IBM Plex Sans',
     key: 'ibm-plex',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-ibm-plex)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-ibm-plex)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-ibm-plex)',
@@ -669,7 +713,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Inter',
     key: 'inter',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-inter)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-inter)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-inter)',
@@ -678,7 +723,8 @@ export const FONT_FAMILIES = [
   {
     label: 'JetBrains Mono',
     key: 'jetbrains',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-jetbrains)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-jetbrains)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-jetbrains)',
@@ -687,7 +733,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Lora',
     key: 'lora',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-lora)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-lora)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-lora)',
@@ -696,7 +743,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Merriweather',
     key: 'merriweather',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-merriweather)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-merriweather)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-merriweather)',
@@ -705,7 +753,8 @@ export const FONT_FAMILIES = [
   {
     label: 'Nunito',
     key: 'nunito',
-    action: (editor) => editor.chain().focus().setFontFamily('var(--font-nunito)').run(),
+    action: (editor) =>
+      editor.chain().focus().setFontFamily('var(--font-nunito)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-nunito)',
@@ -779,7 +828,7 @@ export async function downloadMD(editor, foldername) {
   const zip = new JSZip()
   const urls = editor.value.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: 'drive.api.docs.get_extension',
+    url: 'writer.api.docs.get_extension',
   })
   const parent = router.currentRoute.value.params.entityName
   const markdown = turndownService.turndown(html)
@@ -817,7 +866,7 @@ export async function downloadZippedHTML(editor, foldername, settings = {}) {
   zip.file(`${foldername}.html`, html)
   const urls = editor.value.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: 'drive.api.docs.get_extension',
+    url: 'writer.api.docs.get_extension',
   })
   const parent = router.currentRoute.value.params.entityName
 
@@ -839,8 +888,9 @@ export async function downloadZippedHTML(editor, foldername, settings = {}) {
 
 export const insertTemplate = (template, editor) => {
   if (!template.content) return false
-  const content = template.content.replaceAll(/\{\{(date|time|datetime)\}\}/g, (_, type) =>
-    formatDate(new Date(), { datetime: type }),
+  const content = template.content.replaceAll(
+    /\{\{(date|time|datetime)\}\}/g,
+    (_, type) => formatDate(new Date(), { datetime: type }),
   )
   editor.commands.insertContent(content)
   editor.commands.focus()

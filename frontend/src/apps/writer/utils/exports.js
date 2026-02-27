@@ -5,7 +5,7 @@ export const exportMedia = async (editor) => {
   toast('Preparing...')
   const urls = editor.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: 'drive.api.docs.get_extension',
+    url: 'writer.api.docs.get_extension',
   })
   console.log(urls)
   for (const i in urls) {
@@ -18,7 +18,7 @@ export const exportMedia = async (editor) => {
 export const exportBlog = async () => {
   toast('Starting export...')
   createResource({
-    url: 'drive.api.docs.create_blog',
+    url: 'writer.api.docs.create_blog',
     auto: true,
     params: {
       entity_name: props.id,
