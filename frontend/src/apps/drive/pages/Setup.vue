@@ -35,24 +35,21 @@
 </template>
 
 <script setup>
-import { createResource, FormControl, LoadingIndicator } from "frappe-ui"
-import { ref, computed } from "vue"
-import FrappeDriveLogo from "@/components/FrappeDriveLogo.vue"
-import { useRoute } from "vue-router"
-import { useStore } from "vuex"
-import { createTeam } from "@/resources/permissions"
+import { createResource, FormControl, LoadingIndicator } from 'frappe-ui'
+import { ref, computed } from 'vue'
+import FrappeDriveLogo from '@/components/FrappeDriveLogo.vue'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { createTeam } from '@/resources/permissions'
 
 const route = useRoute()
 
 createTeam.submit(
   { personal: 1 },
   {
-    onSuccess,
+    onSuccess: (data) => {
+      if (data) window.location.replace(route.query['redirect-to'] || '/drive')
+    },
   }
 )
-const onSuccess = (data) => {
-  if (data) {
-    window.location.replace(route.query["redirect-to"] || "/drive")
-  }
-}
 </script>
