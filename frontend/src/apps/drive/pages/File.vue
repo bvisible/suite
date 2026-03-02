@@ -15,12 +15,6 @@
         :draggable="false"
         class="w-full px-10 py-5 flex-grow w-full flex justify-center align-center items-center relative"
       >
-        <Button
-          class="text-ink-gray-8 absolute top-4 left-4"
-          :variant="'ghost'"
-          icon="arrow-left"
-          @click="closePreview"
-        />
         <LoadingIndicator
           v-if="file.loading"
           class="w-10 h-full text-neutral-100"
@@ -143,13 +137,6 @@ store.commit("setCurrentResource", file)
 function scrollEntity(negative = false) {
   currentEntity.value = negative ? prevEntity.value : nextEntity.value
   if (currentEntity.value) fetchFile(currentEntity.value.name)
-}
-
-function closePreview() {
-  router.push({
-    name: "Folder",
-    params: { entityName: file.data.parent_entity },
-  })
 }
 
 onMounted(() => {
