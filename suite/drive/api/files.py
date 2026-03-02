@@ -637,13 +637,15 @@ def remove_or_restore(entity_names: list[str] | str):
 
         doc.is_active = flag
         doc._modified = frappe.utils.now_datetime()
-        folder_size = frappe.db.get_value("Drive File", doc.parent_entity, "file_size")
-        frappe.db.set_value(
-            "Drive File",
-            doc.parent_entity,
-            "file_size",
-            folder_size + doc.file_size * (1 if flag else -1),
-        )
+        # Only update parent folder size if parent exists (not root level)
+        if doc.parent_entity:
+            folder_size = frappe.db.get_value("Drive File", doc.parent_entity, "file_size") or 0
+            frappe.db.set_value(
+                "Drive File",
+                doc.parent_entity,
+                "file_size",
+                folder_size + doc.file_size * (1 if flag else -1),
+            )
 
         doc.save()
 
