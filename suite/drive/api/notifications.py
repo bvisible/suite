@@ -6,7 +6,7 @@ from frappe.model.document import Document
 def get_link(entity):
     if entity.doc:
         return "/writer/w/" + entity.name
-    type_ = {True: "f", bool(entity.is_group): "d"}
+    type_ = {True: "f", bool(entity.is_folder): "d"}
     return entity.path if entity.is_link else f"/drive/{type_.get(True)}/{entity.name}/"
 
 
@@ -87,7 +87,7 @@ def notify_share(entity_name, docperm_name):
     docshare = frappe.get_doc("Drive Permission", docperm_name)
 
     author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"])
-    entity_type = "document" if entity.doc else "folder" if entity.is_group else "file"
+    entity_type = "document" if entity.doc else "folder" if entity.is_folder else "file"
     link = get_link(entity)
     message = f'{author_full_name} shared a {entity_type} with you: "{entity.title}"'
     if not frappe.db.exists("User", docshare.user):
@@ -105,7 +105,7 @@ def create_notification(from_user: str, to_user: str, type: str, entity: str, me
     if user_access.get("read") == 0:
         return
 
-    entity_type = "Document" if entity.doc else "Folder" if entity.is_group else "File"
+    entity_type = "Document" if entity.doc else "Folder" if entity.is_folder else "File"
     details = {
         "from_user": from_user,
         "to_user": to_user,

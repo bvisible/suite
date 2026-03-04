@@ -6,7 +6,7 @@ def presentation(doc, event):
 
     if file:
         if event == "on_update":
-            frappe.get_doc("Drive File", file).rename(doc.title)
+            frappe.get_doc("Drive File", file).rename(doc.file_name)
         if event == "on_trash":
             print("gone, boom boom")
             frappe.get_doc("Drive File", file).permanent_delete()

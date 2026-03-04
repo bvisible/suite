@@ -60,7 +60,7 @@ def get_user_access(entity: str | Document | frappe._dict, user: str = None, tea
             "read": 1,
             "comment": 1,
             "share": 0,
-            "upload": int(entity.is_group) and access_level,
+            "upload": int(entity.is_folder) and access_level,
             "write": int(access_level == 2 or entity.owner == user),
             "type": {2: "admin", 1: "user", 0: "guest"}[access_level],
         }
@@ -135,7 +135,7 @@ def get_entity_with_permissions(entity_name: str):
     """
     entity = frappe.db.get_value(
         "Drive File",
-        {"is_active": 1, "name": entity_name},
+        {"status": 1, "name": entity_name},
         FILE_FIELDS,
         as_dict=1,
     )
@@ -165,7 +165,7 @@ def get_entity_with_permissions(entity_name: str):
         manager = FileManager()
         wrapper = io.TextIOWrapper(manager.get_file(entity))
         url_builder = (
-            lambda label, base, end: f"/api/method/drive.api.docs.get_wiki_link?team={entity.team}&title={label}"
+            lambda label, base, end: f"/api/method/drive.api.docs.get_wiki_link?team={entity.team}&file_name={label}"
         )
         with wrapper as r:
             content = r.read()

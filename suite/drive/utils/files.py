@@ -192,8 +192,8 @@ class FileManager:
                 else Path(entity.parent_path)
             )
             if embed:
-                return parent / ".embeds" / entity.title
-            return parent / entity.title
+                return parent / ".embeds" / entity.file_name
+            return parent / entity.file_name
 
     @__not_if_flat
     def create_folder(self, entity, root):
@@ -295,21 +295,21 @@ class FileManager:
 
             for path, f in basic_files.items():
                 # Drive-created folders - registered S3 objects - have trailing slashes.
-                is_group = f.get("Folder") or f["Key"].endswith("/")
+                is_folder = f.get("Folder") or f["Key"].endswith("/")
                 exists = frappe.get_value(
                     "Drive File",
                     {
-                        "path": f["Key"].rstrip("/") + ("/" if is_group else ""),
-                        "is_active": 1,
+                        "path": f["Key"].rstrip("/") + ("/" if is_folder else ""),
+                        "status": 1,
                         "team": team,
-                        "is_group": int(is_group),
+                        "is_folder": int(is_folder),
                     },
                     "name",
                 )
                 if exists:
                     continue
 
-                mime_type = "folder" if is_group else mimemapper.get_mime_type(f["Key"], native_first=False)
+                mime_type = "folder" if is_folder else mimemapper.get_mime_type(f["Key"], native_first=False)
                 # Team path is key, DB path is f["Key"]
                 files[path] = (f["Size"], f["LastModified"].timestamp(), mime_type, f["Key"])
         else:
@@ -321,7 +321,7 @@ class FileManager:
                 path = f.relative_to(self.site_folder)
                 exists = frappe.get_value(
                     "Drive File",
-                    {"path": str(path), "team": team, "is_active": 1},
+                    {"path": str(path), "team": team, "status": 1},
                     "name",
                 )
                 if exists or any(p for p in f.parts if p.startswith(".")):
@@ -347,7 +347,7 @@ class FileManager:
 
     def __get_trash_path(self, entity: DriveFile):
         root = get_home_folder(entity.team)
-        return Path(root["path"]) / ".trash" / entity.title
+        return Path(root["path"]) / ".trash" / entity.file_name
 
     @__not_if_flat
     def rename(self, entity):

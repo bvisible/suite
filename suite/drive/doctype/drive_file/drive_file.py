@@ -9,7 +9,7 @@ from frappe.utils import now
 from frappe.rate_limiter import rate_limit
 
 from drive.api.activity import create_new_activity_log
-from drive.api.files import get_new_title
+from drive.api.files import get_new_file_name
 from drive.api.permissions import get_user_access, user_has_permission
 from drive.api.product import invite_users
 from drive.utils import generate_upward_path, get_home_folder, update_file_size
@@ -27,13 +27,13 @@ class DriveFile(Document):
 
     def after_insert(self):
         full_name = frappe.db.get_value("User", {"name": frappe.session.user}, ["full_name"])
-        message = f"{full_name} created {self.title}"
+        message = f"{full_name} created {self.file_name}"
         create_new_activity_log(
             entity=self.name,
             activity_type="create",
             activity_message=message,
-            document_field="title",
-            field_new_value=self.title,
+            document_field="file_name",
+            field_new_value=self.file_name,
         )
 
     def on_trash(self):
@@ -43,7 +43,7 @@ class DriveFile(Document):
         frappe.db.delete("Drive Notification", {"notif_doctype_name": self.name})
         frappe.db.delete("Drive Entity Activity Log", {"entity": self.name})
 
-        if self.is_group or self.document:
+        if self.is_folder or self.document:
             for child in self.get_children():
                 has_write_access = user_has_permission(self, "write")
                 child.delete(ignore_permissions=has_write_access)
@@ -59,7 +59,7 @@ class DriveFile(Document):
 
     def on_rollback(self):
         if self.flags.file_created:
-            shutil.rmtree(self.path) if self.is_group else self.path.unlink()
+            shutil.rmtree(self.path) if self.is_folder else self.path.unlink()
 
     def get_children(self):
         """Return a generator that yields child Documents."""
@@ -72,7 +72,7 @@ class DriveFile(Document):
             # Legacy code
             kwargs.pop("client", None)
             res = func(self, *args, **kwargs)
-            frappe.db.set_value("Drive File", self.name, "_modified", now())
+            frappe.db.set_value("Drive File", self.name, "last_modified", now())
             return res
 
         return decorator
@@ -102,7 +102,7 @@ class DriveFile(Document):
                 frappe.PermissionError,
             )
         if not (
-            frappe.db.get_value("Drive File", new_parent, "is_group")
+            frappe.db.get_value("Drive File", new_parent, "is_folder")
             or frappe.db.get_value("Drive File", new_parent, "doc")
         ):
             frappe.throw(
@@ -123,7 +123,7 @@ class DriveFile(Document):
             update_file_size(self.parent_entity, -self.file_size)
             update_file_size(new_parent, +self.file_size)
             self.parent_entity = new_parent
-            self.title = get_new_title(self.title, new_parent, self.is_group, self.name)
+            self.file_name = get_new_file_name(self.file_name, new_parent, self.is_folder, self.name)
 
         self.team = new_team
 
@@ -138,41 +138,41 @@ class DriveFile(Document):
 
         self.save()
 
-        return frappe.get_value("Drive File", new_parent, ["title", "team", "name", "parent_entity"], as_dict=True)
+        return frappe.get_value("Drive File", new_parent, ["file_name", "team", "name", "parent_entity"], as_dict=True)
 
     @frappe.whitelist()
     @__update_modified
-    def rename(self: DriveFile, new_title: str):
+    def rename(self: DriveFile, new_file_name: str):
         """
         Rename file or folder
 
-        :param new_title: New file or folder name
+        :param new_file_name: New file or folder name
         :raises FileExistsError: If a file or folder with the same name already exists in the parent folder
         :return: DriveEntity doc once it's renamed
         """
-        if new_title == self.title:
+        if new_file_name == self.file_name:
             return self
 
-        validated_name = get_new_title(new_title, self.parent_entity, self.is_group, self.name)
-        if new_title != validated_name:
+        validated_name = get_new_file_name(new_file_name, self.parent_entity, self.is_folder, self.name)
+        if new_file_name != validated_name:
             return frappe.throw(
-                f"{'Folder' if self.is_group else 'File'} '{new_title}' already exists\n Try '{validated_name}' ",
+                f"{'Folder' if self.is_folder else 'File'} '{new_file_name}' already exists\n Try '{validated_name}' ",
                 FileExistsError,
             )
 
         full_name = frappe.db.get_value("User", {"name": frappe.session.user}, ["full_name"])
-        message = f"{full_name} renamed {self.title} to {new_title}"
+        message = f"{full_name} renamed {self.file_name} to {new_file_name}"
         create_new_activity_log(
             entity=self.name,
             activity_type="rename",
             activity_message=message,
-            document_field="title",
-            field_old_value=self.title,
-            field_new_value=new_title,
+            document_field="file_name",
+            field_old_value=self.file_name,
+            field_new_value=new_file_name,
         )
-        if len(new_title) > 140:
-            frappe.throw("Your title can't be more than 140 characters.")
-        self.title = new_title
+        if len(new_file_name) > 140:
+            frappe.throw("Your file_name can't be more than 140 characters.")
+        self.file_name = new_file_name
         path = self.manager.rename(self)
 
         if self.path and self.mime_type != "frappe/slides":
@@ -207,8 +207,8 @@ class DriveFile(Document):
         if not (write_access or parent_write_access):
             frappe.throw("Not permitted", frappe.PermissionError)
 
-        self.is_active = -1
-        if self.is_group:
+        self.status = -1
+        if self.is_folder:
             for child in self.get_children():
                 child.permanent_delete()
         self.save()
@@ -344,4 +344,4 @@ class DriveFile(Document):
 
 
 def on_doctype_update():
-    frappe.db.add_index("Drive File", ["title"])
+    frappe.db.add_index("Drive File", ["file_name"])

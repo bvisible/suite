@@ -52,12 +52,12 @@ def sync_from_disk(team: str):
         # Now create this parent folder
         new_parent = create_drive_file(
             team,
-            title=parent_path.strip("/").split("/")[-1],
+            file_name=parent_path.strip("/").split("/")[-1],
             parent=grandparent,
             mime_type="folder",
             entity_path=lambda _: str(parent_path) + "/",
             file_size=0,
-            is_group=True,
+            is_folder=True,
             owner=owner,
         )
         return new_parent.name
@@ -80,7 +80,7 @@ def sync_from_disk(team: str):
                 lambda _: actual_path if mime_type != "folder" else actual_path.strip("/") + "/",
                 last_modified=last_modified,
                 file_size=file_size,
-                is_group=mime_type == "folder",
+                is_folder=mime_type == "folder",
                 owner=frappe.session.user,
             )
         )
