@@ -8,6 +8,13 @@ class File(FrappeFile):
     def validate(self):
         if not self.is_drive_file:
             super().validate()
+            
+    def autoname(self):
+        if self.is_drive_file and self._name:
+            self.name = self._name
+        else:
+            super().autoname()
+
 
 def common_filters(func):
     def decorator(user):
