@@ -1,17 +1,17 @@
-import { Extension } from "@tiptap/core"
+import { Extension } from '@tiptap/core'
 function extractEntityName(url) {
   try {
-    const query = url.split("?")[1]
+    const query = url.split('?')[1]
     if (!query) return null
     const params = new URLSearchParams(query)
-    return params.get("embed_name")
+    return params.get('embed_name')
   } catch {
     return null
   }
 }
 
 export default Extension.create({
-  name: "embedCollector",
+  name: 'embedCollector',
   addCommands() {
     return {
       getEmbedUrls:
@@ -23,20 +23,20 @@ export default Extension.create({
 
           state.doc.descendants((node) => {
             // If it's a heading, remember its text
-            if (node.type.name === "heading") {
+            if (node.type.name === 'heading') {
               currentHeadingCount = 0
               currentHeading = node.textContent.trim()
             }
 
             // If it's an image, pair it with the last heading
             if (
-              (node.type.name === "image" || node.type.name === "video") &&
+              (node.type.name === 'image' || node.type.name === 'video') &&
               node.attrs.src
             ) {
               results.push({
-                title:
+                file_name:
                   currentHeading +
-                  (currentHeadingCount ? ` (${currentHeadingCount})` : ""),
+                  (currentHeadingCount ? ` (${currentHeadingCount})` : ''),
                 name: extractEntityName(node.attrs.src),
               })
               currentHeadingCount++
