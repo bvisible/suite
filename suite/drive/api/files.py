@@ -73,9 +73,9 @@ def upload_file(
         total_chunks = 1
 
     file = frappe.request.files["file"]
-    title = get_new_title(file.filename, parent) if not transfer else file.filename
+    file_name = get_new_file_name(file.filename, parent) if not transfer else file.filename
     upload_session = frappe.form_dict.uuid
-    temp_path = get_upload_path(home_folder["path"], f"{upload_session}_{secure_filename(title)}")
+    temp_path = get_upload_path(home_folder["path"], f"{upload_session}_{secure_filename(file_name)}")
     with temp_path.open("ab") as f:
         f.seek(offset)
         f.write(file.stream.read())
@@ -96,17 +96,17 @@ def upload_file(
 
     # Create DB record
     if transfer:
-        entity = frappe.get_doc({"doctype": "Drive Transfer", "title": title, "file_size": file_size})
+        entity = frappe.get_doc({"doctype": "Drive Transfer", "file_name": file_name, "file_size": file_size})
         entity.insert()
         entity.path = str(
-            Path(home_folder["path"]) / (entity.name if manager.flat else Path(".transfers") / entity.title)
+            Path(home_folder["path"]) / (entity.name if manager.flat else Path(".transfers") / entity.file_name)
         )
         entity.save()
         drive_file = frappe._dict(**entity.as_dict(), team=team, parent=parent)
     else:
         drive_file = create_drive_file(
             team,
-            title,
+            file_name,
             parent,
             mime_type,
             lambda entity: manager.get_disk_path(entity, home_folder, embed),
@@ -139,7 +139,7 @@ def get_thumbnail(entity_name: str):
         [
             "is_folder",
             "path",
-            "title",
+            "file_name",
             "mime_type",
             "file_size",
             "owner",
@@ -202,7 +202,7 @@ def get_thumbnail(entity_name: str):
 
 @frappe.whitelist()
 @default_team
-def create_presentation(team: str, title: str = "Untitled", parent: str | None = None):
+def create_presentation(team: str, file_name: str = "Untitled", parent: str | None = None):
     home_directory = get_home_folder(team)
     parent = parent or home_directory.name
     team = frappe.db.get_value("Drive File", parent, "team")
@@ -214,14 +214,14 @@ def create_presentation(team: str, title: str = "Untitled", parent: str | None =
     try:
         r = frappe.call(
             "slides.slides.doctype.presentation.presentation.create_presentation",
-            title=title,
+            title=file_name,
             theme="1mjgj61m8j",
         )
     except BaseException as e:
         print("Couldn't create", e)
     entity = create_drive_file(
         team,
-        title,
+        file_name,
         parent,
         "frappe/slides",
         lambda _: r.name,
@@ -237,7 +237,7 @@ def create_document_entity(team: str, title: str | None = None, parent: str | No
     parent_doc = frappe.get_cached_doc("Drive File", parent)
     team = frappe.db.get_value("Drive File", parent, "team")
     if not title:
-        title = get_new_title("Untitled Document", parent)
+        file_name = get_new_file_name("Untitled Document", parent)
 
     if not user_has_permission(parent, "upload"):
         frappe.throw(
@@ -245,7 +245,6 @@ def create_document_entity(team: str, title: str | None = None, parent: str | No
             frappe.PermissionError,
         )
     drive_doc = frappe.new_doc("Drive Document")
-    drive_doc.title = title
     drive_doc.settings = '{"collab": true}'
     drive_doc.save()
 
@@ -253,10 +252,10 @@ def create_document_entity(team: str, title: str | None = None, parent: str | No
     path = manager.create_folder(
         frappe._dict(
             {
-                "title": title,
+                "file_name": file_name,
                 "parent_path": Path(parent_doc.path or ""),
                 "team": team,
-                "parent_entity": parent_doc.name,
+                "folder": parent_doc.name,
             }
         ),
         home_directory,
@@ -264,7 +263,7 @@ def create_document_entity(team: str, title: str | None = None, parent: str | No
     manager.create_folder(
         frappe._dict(
             {
-                "title": ".embeds",
+                "file_name": ".embeds",
                 "team": team,
                 "parent_path": path,
             }
@@ -274,7 +273,7 @@ def create_document_entity(team: str, title: str | None = None, parent: str | No
 
     entity = create_drive_file(
         team,
-        title,
+        file_name,
         parent,
         "frappe_doc",
         lambda _: path,
@@ -293,16 +292,7 @@ def get_upload_path(team_path, file_name):
 
 @frappe.whitelist()
 @default_team
-def create_folder(team: str, title: str, parent: str | None = None):
-    """
-    Create a new folder.
-
-    :param title: Folder name
-    :param parent: Document-name of the parent folder. Defaults to the user directory
-    :raises PermissionError: If the user does not have write access to the specified parent folder
-    :raises FileExistsError: If a folder with the same name already exists in the specified parent folder
-    :return: DriveEntity doc of the new folder
-    """
+def create_folder(team: str, file_name: str, parent: str | None = None):
     home_folder = get_home_folder(team)
     parent = parent or home_folder.name
     team = frappe.db.get_value("Drive File", parent, "team")
@@ -316,17 +306,17 @@ def create_folder(team: str, title: str, parent: str | None = None):
     entity_exists = frappe.db.exists(
         {
             "doctype": "Drive File",
-            "parent_entity": parent,
+            "folder": parent,
             "is_folder": 1,
-            "title": title,
+            "file_name": file_name,
             "status": 1,
         }
     )
 
     if entity_exists:
-        suggested_name = get_new_title(title, parent, folder=True)
+        suggested_name = get_new_file_name(file_name, parent, folder=True)
         frappe.throw(
-            f"Folder '{title}' already exists.\n Suggested: {suggested_name}",
+            f"Folder '{file_name}' already exists.\n Suggested: {suggested_name}",
             FileExistsError,
         )
 
@@ -334,7 +324,7 @@ def create_folder(team: str, title: str, parent: str | None = None):
     path = manager.create_folder(
         frappe._dict(
             {
-                "title": title,
+                "file_name": file_name,
                 "team": team,
                 "parent_path": Path(parent_doc.path or ""),
             }
@@ -344,7 +334,7 @@ def create_folder(team: str, title: str, parent: str | None = None):
 
     drive_file = create_drive_file(
         team,
-        title,
+        file_name,
         parent,
         "folder",
         lambda _: path,
@@ -370,11 +360,11 @@ def ensure_path(team, fullpath, parent=None):
         exists = frappe.db.get_value(
             "Drive File",
             {
-                "title": folder,
+                "file_name": folder,
                 "is_folder": 1,
                 "status": 1,
                 "team": team,
-                "parent_entity": current_parent,
+                "folder": current_parent,
             },
             "name",
         )
@@ -389,7 +379,7 @@ def ensure_path(team, fullpath, parent=None):
 
 @frappe.whitelist()
 @default_team
-def create_link(team: str, title: str, link: str, parent: str | None = None):
+def create_link(team: str, file_name: str, link: str, parent: str | None = None):
     home_folder = get_home_folder(team)
     parent = parent or home_folder.name
 
@@ -401,30 +391,30 @@ def create_link(team: str, title: str, link: str, parent: str | None = None):
     entity_exists = frappe.db.exists(
         {
             "doctype": "Drive File",
-            "parent_entity": parent,
+            "folder": parent,
             "is_folder": 1,
-            "title": title,
+            "file_name": file_name,
             "status": 1,
         }
     )
 
     if entity_exists:
-        suggested_name = get_new_title(title, parent, folder=True)
+        suggested_name = get_new_file_name(file_name, parent, folder=True)
         frappe.throw(
-            f"File '{title}' already exists.\n Suggested: {suggested_name}",
+            f"File '{file_name}' already exists.\n Suggested: {suggested_name}",
             FileExistsError,
         )
 
     drive_file = frappe.get_doc(
         {
             "doctype": "Drive File",
-            "title": title,
+            "file_name": file_name,
             "team": team,
             "path": link,
             "is_link": 1,
             "mime_type": "link/unknown",
             "last_modified": frappe.utils.now_datetime(),
-            "parent_entity": parent,
+            "folder": parent,
         }
     )
     drive_file.insert()
@@ -484,7 +474,7 @@ def get_file_content(
                 "team",
                 "is_link",
                 "path",
-                "title",
+                "file_name",
                 "mime_type",
                 "status",
                 "document",
@@ -516,7 +506,7 @@ def get_file_internal(file, trigger_download=0):
             as_attachment=trigger_download,
             conditional=True,
             max_age=3600,
-            download_name=file.title,
+            download_name=file.file_name,
             environ=frappe.request.environ,
         )
 
@@ -638,11 +628,11 @@ def remove_or_restore(entity_names: list[str] | str):
         doc.status = flag
         doc.last_modified = frappe.utils.now_datetime()
         # Only update parent folder size if parent exists (not root level)
-        if doc.parent_entity:
-            folder_size = frappe.db.get_value("Drive File", doc.parent_entity, "file_size") or 0
+        if doc.folder:
+            folder_size = frappe.db.get_value("Drive File", doc.folder, "file_size") or 0
             frappe.db.set_value(
                 "Drive File",
-                doc.parent_entity,
+                doc.folder,
                 "file_size",
                 folder_size + doc.file_size * (1 if flag else -1),
             )
@@ -716,11 +706,11 @@ def remove_recents(entity_names: list[str] | None = [], clear_all: bool = False)
 
 @frappe.whitelist()
 @default_team
-def does_entity_exist(name: str | None = None, parent_entity: str | None = None, team: str | None = None):
-    if not parent_entity:
+def does_entity_exist(name: str | None = None, folder: str | None = None, team: str | None = None):
+    if not folder:
         home_folder = get_home_folder(team)
-        parent_entity = home_folder.name
-    result = frappe.db.exists("Drive File", {"parent_entity": parent_entity, "title": name})
+        folder = home_folder.name
+    result = frappe.db.exists("Drive File", {"folder": folder, "file_name": name})
     return result
 
 
@@ -766,9 +756,9 @@ def move(entity_names: list[str], new_parent: str | None = None, team: str | Non
         doc = frappe.get_doc("Drive File", entity)
         res = doc.move(new_parent, team)
 
-    if not res["parent_entity"]:
-        title, personal = frappe.db.get_value("Drive Team", res["team"], ["title", "personal"])
-        res["title"] = "Home" if personal else title
+    if not res["folder"]:
+        file_name, personal = frappe.db.get_value("Drive Team", res["team"], ["file_name", "personal"])
+        res["file_name"] = "Home" if personal else file_name
 
     return res
 
@@ -784,7 +774,7 @@ def search(query: str):
         result = frappe.db.sql(
             """
         SELECT  `tabDrive File`.name,
-                `tabDrive File`.title,
+                `tabDrive File`.file_name,
                 `tabDrive File`.is_folder,
                 `tabDrive File`.is_link,
                 `tabDrive File`.mime_type,
@@ -797,8 +787,8 @@ def search(query: str):
         LEFT JOIN `tabUser` ON `tabDrive File`.`owner` = `tabUser`.`name`
         WHERE `tabDrive File`.team IN %(teams)s
             AND `tabDrive File`.`status` = 1
-            AND `tabDrive File`.`parent_entity` <> ''
-            AND MATCH(title) AGAINST (%(text)s IN BOOLEAN MODE)
+            AND `tabDrive File`.`folder` <> ''
+            AND MATCH(file_name) AGAINST (%(text)s IN BOOLEAN MODE)
         GROUP  BY `tabDrive File`.`name`
         """,
             values={"teams": teams, "text": text},
@@ -818,20 +808,16 @@ def translate_old_name(old_name: str):
 
 
 @frappe.whitelist()
-def get_new_title(title: str, parent_name: str, folder: bool = False, entity: str | None = None):
+def get_new_file_name(file_name: str, parent_name: str, folder: bool = False, entity: str | None = None):
     """
-    Returns new title for an entity if same title exists for another entity at the same level
-
-    :param entity_title: Title of entity to be renamed (if at all)
-    :param parent_entity: Parent entity of entity to be renamed (if at all)
-    :return: String with new title
+    Returns new file name for an entity if same file name exists for another entity at the same level
     """
-    entity_title, entity_ext = os.path.splitext(title)
+    entity_title, entity_ext = os.path.splitext(file_name)
 
     filters = {
         "status": 1,
-        "parent_entity": parent_name,
-        "title": ["like", f"{entity_title}%{entity_ext}"],
+        "folder": parent_name,
+        "file_name": ["like", f"{entity_title}%{entity_ext}"],
     }
 
     if folder:
@@ -840,14 +826,14 @@ def get_new_title(title: str, parent_name: str, folder: bool = False, entity: st
     sibling_entity_titles = frappe.db.get_list(
         "Drive File",
         filters=filters,
-        fields=["title", "name"],
+        fields=["file_name", "name"],
     )
     if (
         not sibling_entity_titles
         or (sibling_entity_titles[0].name == entity)
-        or not any(k["title"] == title for k in sibling_entity_titles)
+        or not any(k["file_name"] == file_name for k in sibling_entity_titles)
     ):
-        return title
+        return file_name
     return f"{entity_title} ({len(sibling_entity_titles)}){entity_ext}"
 
 

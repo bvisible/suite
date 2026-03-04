@@ -63,7 +63,7 @@ class DriveFile(Document):
 
     def get_children(self):
         """Return a generator that yields child Documents."""
-        child_names = frappe.get_list(self.doctype, filters={"parent_entity": self.name}, pluck="name")
+        child_names = frappe.get_list(self.doctype, filters={"folder": self.name}, pluck="name")
         for name in child_names:
             yield frappe.get_doc(self.doctype, name)
 
@@ -119,10 +119,10 @@ class DriveFile(Document):
             elif new_team != child.team:
                 child.move(self.name, new_team)
 
-        if new_parent != self.parent_entity:
-            update_file_size(self.parent_entity, -self.file_size)
+        if new_parent != self.folder:
+            update_file_size(self.folder, -self.file_size)
             update_file_size(new_parent, +self.file_size)
-            self.parent_entity = new_parent
+            self.folder = new_parent
             self.file_name = get_new_file_name(self.file_name, new_parent, self.is_folder, self.name)
 
         self.team = new_team
@@ -138,7 +138,7 @@ class DriveFile(Document):
 
         self.save()
 
-        return frappe.get_value("Drive File", new_parent, ["file_name", "team", "name", "parent_entity"], as_dict=True)
+        return frappe.get_value("Drive File", new_parent, ["file_name", "team", "name", "folder"], as_dict=True)
 
     @frappe.whitelist()
     @__update_modified
@@ -153,7 +153,7 @@ class DriveFile(Document):
         if new_file_name == self.file_name:
             return self
 
-        validated_name = get_new_file_name(new_file_name, self.parent_entity, self.is_folder, self.name)
+        validated_name = get_new_file_name(new_file_name, self.folder, self.is_folder, self.name)
         if new_file_name != validated_name:
             return frappe.throw(
                 f"{'Folder' if self.is_folder else 'File'} '{new_file_name}' already exists\n Try '{validated_name}' ",
@@ -202,7 +202,7 @@ class DriveFile(Document):
 
     def permanent_delete(self):
         write_access = user_has_permission(self, "write")
-        parent_write_access = user_has_permission(self.parent_entity, "write")
+        parent_write_access = user_has_permission(self.folder, "write")
 
         if not (write_access or parent_write_access):
             frappe.throw("Not permitted", frappe.PermissionError)

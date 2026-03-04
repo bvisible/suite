@@ -329,7 +329,7 @@ export const allFolders = createResource({
     d.map((k) => ({
       value: k.name,
       label: k.file_name,
-      parent: k.parent_entity,
+      parent: k.folder,
     })),
 })
 
