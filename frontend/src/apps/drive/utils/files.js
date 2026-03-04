@@ -214,7 +214,7 @@ export const setBreadCrumbs = (entity) => {
       },
     ]
 
-  if (!breadcrumbs[0].parent_entity) breadcrumbs.splice(0, 1)
+  if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
   const popBreadcrumbs = (item) => () =>
     res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
