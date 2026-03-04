@@ -1,9 +1,5 @@
 <template>
-  <Dialog
-    v-model="open"
-    :options="{ size: 'lg' }"
-    @close="dialogType = ''"
-  >
+  <Dialog v-model="open" :options="{ size: 'lg' }" @close="dialogType = ''">
     <template #body-main>
       <div class="p-4 sm:px-6">
         <div class="flex w-full justify-between gap-x-15 mb-4">
@@ -19,21 +15,13 @@
               "
             </template>
           </div>
-          <Button
-            class="ml-auto"
-            variant="ghost"
-            @click="dialogType = ''"
-          >
+          <Button class="ml-auto" variant="ghost" @click="dialogType = ''">
             <template #icon>
               <LucideX class="size-4" />
             </template>
           </Button>
         </div>
-        <Tabs
-          v-model="tabIndex"
-          as="div"
-          :tabs="tabs"
-        >
+        <Tabs v-model="tabIndex" as="div" :tabs="tabs">
           <template #tab-panel>
             <div class="py-1 h-64 overflow-auto flex flex-col">
               <TeamSelector
@@ -78,10 +66,7 @@
                         v-else-if="hasChildren"
                         class="size-3.5"
                       />
-                      <div
-                        v-else
-                        class="ps-3.5"
-                      />
+                      <div v-else class="ps-3.5" />
                     </div>
                     <div
                       class="flex-grow rounded-sm text-base truncate h-full flex items-center pl-1"
@@ -98,14 +83,8 @@
                         v-if="isCollapsed"
                         class="mr-1 size-4"
                       />
-                      <LucideFolder
-                        v-else
-                        class="mr-1 size-4"
-                      />
-                      <div
-                        v-if="node.value === null"
-                        class="overflow-visible"
-                      >
+                      <LucideFolder v-else class="mr-1 size-4" />
+                      <div v-if="node.value === null" class="overflow-visible">
                         <Input
                           v-model="node.label"
                           v-focus
@@ -182,7 +161,7 @@
               v-if="dropDownBreadcrumbs.length"
               class="text-ink-gray-5 mx-0.5"
             >
-              {{ "/" }}
+              {{ '/' }}
             </span>
             <div
               v-for="(crumb, index) in slicedBreadcrumbs"
@@ -193,7 +172,7 @@
                 v-if="breadcrumbs.length > 1 && index > 0"
                 class="text-ink-gray-5 mx-0.5"
               >
-                {{ "/" }}
+                {{ '/' }}
               </span>
               <button
                 class="text-base cursor-pointer truncate max-w-20"
@@ -228,7 +207,7 @@
   </Dialog>
 </template>
 <script setup>
-import { watch, computed, h, ref, reactive } from "vue"
+import { watch, computed, h, ref, reactive } from 'vue'
 
 import {
   createResource,
@@ -239,18 +218,18 @@ import {
   Tree,
   Input,
   LoadingIndicator,
-} from "frappe-ui"
-import { move, getTeams } from "@/resources/files"
-import { toast } from "@/utils/toasts"
+} from 'frappe-ui'
+import { move, getTeams } from '@/resources/files'
+import { toast } from '@/utils/toasts'
 
-import { useRoute } from "vue-router"
-import { useStore } from "vuex"
-import LucideBuilding2 from "~icons/lucide/building-2"
-import LucideChevronDown from "~icons/lucide/chevron-down"
-import LucideFolder from "~icons/lucide/folder"
-import LucideHome from "~icons/lucide/home"
-import LucideArrowLeftRight from "~icons/lucide/arrow-left-right"
-import TeamSelector from "./TeamSelector.vue"
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideChevronDown from '~icons/lucide/chevron-down'
+import LucideFolder from '~icons/lucide/folder'
+import LucideHome from '~icons/lucide/home'
+import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
+import TeamSelector from './TeamSelector.vue'
 
 const props = defineProps({
   entities: {
@@ -259,20 +238,20 @@ const props = defineProps({
     default: null,
   },
 })
-const emit = defineEmits(["success", "complete"])
+const emit = defineEmits(['success', 'complete'])
 
 const dialogType = defineModel()
 const open = ref(true)
 
 const store = useStore()
 const route = useRoute()
-const in_home = store.state.breadcrumbs[0].name == "Home"
+const in_home = store.state.breadcrumbs[0].name == 'Home'
 const tabIndex = ref(in_home ? 0 : 1)
 console.log(route.params)
-const chosenTeam = ref(route.params.team || "")
+const chosenTeam = ref(route.params.team || '')
 const tree = reactive({
-  name: "",
-  label: "Home",
+  name: '',
+  label: 'Home',
   children: [],
   options: {
     isCollapsed: true,
@@ -280,19 +259,19 @@ const tree = reactive({
 })
 
 // State variables
-const selected = ref("")
+const selected = ref('')
 const breadcrumbs = ref([
-  { name: "", title: in_home ? "Home" : "Team", is_private: in_home ? 1 : 0 },
+  { name: '', title: in_home ? 'Home' : 'Team', is_private: in_home ? 1 : 0 },
 ])
 
 const tabs = [
   {
-    label: "Home",
-    icon: h(LucideHome, { class: "size-4" }),
+    label: 'Home',
+    icon: h(LucideHome, { class: 'size-4' }),
   },
   {
-    label: "Teams",
-    icon: h(LucideBuilding2, { class: "size-4" }),
+    label: 'Teams',
+    icon: h(LucideBuilding2, { class: 'size-4' }),
   },
   // {
   //   label: "Favourites",
@@ -301,11 +280,11 @@ const tabs = [
 ]
 
 const folderContents = createResource({
-  url: "drive.api.list.files",
+  url: 'drive.api.list.files',
   makeParams: (params) => ({
     ...params,
     team: chosenTeam.value,
-    is_active: 1,
+    status: 1,
     folders: 1,
   }),
 })
@@ -335,7 +314,7 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
   })
 }
 const homeTeam = createResource({
-  url: "drive.utils.get_default_team",
+  url: 'drive.utils.get_default_team',
   params: {
     with_file: true,
   },
@@ -343,7 +322,7 @@ const homeTeam = createResource({
 })
 
 const selectedPerms = createResource({
-  url: "drive.api.permissions.get_entity_with_permissions",
+  url: 'drive.api.permissions.get_entity_with_permissions',
   makeParams: () => ({
     entity_name: selected.value,
   }),
@@ -351,8 +330,8 @@ const selectedPerms = createResource({
     const team = getTeams.data[data.team]
     const first = [
       {
-        name: "",
-        title: team ? team.title : "Home",
+        name: '',
+        title: team ? team.title : 'Home',
       },
     ]
     breadcrumbs.value = first.concat(data.breadcrumbs.slice(1))
@@ -362,25 +341,25 @@ const selectedPerms = createResource({
 watch(
   [tabIndex, chosenTeam],
   ([newValue, team]) => {
-    selected.value = ""
+    selected.value = ''
     tree.loading = true
     if (newValue === 1 && !team) return
     tree.children = []
     switch (newValue) {
       case 0:
-        chosenTeam.value = ""
-        breadcrumbs.value = [{ name: "", title: "Home", is_private: 1 }]
+        chosenTeam.value = ''
+        breadcrumbs.value = [{ name: '', title: 'Home', is_private: 1 }]
         fetchFolderContents(tree)
         break
       case 1:
         breadcrumbs.value = [
-          { name: "", title: getTeams.data[team].title, is_private: 0 },
+          { name: '', title: getTeams.data[team].title, is_private: 0 },
         ]
         fetchFolderContents(tree)
         break
       case 2:
         folderContents.fetch({
-          entity_name: "",
+          entity_name: '',
           favourites_only: true,
         })
         break
@@ -421,7 +400,7 @@ const dropDownBreadcrumbs = computed(() => {
 // New folder logic
 const createdNode = ref(null)
 const createFolder = createResource({
-  url: "drive.api.files.create_folder",
+  url: 'drive.api.files.create_folder',
   makeParams(params) {
     return {
       ...params,
@@ -440,8 +419,8 @@ const createFolder = createResource({
   },
   onError() {
     toast({
-      type: "error",
-      title: "There is already a folder with this name here.",
+      type: 'error',
+      title: 'There is already a folder with this name here.',
     })
   },
 })
@@ -471,19 +450,19 @@ function closeEntity(name) {
     selected.value = breadcrumbs.value[breadcrumbs.value.length - 1].name
     folderContents.fetch({
       entity_name: selected.value,
-      personal: selected.value === "" ? 1 : -1,
+      personal: selected.value === '' ? 1 : -1,
     })
   }
 }
 
 const moveFile = async () => {
   open.value = false
-  emit("success")
+  emit('success')
   await move.submit({
     entity_names: props.entities.map((obj) => obj.name),
     new_parent: selected.value,
     team: chosenTeam.value,
   })
-  emit("complete")
+  emit('complete')
 }
 </script>
