@@ -88,7 +88,7 @@ MIME_LIST_MAP = {
 def get_home_folder(team):
     ls = (
         frappe.qb.from_(DriveFile)
-        .where(((DriveFile.team == team) & DriveFile.parent_entity.isnull()))
+        .where(((DriveFile.team == team) & DriveFile.folder.isnull()))
         .select(DriveFile.name, DriveFile.path)
         .run(as_dict=True)
     )
@@ -119,7 +119,7 @@ def get_ancestors_of(entity_name):
         WITH RECURSIVE generated_path as (
         SELECT
             `tabDrive File`.name,
-            `tabDrive File`.parent_entity
+            `tabDrive File`.folder
         FROM `tabDrive File`
         WHERE `tabDrive File`.name = %(entity_name)s
 
@@ -127,9 +127,9 @@ def get_ancestors_of(entity_name):
 
         SELECT
             t.name,
-            t.parent_entity
+            t.folder
         FROM generated_path as gp
-        JOIN `tabDrive File` as t ON t.name = gp.parent_entity)
+        JOIN `tabDrive File` as t ON t.name = gp.folder)
         SELECT name FROM generated_path;
     """,
         values={"entity_name": entity_name},
@@ -179,7 +179,7 @@ def generate_upward_path(entity_name, user=None, team=0):
                     `tabDrive File`.file_name,
                     `tabDrive File`.name,
                     `tabDrive File`.team,
-                    `tabDrive File`.parent_entity,
+                    `tabDrive File`.folder,
                     `tabDrive File`.owner,
                     0 AS level
                 FROM
@@ -191,18 +191,18 @@ def generate_upward_path(entity_name, user=None, team=0):
                     t.file_name,
                     t.name,
                     t.team,
-                    t.parent_entity,
+                    t.folder,
                     t.owner,
                     gp.level + 1
                 FROM
                     generated_path as gp
-                    JOIN `tabDrive File` as t ON t.name = gp.parent_entity
+                    JOIN `tabDrive File` as t ON t.name = gp.folder
             )
         SELECT
             gp.file_name,
             gp.name,
             gp.owner,
-            gp.parent_entity,
+            gp.folder,
             gp.team,
             p.read,
             p.upload,
@@ -259,10 +259,10 @@ def get_file_type(r):
 
 def update_file_size(entity, delta):
     doc = frappe.get_doc("Drive File", entity)
-    while doc.parent_entity:
+    while doc.folder:
         doc.file_size += delta
         doc.save(ignore_permissions=True)
-        doc = frappe.get_doc("Drive File", doc.parent_entity)
+        doc = frappe.get_doc("Drive File", doc.folder)
     # Update root
     doc.file_size += delta
     doc.save(ignore_permissions=True)
@@ -275,7 +275,7 @@ def if_folder_exists(team, folder_name, parent):
         "status": 1,
         "team": team,
         "owner": frappe.session.user,
-        "parent_entity": parent,
+        "folder": parent,
     }
     existing_folder = frappe.db.get_value("Drive File", values, ["name", "file_name", "is_folder", "status"], as_dict=1)
 
@@ -304,7 +304,7 @@ def create_drive_file(
             "doctype": "Drive File",
             "team": team,
             "file_name": file_name,
-            "parent_entity": parent,
+            "folder": parent,
             "file_size": file_size,
             "mime_type": mime_type,
             "doc": document,
