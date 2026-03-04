@@ -2,6 +2,12 @@ import frappe
 
 from drive.api.permissions import get_teams
 
+from frappe.core.doctype.file.file import File as FrappeFile
+
+class File(FrappeFile):
+    def validate(self):
+        if not self.is_drive_file:
+            super().validate()
 
 def common_filters(func):
     def decorator(user):

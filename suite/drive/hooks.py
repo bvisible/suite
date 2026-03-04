@@ -116,9 +116,9 @@ has_permission = {
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.utils.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"File": "drive.utils.overrides.File"
+}
 
 # Document Events
 # ---------------
