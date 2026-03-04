@@ -1,11 +1,11 @@
-import JSZip from "jszip"
-import { toast } from "./toasts"
-import { printDoc } from "./files"
-import emitter from "@/emitter"
-import router from "@/router"
-import html2pdf from "html2pdf.js"
-import editorStyle from "@/components/DocEditor/styles/editor.css?inline"
-import globalStyle from "@/index.css?inline"
+import JSZip from 'jszip'
+import { toast } from './toasts'
+import { printDoc } from './files'
+import emitter from '@/emitter'
+import router from '@/router'
+import html2pdf from 'html2pdf.js'
+import editorStyle from '@/components/DocEditor/styles/editor.css?inline'
+import globalStyle from '@/index.css?inline'
 
 async function getPdfFromDoc(entity_name) {
   const res = await fetch(
@@ -29,13 +29,13 @@ async function getPdfFromDoc(entity_name) {
 
   const pdfBlob = html2pdf().from(content).toPdf()
   await pdfBlob
-  return pdfBlob.prop.pdf.output("arraybuffer")
+  return pdfBlob.prop.pdf.output('arraybuffer')
 }
 export function entitiesDownload(team, entities, transfer = false) {
   if (entities.length === 1) {
-    if (entities[0].mime_type === "frappe_doc") {
+    if (entities[0].mime_type === 'frappe_doc') {
       if (router.currentRoute.value.name) {
-        return emitter.emit("printFile")
+        return emitter.emit('printFile')
       }
       // BROKEN
       return fetch(
@@ -45,18 +45,18 @@ export function entitiesDownload(team, entities, transfer = false) {
         printDoc(raw_html)
       })
     }
-    return entities[0].is_group
+    return entities[0].is_folder
       ? folderDownload(team, entities[0])
       : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${
           entities[0].name
-        }&trigger_download=1${transfer ? "&transfer=1" : ""}`)
+        }&trigger_download=1${transfer ? '&transfer=1' : ''}`)
   }
 
-  const t = toast("Preparing download...")
+  const t = toast('Preparing download...')
   const zip = new JSZip()
 
   const processEntity = async (entity, parentFolder) => {
-    if (entity.is_group) {
+    if (entity.is_folder) {
       const folder = parentFolder.folder(entity.title)
       return get_children(team, entity.name).then((children) => {
         const promises = children.map((childEntity) =>
@@ -66,7 +66,7 @@ export function entitiesDownload(team, entities, transfer = false) {
       })
     } else if (entity.document) {
       const content = await getPdfFromDoc(entities[0].name)
-      parentFolder.file(entity.title + ".pdf", content)
+      parentFolder.file(entity.title + '.pdf', content)
     } else {
       const fileContent = await get_file_content(entity)
       parentFolder.file(entity.title, fileContent)
@@ -77,12 +77,12 @@ export function entitiesDownload(team, entities, transfer = false) {
 
   Promise.all(promises)
     .then(() => {
-      return zip.generateAsync({ type: "blob", streamFiles: true })
+      return zip.generateAsync({ type: 'blob', streamFiles: true })
     })
     .then(async function (content) {
-      var downloadLink = document.createElement("a")
+      var downloadLink = document.createElement('a')
       downloadLink.href = URL.createObjectURL(content)
-      downloadLink.download = "Drive Download " + +new Date() + ".zip"
+      downloadLink.download = 'Drive Download ' + +new Date() + '.zip'
 
       document.body.appendChild(downloadLink)
 
@@ -99,12 +99,12 @@ export function folderDownload(team, root_entity) {
   const rootFolder = zip.folder(root_entity.title)
   temp(team, root_entity.name, rootFolder)
     .then(() => {
-      return zip.generateAsync({ type: "blob", streamFiles: true })
+      return zip.generateAsync({ type: 'blob', streamFiles: true })
     })
     .then((content) => {
-      const downloadLink = document.createElement("a")
+      const downloadLink = document.createElement('a')
       downloadLink.href = URL.createObjectURL(content)
-      downloadLink.download = folderName + ".zip"
+      downloadLink.download = folderName + '.zip'
 
       document.body.appendChild(downloadLink)
       downloadLink.click()
@@ -120,13 +120,13 @@ function temp(team, entity_name, parentZip) {
     get_children(team, entity_name)
       .then((result) => {
         const promises = result.map((entity) => {
-          if (entity.is_group) {
+          if (entity.is_folder) {
             const folder = parentZip.folder(entity.title)
             return temp(team, entity.name, folder)
           }
           if (entity.document) {
             getPdfFromDoc(entity.name).then((content) =>
-              parentZip.file(entity.title + ".pdf", content)
+              parentZip.file(entity.title + '.pdf', content)
             )
           } else {
             return get_file_content(entity).then((fileContent) => {
@@ -152,7 +152,7 @@ function temp(team, entity_name, parentZip) {
 function get_file_content(entity) {
   const fileUrl =
     entity.src ||
-    "/api/method/" +
+    '/api/method/' +
       `drive.api.files.get_file_content?entity_name=${entity.name}&trigger_download=1`
 
   return fetch(fileUrl).then((response) => {
@@ -168,14 +168,14 @@ function get_file_content(entity) {
 
 function get_children(team, entity_name) {
   const url =
-    "/api/method/" +
+    '/api/method/' +
     `drive.api.list.files?team=${team}&entity_name=${entity_name}`
   return fetch(url, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      "X-Frappe-CSRF-Token": window.csrf_token,
-      "Content-Type": "application/json",
-      Accept: "application/json",
+      'X-Frappe-CSRF-Token': window.csrf_token,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
   })
     .then((response) => {
