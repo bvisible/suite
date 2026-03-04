@@ -13,8 +13,8 @@ def storage_breakdown(team: str, owned_only: bool):
     limit = frappe.get_value("Drive Team", team, "quota" if owned_only else "storage") * MEGA_BYTE
     filters = {
         "team": team,
-        "is_group": False,
-        "is_active": 1,
+        "is_folder": False,
+        "status": 1,
         "file_size": [">=", limit / 200],
     }
     if owned_only:
@@ -25,7 +25,7 @@ def storage_breakdown(team: str, owned_only: bool):
         "Drive File",
         filters=filters,
         order_by="file_size desc",
-        fields=["name", "title", "owner", "file_size", "mime_type", "is_group", "is_link"],
+        fields=["name", "file_name", "owner", "file_size", "mime_type", "is_folder", "is_link"],
     )
     for r in entities:
         r["file_type"] = get_file_type(r)
@@ -33,7 +33,7 @@ def storage_breakdown(team: str, owned_only: bool):
     query = (
         frappe.qb.from_(DriveFile)
         .select(DriveFile.mime_type, fn.Sum(DriveFile.file_size).as_("file_size"))
-        .where((DriveFile.is_group == 0) & (DriveFile.is_active == 1) & (DriveFile.team == team))
+        .where((DriveFile.is_folder == 0) & (DriveFile.status == 1) & (DriveFile.team == team))
     )
     if owned_only:
         query = query.where(DriveFile.owner == frappe.session.user)
@@ -56,9 +56,9 @@ def storage_bar_data(team: str | None = None, entity_name: str | None = None):
         frappe.qb.from_(DriveFile)
         .where(
             (DriveFile.team == team)
-            & (DriveFile.is_group == 0)
+            & (DriveFile.is_folder == 0)
             & (DriveFile.owner == frappe.session.user)
-            & (DriveFile.is_active == 1)
+            & (DriveFile.status == 1)
         )
         .select(fn.Coalesce(fn.Sum(DriveFile.file_size), 0).as_("total_size"))
     )

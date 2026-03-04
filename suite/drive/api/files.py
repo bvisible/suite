@@ -137,7 +137,7 @@ def get_thumbnail(entity_name: str):
         "Drive File",
         entity_name,
         [
-            "is_group",
+            "is_folder",
             "path",
             "title",
             "mime_type",
@@ -149,7 +149,7 @@ def get_thumbnail(entity_name: str):
         ],
         as_dict=1,
     )
-    if not drive_file or drive_file.is_group or drive_file.is_link:
+    if not drive_file or drive_file.is_folder or drive_file.is_link:
         return
     if user_has_permission(drive_file, "read") is False:
         return
@@ -317,9 +317,9 @@ def create_folder(team: str, title: str, parent: str | None = None):
         {
             "doctype": "Drive File",
             "parent_entity": parent,
-            "is_group": 1,
+            "is_folder": 1,
             "title": title,
-            "is_active": 1,
+            "status": 1,
         }
     )
 
@@ -348,7 +348,7 @@ def create_folder(team: str, title: str, parent: str | None = None):
         parent,
         "folder",
         lambda _: path,
-        is_group=True,
+        is_folder=True,
     )
 
     return drive_file
@@ -371,8 +371,8 @@ def ensure_path(team, fullpath, parent=None):
             "Drive File",
             {
                 "title": folder,
-                "is_group": 1,
-                "is_active": 1,
+                "is_folder": 1,
+                "status": 1,
                 "team": team,
                 "parent_entity": current_parent,
             },
@@ -402,9 +402,9 @@ def create_link(team: str, title: str, link: str, parent: str | None = None):
         {
             "doctype": "Drive File",
             "parent_entity": parent,
-            "is_group": 1,
+            "is_folder": 1,
             "title": title,
-            "is_active": 1,
+            "status": 1,
         }
     )
 
@@ -423,7 +423,7 @@ def create_link(team: str, title: str, link: str, parent: str | None = None):
             "path": link,
             "is_link": 1,
             "mime_type": "link/unknown",
-            "_modified": frappe.utils.now_datetime(),
+            "last_modified": frappe.utils.now_datetime(),
             "parent_entity": parent,
         }
     )
@@ -480,18 +480,18 @@ def get_file_content(
             "Drive File",
             {"name": entity_name},
             [
-                "is_group",
+                "is_folder",
                 "team",
                 "is_link",
                 "path",
                 "title",
                 "mime_type",
-                "is_active",
+                "status",
                 "document",
             ],
             as_dict=1,
         )
-    if not drive_file or drive_file.is_group or drive_file.is_link or (not transfer and drive_file.is_active != 1):
+    if not drive_file or drive_file.is_folder or drive_file.is_link or (not transfer and drive_file.status != 1):
         frappe.throw("Not found", frappe.NotFound)
 
     return get_file_internal(drive_file, trigger_download)
@@ -622,10 +622,10 @@ def remove_or_restore(entity_names: list[str] | str):
         frappe.throw(f"Expected list but got {type(entity_names)}", ValueError)
     manager = FileManager()
 
-    def depth_zero_toggle_is_active(doc):
+    def depth_zero_toggle_status(doc):
         if not user_has_permission(doc, "write"):
             raise frappe.PermissionError("You do not have permission to remove this file")
-        if doc.is_active:
+        if doc.status:
             flag = 0
             manager.move_to_trash(doc)
         else:
@@ -635,8 +635,8 @@ def remove_or_restore(entity_names: list[str] | str):
             manager.restore(doc)
             flag = 1
 
-        doc.is_active = flag
-        doc._modified = frappe.utils.now_datetime()
+        doc.status = flag
+        doc.last_modified = frappe.utils.now_datetime()
         # Only update parent folder size if parent exists (not root level)
         if doc.parent_entity:
             folder_size = frappe.db.get_value("Drive File", doc.parent_entity, "file_size") or 0
@@ -650,13 +650,13 @@ def remove_or_restore(entity_names: list[str] | str):
         doc.save()
 
     for entity in entity_names:
-        depth_zero_toggle_is_active(frappe.get_doc("Drive File", entity))
+        depth_zero_toggle_status(frappe.get_doc("Drive File", entity))
 
 
 @frappe.whitelist()
 def delete_entities(entity_names: list[str] | None = None, clear_all: bool = False):
     if clear_all:
-        entity_names = frappe.db.get_list("Drive File", {"is_active": 0, "owner": frappe.session.user}, pluck="name")
+        entity_names = frappe.db.get_list("Drive File", {"status": 0, "owner": frappe.session.user}, pluck="name")
     elif isinstance(entity_names, str):
         entity_names = json.loads(entity_names)
     elif not isinstance(entity_names, list) or not entity_names:
@@ -728,7 +728,7 @@ def auto_delete_from_trash():
     days_before = (date.today() - timedelta(days=30)).isoformat()
     result = frappe.db.get_all(
         "Drive File",
-        filters={"is_active": 0, "last_modified": ["<", days_before]},
+        filters={"status": 0, "last_modified": ["<", days_before]},
         fields=["name"],
     )
     delete_entities(result)
@@ -738,7 +738,7 @@ def clear_deleted_files():
     days_before = (date.today() + timedelta(days=30)).isoformat()
     result = frappe.db.get_all(
         "Drive File",
-        filters={"is_active": -1, "modified": ["<", days_before]},
+        filters={"status": -1, "modified": ["<", days_before]},
         fields=["name"],
     )
     for entity in result:
@@ -785,7 +785,7 @@ def search(query: str):
             """
         SELECT  `tabDrive File`.name,
                 `tabDrive File`.title,
-                `tabDrive File`.is_group,
+                `tabDrive File`.is_folder,
                 `tabDrive File`.is_link,
                 `tabDrive File`.mime_type,
                 `tabDrive File`.document,
@@ -796,7 +796,7 @@ def search(query: str):
         FROM `tabDrive File`
         LEFT JOIN `tabUser` ON `tabDrive File`.`owner` = `tabUser`.`name`
         WHERE `tabDrive File`.team IN %(teams)s
-            AND `tabDrive File`.`is_active` = 1
+            AND `tabDrive File`.`status` = 1
             AND `tabDrive File`.`parent_entity` <> ''
             AND MATCH(title) AGAINST (%(text)s IN BOOLEAN MODE)
         GROUP  BY `tabDrive File`.`name`
@@ -829,13 +829,13 @@ def get_new_title(title: str, parent_name: str, folder: bool = False, entity: st
     entity_title, entity_ext = os.path.splitext(title)
 
     filters = {
-        "is_active": 1,
+        "status": 1,
         "parent_entity": parent_name,
         "title": ["like", f"{entity_title}%{entity_ext}"],
     }
 
     if folder:
-        filters["is_group"] = 1
+        filters["is_folder"] = 1
 
     sibling_entity_titles = frappe.db.get_list(
         "Drive File",
@@ -855,13 +855,13 @@ def get_new_title(title: str, parent_name: str, folder: bool = False, entity: st
 def get_entity_type(entity_name: str):
     entity = frappe.db.get_value(
         "Drive File",
-        {"is_active": 1, "name": entity_name},
-        ["team", "name", "mime_type", "is_group", "doc"],
+        {"status": 1, "name": entity_name},
+        ["team", "name", "mime_type", "is_folder", "doc"],
         as_dict=1,
     )
     if entity.doc or entity.mime_type == "text/markdown":
         entity["type"] = "document"
-    elif entity.is_group:
+    elif entity.is_folder:
         entity["type"] = "folder"
     else:
         entity["type"] = "file"

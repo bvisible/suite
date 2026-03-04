@@ -27,7 +27,7 @@ def files(
     team: str,
     entity_name: str | None = None,
     order_by: str = "modified 1",
-    is_active: bool = True,
+    status: bool = True,
     limit: int = 20,
     favourites_only: bool = False,
     recents_only: bool = False,
@@ -67,7 +67,7 @@ def files(
             frappe.exceptions.PermissionError,
         )
 
-    query = frappe.qb.from_(DriveFile).where(DriveFile.status == is_active)
+    query = frappe.qb.from_(DriveFile).where(DriveFile.status == status)
 
     if shared:
         if shared == "by" or shared == "with":
@@ -117,11 +117,11 @@ def files(
             .orderby(DriveFile[field], order=Order.asc if ascending else Order.desc)
         )
 
-    if not is_active:
+    if not status:
         query = query.where(DriveFile.owner == frappe.session.user)
     if search:
         # escape wildcards or lower() depending on DB
-        query = query.where(DriveFile.title.like(f"%{search}%"))
+        query = query.where(DriveFile.file_name.like(f"%{search}%"))
 
     query = query.select(Recents.last_interaction.as_("accessed"))
     if tag_list:
@@ -200,6 +200,6 @@ def files(
 @frappe.whitelist()
 def get_transfers():
     transfers = frappe.get_list(
-        "Drive Transfer", filters={"owner": frappe.session.user}, fields=["title", "file_size", "creation", "name"]
+        "Drive Transfer", filters={"owner": frappe.session.user}, fields=["file_name", "file_size", "creation", "name"]
     )
     return transfers

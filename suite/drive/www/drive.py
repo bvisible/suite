@@ -4,7 +4,7 @@ import frappe
 
 no_cache = 1
 
-TITLES = {"login": "Login", "signup": "Create an Account"}
+file_nameS = {"login": "Login", "signup": "Create an Account"}
 
 
 def get_context():
@@ -28,8 +28,10 @@ def get_context():
         context.description = "Open this online."
         # Ideally add thumbnail, but that might break if there's no thumbnail
         try:
-            [title, owner, is_group] = frappe.get_cached_value("Drive File", parts[1], ["title", "owner", "is_group"])
-            context.title = "Folder - " + title if is_group else title
+            [file_name, owner, is_folder] = frappe.get_cached_value(
+                "Drive File", parts[1], ["title", "owner", "is_folder"]
+            )
+            context.file_name = "Folder - " + file_name if is_folder else title
             context.description = "Owned by " + frappe.get_cached_value("User", owner, "full_name")
         except:
             pass

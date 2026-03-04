@@ -28,7 +28,7 @@ def get_file_content(embed_name: str, parent_entity_name: str):
     drive_entity = frappe.get_value(
         "Drive File",
         parent_entity_name,
-        ["document", "title", "mime_type", "file_size", "owner", "path", "team"],
+        ["document", "file_name", "mime_type", "file_size", "owner", "path", "team"],
         as_dict=1,
     )
 

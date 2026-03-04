@@ -164,7 +164,7 @@ def generate_upward_path(entity_name, user=None, team=0):
     """
     if user is None:
         user = frappe.session.user
-    user = frappe.db.escape(user if user != "Guest" else "") 
+    user = frappe.db.escape(user if user != "Guest" else "")
 
     filter_: str
     if team:
@@ -176,7 +176,7 @@ def generate_upward_path(entity_name, user=None, team=0):
         f"""WITH RECURSIVE
             generated_path as (
                 SELECT
-                    `tabDrive File`.title,
+                    `tabDrive File`.file_name,
                     `tabDrive File`.name,
                     `tabDrive File`.team,
                     `tabDrive File`.parent_entity,
@@ -188,7 +188,7 @@ def generate_upward_path(entity_name, user=None, team=0):
                     `tabDrive File`.name = %(entity_name)s
                 UNION ALL
                 SELECT
-                    t.title,
+                    t.file_name,
                     t.name,
                     t.team,
                     t.parent_entity,
@@ -199,7 +199,7 @@ def generate_upward_path(entity_name, user=None, team=0):
                     JOIN `tabDrive File` as t ON t.name = gp.parent_entity
             )
         SELECT
-            gp.title,
+            gp.file_name,
             gp.name,
             gp.owner,
             gp.parent_entity,
@@ -247,10 +247,10 @@ def get_valid_breadcrumbs(entity_name, user_access):
 def get_file_type(r):
     if r["is_folder"]:
         return "Folder"
-    elif r["file_type"] == 'Link':
+    elif r["file_type"] == "Link":
         return "Link"
     else:
-        return r['file_type']
+        return r["file_type"]
         try:
             return next(k for (k, v) in MIME_LIST_MAP.items() if r["mime_type"] in v)
         except StopIteration:
@@ -270,46 +270,46 @@ def update_file_size(entity, delta):
 
 def if_folder_exists(team, folder_name, parent):
     values = {
-        "title": folder_name,
-        "is_group": 1,
-        "is_active": 1,
+        "file_name": folder_name,
+        "is_folder": 1,
+        "status": 1,
         "team": team,
         "owner": frappe.session.user,
         "parent_entity": parent,
     }
-    existing_folder = frappe.db.get_value("Drive File", values, ["name", "title", "is_group", "is_active"], as_dict=1)
+    existing_folder = frappe.db.get_value("Drive File", values, ["name", "file_name", "is_folder", "status"], as_dict=1)
 
     if existing_folder:
         return existing_folder.name
     else:
-        d = frappe.get_doc({"doctype": "Drive File", **values, "_modified": frappe.utils.now_datetime()})
+        d = frappe.get_doc({"doctype": "Drive File", **values, "last_modified": frappe.utils.now_datetime()})
         d.insert()
         return d.name
 
 
 def create_drive_file(
     team,
-    title,
+    file_name,
     parent,
     mime_type,
     entity_path,
     file_size=0,
     last_modified=None,
     document=None,
-    is_group=False,
+    is_folder=False,
     owner=None,
 ):
     drive_file = frappe.get_doc(
         {
             "doctype": "Drive File",
             "team": team,
-            "title": title,
+            "file_name": file_name,
             "parent_entity": parent,
             "file_size": file_size,
             "mime_type": mime_type,
             "doc": document,
-            "is_group": is_group,
-            "_modified": (datetime.fromtimestamp(last_modified) if last_modified else frappe.utils.now()),
+            "is_folder": is_folder,
+            "last_modified": (datetime.fromtimestamp(last_modified) if last_modified else frappe.utils.now()),
         }
     )
     drive_file.flags.file_created = True
@@ -408,7 +408,7 @@ FILE_FIELDS = [
     "is_folder",
     "special_file",
     "special_file_doc",
-    Field("drive_team").as_('team'),
+    Field("drive_team").as_("team"),
     "creation",
     Field("last_modified").as_("modified"),
     "owner",
