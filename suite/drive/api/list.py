@@ -4,14 +4,13 @@ import frappe
 from pypika import Criterion, CustomFunction, Order
 from pypika import functions as fn
 
-from drive.utils import MIME_LIST_MAP, default_team, get_file_type, get_home_folder
+from drive.utils import MIME_LIST_MAP, default_team, get_file_type, get_home_folder, FILE_FIELDS
 from drive.utils.api import get_default_access
-
-from .permissions import ENTITY_FIELDS, get_user_access
+from .permissions import get_user_access, user_has_permission
 
 DriveUser = frappe.qb.DocType("User")
 UserGroupMember = frappe.qb.DocType("User Group Member")
-DriveFile = frappe.qb.DocType("Drive File")
+DriveFile = frappe.qb.DocType("File")
 DrivePermission = frappe.qb.DocType("Drive Permission")
 Team = frappe.qb.DocType("Drive Team")
 TeamMember = frappe.qb.DocType("Drive Team Member")
@@ -30,7 +29,6 @@ def files(
     order_by: str = "modified 1",
     is_active: bool = True,
     limit: int = 20,
-    cursor: str | None = None,
     favourites_only: bool = False,
     recents_only: bool = False,
     shared: str | None = None,
@@ -46,33 +44,31 @@ def files(
     if team == "all":
         all_teams = True
         team = None
-
     if not entity_name and team:
         entity_name = get_home_folder(team)["name"]
 
     user = frappe.session.user if frappe.session.user != "Guest" else ""
-    if entity_name:
-        entity = frappe.get_doc("Drive File", entity_name)
-        # Verify that entity exists and is part of the team
-        if not entity:
-            frappe.throw(
-                f"Not found ({entity_name}) ",
-                frappe.exceptions.PageDoesNotExistError,
-            )
+    entity = frappe.get_doc("Drive File", entity_name)
 
-        if not team == entity.team:
-            team = entity.team
+    # Verify that entity exists and is part of the team
+    if not entity:
+        frappe.throw(
+            f"Not found ({entity_name}) ",
+            frappe.exceptions.PageDoesNotExistError,
+        )
 
-        # Verify that folder is public or that they have access
-        user_access = get_user_access(entity, user)
+    if team and not team == entity.team:
+        frappe.throw("Given team doesn't match the file's team", ValueError)
 
-        if not user_access["read"]:
-            frappe.throw(
-                f"You don't have access.",
-                frappe.exceptions.PermissionError,
-            )
+    # Verify that folder is public or that they have access
+    if not user_has_permission(entity, "read"):
+        frappe.throw(
+            f"You don't have access.",
+            frappe.exceptions.PermissionError,
+        )
 
-    query = frappe.qb.from_(DriveFile).where(DriveFile.is_active == is_active)
+    query = frappe.qb.from_(DriveFile).where(DriveFile.status == is_active)
+
     if shared:
         if shared == "by" or shared == "with":
             cond = (DrivePermission.entity == DriveFile.name) & (
@@ -89,19 +85,15 @@ def files(
             (DrivePermission.entity == DriveFile.name) & (DrivePermission.user == user)
         )
 
-    query = query.select(*ENTITY_FIELDS, DrivePermission.user.as_("shared_team")).where(
+    query = query.select(*FILE_FIELDS, DrivePermission.user.as_("shared_team")).where(
         fn.Coalesce(DrivePermission.read, 1).as_("read") == 1
     )
 
-    # Cursor pagination
-    if cursor:
-        query = query.where((Binary(DriveFile[field]) > cursor if ascending else field < cursor)).limit(limit)
-
     # Cleaner way?
     if only_parent and (not recents_only and not favourites_only and not shared):
-        query = query.where(DriveFile.parent_entity == entity_name)
+        query = query.where(DriveFile.folder == entity_name)
     elif not all_teams:
-        query = query.where((DriveFile.team == team) & (DriveFile.parent_entity != ""))
+        query = query.where((DriveFile.team == team) & (DriveFile.folder != ""))
 
     # Get favourites data (only that, if applicable)
     if favourites_only:
@@ -145,18 +137,18 @@ def files(
             mime_types.extend(MIME_LIST_MAP.get(kind, []))
         criterion = [DriveFile.mime_type == mime_type for mime_type in mime_types]
         if "Folder" in file_kinds:
-            criterion.append(DriveFile.is_group == 1)
+            criterion.append(DriveFile.is_folder == 1)
         query = query.where(Criterion.any(criterion))
 
     if folders:
-        query = query.where(DriveFile.is_group == 1)
+        query = query.where(DriveFile.is_folder == 1)
     res = query.run(as_dict=True)
 
     child_count_query = (
         frappe.qb.from_(DriveFile)
-        .where((DriveFile.team == team) & (DriveFile.is_active == 1))
-        .select(DriveFile.parent_entity, fn.Count("*").as_("child_count"))
-        .groupby(DriveFile.parent_entity)
+        .where((DriveFile.drive_team == team) & (DriveFile.status == 1))
+        .select(DriveFile.folder, fn.Count("*").as_("child_count"))
+        .groupby(DriveFile.folder)
     )
     share_query = (
         frappe.qb.from_(DriveFile)
