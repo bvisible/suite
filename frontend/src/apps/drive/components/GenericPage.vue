@@ -209,7 +209,7 @@ watch(
     if (!val) return
     rows.value = sortEntities([...val], sortOrder.value)
     store.commit("setCurrentFolder", {
-      entities: rows.value.filter?.((k) => k.title[0] !== "."),
+      entities: rows.value.filter?.((k) => k.file_name[0] !== "."),
     })
   },
   { immediate: true, deep: true }

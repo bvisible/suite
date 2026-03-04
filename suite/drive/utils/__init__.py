@@ -4,6 +4,7 @@ from functools import wraps
 
 import frappe
 from bs4 import BeautifulSoup
+from pypika import Field
 
 DriveFile = frappe.qb.DocType("Drive File")
 MIME_LIST_MAP = {
@@ -244,11 +245,12 @@ def get_valid_breadcrumbs(entity_name, user_access):
 
 
 def get_file_type(r):
-    if r["is_group"]:
+    if r["is_folder"]:
         return "Folder"
-    elif r["is_link"]:
+    elif r["file_type"] == 'Link':
         return "Link"
     else:
+        return r['file_type']
         try:
             return next(k for (k, v) in MIME_LIST_MAP.items() if r["mime_type"] in v)
         except StopIteration:
@@ -394,3 +396,21 @@ def get_teams(user=None, details=None, exclude_personal=True):
             return {t: team for t, team in teams_info.items() if not team.personal}
         return teams_info
     return teams
+
+
+FILE_FIELDS = [
+    "name",
+    "file_name",
+    "folder",
+    "file_url",
+    "file_size",
+    "file_type",
+    "is_folder",
+    "special_file",
+    "special_file_doc",
+    Field("drive_team").as_('team'),
+    "creation",
+    Field("last_modified").as_("modified"),
+    "owner",
+    "settings",
+]
