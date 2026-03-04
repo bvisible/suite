@@ -1,45 +1,45 @@
-import { createResource } from "frappe-ui"
-import { toast } from "@/utils/toasts"
-import { openEntity, setTitle } from "@/utils/files"
-import store from "@/store"
-import router from "@/router"
-import { prettyData, setCache } from "@/utils/files"
-import { updateURLSlug } from "@/utils/files"
+import { createResource } from 'frappe-ui'
+import { toast } from '@/utils/toasts'
+import { openEntity, setTitle } from '@/utils/files'
+import store from '@/store'
+import router from '@/router'
+import { prettyData, setCache } from '@/utils/files'
+import { updateURLSlug } from '@/utils/files'
 
 // GETTERS
 export const COMMON_OPTIONS = {
-  method: "GET",
+  method: 'GET',
   debounce: 500,
   transform(data) {
-    return prettyData(data.filter((k) => !k.file_name.startsWith(".")))
+    return prettyData(data.filter((k) => !k.file_name.startsWith('.')))
   },
 }
 
 export const getTeam = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
+  url: 'drive.api.list.files',
   makeParams: (params) => {
     return {
       ...params,
       personal: 0,
     }
   },
-  cache: "team-folder-contents",
+  cache: 'team-folder-contents',
 })
 
 export const getTeams = createResource({
-  url: "/api/method/drive.api.permissions.get_teams",
+  url: '/api/method/drive.api.permissions.get_teams',
   params: {
     details: 1,
   },
-  method: "GET",
-  cache: "teams",
+  method: 'GET',
+  cache: 'teams',
 })
 
 export const getPublicTeams = createResource({
-  url: "drive.api.permissions.get_public_teams",
-  method: "GET",
-  cache: "public-teams",
+  url: 'drive.api.permissions.get_public_teams',
+  method: 'GET',
+  cache: 'public-teams',
   transform: (d) => {
     return d.reduce((acc, k) => ({ ...acc, [k.name]: k }), {})
   },
@@ -47,8 +47,8 @@ export const getPublicTeams = createResource({
 
 export const getRecents = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
-  cache: "recents-folder-contents",
+  url: 'drive.api.list.files',
+  cache: 'recents-folder-contents',
   makeParams: (params) => {
     return { ...params, recents_only: true }
   },
@@ -56,8 +56,8 @@ export const getRecents = createResource({
 
 export const getPersonal = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
-  cache: "personal-folder-contents",
+  url: 'drive.api.list.files',
+  cache: 'personal-folder-contents',
   makeParams: (params) => {
     return { ...params, personal: 1 }
   },
@@ -65,8 +65,8 @@ export const getPersonal = createResource({
 
 export const getFavourites = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
-  cache: "favourite-folder-contents",
+  url: 'drive.api.list.files',
+  cache: 'favourite-folder-contents',
   makeParams: (params) => {
     return { ...params, favourites_only: 1 }
   },
@@ -74,22 +74,22 @@ export const getFavourites = createResource({
 
 export const getDocuments = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
+  url: 'drive.api.list.files',
   makeParams: (params) => {
     return { ...params, file_kinds: '["Frappe Document"]' }
   },
-  cache: "document-folder-contents",
+  cache: 'document-folder-contents',
 })
 
 export const getSlides = createResource({
   ...COMMON_OPTIONS,
-  url: "slides.slides.doctype.presentation.presentation.get_all_presentations",
-  cache: "slides-folder-contents",
+  url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
+  cache: 'slides-folder-contents',
   transform(data) {
     data = data.map((k) => ({
       ...k,
-      mime_type: "frappe/slides",
-      file_type: "Presentation",
+      mime_type: 'frappe/slides',
+      file_type: 'Presentation',
       path: k.name,
       external: true,
       file_size: 0,
@@ -101,9 +101,9 @@ export const getSlides = createResource({
 
 export const getShared = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
-  cache: "shared-folder-contents",
-  params: { shared: "by" },
+  url: 'drive.api.list.files',
+  cache: 'shared-folder-contents',
+  params: { shared: 'by' },
   makeParams: (params) => {
     return { ...params }
   },
@@ -111,10 +111,10 @@ export const getShared = createResource({
 
 export const getTrash = createResource({
   ...COMMON_OPTIONS,
-  url: "drive.api.list.files",
-  cache: "trash-folder-contents",
+  url: 'drive.api.list.files',
+  cache: 'trash-folder-contents',
   makeParams: (params) => {
-    return { ...params, is_active: 0, only_parent: 0 }
+    return { ...params, status: 0, only_parent: 0 }
   },
 })
 
@@ -147,20 +147,20 @@ export const updateMoved = (team, new_parent, special) => {
     // No further mutation of the resource object can take place
     createResource({
       ...COMMON_OPTIONS,
-      url: "drive.api.list.files",
+      url: 'drive.api.list.files',
       makeParams: (params) => ({
         ...params,
         entity_name: new_parent,
         personal: -2,
         team,
       }),
-      cache: ["folder", new_parent],
+      cache: ['folder', new_parent],
     }).fetch(
       store.state.sortOrder[new_parent]
         ? {
             order_by:
               store.state.sortOrder[new_parent].field +
-              (store.state.sortOrder[new_parent].ascending ? " 1" : " 0"),
+              (store.state.sortOrder[new_parent].ascending ? ' 1' : ' 0'),
           }
         : {}
     )
@@ -170,7 +170,7 @@ export const updateMoved = (team, new_parent, special) => {
 }
 
 export const toggleFav = createResource({
-  url: "drive.api.files.set_favourite",
+  url: 'drive.api.files.set_favourite',
   makeParams(data) {
     if (!data) {
       getFavourites.setData([])
@@ -192,7 +192,7 @@ export const toggleFav = createResource({
     }
   },
   onSuccess() {
-    if (!toggleFav.params.entities) toast("All favourites cleared")
+    if (!toggleFav.params.entities) toast('All favourites cleared')
     if (toggleFav.params.entities.length === 1) return
     if (toggleFav.params.entities[0].is_favourite === false)
       toast(`${toggleFav.params.entities.length} items unfavourited`)
@@ -201,7 +201,7 @@ export const toggleFav = createResource({
 })
 
 export const clearRecent = createResource({
-  url: "drive.api.files.remove_recents",
+  url: 'drive.api.files.remove_recents',
   makeParams: (data) => {
     if (!data) {
       getRecents.setData([])
@@ -217,14 +217,14 @@ export const clearRecent = createResource({
   },
   onError: () => {
     toast({
-      message: "There was an error while clearing recents.",
-      type: "error",
+      message: 'There was an error while clearing recents.',
+      type: 'error',
     })
   },
 })
 
 export const clearTrash = createResource({
-  url: "drive.api.files.delete_entities",
+  url: 'drive.api.files.delete_entities',
   makeParams: (data) => {
     if (!data) {
       getTrash.setData([])
@@ -236,7 +236,7 @@ export const clearTrash = createResource({
     // Buggy for some reason
     const files = clearTrash.params.entity_names?.length
     toast(
-      `Permanently deleted ${files || "all"} file${files === 1 ? "" : "s"}.`
+      `Permanently deleted ${files || 'all'} file${files === 1 ? '' : 's'}.`
     )
   },
   onError(error) {
@@ -248,8 +248,8 @@ export const clearTrash = createResource({
 })
 
 export const rename = createResource({
-  url: "drive.api.files.rename",
-  method: "POST",
+  url: 'drive.api.files.rename',
+  method: 'POST',
   makeParams: (data) => {
     return {
       ...data,
@@ -259,7 +259,7 @@ export const rename = createResource({
     let l = store.state.breadcrumbs[store.state.breadcrumbs.length - 1]
     if (l.name === rename.params.entity_name) {
       l.label = rename.params.new_title
-      store.state.activeEntity.title = rename.params.new_title
+      store.state.activeEntity.file_name = rename.params.new_title
       store.state.activeEntity.modified = new Date()
       setTitle(rename.params.new_title)
       updateURLSlug(rename.params.new_title)
@@ -268,39 +268,39 @@ export const rename = createResource({
   onError(error) {
     toast({
       title: error.messages[error.messages.length - 1],
-      position: "bottom-right",
-      type: "error",
+      position: 'bottom-right',
+      type: 'error',
       timeout: 2,
     })
   },
 })
 
 export const createDocument = createResource({
-  method: "POST",
-  url: "writer.api.docs.create_document",
+  method: 'POST',
+  url: 'writer.api.docs.create_document',
   makeParams: (params) => params,
 })
 
 export const createPresentation = createResource({
-  method: "POST",
-  url: "drive.api.files.create_presentation",
+  method: 'POST',
+  url: 'drive.api.files.create_presentation',
 })
 
 export const move = createResource({
-  url: "drive.api.files.move",
+  url: 'drive.api.files.move',
   onSuccess(data) {
     toast({
-      title: "Moved to " + data.title,
+      title: 'Moved to ' + data.title,
       buttons: [
         {
-          label: "Go",
+          label: 'Go',
           onClick: () => {
             if (!data.special)
               openEntity({
                 name: data.name,
-                is_group: true,
+                is_folder: true,
               })
-            else router.push({ name: data.title })
+            else router.push({ name: data.file_name })
           },
         },
       ],
@@ -310,17 +310,17 @@ export const move = createResource({
     updateMoved(data.team, data.name, data.special)
   },
   onError() {
-    toast({ title: "There was an error.", type: "error" })
+    toast({ title: 'There was an error.', type: 'error' })
   },
 })
 
 export const allFolders = createResource({
-  method: "GET",
-  url: "drive.api.list.files",
-  cache: "all-folders",
+  method: 'GET',
+  url: 'drive.api.list.files',
+  cache: 'all-folders',
   makeParams: (params) => ({
     ...params,
-    is_active: 1,
+    status: 1,
     folders: 1,
     personal: -1,
     only_parent: 0,
@@ -328,26 +328,26 @@ export const allFolders = createResource({
   transform: (d) =>
     d.map((k) => ({
       value: k.name,
-      label: k.title,
+      label: k.file_name,
       parent: k.parent_entity,
     })),
 })
 
 export const translate = createResource({
-  method: "GET",
-  url: "/api/method/drive.api.files.translate_old_name",
+  method: 'GET',
+  url: '/api/method/drive.api.files.translate_old_name',
 })
 
 export const storageBar = createResource({
-  url: "drive.api.storage.storage_bar_data",
-  method: "GET",
-  cache: "total_storage",
+  url: 'drive.api.storage.storage_bar_data',
+  method: 'GET',
+  cache: 'total_storage',
 })
 
-setCache(getTeam, "home-folder-contents")
-setCache(getShared, "shared-folder-contents")
-setCache(getRecents, "recents-folder-contents")
-setCache(getFavourites, "favourite-folder-contents")
-setCache(getPersonal, "personal-folder-contents")
-setCache(getTrash, "trash-folder-contents")
-setCache(getDocuments, "document-folder-contents")
+setCache(getTeam, 'home-folder-contents')
+setCache(getShared, 'shared-folder-contents')
+setCache(getRecents, 'recents-folder-contents')
+setCache(getFavourites, 'favourite-folder-contents')
+setCache(getPersonal, 'personal-folder-contents')
+setCache(getTrash, 'trash-folder-contents')
+setCache(getDocuments, 'document-folder-contents')
