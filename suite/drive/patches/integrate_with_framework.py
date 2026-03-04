@@ -34,7 +34,8 @@ def migrate_file(file):
             "is_drive_file": 1,
             "_name": file.name,
             "file_name": file.title,
-            "team": file.team,
+            # rename field
+            "drive_team": file.team,
             "file_url": file.path,
             "folder": file.parent_entity,
             "is_folder": file.is_group,

@@ -5,29 +5,10 @@ import frappe
 import markdown
 from frappe.utils import getdate
 from markdown.extensions.wikilinks import WikiLinkExtension
-from pypika import Field
 
-from drive.utils import generate_upward_path, get_default_team, get_file_type, get_valid_breadcrumbs
+from drive.utils import generate_upward_path, get_default_team, get_file_type, get_valid_breadcrumbs, FILE_FIELDS
 from drive.utils.files import FileManager
 from drive.utils.users import mark_as_viewed
-
-ENTITY_FIELDS = [
-    "name",
-    "title",
-    "is_group",
-    "is_link",
-    "path",
-    Field("_modified").as_("modified"),
-    "creation",
-    "file_size",
-    "mime_type",
-    "color",
-    "doc",
-    "owner",
-    "parent_entity",
-    "team",
-    "allow_download",
-]
 
 
 NO_ACCESS = {
@@ -155,7 +136,7 @@ def get_entity_with_permissions(entity_name: str):
     entity = frappe.db.get_value(
         "Drive File",
         {"is_active": 1, "name": entity_name},
-        ENTITY_FIELDS,
+        FILE_FIELDS,
         as_dict=1,
     )
     if not entity:
