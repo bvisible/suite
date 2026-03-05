@@ -15,6 +15,10 @@ class File(FrappeFile):
         else:
             super().autoname()
 
+    def set_folder_name(self):
+        # Should only be dictated by user
+        pass
+
 
 def common_filters(func):
     def decorator(user):

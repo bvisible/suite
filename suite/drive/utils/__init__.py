@@ -6,7 +6,7 @@ import frappe
 from bs4 import BeautifulSoup
 from pypika import Field
 
-DriveFile = frappe.qb.DocType("Drive File")
+DriveFile = frappe.qb.DocType("File")
 MIME_LIST_MAP = {
     "Image": [
         "image/png",
@@ -89,11 +89,11 @@ def get_home_folder(team):
     ls = (
         frappe.qb.from_(DriveFile)
         .where(((DriveFile.team == team) & DriveFile.folder.isnull()))
-        .select(DriveFile.name, DriveFile.path)
+        .select(DriveFile.name, DriveFile.file_url)
         .run(as_dict=True)
     )
     if not ls:
-        error_msg = f"This team ({team}) doesn't exist - please create in Desk."
+        error_msg = f"This team doesn't exist."
         team_names = frappe.get_all(
             "Drive Team Member",
             pluck="parent",
@@ -106,7 +106,7 @@ def get_home_folder(team):
             error_msg += f"<br /><br />Or maybe you want <a class='text-black' href='/drive/t/{team_names[0]}'>{frappe.db.get_value('Drive Team', team_names[0], 'title')}</a>?"
         if not team_names:
             error_msg += f"<br /><br />Please <a class='text-black' href='/drive/setup'>setup</a> an account."
-        frappe.throw(error_msg, {"error": frappe.NotFound})
+        frappe.throw(error_msg)
     return ls[0]
 
 
@@ -118,10 +118,10 @@ def get_ancestors_of(entity_name):
         """
         WITH RECURSIVE generated_path as (
         SELECT
-            `tabDrive File`.name,
-            `tabDrive File`.folder
-        FROM `tabDrive File`
-        WHERE `tabDrive File`.name = %(entity_name)s
+            `tabFile`.name,
+            `tabFile`.folder
+        FROM `tabFile`
+        WHERE `tabFile`.name = %(entity_name)s
 
         UNION ALL
 
@@ -129,7 +129,7 @@ def get_ancestors_of(entity_name):
             t.name,
             t.folder
         FROM generated_path as gp
-        JOIN `tabDrive File` as t ON t.name = gp.folder)
+        JOIN `tabFile` as t ON t.name = gp.folder)
         SELECT name FROM generated_path;
     """,
         values={"entity_name": entity_name},
@@ -176,16 +176,16 @@ def generate_upward_path(entity_name, user=None, team=0):
         f"""WITH RECURSIVE
             generated_path as (
                 SELECT
-                    `tabDrive File`.file_name,
-                    `tabDrive File`.name,
-                    `tabDrive File`.team,
-                    `tabDrive File`.folder,
-                    `tabDrive File`.owner,
+                    `tabFile`.file_name,
+                    `tabFile`.name,
+                    `tabFile`.team,
+                    `tabFile`.folder,
+                    `tabFile`.owner,
                     0 AS level
                 FROM
-                    `tabDrive File`
+                    `tabFile`
                 WHERE
-                    `tabDrive File`.name = %(entity_name)s
+                    `tabFile`.name = %(entity_name)s
                 UNION ALL
                 SELECT
                     t.file_name,
@@ -196,7 +196,7 @@ def generate_upward_path(entity_name, user=None, team=0):
                     gp.level + 1
                 FROM
                     generated_path as gp
-                    JOIN `tabDrive File` as t ON t.name = gp.folder
+                    JOIN `tabFile` as t ON t.name = gp.folder
             )
         SELECT
             gp.file_name,
@@ -251,10 +251,6 @@ def get_file_type(r):
         return "Link"
     else:
         return r["file_type"]
-        try:
-            return next(k for (k, v) in MIME_LIST_MAP.items() if r["mime_type"] in v)
-        except StopIteration:
-            return "Unknown"
 
 
 def update_file_size(entity, delta):
@@ -408,7 +404,7 @@ FILE_FIELDS = [
     "is_folder",
     "special_file",
     "special_file_doc",
-    Field("drive_team").as_("team"),
+    "team",
     "creation",
     Field("last_modified").as_("modified"),
     "owner",
