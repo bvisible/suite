@@ -15,8 +15,9 @@ class DriveTeam(Document):
         """Creates the file on disk"""
         d = frappe.get_doc(
             {
+                "is_drive_file": 1,
                 "name": self.name,
-                "doctype": "Drive File",
+                "doctype": "File",
                 "file_name": f"Drive - {self.name}",
                 "path": "",
                 "is_folder": 1,

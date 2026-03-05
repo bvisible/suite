@@ -7,7 +7,7 @@ def get_link(entity):
     if entity.doc:
         return "/writer/w/" + entity.name
     type_ = {True: "f", bool(entity.is_folder): "d"}
-    return entity.path if entity.is_link else f"/drive/{type_.get(True)}/{entity.name}/"
+    return entity.file_url if entity.is_link else f"/drive/{type_.get(True)}/{entity.name}/"
 
 
 @frappe.whitelist()
