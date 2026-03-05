@@ -192,19 +192,12 @@ export const prettyData = (entities) => {
 export const setBreadCrumbs = (entity) => {
   const breadcrumbs = entity.breadcrumbs
   const in_home = entity.in_home
-  let res = store.getters.isLoggedIn
-    ? [
-        {
-          label: __('Shared'),
-          name: 'Shared',
-          route: '/shared',
-        },
-      ]
-    : []
   const team =
     getTeams.data?.[breadcrumbs[0].team] ||
     getPublicTeams.data?.[breadcrumbs[0].team]
-  if (team || in_home)
+
+  let res = [];
+  if (team || in_home) {
     res = [
       {
         label: in_home ? __('Home') : team.title,
@@ -214,6 +207,23 @@ export const setBreadCrumbs = (entity) => {
           : { name: 'Team', params: { team: team.name } },
       },
     ]
+  } else if (!entity.is_drive_file) {
+    res = [
+      {
+        label: __('Site'),
+        name: 'Site',
+        route: '/site',
+      },
+    ]
+  } else if  (store.getters.isLoggedIn){
+    res =[
+        {
+          label: __('Shared'),
+          name: 'Shared',
+          route: '/shared',
+        },
+      ]
+  }
 
   if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
   const popBreadcrumbs = (item) => () =>

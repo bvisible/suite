@@ -90,6 +90,12 @@ const routes = [
     beforeEnter: [setRootBreadCrumb],
   },
   {
+    path: "/site",
+    name: "Site",
+    component: () => import("@/pages/Site.vue"),
+    beforeEnter: [setRootBreadCrumb],
+  },
+  {
     path: "/documents",
     name: "Documents",
     component: () => import("@/pages/Documents.vue"),

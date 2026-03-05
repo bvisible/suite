@@ -15,14 +15,11 @@ export const COMMON_OPTIONS = {
   },
 }
 
-export const getTeam = createResource({
+export const getFiles = createResource({
   ...COMMON_OPTIONS,
   url: 'drive.api.list.files',
   makeParams: (params) => {
-    return {
-      ...params,
-      personal: 0,
-    }
+    return params
   },
   cache: 'team-folder-contents',
 })
@@ -58,9 +55,14 @@ export const getPersonal = createResource({
   ...COMMON_OPTIONS,
   url: 'drive.api.list.files',
   cache: 'personal-folder-contents',
-  makeParams: (params) => {
-    return { ...params, personal: 1 }
-  },
+  makeParams: (params) => params,
+})
+
+export const getSiteFiles = createResource({
+  ...COMMON_OPTIONS,
+  url: 'drive.api.list.files',
+  cache: 'site-folder-contents',
+  makeParams: (params) => ({... params, entity_name: 'Home'}),
 })
 
 export const getFavourites = createResource({
@@ -121,7 +123,7 @@ export const getTrash = createResource({
 // SETTERS
 export const LISTS = [
   getPersonal,
-  getTeam,
+  getFiles,
   getRecents,
   getShared,
   getFavourites,
@@ -165,7 +167,7 @@ export const updateMoved = (team, new_parent, special) => {
         : {}
     )
   } else {
-    ;(move.params.is_private ? getPersonal : getTeam).fetch({ team })
+    ;(move.params.is_private ? getPersonal : getFiles).fetch({ team })
   }
 }
 
@@ -344,7 +346,7 @@ export const storageBar = createResource({
   cache: 'total_storage',
 })
 
-setCache(getTeam, 'home-folder-contents')
+setCache(getFiles, 'home-folder-contents')
 setCache(getShared, 'shared-folder-contents')
 setCache(getRecents, 'recents-folder-contents')
 setCache(getFavourites, 'favourite-folder-contents')

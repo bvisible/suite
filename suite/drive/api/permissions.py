@@ -1,3 +1,4 @@
+from drive.utils import map_ff_to_drive_type
 from frappe.model.document import Document
 import io
 
@@ -134,14 +135,16 @@ def get_entity_with_permissions(entity_name: str):
     """
     Return file data with permissions
     """
-    entity = frappe.db.get_value(
+    entity = frappe.get_all(
         "File",
-        {"status": 1, "name": entity_name},
-        FILE_FIELDS,
-        as_dict=1,
+        filters={"name": entity_name},
+        or_filters={"status": 1, "is_drive_file": 0},
+        fields=FILE_FIELDS,
+        limit=1,
     )
     if not entity:
         frappe.throw("We couldn't find what you're looking for.", frappe.DoesNotExistError)
+    entity = entity[0]
 
     entity["in_home"] = entity.team == get_default_team()
     user_access = get_user_access(entity)
@@ -168,6 +171,8 @@ def get_entity_with_permissions(entity_name: str):
         elif get_user_access(entity_name, team=1)["read"]:
             default = -1
     return_obj["share_count"] = default
+    if not entity.is_drive_file:
+        return_obj["file_type"] = map_ff_to_drive_type(entity)
 
     return return_obj
 

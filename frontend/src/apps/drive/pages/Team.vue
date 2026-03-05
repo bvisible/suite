@@ -1,6 +1,6 @@
 <template>
   <GenericPage
-    :get-entities="getTeam"
+    :get-entities="getFiles"
     :icon="LucideBuilding2"
     :empty="{
       title: 'This team is empty',
@@ -17,7 +17,7 @@
 
 <script setup>
 import GenericPage from "@/components/GenericPage.vue"
-import { getTeam, getTeams, getPublicTeams } from "@/resources/files"
+import { getFiles, getTeams, getPublicTeams } from "@/resources/files"
 import { allUsers } from "@/resources/permissions"
 import { useStore } from "vuex"
 import { useRoute } from "vue-router"
