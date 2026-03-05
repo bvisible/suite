@@ -134,26 +134,12 @@ def upload_file(
 
 @frappe.whitelist(allow_guest=True)
 def get_thumbnail(entity_name: str):
-    drive_file = frappe.get_value(
-        "Drive File",
-        entity_name,
-        [
-            "is_folder",
-            "path",
-            "file_name",
-            "mime_type",
-            "file_size",
-            "owner",
-            "team",
-            "document",
-            "name",
-        ],
-        as_dict=1,
-    )
-    if not drive_file or drive_file.is_folder or drive_file.is_link:
+    drive_file = frappe.get_cached_doc("File", entity_name)
+    if not drive_file or drive_file.is_folder:
         return
-    if user_has_permission(drive_file, "read") is False:
-        return
+
+    if not user_has_permission(drive_file, "read"):
+        frappe.throw("No permission", frappe.PermissionError)
 
     thumbnail_data = None
     if frappe.cache().exists(entity_name):
@@ -164,13 +150,13 @@ def get_thumbnail(entity_name: str):
     if not thumbnail_data:
         manager = FileManager()
         try:
-            if drive_file.mime_type.startswith("text"):
+            if drive_file.file_type == 'Markdown':
                 with manager.get_file(drive_file) as f:
                     thumbnail_data = f.read()[:1000].decode("utf-8").replace("\n", "<br/>")
-            elif drive_file.mime_type == "frappe_doc":
-                html = frappe.get_value("Drive Document", drive_file.document, "raw_content")
+            elif drive_file.file_type == "Document":
+                html = frappe.get_value("Writer Document", drive_file.special_file_doc, "raw_content")
                 thumbnail_data = html[:1000] if html else ""
-            elif drive_file.mime_type == "frappe/slides":
+            elif drive_file.file_type == "Presentation":
                 # Use this until the thumbnail method is whitelisted
                 thumbnails = frappe.call(
                     "slides.slides.doctype.presentation.presentation.get_slide_thumbnails",
@@ -485,7 +471,6 @@ def get_file_content(
 
     if not drive_file or drive_file.file_type in FORBIDDEN_DOWNLOAD_TYPES or drive_file.status != 1:
         frappe.throw("Not found", frappe.DoesNotExistError)
-
 
     return get_file_internal(drive_file, trigger_download)
 
