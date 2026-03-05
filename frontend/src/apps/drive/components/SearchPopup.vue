@@ -1,26 +1,22 @@
 <template>
-  <Dialog
-    v-model="open"
-    :options="{ size: 'xl', position: 'top' }"
-  >
+  <Dialog v-model="open" :options="{ size: 'xl', position: 'top' }">
     <template #body>
       <div class="flex px-4 py-3 gap-1 items-center border-b">
-        <LucideSearch
-          class="w-4 mr-1 h-auto"
-          name="search"
-        />
+        <LucideSearch class="w-4 mr-1 h-auto" name="search" />
         <input
           v-model="search"
           type="text"
           class="appearance-none forced-colors:hidden w-full border-none bg-transparent py-3 pl-11.5 pr-4.5 text-base text-ink-gray-8 placeholder-ink-gray-4 focus:ring-0"
           placeholder="Find"
-        >
+        />
       </div>
       <div
         v-if="searchResults.data?.length"
         class="flex flex-col p-2.5 overflow-y-auto overflow-x-auto max-h-[50vh]"
       >
-        <span class="mb-2 pl-1 text-sm text-ink-gray-5">Results for <strong>{{ search }}:</strong></span>
+        <span class="mb-2 pl-1 text-sm text-ink-gray-5"
+          >Results for <strong>{{ search }}:</strong></span
+        >
         <div
           v-for="entity in searchResults.data"
           :key="entity.name"
@@ -30,9 +26,9 @@
           <div class="flex items-center gap-2 w-full col-span-6">
             <img
               class="size-4"
-              :src="getIconUrl(entity.is_group ? 'Folder' : entity.file_type)"
-            >
-            <span class="truncate">{{ entity.title }}</span>
+              :src="getIconUrl(entity.is_folder ? 'Folder' : entity.file_type)"
+            />
+            <span class="truncate">{{ entity.file_name }}</span>
           </div>
           <div
             class="col-span-2 grid grid-flow-col justify-start items-center truncate"
@@ -60,17 +56,14 @@
           <span v-else>type more...</span>
         </span>
       </div>
-      <div
-        v-if="false"
-        class="flex flex-col mb-2 mt-4 first:mt-3"
-      >
+      <div v-if="false" class="flex flex-col mb-2 mt-4 first:mt-3">
         <span class="mb-1 px-4.5 text-base text-ink-gray-5">Jump to</span>
         <div class="px-2.5">
           <div
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="
               $router.push({ name: 'Home' }),
-              emitter.emit('showSearchPopup', false)
+                emitter.emit('showSearchPopup', false)
             "
           >
             <LucideHome class="mr-2 size-4 text-ink-gray-7" />
@@ -80,7 +73,7 @@
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="
               $router.push({ name: 'Recents' }),
-              emitter.emit('showSearchPopup', false)
+                emitter.emit('showSearchPopup', false)
             "
           >
             <LucideClock class="mr-2 size-4 text-ink-gray-7" />
@@ -90,7 +83,7 @@
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="
               $router.push({ name: 'Favourites' }),
-              emitter.emit('showSearchPopup', false)
+                emitter.emit('showSearchPopup', false)
             "
           >
             <LucideStar class="mr-2 size-4 text-ink-gray-7" />
@@ -114,7 +107,7 @@
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="
               emitter.emit('uploadFolder'),
-              emitter.emit('showSearchPopup', false)
+                emitter.emit('showSearchPopup', false)
             "
           >
             <LucideFolderPlus
@@ -128,25 +121,25 @@
   </Dialog>
 </template>
 <script setup>
-import { Dialog, Avatar, createResource } from "frappe-ui"
-import { getIconUrl } from "@/utils/getIconUrl"
-import { openEntity } from "@/utils/files"
-import { ref, watch } from "vue"
-import { useRoute } from "vue-router"
+import { Dialog, Avatar, createResource } from 'frappe-ui'
+import { getIconUrl } from '@/utils/getIconUrl'
+import { openEntity } from '@/utils/files'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-import LucideFilePlus2 from "~icons/lucide/file-plus-2"
-import LucideFolderPlus from "~icons/lucide/folder-plus"
-import LucideStar from "~icons/lucide/star"
+import LucideFilePlus2 from '~icons/lucide/file-plus-2'
+import LucideFolderPlus from '~icons/lucide/folder-plus'
+import LucideStar from '~icons/lucide/star'
 
-const search = ref("")
+const search = ref('')
 const route = useRoute()
 
 const open = defineModel()
 
 const searchResults = createResource({
   auto: false,
-  method: "POST",
-  url: "drive.api.files.search",
+  method: 'POST',
+  url: 'drive.api.files.search',
 })
 
 watch(search, (val) => {
