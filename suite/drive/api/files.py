@@ -21,6 +21,8 @@ from drive.utils import (
     get_file_type,
     get_home_folder,
     update_file_size,
+    get_new_file_name,
+    validate_filename,
 )
 from drive.utils.api import prettify_file
 from drive.utils.files import FileManager
@@ -282,30 +284,15 @@ def get_upload_path(team_path, file_name):
 def create_folder(team: str, file_name: str, parent: str | None = None):
     home_folder = get_home_folder(team)
     parent = parent or home_folder.name
-    team = frappe.db.get_value("Drive File", parent, "team")
+    team = frappe.db.get_value("File", parent, "team")
 
-    parent_doc = frappe.get_doc("Drive File", parent)
+    parent_doc = frappe.get_doc("File", parent)
     if not user_has_permission(parent_doc, "upload"):
         frappe.throw(
             "You don't have permissions for this.",
             frappe.PermissionError,
         )
-    entity_exists = frappe.db.exists(
-        {
-            "doctype": "Drive File",
-            "folder": parent,
-            "is_folder": 1,
-            "file_name": file_name,
-            "status": 1,
-        }
-    )
-
-    if entity_exists:
-        suggested_name = get_new_file_name(file_name, parent, folder=True)
-        frappe.throw(
-            f"Folder '{file_name}' already exists.\n Suggested: {suggested_name}",
-            FileExistsError,
-        )
+    validate_filename(file_name, parent, {"file_type": "Folder"}, error=f"Folder '{file_name}' already exists.")
 
     manager = FileManager()
     path = manager.create_folder(
@@ -313,22 +300,19 @@ def create_folder(team: str, file_name: str, parent: str | None = None):
             {
                 "file_name": file_name,
                 "team": team,
-                "parent_path": Path(parent_doc.path or ""),
+                "parent_path": Path(parent_doc.file_url or ""),
             }
         ),
         home_folder,
     )
 
-    drive_file = create_drive_file(
+    return create_drive_file(
         team,
         file_name,
         parent,
-        "folder",
-        lambda _: path,
-        is_folder=True,
+        "Folder",
+        path,
     )
-
-    return drive_file
 
 
 def ensure_path(team, fullpath, parent=None):
@@ -783,36 +767,6 @@ def search(query: str):
 @frappe.whitelist(allow_guest=True)
 def translate_old_name(old_name: str):
     return frappe.get_value("Drive File", {"old_name": old_name}, "name")
-
-
-@frappe.whitelist()
-def get_new_file_name(file_name: str, parent_name: str, folder: bool = False, entity: str | None = None):
-    """
-    Returns new file name for an entity if same file name exists for another entity at the same level
-    """
-    entity_title, entity_ext = os.path.splitext(file_name)
-
-    filters = {
-        "status": 1,
-        "folder": parent_name,
-        "file_name": ["like", f"{entity_title}%{entity_ext}"],
-    }
-
-    if folder:
-        filters["is_folder"] = 1
-
-    sibling_entity_titles = frappe.db.get_list(
-        "File",
-        filters=filters,
-        fields=["file_name", "name"],
-    )
-    if (
-        not sibling_entity_titles
-        or (sibling_entity_titles[0].name == entity)
-        or not any(k["file_name"] == file_name for k in sibling_entity_titles)
-    ):
-        return file_name
-    return f"{entity_title} ({len(sibling_entity_titles)}){entity_ext}"
 
 
 @frappe.whitelist(allow_guest=True)

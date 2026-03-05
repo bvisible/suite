@@ -85,6 +85,24 @@ MIME_LIST_MAP = {
 }
 
 
+FILE_FIELDS = [
+    "name",
+    "file_name",
+    "folder",
+    "file_url",
+    "file_size",
+    "file_type",
+    "is_folder",
+    "special_file",
+    "special_file_doc",
+    "team",
+    "creation",
+    Field("last_modified").as_("modified"),
+    "owner",
+    "settings",
+]
+
+
 def get_home_folder(team):
     ls = (
         frappe.qb.from_(DriveFile)
@@ -287,12 +305,12 @@ def create_drive_file(
     team,
     file_name,
     parent,
-    mime_type,
+    file_type,
     entity_path,
+    mime_type=None,
     file_size=0,
     last_modified=None,
     document=None,
-    is_folder=False,
     owner=None,
 ):
     drive_file = frappe.get_doc(
@@ -303,15 +321,16 @@ def create_drive_file(
             "file_name": file_name,
             "folder": parent,
             "file_size": file_size,
+            "file_type": mime_type,
             "mime_type": mime_type,
             "doc": document,
-            "is_folder": is_folder,
+            "is_folder": file_type == 'Folder',
             "last_modified": (datetime.fromtimestamp(last_modified) if last_modified else frappe.utils.now()),
         }
     )
     drive_file.flags.file_created = True
     drive_file.insert(ignore_permissions=True)
-    path = entity_path(drive_file)
+    path = entity_path if isinstance(entity_path, str) else entity_path(drive_file)
     drive_file.path = str(path) if path else ""
     drive_file.save(ignore_permissions=True)
     if owner:
@@ -395,19 +414,45 @@ def get_teams(user=None, details=None, exclude_personal=True):
     return teams
 
 
-FILE_FIELDS = [
-    "name",
-    "file_name",
-    "folder",
-    "file_url",
-    "file_size",
-    "file_type",
-    "is_folder",
-    "special_file",
-    "special_file_doc",
-    "team",
-    "creation",
-    Field("last_modified").as_("modified"),
-    "owner",
-    "settings",
-]
+def get_new_file_name(file_name: str, parent_name: str, folder: bool = False, entity: str | None = None):
+    entity_title, entity_ext = os.path.splitext(file_name)
+
+    filters = {
+        "status": 1,
+        "folder": parent_name,
+        "file_name": ["like", f"{entity_title}%{entity_ext}"],
+    }
+
+    if folder:
+        filters["is_folder"] = 1
+
+    sibling_entity_titles = frappe.db.get_list(
+        "File",
+        filters=filters,
+        fields=["file_name", "name"],
+    )
+    if (
+        not sibling_entity_titles
+        or (sibling_entity_titles[0].name == entity)
+        or not any(k["file_name"] == file_name for k in sibling_entity_titles)
+    ):
+        return file_name
+    return f"{entity_title} ({len(sibling_entity_titles)}){entity_ext}"
+
+
+def validate_filename(file_name, parent, filters, error=None):
+    exists = frappe.db.exists(
+        {
+            "doctype": "File",
+            "folder": parent,
+            "file_name": file_name,
+            "status": 1,
+            **filters,
+        }
+    )
+    if exists:
+        suggested_name = get_new_file_name(file_name, parent, folder=True)
+        frappe.throw(
+            f"{error} Try {suggested_name}",
+            FileExistsError,
+        )
