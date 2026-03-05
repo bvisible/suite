@@ -108,12 +108,6 @@ const routes = [
     beforeEnter: [setRootBreadCrumb],
   },
   {
-    path: "/transfer",
-    name: "Transfer",
-    component: () => import("@/pages/QuickShare.vue"),
-    beforeEnter: [setRootBreadCrumb],
-  },
-  {
     path: "/g/:entityName/",
     component: Dummy,
     beforeEnter: async (to) => {

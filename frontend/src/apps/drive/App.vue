@@ -40,7 +40,7 @@
     <FileUploader
       v-if="
         normalView &&
-        ['Folder', 'Home', 'Team', 'Transfer'].includes($route.name)
+        ['Folder', 'Home', 'Team'].includes($route.name)
       "
     />
     <FDialogs />

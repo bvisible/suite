@@ -40,13 +40,12 @@ def upload_file(
     last_modified: int = None,
     fullpath: str = None,
     parent: str = None,
-    transfer: int = 0,
     embed: int = 0,
 ):
     """
     Accept chunked file contents via a multipart upload.
     Store the file on disk, and insert a corresponding DriveFile doc.
-    Works with normal uploads, transfers, and embeds.
+    Works with normal uploads, and embeds.
     :return: DriveFile doc once the entire file has been uploaded
     """
     checks = frappe.get_hooks("validate_drive_upload")
@@ -76,7 +75,7 @@ def upload_file(
         total_chunks = 1
 
     file = frappe.request.files["file"]
-    file_name = get_new_file_name(file.filename, parent) if not transfer else file.filename
+    file_name = get_new_file_name(file.filename, parent)
     upload_session = frappe.form_dict.uuid
     temp_path = get_upload_path(home_folder["path"], f"{upload_session}_{secure_filename(file_name)}")
     with temp_path.open("ab") as f:
@@ -97,28 +96,19 @@ def upload_file(
 
     manager = FileManager()
 
-    # Create DB record
-    if transfer:
-        entity = frappe.get_doc({"doctype": "Drive Transfer", "file_name": file_name, "file_size": file_size})
-        entity.insert()
-        entity.file_url = str(
-            Path(home_folder["path"]) / (entity.name if manager.flat else Path(".transfers") / entity.file_name)
-        )
-        entity.save()
-        drive_file = frappe._dict(**entity.as_dict(), team=team, parent=parent)
-    else:
-        drive_file = create_drive_file(
-            team,
-            file_name,
-            parent,
-            mime_type,
-            lambda entity: manager.get_disk_path(entity, home_folder, embed),
-            file_size,
-            int(last_modified) / 1000 if last_modified else None,
-        )
+    
+    drive_file = create_drive_file(
+        team,
+        file_name,
+        parent,
+        mime_type,
+        lambda entity: manager.get_disk_path(entity, home_folder, embed),
+        file_size,
+        int(last_modified) / 1000 if last_modified else None,
+    )
 
     # Upload and update parent folder size
-    manager.upload_file(temp_path, drive_file, not embed and not transfer)
+    manager.upload_file(temp_path, drive_file, not embed)
 
     try:
         update_file_size(parent, file_size)
@@ -126,10 +116,7 @@ def upload_file(
         # Find a cleaner way to handle folder sizes as multiple simultaneous uploads will break this
         pass
 
-    if transfer:
-        frappe.publish_realtime("transfer-add", {"file": drive_file})
-    elif not embed:
-        frappe.publish_realtime("list-add", {"file": prettify_file(drive_file.as_dict())})
+    frappe.publish_realtime("list-add", {"file": prettify_file(drive_file.as_dict())})
 
     return drive_file
 
@@ -407,7 +394,7 @@ def create_auth_token(entity_name: str):
 
 @frappe.whitelist(allow_guest=True)
 def get_file_content(
-    entity_name: str, trigger_download: bool = False, jwt_token: str | None = None, transfer: bool = False
+    entity_name: str, trigger_download: bool = False, jwt_token: str | None = None
 ):
     """
     Stream file content and optionally trigger download
@@ -432,21 +419,17 @@ def get_file_content(
     elif not user_has_permission(entity_name, "read"):
         raise frappe.PermissionError("You do not have permission to view this file")
 
-    if transfer:
-        transfer = frappe.get_doc("Drive Transfer", entity_name)
-        # drive_file = frappe._dict(**transfer.as_dict(), team=get_default_team())
-    else:
-        drive_file = frappe.get_value(
-            "File",
-            {"name": entity_name},
-            [
-                "file_name",
-                "file_type",
-                "status",
-                "file_url",
-            ],
-            as_dict=1,
-        )
+    drive_file = frappe.get_value(
+        "File",
+        {"name": entity_name},
+        [
+            "file_name",
+            "file_type",
+            "status",
+            "file_url",
+        ],
+        as_dict=1,
+    )
 
     if drive_file.file_type == "Document":
         frappe.local.response["type"] = "redirect"
@@ -791,14 +774,3 @@ def get_root_folder(team: str):
     if team not in get_teams():
         frappe.throw("You can't check the home folder of a team you don't belong to.", frappe.PermissionError)
     return get_home_folder(team)
-
-
-def auto_delete_transfers():
-    from frappe.utils import now_datetime, add_to_date
-
-    one_hour_ago = add_to_date(now_datetime(), hours=-1)
-
-    transfers = frappe.get_all("Drive Transfer", filters={"creation": ["<", one_hour_ago]}, pluck="name")
-
-    for name in transfers:
-        frappe.delete_doc("Drive Transfer", name)
