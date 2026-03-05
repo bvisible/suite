@@ -310,7 +310,7 @@ const actionItems = computed(() => {
         label: __('Open'),
         icon: LucideExternalLink,
         action: ([entity]) => openEntity(entity),
-        isEnabled: (e) => e.file_type !== 'Link',
+        isEnabled: (e) => e.file_type === 'Link',
       },
       { divider: true },
       {
