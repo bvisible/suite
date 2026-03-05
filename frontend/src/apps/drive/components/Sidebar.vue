@@ -242,6 +242,13 @@ const sidebarItems = computed(() => {
           accessKey: "s",
         },
         {
+          label: "Site",
+          to: `/site`,
+          icon: LucideUsers,
+          isActive: first.name == "Site",
+          accessKey: "s",
+        },
+        {
           label: "Trash",
           to: `/trash`,
           icon: LucideTrash,

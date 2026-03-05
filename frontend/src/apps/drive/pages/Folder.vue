@@ -4,7 +4,8 @@
     :get-entities="getFolderContents"
     :empty="{
       icon: LucideFolderClosed,
-      title: 'No files added yet',
+      title: 'Nothing here',
+      description: 'Add files to this folder.',
     }"
   />
 </template>
