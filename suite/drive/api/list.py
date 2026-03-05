@@ -48,7 +48,7 @@ def files(
         entity_name = get_home_folder(team)["name"]
 
     user = frappe.session.user if frappe.session.user != "Guest" else ""
-    entity = frappe.get_doc("Drive File", entity_name)
+    entity = frappe.get_doc("File", entity_name)
 
     # Verify that entity exists and is part of the team
     if not entity:
