@@ -3,12 +3,23 @@ Create `File` records of all existing `Drive File`s
 """
 
 import frappe
-from drive.utils import get_file_type
+from drive.utils import MIME_LIST_MAP
+
+def get_file_type(r):
+    if r['is_group']:
+        return 'Folder'
+    if r['is_link']:
+        return "Link"
+    try:
+        return next(k for (k, v) in MIME_LIST_MAP.items() if r["mime_type"] in v)
+    except StopIteration:
+        return "Unknown"
+
 
 
 def execute(files=[]):
     if not files:
-        root_files = frappe.get_all("Drive File", filters={"folder": ""}, pluck="name")
+        root_files = frappe.get_all("Drive File", filters={"parent_entity": ""}, pluck="name")
 
     for file_id in root_files:
         folder = frappe.get_doc("Drive File", file_id)
@@ -36,10 +47,9 @@ def migrate_file(file):
             "is_drive_file": 1,
             "_name": file.name,
             "file_name": file.title,
-            # rename field
-            "drive_team": file.team,
+            "team": file.team,
             "file_url": file.path,
-            "folder": file.folder,
+            "folder": file.parent_entity,
             "is_folder": file.is_group,
             "file_size": file.file_size,
             "last_modified": file._modified,
@@ -53,9 +63,9 @@ def migrate_file(file):
         ff_file.special_file_doc = file.doc
 
     # Attachment
-    if frappe.db.get_value("Drive File", file.folder, "doc"):
+    if frappe.db.get_value("Drive File", file.parent_entity, "doc"):
         ff_file.attached_to_doctype = "File"
-        ff_file.attached_to_name = file.folder
+        ff_file.attached_to_name = file.parent_entity
     # Write eq code for slides
 
     # Calculate file type
@@ -68,3 +78,6 @@ def migrate_file(file):
         settings["forbid_download"] = 1
     ff_file.settings = settings
     ff_file.insert()
+    frappe.db.set_value("File", ff_file.name, "creation", file.creation, update_modified=False)
+    frappe.db.set_value("File", ff_file.name, "owner", file.owner, update_modified=False)
+    frappe.db.set_value("File", ff_file.name, "modified", file.modified, update_modified=False)

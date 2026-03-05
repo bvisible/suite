@@ -482,7 +482,7 @@ def get_file_content(
             as_dict=1,
         )
     if not drive_file or drive_file.is_folder or drive_file.is_link or (not transfer and drive_file.status != 1):
-        frappe.throw("Not found", frappe.NotFound)
+        frappe.throw("Not found", frappe.DoesNotExistError)
 
     return get_file_internal(drive_file, trigger_download)
 

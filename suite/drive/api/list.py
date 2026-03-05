@@ -146,7 +146,7 @@ def files(
 
     child_count_query = (
         frappe.qb.from_(DriveFile)
-        .where((DriveFile.drive_team == team) & (DriveFile.status == 1))
+        .where((DriveFile.team == team) & (DriveFile.status == 1))
         .select(DriveFile.folder, fn.Count("*").as_("child_count"))
         .groupby(DriveFile.folder)
     )
