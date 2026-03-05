@@ -2,7 +2,7 @@
   <Dialog
     v-model="open"
     :options="{
-      title: 'Create a Folder',
+      title: 'Create a folder',
       size: 'xs',
       actions: [
         {
@@ -56,9 +56,9 @@ const folderName = ref('')
 
 const createFolder = createResource({
   url: 'drive.api.files.create_folder',
-  makeParams(title) {
+  makeParams(file_name) {
     return {
-      title,
+      file_name,
       team: route.params.team,
       parent: props.parent,
     }
