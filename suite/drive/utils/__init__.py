@@ -6,6 +6,7 @@ from functools import wraps
 import frappe
 from bs4 import BeautifulSoup
 from pypika import Field
+import mimemapper
 
 DriveFile = frappe.qb.DocType("File")
 MIME_LIST_MAP = {
@@ -101,6 +102,7 @@ FILE_FIELDS = [
     Field("last_modified").as_("modified"),
     "owner",
     "settings",
+    'is_drive_file'
 ]
 
 
@@ -323,7 +325,7 @@ def create_drive_file(
             "file_type": file_type,
             "mime_type": mime_type,
             "doc": document,
-            "is_folder": file_type == 'Folder',
+            "is_folder": file_type == "Folder",
             "last_modified": (datetime.fromtimestamp(last_modified) if last_modified else frappe.utils.now()),
         }
     )
@@ -455,3 +457,10 @@ def validate_filename(file_name, parent, filters, error=None):
             f"{error} Try {suggested_name}",
             FileExistsError,
         )
+
+
+def map_ff_to_drive_type(file):
+    if file.is_folder:
+        return "Folder"
+    mime_type = mimemapper.get_mime_type(file.file_type)
+    return next(k for (k, v) in MIME_LIST_MAP.items() if mime_type in v)

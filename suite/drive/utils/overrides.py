@@ -10,7 +10,7 @@ def only_for_drive_files(func):
         if self.is_drive_file:
             return func(self, *args, **kwargs)
         else:
-            return getattr(super(FrappeFile, self), func.__name__)(*args, **kwargs)
+            return getattr(super(type(self), self), func.__name__)(*args, **kwargs)
 
     return inner
 
