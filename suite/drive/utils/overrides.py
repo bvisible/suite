@@ -10,10 +10,14 @@ class File(FrappeFile):
             super().validate()
             
     def autoname(self):
-        if self.is_drive_file and self._name:
-            self.name = self._name
+        if self.is_drive_file:
+            if getattr(self, '_name', None):
+                self.name = self._name
+            else:
+                self.name = frappe.generate_hash(length=10)
         else:
             super().autoname()
+            
 
     def set_folder_name(self):
         # Should only be dictated by user

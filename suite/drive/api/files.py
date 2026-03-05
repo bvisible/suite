@@ -99,7 +99,7 @@ def upload_file(
     if transfer:
         entity = frappe.get_doc({"doctype": "Drive Transfer", "file_name": file_name, "file_size": file_size})
         entity.insert()
-        entity.path = str(
+        entity.file_url = str(
             Path(home_folder["path"]) / (entity.name if manager.flat else Path(".transfers") / entity.file_name)
         )
         entity.save()
@@ -150,7 +150,7 @@ def get_thumbnail(entity_name: str):
     if not thumbnail_data:
         manager = FileManager()
         try:
-            if drive_file.file_type == 'Markdown':
+            if drive_file.file_type == "Markdown":
                 with manager.get_file(drive_file) as f:
                     thumbnail_data = f.read()[:1000].decode("utf-8").replace("\n", "<br/>")
             elif drive_file.file_type == "Document":
@@ -379,7 +379,7 @@ def create_link(team: str, file_name: str, link: str, parent: str | None = None)
         {
             "doctype": "Drive File",
             "folder": parent,
-            "is_folder": 1,
+            "file_type": "Link",
             "file_name": file_name,
             "status": 1,
         }
@@ -388,20 +388,20 @@ def create_link(team: str, file_name: str, link: str, parent: str | None = None)
     if entity_exists:
         suggested_name = get_new_file_name(file_name, parent, folder=True)
         frappe.throw(
-            f"File '{file_name}' already exists.\n Suggested: {suggested_name}",
+            f"Link '{file_name}' already exists.\n Suggested: {suggested_name}",
             FileExistsError,
         )
 
     drive_file = frappe.get_doc(
         {
-            "doctype": "Drive File",
+            "doctype": "File",
             "file_name": file_name,
             "team": team,
-            "path": link,
-            "is_link": 1,
-            "mime_type": "link/unknown",
+            "file_url": link,
+            "file_type": "Link",
             "last_modified": frappe.utils.now_datetime(),
             "folder": parent,
+            "is_drive_file": 1,
         }
     )
     drive_file.insert()
@@ -529,7 +529,7 @@ def stream_file_content(entity_name: str):
     if manager.s3_enabled:
         data = manager.get_file(entity, f"bytes={byte1}-{byte1 + length - 1}")
     else:
-        with manager.open_file(entity.path) as f:
+        with manager.open_file(entity.file_url) as f:
             f.seek(byte1)
             data = f.read(length)
 
@@ -754,8 +754,7 @@ def search(query: str):
             """
         SELECT  `tabDrive File`.name,
                 `tabDrive File`.file_name,
-                `tabDrive File`.is_folder,
-                `tabDrive File`.is_link,
+                `tabDrive File`.file_type,
                 `tabDrive File`.mime_type,
                 `tabDrive File`.document,
                 `tabDrive File`.color,
@@ -803,7 +802,7 @@ def get_new_file_name(file_name: str, parent_name: str, folder: bool = False, en
         filters["is_folder"] = 1
 
     sibling_entity_titles = frappe.db.get_list(
-        "Drive File",
+        "File",
         filters=filters,
         fields=["file_name", "name"],
     )

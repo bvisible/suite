@@ -257,7 +257,7 @@ const columnHeaders = [
   },
   {
     label: __("Type"),
-    field: "mime_type",
+    field: "file_type",
   },
   {
     group: true,

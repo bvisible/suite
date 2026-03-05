@@ -95,11 +95,6 @@
   </h1>
 
   <Switch
-    v-model="singleClick"
-    label="Single click to open files and folders"
-    class="!px-0 hover:!bg-inherit"
-  />
-  <Switch
     v-model="detectLinks"
     label="Automatically detect links"
     class="!px-0 hover:!bg-inherit"
@@ -132,11 +127,9 @@ const newFullName = computed(() => newFirstName.value + " " + newLastName.value)
 
 const editProfileDialog = ref(false)
 
-const singleClick = ref(Boolean(settings.data?.single_click))
 const detectLinks = ref(Boolean(settings.data?.auto_detect_links))
 const defaultTeam = ref(settings.data.default_team || { label: "-" })
 const options = {
-  single_click: singleClick,
   auto_detect_links: detectLinks,
   default_team: defaultTeam,
 }

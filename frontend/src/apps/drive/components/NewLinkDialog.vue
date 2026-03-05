@@ -18,7 +18,7 @@
     <template #body-content>
       <div class="flex flex-col gap-4">
         <FormControl
-          v-model="title"
+          v-model="file_name"
           v-focus
           label="Link name"
           type="text"
@@ -57,13 +57,13 @@ const emit = defineEmits(['success'])
 const open = ref(true)
 const dialogType = defineModel()
 
-const title = ref('')
+const file_name = ref('')
 const link = ref(localStorage.getItem('prevClip') || '')
 
 const createLink = createResource({
   url: 'drive.api.files.create_link',
   makeParams: () => ({
-    title: title.value.trim(),
+    file_name: file_name.value.trim(),
     link: link.value.trim(),
     team: route.params.team,
     parent: props.parent,
@@ -75,7 +75,7 @@ const createLink = createResource({
   },
   onSuccess(data) {
     open.value = false
-    title.value = ''
+    file_name.value = ''
     link.value = ''
     emit('success', data)
   },

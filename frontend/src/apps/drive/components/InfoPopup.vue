@@ -155,7 +155,7 @@
         </li>
         <li>
           <span class="inline-block w-24">Disk path:</span>
-          <span class="col-span-1">{{ entity.path }}</span>
+          <span class="col-span-1">{{ entity.file_url }}</span>
         </li>
         <li>
           <span class="inline-block w-24">Team:</span>
