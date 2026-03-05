@@ -10,7 +10,7 @@
             <template v-else>
               Moving "
               <div class="truncate max-w-[80%]">
-                {{ props.entities[0].title }}
+                {{ props.entities[0].file_name }}
               </div>
               "
             </template>
@@ -176,7 +176,7 @@
               </span>
               <button
                 class="text-base cursor-pointer truncate max-w-20"
-                :title="crumb.title"
+                :title="crumb.file_name"
                 :class="
                   index === slicedBreadcrumbs.length - 1
                     ? 'text-ink-gray-9 text-base font-medium p-1'
@@ -184,7 +184,7 @@
                 "
                 @click="closeEntity(crumb.name)"
               >
-                {{ crumb.title }}
+                {{ crumb.file_name }}
               </button>
             </div>
           </div>
@@ -296,7 +296,7 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
       data.forEach((item) => {
         const node = reactive({
           ...item,
-          label: item.title,
+          label: item.file_name,
           value: item.name,
           children: [],
         })
@@ -331,7 +331,7 @@ const selectedPerms = createResource({
     const first = [
       {
         name: '',
-        title: team ? team.title : 'Home',
+        title: team ? team.file_name : 'Home',
       },
     ]
     breadcrumbs.value = first.concat(data.breadcrumbs.slice(1))
@@ -353,7 +353,7 @@ watch(
         break
       case 1:
         breadcrumbs.value = [
-          { name: '', title: getTeams.data[team].title, is_private: 0 },
+          { name: '', title: getTeams.data[team].file_name, is_private: 0 },
         ]
         fetchFolderContents(tree)
         break
@@ -391,7 +391,7 @@ const dropDownBreadcrumbs = computed(() => {
     return {
       ...item,
       icon: null,
-      label: item.title,
+      label: item.file_name,
       onClick: () => closeEntity(item.name),
     }
   })
@@ -408,7 +408,7 @@ const createFolder = createResource({
     }
   },
   validate(params) {
-    if (!params?.title) return false
+    if (!params?.file_name) return false
   },
   onSuccess(data) {
     createdNode.value.value = data.name

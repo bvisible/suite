@@ -12,15 +12,8 @@
         class="select-none truncate max-w-[80%]"
       >
         <template #prefix="{ item, index }">
-          <LoadingIndicator
-            v-if="item.loading"
-            width="20"
-            scale="70"
-          />
-          <div
-            v-if="index == 0"
-            class="mr-1.5"
-          >
+          <LoadingIndicator v-if="item.loading" width="20" scale="70" />
+          <div v-if="index == 0" class="mr-1.5">
             <component
               :is="COMPONENT_MAP[item.name]"
               class="size-4 text-ink-gray-6"
@@ -31,23 +24,14 @@
     </slot>
 
     <div class="flex gap-2">
-      <div
-        id="navbar-content"
-        class="flex items-center"
-      >
+      <div id="navbar-content" class="flex items-center">
         <div class="icon mr-2">
-          <LucideGlobe2
-            v-if="rootEntity?.share_count === -2"
-            class="size-4"
-          />
+          <LucideGlobe2 v-if="rootEntity?.share_count === -2" class="size-4" />
           <LucideBuilding2
             v-else-if="rootEntity?.share_count === -1"
             class="size-4"
           />
-          <LucideUsers
-            v-else-if="rootEntity?.share_count > 0"
-            class="size-4"
-          />
+          <LucideUsers v-else-if="rootEntity?.share_count > 0" class="size-4" />
         </div>
       </div>
 
@@ -58,10 +42,7 @@
         class="my-auto stroke-amber-500 fill-amber-500"
       />
       <template v-if="!isLoggedIn && !inIframe">
-        <Button
-          variant="outline"
-          @click="$router.push({ name: 'Login' })"
-        >
+        <Button variant="outline" @click="$router.push({ name: 'Login' })">
           Sign In
         </Button>
         <Button
@@ -114,10 +95,7 @@
         @click="dialog = 'cta-' + $route.name.toLowerCase()"
       >
         <template #prefix>
-          <component
-            :is="button.icon"
-            class="size-4"
-          />
+          <component :is="button.icon" class="size-4" />
         </template>
         {{ button.label }}
       </Button>
@@ -129,36 +107,36 @@
   </nav>
 </template>
 <script setup>
-import { Button, Breadcrumbs, LoadingIndicator, Dropdown } from "frappe-ui"
-import { useStore } from "vuex"
-import emitter from "@/emitter"
-import { ref, computed, inject, h } from "vue"
-import { entitiesDownload } from "@/utils/download"
-import { getRecents, getTrash, toggleFav } from "@/resources/files"
-import { apps } from "@/resources/permissions"
-import { useRoute } from "vue-router"
-import { newExternal, dynamicList } from "@/utils/files"
-import { getFileLink } from "frappe-ui/drive/js/utils"
+import { Button, Breadcrumbs, LoadingIndicator, Dropdown } from 'frappe-ui'
+import { useStore } from 'vuex'
+import emitter from '@/emitter'
+import { ref, computed, inject, h } from 'vue'
+import { entitiesDownload } from '@/utils/download'
+import { getRecents, getTrash, toggleFav } from '@/resources/files'
+import { apps } from '@/resources/permissions'
+import { useRoute } from 'vue-router'
+import { newExternal, dynamicList } from '@/utils/files'
+import { getFileLink } from 'frappe-ui/drive/js/utils'
 
-import LucideClock from "~icons/lucide/clock"
-import LucideHome from "~icons/lucide/home"
-import LucideTrash from "~icons/lucide/trash"
-import LucideUsers from "~icons/lucide/users"
-import LucideBuilding2 from "~icons/lucide/building-2"
-import LucideStar from "~icons/lucide/star"
-import LucideMoreHorizontal from "~icons/lucide/more-horizontal"
-import LucideShare2 from "~icons/lucide/share-2"
-import LucideDownload from "~icons/lucide/download"
-import LucidePlus from "~icons/lucide/plus"
-import LucideLink from "~icons/lucide/link"
-import LucideArrowLeftRight from "~icons/lucide/arrow-left-right"
-import LucideSquarePen from "~icons/lucide/square-pen"
-import LucideInfo from "~icons/lucide/info"
-import LucideFileUp from "~icons/lucide/file-up"
-import LucideFolderUp from "~icons/lucide/folder-up"
-import LucideFilePlus2 from "~icons/lucide/file-plus-2"
-import LucideGalleryVerticalEnd from "~icons/lucide/gallery-vertical-end"
-import LucideFolderPlus from "~icons/lucide/folder-plus"
+import LucideClock from '~icons/lucide/clock'
+import LucideHome from '~icons/lucide/home'
+import LucideTrash from '~icons/lucide/trash'
+import LucideUsers from '~icons/lucide/users'
+import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideStar from '~icons/lucide/star'
+import LucideMoreHorizontal from '~icons/lucide/more-horizontal'
+import LucideShare2 from '~icons/lucide/share-2'
+import LucideDownload from '~icons/lucide/download'
+import LucidePlus from '~icons/lucide/plus'
+import LucideLink from '~icons/lucide/link'
+import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
+import LucideSquarePen from '~icons/lucide/square-pen'
+import LucideInfo from '~icons/lucide/info'
+import LucideFileUp from '~icons/lucide/file-up'
+import LucideFolderUp from '~icons/lucide/folder-up'
+import LucideFilePlus2 from '~icons/lucide/file-plus-2'
+import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
+import LucideFolderPlus from '~icons/lucide/folder-plus'
 
 const COMPONENT_MAP = {
   Home: LucideHome,
@@ -171,7 +149,7 @@ const COMPONENT_MAP = {
 const store = useStore()
 const route = useRoute()
 const open = (url) => {
-  window.open(url, "_blank")
+  window.open(url, '_blank')
 }
 
 const props = defineProps({
@@ -185,16 +163,16 @@ const props = defineProps({
 })
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
-const dialog = inject("dialog", ref(""))
+const dialog = inject('dialog', ref(''))
 const rootEntity = computed(
-  () => props.rootResource?.data?.title && props.rootResource?.data
+  () => props.rootResource?.data?.file_name && props.rootResource?.data
 )
 
 const defaultActions = computed(() => {
-  if (!rootEntity.value?.title) return
+  if (!rootEntity.value?.file_name) return
   let actions = []
   if (props.actions) {
-    if (props.actions[0] === "extend") actions = props.actions.slice(1)
+    if (props.actions[0] === 'extend') actions = props.actions.slice(1)
     else return props.actions
   }
   return [
@@ -203,22 +181,22 @@ const defaultActions = computed(() => {
       hideLabel: true,
       items: [
         {
-          label: __("Share"),
+          label: __('Share'),
           icon: LucideShare2,
           onClick: () => {
-            dialog.value = "s"
+            dialog.value = 's'
           },
           isEnabled: () => rootEntity.value.share,
         },
         {
-          label: __("Download"),
+          label: __('Download'),
           icon: LucideDownload,
           isEnabled: () => rootEntity.value.allow_download,
           onClick: () =>
             entitiesDownload(route.params.team, [rootEntity.value]),
         },
         {
-          label: __("Copy Link"),
+          label: __('Copy Link'),
           icon: LucideLink,
           onClick: () => getFileLink(rootEntity.value),
         },
@@ -229,25 +207,25 @@ const defaultActions = computed(() => {
       hideLabel: true,
       items: [
         {
-          label: __("Move"),
+          label: __('Move'),
           icon: LucideArrowLeftRight,
-          onClick: () => (dialog.value = "m"),
+          onClick: () => (dialog.value = 'm'),
           isEnabled: () => rootEntity.value.write,
         },
         {
-          label: __("Rename"),
+          label: __('Rename'),
           icon: LucideSquarePen,
-          onClick: () => (dialog.value = "rn"),
+          onClick: () => (dialog.value = 'rn'),
           isEnabled: () => rootEntity.value.write,
         },
         {
-          label: __("Show Info"),
+          label: __('Show Info'),
           icon: LucideInfo,
-          onClick: () => (dialog.value = "i"),
+          onClick: () => (dialog.value = 'i'),
           isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
         },
         {
-          label: __("Favourite"),
+          label: __('Favourite'),
           icon: LucideStar,
           onClick: () => {
             rootEntity.value.is_favourite = true
@@ -258,9 +236,9 @@ const defaultActions = computed(() => {
           isEnabled: () => !rootEntity.value.is_favourite,
         },
         {
-          label: __("Unfavourite"),
+          label: __('Unfavourite'),
           icon: LucideStar,
-          color: "stroke-amber-500 fill-amber-500",
+          color: 'stroke-amber-500 fill-amber-500',
           onClick: () => {
             rootEntity.value.is_favourite = false
             toggleFav.submit({
@@ -276,11 +254,11 @@ const defaultActions = computed(() => {
       hideLabel: true,
       items: [
         {
-          label: __("Delete"),
+          label: __('Delete'),
           icon: LucideTrash,
-          onClick: () => (dialog.value = "remove"),
+          onClick: () => (dialog.value = 'remove'),
           isEnabled: () => rootEntity.value.write,
-          theme: "red",
+          theme: 'red',
         },
       ],
     },
@@ -290,7 +268,7 @@ const defaultActions = computed(() => {
   })
 })
 const isPrivate = computed(() =>
-  store.state.breadcrumbs[0]?.name === "Home" ? 1 : 0
+  store.state.breadcrumbs[0]?.name === 'Home' ? 1 : 0
 )
 
 // Functions
@@ -298,17 +276,17 @@ const isPrivate = computed(() =>
 // Constants
 const possibleButtons = [
   {
-    route: "Recents",
-    label: __("Clear"),
+    route: 'Recents',
+    label: __('Clear'),
     icon: LucideClock,
     entities: getRecents,
   },
   {
-    route: "Trash",
-    label: __("Empty"),
+    route: 'Trash',
+    label: __('Empty'),
     icon: LucideTrash,
     entities: getTrash,
-    theme: "red",
+    theme: 'red',
   },
 ]
 const button = computed(() =>
@@ -317,47 +295,47 @@ const button = computed(() =>
 
 const newEntityOptions = computed(() => [
   {
-    group: "Create",
+    group: 'Create',
     items: dynamicList([
       {
-        label: "Document",
+        label: 'Document',
         icon: LucideFilePlus2,
-        onClick: () => newExternal("Document"),
+        onClick: () => newExternal('Document'),
       },
       {
-        label: "Presentation",
+        label: 'Presentation',
         icon: LucideGalleryVerticalEnd,
-        onClick: () => newExternal("Presentation"),
-        cond: isPrivate.value && apps.data?.find?.((k) => k.name === "slides"),
+        onClick: () => newExternal('Presentation'),
+        cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
       },
       {
-        label: "Folder",
+        label: 'Folder',
         icon: LucideFolderPlus,
-        onClick: () => (dialog.value = "f"),
+        onClick: () => (dialog.value = 'f'),
       },
       {
-        label: "Link",
+        label: 'Link',
         icon: LucideLink,
-        onClick: () => (dialog.value = "l"),
+        onClick: () => (dialog.value = 'l'),
       },
     ]),
   },
   {
-    group: "Upload",
+    group: 'Upload',
     items: [
       {
-        label: "Upload File",
+        label: 'Upload File',
         icon: LucideFileUp,
-        onClick: () => emitter.emit("uploadFile"),
+        onClick: () => emitter.emit('uploadFile'),
       },
       {
-        label: "Upload Folder",
+        label: 'Upload Folder',
         icon: LucideFolderUp,
-        onClick: () => emitter.emit("uploadFolder"),
+        onClick: () => emitter.emit('uploadFolder'),
       },
     ],
   },
 ])
 
-const inIframe = inject("inIframe")
+const inIframe = inject('inIframe')
 </script>

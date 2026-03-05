@@ -1,14 +1,16 @@
 <template>
   <h1 class="font-semibold mb-4 text-ink-gray-9">
-    {{ __("Storage") }}
+    {{ __('Storage') }}
   </h1>
 
   <div class="flex items-center justify-between w-full mb-2">
-    <span class="text-base font-medium text-ink-gray-8">{{ showFileStorage ? "You have" : "Your team has" }} used
-      {{ formatSize(usedSpace) ? formatSize(usedSpace) + " out" : "none" }} of
-      {{ showFileStorage ? "your" : "" }} {{ base2BlockSize(spaceLimit) }} ({{
+    <span class="text-base font-medium text-ink-gray-8"
+      >{{ showFileStorage ? 'You have' : 'Your team has' }} used
+      {{ formatSize(usedSpace) ? formatSize(usedSpace) + ' out' : 'none' }} of
+      {{ showFileStorage ? 'your' : '' }} {{ base2BlockSize(spaceLimit) }} ({{
         formatPercent((usedSpace / spaceLimit) * 100)
-      }})</span>
+      }})</span
+    >
     <div
       class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 py-1"
     >
@@ -60,7 +62,7 @@
         <div
           class="text-center rounded bg-surface-gray-7 px-2 py-1 text-xs text-ink-white shadow-xl"
         >
-          {{ i.kind }} <br>{{ i.h_size }} ({{ i.percentageFormat }})
+          {{ i.kind }} <br />{{ i.h_size }} ({{ i.percentageFormat }})
         </div>
       </template>
       <div
@@ -98,8 +100,8 @@
       @mouseenter="hoveredRow = i.name"
       @mouseleave="hoveredRow = null"
     >
-      <img :src="getIconUrl(i.file_type)">
-      <span class="text-ink-gray-8 text-sm truncate">{{ i.title }}</span>
+      <img :src="getIconUrl(i.file_type)" />
+      <span class="text-ink-gray-8 text-sm truncate">{{ i.file_name }}</span>
 
       <div class="text-ink-gray-8 text-sm ml-auto flex gap-2 h-10 leading-10">
         <Button
@@ -121,14 +123,14 @@ import {
   base2BlockSize,
   COLOR_MAP,
   formatPercent,
-} from "@/utils/format"
-import { Tooltip, TabButtons } from "frappe-ui"
-import { getIconUrl } from "@/utils/getIconUrl"
-import { openEntity, MIME_LIST_MAP } from "@/utils/files"
-import { createResource } from "frappe-ui"
-import { ref, watch } from "vue"
-import { useRoute } from "vue-router"
-import LucideCloud from "~icons/lucide/cloud"
+} from '@/utils/format'
+import { Tooltip, TabButtons } from 'frappe-ui'
+import { getIconUrl } from '@/utils/getIconUrl'
+import { openEntity, MIME_LIST_MAP } from '@/utils/files'
+import { createResource } from 'frappe-ui'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import LucideCloud from '~icons/lucide/cloud'
 
 const hoveredRow = ref(null)
 const showFileStorage = ref(true)
@@ -137,7 +139,7 @@ const spaceLimit = ref(0)
 const route = useRoute()
 
 const storageBreakdown = createResource({
-  url: "drive.api.storage.storage_breakdown",
+  url: 'drive.api.storage.storage_breakdown',
   makeParams: (p) => p,
   onSuccess(data) {
     const res = {}
@@ -147,7 +149,7 @@ const storageBreakdown = createResource({
       const kind =
         Object.entries(MIME_LIST_MAP).find(([type, list]) =>
           list.includes(item.mime_type) ? type : false
-        )?.[0] || "Unknown"
+        )?.[0] || 'Unknown'
       res[kind] = res[kind] || { file_size: 0 }
       res[kind].file_size += item.file_size
       usedSpace.value += item.file_size
@@ -170,11 +172,11 @@ watch(
   showFileStorage,
   (val) =>
     storageBreakdown.fetch({
-      team: route.params.team || localStorage.getItem("recentTeam"),
+      team: route.params.team || localStorage.getItem('recentTeam'),
       owned_only: val,
     }),
   { immediate: true }
 )
 
-defineEmits(["close"])
+defineEmits(['close'])
 </script>
