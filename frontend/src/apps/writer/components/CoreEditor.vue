@@ -173,6 +173,7 @@ import {
 } from '@tiptap/extension-table-of-contents'
 import OldCommentExtension from '@/extensions/old-comment'
 import { TabsExtension } from '@/extensions/tabs'
+import TabTrailingNode from '@/extensions/tab-trailing-node'
 
 import { getTemplates } from '@/resources'
 import { insertTemplate } from '@/utils'
@@ -320,6 +321,7 @@ const editorExtensions = [
   }),
   // MathematicsExtension,
   TabsExtension,
+  TabTrailingNode,
   OldCommentExtension.configure({
     onCommentActivated: onCommentActivated,
   }),
@@ -329,7 +331,6 @@ const editorExtensions = [
     scrollParent: () => scrollParent.value,
   }),
   MediaDownload,
-
   CommentExtension.configure({
     comments: props.comments,
     doc: props.doc,
