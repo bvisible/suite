@@ -18,6 +18,9 @@ class File(FrappeFile):
     def set_folder_name(self):
         # Should only be dictated by user
         pass
+    
+    def set_file_type(self):
+        pass
 
 
 def common_filters(func):
