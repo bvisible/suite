@@ -4,7 +4,7 @@
     class="p-1.5 border-b text-base text-ink-gray-7 flex justify-between items-center relative"
   >
     <div class="font-semibold">
-      {{ entity.title }}
+      {{ entity.file_name }}
     </div>
     <div class="flex gap-3 items-center text-ink-gray-5 text-xs">
       Edited {{ entity.relativeModified }}
@@ -69,19 +69,13 @@
     </template>
   </Navbar>
 
-  <ErrorPage
-    v-if="document.error"
-    :error="document.error"
-  />
+  <ErrorPage v-if="document.error" :error="document.error" />
   <LoadingIndicator
     v-else-if="!document.data && document.loading"
     :error="document.error"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div
-    v-else
-    class="flex w-full h-full overflow-hidden"
-  >
+  <div v-else class="flex w-full h-full overflow-hidden">
     <VersionsSidebar
       v-if="showVersions"
       v-model="current"
@@ -129,8 +123,8 @@
 </template>
 
 <script setup>
-import { fromUint8Array, toUint8Array } from "js-base64"
-import Navbar from "@/components/Navbar.vue"
+import { fromUint8Array, toUint8Array } from 'js-base64'
+import Navbar from '@/components/Navbar.vue'
 import {
   ref,
   inject,
@@ -140,40 +134,40 @@ import {
   watch,
   h,
   computed,
-} from "vue"
-import { useStore } from "vuex"
-import { createResource, LoadingIndicator, useDoc } from "frappe-ui"
-import { setBreadCrumbs, prettyData, updateURLSlug } from "@/utils/files"
-import { allUsers } from "@/resources/permissions"
-import VersionsSidebar from "@/components/DocEditor/components/VersionsSidebar.vue"
-import WriterSettings from "@/components/DocEditor/components/WriterSettings.vue"
-import { toast } from "@/utils/toasts"
-import { entitiesDownload } from "@/utils/download"
+} from 'vue'
+import { useStore } from 'vuex'
+import { createResource, LoadingIndicator, useDoc } from 'frappe-ui'
+import { setBreadCrumbs, prettyData, updateURLSlug } from '@/utils/files'
+import { allUsers } from '@/resources/permissions'
+import VersionsSidebar from '@/components/DocEditor/components/VersionsSidebar.vue'
+import WriterSettings from '@/components/DocEditor/components/WriterSettings.vue'
+import { toast } from '@/utils/toasts'
+import { entitiesDownload } from '@/utils/download'
 
-import MessagesSquare from "~icons/lucide/messages-square"
-import LucideRulerDimensionLine from "~icons/lucide/ruler-dimension-line"
-import LucideUserPen from "~icons/lucide/user-pen"
-import LucideEraser from "~icons/lucide/eraser"
-import LucideView from "~icons/lucide/view"
-import LucideSettings from "~icons/lucide/settings"
-import LucideImageDown from "~icons/lucide/image-down"
-import LucideNewspaper from "~icons/lucide/newspaper"
-import LucideDownload from "~icons/lucide/download"
-import LucideListRestart from "~icons/lucide/list-restart"
-import LucideHistory from "~icons/lucide/history"
-import MessageSquareDot from "~icons/lucide/message-square-dot"
-import LucideWifi from "~icons/lucide/wifi"
-import LucideLock from "~icons/lucide/lock"
-import LucideLockOpen from "~icons/lucide/lock-open"
-import LucideWifiOff from "~icons/lucide/wifi-off"
-import LucideFileWarning from "~icons/lucide/file-warning"
-import { dynamicList } from "@/utils/files"
-import { useTemplateRef } from "vue"
-import UsersBar from "@/components/UsersBar.vue"
-import { apps } from "../resources/permissions"
+import MessagesSquare from '~icons/lucide/messages-square'
+import LucideRulerDimensionLine from '~icons/lucide/ruler-dimension-line'
+import LucideUserPen from '~icons/lucide/user-pen'
+import LucideEraser from '~icons/lucide/eraser'
+import LucideView from '~icons/lucide/view'
+import LucideSettings from '~icons/lucide/settings'
+import LucideImageDown from '~icons/lucide/image-down'
+import LucideNewspaper from '~icons/lucide/newspaper'
+import LucideDownload from '~icons/lucide/download'
+import LucideListRestart from '~icons/lucide/list-restart'
+import LucideHistory from '~icons/lucide/history'
+import MessageSquareDot from '~icons/lucide/message-square-dot'
+import LucideWifi from '~icons/lucide/wifi'
+import LucideLock from '~icons/lucide/lock'
+import LucideLockOpen from '~icons/lucide/lock-open'
+import LucideWifiOff from '~icons/lucide/wifi-off'
+import LucideFileWarning from '~icons/lucide/file-warning'
+import { dynamicList } from '@/utils/files'
+import { useTemplateRef } from 'vue'
+import UsersBar from '@/components/UsersBar.vue'
+import { apps } from '../resources/permissions'
 
 const TextEditor = defineAsyncComponent(() =>
-  import("@/components/DocEditor/TextEditor.vue")
+  import('@/components/DocEditor/TextEditor.vue')
 )
 
 const props = defineProps({
@@ -183,10 +177,10 @@ const props = defineProps({
 
 const store = useStore()
 const showResolved = ref(false)
-const editor = useTemplateRef("editor")
+const editor = useTemplateRef('editor')
 const editorValue = computed(() => editor.value?.editor)
-provide("editor", editorValue)
-provide("showResolved", showResolved)
+provide('editor', editorValue)
+provide('showResolved', showResolved)
 
 // Reactive data properties
 const title = ref(null)
@@ -218,7 +212,7 @@ watch(showVersions, (v) => {
 })
 let docSettings, globalSettings
 const isFrappeDoc = computed(
-  () => entity.value && entity.value.mime_type === "frappe_doc"
+  () => entity.value && entity.value.mime_type === 'frappe_doc'
 )
 
 const saveDocument = (comment = false) => {
@@ -229,7 +223,7 @@ const saveDocument = (comment = false) => {
         entity_name: props.entityName,
         doc_name: entity.value.document,
         content: rawContent.value,
-        yjs: fromUint8Array(yjsContent.value || ""),
+        yjs: fromUint8Array(yjsContent.value || ''),
         comment,
       }
       if (docSettings.doc.settings.collab) delete params.content
@@ -243,7 +237,7 @@ const saveDocument = (comment = false) => {
     return true
   }
 }
-const inIframe = inject("inIframe")
+const inIframe = inject('inIframe')
 
 const onSuccess = (data) => {
   window.document.title = data.title
@@ -251,16 +245,16 @@ const onSuccess = (data) => {
 
   document.setData(prettyData([data])[0])
   entity.value = data
-  store.commit("setActiveEntity", data)
+  store.commit('setActiveEntity', data)
 
   title.value = data.title
   rawContent.value = data.raw_content
   if (data.content) yjsContent.value = toUint8Array(data.content)
   lastFetched.value = Date.now()
   setBreadCrumbs(data)
-  if (data.mime_type === "frappe_doc") {
+  if (data.mime_type === 'frappe_doc') {
     docSettings = useDoc({
-      doctype: "Drive Document",
+      doctype: 'Drive Document',
       name: data.document,
       immediate: true,
       transform: (doc) => {
@@ -270,7 +264,7 @@ const onSuccess = (data) => {
       },
     })
     globalSettings = useDoc({
-      doctype: "Drive Settings",
+      doctype: 'Drive Settings',
       name: store.state.user.id,
       immediate: true,
       transform: (doc) => {
@@ -283,7 +277,7 @@ const onSuccess = (data) => {
 const settings = computed(() => {
   if (!isFrappeDoc.value) return {}
   for (const [k, v] of Object.entries(docSettings.doc?.settings || {})) {
-    if (v === "global") delete docSettings.doc?.settings[k]
+    if (v === 'global') delete docSettings.doc?.settings[k]
   }
   return {
     ...(globalSettings.doc?.writer_settings || {}),
@@ -292,20 +286,20 @@ const settings = computed(() => {
 })
 
 const document = createResource({
-  url: "drive.api.permissions.get_entity_with_permissions",
+  url: 'drive.api.permissions.get_entity_with_permissions',
   auto: true,
   params: {
     entity_name: props.entityName,
   },
   onSuccess,
 })
-store.commit("setCurrentResource", document)
+store.commit('setCurrentResource', document)
 
 const updateDocument = createResource({
-  url: "drive.api.files.save_doc",
+  url: 'drive.api.files.save_doc',
   onError() {
     toast({
-      title: "There was an error.",
+      title: 'There was an error.',
       icon: LucideFileWarning,
       text: "We can't save your file. Please contact support.",
     })
@@ -313,7 +307,7 @@ const updateDocument = createResource({
 })
 
 const newVersion = createResource({
-  url: "drive.api.docs.create_version",
+  url: 'drive.api.docs.create_version',
   makeParams: (k) => ({ ...k, doc: entity.value.document }),
   onSuccess(data) {
     if (data && data.length != entity.value.versions.length)
@@ -325,7 +319,7 @@ const newVersion = createResource({
 const navBarActions = computed(
   () =>
     docSettings.doc && [
-      "extend",
+      'extend',
       {
         group: true,
         hideLabel: true,
@@ -335,7 +329,7 @@ const navBarActions = computed(
               e.stopPropagation()
               e.preventDefault()
             },
-            label: "Collaborate",
+            label: 'Collaborate',
             icon: LucideUserPen,
             cond:
               editor.value?.editor && editor.value.editor.getText().length == 0,
@@ -352,12 +346,12 @@ const navBarActions = computed(
             },
           },
           {
-            label: "View",
+            label: 'View',
             icon: LucideView,
             cond: entity.value.write,
             submenu: [
               {
-                label: "Lock",
+                label: 'Lock',
                 switch: true,
                 switchValue: docSettings.doc.settings.lock,
                 icon: LucideLock,
@@ -369,7 +363,7 @@ const navBarActions = computed(
                 },
               },
               {
-                label: "Wide",
+                label: 'Wide',
                 icon: LucideRulerDimensionLine,
                 switch: true,
                 switchValue: docSettings.doc.settings.wide,
@@ -389,7 +383,7 @@ const navBarActions = computed(
                 },
                 switch: true,
                 switchValue: docSettings.doc.settings.minimal,
-                label: "Minimal",
+                label: 'Minimal',
                 icon: LucideEraser,
               },
             ],
@@ -398,29 +392,29 @@ const navBarActions = computed(
             onClick: () => {
               showSettings.value = true
             },
-            label: "Settings",
+            label: 'Settings',
             icon: LucideSettings,
           },
           {
-            label: "Export",
+            label: 'Export',
             icon: LucideDownload,
             submenu: dynamicList([
               {
                 onClick: exportMedia,
-                label: "Export Media",
+                label: 'Export Media',
                 icon: LucideImageDown,
               },
               {
                 onClick: exportBlog,
-                label: "Export Blog",
+                label: 'Export Blog',
                 icon: LucideNewspaper,
-                cond: apps.data && apps.data.find((k) => k.name === "blog"),
+                cond: apps.data && apps.data.find((k) => k.name === 'blog'),
               },
             ]),
           },
           {
             onClick: clearCache,
-            label: "Clear Cache",
+            label: 'Clear Cache',
             icon: LucideListRestart,
           },
         ]),
@@ -431,27 +425,27 @@ const navBarActions = computed(
         items: dynamicList([
           {
             icon: LucideHistory,
-            label: "Versions",
+            label: 'Versions',
             cond: docSettings?.doc?.settings.collab,
             onClick: () => (showVersions.value = true),
           },
           {
             icon: MessagesSquare,
-            label: "Show Comments",
+            label: 'Show Comments',
             onClick: () => (showComments.value = true),
             isEnabled: () => !showComments.value,
             cond: entity.value?.comments?.length,
           },
           {
             icon: MessagesSquare,
-            label: "Hide Comments",
+            label: 'Hide Comments',
             onClick: () => (showComments.value = false),
             isEnabled: () => showComments.value,
             cond: entity.value?.comments?.length,
           },
           {
             icon: MessageSquareDot,
-            label: "Show Resolved",
+            label: 'Show Resolved',
             onClick: () => {
               showResolved.value = true
               showComments.value = true
@@ -461,7 +455,7 @@ const navBarActions = computed(
           },
           {
             icon: MessageSquareDot,
-            label: "Hide Resolved",
+            label: 'Hide Resolved',
             onClick: () => (showResolved.value = false),
             isEnabled: () => showResolved,
             cond: entity.value?.comments?.filter((k) => k.resolved)?.length,
@@ -472,77 +466,77 @@ const navBarActions = computed(
 )
 
 const toggleMinimal = (val) => {
-  const sidebar = window.document.querySelector("#sidebar")
+  const sidebar = window.document.querySelector('#sidebar')
   if (!sidebar) return
   if (val) {
-    sidebar.style.display = "none"
+    sidebar.style.display = 'none'
   } else {
-    sidebar.style.removeProperty("display")
+    sidebar.style.removeProperty('display')
   }
 }
 
 const clearCache = () => {
   const DBDeleteRequest = window.indexedDB.deleteDatabase(
-    "fdoc-" + entity.value.name
+    'fdoc-' + entity.value.name
   )
 
   DBDeleteRequest.onerror = () => {
-    console.error("Error deleting database.")
+    console.error('Error deleting database.')
   }
 
   DBDeleteRequest.onsuccess = () => {
-    console.log("Database deleted successfully")
+    console.log('Database deleted successfully')
   }
 }
 
 const exportMedia = async () => {
-  toast("Preparing...")
+  toast('Preparing...')
   const urls = editor.value.editor.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: "drive.api.docs.get_extension",
+    url: 'drive.api.docs.get_extension',
   })
   for (const i in urls) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
-    if (ext) urls[i].title += "." + ext
+    if (ext) urls[i].title += '.' + ext
   }
   entitiesDownload(null, urls)
 }
 const exportBlog = async () => {
-  toast("Starting export...")
+  toast('Starting export...')
   createResource({
-    url: "drive.api.docs.create_blog",
+    url: 'drive.api.docs.create_blog',
     auto: true,
     params: {
       entity_name: props.entityName,
       html: editorValue.value.getHTML(),
     },
     onSuccess: (d) => {
-      window.open("/app/blog-post/" + d)
+      window.open('/app/blog-post/' + d)
     },
     onError: (error) => {
       toast({
-        title: error.messages[0] || "Could not export your document.",
-        type: "error",
+        title: error.messages[0] || 'Could not export your document.',
+        type: 'error',
       })
     },
   })
 }
 // Events
-window.addEventListener("offline", () => {
+window.addEventListener('offline', () => {
   toast({
     title: "You're offline",
     icon: LucideWifiOff,
     text: "Don't worry, your changes will be saved locally.",
   })
 })
-window.addEventListener("online", () => {
-  toast({ title: "Back online!", icon: h(LucideWifi) })
+window.addEventListener('online', () => {
+  toast({ title: 'Back online!', icon: h(LucideWifi) })
 })
 
 onBeforeUnmount(() => {
   if (edited.value) saveDocument()
-  const sidebar = window.document.querySelector("#sidebar")
-  if (sidebar) sidebar.style.removeProperty("display")
+  const sidebar = window.document.querySelector('#sidebar')
+  if (sidebar) sidebar.style.removeProperty('display')
 })
 
 let toasted
@@ -550,8 +544,8 @@ watch(isOldSchema, (v) => {
   if (docSettings?.doc?.settings && entity.value.write && v && !toasted) {
     toast({
       title:
-        "This document uses an old schema. Collaborative editing is disabled.",
-      type: "warning",
+        'This document uses an old schema. Collaborative editing is disabled.',
+      type: 'warning',
       duration: 8000,
     })
     toasted = true

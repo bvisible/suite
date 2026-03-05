@@ -29,9 +29,9 @@ def get_context():
         # Ideally add thumbnail, but that might break if there's no thumbnail
         try:
             [file_name, owner, is_folder] = frappe.get_cached_value(
-                "Drive File", parts[1], ["title", "owner", "is_folder"]
+                "File", parts[1], ["file_name", "owner", "is_folder"]
             )
-            context.file_name = "Folder - " + file_name if is_folder else title
+            context.file_name = "Folder - " + file_name if is_folder else file_name
             context.description = "Owned by " + frappe.get_cached_value("User", owner, "full_name")
         except:
             pass
