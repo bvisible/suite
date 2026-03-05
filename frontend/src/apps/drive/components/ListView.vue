@@ -136,6 +136,7 @@ const selectedColumns = [
         : file_name.slice(0, file_name.lastIndexOf(".")),
     getTooltip: (e) => (e.is_folder || e.document ? "" : e.file_name),
     prefix: ({ row }) => {
+      console.log(getThumbnailUrl(row))
       return getThumbnailUrl(row)
     },
     suffix: ({ row }) => {

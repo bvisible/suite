@@ -6,7 +6,7 @@
     :align="column.align"
   >
     <template
-      v-if="column.key === 'title'"
+      v-if="column.key === 'file_name'"
       #prefix
     >
       <img
@@ -74,7 +74,7 @@ const props = defineProps({
 
 let src, imgLoaded, thumbnailLink, backupLink, _
 
-if (props.column.prefix && props.column.key === "title") {
+if (props.column.prefix && props.column.key === "file_name") {
   ;[thumbnailLink, backupLink, _] = props.column.prefix({
     row: props.row,
   })
