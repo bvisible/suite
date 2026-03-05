@@ -4,7 +4,7 @@ import frappe
 from pypika import Criterion, CustomFunction, Order
 from pypika import functions as fn
 
-from drive.utils import MIME_LIST_MAP, default_team, get_home_folder, FILE_FIELDS
+from drive.utils import MIME_LIST_MAP, default_team, get_home_folder, FILE_FIELDS, map_ff_to_drive_type
 from drive.utils.api import get_default_access
 from .permissions import get_user_access, user_has_permission
 
@@ -27,8 +27,7 @@ def files(
     team: str,
     entity_name: str | None = None,
     order_by: str = "modified 1",
-    status: bool = True,
-    limit: int = 20,
+    status: int = 1,
     favourites_only: bool = False,
     recents_only: bool = False,
     shared: str | None = None,
@@ -56,8 +55,16 @@ def files(
             f"Not found ({entity_name}) ",
             frappe.exceptions.PageDoesNotExistError,
         )
+    # if not entity.is_drive_file:
+    #     files = frappe.get_list('File', filters={'folder': entity_name}, fields=FILE_FIELDS)
+    #     # Clean up
+    #     for k in files:
+    #         if k.is_folder:
+    #             k.file_type = 'Folder'
+    #     return files
 
-    if team and not team == entity.team:
+    # Ignore team check for site files
+    if team and not team == entity.team and entity.is_drive_file:
         frappe.throw("Given team doesn't match the file's team", ValueError)
 
     # Verify that folder is public or that they have access
@@ -67,7 +74,7 @@ def files(
             frappe.exceptions.PermissionError,
         )
 
-    query = frappe.qb.from_(DriveFile).where(DriveFile.status == status)
+    query = frappe.qb.from_(DriveFile).where((DriveFile.status == status) | (DriveFile.is_drive_file == 0))
 
     if shared:
         if shared == "by" or shared == "with":
@@ -85,9 +92,12 @@ def files(
             (DrivePermission.entity == DriveFile.name) & (DrivePermission.user == user)
         )
 
-    query = query.select(*FILE_FIELDS, DrivePermission.user.as_("shared_team")).where(
-        fn.Coalesce(DrivePermission.read, 1).as_("read") == 1
-    )
+    query = query.select(
+        *FILE_FIELDS, 
+        # Used for non-Drive files
+        DriveFile.modified, 
+        DrivePermission.user.as_("shared_team")
+    ).where(fn.Coalesce(DrivePermission.read, 1).as_("read") == 1)
 
     # Cleaner way?
     if only_parent and (not recents_only and not favourites_only and not shared):
@@ -142,7 +152,7 @@ def files(
 
     if folders:
         query = query.where(DriveFile.is_folder == 1)
-    res = query.run(as_dict=True)
+    res = query.run(as_dict=True, debug=True)
 
     child_count_query = (
         frappe.qb.from_(DriveFile)
@@ -192,6 +202,8 @@ def files(
             r["share_count"] = share_count.get(r["name"], default)
         else:
             r["share_count"] = default
+        if not r["is_drive_file"]:
+            r["file_type"] = map_ff_to_drive_type(r)
+
         r |= get_user_access(r["name"])
     return res
-

@@ -109,7 +109,7 @@ def upload_file(
     )
 
     # Upload and update parent folder size
-    print('Path', drive_file.file_url)
+    print("Path", drive_file.file_url)
     manager.upload_file(temp_path, drive_file, not embed)
 
     try:
@@ -395,9 +395,7 @@ def create_auth_token(entity_name: str):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_file_content(
-    entity_name: str, trigger_download: bool = False, jwt_token: str | None = None
-):
+def get_file_content(entity_name: str, trigger_download: bool = False, jwt_token: str | None = None):
     """
     Stream file content and optionally trigger download
 
@@ -421,7 +419,7 @@ def get_file_content(
     elif not user_has_permission(entity_name, "read"):
         raise frappe.PermissionError("You do not have permission to view this file")
 
-    drive_file = frappe.get_value(
+    file = frappe.get_value(
         "File",
         {"name": entity_name},
         [
@@ -429,19 +427,24 @@ def get_file_content(
             "file_type",
             "status",
             "file_url",
+            "is_drive_file",
         ],
         as_dict=1,
     )
 
-    if drive_file.file_type == "Document":
+    if file.file_type == "Document" or not file.is_drive_file:
         frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/drive/w/" + file.name
+        frappe.local.response["location"] = "/drive/w/" + file.name if file.is_drive_file else file.file_url
         return
 
-    if not drive_file or drive_file.file_type in FORBIDDEN_DOWNLOAD_TYPES or drive_file.status != 1:
+    if (
+        not file
+        or file.file_type in FORBIDDEN_DOWNLOAD_TYPES
+        or file.status != 1
+    ):
         frappe.throw("Not found", frappe.DoesNotExistError)
 
-    return get_file_internal(drive_file, trigger_download)
+    return get_file_internal(file, trigger_download)
 
 
 def get_file_internal(file, trigger_download=0):
@@ -470,9 +473,16 @@ def stream_file_content(entity_name: str):
     range_header = frappe.request.headers.get("Range")
     if not range_header:
         return get_file_content(entity_name)
-    entity = frappe.get_doc("Drive File", entity_name)
+    entity = frappe.get_doc("File", entity_name)
     if not user_has_permission(entity, "read"):
         raise frappe.PermissionError("You do not have permission to view this file")
+
+    if not entity.is_drive_file:
+    #     frappe.local.response = frappe.utils.response.download_private_file(entity.file_url)
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = entity.file_url
+        return
+
     size = entity.file_size
     byte1, byte2 = 0, None
 
