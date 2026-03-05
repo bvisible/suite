@@ -549,7 +549,7 @@ emitter.on('create-version', (title) => {
 })
 
 onMounted(() => {
-  if (props.entity.mime_type === 'frappe_doc') {
+  if (props.entity.file_type === 'Document') {
     const orderedComments = getOrderedComments(editor.value.state.doc)
     comments.value = props.entity.comments.toSorted((a, b) => {
       const pos1 = orderedComments.findIndex((k) => k.id === a.name)

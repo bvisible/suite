@@ -56,19 +56,19 @@ export const openEntity = (entity, new_tab = false) => {
       name: 'Folder',
       params: { entityName: entity.name },
     })
-  } else if (entity.is_link) {
-    const origin = new URL(entity.path).origin
+  } else if (entity.file_type === 'Link') {
+    const origin = new URL(entity.file_url).origin
     if (
       confirm(
         `This will open an external link to ${origin} - are you sure you want to open?`
       )
     )
-      window.open(entity.path, '_blank')
-  } else if (entity.mime_type === 'frappe/slides') {
-    window.location.href = '/slides/presentation/' + entity.path
+      window.open(entity.file_url, '_blank')
+  } else if (entity.file_type === 'Presentation') {
+    window.location.href = '/slides/presentation/' + entity.file_url
   } else if (
-    entity.mime_type === 'frappe_doc' ||
-    entity.mime_type === 'text/markdown'
+    entity.file_type === 'Document' ||
+    entity.file_type === 'Markdown'
   ) {
     window.location.href = '/writer/w/' + entity.name
   } else {
@@ -504,7 +504,7 @@ export async function updateURLSlug(file_name) {
 
 export function getLink(entity, copy = true, withDomain = true) {
   let link
-  if (entity.is_link) link = entity.path
+  if (entity.is_link) link = entity.file_url
   else if (entity.mime_type === 'frappe/slides') {
     link = window.location.origin + '/slides/presentation/' + entity.name
   } else {

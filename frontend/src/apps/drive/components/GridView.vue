@@ -34,7 +34,7 @@
           ? selections.delete(file.name)
           : selections.add(file.name)
       "
-      @[action]="open(file)"
+      @click="open(file)"
       @contextmenu="contextMenu($event, file)"
       @mousedown.stop
     >
@@ -92,7 +92,6 @@ const store = useStore()
 const selections = defineModel(new Set())
 
 const rows = computed(() => props.folderContents)
-const action = settings.data?.single_click === 0 ? "dblclick" : "click"
 
 const selectedRow = ref(null)
 const rowEvent = ref(null)

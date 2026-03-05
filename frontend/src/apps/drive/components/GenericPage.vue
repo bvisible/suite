@@ -304,13 +304,13 @@ const actionItems = computed(() => {
         label: __('Preview'),
         icon: LucideEye,
         action: ([entity]) => openEntity(entity),
-        isEnabled: (e) => !e.is_link,
+        isEnabled: (e) => e.file_type !== 'Link',
       },
       {
         label: __('Open'),
         icon: LucideExternalLink,
         action: ([entity]) => openEntity(entity),
-        isEnabled: (e) => e.is_link,
+        isEnabled: (e) => e.file_type !== 'Link',
       },
       { divider: true },
       {
@@ -449,7 +449,7 @@ if (settings.data?.auto_detect_links) {
 const socket = inject('socket')
 socket.on('list-add', ({ file }) => {
   if (
-    file.parent_entity === props.getEntities.params.entity_name &&
+    file.folder === props.getEntities.params.entity_name &&
     !props.getEntities.data.find((k) => k.name === file.name)
   ) {
     props.getEntities.data.push(...prettyData([file]))
@@ -457,7 +457,7 @@ socket.on('list-add', ({ file }) => {
   }
 })
 socket.on('list-update', ({ file }) => {
-  if (file.parent_entity !== props.getEntities.params.entity_name) return
+  if (file.folder !== props.getEntities.params.entity_name) return
   const index = props.getEntities.data.findIndex((k) => k.name == file.name)
   if (index !== -1)
     props.getEntities.data.splice(index, 1, ...prettyData([file]))

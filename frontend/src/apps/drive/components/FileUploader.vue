@@ -32,7 +32,7 @@ function doesRootFolderFullPathExist(k, file_parent) {
   const url =
     window.location.origin +
     "/api/method/" +
-    `drive.api.files.does_entity_exist?name=${k}&parent_entity=${file_parent}`
+    `drive.api.files.does_entity_exist?name=${k}&folder=${file_parent}`
 
   const xhr = new XMLHttpRequest()
   // third parameter false for a synchronous request

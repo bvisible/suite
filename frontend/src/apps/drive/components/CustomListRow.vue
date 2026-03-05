@@ -15,7 +15,7 @@
       ]"
       :draggable="true"
       @contextmenu="(e) => !selections.size && contextMenu(e, row)"
-      @[action]="!isModKey($event) && !selections.size && open(row)"
+      @click="!isModKey($event) && !selections.size && open(row)"
       @dragstart="
         (e) => {
           draggedItem = row.name
@@ -73,9 +73,6 @@ const dragOverItem = ref()
 
 const route = useRoute()
 const store = useStore()
-const action = computed(() =>
-  settings.data?.single_click === 0 ? "dblclick" : "click"
-)
 
 // Used as right-click doesn't trigger active in frappe-ui
 const selectedName = computed(() => store.state.activeEntity?.name)
