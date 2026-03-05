@@ -87,7 +87,7 @@ class FileManager:
         Moves the file from the current path to another path
         """
         if self.s3_enabled:
-            self.conn.upload_file(current_path, self.get_bucket(drive_file.team), drive_file.path)
+            self.conn.upload_file(current_path, self.get_bucket(drive_file.team), drive_file.file_url)
             if drive_file and create_thumbnail and self.can_create_thumbnail(drive_file):
                 frappe.enqueue(
                     self.upload_thumbnail,
@@ -99,15 +99,14 @@ class FileManager:
             else:
                 os.remove(current_path)
         else:
-            # could break for folders?
-            os.rename(current_path, self.site_folder / drive_file.path)
+            os.rename(current_path, self.site_folder / drive_file.file_url)
             if drive_file and create_thumbnail and self.can_create_thumbnail(drive_file):
                 frappe.enqueue(
                     self.upload_thumbnail,
                     now=True,
                     at_front=True,
                     file=drive_file,
-                    file_path=str(self.site_folder / drive_file.path),
+                    file_path=str(self.site_folder / drive_file.file_url),
                 )
 
     def upload_thumbnail(self, file, file_path: str):
@@ -118,7 +117,7 @@ class FileManager:
         disk_path = str(self.site_folder / save_path)
 
         try:
-            with DistributedLock(file.path, exclusive=False):
+            with DistributedLock(file_path, exclusive=False):
                 # Keep image/video thumbnail as `thumbnail` results in very dark thumbnails (albeit better)
                 if file.mime_type.startswith("image"):
                     with Image.open(file_path).convert("RGB") as image:
@@ -178,10 +177,9 @@ class FileManager:
         """
         Helper function to get path of a file
         """
-        if not root:
-            root = get_home_folder(entity.team)
-
         if self.flat:
+            if not root:
+                root = get_home_folder(entity.team)
             return Path(root["file_url"]) / (Path("embeds") / entity.name if embed else entity.name)
         else:
             # perf: stupidly complicated because we use this both with a real entity and a dict
@@ -191,7 +189,7 @@ class FileManager:
                 else Path(entity.parent_path)
             )
             if embed:
-                return parent / ".embeds" / entity.file_name
+                return parent / ".embeds" / entity.file_names
             return parent / entity.file_name
 
     @__not_if_flat

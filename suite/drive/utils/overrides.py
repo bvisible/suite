@@ -4,25 +4,38 @@ from drive.api.permissions import get_teams
 
 from frappe.core.doctype.file.file import File as FrappeFile
 
-class File(FrappeFile):
-    def validate(self):
-        if not self.is_drive_file:
-            super().validate()
-            
-    def autoname(self):
-        if self.is_drive_file:
-            if getattr(self, '_name', None):
-                self.name = self._name
-            else:
-                self.name = frappe.generate_hash(length=10)
-        else:
-            super().autoname()
-            
 
-    def set_folder_name(self):
-        # Should only be dictated by user
+def only_for_drive_files(func):
+    def inner(self, *args, **kwargs):
+        if self.is_drive_file:
+            return func(self, *args, **kwargs)
+        else:
+            return getattr(super(FrappeFile, self), func.__name__)(*args, **kwargs)
+
+    return inner
+
+
+class File(FrappeFile):
+    @only_for_drive_files
+    def validate(self):
         pass
-    
+
+    @only_for_drive_files
+    def set_folder_name(self):
+        pass
+
+    @only_for_drive_files
+    def autoname(self):
+        if getattr(self, "_name", None):
+            self.name = self._name
+        else:
+            self.name = frappe.generate_hash(length=10)
+
+    @only_for_drive_files
+    def set_is_private(self):
+        self.is_private = 1
+
+    @only_for_drive_files
     def set_file_type(self):
         pass
 

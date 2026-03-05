@@ -4,7 +4,7 @@ import frappe
 from pypika import Criterion, CustomFunction, Order
 from pypika import functions as fn
 
-from drive.utils import MIME_LIST_MAP, default_team, get_file_type, get_home_folder, FILE_FIELDS
+from drive.utils import MIME_LIST_MAP, default_team, get_home_folder, FILE_FIELDS
 from drive.utils.api import get_default_access
 from .permissions import get_user_access, user_has_permission
 
@@ -183,7 +183,6 @@ def files(
     # Performance hit is wild, manually checking perms each time without cache.
     for r in res:
         r["children"] = children_count.get(r["name"], 0)
-        r["file_type"] = get_file_type(r)
 
         if r["name"] in public_files:
             r["share_count"] = -2

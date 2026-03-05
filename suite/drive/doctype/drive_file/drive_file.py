@@ -13,7 +13,6 @@ from drive.api.permissions import get_user_access, user_has_permission
 from drive.api.product import invite_users
 from drive.utils import generate_upward_path, get_home_folder, update_file_size, get_new_file_name
 from drive.utils.files import FileManager
-from drive.utils.api import prettify_file
 
 
 class DriveFile(Document):

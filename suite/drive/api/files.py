@@ -60,11 +60,11 @@ def upload_file(
     if not user_has_permission(parent, "upload"):
         frappe.throw("Ask the folder owner for upload access.", frappe.PermissionError)
 
-    team = frappe.db.get_value("Drive File", parent, "team")
+    team = frappe.db.get_value("File", parent, "team")
     if fullpath:
         parent = ensure_path(team, fullpath, parent)
 
-    # Support non-chunked uploads too
+    # Support both chunked and non-chunked uploads
     if frappe.form_dict.chunk_index:
         current_chunk = int(frappe.form_dict.chunk_index)
         total_chunks = int(frappe.form_dict.total_chunk_count)
@@ -77,7 +77,7 @@ def upload_file(
     file = frappe.request.files["file"]
     file_name = get_new_file_name(file.filename, parent)
     upload_session = frappe.form_dict.uuid
-    temp_path = get_upload_path(home_folder["path"], f"{upload_session}_{secure_filename(file_name)}")
+    temp_path = get_upload_path(home_folder["file_url"], f"{upload_session}_{secure_filename(file_name)}")
     with temp_path.open("ab") as f:
         f.seek(offset)
         f.write(file.stream.read())
@@ -94,20 +94,22 @@ def upload_file(
     if mime_type is None:
         mime_type = magic.from_buffer(open(temp_path, "rb").read(2048), mime=True)
 
+    file_type = get_file_type(mime_type)
     manager = FileManager()
 
-    
     drive_file = create_drive_file(
         team,
         file_name,
         parent,
+        file_type,
+        lambda file: manager.get_disk_path(file, home_folder, embed),
         mime_type,
-        lambda entity: manager.get_disk_path(entity, home_folder, embed),
         file_size,
         int(last_modified) / 1000 if last_modified else None,
     )
 
     # Upload and update parent folder size
+    print('Path', drive_file.file_url)
     manager.upload_file(temp_path, drive_file, not embed)
 
     try:
@@ -722,7 +724,6 @@ def search(query: str):
         SELECT  `tabDrive File`.name,
                 `tabDrive File`.file_name,
                 `tabDrive File`.file_type,
-                `tabDrive File`.mime_type,
                 `tabDrive File`.document,
                 `tabDrive File`.color,
                 `tabUser`.name AS user_name,
@@ -739,8 +740,6 @@ def search(query: str):
             values={"teams": teams, "text": text},
             as_dict=1,
         )
-        for r in result:
-            r["file_type"] = get_file_type(r)
         return result
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Frappe Drive Search Error")
