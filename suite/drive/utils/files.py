@@ -216,12 +216,12 @@ class FileManager:
             if self.s3_enabled:
                 if range_header:
                     buf = self.conn.get_object(
-                        Bucket=self.get_bucket(entity.team), Key=entity.path, Range=range_header
+                        Bucket=self.get_bucket(entity.team), Key=entity.file_url, Range=range_header
                     )["Body"]
                 else:
-                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=entity.path)["Body"]
+                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=entity.file_url)["Body"]
             else:
-                with open(self.site_folder / entity.path, "rb") as fh:
+                with open(self.site_folder / entity.file_url, "rb") as fh:
                     buf = BytesIO(fh.read())
         except BaseException:
             frappe.throw("Could not find this file.", frappe.DoesNotExistError)
@@ -351,14 +351,14 @@ class FileManager:
 
     @__not_if_flat
     def rename(self, entity):
-        if not entity.path or entity.mime_type == "frappe/slides":
+        if not entity.file_url or entity.mime_type == "frappe/slides":
             return
         new_path = self.get_disk_path(entity)
         return self.move(entity, new_path)
 
     @__not_if_flat
     def move_to_trash(self, entity: DriveFile):
-        if not entity.path or entity.mime_type in ["frappe/slides", "link"]:
+        if not entity.file_url or entity.mime_type in ["frappe/slides", "link"]:
             return
 
         trash_path = self.__get_trash_path(entity)
@@ -367,17 +367,17 @@ class FileManager:
                 bucket = self.get_bucket(entity.team)
                 self.conn.copy_object(
                     Bucket=bucket,
-                    CopySource={"Bucket": bucket, "Key": entity.path},
+                    CopySource={"Bucket": bucket, "Key": entity.file_url},
                     Key=str(trash_path),
                 )
-                self.conn.delete_object(Bucket=bucket, Key=entity.path)
+                self.conn.delete_object(Bucket=bucket, Key=entity.file_url)
             else:
                 full_trash_path = self.site_folder / trash_path
                 if full_trash_path.exists() and full_trash_path.is_dir():
                     shutil.rmtree(full_trash_path)
 
                 full_trash_path.parent.mkdir(exist_ok=True)
-                cur_path = self.site_folder / entity.path
+                cur_path = self.site_folder / entity.file_url
                 if cur_path.is_dir():
                     shutil.move(cur_path, full_trash_path)
                 else:
@@ -391,7 +391,7 @@ class FileManager:
         """
         Restore a file from the trash.
         """
-        self.move(frappe._dict(path=self.__get_trash_path(entity), team=entity.team), entity.path)
+        self.move(frappe._dict(path=self.__get_trash_path(entity), team=entity.team), entity.file_url)
 
     @__not_if_flat
     def move(self, entity, new_path: str | Path):
@@ -403,12 +403,12 @@ class FileManager:
                 bucket = self.get_bucket(entity.team)
                 self.conn.copy_object(
                     Bucket=bucket,
-                    CopySource={"Bucket": bucket, "Key": entity.path},
+                    CopySource={"Bucket": bucket, "Key": entity.file_url},
                     Key=str(new_path),
                 )
-                self.conn.delete_object(Bucket=bucket, Key=entity.path)
+                self.conn.delete_object(Bucket=bucket, Key=entity.file_url)
             else:
-                cur_path = self.site_folder / entity.path
+                cur_path = self.site_folder / entity.file_url
                 dest_path = self.site_folder / new_path
                 if cur_path.is_dir():
                     shutil.move(cur_path, dest_path)
@@ -424,14 +424,14 @@ class FileManager:
         if self.s3_enabled:
             bucket = self.get_bucket(entity.team)
             try:
-                self.conn.delete_object(Bucket=bucket, Key=entity.path)
+                self.conn.delete_object(Bucket=bucket, Key=entity.file_url)
                 if thumbnail_path:
                     self.conn.delete_object(Bucket=bucket, Key=str(thumbnail_path))
             except:
                 pass
         else:
             try:
-                (self.site_folder / entity.path).unlink()
+                (self.site_folder / entity.file_url).unlink()
                 if thumbnail_path:
                     (self.site_folder / thumbnail_path).unlink()
             except FileNotFoundError:

@@ -21,12 +21,13 @@ from drive.utils import (
     get_file_type,
     get_home_folder,
     update_file_size,
-    get_default_team,
 )
 from drive.utils.api import prettify_file
 from drive.utils.files import FileManager
 
 from .permissions import get_teams, user_has_permission
+
+FORBIDDEN_DOWNLOAD_TYPES = ["Folder", "Link", "Document"]
 
 
 @frappe.whitelist(allow_guest=True)
@@ -461,54 +462,47 @@ def get_file_content(
     elif not user_has_permission(entity_name, "read"):
         raise frappe.PermissionError("You do not have permission to view this file")
 
-    trigger_download = int(trigger_download)
     if transfer:
         transfer = frappe.get_doc("Drive Transfer", entity_name)
-        drive_file = frappe._dict(**transfer.as_dict(), team=get_default_team())
+        # drive_file = frappe._dict(**transfer.as_dict(), team=get_default_team())
     else:
         drive_file = frappe.get_value(
-            "Drive File",
+            "File",
             {"name": entity_name},
             [
-                "is_folder",
-                "team",
-                "is_link",
-                "path",
                 "file_name",
-                "mime_type",
+                "file_type",
                 "status",
-                "document",
+                "file_url",
             ],
             as_dict=1,
         )
-    if not drive_file or drive_file.is_folder or drive_file.is_link or (not transfer and drive_file.status != 1):
+
+    if drive_file.file_type == "Document":
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = "/drive/w/" + file.name
+        return
+
+    if not drive_file or drive_file.file_type in FORBIDDEN_DOWNLOAD_TYPES or drive_file.status != 1:
         frappe.throw("Not found", frappe.DoesNotExistError)
+
 
     return get_file_internal(drive_file, trigger_download)
 
 
 def get_file_internal(file, trigger_download=0):
-    if (
-        not trigger_download
-        and get_file_type(file.as_dict() if file.as_dict else dict(file)) == "Video"
-        and frappe.request.headers.get("Range")
-    ):
+    if not trigger_download and file.file_type == "Video" and frappe.request.headers.get("Range"):
         return stream_file_content(file.name)
-    if file.document:
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/drive/w/" + file.name
-        return
-    else:
-        manager = FileManager()
-        return send_file(
-            manager.get_file(file),
-            mimetype=file.mime_type,
-            as_attachment=trigger_download,
-            conditional=True,
-            max_age=3600,
-            download_name=file.file_name,
-            environ=frappe.request.environ,
-        )
+
+    manager = FileManager()
+    return send_file(
+        manager.get_file(file),
+        as_attachment=trigger_download,
+        conditional=True,
+        max_age=3600,
+        download_name=file.file_name,
+        environ=frappe.request.environ,
+    )
 
 
 @frappe.whitelist(allow_guest=True)
