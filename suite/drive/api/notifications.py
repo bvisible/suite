@@ -66,14 +66,14 @@ def notify_mentions(entity_name, mentions, comment=False):
     :param entity_name: ID of entity
     :param document_name: ID of document containing mentions
     """
-    entity = frappe.get_doc("Drive File", entity_name)
+    entity = frappe.get_doc("File", entity_name)
     for mention in mentions:
         create_notification(
             frappe.session.user,
             mention,
             "Mention",
             entity,
-            f"You were mentioned in a {'comment in:' if comment else 'document:'} {entity.title}",
+            f"You were mentioned in a {'comment in:' if comment else 'document:'} {entity.file_name}",
         )
 
 
@@ -83,13 +83,13 @@ def notify_share(entity_name, docperm_name):
     :param entity_name: ID of entity
     :param document_name: ID of docshare containing share info
     """
-    entity = frappe.get_doc("Drive File", entity_name)
+    entity = frappe.get_doc("File", entity_name)
     docshare = frappe.get_doc("Drive Permission", docperm_name)
 
     author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"])
     entity_type = "document" if entity.doc else "folder" if entity.is_folder else "file"
     link = get_link(entity)
-    message = f'{author_full_name} shared a {entity_type} with you: "{entity.title}"'
+    message = f'{author_full_name} shared a {entity_type} with you: "{entity.file_name}"'
     if not frappe.db.exists("User", docshare.user):
         key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
         link = frappe.utils.get_url(f"/api/method/drive.api.product.accept_invite?key={key}&redirect={link}")
