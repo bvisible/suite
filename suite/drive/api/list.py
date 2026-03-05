@@ -196,10 +196,3 @@ def files(
         r |= get_user_access(r["name"])
     return res
 
-
-@frappe.whitelist()
-def get_transfers():
-    transfers = frappe.get_list(
-        "Drive Transfer", filters={"owner": frappe.session.user}, fields=["file_name", "file_size", "creation", "name"]
-    )
-    return transfers
