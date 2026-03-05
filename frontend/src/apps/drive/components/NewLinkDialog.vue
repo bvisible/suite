@@ -43,25 +43,25 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
-import { Dialog, createResource } from "frappe-ui"
-import { useRoute } from "vue-router"
+import { ref } from 'vue'
+import { Dialog, createResource } from 'frappe-ui'
+import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
 const props = defineProps({
   parent: String,
 })
-const emit = defineEmits(["success"])
+const emit = defineEmits(['success'])
 
 const open = ref(true)
 const dialogType = defineModel()
 
-const title = ref("")
-const link = ref(localStorage.getItem("prevClip") || "")
+const title = ref('')
+const link = ref(localStorage.getItem('prevClip') || '')
 
 const createLink = createResource({
-  url: "drive.api.files.create_link",
+  url: 'drive.api.files.create_link',
   makeParams: () => ({
     title: title.value.trim(),
     link: link.value.trim(),
@@ -69,15 +69,15 @@ const createLink = createResource({
     parent: props.parent,
   }),
   validate(params) {
-    if (!params?.title) {
-      return "Link name is required"
+    if (!params?.file_name) {
+      return 'Link name is required'
     }
   },
   onSuccess(data) {
     open.value = false
-    title.value = ""
-    link.value = ""
-    emit("success", data)
+    title.value = ''
+    link.value = ''
+    emit('success', data)
   },
 })
 </script>

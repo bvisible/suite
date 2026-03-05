@@ -2,10 +2,9 @@ import frappe
 from pypika import functions as fn
 
 from drive.utils import default_team, get_file_type
-from drive.api.permissions import user_has_permission
 
 MEGA_BYTE = 1024**2
-DriveFile = frappe.qb.DocType("Drive File")
+DriveFile = frappe.qb.DocType("File")
 
 
 @frappe.whitelist()
@@ -25,14 +24,14 @@ def storage_breakdown(team: str, owned_only: bool):
         "Drive File",
         filters=filters,
         order_by="file_size desc",
-        fields=["name", "file_name", "owner", "file_size", "mime_type", "is_folder", "is_link"],
+        fields=["name", "file_name", "owner", "file_size", "file_type", "is_folder", "is_link"],
     )
     for r in entities:
         r["file_type"] = get_file_type(r)
 
     query = (
         frappe.qb.from_(DriveFile)
-        .select(DriveFile.mime_type, fn.Sum(DriveFile.file_size).as_("file_size"))
+        .select(DriveFile.file_type, fn.Sum(DriveFile.file_size).as_("file_size"))
         .where((DriveFile.is_folder == 0) & (DriveFile.status == 1) & (DriveFile.team == team))
     )
     if owned_only:
@@ -40,7 +39,7 @@ def storage_breakdown(team: str, owned_only: bool):
 
     return {
         "limit": limit,
-        "total": query.groupby(DriveFile.mime_type).run(as_dict=True),
+        "total": query.groupby(DriveFile.file_type).run(as_dict=True),
         "entities": entities,
     }
 
@@ -49,9 +48,10 @@ def storage_breakdown(team: str, owned_only: bool):
 @default_team
 def storage_bar_data(team: str | None = None, entity_name: str | None = None):
     if not team:
-        team = frappe.get_value("Drive File", entity_name, "team")
+        team = frappe.get_value("File", entity_name, "team")
         if not team:
             frappe.throw("Could not find team.", ValueError)
+
     query = (
         frappe.qb.from_(DriveFile)
         .where(

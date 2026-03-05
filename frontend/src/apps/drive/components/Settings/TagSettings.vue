@@ -27,7 +27,7 @@
             :fill="tag.color"
             :stroke="tag.color"
           />
-          <span class="text-sm text-ink-gray-8">{{ tag.title }}</span>
+          <span class="text-sm text-ink-gray-8">{{ tag.file_name }}</span>
         </div>
         <Dropdown
           class="ml-auto"

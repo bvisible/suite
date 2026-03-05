@@ -340,10 +340,10 @@ class FileManager:
         return files
 
     def get_thumbnail_path(self, team, name):
-        return Path(get_home_folder(team)["path"]) / self.settings.thumbnail_prefix / (name + ".thumbnail")
+        return Path(get_home_folder(team)["file_url"]) / self.settings.thumbnail_prefix / (name + ".thumbnail")
 
     def get_thumbnail(self, team, name):
-        return self.get_file(frappe._dict({"team": team, "path": str(self.get_thumbnail_path(team, name))}))
+        return self.get_file(frappe._dict({"team": team, "file_url": str(self.get_thumbnail_path(team, name))}))
 
     def __get_trash_path(self, entity: DriveFile):
         root = get_home_folder(entity.team)
