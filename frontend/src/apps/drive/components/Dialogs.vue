@@ -148,7 +148,7 @@ function removeFromList(entities, move = true) {
       )
       openEntity({
         is_group: 1,
-        name: resource.value.data.parent_entity,
+        name: resource.value.data.folder,
         breadcrumbs: resource.value.data.breadcrumbs.slice(0, -1),
       })
     }

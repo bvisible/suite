@@ -74,7 +74,7 @@
                         selected === node.value
                           ? 'bg-surface-gray-3'
                           : 'hover:bg-surface-gray-2',
-                        entities[0].parent_entity === node.value
+                        entities[0].folder === node.value
                           ? 'cursor-not-allowed hover:bg-surface-white'
                           : 'group',
                       ]"
@@ -97,7 +97,7 @@
                       <span v-else
                         >{{ node.label }}
                         <span
-                          v-if="entities[0].parent_entity === node.value"
+                          v-if="entities[0].folder === node.value"
                           class="text-ink-gray-5"
                           >(current)</span
                         ></span
@@ -376,7 +376,7 @@ const slicedBreadcrumbs = computed(() => {
   return breadcrumbs.value
 })
 const isMoveDisabled = computed(() => {
-  const parent = props.entities[0].parent_entity
+  const parent = props.entities[0].folder
   console.log(getTeams.data?.[chosenTeam.value])
   if (!selected.value) {
     // buggy: does not check for team root files
@@ -427,7 +427,7 @@ const createFolder = createResource({
 
 // Selection logic
 function openEntity(node) {
-  if (props.entities[0].parent_entity === node.value) return
+  if (props.entities[0].folder === node.value) return
   if (!node.value) {
     createdNode.value = node
     createFolder.fetch({
