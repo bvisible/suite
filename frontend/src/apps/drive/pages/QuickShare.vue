@@ -26,7 +26,7 @@
       >
         <div class="flex flex-col gap-2 justify-center">
           <span class="text-sm font-medium text-ink-gray-9 truncate">
-            {{ file.title }}
+            {{ file.file_name }}
           </span>
           <span class="text-xs text-ink-gray-5">
             {{ file.file_size_pretty }} · {{ file.relativeModified }}
@@ -44,14 +44,14 @@
   </div>
 </template>
 <script setup>
-import Navbar from "@/components/Navbar.vue"
-import emitter from "@/emitter"
-import store from "@/store"
-import { createResource } from "frappe-ui"
-import { prettyData } from "@/utils/files"
-import LucideDownload from "~icons/lucide/download"
-import { entitiesDownload } from "@/utils/download"
-import { inject } from "vue"
+import Navbar from '@/components/Navbar.vue'
+import emitter from '@/emitter'
+import store from '@/store'
+import { createResource } from 'frappe-ui'
+import { prettyData } from '@/utils/files'
+import LucideDownload from '~icons/lucide/download'
+import { entitiesDownload } from '@/utils/download'
+import { inject } from 'vue'
 
 const transform = (data) => {
   return prettyData(
@@ -66,13 +66,13 @@ const transform = (data) => {
 }
 
 const transfers = createResource({
-  url: "drive.api.list.get_transfers",
+  url: 'drive.api.list.get_transfers',
   auto: true,
   transform,
 })
 
-const socket = inject("socket")
-socket.on("transfer-add", ({ file }) => {
+const socket = inject('socket')
+socket.on('transfer-add', ({ file }) => {
   // broken - security
   if (file.owner === store.state.user.id) {
     transfers.data.push(...transform([file]))

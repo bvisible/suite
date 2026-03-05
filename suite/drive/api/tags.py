@@ -87,7 +87,7 @@ def edit_tag(tag: str, title: str, color: str):
     :param color: Color to be update with
     """
     doc = frappe.get_doc("Drive Tag", tag)
-    doc.title = title
+    doc.file_name = title
     doc.color = color
     doc.save()
 

@@ -31,15 +31,15 @@ class DriveComment(Document):
                 mention,
                 "Mention",
                 doc,
-                f"{from_owner} mentioned you in a comment in {doc.title}",
+                f"{from_owner} mentioned you in a comment in {doc.file_name}",
             )
             frappe.sendmail(
                 recipients=[mention],
-                subject=f"Frappe Drive - Comment in {doc.title}",
+                subject=f"Frappe Drive - Comment in {doc.file_name}",
                 template="drive_comment",
                 args={
-                    "message": f'{from_owner} mentioned you in a comment.',
-                    "doc": doc.title, 
+                    "message": f"{from_owner} mentioned you in a comment.",
+                    "doc": doc.file_name,
                     "link": get_link(doc),
                 },
                 now=True,

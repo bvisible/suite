@@ -39,23 +39,23 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
-import { Dialog, createResource } from "frappe-ui"
-import { useRoute } from "vue-router"
+import { ref } from 'vue'
+import { Dialog, createResource } from 'frappe-ui'
+import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const props = defineProps({
   parent: String,
 })
-const emit = defineEmits(["success"])
+const emit = defineEmits(['success'])
 
 const dialogType = defineModel()
 const open = ref(true)
 
-const folderName = ref("")
+const folderName = ref('')
 
 const createFolder = createResource({
-  url: "drive.api.files.create_folder",
+  url: 'drive.api.files.create_folder',
   makeParams(title) {
     return {
       title,
@@ -64,13 +64,13 @@ const createFolder = createResource({
     }
   },
   validate(params) {
-    if (!params?.title) {
-      return "Folder name is required"
+    if (!params?.file_name) {
+      return 'Folder name is required'
     }
   },
   onSuccess(data) {
     open.value = false
-    emit("success", data)
+    emit('success', data)
   },
 })
 const submit = () => createFolder.submit(folderName.value.trim())

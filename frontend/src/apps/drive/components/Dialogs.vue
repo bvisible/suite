@@ -21,7 +21,7 @@
     @success="
       ({ name, title }) => {
         const el = listResource?.data?.find?.((k) => k.name === name)
-        if (el) el.title = title
+        if (el) el.file_name = title
         resetDialog()
       }
     "
@@ -71,19 +71,19 @@
   />
 </template>
 <script setup>
-import { ref, watch, computed } from "vue"
-import { useStore } from "vuex"
-import { useTimeAgo } from "@vueuse/core"
-import { openEntity } from "@/utils/files"
+import { ref, watch, computed } from 'vue'
+import { useStore } from 'vuex'
+import { useTimeAgo } from '@vueuse/core'
+import { openEntity } from '@/utils/files'
 
-import emitter from "@/emitter"
+import emitter from '@/emitter'
 
-import NewFolderDialog from "@/components/NewFolderDialog.vue"
-import NewLinkDialog from "@/components/NewLinkDialog.vue"
-import RenameDialog from "@/components/RenameDialog.vue"
-import { ShareDialog } from "frappe-ui/drive"
-import ConfirmDialog from "@/components/ConfirmDialog.vue"
-import MoveDialog from "@/components/MoveDialog.vue"
+import NewFolderDialog from '@/components/NewFolderDialog.vue'
+import NewLinkDialog from '@/components/NewLinkDialog.vue'
+import RenameDialog from '@/components/RenameDialog.vue'
+import { ShareDialog } from 'frappe-ui/drive'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import MoveDialog from '@/components/MoveDialog.vue'
 
 const props = defineProps({
   entities: Array,
@@ -107,14 +107,14 @@ watch(dialog, (val) => {
   if (val) open.value = true
 })
 
-const resetDialog = () => (dialog.value = "")
+const resetDialog = () => (dialog.value = '')
 
-emitter.on("share", () => (dialog.value = "s"))
-emitter.on("newFolder", () => (dialog.value = "f"))
-emitter.on("rename", () => (dialog.value = "rn"))
-emitter.on("remove", () => (dialog.value = "remove"))
-emitter.on("move", () => (dialog.value = "m"))
-emitter.on("newLink", () => (dialog.value = "l"))
+emitter.on('share', () => (dialog.value = 's'))
+emitter.on('newFolder', () => (dialog.value = 'f'))
+emitter.on('rename', () => (dialog.value = 'rn'))
+emitter.on('remove', () => (dialog.value = 'remove'))
+emitter.on('move', () => (dialog.value = 'm'))
+emitter.on('newLink', () => (dialog.value = 'l'))
 
 function addToList(data, file_type) {
   resetDialog()

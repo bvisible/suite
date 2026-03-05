@@ -66,7 +66,7 @@
       <div style="overflow: scroll; display: flex; align-items: center">
         <template v-for="(crumb, index) in breadcrumbs" :key="crumb.name">
           <span class="btn text-nowrap" @click="closeEntity(crumb.name)">
-            {{ crumb.title }}
+            {{ crumb.file_name }}
           </span>
           <span v-if="index < breadcrumbs.length - 1" class="mx-1">/</span>
         </template>
@@ -76,141 +76,141 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
-import TreeNode from "./TreeNode.vue";
-import TabButtons from "./TabButtons.vue";
+import { ref, reactive, computed, watch } from 'vue'
+import TreeNode from './TreeNode.vue'
+import TabButtons from './TabButtons.vue'
 
-const emit = defineEmits(["success", "complete"]);
-const tabs = [{ label: "Team" }, { label: "Public" }, { label: "Favourites" }];
-const selectedTab = ref(tabs[0]);
+const emit = defineEmits(['success', 'complete'])
+const tabs = [{ label: 'Team' }, { label: 'Public' }, { label: 'Favourites' }]
+const selectedTab = ref(tabs[0])
 
 const teamRoot = reactive({
-  label: "Team",
-  value: "",
+  label: 'Team',
+  value: '',
   fetching: true,
   children: [],
-});
+})
 const publicRoot = reactive({
-  label: "Public",
-  value: "",
+  label: 'Public',
+  value: '',
   fetching: true,
   children: [],
-});
+})
 
-const selected_node = ref(null);
-const searchResults = ref([]);
-const search = ref("");
+const selected_node = ref(null)
+const searchResults = ref([])
+const search = ref('')
 const breadcrumbs = ref([
   {
-    name: "",
+    name: '',
     title: selectedTab.value.label,
   },
-]);
+])
 const currentTree = computed(() =>
-  selectedTab.value.label === "Public" ? publicRoot : teamRoot
-);
+  selectedTab.value.label === 'Public' ? publicRoot : teamRoot,
+)
 
-const team = ref(localStorage.getItem("drive-recent-team"));
+const team = ref(localStorage.getItem('drive-recent-team'))
 
 watch(
   [selectedTab, team],
   ([newValue, team]) => {
-    if (!team) return;
-    selected_node.value = null;
-    search.value = "";
-    searchResults.value = [];
-    currentTree.value.searching = false;
-    currentTree.value.fetching = true;
-    localStorage.setItem("drive-recent-team", team);
-    breadcrumbs.value = [{ name: "", title: newValue.label }];
+    if (!team) return
+    selected_node.value = null
+    search.value = ''
+    searchResults.value = []
+    currentTree.value.searching = false
+    currentTree.value.fetching = true
+    localStorage.setItem('drive-recent-team', team)
+    breadcrumbs.value = [{ name: '', title: newValue.label }]
     switch (newValue.label) {
-      case "Team":
-        get_files(teamRoot, "drive.api.list.files", {
-          entity_name: "",
+      case 'Team':
+        get_files(teamRoot, 'drive.api.list.files', {
+          entity_name: '',
           team,
           personal: 0,
-        });
-        break;
-      case "Public":
-        get_files(publicRoot, "drive.api.list.files", {
+        })
+        break
+      case 'Public':
+        get_files(publicRoot, 'drive.api.list.files', {
           team,
-          shared: "public",
-        });
-        break;
-      case "Favourites":
-        get_files(teamRoot, "drive.api.list.files", {
-          entity_name: "",
+          shared: 'public',
+        })
+        break
+      case 'Favourites':
+        get_files(teamRoot, 'drive.api.list.files', {
+          entity_name: '',
           team,
           favourites_only: 1,
-        });
-        break;
+        })
+        break
     }
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 
 watch(search, async (query) => {
   if (!query) {
-    searchResults.value = [];
-    currentTree.value.searching = false;
+    searchResults.value = []
+    currentTree.value.searching = false
   } else {
-    currentTree.value.searching = "completed";
-    let { message } = await frappe.call("drive.api.list.files", {
+    currentTree.value.searching = 'completed'
+    let { message } = await frappe.call('drive.api.list.files', {
       team: team.value,
       search: query,
       only_parent: 0,
-      favourites_only: selectedTab.value.label === "Favourites" ? 1 : 0,
-    });
-    if (selectedTab.value.label == "Public") {
-      message = message.filter((k) => k.share_count === -2);
+      favourites_only: selectedTab.value.label === 'Favourites' ? 1 : 0,
+    })
+    if (selectedTab.value.label == 'Public') {
+      message = message.filter((k) => k.share_count === -2)
     }
-    searchResults.value = files_to_nodes(message);
+    searchResults.value = files_to_nodes(message)
   }
-});
+})
 
 const bisect = (arr, cond) => {
-  let res1 = [];
-  let res2 = [];
+  let res1 = []
+  let res2 = []
   for (k of arr) {
-    if (cond(k)) res1.push(k);
-    else res2.push(k);
+    if (cond(k)) res1.push(k)
+    else res2.push(k)
   }
-  return [res1, res2];
-};
+  return [res1, res2]
+}
 
 const recursiveSearch = (node, reg) => {
-  const [res, out] = bisect(node.children, (k) => reg.test(k.title));
+  const [res, out] = bisect(node.children, (k) => reg.test(k.file_name))
   for (let k of out.filter((k) => k.children?.length)) {
-    if (k.children?.length) res.push(...recursiveSearch(k, reg));
+    if (k.children?.length) res.push(...recursiveSearch(k, reg))
   }
-  return res;
-};
+  return res
+}
 
 function toggle_node(node) {
   if (node.is_group) {
     if (!node.fetched) {
-      node.fetching = true;
-      node.children_start = 0;
-      node.children_loading = false;
-      get_files(node, "drive.api.list.files", {
+      node.fetching = true
+      node.children_start = 0
+      node.children_loading = false
+      get_files(node, 'drive.api.list.files', {
         entity_name: node.value,
         team: team.value,
-      });
+      })
     } else {
-      node.open = !node.open;
+      node.open = !node.open
     }
   } else {
-    selected_node.value = node;
+    selected_node.value = node
     frappe
-      .call("drive.api.permissions.get_entity_with_permissions", {
+      .call('drive.api.permissions.get_entity_with_permissions', {
         entity_name: node.value,
       })
       .then(({ message }) => {
         breadcrumbs.value = [
           breadcrumbs.value[0],
           ...message.breadcrumbs.slice(1),
-        ];
-      });
+        ]
+      })
   }
 }
 
@@ -218,25 +218,25 @@ const files_to_nodes = (arr) =>
   arr.map((k) => ({
     ...k,
     value: k.name,
-    label: k.title,
+    label: k.file_name,
     children: [],
     fetching: false,
     open: false,
-  }));
+  }))
 
-const teams = ref({});
+const teams = ref({})
 frappe
-  .call("drive.api.permissions.get_teams", { details: 1 })
-  .then((k) => (teams.value = k.message));
+  .call('drive.api.permissions.get_teams', { details: 1 })
+  .then((k) => (teams.value = k.message))
 
 async function get_files(node, method, params) {
-  const { message } = await frappe.call(method, params);
-  node.open = true;
-  node.children = files_to_nodes(message);
-  node.fetching = false;
-  node.fetched = true;
+  const { message } = await frappe.call(method, params)
+  node.open = true
+  node.children = files_to_nodes(message)
+  node.fetching = false
+  node.fetched = true
 }
-defineExpose({ selected_node });
+defineExpose({ selected_node })
 </script>
 <style scoped>
 input,
@@ -269,8 +269,10 @@ select:focus {
   border: rgb(153, 153, 153) solid 1px;
   border-width: 1px;
 
-  box-shadow: rgb(255, 255, 255) 0px 0px 0px 0px,
-    rgb(199, 199, 199) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+  box-shadow:
+    rgb(255, 255, 255) 0px 0px 0px 0px,
+    rgb(199, 199, 199) 0px 0px 0px 2px,
+    rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
   outline: none;
 }
 
