@@ -63,7 +63,7 @@ class DriveFile(Document):
 
     def get_children(self):
         """Return a generator that yields child Documents."""
-        child_names = frappe.get_list(self.doctype, filters={"folder": self.name}, pluck="name")
+        child_names = frappe.get_list(self.doctype, filters={"parent_entity": self.name}, pluck="name")
         for name in child_names:
             yield frappe.get_doc(self.doctype, name)
 

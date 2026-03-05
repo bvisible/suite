@@ -35,7 +35,8 @@ def get_user_access(entity: str | Document | frappe._dict, user: str = None, tea
     Return the user specific permissions for an entity. Toggle `team` to check team permission.
     """
     if isinstance(entity, str):
-        entity = frappe.get_cached_doc("Drive File", entity)
+        entity = frappe.get_cached_doc("File", entity)
+
     access = NO_ACCESS.copy()
     if not user:
         if team:
@@ -134,17 +135,17 @@ def get_entity_with_permissions(entity_name: str):
     Return file data with permissions
     """
     entity = frappe.db.get_value(
-        "Drive File",
+        "File",
         {"status": 1, "name": entity_name},
         FILE_FIELDS,
         as_dict=1,
     )
     if not entity:
-        frappe.throw("We couldn't find what you're looking for.", {"error": frappe.NotFound})
+        frappe.throw("We couldn't find what you're looking for.", frappe.DoesNotExistError)
 
     entity["in_home"] = entity.team == get_default_team()
     user_access = get_user_access(entity)
-    if user_access.get("read") == 0:
+    if not user_access.get("read"):
         frappe.throw("You don't have access to this file.", frappe.PermissionError)
 
     owner_info = frappe.db.get_value("User", entity.owner, ["user_image", "full_name"], as_dict=True) or {}

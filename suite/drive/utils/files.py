@@ -224,7 +224,7 @@ class FileManager:
                 with open(self.site_folder / entity.path, "rb") as fh:
                     buf = BytesIO(fh.read())
         except BaseException:
-            frappe.throw("Could not find this file", frappe.NotFound)
+            frappe.throw("Could not find this file.", frappe.DoesNotExistError)
 
         return buf
 
