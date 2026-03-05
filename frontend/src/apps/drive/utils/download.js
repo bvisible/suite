@@ -31,7 +31,7 @@ async function getPdfFromDoc(entity_name) {
   await pdfBlob
   return pdfBlob.prop.pdf.output('arraybuffer')
 }
-export function entitiesDownload(team, entities, transfer = false) {
+export function entitiesDownload(team, entities) {
   if (entities.length === 1) {
     if (entities[0].mime_type === 'frappe_doc') {
       if (router.currentRoute.value.name) {
@@ -49,7 +49,7 @@ export function entitiesDownload(team, entities, transfer = false) {
       ? folderDownload(team, entities[0])
       : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${
           entities[0].name
-        }&trigger_download=1${transfer ? '&transfer=1' : ''}`)
+        }&trigger_download=1`)
   }
 
   const t = toast('Preparing download...')
