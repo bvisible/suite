@@ -57,7 +57,7 @@ export function entitiesDownload(team, entities, transfer = false) {
 
   const processEntity = async (entity, parentFolder) => {
     if (entity.is_folder) {
-      const folder = parentFolder.folder(entity.title)
+      const folder = parentFolder.folder(entity.file_name)
       return get_children(team, entity.name).then((children) => {
         const promises = children.map((childEntity) =>
           processEntity(childEntity, folder)
@@ -66,10 +66,10 @@ export function entitiesDownload(team, entities, transfer = false) {
       })
     } else if (entity.document) {
       const content = await getPdfFromDoc(entities[0].name)
-      parentFolder.file(entity.title + '.pdf', content)
+      parentFolder.file(entity.file_name + '.pdf', content)
     } else {
       const fileContent = await get_file_content(entity)
-      parentFolder.file(entity.title, fileContent)
+      parentFolder.file(entity.file_name, fileContent)
     }
   }
 
@@ -121,16 +121,16 @@ function temp(team, entity_name, parentZip) {
       .then((result) => {
         const promises = result.map((entity) => {
           if (entity.is_folder) {
-            const folder = parentZip.folder(entity.title)
+            const folder = parentZip.folder(entity.file_name)
             return temp(team, entity.name, folder)
           }
           if (entity.document) {
             getPdfFromDoc(entity.name).then((content) =>
-              parentZip.file(entity.title + '.pdf', content)
+              parentZip.file(entity.file_name + '.pdf', content)
             )
           } else {
             return get_file_content(entity).then((fileContent) => {
-              parentZip.file(entity.title, fileContent)
+              parentZip.file(entity.file_name, fileContent)
             })
           }
         })

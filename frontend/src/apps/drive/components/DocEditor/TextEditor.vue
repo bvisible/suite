@@ -35,10 +35,7 @@
         />
       </div>
     </div>
-    <div
-      id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto"
-    >
+    <div id="editorScrollContainer" class="flex-1 flex w-full overflow-y-auto">
       <div
         class="mx-auto cursor-text w-full flex justify-center h-full"
         :class="current ? 'pb-15' : ''"
@@ -133,8 +130,8 @@ import {
   createResource,
   debounce,
   useFileUpload,
-} from "frappe-ui"
-import { v4 as uuidv4 } from "uuid"
+} from 'frappe-ui'
+import { v4 as uuidv4 } from 'uuid'
 import {
   computed,
   defineAsyncComponent,
@@ -145,46 +142,46 @@ import {
   watch,
   inject,
   provide,
-} from "vue"
-import { EditorContent } from "@tiptap/vue-3"
-import { toUint8Array } from "js-base64"
-import * as Y from "yjs"
-import { IndexeddbPersistence } from "y-indexeddb"
-import { ySyncPluginKey } from "@tiptap/y-tiptap"
-import { WebrtcProvider } from "y-webrtc"
-import Collaboration from "@tiptap/extension-collaboration"
-import { onKeyDown } from "@vueuse/core"
+} from 'vue'
+import { EditorContent } from '@tiptap/vue-3'
+import { toUint8Array } from 'js-base64'
+import * as Y from 'yjs'
+import { IndexeddbPersistence } from 'y-indexeddb'
+import { ySyncPluginKey } from '@tiptap/y-tiptap'
+import { WebrtcProvider } from 'y-webrtc'
+import Collaboration from '@tiptap/extension-collaboration'
+import { onKeyDown } from '@vueuse/core'
 import {
   default as TableOfContents,
   getHierarchicalIndexes,
-} from "@tiptap/extension-table-of-contents"
+} from '@tiptap/extension-table-of-contents'
 
-import H1 from "./icons/h-1.vue"
-import H2 from "./icons/h-2.vue"
-import H3 from "./icons/h-3.vue"
-import LucideMessageCircle from "~icons/lucide/message-circle"
+import H1 from './icons/h-1.vue'
+import H2 from './icons/h-2.vue'
+import H3 from './icons/h-3.vue'
+import LucideMessageCircle from '~icons/lucide/message-circle'
 
-import store from "@/store"
-import emitter from "@/emitter"
-import { rename } from "@/resources/files"
-import { printDoc, getRandomColor, dynamicList } from "@/utils/files"
-import { formatDate } from "@/utils/format"
-import { toast } from "@/utils/toasts"
-import FontFamily from "./extensions/font-family"
-import FloatingQuoteButton from "./extensions/comment"
-import MediaDownload from "./extensions/media-download"
-import ExtendedCommentExtension from "./extensions/extended-comment"
-import { CharacterCount } from "./extensions/character-count"
-import { CollaborationCursor } from "./extensions/collaboration-cursor"
-import { FontSize } from "./extensions/font-size"
-import EmbedExtension from "./extensions/embed-extension"
-import FloatingComments from "./components/FloatingComments.vue"
+import store from '@/store'
+import emitter from '@/emitter'
+import { rename } from '@/resources/files'
+import { printDoc, getRandomColor, dynamicList } from '@/utils/files'
+import { formatDate } from '@/utils/format'
+import { toast } from '@/utils/toasts'
+import FontFamily from './extensions/font-family'
+import FloatingQuoteButton from './extensions/comment'
+import MediaDownload from './extensions/media-download'
+import ExtendedCommentExtension from './extensions/extended-comment'
+import { CharacterCount } from './extensions/character-count'
+import { CollaborationCursor } from './extensions/collaboration-cursor'
+import { FontSize } from './extensions/font-size'
+import EmbedExtension from './extensions/embed-extension'
+import FloatingComments from './components/FloatingComments.vue'
 
-const rawContent = defineModel("rawContent")
-const yjsContent = defineModel("yjsContent")
-const showComments = defineModel("showComments")
-const current = defineModel("current")
-const edited = defineModel("edited")
+const rawContent = defineModel('rawContent')
+const yjsContent = defineModel('yjsContent')
+const showComments = defineModel('showComments')
+const current = defineModel('current')
+const edited = defineModel('edited')
 
 const props = defineProps({
   entity: Object,
@@ -195,25 +192,25 @@ const props = defineProps({
   users: Object,
   currentVersion: { required: false, type: Object },
 })
-const emit = defineEmits(["newVersion", "saveComment", "saveDocument"])
-const inIframe = inject("inIframe")
+const emit = defineEmits(['newVersion', 'saveComment', 'saveDocument'])
+const inIframe = inject('inIframe')
 
 const comments = ref([])
 const anchors = ref([])
 const activeComment = ref(null)
 
-const textEditor = ref("textEditor")
+const textEditor = ref('textEditor')
 const editor = computed(() => {
   const editor = textEditor.value?.editor
   return editor
 })
-provide("editor", editor)
+provide('editor', editor)
 const scrollParent = computed(() =>
-  document.querySelector("#editorScrollContainer")
+  document.querySelector('#editorScrollContainer')
 )
 defineExpose({ editor })
 
-const autosave = debounce(() => emit("saveDocument"), 2000)
+const autosave = debounce(() => emit('saveDocument'), 2000)
 let autoversion
 
 watch(
@@ -237,7 +234,7 @@ watch(
         )
       }
       if (!Y.equalSnapshots(prevSnapshot, snap)) {
-        emit("newVersion", Y.encodeSnapshot(snap), +props.settings.versioning)
+        emit('newVersion', Y.encodeSnapshot(snap), +props.settings.versioning)
       }
     }, duration)
   }
@@ -247,7 +244,7 @@ watch(
   () => props.currentVersion,
   (val) => {
     if (!val) return
-    toast("Changing version")
+    toast('Changing version')
     const { view } = editor.value
     view.dispatch(
       view.state.tr.setMeta(ySyncPluginKey, {
@@ -267,7 +264,7 @@ const editorExtensions = [
     scrollParent: () => scrollParent.value,
   }),
   FontFamily.configure({
-    types: ["textStyle"],
+    types: ['textStyle'],
   }),
   EmbedExtension,
   props.entity.comment &&
@@ -288,9 +285,9 @@ const editorExtensions = [
         )
         if (!commentEl.offsetParent)
           commentEl.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-            inline: "nearest",
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
           })
       }
     },
@@ -300,28 +297,28 @@ const editorExtensions = [
 
 let prov, doc, localstorage
 const collab = computed(() => props.settings?.collab)
-import { yDocToProsemirrorJSON } from "@tiptap/y-tiptap"
-import { Editor } from "@tiptap/core"
-import { isModKey } from "@/utils/files"
+import { yDocToProsemirrorJSON } from '@tiptap/y-tiptap'
+import { Editor } from '@tiptap/core'
+import { isModKey } from '@/utils/files'
 
 if (collab.value) {
   doc = new Y.Doc({ gc: true })
-  localstorage = new IndexeddbPersistence("fdoc-" + props.entity.name, doc) // eslint-disable-line
+  localstorage = new IndexeddbPersistence('fdoc-' + props.entity.name, doc) // eslint-disable-line
   if (yjsContent.value) Y.applyUpdate(doc, yjsContent.value)
 
-  prov = new WebrtcProvider("fdoc-" + props.entity.name, doc, {
-    signaling: ["wss://signal.frappe.cloud"],
+  prov = new WebrtcProvider('fdoc-' + props.entity.name, doc, {
+    signaling: ['wss://signal.frappe.cloud'],
     peerOpts: {
       config: {
         iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
+          { urls: 'stun:stun.l.google.com:19302' },
           {
             urls: [
-              "turn:signal.frappe.cloud:3478?transport=udp",
-              "turn:signal.frappe.cloud:3478?transport=tcp",
+              'turn:signal.frappe.cloud:3478?transport=udp',
+              'turn:signal.frappe.cloud:3478?transport=tcp',
             ],
-            username: "turnuser",
-            credential: "turnpass",
+            username: 'turnuser',
+            credential: 'turnpass',
           },
         ],
       },
@@ -330,14 +327,14 @@ if (collab.value) {
   const permanentUserData = new Y.PermanentUserData(doc)
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
   const colors = [
-    { light: "#ecd44433", dark: "#ecd444" },
-    { light: "#ee635233", dark: "#ee6352" },
-    { light: "#6eeb8333", dark: "#6eeb83" },
+    { light: '#ecd44433', dark: '#ecd444' },
+    { light: '#ee635233', dark: '#ee6352' },
+    { light: '#6eeb8333', dark: '#6eeb83' },
   ]
   editorExtensions.push(
     Collaboration.configure({
       document: doc,
-      field: "default",
+      field: 'default',
       ySyncOptions: {
         permanentUserData,
         colors,
@@ -357,82 +354,82 @@ if (collab.value) {
 
 const menuButtons = computed(() =>
   dynamicList([
-    "Paragraph",
+    'Paragraph',
     [
       {
-        text: "H1",
+        text: 'H1',
         icon: H1,
         action: (editor) =>
           editor.chain().focus().toggleHeading({ level: 1 }).run(),
-        isActive: (editor) => editor.isActive("heading", { level: 1 }),
+        isActive: (editor) => editor.isActive('heading', { level: 1 }),
       },
       {
-        text: "H2",
+        text: 'H2',
         icon: H2,
         action: (editor) =>
           editor.chain().focus().toggleHeading({ level: 2 }).run(),
-        isActive: (editor) => editor.isActive("heading", { level: 2 }),
+        isActive: (editor) => editor.isActive('heading', { level: 2 }),
       },
       {
-        text: "H3",
+        text: 'H3',
         icon: H3,
         action: (editor) =>
           editor.chain().focus().toggleHeading({ level: 3 }).run(),
-        isActive: (editor) => editor.isActive("heading", { level: 3 }),
+        isActive: (editor) => editor.isActive('heading', { level: 3 }),
       },
     ],
-    "Separator",
-    "Bold",
-    "Italic",
-    "Link",
-    "Strikethrough",
-    "Separator",
-    ["Bullet List", "Numbered List", "Task List"],
-    "Separator",
-    ["Align Left", "Align Center", "Align Right"],
+    'Separator',
+    'Bold',
+    'Italic',
+    'Link',
+    'Strikethrough',
+    'Separator',
+    ['Bullet List', 'Numbered List', 'Task List'],
+    'Separator',
+    ['Align Left', 'Align Center', 'Align Right'],
     ...(props.isFrappeDoc
       ? [
-          "Separator",
+          'Separator',
           {
-            label: "FontOptions",
+            label: 'FontOptions',
             component: h(
-              defineAsyncComponent(() => import("./components/FontFamily.vue")),
+              defineAsyncComponent(() => import('./components/FontFamily.vue')),
               {
                 editor,
                 font_size: props.settings.font_size || 15,
-                font_family: props.settings.font_family || "inter",
+                font_family: props.settings.font_family || 'inter',
               }
             ),
           },
-          "FontColor",
-          "Separator",
+          'FontColor',
+          'Separator',
           {
-            label: "Comment",
+            label: 'Comment',
             icon: LucideMessageCircle,
             action: createNewComment,
             isActive: () => false,
           },
-          "Image",
-          "Video",
-          "Iframe",
+          'Image',
+          'Video',
+          'Iframe',
         ]
       : []),
-    "Blockquote",
-    "Code",
+    'Blockquote',
+    'Code',
     [
-      "InsertTable",
-      "AddColumnBefore",
-      "AddColumnAfter",
-      "DeleteColumn",
-      "AddRowBefore",
-      "AddRowAfter",
-      "DeleteRow",
-      "MergeCells",
-      "SplitCell",
-      "ToggleHeaderColumn",
-      "ToggleHeaderRow",
-      "ToggleHeaderCell",
-      "DeleteTable",
+      'InsertTable',
+      'AddColumnBefore',
+      'AddColumnAfter',
+      'DeleteColumn',
+      'AddRowBefore',
+      'AddRowAfter',
+      'DeleteRow',
+      'MergeCells',
+      'SplitCell',
+      'ToggleHeaderColumn',
+      'ToggleHeaderRow',
+      'ToggleHeaderCell',
+      'DeleteTable',
     ],
   ])
 )
@@ -442,8 +439,8 @@ const db = ref()
 watch(db, (db) => {
   if (!props.entity.write || collab.value) return
   db
-    .transaction(["content"])
-    .objectStore("content")
+    .transaction(['content'])
+    .objectStore('content')
     .get(props.entity.name).onsuccess = (val) => {
     // Hack until we get versioning.
     if (
@@ -454,13 +451,13 @@ watch(db, (db) => {
   }
 })
 if (props.entity.write) {
-  const request = window.indexedDB.open("Writer", 1)
+  const request = window.indexedDB.open('Writer', 1)
   request.onsuccess = (event) => {
     db.value = event.target.result
   }
   request.onupgradeneeded = () => {
-    if (!request.result.objectStoreNames.contains("content"))
-      request.result.createObjectStore("content")
+    if (!request.result.objectStoreNames.contains('content'))
+      request.result.createObjectStore('content')
   }
 }
 
@@ -479,12 +476,12 @@ const autorename = (bypass = false) => {
     return
   }
   const implicitTitle = editor.value.state.doc.firstChild.textContent
-    .replaceAll("#", "")
-    .replaceAll("@", "")
+    .replaceAll('#', '')
+    .replaceAll('@', '')
     .trim()
-  if (!props.entity.title.startsWith("Untitled Document") && !bypass) {
+  if (!props.entity.file_name.startsWith('Untitled Document') && !bypass) {
     // disable to improve ux
-    // if (implicitTitle !== props.entity.title)
+    // if (implicitTitle !== props.entity.file_name)
     //   toast({
     //     title: `Update title?`,
     //     buttons: [{ label: "Rename", onClick: () => autorename(true) }],
@@ -503,7 +500,7 @@ const getOrderedComments = (doc) => {
   const comments = []
   doc.descendants((node, pos) => {
     node.marks.forEach((mark) => {
-      if (mark.type.name === "comment" && mark.attrs.commentId) {
+      if (mark.type.name === 'comment' && mark.attrs.commentId) {
         comments.push({ id: mark.attrs.commentId, pos })
       }
     })
@@ -521,7 +518,7 @@ const createNewComment = (editor) => {
     name: id,
     owner: store.state.user.id,
     creation: new Date(),
-    content: "",
+    content: '',
     edit: true,
     new: true,
     loading: true,
@@ -536,23 +533,23 @@ const createNewComment = (editor) => {
 }
 
 // Events
-onKeyDown("p", (e) => {
+onKeyDown('p', (e) => {
   if (isModKey(e)) {
     e.preventDefault()
     if (editor.value) printDoc(editor.value.getHTML(), props.settings)
   }
 })
 
-emitter.on("printFile", () => {
+emitter.on('printFile', () => {
   if (editor.value) printDoc(editor.value.getHTML(), props.settings)
 })
-emitter.on("create-version", (title) => {
+emitter.on('create-version', (title) => {
   const snap = Y.snapshot(doc)
-  emit("newVersion", Y.encodeSnapshot(snap), 0, title)
+  emit('newVersion', Y.encodeSnapshot(snap), 0, title)
 })
 
 onMounted(() => {
-  if (props.entity.mime_type === "frappe_doc") {
+  if (props.entity.mime_type === 'frappe_doc') {
     const orderedComments = getOrderedComments(editor.value.state.doc)
     comments.value = props.entity.comments.toSorted((a, b) => {
       const pos1 = orderedComments.findIndex((k) => k.id === a.name)
@@ -572,48 +569,48 @@ onBeforeUnmount(() => {
   }
 })
 
-onKeyDown("Enter", () => autorename())
-onKeyDown("s", (e) => {
+onKeyDown('Enter', () => autorename())
+onKeyDown('s', (e) => {
   if (!e.metaKey || !e.shiftKey) {
     return
   }
   e.preventDefault()
-  emit("saveDocument")
+  emit('saveDocument')
   toast({
-    title: "Saving document",
+    title: 'Saving document',
   })
 })
 
 const syncToWiki = async (wiki_space, group, entity_names) => {
   for (let k of entity_names) {
     const data = await createResource({
-      url: "drive.api.wiki_integration.get_yjs_content",
+      url: 'drive.api.wiki_integration.get_yjs_content',
       params: { entity_name: k },
     }).fetch()
     let pre_doc = new Y.Doc({ gc: true })
     Y.applyUpdate(pre_doc, toUint8Array(data))
-    let obj = yDocToProsemirrorJSON(pre_doc, "default")
+    let obj = yDocToProsemirrorJSON(pre_doc, 'default')
     let editor = new Editor({
       content: obj,
       extensions: textEditor.value.DEFAULT_EXTENSIONS,
     })
     await createResource({
-      url: "drive.api.wiki_integration.sync_to_wiki_page",
+      url: 'drive.api.wiki_integration.sync_to_wiki_page',
       params: { entity_name: k, html: editor.getHTML(), wiki_space, group },
     }).fetch()
   }
 }
 
-window.run = () => syncToWiki(["uu9pbukv8s", "5fpvulc7so"])
-const socket = inject("socket")
-socket.on("sync_to_wiki", (data) => {
+window.run = () => syncToWiki(['uu9pbukv8s', '5fpvulc7so'])
+const socket = inject('socket')
+socket.on('sync_to_wiki', (data) => {
   for (let [title, pages] of Object.entries(data.groups)) {
     syncToWiki(data.space, title, pages)
   }
 })
 </script>
 <style>
-@import url("./styles/editor.css");
+@import url('./styles/editor.css');
 iframe {
   border: 1px solid var(--surface-gray-4) !important;
 }

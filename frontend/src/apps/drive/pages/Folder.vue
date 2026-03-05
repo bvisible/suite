@@ -45,9 +45,9 @@ setCache(getFolderContents, ["folder", props.entityName])
 
 const onSuccess = (entity) => {
   if (router.currentRoute.value.params.entityName !== entity.name) return
-  document.title = "Folder - " + entity.title
+  document.title = "Folder - " + entity.file_name
   setBreadCrumbs(entity)
-  updateURLSlug(entity.title)
+  updateURLSlug(entity.file_name)
 }
 
 const e = computed(() => props.entityName)
