@@ -36,14 +36,15 @@ export const openEntity = (entity, new_tab = false) => {
   if (new_tab) {
     return window.open(getFileLink(entity, false), '_blank')
   }
-
-  if (!entity.breadcrumbs?.length)
-    store.state.breadcrumbs.push({
-      label: entity.file_name,
-      name: entity.name,
-      route: null,
+  if (!['Link'   , 'Presentation'].includes(entity.file_type)) {
+    if (!entity.breadcrumbs?.length)
+      store.state.breadcrumbs.push({
+        label: entity.file_name,
+        name: entity.name,
+        route: null,
     })
   else setBreadCrumbs(entity)
+  }
 
   // hm?
   if (entity.name === '') {

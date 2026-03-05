@@ -6,7 +6,7 @@ import markdown
 from frappe.utils import getdate
 from markdown.extensions.wikilinks import WikiLinkExtension
 
-from drive.utils import generate_upward_path, get_default_team, get_file_type, get_valid_breadcrumbs, FILE_FIELDS
+from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS
 from drive.utils.files import FileManager
 from drive.utils.users import mark_as_viewed
 
@@ -159,23 +159,8 @@ def get_entity_with_permissions(entity_name: str):
         ["entity as is_favourite"],
     )
     mark_as_viewed(entity)
-    file_type = get_file_type(entity)
-    return_obj = entity | user_access | owner_info | breadcrumbs | {"is_favourite": favourite, "file_type": file_type}
-    if entity.mime_type == "text/markdown":
-        entity.document_type == "markdown"
-        manager = FileManager()
-        wrapper = io.TextIOWrapper(manager.get_file(entity))
-        url_builder = (
-            lambda label, base, end: f"/api/method/drive.api.docs.get_wiki_link?team={entity.team}&file_name={label}"
-        )
-        with wrapper as r:
-            content = r.read()
-            return_obj["raw_content"] = markdown.markdown(
-                content,
-                output_format="html",
-                extensions=["extra", WikiLinkExtension(build_url=url_builder)],
-            )
-
+    return_obj = entity | user_access | owner_info | breadcrumbs | {"is_favourite": favourite}
+    
     default = 0
     if entity_name:
         if get_user_access(entity_name, "Guest")["read"]:

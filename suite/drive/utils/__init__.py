@@ -1,3 +1,4 @@
+import os
 import inspect
 from datetime import datetime
 from functools import wraps
@@ -262,13 +263,11 @@ def get_valid_breadcrumbs(entity_name, user_access):
         return paths[0] if len(paths) else []
 
 
-def get_file_type(r):
-    if r["is_folder"]:
-        return "Folder"
-    elif r["file_type"] == "Link":
-        return "Link"
-    else:
-        return r["file_type"]
+def get_file_type(mime_type):
+    try:
+        return next(k for (k, v) in MIME_LIST_MAP.items() if mime_type in v)
+    except StopIteration:
+        return "Unknown"
 
 
 def update_file_size(entity, delta):
@@ -321,7 +320,7 @@ def create_drive_file(
             "file_name": file_name,
             "folder": parent,
             "file_size": file_size,
-            "file_type": mime_type,
+            "file_type": file_type,
             "mime_type": mime_type,
             "doc": document,
             "is_folder": file_type == 'Folder',
@@ -331,7 +330,7 @@ def create_drive_file(
     drive_file.flags.file_created = True
     drive_file.insert(ignore_permissions=True)
     path = entity_path if isinstance(entity_path, str) else entity_path(drive_file)
-    drive_file.path = str(path) if path else ""
+    drive_file.file_url = str(path) if path else ""
     drive_file.save(ignore_permissions=True)
     if owner:
         drive_file.db_set("owner", owner, update_modified=False)
