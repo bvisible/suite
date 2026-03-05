@@ -1,7 +1,7 @@
 import frappe
 from pypika import functions as fn
 
-from drive.utils import default_team, get_file_type
+from drive.utils import default_team
 
 MEGA_BYTE = 1024**2
 DriveFile = frappe.qb.DocType("File")
@@ -26,8 +26,6 @@ def storage_breakdown(team: str, owned_only: bool):
         order_by="file_size desc",
         fields=["name", "file_name", "owner", "file_size", "file_type", "is_folder", "is_link"],
     )
-    for r in entities:
-        r["file_type"] = get_file_type(r)
 
     query = (
         frappe.qb.from_(DriveFile)

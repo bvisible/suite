@@ -7,6 +7,7 @@ from frappe.utils import now
 
 
 def mark_as_viewed(entity):
+    return
     if (
         frappe.session.user == "Guest"
         or not frappe.has_permission(doctype="Drive Entity Log", ptype="create", user=frappe.session.user)
