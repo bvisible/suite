@@ -64,6 +64,7 @@ import { useStore } from "vuex"
 import icons from "@/utils/icons"
 import LucideClock from "~icons/lucide/clock"
 import LucideUsers from "~icons/lucide/users"
+import LucideFiles from '~icons/lucide/files'
 import LucideTrash from "~icons/lucide/trash"
 import LucideHome from "~icons/lucide/home"
 import LucideStar from "~icons/lucide/star"
@@ -244,7 +245,7 @@ const sidebarItems = computed(() => {
         {
           label: "Site",
           to: `/site`,
-          icon: LucideUsers,
+          icon: LucideFiles,
           isActive: first.name == "Site",
           accessKey: "s",
         },

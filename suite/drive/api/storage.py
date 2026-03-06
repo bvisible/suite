@@ -19,12 +19,11 @@ def storage_breakdown(team: str, owned_only: bool):
     if owned_only:
         filters["owner"] = frappe.session.user
 
-    # Get is_link because file type check requires it
     entities = frappe.db.get_list(
-        "Drive File",
+        "File",
         filters=filters,
         order_by="file_size desc",
-        fields=["name", "file_name", "owner", "file_size", "file_type", "is_folder", "is_link"],
+        fields=["name", "file_name", "owner", "file_size", "file_type"],
     )
 
     query = (

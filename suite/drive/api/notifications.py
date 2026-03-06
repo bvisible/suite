@@ -111,7 +111,7 @@ def create_notification(from_user: str, to_user: str, type: str, entity: str, me
         "to_user": to_user,
         "type": type,
         "entity_type": entity_type,
-        "notif_doctype": "Drive File",
+        "notif_doctype": "File",
         "notif_doctype_name": entity.name,
         "message": message,
     }

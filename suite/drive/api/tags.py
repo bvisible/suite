@@ -33,7 +33,7 @@ def add_tag(entity: str, tag: str):
     :param entity: Entity name
     :param tag: Tag name
     """
-    doc = frappe.get_doc("Drive File", entity)
+    doc = frappe.get_doc("File", entity)
     doc.append("tags", {"tag": tag})
     doc.save()
 
@@ -46,7 +46,7 @@ def get_entity_tags(entity: str):
     :param entity: Entity name
     """
 
-    entity = frappe.get_doc("Drive File", entity)
+    entity = frappe.get_doc("File", entity)
 
     return map(
         lambda x: frappe.db.get_value("Drive Tag", x.tag, ["name", "title", "color"], as_dict=1),
@@ -100,8 +100,7 @@ def remove_tag(entity: str, tag: str = None, all: bool = False):
     :param entity: Entity name
     :param tag: Tag name
     """
-
-    entity_doc = frappe.get_doc("Drive File", entity)
+    entity_doc = frappe.get_doc("File", entity)
     for tag_doc in entity_doc.tags:
         if (tag_doc.tag == tag or all) and tag_doc.owner == frappe.session.user:
             tag_doc.delete(ignore_permissions=True)
