@@ -1,7 +1,7 @@
 <template>
 	<Navbar
 		:primaryButton="primaryButtonProps"
-		:showNavbarDropdown="true"
+		:showNavbarDropdown="showNavbarDropdown"
 		@performDropdownAction="(action) => emit('performDropdownAction', action)"
 	>
 		<template #default>
@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { Presentation } from 'lucide-vue-next'
 
 import { Badge } from 'frappe-ui'
@@ -30,6 +30,7 @@ import PresentationHeader from '@/components/PresentationHeader.vue'
 import SharePopover from '@/components/SharePopover.vue'
 
 import { presentationDoc, readonlyMode } from '@/stores/presentation'
+import { useRoute } from 'vue-router'
 
 const isOnline = inject('isOnline', null)
 
@@ -42,9 +43,17 @@ const props = defineProps({
 
 const emit = defineEmits(['startSlideShow', 'performDropdownAction'])
 
+const route = useRoute()
+
 const primaryButtonProps = {
 	label: 'Present',
 	icon: Presentation,
 	onClick: () => emit('startSlideShow'),
+	hide: route.name === 'EditorNew',
 }
+
+const showNavbarDropdown = computed(() => {
+	if (route.name === 'EditorNew') return false
+	return !readonlyMode
+})
 </script>
