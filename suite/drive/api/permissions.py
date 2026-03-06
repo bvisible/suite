@@ -193,7 +193,7 @@ def get_shared_with_list(entity: str):
         fields=["user", "read", "write", "comment", "upload", "share"],
     )
 
-    owner = frappe.db.get_value("Drive File", entity, "owner")
+    owner = frappe.db.get_value("File", entity, "owner")
     permissions.insert(
         0,
         frappe.db.get_value("User", owner, ["user_image", "full_name", "name as user"], as_dict=True),
