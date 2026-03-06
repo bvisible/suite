@@ -273,11 +273,11 @@ def get_file_type(mime_type):
 
 
 def update_file_size(entity, delta):
-    doc = frappe.get_doc("Drive File", entity)
+    doc = frappe.get_doc("File", entity)
     while doc.folder:
         doc.file_size += delta
         doc.save(ignore_permissions=True)
-        doc = frappe.get_doc("Drive File", doc.folder)
+        doc = frappe.get_doc("File", doc.folder)
     # Update root
     doc.file_size += delta
     doc.save(ignore_permissions=True)
@@ -289,10 +289,9 @@ def if_folder_exists(team, folder_name, parent):
         "is_folder": 1,
         "status": 1,
         "team": team,
-        "owner": frappe.session.user,
         "folder": parent,
     }
-    existing_folder = frappe.db.get_value("Drive File", values, ["name", "file_name", "is_folder", "status"], as_dict=1)
+    existing_folder = frappe.db.get_value("File", values, ["name", "file_name", "is_folder", "status"], as_dict=1)
 
     if existing_folder:
         return existing_folder.name

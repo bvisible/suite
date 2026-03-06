@@ -312,6 +312,13 @@ const actionItems = computed(() => {
         action: ([entity]) => openEntity(entity),
         isEnabled: (e) => e.file_type === 'Link',
       },
+      {
+        label: __('Show Info'),
+        icon: LucideInfo,
+        action: () => (dialog.value = 'i'),
+        isEnabled: (e) =>
+          !store.state.activeEntity || (!store.state.showInfo && !e.external),
+      },
       { divider: true },
       {
         label: __('Share'),
@@ -352,13 +359,6 @@ const actionItems = computed(() => {
         icon: LucideSquarePen,
         action: () => (dialog.value = 'rn'),
         isEnabled: (e) => e.write,
-      },
-      {
-        label: __('Show Info'),
-        icon: LucideInfo,
-        action: () => (dialog.value = 'i'),
-        isEnabled: (e) =>
-          !store.state.activeEntity || (!store.state.showInfo && !e.external),
       },
       {
         label: __('Favourite'),

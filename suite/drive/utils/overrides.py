@@ -94,3 +94,14 @@ def filter_drive_recent(user):
 @common_filters
 def filter_drive_notif(user):
     return f"(`tabDrive Notification`.to_user = {user} or `tabDrive Notification`.from_user = {user})"
+
+def after_upload_file(doc):
+    if not frappe.form_dict.library_file_name:
+        return doc
+    doc.is_drive_file = frappe.db.get_value("File", frappe.form_dict.library_file_name, "is_drive_file")
+    if doc.is_drive_file:
+        doc.file_type = 'Attachment'
+        doc.special_file = 'File'
+        doc.special_file_doc = frappe.form_dict.library_file_name
+    return doc
+        

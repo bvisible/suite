@@ -17,8 +17,6 @@ from drive.locks.distributed_lock import DistributedLock
 
 from . import get_home_folder
 
-DriveFile = frappe.qb.DocType("Drive File")
-
 
 class FileManager:
     ACCEPTABLE_MIME_TYPES = [
@@ -173,7 +171,7 @@ class FileManager:
                 except FileNotFoundError:
                     pass
 
-    def get_disk_path(self, entity: DriveFile, root: dict = None, embed=False):
+    def get_disk_path(self, entity, root: dict = None, embed=False):
         """
         Helper function to get path of a file
         """
@@ -294,9 +292,9 @@ class FileManager:
                 # Drive-created folders - registered S3 objects - have trailing slashes.
                 is_folder = f.get("Folder") or f["Key"].endswith("/")
                 exists = frappe.get_value(
-                    "Drive File",
+                    "File",
                     {
-                        "path": f["Key"].rstrip("/") + ("/" if is_folder else ""),
+                        "file_url": f["Key"].rstrip("/") + ("/" if is_folder else ""),
                         "status": 1,
                         "team": team,
                         "is_folder": int(is_folder),
@@ -317,8 +315,8 @@ class FileManager:
             for f in root_folder.glob("**/*"):
                 path = f.relative_to(self.site_folder)
                 exists = frappe.get_value(
-                    "Drive File",
-                    {"path": str(path), "team": team, "status": 1},
+                    "File",
+                    {"file_url": str(path), "team": team, "status": 1},
                     "name",
                 )
                 if exists or any(p for p in f.parts if p.startswith(".")):
@@ -342,9 +340,9 @@ class FileManager:
     def get_thumbnail(self, team, name):
         return self.get_file(frappe._dict({"team": team, "file_url": str(self.get_thumbnail_path(team, name))}))
 
-    def __get_trash_path(self, entity: DriveFile):
+    def __get_trash_path(self, entity):
         root = get_home_folder(entity.team)
-        return Path(root["path"]) / ".trash" / entity.file_name
+        return Path(root["file_url"]) / ".trash" / entity.file_name
 
     @__not_if_flat
     def rename(self, entity):
@@ -354,7 +352,7 @@ class FileManager:
         return self.move(entity, new_path)
 
     @__not_if_flat
-    def move_to_trash(self, entity: DriveFile):
+    def move_to_trash(self, entity):
         if not entity.file_url or entity.mime_type in ["frappe/slides", "link"]:
             return
 
@@ -384,11 +382,11 @@ class FileManager:
             pass
 
     @__not_if_flat
-    def restore(self, entity: DriveFile):
+    def restore(self, entity):
         """
         Restore a file from the trash.
         """
-        self.move(frappe._dict(path=self.__get_trash_path(entity), team=entity.team), entity.file_url)
+        self.move(frappe._dict(file_url=self.__get_trash_path(entity), team=entity.team), entity.file_url)
 
     @__not_if_flat
     def move(self, entity, new_path: str | Path):
