@@ -12,11 +12,18 @@
 					class="flex flex-col gap-3"
 				>
 					<div
-						class="aspect-video cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300"
+						class="m-1 aspect-video cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300"
+						:class="getThemeThumbnailClasses(theme.name)"
 						:style="getThumbnailCardStyles(theme.thumbnail)"
 						@click="performAction(theme.name)"
 					></div>
-					<div class="px-1 text-base text-gray-600">{{ theme.title }}</div>
+					<div class="flex">
+						<LucideCheck
+							v-if="props.update && theme.name == props.currentTheme"
+							class="size-4 stroke-[1.5] text-gray-800"
+						/>
+						<div class="px-2 text-base text-gray-600">{{ theme.title }}</div>
+					</div>
 				</div>
 			</div>
 		</template>
@@ -34,6 +41,7 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	currentTheme: String,
 })
 
 const showThemeDialog = defineModel({
@@ -73,4 +81,8 @@ watch(
 		})
 	},
 )
+
+const getThemeThumbnailClasses = (theme) => {
+	return props.update && theme == props.currentTheme ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+}
 </script>

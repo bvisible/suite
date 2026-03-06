@@ -46,7 +46,7 @@
 		<LayoutDialog
 			v-if="layoutResource.data"
 			v-model="showLayoutDialog"
-			:theme="presentationDoc.theme"
+			:theme="presentationDoc?.theme"
 			:layouts="layoutResource.data"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
@@ -56,6 +56,7 @@
 			@create="(theme) => createPresentation(theme)"
 			@update="(theme) => updatePresentationTheme(theme)"
 			:update="themeDialogAction == 'update'"
+			:currentTheme="presentationDoc?.theme"
 		/>
 	</div>
 </template>
