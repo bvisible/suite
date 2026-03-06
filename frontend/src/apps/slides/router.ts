@@ -8,9 +8,7 @@ const withPresentationProps = (route: RouteLocationNormalized) => {
 	const slide = parseInt(route.query.slide as string)
 	const activeSlideId = Number.isFinite(slide) ? slide : 1
 
-	const isNew =
-        route.query.isNew === '1' ||
-        route.query.isNew === 'true'
+	const isNew = route.query.isNew === 'true'
 
 	return {
 		presentationId: route.params.presentationId,
