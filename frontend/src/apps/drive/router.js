@@ -97,7 +97,7 @@ const routes = [
   },
   {
     path: "/presentations",
-    name: "Slides",
+    name: "Presentations",
     component: () => import("@/pages/Slides.vue"),
     beforeEnter: [setRootBreadCrumb],
   },
