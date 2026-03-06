@@ -98,7 +98,7 @@
         placement="right"
       />
       <Button
-        v-else-if="$route.name === 'Documents' || $route.name === 'Slides'"
+        v-else-if="$route.name === 'Documents' || $route.name === 'Presentations'"
         id="create-button"
         label="Create"
         variant="solid"

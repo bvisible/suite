@@ -282,10 +282,10 @@ const sidebarItems = computed(() => {
           accessKey: "d",
         },
         {
-          label: "Slides",
+          label: "Presentations",
           to: `/presentations`,
           icon: LucideGalleryVerticalEnd,
-          isActive: first.name == "Slides",
+          isActive: first.name == "Presentations",
           cond: apps.data?.find?.((k) => k.name === "slides"),
         },
       ]),
