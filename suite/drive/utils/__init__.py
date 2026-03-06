@@ -415,7 +415,7 @@ def get_teams(user=None, details=None, exclude_personal=True):
     return teams
 
 
-def get_new_file_name(file_name: str, parent_name: str, folder: bool = False, entity: str | None = None):
+def get_new_file_name(file_name: str, parent_name: str, type: str = False, entity: str | None = None):
     entity_title, entity_ext = os.path.splitext(file_name)
 
     filters = {
@@ -424,8 +424,8 @@ def get_new_file_name(file_name: str, parent_name: str, folder: bool = False, en
         "file_name": ["like", f"{entity_title}%{entity_ext}"],
     }
 
-    if folder:
-        filters["is_folder"] = 1
+    if type:
+        filters["file_type"] = type
 
     sibling_entity_titles = frappe.db.get_list(
         "File",
@@ -452,7 +452,7 @@ def validate_filename(file_name, parent, filters, error=None):
         }
     )
     if exists:
-        suggested_name = get_new_file_name(file_name, parent, folder=True)
+        suggested_name = get_new_file_name(file_name, parent, type=filters.get('file_type'))
         frappe.throw(
             f"{error} Try {suggested_name}",
             FileExistsError,

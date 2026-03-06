@@ -110,8 +110,8 @@ permission_query_conditions = {
 
 has_permission = {
     "Drive File": "drive.api.permissions.user_has_permission",
-    "Drive Document": "drive.api.permissions.user_has_permission_doc",
 }
+
 # DocType Class
 # ---------------
 # Override standard doctype classes
@@ -138,8 +138,7 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-    "daily": ["drive.api.files.auto_delete_from_trash", "drive.api.files.clear_deleted_files"],
-    "hourly": ["drive.api.permissions.auto_delete_expired_perms"],
+    "daily": ["drive.api.scripts.auto_delete_from_trash", "drive.api.scripts.clear_deleted_files"],
 }
 
 after_request = "drive.api.product.after_request"
