@@ -29,7 +29,7 @@
 			/>
 
 			<Toolbar
-				v-if="!readonlyMode"
+				v-if="!readonlyMode && presentationDoc"
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
