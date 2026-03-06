@@ -743,6 +743,8 @@ const createPresentation = async (theme) => {
 const updatePresentationTheme = async (theme) => {
 	if (!presentationId.value) return
 
+	showThemeDialog.value = false
+
 	call('frappe.client.set_value', {
 		doctype: 'Presentation',
 		name: presentationId.value,
@@ -754,10 +756,10 @@ const updatePresentationTheme = async (theme) => {
 	})
 }
 
-const performNavbarDropdownAction = (action) => {
+const performNavbarDropdownAction = async (action) => {
 	if (action == 'create') {
-		themeDialogAction.value = 'create'
-		showThemeDialog.value = true
+		await router.push({ name: 'EditorNew' })
+		handleOnActivated()
 	} else if (action == 'update') {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true

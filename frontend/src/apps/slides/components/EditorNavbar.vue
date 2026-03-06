@@ -54,6 +54,6 @@ const primaryButtonProps = {
 
 const showNavbarDropdown = computed(() => {
 	if (route.name === 'EditorNew') return false
-	return !readonlyMode
+	return !props.readonlyMode
 })
 </script>
