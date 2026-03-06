@@ -112,6 +112,7 @@ has_permission = {
     "Drive File": "drive.api.permissions.user_has_permission",
 }
 
+after_upload_file = "drive.utils.overrides.after_upload_file"
 # DocType Class
 # ---------------
 # Override standard doctype classes

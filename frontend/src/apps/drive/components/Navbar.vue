@@ -181,6 +181,12 @@ const defaultActions = computed(() => {
       hideLabel: true,
       items: [
         {
+          label: __('Show Info'),
+          icon: LucideInfo,
+          onClick: () => (dialog.value = 'i'),
+          isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
+        },
+        {
           label: __('Share'),
           icon: LucideShare2,
           onClick: () => {
@@ -217,12 +223,6 @@ const defaultActions = computed(() => {
           icon: LucideSquarePen,
           onClick: () => (dialog.value = 'rn'),
           isEnabled: () => rootEntity.value.write,
-        },
-        {
-          label: __('Show Info'),
-          icon: LucideInfo,
-          onClick: () => (dialog.value = 'i'),
-          isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
         },
         {
           label: __('Favourite'),
