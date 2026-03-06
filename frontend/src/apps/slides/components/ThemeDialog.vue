@@ -1,5 +1,5 @@
 <template>
-	<Dialog class="pb-0" :options="{ size: '2xl' }">
+	<Dialog v-model="showThemeDialog" class="pb-0" :options="{ size: '2xl' }">
 		<template #body-title>
 			<div class="font-semibold">Select a Theme</div>
 		</template>
@@ -13,7 +13,7 @@
 					<div
 						class="aspect-video cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300"
 						:style="getThumbnailCardStyles(theme.thumbnail)"
-						@click="$emit('create', theme.name)"
+						@click="performAction(theme.name)"
 					></div>
 					<div class="px-1 text-base text-gray-600">{{ theme.title }}</div>
 				</div>
@@ -23,9 +23,22 @@
 </template>
 
 <script setup>
+import { watch, nextTick, onMounted } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
 
 import { getThumbnailCardStyles } from '@/utils/helpers'
+
+const props = defineProps({
+	update: {
+		type: Boolean,
+		default: false,
+	},
+})
+
+const showThemeDialog = defineModel({
+	name: 'showThemeDialog',
+	required: true,
+})
 
 const emit = defineEmits(['create'])
 
@@ -34,4 +47,22 @@ const themeResource = createResource({
 	cache: 'themes',
 	auto: true,
 })
+
+const performAction = (theme) => {
+	if (props.update) {
+		emit('update', theme)
+	} else {
+		emit('create', theme)
+	}
+}
+
+watch(
+	() => showThemeDialog.value,
+	(visibility) => {
+		if (!visibility) return
+		nextTick(() => {
+			document.activeElement?.blur()
+		})
+	},
+)
 </script>

@@ -6,11 +6,16 @@ import { session } from '@/stores/session'
 
 const withPresentationProps = (route: RouteLocationNormalized) => {
 	const slide = parseInt(route.query.slide as string)
-  	const activeSlideId = Number.isFinite(slide) ? slide : 1
+	const activeSlideId = Number.isFinite(slide) ? slide : 1
+
+	const isNew =
+        route.query.isNew === '1' ||
+        route.query.isNew === 'true'
 
 	return {
 		presentationId: route.params.presentationId,
 		activeSlideId: activeSlideId,
+		isNew: isNew,
 	}
 }
 
