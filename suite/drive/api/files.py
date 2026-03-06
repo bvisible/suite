@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from datetime import date, timedelta
+from datetime import timedelta
 from io import BytesIO
 from pathlib import Path
 
@@ -207,59 +207,6 @@ def create_presentation(team: str, file_name: str = "Untitled", parent: str | No
     return entity
 
 
-@frappe.whitelist()
-@default_team
-def create_document_entity(team: str, title: str | None = None, parent: str | None = None):
-    home_directory = get_home_folder(team)
-    parent = parent or home_directory.name
-    parent_doc = frappe.get_cached_doc("Drive File", parent)
-    team = frappe.db.get_value("Drive File", parent, "team")
-    if not title:
-        file_name = get_new_file_name("Untitled Document", parent)
-
-    if not user_has_permission(parent, "upload"):
-        frappe.throw(
-            "Cannot access folder due to insufficient permissions",
-            frappe.PermissionError,
-        )
-    drive_doc = frappe.new_doc("Drive Document")
-    drive_doc.settings = '{"collab": true}'
-    drive_doc.save()
-
-    manager = FileManager()
-    path = manager.create_folder(
-        frappe._dict(
-            {
-                "file_name": file_name,
-                "parent_path": Path(parent_doc.path or ""),
-                "team": team,
-                "folder": parent_doc.name,
-            }
-        ),
-        home_directory,
-    )
-    manager.create_folder(
-        frappe._dict(
-            {
-                "file_name": ".embeds",
-                "team": team,
-                "parent_path": path,
-            }
-        ),
-        home_directory,
-    )
-
-    entity = create_drive_file(
-        team,
-        file_name,
-        parent,
-        "frappe_doc",
-        lambda _: path,
-        document=drive_doc.name,
-    )
-    return entity
-
-
 def get_upload_path(team_path, file_name):
     uploads_path = Path(frappe.get_site_path("private/files"), team_path, ".uploads")
     if not os.path.exists(uploads_path):
@@ -318,7 +265,7 @@ def ensure_path(team, fullpath, parent=None):
 
     for folder in parts[:-1]:
         exists = frappe.db.get_value(
-            "Drive File",
+            "File",
             {
                 "file_name": folder,
                 "is_folder": 1,
@@ -348,22 +295,8 @@ def create_link(team: str, file_name: str, link: str, parent: str | None = None)
             "Cannot create link due to insufficient permissions.",
             frappe.PermissionError,
         )
-    entity_exists = frappe.db.exists(
-        {
-            "doctype": "Drive File",
-            "folder": parent,
-            "file_type": "Link",
-            "file_name": file_name,
-            "status": 1,
-        }
-    )
 
-    if entity_exists:
-        suggested_name = get_new_file_name(file_name, parent, folder=True)
-        frappe.throw(
-            f"Link '{file_name}' already exists.\n Suggested: {suggested_name}",
-            FileExistsError,
-        )
+    validate_filename(file_name, parent, {"file_type": "Link"}, error=f"Link '{file_name}' already exists.")
 
     drive_file = frappe.get_doc(
         {
@@ -437,11 +370,7 @@ def get_file_content(entity_name: str, trigger_download: bool = False, jwt_token
         frappe.local.response["location"] = "/drive/w/" + file.name if file.is_drive_file else file.file_url
         return
 
-    if (
-        not file
-        or file.file_type in FORBIDDEN_DOWNLOAD_TYPES
-        or file.status != 1
-    ):
+    if not file or file.file_type in FORBIDDEN_DOWNLOAD_TYPES or file.status != 1:
         frappe.throw("Not found", frappe.DoesNotExistError)
 
     return get_file_internal(file, trigger_download)
@@ -478,7 +407,7 @@ def stream_file_content(entity_name: str):
         raise frappe.PermissionError("You do not have permission to view this file")
 
     if not entity.is_drive_file:
-    #     frappe.local.response = frappe.utils.response.download_private_file(entity.file_url)
+        #     frappe.local.response = frappe.utils.response.download_private_file(entity.file_url)
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = entity.file_url
         return
@@ -587,9 +516,9 @@ def remove_or_restore(entity_names: list[str] | str):
         doc.last_modified = frappe.utils.now_datetime()
         # Only update parent folder size if parent exists (not root level)
         if doc.folder:
-            folder_size = frappe.db.get_value("Drive File", doc.folder, "file_size") or 0
+            folder_size = frappe.db.get_value("File", doc.folder, "file_size") or 0
             frappe.db.set_value(
-                "Drive File",
+                "File",
                 doc.folder,
                 "file_size",
                 folder_size + doc.file_size * (1 if flag else -1),
@@ -598,25 +527,25 @@ def remove_or_restore(entity_names: list[str] | str):
         doc.save()
 
     for entity in entity_names:
-        depth_zero_toggle_status(frappe.get_doc("Drive File", entity))
+        depth_zero_toggle_status(frappe.get_doc("File", entity))
 
 
 @frappe.whitelist()
 def delete_entities(entity_names: list[str] | None = None, clear_all: bool = False):
     if clear_all:
-        entity_names = frappe.db.get_list("Drive File", {"status": 0, "owner": frappe.session.user}, pluck="name")
+        entity_names = frappe.db.get_list("File", {"status": 0, "owner": frappe.session.user}, pluck="name")
     elif isinstance(entity_names, str):
         entity_names = json.loads(entity_names)
     elif not isinstance(entity_names, list) or not entity_names:
         frappe.throw(f"Expected non-empty list but got {type(entity_names)}", ValueError)
 
     for entity in entity_names:
-        frappe.get_doc("Drive File", entity).permanent_delete()
+        frappe.get_doc("File", entity).permanent_delete()
 
 
 @frappe.whitelist()
 def rename(entity_name: str, new_title: str):
-    drive_file = frappe.get_doc("Drive File", entity_name)
+    drive_file = frappe.get_doc("File", entity_name)
     if not drive_file:
         frappe.throw("Entity does not exist", ValueError)
     return drive_file.rename(new_title)
@@ -625,7 +554,7 @@ def rename(entity_name: str, new_title: str):
 # Will be replaced after new JS composables refactor
 @frappe.whitelist()
 def update_access(entity_name: str, method: str, **kwargs):
-    drive_file = frappe.get_doc("Drive File", entity_name)
+    drive_file = frappe.get_doc("File", entity_name)
     kwargs.pop("cmd")
     if not drive_file:
         frappe.throw("Entity does not exist", ValueError)
@@ -646,8 +575,7 @@ def remove_recents(entity_names: list[str] | None = [], clear_all: bool = False)
     """
     if clear_all:
         return frappe.db.delete("Drive Entity Log", {"user": frappe.session.user})
-
-    if not isinstance(entity_names, list):
+    elif not isinstance(entity_names, list):
         frappe.throw(f"Expected list but got {type(entity_names)}", ValueError)
 
     for entity in entity_names:
@@ -668,30 +596,8 @@ def does_entity_exist(name: str | None = None, folder: str | None = None, team: 
     if not folder:
         home_folder = get_home_folder(team)
         folder = home_folder.name
-    result = frappe.db.exists("Drive File", {"folder": folder, "file_name": name})
+    result = frappe.db.exists("File", {"folder": folder, "file_name": name})
     return result
-
-
-def auto_delete_from_trash():
-    days_before = (date.today() - timedelta(days=30)).isoformat()
-    result = frappe.db.get_all(
-        "Drive File",
-        filters={"status": 0, "last_modified": ["<", days_before]},
-        fields=["name"],
-    )
-    delete_entities(result)
-
-
-def clear_deleted_files():
-    days_before = (date.today() + timedelta(days=30)).isoformat()
-    result = frappe.db.get_all(
-        "Drive File",
-        filters={"status": -1, "modified": ["<", days_before]},
-        fields=["name"],
-    )
-    for entity in result:
-        doc = frappe.get_doc("Drive File", entity, ignore_permissions=True)
-        doc.delete()
 
 
 @frappe.whitelist()
@@ -711,7 +617,7 @@ def move(entity_names: list[str], new_parent: str | None = None, team: str | Non
         frappe.throw(f"Expected a non-empty list but got {type(entity_names)}", ValueError)
 
     for entity in entity_names:
-        doc = frappe.get_doc("Drive File", entity)
+        doc = frappe.get_doc("File", entity)
         res = doc.move(new_parent, team)
 
     if not res["folder"]:
@@ -758,20 +664,21 @@ def search(query: str):
 
 @frappe.whitelist(allow_guest=True)
 def translate_old_name(old_name: str):
-    return frappe.get_value("Drive File", {"old_name": old_name}, "name")
+    return frappe.get_value("File", {"old_name": old_name}, "name")
 
 
 @frappe.whitelist(allow_guest=True)
 def get_entity_type(entity_name: str):
+    if not user_has_permission(entity_name, "read"):
+        frappe.throw("You do not have permission to view this file.", frappe.PermissionError)
+
     entity = frappe.db.get_value(
-        "Drive File",
+        "File",
         {"status": 1, "name": entity_name},
-        ["team", "name", "mime_type", "is_folder", "doc"],
+        ["name", "mime_type"],
         as_dict=1,
     )
-    if entity.doc or entity.mime_type == "text/markdown":
-        entity["type"] = "document"
-    elif entity.is_folder:
+    if entity.mime_type == "Folder":
         entity["type"] = "folder"
     else:
         entity["type"] = "file"

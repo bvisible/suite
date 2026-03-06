@@ -127,7 +127,6 @@ const routes = [
       await entity.fetch()
       const letter = {
         folder: "d",
-        document: "w",
         file: "f",
       }[entity.data.type]
       return {

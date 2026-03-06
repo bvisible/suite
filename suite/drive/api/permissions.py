@@ -1,14 +1,10 @@
 from drive.utils import map_ff_to_drive_type
-from frappe.model.document import Document
-import io
 
 import frappe
-import markdown
 from frappe.utils import getdate
-from markdown.extensions.wikilinks import WikiLinkExtension
+from frappe.model.document import Document
 
 from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS
-from drive.utils.files import FileManager
 from drive.utils.users import mark_as_viewed
 
 
@@ -209,26 +205,6 @@ def get_shared_with_list(entity: str):
             p.update(user_info)
     return permissions
 
-
-def auto_delete_expired_perms():
-    current_date = getdate()
-    expired_documents = frappe.get_list(
-        "Drive Permission",
-        filters=[
-            ["valid_until", "is", "set"],
-            ["valid_until", "<", current_date],
-        ],
-        fields=["name", "valid_until"],
-    )
-    if expired_documents:
-
-        def batch_delete_perms(docs):
-            for d in docs:
-                frappe.delete_doc("Drive Permission", d.name)
-
-        frappe.enqueue(batch_delete_perms, docs=expired_documents)
-
-
 def user_has_permission(doc, ptype, user=None, team=0):
     if not user:
         user = frappe.session.user
@@ -241,21 +217,6 @@ def user_has_permission(doc, ptype, user=None, team=0):
     access = get_user_access(doc, user, team)
     if ptype in access:
         return bool(access[ptype])
-
-
-def user_has_permission_doc(doc, ptype, user=None):
-    entity = frappe.get_value("Drive File", {"document": doc.name}, "name")
-    if ptype == "create" or not entity:
-        return True
-    perm = user_has_permission(entity, ptype, user)
-    return perm
-
-
-@frappe.whitelist()
-def toggle_allow_download(entity: str, val: bool):
-    if not user_has_permission(entity, "share"):
-        frappe.throw("You don't have permission for this action.", frappe.PermissionError)
-    frappe.db.set_value("Drive File", entity, "allow_download", val)
 
 
 def requires(perm):
