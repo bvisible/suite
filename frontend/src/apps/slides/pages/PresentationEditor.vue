@@ -737,7 +737,6 @@ const createPresentation = async (theme) => {
 
 const updatePresentationTheme = async (theme) => {
 	if (!presentationId.value) return
-	showThemeDialog.value = false
 
 	call('frappe.client.set_value', {
 		doctype: 'Presentation',
@@ -747,7 +746,6 @@ const updatePresentationTheme = async (theme) => {
 	}).then(() => {
 		layoutResource.fetch({ theme: theme })
 		presentationDoc.value.theme = theme
-		toast.success('Theme updated')
 	})
 }
 
