@@ -23,6 +23,7 @@ from drive.utils import (
     update_file_size,
     get_new_file_name,
     validate_filename,
+    get_upload_path,
 )
 from drive.utils.api import prettify_file
 from drive.utils.files import FileManager
@@ -95,7 +96,6 @@ def upload_file(
         mime_type = magic.from_buffer(open(temp_path, "rb").read(2048), mime=True)
 
     file_type = get_file_type(mime_type)
-    manager = FileManager()
 
     drive_file = create_drive_file(
         team,
@@ -109,7 +109,7 @@ def upload_file(
     )
 
     # Upload and update parent folder size
-    print("Path", drive_file.file_url)
+    manager = FileManager()
     manager.upload_file(temp_path, drive_file, not embed)
 
     try:
@@ -207,12 +207,6 @@ def create_presentation(team: str, file_name: str = "Untitled", parent: str | No
     return entity
 
 
-def get_upload_path(team_path, file_name):
-    uploads_path = Path(frappe.get_site_path("private/files"), team_path, ".uploads")
-    if not os.path.exists(uploads_path):
-        uploads_path = Path(frappe.get_site_path("private/files"), team_path, ".uploads")
-        uploads_path.mkdir()
-    return uploads_path / file_name
 
 
 @frappe.whitelist()

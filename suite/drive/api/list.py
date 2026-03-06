@@ -152,7 +152,7 @@ def files(
 
     if folders:
         query = query.where(DriveFile.is_folder == 1)
-    res = query.run(as_dict=True, debug=True)
+    res = query.run(as_dict=True)
 
     child_count_query = (
         frappe.qb.from_(DriveFile)

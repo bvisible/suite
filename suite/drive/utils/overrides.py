@@ -2,43 +2,6 @@ import frappe
 
 from drive.api.permissions import get_teams
 
-from frappe.core.doctype.file.file import File as FrappeFile
-
-
-def only_for_drive_files(func):
-    def inner(self, *args, **kwargs):
-        if self.is_drive_file:
-            return func(self, *args, **kwargs)
-        else:
-            return getattr(super(type(self), self), func.__name__)(*args, **kwargs)
-
-    return inner
-
-
-class File(FrappeFile):
-    @only_for_drive_files
-    def validate(self):
-        pass
-
-    @only_for_drive_files
-    def set_folder_name(self):
-        pass
-
-    @only_for_drive_files
-    def autoname(self):
-        if getattr(self, "_name", None):
-            self.name = self._name
-        else:
-            self.name = frappe.generate_hash(length=10)
-
-    @only_for_drive_files
-    def set_is_private(self):
-        self.is_private = 1
-
-    @only_for_drive_files
-    def set_file_type(self):
-        pass
-
 
 def common_filters(func):
     def decorator(user):
@@ -94,14 +57,3 @@ def filter_drive_recent(user):
 @common_filters
 def filter_drive_notif(user):
     return f"(`tabDrive Notification`.to_user = {user} or `tabDrive Notification`.from_user = {user})"
-
-def after_upload_file(doc):
-    if not frappe.form_dict.library_file_name:
-        return doc
-    doc.is_drive_file = frappe.db.get_value("File", frappe.form_dict.library_file_name, "is_drive_file")
-    if doc.is_drive_file:
-        doc.file_type = 'Attachment'
-        doc.special_file = 'File'
-        doc.special_file_doc = frappe.form_dict.library_file_name
-    return doc
-        

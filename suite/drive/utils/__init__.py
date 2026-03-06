@@ -2,6 +2,7 @@ import os
 import inspect
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
 
 import frappe
 from bs4 import BeautifulSoup
@@ -463,3 +464,10 @@ def map_ff_to_drive_type(file):
         return "Folder"
     mime_type = mimemapper.get_mime_type(file.file_type)
     return next(k for (k, v) in MIME_LIST_MAP.items() if mime_type in v)
+
+
+def get_upload_path(team_path, file_name):
+    uploads_path = Path(frappe.get_site_path("private/files"), team_path, ".uploads")
+    if not os.path.exists(uploads_path):
+        uploads_path.mkdir()
+    return uploads_path / file_name
