@@ -14,11 +14,12 @@
 		</router-link>
 
 		<Dropdown v-else :options="getContextMenuOptions()" :offset="16">
-			<template #default>
+			<template #default="{ open }">
 				<div class="flex cursor-pointer items-center gap-2">
 					<img src="/slides-logo.svg" class="h-7" />
 					<div class="text-base font-semibold">Slides</div>
-					<LucideChevronDown class="h-3 w-3 stroke-[1.5]" />
+					<LucideChevronUp v-if="open" class="w-4 stroke-[1.5]" />
+					<LucideChevronDown v-else class="w-4 stroke-[1.5]" />
 				</div>
 			</template>
 		</Dropdown>
@@ -65,10 +66,12 @@ const getContextMenuOptions = () => {
 			group: '',
 			items: [
 				{
-					label: 'Change Theme',
-					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
+					label: 'Back to Home',
+					icon: h(ChevronLeft, { class: 'stroke-[1.5] !size-3.5' }),
 					onClick: () => {
-						emit('performDropdownAction', 'update')
+						router.replace({
+							name: 'Home',
+						})
 					},
 				},
 			],
@@ -83,13 +86,16 @@ const getContextMenuOptions = () => {
 						emit('performDropdownAction', 'create')
 					},
 				},
+			],
+		},
+		{
+			group: '',
+			items: [
 				{
-					label: 'Back to Home',
-					icon: h(ChevronLeft, { class: 'stroke-[1.5] !size-3.5' }),
+					label: 'Change Theme',
+					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
 					onClick: () => {
-						router.replace({
-							name: 'Home',
-						})
+						emit('performDropdownAction', 'update')
 					},
 				},
 			],
