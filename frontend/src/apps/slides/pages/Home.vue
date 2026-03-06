@@ -4,7 +4,7 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => openThemeDialog(),
+				onClick: () => navigateToEditor(),
 			}"
 		/>
 
@@ -161,4 +161,8 @@ onActivated(() => {
 		syncPresentationRecord()
 	}
 })
+
+const navigateToEditor = () => {
+	router.push({ name: 'EditorNew' })
+}
 </script>

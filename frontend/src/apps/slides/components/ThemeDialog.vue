@@ -1,10 +1,15 @@
 <template>
-	<Dialog v-model="showThemeDialog" class="pb-0" :options="{ size: '2xl' }">
+	<Dialog
+		v-model="showThemeDialog"
+		class="pb-0"
+		:options="{ size: '2xl' }"
+		:disableOutsideClickToClose="!update"
+	>
 		<template #body-title>
-			<div class="font-semibold">{{ dialogTitle }}</div>
+			<div class="select-none font-semibold">{{ dialogTitle }}</div>
 		</template>
 		<template #body-content>
-			<div class="mb-6 text-base text-gray-600">{{ dialogDescription }}</div>
+			<div class="mb-6 select-none text-base text-gray-600">{{ dialogDescription }}</div>
 			<div class="grid max-h-[32rem] grid-cols-2 gap-6 overflow-y-auto">
 				<div
 					v-for="(theme, idx) in themeResource.data"
@@ -22,7 +27,9 @@
 							v-if="props.update && theme.name == props.currentTheme"
 							class="size-4 stroke-[1.5] text-gray-800"
 						/>
-						<div class="px-2 text-base text-gray-600">{{ theme.title }}</div>
+						<div class="select-none px-2 text-base text-gray-600">
+							{{ theme.title }}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -51,11 +58,11 @@ const showThemeDialog = defineModel({
 
 const emit = defineEmits(['create'])
 
-const dialogTitle = computed(() => (props.update ? 'Change Theme' : 'New Presentation Theme'))
+const dialogTitle = computed(() => (props.update ? 'Change Theme' : 'Select Theme'))
 const dialogDescription = computed(() =>
 	props.update
 		? 'Update the theme for this presentation. All newly added slides will use this theme.'
-		: 'Select a theme for your new presentation. You can change this theme later.',
+		: 'Set a theme for your new presentation. You can change this theme later.',
 )
 
 const themeResource = createResource({

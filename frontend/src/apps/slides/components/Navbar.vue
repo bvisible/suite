@@ -27,7 +27,12 @@
 
 		<div class="flex items-center justify-end gap-2">
 			<slot name="actions"></slot>
-			<Button variant="solid" :label="primaryButton.label" @click="primaryButton.onClick">
+			<Button
+				v-if="!primaryButton.hide"
+				variant="solid"
+				:label="primaryButton.label"
+				@click="primaryButton.onClick"
+			>
 				<template #prefix>
 					<component :is="primaryButton.icon" size="14" class="stroke-[1.5] text-white" />
 				</template>

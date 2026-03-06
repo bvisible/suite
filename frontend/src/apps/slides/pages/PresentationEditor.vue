@@ -146,10 +146,6 @@ const props = defineProps({
 		type: Number,
 		required: true,
 	},
-	isNew: {
-		type: Boolean,
-		default: false,
-	},
 })
 
 const router = useRouter()
@@ -605,18 +601,17 @@ const route = useRoute()
 
 const handleOnActivated = () => {
 	readonlyMode.value = route.name === 'PresentationView'
+
+	if (route.name === 'EditorNew') {
+		presentationDoc.value = null
+		slides.value = []
+		themeDialogAction.value = 'create'
+		showThemeDialog.value = true
+		return
+	}
+
 	const id = props.presentationId
 	if (!id) return
-
-	if (props.isNew) {
-		showThemeDialog.value = true
-
-		router.replace({
-			name: 'PresentationEditor',
-			params: { ...route.params },
-			query: { ...route.query, isNew: 0 },
-		})
-	}
 
 	if (readonlyMode.value) {
 		loadPresentationInReadonlyMode(id)
@@ -641,6 +636,10 @@ const updateUnsyncedRecord = () => {
 }
 
 onDeactivated(async () => {
+	if (route.name === 'EditorNew') {
+		showThemeDialog.value = false
+		return
+	}
 	if (readonlyMode.value) {
 		document.removeEventListener('keydown', handleKeyDownForReadonly)
 	} else {
@@ -711,15 +710,21 @@ const handleBeforeUnload = (e) => {
 	}
 }
 
-const navigateToPresentation = async (name, isNew = false) => {
-	const query = { slide: 1 }
-	if (isNew) query.isNew = 1
+const navigateToPresentation = async (name) => {
+	if (route.name === 'EditorNew') {
+		await router.replace({
+			name: 'PresentationEditor',
+			params: { presentationId: name },
+			query: { slide: 1 },
+		})
+	} else {
+		await router.push({
+			name: 'PresentationEditor',
+			params: { presentationId: name },
+			query: { slide: 1 },
+		})
+	}
 
-	await router.push({
-		name: 'PresentationEditor',
-		params: { presentationId: name },
-		query,
-	})
 	handleOnActivated()
 }
 

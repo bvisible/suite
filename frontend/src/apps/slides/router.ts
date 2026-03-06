@@ -8,12 +8,9 @@ const withPresentationProps = (route: RouteLocationNormalized) => {
 	const slide = parseInt(route.query.slide as string)
 	const activeSlideId = Number.isFinite(slide) ? slide : 1
 
-	const isNew = route.query.isNew === 'true'
-
 	return {
 		presentationId: route.params.presentationId,
 		activeSlideId: activeSlideId,
-		isNew: isNew,
 	}
 }
 
@@ -23,6 +20,12 @@ const routes = [
 		path: '/',
 		name: 'Home',
 		component: () => import('@/pages/Home.vue'),
+	},
+	{
+		path: '/presentation/new',
+		name: 'EditorNew',
+		component: () => import('@/pages/PresentationEditor.vue'),
+		props: withPresentationProps,
 	},
 	{
 		path: '/presentation/:presentationId/:slug?',
