@@ -83,6 +83,6 @@ watch(
 )
 
 const getThemeThumbnailClasses = (theme) => {
-	return props.update && theme == props.currentTheme ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+	return props.update && theme == props.currentTheme ? 'ring-2 ring-offset-1 ring-gray-400' : ''
 }
 </script>

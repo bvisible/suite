@@ -60,12 +60,10 @@ const getContextMenuOptions = () => {
 			group: '',
 			items: [
 				{
-					label: 'Back to Home',
-					icon: h(ChevronLeft, { class: 'stroke-[1.5] !size-3.5' }),
+					label: 'Change Theme',
+					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
 					onClick: () => {
-						router.replace({
-							name: 'Home',
-						})
+						emit('performDropdownAction', 'update')
 					},
 				},
 			],
@@ -75,16 +73,18 @@ const getContextMenuOptions = () => {
 			items: [
 				{
 					label: 'New Presentation',
-					icon: h(Plus, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
+					icon: h(Plus, { class: 'stroke-[1.5] !size-3.5' }),
 					onClick: () => {
 						emit('performDropdownAction', 'create')
 					},
 				},
 				{
-					label: 'Change Theme',
-					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
+					label: 'Back to Home',
+					icon: h(ChevronLeft, { class: 'stroke-[1.5] !size-3.5' }),
 					onClick: () => {
-						emit('performDropdownAction', 'update')
+						router.replace({
+							name: 'Home',
+						})
 					},
 				},
 			],
