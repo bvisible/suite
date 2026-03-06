@@ -742,7 +742,7 @@ export const newExternal = async (type) => {
       params: { entityName: data.name },
     })
   } else if (type === 'Presentation') {
-    window.location.replace('/slides/presentation/' + data.path)
+    window.location.replace('/slides/presentation/' + data.path + '?is_new=1')
   }
 }
 
