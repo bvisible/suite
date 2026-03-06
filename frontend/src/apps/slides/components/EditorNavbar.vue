@@ -1,5 +1,9 @@
 <template>
-	<Navbar :primaryButton="primaryButtonProps">
+	<Navbar
+		:primaryButton="primaryButtonProps"
+		:showNavbarDropdown="true"
+		@performDropdownAction="(action) => emit('performDropdownAction', action)"
+	>
 		<template #default>
 			<div class="flex w-full justify-center">
 				<PresentationHeader :title="presentationDoc?.title" />
@@ -36,7 +40,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['startSlideShow'])
+const emit = defineEmits(['startSlideShow', 'performDropdownAction'])
 
 const primaryButtonProps = {
 	label: 'Present',

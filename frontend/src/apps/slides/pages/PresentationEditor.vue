@@ -3,7 +3,11 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow" />
+		<EditorNavbar
+			:readonlyMode="readonlyMode"
+			@startSlideShow="startSlideShow"
+			@performDropdownAction="performNavbarDropdownAction"
+		/>
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
@@ -46,6 +50,13 @@
 			:layouts="layoutResource.data"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
 		/>
+
+		<ThemeDialog
+			v-model="showThemeDialog"
+			@create="(theme) => createPresentation(theme)"
+			@update="(theme) => updatePresentationTheme(theme)"
+			:update="themeDialogAction == 'update'"
+		/>
 	</div>
 </template>
 
@@ -62,7 +73,7 @@ import {
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { toast } from 'frappe-ui'
+import { toast, call } from 'frappe-ui'
 
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
@@ -70,6 +81,7 @@ import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import ThemeDialog from '@/components/ThemeDialog.vue'
 
 import {
 	presentationId,
@@ -84,6 +96,7 @@ import {
 	readonlyMode,
 	slidesLength,
 	historyMetadata,
+	createPresentationResource,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -132,6 +145,10 @@ const props = defineProps({
 		type: Number,
 		required: true,
 	},
+	isNew: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const router = useRouter()
@@ -140,6 +157,8 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
+const showThemeDialog = ref(false)
+const themeDialogAction = ref('update')
 const slideHighlight = ref(false)
 const hasOngoingInteraction = ref(false)
 
@@ -583,10 +602,21 @@ const loadPresentationInReadonlyMode = async (id) => {
 
 const route = useRoute()
 
-onActivated(() => {
+const handleOnActivated = () => {
 	readonlyMode.value = route.name === 'PresentationView'
 	const id = props.presentationId
 	if (!id) return
+
+	if (props.isNew) {
+		showThemeDialog.value = true
+
+		router.replace({
+			name: 'PresentationEditor',
+			params: { ...route.params },
+			query: { ...route.query, isNew: 0 },
+		})
+	}
+
 	if (readonlyMode.value) {
 		loadPresentationInReadonlyMode(id)
 		document.addEventListener('keydown', handleKeyDownForReadonly)
@@ -595,6 +625,10 @@ onActivated(() => {
 		document.addEventListener('keydown', handleKeyDown)
 		window.addEventListener('beforeunload', handleBeforeUnload)
 	}
+}
+
+onActivated(() => {
+	handleOnActivated()
 })
 
 const updateUnsyncedRecord = () => {
@@ -660,10 +694,69 @@ watch(
 	{ immediate: true },
 )
 
+watch(
+	() => props.presentationId,
+	(slug) => {
+		if (presentationDoc.value) {
+			updateRoute(slug)
+		}
+	},
+)
+
 const handleBeforeUnload = (e) => {
 	if (isDirty.value || syncThumbnail > 0) {
 		e.preventDefault()
 		e.returnValue = ''
+	}
+}
+
+const navigateToPresentation = async (name, isNew = false) => {
+	const query = { slide: 1 }
+	if (isNew) query.isNew = 1
+
+	await router.push({
+		name: 'PresentationEditor',
+		params: { presentationId: name },
+		query,
+	})
+	handleOnActivated()
+}
+
+const createPresentation = async (theme) => {
+	showThemeDialog.value = false
+	const newPresentation = await createPresentationResource.submit({
+		theme: theme,
+	})
+	if (newPresentation) {
+		navigateToPresentation(newPresentation, false)
+	} else {
+		console.error('Failed to create new presentation')
+	}
+}
+
+const updatePresentationTheme = async (theme) => {
+	if (!presentationId.value) return
+	showThemeDialog.value = false
+
+	call('frappe.client.set_value', {
+		doctype: 'Presentation',
+		name: presentationId.value,
+		fieldname: 'theme',
+		value: theme,
+	}).then(() => {
+		layoutResource.fetch({ theme: theme })
+		presentationDoc.value.theme = theme
+		toast.success('Theme updated')
+	})
+}
+
+const performNavbarDropdownAction = (action) => {
+	if (action == 'create') {
+		themeDialogAction.value = 'create'
+		showThemeDialog.value = true
+	} else if (action == 'update') {
+		themeDialogAction.value = 'update'
+		showThemeDialog.value = true
 	}
 }
 </script>
