@@ -441,21 +441,14 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
     return f"{entity_title} ({len(sibling_entity_titles)}){entity_ext}"
 
 
-def validate_filename(file_name, parent, filters, error=None):
-    exists = frappe.db.exists(
-        {
-            "doctype": "File",
-            "folder": parent,
-            "file_name": file_name,
-            "status": 1,
-            **filters,
-        }
-    )
-    if exists:
-        suggested_name = get_new_file_name(file_name, parent, type=filters.get('file_type'))
+def validate_filename(file_name, parent, type, error=None):
+    suggested_name = get_new_file_name(file_name, parent, type)
+    if suggested_name != file_name:
+        if not error:
+            error = f"{file_name} exists."
         frappe.throw(
             f"{error} Try {suggested_name}",
-            FileExistsError,
+            frappe.ValidationError,
         )
 
 
