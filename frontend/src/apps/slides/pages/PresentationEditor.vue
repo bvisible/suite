@@ -636,7 +636,7 @@ const updateUnsyncedRecord = () => {
 }
 
 onDeactivated(async () => {
-	if (route.name === 'EditorNew') {
+	if (previousRoute?.name == 'EditorNew') {
 		showThemeDialog.value = false
 		return
 	}
