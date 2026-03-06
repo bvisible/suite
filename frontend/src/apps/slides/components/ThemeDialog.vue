@@ -4,7 +4,7 @@
 			<div class="font-semibold">{{ dialogTitle }}</div>
 		</template>
 		<template #body-content>
-			<div class="my-6 text-sm text-gray-600">{{ dialogDescription }}</div>
+			<div class="mb-6 text-base text-gray-600">{{ dialogDescription }}</div>
 			<div class="grid max-h-[32rem] grid-cols-2 gap-6 overflow-y-auto">
 				<div
 					v-for="(theme, idx) in themeResource.data"
