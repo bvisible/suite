@@ -5,8 +5,17 @@
 		:options="{ size: '2xl' }"
 		:disableOutsideClickToClose="!update"
 	>
-		<template #body-title>
-			<div class="select-none font-semibold">{{ dialogTitle }}</div>
+		<template #body-header>
+			<div class="mb-6 flex items-center justify-between">
+				<div class="select-none font-semibold">
+					{{ dialogTitle }}
+				</div>
+				<Button v-if="update" variant="ghost" @click="showThemeDialog = false">
+					<template #icon>
+						<LucideX class="h-4 w-4 text-ink-gray-9" />
+					</template>
+				</Button>
+			</div>
 		</template>
 		<template #body-content>
 			<div class="mb-6 select-none text-base text-gray-600">{{ dialogDescription }}</div>
