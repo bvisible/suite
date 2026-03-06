@@ -331,9 +331,7 @@ const actionItems = computed(() => {
         label: __('Download'),
         icon: LucideDownload,
         isEnabled: (e) =>
-          !e.is_link &&
-          e.mime_type !== 'frappe/slides' &&
-          e.mime_type !== 'frappe_doc' &&
+          !['Link', 'Presentation', 'Document'].includes(e.file_type) &&
           e.allow_download,
         action: (entities) => entitiesDownload(team.value, entities),
         multi: true,

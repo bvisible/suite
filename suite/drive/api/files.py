@@ -222,7 +222,7 @@ def create_folder(team: str, file_name: str, parent: str | None = None):
             "You don't have permissions for this.",
             frappe.PermissionError,
         )
-    validate_filename(file_name, parent, {"file_type": "Folder"}, error=f"Folder '{file_name}' already exists.")
+    validate_filename(file_name, parent, "Folder", error=f"Folder '{file_name}' already exists.")
 
     manager = FileManager()
     path = manager.create_folder(
@@ -290,7 +290,7 @@ def create_link(team: str, file_name: str, link: str, parent: str | None = None)
             frappe.PermissionError,
         )
 
-    validate_filename(file_name, parent, {"file_type": "Link"}, error=f"Link '{file_name}' already exists.")
+    validate_filename(file_name, parent, "Link", error=f"Link '{file_name}' already exists.")
 
     drive_file = frappe.get_doc(
         {
@@ -540,8 +540,6 @@ def delete_entities(entity_names: list[str] | None = None, clear_all: bool = Fal
 @frappe.whitelist()
 def rename(entity_name: str, new_title: str):
     drive_file = frappe.get_doc("File", entity_name)
-    if not drive_file:
-        frappe.throw("Entity does not exist", ValueError)
     return drive_file.rename(new_title)
 
 
