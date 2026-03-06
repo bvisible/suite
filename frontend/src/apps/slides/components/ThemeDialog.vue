@@ -1,9 +1,10 @@
 <template>
 	<Dialog v-model="showThemeDialog" class="pb-0" :options="{ size: '2xl' }">
 		<template #body-title>
-			<div class="font-semibold">Select a Theme</div>
+			<div class="font-semibold">{{ dialogTitle }}</div>
 		</template>
 		<template #body-content>
+			<div class="my-6 text-sm text-gray-600">{{ dialogDescription }}</div>
 			<div class="grid max-h-[32rem] grid-cols-2 gap-6 overflow-y-auto">
 				<div
 					v-for="(theme, idx) in themeResource.data"
@@ -23,7 +24,7 @@
 </template>
 
 <script setup>
-import { watch, nextTick, onMounted } from 'vue'
+import { watch, nextTick, onMounted, computed } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
 
 import { getThumbnailCardStyles } from '@/utils/helpers'
@@ -41,6 +42,13 @@ const showThemeDialog = defineModel({
 })
 
 const emit = defineEmits(['create'])
+
+const dialogTitle = computed(() => (props.update ? 'Change Theme' : 'New Presentation Theme'))
+const dialogDescription = computed(() =>
+	props.update
+		? 'Update the theme for this presentation. All newly added slides will use this theme.'
+		: 'Select a theme for your new presentation. You can change this theme later.',
+)
 
 const themeResource = createResource({
 	url: 'slides.slides.doctype.presentation.presentation.get_themes',
