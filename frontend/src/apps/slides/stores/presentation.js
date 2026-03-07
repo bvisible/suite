@@ -355,6 +355,19 @@ const isPublicPresentation = ref(false)
 
 const readonlyMode = ref(false)
 
+const deletePresentation = async (presentation) => {
+	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
+		name: presentation,
+	})
+}
+
+const duplicatePresentation = async (presentation) => {
+	const newPresentation = await createPresentationResource.submit({
+		duplicateFrom: presentation,
+	})
+	return newPresentation
+}
+
 export {
 	presentationId,
 	inSlideShow,
@@ -375,4 +388,6 @@ export {
 	readonlyMode,
 	slidesLength,
 	historyMetadata,
+	duplicatePresentation,
+	deletePresentation,
 }

@@ -14,7 +14,7 @@
 			@setPreview="setPreview"
 			@navigate="(name, present) => navigateToPresentation(name, present)"
 			@openDialog="openDialog"
-			@duplicatePresentation="(name) => duplicatePresentation(name)"
+			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
 
 		<PresentationPreview
@@ -23,7 +23,7 @@
 			@setPreview="setPreview"
 			@openDialog="openDialog"
 			@navigate="navigateToPresentation"
-			@duplicatePresentation="(name) => duplicatePresentation(name)"
+			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
 	</div>
 
@@ -51,7 +51,7 @@ import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
-import { createPresentationResource, unsyncedPresentationRecord } from '@/stores/presentation'
+import { duplicatePresentation, unsyncedPresentationRecord } from '@/stores/presentation'
 
 const router = useRouter()
 
@@ -111,17 +111,6 @@ const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
 
-const duplicatePresentation = async (presentation) => {
-	const newPresentation = await createPresentationResource.submit({
-		duplicateFrom: presentation,
-	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation)
-	} else {
-		console.error('Failed to create new presentation')
-	}
-}
-
 const syncPresentationRecord = () => {
 	const presentationRecord = presentationList.value.find(
 		(p) => p.name == previousRoute.params.presentationId,
@@ -145,5 +134,10 @@ onActivated(() => {
 
 const navigateToEditor = () => {
 	router.push({ name: 'EditorNew' })
+}
+
+const duplicateAndNavigate = async (presentation) => {
+	const newPresentation = await duplicatePresentation(presentation)
+	navigateToPresentation(newPresentation)
 }
 </script>

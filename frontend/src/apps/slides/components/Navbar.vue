@@ -46,7 +46,7 @@
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dropdown, Button } from 'frappe-ui'
-import { ChevronLeft, Palette, Plus } from 'lucide-vue-next'
+import { ArrowLeft, Palette, Plus, Copy, Trash } from 'lucide-vue-next'
 
 const props = defineProps({
 	showNavbarDropdown: {
@@ -67,7 +67,7 @@ const getContextMenuOptions = () => {
 			items: [
 				{
 					label: 'Back to Home',
-					icon: h(ChevronLeft, { class: 'stroke-[1.5] !size-3.5' }),
+					icon: h(ArrowLeft, { class: 'stroke-[1.5] !size-3.5' }),
 					onClick: () => {
 						router.replace({
 							name: 'Home',
@@ -77,25 +77,34 @@ const getContextMenuOptions = () => {
 			],
 		},
 		{
-			group: '',
+			group: 'Presentation',
 			items: [
 				{
-					label: 'New Presentation',
+					label: 'New',
 					icon: h(Plus, { class: 'stroke-[1.5] !size-3.5' }),
 					onClick: () => {
 						emit('performDropdownAction', 'create')
 					},
 				},
-			],
-		},
-		{
-			group: '',
-			items: [
 				{
-					label: 'Change Theme',
+					label: 'Duplicate',
+					icon: h(Copy, { class: 'stroke-[1.5] !size-3.5' }),
+					onClick: () => {
+						emit('performDropdownAction', 'duplicate')
+					},
+				},
+				{
+					label: 'Delete',
+					icon: h(Trash, { class: 'stroke-[1.5] !size-3.5' }),
+					onClick: () => {
+						emit('performDropdownAction', 'delete')
+					},
+				},
+				{
+					label: 'Set Theme',
 					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
 					onClick: () => {
-						emit('performDropdownAction', 'update')
+						emit('performDropdownAction', 'updateTheme')
 					},
 				},
 			],
