@@ -6,7 +6,7 @@ import { session } from '@/stores/session'
 
 const withPresentationProps = (route: RouteLocationNormalized) => {
 	const slide = parseInt(route.query.slide as string)
-  	const activeSlideId = Number.isFinite(slide) ? slide : 1
+	const activeSlideId = Number.isFinite(slide) ? slide : 1
 
 	return {
 		presentationId: route.params.presentationId,
@@ -20,6 +20,12 @@ const routes = [
 		path: '/',
 		name: 'Home',
 		component: () => import('@/pages/Home.vue'),
+	},
+	{
+		path: '/presentation/new',
+		name: 'EditorNew',
+		component: () => import('@/pages/PresentationEditor.vue'),
+		props: withPresentationProps,
 	},
 	{
 		path: '/presentation/:presentationId/:slug?',
