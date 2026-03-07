@@ -15,8 +15,11 @@ setConfig('resourceFetcher', frappeRequest)
 app.use(router)
 app.use(resourcesPlugin)
 
+const isDriveInstalled = window.apps?.includes('drive') ?? false
+
 app.component('Button', Button)
 app.provide('session', session)
+app.provide('isDriveInstalled', isDriveInstalled)
 app.mount('#app')
 
 // Register Service Worker for Prod Environment

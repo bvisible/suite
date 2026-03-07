@@ -71,6 +71,7 @@ import {
 	onDeactivated,
 	onActivated,
 	provide,
+	inject,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -135,6 +136,8 @@ import {
 import { previousRoute } from '@/router'
 
 const { activeEditor, toggleMark } = useTextEditor()
+
+const isDriveInstalled = inject('isDriveInstalled', false)
 
 let autosaveInterval = null
 let thumbnailInterval = null
@@ -733,11 +736,21 @@ const createPresentation = async (theme) => {
 	const newPresentation = await createPresentationResource.submit({
 		theme: theme,
 	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation, false)
-	} else {
+
+	if (!newPresentation) {
 		console.error('Failed to create new presentation')
+		return
 	}
+
+	if (isDriveInstalled) {
+		const parent = route.query.parent || ''
+		call('slides.api.file.create_drive_file', {
+			name: newPresentation,
+			parent: parent,
+		})
+	}
+
+	navigateToPresentation(newPresentation)
 }
 
 const updatePresentationTheme = async (theme) => {

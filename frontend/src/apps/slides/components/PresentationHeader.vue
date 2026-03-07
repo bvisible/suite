@@ -74,6 +74,7 @@ const saveTitle = async (e) => {
 		router.replace({
 			name: 'PresentationEditor',
 			params: { presentationId: route.params.presentationId, slug: slug },
+			query: route.query,
 		})
 	}
 }
