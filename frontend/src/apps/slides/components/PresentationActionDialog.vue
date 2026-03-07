@@ -40,7 +40,7 @@ import { ref, watch, nextTick, useTemplateRef } from 'vue'
 
 import { Dialog, FormControl, call } from 'frappe-ui'
 
-import { createPresentationResource, updatePresentationTitle } from '@/stores/presentation'
+import { deletePresentation, updatePresentationTitle } from '@/stores/presentation'
 
 import { Trash, PenLine } from 'lucide-vue-next'
 
@@ -79,7 +79,7 @@ const performAction = async () => {
 			await renamePresentation()
 			break
 		case 'Delete':
-			await deletePresentation()
+			await deletePresentation(props.presentation.name)
 			break
 	}
 
@@ -88,12 +88,6 @@ const performAction = async () => {
 	} else {
 		emit('reloadList')
 	}
-}
-
-const deletePresentation = async () => {
-	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
-		name: props.presentation.name,
-	})
 }
 
 const renamePresentation = async () => {

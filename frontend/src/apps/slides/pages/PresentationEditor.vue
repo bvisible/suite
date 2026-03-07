@@ -3,7 +3,11 @@
 		class="flex h-screen w-screen select-none flex-col overflow-hidden"
 		@click="focusedSlide = null"
 	>
-		<EditorNavbar :readonlyMode="readonlyMode" @startSlideShow="startSlideShow" />
+		<EditorNavbar
+			:readonlyMode="readonlyMode"
+			@startSlideShow="startSlideShow"
+			@performDropdownAction="performNavbarDropdownAction"
+		/>
 
 		<div class="relative flex h-screen bg-gray-300">
 			<SlideContainer
@@ -25,7 +29,7 @@
 			/>
 
 			<Toolbar
-				v-if="!readonlyMode"
+				v-if="!readonlyMode && presentationDoc"
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
@@ -42,9 +46,17 @@
 		<LayoutDialog
 			v-if="layoutResource.data"
 			v-model="showLayoutDialog"
-			:theme="presentationDoc.theme"
+			:theme="presentationDoc?.theme"
 			:layouts="layoutResource.data"
 			@insert="(layoutId) => handleInsertSlide(layoutId)"
+		/>
+
+		<ThemeDialog
+			v-model="showThemeDialog"
+			@create="(theme) => createPresentation(theme)"
+			@update="(theme) => updatePresentationTheme(theme)"
+			:update="themeDialogAction == 'update'"
+			:currentTheme="presentationDoc?.theme"
 		/>
 	</div>
 </template>
@@ -59,10 +71,11 @@ import {
 	onDeactivated,
 	onActivated,
 	provide,
+	inject,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { toast } from 'frappe-ui'
+import { toast, call } from 'frappe-ui'
 
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
@@ -70,6 +83,7 @@ import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import ThemeDialog from '@/components/ThemeDialog.vue'
 
 import {
 	presentationId,
@@ -84,6 +98,9 @@ import {
 	readonlyMode,
 	slidesLength,
 	historyMetadata,
+	createPresentationResource,
+	duplicatePresentation,
+	deletePresentation,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -122,6 +139,8 @@ import { previousRoute } from '@/router'
 
 const { activeEditor, toggleMark } = useTextEditor()
 
+const isDriveInstalled = inject('isDriveInstalled', false)
+
 let autosaveInterval = null
 let thumbnailInterval = null
 
@@ -140,6 +159,8 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const dropTargetRef = useTemplateRef('dropTarget')
 
 const showNavigator = ref(true)
+const showThemeDialog = ref(false)
+const themeDialogAction = ref('update')
 const slideHighlight = ref(false)
 const hasOngoingInteraction = ref(false)
 
@@ -583,10 +604,20 @@ const loadPresentationInReadonlyMode = async (id) => {
 
 const route = useRoute()
 
-onActivated(() => {
+const handleOnActivated = () => {
 	readonlyMode.value = route.name === 'PresentationView'
+
+	if (route.name === 'EditorNew') {
+		presentationDoc.value = null
+		slides.value = []
+		themeDialogAction.value = 'create'
+		showThemeDialog.value = true
+		return
+	}
+
 	const id = props.presentationId
 	if (!id) return
+
 	if (readonlyMode.value) {
 		loadPresentationInReadonlyMode(id)
 		document.addEventListener('keydown', handleKeyDownForReadonly)
@@ -595,6 +626,10 @@ onActivated(() => {
 		document.addEventListener('keydown', handleKeyDown)
 		window.addEventListener('beforeunload', handleBeforeUnload)
 	}
+}
+
+onActivated(() => {
+	handleOnActivated()
 })
 
 const updateUnsyncedRecord = () => {
@@ -606,6 +641,10 @@ const updateUnsyncedRecord = () => {
 }
 
 onDeactivated(async () => {
+	if (previousRoute?.name == 'EditorNew') {
+		showThemeDialog.value = false
+		return
+	}
 	if (readonlyMode.value) {
 		document.removeEventListener('keydown', handleKeyDownForReadonly)
 	} else {
@@ -660,10 +699,94 @@ watch(
 	{ immediate: true },
 )
 
+watch(
+	() => props.presentationId,
+	(id) => {
+		if (!id) return
+		if (!presentationDoc.value) return
+		if (route.name === 'EditorNew') return
+		updateRoute(presentationDoc.value.slug)
+	},
+)
+
 const handleBeforeUnload = (e) => {
 	if (isDirty.value || syncThumbnail > 0) {
 		e.preventDefault()
 		e.returnValue = ''
+	}
+}
+
+const navigateToPresentation = async (name) => {
+	if (route.name === 'EditorNew') {
+		await router.replace({
+			name: 'PresentationEditor',
+			params: { presentationId: name },
+			query: { slide: 1 },
+		})
+	} else {
+		await router.push({
+			name: 'PresentationEditor',
+			params: { presentationId: name },
+			query: { slide: 1 },
+		})
+	}
+
+	handleOnActivated()
+}
+
+const createPresentation = async (theme) => {
+	showThemeDialog.value = false
+	const newPresentation = await createPresentationResource.submit({
+		theme: theme,
+	})
+	const name = newPresentation?.name
+
+	if (!name) {
+		console.error('Failed to create new presentation')
+		return
+	}
+
+	if (isDriveInstalled) {
+		const parent = route.query.parent || ''
+		call('slides.api.file.create_drive_file', {
+			name: name,
+			parent: parent,
+		})
+	}
+
+	navigateToPresentation(name)
+}
+
+const updatePresentationTheme = async (theme) => {
+	if (!presentationId.value) return
+
+	showThemeDialog.value = false
+
+	call('frappe.client.set_value', {
+		doctype: 'Presentation',
+		name: presentationId.value,
+		fieldname: 'theme',
+		value: theme,
+	}).then(() => {
+		layoutResource.fetch({ theme: theme })
+		presentationDoc.value.theme = theme
+	})
+}
+
+const performNavbarDropdownAction = async (action) => {
+	if (action == 'create') {
+		await router.push({ name: 'EditorNew' })
+		handleOnActivated()
+	} else if (action == 'duplicate') {
+		const newPresentation = await duplicatePresentation(presentationId.value)
+		navigateToPresentation(newPresentation)
+	} else if (action == 'delete') {
+		await deletePresentation(presentationId.value)
+		unsyncedPresentationRecord.value = { name: presentationId.value, deleted: true }
+		router.push({ name: 'Home' })
+	} else if (action == 'updateTheme') {
+		themeDialogAction.value = 'update'
+		showThemeDialog.value = true
 	}
 }
 </script>

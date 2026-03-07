@@ -4,7 +4,7 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => openThemeDialog(),
+				onClick: () => navigateToEditor(),
 			}"
 		/>
 
@@ -14,7 +14,7 @@
 			@setPreview="setPreview"
 			@navigate="(name, present) => navigateToPresentation(name, present)"
 			@openDialog="openDialog"
-			@duplicatePresentation="(name) => duplicatePresentation(name)"
+			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
 
 		<PresentationPreview
@@ -23,7 +23,7 @@
 			@setPreview="setPreview"
 			@openDialog="openDialog"
 			@navigate="navigateToPresentation"
-			@duplicatePresentation="(name) => duplicatePresentation(name)"
+			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
 	</div>
 
@@ -35,8 +35,6 @@
 		@closeDialog="closeDialog"
 		@navigate="navigateToPresentation"
 	/>
-
-	<ThemeDialog v-model="showThemeDialog" @create="(theme) => createPresentation(theme)" />
 </template>
 
 <script setup>
@@ -52,9 +50,8 @@ import Navbar from '@/components/Navbar.vue'
 import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
-import ThemeDialog from '@/components/ThemeDialog.vue'
 
-import { createPresentationResource, unsyncedPresentationRecord } from '@/stores/presentation'
+import { duplicatePresentation, unsyncedPresentationRecord } from '@/stores/presentation'
 
 const router = useRouter()
 
@@ -114,46 +111,27 @@ const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
 
-const createPresentation = async (theme) => {
-	showThemeDialog.value = false
-	const newPresentation = await createPresentationResource.submit({
-		theme: theme,
-	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation)
-	} else {
-		console.error('Failed to create new presentation')
-	}
-}
-
-const duplicatePresentation = async (presentation) => {
-	const newPresentation = await createPresentationResource.submit({
-		duplicateFrom: presentation,
-	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation)
-	} else {
-		console.error('Failed to create new presentation')
-	}
-}
-
-const openThemeDialog = () => {
-	showThemeDialog.value = true
-}
-
 const syncPresentationRecord = () => {
+	const newValues = unsyncedPresentationRecord.value
+
+	if (newValues.deleted) {
+		presentationList.value = presentationList.value.filter((p) => p.name !== newValues.name)
+		unsyncedPresentationRecord.value = {}
+		return
+	}
+
 	const presentationRecord = presentationList.value.find(
 		(p) => p.name == previousRoute.params.presentationId,
 	)
 	if (!presentationRecord) return
-
-	const newValues = unsyncedPresentationRecord.value
 
 	Object.entries(newValues).forEach(([key, val]) => {
 		if (![null, undefined, ''].includes(val)) {
 			presentationRecord[key] = val
 		}
 	})
+
+	unsyncedPresentationRecord.value = {}
 }
 
 onActivated(() => {
@@ -161,4 +139,13 @@ onActivated(() => {
 		syncPresentationRecord()
 	}
 })
+
+const navigateToEditor = () => {
+	router.push({ name: 'EditorNew' })
+}
+
+const duplicateAndNavigate = async (presentation) => {
+	const newPresentation = await duplicatePresentation(presentation)
+	navigateToPresentation(newPresentation)
+}
 </script>
