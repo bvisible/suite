@@ -35,8 +35,6 @@
 		@closeDialog="closeDialog"
 		@navigate="navigateToPresentation"
 	/>
-
-	<ThemeDialog v-model="showThemeDialog" @create="(theme) => createPresentation(theme)" />
 </template>
 
 <script setup>
@@ -52,7 +50,6 @@ import Navbar from '@/components/Navbar.vue'
 import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
-import ThemeDialog from '@/components/ThemeDialog.vue'
 
 import { createPresentationResource, unsyncedPresentationRecord } from '@/stores/presentation'
 
@@ -114,18 +111,6 @@ const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
 
-const createPresentation = async (theme) => {
-	showThemeDialog.value = false
-	const newPresentation = await createPresentationResource.submit({
-		theme: theme,
-	})
-	if (newPresentation) {
-		navigateToPresentation(newPresentation)
-	} else {
-		console.error('Failed to create new presentation')
-	}
-}
-
 const duplicatePresentation = async (presentation) => {
 	const newPresentation = await createPresentationResource.submit({
 		duplicateFrom: presentation,
@@ -135,10 +120,6 @@ const duplicatePresentation = async (presentation) => {
 	} else {
 		console.error('Failed to create new presentation')
 	}
-}
-
-const openThemeDialog = () => {
-	showThemeDialog.value = true
 }
 
 const syncPresentationRecord = () => {
