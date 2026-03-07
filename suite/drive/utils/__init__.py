@@ -394,3 +394,21 @@ def get_teams(user=None, details=None, exclude_personal=True):
             return {t: team for t, team in teams_info.items() if not team.personal}
         return teams_info
     return teams
+
+@default_team
+def create_file(title="Untitled", parent=None, path=None, mime_type=None, team=None):
+    if not parent:
+        home_directory = get_home_folder(team)
+        parent = home_directory.name
+    else:
+        team = frappe.db.get_value('Drive File', parent, 'team')
+
+    return create_drive_file(
+        team,
+        title,
+        parent,
+        mime_type,
+        lambda _: path,
+    )
+
+    
