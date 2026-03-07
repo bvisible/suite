@@ -100,6 +100,7 @@ import {
 	historyMetadata,
 	createPresentationResource,
 	duplicatePresentation,
+	deletePresentation,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -778,6 +779,8 @@ const performNavbarDropdownAction = async (action) => {
 		const newPresentation = await duplicatePresentation(presentationId.value)
 		navigateToPresentation(newPresentation)
 	} else if (action == 'delete') {
+		await deletePresentation(presentationId.value)
+		router.push({ name: 'Home' })
 	} else if (action == 'updateTheme') {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true
