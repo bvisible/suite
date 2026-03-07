@@ -738,8 +738,9 @@ const createPresentation = async (theme) => {
 	const newPresentation = await createPresentationResource.submit({
 		theme: theme,
 	})
+	const name = newPresentation?.name
 
-	if (!newPresentation) {
+	if (!name) {
 		console.error('Failed to create new presentation')
 		return
 	}
@@ -747,12 +748,12 @@ const createPresentation = async (theme) => {
 	if (isDriveInstalled) {
 		const parent = route.query.parent || ''
 		call('slides.api.file.create_drive_file', {
-			name: newPresentation,
+			name: name,
 			parent: parent,
 		})
 	}
 
-	navigateToPresentation(newPresentation)
+	navigateToPresentation(name)
 }
 
 const updatePresentationTheme = async (theme) => {

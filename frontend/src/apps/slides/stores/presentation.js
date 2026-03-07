@@ -3,10 +3,13 @@ import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
+import { router } from '@/router'
 import { slides, slideIndex, currentSlide } from './slide'
 import { activeElementIds, normalizeZIndices } from '@/stores/element'
 
 import { cloneObj } from '@/utils/helpers'
+
+const isDriveInstalled = window.apps?.includes('drive') ?? false
 
 const presentationDoc = ref()
 
@@ -24,9 +27,6 @@ const createPresentationResource = createResource({
 			duplicate_from: args.duplicateFrom,
 			theme: args.theme,
 		}
-	},
-	transform: (response) => {
-		return response.name
 	},
 })
 
@@ -365,7 +365,17 @@ const duplicatePresentation = async (presentation) => {
 	const newPresentation = await createPresentationResource.submit({
 		duplicateFrom: presentation,
 	})
-	return newPresentation
+
+	if (isDriveInstalled) {
+		const parent = router.currentRoute.value.query.parent || ''
+		call('slides.api.file.create_drive_file', {
+			title: newPresentation.title,
+			name: newPresentation.name,
+			parent: parent,
+		})
+	}
+
+	return newPresentation.name
 }
 
 export {
