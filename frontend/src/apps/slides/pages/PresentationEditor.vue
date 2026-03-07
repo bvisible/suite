@@ -780,6 +780,7 @@ const performNavbarDropdownAction = async (action) => {
 		navigateToPresentation(newPresentation)
 	} else if (action == 'delete') {
 		await deletePresentation(presentationId.value)
+		unsyncedPresentationRecord.value = { name: presentationId.value, deleted: true }
 		router.push({ name: 'Home' })
 	} else if (action == 'updateTheme') {
 		themeDialogAction.value = 'update'
