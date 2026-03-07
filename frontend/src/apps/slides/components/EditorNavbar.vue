@@ -45,12 +45,12 @@ const emit = defineEmits(['startSlideShow', 'performDropdownAction'])
 
 const route = useRoute()
 
-const primaryButtonProps = {
+const primaryButtonProps = computed(() => ({
 	label: 'Present',
 	icon: Presentation,
 	onClick: () => emit('startSlideShow'),
 	hide: route.name === 'EditorNew',
-}
+}))
 
 const showNavbarDropdown = computed(() => {
 	if (route.name === 'EditorNew') return false
