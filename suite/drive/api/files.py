@@ -200,33 +200,6 @@ def get_thumbnail(entity_name: str):
         return thumbnail_data
 
 
-@frappe.whitelist()
-@default_team
-def create_presentation(team: str, title: str = "Untitled", parent: str | None = None):
-    home_directory = get_home_folder(team)
-    parent = parent or home_directory.name
-    team = frappe.db.get_value("Drive File", parent, "team")
-    if not user_has_permission(parent, "upload"):
-        frappe.throw(
-            "Cannot access folder due to insufficient permissions",
-            frappe.PermissionError,
-        )
-    try:
-        r = frappe.call(
-            "slides.slides.doctype.presentation.presentation.create_presentation",
-            title=title,
-            theme="1mjgj61m8j",
-        )
-    except BaseException as e:
-        print("Couldn't create", e)
-    entity = create_drive_file(
-        team,
-        title,
-        parent,
-        "frappe/slides",
-        lambda _: r.name,
-    )
-    return entity
 
 
 @frappe.whitelist()
