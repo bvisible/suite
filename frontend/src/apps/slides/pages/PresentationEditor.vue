@@ -701,10 +701,11 @@ watch(
 
 watch(
 	() => props.presentationId,
-	(slug) => {
-		if (presentationDoc.value) {
-			updateRoute(slug)
-		}
+	(id) => {
+		if (!id) return
+		if (!presentationDoc.value) return
+		if (route.name === 'EditorNew') return
+		updateRoute(presentationDoc.value.slug)
 	},
 )
 
