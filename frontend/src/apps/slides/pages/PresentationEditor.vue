@@ -99,6 +99,7 @@ import {
 	slidesLength,
 	historyMetadata,
 	createPresentationResource,
+	duplicatePresentation,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -773,7 +774,11 @@ const performNavbarDropdownAction = async (action) => {
 	if (action == 'create') {
 		await router.push({ name: 'EditorNew' })
 		handleOnActivated()
-	} else if (action == 'update') {
+	} else if (action == 'duplicate') {
+		const newPresentation = await duplicatePresentation(presentationId.value)
+		navigateToPresentation(newPresentation)
+	} else if (action == 'delete') {
+	} else if (action == 'updateTheme') {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true
 	}
