@@ -112,18 +112,26 @@ const setPreview = (presentation) => {
 }
 
 const syncPresentationRecord = () => {
+	const newValues = unsyncedPresentationRecord.value
+
+	if (newValues.deleted) {
+		presentationList.value = presentationList.value.filter((p) => p.name !== newValues.name)
+		unsyncedPresentationRecord.value = {}
+		return
+	}
+
 	const presentationRecord = presentationList.value.find(
 		(p) => p.name == previousRoute.params.presentationId,
 	)
 	if (!presentationRecord) return
-
-	const newValues = unsyncedPresentationRecord.value
 
 	Object.entries(newValues).forEach(([key, val]) => {
 		if (![null, undefined, ''].includes(val)) {
 			presentationRecord[key] = val
 		}
 	})
+
+	unsyncedPresentationRecord.value = {}
 }
 
 onActivated(() => {
