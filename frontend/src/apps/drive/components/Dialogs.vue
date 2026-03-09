@@ -19,9 +19,9 @@
     v-model="dialog"
     :entity="entities[0]"
     @success="
-      ({ name, title }) => {
+      ({ name, file_name }) => {
         const el = listResource?.data?.find?.((k) => k.name === name)
-        if (el) el.file_name = title
+        if (el) el.file_name = file_name
         resetDialog()
       }
     "
