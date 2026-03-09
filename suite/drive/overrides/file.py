@@ -1,8 +1,10 @@
 from pathlib import Path
 import frappe
 from frappe.core.doctype.file.file import File as FrappeFile
+from frappe.core.doctype.file.utils import get_content_hash
 from frappe.utils import get_files_path, now
 
+from drive.api.files import get_file_type
 from drive.api.permissions import get_user_access, user_has_permission
 from drive.api.product import invite_users
 from drive.api.activity import create_new_activity_log
@@ -16,6 +18,7 @@ from drive.utils import (
     get_upload_path,
 )
 from drive.utils.files import FileManager
+import mimemapper
 
 
 def only_for_drive_files(func):
@@ -345,29 +348,22 @@ def after_upload_file(doc):
             doc.modified = library_doc.modified
             doc.special_file = "File"
             doc.special_file_doc = frappe.form_dict.library_file_name
-    elif settings.use_drive_for_files:
+    elif settings.use_drive_for_files and doc.attached_to_name:
         doc.is_drive_file = 1
-
-        # print('Using Drive!')
-        # raise Exception('Using Drive!')
-    return doc
-
-
-def write_file(doc):
-    if not doc.is_drive_file:
-        return self.save_file_on_filesystem()
-
-    if doc.attached_to_name:
-        temp_path = get_upload_path("", doc.content_hash[:6] + "-" + doc.file_name)
+        content_hash = get_content_hash(doc.content)
+        temp_path = get_upload_path("", content_hash[:6] + "-" + doc.file_name)
         with temp_path.open("wb") as f:
             f.write(doc.content)
 
-        file_path = Path(doc.attached_to_doctype) / doc.attached_to_name / doc.file_name
-        save_folder = Path(frappe.get_site_path()) / "private/files" / file_path.parent
+        file_path = Path("private/files") / doc.attached_to_doctype / doc.attached_to_name / doc.file_name
+        save_folder = Path(frappe.get_site_path()) / file_path.parent
         if not save_folder.exists():
             save_folder.mkdir(parents=True)
 
-        doc.file_url = str(file_path)
+        doc.file_url = "/" + str(file_path)
+        doc.mime_type = mimemapper.get_mime_type(str(temp_path), native_first=False)
+        doc.file_type = get_file_type(doc.mime_type)
         manager = FileManager()
-        manager.upload_file(temp_path, doc)
-        return {"file_url": str(file_path), "file_name": doc.file_name}
+        manager.upload_file(temp_path, doc, create_thumbnail=False)
+
+    return doc

@@ -208,7 +208,7 @@ export const setBreadCrumbs = (entity) => {
           : { name: 'Team', params: { team: team.name } },
       },
     ]
-  } else if (!entity.is_drive_file || entity.special_file === 'File') {
+  } else if (entity.folder === 'Home/Attachments' || entity.folder === 'Home') {
     res = [
       {
         label: __('Site'),
