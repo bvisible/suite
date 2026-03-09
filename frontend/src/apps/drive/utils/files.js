@@ -36,14 +36,14 @@ export const openEntity = (entity, new_tab = false) => {
   if (new_tab) {
     return window.open(getFileLink(entity, false), '_blank')
   }
-  if (!['Link'   , 'Presentation'].includes(entity.file_type)) {
+  if (!['Link', 'Presentation'].includes(entity.file_type)) {
     if (!entity.breadcrumbs?.length)
       store.state.breadcrumbs.push({
         label: entity.file_name,
         name: entity.name,
         route: null,
-    })
-  else setBreadCrumbs(entity)
+      })
+    else setBreadCrumbs(entity)
   }
 
   // hm?
@@ -196,7 +196,7 @@ export const setBreadCrumbs = (entity) => {
     getTeams.data?.[breadcrumbs[0].team] ||
     getPublicTeams.data?.[breadcrumbs[0].team]
 
-  let res = [];
+  let res = []
   if (team || in_home) {
     res = [
       {
@@ -207,7 +207,7 @@ export const setBreadCrumbs = (entity) => {
           : { name: 'Team', params: { team: team.name } },
       },
     ]
-  } else if (!entity.is_drive_file) {
+  } else if (!entity.is_drive_file || entity.special_file === 'File') {
     res = [
       {
         label: __('Site'),
@@ -215,14 +215,14 @@ export const setBreadCrumbs = (entity) => {
         route: '/site',
       },
     ]
-  } else if  (store.getters.isLoggedIn){
-    res =[
-        {
-          label: __('Shared'),
-          name: 'Shared',
-          route: '/shared',
-        },
-      ]
+  } else if (store.getters.isLoggedIn) {
+    res = [
+      {
+        label: __('Shared'),
+        name: 'Shared',
+        route: '/shared',
+      },
+    ]
   }
 
   if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)

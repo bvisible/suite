@@ -1,5 +1,5 @@
 export function getIconUrl(file_type) {
-  return `/assets/drive/images/icons/${file_type.toLowerCase()}.svg`
+  return `/assets/drive/images/icons/${file_type?.toLowerCase() || 'unknown'}.svg`
 }
 
 export function getThumbnailUrl({ name, file_type, thumbnail, external }) {
@@ -8,7 +8,7 @@ export function getThumbnailUrl({ name, file_type, thumbnail, external }) {
   const HTML_THUMBNAILS = ["Markdown", "Code", "Text", "Document"]
   const IMAGE_THUMBNAILS = ["Image", "Video", "PDF", "Presentation"]
   const is_image = IMAGE_THUMBNAILS.includes(file_type)
-  const iconURL = getIconUrl(file_type.toLowerCase())
+  const iconURL = getIconUrl(file_type)
   if (!is_image && !HTML_THUMBNAILS.includes(file_type))
     return [null, iconURL, true]
   return [

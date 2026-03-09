@@ -107,6 +107,8 @@ import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
 import LucideRotateCcw from '~icons/lucide/rotate-ccw'
 import LucideShare2 from '~icons/lucide/share-2'
 import LucideSquarePen from '~icons/lucide/square-pen'
+import LucideCornerLeftUp from '~icons/lucide/corner-left-up'
+import LucideMonitorCog from '~icons/lucide/monitor-cog'
 import LucideStar from '~icons/lucide/star'
 import LucideTrash from '~icons/lucide/trash'
 import { prettyData, sortEntities } from '@/utils/files'
@@ -319,18 +321,41 @@ const actionItems = computed(() => {
         isEnabled: (e) =>
           !store.state.activeEntity || (!store.state.showInfo && !e.external),
       },
+      { divider: true, isEnabled: (e) => e.is_attachment },
+      {
+        label: __('Go to original'),
+        icon: LucideCornerLeftUp,
+        action: ([entity]) => {
+          window.open(
+            '/api/method/drive.api.files.redirect_to_original?file_id=' +
+              entity.name,
+            '_blank'
+          )
+        },
+        isEnabled: (e) => e.is_attachment,
+      },
+      {
+        label: __('Open in Desk'),
+        icon: LucideMonitorCog,
+        action: ([entity]) => {
+          console.log(store.state.user)
+          window.open('/desk/file/' + entity.name, '_blank')
+        },
+        isEnabled: (e) => e.is_attachment && store.state.user,
+      },
       { divider: true },
       {
         label: __('Share'),
         icon: LucideShare2,
         action: () => (dialog.value = 's'),
-        isEnabled: (e) => e.share,
+        isEnabled: (e) => e.share && e.modifiable,
         important: true,
       },
       {
         label: __('Download'),
         icon: LucideDownload,
         isEnabled: (e) =>
+          e.modifiable &&
           !['Link', 'Presentation', 'Document'].includes(e.file_type) &&
           e.allow_download,
         action: (entities) => entitiesDownload(team.value, entities),
@@ -348,7 +373,7 @@ const actionItems = computed(() => {
         label: __('Move'),
         icon: LucideArrowLeftRight,
         action: () => (dialog.value = 'm'),
-        isEnabled: (e) => e.write,
+        isEnabled: (e) => e.modifiable && e.write,
         multi: true,
         important: true,
       },
@@ -356,7 +381,7 @@ const actionItems = computed(() => {
         label: __('Rename'),
         icon: LucideSquarePen,
         action: () => (dialog.value = 'rn'),
-        isEnabled: (e) => e.write,
+        isEnabled: (e) => e.modifiable && e.write,
       },
       {
         label: __('Favourite'),
