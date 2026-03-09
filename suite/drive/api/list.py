@@ -204,6 +204,7 @@ def files(
             r["share_count"] = default
         if not r["is_drive_file"]:
             r["file_type"] = map_ff_to_drive_type(r)
-
+        r['modifiable'] = r['is_drive_file'] and not r['special_file'] == 'File'
+        r['is_attachment'] = r['is_drive_file'] and r['special_file'] == 'File'
         r |= get_user_access(r["name"])
     return res

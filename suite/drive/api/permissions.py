@@ -159,7 +159,7 @@ def get_entity_with_permissions(entity_name: str):
     )
     mark_as_viewed(entity)
     return_obj = entity | user_access | owner_info | breadcrumbs | {"is_favourite": favourite}
-    
+
     default = 0
     if entity_name:
         if get_user_access(entity_name, "Guest")["read"]:
@@ -169,6 +169,9 @@ def get_entity_with_permissions(entity_name: str):
     return_obj["share_count"] = default
     if not entity.is_drive_file:
         return_obj["file_type"] = map_ff_to_drive_type(entity)
+
+    return_obj["modifiable"] = entity["is_drive_file"] and not entity["special_file"] == "File"
+    return_obj["is_attachment"] = entity["is_drive_file"] and entity["special_file"] == "File"
 
     return return_obj
 
@@ -204,6 +207,7 @@ def get_shared_with_list(entity: str):
         if user_info:
             p.update(user_info)
     return permissions
+
 
 def user_has_permission(doc, ptype, user=None, team=0):
     if not user:
