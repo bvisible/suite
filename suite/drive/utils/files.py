@@ -99,14 +99,14 @@ class FileManager:
             else:
                 os.remove(current_path)
         else:
-            os.rename(current_path, self.site_folder / drive_file.file_url)
+            os.rename(current_path, self.site_folder / sanitize_url(drive_file.file_url))
             if drive_file and create_thumbnail and self.can_create_thumbnail(drive_file):
                 frappe.enqueue(
                     self.upload_thumbnail,
                     now=True,
                     at_front=True,
                     file=drive_file,
-                    file_path=str(self.site_folder / drive_file.file_url),
+                    file_path=str(self.site_folder / sanitize_url(drive_file.file_url)),
                 )
 
     def upload_thumbnail(self, file, file_path: str):
