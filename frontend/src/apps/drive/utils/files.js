@@ -715,6 +715,7 @@ export const newExternal = async (type) => {
   const route = router.currentRoute.value
   if (type === 'Presentation') {
     window.location.href = `/slides/presentation/new?parent=${store.state.currentFolder.name}&team=${route.params.team || ''}`
+    return
   }
   const data = await createDocument.submit({
     team: route.params.team,
