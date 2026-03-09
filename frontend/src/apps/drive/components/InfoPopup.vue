@@ -10,6 +10,21 @@
     </template>
     <template #body-content>
       <ul class="space-y-3 text-sm mb-4 text-ink-gray-8">
+        <Alert
+          v-if="entity.is_attachment"
+          title="This is an attachment of another file."
+          theme="blue"
+          :dismissable="false"
+          class="mb-3"
+        >
+          <template #description>
+            <a
+              :href="`/api/method/drive.api.files.redirect_to_original?file_id=${entity.name}`"
+              target="_blank"
+              >Open the original.</a
+            >
+          </template>
+        </Alert>
         <span class="text-base font-semibold">Information</span>
         <li>
           <span class="inline-block w-24 text-ink-gray-5"
@@ -172,7 +187,13 @@
 
 <script setup>
 import { formatDate } from '@/utils/format'
-import { Dialog, Button, LoadingIndicator, createResource } from 'frappe-ui'
+import {
+  Dialog,
+  Button,
+  LoadingIndicator,
+  createResource,
+  Alert,
+} from 'frappe-ui'
 import TagInput from '@/components/TagInput.vue'
 import { ref, inject } from 'vue'
 import { onKeyDown } from '@vueuse/core'

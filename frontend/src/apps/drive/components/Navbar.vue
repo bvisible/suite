@@ -130,6 +130,7 @@ import LucideDownload from '~icons/lucide/download'
 import LucidePlus from '~icons/lucide/plus'
 import LucideLink from '~icons/lucide/link'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
+import LucideCornerLeftUp from '~icons/lucide/corner-left-up'
 import LucideSquarePen from '~icons/lucide/square-pen'
 import LucideInfo from '~icons/lucide/info'
 import LucideFileUp from '~icons/lucide/file-up'
@@ -181,6 +182,14 @@ const defaultActions = computed(() => {
       hideLabel: true,
       items: [
         {
+          label: __('Go to original'),
+          icon: LucideCornerLeftUp,
+          onClick: () => {
+            window.open('/api/method/drive.api.files.redirect_to_original?file_id=' + rootEntity.value.name, '_blank')
+          },
+          isEnabled: () => entity.is_attachment,
+        },
+        {
           label: __('Show Info'),
           icon: LucideInfo,
           onClick: () => (dialog.value = 'i'),
@@ -192,7 +201,8 @@ const defaultActions = computed(() => {
           onClick: () => {
             dialog.value = 's'
           },
-          isEnabled: () => rootEntity.value.share,
+          isEnabled: () =>
+            rootEntity.value.share && rootEntity.value.modifiable,
         },
         {
           label: __('Download'),
@@ -216,13 +226,15 @@ const defaultActions = computed(() => {
           label: __('Move'),
           icon: LucideArrowLeftRight,
           onClick: () => (dialog.value = 'm'),
-          isEnabled: () => rootEntity.value.write,
+          isEnabled: () =>
+            rootEntity.value.write && rootEntity.value.modifiable,
         },
         {
           label: __('Rename'),
           icon: LucideSquarePen,
           onClick: () => (dialog.value = 'rn'),
-          isEnabled: () => rootEntity.value.write,
+          isEnabled: () =>
+            rootEntity.value.write && rootEntity.value.modifiable,
         },
         {
           label: __('Favourite'),

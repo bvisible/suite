@@ -24,7 +24,7 @@ def only_for_drive_files(func):
             return func(self, *args, **kwargs)
         else:
             parent_func = getattr(super(type(self), self), func.__name__, None)
-            if not parent_funcfunc:
+            if not parent_func:
                 raise ValueError("This function only exists for Drive files.")
             return parent_func(*args, **kwargs)
 
@@ -40,6 +40,10 @@ class File(FrappeFile):
 
     @only_for_drive_files
     def validate(self):
+        pass
+
+    @only_for_drive_files
+    def before_insert(self):
         pass
 
     @only_for_drive_files
@@ -344,6 +348,7 @@ def after_upload_file(doc):
         if doc.is_drive_file:
             doc.file_type = library_doc.file_type
             doc.file_size = library_doc.file_size
+            doc.modified = library_doc.modified
             doc.special_file = "File"
             doc.special_file_doc = frappe.form_dict.library_file_name
     elif settings.use_drive_for_files:
