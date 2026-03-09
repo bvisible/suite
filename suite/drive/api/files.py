@@ -441,7 +441,7 @@ def stream_file_content(entity_name: str):
 
 
 @frappe.whitelist()
-def set_favourite(entities: list[str] | None = None, clear_all: bool = False):
+def set_favourite(entities: list | None = None, clear_all: bool = False):
     """
     Favouite or unfavourite DriveEntities for specified user
 
@@ -667,10 +667,10 @@ def get_entity_type(entity_name: str):
     entity = frappe.db.get_value(
         "File",
         {"status": 1, "name": entity_name},
-        ["name", "mime_type"],
+        ["name", "file_type"],
         as_dict=1,
     )
-    if entity.mime_type == "Folder":
+    if entity.file_type == "Folder":
         entity["type"] = "folder"
     else:
         entity["type"] = "file"
@@ -682,3 +682,18 @@ def get_root_folder(team: str):
     if team not in get_teams():
         frappe.throw("You can't check the home folder of a team you don't belong to.", frappe.PermissionError)
     return get_home_folder(team)
+
+@frappe.whitelist(allow_guest=True)
+def redirect_to_original(file_id: str):
+    """
+    Redirect Drive attachments to original files
+    """
+    file = frappe.get_cached_doc('File', file_id)
+    if not user_has_permission(file_id, "read"):
+        frappe.throw("You do not have permission to view this file.", frappe.PermissionError)
+    if not file.special_file == 'File':
+        frappe.throw('This is not an attachment', ValueError)
+
+    frappe.local.response["type"] = "redirect"
+    frappe.local.response["location"] = "/drive/g/" + file.special_file_doc
+    
