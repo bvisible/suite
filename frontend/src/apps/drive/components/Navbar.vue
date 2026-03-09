@@ -131,6 +131,7 @@ import LucidePlus from '~icons/lucide/plus'
 import LucideLink from '~icons/lucide/link'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
 import LucideCornerLeftUp from '~icons/lucide/corner-left-up'
+import LucideMonitorCog from '~icons/lucide/monitor-cog'
 import LucideSquarePen from '~icons/lucide/square-pen'
 import LucideInfo from '~icons/lucide/info'
 import LucideFileUp from '~icons/lucide/file-up'
@@ -182,12 +183,29 @@ const defaultActions = computed(() => {
       hideLabel: true,
       items: [
         {
+          label: __('Open in Desk'),
+          icon: LucideMonitorCog,
+          onClick: () =>
+            window.open('/desk/file/' + rootEntity.value.name, '_blank'),
+          isEnabled: () =>
+            !rootEntity.value.is_drive_file && store.state.user.systemUser,
+        },
+        {
           label: __('Go to original'),
           icon: LucideCornerLeftUp,
           onClick: () => {
-            window.open('/api/method/drive.api.files.redirect_to_original?file_id=' + rootEntity.value.name, '_blank')
+            window.open(
+              '/api/method/drive.api.files.redirect_to_original?file_id=' +
+                rootEntity.value.name,
+              '_blank'
+            )
           },
-          isEnabled: () => entity.is_attachment,
+          isEnabled: () => rootEntity.value.is_attachment,
+        },
+        {
+          label: __('Copy Link'),
+          icon: LucideLink,
+          onClick: () => getFileLink(rootEntity.value),
         },
         {
           label: __('Show Info'),
@@ -195,6 +213,18 @@ const defaultActions = computed(() => {
           onClick: () => (dialog.value = 'i'),
           isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
         },
+        {
+          label: __('Download'),
+          icon: LucideDownload,
+          onClick: () =>
+            entitiesDownload(route.params.team, [rootEntity.value]),
+        },
+      ],
+    },
+    {
+      group: true,
+      hideLabel: true,
+      items: [
         {
           label: __('Share'),
           icon: LucideShare2,
@@ -205,34 +235,16 @@ const defaultActions = computed(() => {
             rootEntity.value.share && rootEntity.value.modifiable,
         },
         {
-          label: __('Download'),
-          icon: LucideDownload,
-          isEnabled: () => rootEntity.value.allow_download,
-          onClick: () =>
-            entitiesDownload(route.params.team, [rootEntity.value]),
-        },
-        {
-          label: __('Copy Link'),
-          icon: LucideLink,
-          onClick: () => getFileLink(rootEntity.value),
-        },
-      ],
-    },
-    {
-      group: true,
-      hideLabel: true,
-      items: [
-        {
-          label: __('Move'),
-          icon: LucideArrowLeftRight,
-          onClick: () => (dialog.value = 'm'),
+          label: __('Rename'),
+          icon: LucideSquarePen,
+          onClick: () => (dialog.value = 'rn'),
           isEnabled: () =>
             rootEntity.value.write && rootEntity.value.modifiable,
         },
         {
-          label: __('Rename'),
-          icon: LucideSquarePen,
-          onClick: () => (dialog.value = 'rn'),
+          label: __('Move'),
+          icon: LucideArrowLeftRight,
+          onClick: () => (dialog.value = 'm'),
           isEnabled: () =>
             rootEntity.value.write && rootEntity.value.modifiable,
         },

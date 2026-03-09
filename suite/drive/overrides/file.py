@@ -32,12 +32,6 @@ def only_for_drive_files(func):
 
 
 class File(FrappeFile):
-    # Temporary
-    def __getattr__(self, attr):
-        if attr == 'mime_type':
-            return ''
-        return getattr(super(), attr)
-
     @only_for_drive_files
     def validate(self):
         pass
@@ -241,7 +235,7 @@ class File(FrappeFile):
             self.file_name = get_new_file_name(self.file_name, new_parent, self.is_folder, self.name)
 
         self.team = new_team
-        not_in_disk = self.file_type == 'Link' or not self.file_url
+        not_in_disk = self.file_type == "Link" or not self.file_url
 
         # Update all the children's paths
         if not self.manager.flat and not not_in_disk:
@@ -328,7 +322,7 @@ class File(FrappeFile):
         if new:
             self.file_url = new
         for child in self.get_children():
-            in_disk = child.file_type != 'Link' and self.file_url
+            in_disk = child.file_type != "Link" and self.file_url
             if in_disk:
                 child.recursive_path_move(child.file_url, str(Path(new) / Path(child.file_url).relative_to(old)))
         self.save()

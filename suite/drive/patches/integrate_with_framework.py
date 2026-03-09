@@ -5,10 +5,11 @@ Create `File` records of all existing `Drive File`s
 import frappe
 from drive.utils import MIME_LIST_MAP
 
+
 def get_file_type(r):
-    if r['is_group']:
-        return 'Folder'
-    if r['is_link']:
+    if r["is_group"]:
+        return "Folder"
+    if r["is_link"]:
         return "Link"
     try:
         return next(k for (k, v) in MIME_LIST_MAP.items() if r["mime_type"] in v)
@@ -16,28 +17,36 @@ def get_file_type(r):
         return "Unknown"
 
 
-
 def execute(files=[]):
     if not files:
         root_files = frappe.get_all("Drive File", filters={"parent_entity": ""}, pluck="name")
 
+    is_remote = frappe.get_single("Drive Disk Settings").enabled
     for file_id in root_files:
         folder = frappe.get_doc("Drive File", file_id)
-        migrate_folder(folder)
+        migrate_folder(folder, is_remote)
 
 
-def migrate_folder(folder):
+def migrate_folder(folder, is_remote=False):
     print(f"Migrating folder {folder}")
     migrate_file(folder)
 
     for child in folder.get_children():
         if child.is_group or child.doc:
-            migrate_folder(child)
+            migrate_folder(child, is_remote)
         else:
-            migrate_file(child)
+            migrate_file(child, is_remote)
 
 
-def migrate_file(file):
+def get_link(file, is_remote=False):
+    if file.mime_type == "frappe/slides":
+        return ""
+    elif is_remote or file.is_link:
+        return file.path
+    return "/private/files/" + file.path
+
+
+def migrate_file(file, is_remote=False):
     if frappe.db.exists("File", {"is_drive_file": 1, "name": file.name}):
         return
 
@@ -48,12 +57,13 @@ def migrate_file(file):
             "_name": file.name,
             "file_name": file.title,
             "team": file.team,
-            "file_url": file.path,
+            "file_url": get_link(file, is_remote),
             "folder": file.parent_entity,
             "is_folder": file.is_group,
             "file_size": file.file_size,
             "last_modified": file._modified,
             "status": file.is_active,
+            "mime_type": file.mime_type,
             "is_private": 1,
         }
     )
@@ -62,11 +72,14 @@ def migrate_file(file):
         ff_file.special_file = "Writer Document"
         ff_file.special_file_doc = file.doc
 
+    if file.mime_type == "frappe/slides":
+        ff_file.special_file = "Presentation"
+        ff_file.special_file_doc = file.path
+
     # Attachment
     if frappe.db.get_value("Drive File", file.parent_entity, "doc"):
         ff_file.attached_to_doctype = "File"
         ff_file.attached_to_name = file.parent_entity
-    # Write eq code for slides
 
     # Calculate file type
     ff_file.file_type = get_file_type(file.as_dict())

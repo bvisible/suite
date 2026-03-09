@@ -351,9 +351,9 @@ const open = ref(true)
 
 // Advanced section
 const advanced = ref(false)
-const allowDownload = ref(props.entity.allow_download)
+const allowDownload = ref(props.entity.settings.forbid_download)
 watch(allowDownload, (v) => {
-  props.entity.allow_download = v
+  props.entity.settings.forbid_download = v
   createResource({
     url: 'drive.api.permissions.toggle_allow_download',
     params: { entity: props.entity.name, val: v },

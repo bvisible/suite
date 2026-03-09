@@ -318,10 +318,29 @@ const actionItems = computed(() => {
         label: __('Show Info'),
         icon: LucideInfo,
         action: () => (dialog.value = 'i'),
-        isEnabled: (e) =>
-          !store.state.activeEntity || (!store.state.showInfo && !e.external),
+        isEnabled: (e) => console.log(e),
       },
-      { divider: true, isEnabled: (e) => e.is_attachment },
+      {
+        label: __('Copy Link'),
+        icon: LucideLink2,
+        action: ([entity]) => getFileLink(entity),
+        important: true,
+      },
+      {
+        label: __('Download'),
+        icon: LucideDownload,
+        isEnabled: (e) =>
+          e.modifiable &&
+          !['Link', 'Presentation', 'Document'].includes(e.file_type),
+        action: (entities) => entitiesDownload(team.value, entities),
+        multi: true,
+        important: true,
+      },
+      {
+        divider: true,
+        isEnabled: (e) =>
+          e.is_attachment || (!e.is_drive_file && store.state.user.systemUser),
+      },
       {
         label: __('Go to original'),
         icon: LucideCornerLeftUp,
@@ -337,13 +356,11 @@ const actionItems = computed(() => {
       {
         label: __('Open in Desk'),
         icon: LucideMonitorCog,
-        action: ([entity]) => {
-          console.log(store.state.user)
-          window.open('/desk/file/' + entity.name, '_blank')
-        },
-        isEnabled: (e) => e.is_attachment && store.state.user,
+        action: ([entity]) =>
+          window.open('/desk/file/' + entity.name, '_blank'),
+        isEnabled: (e) => !e.is_drive_file && store.state.user.systemUser,
       },
-      { divider: true },
+      { divider: true, isEnabled: (e) => !e.external },
       {
         label: __('Share'),
         icon: LucideShare2,
@@ -352,23 +369,11 @@ const actionItems = computed(() => {
         important: true,
       },
       {
-        label: __('Download'),
-        icon: LucideDownload,
-        isEnabled: (e) =>
-          e.modifiable &&
-          !['Link', 'Presentation', 'Document'].includes(e.file_type) &&
-          e.allow_download,
-        action: (entities) => entitiesDownload(team.value, entities),
-        multi: true,
-        important: true,
+        label: __('Rename'),
+        icon: LucideSquarePen,
+        action: () => (dialog.value = 'rn'),
+        isEnabled: (e) => e.modifiable && e.write,
       },
-      {
-        label: __('Copy Link'),
-        icon: LucideLink2,
-        action: ([entity]) => getFileLink(entity),
-        important: true,
-      },
-      { divider: true, isEnabled: (e) => !e.external },
       {
         label: __('Move'),
         icon: LucideArrowLeftRight,
@@ -376,12 +381,6 @@ const actionItems = computed(() => {
         isEnabled: (e) => e.modifiable && e.write,
         multi: true,
         important: true,
-      },
-      {
-        label: __('Rename'),
-        icon: LucideSquarePen,
-        action: () => (dialog.value = 'rn'),
-        isEnabled: (e) => e.modifiable && e.write,
       },
       {
         label: __('Favourite'),

@@ -185,6 +185,7 @@ export const prettyData = (entities) => {
   return entities.map((entity) => {
     entity.file_size_pretty = formatSize(entity.file_size)
     entity.relativeModified = useTimeAgo(entity.modified)
+    entity.settings = entity.settings ? JSON.parse(entity.settings) : {}
     if (entity.accessed) entity.relativeAccessed = useTimeAgo(entity.accessed)
     return entity
   })
