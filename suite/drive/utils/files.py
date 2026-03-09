@@ -36,7 +36,7 @@ class FileManager:
         self.s3_enabled = settings.enabled
         self.flat = settings.flat
         self.bucket = settings.bucket
-        self.site_folder = Path(frappe.get_site_path("private/files"))
+        self.site_folder = Path(frappe.get_site_path())
 
         TEAMS = frappe.get_all("Drive Team", fields=["name", "s3_bucket", "prefix"])
         self.bucket_map = {k["name"]: k["s3_bucket"] for k in TEAMS}
@@ -74,7 +74,7 @@ class FileManager:
 
     def can_create_thumbnail(self, file):
         # Don't create thumbnails for text files
-        if not hasattr(file, 'mime_type'):
+        if not hasattr(file, "mime_type"):
             return False
         return (
             file.mime_type.startswith(("image", "video"))
@@ -184,7 +184,7 @@ class FileManager:
         else:
             # perf: stupidly complicated because we use this both with a real entity and a dict
             parent = (
-                Path(frappe.get_value("File", entity.folder, "file_url") or "")
+                Path(sanitize_url(frappe.get_value("File", entity.folder, "file_url") or ""))
                 if not hasattr(entity, "parent_path")
                 else Path(entity.parent_path)
             )
@@ -209,18 +209,19 @@ class FileManager:
         """
         Function to get a file, with an optional range header for S3 objects
         """
+        file_url = sanitize_url(entity.file_url)
         try:
             if self.s3_enabled:
                 if range_header:
-                    buf = self.conn.get_object(
-                        Bucket=self.get_bucket(entity.team), Key=entity.file_url, Range=range_header
-                    )["Body"]
+                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=file_url, Range=range_header)[
+                        "Body"
+                    ]
                 else:
-                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=entity.file_url)["Body"]
+                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=file_url)["Body"]
             else:
-                with open(self.site_folder / entity.file_url, "rb") as fh:
+                with open(self.site_folder / file_url, "rb") as fh:
                     buf = BytesIO(fh.read())
-        except BaseException:
+        except BaseException as e:
             frappe.throw("Could not find this file.", frappe.DoesNotExistError)
 
         return buf
@@ -403,9 +404,9 @@ class FileManager:
                     CopySource={"Bucket": bucket, "Key": entity.file_url},
                     Key=str(new_path),
                 )
-                self.conn.delete_object(Bucket=bucket, Key=entity.file_url)
+                self.conn.delete_object(Bucket=bucket, Key=sanitize_url(entity.file_url))
             else:
-                cur_path = self.site_folder / entity.file_url
+                cur_path = self.site_folder / sanitize_url(entity.file_url)
                 dest_path = self.site_folder / new_path
                 if cur_path.is_dir():
                     shutil.move(cur_path, dest_path)
@@ -421,15 +422,19 @@ class FileManager:
         if self.s3_enabled:
             bucket = self.get_bucket(entity.team)
             try:
-                self.conn.delete_object(Bucket=bucket, Key=entity.file_url)
+                self.conn.delete_object(Bucket=bucket, Key=sanitize_url(entity.file_url))
                 if thumbnail_path:
                     self.conn.delete_object(Bucket=bucket, Key=str(thumbnail_path))
             except:
                 pass
         else:
             try:
-                (self.site_folder / entity.file_url).unlink()
+                (self.site_folder / sanitize_url(entity.file_url)).unlink()
                 if thumbnail_path:
                     (self.site_folder / thumbnail_path).unlink()
             except FileNotFoundError:
                 pass
+
+
+def sanitize_url(file_url):
+    return file_url[1:] if file_url.startswith("/private") else file_url
