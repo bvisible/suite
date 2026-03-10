@@ -71,7 +71,7 @@
 					</template>
 				</Draggable>
 
-				<div :class="insertButtonClasses" @click="emit('addEmptySlide')">
+				<div :class="insertButtonClasses" @click="emit('openLayoutDialog')">
 					<LucidePlus class="size-3.5" />
 				</div>
 			</template>
@@ -128,7 +128,7 @@ const getGradientOverlayStyles = (slide) => {
 	}
 }
 
-const emit = defineEmits(['changeSlide', 'addEmptySlide'])
+const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
 
 const insertButtonClasses =
 	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
