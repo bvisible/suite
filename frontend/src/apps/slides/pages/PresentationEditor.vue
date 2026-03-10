@@ -39,11 +39,9 @@
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
-		<LayoutDialog
-			v-model="showLayoutDialog"
-			:presentationTheme="presentationDoc?.theme"
-			@insertLayout="handleInsertLayout"
-		/>
+
+		<LayoutDialog v-model="showLayoutDialog" />
+
 		<ThemeDialog
 			v-model="showThemeDialog"
 			@create="(theme) => createPresentation(theme)"
