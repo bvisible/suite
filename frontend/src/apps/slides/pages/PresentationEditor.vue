@@ -21,7 +21,7 @@
 				class="absolute bottom-0 top-0"
 				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeEditorSlide"
-				@addEmptySlide="addEmptySlide(null, slidesLength - 1)"
+				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
 
 			<Toolbar
