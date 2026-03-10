@@ -2,9 +2,13 @@ import { ref, computed } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
+import { router } from '@/router'
 import { slides } from './slide'
 import { normalizeZIndices } from '@/stores/element'
+
 import { ignoreUpdates } from '@/stores/history'
+
+const isDriveInstalled = window.apps?.includes('drive') ?? false
 
 const presentationDoc = ref()
 
@@ -300,7 +304,29 @@ const presentationTheme = computed(() => {
 })
 
 const inReadonlyMode = ref(false)
-const showLayoutsView = ref(false)
+
+const deletePresentation = async (presentation) => {
+	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
+		name: presentation,
+	})
+}
+
+const duplicatePresentation = async (presentation) => {
+	const newPresentation = await createPresentationResource.submit({
+		duplicateFrom: presentation,
+	})
+
+	if (isDriveInstalled) {
+		const parent = router.currentRoute.value.query.parent || ''
+		call('slides.api.file.create_drive_file', {
+			title: newPresentation.title,
+			name: newPresentation.name,
+			parent: parent,
+		})
+	}
+
+	return newPresentation.name
+}
 
 export {
 	presentationId,
@@ -314,9 +340,10 @@ export {
 	templateListResource,
 	presentationTheme,
 	inReadonlyMode,
-	showLayoutsView,
 	updatePresentationTitle,
 	hasStateChanged,
 	savePresentationDoc,
 	initPresentationDoc,
+	deletePresentation,
+	duplicatePresentation
 }

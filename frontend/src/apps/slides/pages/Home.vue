@@ -4,7 +4,7 @@
 			:primaryButton="{
 				label: 'New',
 				icon: Plus,
-				onClick: () => createPresentation(),
+				onClick: () => navigateToEditor(),
 			}"
 		/>
 
@@ -14,7 +14,7 @@
 			@setPreview="setPreview"
 			@navigate="navigateToPresentation"
 			@openDialog="openDialog"
-			@duplicatePresentation="duplicatePresentation"
+			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
 
 		<PresentationPreview
@@ -23,7 +23,7 @@
 			@setPreview="setPreview"
 			@openDialog="openDialog"
 			@navigate="navigateToPresentation"
-			@duplicatePresentation="duplicatePresentation"
+			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
 	</div>
 
@@ -52,6 +52,7 @@ import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
 import {
 	createPresentationResource,
+	duplicatePresentation,
 	unsyncedPresentationRecord,
 	templateList,
 	templateListResource,
@@ -120,32 +121,31 @@ const setPreview = (presentation) => {
 	previewPresentation.value = presentation
 }
 
-const createPresentation = async (template) => {
-	template = template || templateList.value.find((t) => t.title === 'Light')?.name
-	const newPresentation = await createPresentationResource.submit({ template })
-	presentationList.value.unshift(newPresentation)
-	navigateToPresentation(newPresentation?.name)
-}
-
-const duplicatePresentation = async (duplicateFrom) => {
-	const newPresentation = await createPresentationResource.submit({ duplicateFrom })
-	presentationList.value.unshift(newPresentation)
-	navigateToPresentation(newPresentation?.name)
+const openThemeDialog = () => {
+	showThemeDialog.value = true
 }
 
 const syncPresentationRecord = () => {
+	const newValues = unsyncedPresentationRecord.value
+
+	if (newValues.deleted) {
+		presentationList.value = presentationList.value.filter((p) => p.name !== newValues.name)
+		unsyncedPresentationRecord.value = {}
+		return
+	}
+
 	const presentationRecord = presentationList.value.find(
 		(p) => p.name == previousRoute.params.presentationId,
 	)
 	if (!presentationRecord) return
-
-	const newValues = unsyncedPresentationRecord.value
 
 	Object.entries(newValues).forEach(([key, val]) => {
 		if (![null, undefined, ''].includes(val)) {
 			presentationRecord[key] = val
 		}
 	})
+
+	unsyncedPresentationRecord.value = {}
 }
 
 onActivated(() => {
@@ -159,4 +159,13 @@ onMounted(() => {
 		templateListResource.fetch()
 	}
 })
+
+const navigateToEditor = () => {
+	router.push({ name: 'EditorNew' })
+}
+
+const duplicateAndNavigate = async (presentation) => {
+	const newPresentation = await duplicatePresentation(presentation)
+	navigateToPresentation(newPresentation)
+}
 </script>

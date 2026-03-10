@@ -42,7 +42,7 @@
 					</div>
 				</div>
 			</div>
-			<Spinner v-else-if="loading" class="w-4" />
+			<LoadingIndicator v-else-if="loading" class="w-3" />
 			<div v-else class="text-sm text-gray-600">No presentations created yet.</div>
 		</div>
 	</div>
@@ -51,7 +51,7 @@
 <script setup>
 import { h } from 'vue'
 
-import { Dropdown, Spinner } from 'frappe-ui'
+import { Dropdown, LoadingIndicator } from 'frappe-ui'
 import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 
 import { getThumbnailCardStyles } from '@/utils/helpers'

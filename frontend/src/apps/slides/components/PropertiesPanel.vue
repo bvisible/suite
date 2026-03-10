@@ -3,8 +3,7 @@
 		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
 		@wheel="handleScrollBarWheelEvent"
 	>
-		<LayoutControls v-if="showLayoutsView" />
-		<div v-else-if="activeElementIds.length">
+		<div v-if="activeElementIds.length">
 			<AlignmentControls />
 			<PlacementProperties />
 			<component :is="activeProperties" />
@@ -29,13 +28,6 @@ import LayoutControls from '@/components/LayoutControls.vue'
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
-
-const props = defineProps({
-	showLayoutsView: {
-		type: Boolean,
-		default: false,
-	},
-})
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type
