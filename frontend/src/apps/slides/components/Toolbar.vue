@@ -42,19 +42,6 @@
 				<component :is="option.icon" size="16" class="stroke-[1.5]" />
 			</div>
 		</Tooltip>
-
-		<div class="h-6 border-l"></div>
-
-		<Tooltip text="Layouts" :hover-delay="0.5">
-			<div
-				class="cursor-pointer rounded p-2 hover:bg-gray-100"
-				@click="emit('toggleLayoutView')"
-				@mouseenter="emit('setHighlight', true)"
-				@mouseleave="emit('setHighlight', false)"
-			>
-				<LucideLayoutTemplate class="size-4" />
-			</div>
-		</Tooltip>
 	</div>
 </template>
 
@@ -70,20 +57,14 @@ import { allowedImageFileTypes } from '@/utils/constants'
 
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
-const emit = defineEmits([
-	'addEmptySlide',
-	'delete',
-	'duplicate',
-	'setHighlight',
-	'toggleLayoutView',
-])
+const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
 
 const slideActions = [
 	{
 		label: 'Insert Slide',
 		icon: Square,
 		onClick: () => {
-			emit('addEmptySlide')
+			emit('openLayoutDialog')
 		},
 	},
 	{

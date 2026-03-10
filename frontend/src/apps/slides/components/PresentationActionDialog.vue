@@ -40,7 +40,7 @@ import { ref, watch, nextTick, useTemplateRef } from 'vue'
 
 import { Dialog, FormControl, call } from 'frappe-ui'
 
-import { updatePresentationTitle } from '@/stores/presentation'
+import { deletePresentation, updatePresentationTitle } from '@/stores/presentation'
 
 import { Trash, PenLine } from 'lucide-vue-next'
 
@@ -74,15 +74,9 @@ const performAction = async () => {
 	handleDialogClose()
 
 	if (action == 'Rename') await renamePresentation()
-	else await deletePresentation()
+	else await deletePresentation(props.presentation.name)
 
 	emit('updatePresentationList', action, newPresentationTitle.value)
-}
-
-const deletePresentation = async () => {
-	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
-		name: props.presentation.name,
-	})
 }
 
 const renamePresentation = async () => {

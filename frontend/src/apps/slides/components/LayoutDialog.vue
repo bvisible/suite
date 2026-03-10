@@ -6,7 +6,7 @@
 		<template #body-content>
 			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto">
 				<div
-					v-for="layout in layouts.slides"
+					v-for="layout in layouts"
 					:key="layout.idx"
 					class="aspect-video cursor-pointer rounded-lg border border-gray-300 hover:border-gray-400"
 					:style="getThumbnailCardStyles(layout.thumbnail)"
@@ -21,16 +21,18 @@
 import { watch, nextTick, computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
+import { presentationTheme, templateList } from '@/stores/presentation'
 import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const emit = defineEmits(['insert'])
 
-const props = defineProps({
-	theme: String,
-	layouts: {
-		type: Object,
-		required: true,
-	},
+const layouts = computed(() => {
+	console.log('Available templates:', presentationTheme.value)
+	const template = templateList.value.find(
+		(template) => template.name === presentationTheme.value,
+	)
+	if (!template) return []
+	return template.layouts || []
 })
 
 const showLayoutDialog = defineModel({

@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import { slidesLength, presentationId, templateList, inReadonlyMode, presentationTheme, showLayoutsView } from '@/stores/presentation'
+import { slidesLength, presentationId, templateList, inReadonlyMode, presentationTheme } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
 import { ignoreUpdates } from '@/stores/history'
@@ -316,7 +316,6 @@ const addEmptySlide = (e, index) => {
 	const layout = templateList.value.find((template) => template.name === presentationTheme.value)
 		?.layouts[0]
 	if (layout) handleInsertSlide(index, cloneObj(layout))
-	showLayoutsView.value = true
 }
 
 const replaceSlide = (layoutId) => {
