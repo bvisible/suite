@@ -308,11 +308,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 	const buildMediaConstraints = async (videoEnabled, audioEnabled) => {
 		const constraints = {};
 
-		const audioConstraints = {
-			echoCancellation: true,
-			noiseSuppression: true,
-			autoGainControl: true,
-		};
+		const audioConstraints = {};
 
 		if (videoEnabled) {
 			constraints.video = {
