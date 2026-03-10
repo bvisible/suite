@@ -27,7 +27,6 @@ import { getThumbnailCardStyles } from '@/utils/helpers'
 const emit = defineEmits(['insert'])
 
 const layouts = computed(() => {
-	console.log('Available templates:', presentationTheme.value)
 	const template = templateList.value.find(
 		(template) => template.name === presentationTheme.value,
 	)
