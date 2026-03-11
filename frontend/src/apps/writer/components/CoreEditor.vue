@@ -2,7 +2,7 @@
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
       v-if="editable && editor"
-      class="py-1.5 w-full max-w-[100vw] overflow-x-auto flex md:justify-center px-2 md:px-0 shrink-0 transition-opacity duration-1 border-b border-outline-gray-modals"
+      class="w-full max-w-[100vw] py-1.5 px-2 md:px-0 overflow-x-auto flex md:justify-center shrink-0 border-b border-outline-gray-modals"
       :buttons="menuButtons"
     />
 
@@ -443,7 +443,6 @@ const bubbleButtons = props.file.doc.comment
       },
     ]
   : []
-console.log(bubbleButtons)
 
 // Scripts
 
@@ -469,6 +468,7 @@ const autorename = () => {
   const implicitTitle = editor.value.state.doc.firstChild.textContent
     .replaceAll('#', '')
     .replaceAll('@', '')
+    .slice(0, 30)
     .trim()
   if (!props.file.doc.title.startsWith('Untitled Document')) return
   if (implicitTitle.length)

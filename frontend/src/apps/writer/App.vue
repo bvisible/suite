@@ -2,7 +2,7 @@
 import { provide, onMounted } from 'vue'
 import { allUsers } from 'frappe-ui/drive/js/resources'
 import FDialogs from '@/components/FDialogs.vue'
-import { apps } from '@/resources/permissions'
+import { apps } from '@/resources/'
 
 import { FrappeUIProvider } from 'frappe-ui'
 const inIframe = window.self !== window.top

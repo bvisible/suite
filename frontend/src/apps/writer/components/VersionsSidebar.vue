@@ -209,7 +209,7 @@ function escapeHTML(str) {
 import LucideX from '~icons/lucide/x'
 import LucidePlus from '~icons/lucide/plus'
 import { onKeyDown } from '@vueuse/core'
-import { computed, ref, h, watch } from 'vue'
+import { computed, ref, h, watch, inject } from 'vue'
 import emitter from '@/emitter'
 import { createResource, Tabs, TextEditor, toast, useList } from 'frappe-ui'
 import { clearDialogs, createDialog } from '@/utils/dialogs'
@@ -224,10 +224,12 @@ const props = defineProps({
 const emit = defineEmits(['saveDocument', 'newVersion'])
 const versionPreview = defineModel()
 const showVersions = defineModel('showVersions')
+
+const file = inject('file')
 const versions = createResource({
-  url: '/api/method/writer.api.general.get_versions',
-  params: { id: props.document.doc.name },
-  cache: ['versions', props.document.doc?.name],
+  url: 'writer.api.general.get_versions',
+  params: { id: file.doc.name },
+  cache: ['versions', file.doc?.name],
   initialData: [],
   auto: true,
 })

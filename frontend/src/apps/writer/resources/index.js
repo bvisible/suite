@@ -36,3 +36,10 @@ export const updateComments = createResource({
   method: 'POST',
   makeParams: (params) => params,
 })
+
+
+export const apps = createResource({
+  url: 'frappe.apps.get_apps',
+  cache: 'apps',
+  transform: (data) => data.filter((app) => app.name !== 'writer'),
+})

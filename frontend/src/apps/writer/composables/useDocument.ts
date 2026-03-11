@@ -9,7 +9,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   const file = useDoc({
     doctype: 'Drive File',
     name,
-    url: '/api/method/drive.api.get_file_details?name=' + name,
+    url: '/api/method/drive.api.permissions.get_entity_with_permissions?entity_name=' + name,
     transform: (doc) => {
       return prettyData(doc)
     },

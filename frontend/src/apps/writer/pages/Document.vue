@@ -144,6 +144,8 @@ const isOldSchema = computed(() => {
 
 const inIframe = inject('inIframe')
 const { file, document } = useDocument(() => props.id)
+provide('file', file)
+
 const editable = computed(() =>
   !inIframe.value &&
   !!file.doc?.write &&
