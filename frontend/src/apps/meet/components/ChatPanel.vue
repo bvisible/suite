@@ -102,6 +102,7 @@ const defaultEmojis = [
 const recentlyUsedEmojis = ref(defaultEmojis.slice());
 
 onMounted(async () => {
+	await scrollToBottom();
 	try {
 		await init({ data });
 		isEmojiDataReady.value = true;
@@ -293,15 +294,11 @@ function handleSend() {
 	draft.value = "";
 }
 
-watch(
-	messages,
-	async () => {
-		await nextTick();
-		try {
-			const el = listEl.value;
-			el.scrollTop = el.scrollHeight;
-		} catch {}
-	},
-	{ deep: true },
-);
+async function scrollToBottom() {
+	await nextTick();
+	const el = listEl.value;
+	el.scrollTop = el.scrollHeight;
+}
+
+watch(messages, scrollToBottom, { deep: true });
 </script>
