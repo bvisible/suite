@@ -79,6 +79,7 @@ import {
 	duplicatePresentation,
 	deletePresentation,
 	presentationTheme,
+	isPublicPresentation,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -257,9 +258,17 @@ watch(
 watch(
 	() => props.presentationId,
 	(id) => {
+		if (route.name === 'EditorNew') {
+			presentationDoc.value = null
+			slides.value = []
+			slidesLength.value = 0
+			isPublicPresentation.value = false
+			themeDialogAction.value = 'create'
+			showThemeDialog.value = true
+			return
+		}
 		if (!id) return
 		if (!presentationDoc.value) return
-		if (route.name === 'EditorNew') return
 		updateRoute(presentationDoc.value.slug)
 	},
 )
@@ -297,14 +306,12 @@ const navigateToPresentation = async (name) => {
 			query: { slide: 1 },
 		})
 	}
-
-	handleOnActivated()
 }
 
 const createPresentation = async (theme) => {
 	showThemeDialog.value = false
 	const newPresentation = await createPresentationResource.submit({
-		theme: theme,
+		template: theme,
 	})
 	const name = newPresentation?.name
 
@@ -342,7 +349,6 @@ const updatePresentationTheme = async (theme) => {
 const performNavbarDropdownAction = async (action) => {
 	if (action == 'create') {
 		await router.push({ name: 'EditorNew' })
-		handleOnActivated()
 	} else if (action == 'duplicate') {
 		const newPresentation = await duplicatePresentation(presentationId.value)
 		navigateToPresentation(newPresentation)
