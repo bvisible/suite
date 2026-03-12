@@ -79,7 +79,7 @@ import {
 	duplicatePresentation,
 	deletePresentation,
 	presentationTheme,
-	isPublicPresentation,
+	resetEditorState,
 } from '@/stores/presentation'
 import {
 	slides,
@@ -259,10 +259,7 @@ watch(
 	() => props.presentationId,
 	(id) => {
 		if (route.name === 'EditorNew') {
-			presentationDoc.value = null
-			slides.value = []
-			slidesLength.value = 0
-			isPublicPresentation.value = false
+			resetEditorState()
 			themeDialogAction.value = 'create'
 			showThemeDialog.value = true
 			return

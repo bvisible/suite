@@ -328,6 +328,13 @@ const duplicatePresentation = async (presentation) => {
 	return newPresentation.name
 }
 
+const resetEditorState = () => {
+	presentationDoc.value = null
+	slides.value = []
+	slidesLength.value = 0
+	isPublicPresentation.value = false
+}
+
 export {
 	presentationId,
 	applyReverseTransition,
@@ -345,5 +352,6 @@ export {
 	savePresentationDoc,
 	initPresentationDoc,
 	deletePresentation,
-	duplicatePresentation
+	duplicatePresentation,
+	resetEditorState
 }
