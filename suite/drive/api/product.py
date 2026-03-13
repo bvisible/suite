@@ -345,7 +345,7 @@ def get_drive_users():
     users = frappe.get_all(
         doctype="User",
         filters=[
-            ["user_type", "=", "Website User"],
+            ["user_type", "=", "Drive User"],
             ["enabled", "=", 1],
         ],
         fields=[
