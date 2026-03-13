@@ -19,10 +19,10 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   })
   // Construct a fake useDoc until we fetch data
   const document = ref({ doc: null })
-  file.onSuccess(() => {
+  file.onSuccess((doc) => {
     document.value = useDoc({
       doctype: 'Writer Document',
-      name: file.doc.doc,
+      name: doc.doc,
       transform(doc) {
         if (doc.settings) doc.settings = JSON.parse(doc.settings)
         if (doc.comments)
