@@ -217,15 +217,18 @@ const performAfterLoadOperations = () => {
 	initIntervals()
 }
 
-const handleMounted = async () => {
-	loadTemplates()
-
+const loadEditorState = async () => {
 	const id = props.presentationId
 	if (!id) return
 
 	performBeforeLoadOperations()
 	await loadPresentation(id)
 	performAfterLoadOperations()
+}
+
+const handleMounted = () => {
+	loadTemplates()
+	loadEditorState()
 }
 
 const handleBeforeUnmount = () => {
@@ -267,7 +270,7 @@ watch(
 			showThemeDialog.value = true
 			return
 		}
-		handleMounted()
+		loadEditorState()
 	},
 )
 
