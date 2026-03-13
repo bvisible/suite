@@ -195,7 +195,6 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 			refId: e.refId || generateUniqueId(),
 		}))
 	} else {
-		console
 		layout = layoutObject || null
 		layout.elements = JSON.parse(layout?.elements || [])
 	}
@@ -293,10 +292,10 @@ const changeEditorSlide = async (index, focus = true) => {
 	return changeSlide(index, focus)
 }
 
-const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
+const insertDuplicateSlide = async (index, layoutObj, toDuplicate) => {
 	if (toDuplicate || !index) index = slideIndex.value
 
-	const newSlide = getNewSlide(toDuplicate, layoutId)
+	const newSlide = getNewSlide(toDuplicate, layoutObj)
 
 	insertSlide(newSlide, index)
 
@@ -318,9 +317,9 @@ const addEmptySlide = (e, index) => {
 	if (layout) handleInsertSlide(index, cloneObj(layout))
 }
 
-const replaceSlide = (layoutId) => {
+const replaceSlide = (layoutObj) => {
 	const index = slideIndex.value
-	const newSlide = getNewSlide(false, layoutId)
+	const newSlide = getNewSlide(false, layoutObj)
 
 	slides.value.splice(index, 1, newSlide)
 	slides.value.forEach((slide, index) => {
@@ -328,13 +327,13 @@ const replaceSlide = (layoutId) => {
 	})
 }
 
-const handleInsertSlide = (index, layoutId) => {
+const handleInsertSlide = (index, layoutObj) => {
 	// TODO: change this to use replace
 	let replace = false
 	if (replace) {
-		replaceSlide(layoutId)
+		replaceSlide(layoutObj)
 	} else {
-		insertDuplicateSlide(index, layoutId)
+		insertDuplicateSlide(index, layoutObj)
 	}
 }
 
@@ -359,4 +358,5 @@ export {
 	changeEditorSlide,
 	duplicateSlide,
 	addEmptySlide,
+	handleInsertSlide
 }

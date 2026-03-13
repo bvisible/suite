@@ -40,7 +40,10 @@
 			/>
 		</div>
 
-		<LayoutDialog v-model="showLayoutDialog" />
+		<LayoutDialog
+			v-model="showLayoutDialog"
+			@insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
+		/>
 
 		<ThemeDialog
 			v-model="showThemeDialog"
@@ -93,6 +96,7 @@ import {
 	deleteSlide,
 	duplicateSlide,
 	addEmptySlide,
+	handleInsertSlide,
 } from '@/stores/slide'
 import { resetFocus, focusElementId } from '@/stores/element'
 
