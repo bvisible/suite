@@ -202,6 +202,8 @@ def get_entity_with_permissions(entity_name: str):
             default = -1
     return_obj["share_count"] = default
 
+    # To work with modern frappe-ui composables
+    frappe.response['data'] = return_obj
     return return_obj
 
 

@@ -130,8 +130,8 @@ const selectedColumns = [
   {
     label: __("Name"),
     key: "title",
-    getLabel: ({ row: { title, is_group, document } }) =>
-      title.lastIndexOf(".") === -1 || is_group || document
+    getLabel: ({ row: { title, is_group, doc } }) =>
+      title.lastIndexOf(".") === -1 || is_group || doc
         ? title
         : title.slice(0, title.lastIndexOf(".")),
     getTooltip: (e) => (e.is_group || e.document ? "" : e.title),

@@ -8,7 +8,6 @@ import {
   getRecents,
   mutate,
   createDocument,
-  createPresentation,
   getDocuments,
 } from '@/resources/files'
 import { getTeams, getPublicTeams } from '@/resources/files'
