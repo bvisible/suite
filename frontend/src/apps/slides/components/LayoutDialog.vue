@@ -41,7 +41,7 @@ const showLayoutDialog = defineModel({
 
 const insertSlideWithLayout = (layout) => {
 	showLayoutDialog.value = false
-	emit('insert', layout.name)
+	emit('insert', layout)
 }
 
 watch(
