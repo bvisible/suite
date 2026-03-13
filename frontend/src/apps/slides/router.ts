@@ -81,7 +81,7 @@ router.beforeEach(async (to, from, next) => {
 
 	const isLoggedIn = session.isLoggedIn
 
-	if (!['Slideshow', 'PresentationEditor', 'Home'].includes(to.name as string)) {
+	if (!['Slideshow', 'PresentationEditor', 'Home', 'PresentationView'].includes(to.name as string)) {
 		return next()
 	}
 
@@ -89,7 +89,7 @@ router.beforeEach(async (to, from, next) => {
 		return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
 	} else if (to.name === 'Slideshow') {
 		return next()
-	} else if (to.name === 'PresentationEditor') {
+	} else if (to.name === 'PresentationEditor' || to.name == 'PresentationView') {
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
 			editorAccess = await getEditorAccess(to.params.presentationId as string)
 		}
