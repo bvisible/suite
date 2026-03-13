@@ -28,7 +28,6 @@
 				v-if="!inReadonlyMode && presentationDoc"
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
-				@addEmptySlide="addEmptySlide"
 				@duplicate="duplicateSlide"
 				@delete="deleteSlide(true)"
 			/>
@@ -268,15 +267,8 @@ watch(
 			showThemeDialog.value = true
 			return
 		}
-		if (!id) return
-		if (!presentationDoc.value) return
-		updateRoute(presentationDoc.value.slug)
+		handleMounted()
 	},
-)
-
-watch(
-	() => props.presentationId,
-	() => handleMounted(),
 )
 
 watch(
