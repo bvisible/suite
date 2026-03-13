@@ -10,8 +10,7 @@
       enableActive: true,
       showTooltip: true,
       resizeColumn: false,
-      // Should be getLink(row, false, false) - but messes up clicking
-      getRowRoute: () => '',
+      getRowRoute: (row) => getLink(row, false, false),
       emptyState: {
         description: 'Nothing found - try something else?',
       },
@@ -89,7 +88,7 @@ import { useRoute } from "vue-router"
 import { computed, h, ref, watch, useTemplateRef } from "vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import CustomListRow from "./CustomListRow.vue"
-import { openEntity } from "@/utils/files"
+import { openEntity, isModKey, getLink } from "@/utils/files"
 import { formatDate } from "@/utils/format"
 
 import { onKeyDown } from "@vueuse/core"
@@ -222,7 +221,7 @@ const dropdownActionItems = (row) => {
 const contextMenu = (event, row) => {
   if (selections.value.size > 0) return
   // Ctrl + click triggers context menu on Mac
-  if (event.ctrlKey) openEntity(row, true)
+  if (isModKey(e)) openEntity(row, true)
   rowEvent.value = event
   selectedRow.value = row
   event.stopPropagation()
