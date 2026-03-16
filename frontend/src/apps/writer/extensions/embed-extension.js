@@ -1,11 +1,9 @@
 import { Node } from '@tiptap/core'
 import { Plugin } from '@tiptap/pm/state'
-// import { getDocuments } from "@/resources/files"
 import DocumentList from '../components/DocumentList.vue'
 import tippy from 'tippy.js'
 
 import { watch, ref, computed } from 'vue'
-import router from '@/router'
 import { VueRenderer } from '@tiptap/vue-3'
 
 const EmbedExtension = Node.create({

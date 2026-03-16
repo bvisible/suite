@@ -3,13 +3,12 @@ import store from '@/store'
 import { formatSize } from '@/utils/format'
 import { nextTick, h } from 'vue'
 import { useTimeAgo } from '@vueuse/core'
-import { getRecents, mutate } from '@/resources/files'
-import { getTeams } from '@/resources/files'
 import { set } from 'idb-keyval'
 import editorStyle from '@/styles/editor.css?inline'
 import globalStyle from '@/index.css?inline'
 import slugify from 'slugify'
 import { useFileUpload, toast as nToast, createResource } from 'frappe-ui'
+import { getTeams } from 'frappe-ui/drive/js/resources'
 import emitter from '@/emitter'
 import { createLowlight, common } from 'lowlight'
 import { toHtml } from 'hast-util-to-html'
@@ -17,7 +16,6 @@ import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import TurndownService from 'turndown'
 import { formatDate } from '@/utils/format'
-
 import {
   default as TableOfContents,
   getHierarchicalIndexes,
@@ -26,66 +24,6 @@ import { FontSize } from '@/extensions/font-size'
 import EmbedExtension from '@/extensions/embed-extension'
 import ExtendedParagraph from '@/extensions/extended-paragraph'
 import FontFamily from '@/extensions/font-family'
-
-export const openEntity = (entity, new_tab = false) => {
-  if (!entity.is_group) {
-    if (!getRecents.data?.some?.((k) => k.name === entity.name))
-      getRecents.setData((data) => [...(data || []), entity])
-
-    mutate([entity], (e) => {
-      e.accessed = Date()
-      entity.relativeAccessed = useTimeAgo(entity.accessed)
-    })
-  }
-
-  if (new_tab) {
-    return window.open(getLink(entity, false), '_blank')
-  }
-
-  //   if (!entity.breadcrumbs?.length)
-  //     store.state.breadcrumbs.push({
-  //       label: entity.title,
-  //       name: entity.name,
-  //       route: null,
-  //     })
-  //   else setBreadCrumbs(entity)
-
-  // hm?
-  if (entity.name === '') {
-    router.push({
-      name: entity.is_private ? 'Home' : 'Team',
-      params: { team },
-    })
-  } else if (entity.is_group) {
-    router.push({
-      name: 'Folder',
-      params: { entityName: entity.name },
-    })
-  } else if (entity.is_link) {
-    const origin = new URL(entity.path).origin
-    if (
-      confirm(
-        `This will open an external link to ${origin} - are you sure you want to open?`,
-      )
-    )
-      window.open(entity.path, '_blank')
-  } else if (entity.mime_type === 'frappe/slides') {
-    window.open('/slides/presentation/' + entity.path, '_blank')
-  } else if (
-    entity.mime_type === 'frappe_doc' ||
-    entity.mime_type === 'text/markdown'
-  ) {
-    router.push({
-      name: 'Document',
-      params: { entityName: entity.name },
-    })
-  } else {
-    router.push({
-      name: 'File',
-      params: { entityName: entity.name },
-    })
-  }
-}
 
 function trimCommonPrefix(a, b) {
   let i = 0
@@ -102,84 +40,6 @@ function extractNum(name) {
   if (!match) return 0
   return parseInt(match[2], 10)
 }
-const months = {
-  january: 1,
-  jan: 1,
-  february: 2,
-  feb: 2,
-  march: 3,
-  mar: 3,
-  april: 4,
-  apr: 4,
-  may: 5,
-  june: 6,
-  jun: 6,
-  july: 7,
-  jul: 7,
-  august: 8,
-  aug: 8,
-  september: 9,
-  sep: 9,
-  sept: 9,
-  october: 10,
-  oct: 10,
-  november: 11,
-  nov: 11,
-  december: 12,
-  dec: 12,
-}
-
-const days = {
-  sunday: 7,
-  sun: 7,
-  monday: 1,
-  mon: 1,
-  tuesday: 2,
-  tue: 2,
-  tues: 2,
-  wednesday: 3,
-  wed: 3,
-  thursday: 4,
-  thu: 4,
-  thurs: 4,
-  friday: 5,
-  fri: 5,
-  saturday: 6,
-  sat: 6,
-}
-
-function extractTime(n) {
-  if (months[n]) return months[n]
-  if (days[n]) return days[n]
-
-  return 0
-}
-
-// export const sortEntities = (rows, order) => {
-//   if (!order) order = store.state.sortOrder
-//   // Mutates directly
-//   const field = order.field
-//   const asc = order.ascending ? 1 : -1
-//   rows.sort((a, b) => {
-//     return a[field] == b[field] ? 0 : a[field] > b[field] ? asc : -asc
-//   })
-//   if (order.smart) {
-//     rows.sort((a, b) => {
-//       const [endA, endB] = trimCommonPrefix(a.title, b.title)
-//       if (!endA) return 0
-//       const numA = extractNum(endA)
-//       const numB = extractNum(endB)
-//       if (numA && numB) return (numA - numB) * asc
-
-//       const timeA = extractTime(endA)
-//       const timeB = extractTime(endB)
-//       if (timeA && timeB) return (timeA - timeB) * asc
-
-//       return 0
-//     })
-//   }
-//   return rows
-// }
 
 export const groupByFolder = (entities) => {
   return {
@@ -895,4 +755,26 @@ export const insertTemplate = (template, editor) => {
   editor.commands.insertContent(content)
   editor.commands.focus()
   return true
+}
+
+export const formatShortcut = (sequence) => {
+  if (!sequence) return ''
+  const isMac = navigator.platform.toUpperCase().includes('MAC')
+  const parts = sequence.split('-')
+  return parts
+    .map((part) => {
+      switch (part.toLowerCase()) {
+        case 'meta':
+          return isMac ? '⌘' : 'Win'
+        case 'ctrl':
+          return isMac ? '⌃' : 'Ctrl'
+        case 'alt':
+          return isMac ? '⌥' : 'Alt'
+        case 'shift':
+          return isMac ? '⇧' : 'Shift'
+        default:
+          return part.toUpperCase()
+      }
+    })
+    .join(isMac ? '' : '+')
 }

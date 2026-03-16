@@ -4,9 +4,13 @@
     v-model:show-settings="showSettings"
     v-model:edited="edited"
     v-bind="{ ...props, ...commentsDetail }"
-    :doc
+    :yjs-doc="doc"
     :extensions
-    @save="(manual = false, html) => save(manual, html)"
+    @save="
+      (manual = false, html, func) => {
+        save(manual, html).then(func)
+      }
+    "
     @cleanup="cleanup"
   />
 </template>
@@ -31,7 +35,7 @@ const edited = ref(false)
 
 const props = defineProps({
   document: Object,
-  entity: Object,
+  file: Object,
   settings: Object,
   editable: Boolean,
 })
@@ -44,8 +48,9 @@ const editor = computed(() => {
 })
 provide('editor', editor)
 defineExpose({ editor })
-
+   
 const { doc, save, cleanup, provider, permanentUserData, loaded, ...commentsDetail } = useYjs(
+  props.file.doc.name,
   props.document,
   editor,
   edited,

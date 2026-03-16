@@ -6,38 +6,62 @@
     class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
   >
     <a href="/writer/">
-      <div class="pl-2.5 pr-1">
+      <div class="pl-4 pr-1">
         <Dropdown
-          :options="[{ label: 'Drive', onClick: () => navigate('/drive'), icon: DriveLogo }]"
+          :options="[
+            {
+              label: 'Back to Home',
+              icon: LucideChevronLeft,
+              route: '/',
+            },
+          ]"
         >
           <WriterLogo class="size-7" />
         </Dropdown>
       </div>
     </a>
     <slot name="breadcrumbs">
-      <Breadcrumbs :items="formattedCrumbs" class="select-none truncate max-w-[80%]" />
+      <Breadcrumbs
+        :items="formattedCrumbs"
+        class="select-none truncate max-w-[80%]"
+      />
     </slot>
 
     <div class="ml-auto flex items-center gap-3">
       <div id="navbar-content" class="flex gap-3" />
       <slot name="content" />
-      <div v-if="document?.doc?.share_count" class="icon">
-        <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
-        <LucideBuilding2 v-else-if="document.doc.share_count === -1" class="size-4" />
-        <LucideUsers v-else-if="document.doc.share_count > 0" class="size-4" />
+      <Button
+        v-if="offline"
+        label="You're offline"
+        variant="solid"
+        size="sm"
+        class="pointer-events-none"
+        :icon-left="h(LucideWifiOff, { class: 'size-4' })"
+      />
+      <div v-if="file?.doc?.share_count" class="icon">
+        <LucideGlobe2 v-if="file.doc.share_count === -2" class="size-4" />
+        <LucideBuilding2
+          v-else-if="file.doc.share_count === -1"
+          class="size-4"
+        />
+        <LucideUsers v-else-if="file.doc.share_count > 0" class="size-4" />
       </div>
       <LucideStar
-        v-if="document?.doc?.is_favourite"
+        v-if="file?.doc?.is_favourite"
         class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
       />
       <template v-if="!isLoggedIn">
-        <Button variant="outline" @click="$router.push({ name: 'Login' })"> Sign In </Button>
+        <Button variant="outline" @click="$router.push({ name: 'Login' })">
+          Sign In
+        </Button>
         <Button
           v-if="!isLoggedIn"
           class="hidden md:block"
           variant="solid"
           label="Try out Drive"
-          @click="open('https://frappecloud.com/dashboard/signup?product=drive')"
+          @click="
+            open('https://frappecloud.com/dashboard/signup?product=drive')
+          "
         />
       </template>
       <Button
@@ -65,7 +89,7 @@
         }"
       />
     </div>
-    <Dialogs v-model="dialog" :entities="document?.doc && [document.doc]" />
+    <Dialogs v-model="dialog" :entities="file?.doc && [file.doc]" />
   </nav>
 </template>
 <script setup>
@@ -74,12 +98,13 @@ import { DriveLogo } from 'frappe-ui/drive'
 import { useStore } from 'vuex'
 import emitter from '@/emitter'
 import { ref, computed, inject, h, defineModel } from 'vue'
-// import { entitiesDownload } from '@/utils/download'
-import { createDocument } from '@/resources/'
+import { createDocument, apps } from '@/resources/'
 import { exportBlog } from '@/utils/exports'
 import Dialogs from '@/components/Dialogs.vue'
-import { apps } from '@/resources/permissions'
 import { dynamicList } from '@/utils/'
+import { downloadZippedHTML, downloadMD } from '@/utils'
+import { downloadDocxFromHtml } from '../utils/docxexporter'
+import { getLink } from '@/utils'
 
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -98,9 +123,9 @@ import LucideListRestart from '~icons/lucide/list-restart'
 import LucideHistory from '~icons/lucide/history'
 import LucideLayoutTemplate from '~icons/lucide/layout-template'
 import LucideMarkdown from '~icons/lucide/pilcrow'
-import { downloadZippedHTML, downloadMD } from '@/utils'
-import { downloadDocxFromHtml } from '../utils/docxexporter'
-import { getLink } from '@/utils'
+import LucideWifiOff from '~icons/lucide/wifi-off'
+import LucideChevronLeft from '~icons/lucide/chevron-left'
+
 import WriterLogo from './WriterLogo.vue'
 
 const store = useStore()
@@ -109,10 +134,12 @@ const open = (url) => {
 }
 
 const props = defineProps({
-  document: { type: Object, default: null },
+  file: Object,
+  document: { type: Object, required: false },
   breadcrumbs: {
     default: [],
   },
+  offline: Boolean,
 })
 
 const showVersions = defineModel('showVersions')
@@ -122,12 +149,10 @@ const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
 const editor = inject('editor', null)
 
-// Aliases for convenience in download functions
-const entity = computed(() => props.document?.doc)
 const settings = computed(() => props.document?.doc?.settings)
 
 const formattedCrumbs = computed(() => {
-  const ORIG = { label: 'Writer', route: '/' }
+  const ORIG = { label: 'Drive', onClick: () => navigate('/drive') }
   if (!props.breadcrumbs.length) return [ORIG]
   return [
     ORIG,
@@ -155,18 +180,18 @@ const fileActions = computed(() =>
               onClick: () => {
                 dialog.value = 's'
               },
-              isEnabled: () => props.document.doc.share,
+              isEnabled: () => props.file.doc.share,
             },
             {
               label: __('Download'),
               icon: LucideDownload,
-              isEnabled: () => props.document.doc.allow_download,
+              isEnabled: () => props.file.doc.allow_download,
               onClick: () => emitter.emit('print-file'),
             },
             {
               label: __('Copy Link'),
               icon: LucideLink,
-              onClick: () => getLink(props.document.doc),
+              onClick: () => getLink(props.file.doc),
             },
           ],
         },
@@ -178,38 +203,39 @@ const fileActions = computed(() =>
               label: __('Move'),
               icon: LucideArrowLeftRight,
               onClick: () => (dialog.value = 'm'),
-              isEnabled: () => props.document.doc.write,
+              isEnabled: () => props.file.doc.write,
             },
             {
               label: __('Rename'),
               icon: LucideSquarePen,
               onClick: () => (dialog.value = 'rn'),
-              isEnabled: () => props.document.doc.write,
+              isEnabled: () => props.file.doc.write,
             },
             {
               label: __('Show Info'),
               icon: LucideInfo,
               onClick: () => (dialog.value = 'i'),
-              isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
+              isEnabled: () =>
+                !store.state.activeEntity || !store.state.showInfo,
             },
             {
               label: __('Favourite'),
               icon: LucideStar,
               onClick: () => {
-                props.document.doc.is_favourite = true
-                props.document.toggleFav.submit()
+                props.file.doc.is_favourite = true
+                toggleFav.submit({ entities: [props.file.doc] })
               },
-              isEnabled: () => !props.document.doc.is_favourite,
+              isEnabled: () => !props.file.doc.is_favourite,
             },
             {
               label: __('Unfavourite'),
               icon: LucideStar,
               color: 'stroke-amber-500 fill-amber-500',
               onClick: () => {
-                props.document.doc.is_favourite = false
-                props.document.toggleFav.submit()
+                props.file.doc.is_favourite = false
+                toggleFav.submit({ entities: [props.file.doc] })
               },
-              isEnabled: () => props.document.doc.is_favourite,
+              isEnabled: () => props.file.doc.is_favourite,
             },
           ],
         },
@@ -220,7 +246,7 @@ const fileActions = computed(() =>
             {
               label: 'View',
               icon: LucideView,
-              cond: props.document.doc.write,
+              cond: props.file.doc.write,
               submenu: [
                 {
                   label: 'Lock',
@@ -265,8 +291,8 @@ const fileActions = computed(() =>
                   onClick: () => {
                     downloadDocxFromHtml(
                       editor.getHTML(),
-                      `${entity.value.title}.docx`,
-                      settings.value,
+                      `${file.doc.title}.docx`,
+                      props.document?.doc?.settings,
                     )
                   },
                 },
@@ -274,13 +300,17 @@ const fileActions = computed(() =>
                   label: 'Folder',
                   icon: LucideFolderArchive,
                   onClick: () => {
-                    downloadZippedHTML(editor, entity.value.title, settings.value)
+                    downloadZippedHTML(
+                      editor,
+                      file.doc.title,
+                      props.document?.doc?.settings,
+                    )
                   },
                 },
                 {
                   label: 'Markdown',
                   icon: LucideMarkdown,
-                  onClick: () => downloadMD(editor, entity.value.title),
+                  onClick: () => downloadMD(editor, file.doc.title),
                 },
                 {
                   onClick: exportBlog,
@@ -293,13 +323,13 @@ const fileActions = computed(() =>
             {
               icon: LucideHistory,
               label: 'Versions',
-              cond: props.document.doc.write,
+              cond: props.file.doc.write,
               onClick: () => (showVersions.value = true),
             },
             {
               icon: LucideLayoutTemplate,
               label: 'Templates',
-              cond: props.document.doc.write,
+              cond: props.file.doc.write,
               onClick: () => (showTemplates.value = true),
             },
           ]),
@@ -317,7 +347,7 @@ const fileActions = computed(() =>
               label: __('Delete'),
               icon: LucideTrash,
               onClick: () => (dialog.value = 'remove'),
-              isEnabled: () => props.document.doc.write,
+              isEnabled: () => props.file.doc.write,
               theme: 'red',
             },
           ],
@@ -333,8 +363,8 @@ const fileActions = computed(() =>
 
 // Utility functions for doc
 const clearCache = () => {
-  window.indexedDB.deleteDatabase('fdoc-' + props.document.doc.name)
-  window.indexedDB.deleteDatabase('wdoc-comments-' + props.document.doc.name)
+  window.indexedDB.deleteDatabase('fdoc-' + props.file.doc.name)
+  window.indexedDB.deleteDatabase('wdoc-comments-' + props.file.doc.name)
 }
 
 const navigate = (href) => (window.location.href = href)

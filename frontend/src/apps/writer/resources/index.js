@@ -28,8 +28,18 @@ export const getTemplates = useList({
 export const search = createResource({
   url: '/api/method/writer.api.general.search',
   method: 'GET',
-  makeParams: (params) => {
-    console.log('PARAMSS', params)
-    return params
-  },
+  makeParams: (params) => params,
+})
+
+export const updateComments = createResource({
+  url: 'writer.api.docs.save_comments',
+  method: 'POST',
+  makeParams: (params) => params,
+})
+
+
+export const apps = createResource({
+  url: 'frappe.apps.get_apps',
+  cache: 'apps',
+  transform: (data) => data.filter((app) => app.name !== 'writer'),
 })

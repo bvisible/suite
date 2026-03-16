@@ -2,10 +2,14 @@ import * as Y from 'yjs'
 import { IndexeddbPersistence } from 'y-indexeddb'
 import { WebrtcProvider } from 'y-webrtc'
 import { toUint8Array, fromUint8Array } from 'js-base64'
-import { debounce, toast } from 'frappe-ui'
-import { absolutePositionToRelativePosition, ySyncPluginKey } from '@tiptap/y-tiptap'
+import { debounce, toast, FrappeNetworkError } from 'frappe-ui'
+import {
+  absolutePositionToRelativePosition,
+  ySyncPluginKey,
+} from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
 import { ref } from 'vue'
+import { updateComments } from '@/resources'
 
 import store from '@/store'
 
@@ -34,7 +38,10 @@ export const useComments = (document, editor) => {
     Y.applyUpdate(commentsDoc, toUint8Array(document.doc.ycomments))
   }
 
-  const dbComments = new IndexeddbPersistence('wdoc-comments-' + document.doc.name, commentsDoc)
+  const dbComments = new IndexeddbPersistence(
+    'wdoc-comments-' + document.doc.name,
+    commentsDoc,
+  )
   const providerComments = new WebrtcProvider(
     'wdoc-comments-' + document.doc.name,
     commentsDoc,
@@ -53,10 +60,18 @@ export const useComments = (document, editor) => {
       anchorText,
       anchor: {
         from: Y.encodeRelativePosition(
-          absolutePositionToRelativePosition(from, ystate.type, ystate.binding.mapping),
+          absolutePositionToRelativePosition(
+            from,
+            ystate.type,
+            ystate.binding.mapping,
+          ),
         ),
         to: Y.encodeRelativePosition(
-          absolutePositionToRelativePosition(to, ystate.type, ystate.binding.mapping),
+          absolutePositionToRelativePosition(
+            to,
+            ystate.type,
+            ystate.binding.mapping,
+          ),
         ),
       },
     })
@@ -64,7 +79,7 @@ export const useComments = (document, editor) => {
   }
   const saveComments = async () => {
     const data = fromUint8Array(Y.encodeStateAsUpdate(commentsDoc))
-    document.saveComments.submit({ data })
+    updateComments.submit({ doc: document.doc.name, data })
   }
   const cleanup = () => {
     providerComments.destroy()
@@ -73,10 +88,11 @@ export const useComments = (document, editor) => {
   return { saveComments, newComment, comments, cleanup }
 }
 
-export function useYjs(document, editor, edited) {
+export function useYjs(id, document, editor, edited) {
   const doc = new Y.Doc({ gc: true })
-  if (document.doc.content) Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
-  const roomName = 'fdoc-' + document.doc.name
+  if (document.doc.content)
+    Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
+  const roomName = 'fdoc-' + id
   const db = new IndexeddbPersistence(roomName, doc)
   const loaded = ref(false)
   db.on('synced', () => (loaded.value = true))
@@ -85,7 +101,10 @@ export function useYjs(document, editor, edited) {
     if (document.isFinished) resolve(document.doc)
     else {
       const stop = document.onSuccess((freshDoc) => {
-        const diff = Y.diffUpdate(toUint8Array(freshDoc.content), Y.encodeStateVector(doc))
+        const diff = Y.diffUpdate(
+          toUint8Array(freshDoc.content),
+          Y.encodeStateVector(doc),
+        )
         Y.applyUpdate(doc, diff, 'server')
         stop()
       })
@@ -103,10 +122,17 @@ export function useYjs(document, editor, edited) {
       html,
     })
     if (data?.skipped) {
-      console.log('Server skipped update - probably because other people are collaborating')
+      console.log(
+        'Server skipped update - probably because other people are collaborating',
+      )
     } else if (document.saveDoc.error) {
-      toast.error('Could not save the document - please contact support.')
-      localStorage.setItem('errored-save-out-' + document.doc.name + '-' + Date.now(), html)
+      if (document.saveDoc.error instanceof FrappeNetworkError) {
+        console.warn('Skipping save as client is offline')
+      } else {
+        toast.error('Could not save the document.')
+        localStorage.setItem('errored-save-out-' + id + '-' + Date.now(), html)
+      }
+      throw new Error(`Server error during save: ${document.saveDoc.error}`)
     }
   }
 
@@ -121,7 +147,10 @@ export function useYjs(document, editor, edited) {
   permanentUserData.setUserMapping(doc, doc.clientID, store.state.user.id)
 
   // Comments
-  const { cleanup: cleanupComments, ...commentsData } = useComments(document, editor)
+  const { cleanup: cleanupComments, ...commentsData } = useComments(
+    document,
+    editor,
+  )
   return {
     doc,
     cleanup: () => {

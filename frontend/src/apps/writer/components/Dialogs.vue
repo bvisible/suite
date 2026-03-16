@@ -53,7 +53,6 @@ import SearchDialog from './SearchDialog.vue'
 import { onKeyDown } from '@vueuse/core'
 
 const props = defineProps({
-  document: Object,
   entities: Array,
 })
 const store = useStore()

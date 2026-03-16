@@ -1,27 +1,31 @@
 <template>
   <div
-    v-if="inIframe && document.doc"
+    v-if="inIframe && file.doc"
     class="p-1.5 border-b text-base text-ink-gray-7 flex justify-between items-center relative"
   >
     <div class="font-semibold">
-      {{ document.doc.title }}
+      {{ file.doc.title }}
     </div>
     <div class="flex gap-3 items-center text-ink-gray-5 text-xs">
-      Edited {{ document.doc.relativeModified }}
+      Edited {{ file.doc.relativeModified }}
     </div>
   </div>
   <Navbar
-    v-if="!inIframe && !showVersions && document.doc"
-    :document
-    :breadcrumbs="document.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
+    v-if="!inIframe && !showVersions && file.doc"
     v-model:showVersions="showVersions"
     v-model:showTemplates="showTemplates"
+    :file
+    :document
+    :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
+    :offline
   >
-    <template #content v-if="document.doc?.settings && document.doc.write">
+    <template #content v-if="document.doc?.settings && file.doc.write">
       <UsersBar
         v-if="editor?.storage?.collaborationCaret?.users?.length"
         :users="
-          editor.storage.collaborationCaret.users.filter((k) => k.id !== $store.state.user.id)
+          editor.storage.collaborationCaret.users.filter(
+            (k) => k.id !== $store.state.user.id,
+          )
         "
       />
 
@@ -59,12 +63,16 @@
     :document
     :editor
   />
-  <ErrorPage v-if="document.error" :error="document.error" />
+  <ErrorPage v-if="file.error" :error="file.error" />
   <LoadingIndicator
-    v-else-if="!document.doc && document.loading"
+    v-else-if="!file.doc && file.loading"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
-  <div v-else-if="document.doc" class="flex w-full h-full overflow-hidden" v-show="!showVersions">
+  <div
+    v-else-if="document?.doc"
+    class="flex w-full h-full overflow-hidden"
+    v-show="!showVersions"
+  >
     <NonCollabEditor
       v-if="!document.doc?.collab"
       ref="editorEl"
@@ -75,14 +83,18 @@
       :settings
       :editable
     />
-    <MarkdownEditor v-else-if="document.doc?.mime_type == 'text/markdown'" :document :settings />
+    <MarkdownEditor
+      v-else-if="file.doc?.mime_type == 'text/markdown'"
+      :document
+      :settings
+    />
     <TextEditor
       v-else-if="document.doc?.settings"
       ref="editorEl"
       v-model:show-versions="showVersions"
       v-model:versionPreview="versionPreview"
       v-model:showSettings="showSettings"
-      :entity="document.doc"
+      :file
       :document
       :editable
       :settings
@@ -102,7 +114,16 @@
 <script setup>
 import Navbar from '@/components/Navbar.vue'
 import ErrorPage from '@/components/ErrorPage.vue'
-import { ref, inject, defineAsyncComponent, provide, watch, h, computed, useTemplateRef } from 'vue'
+import {
+  ref,
+  inject,
+  defineAsyncComponent,
+  provide,
+  watch,
+  h,
+  computed,
+  useTemplateRef,
+} from 'vue'
 import { useStore } from 'vuex'
 import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
 
@@ -113,13 +134,13 @@ import UsersBar from '@/components/UsersBar.vue'
 
 import { toast } from '@/utils/'
 import useDocument from '@/composables/useDocument'
-import LucideWifi from '~icons/lucide/wifi'
 import LucideLock from '~icons/lucide/lock'
 import LucideLockOpen from '~icons/lucide/lock-open'
-import LucideWifiOff from '~icons/lucide/wifi-off'
 import TextEditor from '@/components/TextEditor.vue'
 
-const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor.vue'))
+const MarkdownEditor = defineAsyncComponent(
+  () => import('@/components/MarkdownEditor.vue'),
+)
 
 const props = defineProps({
   id: String,
@@ -135,28 +156,34 @@ const versionPreview = ref(null)
 const showSettings = ref(false)
 const showTemplates = ref(false)
 const showVersions = ref(false)
+const offline = ref(false)
 
 const isOldSchema = computed(() => {
-  if (!document.doc) return false
-  return !document.doc.collab && store.state.user.id !== document.doc.owner
+  if (!document.value?.doc) return false
+  return (
+    !document.value?.doc.collab &&
+    store.state.user.id !== document.value?.doc.owner
+  )
 })
 
 const inIframe = inject('inIframe')
-const document = useDocument(props.id)
-const editable = computed(() =>
-  !inIframe.value &&
-  !!document.doc?.write &&
-  !document.doc?.settings?.lock &&
-  editor.value &&
-  !isOldSchema.value
+const { file, document } = useDocument(() => props.id)
+provide('file', file)
+
+const editable = computed(() => {
+  return !inIframe.value &&
+    !!file.doc?.write &&
+    !document.value?.doc?.settings?.lock &&
+    editor.value &&
+    !isOldSchema.value
     ? true
-    : false,
-)
+    : false
+})
 watch(showVersions, (v) => {
   if (!v) versionPreview.value = null
 })
 usePageMeta(() => ({
-  title: document.doc ? document.doc.title : 'Loading...',
+  title: file.doc ? file.doc.title : 'Loading...',
 }))
 
 // fix: bad pattern
@@ -173,34 +200,27 @@ const globalSettings = !store.getters.isLoggedIn
     })
 
 const settings = computed(() => {
-  for (const [k, v] of Object.entries(document.doc?.settings || {})) {
-    if (v === 'global') delete document.doc?.settings[k]
+  for (const [k, v] of Object.entries(document.value?.doc?.settings || {})) {
+    if (v === 'global') delete document.value?.doc?.settings[k]
   }
   return {
     ...(globalSettings.doc?.writer_settings || {}),
-    ...(document.doc?.settings || {}),
+    ...(document.value?.doc?.settings || {}),
   }
 })
 
-store.commit('setCurrentResource', document)
+store.commit('setCurrentResource', file)
 
 // Events
-window.addEventListener('offline', () => {
-  toast({
-    title: "You're offline",
-    icon: LucideWifiOff,
-    text: "Don't worry, your changes will be saved locally.",
-  })
-})
-window.addEventListener('online', () => {
-  toast({ title: 'Back online!', icon: h(LucideWifi) })
-})
+window.addEventListener('offline', () => (offline.value = true))
+window.addEventListener('online', () => (offline.value = false))
 
 let toasted
 watch(isOldSchema, (v) => {
-  if (document.doc?.settings && document.doc.write && v && !toasted) {
+  if (document.value?.doc?.settings && file.doc.write && v && !toasted) {
     toast({
-      title: 'This document uses an old schema. Collaborative editing is disabled.',
+      title:
+        'This document uses an old schema. Collaborative editing is disabled.',
       type: 'warning',
       duration: 8000,
     })
