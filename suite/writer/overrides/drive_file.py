@@ -20,7 +20,7 @@ class WriterDriveFile(DriveFile):
     def new_version(self, data, title=False):
         return frappe.get_doc("Writer Document", self.doc).new_version(data, title)
 
-    @frappe.whitelist(allow_guest=True, permissions=["comment"])
+    @frappe.whitelist(allow_guest=True)
     @requires("comment")
     def save_comments(self, data):
         return frappe.get_doc("Writer Document", self.doc).save_comments(data, self)

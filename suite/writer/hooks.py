@@ -126,9 +126,9 @@ permission_query_conditions = {
     "Writer Template": "writer.overrides.filter_templates",
 }
 #
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+has_permission = {
+    "Writer Document": "writer.perms.has_permission",
+}
 
 # Document Events
 # ---------------
@@ -247,9 +247,6 @@ permission_query_conditions = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-override_doctype_class = {
-    "Drive File": "writer.overrides.drive_file.WriterDriveFile",
-}
 
 ALLOWED_WILDCARD_PATHS = [
     "/api/method/writer.api.",

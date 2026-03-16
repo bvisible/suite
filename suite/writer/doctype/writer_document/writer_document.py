@@ -3,6 +3,7 @@
 
 from datetime import datetime, timedelta
 from drive.api.notifications import create_notification, get_link
+from drive.api.permissions import requires
 
 import frappe
 from frappe.model.document import Document
@@ -19,21 +20,9 @@ AUTOVERSION_DURATION = 10
 
 
 class WriterDocument(Document):
-    def add_yjs_update(self, update_b64):
-        """Add a YJS update to this document"""
-        try:
-            self.append("updates", {"data": update_b64})
-            self.compact_yjs_updates()
-            frappe.response["data"] = {"success": True}
-        except COLLISION_ERRORS:
-            frappe.response["data"] = {"skipped": True}
-            return
-        try:
-            self.update_file(file_size=len(self.content))
-        except COLLISION_ERRORS:
-            pass
-
-    def save_doc(self, data, html=None):
+    @frappe.whitelist(allow_guest=True)
+    @requires("write")
+    def save_doc(self, data: str, html: str | None = None):
         try:
             frappe.db.set_value("Writer Document", self.name, "content", data)
             if html is not None:
@@ -42,20 +31,9 @@ class WriterDocument(Document):
         except COLLISION_ERRORS:
             pass
 
-    def compact_yjs_updates(self):
-        server_doc = pycrdt.Doc()
-        server_doc.get("default", type=pycrdt.XmlFragment)
-        if self.content:
-            server_doc.apply_update(base64.b64decode(self.content))
-
-        for upd in self.updates:
-            server_doc.apply_update(base64.b64decode(upd.data))
-
-        self.content = base64.b64encode(server_doc.get_update()).decode()
-        self.updates = []
-        self.save()
-
-    def new_version(self, data, title):
+    @frappe.whitelist()
+    @requires("write")
+    def new_version(self, data: str, title: str | None = None):
         """Create a new version of the document"""
         manual = bool(title)
         if not manual:
@@ -97,6 +75,19 @@ class WriterDocument(Document):
 
         frappe.response["data"] = version.as_dict()
 
+    @frappe.whitelist()
+    @requires("write")
+    def update_settings(self, data: str):
+        self.settings = data
+        self.save()
+
+    @frappe.whitelist()
+    @requires("write")
+    def save_html(self, html: str):
+        self.html = html
+        self.update_file()
+        self.save()
+
     def update_file(self, **kwargs):
         file = frappe.db.get_value("Drive File", {"doc": self.name}, "name")
         doc = frappe.get_doc("Drive File", file)
@@ -125,7 +116,6 @@ class WriterDocument(Document):
                             for k in reply.get("mentions", [])
                         ]
                     )
-                print(mentions)
                 if mentions:
                     frappe.enqueue(
                         notify_comments,
@@ -140,6 +130,11 @@ class WriterDocument(Document):
 
     def rename(self):
         frappe.get_value({"doc": self.name}).rename()
+
+    def as_dict(self, *args, **kwargs):
+        result = super().as_dict(*args, **kwargs)
+        result.pop("versions")
+        return result
 
 
 def notify_comments(file, mentions):
