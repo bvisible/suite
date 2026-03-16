@@ -28,7 +28,7 @@
 					<div
 						class="m-1 aspect-video cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300"
 						:class="getThemeThumbnailClasses(theme.name)"
-						:style="getThumbnailCardStyles(theme.layouts[2].thumbnail)"
+						:style="getThemeThumbnailStyles(theme)"
 						@click="performAction(theme.name)"
 					></div>
 					<div class="flex">
@@ -96,5 +96,11 @@ const getThemeThumbnailClasses = (theme) => {
 	return props.update && theme == presentationTheme.value
 		? 'ring-2 ring-offset-1 ring-gray-400'
 		: ''
+}
+
+const getThemeThumbnailStyles = (theme) => {
+	const thumbnailIdx = ['Light', 'Dark'].includes(theme.title) ? 2 : 0
+	const presentationThumbnail = theme.layouts[thumbnailIdx].thumbnail
+	return getThumbnailCardStyles(presentationThumbnail)
 }
 </script>

@@ -27,11 +27,8 @@ import { getThumbnailCardStyles } from '@/utils/helpers'
 const emit = defineEmits(['insert'])
 
 const layouts = computed(() => {
-	const template = templateList.value.find(
-		(template) => template.name === presentationTheme.value,
-	)
-	if (!template) return []
-	return template.layouts || []
+	const template = templateList.value?.find((t) => t.name === presentationTheme.value)
+	return template?.layouts || []
 })
 
 const showLayoutDialog = defineModel({
