@@ -6,16 +6,25 @@
     class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
   >
     <a href="/writer/">
-      <div class="pl-2.5 pr-1">
+      <div class="pl-4 pr-1">
         <Dropdown
-          :options="[{ label: 'Drive', onClick: () => navigate('/drive'), icon: DriveLogo }]"
+          :options="[
+            {
+              label: 'Back to Home',
+              icon: LucideChevronLeft,
+              route: '/',
+            },
+          ]"
         >
           <WriterLogo class="size-7" />
         </Dropdown>
       </div>
     </a>
     <slot name="breadcrumbs">
-      <Breadcrumbs :items="formattedCrumbs" class="select-none truncate max-w-[80%]" />
+      <Breadcrumbs
+        :items="formattedCrumbs"
+        class="select-none truncate max-w-[80%]"
+      />
     </slot>
 
     <div class="ml-auto flex items-center gap-3">
@@ -29,23 +38,30 @@
         class="pointer-events-none"
         :icon-left="h(LucideWifiOff, { class: 'size-4' })"
       />
-      <div v-if="document?.doc?.share_count" class="icon">
-        <LucideGlobe2 v-if="document.doc.share_count === -2" class="size-4" />
-        <LucideBuilding2 v-else-if="document.doc.share_count === -1" class="size-4" />
-        <LucideUsers v-else-if="document.doc.share_count > 0" class="size-4" />
+      <div v-if="file?.doc?.share_count" class="icon">
+        <LucideGlobe2 v-if="file.doc.share_count === -2" class="size-4" />
+        <LucideBuilding2
+          v-else-if="file.doc.share_count === -1"
+          class="size-4"
+        />
+        <LucideUsers v-else-if="file.doc.share_count > 0" class="size-4" />
       </div>
       <LucideStar
-        v-if="document?.doc?.is_favourite"
+        v-if="file?.doc?.is_favourite"
         class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
       />
       <template v-if="!isLoggedIn">
-        <Button variant="outline" @click="$router.push({ name: 'Login' })"> Sign In </Button>
+        <Button variant="outline" @click="$router.push({ name: 'Login' })">
+          Sign In
+        </Button>
         <Button
           v-if="!isLoggedIn"
           class="hidden md:block"
           variant="solid"
           label="Try out Drive"
-          @click="open('https://frappecloud.com/dashboard/signup?product=drive')"
+          @click="
+            open('https://frappecloud.com/dashboard/signup?product=drive')
+          "
         />
       </template>
       <Button
@@ -108,6 +124,7 @@ import LucideHistory from '~icons/lucide/history'
 import LucideLayoutTemplate from '~icons/lucide/layout-template'
 import LucideMarkdown from '~icons/lucide/pilcrow'
 import LucideWifiOff from '~icons/lucide/wifi-off'
+import LucideChevronLeft from '~icons/lucide/chevron-left'
 
 import WriterLogo from './WriterLogo.vue'
 
@@ -135,7 +152,7 @@ const editor = inject('editor', null)
 const settings = computed(() => props.document?.doc?.settings)
 
 const formattedCrumbs = computed(() => {
-  const ORIG = { label: 'Writer', route: '/' }
+  const ORIG = { label: 'Drive', onClick: () => navigate('/drive') }
   if (!props.breadcrumbs.length) return [ORIG]
   return [
     ORIG,
@@ -198,7 +215,8 @@ const fileActions = computed(() =>
               label: __('Show Info'),
               icon: LucideInfo,
               onClick: () => (dialog.value = 'i'),
-              isEnabled: () => !store.state.activeEntity || !store.state.showInfo,
+              isEnabled: () =>
+                !store.state.activeEntity || !store.state.showInfo,
             },
             {
               label: __('Favourite'),
@@ -282,7 +300,11 @@ const fileActions = computed(() =>
                   label: 'Folder',
                   icon: LucideFolderArchive,
                   onClick: () => {
-                    downloadZippedHTML(editor, file.doc.title, props.document?.doc?.settings)
+                    downloadZippedHTML(
+                      editor,
+                      file.doc.title,
+                      props.document?.doc?.settings,
+                    )
                   },
                 },
                 {

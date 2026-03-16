@@ -2,6 +2,7 @@ import { Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TabView from './components/TabView.vue'
 import { TextSelection } from '@tiptap/pm/state'
+import { DOMSerializer } from '@tiptap/pm/model'
 import { v4 } from 'uuid'
 
 export const TabsExtension = Node.create({
@@ -58,7 +59,9 @@ export const TabsExtension = Node.create({
       const { doc } = this.editor.state
       let tabToChange = window.location.hash.slice(1)
       const tabs = []
-      doc.descendants((node) => node.type.name === 'tab' && tabs.push(node.attrs.id))
+      doc.descendants(
+        (node) => node.type.name === 'tab' && tabs.push(node.attrs.id),
+      )
       if (!tabToChange || !tabs.includes(tabToChange)) tabToChange = tabs[0]
 
       if (tabToChange) {
@@ -224,7 +227,11 @@ export const TabsExtension = Node.create({
           if (dispatch) {
             if (!attrs?.id) attrs.id = v4()
             const tabType = this.editor.schema.nodes.tab
-            tr.replaceWith(0, tr.doc.content.size, tabType.create(attrs, tr.doc.content))
+            tr.replaceWith(
+              0,
+              tr.doc.content.size,
+              tabType.create(attrs, tr.doc.content),
+            )
             this.storage.activeTabId = attrs.id
             dispatch(tr)
             return true
@@ -239,13 +246,37 @@ export const TabsExtension = Node.create({
             if (!attrs.label) attrs.label = 'Untitled'
 
             const paragraphType = this.editor.schema.nodes.paragraph
-            const tab = this.editor.schema.nodes.tab.create(attrs, paragraphType.create())
+            const tab = this.editor.schema.nodes.tab.create(
+              attrs,
+              paragraphType.create(),
+            )
             tr.insert(state.doc.content.size, tab)
             dispatch(tr)
 
             setTimeout(() => this.editor.commands.changeTab(attrs.id), 10)
           }
           return true
+        },
+      getCurrentTabHTML:
+        () =>
+        ({ state }) => {
+          const serializer = DOMSerializer.fromSchema(state.schema)
+
+          let html = null
+          state.doc.descendants((node) => {
+            if (
+              node.type.name === 'tab' &&
+              node.attrs.id === this.storage.activeTabId
+            ) {
+              const dom = serializer.serializeNode(node)
+              const wrapper = document.createElement('div')
+              wrapper.appendChild(dom)
+              html = wrapper.innerHTML
+              return false
+            }
+          })
+
+          return html
         },
     }
   },
@@ -269,7 +300,9 @@ export const TabsExtension = Node.create({
         })
 
         if (tabStart !== null && tabEnd !== null) {
-          const tr = state.tr.setSelection(TextSelection.create(state.doc, tabStart, tabEnd))
+          const tr = state.tr.setSelection(
+            TextSelection.create(state.doc, tabStart, tabEnd),
+          )
           view.dispatch(tr)
           return true
         }
@@ -279,7 +312,8 @@ export const TabsExtension = Node.create({
       Backspace: () => {
         // prevent clearing of document when tab is empty
         const { $to } = this.editor.state.selection
-        if ($to.parent.type.name === 'tab' && $to.parent.content.size == 2) return true
+        if ($to.parent.type.name === 'tab' && $to.parent.content.size == 2)
+          return true
       },
       Enter: () => {
         const { state } = this.editor
@@ -291,14 +325,22 @@ export const TabsExtension = Node.create({
         let tabPos = null
 
         state.doc.descendants((node, pos) => {
-          if (node.type.name === 'tab' && pos < $from.pos && $from.pos < pos + node.nodeSize) {
+          if (
+            node.type.name === 'tab' &&
+            pos < $from.pos &&
+            $from.pos < pos + node.nodeSize
+          ) {
             tabNode = node
             tabPos = pos
             return false
           }
         })
 
-        if (!tabNode || tabNode.attrs.label !== 'Untitled' || !tabNode.content.firstChild)
+        if (
+          !tabNode ||
+          tabNode.attrs.label !== 'Untitled' ||
+          !tabNode.content.firstChild
+        )
           return false
 
         const firstChildStart = tabPos + 1

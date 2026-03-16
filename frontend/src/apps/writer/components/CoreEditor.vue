@@ -2,67 +2,32 @@
   <div class="flex flex-col w-full bg-surface-white">
     <TextEditorFixedMenu
       v-if="editable && editor"
-      class="w-full max-w-[100vw] py-1.5 px-2 md:px-0 overflow-x-auto flex md:justify-center shrink-0 border-b border-outline-gray-modals"
+      class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-gray-modals"
       :buttons="menuButtons"
     />
-
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-1 relative"
-      :class="
-        settings.wide
-          ? 'md:grid-cols-[minmax(10rem,1fr)_minmax(auto,95ch)_minmax(0,1fr)]'
-          : ' md:grid-cols-[minmax(10rem,1fr)_minmax(auto,48rem)_minmax(0,1fr)]'
-      "
+      class="flex-1 flex w-full overflow-y-auto grid grid-cols-3 relative"
     >
       <ToC v-if="editor" :editor :anchors />
       <div
         class="min-w-full h-full flex flex-col"
-        @click="$event.target.tagName === 'DIV' && textEditor.editor?.chain?.().focus?.().run?.()"
+        @click="
+          $event.target.tagName === 'DIV' &&
+          textEditor.editor?.chain?.().focus?.().run?.()
+        "
+        @contextmenu="openContextMenu"
       >
         <FTextEditor
           ref="textEditor"
-          class="min-w-full h-full flex flex-col"
-          editor-class="min-h-full px-10 overflow-x-auto pt-10 pb-24"
+          class="min-w-full min-h-full h-full flex flex-col"
+          editor-class="px-10 ps-24 overflow-x-auto pt-10 pb-24"
           :upload-function
           :autofocus="true"
           :content="rawContent"
           :mentions="{ mentions: allUsers.data, selectable: false }"
           placeholder="Start thinking..."
           :extensions="editorExtensions"
-          :bubble-menu="bubbleButtons"
-          :bubble-menu-options="{
-            shouldShow: ({ from, to }) => {
-              if (from === to) return false
-              let hide = false
-              comments.forEach((k) => (k.new || k.edit) && (hide = true))
-              return !hide
-            },
-            getReferencedVirtualElement: () => {
-              const { selection } = editor.state
-              const { from, to } = selection
-
-              const start = editor.view.coordsAtPos(from)
-              const end = editor.view.coordsAtPos(to)
-
-              const editorElement = editor.view.dom
-              const editorRect = editorElement.getBoundingClientRect()
-
-              const verticalCenter = (start.bottom + end.bottom) / 2 + 15
-              return {
-                getBoundingClientRect: () => ({
-                  width: 0,
-                  height: 0,
-                  x: editorRect.right,
-                  y: verticalCenter,
-                  top: verticalCenter,
-                  right: editorRect.right,
-                  bottom: verticalCenter,
-                  left: editorRect.right,
-                }),
-              }
-            },
-          }"
           :editable
           :starterkit-options="{
             // undoRedo: doc ? false : true,
@@ -109,23 +74,26 @@
         :file
         :show-comments
         :show-resolved
+        :show-unanchored
         :editor
         @save="saveComments"
       >
-        <div class="sticky self-end top-3 flex items-center gap-1 z-10">
+        <div class="sticky self-end top-4 right-4 flex items-center gap-1 z-10">
           <div class="flex flex-col gap-0.5">
             <Button
               :label="showResolved ? 'Hide resolved' : 'Show resolved'"
               v-if="
                 showComments &&
-                Array.from(comments._map).find((k) => k[1].content?.arr?.[0].resolved)
+                Array.from(comments._map).find(
+                  (k) => k[1].content?.arr?.[0].resolved,
+                )
               "
               class="text-sm text-ink-gray-5 bg-surface-white"
               variant="ghost"
               @click="showResolved = !showResolved"
             />
             <Button
-              :label="showUnanchored ? 'Hide unanchored' : 'Show unanchered'"
+              :label="showUnanchored ? 'Hide all' : 'Show all'"
               v-if="showComments && showResolved"
               class="text-sm text-ink-gray-5 bg-surface-white"
               variant="ghost"
@@ -134,7 +102,9 @@
           </div>
           <Button
             v-if="comments._map.size"
-            :icon="showComments ? LucideMessageSquareOff : LucideMessageSquareQuote"
+            :icon="
+              showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
+            "
             variant="outline"
             :tooltip="showComments ? 'Hide comments' : 'Show comments'"
             @click="showComments = !showComments"
@@ -146,12 +116,25 @@
 </template>
 <script setup>
 import { EditorContent, Extension } from '@tiptap/vue-3'
-import { TextEditor as FTextEditor, TextEditorFixedMenu, toast, useFileUpload } from 'frappe-ui'
+import {
+  TextEditor as FTextEditor,
+  TextEditorFixedMenu,
+  toast,
+  useFileUpload,
+} from 'frappe-ui'
 import { Slice } from '@tiptap/pm/model'
 import { TextSelection } from '@tiptap/pm/state'
 import ManageFont from './ManageFont.vue'
 import { v4 as uuidv4 } from 'uuid'
-import { computed, defineAsyncComponent, ref, onBeforeUnmount, h, provide, nextTick } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  ref,
+  onBeforeUnmount,
+  h,
+  provide,
+  nextTick,
+} from 'vue'
 import { Plugin } from '@tiptap/pm/state'
 
 import FloatingComments from './FloatingComments.vue'
@@ -162,6 +145,7 @@ import { onKeyDown } from '@vueuse/core'
 import store from '@/store'
 import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/drive/js/resources'
+import { useContextMenu } from 'frappe-ui/drive/js/useContextMenu'
 import { printDoc, updateURLSlug, isModKey, COMMON_EXTENSIONS } from '@/utils'
 
 import MediaDownload from '@/extensions/media-download'
@@ -200,7 +184,9 @@ const props = defineProps({
   rawContent: String,
 })
 const emit = defineEmits(['save', 'editor-change'])
-const scrollParent = computed(() => document.querySelector('#editorScrollContainer'))
+const scrollParent = computed(() =>
+  document.querySelector('#editorScrollContainer'),
+)
 const anchors = ref([])
 const textEditor = ref('textEditor')
 const editor = computed(() => {
@@ -214,21 +200,37 @@ const showSettings = defineModel('showSettings')
 const edited = defineModel('edited')
 
 watch(activeComment, () => rebuild(editor.value))
-const showComments = ref(JSON.parse(localStorage.getItem('show-comments') || 'false'))
+const showComments = ref(
+  JSON.parse(localStorage.getItem('show-comments') || 'false'),
+)
 watch(showComments, (val) => localStorage.setItem('show-comments', val))
 const showResolved = ref(false)
 const showUnanchored = ref(false)
 const commentsPainted = ref(false)
 const isPainting = computed(() =>
-  editor.value && editor.value.storage.styleClipboard.styleClipboard ? true : false,
+  editor.value && editor.value.storage.styleClipboard.styleClipboard
+    ? true
+    : false,
 )
 
+const { open: openContextMenuInternal } = useContextMenu()
+function openContextMenu(event) {
+  event.preventDefault()
+  setTimeout(() => {
+    if (!editor.value || editor.value.state.selection.empty || !bubbleButtons)
+      return
+    openContextMenuInternal(event, bubbleButtons)
+  }, 0)
+}
 const autoversion = async () => {
   if (!edited.value) return
   const html = editor.value.getHTML()
   if (!html || html === '<p></p>') return
   await props.document.newVersion.submit({ data: html })
-  if (props.document.newVersion.error && props.document.newVersion.error !== 'Client is offline') {
+  if (
+    props.document.newVersion.error &&
+    props.document.newVersion.error !== 'Client is offline'
+  ) {
     toast.error('Something has gone wrong - please contact support.')
   }
 }
@@ -282,7 +284,9 @@ const editorExtensions = [
               const TYPE = 'textStyle'
               const styleMark = !node.marks
                 .filter((mark) => mark.type.name === TYPE)
-                .some((mark) => Object.values(mark.attrs).some((value) => !!value))
+                .some((mark) =>
+                  Object.values(mark.attrs).some((value) => !!value),
+                )
               if (styleMark) {
                 tr.removeMark(pos, pos + node.nodeSize, styleMark.type)
               }
@@ -299,7 +303,11 @@ const editorExtensions = [
               const frag = slice.content
               if (frag.childCount === 1 && frag.child(0).type.name === 'tab') {
                 const tabNode = frag.child(0)
-                return new Slice(tabNode.content, slice.openStart, slice.openEnd)
+                return new Slice(
+                  tabNode.content,
+                  slice.openStart,
+                  slice.openEnd,
+                )
               }
               return slice
             },
@@ -343,6 +351,11 @@ const editorExtensions = [
   ...props.extensions,
 ]
 
+const EXTRA_BUTTON_FUNCTIONS = [
+  (e) => e.can().sinkListItem('listItem'),
+  (e) => e.can().liftListItem('listItem'),
+]
+
 const menuButtons = computed(() => [
   ['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4'],
   'Bold',
@@ -365,7 +378,8 @@ const menuButtons = computed(() => [
   {
     label: 'Clear formatting',
     icon: LucideBrushCleaning,
-    isActive: (editor) => (editor.storage.styleClipboard.styleClipboard ? true : false),
+    isActive: (editor) =>
+      editor.storage.styleClipboard.styleClipboard ? true : false,
     action: (editor) => {
       editor.commands.focus()
       editor.commands.clearStyles()
@@ -431,6 +445,14 @@ const menuButtons = computed(() => [
     label: 'Settings',
     action: () => (showSettings.value = true),
   },
+  {
+    type: 'separator',
+    condition: (editor) => {
+      return EXTRA_BUTTON_FUNCTIONS.some((fn) => fn(editor))
+    },
+  },
+  'DedentList',
+  'IndentList',
 ])
 
 const bubbleButtons = props.file.doc.comment
@@ -441,6 +463,7 @@ const bubbleButtons = props.file.doc.comment
         action: () => addComment(),
         isActive: () => false,
       },
+      // heading, format, insert link
     ]
   : []
 
@@ -460,7 +483,10 @@ const autorename = () => {
   // Check if we're in the very first textblock
   if (!($anchor.index(0) === 1 && $anchor.depth === 1)) {
     // scroll down if in the last line
-    if ($anchor.depth === 1 && editor.value.state.doc.childCount - 1 === $anchor.index(0)) {
+    if (
+      $anchor.depth === 1 &&
+      editor.value.state.doc.childCount - 1 === $anchor.index(0)
+    ) {
       scrollParent.value.scroll(0, scrollParent.value.scrollHeight)
     }
     return
@@ -480,8 +506,9 @@ const autorename = () => {
       {
         onSuccess: () => {
           props.file.doc.title = rename.params.new_title
-          props.file.doc.breadcrumbs[props.file.doc.breadcrumbs.length - 1].title =
-            rename.params.new_title
+          props.file.doc.breadcrumbs[
+            props.file.doc.breadcrumbs.length - 1
+          ].title = rename.params.new_title
           updateURLSlug(rename.params.new_title)
         },
       },
@@ -497,7 +524,13 @@ const addComment = () => {
   const { state } = editor.value
   const { from, to } = state.selection
   if (from === to) return
-  props.newComment(id, from, to, store.state.user.id, state.doc.textBetween(from, to, ' '))
+  props.newComment(
+    id,
+    from,
+    to,
+    store.state.user.id,
+    state.doc.textBetween(from, to, ' '),
+  )
   activeComment.value = id
   const tr = state.tr
   tr.setSelection(TextSelection.create(state.doc, from))
@@ -508,12 +541,13 @@ const addComment = () => {
 onKeyDown('p', (e) => {
   if (isModKey(e)) {
     e.preventDefault()
-    if (editor.value) printDoc(editor.value.getHTML(), props.settings)
+    emitter.emit('print-file')
   }
 })
 
 emitter.on('print-file', () => {
-  if (editor.value) printDoc(editor.value.getHTML(), props.settings)
+  if (editor.value)
+    printDoc(editor.value.commands.getCurrentTabHTML(), props.settings)
 })
 const manualSave = (func) => emit('save', true, null, func)
 emitter.on('manual-save', manualSave)
@@ -547,5 +581,10 @@ iframe {
 }
 .prose-v2 p {
   margin-bottom: var(--paragraph-spacing-after, 0);
+}
+
+#editorScrollContainer {
+  /* Should be 220 px */
+  grid-template-columns: minmax(220px, 0.8fr) minmax(auto, 48rem) minmax(0, 1fr);
 }
 </style>

@@ -1,9 +1,10 @@
 <template>
   <div
     v-if="editor"
-    class="hidden md:block p-5 gap-2 sticky top-0 self-start bg-surface-white max-h-screen overflow-auto"
+    class="px-2.5 gap-2 hidden md:block sticky top-0 self-start h-screen"
+    :class="show && 'border-r border-outline-gray-2'"
   >
-    <template v-if="tabs.length || anchors.length > 1">
+    <div class="pt-3" v-if="(tabs.length || anchors.length > 1) && !show">
       <Button
         variant="ghost"
         :icon="
@@ -11,19 +12,35 @@
             class: 'text-ink-gray-6',
           })
         "
-        class="mb-3"
         :tooltip="show ? 'Hide' : 'Table of Contents'"
         @click="show = !show"
       />
-    </template>
-    <div v-if="show" class="grow max-w-52 flex flex-col gap-0.5">
-      <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2" @drop.prevent="onDrop">
+    </div>
+    <div v-if="show" class="grow flex flex-col gap-0.5">
+      <div
+        v-if="tabs.length > 0"
+        class="flex flex-col gap-0.5 mb-2"
+        @drop.prevent="onDrop"
+      >
+        <div class="flex justify-between items-center ps-2 pr-1 pt-3 pb-1">
+          <span class="text-base font-medium text-ink-gray-8"
+            >Table of Contents</span
+          >
+          <Button
+            :icon="LucideLeftClose"
+            variant="ghost"
+            @click="show = !show"
+            :tooltip="show ? 'Hide' : 'Table of Contents'"
+          />
+        </div>
         <div
           v-for="(tab, index) in tabs"
           :key="tab.id"
           :class="[
             'relative transition-all duration-200',
-            dragState.isDragging && dragState.draggedId === tab.id && 'opacity-0',
+            dragState.isDragging &&
+              dragState.draggedId === tab.id &&
+              'opacity-0',
           ]"
           @dragover.prevent="onDragOver($event, index)"
         >
@@ -81,7 +98,8 @@
                 @click.prevent="onAnchorClick(anchor.id)"
                 :key="anchor.id"
                 :class="
-                  anchor.isActive && 'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
+                  anchor.isActive &&
+                  'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
                 "
                 :style="{ '--level': anchor.level - maxLevel }"
               >
@@ -96,7 +114,10 @@
           class="h-8 my-0.5 border border-dashed rounded-sm mx-2"
         />
       </div>
-      <div v-else-if="anchors.length > 1" class="table-of-contents flex flex-col gap-0.5 mb-2">
+      <div
+        v-else-if="anchors.length > 1"
+        class="table-of-contents flex flex-col gap-0.5 mb-2"
+      >
         <div v-for="anchor in anchors" class="flex">
           <a
             :href="'#' + anchor.id"
@@ -135,6 +156,7 @@ import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
 import LucideTrash from '~icons/lucide/trash'
+import LucideLeftClose from '~icons/lucide/panel-left-close'
 import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import { TextInput } from 'frappe-ui'
 
@@ -146,7 +168,8 @@ const props = defineProps({
   },
 })
 
-const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
+// const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
+const show = ref(true)
 watch(show, (v) => localStorage.setItem('showToc', v))
 
 // Get all tabs from the document
@@ -194,7 +217,9 @@ const currentTabAnchors = computed(() => {
 
   // Filter anchors that are within the active tab's position range
   return props.anchors.filter((anchor) => {
-    const element = props.editor.view.dom.querySelector(`[data-toc-id="${anchor.id}"]`)
+    const element = props.editor.view.dom.querySelector(
+      `[data-toc-id="${anchor.id}"]`,
+    )
     if (!element) return false
 
     const pos = props.editor.view.posAtDOM(element, 0)
@@ -203,7 +228,9 @@ const currentTabAnchors = computed(() => {
 })
 
 const maxLevel = computed(() =>
-  currentTabAnchors.value.length ? Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1 : 0,
+  currentTabAnchors.value.length
+    ? Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1
+    : 0,
 )
 
 const onAnchorClick = (id) => {
@@ -236,7 +263,10 @@ const startRenaming = (tab) => {
 
 const finishRenaming = (esc = false) => {
   if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
-    props.editor.commands.renameTab(editingTabId.value, editingTabLabel.value.trim())
+    props.editor.commands.renameTab(
+      editingTabId.value,
+      editingTabLabel.value.trim(),
+    )
   }
   editingTabId.value = null
   editingTabLabel.value = ''

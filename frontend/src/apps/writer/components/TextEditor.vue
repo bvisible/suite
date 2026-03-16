@@ -48,7 +48,7 @@ const editor = computed(() => {
 })
 provide('editor', editor)
 defineExpose({ editor })
-
+   
 const { doc, save, cleanup, provider, permanentUserData, loaded, ...commentsDetail } = useYjs(
   props.file.doc.name,
   props.document,
