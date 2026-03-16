@@ -4,7 +4,6 @@
 		@click="focusedSlide = null"
 	>
 		<EditorNavbar
-			:readonlyMode="readonlyMode"
 			@startSlideShow="startSlideShow"
 			@performDropdownAction="performNavbarDropdownAction"
 		/>
@@ -13,23 +12,20 @@
 			<SlideContainer
 				ref="slideContainer"
 				v-if="presentationDoc"
-				:readonlyMode="readonlyMode"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
-				@changeSlide="changeSlide"
+				@changeSlide="changeEditorSlide"
 			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
-				:readonlyMode="readonlyMode"
-				:showNavigator="showNavigator"
 				:recentlyRestored="recentlyRestored"
-				@changeSlide="changeSlide"
-				@openLayoutDialog="openLayoutDialog('insert', slides.length - 1)"
+				@changeSlide="changeEditorSlide"
+				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
 
 			<Toolbar
-				v-if="!readonlyMode && presentationDoc"
+				v-if="!inReadonlyMode && presentationDoc"
 				@setHighlight="setHighlight"
 				@openLayoutDialog="openLayoutDialog('insert')"
 				@duplicate="duplicateSlide"
@@ -37,97 +33,72 @@
 			/>
 
 			<PropertiesPanel
-				v-if="!readonlyMode"
+				v-if="!inReadonlyMode"
 				class="absolute bottom-0 right-0 top-0"
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
-
-		<LayoutDialog
-			v-if="layoutResource.data"
-			v-model="showLayoutDialog"
-			:theme="presentationDoc?.theme"
-			:layouts="layoutResource.data"
-			@insert="(layoutId) => handleInsertSlide(layoutId)"
-		/>
-
-		<ThemeDialog
-			v-model="showThemeDialog"
-			@create="(theme) => createPresentation(theme)"
-			@update="(theme) => updatePresentationTheme(theme)"
-			:update="themeDialogAction == 'update'"
-			:currentTheme="presentationDoc?.theme"
-		/>
 	</div>
+
+	<LayoutDialog
+		v-model="showLayoutDialog"
+		@insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
+	/>
+
+	<ThemeDialog
+		v-model="showThemeDialog"
+		@create="(theme) => createPresentation(theme)"
+		@update="(theme) => updatePresentationTheme(theme)"
+		:update="themeDialogAction == 'update'"
+	/>
 </template>
 
 <script setup>
-import {
-	ref,
-	watch,
-	computed,
-	useTemplateRef,
-	nextTick,
-	onDeactivated,
-	onActivated,
-	provide,
-	inject,
-} from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, watch, useTemplateRef, provide, onMounted, onBeforeUnmount, inject } from 'vue'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
-import { toast, call } from 'frappe-ui'
+import { call } from 'frappe-ui'
 
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
-import LayoutDialog from '@/components/LayoutDialog.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 
+import { initHistory, recentlyRestored } from '@/stores/history'
 import {
 	presentationId,
-	layoutResource,
 	initPresentationDoc,
 	presentationDoc,
-	historyControl,
-	historyState,
-	initHistory,
-	ignoreUpdates,
 	unsyncedPresentationRecord,
-	readonlyMode,
 	slidesLength,
-	historyMetadata,
+	templateList,
+	templateListResource,
+	inReadonlyMode,
 	createPresentationResource,
 	duplicatePresentation,
 	deletePresentation,
+	presentationTheme,
+	resetEditorState,
 } from '@/stores/presentation'
 import {
 	slides,
 	slideIndex,
 	selectionBounds,
-	updateSelectionBounds,
 	updateThumbnail,
 	lastThumbnailTime,
 	focusedSlide,
-	insertSlide,
-	getNewSlide,
+	setSlideIndex,
+	changeEditorSlide,
+	deleteSlide,
+	duplicateSlide,
+	addEmptySlide,
+	handleInsertSlide,
 } from '@/stores/slide'
-import {
-	resetFocus,
-	activeElementIds,
-	activeElement,
-	focusElementId,
-	deleteElements,
-	duplicateElements,
-	addTextElement,
-	selectAllElements,
-	activeElements,
-} from '@/stores/element'
+import { resetFocus, focusElementId } from '@/stores/element'
 
-import { useTextEditor } from '@/composables/useTextEditor'
-
-import { generateUniqueId, isCmdOrCtrl } from '@/utils/helpers'
+import { useShortcuts } from '@/composables/useShortcuts'
 import {
 	saveChanges,
 	dirtySince,
@@ -135,11 +106,14 @@ import {
 	syncPresentationToServer,
 	syncThumbnail,
 } from '@/stores/saving'
-import { previousRoute } from '@/router'
-
-const { activeEditor, toggleMark } = useTextEditor()
+import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
+import { Layout } from 'lucide-vue-next'
+import LayoutDialog from '@/components/LayoutDialog.vue'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
+
+const route = useRoute()
+const router = useRouter()
 
 let autosaveInterval = null
 let thumbnailInterval = null
@@ -151,313 +125,25 @@ const props = defineProps({
 		type: Number,
 		required: true,
 	},
+	editorAccess: {
+		type: String,
+		default: 'none',
+	},
 })
 
-const router = useRouter()
+useShortcuts(inReadonlyMode, inSlideShowMode)
 
-const slideContainerRef = useTemplateRef('slideContainer')
-const dropTargetRef = useTemplateRef('dropTarget')
-
-const showNavigator = ref(true)
 const showThemeDialog = ref(false)
 const themeDialogAction = ref('update')
 const slideHighlight = ref(false)
 const hasOngoingInteraction = ref(false)
 
+const showLayoutDialog = ref(false)
+const layoutAction = ref('')
+const insertIndex = ref(null)
+
 const setHighlight = (value) => {
 	slideHighlight.value = value
-}
-
-const handleArrowKeys = (key) => {
-	let dx = 0
-	let dy = 0
-
-	if (key == 'ArrowLeft') dx = -1
-	else if (key == 'ArrowRight') dx = 1
-	else if (key == 'ArrowUp') dy = -1
-	else if (key == 'ArrowDown') dy = 1
-
-	updateSelectionBounds({
-		left: selectionBounds.left + dx,
-		top: selectionBounds.top + dy,
-	})
-
-	activeElements.value.forEach((element) => {
-		element.left += dx
-		element.top += dy
-	})
-}
-
-const saveSlide = (e) => {
-	e.preventDefault()
-	resetAndSave()
-}
-
-const toggleSlideNavigator = () => {
-	if (!activeElementIds.value.length || activeElement.value.type != 'text') {
-		showNavigator.value = !showNavigator.value
-	}
-}
-
-const handleShowLayoutDialogShortcut = (e) => {
-	e.preventDefault()
-	openLayoutDialog('insert')
-}
-
-const addEmptySlide = (e) => {
-	e.preventDefault()
-	const layoutId = layoutResource.data?.slides[0]?.name
-	if (layoutId) handleInsertSlide(layoutId)
-}
-
-const handleElementShortcuts = (e) => {
-	switch (e.key) {
-		case 'ArrowLeft':
-		case 'ArrowRight':
-		case 'ArrowUp':
-		case 'ArrowDown':
-			handleArrowKeys(e.key)
-			break
-		case 'Delete':
-		case 'Backspace':
-			deleteElements(e)
-			break
-		case 'd':
-			if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
-			break
-		case 'b':
-			if (activeEditor.value) toggleMark('bold')
-			break
-		case 'i':
-			if (activeEditor.value) toggleMark('italic')
-			break
-		case 'u':
-			if (activeEditor.value) toggleMark('underline')
-			break
-	}
-}
-
-const handleSlideShortcuts = (e) => {
-	switch (e.key) {
-		case 'ArrowUp':
-			changeSlide(slideIndex.value - 1)
-			break
-		case 'ArrowDown':
-			changeSlide(slideIndex.value + 1)
-			break
-		case 'Delete':
-		case 'Backspace':
-			deleteSlide()
-			break
-		case 'd':
-			if (isCmdOrCtrl(e)) duplicateSlide(e)
-			break
-	}
-}
-
-const handleGlobalShortcuts = (e) => {
-	if (isCmdOrCtrl(e) && e.code === 'KeyP') {
-		e.preventDefault()
-		startSlideShow()
-		return
-	}
-
-	switch (e.key) {
-		case 'Escape':
-			resetFocus()
-			break
-		case 't':
-			addTextElement()
-			break
-		case 'b':
-			if (isCmdOrCtrl(e)) toggleSlideNavigator()
-			break
-		case 'a':
-			if (isCmdOrCtrl(e)) selectAllElements(e)
-			break
-		case 's':
-			if (isCmdOrCtrl(e)) saveSlide(e)
-			break
-		case 'n':
-			if (e.ctrlKey) handleShowLayoutDialogShortcut(e)
-			break
-		case 'Enter':
-			addEmptySlide(e)
-			break
-		case 'F5':
-			e.preventDefault()
-			startSlideShow()
-			break
-	}
-}
-
-const recentlyRestored = ref(false)
-
-const getRestoredSlideId = (oldList, newList) => {
-	let restoredId = ''
-	newList.forEach((slide, index) => {
-		if (!oldList.find((s) => s.name === slide.name)) {
-			restoredId = index
-		}
-	})
-	return restoredId
-}
-
-const getPrevToDeletedSlideId = (oldList, newList) => {
-	let prevId = null
-	oldList.forEach((slide, index) => {
-		if (!newList.find((s) => s.name === slide.name)) {
-			prevId = index - 1
-		}
-	})
-	return prevId
-}
-
-const wereSlidesReordered = (oldList, newList) => {
-	if (oldList.length !== newList.length) return false
-
-	for (let i = 0; i < newList.length; i++) {
-		if (oldList[i] && oldList[i].name !== newList[i].name) {
-			return true
-		}
-	}
-	return false
-}
-
-const getJumpToSlideId = (operation, oldList, newList) => {
-	// reordered slides -> the jump to index becomes the slide that was moved
-	const didReorder = wereSlidesReordered(oldList, newList)
-	if (didReorder && operation == 'undo') return historyMetadata.focusIndexPostUndo
-	if (didReorder && operation == 'redo') return historyMetadata.focusIndexPostRedo
-
-	if (oldList.length < newList.length) {
-		return getRestoredSlideId(oldList, newList)
-	}
-
-	if (oldList.length > newList.length) {
-		return getPrevToDeletedSlideId(oldList, newList)
-	}
-
-	if (historyControl.undoStack.value.length == 1 && operation == 'undo') {
-		return Math.max(0, Math.min(slideIndex.value, slidesLength.value - 1))
-	}
-
-	const slideId = historyState.value.activeSlide
-	return slides.value.findIndex((slide) => slide.name === slideId)
-}
-
-const restoreState = (state, jumpToSlideId) => {
-	ignoreUpdates(() => {
-		slides.value = JSON.parse(JSON.stringify(state)).map((slide, idx) => {
-			if (idx === jumpToSlideId) {
-				slide.thumbnail = ''
-			}
-			return slide
-		})
-		slidesLength.value = slides.value.length
-	})
-}
-
-const jumpToSlide = async (operation, oldList, newList) => {
-	const jumpToSlideId = getJumpToSlideId(operation, oldList, newList)
-	const onActiveSlide = jumpToSlideId == slideIndex.value
-
-	if (!onActiveSlide && jumpToSlideId != null) {
-		await changeSlide(jumpToSlideId, false)
-
-		recentlyRestored.value = true
-		setTimeout(() => {
-			recentlyRestored.value = false
-		}, 1000)
-	}
-
-	return jumpToSlideId
-}
-
-const jumpToActiveElements = () => {
-	const elementsToFocus = [...historyState.value.elementIds]
-
-	if (activeElementIds.value != elementsToFocus) {
-		activeElementIds.value = elementsToFocus
-	}
-}
-
-const handleHistoryOperation = async (operation) => {
-	activeElementIds.value = []
-
-	if (operation == 'undo') await historyControl.undo()
-	else if (operation == 'redo') await historyControl.redo()
-
-	const oldList = JSON.parse(JSON.stringify(slides.value))
-	const newList = JSON.parse(JSON.stringify(historyState.value.slides))
-
-	const jumpToSlideId = await jumpToSlide(operation, oldList, newList)
-
-	restoreState(historyState.value.slides, jumpToSlideId)
-
-	await nextTick()
-
-	updateThumbnail(jumpToSlideId)
-
-	nextTick(() => {
-		jumpToActiveElements()
-	})
-}
-
-const handleUndoRedo = (e) => {
-	e.preventDefault()
-
-	if (activeEditor.value?.isEditable) {
-		e.stopPropagation()
-		return
-	}
-
-	if (isCmdOrCtrl(e) && e.shiftKey && historyControl.canRedo.value) {
-		handleHistoryOperation('redo')
-	} else if (isCmdOrCtrl(e) && historyControl.undoStack.value.length > 1) {
-		handleHistoryOperation('undo')
-	}
-}
-
-const handleKeyDown = (e) => {
-	const editingText =
-		document.activeElement.getAttribute('contenteditable') ||
-		document.activeElement.tagName == 'INPUT' ||
-		focusElementId.value != null
-
-	if (editingText) return
-
-	if (e.key == 'z') return handleUndoRedo(e)
-
-	handleGlobalShortcuts(e)
-
-	activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
-}
-
-const handleKeyDownForReadonly = (e) => {
-	switch (e.key) {
-		case 'ArrowUp':
-			changeSlide(slideIndex.value - 1)
-			break
-		case 'ArrowDown':
-			changeSlide(slideIndex.value + 1)
-			break
-		case 'F5':
-			e.preventDefault()
-			startSlideShow()
-			break
-		case 'b':
-			if (isCmdOrCtrl(e)) toggleSlideNavigator()
-			break
-	}
-}
-
-const startSlideShow = () => {
-	router.replace({
-		name: 'Slideshow',
-		params: { presentationId: props.presentationId },
-		query: { slide: props.activeSlideId },
-	})
 }
 
 const handleAutoSave = () => {
@@ -471,96 +157,6 @@ const handleThumbnailGeneration = async (index) => {
 	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime.value) {
 		await updateThumbnail(index)
 	}
-}
-
-const changeSlide = async (index, focus = true) => {
-	index = Math.max(0, Math.min(index, slidesLength.value - 1))
-
-	if (!readonlyMode.value) {
-		await resetFocus()
-	}
-
-	await router.replace({
-		query: { slide: index + 1 },
-	})
-
-	if (focus) {
-		focusedSlide.value = index
-	} else {
-		focusedSlide.value = null
-	}
-}
-
-const insertDuplicateSlide = async (index, layoutId, toDuplicate) => {
-	if (toDuplicate || !index) index = slideIndex.value
-
-	const newSlide = getNewSlide(toDuplicate, layoutId)
-
-	insertSlide(newSlide, index)
-
-	await changeSlide(index + 1)
-
-	updateThumbnail(index + 1)
-}
-
-const deleteSlide = (deleteActive) => {
-	let deleteIndex = focusedSlide.value
-	if (!deleteIndex && deleteActive) deleteIndex = slideIndex.value
-	if (deleteIndex == null) return
-
-	// if there is only one slide, reset the slide state instead of deleting
-	const totalLength = slides.value.length
-
-	if (totalLength == 1) {
-		slides.value[0].elements = []
-		focusedSlide.value = null
-		return
-	}
-
-	// delete the current slide
-	slides.value = slides.value.filter((slide, i) => {
-		return i != deleteIndex
-	})
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-
-	slidesLength.value = slides.value.length
-
-	if (deleteIndex == totalLength - 1) {
-		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeSlide(deleteIndex - 1)
-	}
-}
-
-const duplicateSlide = (e) => {
-	e.preventDefault()
-
-	insertDuplicateSlide(slideIndex.value, null, true)
-}
-
-const replaceSlide = (layoutId) => {
-	const index = slideIndex.value
-	const newSlide = getNewSlide(false, layoutId)
-
-	slides.value.splice(index, 1, newSlide)
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-}
-
-const resetAndSave = async () => {
-	await resetFocus()
-	if (!isDirty.value) {
-		toast.info('No changes to save')
-		return
-	}
-	const toastProps = {
-		loading: `Saving ...`,
-		success: () => `Saved`,
-		error: () => 'Could not save presentation. Please try again.',
-	}
-	toast.promise(saveChanges(), toastProps)
 }
 
 const updateRoute = async (slug) => {
@@ -579,58 +175,9 @@ const initIntervals = () => {
 	}, 1500)
 }
 
-const setSlideIndex = (index) => {
-	index = parseInt(index) - 1
-	slideIndex.value = Math.min(index, slidesLength.value - 1)
-}
-
 const loadPresentation = async (id) => {
-	// TODO: remove on router refactor
-	if (!previousRoute || previousRoute.name != 'Slideshow') {
-		initHistory()
-		presentationDoc.value = await initPresentationDoc(id)
-		layoutResource.fetch({ theme: presentationDoc.value.theme })
-	}
-	setSlideIndex(props.activeSlideId)
-	updateRoute(presentationDoc.value.slug)
-	initIntervals()
+	presentationDoc.value = await initPresentationDoc(id, inReadonlyMode.value)
 }
-
-const loadPresentationInReadonlyMode = async (id) => {
-	presentationDoc.value = await initPresentationDoc(id, true)
-	setSlideIndex(props.activeSlideId)
-	updateRoute(presentationDoc.value.slug)
-}
-
-const route = useRoute()
-
-const handleOnActivated = () => {
-	readonlyMode.value = route.name === 'PresentationView'
-
-	if (route.name === 'EditorNew') {
-		presentationDoc.value = null
-		slides.value = []
-		themeDialogAction.value = 'create'
-		showThemeDialog.value = true
-		return
-	}
-
-	const id = props.presentationId
-	if (!id) return
-
-	if (readonlyMode.value) {
-		loadPresentationInReadonlyMode(id)
-		document.addEventListener('keydown', handleKeyDownForReadonly)
-	} else {
-		loadPresentation(id)
-		document.addEventListener('keydown', handleKeyDown)
-		window.addEventListener('beforeunload', handleBeforeUnload)
-	}
-}
-
-onActivated(() => {
-	handleOnActivated()
-})
 
 const updateUnsyncedRecord = () => {
 	unsyncedPresentationRecord.value = {
@@ -640,45 +187,62 @@ const updateUnsyncedRecord = () => {
 	}
 }
 
-onDeactivated(async () => {
-	if (previousRoute?.name == 'EditorNew') {
-		showThemeDialog.value = false
-		return
+const handleBeforeUnload = (e) => {
+	if (isDirty.value || syncThumbnail > 0) {
+		e.preventDefault()
+		e.returnValue = ''
 	}
-	if (readonlyMode.value) {
-		document.removeEventListener('keydown', handleKeyDownForReadonly)
-	} else {
-		updateUnsyncedRecord()
-		clearInterval(autosaveInterval)
-		clearInterval(thumbnailInterval)
-
-		if (router.currentRoute.value.name !== 'Slideshow') {
-			await resetFocus()
-			syncPresentationToServer()
-		}
-
-		document.removeEventListener('keydown', handleKeyDown)
-		window.removeEventListener('beforeunload', handleBeforeUnload)
-	}
-})
-
-const showLayoutDialog = ref(false)
-const layoutAction = ref('')
-const insertIndex = ref(null)
-
-const openLayoutDialog = (action, index) => {
-	showLayoutDialog.value = true
-	layoutAction.value = action
-	insertIndex.value = index
 }
 
-const handleInsertSlide = (layoutId) => {
-	if (layoutAction.value == 'replace') {
-		replaceSlide(layoutId)
-	} else {
-		insertDuplicateSlide(insertIndex.value, layoutId)
+const loadTemplates = () => {
+	if (templateList.value.length || inReadonlyMode.value) return
+	templateListResource.fetch()
+}
+
+const performBeforeLoadOperations = () => {
+	if (inReadonlyMode.value) return
+
+	window.addEventListener('beforeunload', handleBeforeUnload)
+
+	initHistory()
+}
+
+const performAfterLoadOperations = () => {
+	setSlideIndex(props.activeSlideId)
+	updateRoute(presentationDoc.value.slug)
+
+	if (inReadonlyMode.value) return
+
+	initIntervals()
+}
+
+const loadEditorState = async () => {
+	const id = props.presentationId
+	if (!id) return
+
+	performBeforeLoadOperations()
+	await loadPresentation(id)
+	performAfterLoadOperations()
+}
+
+const handleMounted = () => {
+	// templates load from Home.vue
+	// but if user lands directly on editor check and load them
+	inReadonlyMode.value = props.editorAccess == 'view'
+	loadTemplates()
+	loadEditorState()
+}
+
+const handleBeforeUnmount = () => {
+	updateUnsyncedRecord()
+	clearInterval(autosaveInterval)
+	clearInterval(thumbnailInterval)
+
+	if (router.currentRoute.value.name !== 'Slideshow') {
+		resetFocus()
+		syncPresentationToServer()
 	}
-	insertIndex.value = null
+	window.removeEventListener('beforeunload', handleBeforeUnload)
 }
 
 watch(
@@ -702,19 +266,33 @@ watch(
 watch(
 	() => props.presentationId,
 	(id) => {
-		if (!id) return
-		if (!presentationDoc.value) return
-		if (route.name === 'EditorNew') return
-		updateRoute(presentationDoc.value.slug)
+		if (route.name === 'EditorNew') {
+			resetEditorState()
+			themeDialogAction.value = 'create'
+			showThemeDialog.value = true
+			return
+		}
+		loadEditorState()
 	},
 )
 
-const handleBeforeUnload = (e) => {
-	if (isDirty.value || syncThumbnail > 0) {
-		e.preventDefault()
-		e.returnValue = ''
-	}
-}
+onBeforeRouteLeave(() => {
+	showThemeDialog.value = false
+})
+
+watch(
+	() => props.editorAccess,
+	(doc) => {
+		inReadonlyMode.value = doc === 'view'
+	},
+)
+
+onMounted(() => handleMounted())
+
+onBeforeUnmount(() => handleBeforeUnmount())
+
+provide('inReadonlyMode', inReadonlyMode)
+provide('inSlideShowMode', inSlideShowMode)
 
 const navigateToPresentation = async (name) => {
 	if (route.name === 'EditorNew') {
@@ -730,14 +308,12 @@ const navigateToPresentation = async (name) => {
 			query: { slide: 1 },
 		})
 	}
-
-	handleOnActivated()
 }
 
 const createPresentation = async (theme) => {
 	showThemeDialog.value = false
 	const newPresentation = await createPresentationResource.submit({
-		theme: theme,
+		template: theme,
 	})
 	const name = newPresentation?.name
 
@@ -768,7 +344,6 @@ const updatePresentationTheme = async (theme) => {
 		fieldname: 'theme',
 		value: theme,
 	}).then(() => {
-		layoutResource.fetch({ theme: theme })
 		presentationDoc.value.theme = theme
 	})
 }
@@ -776,7 +351,6 @@ const updatePresentationTheme = async (theme) => {
 const performNavbarDropdownAction = async (action) => {
 	if (action == 'create') {
 		await router.push({ name: 'EditorNew' })
-		handleOnActivated()
 	} else if (action == 'duplicate') {
 		const newPresentation = await duplicatePresentation(presentationId.value)
 		navigateToPresentation(newPresentation)
@@ -788,5 +362,11 @@ const performNavbarDropdownAction = async (action) => {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true
 	}
+}
+
+const openLayoutDialog = (action, index) => {
+	showLayoutDialog.value = true
+	layoutAction.value = action
+	insertIndex.value = index
 }
 </script>

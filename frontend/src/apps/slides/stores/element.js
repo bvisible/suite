@@ -26,7 +26,7 @@ const pairElementId = ref(null)
 
 const activeElements = computed(() => {
 	let elements = []
-	currentSlide.value.elements.forEach((element) => {
+	currentSlide.value?.elements.forEach((element) => {
 		if (activeElementIds.value.includes(element.id)) {
 			elements.push(element)
 		}
@@ -36,7 +36,7 @@ const activeElements = computed(() => {
 
 const activeElement = computed(() => {
 	if (focusElementId.value) {
-		return currentSlide.value.elements.find((element) => element.id === focusElementId.value)
+		return currentSlide.value?.elements.find((element) => element.id === focusElementId.value)
 	} else if (activeElementIds.value.length == 1) {
 		return activeElements.value[0]
 	}

@@ -9,9 +9,7 @@
 			<component :is="activeProperties" />
 			<AppearanceProperties v-if="activeElement" />
 		</div>
-		<div v-else>
-			<SlideProperties v-if="currentSlide" @openLayoutDialog="$emit('openLayoutDialog')" />
-		</div>
+		<SlideProperties v-else-if="currentSlide" />
 	</div>
 </template>
 
@@ -29,8 +27,6 @@ import AppearanceProperties from '@/components/AppearanceProperties.vue'
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
-
-const emit = defineEmits(['openLayoutDialog'])
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type

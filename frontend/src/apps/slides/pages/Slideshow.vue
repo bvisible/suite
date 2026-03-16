@@ -6,19 +6,17 @@
 			:style="slideContainerStyles"
 		>
 			<div
-				v-if="slideshowEnded"
+				v-if="showSlideshowEndScreen"
 				class="flex h-full w-full items-center justify-center bg-black"
+				@click="endSlideShow()"
 			>
-				<SlideshowEndScreen
-					@restartSlideShow="changeSlide(0)"
-					@endSlideShow="endSlideShow"
-				/>
+				<SlideshowEndScreen @restartSlideShow="changeSlideInSlideshow(0)" />
 			</div>
 
 			<div
 				v-else-if="isMagicMoveApplied"
 				:style="slideStyles"
-				@click="changeSlide(slideIndex + 1)"
+				@click="changeSlideInSlideshow(slideIndex + 1)"
 			>
 				<FadeElementTransition
 					:duration="parseFloat(prevSlide?.transitionDuration)"
@@ -33,7 +31,6 @@
 						:transitionStyles="transitionStyles"
 						:style="getElementTransitionStyles(element)"
 						class="forward-transition"
-						@click.stop
 					/>
 				</FadeElementTransition>
 			</div>
@@ -48,7 +45,7 @@
 					<div
 						:key="slideIndex"
 						:style="slideStyles"
-						@click="changeSlide(slideIndex + 1)"
+						@click="changeSlideInSlideshow(slideIndex + 1)"
 					>
 						<SlideElement
 							v-for="element in currentSlide?.elements"
@@ -56,7 +53,6 @@
 							mode="slideshow"
 							:element="element"
 							:data-index="element.id"
-							@click.stop
 						/>
 					</div>
 				</Transition>
@@ -66,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onActivated, onDeactivated, ref, useTemplateRef, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, useTemplateRef, watch, provide } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
@@ -74,14 +70,16 @@ import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
 import FadeElementTransition from '@/components/FadeElementTransition.vue'
 
 import {
-	applyReverseTransition,
-	initPresentationDoc,
-	inSlideShow,
-	isPublicPresentation,
-	presentationDoc,
-} from '@/stores/presentation'
-import { currentSlide, slideIndex, slides } from '@/stores/slide'
-import { session } from '@/stores/session'
+	inSlideShowMode,
+	showSlideshowEndScreen,
+	endSlideShow,
+	prefetchNextSlide,
+	changeSlideInSlideshow,
+} from '@/stores/slideshow'
+
+import { applyReverseTransition, initPresentationDoc, inReadonlyMode } from '@/stores/presentation'
+import { currentSlide, setSlideIndex, slideIndex, slides } from '@/stores/slide'
+import { resetFocus } from '@/stores/element'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -108,57 +106,6 @@ const getElementKey = (element) => {
 }
 
 const slideCursor = ref('none')
-
-const prefetchedAssets = ref(new Set())
-
-const prefetchNextSlide = () => {
-	const nextSlideIndex = slideIndex.value + 1
-	if (nextSlideIndex >= slides.value.length) return
-
-	const nextSlide = slides.value[nextSlideIndex]
-	nextSlide?.elements?.forEach((element) => {
-		if (element.type === 'image' && element.src) {
-			prefetchAsset(element.src, 'image')
-		} else if (element.type === 'video') {
-			element.poster && prefetchAsset(element.poster, 'image')
-		}
-	})
-}
-
-const getAssetUrl = (url) => {
-	if (presentationDoc.value?.owner === session.user || session.user === 'Administrator') {
-		return url
-	}
-	return `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
-}
-
-const prefetchAsset = async (src, type) => {
-	if (prefetchedAssets.value.has(src)) return
-	prefetchedAssets.value.add(src)
-
-	try {
-		const url = buildAssetUrl(src, type)
-
-		if (type === 'image') {
-			// Use link prefetch for images
-			const link = document.createElement('link')
-			link.rel = 'preload'
-			link.href = getAssetUrl(url)
-			link.as = 'image'
-			document.head.appendChild(link)
-		}
-	} catch (error) {
-		console.warn('Failed to prefetch asset:', src, error)
-	}
-}
-
-const buildAssetUrl = (src, type) => {
-	if (src.startsWith('/private') || src.startsWith('/assets')) {
-		return src
-	}
-
-	return `/private${src}`
-}
 
 const prevSlide = computed(() => {
 	if (slideIndex.value == 0) return null
@@ -315,43 +262,10 @@ const resetCursorVisibility = () => {
 const handleFullScreenChange = () => {
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
-		inSlideShow.value = true
+		inSlideShowMode.value = true
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 		endSlideShow()
-	}
-}
-
-const performPreviousStep = () => {
-	const videoEl = document.querySelector('video')
-	if (videoEl && videoEl.currentTime > 0) {
-		videoEl.currentTime = 0
-		videoEl.pause()
-		return
-	}
-	changeSlide(slideIndex.value - 1)
-}
-
-const performNextStep = () => {
-	const videoEls = document.querySelectorAll('video')
-
-	for (const videoEl of videoEls) {
-		if (videoEl && videoEl.currentTime == 0 && videoEl.paused) {
-			videoEl.play()
-			return
-		}
-	}
-	changeSlide(slideIndex.value + 1)
-}
-
-const handleKeyDown = (e) => {
-	if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space' || e.key == 'PageDown') {
-		performNextStep()
-	} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
-		performPreviousStep()
-	} else if (e.key == 'F5') {
-		e.preventDefault()
-		changeSlide(0)
 	}
 }
 
@@ -390,45 +304,9 @@ const initFullscreenMode = async () => {
 		fullscreenMethod.call(container).catch((e) => {
 			router.replace({ name: 'PresentationEditor' })
 		})
-		inSlideShow.value = true
 
 		setClipPath()
 	}
-}
-
-const slideshowEnded = computed(() => {
-	return slideIndex.value >= slides.value.length
-})
-
-const endSlideShow = () => {
-	inSlideShow.value = false
-	const slide =
-		slideIndex.value == slides.value.length ? slides.value.length : slideIndex.value + 1
-	router.replace({
-		name: 'PresentationEditor',
-		params: { presentationId: props.presentationId },
-		query: { slide: slide },
-	})
-}
-
-const changeSlide = (index) => {
-	if (index < 0) return
-	if (index >= slides.value.length + 1) return endSlideShow()
-
-	applyReverseTransition.value = index < slideIndex.value
-
-	nextTick(() => {
-		router.replace({
-			name: 'Slideshow',
-			params: { presentationId: props.presentationId },
-			query: { slide: index + 1 },
-		})
-
-		// Prefetch next slide assets after navigation
-		setTimeout(() => {
-			prefetchNextSlide()
-		}, 100)
-	})
 }
 
 const loadPresentation = async () => {
@@ -437,9 +315,9 @@ const loadPresentation = async () => {
 }
 
 onActivated(() => {
+	resetFocus()
 	loadPresentation()
 	initFullscreenMode()
-	document.addEventListener('keydown', handleKeyDown)
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
 
 	// Initial prefetch of next slide
@@ -449,14 +327,13 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
-	document.removeEventListener('keydown', handleKeyDown)
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
 })
 
 watch(
 	() => props.activeSlideId,
 	(index) => {
-		slideIndex.value = parseInt(index) - 1
+		setSlideIndex(index)
 		// Prefetch next slide when current slide changes
 		setTimeout(() => {
 			prefetchNextSlide()
@@ -464,6 +341,9 @@ watch(
 	},
 	{ immediate: true },
 )
+
+provide('inReadonlyMode', inReadonlyMode)
+provide('inSlideShowMode', inSlideShowMode)
 </script>
 
 <style>

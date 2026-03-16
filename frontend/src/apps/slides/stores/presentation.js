@@ -1,21 +1,18 @@
-import { ref, reactive, computed } from 'vue'
-import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
+import { ref, computed } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
 import { router } from '@/router'
-import { slides, slideIndex, currentSlide } from './slide'
-import { activeElementIds, normalizeZIndices } from '@/stores/element'
+import { slides } from './slide'
+import { normalizeZIndices } from '@/stores/element'
 
-import { cloneObj } from '@/utils/helpers'
+import { ignoreUpdates } from '@/stores/history'
 
 const isDriveInstalled = window.apps?.includes('drive') ?? false
 
 const presentationDoc = ref()
 
 const presentationId = ref('')
-
-const inSlideShow = ref(false)
 
 const applyReverseTransition = ref(false)
 
@@ -25,7 +22,18 @@ const createPresentationResource = createResource({
 	makeParams: (args) => {
 		return {
 			duplicate_from: args.duplicateFrom,
-			theme: args.theme,
+			template: args.template,
+		}
+	},
+	transform: (doc) => {
+		return {
+			name: doc.name,
+			title: doc.title,
+			owner: doc.owner,
+			creation: doc.creation,
+			modified_by: doc.modified_by,
+			modified: doc.modified,
+			thumbnail: doc.thumbnail || '',
 		}
 	},
 })
@@ -257,27 +265,6 @@ const savePresentationDoc = async (updatedSlides) => {
 	updateNewlyAddedSlideUUIDs()
 }
 
-const layoutResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
-	method: 'GET',
-	auto: false,
-	transform: (data) => {
-		for (const slide of data.slides || []) {
-			slide.thumbnail = slide.thumbnail || ''
-			slide.elements = parseElements(slide.elements)
-			slide.transitionDuration = slide.transition_duration
-			// remove the transition_duration field to avoid confusion
-			delete slide.transition_duration
-			delete slide.fade_unmatched_elements
-		}
-	},
-	makeParams: ({ theme }) => {
-		return {
-			theme: theme,
-		}
-	},
-})
-
 const presentationResource = ref(null)
 
 const initPresentationDoc = async (id, readonly = false) => {
@@ -297,63 +284,26 @@ const initPresentationDoc = async (id, readonly = false) => {
 	}
 }
 
-let historyControl = null
-
-const historyState = ref({
-	elementIds: '',
-	activeSlide: '',
-	slides: [],
-})
-
-const historyMetadata = reactive({})
-
-const updateHistoryState = (slides, activeSlide, elementIds) => {
-	const slidesClone = [...slides].map((slide, idx) => {
-		return {
-			...slide,
-			elements: slide.elements.map((el) => cloneObj(el)),
-		}
-	})
-
-	historyState.value = {
-		elementIds: elementIds,
-		activeSlide: activeSlide,
-		slides: slidesClone,
-	}
-}
-
-const { ignoreUpdates } = watchIgnorable(
-	() => slides.value,
-	(newVal) => {
-		if (!newVal.length) return
-		commitToHistory(newVal)
-	},
-	{ deep: true },
-)
-
-const commitToHistory = (state) => {
-	const activeSlide = currentSlide.value?.name
-	const elementIds = activeElementIds.value
-
-	updateHistoryState(state, activeSlide, elementIds)
-
-	historyControl?.commit()
-}
-
-const initHistory = () => {
-	historyState.value.activeSlide = currentSlide.value?.name
-	historyControl = useManualRefHistory(historyState, {
-		capacity: 25,
-		clone: true,
-		deep: true,
-	})
-}
-
 const unsyncedPresentationRecord = ref({})
 
 const isPublicPresentation = ref(false)
 
-const readonlyMode = ref(false)
+const templateList = ref([])
+
+const templateListResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_templates',
+	method: 'GET',
+	cache: 'templates',
+	onSuccess: (data) => {
+		templateList.value = data
+	},
+})
+
+const presentationTheme = computed(() => {
+	return presentationDoc.value?.theme
+})
+
+const inReadonlyMode = ref(false)
 
 const deletePresentation = async (presentation) => {
 	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
@@ -378,26 +328,30 @@ const duplicatePresentation = async (presentation) => {
 	return newPresentation.name
 }
 
+const resetEditorState = () => {
+	presentationDoc.value = null
+	slides.value = []
+	slidesLength.value = 0
+	isPublicPresentation.value = false
+}
+
 export {
 	presentationId,
-	inSlideShow,
 	applyReverseTransition,
 	createPresentationResource,
+	presentationDoc,
+	unsyncedPresentationRecord,
+	isPublicPresentation,
+	slidesLength,
+	templateList,
+	templateListResource,
+	presentationTheme,
+	inReadonlyMode,
 	updatePresentationTitle,
 	hasStateChanged,
 	savePresentationDoc,
 	initPresentationDoc,
-	layoutResource,
-	presentationDoc,
-	historyControl,
-	historyState,
-	initHistory,
-	ignoreUpdates,
-	unsyncedPresentationRecord,
-	isPublicPresentation,
-	readonlyMode,
-	slidesLength,
-	historyMetadata,
-	duplicatePresentation,
 	deletePresentation,
+	duplicatePresentation,
+	resetEditorState,
 }

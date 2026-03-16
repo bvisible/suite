@@ -13,21 +13,19 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
-import {
-	readonlyMode,
-	unsyncedPresentationRecord,
-	updatePresentationTitle,
-} from '@/stores/presentation'
+import { unsyncedPresentationRecord, updatePresentationTitle } from '@/stores/presentation'
 import { setCursorPositionAtEnd } from '@/utils/helpers'
 
 const props = defineProps({
 	title: String,
 })
+
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const route = useRoute()
 const router = useRouter()
@@ -51,7 +49,7 @@ const inputClasses = computed(() => {
 })
 
 const makeTitleEditable = (e) => {
-	if (editingTitle.value || readonlyMode.value) return
+	if (editingTitle.value || inReadonlyMode.value) return
 
 	editingTitle.value = true
 	e.target.focus()
