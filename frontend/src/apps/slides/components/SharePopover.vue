@@ -8,7 +8,7 @@
 			</Button>
 		</template>
 		<template #body="{ close }">
-			<div class="my-1 flex w-[24rem] flex-col gap-2 rounded-lg bg-white p-4 shadow-xl">
+			<div class="my-4 flex w-[24rem] flex-col gap-2 rounded-lg bg-white p-4 shadow-xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						<LucideEarth class="size-4 stroke-[1.5] text-gray-700" />

@@ -28,7 +28,7 @@
 					<div
 						class="m-1 aspect-video cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300"
 						:class="getThemeThumbnailClasses(theme.name)"
-						:style="getThumbnailCardStyles(theme.layouts[0].thumbnail)"
+						:style="getThumbnailCardStyles(theme.layouts[2].thumbnail)"
 						@click="performAction(theme.name)"
 					></div>
 					<div class="flex">
