@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount } from 'vue'
+import { computed, onBeforeMount, inject, ref } from 'vue'
 
 import SlideshowText from '@/components/SlideshowText.vue'
 
@@ -34,7 +34,6 @@ import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
 import { isAffectedByMagicMove } from '@/stores/transition'
 import { extensions } from '@/stores/tiptapSetup'
@@ -48,6 +47,9 @@ const props = defineProps({
 		default: 'editor',
 	},
 })
+
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
+const inSlideShowMode = inject('inSlideShowMode', ref(false))
 
 const showEditor = computed(() => {
 	if (!activeElement.value) return false
@@ -69,13 +71,13 @@ const editorStyles = computed(() => ({
 }))
 
 const handleMouseDown = (e) => {
-	if (!isEditable.value || readonlyMode.value) return
+	if (!isEditable.value || inReadonlyMode.value) return
 
 	e.stopPropagation()
 }
 
 const handleDoubleClick = (e) => {
-	if (inSlideShow.value || isEditable.value || readonlyMode.value) {
+	if (inSlideShowMode.value || isEditable.value || inReadonlyMode.value) {
 		e.stopPropagation()
 		return
 	}
@@ -103,7 +105,7 @@ const isAutoWidth = computed(() => {
 
 const showMagicMoveText = computed(
 	() =>
-		inSlideShow.value &&
+		inSlideShowMode.value &&
 		isAffectedByMagicMove(slideIndex.value) &&
 		![null, undefined, ''].includes(element.value.refId),
 )

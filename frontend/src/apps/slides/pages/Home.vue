@@ -12,7 +12,7 @@
 			:loading="presentationListResource.loading"
 			:presentations="presentationList"
 			@setPreview="setPreview"
-			@navigate="(name, present) => navigateToPresentation(name, present)"
+			@navigate="navigateToPresentation"
 			@openDialog="openDialog"
 			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
 		/>
@@ -31,14 +31,13 @@
 		v-model="showDialog"
 		:dialogAction="dialogAction"
 		:presentation="selectedPresentation"
-		@reloadList="reloadList"
 		@closeDialog="closeDialog"
-		@navigate="navigateToPresentation"
+		@updatePresentationList="updatePresentationList"
 	/>
 </template>
 
 <script setup>
-import { onActivated, ref } from 'vue'
+import { onActivated, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { previousRoute } from '@/router'
 
@@ -51,7 +50,13 @@ import PresentationList from '@/components/PresentationList.vue'
 import PresentationPreview from '@/components/PresentationPreview.vue'
 import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
 
-import { duplicatePresentation, unsyncedPresentationRecord } from '@/stores/presentation'
+import {
+	createPresentationResource,
+	duplicatePresentation,
+	unsyncedPresentationRecord,
+	templateList,
+	templateListResource,
+} from '@/stores/presentation'
 
 const router = useRouter()
 
@@ -59,13 +64,12 @@ const previewPresentation = ref(null)
 const selectedPresentation = ref(null)
 
 const showDialog = ref(false)
-const showThemeDialog = ref(false)
 const dialogAction = ref('')
 
 const presentationList = ref([])
 
 const presentationListResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_all_presentations',
+	url: 'slides.slides.doctype.presentation.presentation.get_presentations',
 	method: 'GET',
 	auto: true,
 	cache: 'presentations',
@@ -76,6 +80,7 @@ const presentationListResource = createResource({
 
 const navigateToPresentation = (name, present) => {
 	name = name || previewPresentation.value?.name
+	previewPresentation.value = null
 	if (present) {
 		router.replace({
 			name: 'Slideshow',
@@ -83,7 +88,6 @@ const navigateToPresentation = (name, present) => {
 			query: { slide: 1 },
 		})
 	} else {
-		reloadList()
 		router.push({
 			name: 'PresentationEditor',
 			params: { presentationId: name },
@@ -102,13 +106,23 @@ const closeDialog = () => {
 	showDialog.value = false
 }
 
-const reloadList = async () => {
-	await presentationListResource.reload()
-	previewPresentation.value = null
+const updatePresentationList = (action, newTitle) => {
+	if (action == 'Delete') {
+		previewPresentation.value = null
+		presentationList.value = presentationList.value.filter(
+			(p) => p.name !== selectedPresentation.value.name,
+		)
+	} else if (action == 'Rename' && newTitle) {
+		selectedPresentation.value.title = newTitle
+	}
 }
 
 const setPreview = (presentation) => {
 	previewPresentation.value = presentation
+}
+
+const openThemeDialog = () => {
+	showThemeDialog.value = true
 }
 
 const syncPresentationRecord = () => {
@@ -137,6 +151,12 @@ const syncPresentationRecord = () => {
 onActivated(() => {
 	if (previousRoute?.name == 'PresentationEditor') {
 		syncPresentationRecord()
+	}
+})
+
+onMounted(() => {
+	if (!templateList.value.length) {
+		templateListResource.fetch()
 	}
 })
 

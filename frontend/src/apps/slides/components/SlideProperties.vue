@@ -9,16 +9,6 @@
 			</div>
 
 			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Template Layout</div>
-				<div
-					class="cursor-pointer pe-1 text-gray-500 hover:text-gray-600"
-					@click="$emit('openLayoutDialog')"
-				>
-					<LucidePenLine class="size-4" :strokeWidth="1.5" />
-				</div>
-			</div>
-
-			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Background Color</div>
 				<ColorPicker v-model="currentSlide.background" />
 			</div>
@@ -81,8 +71,6 @@ import { createConnectionsForMagicMove, removeConnectionsForMagicMove } from '@/
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
-
-const emit = defineEmits(['openLayoutDialog'])
 
 const setSlideTransition = (option) => {
 	const slide = currentSlide.value
