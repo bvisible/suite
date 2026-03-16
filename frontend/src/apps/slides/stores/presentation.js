@@ -35,7 +35,7 @@ const createPresentationResource = createResource({
 			modified: doc.modified,
 			thumbnail: doc.thumbnail || '',
 		}
-	}
+	},
 })
 
 const updatePresentationTitle = async (id, newTitle) => {
@@ -353,5 +353,5 @@ export {
 	initPresentationDoc,
 	deletePresentation,
 	duplicatePresentation,
-	resetEditorState
+	resetEditorState,
 }
