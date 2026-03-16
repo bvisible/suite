@@ -38,25 +38,24 @@
 				@openLayoutDialog="openLayoutDialog('replace')"
 			/>
 		</div>
-
-		<LayoutDialog
-			v-model="showLayoutDialog"
-			@insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
-		/>
-
-		<ThemeDialog
-			v-model="showThemeDialog"
-			@create="(theme) => createPresentation(theme)"
-			@update="(theme) => updatePresentationTheme(theme)"
-			:update="themeDialogAction == 'update'"
-			:currentTheme="presentationDoc?.theme"
-		/>
 	</div>
+
+	<LayoutDialog
+		v-model="showLayoutDialog"
+		@insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
+	/>
+
+	<ThemeDialog
+		v-model="showThemeDialog"
+		@create="(theme) => createPresentation(theme)"
+		@update="(theme) => updatePresentationTheme(theme)"
+		:update="themeDialogAction == 'update'"
+	/>
 </template>
 
 <script setup>
 import { ref, watch, useTemplateRef, provide, onMounted, onBeforeUnmount, inject } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
@@ -276,6 +275,10 @@ watch(
 		loadEditorState()
 	},
 )
+
+onBeforeRouteLeave(() => {
+	showThemeDialog.value = false
+})
 
 watch(
 	() => props.editorAccess,
