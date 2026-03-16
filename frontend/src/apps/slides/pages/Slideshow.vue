@@ -8,11 +8,9 @@
 			<div
 				v-if="showSlideshowEndScreen"
 				class="flex h-full w-full items-center justify-center bg-black"
+				@click="endSlideShow()"
 			>
-				<SlideshowEndScreen
-					@restartSlideShow="changeSlideInSlideshow(0)"
-					@endSlideShow="endSlideShow()"
-				/>
+				<SlideshowEndScreen @restartSlideShow="changeSlideInSlideshow(0)" />
 			</div>
 
 			<div
