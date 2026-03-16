@@ -153,7 +153,6 @@ import { onKeyDown } from '@vueuse/core'
 import store from '@/store'
 import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/drive/js/resources'
-import { useContextMenu } from 'frappe-ui/drive/js/useContextMenu'
 import {
   printDoc,
   updateURLSlug,

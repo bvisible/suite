@@ -32,8 +32,8 @@
       <slot name="content" />
       <Button
         v-if="offline"
-        label="Offline"
-        variant="subtle"
+        label="You're offline"
+        variant="solid"
         size="sm"
         class="pointer-events-none"
         :icon-left="h(LucideWifiOff, { class: 'size-4' })"

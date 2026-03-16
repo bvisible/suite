@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="px-2.5 pt-3 gap-2 hidden md:block sticky top-0 self-start h-screen"
+    class="px-2.5 pt-3 gap-2 hidden md:block sticky top-0 self-start max-h-screen overflow-y-auto h-screen"
     :class="show && 'border-r border-outline-gray-2'"
   >
     <div v-if="(tabs.length || anchors.length > 1) && !show">
@@ -59,12 +59,10 @@
               v-focus
               @keydown.enter="finishRenaming(false)"
               @keydown.esc="finishRenaming(true)"
-              class="p-1"
+              class="w-full"
             >
               <template #prefix>
-                <div class="ps-1">
-                  <LucideFileText class="size-4" />
-                </div>
+                <LucideFileText class="size-4" />
               </template>
             </TextInput>
           </div>
@@ -174,8 +172,7 @@ const props = defineProps({
   },
 })
 
-// const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
-const show = ref(true)
+const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
 watch(show, (v) => localStorage.setItem('showToc', v))
 
 // Get all tabs from the document
@@ -263,12 +260,7 @@ const editingTabId = ref(null)
 const editingTabLabel = ref('')
 
 const startRenaming = (tabId) => {
-  editingTabId.value = '9752a21c-84fd-43ee-942f-7b8633ce4f56'
-  console.log(
-    'editing to ',
-    tabId,
-    tabs.value.find((tab) => tab.id === tabId),
-  )
+  editingTabId.value = tabId
   editingTabLabel.value = tabs.value.find((tab) => tab.id === tabId).label
 }
 
