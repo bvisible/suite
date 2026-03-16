@@ -405,7 +405,7 @@ const handleSlideTransform = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		selectionBoxRef.value.handleSelectionChange(newVal, oldVal)
+		selectionBoxRef.value?.handleSelectionChange(newVal, oldVal)
 	},
 )
 

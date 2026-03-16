@@ -33,7 +33,6 @@
 						:transitionStyles="transitionStyles"
 						:style="getElementTransitionStyles(element)"
 						class="forward-transition"
-						@click.stop
 					/>
 				</FadeElementTransition>
 			</div>
@@ -56,7 +55,6 @@
 							mode="slideshow"
 							:element="element"
 							:data-index="element.id"
-							@click.stop
 						/>
 					</div>
 				</Transition>
@@ -66,7 +64,7 @@
 </template>
 
 <script setup>
-import { computed, onActivated, onDeactivated, ref, useTemplateRef, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, useTemplateRef, watch, provide } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SlideElement from '@/components/SlideElement.vue'
@@ -78,10 +76,12 @@ import {
 	showSlideshowEndScreen,
 	endSlideShow,
 	prefetchNextSlide,
+	changeSlideInSlideshow,
 } from '@/stores/slideshow'
 
-import { applyReverseTransition, initPresentationDoc } from '@/stores/presentation'
+import { applyReverseTransition, initPresentationDoc, inReadonlyMode } from '@/stores/presentation'
 import { currentSlide, setSlideIndex, slideIndex, slides } from '@/stores/slide'
+import { resetFocus } from '@/stores/element'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -317,6 +317,7 @@ const loadPresentation = async () => {
 }
 
 onActivated(() => {
+	resetFocus()
 	loadPresentation()
 	initFullscreenMode()
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
@@ -342,6 +343,9 @@ watch(
 	},
 	{ immediate: true },
 )
+
+provide('inReadonlyMode', inReadonlyMode)
+provide('inSlideShowMode', inSlideShowMode)
 </script>
 
 <style>
