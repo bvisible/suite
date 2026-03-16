@@ -53,37 +53,40 @@
             "
             class="h-8 my-0.5 border border-dashed rounded-sm mx-2"
           />
-          <div
-            v-if="editingTabId === tab.id"
-            class="flex items-center"
-            v-on-outside-click="() => finishRenaming(true)"
-          >
+          <div v-if="editingTabId === tab.id" class="flex items-center">
             <TextInput
               v-model="editingTabLabel"
               v-focus
               @keydown.enter="finishRenaming(false)"
               @keydown.esc="finishRenaming(true)"
               class="p-1"
-            />
-            <Button
-              variant="outline"
-              :icon="LucideTrash"
-              @click="editor.commands.deleteTab(tab.id)"
-            />
+            >
+              <template #prefix>
+                <div class="ps-1">
+                  <LucideFileText class="size-4" />
+                </div>
+              </template>
+            </TextInput>
           </div>
-          <Button
+          <component
             v-else
-            variant="ghost"
-            class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
-            :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
-            :label="tab.label"
-            :icon-left="h(LucideFileText, { class: 'size-4 shrink-0' })"
-            @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
-            @dblclick.stop="editor.isEditable && startRenaming(tab)"
-            :draggable="editor.isEditable"
-            @dragstart="onDragStart($event, tab, index)"
-            @dragend.prevent="onDragEnd"
-          />
+            :is="tab.id === activeTabId ? ContextMenu : 'div'"
+            :items="tabActions"
+          >
+            <Button
+              variant="ghost"
+              class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
+              :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
+              :label="tab.label"
+              :icon-left="h(LucideFileText, { class: 'size-4 shrink-0' })"
+              @click="
+                tab.id !== activeTabId && editor.commands.changeTab(tab.id)
+              "
+              :draggable="editor.isEditable"
+              @dragstart="onDragStart($event, tab, index)"
+              @dragend.prevent="onDragEnd"
+            />
+          </component>
 
           <div
             v-if="tab.id === activeTabId && currentTabAnchors.length"
@@ -155,10 +158,13 @@ import LucidePlus from '~icons/lucide/Plus'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
+import LucidePencil from '~icons/lucide/pencil'
+import LucideLink from '~icons/lucide/link'
 import LucideTrash from '~icons/lucide/trash'
 import LucideLeftClose from '~icons/lucide/panel-left-close'
 import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
-import { TextInput } from 'frappe-ui'
+import { TextInput, ContextMenu } from 'frappe-ui'
+import { copyToClipboard } from 'frappe-ui/drive/js/utils'
 
 const props = defineProps({
   editor: Object,
@@ -256,9 +262,14 @@ const onAnchorClick = (id) => {
 const editingTabId = ref(null)
 const editingTabLabel = ref('')
 
-const startRenaming = (tab) => {
-  editingTabId.value = tab.id
-  editingTabLabel.value = tab.label
+const startRenaming = (tabId) => {
+  editingTabId.value = '9752a21c-84fd-43ee-942f-7b8633ce4f56'
+  console.log(
+    'editing to ',
+    tabId,
+    tabs.value.find((tab) => tab.id === tabId),
+  )
+  editingTabLabel.value = tabs.value.find((tab) => tab.id === tabId).label
 }
 
 const finishRenaming = (esc = false) => {
@@ -272,9 +283,6 @@ const finishRenaming = (esc = false) => {
   editingTabLabel.value = ''
   props.editor.commands.focus()
 }
-
-const tabEvent = ref(null)
-const selectedTab = ref(null)
 
 // Drag and drop state
 const dragState = ref({
@@ -370,6 +378,34 @@ const activeAnchorId = computed(() => {
   // If no anchor is active yet, use the first one
   return activeId
 })
+
+const tabActions = [
+  {
+    label: 'Rename',
+    icon: LucidePencil,
+    onClick: () => startRenaming(activeTabId.value),
+  },
+  {
+    label: 'Copy Link',
+    icon: LucideLink,
+    onClick: () =>
+      copyToClipboard(
+        window.location.href.split('#')[0] + '#' + activeTabId.value,
+      ),
+  },
+  {
+    group: true,
+    hideLabel: true,
+    items: [
+      {
+        label: 'Delete',
+        icon: LucideTrash,
+        theme: 'red',
+        onClick: () => props.editor.commands.deleteTab(activeTabId.value),
+      },
+    ],
+  },
+]
 </script>
 
 <style scoped>
