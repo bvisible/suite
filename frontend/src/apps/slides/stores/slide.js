@@ -1,5 +1,11 @@
 import { ref, computed, reactive } from 'vue'
-import { slidesLength, presentationId, templateList, inReadonlyMode, presentationTheme } from '@/stores/presentation'
+import {
+	slidesLength,
+	presentationId,
+	templateList,
+	inReadonlyMode,
+	presentationTheme,
+} from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
 import { ignoreUpdates } from '@/stores/history'
@@ -217,8 +223,7 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 
 const setSlideIndex = (index) => {
 	index = parseInt(index) - 1
-	if (!inSlideShowMode.value)
-		index = Math.min(index, slidesLength.value - 1)
+	if (!inSlideShowMode.value) index = Math.min(index, slidesLength.value - 1)
 	slideIndex.value = index
 }
 
@@ -358,5 +363,5 @@ export {
 	changeEditorSlide,
 	duplicateSlide,
 	addEmptySlide,
-	handleInsertSlide
+	handleInsertSlide,
 }
