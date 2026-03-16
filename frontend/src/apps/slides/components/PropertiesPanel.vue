@@ -23,7 +23,6 @@ import VideoProperties from '@/components/VideoProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
 import PlacementProperties from '@/components/PlacementProperties.vue'
 import AppearanceProperties from '@/components/AppearanceProperties.vue'
-import LayoutControls from '@/components/LayoutControls.vue'
 
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
