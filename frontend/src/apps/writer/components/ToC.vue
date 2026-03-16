@@ -1,10 +1,10 @@
 <template>
   <div
     v-if="editor"
-    class="px-2.5 gap-2 hidden md:block sticky top-0 self-start h-screen"
+    class="px-2.5 pt-3 gap-2 hidden md:block sticky top-0 self-start h-screen"
     :class="show && 'border-r border-outline-gray-2'"
   >
-    <div class="pt-3" v-if="(tabs.length || anchors.length > 1) && !show">
+    <div v-if="(tabs.length || anchors.length > 1) && !show">
       <Button
         variant="ghost"
         :icon="
@@ -17,22 +17,22 @@
       />
     </div>
     <div v-if="show" class="grow flex flex-col gap-0.5">
+      <div class="flex justify-between items-center ps-2 pr-1 pb-1">
+        <span class="text-base font-medium text-ink-gray-8"
+          >Table of Contents</span
+        >
+        <Button
+          :icon="LucideLeftClose"
+          variant="ghost"
+          @click="show = !show"
+          :tooltip="show ? 'Hide' : 'Table of Contents'"
+        />
+      </div>
       <div
         v-if="tabs.length > 0"
         class="flex flex-col gap-0.5 mb-2"
         @drop.prevent="onDrop"
       >
-        <div class="flex justify-between items-center ps-2 pr-1 pt-3 pb-1">
-          <span class="text-base font-medium text-ink-gray-8"
-            >Table of Contents</span
-          >
-          <Button
-            :icon="LucideLeftClose"
-            variant="ghost"
-            @click="show = !show"
-            :tooltip="show ? 'Hide' : 'Table of Contents'"
-          />
-        </div>
         <div
           v-for="(tab, index) in tabs"
           :key="tab.id"
@@ -77,7 +77,7 @@
             class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
             :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'"
             :label="tab.label"
-            :icon-left="h(LucideFileText, { class: 'size-4' })"
+            :icon-left="h(LucideFileText, { class: 'size-4 shrink-0' })"
             @click="tab.id !== activeTabId && editor.commands.changeTab(tab.id)"
             @dblclick.stop="editor.isEditable && startRenaming(tab)"
             :draggable="editor.isEditable"
@@ -89,7 +89,7 @@
             v-if="tab.id === activeTabId && currentTabAnchors.length"
             class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
           >
-            <div v-for="anchor in currentTabAnchors" class="flex">
+            <div v-for="anchor in currentTabAnchors" class="flex pr-2.5">
               <a
                 :href="'#' + anchor.id"
                 class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
@@ -116,7 +116,7 @@
       </div>
       <div
         v-else-if="anchors.length > 1"
-        class="table-of-contents flex flex-col gap-0.5 mb-2"
+        class="table-of-contents flex flex-col gap-0.5 mb-2 px-0.5 pr-2.5"
       >
         <div v-for="anchor in anchors" class="flex">
           <a

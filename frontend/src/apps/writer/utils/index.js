@@ -756,3 +756,25 @@ export const insertTemplate = (template, editor) => {
   editor.commands.focus()
   return true
 }
+
+export const formatShortcut = (sequence) => {
+  if (!sequence) return ''
+  const isMac = navigator.platform.toUpperCase().includes('MAC')
+  const parts = sequence.split('-')
+  return parts
+    .map((part) => {
+      switch (part.toLowerCase()) {
+        case 'meta':
+          return isMac ? '⌘' : 'Win'
+        case 'ctrl':
+          return isMac ? '⌃' : 'Ctrl'
+        case 'alt':
+          return isMac ? '⌥' : 'Alt'
+        case 'shift':
+          return isMac ? '⇧' : 'Shift'
+        default:
+          return part.toUpperCase()
+      }
+    })
+    .join(isMac ? '' : '+')
+}

@@ -7,66 +7,72 @@
     />
     <div
       id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto grid grid-cols-3 relative"
+      class="flex-1 flex w-full overflow-y-auto md:grid md:grid-cols-3 relative"
     >
       <ToC v-if="editor" :editor :anchors />
-      <div
-        class="min-w-full h-full flex flex-col"
-        @click="
-          $event.target.tagName === 'DIV' &&
-          textEditor.editor?.chain?.().focus?.().run?.()
-        "
-        @contextmenu="openContextMenu"
+
+      <ContextMenu
+        :items="bubbleButtons"
+        :disabled="editor?.state.selection.empty"
       >
-        <FTextEditor
-          ref="textEditor"
-          class="min-w-full min-h-full h-full flex flex-col"
-          editor-class="px-10 ps-24 overflow-x-auto pt-10 pb-24"
-          :upload-function
-          :autofocus="true"
-          :content="rawContent"
-          :mentions="{ mentions: allUsers.data, selectable: false }"
-          placeholder="Start thinking..."
-          :extensions="editorExtensions"
-          :editable
-          :starterkit-options="{
-            // undoRedo: doc ? false : true,
-            trailingNode: { node: 'paragraph', notAfter: 'tab' },
-            paragraph: false,
-            gapcursor: false,
-          }"
-          @change="(val) => emit('editor-change', val)"
-          @keydown="
-            async (e) => {
-              if (editable && !e.metaKey && !e.ctrlKey & !edited) {
-                edited = true
-                await nextTick()
-                autoversion()
-              }
-            }
+        <div
+          class="min-w-full h-full flex flex-col"
+          @click="
+            $event.target.tagName === 'DIV' &&
+            textEditor.editor?.chain?.().focus?.().run?.()
           "
         >
-          <template #editor="{ editor }">
-            <EditorContent
-              class="bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
-              :class="[
-                settings?.wide
-                  ? 'md:min-w-[100ch] md:max-w-[100ch]'
-                  : 'md:min-w-[48rem] md:max-w-[48rem]',
-                isPainting && 'cursor-crosshair',
-              ]"
-              :style="{
-                fontFamily: `var(--font-${settings?.font_family})`,
-                fontSize: `${settings?.font_size || 15}px`,
-                lineHeight: settings?.line_height || 1.5,
-                '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
-                '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
-              }"
-              :editor="editor"
-            />
-          </template>
-        </FTextEditor>
-      </div>
+          <FTextEditor
+            ref="textEditor"
+            class="min-w-full min-h-full h-full flex flex-col"
+            editor-class="px-10 md:ps-24 overflow-x-auto pt-10 pb-24"
+            :upload-function
+            :autofocus="true"
+            :content="rawContent"
+            :mentions="{ mentions: allUsers.data, selectable: false }"
+            placeholder="Start thinking..."
+            :extensions="editorExtensions"
+            :editable
+            :starterkit-options="{
+              // undoRedo: doc ? false : true,
+              trailingNode: { node: 'paragraph', notAfter: 'tab' },
+              paragraph: false,
+              gapcursor: false,
+            }"
+            @change="(val) => emit('editor-change', val)"
+            @keydown="
+              async (e) => {
+                if (editable && !e.metaKey && !e.ctrlKey & !edited) {
+                  edited = true
+                  await nextTick()
+                  autoversion()
+                }
+              }
+            "
+          >
+            <template #editor="{ editor }">
+              <EditorContent
+                class="bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
+                :class="[
+                  settings?.wide
+                    ? 'md:min-w-[100ch] md:max-w-[100ch]'
+                    : 'md:min-w-[48rem] md:max-w-[48rem]',
+                  isPainting && 'cursor-crosshair',
+                ]"
+                :style="{
+                  fontFamily: `var(--font-${settings?.font_family})`,
+                  fontSize: `${settings?.font_size || 15}px`,
+                  lineHeight: settings?.line_height || 1.5,
+                  '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
+                  '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
+                }"
+                :editor="editor"
+              />
+            </template>
+          </FTextEditor>
+        </div>
+      </ContextMenu>
+
       <FloatingComments
         v-if="commentsPainted"
         v-model:active-comment="activeComment"
@@ -121,6 +127,8 @@ import {
   TextEditorFixedMenu,
   toast,
   useFileUpload,
+  ContextMenu,
+  createEditorButton,
 } from 'frappe-ui'
 import { Slice } from '@tiptap/pm/model'
 import { TextSelection } from '@tiptap/pm/state'
@@ -146,7 +154,13 @@ import store from '@/store'
 import emitter from '@/emitter'
 import { rename, allUsers } from 'frappe-ui/drive/js/resources'
 import { useContextMenu } from 'frappe-ui/drive/js/useContextMenu'
-import { printDoc, updateURLSlug, isModKey, COMMON_EXTENSIONS } from '@/utils'
+import {
+  printDoc,
+  updateURLSlug,
+  isModKey,
+  COMMON_EXTENSIONS,
+  formatShortcut,
+} from '@/utils'
 
 import MediaDownload from '@/extensions/media-download'
 import CleanStyles from '@/extensions/clean-styles'
@@ -165,6 +179,8 @@ import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquareOff from '~icons/lucide/message-square-off'
 import LucidePaintRoller from '~icons/lucide/paint-roller'
 import LucideBrushCleaning from '~icons/lucide/brush-cleaning'
+import LucideBrush from '~icons/lucide/brush'
+import LucidePilcrow from '~icons/lucide/pilcrow'
 import LucideSettings from '~icons/lucide/settings'
 import LucideForm from '~icons/lucide/sticky-note'
 import LucideAlignVerticalSpacingAround from '~icons/lucide/align-vertical-space-around'
@@ -213,15 +229,6 @@ const isPainting = computed(() =>
     : false,
 )
 
-const { open: openContextMenuInternal } = useContextMenu()
-function openContextMenu(event) {
-  event.preventDefault()
-  setTimeout(() => {
-    if (!editor.value || editor.value.state.selection.empty || !bubbleButtons)
-      return
-    openContextMenuInternal(event, bubbleButtons)
-  }, 0)
-}
 const autoversion = async () => {
   if (!edited.value) return
   const html = editor.value.getHTML()
@@ -455,17 +462,49 @@ const menuButtons = computed(() => [
   'IndentList',
 ])
 
-const bubbleButtons = props.file.doc.comment
-  ? [
+const convertEditorButton = (id) => {
+  const command = createEditorButton(id)
+  command.disabled = command.isDisabled
+  command.onClick = () => command.action(editor.value)
+  command.shortcut = formatShortcut(command.shortcut)
+  return command
+}
+
+const bubbleButtons = computed(() => [
+  {
+    group: true,
+    hideLabel: true,
+    items: [
       {
         label: 'Comment',
         icon: LucideMessageSquarePlus,
-        action: () => addComment(),
-        isActive: () => false,
+        onClick: () => addComment(),
       },
-      // heading, format, insert link
-    ]
-  : []
+    ],
+  },
+  {
+    label: 'Formatting',
+    icon: LucideBrush,
+    submenu: [
+      convertEditorButton('Bold'),
+      convertEditorButton('Italic'),
+      convertEditorButton('Underline'),
+      convertEditorButton('Strikethrough'),
+    ],
+  },
+  {
+    label: 'Paragraph',
+    icon: LucidePilcrow,
+    submenu: [
+      convertEditorButton('Heading 1'),
+      convertEditorButton('Heading 2'),
+      convertEditorButton('Heading 3'),
+      convertEditorButton('Blockquote'),
+      convertEditorButton('Bullet List'),
+      convertEditorButton('Numbered List'),
+    ],
+  },
+])
 
 // Scripts
 
