@@ -102,11 +102,9 @@ const togglePlaying = () => {
 	if (video.paused) {
 		isPlaying.value = true
 		video.play()
-		if (inSlideShowMode.value) showOverlay.value = false
 	} else {
 		isPlaying.value = false
 		video.pause()
-		if (inSlideShowMode.value) showOverlay.value = true
 	}
 }
 
@@ -179,5 +177,8 @@ const handleHoverChange = (e) => {
 	}
 }
 
-const showOverlay = ref(inSlideShowMode.value ? false : true)
+const showOverlay = computed(() => {
+	if (inSlideShowMode.value) return hoverOver.value || !isPlaying.value
+	return true
+})
 </script>
