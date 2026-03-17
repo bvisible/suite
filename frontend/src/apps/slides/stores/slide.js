@@ -202,7 +202,10 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 		}))
 	} else {
 		layout = layoutObject || null
-		layout.elements = JSON.parse(layout?.elements || [])
+		layout.elements =
+			typeof layout?.elements === 'string'
+				? JSON.parse(layout.elements)
+				: layout?.elements || []
 	}
 
 	let slide = {}
