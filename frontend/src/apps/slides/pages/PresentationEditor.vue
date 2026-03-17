@@ -231,6 +231,11 @@ const handleMounted = () => {
 	loadTemplates()
 }
 
+const hideOpenDialogs = () => {
+	showThemeDialog.value = false
+	showLayoutDialog.value = false
+}
+
 const handleBeforeUnmount = () => {
 	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
@@ -241,6 +246,7 @@ const handleBeforeUnmount = () => {
 		syncPresentationToServer()
 	}
 	window.removeEventListener('beforeunload', handleBeforeUnload)
+	window.removeEventListener('popstate', hideOpenDialogs)
 }
 
 watch(
@@ -262,10 +268,10 @@ watch(
 )
 
 watch(
-	() => props.presentationId,
-	(id) => {
+	() => route.name,
+	(name) => {
 		inReadonlyMode.value = props.editorAccess == 'view'
-		if (route.name === 'EditorNew') {
+		if (name === 'EditorNew') {
 			resetEditorState()
 			themeDialogAction.value = 'create'
 			showThemeDialog.value = true
@@ -276,9 +282,20 @@ watch(
 	{ immediate: true },
 )
 
+watch(
+	() => props.presentationId,
+	(id, prevId) => {
+		if (!id || !prevId || id === prevId) return
+		inReadonlyMode.value = props.editorAccess == 'view'
+		loadEditorState()
+	},
+)
+
 onBeforeRouteLeave(() => {
-	showThemeDialog.value = false
+	hideOpenDialogs()
 })
+
+window.addEventListener('popstate', hideOpenDialogs)
 
 watch(
 	() => props.editorAccess,
