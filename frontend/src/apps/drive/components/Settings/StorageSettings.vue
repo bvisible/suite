@@ -11,9 +11,7 @@
         formatPercent((usedSpace / spaceLimit) * 100)
       }})</span
     >
-    <div
-      class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 py-1"
-    >
+    <div class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 py-1">
       <TabButtons
         v-model="showFileStorage"
         :buttons="[
@@ -54,10 +52,7 @@
     v-if="usedSpace > 0"
     class="w-full flex justify-start items-start bg-surface-menu-bar border rounded overflow-clip h-7 pl-0 mb-4"
   >
-    <Tooltip
-      v-for="[file_kind, i] in storageBreakdown.data?.total"
-      :key="file_kind"
-    >
+    <Tooltip v-for="[file_kind, i] in storageBreakdown.data?.total" :key="file_kind">
       <template #body>
         <div
           class="text-center rounded bg-surface-gray-7 px-2 py-1 text-xs text-ink-white shadow-xl"
@@ -75,10 +70,7 @@
       />
     </Tooltip>
   </div>
-  <div
-    v-if="!usedSpace"
-    class="w-full flex flex-col items-center justify-center my-10"
-  >
+  <div v-if="!usedSpace" class="w-full flex flex-col items-center justify-center my-10">
     <LucideCloud class="h-7 stroke-1 text-ink-gray-5" />
     <span class="text-ink-gray-8 text-sm mt-2">No Storage Used</span>
   </div>
@@ -89,9 +81,7 @@
   >
     Large Files:
   </div>
-  <div
-    class="flex flex-col items-start justify-start w-full rounded full px-1.5 overflow-y-auto"
-  >
+  <div class="flex flex-col items-start justify-start w-full rounded full px-1.5 overflow-y-auto">
     <div
       v-for="(i, index) in storageBreakdown.data?.entities"
       :key="i.name"
@@ -118,12 +108,7 @@
   </div>
 </template>
 <script setup>
-import {
-  formatSize,
-  base2BlockSize,
-  COLOR_MAP,
-  formatPercent,
-} from '@/utils/format'
+import { formatSize, base2BlockSize, COLOR_MAP, formatPercent } from '@/utils/format'
 import { Tooltip, TabButtons } from 'frappe-ui'
 import { getIconUrl } from '@/utils/getIconUrl'
 import { openEntity, MIME_LIST_MAP } from '@/utils/files'
@@ -161,9 +146,7 @@ const storageBreakdown = createResource({
       res[kind].percentageFormat = formatPercent(res[kind].percentageRaw)
       res[kind].h_size = formatSize(res[kind].file_size)
     })
-    data.total = Object.entries(res).sort(
-      (a, b) => b[1].file_size - a[1].file_size
-    )
+    data.total = Object.entries(res).sort((a, b) => b[1].file_size - a[1].file_size)
   },
   auto: false,
 })

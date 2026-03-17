@@ -32,10 +32,7 @@
           @keydown="createLink.error = null"
         />
       </div>
-      <div
-        v-if="createLink.error"
-        class="pt-4 text-base font-sm text-ink-red-3"
-      >
+      <div v-if="createLink.error" class="pt-4 text-base font-sm text-ink-red-3">
         {{ createLink.error.messages[0] }}
       </div>
     </template>

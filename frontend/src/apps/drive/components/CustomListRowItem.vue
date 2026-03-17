@@ -1,14 +1,6 @@
 <template>
-  <ListRowItem
-    :column="column"
-    :row="row"
-    :item="item"
-    :align="column.align"
-  >
-    <template
-      v-if="column.key === 'file_name'"
-      #prefix
-    >
+  <ListRowItem :column="column" :row="row" :item="item" :align="column.align">
+    <template v-if="column.key === 'file_name'" #prefix>
       <img
         v-if="!imgLoaded"
         loading="lazy"
@@ -25,10 +17,7 @@
       />
     </template>
     <template #default="{ label }">
-      <div
-        :key="label"
-        class="truncate text-base"
-      >
+      <div :key="label" class="truncate text-base">
         {{ column?.getLabel ? column.getLabel({ row }) : label }}
       </div>
 
@@ -40,15 +29,9 @@
         <LucideMoreHorizontal class="size-4" />
       </Button>
     </template>
-    <template
-      v-if="idx === 0"
-      #suffix
-    >
+    <template v-if="idx === 0" #suffix>
       <div class="flex flex-row grow justify-end gap-2 w-[20px]">
-        <component
-          :is="column.suffix({ row })"
-          v-if="column.suffix"
-        />
+        <component :is="column.suffix({ row })" v-if="column.suffix" />
         <LucideStar
           v-if="row.is_favourite && $route.name !== 'Favourites'"
           name="star"
@@ -61,8 +44,8 @@
   </ListRowItem>
 </template>
 <script setup>
-import { ListRowItem } from "frappe-ui"
-import { ref } from "vue"
+import { ListRowItem } from 'frappe-ui'
+import { ref } from 'vue'
 
 const props = defineProps({
   idx: Number,
@@ -74,7 +57,7 @@ const props = defineProps({
 
 let src, imgLoaded, thumbnailLink, backupLink, _
 
-if (props.column.prefix && props.column.key === "file_name") {
+if (props.column.prefix && props.column.key === 'file_name') {
   ;[thumbnailLink, backupLink, _] = props.column.prefix({
     row: props.row,
   })

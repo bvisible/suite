@@ -7,17 +7,11 @@
     class="bg-surface-white border-b px-5 py-2.5 h-12 flex justify-between"
   >
     <slot name="breadcrumbs">
-      <Breadcrumbs
-        :items="store.state.breadcrumbs"
-        class="select-none truncate max-w-[80%]"
-      >
+      <Breadcrumbs :items="store.state.breadcrumbs" class="select-none truncate max-w-[80%]">
         <template #prefix="{ item, index }">
           <LoadingIndicator v-if="item.loading" width="20" scale="70" />
           <div v-if="index == 0" class="mr-1.5">
-            <component
-              :is="COMPONENT_MAP[item.name]"
-              class="size-4 text-ink-gray-6"
-            />
+            <component :is="COMPONENT_MAP[item.name]" class="size-4 text-ink-gray-6" />
           </div>
         </template>
       </Breadcrumbs>
@@ -27,10 +21,7 @@
       <div id="navbar-content" class="flex items-center">
         <div class="icon mr-2">
           <LucideGlobe2 v-if="rootEntity?.share_count === -2" class="size-4" />
-          <LucideBuilding2
-            v-else-if="rootEntity?.share_count === -1"
-            class="size-4"
-          />
+          <LucideBuilding2 v-else-if="rootEntity?.share_count === -1" class="size-4" />
           <LucideUsers v-else-if="rootEntity?.share_count > 0" class="size-4" />
         </div>
       </div>
@@ -42,16 +33,12 @@
         class="my-auto stroke-amber-500 fill-amber-500"
       />
       <template v-if="!isLoggedIn && !inIframe">
-        <Button variant="outline" @click="$router.push({ name: 'Login' })">
-          Sign In
-        </Button>
+        <Button variant="outline" @click="$router.push({ name: 'Login' })"> Sign In </Button>
         <Button
           class="hidden md:block"
           variant="solid"
           label="Try out Drive"
-          @click="
-            open('https://frappecloud.com/dashboard/signup?product=drive')
-          "
+          @click="open('https://frappecloud.com/dashboard/signup?product=drive')"
         />
       </template>
       <Dropdown
@@ -84,9 +71,7 @@
         label="Create"
         variant="solid"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        @click="
-          newExternal($route.name === 'Documents' ? 'Document' : 'Presentation')
-        "
+        @click="newExternal($route.name === 'Documents' ? 'Document' : 'Presentation')"
       />
       <Button
         v-if="button"
@@ -166,9 +151,7 @@ const props = defineProps({
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
-const rootEntity = computed(
-  () => props.rootResource?.data?.file_name && props.rootResource?.data
-)
+const rootEntity = computed(() => props.rootResource?.data?.file_name && props.rootResource?.data)
 
 const defaultActions = computed(() => {
   if (!rootEntity.value?.file_name) return
@@ -185,18 +168,15 @@ const defaultActions = computed(() => {
         {
           label: __('Open in Desk'),
           icon: LucideMonitorCog,
-          onClick: () =>
-            window.open('/desk/file/' + rootEntity.value.name, '_blank'),
-          isEnabled: () =>
-            !rootEntity.value.is_drive_file && store.state.user.systemUser,
+          onClick: () => window.open('/desk/file/' + rootEntity.value.name, '_blank'),
+          isEnabled: () => !rootEntity.value.is_drive_file && store.state.user.systemUser,
         },
         {
           label: __('Go to original'),
           icon: LucideCornerLeftUp,
           onClick: () => {
             window.open(
-              '/api/method/drive.api.files.redirect_to_original?file_id=' +
-                rootEntity.value.name,
+              '/api/method/drive.api.files.redirect_to_original?file_id=' + rootEntity.value.name,
               '_blank'
             )
           },
@@ -216,8 +196,7 @@ const defaultActions = computed(() => {
         {
           label: __('Download'),
           icon: LucideDownload,
-          onClick: () =>
-            entitiesDownload(route.params.team, [rootEntity.value]),
+          onClick: () => entitiesDownload(route.params.team, [rootEntity.value]),
         },
       ],
     },
@@ -231,22 +210,19 @@ const defaultActions = computed(() => {
           onClick: () => {
             dialog.value = 's'
           },
-          isEnabled: () =>
-            rootEntity.value.share && rootEntity.value.modifiable,
+          isEnabled: () => rootEntity.value.share && rootEntity.value.modifiable,
         },
         {
           label: __('Rename'),
           icon: LucideSquarePen,
           onClick: () => (dialog.value = 'rn'),
-          isEnabled: () =>
-            rootEntity.value.write && rootEntity.value.modifiable,
+          isEnabled: () => rootEntity.value.write && rootEntity.value.modifiable,
         },
         {
           label: __('Move'),
           icon: LucideArrowLeftRight,
           onClick: () => (dialog.value = 'm'),
-          isEnabled: () =>
-            rootEntity.value.write && rootEntity.value.modifiable,
+          isEnabled: () => rootEntity.value.write && rootEntity.value.modifiable,
         },
         {
           label: __('Favourite'),
@@ -291,9 +267,7 @@ const defaultActions = computed(() => {
     return { ...k, items: k.items.filter((l) => !l.isEnabled || l.isEnabled()) }
   })
 })
-const isPrivate = computed(() =>
-  store.state.breadcrumbs[0]?.name === 'Home' ? 1 : 0
-)
+const isPrivate = computed(() => (store.state.breadcrumbs[0]?.name === 'Home' ? 1 : 0))
 
 // Functions
 
@@ -313,9 +287,7 @@ const possibleButtons = [
     theme: 'red',
   },
 ]
-const button = computed(() =>
-  possibleButtons.find((k) => k.route == route.name)
-)
+const button = computed(() => possibleButtons.find((k) => k.route == route.name))
 
 const newEntityOptions = computed(() => [
   {

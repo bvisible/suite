@@ -24,15 +24,10 @@
           @click="openEntity(entity), (open = false)"
         >
           <div class="flex items-center gap-2 w-full col-span-6">
-            <img
-              class="size-4"
-              :src="getIconUrl(entity.is_folder ? 'Folder' : entity.file_type)"
-            />
+            <img class="size-4" :src="getIconUrl(entity.is_folder ? 'Folder' : entity.file_type)" />
             <span class="truncate">{{ entity.file_name }}</span>
           </div>
-          <div
-            class="col-span-2 grid grid-flow-col justify-start items-center truncate"
-          >
+          <div class="col-span-2 grid grid-flow-col justify-start items-center truncate">
             <Avatar
               :image="entity.user_image"
               :label="entity.full_name || entity.user_name"
@@ -45,10 +40,7 @@
           </div>
         </div>
       </div>
-      <div
-        v-if="!searchResults.data?.length && search.length"
-        class="flex flex-col py-4 px-2.5"
-      >
+      <div v-if="!searchResults.data?.length && search.length" class="flex flex-col py-4 px-2.5">
         <span class="pl-2 text-sm text-ink-gray-6">
           <template v-if="search.length > 2">
             No results for <strong>"{{ search }}"</strong>
@@ -61,30 +53,21 @@
         <div class="px-2.5">
           <div
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-            @click="
-              $router.push({ name: 'Home' }),
-                emitter.emit('showSearchPopup', false)
-            "
+            @click="$router.push({ name: 'Home' }), emitter.emit('showSearchPopup', false)"
           >
             <LucideHome class="mr-2 size-4 text-ink-gray-7" />
             Home
           </div>
           <div
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-            @click="
-              $router.push({ name: 'Recents' }),
-                emitter.emit('showSearchPopup', false)
-            "
+            @click="$router.push({ name: 'Recents' }), emitter.emit('showSearchPopup', false)"
           >
             <LucideClock class="mr-2 size-4 text-ink-gray-7" />
             Recents
           </div>
           <div
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-            @click="
-              $router.push({ name: 'Favourites' }),
-                emitter.emit('showSearchPopup', false)
-            "
+            @click="$router.push({ name: 'Favourites' }), emitter.emit('showSearchPopup', false)"
           >
             <LucideStar class="mr-2 size-4 text-ink-gray-7" />
             Favourites
@@ -94,25 +77,16 @@
         <div class="px-2.5">
           <div
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-            @click="
-              emitter.emit('uploadFile'), emitter.emit('showSearchPopup', false)
-            "
+            @click="emitter.emit('uploadFile'), emitter.emit('showSearchPopup', false)"
           >
-            <LucideFilePlus2
-              class="stroke-[1.35] mr-2 size-4 text-ink-gray-7"
-            />
+            <LucideFilePlus2 class="stroke-[1.35] mr-2 size-4 text-ink-gray-7" />
             Upload File
           </div>
           <div
             class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-            @click="
-              emitter.emit('uploadFolder'),
-                emitter.emit('showSearchPopup', false)
-            "
+            @click="emitter.emit('uploadFolder'), emitter.emit('showSearchPopup', false)"
           >
-            <LucideFolderPlus
-              class="stroke-[1.35] mr-2 size-4 text-ink-gray-7"
-            />
+            <LucideFolderPlus class="stroke-[1.35] mr-2 size-4 text-ink-gray-7" />
             Upload Folder
           </div>
         </div>

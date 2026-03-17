@@ -24,20 +24,9 @@
         <Tabs v-model="tabIndex" as="div" :tabs="tabs">
           <template #tab-panel>
             <div class="py-1 h-64 overflow-auto flex flex-col">
-              <TeamSelector
-                v-if="tabIndex === 1"
-                v-model="chosenTeam"
-                class="py-2 px-1"
-              />
-              <Tree
-                v-for="k in tree.children"
-                :key="k.value"
-                node-key="value"
-                :node="k"
-              >
-                <template
-                  #node="{ node, hasChildren, isCollapsed, toggleCollapsed }"
-                >
+              <TeamSelector v-if="tabIndex === 1" v-model="chosenTeam" class="py-2 px-1" />
+              <Tree v-for="k in tree.children" :key="k.value" node-key="value" :node="k">
+                <template #node="{ node, hasChildren, isCollapsed, toggleCollapsed }">
                   <div
                     class="flex items-center cursor-pointer select-none gap-1 h-7 shrink-0"
                     @click="openEntity(node)"
@@ -48,41 +37,26 @@
                         (e) => {
                           if (isCollapsed)
                             node.children.forEach((k) =>
-                              fetchFolderContents(
-                                k,
-                                { entity_name: k.value },
-                                true
-                              )
+                              fetchFolderContents(k, { entity_name: k.value }, true)
                             )
                           toggleCollapsed(e)
                         }
                       "
                     >
-                      <LucideChevronDown
-                        v-if="hasChildren && !isCollapsed"
-                        class="size-3.5"
-                      />
-                      <LucideChevronRight
-                        v-else-if="hasChildren"
-                        class="size-3.5"
-                      />
+                      <LucideChevronDown v-if="hasChildren && !isCollapsed" class="size-3.5" />
+                      <LucideChevronRight v-else-if="hasChildren" class="size-3.5" />
                       <div v-else class="ps-3.5" />
                     </div>
                     <div
                       class="flex-grow rounded-sm text-base truncate h-full flex items-center pl-1"
                       :class="[
-                        selected === node.value
-                          ? 'bg-surface-gray-3'
-                          : 'hover:bg-surface-gray-2',
+                        selected === node.value ? 'bg-surface-gray-3' : 'hover:bg-surface-gray-2',
                         entities[0].folder === node.value
                           ? 'cursor-not-allowed hover:bg-surface-white'
                           : 'group',
                       ]"
                     >
-                      <LucideFolderClosed
-                        v-if="isCollapsed"
-                        class="mr-1 size-4"
-                      />
+                      <LucideFolderClosed v-if="isCollapsed" class="mr-1 size-4" />
                       <LucideFolder v-else class="mr-1 size-4" />
                       <div v-if="node.value === null" class="overflow-visible">
                         <Input
@@ -96,9 +70,7 @@
                       </div>
                       <span v-else
                         >{{ node.label }}
-                        <span
-                          v-if="entities[0].folder === node.value"
-                          class="text-ink-gray-5"
+                        <span v-if="entities[0].folder === node.value" class="text-ink-gray-5"
                           >(current)</span
                         ></span
                       >
@@ -125,19 +97,11 @@
                   </div>
                 </template>
               </Tree>
-              <div
-                v-if="tree.loading"
-                class="text-base flex justify-center flex-1"
-              >
+              <div v-if="tree.loading" class="text-base flex justify-center flex-1">
                 <LoadingIndicator class="w-4.5" />
               </div>
-              <div
-                v-else-if="!tree.children.length"
-                class="flex justify-center flex-1"
-              >
-                <div
-                  class="self-center text-sm text-ink-gray-6 flex flex-col gap-2"
-                >
+              <div v-else-if="!tree.children.length" class="flex justify-center flex-1">
+                <div class="self-center text-sm text-ink-gray-6 flex flex-col gap-2">
                   <LucideFolderClosed class="size-5 self-center" />
                   No folders found
                 </div>
@@ -148,30 +112,16 @@
         <div class="flex items-center justify-between pt-4">
           <div class="flex items-center my-auto justify-start">
             <p class="text-sm pr-0.5">Moving to:</p>
-            <Dropdown
-              v-if="dropDownBreadcrumbs.length"
-              class="h-7"
-              :options="dropDownBreadcrumbs"
-            >
+            <Dropdown v-if="dropDownBreadcrumbs.length" class="h-7" :options="dropDownBreadcrumbs">
               <Button variant="ghost">
                 <LucideEllipsis class="size-3.5" />
               </Button>
             </Dropdown>
-            <span
-              v-if="dropDownBreadcrumbs.length"
-              class="text-ink-gray-5 mx-0.5"
-            >
+            <span v-if="dropDownBreadcrumbs.length" class="text-ink-gray-5 mx-0.5">
               {{ '/' }}
             </span>
-            <div
-              v-for="(crumb, index) in slicedBreadcrumbs"
-              :key="index"
-              class="flex items-center"
-            >
-              <span
-                v-if="breadcrumbs.length > 1 && index > 0"
-                class="text-ink-gray-5 mx-0.5"
-              >
+            <div v-for="(crumb, index) in slicedBreadcrumbs" :key="index" class="flex items-center">
+              <span v-if="breadcrumbs.length > 1 && index > 0" class="text-ink-gray-5 mx-0.5">
                 {{ '/' }}
               </span>
               <button
@@ -302,12 +252,7 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
         })
         node.isCollapsed = true
         tree.children.push(node)
-        if (!nested)
-          fetchFolderContents(
-            node,
-            { ...params, entity_name: node.value },
-            true
-          )
+        if (!nested) fetchFolderContents(node, { ...params, entity_name: node.value }, true)
       })
       tree.loading = false
     },
@@ -352,9 +297,7 @@ watch(
         fetchFolderContents(tree)
         break
       case 1:
-        breadcrumbs.value = [
-          { name: '', title: getTeams.data[team].file_name, is_private: 0 },
-        ]
+        breadcrumbs.value = [{ name: '', title: getTeams.data[team].file_name, is_private: 0 }]
         fetchFolderContents(tree)
         break
       case 2:

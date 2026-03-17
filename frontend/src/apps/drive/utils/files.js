@@ -59,18 +59,11 @@ export const openEntity = (entity, new_tab = false) => {
     })
   } else if (entity.file_type === 'Link') {
     const origin = new URL(entity.file_url).origin
-    if (
-      confirm(
-        `This will open an external link to ${origin} - are you sure you want to open?`
-      )
-    )
+    if (confirm(`This will open an external link to ${origin} - are you sure you want to open?`))
       window.open(entity.file_url, '_blank')
   } else if (entity.file_type === 'Presentation') {
     window.location.href = '/slides/presentation/' + entity.file_url
-  } else if (
-    entity.file_type === 'Document' ||
-    entity.file_type === 'Markdown'
-  ) {
+  } else if (entity.file_type === 'Document' || entity.file_type === 'Markdown') {
     window.location.href = '/writer/w/' + entity.name
   } else {
     router.push({
@@ -82,12 +75,8 @@ export const openEntity = (entity, new_tab = false) => {
 
 function trimCommonPrefix(a, b) {
   let i = 0
-  while (i < a.length && i < b.length && !/^\d+$/.test(a[i]) && a[i] === b[i])
-    i++
-  return [
-    a.slice(i).split(/[\W]/)[0].toLowerCase(),
-    b.slice(i).split(/[\W]/)[0].toLowerCase(),
-  ]
+  while (i < a.length && i < b.length && !/^\d+$/.test(a[i]) && a[i] === b[i]) i++
+  return [a.slice(i).split(/[\W]/)[0].toLowerCase(), b.slice(i).split(/[\W]/)[0].toLowerCase()]
 }
 
 function extractNum(name) {
@@ -193,9 +182,7 @@ export const prettyData = (entities) => {
 export const setBreadCrumbs = (entity) => {
   const breadcrumbs = entity.breadcrumbs
   const in_home = entity.in_home
-  const team =
-    getTeams.data?.[breadcrumbs[0].team] ||
-    getPublicTeams.data?.[breadcrumbs[0].team]
+  const team = getTeams.data?.[breadcrumbs[0].team] || getPublicTeams.data?.[breadcrumbs[0].team]
 
   let res = []
   if (team || in_home) {
@@ -203,9 +190,7 @@ export const setBreadCrumbs = (entity) => {
       {
         label: in_home ? __('Home') : team.title,
         name: in_home ? 'Home' : team.name,
-        route: in_home
-          ? { name: 'Home' }
-          : { name: 'Team', params: { team: team.name } },
+        route: in_home ? { name: 'Home' } : { name: 'Team', params: { team: team.name } },
       },
     ]
   } else if (entity.folder === 'Home/Attachments' || entity.folder === 'Home') {
@@ -227,20 +212,15 @@ export const setBreadCrumbs = (entity) => {
   }
 
   if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
-  const popBreadcrumbs = (item) => () =>
-    res.splice(res.findIndex((k) => k.name === item.name) + 1)
+  const popBreadcrumbs = (item) => () => res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
   breadcrumbs.forEach((folder, idx) => {
     const final = idx === breadcrumbs.length - 1
     res.push({
       label: folder.file_name,
       name: folder.name,
-      onClick: final
-        ? () => entity.write && emitter.emit('rename')
-        : popBreadcrumbs(folder),
-      route: final
-        ? null
-        : { name: 'Folder', params: { entityName: folder.name } },
+      onClick: final ? () => entity.write && emitter.emit('rename') : popBreadcrumbs(folder),
+      route: final ? null : { name: 'Folder', params: { entityName: folder.name } },
     })
   })
   store.commit('setBreadcrumbs', res)
@@ -307,21 +287,8 @@ export const MIME_LIST_MAP = {
     'application/vnd.oasis.opendocument.presentation',
     'application/vnd.apple.keynote',
   ],
-  Audio: [
-    'audio/mpeg',
-    'audio/wav',
-    'audio/x-midi',
-    'audio/ogg',
-    'audio/mp4',
-    'audio/mp3',
-  ],
-  Video: [
-    'video/mp4',
-    'video/webm',
-    'video/ogg',
-    'video/quicktime',
-    'video/x-matroska',
-  ],
+  Audio: ['audio/mpeg', 'audio/wav', 'audio/x-midi', 'audio/ogg', 'audio/mp4', 'audio/mp3'],
+  Video: ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-matroska'],
   Book: ['application/epub+zip', 'application/x-mobipocket-ebook'],
   Application: [
     'application/octet-stream',
@@ -427,16 +394,11 @@ export function printDoc(html, settings = {}) {
           `
   const iframe = document.createElement('iframe')
   iframe.id = 'el-tiptap-iframe'
-  iframe.setAttribute(
-    'style',
-    'position: absolute; width: 0; height: 0; top: -10px; left: -10px;'
-  )
+  iframe.setAttribute('style', 'position: absolute; width: 0; height: 0; top: -10px; left: -10px;')
   document.body.appendChild(iframe)
 
   const frameWindow = iframe.contentWindow
-  const doc =
-    iframe.contentDocument ||
-    (iframe.contentWindow && iframe.contentWindow.document)
+  const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document)
 
   if (doc) {
     doc.open()
@@ -520,9 +482,7 @@ export function getLink(entity, copy = true, withDomain = true) {
   else if (entity.mime_type === 'frappe/slides') {
     link = window.location.origin + '/slides/presentation/' + entity.name
   } else {
-    link = `${
-      withDomain ? window.location.origin + '/drive' : ''
-    }/${getLinkStem(entity)}`
+    link = `${withDomain ? window.location.origin + '/drive' : ''}/${getLinkStem(entity)}`
   }
   if (!copy) return link
   try {
@@ -546,9 +506,7 @@ export function dynamicList(k) {
 }
 
 export const setTitle = (file_name) =>
-  (document.title =
-    (router.currentRoute.value.name === 'Folder' ? 'Folder - ' : '') +
-    file_name)
+  (document.title = (router.currentRoute.value.name === 'Folder' ? 'Folder - ' : '') + file_name)
 
 async function uploadImage(file, params) {
   const uploader = useFileUpload()
@@ -569,9 +527,7 @@ export const pasteObj = (e) => {
   const clipboardItems = Array.from(e.clipboardData?.items || [])
   if (clipboardItems.some((item) => item.type.includes('image'))) {
     e.preventDefault()
-    const file = clipboardItems
-      .find((item) => item.type.includes('image'))
-      ?.getAsFile()
+    const file = clipboardItems.find((item) => item.type.includes('image'))?.getAsFile()
     const route = router.currentRoute.value
     if (file && ['Home', 'Folder', 'Team'].includes(route.name)) {
       const entity = uploadImage(file, {
@@ -598,8 +554,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Caveat',
     value: 'caveat',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-caveat)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-caveat)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-caveat)',
@@ -608,8 +563,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Comic Sans',
     value: 'comic-sans',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-comic-sans)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-comic-sans)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-comic-sans)',
@@ -618,8 +572,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Comfortaa',
     value: 'comfortaa',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-comfortaa)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-comfortaa)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-comfortaa)',
@@ -628,8 +581,7 @@ export const FONT_FAMILIES = [
   {
     label: 'EB Garamond',
     value: 'eb-garamond',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-eb-garamond)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-eb-garamond)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-eb-garamond)',
@@ -647,8 +599,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Geist',
     value: 'geist',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-geist)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-geist)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-geist)',
@@ -657,8 +608,7 @@ export const FONT_FAMILIES = [
   {
     label: 'IBM Plex Sans',
     value: 'ibm-plex',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-ibm-plex)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-ibm-plex)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-ibm-plex)',
@@ -667,8 +617,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Inter',
     value: 'inter',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-inter)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-inter)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-inter)',
@@ -677,8 +626,7 @@ export const FONT_FAMILIES = [
   {
     label: 'JetBrains Mono',
     value: 'jetbrains',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-jetbrains)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-jetbrains)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-jetbrains)',
@@ -687,8 +635,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Lora',
     value: 'lora',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-lora)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-lora)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-lora)',
@@ -697,8 +644,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Merriweather',
     value: 'merriweather',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-merriweather)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-merriweather)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-merriweather)',
@@ -707,8 +653,7 @@ export const FONT_FAMILIES = [
   {
     label: 'Nunito',
     value: 'nunito',
-    action: (editor) =>
-      editor.chain().focus().setFontFamily('var(--font-nunito)').run(),
+    action: (editor) => editor.chain().focus().setFontFamily('var(--font-nunito)').run(),
     isActive: (editor) =>
       editor.isActive('textStyle', {
         fontFamily: 'var(--font-nunito)',
@@ -726,10 +671,7 @@ export function getRandomColor() {
 }
 export const newExternal = async (type) => {
   const route = router.currentRoute.value
-  const data = await (type === 'Document'
-    ? createDocument
-    : createPresentation
-  ).submit({
+  const data = await (type === 'Document' ? createDocument : createPresentation).submit({
     team: route.params.team,
     parent: store.state.currentFolder.name,
   })

@@ -1,12 +1,7 @@
 <template>
   <div>
-    <div
-      class="w-60 rounded-lg bg-surface-white p-1 text-base shadow-lg max-h-64 overflow-y-auto"
-    >
-      <div
-        v-if="!items.length && !loading"
-        class="text-center text-ink-gray-6 text-sm py-2"
-      >
+    <div class="w-60 rounded-lg bg-surface-white p-1 text-base shadow-lg max-h-64 overflow-y-auto">
+      <div v-if="!items.length && !loading" class="text-center text-ink-gray-6 text-sm py-2">
         No documents found
       </div>
       <button
@@ -23,14 +18,9 @@
         <div class="truncate max-w-56">
           {{ item.title }}
         </div>
-        <div class="text-xs text-ink-gray-6">
-          Edited {{ item.relativeModified }}
-        </div>
+        <div class="text-xs text-ink-gray-6">Edited {{ item.relativeModified }}</div>
       </button>
-      <span
-        v-if="loading"
-        class="text-xs text-ink-gray-5 p-1"
-      >Loading...</span>
+      <span v-if="loading" class="text-xs text-ink-gray-5 p-1">Loading...</span>
     </div>
   </div>
 </template>
@@ -60,23 +50,22 @@ export default {
   },
   methods: {
     onKeyDown({ event }) {
-      if (event.key === "ArrowUp") {
+      if (event.key === 'ArrowUp') {
         this.upHandler()
         return true
       }
-      if (event.key === "ArrowDown") {
+      if (event.key === 'ArrowDown') {
         this.downHandler()
         return true
       }
-      if (event.key === "Enter") {
+      if (event.key === 'Enter') {
         this.enterHandler()
         return true
       }
       return false
     },
     upHandler() {
-      this.selectedIndex =
-        (this.selectedIndex + this.items.length - 1) % this.items.length
+      this.selectedIndex = (this.selectedIndex + this.items.length - 1) % this.items.length
     },
     downHandler() {
       this.selectedIndex = (this.selectedIndex + 1) % this.items.length

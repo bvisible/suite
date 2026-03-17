@@ -1,8 +1,8 @@
-import { Editor, Extension } from "@tiptap/core"
-import { Plugin, PluginKey } from "@tiptap/pm/state"
-import { EditorView } from "@tiptap/pm/view"
-import { DOMSerializer } from "@tiptap/pm/model"
-import tippy, { Instance } from "tippy.js"
+import { Editor, Extension } from '@tiptap/core'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { EditorView } from '@tiptap/pm/view'
+import { DOMSerializer } from '@tiptap/pm/model'
+import tippy, { Instance } from 'tippy.js'
 
 class FloatingQuoteButtonView {
   public button: HTMLButtonElement
@@ -13,19 +13,19 @@ class FloatingQuoteButtonView {
   constructor(editorView: EditorView, editor: Editor) {
     this.editorView = editorView
     this.editor = editor
-    this.button = document.createElement("button")
-    this.button.textContent = "Comment"
+    this.button = document.createElement('button')
+    this.button.textContent = 'Comment'
     const classes = [
-      "h-7 text-ink-white bg-surface-gray-7 hover:bg-surface-gray-6 active:bg-surface-gray-5",
-      "text-ink-gray-8 bg-surface-gray-2 hover:bg-surface-gray-3 active:bg-surface-gray-4",
-      "focus-visible:ring focus-visible:ring-outline-gray-3",
-      "h-7 text-base px-2 rounded inline-flex items-center justify-center gap-2 transition-colors focus:outline-none",
+      'h-7 text-ink-white bg-surface-gray-7 hover:bg-surface-gray-6 active:bg-surface-gray-5',
+      'text-ink-gray-8 bg-surface-gray-2 hover:bg-surface-gray-3 active:bg-surface-gray-4',
+      'focus-visible:ring focus-visible:ring-outline-gray-3',
+      'h-7 text-base px-2 rounded inline-flex items-center justify-center gap-2 transition-colors focus:outline-none',
     ]
-      .map((c) => c.split(" "))
+      .map((c) => c.split(' '))
       .flat()
     this.button.classList.add(...classes)
 
-    this.button.addEventListener("mousedown", (event) => {
+    this.button.addEventListener('mousedown', (event) => {
       event.preventDefault()
 
       const { from, to } = this.editorView.state.selection
@@ -33,14 +33,14 @@ class FloatingQuoteButtonView {
 
       const serializer = DOMSerializer.fromSchema(this.editorView.state.schema)
       const domFragment = serializer.serializeFragment(slice.content)
-      const tempDiv = document.createElement("div")
+      const tempDiv = document.createElement('div')
       tempDiv.appendChild(domFragment)
       const selectedHTML = tempDiv.innerHTML
 
       const extensionOptions = this.editor.options.extensions.find(
-        (e) => e.name === "floatingQuoteButton"
+        (e) => e.name === 'floatingQuoteButton'
       )?.options
-      if (extensionOptions && typeof extensionOptions.onClick === "function") {
+      if (extensionOptions && typeof extensionOptions.onClick === 'function') {
         extensionOptions.onClick(selectedHTML)
       }
 
@@ -68,7 +68,7 @@ class FloatingQuoteButtonView {
     if (
       !selection.empty &&
       selection.from !== selection.to &&
-      selection.node?.type.name !== "richQuote"
+      selection.node?.type.name !== 'richQuote'
     ) {
       const rect = getRectForSelection(view)
 
@@ -76,18 +76,18 @@ class FloatingQuoteButtonView {
         if (!this.tippyInstance) {
           this.tippyInstance = tippy(this.editorView.dom, {
             content: this.button,
-            trigger: "manual",
+            trigger: 'manual',
             interactive: true,
-            placement: "top",
+            placement: 'top',
             arrow: false,
             appendTo: () => document.body,
             hideOnClick: true,
             duration: 150,
             onShow: () => {
-              window.addEventListener("scroll", this.handleScroll, true)
+              window.addEventListener('scroll', this.handleScroll, true)
             },
             onHide: () => {
-              window.removeEventListener("scroll", this.handleScroll, true)
+              window.removeEventListener('scroll', this.handleScroll, true)
             },
           })
         }
@@ -104,18 +104,18 @@ class FloatingQuoteButtonView {
   }
 
   destroy() {
-    window.removeEventListener("scroll", this.handleScroll, true)
+    window.removeEventListener('scroll', this.handleScroll, true)
     this.tippyInstance?.destroy()
   }
 }
 
 export const FloatingQuoteButton = Extension.create({
-  name: "floatingQuoteButton",
+  name: 'floatingQuoteButton',
 
   addOptions() {
     return {
       onClick: (html: string) => {
-        console.warn("FloatingQuoteButton: onClick not implemented.", html)
+        console.warn('FloatingQuoteButton: onClick not implemented.', html)
       },
     }
   },
@@ -123,9 +123,8 @@ export const FloatingQuoteButton = Extension.create({
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey("floatingQuoteButton"),
-        view: (editorView) =>
-          new FloatingQuoteButtonView(editorView, this.editor),
+        key: new PluginKey('floatingQuoteButton'),
+        view: (editorView) => new FloatingQuoteButtonView(editorView, this.editor),
       }),
     ]
   },
@@ -163,7 +162,7 @@ function getRectForSelection(view: EditorView): DOMRect | null {
     }
     return rect
   } catch (e) {
-    console.warn("Error creating DOM range for selection:", e)
+    console.warn('Error creating DOM range for selection:', e)
     // Fallback to coordsAtPos if DOM range creation fails
     const startCoords = view.coordsAtPos(from)
     const endCoords = view.coordsAtPos(to)

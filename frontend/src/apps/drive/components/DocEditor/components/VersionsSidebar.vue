@@ -1,8 +1,5 @@
 <template>
-  <div
-    v-if="editor"
-    class="self-stretch w-72 border-e h-full overflow-hidden relative"
-  >
+  <div v-if="editor" class="self-stretch w-72 border-e h-full overflow-hidden relative">
     <!-- <h3
       class="ps-3 p-1.5 flex items-center justify-between text-xs text-ink-gray-9 font-medium mb-1"
     ></h3> -->
@@ -28,18 +25,17 @@
         variant="outline"
         @click="
           clearSnapshot(),
-          createDialog({
-            title: 'Create Version',
-            size: 'sm',
-            component: h(NewVersionDialog),
-            props: { editor },
-          })
+            createDialog({
+              title: 'Create Version',
+              size: 'sm',
+              component: h(NewVersionDialog),
+              props: { editor },
+            })
         "
       />
       <div
         v-if="
-          !Object.entries(groupedVersions).length ||
-            !Object.entries(groupedVersions)[0][1].length
+          !Object.entries(groupedVersions).length || !Object.entries(groupedVersions)[0][1].length
         "
         class="text-ink-gray-5 text-sm text-center mt-1"
       >
@@ -51,10 +47,7 @@
         :key="title"
         class="flex flex-col gap-0.5 justify-start bg-surface-white"
       >
-        <div
-          v-if="title !== 'Manual'"
-          class="text-ink-gray-8 text-sm font-medium mb-1"
-        >
+        <div v-if="title !== 'Manual'" class="text-ink-gray-8 text-sm font-medium mb-1">
           {{ title }}:
         </div>
 
@@ -63,9 +56,7 @@
           :key="version.name"
           :variant="version.name === current?.name ? 'outline' : 'ghost'"
           class="text-start text-sm py-4"
-          :label="
-            version.manual ? version.title : formatDate(version.title).slice(10)
-          "
+          :label="version.manual ? version.title : formatDate(version.title).slice(10)"
           @click="renderSnapshot(version)"
         />
       </div>
@@ -73,25 +64,25 @@
   </div>
 </template>
 <script setup>
-import * as Y from "yjs"
-import { ySyncPluginKey } from "@tiptap/y-tiptap"
-import { toUint8Array } from "js-base64"
-import LucideX from "~icons/lucide/x"
-import LucidePlus from "~icons/lucide/plus"
-import { formatDate } from "@/utils/format"
-import { computed, ref, h, watch } from "vue"
-import emitter from "@/emitter"
-import { Tabs } from "frappe-ui"
-import { createDialog } from "@/utils/dialogs"
-import NewVersionDialog from "./NewVersionDialog.vue"
+import * as Y from 'yjs'
+import { ySyncPluginKey } from '@tiptap/y-tiptap'
+import { toUint8Array } from 'js-base64'
+import LucideX from '~icons/lucide/x'
+import LucidePlus from '~icons/lucide/plus'
+import { formatDate } from '@/utils/format'
+import { computed, ref, h, watch } from 'vue'
+import emitter from '@/emitter'
+import { Tabs } from 'frappe-ui'
+import { createDialog } from '@/utils/dialogs'
+import NewVersionDialog from './NewVersionDialog.vue'
 
 const props = defineProps({
   editor: Object,
   versions: Array,
 })
-const emit = defineEmits(["saveDocument", "newVersion"])
+const emit = defineEmits(['saveDocument', 'newVersion'])
 const current = defineModel()
-const showVersions = defineModel("showVersions")
+const showVersions = defineModel('showVersions')
 const groupedVersions = computed(() => {
   if (tab.value === 0) {
     return props.versions.reduce((acc, version) => {
@@ -128,16 +119,16 @@ const clearSnapshot = (hide = true) => {
 }
 watch(tab, () => clearSnapshot(false))
 
-emitter.on("restore-snapshot", (details) => {
+emitter.on('restore-snapshot', (details) => {
   createDialog({
-    title: "Are you sure?",
+    title: 'Are you sure?',
     message: details.manual
       ? `You are restoring to a previous version: ${details.title}.`
       : `You are restoring the document to how it was at ${details.title}.`,
     actions: [
       {
-        label: "Confirm",
-        variant: "solid",
+        label: 'Confirm',
+        variant: 'solid',
         onClick: () => {
           const view = props.editor.view
           view.dispatch(
@@ -147,11 +138,11 @@ emitter.on("restore-snapshot", (details) => {
             })
           )
           showVersions.value = false
-          emit("saveDocument")
+          emit('saveDocument')
         },
       },
     ],
   })
 })
-emitter.on("clear-snapshot", clearSnapshot)
+emitter.on('clear-snapshot', clearSnapshot)
 </script>

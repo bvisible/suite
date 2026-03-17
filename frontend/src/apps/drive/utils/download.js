@@ -8,9 +8,7 @@ import editorStyle from '@/components/DocEditor/styles/editor.css?inline'
 import globalStyle from '@/index.css?inline'
 
 async function getPdfFromDoc(entity_name) {
-  const res = await fetch(
-    `/api/method/drive.api.files.get_file_content?entity_name=${entity_name}`
-  )
+  const res = await fetch(`/api/method/drive.api.files.get_file_content?entity_name=${entity_name}`)
   const raw_html = (await res.json()).message
   const content = `
           <!DOCTYPE html>
@@ -47,9 +45,7 @@ export function entitiesDownload(team, entities) {
     }
     return entities[0].is_folder
       ? folderDownload(team, entities[0])
-      : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${
-          entities[0].name
-        }&trigger_download=1`)
+      : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${entities[0].name}&trigger_download=1`)
   }
 
   const t = toast('Preparing download...')
@@ -59,9 +55,7 @@ export function entitiesDownload(team, entities) {
     if (entity.is_folder) {
       const folder = parentFolder.folder(entity.file_name)
       return get_children(team, entity.name).then((children) => {
-        const promises = children.map((childEntity) =>
-          processEntity(childEntity, folder)
-        )
+        const promises = children.map((childEntity) => processEntity(childEntity, folder))
         return Promise.all(promises)
       })
     } else if (entity.document) {
@@ -167,9 +161,7 @@ function get_file_content(entity) {
 }
 
 function get_children(team, entity_name) {
-  const url =
-    '/api/method/' +
-    `drive.api.list.files?team=${team}&entity_name=${entity_name}`
+  const url = '/api/method/' + `drive.api.list.files?team=${team}&entity_name=${entity_name}`
   return fetch(url, {
     method: 'GET',
     headers: {

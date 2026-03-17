@@ -24,43 +24,28 @@
         <div v-if="!advanced">
           <!-- General section -->
           <div class="mb-4 border-b pb-4">
-            <div class="mb-2 text-ink-gray-5 font-medium text-base">
-              General Access
-            </div>
+            <div class="mb-2 text-ink-gray-5 font-medium text-base">General Access</div>
             <div class="flex justify-between mt-3">
               <div class="flex flex-col gap-2">
                 <Select
                   v-model="generalAccessLevel"
                   :options="levelOptions"
-                  @update:model-value="
-                    (val) => updateGeneralAccess(val, generalPerms)
-                  "
+                  @update:model-value="(val) => updateGeneralAccess(val, generalPerms)"
                 >
                   <template #prefix>
-                    <component
-                      :is="generalAccessLevel.icon"
-                      class="mr-2 size-4 text-ink-gray-6"
-                    />
+                    <component :is="generalAccessLevel.icon" class="mr-2 size-4 text-ink-gray-6" />
                   </template>
                   <template #item-prefix="{ option }">
-                    <component
-                      :is="option.icon"
-                      class="size-4 text-ink-gray-6"
-                    />
+                    <component :is="option.icon" class="size-4 text-ink-gray-6" />
                   </template>
                 </Select>
-                <TeamSelector
-                  v-if="generalAccessLevel == 'team'"
-                  v-model="chosenTeam"
-                />
+                <TeamSelector v-if="generalAccessLevel == 'team'" v-model="chosenTeam" />
               </div>
               <Select
                 v-if="generalAccessLevel !== 'restricted'"
                 v-model="generalPerms"
                 :options="accessOptions"
-                @update:model-value="
-                  (val) => updateGeneralAccess(generalAccessLevel, val)
-                "
+                @update:model-value="(val) => updateGeneralAccess(generalAccessLevel, val)"
               />
             </div>
           </div>
@@ -69,9 +54,7 @@
           <div class="flex gap-3">
             <div class="flex-grow">
               <Combobox v-slot="{ open }" v-model="sharedUsers" multiple>
-                <div
-                  class="flex flex-col items-start justify-center rounded-md bg-surface-gray-2"
-                >
+                <div class="flex flex-col items-start justify-center rounded-md bg-surface-gray-2">
                   <div class="flex flex-wrap justify-between p-1 w-full">
                     <div class="w-[75%] flex flex-wrap">
                       <Button
@@ -82,11 +65,7 @@
                         class="shadow-sm m-0.5 p-1"
                       >
                         <template #prefix>
-                          <Avatar
-                            size="sm"
-                            :image="user.image"
-                            :label="user.email"
-                          />
+                          <Avatar size="sm" :image="user.image" :label="user.email" />
                         </template>
                         <template #suffix>
                           <LucideX
@@ -109,9 +88,7 @@
                   </div>
                 </div>
 
-                <div
-                  class="absolute z-[4] rounded-lg bg-surface-modal text-base shadow-2xl"
-                >
+                <div class="absolute z-[4] rounded-lg bg-surface-modal text-base shadow-2xl">
                   <ComboboxOptions
                     v-if="open && query.length"
                     class="max-h-[15rem] overflow-y-auto px-1.5 py-1.5"
@@ -139,10 +116,7 @@
                         </span>
                       </li>
                     </ComboboxOption>
-                    <template
-                      v-for="person in filteredUsers"
-                      :key="person.email"
-                    >
+                    <template v-for="person in filteredUsers" :key="person.email">
                       <ComboboxOption
                         v-slot="{ selected, active }"
                         as="template"
@@ -157,10 +131,7 @@
                             'opacity-50 cursor-not-allowed': person.disabled,
                           }"
                         >
-                          <LucideCheck
-                            v-if="selected"
-                            class="size-4 text-ink-gray-7"
-                          />
+                          <LucideCheck v-if="selected" class="size-4 text-ink-gray-7" />
                           <div v-else class="size-4" />
                           <span
                             class="block truncate"
@@ -170,9 +141,7 @@
                             }"
                           >
                             {{ person.email }}
-                            <span v-if="person.full_name"
-                              >({{ person.full_name }})</span
-                            >
+                            <span v-if="person.full_name">({{ person.full_name }})</span>
                           </span>
                         </li>
                       </ComboboxOption>
@@ -204,11 +173,7 @@
               :key="user.name"
               class="flex items-center gap-x-3 pr-1"
             >
-              <Avatar
-                size="xl"
-                :label="user.user || user.email"
-                :image="user.user_image"
-              />
+              <Avatar size="xl" :label="user.user || user.email" :image="user.user_image" />
 
               <div class="flex items-start flex-col gap-1">
                 <span class="font-medium text-base text-ink-gray-9">{{
@@ -218,13 +183,8 @@
                   user.full_name ? user.user || user.email : ''
                 }}</span>
               </div>
-              <span
-                v-if="user.user == $store.state.user.id"
-                class="ml-auto mr-1 text-ink-gray-7"
-              >
-                <div v-if="user.user === entity.owner" class="flex gap-1">
-                  Owner (you)
-                </div>
+              <span v-if="user.user == $store.state.user.id" class="ml-auto mr-1 text-ink-gray-7">
+                <div v-if="user.user === entity.owner" class="flex gap-1">Owner (you)</div>
                 <template v-else>You</template>
               </span>
               <AccessButton
@@ -250,10 +210,7 @@
                     })
                 "
               />
-              <span
-                v-else
-                class="ml-auto flex items-center gap-1 text-ink-gray-5"
-              >
+              <span v-else class="ml-auto flex items-center gap-1 text-ink-gray-5">
                 Owner
                 <LucideDiamond class="size-3" />
               </span>
@@ -273,22 +230,13 @@
               />
             </div>
             <div class="flex gap-2">
-              <Button
-                class="text-base"
-                variant="outline"
-                @click="getLink(entity)"
-              >
+              <Button class="text-base" variant="outline" @click="getLink(entity)">
                 <template #prefix>
                   <LucideLink2 class="w-4 text-ink-gray-6" />
                 </template>
                 Copy Link
               </Button>
-              <Button
-                v-if="sharedUsers.length"
-                label="Invite"
-                variant="solid"
-                @click="addShares"
-              />
+              <Button v-if="sharedUsers.length" label="Invite" variant="solid" @click="addShares" />
             </div>
           </div>
         </div>
@@ -310,29 +258,14 @@
 </template>
 <script setup>
 import { ref, computed, watch, useTemplateRef, markRaw, h } from 'vue'
-import {
-  Avatar,
-  Dialog,
-  LoadingIndicator,
-  createResource,
-  Switch,
-} from 'frappe-ui'
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxOptions,
-  ComboboxOption,
-} from '@headlessui/vue'
+import { Avatar, Dialog, LoadingIndicator, createResource, Switch } from 'frappe-ui'
+import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from '@headlessui/vue'
 import AccessButton from '@/components/ShareDialog/AccessButton.vue'
 import TeamSelector from '@/components/TeamSelector.vue'
 import { getLink, dynamicList } from '@/utils/files'
 import Select from '@/components/Select.vue'
 
-import {
-  getUsersWithAccess,
-  updateAccess,
-  allUsers,
-} from '@/resources/permissions'
+import { getUsersWithAccess, updateAccess, allUsers } from '@/resources/permissions'
 
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideCheck from '~icons/lucide/check'
@@ -407,17 +340,12 @@ const getGeneralAccess = createResource({
   }),
   onSuccess: (data) => {
     if (!data || !data.read) {
-      if (getGeneralAccess.params.user === 'Guest')
-        getGeneralAccess.fetch({ team: 1 })
+      if (getGeneralAccess.params.user === 'Guest') getGeneralAccess.fetch({ team: 1 })
       return
     }
     generalAccessLevel.value = getGeneralAccess.params.team ? 'team' : 'public'
     chosenTeam.value = data.team
-    generalPerms.value = data.write
-      ? 'editor'
-      : data.upload
-      ? 'upload'
-      : 'reader'
+    generalPerms.value = data.write ? 'editor' : data.upload ? 'upload' : 'reader'
   },
 })
 getGeneralAccess.fetch({ user: 'Guest' })
@@ -452,8 +380,7 @@ const updateGeneralAccess = (level, perms) => {
 watch(
   chosenTeam,
   (now, prev) =>
-    (prev || selectingTeam) &&
-    updateGeneralAccess(generalAccessLevel.value, generalPerms.value)
+    (prev || selectingTeam) && updateGeneralAccess(generalAccessLevel.value, generalPerms.value)
 )
 
 // Invite users
@@ -463,8 +390,7 @@ watch(sharedUsers, (now, prev) => {
   query.value = ''
   if (now.length > prev.length) {
     const addedUser = sharedUsers.value[sharedUsers.value.length - 1]
-    if (!allUsers.data.some((k) => k.name === addedUser.name))
-      allUsers.data.push(addedUser)
+    if (!allUsers.data.some((k) => k.name === addedUser.name)) allUsers.data.push(addedUser)
   }
 })
 const shareAccess = ref('reader')
@@ -477,14 +403,10 @@ const filteredUsers = computed(() => {
 
   return allUsers.data
     .filter(
-      (k) =>
-        (regex.test(k.email) || regex.test(k.full_name)) &&
-        store.state.user.id != k.name
+      (k) => (regex.test(k.email) || regex.test(k.full_name)) && store.state.user.id != k.name
     )
     .map((k) =>
-      getUsersWithAccess.data.find(({ user }) => user === k.name)
-        ? { ...k, disabled: true }
-        : k
+      getUsersWithAccess.data.find(({ user }) => user === k.name) ? { ...k, disabled: true } : k
     )
 })
 function addShares() {
@@ -509,7 +431,5 @@ function addShares() {
 // General access
 
 const ACCESS_LEVELS = ['read', 'comment', 'upload', 'share', 'write']
-const filteredAccess = computed(() =>
-  ACCESS_LEVELS.filter((l) => props.entity[l])
-)
+const filteredAccess = computed(() => ACCESS_LEVELS.filter((l) => props.entity[l]))
 </script>

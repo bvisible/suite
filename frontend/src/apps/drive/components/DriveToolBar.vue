@@ -1,12 +1,9 @@
 <template>
   <div class="flex p-5 pb-0 h-12">
-    <div
-      v-if="selections?.length"
-      class="my-auto w-[40%] text-base text-ink-gray-8"
-    >
+    <div v-if="selections?.length" class="my-auto w-[40%] text-base text-ink-gray-8">
       {{ selections.length }}
-      {{ selections.length === 1 ? __("item") : __("items") }}
-      {{ __("selected") }}
+      {{ selections.length === 1 ? __('item') : __('items') }}
+      {{ __('selected') }}
     </div>
     <div
       v-else-if="$route.name === 'Shared'"
@@ -47,17 +44,9 @@
 
     <div class="flex gap-2 ml-auto my-auto">
       <template v-if="!selections?.length">
-        <div
-          v-if="activeFilters.length"
-          class="flex flex-wrap items-start justify-end gap-1 ml-3"
-        >
-          <div
-            v-for="({ icon, name }, index) in activeFilters"
-            :key="index"
-          >
-            <div
-              class="flex items-center border rounded pl-2 py-1 h-7 text-base select-none"
-            >
+        <div v-if="activeFilters.length" class="flex flex-wrap items-start justify-end gap-1 ml-3">
+          <div v-for="({ icon, name }, index) in activeFilters" :key="index">
+            <div class="flex items-center border rounded pl-2 py-1 h-7 text-base select-none">
               <img class="w-4" :src="icon" />
               <span class="text-sm ml-2">{{ name }}</span>
               <Button
@@ -68,15 +57,9 @@
             </div>
           </div>
         </div>
-        <Button
-          v-if="getEntities.loading"
-          :loading="true"
-          label="Loading..."
-        />
+        <Button v-if="getEntities.loading" :loading="true" label="Loading..." />
         <TeamSelector
-          v-if="
-            ['Shared', 'Recents', 'Favourites', 'Trash'].includes($route.name)
-          "
+          v-if="['Shared', 'Recents', 'Favourites', 'Trash'].includes($route.name)"
           v-model="team"
           :none="true"
         />
@@ -96,11 +79,7 @@
           :disabled
           placement="right"
         />
-        <Dropdown
-          v-if="$route.name !== 'Recents'"
-          :options="orderByItems"
-          placement="right"
-        >
+        <Dropdown v-if="$route.name !== 'Recents'" :options="orderByItems" placement="right">
           <div class="flex items-center whitespace-nowrap">
             <Button
               class="text-sm h-7 border-r border-slate-200 rounded-r-none"
@@ -108,21 +87,12 @@
               @click.stop="toggleAscending"
             >
               <template #icon>
-                <LucideArrowDownAz
-                  v-if="sortOrder.ascending"
-                  class="size-4"
-                />
-                <LucideArrowUpZa
-                  v-else
-                  class="size-4"
-                />
+                <LucideArrowDownAz v-if="sortOrder.ascending" class="size-4" />
+                <LucideArrowUpZa v-else class="size-4" />
               </template>
             </Button>
 
-            <Button
-              class="text-sm h-7 rounded-l-none flex-1"
-              :disabled
-            >
+            <Button class="text-sm h-7 rounded-l-none flex-1" :disabled>
               <div class="flex items-center gap-2">
                 {{ __(sortOrder.label) }}
                 <template v-if="sortOrder.smart">
@@ -149,17 +119,13 @@
           ]"
         />
       </template>
-      <div
-        v-else-if="actionItems"
-        class="flex gap-3 ml-4 overflow-auto"
-      >
+      <div v-else-if="actionItems" class="flex gap-3 ml-4 overflow-auto">
         <template
           v-for="item in actionItems
             .filter((i) => i.important && (selections.length === 1 || i.multi))
             .filter(
               (i) =>
-                !i.isEnabled ||
-                selections.every((e) => i.isEnabled(e, selections.length !== 1))
+                !i.isEnabled || selections.every((e) => i.isEnabled(e, selections.length !== 1))
             )"
           :key="item.label"
         >
@@ -183,19 +149,19 @@
   </div>
 </template>
 <script setup>
-import { Button, Dropdown, TextInput, TabButtons, Switch } from "frappe-ui"
-import { ref, computed, watch, useTemplateRef, h, defineComponent } from "vue"
-import { getIconUrl } from "@/utils/getIconUrl"
-import { useStore } from "vuex"
-import { onKeyDown } from "@vueuse/core"
-import LucideFilter from "~icons/lucide/filter"
-import TeamSelector from "@/components/TeamSelector.vue"
+import { Button, Dropdown, TextInput, TabButtons, Switch } from 'frappe-ui'
+import { ref, computed, watch, useTemplateRef, h, defineComponent } from 'vue'
+import { getIconUrl } from '@/utils/getIconUrl'
+import { useStore } from 'vuex'
+import { onKeyDown } from '@vueuse/core'
+import LucideFilter from '~icons/lucide/filter'
+import TeamSelector from '@/components/TeamSelector.vue'
 
-import LucideX from "~icons/lucide/x"
+import LucideX from '~icons/lucide/x'
 
-const sortOrder = defineModel("sortOrder")
-const search = defineModel("search")
-const team = defineModel("team")
+const sortOrder = defineModel('sortOrder')
+const search = defineModel('search')
+const team = defineModel('team')
 const props = defineProps({
   selections: Array,
   actionItems: Array,
@@ -203,26 +169,26 @@ const props = defineProps({
 })
 const store = useStore()
 
-const activeFilters = defineModel("filters")
+const activeFilters = defineModel('filters')
 const disabled = computed(() => !props.getEntities.data?.length)
 
 const viewState = ref(store.state.view)
-watch(viewState, (val) => store.commit("toggleView", val))
+watch(viewState, (val) => store.commit('toggleView', val))
 const shareView = ref(store.state.shareView)
-const searchInput = useTemplateRef("search-input")
+const searchInput = useTemplateRef('search-input')
 
 const availableFilterTypes = computed(() => {
   if (!props.getEntities.data) return []
   const types = new Set(props.getEntities.data.map((r) => r.file_type))
-  if (props.getEntities.data.find((k) => k.is_group)) types.add("Folder")
+  if (props.getEntities.data.find((k) => k.is_group)) types.add('Folder')
   return Array.from(types)
     .sort((a, b) => (a > b ? 1 : -1))
     .map((t) => ({ name: t, icon: getIconUrl(t) }))
 })
 
-onKeyDown("Escape", () => {
+onKeyDown('Escape', () => {
   searchInput.value.el.blur()
-  search.value = ""
+  search.value = ''
 })
 
 const orderByItems = computed(() => {
@@ -240,24 +206,24 @@ const toggleAscending = () => {
 
 const columnHeaders = [
   {
-    label: __("Name"),
-    field: "title",
+    label: __('Name'),
+    field: 'title',
   },
   {
-    label: __("Owner"),
-    field: "owner",
+    label: __('Owner'),
+    field: 'owner',
   },
   {
-    label: __("Modified"),
-    field: "modified",
+    label: __('Modified'),
+    field: 'modified',
   },
   {
-    label: __("Size"),
-    field: "file_size",
+    label: __('Size'),
+    field: 'file_size',
   },
   {
-    label: __("Type"),
-    field: "file_type",
+    label: __('Type'),
+    field: 'file_type',
   },
   {
     group: true,
@@ -268,10 +234,10 @@ const columnHeaders = [
           setup() {
             return () =>
               h(Switch, {
-                label: __("Smart"),
-                disabled: sortOrder.value.field !== "title",
+                label: __('Smart'),
+                disabled: sortOrder.value.field !== 'title',
                 modelValue: sortOrder.value.smart,
-                "onUpdate:modelValue": (val) => (sortOrder.value.smart = val),
+                'onUpdate:modelValue': (val) => (sortOrder.value.smart = val),
               })
           },
         }),
