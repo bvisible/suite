@@ -228,9 +228,7 @@ const loadEditorState = async () => {
 const handleMounted = () => {
 	// templates load from Home.vue
 	// but if user lands directly on editor check and load them
-	inReadonlyMode.value = props.editorAccess == 'view'
 	loadTemplates()
-	loadEditorState()
 }
 
 const handleBeforeUnmount = () => {
@@ -266,6 +264,7 @@ watch(
 watch(
 	() => props.presentationId,
 	(id) => {
+		inReadonlyMode.value = props.editorAccess == 'view'
 		if (route.name === 'EditorNew') {
 			resetEditorState()
 			themeDialogAction.value = 'create'
@@ -274,6 +273,7 @@ watch(
 		}
 		loadEditorState()
 	},
+	{ immediate: true },
 )
 
 onBeforeRouteLeave(() => {
