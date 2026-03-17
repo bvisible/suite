@@ -270,6 +270,7 @@ watch(
 watch(
 	() => route.name,
 	(name) => {
+		if (!['EditorNew', 'PresentationEditor'].includes(name)) return
 		inReadonlyMode.value = props.editorAccess == 'view'
 		if (name === 'EditorNew') {
 			resetEditorState()
