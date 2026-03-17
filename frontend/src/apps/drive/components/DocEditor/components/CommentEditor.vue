@@ -1,12 +1,8 @@
 <template>
   <div
     class="w-full"
-    @keydown.ctrl.enter.capture.stop="
-      !disabled && !isEmpty && $emit('submit', editor)
-    "
-    @keydown.meta.enter.capture.stop="
-      !disabled && !isEmpty && $emit('submit', editor)
-    "
+    @keydown.ctrl.enter.capture.stop="!disabled && !isEmpty && $emit('submit', editor)"
+    @keydown.meta.enter.capture.stop="!disabled && !isEmpty && $emit('submit', editor)"
     @keydown.esc.stop="$emit('cancel', editor)"
   >
     <TextEditor
@@ -17,10 +13,7 @@
       :mentions="allUsers.data"
       class="editor flex"
       :class="editable && 'border rounded'"
-      :editor-class="[
-        'text-p-sm min-w-2 flex-grow',
-        editable && 'pl-2.5 py-1.5',
-      ]"
+      :editor-class="['text-p-sm min-w-2 flex-grow', editable && 'pl-2.5 py-1.5']"
       :placeholder
       :bubble-menu="[
         'Bold',
@@ -40,10 +33,7 @@
       "
     >
       <template #bottom="{ editor }">
-        <div
-          v-if="editable"
-          class="self-end me-1 flex-shrink-0 flex gap-1 mb-1.5"
-        >
+        <div v-if="editable" class="self-end me-1 flex-shrink-0 flex gap-1 mb-1.5">
           <Button
             v-if="!isEmpty"
             :disabled
@@ -71,13 +61,13 @@
   </div>
 </template>
 <script setup>
-import { TextEditor, Button } from "frappe-ui"
-import { allUsers } from "@/resources/permissions"
-import { computed, ref } from "vue"
+import { TextEditor, Button } from 'frappe-ui'
+import { allUsers } from '@/resources/permissions'
+import { computed, ref } from 'vue'
 
 const editorContent = defineModel({ type: String })
 
-const textEditor = ref("textEditor")
+const textEditor = ref('textEditor')
 const editor = computed(() => {
   return textEditor.value?.editor
 })
@@ -87,9 +77,9 @@ defineProps({
   isEmpty: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   editable: { type: Boolean, default: true },
-  content: { type: String, default: "" },
+  content: { type: String, default: '' },
 })
-defineEmits(["submit", "cancel", "change"])
+defineEmits(['submit', 'cancel', 'change'])
 </script>
 <style>
 .editor > div:first-child {

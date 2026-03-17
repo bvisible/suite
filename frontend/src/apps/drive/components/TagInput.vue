@@ -1,10 +1,7 @@
 <template>
   <Popover>
     <template #target="{ isOpen, open: openPopover, togglePopover }">
-      <slot
-        name="target"
-        v-bind="{ open: openPopover, togglePopover }"
-      >
+      <slot name="target" v-bind="{ open: openPopover, togglePopover }">
         <div class="flex items-center justify-start min-w-full flex-wrap gap-2">
           <Tag
             v-for="tag in $resources.entityTags.data"
@@ -15,23 +12,16 @@
             @success="$resources.entityTags.fetch()"
           />
           <span v-if="!$resources.entityTags.data?.length">
-            {{ __("No tags") }}
+            {{ __('No tags') }}
           </span>
-          <Button
-            v-if="entity.write"
-            class="ml-auto !h-6 text-xs"
-            @click="togglePopover()"
-          >
-            {{ __("Add") }}
+          <Button v-if="entity.write" class="ml-auto !h-6 text-xs" @click="togglePopover()">
+            {{ __('Add') }}
           </Button>
         </div>
       </slot>
     </template>
     <template #body="{ isOpen }">
-      <div
-        v-if="isOpen"
-        class="relative mt-1 rounded-lg bg-white text-base shadow-2xl min-h-auto"
-      >
+      <div v-if="isOpen" class="relative mt-1 rounded-lg bg-white text-base shadow-2xl min-h-auto">
         <div class="px-1.5 pb-1.5">
           <Input
             v-model="tagInputText"
@@ -91,11 +81,7 @@
               </div>
             </li>
           </ul>
-          <span
-            v-else
-            class="rounded-md py-4 px-1 text-sm text-gray-600"
-            >No tags found</span
-          >
+          <span v-else class="rounded-md py-4 px-1 text-sm text-gray-600">No tags found</span>
         </div>
         <div class="flex items-center justify-end border-t p-1">
           <Button
@@ -111,12 +97,7 @@
           >
             Create tag "{{ tagInputText }}"
           </Button>
-          <Button
-            class="text-sm !h-6"
-            @click="$resources.removeTag.submit()"
-          >
-            Clear all
-          </Button>
+          <Button class="text-sm !h-6" @click="$resources.removeTag.submit()"> Clear all </Button>
         </div>
       </div>
     </template>
@@ -124,12 +105,12 @@
 </template>
 
 <script>
-import { getRandomColor } from "@/utils/random-color"
-import { Input, Popover } from "frappe-ui"
-import Tag from "./Tag.vue"
+import { getRandomColor } from '@/utils/random-color'
+import { Input, Popover } from 'frappe-ui'
+import Tag from './Tag.vue'
 
 export default {
-  name: "TagInput",
+  name: 'TagInput',
   components: {
     Input,
     Popover,
@@ -144,12 +125,12 @@ export default {
     },
   },
 
-  emits: ["success", "close"],
-  expose: ["togglePopover"],
+  emits: ['success', 'close'],
+  expose: ['togglePopover'],
   data() {
     return {
       showTagInput: false,
-      tagInputText: "",
+      tagInputText: '',
       hackyFlag: false, // temporary hacky flag to circumvent v-on-outside-click from running on mounting
     }
   },
@@ -157,10 +138,7 @@ export default {
   computed: {
     unaddedTags() {
       return this.$resources.userTags?.data?.filter(
-        ({ name: id1 }) =>
-          !this.$resources.entityTags?.data?.some(
-            ({ name: id2 }) => id2 === id1
-          )
+        ({ name: id1 }) => !this.$resources.entityTags?.data?.some(({ name: id2 }) => id2 === id1)
       )
     },
 
@@ -179,11 +157,11 @@ export default {
       return getRandomColor()
     },
     closeInput() {
-      if (this.hackyFlag) this.$emit("close")
+      if (this.hackyFlag) this.$emit('close')
       this.hackyFlag = !this.hackyFlag
     },
     filterByTag(tag) {
-      if (this.$route.name === "File" || this.$route.name === "Document") return
+      if (this.$route.name === 'File' || this.$route.name === 'Document') return
       this.$store.state.activeTags.push(tag)
     },
   },
@@ -191,7 +169,7 @@ export default {
   resources: {
     userTags() {
       return {
-        url: "drive.api.tags.get_user_tags",
+        url: 'drive.api.tags.get_user_tags',
         onError(error) {
           if (error.messages) {
             console.log(error.messages)
@@ -202,7 +180,7 @@ export default {
     },
     entityTags() {
       return {
-        url: "drive.api.tags.get_entity_tags",
+        url: 'drive.api.tags.get_entity_tags',
         params: { entity: this.entity.name },
         onError(error) {
           if (error.messages) {
@@ -214,7 +192,7 @@ export default {
     },
     createTag() {
       return {
-        url: "drive.api.tags.create_tag",
+        url: 'drive.api.tags.create_tag',
         onSuccess(data) {
           this.$resources.addTag.submit({
             entity: this.entity.name,
@@ -230,22 +208,22 @@ export default {
     },
     removeTag() {
       return {
-        url: "drive.api.tags.remove_tag",
+        url: 'drive.api.tags.remove_tag',
         params: {
           entity: this.entity.name,
           all: true,
         },
         onSuccess() {
           this.$resources.entityTags.fetch()
-          this.$emit("success")
+          this.$emit('success')
         },
       }
     },
     addTag() {
       return {
-        url: "drive.api.tags.add_tag",
+        url: 'drive.api.tags.add_tag',
         onSuccess() {
-          this.$emit("success")
+          this.$emit('success')
           this.$resources.entityTags.fetch()
           this.$resources.userTags.fetch()
         },

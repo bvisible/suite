@@ -1,9 +1,5 @@
 <template>
-  <FormControl
-    v-model="versionName"
-    v-focus
-    label="Name:"
-  >
+  <FormControl v-model="versionName" v-focus label="Name:">
     <template #prefix>
       <LucideVersion class="size-4" />
     </template>
@@ -18,10 +14,10 @@
   />
 </template>
 <script setup>
-import { ref } from "vue"
-import { clearDialogs } from "@/utils/dialogs"
-import LucideVersion from "~icons/lucide/git-pull-request-create"
-import emitter from "@/emitter"
+import { ref } from 'vue'
+import { clearDialogs } from '@/utils/dialogs'
+import LucideVersion from '~icons/lucide/git-pull-request-create'
+import emitter from '@/emitter'
 
-const versionName = ref("")
+const versionName = ref('')
 </script>

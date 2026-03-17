@@ -1,12 +1,7 @@
 <template>
-  <ColorPicker
-    :model-value="value"
-    @update:model-value="(value) => emit('change', value)"
-  >
+  <ColorPicker :model-value="value" @update:model-value="(value) => emit('change', value)">
     <template #target="{ togglePopover }">
-      <span class="mb-2 block text-sm leading-4 text-ink-gray-7">{{
-        __("Color")
-      }}</span>
+      <span class="mb-2 block text-sm leading-4 text-ink-gray-7">{{ __('Color') }}</span>
       <div class="flex items-stretch">
         <div class="relative w-full">
           <div
@@ -20,14 +15,7 @@
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle
-                r="4.5"
-                cx="8"
-                cy="8"
-                :fill="value"
-                :stroke="value"
-                stroke-width="3"
-              />
+              <circle r="4.5" cx="8" cy="8" :fill="value" :stroke="value" stroke-width="3" />
             </svg>
           </div>
           <Input
@@ -48,9 +36,9 @@
   </ColorPicker>
 </template>
 <script setup lang="ts">
-import { Input } from "frappe-ui"
-import ColorPicker from "@/components/DocEditor/components/ColorPicker.vue"
-const emit = defineEmits(["change"])
+import { Input } from 'frappe-ui'
+import ColorPicker from '@/components/DocEditor/components/ColorPicker.vue'
+const emit = defineEmits(['change'])
 
 defineProps({
   value: {
@@ -59,7 +47,7 @@ defineProps({
   },
   label: {
     type: String,
-    default: "",
+    default: '',
   },
 })
 </script>

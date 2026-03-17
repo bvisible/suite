@@ -1,28 +1,29 @@
-@import url("./fonts.css");
-@import url("./comment.css");
-@import url("./print.css");
+@import url('./fonts.css');
+@import url('./comment.css');
+@import url('./print.css');
 
 body {
-  --font-inter: "InterVar", inherit;
+  --font-inter: 'InterVar', inherit;
   --font-fantasy: fantasy, inherit;
-  --font-lora: "Lora", serif;
-  --font-roboto: "Roboto", inherit;
-  --font-merriweather: "Merriweather", serif;
-  --font-geist: "Geist", serif;
-  --font-ibm-plex: "IBM Plex Sans", sans-serif;
-  --font-eb-garamond: "EB Garamond", serif;
-  --font-jetbrains: "JetBrains Mono", monospace;
-  --font-comfortaa: "Comfortaa", cursive;
-  --font-caveat: "Caveat", cursive;
-  --font-nunito: "Nunito", sans-serif;
-  --font-comic-sans: "Comic Sans MS", sans-serif;
+  --font-lora: 'Lora', serif;
+  --font-roboto: 'Roboto', inherit;
+  --font-merriweather: 'Merriweather', serif;
+  --font-geist: 'Geist', serif;
+  --font-ibm-plex: 'IBM Plex Sans', sans-serif;
+  --font-eb-garamond: 'EB Garamond', serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+  --font-comfortaa: 'Comfortaa', cursive;
+  --font-caveat: 'Caveat', cursive;
+  --font-nunito: 'Nunito', sans-serif;
+  --font-comic-sans: 'Comic Sans MS', sans-serif;
 }
 
 .prose-sm {
-  caret-color: theme("colors.blue.600");
+  caret-color: theme('colors.blue.600');
 }
 
-.prose strong,b {
+.prose strong,
+b {
   color: inherit !important;
 }
 

@@ -13,21 +13,19 @@
               <p class="mb-2 text-2xl font-semibold leading-6 text-ink-gray-9">
                 {{
                   isLogin
-                    ? "Login to Drive"
-                    : params.get("t")
-                    ? "Join " + params.get("t")
-                    : "Create an account"
+                    ? 'Login to Drive'
+                    : params.get('t')
+                    ? 'Join ' + params.get('t')
+                    : 'Create an account'
                 }}
               </p>
-              <p
-                class="break-words text-base font-normal leading-[21px] text-ink-gray-7"
-              >
+              <p class="break-words text-base font-normal leading-[21px] text-ink-gray-7">
                 {{
                   !isLogin
-                    ? params.get("t")
-                      ? "Powered by Frappe Drive."
-                      : "Welcome to Drive."
-                    : "Welcome back!"
+                    ? params.get('t')
+                      ? 'Powered by Frappe Drive.'
+                      : 'Welcome to Drive.'
+                    : 'Welcome back!'
                 }}
               </p>
             </div>
@@ -63,10 +61,7 @@
                   />
                 </div>
                 <div class="!mt-6 flex gap-2">
-                  <FormControl
-                    v-model="terms_accepted"
-                    type="checkbox"
-                  />
+                  <FormControl v-model="terms_accepted" type="checkbox" />
                   <label class="text-base">
                     I accept the
                     <a
@@ -109,10 +104,7 @@
                       })
                   "
                 />
-                <ErrorMessage
-                  class="mt-4 text-center"
-                  :message="verifyOTP.error"
-                />
+                <ErrorMessage class="mt-4 text-center" :message="verifyOTP.error" />
                 <Button
                   class="mt-4 w-full"
                   variant="solid"
@@ -134,11 +126,7 @@
                   @click="sendOTP.submit()"
                 >
                   Resend verification code
-                  {{
-                    otpResendCountdown > 0
-                      ? `in ${otpResendCountdown} seconds`
-                      : ""
-                  }}
+                  {{ otpResendCountdown > 0 ? `in ${otpResendCountdown} seconds` : '' }}
                 </Button>
               </div>
               <template v-else>
@@ -148,12 +136,9 @@
                   variant="solid"
                   @click="sendOTP.submit({ email, login: isLogin })"
                 >
-                  {{ isLogin ? "Login" : "Join" }}
+                  {{ isLogin ? 'Login' : 'Join' }}
                 </Button>
-                <div
-                  v-if="oAuthProviders.data?.length"
-                  class="mt-6 border-t text-center"
-                >
+                <div v-if="oAuthProviders.data?.length" class="mt-6 border-t text-center">
                   <div class="-translate-y-1/2 transform">
                     <span
                       class="relative bg-surface-white px-2 text-sm font-medium leading-8 text-ink-gray-8"
@@ -171,18 +156,14 @@
                   <div class="flex items-center">
                     <div v-html="provider.icon" />
                     <span class="ml-2"
-                      >{{ isLogin ? "Continue" : "Join" }} with
-                      {{ provider.provider_name }}</span
+                      >{{ isLogin ? 'Continue' : 'Join' }} with {{ provider.provider_name }}</span
                     >
                   </div>
                 </Button>
               </template>
             </form>
 
-            <div
-              v-if="!signupDisabled.data"
-              class="mt-6 text-center"
-            >
+            <div v-if="!signupDisabled.data" class="mt-6 text-center">
               <router-link
                 class="text-center text-sm text-ink-gray-8 hover:text-ink-gray-9"
                 :to="{
@@ -191,9 +172,7 @@
                 }"
               >
                 {{
-                  isLogin
-                    ? "New member? Create a new account."
-                    : "Already have an account? Log in."
+                  isLogin ? 'New member? Create a new account.' : 'Already have an account? Log in.'
                 }}
               </router-link>
             </div>
@@ -205,26 +184,26 @@
 </template>
 
 <script setup>
-import { createResource, ErrorMessage, FormControl } from "frappe-ui"
-import { ref, onMounted, computed } from "vue"
-import FrappeDriveLogo from "@/components/FrappeDriveLogo.vue"
-import { toast } from "@/utils/toasts"
-import { useRoute } from "vue-router"
-import { settings } from "@/resources/permissions"
+import { createResource, ErrorMessage, FormControl } from 'frappe-ui'
+import { ref, onMounted, computed } from 'vue'
+import FrappeDriveLogo from '@/components/FrappeDriveLogo.vue'
+import { toast } from '@/utils/toasts'
+import { useRoute } from 'vue-router'
+import { settings } from '@/resources/permissions'
 
 const route = useRoute()
 const params = new URLSearchParams(new URL(window.location.href).search)
-const email = ref(params.get("e") || "")
-const first_name = ref("")
-const last_name = ref("")
+const email = ref(params.get('e') || '')
+const first_name = ref('')
+const last_name = ref('')
 const terms_accepted = ref(false)
 
-const otp = ref("")
+const otp = ref('')
 const otpResendCountdown = ref(0)
-const account_request = ref(params.get("r") || "")
-const otpRequested = ref(account_request.value !== "")
-const otpValidated = ref(account_request.value !== "")
-const isLogin = computed(() => route.name === "Login")
+const account_request = ref(params.get('r') || '')
+const otpRequested = ref(account_request.value !== '')
+const otpValidated = ref(account_request.value !== '')
+const isLogin = computed(() => route.name === 'Login')
 
 onMounted(() => {
   setInterval(() => {
@@ -235,16 +214,16 @@ onMounted(() => {
 const getReferrerIfAny = () => {
   const params = location.search
   const searchParams = new URLSearchParams(params)
-  return searchParams.get("referrer")
+  return searchParams.get('referrer')
 }
 const signupDisabled = createResource({
-  url: "drive.api.product.signup_disabled",
-  cache: "signupDisabled",
+  url: 'drive.api.product.signup_disabled',
+  cache: 'signupDisabled',
   auto: true,
 })
 
 const signup = createResource({
-  url: "drive.api.product.signup",
+  url: 'drive.api.product.signup',
   makeParams: () => ({
     account_request: account_request.value,
     first_name: first_name.value,
@@ -253,49 +232,47 @@ const signup = createResource({
   }),
   validate() {
     if (!terms_accepted.value) {
-      throw new Error("Please accept the terms of service")
+      throw new Error('Please accept the terms of service')
     }
   },
   onSuccess() {
-    console.log("redirecting to", params.get("redirect-to"))
-    window.location.replace(
-      "/drive/setup?redirect-to=" + params.get("redirect-to")
-    )
+    console.log('redirecting to', params.get('redirect-to'))
+    window.location.replace('/drive/setup?redirect-to=' + params.get('redirect-to'))
   },
   onError(err) {
     console.log(err.messages)
-    if (err.exc_type === "DuplicateEntryError") {
-      toast({ title: "Account already exists - please login.", type: "error" })
+    if (err.exc_type === 'DuplicateEntryError') {
+      toast({ title: 'Account already exists - please login.', type: 'error' })
     } else {
-      toast({ title: err.messages[0], type: "error" })
+      toast({ title: err.messages[0], type: 'error' })
     }
   },
 })
 
 const oAuthProviders = createResource({
-  url: "drive.api.product.oauth_providers",
+  url: 'drive.api.product.oauth_providers',
   auto: true,
 })
 
 const sendOTP = createResource({
-  url: "drive.api.product.send_otp",
+  url: 'drive.api.product.send_otp',
   onSuccess(data) {
     otpRequested.value = true
     otpResendCountdown.value = 30
     account_request.value = data.message || data
-    toast("Verification code sent to your email")
+    toast('Verification code sent to your email')
   },
   onError(err) {
-    toast({ title: err.messages[0], type: "error" })
+    toast({ title: err.messages[0], type: 'error' })
   },
 })
 
 const verifyOTP = createResource({
-  url: "drive.api.product.verify_otp",
+  url: 'drive.api.product.verify_otp',
   onSuccess: (data) => {
     otpValidated.value = true
     settings.fetch()
-    window.location.replace(params.get("redirect-to") || "/drive")
+    window.location.replace(params.get('redirect-to') || '/drive')
   },
 })
 </script>

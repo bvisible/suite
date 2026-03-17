@@ -18,9 +18,9 @@
   </div>
 </template>
 <script setup>
-import { Combobox } from "frappe-ui"
-import { ref, watchEffect, watch } from "vue"
-import { FONT_FAMILIES } from "@/utils/files"
+import { Combobox } from 'frappe-ui'
+import { ref, watchEffect, watch } from 'vue'
+import { FONT_FAMILIES } from '@/utils/files'
 
 const props = defineProps({
   editor: Object,
@@ -29,27 +29,27 @@ const props = defineProps({
 })
 
 const STATIC_FONTS = [
-  { value: "6px" },
-  { value: "10px" },
-  { value: "12px" },
-  { value: "14px" },
-  { value: "15px" },
-  { value: "16px" },
-  { value: "17px" },
-  { value: "18px" },
-  { value: "19px" },
-  { value: "20px" },
-  { value: "24px" },
-  { value: "30px" },
-  { value: "48px" },
-  { value: "60px" },
-  { value: "92px" },
+  { value: '6px' },
+  { value: '10px' },
+  { value: '12px' },
+  { value: '14px' },
+  { value: '15px' },
+  { value: '16px' },
+  { value: '17px' },
+  { value: '18px' },
+  { value: '19px' },
+  { value: '20px' },
+  { value: '24px' },
+  { value: '30px' },
+  { value: '48px' },
+  { value: '60px' },
+  { value: '92px' },
 ]
 
 const FONT_SIZES = [
   {
-    type: "custom",
-    label: "Clear",
+    type: 'custom',
+    label: 'Clear',
     onClick: props.editor.commands.unsetFontSize,
   },
   ...STATIC_FONTS.map((k) => ({ value: k.value, label: k.value })),
@@ -60,11 +60,9 @@ const selected = ref(null)
 const size = ref(null)
 
 watchEffect(() => {
-  selected.value = FONT_FAMILIES.find((opt) =>
-    opt.isActive(props.editor)
-  )?.value
+  selected.value = FONT_FAMILIES.find((opt) => opt.isActive(props.editor))?.value
   size.value = STATIC_FONTS.find((opt) =>
-    props.editor.isActive("textStyle", {
+    props.editor.isActive('textStyle', {
       fontSize: opt.value,
     })
   )?.value
