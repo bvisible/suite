@@ -26,18 +26,10 @@
       :get-entities="getEntities || { data: [] }"
     />
 
-    <div
-      v-if="!props.getEntities.data"
-      class="m-auto"
-      style="transform: translate(0, -88.5px)"
-    >
+    <div v-if="!props.getEntities.data" class="m-auto" style="transform: translate(0, -88.5px)">
       <LoadingIndicator class="size-5 text-ink-gray-9" />
     </div>
-    <NoFilesSection
-      v-else-if="!props.getEntities.data?.length"
-      :icon="icon"
-      v-bind="empty"
-    />
+    <NoFilesSection v-else-if="!props.getEntities.data?.length" :icon="icon" v-bind="empty" />
     <ListView
       v-else-if="$store.state.view === 'list'"
       v-model="selections"
@@ -56,9 +48,7 @@
       @dropped="onDrop"
     />
   </div>
-  <p
-    class="hidden absolute text-center top-1/2 left-[calc(50%-4rem)] w-32 z-10 font-bold"
-  >
+  <p class="hidden absolute text-center top-1/2 left-[calc(50%-4rem)] w-32 z-10 font-bold">
     Drop to upload
   </p>
   <Transition
@@ -128,9 +118,7 @@ const dialog = ref('')
 provide('dialog', dialog)
 
 const team = ref(
-  ['Shared', 'Recents', 'Favourites', 'Trash'].includes(route.name)
-    ? 'all'
-    : route.params.team
+  ['Shared', 'Recents', 'Favourites', 'Trash'].includes(route.name) ? 'all' : route.params.team
 )
 watch(
   () => route.params.team,
@@ -147,8 +135,7 @@ watch(
 const activeEntity = computed(() => store.state.activeEntity)
 
 const sortId = computed(
-  () =>
-    props.getEntities.params?.entity_name || props.getEntities.params?.personal
+  () => props.getEntities.params?.entity_name || props.getEntities.params?.personal
 )
 const inIframe = inject('inIframe')
 const DEFAULT_SORT = inIframe.value
@@ -198,8 +185,7 @@ watch(
     const file_types = val.map((k) => k.name)
     const isFolder = file_types.find((k) => k === 'Folder')
     rows.value = props.getEntities.data.filter(
-      ({ file_type, is_group }) =>
-        file_types.includes(file_type) || (isFolder && is_group)
+      ({ file_type, is_group }) => file_types.includes(file_type) || (isFolder && is_group)
     )
   },
   { deep: true }
@@ -222,10 +208,7 @@ store.commit('setCurrentResource', null)
 
 const selections = ref(new Set())
 const selectedEntitities = computed(
-  () =>
-    props.getEntities.data?.filter?.(({ name }) =>
-      selections.value.has(name)
-    ) || []
+  () => props.getEntities.data?.filter?.(({ name }) => selections.value.has(name)) || []
 )
 
 const verifyAccess = computed(() => props.verify?.data || !props.verify)
@@ -236,8 +219,7 @@ watchEffect(() => {
 const refreshData = () => {
   const params = { team: team.value === 'home' ? '' : team.value || '' }
   if (sortOrder.value)
-    params.order_by =
-      sortOrder.value.field + (sortOrder.value.ascending ? ' 1' : ' 0')
+    params.order_by = sortOrder.value.field + (sortOrder.value.ascending ? ' 1' : ' 0')
   props.getEntities.fetch({ ...props.getEntities.params, ...params })
 }
 
@@ -270,8 +252,7 @@ const removeFile = (file, target) => {
   props.getEntities.setData(props.getEntities.data)
 }
 const onDrop = (targetFile, draggedItem) => {
-  if (!targetFile.is_group || draggedItem === targetFile.name || !draggedItem)
-    return
+  if (!targetFile.is_group || draggedItem === targetFile.name || !draggedItem) return
   move.submit({
     entity_names: [draggedItem],
     new_parent: targetFile.name,
@@ -330,24 +311,21 @@ const actionItems = computed(() => {
         label: __('Download'),
         icon: LucideDownload,
         isEnabled: (e) =>
-          e.modifiable &&
-          !['Link', 'Presentation', 'Document'].includes(e.file_type),
+          e.modifiable && !['Link', 'Presentation', 'Document'].includes(e.file_type),
         action: (entities) => entitiesDownload(team.value, entities),
         multi: true,
         important: true,
       },
       {
         divider: true,
-        isEnabled: (e) =>
-          e.is_attachment || (!e.is_drive_file && store.state.user.systemUser),
+        isEnabled: (e) => e.is_attachment || (!e.is_drive_file && store.state.user.systemUser),
       },
       {
         label: __('Go to original'),
         icon: LucideCornerLeftUp,
         action: ([entity]) => {
           window.open(
-            '/api/method/drive.api.files.redirect_to_original?file_id=' +
-              entity.name,
+            '/api/method/drive.api.files.redirect_to_original?file_id=' + entity.name,
             '_blank'
           )
         },
@@ -356,8 +334,7 @@ const actionItems = computed(() => {
       {
         label: __('Open in Desk'),
         icon: LucideMonitorCog,
-        action: ([entity]) =>
-          window.open('/desk/file/' + entity.name, '_blank'),
+        action: ([entity]) => window.open('/desk/file/' + entity.name, '_blank'),
         isEnabled: (e) => !e.is_drive_file && store.state.user.systemUser,
       },
       { divider: true, isEnabled: (e) => !e.external },
@@ -481,8 +458,7 @@ socket.on('list-add', ({ file }) => {
 socket.on('list-update', ({ file }) => {
   if (file.folder !== props.getEntities.params.entity_name) return
   const index = props.getEntities.data.findIndex((k) => k.name == file.name)
-  if (index !== -1)
-    props.getEntities.data.splice(index, 1, ...prettyData([file]))
+  if (index !== -1) props.getEntities.data.splice(index, 1, ...prettyData([file]))
   props.getEntities.setData(props.getEntities.data)
 })
 socket.on('list-remove', ({ parent, entity_name }) => {

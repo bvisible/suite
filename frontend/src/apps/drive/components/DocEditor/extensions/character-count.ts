@@ -1,6 +1,6 @@
-import { Extension } from "@tiptap/core"
-import { Node as ProseMirrorNode } from "@tiptap/pm/model"
-import { Plugin, PluginKey } from "@tiptap/pm/state"
+import { Extension } from '@tiptap/core'
+import { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 
 export interface CharacterCountOptions {
   /**
@@ -15,7 +15,7 @@ export interface CharacterCountOptions {
    * @default 'textSize'
    * @example 'textSize'
    */
-  mode: "textSize" | "nodeSize"
+  mode: 'textSize' | 'nodeSize'
 }
 
 export interface CharacterCountStorage {
@@ -25,10 +25,7 @@ export interface CharacterCountStorage {
    * @param options.node The node to get the characters from. Defaults to the current document.
    * @param options.mode The mode by which the size is calculated. If set to `textSize`, the textContent of the document is used.
    */
-  characters: (options?: {
-    node?: ProseMirrorNode
-    mode?: "textSize" | "nodeSize"
-  }) => number
+  characters: (options?: { node?: ProseMirrorNode; mode?: 'textSize' | 'nodeSize' }) => number
 
   /**
    * Get the number of words for the current document.
@@ -42,16 +39,13 @@ export interface CharacterCountStorage {
  * This extension allows you to count the characters and words of your document.
  * @see https://tiptap.dev/api/extensions/character-count
  */
-export const CharacterCount = Extension.create<
-  CharacterCountOptions,
-  CharacterCountStorage
->({
-  name: "characterCount",
+export const CharacterCount = Extension.create<CharacterCountOptions, CharacterCountStorage>({
+  name: 'characterCount',
 
   addOptions() {
     return {
       limit: null,
-      mode: "textSize",
+      mode: 'textSize',
     }
   },
 
@@ -67,8 +61,8 @@ export const CharacterCount = Extension.create<
       const node = options?.node || this.editor.state.doc
       const mode = options?.mode || this.options.mode
 
-      if (mode === "textSize") {
-        const text = node.textBetween(0, node.content.size, undefined, " ")
+      if (mode === 'textSize') {
+        const text = node.textBetween(0, node.content.size, undefined, ' ')
 
         return text.length
       }
@@ -78,8 +72,8 @@ export const CharacterCount = Extension.create<
 
     this.storage.words = (options) => {
       const node = options?.node || this.editor.state.doc
-      const text = node.textBetween(0, node.content.size, " ", " ")
-      const words = text.split(" ").filter((word) => word !== "")
+      const text = node.textBetween(0, node.content.size, ' ', ' ')
+      const words = text.split(' ').filter((word) => word !== '')
 
       return words.length
     }
@@ -88,17 +82,12 @@ export const CharacterCount = Extension.create<
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey("characterCount"),
+        key: new PluginKey('characterCount'),
         filterTransaction: (transaction, state) => {
           const limit = this.options.limit
 
           // Nothing has changed or no limit is defined. Ignore it.
-          if (
-            !transaction.docChanged ||
-            limit === 0 ||
-            limit === null ||
-            limit === undefined
-          ) {
+          if (!transaction.docChanged || limit === 0 || limit === null || limit === undefined) {
             return true
           }
 
@@ -120,7 +109,7 @@ export const CharacterCount = Extension.create<
             return false
           }
 
-          const isPaste = transaction.getMeta("paste")
+          const isPaste = transaction.getMeta('paste')
 
           // Block all exceeding transactions that were not pasted.
           if (!isPaste) {

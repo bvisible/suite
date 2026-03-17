@@ -1,8 +1,5 @@
 <template>
-  <template
-    v-for="row in rows"
-    :key="row.name"
-  >
+  <template v-for="row in rows" :key="row.name">
     <ListRow
       :row="row"
       class="group"
@@ -32,13 +29,7 @@
         }
       "
       @dragleave="dragOverItem = null"
-      @drop="
-        $emit(
-          'dropped',
-          row,
-          $event.dataTransfer.getData('application/x-filename')
-        )
-      "
+      @drop="$emit('dropped', row, $event.dataTransfer.getData('application/x-filename'))"
     >
       <template #default="{ idx, column, item }">
         <CustomListRowItem
@@ -53,20 +44,20 @@
   </template>
 </template>
 <script setup>
-import { ListRow } from "frappe-ui"
-import CustomListRowItem from "./CustomListRowItem.vue"
-import { openEntity, isModKey } from "@/utils/files"
-import { settings } from "@/resources/permissions"
-import { useRoute } from "vue-router"
-import { useStore } from "vuex"
-import { computed, ref } from "vue"
+import { ListRow } from 'frappe-ui'
+import CustomListRowItem from './CustomListRowItem.vue'
+import { openEntity, isModKey } from '@/utils/files'
+import { settings } from '@/resources/permissions'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { computed, ref } from 'vue'
 
 defineProps({
   rows: Array,
   contextMenu: Function,
   selections: Set,
 })
-defineEmits(["dropped"])
+defineEmits(['dropped'])
 
 const draggedItem = ref()
 const dragOverItem = ref()
@@ -76,5 +67,5 @@ const store = useStore()
 
 // Used as right-click doesn't trigger active in frappe-ui
 const selectedName = computed(() => store.state.activeEntity?.name)
-const open = (row) => route.name !== "Trash" && openEntity(row)
+const open = (row) => route.name !== 'Trash' && openEntity(row)
 </script>

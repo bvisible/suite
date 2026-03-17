@@ -10,8 +10,8 @@
 </template>
 
 <script setup>
-import GenericPage from "@/components/GenericPage.vue"
+import GenericPage from '@/components/GenericPage.vue'
 
-import { getSiteFiles } from "@/resources/files"
-import LucideFiles from "~icons/lucide/files"
+import { getSiteFiles } from '@/resources/files'
+import LucideFiles from '~icons/lucide/files'
 </script>

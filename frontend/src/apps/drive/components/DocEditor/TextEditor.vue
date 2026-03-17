@@ -17,9 +17,7 @@
           This is a automatic snapshot of this document from
           {{ formatDate(current.title) }}.
         </div>
-        <div class="text-xs text-ink-gray-5">
-          Editing is disabled until you exit this preview.
-        </div>
+        <div class="text-xs text-ink-gray-5">Editing is disabled until you exit this preview.</div>
       </div>
       <div class="flex gap-2">
         <Button
@@ -39,10 +37,7 @@
       <div
         class="mx-auto cursor-text w-full flex justify-center h-full"
         :class="current ? 'pb-15' : ''"
-        @click="
-          $event.target.tagName === 'DIV' &&
-            textEditor.editor?.chain?.().focus?.().run?.()
-        "
+        @click="$event.target.tagName === 'DIV' && textEditor.editor?.chain?.().focus?.().run?.()"
       >
         <FTextEditor
           v-if="
@@ -104,12 +99,7 @@
           </template>
         </FTextEditor>
       </div>
-      <ToC
-        v-show="anchors.length > 1"
-        :editor
-        :anchors
-        :class="editable ? 'top-24' : 'top-15'"
-      />
+      <ToC v-show="anchors.length > 1" :editor :anchors :class="editable ? 'top-24' : 'top-15'" />
       <FloatingComments
         v-if="comments.length"
         v-model:show-comments="showComments"
@@ -205,9 +195,7 @@ const editor = computed(() => {
   return editor
 })
 provide('editor', editor)
-const scrollParent = computed(() =>
-  document.querySelector('#editorScrollContainer')
-)
+const scrollParent = computed(() => document.querySelector('#editorScrollContainer'))
 defineExpose({ editor })
 
 const autosave = debounce(() => emit('saveDocument'), 2000)
@@ -221,17 +209,13 @@ watch(
     autoversion = debounce(() => {
       if (!collab.value) return
       const snap = Y.snapshot(doc)
-      const prevVersion =
-        props.entity.versions[props.entity.versions.length - 1]
+      const prevVersion = props.entity.versions[props.entity.versions.length - 1]
       const prevSnapshot = prevVersion
         ? Y.decodeSnapshot(toUint8Array(prevVersion.snapshot))
         : Y.emptySnapshot
       if (prevVersion != null) {
         // account for the action of adding a version to ydoc
-        prevSnapshot.sv.set(
-          prevVersion.clientID,
-          prevSnapshot.sv.get(prevVersion.clientID) + 1
-        )
+        prevSnapshot.sv.set(prevVersion.clientID, prevSnapshot.sv.get(prevVersion.clientID) + 1)
       }
       if (!Y.equalSnapshots(prevSnapshot, snap)) {
         emit('newVersion', Y.encodeSnapshot(snap), +props.settings.versioning)
@@ -280,9 +264,7 @@ const editorExtensions = [
       if (id && (!isResolved || showResolved)) {
         activeComment.value = id
         showComments.value = true
-        const commentEl = document.querySelector(
-          `span[data-comment-id="${id}"]`
-        )
+        const commentEl = document.querySelector(`span[data-comment-id="${id}"]`)
         if (!commentEl.offsetParent)
           commentEl.scrollIntoView({
             behavior: 'smooth',
@@ -359,22 +341,19 @@ const menuButtons = computed(() =>
       {
         text: 'H1',
         icon: H1,
-        action: (editor) =>
-          editor.chain().focus().toggleHeading({ level: 1 }).run(),
+        action: (editor) => editor.chain().focus().toggleHeading({ level: 1 }).run(),
         isActive: (editor) => editor.isActive('heading', { level: 1 }),
       },
       {
         text: 'H2',
         icon: H2,
-        action: (editor) =>
-          editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        action: (editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
         isActive: (editor) => editor.isActive('heading', { level: 2 }),
       },
       {
         text: 'H3',
         icon: H3,
-        action: (editor) =>
-          editor.chain().focus().toggleHeading({ level: 3 }).run(),
+        action: (editor) => editor.chain().focus().toggleHeading({ level: 3 }).run(),
         isActive: (editor) => editor.isActive('heading', { level: 3 }),
       },
     ],
@@ -438,10 +417,7 @@ const menuButtons = computed(() =>
 const db = ref()
 watch(db, (db) => {
   if (!props.entity.write || collab.value) return
-  db
-    .transaction(['content'])
-    .objectStore('content')
-    .get(props.entity.name).onsuccess = (val) => {
+  db.transaction(['content']).objectStore('content').get(props.entity.name).onsuccess = (val) => {
     // Hack until we get versioning.
     if (
       val.target.result?.val?.length > 20 &&
@@ -467,10 +443,7 @@ const autorename = (bypass = false) => {
   // Check if we're in the very first textblock
   if (!($anchor.index(0) === 1 && $anchor.depth === 1)) {
     // scroll down if in the last line
-    if (
-      $anchor.depth === 1 &&
-      editor.value.state.doc.childCount - 1 === $anchor.index(0)
-    ) {
+    if ($anchor.depth === 1 && editor.value.state.doc.childCount - 1 === $anchor.index(0)) {
       scrollParent.value.scroll(0, scrollParent.value.scrollHeight)
     }
     return
@@ -560,9 +533,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  comments.value
-    .filter((k) => k.new)
-    .filter(({ name }) => editor.value.commands.unsetComment(name))
+  comments.value.filter((k) => k.new).filter(({ name }) => editor.value.commands.unsetComment(name))
   if (prov) {
     prov.disconnect()
     prov.destroy()

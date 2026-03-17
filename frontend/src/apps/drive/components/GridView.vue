@@ -1,9 +1,6 @@
 <template>
   <!-- pt-1 to accomodate borders -->
-  <div
-    v-if="rows?.length"
-    class="grid-container gap-5 p-5 pb-[60px] overflow-auto select-none"
-  >
+  <div v-if="rows?.length" class="grid-container gap-5 p-5 pb-[60px] overflow-auto select-none">
     <div
       v-for="file in rows"
       :id="file.name"
@@ -30,9 +27,7 @@
       "
       @drop="$emit('dropped', file, draggedItem)"
       @click.meta="
-        selections.has(file.name)
-          ? selections.delete(file.name)
-          : selections.add(file.name)
+        selections.has(file.name) ? selections.delete(file.name) : selections.add(file.name)
       "
       @click="open(file)"
       @contextmenu="contextMenu($event, file)"
@@ -49,9 +44,7 @@
         class="duration-300 absolute top-2 right-2"
         :class="[
           selections.size > 0 ? '' : '!bg-surface-gray-3 hover:shadow-lg',
-          selectedRow?.name === file.name
-            ? ''
-            : 'invisible group-hover:visible',
+          selectedRow?.name === file.name ? '' : 'invisible group-hover:visible',
         ]"
         @click.stop="contextMenu($event, file)"
       >
@@ -71,22 +64,22 @@
 </template>
 
 <script setup>
-import GridItem from "@/components/GridItem.vue"
-import emitter from "@/emitter"
-import { Button } from "frappe-ui"
-import { ref, computed } from "vue"
-import { openEntity } from "@/utils/files"
-import { useRoute } from "vue-router"
-import { useStore } from "vuex"
-import { settings } from "@/resources/permissions"
-import { onKeyDown } from "@vueuse/core"
+import GridItem from '@/components/GridItem.vue'
+import emitter from '@/emitter'
+import { Button } from 'frappe-ui'
+import { ref, computed } from 'vue'
+import { openEntity } from '@/utils/files'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { settings } from '@/resources/permissions'
+import { onKeyDown } from '@vueuse/core'
 
 const props = defineProps({
   folderContents: Object,
   actionItems: Array,
   userData: Object,
 })
-defineEmits(["dropped"])
+defineEmits(['dropped'])
 const route = useRoute()
 const store = useStore()
 const selections = defineModel(new Set())
@@ -115,22 +108,21 @@ const dropdownActionItems = (row) => {
       ...a,
       handler: () => {
         rowEvent.value = false
-        store.commit("setActiveEntity", row)
+        store.commit('setActiveEntity', row)
         a.action([row])
       },
     }))
 }
-const open = (row) =>
-  !selections.value.size && route.name !== "Trash" && openEntity(row)
+const open = (row) => !selections.value.size && route.name !== 'Trash' && openEntity(row)
 
 const draggedItem = ref(null)
 const dragOverItem = ref(null)
 
-onKeyDown("a", (e) => {
+onKeyDown('a', (e) => {
   if (
-    e.target.classList.contains("ProseMirror") ||
-    e.target.tagName === "INPUT" ||
-    e.target.tagName === "TEXTAREA"
+    e.target.classList.contains('ProseMirror') ||
+    e.target.tagName === 'INPUT' ||
+    e.target.tagName === 'TEXTAREA'
   )
     return
   if (e.metaKey) {
@@ -138,29 +130,29 @@ onKeyDown("a", (e) => {
     e.preventDefault()
   }
 })
-onKeyDown("Backspace", (e) => {
+onKeyDown('Backspace', (e) => {
   if (
-    e.target.classList.contains("ProseMirror") ||
-    e.target.tagName === "INPUT" ||
-    e.target.tagName === "TEXTAREA"
+    e.target.classList.contains('ProseMirror') ||
+    e.target.tagName === 'INPUT' ||
+    e.target.tagName === 'TEXTAREA'
   )
     return
-  if (e.metaKey) emitter.emit("remove")
+  if (e.metaKey) emitter.emit('remove')
 })
-onKeyDown("m", (e) => {
+onKeyDown('m', (e) => {
   if (
-    e.target.classList.contains("ProseMirror") ||
-    e.target.tagName === "INPUT" ||
-    e.target.tagName === "TEXTAREA"
+    e.target.classList.contains('ProseMirror') ||
+    e.target.tagName === 'INPUT' ||
+    e.target.tagName === 'TEXTAREA'
   )
     return
-  if (e.ctrlKey) emitter.emit("move")
+  if (e.ctrlKey) emitter.emit('move')
 })
-onKeyDown("Escape", (e) => {
+onKeyDown('Escape', (e) => {
   if (
-    e.target.classList.contains("ProseMirror") ||
-    e.target.tagName === "INPUT" ||
-    e.target.tagName === "TEXTAREA"
+    e.target.classList.contains('ProseMirror') ||
+    e.target.tagName === 'INPUT' ||
+    e.target.tagName === 'TEXTAREA'
   )
     return
   selections.value = new Set()

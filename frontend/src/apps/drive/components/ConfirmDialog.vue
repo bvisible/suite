@@ -4,11 +4,7 @@
       <div class="flex items-center justify-start">
         <div class="text-base text-ink-gray-6">
           <template v-if="props.entities.length">
-            {{
-              props.entities.length > 1
-                ? 'These items '
-                : `"${props.entities[0].file_name}" `
-            }}
+            {{ props.entities.length > 1 ? 'These items ' : `"${props.entities[0].file_name}" ` }}
           </template>
           <span v-html="dialogData.message" />
         </div>
@@ -22,13 +18,7 @@ import { ref, computed } from 'vue'
 import { createResource, Dialog, ErrorMessage, toast } from 'frappe-ui'
 import { useTimeAgo } from '@vueuse/core'
 
-import {
-  mutate,
-  getTrash,
-  toggleFav,
-  clearRecent,
-  clearTrash,
-} from '@/resources/files.js'
+import { mutate, getTrash, toggleFav, clearRecent, clearTrash } from '@/resources/files.js'
 import { sortEntities } from '@/utils/files.js'
 
 import LucideRotateCcw from '~icons/lucide/rotate-ccw'
@@ -45,15 +35,12 @@ const dialogType = defineModel()
 const open = ref(true)
 
 const dialogData = computed(() => {
-  const itemString =
-    props.entities.length === 1 ? 'an item' : `${props.entities.length} items`
+  const itemString = props.entities.length === 1 ? 'an item' : `${props.entities.length} items`
   const MAP = {
     restore: {
       title: `Restore ${itemString}`,
       message: `will be restored to ${
-        props.entities.length === 1
-          ? 'its original location'
-          : 'their original locations'
+        props.entities.length === 1 ? 'its original location' : 'their original locations'
       }.`,
       url: 'drive.api.files.remove_or_restore',
       onSuccess: () => {
@@ -128,9 +115,7 @@ const dialogData = computed(() => {
   return MAP[dialogType.value]
 })
 
-const loading = computed(
-  () => (dialogData.value.resource || updateResource).loading
-)
+const loading = computed(() => (dialogData.value.resource || updateResource).loading)
 const dialogOptions = computed(() => {
   return {
     title: dialogData.value.file_name,
@@ -167,8 +152,7 @@ const updateResource = createResource({
     emit('success', data)
     updateResource.reset()
     if (dialogData.value.mutate) mutate(props.entities, props.dialogData.mutate)
-    if (dialogData.value.onSuccess)
-      dialogData.value.onSuccess(props.entities, data)
+    if (dialogData.value.onSuccess) dialogData.value.onSuccess(props.entities, data)
     toast.success(dialogData.value.toastMessage)
   },
 })

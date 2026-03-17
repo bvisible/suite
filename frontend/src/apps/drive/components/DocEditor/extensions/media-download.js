@@ -29,14 +29,10 @@ export default Extension.create({
             }
 
             // If it's an image, pair it with the last heading
-            if (
-              (node.type.name === 'image' || node.type.name === 'video') &&
-              node.attrs.src
-            ) {
+            if ((node.type.name === 'image' || node.type.name === 'video') && node.attrs.src) {
               results.push({
                 file_name:
-                  currentHeading +
-                  (currentHeadingCount ? ` (${currentHeadingCount})` : ''),
+                  currentHeading + (currentHeadingCount ? ` (${currentHeadingCount})` : ''),
                 name: extractEntityName(node.attrs.src),
               })
               currentHeadingCount++

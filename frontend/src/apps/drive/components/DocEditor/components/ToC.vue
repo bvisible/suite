@@ -33,20 +33,17 @@
       @click="show = !show"
     >
       <template #icon>
-        <component
-          :is="show ? LucideMinus : LucideTableOfContents"
-          class="size-4"
-        />
+        <component :is="show ? LucideMinus : LucideTableOfContents" class="size-4" />
       </template>
     </Button>
   </div>
 </template>
 
 <script setup>
-import { TextSelection } from "@tiptap/pm/state"
-import LucideMinus from "~icons/lucide/minus"
-import LucideTableOfContents from "~icons/lucide/table-of-contents"
-import { ref, watch, computed } from "vue"
+import { TextSelection } from '@tiptap/pm/state'
+import LucideMinus from '~icons/lucide/minus'
+import LucideTableOfContents from '~icons/lucide/table-of-contents'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
   editor: Object,
@@ -55,12 +52,10 @@ const props = defineProps({
     default: () => [],
   },
 })
-const show = ref(JSON.parse(localStorage.getItem("showToc") || false))
-watch(show, (v) => localStorage.setItem("showToc", v))
+const show = ref(JSON.parse(localStorage.getItem('showToc') || false))
+watch(show, (v) => localStorage.setItem('showToc', v))
 
-const maxLevel = computed(
-  () => Math.min(...props.anchors.map((k) => k.level)) - 1
-)
+const maxLevel = computed(() => Math.min(...props.anchors.map((k) => k.level)) - 1)
 const onAnchorClick = (id) => {
   if (!props.editor) return
   const view = props.editor.view
@@ -75,10 +70,10 @@ const onAnchorClick = (id) => {
     history.pushState(null, null, `#${id}`)
   }
 
-  const editorEl = document.querySelector("#editorScrollContainer")
+  const editorEl = document.querySelector('#editorScrollContainer')
   editorEl.scrollTo({
     top: element.offsetTop - 10,
-    behavior: "smooth",
+    behavior: 'smooth',
   })
 }
 </script>
@@ -97,7 +92,7 @@ a {
   text-decoration: none;
 
   &::before {
-    content: "";
+    content: '';
   }
 }
 

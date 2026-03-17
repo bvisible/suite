@@ -1,6 +1,6 @@
-import { Extension } from "@tiptap/core"
-import { DecorationAttrs } from "@tiptap/pm/view"
-import { defaultSelectionBuilder, yCursorPlugin } from "@tiptap/y-tiptap"
+import { Extension } from '@tiptap/core'
+import { DecorationAttrs } from '@tiptap/pm/view'
+import { defaultSelectionBuilder, yCursorPlugin } from '@tiptap/y-tiptap'
 
 type CollaborationCursorStorage = {
   users: { clientId: number; [key: string]: any }[]
@@ -60,7 +60,7 @@ export interface CollaborationCursorOptions {
   onUpdate: (users: { clientId: number; [key: string]: any }[]) => null
 }
 
-declare module "@tiptap/core" {
+declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     collaborationCursor: {
       /**
@@ -97,7 +97,7 @@ export const CollaborationCursor = Extension.create<
   CollaborationCursorOptions,
   CollaborationCursorStorage
 >({
-  name: "collaborationCursor",
+  name: 'collaborationCursor',
 
   priority: 999,
 
@@ -109,21 +109,21 @@ export const CollaborationCursor = Extension.create<
         color: null,
       },
       render: (user) => {
-        const cursor = document.createElement("span")
-        cursor.classList.add("collaboration-cursor__caret")
-        cursor.setAttribute("style", `border-color: ${user.color}`)
+        const cursor = document.createElement('span')
+        cursor.classList.add('collaboration-cursor__caret')
+        cursor.setAttribute('style', `border-color: ${user.color}`)
 
-        const label = document.createElement("div")
+        const label = document.createElement('div')
 
         label.classList.add(
-          "collaboration-cursor__label",
-          "text-xs",
-          "rounded-sm",
-          "px-1.5",
-          "py-1",
-          "opacity-[0.9]"
+          'collaboration-cursor__label',
+          'text-xs',
+          'rounded-sm',
+          'px-1.5',
+          'py-1',
+          'opacity-[0.9]'
         )
-        label.setAttribute("style", `background-color: ${user.color}`)
+        label.setAttribute('style', `background-color: ${user.color}`)
         label.insertBefore(document.createTextNode(user.name), null)
         cursor.insertBefore(label, null)
 
@@ -141,9 +141,7 @@ export const CollaborationCursor = Extension.create<
       )
     }
     if (!this.options.provider) {
-      throw new Error(
-        'The "provider" option is required for the CollaborationCursor extension'
-      )
+      throw new Error('The "provider" option is required for the CollaborationCursor extension')
     }
   },
 
@@ -158,10 +156,7 @@ export const CollaborationCursor = Extension.create<
       updateUser: (attributes) => () => {
         this.options.user = attributes
 
-        this.options.provider.awareness.setLocalStateField(
-          "user",
-          this.options.user
-        )
+        this.options.provider.awareness.setLocalStateField('user', this.options.user)
 
         return true
       },
@@ -181,19 +176,12 @@ export const CollaborationCursor = Extension.create<
     return [
       yCursorPlugin(
         (() => {
-          this.options.provider.awareness.setLocalStateField(
-            "user",
-            this.options.user
-          )
+          this.options.provider.awareness.setLocalStateField('user', this.options.user)
 
-          this.storage.users = awarenessStatesToArray(
-            this.options.provider.awareness.states
-          )
+          this.storage.users = awarenessStatesToArray(this.options.provider.awareness.states)
 
-          this.options.provider.awareness.on("update", () => {
-            this.storage.users = awarenessStatesToArray(
-              this.options.provider.awareness.states
-            )
+          this.options.provider.awareness.on('update', () => {
+            this.storage.users = awarenessStatesToArray(this.options.provider.awareness.states)
           })
 
           return this.options.provider.awareness

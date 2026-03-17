@@ -7,17 +7,12 @@
     @close="model = false"
   >
     <template #body-content>
-      <Tabs
-        v-model="tabIndex"
-        :tabs
-      >
+      <Tabs v-model="tabIndex" :tabs>
         <template #tab-panel>
           <div class="overflow-y-auto ps-1 pt-4">
             <Form>
               <template #default="{ dirty, setDirty, error }">
-                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">
-                  Configuration
-                </h3>
+                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">Configuration</h3>
                 <div class="flex flex-col gap-4 pb-5 pr-5">
                   <FormControl
                     v-model="settings.versioning"
@@ -37,9 +32,7 @@
                     } (minutes).`"
                   />
                 </div>
-                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">
-                  Styles
-                </h3>
+                <h3 class="text-sm font-medium text-ink-gray-7 mb-3">Styles</h3>
                 <div class="flex flex-col gap-4 pb-5 pr-5">
                   <FormControl
                     v-model="settings.font_family"
@@ -72,10 +65,7 @@
                     type="textarea"
                   /> -->
                   <div class="mt-2">
-                    <div
-                      v-if="error"
-                      class="text-xs text-ink-red-4"
-                    >
+                    <div v-if="error" class="text-xs text-ink-red-4">
                       {{ error }}
                     </div>
                     <Button
@@ -84,10 +74,7 @@
                       class="w-full mt-3"
                       :disabled="!dirty || error"
                       :loading="resource.loading"
-                      @click="
-                        resource.setValue.submit({ [key]: settings }),
-                        setDirty(false)
-                      "
+                      @click="resource.setValue.submit({ [key]: settings }), setDirty(false)"
                     />
                   </div>
                 </div>
@@ -101,10 +88,10 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive, watchEffect } from "vue"
-import { FormControl, Dialog, Tabs } from "frappe-ui"
-import { FONT_FAMILIES, dynamicList } from "@/utils/files"
-import Form from "@/components/Form.vue"
+import { computed, ref, reactive, watchEffect } from 'vue'
+import { FormControl, Dialog, Tabs } from 'frappe-ui'
+import { FONT_FAMILIES, dynamicList } from '@/utils/files'
+import Form from '@/components/Form.vue'
 
 const open = ref(true)
 const model = defineModel()
@@ -115,16 +102,16 @@ const props = defineProps({
   editable: Boolean,
 })
 const tabs = dynamicList([
-  { label: "Everywhere", icon: LucideGlobe2 },
-  { label: "This document", icon: LucideFileText },
+  { label: 'Everywhere', icon: LucideGlobe2 },
+  { label: 'This document', icon: LucideFileText },
 ])
 const tabIndex = ref(props.editable ? 1 : 0)
 
 const fontOptions = computed(() =>
   dynamicList([
     {
-      label: "Automatic",
-      value: "global",
+      label: 'Automatic',
+      value: 'global',
       cond: tabIndex.value === 1,
     },
     ...FONT_FAMILIES,
@@ -133,53 +120,49 @@ const fontOptions = computed(() =>
 const fontSizeOptions = computed(() =>
   dynamicList([
     {
-      label: "Automatic",
-      value: "global",
+      label: 'Automatic',
+      value: 'global',
       cond: tabIndex.value === 1,
     },
-    { label: "13px", value: 13 },
-    { label: "14px", value: 14 },
-    { label: "15px", value: 15 },
-    { label: "16px", value: 16 },
-    { label: "17px", value: 17 },
-    { label: "18px", value: 18 },
+    { label: '13px', value: 13 },
+    { label: '14px', value: 14 },
+    { label: '15px', value: 15 },
+    { label: '16px', value: 16 },
+    { label: '17px', value: 17 },
+    { label: '18px', value: 18 },
   ])
 )
 
 const lineHeightOptions = computed(() =>
   dynamicList([
     {
-      label: "Automatic",
-      value: "global",
+      label: 'Automatic',
+      value: 'global',
       cond: tabIndex.value === 1,
     },
-    { label: "1.2", value: "1.2" },
-    { label: "1.4", value: "1.4" },
-    { label: "1.5", value: "1.5" },
-    { label: "1.6", value: "1.6" },
-    { label: "1.8", value: "1.8" },
-    { label: "2", value: "2" },
-    { label: "2.5", value: "2.2" },
-    { label: "2.5", value: "2.5" },
-    { label: "3", value: "3" },
+    { label: '1.2', value: '1.2' },
+    { label: '1.4', value: '1.4' },
+    { label: '1.5', value: '1.5' },
+    { label: '1.6', value: '1.6' },
+    { label: '1.8', value: '1.8' },
+    { label: '2', value: '2' },
+    { label: '2.5', value: '2.2' },
+    { label: '2.5', value: '2.5' },
+    { label: '3', value: '3' },
   ])
 )
 
-const resource = computed(() =>
-  tabIndex.value === 1 ? props.docSettings : props.globalSettings
-)
-const key = computed(() =>
-  tabIndex.value === 1 ? "settings" : "writer_settings"
-)
+const resource = computed(() => (tabIndex.value === 1 ? props.docSettings : props.globalSettings))
+const key = computed(() => (tabIndex.value === 1 ? 'settings' : 'writer_settings'))
 
-const KEYS = ["font_family", "font_size", "line_height", "versioning"]
+const KEYS = ['font_family', 'font_size', 'line_height', 'versioning']
 
 const settings = reactive({})
 
 watchEffect(() => {
   const base = { ...resource.value.doc[key.value] }
   for (const k of KEYS) {
-    settings[k] = base[k] || "global"
+    settings[k] = base[k] || 'global'
   }
   if (tabIndex.value === 1) settings.collab = base.collab
 })

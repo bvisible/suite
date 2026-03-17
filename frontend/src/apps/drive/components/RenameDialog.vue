@@ -17,13 +17,7 @@
   >
     <template #body-content>
       <div class="flex gap-3">
-        <FormControl
-          v-model="newTitle"
-          v-focus
-          class="grow"
-          type="text"
-          @keyup.enter="submit"
-        />
+        <FormControl v-model="newTitle" v-focus class="grow" type="text" @keyup.enter="submit" />
         <div
           v-if="file_ext"
           disabled
@@ -62,8 +56,7 @@ if (props.entity.is_folder || props.entity.document) {
 }
 
 const submit = () => {
-  const formattedTitle =
-    newTitle.value + (file_ext.value ? '.' + file_ext.value : '')
+  const formattedTitle = newTitle.value + (file_ext.value ? '.' + file_ext.value : '')
   rename.submit({
     entity_name: props.entity.name,
     new_title: formattedTitle,

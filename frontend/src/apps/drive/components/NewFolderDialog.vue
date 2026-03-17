@@ -28,10 +28,7 @@
           <LucideFolderClosed class="size-4" />
         </template>
       </FormControl>
-      <div
-        v-if="createFolder.error"
-        class="pt-4 text-base font-sm text-ink-red-3"
-      >
+      <div v-if="createFolder.error" class="pt-4 text-base font-sm text-ink-red-3">
         {{ createFolder.error.messages[0] }}
       </div>
     </template>
