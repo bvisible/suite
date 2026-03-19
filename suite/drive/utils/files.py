@@ -3,11 +3,13 @@ from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
 import shutil
+from urllib.parse import unquote
 
 import boto3
 import cv2
 import frappe
-import magic
+
+# import magic
 import mimemapper
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -16,6 +18,8 @@ from PIL import Image, ImageOps
 from drive.locks.distributed_lock import DistributedLock
 
 from . import get_home_folder
+
+S3_URL_PREFIX = "/api/method/drive.api.s3.fetch?path="
 
 
 class FileManager:
@@ -82,31 +86,31 @@ class FileManager:
             or file.mime_type in FileManager.ACCEPTABLE_MIME_TYPES
         )
 
-    def upload_file(self, current_path: Path, drive_file, create_thumbnail=True) -> None:
+    def upload_file(self, current_path: Path, file, create_thumbnail=True) -> None:
         """
         Moves the file from the current path to another path
         """
         if self.s3_enabled:
-            self.conn.upload_file(current_path, self.get_bucket(drive_file.team), drive_file.file_url)
-            if drive_file and create_thumbnail and self.can_create_thumbnail(drive_file):
+            self.conn.upload_file(current_path, self.get_bucket(file.team), get_s3_key(file.file_url))
+            if create_thumbnail and self.can_create_thumbnail(file):
                 frappe.enqueue(
                     self.upload_thumbnail,
                     now=True,
                     at_front=True,
-                    file=drive_file,
+                    file=file,
                     file_path=str(current_path),
                 )
             else:
                 os.remove(current_path)
         else:
-            os.rename(current_path, self.site_folder / sanitize_url(drive_file.file_url))
-            if drive_file and create_thumbnail and self.can_create_thumbnail(drive_file):
+            os.rename(current_path, self.site_folder / sanitize_url(file.file_url))
+            if file and create_thumbnail and self.can_create_thumbnail(file):
                 frappe.enqueue(
                     self.upload_thumbnail,
                     now=True,
                     at_front=True,
-                    file=drive_file,
-                    file_path=str(self.site_folder / sanitize_url(drive_file.file_url)),
+                    file=file,
+                    file_path=str(self.site_folder / sanitize_url(file.file_url)),
                 )
 
     def upload_thumbnail(self, file, file_path: str):
@@ -436,5 +440,23 @@ class FileManager:
                 pass
 
 
+# Utils
 def sanitize_url(file_url):
+    # For S3 links
+    if file_url.startswith(S3_URL_PREFIX):
+        return unquote(file_url[len(S3_URL_PREFIX) :])
     return file_url[1:] if file_url.startswith("/private") else file_url
+
+
+def get_s3_key(file_url):
+    prefixes = ["/private/files/", "/files/"]
+    for prefix in prefixes:
+        if file_url.startswith(prefix):
+            return file_url[len(prefix) :]
+    return file_url
+
+
+def get_s3_url(path):
+    from urllib.parse import quote
+
+    return S3_URL_PREFIX + quote(path)

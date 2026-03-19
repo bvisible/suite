@@ -16,7 +16,10 @@
     </template>
     <template #sidebar-item="{ item, isCollapsed }">
       <SidebarItem
-        :class="draggedSpace === item.label && 'ring-1 ring-outline-gray-3 !bg-surface-gray-3'"
+        :class="
+          draggedSpace === item.label &&
+          'ring-1 ring-outline-gray-3 !bg-surface-gray-3'
+        "
         :label="item.label"
         :accessKey="item.accessKey"
         :icon="item.icon"
@@ -26,7 +29,8 @@
         :isCollapsed
         :onClick="item.onClick"
         @dragover.prevent="
-          ;(['Trash', 'Home'].includes(item.label) || item.to.startsWith('/t')) &&
+          ;(['Trash', 'Home'].includes(item.label) ||
+            item.to.startsWith('/t')) &&
             (draggedSpace = item.label)
         "
         @dragleave="draggedSpace = null"
@@ -34,7 +38,11 @@
       />
     </template>
   </Sidebar>
-  <SettingsDialog v-if="showSettings" v-model="showSettings" :suggested-tab="suggestedTab" />
+  <SettingsDialog
+    v-if="showSettings"
+    v-model="showSettings"
+    :suggested-tab="suggestedTab"
+  />
   <ShortcutsDialog v-if="showShortcuts" v-model="showShortcuts" />
 </template>
 <script setup>
@@ -115,12 +123,17 @@ const settingsItems = computed(() => [
           component: h(
             'a',
             {
-              class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
+              class:
+                'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
               href: app.route,
             },
             [
               h('img', { src: app.logo, class: 'size-6' }),
-              h('span', { class: 'max-w-18 text-sm w-full truncate' }, app.title),
+              h(
+                'span',
+                { class: 'max-w-18 text-sm w-full truncate' },
+                app.title
+              ),
             ]
           ),
         })),
@@ -220,13 +233,6 @@ const sidebarItems = computed(() => {
           label: 'Shared',
           to: `/shared`,
           icon: LucideUsers,
-          isActive: first.name == 'Shared',
-          accessKey: 's',
-        },
-        {
-          label: 'Site',
-          to: `/site`,
-          icon: LucideFiles,
           isActive: first.name == 'Site',
           accessKey: 's',
         },
