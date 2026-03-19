@@ -193,7 +193,7 @@ const searchInput = useTemplateRef('search-input')
 const availableFilterTypes = computed(() => {
   if (!props.getEntities.data) return []
   const types = new Set(props.getEntities.data.map((r) => r.file_type))
-  if (props.getEntities.data.find((k) => k.is_group)) types.add('Folder')
+  if (props.getEntities.data.find((k) => k.is_folder)) types.add('Folder')
   return Array.from(types)
     .sort((a, b) => (a > b ? 1 : -1))
     .map((t) => ({ name: t, icon: getIconUrl(t) }))

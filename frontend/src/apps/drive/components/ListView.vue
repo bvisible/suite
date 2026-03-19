@@ -20,15 +20,26 @@
     @update:active-row="setActive"
   >
     <ListHeader class="mb-[1px]" />
-    <div v-if="!folderContents" class="w-full text-center flex items-center justify-center py-10">
+    <div
+      v-if="!folderContents"
+      class="w-full text-center flex items-center justify-center py-10"
+    >
       <LoadingIndicator class="w-8" />
     </div>
     <template v-else>
       <div class="h-full overflow-y-auto">
         <ListEmptyState v-if="!formattedRows.length" />
-        <div v-for="group in formattedRows" v-else-if="formattedRows[0].group" :key="group.group">
+        <div
+          v-for="group in formattedRows"
+          v-else-if="formattedRows[0].group"
+          :key="group.group"
+        >
           <ListGroupHeader :group="group">
-            <slot v-if="$slots['group-header']" name="group-header" v-bind="{ group }" />
+            <slot
+              v-if="$slots['group-header']"
+              name="group-header"
+              v-bind="{ group }"
+            />
           </ListGroupHeader>
           <ListGroupRows :group="group">
             <CustomListRow
@@ -127,7 +138,8 @@ const selectedColumns = [
     suffix: ({ row }) => {
       if (row.share_count === props.rootEntity?.share_count) return
       if (row.share_count === -2) return h(LucideGlobe2, { class: 'size-4' })
-      else if (row.share_count === -1) return h(LucideBuilding2, { class: 'size-4' })
+      else if (row.share_count === -1)
+        return h(LucideBuilding2, { class: 'size-4' })
       else if (row.share_count > 0) return h(LucideUsers, { class: 'size-4' })
     },
   },
@@ -135,13 +147,19 @@ const selectedColumns = [
     label: __('Owner'),
     key: '',
     getLabel: ({ row }) =>
-      row.owner === store.state.user.id ? 'You' : props.userData[row.owner]?.full_name || row.owner,
+      row.owner === store.state.user.id
+        ? 'You'
+        : props.userData[row.owner]?.full_name || row.owner || '-',
+    isEnabled: (n) => n !== 'Attachments',
     prefix: ({ row }) => {
+      if (!row.owner) return
       return h(Avatar, {
         shape: 'circle',
         image: props.userData[row.owner]?.user_image,
         label:
-          props.userData[row.owner]?.full_name || props.userData[row.owner]?.email || row.owner,
+          props.userData[row.owner]?.full_name ||
+          props.userData[row.owner]?.email ||
+          row.owner,
         size: 'sm',
       })
     },
@@ -152,7 +170,7 @@ const selectedColumns = [
     getLabel: ({ row }) => row.relativeModified,
     getTooltip: (row) => formatDate(row.modified),
     key: 'modified',
-    isEnabled: (n) => n !== 'Recents',
+    isEnabled: (n) => n !== 'Recents' && n !== 'Attachments',
     width: '15%',
   },
   {
@@ -167,19 +185,20 @@ const selectedColumns = [
     label: __('Size'),
     key: '',
     getLabel: ({ row }) =>
-      row.is_group
+      row.is_folder
         ? row.children
           ? row.children + ' item' + (row.children === 1 ? '' : 's')
           : 'empty'
         : row.file_size_pretty || '-',
-    width: '8%',
+    width: route.name === 'Attachments' ? '25%' : '8%',
   },
   { label: '', key: 'options', align: 'right', width: '5%' },
 ].filter((k) => !k.isEnabled || k.isEnabled(route.name))
 
 const setActive = (entityName) => {
   const entity = props.folderContents.find((k) => k.name === entityName)
-  selectedRow.value = !entity || entity.name !== store.state.activeEntity?.name ? entity : null
+  selectedRow.value =
+    !entity || entity.name !== store.state.activeEntity?.name ? entity : null
 }
 
 watch(selectedRow, (k) => {

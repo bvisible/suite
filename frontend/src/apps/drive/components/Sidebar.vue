@@ -62,6 +62,7 @@ import LucideFiles from '~icons/lucide/files'
 import LucideTrash from '~icons/lucide/trash'
 import LucideHome from '~icons/lucide/home'
 import LucideStar from '~icons/lucide/star'
+import LucidePaperclip from '~icons/lucide/paperclip'
 import LucideInbox from '~icons/lucide/inbox'
 import LucideSearch from '~icons/lucide/search'
 import LucideFileText from '~icons/lucide/file-text'
@@ -262,6 +263,13 @@ const sidebarItems = computed(() => {
       label: 'Views',
       collapsible: true,
       items: dynamicList([
+        {
+          label: 'Attachments',
+          to: `/attachments`,
+          icon: LucidePaperclip,
+          isActive: first.name == 'Attachments',
+          accessKey: 'a',
+        },
         {
           label: 'Favourites',
           to: `/favourites`,

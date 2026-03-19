@@ -198,8 +198,8 @@ watch(
     const file_types = val.map((k) => k.name)
     const isFolder = file_types.find((k) => k === 'Folder')
     rows.value = props.getEntities.data.filter(
-      ({ file_type, is_group }) =>
-        file_types.includes(file_type) || (isFolder && is_group)
+      ({ file_type, is_folder }) =>
+        file_types.includes(file_type) || (isFolder && is_folder)
     )
   },
   { deep: true }
@@ -210,8 +210,9 @@ watch(
   (val) => {
     if (!val) return
     rows.value = sortEntities([...val], sortOrder.value)
+    console.log(rows.value)
     store.commit('setCurrentFolder', {
-      entities: rows.value.filter?.((k) => k.file_name[0] !== '.'),
+      entities: rows.value.filter?.((k) => k.file_name?.[0] !== '.'),
     })
   },
   { immediate: true, deep: true }
@@ -270,7 +271,7 @@ const removeFile = (file, target) => {
   props.getEntities.setData(props.getEntities.data)
 }
 const onDrop = (targetFile, draggedItem) => {
-  if (!targetFile.is_group || draggedItem === targetFile.name || !draggedItem)
+  if (!targetFile.is_folder || draggedItem === targetFile.name || !draggedItem)
     return
   move.submit({
     entity_names: [draggedItem],
@@ -306,7 +307,7 @@ const actionItems = computed(() => {
         label: __('Preview'),
         icon: LucideEye,
         action: ([entity]) => openEntity(entity),
-        isEnabled: (e) => e.file_type !== 'Link',
+        isEnabled: (e) => e.file_type !== 'Link' && !e.virtual,
       },
       {
         label: __('Open'),
@@ -318,6 +319,7 @@ const actionItems = computed(() => {
         label: __('Show Info'),
         icon: LucideInfo,
         action: () => (dialog.value = 'i'),
+        isEnabled: (e) => !e.virtual,
       },
       {
         label: __('Copy Link'),
@@ -338,7 +340,8 @@ const actionItems = computed(() => {
       {
         divider: true,
         isEnabled: (e) =>
-          e.is_attachment || (!e.is_drive_file && store.state.user.systemUser),
+          e.is_attachment ||
+          (!e.is_drive_file && store.state.user.systemUser && !e.virtual),
       },
       {
         label: __('Go to original'),
@@ -357,9 +360,10 @@ const actionItems = computed(() => {
         icon: LucideMonitorCog,
         action: ([entity]) =>
           window.open('/desk/file/' + entity.name, '_blank'),
-        isEnabled: (e) => !e.is_drive_file && store.state.user.systemUser,
+        isEnabled: (e) =>
+          !e.is_drive_file && store.state.user.systemUser && !e.virtual,
       },
-      { divider: true, isEnabled: (e) => !e.external },
+      { divider: true, isEnabled: (e) => !e.external && !e.virtual },
       {
         label: __('Share'),
         icon: LucideShare2,
@@ -390,7 +394,7 @@ const actionItems = computed(() => {
           props.getEntities.setData(props.getEntities.data)
           toggleFav.submit({ entities })
         },
-        isEnabled: (e) => !e.is_favourite && !e.external,
+        isEnabled: (e) => !e.is_favourite && !e.external && !e.virtual,
         important: true,
         multi: true,
       },
@@ -403,7 +407,7 @@ const actionItems = computed(() => {
           props.getEntities.setData(props.getEntities.data)
           toggleFav.submit({ entities })
         },
-        isEnabled: (e) => e.is_favourite && !e.external,
+        isEnabled: (e) => e.is_favourite && !e.external && !e.virtual,
         important: true,
         multi: true,
       },

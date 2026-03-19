@@ -12,10 +12,18 @@
         :key="activity"
         class="flex items-start justify-start py-3 gap-x-2"
       >
-        <Avatar size="md" :image="activity.user_image" :label="activity.full_name" />
+        <Avatar
+          size="md"
+          :image="activity.user_image"
+          :label="activity.full_name"
+        />
         <div class="flex flex-col items-start justify-center">
-          <span class="text-sm text-ink-gray-9">{{ __(activity.message) }}</span>
-          <span class="text-xs text-ink-gray-5 mb-3">{{ activity.creation }}</span>
+          <span class="text-sm text-ink-gray-9">{{
+            __(activity.message)
+          }}</span>
+          <span class="text-xs text-ink-gray-5 mb-3">{{
+            activity.creation
+          }}</span>
 
           <template v-if="activity.action_type === 'rename'">
             <div class="flex items-center justify-start flex-wrap gap-1">
@@ -27,7 +35,11 @@
               />
 
               <ArrowRight class="text-ink-gray-4 h-4" />
-              <ActivityTreeItem :activity="activity" :entity="entity" :title="activity.new_value" />
+              <ActivityTreeItem
+                :activity="activity"
+                :entity="entity"
+                :title="activity.new_value"
+              />
             </div>
           </template>
           <ActivityTreeShare
@@ -91,7 +103,7 @@ watch(
 )
 
 const entityText = computed(() => {
-  if (entity.value.is_group) {
+  if (entity.value.is_folder) {
     return 'folder'
   }
   return 'file'
@@ -100,7 +112,9 @@ const entityText = computed(() => {
 function generateMessage(activity) {
   const user = activity.full_name ? activity.full_name : activity.owner
   const creationText =
-    entity.value.is_group || entity.value.document ? 'created this' : 'uploaded this'
+    entity.value.is_folder || entity.value.document
+      ? 'created this'
+      : 'uploaded this'
 
   switch (activity.action_type) {
     case 'create':
@@ -152,7 +166,8 @@ function groupAndTransform(activities) {
         index--
       }
     }
-    activity.full_name = activity.owner === store.state.user.id ? 'You' : activity.full_name
+    activity.full_name =
+      activity.owner === store.state.user.id ? 'You' : activity.full_name
     activity.message = generateMessage(activity)
     activity.creation = formatDate(activity.creation)
   }
@@ -173,7 +188,8 @@ function groupAndTransform(activities) {
         groupedActivityLog.value['This week'].push(activity)
         break
       case dayDiff <= 14 &&
-        creationDate >= new Date(startOfWeek.getTime() - 7 * 24 * 60 * 60 * 1000):
+        creationDate >=
+          new Date(startOfWeek.getTime() - 7 * 24 * 60 * 60 * 1000):
         groupedActivityLog.value['Last week'].push(activity)
         break
       case monthDiff === 0:
