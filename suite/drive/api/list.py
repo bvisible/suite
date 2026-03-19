@@ -30,7 +30,7 @@ def files(
     status: int = 1,
     favourites_only: bool = False,
     recents_only: bool = False,
-    shared: str | None = None,
+    shared: bool | None = None,
     tag_list: list[str] | str = [],
     file_kinds: list[str] | str = [],
     folders: bool = False,
@@ -77,10 +77,8 @@ def files(
     query = frappe.qb.from_(DriveFile).where((DriveFile.status == status) | (DriveFile.is_drive_file == 0))
 
     if shared:
-        if shared == "by" or shared == "with":
-            cond = (DrivePermission.entity == DriveFile.name) & (
-                (DrivePermission.user if shared == "with" else DrivePermission.owner) == frappe.session.user
-            )
+        if shared == True:
+            cond = (DrivePermission.entity == DriveFile.name) & (DrivePermission.user == frappe.session.user)
         elif shared == "public":
             cond = (DrivePermission.entity == DriveFile.name) & (DrivePermission.user == "")
         # if shared == "with":

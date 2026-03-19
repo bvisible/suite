@@ -206,7 +206,7 @@ export const setBreadCrumbs = (entity) => {
       {
         label: __('Shared'),
         name: 'Shared',
-        route: '/shared',
+        route: '/?shared=1',
       },
     ]
   }

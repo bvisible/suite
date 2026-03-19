@@ -10,9 +10,6 @@
       <Breadcrumbs :items="store.state.breadcrumbs" class="select-none truncate max-w-[80%]">
         <template #prefix="{ item, index }">
           <LoadingIndicator v-if="item.loading" width="20" scale="70" />
-          <div v-if="index == 0" class="mr-1.5">
-            <component :is="COMPONENT_MAP[item.name]" class="size-4 text-ink-gray-6" />
-          </div>
         </template>
       </Breadcrumbs>
     </slot>
@@ -125,14 +122,6 @@ import LucideFilePlus2 from '~icons/lucide/file-plus-2'
 import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
 import LucideFolderPlus from '~icons/lucide/folder-plus'
 
-const COMPONENT_MAP = {
-  Home: LucideHome,
-  Team: LucideBuilding2,
-  Favourites: LucideStar,
-  Shared: LucideUsers,
-  Trash: LucideTrash,
-  Recents: LucideClock,
-}
 const store = useStore()
 const route = useRoute()
 const open = (url) => {

@@ -30,7 +30,7 @@ const store = createStore({
     uploads: [],
     sortOrder: getJson('sortOrder', {}),
     view: getJson('view', 'list'),
-    shareView: getJson('shareView', 'with'),
+    shareView: false,
     activeTags: [],
     activeEntity: null,
     currentResource: [],
@@ -80,7 +80,6 @@ const store = createStore({
       state.view = payload
     },
     toggleShareView(state, payload) {
-      localStorage.setItem('shareView', JSON.stringify(payload))
       state.shareView = payload
     },
     setActiveEntity(state, payload) {
