@@ -1,4 +1,5 @@
 import json
+from collections import Counter
 
 import frappe
 from pypika import Criterion, CustomFunction, Order
@@ -37,7 +38,7 @@ def files(
     only_parent: bool = True,
     search: str = None,
 ):
-    field, ascending = order_by.replace("modified", "_modified").split(" ")
+    sort_field, ascending = order_by.replace("modified", "_modified").split(" ")
 
     all_teams = False
     if team == "all":
@@ -46,22 +47,14 @@ def files(
     if not entity_name and team:
         entity_name = get_home_folder(team)["name"]
 
-    user = frappe.session.user if frappe.session.user != "Guest" else ""
     entity = frappe.get_doc("File", entity_name)
 
     # Verify that entity exists and is part of the team
     if not entity:
         frappe.throw(
             f"Not found ({entity_name}) ",
-            frappe.exceptions.PageDoesNotExistError,
+            frappe.exceptions.DoesNotExistError,
         )
-    # if not entity.is_drive_file:
-    #     files = frappe.get_list('File', filters={'folder': entity_name}, fields=FILE_FIELDS)
-    #     # Clean up
-    #     for k in files:
-    #         if k.is_folder:
-    #             k.file_type = 'Folder'
-    #     return files
 
     # Ignore team check for site files
     if team and not team == entity.team and entity.is_drive_file:
@@ -76,14 +69,55 @@ def files(
 
     query = frappe.qb.from_(DriveFile).where((DriveFile.status == status) | (DriveFile.is_drive_file == 0))
 
+    if not status:
+        query = query.where(DriveFile.owner == frappe.session.user)
+    if search:
+        # escape wildcards or lower() depending on DB
+        query = query.where(DriveFile.file_name.like(f"%{search}%"))
+
+    # Cleaner way?
+    if only_parent and (not recents_only and not favourites_only and not shared):
+        query = query.where(DriveFile.folder == entity_name)
+    elif not all_teams:
+        query = query.where((DriveFile.team == team) & (DriveFile.folder != ""))
+    return get_query_data(
+        query,
+        favourites_only=favourites_only,
+        recents_only=recents_only,
+        tag_list=tag_list,
+        file_kinds=file_kinds,
+        folders=folders,
+        shared=shared,
+        team=team,
+        entity_name=entity_name,
+        sort_field=sort_field,
+        ascending=ascending,
+    )
+
+
+def get_query_data(
+    query,
+    favourites_only=False,
+    recents_only=False,
+    tag_list=[],
+    file_kinds=[],
+    folders=False,
+    team=None,
+    entity_name=None,
+    shared=False,
+    sort_field="modified",
+    ascending=True,
+):
+    """
+    Runs all the necessary commands to obtain files in the structure expected by Drive frontend.
+    """
+    user = frappe.session.user if frappe.session.user != "Guest" else ""
+
     if shared:
         if shared == True:
             cond = (DrivePermission.entity == DriveFile.name) & (DrivePermission.user == frappe.session.user)
         elif shared == "public":
             cond = (DrivePermission.entity == DriveFile.name) & (DrivePermission.user == "")
-        # if shared == "with":
-        #     teams = get_teams()
-        #     cond |= (DrivePermission.team == 1) & (DrivePermission.user.isin(teams))
         query = query.right_join(DrivePermission).on(cond)
     else:
         query = query.left_join(DrivePermission).on(
@@ -96,13 +130,6 @@ def files(
         DriveFile.modified,
         DrivePermission.user.as_("shared_team"),
     ).where(fn.Coalesce(DrivePermission.read, 1).as_("read") == 1)
-
-    # Cleaner way?
-    if only_parent and (not recents_only and not favourites_only and not shared):
-        query = query.where(DriveFile.folder == entity_name)
-    elif not all_teams:
-        query = query.where((DriveFile.team == team) & (DriveFile.folder != ""))
-
     # Get favourites data (only that, if applicable)
     if favourites_only:
         query = query.right_join(DriveFavourite)
@@ -122,14 +149,8 @@ def files(
         query = (
             query.left_join(Recents)
             .on((Recents.entity_name == DriveFile.name) & (Recents.user == frappe.session.user))
-            .orderby(DriveFile[field], order=Order.asc if ascending else Order.desc)
+            .orderby(DriveFile[sort_field], order=Order.asc if ascending else Order.desc)
         )
-
-    if not status:
-        query = query.where(DriveFile.owner == frappe.session.user)
-    if search:
-        # escape wildcards or lower() depending on DB
-        query = query.where(DriveFile.file_name.like(f"%{search}%"))
 
     query = query.select(Recents.last_interaction.as_("accessed"))
     if tag_list:
@@ -176,8 +197,7 @@ def files(
     children_count = dict(child_count_query.run())
     share_count = dict(share_query.run())
 
-    default = get_default_access(entity_name)
-
+    default = get_default_access(entity_name) if entity_name else 0
     # Deduplicate
     if shared:
         added = set()
@@ -206,3 +226,40 @@ def files(
         r["is_attachment"] = r["is_drive_file"] and r["special_file"] == "File"
         r |= get_user_access(r["name"])
     return res
+
+
+@frappe.whitelist()
+def get_attachments(doctype: str | None = None, docname: str | None = None):
+    """
+    Returns all files that are attached to a document.
+    If either doctype or docname isn't specified, returns a list of folder-like objects
+    that represents the tree Doctype > Doc > Attachments.
+    """
+    if doctype and docname:
+        files = frappe.get_list(
+            "File", filters={"attached_to_doctype": doctype, "attached_to_name": docname}, pluck="name"
+        )
+        query = frappe.qb.from_(DriveFile).where(DriveFile.name.isin(files))
+        return get_query_data(query)
+
+    if doctype:
+        names = frappe.get_list("File", filters={"attached_to_doctype": doctype}, fields=["attached_to_name"])
+        doctypes_set = Counter(k["attached_to_name"] for k in names)
+    else:
+        doctypes = frappe.get_list(
+            "File", filters={"attached_to_doctype": ["is", "set"]}, fields=["attached_to_doctype"]
+        )
+        doctypes_set = Counter(k["attached_to_doctype"] for k in doctypes)
+
+    return [
+        {
+            "name": name,
+            "file_name": name,
+            "is_folder": 1,
+            "file_type": "Folder",
+            "children": size,
+            "virtual": "docname" if doctype else "doctype",
+            "virtual_extra": doctype,
+        }
+        for name, size in doctypes_set.items()
+    ]
