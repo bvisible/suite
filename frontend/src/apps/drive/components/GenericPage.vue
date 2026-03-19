@@ -128,7 +128,7 @@ const dialog = ref('')
 provide('dialog', dialog)
 
 const team = ref(
-  ['Shared', 'Recents', 'Favourites', 'Trash'].includes(route.name)
+  ['Recents', 'Favourites', 'Trash'].includes(route.name)
     ? 'all'
     : route.params.team
 )

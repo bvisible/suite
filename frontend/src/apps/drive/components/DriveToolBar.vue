@@ -1,34 +1,14 @@
 <template>
   <div class="flex p-5 pb-0 h-12">
-    <div v-if="selections?.length" class="my-auto w-[40%] text-base text-ink-gray-8">
+    <div
+      v-if="selections?.length"
+      class="my-auto w-[40%] text-base text-ink-gray-8"
+    >
       {{ selections.length }}
       {{ selections.length === 1 ? __('item') : __('items') }}
       {{ __('selected') }}
     </div>
-    <div
-      v-else-if="$route.name === 'Shared'"
-      class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 mr-4 py-1"
-    >
-      <TabButtons
-        v-model="shareView"
-        :buttons="[
-          {
-            label: __('By'),
-            value: 'by',
-            onClick: () => {
-              store.commit('toggleShareView', 'by')
-            },
-          },
-          {
-            label: __('With you'),
-            value: 'with',
-            onClick: () => {
-              store.commit('toggleShareView', 'with')
-            },
-          },
-        ]"
-      />
-    </div>
+
     <TextInput
       ref="search-input"
       v-model="search"
@@ -44,9 +24,14 @@
 
     <div class="flex gap-2 ml-auto my-auto">
       <template v-if="!selections?.length">
-        <div v-if="activeFilters.length" class="flex flex-wrap items-start justify-end gap-1 ml-3">
+        <div
+          v-if="activeFilters.length"
+          class="flex flex-wrap items-start justify-end gap-1 ml-3"
+        >
           <div v-for="({ icon, name }, index) in activeFilters" :key="index">
-            <div class="flex items-center border rounded pl-2 py-1 h-7 text-base select-none">
+            <div
+              class="flex items-center border rounded pl-2 py-1 h-7 text-base select-none"
+            >
               <img class="w-4" :src="icon" />
               <span class="text-sm ml-2">{{ name }}</span>
               <Button
@@ -59,7 +44,7 @@
         </div>
         <Button v-if="getEntities.loading" :loading="true" label="Loading..." />
         <TeamSelector
-          v-if="['Shared', 'Recents', 'Favourites', 'Trash'].includes($route.name)"
+          v-if="['Recents', 'Favourites', 'Trash'].includes($route.name)"
           v-model="team"
           :none="true"
         />
@@ -79,7 +64,11 @@
           :disabled
           placement="right"
         />
-        <Dropdown v-if="$route.name !== 'Recents'" :options="orderByItems" placement="right">
+        <Dropdown
+          v-if="$route.name !== 'Recents'"
+          :options="orderByItems"
+          placement="right"
+        >
           <div class="flex items-center whitespace-nowrap">
             <Button
               class="text-sm h-7 border-r border-slate-200 rounded-r-none"
@@ -118,6 +107,30 @@
             },
           ]"
         />
+        <div
+          v-if="$route.name === 'Home'"
+          class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 mr-4 py-1"
+        >
+          <TabButtons
+            v-model="shareView"
+            :buttons="[
+              {
+                label: __('Home'),
+                value: false,
+                onClick: () => {
+                  store.commit('toggleShareView', false)
+                },
+              },
+              {
+                label: __('Shared'),
+                value: true,
+                onClick: () => {
+                  store.commit('toggleShareView', true)
+                },
+              },
+            ]"
+          />
+        </div>
       </template>
       <div v-else-if="actionItems" class="flex gap-3 ml-4 overflow-auto">
         <template
@@ -125,14 +138,14 @@
             .filter((i) => i.important && (selections.length === 1 || i.multi))
             .filter(
               (i) =>
-                !i.isEnabled || selections.every((e) => i.isEnabled(e, selections.length !== 1))
+                !i.isEnabled ||
+                selections.every((e) => i.isEnabled(e, selections.length !== 1))
             )"
           :key="item.label"
         >
           <Button
             variant="outline"
             :tooltip="item.label"
-            size="md"
             @click.once="item.action(selections)"
           >
             <template #icon>

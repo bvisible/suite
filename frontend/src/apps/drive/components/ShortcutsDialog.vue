@@ -67,7 +67,6 @@ const shortcutGroups = [
       [getLabel('r'), 'Recents'],
       [getLabel('f'), 'Favourites'],
       [getLabel('s'), 'Shared'],
-      [getLabel('d'), 'Shared'],
     ],
   },
   {
