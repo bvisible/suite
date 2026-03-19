@@ -105,10 +105,9 @@ export const getShared = createResource({
   ...COMMON_OPTIONS,
   url: 'drive.api.list.files',
   cache: 'shared-folder-contents',
-  params: { shared: 'by' },
-  makeParams: (params) => {
-    return { ...params }
-  },
+    makeParams: (params) => {
+      return { ...params, shared: true }
+    },
 })
 
 export const getTrash = createResource({
