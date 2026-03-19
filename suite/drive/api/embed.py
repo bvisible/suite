@@ -41,7 +41,7 @@ def get_file_content(embed_name: str, parent_entity_name: str):
         embed = frappe._dict(
             path=str(
                 Path(
-                    get_home_folder(embed.team)["path"],
+                    get_home_folder(embed.team)["file_url"],
                     "embeds",
                     embed_name,
                 )
