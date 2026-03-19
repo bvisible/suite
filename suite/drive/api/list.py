@@ -38,7 +38,7 @@ def files(
     only_parent: bool = True,
     search: str = None,
 ):
-    sort_field, ascending = order_by.replace("modified", "_modified").split(" ")
+    sort_field, ascending = order_by.replace("modified", "last_modified").split(" ")
 
     all_teams = False
     if team == "all":

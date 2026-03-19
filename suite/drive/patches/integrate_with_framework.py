@@ -4,6 +4,7 @@ Create `File` records of all existing `Drive File`s
 
 import frappe
 from drive.utils import MIME_LIST_MAP
+from drive.utils.files import get_s3_url
 
 
 def get_file_type(r):
@@ -39,10 +40,13 @@ def migrate_folder(folder, is_remote=False):
 
 
 def get_link(file, is_remote=False):
-    if file.mime_type == "frappe/slides":
+    if file.mime_type == "frappe/slides" or not file.path:
         return ""
-    elif is_remote or file.is_link:
+    elif file.is_link:
         return file.path
+    elif is_remote:
+        return get_s3_url(file.path)
+        
     return "/private/files/" + file.path
 
 
@@ -90,7 +94,10 @@ def migrate_file(file, is_remote=False):
     if not file.allow_download:
         settings["forbid_download"] = 1
     ff_file.settings = settings
-    ff_file.insert()
-    frappe.db.set_value("File", ff_file.name, "creation", file.creation, update_modified=False)
-    frappe.db.set_value("File", ff_file.name, "owner", file.owner, update_modified=False)
-    frappe.db.set_value("File", ff_file.name, "modified", file.modified, update_modified=False)
+    try:
+        ff_file.insert()
+        frappe.db.set_value("File", ff_file.name, "creation", file.creation, update_modified=False)
+        frappe.db.set_value("File", ff_file.name, "owner", file.owner, update_modified=False)
+        frappe.db.set_value("File", ff_file.name, "modified", file.modified, update_modified=False)
+    except Exception as e:
+        print(f"Error migrating file {file.name}: {e}")

@@ -120,7 +120,7 @@ def get_teams(user: str = None, details: bool = False, exclude_personal: bool = 
             for team in teams
         }
         if exclude_personal:
-            return {t: team for t, team in teams_info.items() if not team.personal}
+            return {t: team for t, team in teams_info.items() if not team["personal"]}
         return teams_info
     return teams
 
