@@ -9,7 +9,10 @@ function clearStore() {
 }
 
 const manageBreadcrumbs = (to) => {
-  if (store.state.breadcrumbs[store.state.breadcrumbs.length - 1]?.name !== to.params.entityName) {
+  if (
+    store.state.breadcrumbs[store.state.breadcrumbs.length - 1]?.name !==
+    to.params.entityName
+  ) {
     store.state.breadcrumbs.splice(1)
     store.state.breadcrumbs.push({ loading: true })
   }
@@ -18,7 +21,9 @@ async function setRootBreadCrumb(to) {
   if (store.getters.isLoggedIn) {
     document.title = __(to.name)
     if (to.name !== 'Team')
-      store.commit('setBreadcrumbs', [{ label: __(to.name), name: to.name, route: to.path }])
+      store.commit('setBreadcrumbs', [
+        { label: __(to.name), name: to.name, route: to.path },
+      ])
   }
 }
 
@@ -66,13 +71,6 @@ const routes = [
     component: () => import('@/pages/Teams.vue'),
   },
   {
-    path: '/shared',
-    name: 'Shared',
-    component: () => import('@/pages/Shared.vue'),
-    beforeEnter: [setRootBreadCrumb],
-    meta: { allowGuest: true },
-  },
-  {
     path: '/recents',
     name: 'Recents',
     component: () => import('@/pages/Recents.vue'),
@@ -85,7 +83,7 @@ const routes = [
     beforeEnter: [setRootBreadCrumb],
   },
   {
-    path: '/site',
+    path: '/shared',
     name: 'Site',
     component: () => import('@/pages/Site.vue'),
     beforeEnter: [setRootBreadCrumb],
