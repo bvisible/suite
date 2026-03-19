@@ -33,7 +33,9 @@
       />
     </div>
   </div>
-  <div class="p-2 h-[35%] border-t border-gray-100 flex flex-col justify-evenly">
+  <div
+    class="p-2 h-[35%] border-t border-gray-100 flex flex-col justify-evenly"
+  >
     <div class="truncate w-full w-fit text-base font-medium text-ink-gray-8">
       {{ file.file_name }}
     </div>
@@ -42,7 +44,7 @@
         <img
           v-if="
             file.file_type !== 'Unknown' &&
-            !file.is_group &&
+            !file.is_folder &&
             ((imgLoaded && src !== backupLink) || !is_image)
           "
           loading="lazy"
@@ -51,7 +53,7 @@
           :draggable="false"
         />
         <p class="truncate">
-          {{ file.is_group ? childrenSentence + '∙' : '' }}
+          {{ file.is_folder ? childrenSentence + '∙' : '' }}
           {{ file.file_type !== 'Unknown' ? file.file_type + '∙' : '' }}
           {{ file.relativeModified }}
         </p>

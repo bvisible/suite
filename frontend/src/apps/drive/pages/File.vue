@@ -9,7 +9,10 @@
         :draggable="false"
         class="w-full px-10 py-5 flex-grow w-full flex justify-center align-center items-center relative"
       >
-        <LoadingIndicator v-if="file.loading" class="w-10 h-full text-neutral-100" />
+        <LoadingIndicator
+          v-if="file.loading"
+          class="w-10 h-full text-neutral-100"
+        />
         <FileRender v-else-if="file.data" :preview-entity="file.data" />
       </div>
       <div
@@ -45,7 +48,12 @@ import { createResource } from 'frappe-ui'
 import { useRouter } from 'vue-router'
 import LucideScan from '~icons/lucide/scan'
 import { onKeyStroke } from '@vueuse/core'
-import { prettyData, setBreadCrumbs, enterFullScreen, updateURLSlug } from '@/utils/files'
+import {
+  prettyData,
+  setBreadCrumbs,
+  enterFullScreen,
+  updateURLSlug,
+} from '@/utils/files'
 import ErrorPage from '@/components/ErrorPage.vue'
 
 const router = useRouter()
@@ -59,14 +67,16 @@ const currentEntity = ref(props.entityName)
 
 // const filteredEntities = computed(() =>
 //   store.state.currentFolder.entities.filter(
-//     (item) => !item.is_group && !item.document && !item.is_link
+//     (item) => !item.is_folder && !item.document && !item.is_link
 //   )
 // )
 // FIX: redo with server fetch
 const filteredEntities = computed(() => [])
 
 const index = computed(() => {
-  return filteredEntities.value.findIndex((item) => item.name === props.entityName)
+  return filteredEntities.value.findIndex(
+    (item) => item.name === props.entityName
+  )
 })
 const prevEntity = computed(() => filteredEntities.value[index.value - 1])
 const nextEntity = computed(() => filteredEntities.value[index.value + 1])

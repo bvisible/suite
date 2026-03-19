@@ -187,7 +187,7 @@ const recursiveSearch = (node, reg) => {
 }
 
 function toggle_node(node) {
-  if (node.is_group) {
+  if (node.is_folder) {
     if (!node.fetched) {
       node.fetching = true
       node.children_start = 0

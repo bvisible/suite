@@ -1,6 +1,9 @@
 <template>
   <!-- pt-1 to accomodate borders -->
-  <div v-if="rows?.length" class="grid-container gap-5 p-5 pb-[60px] overflow-auto select-none">
+  <div
+    v-if="rows?.length"
+    class="grid-container gap-5 p-5 pb-[60px] overflow-auto select-none"
+  >
     <div
       v-for="file in rows"
       :id="file.name"
@@ -19,7 +22,7 @@
       @dragleave="dragOverItem = null"
       @dragover="
         (e) => {
-          if (file.is_group) {
+          if (file.is_folder) {
             e.preventDefault()
             dragOverItem = file.name
           }
@@ -27,7 +30,9 @@
       "
       @drop="$emit('dropped', file, draggedItem)"
       @click.meta="
-        selections.has(file.name) ? selections.delete(file.name) : selections.add(file.name)
+        selections.has(file.name)
+          ? selections.delete(file.name)
+          : selections.add(file.name)
       "
       @click="open(file)"
       @contextmenu="contextMenu($event, file)"
@@ -44,7 +49,9 @@
         class="duration-300 absolute top-2 right-2"
         :class="[
           selections.size > 0 ? '' : '!bg-surface-gray-3 hover:shadow-lg',
-          selectedRow?.name === file.name ? '' : 'invisible group-hover:visible',
+          selectedRow?.name === file.name
+            ? ''
+            : 'invisible group-hover:visible',
         ]"
         @click.stop="contextMenu($event, file)"
       >
@@ -113,7 +120,8 @@ const dropdownActionItems = (row) => {
       },
     }))
 }
-const open = (row) => !selections.value.size && route.name !== 'Trash' && openEntity(row)
+const open = (row) =>
+  !selections.value.size && route.name !== 'Trash' && openEntity(row)
 
 const draggedItem = ref(null)
 const dragOverItem = ref(null)
