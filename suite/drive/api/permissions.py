@@ -4,7 +4,7 @@ import frappe
 from frappe.utils import getdate
 from frappe.model.document import Document
 
-from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS
+from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS, get_home_folder
 from drive.utils.users import mark_as_viewed
 
 
@@ -115,9 +115,13 @@ def get_teams(user: str = None, details: bool = False, exclude_personal: bool = 
         filters=[["parenttype", "=", "Drive Team"], ["user", "=", user]],
     )
     if details:
-        teams_info = {team: frappe.get_doc("Drive Team", team) for team in teams}
+        teams_info = {
+            team: {**frappe.get_doc("Drive Team", team).as_dict(), "file": get_home_folder(team)["name"]}
+            for team in teams
+        }
         if exclude_personal:
             return {t: team for t, team in teams_info.items() if not team.personal}
+        return teams_info
     return teams
 
 
