@@ -221,7 +221,7 @@ const dropdownActionItems = (row) => {
 const contextMenu = (event, row) => {
   if (selections.value.size > 0) return
   // Ctrl + click triggers context menu on Mac
-  if (isModKey(e)) openEntity(row, true)
+  if (isModKey(event)) openEntity(row, true)
   rowEvent.value = event
   selectedRow.value = row
   event.stopPropagation()
