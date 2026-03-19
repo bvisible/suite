@@ -41,7 +41,7 @@ class DriveFile(Document):
         frappe.db.delete("Drive Notification", {"notif_doctype_name": self.name})
         frappe.db.delete("Drive Entity Activity Log", {"entity": self.name})
 
-        if self.is_group or self.document:
+        if self.is_folder or self.document:
             for child in self.get_children():
                 has_write_access = user_has_permission(self, "write")
                 child.delete(ignore_permissions=has_write_access)
@@ -57,7 +57,7 @@ class DriveFile(Document):
 
     def on_rollback(self):
         if self.flags.file_created:
-            shutil.rmtree(self.path) if self.is_group else self.path.unlink()
+            shutil.rmtree(self.path) if self.is_folder else self.path.unlink()
 
     def get_children(self):
         """Return a generator that yields child Documents."""
@@ -100,7 +100,7 @@ class DriveFile(Document):
                 frappe.PermissionError,
             )
         if not (
-            frappe.db.get_value("Drive File", new_parent, "is_group")
+            frappe.db.get_value("Drive File", new_parent, "is_folder")
             or frappe.db.get_value("Drive File", new_parent, "doc")
         ):
             frappe.throw(
@@ -121,7 +121,7 @@ class DriveFile(Document):
             update_file_size(self.parent_entity, -self.file_size)
             update_file_size(new_parent, +self.file_size)
             self.parent_entity = new_parent
-            self.title = get_new_file_name(self.title, new_parent, self.is_group, self.name)
+            self.title = get_new_file_name(self.title, new_parent, self.is_folder, self.name)
 
         self.team = new_team
 
@@ -151,10 +151,10 @@ class DriveFile(Document):
         if new_title == self.title:
             return self
 
-        validated_name = get_new_file_name(new_title, self.parent_entity, self.is_group, self.name)
+        validated_name = get_new_file_name(new_title, self.parent_entity, self.is_folder, self.name)
         if new_title != validated_name:
             return frappe.throw(
-                f"{'Folder' if self.is_group else 'File'} '{new_title}' already exists\n Try '{validated_name}' ",
+                f"{'Folder' if self.is_folder else 'File'} '{new_title}' already exists\n Try '{validated_name}' ",
                 FileExistsError,
             )
 
@@ -206,7 +206,7 @@ class DriveFile(Document):
             frappe.throw("Not permitted", frappe.PermissionError)
 
         self.is_active = -1
-        if self.is_group:
+        if self.is_folder:
             for child in self.get_children():
                 child.permanent_delete()
         self.save()

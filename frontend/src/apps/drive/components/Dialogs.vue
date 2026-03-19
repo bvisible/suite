@@ -43,14 +43,31 @@
     @success="removeFromList(entities)"
     @complete="entity_open && resource.fetch(resource.params)"
   />
-  <InfoPopup v-else-if="dialog === 'i'" v-model="dialog" :entity="entities[0]" />
+  <InfoPopup
+    v-else-if="dialog === 'i'"
+    v-model="dialog"
+    :entity="entities[0]"
+  />
 
   <!-- Confirmation dialogs -->
   <ConfirmDialog
-    v-if="['remove', 'restore', 'd', 'cta-favourites', 'cta-recents', 'cta-trash'].includes(dialog)"
+    v-if="
+      [
+        'remove',
+        'restore',
+        'd',
+        'cta-favourites',
+        'cta-recents',
+        'cta-trash',
+      ].includes(dialog)
+    "
     v-model="dialog"
     :entities="entities"
-    @success="dialog === 'cta' ? resetDialog : removeFromList(entities, dialog === 'restore')"
+    @success="
+      dialog === 'cta'
+        ? resetDialog
+        : removeFromList(entities, dialog === 'restore')
+    "
   />
 </template>
 <script setup>
@@ -77,7 +94,9 @@ const resource = computed(() =>
     : listResource.value
 )
 const entity_open = computed(
-  () => resource.value.data?.name && props.entities[0]?.name === resource.value.data?.name
+  () =>
+    resource.value.data?.name &&
+    props.entities[0]?.name === resource.value.data?.name
 )
 
 const dialog = defineModel(String)
@@ -121,10 +140,12 @@ function removeFromList(entities, move = true) {
     } else {
       resetDialog()
       listResource.value.setData(
-        listResource.value.data.filter(({ name }) => name !== resource.value.data.name)
+        listResource.value.data.filter(
+          ({ name }) => name !== resource.value.data.name
+        )
       )
       openEntity({
-        is_group: 1,
+        is_folder: 1,
         name: resource.value.data.folder,
         breadcrumbs: resource.value.data.breadcrumbs.slice(0, -1),
       })

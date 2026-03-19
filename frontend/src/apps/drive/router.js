@@ -89,6 +89,13 @@ const routes = [
     beforeEnter: [setRootBreadCrumb],
   },
   {
+    path: '/attachments/:doctype?/:docname?',
+    name: 'Attachments',
+    props: true,
+    component: () => import('@/pages/Attachments.vue'),
+    beforeEnter: [setRootBreadCrumb],
+  },
+  {
     path: '/documents',
     name: 'Documents',
     component: () => import('@/pages/Documents.vue'),

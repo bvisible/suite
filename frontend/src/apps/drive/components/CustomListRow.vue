@@ -22,14 +22,20 @@
       @dragend="draggedItem = null"
       @dragover="
         (e) => {
-          if (row.is_group) {
+          if (row.is_folder) {
             e.preventDefault()
             dragOverItem = row.name
           }
         }
       "
       @dragleave="dragOverItem = null"
-      @drop="$emit('dropped', row, $event.dataTransfer.getData('application/x-filename'))"
+      @drop="
+        $emit(
+          'dropped',
+          row,
+          $event.dataTransfer.getData('application/x-filename')
+        )
+      "
     >
       <template #default="{ idx, column, item }">
         <CustomListRowItem
@@ -47,7 +53,6 @@
 import { ListRow } from 'frappe-ui'
 import CustomListRowItem from './CustomListRowItem.vue'
 import { openEntity, isModKey } from '@/utils/files'
-import { settings } from '@/resources/permissions'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { computed, ref } from 'vue'
