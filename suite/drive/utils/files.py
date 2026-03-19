@@ -226,6 +226,7 @@ class FileManager:
                 with open(self.site_folder / file_url, "rb") as fh:
                     buf = BytesIO(fh.read())
         except BaseException as e:
+            print(e)
             frappe.throw("Could not find this file.", frappe.DoesNotExistError)
 
         return buf

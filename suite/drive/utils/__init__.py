@@ -456,8 +456,11 @@ def validate_filename(file_name, parent, type, error=None):
 def map_ff_to_drive_type(file):
     if file.is_folder:
         return "Folder"
-    mime_type = mimemapper.get_mime_type(file.file_type)
-    return next(k for (k, v) in MIME_LIST_MAP.items() if mime_type in v)
+    mime_type = mimemapper.get_mime_type(file.file_type) if file.file_type else ""
+    try:
+        return next(k for (k, v) in MIME_LIST_MAP.items() if mime_type in v)
+    except StopIteration:
+        return "Unknown"
 
 
 def get_upload_path(team_path, file_name):
