@@ -103,7 +103,7 @@ FILE_FIELDS = [
     Field("last_modified").as_("modified"),
     "owner",
     "settings",
-    'is_drive_file'
+    "is_drive_file",
 ]
 
 
@@ -318,6 +318,7 @@ def create_drive_file(
         {
             "doctype": "File",
             "is_drive_file": 1,
+            "is_private": 1,
             "team": team,
             "file_name": file_name,
             "folder": parent,
@@ -460,7 +461,7 @@ def map_ff_to_drive_type(file):
 
 
 def get_upload_path(team_path, file_name):
-    uploads_path = Path(frappe.get_site_path("private/files"), team_path, ".uploads")
+    uploads_path = Path(frappe.get_site_path(team_path), ".uploads")
     if not os.path.exists(uploads_path):
         uploads_path.mkdir()
     return uploads_path / file_name

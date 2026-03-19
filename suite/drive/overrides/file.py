@@ -338,6 +338,8 @@ class File(FrappeFile):
 
 
 def after_upload_file(doc):
+    if doc.is_drive_file:
+        return
     settings = frappe.get_single("Drive Disk Settings")
     if frappe.form_dict.library_file_name:
         library_doc = frappe.get_doc("File", frappe.form_dict.library_file_name)
@@ -351,7 +353,7 @@ def after_upload_file(doc):
     elif settings.use_drive_for_files and doc.attached_to_name:
         doc.is_drive_file = 1
         content_hash = get_content_hash(doc.content)
-        temp_path = get_upload_path("", content_hash[:6] + "-" + doc.file_name)
+        temp_path = get_upload_path("private/files", content_hash[:6] + "-" + doc.file_name)
         with temp_path.open("wb") as f:
             f.write(doc.content)
 

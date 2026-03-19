@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from datetime import timedelta
 from io import BytesIO
@@ -7,7 +6,8 @@ from pathlib import Path
 
 import frappe
 import jwt
-import magic
+
+# import magic
 import mimemapper
 from pypika import Order
 from werkzeug.utils import secure_filename, send_file
@@ -26,7 +26,7 @@ from drive.utils import (
     get_upload_path,
 )
 from drive.utils.api import prettify_file
-from drive.utils.files import FileManager
+from drive.utils.files import FileManager, sanitize_url, get_s3_key, get_s3_url
 
 from .permissions import get_teams, user_has_permission
 
@@ -78,7 +78,7 @@ def upload_file(
     file = frappe.request.files["file"]
     file_name = get_new_file_name(file.filename, parent)
     upload_session = frappe.form_dict.uuid
-    temp_path = get_upload_path(home_folder["file_url"], f"{upload_session}_{secure_filename(file_name)}")
+    temp_path = get_upload_path(sanitize_url(home_folder["file_url"]), f"{upload_session}_{secure_filename(file_name)}")
     with temp_path.open("ab") as f:
         f.seek(offset)
         f.write(file.stream.read())
@@ -96,21 +96,25 @@ def upload_file(
         mime_type = magic.from_buffer(open(temp_path, "rb").read(2048), mime=True)
 
     file_type = get_file_type(mime_type)
+    manager = FileManager()
 
     drive_file = create_drive_file(
         team,
         file_name,
         parent,
         file_type,
-        lambda file: manager.get_disk_path(file, home_folder, embed),
+        lambda file: "/" + str(manager.get_disk_path(file, home_folder, embed)),
         mime_type,
         file_size,
         int(last_modified) / 1000 if last_modified else None,
     )
 
     # Upload and update parent folder size
-    manager = FileManager()
     manager.upload_file(temp_path, drive_file, not embed)
+    # Change path to be s3 compatible
+    if manager.s3_enabled:
+        drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
+        drive_file.save()
 
     try:
         update_file_size(parent, file_size)
@@ -205,8 +209,6 @@ def create_presentation(team: str, file_name: str = "Untitled", parent: str | No
         lambda _: r.name,
     )
     return entity
-
-
 
 
 @frappe.whitelist()
@@ -683,17 +685,17 @@ def get_root_folder(team: str):
         frappe.throw("You can't check the home folder of a team you don't belong to.", frappe.PermissionError)
     return get_home_folder(team)
 
+
 @frappe.whitelist(allow_guest=True)
 def redirect_to_original(file_id: str):
     """
     Redirect Drive attachments to original files
     """
-    file = frappe.get_cached_doc('File', file_id)
+    file = frappe.get_cached_doc("File", file_id)
     if not user_has_permission(file_id, "read"):
         frappe.throw("You do not have permission to view this file.", frappe.PermissionError)
-    if not file.special_file == 'File':
-        frappe.throw('This is not an attachment', ValueError)
+    if not file.special_file == "File":
+        frappe.throw("This is not an attachment", ValueError)
 
     frappe.local.response["type"] = "redirect"
     frappe.local.response["location"] = "/drive/g/" + file.special_file_doc
-    

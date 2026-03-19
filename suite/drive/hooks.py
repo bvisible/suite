@@ -113,7 +113,7 @@ has_permission = {
 }
 
 after_upload_file = "drive.overrides.file.after_upload_file"
-write_file = 'drive.overrides.file.write_file'
+# write_file = 'drive.overrides.file.write_file'
 # DocType Class
 # ---------------
 # Override standard doctype classes
