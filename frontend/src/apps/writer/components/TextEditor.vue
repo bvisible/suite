@@ -48,13 +48,16 @@ const editor = computed(() => {
 })
 provide('editor', editor)
 defineExpose({ editor })
-   
-const { doc, save, cleanup, provider, permanentUserData, loaded, ...commentsDetail } = useYjs(
-  props.file.doc.name,
-  props.document,
-  editor,
-  edited,
-)
+
+const {
+  doc,
+  save,
+  cleanup,
+  provider,
+  permanentUserData,
+  loaded,
+  ...commentsDetail
+} = useYjs(props.file.doc.name, props.document, editor, edited)
 watch(loaded, () => rebuild(editor.value))
 
 const extensions = [
@@ -67,6 +70,7 @@ const extensions = [
   }),
   CollaborationCaret.configure({
     provider,
+    selectionRender: () => {},
     user: {
       name: store.state.user.fullName,
       id: store.state.user.id,
