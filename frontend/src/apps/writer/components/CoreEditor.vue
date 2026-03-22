@@ -11,10 +11,7 @@
     >
       <ToC v-if="editor" :editor :anchors />
 
-      <ContextMenu
-        :items="bubbleButtons"
-        :disabled="editor?.state.selection.empty"
-      >
+      <ContextMenu :items="bubbleButtons" :disabled="true">
         <div
           class="min-w-full h-full flex flex-col"
           @click="
@@ -32,6 +29,7 @@
             :mentions="{ mentions: allUsers.data, selectable: false }"
             placeholder="Start thinking..."
             :extensions="editorExtensions"
+            :bubble-menu="bubButtons"
             :editable
             :starterkit-options="{
               // undoRedo: doc ? false : true,
@@ -100,7 +98,12 @@
             />
             <Button
               :label="showUnanchored ? 'Hide all' : 'Show all'"
-              v-if="showComments && showResolved"
+              v-if="
+                showComments &&
+                Array.from(comments._map)
+                  .map((l) => l[1].content?.arr?.[0].detached)
+                  .filter((k) => k).length
+              "
               class="text-sm text-ink-gray-5 bg-surface-white"
               variant="ghost"
               @click="showUnanchored = !showUnanchored"
@@ -199,7 +202,7 @@ const props = defineProps({
   //   Checker for collab
   rawContent: String,
 })
-const emit = defineEmits(['save', 'editor-change'])
+const emit = defineEmits(['save', 'editor-change', 'cleanup'])
 const scrollParent = computed(() =>
   document.querySelector('#editorScrollContainer'),
 )
@@ -469,6 +472,13 @@ const convertEditorButton = (id) => {
   command.shortcut = formatShortcut(command.shortcut)
   return command
 }
+const bubButtons = [
+  {
+    label: 'Comment',
+    icon: LucideMessageSquarePlus,
+    action: () => addComment(),
+  },
+]
 
 const bubbleButtons = computed(() => [
   {
@@ -556,7 +566,9 @@ const autorename = () => {
 
 const addComment = () => {
   if (!props.yjsDoc) {
-    return toast.warning("New comments aren't supported on this doc.")
+    return toast.warning("New comments aren't supported on this doc.", {
+      duration: 1,
+    })
   }
   showComments.value = true
   const id = uuidv4()

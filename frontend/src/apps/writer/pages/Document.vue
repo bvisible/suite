@@ -63,6 +63,16 @@
     :document
     :editor
   />
+  <div
+    v-if="!document.doc?.collab"
+    class="bg-surface-gray-2 text-ink-gray-8 p-3 text-base flex justify-between items-center select-none"
+  >
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-ink-gray-6">
+        This is an old schema document - you cannot do collaboritive editing.
+      </div>
+    </div>
+  </div>
   <ErrorPage v-if="file.error" :error="file.error" />
   <LoadingIndicator
     v-else-if="!file.doc && file.loading"
@@ -78,7 +88,7 @@
       ref="editorEl"
       v-model:versionPreview="versionPreview"
       v-model:showSettings="showSettings"
-      :entity="document.doc"
+      :file="file.doc"
       :document
       :settings
       :editable
@@ -137,7 +147,7 @@ import useDocument from '@/composables/useDocument'
 import LucideLock from '~icons/lucide/lock'
 import LucideLockOpen from '~icons/lucide/lock-open'
 import TextEditor from '@/components/TextEditor.vue'
-
+import NonCollabEditor from '@/components/NonCollabEditor.vue'
 const MarkdownEditor = defineAsyncComponent(
   () => import('@/components/MarkdownEditor.vue'),
 )

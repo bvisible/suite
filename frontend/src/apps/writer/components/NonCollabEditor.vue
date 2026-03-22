@@ -12,7 +12,7 @@
         if (db)
           db.transaction(['content'], 'readwrite')
             .objectStore('content')
-            .put({ val, saved: new Date() }, props.entity.name)
+            .put({ val, saved: new Date() }, props.file.name)
         if (!editable) return
         edited = true
         autosave()
@@ -33,7 +33,7 @@ const showSettings = defineModel('showSettings')
 const edited = ref(false)
 
 const props = defineProps({
-  entity: Object,
+  file: Object,
   document: Object,
   settings: Object,
   editable: Boolean,
@@ -50,7 +50,10 @@ provide('editor', editor)
 defineExpose({ editor })
 
 const commentsDetail = useComments(props.document, editor)
-const save = () => props.document.saveHtml.submit({ html: rawContent.value })
+const save = async (manual, html, onSuccess) => {
+  await props.document.saveHtml.submit({ html: rawContent.value })
+  onSuccess?.()
+}
 const autosave = debounce(save, 5000)
 
 onBeforeUnmount(() => {
@@ -60,17 +63,20 @@ onBeforeUnmount(() => {
 // Local saving with IndexedDB
 const db = ref()
 watch(db, (db) => {
-  if (!props.entity.write) return
-  db.transaction(['content']).objectStore('content').get(props.entity.name).onsuccess = (val) => {
+  if (!props.file.write) return
+  db
+    .transaction(['content'])
+    .objectStore('content')
+    .get(props.file.name).onsuccess = (val) => {
     if (
       val.target.result?.val?.length > 20 &&
-      val.target.result.saved > new Date(props.entity.modified)
+      val.target.result.saved > new Date(props.file.modified)
     )
       rawContent.value = val.target.result.val
   }
 })
 
-if (props.entity.write) {
+if (props.file.write) {
   const request = window.indexedDB.open('Writer', 1)
   request.onsuccess = (event) => {
     db.value = event.target.result
