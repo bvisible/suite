@@ -186,8 +186,8 @@ const selectedColumns = [
     key: '',
     getLabel: ({ row }) =>
       row.is_folder
-        ? row.children
-          ? row.children + ' item' + (row.children === 1 ? '' : 's')
+        ? row.child_count
+          ? row.child_count + ' item' + (row.child_count === 1 ? '' : 's')
           : 'empty'
         : row.file_size_pretty || '-',
     width: route.name === 'Attachments' ? '25%' : '8%',

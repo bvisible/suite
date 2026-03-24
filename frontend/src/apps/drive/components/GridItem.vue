@@ -84,7 +84,7 @@ if (!is_image) {
 }
 
 const childrenSentence = computed(() => {
-  if (!props.file.children) return 'Empty'
-  return props.file.children + ' item' + (props.file.children === 1 ? '' : 's')
+  if (!props.file.child_count) return 'empty'
+  return props.file.child_count + ' item' + (props.file.child_count === 1 ? '' : 's')
 })
 </script>

@@ -44,11 +44,8 @@ export const getPublicTeams = createResource({
 
 export const getRecents = createResource({
   ...COMMON_OPTIONS,
-  url: 'drive.api.list.files',
-  cache: 'recents-folder-contents',
-  makeParams: (params) => {
-    return { ...params, recents_only: true }
-  },
+  url: 'drive.api.list.recents',
+  cache: 'recents-folder-contents'
 })
 
 export const getPersonal = createResource({
@@ -77,11 +74,8 @@ export const getAttachments = createResource({
 
 export const getFavourites = createResource({
   ...COMMON_OPTIONS,
-  url: 'drive.api.list.files',
+  url: 'drive.api.list.favourites',
   cache: 'favourite-folder-contents',
-  makeParams: (params) => {
-    return { ...params, favourites_only: 1 }
-  },
 })
 
 export const getDocuments = createResource({
@@ -113,7 +107,7 @@ export const getSlides = createResource({
 
 export const getShared = createResource({
   ...COMMON_OPTIONS,
-  url: 'drive.api.list.files',
+  url: 'drive.api.list.shared',
   cache: 'shared-folder-contents',
   makeParams: (params) => {
     return { ...params, shared: true }
@@ -122,10 +116,10 @@ export const getShared = createResource({
 
 export const getTrash = createResource({
   ...COMMON_OPTIONS,
-  url: 'drive.api.list.files',
+  url: 'drive.api.list.trash',
   cache: 'trash-folder-contents',
   makeParams: (params) => {
-    return { ...params, status: 0, only_parent: 0 }
+    return { ...params }
   },
 })
 
@@ -323,25 +317,6 @@ export const move = createResource({
   onError() {
     toast({ title: 'There was an error.', type: 'error' })
   },
-})
-
-export const allFolders = createResource({
-  method: 'GET',
-  url: 'drive.api.list.files',
-  cache: 'all-folders',
-  makeParams: (params) => ({
-    ...params,
-    status: 1,
-    folders: 1,
-    personal: -1,
-    only_parent: 0,
-  }),
-  transform: (d) =>
-    d.map((k) => ({
-      value: k.name,
-      label: k.file_name,
-      parent: k.folder,
-    })),
 })
 
 export const translate = createResource({
