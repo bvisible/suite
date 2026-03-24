@@ -5,7 +5,7 @@
   >
     <template #target="{ togglePopover }">
       <span class="mb-2 block text-sm leading-4 text-ink-gray-7">{{
-        __("Color")
+        __('Color')
       }}</span>
       <div class="flex items-stretch">
         <div class="relative w-full">
@@ -48,9 +48,9 @@
   </ColorPicker>
 </template>
 <script setup lang="ts">
-import { Input } from "frappe-ui"
-import ColorPicker from "@/components/DocEditor/components/ColorPicker.vue"
-const emit = defineEmits(["change"])
+import { Input } from 'frappe-ui'
+import ColorPicker from '@/components/ColorPicker.vue'
+const emit = defineEmits(['change'])
 
 defineProps({
   value: {
@@ -59,7 +59,7 @@ defineProps({
   },
   label: {
     type: String,
-    default: "",
+    default: '',
   },
 })
 </script>
