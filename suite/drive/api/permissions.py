@@ -3,7 +3,14 @@ from frappe.utils import getdate
 from frappe.model.document import Document
 from frappe.core.doctype.file.file import has_permission as ff_has_permission
 
-from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS, get_home_folder, map_ff_to_drive_type
+from drive.utils import (
+    generate_upward_path,
+    get_default_team,
+    get_valid_breadcrumbs,
+    FILE_FIELDS,
+    get_home_folder,
+    map_ff_to_drive_type,
+)
 from drive.utils.users import mark_as_viewed
 
 
