@@ -699,3 +699,13 @@ def redirect_to_original(file_id: str):
 
     frappe.local.response["type"] = "redirect"
     frappe.local.response["location"] = "/drive/g/" + file.details_docname
+
+
+@frappe.whitelist()
+def get_docs_attached_to(file_name: str):
+    file = frappe.get_doc("File", file_name)
+    return frappe.get_list(
+        "File",
+        filters={"attached_to_doctype": ["is", "set"], "file_url": file.file_url},
+        fields=["attached_to_doctype", "attached_to_name"],
+    )
