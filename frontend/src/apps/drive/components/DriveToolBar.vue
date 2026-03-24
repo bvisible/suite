@@ -8,7 +8,30 @@
       {{ selections.length === 1 ? __('item') : __('items') }}
       {{ __('selected') }}
     </div>
-
+      <div
+          v-if="$route.name === 'Home'"
+          class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center mr-4 py-1"
+        >
+          <TabButtons
+            v-model="shareView"
+            :buttons="[
+              {
+                label: __('Home'),
+                value: false,
+                onClick: () => {
+                  store.commit('toggleShareView', false)
+                },
+              },
+              {
+                label: __('Shared'),
+                value: true,
+                onClick: () => {
+                  store.commit('toggleShareView', true)
+                },
+              },
+            ]"
+          />
+        </div>
     <TextInput
       ref="search-input"
       v-model="search"
@@ -107,30 +130,6 @@
             },
           ]"
         />
-        <div
-          v-if="$route.name === 'Home'"
-          class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 mr-4 py-1"
-        >
-          <TabButtons
-            v-model="shareView"
-            :buttons="[
-              {
-                label: __('Home'),
-                value: false,
-                onClick: () => {
-                  store.commit('toggleShareView', false)
-                },
-              },
-              {
-                label: __('Shared'),
-                value: true,
-                onClick: () => {
-                  store.commit('toggleShareView', true)
-                },
-              },
-            ]"
-          />
-        </div>
       </template>
       <div v-else-if="actionItems" class="flex gap-3 ml-4 overflow-auto">
         <template

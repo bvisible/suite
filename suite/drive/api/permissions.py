@@ -1,10 +1,9 @@
-from drive.utils import map_ff_to_drive_type
-
 import frappe
 from frappe.utils import getdate
 from frappe.model.document import Document
+from frappe.core.doctype.file.file import has_permission as ff_has_permission
 
-from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS, get_home_folder
+from drive.utils import generate_upward_path, get_default_team, get_valid_breadcrumbs, FILE_FIELDS, get_home_folder, map_ff_to_drive_type
 from drive.utils.users import mark_as_viewed
 
 
@@ -214,6 +213,11 @@ def get_shared_with_list(entity: str):
 
 
 def user_has_permission(doc, ptype, user=None, team=0):
+    if isinstance(doc, str):
+        doc = frappe.get_doc("File", doc)
+    if not doc.is_drive_file:
+        return ff_has_permission(doc, ptype, user)
+
     if not user:
         user = frappe.session.user
     if user == "Administrator" or ptype == "create":
