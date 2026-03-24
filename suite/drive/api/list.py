@@ -303,8 +303,6 @@ def get_query_data(
     """
     Runs all the necessary commands to obtain files in the structure expected by Drive frontend.
     """
-    user = frappe.session.user if frappe.session.user != "Guest" else ""
-
     # Filter by team
     if team and team != "all":
         query = query.where((DriveFile.team == team) | (DriveFile.team.isnull()))
