@@ -77,7 +77,7 @@ class File(FrappeFile):
         def decorator(self, *args, **kwargs):
             # Legacy code
             res = func(self, *args, **kwargs)
-            self.db_set("last_modified", now())
+            self.db_set("file_modified", now())
             return res
 
         return decorator
@@ -215,7 +215,7 @@ class File(FrappeFile):
         if not (
             frappe.db.get_value("File", new_parent, "is_folder")
             # FIX: disable after redesign
-            or frappe.db.get_value("File", new_parent, "special_file")
+            or frappe.db.get_value("File", new_parent, "details_doctype")
         ):
             frappe.throw(
                 "Can only move into folders",
@@ -348,8 +348,8 @@ def after_upload_file(doc):
             doc.file_type = library_doc.file_type
             doc.file_size = library_doc.file_size
             doc.modified = library_doc.modified
-            doc.special_file = "File"
-            doc.special_file_doc = frappe.form_dict.library_file_name
+            doc.details_doctype = "File"
+            doc.details_docname = frappe.form_dict.library_file_name
     elif settings.use_drive_for_files and doc.attached_to_name:
         doc.is_drive_file = 1
         content_hash = get_content_hash(doc.content)

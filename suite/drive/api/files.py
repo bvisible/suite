@@ -38,7 +38,7 @@ FORBIDDEN_DOWNLOAD_TYPES = ["Folder", "Link", "Document"]
 def upload_file(
     team: str,
     total_file_size: int = 0,
-    last_modified: int = None,
+    file_modified: int = None,
     fullpath: str = None,
     parent: str = None,
     embed: int = 0,
@@ -106,7 +106,7 @@ def upload_file(
         lambda file: "/" + str(manager.get_disk_path(file, home_folder, embed)),
         mime_type,
         file_size,
-        int(last_modified) / 1000 if last_modified else None,
+        int(file_modified) / 1000 if file_modified else None,
     )
 
     # Upload and update parent folder size
@@ -149,7 +149,7 @@ def get_thumbnail(entity_name: str):
                 with manager.get_file(drive_file) as f:
                     thumbnail_data = f.read()[:1000].decode("utf-8").replace("\n", "<br/>")
             elif drive_file.file_type == "Document":
-                html = frappe.get_value("Writer Document", drive_file.special_file_doc, "raw_content")
+                html = frappe.get_value("Writer Document", drive_file.details_docname, "raw_content")
                 thumbnail_data = html[:1000] if html else ""
             elif drive_file.file_type == "Presentation":
                 # Use this until the thumbnail method is whitelisted
@@ -301,7 +301,7 @@ def create_link(team: str, file_name: str, link: str, parent: str | None = None)
             "team": team,
             "file_url": link,
             "file_type": "Link",
-            "last_modified": frappe.utils.now_datetime(),
+            "file_modified": frappe.utils.now_datetime(),
             "folder": parent,
             "is_drive_file": 1,
         }
@@ -509,7 +509,7 @@ def remove_or_restore(entity_names: list[str] | str):
             flag = 1
 
         doc.status = flag
-        doc.last_modified = frappe.utils.now_datetime()
+        doc.file_modified = frappe.utils.now_datetime()
         # Only update parent folder size if parent exists (not root level)
         if doc.folder:
             folder_size = frappe.db.get_value("File", doc.folder, "file_size") or 0
@@ -694,8 +694,8 @@ def redirect_to_original(file_id: str):
     file = frappe.get_cached_doc("File", file_id)
     if not user_has_permission(file_id, "read"):
         frappe.throw("You do not have permission to view this file.", frappe.PermissionError)
-    if not file.special_file == "File":
+    if not file.details_doctype == "File":
         frappe.throw("This is not an attachment", ValueError)
 
     frappe.local.response["type"] = "redirect"
-    frappe.local.response["location"] = "/drive/g/" + file.special_file_doc
+    frappe.local.response["location"] = "/drive/g/" + file.details_docname
