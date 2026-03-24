@@ -234,7 +234,7 @@ const sidebarItems = computed(() => {
           label: 'Shared',
           to: `/shared`,
           icon: LucideUsers,
-          isActive: first.name == 'Site',
+          isActive: first.name == 'Shared',
           accessKey: 's',
         },
         {
