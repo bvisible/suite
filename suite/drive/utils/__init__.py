@@ -96,11 +96,11 @@ FILE_FIELDS = [
     "file_size",
     "file_type",
     "is_folder",
-    "special_file",
-    "special_file_doc",
+    "details_doctype",
+    "details_docname",
     "team",
     "creation",
-    Field("last_modified").as_("modified"),
+    Field("file_modified").as_("modified"),
     "owner",
     "is_drive_file",
 ]
@@ -296,7 +296,7 @@ def if_folder_exists(team, folder_name, parent):
     if existing_folder:
         return existing_folder.name
     else:
-        d = frappe.get_doc({"doctype": "File", **values, "last_modified": frappe.utils.now_datetime()})
+        d = frappe.get_doc({"doctype": "File", **values, "file_modified": frappe.utils.now_datetime()})
         d.insert()
         return d.name
 
@@ -309,7 +309,7 @@ def create_drive_file(
     entity_path,
     mime_type=None,
     file_size=0,
-    last_modified=None,
+    file_modified=None,
     document=None,
     owner=None,
 ):
@@ -326,7 +326,7 @@ def create_drive_file(
             "mime_type": mime_type,
             "doc": document,
             "is_folder": file_type == "Folder",
-            "last_modified": (datetime.fromtimestamp(last_modified) if last_modified else frappe.utils.now()),
+            "file_modified": (datetime.fromtimestamp(file_modified) if file_modified else frappe.utils.now()),
         }
     )
     drive_file.flags.file_created = True

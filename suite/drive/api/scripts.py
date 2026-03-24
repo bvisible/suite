@@ -6,6 +6,7 @@ from drive.utils.files import FileManager
 from drive.api.files import delete_entities
 from datetime import date, timedelta
 
+
 @frappe.whitelist()
 @default_team
 def sync_preview(team: str, json: bool = True):
@@ -63,7 +64,7 @@ def sync_from_disk(team: str):
         )
         return new_parent.name
 
-    for file, (file_size, last_modified, mime_type, actual_path) in sorted_files:
+    for file, (file_size, file_modified, mime_type, actual_path) in sorted_files:
         parent_path = str(file.parent).strip("./")
         parent = frappe.get_value(
             "File",
@@ -79,7 +80,7 @@ def sync_from_disk(team: str):
                 parent,
                 mime_type,
                 lambda _: actual_path if mime_type != "folder" else actual_path.strip("/") + "/",
-                last_modified=last_modified,
+                file_modified=file_modified,
                 file_size=file_size,
                 is_folder=mime_type == "folder",
                 owner=frappe.session.user,
@@ -94,7 +95,7 @@ def auto_delete_from_trash():
     days_before = (date.today() - timedelta(days=30)).isoformat()
     result = frappe.db.get_all(
         "File",
-        filters={"status": 0, "last_modified": ["<", days_before]},
+        filters={"status": 0, "file_modified": ["<", days_before]},
         fields=["name"],
     )
     delete_entities(result)
