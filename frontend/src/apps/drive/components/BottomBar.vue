@@ -74,7 +74,7 @@ export default {
           route: '/shared',
           icon: LucideUsers,
           highlight: () => {
-            return first.name === 'Site'
+            return first.name === 'Shared'
           },
         },
         {

@@ -230,9 +230,9 @@ export const setBreadCrumbs = (entity) => {
   } else if (entity.folder === 'Home/Attachments' || entity.folder === 'Home') {
     res = [
       {
-        label: __('Site'),
-        name: 'Site',
-        route: '/site',
+        label: __('Shared'),
+        name: 'Shared',
+        route: '/shared',
       },
     ]
   } else if (store.getters.isLoggedIn) {

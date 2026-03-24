@@ -84,7 +84,7 @@ const routes = [
   },
   {
     path: '/shared',
-    name: 'Site',
+    name: 'Shared',
     component: () => import('@/pages/Site.vue'),
     beforeEnter: [setRootBreadCrumb],
   },
