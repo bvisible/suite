@@ -210,7 +210,6 @@ watch(
   (val) => {
     if (!val) return
     rows.value = sortEntities([...val], sortOrder.value)
-    console.log(rows.value)
     store.commit('setCurrentFolder', {
       entities: rows.value.filter?.((k) => k.file_name?.[0] !== '.'),
     })
@@ -236,9 +235,10 @@ watchEffect(() => {
 
 const refreshData = () => {
   const params = { team: team.value === 'home' ? '' : team.value || '' }
-  if (sortOrder.value)
-    params.order_by =
-      sortOrder.value.field + (sortOrder.value.ascending ? ' 1' : ' 0')
+  if (sortOrder.value) {
+    params.order_by = sortOrder.value.field
+    params.ascending=  sortOrder.value.ascending
+  }
   props.getEntities.fetch({ ...props.getEntities.params, ...params })
 }
 

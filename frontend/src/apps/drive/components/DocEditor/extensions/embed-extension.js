@@ -135,7 +135,6 @@ watch(
       })
     getDocuments.fetch(
       {
-        only_parent: 0,
         search: val,
       },
       {
