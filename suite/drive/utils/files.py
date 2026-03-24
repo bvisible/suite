@@ -7,7 +7,7 @@ import shutil
 import boto3
 import cv2
 import frappe
-import magic
+# import magic
 import mimemapper
 from botocore.config import Config
 from botocore.exceptions import ClientError

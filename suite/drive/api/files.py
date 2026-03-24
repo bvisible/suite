@@ -7,7 +7,7 @@ from pathlib import Path
 
 import frappe
 import jwt
-import magic
+# import magic
 import mimemapper
 from pypika import Order
 from werkzeug.utils import secure_filename, send_file

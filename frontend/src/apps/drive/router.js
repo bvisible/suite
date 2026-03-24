@@ -162,9 +162,8 @@ const routes = [
   {
     path: "/w/:entityName/:slug?",
     name: "Document",
-    meta: { documentPage: true, allowGuest: true },
-    component: () => import("@/pages/Document.vue"),
-    props: true,
+    meta: { allowGuest: true },
+    component: Dummy,
     beforeEnter: (props) => {
       window.location.href = "/writer/w/" + props.params.entityName
     },

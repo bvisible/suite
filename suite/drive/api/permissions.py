@@ -100,9 +100,9 @@ def get_user_access(entity: str | Document | frappe._dict, user: str = None, tea
         team_access = NO_ACCESS
 
     for access_type in [user_access, team_access, public_access]:
-        for type, v in access_type.items():
+        for type_, v in access_type.items():
             if v:
-                access[type] = 1
+                access[type_] = 1
 
     return access
 
@@ -203,7 +203,7 @@ def get_entity_with_permissions(entity_name: str):
     return_obj["share_count"] = default
 
     # To work with modern frappe-ui composables
-    frappe.response['data'] = return_obj
+    frappe.response["data"] = return_obj
     return return_obj
 
 
@@ -266,8 +266,7 @@ def user_has_permission(doc, ptype, user=None, team=0):
         return True
     if ptype not in ("read", "write", "comment", "share", "upload"):
         # Should ideally deflect to Framework
-        ptype = "write"
-
+        ptype = "write" 
     access = get_user_access(doc, user, team)
     if ptype in access:
         return bool(access[ptype])
@@ -291,7 +290,8 @@ def toggle_allow_download(entity: str, val: bool):
 def requires(perm):
     def wrapped(fn):
         def inner(*args, **kwargs):
-            if not user_has_permission(args[0], perm):
+            file = frappe.db.get_value('Drive File', {'doc': args[0].name}, 'name')
+            if not user_has_permission(file, perm):
                 frappe.throw("You don't have permission for this action.", ValueError)
             fn(*args, **kwargs)
 

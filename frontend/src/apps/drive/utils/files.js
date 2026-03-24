@@ -12,8 +12,6 @@ import {
 } from '@/resources/files'
 import { getTeams, getPublicTeams } from '@/resources/files'
 import { set } from 'idb-keyval'
-import editorStyle from '@/components/DocEditor/styles/editor.css?inline'
-import globalStyle from '@/index.css?inline'
 import slugify from 'slugify'
 import { toast } from '@/utils/toasts.js'
 import { useFileUpload, toast as nToast } from 'frappe-ui'
@@ -370,90 +368,6 @@ function highlightCodeBlocks(html) {
   })
 
   return doc.body.innerHTML
-}
-
-export function printDoc(html, settings = {}) {
-  const highlightedHtml = highlightCodeBlocks(html)
-  const fontMap = {
-    caveat: 'var(--font-caveat)',
-    'comic-sans': 'var(--font-comic-sans)',
-    comfortaa: 'var(--font-comfortaa)',
-    'eb-garamond': 'var(--font-eb-garamond)',
-    fantasy: 'fantasy',
-    geist: 'var(--font-geist)',
-    'ibm-plex': 'var(--font-ibm-plex)',
-    inter: 'var(--font-inter)',
-    jetbrains: 'var(--font-jetbrains)',
-    lora: 'var(--font-lora)',
-    merriweather: 'var(--font-merriweather)',
-    nunito: 'var(--font-nunito)',
-  }
-  const fontFamily = fontMap[settings?.font_family]
-  const fontSize = settings?.font_size
-  const lineHeight = settings?.line_height
-  const content = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-              <style>${globalStyle}</style>
-              <style>${editorStyle}</style>
-              <style>
-                .ProseMirror {
-                  font-family: ${fontFamily} !important;
-                  font-size: ${fontSize}px;
-                  line-height: ${lineHeight}px;
-                }
-              </style>
-              </head>
-              <body>
-                <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
-                  ${highlightedHtml}
-                </div>
-              </body>
-            </html>
-          `
-  const iframe = document.createElement('iframe')
-  iframe.id = 'el-tiptap-iframe'
-  iframe.setAttribute(
-    'style',
-    'position: absolute; width: 0; height: 0; top: -10px; left: -10px;'
-  )
-  document.body.appendChild(iframe)
-
-  const frameWindow = iframe.contentWindow
-  const doc =
-    iframe.contentDocument ||
-    (iframe.contentWindow && iframe.contentWindow.document)
-
-  if (doc) {
-    doc.open()
-    doc.write(content)
-    doc.close()
-  }
-
-  if (frameWindow) {
-    iframe.onload = function () {
-      try {
-        setTimeout(() => {
-          frameWindow.focus()
-          try {
-            if (!frameWindow.document.execCommand('print', false)) {
-              frameWindow.print()
-            }
-          } catch {
-            frameWindow.print()
-          }
-          frameWindow.close()
-        }, 500)
-      } catch (err) {
-        console.error(err)
-      }
-
-      setTimeout(function () {
-        document.body.removeChild(iframe)
-      }, 1000)
-    }
-  }
 }
 
 function slugger(title) {
