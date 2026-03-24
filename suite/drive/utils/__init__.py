@@ -102,7 +102,6 @@ FILE_FIELDS = [
     "creation",
     Field("last_modified").as_("modified"),
     "owner",
-    "settings",
     "is_drive_file",
 ]
 
