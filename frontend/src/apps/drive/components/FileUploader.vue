@@ -133,7 +133,7 @@ onMounted(() => {
     },
     sending: function (file, _, formData) {
       formData.append('team', file.team)
-      if (file.lastModified) formData.append('last_modified', file.lastModified)
+      if (file.lastModified) formData.append('file_modified', file.lastModified)
       if (file.parent) formData.append('parent', file.parent)
       const path = file.newFullPath || file.webkitRelativePath || file.fullPath
       if (path) formData.append('fullpath', path)
