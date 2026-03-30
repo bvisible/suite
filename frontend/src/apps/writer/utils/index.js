@@ -718,30 +718,41 @@ export async function downloadMD(editor, foldername) {
   saveAs(blobzip, `${foldername}.zip`)
 }
 
-export async function downloadZippedHTML(editor, foldername, settings = {}) {
-  let html = editor.value.getHTML()
-  const zip = new JSZip()
-  zip.file(`${foldername}.html`, html)
-  const urls = editor.value.commands.getEmbedUrls()
-  const getExtension = createResource({
-    url: 'writer.api.docs.get_extension',
-  })
-  const parent = router.currentRoute.value.params.entityName
+export function downloadZippedHTML(editor, foldername, settings = {}) {
+  nToast.promise(
+    (async () => {
+      let html = editor.value.getHTML()
+      const zip = new JSZip()
+      zip.file(`${foldername}.html`, html)
+      const urls = editor.value.commands.getEmbedUrls()
+      const getExtension = createResource({
+        url: 'writer.api.docs.get_extension',
+      })
 
-  for (const i in urls) {
-    const ext = await getExtension.fetch({ entity_name: urls[i].name })
-    const title = `${urls[i].title}.${ext}`
-    html = html.replace(
-      `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
-      `src="./${title}"`,
-    )
-    const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
-    const blob = await (await fetch(fileUrl)).blob()
-    zip.file(title, blob)
-  }
+      for (const i in urls) {
+        const ext = await getExtension.fetch({ entity_name: urls[i].name })
+        const title = `${urls[i].title}.${ext}`
+        html = html.replace(
+          `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+          `src="./${title}"`,
+        )
+        const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+        const blob = await (await fetch(fileUrl)).blob()
+        zip.file(title, blob)
+      }
 
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
-  saveAs(blob, `${foldername}.zip`)
+      const blob = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+      })
+      saveAs(blob, `${foldername}.zip`)
+    })(),
+    {
+      loading: 'Preparing download...',
+      success: 'Download completed!',
+      error: 'Download failed',
+    },
+  )
 }
 
 export const insertTemplate = (template, editor) => {

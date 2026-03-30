@@ -291,7 +291,6 @@ const startRenaming = (tabId) => {
 }
 
 const finishRenaming = (esc = false) => {
-  console.log(editingTabId.value)
   if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
     props.editor.commands.renameTab(
       editingTabId.value,

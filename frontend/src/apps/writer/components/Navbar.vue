@@ -301,7 +301,7 @@ const fileActions = computed(() =>
                   onClick: () => {
                     downloadZippedHTML(
                       editor,
-                      file.doc.title,
+                      props.file.doc.title,
                       props.document?.doc?.settings,
                     )
                   },
@@ -309,7 +309,7 @@ const fileActions = computed(() =>
                 {
                   label: 'Markdown',
                   icon: LucideMarkdown,
-                  onClick: () => downloadMD(editor, file.doc.title),
+                  onClick: () => downloadMD(editor, props.file.doc.title),
                 },
                 {
                   onClick: exportBlog,

@@ -86,7 +86,6 @@ emitter.on('move', () => (dialog.value = 'm'))
 emitter.on('newLink', () => (dialog.value = 'l'))
 
 onKeyDown('k', (e) => {
-  console.log(e, e.metaKey && e.shiftKey)
   if (e.metaKey && e.shiftKey) {
     e.preventDefault()
     dialog.value = 'search'
