@@ -5,122 +5,124 @@
       class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-gray-modals"
       :buttons="menuButtons"
     />
-    <div
-      id="editorScrollContainer"
-      class="flex-1 flex w-full overflow-y-auto md:grid md:grid-cols-3 relative"
-    >
+    <div class="flex flex-1 h-full">
       <ToC v-if="editor" :editor :anchors />
-
-      <ContextMenu :items="bubbleButtons" :disabled="true">
-        <div
-          class="min-w-full h-full flex flex-col"
-          @click="
-            $event.target.tagName === 'DIV' &&
-            textEditor.editor?.chain?.().focus?.().run?.()
-          "
-        >
-          <FTextEditor
-            ref="textEditor"
-            class="min-w-full min-h-full h-full flex flex-col"
-            editor-class="px-10 md:ps-24 overflow-x-auto pt-10 pb-24"
-            :upload-function
-            :autofocus="true"
-            :content="rawContent"
-            :mentions="{ mentions: allUsers.data, selectable: false }"
-            placeholder="Start thinking..."
-            :extensions="editorExtensions"
-            :bubble-menu="bubButtons"
-            :editable
-            :starterkit-options="{
-              // undoRedo: doc ? false : true,
-              trailingNode: { node: 'paragraph', notAfter: 'tab' },
-              paragraph: false,
-              gapcursor: false,
-            }"
-            @change="(val) => emit('editor-change', val)"
-            @keydown="
-              async (e) => {
-                if (editable && !e.metaKey && !e.ctrlKey & !edited) {
-                  edited = true
-                  await nextTick()
-                  autoversion()
-                }
-              }
+      <div
+        id="editor-scroll-container"
+        class="flex w-full overflow-y-auto relative"
+      >
+        <ContextMenu :items="bubbleButtons" :disabled="true">
+          <div
+            class="h-full flex flex-col flex-grow ps-6"
+            @click="
+              $event.target.tagName === 'DIV' &&
+              textEditor.editor?.chain?.().focus?.().run?.()
             "
           >
-            <template #editor="{ editor }">
-              <EditorContent
-                class="bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
-                :class="[
-                  settings?.wide
-                    ? 'md:min-w-[100ch] md:max-w-[100ch]'
-                    : 'md:min-w-[48rem] md:max-w-[48rem]',
-                  isPainting && 'cursor-crosshair',
-                ]"
-                :style="{
-                  fontFamily: `var(--font-${settings?.font_family})`,
-                  fontSize: `${settings?.font_size || 15}px`,
-                  lineHeight: settings?.line_height || 1.5,
-                  '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
-                  '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
-                }"
-                :editor="editor"
-              />
-            </template>
-          </FTextEditor>
-        </div>
-      </ContextMenu>
-
-      <FloatingComments
-        v-if="commentsPainted"
-        v-model:active-comment="activeComment"
-        :y-comments="comments"
-        :file
-        :show-comments
-        :show-resolved
-        :show-unanchored
-        :editor
-        @save="saveComments"
-      >
-        <div class="sticky self-end top-4 right-4 flex items-center gap-1 z-10">
-          <div class="flex flex-col gap-0.5">
-            <Button
-              :label="showResolved ? 'Hide resolved' : 'Show resolved'"
-              v-if="
-                showComments &&
-                Array.from(comments._map).find(
-                  (k) => k[1].content?.arr?.[0].resolved,
-                )
+            <FTextEditor
+              ref="textEditor"
+              class="min-h-full flex flex-col"
+              editor-class="overflow-x-auto pt-10 pb-24"
+              :upload-function
+              :autofocus="true"
+              :content="rawContent"
+              :mentions="{ mentions: allUsers.data, selectable: false }"
+              placeholder="Start thinking..."
+              :extensions="editorExtensions"
+              :bubble-menu="bubButtons"
+              :editable
+              :starterkit-options="{
+                // undoRedo: doc ? false : true,
+                trailingNode: { node: 'paragraph', notAfter: 'tab' },
+                paragraph: false,
+                gapcursor: false,
+              }"
+              @change="(val) => emit('editor-change', val)"
+              @keydown="
+                async (e) => {
+                  if (editable && !e.metaKey && !e.ctrlKey & !edited) {
+                    edited = true
+                    await nextTick()
+                    autoversion()
+                  }
+                }
               "
-              class="text-sm text-ink-gray-5 bg-surface-white"
-              variant="ghost"
-              @click="showResolved = !showResolved"
-            />
-            <Button
-              :label="showUnanchored ? 'Hide all' : 'Show all'"
-              v-if="
-                showComments &&
-                Array.from(comments._map)
-                  .map((l) => l[1].content?.arr?.[0].detached)
-                  .filter((k) => k).length
-              "
-              class="text-sm text-ink-gray-5 bg-surface-white"
-              variant="ghost"
-              @click="showUnanchored = !showUnanchored"
-            />
+            >
+              <template #editor="{ editor }">
+                <EditorContent
+                  class="md:mx-auto bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
+                  :class="[
+                    settings?.wide
+                      ? 'md:min-w-[100ch] md:max-w-[100ch]'
+                      : 'md:min-w-[48rem] md:max-w-[48rem]',
+                    isPainting && 'cursor-crosshair',
+                  ]"
+                  :style="{
+                    fontFamily:
+                      settings?.font_family &&
+                      `var(--font-${settings?.font_family})`,
+                    fontSize: `${settings?.font_size || 15}px`,
+                    lineHeight: settings?.line_height || 1.5,
+                    '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
+                    '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
+                  }"
+                  :editor="editor"
+                />
+              </template>
+            </FTextEditor>
           </div>
-          <Button
-            v-if="comments._map.size"
-            :icon="
-              showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
-            "
-            variant="outline"
-            :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-            @click="showComments = !showComments"
-          ></Button>
-        </div>
-      </FloatingComments>
+        </ContextMenu>
+
+        <FloatingComments
+          v-if="commentsPainted"
+          v-model:active-comment="activeComment"
+          :y-comments="comments"
+          :file
+          :show-comments
+          :show-resolved
+          :show-unanchored
+          :editor
+          @save="saveComments"
+        >
+          <div
+            class="sticky self-end top-4 right-4 flex items-center gap-1 z-10"
+          >
+            <div class="flex flex-col gap-0.5">
+              <Button
+                :label="showResolved ? 'Hide resolved' : 'Show resolved'"
+                v-if="
+                  showComments &&
+                  Array.from(comments._map).find(
+                    (k) => k[1].content?.arr?.[0].resolved,
+                  )
+                "
+                class="text-sm text-ink-gray-5 bg-surface-white"
+                variant="outline"
+                @click="showResolved = !showResolved"
+              />
+              <Button
+                :label="showUnanchored ? 'Hide all' : 'Show all'"
+                v-if="showComments && showUnanchoredButton"
+                class="text-sm text-ink-gray-5 bg-surface-white"
+                variant="outline"
+                @click="showUnanchored = !showUnanchored"
+              />
+            </div>
+            <Button
+              v-if="comments._map.size"
+              :icon="
+                showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
+              "
+              variant="outline"
+              :tooltip="showComments ? 'Hide comments' : 'Show comments'"
+              @click="showComments = !showComments"
+            ></Button>
+          </div>
+        </FloatingComments>
+        <div v-else class="w-72" />
+      </div>
     </div>
+    <ToCMobile v-if="editor" :editor />
   </div>
 </template>
 <script setup>
@@ -204,7 +206,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['save', 'editor-change', 'cleanup'])
 const scrollParent = computed(() =>
-  document.querySelector('#editorScrollContainer'),
+  document.querySelector('#editor-scroll-container'),
 )
 const anchors = ref([])
 const textEditor = ref('textEditor')
@@ -225,6 +227,19 @@ const showComments = ref(
 watch(showComments, (val) => localStorage.setItem('show-comments', val))
 const showResolved = ref(false)
 const showUnanchored = ref(false)
+const showUnanchoredButton = computed(() => {
+  return (
+    commentsPainted.value &&
+    Array.from(props.comments._map)
+      .map(
+        (l) =>
+          !document.querySelector(
+            `[data-comment-name='${l[1].content?.arr?.[0].id}']`,
+          ),
+      )
+      .filter((k) => k).length
+  )
+})
 const commentsPainted = ref(false)
 const isPainting = computed(() =>
   editor.value && editor.value.storage.styleClipboard.styleClipboard
@@ -298,7 +313,11 @@ const editorExtensions = [
                   Object.values(mark.attrs).some((value) => !!value),
                 )
               if (styleMark) {
-                tr.removeMark(pos, pos + node.nodeSize, styleMark.type)
+                tr.removeMark(
+                  pos,
+                  pos + node.nodeSize,
+                  node.type.schema.marks.textStyle,
+                )
               }
             })
           },
@@ -632,10 +651,5 @@ iframe {
 }
 .prose-v2 p {
   margin-bottom: var(--paragraph-spacing-after, 0);
-}
-
-#editorScrollContainer {
-  /* Should be 220 px */
-  grid-template-columns: minmax(220px, 0.8fr) minmax(auto, 48rem) minmax(0, 1fr);
 }
 </style>

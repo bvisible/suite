@@ -29,10 +29,12 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-52 md:w-72 comment-group scroll-m-24 bg-surface-white opacity-0 pointer-events-none"
+        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-white"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
-          comment.top && 'opacity-100 pointer-events-auto',
+          comment.top
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none',
         ]"
         :style="`top: ${comment.top}px;`"
         @click="activeComment = comment.id"

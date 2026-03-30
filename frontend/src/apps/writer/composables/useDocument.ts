@@ -9,7 +9,9 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   const file = useDoc({
     doctype: 'Drive File',
     name,
-    url: '/api/method/drive.api.permissions.get_entity_with_permissions?entity_name=' + name,
+    url:
+      '/api/method/drive.api.permissions.get_entity_with_permissions?entity_name=' +
+      name,
     transform: (doc) => {
       return prettyData(doc)
     },
@@ -25,11 +27,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
       name: doc.doc,
       transform(doc) {
         if (doc.settings) doc.settings = JSON.parse(doc.settings)
-        if (doc.comments)
-          doc.comments = doc.comments.map((k) => ({
-            ...k,
-            anchor: JSON.parse(k.anchor),
-          }))
+        else doc.settings = {}
       },
       methods: {
         newVersion: 'new_version',

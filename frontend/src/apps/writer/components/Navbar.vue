@@ -3,7 +3,7 @@
     id="navbar"
     ondragstart="return false;"
     ondrop="return false;"
-    class="bg-surface-white border-b pr-5 py-2.5 h-12 flex items-center justify-between"
+    class="bg-surface-white border-b pr-3 py-2.5 h-12 flex items-center justify-between"
   >
     <a href="/writer/">
       <div class="pl-4 pr-1">
@@ -94,7 +94,7 @@
 </template>
 <script setup>
 import { Button, Breadcrumbs, Dropdown } from 'frappe-ui'
-import { DriveLogo } from 'frappe-ui/drive'
+import { getFileLink } from 'frappe-ui/drive/js/utils'
 import { useStore } from 'vuex'
 import emitter from '@/emitter'
 import { ref, computed, inject, h, defineModel } from 'vue'
@@ -104,7 +104,6 @@ import Dialogs from '@/components/Dialogs.vue'
 import { dynamicList } from '@/utils/'
 import { downloadZippedHTML, downloadMD } from '@/utils'
 import { downloadDocxFromHtml } from '../utils/docxexporter'
-import { getLink } from '@/utils'
 
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -191,7 +190,7 @@ const fileActions = computed(() =>
             {
               label: __('Copy Link'),
               icon: LucideLink,
-              onClick: () => getLink(props.file.doc),
+              onClick: () => getFileLink(props.file.doc),
             },
           ],
         },

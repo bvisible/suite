@@ -64,7 +64,7 @@
     :editor
   />
   <div
-    v-if="!document.doc?.collab"
+    v-if="document.doc?.collab === 0"
     class="bg-surface-gray-2 text-ink-gray-8 p-3 text-base flex justify-between items-center select-none"
   >
     <div class="flex flex-col gap-1">

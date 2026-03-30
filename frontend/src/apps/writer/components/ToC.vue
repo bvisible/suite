@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="px-2.5 pt-3 gap-2 hidden md:block sticky top-0 self-start max-h-screen overflow-y-auto h-screen"
+    class="px-2.5 pt-3 gap-2 hidden md:block sticky top-0 self-start overflow-y-auto flex-shrink-0 h-full w-64"
     :class="show && 'border-r border-outline-gray-2'"
   >
     <div v-if="(tabs.length || anchors.length > 1) && !show">
@@ -53,9 +53,13 @@
             "
             class="h-8 my-0.5 border border-dashed rounded-sm mx-2"
           />
-          <div v-if="editingTabId === tab.id" class="flex items-center">
+          <div
+            v-if="editingTabId === tab.id && delayedEdit"
+            class="flex items-center"
+          >
             <TextInput
               v-model="editingTabLabel"
+              v-on-outside-click="() => finishRenaming(false)"
               v-focus
               @keydown.enter="finishRenaming(false)"
               @keydown.esc="finishRenaming(true)"
@@ -83,31 +87,44 @@
               :draggable="editor.isEditable"
               @dragstart="onDragStart($event, tab, index)"
               @dragend.prevent="onDragEnd"
-            />
+            >
+              <template #suffix v-if="tab.id === activeTabId"
+                ><Button
+                  @click="showHeadings = !showHeadings"
+                  class="ml-auto"
+                  variant="ghost"
+                  :icon="
+                    h(showHeadings ? LucideMinus : LucidePlus, {
+                      class: 'size-4',
+                    })
+                  "
+              /></template>
+            </Button>
           </component>
-
-          <div
-            v-if="tab.id === activeTabId && currentTabAnchors.length"
-            class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
-          >
-            <div v-for="anchor in currentTabAnchors" class="flex pr-2.5">
-              <a
-                :href="'#' + anchor.id"
-                class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
-                :title="anchor.textContent"
-                :data-item-index="anchor.itemIndex"
-                @click.prevent="onAnchorClick(anchor.id)"
-                :key="anchor.id"
-                :class="
-                  anchor.isActive &&
-                  'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
-                "
-                :style="{ '--level': anchor.level - maxLevel }"
-              >
-                {{ anchor.textContent }}
-              </a>
+          <template v-if="tab.id === activeTabId && currentTabAnchors.length">
+            <div
+              v-if="showHeadings"
+              class="table-of-contents flex flex-col gap-0.5 ms-6 my-1"
+            >
+              <div v-for="anchor in currentTabAnchors" class="flex pr-2.5">
+                <a
+                  :href="'#' + anchor.id"
+                  class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
+                  :title="anchor.textContent"
+                  :data-item-index="anchor.itemIndex"
+                  @click.prevent="onAnchorClick(anchor.id)"
+                  :key="anchor.id"
+                  :class="
+                    anchor.isActive &&
+                    'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
+                  "
+                  :style="{ '--level': anchor.level - maxLevel }"
+                >
+                  {{ anchor.textContent }}
+                </a>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
         <div
           v-if="dragState.isDragging && dragState.dropIndex === tabs.length"
@@ -152,7 +169,8 @@
 
 <script setup>
 import { TextSelection } from '@tiptap/pm/state'
-import LucidePlus from '~icons/lucide/Plus'
+import LucidePlus from '~icons/lucide/plus'
+import LucideMinus from '~icons/lucide/minus'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
@@ -174,6 +192,7 @@ const props = defineProps({
 
 const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
 watch(show, (v) => localStorage.setItem('showToc', v))
+const showHeadings = ref(true)
 
 // Get all tabs from the document
 const tabs = computed(() => {
@@ -191,6 +210,7 @@ const activeTabId = ref()
 onMounted(() => {
   const handleTabChange = (e) => {
     activeTabId.value = e.detail.tabId
+    finishRenaming(true)
   }
 
   props.editor.view.dom.addEventListener('tab-changed', handleTabChange)
@@ -250,7 +270,7 @@ const onAnchorClick = (id) => {
     history.pushState(null, null, `#${id}`)
   }
 
-  const editorEl = document.querySelector('#editorScrollContainer')
+  const editorEl = document.querySelector('#editor-scroll-container')
   editorEl.scrollTo({
     top: element.offsetTop,
   })
@@ -258,13 +278,20 @@ const onAnchorClick = (id) => {
 
 const editingTabId = ref(null)
 const editingTabLabel = ref('')
+const delayedEdit = ref(false)
 
 const startRenaming = (tabId) => {
   editingTabId.value = tabId
   editingTabLabel.value = tabs.value.find((tab) => tab.id === tabId).label
+  nextTick(() => {
+    setTimeout(() => {
+      delayedEdit.value = true
+    }, 50)
+  })
 }
 
 const finishRenaming = (esc = false) => {
+  console.log(editingTabId.value)
   if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
     props.editor.commands.renameTab(
       editingTabId.value,
@@ -273,6 +300,7 @@ const finishRenaming = (esc = false) => {
   }
   editingTabId.value = null
   editingTabLabel.value = ''
+  delayedEdit.value = false
   props.editor.commands.focus()
 }
 

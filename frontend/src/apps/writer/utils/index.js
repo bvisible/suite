@@ -392,8 +392,6 @@ function getLinkStem(entity) {
     {
       true: 'f',
       [new Boolean(entity.is_group)]: 'd',
-      [new Boolean(entity.document || entity.mime_type === 'text/markdown')]:
-        'w',
     }[true]
   }/${entity.name}/${slugger(entity.title)}`
 }
