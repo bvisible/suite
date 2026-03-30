@@ -1,7 +1,7 @@
 <template>
   <div
     ref="scrollContainer"
-    class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white"
+    class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white w-72"
   >
     <slot />
     <template
