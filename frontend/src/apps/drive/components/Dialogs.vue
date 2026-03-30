@@ -43,7 +43,7 @@
     @success="removeFromList(entities)"
     @complete="entity_open && resource.fetch(resource.params)"
   />
-  <InfoPopup
+  <InfoDialog
     v-else-if="dialog === 'i'"
     v-model="dialog"
     :entity="entities[0]"
@@ -80,7 +80,7 @@ import emitter from '@/emitter'
 
 import NewFolderDialog from '@/components/NewFolderDialog.vue'
 import NewLinkDialog from '@/components/NewLinkDialog.vue'
-import { ShareDialog, MoveDialog, RenameDialog } from 'frappe-ui/drive'
+import { ShareDialog, MoveDialog, RenameDialog, InfoDialog } from 'frappe-ui/drive'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = defineProps({
