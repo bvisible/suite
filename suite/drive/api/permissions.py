@@ -159,7 +159,14 @@ def get_entity_with_permissions(entity_name: str):
         as_dict=1,
     )
     if not entity:
-        frappe.throw("We couldn't find what you're looking for.", {"error": frappe.NotFound})
+        # Mimic API v2 points
+        frappe.local.response.errors = [
+            {
+                "type": "PageDoesNotExistError",
+                "message": "We couldn't find what you're looking for.",
+            }
+        ]
+        frappe.throw("We couldn't find what you're looking for.", frappe.PageDoesNotExistError)
 
     entity["in_home"] = entity.team == get_default_team()
     user_access = get_user_access(entity)
@@ -266,7 +273,7 @@ def user_has_permission(doc, ptype, user=None, team=0):
         return True
     if ptype not in ("read", "write", "comment", "share", "upload"):
         # Should ideally deflect to Framework
-        ptype = "write" 
+        ptype = "write"
     access = get_user_access(doc, user, team)
     if ptype in access:
         return bool(access[ptype])
@@ -290,7 +297,7 @@ def toggle_allow_download(entity: str, val: bool):
 def requires(perm):
     def wrapped(fn):
         def inner(*args, **kwargs):
-            file = frappe.db.get_value('Drive File', {'doc': args[0].name}, 'name')
+            file = frappe.db.get_value("Drive File", {"doc": args[0].name}, "name")
             if not user_has_permission(file, perm):
                 frappe.throw("You don't have permission for this action.", ValueError)
             fn(*args, **kwargs)
