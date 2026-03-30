@@ -57,7 +57,7 @@
 import { ref, watch, useTemplateRef, provide, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
-import { call } from 'frappe-ui'
+import { call, usePageMeta } from 'frappe-ui'
 
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
@@ -387,4 +387,10 @@ const openLayoutDialog = (action, index) => {
 	layoutAction.value = action
 	insertIndex.value = index
 }
+
+usePageMeta(() => {
+	return {
+		title: presentationDoc.value?.title || 'Slides',
+	}
+})
 </script>
