@@ -102,7 +102,7 @@ def get_document(file_id):
     )
     if not entity:
         frappe.throw(
-            "We couldn't find what you're looking for.", frappe.DoesNotExistError
+            "We couldn't find what you're looking for.", frappe.PageDoesNotExistError
         )
 
     entity["in_home"] = entity.team == get_default_team()
@@ -240,13 +240,16 @@ def create_blog(entity_name, html, attachments=None):
     return blog.name
 
 
-
-
 @frappe.whitelist(allow_guest=True)
 def get_wiki_link(title: str, team: str):
     title = title.strip("/")
     possible_titles = [title, title + ".md", title + ".txt"]
-    names = (frappe.get_value("Drive File", {"title": k, "team": team, "is_group": 0}, "name") for k in possible_titles)
+    names = (
+        frappe.get_value(
+            "Drive File", {"title": k, "team": team, "is_group": 0}, "name"
+        )
+        for k in possible_titles
+    )
     try:
         name = next(k for k in names if k)
     except StopIteration:

@@ -3,7 +3,9 @@ from drive.api.permissions import user_has_permission
 
 
 def has_permission(doc, ptype, user=None):
-    entity = frappe.get_value("Drive File", {"document": doc.name}, "name")
-    if ptype == "create" or not entity:
+    if ptype == "create":
         return True
-    return user_has_permission(entity, ptype, user)
+    file = frappe.get_value("Drive File", {"doc": doc.name}, "name")
+    if not file:
+        return False
+    return user_has_permission(file, ptype, user)

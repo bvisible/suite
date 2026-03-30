@@ -20,8 +20,7 @@ AUTOVERSION_DURATION = 10
 
 
 class WriterDocument(Document):
-    @frappe.whitelist(allow_guest=True)
-    @requires("write")
+    @frappe.whitelist(methods=["POST"])
     def save_doc(self, data: str, html: str | None = None):
         try:
             frappe.db.set_value("Writer Document", self.name, "content", data)
@@ -31,8 +30,7 @@ class WriterDocument(Document):
         except COLLISION_ERRORS:
             pass
 
-    @frappe.whitelist()
-    @requires("write")
+    @frappe.whitelist(methods=["POST"])
     def new_version(self, data: str, title: str | None = None):
         """Create a new version of the document"""
         manual = bool(title)
@@ -75,14 +73,12 @@ class WriterDocument(Document):
 
         frappe.response["data"] = version.as_dict()
 
-    @frappe.whitelist()
-    @requires("write")
+    @frappe.whitelist(methods=["POST"])
     def update_settings(self, data: str):
         self.settings = data
         self.save()
 
-    @frappe.whitelist()
-    @requires("write")
+    @frappe.whitelist(methods=["POST"])
     def save_html(self, html: str):
         self.html = html
         self.update_file()
