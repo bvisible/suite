@@ -6,7 +6,7 @@ from pathlib import Path
 
 import frappe
 from bs4 import BeautifulSoup
-from pypika import Field
+from pypika import Field, functions as fn
 import mimemapper
 
 DriveFile = frappe.qb.DocType("File")
@@ -100,7 +100,7 @@ FILE_FIELDS = [
     "details_docname",
     "team",
     "creation",
-    Field("file_modified").as_("modified"),
+    fn.Coalesce(Field("file_modified"), DriveFile.modified).as_("modified"),
     "owner",
     "is_drive_file",
 ]

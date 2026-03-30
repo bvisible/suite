@@ -31,7 +31,6 @@
     </template>
     <template v-if="idx === 0" #suffix>
       <div class="flex flex-row grow justify-end gap-2 w-[20px]">
-        <component :is="column.suffix({ row })" v-if="column.suffix" />
         <LucideStar
           v-if="row.is_favourite && $route.name !== 'Favourites'"
           name="star"
@@ -39,6 +38,7 @@
           height="16"
           class="my-auto stroke-amber-500 fill-amber-500"
         />
+        <component :is="column.suffix({ row })" v-if="column.suffix" />
       </div>
     </template>
   </ListRowItem>
