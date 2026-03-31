@@ -16,25 +16,23 @@ def get_context():
 
     context.title = "Frappe Writer"
     context.description = "Open Writer online."
-
     if not frappe.form_dict.app_path:
         return context
 
-    # # Parsing
-    # parts = frappe.form_dict.app_path.split("/")
-    # if len(parts) >= 3:
-    #     context.description = "Open this online."
-    #     # Ideally add thumbnail, but that might break if there's no thumbnail
-    #     try:
-    #         [title, owner, is_group] = frappe.get_cached_value("Drive File", parts[1], ["title", "owner", "is_group"])
-    #         context.title = "Folder - " + title if is_group else title
-    #         context.description = "Owned by " + frappe.get_cached_value("User", owner, "full_name")
-    #     except:
-    #         pass
+    # Parsing
+    parts = frappe.form_dict.app_path.split("/")
+    if parts[0] == "w":
+        try:
+            [title, owner] = frappe.get_cached_value(
+                "Drive File", parts[1], ["title", "owner"]
+            )
+            context.title = title
+            context.description = "By " + frappe.get_cached_value(
+                "User", owner, "full_name"
+            )
+        except:
+            pass
 
-    # elif parts[0] in TITLES:
-    #     context.title = TITLES[parts[0]]
-    #     context.description = ""
     return context
 
 
