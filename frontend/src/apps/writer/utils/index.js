@@ -628,25 +628,6 @@ export function getRandomColor() {
   }
   return color
 }
-// export const newExternal = async (type) => {
-//   const route = router.currentRoute.value
-//   const data = await (type === 'Document' ? createDocument : createPresentation).submit({
-//     team: route.params.team,
-//     parent: store.state.currentFolder.name,
-//   })
-//   prettyData([data])
-//   data.file_type = type
-//   store.state.listResource.data?.push?.(data)
-//   getDocuments.data?.push?.(data)
-//   if (type === 'Document') {
-//     router.push({
-//       name: 'Document',
-//       params: { entityName: data.name },
-//     })
-//   } else if (type === 'Presentation') {
-//     window.open('/slides/presentation/' + data.path)
-//   }
-// }
 
 function isApple() {
   // Pattern borrowed from TinyKeys library.

@@ -3,7 +3,7 @@
     class="flex flex-col items-center h-screen p-6 text-center mt-[10%] w-full"
   >
     <div class="rounded-full flex items-center justify-center">
-      <LucideFileUser v-if="error.exc_type === 'PermissionError'" />
+      <LucideFileUser v-if="error.type === 'PermissionError'" />
       <LucideFileQuestionMark v-else />
     </div>
     <h1 class="text-3xl font-bold text-ink-gray-8 mt-4">Uh oh!</h1>
@@ -13,7 +13,7 @@
         {{
           error.type === 'PageDoesNotExistError'
             ? "This document doesn't exist."
-            : error.message
+            : 'You do not have access to this.'
         }}
       </template>
     </p>

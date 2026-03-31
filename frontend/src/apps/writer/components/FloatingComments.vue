@@ -29,7 +29,7 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-white"
+        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-white dark:border"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
           comment.top

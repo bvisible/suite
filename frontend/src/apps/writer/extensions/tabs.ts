@@ -262,7 +262,7 @@ export const TabsExtension = Node.create({
         ({ state }) => {
           const serializer = DOMSerializer.fromSchema(state.schema)
 
-          let html = null
+          let html: string | boolean = false
           state.doc.descendants((node) => {
             if (
               node.type.name === 'tab' &&
@@ -275,8 +275,7 @@ export const TabsExtension = Node.create({
               return false
             }
           })
-
-          return html
+          return html === false ? this.editor.getHTML() : html
         },
     }
   },
