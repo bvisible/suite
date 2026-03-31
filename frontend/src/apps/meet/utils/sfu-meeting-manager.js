@@ -4,7 +4,6 @@
  */
 
 import { ConsumerManager } from "./media/ConsumerManager.js";
-import { MediaStreamHandler } from "./media/MediaStreamHandler.js";
 import { ParticipantManager } from "./media/ParticipantManager.js";
 import { TransportManager } from "./media/TransportManager.ts";
 import { VideoElementManager } from "./media/VideoElementManager.js";
@@ -21,7 +20,6 @@ export class SFUMeetingManager {
 		this.processedConsumers = new Set();
 		this.isScreenShareActive = false;
 
-		this.mediaHandler = new MediaStreamHandler();
 		this.videoManager = new VideoElementManager();
 		this.participantManager = new ParticipantManager();
 		this.consumerManager = new ConsumerManager();
