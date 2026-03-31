@@ -44,6 +44,27 @@ function buildVideoEncodingConfig(source = "camera") {
 	};
 }
 
+async function applyScreenShareSenderPreferences(producer) {
+	const sender = producer?.rtpSender;
+	if (!sender?.getParameters || !sender?.setParameters) {
+		return;
+	}
+
+	try {
+		const parameters = sender.getParameters() || {};
+		if (parameters.degradationPreference === "maintain-resolution") {
+			return;
+		}
+
+		await sender.setParameters({
+			...parameters,
+			degradationPreference: "maintain-resolution",
+		});
+	} catch (error) {
+		console.warn("Failed to apply screen share sender preferences", error);
+	}
+}
+
 /**
  * Initialize the mediasoup device with router capabilities
  */
@@ -481,6 +502,13 @@ export async function publishScreenShare(meetingId, stream) {
 	try {
 		const videoTrack = stream.getVideoTracks()[0];
 		if (!videoTrack) throw new Error("No video track in screen share stream");
+		if ("contentHint" in videoTrack) {
+			try {
+				videoTrack.contentHint = "detail";
+			} catch (error) {
+				console.warn("Failed to apply screen share content hint", error);
+			}
+		}
 
 		const encodingConfig = buildVideoEncodingConfig("screen");
 		const appData = {
@@ -498,6 +526,8 @@ export async function publishScreenShare(meetingId, stream) {
 			encodings: encodingConfig.encodings,
 			codecOptions: videoCodecOptions,
 		});
+
+		await applyScreenShareSenderPreferences(producer);
 
 		producers.set(producer.id, producer);
 
