@@ -101,9 +101,10 @@ import { resetFocus, focusElementId } from '@/stores/element'
 import { useShortcuts } from '@/composables/useShortcuts'
 import {
 	saveChanges,
+	saveCurrentState,
 	dirtySince,
 	isDirty,
-	syncPresentationToServer,
+	isSaving,
 	syncThumbnail,
 } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
@@ -243,7 +244,7 @@ const handleBeforeUnmount = () => {
 
 	if (router.currentRoute.value.name !== 'Slideshow') {
 		resetFocus()
-		syncPresentationToServer()
+		if (!isSaving.value) saveCurrentState()
 	}
 	window.removeEventListener('beforeunload', handleBeforeUnload)
 	window.removeEventListener('popstate', hideOpenDialogs)
