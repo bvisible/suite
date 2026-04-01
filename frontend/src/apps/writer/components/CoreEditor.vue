@@ -5,7 +5,7 @@
       class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-gray-modals"
       :buttons="menuButtons"
     />
-    <div class="flex flex-1 h-full">
+    <div class="flex flex-1 overflow-auto">
       <ToC v-if="editor" :editor :anchors />
       <div
         id="editor-scroll-container"
