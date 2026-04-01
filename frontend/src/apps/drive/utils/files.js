@@ -638,10 +638,7 @@ export const newExternal = async (type) => {
   data.file_type = type
   store.state.listResource.data?.push?.(data)
   getDocuments.data?.push?.(data)
-  router.push({
-    name: 'Document',
-    params: { entityName: data.name },
-  })
+  window.location.href = '/writer/w/' + data.name
 }
 
 function isApple() {
