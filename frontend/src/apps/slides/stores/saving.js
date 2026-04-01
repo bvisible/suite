@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import {
 	presentationDoc,
 	presentationId,
+	presentationResource,
 	hasStateChanged,
 	savePresentationDoc,
 } from '@/stores/presentation'
@@ -113,8 +114,6 @@ const syncSnapshotToServer = async (snapshot) => {
 }
 
 const syncPresentationToServer = async () => {
-	isSaving.value = true
-
 	try {
 		const snapshot = await getPresentationFromLocalDB(presentationId.value)
 		if (!snapshot || !snapshot.dirty) return
@@ -123,8 +122,11 @@ const syncPresentationToServer = async () => {
 		await syncSnapshotToServer(snapshot)
 	} catch (err) {
 		console.error('Sync to server failed: ', err)
-	} finally {
-		isSaving.value = false
+		// Reset presentationDoc to the reverted server state so isDirty detects
+		// the unsaved changes and retries on the next autosave cycle
+		if (presentationResource.value?.doc) {
+			presentationDoc.value = presentationResource.value.doc
+		}
 	}
 }
 
@@ -134,21 +136,27 @@ const getLatestSlideContent = () => {
 }
 
 const saveCurrentState = async () => {
-	const content = getLatestSlideContent()
+	isSaving.value = true
 
-	// save latest content to indexedDB with dirty flag since it's not yet synced to server
-	await savePresentationToLocalDB({
-		id: presentationId.value,
-		content: content,
-		updatedAt: Date.now(),
-		dirty: true,
-	})
+	try {
+		const content = getLatestSlideContent()
 
-	// if offline, do not attempt to sync to server
-	if (!navigator.onLine) return
+		// save latest content to indexedDB with dirty flag since it's not yet synced to server
+		await savePresentationToLocalDB({
+			id: presentationId.value,
+			content: content,
+			updatedAt: Date.now(),
+			dirty: true,
+		})
 
-	// if online, sync to server
-	await syncPresentationToServer()
+		// if offline, do not attempt to sync to server
+		if (!navigator.onLine) return
+
+		// if online, sync to server
+		await syncPresentationToServer()
+	} finally {
+		isSaving.value = false
+	}
 }
 
 const saveChanges = () => {
@@ -162,4 +170,12 @@ const saveChanges = () => {
 	saveCurrentState()
 }
 
-export { syncPresentationToServer, saveChanges, dirtySince, isDirty, syncThumbnail }
+export {
+	syncPresentationToServer,
+	saveChanges,
+	saveCurrentState,
+	isSaving,
+	dirtySince,
+	isDirty,
+	syncThumbnail,
+}
