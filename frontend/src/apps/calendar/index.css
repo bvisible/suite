@@ -1,0 +1,5 @@
+@import "frappe-ui/style.css";
+
+html {
+	@apply text-ink-gray-8 bg-surface-white text-xl sm:text-lg;
+}

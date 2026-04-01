@@ -1,5 +1,10 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { FrappeUIProvider } from "frappe-ui";
+import CalendarView from "@/pages/calendar/CalendarView.vue";
+</script>
 
 <template>
-	<div>hi</div>
+	<FrappeUIProvider>
+		<CalendarView />
+	</FrappeUIProvider>
 </template>
