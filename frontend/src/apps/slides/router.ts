@@ -93,6 +93,14 @@ router.beforeEach(async (to, from, next) => {
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
 			editorAccess = await getEditorAccess(to.params.presentationId as string)
 		}
+		if (to.name === 'PresentationView' && editorAccess === 'edit') {
+			return next({
+				name: 'PresentationEditor',
+				params: to.params,
+				query: to.query,
+				replace: true,
+			})
+		}
 		if (['edit', 'view'].includes(editorAccess)) {
 			return next()
 		}
