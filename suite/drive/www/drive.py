@@ -30,7 +30,7 @@ def get_context():
         try:
             [title, owner, is_group] = frappe.get_cached_value("Drive File", parts[1], ["title", "owner", "is_group"])
             context.title = "Folder - " + title if is_group else title
-            context.description = "Owned by " + frappe.get_cached_value("User", owner, "full_name")
+            context.description = "By " + frappe.get_cached_value("User", owner, "full_name")
         except:
             pass
 
