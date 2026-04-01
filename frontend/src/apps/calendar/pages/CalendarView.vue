@@ -5,7 +5,7 @@ import { Calendar, createResource } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
 import { userStore } from '@/stores/user'
-import CalendarSidebar from '@/components/CalendarSidebar.vue'
+import AppSidebar from '@/components/AppSidebar.vue'
 import EventPopoverContent from '@/components/EventPopoverContent.vue'
 import EventModal from '@/components/Modals/EventModal.vue'
 
@@ -25,11 +25,11 @@ watch(
 
 watch(
 	() => calendar.value?.activeView,
-	(view) => router.replace({ query: { ...route.query, view } }),
+	(view) => router.push({ name: view })
 )
 
 onMounted(() => {
-	if (route.query.view) calendar.value.activeView = route.query.view.toString()
+	if (route.name) calendar.value.activeView = route.name
 })
 
 const transformEvent = (event) => {
@@ -114,7 +114,7 @@ watch(
 <template>
 	<div class="flex h-screen min-h-0 w-full min-w-0 flex-col">
 		<div class="flex min-h-0 min-w-0 flex-1">
-			<CalendarSidebar
+			<AppSidebar
 				:calendars="calendars?.data || []"
 				:visible-calendars
 				@update:visible-calendars="

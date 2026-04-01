@@ -1,11 +1,28 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from 'vue-router'
 
-import { sessionStore } from "@/stores/session";
-import { userStore } from "@/stores/user";
+const routes = [
+  {
+    path: '/',
+    redirect: { name: 'Month' },
+  },
+  {
+    path: '/month',
+    name: 'Month',
+    component: () => import('@/pages/CalendarView.vue'),
+  },
+  {
+    path: '/week',
+    name: 'Week',
+    component: () => import('@/pages/CalendarView.vue'),
+  },
+  {
+    path: '/day',
+    name: 'Day',
+    component: () => import('@/pages/CalendarView.vue'),
+  },
+]
 
-const routes = [];
-
-const router = createRouter({ history: createWebHistory("/calendar"), routes });
+const router = createRouter({ history: createWebHistory('/calendar'), routes })
 
 // router.beforeEach(async (to, _, next) => {
 //   if (document.referrer.includes("/app/setup-wizard"))
@@ -35,4 +52,4 @@ const router = createRouter({ history: createWebHistory("/calendar"), routes });
 //   return to.meta.isLogin || to.meta.isSetup ? next(mailboxRoute) : next();
 // });
 
-export default router;
+export default router
