@@ -141,7 +141,7 @@ export class TransportManager {
 		this.device = null;
 		this.sfuClient = null;
 		this.routerRtpCapabilities = null;
-		this.activeVideoStrategy = "simulcast";
+		this.activeVideoStrategy = "svc";
 		this.eventHandlers = {};
 	}
 
@@ -161,7 +161,7 @@ export class TransportManager {
 	}
 
 	getVideoEncodingDecision() {
-		const preference = this.sfuClient?.getCodecStrategy?.() || "auto";
+		const preference = this.sfuClient?.getCodecStrategy?.() || "svc";
 		return resolveCodecStrategy({
 			preference,
 			deviceCapabilities: this.device?.rtpCapabilities,

@@ -17,7 +17,7 @@ class SFUClient {
 			sfuUrl: null,
 			sfuPort: null,
 			tokenExpiresAt: null,
-			codecStrategy: "auto",
+			codecStrategy: "svc",
 		};
 		this.eventHandlers = new Map();
 		this.isRefreshingToken = false;
@@ -85,7 +85,7 @@ class SFUClient {
 					is_guest: true,
 				},
 				tokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-				codecStrategy: response.codec_strategy || "auto",
+				codecStrategy: response.codec_strategy || "svc",
 			};
 		}
 
@@ -226,7 +226,7 @@ class SFUClient {
 			sfuUrl: null,
 			sfuPort: null,
 			tokenExpiresAt: null,
-			codecStrategy: "auto",
+			codecStrategy: "svc",
 		};
 		this.isRefreshingToken = false;
 	}
@@ -635,7 +635,7 @@ class SFUClient {
 	}
 
 	getCodecStrategy() {
-		return this.connectionDetails.codecStrategy || "auto";
+		return this.connectionDetails.codecStrategy || "svc";
 	}
 
 	getConnectionStatus() {
