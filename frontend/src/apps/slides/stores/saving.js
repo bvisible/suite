@@ -122,11 +122,6 @@ const syncPresentationToServer = async () => {
 		await syncSnapshotToServer(snapshot)
 	} catch (err) {
 		console.error('Sync to server failed: ', err)
-		// Reset presentationDoc to the reverted server state so isDirty detects
-		// the unsaved changes and retries on the next autosave cycle
-		if (presentationResource.value?.doc) {
-			presentationDoc.value = presentationResource.value.doc
-		}
 	}
 }
 
@@ -136,6 +131,9 @@ const getLatestSlideContent = () => {
 }
 
 const saveCurrentState = async () => {
+	if (isSaving.value) return
+	if (!slides.value?.length || !presentationId.value) return
+
 	isSaving.value = true
 
 	try {
@@ -159,23 +157,13 @@ const saveCurrentState = async () => {
 	}
 }
 
-const saveChanges = () => {
-	if (isSaving.value) return
-
+const saveChanges = async () => {
 	if (!isDirty.value && syncThumbnail === 0) return
 
 	if (isDirty.value) syncThumbnail = 1
 	else syncThumbnail = 0
 
-	saveCurrentState()
+	await saveCurrentState()
 }
 
-export {
-	syncPresentationToServer,
-	saveChanges,
-	saveCurrentState,
-	isSaving,
-	dirtySince,
-	isDirty,
-	syncThumbnail,
-}
+export { saveCurrentState, saveChanges, dirtySince, isDirty, syncThumbnail }

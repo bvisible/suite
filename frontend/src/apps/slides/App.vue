@@ -13,7 +13,7 @@ import { onMounted, h, ref, provide } from 'vue'
 import { FrappeUIProvider, toast } from 'frappe-ui'
 
 import { Wifi, WifiOff } from 'lucide-vue-next'
-import { saveCurrentState, isSaving } from '@/stores/saving'
+import { saveCurrentState } from '@/stores/saving'
 
 const isOnline = ref(false)
 
@@ -27,7 +27,7 @@ const handleLostConnection = () => {
 
 const handleConnectionRestored = () => {
 	isOnline.value = true
-	if (!isSaving.value) saveCurrentState()
+	saveCurrentState()
 	toast.create({
 		message: 'You are back online.',
 		icon: h(Wifi, { color: 'white' }),

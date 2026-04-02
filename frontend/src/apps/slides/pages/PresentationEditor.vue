@@ -99,14 +99,7 @@ import {
 import { resetFocus, focusElementId } from '@/stores/element'
 
 import { useShortcuts } from '@/composables/useShortcuts'
-import {
-	saveChanges,
-	saveCurrentState,
-	dirtySince,
-	isDirty,
-	isSaving,
-	syncThumbnail,
-} from '@/stores/saving'
+import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import LayoutDialog from '@/components/LayoutDialog.vue'
@@ -244,7 +237,7 @@ const handleBeforeUnmount = () => {
 
 	if (router.currentRoute.value.name !== 'Slideshow') {
 		resetFocus()
-		if (!isSaving.value) saveCurrentState()
+		saveCurrentState()
 	}
 	window.removeEventListener('beforeunload', handleBeforeUnload)
 	window.removeEventListener('popstate', hideOpenDialogs)
