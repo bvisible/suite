@@ -9,6 +9,39 @@ import { TransportManager } from "./media/TransportManager.ts";
 import { VideoElementManager } from "./media/VideoElementManager.js";
 import { getSFUClient } from "./sfu-client.js";
 
+function createMediaHandler() {
+	return {
+		localStream: null,
+		audioProducer: null,
+		videoProducer: null,
+		screenProducer: null,
+		setProducers(producers = {}) {
+			Object.assign(this, producers);
+		},
+		stopScreenShare() {
+			this.screenProducer = null;
+		},
+		cleanup() {
+			for (const producer of [
+				this.audioProducer,
+				this.videoProducer,
+				this.screenProducer,
+			]) {
+				try {
+					producer?.close?.();
+				} catch (error) {
+					console.warn("Failed to close producer during cleanup:", error);
+				}
+			}
+
+			this.localStream = null;
+			this.audioProducer = null;
+			this.videoProducer = null;
+			this.screenProducer = null;
+		},
+	};
+}
+
 export class SFUMeetingManager {
 	constructor() {
 		this.meetingId = null;
@@ -24,6 +57,7 @@ export class SFUMeetingManager {
 		this.participantManager = new ParticipantManager();
 		this.consumerManager = new ConsumerManager();
 		this.transportManager = new TransportManager();
+		this.mediaHandler = createMediaHandler();
 
 		this.sfuClient = null;
 		this.eventHandlers = {};
