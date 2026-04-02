@@ -281,7 +281,6 @@ const addMediaElement = async (file, type) => {
 		videoPoster = posterURL
 	}
 
-	const { width, height } = type === 'image' ? await getNaturalSize(src) : { width: 400 }
 	let element = {
 		id: generateUniqueId(),
 		zIndex: currentSlide.value.elements.length + 1,
