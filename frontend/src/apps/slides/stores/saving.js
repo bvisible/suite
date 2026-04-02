@@ -113,8 +113,6 @@ const syncSnapshotToServer = async (snapshot) => {
 }
 
 const syncPresentationToServer = async () => {
-	isSaving.value = true
-
 	try {
 		const snapshot = await getPresentationFromLocalDB(presentationId.value)
 		if (!snapshot || !snapshot.dirty) return
@@ -123,8 +121,6 @@ const syncPresentationToServer = async () => {
 		await syncSnapshotToServer(snapshot)
 	} catch (err) {
 		console.error('Sync to server failed: ', err)
-	} finally {
-		isSaving.value = false
 	}
 }
 
@@ -134,32 +130,39 @@ const getLatestSlideContent = () => {
 }
 
 const saveCurrentState = async () => {
-	const content = getLatestSlideContent()
+	if (isSaving.value) return
+	if (!slides.value?.length || !presentationId.value) return
 
-	// save latest content to indexedDB with dirty flag since it's not yet synced to server
-	await savePresentationToLocalDB({
-		id: presentationId.value,
-		content: content,
-		updatedAt: Date.now(),
-		dirty: true,
-	})
+	isSaving.value = true
 
-	// if offline, do not attempt to sync to server
-	if (!navigator.onLine) return
+	try {
+		const content = getLatestSlideContent()
 
-	// if online, sync to server
-	await syncPresentationToServer()
+		// save latest content to indexedDB with dirty flag since it's not yet synced to server
+		await savePresentationToLocalDB({
+			id: presentationId.value,
+			content: content,
+			updatedAt: Date.now(),
+			dirty: true,
+		})
+
+		// if offline, do not attempt to sync to server
+		if (!navigator.onLine) return
+
+		// if online, sync to server
+		await syncPresentationToServer()
+	} finally {
+		isSaving.value = false
+	}
 }
 
-const saveChanges = () => {
-	if (isSaving.value) return
-
+const saveChanges = async () => {
 	if (!isDirty.value && syncThumbnail === 0) return
 
 	if (isDirty.value) syncThumbnail = 1
 	else syncThumbnail = 0
 
-	saveCurrentState()
+	await saveCurrentState()
 }
 
-export { syncPresentationToServer, saveChanges, dirtySince, isDirty, syncThumbnail }
+export { saveCurrentState, saveChanges, dirtySince, isDirty, syncThumbnail }
