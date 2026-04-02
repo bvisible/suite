@@ -40,8 +40,6 @@ class SFUClient {
 			this.connectionDetails = connectionDetails;
 			this.scheduleTokenRefresh();
 
-			await this.validateSFUHealth();
-
 			await this.establishSocketConnection();
 
 			return true;
@@ -122,7 +120,7 @@ class SFUClient {
 		};
 	}
 
-	async validateSFUHealth() {
+	async getSFUEndpoint() {
 		const { sfuUrl, sfuPort } = this.connectionDetails;
 
 		let sfuEndpoint;
@@ -135,26 +133,11 @@ class SFUClient {
 			sfuEndpoint = `${urlObj.protocol}//${urlObj.hostname}:${sfuPort}`;
 		}
 
-		try {
-			const healthResponse = await fetch(`${sfuEndpoint}/health`);
-			if (!healthResponse.ok) {
-				console.warn(
-					"SFU health check failed, but attempting connection anyway",
-				);
-			}
-		} catch (fetchError) {
-			console.warn(
-				"SFU health check failed:",
-				fetchError.message,
-				"- attempting socket connection anyway",
-			);
-		}
-
 		return sfuEndpoint;
 	}
 
 	async establishSocketConnection() {
-		const sfuEndpoint = await this.validateSFUHealth();
+		const sfuEndpoint = await this.getSFUEndpoint();
 		const { authToken } = this.connectionDetails;
 
 		this.socket = io(sfuEndpoint, {
