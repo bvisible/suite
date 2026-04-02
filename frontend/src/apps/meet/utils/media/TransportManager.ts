@@ -258,12 +258,7 @@ export class TransportManager {
 				errback: (error: unknown) => void,
 			) => {
 				try {
-					if (sendTransport.connectionState === "new") {
-						await client.connectWebRtcTransport(
-							sendTransportId,
-							dtlsParameters,
-						);
-					}
+					await client.connectWebRtcTransport(sendTransportId, dtlsParameters);
 					callback();
 				} catch (error) {
 					errback(error);
@@ -329,12 +324,7 @@ export class TransportManager {
 				errback: (error: unknown) => void,
 			) => {
 				try {
-					if (recvTransport.connectionState === "new") {
-						await client.connectWebRtcTransport(
-							recvTransport.id,
-							dtlsParameters,
-						);
-					}
+					await client.connectWebRtcTransport(recvTransport.id, dtlsParameters);
 					callback();
 				} catch (error) {
 					errback(error);
