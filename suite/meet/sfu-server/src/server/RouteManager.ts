@@ -1,8 +1,4 @@
-import express, {
-	type Application,
-	type Request,
-	type Response,
-} from 'express';
+import type { Application, Request, Response } from 'express';
 import type { MediasoupManager } from '../mediasoup/MediasoupManager';
 import type { HealthStats } from '../types';
 
@@ -21,7 +17,6 @@ export class RouteManager {
 				message: 'Frappe Meet SFU Server is running',
 				version: '1.0.0',
 				timestamp: new Date().toISOString(),
-				rooms: this.mediasoup.rooms.getAllRoomsStats(),
 			});
 		});
 
@@ -34,12 +29,6 @@ export class RouteManager {
 				peers: this.mediasoup.peers.getPeerCount(),
 			};
 			res.json(stats);
-		});
-
-		this.app.get('/rooms', (_req: Request, res: Response) => {
-			res.json({
-				rooms: this.mediasoup.rooms.getAllRoomsStats(),
-			});
 		});
 	}
 }
