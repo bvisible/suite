@@ -122,9 +122,8 @@ const isMagicMoveApplied = computed(() => {
 })
 
 const slideStyles = computed(() => {
-	// scale slide to fit current screen size while maintaining 16:9 aspect ratio
-	const screenWidth = window.screen.width
-	const widthScale = screenWidth / 960
+	// scale slide to fit screen width while maintaining 16:9 aspect ratio
+	const widthScale = window.innerWidth / 960
 
 	const baseStyles = {
 		width: '960px',
@@ -264,6 +263,7 @@ const handleFullScreenChange = () => {
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 		inSlideShowMode.value = true
+		setClipPath()
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 		endSlideShow()
@@ -271,12 +271,12 @@ const handleFullScreenChange = () => {
 }
 
 const setClipPath = () => {
-	const screenHeight = window.screen.height
-	const scale = window.screen.width / 960
-	const containerHeight = 540 * scale
+	const width = window.innerWidth
+	const height = window.innerHeight
+	const slideHeight = 540 * (width / 960)
 
 	// divide remaining height by 2 to set inset on top and bottom
-	const inset = (screenHeight - containerHeight) / 2
+	const inset = Math.max(0, (height - slideHeight) / 2)
 
 	clipPath.value = `inset(${inset}px 0px ${inset}px 0px)`
 }
@@ -305,8 +305,6 @@ const initFullscreenMode = async () => {
 		fullscreenMethod.call(container).catch((e) => {
 			router.replace({ name: 'PresentationEditor' })
 		})
-
-		setClipPath()
 	}
 }
 
