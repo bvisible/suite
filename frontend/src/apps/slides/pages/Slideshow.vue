@@ -256,23 +256,22 @@ const slideLeave = (el, done) => {
 	done()
 }
 
-const resetCursorVisibility = () => {
-	if (slideCursor.value != 'none') return
-	let cursorTimer
+let cursorTimer = null
 
+const resetCursorVisibility = () => {
 	slideCursor.value = 'auto'
 	clearTimeout(cursorTimer)
 	cursorTimer = setTimeout(() => {
 		slideCursor.value = 'none'
-	}, 9000)
+	}, 4000)
 }
 
 const handleFullScreenChange = () => {
 	if (document.fullscreenElement) {
-		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
+		slideContainerRef.value?.addEventListener('mousemove', resetCursorVisibility)
 		inSlideShowMode.value = true
 	} else {
-		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
+		slideContainerRef.value?.removeEventListener('mousemove', resetCursorVisibility)
 		endSlideShow()
 	}
 }
