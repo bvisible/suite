@@ -1,6 +1,6 @@
 {
 	"name": "meet-sfu-server",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "SFU server for Frappe Meet",
 	"main": "dist/sfu-server/src/server.js",
 	"scripts": {
