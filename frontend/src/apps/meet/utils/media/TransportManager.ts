@@ -6,6 +6,8 @@
 import { getSFUClient } from "../sfu-client.js";
 import { resolveCodecStrategy } from "./codecStrategy.ts";
 import {
+	audioCodecOptions,
+	screenEncodings,
 	svcEncodingTemplate,
 	videoCodecOptions,
 	videoEncodings,
@@ -165,6 +167,28 @@ export class TransportManager {
 			deviceCapabilities: this.device?.rtpCapabilities,
 			routerCapabilities: this.routerRtpCapabilities,
 		});
+	}
+
+	getVideoEncodingConfig(source: "camera" | "screen" = "camera") {
+		const decision = this.getVideoEncodingDecision();
+		const isScreen = source === "screen";
+		const strategy = isScreen ? "simulcast" : decision.strategy;
+		const scalabilityMode =
+			strategy === "svc" ? decision.scalabilityMode : null;
+
+		return {
+			decision: {
+				...decision,
+				strategy,
+				scalabilityMode,
+			},
+			encodings:
+				strategy === "svc"
+					? svcEncodingTemplate(scalabilityMode ?? undefined)
+					: isScreen
+						? screenEncodings
+						: videoEncodings,
+		};
 	}
 
 	initialize(sfuClient?: SFUClientLike) {
@@ -375,19 +399,17 @@ export class TransportManager {
 		};
 
 		if (track?.kind === "video") {
-			const decision = this.getVideoEncodingDecision();
-			this.activeVideoStrategy = decision.strategy;
+			const source = safeAppData.type === "screen" ? "screen" : "camera";
+			const encodingConfig = this.getVideoEncodingConfig(source);
+			this.activeVideoStrategy = encodingConfig.decision.strategy;
 
 			console.info("Video encoding decision", {
-				strategy: decision.strategy,
-				scalabilityMode: decision.scalabilityMode,
+				strategy: encodingConfig.decision.strategy,
+				scalabilityMode: encodingConfig.decision.scalabilityMode,
 			});
 
-			produceOptions.encodings =
-				decision.strategy === "svc"
-					? svcEncodingTemplate(decision.scalabilityMode ?? undefined)
-					: videoEncodings;
-			if (decision.strategy === "svc") {
+			produceOptions.encodings = encodingConfig.encodings;
+			if (encodingConfig.decision.strategy === "svc") {
 				const vp9Codec = this.device?.rtpCapabilities?.codecs?.find((codec) =>
 					codec.mimeType.toLowerCase().includes("vp9"),
 				);
@@ -395,15 +417,42 @@ export class TransportManager {
 					produceOptions.codec = vp9Codec;
 				}
 			}
+			if (safeAppData.type === "screen" && "contentHint" in track) {
+				track.contentHint = "detail";
+			}
 			produceOptions.codecOptions = videoCodecOptions;
 			produceOptions.appData = {
 				...safeAppData,
-				codecStrategy: decision.strategy,
-				scalabilityMode: decision.scalabilityMode,
+				codecStrategy: encodingConfig.decision.strategy,
+				scalabilityMode: encodingConfig.decision.scalabilityMode,
 			};
 		}
 
+		if (track?.kind === "audio") {
+			produceOptions.codecOptions = audioCodecOptions;
+		}
+
 		const producer = await this.sendTransport.produce(produceOptions);
+
+		if (safeAppData.type === "screen") {
+			const sender = (producer as { rtpSender?: RTCRtpSender }).rtpSender;
+			if (sender?.getParameters && sender?.setParameters) {
+				try {
+					const parameters = sender.getParameters() || {};
+					if (parameters.degradationPreference !== "maintain-resolution") {
+						await sender.setParameters({
+							...parameters,
+							degradationPreference: "maintain-resolution",
+						});
+					}
+				} catch (error) {
+					console.warn(
+						"Failed to apply screen share sender preferences",
+						error,
+					);
+				}
+			}
+		}
 
 		return producer;
 	}
