@@ -15,7 +15,6 @@ import {
 	setSelectedMicId,
 	setSelectedSpeakerId,
 } from "../data/mediaPreferences";
-import { publishScreenShare } from "../mediasoup-client.js";
 import { useSocket } from "../socket.js";
 import audioNotificationManager from "../utils/audioNotifications";
 import { deviceManager } from "../utils/media/DeviceManager.js";
@@ -311,9 +310,12 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 		const constraints = {};
 
 		const audioConstraints = {
+			channelCount: 1, // mono audio cuz voice is priority
 			echoCancellation: true,
 			noiseSuppression: true,
 			autoGainControl: true,
+			sampleRate: 48000,
+			sampleSize: 16,
 		};
 
 		if (videoEnabled) {
@@ -908,7 +910,18 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 
 				// Publish via mediasoup
 				try {
-					const producer = await publishScreenShare(meetingId, screenStream);
+					const screenTrack = screenStream.getVideoTracks()[0];
+					if (!screenTrack || !sfuManager.value?.transportManager) {
+						throw new Error("Screen share transport is not available");
+					}
+
+					const producer =
+						await sfuManager.value.transportManager.createProducer(
+							screenTrack,
+							{
+								type: "screen",
+							},
+						);
 					// Store reference on mediaHandler so we can close it when stopping
 					if (sfuManager.value?.mediaHandler) {
 						sfuManager.value.mediaHandler.setProducers({
@@ -1096,9 +1109,9 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 			});
 		} catch (error) {
 			console.error("Failed to join meeting:", error);
-			meetingState.connectionError.value = error.messages.length
+			meetingState.connectionError.value = error?.messages?.length
 				? error.messages.join(", ")
-				: "Failed to join meeting";
+				: error?.message || "Failed to join meeting";
 			meetingState.isConnecting.value = false;
 		} finally {
 			joiningInProgress.value = false;
@@ -1404,9 +1417,9 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					}
 				} catch (error) {
 					console.error("Error after approval:", error);
-					meetingState.connectionError.value = error.messages.length
+					meetingState.connectionError.value = error?.messages?.length
 						? error.messages.join(", ")
-						: "Failed to join meeting after approval";
+						: error?.message || "Failed to join meeting after approval";
 					toast.error("Failed to join meeting after approval");
 				}
 			}
