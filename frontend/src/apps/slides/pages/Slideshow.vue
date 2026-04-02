@@ -99,7 +99,15 @@ const props = defineProps({
 const transition = ref('none')
 const transform = ref('')
 const opacity = ref(1)
-const clipPath = ref('')
+const windowWidth = ref(window.innerWidth)
+const windowHeight = ref(window.innerHeight)
+
+const clipPath = computed(() => {
+	if (!inSlideShowMode.value) return 'none'
+	const slideHeight = 540 * (windowWidth.value / 960)
+	const inset = Math.max(0, (windowHeight.value - slideHeight) / 2)
+	return `inset(${inset}px 0px ${inset}px 0px)`
+})
 
 const getElementKey = (element) => {
 	return element.refId || element.id
@@ -123,7 +131,7 @@ const isMagicMoveApplied = computed(() => {
 
 const slideStyles = computed(() => {
 	// scale slide to fit screen width while maintaining 16:9 aspect ratio
-	const widthScale = window.innerWidth / 960
+	const widthScale = windowWidth.value / 960
 
 	const baseStyles = {
 		width: '960px',
@@ -263,22 +271,10 @@ const handleFullScreenChange = () => {
 	if (document.fullscreenElement) {
 		slideContainerRef.value.addEventListener('mousemove', resetCursorVisibility)
 		inSlideShowMode.value = true
-		setClipPath()
 	} else {
 		slideContainerRef.value.removeEventListener('mousemove', resetCursorVisibility)
 		endSlideShow()
 	}
-}
-
-const setClipPath = () => {
-	const width = window.innerWidth
-	const height = window.innerHeight
-	const slideHeight = 540 * (width / 960)
-
-	// divide remaining height by 2 to set inset on top and bottom
-	const inset = Math.max(0, (height - slideHeight) / 2)
-
-	clipPath.value = `inset(${inset}px 0px ${inset}px 0px)`
 }
 
 const slideContainerStyles = computed(() => {
@@ -313,11 +309,17 @@ const loadPresentation = async () => {
 	initPresentationDoc(props.presentationId)
 }
 
+const updateWindowSize = () => {
+	windowWidth.value = window.innerWidth
+	windowHeight.value = window.innerHeight
+}
+
 onActivated(() => {
 	resetFocus()
 	loadPresentation()
 	initFullscreenMode()
 	document.addEventListener('fullscreenchange', handleFullScreenChange)
+	window.addEventListener('resize', updateWindowSize)
 
 	// Initial prefetch of next slide
 	setTimeout(() => {
@@ -327,6 +329,7 @@ onActivated(() => {
 
 onDeactivated(() => {
 	document.removeEventListener('fullscreenchange', handleFullScreenChange)
+	window.removeEventListener('resize', updateWindowSize)
 })
 
 watch(
