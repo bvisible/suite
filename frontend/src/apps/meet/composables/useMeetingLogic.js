@@ -1146,7 +1146,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 			// Connect to SFU
 			await sfuManager.value.connect(meetingState.guestAuthToken.value);
 			meetingState.codecStrategy.value =
-				getSFUClient().getCodecStrategy() || "auto";
+				getSFUClient().getCodecStrategy() || "svc";
 
 			// Join the room with user details and initial media states
 			let userData;

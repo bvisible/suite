@@ -22,7 +22,7 @@ export function useMeetingState() {
 	const connectionError = ref(null);
 	const isInPreview = ref(true);
 	const isSetupComplete = ref(false);
-	const codecStrategy = ref("auto");
+	const codecStrategy = ref("svc");
 
 	// Network quality states
 	const networkQuality = ref("good");
@@ -120,7 +120,7 @@ export function useMeetingState() {
 		isConnecting.value = false;
 		isInPreview.value = true;
 		isSetupComplete.value = false;
-		codecStrategy.value = "auto";
+		codecStrategy.value = "svc";
 		networkQuality.value = "good";
 		connectionIssues.value = [];
 		participants.value = {};
