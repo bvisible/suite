@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/frappe/meet">
-    <img src="https://raw.githubusercontent.com/frappe/meet/develop/frontend/public/meet_logo.png" height="80" alt="Frappe Meet Logo">
+    <img src="https://frappe.io/files/meet_logo.png" height="80" alt="Frappe Meet Logo">
 </a>
 
 <h1>Frappe Meet</h1>
