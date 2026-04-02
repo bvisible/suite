@@ -2,7 +2,6 @@ import { ref, computed } from 'vue'
 import {
 	presentationDoc,
 	presentationId,
-	presentationResource,
 	hasStateChanged,
 	savePresentationDoc,
 } from '@/stores/presentation'

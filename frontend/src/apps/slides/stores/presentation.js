@@ -340,7 +340,6 @@ export {
 	applyReverseTransition,
 	createPresentationResource,
 	presentationDoc,
-	presentationResource,
 	unsyncedPresentationRecord,
 	isPublicPresentation,
 	slidesLength,
