@@ -34,6 +34,10 @@ const routes = [
 		props: withPresentationProps,
 	},
 	{
+		path: '/presentation/view/:presentationId/:slug?',
+		redirect: (route: RouteLocationNormalized) => ({ name: 'PresentationEditor', params: route.params, query: route.query }),
+	},
+	{
 		path: '/slideshow/:presentationId/:slug?',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
