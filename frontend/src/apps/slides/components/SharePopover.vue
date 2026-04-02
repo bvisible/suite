@@ -72,7 +72,7 @@ const handleCopyLink = async (close) => {
 	if (!presentationId.value) return
 
 	close()
-	const link = `${window.location.origin}/slides/presentation/view/${presentationId.value}`
+	const link = `${window.location.origin}/slides/presentation/${presentationId.value}`
 	copyToClipboard(link)
 }
 </script>

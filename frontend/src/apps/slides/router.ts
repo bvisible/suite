@@ -34,12 +34,6 @@ const routes = [
 		props: withPresentationProps,
 	},
 	{
-		path: '/presentation/view/:presentationId/:slug?',
-		name: 'PresentationView',
-		component: () => import('@/pages/PresentationEditor.vue'),
-		props: withPresentationProps,
-	},
-	{
 		path: '/slideshow/:presentationId/:slug?',
 		name: 'Slideshow',
 		component: () => import('@/pages/Slideshow.vue'),
@@ -81,7 +75,7 @@ router.beforeEach(async (to, from, next) => {
 
 	const isLoggedIn = session.isLoggedIn
 
-	if (!['Slideshow', 'PresentationEditor', 'Home', 'PresentationView'].includes(to.name as string)) {
+	if (!['Slideshow', 'PresentationEditor', 'Home'].includes(to.name as string)) {
 		return next()
 	}
 
@@ -89,17 +83,9 @@ router.beforeEach(async (to, from, next) => {
 		return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
 	} else if (to.name === 'Slideshow') {
 		return next()
-	} else if (to.name === 'PresentationEditor' || to.name == 'PresentationView') {
+	} else if (to.name === 'PresentationEditor') {
 		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
 			editorAccess = await getEditorAccess(to.params.presentationId as string)
-		}
-		if (to.name === 'PresentationView' && editorAccess === 'edit') {
-			return next({
-				name: 'PresentationEditor',
-				params: to.params,
-				query: to.query,
-				replace: true,
-			})
 		}
 		if (['edit', 'view'].includes(editorAccess)) {
 			return next()
