@@ -25,7 +25,7 @@ watch(
 
 watch(
 	() => calendar.value?.activeView,
-	(view) => router.push({ name: view })
+	(view) => router.push({ name: view }),
 )
 
 onMounted(() => {
