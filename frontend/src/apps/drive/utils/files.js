@@ -383,7 +383,6 @@ function getLinkStem(entity) {
     {
       true: 'f',
       [new Boolean(entity.is_group)]: 'd',
-      [new Boolean(entity.doc || entity.mime_type === 'text/markdown')]: 'w',
     }[true]
   }/${entity.name}/${slugger(entity.title)}`
 }
@@ -420,6 +419,11 @@ export function getLink(entity, copy = true, withDomain = true) {
   if (entity.is_link) link = entity.path
   else if (entity.mime_type === 'frappe/slides') {
     link = window.location.origin + '/slides/presentation/' + entity.name
+  } else if (
+    entity.mime_type === 'frappe_doc' ||
+    entity.mime_type === 'text/markdown'
+  ) {
+    link = window.location.origin + '/writer/w/' + entity.name
   } else {
     link = `${
       withDomain ? window.location.origin + '/drive' : ''
@@ -627,7 +631,9 @@ export function getRandomColor() {
 export const newExternal = async (type) => {
   const route = router.currentRoute.value
   if (type === 'Presentation') {
-    window.location.href = `/slides/presentation/new?parent=${store.state.currentFolder.name}&team=${route.params.team || ''}`
+    window.location.href = `/slides/presentation/new?parent=${
+      store.state.currentFolder.name
+    }&team=${route.params.team || ''}`
     return
   }
   const data = await createDocument.submit({
