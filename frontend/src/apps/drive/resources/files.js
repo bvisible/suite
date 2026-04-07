@@ -83,7 +83,7 @@ export const getDocuments = createResource({
 
 export const getSlides = createResource({
   ...COMMON_OPTIONS,
-  url: "slides.slides.doctype.presentation.presentation.get_all_presentations",
+  url: "slides.slides.doctype.presentation.presentation.get_presentations",
   cache: "slides-folder-contents",
   transform(data) {
     data = data.map((k) => ({
