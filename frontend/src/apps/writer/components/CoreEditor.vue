@@ -13,7 +13,7 @@
       >
         <ContextMenu :items="bubbleButtons" :disabled="true">
           <div
-            class="h-full flex flex-col flex-grow ps-6"
+            class="h-full flex flex-col flex-grow"
             @click="
               $event.target.tagName === 'DIV' &&
               textEditor.editor?.chain?.().focus?.().run?.()
@@ -22,7 +22,7 @@
             <FTextEditor
               ref="textEditor"
               class="min-h-full flex flex-col"
-              editor-class="overflow-x-auto pt-10 pb-24"
+              editor-class="overflow-x-auto pt-10 pb-24 px-5"
               :upload-function
               :autofocus="true"
               :content="rawContent"

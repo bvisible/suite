@@ -31,7 +31,7 @@
       <div id="navbar-content" class="flex gap-3" />
       <slot name="content" />
       <Button
-        v-if="offline"
+        v-if="isOffline"
         label="You're offline"
         variant="solid"
         size="sm"
@@ -138,8 +138,9 @@ const props = defineProps({
   breadcrumbs: {
     default: [],
   },
-  offline: Boolean,
 })
+
+const isOffline = inject('isOffline')
 
 const showVersions = defineModel('showVersions')
 const showTemplates = defineModel('showTemplates')

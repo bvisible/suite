@@ -8,7 +8,7 @@ import {
   ySyncPluginKey,
 } from '@tiptap/y-tiptap'
 import { rebuild } from '@/extensions/comments'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { updateComments } from '@/resources'
 
 import store from '@/store'
@@ -89,6 +89,7 @@ export const useComments = (document, editor) => {
 }
 
 export function useYjs(id, document, editor, edited) {
+  const isOffline = inject('isOffline')
   const doc = new Y.Doc({ gc: true })
   if (document.doc.content)
     Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
@@ -110,6 +111,7 @@ export function useYjs(id, document, editor, edited) {
       })
     }
   })
+
   // Saving to server
   const save = async (manual = false, oldHtml) => {
     if (!manual && !edited.value) return
@@ -118,7 +120,6 @@ export function useYjs(id, document, editor, edited) {
     const yjsState = Y.encodeStateAsUpdate(doc)
     const data = await document.saveDoc.submit({
       data: fromUint8Array(yjsState),
-      // weird logic
       html,
     })
     if (data?.skipped) {
@@ -126,10 +127,11 @@ export function useYjs(id, document, editor, edited) {
         'Server skipped update - probably because other people are collaborating',
       )
     } else if (document.saveDoc.error) {
-      if (document.saveDoc.error instanceof FrappeNetworkError) {
-        console.warn('Skipping save as client is offline')
+      if (isOffline.value) {
+        console.warn('Skipping save as client is offline.')
       } else {
         toast.error('Could not save the document.')
+        // ideally store in indexeddb
         localStorage.setItem('errored-save-out-' + id + '-' + Date.now(), html)
       }
       throw new Error(`Server error during save: ${document.saveDoc.error}`)

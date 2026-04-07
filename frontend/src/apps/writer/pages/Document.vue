@@ -17,7 +17,6 @@
     :file
     :document
     :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
-    :offline
   >
     <template #content v-if="document.doc?.settings && file.doc.write">
       <UsersBar
@@ -166,7 +165,8 @@ const versionPreview = ref(null)
 const showSettings = ref(false)
 const showTemplates = ref(false)
 const showVersions = ref(false)
-const offline = ref(false)
+const isOffline = ref(false)
+provide('isOffline', isOffline)
 
 const isOldSchema = computed(() => {
   if (!document.value?.doc) return false
@@ -222,8 +222,8 @@ const settings = computed(() => {
 store.commit('setCurrentResource', file)
 
 // Events
-window.addEventListener('offline', () => (offline.value = true))
-window.addEventListener('online', () => (offline.value = false))
+window.addEventListener('offline', () => (isOffline.value = true))
+window.addEventListener('online', () => (isOffline.value = false))
 
 let toasted
 watch(isOldSchema, (v) => {
