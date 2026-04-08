@@ -6,8 +6,7 @@ import { Button, Dropdown, createResource, toast } from 'frappe-ui'
 import { getReorderedParticipants, isUrl } from '@/utils'
 import { getRepeatMessage } from '@/utils/format'
 import { userStore } from '@/stores/user'
-
-import EventParticipantList from './EventParticipantList.vue'
+import EventParticipantList from '@/components/EventParticipantList.vue'
 
 const { calendarEvent, close } = defineProps<{ calendarEvent: any; close: () => void }>()
 
@@ -222,7 +221,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 </script>
 
 <template>
-	<div class="bg-surface-modal text-ink-gray-8 w-[32rem] rounded-md" @click.stop>
+	<div class="bg-surface-modal text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
 		<!-- Header: title, date, and actions -->
 		<div class="flex justify-between border-b p-5">
 			<div class="space-y-2">

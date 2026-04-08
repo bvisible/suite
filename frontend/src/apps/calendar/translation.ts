@@ -1,30 +1,25 @@
-import { createResource } from "frappe-ui";
+import { createResource } from 'frappe-ui'
 
 export default function translationPlugin(app) {
-  app.config.globalProperties.__ = translate;
-  window.__ = translate;
-  if (!window.translatedMessages) translations.fetch();
+	app.config.globalProperties.__ = translate
+	window.__ = translate
+	if (!window.translatedMessages) translations.fetch()
 }
 
 function translate(message: string, variables?: string[]) {
-  const translatedMessages = window.translatedMessages || {};
-  const translatedMessage = translatedMessages[message] || message;
+	const translatedMessages = window.translatedMessages || {}
+	const translatedMessage = translatedMessages[message] || message
 
-  const hasPlaceholders = /{\d+}/.test(message) && variables;
-  if (!hasPlaceholders) return translatedMessage;
+	const hasPlaceholders = /{\d+}/.test(message) && variables
+	if (!hasPlaceholders) return translatedMessage
 
-  return translatedMessage.replace(
-    /{(\d+)}/g,
-    (match: string, number: number) => {
-      return typeof variables[number] !== "undefined"
-        ? variables[number]
-        : match;
-    },
-  );
+	return translatedMessage.replace(/{(\d+)}/g, (match: string, number: number) => {
+		return typeof variables[number] !== 'undefined' ? variables[number] : match
+	})
 }
 
 const translations = createResource({
-  url: "mail.api.get_translations",
-  cache: "translations",
-  transform: (data) => (window.translatedMessages = data),
-});
+	url: 'mail.api.get_translations',
+	cache: 'translations',
+	transform: (data) => (window.translatedMessages = data),
+})
