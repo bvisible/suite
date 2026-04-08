@@ -581,9 +581,9 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 		<template #actions>
 			<div class="flex justify-end space-x-2">
 				<Button @click="handleSaveRecurringEvent(false)">{{ __('Entire series') }}</Button>
-				<Button variant="solid" @click="handleSaveRecurringEvent(true)">
+				<!-- <Button variant="solid" @click="handleSaveRecurringEvent(true)">
 					{{ __('This instance') }}
-				</Button>
+				</Button> -->
 			</div>
 		</template>
 	</Dialog>

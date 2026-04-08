@@ -149,7 +149,6 @@ const submitEvent = (sendEmail: boolean) => {
 	console.log(eventToBeUpdated)
 	if (isUpdateInstance.value) {
 		return
-		editEventInstance.submit({ sendEmail })
 	} else {
 		eventToBeUpdated.start = dayjs(eventToBeUpdated.fromDateTime).format('YYYY-MM-DDTHH:mm:ss')
 		if (!eventToBeUpdated.isAllDay) {
@@ -164,16 +163,16 @@ const submitEvent = (sendEmail: boolean) => {
 	}
 }
 
-const editEventInstance = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
-	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-		user: user.data.name,
-		master_id: selectedEvent.calendarEvent.master_id,
-		recurrence_id: selectedEvent.calendarEvent.recurrence_id,
-		patch: patch.value,
-		send_scheduling_messages: sendEmail,
-	}),
-})
+// const editEventInstance = createResource({
+// 	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+// 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+// 		user: user.data.name,
+// 		master_id: selectedEvent.calendarEvent.master_id,
+// 		recurrence_id: selectedEvent.calendarEvent.recurrence_id,
+// 		patch: patch.value,
+// 		send_scheduling_messages: sendEmail,
+// 	}),
+// })
 
 const editEvent = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
@@ -235,12 +234,12 @@ const NOTIFY_MODAL_OPTIONS = {
 	<Dialog v-model="showRecurringEventModal" :options="RECURRING_EVENT_MODAL_OPTIONS">
 		<template #actions>
 			<div class="flex justify-end space-x-2">
-				<Button @click="handleUpdateRecurringEvent(false)">{{
-					__('Entire series')
-				}}</Button>
-				<Button variant="solid" @click="handleUpdateRecurringEvent(true)">
-					{{ __('This instance') }}
+				<Button @click="handleUpdateRecurringEvent(false)">
+					{{ __('Entire series') }}
 				</Button>
+				<!-- <Button variant="solid" @click="handleUpdateRecurringEvent(true)">
+					{{ __('This instance') }}
+				</Button> -->
 			</div>
 		</template>
 	</Dialog>

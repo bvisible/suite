@@ -114,7 +114,7 @@ const openEditModal = () => {
 }
 
 const responseOptions = (status: string) => [
-	{ label: __('This instance'), onClick: () => handleSetResponse(status, false) },
+	// { label: __('This instance'), onClick: () => handleSetResponse(status, false) },
 	{ label: __('Entire series'), onClick: () => handleSetResponse(status, true) },
 ]
 
