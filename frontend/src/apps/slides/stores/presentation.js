@@ -214,7 +214,7 @@ const hasSlideChanged = (originalState, slideState) => {
 		if (slideState[key] != originalState[key]) return true
 	}
 
-	if (slideState.name != '' && slideState.name != originalState.name) return true
+	if (slideState.name && slideState.name != originalState.name) return true
 
 	const currElements = parseElements(slideState.elements)
 	const origElements = parseElements(originalState.elements)
@@ -241,8 +241,8 @@ const updateNewlyAddedSlideUUIDs = () => {
 	// required for correct jumping to slide during undo / redo operations
 	ignoreUpdates(() => {
 		slides.value.forEach((slide, idx) => {
-			if (slide.name === '') {
-				slide.name = presentationResource.value.doc.slides[idx]?.name
+			if (!slide.name) {
+				slide.name = presentationResource.value.doc.slides[idx]?.name ?? ''
 			}
 		})
 	})
