@@ -699,6 +699,10 @@ onMounted(async () => {
 		}
 	}
 
+	setupChatEvents(chatNotificationQueue.value);
+	setupReactionEvents();
+	setupRaiseHandEvents();
+
 	// Check authentication and handle guest sessions
 	if (!session.isLoggedIn) {
 		await initializeCamera();
@@ -723,15 +727,6 @@ onMounted(async () => {
 	if (selectedSpeakerId.value) {
 		await applySpeakerDevice();
 	}
-
-	// Setup chat events
-	setupChatEvents(chatNotificationQueue.value);
-
-	// Setup reaction events
-	setupReactionEvents();
-
-	// Setup raise hand events
-	setupRaiseHandEvents();
 
 	// Auto-join if just created
 	const wasJustCreated = route.query.created === "true";
