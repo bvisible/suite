@@ -10,16 +10,15 @@ app_license = "agpl-3.0"
 
 required_apps = ["frappe/mail"]
 
-# Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "calendar_app",
-# 		"logo": "/assets/calendar_app/logo.png",
-# 		"title": "Calendar",
-# 		"route": "/calendar_app",
-# 		"has_permission": "calendar_app.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "calendar_app",
+		"logo": "/assets/calendar_app/images/logo.svg",
+		"title": "Calendar",
+		"route": "/calendar",
+	}
+]
+
 
 # Includes in <head>
 # ------------------
@@ -127,6 +126,10 @@ required_apps = ["frappe/mail"]
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
+
+website_route_rules = [
+	{"from_route": "/calendar/<path:app_path>", "to_route": "calendar"},
+]
 
 # Document Events
 # ---------------
