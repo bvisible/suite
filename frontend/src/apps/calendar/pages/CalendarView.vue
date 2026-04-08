@@ -69,7 +69,7 @@ const getEventRole = (event) => {
 }
 
 const calendars = createResource({
-	url: 'mail.api.calendar.get_calendars',
+	url: 'calendar_app.api.get_calendars',
 	auto: true,
 	onSuccess: (data) => (visibleCalendars.value = data.map((cal) => cal.name)),
 	onError: (error) => raiseToast(error.message, 'error'),
@@ -78,7 +78,7 @@ const calendars = createResource({
 const visibleCalendars = ref<string[]>([])
 
 const events = createResource({
-	url: 'mail.api.calendar.get_calendar_events',
+	url: 'calendar_app.api.get_calendar_events',
 	makeParams: () => {
 		const date = dayjs().year(calendar.value?.currentYear).month(calendar.value?.currentMonth)
 		return {

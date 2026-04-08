@@ -150,7 +150,7 @@ const editEventInstance = createResource({
 })
 
 const editEvent = createResource({
-	url: 'mail.api.calendar.edit_calendar_event',
+	url: 'calendar_app.api.edit_calendar_event',
 	makeParams: ({ patch }) => ({
 		id: calendarEvent.master_id,
 		...patch,
