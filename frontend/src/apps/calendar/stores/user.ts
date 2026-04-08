@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
-export const userStore = defineStore('mail-users', () => {
+export const userStore = defineStore('calendar-user', () => {
 	const userResource = createResource({
 		url: 'mail.api.account.get_user_info',
 		onSuccess: (data) => {

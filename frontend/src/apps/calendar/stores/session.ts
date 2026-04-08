@@ -5,7 +5,7 @@ import { createResource } from 'frappe-ui'
 import router from '@/router'
 import { userStore } from '@/stores/user'
 
-export const sessionStore = defineStore('mail-session', () => {
+export const sessionStore = defineStore('calendar-session', () => {
 	const { userResource } = userStore()
 
 	const sessionUser = () => {

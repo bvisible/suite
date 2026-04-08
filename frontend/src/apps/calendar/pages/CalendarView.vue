@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Calendar, createResource } from 'frappe-ui'
+import { Button, Calendar, Dialog, createResource } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
 import { userStore } from '@/stores/user'
@@ -34,19 +34,25 @@ onMounted(() => {
 
 const transformEvent = (event) => {
 	const start = dayjs(event.start)
-	const durationMatch = /PT(?:(\d+)H)?(?:(\d+)M)?/.exec(event.duration || '')
-	const hours = durationMatch && durationMatch[1] ? parseInt(durationMatch[1]) : 0
-	const minutes = durationMatch && durationMatch[2] ? parseInt(durationMatch[2]) : 0
-	const end = start.add(hours, 'hour').add(minutes, 'minute')
+	const dur = dayjs.duration(event.duration || 'PT0S')
+	const end = start.add(dur)
+	const isAllDay =
+		start.hour() === 0 &&
+		start.minute() === 0 &&
+		start.second() === 0 &&
+		dur.days() > 0 &&
+		dur.hours() === 0 &&
+		dur.minutes() === 0 &&
+		dur.seconds() === 0
+
 	return {
 		...event,
 		fromDate: start.format('YYYY-MM-DD'),
 		toDate: end.format('YYYY-MM-DD'),
 		fromTime: start.format('HH:mm'),
 		toTime: end.format('HH:mm'),
-		participant: event.organizer,
-		venue: event.locations?.[0]?._name || '',
 		role: getEventRole(event),
+		isAllDay,
 	}
 }
 
@@ -109,6 +115,86 @@ watch(
 		if (!val) Object.keys(event).forEach((key) => delete event[key])
 	},
 )
+
+const eventToBeUpdated = reactive({})
+const showRecurringEventModal = ref(false)
+const isUpdateInstance = ref(false)
+const showNotifyModal = ref(false)
+
+const handleUpdate = (e) => {
+	Object.assign(eventToBeUpdated, e)
+	if (e.recurrence_id) showRecurringEventModal.value = true
+	else handleUpdateEvent()
+}
+
+const handleUpdateRecurringEvent = (updateInstance: boolean) => {
+	isUpdateInstance.value = updateInstance
+	showRecurringEventModal.value = false
+	handleUpdateEvent()
+}
+
+const handleUpdateEvent = () => {
+	if (hasParticipantsOtherThanUser.value) showNotifyModal.value = true
+	else submitEvent(false)
+}
+
+const hasParticipantsOtherThanUser = computed(
+	() =>
+		eventToBeUpdated.participants?.some((p) =>
+			identities.data.every((i) => i.email !== p.email),
+		) ?? false,
+)
+
+const submitEvent = (sendEmail: boolean) => {
+	console.log(eventToBeUpdated)
+	if (isUpdateInstance.value) {
+		return
+		editEventInstance.submit({ sendEmail })
+	} else {
+		eventToBeUpdated.start = dayjs(eventToBeUpdated.fromDateTime).format('YYYY-MM-DDTHH:mm:ss')
+		if (!eventToBeUpdated.isAllDay) {
+			const start = dayjs(eventToBeUpdated.fromDateTime)
+			const end = dayjs(eventToBeUpdated.toDateTime)
+			const diff = dayjs.duration(end.diff(start))
+			const hours = Math.floor(diff.asHours())
+			const minutes = diff.minutes()
+			eventToBeUpdated.duration = dayjs.duration({ hours, minutes }).toISOString()
+		}
+		editEvent.submit({ sendEmail })
+	}
+}
+
+const editEventInstance = createResource({
+	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+		user: user.data.name,
+		master_id: selectedEvent.calendarEvent.master_id,
+		recurrence_id: selectedEvent.calendarEvent.recurrence_id,
+		patch: patch.value,
+		send_scheduling_messages: sendEmail,
+	}),
+})
+
+const editEvent = createResource({
+	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
+	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+		...eventToBeUpdated,
+		id: eventToBeUpdated.master_id,
+		send_scheduling_messages: sendEmail,
+	}),
+})
+
+const RECURRING_EVENT_MODAL_OPTIONS = {
+	title: __('Update Recurring Event'),
+	icon: { name: 'repeat' },
+	message: __('Do you want to update just this instance, or all events in the series?'),
+}
+
+const NOTIFY_MODAL_OPTIONS = {
+	title: __('Notify Participants'),
+	icon: { name: 'bell' },
+	message: __('Send an email to let attendees know this event has been updated?'),
+}
 </script>
 
 <template>
@@ -131,6 +217,7 @@ watch(
 					:config="{ isEditMode: true }"
 					:on-dbl-click="(event) => handleOpenEvent(event)"
 					:on-cell-click="(event) => handleOpenEvent(event)"
+					@update="handleUpdate"
 				>
 					<template #event-popover-content="{ calendarEvent, close }">
 						<EventPopoverContent
@@ -145,4 +232,26 @@ watch(
 		</div>
 	</div>
 	<EventModal v-model="showEditEvent" :selected-event="event" @reload-events="events.reload()" />
+	<Dialog v-model="showRecurringEventModal" :options="RECURRING_EVENT_MODAL_OPTIONS">
+		<template #actions>
+			<div class="flex justify-end space-x-2">
+				<Button @click="handleUpdateRecurringEvent(false)">{{
+					__('Entire series')
+				}}</Button>
+				<Button variant="solid" @click="handleUpdateRecurringEvent(true)">
+					{{ __('This instance') }}
+				</Button>
+			</div>
+		</template>
+	</Dialog>
+	<Dialog v-model="showNotifyModal" :options="NOTIFY_MODAL_OPTIONS">
+		<template #actions>
+			<div class="flex justify-end space-x-2">
+				<Button variant="outline" @click="submitEvent(false)"> {{ __('Skip') }} </Button>
+				<Button variant="solid" @click="submitEvent(true)">
+					{{ __('Send Email') }}
+				</Button>
+			</div>
+		</template>
+	</Dialog>
 </template>

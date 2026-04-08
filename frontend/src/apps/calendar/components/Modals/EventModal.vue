@@ -28,21 +28,13 @@ const getEventData = () => {
 
 	const { calendarEvent: ev } = selectedEvent
 	const start = dayjs(ev.start)
-	const isAllDay =
-		start.hour() === 0 &&
-		start.minute() === 0 &&
-		start.second() === 0 &&
-		dayjs.duration(ev.duration).days() > 0 &&
-		dayjs.duration(ev.duration).hours() === 0 &&
-		dayjs.duration(ev.duration).minutes() === 0 &&
-		dayjs.duration(ev.duration).seconds() === 0
 	const end = start.add(dayjs.duration(ev.duration))
-	const displayEnd = isAllDay ? end.subtract(1, 'day') : end
+	const displayEnd = ev.isAllDay ? end.subtract(1, 'day') : end
 
 	return {
 		title: ev.title || '',
 		organizer: ev.organizer,
-		isAllDay,
+		isAllDay: ev.isAllDay,
 		repeat: !!ev.recurrence_rule?.frequency,
 		startDate: start.format('YYYY-MM-DD'),
 		startTime: start.format('HH:mm'),
