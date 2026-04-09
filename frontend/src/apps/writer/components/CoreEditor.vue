@@ -11,67 +11,97 @@
         id="editor-scroll-container"
         class="flex w-full overflow-y-auto relative"
       >
-        <ContextMenu :items="bubbleButtons" :disabled="true">
-          <div
-            class="h-full flex flex-col flex-grow"
-            @click="
-              $event.target.tagName === 'DIV' &&
-              textEditor.editor?.chain?.().focus?.().run?.()
+        <div
+          class="h-full flex flex-col flex-grow"
+          @click="
+            $event.target.tagName === 'DIV' &&
+            textEditor.editor?.chain?.().focus?.().run?.()
+          "
+        >
+          <FTextEditor
+            ref="textEditor"
+            class="min-h-full flex flex-col"
+            editor-class="overflow-x-auto pt-10 pb-24 px-5"
+            :upload-function
+            :autofocus="true"
+            :content="rawContent"
+            :mentions="{ mentions: allUsers.data, selectable: false }"
+            placeholder="Start thinking..."
+            :extensions="editorExtensions"
+            :bubble-menu="bubButtons"
+            :bubble-menu-options="{
+              shouldShow: ({ from, to }) => {
+                if (from === to) return false
+                let hide = false
+                comments.forEach((k) => (k.new || k.edit) && (hide = true))
+                return !hide
+              },
+              getReferencedVirtualElement: () => {
+                const { selection } = editor.state
+                const { from, to } = selection
+
+                const start = editor.view.coordsAtPos(from)
+                const end = editor.view.coordsAtPos(to)
+
+                const editorElement = editor.view.dom
+                const editorRect = editorElement.getBoundingClientRect()
+
+                const verticalCenter = (start.bottom + end.bottom) / 2 + 15
+                return {
+                  getBoundingClientRect: () => ({
+                    width: 0,
+                    height: 0,
+                    x: editorRect.right,
+                    y: verticalCenter,
+                    top: verticalCenter,
+                    right: editorRect.right,
+                    bottom: verticalCenter,
+                    left: editorRect.right,
+                  }),
+                }
+              },
+            }"
+            :editable
+            :starterkit-options="{
+              // undoRedo: doc ? false : true,
+              trailingNode: { node: 'paragraph', notAfter: 'tab' },
+              paragraph: false,
+              gapcursor: false,
+            }"
+            @change="(val) => emit('editor-change', val)"
+            @keydown="
+              async (e) => {
+                if (editable && !e.metaKey && !e.ctrlKey & !edited) {
+                  edited = true
+                  await nextTick()
+                  autoversion()
+                }
+              }
             "
           >
-            <FTextEditor
-              ref="textEditor"
-              class="min-h-full flex flex-col"
-              editor-class="overflow-x-auto pt-10 pb-24 px-5"
-              :upload-function
-              :autofocus="true"
-              :content="rawContent"
-              :mentions="{ mentions: allUsers.data, selectable: false }"
-              placeholder="Start thinking..."
-              :extensions="editorExtensions"
-              :bubble-menu="bubButtons"
-              :editable
-              :starterkit-options="{
-                // undoRedo: doc ? false : true,
-                trailingNode: { node: 'paragraph', notAfter: 'tab' },
-                paragraph: false,
-                gapcursor: false,
-              }"
-              @change="(val) => emit('editor-change', val)"
-              @keydown="
-                async (e) => {
-                  if (editable && !e.metaKey && !e.ctrlKey & !edited) {
-                    edited = true
-                    await nextTick()
-                    autoversion()
-                  }
-                }
-              "
-            >
-              <template #editor="{ editor }">
-                <EditorContent
-                  class="md:mx-auto bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
-                  :class="[
-                    settings?.wide
-                      ? 'md:min-w-[100ch] md:max-w-[100ch]'
-                      : 'md:min-w-[48rem] md:max-w-[48rem]',
-                    isPainting && 'cursor-crosshair',
-                  ]"
-                  :style="{
-                    fontFamily:
-                      settings?.font_family &&
-                      `var(--font-${settings?.font_family})`,
-                    fontSize: `${settings?.font_size || 15}px`,
-                    lineHeight: settings?.line_height || 1.5,
-                    '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
-                    '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
-                  }"
-                  :editor="editor"
-                />
-              </template>
-            </FTextEditor>
-          </div>
-        </ContextMenu>
+            <template #editor="{ editor }">
+              <EditorContent
+                class="md:mx-auto bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
+                :class="[
+                  settings?.wide
+                    ? 'md:min-w-[100ch] md:max-w-[100ch]'
+                    : 'md:min-w-[48rem] md:max-w-[48rem]',
+                  isPainting && 'cursor-crosshair',
+                ]"
+                :style="{
+                  fontFamily:
+                    settings?.font_family &&
+                    `var(--font-${settings?.font_family})`,
+                  fontSize: `${settings?.font_size || 15}px`,
+                  lineHeight: settings?.line_height || 1.5,
+                  '--paragraph-spacing-before': `${settings?.paragraph_spacing_before || 0}px`,
+                  '--paragraph-spacing-after': `${settings?.paragraph_spacing_after || 0}px`,
+                }"
+                :editor="editor"
+              />
+            </template>
+          </FTextEditor>
+        </div>
 
         <FloatingComments
           v-if="commentsPainted"

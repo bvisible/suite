@@ -74,7 +74,7 @@
   </div>
   <ErrorPage v-if="file.error" :error="file.error" />
   <LoadingIndicator
-    v-else-if="!file.doc && file.loading"
+    v-else-if="!document.doc && document.loading"
     class="w-10 h-full text-neutral-100 mx-auto"
   />
   <div
