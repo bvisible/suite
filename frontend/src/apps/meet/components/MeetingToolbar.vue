@@ -8,7 +8,7 @@
 			:class="isVisible ? 'translate-y-0' : 'translate-y-full'"
 		>
 			<div
-				class="flex items-center gap-3 px-6 py-3 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-300"
+				class="flex items-center gap-3 p-4 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-300"
 				@mouseenter="onMouseEnter"
 				@mouseleave="onMouseLeave"
 			>
