@@ -29,11 +29,11 @@ onMounted(() => {
   }
 
   props.editor.view.dom.addEventListener('tab-changed', handleTabChange)
-  onBeforeUnmount(() => {
-    props.editor.view.dom.removeEventListener('tab-changed', handleTabChange)
-  })
 })
 
+// onBeforeUnmount(() => {
+//   props.editor.view.dom.removeEventListener('tab-changed', handleTabChange)
+// })
 const props = defineProps({
   editor: Object,
 })

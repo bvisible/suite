@@ -1,6 +1,6 @@
 <template>
   <CoreEditor
-    ref="textEditor"
+        ref="textEditor"
     v-model:show-settings="showSettings"
     v-model:edited="edited"
     v-bind="{ ...props, ...commentsDetail }"
