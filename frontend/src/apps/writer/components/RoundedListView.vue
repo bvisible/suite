@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space-y-3 pb-64"
+    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space pb-64"
   >
     <template
       v-for="([group, files], i) in Object.entries(groups).filter(
@@ -10,7 +10,7 @@
       :key="group"
     >
       <div
-        class="flex justify-between items-center sticky top-0 bg-surface-white h-8 z-10"
+        class="flex justify-between items-center sticky top-0 bg-surface-white h-8 z-10 mt-3 mb-1 -mx-3"
       >
         <h2 class="text-sm font-medium text-ink-gray-5">
           {{ group }}
@@ -73,23 +73,19 @@
               @click="
                 $router.push({ name: 'Document', params: { id: row.name } })
               "
-              class="group flex items-center justify-between px-3 h-10 py-3 hover:bg-surface-gray-1 rounded cursor-pointer my-px -mx-3"
+              class="group flex flex-col gap-2 md:flex-row p-3 md:items-center md:justify-between hover:bg-surface-gray-1 rounded cursor-pointer my-px -mx-3"
             >
-              <div class="flex flex-col gap-1 w-[60%]">
-                <p class="text-base font-medium text-ink-gray-8 truncate">
-                  {{ row.title }}
-                </p>
-                <!-- <div class="text-xs text-ink-gray-5">
-                    {{ row.file_size_pretty }}
-                  </div> -->
-              </div>
+              <p
+                class="text-base font-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip"
+              >
+                {{ row.title }}
+              </p>
 
               <div
-                class="flex items-center gap-2 text-sm text-gray-600 flex-shrink-0"
+                class="flex items-center justify-between gap-2 text-sm text-gray-600 flex-shrink-0"
               >
                 <div
-                  v-if="row.owner !== $store.state.user.id"
-                  class="text-xs text-ink-gray-5 flex gap-5 items-center"
+                  class="text-xs text-ink-gray-5 flex gap-2 md:gap-5 items-center"
                 >
                   <LucideGlobe2
                     v-if="row.share_count == -2"
@@ -103,19 +99,17 @@
                     v-else-if="row.share_count > 0"
                     class="size-4 text-ink-gray-6"
                   />
-                  <div
-                    v-if="row.owner != $store.state.user.id"
-                    class="flex items-center gap-1 w-32 justify-start"
-                  >
+                  <template v-if="row.owner === $store.state.user.id">
                     <Avatar
                       :image="$user(row.owner)?.user_image"
                       :label="$user(row.owner)?.full_name || 'Deleted'"
                       size="xs"
                     />
-                    <span :title="row.owner">{{
-                      $user(row.owner)?.full_name || 'Deleted'
-                    }}</span>
-                  </div>
+                    <span :title="row.owner"
+                      >{{ $user(row.owner)?.full_name || 'Deleted' }}
+                      {{ $user(row.owner)?.full_name || 'Deleted' }}</span
+                    >
+                  </template>
                 </div>
 
                 <span :title="row.recentDate" class="w-28 text-end">{{
