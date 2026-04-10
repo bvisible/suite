@@ -81,7 +81,7 @@
           >
             <template #editor="{ editor }">
               <EditorContent
-                class="md:mx-auto bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
+                class="md:mx-auto flex w-[100vw] bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
                 :class="[
                   settings?.wide
                     ? 'md:min-w-[100ch] md:max-w-[100ch]'

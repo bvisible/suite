@@ -5,21 +5,21 @@
     ondrop="return false;"
     class="bg-surface-white border-b pr-3 py-2.5 h-12 flex items-center justify-between"
   >
-    <a href="/writer/">
-      <div class="pl-4 pr-1">
-        <Dropdown
-          :options="[
-            {
-              label: 'Back to Home',
-              icon: LucideChevronLeft,
-              route: '/',
-            },
-          ]"
-        >
-          <WriterLogo class="size-7" />
-        </Dropdown>
-      </div>
-    </a>
+    <div class="pl-4 pr-1">
+      <Dropdown
+        v-if="$route.name !== 'Home'"
+        :options="[
+          {
+            label: 'Back to Home',
+            icon: LucideChevronLeft,
+            route: '/',
+          },
+        ]"
+      >
+        <WriterLogo class="size-7 cursor-pointer" />
+      </Dropdown>
+      <WriterLogo v-else class="size-7" />
+    </div>
     <slot name="breadcrumbs">
       <Breadcrumbs
         :items="formattedCrumbs"
@@ -126,6 +126,7 @@ import LucideWifiOff from '~icons/lucide/wifi-off'
 import LucideChevronLeft from '~icons/lucide/chevron-left'
 
 import WriterLogo from './WriterLogo.vue'
+import { useRoute } from 'vue-router'
 
 const store = useStore()
 const open = (url) => {
@@ -149,10 +150,12 @@ const isLoggedIn = computed(() => store.getters.isLoggedIn)
 const dialog = inject('dialog', ref(''))
 const editor = inject('editor', null)
 
-const settings = computed(() => props.document?.doc?.settings)
-
+const route = useRoute()
 const formattedCrumbs = computed(() => {
-  const ORIG = { label: 'Drive', onClick: () => navigate('/drive') }
+  const ORIG =
+    route.name === 'Home'
+      ? { label: 'Writer', href: '/writer' }
+      : { label: 'Drive', href: '/drive' }
   if (!props.breadcrumbs.length) return [ORIG]
   return [
     ORIG,
