@@ -259,6 +259,10 @@ const props = defineProps({
 		type: Object,
 		default: null,
 	},
+	isFullscreen: {
+		type: Boolean,
+		default: false,
+	},
 	cameraPermissionGranted: {
 		type: Boolean,
 		default: false,
@@ -282,6 +286,7 @@ const emit = defineEmits([
 	"toggle-microphone",
 	"toggle-camera",
 	"toggle-screen-share",
+	"toggle-fullscreen",
 	"toggle-raise-hand",
 	"end-call",
 	"device-changed",
@@ -305,6 +310,14 @@ const moreOptions = computed(() => [
 		label: "Meeting information",
 		onClick: () => {
 			showMeetingInfoDialog.value = true;
+			resetHideTimer();
+		},
+	},
+	{
+		icon: props.isFullscreen ? "minimize" : "maximize",
+		label: props.isFullscreen ? "Exit full screen" : "Enter full screen",
+		onClick: () => {
+			emit("toggle-fullscreen");
 			resetHideTimer();
 		},
 	},
