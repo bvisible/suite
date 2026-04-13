@@ -49,11 +49,14 @@ export const useCommandHistory = (state) => {
 		jumpToElements(command.elementIds)
 	}
 
-	const redo = () => {
+	const redo = async () => {
 		if (!canRedo.value) return
 		const command = nextCommands.value.pop()
 		command.execute(state.value)
 		prevCommands.value.push(command)
+
+		await jumpToSlide(command.slideId)
+		jumpToElements(command.elementIds)
 	}
 
 	return { execute, undo, redo, canUndo, canRedo, prevCommands, nextCommands, recentlyRestored }
