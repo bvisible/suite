@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 
 import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
@@ -77,11 +77,13 @@ const getPlaybackTextClasses = (option) => {
 	}
 }
 
+const setProperty = inject('setProperty')
+
 const togglePlaybackOption = (option) => {
-	activeElement.value[option] = !activeElement.value[option]
+	setProperty(option, !activeElement.value[option])
 }
 
 const setPlaybackRate = (value) => {
-	activeElement.value.playbackRate = parseFloat(value)
+	setProperty('playbackRate', parseFloat(value))
 }
 </script>
