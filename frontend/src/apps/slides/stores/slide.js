@@ -183,12 +183,14 @@ const guideVisibilityMap = reactive({
 })
 
 const insertSlide = async (newSlide, index) => {
-	slides.value.splice(index + 1, 0, newSlide)
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
+	const updated = [...slides.value]
+	updated.splice(index + 1, 0, newSlide)
+	updated.forEach((slide, i) => {
+		slide.idx = i + 1
 	})
 
-	slidesLength.value = slides.value.length
+	slides.value = updated
+	slidesLength.value = updated.length
 }
 
 const getNewSlide = (toDuplicate = false, layoutObject) => {
