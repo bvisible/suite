@@ -31,14 +31,13 @@ import {
 	performNextStep,
 	performPreviousStep,
 } from '@/stores/slideshow'
-import { handleUndoRedo } from '@/stores/history'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
 
 const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()
 
-export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
+export const useShortcuts = (inReadonlyMode, inSlideShowMode, commandHistory) => {
 	let keydownListener
 
 	const handleReadonlyModeShortcuts = (e) => {
@@ -157,10 +156,29 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 		}
 	}
 
+	const handleUndoRedo = (e) => {
+		e.preventDefault()
+
+		if (activeEditor.value?.isEditable) {
+			e.stopPropagation()
+			return
+		}
+
+		if (isCmdOrCtrl(e) && e.shiftKey && commandHistory.canRedo.value) {
+			commandHistory.redo()
+		} else if (isCmdOrCtrl(e) && commandHistory.canUndo.value) {
+			commandHistory.undo()
+		}
+	}
+
 	const handleEditModeShortcuts = (e) => {
+		const activeTag = document.activeElement.tagName
+		const activeType = document.activeElement.type
+
 		const editingText =
 			document.activeElement.getAttribute('contenteditable') ||
-			document.activeElement.tagName == 'INPUT' ||
+			(activeTag == 'INPUT' && activeType !== 'range') ||
+			activeTag == 'TEXTAREA' ||
 			focusElementId.value != null
 
 		if (editingText) return
