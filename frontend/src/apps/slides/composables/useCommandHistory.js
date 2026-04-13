@@ -1,0 +1,58 @@
+import { ref, computed } from 'vue'
+import { activeElementIds } from '@/stores/element'
+import { changeEditorSlide, currentSlide, slideIndex } from '@/stores/slide'
+
+export const useCommandHistory = (state) => {
+	const recentlyRestored = ref(false)
+	const prevCommands = ref([])
+	const nextCommands = ref([])
+
+	const canUndo = computed(() => prevCommands.value.length > 0)
+	const canRedo = computed(() => nextCommands.value.length > 0)
+
+	const jumpToSlide = async (jumpToSlideId) => {
+		const onActiveSlide = jumpToSlideId == currentSlide.value.name
+
+		if (!onActiveSlide && jumpToSlideId != null) {
+			await changeEditorSlide(jumpToSlideId, false)
+
+			recentlyRestored.value = true
+			setTimeout(() => {
+				recentlyRestored.value = false
+			}, 1000)
+		}
+
+		return jumpToSlideId
+	}
+
+	const jumpToElements = (jumpToElementIds) => {
+		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToElementIds)) {
+			activeElementIds.value = jumpToElementIds
+		}
+	}
+
+	const execute = (command) => {
+		command.execute(state.value)
+		prevCommands.value.push(command)
+		nextCommands.value = []
+	}
+
+	const undo = async () => {
+		if (!canUndo.value) return
+		const command = prevCommands.value.pop()
+		command.undo(state.value)
+		nextCommands.value.push(command)
+
+		await jumpToSlide(command.slideId)
+		jumpToElements([command.elementId])
+	}
+
+	const redo = () => {
+		if (!canRedo.value) return
+		const command = nextCommands.value.pop()
+		command.execute(state.value)
+		prevCommands.value.push(command)
+	}
+
+	return { execute, undo, redo, canUndo, canRedo, prevCommands, nextCommands, recentlyRestored }
+}
