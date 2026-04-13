@@ -24,6 +24,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
+import { inject } from 'vue'
 
 const imageOrientationProperties = [
 	{
@@ -38,10 +39,12 @@ const imageOrientationProperties = [
 	},
 ]
 
+const setProperty = inject('setProperty')
+
 const toggleImageOrientation = (direction) => {
 	const currentValue = activeElement.value[direction.property]
 	let newValue = 1
 	if (!currentValue || currentValue == 1) newValue = -1
-	activeElement.value[direction.property] = newValue
+	setProperty(direction.property, newValue)
 }
 </script>
