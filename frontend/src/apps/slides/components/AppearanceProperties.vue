@@ -22,6 +22,7 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 
@@ -30,7 +31,9 @@ import { useTextEditor } from '@/composables/useTextEditor'
 
 const { editorStyles, updateProperty } = useTextEditor()
 
+const setProperty = inject('setProperty')
+
 const setOpacity = (value) => {
-	activeElement.value['opacity'] = parseFloat(value)
+	setProperty('opacity', parseFloat(value))
 }
 </script>
