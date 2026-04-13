@@ -1,15 +1,34 @@
 import { findElement } from '@/stores/element'
 
-export const editElementCommand = ({ slideId, elementId, property, oldValue, newValue }) => {
+export const editElementCommand = ({ slideId, elementIds, property, oldValue, newValue }) => {
 	return {
 		slideId,
-		elementId,
-		debug: `Edit ${property} of element ${elementId} on slide ${slideId} to ${newValue}`,
+		elementIds,
+		debug: `Edit ${property} of element ${elementIds} on slide ${slideId} to ${newValue}`,
 		execute(state) {
-			findElement(state, slideId, elementId)[property] = newValue
+			elementIds.forEach((elementId) => {
+				findElement(state, slideId, elementId)[property] = newValue
+			})
 		},
 		undo(state) {
-			findElement(state, slideId, elementId)[property] = oldValue
+			elementIds.forEach((elementId) => {
+				findElement(state, slideId, elementId)[property] = oldValue
+			})
 		},
 	}
 }
+
+export const batchCommand = ({ slideId, elementIds, commands }) => ({
+	slideId,
+	elementIds,
+	debug: 'Batch edit',
+	execute: (state) => {
+		commands.forEach((c) => c.execute(state))
+	},
+	undo: (state) => {
+		commands
+			.slice()
+			.reverse()
+			.forEach((c) => c.undo(state))
+	},
+})

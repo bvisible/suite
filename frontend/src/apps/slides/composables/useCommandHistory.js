@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { activeElementIds } from '@/stores/element'
+import { activeElementIds, cropSelectionToFitContent } from '@/stores/element'
 import { changeEditorSlide, currentSlide, slideIndex } from '@/stores/slide'
 
 export const useCommandHistory = (state) => {
@@ -28,6 +28,8 @@ export const useCommandHistory = (state) => {
 	const jumpToElements = (jumpToElementIds) => {
 		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToElementIds)) {
 			activeElementIds.value = jumpToElementIds
+		} else {
+			cropSelectionToFitContent(jumpToElementIds)
 		}
 	}
 
@@ -44,7 +46,7 @@ export const useCommandHistory = (state) => {
 		nextCommands.value.push(command)
 
 		await jumpToSlide(command.slideId)
-		jumpToElements([command.elementId])
+		jumpToElements(command.elementIds)
 	}
 
 	const redo = () => {
