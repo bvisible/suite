@@ -103,6 +103,7 @@ import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } fro
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import { useCommandHistory } from '@/composables/useCommandHistory'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -124,8 +125,6 @@ const props = defineProps({
 		default: 'none',
 	},
 })
-
-useShortcuts(inReadonlyMode, inSlideShowMode)
 
 const showThemeDialog = ref(false)
 const themeDialogAction = ref('update')
@@ -387,4 +386,9 @@ usePageMeta(() => {
 		title: presentationDoc.value?.title || 'Slides',
 	}
 })
+
+const commandHistory = useCommandHistory(slides)
+provide('commandHistory', commandHistory)
+
+useShortcuts(inReadonlyMode, inSlideShowMode, commandHistory)
 </script>

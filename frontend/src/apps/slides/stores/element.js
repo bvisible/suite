@@ -534,6 +534,13 @@ const updatePosition = (axis, value) => {
 	selectionBounds[property] = value
 }
 
+const findElement = (state, slideId, elementId) => {
+	const slide = state.find((s) => s.name === slideId)
+	if (!slide) return null
+
+	return slide.elements.find((el) => el.id === elementId)
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -555,4 +562,5 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
+	findElement,
 }
