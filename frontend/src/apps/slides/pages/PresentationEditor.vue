@@ -19,7 +19,7 @@
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
-				:recentlyRestored="recentlyRestored"
+				:recentlyRestored="commandHistory.recentlyRestored"
 				@changeSlide="changeEditorSlide"
 				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
@@ -66,7 +66,7 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 
-import { initHistory, recentlyRestored } from '@/stores/history'
+import { initHistory } from '@/stores/history'
 import {
 	presentationId,
 	initPresentationDoc,
