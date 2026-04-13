@@ -96,10 +96,6 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
-import { editElementCommand } from '@/stores/commands'
-import { currentSlide } from '@/stores/slide'
-
-const commandHistory = inject('commandHistory')
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
@@ -133,16 +129,5 @@ const getTabIconClasses = (style) => {
 	}
 }
 
-const setProperty = (property, value) => {
-	const oldValue = activeElement.value[property]
-	commandHistory.execute(
-		editElementCommand({
-			slideId: currentSlide.value.name,
-			elementId: activeElement.value.id,
-			property,
-			oldValue,
-			newValue: value,
-		}),
-	)
-}
+const setProperty = inject('setProperty')
 </script>

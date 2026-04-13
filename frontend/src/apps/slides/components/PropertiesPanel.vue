@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject, provide } from 'vue'
 
 import SlideProperties from '@/components/SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
@@ -27,6 +27,7 @@ import AppearanceProperties from '@/components/AppearanceProperties.vue'
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
+import { editElementCommand } from '@/stores/commands'
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type
@@ -40,6 +41,23 @@ const activeProperties = computed(() => {
 			return VideoProperties
 	}
 })
+
+const commandHistory = inject('commandHistory')
+
+const setProperty = (property, value) => {
+	const oldValue = activeElement.value[property]
+	commandHistory.execute(
+		editElementCommand({
+			slideId: currentSlide.value.name,
+			elementId: activeElement.value.id,
+			property,
+			oldValue,
+			newValue: value,
+		}),
+	)
+}
+
+provide('setProperty', setProperty)
 </script>
 
 <style scoped>
