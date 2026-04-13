@@ -22,6 +22,7 @@ import {
 	focusElementId,
 	activeElement,
 	isWithinOverlappingBounds,
+	cropSelectionToFitContent,
 } from '@/stores/element'
 
 const slideDiv = inject('slideDiv')
@@ -155,35 +156,6 @@ const endSelection = (e) => {
 	document.removeEventListener('mousemove', updateSelection)
 
 	updateSelectedElements()
-}
-
-const cropSelectionToFitContent = (elementIds) => {
-	let l = 10000,
-		t = 10000,
-		r = 0,
-		b = 0
-
-	// crop selection to selected element edges
-	elementIds.forEach((id) => {
-		const {
-			left: elementLeft,
-			top: elementTop,
-			right: elementRight,
-			bottom: elementBottom,
-		} = getElementPosition(id)
-
-		if (elementLeft < l) l = elementLeft
-		if (elementTop < t) t = elementTop
-		if (elementRight > r) r = elementRight
-		if (elementBottom > b) b = elementBottom
-	})
-
-	updateSelectionBounds({
-		left: l,
-		top: t,
-		width: r - l,
-		height: b - t,
-	})
 }
 
 const resetSelection = (oldVal) => {

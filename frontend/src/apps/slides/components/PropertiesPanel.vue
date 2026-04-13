@@ -49,7 +49,7 @@ const setProperty = (property, value) => {
 	commandHistory.execute(
 		editElementCommand({
 			slideId: currentSlide.value.name,
-			elementId: activeElement.value.id,
+			elementIds: activeElementIds.value,
 			property,
 			oldValue,
 			newValue: value,

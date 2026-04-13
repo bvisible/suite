@@ -89,8 +89,11 @@ import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
+import { editElementCommand, batchCommand } from '@/stores/commands'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
+
+const commandHistory = inject('commandHistory')
 
 const props = defineProps({
 	highlight: Boolean,
@@ -470,17 +473,54 @@ defineExpose({
 	togglePanZoom,
 })
 
+const getInteractionCommands = () => {
+	const commands = []
+
+	activeElementIds.value.forEach((id) => {
+		const element = currentSlide.value.elements.find((el) => el.id === id)
+		if (!element) return
+
+		const createCommand = (property, oldValue, newValue) => {
+			if (!newValue) return null
+			return editElementCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [id],
+				property,
+				oldValue,
+				newValue,
+			})
+		}
+
+		const offsetKeys = ['left', 'top', 'width']
+
+		offsetKeys.forEach((key) => {
+			if (elementOffset[key]) {
+				const oldValue = element[key]
+				const newValue = element[key] + elementOffset[key]
+
+				const command = createCommand(key, oldValue, newValue)
+
+				if (command) commands.push(command)
+			}
+		})
+	})
+
+	return commands
+}
+
 const applyInteractionOffsets = () => {
 	pairElementId.value = null
 	requestAnimationFrame(() => {
-		activeElementIds.value.forEach((id) => {
-			const element = currentSlide.value.elements.find((el) => el.id === id)
-			if (element) {
-				element.left += elementOffset.left
-				element.top += elementOffset.top
-				element.width += elementOffset.width
-			}
-		})
+		const commands = getInteractionCommands()
+
+		commandHistory.execute(
+			batchCommand({
+				slideId: currentSlide.value.name,
+				elementIds: activeElementIds.value,
+				commands,
+			}),
+		)
+
 		elementOffset.left = 0
 		elementOffset.top = 0
 		elementOffset.width = 0
