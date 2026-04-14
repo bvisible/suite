@@ -81,6 +81,7 @@ import {
   LoadingIndicator,
   ListView as FrappeListView,
   Avatar,
+  Tooltip,
 } from "frappe-ui"
 import { getThumbnailUrl } from "@/utils/getIconUrl"
 import { useStore } from "vuex"
@@ -138,11 +139,21 @@ const selectedColumns = [
       return getThumbnailUrl(row)
     },
     suffix: ({ row }) => {
-      if (row.share_count === props.rootEntity?.share_count) return
-      if (row.share_count === -2) return h(LucideGlobe2, { class: "size-4" })
-      else if (row.share_count === -1)
-        return h(LucideBuilding2, { class: "size-4" })
-      else if (row.share_count > 0) return h(LucideUsers, { class: "size-4" })
+      
+  if (row.share_count === -2) {
+    return h(Tooltip, { text: "Public" }, {
+      default: () => h(LucideGlobe2, { class: "size-4" })
+    })
+  } else if (row.share_count === -1) {
+    return h(Tooltip, { text: "Organization" }, {
+      default: () => h(LucideBuilding2, { class: "size-4" })
+    })
+  } else if (row.share_count > 0) {
+    return h(Tooltip, { text: `Shared with ${row.share_count} users` }, {
+      default: () => h(LucideUsers, { class: "size-4" })
+    })
+  }
+
     },
   },
   {

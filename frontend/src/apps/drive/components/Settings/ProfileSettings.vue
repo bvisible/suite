@@ -49,7 +49,7 @@
             v-if="newImageUrl"
             class="flex items-center justify-between bg-surface-gray-2 h-7 pl-2 text-base rounded"
           >
-            <LucideLink class="mr-2" />
+            <LucideLink class="mr-2 size-4" />
             <a
               :href="newImageUrl"
               class="truncate max-w-56 underline"
@@ -95,11 +95,6 @@
   </h1>
 
   <Switch
-    v-model="singleClick"
-    label="Single click to open files and folders"
-    class="!px-0 hover:!bg-inherit"
-  />
-  <Switch
     v-model="detectLinks"
     label="Automatically detect links"
     class="!px-0 hover:!bg-inherit"
@@ -132,11 +127,9 @@ const newFullName = computed(() => newFirstName.value + " " + newLastName.value)
 
 const editProfileDialog = ref(false)
 
-const singleClick = ref(Boolean(settings.data?.single_click))
 const detectLinks = ref(Boolean(settings.data?.auto_detect_links))
 const defaultTeam = ref(settings.data.default_team || { label: "-" })
 const options = {
-  single_click: singleClick,
   auto_detect_links: detectLinks,
   default_team: defaultTeam,
 }
