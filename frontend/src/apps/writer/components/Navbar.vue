@@ -89,7 +89,7 @@
         }"
       />
     </div>
-    <Dialogs v-model="dialog" :entities="file?.doc && [file.doc]" />
+    <Dialogs v-model="dialog" :docs="file?.doc && [file]" />
   </nav>
 </template>
 <script setup>
