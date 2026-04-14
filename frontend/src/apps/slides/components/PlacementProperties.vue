@@ -10,7 +10,7 @@
 				<div class="flex items-center gap-3">
 					<NumberInput
 						:modelValue="selectionBounds.left"
-						@update:modelValue="(val) => updatePosition('X', val)"
+						@update:modelValue="(val) => updatePosition('X', val, commandHistory)"
 						prefix="x"
 						:rangeStart="0"
 						:rangeStep="1"
@@ -18,7 +18,7 @@
 					/>
 					<NumberInput
 						:modelValue="selectionBounds.top"
-						@update:modelValue="(val) => updatePosition('Y', val)"
+						@update:modelValue="(val) => updatePosition('Y', val, commandHistory)"
 						prefix="y"
 						:rangeStart="0"
 						:rangeStep="1"
@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import Forward from '@/icons/Forward.vue'
 import Backward from '@/icons/Backward.vue'
 import SendToBack from '@/icons/SendToBack.vue'
@@ -66,6 +67,8 @@ import {
 
 import { fieldLabelClasses } from '@/utils/constants'
 import { cloneObj } from '@/utils/helpers'
+
+const commandHistory = inject('commandHistory')
 
 const arrangeOptions = [
 	{
