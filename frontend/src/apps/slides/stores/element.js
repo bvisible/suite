@@ -19,6 +19,7 @@ import { initElementRefId, updateElementRefId } from './transition'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
+import { editElementCommand, batchCommand } from '@/stores/commands'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -522,18 +523,6 @@ const normalizeZIndices = (elements) => {
 	return elements
 }
 
-const updatePosition = (axis, value) => {
-	const property = axis == 'X' ? 'left' : 'top'
-
-	const delta = value - selectionBounds[property]
-
-	activeElements.value.forEach((element) => {
-		element[property] += delta
-	})
-
-	selectionBounds[property] = value
-}
-
 const findElement = (state, slideId, elementId) => {
 	const slide = state.find((s) => s.name === slideId)
 	if (!slide) return null
@@ -568,6 +557,31 @@ const cropSelectionToFitContent = (elementIds) => {
 		width: r - l,
 		height: b - t,
 	})
+}
+
+const updatePosition = (axis, value, commandHistory) => {
+	const property = axis == 'X' ? 'left' : 'top'
+	const delta = value - selectionBounds[property]
+
+	const commands = activeElements.value.map((element) =>
+		editElementCommand({
+			slideId: currentSlide.value.name,
+			elementIds: [element.id],
+			property,
+			oldValue: element[property],
+			newValue: element[property] + delta,
+		}),
+	)
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.name,
+			elementIds: activeElementIds.value,
+			commands,
+		}),
+	)
+
+	selectionBounds[property] = value
 }
 
 export {

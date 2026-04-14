@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 
 import {
 	AlignStartVertical,
@@ -37,6 +37,8 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
 import { updatePosition, activeElementIds } from '@/stores/element'
+
+const commandHistory = inject('commandHistory')
 
 const horizontalAlignmentOptions = [
 	{
@@ -126,7 +128,7 @@ const getAlignmentButtonClasses = (direction) => {
 const performAlignment = (direction) => {
 	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
 	const value = Math.round(alignmentPositions.value[direction])
-	updatePosition(axis, value)
+	updatePosition(axis, value, commandHistory)
 }
 
 const updateGuideVisibilityMap = (direction, value) => {
