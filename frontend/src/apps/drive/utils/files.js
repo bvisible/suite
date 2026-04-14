@@ -431,7 +431,7 @@ export function getLink(entity, copy = true, withDomain = true) {
   }
   if (!copy) return link
   try {
-    copyToClipboard(link).then(() => toast('Copied to your clipboard!'))
+    copyToClipboard(link).then(() => toast('Copied to your clipboard.'))
   } catch (err) {
     if (err.name === 'NotAllowedError') {
       toast({
