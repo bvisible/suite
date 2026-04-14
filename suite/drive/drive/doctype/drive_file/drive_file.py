@@ -14,7 +14,6 @@ from drive.api.permissions import get_user_access, user_has_permission
 from drive.api.product import invite_users
 from drive.utils import generate_upward_path, get_home_folder, update_file_size
 from drive.utils.files import FileManager
-from drive.utils.api import prettify_file
 
 
 class DriveFile(Document):
@@ -88,13 +87,13 @@ class DriveFile(Document):
         :raises FileExistsError: If a file or folder with the same name already exists in the specified parent folder
         :return: DriveEntity doc once file is moved
         """
-        if new_team and not new_parent:
-            new_parent = new_parent or get_home_folder(new_team).name
-        elif new_parent and not new_team:
+        if new_parent:
             new_team = frappe.db.get_value("Drive File", new_parent, "team")
+        elif new_team:
+            new_parent = get_home_folder(new_team).name
         elif not new_parent and not new_team:
             new_team = self.team
-            new_parent = new_parent or get_home_folder(new_team).name
+            new_parent = get_home_folder(new_team).name
 
         if new_parent == self.name:
             frappe.throw(
