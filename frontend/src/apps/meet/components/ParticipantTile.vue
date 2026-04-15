@@ -2,6 +2,10 @@
 	<div
 		class="group relative rounded-lg overflow-hidden min-h-0"
 		:class="tileBackgroundClass"
+		:data-testid="`participant-tile-${participant.user_id}`"
+		:data-audio-enabled="String(isAudioEnabled)"
+		:data-video-enabled="String(isVideoEnabled)"
+		:data-tile-id="`${pinType}-${pinId || participant.user_id}`"
 	>
 		<video
 			:ref="videoRef"
