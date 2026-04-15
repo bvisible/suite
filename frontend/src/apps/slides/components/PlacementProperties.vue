@@ -59,11 +59,13 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { selectionBounds, currentSlide } from '@/stores/slide'
 import {
 	activeElements,
+	activeElementIds,
 	updatePosition,
 	getElementPosition,
 	isWithinOverlappingBounds,
 	normalizeZIndices,
 } from '@/stores/element'
+import { editElementCommand, batchCommand } from '@/stores/commands'
 
 import { fieldLabelClasses } from '@/utils/constants'
 import { cloneObj } from '@/utils/helpers'
@@ -191,8 +193,37 @@ const getElementsWithUpdatedZIndices = (action) => {
 	return normalizeZIndices(elements)
 }
 
+const getPlacementUpdateCommands = (action) => {
+	const commands = []
+
+	const elementsWithUpdatedZIndices = getElementsWithUpdatedZIndices(action)
+
+	elementsWithUpdatedZIndices.forEach((updatedElement) => {
+		const originalElement = currentSlide.value.elements.find((el) => el.id == updatedElement.id)
+
+		commands.push(
+			editElementCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [updatedElement.id],
+				property: 'zIndex',
+				oldValue: originalElement.zIndex,
+				newValue: updatedElement.zIndex,
+			}),
+		)
+	})
+
+	return commands
+}
+
 const sendBackward = () => {
-	currentSlide.value.elements = getElementsWithUpdatedZIndices('backward')
+	const commands = getPlacementUpdateCommands('backward')
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.name,
+			elementIds: activeElementIds.value,
+			commands,
+		}),
+	)
 }
 
 const sendToBack = () => {
