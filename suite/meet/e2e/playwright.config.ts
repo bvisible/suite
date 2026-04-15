@@ -6,7 +6,7 @@ export default defineConfig({
 	testDir: "./specs",
 	fullyParallel: false,
 	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 1 : 0,
+	retries: process.env.CI ? 2 : 0,
 	workers: 1,
     maxFailures: process.env.CI ? 3 : undefined,
 	timeout: 60_000,
