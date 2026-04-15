@@ -65,7 +65,7 @@
             </div>
           </div>
         </div>
-        <Button v-if="getEntities.loading" :loading="true" label="Loading..." />
+        <Button v-if="delayedLoading" :loading="true" label="Loading..." />
         <TeamSelector
           :disabled="disabled && team === 'all'"
           v-if="
@@ -166,7 +166,15 @@
 </template>
 <script setup>
 import { Button, Dropdown, TextInput, TabButtons, Switch } from 'frappe-ui'
-import { ref, computed, watch, useTemplateRef, h, defineComponent } from 'vue'
+import {
+  ref,
+  computed,
+  watch,
+  useTemplateRef,
+  h,
+  defineComponent,
+  onWatcherCleanup,
+} from 'vue'
 import { getIconUrl } from '@/utils/getIconUrl'
 import { useStore } from 'vuex'
 import { onKeyDown } from '@vueuse/core'
@@ -192,6 +200,23 @@ const viewState = ref(store.state.view)
 watch(viewState, (val) => store.commit('toggleView', val))
 const shareView = ref(store.state.shareView)
 const searchInput = useTemplateRef('search-input')
+
+const delayedLoading = ref(false)
+
+watch(
+  () => props.getEntities.loading,
+  (newVal) => {
+    if (newVal) {
+      const timer = setTimeout(() => {
+        delayedLoading.value = true
+      }, 1000)
+      onWatcherCleanup(() => clearTimeout(timer))
+    } else {
+      delayedLoading.value = false
+    }
+  },
+  { immediate: true }
+)
 
 const availableFilterTypes = computed(() => {
   if (!props.getEntities.data) return []
