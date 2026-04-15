@@ -64,16 +64,7 @@ const calculatePercent = computed(() => {
 })
 const route = useRoute()
 const team = computed(() => route.params.team)
-
-watch(
-  team,
-  (val) =>
-    storageBar.fetch({
-      team: val || "",
-      entity_name: route.params.entityName || "",
-    }),
-  {
-    immediate: true,
-  }
-)
+storageBar.fetch({
+  team: team.value || "",
+})
 </script>

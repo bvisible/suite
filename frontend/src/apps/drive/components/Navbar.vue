@@ -86,7 +86,8 @@
         v-if="
           ['Folder', 'Home', 'Team'].includes($route.name) &&
           isLoggedIn &&
-          props.rootResource?.data?.upload
+          // Assume upload to remove flash
+          props.rootResource?.data?.upload !== false
         "
         :button="{
           variant: 'solid',
