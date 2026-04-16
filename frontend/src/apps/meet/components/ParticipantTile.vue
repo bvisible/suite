@@ -24,8 +24,18 @@
 			class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md"
 		>
 			<lucide-monitor-up class="w-8 h-8 text-white mb-6" />
-			<div class="text-white font-medium text-lg mb-1">You are sharing your screen</div>
-			<div class="text-white font-medium text-sm">Everyone else can see what you are presenting</div>
+			<div
+				v-if="showScreenShareCopy"
+				class="text-white font-medium text-lg mb-1"
+			>
+				You are sharing your screen
+			</div>
+			<div
+				v-if="showScreenShareCopy"
+				class="text-white font-medium text-sm"
+			>
+				Everyone else can see what you are presenting
+			</div>
 		</div>
 
 		<div
@@ -244,6 +254,10 @@ const props = defineProps({
 });
 
 const showBlur = ref(props.participant.isLocalScreenShare);
+
+const showScreenShareCopy = computed(() => {
+	return !meetingState?.pinnedTile?.value || isPinned.value;
+});
 
 const { stream } = useAudioStream(props.participant.user_id);
 
