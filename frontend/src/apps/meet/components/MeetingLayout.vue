@@ -38,6 +38,7 @@
 				:isActiveSpeaker="activeSpeakerIds.includes(localParticipant.user_id)"
 				:videoRef="setLocalVideoRef"
 				:tileCount="visibleTileCount"
+				:showReaction="!pinnedTile"
 				:style="tileStyle"
 			/>
 
@@ -177,11 +178,11 @@ const getScreenShareTileBindings = (shareTile) => {
 		videoObjectFitClass: isPinned ? "object-contain" : undefined,
 		videoBackgroundClass: isPinned ? "bg-gray-900" : undefined,
 		tileBackgroundClass: isPinned ? "bg-black" : undefined,
-		showAvatar: isPinned ? false : undefined,
-		showReaction: isPinned ? false : undefined,
-		showRaisedHand: isPinned ? false : undefined,
-		showAudioState: isPinned ? false : undefined,
-		showNetworkState: isPinned ? false : undefined,
+		showAvatar: !isPinned,
+		showReaction: !isPinned,
+		showRaisedHand: !isPinned,
+		showAudioState: !isPinned,
+		showNetworkState: !isPinned,
 	};
 };
 
@@ -200,6 +201,7 @@ const getParticipantTileBindings = (participant) => {
 		isActiveSpeaker: activeSpeakerIds.value.includes(participant.user_id),
 		videoRef: getRemoteVideoRef(participant.user_id),
 		tileCount: isPinned ? 1 : visibleTileCount.value,
+		showReaction: !pinnedTile.value,
 		style: isPinned
 			? pinnedTileStyle.value
 			: participant.isVisible
