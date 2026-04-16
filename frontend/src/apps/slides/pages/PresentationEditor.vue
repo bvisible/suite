@@ -104,6 +104,7 @@ import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 import { useCommandHistory } from '@/composables/useCommandHistory'
+import { registerCommandHistory } from '@/composables/useTextEditor'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -388,6 +389,7 @@ usePageMeta(() => {
 })
 
 const commandHistory = useCommandHistory(slides)
+registerCommandHistory(commandHistory)
 provide('commandHistory', commandHistory)
 
 useShortcuts(inReadonlyMode, inSlideShowMode, commandHistory)

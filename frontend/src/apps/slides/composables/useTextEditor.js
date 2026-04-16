@@ -3,8 +3,18 @@ import { Editor } from '@tiptap/vue-3'
 import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
 import { activeElement } from '@/stores/element'
+import { editElementCommand } from '@/stores/commands'
+import { currentSlide } from '@/stores/slide'
 
 export const activeEditor = ref(null)
+
+let commandHistory = null
+
+export const registerCommandHistory = (ch) => {
+	commandHistory = ch
+}
+
+const contentHistory = ref('')
 
 const editorStyles = reactive({
 	textAlign: 'left',
@@ -60,6 +70,25 @@ export const useTextEditor = () => {
 
 		updateElementContent(editor)
 		setEditorStyles(editor)
+	}
+
+	const handleOnFocus = (editor) => {
+		contentHistory.value = editor.getHTML()
+	}
+
+	const handleOnBlur = (editor) => {
+		if (contentHistory.value == editor.getHTML()) return
+		if (!commandHistory) return
+
+		commandHistory.execute(
+			editElementCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [activeElement.value.id],
+				property: 'content',
+				oldValue: contentHistory.value,
+				newValue: editor.getHTML(),
+			}),
+		)
 	}
 
 	const markCommands = {
@@ -199,6 +228,8 @@ export const useTextEditor = () => {
 			onSelectionUpdate: ({ editor }) => setEditorStyles(editor),
 			// to update element content on every change
 			onTransaction: ({ editor, transaction }) => handleOnTransaction(editor, transaction),
+			onFocus: ({ editor }) => handleOnFocus(editor),
+			onBlur: ({ editor }) => handleOnBlur(editor),
 		})
 
 		setEditorStyles(activeEditor.value)
