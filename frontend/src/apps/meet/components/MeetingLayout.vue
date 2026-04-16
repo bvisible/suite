@@ -5,63 +5,26 @@
 		data-testid="meeting-layout"
 		:class="
 			mode === 'sidebar'
-				? 'flex flex-col sm:flex-row overflow-hidden mb-2'
+				? 'relative flex flex-col sm:flex-row overflow-hidden mb-2'
 				: 'relative h-full'
 		"
 	>
-		<!-- ── Pinned area ────────────────────────────────────────────────── -->
+		<!-- ── Pinned area (empty placeholder; the pinned tile will be rendered here) ─────────────────── -->
 		<div
 			v-if="mode === 'sidebar' && pinnedTile"
 			ref="pinnedPanel"
-			class="group/pinned relative bg-black rounded-lg overflow-hidden flex items-center justify-center flex-1 sm:flex-1 min-h-0"
-		>
-			<ParticipantTile
-				v-if="pinnedTile.type === 'screenshare' && pinnedScreenShareTileParticipant"
-				:participant="pinnedScreenShareTileParticipant"
-				:isLocal="false"
-				:isVideoEnabled="true"
-				:isAudioEnabled="false"
-				:videoRef="setScreenShareVideoRef"
-				:tileCount="1"
-				pinType="screenshare"
-				:pinId="pinnedTile.id || null"
-				labelSize="sm"
-				labelPosition="top-left"
-				videoObjectFitClass="object-contain"
-				videoBackgroundClass="bg-gray-900"
-				tileBackgroundClass="bg-black"
-				:showAvatar="false"
-				:showReaction="false"
-				:showRaisedHand="false"
-				:showAudioState="false"
-				:showNetworkState="false"
-				class="absolute inset-0 w-full h-full pin-anim-target"
-			/>
-
-			<!-- Pinned participant tile (fills the area) -->
-			<ParticipantTile
-				v-else-if="pinnedParticipant"
-				:participant="pinnedParticipant"
-				:isLocal="false"
-				:isVideoEnabled="pinnedParticipant.video_enabled"
-				:isAudioEnabled="pinnedParticipant.audio_enabled"
-				:isActiveSpeaker="activeSpeakerIds.includes(pinnedParticipant.user_id)"
-				:videoRef="getRemoteVideoRef(pinnedParticipant.user_id)"
-				:tileCount="1"
-				class="absolute inset-0 w-full h-full pin-anim-target"
-			/>
-
-		</div>
+			class="relative rounded-lg overflow-hidden flex-1 sm:flex-1 min-h-0 pointer-events-none"
+		/>
 
 		<!-- ── Tile strip / full grid ─────────────────────────────────────── -->
 		<TransitionGroup
-			name="tile"
+			:name="isFlipAnimating ? '' : 'tile'"
 			tag="div"
-			class="relative h-full"
+			class="h-full"
 			:class="[
 				mode === 'sidebar'
-					? 'overflow-y-auto grid gap-2 mt-3 sm:mt-0 sm:ml-3 ' + containerClass
-					: 'call-grid',
+					? 'grid gap-2 mt-3 sm:mt-0 sm:ml-3 ' + containerClass
+					: 'relative call-grid',
 			]"
 			:style="containerStyle"
 		>
@@ -79,27 +42,9 @@
 			/>
 
 			<ParticipantTile
-				v-for="shareTile in visibleScreenShareTiles"
+				v-for="shareTile in allScreenShareTiles"
 				:key="shareTile.pinId"
-				:data-tile-id="`screenshare-${shareTile.pinId}`"
-				:participant="shareTile.participant"
-				:isLocal="false"
-				:isVideoEnabled="true"
-				:isAudioEnabled="false"
-				:videoRef="setScreenShareVideoRef"
-				:tileCount="visibleTileCount"
-				:style="tileStyle"
-				pinType="screenshare"
-				:pinId="shareTile.pinId"
-				labelSize="sm"
-				videoObjectFitClass="object-contain"
-				videoBackgroundClass="bg-gray-900"
-				tileBackgroundClass="bg-black"
-				:showAvatar="false"
-				:showReaction="false"
-				:showRaisedHand="false"
-				:showAudioState="false"
-				:showNetworkState="false"
+				v-bind="getScreenShareTileBindings(shareTile)"
 			/>
 
 			<!-- Remote participants -->
@@ -108,16 +53,7 @@
 				:key="'group-' + participant.user_id"
 			>
 				<ParticipantTile
-					:data-tile-id="`participant-${participant.user_id}`"
-					:class="{ 'hidden-tile': !participant.isVisible }"
-					:participant="participant"
-					:isLocal="false"
-					:isVideoEnabled="participant.video_enabled"
-					:isAudioEnabled="participant.audio_enabled"
-					:isActiveSpeaker="activeSpeakerIds.includes(participant.user_id)"
-					:videoRef="getRemoteVideoRef(participant.user_id)"
-					:tileCount="visibleTileCount"
-					:style="participant.isVisible ? tileStyle : undefined"
+					v-bind="getParticipantTileBindings(participant)"
 				/>
 			</template>
 
@@ -144,8 +80,10 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useLayout } from "../composables/useLayout";
+import { usePinnedTileAnimation } from "../composables/usePinnedTileAnimation";
+import { useScreenShareTiles } from "../composables/useScreenShareTiles";
 import { useTileAdaptiveStreaming } from "../composables/useTileAdaptiveStreaming";
 import { getInitials } from "../utils/text";
 import FloatingReactions from "./FloatingReactions.vue";
@@ -189,37 +127,7 @@ const displayScreenShares = computed(
 	() => meetingState.displayScreenShares.value,
 );
 
-// ── Auto-pin screen shares ────────────────────────────────────────────────────
-// When a NEW screen share starts, pin it. When it ends, clean up.
-
-watch(
-	displayScreenShares,
-	(shares, oldShares) => {
-		const newId = shares[0]?.consumerId;
-		const oldId = oldShares?.[0]?.consumerId;
-
-		if (shares.length > 0 && newId !== oldId) {
-			// New screen share started — pin it
-			meetingState.pinTile("screenshare", newId);
-		} else if (shares.length > 0 && !pinnedTile.value) {
-			// No pin — auto-pin (initial load)
-			meetingState.pinTile("screenshare", newId);
-		} else if (
-			shares.length === 0 &&
-			pinnedTile.value?.type === "screenshare"
-		) {
-			meetingState.unpinTile();
-		}
-	},
-	{ immediate: true },
-);
-
 // ── Pinned area data ──────────────────────────────────────────────────────────
-
-const pinnedParticipant = computed(() => {
-	if (pinnedTile.value?.type !== "participant") return null;
-	return participants.value[pinnedTile.value.id] || null;
-});
 
 // Unpin when the pinned participant leaves
 watch(
@@ -234,102 +142,71 @@ watch(
 	},
 );
 
-const screenShareTileParticipants = computed(() => {
-	return displayScreenShares.value.map((share) => {
-		const participantName = getParticipantName(share.participantId);
-		const isLocalSharer = currentUser.value?.user_id === share.participantId;
-		const localName = currentUser.value?.full_name || currentUser.value?.name;
-		const displayName = `${
-			isLocalSharer ? localName : participantName
-		}'s screen`;
+// ── Pin helpers ───────────────────────────────────────────────────────────────
 
-		return {
-			pinId: share.consumerId,
-			participant: {
-				user_id: share.participantId,
-				user_name: displayName,
-				avatar: "",
-				initials: getInitials(displayName),
-				isLocalScreenShare: isLocalSharer,
-			},
-		};
-	});
+const isPinnedParticipant = (userId) =>
+	pinnedTile.value?.type === "participant" && pinnedTile.value.id === userId;
+
+const isPinnedScreenShare = (pinId) =>
+	pinnedTile.value?.type === "screenshare" && pinnedTile.value.id === pinId;
+
+const { screenShareTiles: allScreenShareTiles } = useScreenShareTiles({
+	displayScreenShares,
+	pinnedTile,
+	currentUser,
+	meetingState,
+	getParticipantName,
 });
 
-const pinnedScreenShareTileParticipant = computed(() => {
-	if (pinnedTile.value?.type !== "screenshare") return null;
-	return (
-		screenShareTileParticipants.value.find(
-			(share) => share.pinId === pinnedTile.value.id,
-		)?.participant || null
-	);
-});
+const getScreenShareTileBindings = (shareTile) => {
+	const isPinned = isPinnedScreenShare(shareTile.pinId);
 
-const visibleScreenShareTiles = computed(() => {
-	if (pinnedTile.value?.type === "screenshare") {
-		return screenShareTileParticipants.value.filter(
-			(share) => share.pinId !== pinnedTile.value.id,
-		);
-	}
-	return screenShareTileParticipants.value;
-});
-
-const getPinnedSourceSelector = (tile) => {
-	if (!tile?.id || !tile?.type) return null;
-	return `[data-tile-id="${tile.type}-${tile.id}"]`;
+	return {
+		participant: shareTile.participant,
+		isLocal: false,
+		isVideoEnabled: true,
+		isAudioEnabled: false,
+		videoRef: setScreenShareVideoRef,
+		tileCount: isPinned ? 1 : visibleTileCount.value,
+		class: isPinned ? "pinned-tile" : undefined,
+		style: isPinned ? pinnedTileStyle.value : tileStyle.value,
+		pinType: "screenshare",
+		pinId: shareTile.pinId,
+		labelSize: isPinned ? "sm" : undefined,
+		labelPosition: isPinned ? "top-left" : undefined,
+		videoObjectFitClass: isPinned ? "object-contain" : undefined,
+		videoBackgroundClass: isPinned ? "bg-gray-900" : undefined,
+		tileBackgroundClass: isPinned ? "bg-black" : undefined,
+		showAvatar: isPinned ? false : undefined,
+		showReaction: isPinned ? false : undefined,
+		showRaisedHand: isPinned ? false : undefined,
+		showAudioState: isPinned ? false : undefined,
+		showNetworkState: isPinned ? false : undefined,
+	};
 };
 
-// Animate pinned tile from its position in the grid to the pinned area
-watch(
-	pinnedTile,
-	async (nextPinned, prevPinned) => {
-		if (mode.value !== "sidebar" || !nextPinned?.id) return;
-		const pinChanged =
-			!prevPinned ||
-			prevPinned.id !== nextPinned.id ||
-			prevPinned.type !== nextPinned.type;
-		if (!pinChanged) return;
+const getParticipantTileBindings = (participant) => {
+	const isPinned = isPinnedParticipant(participant.user_id);
 
-		const sourceSelector = getPinnedSourceSelector(nextPinned);
-		const sourceEl = sourceSelector
-			? container.value?.querySelector(sourceSelector)
-			: null;
-		const sourceRect = sourceEl?.getBoundingClientRect();
-		if (!sourceRect) return;
-
-		await nextTick();
-
-		const targetEl = pinnedPanel.value?.querySelector(".pin-anim-target");
-		const targetRect = targetEl?.getBoundingClientRect();
-		if (!targetRect || !targetEl) return;
-
-		const dx = sourceRect.left - targetRect.left;
-		const dy = sourceRect.top - targetRect.top;
-		const sx = sourceRect.width / targetRect.width;
-		const sy = sourceRect.height / targetRect.height;
-
-		targetEl.animate(
-			[
-				{
-					transformOrigin: "top left",
-					transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-					opacity: 0.9,
-				},
-				{
-					transformOrigin: "top left",
-					transform: "translate(0px, 0px) scale(1, 1)",
-					opacity: 1,
-				},
-			],
-			{
-				duration: 360,
-				easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-				fill: "both",
-			},
-		);
-	},
-	{ flush: "pre" },
-);
+	return {
+		class: {
+			"hidden-tile": !participant.isVisible && !isPinned,
+			"pinned-tile": isPinned,
+		},
+		participant,
+		isLocal: false,
+		isVideoEnabled: participant.video_enabled,
+		isAudioEnabled: participant.audio_enabled,
+		isActiveSpeaker: activeSpeakerIds.value.includes(participant.user_id),
+		videoRef: getRemoteVideoRef(participant.user_id),
+		tileCount: isPinned ? 1 : visibleTileCount.value,
+		style: isPinned
+			? pinnedTileStyle.value
+			: participant.isVisible
+				? tileStyle.value
+				: undefined,
+	};
+};
 
 // ── Local participant object ───────────────────────────────────────────────────
 
@@ -360,8 +237,12 @@ const localParticipant = computed(() => {
 	return { user_id, user_name, avatar, initials: getInitials(user_name) };
 });
 
-// Number of extra (non-participant) tiles in the grid, e.g. an unpinned screen share
-const extraTileCount = computed(() => visibleScreenShareTiles.value.length);
+// Number of extra strip tiles (pinned screenshares overlay the main panel instead)
+const extraTileCount = computed(() => {
+	if (pinnedTile.value?.type !== "screenshare")
+		return allScreenShareTiles.value.length;
+	return Math.max(0, allScreenShareTiles.value.length - 1);
+});
 
 // ── Layout composable ─────────────────────────────────────────────────────────
 
@@ -375,6 +256,13 @@ const {
 	visibleTileCount,
 	hiddenParticipantsTooltip,
 } = useLayout(participants, pinnedTile, meetingState, extraTileCount);
+
+const { isFlipAnimating, pinnedTileStyle } = usePinnedTileAnimation({
+	container,
+	pinnedPanel,
+	pinnedTile,
+	visibleTileCount,
+});
 
 // ── Floating reactions ────────────────────────────────────────────────────────
 // Grid mode: only reactions from hidden participants (visible tiles show their own)
@@ -426,6 +314,16 @@ const floatingReactions = computed(() => {
 </script>
 
 <style scoped>
+/* Pinned tile overlays the pinned panel placeholder */
+.pinned-tile {
+	border-radius: 0.5rem;
+	overflow: hidden;
+	pointer-events: auto;
+	will-change: transform, top, left, width, height;
+	backface-visibility: hidden;
+	transform: translateZ(0);
+}
+
 /* Hidden tiles stay mounted to preserve grid animation continuity */
 .hidden-tile {
 	position: absolute;
