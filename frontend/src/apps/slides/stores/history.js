@@ -197,4 +197,18 @@ const handleUndoRedo = (e) => {
 	}
 }
 
-export { recentlyRestored, historyMetadata, ignoreUpdates, initHistory, handleUndoRedo }
+let commandHistory = null
+
+const setCommandHistory = (history) => {
+	commandHistory = history
+}
+
+export {
+	recentlyRestored,
+	historyMetadata,
+	ignoreUpdates,
+	initHistory,
+	handleUndoRedo,
+	setCommandHistory,
+	commandHistory,
+}

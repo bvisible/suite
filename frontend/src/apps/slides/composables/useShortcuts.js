@@ -2,6 +2,7 @@ import { onMounted, onBeforeUnmount } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
+import { commandHistory } from '@/stores/history'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import {
@@ -37,7 +38,7 @@ import { isCmdOrCtrl } from '@/utils/helpers'
 const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()
 
-export const useShortcuts = (inReadonlyMode, inSlideShowMode, commandHistory) => {
+export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 	let keydownListener
 
 	const handleReadonlyModeShortcuts = (e) => {

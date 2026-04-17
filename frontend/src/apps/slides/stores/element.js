@@ -16,6 +16,7 @@ import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { presentationId } from './presentation'
 import { initElementRefId, updateElementRefId } from './transition'
+import { commandHistory } from './history'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
@@ -559,7 +560,7 @@ const cropSelectionToFitContent = (elementIds) => {
 	})
 }
 
-const updatePosition = (axis, value, commandHistory) => {
+const updatePosition = (axis, value) => {
 	const property = axis == 'X' ? 'left' : 'top'
 	const delta = value - selectionBounds[property]
 

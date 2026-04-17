@@ -83,6 +83,8 @@ import {
 	addTextElement,
 } from '@/stores/element'
 
+import { commandHistory } from '@/stores/history'
+
 import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
@@ -92,8 +94,6 @@ import { useSnapping } from '@/composables/useSnapping'
 import { editElementCommand, batchCommand } from '@/stores/commands'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
-
-const commandHistory = inject('commandHistory')
 
 const props = defineProps({
 	highlight: Boolean,
