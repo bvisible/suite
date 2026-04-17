@@ -97,6 +97,7 @@ import {
 	handleInsertSlide,
 } from '@/stores/slide'
 import { resetFocus, focusElementId } from '@/stores/element'
+import { setCommandHistory, commandHistory } from '@/stores/history'
 
 import { useShortcuts } from '@/composables/useShortcuts'
 import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
@@ -104,7 +105,6 @@ import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import LayoutDialog from '@/components/LayoutDialog.vue'
 import { useCommandHistory } from '@/composables/useCommandHistory'
-import { registerCommandHistory } from '@/composables/useTextEditor'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -388,9 +388,8 @@ usePageMeta(() => {
 	}
 })
 
-const commandHistory = useCommandHistory(slides)
-registerCommandHistory(commandHistory)
-provide('commandHistory', commandHistory)
+const commandHistoryInstance = useCommandHistory(slides)
+setCommandHistory(commandHistoryInstance)
 
-useShortcuts(inReadonlyMode, inSlideShowMode, commandHistory)
+useShortcuts(inReadonlyMode, inSlideShowMode)
 </script>

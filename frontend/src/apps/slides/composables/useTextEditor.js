@@ -2,17 +2,12 @@ import { ref, reactive, watch } from 'vue'
 import { Editor } from '@tiptap/vue-3'
 import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
+import { commandHistory } from '@/stores/history'
 import { activeElement } from '@/stores/element'
 import { editElementCommand } from '@/stores/commands'
 import { currentSlide } from '@/stores/slide'
 
 export const activeEditor = ref(null)
-
-let commandHistory = null
-
-export const registerCommandHistory = (ch) => {
-	commandHistory = ch
-}
 
 const contentHistory = ref('')
 
