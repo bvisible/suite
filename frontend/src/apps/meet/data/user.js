@@ -1,5 +1,5 @@
-import { createResource } from "frappe-ui";
 import router from "@/router";
+import { createResource } from "frappe-ui";
 
 export const userResource = createResource({
 	url: "meet.api.account.get_logged_in_user",

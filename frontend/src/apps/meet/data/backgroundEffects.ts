@@ -1,4 +1,4 @@
-import { computed, type Ref, ref } from "vue";
+import { type Ref, computed, ref } from "vue";
 import {
 	convertToWebP,
 	deleteCustomImage,

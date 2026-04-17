@@ -1,4 +1,4 @@
-import { computed, type Ref, watch } from "vue";
+import { type Ref, computed, watch } from "vue";
 import { getInitials } from "../utils/text";
 import type { PinnedTile } from "./useLayout";
 
