@@ -166,7 +166,7 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode, commandHistory) =>
 
 		if (isCmdOrCtrl(e) && e.shiftKey && commandHistory.canRedo.value) {
 			commandHistory.redo()
-		} else if (isCmdOrCtrl(e) && commandHistory.canUndo.value) {
+		} else if (isCmdOrCtrl(e) && !e.shiftKey && commandHistory.canUndo.value) {
 			commandHistory.undo()
 		}
 	}
