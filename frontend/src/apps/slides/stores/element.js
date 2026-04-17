@@ -20,7 +20,7 @@ import { commandHistory } from './history'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
-import { editElementCommand, batchCommand } from '@/stores/commands'
+import { editElementCommand, batchCommand, addElementCommand } from '@/stores/commands'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -150,7 +150,12 @@ const addTextElement = async (text, position) => {
 		},
 	}
 
-	currentSlide.value.elements.push(element)
+	commandHistory.execute(
+		addElementCommand({
+			slideId: currentSlide.value.name,
+			element: element,
+		}),
+	)
 
 	updateElementRefId(element)
 

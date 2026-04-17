@@ -160,11 +160,6 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 	const handleUndoRedo = (e) => {
 		e.preventDefault()
 
-		if (activeEditor.value?.isEditable) {
-			e.stopPropagation()
-			return
-		}
-
 		if (isCmdOrCtrl(e) && e.shiftKey && commandHistory.canRedo.value) {
 			commandHistory.redo()
 		} else if (isCmdOrCtrl(e) && !e.shiftKey && commandHistory.canUndo.value) {
@@ -172,15 +167,26 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 		}
 	}
 
+	const isUsingTiptapHistory = (e) => {
+		if (e.key != 'z' || !activeEditor.value?.isEditable) return false
+
+		const operation =
+			isCmdOrCtrl(e) && e.shiftKey ? 'redo' : isCmdOrCtrl(e) && !e.shiftKey ? 'undo' : null
+		if (!operation) return
+
+		return activeEditor.value.can()[operation]()
+	}
+
 	const handleEditModeShortcuts = (e) => {
 		const activeTag = document.activeElement.tagName
 		const activeType = document.activeElement.type
 
+		const useTiptapHistory = isUsingTiptapHistory(e)
+
 		const editingText =
-			document.activeElement.getAttribute('contenteditable') ||
 			(activeTag == 'INPUT' && activeType !== 'range') ||
 			activeTag == 'TEXTAREA' ||
-			focusElementId.value != null
+			useTiptapHistory
 
 		if (editingText) return
 
