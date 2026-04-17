@@ -1,5 +1,12 @@
 import { confirmDialog, createResource, frappeRequest, toast } from "frappe-ui";
-import { defineAsyncComponent, h, onUnmounted, ref, watch } from "vue";
+import {
+	defineAsyncComponent,
+	h,
+	onUnmounted,
+	ref,
+	shallowRef,
+	watch,
+} from "vue";
 import { useRouter } from "vue-router";
 import {
 	noiseCancellationEnabled,
@@ -58,7 +65,7 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 
 	// Refs
 	const localVideo = ref(null);
-	const sfuManager = ref(null);
+	const sfuManager = shallowRef(null);
 	const screenShareVideoElements = new Map();
 	const realtimeListenersSetup = ref(false);
 	const activeSpeakerTimeout = ref(null);
