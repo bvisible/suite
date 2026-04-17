@@ -2,7 +2,7 @@
 	<div v-show="selectionBounds.width" ref="selected" :style="boxStyles">
 		<Resizer
 			v-if="showResizers"
-			:elementType="activeElement.type"
+			:elementType="activeElement?.type"
 			:dimensions="selectionBounds"
 			:style="{ pointerEvents: 'auto' }"
 		/>

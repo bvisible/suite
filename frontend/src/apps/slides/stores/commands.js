@@ -1,5 +1,24 @@
 import { findElement } from '@/stores/element'
 
+const findSlide = (state, slideId) => state.find((s) => s.name === slideId)
+
+export const addElementCommand = ({ slideId, element }) => ({
+	slideId,
+	elementIds: [element.id],
+	debug: `Add element ${element.id} on slide ${slideId}`,
+	execute(state) {
+		const slide = findSlide(state, slideId)
+		if (!slide) return
+		if (slide.elements.find((el) => el.id === element.id)) return
+		slide.elements.push(element)
+	},
+	undo(state) {
+		const slide = findSlide(state, slideId)
+		if (!slide) return
+		slide.elements = slide.elements.filter((el) => el.id !== element.id)
+	},
+})
+
 export const editElementCommand = ({ slideId, elementIds, property, oldValue, newValue }) => {
 	return {
 		slideId,

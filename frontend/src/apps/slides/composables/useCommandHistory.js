@@ -26,6 +26,14 @@ export const useCommandHistory = (state) => {
 	}
 
 	const jumpToElements = (jumpToElementIds) => {
+		if (!jumpToElementIds || jumpToElementIds.length === 0) return
+		const elementExists = jumpToElementIds.every((id) =>
+			currentSlide.value?.elements.some((el) => el.id === id),
+		)
+		if (!elementExists) {
+			activeElementIds.value = []
+			return
+		}
 		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToElementIds)) {
 			activeElementIds.value = jumpToElementIds
 		} else {
