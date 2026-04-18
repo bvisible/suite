@@ -309,10 +309,6 @@ const insertDuplicateSlide = async (index, layoutObj, toDuplicate) => {
 	const newSlide = getNewSlide(toDuplicate, layoutObj)
 
 	insertSlide(newSlide, index)
-
-	await changeEditorSlide(index + 1)
-
-	updateThumbnail(index + 1)
 }
 
 const duplicateSlide = (e) => {

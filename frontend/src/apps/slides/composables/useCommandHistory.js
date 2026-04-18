@@ -5,7 +5,13 @@ import {
 	focusElementId,
 	setActiveElements,
 } from '@/stores/element'
-import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/stores/slide'
+import {
+	changeEditorSlide,
+	currentSlide,
+	slideIndex,
+	slides,
+	updateThumbnail,
+} from '@/stores/slide'
 
 export const useCommandHistory = (state) => {
 	const recentlyRestored = ref(false)
@@ -49,7 +55,7 @@ export const useCommandHistory = (state) => {
 		}
 	}
 
-	const execute = (command) => {
+	const execute = async (command) => {
 		command.execute(state.value)
 		prevCommands.value.push(command)
 		nextCommands.value = []
@@ -61,15 +67,9 @@ export const useCommandHistory = (state) => {
 			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
 		}
 
-		if (
-			command.key == 'addElement' ||
-			command.key == 'removeElement' ||
-			command.key == 'editElement' ||
-			command.key == 'batch'
-		) {
-			jumpToSlide(index)
-			jumpToElements(command.jumpToElementIds, command.focusElementId)
-		}
+		await jumpToSlide(index)
+		updateThumbnail(index)
+		jumpToElements(command.jumpToElementIds, command.focusElementId)
 	}
 
 	const undo = async () => {
@@ -77,17 +77,21 @@ export const useCommandHistory = (state) => {
 
 		const command = prevCommands.value.pop()
 
+		let index = null
+
 		if (command.key === 'addSlide') {
-			const index = command.fromSlideIndex
+			index = command.fromSlideIndex
 			await jumpToSlide(index)
 			command.undo(state.value)
 			nextCommands.value.push(command)
 		} else {
-			const index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
+			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
 			await jumpToSlide(index)
 			command.undo(state.value)
 			nextCommands.value.push(command)
 		}
+
+		updateThumbnail(index)
 
 		jumpToElements(command.jumpToElementIds, command.focusElementId)
 	}
@@ -97,17 +101,21 @@ export const useCommandHistory = (state) => {
 
 		const command = nextCommands.value.pop()
 
+		let index = null
+
 		if (command.key === 'addSlide') {
-			const index = command.jumpToSlideIndex
+			index = command.jumpToSlideIndex
 			command.execute(state.value)
 			await jumpToSlide(index)
 			prevCommands.value.push(command)
 		} else {
-			const index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
+			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
 			await jumpToSlide(command.slideId)
 			command.execute(state.value)
 			prevCommands.value.push(command)
 		}
+
+		updateThumbnail(index)
 
 		jumpToElements(command.jumpToElementIds, command.focusElementId)
 	}

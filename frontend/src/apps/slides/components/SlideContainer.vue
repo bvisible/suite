@@ -99,7 +99,7 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
-const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
+const emit = defineEmits(['update:hasOngoingInteraction'])
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
@@ -434,8 +434,6 @@ watch(
 	},
 )
 
-const handlePasteWrapper = (e) => handlePaste(e, emit.bind(null, 'changeSlide'))
-
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
 
@@ -444,13 +442,13 @@ const initSlideAndListeners = () => {
 	updateSlideBounds()
 
 	document.addEventListener('copy', handleCopy)
-	document.addEventListener('paste', handlePasteWrapper)
+	document.addEventListener('paste', handlePaste)
 	window.addEventListener('resize', updateSlideBounds)
 }
 
 const clearListeners = () => {
 	document.removeEventListener('copy', handleCopy)
-	document.removeEventListener('paste', handlePasteWrapper)
+	document.removeEventListener('paste', handlePaste)
 	window.removeEventListener('resize', updateSlideBounds)
 }
 
