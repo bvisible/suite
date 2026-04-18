@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { activeElementIds, cropSelectionToFitContent } from '@/stores/element'
+import { activeElementIds, cropSelectionToFitContent, focusElementId } from '@/stores/element'
 import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/stores/slide'
 
 export const useCommandHistory = (state) => {
@@ -36,6 +36,7 @@ export const useCommandHistory = (state) => {
 			return
 		}
 		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToElementIds)) {
+			focusElementId.value = null
 			activeElementIds.value = jumpToElementIds
 		} else {
 			cropSelectionToFitContent(jumpToElementIds)
