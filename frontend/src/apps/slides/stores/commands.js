@@ -5,7 +5,8 @@ const findSlide = (state, slideId) => state.find((s) => s.name === slideId)
 export const addElementCommand = ({ slideId, element }) => ({
 	key: 'addElement',
 	jumpToSlideId: slideId,
-	elementIds: [element.id],
+	jumpToElementIds: [element.id],
+	focusElementId: element.type === 'text' ? element.id : null,
 	debug: `Add element ${element.id} on slide ${slideId}`,
 	execute(state) {
 		const slide = findSlide(state, slideId)
@@ -23,7 +24,8 @@ export const addElementCommand = ({ slideId, element }) => ({
 export const removeElementCommand = ({ slideId, element }) => ({
 	key: 'removeElement',
 	jumpToSlideId: slideId,
-	elementIds: [element.id],
+	jumpToElementIds: [element.id],
+	focusElementId: element.type === 'text' ? element.id : null,
 	debug: `Remove element ${element.id} on slide ${slideId}`,
 	execute(state) {
 		const slide = findSlide(state, slideId)
@@ -41,7 +43,7 @@ export const removeElementCommand = ({ slideId, element }) => ({
 export const editElementCommand = ({ slideId, elementIds, property, oldValue, newValue }) => ({
 	key: 'editElement',
 	jumpToSlideId: slideId,
-	elementIds,
+	jumpToElementIds: elementIds,
 	debug: `Edit ${property} of element ${elementIds} on slide ${slideId} to ${newValue}`,
 	execute(state) {
 		elementIds.forEach((elementId) => {
@@ -58,7 +60,7 @@ export const editElementCommand = ({ slideId, elementIds, property, oldValue, ne
 export const batchCommand = ({ slideId, elementIds, commands }) => ({
 	key: 'batch',
 	jumpToSlideId: slideId,
-	elementIds,
+	jumpToElementIds: elementIds,
 	debug: 'Batch edit',
 	execute: (state) => {
 		commands.forEach((c) => c.execute(state))
