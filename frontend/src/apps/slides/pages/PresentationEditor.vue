@@ -19,7 +19,7 @@
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
-				:recentlyRestored="commandHistory.recentlyRestored"
+				:recentlyRestored="commandHistory.recentlyRestored.value"
 				@changeSlide="changeEditorSlide"
 				@openLayoutDialog="openLayoutDialog('insert')"
 			/>

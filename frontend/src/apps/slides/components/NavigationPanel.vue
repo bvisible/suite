@@ -174,7 +174,7 @@ const getThumbnailClasses = (slide) => {
 	if (isFocused) {
 		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
 	} else if (isActive && props.recentlyRestored) {
-		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.01]'
+		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
 	} else if (isActive) {
 		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
 	} else {
