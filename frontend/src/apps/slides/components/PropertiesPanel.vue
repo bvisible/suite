@@ -26,6 +26,7 @@ import AppearanceProperties from '@/components/AppearanceProperties.vue'
 
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
+import { commandHistory } from '@/stores/history'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 import { editElementCommand } from '@/stores/commands'
 
@@ -41,8 +42,6 @@ const activeProperties = computed(() => {
 			return VideoProperties
 	}
 })
-
-const commandHistory = inject('commandHistory')
 
 const setProperty = (property, value) => {
 	const oldValue = activeElement.value[property]

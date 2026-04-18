@@ -25,6 +25,7 @@ import {
 	activeElements,
 	deleteElements,
 	duplicateElements,
+	activeElement,
 } from '@/stores/element'
 import {
 	changeSlideInSlideshow,
@@ -157,44 +158,68 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 		}
 	}
 
-	const handleUndoRedo = (e) => {
-		e.preventDefault()
+	const getCurrentHistoryOperation = (e) => {
+		return isCmdOrCtrl(e) && e.shiftKey ? 'redo' : isCmdOrCtrl(e) && !e.shiftKey ? 'undo' : null
+	}
 
-		if (isCmdOrCtrl(e) && e.shiftKey && commandHistory.canRedo.value) {
-			commandHistory.redo()
-		} else if (isCmdOrCtrl(e) && !e.shiftKey && commandHistory.canUndo.value) {
-			commandHistory.undo()
+	const isInFocusedState = () => {
+		const isControl =
+			document.activeElement.tagName == 'INPUT' &&
+			['range', 'number'].includes(document.activeElement.type)
+		const isRenaming = document.activeElement.isContentEditable
+
+		return activeEditor.value?.isEditable || isControl || isRenaming
+	}
+
+	const handleFocusShortcuts = (e) => {
+		if (e.key == 'z') {
+			const operation = getCurrentHistoryOperation(e)
+			if (!operation) return
+
+			e.preventDefault()
+
+			if (operation == 'undo' && !activeEditor.value?.can().undo()) {
+				commandHistory.undo()
+			} else if (operation == 'redo' && !activeEditor.value?.can().redo()) {
+				commandHistory.redo()
+			}
 		}
 	}
 
-	const isUsingTiptapHistory = (e) => {
-		if (e.key != 'z' || !activeEditor.value?.isEditable) return false
+	const handleOutOfFocusShortcuts = (e) => {
+		if (e.key == 'z') {
+			const operation = getCurrentHistoryOperation(e)
+			if (!operation) return
 
-		const operation =
-			isCmdOrCtrl(e) && e.shiftKey ? 'redo' : isCmdOrCtrl(e) && !e.shiftKey ? 'undo' : null
-		if (!operation) return
+			e.preventDefault()
 
-		return activeEditor.value.can()[operation]()
+			if (activeEditor.value?.can()[operation]() && activeElement.value?.type == 'text') {
+				activeEditor.value.commands[operation]()
+				return
+			}
+
+			if (operation == 'undo' && commandHistory.canUndo.value) {
+				if (activeElement.value?.type == 'text') activeElementIds.value = []
+				commandHistory.undo()
+			} else if (operation == 'redo' && commandHistory.canRedo.value) {
+				if (activeElement.value?.type == 'text') activeElementIds.value = []
+				commandHistory.redo()
+			}
+		} else {
+			handleGlobalShortcuts(e)
+
+			activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+		}
 	}
 
 	const handleEditModeShortcuts = (e) => {
-		const activeTag = document.activeElement.tagName
-		const activeType = document.activeElement.type
+		const isEditableElement = isInFocusedState()
 
-		const useTiptapHistory = isUsingTiptapHistory(e)
-
-		const editingText =
-			(activeTag == 'INPUT' && activeType !== 'range') ||
-			activeTag == 'TEXTAREA' ||
-			useTiptapHistory
-
-		if (editingText) return
-
-		if (e.key == 'z') return handleUndoRedo(e)
-
-		handleGlobalShortcuts(e)
-
-		activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+		if (isEditableElement) {
+			handleFocusShortcuts(e)
+		} else {
+			handleOutOfFocusShortcuts(e)
+		}
 	}
 
 	const handleSlideShowModeShortcuts = (e) => {
