@@ -10,11 +10,10 @@ export const useCommandHistory = (state) => {
 	const canUndo = computed(() => prevCommands.value.length > 0)
 	const canRedo = computed(() => nextCommands.value.length > 0)
 
-	const jumpToSlide = async (jumpToSlideId) => {
-		const onActiveSlide = jumpToSlideId == currentSlide.value.name
+	const jumpToSlide = async (index) => {
+		const onActiveSlide = index === slideIndex.value
 
-		if (!onActiveSlide && jumpToSlideId != null) {
-			const index = slides.value.findIndex((slide) => slide.name === jumpToSlideId)
+		if (!onActiveSlide && index != null) {
 			await changeEditorSlide(index, false)
 
 			recentlyRestored.value = true
@@ -22,8 +21,6 @@ export const useCommandHistory = (state) => {
 				recentlyRestored.value = false
 			}, 1000)
 		}
-
-		return jumpToSlideId
 	}
 
 	const jumpToElements = (jumpToElementIds) => {
@@ -53,10 +50,18 @@ export const useCommandHistory = (state) => {
 		if (!canUndo.value) return
 
 		const command = prevCommands.value.pop()
-		await jumpToSlide(command.slideId)
 
-		command.undo(state.value)
-		nextCommands.value.push(command)
+		if (command.key === 'addSlide') {
+			const index = command.fromSlideIndex
+			await jumpToSlide(index)
+			command.undo(state.value)
+			nextCommands.value.push(command)
+		} else {
+			const index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
+			await jumpToSlide(index)
+			command.undo(state.value)
+			nextCommands.value.push(command)
+		}
 
 		jumpToElements(command.elementIds)
 	}
@@ -65,10 +70,18 @@ export const useCommandHistory = (state) => {
 		if (!canRedo.value) return
 
 		const command = nextCommands.value.pop()
-		await jumpToSlide(command.slideId)
 
-		command.execute(state.value)
-		prevCommands.value.push(command)
+		if (command.key === 'addSlide') {
+			const index = command.jumpToSlideIndex
+			command.execute(state.value)
+			await jumpToSlide(index)
+			prevCommands.value.push(command)
+		} else {
+			const index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
+			await jumpToSlide(command.slideId)
+			command.execute(state.value)
+			prevCommands.value.push(command)
+		}
 
 		jumpToElements(command.elementIds)
 	}

@@ -8,13 +8,14 @@ import {
 } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
-import { ignoreUpdates } from '@/stores/history'
+import { commandHistory, ignoreUpdates } from '@/stores/history'
 import { generateUniqueId, cloneObj } from '@/utils/helpers'
 import { router } from '@/router'
 
 import html2canvas from 'html2canvas'
 import { toast } from 'frappe-ui'
 import { inSlideShowMode } from './slideshow'
+import { addSlideCommand } from './commands'
 
 const slideRef = ref(null)
 
@@ -183,14 +184,14 @@ const guideVisibilityMap = reactive({
 })
 
 const insertSlide = async (newSlide, index) => {
-	const updated = [...slides.value]
-	updated.splice(index + 1, 0, newSlide)
-	updated.forEach((slide, i) => {
-		slide.idx = i + 1
-	})
-
-	slides.value = updated
-	slidesLength.value = updated.length
+	commandHistory.execute(
+		addSlideCommand({
+			slide: newSlide,
+			index: index + 1,
+			slideIndex: slideIndex.value,
+		}),
+	)
+	slidesLength.value = slides.value.length
 }
 
 const getNewSlide = (toDuplicate = false, layoutObject) => {
