@@ -55,15 +55,6 @@ const setActiveElements = (ids, focus = false) => {
 	focusElementId.value = null
 }
 
-const selectAddedElement = (elementId, type) => {
-	nextTick(() => {
-		setActiveElements([elementId])
-		if (type !== 'text') return
-
-		focusElementId.value = elementId
-	})
-}
-
 const getElementContent = (element) => {
 	const contentJSON = {
 		type: 'doc',
@@ -163,8 +154,6 @@ const addTextElement = async (text, position) => {
 			element: element,
 		}),
 	)
-
-	selectAddedElement(element.id, 'text')
 }
 
 const savePoster = createResource({
@@ -330,8 +319,6 @@ const addMediaElement = async (file, type) => {
 			element: element,
 		}),
 	)
-
-	selectAddedElement(element.id, type)
 }
 
 const replaceMediaElement = async (element, fileDoc) => {
@@ -425,8 +412,6 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 			commands,
 		}),
 	)
-
-	nextTick(() => (activeElementIds.value = newSelection))
 }
 
 const isFileDocUsed = (element) => {

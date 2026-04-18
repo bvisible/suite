@@ -1,5 +1,10 @@
-import { ref, computed } from 'vue'
-import { activeElementIds, cropSelectionToFitContent, focusElementId } from '@/stores/element'
+import { ref, computed, nextTick } from 'vue'
+import {
+	activeElementIds,
+	cropSelectionToFitContent,
+	focusElementId,
+	setActiveElements,
+} from '@/stores/element'
 import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/stores/slide'
 
 export const useCommandHistory = (state) => {
@@ -23,20 +28,24 @@ export const useCommandHistory = (state) => {
 		}
 	}
 
-	const jumpToElements = (jumpToElementIds) => {
-		if (!jumpToElementIds || jumpToElementIds.length === 0) return
-		const elementExists = jumpToElementIds.every((id) =>
+	const jumpToElements = (jumpToIds, focusOnId) => {
+		if (!jumpToIds || jumpToIds.length === 0) return
+		const elementExists = jumpToIds.every((id) =>
 			currentSlide.value?.elements.some((el) => el.id === id),
 		)
 		if (!elementExists) {
 			activeElementIds.value = []
 			return
 		}
-		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToElementIds)) {
-			focusElementId.value = null
-			activeElementIds.value = jumpToElementIds
+		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToIds)) {
+			nextTick(() => {
+				setActiveElements(jumpToIds)
+				if (focusOnId) {
+					focusElementId.value = focusOnId
+				}
+			})
 		} else {
-			cropSelectionToFitContent(jumpToElementIds)
+			cropSelectionToFitContent(jumpToIds)
 		}
 	}
 
@@ -44,6 +53,23 @@ export const useCommandHistory = (state) => {
 		command.execute(state.value)
 		prevCommands.value.push(command)
 		nextCommands.value = []
+
+		let index = null
+		if (command.key === 'addSlide') {
+			index = command.jumpToSlideIndex
+		} else {
+			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
+		}
+
+		if (
+			command.key == 'addElement' ||
+			command.key == 'removeElement' ||
+			command.key == 'editElement' ||
+			command.key == 'batch'
+		) {
+			jumpToSlide(index)
+			jumpToElements(command.jumpToElementIds, command.focusElementId)
+		}
 	}
 
 	const undo = async () => {
@@ -63,7 +89,7 @@ export const useCommandHistory = (state) => {
 			nextCommands.value.push(command)
 		}
 
-		jumpToElements(command.elementIds)
+		jumpToElements(command.jumpToElementIds, command.focusElementId)
 	}
 
 	const redo = async () => {
@@ -83,7 +109,7 @@ export const useCommandHistory = (state) => {
 			prevCommands.value.push(command)
 		}
 
-		jumpToElements(command.elementIds)
+		jumpToElements(command.jumpToElementIds, command.focusElementId)
 	}
 
 	return { execute, undo, redo, canUndo, canRedo, prevCommands, nextCommands, recentlyRestored }
