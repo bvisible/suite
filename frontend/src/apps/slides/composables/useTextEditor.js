@@ -11,6 +11,9 @@ export const activeEditor = ref(null)
 
 const contentHistory = ref('')
 
+let lastFocusedSlideName = null
+let lastFocusedElementId = null
+
 const editorStyles = reactive({
 	textAlign: 'left',
 	bold: false,
@@ -68,6 +71,8 @@ export const useTextEditor = () => {
 	}
 
 	const handleOnFocus = (editor) => {
+		lastFocusedSlideName = currentSlide.value.name
+		lastFocusedElementId = activeElement.value.id
 		contentHistory.value = editor.getHTML()
 	}
 
@@ -77,8 +82,8 @@ export const useTextEditor = () => {
 
 		commandHistory.execute(
 			editElementCommand({
-				slideId: currentSlide.value.name,
-				elementIds: [activeElement.value.id],
+				slideId: lastFocusedSlideName,
+				elementIds: [lastFocusedElementId],
 				property: 'content',
 				oldValue: contentHistory.value,
 				newValue: editor.getHTML(),
