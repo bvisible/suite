@@ -20,7 +20,12 @@ import { commandHistory } from './history'
 
 import { generateHTML } from '@tiptap/core'
 import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
-import { editElementCommand, batchCommand, addElementCommand } from '@/stores/commands'
+import {
+	editElementCommand,
+	batchCommand,
+	addElementCommand,
+	removeElementCommand,
+} from '@/stores/commands'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -401,10 +406,41 @@ const deleteAttachments = async (elements) => {
 const deleteElements = async (e, ids) => {
 	const idsToDelete = ids || activeElementIds.value
 	await resetFocus()
-	const elements = currentSlide.value.elements.filter(
-		(element) => !idsToDelete.includes(element.id),
+	let commands = []
+
+	idsToDelete.forEach((id) => {
+		commands.push(
+			removeElementCommand({
+				slideId: currentSlide.value.name,
+				element: currentSlide.value.elements.find((el) => el.id === id),
+			}),
+		)
+	})
+
+	const elementsCopy = JSON.parse(JSON.stringify(currentSlide.value.elements))
+	const normalizedElements = normalizeZIndices(
+		elementsCopy.filter((el) => !idsToDelete.includes(el.id)),
 	)
-	currentSlide.value.elements = normalizeZIndices(elements)
+
+	normalizedElements.forEach((el) => {
+		commands.push(
+			editElementCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [el.id],
+				property: 'zIndex',
+				oldValue: currentSlide.value.elements.find((e) => e.id === el.id).zIndex,
+				newValue: el.zIndex,
+			}),
+		)
+	})
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.name,
+			elementIds: idsToDelete,
+			commands,
+		}),
+	)
 }
 
 const selectAllElements = (e) => {
