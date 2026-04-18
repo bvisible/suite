@@ -345,6 +345,7 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 
 	const displaceByPx = srcSlide == slideIndex.value && toDisplace ? 40 : 0
 
+	let commands = []
 	let newSelection = []
 
 	elements.forEach((element) => {
@@ -354,9 +355,24 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
-		currentSlide.value.elements.push(newElement)
+
+		commands.push(
+			addElementCommand({
+				slideId: currentSlide.value.name,
+				element: newElement,
+			}),
+		)
+
 		newSelection.push(newElement.id)
 	})
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.name,
+			elementIds: newSelection,
+			commands,
+		}),
+	)
 
 	nextTick(() => (activeElementIds.value = newSelection))
 }
