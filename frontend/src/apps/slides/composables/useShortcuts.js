@@ -129,13 +129,13 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 				if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
 				break
 			case 'b':
-				if (activeEditor.value) toggleMark('bold')
+				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('bold')
 				break
 			case 'i':
-				if (activeEditor.value) toggleMark('italic')
+				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('italic')
 				break
 			case 'u':
-				if (activeEditor.value) toggleMark('underline')
+				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('underline')
 				break
 		}
 	}
