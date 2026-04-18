@@ -51,21 +51,25 @@ export const useCommandHistory = (state) => {
 
 	const undo = async () => {
 		if (!canUndo.value) return
+
 		const command = prevCommands.value.pop()
+		await jumpToSlide(command.slideId)
+
 		command.undo(state.value)
 		nextCommands.value.push(command)
 
-		await jumpToSlide(command.slideId)
 		jumpToElements(command.elementIds)
 	}
 
 	const redo = async () => {
 		if (!canRedo.value) return
+
 		const command = nextCommands.value.pop()
+		await jumpToSlide(command.slideId)
+
 		command.execute(state.value)
 		prevCommands.value.push(command)
 
-		await jumpToSlide(command.slideId)
 		jumpToElements(command.elementIds)
 	}
 
