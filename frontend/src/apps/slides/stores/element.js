@@ -335,12 +335,59 @@ const addMediaElement = async (file, type) => {
 }
 
 const replaceMediaElement = async (element, fileDoc) => {
-	element.src = fileDoc.file_url
-	element.attachmentName = fileDoc.name
-	if (element.type == 'video') {
-		element.poster = await getVideoPoster(fileDoc.file_url)
+	const commands = []
+
+	if (element.src !== fileDoc.file_url) {
+		commands.push(
+			editElementCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [element.id],
+				property: 'src',
+				oldValue: element.src,
+				newValue: fileDoc.file_url,
+			}),
+		)
 	}
+
+	if (element.attachmentName !== fileDoc.name) {
+		commands.push(
+			editElementCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [element.id],
+				property: 'attachmentName',
+				oldValue: element.attachmentName,
+				newValue: fileDoc.name,
+			}),
+		)
+	}
+
+	if (element.type === 'video') {
+		const oldPoster = element.poster
+		const newPoster = await getVideoPoster(fileDoc.file_url)
+		if (oldPoster !== newPoster) {
+			commands.push(
+				editElementCommand({
+					slideId: currentSlide.value.name,
+					elementIds: [element.id],
+					property: 'poster',
+					oldValue: oldPoster,
+					newValue: newPoster,
+				}),
+			)
+		}
+	}
+
 	updateElementRefId(element)
+
+	if (commands.length) {
+		commandHistory.execute(
+			batchCommand({
+				slideId: currentSlide.value.name,
+				elementIds: [element.id],
+				commands,
+			}),
+		)
+	}
 }
 
 const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
