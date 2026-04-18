@@ -14,7 +14,6 @@
 				v-if="presentationDoc"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
-				@changeSlide="changeEditorSlide"
 			/>
 
 			<NavigationPanel
