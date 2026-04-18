@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { activeElementIds, cropSelectionToFitContent } from '@/stores/element'
-import { changeEditorSlide, currentSlide, slideIndex } from '@/stores/slide'
+import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/stores/slide'
 
 export const useCommandHistory = (state) => {
 	const recentlyRestored = ref(false)
@@ -14,7 +14,8 @@ export const useCommandHistory = (state) => {
 		const onActiveSlide = jumpToSlideId == currentSlide.value.name
 
 		if (!onActiveSlide && jumpToSlideId != null) {
-			await changeEditorSlide(jumpToSlideId, false)
+			const index = slides.value.findIndex((slide) => slide.name === jumpToSlideId)
+			await changeEditorSlide(index, false)
 
 			recentlyRestored.value = true
 			setTimeout(() => {

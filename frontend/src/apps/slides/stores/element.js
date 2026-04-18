@@ -150,14 +150,14 @@ const addTextElement = async (text, position) => {
 		},
 	}
 
+	updateElementRefId(element)
+
 	commandHistory.execute(
 		addElementCommand({
 			slideId: currentSlide.value.name,
 			element: element,
 		}),
 	)
-
-	updateElementRefId(element)
 
 	selectAddedElement(element.id, 'text')
 }
@@ -316,9 +316,15 @@ const addMediaElement = async (file, type) => {
 		element.invertX = 1
 		element.invertY = 1
 	}
-	currentSlide.value.elements.push(element)
 
 	updateElementRefId(element)
+
+	commandHistory.execute(
+		addElementCommand({
+			slideId: currentSlide.value.name,
+			element: element,
+		}),
+	)
 
 	selectAddedElement(element.id, type)
 }
