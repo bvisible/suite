@@ -1,4 +1,5 @@
 import { findElement } from '@/stores/element'
+import { slidesLength } from '@/stores/presentation'
 
 const findSlide = (state, slideId) => state.find((s) => s.name === slideId)
 
@@ -79,10 +80,12 @@ export const addSlideCommand = ({ slide, index, slideIndex }) => ({
 	fromSlideIndex: slideIndex,
 	debug: `Add slide ${slide.name} at index ${index}`,
 	execute(state) {
+		slide.name = ''
 		state.splice(index, 0, slide)
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
 		})
+		slidesLength.value = state.length
 	},
 	undo(state) {
 		const idx = state.findIndex((s) => s.name === slide.name)
@@ -90,5 +93,6 @@ export const addSlideCommand = ({ slide, index, slideIndex }) => ({
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
 		})
+		slidesLength.value = state.length
 	},
 })
