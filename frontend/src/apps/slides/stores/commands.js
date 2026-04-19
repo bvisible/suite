@@ -96,3 +96,27 @@ export const addSlideCommand = ({ slide, index, slideIndex }) => ({
 		slidesLength.value = state.length
 	},
 })
+
+export const removeSlideCommand = ({ slide, index, slideIndex }) => ({
+	key: 'removeSlide',
+	jumpToSlideIndex: index - 1,
+	fromSlideIndex: slideIndex,
+	debug: `Remove slide at index ${index}`,
+	execute(state) {
+		const idx = state.findIndex((s) => s.name === slide.name)
+		if (idx !== -1) state.splice(idx, 1)
+		state.forEach((slide, idx) => {
+			slide.idx = idx + 1
+		})
+		slidesLength.value = state.length
+	},
+	undo(state) {
+		slide.name = ''
+		state.splice(index, 0, slide)
+		state.forEach((slide, idx) => {
+			slide.idx = idx + 1
+		})
+
+		slidesLength.value = state.length
+	},
+})
