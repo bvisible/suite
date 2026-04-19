@@ -61,7 +61,7 @@ export const useCommandHistory = (state) => {
 		nextCommands.value = []
 
 		let index = null
-		if (command.key === 'addSlide') {
+		if (command.key === 'addSlide' || command.key === 'removeSlide') {
 			index = command.jumpToSlideIndex
 		} else {
 			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
@@ -79,7 +79,7 @@ export const useCommandHistory = (state) => {
 
 		let index = null
 
-		if (command.key === 'addSlide') {
+		if (command.key === 'addSlide' || command.key === 'removeSlide') {
 			index = command.fromSlideIndex
 			await jumpToSlide(index)
 			command.undo(state.value)
@@ -103,7 +103,7 @@ export const useCommandHistory = (state) => {
 
 		let index = null
 
-		if (command.key === 'addSlide') {
+		if (command.key === 'addSlide' || command.key === 'removeSlide') {
 			index = command.jumpToSlideIndex
 			command.execute(state.value)
 			await jumpToSlide(index)

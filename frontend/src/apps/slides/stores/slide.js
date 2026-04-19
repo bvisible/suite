@@ -15,7 +15,7 @@ import { router } from '@/router'
 import html2canvas from 'html2canvas'
 import { toast } from 'frappe-ui'
 import { inSlideShowMode } from './slideshow'
-import { addSlideCommand } from './commands'
+import { addSlideCommand, removeSlideCommand } from './commands'
 
 const slideRef = ref(null)
 
@@ -279,20 +279,13 @@ const deleteSlide = (deleteActive) => {
 		return
 	}
 
-	// delete the current slide
-	slides.value = slides.value.filter((slide, i) => {
-		return i != deleteIndex
-	})
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-
-	slidesLength.value = slides.value.length
-
-	if (deleteIndex == totalLength - 1) {
-		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeEditorSlide(deleteIndex - 1)
-	}
+	commandHistory.execute(
+		removeSlideCommand({
+			slide: slides.value[deleteIndex],
+			index: deleteIndex,
+			slideIndex: slideIndex.value,
+		}),
+	)
 }
 
 const changeEditorSlide = async (index, focus = true) => {
