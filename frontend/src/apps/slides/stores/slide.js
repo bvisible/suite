@@ -191,7 +191,6 @@ const insertSlide = async (newSlide, index) => {
 			slideIndex: slideIndex.value,
 		}),
 	)
-	slidesLength.value = slides.value.length
 }
 
 const getNewSlide = (toDuplicate = false, layoutObject) => {

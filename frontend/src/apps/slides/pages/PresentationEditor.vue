@@ -71,7 +71,6 @@ import {
 	initPresentationDoc,
 	presentationDoc,
 	unsyncedPresentationRecord,
-	slidesLength,
 	templateList,
 	templateListResource,
 	inReadonlyMode,
