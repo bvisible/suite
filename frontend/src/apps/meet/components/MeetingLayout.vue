@@ -323,7 +323,6 @@ const floatingReactions = computed(() => {
 	pointer-events: auto;
 	will-change: transform, top, left, width, height;
 	backface-visibility: hidden;
-	transform: translateZ(0);
 }
 
 /* Hidden tiles stay mounted to preserve grid animation continuity */
