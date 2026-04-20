@@ -1,7 +1,6 @@
 # Copyright (c) 2025, Frappe and contributors
 # For license information, please see license.txt
 
-import json
 import random
 import string
 
@@ -41,11 +40,84 @@ class SaeMeeting(Document):
 			self.name = generate()
 
 	def validate(self):
-		"""Ensure unique users in all child tables"""
-		self.members = unique_users(self.members) if self.members else []
-		self.co_hosts = unique_users(self.co_hosts) if self.co_hosts else []
-		self.waiting_room = unique_users(self.waiting_room) if self.waiting_room else []
-		self.banned_users = unique_users(self.banned_users) if self.banned_users else []
+		self.backfill_display_names()
+
+	def backfill_display_names(self):
+		"""Backfill display names for existing child rows."""
+		for fieldname in ("members", "co_hosts", "waiting_room", "banned_users"):
+			for row in self.get(fieldname) or []:
+				if row.user and not row.user_name:
+					row.user_name = self.get_user_display_name(row.user)
+
+	def get_user_display_name(self, user: str) -> str:
+		"""Resolve a display name for a member, guest, or fallback user ID."""
+		user_info = get_user_info(user)
+		if user_info and user_info.get("full_name"):
+			return user_info.get("full_name")
+
+		if user.startswith("guest_"):
+			guest_session = get_guest_session(user)
+			if guest_session and guest_session.get("guest_name"):
+				return guest_session.get("guest_name")
+
+		return user
+
+	def build_user_row(self, user: str) -> dict:
+		"""Build a child table row with both the id and display name."""
+		return {"user": user, "user_name": self.get_user_display_name(user)}
+
+	def get_table_users(self, fieldname: str) -> list[str]:
+		"""Return all user IDs from a child table."""
+		return [row.user for row in self.get(fieldname) or []]
+
+	def add_user_to_table(
+		self, fieldname: str, user: str, save: bool = False, ignore_permissions: bool = False
+	):
+		"""Append a user to a child table if they are not already present."""
+		for row in self.get(fieldname) or []:
+			if row.user != user:
+				continue
+			if not row.user_name:
+				row.user_name = self.get_user_display_name(user)
+				if save:
+					self.save(ignore_permissions=ignore_permissions)
+			return False
+
+		self.append(fieldname, self.build_user_row(user))
+		if save:
+			self.save(ignore_permissions=ignore_permissions)
+		return True
+
+	def add_waiting_room_user(self, user: str, save: bool = False, ignore_permissions: bool = False):
+		"""Add a user to the waiting room and notify authorized users."""
+		if self.is_user_approved(user):
+			return
+
+		waiting_users = self.get_waiting_room()
+		if self.add_user_to_table("waiting_room", user, save=save, ignore_permissions=ignore_permissions):
+			self.publish_waiting_room_request(user, len(waiting_users) + 1)
+
+	def get_waiting_room_payload(self, user: str) -> tuple[str, str | None]:
+		"""Return display payload for waiting-room notifications."""
+		user_info = get_user_info(user) or {}
+		return user_info.get("full_name", user), user_info.get("user_image")
+
+	def publish_waiting_room_request(self, user: str, waiting_count: int):
+		"""Notify host and co-hosts about a waiting-room request."""
+		user_name, user_image = self.get_waiting_room_payload(user)
+
+		for authorized_user in [self.owner, *self.get_co_hosts()]:
+			frappe.publish_realtime(
+				"meeting_join_request",
+				user=authorized_user,
+				message={
+					"meeting": self.name,
+					"user": user,
+					"user_name": user_name,
+					"user_image": user_image,
+					"waiting_count": waiting_count,
+				},
+			)
 
 	def after_insert(self):
 		self.join(frappe.session.user)
@@ -66,13 +138,10 @@ class SaeMeeting(Document):
 				self.save()
 				return {"status": "waiting_for_approval", "message": "Waiting for host approval"}
 
-		# Get current members list
-		members = self.get_members()
+		joined = self.add_user_to_table("members", user)
 
 		# Add user if not already in room
-		if user not in members:
-			members.append(user)
-			self.update_members(members)
+		if joined:
 			self.remove_from_waiting_room(user)
 
 			self.save()
@@ -81,11 +150,11 @@ class SaeMeeting(Document):
 
 	def get_members(self):
 		"""Get list of current members"""
-		return [row.user for row in self.members] if self.members else []
+		return self.get_table_users("members")
 
 	def get_co_hosts(self):
 		"""Get list of current co-hosts"""
-		return [row.user for row in self.co_hosts] if self.co_hosts else []
+		return self.get_table_users("co_hosts")
 
 	def can_join(self, user=None):
 		"""
@@ -100,94 +169,31 @@ class SaeMeeting(Document):
 		if not user:
 			user = frappe.session.user
 
-		if self.is_user_banned(user):
-			return False
-
-		return True
+		return not self.is_user_banned(user)
 
 	def update_members(self, members_list):
 		"""Update members list and save"""
-		self.members = []
-
-		for user in members_list:
-			self.append("members", {"user": user})
+		self.set("members", [])
+		for row in unique_users(members_list):
+			user = row.get("user") if isinstance(row, dict) else row
+			if user:
+				self.append("members", self.build_user_row(user))
 
 	def add_guest_to_members(self, guest_id: str):
 		self.validate_guest_id(guest_id)
-		members = self.get_members()
-		if guest_id not in members:
-			self.append("members", {"user": guest_id})
-			self.save(ignore_permissions=True)
+		self.add_user_to_table("members", guest_id, save=True, ignore_permissions=True)
 
 	def get_waiting_room(self):
 		"""Get list of users waiting for approval"""
-		return [row.user for row in self.waiting_room] if self.waiting_room else []
+		return self.get_table_users("waiting_room")
 
 	def add_to_waiting_room(self, user):
 		"""Add user to waiting room"""
-		if self.is_user_approved(user):
-			return
-
-		waiting_users = self.get_waiting_room()
-		if user not in waiting_users:
-			self.append("waiting_room", {"user": user})
-
-		user_info = get_user_info(user)
-
-		if user_info:
-			user_name = user_info.get("full_name", user)
-			user_image = user_info.get("user_image")
-		else:
-			user_name = user
-			user_image = None
-
-		authorized_users = [self.owner, *self.get_co_hosts()]
-
-		for authorized_user in authorized_users:
-			frappe.publish_realtime(
-				"meeting_join_request",
-				user=authorized_user,
-				message={
-					"meeting": self.name,
-					"user": user,
-					"user_name": user_name,
-					"user_image": user_image,
-					"waiting_count": len(waiting_users) + 1,
-				},
-			)
+		self.add_waiting_room_user(user)
 
 	def add_guest_to_waiting_room(self, guest_id: str):
 		self.validate_guest_id(guest_id)
-
-		if self.is_user_approved(guest_id):
-			return
-
-		waiting_users = self.get_waiting_room()
-		if guest_id not in waiting_users:
-			self.append("waiting_room", {"user": guest_id})
-			self.save(ignore_permissions=True)  # needed
-
-			user_info = get_user_info(guest_id)
-
-			if user_info:
-				user_name = user_info.get("full_name", guest_id)
-			else:
-				user_name = guest_id
-
-			authorized_users = [self.owner, *self.get_co_hosts()]
-
-			for authorized_user in authorized_users:
-				frappe.publish_realtime(
-					"meeting_join_request",
-					user=authorized_user,
-					message={
-						"meeting": self.name,
-						"user": guest_id,
-						"user_name": user_name,
-						"user_image": None,
-						"waiting_count": len(waiting_users) + 1,
-					},
-				)
+		self.add_waiting_room_user(guest_id, save=True, ignore_permissions=True)
 
 	def remove_from_waiting_room(self, user):
 		"""Remove user from waiting room"""
@@ -202,11 +208,7 @@ class SaeMeeting(Document):
 		if user not in waiting_users:
 			frappe.throw("User is not in waiting room")
 
-		members = self.get_members()
-
-		if user not in members:
-			members.append(user)
-			self.update_members(members)
+		self.add_user_to_table("members", user)
 
 		self.remove_from_waiting_room(user)
 		self.save()
@@ -283,7 +285,7 @@ class SaeMeeting(Document):
 
 		already_banned = any(row.user == user for row in self.banned_users)
 		if not already_banned:
-			self.append("banned_users", {"user": user})
+			self.append("banned_users", self.build_user_row(user))
 
 		self.save()
 
@@ -344,7 +346,7 @@ class SaeMeeting(Document):
 		"""Promote a user to co-host during an active meeting (host only)"""
 		self.validate_can_promote_to_cohost(user, target_user)
 
-		self.append("co_hosts", {"user": target_user})
+		self.add_user_to_table("co_hosts", target_user)
 		self.save()
 
 		return {
