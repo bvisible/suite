@@ -30,7 +30,7 @@
 							<div
 								v-for="message in group.messages"
 								:key="message.id"
-								class="text-sm text-gray-900 whitespace-pre-wrap [overflow-wrap:anywhere]"
+								class="text-sm text-gray-900 whitespace-pre-wrap [overflow-wrap:anywhere] leading-4"
 							>
 								<span v-html="linkify(message.message)"></span>
 							</div>
