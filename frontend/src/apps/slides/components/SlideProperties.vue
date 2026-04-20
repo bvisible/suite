@@ -71,22 +71,52 @@ import { createConnectionsForMagicMove, removeConnectionsForMagicMove } from '@/
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import { editSlideCommand, batchCommand } from '@/stores/commands'
+import { commandHistory } from '@/stores/history'
 
 const setSlideTransition = (option) => {
+	const duration = option == 'None' ? 0 : 1
 	const slide = currentSlide.value
 
-	slide.transition = option
+	const commands = []
 
-	if (option == 'None') {
-		slide.transitionDuration = 0
-	} else {
-		slide.transitionDuration = 1
-	}
+	commands.push(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'transition',
+			oldValue: currentSlide.value.transition,
+			newValue: option,
+		}),
+	)
+
+	commands.push(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'transitionDuration',
+			oldValue: currentSlide.value.transitionDuration,
+			newValue: duration,
+		}),
+	)
+
+	commands.push(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'fadeUnmatchedElements',
+			oldValue: currentSlide.value.fadeUnmatchedElements,
+			newValue: option == 'Magic Move',
+		}),
+	)
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [],
+			commands,
+		}),
+	)
 
 	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
 	else removeConnectionsForMagicMove(slideIndex.value)
-
-	slide.fadeUnmatchedElements = option == 'Magic Move'
 }
 
 const setTransitionAttribute = (property, value) => {

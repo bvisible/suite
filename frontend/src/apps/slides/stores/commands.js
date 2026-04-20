@@ -117,3 +117,17 @@ export const removeSlideCommand = ({ slide, index, slideIndex }) => ({
 		slidesLength.value = state.length
 	},
 })
+
+export const editSlideCommand = ({ slideId, property, oldValue, newValue }) => ({
+	key: 'editSlide',
+	jumpToSlideId: slideId,
+	debug: `Edit ${property} of slide ${slideId} to ${newValue}`,
+	execute(state) {
+		const slide = state.find((s) => s.clientId === slideId)
+		if (slide) slide[property] = newValue
+	},
+	undo(state) {
+		const slide = state.find((s) => s.clientId === slideId)
+		if (slide) slide[property] = oldValue
+	},
+})
