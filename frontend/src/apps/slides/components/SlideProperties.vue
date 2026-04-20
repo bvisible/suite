@@ -125,17 +125,49 @@ const setTransitionAttribute = (property, value) => {
 
 const applyTransitionToAllSlides = () => {
 	const sourceSlide = currentSlide.value
+	const commands = []
 
 	slides.value.forEach((slide, index) => {
 		if (index !== slideIndex.value) {
-			slide.transition = sourceSlide.transition
-			slide.transitionDuration = sourceSlide.transitionDuration
-			slide.fadeUnmatchedElements = sourceSlide.fadeUnmatchedElements
+			commands.push(
+				editSlideCommand({
+					slideId: slide.clientId,
+					property: 'transition',
+					oldValue: slide.transition,
+					newValue: sourceSlide.transition,
+				}),
+			)
+
+			commands.push(
+				editSlideCommand({
+					slideId: slide.clientId,
+					property: 'transitionDuration',
+					oldValue: slide.transitionDuration,
+					newValue: sourceSlide.transitionDuration,
+				}),
+			)
+
+			commands.push(
+				editSlideCommand({
+					slideId: slide.clientId,
+					property: 'fadeUnmatchedElements',
+					oldValue: slide.fadeUnmatchedElements,
+					newValue: sourceSlide.fadeUnmatchedElements,
+				}),
+			)
 
 			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
 			else removeConnectionsForMagicMove(index)
 		}
 	})
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: sourceSlide.clientId,
+			elementIds: [],
+			commands,
+		}),
+	)
 
 	toast.success('Applied transition to all slides')
 }
