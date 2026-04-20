@@ -150,7 +150,7 @@ const addTextElement = async (text, position) => {
 
 	commandHistory.execute(
 		addElementCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			element: element,
 		}),
 	)
@@ -315,7 +315,7 @@ const addMediaElement = async (file, type) => {
 
 	commandHistory.execute(
 		addElementCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			element: element,
 		}),
 	)
@@ -327,7 +327,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.src !== fileDoc.file_url) {
 		commands.push(
 			editElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: [element.id],
 				property: 'src',
 				oldValue: element.src,
@@ -339,7 +339,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (element.attachmentName !== fileDoc.name) {
 		commands.push(
 			editElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: [element.id],
 				property: 'attachmentName',
 				oldValue: element.attachmentName,
@@ -354,7 +354,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 		if (oldPoster !== newPoster) {
 			commands.push(
 				editElementCommand({
-					slideId: currentSlide.value.name,
+					slideId: currentSlide.value.clientId,
 					elementIds: [element.id],
 					property: 'poster',
 					oldValue: oldPoster,
@@ -369,7 +369,7 @@ const replaceMediaElement = async (element, fileDoc) => {
 	if (commands.length) {
 		commandHistory.execute(
 			batchCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: [element.id],
 				commands,
 			}),
@@ -397,7 +397,7 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 
 		commands.push(
 			addElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				element: newElement,
 			}),
 		)
@@ -407,7 +407,7 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 
 	commandHistory.execute(
 		batchCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			elementIds: newSelection,
 			commands,
 		}),
@@ -443,7 +443,7 @@ const deleteElements = async (e, ids) => {
 	idsToDelete.forEach((id) => {
 		commands.push(
 			removeElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				element: currentSlide.value.elements.find((el) => el.id === id),
 			}),
 		)
@@ -457,7 +457,7 @@ const deleteElements = async (e, ids) => {
 	normalizedElements.forEach((el) => {
 		commands.push(
 			editElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: [el.id],
 				property: 'zIndex',
 				oldValue: currentSlide.value.elements.find((e) => e.id === el.id).zIndex,
@@ -468,7 +468,7 @@ const deleteElements = async (e, ids) => {
 
 	commandHistory.execute(
 		batchCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			elementIds: idsToDelete,
 			commands,
 		}),
@@ -620,7 +620,7 @@ const normalizeZIndices = (elements) => {
 }
 
 const findElement = (state, slideId, elementId) => {
-	const slide = state.find((s) => s.name === slideId)
+	const slide = state.find((s) => s.clientId === slideId)
 	if (!slide) return null
 
 	return slide.elements.find((el) => el.id === elementId)
@@ -661,7 +661,7 @@ const updatePosition = (axis, value) => {
 
 	const commands = activeElements.value.map((element) =>
 		editElementCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			elementIds: [element.id],
 			property,
 			oldValue: element[property],
@@ -671,7 +671,7 @@ const updatePosition = (axis, value) => {
 
 	commandHistory.execute(
 		batchCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			elementIds: activeElementIds.value,
 			commands,
 		}),

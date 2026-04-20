@@ -17,7 +17,7 @@
 			<template v-if="inReadonlyMode">
 				<div
 					v-for="slide in slides"
-					:key="slide.name"
+					:key="slide.clientId"
 					:class="getThumbnailClasses(slide)"
 					:style="getThumbnailStyles(slide)"
 					@click="handleSlideClick(slide)"

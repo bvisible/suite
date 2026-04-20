@@ -1,7 +1,7 @@
 import { findElement } from '@/stores/element'
 import { slidesLength } from '@/stores/presentation'
 
-const findSlide = (state, slideId) => state.find((s) => s.name === slideId)
+const findSlide = (state, slideId) => state.find((s) => s.clientId === slideId)
 
 export const addElementCommand = ({ slideId, element }) => ({
 	key: 'addElement',
@@ -78,9 +78,8 @@ export const addSlideCommand = ({ slide, index, slideIndex }) => ({
 	key: 'addSlide',
 	jumpToSlideIndex: index,
 	fromSlideIndex: slideIndex,
-	debug: `Add slide ${slide.name} at index ${index}`,
+	debug: `Add slide ${slide.clientId} at index ${index}`,
 	execute(state) {
-		slide.name = ''
 		state.splice(index, 0, slide)
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
@@ -88,7 +87,7 @@ export const addSlideCommand = ({ slide, index, slideIndex }) => ({
 		slidesLength.value = state.length
 	},
 	undo(state) {
-		const idx = state.findIndex((s) => s.name === slide.name)
+		const idx = state.findIndex((s) => s.clientId === slide.clientId)
 		if (idx !== -1) state.splice(idx, 1)
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
@@ -103,7 +102,7 @@ export const removeSlideCommand = ({ slide, index, slideIndex }) => ({
 	fromSlideIndex: slideIndex,
 	debug: `Remove slide at index ${index}`,
 	execute(state) {
-		const idx = state.findIndex((s) => s.name === slide.name)
+		const idx = state.findIndex((s) => s.clientId === slide.clientId)
 		if (idx !== -1) state.splice(idx, 1)
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
@@ -111,12 +110,10 @@ export const removeSlideCommand = ({ slide, index, slideIndex }) => ({
 		slidesLength.value = state.length
 	},
 	undo(state) {
-		slide.name = ''
 		state.splice(index, 0, slide)
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
 		})
-
 		slidesLength.value = state.length
 	},
 })

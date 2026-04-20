@@ -71,7 +71,7 @@ export const useTextEditor = () => {
 	}
 
 	const handleOnFocus = (editor) => {
-		lastFocusedSlideName = currentSlide.value.name
+		lastFocusedSlideName = currentSlide.value.clientId
 		lastFocusedElementId = activeElement.value.id
 		contentHistory.value = editor.getHTML()
 	}

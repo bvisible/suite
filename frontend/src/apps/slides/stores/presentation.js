@@ -5,6 +5,7 @@ import { isEqual } from 'lodash'
 import { router } from '@/router'
 import { slides } from './slide'
 import { normalizeZIndices } from '@/stores/element'
+import { v4 as uuid4 } from 'uuid'
 
 import { ignoreUpdates } from '@/stores/history'
 
@@ -130,11 +131,13 @@ const getPresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
+				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
+				delete slide.client_id
 			}
 		},
 		async onSuccess(doc) {
@@ -160,11 +163,13 @@ const getPublicPresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
+				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
+				delete slide.client_id
 			}
 		},
 		onSuccess(doc) {
@@ -187,11 +192,13 @@ const getCompositePresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
+				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
+				delete slide.client_id
 			}
 		},
 		onSuccess(doc) {
@@ -214,7 +221,9 @@ const hasSlideChanged = (originalState, slideState) => {
 		if (slideState[key] != originalState[key]) return true
 	}
 
-	if (slideState.name && slideState.name != originalState.name) return true
+	if (slideState.clientId != originalState.clientId) {
+		return true
+	}
 
 	const currElements = parseElements(slideState.elements)
 	const origElements = parseElements(originalState.elements)
@@ -236,22 +245,10 @@ const hasStateChanged = (original, current) => {
 	return hasChanged
 }
 
-const updateNewlyAddedSlideUUIDs = () => {
-	// for newly added slides, update their names from server response
-	// required for correct jumping to slide during undo / redo operations
-	ignoreUpdates(() => {
-		presentationResource.value.doc.slides.forEach((slide, idx) => {
-			const localSlide = slides.value[idx]
-			if (localSlide && !localSlide.name) {
-				localSlide.name = slide.name
-			}
-		})
-	})
-}
-
 const savePresentationDoc = async (updatedSlides) => {
 	const newSlides = updatedSlides.map((slide) => ({
 		...slide,
+		client_id: slide.clientId,
 		elements: JSON.stringify(slide.elements, null, 2),
 		transition_duration: slide.transitionDuration,
 		fade_unmatched_elements: slide.fadeUnmatchedElements,
@@ -262,8 +259,6 @@ const savePresentationDoc = async (updatedSlides) => {
 	})
 
 	presentationDoc.value = presentationResource.value.doc
-
-	updateNewlyAddedSlideUUIDs()
 }
 
 const presentationResource = ref(null)
