@@ -20,6 +20,7 @@ const actionOrder = {
 		addElement: ['jumpToSlide', 'execute', 'jumpToElements'],
 		removeElement: ['jumpToSlide', 'execute'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'execute'],
+		batch: ['execute', 'jumpToSlide', 'jumpToElements'],
 	},
 	undo: {
 		addSlide: ['jumpToSlide', 'undo'],
@@ -27,6 +28,7 @@ const actionOrder = {
 		addElement: ['jumpToSlide', 'undo'],
 		removeElement: ['jumpToSlide', 'undo', 'jumpToElements'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
+		batch: ['jumpToSlide', 'jumpToElements', 'undo'],
 	},
 }
 
@@ -107,7 +109,7 @@ export const useCommandHistory = (state) => {
 				command.undo(state.value)
 				break
 			case 'jumpToSlide':
-				handleJumpToSlide(action, command, operation)
+				await handleJumpToSlide(action, command, operation)
 				break
 			case 'jumpToElements':
 				jumpToElements(command.jumpToElementIds, command.focusElementId)
