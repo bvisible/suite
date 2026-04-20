@@ -105,6 +105,7 @@ export function useLayout(
 	 */
 	const getGridColumns = (tileCount: number, maxCols: number): number => {
 		if (tileCount <= 0) return 1;
+		if (isMobile.value && tileCount === 2) return 1;
 		return Math.min(maxCols, Math.ceil(Math.sqrt(tileCount)));
 	};
 
