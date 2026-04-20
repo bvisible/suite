@@ -1,4 +1,5 @@
 import { ref, computed, reactive } from 'vue'
+import { v4 as uuid4 } from 'uuid'
 import {
 	slidesLength,
 	presentationId,
@@ -218,6 +219,7 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 
 	// override metadata and generate unique IDs for elements
 	slide.name = ''
+	slide.clientId = uuid4()
 	slide.parent = presentationId.value
 	slide.fadeUnmatchedElements = 1
 	slide.transitionDuration = 0

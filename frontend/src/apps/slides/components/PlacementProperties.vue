@@ -203,7 +203,7 @@ const getPlacementUpdateCommands = (action) => {
 
 		commands.push(
 			editElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: [updatedElement.id],
 				property: 'zIndex',
 				oldValue: originalElement.zIndex,
@@ -219,7 +219,7 @@ const sendBackward = () => {
 	const commands = getPlacementUpdateCommands('backward')
 	commandHistory.execute(
 		batchCommand({
-			slideId: currentSlide.value.name,
+			slideId: currentSlide.value.clientId,
 			elementIds: activeElementIds.value,
 			commands,
 		}),

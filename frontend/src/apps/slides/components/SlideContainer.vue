@@ -481,7 +481,7 @@ const getInteractionCommands = () => {
 		const createCommand = (property, oldValue, newValue) => {
 			if (!newValue) return null
 			return editElementCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: [id],
 				property,
 				oldValue,
@@ -513,7 +513,7 @@ const applyInteractionOffsets = () => {
 
 		commandHistory.execute(
 			batchCommand({
-				slideId: currentSlide.value.name,
+				slideId: currentSlide.value.clientId,
 				elementIds: activeElementIds.value,
 				commands,
 			}),
