@@ -220,20 +220,22 @@ def get_waiting_room(meeting_id: str) -> dict:
 	if not meeting.is_host_or_cohost(frappe.session.user):
 		frappe.throw(_("Access denied"))
 
-	waiting_users = meeting.get_waiting_room()
+	waiting_rows = meeting.waiting_room or []
 
 	user_details = []
-	for user in waiting_users:
+	for row in waiting_rows:
+		user = row.user
 		user_info = get_user_info(user)
-		if user_info:
-			user_details.append(
-				{
-					"user_id": user,
-					"full_name": user_info.get("full_name"),
-					"user_image": user_info.get("user_image"),
-					"is_guest": user_info.get("is_guest", False),
-				}
-			)
+		user_name = row.user_name or (user_info.get("full_name") if user_info else None)
+		user_details.append(
+			{
+				"user_id": user,
+				"full_name": user_name or user,
+				"user_name": user_name or user,
+				"user_image": user_info.get("user_image") if user_info else None,
+				"is_guest": user_info.get("is_guest", False) if user_info else user.startswith("guest_"),
+			}
+		)
 
 	return {"meeting_id": meeting_id, "waiting_users": user_details}
 

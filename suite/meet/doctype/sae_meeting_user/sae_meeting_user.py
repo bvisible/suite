@@ -18,6 +18,7 @@ class SaeMeetingUser(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		user: DF.Data | None
+		user_name: DF.Data | None
 	# end: auto-generated types
 
 	pass
