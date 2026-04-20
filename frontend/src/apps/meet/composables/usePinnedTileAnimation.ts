@@ -44,7 +44,6 @@ export function usePinnedTileAnimation({
 			left: `${panelRect.left - containerRect.left}px`,
 			width: `${panelRect.width}px`,
 			height: `${panelRect.height}px`,
-			zIndex: 10,
 		};
 	};
 
