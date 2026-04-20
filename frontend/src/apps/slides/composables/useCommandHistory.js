@@ -13,6 +13,23 @@ import {
 	updateThumbnail,
 } from '@/stores/slide'
 
+const actionOrder = {
+	execute: {
+		addSlide: ['execute', 'jumpToSlide'],
+		removeSlide: ['jumpToSlide', 'execute'],
+		addElement: ['jumpToSlide', 'execute', 'jumpToElements'],
+		removeElement: ['jumpToSlide', 'execute'],
+		editElement: ['jumpToSlide', 'jumpToElements', 'execute'],
+	},
+	undo: {
+		addSlide: ['jumpToSlide', 'undo'],
+		removeSlide: ['undo', 'jumpToSlide'],
+		addElement: ['jumpToSlide', 'undo'],
+		removeElement: ['jumpToSlide', 'undo', 'jumpToElements'],
+		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
+	},
+}
+
 export const useCommandHistory = (state) => {
 	const recentlyRestored = ref(false)
 	const prevCommands = ref([])
@@ -20,6 +37,12 @@ export const useCommandHistory = (state) => {
 
 	const canUndo = computed(() => prevCommands.value.length > 0)
 	const canRedo = computed(() => nextCommands.value.length > 0)
+
+	const getActionSequence = (commandKey, operation) => {
+		// since redo performs same action as execute
+		const op = operation === 'redo' ? 'execute' : operation
+		return actionOrder[op]?.[commandKey]
+	}
 
 	const jumpToSlide = async (index) => {
 		const onActiveSlide = index === slideIndex.value
@@ -55,21 +78,53 @@ export const useCommandHistory = (state) => {
 		}
 	}
 
-	const execute = async (command) => {
-		command.execute(state.value)
-		prevCommands.value.push(command)
-		nextCommands.value = []
+	const getSlideIndexForJump = (action, command, operation) => {
+		if (action !== 'jumpToSlide') return null
 
-		let index = null
-		if (command.key === 'addSlide' || command.key === 'removeSlide') {
-			index = command.jumpToSlideIndex
-		} else {
-			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
+		if (['addSlide', 'removeSlide'].includes(command.key)) {
+			if (['execute', 'redo'].includes(operation)) return command.jumpToSlideIndex
+			if (operation === 'undo') return command.fromSlideIndex
+			return null
 		}
 
-		await jumpToSlide(index)
-		updateThumbnail(index)
-		jumpToElements(command.jumpToElementIds, command.focusElementId)
+		return slides.value.findIndex((s) => s.clientId === command.jumpToSlideId)
+	}
+
+	const handleJumpToSlide = async (action, command, operation) => {
+		const slideIdx = getSlideIndexForJump(action, command, operation)
+
+		await jumpToSlide(slideIdx)
+
+		updateThumbnail(slideIdx)
+	}
+
+	const executeAction = async (action, command, operation) => {
+		switch (action) {
+			case 'execute':
+				command.execute(state.value)
+				break
+			case 'undo':
+				command.undo(state.value)
+				break
+			case 'jumpToSlide':
+				handleJumpToSlide(action, command, operation)
+				break
+			case 'jumpToElements':
+				jumpToElements(command.jumpToElementIds, command.focusElementId)
+				break
+			default:
+				break
+		}
+	}
+
+	const execute = async (command) => {
+		const sequence = getActionSequence(command.key, 'execute')
+		for (const action of sequence) {
+			await executeAction(action, command, 'execute')
+		}
+
+		prevCommands.value.push(command)
+		nextCommands.value = []
 	}
 
 	const undo = async () => {
@@ -77,23 +132,12 @@ export const useCommandHistory = (state) => {
 
 		const command = prevCommands.value.pop()
 
-		let index = null
-
-		if (command.key === 'addSlide' || command.key === 'removeSlide') {
-			index = command.fromSlideIndex
-			await jumpToSlide(index)
-			command.undo(state.value)
-			nextCommands.value.push(command)
-		} else {
-			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
-			await jumpToSlide(index)
-			command.undo(state.value)
-			nextCommands.value.push(command)
+		const sequence = getActionSequence(command.key, 'undo')
+		for (const action of sequence) {
+			await executeAction(action, command, 'undo')
 		}
 
-		updateThumbnail(index)
-
-		jumpToElements(command.jumpToElementIds, command.focusElementId)
+		nextCommands.value.push(command)
 	}
 
 	const redo = async () => {
@@ -101,23 +145,12 @@ export const useCommandHistory = (state) => {
 
 		const command = nextCommands.value.pop()
 
-		let index = null
-
-		if (command.key === 'addSlide' || command.key === 'removeSlide') {
-			index = command.jumpToSlideIndex
-			command.execute(state.value)
-			await jumpToSlide(index)
-			prevCommands.value.push(command)
-		} else {
-			index = slides.value.findIndex((s) => s.name === command.jumpToSlideId)
-			await jumpToSlide(command.slideId)
-			command.execute(state.value)
-			prevCommands.value.push(command)
+		const sequence = getActionSequence(command.key, 'redo')
+		for (const action of sequence) {
+			await executeAction(action, command, 'redo')
 		}
 
-		updateThumbnail(index)
-
-		jumpToElements(command.jumpToElementIds, command.focusElementId)
+		prevCommands.value.push(command)
 	}
 
 	return { execute, undo, redo, canUndo, canRedo, prevCommands, nextCommands, recentlyRestored }
