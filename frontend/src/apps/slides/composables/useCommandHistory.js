@@ -21,6 +21,7 @@ const actionOrder = {
 		removeElement: ['jumpToSlide', 'execute'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'execute'],
 		batch: ['execute', 'jumpToSlide', 'jumpToElements'],
+		editSlide: ['jumpToSlide', 'execute'],
 	},
 	undo: {
 		addSlide: ['jumpToSlide', 'undo'],
@@ -29,6 +30,7 @@ const actionOrder = {
 		removeElement: ['jumpToSlide', 'undo', 'jumpToElements'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
 		batch: ['jumpToSlide', 'jumpToElements', 'undo'],
+		editSlide: ['jumpToSlide', 'undo'],
 	},
 }
 
