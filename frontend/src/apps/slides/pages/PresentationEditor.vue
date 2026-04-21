@@ -280,6 +280,7 @@ watch(
 	(id, prevId) => {
 		if (!id || !prevId || id === prevId) return
 		inReadonlyMode.value = props.editorAccess == 'view'
+		commandHistory.clearHistory()
 		loadEditorState()
 	},
 )
