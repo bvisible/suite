@@ -97,7 +97,8 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { ignoreUpdates, historyMetadata } from '@/stores/history'
+import { commandHistory, historyMetadata } from '@/stores/history'
+import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
@@ -207,13 +208,12 @@ const handleSortStart = (event) => {
 }
 
 const handleSortEnd = async (event) => {
-	historyMetadata.focusIndexPostRedo = event.newIndex
-	ignoreUpdates(() => {
-		slides.value.forEach((slide, index) => {
-			slide.idx = index + 1
-		})
-	})
-	emit('changeSlide', event.newIndex)
+	commandHistory.execute(
+		reorderSlidesCommand({
+			oldIndex: event.oldIndex,
+			newIndex: event.newIndex,
+		}),
+	)
 }
 
 const handleHoverChange = (e) => {

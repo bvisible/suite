@@ -22,6 +22,7 @@ const actionOrder = {
 		editElement: ['jumpToSlide', 'jumpToElements', 'execute'],
 		batch: ['execute', 'jumpToSlide', 'jumpToElements'],
 		editSlide: ['jumpToSlide', 'execute'],
+		reorderSlides: ['execute', 'jumpToSlide'],
 	},
 	undo: {
 		addSlide: ['jumpToSlide', 'undo'],
@@ -31,6 +32,7 @@ const actionOrder = {
 		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
 		batch: ['jumpToSlide', 'jumpToElements', 'undo'],
 		editSlide: ['jumpToSlide', 'undo'],
+		reorderSlides: ['undo', 'jumpToSlide'],
 	},
 }
 
@@ -86,6 +88,12 @@ export const useCommandHistory = (state) => {
 		if (action !== 'jumpToSlide') return null
 
 		if (['addSlide', 'removeSlide'].includes(command.key)) {
+			if (['execute', 'redo'].includes(operation)) return command.jumpToSlideIndex
+			if (operation === 'undo') return command.fromSlideIndex
+			return null
+		}
+
+		if (command.key == 'reorderSlides') {
 			if (['execute', 'redo'].includes(operation)) return command.jumpToSlideIndex
 			if (operation === 'undo') return command.fromSlideIndex
 			return null
