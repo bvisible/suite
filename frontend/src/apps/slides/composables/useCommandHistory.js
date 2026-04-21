@@ -30,7 +30,7 @@ const actionOrder = {
 		addElement: ['jumpToSlide', 'undo'],
 		removeElement: ['jumpToSlide', 'undo', 'jumpToElements'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
-		batch: ['jumpToSlide', 'jumpToElements', 'undo'],
+		batch: ['jumpToSlide', 'undo', 'jumpToElements'],
 		editSlide: ['jumpToSlide', 'undo'],
 		reorderSlides: ['undo', 'jumpToSlide'],
 	},
