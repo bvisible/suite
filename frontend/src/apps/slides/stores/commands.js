@@ -131,3 +131,22 @@ export const editSlideCommand = ({ slideId, property, oldValue, newValue }) => (
 		if (slide) slide[property] = oldValue
 	},
 })
+
+export const reorderSlidesCommand = ({ oldIndex, newIndex }) => ({
+	key: 'reorderSlides',
+	fromSlideIndex: oldIndex,
+	jumpToSlideIndex: newIndex,
+	debug: `Reorder slide from index ${oldIndex} to ${newIndex}`,
+	execute(state) {
+		state.forEach((slide, idx) => {
+			slide.idx = idx + 1
+		})
+	},
+	undo(state) {
+		const [movedSlide] = state.splice(newIndex, 1)
+		state.splice(oldIndex, 0, movedSlide)
+		state.forEach((slide, idx) => {
+			slide.idx = idx + 1
+		})
+	},
+})

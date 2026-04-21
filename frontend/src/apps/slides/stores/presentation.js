@@ -7,8 +7,6 @@ import { slides } from './slide'
 import { normalizeZIndices } from '@/stores/element'
 import { v4 as uuid4 } from 'uuid'
 
-import { ignoreUpdates } from '@/stores/history'
-
 const isDriveInstalled = window.apps?.includes('drive') ?? false
 
 const presentationDoc = ref()
