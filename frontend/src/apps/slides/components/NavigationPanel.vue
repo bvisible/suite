@@ -9,19 +9,19 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="slides"
+			v-if="sidebarSlidesList"
 			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
 			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
 			<template v-if="inReadonlyMode">
 				<div
-					v-for="slide in slides"
+					v-for="slide in sidebarSlidesList"
 					:key="slide.clientId"
 					:class="getThumbnailClasses(slide)"
 					:style="getThumbnailStyles(slide)"
 					@click="handleSlideClick(slide)"
-					:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+					:ref="(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)"
 				>
 					<div
 						class="absolute inset-0 flex justify-between rounded p-2"
@@ -40,7 +40,7 @@
 
 			<template v-else>
 				<Draggable
-					v-model="slides"
+					v-model="sidebarSlidesList"
 					item-key="name"
 					@start="handleSortStart"
 					@end="handleSortEnd"
@@ -50,7 +50,9 @@
 							:class="getThumbnailClasses(slide)"
 							:style="getThumbnailStyles(slide)"
 							@click="handleSlideClick(slide)"
-							:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+							:ref="
+								(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)
+							"
 						>
 							<div
 								class="absolute inset-0 flex justify-between rounded p-2"
@@ -203,7 +205,6 @@ const toggleButtonClasses = computed(() => {
 })
 
 const handleSortStart = (event) => {
-	historyMetadata.focusIndexPostUndo = event.oldIndex
 	resetFocus()
 }
 
@@ -264,6 +265,16 @@ watch(
 			handleScrollChange(slideIndex.value)
 		})
 	},
+)
+
+const sidebarSlidesList = ref(slides.value)
+
+watch(
+	slides,
+	(newSlides) => {
+		sidebarSlidesList.value = newSlides
+	},
+	{ deep: true },
 )
 </script>
 

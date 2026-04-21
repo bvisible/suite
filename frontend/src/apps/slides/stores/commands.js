@@ -138,6 +138,8 @@ export const reorderSlidesCommand = ({ oldIndex, newIndex }) => ({
 	jumpToSlideIndex: newIndex,
 	debug: `Reorder slide from index ${oldIndex} to ${newIndex}`,
 	execute(state) {
+		const [movedSlide] = state.splice(oldIndex, 1)
+		state.splice(newIndex, 0, movedSlide)
 		state.forEach((slide, idx) => {
 			slide.idx = idx + 1
 		})
