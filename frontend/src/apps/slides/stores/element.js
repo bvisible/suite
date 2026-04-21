@@ -15,7 +15,7 @@ import { useTextEditor } from '@/composables/useTextEditor'
 import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
 import { presentationId } from './presentation'
-import { initElementRefId, updateElementRefId } from './transition'
+import { getCommandsToInitElementRefId, getCommandsToUpdateElementRefId } from './transition'
 import { commandHistory } from './history'
 
 import { generateHTML } from '@tiptap/core'
@@ -146,12 +146,21 @@ const addTextElement = async (text, position) => {
 		},
 	}
 
-	updateElementRefId(element)
+	const refCommands = getCommandsToUpdateElementRefId(element) || []
 
-	commandHistory.execute(
+	const commands = [
 		addElementCommand({
 			slideId: currentSlide.value.clientId,
 			element: element,
+		}),
+		...refCommands,
+	]
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [element.id],
+			commands,
 		}),
 	)
 }
@@ -311,18 +320,27 @@ const addMediaElement = async (file, type) => {
 		element.invertY = 1
 	}
 
-	updateElementRefId(element)
+	const refCommands = getCommandsToUpdateElementRefId(element) || []
 
-	commandHistory.execute(
+	const commands = [
 		addElementCommand({
 			slideId: currentSlide.value.clientId,
 			element: element,
+		}),
+		...refCommands,
+	]
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [element.id],
+			commands,
 		}),
 	)
 }
 
 const replaceMediaElement = async (element, fileDoc) => {
-	const commands = []
+	let commands = []
 
 	if (element.src !== fileDoc.file_url) {
 		commands.push(
@@ -364,7 +382,8 @@ const replaceMediaElement = async (element, fileDoc) => {
 		}
 	}
 
-	updateElementRefId(element)
+	// include any ref-id update commands produced by transition logic
+	commands = commands.concat(getCommandsToUpdateElementRefId(element) || [])
 
 	if (commands.length) {
 		commandHistory.execute(
@@ -390,7 +409,6 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 	elements.forEach((element) => {
 		let newElement = JSON.parse(JSON.stringify(element))
 		newElement.id = generateUniqueId()
-		initElementRefId(newElement, element, srcSlide)
 		newElement.zIndex = currentSlide.value.elements.length + 1
 		newElement.top += displaceByPx
 		newElement.left += displaceByPx
@@ -401,6 +419,8 @@ const duplicateElements = async (e, elements, srcSlide, toDisplace = true) => {
 				element: newElement,
 			}),
 		)
+
+		commands = commands.concat(getCommandsToInitElementRefId(newElement, element, srcSlide))
 
 		newSelection.push(newElement.id)
 	})
@@ -549,7 +569,16 @@ const updateElementContent = (element) => {
 
 	if (editorOldText == currentText && !wasUpdated) return
 
-	updateElementRefId(element)
+	const refCommands = getCommandsToUpdateElementRefId(element) || []
+	if (refCommands.length) {
+		commandHistory.execute(
+			batchCommand({
+				slideId: currentSlide.value.clientId,
+				elementIds: [element.id],
+				commands: refCommands,
+			}),
+		)
+	}
 
 	element.content = updatedHTML
 	editorOldText = currentText
