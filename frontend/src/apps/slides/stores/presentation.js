@@ -6,6 +6,7 @@ import { router } from '@/router'
 import { slides } from './slide'
 import { normalizeZIndices } from '@/stores/element'
 import { v4 as uuid4 } from 'uuid'
+import { commandHistory } from './history'
 
 const isDriveInstalled = window.apps?.includes('drive') ?? false
 
@@ -327,6 +328,7 @@ const resetEditorState = () => {
 	slides.value = []
 	slidesLength.value = 0
 	isPublicPresentation.value = false
+	commandHistory.clearHistory()
 }
 
 export {

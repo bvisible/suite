@@ -165,5 +165,20 @@ export const useCommandHistory = (state) => {
 		prevCommands.value.push(command)
 	}
 
-	return { execute, undo, redo, canUndo, canRedo, prevCommands, nextCommands, recentlyRestored }
+	const clearHistory = () => {
+		prevCommands.value = []
+		nextCommands.value = []
+	}
+
+	return {
+		execute,
+		undo,
+		redo,
+		canUndo,
+		canRedo,
+		prevCommands,
+		nextCommands,
+		recentlyRestored,
+		clearHistory,
+	}
 }
