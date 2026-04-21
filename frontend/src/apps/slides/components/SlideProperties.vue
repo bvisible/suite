@@ -66,7 +66,7 @@ import { Select, Checkbox, toast } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
-import { createConnectionsForMagicMove, removeConnectionsForMagicMove } from '@/stores/transition'
+import { getCommandsToAddMagicMove, getCommandsToRemoveMagicMove } from '@/stores/transition'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -78,7 +78,7 @@ const setSlideTransition = (option) => {
 	const duration = option == 'None' ? 0 : 1
 	const slide = currentSlide.value
 
-	const commands = []
+	let commands = []
 
 	commands.push(
 		editSlideCommand({
@@ -107,6 +107,12 @@ const setSlideTransition = (option) => {
 		}),
 	)
 
+	if (option == 'Magic Move') {
+		commands = commands.concat(getCommandsToAddMagicMove(slideIndex.value) || [])
+	} else {
+		commands = commands.concat(getCommandsToRemoveMagicMove(slideIndex.value) || [])
+	}
+
 	commandHistory.execute(
 		batchCommand({
 			slideId: currentSlide.value.clientId,
@@ -114,9 +120,6 @@ const setSlideTransition = (option) => {
 			commands,
 		}),
 	)
-
-	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
-	else removeConnectionsForMagicMove(slideIndex.value)
 }
 
 const setTransitionAttribute = (property, value) => {
