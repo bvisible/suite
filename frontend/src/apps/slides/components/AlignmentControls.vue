@@ -37,7 +37,6 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
 import { updatePosition } from '@/stores/element'
-import { commandHistory } from '@/stores/history'
 
 const horizontalAlignmentOptions = [
 	{
@@ -127,7 +126,7 @@ const getAlignmentButtonClasses = (direction) => {
 const performAlignment = (direction) => {
 	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
 	const value = Math.round(alignmentPositions.value[direction])
-	updatePosition(axis, value, commandHistory)
+	updatePosition(axis, value)
 }
 
 const updateGuideVisibilityMap = (direction, value) => {
