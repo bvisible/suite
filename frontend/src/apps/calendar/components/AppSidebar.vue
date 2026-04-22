@@ -25,7 +25,7 @@ const title = computed(() =>
 )
 
 const apps = createResource({
-	url: 'mail.api.get_apps',
+	url: 'mail.api.get_permitted_apps',
 	cache: 'otherApps',
 	auto: true,
 	transform: (data) => data.filter((app) => app.name !== 'calendar_app'),
@@ -50,7 +50,6 @@ const menuItems = computed(() => [
 				],
 			),
 		})),
-		condition: () => user.data.is_system_manager,
 	},
 	{
 		icon: LogOut,
