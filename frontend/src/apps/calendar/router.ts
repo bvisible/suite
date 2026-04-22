@@ -26,10 +26,11 @@ const routes = [
 
 const router = createRouter({ history: createWebHistory('/calendar'), routes })
 
-router.beforeEach((to, _, next) => {
-	if (document.referrer.includes('/app/setup-wizard')) return next('/app')
+router.beforeEach((_, __, next) => {
+	if (document.referrer.includes('/app/setup-wizard')) window.location.replace('/app')
+
 	const { isLoggedIn } = sessionStore()
-	if (!isLoggedIn) return next(`/app/login?redirect-to=${encodeURIComponent(to.fullPath)}`)
+	if (!isLoggedIn) window.location.replace('/mail/login')
 
 	return next()
 })

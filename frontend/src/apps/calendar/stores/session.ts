@@ -2,7 +2,6 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
-import router from '@/router'
 import { userStore } from '@/stores/user'
 
 export const sessionStore = defineStore('calendar-session', () => {
@@ -11,29 +10,13 @@ export const sessionStore = defineStore('calendar-session', () => {
 	const sessionUser = () => {
 		const cookies = new URLSearchParams(document.cookie.split('; ').join('&'))
 		let _sessionUser = cookies.get('user_id')
-		if (_sessionUser === 'Guest') {
-			_sessionUser = null
-		}
+		if (_sessionUser === 'Guest') _sessionUser = null
+
 		return _sessionUser
 	}
 
 	const user = ref(sessionUser())
 	const isLoggedIn = computed(() => !!user.value)
-
-	const login = createResource({
-		url: 'login',
-		onError: () => {
-			throw new Error('Invalid email or password')
-		},
-		onSuccess: () => {
-			userResource.reload()
-			user.value = sessionUser()
-			login.reset()
-
-			if (user.value === 'Administrator') window.location.replace('/app')
-			else router.replace('/')
-		},
-	})
 
 	const logout = createResource({
 		url: 'logout',
@@ -51,5 +34,5 @@ export const sessionStore = defineStore('calendar-session', () => {
 		onSuccess: (data) => (document.querySelector("link[rel='icon']").href = data.favicon),
 	})
 
-	return { user, isLoggedIn, login, logout, branding }
+	return { isLoggedIn, logout, branding }
 })
