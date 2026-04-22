@@ -20,6 +20,8 @@ export function useNetworkQuality() {
 
 	const updateQuality = (stats: NetworkStats) => {
 		if (!stats.isValid) {
+			// If we can't get valid stats, assume network is good
+			networkQuality.value = "good";
 			return;
 		}
 
