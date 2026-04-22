@@ -5,7 +5,7 @@ export const userStore = defineStore('calendar-user', () => {
 	const userResource = createResource({
 		url: 'mail.api.account.get_user_info',
 		onSuccess: (data) => {
-			if (data?.is_mail_user) identities.fetch()
+			if (data?.is_jmap_configured) identities.fetch()
 		},
 		onError: (error) => {
 			if (error && error.exc_type === 'AuthenticationError')

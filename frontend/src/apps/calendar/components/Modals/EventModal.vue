@@ -351,25 +351,18 @@ const debouncedSearch = useDebounceFn((text: string) => text && mailContacts.rel
 
 // --- Dialog options ---
 
-const dialogOptions = computed(() => ({
-	title: isNew.value ? __('Add Event') : __('Edit Event'),
-	size: '5xl',
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled:
-				createEvent.loading ||
-				editEvent.loading ||
-				editEventInstance.loading ||
-				(!isNew.value && !Object.keys(patch.value).length),
-			onClick: () =>
-				shouldShowRecurringEventModal.value
-					? (showRecurringEventModal.value = true)
-					: handleSave(),
-		},
-	],
-}))
+const disableSave = computed(() => {
+	if (createEvent.loading || editEvent.loading || editEventInstance.loading) return true
+	if (!isNew.value && !Object.keys(patch.value).length) return true
+	return false
+})
+
+const handleSaveClick = () => {
+	if (shouldShowRecurringEventModal.value) showRecurringEventModal.value = true
+	else handleSave()
+}
+
+const DIALOG_OPTIONS = { title: isNew.value ? __('Add Event') : __('Edit Event'), size: '5xl' }
 
 const RSVP_OPTIONS = [
 	{ label: __(' '), value: 'NEEDS-ACTION' },
@@ -404,7 +397,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 </script>
 
 <template>
-	<Dialog v-model="show" :disable-outside-click-to-close="true" :options="dialogOptions">
+	<Dialog v-model="show" :options="DIALOG_OPTIONS">
 		<template #body-content>
 			<div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
 				<div class="col-span-7 space-y-4">
@@ -570,10 +563,23 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 				</div>
 			</div>
 		</template>
+		<template #actions="{ close }">
+			<div class="flex justify-end gap-2">
+				<Button :label="__('Cancel')" variant="outline" @click="close" />
+				<Button
+					:label="__('Save')"
+					variant="solid"
+					:disabled="disableSave"
+					class="w-16"
+					@click="handleSaveClick"
+				/>
+			</div>
+		</template>
 	</Dialog>
 	<EventRepeatSettingsModal
+		v-if="event?.startDate"
 		v-model="showRepeatSettings"
-		:start-date="event?.startDate"
+		:start-date="event.startDate"
 		:r-rule="event?.recurrence_rule"
 		@update-recurrence-rule="(val) => (event.recurrence_rule = val)"
 	/>
