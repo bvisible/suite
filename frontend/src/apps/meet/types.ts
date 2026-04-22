@@ -33,3 +33,9 @@ export type {
 	PresenceTokenResponse,
 	UserData,
 } from "../../types";
+
+declare module "vue" {
+	interface ComponentCustomProperties {
+		$platform: Platform;
+	}
+}
