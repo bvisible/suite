@@ -390,7 +390,7 @@ const resetHideTimer = (force = false) => {
 
 	hideTimeout = setTimeout(() => {
 		isVisible.value = false;
-	}, 3000);
+	}, 10000);
 };
 
 const handleActivity = () => {
