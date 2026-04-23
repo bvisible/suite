@@ -8,17 +8,17 @@ const routes = [
 		redirect: { name: 'Month' },
 	},
 	{
-		path: '/month',
+		path: '/month/:year?/:month?/:day?',
 		name: 'Month',
 		component: () => import('@/pages/CalendarView.vue'),
 	},
 	{
-		path: '/week',
+		path: '/week/:year?/:month?/:day?',
 		name: 'Week',
 		component: () => import('@/pages/CalendarView.vue'),
 	},
 	{
-		path: '/day',
+		path: '/day/:year?/:month?/:day?',
 		name: 'Day',
 		component: () => import('@/pages/CalendarView.vue'),
 	},
@@ -26,13 +26,11 @@ const routes = [
 
 const router = createRouter({ history: createWebHistory('/calendar'), routes })
 
-router.beforeEach((_, __, next) => {
+router.beforeEach(() => {
 	if (document.referrer.includes('/app/setup-wizard')) window.location.replace('/app')
 
 	const { isLoggedIn } = sessionStore()
 	if (!isLoggedIn) window.location.replace('/mail/login')
-
-	return next()
 })
 
 export default router

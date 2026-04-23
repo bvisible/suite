@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Button, Calendar, Dialog, createResource } from 'frappe-ui'
+import { Button, Calendar, Dialog, createResource, usePageMeta } from 'frappe-ui'
 
 import { raiseToast } from '@/utils'
 import { userStore } from '@/stores/user'
@@ -16,20 +16,50 @@ const { identities } = userStore()
 const route = useRoute()
 const router = useRouter()
 
-const calendar = useTemplateRef('calendar')
+const calendarRef = useTemplateRef('calendar')
+
+usePageMeta(() => ({ title: calendarRef.value?.currentMonthYear || __('Frappe Calendar') }))
 
 watch(
-	() => [calendar.value?.currentYear, calendar.value?.currentMonth],
-	() => events.reload(),
+	() => [
+		calendarRef.value?.currentYear,
+		calendarRef.value?.currentMonth,
+		calendarRef.value?.currentDay,
+	],
+	([year, month], [oldYear, oldMonth]) => {
+		if (year !== oldYear || month !== oldMonth) events.reload()
+		setRoute()
+	},
 )
 
 watch(
-	() => calendar.value?.activeView,
-	(view) => router.push({ name: view }),
+	() => calendarRef.value?.activeView,
+	(view) => {
+		if (view && view !== route.name) setRoute()
+	},
 )
+
+const setRoute = () => {
+	const year = calendarRef.value?.currentYear
+	const month = calendarRef.value?.currentMonth
+	const day = calendarRef.value?.currentDay
+
+	const target = dayjs().year(year).month(month).date(day)
+	const view = calendarRef.value?.activeView as 'Month' | 'Week' | 'Day'
+
+	console.log(year, month, day)
+	if (dayjs().isSame(target, view)) router.replace({ name: view })
+	else router.push({ name: view, params: { year, month: month + 1, day } })
+}
 
 onMounted(() => {
-	if (route.name) calendar.value.activeView = route.name
+	if (route.name) calendarRef.value.activeView = route.name
+
+	const { year, month, day } = route.params
+	if (year && month && day) {
+		const date = dayjs(`${year}-${month}-${day}`, 'YYYY-M-D')
+		if (date.isValid()) calendarRef.value.setCalendarDate(date)
+	}
 })
 
 const transformEvent = (event) => {
@@ -80,7 +110,9 @@ const visibleCalendars = ref<string[]>([])
 const events = createResource({
 	url: 'calendar_app.api.get_calendar_events',
 	makeParams: () => {
-		const date = dayjs().year(calendar.value?.currentYear).month(calendar.value?.currentMonth)
+		const date = dayjs()
+			.year(calendarRef.value?.currentYear)
+			.month(calendarRef.value?.currentMonth)
 		return {
 			from_date: date.startOf('month').subtract(37, 'day').toDate(),
 			to_date: date.endOf('month').add(37, 'day').toDate(),
@@ -146,21 +178,20 @@ const hasParticipantsOtherThanUser = computed(
 )
 
 const submitEvent = (sendEmail: boolean) => {
-	console.log(eventToBeUpdated)
 	if (isUpdateInstance.value) {
 		return
-	} else {
-		eventToBeUpdated.start = dayjs(eventToBeUpdated.fromDateTime).format('YYYY-MM-DDTHH:mm:ss')
-		if (!eventToBeUpdated.isAllDay) {
-			const start = dayjs(eventToBeUpdated.fromDateTime)
-			const end = dayjs(eventToBeUpdated.toDateTime)
-			const diff = dayjs.duration(end.diff(start))
-			const hours = Math.floor(diff.asHours())
-			const minutes = diff.minutes()
-			eventToBeUpdated.duration = dayjs.duration({ hours, minutes }).toISOString()
-		}
-		editEvent.submit({ sendEmail })
 	}
+
+	eventToBeUpdated.start = dayjs(eventToBeUpdated.fromDateTime).format('YYYY-MM-DDTHH:mm:ss')
+	if (!eventToBeUpdated.isAllDay) {
+		const start = dayjs(eventToBeUpdated.fromDateTime)
+		const end = dayjs(eventToBeUpdated.toDateTime)
+		const diff = dayjs.duration(end.diff(start))
+		const hours = Math.floor(diff.asHours())
+		const minutes = diff.minutes()
+		eventToBeUpdated.duration = dayjs.duration({ hours, minutes }).toISOString()
+	}
+	editEvent.submit({ sendEmail })
 }
 
 // const editEventInstance = createResource({
