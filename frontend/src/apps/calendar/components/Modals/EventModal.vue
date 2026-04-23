@@ -362,7 +362,10 @@ const handleSaveClick = () => {
 	else handleSave()
 }
 
-const DIALOG_OPTIONS = { title: isNew.value ? __('Add Event') : __('Edit Event'), size: '5xl' }
+const dialogOptions = computed(() => ({
+	title: isNew.value ? __('Add Event') : __('Edit Event'),
+	size: '5xl',
+}))
 
 const RSVP_OPTIONS = [
 	{ label: __(' '), value: 'NEEDS-ACTION' },
@@ -397,7 +400,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 </script>
 
 <template>
-	<Dialog v-model="show" :options="DIALOG_OPTIONS">
+	<Dialog v-model="show" :options="dialogOptions">
 		<template #body-content>
 			<div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
 				<div class="col-span-7 space-y-4">
