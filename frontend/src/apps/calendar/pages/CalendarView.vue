@@ -211,6 +211,10 @@ const editEvent = createResource({
 		id: eventToBeUpdated.master_id,
 		send_scheduling_messages: sendEmail,
 	}),
+	onSuccess: () => {
+		raiseToast(__('Event updated.'), 'success')
+		events.reload()
+	},
 })
 
 const RECURRING_EVENT_MODAL_OPTIONS = {
