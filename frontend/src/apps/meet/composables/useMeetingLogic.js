@@ -576,22 +576,22 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				// Apply noise cancellation if enabled
 				const track = await getProcessedAudioTrack(stream);
 				if (mh?.audioProducer) {
-					if (meetingState.isScreenSharing.value) {
-						const currentTrack = mh.audioProducer.track;
-						if (currentTrack && currentTrack.readyState === "ended") {
-							await mh.audioProducer.replaceTrack({ track });
-						} else {
-							mh.audioProducer.resume?.();
-							if (track) track.enabled = true;
-						}
-					} else {
-						const producer =
-							await sfuManager.value.transportManager.createProducer(track, {
-								type: "microphone",
-							});
-						mh?.setProducers({ audioProducer: producer });
+					// if we have an existing paused producer resume it
+					const currentTrack = mh.audioProducer.track;
+					if (currentTrack && currentTrack.readyState === "ended") {
+						// if track died unexpectedly, replace it
+						await mh.audioProducer.replaceTrack({ track });
+					} else if (track) {
+						track.enabled = true;
+					}
+					mh.audioProducer.resume?.();
+
+					const sfuClient = getSFUClient();
+					if (sfuClient.isConnected()) {
+						sfuClient.resumeProducer(mh.audioProducer.id).catch(() => {});
 					}
 				} else if (track && sfuManager.value?.transportManager) {
+					// if no existing producer create one
 					const producer =
 						await sfuManager.value.transportManager.createProducer(track, {
 							type: "microphone",
@@ -599,17 +599,11 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					mh?.setProducers({ audioProducer: producer });
 				}
 			} else {
-				// Turning mic OFF
+				// disable the track and pause the producer
 				if (stream) {
 					const at = stream.getAudioTracks()[0];
 					if (at) {
-						if (meetingState.isScreenSharing.value) {
-							// Keep track alive for resuming, else user can't unmute after screen share
-							at.enabled = false;
-						} else {
-							at.stop();
-							stream.removeTrack(at);
-						}
+						at.enabled = false;
 					}
 				}
 
@@ -619,14 +613,12 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 				}
 
 				if (mh?.audioProducer) {
-					mh.audioProducer.close?.();
+					mh.audioProducer.pause?.();
 
 					const sfuClient = getSFUClient();
 					if (sfuClient.isConnected()) {
-						sfuClient.closeProducer(mh.audioProducer.id).catch(() => {});
+						sfuClient.pauseProducer(mh.audioProducer.id);
 					}
-
-					mh.audioProducer = null;
 				}
 			}
 
