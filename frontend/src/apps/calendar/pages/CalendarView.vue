@@ -47,7 +47,6 @@ const setRoute = () => {
 	const target = dayjs().year(year).month(month).date(day)
 	const view = calendarRef.value?.activeView as 'Month' | 'Week' | 'Day'
 
-	console.log(year, month, day)
 	if (dayjs().isSame(target, view)) router.replace({ name: view })
 	else router.push({ name: view, params: { year, month: month + 1, day } })
 }

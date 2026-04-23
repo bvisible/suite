@@ -61,3 +61,18 @@ export const getReorderedParticipants = (
 
 	return organizer ? [{ ...organizer, isOrganizer: true }, ...rest] : rest
 }
+
+export const shouldIgnoreKeypress = (
+	e: KeyboardEvent,
+	allowCtrlAndMeta: boolean = false,
+): boolean => {
+	if (!allowCtrlAndMeta && (e.ctrlKey || e.metaKey)) return true
+
+	const target = e.target as HTMLElement
+	return (
+		(target.tagName === 'INPUT' && (target as HTMLInputElement).type !== 'checkbox') ||
+		target.tagName === 'TEXTAREA' ||
+		target.isContentEditable ||
+		e.altKey
+	)
+}
