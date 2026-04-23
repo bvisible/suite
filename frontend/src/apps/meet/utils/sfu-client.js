@@ -490,6 +490,14 @@ class SFUClient {
 		return this.sendRequest("close_producer", { producerId });
 	}
 
+	async pauseProducer(producerId) {
+		return this.sendRequest("pause_producer", { producerId });
+	}
+
+	async resumeProducer(producerId) {
+		return this.sendRequest("resume_producer", { producerId });
+	}
+
 	async closeConsumer(consumerId) {
 		return this.sendRequest("close_consumer", { consumerId });
 	}
