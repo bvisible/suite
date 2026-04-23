@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, h, inject } from 'vue'
-import { Eye, EyeOff, LayoutGrid, LogOut } from 'lucide-vue-next'
+import { computed, h, inject, ref } from 'vue'
+import { Eye, EyeOff, LayoutGrid, LogOut, Settings } from 'lucide-vue-next'
 import { Sidebar, createResource } from 'frappe-ui'
 
 import { toTitleCase } from '@/utils/format'
 import { sessionStore } from '@/stores/session'
 import CalendarLogo from '@/components/Icons/CalendarLogo.vue'
+import SettingsModal from '@/components/Modals/SettingsModal.vue'
 
 const { calendars, visibleCalendars } = defineProps<{
 	calendars: any[]
@@ -31,6 +32,8 @@ const apps = createResource({
 	transform: (data) => data.filter((app) => app.name !== 'calendar_app'),
 })
 
+const showSettings = ref(false)
+
 const menuItems = computed(() => [
 	{
 		icon: LayoutGrid,
@@ -50,6 +53,11 @@ const menuItems = computed(() => [
 				],
 			),
 		})),
+	},
+	{
+		icon: Settings,
+		label: __('Settings'),
+		onClick: () => (showSettings.value = true),
 	},
 	{
 		icon: LogOut,
@@ -82,4 +90,5 @@ const sidebarItems = computed(() => [
 		:sections="sidebarItems"
 		:disable-collapse="true"
 	/>
+	<SettingsModal v-model="showSettings" />
 </template>
