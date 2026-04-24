@@ -186,8 +186,16 @@ export const useTextEditor = () => {
 				chain.setColor(value).run()
 				break
 			case 'lineHeight':
-				chain.setLineHeight(value).run()
-				activeElement.value.lineHeight = value
+				activeEditor.value.chain().selectAll().setLineHeight(value).run()
+				commandHistory.execute(
+					editElementCommand({
+						slideId: currentSlide.value.clientId,
+						elementIds: [activeElement.value.id],
+						property: 'lineHeight',
+						oldValue: editorStyles.lineHeight,
+						newValue: value,
+					}),
+				)
 				break
 			default:
 				chain

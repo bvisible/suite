@@ -90,7 +90,7 @@
 				:rangeStart="1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="editorStyles?.lineHeight"
+				:modelValue="parseFloat(editorStyles.lineHeight)"
 				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 
