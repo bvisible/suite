@@ -468,7 +468,6 @@ export const extensions = [
 		listItem: false,
 	}),
 	CustomTextStyle,
-	Underline,
 	Color,
 	TextAlign.configure({
 		types: ['paragraph'],
