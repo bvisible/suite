@@ -2,7 +2,7 @@ import { Editor } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
 
 import { StarterKit } from '@tiptap/starter-kit'
-import { TextStyle } from '@tiptap/extension-text-style'
+import { TextStyle, LineHeight } from '@tiptap/extension-text-style'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Underline } from '@tiptap/extension-underline'
 import BulletList from '@tiptap/extension-bullet-list'
@@ -484,4 +484,5 @@ export const extensions = [
 	}),
 	CustomListItem,
 	StyledEmptyLine,
+	LineHeight,
 ]
