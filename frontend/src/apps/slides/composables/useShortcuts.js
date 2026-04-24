@@ -207,7 +207,7 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 		const activeTag = document.activeElement.tagName
 		const activeType = document.activeElement.type
 
-		const isControl = activeTag == 'INPUT' && ['range', 'number'].includes(activeType)
+		const isControl = activeTag == 'INPUT'
 		const isRenaming = document.activeElement.isContentEditable
 
 		if (isControl || isRenaming) return

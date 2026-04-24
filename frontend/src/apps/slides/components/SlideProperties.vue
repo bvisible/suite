@@ -10,7 +10,10 @@
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Background Color</div>
-				<ColorPicker v-model="currentSlide.background" />
+				<ColorPicker
+					:currentColor="currentSlide?.background"
+					@update:currentColor="handleUpdateCurrentColor"
+				/>
 			</div>
 		</div>
 	</div>
@@ -173,5 +176,19 @@ const applyTransitionToAllSlides = () => {
 	)
 
 	toast.success('Applied transition to all slides')
+}
+
+const handleUpdateCurrentColor = (color) => {
+	let oldValue = currentSlide.value['background']
+	let newValue = color
+
+	commandHistory.execute(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property,
+			oldValue,
+			newValue,
+		}),
+	)
 }
 </script>
