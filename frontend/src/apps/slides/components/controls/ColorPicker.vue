@@ -1,9 +1,9 @@
 <template>
-	<Popover @open="handlePopoverOpen">
+	<Popover>
 		<template #target="{ togglePopover, isOpen }">
 			<div
 				class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-gray-300 ring-offset-1"
-				:style="{ backgroundColor: currentColor }"
+				:style="{ backgroundColor: color }"
 				@click="handleColorPickerClick(togglePopover, isOpen)"
 			></div>
 		</template>
@@ -24,7 +24,7 @@
 					<div class="flex h-8 justify-between py-1">
 						<div
 							class="h-full w-6 rounded-sm ring-1 ring-gray-100 ring-offset-1"
-							:style="{ backgroundColor: currentColor }"
+							:style="{ backgroundColor: color }"
 						></div>
 						<div class="flex flex-col justify-between px-1">
 							<div
@@ -121,7 +121,13 @@ const sliderClasses = 'h-1/5 rounded cursor-pointer'
 const sliderCursorClasses =
 	'relative size-[0.8rem] rounded shadow border border-gray-200 bg-white hover:scale-[1.1] transition-transform duration-200 ease-in-out'
 
-const currentColor = defineModel()
+const currentColor = defineModel('currentColor', {
+	type: String,
+	default: '#ff0000',
+})
+
+const color = ref(currentColor.value)
+const isInteracting = ref(false)
 
 const currentHue = ref()
 const currentOpacity = ref()
@@ -154,13 +160,14 @@ const opacitySliderStyles = computed(() => ({
 
 const shadeRectStyles = computed(() => {
 	return {
-		backgroundColor: currentColor.value,
+		backgroundColor: color.value,
 		left: shadeCursorLeft.value,
 		top: shadeCursorTop.value,
 	}
 })
 
 const handleUpdateHue = (e) => {
+	isInteracting.value = true
 	updateHue(e)
 	window.addEventListener('mousemove', updateHue)
 	window.addEventListener('mouseup', endUpdateHue)
@@ -193,7 +200,7 @@ const updateHue = (e) => {
 	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 
 	// update currentColor based on exact hue, saturation, and value
-	currentColor.value = tinycolor
+	color.value = tinycolor
 		.fromRatio({
 			h: colorHue.value,
 			s: colorSaturation.value * 100,
@@ -203,8 +210,14 @@ const updateHue = (e) => {
 		.toHex8String()
 }
 
+const setCurrentColor = () => {
+	currentColor.value = color.value
+	isInteracting.value = false
+}
+
 const endUpdateHue = (e) => {
 	window.removeEventListener('mousemove', updateHue)
+	setCurrentColor()
 }
 
 const handleUpdateShade = (e) => {
@@ -225,7 +238,7 @@ const updateShade = (e) => {
 	colorSaturation.value = x / SHADE_RECT_WIDTH
 	colorValue.value = 1 - y / SHADE_RECT_HEIGHT
 
-	currentColor.value = tinycolor({
+	color.value = tinycolor({
 		h: colorHue.value,
 		s: colorSaturation.value * 100,
 		v: colorValue.value * 100,
@@ -235,6 +248,7 @@ const updateShade = (e) => {
 
 const endUpdateShade = (e) => {
 	window.removeEventListener('mousemove', updateShade)
+	setCurrentColor()
 }
 
 const handleUpdateOpacity = (e) => {
@@ -251,22 +265,12 @@ const updateOpacity = (e) => {
 	const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
 
 	currentOpacity.value = x / SLIDER_WIDTH
-	currentColor.value = tinycolor(currentColor.value).setAlpha(currentOpacity.value).toHex8String()
+	color.value = tinycolor(color.value).setAlpha(currentOpacity.value).toHex8String()
 }
 
 const endUpdateOpacity = (e) => {
 	window.removeEventListener('mousemove', updateOpacity)
-}
-
-const handlePopoverOpen = () => {
-	const initialHsv = tinycolor(currentColor.value).toHsv()
-
-	colorHue.value = initialHsv.h
-	colorSaturation.value = initialHsv.s
-	colorValue.value = initialHsv.v
-	currentOpacity.value = initialHsv.a
-
-	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+	setCurrentColor()
 }
 
 const openEyeDropper = async () => {
@@ -285,18 +289,13 @@ watch(sRGBHex, (newColor) => {
 })
 
 const setColor = (newColor) => {
-	currentColor.value = newColor
-	const initialHsv = tinycolor(newColor).toHsv()
-	colorHue.value = initialHsv.h
-	colorSaturation.value = initialHsv.s
-	colorValue.value = initialHsv.v
-	currentOpacity.value = initialHsv.a
-	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+	color.value = newColor
+	syncColorState(newColor)
 }
 
 const getDisplayColor = () => {
-	if (!currentColor.value) return ''
-	return tinycolor(currentColor.value).toHex8String()
+	if (!color.value) return ''
+	return tinycolor(color.value).toHex8String()
 }
 
 const handleClipboardCopy = () => {
@@ -309,7 +308,28 @@ const handleColorInputClick = (e) => {
 }
 
 const handleColorPickerClick = (togglePopover, isOpen) => {
-	if (!isOpen) handlePopoverOpen()
+	if (!isOpen) syncColorState(currentColor.value)
 	togglePopover()
 }
+
+const syncColorState = (color) => {
+	const initialHsv = tinycolor(color).toHsv()
+
+	colorHue.value = initialHsv.h
+	colorSaturation.value = initialHsv.s
+	colorValue.value = initialHsv.v
+	currentOpacity.value = initialHsv.a
+
+	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+}
+
+watch(
+	() => currentColor.value,
+	(newColor) => {
+		if (newColor !== color.value) {
+			color.value = newColor
+			syncColorState(newColor)
+		}
+	},
+)
 </script>
