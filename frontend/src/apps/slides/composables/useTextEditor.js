@@ -168,18 +168,6 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const setLineHeight = (value) => {
-		if (!activeElement.value) return
-
-		activeElement.value.editorMetadata = {
-			...activeElement.value.editorMetadata,
-			lineHeight: value,
-		}
-
-		const el = activeEditor.value.view.dom
-		if (el) el.style.lineHeight = value
-	}
-
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
@@ -198,7 +186,8 @@ export const useTextEditor = () => {
 				chain.setColor(value).run()
 				break
 			case 'lineHeight':
-				setLineHeight(value)
+				chain.setLineHeight(value).run()
+				activeElement.value.lineHeight = value
 				break
 			default:
 				chain
@@ -210,20 +199,11 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const getEditorProps = (editorMetadata) => {
-		return {
-			attributes: {
-				style: `line-height: ${editorMetadata?.lineHeight || 1.5}`,
-			},
-		}
-	}
-
-	const initTextEditor = (id, content, editorMetadata, isEditable = false) => {
+	const initTextEditor = (id, content, isEditable = false) => {
 		activeEditor.value = new Editor({
 			extensions: extensions,
 			editable: isEditable,
 			content: content,
-			editorProps: getEditorProps(editorMetadata),
 			// to update styles in sidebar based on cursor position
 			onSelectionUpdate: ({ editor }) => setEditorStyles(editor),
 			// to update element content on every change

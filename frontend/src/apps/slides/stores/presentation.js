@@ -116,6 +116,14 @@ const parseElements = (value) => {
 		}
 	}
 
+	parsed = parsed.map((el) => {
+		if (el.type === 'text' && el.editorMetadata?.lineHeight) {
+			el.lineHeight = el.editorMetadata.lineHeight
+			delete el.editorMetadata
+		}
+		return el
+	})
+
 	return normalizeZIndices(parsed)
 }
 

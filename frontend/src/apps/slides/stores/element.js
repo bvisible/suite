@@ -141,9 +141,7 @@ const addTextElement = async (text, position) => {
 		top: position.top,
 		type: 'text',
 		content: getElementContent(elementPresets),
-		editorMetadata: {
-			lineHeight: 1.5,
-		},
+		lineHeight: 1.5,
 	}
 
 	const refCommands = getCommandsToUpdateElementRefId(element) || []
@@ -607,7 +605,7 @@ const setEditableState = () => {
 const initEditorForElement = (element) => {
 	if (element?.type == 'text') {
 		const isEditable = focusElementId.value == element.id
-		initTextEditor(element.id, element.content, element.editorMetadata, isEditable)
+		initTextEditor(element.id, element.content, isEditable)
 
 		if (isEditable) setEditableState()
 	}
