@@ -16,7 +16,7 @@
 					:min="rangeStart"
 					:max="rangeEnd"
 					:step="rangeStep"
-					:value="modelValue"
+					:value="sliderValue"
 					@input="$emit('update:modelValue', $event.target.value)"
 					@mousedown="handleSliderMouseDown"
 					@mouseup="handleSliderMouseUp"
@@ -31,7 +31,7 @@
 				v-if="showInput"
 				type="number"
 				class="h-[25px] w-10 rounded border border-gray-400 px-1 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
-				:value="modelValue"
+				:value="sliderValue"
 				@change="changeValue"
 			/>
 		</div>
@@ -54,11 +54,9 @@ const props = defineProps({
 		type: Boolean,
 		default: true,
 	},
-	modelValue: {
-		type: Number,
-		required: true,
-	},
 })
+
+const sliderValue = defineModel()
 
 const emit = defineEmits(['update:modelValue', 'sliderdown', 'sliderup'])
 
@@ -72,7 +70,9 @@ const changeValue = (e) => {
 }
 
 const highlightStyles = computed(() => {
-	const { rangeStart, rangeEnd, modelValue: val } = props
+	const { rangeStart, rangeEnd } = props
+
+	const val = parseFloat(sliderValue.value)
 
 	let left = 0
 	let width = 0
