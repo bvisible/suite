@@ -24,32 +24,20 @@
 
 <script setup>
 import { inject } from 'vue'
+
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 
-import { currentSlide } from '@/stores/slide'
-import { activeElement, activeElementIds } from '@/stores/element'
 import { useTextEditor } from '@/composables/useTextEditor'
-import { useDeferredCommit } from '@/composables/useDeferredCommit'
-import { editElementCommand } from '@/stores/commands'
+
+import { activeElement } from '@/stores/element'
+
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const { editorStyles, updateProperty } = useTextEditor()
 
-const setProperty = inject('setProperty')
-
-const setOpacity = (value) => {
-	setProperty('opacity', parseFloat(value))
-}
-
-const { onStart: onOpacityUpdateStart, onEnd: onOpacityUpdateEnd } = useDeferredCommit(
-	() => activeElement.value.opacity,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: activeElementIds.value,
-			property: 'opacity',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onOpacityUpdateStart, onEnd: onOpacityUpdateEnd } = setPropertyDeferred(
+	'element',
+	'opacity',
 )
 </script>
