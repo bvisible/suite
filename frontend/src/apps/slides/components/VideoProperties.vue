@@ -27,8 +27,9 @@
 				:rangeStart="0.5"
 				:rangeEnd="2"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.playbackRate)"
-				@update:modelValue="setPlaybackRate"
+				v-model="activeElement.playbackRate"
+				@sliderdown="onPlaybackRateUpdateStart"
+				@sliderup="onPlaybackRateUpdateEnd"
 			/>
 		</template>
 	</CollapsibleSection>
@@ -45,7 +46,10 @@ import MediaProperties from '@/components/MediaProperties.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { activeElement } from '@/stores/element'
+import { currentSlide } from '@/stores/slide'
+import { activeElement, activeElementIds } from '@/stores/element'
+import { useDeferredCommit } from '@/composables/useDeferredCommit'
+import { editElementCommand } from '@/stores/commands'
 
 const hoverOption = ref(null)
 
@@ -86,4 +90,16 @@ const togglePlaybackOption = (option) => {
 const setPlaybackRate = (value) => {
 	setProperty('playbackRate', parseFloat(value))
 }
+
+const { onStart: onPlaybackRateUpdateStart, onEnd: onPlaybackRateUpdateEnd } = useDeferredCommit(
+	() => activeElement.value?.playbackRate,
+	(oldValue, newValue) =>
+		editElementCommand({
+			slideId: currentSlide.value?.clientId,
+			elementIds: activeElementIds.value,
+			property: 'playbackRate',
+			oldValue,
+			newValue,
+		}),
+)
 </script>
