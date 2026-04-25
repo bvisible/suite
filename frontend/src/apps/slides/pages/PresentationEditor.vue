@@ -65,7 +65,6 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 
-import { initHistory } from '@/stores/history'
 import {
 	presentationId,
 	initPresentationDoc,
@@ -195,8 +194,6 @@ const performBeforeLoadOperations = () => {
 	if (inReadonlyMode.value) return
 
 	window.addEventListener('beforeunload', handleBeforeUnload)
-
-	initHistory()
 }
 
 const performAfterLoadOperations = () => {
