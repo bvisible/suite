@@ -12,8 +12,8 @@
 				<div :class="fieldLabelClasses">Background Color</div>
 				<ColorPicker
 					v-model="currentSlide.background"
-					@colordown="onBgColorInteractionStart"
-					@colorup="onBgColorInteractionEnd"
+					@colordown="onBgUpdateStart"
+					@colorup="onBgUpdateEnd"
 				/>
 			</div>
 		</div>
@@ -35,8 +35,8 @@
 				:rangeStep="0.1"
 				:modelValue="parseFloat(currentSlide.transitionDuration)"
 				@update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
-				@sliderdown="onTransitionSliderInteractionStart"
-				@sliderup="onTransitionSliderInteractionEnd"
+				@sliderdown="onTransitionUpdateStart"
+				@sliderup="onTransitionUpdateEnd"
 			/>
 
 			<div
@@ -182,7 +182,7 @@ const applyTransitionToAllSlides = () => {
 	toast.success('Applied transition to all slides')
 }
 
-const { onStart: onBgColorInteractionStart, onEnd: onBgColorInteractionEnd } = useDeferredCommit(
+const { onStart: onBgUpdateStart, onEnd: onBgUpdateEnd } = useDeferredCommit(
 	() => currentSlide.value.background,
 	(oldValue, newValue) =>
 		editSlideCommand({
@@ -193,15 +193,14 @@ const { onStart: onBgColorInteractionStart, onEnd: onBgColorInteractionEnd } = u
 		}),
 )
 
-const { onStart: onTransitionSliderInteractionStart, onEnd: onTransitionSliderInteractionEnd } =
-	useDeferredCommit(
-		() => currentSlide.value.transitionDuration,
-		(oldValue, newValue) =>
-			editSlideCommand({
-				slideId: currentSlide.value.clientId,
-				property: 'transitionDuration',
-				oldValue,
-				newValue,
-			}),
-	)
+const { onStart: onTransitionUpdateStart, onEnd: onTransitionUpdateEnd } = useDeferredCommit(
+	() => currentSlide.value.transitionDuration,
+	(oldValue, newValue) =>
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'transitionDuration',
+			oldValue,
+			newValue,
+		}),
+)
 </script>

@@ -47,7 +47,11 @@
 
 				<div class="flex items-center justify-between">
 					<div :class="fieldLabelClasses">Color</div>
-					<ColorPicker v-model="activeElement.borderColor" />
+					<ColorPicker
+						v-model="activeElement.borderColor"
+						@colordown="onBorderColorUpdateStart"
+						@colorup="onBorderColorUpdateEnd"
+					/>
 				</div>
 			</div>
 		</template>
@@ -57,7 +61,12 @@
 		<template #default>
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Color</div>
-				<ColorPicker class="pe-[0.2px]" v-model="activeElement.shadowColor" />
+				<ColorPicker
+					class="pe-[0.2px]"
+					v-model="activeElement.shadowColor"
+					@colordown="onShadowColorUpdateStart"
+					@colorup="onShadowColorUpdateEnd"
+				/>
 			</div>
 
 			<SliderInput
@@ -94,8 +103,12 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
+import { currentSlide } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
+
+import { useDeferredCommit } from '@/composables/useDeferredCommit'
+import { editElementCommand } from '@/stores/commands'
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
@@ -128,6 +141,30 @@ const getTabIconClasses = (style) => {
 		return `h-4 w-5 rounded-sm border ${isActive ? 'border-gray-800' : 'border-gray-500'}`
 	}
 }
+
+const { onStart: onBorderColorUpdateStart, onEnd: onBorderColorUpdateEnd } = useDeferredCommit(
+	() => activeElement.value?.borderColor,
+	(oldValue, newValue) =>
+		editElementCommand({
+			slideId: currentSlide.value?.clientId,
+			elementIds: [activeElement.value?.id],
+			property: 'borderColor',
+			oldValue,
+			newValue,
+		}),
+)
+
+const { onStart: onShadowColorUpdateStart, onEnd: onShadowColorUpdateEnd } = useDeferredCommit(
+	() => activeElement.value?.shadowColor,
+	(oldValue, newValue) =>
+		editElementCommand({
+			slideId: currentSlide.value?.clientId,
+			elementIds: [activeElement.value?.id],
+			property: 'shadowColor',
+			oldValue,
+			newValue,
+		}),
+)
 
 const setProperty = inject('setProperty')
 </script>
