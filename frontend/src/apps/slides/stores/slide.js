@@ -9,7 +9,7 @@ import {
 } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
-import { commandHistory, ignoreUpdates } from '@/stores/history'
+import { commandHistory } from '@/stores/history'
 import { generateUniqueId, cloneObj } from '@/utils/helpers'
 import { router } from '@/router'
 
@@ -161,10 +161,8 @@ const updateThumbnail = async (index) => {
 
 	const thumbnail = await getSlideThumbnail(thumbnailHtml)
 
-	ignoreUpdates(() => {
-		if (!slides.value[index]) return
-		slides.value[index].thumbnail = thumbnail
-	})
+	if (!slides.value[index]) return
+	slides.value[index].thumbnail = thumbnail
 
 	lastThumbnailTime.value = Date.now()
 }

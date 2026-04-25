@@ -99,7 +99,7 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { commandHistory, historyMetadata } from '@/stores/history'
+import { commandHistory } from '@/stores/history'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
 
