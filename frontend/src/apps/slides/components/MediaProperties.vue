@@ -73,24 +73,27 @@
 				label="Spread"
 				:rangeStart="0"
 				:rangeEnd="500"
-				:modelValue="parseFloat(activeElement.shadowSpread)"
-				@update:modelValue="(value) => setProperty('shadowSpread', value)"
+				v-model="activeElement.shadowSpread"
+				@sliderdown="onShadowSpreadUpdateStart"
+				@sliderup="onShadowSpreadUpdateEnd"
 			/>
 
 			<SliderInput
 				label="Offset X"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetX)"
-				@update:modelValue="(value) => setProperty('shadowOffsetX', value)"
+				v-model="activeElement.shadowOffsetX"
+				@sliderdown="onShadowOffsetXUpdateStart"
+				@sliderup="onShadowOffsetXUpdateEnd"
 			/>
 
 			<SliderInput
 				label="Offset Y"
 				:rangeStart="-50"
 				:rangeEnd="50"
-				:modelValue="parseFloat(activeElement.shadowOffsetY)"
-				@update:modelValue="(value) => setProperty('shadowOffsetY', value)"
+				v-model="activeElement.shadowOffsetY"
+				@sliderdown="onShadowOffsetYUpdateStart"
+				@sliderup="onShadowOffsetYUpdateEnd"
 			/>
 		</template>
 	</CollapsibleSection>
@@ -161,6 +164,42 @@ const { onStart: onShadowColorUpdateStart, onEnd: onShadowColorUpdateEnd } = use
 			slideId: currentSlide.value?.clientId,
 			elementIds: [activeElement.value?.id],
 			property: 'shadowColor',
+			oldValue,
+			newValue,
+		}),
+)
+
+const { onStart: onShadowSpreadUpdateStart, onEnd: onShadowSpreadUpdateEnd } = useDeferredCommit(
+	() => activeElement.value?.shadowSpread,
+	(oldValue, newValue) =>
+		editElementCommand({
+			slideId: currentSlide.value?.clientId,
+			elementIds: [activeElement.value?.id],
+			property: 'shadowSpread',
+			oldValue,
+			newValue,
+		}),
+)
+
+const { onStart: onShadowOffsetXUpdateStart, onEnd: onShadowOffsetXUpdateEnd } = useDeferredCommit(
+	() => activeElement.value?.shadowOffsetX,
+	(oldValue, newValue) =>
+		editElementCommand({
+			slideId: currentSlide.value?.clientId,
+			elementIds: [activeElement.value?.id],
+			property: 'shadowOffsetX',
+			oldValue,
+			newValue,
+		}),
+)
+
+const { onStart: onShadowOffsetYUpdateStart, onEnd: onShadowOffsetYUpdateEnd } = useDeferredCommit(
+	() => activeElement.value?.shadowOffsetY,
+	(oldValue, newValue) =>
+		editElementCommand({
+			slideId: currentSlide.value?.clientId,
+			elementIds: [activeElement.value?.id],
+			property: 'shadowOffsetY',
 			oldValue,
 			newValue,
 		}),
