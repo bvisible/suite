@@ -11,8 +11,9 @@
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Background Color</div>
 				<ColorPicker
-					:currentColor="currentSlide?.background"
-					@update:currentColor="handleUpdateCurrentColor"
+					v-model="currentSlide.background"
+					@colordown="onBgColorInteractionStart"
+					@colorup="onBgColorInteractionEnd"
 				/>
 			</div>
 		</div>
@@ -34,6 +35,8 @@
 				:rangeStep="0.1"
 				:modelValue="parseFloat(currentSlide.transitionDuration)"
 				@update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
+				@sliderdown="onTransitionSliderInteractionStart"
+				@sliderup="onTransitionSliderInteractionEnd"
 			/>
 
 			<div
@@ -76,6 +79,7 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { editSlideCommand, batchCommand } from '@/stores/commands'
 import { commandHistory } from '@/stores/history'
+import { useDeferredCommit } from '@/composables/useDeferredCommit'
 
 const setSlideTransition = (option) => {
 	const duration = option == 'None' ? 0 : 1
@@ -178,17 +182,26 @@ const applyTransitionToAllSlides = () => {
 	toast.success('Applied transition to all slides')
 }
 
-const handleUpdateCurrentColor = (color) => {
-	let oldValue = currentSlide.value['background']
-	let newValue = color
-
-	commandHistory.execute(
+const { onStart: onBgColorInteractionStart, onEnd: onBgColorInteractionEnd } = useDeferredCommit(
+	() => currentSlide.value.background,
+	(oldValue, newValue) =>
 		editSlideCommand({
 			slideId: currentSlide.value.clientId,
-			property,
+			property: 'background',
 			oldValue,
 			newValue,
 		}),
+)
+
+const { onStart: onTransitionSliderInteractionStart, onEnd: onTransitionSliderInteractionEnd } =
+	useDeferredCommit(
+		() => currentSlide.value.transitionDuration,
+		(oldValue, newValue) =>
+			editSlideCommand({
+				slideId: currentSlide.value.clientId,
+				property: 'transitionDuration',
+				oldValue,
+				newValue,
+			}),
 	)
-}
 </script>

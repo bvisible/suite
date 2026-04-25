@@ -18,8 +18,8 @@
 					:step="rangeStep"
 					:value="modelValue"
 					@input="$emit('update:modelValue', $event.target.value)"
-					@mousedown="isDragging = true"
-					@mouseup="isDragging = false"
+					@mousedown="handleSliderMouseDown"
+					@mouseup="handleSliderMouseUp"
 					@mouseleave="isDragging = false"
 				/>
 				<div
@@ -60,7 +60,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'sliderdown', 'sliderup'])
 
 const sliderBar = useTemplateRef('slider')
 
@@ -100,6 +100,18 @@ const sliderStyles = computed(() => {
 		top: `calc(50% - 1px)`,
 	}
 })
+
+const handleSliderMouseDown = () => {
+	isDragging.value = true
+	emit('sliderdown')
+}
+
+const handleSliderMouseUp = () => {
+	if (isDragging.value) {
+		isDragging.value = false
+		emit('sliderup')
+	}
+}
 </script>
 <style scoped>
 input::-webkit-outer-spin-button,
