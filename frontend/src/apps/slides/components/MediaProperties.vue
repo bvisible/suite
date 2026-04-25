@@ -101,17 +101,16 @@
 
 <script setup>
 import { inject } from 'vue'
+
 import SliderInput from '@/components/controls/SliderInput.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { currentSlide } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
-import { useDeferredCommit } from '@/composables/useDeferredCommit'
-import { editElementCommand } from '@/stores/commands'
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
@@ -145,65 +144,24 @@ const getTabIconClasses = (style) => {
 	}
 }
 
-const { onStart: onBorderColorUpdateStart, onEnd: onBorderColorUpdateEnd } = useDeferredCommit(
-	() => activeElement.value?.borderColor,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: [activeElement.value?.id],
-			property: 'borderColor',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onBorderColorUpdateStart, onEnd: onBorderColorUpdateEnd } = setPropertyDeferred(
+	'element',
+	'borderColor',
 )
 
-const { onStart: onShadowColorUpdateStart, onEnd: onShadowColorUpdateEnd } = useDeferredCommit(
-	() => activeElement.value?.shadowColor,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: [activeElement.value?.id],
-			property: 'shadowColor',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onShadowColorUpdateStart, onEnd: onShadowColorUpdateEnd } = setPropertyDeferred(
+	'element',
+	'shadowColor',
 )
 
-const { onStart: onShadowSpreadUpdateStart, onEnd: onShadowSpreadUpdateEnd } = useDeferredCommit(
-	() => activeElement.value?.shadowSpread,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: [activeElement.value?.id],
-			property: 'shadowSpread',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onShadowSpreadUpdateStart, onEnd: onShadowSpreadUpdateEnd } = setPropertyDeferred(
+	'element',
+	'shadowSpread',
 )
 
-const { onStart: onShadowOffsetXUpdateStart, onEnd: onShadowOffsetXUpdateEnd } = useDeferredCommit(
-	() => activeElement.value?.shadowOffsetX,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: [activeElement.value?.id],
-			property: 'shadowOffsetX',
-			oldValue,
-			newValue,
-		}),
-)
+const { onStart: onShadowOffsetXUpdateStart, onEnd: onShadowOffsetXUpdateEnd } =
+	setPropertyDeferred('element', 'shadowOffsetX')
 
-const { onStart: onShadowOffsetYUpdateStart, onEnd: onShadowOffsetYUpdateEnd } = useDeferredCommit(
-	() => activeElement.value?.shadowOffsetY,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: [activeElement.value?.id],
-			property: 'shadowOffsetY',
-			oldValue,
-			newValue,
-		}),
-)
-
-const setProperty = inject('setProperty')
+const { onStart: onShadowOffsetYUpdateStart, onEnd: onShadowOffsetYUpdateEnd } =
+	setPropertyDeferred('element', 'shadowOffsetY')
 </script>

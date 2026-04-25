@@ -46,10 +46,10 @@ import MediaProperties from '@/components/MediaProperties.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
-import { currentSlide } from '@/stores/slide'
-import { activeElement, activeElementIds } from '@/stores/element'
-import { useDeferredCommit } from '@/composables/useDeferredCommit'
-import { editElementCommand } from '@/stores/commands'
+import { activeElement } from '@/stores/element'
+
+const setProperty = inject('setProperty')
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const hoverOption = ref(null)
 
@@ -81,25 +81,12 @@ const getPlaybackTextClasses = (option) => {
 	}
 }
 
-const setProperty = inject('setProperty')
-
 const togglePlaybackOption = (option) => {
 	setProperty(option, !activeElement.value[option])
 }
 
-const setPlaybackRate = (value) => {
-	setProperty('playbackRate', parseFloat(value))
-}
-
-const { onStart: onPlaybackRateUpdateStart, onEnd: onPlaybackRateUpdateEnd } = useDeferredCommit(
-	() => activeElement.value?.playbackRate,
-	(oldValue, newValue) =>
-		editElementCommand({
-			slideId: currentSlide.value?.clientId,
-			elementIds: activeElementIds.value,
-			property: 'playbackRate',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onPlaybackRateUpdateStart, onEnd: onPlaybackRateUpdateEnd } = setPropertyDeferred(
+	'element',
+	'playbackRate',
 )
 </script>

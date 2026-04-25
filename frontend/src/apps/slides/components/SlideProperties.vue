@@ -68,6 +68,7 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { Select, Checkbox, toast } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
@@ -79,7 +80,8 @@ import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { editSlideCommand, batchCommand } from '@/stores/commands'
 import { commandHistory } from '@/stores/history'
-import { useDeferredCommit } from '@/composables/useDeferredCommit'
+
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const setSlideTransition = (option) => {
 	const duration = option == 'None' ? 0 : 1
@@ -182,25 +184,13 @@ const applyTransitionToAllSlides = () => {
 	toast.success('Applied transition to all slides')
 }
 
-const { onStart: onBgUpdateStart, onEnd: onBgUpdateEnd } = useDeferredCommit(
-	() => currentSlide.value.background,
-	(oldValue, newValue) =>
-		editSlideCommand({
-			slideId: currentSlide.value.clientId,
-			property: 'background',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onBgUpdateStart, onEnd: onBgUpdateEnd } = setPropertyDeferred(
+	'slide',
+	'background',
 )
 
-const { onStart: onTransitionUpdateStart, onEnd: onTransitionUpdateEnd } = useDeferredCommit(
-	() => currentSlide.value.transitionDuration,
-	(oldValue, newValue) =>
-		editSlideCommand({
-			slideId: currentSlide.value.clientId,
-			property: 'transitionDuration',
-			oldValue,
-			newValue,
-		}),
+const { onStart: onTransitionUpdateStart, onEnd: onTransitionUpdateEnd } = setPropertyDeferred(
+	'slide',
+	'transitionDuration',
 )
 </script>
