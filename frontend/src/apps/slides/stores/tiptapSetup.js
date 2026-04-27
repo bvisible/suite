@@ -1,8 +1,9 @@
 import { Editor } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
+import Paragraph from '@tiptap/extension-paragraph'
 
 import { StarterKit } from '@tiptap/starter-kit'
-import { TextStyle, LineHeight } from '@tiptap/extension-text-style'
+import { TextStyle } from '@tiptap/extension-text-style'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Underline } from '@tiptap/extension-underline'
 import BulletList from '@tiptap/extension-bullet-list'
@@ -121,6 +122,17 @@ const getItemAttributes = (node) => {
 }
 
 const CustomListItem = ListItem.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+
+			lineHeight: {
+				default: () => '1.5',
+				parseHTML: (element) => element.style.lineHeight || '1.5',
+			},
+		}
+	},
+
 	// needed to ensure that <li> tag renders the span styles (e.g. font size, color etc.)
 	// they need to be present at <li> level so that CSS ::before element can work for bullet styling
 	renderHTML({ node, HTMLAttributes, ...rest }) {
@@ -135,6 +147,7 @@ const CustomListItem = ListItem.extend({
 			`font-family: ${fontFamily};`,
 			`letter-spacing: ${letterSpacing};`,
 			`opacity: ${opacity};`,
+			`line-height: ${node.attrs.lineHeight || '1.5'};`,
 		].join(' ')
 
 		return ['li', liAttrs, 0]
@@ -461,12 +474,40 @@ export const patchEmptyParagraphs = (htmlString) => {
 	}
 }
 
+const CustomParagraph = Paragraph.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+			lineHeight: {
+				default: '1.5',
+
+				parseHTML: (element) => {
+					return element.style.lineHeight || '1.5'
+				},
+			},
+		}
+	},
+
+	renderHTML({ node, HTMLAttributes }) {
+		const attrs = { ...HTMLAttributes }
+
+		const lineHeight = node.attrs.lineHeight || '4'
+
+		attrs.style = [attrs.style || '', `line-height: ${lineHeight};`].join(' ')
+
+		return ['p', attrs, 0]
+	},
+})
+
 export const extensions = [
 	StarterKit.configure({
+		paragraph: false,
 		bulletList: false,
 		orderedList: false,
 		listItem: false,
 	}),
+	CustomParagraph,
+	CustomListItem,
 	CustomTextStyle,
 	Color,
 	TextAlign.configure({
@@ -481,7 +522,5 @@ export const extensions = [
 		keepAttributes: true,
 		keepMarks: true,
 	}),
-	CustomListItem,
 	StyledEmptyLine,
-	LineHeight,
 ]
