@@ -61,7 +61,7 @@ const jumpToElementsByIds = (jumpToIds, focusOnId) => {
 	if (!jumpToIds || jumpToIds.length === 0) return
 
 	const elementExists = jumpToIds.every((id) =>
-		currentSlide.value?.elements.some((el) => el.id === id),
+		currentSlide.value?.elements?.some((el) => el.id === id),
 	)
 
 	if (!elementExists) {

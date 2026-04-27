@@ -202,7 +202,7 @@ const isSrcElementConnected = (srcElement) => {
 	const refIdToCheck = srcElement?.refId
 	if (!refIdToCheck) return false
 
-	return currentSlide.value.elements.some((el) => el.refId == refIdToCheck)
+	return currentSlide.value?.elements?.some((el) => el.refId == refIdToCheck) || false
 }
 
 const isSrcSlideInMagicMove = (srcSlide) => {
