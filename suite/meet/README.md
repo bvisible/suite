@@ -10,6 +10,8 @@
 
 </div>
 
+<img width="1024" height="640" alt="image4cf9f6" src="https://github.com/user-attachments/assets/746eaa01-5f78-4338-bc4b-ac7a05e22534" />
+
 > [!WARNING]  
 > Frappe Meet is in beta and there might be few bugs!
 
