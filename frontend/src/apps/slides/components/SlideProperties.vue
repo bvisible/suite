@@ -79,7 +79,7 @@ import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import { editSlideCommand, batchCommand } from '@/stores/commands'
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 
 const setPropertyDeferred = inject('setPropertyDeferred')
 

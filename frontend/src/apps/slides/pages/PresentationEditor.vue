@@ -18,7 +18,6 @@
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
-				:recentlyRestored="commandHistory.recentlyRestored.value"
 				@changeSlide="changeEditorSlide"
 				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
@@ -94,7 +93,12 @@ import {
 	handleInsertSlide,
 } from '@/stores/slide'
 import { resetFocus, focusElementId } from '@/stores/element'
-import { setCommandHistory, commandHistory } from '@/stores/history'
+import {
+	commandHistory,
+	setCommandHistory,
+	actions as historyMetaActions,
+	actionOrder as historyMetaActionOrder,
+} from '@/stores/historyMeta'
 
 import { useShortcuts } from '@/composables/useShortcuts'
 import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
@@ -384,7 +388,12 @@ usePageMeta(() => {
 	}
 })
 
-const commandHistoryInstance = useCommandHistory(slides)
+const historyMetaForCommandHistory = {
+	actions: historyMetaActions,
+	actionOrder: historyMetaActionOrder,
+}
+
+const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
 setCommandHistory(commandHistoryInstance)
 
 useShortcuts(inReadonlyMode, inSlideShowMode)

@@ -68,7 +68,7 @@ import { editElementCommand, batchCommand } from '@/stores/commands'
 
 import { fieldLabelClasses } from '@/utils/constants'
 import { cloneObj } from '@/utils/helpers'
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 
 const arrangeOptions = [
 	{

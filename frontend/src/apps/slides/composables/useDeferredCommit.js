@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 
 export function useDeferredCommit(getValue, buildCommand) {
 	const valueOnStart = ref(null)

@@ -28,7 +28,7 @@ import { useDeferredCommit } from '@/composables/useDeferredCommit'
 
 import { currentSlide } from '@/stores/slide'
 import { activeElement, activeElementIds } from '@/stores/element'
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
 import { editElementCommand, editSlideCommand } from '@/stores/commands'
 

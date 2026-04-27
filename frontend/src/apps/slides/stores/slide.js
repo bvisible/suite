@@ -9,7 +9,7 @@ import {
 } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 import { generateUniqueId, cloneObj } from '@/utils/helpers'
 import { router } from '@/router'
 
