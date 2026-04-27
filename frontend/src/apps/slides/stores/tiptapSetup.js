@@ -534,6 +534,7 @@ export const extensions = [
 		bulletList: false,
 		orderedList: false,
 		listItem: false,
+		trailingNode: false,
 	}),
 	CustomParagraph,
 	CustomListItem,
