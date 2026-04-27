@@ -192,8 +192,7 @@ cmd_setup() {
 
     # SSL
     header "SSL Certificates"
-    if docker run --rm -v "${COMPOSE_PROJECT}_certbot-certs:/certs" alpine \
-        test -f "/certs/live/${DOMAIN}/fullchain.pem" 2>/dev/null; then
+    if compose_with_ssl run --rm --entrypoint "test -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem" certbot 2>/dev/null; then
         info "SSL certificate already exists. Skipping."
     else
         warn "Provisioning SSL certificates..."
