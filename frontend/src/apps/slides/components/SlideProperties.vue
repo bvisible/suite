@@ -168,8 +168,11 @@ const applyTransitionToAllSlides = () => {
 				}),
 			)
 
-			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
-			else removeConnectionsForMagicMove(index)
+			if (sourceSlide.transition == 'Magic Move') {
+				commands.push(...(getCommandsToAddMagicMove(index) || []))
+			} else {
+				commands.push(...(getCommandsToRemoveMagicMove(index) || []))
+			}
 		}
 	})
 
