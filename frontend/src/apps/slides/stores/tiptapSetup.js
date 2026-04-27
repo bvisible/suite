@@ -288,7 +288,7 @@ const addPlaceholderAndRetainMarks = (event, view, start, end) => {
 const removePlaceholderAndJoinBackward = (event, view, start, end) => {
 	event.preventDefault()
 
-	let tr = view.state.tr.delete(start, end)
+	let tr = view.state.tr.delete(start, end).setMeta('addToHistory', false)
 	view.dispatch(tr)
 
 	joinBackward(view.state, view.dispatch)

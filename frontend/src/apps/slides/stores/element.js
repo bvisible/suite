@@ -160,6 +160,7 @@ const addTextElement = async (text, position) => {
 		batchCommand({
 			slideId: currentSlide.value.clientId,
 			elementIds: [element.id],
+			focusElementId: element.id,
 			commands,
 		}),
 	)

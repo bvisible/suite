@@ -58,10 +58,11 @@ export const editElementCommand = ({ slideId, elementIds, property, oldValue, ne
 	},
 })
 
-export const batchCommand = ({ slideId, elementIds, commands }) => ({
+export const batchCommand = ({ slideId, elementIds, focusElementId, commands }) => ({
 	key: 'batch',
 	jumpToSlideId: slideId,
 	jumpToElementIds: elementIds,
+	focusElementId: focusElementId,
 	debug: 'Batch edit',
 	execute: (state) => {
 		commands.forEach((c) => c.execute(state))
