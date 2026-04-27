@@ -599,11 +599,12 @@ export function useMeetingLogic(meetingState, meetingId, options = {}) {
 					mh?.setProducers({ audioProducer: producer });
 				}
 			} else {
-				// disable the track and pause the producer
+				// stop the track to release the hardware and clear the browser mic indicator
 				if (stream) {
 					const at = stream.getAudioTracks()[0];
 					if (at) {
-						at.enabled = false;
+						at.stop();
+						stream.removeTrack(at);
 					}
 				}
 
