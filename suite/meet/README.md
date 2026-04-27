@@ -11,7 +11,7 @@
 </div>
 
 > [!WARNING]  
-> Frappe Meet is an alpha product and is not yet ready for production!
+> Frappe Meet is in beta and there might be few bugs!
 
 ## Frappe Meet
 
