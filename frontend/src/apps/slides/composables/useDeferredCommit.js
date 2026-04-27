@@ -9,7 +9,14 @@ export function useDeferredCommit(getValue, buildCommand) {
 	}
 
 	const onEnd = () => {
-		if (getValue() === valueOnStart.value) return
+		if (valueOnStart.value === null) return
+
+		if (getValue() === valueOnStart.value) {
+			// if value hasn't changed, just reset the valueOnStart for next time and return
+			valueOnStart.value = null
+			return
+		}
+
 		commandHistory.execute(buildCommand(valueOnStart.value, getValue()))
 		valueOnStart.value = null
 	}
