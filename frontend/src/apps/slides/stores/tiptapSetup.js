@@ -491,11 +491,40 @@ const CustomParagraph = Paragraph.extend({
 	renderHTML({ node, HTMLAttributes }) {
 		const attrs = { ...HTMLAttributes }
 
-		const lineHeight = node.attrs.lineHeight || '4'
+		const lineHeight = node.attrs.lineHeight || '1.5'
 
 		attrs.style = [attrs.style || '', `line-height: ${lineHeight};`].join(' ')
 
 		return ['p', attrs, 0]
+	},
+})
+
+const LineHeight = Extension.create({
+	name: 'lineHeight',
+
+	addCommands() {
+		return {
+			setGlobalLineHeight:
+				(lineHeight) =>
+				({ tr, state, dispatch }) => {
+					state.doc.descendants((node, pos) => {
+						if (
+							node.type === state.schema.nodes.paragraph ||
+							node.type === state.schema.nodes.listItem
+						) {
+							tr.setNodeMarkup(pos, undefined, {
+								...node.attrs,
+								lineHeight,
+							})
+						}
+					})
+
+					tr.setMeta('addToHistory', true)
+
+					if (dispatch) dispatch(tr)
+					return true
+				},
+		}
 	},
 })
 
@@ -523,4 +552,5 @@ export const extensions = [
 		keepMarks: true,
 	}),
 	StyledEmptyLine,
+	LineHeight,
 ]
