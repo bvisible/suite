@@ -2,7 +2,7 @@ import { onMounted, onBeforeUnmount } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import {

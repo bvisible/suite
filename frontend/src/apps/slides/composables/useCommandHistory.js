@@ -1,43 +1,9 @@
-import { ref, computed, nextTick } from 'vue'
-import {
-	activeElementIds,
-	cropSelectionToFitContent,
-	focusElementId,
-	setActiveElements,
-} from '@/stores/element'
-import {
-	changeEditorSlide,
-	currentSlide,
-	slideIndex,
-	slides,
-	updateThumbnail,
-} from '@/stores/slide'
+import { ref, computed } from 'vue'
 
-const actionOrder = {
-	execute: {
-		addSlide: ['execute', 'jumpToSlide'],
-		removeSlide: ['jumpToSlide', 'execute'],
-		addElement: ['jumpToSlide', 'execute', 'jumpToElements'],
-		removeElement: ['jumpToSlide', 'execute'],
-		editElement: ['jumpToSlide', 'jumpToElements', 'execute'],
-		batch: ['execute', 'jumpToSlide', 'jumpToElements'],
-		editSlide: ['jumpToSlide', 'execute'],
-		reorderSlides: ['execute', 'jumpToSlide'],
-	},
-	undo: {
-		addSlide: ['jumpToSlide', 'undo'],
-		removeSlide: ['undo', 'jumpToSlide'],
-		addElement: ['jumpToSlide', 'undo'],
-		removeElement: ['jumpToSlide', 'undo', 'jumpToElements'],
-		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
-		batch: ['jumpToSlide', 'undo', 'jumpToElements'],
-		editSlide: ['jumpToSlide', 'undo'],
-		reorderSlides: ['undo', 'jumpToSlide'],
-	},
-}
+export const useCommandHistory = (state, historyMeta = {}) => {
+	const actionOrder = historyMeta.actionOrder
+	const actions = historyMeta.actions
 
-export const useCommandHistory = (state) => {
-	const recentlyRestored = ref(false)
 	const prevCommands = ref([])
 	const nextCommands = ref([])
 
@@ -50,66 +16,6 @@ export const useCommandHistory = (state) => {
 		return actionOrder[op]?.[commandKey]
 	}
 
-	const jumpToSlide = async (index) => {
-		const onActiveSlide = index === slideIndex.value
-
-		if (!onActiveSlide && index != null) {
-			await changeEditorSlide(index, false)
-
-			recentlyRestored.value = true
-			setTimeout(() => {
-				recentlyRestored.value = false
-			}, 1000)
-		}
-	}
-
-	const jumpToElements = (jumpToIds, focusOnId) => {
-		if (!jumpToIds || jumpToIds.length === 0) return
-		const elementExists = jumpToIds.every((id) =>
-			currentSlide.value?.elements.some((el) => el.id === id),
-		)
-		if (!elementExists) {
-			activeElementIds.value = []
-			return
-		}
-		if (JSON.stringify(activeElementIds.value) !== JSON.stringify(jumpToIds)) {
-			nextTick(() => {
-				setActiveElements(jumpToIds)
-				if (focusOnId) {
-					focusElementId.value = focusOnId
-				}
-			})
-		} else {
-			cropSelectionToFitContent(jumpToIds)
-		}
-	}
-
-	const getSlideIndexForJump = (action, command, operation) => {
-		if (action !== 'jumpToSlide') return null
-
-		if (['addSlide', 'removeSlide'].includes(command.key)) {
-			if (['execute', 'redo'].includes(operation)) return command.jumpToSlideIndex
-			if (operation === 'undo') return command.fromSlideIndex
-			return null
-		}
-
-		if (command.key == 'reorderSlides') {
-			if (['execute', 'redo'].includes(operation)) return command.jumpToSlideIndex
-			if (operation === 'undo') return command.fromSlideIndex
-			return null
-		}
-
-		return slides.value.findIndex((s) => s.clientId === command.jumpToSlideId)
-	}
-
-	const handleJumpToSlide = async (action, command, operation) => {
-		const slideIdx = getSlideIndexForJump(action, command, operation)
-
-		await jumpToSlide(slideIdx)
-
-		updateThumbnail(slideIdx)
-	}
-
 	const executeAction = async (action, command, operation) => {
 		switch (action) {
 			case 'execute':
@@ -118,14 +24,13 @@ export const useCommandHistory = (state) => {
 			case 'undo':
 				command.undo(state.value)
 				break
-			case 'jumpToSlide':
-				await handleJumpToSlide(action, command, operation)
+			default: {
+				const handler = actions[action]
+				if (handler) {
+					handler(action, command, operation)
+				}
 				break
-			case 'jumpToElements':
-				jumpToElements(command.jumpToElementIds, command.focusElementId)
-				break
-			default:
-				break
+			}
 		}
 	}
 
@@ -171,14 +76,11 @@ export const useCommandHistory = (state) => {
 	}
 
 	return {
+		canUndo,
+		canRedo,
 		execute,
 		undo,
 		redo,
-		canUndo,
-		canRedo,
-		prevCommands,
-		nextCommands,
-		recentlyRestored,
 		clearHistory,
 	}
 }

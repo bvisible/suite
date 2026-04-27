@@ -99,7 +99,7 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { commandHistory } from '@/stores/history'
+import { commandHistory, recentlyRestored } from '@/stores/historyMeta'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
 
@@ -110,13 +110,6 @@ const scrollableArea = useTemplateRef('scrollableArea')
 const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
-
-const props = defineProps({
-	recentlyRestored: {
-		type: Boolean,
-		default: false,
-	},
-})
 
 const getGradientOverlayStyles = (slide) => {
 	const hasDarkBg = isBackgroundColorDark(slide.background)
@@ -176,7 +169,7 @@ const getThumbnailClasses = (slide) => {
 	let outlineClasses = ''
 	if (isFocused) {
 		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
-	} else if (isActive && props.recentlyRestored) {
+	} else if (isActive && recentlyRestored.value) {
 		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
 	} else if (isActive) {
 		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'

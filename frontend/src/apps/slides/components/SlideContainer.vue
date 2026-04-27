@@ -83,7 +83,7 @@ import {
 	addTextElement,
 } from '@/stores/element'
 
-import { commandHistory } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 
 import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
