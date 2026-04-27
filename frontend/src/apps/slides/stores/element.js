@@ -63,6 +63,7 @@ const getElementContent = (element) => {
 				type: 'paragraph',
 				attrs: {
 					textAlign: element.textAlign || 'center',
+					lineHeight: element.lineHeight || 1.5,
 				},
 				content: [
 					{
@@ -123,6 +124,7 @@ const addTextElement = async (text, position) => {
 		color: guessTextColorFromBackground(currentSlide.value.background),
 		innerText: text,
 		letterSpacing: 0,
+		lineHeight: 1.5,
 	}
 
 	if (!position) {
@@ -141,7 +143,7 @@ const addTextElement = async (text, position) => {
 		top: position.top,
 		type: 'text',
 		content: getElementContent(elementPresets),
-		lineHeight: 1.5,
+		lineHeight: elementPresets.lineHeight,
 	}
 
 	const refCommands = getCommandsToUpdateElementRefId(element) || []

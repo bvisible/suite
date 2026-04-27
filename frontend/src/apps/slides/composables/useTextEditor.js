@@ -15,7 +15,8 @@ let lastFocusedSlideName = null
 let lastFocusedElementId = null
 
 const editorStyles = reactive({
-	textAlign: 'left',
+	textAlign: null,
+	lineHeight: null,
 	bold: false,
 	italic: false,
 	strike: false,
@@ -24,7 +25,6 @@ const editorStyles = reactive({
 	fontSize: null,
 	fontFamily: null,
 	color: null,
-	lineHeight: null,
 	letterSpacing: null,
 	opacity: null,
 	bulletList: false,
@@ -39,6 +39,7 @@ export const useTextEditor = () => {
 
 		Object.assign(editorStyles, {
 			textAlign: editor.getAttributes('paragraph').textAlign || 'left',
+			lineHeight: editor.getAttributes('paragraph').lineHeight || 1.5,
 			bold: editor.isActive('bold'),
 			italic: editor.isActive('italic'),
 			strike: editor.isActive('strike'),
@@ -49,7 +50,6 @@ export const useTextEditor = () => {
 			fontSize: parseInt(activeStyles.fontSize, 10) || null,
 			fontFamily: activeStyles.fontFamily || null,
 			color: activeStyles.color || null,
-			lineHeight: activeStyles.lineHeight,
 			letterSpacing: parseInt(activeStyles.letterSpacing, 10),
 			opacity: activeStyles.opacity,
 		})
@@ -71,12 +71,14 @@ export const useTextEditor = () => {
 	}
 
 	const handleOnFocus = (editor) => {
+		if (!editor) return
 		lastFocusedSlideName = currentSlide.value.clientId
 		lastFocusedElementId = activeElement.value.id
 		contentHistory.value = editor.getHTML()
 	}
 
 	const handleOnBlur = (editor) => {
+		if (!editor) return
 		if (contentHistory.value == editor.getHTML()) return
 		if (!commandHistory) return
 

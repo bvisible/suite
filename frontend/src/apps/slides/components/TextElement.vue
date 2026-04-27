@@ -12,9 +12,6 @@
 		v-else-if="showMagicMoveText"
 		:content="element.content"
 		class="textElement select-none"
-		:style="{
-			'--lineHeight': element.lineHeight,
-		}"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
 	/>
 	<div
@@ -22,9 +19,6 @@
 		v-html="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		:style="{
-			'--lineHeight': element.lineHeight,
-		}"
 		@dblclick="handleDoubleClick"
 	></div>
 </template>
@@ -72,7 +66,6 @@ const isEditable = computed(() => focusElementId.value == element.value.id)
 const editorStyles = computed(() => ({
 	cursor: isEditable.value ? 'text' : '',
 	userSelect: isEditable.value ? 'text' : 'none',
-	'--lineHeight': activeElement.value?.lineHeight,
 }))
 
 const handleMouseDown = (e) => {
@@ -143,8 +136,6 @@ onBeforeMount(() => normalizeContent())
 	left: 0;
 	top: 0;
 	font-size: 1em;
-	line-height: var(--lineHeight);
-	vertical-align: middle;
 }
 
 .tiptap ol,
