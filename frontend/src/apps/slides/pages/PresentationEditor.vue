@@ -137,6 +137,14 @@ const showLayoutDialog = ref(false)
 const layoutAction = ref('')
 const insertIndex = ref(null)
 
+const historyMetaForCommandHistory = {
+	actions: historyMetaActions,
+	actionOrder: historyMetaActionOrder,
+}
+
+const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
+setCommandHistory(commandHistoryInstance)
+
 const setHighlight = (value) => {
 	slideHighlight.value = value
 }
@@ -387,14 +395,6 @@ usePageMeta(() => {
 		title: presentationDoc.value?.title || 'Slides',
 	}
 })
-
-const historyMetaForCommandHistory = {
-	actions: historyMetaActions,
-	actionOrder: historyMetaActionOrder,
-}
-
-const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
-setCommandHistory(commandHistoryInstance)
 
 useShortcuts(inReadonlyMode, inSlideShowMode)
 </script>

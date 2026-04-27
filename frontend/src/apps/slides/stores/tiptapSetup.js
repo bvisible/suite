@@ -478,24 +478,25 @@ const CustomParagraph = Paragraph.extend({
 	addAttributes() {
 		return {
 			...this.parent?.(),
+			textAlign: {
+				default: null,
+				parseHTML: (element) => {
+					const val = element.style.textAlign
+					return ['left', 'center', 'right', 'justify'].includes(val) ? val : null
+				},
+				renderHTML: (attributes) =>
+					attributes.textAlign ? { style: `text-align: ${attributes.textAlign}` } : {},
+			},
 			lineHeight: {
 				default: '1.5',
 
 				parseHTML: (element) => {
 					return element.style.lineHeight || '1.5'
 				},
+				renderHTML: (attributes) =>
+					attributes.lineHeight ? { style: `line-height: ${attributes.lineHeight}` } : {},
 			},
 		}
-	},
-
-	renderHTML({ node, HTMLAttributes }) {
-		const attrs = { ...HTMLAttributes }
-
-		const lineHeight = node.attrs.lineHeight || '1.5'
-
-		attrs.style = [attrs.style || '', `line-height: ${lineHeight};`].join(' ')
-
-		return ['p', attrs, 0]
 	},
 })
 
