@@ -29,7 +29,7 @@ const actionOrder = {
 		removeElement: ['jumpToSlide', 'execute'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'execute'],
 		batch: ['execute', 'jumpToSlide', 'jumpToElements'],
-		editSlide: ['jumpToSlide', 'execute'],
+		editSlide: ['execute', 'jumpToSlide'],
 		reorderSlides: ['execute', 'jumpToSlide'],
 	},
 	undo: {
@@ -39,7 +39,7 @@ const actionOrder = {
 		removeElement: ['jumpToSlide', 'undo', 'jumpToElements'],
 		editElement: ['jumpToSlide', 'jumpToElements', 'undo'],
 		batch: ['jumpToSlide', 'undo', 'jumpToElements'],
-		editSlide: ['jumpToSlide', 'undo'],
+		editSlide: ['undo', 'jumpToSlide'],
 		reorderSlides: ['undo', 'jumpToSlide'],
 	},
 }
