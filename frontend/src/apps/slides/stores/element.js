@@ -620,6 +620,7 @@ watch(
 
 		nextTick(() => {
 			activeEditor.value?.destroy()
+			activeEditor.value = null
 			initEditorForElement(element)
 			editorOldText = activeEditor.value?.getText()
 		})
