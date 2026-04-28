@@ -2,12 +2,21 @@ import { ref, reactive, watch } from 'vue'
 import { Editor } from '@tiptap/vue-3'
 import { extensions } from '@/stores/tiptapSetup'
 import { TextSelection } from 'prosemirror-state'
+import { commandHistory } from '@/stores/historyMeta'
 import { activeElement } from '@/stores/element'
+import { editElementCommand } from '@/stores/commands'
+import { currentSlide } from '@/stores/slide'
 
 export const activeEditor = ref(null)
 
+const contentHistory = ref('')
+
+let lastFocusedSlideName = null
+let lastFocusedElementId = null
+
 const editorStyles = reactive({
-	textAlign: 'left',
+	textAlign: null,
+	lineHeight: null,
 	bold: false,
 	italic: false,
 	strike: false,
@@ -16,7 +25,6 @@ const editorStyles = reactive({
 	fontSize: null,
 	fontFamily: null,
 	color: null,
-	lineHeight: null,
 	letterSpacing: null,
 	opacity: null,
 	bulletList: false,
@@ -31,6 +39,7 @@ export const useTextEditor = () => {
 
 		Object.assign(editorStyles, {
 			textAlign: editor.getAttributes('paragraph').textAlign || 'left',
+			lineHeight: editor.getAttributes('paragraph').lineHeight || 1.5,
 			bold: editor.isActive('bold'),
 			italic: editor.isActive('italic'),
 			strike: editor.isActive('strike'),
@@ -41,7 +50,6 @@ export const useTextEditor = () => {
 			fontSize: parseInt(activeStyles.fontSize, 10) || null,
 			fontFamily: activeStyles.fontFamily || null,
 			color: activeStyles.color || null,
-			lineHeight: activeStyles.lineHeight,
 			letterSpacing: parseInt(activeStyles.letterSpacing, 10),
 			opacity: activeStyles.opacity,
 		})
@@ -60,6 +68,29 @@ export const useTextEditor = () => {
 
 		updateElementContent(editor)
 		setEditorStyles(editor)
+	}
+
+	const handleOnFocus = (editor) => {
+		if (!editor) return
+		lastFocusedSlideName = currentSlide.value.clientId
+		lastFocusedElementId = activeElement.value.id
+		contentHistory.value = editor.getHTML()
+	}
+
+	const handleOnBlur = (editor) => {
+		if (!editor) return
+		if (contentHistory.value == editor.getHTML()) return
+		if (!commandHistory) return
+
+		commandHistory.execute(
+			editElementCommand({
+				slideId: lastFocusedSlideName,
+				elementIds: [lastFocusedElementId],
+				property: 'content',
+				oldValue: contentHistory.value,
+				newValue: editor.getHTML(),
+			}),
+		)
 	}
 
 	const markCommands = {
@@ -139,18 +170,6 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const setLineHeight = (value) => {
-		if (!activeElement.value) return
-
-		activeElement.value.editorMetadata = {
-			...activeElement.value.editorMetadata,
-			lineHeight: value,
-		}
-
-		const el = activeEditor.value.view.dom
-		if (el) el.style.lineHeight = value
-	}
-
 	const updateProperty = (property, value) => {
 		const currentEditor = activeEditor.value
 
@@ -169,7 +188,7 @@ export const useTextEditor = () => {
 				chain.setColor(value).run()
 				break
 			case 'lineHeight':
-				setLineHeight(value)
+				activeEditor.value.commands.setGlobalLineHeight(value)
 				break
 			default:
 				chain
@@ -181,25 +200,25 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const getEditorProps = (editorMetadata) => {
-		return {
-			attributes: {
-				style: `line-height: ${editorMetadata?.lineHeight || 1.5}`,
-			},
-		}
-	}
-
-	const initTextEditor = (id, content, editorMetadata, isEditable = false) => {
+	const initTextEditor = (id, content, isEditable = false, initialLineHeight = null) => {
 		activeEditor.value = new Editor({
 			extensions: extensions,
 			editable: isEditable,
 			content: content,
-			editorProps: getEditorProps(editorMetadata),
 			// to update styles in sidebar based on cursor position
 			onSelectionUpdate: ({ editor }) => setEditorStyles(editor),
 			// to update element content on every change
 			onTransaction: ({ editor, transaction }) => handleOnTransaction(editor, transaction),
+			onFocus: ({ editor }) => handleOnFocus(editor),
+			onBlur: ({ editor }) => handleOnBlur(editor),
 		})
+
+		// If there is a legacy lineHeight to migrate for display, apply it in-memory
+		if (initialLineHeight != null) {
+			if (content != null) contentHistory.value = content
+			activeEditor.value.chain().focus().setGlobalLineHeight(initialLineHeight).run()
+			delete activeElement.value?.editorMetadata
+		}
 
 		setEditorStyles(activeEditor.value)
 	}

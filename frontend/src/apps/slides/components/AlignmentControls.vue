@@ -36,7 +36,7 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
 import { fieldLabelClasses } from '@/utils/constants'
-import { updatePosition, activeElementIds } from '@/stores/element'
+import { updatePosition } from '@/stores/element'
 
 const horizontalAlignmentOptions = [
 	{

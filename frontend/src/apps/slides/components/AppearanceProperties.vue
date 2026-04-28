@@ -14,23 +14,30 @@
 				label="Opacity"
 				:rangeStart="0"
 				:rangeEnd="100"
-				:modelValue="activeElement.opacity"
-				@update:modelValue="(value) => setOpacity(value)"
+				v-model="activeElement.opacity"
+				@sliderdown="onOpacityUpdateStart"
+				@sliderup="onOpacityUpdateEnd"
 			/>
 		</template>
 	</CollapsibleSection>
 </template>
 
 <script setup>
+import { inject } from 'vue'
+
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import SliderInput from '@/components/controls/SliderInput.vue'
 
-import { activeElement } from '@/stores/element'
 import { useTextEditor } from '@/composables/useTextEditor'
+
+import { activeElement } from '@/stores/element'
+
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const { editorStyles, updateProperty } = useTextEditor()
 
-const setOpacity = (value) => {
-	activeElement.value['opacity'] = parseFloat(value)
-}
+const { onStart: onOpacityUpdateStart, onEnd: onOpacityUpdateEnd } = setPropertyDeferred(
+	'element',
+	'opacity',
+)
 </script>

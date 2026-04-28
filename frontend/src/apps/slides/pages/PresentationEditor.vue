@@ -14,12 +14,10 @@
 				v-if="presentationDoc"
 				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="hasOngoingInteraction"
-				@changeSlide="changeEditorSlide"
 			/>
 
 			<NavigationPanel
 				class="absolute bottom-0 top-0"
-				:recentlyRestored="recentlyRestored"
 				@changeSlide="changeEditorSlide"
 				@openLayoutDialog="openLayoutDialog('insert')"
 			/>
@@ -66,13 +64,11 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 
-import { initHistory, recentlyRestored } from '@/stores/history'
 import {
 	presentationId,
 	initPresentationDoc,
 	presentationDoc,
 	unsyncedPresentationRecord,
-	slidesLength,
 	templateList,
 	templateListResource,
 	inReadonlyMode,
@@ -97,12 +93,19 @@ import {
 	handleInsertSlide,
 } from '@/stores/slide'
 import { resetFocus, focusElementId } from '@/stores/element'
+import {
+	commandHistory,
+	setCommandHistory,
+	actions as historyMetaActions,
+	actionOrder as historyMetaActionOrder,
+} from '@/stores/historyMeta'
 
 import { useShortcuts } from '@/composables/useShortcuts'
 import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import { useCommandHistory } from '@/composables/useCommandHistory'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -125,8 +128,6 @@ const props = defineProps({
 	},
 })
 
-useShortcuts(inReadonlyMode, inSlideShowMode)
-
 const showThemeDialog = ref(false)
 const themeDialogAction = ref('update')
 const slideHighlight = ref(false)
@@ -135,6 +136,14 @@ const hasOngoingInteraction = ref(false)
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
 const insertIndex = ref(null)
+
+const historyMetaForCommandHistory = {
+	actions: historyMetaActions,
+	actionOrder: historyMetaActionOrder,
+}
+
+const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
+setCommandHistory(commandHistoryInstance)
 
 const setHighlight = (value) => {
 	slideHighlight.value = value
@@ -197,8 +206,6 @@ const performBeforeLoadOperations = () => {
 	if (inReadonlyMode.value) return
 
 	window.addEventListener('beforeunload', handleBeforeUnload)
-
-	initHistory()
 }
 
 const performAfterLoadOperations = () => {
@@ -282,6 +289,7 @@ watch(
 	(id, prevId) => {
 		if (!id || !prevId || id === prevId) return
 		inReadonlyMode.value = props.editorAccess == 'view'
+		commandHistory.clearHistory()
 		loadEditorState()
 	},
 )
@@ -387,4 +395,6 @@ usePageMeta(() => {
 		title: presentationDoc.value?.title || 'Slides',
 	}
 })
+
+useShortcuts(inReadonlyMode, inSlideShowMode)
 </script>

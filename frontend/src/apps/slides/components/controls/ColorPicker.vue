@@ -1,5 +1,5 @@
 <template>
-	<Popover @open="handlePopoverOpen">
+	<Popover @open="syncCurrentColor">
 		<template #target="{ togglePopover, isOpen }">
 			<div
 				class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-gray-300 ring-offset-1"
@@ -123,6 +123,8 @@ const sliderCursorClasses =
 
 const currentColor = defineModel()
 
+const emit = defineEmits(['colordown', 'colorup', 'update:modelValue'])
+
 const currentHue = ref()
 const currentOpacity = ref()
 
@@ -204,10 +206,12 @@ const updateHue = (e) => {
 }
 
 const endUpdateHue = (e) => {
+	emit('colorup')
 	window.removeEventListener('mousemove', updateHue)
 }
 
 const handleUpdateShade = (e) => {
+	emit('colordown')
 	updateShade(e)
 	window.addEventListener('mousemove', updateShade)
 	window.addEventListener('mouseup', endUpdateShade)
@@ -234,10 +238,12 @@ const updateShade = (e) => {
 }
 
 const endUpdateShade = (e) => {
+	emit('colorup')
 	window.removeEventListener('mousemove', updateShade)
 }
 
 const handleUpdateOpacity = (e) => {
+	emit('colordown')
 	updateOpacity(e)
 	window.addEventListener('mousemove', updateOpacity)
 	window.addEventListener('mouseup', endUpdateOpacity)
@@ -245,6 +251,7 @@ const handleUpdateOpacity = (e) => {
 
 const updateOpacity = (e) => {
 	e.preventDefault()
+	emit('colordown')
 
 	const clientX = e.clientX - unref(colorRect.left)
 
@@ -255,10 +262,11 @@ const updateOpacity = (e) => {
 }
 
 const endUpdateOpacity = (e) => {
+	emit('colorup')
 	window.removeEventListener('mousemove', updateOpacity)
 }
 
-const handlePopoverOpen = () => {
+const syncCurrentColor = () => {
 	const initialHsv = tinycolor(currentColor.value).toHsv()
 
 	colorHue.value = initialHsv.h
@@ -309,7 +317,14 @@ const handleColorInputClick = (e) => {
 }
 
 const handleColorPickerClick = (togglePopover, isOpen) => {
-	if (!isOpen) handlePopoverOpen()
+	if (!isOpen) syncCurrentColor()
 	togglePopover()
 }
+
+watch(
+	() => currentColor.value,
+	(newColor) => {
+		syncCurrentColor()
+	},
+)
 </script>

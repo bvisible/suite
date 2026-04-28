@@ -1,10 +1,11 @@
 import { Editor } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
+import Paragraph from '@tiptap/extension-paragraph'
 
-import StarterKit from '@tiptap/starter-kit'
-import TextStyle from '@tiptap/extension-text-style'
-import TextAlign from '@tiptap/extension-text-align'
-import Underline from '@tiptap/extension-underline'
+import { StarterKit } from '@tiptap/starter-kit'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { TextAlign } from '@tiptap/extension-text-align'
+import { Underline } from '@tiptap/extension-underline'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
@@ -121,6 +122,17 @@ const getItemAttributes = (node) => {
 }
 
 const CustomListItem = ListItem.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+
+			lineHeight: {
+				default: () => '1.5',
+				parseHTML: (element) => element.style.lineHeight || '1.5',
+			},
+		}
+	},
+
 	// needed to ensure that <li> tag renders the span styles (e.g. font size, color etc.)
 	// they need to be present at <li> level so that CSS ::before element can work for bullet styling
 	renderHTML({ node, HTMLAttributes, ...rest }) {
@@ -135,6 +147,7 @@ const CustomListItem = ListItem.extend({
 			`font-family: ${fontFamily};`,
 			`letter-spacing: ${letterSpacing};`,
 			`opacity: ${opacity};`,
+			`line-height: ${node.attrs.lineHeight || '1.5'};`,
 		].join(' ')
 
 		return ['li', liAttrs, 0]
@@ -275,7 +288,7 @@ const addPlaceholderAndRetainMarks = (event, view, start, end) => {
 const removePlaceholderAndJoinBackward = (event, view, start, end) => {
 	event.preventDefault()
 
-	let tr = view.state.tr.delete(start, end)
+	let tr = view.state.tr.delete(start, end).setMeta('addToHistory', false)
 	view.dispatch(tr)
 
 	joinBackward(view.state, view.dispatch)
@@ -461,14 +474,72 @@ export const patchEmptyParagraphs = (htmlString) => {
 	}
 }
 
+const CustomParagraph = Paragraph.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+			textAlign: {
+				default: null,
+				parseHTML: (element) => {
+					const val = element.style.textAlign
+					return ['left', 'center', 'right', 'justify'].includes(val) ? val : null
+				},
+				renderHTML: (attributes) =>
+					attributes.textAlign ? { style: `text-align: ${attributes.textAlign}` } : {},
+			},
+			lineHeight: {
+				default: '1.5',
+
+				parseHTML: (element) => {
+					return element.style.lineHeight || '1.5'
+				},
+				renderHTML: (attributes) =>
+					attributes.lineHeight ? { style: `line-height: ${attributes.lineHeight}` } : {},
+			},
+		}
+	},
+})
+
+const LineHeight = Extension.create({
+	name: 'lineHeight',
+
+	addCommands() {
+		return {
+			setGlobalLineHeight:
+				(lineHeight) =>
+				({ tr, state, dispatch }) => {
+					state.doc.descendants((node, pos) => {
+						if (
+							node.type === state.schema.nodes.paragraph ||
+							node.type === state.schema.nodes.listItem
+						) {
+							tr.setNodeMarkup(pos, undefined, {
+								...node.attrs,
+								lineHeight,
+							})
+						}
+					})
+
+					tr.setMeta('addToHistory', true)
+
+					if (dispatch) dispatch(tr)
+					return true
+				},
+		}
+	},
+})
+
 export const extensions = [
 	StarterKit.configure({
+		paragraph: false,
 		bulletList: false,
 		orderedList: false,
 		listItem: false,
+		trailingNode: false,
 	}),
+	CustomParagraph,
+	CustomListItem,
 	CustomTextStyle,
-	Underline,
 	Color,
 	TextAlign.configure({
 		types: ['paragraph'],
@@ -482,6 +553,6 @@ export const extensions = [
 		keepAttributes: true,
 		keepMarks: true,
 	}),
-	CustomListItem,
 	StyledEmptyLine,
+	LineHeight,
 ]

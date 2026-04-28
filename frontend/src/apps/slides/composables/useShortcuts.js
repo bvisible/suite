@@ -2,6 +2,7 @@ import { onMounted, onBeforeUnmount } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
+import { commandHistory } from '@/stores/historyMeta'
 import { useTextEditor } from '@/composables/useTextEditor'
 
 import {
@@ -24,6 +25,7 @@ import {
 	activeElements,
 	deleteElements,
 	duplicateElements,
+	activeElement,
 } from '@/stores/element'
 import {
 	changeSlideInSlideshow,
@@ -31,7 +33,6 @@ import {
 	performNextStep,
 	performPreviousStep,
 } from '@/stores/slideshow'
-import { handleUndoRedo } from '@/stores/history'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
 
@@ -128,13 +129,13 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 				if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
 				break
 			case 'b':
-				if (activeEditor.value) toggleMark('bold')
+				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('bold')
 				break
 			case 'i':
-				if (activeEditor.value) toggleMark('italic')
+				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('italic')
 				break
 			case 'u':
-				if (activeEditor.value) toggleMark('underline')
+				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('underline')
 				break
 		}
 	}
@@ -157,19 +158,73 @@ export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
 		}
 	}
 
-	const handleEditModeShortcuts = (e) => {
-		const editingText =
-			document.activeElement.getAttribute('contenteditable') ||
-			document.activeElement.tagName == 'INPUT' ||
-			focusElementId.value != null
+	const getCurrentHistoryOperation = (e) => {
+		return isCmdOrCtrl(e) && e.shiftKey ? 'redo' : isCmdOrCtrl(e) && !e.shiftKey ? 'undo' : null
+	}
 
-		if (editingText) return
+	const isEditorFocused = () => {
+		return activeEditor.value?.isEditable
+	}
 
-		if (e.key == 'z') return handleUndoRedo(e)
+	const handleFocusShortcuts = (e) => {
+		if (e.key != 'z') return
+
+		const operation = getCurrentHistoryOperation(e)
+		if (!operation) return
+
+		e.preventDefault()
+
+		if (operation == 'undo' && !activeEditor.value?.can().undo()) {
+			commandHistory.undo()
+		} else if (operation == 'redo' && !activeEditor.value?.can().redo()) {
+			commandHistory.redo()
+		}
+	}
+
+	const handleHistoryShortcuts = (e) => {
+		const operation = getCurrentHistoryOperation(e)
+		if (!operation) return
+
+		e.preventDefault()
+
+		if (activeEditor.value?.can()[operation]() && activeElement.value?.type == 'text') {
+			activeEditor.value.commands[operation]()
+			return
+		}
+
+		if (operation == 'undo' && commandHistory.canUndo.value) {
+			if (activeElement.value?.type == 'text') activeElementIds.value = []
+			commandHistory.undo()
+		} else if (operation == 'redo' && commandHistory.canRedo.value) {
+			if (activeElement.value?.type == 'text') activeElementIds.value = []
+			commandHistory.redo()
+		}
+	}
+
+	const handleOutOfFocusShortcuts = (e) => {
+		if (e.key == 'z') return handleHistoryShortcuts(e)
+
+		const activeTag = document.activeElement.tagName
+		const activeType = document.activeElement.type
+
+		const isControl = activeTag == 'INPUT'
+		const isRenaming = document.activeElement.isContentEditable
+
+		if (isControl || isRenaming) return
 
 		handleGlobalShortcuts(e)
 
 		activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+	}
+
+	const handleEditModeShortcuts = (e) => {
+		const focused = isEditorFocused()
+
+		if (focused) {
+			handleFocusShortcuts(e)
+		} else {
+			handleOutOfFocusShortcuts(e)
+		}
 	}
 
 	const handleSlideShowModeShortcuts = (e) => {
