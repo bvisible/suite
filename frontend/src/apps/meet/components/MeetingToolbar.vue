@@ -212,6 +212,7 @@
 <script setup>
 import { Button, Dropdown } from "frappe-ui";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import LucideBug from "~icons/lucide/bug";
 import { useMeetingDoc } from "../composables/useMeetingDoc";
 import { useResponsiveGrid } from "../composables/useResponsiveGrid";
 import { autoHideToolbar } from "../data/mediaPreferences";
@@ -298,6 +299,7 @@ const emit = defineEmits([
 	"toggle-screen-share",
 	"toggle-fullscreen",
 	"toggle-raise-hand",
+	"report-problem",
 	"end-call",
 	"device-changed",
 	"update:isReactionPickerOpen",
@@ -329,6 +331,14 @@ const moreOptions = computed(() => [
 		onClick: () => {
 			emit("toggle-fullscreen");
 			resetHideTimer();
+		},
+	},
+	{
+		icon: LucideBug,
+		label: "Report an issue",
+		onClick: () => {
+			emit("report-problem");
+			resetHideTimer(true);
 		},
 	},
 	...(isMobile.value

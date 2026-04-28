@@ -75,6 +75,7 @@
 							@toggle-screen-share="toggleScreenShare"
 							@toggle-fullscreen="toggleFullscreen"
 							@toggle-raise-hand="toggleRaiseHand"
+							@report-problem="handleReportProblem"
 							@end-call="endCall"
 							@device-changed="handleDeviceChanged"
 						/>
@@ -193,6 +194,7 @@ import {
 } from "../data/mediaPreferences";
 import { session } from "../data/session.js";
 import { useSocket } from "../socket.js";
+import { openProblemReportEmail } from "../utils/diagnostics/problemReport.ts";
 import { deviceManager } from "../utils/media/DeviceManager.js";
 import { getSFUClient } from "../utils/sfu-client.js";
 
@@ -631,6 +633,15 @@ const setSinkIdOnVideoElements = async (sinkId) => {
 	}
 
 	await Promise.all(promises);
+};
+
+const handleReportProblem = async () => {
+	await openProblemReportEmail({
+		meetingId: String(meetingId.value || ""),
+		networkQuality: meetingState.networkQuality?.value,
+		localStream: meetingState.localStream.value,
+		transportManager: sfuManager.value?.transportManager || null,
+	});
 };
 
 const handleDeviceChanged = async (event) => {
