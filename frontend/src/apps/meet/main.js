@@ -20,6 +20,7 @@ import { initSocket } from "./socket";
 import "./index.css";
 import { loadMediaPreferences } from "./data/mediaPreferences";
 import { getPlatform } from "./utils/device";
+import { installConsoleBuffer } from "./utils/diagnostics/consoleBuffer.ts";
 
 const globalComponents = {
 	Button,
@@ -49,5 +50,6 @@ for (const key in globalComponents) {
 }
 
 loadMediaPreferences();
+installConsoleBuffer();
 
 app.mount("#app");
