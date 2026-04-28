@@ -9,19 +9,19 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="slides"
+			v-if="sidebarSlidesList"
 			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
 			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
 			<template v-if="inReadonlyMode">
 				<div
-					v-for="slide in slides"
-					:key="slide.name"
+					v-for="slide in sidebarSlidesList"
+					:key="slide.clientId"
 					:class="getThumbnailClasses(slide)"
 					:style="getThumbnailStyles(slide)"
 					@click="handleSlideClick(slide)"
-					:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+					:ref="(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)"
 				>
 					<div
 						class="absolute inset-0 flex justify-between rounded p-2"
@@ -40,7 +40,7 @@
 
 			<template v-else>
 				<Draggable
-					v-model="slides"
+					v-model="sidebarSlidesList"
 					item-key="name"
 					@start="handleSortStart"
 					@end="handleSortEnd"
@@ -50,7 +50,9 @@
 							:class="getThumbnailClasses(slide)"
 							:style="getThumbnailStyles(slide)"
 							@click="handleSlideClick(slide)"
-							:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+							:ref="
+								(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)
+							"
 						>
 							<div
 								class="absolute inset-0 flex justify-between rounded p-2"
@@ -97,7 +99,8 @@ import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { ignoreUpdates, historyMetadata } from '@/stores/history'
+import { commandHistory, recentlyRestored } from '@/stores/historyMeta'
+import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
@@ -107,13 +110,6 @@ const scrollableArea = useTemplateRef('scrollableArea')
 const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
-
-const props = defineProps({
-	recentlyRestored: {
-		type: Boolean,
-		default: false,
-	},
-})
 
 const getGradientOverlayStyles = (slide) => {
 	const hasDarkBg = isBackgroundColorDark(slide.background)
@@ -173,8 +169,8 @@ const getThumbnailClasses = (slide) => {
 	let outlineClasses = ''
 	if (isFocused) {
 		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
-	} else if (isActive && props.recentlyRestored) {
-		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.01]'
+	} else if (isActive && recentlyRestored.value) {
+		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
 	} else if (isActive) {
 		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
 	} else {
@@ -202,18 +198,16 @@ const toggleButtonClasses = computed(() => {
 })
 
 const handleSortStart = (event) => {
-	historyMetadata.focusIndexPostUndo = event.oldIndex
 	resetFocus()
 }
 
 const handleSortEnd = async (event) => {
-	historyMetadata.focusIndexPostRedo = event.newIndex
-	ignoreUpdates(() => {
-		slides.value.forEach((slide, index) => {
-			slide.idx = index + 1
-		})
-	})
-	emit('changeSlide', event.newIndex)
+	commandHistory.execute(
+		reorderSlidesCommand({
+			oldIndex: event.oldIndex,
+			newIndex: event.newIndex,
+		}),
+	)
 }
 
 const handleHoverChange = (e) => {
@@ -264,6 +258,16 @@ watch(
 			handleScrollChange(slideIndex.value)
 		})
 	},
+)
+
+const sidebarSlidesList = ref(slides.value)
+
+watch(
+	slides,
+	(newSlides) => {
+		sidebarSlidesList.value = newSlides
+	},
+	{ deep: true },
 )
 </script>
 

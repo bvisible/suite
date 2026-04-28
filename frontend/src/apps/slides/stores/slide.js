@@ -1,4 +1,5 @@
 import { ref, computed, reactive } from 'vue'
+import { v4 as uuid4 } from 'uuid'
 import {
 	slidesLength,
 	presentationId,
@@ -8,13 +9,14 @@ import {
 } from '@/stores/presentation'
 import { resetFocus } from '@/stores/element'
 import { saveChanges, isDirty } from '@/stores/saving'
-import { ignoreUpdates } from '@/stores/history'
+import { commandHistory } from '@/stores/historyMeta'
 import { generateUniqueId, cloneObj } from '@/utils/helpers'
 import { router } from '@/router'
 
 import html2canvas from 'html2canvas'
 import { toast } from 'frappe-ui'
 import { inSlideShowMode } from './slideshow'
+import { addSlideCommand, removeSlideCommand } from './commands'
 
 const slideRef = ref(null)
 
@@ -159,10 +161,8 @@ const updateThumbnail = async (index) => {
 
 	const thumbnail = await getSlideThumbnail(thumbnailHtml)
 
-	ignoreUpdates(() => {
-		if (!slides.value[index]) return
-		slides.value[index].thumbnail = thumbnail
-	})
+	if (!slides.value[index]) return
+	slides.value[index].thumbnail = thumbnail
 
 	lastThumbnailTime.value = Date.now()
 }
@@ -183,14 +183,13 @@ const guideVisibilityMap = reactive({
 })
 
 const insertSlide = async (newSlide, index) => {
-	const updated = [...slides.value]
-	updated.splice(index + 1, 0, newSlide)
-	updated.forEach((slide, i) => {
-		slide.idx = i + 1
-	})
-
-	slides.value = updated
-	slidesLength.value = updated.length
+	commandHistory.execute(
+		addSlideCommand({
+			slide: newSlide,
+			index: index + 1,
+			slideIndex: slideIndex.value,
+		}),
+	)
 }
 
 const getNewSlide = (toDuplicate = false, layoutObject) => {
@@ -218,6 +217,7 @@ const getNewSlide = (toDuplicate = false, layoutObject) => {
 
 	// override metadata and generate unique IDs for elements
 	slide.name = ''
+	slide.clientId = uuid4()
 	slide.parent = presentationId.value
 	slide.fadeUnmatchedElements = 1
 	slide.transitionDuration = 0
@@ -279,20 +279,13 @@ const deleteSlide = (deleteActive) => {
 		return
 	}
 
-	// delete the current slide
-	slides.value = slides.value.filter((slide, i) => {
-		return i != deleteIndex
-	})
-	slides.value.forEach((slide, index) => {
-		slide.idx = index + 1
-	})
-
-	slidesLength.value = slides.value.length
-
-	if (deleteIndex == totalLength - 1) {
-		// if last slide is deleted, switch to previous slide since no slide at current index
-		changeEditorSlide(deleteIndex - 1)
-	}
+	commandHistory.execute(
+		removeSlideCommand({
+			slide: slides.value[deleteIndex],
+			index: deleteIndex,
+			slideIndex: slideIndex.value,
+		}),
+	)
 }
 
 const changeEditorSlide = async (index, focus = true) => {
@@ -308,10 +301,6 @@ const insertDuplicateSlide = async (index, layoutObj, toDuplicate) => {
 	const newSlide = getNewSlide(toDuplicate, layoutObj)
 
 	insertSlide(newSlide, index)
-
-	await changeEditorSlide(index + 1)
-
-	updateThumbnail(index + 1)
 }
 
 const duplicateSlide = (e) => {

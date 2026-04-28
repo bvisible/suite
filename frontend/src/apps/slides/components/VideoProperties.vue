@@ -27,8 +27,9 @@
 				:rangeStart="0.5"
 				:rangeEnd="2"
 				:rangeStep="0.1"
-				:modelValue="parseFloat(activeElement.playbackRate)"
-				@update:modelValue="setPlaybackRate"
+				v-model="activeElement.playbackRate"
+				@sliderdown="onPlaybackRateUpdateStart"
+				@sliderup="onPlaybackRateUpdateEnd"
 			/>
 		</template>
 	</CollapsibleSection>
@@ -37,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 
 import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
@@ -46,6 +47,9 @@ import SliderInput from '@/components/controls/SliderInput.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { activeElement } from '@/stores/element'
+
+const setProperty = inject('setProperty')
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const hoverOption = ref(null)
 
@@ -78,10 +82,11 @@ const getPlaybackTextClasses = (option) => {
 }
 
 const togglePlaybackOption = (option) => {
-	activeElement.value[option] = !activeElement.value[option]
+	setProperty(option, !activeElement.value[option])
 }
 
-const setPlaybackRate = (value) => {
-	activeElement.value.playbackRate = parseFloat(value)
-}
+const { onStart: onPlaybackRateUpdateStart, onEnd: onPlaybackRateUpdateEnd } = setPropertyDeferred(
+	'element',
+	'playbackRate',
+)
 </script>

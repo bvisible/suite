@@ -1,4 +1,5 @@
 export const isBackgroundColorDark = (colorString = '#ffffff') => {
+	if (!colorString) colorString = '#ffffff'
 	const rgb = colorString.replace('#', '')
 
 	const r = parseInt(rgb.slice(0, 2), 16)

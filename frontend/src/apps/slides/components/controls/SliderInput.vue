@@ -16,10 +16,10 @@
 					:min="rangeStart"
 					:max="rangeEnd"
 					:step="rangeStep"
-					:value="modelValue"
+					:value="sliderValue"
 					@input="$emit('update:modelValue', $event.target.value)"
-					@mousedown="isDragging = true"
-					@mouseup="isDragging = false"
+					@mousedown="handleSliderMouseDown"
+					@mouseup="handleSliderMouseUp"
 					@mouseleave="isDragging = false"
 				/>
 				<div
@@ -31,7 +31,7 @@
 				v-if="showInput"
 				type="number"
 				class="h-[25px] w-10 rounded border border-gray-400 px-1 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
-				:value="modelValue"
+				:value="sliderValue"
 				@change="changeValue"
 			/>
 		</div>
@@ -54,13 +54,11 @@ const props = defineProps({
 		type: Boolean,
 		default: true,
 	},
-	modelValue: {
-		type: Number,
-		required: true,
-	},
 })
 
-const emit = defineEmits(['update:modelValue'])
+const sliderValue = defineModel()
+
+const emit = defineEmits(['update:modelValue', 'sliderdown', 'sliderup'])
 
 const sliderBar = useTemplateRef('slider')
 
@@ -72,7 +70,9 @@ const changeValue = (e) => {
 }
 
 const highlightStyles = computed(() => {
-	const { rangeStart, rangeEnd, modelValue: val } = props
+	const { rangeStart, rangeEnd } = props
+
+	const val = parseFloat(sliderValue.value)
 
 	let left = 0
 	let width = 0
@@ -100,6 +100,18 @@ const sliderStyles = computed(() => {
 		top: `calc(50% - 1px)`,
 	}
 })
+
+const handleSliderMouseDown = () => {
+	isDragging.value = true
+	emit('sliderdown')
+}
+
+const handleSliderMouseUp = () => {
+	if (isDragging.value) {
+		isDragging.value = false
+		emit('sliderup')
+	}
+}
 </script>
 <style scoped>
 input::-webkit-outer-spin-button,

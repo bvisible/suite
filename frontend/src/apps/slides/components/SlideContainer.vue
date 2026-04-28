@@ -83,12 +83,15 @@ import {
 	addTextElement,
 } from '@/stores/element'
 
+import { commandHistory } from '@/stores/historyMeta'
+
 import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
+import { editElementCommand, batchCommand } from '@/stores/commands'
 
 import { isCmdOrCtrl } from '@/utils/helpers'
 
@@ -96,7 +99,7 @@ const props = defineProps({
 	highlight: Boolean,
 })
 
-const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
+const emit = defineEmits(['update:hasOngoingInteraction'])
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
@@ -431,8 +434,6 @@ watch(
 	},
 )
 
-const handlePasteWrapper = (e) => handlePaste(e, emit.bind(null, 'changeSlide'))
-
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
 
@@ -441,13 +442,13 @@ const initSlideAndListeners = () => {
 	updateSlideBounds()
 
 	document.addEventListener('copy', handleCopy)
-	document.addEventListener('paste', handlePasteWrapper)
+	document.addEventListener('paste', handlePaste)
 	window.addEventListener('resize', updateSlideBounds)
 }
 
 const clearListeners = () => {
 	document.removeEventListener('copy', handleCopy)
-	document.removeEventListener('paste', handlePasteWrapper)
+	document.removeEventListener('paste', handlePaste)
 	window.removeEventListener('resize', updateSlideBounds)
 }
 
@@ -470,17 +471,54 @@ defineExpose({
 	togglePanZoom,
 })
 
+const getInteractionCommands = () => {
+	const commands = []
+
+	activeElementIds.value.forEach((id) => {
+		const element = currentSlide.value.elements.find((el) => el.id === id)
+		if (!element) return
+
+		const createCommand = (property, oldValue, newValue) => {
+			if (!newValue) return null
+			return editElementCommand({
+				slideId: currentSlide.value.clientId,
+				elementIds: [id],
+				property,
+				oldValue,
+				newValue,
+			})
+		}
+
+		const offsetKeys = ['left', 'top', 'width']
+
+		offsetKeys.forEach((key) => {
+			if (elementOffset[key]) {
+				const oldValue = element[key]
+				const newValue = element[key] + elementOffset[key]
+
+				const command = createCommand(key, oldValue, newValue)
+
+				if (command) commands.push(command)
+			}
+		})
+	})
+
+	return commands
+}
+
 const applyInteractionOffsets = () => {
 	pairElementId.value = null
 	requestAnimationFrame(() => {
-		activeElementIds.value.forEach((id) => {
-			const element = currentSlide.value.elements.find((el) => el.id === id)
-			if (element) {
-				element.left += elementOffset.left
-				element.top += elementOffset.top
-				element.width += elementOffset.width
-			}
-		})
+		const commands = getInteractionCommands()
+
+		commandHistory.execute(
+			batchCommand({
+				slideId: currentSlide.value.clientId,
+				elementIds: activeElementIds.value,
+				commands,
+			}),
+		)
+
 		elementOffset.left = 0
 		elementOffset.top = 0
 		elementOffset.width = 0
