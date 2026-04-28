@@ -118,8 +118,9 @@ const parseElements = (value) => {
 
 	parsed = parsed.map((el) => {
 		if (el.type === 'text' && el.editorMetadata?.lineHeight) {
-			el.lineHeight = el.editorMetadata.lineHeight
-			delete el.editorMetadata
+			// migrate legacy editorMetadata.lineHeight into element attribute
+			const lh = el.editorMetadata.lineHeight
+			el.lineHeight = lh
 		}
 		return el
 	})

@@ -13,12 +13,14 @@
 		:content="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+		:style="elementLineHeightStyle"
 	/>
 	<div
 		v-else
 		v-html="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+		:style="elementLineHeightStyle"
 		@dblclick="handleDoubleClick"
 	></div>
 </template>
@@ -67,6 +69,12 @@ const editorStyles = computed(() => ({
 	cursor: isEditable.value ? 'text' : '',
 	userSelect: isEditable.value ? 'text' : 'none',
 }))
+
+const elementLineHeightStyle = computed(() => {
+	const lh = element.value?.lineHeight
+	if (!lh) return {}
+	return { '--el-line-height': lh }
+})
 
 const handleMouseDown = (e) => {
 	if (!isEditable.value || inReadonlyMode.value) return
@@ -174,5 +182,12 @@ onBeforeMount(() => normalizeContent())
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
 	hyphens: auto;
+}
+
+/* use CSS variable set on container to apply legacy element line-height without
+   mutating inner HTML. Inline styles on <p> will still take precedence. */
+.textElement p,
+.textElement li {
+	line-height: var(--el-line-height, 1.5);
 }
 </style>

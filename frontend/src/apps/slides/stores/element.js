@@ -608,7 +608,7 @@ const setEditableState = () => {
 const initEditorForElement = (element) => {
 	if (element?.type == 'text') {
 		const isEditable = focusElementId.value == element.id
-		initTextEditor(element.id, element.content, isEditable)
+		initTextEditor(element.id, element.content, isEditable, element.editorMetadata?.lineHeight)
 
 		if (isEditable) setEditableState()
 	}
