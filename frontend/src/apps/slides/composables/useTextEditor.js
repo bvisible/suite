@@ -200,7 +200,7 @@ export const useTextEditor = () => {
 		}
 	}
 
-	const initTextEditor = (id, content, isEditable = false) => {
+	const initTextEditor = (id, content, isEditable = false, initialLineHeight = null) => {
 		activeEditor.value = new Editor({
 			extensions: extensions,
 			editable: isEditable,
@@ -212,6 +212,13 @@ export const useTextEditor = () => {
 			onFocus: ({ editor }) => handleOnFocus(editor),
 			onBlur: ({ editor }) => handleOnBlur(editor),
 		})
+
+		// If there is a legacy lineHeight to migrate for display, apply it in-memory
+		if (initialLineHeight != null) {
+			if (content != null) contentHistory.value = content
+			activeEditor.value.chain().focus().setGlobalLineHeight(initialLineHeight).run()
+			delete activeElement.value?.editorMetadata
+		}
 
 		setEditorStyles(activeEditor.value)
 	}
