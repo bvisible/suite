@@ -168,7 +168,13 @@ const isInList = ($pos) => {
 const handleListItemEnterKey = (editor, pos, marks) => {
 	const { state, view } = editor
 
+	const { from } = state.selection
 	const endPos = pos.end()
+
+	if (from < endPos) {
+		editor.commands.splitListItem('listItem')
+		return true
+	}
 
 	// before splitting to next list item, insert ZWSP at end of current item
 	// move cursor to end of current item and then split
