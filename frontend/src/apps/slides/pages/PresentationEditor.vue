@@ -49,20 +49,35 @@
 		@update="(theme) => updatePresentationTheme(theme)"
 		:update="themeDialogAction == 'update'"
 	/>
+
+	<teleport to="body">
+		<ExportView v-if="showExportView" :slides="slides" />
+	</teleport>
 </template>
 
 <script setup>
-import { ref, watch, useTemplateRef, provide, onMounted, onBeforeUnmount, inject } from 'vue'
+import {
+	ref,
+	watch,
+	useTemplateRef,
+	onMounted,
+	onBeforeUnmount,
+	provide,
+	inject,
+	nextTick,
+} from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
 import { call, usePageMeta } from 'frappe-ui'
 
+import ExportView from '@/pages/ExportView.vue'
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
+import LayoutDialog from '@/components/LayoutDialog.vue'
 
 import {
 	presentationId,
@@ -104,7 +119,6 @@ import { useShortcuts } from '@/composables/useShortcuts'
 import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
-import LayoutDialog from '@/components/LayoutDialog.vue'
 import { useCommandHistory } from '@/composables/useCommandHistory'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
@@ -136,6 +150,7 @@ const hasOngoingInteraction = ref(false)
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
 const insertIndex = ref(null)
+const showExportView = ref(false)
 
 const historyMetaForCommandHistory = {
 	actions: historyMetaActions,
@@ -381,6 +396,8 @@ const performNavbarDropdownAction = async (action) => {
 	} else if (action == 'updateTheme') {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true
+	} else if (action == 'export') {
+		exportPdf()
 	}
 }
 
@@ -397,4 +414,20 @@ usePageMeta(() => {
 })
 
 useShortcuts(inReadonlyMode, inSlideShowMode)
+
+const cleanup = () => {
+	showExportView.value = false
+	window.removeEventListener('afterprint', cleanup)
+}
+
+const exportPdf = () => {
+	showExportView.value = true
+
+	nextTick(() => {
+		setTimeout(() => {
+			window.addEventListener('afterprint', cleanup, { once: true })
+			window.print()
+		}, 200)
+	})
+}
 </script>
