@@ -46,7 +46,7 @@
 import { h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dropdown, Button } from 'frappe-ui'
-import { ArrowLeft, Palette, Plus, Copy, Trash } from 'lucide-vue-next'
+import { ArrowLeft, Palette, Plus, Copy, Trash, Download } from 'lucide-vue-next'
 
 const props = defineProps({
 	showNavbarDropdown: {
@@ -100,9 +100,21 @@ const getContextMenuOptions = () => {
 						emit('performDropdownAction', 'delete')
 					},
 				},
+			],
+		},
+		{
+			group: '',
+			items: [
 				{
-					label: 'Set Theme',
-					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5 ms-0.5' }),
+					label: 'Export',
+					icon: h(Download, { class: 'stroke-[1.5] !size-3.5' }),
+					onClick: () => {
+						emit('performDropdownAction', 'export')
+					},
+				},
+				{
+					label: 'Template Theme',
+					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5' }),
 					onClick: () => {
 						emit('performDropdownAction', 'updateTheme')
 					},
