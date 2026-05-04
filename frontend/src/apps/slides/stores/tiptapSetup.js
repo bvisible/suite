@@ -166,11 +166,36 @@ const isInList = ($pos) => {
 	return false
 }
 
+const isListItemEmpty = (pos) => {
+	for (let d = pos.depth; d > 0; d--) {
+		const node = pos.node(d)
+		if (node.type.name === 'listItem') {
+			let text = ''
+			node.forEach((child) => {
+				child.forEach((inline) => {
+					text += inline.text || ''
+				})
+			})
+
+			// li is empty if no text or only ZWSP characters
+			return text.replace(/\u200B/g, '').trim() === ''
+		}
+	}
+	return false
+}
+
 const handleListItemEnterKey = (editor, pos, marks) => {
 	const { state, view } = editor
 
 	const { from } = state.selection
 	const endPos = pos.end()
+
+	// if enter is pressed on an empty list item
+	// lift the item out of the list instead of splitting
+	if (isListItemEmpty(pos)) {
+		liftListItem(state.schema.nodes.listItem)(state, view.dispatch)
+		return true
+	}
 
 	if (from < endPos) {
 		editor.commands.splitListItem('listItem')
