@@ -436,32 +436,24 @@ const handleKeyDown = (view, event) => {
 	return false
 }
 
-const removePlaceholderAndInsertText = (view, pos, text) => {
-	const { state, dispatch } = view
-	const { selection, storedMarks } = state
-
-	const marks = storedMarks || selection.$from.marks()
-
-	// remove ZWSP when user enters actual text
-	let tr = state.tr
-
-	tr = tr.delete(pos.pos - 1, pos.pos)
-	tr = tr.setStoredMarks(marks)
-	tr = tr.insertText(text)
-
-	dispatch(tr)
-
-	return true
-}
-
 const handleTextInput = (view, from, to, text) => {
 	const $pos = view.state.selection.$from
-	const nodeBefore = $pos.nodeBefore
 
-	// if the prev char is not ZWSP, use default behavior
-	if (!nodeBefore || nodeBefore.text !== ZWSP) return false
+	const lineText = getTextForSelection($pos)
+	if (lineText.replace(new RegExp(ZWSP, 'g'), '') !== '') return false
 
-	return removePlaceholderAndInsertText(view, $pos, text)
+	const { state } = view
+	const { selection } = state
+	const { start, end } = getSelectionRange(selection)
+	const marks = getMarksForPlaceholder(state)
+
+	let tr = state.tr
+	tr = tr.replaceWith(start, end, state.schema.text(text, marks))
+	tr = tr.setStoredMarks(marks)
+	tr = tr.setSelection(TextSelection.create(tr.doc, start + text.length))
+	view.dispatch(tr)
+
+	return true
 }
 
 const styledEmptyLinePlugin = new Plugin({
