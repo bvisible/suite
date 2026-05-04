@@ -337,7 +337,61 @@ const joinBackwardAfterPlaceholder = (view) => {
 	return true
 }
 
+const createListItemWithMarks = (event, view, listType) => {
+	const { selection, schema } = view.state
+	const $from = selection.$from
+
+	const marks = $from.parent.content.firstChild?.marks ?? []
+
+	event.preventDefault()
+
+	const { start, end } = getSelectionRange(selection)
+
+	const zwsp = schema.text(ZWSP, marks)
+	const listItemPara = schema.nodes.paragraph.create($from.parent.attrs, zwsp)
+	const listItem = schema.nodes.listItem.create(null, listItemPara)
+
+	let listNode, selectionPos
+
+	if (listType === 'unordered') {
+		listNode = schema.nodes.bulletList.create(null, listItem)
+		selectionPos = start + listNode.nodeSize - 3
+	} else {
+		listNode = schema.nodes.orderedList.create(null, listItem)
+		selectionPos = start + listNode.nodeSize - 4
+	}
+
+	const tr = view.state.tr.replaceWith(start - 1, end, listNode)
+
+	const resolvedPos = tr.doc.resolve(selectionPos)
+	tr.setSelection(TextSelection.near(resolvedPos))
+
+	view.dispatch(tr)
+	return true
+}
+
+const handleSpaceKey = (event, view) => {
+	const { selection } = view.state
+	const $from = selection.$from
+
+	if (isInList($from)) return
+
+	const text = getTextForSelection($from)
+
+	// Bullet list: "- " or ZWSP + "- "
+	if (text === '-' || text === `${ZWSP}-`) {
+		return createListItemWithMarks(event, view, 'unordered')
+	}
+
+	// Ordered list: "1. " or ZWSP + "1."
+	if (/^1\.$/.test(text) || new RegExp(`^${ZWSP}1\\.$`).test(text)) {
+		return createListItemWithMarks(event, view, 'ordered')
+	}
+}
+
 const handleKeyDown = (view, event) => {
+	if (event.key === ' ') return handleSpaceKey(event, view)
+
 	if (event.key !== 'Backspace') return false
 
 	const { selection } = view.state
