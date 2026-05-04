@@ -126,7 +126,7 @@ const CustomListItem = ListItem.extend({
 			...this.parent?.(),
 
 			lineHeight: {
-				default: () => '1.5',
+				default: '1.5',
 				parseHTML: (element) => element.style.lineHeight || '1.5',
 			},
 		}
@@ -511,20 +511,27 @@ const handleKeyDown = (view, event) => {
 }
 
 const handleTextInput = (view, from, to, text) => {
-	const $pos = view.state.selection.$from
-
-	const lineText = getTextForSelection($pos)
-	if (lineText.replace(new RegExp(ZWSP, 'g'), '') !== '') return false
-
 	const { state } = view
+
+	const $pos = state.selection.$from
 	const { selection } = state
 	const { start, end } = getSelectionRange(selection)
+
+	const lineText = getTextForSelection($pos)
+	const isEmptyLine = lineText.replace(/\u200B/g, '') === ''
+	const isEntireParagraphSelected = from === start && to === end
+
+	if (!isEmptyLine && !isEntireParagraphSelected) return false
+
 	const marks = getMarksForPlaceholder(state)
 
 	let tr = state.tr
 	tr = tr.replaceWith(start, end, state.schema.text(text, marks))
 	tr = tr.setStoredMarks(marks)
-	tr = tr.setSelection(TextSelection.create(tr.doc, start + text.length))
+
+	const cursorPos = tr.mapping.map(end)
+	tr = tr.setSelection(TextSelection.create(tr.doc, cursorPos))
+
 	view.dispatch(tr)
 
 	return true
