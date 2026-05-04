@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Frappe Meet — One-Click Installer
+# Frappe Meet — Installer
 # ==============================================================================
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/frappe/meet/develop/deploy/install.sh | bash
