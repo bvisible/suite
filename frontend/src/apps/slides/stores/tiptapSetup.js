@@ -338,6 +338,24 @@ const joinBackwardAfterPlaceholder = (view) => {
 	return true
 }
 
+const joinIntoPrevList = (event, view, $from) => {
+	event.preventDefault()
+
+	const { state } = view
+	const posBeforeBlock = $from.before($from.depth)
+	const posAfterBlock = $from.after($from.depth)
+
+	// delete the entire empty paragraph
+	let tr = state.tr.delete(posBeforeBlock, posAfterBlock)
+
+	// place cursor at the end of the last list item
+	const resolvedPos = tr.doc.resolve(posBeforeBlock - 1)
+	tr = tr.setSelection(TextSelection.near(resolvedPos, -1))
+
+	view.dispatch(tr)
+	return true
+}
+
 const createListItemWithMarks = (event, view, listType) => {
 	const { selection, schema } = view.state
 	const $from = selection.$from
@@ -445,6 +463,15 @@ const handleKeyDown = (view, event) => {
 		// deleting it and adding <br class="ProseMirror-trailingBreak">
 		// so manually delete ZWSP and join with previous line which is expected behavior without the placeholder
 		return removePlaceholderAndJoinBackward(event, view, start, end)
+	}
+
+	if (
+		text === ZWSP &&
+		prevNode &&
+		(prevNode.type.name === 'bulletList' || prevNode.type.name === 'orderedList')
+	) {
+		// paragraph is after a list - delete the empty paragraph and move cursor to last list item
+		return joinIntoPrevList(event, view, $from)
 	}
 
 	if (text === ZWSP) {
