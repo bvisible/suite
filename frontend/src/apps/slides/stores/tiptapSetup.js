@@ -139,15 +139,16 @@ const CustomListItem = ListItem.extend({
 
 		const { color, fontSize, fontFamily, letterSpacing, opacity } = getItemAttributes(node)
 
-		liAttrs.style = [
-			liAttrs.style || '',
-			`color: ${color};`,
-			`font-size: ${fontSize}px;`,
-			`font-family: ${fontFamily};`,
-			`letter-spacing: ${letterSpacing};`,
-			`opacity: ${opacity};`,
-			`line-height: ${node.attrs.lineHeight || '1.5'};`,
-		].join(' ')
+		const styleAttrs = [liAttrs.style || '']
+
+		if (color != null) styleAttrs.push(`color: ${color};`)
+		if (fontSize != null) styleAttrs.push(`font-size: ${fontSize}px;`)
+		if (fontFamily != null) styleAttrs.push(`font-family: ${fontFamily};`)
+		if (letterSpacing != null) styleAttrs.push(`letter-spacing: ${letterSpacing};`)
+		if (opacity != null) styleAttrs.push(`opacity: ${opacity};`)
+		styleAttrs.push(`line-height: ${node.attrs.lineHeight || '1.5'};`)
+
+		liAttrs.style = styleAttrs.join(' ')
 
 		return ['li', liAttrs, 0]
 	},
@@ -204,7 +205,7 @@ const handleListItemEnterKey = (editor, pos, marks) => {
 	// move cursor to end of current item and then split
 	// so new list already has placeholder
 
-	let tr = state.tr.insertText(ZWSP, endPos, endPos, marks)
+	let tr = state.tr.replaceWith(endPos, endPos, state.schema.text(ZWSP, marks))
 	tr = tr.setSelection(TextSelection.create(tr.doc, endPos))
 	view.dispatch(tr)
 
@@ -530,7 +531,7 @@ const handleTextInput = (view, from, to, text) => {
 	tr = tr.setStoredMarks(marks)
 
 	const cursorPos = tr.mapping.map(end)
-	tr = tr.setSelection(TextSelection.create(tr.doc, cursorPos))
+	tr = tr.setSelection(TextSelection.near(tr.doc.resolve(cursorPos)))
 
 	view.dispatch(tr)
 
