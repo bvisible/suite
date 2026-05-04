@@ -5,16 +5,14 @@ import Paragraph from '@tiptap/extension-paragraph'
 import { StarterKit } from '@tiptap/starter-kit'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { TextAlign } from '@tiptap/extension-text-align'
-import { Underline } from '@tiptap/extension-underline'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import { joinBackward } from 'prosemirror-commands'
 import { liftListItem } from 'prosemirror-schema-list'
-import { TextSelection } from 'prosemirror-state'
 
 import { getDocFromHTML } from '@/utils/helpers'
 
