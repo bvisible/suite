@@ -83,6 +83,7 @@ const elementStyle = computed(() => {
 		zIndex: element.value.zIndex,
 		transform: element.value.type == 'text' ? element.value.transform : '',
 		transformOrigin: element.value.type == 'text' ? element.value.transformOrigin : '',
+		minWidth: element.value.type == 'text' ? '2px' : '',
 	}
 })
 
