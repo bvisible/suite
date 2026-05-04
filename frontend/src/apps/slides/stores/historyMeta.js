@@ -44,11 +44,11 @@ const actionOrder = {
 	},
 }
 
-const jumpToSlideByIndex = async (index) => {
+const jumpToSlideByIndex = async (index, focus) => {
 	const onActiveSlide = index === slideIndex.value
 
 	if (!onActiveSlide && index != null) {
-		await changeEditorSlide(index, false)
+		await changeEditorSlide(index, focus)
 
 		recentlyRestored.value = true
 		setTimeout(() => {
@@ -101,8 +101,9 @@ const getSlideIndexForJump = (action, command, operation) => {
 
 const handleJumpToSlide = async (action, command, operation) => {
 	const slideIdx = getSlideIndexForJump(action, command, operation)
+	const focus = command.key === 'removeSlide' && operation === 'undo' ? false : true
 
-	await jumpToSlideByIndex(slideIdx)
+	await jumpToSlideByIndex(slideIdx, focus)
 
 	updateThumbnail(slideIdx)
 }
