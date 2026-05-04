@@ -589,7 +589,10 @@ const blurAndSaveContent = (element) => {
 	activeEditor.value.setEditable(false)
 	activeEditor.value.commands.blur()
 
-	if (activeEditor.value.isEmpty) {
+	const text = activeEditor.value?.getText() || ''
+	const isEmpty = text.replace(/\u200B/g, '') === ''
+
+	if (isEmpty) {
 		deleteElements(null, [element.id])
 	} else {
 		updateElementContent(element)
