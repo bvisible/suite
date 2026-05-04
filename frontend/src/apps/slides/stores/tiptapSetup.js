@@ -13,6 +13,7 @@ import Color from '@tiptap/extension-color'
 
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { joinBackward } from 'prosemirror-commands'
+import { liftListItem } from 'prosemirror-schema-list'
 import { TextSelection } from 'prosemirror-state'
 
 import { getDocFromHTML } from '@/utils/helpers'
@@ -389,6 +390,29 @@ const handleSpaceKey = (event, view) => {
 	}
 }
 
+const handleBackspaceInListItem = (event, view, $from) => {
+	const { selection } = view.state
+	const { from, to, start, end } = getSelectionRange(selection)
+	const text = getTextForSelection($from)
+
+	const lastCharOnLine = text.length === 1 && text !== ZWSP
+	const isEntireParagraphSelected = from === start && to === end
+
+	// last real character or full selection - replace with ZWSP placeholder
+	if (lastCharOnLine || isEntireParagraphSelected) {
+		return addPlaceholderAndRetainMarks(event, view, start, end)
+	}
+
+	// only ZWSP - lift list item into paragraph and retain ZWSP
+	if (text === ZWSP) {
+		event.preventDefault()
+		liftListItem(view.state.schema.nodes.listItem)(view.state, view.dispatch)
+		return true
+	}
+
+	return false
+}
+
 const handleKeyDown = (view, event) => {
 	if (event.key === ' ') return handleSpaceKey(event, view)
 
@@ -397,7 +421,7 @@ const handleKeyDown = (view, event) => {
 	const { selection } = view.state
 	const $from = selection.$from
 
-	if (isInList($from)) return false
+	if (isInList($from)) return handleBackspaceInListItem(event, view, $from)
 
 	const text = getTextForSelection($from)
 	if (text === undefined) return false
@@ -430,7 +454,7 @@ const handleKeyDown = (view, event) => {
 	}
 
 	if (prevNode && prevNode.isTextblock && prevNode.textContent === ZWSP) {
-		return joinBackwardAfterPlaceholder(event, view, $from)
+		return joinBackwardAfterPlaceholder(view)
 	}
 
 	return false
