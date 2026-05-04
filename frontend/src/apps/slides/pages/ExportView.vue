@@ -8,8 +8,8 @@
 		>
 			<SlideElement
 				v-for="element in slide?.elements"
-				:key="`print-${element.id}`"
-				mode="slideshow"
+				:key="`export-${element.id}`"
+				mode="export"
 				:element="element"
 				:data-index="element.id"
 			/>
@@ -18,8 +18,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
-
 import SlideElement from '@/components/SlideElement.vue'
 
 const props = defineProps({
