@@ -43,8 +43,11 @@ const getSlidePageStyles = (slide) => {
 		display: none !important;
 	}
 
-	.slides-container,
-	.slides-container * {
+	.slides-container {
+		display: block !important;
+	}
+
+	.slides-container .slide-page {
 		display: block !important;
 	}
 
