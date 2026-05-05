@@ -1,4 +1,3 @@
-import { toast } from 'frappe-ui'
 import { getAttachmentUrl } from './mediaUploads'
 
 let isClicked = false
@@ -65,21 +64,6 @@ const handleScrollBarWheelEvent = (e: WheelEvent) => {
 
 const cloneObj = (obj: any) => JSON.parse(JSON.stringify(obj))
 
-const copyToClipboard = async (text: string) => {
-	if (navigator.clipboard && window.isSecureContext) {
-		await navigator.clipboard.writeText(text)
-	} else {
-		let input = document.createElement('textarea')
-		document.body.appendChild(input)
-		input.value = text
-		input.select()
-		document.execCommand('copy')
-		document.body.removeChild(input)
-	}
-
-	toast.success('Copied to clipboard')
-}
-
 const getThumbnailCardStyles = (thumbnail: string) => {
 	const thumbnailUrl = getAttachmentUrl(thumbnail)
 	return {
@@ -105,8 +89,7 @@ export {
 	setCursorPositionAtEnd,
 	handleScrollBarWheelEvent,
 	cloneObj,
-	copyToClipboard,
 	getThumbnailCardStyles,
 	getDocFromHTML,
-	isCmdOrCtrl
+	isCmdOrCtrl,
 }

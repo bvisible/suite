@@ -37,7 +37,7 @@ const enter = (el, done) => {
 	el.style.transitionProperty = 'all'
 	el.style.transitionTimingFunction = 'ease-in-out'
 	el.style.transitionDuration = `${1}s`
-	el.style.transitionDelay = `${props.duration}s`
+	el.style.transitionDelay = `${props.duration + 0.1}s`
 	el.style.opacity = 1
 
 	el.addEventListener('transitionend', done, { once: true })

@@ -9,24 +9,37 @@
 </template>
 
 <script setup>
-import { onMounted, h } from 'vue'
+import { onMounted, h, ref, provide } from 'vue'
 import { FrappeUIProvider, toast } from 'frappe-ui'
 
 import { Wifi, WifiOff } from 'lucide-vue-next'
+import { saveCurrentState } from '@/stores/saving'
+
+const isOnline = ref(false)
+
+const handleLostConnection = () => {
+	isOnline.value = false
+	toast.create({
+		message: 'Lost internet connection.',
+		icon: h(WifiOff, { color: 'white' }),
+	})
+}
+
+const handleConnectionRestored = () => {
+	isOnline.value = true
+	saveCurrentState()
+	toast.create({
+		message: 'You are back online.',
+		icon: h(Wifi, { color: 'white' }),
+	})
+}
 
 onMounted(() => {
-	window.addEventListener('online', () => {
-		toast.create({
-			message: 'You are back online.',
-			icon: h(Wifi, { color: 'white' }),
-		})
-	})
+	isOnline.value = navigator?.onLine
 
-	window.addEventListener('offline', () => {
-		toast.create({
-			message: 'Lost internet connection.',
-			icon: h(WifiOff, { color: 'white' }),
-		})
-	})
+	window.addEventListener('online', handleConnectionRestored)
+	window.addEventListener('offline', handleLostConnection)
 })
+
+provide('isOnline', isOnline)
 </script>

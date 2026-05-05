@@ -2,7 +2,7 @@
 	<div :style="elementStyle">
 		<component
 			:is="getDynamicComponent(element.type)"
-			:key="mode + '-' + element.id"
+			:key="getElementKey(element)"
 			:element="element"
 			:mode="mode"
 			:elementOffset="elementOffset"
@@ -44,6 +44,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['clearTimeouts'])
+
+const getElementKey = (element) => {
+	const id = element.refId || element.id
+	return `${props.mode}-${id}`
+}
 
 const isActive = computed(() => {
 	return activeElementIds.value.includes(element.value.id)
@@ -88,6 +93,7 @@ const elementStyle = computed(() => {
 		zIndex: element.value.zIndex,
 		transform: element.value.type == 'text' ? element.value.transform : '',
 		transformOrigin: element.value.type == 'text' ? element.value.transformOrigin : '',
+		minWidth: element.value.type == 'text' ? '2px' : '',
 	}
 })
 

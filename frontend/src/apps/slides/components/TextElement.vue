@@ -8,25 +8,25 @@
 		@mousedown="handleMouseDown"
 		@dblclick="handleDoubleClick"
 	/>
-	<div
-		v-else-if="!inSlideShow"
-		v-html="element.content"
-		class="textElement select-none"
-		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		:style="element.editorMetadata"
-		@dblclick="handleDoubleClick"
-	></div>
 	<SlideshowText
-		v-else
+		v-else-if="showMagicMoveText"
 		:content="element.content"
 		class="textElement select-none"
 		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		:style="element.editorMetadata"
+		:style="elementLineHeightStyle"
 	/>
+	<div
+		v-else
+		v-html="element.content"
+		class="textElement select-none"
+		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+		:style="elementLineHeightStyle"
+		@dblclick="handleDoubleClick"
+	></div>
 </template>
 
 <script setup>
-import { computed, onBeforeMount } from 'vue'
+import { computed, onBeforeMount, inject, ref } from 'vue'
 
 import SlideshowText from '@/components/SlideshowText.vue'
 
@@ -34,9 +34,10 @@ import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/composables/useTextEditor'
 
-import { inSlideShow, readonlyMode } from '@/stores/presentation'
 import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
+import { isAffectedByMagicMove } from '@/stores/transition'
 import { extensions } from '@/stores/tiptapSetup'
+import { slideIndex } from '@/stores/slide'
 
 const { activeEditor, baseFontSize } = useTextEditor()
 
@@ -46,6 +47,9 @@ const props = defineProps({
 		default: 'editor',
 	},
 })
+
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
+const inSlideShowMode = inject('inSlideShowMode', ref(false))
 
 const showEditor = computed(() => {
 	if (!activeElement.value) return false
@@ -66,14 +70,20 @@ const editorStyles = computed(() => ({
 	userSelect: isEditable.value ? 'text' : 'none',
 }))
 
+const elementLineHeightStyle = computed(() => {
+	const lh = element.value?.lineHeight
+	if (!lh) return {}
+	return { '--el-line-height': lh }
+})
+
 const handleMouseDown = (e) => {
-	if (!isEditable.value || readonlyMode.value) return
+	if (!isEditable.value || inReadonlyMode.value) return
 
 	e.stopPropagation()
 }
 
 const handleDoubleClick = (e) => {
-	if (inSlideShow.value || isEditable.value || readonlyMode.value) {
+	if (inSlideShowMode.value || isEditable.value || inReadonlyMode.value) {
 		e.stopPropagation()
 		return
 	}
@@ -99,12 +109,20 @@ const isAutoWidth = computed(() => {
 	return !element.value.width || element.value.width == 'auto'
 })
 
+const showMagicMoveText = computed(
+	() =>
+		inSlideShowMode.value &&
+		isAffectedByMagicMove(slideIndex.value) &&
+		![null, undefined, ''].includes(element.value.refId),
+)
+
 onBeforeMount(() => normalizeContent())
 </script>
 
 <style>
 .ProseMirror {
 	caret-color: currentColor;
+	outline: none;
 }
 
 .tiptap ul,
@@ -164,5 +182,12 @@ onBeforeMount(() => normalizeContent())
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
 	hyphens: auto;
+}
+
+/* use CSS variable set on container to apply legacy element line-height without
+   mutating inner HTML. Inline styles on <p> will still take precedence. */
+.textElement p,
+.textElement li {
+	line-height: var(--el-line-height, 1.5);
 }
 </style>

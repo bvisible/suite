@@ -11,7 +11,7 @@
 				:uploadArgs="{
 					doctype: 'Presentation',
 					docname: presentationId,
-					private: !isPublicPresentation,
+					private: true,
 				}"
 				@success="replaceTemplateImage"
 			>

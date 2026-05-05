@@ -1,18 +1,18 @@
 import { Editor } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
+import Paragraph from '@tiptap/extension-paragraph'
 
-import StarterKit from '@tiptap/starter-kit'
-import TextStyle from '@tiptap/extension-text-style'
-import TextAlign from '@tiptap/extension-text-align'
-import Underline from '@tiptap/extension-underline'
+import { StarterKit } from '@tiptap/starter-kit'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { TextAlign } from '@tiptap/extension-text-align'
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
 import Color from '@tiptap/extension-color'
 
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import { joinBackward } from 'prosemirror-commands'
-import { TextSelection } from 'prosemirror-state'
+import { liftListItem } from 'prosemirror-schema-list'
 
 import { getDocFromHTML } from '@/utils/helpers'
 
@@ -121,6 +121,17 @@ const getItemAttributes = (node) => {
 }
 
 const CustomListItem = ListItem.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+
+			lineHeight: {
+				default: '1.5',
+				parseHTML: (element) => element.style.lineHeight || '1.5',
+			},
+		}
+	},
+
 	// needed to ensure that <li> tag renders the span styles (e.g. font size, color etc.)
 	// they need to be present at <li> level so that CSS ::before element can work for bullet styling
 	renderHTML({ node, HTMLAttributes, ...rest }) {
@@ -128,14 +139,16 @@ const CustomListItem = ListItem.extend({
 
 		const { color, fontSize, fontFamily, letterSpacing, opacity } = getItemAttributes(node)
 
-		liAttrs.style = [
-			liAttrs.style || '',
-			`color: ${color};`,
-			`font-size: ${fontSize}px;`,
-			`font-family: ${fontFamily};`,
-			`letter-spacing: ${letterSpacing};`,
-			`opacity: ${opacity};`,
-		].join(' ')
+		const styleAttrs = [liAttrs.style || '']
+
+		if (color != null) styleAttrs.push(`color: ${color};`)
+		if (fontSize != null) styleAttrs.push(`font-size: ${fontSize}px;`)
+		if (fontFamily != null) styleAttrs.push(`font-family: ${fontFamily};`)
+		if (letterSpacing != null) styleAttrs.push(`letter-spacing: ${letterSpacing};`)
+		if (opacity != null) styleAttrs.push(`opacity: ${opacity};`)
+		styleAttrs.push(`line-height: ${node.attrs.lineHeight || '1.5'};`)
+
+		liAttrs.style = styleAttrs.join(' ')
 
 		return ['li', liAttrs, 0]
 	},
@@ -152,16 +165,47 @@ const isInList = ($pos) => {
 	return false
 }
 
+const isListItemEmpty = (pos) => {
+	for (let d = pos.depth; d > 0; d--) {
+		const node = pos.node(d)
+		if (node.type.name === 'listItem') {
+			let text = ''
+			node.forEach((child) => {
+				child.forEach((inline) => {
+					text += inline.text || ''
+				})
+			})
+
+			// li is empty if no text or only ZWSP characters
+			return text.replace(/\u200B/g, '').trim() === ''
+		}
+	}
+	return false
+}
+
 const handleListItemEnterKey = (editor, pos, marks) => {
 	const { state, view } = editor
 
+	const { from } = state.selection
 	const endPos = pos.end()
+
+	// if enter is pressed on an empty list item
+	// lift the item out of the list instead of splitting
+	if (isListItemEmpty(pos)) {
+		liftListItem(state.schema.nodes.listItem)(state, view.dispatch)
+		return true
+	}
+
+	if (from < endPos) {
+		editor.commands.splitListItem('listItem')
+		return true
+	}
 
 	// before splitting to next list item, insert ZWSP at end of current item
 	// move cursor to end of current item and then split
 	// so new list already has placeholder
 
-	let tr = state.tr.insertText(ZWSP, endPos, endPos, marks)
+	let tr = state.tr.replaceWith(endPos, endPos, state.schema.text(ZWSP, marks))
 	tr = tr.setSelection(TextSelection.create(tr.doc, endPos))
 	view.dispatch(tr)
 
@@ -275,7 +319,7 @@ const addPlaceholderAndRetainMarks = (event, view, start, end) => {
 const removePlaceholderAndJoinBackward = (event, view, start, end) => {
 	event.preventDefault()
 
-	let tr = view.state.tr.delete(start, end)
+	let tr = view.state.tr.delete(start, end).setMeta('addToHistory', false)
 	view.dispatch(tr)
 
 	joinBackward(view.state, view.dispatch)
@@ -318,13 +362,108 @@ const joinBackwardAfterPlaceholder = (view) => {
 	return true
 }
 
+const joinIntoPrevList = (event, view, $from) => {
+	event.preventDefault()
+
+	const { state } = view
+	const posBeforeBlock = $from.before($from.depth)
+	const posAfterBlock = $from.after($from.depth)
+
+	// delete the entire empty paragraph
+	let tr = state.tr.delete(posBeforeBlock, posAfterBlock)
+
+	// place cursor at the end of the last list item
+	const resolvedPos = tr.doc.resolve(posBeforeBlock - 1)
+	tr = tr.setSelection(TextSelection.near(resolvedPos, -1))
+
+	view.dispatch(tr)
+	return true
+}
+
+const createListItemWithMarks = (event, view, listType) => {
+	const { selection, schema } = view.state
+	const $from = selection.$from
+
+	const marks = $from.parent.content.firstChild?.marks ?? []
+
+	event.preventDefault()
+
+	const { start, end } = getSelectionRange(selection)
+
+	const zwsp = schema.text(ZWSP, marks)
+	const listItemPara = schema.nodes.paragraph.create($from.parent.attrs, zwsp)
+	const listItem = schema.nodes.listItem.create(null, listItemPara)
+
+	let listNode, selectionPos
+
+	if (listType === 'unordered') {
+		listNode = schema.nodes.bulletList.create(null, listItem)
+		selectionPos = start + listNode.nodeSize - 3
+	} else {
+		listNode = schema.nodes.orderedList.create(null, listItem)
+		selectionPos = start + listNode.nodeSize - 4
+	}
+
+	const tr = view.state.tr.replaceWith(start - 1, end, listNode)
+
+	const resolvedPos = tr.doc.resolve(selectionPos)
+	tr.setSelection(TextSelection.near(resolvedPos))
+
+	view.dispatch(tr)
+	return true
+}
+
+const handleSpaceKey = (event, view) => {
+	const { selection } = view.state
+	const $from = selection.$from
+
+	if (isInList($from)) return
+
+	const text = getTextForSelection($from)
+
+	// Bullet list: "- " or ZWSP + "- "
+	if (text === '-' || text === `${ZWSP}-`) {
+		return createListItemWithMarks(event, view, 'unordered')
+	}
+
+	// Ordered list: "1. " or ZWSP + "1."
+	if (/^1\.$/.test(text) || new RegExp(`^${ZWSP}1\\.$`).test(text)) {
+		return createListItemWithMarks(event, view, 'ordered')
+	}
+}
+
+const handleBackspaceInListItem = (event, view, $from) => {
+	const { selection } = view.state
+	const { from, to, start, end } = getSelectionRange(selection)
+	const text = getTextForSelection($from)
+
+	const lastCharOnLine = text.length === 1 && text !== ZWSP
+	const isEntireParagraphSelected = from === start && to === end
+
+	// last real character or full selection - replace with ZWSP placeholder
+	if (lastCharOnLine || isEntireParagraphSelected) {
+		return addPlaceholderAndRetainMarks(event, view, start, end)
+	}
+
+	// only ZWSP - lift list item into paragraph and retain ZWSP
+	if (text === ZWSP) {
+		event.preventDefault()
+		liftListItem(view.state.schema.nodes.listItem)(view.state, view.dispatch)
+		return true
+	}
+
+	return false
+}
+
 const handleKeyDown = (view, event) => {
+	if (event.key === ' ') return handleSpaceKey(event, view)
+
 	if (event.key !== 'Backspace') return false
 
 	const { selection } = view.state
 	const $from = selection.$from
 
-	if (isInList($from)) return false
+	if (isInList($from)) return handleBackspaceInListItem(event, view, $from)
 
 	const text = getTextForSelection($from)
 	if (text === undefined) return false
@@ -350,6 +489,15 @@ const handleKeyDown = (view, event) => {
 		return removePlaceholderAndJoinBackward(event, view, start, end)
 	}
 
+	if (
+		text === ZWSP &&
+		prevNode &&
+		(prevNode.type.name === 'bulletList' || prevNode.type.name === 'orderedList')
+	) {
+		// paragraph is after a list - delete the empty paragraph and move cursor to last list item
+		return joinIntoPrevList(event, view, $from)
+	}
+
 	if (text === ZWSP) {
 		// if only ZWSP is present but no previous textblock, do nothing
 		event.preventDefault()
@@ -357,38 +505,37 @@ const handleKeyDown = (view, event) => {
 	}
 
 	if (prevNode && prevNode.isTextblock && prevNode.textContent === ZWSP) {
-		return joinBackwardAfterPlaceholder(event, view, $from)
+		return joinBackwardAfterPlaceholder(view)
 	}
 
 	return false
 }
 
-const removePlaceholderAndInsertText = (view, pos, text) => {
-	const { state, dispatch } = view
-	const { selection, storedMarks } = state
+const handleTextInput = (view, from, to, text) => {
+	const { state } = view
 
-	const marks = storedMarks || selection.$from.marks()
+	const $pos = state.selection.$from
+	const { selection } = state
+	const { start, end } = getSelectionRange(selection)
 
-	// remove ZWSP when user enters actual text
+	const lineText = getTextForSelection($pos)
+	const isEmptyLine = lineText.replace(/\u200B/g, '') === ''
+	const isEntireParagraphSelected = from === start && to === end
+
+	if (!isEmptyLine && !isEntireParagraphSelected) return false
+
+	const marks = getMarksForPlaceholder(state)
+
 	let tr = state.tr
-
-	tr = tr.delete(pos.pos - 1, pos.pos)
+	tr = tr.replaceWith(start, end, state.schema.text(text, marks))
 	tr = tr.setStoredMarks(marks)
-	tr = tr.insertText(text)
 
-	dispatch(tr)
+	const cursorPos = tr.mapping.map(end)
+	tr = tr.setSelection(TextSelection.near(tr.doc.resolve(cursorPos)))
+
+	view.dispatch(tr)
 
 	return true
-}
-
-const handleTextInput = (view, from, to, text) => {
-	const $pos = view.state.selection.$from
-	const nodeBefore = $pos.nodeBefore
-
-	// if the prev char is not ZWSP, use default behavior
-	if (!nodeBefore || nodeBefore.text !== ZWSP) return false
-
-	return removePlaceholderAndInsertText(view, $pos, text)
 }
 
 const styledEmptyLinePlugin = new Plugin({
@@ -461,14 +608,72 @@ export const patchEmptyParagraphs = (htmlString) => {
 	}
 }
 
+const CustomParagraph = Paragraph.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+			textAlign: {
+				default: null,
+				parseHTML: (element) => {
+					const val = element.style.textAlign
+					return ['left', 'center', 'right', 'justify'].includes(val) ? val : null
+				},
+				renderHTML: (attributes) =>
+					attributes.textAlign ? { style: `text-align: ${attributes.textAlign}` } : {},
+			},
+			lineHeight: {
+				default: '1.5',
+
+				parseHTML: (element) => {
+					return element.style.lineHeight || '1.5'
+				},
+				renderHTML: (attributes) =>
+					attributes.lineHeight ? { style: `line-height: ${attributes.lineHeight}` } : {},
+			},
+		}
+	},
+})
+
+const LineHeight = Extension.create({
+	name: 'lineHeight',
+
+	addCommands() {
+		return {
+			setGlobalLineHeight:
+				(lineHeight) =>
+				({ tr, state, dispatch }) => {
+					state.doc.descendants((node, pos) => {
+						if (
+							node.type === state.schema.nodes.paragraph ||
+							node.type === state.schema.nodes.listItem
+						) {
+							tr.setNodeMarkup(pos, undefined, {
+								...node.attrs,
+								lineHeight,
+							})
+						}
+					})
+
+					tr.setMeta('addToHistory', true)
+
+					if (dispatch) dispatch(tr)
+					return true
+				},
+		}
+	},
+})
+
 export const extensions = [
 	StarterKit.configure({
+		paragraph: false,
 		bulletList: false,
 		orderedList: false,
 		listItem: false,
+		trailingNode: false,
 	}),
+	CustomParagraph,
+	CustomListItem,
 	CustomTextStyle,
-	Underline,
 	Color,
 	TextAlign.configure({
 		types: ['paragraph'],
@@ -482,6 +687,6 @@ export const extensions = [
 		keepAttributes: true,
 		keepMarks: true,
 	}),
-	CustomListItem,
 	StyledEmptyLine,
+	LineHeight,
 ]

@@ -19,12 +19,7 @@
 					<!-- added bg-white temporarily to support for first slides with no generated thumbnail -->
 					<div
 						class="aspect-[16/9] cursor-pointer rounded-lg bg-white shadow-xl hover:scale-[1.01]"
-						:style="
-							getThumbnailCardStyles(
-								presentation.thumbnail || '',
-								presentation.is_public,
-							)
-						"
+						:style="getThumbnailCardStyles(presentation.thumbnail || '')"
 						@click="$emit('navigate', presentation.name)"
 					></div>
 
@@ -47,6 +42,7 @@
 					</div>
 				</div>
 			</div>
+			<LoadingIndicator v-else-if="loading" class="w-3" />
 			<div v-else class="text-sm text-gray-600">No presentations created yet.</div>
 		</div>
 	</div>
@@ -55,13 +51,17 @@
 <script setup>
 import { h } from 'vue'
 
-import { Dropdown } from 'frappe-ui'
+import { Dropdown, LoadingIndicator } from 'frappe-ui'
 import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 
 import { getThumbnailCardStyles } from '@/utils/helpers'
 
 const props = defineProps({
 	presentations: Object,
+	loading: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['navigate', 'setPreview', 'openDialog', 'duplicatePresentation'])

@@ -9,18 +9,12 @@
 			</div>
 
 			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Template Layout</div>
-				<div
-					class="cursor-pointer pe-1 text-gray-500 hover:text-gray-600"
-					@click="$emit('openLayoutDialog')"
-				>
-					<LucidePenLine class="size-4" :strokeWidth="1.5" />
-				</div>
-			</div>
-
-			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Background Color</div>
-				<ColorPicker v-model="currentSlide.background" />
+				<ColorPicker
+					v-model="currentSlide.background"
+					@colordown="onBgUpdateStart"
+					@colorup="onBgUpdateEnd"
+				/>
 			</div>
 		</div>
 	</div>
@@ -41,6 +35,8 @@
 				:rangeStep="0.1"
 				:modelValue="parseFloat(currentSlide.transitionDuration)"
 				@update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
+				@sliderdown="onTransitionUpdateStart"
+				@sliderup="onTransitionUpdateEnd"
 			/>
 
 			<div
@@ -72,32 +68,67 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { Select, Checkbox, toast } from 'frappe-ui'
 
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
 import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
-import { createConnectionsForMagicMove } from '@/stores/transition'
+import { getCommandsToAddMagicMove, getCommandsToRemoveMagicMove } from '@/stores/transition'
 
 import SliderInput from '@/components/controls/SliderInput.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import { editSlideCommand, batchCommand } from '@/stores/commands'
+import { commandHistory } from '@/stores/historyMeta'
 
-const emit = defineEmits(['openLayoutDialog'])
+const setPropertyDeferred = inject('setPropertyDeferred')
 
 const setSlideTransition = (option) => {
+	const duration = option == 'None' ? 0 : 1
 	const slide = currentSlide.value
 
-	slide.transition = option
+	let commands = []
 
-	if (option == 'None') {
-		slide.transitionDuration = 0
+	commands.push(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'transition',
+			oldValue: currentSlide.value.transition,
+			newValue: option,
+		}),
+	)
+
+	commands.push(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'transitionDuration',
+			oldValue: currentSlide.value.transitionDuration,
+			newValue: duration,
+		}),
+	)
+
+	commands.push(
+		editSlideCommand({
+			slideId: currentSlide.value.clientId,
+			property: 'fadeUnmatchedElements',
+			oldValue: currentSlide.value.fadeUnmatchedElements,
+			newValue: option == 'Magic Move',
+		}),
+	)
+
+	if (option == 'Magic Move') {
+		commands = commands.concat(getCommandsToAddMagicMove(slideIndex.value) || [])
 	} else {
-		slide.transitionDuration = 1
+		commands = commands.concat(getCommandsToRemoveMagicMove(slideIndex.value) || [])
 	}
 
-	if (option == 'Magic Move') createConnectionsForMagicMove(slideIndex.value)
-
-	slide.fadeUnmatchedElements = option == 'Magic Move'
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [],
+			commands,
+		}),
+	)
 }
 
 const setTransitionAttribute = (property, value) => {
@@ -106,17 +137,63 @@ const setTransitionAttribute = (property, value) => {
 
 const applyTransitionToAllSlides = () => {
 	const sourceSlide = currentSlide.value
+	const commands = []
 
 	slides.value.forEach((slide, index) => {
 		if (index !== slideIndex.value) {
-			slide.transition = sourceSlide.transition
-			slide.transitionDuration = sourceSlide.transitionDuration
-			slide.fadeUnmatchedElements = sourceSlide.fadeUnmatchedElements
+			commands.push(
+				editSlideCommand({
+					slideId: slide.clientId,
+					property: 'transition',
+					oldValue: slide.transition,
+					newValue: sourceSlide.transition,
+				}),
+			)
 
-			if (sourceSlide.transition == 'Magic Move') createConnectionsForMagicMove(index)
+			commands.push(
+				editSlideCommand({
+					slideId: slide.clientId,
+					property: 'transitionDuration',
+					oldValue: slide.transitionDuration,
+					newValue: sourceSlide.transitionDuration,
+				}),
+			)
+
+			commands.push(
+				editSlideCommand({
+					slideId: slide.clientId,
+					property: 'fadeUnmatchedElements',
+					oldValue: slide.fadeUnmatchedElements,
+					newValue: sourceSlide.fadeUnmatchedElements,
+				}),
+			)
+
+			if (sourceSlide.transition == 'Magic Move') {
+				commands.push(...(getCommandsToAddMagicMove(index) || []))
+			} else {
+				commands.push(...(getCommandsToRemoveMagicMove(index) || []))
+			}
 		}
 	})
 
+	commandHistory.execute(
+		batchCommand({
+			slideId: sourceSlide.clientId,
+			elementIds: [],
+			commands,
+		}),
+	)
+
 	toast.success('Applied transition to all slides')
 }
+
+const { onStart: onBgUpdateStart, onEnd: onBgUpdateEnd } = setPropertyDeferred(
+	'slide',
+	'background',
+)
+
+const { onStart: onTransitionUpdateStart, onEnd: onTransitionUpdateEnd } = setPropertyDeferred(
+	'slide',
+	'transitionDuration',
+)
 </script>

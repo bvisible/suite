@@ -2,9 +2,13 @@
 	<div class="flex flex-col gap-1">
 		<div :class="fieldLabelClasses">{{ label }}</div>
 		<div class="flex cursor-pointer items-center justify-between">
-			<div class="relative me-3 h-[2.5px] w-full">
+			<div class="relative me-3 h-8 w-full">
+				<div
+					class="absolute top-0 h-0.5 rounded-lg border border-gray-300 bg-gray-300"
+					:style="sliderStyles"
+				></div>
 				<input
-					class="slider absolute top-0 h-full cursor-pointer"
+					class="slider absolute top-0 cursor-pointer"
 					:class="{
 						'!cursor-grabbing': isDragging,
 					}"
@@ -12,14 +16,14 @@
 					:min="rangeStart"
 					:max="rangeEnd"
 					:step="rangeStep"
-					:value="modelValue"
+					:value="sliderValue"
 					@input="$emit('update:modelValue', $event.target.value)"
-					@mousedown="isDragging = true"
-					@mouseup="isDragging = false"
+					@mousedown="handleSliderMouseDown"
+					@mouseup="handleSliderMouseUp"
 					@mouseleave="isDragging = false"
 				/>
 				<div
-					class="absolute top-0 h-full rounded border border-black bg-black"
+					class="absolute top-0 h-0.5 rounded border border-black bg-black"
 					:style="highlightStyles"
 				></div>
 			</div>
@@ -27,7 +31,7 @@
 				v-if="showInput"
 				type="number"
 				class="h-[25px] w-10 rounded border border-gray-400 px-1 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
-				:value="modelValue"
+				:value="sliderValue"
 				@change="changeValue"
 			/>
 		</div>
@@ -50,13 +54,11 @@ const props = defineProps({
 		type: Boolean,
 		default: true,
 	},
-	modelValue: {
-		type: Number,
-		required: true,
-	},
 })
 
-const emit = defineEmits(['update:modelValue'])
+const sliderValue = defineModel()
+
+const emit = defineEmits(['update:modelValue', 'sliderdown', 'sliderup'])
 
 const sliderBar = useTemplateRef('slider')
 
@@ -68,7 +70,9 @@ const changeValue = (e) => {
 }
 
 const highlightStyles = computed(() => {
-	const { rangeStart, rangeEnd, modelValue: val } = props
+	const { rangeStart, rangeEnd } = props
+
+	const val = parseFloat(sliderValue.value)
 
 	let left = 0
 	let width = 0
@@ -85,8 +89,29 @@ const highlightStyles = computed(() => {
 	return {
 		left: `${(left / (rangeEnd - rangeStart)) * 100}%`,
 		width: `${(width / (rangeEnd - rangeStart)) * 100}%`,
+		top: `calc(50% - 1px)`,
 	}
 })
+
+const sliderStyles = computed(() => {
+	return {
+		left: '0',
+		width: '100%',
+		top: `calc(50% - 1px)`,
+	}
+})
+
+const handleSliderMouseDown = () => {
+	isDragging.value = true
+	emit('sliderdown')
+}
+
+const handleSliderMouseUp = () => {
+	if (isDragging.value) {
+		isDragging.value = false
+		emit('sliderup')
+	}
+}
 </script>
 <style scoped>
 input::-webkit-outer-spin-button,
@@ -103,8 +128,8 @@ input[type='number'] {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	width: 100%;
-	height: 2.5px;
-	background: #d3d3d3;
+	height: 32px;
+	background: transparent;
 	outline: none;
 	-webkit-transition: 0.2s;
 	transition: opacity 0.2s;

@@ -2,10 +2,16 @@
 	<div ref="slideContainer" class="flex size-full" @dragenter="showOverlay">
 		<!-- when mounting place slide directly in the center of the visible container -->
 		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
-		<div ref="slideRef" :style="slideStyles" :class="slideClasses" @contextmenu.prevent>
+		<div
+			ref="slideRef"
+			:style="slideStyles"
+			:class="slideClasses"
+			@contextmenu.prevent
+			@dblclick="handleSlideDoubleClick"
+		>
 			<SelectionBox
 				ref="selectionBox"
-				v-if="!readonlyMode"
+				v-if="!inReadonlyMode"
 				:isDragging
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
@@ -46,6 +52,7 @@ import {
 	reactive,
 	onActivated,
 	onDeactivated,
+	inject,
 } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
@@ -61,39 +68,40 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	setSlideRef,
-	insertSlide,
 	slideIndex,
 } from '@/stores/slide'
+
 import {
 	activeElementIds,
 	activeElement,
-	handleCopy,
-	handleSvgText,
-	handlePastedText,
-	handlePastedJSON,
 	focusElementId,
 	pairElementId,
 	addFixedWidthToElement,
 	setEditableState,
+	duplicateElements,
+	activeElements,
+	addTextElement,
 } from '@/stores/element'
+
+import { commandHistory } from '@/stores/historyMeta'
+
+import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
+import { editElementCommand, batchCommand } from '@/stores/commands'
 
-import { getDocFromHTML, isCmdOrCtrl } from '@/utils/helpers'
-import { handleUploadedMedia } from '../utils/mediaUploads'
+import { isCmdOrCtrl } from '@/utils/helpers'
 
 const props = defineProps({
 	highlight: Boolean,
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
 })
 
-const emit = defineEmits(['update:hasOngoingInteraction', 'changeSlide'])
+const emit = defineEmits(['update:hasOngoingInteraction'])
+
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const slideContainerRef = useTemplateRef('slideContainer')
 const slideRef = useTemplateRef('slideRef')
@@ -120,7 +128,7 @@ const slideClasses = computed(() => {
 	const outlineClasses =
 		props.highlight || mediaDragOver.value ? ['outline', 'outline-2', 'outline-blue-400'] : []
 
-	const positionClasses = props.readonlyMode
+	const positionClasses = inReadonlyMode.value
 		? ['left-[calc(50%-384.5px)]', 'top-[calc(50%-270px)]']
 		: ['left-[calc(50%-512px)]', 'top-[calc(50%-270px)]']
 
@@ -155,7 +163,7 @@ const mediaDragOver = ref(false)
 
 const showOverlay = (e) => {
 	e.preventDefault()
-	if (props.readonlyMode) return
+	if (inReadonlyMode.value) return
 	mediaDragOver.value = true
 }
 
@@ -211,12 +219,20 @@ const triggerDrag = (e, id) => {
 	}
 }
 
+const duplicateAndDrag = (e, id) => {
+	duplicateElements(e, activeElements.value, slideIndex.value, false).then(() => {
+		triggerDrag(e, id)
+	})
+}
+
 const handleMouseDown = (e, element) => {
-	if (props.readonlyMode) return
+	if (inReadonlyMode.value) return
 	const id = element?.id
 
 	e.stopPropagation()
 	e.preventDefault()
+
+	if (e.altKey || e.ctrlKey) return duplicateAndDrag(e, id)
 
 	// wait for click to be registered
 	// if the click is not registered, it means the user is dragging
@@ -259,9 +275,9 @@ const togglePanZoom = () => {
 }
 
 const applyResistance = (axis, delta) => {
-	const scaledThreshold = (0.02 * selectionBounds.width) / slideBounds.scale
+	const scaledThreshold = (0.01 * selectionBounds.width) / slideBounds.scale
 
-	const escapeDelta = Math.max(2, Math.min(5, scaledThreshold))
+	const escapeDelta = Math.max(1.5, Math.min(5, scaledThreshold))
 
 	let useResistanceKeys = []
 	let pullDelta = null
@@ -343,7 +359,7 @@ const applyAspectRatio = (delta, type) => {
 }
 
 const validateMinWidth = (width) => {
-	const minWidth = activeElement.value.type === 'text' ? 7 : 29
+	const minWidth = activeElement.value.type === 'text' ? 7 : 1
 	return width + selectionBounds.width > minWidth
 }
 
@@ -415,7 +431,7 @@ const handleSlideTransform = () => {
 watch(
 	() => activeElementIds.value,
 	(newVal, oldVal) => {
-		selectionBoxRef.value.handleSelectionChange(newVal, oldVal)
+		selectionBoxRef.value?.handleSelectionChange(newVal, oldVal)
 	},
 )
 
@@ -440,89 +456,6 @@ watch(
 		handleDimensionChange(delta)
 	},
 )
-
-const handlePastedSlideJSON = async (json) => {
-	const index = slideIndex.value
-
-	insertSlide(JSON.parse(json), index)
-
-	emit('changeSlide', index + 1)
-}
-
-const isInputElement = (el) => {
-	const activeElement = document.activeElement
-	return (
-		activeElement?.tagName == 'INPUT' ||
-		activeElement?.tagName == 'TEXTAREA' ||
-		activeElement?.isContentEditable
-	)
-}
-
-const handleClipboardText = (clipboardText) => {
-	if (clipboardText?.trim().startsWith('<svg') && clipboardText?.trim().endsWith('</svg>')) {
-		handleSvgText(clipboardText)
-	} else if (clipboardText && !focusElementId.value) {
-		handlePastedText(clipboardText)
-	}
-}
-
-const handleClipboardJSON = (clipboardJSON) => {
-	const isSlideJSON = !Array.isArray(clipboardJSON) && clipboardJSON.includes('"elements"')
-	if (isSlideJSON) {
-		return handlePastedSlideJSON(clipboardJSON)
-	}
-	return handlePastedJSON(JSON.parse(clipboardJSON))
-}
-
-const dataURLToFile = (dataURL, filename) => {
-	const [meta, base64] = dataURL.split(',')
-	const mime = meta.match(/:(.*?);/)[1]
-	const binary = atob(base64)
-	const len = binary.length
-	const buffer = new Uint8Array(len)
-
-	for (let i = 0; i < len; i++) {
-		buffer[i] = binary.charCodeAt(i)
-	}
-
-	return new File([buffer], filename, {
-		type: mime,
-		lastModified: Date.now(),
-	})
-}
-
-const getImageSrcFromHTML = (clipboardTextHTML) => {
-	const doc = getDocFromHTML(clipboardTextHTML)
-	const img = doc.querySelector('img')
-
-	if (img) return img.src
-	return null
-}
-
-const handleClipboardTextHTML = (imgSrc) => {
-	const file = dataURLToFile(imgSrc, 'pasted-image.png')
-	handleUploadedMedia([{ kind: 'file', getAsFile: () => file }])
-}
-
-const handlePaste = (e) => {
-	// do not override paste event if current element is input or content editable
-	if (isInputElement()) return
-
-	e.preventDefault()
-
-	const clipboardTextHTML = e.clipboardData.getData('text/html')
-	const imgSrc = getImageSrcFromHTML(clipboardTextHTML)
-	if (clipboardTextHTML && imgSrc) return handleClipboardTextHTML(clipboardTextHTML)
-
-	const clipboardJSON = e.clipboardData.getData('application/json')
-	if (clipboardJSON) return handleClipboardJSON(clipboardJSON)
-
-	const clipboardText = e.clipboardData.getData('text/plain')
-	if (clipboardText) return handleClipboardText(clipboardText)
-
-	const clipboardItems = e.clipboardData.items
-	if (clipboardItems) return handleUploadedMedia(clipboardItems)
-}
 
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
@@ -561,21 +494,59 @@ defineExpose({
 	togglePanZoom,
 })
 
-const applyInteractionOffsets = () => {
-	pairElementId.value = null
+const getInteractionCommands = () => {
+	const commands = []
+
 	activeElementIds.value.forEach((id) => {
 		const element = currentSlide.value.elements.find((el) => el.id === id)
-		if (element) {
-			element.left += elementOffset.left
-			element.top += elementOffset.top
-			element.width += elementOffset.width
-			element.height += elementOffset.height
+		if (!element) return
+
+		const createCommand = (property, oldValue, newValue) => {
+			if (!newValue) return null
+			return editElementCommand({
+				slideId: currentSlide.value.clientId,
+				elementIds: [id],
+				property,
+				oldValue,
+				newValue,
+			})
 		}
+
+		const offsetKeys = ['left', 'top', 'width', 'height']
+
+		offsetKeys.forEach((key) => {
+			if (elementOffset[key]) {
+				const oldValue = element[key]
+				const newValue = element[key] + elementOffset[key]
+
+				const command = createCommand(key, oldValue, newValue)
+
+				if (command) commands.push(command)
+			}
+		})
 	})
-	elementOffset.left = 0
-	elementOffset.top = 0
-	elementOffset.width = 0
-	elementOffset.height = 0
+
+	return commands
+}
+
+const applyInteractionOffsets = () => {
+	pairElementId.value = null
+	requestAnimationFrame(() => {
+		const commands = getInteractionCommands()
+
+		commandHistory.execute(
+			batchCommand({
+				slideId: currentSlide.value.clientId,
+				elementIds: activeElementIds.value,
+				commands,
+			}),
+		)
+
+		elementOffset.left = 0
+		elementOffset.top = 0
+		elementOffset.width = 0
+		elementOffset.height = 0
+	})
 }
 
 watch(
@@ -585,4 +556,12 @@ watch(
 		emit('update:hasOngoingInteraction', newVal)
 	},
 )
+
+const handleSlideDoubleClick = (e) => {
+	if (inReadonlyMode.value || e.target !== e.currentTarget) return
+	addTextElement('', {
+		left: (e.clientX - slideBounds.left) / scale.value,
+		top: (e.clientY - slideBounds.top) / scale.value,
+	})
+}
 </script>

@@ -9,25 +9,38 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="slides"
+			v-if="sidebarSlidesList"
 			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
-			:class="{ 'pb-14': !props.readonlyMode }"
+			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
-			<template v-if="props.readonlyMode">
+			<template v-if="inReadonlyMode">
 				<div
-					v-for="slide in slides"
-					:key="slide.name"
+					v-for="slide in sidebarSlidesList"
+					:key="slide.clientId"
 					:class="getThumbnailClasses(slide)"
 					:style="getThumbnailStyles(slide)"
 					@click="handleSlideClick(slide)"
-					:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
-				></div>
+					:ref="(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)"
+				>
+					<div
+						class="absolute inset-0 flex justify-between rounded p-2"
+						:style="getGradientOverlayStyles(slide)"
+					>
+						<div class="text-[10px] font-medium">{{ slide.idx }}</div>
+						<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
+					</div>
+
+					<div
+						v-if="isSlideActive(slide)"
+						class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
+					></div>
+				</div>
 			</template>
 
 			<template v-else>
 				<Draggable
-					v-model="slides"
+					v-model="sidebarSlidesList"
 					item-key="name"
 					@start="handleSortStart"
 					@end="handleSortEnd"
@@ -37,7 +50,9 @@
 							:class="getThumbnailClasses(slide)"
 							:style="getThumbnailStyles(slide)"
 							@click="handleSlideClick(slide)"
-							:ref="(el) => (slideThumbnailsRef[slides.indexOf(slide)] = el)"
+							:ref="
+								(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)
+							"
 						>
 							<div
 								class="absolute inset-0 flex justify-between rounded p-2"
@@ -66,44 +81,35 @@
 	</div>
 
 	<!-- Slide Navigator Toggle -->
-	<div v-if="!showNavigator" :class="toggleButtonClasses" @click="toggleNavigator">
+	<div v-if="!isNavigationPanelOpen" :class="toggleButtonClasses" @click="toggleNavigationPanel">
 		<LucideChevronRight class="size-3.5 text-gray-500" />
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, useTemplateRef, useAttrs } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef, useAttrs, inject } from 'vue'
 
 import Draggable from 'vuedraggable'
 
 import TransitionIcon from '@/icons/TransitionIcon.vue'
 
+import { useNavigationPanel } from '@/composables/useNavigationPanel'
+
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 import { isBackgroundColorDark } from '@/utils/color'
 
-import { ignoreUpdates, historyMetadata } from '@/stores/presentation'
+import { commandHistory, recentlyRestored } from '@/stores/historyMeta'
+import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
 
 const attrs = useAttrs()
 
 const scrollableArea = useTemplateRef('scrollableArea')
 
-const showNavigator = defineModel('showNavigator', {
-	type: Boolean,
-	default: true,
-})
+const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
-const props = defineProps({
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
-	recentlyRestored: {
-		type: Boolean,
-		default: false,
-	},
-})
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const getGradientOverlayStyles = (slide) => {
 	const hasDarkBg = isBackgroundColorDark(slide.background)
@@ -125,13 +131,9 @@ const insertButtonClasses =
 
 const showCollapseShortcut = ref(false)
 
-const toggleNavigator = () => {
-	showNavigator.value = !showNavigator.value
-}
-
 const panelClasses = computed(() => {
 	// can't add it from parent attrs.class since attrs is not reactive
-	const positionClass = showNavigator.value ? 'left-0' : '-left-48'
+	const positionClass = isNavigationPanelOpen.value ? 'left-0' : '-left-48'
 	const baseClasses = [
 		'w-48',
 		'border-r',
@@ -149,7 +151,7 @@ const isSlideActive = (slide) => {
 
 const handleSlideClick = async (slide) => {
 	const index = slides.value.indexOf(slide)
-	if (isSlideActive(slide) && !props.readonlyMode) {
+	if (isSlideActive(slide) && !inReadonlyMode.value) {
 		resetFocus()
 		focusedSlide.value = index
 		return
@@ -167,8 +169,8 @@ const getThumbnailClasses = (slide) => {
 	let outlineClasses = ''
 	if (isFocused) {
 		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
-	} else if (isActive && props.recentlyRestored) {
-		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.01]'
+	} else if (isActive && recentlyRestored.value) {
+		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
 	} else if (isActive) {
 		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
 	} else {
@@ -189,25 +191,23 @@ const getThumbnailStyles = (s) => {
 
 const toggleButtonClasses = computed(() => {
 	const baseClasses = 'flex cursor-pointer items-center border bg-white'
-	if (showNavigator.value) {
+	if (isNavigationPanelOpen.value) {
 		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
 	}
 	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
 })
 
 const handleSortStart = (event) => {
-	historyMetadata.focusIndexPostUndo = event.oldIndex
 	resetFocus()
 }
 
 const handleSortEnd = async (event) => {
-	historyMetadata.focusIndexPostRedo = event.newIndex
-	ignoreUpdates(() => {
-		slides.value.forEach((slide, index) => {
-			slide.idx = index + 1
-		})
-	})
-	emit('changeSlide', event.newIndex)
+	commandHistory.execute(
+		reorderSlidesCommand({
+			oldIndex: event.oldIndex,
+			newIndex: event.newIndex,
+		}),
+	)
 }
 
 const handleHoverChange = (e) => {
@@ -253,11 +253,21 @@ const handleScrollChange = (index) => {
 watch(
 	() => slideIndex.value,
 	() => {
-		if (!showNavigator.value) return
+		if (!isNavigationPanelOpen.value) return
 		nextTick(() => {
 			handleScrollChange(slideIndex.value)
 		})
 	},
+)
+
+const sidebarSlidesList = ref(slides.value)
+
+watch(
+	slides,
+	(newSlides) => {
+		sidebarSlidesList.value = newSlides
+	},
+	{ deep: true },
 )
 </script>
 
