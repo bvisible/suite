@@ -38,7 +38,7 @@ export function useParticipantStore(): ParticipantStore {
 
 		const videoEl = remoteVideos.value[participantId];
 		const srcObj = (videoEl as HTMLVideoElement)?.srcObject;
-		if (srcObj) {
+		if (srcObj instanceof MediaStream) {
 			for (const track of srcObj.getTracks()) {
 				track.stop();
 			}
