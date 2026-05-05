@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="w-full overflow-hidden shrink-0 transition-[height,margin] duration-500 ease-in-out"
+		class="pointer-events-none w-full overflow-hidden shrink-0 transition-[height,margin] duration-500 ease-in-out"
 		:class="{ 'mb-4': isVisible }"
 		:style="{ height: toolbarHeight }"
 	>
