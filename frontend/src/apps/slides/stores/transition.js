@@ -1,6 +1,6 @@
 import { slides, slideIndex, currentSlide } from '@/stores/slide'
-import { isElementInSlide } from '@/stores/element'
 import { generateUniqueId } from '@/utils/helpers'
+import { editElementCommand } from './commands'
 
 const canCreateTextConnection = (currentContent, nextContent) => {
 	const parser = new DOMParser()
@@ -34,11 +34,11 @@ const canCreateConnection = (currElement, potentialConnectionElement) => {
 	return canCreateMediaConnection(currElement.src, potentialConnectionElement.src)
 }
 
-const getReferenceElement = (currElement, slide) => {
+const getReferenceElementOnSlide = (slide, currElement) => {
+	if (!slide) return null
+
 	for (const element of slide.elements) {
 		if (element.type != currElement.type) continue
-
-		if (isElementInSlide(slideIndex.value, element.id)) continue
 
 		if (canCreateConnection(currElement, element)) {
 			return element
@@ -46,62 +46,100 @@ const getReferenceElement = (currElement, slide) => {
 	}
 }
 
-const getReferenceIdFromSlide = (candidateSlide, element) => {
-	if (!candidateSlide) return null
-
-	// find reference element in candidate slide
-	const refElement = getReferenceElement(element, candidateSlide)
-	// if found copy its id so that it does not re-render during transition
-	return refElement?.id
-}
-
-const getUpdatedIdAfterConnections = (element) => {
+const getReferenceElement = (element) => {
 	const prevSlide = slides.value[slideIndex.value - 1]
 	const nextSlide = slides.value[slideIndex.value + 1]
 
-	let id = getReferenceIdFromSlide(prevSlide, element)
+	let el = getReferenceElementOnSlide(prevSlide, element)
+	let onPrev = true
 
-	if (!id && currentSlide.value?.transition === 'Magic Move') {
-		id = getReferenceIdFromSlide(nextSlide, element)
+	if (!el && currentSlide.value?.transition === 'Magic Move') {
+		el = getReferenceElementOnSlide(nextSlide, element)
+		onPrev = false
 	}
 
-	return id || element.id || generateUniqueId()
+	return { el, onPrev }
 }
 
-const createConnectionsForMagicMove = (index) => {
+const getConnectionCommands = (currSlideId, nextSlideId, currElement, refElement, index) => {
+	if (!refElement) return []
+
+	const refId = generateUniqueId()
+	let commands = [
+		editElementCommand({
+			slideId: currSlideId,
+			elementIds: [currElement.id],
+			property: 'refId',
+			oldValue: currElement.refId,
+			newValue: refId,
+		}),
+		editElementCommand({
+			slideId: nextSlideId,
+			elementIds: [refElement.id],
+			property: 'refId',
+			oldValue: refElement.refId,
+			newValue: refId,
+		}),
+	]
+
+	// update refs till magic move series ends on both sides
+	commands = commands.concat(getCommandsForRefIdSeries(index, currElement, refId, false) || [])
+	commands = commands.concat(getCommandsForRefIdSeries(index, currElement, refId, true) || [])
+
+	return commands
+}
+
+const getCommandsToAddMagicMove = (index) => {
 	// adding magic move to last slide changes nothing
 	if (index == slides.value.length - 1) return
 
+	let commands = []
+
 	const currentSlide = slides.value[index]
+	const currSlideId = currentSlide.clientId
 	const nextSlide = slides.value[index + 1]
+	const nextSlideId = nextSlide.clientId
 
 	currentSlide.elements.forEach((currElement) => {
-		const refElement = getReferenceElement(currElement, nextSlide)
-		if (refElement) {
-			const id = refElement.id
-			currElement.id = id
-			updateIdsAcrossSlides(slideIndex.value, currElement, id, false)
-		}
+		const refElement = getReferenceElementOnSlide(nextSlide, currElement)
+		commands = commands.concat(
+			getConnectionCommands(currSlideId, nextSlideId, currElement, refElement, index),
+		)
+	})
+
+	return commands
+}
+
+const getCommandToClearRefId = (slide, elementId, oldValue) => {
+	return editElementCommand({
+		slideId: slide.clientId,
+		elementIds: [elementId],
+		property: 'refId',
+		oldValue: oldValue,
+		newValue: null,
 	})
 }
 
-const updateIdsAcrossSlides = (fromSlideIndex, element, newId, isForward) => {
-	let i = isForward ? fromSlideIndex + 1 : fromSlideIndex - 1
+const getCommandsToRemoveMagicMove = (index) => {
+	// removing magic move from last slide changes nothing
+	if (index == slides.value.length - 1) return
 
-	while (i >= 0 && i < slides.value.length) {
-		const slide = slides.value[i]
-		const transition = isForward ? slides.value[i - 1]?.transition : slide.transition
-		const hasTransition = transition === 'Magic Move'
+	const commands = []
 
-		if (!hasTransition) break
+	const prevSlide = slides.value[index - 1]
+	const currentSlide = slides.value[index]
 
-		const refElement = getReferenceElement(element, slide)
-		if (refElement) {
-			refElement.id = newId
-		}
+	currentSlide.elements.forEach((currElement) => {
+		const refId = currElement.refId
+		if (!refId) return
 
-		i += isForward ? 1 : -1
-	}
+		const refIdPresentInPrev = prevSlide?.elements.some((el) => el.refId == refId)
+		if (refIdPresentInPrev) return
+
+		commands.push(getCommandToClearRefId(currentSlide, currElement.id, refId))
+	})
+
+	return commands
 }
 
 const isAffectedByMagicMove = (slideIndex) => {
@@ -111,13 +149,154 @@ const isAffectedByMagicMove = (slideIndex) => {
 	return prevSlide?.transition === 'Magic Move' || currentSlide?.transition === 'Magic Move'
 }
 
-const updateElementId = (element) => {
-	const needsUpdate = isAffectedByMagicMove(slideIndex.value)
-	if (!needsUpdate) return
+const getCommandsToUpdateElementRefId = (element) => {
+	const index = slideIndex.value
+	const commands = []
+	const needsUpdate = isAffectedByMagicMove(index)
+	if (!needsUpdate) return commands
 
-	const id = getUpdatedIdAfterConnections(element)
-	element.id = id
-	updateIdsAcrossSlides(slideIndex.value, element, id, true)
+	const { el, onPrev } = getReferenceElement(element)
+	if (el) {
+		const refId = generateUniqueId()
+
+		// command to set refId on the element in the current slide
+		commands.push(
+			editElementCommand({
+				slideId: slides.value[index].clientId,
+				elementIds: [element.id],
+				property: 'refId',
+				oldValue: element.refId ?? null,
+				newValue: refId,
+			}),
+		)
+
+		// command to set refId on the reference element (prev/next slide)
+		const refSlideIndex = onPrev ? index - 1 : index + 1
+		const refSlideObj = slides.value[refSlideIndex]
+		if (refSlideObj) {
+			commands.push(
+				editElementCommand({
+					slideId: refSlideObj.clientId,
+					elementIds: [el.id],
+					property: 'refId',
+					oldValue: el.refId ?? null,
+					newValue: refId,
+				}),
+			)
+		}
+
+		// update refs till magic move series ends on both sides
+		const forwardCommands = getCommandsForRefIdSeries(index, element, refId, onPrev)
+		const backwardCommands = getCommandsForRefIdSeries(index, element, refId, !onPrev)
+
+		if (forwardCommands && forwardCommands.length) commands.push(...forwardCommands)
+		if (backwardCommands && backwardCommands.length) commands.push(...backwardCommands)
+	} else {
+		commands.push(getCommandToClearRefId(slides.value[index], element.id, element.refId))
+	}
+
+	return commands
 }
 
-export { createConnectionsForMagicMove, updateElementId }
+const isSrcElementConnected = (srcElement) => {
+	const refIdToCheck = srcElement?.refId
+	if (!refIdToCheck) return false
+
+	return currentSlide.value?.elements?.some((el) => el.refId == refIdToCheck) || false
+}
+
+const isSrcSlideInMagicMove = (srcSlide) => {
+	const prevSlideIndex = slideIndex.value - 1
+
+	return srcSlide === prevSlideIndex
+		? slides.value[prevSlideIndex]?.transition === 'Magic Move'
+		: currentSlide.value?.transition === 'Magic Move'
+}
+
+const getCommandsToInitElementRefId = (newElement, src, srcSlide) => {
+	const commands = []
+	const index = slideIndex.value
+
+	// only init refs when src is adjacent (prev or next)
+	if (srcSlide !== index - 1 && srcSlide !== index + 1) return commands
+
+	const srcElement = slides.value[srcSlide].elements.find((el) => el.id == src.id)
+	if (!srcElement) return commands
+
+	if (isSrcElementConnected(srcElement) || !isSrcSlideInMagicMove(srcSlide)) return commands
+
+	const refId = generateUniqueId()
+
+	const currentSlideObj = slides.value[index]
+	const srcSlideObj = slides.value[srcSlide]
+
+	// command to set refId on the new element (current slide)
+	commands.push(
+		editElementCommand({
+			slideId: currentSlideObj.clientId,
+			elementIds: [newElement.id],
+			property: 'refId',
+			oldValue: newElement.refId ?? null,
+			newValue: refId,
+		}),
+	)
+
+	// command to set refId on the source element (src slide)
+	commands.push(
+		editElementCommand({
+			slideId: srcSlideObj.clientId,
+			elementIds: [srcElement.id],
+			property: 'refId',
+			oldValue: srcElement.refId ?? null,
+			newValue: refId,
+		}),
+	)
+
+	// gather global ref id commands in both directions
+	const isForward = srcSlide < index
+	const forwardCommands = getCommandsForRefIdSeries(index, newElement, refId, isForward)
+	const backwardCommands = getCommandsForRefIdSeries(index, newElement, refId, !isForward)
+
+	if (forwardCommands && forwardCommands.length) commands.push(...forwardCommands)
+	if (backwardCommands && backwardCommands.length) commands.push(...backwardCommands)
+
+	return commands
+}
+
+const getCommandsForRefIdSeries = (fromSlideIndex, element, refId, isForward) => {
+	let i = isForward ? fromSlideIndex + 1 : fromSlideIndex - 1
+	const commands = []
+
+	while (i >= 0 && i < slides.value.length) {
+		const slide = slides.value[i]
+		const transition = isForward ? slides.value[i - 1]?.transition : slide.transition
+		const hasTransition = transition === 'Magic Move'
+
+		if (!hasTransition) break
+
+		const refElement = getReferenceElementOnSlide(slide, element)
+		if (refElement) {
+			commands.push(
+				editElementCommand({
+					slideId: slide.clientId,
+					elementIds: [refElement.id],
+					property: 'refId',
+					oldValue: refElement.refId,
+					newValue: refId,
+				}),
+			)
+		}
+
+		i += isForward ? 1 : -1
+	}
+
+	return commands
+}
+
+export {
+	isAffectedByMagicMove,
+	getCommandsToAddMagicMove,
+	getCommandsToRemoveMagicMove,
+	getCommandsToInitElementRefId,
+	getCommandsToUpdateElementRefId,
+}

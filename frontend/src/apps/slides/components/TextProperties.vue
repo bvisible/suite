@@ -87,10 +87,10 @@
 		<template #default>
 			<SliderInput
 				label="Line Height"
-				:rangeStart="0.1"
+				:rangeStart="1"
 				:rangeEnd="5.0"
 				:rangeStep="0.1"
-				:modelValue="activeElement?.editorMetadata?.lineHeight"
+				:modelValue="parseFloat(editorStyles.lineHeight)"
 				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
 			/>
 

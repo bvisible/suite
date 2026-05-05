@@ -344,6 +344,8 @@ export const useSnapping = (target, parent, currentResizer, hasOngoingInteractio
 			Object.entries(oppositeGuides).forEach(([side, opposite]) => {
 				if (resizer.includes(side)) {
 					resistanceMap[opposite] = false
+					resistanceMap['centerX'] = false
+					resistanceMap['centerY'] = false
 				}
 			})
 		}

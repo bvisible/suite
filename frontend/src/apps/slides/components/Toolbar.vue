@@ -15,7 +15,7 @@
 				:uploadArgs="{
 					doctype: 'Presentation',
 					docname: presentationId,
-					private: !isPublicPresentation,
+					private: true,
 				}"
 				@success="(file) => handleUploadSuccess(file)"
 			>

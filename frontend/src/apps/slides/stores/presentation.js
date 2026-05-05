@@ -1,18 +1,18 @@
-import { ref, reactive } from 'vue'
-import { watchIgnorable, useManualRefHistory } from '@vueuse/core'
+import { ref, computed } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { slides, slideIndex, currentSlide } from './slide'
-import { activeElementIds, normalizeZIndices } from '@/stores/element'
+import { router } from '@/router'
+import { slides } from './slide'
+import { normalizeZIndices } from '@/stores/element'
+import { v4 as uuid4 } from 'uuid'
+import { commandHistory } from './historyMeta'
 
-import { cloneObj } from '@/utils/helpers'
+const isDriveInstalled = window.apps?.includes('drive') ?? false
 
 const presentationDoc = ref()
 
 const presentationId = ref('')
-
-const inSlideShow = ref(false)
 
 const applyReverseTransition = ref(false)
 
@@ -22,11 +22,19 @@ const createPresentationResource = createResource({
 	makeParams: (args) => {
 		return {
 			duplicate_from: args.duplicateFrom,
-			theme: args.theme,
+			template: args.template,
 		}
 	},
-	transform: (response) => {
-		return response.name
+	transform: (doc) => {
+		return {
+			name: doc.name,
+			title: doc.title,
+			owner: doc.owner,
+			creation: doc.creation,
+			modified_by: doc.modified_by,
+			modified: doc.modified,
+			thumbnail: doc.thumbnail || '',
+		}
 	},
 })
 
@@ -108,6 +116,15 @@ const parseElements = (value) => {
 		}
 	}
 
+	parsed = parsed.map((el) => {
+		if (el.type === 'text' && el.editorMetadata?.lineHeight) {
+			// migrate legacy editorMetadata.lineHeight into element attribute
+			const lh = el.editorMetadata.lineHeight
+			el.lineHeight = lh
+		}
+		return el
+	})
+
 	return normalizeZIndices(parsed)
 }
 
@@ -122,11 +139,13 @@ const getPresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
+				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
+				delete slide.client_id
 			}
 		},
 		async onSuccess(doc) {
@@ -152,11 +171,13 @@ const getPublicPresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
+				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
+				delete slide.client_id
 			}
 		},
 		onSuccess(doc) {
@@ -179,11 +200,13 @@ const getCompositePresentationResource = (name) => {
 			for (const slide of doc.slides || []) {
 				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
+				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
+				delete slide.client_id
 			}
 		},
 		onSuccess(doc) {
@@ -206,7 +229,9 @@ const hasSlideChanged = (originalState, slideState) => {
 		if (slideState[key] != originalState[key]) return true
 	}
 
-	if (slideState.name != '' && slideState.name != originalState.name) return true
+	if (slideState.clientId != originalState.clientId) {
+		return true
+	}
 
 	const currElements = parseElements(slideState.elements)
 	const origElements = parseElements(originalState.elements)
@@ -228,21 +253,10 @@ const hasStateChanged = (original, current) => {
 	return hasChanged
 }
 
-const updateNewlyAddedSlideUUIDs = () => {
-	// for newly added slides, update their names from server response
-	// required for correct jumping to slide during undo / redo operations
-	ignoreUpdates(() => {
-		slides.value.forEach((slide, idx) => {
-			if (slide.name === '') {
-				slide.name = presentationResource.value.doc.slides[idx]?.name
-			}
-		})
-	})
-}
-
-const savePresentationDoc = async () => {
-	const newSlides = slides.value.map((slide) => ({
+const savePresentationDoc = async (updatedSlides) => {
+	const newSlides = updatedSlides.map((slide) => ({
 		...slide,
+		client_id: slide.clientId,
 		elements: JSON.stringify(slide.elements, null, 2),
 		transition_duration: slide.transitionDuration,
 		fade_unmatched_elements: slide.fadeUnmatchedElements,
@@ -253,29 +267,7 @@ const savePresentationDoc = async () => {
 	})
 
 	presentationDoc.value = presentationResource.value.doc
-
-	updateNewlyAddedSlideUUIDs()
 }
-
-const layoutResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_layouts',
-	method: 'GET',
-	auto: false,
-	transform: (data) => {
-		for (const slide of data.slides || []) {
-			slide.thumbnail = slide.thumbnail || ''
-			slide.elements = parseElements(slide.elements)
-			slide.transitionDuration = slide.transition_duration
-			// remove the transition_duration field to avoid confusion
-			delete slide.transition_duration
-		}
-	},
-	makeParams: ({ theme }) => {
-		return {
-			theme: theme,
-		}
-	},
-})
 
 const presentationResource = ref(null)
 
@@ -296,84 +288,75 @@ const initPresentationDoc = async (id, readonly = false) => {
 	}
 }
 
-let historyControl = null
-
-const historyState = ref({
-	elementIds: '',
-	activeSlide: '',
-	slides: [],
-})
-
-const historyMetadata = reactive({})
-
-const updateHistoryState = (slides, activeSlide, elementIds) => {
-	const slidesClone = [...slides].map((slide, idx) => {
-		return {
-			...slide,
-			elements: slide.elements.map((el) => cloneObj(el)),
-		}
-	})
-
-	historyState.value = {
-		elementIds: elementIds,
-		activeSlide: activeSlide,
-		slides: slidesClone,
-	}
-}
-
-const { ignoreUpdates } = watchIgnorable(
-	() => slides.value,
-	(newVal) => {
-		if (!newVal.length) return
-		commitToHistory(newVal)
-	},
-	{ deep: true },
-)
-
-const commitToHistory = (state) => {
-	const activeSlide = currentSlide.value?.name
-	const elementIds = activeElementIds.value
-
-	updateHistoryState(state, activeSlide, elementIds)
-
-	historyControl?.commit()
-}
-
-const initHistory = () => {
-	historyState.value.activeSlide = currentSlide.value?.name
-	historyControl = useManualRefHistory(historyState, {
-		capacity: 25,
-		clone: true,
-		deep: true,
-	})
-}
-
 const unsyncedPresentationRecord = ref({})
 
 const isPublicPresentation = ref(false)
 
-const readonlyMode = ref(false)
+const templateList = ref([])
+
+const templateListResource = createResource({
+	url: 'slides.slides.doctype.presentation.presentation.get_templates',
+	method: 'GET',
+	cache: 'templates',
+	onSuccess: (data) => {
+		templateList.value = data
+	},
+})
+
+const presentationTheme = computed(() => {
+	return presentationDoc.value?.theme
+})
+
+const inReadonlyMode = ref(false)
+
+const deletePresentation = async (presentation) => {
+	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
+		name: presentation,
+	})
+}
+
+const duplicatePresentation = async (presentation) => {
+	const newPresentation = await createPresentationResource.submit({
+		duplicateFrom: presentation,
+	})
+
+	if (isDriveInstalled) {
+		const parent = router.currentRoute.value.query.parent || ''
+		call('slides.api.file.create_drive_file', {
+			title: newPresentation.title,
+			name: newPresentation.name,
+			parent: parent,
+		})
+	}
+
+	return newPresentation.name
+}
+
+const resetEditorState = () => {
+	presentationDoc.value = null
+	slides.value = []
+	slidesLength.value = 0
+	isPublicPresentation.value = false
+	commandHistory.clearHistory()
+}
 
 export {
 	presentationId,
-	inSlideShow,
 	applyReverseTransition,
 	createPresentationResource,
+	presentationDoc,
+	unsyncedPresentationRecord,
+	isPublicPresentation,
+	slidesLength,
+	templateList,
+	templateListResource,
+	presentationTheme,
+	inReadonlyMode,
 	updatePresentationTitle,
-	getPresentationResource,
 	hasStateChanged,
 	savePresentationDoc,
 	initPresentationDoc,
-	layoutResource,
-	presentationDoc,
-	historyControl,
-	historyState,
-	initHistory,
-	ignoreUpdates,
-	unsyncedPresentationRecord,
-	isPublicPresentation,
-	readonlyMode,
-	slidesLength,
-	parseElements,
-	historyMetadata,
+	deletePresentation,
+	duplicatePresentation,
+	resetEditorState,
 }

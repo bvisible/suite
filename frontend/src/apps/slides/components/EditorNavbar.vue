@@ -1,36 +1,53 @@
 <template>
-	<Navbar :primaryButton="primaryButtonProps">
+	<Navbar
+		:primaryButton="primaryButtonProps"
+		:showNavbarDropdown="showNavbarDropdown"
+		@performDropdownAction="(action) => emit('performDropdownAction', action)"
+	>
 		<template #default>
-			<PresentationHeader :title="presentationDoc?.title" />
+			<div class="flex w-full justify-center">
+				<PresentationHeader :title="presentationDoc?.title" />
+			</div>
 		</template>
-		<template v-if="!readonlyMode" #actions>
+		<template v-if="!inReadonlyMode" #actions>
+			<Badge v-if="!isOnline" variant="subtle" theme="orange" size="md">
+				<LucideWifiOff class="mr-1 size-3.5 stroke-[1.5]" />
+				<span>Offline</span>
+			</Badge>
 			<SharePopover v-if="presentationDoc" />
 		</template>
 	</Navbar>
 </template>
 
 <script setup>
+import { ref, computed, inject } from 'vue'
 import { Presentation } from 'lucide-vue-next'
+
+import { Badge } from 'frappe-ui'
 
 import Navbar from '@/components/Navbar.vue'
 import PresentationHeader from '@/components/PresentationHeader.vue'
 import SharePopover from '@/components/SharePopover.vue'
 
-import { presentationDoc, readonlyMode } from '@/stores/presentation'
-import { readonly } from 'vue'
+import { presentationDoc } from '@/stores/presentation'
+import { useRoute } from 'vue-router'
 
-const props = defineProps({
-	readonlyMode: {
-		type: Boolean,
-		default: false,
-	},
-})
+const isOnline = inject('isOnline', ref(false))
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
-const emit = defineEmits(['startSlideShow'])
+const emit = defineEmits(['startSlideShow', 'performDropdownAction'])
 
-const primaryButtonProps = {
+const route = useRoute()
+
+const primaryButtonProps = computed(() => ({
 	label: 'Present',
 	icon: Presentation,
 	onClick: () => emit('startSlideShow'),
-}
+	hide: route.name === 'EditorNew',
+}))
+
+const showNavbarDropdown = computed(() => {
+	if (route.name === 'EditorNew') return false
+	return !inReadonlyMode.value
+})
 </script>

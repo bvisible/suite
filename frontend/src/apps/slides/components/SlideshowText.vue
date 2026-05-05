@@ -64,7 +64,7 @@ const createSpansForTextNode = (blockNode, textNode) => {
 	let spansHTML = ''
 
 	const span = getClosestSpan(textNode, blockNode)
-	const style = span?.getAttribute('style') || ''
+	const style = span?.getAttribute('style')?.replace(/"/g, "'") || ''
 
 	const { openWrap, closeWrap } = getWrappingTags(textNode, span)
 

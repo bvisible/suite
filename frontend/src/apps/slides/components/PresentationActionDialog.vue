@@ -40,7 +40,7 @@ import { ref, watch, nextTick, useTemplateRef } from 'vue'
 
 import { Dialog, FormControl, call } from 'frappe-ui'
 
-import { createPresentationResource, updatePresentationTitle } from '@/stores/presentation'
+import { deletePresentation, updatePresentationTitle } from '@/stores/presentation'
 
 import { Trash, PenLine } from 'lucide-vue-next'
 
@@ -49,7 +49,7 @@ const props = defineProps({
 	dialogAction: String,
 })
 
-const emit = defineEmits(['reloadList', 'navigate', 'closeDialog'])
+const emit = defineEmits(['closeDialog', 'updatePresentationList'])
 
 const inputRef = useTemplateRef('inputRef')
 
@@ -73,27 +73,10 @@ const performAction = async () => {
 
 	handleDialogClose()
 
-	let newPresentationId
-	switch (action) {
-		case 'Rename':
-			await renamePresentation()
-			break
-		case 'Delete':
-			await deletePresentation()
-			break
-	}
+	if (action == 'Rename') await renamePresentation()
+	else await deletePresentation(props.presentation.name)
 
-	if (newPresentationId) {
-		emit('navigate', newPresentationId)
-	} else {
-		emit('reloadList')
-	}
-}
-
-const deletePresentation = async () => {
-	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
-		name: props.presentation.name,
-	})
+	emit('updatePresentationList', action, newPresentationTitle.value)
 }
 
 const renamePresentation = async () => {
