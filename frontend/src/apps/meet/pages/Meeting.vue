@@ -34,7 +34,7 @@
 
 		<!-- Main meeting interface -->
 		<template v-else>
-			<div class="flex flex-1 min-h-0">
+			<div class="relative flex flex-1 min-h-0">
 				<div
 					class="grid flex-1 min-h-0 transition-[grid-template-columns] duration-300 ease-out relative"
 					:style="{
@@ -42,43 +42,12 @@
 						gridTemplateColumns: 'minmax(0, 1fr) var(--panel-width)',
 					}"
 				>
-					<!-- Video column: video area + toolbar -->
-					<div class="flex flex-col min-h-0">
+					<!-- Video column -->
+					<div class="flex flex-col min-h-0 pb-[5.5rem]">
 						<!-- Video area -->
 						<div class="p-4 flex flex-col flex-1 min-h-0 text-white">
 							<MeetingLayout @open-people-panel="togglePeople" />
 						</div>
-
-						<!-- Meeting controls -->
-						<MeetingToolbar
-							:isChatOpen="chatStore.isChatOpen.value"
-							:isPeopleOpen="isPeopleOpen"
-							:hasUnread="chatStore.hasUnreadMessages.value"
-							:lobbyUserCount="lobbyStore.lobbyUsers?.value?.length || 0"
-							:isMicOn="mediaState.isMicOn.value"
-							:isCameraOn="mediaState.isCameraOn.value"
-							:isScreenSharing="mediaState.isScreenSharing.value"
-							:isFullscreen="isFullscreen"
-							:isHandRaised="isHandRaised"
-							:isReactionPickerOpen="isReactionPickerOpen"
-							@update:isReactionPickerOpen="isReactionPickerOpen = $event"
-							:meetingId="meetingId"
-							:meetingTitle="meetingTitle"
-							:currentUser="currentUser.currentUser.value"
-							:cameraPermissionGranted="mediaState.cameraPermissionGranted.value"
-							:microphonePermissionGranted="mediaState.microphonePermissionGranted.value"
-							@toggle-chat="toggleChat"
-							@toggle-people="togglePeople"
-							@toggle-reactions="toggleReactions($event)"
-							@toggle-microphone="mediaControls.toggleMicrophone()"
-							@toggle-camera="mediaControls.toggleCamera()"
-							@toggle-screen-share="mediaControls.toggleScreenShare()"
-							@toggle-fullscreen="toggleFullscreen"
-							@toggle-raise-hand="raiseHand.toggleRaiseHand()"
-							@report-problem="handleReportProblem"
-							@end-call="sfuConnection.endCall()"
-							@device-changed="handleDeviceChanged"
-						/>
 					</div>
 
 					<!-- Panel Container -->
@@ -105,10 +74,15 @@
 								v-if="activePanel === 'chat'"
 								:open="true"
 								:messages="chatStore.chatMessages.value"
-								:user-id="(currentUser.currentUser.value as Record<string, unknown>)?.user_id as string || ''"
+								:user-id="
+									((currentUser.currentUser.value as Record<string, unknown>)
+										?.user_id as string) || ''
+								"
 								:user-name="
-									((currentUser.currentUser.value as Record<string, unknown>)?.full_name as string) ||
-									((currentUser.currentUser.value as Record<string, unknown>)?.name as string) ||
+									((currentUser.currentUser.value as Record<string, unknown>)
+										?.full_name as string) ||
+									((currentUser.currentUser.value as Record<string, unknown>)
+										?.name as string) ||
 									'You'
 								"
 								@close="toggleChat"
@@ -138,6 +112,40 @@
 						</div>
 					</Transition>
 				</div>
+
+				<!-- Meeting controls are anchored to the meeting viewport so side panels do not shift them -->
+				<div class="pointer-events-none absolute inset-x-0 bottom-0 z-[60]">
+					<!-- Meeting controls -->
+					<MeetingToolbar
+						:isChatOpen="chatStore.isChatOpen.value"
+						:isPeopleOpen="isPeopleOpen"
+						:hasUnread="chatStore.hasUnreadMessages.value"
+						:lobbyUserCount="lobbyStore.lobbyUsers?.value?.length || 0"
+						:isMicOn="mediaState.isMicOn.value"
+						:isCameraOn="mediaState.isCameraOn.value"
+						:isScreenSharing="mediaState.isScreenSharing.value"
+						:isFullscreen="isFullscreen"
+						:isHandRaised="isHandRaised"
+						:isReactionPickerOpen="isReactionPickerOpen"
+						@update:isReactionPickerOpen="isReactionPickerOpen = $event"
+						:meetingId="meetingId"
+						:meetingTitle="meetingTitle"
+						:currentUser="currentUser.currentUser.value"
+						:cameraPermissionGranted="mediaState.cameraPermissionGranted.value"
+						:microphonePermissionGranted="mediaState.microphonePermissionGranted.value"
+						@toggle-chat="toggleChat"
+						@toggle-people="togglePeople"
+						@toggle-reactions="toggleReactions($event)"
+						@toggle-microphone="mediaControls.toggleMicrophone()"
+						@toggle-camera="mediaControls.toggleCamera()"
+						@toggle-screen-share="mediaControls.toggleScreenShare()"
+						@toggle-fullscreen="toggleFullscreen"
+						@toggle-raise-hand="raiseHand.toggleRaiseHand()"
+						@report-problem="handleReportProblem"
+						@end-call="sfuConnection.endCall()"
+						@device-changed="handleDeviceChanged"
+					/>
+				</div>
 			</div>
 
 			<LobbyOverlay
@@ -145,10 +153,7 @@
 				@leave="leaveLobby"
 			/>
 
-			<RejectionOverlay
-				v-if="isRejected && isGuestSession"
-				@leave="goHome"
-			/>
+			<RejectionOverlay v-if="isRejected && isGuestSession" @leave="goHome" />
 		</template>
 
 		<!-- Chat notifications -->
