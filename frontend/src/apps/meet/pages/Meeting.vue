@@ -114,7 +114,7 @@
 				</div>
 
 				<!-- Meeting controls are anchored to the meeting viewport so side panels do not shift them -->
-				<div class="pointer-events-none absolute inset-x-0 bottom-0 z-[60]">
+				<div class="pointer-events-none absolute inset-x-0 bottom-0">
 					<!-- Meeting controls -->
 					<MeetingToolbar
 						:isChatOpen="chatStore.isChatOpen.value"
