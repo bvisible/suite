@@ -27,22 +27,20 @@ export function useGridLayout(mediaState?: MediaState): GridLayout {
 
 		const shares: ScreenShareConsumer[] = [];
 
-		for (const share of mediaState.activeScreenShareConsumers.value) {
+		for (const share of mediaState.activeScreenShareConsumers) {
 			shares.push(share);
 		}
 
 		const currentUserStore = useCurrentUser();
 		if (
-			mediaState.isScreenSharing.value &&
-			(currentUserStore.currentUser.value as Record<string, unknown>)?.user_id
+			mediaState.isScreenSharing &&
+			currentUserStore.currentUser.value?.user_id
 		) {
 			shares.push({
-				participantId: (
-					currentUserStore.currentUser.value as Record<string, unknown>
-				)?.user_id as string,
+				participantId: currentUserStore.currentUser.value?.user_id as string,
 				consumerId: "local-screen",
 				local: true,
-				startedAt: mediaState.localScreenShareStartedAt.value || 0,
+				startedAt: mediaState.localScreenShareStartedAt || 0,
 			});
 		}
 
