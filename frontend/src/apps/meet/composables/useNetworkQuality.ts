@@ -1,5 +1,5 @@
-import { onMounted, onUnmounted, ref } from "vue";
-import { getSFUMeetingManager } from "../utils/sfu-meeting-manager.js";
+import { inject, onMounted, onUnmounted, type Ref, ref } from "vue";
+import type { SFUMeetingManager } from "../utils/SFUMeetingManager";
 
 type NetworkQuality = "good" | "poor" | "critical";
 
@@ -17,6 +17,8 @@ export function useNetworkQuality() {
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 
 	const pollIntervalMs = 3000;
+	const sfuManagerRef = inject<Ref<SFUMeetingManager | null>>("sfuManager");
+	const sfuManager = sfuManagerRef?.value;
 
 	const updateQuality = (stats: NetworkStats) => {
 		if (!stats.isValid) {
@@ -45,7 +47,6 @@ export function useNetworkQuality() {
 
 		isPolling.value = true;
 		try {
-			const sfuManager = getSFUMeetingManager();
 			const transportManager = sfuManager?.transportManager;
 
 			if (!transportManager) {
