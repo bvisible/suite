@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, h, inject, ref } from 'vue'
-import { Eye, EyeOff, LayoutGrid, LogOut, Settings } from 'lucide-vue-next'
-import { Sidebar, createResource } from 'frappe-ui'
+import { Check, Eye, EyeOff, LayoutGrid, LogOut, Settings, User } from 'lucide-vue-next'
+import { Avatar, Sidebar, createResource } from 'frappe-ui'
 
 import { toTitleCase } from '@/utils/format'
 import { sessionStore } from '@/stores/session'
+import { userStore } from '@/stores/user'
 import CalendarLogo from '@/components/Icons/CalendarLogo.vue'
 import SettingsModal from '@/components/Modals/SettingsModal.vue'
 
@@ -16,6 +17,8 @@ const { calendars, visibleCalendars } = defineProps<{
 const emit = defineEmits(['update:visibleCalendars'])
 
 const { branding, logout } = sessionStore()
+const store = userStore()
+const { setAccount } = store
 
 const user = inject('$user')
 
@@ -24,6 +27,12 @@ const title = computed(() =>
 		? branding.data.brand_name
 		: 'Calendar',
 )
+
+const subtitle = computed(() => {
+	const currentAccount = user.data.accounts.find((a) => a.name === store.account)
+	if (currentAccount.is_personal) return toTitleCase(user.data.full_name)
+	return currentAccount._name
+})
 
 const apps = createResource({
 	url: 'mail.api.get_permitted_apps',
@@ -36,33 +45,66 @@ const showSettings = ref(false)
 
 const menuItems = computed(() => [
 	{
-		icon: LayoutGrid,
-		label: __('Apps'),
-		submenu: apps.data?.map?.((app) => ({
-			label: app.title,
-			icon: app.logo,
-			component: h(
-				'a',
-				{
-					class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
-					href: app.route,
-				},
-				[
-					h('img', { src: app.logo, class: 'size-6' }),
-					h('span', { class: 'max-w-18 text-sm w-full truncate' }, app.title),
-				],
-			),
-		})),
+		group: '',
+		items: [
+			{
+				icon: LayoutGrid,
+				label: __('Apps'),
+				submenu: apps.data?.map?.((app) => ({
+					component: h(
+						'a',
+						{
+							class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
+							href: app.route,
+						},
+						[
+							h('img', { src: app.logo, class: 'size-6' }),
+							h('span', { class: 'max-w-18 text-sm w-full truncate' }, app.title),
+						],
+					),
+				})),
+			},
+		],
 	},
 	{
-		icon: Settings,
-		label: __('Settings'),
-		onClick: () => (showSettings.value = true),
+		group: '',
+		items: [
+			{
+				icon: Settings,
+				label: __('Settings'),
+				onClick: () => (showSettings.value = true),
+			},
+		],
 	},
 	{
-		icon: LogOut,
-		label: __('Log Out'),
-		onClick: logout.submit,
+		group: '',
+		items: [
+			{
+				icon: User,
+				label: __('Accounts'),
+				submenu: user.data.accounts.map?.((a) => ({
+					component: h(
+						'div',
+						{
+							class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2 cursor-pointer w-48 shrink-0',
+							onClick: () => setAccount(a.id),
+						},
+						[
+							h(Avatar, { label: a._name, size: 'md' }),
+							h('span', { class: 'text-sm w-full truncate' }, a._name),
+							a.id === store.accountId &&
+								h(Check, { label: a._name, class: 'h-4 shrink-0 stroke-1.5' }),
+						],
+					),
+				})),
+				condition: () => user.data.accounts?.length > 1,
+			},
+			{
+				icon: LogOut,
+				label: __('Log Out'),
+				onClick: logout.submit,
+			},
+		],
 	},
 ])
 
@@ -83,7 +125,7 @@ const sidebarItems = computed(() => [
 	<Sidebar
 		:header="{
 			title,
-			subtitle: toTitleCase(user.data?.full_name),
+			subtitle,
 			menuItems,
 			logo: branding.data?.brand_html || CalendarLogo,
 		}"

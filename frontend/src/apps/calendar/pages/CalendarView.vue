@@ -11,7 +11,8 @@ import EventModal from '@/components/Modals/EventModal.vue'
 
 const dayjs = inject('$dayjs')
 
-const { identities } = userStore()
+const store = userStore()
+const { identities } = store
 
 const route = useRoute()
 const router = useRouter()
@@ -36,6 +37,14 @@ watch(
 	() => calendarRef.value?.activeView,
 	(view) => {
 		if (view && view !== route.name) setRoute()
+	},
+)
+
+watch(
+	() => store.account,
+	() => {
+		calendars.reload()
+		events.reload()
 	},
 )
 
@@ -99,6 +108,7 @@ const getEventRole = (event) => {
 
 const calendars = createResource({
 	url: 'calendar_app.api.get_calendars',
+	makeParams: () => ({ account: store.account }),
 	auto: true,
 	onSuccess: (data) => (visibleCalendars.value = data.map((cal) => cal.name)),
 	onError: (error) => raiseToast(error.message, 'error'),
@@ -113,6 +123,7 @@ const events = createResource({
 			.year(calendarRef.value?.currentYear)
 			.month(calendarRef.value?.currentMonth)
 		return {
+			account: store.account,
 			from_date: date.startOf('month').subtract(37, 'day').toDate(),
 			to_date: date.endOf('month').add(37, 'day').toDate(),
 			time_zone: dayjs.tz.guess(),
