@@ -2,11 +2,14 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
+const ACCOUNT_STORAGE_KEY = 'mail-account-id'
+
 export const userStore = defineStore('calendar-user', () => {
-	const accountId = ref('')
+	const accountId = ref(localStorage.getItem(ACCOUNT_STORAGE_KEY) || '')
 
 	const setAccount = (id: string) => {
 		accountId.value = id
+		localStorage.setItem(ACCOUNT_STORAGE_KEY, id)
 		identities.fetch()
 	}
 
