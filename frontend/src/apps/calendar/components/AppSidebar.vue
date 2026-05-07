@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, h, inject, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Check, Eye, EyeOff, LayoutGrid, LogOut, Settings, User } from 'lucide-vue-next'
 import { Avatar, Sidebar, createResource } from 'frappe-ui'
 
@@ -16,6 +17,8 @@ const { calendars, visibleCalendars } = defineProps<{
 
 const emit = defineEmits(['update:visibleCalendars'])
 
+const route = useRoute()
+const router = useRouter()
 const { branding, logout } = sessionStore()
 const store = userStore()
 const { setAccount } = store
@@ -87,7 +90,13 @@ const menuItems = computed(() => [
 						'div',
 						{
 							class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2 cursor-pointer w-48 shrink-0',
-							onClick: () => setAccount(a.id),
+							onClick: () => {
+								setAccount(a.id)
+								router.push({
+									name: route.name,
+									params: { ...route.params, accountId: a.id },
+								})
+							},
 						},
 						[
 							h(Avatar, { label: a._name, size: 'md' }),

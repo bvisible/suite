@@ -16,7 +16,8 @@ const emit = defineEmits(['reloadEvents'])
 
 const user = inject('$user')
 const dayjs = inject('$dayjs')
-const { identities } = userStore()
+const store = userStore()
+const { identities } = store
 
 const isNew = computed(() => !selectedEvent?.calendarEvent)
 const showRSVP = computed(() => !isNew.value && selectedEvent.calendarEvent.role !== 'Organizer')
@@ -242,6 +243,7 @@ const handleSuccess = () => {
 const createEvent = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.add_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+		account: store.account,
 		...eventParams.value,
 		send_scheduling_messages: sendEmail,
 	}),
@@ -251,7 +253,7 @@ const createEvent = createResource({
 const editEventInstance = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-		user: user.data.name,
+		account: store.account,
 		master_id: selectedEvent.calendarEvent.master_id,
 		recurrence_id: selectedEvent.calendarEvent.recurrence_id,
 		patch: patch.value,
@@ -263,6 +265,7 @@ const editEventInstance = createResource({
 const editEvent = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+		account: store.account,
 		id: selectedEvent.calendarEvent.master_id,
 		uid: selectedEvent.calendarEvent.uid,
 		...eventParams.value,
@@ -342,6 +345,7 @@ const addAlertOptions = computed(() => [
 const mailContacts = createResource({
 	url: 'mail.api.contacts.get_contacts',
 	makeParams: (text: string) => ({
+		account: store.account,
 		filter: { operator: 'OR', conditions: [{ text }, { email: text }] },
 	}),
 	transform: (data) => data.map((o) => o.email),

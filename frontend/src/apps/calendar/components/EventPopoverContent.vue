@@ -15,7 +15,8 @@ const emit = defineEmits(['edit', 'reloadEvents'])
 const user = inject('$user')
 const dayjs = inject('$dayjs')
 
-const { identities } = userStore()
+const store = userStore()
+const { identities } = store
 
 const userParticipant = computed(() =>
 	calendarEvent.participants.find((p) => identities.data.some((id) => id.email === p.email)),
@@ -137,7 +138,7 @@ const handleSetResponse = (response: string, updateAllInstances: boolean) => {
 const editEventInstance = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
 	makeParams: ({ patch }) => ({
-		user: user.data.name,
+		account: store.account,
 		master_id: calendarEvent.master_id,
 		recurrence_id: calendarEvent.recurrence_id,
 		patch,
@@ -152,6 +153,7 @@ const editEventInstance = createResource({
 const editEvent = createResource({
 	url: 'calendar_app.api.edit_calendar_event',
 	makeParams: ({ patch }) => ({
+		account: store.account,
 		id: calendarEvent.master_id,
 		...patch,
 		send_scheduling_messages: true,
@@ -191,7 +193,7 @@ const handleDeleteEvent = () =>
 const deleteEventInstance = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.delete_calendar_event_instance',
 	makeParams: () => ({
-		user: user.data.name,
+		account: store.account,
 		master_id: calendarEvent.master_id,
 		recurrence_id: calendarEvent.recurrence_id,
 	}),
@@ -203,10 +205,7 @@ const deleteEventInstance = createResource({
 
 const deleteEvent = createResource({
 	url: 'mail.client.doctype.calendar_event.calendar_event.delete_calendar_events',
-	makeParams: () => ({
-		user: user.data.name,
-		ids: [calendarEvent.master_id],
-	}),
+	makeParams: () => ({ account: store.account, ids: [calendarEvent.master_id] }),
 	onSuccess: () => {
 		emit('reloadEvents')
 		close()
