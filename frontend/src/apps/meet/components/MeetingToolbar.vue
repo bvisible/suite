@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="pointer-events-none w-full overflow-hidden shrink-0 transition-[height,margin] duration-500 ease-in-out"
-		:class="{ 'mb-4': isVisible }"
+		:class="{ 'mt-2 mb-2': isVisible }"
 		:style="{ height: toolbarHeight }"
 	>
 		<div
@@ -36,7 +36,6 @@
 				<Button
 					@click="$emit('toggle-camera')"
 					variant="solid"
-					:theme="isCameraOn ? 'gray' : 'orange'"
 					size="2xl"
 					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
 					:class="{
@@ -56,7 +55,6 @@
 					v-if="canScreenShare()"
 					@click="$emit('toggle-screen-share')"
 					variant="solid"
-					:theme="isScreenSharing ? 'orange' : 'gray'"
 					size="2xl"
 					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
 					:class="{
@@ -154,11 +152,7 @@
 				</div>
 
 				<!-- More Options -->
-				<div
-					class="relative"
-					ref="dropdownContainer"
-					@click="handleDropdownClick"
-				>
+				<div class="relative" ref="dropdownContainer" @click="handleDropdownClick">
 					<Dropdown :options="moreOptions" placement="top">
 						<template #default>
 							<Button
@@ -265,6 +259,7 @@ const emit = defineEmits<{
 	"end-call": [];
 	"device-changed": [event: unknown];
 	"update:isReactionPickerOpen": [value: boolean];
+	"visibility-change": [visible: boolean];
 }>();
 
 const { windowWidth } = useResponsiveGrid();
@@ -429,6 +424,8 @@ const handleReactionSelect = (emoji) => {
 const updateReactionPickerOpen = (value) => {
 	emit("update:isReactionPickerOpen", value);
 };
+
+watch(isVisible, (val) => emit("visibility-change", val));
 
 watch(autoHideToolbar, (shouldAutoHide) => {
 	if (!shouldAutoHide) {
