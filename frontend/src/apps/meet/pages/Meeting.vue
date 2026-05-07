@@ -30,7 +30,11 @@
 			:isConnecting="connectionState.isConnecting"
 			:userInitials="currentUser.userInitials.value"
 			:userAvatar="currentUser.userAvatar.value"
-			:currentUserName="currentUser.currentUser.value?.full_name || currentUser.currentUser.value?.name || 'You'"
+			:currentUserName="
+				currentUser.currentUser.value?.full_name ||
+				currentUser.currentUser.value?.name ||
+				'You'
+			"
 			:guestAuthToken="connectionState.guestAuthToken"
 			:isWaitingForApproval="lobbyStore.isWaitingForApproval"
 			:setLocalVideoRef="mediaControls.setLocalVideoRef"
@@ -53,8 +57,12 @@
 						gridTemplateColumns: 'minmax(0, 1fr) var(--panel-width)',
 					}"
 				>
-					<!-- Video column -->
-					<div class="flex flex-col min-h-0 pb-[5.5rem]">
+					<!-- Video column — padding-bottom mirrors the toolbar height so tiles
+                 reclaim the space when the toolbar hides, without affecting panels -->
+					<div
+						class="flex flex-col min-h-0 transition-[padding-bottom] duration-500 ease-in-out"
+						:style="{ paddingBottom: isToolbarVisible ? '6rem' : '0' }"
+					>
 						<!-- Video area -->
 						<div class="p-4 flex flex-col flex-1 min-h-0 text-white">
 							<MeetingLayout @open-people-panel="togglePeople" />
@@ -85,15 +93,10 @@
 								v-if="activePanel === 'chat'"
 								:open="true"
 								:messages="chatStore.chatMessages"
-								:user-id="
-									(currentUser.currentUser.value
-										?.user_id as string) || ''
-								"
+								:user-id="(currentUser.currentUser.value?.user_id as string) || ''"
 								:user-name="
-									(currentUser.currentUser.value
-										?.full_name as string) ||
-									(currentUser.currentUser.value
-										?.name as string) ||
+									(currentUser.currentUser.value?.full_name as string) ||
+									(currentUser.currentUser.value?.name as string) ||
 									'You'
 								"
 								@close="toggleChat"
@@ -155,6 +158,7 @@
 						@report-problem="handleReportProblem"
 						@end-call="sfuConnection.endCall()"
 						@device-changed="handleDeviceChanged"
+						@visibility-change="isToolbarVisible = $event"
 					/>
 				</div>
 			</div>
@@ -519,6 +523,7 @@ const chatNotificationQueue = ref<InstanceType<
 > | null>(null);
 const isReactionPickerOpen = ref(false);
 const isFullscreen = ref(false);
+const isToolbarVisible = ref(true);
 
 // --- Extracted handlers ---
 const handlers = useMeetingHandlers({
