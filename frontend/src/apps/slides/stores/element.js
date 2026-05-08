@@ -132,11 +132,23 @@ const addShapeElement = async (shapeType) => {
 		element.strokeWidth = 4
 	}
 
-	currentSlide.value.elements.push(element)
+	const refCommands = getCommandsToUpdateElementRefId(element) || []
 
-	nextTick(() => {
-		setActiveElements([element.id])
-	})
+	const commands = [
+		addElementCommand({
+			slideId: currentSlide.value.clientId,
+			element: element,
+		}),
+		...refCommands,
+	]
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [element.id],
+			commands,
+		}),
+	)
 }
 
 const getTextElementDimensions = (presets) => {

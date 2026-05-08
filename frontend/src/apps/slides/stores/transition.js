@@ -150,6 +150,8 @@ const isAffectedByMagicMove = (slideIndex) => {
 }
 
 const getCommandsToUpdateElementRefId = (element) => {
+	// TODO: add refId handling for shape elements
+	if (element.type == 'shape') return []
 	const index = slideIndex.value
 	const commands = []
 	const needsUpdate = isAffectedByMagicMove(index)
