@@ -3,7 +3,11 @@
 		<template #default>
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Fill Color</div>
-				<ColorPicker class="pe-[0.2px]" v-model="activeElement.fillColor" />
+				<ColorPicker
+					v-model="activeElement.fillColor"
+					@colordown="onFillColorUpdateStart"
+					@colorup="onFillColorUpdateEnd"
+				/>
 			</div>
 
 			<div
@@ -13,7 +17,8 @@
 				<div :class="fieldLabelClasses">Border Radius</div>
 				<div class="w-28">
 					<NumberInput
-						v-model="activeElement.borderRadius"
+						:modelValue="activeElement.borderRadius"
+						@update:modelValue="(val) => setProperty('borderRadius', val)"
 						suffix="px"
 						:rangeStart="0"
 						:rangeEnd="50"
@@ -26,7 +31,8 @@
 				<div :class="fieldLabelClasses">Stroke Width</div>
 				<div class="w-28">
 					<NumberInput
-						v-model="activeElement.strokeWidth"
+						:modelValue="activeElement.strokeWidth"
+						@update:modelValue="(val) => setProperty('strokeWidth', val)"
 						suffix="px"
 						:rangeStart="0"
 						:rangeEnd="50"
@@ -37,17 +43,50 @@
 
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Stroke Color</div>
-				<ColorPicker class="pe-[0.2px]" v-model="activeElement.strokeColor" />
+
+				<ColorPicker
+					v-model="activeElement.strokeColor"
+					@colordown="onStrokeColorUpdateStart"
+					@colorup="onStrokeColorUpdateEnd"
+				/>
 			</div>
 		</template>
 	</CollapsibleSection>
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
 
+import { currentSlide } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
+import { commandHistory } from '@/stores/historyMeta'
+import { editElementCommand } from '@/stores/commands'
+
+const setPropertyDeferred = inject('setPropertyDeferred')
+
+const setProperty = (property, val) => {
+	commandHistory.execute(
+		editElementCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [activeElement.value.id],
+			property: property,
+			oldValue: activeElement.value[property],
+			newValue: val,
+		}),
+	)
+}
+
+const { onStart: onFillColorUpdateStart, onEnd: onFillColorUpdateEnd } = setPropertyDeferred(
+	'element',
+	'fillColor',
+)
+
+const { onStart: onStrokeColorUpdateStart, onEnd: onStrokeColorUpdateEnd } = setPropertyDeferred(
+	'element',
+	'strokeColor',
+)
 </script>
