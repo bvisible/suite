@@ -359,12 +359,12 @@ const applyAspectRatio = (delta, type) => {
 }
 
 const validateMinWidth = (width) => {
-	const minWidth = activeElement.value.type === 'text' ? 7 : 1
+	const minWidth = activeElement.value?.type === 'text' ? 7 : 1
 	return width + selectionBounds.width > minWidth
 }
 
 const validateMinHeight = (height) => {
-	const minHeight = activeElement.value.type === 'text' ? 7 : 29
+	const minHeight = activeElement.value?.type === 'text' ? 7 : 29
 	return height + selectionBounds.height > minHeight
 }
 
