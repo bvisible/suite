@@ -76,7 +76,9 @@ const elementStyle = computed(() => {
 	}
 
 	let elementHeight = element.value.height
-	if (elementHeight) {
+	if (element.value.type == 'shape' && ['line'].includes(element.value.shapeType)) {
+		elementHeight = `${element.value.strokeWidth}px`
+	} else if (elementHeight) {
 		elementHeight = `${elementHeight + offsetHeight}px`
 	} else {
 		elementHeight = 'auto'
