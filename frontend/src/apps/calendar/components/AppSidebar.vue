@@ -21,7 +21,6 @@ const route = useRoute()
 const router = useRouter()
 const { branding, logout } = sessionStore()
 const store = userStore()
-const { setAccount } = store
 
 const user = inject('$user')
 
@@ -90,13 +89,11 @@ const menuItems = computed(() => [
 						'div',
 						{
 							class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2 cursor-pointer w-48 shrink-0',
-							onClick: () => {
-								setAccount(a.id)
+							onClick: () =>
 								router.push({
 									name: route.name,
 									params: { ...route.params, accountId: a.id },
-								})
-							},
+								}),
 						},
 						[
 							h(Avatar, { label: a._name, size: 'md' }),
