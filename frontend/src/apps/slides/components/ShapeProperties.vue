@@ -56,6 +56,7 @@
 
 <script setup>
 import { inject } from 'vue'
+
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
@@ -63,22 +64,9 @@ import NumberInput from '@/components/controls/NumberInput.vue'
 import { currentSlide } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
-import { commandHistory } from '@/stores/historyMeta'
-import { editElementCommand } from '@/stores/commands'
 
+const setProperty = inject('setProperty')
 const setPropertyDeferred = inject('setPropertyDeferred')
-
-const setProperty = (property, val) => {
-	commandHistory.execute(
-		editElementCommand({
-			slideId: currentSlide.value.clientId,
-			elementIds: [activeElement.value.id],
-			property: property,
-			oldValue: activeElement.value[property],
-			newValue: val,
-		}),
-	)
-}
 
 const { onStart: onFillColorUpdateStart, onEnd: onFillColorUpdateEnd } = setPropertyDeferred(
 	'element',
