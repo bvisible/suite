@@ -114,15 +114,15 @@ router.beforeEach(async (to) => {
 	if (!isLoggedIn) window.location.replace('/mail/login')
 
 	// 2. Wait for user data
-	const { userResource, accountId: storeAccountId, setAccount } = userStore()
+	const { userResource, setAccount } = userStore()
 	await userResource.promise
 	const user = userResource.data
 
-	// 3. Resolve active account
-	resolveAccount(to.params.accountId as string | undefined, user, storeAccountId, setAccount)
-
 	// Re-read accountId after resolveAccount may have updated it via setAccount
 	const accountId = userStore().accountId
+
+	// 3. Resolve active account
+	resolveAccount(to.params.accountId as string | undefined, user, accountId, setAccount)
 
 	// 4. Expand shortcut routes to their full account-scoped equivalents
 	if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
