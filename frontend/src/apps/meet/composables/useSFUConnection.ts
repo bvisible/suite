@@ -683,14 +683,6 @@ export function useSFUConnection(deps: {
 			setupFrappeRealtimeEventListeners();
 			connectionState.isInPreview = false;
 			connectionState.isConnecting = false;
-
-			if (router.currentRoute.value.query.created === "true") {
-				router.replace({
-					name: router.currentRoute.value.name as string,
-					params: router.currentRoute.value.params,
-					query: { ...router.currentRoute.value.query, created: undefined },
-				});
-			}
 		} catch (error) {
 			console.error("Failed to join meeting:", error);
 			connectionState.connectionError = getErrorMessage(error);

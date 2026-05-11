@@ -10,7 +10,7 @@ test.describe("Restricted meeting", () => {
 		const guest = await createParticipant();
 		const guestName = `Guest Restricted ${test.info().parallelIndex}`;
 
-		await hostPage.goto(`/meet/${meetingId}?created=true`);
+		await hostPage.goto(`/meet/${meetingId}`);
 		await joinFromPreview(hostPage);
 
 		await guest.page.goto(`/meet/${meetingId}`);
@@ -40,7 +40,7 @@ test.describe("Restricted meeting", () => {
 		const guest = await createParticipant();
 		const guestName = `Guest Rejected ${test.info().parallelIndex}`;
 
-		await hostPage.goto(`/meet/${meetingId}?created=true`);
+		await hostPage.goto(`/meet/${meetingId}`);
 		await joinFromPreview(hostPage);
 
 		await guest.page.goto(`/meet/${meetingId}`);
