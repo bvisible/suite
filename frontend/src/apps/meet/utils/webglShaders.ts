@@ -101,14 +101,14 @@ const SHADERS = {
       vec4 backgroundColor = texture2D(u_background, v_texCoord);
 
       // Smooth the mask to reduce blockiness from low-res segmentation
-      float smoothMask = smoothstep(0.05, 0.95, centerMask);
+      float smoothMask = smoothstep(0.15, 0.65, centerMask);
 
       // Edge region - apply light wrapping
       // Calculate edge normal by sampling mask gradient
-      float maskLeft = texture2D(u_mask, v_texCoord + vec2(-texelSize.x, 0.0)).a;
-      float maskRight = texture2D(u_mask, v_texCoord + vec2(texelSize.x, 0.0)).a;
-      float maskUp = texture2D(u_mask, v_texCoord + vec2(0.0, -texelSize.y)).a;
-      float maskDown = texture2D(u_mask, v_texCoord + vec2(0.0, texelSize.y)).a;
+      float maskLeft = texture2D(u_mask, v_texCoord + vec2(-3.0 * texelSize.x, 0.0)).a;
+      float maskRight = texture2D(u_mask, v_texCoord + vec2(3.0 * texelSize.x, 0.0)).a;
+      float maskUp = texture2D(u_mask, v_texCoord + vec2(0.0, -3.0 * texelSize.y)).a;
+      float maskDown = texture2D(u_mask, v_texCoord + vec2(0.0, 3.0 * texelSize.y)).a;
 
       // Gradient points from background to foreground
       vec2 gradient = vec2(maskRight - maskLeft, maskDown - maskUp);
@@ -177,6 +177,43 @@ const SHADERS = {
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `,
+
+	maskBlurFragment: `
+	#ifdef GL_FRAGMENT_PRECISION_HIGH
+	precision highp float;
+	#else
+	precision mediump float;
+	#endif
+    uniform sampler2D u_mask;
+    uniform vec2 u_resolution;
+    uniform vec2 u_direction;
+    uniform float u_sigma;
+    varying vec2 v_texCoord;
+
+    float gaussian(float x, float sigma) {
+      return exp(-(x * x) / (2.0 * sigma * sigma)) / (sigma * sqrt(2.0 * 3.14159));
+    }
+
+    void main() {
+      vec2 texelSize = 1.0 / u_resolution;
+      float color = 0.0;
+      float weightSum = 0.0;
+
+      const int MAX_KERNEL_SIZE = 15;
+      for (int i = -MAX_KERNEL_SIZE; i <= MAX_KERNEL_SIZE; i++) {
+        if (abs(float(i)) <= 3.0 * u_sigma) {
+          float weight = gaussian(float(i), u_sigma);
+          vec2 offset = vec2(float(i)) * u_direction * texelSize;
+          float sample = texture2D(u_mask, v_texCoord + offset).a;
+          color += sample * weight;
+          weightSum += weight;
+        }
+      }
+
+      float center = texture2D(u_mask, v_texCoord).a;
+      gl_FragColor = vec4(0.0, 0.0, 0.0, weightSum > 0.001 ? color / weightSum : center);
+    }
+  `,
 };
 
 class WebGLError extends Error {
@@ -212,6 +249,31 @@ export class WebGLManager {
 	private lightWrapImageLocation: WebGLUniformLocation | null = null;
 	private lightWrapMaskLocation: WebGLUniformLocation | null = null;
 	private lightWrapBackgroundLocation: WebGLUniformLocation | null = null;
+
+	// cache mask blur program (compiled once, reused every frame for virtual bg)
+	private maskBlurProgram: WebGLProgram | null = null;
+	private maskBlurTexCoordLocation = -1;
+	private maskBlurResolutionLocation: WebGLUniformLocation | null = null;
+	private maskBlurDirectionLocation: WebGLUniformLocation | null = null;
+	private maskBlurSigmaLocation: WebGLUniformLocation | null = null;
+	private maskBlurMaskLocation: WebGLUniformLocation | null = null;
+
+	// Cached FBO ping-pong pair for mask blur — reused every frame, recreated on resize
+	private maskBlurCache: {
+		width: number;
+		height: number;
+		fboA: WebGLFramebuffer | null;
+		textureA: WebGLTexture | null;
+		fboB: WebGLFramebuffer | null;
+		textureB: WebGLTexture | null;
+	} = {
+		width: 0,
+		height: 0,
+		fboA: null,
+		textureA: null,
+		fboB: null,
+		textureB: null,
+	};
 
 	constructor(canvas: HTMLCanvasElement) {
 		const gl =
@@ -279,6 +341,14 @@ export class WebGLManager {
 		);
 
 		this.initLightWrapProgram();
+		try {
+			this.initMaskBlurProgram();
+		} catch (_e) {
+			console.warn(
+				"Mask blur program init failed, virtual bg edges may appear coarser:",
+				_e,
+			);
+		}
 	}
 
 	private initLightWrapProgram(): void {
@@ -326,6 +396,54 @@ export class WebGLManager {
 		this.lightWrapBackgroundLocation = this.gl.getUniformLocation(
 			this.lightWrapProgram,
 			"u_background",
+		);
+	}
+
+	private initMaskBlurProgram(): void {
+		const vertexShader = this.createShader(
+			this.gl.VERTEX_SHADER,
+			SHADERS.vertex,
+		);
+		const fragmentShader = this.createShader(
+			this.gl.FRAGMENT_SHADER,
+			SHADERS.maskBlurFragment,
+		);
+
+		if (!vertexShader || !fragmentShader) {
+			if (vertexShader) this.gl.deleteShader(vertexShader);
+			if (fragmentShader) this.gl.deleteShader(fragmentShader);
+			throw new WebGLError("Failed to create mask blur shaders");
+		}
+
+		try {
+			this.maskBlurProgram = this.createProgram(vertexShader, fragmentShader);
+			if (!this.maskBlurProgram) {
+				throw new WebGLError("Failed to create mask blur shader program");
+			}
+		} finally {
+			this.gl.deleteShader(vertexShader);
+			this.gl.deleteShader(fragmentShader);
+		}
+
+		this.maskBlurTexCoordLocation = this.gl.getAttribLocation(
+			this.maskBlurProgram,
+			"a_texCoord",
+		);
+		this.maskBlurResolutionLocation = this.gl.getUniformLocation(
+			this.maskBlurProgram,
+			"u_resolution",
+		);
+		this.maskBlurDirectionLocation = this.gl.getUniformLocation(
+			this.maskBlurProgram,
+			"u_direction",
+		);
+		this.maskBlurSigmaLocation = this.gl.getUniformLocation(
+			this.maskBlurProgram,
+			"u_sigma",
+		);
+		this.maskBlurMaskLocation = this.gl.getUniformLocation(
+			this.maskBlurProgram,
+			"u_mask",
 		);
 	}
 
@@ -525,6 +643,250 @@ export class WebGLManager {
 		return canvas;
 	}
 
+	private createEmptyTexture(
+		width: number,
+		height: number,
+	): WebGLTexture | null {
+		const texture = this.gl.createTexture();
+		if (!texture) return null;
+
+		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+		this.gl.texParameteri(
+			this.gl.TEXTURE_2D,
+			this.gl.TEXTURE_WRAP_S,
+			this.gl.CLAMP_TO_EDGE,
+		);
+		this.gl.texParameteri(
+			this.gl.TEXTURE_2D,
+			this.gl.TEXTURE_WRAP_T,
+			this.gl.CLAMP_TO_EDGE,
+		);
+		this.gl.texParameteri(
+			this.gl.TEXTURE_2D,
+			this.gl.TEXTURE_MIN_FILTER,
+			this.gl.LINEAR,
+		);
+		this.gl.texParameteri(
+			this.gl.TEXTURE_2D,
+			this.gl.TEXTURE_MAG_FILTER,
+			this.gl.LINEAR,
+		);
+
+		this.gl.texImage2D(
+			this.gl.TEXTURE_2D,
+			0,
+			this.gl.RGBA,
+			width,
+			height,
+			0,
+			this.gl.RGBA,
+			this.gl.UNSIGNED_BYTE,
+			null,
+		);
+
+		return texture;
+	}
+
+	private setupFramebuffer(fbo: WebGLFramebuffer, texture: WebGLTexture): void {
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fbo);
+		this.gl.framebufferTexture2D(
+			this.gl.FRAMEBUFFER,
+			this.gl.COLOR_ATTACHMENT0,
+			this.gl.TEXTURE_2D,
+			texture,
+			0,
+		);
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+	}
+
+	private ensureMaskBlurCache(width: number, height: number): void {
+		if (
+			this.maskBlurCache.width === width &&
+			this.maskBlurCache.height === height &&
+			this.maskBlurCache.textureA
+		) {
+			return;
+		}
+
+		if (this.maskBlurCache.textureA) {
+			this.gl.deleteTexture(this.maskBlurCache.textureA);
+			this.maskBlurCache.textureA = null;
+		}
+		if (this.maskBlurCache.fboA) {
+			this.gl.deleteFramebuffer(this.maskBlurCache.fboA);
+			this.maskBlurCache.fboA = null;
+		}
+		if (this.maskBlurCache.textureB) {
+			this.gl.deleteTexture(this.maskBlurCache.textureB);
+			this.maskBlurCache.textureB = null;
+		}
+		if (this.maskBlurCache.fboB) {
+			this.gl.deleteFramebuffer(this.maskBlurCache.fboB);
+			this.maskBlurCache.fboB = null;
+		}
+
+		const textureA = this.createEmptyTexture(width, height);
+		if (!textureA)
+			throw new WebGLError("Failed to create mask cache texture A");
+		const fboA = this.gl.createFramebuffer();
+		if (!fboA) {
+			this.gl.deleteTexture(textureA);
+			throw new WebGLError("Failed to create mask cache FBO A");
+		}
+		this.setupFramebuffer(fboA, textureA);
+
+		const textureB = this.createEmptyTexture(width, height);
+		if (!textureB) {
+			this.gl.deleteTexture(textureA);
+			this.gl.deleteFramebuffer(fboA);
+			throw new WebGLError("Failed to create mask cache texture B");
+		}
+		const fboB = this.gl.createFramebuffer();
+		if (!fboB) {
+			this.gl.deleteTexture(textureA);
+			this.gl.deleteFramebuffer(fboA);
+			this.gl.deleteTexture(textureB);
+			throw new WebGLError("Failed to create mask cache FBO B");
+		}
+		this.setupFramebuffer(fboB, textureB);
+
+		this.maskBlurCache.width = width;
+		this.maskBlurCache.height = height;
+		this.maskBlurCache.textureA = textureA;
+		this.maskBlurCache.fboA = fboA;
+		this.maskBlurCache.textureB = textureB;
+		this.maskBlurCache.fboB = fboB;
+	}
+
+	private destroyMaskBlurCache(): void {
+		if (this.maskBlurCache.textureA) {
+			this.gl.deleteTexture(this.maskBlurCache.textureA);
+		}
+		if (this.maskBlurCache.fboA) {
+			this.gl.deleteFramebuffer(this.maskBlurCache.fboA);
+		}
+		if (this.maskBlurCache.textureB) {
+			this.gl.deleteTexture(this.maskBlurCache.textureB);
+		}
+		if (this.maskBlurCache.fboB) {
+			this.gl.deleteFramebuffer(this.maskBlurCache.fboB);
+		}
+		this.maskBlurCache.width = 0;
+		this.maskBlurCache.height = 0;
+		this.maskBlurCache.textureA = null;
+		this.maskBlurCache.fboA = null;
+		this.maskBlurCache.textureB = null;
+		this.maskBlurCache.fboB = null;
+	}
+
+	private renderMaskBlur(
+		maskTexture: WebGLTexture,
+		width: number,
+		height: number,
+		sigma: number,
+		direction: number[],
+		targetFbo: WebGLFramebuffer,
+	): void {
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, targetFbo);
+		this.gl.viewport(0, 0, width, height);
+		this.gl.clearColor(0, 0, 0, 0);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+		if (!this.maskBlurProgram) {
+			throw new WebGLError("Mask blur program not initialized");
+		}
+
+		this.gl.useProgram(this.maskBlurProgram);
+
+		const positionLocation = 0;
+		this.gl.enableVertexAttribArray(positionLocation);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+		this.gl.vertexAttribPointer(
+			positionLocation,
+			2,
+			this.gl.FLOAT,
+			false,
+			0,
+			0,
+		);
+
+		this.gl.enableVertexAttribArray(this.maskBlurTexCoordLocation);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+		this.gl.vertexAttribPointer(
+			this.maskBlurTexCoordLocation,
+			2,
+			this.gl.FLOAT,
+			false,
+			0,
+			0,
+		);
+
+		this.gl.uniform2f(this.maskBlurResolutionLocation, width, height);
+		this.gl.uniform2f(
+			this.maskBlurDirectionLocation,
+			direction[0],
+			direction[1],
+		);
+		this.gl.uniform1f(this.maskBlurSigmaLocation, sigma);
+
+		this.gl.activeTexture(this.gl.TEXTURE0);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
+		this.gl.uniform1i(this.maskBlurMaskLocation, 0);
+
+		this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+	}
+
+	private preprocessMask(
+		mask: ImageBitmap,
+		width: number,
+		height: number,
+	): WebGLTexture {
+		if (!this.maskBlurProgram) {
+			const texture = this.createTextureFromSource(mask);
+			if (!texture) {
+				throw new WebGLError("Failed to create mask texture");
+			}
+			return texture;
+		}
+
+		this.ensureMaskBlurCache(width, height);
+
+		const maskBlurSigma = 3.0;
+
+		const rawMaskTexture = this.createTextureFromSource(mask);
+		if (!rawMaskTexture) {
+			throw new WebGLError("Failed to create raw mask texture");
+		}
+
+		try {
+			// Horizontal pass
+			this.renderMaskBlur(
+				rawMaskTexture,
+				width,
+				height,
+				maskBlurSigma,
+				[1, 0],
+				this.maskBlurCache.fboA,
+			);
+
+			// Vertical pass
+			this.renderMaskBlur(
+				this.maskBlurCache.textureA,
+				width,
+				height,
+				maskBlurSigma,
+				[0, 1],
+				this.maskBlurCache.fboB,
+			);
+
+			return this.maskBlurCache.textureB;
+		} finally {
+			this.gl.deleteTexture(rawMaskTexture);
+		}
+	}
+
 	applyBlur(
 		source: HTMLCanvasElement,
 		mask: ImageBitmap,
@@ -594,22 +956,23 @@ export class WebGLManager {
 			throw new WebGLError("Light wrap program not initialized");
 		}
 
-		const imageTexture = this.createTextureFromSource(source);
-		if (!imageTexture) {
-			throw new WebGLError("Failed to create image texture");
-		}
-
-		const maskTexture = this.createTextureFromSource(mask);
-		if (!maskTexture) {
-			throw new WebGLError("Failed to create mask texture");
-		}
-
-		const backgroundTexture = this.createTextureFromSource(backgroundImageData);
-		if (!backgroundTexture) {
-			throw new WebGLError("Failed to create background texture");
-		}
+		let imageTexture: WebGLTexture | null = null;
+		let blurredMaskTexture: WebGLTexture | null = null;
+		let backgroundTexture: WebGLTexture | null = null;
 
 		try {
+			imageTexture = this.createTextureFromSource(source);
+			if (!imageTexture) {
+				throw new WebGLError("Failed to create image texture");
+			}
+
+			blurredMaskTexture = this.preprocessMask(mask, width, height);
+
+			backgroundTexture = this.createTextureFromSource(backgroundImageData);
+			if (!backgroundTexture) {
+				throw new WebGLError("Failed to create background texture");
+			}
+
 			const canvas = this.gl.canvas as HTMLCanvasElement;
 			canvas.width = width;
 			canvas.height = height;
@@ -652,7 +1015,7 @@ export class WebGLManager {
 
 			// Mask texture to unit 1
 			this.gl.activeTexture(this.gl.TEXTURE1);
-			this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, blurredMaskTexture);
 			this.gl.uniform1i(this.lightWrapMaskLocation, 1);
 
 			// Background texture to unit 2
@@ -664,9 +1027,10 @@ export class WebGLManager {
 
 			return canvas;
 		} finally {
-			this.gl.deleteTexture(imageTexture);
-			this.gl.deleteTexture(maskTexture);
-			this.gl.deleteTexture(backgroundTexture);
+			if (imageTexture) this.gl.deleteTexture(imageTexture);
+			if (blurredMaskTexture && !this.maskBlurProgram)
+				this.gl.deleteTexture(blurredMaskTexture);
+			if (backgroundTexture) this.gl.deleteTexture(backgroundTexture);
 		}
 	}
 
@@ -695,5 +1059,10 @@ export class WebGLManager {
 			this.gl.deleteProgram(this.lightWrapProgram);
 			this.lightWrapProgram = null;
 		}
+		if (this.maskBlurProgram) {
+			this.gl.deleteProgram(this.maskBlurProgram);
+			this.maskBlurProgram = null;
+		}
+		this.destroyMaskBlurCache();
 	}
 }
