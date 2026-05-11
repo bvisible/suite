@@ -103,9 +103,9 @@ const setRemoteVideoRef =
 	inject<(participantId: string, el: HTMLVideoElement | null) => void>(
 		"setRemoteVideoRef",
 	);
-const setScreenShareVideoRef = inject<
-	(pinId: string, el: HTMLVideoElement | null) => void
->("setScreenShareVideoRef");
+const setScreenShareVideoRef = inject<(el: HTMLVideoElement | null) => void>(
+	"setScreenShareVideoRef",
+);
 const getParticipantName =
 	inject<(participantId: string) => string>("getParticipantName") ||
 	(() => "Unknown");
@@ -182,8 +182,7 @@ const getScreenShareTileBindings = (shareTile: {
 }) => {
 	const isPinned = isPinnedScreenShare(shareTile.pinId);
 	const wrappedVideoRef = setScreenShareVideoRef
-		? (el: unknown) =>
-				setScreenShareVideoRef(shareTile.pinId, el as HTMLVideoElement | null)
+		? (el: unknown) => setScreenShareVideoRef(el as HTMLVideoElement | null)
 		: undefined;
 
 	return {
