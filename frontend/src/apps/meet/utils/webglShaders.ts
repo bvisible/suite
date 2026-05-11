@@ -31,18 +31,16 @@ const SHADERS = {
       vec2 texelSize = 1.0 / u_resolution;
 
       // Get current pixel's mask value (0 = background, 1 = person)
-      float centerMask = texture2D(u_mask, v_texCoord).r;
+      float centerMask = texture2D(u_mask, v_texCoord).a;
       vec4 originalColor = texture2D(u_image, v_texCoord);
 
-	  // If this is clearly foreground (person), just return the original color
-      if (centerMask > 0.95) {
+      // Smooth the mask to reduce blockiness from low-res segmentation
+      float smoothMask = smoothstep(0.02, 0.98, centerMask);
+
+      if (smoothMask > 0.99) {
         gl_FragColor = originalColor;
         return;
       }
-
-      // Calculate blur radius based on mask (CoC simulation)
-      // Background gets full blur, foreground edges get partial blur for smooth transition
-      float blurRadius = (1.0 - centerMask) * u_sigma;
 
       vec4 color = vec4(0.0);
       float weightSum = 0.0;
@@ -58,11 +56,12 @@ const SHADERS = {
           vec2 sampleCoord = v_texCoord + offset;
 
           // Get mask value at sample position
-          float sampleMask = texture2D(u_mask, sampleCoord).r;
+          float sampleMask = texture2D(u_mask, sampleCoord).a;
+          float sampleSmoothMask = smoothstep(0.02, 0.98, sampleMask);
 
           // Only sample background pixels for background blur
           // This prevents foreground from bleeding into background
-          float maskWeight = 1.0 - max(sampleMask - centerMask, 0.0);
+          float maskWeight = 1.0 - max(sampleSmoothMask - smoothMask, 0.0);
 
           vec4 sampleColor = texture2D(u_image, sampleCoord);
           float finalWeight = weight * maskWeight;
@@ -76,8 +75,8 @@ const SHADERS = {
       vec4 blurredColor = weightSum > 0.001 ? color / weightSum : originalColor;
 
       // Blend: sharp foreground + blurred background
-      // Use centerMask to smoothly transition between blurred and original
-      gl_FragColor = mix(blurredColor, originalColor, centerMask);
+      // Use smoothMask to smoothly transition between blurred and original
+      gl_FragColor = mix(blurredColor, originalColor, smoothMask);
     }
   `,
 
@@ -97,36 +96,27 @@ const SHADERS = {
       vec2 texelSize = 1.0 / u_resolution;
 
       // Get current pixel's mask value (0 = background, 1 = person)
-      float centerMask = texture2D(u_mask, v_texCoord).r;
+      float centerMask = texture2D(u_mask, v_texCoord).a;
       vec4 originalColor = texture2D(u_image, v_texCoord);
       vec4 backgroundColor = texture2D(u_background, v_texCoord);
 
-      // Solid foreground (person interior) - no light wrap needed
-      if (centerMask > 0.9) {
-        gl_FragColor = originalColor;
-        return;
-      }
+      // Smooth the mask to reduce blockiness from low-res segmentation
+      float smoothMask = smoothstep(0.05, 0.95, centerMask);
 
-      // Solid background - use background color
-      if (centerMask < 0.1) {
-        gl_FragColor = backgroundColor;
-        return;
-      }
-
-      // Edge region (0.1 < mask < 0.9) - apply light wrapping
+      // Edge region - apply light wrapping
       // Calculate edge normal by sampling mask gradient
-      float maskLeft = texture2D(u_mask, v_texCoord + vec2(-texelSize.x, 0.0)).r;
-      float maskRight = texture2D(u_mask, v_texCoord + vec2(texelSize.x, 0.0)).r;
-      float maskUp = texture2D(u_mask, v_texCoord + vec2(0.0, -texelSize.y)).r;
-      float maskDown = texture2D(u_mask, v_texCoord + vec2(0.0, texelSize.y)).r;
+      float maskLeft = texture2D(u_mask, v_texCoord + vec2(-texelSize.x, 0.0)).a;
+      float maskRight = texture2D(u_mask, v_texCoord + vec2(texelSize.x, 0.0)).a;
+      float maskUp = texture2D(u_mask, v_texCoord + vec2(0.0, -texelSize.y)).a;
+      float maskDown = texture2D(u_mask, v_texCoord + vec2(0.0, texelSize.y)).a;
 
       // Gradient points from background to foreground
       vec2 gradient = vec2(maskRight - maskLeft, maskDown - maskUp);
       float gradientLength = length(gradient);
 
-      // If gradient is too small, just composite normally
+      // If gradient is too small, just composite normally with smooth mask
       if (gradientLength < 0.01) {
-        gl_FragColor = mix(backgroundColor, originalColor, centerMask);
+        gl_FragColor = mix(backgroundColor, originalColor, smoothMask);
         return;
       }
 
@@ -174,15 +164,15 @@ const SHADERS = {
       }
 
       // Calculate light wrap strength based on:
-      // 1. How close to edge (1 - centerMask gives more wrap to background pixels)
+      // 1. How close to edge (1 - smoothMask gives more wrap to background pixels)
       // 2. Edge falloff (strongest at edges, fades toward center)
-      float edgeStrength = smoothstep(0.3, 0.7, 1.0 - centerMask);
+      float edgeStrength = smoothstep(0.3, 0.7, 1.0 - smoothMask);
 
       // Apply light wrap: blend sampled background color into edge pixels
       vec3 wrappedColor = mix(originalColor.rgb, sampledColor, edgeStrength);
 
       // Final compositing: blend wrapped foreground with background
-      vec3 finalColor = mix(backgroundColor.rgb, wrappedColor, centerMask);
+      vec3 finalColor = mix(backgroundColor.rgb, wrappedColor, smoothMask);
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -206,7 +196,6 @@ export class WebGLManager {
 	private program: WebGLProgram | null = null;
 	private positionBuffer: WebGLBuffer | null = null;
 	private texCoordBuffer: WebGLBuffer | null = null;
-	private outputCanvas: HTMLCanvasElement | null = null;
 
 	// Cached locations for blur program
 	private texCoordLocation = -1;
@@ -215,6 +204,14 @@ export class WebGLManager {
 	private sigmaLocation: WebGLUniformLocation | null = null;
 	private imageLocation: WebGLUniformLocation | null = null;
 	private maskLocation: WebGLUniformLocation | null = null;
+
+	// cache lightwrap program (compiled once, reused every frame)
+	private lightWrapProgram: WebGLProgram | null = null;
+	private lightWrapTexCoordLocation = -1;
+	private lightWrapResolutionLocation: WebGLUniformLocation | null = null;
+	private lightWrapImageLocation: WebGLUniformLocation | null = null;
+	private lightWrapMaskLocation: WebGLUniformLocation | null = null;
+	private lightWrapBackgroundLocation: WebGLUniformLocation | null = null;
 
 	constructor(canvas: HTMLCanvasElement) {
 		const gl =
@@ -261,11 +258,9 @@ export class WebGLManager {
 		this.imageLocation = this.gl.getUniformLocation(this.program, "u_image");
 		this.maskLocation = this.gl.getUniformLocation(this.program, "u_mask");
 
-		// reusable buffers and canvas for perf
+		// reusable buffers for perf
 		this.positionBuffer = this.gl.createBuffer();
 		this.texCoordBuffer = this.gl.createBuffer();
-		this.outputCanvas = document.createElement("canvas");
-		this.outputCanvas.getContext("2d", { willReadFrequently: true }); // for perf as well
 
 		// Setup position buffer with quad vertices
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -281,6 +276,56 @@ export class WebGLManager {
 			this.gl.ARRAY_BUFFER,
 			new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]),
 			this.gl.STATIC_DRAW,
+		);
+
+		this.initLightWrapProgram();
+	}
+
+	private initLightWrapProgram(): void {
+		const vertexShader = this.createShader(
+			this.gl.VERTEX_SHADER,
+			SHADERS.vertex,
+		);
+		const fragmentShader = this.createShader(
+			this.gl.FRAGMENT_SHADER,
+			SHADERS.lightWrapFragment,
+		);
+
+		if (!vertexShader || !fragmentShader) {
+			if (vertexShader) this.gl.deleteShader(vertexShader);
+			if (fragmentShader) this.gl.deleteShader(fragmentShader);
+			throw new WebGLError("Failed to create light wrap shaders");
+		}
+
+		try {
+			this.lightWrapProgram = this.createProgram(vertexShader, fragmentShader);
+			if (!this.lightWrapProgram) {
+				throw new WebGLError("Failed to create light wrap shader program");
+			}
+		} finally {
+			this.gl.deleteShader(vertexShader);
+			this.gl.deleteShader(fragmentShader);
+		}
+
+		this.lightWrapTexCoordLocation = this.gl.getAttribLocation(
+			this.lightWrapProgram,
+			"a_texCoord",
+		);
+		this.lightWrapResolutionLocation = this.gl.getUniformLocation(
+			this.lightWrapProgram,
+			"u_resolution",
+		);
+		this.lightWrapImageLocation = this.gl.getUniformLocation(
+			this.lightWrapProgram,
+			"u_image",
+		);
+		this.lightWrapMaskLocation = this.gl.getUniformLocation(
+			this.lightWrapProgram,
+			"u_mask",
+		);
+		this.lightWrapBackgroundLocation = this.gl.getUniformLocation(
+			this.lightWrapProgram,
+			"u_background",
 		);
 	}
 
@@ -359,7 +404,9 @@ export class WebGLManager {
 		return texture;
 	}
 
-	createTextureFromCanvas(canvas: HTMLCanvasElement): WebGLTexture | null {
+	createTextureFromSource(
+		source: ImageData | HTMLCanvasElement | ImageBitmap,
+	): WebGLTexture | null {
 		const texture = this.gl.createTexture();
 		if (!texture) return null;
 
@@ -385,14 +432,28 @@ export class WebGLManager {
 			this.gl.LINEAR,
 		);
 
-		this.gl.texImage2D(
-			this.gl.TEXTURE_2D,
-			0,
-			this.gl.RGBA,
-			this.gl.RGBA,
-			this.gl.UNSIGNED_BYTE,
-			canvas,
-		);
+		if (source instanceof ImageData) {
+			this.gl.texImage2D(
+				this.gl.TEXTURE_2D,
+				0,
+				this.gl.RGBA,
+				source.width,
+				source.height,
+				0,
+				this.gl.RGBA,
+				this.gl.UNSIGNED_BYTE,
+				source.data,
+			);
+		} else {
+			this.gl.texImage2D(
+				this.gl.TEXTURE_2D,
+				0,
+				this.gl.RGBA,
+				this.gl.RGBA,
+				this.gl.UNSIGNED_BYTE,
+				source,
+			);
+		}
 
 		return texture;
 	}
@@ -465,29 +526,19 @@ export class WebGLManager {
 	}
 
 	applyBlur(
-		imageData: ImageData,
-		maskData: Float32Array,
+		source: HTMLCanvasElement,
+		mask: ImageBitmap,
 		width: number,
 		height: number,
 		sigma: number,
-	): ImageData {
-		// Create texture from image data
-		const texture = this.createTexture(imageData);
+	): HTMLCanvasElement {
+		// Create texture from source
+		const texture = this.createTextureFromSource(source);
 		if (!texture) {
 			throw new WebGLError("Failed to create texture");
 		}
 
-		// Create texture from mask data
-		const maskImageData = new ImageData(width, height);
-		for (let i = 0; i < maskData.length; i++) {
-			const pixelIndex = i * 4;
-			const maskValue = maskData[i] * 255;
-			maskImageData.data[pixelIndex] = maskValue;
-			maskImageData.data[pixelIndex + 1] = maskValue;
-			maskImageData.data[pixelIndex + 2] = maskValue;
-			maskImageData.data[pixelIndex + 3] = 255;
-		}
-		const maskTexture = this.createTexture(maskImageData);
+		const maskTexture = this.createTextureFromSource(mask);
 		if (!maskTexture) {
 			throw new WebGLError("Failed to create mask texture");
 		}
@@ -506,7 +557,7 @@ export class WebGLManager {
 			);
 
 			// Second pass: vertical blur
-			horizontalTexture = this.createTextureFromCanvas(horizontalResult);
+			horizontalTexture = this.createTextureFromSource(horizontalResult);
 			if (!horizontalTexture) {
 				throw new WebGLError("Failed to create horizontal texture");
 			}
@@ -520,25 +571,7 @@ export class WebGLManager {
 				[0, 1],
 			);
 
-			if (!this.outputCanvas) {
-				throw new WebGLError("Output canvas not initialized");
-			}
-
-			this.outputCanvas.width = width;
-			this.outputCanvas.height = height;
-			const outputCtx = this.outputCanvas.getContext("2d", {
-				willReadFrequently: true,
-			});
-
-			if (!outputCtx) {
-				throw new WebGLError("Failed to create output canvas context");
-			}
-
-			// Below snippet is a hack to avoid the y-axis flip while reading pixels
-			// from WebGL canvas. We use drawImage to copy the result to a 2D canvas,
-			// which automatically handles the coordinate system conversion.
-			outputCtx.drawImage(finalResult, 0, 0);
-			return outputCtx.getImageData(0, 0, width, height);
+			return finalResult;
 		} finally {
 			// Clean up textures
 			this.gl.deleteTexture(texture);
@@ -549,70 +582,29 @@ export class WebGLManager {
 		}
 	}
 
+	// used to apply the light wrap effect on the source image using the mask and background image
 	applyLightWrap(
-		imageData: ImageData,
-		maskData: Float32Array,
+		source: HTMLCanvasElement,
+		mask: ImageBitmap,
 		backgroundImageData: ImageData,
 		width: number,
 		height: number,
-	): ImageData {
-		const vertexShader = this.createShader(
-			this.gl.VERTEX_SHADER,
-			SHADERS.vertex,
-		);
-		const fragmentShader = this.createShader(
-			this.gl.FRAGMENT_SHADER,
-			SHADERS.lightWrapFragment,
-		);
-
-		if (!vertexShader || !fragmentShader) {
-			throw new WebGLError("Failed to create light wrap shaders");
+	): HTMLCanvasElement {
+		if (!this.lightWrapProgram) {
+			throw new WebGLError("Light wrap program not initialized");
 		}
 
-		const lightWrapProgram = this.createProgram(vertexShader, fragmentShader);
-		if (!lightWrapProgram) {
-			throw new WebGLError("Failed to create light wrap shader program");
-		}
-
-		// Cache locations for light wrap program
-		const texCoordLocation = this.gl.getAttribLocation(
-			lightWrapProgram,
-			"a_texCoord",
-		);
-		const resolutionLocation = this.gl.getUniformLocation(
-			lightWrapProgram,
-			"u_resolution",
-		);
-		const imageLocation = this.gl.getUniformLocation(
-			lightWrapProgram,
-			"u_image",
-		);
-		const maskLocation = this.gl.getUniformLocation(lightWrapProgram, "u_mask");
-		const backgroundLocation = this.gl.getUniformLocation(
-			lightWrapProgram,
-			"u_background",
-		);
-
-		const imageTexture = this.createTexture(imageData);
+		const imageTexture = this.createTextureFromSource(source);
 		if (!imageTexture) {
 			throw new WebGLError("Failed to create image texture");
 		}
 
-		const maskImageData = new ImageData(width, height);
-		for (let i = 0; i < maskData.length; i++) {
-			const pixelIndex = i * 4;
-			const maskValue = maskData[i] * 255;
-			maskImageData.data[pixelIndex] = maskValue;
-			maskImageData.data[pixelIndex + 1] = maskValue;
-			maskImageData.data[pixelIndex + 2] = maskValue;
-			maskImageData.data[pixelIndex + 3] = 255;
-		}
-		const maskTexture = this.createTexture(maskImageData);
+		const maskTexture = this.createTextureFromSource(mask);
 		if (!maskTexture) {
 			throw new WebGLError("Failed to create mask texture");
 		}
 
-		const backgroundTexture = this.createTexture(backgroundImageData);
+		const backgroundTexture = this.createTextureFromSource(backgroundImageData);
 		if (!backgroundTexture) {
 			throw new WebGLError("Failed to create background texture");
 		}
@@ -626,7 +618,7 @@ export class WebGLManager {
 			this.gl.clearColor(0, 0, 0, 0);
 			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-			this.gl.useProgram(lightWrapProgram);
+			this.gl.useProgram(this.lightWrapProgram);
 
 			const positionLocation = 0; // a_position is bound to location 0
 			this.gl.enableVertexAttribArray(positionLocation);
@@ -640,10 +632,10 @@ export class WebGLManager {
 				0,
 			);
 
-			this.gl.enableVertexAttribArray(texCoordLocation);
+			this.gl.enableVertexAttribArray(this.lightWrapTexCoordLocation);
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
 			this.gl.vertexAttribPointer(
-				texCoordLocation,
+				this.lightWrapTexCoordLocation,
 				2,
 				this.gl.FLOAT,
 				false,
@@ -651,49 +643,30 @@ export class WebGLManager {
 				0,
 			);
 
-			this.gl.uniform2f(resolutionLocation, width, height);
+			this.gl.uniform2f(this.lightWrapResolutionLocation, width, height);
 
 			// Image texture to unit 0
 			this.gl.activeTexture(this.gl.TEXTURE0);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, imageTexture);
-			this.gl.uniform1i(imageLocation, 0);
+			this.gl.uniform1i(this.lightWrapImageLocation, 0);
 
 			// Mask texture to unit 1
 			this.gl.activeTexture(this.gl.TEXTURE1);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, maskTexture);
-			this.gl.uniform1i(maskLocation, 1);
+			this.gl.uniform1i(this.lightWrapMaskLocation, 1);
 
 			// Background texture to unit 2
 			this.gl.activeTexture(this.gl.TEXTURE2);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, backgroundTexture);
-			this.gl.uniform1i(backgroundLocation, 2);
+			this.gl.uniform1i(this.lightWrapBackgroundLocation, 2);
 
 			this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
-			if (!this.outputCanvas) {
-				throw new WebGLError("Output canvas not initialized");
-			}
-
-			this.outputCanvas.width = width;
-			this.outputCanvas.height = height;
-			const outputCtx = this.outputCanvas.getContext("2d", {
-				willReadFrequently: true,
-			});
-
-			if (!outputCtx) {
-				throw new WebGLError("Failed to create output canvas context");
-			}
-
-			outputCtx.drawImage(canvas, 0, 0);
-			return outputCtx.getImageData(0, 0, width, height);
+			return canvas;
 		} finally {
 			this.gl.deleteTexture(imageTexture);
 			this.gl.deleteTexture(maskTexture);
 			this.gl.deleteTexture(backgroundTexture);
-
-			this.gl.deleteShader(vertexShader);
-			this.gl.deleteShader(fragmentShader);
-			this.gl.deleteProgram(lightWrapProgram);
 		}
 	}
 
@@ -718,6 +691,9 @@ export class WebGLManager {
 			this.gl.deleteBuffer(this.texCoordBuffer);
 			this.texCoordBuffer = null;
 		}
-		this.outputCanvas = null;
+		if (this.lightWrapProgram) {
+			this.gl.deleteProgram(this.lightWrapProgram);
+			this.lightWrapProgram = null;
+		}
 	}
 }
