@@ -607,6 +607,9 @@ const setSinkIdOnVideoElements = async (sinkId: string) => {
 
 // --- Lifecycle ---
 onMounted(async () => {
+	// get wasJustCreated before resetting stores else it'll be reset to false
+	const wasJustCreated = connectionState.justCreated;
+
 	// Reset all stores
 	connectionState.$reset();
 	mediaState.$reset();
@@ -683,8 +686,8 @@ onMounted(async () => {
 	}
 
 	// Auto-join if just created
-	const wasJustCreated = route.query.created === "true";
 	if (wasJustCreated) {
+		connectionState.justCreated = false;
 		await joinMeetingFromPreview();
 	}
 });
