@@ -697,22 +697,28 @@ onUnmounted(() => {
 
 // Watch for localVideo element and localStream connection
 watch(
-	[() => mediaState.localVideo, () => mediaState.localStream],
-	async ([videoElement, stream]) => {
+	[
+		() => mediaState.localVideo,
+		() => mediaState.localStream,
+		() => mediaState.processedStream,
+	],
+	async ([videoElement, stream, _processedStream]) => {
 		if (videoElement && stream) {
 			try {
-				const currentStreamId = stream.id;
+				// Prefer processed stream (with background effects) over raw local stream
+				const streamToUse = mediaState.processedStream || stream;
+				const currentStreamId = streamToUse.id;
 				const trackedStreamId = (videoElement as HTMLElement).dataset
 					?.sourceStreamId;
 
 				if (trackedStreamId !== currentStreamId) {
-					const videoTracks = stream.getVideoTracks();
+					const videoTracks = streamToUse.getVideoTracks();
 					if (videoTracks.length > 0) {
 						(videoElement as HTMLVideoElement).srcObject = new MediaStream(
 							videoTracks,
 						);
 					} else {
-						(videoElement as HTMLVideoElement).srcObject = stream;
+						(videoElement as HTMLVideoElement).srcObject = streamToUse;
 					}
 					(videoElement as HTMLElement).dataset.sourceStreamId =
 						currentStreamId;
