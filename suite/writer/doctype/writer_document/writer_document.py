@@ -136,25 +136,25 @@ class WriterDocument(Document):
 def notify_comments(file, mentions):
     for mention in mentions:
         from_owner = frappe.get_cached_value("User", mention["owner"], "full_name")
-        create_notification(
+        new_notification = create_notification(
             mention["owner"],
             mention["id"],
             "Mention",
             file,
             f'{from_owner} mentioned you in a comment in "{file.title}".',
         )
-        print("Shared with", mention["owner"])
-        try:
-            frappe.sendmail(
-                recipients=[mention["id"]],
-                subject=f"Frappe Drive - Mention in {file.title}",
-                template="drive_comment",
-                args={
-                    "message": f"{from_owner} mentioned you in a comment.",
-                    "doc": file.title,
-                    "link": get_link(file),
-                },
-                now=True,
-            )
-        except:
-            frappe.log_error(frappe.get_traceback())
+        if new_notification:
+            try:
+                frappe.sendmail(
+                    recipients=[mention["id"]],
+                    subject=f"Frappe Drive - Mention in {file.title}",
+                    template="drive_comment",
+                    args={
+                        "message": f"{from_owner} mentioned you in a comment.",
+                        "doc": file.title,
+                        "link": get_link(file),
+                    },
+                    now=True,
+                )
+            except:
+                frappe.log_error(frappe.get_traceback())
