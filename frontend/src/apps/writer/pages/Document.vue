@@ -68,7 +68,7 @@
   >
     <div class="flex flex-col gap-1">
       <div class="text-sm text-ink-gray-6">
-        This is an old schema document - you cannot do collaboritive editing.
+        This is an old schema document - you cannot do collaborative editing.
       </div>
     </div>
   </div>
