@@ -18,7 +18,6 @@ export function useNetworkQuality() {
 
 	const pollIntervalMs = 3000;
 	const sfuManagerRef = inject<Ref<SFUMeetingManager | null>>("sfuManager");
-	const sfuManager = sfuManagerRef?.value;
 
 	const updateQuality = (stats: NetworkStats) => {
 		if (!stats.isValid) {
@@ -47,7 +46,7 @@ export function useNetworkQuality() {
 
 		isPolling.value = true;
 		try {
-			const transportManager = sfuManager?.transportManager;
+			const transportManager = sfuManagerRef?.value?.transportManager;
 
 			if (!transportManager) {
 				networkQuality.value = "good";
@@ -59,11 +58,8 @@ export function useNetworkQuality() {
 			const sendState = tStats?.sendTransport?.state;
 			const recvState = tStats?.recvTransport?.state;
 
-			// Local quality should primarily reflect uplink health.
-			// recv can be disconnected while local publishing still works.
-			const sendFailed = ["failed", "disconnected"].includes(sendState);
-			const recvFailed = recvState === "failed";
-			const isFailed = sendFailed || recvFailed;
+			// Only treat "failed" as a hard error.
+			const isFailed = sendState === "failed" || recvState === "failed";
 
 			if (isFailed) {
 				networkQuality.value = "critical";
