@@ -90,19 +90,58 @@ const getElementContent = (element) => {
 	return generateHTML(contentJSON, extensions)
 }
 
+const getShapeDefaults = (shapeType) => {
+	let width, height, strokeColor, strokeWidth, borderRadius
+	switch (shapeType) {
+		case 'rectangle':
+			width = 300
+			height = 200
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 0
+			break
+		case 'rounded rectangle':
+			width = 300
+			height = 200
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 20
+			break
+		case 'square':
+			width = 300
+			height = 300
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 0
+			break
+		case 'rounded square':
+			width = 300
+			height = 300
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 20
+			break
+		case 'line':
+			width = 300
+			height = 2
+			strokeColor = guessTextColorFromBackground(currentSlide.value.background)
+			strokeWidth = 2
+			borderRadius = 0
+			break
+
+		// TODO: add default styles for other shapes
+	}
+
+	const fillColor = guessTextColorFromBackground(currentSlide.value.background)
+
+	return { width, height, strokeColor, strokeWidth, borderRadius, fillColor }
+}
+
 const addShapeElement = async (shapeType) => {
 	if (!shapeType) return
 
-	const width = 300
-	let height
-
-	if (shapeType === 'rectangle') {
-		height = 200
-	} else if (shapeType === 'circle') {
-		height = 300
-	} else {
-		height = 4
-	}
+	const { width, height, fillColor, strokeColor, strokeWidth, borderRadius } =
+		getShapeDefaults(shapeType)
 
 	const slideWidth = slideBounds.width / slideBounds.scale
 	const slideHeight = slideBounds.height / slideBounds.scale
@@ -115,21 +154,13 @@ const addShapeElement = async (shapeType) => {
 		left: (slideWidth - width) / 2,
 		top: (slideHeight - height) / 2,
 		opacity: 100,
+		rotation: 0,
 		type: 'shape',
 		shapeType: shapeType,
-		fillColor: guessTextColorFromBackground(currentSlide.value.background),
-		strokeColor: '#000000ff',
-		strokeWidth: 0,
-		rotation: 0,
-	}
-
-	if (shapeType == 'rectangle') {
-		element.borderRadius = 0
-	} else if (shapeType == 'line') {
-		element.transformOrigin = 'center center'
-		element.strokeColor = element.fillColor
-		element.fillColor = 'transparent'
-		element.strokeWidth = 4
+		fillColor,
+		strokeColor,
+		strokeWidth,
+		borderRadius,
 	}
 
 	const refCommands = getCommandsToUpdateElementRefId(element) || []
@@ -775,6 +806,25 @@ const updatePosition = (axis, value) => {
 	selectionBounds[property] = value
 }
 
+const getElementCenter = (axis) => {
+	let elementStart, elementSize, slideStart
+
+	if (axis == 'Y') {
+		elementStart = selectionBounds.left
+		elementSize = selectionBounds.width
+		slideStart = slideBounds.left
+	} else {
+		elementStart = selectionBounds.top
+		elementSize = selectionBounds.height
+		slideStart = slideBounds.top
+	}
+
+	elementStart = elementStart * slideBounds.scale + slideStart
+	elementSize *= slideBounds.scale
+
+	return elementStart + elementSize / 2
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -799,4 +849,5 @@ export {
 	updatePosition,
 	findElement,
 	cropSelectionToFitContent,
+	getElementCenter,
 }
