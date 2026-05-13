@@ -91,7 +91,7 @@ const getElementContent = (element) => {
 }
 
 const getShapeDefaults = (shapeType) => {
-	let width, height, strokeColor, strokeWidth, borderRadius
+	let width, height, strokeColor, strokeWidth, borderRadius, elementShapeType
 	switch (shapeType) {
 		case 'rectangle':
 			width = 300
@@ -99,6 +99,7 @@ const getShapeDefaults = (shapeType) => {
 			strokeColor = '#7C7C7CFF'
 			strokeWidth = 2
 			borderRadius = 0
+			elementShapeType = 'rectangle'
 			break
 		case 'rounded rectangle':
 			width = 300
@@ -106,6 +107,7 @@ const getShapeDefaults = (shapeType) => {
 			strokeColor = '#7C7C7CFF'
 			strokeWidth = 2
 			borderRadius = 20
+			elementShapeType = 'rectangle'
 			break
 		case 'square':
 			width = 300
@@ -113,6 +115,7 @@ const getShapeDefaults = (shapeType) => {
 			strokeColor = '#7C7C7CFF'
 			strokeWidth = 2
 			borderRadius = 0
+			elementShapeType = 'rectangle'
 			break
 		case 'rounded square':
 			width = 300
@@ -120,6 +123,7 @@ const getShapeDefaults = (shapeType) => {
 			strokeColor = '#7C7C7CFF'
 			strokeWidth = 2
 			borderRadius = 20
+			elementShapeType = 'rectangle'
 			break
 		case 'line':
 			width = 300
@@ -127,6 +131,7 @@ const getShapeDefaults = (shapeType) => {
 			strokeColor = guessTextColorFromBackground(currentSlide.value.background)
 			strokeWidth = 2
 			borderRadius = 0
+			elementShapeType = 'line'
 			break
 
 		// TODO: add default styles for other shapes
@@ -134,13 +139,13 @@ const getShapeDefaults = (shapeType) => {
 
 	const fillColor = guessTextColorFromBackground(currentSlide.value.background)
 
-	return { width, height, strokeColor, strokeWidth, borderRadius, fillColor }
+	return { width, height, strokeColor, strokeWidth, borderRadius, fillColor, elementShapeType }
 }
 
 const addShapeElement = async (shapeType) => {
 	if (!shapeType) return
 
-	const { width, height, fillColor, strokeColor, strokeWidth, borderRadius } =
+	const { width, height, fillColor, strokeColor, strokeWidth, borderRadius, elementShapeType } =
 		getShapeDefaults(shapeType)
 
 	const slideWidth = slideBounds.width / slideBounds.scale
@@ -156,7 +161,7 @@ const addShapeElement = async (shapeType) => {
 		opacity: 100,
 		rotation: 0,
 		type: 'shape',
-		shapeType: shapeType,
+		shapeType: elementShapeType,
 		fillColor,
 		strokeColor,
 		strokeWidth,

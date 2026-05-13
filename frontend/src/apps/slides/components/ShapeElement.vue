@@ -2,10 +2,10 @@
 	<svg :style="shapeStyle">
 		<rect
 			v-if="element.shapeType == 'rectangle'"
-			x="0"
-			y="0"
-			:width="'100%'"
-			:height="'100%'"
+			:x="element.strokeWidth / 2"
+			:y="element.strokeWidth / 2"
+			:width="`calc(100% - ${element.strokeWidth}px)`"
+			:height="`calc(100% - ${element.strokeWidth}px)`"
 			:fill="element.fillColor"
 			:stroke="element.strokeColor"
 			:stroke-width="`${element.strokeWidth}px`"
