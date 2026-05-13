@@ -120,12 +120,12 @@ const addShapeElement = async (shapeType) => {
 		fillColor: guessTextColorFromBackground(currentSlide.value.background),
 		strokeColor: '#000000ff',
 		strokeWidth: 0,
+		rotation: 0,
 	}
 
 	if (shapeType == 'rectangle') {
 		element.borderRadius = 0
 	} else if (shapeType == 'line') {
-		element.rotation = 0
 		element.transformOrigin = 'center center'
 		element.strokeColor = element.fillColor
 		element.fillColor = 'transparent'
