@@ -89,6 +89,7 @@ import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
+import { useRotator } from '@/composables/useRotator'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 import { editElementCommand, batchCommand } from '@/stores/commands'
@@ -110,6 +111,8 @@ const selectionBoxRef = useTemplateRef('selectionBox')
 const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
+
+const { isRotating, rotationDelta, startRotate } = useRotator()
 
 const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
 
@@ -488,6 +491,9 @@ provide('slideContainerDiv', slideContainerRef)
 provide('resizer', {
 	currentResizer,
 	startResize,
+})
+provide('rotator', {
+	startRotate,
 })
 
 defineExpose({

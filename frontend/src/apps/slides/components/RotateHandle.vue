@@ -1,12 +1,18 @@
 <template>
-	<div :style="rotateHandleStyles" class="flex items-center justify-center">
+	<div
+		:style="rotateHandleStyles"
+		class="flex items-center justify-center"
+		@mousedown="startRotate"
+	>
 		<LucideRotateCw class="stroke-[1.5] text-white" :style="rotateIconStyles" />
 	</div>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 
 import { slideBounds } from '@/stores/slide'
+
+const { startRotate } = inject('rotator', {})
 
 const rotateHandleStyles = computed(() => {
 	const size = 20 / slideBounds.scale
