@@ -17,8 +17,6 @@
 			<div
 				v-for="slide in sidebarSlidesList"
 				:key="slide.clientId"
-				:class="getThumbnailClasses(slide)"
-				:style="getThumbnailStyles(slide)"
 				@click="handleSlideClick(slide)"
 				:ref="(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)"
 			>
@@ -89,37 +87,6 @@ const handleSlideClick = async (slide) => {
 		return
 	}
 	emit('changeSlide', index)
-}
-
-const getThumbnailClasses = (slide) => {
-	const baseClasses =
-		'relative first:mt-0 cursor-pointer rounded border transition-all duration-400 ease-in-out overflow-hidden'
-
-	const isActive = isSlideActive(slide)
-	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
-
-	let outlineClasses = ''
-	if (isFocused) {
-		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
-	} else if (isActive && recentlyRestored.value) {
-		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
-	} else if (isActive) {
-		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
-	} else {
-		outlineClasses += 'ring-white hover:border-gray-300'
-	}
-
-	return `${baseClasses} ${outlineClasses}`
-}
-
-const THUMBNAIL_SCALE = 160 / 960
-
-const getThumbnailStyles = (s) => {
-	return {
-		backgroundColor: s.background || '#ffffff',
-		width: `${160}px`,
-		height: `${540 * THUMBNAIL_SCALE}px`,
-	}
 }
 
 const toggleButtonClasses = computed(() => {

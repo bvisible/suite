@@ -1,25 +1,32 @@
 <template>
-	<div :style="thumbnailViewStyles">
-		<SlideElement
-			v-for="element in slide?.elements"
-			:key="`export-${element.id}`"
-			mode="export"
-			:element="element"
-			:data-index="element.id"
-		/>
+	<div :class="getThumbnailClasses(slide)" :style="getThumbnailStyles(slide)">
+		<div :style="thumbnailViewStyles">
+			<SlideElement
+				v-for="element in slide?.elements"
+				:key="`export-${element.id}`"
+				mode="export"
+				:element="element"
+				:data-index="element.id"
+			/>
+		</div>
+		<div
+			class="absolute inset-0 flex w-full justify-between rounded p-2"
+			:style="getGradientOverlayStyles(slide)"
+		>
+			<div class="text-[10px] font-medium">{{ slide.idx }}</div>
+			<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
+		</div>
+		<div
+			v-if="isActive"
+			class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
+		></div>
 	</div>
-	<div
-		class="absolute inset-0 flex justify-between rounded p-2"
-		:style="getGradientOverlayStyles(slide)"
-	>
-		<div class="text-[10px] font-medium">{{ slide.idx }}</div>
-		<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
-	</div>
-
-	<div v-if="isActive" class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"></div>
 </template>
 
 <script setup>
+import { focusedSlide, slides } from '@/stores/slide'
+import { recentlyRestored } from '@/stores/historyMeta'
+
 import SlideElement from '@/components/SlideElement.vue'
 import TransitionIcon from '@/icons/TransitionIcon.vue'
 
@@ -53,5 +60,36 @@ const thumbnailViewStyles = {
 	position: 'absolute',
 	top: '0',
 	left: '0',
+}
+
+const getThumbnailClasses = (slide) => {
+	const baseClasses =
+		'relative first:mt-0 cursor-pointer rounded transition-all duration-400 ease-in-out'
+
+	const isActive = props.isActive
+	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
+
+	let outlineClasses = ''
+	if (isFocused) {
+		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
+	} else if (isActive && recentlyRestored.value) {
+		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
+	} else if (isActive) {
+		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
+	} else {
+		outlineClasses += 'ring-white hover:border-gray-300'
+	}
+
+	return `${baseClasses} ${outlineClasses}`
+}
+
+const getThumbnailStyles = (s) => {
+	return {
+		backgroundColor: s.background || '#ffffff',
+		width: '160px',
+		height: `${540 * THUMBNAIL_SCALE}px`,
+		borderRadius: '8px',
+		overflow: 'hidden',
+	}
 }
 </script>
