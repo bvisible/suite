@@ -17,13 +17,13 @@
 				<div
 					v-for="virtualRow in virtualRows"
 					:key="virtualRow.key"
-					class="virtual-row-wrapper"
-					@click="handleSlideClick(slides[virtualRow.index])"
+					:class="getVirtualRowWrapperClasses(virtualRow.index)"
 					:style="getVirtualRowWrapperStyles(virtualRow)"
+					@click="handleSlideClick(virtualRow.index)"
 				>
 					<ThumbnailContainer
 						:slide="slides[virtualRow.index]"
-						:isActive="isSlideActive(slides[virtualRow.index])"
+						:isActive="isSlideActive(virtualRow.index)"
 					/>
 				</div>
 			</div>
@@ -80,12 +80,19 @@ const panelClasses = computed(() => {
 })
 
 const isSlideActive = (slide) => {
+	if (typeof slide === 'number') {
+		return slideIndex.value === slide
+	}
 	return slideIndex.value == slides.value.indexOf(slide)
 }
 
-const handleSlideClick = async (slide) => {
-	const index = slides.value.indexOf(slide)
-	if (isSlideActive(slide) && !inReadonlyMode.value) {
+const getVirtualRowWrapperClasses = (index) => [
+	'virtual-row-wrapper',
+	{ 'is-active': isSlideActive(index) },
+]
+
+const handleSlideClick = async (index) => {
+	if (isSlideActive(index) && !inReadonlyMode.value) {
 		resetFocus()
 		focusedSlide.value = index
 		return
@@ -206,3 +213,17 @@ const getVirtualRowWrapperStyles = (virtualRow) => ({
 	transform: `translateY(${virtualRow.start}px)`,
 })
 </script>
+
+<style scoped>
+.virtual-row-wrapper.is-active::before {
+	content: '';
+	position: absolute;
+	left: -1.25rem;
+	top: 0;
+	width: 0.5rem;
+	height: 90px;
+	border-radius: 0 0.25rem 0.25rem 0;
+	background: rgb(59 130 246 / 0.9);
+	pointer-events: none;
+}
+</style>

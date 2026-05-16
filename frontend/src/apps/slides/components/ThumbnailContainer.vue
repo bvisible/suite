@@ -16,10 +16,6 @@
 			<div class="text-[10px] font-medium">{{ slide.idx }}</div>
 			<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
 		</div>
-		<div
-			v-if="isActive"
-			class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
-		></div>
 	</div>
 </template>
 
