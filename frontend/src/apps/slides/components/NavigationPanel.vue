@@ -9,18 +9,22 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="sidebarSlidesList"
-			class="h-full space-y-4 overflow-y-auto overflow-x-hidden p-4 pe-3 custom-scrollbar"
+			class="h-svh space-x-2 overflow-y-auto overflow-x-hidden p-4 pe-3 custom-scrollbar"
 			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
-			<div
-				v-for="slide in sidebarSlidesList"
-				:key="slide.clientId"
-				@click="handleSlideClick(slide)"
-				:ref="(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)"
-			>
-				<ThumbnailContainer :slide="slide" :isActive="isSlideActive(slide)" />
+			<div :style="virtualRowContainerStyles">
+				<div
+					v-for="virtualRow in virtualRows"
+					:key="virtualRow.key"
+					class="virtual-row-wrapper"
+					:style="getVirtualRowWrapperStyles(virtualRow)"
+				>
+					<ThumbnailContainer
+						:slide="slides[virtualRow.index]"
+						:isActive="isSlideActive(slides[virtualRow.index])"
+					/>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -42,6 +46,7 @@ import { useNavigationPanel } from '@/composables/useNavigationPanel'
 import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
 
+import { useVirtualizer } from '@tanstack/vue-virtual'
 import { commandHistory, recentlyRestored } from '@/stores/historyMeta'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
@@ -169,6 +174,35 @@ watch(
 	},
 	{ deep: true },
 )
+
+const ROW_HEIGHT = 90
+
+const rowVirtualizer = useVirtualizer(
+	computed(() => ({
+		count: slides.value.length,
+		getScrollElement: () => scrollableArea.value,
+		estimateSize: () => ROW_HEIGHT + 16, // row height + margin
+		overscan: 3,
+	})),
+)
+
+const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
+const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
+
+const virtualRowContainerStyles = computed(() => ({
+	height: `${totalSize.value}px`,
+	width: '100%',
+	position: 'relative',
+}))
+
+const getVirtualRowWrapperStyles = (virtualRow) => ({
+	position: 'absolute',
+	top: 0,
+	left: 0,
+	width: '100%',
+	height: `${virtualRow.size}px`,
+	transform: `translateY(${virtualRow.start}px)`,
+})
 </script>
 
 <style scoped>

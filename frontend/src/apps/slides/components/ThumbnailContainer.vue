@@ -63,33 +63,39 @@ const thumbnailViewStyles = {
 }
 
 const getThumbnailClasses = (slide) => {
-	const baseClasses =
-		'relative first:mt-0 cursor-pointer rounded transition-all duration-400 ease-in-out'
+	const baseClasses = [
+		'relative',
+		'first:mt-0',
+		'my-8',
+		'cursor-pointer',
+		'border',
+		'rounded',
+		'transition-all',
+		'duration-400',
+		'ease-in-out',
+		'overflow-hidden',
+		'select-none',
+	]
 
 	const isActive = props.isActive
 	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
 
-	let outlineClasses = ''
+	let outlineClasses = []
 	if (isFocused) {
-		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
+		outlineClasses.push('ring-blue-500', 'ring-[2px]', 'ring-offset-2')
 	} else if (isActive && recentlyRestored.value) {
-		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
+		outlineClasses.push('ring-blue-500', 'ring-[2px]', 'ring-offset-2', 'scale-[1.02]')
 	} else if (isActive) {
-		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
+		outlineClasses.push('ring-gray-400', 'ring-[1.5px]', 'ring-offset-0.5')
 	} else {
-		outlineClasses += 'ring-white hover:border-gray-300'
+		outlineClasses.push('ring-white', 'hover:border-gray-300')
 	}
 
-	return `${baseClasses} ${outlineClasses}`
+	return [...baseClasses, ...outlineClasses].join(' ')
 }
 
-const getThumbnailStyles = (s) => {
-	return {
-		backgroundColor: s.background || '#ffffff',
-		width: '160px',
-		height: `${540 * THUMBNAIL_SCALE}px`,
-		borderRadius: '8px',
-		overflow: 'hidden',
-	}
-}
+const getThumbnailStyles = (s) => ({
+	backgroundColor: s.background || '#ffffff',
+	height: `${540 * THUMBNAIL_SCALE}px`,
+})
 </script>
