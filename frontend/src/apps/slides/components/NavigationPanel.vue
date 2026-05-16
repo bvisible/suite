@@ -9,15 +9,16 @@
 	>
 		<div
 			ref="scrollableArea"
-			class="h-svh space-x-2 overflow-y-auto overflow-x-hidden p-4 pe-3 custom-scrollbar"
+			class="h-svh overflow-y-auto p-4 pe-3 custom-scrollbar"
 			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
-			<div :style="virtualRowContainerStyles">
+			<div :style="virtualContainerStyles">
 				<div
 					v-for="virtualRow in virtualRows"
 					:key="virtualRow.key"
 					class="virtual-row-wrapper"
+					@click="handleSlideClick(slides[virtualRow.index])"
 					:style="getVirtualRowWrapperStyles(virtualRow)"
 				>
 					<ThumbnailContainer
@@ -38,16 +39,14 @@
 <script setup>
 import { ref, computed, watch, nextTick, useTemplateRef, useAttrs, inject } from 'vue'
 
-import Draggable from 'vuedraggable'
-
 import ThumbnailContainer from '@/components/ThumbnailContainer.vue'
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
 
-import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
-import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
+import { slides, slideIndex, focusedSlide } from '@/stores/slide'
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 import { useVirtualizer } from '@tanstack/vue-virtual'
-import { commandHistory, recentlyRestored } from '@/stores/historyMeta'
+import { commandHistory } from '@/stores/historyMeta'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
 
@@ -127,41 +126,44 @@ const scrollbarStyles = computed(() => ({
 	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
 }))
 
-const slideThumbnailsRef = ref([])
-
-const scrollThumbnailToView = (element) => {
-	if (!scrollableArea.value) return
-
-	const areaTop = scrollableArea.value.scrollTop
-	const areaHeight = scrollableArea.value.clientHeight
-	const thumbnailTop = element.offsetTop - scrollableArea.value.offsetTop
-	const thumbnailHeight = element.offsetHeight
-	const thumbnailBottom = thumbnailTop + thumbnailHeight
-
-	// Only scroll if thumbnail is partially visible
-	if (thumbnailTop < areaTop || thumbnailBottom > areaTop + areaHeight) {
-		const targetScroll = thumbnailTop - areaHeight / 2 + thumbnailHeight / 2
-		scrollableArea.value.scrollTo({
-			top: targetScroll,
-			behavior: 'smooth',
-		})
-	}
+const scrollToVirtualItem = (index) => {
+	rowVirtualizer.value.scrollToIndex(index, {
+		align: 'center',
+		behavior: 'smooth',
+	})
 }
 
-const handleScrollChange = (index) => {
-	const el = slideThumbnailsRef.value[index]
+const isItemFullyVisible = (scrollElement, virtualItem) => {
+	const viewportTop = scrollElement.scrollTop
+	const viewportBottom = viewportTop + scrollElement.clientHeight
 
-	if (!el) return
-	scrollThumbnailToView(el)
+	const itemTop = virtualItem.start
+	const itemBottom = virtualItem.end
+
+	return itemTop >= viewportTop && itemBottom <= viewportBottom
+}
+
+const scrollToSlide = (index) => {
+	const scrollElement = scrollableArea.value
+	if (!scrollElement) return
+
+	const virtualItem = rowVirtualizer.value.getVirtualItems().find((v) => v.index === index)
+	if (!virtualItem) {
+		// item is not rendered by virtual list so scroll directly without checking visibility
+		return scrollToVirtualItem(index)
+	}
+
+	const fullyVisible = isItemFullyVisible(scrollElement, virtualItem)
+	if (!fullyVisible) {
+		scrollToVirtualItem(index)
+	}
 }
 
 watch(
 	() => slideIndex.value,
-	() => {
+	(index) => {
 		if (!isNavigationPanelOpen.value) return
-		nextTick(() => {
-			handleScrollChange(slideIndex.value)
-		})
+		scrollToSlide(index)
 	},
 )
 
@@ -189,7 +191,7 @@ const rowVirtualizer = useVirtualizer(
 const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
 const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
 
-const virtualRowContainerStyles = computed(() => ({
+const virtualContainerStyles = computed(() => ({
 	height: `${totalSize.value}px`,
 	width: '100%',
 	position: 'relative',
@@ -204,13 +206,3 @@ const getVirtualRowWrapperStyles = (virtualRow) => ({
 	transform: `translateY(${virtualRow.start}px)`,
 })
 </script>
-
-<style scoped>
-.sortable-ghost {
-	opacity: 1;
-}
-
-.sortable-chosen {
-	opacity: 0.8;
-}
-</style>
