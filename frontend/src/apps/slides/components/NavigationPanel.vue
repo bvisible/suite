@@ -17,15 +17,25 @@
 				<div
 					v-for="virtualRow in virtualRows"
 					:key="virtualRow.key"
-					:class="getVirtualRowWrapperClasses(virtualRow.index)"
+					:class="getVirtualRowWrapperClasses(orderedSlides[virtualRow.index])"
 					:style="getVirtualRowWrapperStyles(virtualRow)"
-					@click="handleSlideClick(virtualRow.index)"
+					@click="handleSlideClick(orderedSlides[virtualRow.index])"
+					@mousedown="slideSort.handleSortStart($event, virtualRow.index)"
 				>
 					<ThumbnailContainer
-						:slide="slides[virtualRow.index]"
-						:isActive="isSlideActive(virtualRow.index)"
+						:slide="orderedSlides[virtualRow.index]"
+						:isActive="isSlideActive(orderedSlides[virtualRow.index])"
 					/>
 				</div>
+			</div>
+
+			<!-- add slide option -->
+			<div
+				v-if="!inReadonlyMode"
+				:class="insertButtonClasses"
+				@click="emit('openLayoutDialog')"
+			>
+				<LucidePlus class="size-3.5" />
 			</div>
 		</div>
 	</div>
@@ -37,10 +47,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, useTemplateRef, useAttrs, inject } from 'vue'
+import { ref, computed, watch, useTemplateRef, useAttrs, inject } from 'vue'
 
 import ThumbnailContainer from '@/components/ThumbnailContainer.vue'
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
+import { useDragSort } from '@/composables/useDragSort'
 
 import { slides, slideIndex, focusedSlide } from '@/stores/slide'
 import { handleScrollBarWheelEvent } from '@/utils/helpers'
@@ -49,6 +60,10 @@ import { useVirtualizer } from '@tanstack/vue-virtual'
 import { commandHistory } from '@/stores/historyMeta'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
+
+const ROW_HEIGHT = 90
+const ROW_GAP = 8
+const ROW_SIZE = ROW_HEIGHT + ROW_GAP * 2
 
 const attrs = useAttrs()
 
@@ -59,6 +74,36 @@ const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
 const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
+
+const handleSortEnd = (sortChange) => {
+	if (!sortChange) return
+
+	resetFocus()
+	commandHistory.execute(reorderSlidesCommand(sortChange))
+}
+
+const slideSort = useDragSort(
+	scrollableArea,
+	computed(() => slides.value.length),
+	ROW_SIZE,
+	handleSortEnd,
+)
+
+const orderedSlides = computed(() => {
+	const startIndex = slideSort.itemStartIndex.value
+	const previewIndex = slideSort.itemPreviewIndex.value
+
+	if (startIndex == null || previewIndex == null) {
+		return slides.value
+	}
+
+	const nextSlides = [...slides.value]
+
+	const [draggedSlide] = nextSlides.splice(startIndex, 1)
+	nextSlides.splice(previewIndex, 0, draggedSlide)
+
+	return nextSlides
+})
 
 const insertButtonClasses =
 	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
@@ -79,20 +124,19 @@ const panelClasses = computed(() => {
 	return [...baseClasses, positionClass]
 })
 
-const isSlideActive = (slide) => {
-	if (typeof slide === 'number') {
-		return slideIndex.value === slide
-	}
-	return slideIndex.value == slides.value.indexOf(slide)
-}
+const isSlideActive = (slide) => slideIndex.value === slides.value.indexOf(slide)
 
-const getVirtualRowWrapperClasses = (index) => [
+const getVirtualRowWrapperClasses = (slide) => [
 	'virtual-row-wrapper',
-	{ 'is-active': isSlideActive(index) },
+	{ 'is-active': isSlideActive(slide) },
 ]
 
-const handleSlideClick = async (index) => {
-	if (isSlideActive(index) && !inReadonlyMode.value) {
+const handleSlideClick = async (slide) => {
+	if (slideSort.shouldIgnoreClick()) return
+
+	const index = slides.value.indexOf(slide)
+
+	if (isSlideActive(slide) && !inReadonlyMode.value) {
 		resetFocus()
 		focusedSlide.value = index
 		return
@@ -107,19 +151,6 @@ const toggleButtonClasses = computed(() => {
 	}
 	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
 })
-
-const handleSortStart = (event) => {
-	resetFocus()
-}
-
-const handleSortEnd = async (event) => {
-	commandHistory.execute(
-		reorderSlidesCommand({
-			oldIndex: event.oldIndex,
-			newIndex: event.newIndex,
-		}),
-	)
-}
 
 const handleHoverChange = (e) => {
 	if (e.type === 'mouseenter') {
@@ -174,23 +205,11 @@ watch(
 	},
 )
 
-const sidebarSlidesList = ref(slides.value)
-
-watch(
-	slides,
-	(newSlides) => {
-		sidebarSlidesList.value = newSlides
-	},
-	{ deep: true },
-)
-
-const ROW_HEIGHT = 90
-
 const rowVirtualizer = useVirtualizer(
 	computed(() => ({
 		count: slides.value.length,
 		getScrollElement: () => scrollableArea.value,
-		estimateSize: () => ROW_HEIGHT + 16, // row height + margin
+		estimateSize: () => ROW_SIZE,
 		overscan: 3,
 	})),
 )
