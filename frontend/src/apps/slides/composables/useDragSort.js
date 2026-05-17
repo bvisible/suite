@@ -1,6 +1,6 @@
-import { ref, unref, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 
-export const useDragSort = (containerRef, itemCount, itemSize, onSortEnd) => {
+export const useDragSort = (containerRef, itemCountRef, itemSize, onSortEnd) => {
 	const itemStartIndex = ref(null)
 	const itemPreviewIndex = ref(null)
 
@@ -31,7 +31,7 @@ export const useDragSort = (containerRef, itemCount, itemSize, onSortEnd) => {
 		const indexDelta = Math.trunc((mouseDelta + scrollDelta) / itemSize)
 
 		const rawPreviewIndex = itemStartIndex.value + indexDelta
-		const lastIndex = unref(itemCount) - 1
+		const lastIndex = itemCountRef.value - 1
 		const nextPreviewIndex = Math.max(0, Math.min(lastIndex, rawPreviewIndex))
 
 		itemPreviewIndex.value = nextPreviewIndex
@@ -45,27 +45,29 @@ export const useDragSort = (containerRef, itemCount, itemSize, onSortEnd) => {
 		itemPreviewIndex.value = null
 	}
 
-	const handleSortEnd = () => {
-		let nextSortChange = null
-
-		const didMoveItem =
+	const didItemMove = () => {
+		return (
 			itemStartIndex.value != null &&
 			itemPreviewIndex.value != null &&
 			itemStartIndex.value !== itemPreviewIndex.value
+		)
+	}
 
-		if (didMoveItem) {
-			nextSortChange = {
-				oldIndex: itemStartIndex.value,
-				newIndex: itemPreviewIndex.value,
-			}
-			suppressNextClick.value = true
+	const handleSortEnd = () => {
+		if (!didItemMove()) {
+			cleanup()
+			return
 		}
+
+		const nextSortChange = {
+			oldIndex: itemStartIndex.value,
+			newIndex: itemPreviewIndex.value,
+		}
+		suppressNextClick.value = true
 
 		cleanup()
 
-		if (nextSortChange) {
-			onSortEnd?.(nextSortChange)
-		}
+		onSortEnd?.(nextSortChange)
 	}
 
 	const shouldIgnoreClick = () => {
