@@ -17,8 +17,8 @@
 				<div
 					v-for="virtualRow in virtualRows"
 					:key="virtualRow.key"
-					:class="getVirtualRowWrapperClasses(orderedSlides[virtualRow.index])"
-					:style="getVirtualRowWrapperStyles(virtualRow)"
+					:class="getRowClasses(orderedSlides[virtualRow.index])"
+					:style="getRowStyles(virtualRow)"
 					@click="handleSlideClick(orderedSlides[virtualRow.index])"
 					@mousedown="slideSort.handleSortStart($event, virtualRow.index)"
 				>
@@ -50,30 +50,31 @@
 import { ref, computed, watch, useTemplateRef, useAttrs, inject } from 'vue'
 
 import ThumbnailContainer from '@/components/ThumbnailContainer.vue'
+
+import { useVirtualizer } from '@tanstack/vue-virtual'
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
 import { useDragSort } from '@/composables/useDragSort'
 
 import { slides, slideIndex, focusedSlide } from '@/stores/slide'
-import { handleScrollBarWheelEvent } from '@/utils/helpers'
-
-import { useVirtualizer } from '@tanstack/vue-virtual'
 import { commandHistory } from '@/stores/historyMeta'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
+import { slidesLength } from '@/stores/presentation'
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
+
+const attrs = useAttrs()
+
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
+
+const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
 
 const ROW_HEIGHT = 90
 const ROW_GAP = 8
 const ROW_SIZE = ROW_HEIGHT + ROW_GAP * 2
 
-const attrs = useAttrs()
-
 const scrollableArea = useTemplateRef('scrollableArea')
 
 const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
-
-const inReadonlyMode = inject('inReadonlyMode', ref(false))
-
-const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
 
 const handleSortEnd = (sortChange) => {
 	if (!sortChange) return
@@ -82,12 +83,38 @@ const handleSortEnd = (sortChange) => {
 	commandHistory.execute(reorderSlidesCommand(sortChange))
 }
 
-const slideSort = useDragSort(
-	scrollableArea,
-	computed(() => slides.value.length),
-	ROW_SIZE,
-	handleSortEnd,
-)
+const slideSort = useDragSort(scrollableArea, slidesLength, ROW_SIZE, handleSortEnd)
+
+const showCollapseShortcut = ref(false)
+
+const insertButtonClasses =
+	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
+
+const panelClasses = computed(() => {
+	// can't add it from parent attrs.class since attrs is not reactive
+	const positionClass = isNavigationPanelOpen.value ? 'left-0' : '-left-48'
+	const baseClasses = [
+		'w-48',
+		'border-r',
+		'bg-white',
+		'transition-all',
+		'duration-300',
+		'ease-in-out',
+	]
+	return [...baseClasses, positionClass]
+})
+
+const toggleButtonClasses = computed(() => {
+	const baseClasses = 'flex cursor-pointer items-center border bg-white'
+	if (isNavigationPanelOpen.value) {
+		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
+	}
+	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
+})
+
+const scrollbarStyles = computed(() => ({
+	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
+}))
 
 const orderedSlides = computed(() => {
 	const startIndex = slideSort.itemStartIndex.value
@@ -105,31 +132,25 @@ const orderedSlides = computed(() => {
 	return nextSlides
 })
 
-const insertButtonClasses =
-	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
+const rowVirtualizer = useVirtualizer(
+	computed(() => ({
+		count: slides.value.length,
+		getScrollElement: () => scrollableArea.value,
+		estimateSize: () => ROW_SIZE,
+		overscan: 3,
+	})),
+)
 
-const showCollapseShortcut = ref(false)
+const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
+const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
 
-const panelClasses = computed(() => {
-	// can't add it from parent attrs.class since attrs is not reactive
-	const positionClass = isNavigationPanelOpen.value ? 'left-0' : '-left-48'
-	const baseClasses = [
-		'w-48',
-		'border-r',
-		'bg-white',
-		'transition-all',
-		'duration-300',
-		'ease-in-out',
-	]
-	return [...baseClasses, positionClass]
-})
+const virtualContainerStyles = computed(() => ({
+	height: `${totalSize.value}px`,
+	width: '100%',
+	position: 'relative',
+}))
 
 const isSlideActive = (slide) => slideIndex.value === slides.value.indexOf(slide)
-
-const getVirtualRowWrapperClasses = (slide) => [
-	'virtual-row-wrapper',
-	{ 'is-active': isSlideActive(slide) },
-]
 
 const handleSlideClick = async (slide) => {
 	if (slideSort.shouldIgnoreClick()) return
@@ -144,14 +165,6 @@ const handleSlideClick = async (slide) => {
 	emit('changeSlide', index)
 }
 
-const toggleButtonClasses = computed(() => {
-	const baseClasses = 'flex cursor-pointer items-center border bg-white'
-	if (isNavigationPanelOpen.value) {
-		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
-	}
-	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
-})
-
 const handleHoverChange = (e) => {
 	if (e.type === 'mouseenter') {
 		showCollapseShortcut.value = true
@@ -159,10 +172,6 @@ const handleHoverChange = (e) => {
 		showCollapseShortcut.value = false
 	}
 }
-
-const scrollbarStyles = computed(() => ({
-	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
-}))
 
 const scrollToVirtualItem = (index) => {
 	rowVirtualizer.value.scrollToIndex(index, {
@@ -197,33 +206,9 @@ const scrollToSlide = (index) => {
 	}
 }
 
-watch(
-	() => slideIndex.value,
-	(index) => {
-		if (!isNavigationPanelOpen.value) return
-		scrollToSlide(index)
-	},
-)
+const getRowClasses = (slide) => ['virtual-row-wrapper', { 'is-active': isSlideActive(slide) }]
 
-const rowVirtualizer = useVirtualizer(
-	computed(() => ({
-		count: slides.value.length,
-		getScrollElement: () => scrollableArea.value,
-		estimateSize: () => ROW_SIZE,
-		overscan: 3,
-	})),
-)
-
-const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
-const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
-
-const virtualContainerStyles = computed(() => ({
-	height: `${totalSize.value}px`,
-	width: '100%',
-	position: 'relative',
-}))
-
-const getVirtualRowWrapperStyles = (virtualRow) => ({
+const getRowStyles = (virtualRow) => ({
 	position: 'absolute',
 	top: 0,
 	left: 0,
@@ -231,6 +216,14 @@ const getVirtualRowWrapperStyles = (virtualRow) => ({
 	height: `${virtualRow.size}px`,
 	transform: `translateY(${virtualRow.start}px)`,
 })
+
+watch(
+	() => slideIndex.value,
+	(index) => {
+		if (!isNavigationPanelOpen.value) return
+		scrollToSlide(index)
+	},
+)
 </script>
 
 <style scoped>
