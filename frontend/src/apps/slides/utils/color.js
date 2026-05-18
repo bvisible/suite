@@ -14,3 +14,17 @@ export const guessTextColorFromBackground = (colorString) => {
 	const textColor = isBackgroundColorDark(colorString) ? '#ffffff' : '#000000'
 	return textColor
 }
+
+export const getColorAndOpacity = (colorString = '#000000ff') => {
+	if (!colorString?.startsWith('#') || colorString.length !== 9) {
+		return {
+			color: colorString,
+			opacity: 1,
+		}
+	}
+
+	return {
+		color: colorString.slice(0, 7),
+		opacity: parseInt(colorString.slice(7, 9), 16) / 255,
+	}
+}
