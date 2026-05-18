@@ -1,5 +1,32 @@
 <template>
 	<svg :style="shapeStyle">
+		<defs v-if="element.shapeType == 'line' && (element.markerStart || element.markerEnd)">
+			<marker
+				v-if="element.markerStart"
+				:id="markerStartId"
+				viewBox="0 0 10 10"
+				markerWidth="6"
+				markerHeight="6"
+				refX="2"
+				refY="5"
+				orient="auto"
+			>
+				<path d="M10,0 L0,5 L10,10 Z" :fill="element.strokeColor" stroke="none" />
+			</marker>
+			<marker
+				v-if="element.markerEnd"
+				:id="markerEndId"
+				viewBox="0 0 10 10"
+				markerWidth="6"
+				markerHeight="6"
+				refX="8"
+				refY="5"
+				orient="auto"
+			>
+				<path d="M0,0 L10,5 L0,10 Z" :fill="element.strokeColor" stroke="none" />
+			</marker>
+		</defs>
+
 		<rect
 			v-if="element.shapeType == 'rectangle'"
 			:x="element.strokeWidth / 2"
@@ -32,6 +59,8 @@
 			:y2="element.strokeWidth / 2"
 			:stroke="`${element.strokeColor}`"
 			:stroke-width="`${element.strokeWidth}px`"
+			:marker-start="element.markerStart ? `url(#${markerStartId})` : null"
+			:marker-end="element.markerEnd ? `url(#${markerEndId})` : null"
 		/>
 	</svg>
 </template>
@@ -60,11 +89,15 @@ const isActive = computed(() => {
 	return activeElementIds.value.includes(element.value.id)
 })
 
+const markerStartId = computed(() => `line-marker-start-${element.value.id}`)
+const markerEndId = computed(() => `line-marker-end-${element.value.id}`)
+
 const shapeStyle = computed(() => {
 	const styles = {
 		width: '100%',
 		height: '100%',
 		opacity: element.value.opacity / 100,
+		overflow: element.value.shapeType == 'line' ? 'visible' : '',
 	}
 	return {
 		...styles,
