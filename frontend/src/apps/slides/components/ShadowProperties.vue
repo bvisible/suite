@@ -1,5 +1,5 @@
 <template>
-	<CollapsibleSection title="Shadow">
+	<CollapsibleSection title="Shadow" :initialState="false">
 		<template #default>
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Color</div>
