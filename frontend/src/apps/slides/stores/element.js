@@ -873,6 +873,39 @@ const updatePosition = (axis, value) => {
 	selectionBounds[property] = value
 }
 
+const updateDimension = (axis, value) => {
+	const property = axis == 'W' ? 'width' : 'height'
+	const numericValue = Number(value)
+
+	if (!Number.isFinite(numericValue) || numericValue < 1) return
+	if (property == 'height' && activeElements.value.some((element) => element.type != 'shape'))
+		return
+
+	const delta = numericValue - selectionBounds[property]
+
+	const commands = activeElements.value.map((element) => {
+		const oldValue = element[property] ?? selectionBounds[property]
+
+		return editElementCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [element.id],
+			property,
+			oldValue: element[property],
+			newValue: oldValue + delta,
+		})
+	})
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: activeElementIds.value,
+			commands,
+		}),
+	)
+
+	selectionBounds[property] = numericValue
+}
+
 const getElementCenter = (axis) => {
 	let elementStart, elementSize, slideStart
 
@@ -914,6 +947,7 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
+	updateDimension,
 	findElement,
 	cropSelectionToFitContent,
 	getElementCenter,
