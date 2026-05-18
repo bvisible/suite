@@ -1,6 +1,25 @@
 <template>
-	<svg :style="shapeStyle">
-		<defs v-if="element.shapeType == 'line' && (element.markerStart || element.markerEnd)">
+	<svg :style="shapeStyles">
+		<defs v-if="hasMarkers || shadow.hasShadow">
+			<filter
+				v-if="shadow.hasShadow"
+				:id="shadowFilterId"
+				filterUnits="userSpaceOnUse"
+				x="-1000"
+				y="-1000"
+				width="3000"
+				height="3000"
+				color-interpolation-filters="sRGB"
+			>
+				<feDropShadow
+					:dx="shadow.offsetX"
+					:dy="shadow.offsetY"
+					:stdDeviation="shadow.stdDeviation"
+					:flood-color="shadow.color"
+					:flood-opacity="shadow.opacity"
+				/>
+			</filter>
+
 			<marker
 				v-if="element.markerStart"
 				:id="markerStartId"
@@ -38,6 +57,7 @@
 			:stroke-width="`${element.strokeWidth}px`"
 			:rx="element.borderRadius"
 			:ry="element.borderRadius"
+			:filter="shadow.hasShadow ? `url(#${shadowFilterId})` : null"
 		/>
 
 		<ellipse
@@ -49,6 +69,7 @@
 			:fill="element.fillColor"
 			:stroke="element.strokeColor"
 			:stroke-width="`${element.strokeWidth}px`"
+			:filter="shadow.hasShadow ? `url(#${shadowFilterId})` : null"
 		/>
 
 		<line
@@ -61,13 +82,14 @@
 			:stroke-width="`${element.strokeWidth}px`"
 			:marker-start="element.markerStart ? `url(#${markerStartId})` : null"
 			:marker-end="element.markerEnd ? `url(#${markerEndId})` : null"
+			:filter="shadow.hasShadow ? `url(#${shadowFilterId})` : null"
 		/>
 	</svg>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { activeElementIds } from '@/stores/element'
+import { useSVGShadow } from '@/composables/useSVGShadow'
 
 const props = defineProps({
 	transitionStyles: {
@@ -85,19 +107,24 @@ const element = defineModel('element', {
 	default: null,
 })
 
-const isActive = computed(() => {
-	return activeElementIds.value.includes(element.value.id)
+const hasMarkers = computed(() => {
+	if (!element.value) return false
+	if (element.value.shapeType != 'line') return false
+	return element.value.markerStart || element.value.markerEnd
 })
 
-const markerStartId = computed(() => `line-marker-start-${element.value.id}`)
-const markerEndId = computed(() => `line-marker-end-${element.value.id}`)
+const markerStartId = computed(() => `line-marker-start-${element.value?.id || ''}`)
+const markerEndId = computed(() => `line-marker-end-${element.value?.id || ''}`)
 
-const shapeStyle = computed(() => {
+const shadowFilterId = computed(() => `shape-shadow-${element.value?.id || ''}`)
+const shadow = useSVGShadow(element)
+
+const shapeStyles = computed(() => {
 	const styles = {
 		width: '100%',
 		height: '100%',
-		opacity: element.value.opacity / 100,
-		overflow: element.value.shapeType == 'line' ? 'visible' : '',
+		opacity: (element.value?.opacity || 100) / 100,
+		overflow: hasMarkers.value || shadow.value.hasShadow ? 'visible' : '',
 	}
 	return {
 		...styles,
