@@ -1,15 +1,6 @@
 <template>
 	<CollapsibleSection title="Style">
 		<template #default>
-			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Fill Color</div>
-				<ColorPicker
-					v-model="activeElement.fillColor"
-					@colordown="onFillColorUpdateStart"
-					@colorup="onFillColorUpdateEnd"
-				/>
-			</div>
-
 			<div
 				class="flex items-center justify-between"
 				v-if="activeElement.shapeType == 'rectangle'"
@@ -41,6 +32,15 @@
 				</div>
 			</div>
 
+			<div v-if="activeElement.shapeType != 'line'" class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Fill Color</div>
+				<ColorPicker
+					v-model="activeElement.fillColor"
+					@colordown="onFillColorUpdateStart"
+					@colorup="onFillColorUpdateEnd"
+				/>
+			</div>
+
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Stroke Color</div>
 
@@ -52,6 +52,8 @@
 			</div>
 		</template>
 	</CollapsibleSection>
+
+	<ShadowProperties />
 </template>
 
 <script setup>
@@ -60,8 +62,8 @@ import { inject } from 'vue'
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
 import NumberInput from '@/components/controls/NumberInput.vue'
+import ShadowProperties from '@/components/ShadowProperties.vue'
 
-import { currentSlide } from '@/stores/slide'
 import { activeElement } from '@/stores/element'
 import { fieldLabelClasses } from '@/utils/constants'
 
