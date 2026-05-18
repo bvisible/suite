@@ -2,7 +2,7 @@
 	<CollapsibleSection
 		title="Layout"
 		:key="activeElements?.length"
-		:initialState="activeElements?.length > 1"
+		:initialState="activeElement?.type != 'text'"
 	>
 		<template #default>
 			<div class="flex flex-col gap-1.5">
@@ -27,7 +27,7 @@
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-1.5">
+			<div v-if="activeElement" class="flex flex-col gap-1.5">
 				<div :class="fieldLabelClasses">Dimensions</div>
 				<div class="flex items-center gap-3">
 					<NumberInput
