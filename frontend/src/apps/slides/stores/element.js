@@ -92,6 +92,9 @@ const getElementContent = (element) => {
 
 const getShapeDefaults = (shapeType) => {
 	let width, height, strokeColor, strokeWidth, borderRadius, elementShapeType
+	let markerStart = false
+	let markerEnd = false
+
 	switch (shapeType) {
 		case 'rectangle':
 			width = 300
@@ -125,6 +128,14 @@ const getShapeDefaults = (shapeType) => {
 			borderRadius = 20
 			elementShapeType = 'rectangle'
 			break
+		case 'circle':
+			width = 300
+			height = 300
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'circle'
+			break
 		case 'line':
 			width = 300
 			height = 2
@@ -133,20 +144,49 @@ const getShapeDefaults = (shapeType) => {
 			borderRadius = 0
 			elementShapeType = 'line'
 			break
+		case 'line with arrows':
+			width = 300
+			height = 20
+			strokeColor = guessTextColorFromBackground(currentSlide.value.background)
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'line'
+			markerStart = true
+			markerEnd = true
+			break
 
 		// TODO: add default styles for other shapes
 	}
 
 	const fillColor = guessTextColorFromBackground(currentSlide.value.background)
 
-	return { width, height, strokeColor, strokeWidth, borderRadius, fillColor, elementShapeType }
+	return {
+		width,
+		height,
+		strokeColor,
+		strokeWidth,
+		borderRadius,
+		fillColor,
+		elementShapeType,
+		markerStart,
+		markerEnd,
+	}
 }
 
 const addShapeElement = async (shapeType) => {
 	if (!shapeType) return
 
-	const { width, height, fillColor, strokeColor, strokeWidth, borderRadius, elementShapeType } =
-		getShapeDefaults(shapeType)
+	const {
+		width,
+		height,
+		fillColor,
+		strokeColor,
+		strokeWidth,
+		borderRadius,
+		elementShapeType,
+		markerStart,
+		markerEnd,
+	} = getShapeDefaults(shapeType)
 
 	const slideWidth = slideBounds.width / slideBounds.scale
 	const slideHeight = slideBounds.height / slideBounds.scale
@@ -166,6 +206,8 @@ const addShapeElement = async (shapeType) => {
 		strokeColor,
 		strokeWidth,
 		borderRadius,
+		markerStart,
+		markerEnd,
 	}
 
 	const refCommands = getCommandsToUpdateElementRefId(element) || []
