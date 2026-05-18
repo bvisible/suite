@@ -75,6 +75,7 @@ const getDefaultEventData = () => {
 		participants: [
 			{
 				email: user.data.name,
+				user_image: user.data.user_image,
 				_name: user.data.full_name,
 				participation_status: 'ACCEPTED',
 			},
