@@ -41,6 +41,10 @@ const props = defineProps({
 		type: Object,
 		default: () => ({}),
 	},
+	rotationDelta: {
+		type: Number,
+		default: 0,
+	},
 })
 
 const emit = defineEmits(['clearTimeouts'])
@@ -84,6 +88,12 @@ const elementStyle = computed(() => {
 		elementHeight = 'auto'
 	}
 
+	const elementRotation = element.value.rotation || 0
+	const rotation =
+		isActive.value && isRotatable.value
+			? elementRotation + props.rotationDelta
+			: elementRotation
+
 	return {
 		position: 'absolute',
 		width: elementWidth,
@@ -93,11 +103,27 @@ const elementStyle = computed(() => {
 		outline: props.highlight ? `#70B6F092 solid ${2 / slideBounds.scale}px` : 'none',
 		boxSizing: 'border-box',
 		zIndex: element.value.zIndex,
-		transform: element.value.type == 'text' ? element.value.transform : '',
-		transformOrigin: element.value.type == 'text' ? element.value.transformOrigin : '',
+		transform: getTransform(rotation),
+		transformOrigin: getTransformOrigin(),
 		minWidth: element.value.type == 'text' ? '2px' : '',
 	}
 })
+
+const isRotatable = computed(() => {
+	return ['shape', 'image'].includes(element.value.type)
+})
+
+const getTransform = (rotation) => {
+	if (element.value.type == 'text') return element.value.transform
+	if (!isRotatable.value) return ''
+	return `rotate(${rotation}deg)`
+}
+
+const getTransformOrigin = () => {
+	if (element.value.type == 'text') return element.value.transformOrigin
+	if (!isRotatable.value) return ''
+	return 'center center'
+}
 
 const getDynamicComponent = (type) => {
 	switch (type) {

@@ -13,6 +13,7 @@
 				ref="selectionBox"
 				v-if="!inReadonlyMode"
 				:isDragging
+				:rotationDelta="rotationDelta"
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
 			/>
@@ -28,6 +29,7 @@
 				mode="editor"
 				:element
 				:elementOffset
+				:rotationDelta="rotationDelta"
 				:data-index="element.id"
 				:highlight="highlightElement(element)"
 				@mousedown="(e) => handleMouseDown(e, element)"
@@ -112,9 +114,11 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
-const { isRotating, rotationDelta, startRotate } = useRotator()
+const { isRotating, rotationDelta, startRotate, resetRotation } = useRotator()
 
-const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
+const hasOngoingInteraction = computed(
+	() => isDragging.value || isResizing.value || isRotating.value,
+)
 
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(
 	selectionBoxRef,
@@ -261,6 +265,7 @@ useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
 	const target = entry.target.getBoundingClientRect()
+	const useLayoutPosition = ['shape', 'image'].includes(activeElement.value?.type)
 
 	// case:
 	// when element dimensions are changed not by resizer
@@ -268,8 +273,12 @@ useResizeObserver(activeDiv, (entries) => {
 	updateSelectionBounds({
 		width: width,
 		height: height,
-		left: (target.left - slideBounds.left) / scale.value,
-		top: (target.top - slideBounds.top) / scale.value,
+		left: useLayoutPosition
+			? activeElement.value.left + elementOffset.left
+			: (target.left - slideBounds.left) / scale.value,
+		top: useLayoutPosition
+			? activeElement.value.top + elementOffset.top
+			: (target.top - slideBounds.top) / scale.value,
 	})
 })
 
@@ -508,7 +517,7 @@ const getInteractionCommands = () => {
 		if (!element) return
 
 		const createCommand = (property, oldValue, newValue) => {
-			if (!newValue) return null
+			if (newValue == oldValue) return null
 			return editElementCommand({
 				slideId: currentSlide.value.clientId,
 				elementIds: [id],
@@ -530,6 +539,14 @@ const getInteractionCommands = () => {
 				if (command) commands.push(command)
 			}
 		})
+
+		if (rotationDelta.value && ['shape', 'image'].includes(element.type)) {
+			const oldValue = element.rotation || 0
+			const newValue = oldValue + rotationDelta.value
+			const command = createCommand('rotation', oldValue, newValue)
+
+			if (command) commands.push(command)
+		}
 	})
 
 	return commands
@@ -552,6 +569,7 @@ const applyInteractionOffsets = () => {
 		elementOffset.top = 0
 		elementOffset.width = 0
 		elementOffset.height = 0
+		resetRotation()
 	})
 }
 
