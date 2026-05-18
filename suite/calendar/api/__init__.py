@@ -34,6 +34,15 @@ def get_calendar_events(account: str, from_date: str, to_date: str, time_zone: s
 		expand_recurrences=True,
 	)[0]
 
+	enrich_events_with_master_data(account, events)
+	enrich_participants_with_avatars(events)
+
+	return events
+
+
+def enrich_events_with_master_data(account: str, events: list[dict]) -> None:
+	"""Attaches recurrence/master info to each event in-place."""
+
 	uids = {event["uid"] for event in events}
 	masters = get_master_events_by_uids(account, list(uids))
 	master_map = {
@@ -49,7 +58,37 @@ def get_calendar_events(account: str, from_date: str, to_date: str, time_zone: s
 	for event in events:
 		event.update(master_map.get(event["uid"], {}))
 
-	return events
+
+def enrich_participants_with_avatars(events: list[dict]) -> None:
+	"""Attaches user_image to each participant in-place."""
+	unique_emails = list(
+		dict.fromkeys(
+			participant["email"]
+			for event in events
+			for participant in event["participants"]
+			if participant.get("email")
+		)
+	)
+	if not unique_emails:
+		return
+
+	user_data = frappe.db.get_all(
+		"User", filters={"name": ["in", list(unique_emails)]}, fields=["name", "user_image"]
+	)
+	user_images = {u.name: u.user_image for u in user_data if u.user_image}
+	avatar_map = {email: user_images.get(email) or get_avatar_url(email) for email in unique_emails}
+
+	for event in events:
+		for participant in event["participants"]:
+			email = participant.get("email")
+			if email in avatar_map:
+				participant["user_image"] = avatar_map[email]
+
+
+def get_avatar_url(email: str) -> str:
+	"""Returns the avatar URL for the given email."""
+
+	return f"/api/method/mail.api.mail.get_avatar?email={email}"
 
 
 @frappe.whitelist()
