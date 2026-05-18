@@ -208,6 +208,10 @@ const addShapeElement = async (shapeType) => {
 		borderRadius,
 		markerStart,
 		markerEnd,
+		shadowOffsetX: 0,
+		shadowOffsetY: 0,
+		shadowSpread: 0,
+		shadowColor: '#BFBFBFFF',
 	}
 
 	const refCommands = getCommandsToUpdateElementRefId(element) || []
@@ -448,7 +452,7 @@ const addMediaElement = async (file, type) => {
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
 		shadowSpread: 0,
-		shadowColor: '#000000ff',
+		shadowColor: '#BFBFBFFF',
 	}
 	if (type == 'video') {
 		element.poster = videoPoster
