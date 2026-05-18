@@ -18,6 +18,18 @@
 				</div>
 			</div>
 
+			<div v-if="activeElement.shapeType == 'line'" class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Arrows</div>
+				<div class="w-28">
+					<FormControl
+						type="select"
+						:modelValue="arrowDirection"
+						:options="arrowOptions"
+						@update:modelValue="updateArrowDirection"
+					/>
+				</div>
+			</div>
+
 			<div class="flex items-center justify-between">
 				<div :class="fieldLabelClasses">Stroke Width</div>
 				<div class="w-28">
@@ -57,7 +69,8 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
+import { FormControl } from 'frappe-ui'
 
 import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 import ColorPicker from '@/components/controls/ColorPicker.vue'
@@ -69,6 +82,27 @@ import { fieldLabelClasses } from '@/utils/constants'
 
 const setProperty = inject('setProperty')
 const setPropertyDeferred = inject('setPropertyDeferred')
+
+const arrowDirection = computed(() => {
+	const el = activeElement.value
+	if (!el) return 'none'
+	if (el.markerStart && el.markerEnd) return 'both'
+	if (el.markerStart) return 'left'
+	if (el.markerEnd) return 'right'
+	return 'none'
+})
+
+const arrowOptions = [
+	{ label: 'None', value: 'none' },
+	{ label: 'Left', value: 'left' },
+	{ label: 'Right', value: 'right' },
+	{ label: 'Both', value: 'both' },
+]
+
+const updateArrowDirection = (val) => {
+	setProperty('markerStart', val === 'left' || val === 'both')
+	setProperty('markerEnd', val === 'right' || val === 'both')
+}
 
 const { onStart: onFillColorUpdateStart, onEnd: onFillColorUpdateEnd } = setPropertyDeferred(
 	'element',
