@@ -156,6 +156,7 @@ const getShapeDefaults = (shapeType) => {
 			break
 
 		// TODO: add default styles for other shapes
+		// TODO: cleanup code here, maybe move constants to separate file
 	}
 
 	const fillColor = guessTextColorFromBackground(currentSlide.value.background)
@@ -676,6 +677,18 @@ const getElementPosition = (elementId) => {
 	}
 }
 
+const getElementLayoutPosition = (element) => {
+	const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
+	if (!elementDiv) return getElementPosition(element.id)
+
+	return {
+		left: element.left,
+		top: element.top,
+		right: element.left + elementDiv.offsetWidth,
+		bottom: element.top + elementDiv.offsetHeight,
+	}
+}
+
 const isWithinOverlappingBounds = (outer, inner) => {
 	const { left: outerLeft, top: outerTop, right: outerRight, bottom: outerBottom } = outer
 	const { left: innerLeft, top: innerTop, right: innerRight, bottom: innerBottom } = inner
@@ -811,12 +824,15 @@ const cropSelectionToFitContent = (elementIds) => {
 
 	// crop selection to selected element edges
 	elementIds.forEach((id) => {
+		const element = currentSlide.value.elements.find((el) => el.id === id)
+		const useLayoutBounds = elementIds.length == 1 && ['shape', 'image'].includes(element?.type)
+
 		const {
 			left: elementLeft,
 			top: elementTop,
 			right: elementRight,
 			bottom: elementBottom,
-		} = getElementPosition(id)
+		} = useLayoutBounds ? getElementLayoutPosition(element) : getElementPosition(id)
 
 		if (elementLeft < l) l = elementLeft
 		if (elementTop < t) t = elementTop

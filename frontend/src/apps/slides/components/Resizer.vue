@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<RotateHandle />
+		<RotateHandle v-if="showRotateHandle" />
 
 		<ResizeHandle
 			v-for="resizeHandle in resizeHandles"
@@ -40,6 +40,10 @@ const props = defineProps({
 })
 
 const { currentResizer, startResize } = inject('resizer', {})
+
+const showRotateHandle = computed(() => {
+	return ['rectangle', 'circle', 'line', 'image'].includes(props.elementType)
+})
 
 const isResizeHandleVisible = (resizer) => {
 	if (!currentResizer.value) return true
