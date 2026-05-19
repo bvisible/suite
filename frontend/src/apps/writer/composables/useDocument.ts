@@ -1,7 +1,12 @@
 import { MaybeRefOrGetter, toValue, ref } from 'vue'
-import { useDoc } from 'frappe-ui'
+import { useDoc, createResource } from 'frappe-ui'
 import { prettyData } from 'frappe-ui/drive/js/utils'
 import { getDocuments } from '@/resources/'
+
+const trackVisit = createResource({
+  url: 'drive.api.files.track_visit',
+  makeParams: (entity_name: string) => ({ entity_name }),
+})
 
 export default function useDocument(docId: MaybeRefOrGetter<string>) {
   const name = toValue(docId)
@@ -36,6 +41,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
         updateSettings: 'update_settings',
       },
     })
+    trackVisit.submit(name)
     getDocuments.updateRow({
       name: docId,
       accessed: new Date().toISOString(),
