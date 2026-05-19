@@ -22,7 +22,6 @@ from drive.api.permissions import (
     requires,
 )
 from drive.utils.files import FileManager
-from drive.utils.users import mark_as_viewed
 
 # To be moved to mimemapper
 QUICK_MAP = {
@@ -125,7 +124,6 @@ def get_document(file_id):
         },
         ["entity as is_favourite"],
     )
-    mark_as_viewed(entity)
     file_type = get_file_type(entity)
     return_obj = (
         entity
