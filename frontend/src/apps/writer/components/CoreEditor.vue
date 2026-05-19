@@ -115,41 +115,16 @@
           @save="saveComments"
         >
           <div
-            class="sticky self-end top-4 right-4 flex items-center gap-1 z-10"
+            v-if="comments._map.size"
+            class="sticky self-end top-4 right-4 z-10"
           >
-            <div class="flex flex-col gap-0.5">
-              <Button
-                :label="showResolved ? 'Hide resolved' : 'Show resolved'"
-                v-if="
-                  showComments &&
-                  Array.from(comments._map).find(
-                    (k) => k[1].content?.arr?.[0].resolved,
-                  )
-                "
-                class="text-sm text-ink-gray-5 bg-surface-white"
-                variant="outline"
-                @click="showResolved = !showResolved"
-              />
-              <Button
-                :label="showUnanchored ? 'Hide all' : 'Show all'"
-                v-if="showComments && showUnanchoredButton"
-                class="text-sm text-ink-gray-5 bg-surface-white"
-                variant="outline"
-                @click="showUnanchored = !showUnanchored"
-              />
-            </div>
-            <Button
-              v-if="comments._map.size"
-              :icon="
-                showComments ? LucideMessageSquareOff : LucideMessageSquareQuote
-              "
-              variant="outline"
-              :tooltip="showComments ? 'Hide comments' : 'Show comments'"
-              @click="showComments = !showComments"
-            ></Button>
+            <Dropdown :options="commentFilterOptions" placement="right">
+              <Button :icon="LucideMessageSquareQuote" variant="outline" />
+            </Dropdown>
           </div>
         </FloatingComments>
-        <div v-else class="w-72" />
+
+        <div v-if="!commentsPainted" class="w-72" />
       </div>
     </div>
     <ToCMobile v-if="editor" :editor />
@@ -164,6 +139,7 @@ import {
   useFileUpload,
   ContextMenu,
   createEditorButton,
+  Dropdown,
 } from 'frappe-ui'
 import { Slice } from '@tiptap/pm/model'
 import { TextSelection } from '@tiptap/pm/state'
@@ -271,6 +247,33 @@ const showUnanchoredButton = computed(() => {
   )
 })
 const commentsPainted = ref(false)
+const commentFilterOptions = computed(() => {
+  const hasResolved = Array.from(props.comments._map).find(
+    (k) => k[1].content?.arr?.[0].resolved,
+  )
+  return [
+    {
+      label: 'Comments',
+      switch: true,
+      switchValue: showComments.value,
+      onClick: () => (showComments.value = !showComments.value),
+    },
+    hasResolved &&
+      showComments.value && {
+        label: 'Resolved',
+        switch: true,
+        switchValue: showResolved.value,
+        onClick: () => (showResolved.value = !showResolved.value),
+      },
+    showUnanchoredButton.value &&
+      showComments.value && {
+        label: 'Outdated',
+        switch: true,
+        switchValue: showUnanchored.value,
+        onClick: () => (showUnanchored.value = !showUnanchored.value),
+      },
+  ].filter(Boolean)
+})
 const isPainting = computed(() =>
   editor.value && editor.value.storage.styleClipboard.styleClipboard
     ? true
