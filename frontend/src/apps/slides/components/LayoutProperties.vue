@@ -1,8 +1,8 @@
 <template>
 	<CollapsibleSection
-		title="Placement"
+		title="Layout"
 		:key="activeElements?.length"
-		:initialState="activeElements?.length > 1"
+		:initialState="activeElement?.type != 'text'"
 	>
 		<template #default>
 			<div class="flex flex-col gap-1.5">
@@ -23,6 +23,29 @@
 						:rangeStart="0"
 						:rangeStep="1"
 						:hideButtons="true"
+					/>
+				</div>
+			</div>
+
+			<div v-if="activeElement" class="flex flex-col gap-1.5">
+				<div :class="fieldLabelClasses">Dimensions</div>
+				<div class="flex items-center gap-3">
+					<NumberInput
+						:modelValue="selectionBounds.width"
+						@update:modelValue="(val) => updateDimension('W', val)"
+						prefix="w"
+						:rangeStart="1"
+						:rangeStep="1"
+						:hideButtons="true"
+					/>
+					<NumberInput
+						:modelValue="selectionBounds.height"
+						@update:modelValue="(val) => updateDimension('H', val)"
+						prefix="h"
+						:rangeStart="1"
+						:rangeStep="1"
+						:hideButtons="true"
+						:disabled="!canEditHeight"
 					/>
 				</div>
 			</div>
@@ -49,6 +72,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 import Forward from '@/icons/Forward.vue'
 import Backward from '@/icons/Backward.vue'
 import SendToBack from '@/icons/SendToBack.vue'
@@ -57,9 +82,11 @@ import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
 
 import { selectionBounds, currentSlide } from '@/stores/slide'
 import {
+	activeElement,
 	activeElements,
 	activeElementIds,
 	updatePosition,
+	updateDimension,
 	getElementPosition,
 	isWithinOverlappingBounds,
 	normalizeZIndices,
@@ -92,6 +119,11 @@ const arrangeOptions = [
 		action: () => bringToFront(),
 	},
 ]
+
+const canEditHeight = computed(() => {
+	if (activeElementIds.value?.length > 1) return false
+	return activeElement.value?.type == 'shape'
+})
 
 const moveElement = (elements, elementId, moveToIndex, action) => {
 	const movingElement = elements.find((el) => el.id == elementId)

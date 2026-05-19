@@ -13,6 +13,7 @@
 				ref="selectionBox"
 				v-if="!inReadonlyMode"
 				:isDragging
+				:rotationDelta="rotationDelta"
 				@mousedown="(e) => handleMouseDown(e)"
 				@setIsSelecting="(val) => (isSelecting = val)"
 			/>
@@ -28,6 +29,7 @@
 				mode="editor"
 				:element
 				:elementOffset
+				:rotationDelta="rotationDelta"
 				:data-index="element.id"
 				:highlight="highlightElement(element)"
 				@mousedown="(e) => handleMouseDown(e, element)"
@@ -89,6 +91,7 @@ import { handleCopy, handlePaste } from '@/stores/copyPaste'
 
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useResizer } from '@/composables/useResizer'
+import { useRotator } from '@/composables/useRotator'
 import { usePanAndZoom } from '@/composables/usePanAndZoom'
 import { useSnapping } from '@/composables/useSnapping'
 import { editElementCommand, batchCommand } from '@/stores/commands'
@@ -111,7 +114,11 @@ const { isDragging, positionDelta, startDragging } = useDragAndDrop()
 
 const { isResizing, dimensionDelta, currentResizer, resizeCursor, startResize } = useResizer()
 
-const hasOngoingInteraction = computed(() => isDragging.value || isResizing.value)
+const { isRotating, rotationDelta, startRotate, resetRotation } = useRotator()
+
+const hasOngoingInteraction = computed(
+	() => isDragging.value || isResizing.value || isRotating.value,
+)
 
 const { visibilityMap, resistanceMap, handleSnapping } = useSnapping(
 	selectionBoxRef,
@@ -258,6 +265,7 @@ useResizeObserver(activeDiv, (entries) => {
 	const entry = entries[0]
 	const { width, height } = entry.contentRect
 	const target = entry.target.getBoundingClientRect()
+	const useLayoutPosition = ['shape', 'image'].includes(activeElement.value?.type)
 
 	// case:
 	// when element dimensions are changed not by resizer
@@ -265,8 +273,12 @@ useResizeObserver(activeDiv, (entries) => {
 	updateSelectionBounds({
 		width: width,
 		height: height,
-		left: (target.left - slideBounds.left) / scale.value,
-		top: (target.top - slideBounds.top) / scale.value,
+		left: useLayoutPosition
+			? activeElement.value.left + elementOffset.left
+			: (target.left - slideBounds.left) / scale.value,
+		top: useLayoutPosition
+			? activeElement.value.top + elementOffset.top
+			: (target.top - slideBounds.top) / scale.value,
 	})
 })
 
@@ -298,12 +310,15 @@ const applyResistance = (axis, delta) => {
 	return useResistance && Math.abs(pullDelta) < escapeDelta
 }
 
-const updateTotalDeltaForResize = (totalDelta, delta, width) => {
+const updateTotalDeltaForResize = (totalDelta, delta, width, height) => {
 	totalDelta.width = applyResistance(null, delta) ? 0 : width
+	totalDelta.height = applyResistance(null, delta) ? 0 : height
 
 	// if resisting width change, don't apply top change either otherwise
 	// element sticks to one axis and drags on other which shouldn't happen on resize
-	if (totalDelta.width === 0) totalDelta.top = 0
+	if (totalDelta.width === 0 && !['top', 'bottom'].includes(currentResizer.value)) {
+		totalDelta.top = 0
+	}
 }
 
 const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
@@ -318,9 +333,10 @@ const getTotalInteractionDelta = (delta, interaction = 'dragging') => {
 	}
 
 	const width = snapDelta.width || delta.width
+	const height = snapDelta.height || delta.height
 
 	if (interaction === 'resizing') {
-		updateTotalDeltaForResize(totalDelta, delta, width)
+		updateTotalDeltaForResize(totalDelta, delta, width, height)
 	}
 
 	return totalDelta
@@ -330,6 +346,7 @@ const elementOffset = reactive({
 	left: 0,
 	top: 0,
 	width: 0,
+	height: 0,
 })
 
 const handlePositionChange = (delta) => {
@@ -340,15 +357,27 @@ const handlePositionChange = (delta) => {
 	applyPositionDelta(totalDelta)
 }
 
-const applyAspectRatio = (offset) => {
-	if (!offset) return 0
+const applyAspectRatio = (delta, type) => {
+	if (!['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(currentResizer.value))
+		return
+
+	if (type == 'shape') {
+		delta.height = delta.width
+	}
+
+	if (!delta.top || !['image', 'video'].includes(type)) return
 	const ratio = selectionBounds.width / selectionBounds.height
-	return (offset ?? 0) / ratio
+	delta.top = (delta.top ?? 0) / ratio
 }
 
 const validateMinWidth = (width) => {
-	const minWidth = activeElement.value.type === 'text' ? 7 : 1
+	const minWidth = activeElement.value?.type === 'text' ? 7 : 1
 	return width + selectionBounds.width > minWidth
+}
+
+const validateMinHeight = (height) => {
+	const minHeight = activeElement.value?.type === 'text' ? 7 : 29
+	return height + selectionBounds.height > minHeight
 }
 
 const applyPositionDelta = (delta) => {
@@ -367,17 +396,23 @@ const applyPositionDelta = (delta) => {
 }
 
 const applyDimensionDelta = (delta) => {
-	if (!delta.width) return
+	if (!delta.width && !delta.height) return
 
 	const deltaWidth = delta.width / slideBounds.scale
+	const deltaHeight = delta.height / slideBounds.scale
 
 	elementOffset.width += deltaWidth
+	elementOffset.height += deltaHeight
 }
 
 const handleDimensionChange = (delta) => {
-	if (!delta.width || !validateMinWidth(delta.width)) return
+	if (!delta.width && !delta.height) return
+	if (!validateMinWidth(delta.width)) delta.width = 0
+	if (!validateMinHeight(delta.height)) delta.height = 0
 
-	delta.top = applyAspectRatio(delta.top)
+	if (['shape', 'image', 'video'].includes(activeElement.value.type)) {
+		applyAspectRatio(delta, activeElement.value.type)
+	}
 
 	const totalDelta = getTotalInteractionDelta(delta, 'resizing')
 
@@ -466,6 +501,9 @@ provide('resizer', {
 	currentResizer,
 	startResize,
 })
+provide('rotator', {
+	startRotate,
+})
 
 defineExpose({
 	togglePanZoom,
@@ -479,7 +517,7 @@ const getInteractionCommands = () => {
 		if (!element) return
 
 		const createCommand = (property, oldValue, newValue) => {
-			if (!newValue) return null
+			if (newValue == oldValue) return null
 			return editElementCommand({
 				slideId: currentSlide.value.clientId,
 				elementIds: [id],
@@ -489,7 +527,7 @@ const getInteractionCommands = () => {
 			})
 		}
 
-		const offsetKeys = ['left', 'top', 'width']
+		const offsetKeys = ['left', 'top', 'width', 'height']
 
 		offsetKeys.forEach((key) => {
 			if (elementOffset[key]) {
@@ -501,6 +539,14 @@ const getInteractionCommands = () => {
 				if (command) commands.push(command)
 			}
 		})
+
+		if (rotationDelta.value && ['shape', 'image'].includes(element.type)) {
+			const oldValue = element.rotation || 0
+			const newValue = oldValue + rotationDelta.value
+			const command = createCommand('rotation', oldValue, newValue)
+
+			if (command) commands.push(command)
+		}
 	})
 
 	return commands
@@ -522,6 +568,8 @@ const applyInteractionOffsets = () => {
 		elementOffset.left = 0
 		elementOffset.top = 0
 		elementOffset.width = 0
+		elementOffset.height = 0
+		resetRotation()
 	})
 }
 

@@ -1,11 +1,11 @@
 <template>
 	<div
-		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-14 custom-scrollbar"
+		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-4 custom-scrollbar"
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<div v-if="activeElementIds.length">
 			<AlignmentControls />
-			<PlacementProperties />
+			<LayoutProperties />
 			<component :is="activeProperties" />
 			<AppearanceProperties v-if="activeElement" />
 		</div>
@@ -20,8 +20,9 @@ import SlideProperties from '@/components/SlideProperties.vue'
 import TextProperties from '@/components/TextProperties.vue'
 import ImageProperties from '@/components/ImageProperties.vue'
 import VideoProperties from '@/components/VideoProperties.vue'
+import ShapeProperties from '@/components/ShapeProperties.vue'
 import AlignmentControls from '@/components/AlignmentControls.vue'
-import PlacementProperties from '@/components/PlacementProperties.vue'
+import LayoutProperties from '@/components/LayoutProperties.vue'
 import AppearanceProperties from '@/components/AppearanceProperties.vue'
 
 import { useDeferredCommit } from '@/composables/useDeferredCommit'
@@ -42,6 +43,8 @@ const activeProperties = computed(() => {
 			return ImageProperties
 		case 'video':
 			return VideoProperties
+		case 'shape':
+			return ShapeProperties
 	}
 })
 

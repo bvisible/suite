@@ -9,8 +9,12 @@ export const useResizer = () => {
 		'top-right': 'nesw-resize',
 		'bottom-left': 'nesw-resize',
 		'bottom-right': 'nwse-resize',
+		'text-left': 'ew-resize',
+		'text-right': 'ew-resize',
 		left: 'ew-resize',
 		right: 'ew-resize',
+		top: 'ns-resize',
+		bottom: 'ns-resize',
 	}
 
 	const resizeCursor = computed(() => cursorMap[currentResizer.value] ?? 'default')
@@ -39,6 +43,28 @@ export const useResizer = () => {
 		window.addEventListener('mouseup', stopResize, { once: true })
 	}
 
+	const getDimensionDelta = (diffX, diffY, diffLeft, diffTop) => {
+		let width = 0,
+			height = 0,
+			left = 0,
+			top = 0
+		if (['top', 'bottom'].includes(currentResizer.value)) {
+			height = diffY
+			top = diffTop
+		} else {
+			width = diffX
+			left = diffLeft
+			top = diffTop
+		}
+
+		return {
+			width: width,
+			height: height,
+			left: left,
+			top: top,
+		}
+	}
+
 	const resize = (e) => {
 		e.preventDefault()
 		e.stopImmediatePropagation()
@@ -52,10 +78,10 @@ export const useResizer = () => {
 		if (!diffX) return
 
 		switch (currentResizer.value) {
-			case 'left':
+			case 'text-left':
 				diffLeft = -diffX / 2
 				break
-			case 'right':
+			case 'text-right':
 				diffLeft = -diffX / 2
 				diffX = -diffX
 				break
@@ -70,16 +96,30 @@ export const useResizer = () => {
 				diffLeft = -diffX
 				diffTop = -diffX
 				break
+			case 'line-left':
+			case 'left':
+				diffLeft = -diffX
+				diffY = 0
+				break
+			case 'bottom':
+				diffY = -diffY
+				diffX = 0
+				break
+			case 'top':
+				diffTop = -diffY
+				diffX = 0
+				break
+			case 'line-right':
+			case 'right':
+				diffX = -diffX
+				diffY = 0
+				break
 			default:
 				diffX = -diffX
 				break
 		}
 
-		dimensionDelta.value = {
-			width: diffX,
-			left: diffLeft,
-			top: diffTop,
-		}
+		dimensionDelta.value = getDimensionDelta(diffX, diffY, diffLeft, diffTop)
 
 		prevX = e.clientX
 		prevY = e.clientY

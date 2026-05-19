@@ -2,7 +2,7 @@
 	<div v-show="selectionBounds.width" ref="selected" :style="boxStyles">
 		<Resizer
 			v-if="showResizers"
-			:elementType="activeElement?.type"
+			:elementType="activeElement?.shapeType || activeElement?.type"
 			:dimensions="selectionBounds"
 			:style="{ pointerEvents: 'auto' }"
 		/>
@@ -33,6 +33,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	rotationDelta: {
+		type: Number,
+		default: 0,
+	},
 })
 
 const emit = defineEmits(['setIsSelecting'])
@@ -51,8 +55,19 @@ let longpressDuration = 200
 let mousedownStart
 
 const outline = computed(() => {
+	if (activeElement.value?.shapeType == 'line') return 'none'
+
 	if (activeElementIds.value.length == 1) return `#70B6F0 solid ${2 / slideBounds.scale}px`
 	return `#70B6F092 solid ${0.1 / slideBounds.scale}px`
+})
+
+const isRotatable = computed(() => {
+	return ['shape', 'image'].includes(activeElement.value?.type)
+})
+
+const selectionRotation = computed(() => {
+	if (activeElementIds.value.length != 1 || !isRotatable.value) return 0
+	return (activeElement.value.rotation || 0) + props.rotationDelta
 })
 
 const boxStyles = computed(() => ({
@@ -66,6 +81,8 @@ const boxStyles = computed(() => ({
 	boxSizing: 'border-box',
 	zIndex: 9999,
 	pointerEvents: activeElementIds.value.length == 1 ? 'none' : 'auto',
+	transform: selectionRotation.value ? `rotate(${selectionRotation.value}deg)` : '',
+	transformOrigin: 'center center',
 }))
 
 const initSelection = (e) => {

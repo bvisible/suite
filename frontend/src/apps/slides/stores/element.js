@@ -90,6 +90,150 @@ const getElementContent = (element) => {
 	return generateHTML(contentJSON, extensions)
 }
 
+const getShapeDefaults = (shapeType) => {
+	let width, height, strokeColor, strokeWidth, borderRadius, elementShapeType
+	let markerStart = false
+	let markerEnd = false
+
+	switch (shapeType) {
+		case 'rectangle':
+			width = 300
+			height = 200
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'rectangle'
+			break
+		case 'rounded rectangle':
+			width = 300
+			height = 200
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 20
+			elementShapeType = 'rectangle'
+			break
+		case 'square':
+			width = 300
+			height = 300
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'rectangle'
+			break
+		case 'rounded square':
+			width = 300
+			height = 300
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 20
+			elementShapeType = 'rectangle'
+			break
+		case 'circle':
+			width = 300
+			height = 300
+			strokeColor = '#7C7C7CFF'
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'circle'
+			break
+		case 'line':
+			width = 300
+			height = 2
+			strokeColor = guessTextColorFromBackground(currentSlide.value.background)
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'line'
+			break
+		case 'line with arrows':
+			width = 300
+			height = 20
+			strokeColor = guessTextColorFromBackground(currentSlide.value.background)
+			strokeWidth = 2
+			borderRadius = 0
+			elementShapeType = 'line'
+			markerStart = true
+			markerEnd = true
+			break
+
+		// TODO: add default styles for other shapes
+		// TODO: cleanup code here, maybe move constants to separate file
+	}
+
+	const fillColor = guessTextColorFromBackground(currentSlide.value.background)
+
+	return {
+		width,
+		height,
+		strokeColor,
+		strokeWidth,
+		borderRadius,
+		fillColor,
+		elementShapeType,
+		markerStart,
+		markerEnd,
+	}
+}
+
+const addShapeElement = async (shapeType) => {
+	if (!shapeType) return
+
+	const {
+		width,
+		height,
+		fillColor,
+		strokeColor,
+		strokeWidth,
+		borderRadius,
+		elementShapeType,
+		markerStart,
+		markerEnd,
+	} = getShapeDefaults(shapeType)
+
+	const slideWidth = slideBounds.width / slideBounds.scale
+	const slideHeight = slideBounds.height / slideBounds.scale
+
+	const element = {
+		id: generateUniqueId(),
+		zIndex: currentSlide.value.elements.length + 1,
+		width: width,
+		height: height,
+		left: (slideWidth - width) / 2,
+		top: (slideHeight - height) / 2,
+		opacity: 100,
+		rotation: 0,
+		type: 'shape',
+		shapeType: elementShapeType,
+		fillColor,
+		strokeColor,
+		strokeWidth,
+		borderRadius,
+		markerStart,
+		markerEnd,
+		shadowOffsetX: 0,
+		shadowOffsetY: 0,
+		shadowSpread: 0,
+		shadowColor: '#7C7C7CFF',
+	}
+
+	const refCommands = getCommandsToUpdateElementRefId(element) || []
+
+	const commands = [
+		addElementCommand({
+			slideId: currentSlide.value.clientId,
+			element: element,
+		}),
+		...refCommands,
+	]
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [element.id],
+			commands,
+		}),
+	)
+}
+
 const getTextElementDimensions = (presets) => {
 	const tempTextElement = document.createElement('div')
 
@@ -309,7 +453,7 @@ const addMediaElement = async (file, type) => {
 		shadowOffsetX: 0,
 		shadowOffsetY: 0,
 		shadowSpread: 0,
-		shadowColor: '#000000ff',
+		shadowColor: '#7C7C7CFF',
 	}
 	if (type == 'video') {
 		element.poster = videoPoster
@@ -533,6 +677,18 @@ const getElementPosition = (elementId) => {
 	}
 }
 
+const getElementLayoutPosition = (element) => {
+	const elementDiv = document.querySelector(`[data-index="${element.id}"]`)
+	if (!elementDiv) return getElementPosition(element.id)
+
+	return {
+		left: element.left,
+		top: element.top,
+		right: element.left + elementDiv.offsetWidth,
+		bottom: element.top + elementDiv.offsetHeight,
+	}
+}
+
 const isWithinOverlappingBounds = (outer, inner) => {
 	const { left: outerLeft, top: outerTop, right: outerRight, bottom: outerBottom } = outer
 	const { left: innerLeft, top: innerTop, right: innerRight, bottom: innerBottom } = inner
@@ -668,12 +824,15 @@ const cropSelectionToFitContent = (elementIds) => {
 
 	// crop selection to selected element edges
 	elementIds.forEach((id) => {
+		const element = currentSlide.value.elements.find((el) => el.id === id)
+		const useLayoutBounds = elementIds.length == 1 && ['shape', 'image'].includes(element?.type)
+
 		const {
 			left: elementLeft,
 			top: elementTop,
 			right: elementRight,
 			bottom: elementBottom,
-		} = getElementPosition(id)
+		} = useLayoutBounds ? getElementLayoutPosition(element) : getElementPosition(id)
 
 		if (elementLeft < l) l = elementLeft
 		if (elementTop < t) t = elementTop
@@ -714,6 +873,58 @@ const updatePosition = (axis, value) => {
 	selectionBounds[property] = value
 }
 
+const updateDimension = (axis, value) => {
+	const property = axis == 'W' ? 'width' : 'height'
+	const numericValue = Number(value)
+
+	if (!Number.isFinite(numericValue) || numericValue < 1) return
+	if (property == 'height' && activeElements.value.some((element) => element.type != 'shape'))
+		return
+
+	const delta = numericValue - selectionBounds[property]
+
+	const commands = activeElements.value.map((element) => {
+		const oldValue = element[property] ?? selectionBounds[property]
+
+		return editElementCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: [element.id],
+			property,
+			oldValue: element[property],
+			newValue: oldValue + delta,
+		})
+	})
+
+	commandHistory.execute(
+		batchCommand({
+			slideId: currentSlide.value.clientId,
+			elementIds: activeElementIds.value,
+			commands,
+		}),
+	)
+
+	selectionBounds[property] = numericValue
+}
+
+const getElementCenter = (axis) => {
+	let elementStart, elementSize, slideStart
+
+	if (axis == 'Y') {
+		elementStart = selectionBounds.left
+		elementSize = selectionBounds.width
+		slideStart = slideBounds.left
+	} else {
+		elementStart = selectionBounds.top
+		elementSize = selectionBounds.height
+		slideStart = slideBounds.top
+	}
+
+	elementStart = elementStart * slideBounds.scale + slideStart
+	elementSize *= slideBounds.scale
+
+	return elementStart + elementSize / 2
+}
+
 export {
 	activeElementIds,
 	focusElementId,
@@ -724,6 +935,7 @@ export {
 	resetFocus,
 	addTextElement,
 	addMediaElement,
+	addShapeElement,
 	duplicateElements,
 	deleteElements,
 	selectAllElements,
@@ -735,6 +947,8 @@ export {
 	normalizeZIndices,
 	isWithinOverlappingBounds,
 	updatePosition,
+	updateDimension,
 	findElement,
 	cropSelectionToFitContent,
+	getElementCenter,
 }

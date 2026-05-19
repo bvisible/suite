@@ -1,5 +1,7 @@
 <template>
 	<div>
+		<RotateHandle v-if="showRotateHandle" />
+
 		<ResizeHandle
 			v-for="resizeHandle in resizeHandles"
 			v-show="resizeHandle.isVisible"
@@ -8,12 +10,12 @@
 			@startResize="(e) => startResize(e, resizeHandle.direction)"
 		/>
 
-		<ResizeIndicator
+		<!-- <ResizeIndicator
 			v-show="currentResizer"
 			:type="elementType"
 			:dimensions="dimensions"
 			:indicatorStyles="indicatorStyles"
-		/>
+		/> -->
 	</div>
 </template>
 
@@ -21,6 +23,7 @@
 import { computed, inject } from 'vue'
 
 import ResizeHandle from '@/components/ResizeHandle.vue'
+import RotateHandle from '@/components/RotateHandle.vue'
 import ResizeIndicator from '@/components/ResizeIndicator.vue'
 
 import { selectionBounds, slideBounds } from '@/stores/slide'
@@ -38,6 +41,10 @@ const props = defineProps({
 
 const { currentResizer, startResize } = inject('resizer', {})
 
+const showRotateHandle = computed(() => {
+	return ['rectangle', 'circle', 'line', 'image'].includes(props.elementType)
+})
+
 const isResizeHandleVisible = (resizer) => {
 	if (!currentResizer.value) return true
 	return currentResizer.value === resizer
@@ -45,8 +52,21 @@ const isResizeHandleVisible = (resizer) => {
 
 const resizeHandles = computed(() => {
 	let directions = []
-	if (props.elementType === 'text') {
-		directions = ['left', 'right']
+	if (['rectangle', 'circle'].includes(props.elementType)) {
+		directions = [
+			'left',
+			'right',
+			'top',
+			'bottom',
+			'top-left',
+			'top-right',
+			'bottom-left',
+			'bottom-right',
+		]
+	} else if (props.elementType === 'line') {
+		directions = ['line-left', 'line-right']
+	} else if (props.elementType === 'text') {
+		directions = ['text-left', 'text-right']
 	} else {
 		directions = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
 	}
@@ -65,9 +85,19 @@ const getTextIndicatorPosition = () => {
 	const offsetY = getScaledValue(12)
 
 	return {
-		left: resizer.includes('right') ? offsetX : 'auto',
-		right: resizer.includes('left') ? offsetX : 'auto',
+		left: resizer.includes('text-right') ? offsetX : 'auto',
+		right: resizer.includes('text-left') ? offsetX : 'auto',
 		top: `calc(50% - ${offsetY})`,
+	}
+}
+
+const getLineIndicatorPosition = () => {
+	const offset = getScaledValue(8)
+
+	return {
+		left: currentResizer.value === 'line-left' ? offset : 'auto',
+		right: currentResizer.value === 'line-right' ? offset : 'auto',
+		top: offset,
 	}
 }
 
@@ -86,6 +116,8 @@ const getMediaIndicatorPosition = () => {
 const getPositionStyles = () => {
 	if (props.elementType === 'text') {
 		return getTextIndicatorPosition()
+	} else if (props.elementType === 'line') {
+		return getLineIndicatorPosition()
 	}
 	return getMediaIndicatorPosition()
 }
