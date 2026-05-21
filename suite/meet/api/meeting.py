@@ -52,26 +52,31 @@ def get_sfu_connection_details(meeting_id: str) -> dict:
 	Get SFU connection details for direct client-to-SFU communication
 	"""
 	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
+	user = frappe.session.user
 
-	if meeting.is_user_banned(frappe.session.user):
+	if meeting.is_user_banned(user):
 		frappe.throw(_("You are banned from this meeting"), frappe.PermissionError)
 
-	if not meeting.can_join(frappe.session.user):
+	if user not in meeting.get_members():
+		frappe.throw(_("Not a meeting member"), frappe.PermissionError)
+
+	if not meeting.can_join(user):
 		frappe.throw(_("Access denied"), frappe.PermissionError)
 
 	from meet.utils.sfu_config import get_sfu_config
 
 	sfu_config = get_sfu_config()
 
-	user_fullname, user_avatar = frappe.db.get_value(
-		"User", frappe.session.user, ["full_name", "user_image"]
-	) or (frappe.session.user, None)
+	user_fullname, user_avatar = frappe.db.get_value("User", user, ["full_name", "user_image"]) or (
+		user,
+		None,
+	)
 
-	is_host = meeting.owner == frappe.session.user
-	is_cohost = meeting.is_host_or_cohost(frappe.session.user) and not is_host
+	is_host = meeting.owner == user
+	is_cohost = meeting.is_host_or_cohost(user) and not is_host
 
 	auth_payload = {
-		"user_id": frappe.session.user,
+		"user_id": user,
 		"meeting_id": meeting_id,
 		"user_name": user_fullname,
 		"user_avatar": user_avatar,
@@ -91,12 +96,12 @@ def get_sfu_connection_details(meeting_id: str) -> dict:
 		"sfu_url": sfu_config["sfu_server_url"],
 		"sfu_port": sfu_config["sfu_server_port"],
 		"auth_token": auth_token,
-		"user_id": frappe.session.user,
+		"user_id": user,
 		"meeting_id": meeting_id,
 		"codec_strategy": _get_codec_strategy(),
 		"user_data": {
 			"name": user_fullname,
-			"email": frappe.session.user,
+			"email": user,
 			"avatar": user_avatar,
 		},
 		"expires_in": 3600,
