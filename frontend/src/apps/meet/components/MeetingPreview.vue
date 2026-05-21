@@ -110,6 +110,7 @@
 								/>
 
 								<Button
+									v-if="!presenceError"
 									type="submit"
 									variant="solid"
 									size="lg"
@@ -134,15 +135,7 @@
 
 <script setup lang="ts">
 import { Button, createResource, FormControl, toast } from "frappe-ui";
-import {
-	computed,
-	inject,
-	nextTick,
-	onMounted,
-	type Ref,
-	ref,
-	watch,
-} from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import ParticipantAvatarGroup from "../components/ParticipantAvatarGroup.vue";
 import PreviewToolbar from "../components/PreviewToolbar.vue";
 import { useMeetingPreviewPresence } from "../composables/useMeetingPreviewPresence";
@@ -217,6 +210,10 @@ watch(guestNameInputRef, (inputRef) => {
 });
 
 const handleJoin = async () => {
+	if (presenceError.value) {
+		return;
+	}
+
 	if (joinGuestAPI.loading || props.isConnecting) {
 		return;
 	}
