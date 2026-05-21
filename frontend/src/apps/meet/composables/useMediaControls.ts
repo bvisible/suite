@@ -104,6 +104,7 @@ interface MediaControlsAPI {
 	toggleMicrophone: () => Promise<void>;
 	toggleCamera: () => Promise<void>;
 	toggleScreenShare: () => Promise<void>;
+	switchInputDevice: (type: DeviceType, deviceId: string) => Promise<void>;
 	applySpeakerDevice: () => Promise<void>;
 	applyBackgroundEffectsToLocalStream: () => Promise<void>;
 	setLocalVideoRef: (el: HTMLElement | null) => void;
@@ -228,7 +229,7 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		}
 	};
 
-	const applyBackgroundEffectsToLocalStream = async () => {
+	const applyBackgroundEffectsToLocalStream = async (forceRestart = false) => {
 		const bgEffects = getBackgroundEffectsFromStorage();
 		const wantsEffects = bgEffects.anyEnabled;
 		const localStream = mediaState.localStream;
@@ -254,7 +255,7 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		shouldApplyBackgroundEffectsWhenVideoAvailable = false;
 
 		try {
-			if (backgroundSession) {
+			if (backgroundSession && !forceRestart) {
 				await backgroundSession.updateOptions({
 					blurIntensity: bgEffects.blurIntensity,
 					backgroundBlurEnabled: bgEffects.blurEnabled,
@@ -262,6 +263,15 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 					selectedBackgroundImage: bgEffects.selectedImage,
 				});
 				return;
+			}
+
+			if (backgroundSession) {
+				backgroundSession.cleanup();
+				backgroundSession = null;
+			}
+			if (mediaState.processedStream) {
+				backgroundEffects.stopProcessing();
+				mediaState.processedStream = null;
 			}
 
 			const result = await backgroundEffects.applyBackgroundEffects(
@@ -290,6 +300,126 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 				mediaState.processedStream = null;
 				backgroundEffects.stopProcessing();
 			}
+		}
+	};
+
+	const switchSpeaker = async (deviceId: string) => {
+		setSelectedSpeakerId(deviceId);
+		await applySpeakerDevice();
+	};
+
+	const switchMic = async (deviceId: string) => {
+		setSelectedMicId(deviceId);
+		if (!mediaState.isMicOn || !mediaState.localStream) {
+			return;
+		}
+
+		const mh = getMediaHandler(sfuManager.value);
+		const { stream: audioOnlyStream } = await acquireUserMedia(false, true, {
+			micDeviceId: deviceId,
+		});
+		const newAudioTrack = audioOnlyStream.getAudioTracks()[0];
+		if (!newAudioTrack) {
+			return;
+		}
+
+		const currentAudioTracks = mediaState.localStream.getAudioTracks();
+		for (const track of currentAudioTracks) {
+			mediaState.localStream.removeTrack(track);
+			track.stop();
+		}
+		mediaState.localStream.addTrack(newAudioTrack);
+
+		if (noiseCancellationSession) {
+			noiseCancellationSession.cleanup();
+			noiseCancellationSession = null;
+		}
+
+		const trackToPublish = await getProcessedAudioTrack(mediaState.localStream);
+		if (!trackToPublish || trackToPublish.readyState !== "live") {
+			return;
+		}
+
+		if (
+			mh?.audioProducer &&
+			typeof mh.audioProducer.replaceTrack === "function"
+		) {
+			await mh.audioProducer.replaceTrack({ track: trackToPublish });
+			return;
+		}
+
+		if (!mh?.audioProducer && sfuManager.value?.transportManager) {
+			const producer = await sfuManager.value.transportManager.createProducer(
+				trackToPublish,
+				{ type: "microphone" },
+			);
+			mh?.setProducers({ audioProducer: producer as ProducerLike });
+		}
+	};
+
+	const switchCam = async (deviceId: string) => {
+		setSelectedCameraId(deviceId);
+		if (!mediaState.isCameraOn || !mediaState.localStream) {
+			return;
+		}
+
+		const mh = getMediaHandler(sfuManager.value);
+		const { stream: videoOnlyStream } = await acquireUserMedia(true, false, {
+			cameraDeviceId: deviceId,
+		});
+		const newVideoTrack = videoOnlyStream.getVideoTracks()[0];
+		if (!newVideoTrack) {
+			return;
+		}
+
+		const currentVideoTracks = mediaState.localStream.getVideoTracks();
+		for (const track of currentVideoTracks) {
+			mediaState.localStream.removeTrack(track);
+			track.stop();
+		}
+		mediaState.localStream.addTrack(newVideoTrack);
+
+		const bgEffects = getBackgroundEffectsFromStorage();
+		if (
+			bgEffects.anyEnabled ||
+			shouldApplyBackgroundEffectsWhenVideoAvailable
+		) {
+			await applyBackgroundEffectsToLocalStream(true);
+		}
+
+		const trackToPublish = mediaState.processedStream
+			? mediaState.processedStream.getVideoTracks()[0]
+			: newVideoTrack;
+
+		if (trackToPublish && mh?.videoProducer) {
+			if (typeof mh.videoProducer.replaceTrack === "function") {
+				await mh.videoProducer.replaceTrack({ track: trackToPublish });
+			}
+		} else if (
+			trackToPublish &&
+			!mh?.videoProducer &&
+			sfuManager.value?.transportManager
+		) {
+			const producer = await sfuManager.value.transportManager.createProducer(
+				trackToPublish,
+				{ type: "camera" },
+			);
+			mh?.setProducers({ videoProducer: producer as ProducerLike });
+		}
+
+		if (localVideo.value) {
+			delete localVideo.value.dataset.sourceStreamId;
+			setLocalVideoRef(localVideo.value);
+		}
+	};
+
+	const switchInputDevice = async (type: DeviceType, deviceId: string) => {
+		if (type === "speaker") {
+			await switchSpeaker(deviceId);
+		} else if (type === "microphone") {
+			await switchMic(deviceId);
+		} else if (type === "camera") {
+			await switchCam(deviceId);
 		}
 	};
 
@@ -1197,6 +1327,7 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		toggleMicrophone,
 		toggleCamera,
 		toggleScreenShare,
+		switchInputDevice,
 		applySpeakerDevice,
 		applyBackgroundEffectsToLocalStream,
 		setLocalVideoRef,
