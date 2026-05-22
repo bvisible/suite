@@ -9,6 +9,8 @@ from meet.api.meeting import get_sfu_connection_details
 
 class IntegrationTestMeetingApi(IntegrationTestCase):
 	def setUp(self):
+		frappe.conf.sfu_secret = "test-sfu-secret"
+
 		self.host_email = "host-meet@example.com"
 		self.member_email = "member-meet@example.com"
 		self.outsider_email = "outsider-meet@example.com"
