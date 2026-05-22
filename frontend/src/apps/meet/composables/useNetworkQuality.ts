@@ -11,6 +11,13 @@ interface NetworkStats {
 	isValid: boolean;
 }
 
+const POOR_RTT_MS = 450;
+const CRITICAL_RTT_MS = 900;
+const POOR_PACKET_LOSS_PERCENT = 8;
+const CRITICAL_PACKET_LOSS_PERCENT = 18;
+const POOR_VIDEO_BITRATE_BPS = 350_000;
+const CRITICAL_VIDEO_BITRATE_BPS = 200_000;
+
 export function useNetworkQuality() {
 	const networkQuality = ref<NetworkQuality>("good");
 	const isPolling = ref(false);
@@ -26,11 +33,22 @@ export function useNetworkQuality() {
 			return;
 		}
 
-		// Threshold
-		// critical: rtt > 600ms or packet loss > 15%
-		const isCritical = stats.rtt > 600 || stats.packetLoss > 15;
-		// poor: rtt > 300ms or packet loss > 5%
-		const isPoor = stats.rtt > 300 || stats.packetLoss > 5;
+		const hasBitrateEstimate = stats.availableOutgoingBitrate > 0;
+		const hasPoorVideoBitrate =
+			hasBitrateEstimate &&
+			stats.availableOutgoingBitrate < POOR_VIDEO_BITRATE_BPS;
+		const hasCriticalVideoBitrate =
+			hasBitrateEstimate &&
+			stats.availableOutgoingBitrate < CRITICAL_VIDEO_BITRATE_BPS;
+
+		// Prefer clear signs of actual media degradation over moderate RTT spikes.
+		const isCritical =
+			stats.packetLoss > CRITICAL_PACKET_LOSS_PERCENT ||
+			stats.rtt > 1_200 ||
+			(stats.rtt > CRITICAL_RTT_MS && hasCriticalVideoBitrate);
+		const isPoor =
+			stats.packetLoss > POOR_PACKET_LOSS_PERCENT ||
+			(stats.rtt > POOR_RTT_MS && hasPoorVideoBitrate);
 
 		if (isCritical) {
 			networkQuality.value = "critical";
