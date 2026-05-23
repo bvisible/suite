@@ -5,13 +5,7 @@ import {
 	focusElementId,
 	setActiveElements,
 } from '@/stores/element'
-import {
-	changeEditorSlide,
-	currentSlide,
-	slideIndex,
-	slides,
-	updateThumbnail,
-} from '@/stores/slide'
+import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/stores/slide'
 
 let commandHistory = null
 
@@ -99,13 +93,11 @@ const getSlideIndexForJump = (action, command, operation) => {
 	return slides.value.findIndex((s) => s.clientId === command.jumpToSlideId)
 }
 
-const handleJumpToSlide = async (action, command, operation) => {
+const handleJumpToSlide = (action, command, operation) => {
 	const slideIdx = getSlideIndexForJump(action, command, operation)
 	const focus = command.key === 'removeSlide' && operation === 'undo' ? false : true
 
-	await jumpToSlideByIndex(slideIdx, focus)
-
-	updateThumbnail(slideIdx)
+	return jumpToSlideByIndex(slideIdx, focus)
 }
 
 const handleJumpToElements = (action, command, operation) => {
