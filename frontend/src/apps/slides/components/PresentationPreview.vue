@@ -56,9 +56,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import { computed } from 'vue'
 
-import { Tooltip, createResource } from 'frappe-ui'
+import { Tooltip } from 'frappe-ui'
 
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
 
@@ -71,19 +71,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['setPreview', 'openDialog', 'navigate', 'duplicatePresentation'])
-
-let interval = null
-
-const previewSlide = ref(0)
-
-const slideThumbnails = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_slide_thumbnails',
-	method: 'GET',
-	cache: 'slideThumbnails',
-	makeParams: () => ({
-		presentation: props.presentation.name,
-	}),
-})
 
 const previewOverlayClasses = computed(() => {
 	const baseClasses =
@@ -111,9 +98,7 @@ const getActionIconClasses = (action) => {
 }
 
 const previewStyles = computed(() => {
-	return getThumbnailCardStyles(
-		slideThumbnails.data?.[previewSlide.value] || props.presentation.thumbnail,
-	)
+	return getThumbnailCardStyles(props.presentation.thumbnail)
 })
 
 const previewDetails = computed(() => {
@@ -127,7 +112,7 @@ const previewDetails = computed(() => {
 			[`Modified by ${modified_by}`]: dayjs(modified).fromNow(),
 		},
 		{
-			'Total Slides': slideThumbnails.data?.length,
+			'Total Slides': props.presentation.slide_count,
 			[`Created by ${owner}`]: dayjs(creation).fromNow(),
 		},
 	]
@@ -156,28 +141,7 @@ const presentationActions = [
 	},
 ]
 
-const updateCurrentThumbnail = () => {
-	// cycle through the thumbnails for preview
-	previewSlide.value = (previewSlide.value + 1) % slideThumbnails.data.length
-}
-
-const initPreview = async () => {
-	await slideThumbnails.fetch()
-	interval = setInterval(updateCurrentThumbnail, 2000)
-}
-
-const clearPreview = () => {
-	previewSlide.value = 0
-	clearInterval(interval)
-	interval = null
-}
-
 const hidePreview = () => {
 	emit('setPreview', null)
-	clearPreview()
 }
-
-onMounted(() => initPreview())
-
-onBeforeUnmount(() => clearPreview())
 </script>
