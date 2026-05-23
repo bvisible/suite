@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 slides.slides.doctype.presentation.patches.sanitize_attachment_urls
 slides.slides.doctype.presentation.patches.move_attachments_to_private_folder
+slides.slides.doctype.presentation.patches.move_slide_thumbnail_to_presentation
