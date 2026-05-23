@@ -86,8 +86,6 @@ const getPresentationFromLocalDB = async (id) => {
 	})
 }
 
-const dirtySince = ref(null)
-
 const isDirty = computed(() => {
 	if (!presentationDoc.value || !slides.value) return false
 
@@ -98,8 +96,6 @@ const isDirty = computed(() => {
 })
 
 const isSaving = ref(false)
-
-let syncThumbnail = 0
 
 const syncSnapshotToServer = async (snapshot) => {
 	await savePresentationDoc(snapshot.content)
@@ -157,12 +153,8 @@ const saveCurrentState = async () => {
 }
 
 const saveChanges = async () => {
-	if (!isDirty.value && syncThumbnail === 0) return
-
-	if (isDirty.value) syncThumbnail = 1
-	else syncThumbnail = 0
-
+	if (!isDirty.value) return
 	await saveCurrentState()
 }
 
-export { saveCurrentState, saveChanges, dirtySince, isDirty, syncThumbnail }
+export { saveCurrentState, saveChanges, isDirty }

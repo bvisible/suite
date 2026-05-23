@@ -8,7 +8,6 @@ import {
 	updateSelectionBounds,
 	currentSlide,
 	slideIndex,
-	updateThumbnail,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
@@ -501,18 +500,12 @@ const selectAllElements = (e) => {
 	activeElementIds.value = currentSlide.value.elements.map((element) => element.id)
 }
 
-const resetFocus = async () => {
-	const index = slideIndex.value
-
+const resetFocus = () => {
 	if (!activeElementIds.value.length) return
 
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
-
-	await nextTick()
-
-	await updateThumbnail(index)
 }
 
 const getElementPosition = (elementId) => {

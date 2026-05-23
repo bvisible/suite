@@ -97,8 +97,6 @@ import {
 	slides,
 	slideIndex,
 	selectionBounds,
-	updateThumbnail,
-	lastThumbnailTime,
 	focusedSlide,
 	setSlideIndex,
 	changeEditorSlide,
@@ -116,7 +114,7 @@ import {
 } from '@/stores/historyMeta'
 
 import { useShortcuts } from '@/composables/useShortcuts'
-import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
+import { saveChanges, saveCurrentState, isDirty } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import { useCommandHistory } from '@/composables/useCommandHistory'
@@ -127,7 +125,6 @@ const route = useRoute()
 const router = useRouter()
 
 let autosaveInterval = null
-let thumbnailInterval = null
 
 const props = defineProps({
 	presentationId: String,
@@ -169,14 +166,6 @@ const handleAutoSave = () => {
 	saveChanges()
 }
 
-const handleThumbnailGeneration = async (index) => {
-	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
-
-	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime.value) {
-		await updateThumbnail(index)
-	}
-}
-
 const updateRoute = async (slug) => {
 	if (props.slug == slug) return
 	router.replace({
@@ -186,11 +175,8 @@ const updateRoute = async (slug) => {
 	})
 }
 
-const initIntervals = () => {
+const initAutoSave = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
-	thumbnailInterval = setInterval(() => {
-		handleThumbnailGeneration(slideIndex.value)
-	}, 1500)
 }
 
 const loadPresentation = async (id) => {
@@ -206,7 +192,7 @@ const updateUnsyncedRecord = () => {
 }
 
 const handleBeforeUnload = (e) => {
-	if (isDirty.value || syncThumbnail > 0) {
+	if (isDirty.value) {
 		e.preventDefault()
 		e.returnValue = ''
 	}
@@ -229,7 +215,7 @@ const performAfterLoadOperations = () => {
 
 	if (inReadonlyMode.value) return
 
-	initIntervals()
+	initAutoSave()
 }
 
 const loadEditorState = async () => {
@@ -255,7 +241,6 @@ const hideOpenDialogs = () => {
 const handleBeforeUnmount = () => {
 	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
-	clearInterval(thumbnailInterval)
 
 	if (router.currentRoute.value.name !== 'Slideshow') {
 		resetFocus()
@@ -264,15 +249,6 @@ const handleBeforeUnmount = () => {
 	window.removeEventListener('beforeunload', handleBeforeUnload)
 	window.removeEventListener('popstate', hideOpenDialogs)
 }
-
-watch(
-	() => isDirty.value,
-	(val) => {
-		if (val) {
-			dirtySince.value = Date.now()
-		}
-	},
-)
 
 watch(
 	() => props.activeSlideId,
