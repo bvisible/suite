@@ -237,6 +237,11 @@ const loadEditorState = async () => {
 	if (!id) return
 
 	performBeforeLoadOperations()
+	if (presentationDoc.value && presentationId.value === id && slides.value.length) {
+		performAfterLoadOperations()
+		return
+	}
+
 	await loadPresentation(id)
 	performAfterLoadOperations()
 }
