@@ -1,14 +1,6 @@
 <template>
 	<div :class="getThumbnailClasses(slide)" :style="getThumbnailStyles(slide)">
-		<div :style="thumbnailViewStyles">
-			<SlideElement
-				v-for="element in slide?.elements"
-				:key="`export-${element.id}`"
-				mode="export"
-				:element="element"
-				:data-index="element.id"
-			/>
-		</div>
+		<SlidePreview :slide="slide" :scale="THUMBNAIL_SCALE" />
 		<div
 			class="absolute inset-0 flex w-full justify-between rounded p-2"
 			:style="getGradientOverlayStyles(slide)"
@@ -23,7 +15,7 @@
 import { focusedSlide, slides } from '@/stores/slide'
 import { recentlyRestored } from '@/stores/historyMeta'
 
-import SlideElement from '@/components/SlideElement.vue'
+import SlidePreview from '@/components/SlidePreview.vue'
 import TransitionIcon from '@/icons/TransitionIcon.vue'
 
 import { isBackgroundColorDark } from '@/utils/color'
@@ -46,16 +38,6 @@ const getGradientOverlayStyles = (slide) => {
 		background,
 		color: textColor,
 	}
-}
-
-const thumbnailViewStyles = {
-	width: '960px',
-	height: '540px',
-	transformOrigin: 'top left',
-	transform: `scale(${THUMBNAIL_SCALE})`,
-	position: 'absolute',
-	top: '0',
-	left: '0',
 }
 
 const getThumbnailClasses = (slide) => {

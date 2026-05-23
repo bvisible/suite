@@ -187,7 +187,8 @@ const updateUnsyncedRecord = () => {
 	unsyncedPresentationRecord.value = {
 		...unsyncedPresentationRecord.value,
 		modified: presentationDoc.value.modified,
-		thumbnail: slides.value[0]?.thumbnail,
+		thumbnail: presentationDoc.value.thumbnail,
+		slide_count: slides.value.length,
 	}
 }
 
