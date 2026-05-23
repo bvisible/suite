@@ -26,11 +26,17 @@
 					class="flex flex-col gap-3"
 				>
 					<div
-						class="m-1 aspect-video cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300"
+						class="m-1 aspect-video cursor-pointer overflow-hidden rounded-lg border border-gray-200 hover:border-gray-300"
 						:class="getThemeThumbnailClasses(theme.name)"
 						:style="getThemeThumbnailStyles(theme)"
 						@click="performAction(theme.name)"
-					></div>
+					>
+						<SlidePreview
+							v-if="shouldRenderPreview(theme)"
+							:slide="getThemePreviewLayout(theme)"
+							:scale="THEME_PREVIEW_SCALE"
+						/>
+					</div>
 					<div class="flex">
 						<LucideCheck
 							v-if="props.update && theme.name == presentationTheme"
@@ -47,11 +53,14 @@
 </template>
 
 <script setup>
-import { watch, nextTick, onMounted, computed } from 'vue'
-import { Dialog, createResource } from 'frappe-ui'
+import { watch, nextTick, computed } from 'vue'
+import { Dialog } from 'frappe-ui'
 
+import SlidePreview from '@/components/SlidePreview.vue'
 import { getThumbnailCardStyles } from '@/utils/helpers'
 import { presentationTheme, templateList } from '@/stores/presentation'
+
+const THEME_PREVIEW_SCALE = 310 / 960
 
 const props = defineProps({
 	update: {
@@ -98,9 +107,18 @@ const getThemeThumbnailClasses = (theme) => {
 		: ''
 }
 
-const getThemeThumbnailStyles = (theme) => {
+const getThemePreviewLayout = (theme) => {
 	const thumbnailIdx = ['Light', 'Dark'].includes(theme.title) ? 2 : 0
-	const presentationThumbnail = theme.layouts[thumbnailIdx].thumbnail
-	return getThumbnailCardStyles(presentationThumbnail)
+	return theme.layouts[thumbnailIdx] || theme.layouts[0]
+}
+
+const getThemeThumbnailStyles = (theme) => {
+	const layout = getThemePreviewLayout(theme)
+	return getThumbnailCardStyles(layout?.thumbnail)
+}
+
+const shouldRenderPreview = (theme) => {
+	const layout = getThemePreviewLayout(theme)
+	return layout && !layout.thumbnail
 }
 </script>

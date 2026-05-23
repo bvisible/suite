@@ -8,10 +8,16 @@
 				<div
 					v-for="layout in layouts"
 					:key="layout.idx"
-					class="aspect-video cursor-pointer rounded-lg border border-gray-300 hover:border-gray-400"
+					class="aspect-video cursor-pointer overflow-hidden rounded-lg border border-gray-300 hover:border-gray-400"
 					:style="getThumbnailCardStyles(layout.thumbnail)"
 					@click="insertSlideWithLayout(layout)"
-				></div>
+				>
+					<SlidePreview
+						v-if="layout.thumbnail == ''"
+						:slide="layout"
+						:scale="LAYOUT_PREVIEW_SCALE"
+					/>
+				</div>
 			</div>
 		</template>
 	</Dialog>
@@ -21,8 +27,11 @@
 import { watch, nextTick, computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
+import SlidePreview from '@/components/SlidePreview.vue'
 import { presentationTheme, templateList } from '@/stores/presentation'
 import { getThumbnailCardStyles } from '@/utils/helpers'
+
+const LAYOUT_PREVIEW_SCALE = 270 / 960
 
 const emit = defineEmits(['insert'])
 
