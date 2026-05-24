@@ -3,8 +3,8 @@
 		<div :style="slideStyles">
 			<SlideElement
 				v-for="element in elements"
-				:key="`preview-${element.id}`"
-				mode="export"
+				:key="`thumbnail-${element.id}`"
+				mode="thumbnail"
 				:element="element"
 				:data-index="element.id"
 			/>
