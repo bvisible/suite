@@ -4,6 +4,7 @@
 import base64
 import json
 import random
+import re
 import string
 import uuid
 
@@ -13,6 +14,9 @@ from frappe.model.document import Document
 from frappe.utils.caching import redis_cache
 
 SYSTEM_TEMPLATE_TITLES = {"Light", "Dark"}
+THUMBNAIL_MIME_TYPE = "image/webp"
+THUMBNAIL_EXTENSION = "webp"
+MAX_THUMBNAIL_BYTES = 6 * 1024 * 1024
 
 
 class Presentation(Document):
@@ -56,6 +60,93 @@ def save_base64_image(base64_data: str, presentation_name: str, prefix: str) -> 
 	).insert()
 
 	return file_doc.file_url
+
+
+@frappe.whitelist()
+def save_presentation_thumbnail(presentation_name: str, base64_data: str) -> str:
+	presentation = frappe.get_doc("Presentation", presentation_name)
+	presentation.check_permission("write")
+
+	file_url = create_or_update_thumbnail_file(presentation_name, base64_data)
+
+	if presentation.thumbnail != file_url:
+		presentation.db_set("thumbnail", file_url)
+	return file_url
+
+
+def get_thumbnail_content(base64_data: str) -> tuple[bytes, str]:
+	match = re.match(r"^data:(image/[^;]+);base64,(.+)$", base64_data or "", re.DOTALL)
+	if not match:
+		frappe.throw("Invalid thumbnail data")
+
+	mime_type, encoded_content = match.groups()
+	if mime_type != THUMBNAIL_MIME_TYPE:
+		frappe.throw("Unsupported thumbnail image type")
+
+	try:
+		content = base64.b64decode(encoded_content, validate=True)
+	except Exception:
+		frappe.throw("Invalid thumbnail image data")
+
+	if len(content) > MAX_THUMBNAIL_BYTES:
+		frappe.throw("Thumbnail image is too large")
+
+	return content, THUMBNAIL_EXTENSION
+
+
+def create_or_update_thumbnail_file(presentation_name: str, base64_data: str) -> str:
+	content, ext = get_thumbnail_content(base64_data)
+	file_name = f"presentation-thumbnail-{presentation_name}.{ext}"
+
+	file_doc_name = frappe.db.exists(
+		"File",
+		{
+			"attached_to_doctype": "Presentation",
+			"attached_to_name": presentation_name,
+			"file_name": file_name,
+			"is_private": 1,
+		},
+	)
+
+	if file_doc_name:
+		file = update_thumbnail_file(file_doc_name, content)
+		return file.file_url
+
+	return create_thumbnail_file(presentation_name, file_name, content)
+
+
+def update_thumbnail_file(file_doc_name: str, content: bytes) -> Document:
+	file = frappe.get_doc("File", file_doc_name)
+	file.save_file(
+		content=content,
+		ignore_existing_file_check=True,
+		overwrite=True,
+	)
+	frappe.db.set_value(
+		"File",
+		file.name,
+		{
+			"file_size": file.file_size,
+			"content_hash": file.content_hash,
+			"file_url": file.file_url,
+		},
+	)
+	return file
+
+
+def create_thumbnail_file(presentation_name: str, file_name: str, content: bytes) -> str:
+	file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"attached_to_doctype": "Presentation",
+			"attached_to_name": presentation_name,
+			"file_name": file_name,
+			"is_private": 1,
+			"content": content,
+		}
+	).insert()
+
+	return file.file_url
 
 
 def slug(text: str) -> str:
