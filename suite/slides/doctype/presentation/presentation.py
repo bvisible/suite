@@ -39,7 +39,7 @@ class Presentation(Document):
 
 
 @frappe.whitelist()
-def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str) -> str:
+def save_base64_image(base64_data: str, presentation_name: str, prefix: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"{prefix}-{uuid.uuid4().hex[:6]}.{ext}"
