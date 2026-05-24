@@ -46,7 +46,7 @@
   {
    "depends_on": "eval:!doc.is_composite",
    "fieldname": "thumbnail",
-   "fieldtype": "Long Text",
+   "fieldtype": "Attach Image",
    "label": "Thumbnail"
   },
   {
@@ -94,7 +94,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-23 20:21:18.415223",
+ "modified": "2026-05-24 14:22:31.171442",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",
