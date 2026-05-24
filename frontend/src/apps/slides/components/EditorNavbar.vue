@@ -10,6 +10,12 @@
 			</div>
 		</template>
 		<template v-if="!inReadonlyMode" #actions>
+			<Button
+				variant="subtle"
+				label="Generate Thumbnail"
+				:loading="generatingThumbnail"
+				@click="emit('generateThumbnail')"
+			/>
 			<Badge v-if="!isOnline" variant="subtle" theme="orange" size="md">
 				<LucideWifiOff class="mr-1 size-3.5 stroke-[1.5]" />
 				<span>Offline</span>
@@ -35,7 +41,14 @@ import { useRoute } from 'vue-router'
 const isOnline = inject('isOnline', ref(false))
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
-const emit = defineEmits(['startSlideShow', 'performDropdownAction'])
+defineProps({
+	generatingThumbnail: {
+		type: Boolean,
+		default: false,
+	},
+})
+
+const emit = defineEmits(['startSlideShow', 'performDropdownAction', 'generateThumbnail'])
 
 const route = useRoute()
 
