@@ -368,6 +368,8 @@ def get_webp_doc(presentation_name, file_doc):
 	if can_convert_image(extn):
 		return create_new_webp_file_doc(presentation_name, file_url, image, extn)
 
+	return file_doc
+
 
 def update_element_urls(presentation, element):
 	attribute = "poster" if element.get("type") == "video" else "src"
