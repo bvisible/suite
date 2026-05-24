@@ -4,8 +4,10 @@
 		@click="focusedSlide = null"
 	>
 		<EditorNavbar
+			:generatingThumbnail="isGeneratingThumbnail"
 			@startSlideShow="startSlideShow"
 			@performDropdownAction="performNavbarDropdownAction"
+			@generateThumbnail="generatePresentationThumbnail"
 		/>
 
 		<div class="relative flex h-screen bg-gray-300">
@@ -53,6 +55,12 @@
 	<teleport to="body">
 		<ExportView v-if="showExportView" :slides="slides" />
 	</teleport>
+
+	<PresentationThumbnailCapture
+		v-if="presentationDoc && !inReadonlyMode && slides.length"
+		ref="thumbnailCapture"
+		:slide="slides[0]"
+	/>
 </template>
 
 <script setup>
@@ -68,11 +76,12 @@ import {
 } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
-import { call, usePageMeta } from 'frappe-ui'
+import { call, toast, usePageMeta } from 'frappe-ui'
 
 import ExportView from '@/pages/ExportView.vue'
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
+import PresentationThumbnailCapture from '@/components/PresentationThumbnailCapture.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
@@ -148,6 +157,8 @@ const showLayoutDialog = ref(false)
 const layoutAction = ref('')
 const insertIndex = ref(null)
 const showExportView = ref(false)
+const isGeneratingThumbnail = ref(false)
+const thumbnailCapture = useTemplateRef('thumbnailCapture')
 
 const historyMetaForCommandHistory = {
 	actions: historyMetaActions,
@@ -375,6 +386,37 @@ const performNavbarDropdownAction = async (action) => {
 		showThemeDialog.value = true
 	} else if (action == 'export') {
 		exportPdf()
+	}
+}
+
+const generatePresentationThumbnail = async () => {
+	if (!presentationDoc.value?.name || !thumbnailCapture.value || isGeneratingThumbnail.value) {
+		return
+	}
+
+	const presentationName = presentationDoc.value.name
+	isGeneratingThumbnail.value = true
+	const thumbnailPromise = thumbnailCapture.value
+		.capture()
+		.then((base64Data) =>
+			call('slides.slides.doctype.presentation.presentation.save_presentation_thumbnail', {
+				presentation_name: presentationName,
+				base64_data: base64Data,
+			}),
+		)
+		.then((thumbnail) => {
+			presentationDoc.value.thumbnail = thumbnail
+			return thumbnail
+		})
+
+	try {
+		await toast.promise(thumbnailPromise, {
+			loading: 'Generating thumbnail...',
+			success: 'Thumbnail generated',
+			error: 'Could not generate thumbnail',
+		})
+	} finally {
+		isGeneratingThumbnail.value = false
 	}
 }
 
