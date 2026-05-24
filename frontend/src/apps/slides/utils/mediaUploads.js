@@ -8,19 +8,18 @@ import { session } from '@/stores/session'
 
 const fileUploadHandler = new FileUploadHandler()
 
-const performPostUploadActions = async (fileDoc, fileType, targetElement, resolve) => {
+const performPostUploadActions = async (fileDoc, fileType, targetElement) => {
 	if (fileType === 'image') {
 		fileDoc = await getWebPDoc(fileDoc)
 	}
 
 	if (targetElement) {
-		replaceMediaElement(targetElement, fileDoc, fileType)
-		resolve(fileDoc)
-		return
+		await replaceMediaElement(targetElement, fileDoc, fileType)
+		return fileDoc
 	}
 
-	addMediaElement(fileDoc, fileType)
-	resolve(fileDoc)
+	await addMediaElement(fileDoc, fileType)
+	return fileDoc
 }
 
 const uploadMedia = (file, fileType, targetElement) => {
@@ -31,7 +30,8 @@ const uploadMedia = (file, fileType, targetElement) => {
 				docname: presentationId.value,
 				private: true,
 			})
-			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetElement, resolve))
+			.then((fileDoc) => performPostUploadActions(fileDoc, fileType, targetElement))
+			.then(resolve)
 			.catch((error) => {
 				reject(error)
 			})
@@ -82,6 +82,8 @@ const getToastProps = (file, index, length) => {
 }
 
 export const handleUploadedMedia = (files, targetElement) => {
+	files = Array.from(files)
+
 	let toastProps = {}
 
 	if (files.length == 1) {
