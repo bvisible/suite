@@ -358,7 +358,7 @@ async function duplicate(sheet) {
      (the editor wants pixel-perfect viewport control). So Home owns its own
      scroll: a fixed-height column where the body region scrolls. */
   height: 100vh;
-  background: var(--surface-gray-1);
+  background: var(--surface-white);
   font-family: InterVar, ui-sans-serif, system-ui, sans-serif;
   color: var(--ink-gray-9);
 }

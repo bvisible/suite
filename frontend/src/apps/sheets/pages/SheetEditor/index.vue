@@ -385,6 +385,10 @@
           @dragover.prevent="onTabDragOver($event, name)"
           @drop.prevent="onTabDrop($event, name)"
         >
+          <!-- One visual unit: label + (active-only) chevron share a single
+               pill background so they read as one button. The chevron only
+               renders on the active tab; right-click on any inactive tab
+               opens the same menu. -->
           <Button
             variant="ghost"
             size="sm"
@@ -396,6 +400,7 @@
             @contextmenu.prevent="openTabMenu($event, name)"
           />
           <Button
+            v-if="name === currentSheet"
             variant="ghost"
             size="sm"
             icon="chevron-down"
@@ -1243,6 +1248,24 @@ const { exportCSV, exportXLSX, exportPDF, importCSV, importXLSX } = useExportImp
 
 const filterPanel = reactive({
   open: false, col: 0, operator: 'contains', value: '', style: {},
+})
+
+// Auto-close the filter popover on any click outside its body or the
+// chevron that opened it. Mirrors how Google Sheets handles this — users
+// shouldn't have to remember to hit "Close" before editing a cell.
+function _filterPanelOutsideClick(e) {
+  const t = e.target
+  if (!t || !(t instanceof Element)) return
+  if (t.closest('.sn-filter-panel')) return     // click inside the popover itself
+  if (t.closest('.sn-filter-btn'))   return     // click on a chevron toggles its own panel
+  filterPanel.open = false
+}
+watch(() => filterPanel.open, (open) => {
+  // `mousedown` (not click) so the close fires before any other component
+  // gets the focus/selection event — keeps the panel from leaving stale
+  // state behind when the user just clicks elsewhere in the sheet.
+  if (open) document.addEventListener('mousedown', _filterPanelOutsideClick, true)
+  else      document.removeEventListener('mousedown', _filterPanelOutsideClick, true)
 })
 
 let grid = null
@@ -3450,36 +3473,52 @@ function toggleShowFormulas() {
 .sn-tabs-track::-webkit-scrollbar { display:none; }
 
 .sn-tab {
-  display:inline-flex; align-items:stretch; flex-shrink:0;
+  display:inline-flex; align-items:center; flex-shrink:0;
   position:relative; cursor:grab;
+  /* The tab itself owns the pill background so label + chevron merge
+     into a single visual unit — no inter-button seam, no double-pill
+     look. The inner Buttons are transparent and rely on this wrapper
+     for their background. */
+  border-radius:6px;
+  transition:background-color .12s;
 }
 .sn-tab:active { cursor:grabbing; }
+.sn-tab:hover  { background:var(--surface-gray-2); }
+.sn-tab--active,
+.sn-tab--active:hover { background:var(--surface-gray-3); }
 
 /* Active indicator: 2px line at the bottom */
 .sn-tab--active::after {
-  content:''; position:absolute; bottom:0; left:6px; right:6px;
+  content:''; position:absolute; bottom:-2px; left:6px; right:6px;
   height:2px; background:var(--ink-gray-9); border-radius:1px 1px 0 0;
 }
 .sn-tab--pivot.sn-tab--active::after { background:var(--ink-cyan-7, #0e7490); }
 
-/* Main label Button */
+/* Main label Button — transparent so the wrapper's pill shows through.
+   No internal hover/active background; that lives on `.sn-tab` itself. */
 .sn-tab-btn { max-width:148px; }
 .sn-tab-btn :deep(button) {
-  font-size:12px; font-weight:400; color:var(--ink-gray-6);
-  padding:0 6px 0 10px; height:100%;
+  font-size:12px; font-weight:400; color:var(--ink-gray-7);
+  padding:0 8px; height:28px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   max-width:148px; border-radius:0;
+  background:transparent !important;
 }
-.sn-tab:hover .sn-tab-btn :deep(button) { color:var(--ink-gray-8); background:transparent; }
-.sn-tab--active .sn-tab-btn :deep(button) { font-weight:600; color:var(--ink-gray-9); }
+.sn-tab--active .sn-tab-btn :deep(button) { font-weight:600; color:var(--ink-gray-9); padding-right:2px; }
 
 /* Pivot icon tint */
 .sn-tab--pivot .sn-tab-btn :deep(.icon) { color:var(--ink-cyan-7, #0e7490); }
 
-/* Chevron — only on hover */
-.sn-tab-chevron { opacity:0; transition:opacity .1s; align-self:center; }
-.sn-tab:hover .sn-tab-chevron { opacity:1; }
-.sn-tab-chevron :deep(button) { padding:0 3px; border-radius:4px; }
+/* Chevron — active-tab only, sits flush against the label inside the
+   same pill so the two read as one button. */
+.sn-tab-chevron :deep(button) {
+  padding:0 6px 0 2px;
+  height:28px;
+  border-radius:0;
+  background:transparent !important;
+  color:var(--ink-gray-6);
+}
+.sn-tab-chevron :deep(button:hover) { color:var(--ink-gray-9); }
 
 /* Add-sheet button */
 .sn-tab-add { flex-shrink:0; align-self:center; margin:0 2px; }
