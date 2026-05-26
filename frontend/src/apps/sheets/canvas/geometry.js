@@ -1,8 +1,12 @@
 import { COL_HEADER_H, ROW_HEADER_W, DEFAULT_COL_W, DEFAULT_ROW_H, TOTAL_ROWS, TOTAL_COLS } from './constants.js'
 
-export function createGeometry(colW, rowH, scroll, freeze = { rows: 0, cols: 0 }, hiddenRows = null, hiddenCols = null, getZoom = () => 1) {
+export function createGeometry(colW, rowH, scroll, freeze = { rows: 0, cols: 0 }, hiddenRows = null, hiddenCols = null, getZoom = () => 1, filterHiddenRows = null) {
   const cw = c => (hiddenCols && hiddenCols.has(c)) ? 0 : (colW[c] ?? DEFAULT_COL_W)
   const rh = r => (hiddenRows && hiddenRows.has(r)) ? 0 : (rowH[r] ?? DEFAULT_ROW_H)
+  // Distinguishes filter-hidden rows (transient, many small gaps) from
+  // manually-hidden rows so the grid painter can draw the bold "there's
+  // something hidden here" boundary only for the manual variety.
+  const isFilterHidden = r => !!(filterHiddenRows && filterHiddenRows.has(r))
   // Convert page coordinates into the renderer's *logical* coordinate system.
   // Renderer scales ctx by zoom; mouse coords come in physical CSS pixels.
   const _logical = (ex, ey, canvasRect) => {
@@ -205,7 +209,7 @@ export function createGeometry(colW, rowH, scroll, freeze = { rows: 0, cols: 0 }
   function setRowHeight(r, h) { rowH[r] = Math.max(16, h) }
 
   return {
-    cw, rh, colX, rowY, frozenW, frozenH,
+    cw, rh, colX, rowY, frozenW, frozenH, isFilterHidden,
     firstVisCol, firstVisRow, lastVisCol, lastVisRow,
     hitTest, clamp,
     hitTestColResize, hitTestColHeader, hitTestRowHeader, hitTestCorner,

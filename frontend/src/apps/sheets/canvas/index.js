@@ -29,6 +29,11 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   const freeze     = { rows: 0, cols: 0 }
   const hiddenRows = new Set()
   const hiddenCols = new Set()
+  // Subset of hiddenRows that came from an active filter (vs a manual hide).
+  // Tracked separately so grid-painter can suppress the bold "rows hidden
+  // here" marker for filter gaps, which would otherwise cover every row
+  // boundary in a filtered region.
+  const filterHiddenRows = new Set()
   let cssW = 0, cssH = 0
 
   // Marching-ants rect drawn over cut/copy source until paste/Escape clears it.
@@ -41,7 +46,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
   let _acEl = null, _acItems = [], _acIdx = 0
 
-  const geo      = createGeometry(colW, rowH, scroll, freeze, hiddenRows, hiddenCols, () => _zoom)
+  const geo      = createGeometry(colW, rowH, scroll, freeze, hiddenRows, hiddenCols, () => _zoom, filterHiddenRows)
   const renderer = createRenderer(ctx, geo)
   const overlay  = createOverlay(canvas.parentElement)
   _acSetup()
@@ -1214,18 +1219,30 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     if (e.key === 'Tab') {
       e.preventDefault()
       if (_tabAnchorCol === null) _tabAnchorCol = c
-      moveSel(r, e.shiftKey ? c - 1 : c + 1)
+      const dc = e.shiftKey ? -1 : 1
+      moveSel(r, _skipHiddenC(c + dc, dc))
       return
     }
     if (e.key === 'Enter') {
       e.preventDefault()
       const anchorC = _tabAnchorCol ?? c
       _tabAnchorCol = null
-      moveSel(r + 1, e.shiftKey ? r - 1 : anchorC)
+      const dr = e.shiftKey ? -1 : 1
+      moveSel(_skipHiddenR(r + dr, dr), anchorC)
       return
     }
-    const moves = { ArrowUp:[r-1,c], ArrowDown:[r+1,c], ArrowLeft:[r,c-1], ArrowRight:[r,c+1] }
-    if (moves[e.key]) { e.preventDefault(); _tabAnchorCol = null; moveSel(...moves[e.key]) }
+    const moves = { ArrowUp:[r-1,c,-1,0], ArrowDown:[r+1,c,1,0], ArrowLeft:[r,c-1,0,-1], ArrowRight:[r,c+1,0,1] }
+    if (moves[e.key]) {
+      e.preventDefault()
+      _tabAnchorCol = null
+      const [nr, nc, dr, dc] = moves[e.key]
+      // Step past any hidden rows/cols so e.g. ArrowDown over a filter gap
+      // lands on the next *visible* row instead of dropping the selection
+      // into a 0-height row the user can't see.
+      const tr = dr !== 0 ? _skipHiddenR(nr, dr) : nr
+      const tc = dc !== 0 ? _skipHiddenC(nc, dc) : nc
+      moveSel(tr, tc)
+    }
   })
 
   // ── Public API ───────────────────────────────────────────────────────────────
@@ -1342,6 +1359,17 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     render()
   }
 
+  // Tag a subset of the already-hidden rows as "filter hidden". Must be a
+  // subset of whatever was just passed to setHiddenRows. Caller is expected
+  // to push the union to setHiddenRows first, then call this to tag the
+  // filter portion so the painter can render the gap as a flat gridline
+  // instead of a bold boundary.
+  function setFilterHiddenRows(newSet) {
+    filterHiddenRows.clear()
+    for (const r of newSet) filterHiddenRows.add(r)
+    render()
+  }
+
   function setHiddenCols(newSet) {
     hiddenCols.clear()
     for (const c of newSet) hiddenCols.add(c)
@@ -1431,7 +1459,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     moveTo: (r, c) => moveSel(r, c),
     getColWidth, setColWidth, getRowHeight, setRowHeight,
     shiftRowHeights, shiftColWidths, getHitRegion,
-    setFreeze, setHiddenRows, setHiddenCols, getHiddenRows, getHiddenCols,
+    setFreeze, setHiddenRows, setHiddenCols, setFilterHiddenRows, getHiddenRows, getHiddenCols,
     getColumnHeaderRects, getRow0Rect, getRowRect, onRender,
     setMarchingAnts,
     // Pixel rect (canvas-local CSS coords, zoom-applied) for one cell —

@@ -1,6 +1,7 @@
 import { COLORS, COL_HEADER_H, ROW_HEADER_W } from '../constants.js'
 
-export function createGridPainter(ctx, { cw, rh, colX, rowY }) {
+export function createGridPainter(ctx, { cw, rh, colX, rowY, isFilterHidden }) {
+  const _isFilterHidden = isFilterHidden || (() => false)
 
   function drawGridLines(r0, c0, r1, c1, cssW, cssH) {
     _drawMainGridLines(r0, c0, r1, c1, cssW, cssH)
@@ -33,7 +34,11 @@ export function createGridPainter(ctx, { cw, rh, colX, rowY }) {
       }
     }
     for (let r = r0; r <= r1; r++) {
-      if (rh(r) > 0 && rh(r + 1) === 0) {
+      // Only draw the bold "rows hidden here" marker for manually-hidden
+      // rows. Filter hides produce many small gaps in normal use; a bold
+      // line at each transition reads as chart-junk. The regular gridline
+      // at this y is still drawn by _drawMainGridLines.
+      if (rh(r) > 0 && rh(r + 1) === 0 && !_isFilterHidden(r + 1)) {
         const y = rowY(r) + rh(r) + 0.5
         ctx.moveTo(ROW_HEADER_W, y); ctx.lineTo(cssW, y)
       }

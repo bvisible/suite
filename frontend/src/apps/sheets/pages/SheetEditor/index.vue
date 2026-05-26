@@ -3135,6 +3135,9 @@ function _applyHiddenRows() {
   const filterHidden = sortFilter.computeHiddenRows(sheet.getCurrentSheet())
   const union = new Set([...filterHidden, ...manualHiddenRows])
   grid?.setHiddenRows(union)
+  // Tag the filter subset so grid-painter can render those gaps with the
+  // regular gridline color instead of the bold "rows hidden here" stroke.
+  grid?.setFilterHiddenRows(filterHidden)
 }
 
 function _applyHiddenCols() {
