@@ -68,6 +68,18 @@ const NUMBER_LOCALES = {
   'in': 'en-IN',
 }
 
+// Date variants. Each maps to a (locale, Intl.DateTimeFormat options) pair.
+// '' is the legacy behaviour — defer to the user's locale's toLocaleDateString.
+// Locales are pinned so the *shape* is stable across machines; users who want
+// browser-locale output can stay on the default.
+const DATE_FORMATTERS = {
+  dmy:  ['en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }],   // 15/01/2025
+  mdy:  ['en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }],   // 01/15/2025
+  ymd:  ['en-CA', { day: '2-digit', month: '2-digit', year: 'numeric' }],   // 2025-01-15
+  long: ['en-GB', { day: 'numeric', month: 'short', year: 'numeric' }],     // 15 Jan 2025
+  full: ['en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }], // Mon, 15 Jan 2025
+}
+
 export function applyNumberFmt(value, format) {
   if (!format) return value
   const { type, variant, decimals } = parseNumberFmt(format)
@@ -90,8 +102,11 @@ export function applyNumberFmt(value, format) {
   }
   if (type === 'percentage') return (n * 100).toFixed(decimals ?? 2) + '%'
   if (type === 'date') {
-    const d = parseFloat(value)
-    return isNaN(d) ? value : new Date(d).toLocaleDateString()
+    const ms = parseFloat(value)
+    if (isNaN(ms)) return value
+    const d = new Date(ms)
+    const cfg = DATE_FORMATTERS[variant]
+    return cfg ? new Intl.DateTimeFormat(cfg[0], cfg[1]).format(d) : d.toLocaleDateString()
   }
   return value
 }

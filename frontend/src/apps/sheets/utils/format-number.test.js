@@ -150,6 +150,49 @@ describe('applyNumberFmt — currency variants', () => {
   })
 })
 
+describe('applyNumberFmt — date variants', () => {
+  // 2025-01-15T00:00:00 UTC — exact ms varies with the test-runner TZ, so we
+  // assert on character/format shape rather than exact string.
+  const ms = Date.UTC(2025, 0, 15)
+
+  it('bare `date` defers to user locale (legacy)', () => {
+    // Just verify we get *some* date-like string, not the raw number.
+    const out = applyNumberFmt(ms, 'date')
+    expect(out).not.toBe(String(ms))
+    expect(out).toMatch(/\d/)
+  })
+
+  it('date:dmy → DD/MM/YYYY', () => {
+    expect(applyNumberFmt(ms, 'date:dmy')).toMatch(/^\d{2}\/\d{2}\/\d{4}$/)
+  })
+
+  it('date:mdy → MM/DD/YYYY', () => {
+    expect(applyNumberFmt(ms, 'date:mdy')).toMatch(/^\d{2}\/\d{2}\/\d{4}$/)
+  })
+
+  it('date:ymd → YYYY-MM-DD', () => {
+    expect(applyNumberFmt(ms, 'date:ymd')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('date:long → "15 Jan 2025"', () => {
+    const out = applyNumberFmt(ms, 'date:long')
+    expect(out).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}$/)
+  })
+
+  it('date:full → weekday-prefixed long date', () => {
+    const out = applyNumberFmt(ms, 'date:full')
+    expect(out).toMatch(/^[A-Z][a-z]{2}, \d{1,2} [A-Z][a-z]{2} \d{4}$/)
+  })
+
+  it('unknown date variant falls back to locale default', () => {
+    expect(applyNumberFmt(ms, 'date:xyz')).toMatch(/\d/)
+  })
+
+  it('non-numeric value passes through (no ms-since-epoch to parse)', () => {
+    expect(applyNumberFmt('hello', 'date:dmy')).toBe('hello')
+  })
+})
+
 describe('applyNumberFmt — number variants', () => {
   it('number:in groups as Indian lakhs', () => {
     expect(applyNumberFmt(1234567, 'number:in:0')).toBe('12,34,567')
