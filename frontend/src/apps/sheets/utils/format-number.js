@@ -45,9 +45,32 @@ export function buildNumberFmt(type, variant, decimals) {
   return type
 }
 
+// Supported currencies. `locale` drives symbol placement, thousand grouping,
+// and decimal separator. `defaultDecimals` matters for JPY (whole yen) — the
+// rest are 2 by default. Keep this list short on purpose; "More currencies"
+// can be a follow-up.
+export const CURRENCIES = {
+  USD: { symbol: '$',  locale: 'en-US', defaultDecimals: 2 },
+  EUR: { symbol: '€',  locale: 'de-DE', defaultDecimals: 2 },
+  GBP: { symbol: '£',  locale: 'en-GB', defaultDecimals: 2 },
+  INR: { symbol: '₹',  locale: 'en-IN', defaultDecimals: 2 },
+  JPY: { symbol: '¥',  locale: 'ja-JP', defaultDecimals: 0 },
+  CAD: { symbol: 'C$', locale: 'en-CA', defaultDecimals: 2 },
+  AUD: { symbol: 'A$', locale: 'en-AU', defaultDecimals: 2 },
+  CNY: { symbol: '¥',  locale: 'zh-CN', defaultDecimals: 2 },
+}
+
+// Number variant → locale used by Intl.NumberFormat. 'in' gives the Indian
+// lakhs/crores grouping (12,34,56,789). '' means user-default locale.
+const NUMBER_LOCALES = {
+  '':   undefined,
+  'us': 'en-US',
+  'in': 'en-IN',
+}
+
 export function applyNumberFmt(value, format) {
   if (!format) return value
-  const { type, decimals } = parseNumberFmt(format)
+  const { type, variant, decimals } = parseNumberFmt(format)
   // Text format leaves the value untouched (no numeric coercion at display).
   // Cells flagged 'text' should also be treated as text in formulas; that's
   // handled by the engine's strict-arithmetic — see toNumStrict.
@@ -55,13 +78,15 @@ export function applyNumberFmt(value, format) {
   const n = parseFloat(value)
   if (isNaN(n) && type !== 'date') return value
   if (type === 'number') {
-    return decimals == null
-      ? n.toLocaleString()
-      : n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    const loc = NUMBER_LOCALES[variant] !== undefined ? NUMBER_LOCALES[variant] : undefined
+    const opts = decimals == null ? {} : { minimumFractionDigits: decimals, maximumFractionDigits: decimals }
+    return n.toLocaleString(loc, opts)
   }
   if (type === 'currency') {
-    const d = decimals ?? 2
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: d, maximumFractionDigits: d }).format(n)
+    const code = CURRENCIES[variant] ? variant : 'USD'
+    const cfg  = CURRENCIES[code]
+    const d    = decimals ?? cfg.defaultDecimals
+    return new Intl.NumberFormat(cfg.locale, { style: 'currency', currency: code, minimumFractionDigits: d, maximumFractionDigits: d }).format(n)
   }
   if (type === 'percentage') return (n * 100).toFixed(decimals ?? 2) + '%'
   if (type === 'date') {

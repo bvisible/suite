@@ -105,3 +105,63 @@ describe('applyNumberFmt — backwards-compat baseline', () => {
     expect(applyNumberFmt('abc', 'currency')).toBe('abc')
   })
 })
+
+describe('applyNumberFmt — currency variants', () => {
+  // Intl output is locale-data-dependent, so assertions check for the
+  // currency symbol + the grouped digits rather than exact glyph-for-glyph.
+  it('USD uses $ with US grouping', () => {
+    const out = applyNumberFmt(1234567.89, 'currency:USD:2')
+    expect(out).toContain('$')
+    expect(out).toContain('1,234,567')
+  })
+
+  it('INR uses ₹ with Indian lakhs grouping', () => {
+    const out = applyNumberFmt(1234567.89, 'currency:INR:2')
+    expect(out).toContain('₹')
+    // en-IN groups as 12,34,567 — first group is 3, then 2s.
+    expect(out).toContain('12,34,567')
+  })
+
+  it('EUR formats with € (de-DE conventions)', () => {
+    const out = applyNumberFmt(1234.5, 'currency:EUR:2')
+    expect(out).toContain('€')
+    // de-DE uses period as thousands sep: 1.234,50
+    expect(out).toMatch(/1[.\s  ]234/)
+  })
+
+  it('GBP uses £', () => {
+    expect(applyNumberFmt(99, 'currency:GBP:0')).toContain('£')
+  })
+
+  it('JPY defaults to 0 decimals', () => {
+    const out = applyNumberFmt(12345, 'currency:JPY')
+    // ja-JP locale emits fullwidth yen (￥); en-* would emit halfwidth (¥).
+    expect(out).toMatch(/[¥￥]/)
+    expect(out).not.toContain('.')
+  })
+
+  it('unknown currency variant falls back to USD', () => {
+    expect(applyNumberFmt(10, 'currency:XYZ:0')).toBe('$10')
+  })
+
+  it('bare `currency` still defaults to USD (backwards-compat)', () => {
+    expect(applyNumberFmt(10, 'currency:0')).toBe('$10')
+    expect(applyNumberFmt(10, 'currency')).toMatch(/^\$10/)
+  })
+})
+
+describe('applyNumberFmt — number variants', () => {
+  it('number:in groups as Indian lakhs', () => {
+    expect(applyNumberFmt(1234567, 'number:in:0')).toBe('12,34,567')
+  })
+
+  it('number:us groups with commas every 3 digits', () => {
+    expect(applyNumberFmt(1234567, 'number:us:0')).toBe('1,234,567')
+  })
+
+  it('legacy number:N (no variant) keeps user-default grouping', () => {
+    // Just verify the function doesn't throw and emits something sensible —
+    // the exact grouping depends on test-runner locale.
+    expect(applyNumberFmt(1234, 'number:0')).toMatch(/\d/)
+  })
+})
