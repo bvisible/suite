@@ -96,8 +96,16 @@
     <div class="sn-toolbar">
 
       <!-- Number format -->
-      <FormControl type="select" size="sm" :model-value="activeNumberFormatType" :options="NUMBER_FORMAT_OPTIONS" @update:model-value="onNumberFormatChange" />
-      <Button :variant="activeNumberFormatType === 'currency'   ? 'subtle' : 'ghost'" size="sm" label="$" tooltip="Currency"   @click="toggleNumberFmt('currency')" />
+      <Dropdown :options="numberFormatDropdownOptions" placement="left" class="sn-numfmt">
+        <template #default="{ open }">
+          <Button :variant="open ? 'subtle' : 'ghost'" size="sm" iconRight="chevron-down" :label="numberFormatLabel" tooltip="Number format" />
+        </template>
+      </Dropdown>
+      <Dropdown :options="currencyDropdownOptions" placement="left" class="sn-currency">
+        <template #default="{ open }">
+          <Button :variant="activeNumberFormatType === 'currency' ? 'subtle' : (open ? 'subtle' : 'ghost')" size="sm" :label="activeCurrencySymbol" tooltip="Currency" />
+        </template>
+      </Dropdown>
       <Button :variant="activeNumberFormatType === 'percentage' ? 'subtle' : 'ghost'" size="sm" label="%" tooltip="Percentage" @click="toggleNumberFmt('percentage')" />
       <Button :variant="activeNumberFormatType === 'number'     ? 'subtle' : 'ghost'" size="sm" label="," tooltip="Thousands separator" @click="toggleNumberFmt('number')" />
       <div class="sn-tool-extra">
@@ -1176,13 +1184,54 @@ const FONT_FAMILY_STACK = {
 // `activeFontFamilyKey` is defined further down — after the useToolbar() call
 // that creates `activeFormat`. See "Composables" block.
 
-const NUMBER_FORMAT_OPTIONS = [
-  { label: 'General',    value: '' },
-  { label: 'Number',     value: 'number' },
-  { label: 'Currency',   value: 'currency' },
-  { label: 'Percentage', value: 'percentage' },
-  { label: 'Date',       value: 'date' },
-  { label: 'Text',       value: 'text' },
+// Flat list driving the dropdown — groups give the menu its sectioned layout.
+// Each entry is a stored format string; clicking applies it as-is.
+const NUMBER_FORMAT_GROUPS = [
+  { group: 'General', items: [
+    { label: 'General',         value: ''            },
+    { label: 'Plain text',      value: 'text'        },
+  ]},
+  { group: 'Number', items: [
+    { label: 'Decimal',         value: 'number'      },
+    { label: 'Decimal — Indian (1,23,456)', value: 'number:in' },
+    { label: 'Percent',         value: 'percentage'  },
+  ]},
+  { group: 'Currency', items: [
+    { label: 'USD ($)',         value: 'currency:USD:2' },
+    { label: 'EUR (€)',         value: 'currency:EUR:2' },
+    { label: 'GBP (£)',         value: 'currency:GBP:2' },
+    { label: 'INR (₹)',         value: 'currency:INR:2' },
+    { label: 'JPY (¥)',         value: 'currency:JPY:0' },
+  ]},
+  { group: 'Date', items: [
+    { label: 'Auto (locale)',           value: 'date'         },
+    { label: 'DD/MM/YYYY',              value: 'date:dmy'     },
+    { label: 'MM/DD/YYYY',              value: 'date:mdy'     },
+    { label: 'YYYY-MM-DD',              value: 'date:ymd'     },
+    { label: '15 Jan 2025',             value: 'date:long'    },
+    { label: 'Mon, 15 Jan 2025',        value: 'date:full'    },
+  ]},
+  { group: 'Time', items: [
+    { label: '15:30',           value: 'time:hm'     },
+    { label: '15:30:45',        value: 'time:hms'    },
+    { label: '3:30 PM',         value: 'time:hm12'   },
+    { label: '3:30:45 PM',      value: 'time:hms12'  },
+  ]},
+  { group: 'Date + Time', items: [
+    { label: '15/01/2025, 3:30 PM',     value: 'datetime:dmy_hm12'  },
+    { label: '15 Jan 2025, 3:30 PM',    value: 'datetime:long_hm12' },
+    { label: '2025-01-15, 15:30:00',    value: 'datetime:ymd_hms'   },
+  ]},
+]
+
+// Quick-pick currencies surfaced via the $ button. Click cycles to that
+// currency; clicking the active one toggles currency back off.
+const CURRENCY_QUICK_PICKS = [
+  { label: 'USD ($)', code: 'USD', symbol: '$' },
+  { label: 'EUR (€)', code: 'EUR', symbol: '€' },
+  { label: 'GBP (£)', code: 'GBP', symbol: '£' },
+  { label: 'INR (₹)', code: 'INR', symbol: '₹' },
+  { label: 'JPY (¥)', code: 'JPY', symbol: '¥' },
 ]
 
 const BORDER_STYLE_OPTIONS = [
@@ -1372,6 +1421,58 @@ const fontFamilyDropdownOptions = computed(() =>
     label: o.label,
     onClick: () => setFontFamily(o.value),
   }))
+)
+
+// Maps the stored format string → human label shown on the dropdown trigger.
+// Falls back to the type when the exact format isn't a named preset (e.g.
+// the user bumped decimals on a currency format).
+const _FORMAT_LABELS = (() => {
+  const m = new Map()
+  for (const g of NUMBER_FORMAT_GROUPS) for (const it of g.items) m.set(it.value, it.label)
+  return m
+})()
+
+const numberFormatLabel = computed(() => {
+  const cur = activeNumberFormat.value
+  if (_FORMAT_LABELS.has(cur)) return _FORMAT_LABELS.get(cur)
+  const { type, variant } = parseNumberFmt(cur)
+  if (!type) return 'General'
+  // Synthesise a label for variants that don't have a preset (e.g. user
+  // adjusted decimals on a known type+variant combo).
+  if (type === 'currency') return `Currency · ${variant || 'USD'}`
+  if (type === 'date')     return variant ? `Date · ${variant}` : 'Date'
+  if (type === 'time')     return variant ? `Time · ${variant}` : 'Time'
+  if (type === 'datetime') return 'Date + Time'
+  return type[0].toUpperCase() + type.slice(1)
+})
+
+const numberFormatDropdownOptions = computed(() =>
+  NUMBER_FORMAT_GROUPS.map(g => ({
+    group: g.group,
+    items: g.items.map(it => ({
+      label: it.label,
+      onClick: () => onNumberFormatChange(activeNumberFormat.value === it.value ? '' : it.value),
+    })),
+  }))
+)
+
+// Active currency code (for the $-button symbol). Defaults to $ when the cell
+// isn't a currency at all, so the button always says *something* clickable.
+const activeCurrencySymbol = computed(() => {
+  const { type, variant } = parseNumberFmt(activeNumberFormat.value)
+  if (type !== 'currency') return '$'
+  const hit = CURRENCY_QUICK_PICKS.find(c => c.code === (variant || 'USD'))
+  return hit ? hit.symbol : '$'
+})
+
+const currencyDropdownOptions = computed(() =>
+  CURRENCY_QUICK_PICKS.map(c => {
+    const fmt = `currency:${c.code}:${c.code === 'JPY' ? 0 : 2}`
+    return {
+      label: c.label,
+      onClick: () => onNumberFormatChange(activeNumberFormat.value === fmt ? '' : fmt),
+    }
+  })
 )
 
 function repeatLast() {
