@@ -403,7 +403,8 @@
             :iconLeft="isPivotSheet(name) ? 'layout' : undefined"
             :label="name"
             class="sn-tab-btn"
-            @click="switchSheet(name)"
+            @mousedown="onTabMousedown($event, name)"
+            @click="onTabClick(name)"
             @dblclick="openRenameDialog(name)"
             @contextmenu.prevent="openTabMenu($event, name)"
           />
@@ -1041,6 +1042,13 @@ const canUndo           = ref(false)
 const canRedo           = ref(false)
 const currentTitle      = ref('Untitled Spreadsheet')
 const activeNumberFormat = ref('')
+
+// Cross-sheet picker: when the user starts a `=…` edit in the top formula
+// bar then clicks another sheet's tab, we keep the in-progress formula alive
+// across the switch. These refs remember where to write the formula back on
+// commit; null when no cross-sheet edit is in flight.
+const editingHomeSheet = ref(null)
+const editingHomeCell  = ref(null)
 // Dropdown reflects the *type* only ('number' / 'currency' / ...), so a stored
 // `number:3` still shows "Number" as selected.
 const activeNumberFormatType = computed(() => parseNumberFmt(activeNumberFormat.value).type)
@@ -1645,6 +1653,40 @@ const showSortFilter = computed({
 
 function addSheet() { _addSheet(); history.push(); isDirty.value = true }
 
+// ── Sheet-tab click — cross-sheet picker support ──────────────────────────────
+// When the user is mid-edit in the formula bar (`=…` content + bar has focus),
+// clicking another tab should keep the edit alive instead of trashing it.
+// The trick is two-fold: prevent the default mousedown so focus stays on the
+// input, and call switchSheet with preserveEdit so activeCell + formulaValue
+// don't get clobbered by the switch.
+function _isEditingFormulaInBar() {
+  return document.activeElement === formulaInputRef.value
+    && typeof formulaValue.value === 'string'
+    && formulaValue.value.startsWith('=')
+}
+
+function onTabMousedown(e, _name) {
+  // Default mousedown on the tab button focuses it, which blurs the formula
+  // bar before our click handler can snapshot state. Suppress that only when
+  // we actually need the formula bar to keep focus.
+  if (_isEditingFormulaInBar()) e.preventDefault()
+}
+
+function onTabClick(name) {
+  if (_isEditingFormulaInBar()) {
+    if (!editingHomeSheet.value) {
+      editingHomeSheet.value = sheet.getCurrentSheet()
+      editingHomeCell.value  = activeCell.value
+    }
+    switchSheet(name, { preserveEdit: true })
+    // Some Button implementations focus on click despite preventDefault on
+    // mousedown — re-focus so the picker can write refs into this input.
+    nextTick(() => formulaInputRef.value?.focus())
+  } else {
+    switchSheet(name)
+  }
+}
+
 // ── Sheet-tab drag-to-reorder ─────────────────────────────────────────────────
 const tabDragName = ref(null)
 const tabDragOver = ref(null)
@@ -1940,6 +1982,11 @@ function _setupGridInstance() {
     onHyperlinkClick(url) { window.open(url, '_blank', 'noopener,noreferrer') },
     onDropdownClick(id, rule, pos) { openDropdown(id, rule, pos) },
     getSheetNames() { return sheetNames.value },
+    // Cross-sheet picker — grid prefixes inserted refs with the current sheet
+    // when it differs from the edit's home sheet. Home is null outside of an
+    // active cross-sheet edit, in which case the prefix is omitted.
+    getCurrentSheet()    { return sheet.getCurrentSheet() },
+    getEditingHomeSheet() { return editingHomeSheet.value },
     onFill(src, total, { withModifier = false } = {}) {
       const series = _previewSeriesKind(src)
       // Cmd/Ctrl held inverts the auto-detected mode — Google Sheets behaviour.
@@ -2188,13 +2235,47 @@ function onFormulaKey(e) {
   }
   if (e.key === 'Enter' || e.key === 'Tab') {
     e.preventDefault()
-    sheet.setCell(activeCell.value, formulaValue.value); markEdited()
+    _commitFormulaBar()
     canvasRef.value?.focus()
   }
   if (e.key === 'Escape') {
-    formulaValue.value = sheet.getCell(activeCell.value)
+    _cancelFormulaBar()
     canvasRef.value?.focus()
   }
+}
+
+// Write the in-progress formula back to the cell it was started on, even if
+// the user wandered off to another sheet to pick a range. If there's no
+// cross-sheet edit, this collapses to the legacy "write to activeCell" path.
+function _commitFormulaBar() {
+  const homeSheet = editingHomeSheet.value
+  const homeCell  = editingHomeCell.value
+  if (homeSheet && homeSheet !== sheet.getCurrentSheet()) {
+    switchSheet(homeSheet, { preserveEdit: true })
+    sheet.setCell(homeCell, formulaValue.value, homeSheet)
+  } else {
+    sheet.setCell(activeCell.value, formulaValue.value)
+  }
+  editingHomeSheet.value = null
+  editingHomeCell.value  = null
+  markEdited()
+}
+
+function _cancelFormulaBar() {
+  const homeSheet = editingHomeSheet.value
+  const homeCell  = editingHomeCell.value
+  if (homeSheet && homeSheet !== sheet.getCurrentSheet()) {
+    // Return to the home sheet *without* preserveEdit so activeCell snaps
+    // back to where the user started and formulaValue reflects the cell's
+    // committed contents (i.e. the edit is discarded cleanly).
+    switchSheet(homeSheet)
+    activeCell.value   = homeCell
+    formulaValue.value = sheet.getCell(homeCell, homeSheet)
+  } else {
+    formulaValue.value = sheet.getCell(activeCell.value)
+  }
+  editingHomeSheet.value = null
+  editingHomeCell.value  = null
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────

@@ -7,13 +7,20 @@ export function useSheetTabs({ sheet, formats, extras = [], getGrid, activeCell,
   const sheetNames   = ref(sheet.getSheetNames())
   const currentSheet = ref(sheet.getCurrentSheet())
 
-  function switchSheet(name) {
+  // preserveEdit: keep activeCell + formulaValue + grid selection intact —
+  // used by the cross-sheet picker so a tab click during an active formula
+  // edit doesn't wipe the in-progress formula. Caller is responsible for
+  // tracking the "home" sheet/cell and writing the formula back there on
+  // commit.
+  function switchSheet(name, { preserveEdit = false } = {}) {
     getGrid()?.clearAll()
     sheet.switchSheet(name)
     currentSheet.value = sheet.getCurrentSheet()
-    activeCell.value   = 'A1'
-    formulaValue.value = sheet.getCell('A1')
-    getGrid()?.moveTo(0, 0)
+    if (!preserveEdit) {
+      activeCell.value   = 'A1'
+      formulaValue.value = sheet.getCell('A1')
+      getGrid()?.moveTo(0, 0)
+    }
     refreshActiveFormat()
     onSwitch?.()
   }

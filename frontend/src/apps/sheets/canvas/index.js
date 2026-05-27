@@ -7,7 +7,7 @@ import { AC_FUNS, AC_FUN_KEYS, parseAcToken } from '../utils/formula-ac.js'
 
 export { colLabel, cellId, parseCellId } from '../utils/cells.js'
 
-export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getFormat, onFill, onBatchCommit, getMergeInfo, isSlave, getMasterId, getComment, getValidation, getCondFormat, getRightInset, onHyperlinkClick, onDropdownClick, onResizeEnd, getSheetNames } = {}) {
+export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getFormat, onFill, onBatchCommit, getMergeInfo, isSlave, getMasterId, getComment, getValidation, getCondFormat, getRightInset, onHyperlinkClick, onDropdownClick, onResizeEnd, getSheetNames, getCurrentSheet, getEditingHomeSheet } = {}) {
   const ctx = canvas.getContext('2d')
   const dpr = window.devicePixelRatio || 1
 
@@ -402,12 +402,25 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     const escaped = sheetName.replace(/'/g, "''")
     return `'${escaped}'!${range}`
   }
-  // TODO(cross-sheet picker): wire a `getCurrentSheet` / `getEditingHomeSheet`
-  // callback from the SheetEditor so the picker can detect cross-sheet picks
-  // and pass a non-null `sheetName` here. The engine already understands
-  // `Sheet2!A1` notation; the missing piece is keeping the in-cell editor
-  // alive across sheet-tab switches so the user can actually click on the
-  // other sheet without the editor blur-committing. Separate feature.
+  // Cross-sheet picker support. When the user is editing a formula on one
+  // sheet (the "editing home") but currently viewing another sheet, every
+  // ref written by the picker needs to carry that other sheet's name as a
+  // prefix so the formula reads `Sheet1!A1:B5` instead of just `A1:B5`.
+  // Returns the bare sheet name when foreign, or null otherwise.
+  function _crossSheetName() {
+    const cur  = getCurrentSheet?.()
+    const home = getEditingHomeSheet?.()
+    return home && cur && cur !== home ? cur : null
+  }
+  // Sheet prefix in the exact form the engine tokenizer parses — bare for
+  // clean identifiers, apostrophe-wrapped for everything else (matching
+  // _refForRange's own rule below).
+  function _sheetPrefixIfForeign() {
+    const sn = _crossSheetName()
+    if (!sn) return ''
+    const bareOk = /^[A-Za-z_][A-Za-z0-9_]*$/.test(sn)
+    return bareOk ? `${sn}!` : `'${sn.replace(/'/g, "''")}'!`
+  }
 
   function _clearPickerHighlight() {
     if (!pickerRect && !picker && !pickerKb) return
@@ -506,7 +519,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     const { target, anchorR, anchorC, headR, headC, insertStart } = pickerKb
     const r0 = Math.min(anchorR, headR), r1 = Math.max(anchorR, headR)
     const c0 = Math.min(anchorC, headC), c1 = Math.max(anchorC, headC)
-    const ref = _refForRange(r0, c0, r1, c1)
+    const ref = _refForRange(r0, c0, r1, c1, _crossSheetName())
     // Replace the previously-inserted span (anchored by insertStart).
     const val = target.value
     const next = val.slice(0, insertStart) + ref + val.slice(pickerKb.insertEnd)
@@ -531,7 +544,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     // was inserted at the input's current cursor. Adopt that anchor + rect
     // so Shift+arrow extends from where the user dragged, not from `sel`.
     if (picker && picker.target === target && pickerRect) {
-      const refLen = _refForRange(pickerRect.r0, pickerRect.c0, pickerRect.r1, pickerRect.c1).length
+      const refLen = _refForRange(pickerRect.r0, pickerRect.c0, pickerRect.r1, pickerRect.c1, _crossSheetName()).length
       insertEnd   = target.selectionStart
       insertStart = Math.max(0, insertEnd - refLen)
 
@@ -861,8 +874,8 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
       const colHit = geo.hitTestColHeader(e.clientX, e.clientY, rect)
       if (colHit !== null) {
-        // Full-column reference (`A:A`).
-        const ref = `${colLabel(colHit)}:${colLabel(colHit)}`
+        // Full-column reference (`A:A`, with optional `Sheet1!` prefix when foreign).
+        const ref = `${_sheetPrefixIfForeign()}${colLabel(colHit)}:${colLabel(colHit)}`
         _writeRef(pickInput, ref, _refReplaceStart(pickInput))
         picker     = { anchorR: 0, anchorC: colHit, target: pickInput, kind: 'col' }
         pickerRect = { r0: 0, c0: colHit, r1: TOTAL_ROWS - 1, c1: colHit }
@@ -872,7 +885,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       const rowHit = geo.hitTestRowHeader(e.clientX, e.clientY, rect)
       if (rowHit !== null) {
         // Full-row reference (`1:1`).
-        const ref = `${rowHit + 1}:${rowHit + 1}`
+        const ref = `${_sheetPrefixIfForeign()}${rowHit + 1}:${rowHit + 1}`
         _writeRef(pickInput, ref, _refReplaceStart(pickInput))
         picker     = { anchorR: rowHit, anchorC: 0, target: pickInput, kind: 'row' }
         pickerRect = { r0: rowHit, c0: 0, r1: rowHit, c1: TOTAL_COLS - 1 }
@@ -881,15 +894,17 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       }
       const h = geo.hitTest(e.clientX, e.clientY, rect)
       if (!h) return
-      // No self-reference — clicking the cell being edited is a no-op.
-      if (editing && h.r === sel.r && h.c === sel.c) return
+      // No self-reference — clicking the cell being edited is a no-op, but
+      // only when we're on the editing-home sheet (clicking the same screen
+      // cell on a *different* sheet is a legitimate cross-sheet reference).
+      if (editing && h.r === sel.r && h.c === sel.c && !_crossSheetName()) return
       // Slave cells redirect to their merge master.
       let tr = h.r, tc = h.c
       if (getMasterId) {
         const mid = getMasterId(cellId(h.r, h.c))
         if (mid) { const p = parseCellId(mid); if (p) { tr = p.row; tc = p.col } }
       }
-      _writeRef(pickInput, _refForRange(tr, tc, tr, tc), _refReplaceStart(pickInput))
+      _writeRef(pickInput, _refForRange(tr, tc, tr, tc, _crossSheetName()), _refReplaceStart(pickInput))
       picker     = { anchorR: tr, anchorC: tc, target: pickInput, kind: 'cell' }
       pickerRect = { r0: tr, c0: tc, r1: tr, c1: tc }
       pickerKb   = null   // mouse-pick supersedes any keyboard pick state
@@ -1061,7 +1076,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       if (h) {
         const r0 = Math.min(picker.anchorR, h.r), r1 = Math.max(picker.anchorR, h.r)
         const c0 = Math.min(picker.anchorC, h.c), c1 = Math.max(picker.anchorC, h.c)
-        _writeRef(picker.target, _refForRange(r0, c0, r1, c1), _refReplaceStart(picker.target))
+        _writeRef(picker.target, _refForRange(r0, c0, r1, c1, _crossSheetName()), _refReplaceStart(picker.target))
         pickerRect = { r0, c0, r1, c1 }
         render()
       }
