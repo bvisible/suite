@@ -1665,23 +1665,35 @@ function _isEditingFormulaInBar() {
     && formulaValue.value.startsWith('=')
 }
 
+function _isEditingFormulaInCell() {
+  return grid?.isEditingFormula?.() ?? false
+}
+
+function _isEditingFormula() {
+  return _isEditingFormulaInBar() || _isEditingFormulaInCell()
+}
+
 function onTabMousedown(e, _name) {
-  // Default mousedown on the tab button focuses it, which blurs the formula
-  // bar before our click handler can snapshot state. Suppress that only when
-  // we actually need the formula bar to keep focus.
-  if (_isEditingFormulaInBar()) e.preventDefault()
+  // Default mousedown on the tab button focuses it, which would blur the
+  // formula-bar input (or the in-cell overlay) before our click handler can
+  // snapshot the edit. Suppress only when an active formula edit needs the
+  // focused element to keep focus.
+  if (_isEditingFormula()) e.preventDefault()
 }
 
 function onTabClick(name) {
-  if (_isEditingFormulaInBar()) {
+  if (_isEditingFormula()) {
     if (!editingHomeSheet.value) {
       editingHomeSheet.value = sheet.getCurrentSheet()
       editingHomeCell.value  = activeCell.value
     }
     switchSheet(name, { preserveEdit: true })
-    // Some Button implementations focus on click despite preventDefault on
-    // mousedown — re-focus so the picker can write refs into this input.
-    nextTick(() => formulaInputRef.value?.focus())
+    // Re-focus whichever input was being edited — some Buttons steal focus
+    // on click despite mousedown preventDefault.
+    nextTick(() => {
+      if (_isEditingFormulaInCell()) return  // overlay handles its own focus
+      formulaInputRef.value?.focus()
+    })
   } else {
     switchSheet(name)
   }
@@ -1949,18 +1961,37 @@ function _setupGridInstance() {
       }
     },
     onCommit(id, value) {
-      const before = sheet.getCell(id)
-      sheet.setCell(id, value)
-      if (before !== value) {
-        _queueOp({ opType: 'edit', subSheet: sheet.getCurrentSheet(),
-                   cellRefs: [id], before: { [id]: before }, after: { [id]: value } })
-        broadcastCellChange(sheet.getCurrentSheet(), id, value)
+      // Cross-sheet path: in-cell overlay was editing on `homeSheet`, user
+      // hopped over to another sheet to pick a range, then pressed Enter.
+      // Write the formula back to the home sheet and snap the canvas there
+      // so the next-row move-down on Enter lands on the home sheet too.
+      const homeSheet = editingHomeSheet.value
+      const writeSheet = (homeSheet && homeSheet !== sheet.getCurrentSheet()) ? homeSheet : sheet.getCurrentSheet()
+      const before = sheet.getCell(id, writeSheet)
+      sheet.setCell(id, value, writeSheet)
+      if (writeSheet !== sheet.getCurrentSheet()) {
+        switchSheet(writeSheet, { preserveEdit: true })
       }
+      if (before !== value) {
+        _queueOp({ opType: 'edit', subSheet: writeSheet,
+                   cellRefs: [id], before: { [id]: before }, after: { [id]: value } })
+        broadcastCellChange(writeSheet, id, value)
+      }
+      editingHomeSheet.value = null
+      editingHomeCell.value  = null
       markEdited()
-      recomputePivotsForSheet(sheet.getCurrentSheet())
+      recomputePivotsForSheet(writeSheet)
     },
     onInput(id, value)  { formulaValue.value = value },
-    onCancel(id)        { formulaValue.value = sheet.getCell(id) },
+    onCancel(id)        {
+      const homeSheet = editingHomeSheet.value
+      if (homeSheet && homeSheet !== sheet.getCurrentSheet()) {
+        switchSheet(homeSheet)  // full reset so canvas snaps back to home cell
+      }
+      editingHomeSheet.value = null
+      editingHomeCell.value  = null
+      formulaValue.value = sheet.getCell(id)
+    },
     getFormat:    id => formats.get(id, sheet.getCurrentSheet()),
     getMergeInfo: id => merge.getMasterInfo(id),
     isSlave:      id => merge.isSlave(id),

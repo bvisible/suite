@@ -1518,6 +1518,10 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     resize, render, setCell, batchSetCells, clearAll,
     getCell: id => data[id] ?? '',
     getActiveCell: () => cellId(sel.r, sel.c),
+    // Whether the in-cell overlay is currently editing a `=…` formula —
+    // SheetEditor uses this to keep the editor alive across sheet-tab clicks
+    // for cross-sheet range picking.
+    isEditingFormula: () => editing && overlay.getValue().startsWith('='),
     getSelection: getSelRange,
     setSelection: setSelRange,
     getPreMousedownSel,
