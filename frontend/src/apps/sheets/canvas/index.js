@@ -379,12 +379,14 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   function _isPickMode() { return !!_pickTarget() }
 
   // Returns the index right before any partial ref characters that abut the
-  // cursor — e.g. cursor after `=SUM(A1:B` → start of `A1:B`. Lets a click
-  // *replace* a half-typed reference instead of appending.
+  // cursor — e.g. cursor after `=SUM(A1:B` → start of `A1:B`. Also consumes
+  // an immediately-preceding sheet prefix (`Sheet1!` or `'Sheet 1'!`) so a
+  // second cross-sheet pick replaces the *whole* prior ref instead of just
+  // its cell-ref tail (which produced `Sheet1!Sheet1!B2:E21`).
   function _refReplaceStart(input) {
     const pos = input.selectionStart
     const val = input.value
-    const m = val.slice(0, pos).match(/[A-Z]+\d*(?::[A-Z]*\d*)?$/i)
+    const m = val.slice(0, pos).match(/(?:'(?:[^']|'')*'!|[A-Za-z_][A-Za-z0-9_]*!)?[A-Z]+\d*(?::[A-Z]*\d*)?$/i)
     return m ? pos - m[0].length : pos
   }
 
