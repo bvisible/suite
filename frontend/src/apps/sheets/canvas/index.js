@@ -4,6 +4,7 @@ import { createOverlay }  from './overlay.js'
 import { TOTAL_ROWS, TOTAL_COLS, DEFAULT_ROW_H, ROW_HEADER_W, COL_HEADER_H, setTotalRows, setTotalCols } from './constants.js'
 import { cellId, colLabel, parseCellId } from '../utils/cells.js'
 import { AC_FUNS, AC_FUN_KEYS, parseAcToken } from '../utils/formula-ac.js'
+import { isWrapText } from '../utils/text-wrap.js'
 
 export { colLabel, cellId, parseCellId } from '../utils/cells.js'
 
@@ -796,7 +797,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       if (val == null || val === '') continue
       const fmt = getFormat ? getFormat(id) : {}
       // Skip wrap-text columns — they auto-grow rows, not cols.
-      if (fmt.wrapText) continue
+      if (isWrapText(fmt)) continue
       const w = _measureWidth(val, fmt) + CELL_PAD
       if (w > widest) widest = w
     }
@@ -817,7 +818,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       if (val == null || val === '') continue
       const fmt = getFormat ? getFormat(id) : {}
       let h = 18 // single line height at 13px
-      if (fmt.wrapText) {
+      if (isWrapText(fmt)) {
         // Estimate wrapped line count from measured width vs. column width.
         const w   = _measureWidth(val, fmt)
         const cw  = Math.max(1, geo.cw(p.col) - 8)

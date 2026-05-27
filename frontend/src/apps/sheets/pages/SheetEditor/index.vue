@@ -167,7 +167,7 @@
         <div class="sn-vr" />
         <Button :variant="showSortFilter ? 'subtle' : 'ghost'"   size="sm" icon="filter"               tooltip="Toggle filter"              @click="showSortFilter = !showSortFilter" />
         <div class="sn-vr" />
-        <Button :variant="activeFormat.wrapText ? 'subtle' : 'ghost'" size="sm" icon="corner-down-left" tooltip="Wrap text"                @click="toggleWrap" />
+        <Button :variant="activeTextWrap === 'wrap' ? 'subtle' : 'ghost'" size="sm" icon="corner-down-left" tooltip="Wrap text" @click="toggleWrap" />
         <div class="sn-vr" />
         <Button variant="ghost" size="sm" icon="lucide-blend"    tooltip="Conditional formatting"      @click="openCfDialog(null)" />
         <Button variant="ghost" size="sm" icon="lucide-link"     tooltip="Insert hyperlink (Ctrl+L)"   @click="openHyperlinkDialog" />
@@ -826,6 +826,7 @@ import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } 
 import { createGrid }          from '../../canvas/index.js'
 import { colLabel, parseCellId, cellId } from '../../utils/cells.js'
 import { parseNumberFmt, buildNumberFmt, applyNumberFmt } from '../../utils/format-number.js'
+import { getTextWrap } from '../../utils/text-wrap.js'
 import { computeFillDown, computeFillRight } from '../../engine/fill-series.js'
 import { detectSeries }                       from '../../engine/patterns/index.js'
 import { adjustFormula }                    from '../../engine/formula-adjust.js'
@@ -1492,17 +1493,27 @@ function repeatLast() {
 
 // Wrap text needs a row-height bump to actually be visible — toggleFmt alone
 // flips the format flag but the renderer's wrapped text gets clipped at the
-// fixed 24px row height. After the toggle, auto-fit every row in the
-// selection (only when wrapping ON; turning wrap OFF keeps the height since
-// the user may have manually grown the row).
+// fixed 24px row height. After turning wrap ON, auto-fit every row in the
+// selection (turning wrap OFF keeps the height — user may have grown the row
+// manually). Writes `textWrap: 'wrap' | 'overflow'` so the toggle is the
+// 2-mode subset of the full 3-mode (overflow / clip / wrap) enum.
 function toggleWrap() {
-  toggleFmt('wrapText')
-  if (!activeFormat.value?.wrapText) return
-  if (!grid) return
+  const next = activeTextWrap.value === 'wrap' ? 'overflow' : 'wrap'
+  // getTextWrap reads `textWrap` first, so a stale `wrapText: true` from a
+  // legacy cell doesn't override the new value — no need to also clear it.
+  formats.applyToRange(selectionIds(), { textWrap: next }, sheet.getCurrentSheet())
+  refreshActiveFormat()
+  isDirty.value = true
+  if (next !== 'wrap' || !grid) {
+    recordAction?.('toggleWrap', [])
+    return
+  }
   const { r0, r1 } = grid.getSelection()
   for (let r = r0; r <= r1; r++) grid.autoFitRow(r)
   recordAction?.('toggleWrap', [])
 }
+
+const activeTextWrap = computed(() => getTextWrap(activeFormat.value))
 
 const { isSaving, saveError, loadSheet, autoCreate, saveExisting } =
   usePersistence({

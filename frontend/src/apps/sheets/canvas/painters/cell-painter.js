@@ -1,5 +1,6 @@
 import { COLORS } from '../constants.js'
 import { cellId } from '../../utils/cells.js'
+import { isWrapText } from '../../utils/text-wrap.js'
 
 export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
 
@@ -62,8 +63,8 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     const rightInset = getRightInset ? (getRightInset(id) || 0) : 0
     _setCellFont(efmt)
     // Honour the icon's left-side reservation by shrinking the text rect.
-    if (efmt.wrapText) _drawWrappedText(s, x + iconInset, y, w - iconInset, h, efmt, rightInset)
-    else               _drawCellText(x + iconInset, y, w - iconInset, h, s, efmt, rightInset)
+    if (isWrapText(efmt)) _drawWrappedText(s, x + iconInset, y, w - iconInset, h, efmt, rightInset)
+    else                  _drawCellText(x + iconInset, y, w - iconInset, h, s, efmt, rightInset)
   }
 
   function _drawCellBackground(x, y, w, h, merge, fmt, condFmt) {
