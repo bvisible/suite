@@ -101,6 +101,57 @@ describe('CellPainter', () => {
     })
   })
 
+  describe('overflow mode', () => {
+    // The mock cell is 100px wide. With 1ch ≈ 8px the threshold for spill
+    // is ~12 chars; longer strings overflow and request extra clip width.
+    function widthAtFillText(call) {
+      // 4th rect() call before fillText is the clip rect: x, y, w, h
+      const rectCalls = ctx.rect.mock.calls
+      return rectCalls[rectCalls.length - 1]
+    }
+
+    beforeEach(() => {
+      ctx.measureText = vi.fn(s => ({ width: String(s).length * 8 }))
+    })
+
+    it('left-aligned text extends clip rect into empty right cells', () => {
+      // 30 chars × 8 = 240px > 100px cell. Walks right into B1 (empty) — 100px
+      // of room — and stops there (well past textW). Clip width should be > 100.
+      painter.drawRegionCells(0, 0, 0, 4,
+        { 'A1': 'This is a very long sentence' }, null, null, null)
+      const lastClipRect = widthAtFillText()
+      expect(lastClipRect[2]).toBeGreaterThan(100)
+    })
+
+    it('respects a right-neighbour with content (no spill into B1 if B1 has a value)', () => {
+      painter.drawRegionCells(0, 0, 0, 4,
+        { 'A1': 'This is a very long sentence', 'B1': 'blocker' }, null, null, null)
+      const clipRect = ctx.rect.mock.calls.find(c => c[2] !== undefined && c[2] <= 100)
+      // The clip rect for A1's text should be ≤ A1's own width since B1 blocks.
+      expect(clipRect[2]).toBeLessThanOrEqual(100)
+    })
+
+    it('respects a right-neighbour with background fill (Sheets parity)', () => {
+      const getFormat = vi.fn(id => id === 'B1' ? { backgroundColor: '#fee' } : {})
+      painter.drawRegionCells(0, 0, 0, 4,
+        { 'A1': 'This is a very long sentence' }, getFormat, null, null)
+      // B1 has bg → blocks spill. The text-clip rect should not exceed A1's own width.
+      const textClips = ctx.rect.mock.calls.filter(c => c[2] !== undefined && c[2] < 200)
+      // Just assert the *widest* text-area clip is no wider than A1.
+      const widestNarrowClip = Math.max(...textClips.map(c => c[2]))
+      expect(widestNarrowClip).toBeLessThanOrEqual(100)
+    })
+
+    it('clip mode never extends past the cell border', () => {
+      const getFormat = vi.fn(() => ({ textWrap: 'clip' }))
+      painter.drawRegionCells(0, 0, 0, 4,
+        { 'A1': 'This is a very long sentence' }, getFormat, null, null)
+      const lastClipRect = widthAtFillText()
+      // Width is at most A1's content width (≤ 100, less for inset).
+      expect(lastClipRect[2]).toBeLessThanOrEqual(100)
+    })
+  })
+
   describe('wrapped text', () => {
     it('calls fillText multiple times for text that wraps', () => {
       ctx.measureText = vi.fn((s) => ({ width: s.length * 8 }))

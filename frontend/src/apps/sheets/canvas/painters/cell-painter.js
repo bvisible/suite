@@ -1,6 +1,6 @@
-import { COLORS } from '../constants.js'
+import { COLORS, TOTAL_COLS } from '../constants.js'
 import { cellId } from '../../utils/cells.js'
-import { isWrapText } from '../../utils/text-wrap.js'
+import { getTextWrap, isWrapText } from '../../utils/text-wrap.js'
 
 export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
 
@@ -87,8 +87,65 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     const rightInset = getRightInset ? (getRightInset(id) || 0) : 0
     const iconInset  = condFmt?.icon ? ICON_INSET : 0
     _setCellFont(efmt)
-    if (isWrapText(efmt)) _drawWrappedText(s, x + iconInset, y, w - iconInset, h, efmt, rightInset)
-    else                  _drawCellText(x + iconInset, y, w - iconInset, h, s, efmt, rightInset)
+    const mode = getTextWrap(efmt)
+    if (mode === 'wrap') {
+      _drawWrappedText(s, x + iconInset, y, w - iconInset, h, efmt, rightInset)
+      return
+    }
+    let drawX = x + iconInset
+    let drawW = w - iconInset
+    // Overflow mode: when the text doesn't fit in the cell, extend the
+    // clip rect into adjacent empty / no-background cells per the cell's
+    // alignment direction (or both ways for centred text). Clip mode
+    // skips this and falls through to the cell's own bounds.
+    if (mode === 'overflow') {
+      const textW = ctx.measureText(s).width + 8
+      const inside = drawW - rightInset
+      if (textW > inside) {
+        const ext = _overflowExtension(r, c, efmt.align, textW - inside, data, getFormat, getMergeInfo, isSlave)
+        drawX -= ext.left
+        drawW += ext.left + ext.right
+      }
+    }
+    _drawCellText(drawX, y, drawW, h, s, efmt, rightInset)
+  }
+
+  // Walk adjacent cells in the alignment direction and return how many CSS
+  // pixels of extra room we can use. Stops at the first cell with a value,
+  // an explicit background fill, or the grid edge — mirroring Sheets' rule
+  // that bg-styled cells block overflow even when otherwise empty.
+  function _overflowExtension(r, c, align, needed, data, getFormat, getMergeInfo, isSlave) {
+    const out = { left: 0, right: 0 }
+    if (align === 'left' || align === 'center') {
+      let nc = c + 1, want = align === 'center' ? needed / 2 : needed
+      while (out.right < want && nc < TOTAL_COLS) {
+        if (_blocksOverflow(r, nc, data, getFormat, getMergeInfo, isSlave)) break
+        out.right += cw(nc); nc++
+      }
+    }
+    if (align === 'right' || align === 'center') {
+      // For centred text whose right extension hit a block early, pull the
+      // shortfall back into the left walk so the text stays visible.
+      const want = align === 'center' ? (needed - out.right) : needed
+      let nc = c - 1
+      while (out.left < want && nc >= 0) {
+        if (_blocksOverflow(r, nc, data, getFormat, getMergeInfo, isSlave)) break
+        out.left += cw(nc); nc--
+      }
+    }
+    return out
+  }
+
+  function _blocksOverflow(r, c, data, getFormat, getMergeInfo, isSlave) {
+    if (c < 0 || c >= TOTAL_COLS) return true
+    const id = cellId(r, c)
+    if (isSlave?.(id)) return true
+    if (getMergeInfo?.(id)) return true
+    const v = data[id]
+    if (v != null && v !== '') return true
+    const f = getFormat ? getFormat(id) : null
+    if (f?.backgroundColor) return true
+    return false
   }
 
   function _drawCellBackground(x, y, w, h, merge, fmt, condFmt) {
