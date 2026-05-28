@@ -14,8 +14,6 @@ from frappe.model.document import Document
 from frappe.utils.caching import redis_cache
 
 SYSTEM_TEMPLATE_TITLES = {"Light", "Dark"}
-THUMBNAIL_MIME_TYPE = "image/webp"
-THUMBNAIL_EXTENSION = "webp"
 MAX_THUMBNAIL_BYTES = 6 * 1024 * 1024
 
 
@@ -62,25 +60,13 @@ def save_base64_image(base64_data: str, presentation_name: str, prefix: str) -> 
 	return file_doc.file_url
 
 
-@frappe.whitelist()
-def save_presentation_thumbnail(presentation_name: str, base64_data: str) -> str:
-	presentation = frappe.get_doc("Presentation", presentation_name)
-	presentation.check_permission("write")
-
-	file_url = replace_thumbnail_file(presentation, base64_data)
-
-	if presentation.thumbnail != file_url:
-		presentation.db_set("thumbnail", file_url)
-	return file_url
-
-
 def get_thumbnail_content(base64_data: str) -> tuple[bytes, str]:
 	match = re.match(r"^data:(image/[^;]+);base64,(.+)$", base64_data or "", re.DOTALL)
 	if not match:
 		frappe.throw("Invalid thumbnail data")
 
 	mime_type, encoded_content = match.groups()
-	if mime_type != THUMBNAIL_MIME_TYPE:
+	if mime_type != "image/webp":
 		frappe.throw("Unsupported thumbnail image type")
 
 	try:
@@ -91,7 +77,7 @@ def get_thumbnail_content(base64_data: str) -> tuple[bytes, str]:
 	if len(content) > MAX_THUMBNAIL_BYTES:
 		frappe.throw("Thumbnail image is too large")
 
-	return content, THUMBNAIL_EXTENSION
+	return content, "webp"
 
 
 def replace_thumbnail_file(presentation: Document, base64_data: str) -> str:
@@ -137,6 +123,18 @@ def create_thumbnail_file(presentation_name: str, file_name: str, content: bytes
 	).insert()
 
 	return file.file_url
+
+
+@frappe.whitelist()
+def save_presentation_thumbnail(presentation_name: str, base64_data: str) -> str:
+	presentation = frappe.get_doc("Presentation", presentation_name)
+	presentation.check_permission("write")
+
+	file_url = replace_thumbnail_file(presentation, base64_data)
+
+	if presentation.thumbnail != file_url:
+		presentation.db_set("thumbnail", file_url)
+	return file_url
 
 
 def slug(text: str) -> str:
