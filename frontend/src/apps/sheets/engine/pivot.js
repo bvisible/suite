@@ -1,4 +1,5 @@
 import { parseCellId, colLabel, cellId } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 export const AGG_OPTIONS = [
   { value: 'sum',    label: 'SUM'     },
@@ -218,11 +219,11 @@ export function createPivotEngine() {
     return Object.values(_pivots).some(p => p.sourceSheet === sheetName)
   }
 
-  function snapshot() { return { pivots: JSON.parse(JSON.stringify(_pivots)), nextId: _nextId } }
+  function snapshot() { return { pivots: deepClone(_pivots), nextId: _nextId } }
 
   function restore(data) {
     if (!data) return
-    _pivots = JSON.parse(JSON.stringify(data.pivots || {}))
+    _pivots = deepClone(data.pivots || {})
     _nextId  = data.nextId  || 1
     _notify()
   }

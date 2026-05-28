@@ -2,6 +2,7 @@
 // Pure state, no DOM dependency.
 
 import { parseCellId, colLabel } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 export function createCommentsEngine() {
   // { sheetName: { cellId: 'comment text' } }
@@ -98,12 +99,12 @@ export function createCommentsEngine() {
 
   function duplicateSheet(srcName, newName) {
     if (store[newName]) return
-    store[newName] = JSON.parse(JSON.stringify(store[srcName] || {}))
+    store[newName] = deepClone(store[srcName] || {})
   }
 
   function deleteSheet(name) { delete store[name] }
 
-  function snapshot() { return JSON.parse(JSON.stringify(store)) }
+  function snapshot() { return deepClone(store) }
 
   function restore(snap) {
     for (const k of Object.keys(store)) delete store[k]

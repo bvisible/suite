@@ -9,6 +9,7 @@ import { evaluate } from './formula.js'
 import { createDepsEngine } from './deps.js'
 import { renameSheetInFormula } from './formula-adjust.js'
 import { parseCellId, colLabel } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 // `onCellChanged(id, displayValue, sheet)` fires once per single-cell write
 // (setCell, formula cascades). `onCellsChanged(sheet)` fires once after a
@@ -305,7 +306,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 
 	function duplicateSheet(srcName, newName) {
 		if (!sheets[srcName] || sheets[newName]) return false
-		sheets[newName] = JSON.parse(JSON.stringify(sheets[srcName]))
+		sheets[newName] = deepClone(sheets[srcName])
 		deps.rebuild(sheets[newName], newName)
 		return true
 	}
@@ -344,7 +345,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 
 	function snapshot() {
 		return {
-			sheets:  JSON.parse(JSON.stringify(sheets)),
+			sheets:  deepClone(sheets),
 			current,
 		}
 	}

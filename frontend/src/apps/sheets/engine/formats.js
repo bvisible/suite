@@ -2,6 +2,7 @@
 // Pure state, zero DOM dependency.
 
 import { parseCellId, colLabel } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 export function createFormatsEngine() {
 	// { sheetName: { cellId: { bold, italic, underline, color, backgroundColor, align } } }
@@ -102,7 +103,7 @@ export function createFormatsEngine() {
 
 	// Snapshot / restore for history integration.
 	function snapshot() {
-		return JSON.parse(JSON.stringify(store))
+		return deepClone(store)
 	}
 
 	function restore(snap) {
@@ -120,7 +121,7 @@ export function createFormatsEngine() {
 
 	function duplicateSheet(srcName, newName) {
 		if (store[newName]) return
-		store[newName] = JSON.parse(JSON.stringify(store[srcName] || {}))
+		store[newName] = deepClone(store[srcName] || {})
 	}
 
 	function deleteSheet(name) {

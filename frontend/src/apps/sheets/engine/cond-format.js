@@ -28,6 +28,7 @@
 // — strictly additive; rules that don't use the new keys are unaffected.
 
 import { parseCellId, colLabel, cellId } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 let _nextId = 1
 
@@ -237,7 +238,7 @@ export function createCondFormatEngine() {
     const overlapping = rules.filter(({ range: { r0, c0, r1, c1 } }) =>
       r0 <= srcRect.r1 && r1 >= srcRect.r0 && c0 <= srcRect.c1 && c1 >= srcRect.c0)
     for (const rule of overlapping) {
-      const clone = JSON.parse(JSON.stringify(rule))
+      const clone = deepClone(rule)
       clone.range = { ...destRect }
       delete clone.id
       addRule(clone, sheet)
@@ -302,12 +303,12 @@ export function createCondFormatEngine() {
 
   function duplicateSheet(srcName, newName) {
     if (store[newName]) return
-    store[newName] = JSON.parse(JSON.stringify(store[srcName] || []))
+    store[newName] = deepClone(store[srcName] || [])
   }
 
   function deleteSheet(name) { delete store[name]; _invalidateStats() }
 
-  function snapshot() { return JSON.parse(JSON.stringify(store)) }
+  function snapshot() { return deepClone(store) }
 
   function restore(snap) {
     for (const k of Object.keys(store)) delete store[k]

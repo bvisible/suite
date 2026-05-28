@@ -1,4 +1,5 @@
 import { colLabel, parseCellId } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 // Ranged, per-sheet sort & filter — Google-Sheets-style "basic filter":
 //   At most one filter per sheet, scoped to a rectangular range. The range's
@@ -205,10 +206,10 @@ export function createSortFilter(sheet) {
 
   function duplicateSheet(srcName, newName) {
     if (_byShet[newName]) return
-    _byShet[newName] = JSON.parse(JSON.stringify(_byShet[srcName] || { range: null, byCol: {} }))
+    _byShet[newName] = deepClone(_byShet[srcName] || { range: null, byCol: {} })
   }
 
-  function snapshot() { return JSON.parse(JSON.stringify(_byShet)) }
+  function snapshot() { return deepClone(_byShet) }
 
   function restore(snap) {
     for (const k of Object.keys(_byShet)) delete _byShet[k]

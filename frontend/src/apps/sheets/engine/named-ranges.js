@@ -16,6 +16,8 @@
 // Persistence: `snapshot()` / `restore()` round-trip the store as part of
 // `sheets_data`, alongside formats / pivots / charts.
 
+import { deepClone } from '../utils/deep-clone.js'
+
 const _RESERVED = new Set([
 	'TRUE', 'FALSE', 'NULL',
 ])
@@ -135,7 +137,7 @@ export function createNamedRanges({ isBuiltinFunction } = {}) {
 		if (changed) _notify()
 	}
 
-	function snapshot() { return { entries: JSON.parse(JSON.stringify(_store)) } }
+	function snapshot() { return { entries: deepClone(_store) } }
 	function restore(data) {
 		_store = {}
 		if (data?.entries) {

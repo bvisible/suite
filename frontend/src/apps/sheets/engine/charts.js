@@ -22,6 +22,8 @@
 //
 // Pure store — no rendering, no data fetching, no ECharts.
 
+import { deepClone } from '../utils/deep-clone.js'
+
 export function createChartEngine() {
 	let _charts  = {}   // id → ChartConfig
 	let _nextId  = 1
@@ -63,12 +65,12 @@ export function createChartEngine() {
 	}
 
 	function snapshot() {
-		return { charts: JSON.parse(JSON.stringify(_charts)), nextId: _nextId }
+		return { charts: deepClone(_charts), nextId: _nextId }
 	}
 
 	function restore(data) {
 		if (!data) return
-		_charts = JSON.parse(JSON.stringify(data.charts || {}))
+		_charts = deepClone(data.charts || {})
 		_nextId = data.nextId || 1
 		// Defensive: keep nextId ahead of any restored id so future _newId()
 		// can't collide with one that's already there.

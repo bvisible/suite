@@ -1,4 +1,5 @@
 import { cellId, parseCellId } from '../utils/cells.js'
+import { deepClone } from '../utils/deep-clone.js'
 
 export function createMergeEngine() {
   const masterMap = {}   // cellId → { rowSpan, colSpan, r, c }
@@ -38,8 +39,8 @@ export function createMergeEngine() {
 
   function snapshot() {
     return {
-      masterMap: JSON.parse(JSON.stringify(masterMap)),
-      slaveMap:  JSON.parse(JSON.stringify(slaveMap)),
+      masterMap: deepClone(masterMap),
+      slaveMap:  deepClone(slaveMap),
     }
   }
 
