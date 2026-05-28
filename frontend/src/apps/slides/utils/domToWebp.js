@@ -1,4 +1,4 @@
-import { domToWebp } from 'modern-screenshot'
+import { createContext, domToWebp } from 'modern-screenshot'
 
 const CAPTURE_WIDTH = 960
 const CAPTURE_HEIGHT = 540
@@ -32,6 +32,27 @@ const waitForImage = (image) => {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+let _captureContext = null
+
+const getContext = async (node, options) => {
+	if (!_captureContext) {
+		// so fonts are not loaded again and again
+		_captureContext = await createContext(node, { ...options, autoDestruct: false })
+	} else {
+		_captureContext.node = node
+		// Reset per-capture font state so only fonts used by this node are embedded.
+		_captureContext.fontFamilies = new Map()
+		_captureContext.fontCssTexts = new Map()
+		// shadowRoots accumulates across captures and is not auto-reset by
+		// autoDestruct:false — clear it to avoid stale references.
+		_captureContext.shadowRoots = []
+		// tasks should be empty after a successful capture (all popped), but
+		// reset defensively in case a previous capture failed mid-way.
+		_captureContext.tasks = []
+	}
+	return _captureContext
+}
+
 export const captureDOM = async (node) => {
 	await waitForFonts()
 	await waitForImages(node)
@@ -46,7 +67,8 @@ export const captureDOM = async (node) => {
 		type: 'image/webp',
 	}
 
-	const webp = await domToWebp(node, options)
+	const ctx = await getContext(node, options)
+	const webp = await domToWebp(ctx)
 	if (!webp?.startsWith('data:image/webp')) {
 		throw new Error('Could not generate WebP thumbnail')
 	}
