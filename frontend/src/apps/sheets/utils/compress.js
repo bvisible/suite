@@ -1,7 +1,7 @@
 // Gzip + base64 envelope for uploading large sheets_data payloads.
 //
 // Mirrors the server-side wire format in
-// sheets/sheets/doctype/sheet/storage.py:
+// spreadsheet/spreadsheet/doctype/sheet/storage.py:
 //
 //   {"_z": "gzip", "data": "<base64-encoded gzip bytes>"}
 //
