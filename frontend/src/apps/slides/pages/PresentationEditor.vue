@@ -4,10 +4,8 @@
 		@click="focusedSlide = null"
 	>
 		<EditorNavbar
-			:generatingThumbnail="isGeneratingThumbnail"
 			@startSlideShow="startSlideShow"
 			@performDropdownAction="performNavbarDropdownAction"
-			@generateThumbnail="generatePresentationThumbnail"
 		/>
 
 		<div class="relative flex h-screen bg-gray-300">
@@ -57,36 +55,27 @@
 	</teleport>
 
 	<PresentationThumbnailCapture
-		v-if="presentationDoc && !inReadonlyMode && slides.length"
+		v-if="presentationDoc && slides.length"
 		ref="thumbnailCapture"
 		:slide="slides[0]"
 	/>
 </template>
 
 <script setup>
-import {
-	ref,
-	watch,
-	useTemplateRef,
-	onMounted,
-	onBeforeUnmount,
-	provide,
-	inject,
-	nextTick,
-} from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, provide, inject, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
-import { call, toast, usePageMeta } from 'frappe-ui'
+import { call, usePageMeta } from 'frappe-ui'
 
 import ExportView from '@/pages/ExportView.vue'
 import EditorNavbar from '@/components/EditorNavbar.vue'
 import NavigationPanel from '@/components/NavigationPanel.vue'
-import PresentationThumbnailCapture from '@/components/PresentationThumbnailCapture.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import PresentationThumbnailCapture from '@/components/PresentationThumbnailCapture.vue'
 
 import {
 	presentationId,
@@ -127,6 +116,7 @@ import { saveChanges, saveCurrentState, isDirty } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import { useCommandHistory } from '@/composables/useCommandHistory'
+import { useThumbnailCapture } from '@/composables/useThumbnailCapture'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -134,6 +124,7 @@ const route = useRoute()
 const router = useRouter()
 
 let autosaveInterval = null
+const thumbnailCapture = ref(null)
 
 const props = defineProps({
 	presentationId: String,
@@ -157,16 +148,23 @@ const showLayoutDialog = ref(false)
 const layoutAction = ref('')
 const insertIndex = ref(null)
 const showExportView = ref(false)
-const isGeneratingThumbnail = ref(false)
-const thumbnailCapture = useTemplateRef('thumbnailCapture')
 
 const historyMetaForCommandHistory = {
 	actions: historyMetaActions,
 	actionOrder: historyMetaActionOrder,
 }
-
 const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
 setCommandHistory(commandHistoryInstance)
+
+const thumbnailCaptureControls = useThumbnailCapture(thumbnailCapture, hasOngoingInteraction)
+
+useShortcuts(inReadonlyMode, inSlideShowMode)
+
+usePageMeta(() => {
+	return {
+		title: presentationDoc.value?.title || 'Slides',
+	}
+})
 
 const setHighlight = (value) => {
 	slideHighlight.value = value
@@ -251,6 +249,7 @@ const hideOpenDialogs = () => {
 }
 
 const handleBeforeUnmount = () => {
+	thumbnailCaptureControls.cancel()
 	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
 
@@ -292,6 +291,7 @@ watch(
 	(id, prevId) => {
 		if (!id || !prevId || id === prevId) return
 		inReadonlyMode.value = props.editorAccess == 'view'
+		thumbnailCaptureControls.reset()
 		commandHistory.clearHistory()
 		loadEditorState()
 	},
@@ -389,50 +389,11 @@ const performNavbarDropdownAction = async (action) => {
 	}
 }
 
-const generatePresentationThumbnail = async () => {
-	if (!presentationDoc.value?.name || !thumbnailCapture.value || isGeneratingThumbnail.value) {
-		return
-	}
-
-	const presentationName = presentationDoc.value.name
-	isGeneratingThumbnail.value = true
-	const thumbnailPromise = thumbnailCapture.value
-		.capture()
-		.then((base64Data) =>
-			call('slides.slides.doctype.presentation.presentation.save_presentation_thumbnail', {
-				presentation_name: presentationName,
-				base64_data: base64Data,
-			}),
-		)
-		.then((thumbnail) => {
-			presentationDoc.value.thumbnail = thumbnail
-			return thumbnail
-		})
-
-	try {
-		await toast.promise(thumbnailPromise, {
-			loading: 'Generating thumbnail...',
-			success: 'Thumbnail generated',
-			error: 'Could not generate thumbnail',
-		})
-	} finally {
-		isGeneratingThumbnail.value = false
-	}
-}
-
 const openLayoutDialog = (action, index) => {
 	showLayoutDialog.value = true
 	layoutAction.value = action
 	insertIndex.value = index
 }
-
-usePageMeta(() => {
-	return {
-		title: presentationDoc.value?.title || 'Slides',
-	}
-})
-
-useShortcuts(inReadonlyMode, inSlideShowMode)
 
 const cleanup = () => {
 	showExportView.value = false

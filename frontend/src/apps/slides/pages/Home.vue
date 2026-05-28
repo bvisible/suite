@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { onActivated, onMounted, ref } from 'vue'
+import { onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { previousRoute } from '@/router'
 
@@ -127,6 +127,7 @@ const openThemeDialog = () => {
 
 const syncPresentationRecord = () => {
 	const newValues = unsyncedPresentationRecord.value
+	if (!Object.keys(newValues).length) return
 
 	if (newValues.deleted) {
 		presentationList.value = presentationList.value.filter((p) => p.name !== newValues.name)
@@ -135,7 +136,7 @@ const syncPresentationRecord = () => {
 	}
 
 	const presentationRecord = presentationList.value.find(
-		(p) => p.name == previousRoute.params.presentationId,
+		(p) => p.name == (newValues.name || previousRoute.params.presentationId),
 	)
 	if (!presentationRecord) return
 
@@ -152,6 +153,10 @@ onActivated(() => {
 	if (previousRoute?.name == 'PresentationEditor') {
 		syncPresentationRecord()
 	}
+})
+
+watch(unsyncedPresentationRecord, () => {
+	syncPresentationRecord()
 })
 
 onMounted(() => {
