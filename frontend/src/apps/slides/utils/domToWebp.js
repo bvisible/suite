@@ -32,7 +32,7 @@ const waitForImage = (image) => {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-export const capturePresentationThumbnail = async (node) => {
+export const captureDOM = async (node) => {
 	await waitForFonts()
 	await waitForImages(node)
 
@@ -42,9 +42,11 @@ export const capturePresentationThumbnail = async (node) => {
 		scale: 1,
 		backgroundColor: '#ffffff',
 		timeout: CAPTURE_TIMEOUT,
+		quality: 0.86,
+		type: 'image/webp',
 	}
 
-	const webp = await domToWebp(node, { ...options, quality: 0.86 })
+	const webp = await domToWebp(node, options)
 	if (!webp?.startsWith('data:image/webp')) {
 		throw new Error('Could not generate WebP thumbnail')
 	}

@@ -13,7 +13,7 @@
 				ref="slideContainer"
 				v-if="presentationDoc"
 				:highlight="slideHighlight"
-				v-model:hasOngoingInteraction="hasOngoingInteraction"
+				v-model:hasOngoingInteraction="isSlideInteractionActive"
 			/>
 
 			<NavigationPanel
@@ -54,15 +54,25 @@
 		<ExportView v-if="showExportView" :slides="slides" />
 	</teleport>
 
-	<PresentationThumbnailCapture
-		v-if="presentationDoc && slides.length"
-		ref="thumbnailCapture"
+	<ThumbnailCapture
+		ref="thumbnailCaptureRef"
+		v-if="presentationDoc && !inReadonlyMode && slides.length"
 		:slide="slides[0]"
+		:disableCapture="isSlideInteractionActive"
 	/>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, provide, inject, nextTick } from 'vue'
+import {
+	ref,
+	watch,
+	onMounted,
+	onBeforeUnmount,
+	provide,
+	inject,
+	nextTick,
+	useTemplateRef,
+} from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
 import { call, usePageMeta } from 'frappe-ui'
@@ -75,7 +85,7 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
-import PresentationThumbnailCapture from '@/components/PresentationThumbnailCapture.vue'
+import ThumbnailCapture from '@/components/ThumbnailCapture.vue'
 
 import {
 	presentationId,
@@ -116,7 +126,6 @@ import { saveChanges, saveCurrentState, isDirty } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import { useCommandHistory } from '@/composables/useCommandHistory'
-import { useThumbnailCapture } from '@/composables/useThumbnailCapture'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -124,7 +133,7 @@ const route = useRoute()
 const router = useRouter()
 
 let autosaveInterval = null
-const thumbnailCapture = ref(null)
+const thumbnailCaptureRef = useTemplateRef('thumbnailCaptureRef')
 
 const props = defineProps({
 	presentationId: String,
@@ -142,7 +151,7 @@ const props = defineProps({
 const showThemeDialog = ref(false)
 const themeDialogAction = ref('update')
 const slideHighlight = ref(false)
-const hasOngoingInteraction = ref(false)
+const isSlideInteractionActive = ref(false)
 
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
@@ -155,8 +164,6 @@ const historyMetaForCommandHistory = {
 }
 const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
 setCommandHistory(commandHistoryInstance)
-
-const thumbnailCaptureControls = useThumbnailCapture(thumbnailCapture, hasOngoingInteraction)
 
 useShortcuts(inReadonlyMode, inSlideShowMode)
 
@@ -171,7 +178,7 @@ const setHighlight = (value) => {
 }
 
 const handleAutoSave = () => {
-	if (hasOngoingInteraction.value || focusElementId.value != null) return
+	if (isSlideInteractionActive.value || focusElementId.value != null) return
 	saveChanges()
 }
 
@@ -249,7 +256,7 @@ const hideOpenDialogs = () => {
 }
 
 const handleBeforeUnmount = () => {
-	thumbnailCaptureControls.cancel()
+	thumbnailCaptureRef.value?.reset()
 	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
 
@@ -291,7 +298,7 @@ watch(
 	(id, prevId) => {
 		if (!id || !prevId || id === prevId) return
 		inReadonlyMode.value = props.editorAccess == 'view'
-		thumbnailCaptureControls.reset()
+		thumbnailCaptureRef.value?.reset()
 		commandHistory.clearHistory()
 		loadEditorState()
 	},

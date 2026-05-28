@@ -6,11 +6,11 @@ import { presentationDoc, unsyncedPresentationRecord, inReadonlyMode } from '@/s
 import { slides } from '@/stores/slide'
 import { focusElementId } from '@/stores/element'
 import { isDirty, isSaving } from '@/stores/saving'
+import { captureDOM } from '@/utils/domToWebp'
 
 const DEBOUNCE_MS = 5000
 
 export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => {
-	let seenInitial = false
 	const pendingKey = ref('')
 	const busy = ref(false)
 
@@ -74,7 +74,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 
 	const capture = async () => {
 		await nextTick()
-		return thumbnailCapture.value?.capture()
+		return captureDOM(thumbnailCapture.value)
 	}
 
 	const upload = (base64Data) => {
@@ -110,12 +110,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 	}
 
 	const onSlideChange = (key, oldKey) => {
-		if (!key) return
-
-		if (!seenInitial || !oldKey) {
-			seenInitial = true
-			return
-		}
+		if (!key || !oldKey) return
 
 		markPending(key)
 	}
@@ -129,7 +124,6 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 	}
 
 	const reset = () => {
-		seenInitial = false
 		pendingKey.value = ''
 		cancel()
 	}
