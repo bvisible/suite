@@ -157,4 +157,4 @@ const saveChanges = async () => {
 	await saveCurrentState()
 }
 
-export { saveCurrentState, saveChanges, isDirty }
+export { saveCurrentState, saveChanges, isDirty, isSaving }
