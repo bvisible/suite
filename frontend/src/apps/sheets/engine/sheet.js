@@ -26,12 +26,39 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 	function setNamedRangeResolver(fn) { resolveNamedRange = fn || null }
 
 	// ── Formula evaluation ────────────────────────────────────────────────────
+	//
+	// Memoisation: each formula cell evaluates at most once per change to its
+	// inputs. Cache key is (sheet, cellId) — every cell has at most one
+	// formula, so the cellId uniquely identifies what to cache.
+	//
+	// Invalidation happens at the setCell / batchSetCells / row-shift sites
+	// below: when a cell's data changes, that cell's entry plus every
+	// transitive dependent's entry are dropped. The dep graph already
+	// computes the BFS list; we re-use that walk for both invalidation and
+	// the existing notification cascade.
+	//
+	// Volatile functions (RAND / RANDBETWEEN / TODAY / NOW) deliberately skip
+	// the cache so their value stays fresh on every read.
+
+	const _memo = {}                                          // sheet → Map<cellId, result>
+	const VOLATILE_RE = /\b(RAND|RANDBETWEEN|TODAY|NOW)\s*\(/i
+	let   _memoHits = 0, _memoMisses = 0                      // diagnostic counters
+
+	function _ensureMemo(sheet) {
+		if (!_memo[sheet]) _memo[sheet] = new Map()
+		return _memo[sheet]
+	}
+	function _invalidateCellAndDependents(id, sheet) {
+		_memo[sheet]?.delete(id)
+		for (const dep of deps.getDependents(id, sheet)) _memo[dep.sheet]?.delete(dep.cellId)
+	}
+	function _clearAllMemo() { for (const k of Object.keys(_memo)) _memo[k].clear() }
 
 	function getCellValue(id, sheet = current) {
 		const raw = sheets[sheet]?.[id]
 		if (raw === undefined || raw === null || raw === '') return 0
 		if (typeof raw === 'string' && raw.startsWith('='))
-			return _evalFormula(raw.slice(1), sheet)
+			return _evalFormula(raw.slice(1), sheet, id)
 		const n = parseFloat(raw)
 		return isNaN(n) ? raw : n
 	}
@@ -49,12 +76,22 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		return rows
 	}
 
-	function _evalFormula(formula, sheet = current) {
-		const key = `${sheet}::${formula}`
+	function _evalFormula(formula, sheet = current, cellId = null) {
+		if (cellId) {
+			const memo = _ensureMemo(sheet)
+			if (memo.has(cellId)) { _memoHits++; return memo.get(cellId) }
+			_memoMisses++
+		}
+		// Recursion guard keyed by cellId when we have it (formulas can recur
+		// even when they're different strings — e.g. mutual references with
+		// arithmetic differences). Falls back to formula text for ad-hoc
+		// evaluate() calls that don't anchor to a cell.
+		const key = `${sheet}::${cellId || formula}`
 		if (circular.has(key)) return '#CIRCULAR!'
 		circular.add(key)
+		let result
 		try {
-			return evaluate(
+			result = evaluate(
 				formula,
 				id         => getCellValue(id, sheet),
 				(s, e)     => getRangeValues(s, e, sheet),
@@ -67,16 +104,18 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 			// can briefly hit the engine via a stray commit) must not throw —
 			// the surrounding UI catches the result and any unhandled exception
 			// here would crash whatever called setCell. Return a soft error.
-			return '#ERROR!'
+			result = '#ERROR!'
 		} finally {
 			circular.delete(key)
 		}
+		if (cellId && !VOLATILE_RE.test(formula)) _ensureMemo(sheet).set(cellId, result)
+		return result
 	}
 
 	function getDisplayValue(id, sheet = current) {
 		const raw = sheets[sheet]?.[id] ?? ''
 		if (typeof raw === 'string' && raw.startsWith('=')) {
-			const result = _evalFormula(raw.slice(1), sheet)
+			const result = _evalFormula(raw.slice(1), sheet, id)
 			return result === null || result === undefined ? '' : String(result)
 		}
 		return raw === null || raw === undefined ? '' : String(raw)
@@ -90,11 +129,19 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		else sheets[sheet][id] = value
 
 		deps.register(id, value, sheet)
+		// Invalidate the formula cache for THIS cell and every transitive
+		// dependent BEFORE the notification cascade — otherwise the cascade's
+		// getDisplayValue calls would return stale cached results. We compute
+		// the dependents list once and reuse it for both invalidation and
+		// notification so the BFS only runs once per setCell.
+		const dependents = deps.getDependents(id, sheet)
+		_memo[sheet]?.delete(id)
+		for (const dep of dependents) _memo[dep.sheet]?.delete(dep.cellId)
 		_notify(id, sheet)
 		// `getDependents` returns `{sheet, cellId}` so cross-sheet dependents
 		// (formulas on Sheet2 reading Sheet1!A1) get re-evaluated when the
 		// source cell on the other sheet changes.
-		for (const dep of deps.getDependents(id, sheet)) _notify(dep.cellId, dep.sheet)
+		for (const dep of dependents) _notify(dep.cellId, dep.sheet)
 	}
 
 	// Bulk-write a whole pile of cells with one dep-graph rebuild and *no*
@@ -137,6 +184,10 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		// per-cell register() calls. Cross-sheet inbound edges (formulas
 		// on OTHER sheets reading into this one) are preserved by deps.
 		deps.rebuild(sh, sheet)
+		// Wholesale rewrite — cross-sheet formulas reading into this sheet
+		// may now be stale, so the safe move is to drop every sheet's memo
+		// instead of trying to track which entries were affected.
+		_clearAllMemo()
 		if (sheet === current) onCellsChanged?.(sheet)
 		return { before, after }
 	}
@@ -151,6 +202,10 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 	function _shiftCells(sheet, pred, newIdFn) {
 		const sh = sheets[sheet]
 		if (!sh) return
+		// Row/col insertion shifts every dependent cell's address — every
+		// cached formula result might now reference the wrong cell. Safer
+		// to clear everything than try to remap memo keys.
+		_clearAllMemo()
 		const entries = Object.entries(sh)
 			.map(([id, v]) => ({ id, p: parseCellId(id), v }))
 			.filter(({ p }) => p && pred(p))
@@ -189,6 +244,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 			sh[colLabel(p.col + 1) + (p.row + 1)] = v
 		}
 		deps.rebuild(sh, current)
+		_clearAllMemo()
 	}
 
 	function deleteCol(atCol) {
@@ -207,6 +263,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 			sh[colLabel(p.col - 1) + (p.row + 1)] = v
 		}
 		deps.rebuild(sh, current)
+		_clearAllMemo()
 	}
 
 	// ── Sheet management ──────────────────────────────────────────────────────
@@ -241,6 +298,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 			}
 			deps.rebuild(sheets[sn], sn)
 		}
+		_clearAllMemo()
 		if (current === oldName) current = newName
 		return true
 	}
@@ -292,6 +350,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 	}
 
 	function restore(snap) {
+		_clearAllMemo()
 		for (const key of Object.keys(sheets)) delete sheets[key]
 		for (const [name, data] of Object.entries(snap.sheets)) {
 			sheets[name] = data
@@ -312,5 +371,13 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		insertRow, deleteRow, insertCol, deleteCol,
 		snapshot, restore,
 		setNamedRangeResolver,
+		// Drop the entire formula-result cache. Public so external engines
+		// (named ranges, conditional formatting, anything that mutates state
+		// the formula evaluator reads) can force-invalidate.
+		invalidateMemo: _clearAllMemo,
+		// Hit/miss counters — diagnostic only. Tests use these to assert the
+		// cache is actually being hit; production code shouldn't depend on them.
+		_memoStats: () => ({ hits: _memoHits, misses: _memoMisses }),
+		_resetMemoStats: () => { _memoHits = 0; _memoMisses = 0 },
 	}
 }
