@@ -357,8 +357,14 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 			deps.rebuild(data, name)
 		}
 		current = snap.current
-		for (const id of Object.keys(sheets[current] || {}))
-			onCellChanged?.(id, getDisplayValue(id, current), current)
+		// One bulk notification instead of N per-cell ones. With 5k rows × 5
+		// cols a per-cell loop was a ~750ms tax on every page load — each
+		// onCellChanged invalidated the cond-format cache, did a format
+		// lookup, applied a number format, and scheduled a canvas render.
+		// The host's onCellsChanged handler does one repopulate pass which
+		// the canvas's RAF render coalesces, same end state in a fraction
+		// of the work.
+		onCellsChanged?.(current)
 	}
 
 	// Initialise dep graph for the default sheet

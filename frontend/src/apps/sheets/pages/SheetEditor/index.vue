@@ -2098,10 +2098,11 @@ async function _loadInitialData() {
   syncFlags()
   if (props.id && props.id !== 'new') {
     await loadSheet(props.id)
-    // Sync canvas cell data + Vue-side view-state mirrors from whatever the
-    // engine/grid restored. This is the only place after a remote load where
-    // the UI refs (freezeRows, manualHiddenRows, etc.) catch up with the grid.
-    _repopulateGrid()
+    // sheet.restore() now fires onCellsChanged → _repopulateGrid() as a
+    // single bulk pass, so the explicit call here was duplicating work
+    // (parseCellId + grid.setCell × every cell, on top of the per-cell
+    // notification cascade we already paid). The view-state catch-up below
+    // doesn't depend on the canvas being painted, so it's safe to skip.
     const restored = grid.viewSnapshot?.()
     if (restored) {
       freezeRows.value = restored.freezeRows || 0
