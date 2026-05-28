@@ -67,7 +67,7 @@ def save_presentation_thumbnail(presentation_name: str, base64_data: str) -> str
 	presentation = frappe.get_doc("Presentation", presentation_name)
 	presentation.check_permission("write")
 
-	file_url = create_or_update_thumbnail_file(presentation_name, base64_data)
+	file_url = replace_thumbnail_file(presentation, base64_data)
 
 	if presentation.thumbnail != file_url:
 		presentation.db_set("thumbnail", file_url)
@@ -94,44 +94,34 @@ def get_thumbnail_content(base64_data: str) -> tuple[bytes, str]:
 	return content, THUMBNAIL_EXTENSION
 
 
-def create_or_update_thumbnail_file(presentation_name: str, base64_data: str) -> str:
+def replace_thumbnail_file(presentation: Document, base64_data: str) -> str:
 	content, ext = get_thumbnail_content(base64_data)
+	presentation_name = presentation.name
 	file_name = f"presentation-thumbnail-{presentation_name}.{ext}"
 
-	file_doc_name = frappe.db.exists(
-		"File",
-		{
-			"attached_to_doctype": "Presentation",
-			"attached_to_name": presentation_name,
-			"file_name": file_name,
-			"is_private": 1,
-		},
-	)
-
-	if file_doc_name:
-		file = update_thumbnail_file(file_doc_name, content)
-		return file.file_url
+	delete_existing_thumbnail_files(presentation, file_name)
 
 	return create_thumbnail_file(presentation_name, file_name, content)
 
 
-def update_thumbnail_file(file_doc_name: str, content: bytes) -> Document:
-	file = frappe.get_doc("File", file_doc_name)
-	file.save_file(
-		content=content,
-		ignore_existing_file_check=True,
-		overwrite=True,
+def delete_existing_thumbnail_files(presentation: Document, file_name: str) -> None:
+	file_doc_names = set()
+
+	file_doc_names.update(
+		frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": "Presentation",
+				"attached_to_name": presentation.name,
+				"file_name": file_name,
+				"is_private": 1,
+			},
+			pluck="name",
+		)
 	)
-	frappe.db.set_value(
-		"File",
-		file.name,
-		{
-			"file_size": file.file_size,
-			"content_hash": file.content_hash,
-			"file_url": file.file_url,
-		},
-	)
-	return file
+
+	for file_doc_name in file_doc_names:
+		frappe.delete_doc("File", file_doc_name)
 
 
 def create_thumbnail_file(presentation_name: str, file_name: str, content: bytes) -> str:
