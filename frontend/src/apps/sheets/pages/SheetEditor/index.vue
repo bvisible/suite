@@ -1031,8 +1031,22 @@ const history = createHistory({
   // Both go through sheet.setCell so the engine's notify cascade + memo
   // invalidation + collab Y.Doc mirror all stay in sync — same path a
   // human edit takes, just with the saved values.
-  revertOp(op) { _applyCellMap(op.before, op.subSheet) },
-  applyOp (op) { _applyCellMap(op.after,  op.subSheet) },
+  //
+  // Paste-style ops carry additional optional maps:
+  //   - beforeFormats / afterFormats — per-cell format snapshots
+  //   - beforeValidation / afterValidation — per-cell validation rules
+  // so the full paste effect (values + formats + validation) round-trips
+  // through undo/redo without the 320 ms snapshot tax.
+  revertOp(op) {
+    _applyCellMap(op.before, op.subSheet)
+    if (op.beforeFormats)    _applyFormatMap(op.beforeFormats, op.subSheet)
+    if (op.beforeValidation) _applyValidationMap(op.beforeValidation, op.subSheet)
+  },
+  applyOp(op) {
+    _applyCellMap(op.after, op.subSheet)
+    if (op.afterFormats)    _applyFormatMap(op.afterFormats, op.subSheet)
+    if (op.afterValidation) _applyValidationMap(op.afterValidation, op.subSheet)
+  },
   getLocalTouches: () => _drainCollabLocalTouches(),
 })
 
@@ -1057,6 +1071,38 @@ function _applyCellMap(map, sheetName) {
     return
   }
   for (const id of ids) sheet.setCell(id, map[id] ?? '', sheetName)
+}
+
+// Apply a {cellId: format|null} diff. Used by paste/fill undo/redo to
+// revert format changes the user wouldn't get back from the cell-value
+// diff alone. After mutating the store we manually push display strings
+// for each affected cell — number format affects the rendered value, so
+// the canvas needs the new strings for those cells. Validation doesn't
+// affect the display string, so its apply is just the store mutation.
+function _applyFormatMap(map, sheetName) {
+  if (!map) return
+  const sn = sheetName || sheet.getCurrentSheet()
+  for (const [id, fmt] of Object.entries(map)) {
+    if (fmt && Object.keys(fmt).length) formats.set(id, fmt, sn)
+    else                                 formats.clear(id, sn)
+  }
+  for (const id of Object.keys(map)) {
+    const f  = formats.get(id, sn)
+    const dv = sheet.getDisplayValue(id, sn)
+    grid?.setCell(id, f.numberFormat ? applyNumberFmt(dv, f.numberFormat) : dv)
+  }
+}
+
+function _applyValidationMap(map, sheetName) {
+  if (!map) return
+  const sn = sheetName || sheet.getCurrentSheet()
+  for (const [id, rule] of Object.entries(map)) {
+    if (rule) validation.set(id, rule, sn)
+    else      validation.clear(id, sn)
+  }
+  // Validation only affects the dropdown-arrow indicator the canvas
+  // paints from getValidation each render — next paint picks it up.
+  grid?.render?.()
 }
 
 // Forward-declaration: `useCollaboration` (further down the script) sets
@@ -2267,6 +2313,36 @@ function _captureRange(rect, sheetName) {
 	return out
 }
 
+// Snapshot {id → format} for the rect. Used by paste/fill ops so undo
+// can revert the format changes too — without this the value-only op
+// shape would leave pasted formats stuck on undo, contradicting the
+// old snapshot-based history's full revert.
+function _captureFormatsRange(rect, sheetName) {
+	const out = {}
+	if (!rect) return out
+	const sn = sheetName || sheet.getCurrentSheet()
+	for (let r = rect.r0; r <= rect.r1; r++) {
+		for (let c = rect.c0; c <= rect.c1; c++) {
+			const id = cellId(r, c)
+			out[id] = formats.get(id, sn) || null
+		}
+	}
+	return out
+}
+
+function _captureValidationRange(rect, sheetName) {
+	const out = {}
+	if (!rect) return out
+	const sn = sheetName || sheet.getCurrentSheet()
+	for (let r = rect.r0; r <= rect.r1; r++) {
+		for (let c = rect.c0; c <= rect.c1; c++) {
+			const id = cellId(r, c)
+			out[id] = validation.get(id, sn) || null
+		}
+	}
+	return out
+}
+
 // Diff two id→value maps, returning the ids whose value changed.  Used to
 // trim noisy before/after pairs down to the cells that actually moved.
 function _diffRefs(before, after) {
@@ -2494,34 +2570,59 @@ function onDocCut(e) {
 function onDocPaste(e) {
   if (!_canvasActive()) return
   e.preventDefault()
-  let pasted = false
   const destSel = grid.getSelection()
   const sn = sheet.getCurrentSheet()
-  const before = _captureRange(destSel, sn)
+  // Snapshot the pre-paste state for cells + formats + validation across
+  // the destination rect, plus cond-format rule count for the fallback
+  // decision. The cells+formats+validation diff drives op-based undo; if
+  // the paste also added a cond-format rule, the rule list isn't part of
+  // the op and we'd lose it on undo — fall back to a full snapshot in
+  // that rarer case.
+  const before     = _captureRange(destSel, sn)
+  const beforeFmt  = _captureFormatsRange(destSel, sn)
+  const beforeVal  = _captureValidationRange(destSel, sn)
+  const cfBefore   = condFormat?.getRules?.(sn)?.length ?? 0
+
+  let pasted = false
   if (clipboard.hasData()) {
-    // Internal cut/copy: use internal paste so cut properly clears source cells
-    clipboard.paste(activeCell.value, () => { history.push(); syncFlags() }, 'all', destSel)
-    _repopulateGrid()
+    // Internal cut/copy — empty historyPush callback so we control the
+    // history entry from out here. clipboard still does its mutations.
+    clipboard.paste(activeCell.value, () => {}, 'all', destSel)
     pasted = true
   } else {
     const text = e.clipboardData?.getData('text/plain')
     if (text) {
-      clipboard.pasteFromText(text, activeCell.value, () => { history.push(); syncFlags() }, destSel)
-      _repopulateGrid()
+      clipboard.pasteFromText(text, activeCell.value, () => {}, destSel)
       pasted = true
     }
   }
   clipboardHas.value = clipboard.hasData()
   grid.setMarchingAnts(null)
   if (pasted) {
-    const after = _captureRange(destSel, sn)
-    const refs  = _diffRefs(before, after)
-    if (refs.length) {
+    // Refresh display strings for the dest range — the engine already
+    // notified for cell-value changes, but format changes happened AFTER
+    // batchSetCells so the canvas painted those cells with the old
+    // format. One pass over the rect catches up.
+    _refreshDisplayForRange(destSel, sn)
+    const after    = _captureRange(destSel, sn)
+    const afterFmt = _captureFormatsRange(destSel, sn)
+    const afterVal = _captureValidationRange(destSel, sn)
+    const cfAfter  = condFormat?.getRules?.(sn)?.length ?? 0
+    const refs     = _diffRefs(before, after)
+    if (refs.length || cfBefore !== cfAfter) {
       _queueOp({ opType: 'paste', subSheet: sn, cellRefs: refs,
                  before, after,
                  summary: `Pasted into ${refs.length} cell${refs.length === 1 ? '' : 's'}` })
+      _pushPasteHistory({
+        opType: 'paste', subSheet: sn, cellRefs: refs,
+        before, after,
+        beforeFormats: beforeFmt, afterFormats: afterFmt,
+        beforeValidation: beforeVal, afterValidation: afterVal,
+        cfChanged: cfBefore !== cfAfter,
+      })
+      syncFlags()
     }
-    isDirty.value = true   // ensure autosave fires
+    isDirty.value = true
   }
 }
 
@@ -2531,20 +2632,60 @@ function doPasteSpecial(kind) {
   if (!clipboard.hasData()) return
   const destSel = grid.getSelection()
   const sn = sheet.getCurrentSheet()
-  const before = _captureRange(destSel, sn)
-  clipboard.paste(activeCell.value, () => { history.push(); syncFlags() }, kind, destSel)
-  _repopulateGrid()
+  const before     = _captureRange(destSel, sn)
+  const beforeFmt  = _captureFormatsRange(destSel, sn)
+  const beforeVal  = _captureValidationRange(destSel, sn)
+  const cfBefore   = condFormat?.getRules?.(sn)?.length ?? 0
+  clipboard.paste(activeCell.value, () => {}, kind, destSel)
+  _refreshDisplayForRange(destSel, sn)
   clipboardHas.value = clipboard.hasData()
   grid?.setMarchingAnts(null)
-  const after = _captureRange(destSel, sn)
-  const refs  = _diffRefs(before, after)
-  if (refs.length) {
+  const after    = _captureRange(destSel, sn)
+  const afterFmt = _captureFormatsRange(destSel, sn)
+  const afterVal = _captureValidationRange(destSel, sn)
+  const cfAfter  = condFormat?.getRules?.(sn)?.length ?? 0
+  const refs     = _diffRefs(before, after)
+  if (refs.length || cfBefore !== cfAfter) {
     _queueOp({ opType: 'paste', subSheet: sn, cellRefs: refs,
                before, after,
                summary: `Pasted ${kind} into ${refs.length} cell${refs.length === 1 ? '' : 's'}` })
+    _pushPasteHistory({
+      opType: 'paste', subSheet: sn, cellRefs: refs,
+      before, after,
+      beforeFormats: beforeFmt, afterFormats: afterFmt,
+      beforeValidation: beforeVal, afterValidation: afterVal,
+      cfChanged: cfBefore !== cfAfter,
+    })
+    syncFlags()
   }
   isDirty.value = true
   recomputePivotsForSheet(sheet.getCurrentSheet())
+}
+
+// Push the right history entry for a paste. Cell + format + validation
+// diffs round-trip through op-based undo (~10 µs); cond-format rule
+// additions aren't tracked in the op shape, so when the rule list
+// changed we fall back to a full engine snapshot for correctness.
+function _pushPasteHistory(op) {
+  if (op.cfChanged) { history.push(); return }
+  history.pushOp(op)
+}
+
+// Re-push display strings for every cell in `rect`. Used after paste
+// since format changes that happen AFTER batchSetCells don't fire the
+// engine's onCellsChanged callback — the canvas has the right value
+// but the wrong format-applied display.
+function _refreshDisplayForRange(rect, sheetName) {
+  if (!rect || !grid) return
+  const sn = sheetName || sheet.getCurrentSheet()
+  for (let r = rect.r0; r <= rect.r1; r++) {
+    for (let c = rect.c0; c <= rect.c1; c++) {
+      const id  = cellId(r, c)
+      const fmt = formats.get(id, sn)
+      const dv  = sheet.getDisplayValue(id, sn)
+      grid.setCell(id, fmt.numberFormat ? applyNumberFmt(dv, fmt.numberFormat) : dv)
+    }
+  }
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
