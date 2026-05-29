@@ -1,4 +1,4 @@
-// FormulaEngine — full expression parser + evaluator for Frappe Sheets
+// FormulaEngine — full expression parser + evaluator for Frappe Spreadsheet
 // Converted from v1 IIFE to ES module. Zero dependencies.
 
 const T = {

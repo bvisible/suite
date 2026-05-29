@@ -1377,12 +1377,22 @@ const hAlignIcon = computed(() => {
 
 
 // Title input auto-sizes to content so the "Saved / Saving…" status sits
-// right next to the title text — no trailing whitespace. Per-char width
-// tracks the 15px/600 font in .sn-title-input. The lower bound is just a
-// clickable target for very short titles, NOT a baseline width.
+// right next to the title text — no trailing whitespace. Canvas measurement
+// is exact (per-char estimates over-allocated and left visible empty space
+// between title and status). Lower bound is a clickable target for very
+// short titles; upper bound stops a runaway title from eating the topbar.
+let _titleMeasureCtx = null
+function _measureTitle(text) {
+  if (!_titleMeasureCtx) {
+    _titleMeasureCtx = document.createElement('canvas').getContext('2d')
+    _titleMeasureCtx.font = '600 15px InterVar, ui-sans-serif, system-ui, sans-serif'
+  }
+  return _titleMeasureCtx.measureText(text).width
+}
 const titleInputWidth = computed(() => {
   const text = currentTitle.value || 'Untitled Spreadsheet'
-  return Math.max(56, Math.min(360, text.length * 10 + 24)) + 'px'
+  // +22 = 20px horizontal padding + 2px caret/safety
+  return Math.max(56, Math.min(520, _measureTitle(text) + 22)) + 'px'
 })
 
 
