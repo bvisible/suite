@@ -13,8 +13,15 @@
          siblings all work) while escaping the panel's clip box, so the
          popover can extend past the dialog edge without being cut off. -->
     <Teleport :to="teleportTarget" :disabled="!open">
+      <!-- Wrap in Reka UI's FocusScope so its global stack auto-pauses the
+           host Dialog's focus trap while the popover is open. Without this,
+           the Dialog's FocusScope (listening on document.focusin/out) steals
+           focus from the teleported search input on every keystroke and
+           typing does nothing. `as-child` reuses our div as the scope
+           container; `trapped=false` is fine — we only want the *pause*
+           side-effect, not our own trap. -->
+      <FocusScope v-if="open" as-child :trapped="false">
       <div
-        v-if="open"
         ref="popRef"
         class="pfp-pop"
         :class="{ 'pfp-pop--up': openUpward }"
@@ -48,6 +55,7 @@
           <div v-if="!filtered.length" class="pfp-empty">No matching fields</div>
         </div>
       </div>
+      </FocusScope>
     </Teleport>
   </div>
 </template>
@@ -55,6 +63,7 @@
 <script setup>
 import { ref, computed, nextTick, watch, onBeforeUnmount } from 'vue'
 import { FeatherIcon } from 'frappe-ui'
+import { FocusScope } from 'reka-ui'
 
 const props = defineProps({
   fields: { type: Array, required: true },
