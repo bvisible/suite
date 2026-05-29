@@ -2,7 +2,7 @@
 	<div class="slides-container">
 		<div
 			v-for="slide in slides"
-			:key="slide.id"
+			:key="slide.cliendId"
 			class="slide-page"
 			:style="getSlidePageStyles(slide)"
 		>

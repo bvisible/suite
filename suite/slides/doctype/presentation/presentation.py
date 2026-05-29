@@ -4,6 +4,7 @@
 import base64
 import json
 import random
+import re
 import string
 import uuid
 
@@ -12,27 +13,15 @@ from frappe.core.doctype.file.file import get_local_image
 from frappe.model.document import Document
 from frappe.utils.caching import redis_cache
 
+SYSTEM_TEMPLATE_TITLES = {"Light", "Dark"}
+MAX_THUMBNAIL_BYTES = 6 * 1024 * 1024
+
 
 class Presentation(Document):
 	def before_save(self):
 		self.slug = slug(self.title)
 		if self.is_composite:
 			self.is_public = 1
-
-	def update_thumbnails(self):
-		doc_before_save = self.get_doc_before_save()
-		if not doc_before_save or not doc_before_save.slides:
-			return
-		old_slides = doc_before_save.slides
-
-		for slide in self.slides:
-			old_slide = old_slides[slide.idx - 1] if slide.idx <= len(old_slides) else None
-			if not old_slide:
-				continue
-			if slide.thumbnail and slide.thumbnail.startswith("data:image"):
-				old_thumbnail = old_slide.thumbnail
-				delete_old_thumbnail(old_thumbnail)
-				slide.thumbnail = save_base64_thumbnail(slide.thumbnail, self.name, "thumbnail")
 
 	def validate(self):
 		if self.is_composite:
@@ -50,25 +39,9 @@ class Presentation(Document):
 						f"Reference presentation '{ref_name}' must be public to create a composite presentation."
 					)
 
-		self.update_thumbnails()
-
-
-def delete_old_thumbnail(old_thumbnail: str | None = None):
-	if not old_thumbnail or old_thumbnail.startswith("/assets"):
-		return
-
-	if old_thumbnail.startswith("/files"):
-		old_thumbnail = f"/private{old_thumbnail}"
-
-	try:
-		file_docname = frappe.db.get_value("File", {"file_url": old_thumbnail})
-		frappe.delete_doc("File", file_docname)
-	except Exception as e:
-		frappe.log_error(f"Failed to remove old thumbnail: {e}")
-
 
 @frappe.whitelist()
-def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str) -> str:
+def save_base64_image(base64_data: str, presentation_name: str, prefix: str) -> str:
 	header, b64 = base64_data.split(",", 1)
 	ext = header.split("/")[1].split(";")[0]
 	filename = f"{prefix}-{uuid.uuid4().hex[:6]}.{ext}"
@@ -87,6 +60,83 @@ def save_base64_thumbnail(base64_data: str, presentation_name: str, prefix: str)
 	return file_doc.file_url
 
 
+def get_thumbnail_content(base64_data: str) -> tuple[bytes, str]:
+	match = re.match(r"^data:(image/[^;]+);base64,(.+)$", base64_data or "", re.DOTALL)
+	if not match:
+		frappe.throw("Invalid thumbnail data")
+
+	mime_type, encoded_content = match.groups()
+	if mime_type != "image/webp":
+		frappe.throw("Unsupported thumbnail image type")
+
+	try:
+		content = base64.b64decode(encoded_content, validate=True)
+	except Exception:
+		frappe.throw("Invalid thumbnail image data")
+
+	if len(content) > MAX_THUMBNAIL_BYTES:
+		frappe.throw("Thumbnail image is too large")
+
+	return content, "webp"
+
+
+def replace_thumbnail_file(presentation: Document, base64_data: str) -> str:
+	content, ext = get_thumbnail_content(base64_data)
+	presentation_name = presentation.name
+	file_name = f"presentation-thumbnail-{presentation_name}.{ext}"
+
+	delete_existing_thumbnail_files(presentation, file_name)
+
+	return create_thumbnail_file(presentation_name, file_name, content)
+
+
+def delete_existing_thumbnail_files(presentation: Document, file_name: str) -> None:
+	file_doc_names = set()
+
+	file_doc_names.update(
+		frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": "Presentation",
+				"attached_to_name": presentation.name,
+				"file_name": file_name,
+				"is_private": 1,
+			},
+			pluck="name",
+		)
+	)
+
+	for file_doc_name in file_doc_names:
+		frappe.delete_doc("File", file_doc_name)
+
+
+def create_thumbnail_file(presentation_name: str, file_name: str, content: bytes) -> str:
+	file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"attached_to_doctype": "Presentation",
+			"attached_to_name": presentation_name,
+			"file_name": file_name,
+			"is_private": 1,
+			"content": content,
+		}
+	).insert()
+
+	return file.file_url
+
+
+@frappe.whitelist()
+def save_presentation_thumbnail(presentation_name: str, base64_data: str) -> str:
+	presentation = frappe.get_doc("Presentation", presentation_name)
+	presentation.check_permission("write")
+
+	file_url = replace_thumbnail_file(presentation, base64_data)
+
+	if presentation.thumbnail != file_url:
+		presentation.db_set("thumbnail", file_url)
+	return file_url
+
+
 def slug(text: str) -> str:
 	return text.lower().replace(" ", "-")
 
@@ -94,57 +144,32 @@ def slug(text: str) -> str:
 # whitelist needed for drive integration
 @frappe.whitelist()
 def get_presentation_thumbnail(presentation_name: str, index: int | None = 1) -> str:
-	"""Returns the thumbnail of the first slide in a presentation"""
-	return (
-		frappe.get_value(
-			"Slide",
-			{"parent": presentation_name, "idx": index},
-			"thumbnail",
-		)
-		or ""
-	)
+	"""Returns the thumbnail of a presentation."""
+	return frappe.get_value("Presentation", presentation_name, "thumbnail") or ""
 
 
 @frappe.whitelist()
 def get_presentations() -> list[dict]:
 	"""
 	Returns a list of presentation details
-	- info and first thumbnail
+	- info and presentation thumbnail
 	"""
 	presentations = frappe.get_list(
 		"Presentation",
-		fields=["name", "title", "owner", "creation", "modified_by", "modified"],
+		fields=["name", "title", "owner", "creation", "modified_by", "modified", "thumbnail"],
 		order_by="modified desc",
 		filters=[["owner", "=", frappe.session.user], ["is_template", "=", 0]],
 	)
 
 	for presentation in presentations:
-		presentation["thumbnail"] = get_presentation_thumbnail(presentation["name"])
+		presentation["slide_count"] = frappe.db.count("Slide", {"parent": presentation["name"]})
 
 	return presentations
 
 
 @frappe.whitelist()
-def get_slide_thumbnails(presentation: str) -> list[str]:
-	"""
-	Returns a list of thumbnails for all slides in a presentation
-	"""
-	slides = frappe.get_all(
-		"Slide",
-		fields=["name", "thumbnail"],
-		filters={"parent": presentation},
-		order_by="idx",
-	)
-
-	return [slide["thumbnail"] for slide in slides]
-
-
-@frappe.whitelist()
 def update_slide_attachments(parent, slide):
 	slide = json.loads(slide) if isinstance(slide, str) else slide
-
-	if slide.get("thumbnail") and slide["thumbnail"].startswith("/private"):
-		get_attachment(parent, slide["thumbnail"])
 
 	elements_data = slide.get("elements") or "[]"
 	elements = elements_data if isinstance(elements_data, list) else json.loads(elements_data)
@@ -168,16 +193,13 @@ def apply_slide_layout(slide, ref_id, parent):
 		setattr(slide, key, value)
 
 
-def create_new_slide(parent, ref_id, copy_thumbnail=False):
+def create_new_slide(parent, ref_id):
 	"""
 	Creates a new slide with the given reference slide id.
 	"""
 	slide = frappe.new_doc("Slide")
 
 	apply_slide_layout(slide, ref_id, parent)
-
-	if not copy_thumbnail:
-		slide.thumbnail = ""
 
 	slide.parent = parent
 	slide.parentfield = "slides"
@@ -195,7 +217,7 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 
 	if duplicate_from:
 		for slide in ref_presentation.slides:
-			new_slide = create_new_slide(parent, slide.name, True)
+			new_slide = create_new_slide(parent, slide.name)
 			new_slide.idx = slide.idx
 			slides.append(new_slide)
 	else:
@@ -207,16 +229,52 @@ def get_slides_from_ref(parent, theme, duplicate_from):
 	return slides
 
 
+def is_system_template(template_title: str) -> bool:
+	return template_title in SYSTEM_TEMPLATE_TITLES
+
+
+def get_template_thumbnail(template_title: str, index: int) -> str:
+	template_title = (template_title or "light").lower()
+	return f"/assets/slides/frontend/images/layouts/{template_title}/thumbnail-{index}.webp"
+
+
+def get_template_cover_thumbnail(template):
+	template_title, template_thumbnail = frappe.get_value(
+		"Presentation",
+		template,
+		["title", "thumbnail"],
+	)
+	return (
+		get_template_thumbnail(template_title, 3)
+		if is_system_template(template_title)
+		else template_thumbnail
+	)
+
+
+def set_duplicate_metadata(presentation, duplicate_from):
+	src_title, src_theme, src_thumbnail = frappe.get_value(
+		"Presentation",
+		duplicate_from,
+		["title", "theme", "thumbnail"],
+	)
+	presentation.title = f"Copy of {src_title}"
+	presentation.theme = src_theme
+	presentation.thumbnail = src_thumbnail
+
+
+def set_template_metadata(presentation, template):
+	presentation.title = "Untitled"
+	presentation.theme = template
+	presentation.thumbnail = get_template_cover_thumbnail(template)
+
+
 @frappe.whitelist()
 def create_presentation(template=None, duplicate_from=None):
 	presentation = frappe.new_doc("Presentation")
 	if duplicate_from:
-		src_title, src_theme = frappe.get_value("Presentation", duplicate_from, ["title", "theme"])
-		presentation.title = f"Copy of {src_title}"
-		presentation.theme = src_theme
+		set_duplicate_metadata(presentation, duplicate_from)
 	else:
-		presentation.title = "Untitled"
-		presentation.theme = template
+		set_template_metadata(presentation, template)
 	presentation.insert()
 
 	presentation.slides = get_slides_from_ref(presentation.name, template, duplicate_from)
@@ -266,19 +324,6 @@ def get_updated_json(presentation, json):
 	return json
 
 
-@frappe.whitelist()
-def get_layouts(theme):
-	layout_doc = frappe.get_doc("Presentation", theme) if frappe.db.exists("Presentation", theme) else None
-	slides = []
-	if layout_doc and layout_doc.is_template:
-		slides = layout_doc.slides
-
-	return {
-		"slides": slides,
-		"is_public": layout_doc.is_public if layout_doc else 0,
-	}
-
-
 def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
@@ -312,19 +357,33 @@ def get_public_presentation(name):
 	return frappe.get_doc("Presentation", name).as_dict()
 
 
+def set_layouts_in_template(template):
+	if template.get("is_template") is not None and not template.get("is_template"):
+		return
+
+	doc = frappe.get_doc("Presentation", template["name"])
+	template["layouts"] = [slide.as_dict() for slide in doc.slides]
+	title = doc.title
+
+	for layout in template["layouts"]:
+		if is_system_template(title):
+			layout["thumbnail"] = get_template_thumbnail(title, layout["idx"])
+		else:
+			layout["thumbnail"] = ""
+
+
 @frappe.whitelist()
 @redis_cache()
 def get_templates():
 	templates = frappe.get_all(
 		"Presentation",
 		filters={"is_template": 1},
-		fields=["name", "title", "slug", "creation"],
+		fields=["name", "title", "slug", "creation", "is_template"],
 		order_by="creation",
 	)
 
 	for template in templates:
-		doc = frappe.get_doc("Presentation", template["name"])
-		template["layouts"] = doc.slides
+		set_layouts_in_template(template)
 
 	return templates
 
@@ -387,6 +446,8 @@ def get_webp_doc(presentation_name, file_doc):
 
 	if can_convert_image(extn):
 		return create_new_webp_file_doc(presentation_name, file_url, image, extn)
+
+	return file_doc
 
 
 def update_element_urls(presentation, element):

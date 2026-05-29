@@ -9,6 +9,7 @@
   "is_composite",
   "column_break_axws",
   "theme",
+  "thumbnail",
   "is_template",
   "is_public",
   "slides_section",
@@ -41,6 +42,12 @@
    "fieldname": "theme",
    "fieldtype": "Data",
    "label": "Theme"
+  },
+  {
+   "depends_on": "eval:!doc.is_composite",
+   "fieldname": "thumbnail",
+   "fieldtype": "Attach Image",
+   "label": "Thumbnail"
   },
   {
    "default": "0",
@@ -87,7 +94,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-21 12:57:23.814213",
+ "modified": "2026-05-24 14:22:31.171442",
  "modified_by": "Administrator",
  "module": "Slides",
  "name": "Presentation",

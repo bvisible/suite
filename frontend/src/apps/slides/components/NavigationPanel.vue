@@ -9,74 +9,34 @@
 	>
 		<div
 			ref="scrollableArea"
-			v-if="sidebarSlidesList"
-			class="flex h-full flex-col overflow-y-auto p-4 custom-scrollbar"
+			class="h-svh overflow-y-auto p-4 pe-3 custom-scrollbar"
 			:class="{ 'pb-14': !inReadonlyMode }"
 			:style="scrollbarStyles"
 		>
-			<template v-if="inReadonlyMode">
+			<div :style="virtualContainerStyles">
 				<div
-					v-for="slide in sidebarSlidesList"
-					:key="slide.clientId"
-					:class="getThumbnailClasses(slide)"
-					:style="getThumbnailStyles(slide)"
-					@click="handleSlideClick(slide)"
-					:ref="(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)"
+					v-for="virtualRow in virtualRows"
+					:key="virtualRow.key"
+					:class="getRowClasses(orderedSlides[virtualRow.index])"
+					:style="getRowStyles(virtualRow)"
+					@click="handleSlideClick(orderedSlides[virtualRow.index])"
+					@mousedown="slideSort.handleSortStart($event, virtualRow.index)"
 				>
-					<div
-						class="absolute inset-0 flex justify-between rounded p-2"
-						:style="getGradientOverlayStyles(slide)"
-					>
-						<div class="text-[10px] font-medium">{{ slide.idx }}</div>
-						<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
-					</div>
-
-					<div
-						v-if="isSlideActive(slide)"
-						class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
-					></div>
+					<ThumbnailContainer
+						:slide="orderedSlides[virtualRow.index]"
+						:isActive="isSlideActive(orderedSlides[virtualRow.index])"
+					/>
 				</div>
-			</template>
+			</div>
 
-			<template v-else>
-				<Draggable
-					v-model="sidebarSlidesList"
-					item-key="name"
-					@start="handleSortStart"
-					@end="handleSortEnd"
-				>
-					<template #item="{ element: slide }">
-						<div
-							:class="getThumbnailClasses(slide)"
-							:style="getThumbnailStyles(slide)"
-							@click="handleSlideClick(slide)"
-							:ref="
-								(el) => (slideThumbnailsRef[sidebarSlidesList.indexOf(slide)] = el)
-							"
-						>
-							<div
-								class="absolute inset-0 flex justify-between rounded p-2"
-								:style="getGradientOverlayStyles(slide)"
-							>
-								<div class="text-[10px] font-medium">{{ slide.idx }}</div>
-								<TransitionIcon
-									v-if="slide.transition != 'None'"
-									class="h-3 opacity-80"
-								/>
-							</div>
-
-							<div
-								v-if="isSlideActive(slide)"
-								class="absolute -left-5 h-full w-2 rounded-r bg-blue-500 opacity-90"
-							></div>
-						</div>
-					</template>
-				</Draggable>
-
-				<div :class="insertButtonClasses" @click="emit('openLayoutDialog')">
-					<LucidePlus class="size-3.5" />
-				</div>
-			</template>
+			<!-- add slide option -->
+			<div
+				v-if="!inReadonlyMode"
+				:class="insertButtonClasses"
+				@click="emit('openLayoutDialog')"
+			>
+				<LucidePlus class="size-3.5" />
+			</div>
 		</div>
 	</div>
 
@@ -87,49 +47,48 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, useTemplateRef, useAttrs, inject } from 'vue'
+import { ref, computed, watch, useTemplateRef, useAttrs, inject } from 'vue'
 
-import Draggable from 'vuedraggable'
+import ThumbnailContainer from '@/components/ThumbnailContainer.vue'
 
-import TransitionIcon from '@/icons/TransitionIcon.vue'
-
+import { useVirtualizer } from '@tanstack/vue-virtual'
 import { useNavigationPanel } from '@/composables/useNavigationPanel'
+import { useDragSort } from '@/composables/useDragSort'
 
-import { slides, slideIndex, currentSlide, focusedSlide } from '@/stores/slide'
-import { handleScrollBarWheelEvent, getThumbnailCardStyles } from '@/utils/helpers'
-import { isBackgroundColorDark } from '@/utils/color'
-
-import { commandHistory, recentlyRestored } from '@/stores/historyMeta'
+import { slides, slideIndex, focusedSlide } from '@/stores/slide'
+import { commandHistory } from '@/stores/historyMeta'
 import { reorderSlidesCommand } from '@/stores/commands'
 import { resetFocus } from '@/stores/element'
+import { slidesLength } from '@/stores/presentation'
+import { handleScrollBarWheelEvent } from '@/utils/helpers'
 
 const attrs = useAttrs()
+
+const inReadonlyMode = inject('inReadonlyMode', ref(false))
+
+const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
+
+const ROW_HEIGHT = 90
+const ROW_GAP = 8
+const ROW_SIZE = ROW_HEIGHT + ROW_GAP * 2
 
 const scrollableArea = useTemplateRef('scrollableArea')
 
 const { isNavigationPanelOpen, toggleNavigationPanel } = useNavigationPanel()
 
-const inReadonlyMode = inject('inReadonlyMode', ref(false))
+const handleSortEnd = (sortChange) => {
+	if (!sortChange) return
 
-const getGradientOverlayStyles = (slide) => {
-	const hasDarkBg = isBackgroundColorDark(slide.background)
-	const textColor = hasDarkBg ? '#ffffff' : '#00000090'
-	const background = hasDarkBg
-		? 'linear-gradient(140deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 20%, rgba(0, 0, 0, 0) 100%)'
-		: 'linear-gradient(140deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 100%)'
-
-	return {
-		background,
-		color: textColor,
-	}
+	resetFocus()
+	commandHistory.execute(reorderSlidesCommand(sortChange))
 }
 
-const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
+const slideSort = useDragSort(scrollableArea, slidesLength, ROW_SIZE, handleSortEnd)
+
+const showCollapseShortcut = ref(false)
 
 const insertButtonClasses =
 	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
-
-const showCollapseShortcut = ref(false)
 
 const panelClasses = computed(() => {
 	// can't add it from parent attrs.class since attrs is not reactive
@@ -145,50 +104,6 @@ const panelClasses = computed(() => {
 	return [...baseClasses, positionClass]
 })
 
-const isSlideActive = (slide) => {
-	return slideIndex.value == slides.value.indexOf(slide)
-}
-
-const handleSlideClick = async (slide) => {
-	const index = slides.value.indexOf(slide)
-	if (isSlideActive(slide) && !inReadonlyMode.value) {
-		resetFocus()
-		focusedSlide.value = index
-		return
-	}
-	emit('changeSlide', index)
-}
-
-const getThumbnailClasses = (slide) => {
-	const baseClasses =
-		'relative mb-4 first:mt-0 w-full aspect-video cursor-pointer rounded bg-center bg-no-repeat bg-cover border transition-all duration-400 ease-in-out'
-
-	const isActive = isSlideActive(slide)
-	const isFocused = focusedSlide.value == slides.value.indexOf(slide)
-
-	let outlineClasses = ''
-	if (isFocused) {
-		outlineClasses += 'ring-blue-500 ring-2 ring-offset-1'
-	} else if (isActive && recentlyRestored.value) {
-		outlineClasses += 'ring-blue-500 ring-[2px] ring-offset-2 scale-[1.02]'
-	} else if (isActive) {
-		outlineClasses += 'ring-gray-400 ring-[1.5px] ring-offset-0.5'
-	} else {
-		outlineClasses += 'ring-white hover:border-gray-300'
-	}
-
-	return `${baseClasses} ${outlineClasses}`
-}
-
-const getThumbnailStyles = (s) => {
-	let styles = getThumbnailCardStyles(s.thumbnail)
-
-	// intentional to reduce extreme color change while loading new thumbnail which might be visually distracting
-	styles.backgroundColor = s.background || '#ffffff' //fallback color
-
-	return styles
-}
-
 const toggleButtonClasses = computed(() => {
 	const baseClasses = 'flex cursor-pointer items-center border bg-white'
 	if (isNavigationPanelOpen.value) {
@@ -197,17 +112,57 @@ const toggleButtonClasses = computed(() => {
 	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
 })
 
-const handleSortStart = (event) => {
-	resetFocus()
-}
+const scrollbarStyles = computed(() => ({
+	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
+}))
 
-const handleSortEnd = async (event) => {
-	commandHistory.execute(
-		reorderSlidesCommand({
-			oldIndex: event.oldIndex,
-			newIndex: event.newIndex,
-		}),
-	)
+const orderedSlides = computed(() => {
+	const startIndex = slideSort.itemStartIndex.value
+	const previewIndex = slideSort.itemPreviewIndex.value
+
+	if (startIndex == null || previewIndex == null) {
+		return slides.value
+	}
+
+	const nextSlides = [...slides.value]
+
+	const [draggedSlide] = nextSlides.splice(startIndex, 1)
+	nextSlides.splice(previewIndex, 0, draggedSlide)
+
+	return nextSlides
+})
+
+const rowVirtualizer = useVirtualizer(
+	computed(() => ({
+		count: slides.value.length,
+		getScrollElement: () => scrollableArea.value,
+		estimateSize: () => ROW_SIZE,
+		overscan: 3,
+	})),
+)
+
+const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
+const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
+
+const virtualContainerStyles = computed(() => ({
+	height: `${totalSize.value}px`,
+	width: '100%',
+	position: 'relative',
+}))
+
+const isSlideActive = (slide) => slideIndex.value === slides.value.indexOf(slide)
+
+const handleSlideClick = async (slide) => {
+	if (slideSort.shouldIgnoreClick()) return
+
+	const index = slides.value.indexOf(slide)
+
+	if (isSlideActive(slide) && !inReadonlyMode.value) {
+		resetFocus()
+		focusedSlide.value = index
+		return
+	}
+	emit('changeSlide', index)
 }
 
 const handleHoverChange = (e) => {
@@ -218,65 +173,69 @@ const handleHoverChange = (e) => {
 	}
 }
 
-const scrollbarStyles = computed(() => ({
-	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
-}))
+const scrollToVirtualItem = (index) => {
+	rowVirtualizer.value.scrollToIndex(index, {
+		align: 'center',
+		behavior: 'smooth',
+	})
+}
 
-const slideThumbnailsRef = ref([])
+const isItemFullyVisible = (scrollElement, virtualItem) => {
+	const viewportTop = scrollElement.scrollTop
+	const viewportBottom = viewportTop + scrollElement.clientHeight
 
-const scrollThumbnailToView = (element) => {
-	if (!scrollableArea.value) return
+	const itemTop = virtualItem.start
+	const itemBottom = virtualItem.end
 
-	const areaTop = scrollableArea.value.scrollTop
-	const areaHeight = scrollableArea.value.clientHeight
-	const thumbnailTop = element.offsetTop - scrollableArea.value.offsetTop
-	const thumbnailHeight = element.offsetHeight
-	const thumbnailBottom = thumbnailTop + thumbnailHeight
+	return itemTop >= viewportTop && itemBottom <= viewportBottom
+}
 
-	// Only scroll if thumbnail is partially visible
-	if (thumbnailTop < areaTop || thumbnailBottom > areaTop + areaHeight) {
-		const targetScroll = thumbnailTop - areaHeight / 2 + thumbnailHeight / 2
-		scrollableArea.value.scrollTo({
-			top: targetScroll,
-			behavior: 'smooth',
-		})
+const scrollToSlide = (index) => {
+	const scrollElement = scrollableArea.value
+	if (!scrollElement) return
+
+	const virtualItem = rowVirtualizer.value.getVirtualItems().find((v) => v.index === index)
+	if (!virtualItem) {
+		// item is not rendered by virtual list so scroll directly without checking visibility
+		return scrollToVirtualItem(index)
+	}
+
+	const fullyVisible = isItemFullyVisible(scrollElement, virtualItem)
+	if (!fullyVisible) {
+		scrollToVirtualItem(index)
 	}
 }
 
-const handleScrollChange = (index) => {
-	const el = slideThumbnailsRef.value[index]
+const getRowClasses = (slide) => ['virtual-row-wrapper', { 'is-active': isSlideActive(slide) }]
 
-	if (!el) return
-	scrollThumbnailToView(el)
-}
+const getRowStyles = (virtualRow) => ({
+	position: 'absolute',
+	top: 0,
+	left: 0,
+	width: '100%',
+	height: `${virtualRow.size}px`,
+	transform: `translateY(${virtualRow.start}px)`,
+})
 
 watch(
 	() => slideIndex.value,
-	() => {
+	(index) => {
 		if (!isNavigationPanelOpen.value) return
-		nextTick(() => {
-			handleScrollChange(slideIndex.value)
-		})
+		scrollToSlide(index)
 	},
-)
-
-const sidebarSlidesList = ref(slides.value)
-
-watch(
-	slides,
-	(newSlides) => {
-		sidebarSlidesList.value = newSlides
-	},
-	{ deep: true },
 )
 </script>
 
 <style scoped>
-.sortable-ghost {
-	opacity: 1;
-}
-
-.sortable-chosen {
-	opacity: 0.8;
+.virtual-row-wrapper.is-active::before {
+	content: '';
+	position: absolute;
+	left: -1.25rem;
+	top: 0;
+	width: 0.5rem;
+	height: 90px;
+	border-radius: 0 0.25rem 0.25rem 0;
+	background: rgb(59 130 246 / 0.9);
+	pointer-events: none;
 }
 </style>

@@ -1,5 +1,18 @@
 <template>
-	<div @click="handleVideoClick" @mouseenter="handleHoverChange" @mouseleave="handleHoverChange">
+	<div v-if="mode == 'thumbnail'">
+		<img
+			v-if="thumbnailSrc"
+			class="object-cover"
+			:style="videoStyles"
+			:src="getAttachmentUrl(thumbnailSrc)"
+		/>
+	</div>
+	<div
+		v-else
+		@click="handleVideoClick"
+		@mouseenter="handleHoverChange"
+		@mouseleave="handleHoverChange"
+	>
 		<video
 			ref="videoElement"
 			:style="videoStyles"
@@ -49,6 +62,10 @@ import { activeElementIds } from '@/stores/element'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const props = defineProps({
+	mode: {
+		type: String,
+		default: 'editor',
+	},
 	transitionStyles: {
 		type: Object,
 		default: () => ({}),
@@ -95,6 +112,11 @@ const videoStyles = computed(() => {
 		boxShadow: `${element.value.shadowOffsetX}px ${element.value.shadowOffsetY}px ${element.value.shadowSpread}px ${element.value.shadowColor}`,
 		...props.transitionStyles,
 	}
+})
+
+const thumbnailSrc = computed(() => {
+	if (props.mode != 'thumbnail') return ''
+	return element.value.poster || ''
 })
 
 const togglePlaying = () => {

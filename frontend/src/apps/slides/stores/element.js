@@ -8,7 +8,6 @@ import {
 	updateSelectionBounds,
 	currentSlide,
 	slideIndex,
-	updateThumbnail,
 } from './slide'
 import { useTextEditor } from '@/composables/useTextEditor'
 
@@ -311,7 +310,7 @@ const addTextElement = async (text, position) => {
 }
 
 const savePoster = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.save_base64_thumbnail',
+	url: 'slides.slides.doctype.presentation.presentation.save_base64_image',
 	makeParams: (posterDataUrl) => ({
 		presentation_name: presentationId.value,
 		base64_data: posterDataUrl,
@@ -319,19 +318,35 @@ const savePoster = createResource({
 	}),
 })
 
-const generatePoster = async (video) => {
-	// create a canvas of the size of the video
+const saveMediaFrameAsPoster = async (media, width, height) => {
 	const canvas = document.createElement('canvas')
-	canvas.width = video.videoWidth
-	canvas.height = video.videoHeight
+	canvas.width = width
+	canvas.height = height
 
 	const context = canvas.getContext('2d')
-	// draw the current frame of the video onto the canvas
-	context.drawImage(video, 0, 0, canvas.width, canvas.height)
-	const posterDataUrl = canvas.toDataURL('image/webp')
+	context.drawImage(media, 0, 0, canvas.width, canvas.height)
 
-	// save the poster as an attachment and return the url for the poster
-	return await savePoster.submit(posterDataUrl)
+	return await savePoster.submit(canvas.toDataURL('image/webp'))
+}
+
+const generatePoster = async (video) => {
+	return await saveMediaFrameAsPoster(video, video.videoWidth, video.videoHeight)
+}
+
+const isGifFile = (file) => {
+	return (
+		file.file_type?.toLowerCase() === 'gif' ||
+		file.file_name?.toLowerCase().endsWith('.gif') ||
+		file.file_url?.toLowerCase().endsWith('.gif')
+	)
+}
+
+const generateImagePoster = async (imageUrl) => {
+	const img = new Image()
+	img.src = imageUrl
+	await img.decode()
+
+	return await saveMediaFrameAsPoster(img, img.naturalWidth, img.naturalHeight)
 }
 
 const getVideoElementClone = (videoUrl) => {
@@ -422,12 +437,16 @@ const addMediaElement = async (file, type) => {
 	}
 
 	let videoPoster = null
+	let imagePoster = null
 
 	if (type == 'image') {
 		const { width, aspectRatio } = await getNaturalSize(src)
 		elementWidth = Math.max(Math.min(width, 800), 30)
 		const elementHeight = elementWidth / aspectRatio
 		position = getLeftTopForCenteredElement(elementWidth, elementHeight)
+		if (isGifFile(file)) {
+			imagePoster = await generateImagePoster(src)
+		}
 	} else {
 		elementWidth = 400
 		const { posterURL, aspectRatio } = await getVideoPoster(src)
@@ -463,6 +482,9 @@ const addMediaElement = async (file, type) => {
 	} else {
 		element.invertX = 1
 		element.invertY = 1
+		if (imagePoster) {
+			element.poster = imagePoster
+		}
 	}
 
 	const refCommands = getCommandsToUpdateElementRefId(element) || []
@@ -645,18 +667,12 @@ const selectAllElements = (e) => {
 	activeElementIds.value = currentSlide.value.elements.map((element) => element.id)
 }
 
-const resetFocus = async () => {
-	const index = slideIndex.value
-
+const resetFocus = () => {
 	if (!activeElementIds.value.length) return
 
 	activeElementIds.value = []
 	focusElementId.value = null
 	pairElementId.value = null
-
-	await nextTick()
-
-	await updateThumbnail(index)
 }
 
 const getElementPosition = (elementId) => {
