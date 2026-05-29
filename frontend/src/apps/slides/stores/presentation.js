@@ -34,6 +34,7 @@ const createPresentationResource = createResource({
 			modified_by: doc.modified_by,
 			modified: doc.modified,
 			thumbnail: doc.thumbnail || '',
+			slide_count: doc.slide_count || doc.slides?.length || 0,
 		}
 	},
 })
@@ -137,11 +138,11 @@ const getPresentationResource = (name) => {
 		auto: false,
 		transform(doc) {
 			for (const slide of doc.slides || []) {
-				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
+				delete slide.thumbnail
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
@@ -169,11 +170,11 @@ const getPublicPresentationResource = (name) => {
 		},
 		transform(doc) {
 			for (const slide of doc.slides || []) {
-				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
+				delete slide.thumbnail
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
@@ -198,11 +199,11 @@ const getCompositePresentationResource = (name) => {
 		},
 		transform(doc) {
 			for (const slide of doc.slides || []) {
-				slide.thumbnail = slide.thumbnail || ''
 				slide.elements = parseElements(slide.elements)
 				slide.clientId = slide.client_id || uuid4()
 				slide.transitionDuration = slide.transition_duration
 				slide.fadeUnmatchedElements = slide.fade_unmatched_elements
+				delete slide.thumbnail
 				// remove the transition_duration field to avoid confusion
 				delete slide.transition_duration
 				delete slide.fade_unmatched_elements
@@ -254,13 +255,16 @@ const hasStateChanged = (original, current) => {
 }
 
 const savePresentationDoc = async (updatedSlides) => {
-	const newSlides = updatedSlides.map((slide) => ({
-		...slide,
-		client_id: slide.clientId,
-		elements: JSON.stringify(slide.elements, null, 2),
-		transition_duration: slide.transitionDuration,
-		fade_unmatched_elements: slide.fadeUnmatchedElements,
-	}))
+	const newSlides = updatedSlides.map((slide) => {
+		const { thumbnail, ...slideData } = slide
+		return {
+			...slideData,
+			client_id: slide.clientId,
+			elements: JSON.stringify(slide.elements, null, 2),
+			transition_duration: slide.transitionDuration,
+			fade_unmatched_elements: slide.fadeUnmatchedElements,
+		}
+	})
 
 	await presentationResource.value.setValue.submit({
 		slides: newSlides,

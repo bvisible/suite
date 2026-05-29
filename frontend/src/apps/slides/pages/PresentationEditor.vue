@@ -13,7 +13,7 @@
 				ref="slideContainer"
 				v-if="presentationDoc"
 				:highlight="slideHighlight"
-				v-model:hasOngoingInteraction="hasOngoingInteraction"
+				v-model:hasOngoingInteraction="isSlideInteractionActive"
 			/>
 
 			<NavigationPanel
@@ -53,18 +53,25 @@
 	<teleport to="body">
 		<ExportView v-if="showExportView" :slides="slides" />
 	</teleport>
+
+	<ThumbnailCapture
+		ref="thumbnailCaptureRef"
+		v-if="presentationDoc && !inReadonlyMode && slides.length"
+		:slide="slides[0]"
+		:disableCapture="isSlideInteractionActive"
+	/>
 </template>
 
 <script setup>
 import {
 	ref,
 	watch,
-	useTemplateRef,
 	onMounted,
 	onBeforeUnmount,
 	provide,
 	inject,
 	nextTick,
+	useTemplateRef,
 } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
@@ -78,6 +85,7 @@ import SlideContainer from '@/components/SlideContainer.vue'
 import Toolbar from '@/components/Toolbar.vue'
 import ThemeDialog from '@/components/ThemeDialog.vue'
 import LayoutDialog from '@/components/LayoutDialog.vue'
+import ThumbnailCapture from '@/components/ThumbnailCapture.vue'
 
 import {
 	presentationId,
@@ -97,8 +105,6 @@ import {
 	slides,
 	slideIndex,
 	selectionBounds,
-	updateThumbnail,
-	lastThumbnailTime,
 	focusedSlide,
 	setSlideIndex,
 	changeEditorSlide,
@@ -116,7 +122,7 @@ import {
 } from '@/stores/historyMeta'
 
 import { useShortcuts } from '@/composables/useShortcuts'
-import { saveChanges, saveCurrentState, dirtySince, isDirty, syncThumbnail } from '@/stores/saving'
+import { saveChanges, saveCurrentState, isDirty } from '@/stores/saving'
 import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import { useCommandHistory } from '@/composables/useCommandHistory'
@@ -127,7 +133,7 @@ const route = useRoute()
 const router = useRouter()
 
 let autosaveInterval = null
-let thumbnailInterval = null
+const thumbnailCaptureRef = useTemplateRef('thumbnailCaptureRef')
 
 const props = defineProps({
 	presentationId: String,
@@ -145,7 +151,7 @@ const props = defineProps({
 const showThemeDialog = ref(false)
 const themeDialogAction = ref('update')
 const slideHighlight = ref(false)
-const hasOngoingInteraction = ref(false)
+const isSlideInteractionActive = ref(false)
 
 const showLayoutDialog = ref(false)
 const layoutAction = ref('')
@@ -156,25 +162,24 @@ const historyMetaForCommandHistory = {
 	actions: historyMetaActions,
 	actionOrder: historyMetaActionOrder,
 }
-
 const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
 setCommandHistory(commandHistoryInstance)
+
+useShortcuts(inReadonlyMode, inSlideShowMode)
+
+usePageMeta(() => {
+	return {
+		title: presentationDoc.value?.title || 'Slides',
+	}
+})
 
 const setHighlight = (value) => {
 	slideHighlight.value = value
 }
 
 const handleAutoSave = () => {
-	if (hasOngoingInteraction.value || focusElementId.value != null) return
+	if (isSlideInteractionActive.value || focusElementId.value != null) return
 	saveChanges()
-}
-
-const handleThumbnailGeneration = async (index) => {
-	if (!slides.value || hasOngoingInteraction.value || focusElementId.value != null) return
-
-	if (dirtySince.value != null && dirtySince.value > lastThumbnailTime.value) {
-		await updateThumbnail(index)
-	}
 }
 
 const updateRoute = async (slug) => {
@@ -186,11 +191,8 @@ const updateRoute = async (slug) => {
 	})
 }
 
-const initIntervals = () => {
+const initAutoSave = () => {
 	autosaveInterval = setInterval(handleAutoSave, 500)
-	thumbnailInterval = setInterval(() => {
-		handleThumbnailGeneration(slideIndex.value)
-	}, 1500)
 }
 
 const loadPresentation = async (id) => {
@@ -201,12 +203,13 @@ const updateUnsyncedRecord = () => {
 	unsyncedPresentationRecord.value = {
 		...unsyncedPresentationRecord.value,
 		modified: presentationDoc.value.modified,
-		thumbnail: slides.value[0]?.thumbnail,
+		thumbnail: presentationDoc.value.thumbnail,
+		slide_count: slides.value.length,
 	}
 }
 
 const handleBeforeUnload = (e) => {
-	if (isDirty.value || syncThumbnail > 0) {
+	if (isDirty.value) {
 		e.preventDefault()
 		e.returnValue = ''
 	}
@@ -229,7 +232,7 @@ const performAfterLoadOperations = () => {
 
 	if (inReadonlyMode.value) return
 
-	initIntervals()
+	initAutoSave()
 }
 
 const loadEditorState = async () => {
@@ -258,9 +261,9 @@ const hideOpenDialogs = () => {
 }
 
 const handleBeforeUnmount = () => {
+	thumbnailCaptureRef.value?.reset()
 	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
-	clearInterval(thumbnailInterval)
 
 	if (router.currentRoute.value.name !== 'Slideshow') {
 		resetFocus()
@@ -269,15 +272,6 @@ const handleBeforeUnmount = () => {
 	window.removeEventListener('beforeunload', handleBeforeUnload)
 	window.removeEventListener('popstate', hideOpenDialogs)
 }
-
-watch(
-	() => isDirty.value,
-	(val) => {
-		if (val) {
-			dirtySince.value = Date.now()
-		}
-	},
-)
 
 watch(
 	() => props.activeSlideId,
@@ -309,6 +303,7 @@ watch(
 	(id, prevId) => {
 		if (!id || !prevId || id === prevId) return
 		inReadonlyMode.value = props.editorAccess == 'view'
+		thumbnailCaptureRef.value?.reset()
 		commandHistory.clearHistory()
 		loadEditorState()
 	},
@@ -411,14 +406,6 @@ const openLayoutDialog = (action, index) => {
 	layoutAction.value = action
 	insertIndex.value = index
 }
-
-usePageMeta(() => {
-	return {
-		title: presentationDoc.value?.title || 'Slides',
-	}
-})
-
-useShortcuts(inReadonlyMode, inSlideShowMode)
 
 const cleanup = () => {
 	showExportView.value = false

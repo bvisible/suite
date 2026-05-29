@@ -69,7 +69,6 @@ import {
 	slideBounds,
 	selectionBounds,
 	updateSelectionBounds,
-	setSlideRef,
 	slideIndex,
 } from '@/stores/slide'
 
@@ -471,8 +470,6 @@ watch(
 
 const initSlideAndListeners = () => {
 	if (!slideRef.value) return
-
-	setSlideRef(slideRef.value)
 
 	updateSlideBounds()
 

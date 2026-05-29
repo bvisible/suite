@@ -1,6 +1,11 @@
 <template>
 	<div>
-		<img class="object-cover" :style="imageStyle" :src="getAttachmentUrl(element.src)" />
+		<img
+			v-if="imageSrc"
+			class="object-cover"
+			:style="imageStyle"
+			:src="getAttachmentUrl(imageSrc)"
+		/>
 		<div
 			v-if="showReplaceImageButton"
 			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
@@ -30,12 +35,16 @@ import { computed } from 'vue'
 
 import { FileUploader } from 'frappe-ui'
 
-import { presentationId, isPublicPresentation } from '@/stores/presentation'
+import { presentationId } from '@/stores/presentation'
 import { activeElement } from '@/stores/element'
 import { allowedImageFileTypes } from '@/utils/constants'
 import { getAttachmentUrl } from '@/utils/mediaUploads'
 
 const props = defineProps({
+	mode: {
+		type: String,
+		default: 'editor',
+	},
 	transitionStyles: {
 		type: Object,
 		default: () => ({}),
@@ -52,10 +61,25 @@ const replaceButtonClasses =
 
 const showReplaceImageButton = computed(() => {
 	return (
+		props.mode == 'editor' &&
 		element.value.useTemplateDimensions &&
 		activeElement.value?.id == element.value.id &&
 		element.value.src.includes('placeholder')
 	)
+})
+
+const imageSrc = computed(() => {
+	if (props.mode == 'thumbnail' && isGifImage.value && !element.value.poster) {
+		return ''
+	}
+	if (props.mode == 'thumbnail' && element.value.poster) {
+		return element.value.poster
+	}
+	return element.value.src
+})
+
+const isGifImage = computed(() => {
+	return element.value.src?.split('?')[0].toLowerCase().endsWith('.gif')
 })
 
 const imageStyle = computed(() => {
