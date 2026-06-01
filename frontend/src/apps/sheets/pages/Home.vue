@@ -123,7 +123,9 @@
           <div class="home-card-footer">
             <div class="home-card-info">
               <span class="home-card-title">{{ sheet.title }}</span>
-              <span class="home-card-date">{{ formatDate(sheet.modified) }}</span>
+              <span class="home-card-date">
+                <template v-if="!isOwnedByMe(sheet)">Shared · </template>{{ formatDate(sheet.modified) }}
+              </span>
             </div>
             <div class="home-card-menu" @click.stop>
               <Dropdown :options="cardActions(sheet)" placement="right">
@@ -241,8 +243,12 @@ function setViewMode(mode) {
   try { localStorage.setItem(VIEW_KEY, mode) } catch (_) { /* private mode */ }
 }
 
+const currentUser = window.frappe?.session?.user || ''
+function isOwnedByMe(sheet) { return sheet.owner === currentUser }
+
 function shortOwner(u) {
   if (!u) return ''
+  if (u === currentUser) return 'me'
   return u.includes('@') ? u.split('@')[0] : u
 }
 
@@ -254,13 +260,20 @@ const filteredSheets = computed(() => {
   return sheets.value.filter(s => (s.title || '').toLowerCase().includes(q))
 })
 
-// Per-card 3-dot menu. Returned as a Frappe UI Dropdown options array.
+// Per-card 3-dot menu. Rename/Delete are owner-only — both backend
+// endpoints require write/delete perm, which a shared viewer/editor
+// doesn't hold; surfacing the actions just to fail with a 403 is poor
+// UX. Duplicate is always safe because the copy is owned by the caller.
 function cardActions(sheet) {
-  return [
-    { label: 'Rename',    icon: 'edit-2',  onClick: () => openRenameDialog(sheet) },
-    { label: 'Duplicate', icon: 'copy',    onClick: () => duplicate(sheet) },
-    { label: 'Delete',    icon: 'trash-2', onClick: () => confirmDelete(sheet) },
-  ]
+  const actions = []
+  if (isOwnedByMe(sheet)) {
+    actions.push({ label: 'Rename', icon: 'edit-2', onClick: () => openRenameDialog(sheet) })
+  }
+  actions.push({ label: 'Duplicate', icon: 'copy', onClick: () => duplicate(sheet) })
+  if (isOwnedByMe(sheet)) {
+    actions.push({ label: 'Delete', icon: 'trash-2', onClick: () => confirmDelete(sheet) })
+  }
+  return actions
 }
 
 const showDeleteDialog = ref(false)
