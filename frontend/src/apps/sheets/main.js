@@ -4,8 +4,19 @@ import {
   Dropdown, Popover, Tooltip, Avatar, Badge,
   CommandPalette,
 } from 'frappe-ui'
+import { TooltipProvider, TooltipRoot } from 'reka-ui'
 import App from './App.vue'
 import './index.css'
+
+// Lower the default tooltip hover delay from reka-ui's 700 ms (and frappe-ui
+// Tooltip's 500 ms) to 300 ms — closer to Google Sheets / Material guidance,
+// which feels right for a power-user app where users hover the toolbar to
+// confirm icons. Buttons in frappe-ui mount their own TooltipProvider with
+// no delayDuration prop, so the only way to influence them globally is to
+// mutate the component's prop default before any are rendered.
+for (const c of [TooltipProvider, TooltipRoot]) {
+  if (c?.props?.delayDuration) c.props.delayDuration.default = 300
+}
 
 const app = createApp(App)
 
