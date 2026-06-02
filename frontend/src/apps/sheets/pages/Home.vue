@@ -264,12 +264,18 @@ function setViewMode(mode) {
   try { localStorage.setItem(VIEW_KEY, mode) } catch (_) { /* private mode */ }
 }
 
-const currentUser = window.frappe?.session?.user || ''
-function isOwnedByMe(sheet) { return sheet.owner === currentUser }
+// Ownership comes from the API as a server-computed `is_owner` flag,
+// because the SPA's index.html template doesn't inject the standard
+// `window.frappe.session` bootinfo — the client can't reliably know
+// the logged-in user on its own. Comparing sheet.owner against an empty
+// `window.frappe?.session?.user` made every sheet look "shared" and
+// hid the owner-only Rename/Delete actions.
+function isOwnedByMe(sheet) { return !!sheet.is_owner }
 
-function shortOwner(u) {
+function shortOwner(sheet) {
+  const u = sheet.owner
   if (!u) return ''
-  if (u === currentUser) return 'me'
+  if (sheet.is_owner) return 'me'
   return u.includes('@') ? u.split('@')[0] : u
 }
 
@@ -291,7 +297,7 @@ const listColumns = [
     label: 'Owner',
     key: 'owner',
     width: 1,
-    getLabel: ({ row }) => shortOwner(row.owner),
+    getLabel: ({ row }) => shortOwner(row),
   },
   {
     label: 'Last Modified',
