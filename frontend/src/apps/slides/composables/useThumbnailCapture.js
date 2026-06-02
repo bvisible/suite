@@ -62,7 +62,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 			const url = await upload(data)
 			if (isStale(key)) return
 
-			apply(url)
+			await apply(url)
 			clear(key)
 		} catch (error) {
 			console.warn('Could not generate presentation thumbnail', error)
@@ -84,7 +84,14 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 		})
 	}
 
-	const apply = (thumbnail) => {
+	const evictThumbnailCache = async (url) => {
+		if (!('caches' in window) || !url) return
+		const cache = await caches.open('slides-media')
+		await cache.delete(url)
+	}
+
+	const apply = async (thumbnail) => {
+		await evictThumbnailCache(thumbnail)
 		presentationDoc.value.thumbnail = thumbnail
 		unsyncedPresentationRecord.value = {
 			...unsyncedPresentationRecord.value,
