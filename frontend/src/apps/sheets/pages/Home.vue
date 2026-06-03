@@ -85,8 +85,9 @@
         <Button variant="solid" @click="emit('new')">New Spreadsheet</Button>
       </div>
 
-      <!-- No search match -->
-      <div v-else-if="!filteredSheets.length" class="home-empty">
+      <!-- No search match (grid only — list mode delegates to ListView's
+           built-in emptyState option). -->
+      <div v-else-if="viewMode === 'grid' && !filteredSheets.length" class="home-empty">
         <p class="home-empty-title">No matches for “{{ searchQuery }}”</p>
         <p class="home-empty-sub">Try a different name.</p>
       </div>
@@ -138,42 +139,42 @@
         </div>
       </div>
 
-      <!-- Sheet list — Frappe UI ListView wrapped in a bordered card so the
-           table reads as a single contained block (matches the design ref). -->
-      <div v-else class="home-list-wrap">
-        <ListView
-          :columns="listColumns"
-          :rows="filteredSheets"
-          row-key="name"
-          :options="listOptions"
-        >
-          <template #cell="{ item, row, column }">
-            <div
-              v-if="column.key === '_actions'"
-              class="flex w-full justify-end"
-              @click.stop
-            >
-              <Dropdown :options="cardActions(row)" placement="right">
-                <template #default="{ open }">
-                  <Button
-                    :variant="open ? 'subtle' : 'ghost'"
-                    size="sm"
-                    icon="more-vertical"
-                    tooltip="Actions"
-                  />
-                </template>
-              </Dropdown>
-            </div>
-            <ListRowItem
-              v-else
-              :column="column"
-              :row="row"
-              :item="item"
-              :align="column.align"
-            />
-          </template>
-        </ListView>
-      </div>
+      <!-- Sheet list — Frappe UI ListView. No custom wrapper; the
+           component owns its header bg + row dividers. Empty / no-match
+           states are handled via the options.emptyState contract. -->
+      <ListView
+        v-else
+        :columns="listColumns"
+        :rows="filteredSheets"
+        row-key="name"
+        :options="listOptions"
+      >
+        <template #cell="{ item, row, column }">
+          <div
+            v-if="column.key === '_actions'"
+            class="flex w-full justify-end"
+            @click.stop
+          >
+            <Dropdown :options="cardActions(row)" placement="right">
+              <template #default="{ open }">
+                <Button
+                  :variant="open ? 'subtle' : 'ghost'"
+                  size="sm"
+                  icon="more-vertical"
+                  tooltip="Actions"
+                />
+              </template>
+            </Dropdown>
+          </div>
+          <ListRowItem
+            v-else
+            :column="column"
+            :row="row"
+            :item="item"
+            :align="column.align"
+          />
+        </template>
+      </ListView>
     </div>
 
     <!-- Rename dialog -->
@@ -217,6 +218,7 @@
 <script setup>
 import { ref, computed, h, onMounted } from 'vue'
 import {
+  Avatar,
   Badge,
   Button,
   Dialog,
@@ -279,6 +281,16 @@ function shortOwner(sheet) {
   return u.includes('@') ? u.split('@')[0] : u
 }
 
+// Two-letter initials for the Avatar prefix on the Owner column. Drops the
+// email domain first ("alice@x.com" → "alice") so the label is initial-derived
+// rather than "AL".
+function ownerInitials(sheet) {
+  const handle = (sheet.owner || '').split('@')[0]
+  const parts = handle.split(/[._-]+/).filter(Boolean)
+  const letters = (parts[0]?.[0] || '') + (parts[1]?.[0] || '')
+  return letters.toUpperCase() || '?'
+}
+
 // Frappe UI ListView column definitions. Trailing `_actions` column holds the
 // 3-dot menu — rendered via the #cell slot since ListRowItem can't host a
 // Dropdown trigger directly.
@@ -298,6 +310,8 @@ const listColumns = [
     key: 'owner',
     width: 1,
     getLabel: ({ row }) => shortOwner(row),
+    prefix: ({ row }) =>
+      h(Avatar, { label: ownerInitials(row), size: 'xs', shape: 'circle' }),
   },
   {
     label: 'Last Modified',
@@ -308,12 +322,29 @@ const listColumns = [
   { label: '', key: '_actions', width: '60px', align: 'right' },
 ]
 
-const listOptions = {
+// `emptyState` is ListView's built-in contract — it renders inside the
+// component (below the header) when `rows` is empty, so we don't need an
+// outer v-if branch for the no-match case in list mode.
+const listOptions = computed(() => ({
   selectable: false,
   showTooltip: true,
   rowHeight: 52,
   onRowClick: (row) => emit('open', row.name),
-}
+  emptyState: searchQuery.value
+    ? {
+        title: `No matches for "${searchQuery.value}"`,
+        description: 'Try a different name.',
+      }
+    : {
+        title: 'No spreadsheets yet',
+        description: 'Create one to get started.',
+        button: {
+          label: 'New Spreadsheet',
+          variant: 'solid',
+          onClick: () => emit('new'),
+        },
+      },
+}))
 
 // Filter by title, case-insensitive substring match. Sort order from the API
 // (modified desc) is preserved by `filter`.
@@ -591,16 +622,6 @@ async function duplicate(sheet) {
 }
 
 /* ── List view ─────────────────────────────────────────────────────────────
-   Frappe UI's ListView renders the header + rows with its own classes; we
-   just wrap it in a bordered card so the table reads as a single contained
-   block (matching the Google Sheets / Drive style reference). The inner
-   `padding: 0 8px` cancels ListHeader's `mb-2` so the header sits flush
-   with the card's top edge. */
-.home-list-wrap {
-  background: var(--surface-white);
-  border: 1px solid var(--outline-gray-2);
-  border-radius: 10px;
-  overflow: hidden;
-  padding: 8px;
-}
+   Frappe UI's ListView owns its own header/row styling — header background,
+   gridTemplateColumns, dividers, hover. We don't wrap it. */
 </style>
