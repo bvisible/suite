@@ -4192,13 +4192,14 @@ function toggleShowFormulas() {
 }
 .sn-pivot-fab-icon { width: 13px; height: 13px; }
 
-/* Pivot highlight overlay — coloured outline drawn over the pivot output
-   range. pointer-events:none keeps clicks reaching the canvas underneath. */
+/* Pivot highlight overlay — neutral outline drawn over the pivot output
+   range, matching the rest of the espresso chrome (ink-gray scale rather
+   than a saturated brand colour). pointer-events:none keeps clicks
+   reaching the canvas underneath. */
 .sn-pivot-highlight {
   position: absolute; z-index: 15; pointer-events: none;
-  border: 1.5px solid #0E7490;
+  border: 1.5px solid var(--ink-gray-8);
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(14, 116, 144, .12) inset;
 }
 
 /* ── Bar 2 · Formula bar ─────────────────────────────────────────────────── */
