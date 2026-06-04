@@ -138,7 +138,7 @@
             <div class="home-card-menu" @click.stop>
               <Dropdown :options="cardActions(sheet)" placement="right">
                 <template #default="{ open }">
-                  <Button :variant="open ? 'subtle' : 'ghost'" size="sm" icon="more-vertical" tooltip="Actions" />
+                  <Button :variant="open ? 'subtle' : 'ghost'" size="sm" icon="lucide-ellipsis-vertical" tooltip="Actions" />
                 </template>
               </Dropdown>
             </div>
@@ -167,7 +167,7 @@
                 <Button
                   :variant="open ? 'subtle' : 'ghost'"
                   size="sm"
-                  icon="more-vertical"
+                  icon="lucide-ellipsis-vertical"
                   tooltip="Actions"
                 />
               </template>

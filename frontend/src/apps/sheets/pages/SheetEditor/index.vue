@@ -30,6 +30,7 @@
           :style="{ width: titleInputWidth }"
           placeholder="Untitled Spreadsheet"
           spellcheck="false"
+          @focus="onTitleFocus"
           @blur="onTitleBlur"
         />
         <!-- Save status — muted inline text; never competes with the title -->
@@ -2550,7 +2551,18 @@ watch(isDirty, (dirty) => { if (dirty) _triggerAutoSave() })
 // (or release) right-padding for the chevron buttons.
 watch(showSortFilter, () => { grid?.render?.() })
 
-function onTitleBlur() { _triggerAutoSave() }
+// Title focus/blur — mark `isDirty` when the value changed during the focus
+// session so `_doAutoSave` doesn't bail on its `!isDirty` guard. Without
+// this, a rename-then-leave flow (no cell edit in between) silently dropped
+// the new title: the 2 s autosave ran but exited early, and `flushAndClose`
+// → `flushSave` did the same. Snapshotting on focus avoids spurious saves
+// when the user just clicks into and out of the field without typing.
+let _titleAtFocus = ''
+function onTitleFocus() { _titleAtFocus = currentTitle.value }
+function onTitleBlur() {
+  if (currentTitle.value !== _titleAtFocus) isDirty.value = true
+  _triggerAutoSave()
+}
 
 watch(isSaving, (cur, prev) => { if (prev && !cur && !saveError.value) isDirty.value = false })
 
