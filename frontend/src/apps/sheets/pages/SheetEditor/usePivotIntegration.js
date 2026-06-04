@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { computePivot, writePivotToSheet } from '../../engine/pivot.js'
 import { colLabel } from '../../utils/cells.js'
+import { COL_HEADER_H, ROW_HEADER_W } from '../../canvas/constants.js'
 
 /**
  * @param {{
@@ -74,6 +75,9 @@ export function usePivotIntegration({
 
   // Positions the edit FAB below the Grand Total row without re-running
   // computePivot() — _pivotRowCount is updated whenever pivot output is written.
+  // getCellRect returns coordinates even when the cell has scrolled above the
+  // visible cell area, so the FAB would otherwise overlap the column/row
+  // headers when the user scrolls past the pivot. Gate on the headers.
   const pivotFabStyle = computed(() => {
     void pivotVersion.value
     renderVersion.value
@@ -83,13 +87,22 @@ export function usePivotIntegration({
     if (!grid || !cfg || !rows) return null
     const rect = grid.getCellRect?.(rows - 1, 0)
     if (!rect) return null
-    return { top: (rect.y + rect.height + 6) + 'px', left: rect.x + 'px' }
+    const zoom = grid.getZoom?.() ?? 1
+    const top  = rect.y + rect.height + 6
+    if (top < COL_HEADER_H * zoom || rect.x + rect.width < ROW_HEADER_W * zoom) {
+      return null
+    }
+    return { top: top + 'px', left: rect.x + 'px' }
   })
 
   // Highlight overlay — a thin coloured border drawn over the pivot output
   // range so users can see it's a generated table (Google Sheets does the
   // same). Anchored on getCellRect of the top-left and bottom-right output
   // cells; tracks scroll/zoom via the renderVersion read.
+  //
+  // Clip the overlay to the visible cell area so it never bleeds into the
+  // column/row headers when scrolled. Hide entirely when the pivot has
+  // scrolled completely above/left of the visible area.
   const pivotHighlightStyle = computed(() => {
     void pivotVersion.value
     renderVersion.value
@@ -101,11 +114,19 @@ export function usePivotIntegration({
     const tl = grid.getCellRect?.(0, 0)
     const br = grid.getCellRect?.(rows - 1, cols - 1)
     if (!tl || !br) return null
+    const zoom    = grid.getZoom?.() ?? 1
+    const headerY = COL_HEADER_H * zoom
+    const headerX = ROW_HEADER_W * zoom
+    const right   = br.x + br.width
+    const bottom  = br.y + br.height
+    if (bottom <= headerY || right <= headerX) return null
+    const top  = Math.max(tl.y, headerY)
+    const left = Math.max(tl.x, headerX)
     return {
-      top:    tl.y + 'px',
-      left:   tl.x + 'px',
-      width:  (br.x + br.width  - tl.x) + 'px',
-      height: (br.y + br.height - tl.y) + 'px',
+      top:    top  + 'px',
+      left:   left + 'px',
+      width:  (right  - left) + 'px',
+      height: (bottom - top)  + 'px',
     }
   })
 
