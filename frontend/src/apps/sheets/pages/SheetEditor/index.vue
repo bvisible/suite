@@ -401,21 +401,24 @@
           <Button class="sn-fp-grow" size="sm" iconLeft="arrow-down" label="Z → A" tooltip="Sort descending" @click="doSort(filterPanel.col, 'desc')" />
         </div>
 
-        <!-- Mode toggle: condition vs values. Both share Apply/Clear actions
-             at the bottom so the user can flip between modes before committing. -->
+        <!-- Mode toggle: condition vs values. Labels are short ("Values" /
+             "Condition") so both fit inside the 260 px panel at the default
+             Button text-base size — the full "Filter by …" wording overflowed
+             at this width. Both modes share the Apply/Clear actions at the
+             bottom, so the user can flip between modes before committing. -->
         <div class="sn-fp-mode" role="tablist" aria-label="Filter mode">
           <Button
             class="sn-fp-grow"
             size="sm"
             :variant="filterPanel.mode === 'values' ? 'subtle' : 'ghost'"
-            label="Filter by values"
+            label="Values"
             @click="filterPanel.mode = 'values'"
           />
           <Button
             class="sn-fp-grow"
             size="sm"
             :variant="filterPanel.mode === 'condition' ? 'subtle' : 'ghost'"
-            label="Filter by condition"
+            label="Condition"
             @click="filterPanel.mode = 'condition'"
           />
         </div>
