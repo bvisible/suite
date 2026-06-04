@@ -2224,6 +2224,12 @@ function _runFill(src, total, mode) {
     _fillValidation(src, total, sheetName)
     condFormat.extendRulesToRange(src, total, sheetName)
   }
+  // Merges are a structural format — replicate them alongside cell formats
+  // (so a merged source tiles its merge into every dragged-over destination)
+  // EXCEPT when the user explicitly asked for values-only with `without-format`.
+  if (mode !== 'without-format') {
+    _fillMerges(src, total)
+  }
   const fillAfter = _captureRange(total, sheetName)
   const refs = _diffRefs(fillBefore, fillAfter)
   if (refs.length) {
@@ -2275,6 +2281,58 @@ function _fillValues(src, total, sheetName, valueMode) {
       }
       sheet.setCell(cellId(src.r0 + rOff, startC + cOff), val)
     }))
+  }
+}
+
+// Replicate every merge whose master AND span lie entirely inside `src` into
+// each tile of the destination range. Without this, dragging the fill handle
+// from a merged source produced unmerged target cells — values copied but
+// the structural merge was lost. merge.merge() already unmerges any
+// overlapping merge on the target, so re-runs are idempotent.
+function _fillMerges(src, total) {
+  const srcMerges = []
+  for (let r = src.r0; r <= src.r1; r++) {
+    for (let c = src.c0; c <= src.c1; c++) {
+      const info = merge.getMasterInfo(cellId(r, c))
+      if (!info) continue
+      if (r + info.rowSpan - 1 > src.r1) continue
+      if (c + info.colSpan - 1 > src.c1) continue
+      srcMerges.push({ rOff: r - src.r0, cOff: c - src.c0,
+                       rowSpan: info.rowSpan, colSpan: info.colSpan })
+    }
+  }
+  if (!srcMerges.length) return
+
+  const srcRows = src.r1 - src.r0 + 1, srcCols = src.c1 - src.c0 + 1
+  const goDown  = total.r1 > src.r1, goUp    = total.r0 < src.r0
+  const goRight = total.c1 > src.c1, goLeft  = total.c0 < src.c0
+
+  if (goDown || goUp) {
+    const startR = goDown ? src.r1 + 1 : total.r0
+    const endR   = goDown ? total.r1   : src.r0 - 1
+    for (let tileR0 = startR; tileR0 <= endR; tileR0 += srcRows) {
+      for (const m of srcMerges) {
+        const r0 = tileR0 + m.rOff
+        const c0 = src.c0 + m.cOff
+        const r1 = r0 + m.rowSpan - 1
+        const c1 = c0 + m.colSpan - 1
+        if (r1 > endR) continue   // drop the partial tile at the far edge
+        merge.merge(r0, c0, r1, c1)
+      }
+    }
+  } else if (goRight || goLeft) {
+    const startC = goRight ? src.c1 + 1 : total.c0
+    const endC   = goRight ? total.c1   : src.c0 - 1
+    for (let tileC0 = startC; tileC0 <= endC; tileC0 += srcCols) {
+      for (const m of srcMerges) {
+        const r0 = src.r0 + m.rOff
+        const c0 = tileC0 + m.cOff
+        const r1 = r0 + m.rowSpan - 1
+        const c1 = c0 + m.colSpan - 1
+        if (c1 > endC) continue
+        merge.merge(r0, c0, r1, c1)
+      }
+    }
   }
 }
 
