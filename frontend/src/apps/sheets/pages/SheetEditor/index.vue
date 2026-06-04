@@ -2295,39 +2295,68 @@ function _fillSummary(mode, n) {
   return `Filled ${n} cell${n === 1 ? '' : 's'}`
 }
 
-function _fillValues(src, total, sheetName, valueMode) {
-  const srcData = []
+// Read every cell value inside `src` into a 2D array shaped [rows][cols].
+function _readSrcGrid(src) {
+  const data = []
   for (let r = src.r0; r <= src.r1; r++) {
     const row = []
     for (let c = src.c0; c <= src.c1; c++) row.push(sheet.getCell(cellId(r, c)))
-    srcData.push(row)
+    data.push(row)
   }
+  return data
+}
+
+function _fillValues(src, total, sheetName, valueMode) {
   const goDown  = total.r1 > src.r1, goUp    = total.r0 < src.r0
   const goRight = total.c1 > src.c1, goLeft  = total.c0 < src.c0
-  const srcRows = src.r1 - src.r0 + 1, srcCols = src.c1 - src.c0 + 1
+
+  // Diagonal drags extend `total` in BOTH axes. The original 1D branch ran
+  // only the vertical OR horizontal path, leaving the off-axis columns/rows
+  // empty (the user's report: drag A1 → C10 only filled A1:A10). Run the
+  // vertical phase first; then, treating the now-grown column as the new
+  // source, run the horizontal phase. Re-read srcData between phases so
+  // computeFillRight sees the freshly written values in each column.
+
+  let workSrc = src
+  let srcData = _readSrcGrid(workSrc)
+  let srcRows = workSrc.r1 - workSrc.r0 + 1
+  let srcCols = workSrc.c1 - workSrc.c0 + 1
+
   if (goDown || goUp) {
-    const count  = goDown ? total.r1 - src.r1 : src.r0 - total.r0
+    const count  = goDown ? total.r1 - workSrc.r1 : workSrc.r0 - total.r0
     const dir    = goDown ? 1 : -1
     const filled = computeFillDown(srcData, count, dir, { mode: valueMode })
-    const startR = goDown ? src.r1 + 1 : total.r0
+    const startR = goDown ? workSrc.r1 + 1 : total.r0
     filled.forEach((row, rOff) => row.forEach((val, cOff) => {
       if (typeof val === 'string' && val.startsWith('=')) {
         const srcRowOff = dir > 0 ? rOff % srcRows : ((srcRows - 1 - rOff) % srcRows + srcRows) % srcRows
-        val = adjustFormula(val, (startR + rOff) - (src.r0 + srcRowOff), 0)
+        val = adjustFormula(val, (startR + rOff) - (workSrc.r0 + srcRowOff), 0)
       }
-      sheet.setCell(cellId(startR + rOff, src.c0 + cOff), val)
+      sheet.setCell(cellId(startR + rOff, workSrc.c0 + cOff), val)
     }))
-  } else if (goRight || goLeft) {
-    const count  = goRight ? total.c1 - src.c1 : src.c0 - total.c0
+    // Expand the working source vertically — phase 2 will spread these full
+    // columns sideways across the rest of the destination.
+    workSrc = {
+      r0: Math.min(workSrc.r0, total.r0),
+      r1: Math.max(workSrc.r1, total.r1),
+      c0: workSrc.c0,
+      c1: workSrc.c1,
+    }
+    srcData = _readSrcGrid(workSrc)
+    srcRows = workSrc.r1 - workSrc.r0 + 1
+  }
+
+  if (goRight || goLeft) {
+    const count  = goRight ? total.c1 - workSrc.c1 : workSrc.c0 - total.c0
     const dir    = goRight ? 1 : -1
     const filled = computeFillRight(srcData, count, dir, { mode: valueMode })
-    const startC = goRight ? src.c1 + 1 : total.c0
+    const startC = goRight ? workSrc.c1 + 1 : total.c0
     filled.forEach((row, rOff) => row.forEach((val, cOff) => {
       if (typeof val === 'string' && val.startsWith('=')) {
         const srcColOff = dir > 0 ? cOff % srcCols : ((srcCols - 1 - cOff) % srcCols + srcCols) % srcCols
-        val = adjustFormula(val, 0, (startC + cOff) - (src.c0 + srcColOff))
+        val = adjustFormula(val, 0, (startC + cOff) - (workSrc.c0 + srcColOff))
       }
-      sheet.setCell(cellId(src.r0 + rOff, startC + cOff), val)
+      sheet.setCell(cellId(workSrc.r0 + rOff, startC + cOff), val)
     }))
   }
 }
@@ -2355,6 +2384,11 @@ function _fillMerges(src, total) {
   const goDown  = total.r1 > src.r1, goUp    = total.r0 < src.r0
   const goRight = total.c1 > src.c1, goLeft  = total.c0 < src.c0
 
+  // Same 2-phase pattern as _fillValues: extend vertically first, then walk
+  // every column in the vertically-grown source across the horizontal range.
+  // For a diagonal drag, this tiles merges into the full 2D destination
+  // instead of just the on-axis strip.
+  let workR0 = src.r0, workR1 = src.r1
   if (goDown || goUp) {
     const startR = goDown ? src.r1 + 1 : total.r0
     const endR   = goDown ? total.r1   : src.r0 - 1
@@ -2368,12 +2402,28 @@ function _fillMerges(src, total) {
         merge.merge(r0, c0, r1, c1)
       }
     }
-  } else if (goRight || goLeft) {
+    workR0 = Math.min(workR0, total.r0)
+    workR1 = Math.max(workR1, total.r1)
+  }
+  if (goRight || goLeft) {
+    // Re-enumerate merges over the vertically-grown source so phase 2 also
+    // catches every merge tiled in by phase 1.
+    const grownMerges = []
+    for (let r = workR0; r <= workR1; r++) {
+      for (let c = src.c0; c <= src.c1; c++) {
+        const info = merge.getMasterInfo(cellId(r, c))
+        if (!info) continue
+        if (r + info.rowSpan - 1 > workR1) continue
+        if (c + info.colSpan - 1 > src.c1) continue
+        grownMerges.push({ rOff: r - workR0, cOff: c - src.c0,
+                           rowSpan: info.rowSpan, colSpan: info.colSpan })
+      }
+    }
     const startC = goRight ? src.c1 + 1 : total.c0
     const endC   = goRight ? total.c1   : src.c0 - 1
     for (let tileC0 = startC; tileC0 <= endC; tileC0 += srcCols) {
-      for (const m of srcMerges) {
-        const r0 = src.r0 + m.rOff
+      for (const m of grownMerges) {
+        const r0 = workR0 + m.rOff
         const c0 = tileC0 + m.cOff
         const r1 = r0 + m.rowSpan - 1
         const c1 = c0 + m.colSpan - 1
