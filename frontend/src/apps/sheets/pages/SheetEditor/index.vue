@@ -1879,14 +1879,37 @@ const textWrapDropdownOptions = computed(() => [
   { label: 'Wrap',     icon: TEXT_WRAP_ICON.wrap,     onClick: () => setTextWrap('wrap')     },
 ])
 
+// View state is now per-sheet (kept in useSheetTabs._viewBySheet) so freeze /
+// hidden rows / column widths / etc. follow each tab independently. usePersistence
+// is constructed before useSheetTabs, so the get/apply callbacks late-bind via
+// `_sheetTabs` once that hook returns its API. The `grid?.viewSnapshot/Restore`
+// fallbacks only cover the impossible window where someone saves before
+// useSheetTabs has finished initializing.
+let _sheetTabs = null
 const { isSaving, saveError, loadSheet, autoCreate, saveExisting } =
   usePersistence({
     sheet, formats, merge, comments, validation, condFormat, sortFilter, pivot,
     charts, namedRanges,
-    getViewState:   () => grid?.viewSnapshot?.(),
-    applyViewState: (s) => grid?.viewRestore?.(s),
+    getViewState:   () => _sheetTabs?.viewSnapshot?.() ?? grid?.viewSnapshot?.(),
+    applyViewState: (s) => {
+      if (_sheetTabs?.viewRestore) _sheetTabs.viewRestore(s)
+      else                         grid?.viewRestore?.(s)
+    },
     currentTitle, emit,
   })
+
+_sheetTabs = useSheetTabs({ sheet, formats, extras: [comments, validation, condFormat, sortFilter], getGrid: () => grid, activeCell, formulaValue, refreshActiveFormat, onSwitch: () => {
+    filterPanel.open = false     // close any open filter popover so it doesn't carry stale state
+    _repopulateGrid()
+    grid?.setMarchingAnts(null); clipboard.clear(); clipboardHas.value = false
+    _applyHiddenRows()           // refresh filter-driven row hides for the new sheet
+    // Diff overlay is keyed by sub-sheet name — re-point at the new sheet
+    // so the highlight follows the user across tabs in preview mode.
+    if (vhActive.value) grid?.setActiveDiffSheet?.(sheet.getCurrentSheet())
+    // Re-mirror freeze / hidden refs into the Vue state so the context-menu
+    // predicates and toolbar reflect the new sheet's restored view.
+    _syncViewMirrors()
+  } })
 
 const {
   sheetNames, currentSheet, switchSheet,
@@ -1896,15 +1919,7 @@ const {
   deleteSheet:    _deleteSheet,
   reorderSheets,
   syncNames,
-} = useSheetTabs({ sheet, formats, extras: [comments, validation, condFormat, sortFilter], getGrid: () => grid, activeCell, formulaValue, refreshActiveFormat, onSwitch: () => {
-    filterPanel.open = false     // close any open filter popover so it doesn't carry stale state
-    _repopulateGrid()
-    grid?.setMarchingAnts(null); clipboard.clear(); clipboardHas.value = false
-    _applyHiddenRows()           // refresh filter-driven row hides for the new sheet
-    // Diff overlay is keyed by sub-sheet name — re-point at the new sheet
-    // so the highlight follows the user across tabs in preview mode.
-    if (vhActive.value) grid?.setActiveDiffSheet?.(sheet.getCurrentSheet())
-  } })
+} = _sheetTabs
 
 // Formula autocomplete — placed here because sheetNames comes from useSheetTabs above.
 const { acItems, acIdx, acUp, acVisible, updateAc, commitAc, closeAc } =
