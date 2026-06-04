@@ -6,6 +6,7 @@ import { createFrappeProvider }        from '../../collab/frappe-provider.js'
 import { createRealtimeAdapter }       from '../../collab/realtime-adapter.js'
 import { createAwareness }             from '../../collab/awareness.js'
 import { createHocuspocusClient }      from '../../collab/hocuspocus-client.js'
+import { ensureFrappeRealtime }        from '../../collab/frappe-realtime-init.js'
 
 // Feature flag for the Hocuspocus-backed collab path. When false (default),
 // the legacy `frappe.realtime` relay path runs unchanged so a deploy of this
@@ -257,6 +258,15 @@ export function useCollaboration({
     } else {
       // Legacy path — seed locally, relay through frappe.realtime.
       hydrateYDoc(_doc, { sheet: sheet?.snapshot?.() })
+      // The www/spreadsheet page doesn't load Frappe's socketio_client,
+      // so `window.frappe.realtime` is undefined and the legacy path
+      // would have no transport. ensureFrappeRealtime stands up a minimal
+      // shim against the site's socketio namespace on first use; no-op
+      // when a real client already exists (Desk-embedded paths, tests
+      // injecting `_realtime`).
+      if (!_realtime || typeof _realtime.on !== 'function') {
+        _realtime = ensureFrappeRealtime() || _realtime
+      }
       const adapter = createRealtimeAdapter({
         sheetId:  _sheetId,
         realtime: _realtime,
