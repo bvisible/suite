@@ -73,7 +73,7 @@ const getContextMenuOptions = (presentation) => {
 	return [
 		{
 			group: 'Actions',
-			items: [
+			options: [
 				{
 					label: 'Rename',
 					icon: h(PenLine, { class: contextMenuIconClasses }),
@@ -93,7 +93,7 @@ const getContextMenuOptions = (presentation) => {
 		},
 		{
 			group: 'Explore',
-			items: [
+			options: [
 				{
 					label: 'Preview',
 					icon: h(Eye, { class: contextMenuIconClasses }),
