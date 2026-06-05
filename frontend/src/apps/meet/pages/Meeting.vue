@@ -99,6 +99,9 @@
 									(currentUser.currentUser.value?.name as string) ||
 									'You'
 								"
+								:isHost="isCurrentUserHost"
+								:isCohost="isCurrentUserCohost"
+                                :hostOnlyChat="chatStore.hostOnlyChat"
 								@close="toggleChat"
 								@send="chat.onSendChat"
 							/>
@@ -265,6 +268,7 @@ const {
 	meetingTitle,
 	meetingOwner,
 	isCurrentUserHost,
+	isCurrentUserCohost,
 	meetingCoHosts,
 } = useMeetingDoc();
 const meetingDoc = getMeetingDoc(meetingId.value);
@@ -412,6 +416,8 @@ const lobby = useLobby({
 	lobbyStore,
 	meetingId: meetingId.value as string,
 });
+
+type AccessData = { allow_guest?: boolean; host_only_chat?: boolean };
 
 // --- Keyboard Shortcuts ---
 const keyboardShortcuts = useKeyboardShortcuts({
@@ -641,6 +647,9 @@ onMounted(async () => {
 				},
 			});
 
+			if ((accessData as AccessData).host_only_chat !== undefined) {
+				chatStore.hostOnlyChat = !!(accessData as AccessData).host_only_chat;
+			}
 			if (!(accessData as { allow_guest?: boolean }).allow_guest) {
 				router.push({
 					name: "Login",
@@ -773,5 +782,18 @@ watch(
 		}
 	},
 	{ immediate: true },
+);
+
+watch(
+	() => chatStore.hostOnlyChat,
+	(isRestricted, oldValue) => {
+		if (
+			isRestricted !== oldValue &&
+			(isCurrentUserHost.value || isCurrentUserCohost.value) &&
+			sfuConnection.sfuClient?.isConnected()
+		) {
+			chat.toggleRestriction(isRestricted);
+		}
+	},
 );
 </script>
