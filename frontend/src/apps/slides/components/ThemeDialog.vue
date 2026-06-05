@@ -1,23 +1,12 @@
 <template>
 	<Dialog
-		v-model="showThemeDialog"
+		v-model:open="showThemeDialog"
 		class="pb-0"
-		:options="{ size: '2xl' }"
-		:disableOutsideClickToClose="!update"
+		size="2xl"
+		:title="dialogTitle"
+		:dismissible="update"
 	>
-		<template #body-header>
-			<div class="mb-6 flex items-center justify-between">
-				<div class="select-none font-semibold">
-					{{ dialogTitle }}
-				</div>
-				<Button v-if="update" variant="ghost" @click="showThemeDialog = false">
-					<template #icon>
-						<LucideX class="h-4 w-4 text-ink-gray-9" />
-					</template>
-				</Button>
-			</div>
-		</template>
-		<template #body-content>
+		<template #default>
 			<div class="mb-6 select-none text-base text-gray-600">{{ dialogDescription }}</div>
 			<div class="grid max-h-[32rem] grid-cols-2 gap-6 overflow-y-auto">
 				<div
