@@ -1,9 +1,9 @@
 <template>
-	<Dialog class="pb-0" :options="{ size: 'sm' }" @close="handleDialogClose">
-		<template #body-title>
+	<Dialog class="pb-0" size="sm" @close="handleDialogClose">
+		<template #title>
 			<div class="font-semibold">{{ dialogAction }} Presentation</div>
 		</template>
-		<template #body-content>
+		<template #default>
 			<FormControl
 				ref="inputRef"
 				v-if="dialogAction == 'Rename'"
