@@ -64,7 +64,7 @@ const getContextMenuOptions = () => {
 	return [
 		{
 			group: '',
-			items: [
+			options: [
 				{
 					label: 'Back to Home',
 					icon: h(ArrowLeft, { class: 'stroke-[1.5] !size-3.5' }),
@@ -78,7 +78,7 @@ const getContextMenuOptions = () => {
 		},
 		{
 			group: 'Presentation',
-			items: [
+			options: [
 				{
 					label: 'New',
 					icon: h(Plus, { class: 'stroke-[1.5] !size-3.5' }),
@@ -104,7 +104,7 @@ const getContextMenuOptions = () => {
 		},
 		{
 			group: '',
-			items: [
+			options: [
 				{
 					label: 'Export',
 					icon: h(Download, { class: 'stroke-[1.5] !size-3.5' }),

@@ -51,12 +51,12 @@
 	<CollapsibleSection title="Font">
 		<template #default>
 			<FormControl
-				type="autocomplete"
+				type="combobox"
 				:options="textFonts"
 				size="sm"
 				variant="subtle"
 				:modelValue="displayFont"
-				@update:modelValue="(font) => updateProperty('fontFamily', font.value)"
+				@update:modelValue="(font) => updateProperty('fontFamily', font)"
 			/>
 
 			<div class="flex items-center justify-between">
