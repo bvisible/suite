@@ -242,24 +242,18 @@
             <Button :variant="open ? 'subtle' : 'ghost'" size="sm" icon="lucide-layout-grid" tooltip="Borders" />
           </template>
         </Dropdown>
-        <!-- Custom merge glyph (Google Material Symbols Light) — reads as
+        <!-- Custom merge glyph (Lucide table-cells-merge) — reads as
              "join two cells" better than the generic maximize-2 icon. -->
         <Button variant="ghost" size="sm" tooltip="Merge / unmerge cells" @click="toggleMerge">
           <template #icon>
-            <svg viewBox="0 0 24 24" class="sn-merge-glyph" aria-hidden="true">
-              <!-- Material Symbols Light is intentionally a thin stroke;
-                   paint a matching-color stroke over the fill to bring the
-                   visible weight up to feather/lucide ~1.5–2 px equivalent
-                   so this button doesn't look anaemic next to its neighbours. -->
-              <path
-                fill="currentColor"
-                stroke="currentColor"
-                stroke-width="0.75"
-                stroke-linejoin="round"
-                stroke-linecap="round"
-                paint-order="stroke fill"
-                d="M3.5 20.5v-5h1v4h4v1zm12 0v-1h4v-4h1v5zm-8.325-5.386l-.713-.689L8.387 12.5H2.5v-1h5.887L6.462 9.575l.713-.688L10.289 12zm9.65 0L13.712 12l3.113-3.113l.713.688l-1.925 1.925H21.5v1h-5.886l1.924 1.925zM3.5 8.5v-5h5v1h-4v4zm16 0v-4h-4v-1h5v5z"
-              />
+            <svg viewBox="0 0 24 24" class="sn-merge-glyph" aria-hidden="true"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21v-6" />
+              <path d="M12 9V3" />
+              <path d="M3 15h18" />
+              <path d="M3 9h18" />
+              <rect width="18" height="18" x="3" y="3" rx="2" />
             </svg>
           </template>
         </Button>
