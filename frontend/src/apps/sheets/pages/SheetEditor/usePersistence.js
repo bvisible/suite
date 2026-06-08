@@ -52,9 +52,44 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
     return _persist(name, title, { keepalive, ops })
   }
 
+  // Transient → retry with backoff. Permanent → fail fast so the user
+  // gets an honest error instead of waiting ~7 s for three retries that
+  // were never going to succeed.
+  //
+  // The Frappe api helper attaches `excType` + `status` to thrown errors
+  // (see utils/api.js), so we don't have to regex the message.
+  function _isTransientSaveError(err) {
+    // No status → fetch itself threw (offline, DNS failure, server killed
+    // mid-flight before the response existed). Always retry these.
+    if (err?.status == null) return true
+    // Server-side hiccups (502 Bad Gateway during deploy, 503 overloaded,
+    // 504 timeout) — usually clear on the next attempt.
+    if (err.status >= 500 && err.status <= 599) return true
+    // 408 Request Timeout, 429 rate-limited — explicit "try again" codes.
+    if (err.status === 408 || err.status === 429) return true
+    // 4xx (permission, validation, CSRF, not-found, …) won't change by
+    // re-sending the same payload. Surface immediately.
+    return false
+  }
+
+  // Lets the user (and a watchdog inside the editor) explicitly re-run
+  // the most recent failed save without having to make another edit to
+  // re-trigger the auto-save timer. Populated by _persist at the start
+  // of every attempt; cleared on success.
+  let _lastSaveArgs = null
+  async function retrySave() {
+    if (!_lastSaveArgs) return null
+    const { name, title, opts } = _lastSaveArgs
+    return _persist(name, title, opts)
+  }
+
   async function _persist(name, title, { keepalive = false, ops } = {}) {
+    _lastSaveArgs = { name, title, opts: { keepalive, ops } }
     isSaving.value = true
-    saveError.value = ''
+    // Build the payload ONCE up-front. If we rebuilt on each retry the
+    // snapshots could pick up mid-edit state that arrived between
+    // attempts, racing with the user's keystrokes.
+    let args
     try {
       const sheetsData = JSON.stringify({
         sheet:      sheet.snapshot(),
@@ -70,26 +105,51 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
         view:       getViewState?.()         ?? null,
       })
       const payload = await encodeForUpload(sheetsData)
-      // The save endpoint now returns { name, head_seq } so the client knows
-      // where its batch of ops landed in the canonical op-log ordering.
-      const result = await call('spreadsheet.api.save_sheet', {
+      args = {
         title,
         sheets_data: payload,
         ...(name ? { name } : {}),
         ...(ops && ops.length ? { ops: JSON.stringify(ops) } : {}),
-      }, { keepalive })
-      currentTitle.value = title
-      return typeof result === 'string' ? result : result?.name
+      }
     } catch (err) {
-      // Network failures (offline, server restart) surface with no usable
-      // message — fall back to a helpful prompt rather than a blank chip.
-      saveError.value = err.message || "Couldn't save — check your connection, then try Cmd+S."
-      setTimeout(() => { saveError.value = '' }, 5000)
+      isSaving.value = false
+      saveError.value = err.message || "Couldn't prepare save payload."
+      return null
+    }
+
+    // keepalive saves fire from onBeforeUnmount — the browser may kill
+    // the page before any backoff finishes, so don't retry them.
+    const backoffMs = keepalive ? [0] : [0, 1000, 2500]
+    let lastErr = null
+    try {
+      for (let attempt = 0; attempt < backoffMs.length; attempt++) {
+        if (backoffMs[attempt] > 0) {
+          await new Promise(r => setTimeout(r, backoffMs[attempt]))
+        }
+        try {
+          const result = await call('spreadsheet.api.save_sheet', args, { keepalive })
+          currentTitle.value = title
+          // First success clears any sticky error from a previous failure.
+          saveError.value = ''
+          _lastSaveArgs   = null
+          return typeof result === 'string' ? result : result?.name
+        } catch (err) {
+          lastErr = err
+          if (!_isTransientSaveError(err)) break
+        }
+      }
+      // All attempts exhausted (or hit a permanent error). The chip
+      // stays visible until the next successful save — no auto-clear,
+      // because silently hiding "your work isn't saved" is the worst
+      // possible UX for an editor.
+      saveError.value = lastErr?.message
+        ? `Couldn't save: ${lastErr.message}`
+        : "Couldn't save — check your connection, then click retry."
       return null
     } finally {
       isSaving.value = false
     }
   }
 
-  return { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting }
+  return { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting, retrySave }
 }

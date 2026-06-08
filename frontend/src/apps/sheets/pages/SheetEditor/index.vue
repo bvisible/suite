@@ -70,7 +70,17 @@
           <FeatherIcon name="check" class="sn-save-icon" />
           Saved
         </span>
-        <Badge v-if="saveError" theme="red" variant="subtle" size="sm" :label="saveError" :tooltip="saveError" />
+        <template v-if="saveError">
+          <Badge theme="red" variant="subtle" size="sm" :label="saveError" :tooltip="saveError" />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="refresh-cw"
+            tooltip="Retry save"
+            :loading="isSaving"
+            @click="onRetrySave"
+          />
+        </template>
       </div>
       <div class="sn-topbar-right">
         <Dropdown :options="fileDropdownOptions" placement="right">
@@ -1936,7 +1946,7 @@ const textWrapDropdownOptions = computed(() => [
 // fallbacks only cover the impossible window where someone saves before
 // useSheetTabs has finished initializing.
 let _sheetTabs = null
-const { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting } =
+const { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting, retrySave } =
   usePersistence({
     sheet, formats, merge, comments, validation, condFormat, sortFilter, pivot,
     charts, namedRanges,
@@ -2919,6 +2929,37 @@ async function flushSave() {
   clearTimeout(_autoSaveTimer)
   await _doAutoSave()
 }
+
+// Manual retry handler — bound to the refresh button next to the
+// save-error chip. Routes through _doAutoSave (rather than calling
+// retrySave directly) so freshly-queued ops since the last failure
+// also ride along, and so the dirty/justSaved flags are managed in
+// one place. If somehow the user clicked retry from a sheet that
+// isn't dirty (rare race), still try once via retrySave.
+async function onRetrySave() {
+  if (isSaving.value) return
+  if (isDirty.value && props.id && props.id !== 'new') {
+    await _doAutoSave()
+  } else {
+    await retrySave()
+  }
+}
+
+// Watchdog: when a save has failed but we still have unsaved work,
+// nudge another attempt after 30 s without waiting for the user to
+// type something else. Catches the "user stepped away during a flaky
+// network blip and came back to find their last change lost" case.
+let _saveWatchdogTimer = null
+watch(saveError, (msg) => {
+  clearTimeout(_saveWatchdogTimer)
+  if (!msg) return
+  _saveWatchdogTimer = setTimeout(() => {
+    if (saveError.value && isDirty.value && !isSaving.value
+        && props.id && props.id !== 'new') {
+      _doAutoSave()
+    }
+  }, 30_000)
+})
 
 async function flushAndClose() {
   await flushSave()
