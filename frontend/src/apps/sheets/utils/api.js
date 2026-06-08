@@ -26,7 +26,14 @@ export async function call(method, args = {}, { keepalive = false } = {}) {
 				msg = json._server_messages
 			}
 		}
-		throw new Error(msg)
+		// Attach the Frappe exception class name (PermissionError /
+		// DoesNotExistError / CSRFTokenError / …) alongside the human
+		// message so callers can branch on the failure kind without
+		// having to regex the message text.
+		const err = new Error(msg)
+		err.excType = json.exc_type || ''
+		err.status  = res.status
+		throw err
 	}
 	return json.message
 }

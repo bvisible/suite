@@ -1,6 +1,34 @@
 <template>
   <div class="sn-root">
 
+    <!-- Load-time error state: the sheet doesn't exist, the caller lacks
+         access to it, or the request failed for some other reason. We
+         distinguish denied vs missing because the recovery is different
+         ("ask the owner to share" vs "broken link / deleted"). The user
+         can always click the brand mark or the "Back to home" button to
+         exit. -->
+    <div v-if="loadError" class="sn-load-error">
+      <div class="sn-load-error-icon">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="#A3A3A3" stroke-width="1.5" />
+          <path d="M12 7v6" stroke="#A3A3A3" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="12" cy="16.5" r="1" fill="#A3A3A3" />
+        </svg>
+      </div>
+      <h2 class="sn-load-error-title">
+        <template v-if="loadError.kind === 'denied'">You don't have access to this spreadsheet</template>
+        <template v-else-if="loadError.kind === 'missing'">This spreadsheet doesn't exist</template>
+        <template v-else>Couldn't open this spreadsheet</template>
+      </h2>
+      <p class="sn-load-error-sub">
+        <template v-if="loadError.kind === 'denied'">Ask the owner to share it with you, then reload.</template>
+        <template v-else-if="loadError.kind === 'missing'">It may have been deleted, or the link is wrong.</template>
+        <template v-else>{{ loadError.message }}</template>
+      </p>
+      <Button variant="solid" @click="emit('close')">Back to home</Button>
+    </div>
+
+    <template v-else>
     <!-- Bar 1 · Identity -->
     <div class="sn-topbar">
       <div class="sn-topbar-left">
@@ -964,7 +992,7 @@
       </template>
     </Dialog>
 
-
+    </template>
   </div>
 </template>
 
@@ -1886,7 +1914,7 @@ const textWrapDropdownOptions = computed(() => [
 // fallbacks only cover the impossible window where someone saves before
 // useSheetTabs has finished initializing.
 let _sheetTabs = null
-const { isSaving, saveError, loadSheet, autoCreate, saveExisting } =
+const { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting } =
   usePersistence({
     sheet, formats, merge, comments, validation, condFormat, sortFilter, pivot,
     charts, namedRanges,
@@ -4316,6 +4344,16 @@ function toggleShowFormulas() {
 
 /* ── Root layout ─────────────────────────────────────────────────────────── */
 .sn-root { display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--surface-white); font-family:InterVar, ui-sans-serif, system-ui, sans-serif; color:var(--ink-gray-9); }
+
+/* ── Load-time error state ───────────────────────────────────────────────── */
+.sn-load-error {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; padding: 24px; text-align: center;
+}
+.sn-load-error-icon  { line-height: 0; margin-bottom: 4px; }
+.sn-load-error-title { font-size: 16px; font-weight: 600; color: var(--ink-gray-9); margin: 0; }
+.sn-load-error-sub   { font-size: 13px; color: var(--ink-gray-6); margin: 0 0 8px; max-width: 360px; }
 
 /* ── Bar 1 · Identity / topbar ───────────────────────────────────────────── */
 .sn-topbar       { display:flex; align-items:center; justify-content:space-between; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-white); flex-shrink:0; }

@@ -8,8 +8,13 @@ import { encodeForUpload } from '../../utils/compress.js'
 export function usePersistence({ sheet, formats, merge, comments, validation, condFormat, sortFilter, pivot, charts, namedRanges, getViewState, applyViewState, currentTitle, emit }) {
   const isSaving  = ref(false)
   const saveError = ref('')
+  // Surfaces "couldn't open this sheet" cases (404 / 403 / network) to the
+  // editor so it can render a proper error screen instead of mounting a
+  // blank canvas. Shape: { kind: 'denied' | 'missing' | 'other', message }.
+  const loadError = ref(null)
 
   async function loadSheet(name) {
+    loadError.value = null
     try {
       const doc    = await call('spreadsheet.api.get_sheet', { name })
       const saved  = JSON.parse(doc.sheets_data || '{}')
@@ -27,6 +32,12 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
       currentTitle.value = doc.title
     } catch (err) {
       console.error('Load failed:', err)
+      const t = err?.excType || ''
+      const kind =
+        t === 'PermissionError'    ? 'denied'  :
+        t === 'DoesNotExistError'  ? 'missing' :
+                                     'other'
+      loadError.value = { kind, message: err?.message || 'Could not open this spreadsheet' }
     }
   }
 
@@ -80,5 +91,5 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
     }
   }
 
-  return { isSaving, saveError, loadSheet, autoCreate, saveExisting }
+  return { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting }
 }
