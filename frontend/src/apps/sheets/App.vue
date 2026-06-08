@@ -53,6 +53,14 @@ function onSaved(name)  { currentId.value = name;  history.replaceState({}, '', 
 </script>
 
 <style>
+/* Frappe UI's Dialog overlay relies on DOM order (portal at body level) to
+   stack above page content — fine until something on the page sets an
+   explicit z-index. The pivot edit-fab (z-20) and pivot-output highlight
+   border (z-15) on a pivot sheet poke through the overlay because explicit
+   z-index beats DOM order. Pin a known z-index so any positioned page
+   element below this value stays under the modal. */
+.dialog-overlay { z-index: 40; }
+
 /* Hidden on desktop; shown via @media on narrow viewports. position:fixed
    over everything (max z-index) covers any underlying app surface without
    unmounting it. */

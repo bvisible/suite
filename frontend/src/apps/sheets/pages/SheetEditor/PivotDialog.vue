@@ -320,8 +320,12 @@ function onConfirm() {
 }
 
 .pv-range-row { display: flex; gap: 8px; align-items: center; }
-.pv-range-input  { flex: 1; }
-.pv-source-sheet { flex: 0 0 160px; }
+/* TextInput's outer flex item shrinks to zero by default because its inner
+   wrapper has no intrinsic width and our `flex: 1` doesn't propagate past
+   the FormControl root in some FormControl/TextInput render paths. Pin a
+   min-width so it always shows the range, and let flex grow from there. */
+.pv-range-input  { flex: 1 1 0; min-width: 220px; }
+.pv-source-sheet { flex: 0 0 160px; width: 160px; }
 
 .pv-error { font-size: 12px; color: var(--ink-red-5); margin: 4px 0 0; }
 
