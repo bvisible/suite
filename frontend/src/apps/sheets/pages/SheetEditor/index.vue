@@ -1958,7 +1958,7 @@ const { isSaving, saveError, loadError, loadSheet, autoCreate, saveExisting, ret
     currentTitle, emit,
   })
 
-_sheetTabs = useSheetTabs({ sheet, formats, extras: [comments, validation, condFormat, sortFilter], getGrid: () => grid, activeCell, formulaValue, refreshActiveFormat, onSwitch: () => {
+_sheetTabs = useSheetTabs({ sheet, formats, extras: [merge, comments, validation, condFormat, sortFilter], getGrid: () => grid, activeCell, formulaValue, refreshActiveFormat, onSwitch: () => {
     filterPanel.open = false     // close any open filter popover so it doesn't carry stale state
     _repopulateGrid()
     grid?.setMarchingAnts(null); clipboard.clear(); clipboardHas.value = false
@@ -2340,7 +2340,7 @@ function _runFill(src, total, mode) {
   // (so a merged source tiles its merge into every dragged-over destination)
   // EXCEPT when the user explicitly asked for values-only with `without-format`.
   if (mode !== 'without-format') {
-    _fillMerges(src, total)
+    _fillMerges(src, total, sheetName)
   }
   const fillAfter      = _captureRange(total, sheetName)
   const afterFmt       = _captureFormatsRange(total, sheetName)
@@ -2463,11 +2463,11 @@ function _fillValues(src, total, sheetName, valueMode) {
 // from a merged source produced unmerged target cells — values copied but
 // the structural merge was lost. merge.merge() already unmerges any
 // overlapping merge on the target, so re-runs are idempotent.
-function _fillMerges(src, total) {
+function _fillMerges(src, total, sn) {
   const srcMerges = []
   for (let r = src.r0; r <= src.r1; r++) {
     for (let c = src.c0; c <= src.c1; c++) {
-      const info = merge.getMasterInfo(cellId(r, c))
+      const info = merge.getMasterInfo(cellId(r, c), sn)
       if (!info) continue
       if (r + info.rowSpan - 1 > src.r1) continue
       if (c + info.colSpan - 1 > src.c1) continue
@@ -2496,7 +2496,7 @@ function _fillMerges(src, total) {
         const r1 = r0 + m.rowSpan - 1
         const c1 = c0 + m.colSpan - 1
         if (r1 > endR) continue   // drop the partial tile at the far edge
-        merge.merge(r0, c0, r1, c1)
+        merge.merge(r0, c0, r1, c1, sn)
       }
     }
     workR0 = Math.min(workR0, total.r0)
@@ -2508,7 +2508,7 @@ function _fillMerges(src, total) {
     const grownMerges = []
     for (let r = workR0; r <= workR1; r++) {
       for (let c = src.c0; c <= src.c1; c++) {
-        const info = merge.getMasterInfo(cellId(r, c))
+        const info = merge.getMasterInfo(cellId(r, c), sn)
         if (!info) continue
         if (r + info.rowSpan - 1 > workR1) continue
         if (c + info.colSpan - 1 > src.c1) continue
@@ -2525,7 +2525,7 @@ function _fillMerges(src, total) {
         const r1 = r0 + m.rowSpan - 1
         const c1 = c0 + m.colSpan - 1
         if (c1 > endC) continue
-        merge.merge(r0, c0, r1, c1)
+        merge.merge(r0, c0, r1, c1, sn)
       }
     }
   }
@@ -2655,9 +2655,9 @@ function _setupGridInstance() {
       formulaValue.value = sheet.getCell(id)
     },
     getFormat:    id => formats.get(id, sheet.getCurrentSheet()),
-    getMergeInfo: id => merge.getMasterInfo(id),
-    isSlave:      id => merge.isSlave(id),
-    getMasterId:  id => merge.getMasterId(id),
+    getMergeInfo: id => merge.getMasterInfo(id, sheet.getCurrentSheet()),
+    isSlave:      id => merge.isSlave(id, sheet.getCurrentSheet()),
+    getMasterId:  id => merge.getMasterId(id, sheet.getCurrentSheet()),
     getComment:   id => comments.get(id, sheet.getCurrentSheet()),
     getValidation: id => validation.get(id, sheet.getCurrentSheet()),
     getCondFormat: (id, val) => condFormat.getFormatOverride(
@@ -4230,18 +4230,18 @@ function toggleMerge() {
   // region (slave or master) should target the existing merge so the
   // user can unmerge by single-clicking and hitting the toolbar button.
   const anchor   = colLabel(c0) + (r0 + 1)
-  const masterId = merge.resolveId(anchor)
-  const wasMaster   = merge.isMaster(masterId)
+  const masterId = merge.resolveId(anchor, sn)
+  const wasMaster   = merge.isMaster(masterId, sn)
   const beforeMerge = merge.snapshot()
   if (wasMaster) {
     // Always allow unmerge, even on a 1×1 selection. Use the master's
     // actual span rather than the user's selection — the selection is
     // often just the master cell coords and would miss the slaves.
-    const info = merge.getMasterInfo(masterId)
-    merge.unmerge(info.r, info.c, info.r + info.rowSpan - 1, info.c + info.colSpan - 1)
+    const info = merge.getMasterInfo(masterId, sn)
+    merge.unmerge(info.r, info.c, info.r + info.rowSpan - 1, info.c + info.colSpan - 1, sn)
   } else {
     if (r0 === r1 && c0 === c1) return   // nothing to merge in a single cell
-    merge.merge(r0, c0, r1, c1)
+    merge.merge(r0, c0, r1, c1, sn)
   }
   const afterMerge = merge.snapshot()
   // No structural change (rare — defensive) — skip the history entry.
