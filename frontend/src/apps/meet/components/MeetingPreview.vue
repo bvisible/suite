@@ -10,7 +10,7 @@
 					v-if="!session.isLoggedIn"
 					variant="ghost"
 					size="sm"
-					@click="$router.push({ name: 'Login', query: { next: $route.fullPath } })"
+					@click="redirectToLogin"
 				>
 					Sign In
 				</Button>
@@ -143,6 +143,10 @@ import { session } from "../data/session";
 import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
 import { getErrorMessage } from "../utils/error";
 import MeetingAvatar from "./MeetingAvatar.vue";
+
+function redirectToLogin() {
+	window.location.href = `/login?redirect-to=${encodeURIComponent(`/meet${window.location.pathname}`)}`;
+}
 
 interface VideoElement {
 	$el?:
