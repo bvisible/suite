@@ -83,9 +83,16 @@
           </p>
           <div class="pv-bucket-body">
             <div v-for="v in valueFields" :key="v.field" class="pv-chip pv-chip--value">
-              <Dropdown :options="aggOpts(v)" placement="bottom-start">
-                <template #default>
-                  <button class="pv-agg-btn">{{ v.agg.toUpperCase() }}</button>
+              <Dropdown
+                :options="aggOpts(v)"
+                placement="bottom-start"
+                @update:open="onAggDropdownToggle"
+              >
+                <template #default="{ open }">
+                  <button class="pv-agg-btn" :class="{ 'pv-agg-btn--open': open }">
+                    {{ v.agg.toUpperCase() }}
+                    <FeatherIcon name="chevron-down" class="pv-agg-chev" />
+                  </button>
                 </template>
               </Dropdown>
               <span class="pv-chip-label">{{ v.field }}</span>
@@ -273,6 +280,14 @@ function aggOpts(v) {
   }))
 }
 
+// Reuses the dialog's pickerOpenCount gate — when an agg dropdown is open,
+// the dialog must treat clicks on its portaled popover as "inside" the
+// modal, else picking COUNT/AVERAGE would dismiss the dialog before the
+// option's onClick fires.
+function onAggDropdownToggle(open) {
+  pickerOpenCount.value += open ? 1 : -1
+}
+
 // ── Preview ───────────────────────────────────────────────────────────────────
 
 const previewTable = computed(() => {
@@ -319,13 +334,19 @@ function onConfirm() {
   text-transform: uppercase; letter-spacing: .04em; margin: 0 0 8px;
 }
 
-.pv-range-row { display: flex; gap: 8px; align-items: center; }
+.pv-range-row { display: flex; gap: 8px; align-items: center; min-width: 0; }
 /* TextInput's outer flex item shrinks to zero by default because its inner
    wrapper has no intrinsic width and our `flex: 1` doesn't propagate past
    the FormControl root in some FormControl/TextInput render paths. Pin a
    min-width so it always shows the range, and let flex grow from there. */
 .pv-range-input  { flex: 1 1 0; min-width: 220px; }
-.pv-source-sheet { flex: 0 0 160px; width: 160px; }
+/* Frappe UI's Select trigger has a hidden sizer (`.select-trigger-sizer`)
+   whose `::after { content: <every-option-label> }` makes the button's
+   intrinsic min-width = widest option. A long sheet name like
+   "Pivot – Partner Member (Partner Certificate)" would then push the
+   range input off-screen. `min-width: 0` lets the trigger shrink to our
+   pinned width regardless of option contents. */
+.pv-source-sheet { flex: 0 0 160px; width: 160px; min-width: 0; }
 
 .pv-error { font-size: 12px; color: var(--ink-red-5); margin: 4px 0 0; }
 
@@ -364,11 +385,13 @@ function onConfirm() {
 .pv-chip-x-icon  { width: 11px; height: 11px; }
 
 .pv-agg-btn {
+  display: inline-flex; align-items: center; gap: 2px;
   background: var(--surface-gray-4); border: none; border-radius: 4px;
-  padding: 1px 5px; font-size: 10px; font-weight: 700; color: var(--ink-gray-7);
+  padding: 1px 4px 1px 5px; font-size: 10px; font-weight: 700; color: var(--ink-gray-7);
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
 }
-.pv-agg-btn:hover { background: var(--outline-gray-3); }
+.pv-agg-btn:hover, .pv-agg-btn--open { background: var(--outline-gray-3); }
+.pv-agg-chev { width: 10px; height: 10px; opacity: .65; }
 
 .pv-add-btn { margin-top: 2px; }
 .pv-add-btn :deep(button) { color: var(--ink-gray-5); font-size: 12px; }

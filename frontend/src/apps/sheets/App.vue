@@ -60,6 +60,10 @@ function onSaved(name)  { currentId.value = name;  history.replaceState({}, '', 
    z-index beats DOM order. Pin a known z-index so any positioned page
    element below this value stays under the modal. */
 .dialog-overlay { z-index: 40; }
+/* Popovers inside dialogs (Dropdown menus, autocomplete lists) portal to
+   body with implicit z-index 0 — they'd render BEHIND .dialog-overlay
+   above. Bump them past the overlay so they remain visible. */
+.dropdown-content { z-index: 50; }
 
 /* Hidden on desktop; shown via @media on narrow viewports. position:fixed
    over everything (max z-index) covers any underlying app surface without
