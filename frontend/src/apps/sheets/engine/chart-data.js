@@ -37,16 +37,41 @@ export function buildOption(config, matrix) {
 function _cartesianOption(config, headerRow, dataRows, encoding, kind) {
 	const xs       = dataRows.map(r => r[encoding.x])
 	const seriesIx = encoding.y
+	const stacked  = !!config.options?.stacked
+	// Stacked bars/areas need the label *inside* the segment — `top` would
+	// stack labels in mid-air above the top of the stack instead of on each
+	// segment. For scatter we float above the dot; everything else sits on top.
+	const labelPos = stacked ? 'inside' : (kind === 'scatter' ? 'top' : 'top')
+	const showLabels = !!config.options?.dataLabels
+	// Disambiguate name collisions — two columns headered "Sales" need to render
+	// as distinct series ("Sales", "Sales (2)") or ECharts may merge them when
+	// stacked, leaving one bar where the user expects two segments.
+	const rawNames = seriesIx.map((colIdx, i) => headerRow?.[colIdx] || `Series ${i + 1}`)
+	const nameCounts = new Map()
+	const uniqueNames = rawNames.map((n) => {
+		const seen = nameCounts.get(n) || 0
+		nameCounts.set(n, seen + 1)
+		return seen === 0 ? n : `${n} (${seen + 1})`
+	})
 	const series   = seriesIx.map((colIdx, i) => ({
-		name:      headerRow?.[colIdx] || `Series ${i + 1}`,
+		name:      uniqueNames[i],
 		type:      kind === 'area' || kind === 'line' ? 'line' : kind,
-		stack:     config.options?.stacked ? 'total' : undefined,
+		stack:     stacked ? 'total' : undefined,
 		smooth:    !!config.options?.smooth,
 		symbol:    kind === 'scatter' ? 'circle' : 'none',
 		symbolSize: kind === 'scatter' ? 8 : 4,
 		areaStyle: kind === 'area' ? { opacity: 0.25 } : undefined,
+		label: showLabels ? {
+			show: true,
+			position: labelPos,
+			fontFamily: ESPRESSO_FONT,
+			fontSize: 10,
+			color: stacked ? '#ffffff' : '#525252',
+		} : { show: false },
 		data:      dataRows.map(r => _toNum(r[colIdx])),
 	}))
+
+	const showGrid = config.options?.gridLines !== false
 
 	return {
 		..._baseOption(config),
@@ -63,7 +88,7 @@ function _cartesianOption(config, headerRow, dataRows, encoding, kind) {
 			type:      'value',
 			axisLine:  { lineStyle: { color: '#d4d4d4' } },
 			axisLabel: { color: '#525252', fontFamily: ESPRESSO_FONT, fontSize: 11 },
-			splitLine: { lineStyle: { color: '#f0f0f0' } },
+			splitLine: { show: showGrid, lineStyle: { color: '#f0f0f0' } },
 		},
 		series,
 	}
@@ -89,7 +114,7 @@ function _pieOption(config, headerRow, dataRows, encoding) {
 			avoidLabelOverlap: true,
 			itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
 			label: {
-				show: true,
+				show: config.options?.dataLabels !== false,
 				fontFamily: ESPRESSO_FONT,
 				fontSize: 11,
 				color: '#171717',

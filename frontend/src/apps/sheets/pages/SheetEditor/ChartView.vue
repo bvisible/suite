@@ -21,7 +21,7 @@
 // We lazy-register only the chart types we actually use so the bundle
 // doesn't drag in the full ECharts library.
 
-import { computed, defineAsyncComponent, onBeforeUnmount, shallowRef, watchEffect } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, shallowRef, watch } from 'vue'
 
 // Width/height accept either a pixel number (overlay charts get a fixed
 // frame) or the string "auto" (preview / responsive contexts where the
@@ -74,14 +74,22 @@ const UPDATE_OPTS = { notMerge: true, lazyUpdate: false }
 const option = shallowRef(null)
 let _rafId = 0
 
-watchEffect(() => {
-  // Throttle to one option rebuild per frame — formula recalcs can fire
-  // dozens of cell updates in a tight loop during paste / import.
-  cancelAnimationFrame(_rafId)
-  _rafId = requestAnimationFrame(() => {
-    option.value = buildOption(props.config, props.matrix)
-  })
-})
+// Throttle to one option rebuild per frame — formula recalcs can fire
+// dozens of cell updates in a tight loop during paste / import.
+// Explicit watch() (not watchEffect) so reactive deps are tracked from the
+// sync getter; reading them inside the rAF callback alone would leave the
+// effect with zero deps after first run, and option toggles would silently
+// stop propagating to ECharts.
+watch(
+  [() => props.config, () => props.matrix],
+  () => {
+    cancelAnimationFrame(_rafId)
+    _rafId = requestAnimationFrame(() => {
+      option.value = buildOption(props.config, props.matrix)
+    })
+  },
+  { immediate: true, deep: true },
+)
 
 onBeforeUnmount(() => cancelAnimationFrame(_rafId))
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <Dialog v-model="show" :options="{ title: chartId ? 'Edit chart' : 'Insert chart', size: '2xl' }">
+  <Dialog v-model="show" :options="{ title: chartId ? 'Edit chart' : 'Insert chart', size: '4xl' }">
     <template #body-content>
 
       <!-- ── Source range ─────────────────────────────────────────────── -->
@@ -112,9 +112,11 @@
             </div>
           </div>
 
-          <p v-if="chartType !== 'pie'" class="cd-label" style="margin-top:14px">Options</p>
-          <div v-if="chartType !== 'pie'" class="cd-options">
-            <FormControl type="checkbox" v-model="opts.showLegend" label="Show legend" />
+          <p class="cd-label" style="margin-top:14px">Options</p>
+          <div class="cd-options">
+            <FormControl v-if="chartType !== 'pie'" type="checkbox" v-model="opts.showLegend"  label="Show legend" />
+            <FormControl                            type="checkbox" v-model="opts.dataLabels"  label="Show data labels" />
+            <FormControl v-if="chartType !== 'pie'" type="checkbox" v-model="opts.gridLines"   label="Show grid lines" />
             <FormControl v-if="chartType === 'line' || chartType === 'area'" type="checkbox" v-model="opts.smooth"  label="Smooth curves" />
             <FormControl v-if="chartType === 'bar'  || chartType === 'area'" type="checkbox" v-model="opts.stacked" label="Stacked" />
           </div>
@@ -184,7 +186,7 @@ const title       = ref('')
 const hasHeader   = ref(true)
 const xCol        = ref(0)
 const yCols       = ref([])             // selected column indices
-const opts        = reactive({ showLegend: true, smooth: false, stacked: false })
+const opts        = reactive({ showLegend: true, smooth: false, stacked: false, dataLabels: true, gridLines: true })
 
 // Resolved each `detect()` — the actual values backing the preview.
 const matrix      = ref([])
@@ -203,7 +205,7 @@ watch(show, (open) => {
     hasHeader.value  = c.hasHeader !== false
     xCol.value       = c.encoding?.x ?? 0
     yCols.value      = c.encoding?.y ? [...c.encoding.y] : []
-    Object.assign(opts, { showLegend: true, smooth: false, stacked: false, ...c.options })
+    Object.assign(opts, { showLegend: true, smooth: false, stacked: false, dataLabels: false, gridLines: true, ...c.options })
     detect()
   } else {
     rangeInput.value = props.initialRange || ''
@@ -212,7 +214,7 @@ watch(show, (open) => {
     hasHeader.value  = true
     xCol.value       = 0
     yCols.value      = []
-    Object.assign(opts, { showLegend: true, smooth: false, stacked: false })
+    Object.assign(opts, { showLegend: true, smooth: false, stacked: false, dataLabels: true, gridLines: true })
     if (rangeInput.value) detect()
   }
 })
