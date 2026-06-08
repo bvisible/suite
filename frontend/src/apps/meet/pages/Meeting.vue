@@ -651,10 +651,8 @@ onMounted(async () => {
 				chatStore.hostOnlyChat = !!(accessData as AccessData).host_only_chat;
 			}
 			if (!(accessData as { allow_guest?: boolean }).allow_guest) {
-				router.push({
-					name: "Login",
-					query: { next: `/${meetingId.value}` },
-				});
+				const loginUrl = `/login?redirect-to=${encodeURIComponent(`/meet/${meetingId.value}`)}`;
+				window.location.href = loginUrl;
 				return;
 			}
 		} catch (error) {
