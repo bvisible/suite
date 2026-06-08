@@ -1054,6 +1054,7 @@ import { createValidationEngine } from '../../engine/validation.js'
 import { createCondFormatEngine } from '../../engine/cond-format.js'
 import { useToolbar }          from './useToolbar.js'
 import { usePersistence }      from './usePersistence.js'
+import { useEditOps }          from './useEditOps.js'
 import { useSheetTabs }        from './useSheetTabs.js'
 import { useFormulaAutocomplete, AC_FUNS } from './useFormulaAutocomplete.js'
 import { buildAlignOptions, buildBorderOptions, buildMoreToolbarOptions } from './toolbar.config.js'
@@ -4412,39 +4413,17 @@ function markEdited() {
   isDirty.value = true
 }
 
-// Diff-and-record helper for cell-edit paths. Mirrors what onCommit /
-// onBatchCommit do for typing-into-a-cell: capture a `beforeMap` BEFORE
-// the writes, run the writes, then call this with the same map to push
-// a single 'edit' op carrying only the cells that actually changed.
-// Reasons we route through this instead of markEdited():
-//   1) Snapshot pushes can't be undone when the previous history entry
-//      is an op (no earlier snap to restore from) — see the fill bug.
-//   2) Op-based history is ~75 000× cheaper than a full snapshot for
-//      large sheets, and these helpers fire on every Ctrl+D / Enter /
-//      cut / dropdown pick.
-//   3) The collab broadcast piggybacks on the same diff, so other
-//      clients see the change instantly without a re-sync round trip.
-function _pushEditOp(sheetName, beforeMap, summary = '') {
-  if (!beforeMap) return
-  const sn   = sheetName || sheet.getCurrentSheet()
-  const refs = []
-  const before = {}, after = {}
-  for (const id of Object.keys(beforeMap)) {
-    const a = sheet.getCell(id, sn)
-    if (a !== beforeMap[id]) {
-      before[id] = beforeMap[id]
-      after[id]  = a
-      refs.push(id)
-    }
-  }
-  if (!refs.length) return
-  const op = { opType: 'edit', subSheet: sn, cellRefs: refs, before, after, summary }
-  _queueOp(op)
-  history.pushOp(op)
-  broadcastBatchChange(sn, refs.map(id => ({ id, value: after[id] })))
-  syncFlags()
-  isDirty.value = true
-}
+// pushEditOp is the diff-and-record helper for cell-edit paths
+// (formula bar, Ctrl+D / Ctrl+R, cut, dropdown pick). Lives in
+// ./useEditOps.js so the contract is unit-testable in isolation;
+// see that file for the rationale on op-based vs snapshot history.
+const { pushEditOp: _pushEditOp } = useEditOps({
+  sheet, history,
+  queueOp:              _queueOp,
+  broadcastBatchChange: (sn, cells) => broadcastBatchChange(sn, cells),
+  syncFlags,
+  isDirty,
+})
 
 // ── Repopulate ────────────────────────────────────────────────────────────────
 
