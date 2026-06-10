@@ -15,7 +15,7 @@ def get_context():
     context.site_name = frappe.local.site
 
     context.title = "Frappe Writer"
-    context.description = "Open Writer online."
+    context.description = "Open online."
     if not frappe.form_dict.app_path:
         return context
 

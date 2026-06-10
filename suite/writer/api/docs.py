@@ -19,7 +19,6 @@ from drive.api.permissions import (
     user_has_permission,
     ENTITY_FIELDS,
     get_user_access,
-    requires,
 )
 from drive.utils.files import FileManager
 

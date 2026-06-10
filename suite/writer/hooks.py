@@ -1,5 +1,5 @@
 app_name = "writer"
-app_title = "Frappe Writer"
+app_title = "Writer"
 app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "A delightful document editor"
 app_email = "developers@frappe.io"

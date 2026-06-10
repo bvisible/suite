@@ -3,7 +3,6 @@
 
 from datetime import datetime, timedelta
 from drive.api.notifications import create_notification, get_link
-from drive.api.permissions import requires
 
 import frappe
 from frappe.model.document import Document
