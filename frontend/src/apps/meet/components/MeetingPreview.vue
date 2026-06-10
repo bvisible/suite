@@ -145,7 +145,10 @@ import { getErrorMessage } from "../utils/error";
 import MeetingAvatar from "./MeetingAvatar.vue";
 
 function redirectToLogin() {
-	window.location.href = `/login?redirect-to=${encodeURIComponent(`/meet${window.location.pathname}`)}`;
+	const path = window.location.pathname.startsWith("/meet")
+		? window.location.pathname
+		: `/meet${window.location.pathname}`;
+	window.location.href = `/login?redirect-to=${encodeURIComponent(path)}`;
 }
 
 interface VideoElement {
