@@ -53,13 +53,20 @@ function _cartesianOption(config, headerRow, dataRows, encoding, kind) {
 		nameCounts.set(n, seen + 1)
 		return seen === 0 ? n : `${n} (${seen + 1})`
 	})
+	const isLineish = kind === 'line' || kind === 'area'
 	const series   = seriesIx.map((colIdx, i) => ({
 		name:      uniqueNames[i],
-		type:      kind === 'area' || kind === 'line' ? 'line' : kind,
+		type:      isLineish ? 'line' : kind,
 		stack:     stacked ? 'total' : undefined,
 		smooth:    !!config.options?.smooth,
-		symbol:    kind === 'scatter' ? 'circle' : 'none',
-		symbolSize: kind === 'scatter' ? 8 : 4,
+		// Line/area normally hide point symbols for a cleaner look — but
+		// ECharts anchors per-point labels on the symbol, so symbol:'none'
+		// silently kills labels too. When labels are on, draw a small dot at
+		// each point so the label has something to attach to (and the dot
+		// itself doubles as a value-position marker).
+		symbol:    kind === 'scatter' ? 'circle'
+			: (isLineish && showLabels ? 'circle' : 'none'),
+		symbolSize: kind === 'scatter' ? 8 : (isLineish && showLabels ? 5 : 4),
 		areaStyle: kind === 'area' ? { opacity: 0.25 } : undefined,
 		label: showLabels ? {
 			show: true,
