@@ -22,6 +22,14 @@ import type { CurrentUser } from "./useCurrentUser";
 import type { MediaState } from "./useMediaState";
 import type { RaiseHandStore } from "./useRaiseHandStore";
 
+const BLUETOOTH_DEVICE_LABEL_REGEX =
+	/airpods|bluetooth|\bbt\b|wireless|jbl|bose|sony|beats|sennheiser|akg|jabra|anker|skullcandy|shure|bang\s*&\s*olufsen|b\s*&\s*o|marley|skullcandy|logitech\s*bt|plantronics|poly|razer\s*(?:bt|opus)|corsair|steelseries|hyperx|audeze|sennheiser|soundcore|tozo|earfun|earbuds|earbud/i;
+
+const isBluetoothMicLabel = (label: string | undefined): boolean => {
+	if (!label) return false;
+	return BLUETOOTH_DEVICE_LABEL_REGEX.test(label.toLowerCase());
+};
+
 function getBackgroundEffectsFromStorage() {
 	const blurEnabled = localStorage.getItem("backgroundEffects.blur") === "1";
 	const imageEnabled = localStorage.getItem("backgroundEffects.image") === "1";
@@ -570,12 +578,18 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		}
 
 		if (audioEnabled) {
-			constraints.audio = { ...audioConstraints };
-
 			const validMicId = await getValidDeviceId(
 				selectedMicId.value,
 				"microphone",
 			);
+			const selectedMic = validMicId
+				? deviceManager.findDeviceById(validMicId, "microphone")
+				: undefined;
+			if (isBluetoothMicLabel(selectedMic?.label)) {
+				audioConstraints.autoGainControl = false;
+			}
+			constraints.audio = { ...audioConstraints };
+
 			if (validMicId) {
 				(constraints.audio as Record<string, unknown>).deviceId = {
 					exact: validMicId,
