@@ -49,7 +49,7 @@
 
 		<!-- Main meeting interface -->
 		<template v-else>
-			<div class="relative flex flex-1 min-h-0">
+			<div class="relative flex flex-1 min-h-0 overflow-hidden">
 				<div
 					class="grid flex-1 min-h-0 transition-[grid-template-columns] duration-300 ease-out relative"
 					:style="{
