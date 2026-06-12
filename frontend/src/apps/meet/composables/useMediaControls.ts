@@ -555,7 +555,7 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 			echoCancellation: true,
 			noiseSuppression: true,
 			autoGainControl: true,
-			sampleRate: 48000,
+			sampleRate: 16000,
 			sampleSize: 16,
 		};
 
@@ -1309,6 +1309,16 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 			await replacePublishedVideoTrack(newStream, reason);
 		},
 	);
+
+	// Surface DTLN init failures as a non-blocking warning. The mic keeps
+	// working on the raw track; this just tells the user why denoising is off.
+	watch(noiseCancellation.error, (message) => {
+		if (message) {
+			toast.warning(
+				`Noise cancellation unavailable: ${message}. Falling back to raw microphone.`,
+			);
+		}
+	});
 
 	onUnmounted(() => {
 		if (backgroundSession) {
