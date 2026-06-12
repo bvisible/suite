@@ -722,7 +722,7 @@ export function useSFUConnection(deps: {
 			audioNotificationManager.playLeaveNotification(true);
 
 			if (sfuManager.value) {
-				sfuManager.value.cleanup();
+				await sfuManager.value.cleanup();
 			}
 
 			sfuManager.value = null;
@@ -734,7 +734,7 @@ export function useSFUConnection(deps: {
 		}
 	};
 
-	onUnmounted(() => {
+	onUnmounted(async () => {
 		if (activeSpeakerTimeout.value) {
 			clearTimeout(activeSpeakerTimeout.value);
 			activeSpeakerTimeout.value = null;
@@ -748,7 +748,7 @@ export function useSFUConnection(deps: {
 		removeFrappeRealtimeEventListeners();
 
 		if (sfuManager.value) {
-			sfuManager.value.cleanup();
+			await sfuManager.value.cleanup();
 		}
 		sfuManager.value = null;
 
