@@ -1,7 +1,6 @@
 # Copyright (c) 2025, Frappe and contributors
 # For license information, please see license.txt
 
-import json
 import secrets
 import time
 from typing import TYPE_CHECKING
@@ -21,6 +20,31 @@ from meet.utils.user import (
 
 if TYPE_CHECKING:
 	from meet.meet.doctype.sae_meeting.sae_meeting import SaeMeeting
+
+
+def _generate_sfu_token(
+	user_id: str,
+	meeting_id: str,
+	scope: str = "full",
+	expires_in: int = 3600,
+	**extra,
+) -> str:
+	"""Generate a JWT token for SFU authentication."""
+	sfu_config = get_sfu_config()
+	secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
+	if not secret:
+		frappe.throw(_("SFU secret not configured"))
+
+	now = int(time.time())
+	payload = {
+		"user_id": user_id,
+		"meeting_id": meeting_id,
+		"scope": scope,
+		"exp": now + expires_in,
+		"iat": now,
+		**extra,
+	}
+	return jwt.encode(payload, secret, algorithm="HS256")
 
 
 def _get_codec_strategy() -> str:
@@ -63,8 +87,6 @@ def get_sfu_connection_details(meeting_id: str) -> dict:
 	if not meeting.can_join(user):
 		frappe.throw(_("Access denied"), frappe.PermissionError)
 
-	from meet.utils.sfu_config import get_sfu_config
-
 	sfu_config = get_sfu_config()
 
 	user_fullname, user_avatar = frappe.db.get_value("User", user, ["full_name", "user_image"]) or (
@@ -75,22 +97,14 @@ def get_sfu_connection_details(meeting_id: str) -> dict:
 	is_host = meeting.owner == user
 	is_cohost = meeting.is_host_or_cohost(user) and not is_host
 
-	auth_payload = {
-		"user_id": user,
-		"meeting_id": meeting_id,
-		"user_name": user_fullname,
-		"user_avatar": user_avatar,
-		"is_host": is_host,
-		"is_cohost": is_cohost,
-		"scope": "full",
-		"exp": int(time.time()) + 3600,  # 1 hour expiry
-		"iat": int(time.time()),
-	}
-
-	secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
-	if not secret:
-		frappe.throw(_("SFU secret not configured"))
-	auth_token = jwt.encode(auth_payload, secret, algorithm="HS256")
+	auth_token = _generate_sfu_token(
+		user_id=user,
+		meeting_id=meeting_id,
+		user_name=user_fullname,
+		user_avatar=user_avatar,
+		is_host=is_host,
+		is_cohost=is_cohost,
+	)
 
 	return {
 		"sfu_url": sfu_config["sfu_server_url"],
@@ -127,22 +141,15 @@ def join_meeting(meeting_id: str) -> dict:
 					"User", frappe.session.user, ["full_name", "user_image"]
 				) or (frappe.session.user, None)
 
-				lobby_payload = {
-					"user_id": frappe.session.user,
-					"meeting_id": meeting_id,
-					"user_name": user_fullname,
-					"user_avatar": user_avatar,
-					"is_host": False,
-					"is_guest": False,
-					"scope": "presence-preview",
-					"exp": int(time.time()) + 60 * 60,
-					"iat": int(time.time()),
-				}
-
-				secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
-				if not secret:
-					frappe.throw(_("SFU secret not configured"))
-				lobby_token = jwt.encode(lobby_payload, secret, algorithm="HS256")
+				lobby_token = _generate_sfu_token(
+					user_id=frappe.session.user,
+					meeting_id=meeting_id,
+					scope="presence-preview",
+					user_name=user_fullname,
+					user_avatar=user_avatar,
+					is_host=False,
+					is_guest=False,
+				)
 
 				return {
 					"status": "waiting_for_approval",
@@ -257,10 +264,6 @@ def refresh_sfu_token(meeting_id: str) -> dict:
 	if frappe.session.user not in meeting.get_members():
 		frappe.throw(_("Not a meeting member"))
 
-	from meet.utils.sfu_config import get_sfu_config
-
-	sfu_config = get_sfu_config()
-
 	user_fullname, user_avatar = frappe.db.get_value(
 		"User", frappe.session.user, ["full_name", "user_image"]
 	) or (frappe.session.user, None)
@@ -268,21 +271,14 @@ def refresh_sfu_token(meeting_id: str) -> dict:
 	is_host = meeting.owner == frappe.session.user
 	is_cohost = meeting.is_host_or_cohost(frappe.session.user) and not is_host
 
-	auth_payload = {
-		"user_id": frappe.session.user,
-		"meeting_id": meeting_id,
-		"user_name": user_fullname,
-		"user_avatar": user_avatar,
-		"is_host": is_host,
-		"is_cohost": is_cohost,
-		"exp": int(time.time()) + 3600,  # 1 hour expiry
-		"iat": int(time.time()),
-	}
-
-	secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
-	if not secret:
-		frappe.throw(_("SFU secret not configured"))
-	auth_token = jwt.encode(auth_payload, secret, algorithm="HS256")
+	auth_token = _generate_sfu_token(
+		user_id=frappe.session.user,
+		meeting_id=meeting_id,
+		user_name=user_fullname,
+		user_avatar=user_avatar,
+		is_host=is_host,
+		is_cohost=is_cohost,
+	)
 
 	return {"auth_token": auth_token, "expires_in": 3600, "codec_strategy": _get_codec_strategy()}
 
@@ -309,31 +305,22 @@ def get_sfu_presence_preview_token(meeting_id: str) -> dict:
 	sfu_config = get_sfu_config()
 
 	expiry_seconds = 300
-	now = int(time.time())
 	session_id = str(secrets.token_urlsafe(16))
 
-	auth_payload = {
-		"user_id": frappe.session.user,
-		"meeting_id": meeting_id,
-		"scope": "presence-preview",
-		"session_id": session_id,
-		"exp": now + expiry_seconds,
-		"iat": now,
-	}
+	auth_token = _generate_sfu_token(
+		user_id=frappe.session.user,
+		meeting_id=meeting_id,
+		scope="presence-preview",
+		expires_in=expiry_seconds,
+		session_id=session_id,
+	)
 
-	secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
-	if not secret:
-		frappe.throw(_("SFU secret not configured"))
-	auth_token = jwt.encode(auth_payload, secret, algorithm="HS256")
-
-	result = {
+	return {
 		"sfu_url": sfu_config["sfu_server_url"],
 		"sfu_port": sfu_config.get("sfu_server_port"),
 		"auth_token": auth_token,
 		"expires_in": expiry_seconds,
 	}
-
-	return result
 
 
 @frappe.whitelist(allow_guest=True)
@@ -382,24 +369,17 @@ def join_meeting_as_guest(meeting_id: str, guest_name: str, guest_id: str | None
 		frappe.throw(_("You are banned from this meeting"))
 
 	sfu_config = get_sfu_config()
-	secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
-	if not secret:
-		frappe.throw(_("SFU secret not configured"))
-
-	auth_payload = {
-		"user_id": guest_id,
-		"user_name": guest_name_clean,
-		"meeting_id": meeting_id,
-		"is_host": False,
-		"is_guest": True,
-		"scope": "full",
-		"exp": int(time.time()) + 24 * 3600,
-		"iat": int(time.time()),
-	}
 
 	if meeting.meeting_type == "restricted":
 		if meeting.is_user_approved(guest_id):
-			auth_token = jwt.encode(auth_payload, secret, algorithm="HS256")
+			auth_token = _generate_sfu_token(
+				user_id=guest_id,
+				meeting_id=meeting_id,
+				expires_in=24 * 3600,
+				user_name=guest_name_clean,
+				is_host=False,
+				is_guest=True,
+			)
 			return {
 				"status": "joined",
 				"meeting_id": meeting_id,
@@ -424,7 +404,14 @@ def join_meeting_as_guest(meeting_id: str, guest_name: str, guest_id: str | None
 		}
 
 	# open meeting
-	auth_token = jwt.encode(auth_payload, secret, algorithm="HS256")
+	auth_token = _generate_sfu_token(
+		user_id=guest_id,
+		meeting_id=meeting_id,
+		expires_in=24 * 3600,
+		user_name=guest_name_clean,
+		is_host=False,
+		is_guest=True,
+	)
 
 	meeting.add_guest_to_members(guest_id)
 
@@ -464,24 +451,17 @@ def get_approved_guest_connection_details(meeting_id: str, guest_id: str) -> dic
 		frappe.throw(_("You are banned from this meeting"))
 
 	sfu_config = get_sfu_config()
-	secret = sfu_config.get("sfu_secret") or frappe.conf.get("secret_key")
-	if not secret:
-		frappe.throw(_("SFU secret not configured"))
 
 	guest_name = session_data.get("guest_name", f"Guest-{guest_id[:8]}")
 
-	auth_payload = {
-		"user_id": guest_id,
-		"user_name": guest_name,
-		"meeting_id": meeting_id,
-		"is_host": False,
-		"is_guest": True,
-		"scope": "full",
-		"exp": int(time.time()) + 24 * 3600,
-		"iat": int(time.time()),
-	}
-
-	auth_token = jwt.encode(auth_payload, secret, algorithm="HS256")
+	auth_token = _generate_sfu_token(
+		user_id=guest_id,
+		meeting_id=meeting_id,
+		expires_in=24 * 3600,
+		user_name=guest_name,
+		is_host=False,
+		is_guest=True,
+	)
 
 	return {
 		"status": "joined",
