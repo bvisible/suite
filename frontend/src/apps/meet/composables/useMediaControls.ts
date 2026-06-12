@@ -681,6 +681,24 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 				}
 				if (mediaState.isMicOn) {
 					mediaState.microphonePermissionGranted = true;
+					if (prefNoiseCancellationEnabled.value) {
+						try {
+							const rawTrack = stream.getAudioTracks()[0];
+							if (rawTrack) {
+								const audioStream = new MediaStream([rawTrack]);
+								const result =
+									await noiseCancellation.applyNoiseCancellation(audioStream);
+								noiseCancellationSession = result;
+								const processedTrack = result.stream.getAudioTracks()[0];
+								if (processedTrack?.readyState === "live") {
+									stream.removeTrack(rawTrack);
+									stream.addTrack(processedTrack);
+								}
+							}
+						} catch (err) {
+							console.error("[NC] Failed to apply on initial join:", err);
+						}
+					}
 				}
 			}
 		} catch (error) {
