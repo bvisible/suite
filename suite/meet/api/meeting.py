@@ -182,10 +182,6 @@ def join_meeting(meeting_id: str) -> dict:
 def approve_join_request(meeting_id: str, user_id: str) -> dict:
 	"""Approve a user's join request from waiting room"""
 	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
-
-	if not meeting.is_host_or_cohost(frappe.session.user):
-		frappe.throw(_("Access denied"))
-
 	meeting.approve_user(user_id)
 
 	return {"meeting_id": meeting_id, "user_id": user_id, "message": "User approved successfully"}
@@ -195,10 +191,6 @@ def approve_join_request(meeting_id: str, user_id: str) -> dict:
 def approve_all_join_requests(meeting_id: str) -> dict:
 	"""Approve all users' join requests from waiting room"""
 	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
-
-	if not meeting.is_host_or_cohost(frappe.session.user):
-		frappe.throw("Access denied")
-
 	meeting.approve_all_users()
 
 	return {"meeting_id": meeting_id, "message": "All users approved successfully"}
@@ -208,10 +200,6 @@ def approve_all_join_requests(meeting_id: str) -> dict:
 def reject_join_request(meeting_id: str, user_id: str) -> dict:
 	"""Reject a user's join request from waiting room"""
 	meeting: SaeMeeting = frappe.get_doc("Sae Meeting", meeting_id)
-
-	if not meeting.is_host_or_cohost(frappe.session.user):
-		frappe.throw(_("Access denied"))
-
 	meeting.reject_user(user_id)
 
 	# For guests, publish realtime event in a guest-specific room
