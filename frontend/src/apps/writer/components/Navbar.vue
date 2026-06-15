@@ -94,7 +94,7 @@
 </template>
 <script setup>
 import { Button, Breadcrumbs, Dropdown } from 'frappe-ui'
-import { getFileLink } from 'frappe-ui/drive/js/utils'
+import { getFileLink } from '@/ui/drive/js/utils'
 import { useStore } from 'vuex'
 import emitter from '@/emitter'
 import { ref, computed, inject, h, defineModel } from 'vue'

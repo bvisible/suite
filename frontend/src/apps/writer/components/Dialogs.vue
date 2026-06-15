@@ -14,7 +14,7 @@
 import { ref, watch, computed } from 'vue'
 import emitter from '@/emitter'
 
-import { ShareDialog, MoveDialog, InfoDialog, RenameDialog } from 'frappe-ui/drive'
+import { ShareDialog, MoveDialog, InfoDialog, RenameDialog } from '@/ui/drive'
 import RemoveDialog from './RemoveDialog.vue'
 import SearchDialog from './SearchDialog.vue'
 

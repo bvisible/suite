@@ -180,7 +180,7 @@ import LucideTrash from '~icons/lucide/trash'
 import LucideLeftClose from '~icons/lucide/panel-left-close'
 import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import { TextInput, ContextMenu } from 'frappe-ui'
-import { copyToClipboard } from 'frappe-ui/drive/js/utils'
+import { copyToClipboard } from '@/ui/drive/js/utils'
 
 const props = defineProps({
   editor: Object,

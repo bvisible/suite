@@ -71,7 +71,7 @@ import {
   useFileUpload,
   Dropdown,
 } from 'frappe-ui'
-import { rename, allUsers } from 'frappe-ui/drive/js/resources'
+import { rename, allUsers } from '@/ui/drive/js/resources'
 import { onKeyDown } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
 
