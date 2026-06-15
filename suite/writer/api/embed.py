@@ -5,7 +5,7 @@ from drive.api.permissions import user_has_permission
 
 @frappe.whitelist()
 def add(file_id):
-    file_doc = frappe.get_doc("Drive File", file_id)
+    file_doc = frappe.get_doc("File", file_id)
     file = frappe.request.files["file"]
     file.filename = f"{file_doc.name} embed -{file.filename}"
     embed = upload_file(file_doc.team, parent=file_doc.name, embed=1)
@@ -14,11 +14,11 @@ def add(file_id):
 
 @frappe.whitelist(allow_guest=True)
 def get(id):
-    embed = frappe.get_cached_doc("Drive File", id)
+    embed = frappe.get_cached_doc("File", id)
     parent = frappe.db.get_value(
-        "Drive File", embed.parent_entity, ["name", "doc"], as_dict=True
+        "File", embed.folder, ["name", "content_docname"], as_dict=True
     )
-    if not parent.doc:
+    if not parent.content_docname:
         frappe.throw("This is not an embed", ValueError)
     if not user_has_permission(parent.name, "read"):
         frappe.throw(
