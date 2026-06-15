@@ -14,7 +14,7 @@ import {
   pageMetaPlugin,
 } from 'frappe-ui'
 import translation from './translation'
-import { allUsers } from 'frappe-ui/drive/js/resources'
+import { allUsers } from '@/ui/drive/js/resources'
 const app = createApp(App)
 
 setConfig('resourceFetcher', frappeRequest)

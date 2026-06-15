@@ -16,7 +16,7 @@
         @mouseover="selectedIndex = index"
       >
         <div class="truncate max-w-56">
-          {{ item.title }}
+          {{ item.file_name }}
         </div>
         <div class="text-xs text-ink-gray-6">Edited {{ item.relativeModified }}</div>
       </button>

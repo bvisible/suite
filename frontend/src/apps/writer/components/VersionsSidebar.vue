@@ -5,7 +5,7 @@
     <div class="flex flex-col gap-1">
       <div v-if="!versionPreview">
         <span class="text-ink-gray-6">You are viewing the version history of</span>
-        {{ document.doc.title }}
+        {{ file.doc.file_name }}
       </div>
       <div v-else-if="versionPreview[0].manual">
         <span class="font-medium">{{ versionPreview[0].title }}</span>

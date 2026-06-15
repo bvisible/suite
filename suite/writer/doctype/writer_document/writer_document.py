@@ -84,11 +84,13 @@ class WriterDocument(Document):
         self.save()
 
     def update_file(self, **kwargs):
-        file = frappe.db.get_value("Drive File", {"doc": self.name}, "name")
-        doc = frappe.get_doc("Drive File", file)
+        file = frappe.db.get_value(
+            "File", {"content_docname": self.name, "content_doctype": "Writer Document"}, "name"
+        )
+        doc = frappe.get_doc("File", file)
         for k in kwargs:
             setattr(doc, k, kwargs[k])
-        doc._modified = frappe.utils.now()
+        doc.file_modified = frappe.utils.now()
         doc.save()
 
     def save_comments(self, data, file):
@@ -140,17 +142,17 @@ def notify_comments(file, mentions):
             mention["id"],
             "Mention",
             file,
-            f'{from_owner} mentioned you in a comment in "{file.title}".',
+            f'{from_owner} mentioned you in a comment in "{file.file_name}".',
         )
         if new_notification:
             try:
                 frappe.sendmail(
                     recipients=[mention["id"]],
-                    subject=f"Frappe Drive - Mention in {file.title}",
+                    subject=f"Frappe Drive - Mention in {file.file_name}",
                     template="drive_comment",
                     args={
                         "message": f"{from_owner} mentioned you in a comment.",
-                        "doc": file.title,
+                        "doc": file.file_name,
                         "link": get_link(file),
                     },
                     now=True,
