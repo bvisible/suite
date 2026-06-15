@@ -88,7 +88,7 @@ website_route_rules = [
 # ------------
 
 # before_install = "writer.install.before_install"
-after_install = "writer.overrides.migrate_from_drive.execute"
+# after_install = "writer.overrides.migrate_from_drive.execute"
 
 # Uninstallation
 # ------------
