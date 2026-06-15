@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from mail import __version__
+from suite import __version__
 from suite.mail.jmap.models import EmailCreateModel
 from suite.mail.jmap.services.core import CallIdGenerator, CoreService
 from suite.mail.jmap.services.mail.identity import IdentityService

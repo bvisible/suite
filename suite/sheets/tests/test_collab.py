@@ -18,7 +18,7 @@ from unittest import mock
 # Eagerly import the module under test so `mock.patch("suite.sheets.collab.frappe")`
 # can resolve the attribute — the patcher's lazy import doesn't populate
 # `suite.sheets.collab` on the parent package.
-from sheets import collab as _collab  # noqa: F401
+from suite.sheets import collab as _collab  # noqa: F401
 
 
 def _patched_frappe():
@@ -46,14 +46,14 @@ class CheckCollabAccess(unittest.TestCase):
 		self.addCleanup(patcher.stop)
 
 	def test_rejects_guest(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.session.user = "Guest"
 		with self.assertRaises(self.frappe.AuthenticationError):
 			collab.check_collab_access("SH-1")
 
 	def test_no_read_returns_false_flags(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.has_permission.return_value = False
 		out = collab.check_collab_access("SH-1")
@@ -65,7 +65,7 @@ class CheckCollabAccess(unittest.TestCase):
 		)
 
 	def test_read_only_user_gets_view_grant(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		# True for read, False for write.
 		self.frappe.has_permission.side_effect = [True, False]
@@ -75,7 +75,7 @@ class CheckCollabAccess(unittest.TestCase):
 		self.assertEqual(out["user"], "alice@example.com")
 
 	def test_writer_gets_write_grant(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.has_permission.side_effect = [True, True]
 		out = collab.check_collab_access("SH-1")
@@ -88,14 +88,14 @@ class CollabSecretGate(unittest.TestCase):
 		self.addCleanup(patcher.stop)
 
 	def test_load_rejects_missing_header(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.get_request_header.return_value = None
 		with self.assertRaises(self.frappe.AuthenticationError):
 			collab.load_collab_state("SH-1")
 
 	def test_load_rejects_wrong_secret(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.get_request_header.return_value = "wrong"
 		with self.assertRaises(self.frappe.AuthenticationError):
@@ -105,14 +105,14 @@ class CollabSecretGate(unittest.TestCase):
 		# Misconfigured site (no secret in site_config) must not silently
 		# accept anonymous callers — that would make every collab write
 		# unauthenticated.
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.conf.get.return_value = None
 		with self.assertRaises(self.frappe.AuthenticationError):
 			collab.load_collab_state("SH-1")
 
 	def test_persist_rejects_missing_header(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.get_request_header.return_value = None
 		with self.assertRaises(self.frappe.AuthenticationError):
@@ -125,14 +125,14 @@ class LoadCollabState(unittest.TestCase):
 		self.addCleanup(patcher.stop)
 
 	def test_returns_null_blob_when_missing(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.db.exists.return_value = False
 		out = collab.load_collab_state("SH-1")
 		self.assertEqual(out, {"sheet": "SH-1", "ydoc_state": None, "byte_size": 0})
 
 	def test_returns_row_when_present(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		self.frappe.db.exists.return_value = True
 		self.frappe.db.get_value.return_value = {"ydoc_state": "<b64>", "byte_size": 42}
@@ -147,7 +147,7 @@ class PersistCollabState(unittest.TestCase):
 		self.addCleanup(patcher.stop)
 
 	def test_rejects_when_sheet_missing(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		# `db.exists` returns False only for the Sheet existence check.
 		self.frappe.db.exists.side_effect = lambda dt, _: dt != "Sheet"
@@ -155,7 +155,7 @@ class PersistCollabState(unittest.TestCase):
 			collab.persist_collab_state("SH-1", "<b64>", 10)
 
 	def test_updates_when_state_row_exists(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		# Sheet exists AND state row exists → take UPDATE path.
 		self.frappe.db.exists.return_value = True
@@ -168,7 +168,7 @@ class PersistCollabState(unittest.TestCase):
 		self.assertEqual(args[2]["byte_size"], 99)
 
 	def test_inserts_when_state_row_missing(self):
-		from sheets import collab
+		from suite.sheets import collab
 
 		# Sheet exists but state row does not → take INSERT path.
 		self.frappe.db.exists.side_effect = lambda dt, _: dt == "Sheet"

@@ -17,7 +17,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from sheets import permissions
+from suite.sheets import permissions
 
 
 def _esc(value):

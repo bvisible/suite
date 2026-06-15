@@ -156,7 +156,7 @@ def get_thumbnail(entity_name: str):
                 thumbnail_data = html[:1000] if html else ""
             elif drive_file.mime_type == "frappe/slides":
                 thumbnail_url = frappe.call(
-                    "slides.slides.doctype.presentation.presentation.get_presentation_thumbnail",
+                    "suite.slides.doctype.presentation.presentation.get_presentation_thumbnail",
                     presentation_name=drive_file.path,
                 )
                 if not thumbnail_url:

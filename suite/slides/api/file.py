@@ -12,7 +12,7 @@ def create_drive_file(name: str, parent: str | None = None, title: str | None = 
 	"""
 	Creates a corresponding Drive File for a Slides Presentation.
 	"""
-	from drive.utils import create_file
+	from suite.drive.utils import create_file
 
 	drive_file = create_file(
 		title=title,

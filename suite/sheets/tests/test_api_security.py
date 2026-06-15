@@ -28,7 +28,7 @@ class _PermCheckBase(unittest.TestCase):
 
 class BroadcastsRequireWrite(_PermCheckBase):
 	def test_broadcast_op_requires_write(self):
-		from sheets import api
+		from suite.sheets import api
 
 		api.broadcast_op("SH-1", '{"op_type":"edit"}')
 		self.frappe.has_permission.assert_called_with(
@@ -36,7 +36,7 @@ class BroadcastsRequireWrite(_PermCheckBase):
 		)
 
 	def test_yjs_update_requires_write(self):
-		from sheets import api
+		from suite.sheets import api
 
 		api.yjs_relay("SH-1", "yjs_update", "<opaque>")
 		self.frappe.has_permission.assert_called_with(
@@ -44,7 +44,7 @@ class BroadcastsRequireWrite(_PermCheckBase):
 		)
 
 	def test_yjs_state_requires_write(self):
-		from sheets import api
+		from suite.sheets import api
 
 		api.yjs_relay("SH-1", "yjs_state", "<opaque>")
 		self.frappe.has_permission.assert_called_with(
@@ -54,7 +54,7 @@ class BroadcastsRequireWrite(_PermCheckBase):
 
 class PresenceStaysRead(_PermCheckBase):
 	def test_ping_presence_is_read(self):
-		from sheets import api
+		from suite.sheets import api
 
 		# user_identity does a db lookup; stub the fields out.
 		self.frappe.db.get_value.return_value = ""
@@ -67,7 +67,7 @@ class PresenceStaysRead(_PermCheckBase):
 		self.assertNotIn("ptype", kwargs)
 
 	def test_yjs_awareness_is_read(self):
-		from sheets import api
+		from suite.sheets import api
 
 		api.yjs_relay("SH-1", "yjs_awareness", "<opaque>")
 		self.frappe.has_permission.assert_called_with(
@@ -75,7 +75,7 @@ class PresenceStaysRead(_PermCheckBase):
 		)
 
 	def test_yjs_state_request_is_read(self):
-		from sheets import api
+		from suite.sheets import api
 
 		api.yjs_relay("SH-1", "yjs_state_request", "<opaque>")
 		self.frappe.has_permission.assert_called_with(
@@ -85,7 +85,7 @@ class PresenceStaysRead(_PermCheckBase):
 
 class UnknownYjsEventRejected(_PermCheckBase):
 	def test_unknown_event_throws_before_perm_check(self):
-		from sheets import api
+		from suite.sheets import api
 
 		self.frappe.throw.side_effect = RuntimeError("nope")
 		with self.assertRaises(RuntimeError):
@@ -97,7 +97,7 @@ class UnknownYjsEventRejected(_PermCheckBase):
 
 class ShareSheetRejectsDisabledUsers(_PermCheckBase):
 	def test_disabled_user_rejected(self):
-		from sheets import api
+		from suite.sheets import api
 
 		# `enabled = 0` → throw.
 		self.frappe.db.get_value.return_value = 0
@@ -107,7 +107,7 @@ class ShareSheetRejectsDisabledUsers(_PermCheckBase):
 		self.frappe.share.add.assert_not_called()
 
 	def test_missing_user_rejected(self):
-		from sheets import api
+		from suite.sheets import api
 
 		self.frappe.db.get_value.return_value = None
 		self.frappe.throw.side_effect = RuntimeError("not found")
@@ -116,7 +116,7 @@ class ShareSheetRejectsDisabledUsers(_PermCheckBase):
 		self.frappe.share.add.assert_not_called()
 
 	def test_enabled_user_shared(self):
-		from sheets import api
+		from suite.sheets import api
 
 		self.frappe.db.get_value.return_value = 1
 		api.share_sheet("SH-1", "bob@example.com", write=1)
@@ -125,7 +125,7 @@ class ShareSheetRejectsDisabledUsers(_PermCheckBase):
 
 class RenameSheetGated(_PermCheckBase):
 	def test_rename_checks_write_before_load(self):
-		from sheets import api
+		from suite.sheets import api
 
 		self.frappe.get_doc.return_value = mock.Mock(name="SH-1")
 		api.rename_sheet("SH-1", "New title")

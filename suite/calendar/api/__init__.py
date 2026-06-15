@@ -2,13 +2,13 @@ import json
 
 import frappe
 from frappe import _
-from mail.client.doctype.calendar.calendar import fetch_calendars
-from mail.client.doctype.calendar_event.calendar_event import (
+from suite.client.doctype.calendar.calendar import fetch_calendars
+from suite.client.doctype.calendar_event.calendar_event import (
 	fetch_calendar_events,
 	get_master_events_by_uids,
 	update_calendar_event,
 )
-from mail.client.doctype.calendar_event.calendar_event import (
+from suite.client.doctype.calendar_event.calendar_event import (
 	get_calendar_events as get_calendar_events_by_ids,
 )
 
@@ -88,7 +88,7 @@ def enrich_participants_with_avatars(events: list[dict]) -> None:
 def get_avatar_url(email: str) -> str:
 	"""Returns the avatar URL for the given email."""
 
-	return f"/api/method/mail.api.mail.get_avatar?email={email}"
+	return f"/api/method/suite.mail.api.mail.get_avatar?email={email}"
 
 
 @frappe.whitelist()

@@ -2,7 +2,7 @@ from typing import ClassVar, Literal
 
 import frappe
 
-from mail import __version__
+from suite import __version__
 from suite.mail.jmap.models import EmailCreateModel, EmailRecipient
 from suite.mail.jmap.services.core import CallIdGenerator
 from suite.mail.jmap.services.mail.mail import MailService
