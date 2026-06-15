@@ -1,5 +1,10 @@
 [project]
 name = "suite"
+authors = [
+    { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io" },
+]
+description = "Frappe Suite — Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app."
+readme = "README.md"
 version = "0.0.1"
 requires-python = ">=3.10"
 dependencies = [
