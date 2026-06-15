@@ -16,7 +16,7 @@ from drive.api.permissions import (
     user_has_permission,
     get_entity_with_permissions,
 )
-from drive.utils.files import FileManager
+from drive.utils.files import FileManager, storage_key
 
 # To be moved to mimemapper
 QUICK_MAP = {
@@ -55,7 +55,7 @@ def create_document(team, title=None, parent=None, template=None):
             {
                 "file_name": title,
                 "team": team,
-                "parent_path": Path(manager.storage_key(parent_doc)),
+                "parent_path": Path(storage_key(parent_doc.file_url)),
             }
         ),
         home_directory,
