@@ -10,15 +10,11 @@ from drive.utils import (
     create_drive_file,
     default_team,
     get_home_folder,
-    get_valid_breadcrumbs,
-    get_file_type,
-    get_default_team,
 )
 from drive.api.files import get_new_title
 from drive.api.permissions import (
     user_has_permission,
-    ENTITY_FIELDS,
-    get_user_access,
+    get_entity_with_permissions,
 )
 from drive.utils.files import FileManager
 
@@ -34,8 +30,8 @@ QUICK_MAP = {
 def create_document(team, title=None, parent=None, template=None):
     home_directory = get_home_folder(team)
     parent = parent or home_directory.name
-    parent_doc = frappe.get_cached_doc("Drive File", parent)
-    team = frappe.db.get_value("Drive File", parent, "team")
+    parent_doc = frappe.get_doc("File", parent)
+    team = frappe.db.get_value("File", parent, "team")
     if not title:
         title = get_new_title("Untitled Document", parent)
 
@@ -45,25 +41,21 @@ def create_document(team, title=None, parent=None, template=None):
             frappe.PermissionError,
         )
 
-    drive_doc = frappe.new_doc("Writer Document")
-    drive_doc.title = title
-    if template:
-        drive_doc.template = template
-    drive_doc.settings = (
+    writer_doc = frappe.new_doc("Writer Document")
+    writer_doc.settings = (
         '{"collab": true}'
         if not template
         else '{"collab": true, "template": "' + template + '"}'
     )
-    drive_doc.save()
+    writer_doc.save()
 
     manager = FileManager()
     path = manager.create_folder(
         frappe._dict(
             {
-                "title": title,
-                "parent_path": Path(parent_doc.path or ""),
+                "file_name": title,
                 "team": team,
-                "parent_entity": parent_doc.name,
+                "parent_path": Path(manager.storage_key(parent_doc)),
             }
         ),
         home_directory,
@@ -71,9 +63,9 @@ def create_document(team, title=None, parent=None, template=None):
     manager.create_folder(
         frappe._dict(
             {
-                "title": ".embeds",
+                "file_name": ".embeds",
                 "team": team,
-                "parent_path": path,
+                "parent_path": Path(path),
             }
         ),
         home_directory,
@@ -83,74 +75,30 @@ def create_document(team, title=None, parent=None, template=None):
         team,
         title,
         parent,
-        "frappe_doc",
-        lambda _: path,
-        document=drive_doc.name,
+        "Document",
+        path,
+        mime_type="frappe_doc",
+        content_doctype="Writer Document",
+        content_docname=writer_doc.name,
     )
     return entity
 
 
 @frappe.whitelist(allow_guest=True)
 def get_document(file_id):
-    entity = frappe.db.get_value(
-        "Drive File",
-        {"is_active": 1, "name": file_id},
-        [*ENTITY_FIELDS, "doc"],
-        as_dict=1,
-    )
-    if not entity:
-        frappe.throw(
-            "We couldn't find what you're looking for.", frappe.PageDoesNotExistError
-        )
+    return_obj = get_entity_with_permissions(file_id)
+    entity = frappe._dict(return_obj)
 
-    entity["in_home"] = entity.team == get_default_team()
-    user_access = get_user_access(entity)
-    if user_access.get("read") == 0:
-        frappe.throw("You don't have access to this file.", frappe.PermissionError)
-
-    owner_info = (
-        frappe.db.get_value(
-            "User", entity.owner, ["user_image", "full_name"], as_dict=True
-        )
-        or {}
-    )
-    breadcrumbs = {"breadcrumbs": get_valid_breadcrumbs(entity.name, user_access)}
-    favourite = frappe.db.get_value(
-        "Drive Favourite",
-        {
-            "entity": file_id,
-            "user": frappe.session.user,
-        },
-        ["entity as is_favourite"],
-    )
-    file_type = get_file_type(entity)
-    return_obj = (
-        entity
-        | user_access
-        | owner_info
-        | breadcrumbs
-        | {"is_favourite": favourite, "file_type": file_type}
-    )
-
-    default = 0
-    if file_id:
-        if get_user_access(file_id, "Guest")["read"]:
-            default = -2
-        elif get_user_access(file_id, team=1)["read"]:
-            default = -1
-    return_obj["share_count"] = default
-    if entity.mime_type.startswith("text/markdown"):
+    # Non-Writer-backed files (e.g. markdown) are read straight off disk.
+    if entity.content_doctype != "Writer Document":
         return get_markdown_file(entity, return_obj)
 
-    k = frappe.get_doc("Writer Document", entity.doc)
-    entity_doc_content = k.as_dict()
-    entity_doc_content.pop("name")
-    entity_doc_content.pop("owner")
-    entity_doc_content.pop("versions")
+    writer_doc = frappe.get_doc("Writer Document", entity.content_docname).as_dict()
+    writer_doc.pop("name")
+    writer_doc.pop("owner")
+    writer_doc.pop("versions", None)
 
-    return_obj |= entity_doc_content | {
-        "modified": entity.modified,
-    }
+    return_obj |= writer_doc | {"modified": entity.modified}
     frappe.response["data"] = return_obj
 
 
@@ -188,7 +136,9 @@ def clean_content_for_obsidian(content):
 
 @frappe.whitelist(allow_guest=True)
 def save_comments(doc: str, data: str):
-    file = frappe.get_doc("Drive File", {"doc": doc})
+    file = frappe.get_doc(
+        "File", {"content_docname": doc, "content_doctype": "Writer Document"}
+    )
     if not user_has_permission(file, "comment"):
         frappe.throw("You cannot comment on this file.")
 
@@ -197,7 +147,7 @@ def save_comments(doc: str, data: str):
 
 @frappe.whitelist()
 def get_extension(entity_name):
-    mime_type = frappe.get_value("Drive File", entity_name, "mime_type")
+    mime_type = frappe.get_value("File", entity_name, "mime_type")
     try:
         return mimemapper.get_extension(mime_type)
     except:
@@ -209,7 +159,7 @@ def create_blog(entity_name, html, attachments=None):
     """
     If the blog app is installed, creates a blog
     """
-    file = frappe.get_doc("Drive File", entity_name)
+    file = frappe.get_doc("File", entity_name)
     blogger = frappe.db.exists("Blogger", {"user": frappe.session.user})
     if not blogger:
         frappe.throw("Please create a Blogger for your user first.")
@@ -226,7 +176,7 @@ def create_blog(entity_name, html, attachments=None):
     blog = frappe.get_doc(
         {
             "doctype": "Blog Post",
-            "title": file.title,
+            "title": file.file_name,
             "content_type": "HTML",
             "blog_category": category.name,
             "blogger": blogger,
@@ -243,7 +193,7 @@ def get_wiki_link(title: str, team: str):
     possible_titles = [title, title + ".md", title + ".txt"]
     names = (
         frappe.get_value(
-            "Drive File", {"title": k, "team": team, "is_group": 0}, "name"
+            "File", {"file_name": k, "team": team, "is_folder": 0}, "name"
         )
         for k in possible_titles
     )

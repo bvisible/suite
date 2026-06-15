@@ -4,19 +4,18 @@ import frappe
 from pypika import CustomFunction, Order
 from pypika import functions as fn
 
-from drive.utils import get_default_team
-from drive.api.permissions import ENTITY_FIELDS, get_user_access
+from drive.utils import get_default_team, FILE_FIELDS, STATUS_ACTIVE
+from drive.api.permissions import get_user_access
 from writer.search import WriterSearch
 
 DriveUser = frappe.qb.DocType("User")
 UserGroupMember = frappe.qb.DocType("User Group Member")
-DriveFile = frappe.qb.DocType("Drive File")
+DriveFile = frappe.qb.DocType("File")
 DrivePermission = frappe.qb.DocType("Drive Permission")
 Team = frappe.qb.DocType("Drive Team")
 TeamMember = frappe.qb.DocType("Drive Team Member")
 DriveFavourite = frappe.qb.DocType("Drive Favourite")
 Recents = frappe.qb.DocType("Drive Entity Log")
-DriveEntityTag = frappe.qb.DocType("Drive Entity Tag")
 
 Binary = CustomFunction("BINARY", ["expression"])
 
@@ -36,14 +35,15 @@ def get_document_list(
         frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
     )
 
-    recent_field = fn.Coalesce(Recents.last_interaction, DriveFile._modified)
+    recent_field = fn.Coalesce(Recents.last_interaction, DriveFile.file_modified)
     query = (
         frappe.qb.from_(DriveFile)
         .select(
-            *ENTITY_FIELDS,
+            *FILE_FIELDS,
+            DriveFile.mime_type,
             recent_field.as_("recent"),
         )
-        .where((DriveFile.is_active == 1) & (DriveFile.mime_type == "frappe_doc"))
+        .where((DriveFile.status == STATUS_ACTIVE) & (DriveFile.mime_type == "frappe_doc"))
         .where((DriveFile.owner == user) | (DriveFile.name.isin(recently_opened)))
     )
 
@@ -75,9 +75,9 @@ def get_document_list(
     # Rest of your processing code
     child_count_query = (
         frappe.qb.from_(DriveFile)
-        .where((DriveFile.team == get_default_team()) & (DriveFile.is_active == 1))
-        .select(DriveFile.parent_entity, fn.Count("*").as_("child_count"))
-        .groupby(DriveFile.parent_entity)
+        .where((DriveFile.team == get_default_team()) & (DriveFile.status == STATUS_ACTIVE))
+        .select(DriveFile.folder, fn.Count("*").as_("child_count"))
+        .groupby(DriveFile.folder)
     )
     share_query = (
         frappe.qb.from_(DriveFile)
@@ -107,7 +107,7 @@ def get_document_list(
 
     for r in res:
         r["children"] = children_count.get(r["name"], 0)
-        r["html"] = frappe.get_cached_value("Writer Document", r["doc"], "html")
+        r["html"] = frappe.get_cached_value("Writer Document", r["content_docname"], "html")
         if r["name"] in public_files:
             r["share_count"] = -2
         elif default > -1 and (r["name"] in team_files):
@@ -128,7 +128,7 @@ def get_versions(id):
     if not get_user_access(id).get("write"):
         frappe.throw("You don't have write access.", frappe.PermissionError)
 
-    doc_name = frappe.db.get_value("Drive File", id, "doc")
+    doc_name = frappe.db.get_value("File", id, "content_docname")
 
     versions = frappe.get_all(
         "Writer Version",
@@ -178,18 +178,18 @@ def get_drive_file_meta(names, ttl=3600):
 
     if missing:
         rows = frappe.get_all(
-            "Drive File",
-            filters={"doc": ["in", missing]},
-            fields=["name", "title", "doc"],
+            "File",
+            filters={"content_docname": ["in", missing], "content_doctype": "Writer Document"},
+            fields=["name", "file_name", "content_docname"],
         )
 
         for r in rows:
             meta = {
-                "title": r["title"],
+                "title": r["file_name"],
                 "name": r["name"],
             }
             key = f"search:drive_file:{r['name']}"
             cache.set_value(key, meta, expires_in_sec=ttl)
-            result[r["doc"]] = meta
+            result[r["content_docname"]] = meta
 
     return result

@@ -24,7 +24,7 @@ def get_context():
     if parts[0] == "w":
         try:
             [title, owner] = frappe.get_cached_value(
-                "Drive File", parts[1], ["title", "owner"]
+                "File", parts[1], ["file_name", "owner"]
             )
             context.title = title
             context.description = "By " + frappe.get_cached_value(
