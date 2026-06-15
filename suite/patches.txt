@@ -1,1 +1,44 @@
-# Patches consolidated in Phase 3
+# Patches consolidated in Phase 3 (grouped by source app, preserving order).
+
+[pre_model_sync]
+# --- drive ---
+suite.drive.patches.team_restructure #8
+suite.drive.patches.update_roles
+suite.drive.patches.remove_personal #3
+suite.drive.patches.integrate_with_framework
+# --- mail ---
+execute:frappe.db.delete("Mail Cluster Store")
+
+[post_model_sync]
+# --- drive ---
+suite.drive.patches.folder_size #3
+suite.drive.patches.settings
+suite.drive.patches.new_writer #3
+suite.drive.patches.turn_on_flat_disk
+suite.drive.patches.add_modified_field
+suite.drive.patches.add_drive_user_role
+# --- slides ---
+suite.slides.doctype.presentation.patches.sanitize_attachment_urls
+suite.slides.doctype.presentation.patches.move_attachments_to_private_folder
+suite.slides.doctype.presentation.patches.move_slide_thumbnail_to_presentation
+suite.slides.doctype.presentation.patches.cleanup_unused_thumbnail_files
+# --- writer ---
+suite.writer.patches.change_versioning_schema
+suite.writer.patches.autopopulate_html
+# --- sheets ---
+suite.sheets.patches.v0_1.migrate_blob_to_cells
+# --- meet ---
+suite.meet.patches.migrate_meeting_fields_to_table_multiselect
+# --- mail ---
+suite.mail.patches.generate_ssh_keypair_for_cluster
+suite.mail.patches.create_push_subscriptions
+suite.mail.patches.rename_user_settings
+suite.mail.patches.remove_mail_admin_role
+suite.mail.patches.remove_mail_user_role
+suite.mail.patches.set_user_account
+suite.mail.patches.create_archive_mailbox
+suite.mail.patches.configure_mail_settings
+suite.mail.patches.configure_mail_cluster
+suite.mail.patches.configure_mail_server
+# --- calendar ---
+# (no patches)

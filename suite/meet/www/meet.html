@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/assets/meet/frontend/meet_logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frappe Meet</title>
+   
+    <script type="module" crossorigin src="/assets/meet/frontend/assets/index-BHfO4p6a.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/chunk-sbRso20c.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/asyncToGenerator-Dj2ZLkj1.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/objectSpread2-4NmfbD5Z.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/classPrivateFieldGet2-DI4fqd0A.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/vue.runtime.esm-bundler-Ct2yHpVQ.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/Tooltip-ByHAmxYp.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/_plugin-vue_export-helper-DSTsphXK.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/Textarea-CCxWj6eH.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/Button-tOMXAiNK.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/Popover-BlUjR0l-.js">
+    <link rel="modulepreload" crossorigin href="/assets/meet/frontend/assets/pinia-C9WUzEDj.js">
+    <link rel="stylesheet" crossorigin href="/assets/meet/frontend/assets/Popover-WqQFOTYK.css">
+    <link rel="stylesheet" crossorigin href="/assets/meet/frontend/assets/pinia-BpP_vQml.css">
+    <link rel="stylesheet" crossorigin href="/assets/meet/frontend/assets/index-Bq8YwRkg.css">
+  </head>
+  <body>
+    <div id="app"></div> 
+    <script>
+       window.localStorage.setItem('debug', 'mediasoup-client:WARN* mediasoup-client:ERROR*');
+    </script>
+  
+          <script>
+              {% for key in boot %}
+              window["{{ key }}"] = {{ boot[key] | tojson }};
+              {% endfor %}
+          </script>
+          </body>
+          
+</html>

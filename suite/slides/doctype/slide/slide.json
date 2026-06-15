@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-09-03 19:07:49.064145",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "background",
+  "elements",
+  "client_id",
+  "column_break_pcnr",
+  "thumbnail",
+  "transition",
+  "transition_duration",
+  "fade_unmatched_elements"
+ ],
+ "fields": [
+  {
+   "fieldname": "background",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Background"
+  },
+  {
+   "fieldname": "elements",
+   "fieldtype": "JSON",
+   "in_list_view": 1,
+   "label": "Elements"
+  },
+  {
+   "fieldname": "column_break_pcnr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "thumbnail",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Thumbnail"
+  },
+  {
+   "fieldname": "transition",
+   "fieldtype": "Data",
+   "label": "Transition"
+  },
+  {
+   "fieldname": "transition_duration",
+   "fieldtype": "Data",
+   "label": "Transition Duration"
+  },
+  {
+   "fieldname": "fade_unmatched_elements",
+   "fieldtype": "Check",
+   "label": "Fade Unmatched Elements"
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client ID"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-20 20:16:31.297282",
+ "modified_by": "Administrator",
+ "module": "Slides",
+ "name": "Slide",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

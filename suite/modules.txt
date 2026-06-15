@@ -1,1 +1,11 @@
+Drive
+Slides
+Writer
+Frappe Writer
+Sheets
+Meet
+Mail
+Client
+Server
+Calendar
 Suite Core
