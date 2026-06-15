@@ -5,24 +5,14 @@ Create framework `File` records from legacy `Drive File` rows.
 import json
 
 import frappe
-from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from suite.drive.install import ensure_custom_fields
 from suite.drive.utils import MIME_LIST_MAP, PRESENTATION_CONTENT_DOCTYPE, STATUS_ACTIVE, STATUS_TRASHED, WRITER_CONTENT_DOCTYPE
 from suite.drive.utils.files import get_s3_url
 
 LEGACY_DOCTYPE = "Drive File"
 
 
-def ensure_custom_fields():
-    """Drive's File columns ship as fixtures, which sync after pre_model_sync patches.
-    Create them up front so the migration below can write to them."""
-    with open(frappe.get_app_path("drive", "fixtures", "custom_field.json")) as f:
-        fields = json.load(f)
-
-    custom_fields = {}
-    for df in fields:
-        custom_fields.setdefault(df["dt"], []).append(df)
-
-    create_custom_fields(custom_fields, ignore_validate=True)
+# ensure_custom_fields is defined in suite.drive.install (shared with after_install)
 
 
 def get_file_type(row):

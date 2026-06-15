@@ -25,10 +25,18 @@ def _run(label, func, *args, **kwargs):
 
 
 def after_install():
-	"""Run every former app's after_install handler, in order."""
-	from suite.drive.install import after_install as drive_after_install
+	"""Run every former app's after_install handler, in order.
+
+	Drive overrides the core File class app-wide and adds custom fields (team,
+	status, content_doctype, ...) to File. Those ship as fixtures that sync only
+	AFTER after_install, yet Mail's after_install creates File folders that run
+	through Drive's overridden hooks. So create Drive's File columns FIRST, before
+	any app's after_install runs.
+	"""
+	from suite.drive.install import ensure_custom_fields, after_install as drive_after_install
 	from suite.mail.install import after_install as mail_after_install
 
+	_run("drive.ensure_custom_fields", ensure_custom_fields)
 	_run("drive.after_install", drive_after_install)
 	_run("mail.after_install", mail_after_install)
 

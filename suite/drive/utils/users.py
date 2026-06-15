@@ -10,14 +10,24 @@ def mark_as_viewed(entity):
     return
     if (
         frappe.session.user == "Guest"
-        or not frappe.has_permission(doctype="Drive Entity Log", ptype="create", user=frappe.session.user)
+        or not frappe.has_permission(
+            doctype="Drive Entity Log", ptype="create", user=frappe.session.user
+        )
         or entity.is_folder
     ):
         return
 
-    entity_log = frappe.db.get_value("Drive Entity Log", {"entity_name": entity.name, "user": frappe.session.user})
+    entity_log = frappe.db.get_value(
+        "Drive Entity Log", {"entity_name": entity.name, "user": frappe.session.user}
+    )
     if entity_log:
-        frappe.db.set_value("Drive Entity Log", entity_log, "last_interaction", now(), update_modified=False)
+        frappe.db.set_value(
+            "Drive Entity Log",
+            entity_log,
+            "last_interaction",
+            now(),
+            update_modified=False,
+        )
         return
     doc = frappe.new_doc("Drive Entity Log")
     doc.entity_name = entity.name
@@ -66,7 +76,9 @@ def get_country_info():
         ]
 
         try:
-            res = requests.get(f"https://pro.ip-api.com/json/{ip}?fields={','.join(fields)}")
+            res = requests.get(
+                f"https://pro.ip-api.com/json/{ip}?fields={','.join(fields)}"
+            )
             data = res.json()
             if data.get("status") != "fail":
                 return data
@@ -78,8 +90,7 @@ def get_country_info():
     return frappe.cache().hget("ip_country_map", ip, generator=_get_country_info)
 
 
-
-def assign_drive_role_and_create_settings(user: User, method: str) -> None:
+def assign_drive_role_and_create_settings(user, method: str) -> None:
     """Assign the "Drive User" role, settings and a personal team to a new User."""
     from suite.drive.api.product import create_team
 
@@ -90,13 +101,17 @@ def assign_drive_role_and_create_settings(user: User, method: str) -> None:
         return
 
     if not frappe.db.exists("Role", role_name):
-        frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+        frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
+            ignore_permissions=True
+        )
 
     user_doc = frappe.get_doc("User", user_name)
     user_doc.append("roles", {"role": role_name})
     user_doc.save(ignore_permissions=True)
 
-    frappe.get_doc({"doctype": "Drive Settings", "user": user.email}).insert(ignore_permissions=True)
+    frappe.get_doc({"doctype": "Drive Settings", "user": user.email}).insert(
+        ignore_permissions=True
+    )
 
     # Created as the new user so the team is owned by and shared with them.
     original_user = frappe.session.user
