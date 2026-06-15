@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { provide, onMounted } from 'vue'
-import { allUsers } from 'frappe-ui/drive/js/resources'
+import { allUsers } from '@/ui/drive/js/resources'
 import FDialogs from '@/components/FDialogs.vue'
 import { apps } from '@/resources/'
 

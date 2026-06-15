@@ -64,7 +64,7 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
         printDoc(raw_html, settings)
       })
     }
-    return entities[0].is_group
+    return entities[0].is_folder
       ? folderDownload(team, entities[0])
       : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${
           entities[0].name
@@ -75,19 +75,19 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
   const zip = new JSZip()
 
   const processEntity = async (entity, parentFolder) => {
-    if (entity.is_group) {
-      const folder = parentFolder.folder(entity.title)
+    if (entity.is_folder) {
+      const folder = parentFolder.folder(entity.file_name)
       return get_children(team, entity.name).then((children) => {
         const promises = children.map((childEntity) => processEntity(childEntity, folder))
         return Promise.all(promises)
       })
-    } else if (entity.document) {
+    } else if (entity.content_docname) {
       // TODO: Get settings from document/user preferences
       const content = await getPdfFromDoc(entities[0].name, {})
-      parentFolder.file(entity.title + '.pdf', content)
+      parentFolder.file(entity.file_name + '.pdf', content)
     } else {
       const fileContent = await get_file_content(entity)
-      parentFolder.file(entity.title, fileContent)
+      parentFolder.file(entity.file_name, fileContent)
     }
   }
 
@@ -112,9 +112,9 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
 }
 
 export function folderDownload(team, root_entity) {
-  const folderName = root_entity.title
+  const folderName = root_entity.file_name
   const zip = new JSZip()
-  const rootFolder = zip.folder(root_entity.title)
+  const rootFolder = zip.folder(root_entity.file_name)
   temp(team, root_entity.name, rootFolder)
     .then(() => {
       return zip.generateAsync({ type: 'blob', streamFiles: true })
@@ -138,17 +138,17 @@ function temp(team, entity_name, parentZip) {
     get_children(team, entity_name)
       .then((result) => {
         const promises = result.map((entity) => {
-          if (entity.is_group) {
-            const folder = parentZip.folder(entity.title)
+          if (entity.is_folder) {
+            const folder = parentZip.folder(entity.file_name)
             return temp(team, entity.name, folder)
           }
-          if (entity.document) {
+          if (entity.content_docname) {
             getPdfFromDoc(entity.name).then((content) =>
-              parentZip.file(entity.title + '.pdf', content),
+              parentZip.file(entity.file_name + '.pdf', content),
             )
           } else {
             return get_file_content(entity).then((fileContent) => {
-              parentZip.file(entity.title, fileContent)
+              parentZip.file(entity.file_name, fileContent)
             })
           }
         })

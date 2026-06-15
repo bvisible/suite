@@ -8,7 +8,7 @@ import editorStyle from '@/styles/editor.css?inline'
 import globalStyle from '@/index.css?inline'
 import slugify from 'slugify'
 import { useFileUpload, toast as nToast, createResource } from 'frappe-ui'
-import { getTeams } from 'frappe-ui/drive/js/resources'
+import { getTeams } from '@/ui/drive/js/resources'
 import emitter from '@/emitter'
 import { createLowlight, common } from 'lowlight'
 import { toHtml } from 'hast-util-to-html'
@@ -43,8 +43,8 @@ function extractNum(name) {
 
 export const groupByFolder = (entities) => {
   return {
-    Folders: entities.filter((x) => x.is_group === 1),
-    Files: entities.filter((x) => x.is_group === 0),
+    Folders: entities.filter((x) => x.is_folder === 1),
+    Files: entities.filter((x) => x.is_folder === 0),
   }
 }
 
@@ -78,14 +78,14 @@ export const setBreadCrumbs = (entity) => {
       },
     ]
 
-  if (!breadcrumbs[0].parent_entity) breadcrumbs.splice(0, 1)
+  if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
   const popBreadcrumbs = (item) => () =>
     res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
   breadcrumbs.forEach((folder, idx) => {
     const final = idx === breadcrumbs.length - 1
     res.push({
-      label: folder.title,
+      label: folder.file_name,
       name: folder.name,
       onClick: final
         ? () => entity.write && emitter.emit('rename')
@@ -391,9 +391,9 @@ function getLinkStem(entity) {
   return `${
     {
       true: 'f',
-      [new Boolean(entity.is_group)]: 'd',
+      [new Boolean(entity.is_folder)]: 'd',
     }[true]
-  }/${entity.name}/${slugger(entity.title)}`
+  }/${entity.name}/${slugger(entity.file_name)}`
 }
 
 const copyToClipboard = (str) => {
@@ -425,7 +425,7 @@ export async function updateURLSlug(title) {
 
 export function getLink(entity, copy = true, withDomain = true) {
   let link
-  if (entity.is_link) link = entity.path
+  if (entity.file_type === 'Link') link = entity.file_url
   else if (entity.mime_type === 'frappe/slides') {
     link = window.location.origin + '/slides/presentation/' + entity.name
   } else {

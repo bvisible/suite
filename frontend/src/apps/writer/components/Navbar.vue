@@ -94,7 +94,7 @@
 </template>
 <script setup>
 import { Button, Breadcrumbs, Dropdown } from 'frappe-ui'
-import { getFileLink } from 'frappe-ui/drive/js/utils'
+import { getFileLink } from '@/ui/drive/js/utils'
 import { useStore } from 'vuex'
 import emitter from '@/emitter'
 import { ref, computed, inject, h, defineModel } from 'vue'
@@ -294,7 +294,7 @@ const fileActions = computed(() =>
                   onClick: () => {
                     downloadDocxFromHtml(
                       editor.getHTML(),
-                      `${file.doc.title}.docx`,
+                      `${file.doc.file_name}.docx`,
                       props.document?.doc?.settings,
                     )
                   },
@@ -305,7 +305,7 @@ const fileActions = computed(() =>
                   onClick: () => {
                     downloadZippedHTML(
                       editor,
-                      props.file.doc.title,
+                      props.file.doc.file_name,
                       props.document?.doc?.settings,
                     )
                   },
@@ -313,7 +313,7 @@ const fileActions = computed(() =>
                 {
                   label: 'Markdown',
                   icon: LucideMarkdown,
-                  onClick: () => downloadMD(editor, props.file.doc.title),
+                  onClick: () => downloadMD(editor, props.file.doc.file_name),
                 },
                 {
                   onClick: exportBlog,
