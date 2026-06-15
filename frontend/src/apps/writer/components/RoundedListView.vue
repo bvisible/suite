@@ -62,7 +62,7 @@
               <div class="mt-3 flex justify-between items-center">
                 <div class="flex-grow w-full min-w-0">
                   <h1 class="text-base truncate font-medium text-ink-gray-7">
-                    {{ row.title }}
+                    {{ row.file_name }}
                   </h1>
                 </div>
               </div>
@@ -78,7 +78,7 @@
               <p
                 class="text-base font-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip"
               >
-                {{ row.title }}
+                {{ row.file_name }}
               </p>
 
               <div

@@ -314,7 +314,7 @@ const autorename = () => {
     }
     return
   }
-  if (!props.file.doc.title.startsWith('Untitled Document')) return
+  if (!props.file.doc.file_name.startsWith('Untitled Document')) return
 
   const implicitTitle = editor.value.state.doc.firstChild.textContent
     .replaceAll('#', '')
@@ -330,9 +330,9 @@ const autorename = () => {
     },
     {
       onSuccess: () => {
-        props.file.doc.title = rename.params.new_title
+        props.file.doc.file_name = rename.params.new_title
         const crumbs = props.file.doc.breadcrumbs
-        crumbs[crumbs.length - 1].title = rename.params.new_title
+        crumbs[crumbs.length - 1].file_name = rename.params.new_title
         updateURLSlug(rename.params.new_title)
       },
     },

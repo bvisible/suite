@@ -4,7 +4,7 @@
     class="p-1.5 border-b text-base text-ink-gray-7 flex justify-between items-center relative"
   >
     <div class="font-semibold">
-      {{ file.doc.title }}
+      {{ file.doc.file_name }}
     </div>
     <div class="flex gap-3 items-center text-ink-gray-5 text-xs">
       Edited {{ file.doc.relativeModified }}
@@ -16,7 +16,7 @@
     v-model:showTemplates="showTemplates"
     :file
     :document
-    :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.title }))"
+    :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.file_name }))"
   >
     <template #content v-if="document.doc?.settings && file.doc.write">
       <UsersBar
@@ -193,7 +193,7 @@ watch(showVersions, (v) => {
   if (!v) versionPreview.value = null
 })
 usePageMeta(() => ({
-  title: file.doc ? file.doc.title : 'Loading...',
+  title: file.doc ? file.doc.file_name : 'Loading...',
 }))
 
 // fix: bad pattern
