@@ -1,0 +1,63 @@
+/* frappe ui includes Inter*/
+@import 'frappe-ui/style.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.scroll-shadow {
+  /* Credit: adapted from https://css-tricks.com/books/greatest-css-tricks/scroll-shadows/ */
+  background: linear-gradient(to bottom, white, rgba(255, 255, 255, 0)) top,
+    linear-gradient(to top, white, rgba(255, 255, 255, 0)) bottom,
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06), transparent) top,
+    linear-gradient(to top, rgba(0, 0, 0, 0.06), transparent) bottom;
+
+  background-repeat: no-repeat;
+  background-size: 100% 30px, 100% 30px, 100% 15px, 100% 15px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+html {
+  scrollbar-width: auto;
+}
+
+html.theme-switching,
+html.theme-switching * {
+  transition: none !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c0c6cc;
+  border-radius: 6px;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: #ebeef0;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+body {
+  overflow: hidden;
+}
+
+.fade-in-enter-active {
+  transition: opacity 300ms cubic-bezier(0.55, 0.085, 0.68, 0.53);
+}
+
+.fade-in-leave-active {
+  transition: opacity 225ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.fade-in-enter,
+.fade-in-leave-to {
+  opacity: 0;
+}
