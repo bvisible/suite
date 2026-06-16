@@ -50,26 +50,26 @@ import {
   Avatar,
   Tooltip,
 } from 'frappe-ui'
-import { getThumbnailUrl } from '@/utils/getIconUrl'
-import { useStore } from 'vuex'
+import { getThumbnailUrl } from '@/apps/drive/utils/getIconUrl'
+import store from '@/apps/drive/store'
 import { useRoute } from 'vue-router'
 import { computed, h, ref, watch, useTemplateRef } from 'vue'
-import ContextMenu from '@/components/ContextMenu.vue'
+import ContextMenu from '@/apps/drive/components/ContextMenu.vue'
 import CustomListRow from './CustomListRow.vue'
-import { openEntity, isModKey, getLink } from '@/utils/files'
-import { formatDate } from '@/utils/format'
+import { openEntity, isModKey, getLink } from '@/apps/drive/utils/files'
+import { formatDate } from '@/apps/drive/utils/format'
 import {
   WRITER_CONTENT_DOCTYPE,
   PRESENTATION_CONTENT_DOCTYPE,
-} from '@/utils/files'
+} from '@/apps/drive/utils/files'
 
 import { onKeyDown } from '@vueuse/core'
-import emitter from '@/emitter'
+import { onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
+import emitter from '@/apps/drive/emitter'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideUsers from '~icons/lucide/users'
 import LucideGlobe2 from '~icons/lucide/globe-2'
 
-const store = useStore()
 const route = useRoute()
 const props = defineProps({
   folderContents: Object,
@@ -177,7 +177,7 @@ const selectedColumns = [
           ? row.child_count + ' item' + (row.child_count === 1 ? '' : 's')
           : 'empty'
         : row.file_size_pretty || '-',
-    width: route.name === 'Attachments' ? '25%' : '8%',
+    width: route.name === 'drive-Attachments' ? '25%' : '8%',
   },
   { label: '', key: 'options', align: 'right', width: '5%' },
 ].filter((k) => !k.isEnabled || k.isEnabled(route.name))

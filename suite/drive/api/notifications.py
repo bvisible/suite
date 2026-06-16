@@ -92,14 +92,14 @@ def notify_share(entity_name, docperm_name):
     message = f'{author_full_name} shared a {entity_type} with you: "{entity.file_name}"'
     if not frappe.db.exists("User", docshare.user):
         key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
-        link = frappe.utils.get_url(f"/api/method/drive.api.product.accept_invite?key={key}&redirect={link}")
+        link = frappe.utils.get_url(f"/api/method/suite.drive.api.product.accept_invite?key={key}&redirect={link}")
     else:
         create_notification(docshare.owner, docshare.user, "Share", entity, message)
     send_share_email(docshare.user, message, link, entity.team, entity_type)
 
 
 def create_notification(from_user: str, to_user: str, type: str, entity: str, message: str | None = None):
-    from drive.api.permissions import get_user_access
+    from suite.drive.api.permissions import get_user_access
 
     user_access = get_user_access(entity.name, to_user)
     if user_access.get("read") == 0:

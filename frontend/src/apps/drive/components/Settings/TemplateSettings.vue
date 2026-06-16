@@ -35,7 +35,7 @@
         <LucideFileText class="size-4 text-ink-gray-5 flex-shrink-0" />
 
         <div class="flex flex-col flex-1 min-w-0">
-          <span class="text-ink-gray-8 text-sm font-medium truncate">
+          <span class="text-ink-gray-8 text-sm-medium truncate">
             {{ template.title }}
           </span>
         </div>
@@ -53,7 +53,7 @@
             variant="ghost"
             @click="confirmDelete(template)"
           >
-            <LucideTrash2 class="size-4 text-ink-red-3" />
+            <LucideTrash2 class="size-4 text-ink-red-6" />
           </Button>
         </div>
       </div>

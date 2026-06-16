@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from drive.api.files import get_file_content, get_s3_url
+from suite.drive.api.files import get_file_content, get_s3_url
 
 
 @frappe.whitelist(allow_guest=True)

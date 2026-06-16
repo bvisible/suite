@@ -2,7 +2,7 @@
   <Dialog v-model="open" @close="dialogType = ''">
     <template #body-title>
       <h3
-        class="text-2xl font-semibold leading-6 text-ink-gray-9 cursor-pointer pr-2"
+        class="text-4xl-semibold leading-6 text-ink-gray-9 cursor-pointer pr-2"
         @click="emitter.emit('rename')"
       >
         {{ entity.file_name }}
@@ -19,13 +19,13 @@
         >
           <template #description>
             <a
-              :href="`/api/method/drive.api.files.redirect_to_original?file_id=${entity.name}`"
+              :href="`/api/method/suite.drive.api.files.redirect_to_original?file_id=${entity.name}`"
               target="_blank"
               >Open the original.</a
             >
           </template>
         </Alert>
-        <span class="text-base font-semibold">Information</span>
+        <span class="text-base-semibold">Information</span>
         <li>
           <span class="inline-block w-24 text-ink-gray-5">{{ __('Owner') }}:</span>
           <span class="col-span-1">
@@ -53,7 +53,7 @@
       </ul>
 
       <ul v-if="editor?.storage?.characterCount" class="space-y-3 text-sm mb-4 text-ink-gray-8">
-        <span class="text-base font-semibold">{{ __('Stats') }}</span>
+        <span class="text-base-semibold">{{ __('Stats') }}</span>
         <li>
           <span class="inline-block w-24 text-ink-gray-5">{{ __('Words') }}:</span>
           <span class="col-span-1">{{ editor.storage.characterCount.words() }}</span>
@@ -71,7 +71,7 @@
         </li>
       </ul>
       <div class="flex justify-between items-center">
-        <span class="text-base font-semibold text-ink-gray-8">Access</span>
+        <span class="text-base-semibold text-ink-gray-8">Access</span>
         <Button
           v-if="entity.share"
           :variant="'subtle'"
@@ -114,7 +114,7 @@
       </ul>
       <ul v-if="developer" class="space-y-3 text-sm text-ink-gray-8 mb-4 mt-4">
         <div>
-          <span class="text-base font-semibold">{{ __('Developer') }}</span>
+          <span class="text-base-semibold">{{ __('Developer') }}</span>
           <Button variant="subtle" size="sm" class="scale-[90%] float-right">
             <a :href="'/app/drive-file/' + entity.name" target="_blank">Open in Desk</a>
           </Button>
@@ -141,12 +141,12 @@
 </template>
 
 <script setup>
-import { formatDate } from '@/utils/format'
-import { isAttachmentRef } from '@/utils/files'
+import { formatDate } from '@/apps/drive/utils/format'
+import { isAttachmentRef } from '@/apps/drive/utils/files'
 import { Dialog, Button, LoadingIndicator, createResource, Alert } from 'frappe-ui'
 import { ref, inject } from 'vue'
 import { onKeyDown } from '@vueuse/core'
-import emitter from '@/emitter'
+import emitter from '@/apps/drive/emitter'
 
 const dialogType = defineModel()
 const open = ref(true)
@@ -158,7 +158,7 @@ const props = defineProps({
 
 // Refactor to share with ShareDialog
 const getGeneralAccess = createResource({
-  url: 'drive.api.permissions.get_user_access',
+  url: 'suite.drive.api.permissions.get_user_access',
   makeParams: (params) => ({
     ...params,
     entity: props.entity.name,
@@ -177,7 +177,7 @@ const getGeneralAccess = createResource({
 getGeneralAccess.fetch({ user: 'Guest' })
 
 const userAccess = createResource({
-  url: 'drive.api.permissions.get_shared_with_list',
+  url: 'suite.drive.api.permissions.get_shared_with_list',
   params: { entity: props.entity.name },
   auto: true,
 })

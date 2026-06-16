@@ -6,7 +6,7 @@ from pypika import Criterion, CustomFunction, Order
 from pypika import functions as fn
 
 
-from drive.utils import (
+from suite.drive.utils import (
     MIME_LIST_MAP,
     default_team,
     get_home_folder,
@@ -18,7 +18,7 @@ from drive.utils import (
     STATUS_ACTIVE,
     STATUS_TRASHED,
 )
-from drive.utils.api import get_default_access
+from suite.drive.utils.api import get_default_access
 from .permissions import get_user_access, user_has_permission, get_teams
 
 DriveUser = frappe.qb.DocType("User")

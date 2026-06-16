@@ -96,7 +96,7 @@
   <Tabs v-if="team" v-model="tabIndex" :tabs>
     <template #tab-panel="{ tab }">
       <template v-if="tab.label === 'Members'">
-        <div class="flex flex-col overflow-y-auto divide-y divide-outline-gray-modals">
+        <div class="flex flex-col overflow-y-auto divide-y divide-outline-elevation-2">
           <div
             v-for="user in teamUsers?.data"
             :key="user.user_name"
@@ -143,7 +143,7 @@
           No invites found.
         </div>
         <div v-for="(invite, index) in invites?.data" :key="invite.name">
-          <div v-if="index > 0" class="w-[95%] mx-auto h-px border-t border-outline-gray-modals" />
+          <div v-if="index > 0" class="w-[95%] mx-auto h-px border-t border-outline-elevation-2" />
           <div class="flex items-center justify-start py-2 pl-2 pr-4 gap-x-3">
             <div class="flex justify-between w-full">
               <div class="flex flex-col gap-0.5">
@@ -329,7 +329,7 @@
           />
         </template>
       </div>
-      <div v-if="createTeam.error" class="text-sm text-ink-red-3 my-3">
+      <div v-if="createTeam.error" class="text-sm text-ink-red-6 my-3">
         {{ createTeam.error.messages[0] }}
       </div>
     </template>
@@ -355,7 +355,7 @@
                   s3Bucket = ''
                   prefix = ''
                   getTeams.fetch()
-                  router.push({ name: 'Team', params: { team: id } })
+                  router.push({ name: 'drive-Team', params: { team: id } })
                 },
               }
             )
@@ -426,10 +426,11 @@
 </template>
 
 <script setup>
+import { default as vFocus } from '@/apps/drive/utils/focus'
 import { h, computed } from 'vue'
-import { getTeams } from '@/resources/files'
-import icons from '@/utils/icons'
-import { getInvites, rejectInvite, acceptInvite, createTeam } from '@/resources/permissions'
+import { getTeams } from '@/apps/drive/resources/files'
+import icons from '@/apps/drive/utils/icons'
+import { getInvites, rejectInvite, acceptInvite, createTeam } from '@/apps/drive/resources/permissions'
 import {
   Avatar,
   Dropdown,
@@ -440,13 +441,12 @@ import {
   createResource,
   FormControl,
   FormLabel,
-  Checkbox,
-} from 'frappe-ui'
-import SyncBreakdown from '@/components/SyncBreakdown.vue'
-import { createDialog } from '@/utils/dialogs'
-import { teamUsers, getDiskSettings } from '@/resources/permissions'
+  Checkbox, Button} from 'frappe-ui'
+import SyncBreakdown from '@/apps/drive/components/SyncBreakdown.vue'
+import { createDialog } from '@/apps/drive/utils/dialogs'
+import { teamUsers, getDiskSettings } from '@/apps/drive/resources/permissions'
 import { ref, watch } from 'vue'
-import { toast } from '@/utils/toasts'
+import { toast } from '@/apps/drive/utils/toasts'
 import { useRoute } from 'vue-router'
 import LucideMail from '~icons/lucide/mail'
 import LucidePlus from '~icons/lucide/plus'
@@ -454,12 +454,12 @@ import LucideUsers from '~icons/lucide/users'
 import LucideMoreVertical from '~icons/lucide/more-vertical'
 import LucideLogOut from '~icons/lucide/log-out'
 import LucidePencil from '~icons/lucide/pencil'
-import router from '@/router'
-import Alert from '@/components/Alert.vue'
-import EmojiPicker from '@/components/EmojiPicker.vue'
-import UserTooltip from '@/components/UserTooltip.vue'
-import { dynamicList } from '@/utils/files'
-import TeamSelector from '@/components/TeamSelector.vue'
+import router from '@/apps/drive/router'
+import Alert from '@/apps/drive/components/Alert.vue'
+import EmojiPicker from '@/apps/drive/components/EmojiPicker.vue'
+import UserTooltip from '@/apps/drive/components/UserTooltip.vue'
+import { dynamicList } from '@/apps/drive/utils/files'
+import TeamSelector from '@/apps/drive/components/TeamSelector.vue'
 import { LucideRefreshCcw } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -467,11 +467,11 @@ const tabIndex = ref(0)
 getTeams.fetch()
 getDiskSettings.fetch()
 const invites = createResource({
-  url: 'drive.api.product.get_team_invites',
+  url: 'suite.drive.api.product.get_team_invites',
 })
 
 const isAdmin = createResource({
-  url: 'drive.api.permissions.is_admin',
+  url: 'suite.drive.api.permissions.is_admin',
 })
 
 const team = ref(route.params.team || (getTeams.data ? Object.keys(getTeams.data)[0] : null))
@@ -511,16 +511,16 @@ watch(showEditTeam, (val) => {
   }
 })
 const editTeam = createResource({
-  url: 'drive.api.product.edit_team',
+  url: 'suite.drive.api.product.edit_team',
 })
 const leaveTeam = createResource({
-  url: 'drive.api.product.leave_team',
+  url: 'suite.drive.api.product.leave_team',
   onSuccess: () => {
     getTeams.fetch(null, {
       onSuccess: () => {
         team.value = Object.keys(getTeams.data).length ? Object.keys(getTeams.data)[0] : null
-        if (team.value) router.push({ name: 'Team', params: { team: team.value } })
-        else router.push({ name: 'Home' })
+        if (team.value) router.push({ name: 'drive-Team', params: { team: team.value } })
+        else router.push({ name: 'drive-Home' })
       },
     })
     toast('You have left the team.')
@@ -561,12 +561,12 @@ const accessOptions = [
   },
   {
     label: 'Remove',
-    class: 'text-ink-red-3',
+    class: 'text-ink-red-6',
     component: () =>
       h(
         'button',
         {
-          class: ['group flex w-full items-center text-ink-red-3 rounded-md px-2 py-2 text-sm'],
+          class: ['group flex w-full items-center text-ink-red-6 rounded-md px-2 py-2 text-sm'],
           onClick: () => (showRemove.value = true),
         },
         'Remove'
@@ -589,7 +589,7 @@ function extractEmails() {
 }
 
 const inviteUsers = createResource({
-  url: 'drive.api.product.invite_users',
+  url: 'suite.drive.api.product.invite_users',
   onSuccess: () => {
     invites.fetch()
     toast('Invite sent!')
@@ -600,10 +600,10 @@ getInvites.fetch()
 const invite = computed(() => (getInvites.data?.length ? getInvites.data[0] : null))
 
 const removeUser = createResource({
-  url: 'drive.api.product.remove_user',
+  url: 'suite.drive.api.product.remove_user',
 })
 
 const updateUserAccess = createResource({
-  url: 'drive.api.product.set_user_access',
+  url: 'suite.drive.api.product.set_user_access',
 })
 </script>

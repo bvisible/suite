@@ -1,0 +1,2 @@
+import{Ct as e,_ as t,z as n}from"./vue.runtime.esm-bundler-BJEHSJCG.js";import{a as r}from"./building-2-BmDfzeKU.js";import{h as i}from"./log-out-DhLITmn4.js";import{t as a}from"./GenericPage-CVp7ZTLy.js";var o={__name:`Slides`,setup(o){return(o,s)=>(n(),t(a,{"get-entities":e(i),empty:{icon:e(r),title:`No presentations yet`,description:`Create presentations using Slides.`}},null,8,[`get-entities`,`empty`]))}};export{o as default};
+//# sourceMappingURL=Slides-DrlXarTf.js.map

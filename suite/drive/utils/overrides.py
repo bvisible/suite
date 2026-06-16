@@ -1,6 +1,6 @@
 import frappe
 
-from drive.api.permissions import get_teams
+from suite.drive.api.permissions import get_teams
 
 
 def common_filters(func):

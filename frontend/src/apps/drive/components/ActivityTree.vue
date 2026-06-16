@@ -4,7 +4,7 @@
       v-if="group.length && Object.keys(groupedActivityLog).length > 1"
       class="px-5 pb-2 gap-x-2"
     >
-      <span class="text-base text-ink-gray-5 font-medium leading-6">
+      <span class="text-base-medium text-ink-gray-5 leading-6">
         {{ __(i) }}
       </span>
       <div
@@ -65,22 +65,21 @@
   </template>
 </template>
 <script setup>
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 import { Avatar, createResource } from 'frappe-ui'
 import { computed, ref, watch } from 'vue'
 import ArrowRight from '~icons/lucide/arrow-right'
-import { formatDate } from '@/utils/format'
-import { hasHostedContent } from '@/utils/files'
+import { formatDate } from '@/apps/drive/utils/format'
+import { hasHostedContent } from '@/apps/drive/utils/files'
 import ActivityTreeItem from './ActivityTreeItem.vue'
 import ActivityTreeShare from './ActivityTreeShare.vue'
 
-const store = useStore()
 const props = defineProps({ entity: Object })
 
 const entity = computed(() => props.entity)
 
 const activityLog = createResource({
-  url: 'drive.api.activity.get_entity_activity_log',
+  url: 'suite.drive.api.activity.get_entity_activity_log',
   params: { entity_name: entity.value.name },
   onSuccess: groupAndTransform,
 })
