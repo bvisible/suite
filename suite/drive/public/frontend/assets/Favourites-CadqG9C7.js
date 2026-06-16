@@ -1,2 +1,0 @@
-import{Ct as e,_ as t,z as n}from"./vue.runtime.esm-bundler-BJEHSJCG.js";import{$n as r}from"./building-2-BmDfzeKU.js";import{l as i}from"./log-out-DhLITmn4.js";import{t as a}from"./GenericPage-CVp7ZTLy.js";var o={__name:`Favourites`,setup(o){return(o,s)=>(n(),t(a,{"get-entities":e(i),empty:{icon:e(r),title:`No favourites yet`,description:`You can save your favourites here.`}},null,8,[`get-entities`,`empty`]))}};export{o as default};
-//# sourceMappingURL=Favourites-CadqG9C7.js.map
