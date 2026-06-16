@@ -1,4 +1,4 @@
-from drive.api.permissions import get_user_access
+from suite.drive.api.permissions import get_user_access
 
 
 def get_default_access(entity_name):

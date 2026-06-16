@@ -1,8 +1,10 @@
-/* frappe ui includes Inter*/
-@import 'frappe-ui/style.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+ * Drive-local styles. The standalone main.js imported this globally; in the
+ * suite, frappe-ui/style.css + the @tailwind layers are already loaded by the
+ * shared global css (src/main.ts), so those directives are dropped here to
+ * avoid duplicate/conflicting processing. This file is imported by DriveLayout
+ * (module-scoped, not from the shared main.ts).
+ */
 
 .scroll-shadow {
   /* Credit: adapted from https://css-tricks.com/books/greatest-css-tricks/scroll-shadows/ */

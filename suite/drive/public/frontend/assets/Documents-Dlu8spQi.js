@@ -1,0 +1,2 @@
+import{Ct as e,_ as t,z as n}from"./vue.runtime.esm-bundler-BJEHSJCG.js";import{Ht as r}from"./building-2-BmDfzeKU.js";import{c as i}from"./log-out-DhLITmn4.js";import{t as a}from"./GenericPage-CVp7ZTLy.js";var o={__name:`Documents`,setup(o){return(o,s)=>(n(),t(a,{"get-entities":e(i),icon:e(r),empty:{icon:e(r),title:`No documents yet`,description:`Use Writer to create documents.`}},null,8,[`get-entities`,`icon`,`empty`]))}};export{o as default};
+//# sourceMappingURL=Documents-Dlu8spQi.js.map

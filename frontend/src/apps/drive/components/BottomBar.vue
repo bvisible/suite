@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-5 bg-surface-modal border-t border-outline-gray-2 standalone:pb-4"
+    class="grid grid-cols-5 bg-surface-elevation-2 border-t border-outline-gray-2 standalone:pb-4"
     :style="{
       gridTemplateColumns: `repeat(${sidebarItems.length}, minmax(0, 1fr))`,
     }"
@@ -25,6 +25,7 @@ import LucideClock from '~icons/lucide/clock'
 import LucideHome from '~icons/lucide/home'
 import LucideStar from '~icons/lucide/star'
 import LucideUsers from '~icons/lucide/users'
+import store from '@/apps/drive/store'
 
 export default {
   name: 'Sidebar',
@@ -32,57 +33,58 @@ export default {
   data() {
     return {
       sidebarResizing: false,
+      store,
     }
   },
   computed: {
     isExpanded() {
-      return this.$store.state.sidebarCollapsed
+      return store.state.sidebarCollapsed
     },
     team() {
       return this.$route.params.team || localStorage.getItem('recentTeam')
     },
     sidebarItems() {
-      const first = this.$store.state.breadcrumbs[0] || {}
+      const first = store.state.breadcrumbs[0] || {}
       return [
         {
           label: 'Home',
-          route: '/',
+          route: { name: 'drive-Home' },
           icon: LucideHome,
           highlight: () => {
-            return first.name === 'Home'
+            return first.name === 'drive-Home'
           },
         },
         {
           label: 'Team',
-          route: '/teams',
+          route: { name: 'drive-Teams' },
           icon: LucideBuilding2,
           highlight: () => {
-            return this.$route.name === 'Teams'
+            return this.$route.name === 'drive-Teams'
           },
         },
         {
           label: 'Recents',
-          route: '/recents',
+          route: { name: 'drive-Recents' },
           icon: LucideClock,
           highlight: () => {
-            return first.name === 'Recents'
+            return first.name === 'drive-Recents'
           },
         },
 
         {
           label: 'Shared',
-          route: '/shared',
+          route: { name: 'drive-Shared' },
           icon: LucideUsers,
           highlight: () => {
-            return first.name === 'Shared'
+            return first.name === 'drive-Shared'
           },
         },
         {
           label: 'Favourites',
-          route: '/favourites',
+          route: { name: 'drive-Favourites' },
           icon: LucideStar,
           highlight: () => {
-            return first.name === 'Favourites'
+            return first.name === 'drive-Favourites'
           },
         },
       ]
@@ -109,10 +111,10 @@ export default {
       const range = [60, 180]
       if (sidebarWidth > range[0] && sidebarWidth < range[1]) {
         sidebarWidth = 60
-        this.$store.commit('setSidebarCollapsed', false)
+        store.commit('setSidebarCollapsed', false)
       }
       if (sidebarWidth > 180) {
-        this.$store.commit('setSidebarCollapsed', true)
+        store.commit('setSidebarCollapsed', true)
       }
       /* if (sidebarWidth < 100) {
           this.$store.commit("setSidebarCollapsed", false )
@@ -120,18 +122,6 @@ export default {
         if (sidebarWidth > 100) {
           this.$store.commit("setSidebarCollapsed", true )
         } */
-    },
-  },
-  resources: {
-    getRootFolderSize() {
-      return {
-        // BROKEN
-        url: 'drive.api.files.get_user_directory_size',
-        onError(error) {
-          console.log(error)
-        },
-        auto: false,
-      }
     },
   },
 }

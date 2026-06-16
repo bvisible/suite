@@ -5,7 +5,7 @@
       {{ selections.length === 1 ? __('item') : __('items') }}
       {{ __('selected') }}
     </div>
-    <div v-if="$route.name === 'Shared'"
+    <div v-if="$route.name === 'drive-Shared'"
       class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center mr-4 py-1">
       <TabButtons v-model="shareView" :buttons="[
         {
@@ -102,7 +102,7 @@
           <Button variant="outline" :tooltip="item.label" @click.once="item.action(selections)">
             <template #icon>
               <component :is="item.icon" class="size-4 text-ink-gray-6"
-                :class="[item.class, item.theme ? 'text-ink-red-3' : '']" />
+                :class="[item.class, item.theme ? 'text-ink-red-6' : '']" />
             </template>
           </Button>
         </template>
@@ -121,11 +121,11 @@ import {
   defineComponent,
   onWatcherCleanup,
 } from 'vue'
-import { getIconUrl } from '@/utils/getIconUrl'
-import { useStore } from 'vuex'
+import { getIconUrl } from '@/apps/drive/utils/getIconUrl'
+import store from '@/apps/drive/store'
 import { onKeyDown } from '@vueuse/core'
 import LucideFilter from '~icons/lucide/filter'
-import TeamSelector from '@/components/TeamSelector.vue'
+import TeamSelector from '@/apps/drive/components/TeamSelector.vue'
 
 import LucideX from '~icons/lucide/x'
 
@@ -137,7 +137,6 @@ const props = defineProps({
   actionItems: Array,
   getEntities: Object,
 })
-const store = useStore()
 
 const activeFilters = defineModel('filters')
 const disabled = computed(() => !props.getEntities.data?.length)

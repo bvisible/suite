@@ -2,11 +2,11 @@
   <Combobox v-model="team" placeholder="Select a team" :options :disabled :open-on-click="true" />
 </template>
 <script setup lang="ts">
-import { getTeams } from '@/resources/files'
-import icons from '@/utils/icons'
+import { getTeams } from '@/apps/drive/resources/files'
+import icons from '@/apps/drive/utils/icons'
 import { computed, watch } from 'vue'
 import { Combobox } from 'frappe-ui'
-import { dynamicList } from '@/utils/files'
+import { dynamicList } from '@/apps/drive/utils/files'
 
 getTeams.fetch()
 const team = defineModel<string>()

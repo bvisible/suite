@@ -14,11 +14,11 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from PIL import Image, ImageOps
 
-from drive.locks.distributed_lock import DistributedLock
+from suite.drive.locks.distributed_lock import DistributedLock
 
 from . import get_home_folder, STATUS_ACTIVE
 
-S3_URL_PREFIX = "/api/method/drive.api.s3.fetch?path="
+S3_URL_PREFIX = "/api/method/suite.drive.api.s3.fetch?path="
 
 
 class FileManager:

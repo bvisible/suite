@@ -4,8 +4,8 @@ from frappe.rate_limiter import rate_limit
 from frappe.translate import get_all_translations
 from frappe.utils import escape_html, split_emails, validate_email_address
 
-from drive.api.permissions import get_teams, is_admin
-from drive.utils import default_team
+from suite.drive.api.permissions import get_teams, is_admin
+from suite.drive.utils import default_team
 
 
 def access_app():

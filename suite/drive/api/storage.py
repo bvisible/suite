@@ -2,8 +2,8 @@ import frappe
 from frappe import _
 from pypika import functions as fn
 
-from drive.api.permissions import get_teams
-from drive.utils import default_team, STATUS_ACTIVE
+from suite.drive.api.permissions import get_teams
+from suite.drive.utils import default_team, STATUS_ACTIVE
 
 MEGA_BYTE = 1024**2
 DriveFile = frappe.qb.DocType("File")

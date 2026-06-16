@@ -37,8 +37,9 @@
 </template>
 
 <script setup>
+import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
-import { Dialog } from 'frappe-ui'
+import { Dialog, FormControl} from 'frappe-ui'
 import { rename } from '../js/resources'
 
 const props = defineProps({ entity: Object, modelValue: String })

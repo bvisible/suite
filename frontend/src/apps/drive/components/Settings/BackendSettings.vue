@@ -86,10 +86,10 @@
 <script setup>
 import { ref, reactive, watch, markRaw } from 'vue'
 import { FormControl, Button, createResource, LoadingIndicator } from 'frappe-ui'
-import { toast } from '@/utils/toasts'
-import { createDialog } from '@/utils/dialogs'
-import { getDiskSettings } from '@/resources/permissions'
-import SyncBreakdown from '@/components/SyncBreakdown.vue'
+import { toast } from '@/apps/drive/utils/toasts'
+import { createDialog } from '@/apps/drive/utils/dialogs'
+import { getDiskSettings } from '@/apps/drive/resources/permissions'
+import SyncBreakdown from '@/apps/drive/components/SyncBreakdown.vue'
 
 const edited = ref(false)
 
@@ -137,7 +137,7 @@ getDiskSettings.fetch(null, {
 })
 
 const updateSettings = createResource({
-  url: 'drive.api.product.disk_settings',
+  url: 'suite.drive.api.product.disk_settings',
   method: 'PUT',
   makeParams: () => ({ ...generalSettings, ...s3Settings }),
   onSuccess() {

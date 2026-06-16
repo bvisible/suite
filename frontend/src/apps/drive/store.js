@@ -40,7 +40,7 @@ const store = createStore({
       name: getJson('currentFolder', ''),
       team: getJson('currentFolderTeam', ''),
     },
-    breadcrumbs: getJson('breadcrumbs', [{ label: 'Home', route: '/' }]),
+    breadcrumbs: getJson('breadcrumbs', [{ label: 'Home', route: '/drive' }]),
     sidebarCollapsed: getJson('sidebarCollapsed', false),
   },
   getters: {
