@@ -148,7 +148,9 @@ class ServerAnsiblePlay(Document):
 	def _get_playbook_path(self) -> str:
 		"""Returns the absolute path of the playbook."""
 
-		return os.path.join(frappe.get_app_path("mail", "utils", "ansible", "playbooks"), self.playbook)
+		return os.path.join(
+			frappe.get_app_path("suite", "mail", "utils", "ansible", "playbooks"), self.playbook
+		)
 
 	def _db_set(
 		self,

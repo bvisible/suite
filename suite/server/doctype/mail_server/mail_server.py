@@ -130,7 +130,7 @@ class MailServer(Document):
 	def _install_ansible(self) -> None:
 		"""Installs Ansible on the Mail Server."""
 
-		script_path = os.path.join(frappe.get_app_path("mail", "utils", "ansible"), "install_ansible.sh")
+		script_path = os.path.join(frappe.get_app_path("suite", "mail", "utils", "ansible"), "install_ansible.sh")
 		with open(script_path) as f:
 			script_content = f.read()
 

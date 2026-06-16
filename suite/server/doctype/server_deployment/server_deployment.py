@@ -199,7 +199,7 @@ class ServerDeployment(Document):
 
 		frappe.only_for("System Manager")
 
-		script_path = os.path.join(frappe.get_app_path("mail", "utils", "fc"), "filebeat_stream_setup.sh")
+		script_path = os.path.join(frappe.get_app_path("suite", "mail", "utils", "fc"), "filebeat_stream_setup.sh")
 		with open(script_path) as f:
 			script_content = f.read()
 
@@ -229,7 +229,7 @@ class ServerDeployment(Document):
 		if not container_name:
 			frappe.throw(_("Stalwart service not found in deployment {0}").format(self.name))
 
-		script_path = os.path.join(frappe.get_app_path("mail", "utils", "fc"), "post_deploy_ssl_setup.sh")
+		script_path = os.path.join(frappe.get_app_path("suite", "mail", "utils", "fc"), "post_deploy_ssl_setup.sh")
 		with open(script_path) as f:
 			script_content = f.read()
 

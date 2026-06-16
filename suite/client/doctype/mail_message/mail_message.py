@@ -1346,7 +1346,7 @@ def fetch_changes(account: str, email_state: str | None = None, ctx: dict | None
 							message["from_name"] or message["from_email"],
 							message["subject"] or _("[No subject]"),
 							f"{url}/mail/account/{account_id}/mailbox/{mailbox_id}/{message['thread_id']}",
-							f"{url}/assets/mail/frontend/manifest/manifest-icon-192.maskable.png",
+							f"{url}/assets/suite/mail/frontend/manifest/manifest-icon-192.maskable.png",
 						)
 				else:
 					logger.info({**ctx, "event": "push-notifications-disabled"})

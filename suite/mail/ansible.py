@@ -63,7 +63,9 @@ class Ansible:
 	def playbook_path(self) -> str:
 		"""Returns the absolute path to the playbook."""
 
-		return os.path.join(frappe.get_app_path("mail", "utils", "ansible", "playbooks"), self.playbook)
+		return os.path.join(
+			frappe.get_app_path("suite", "mail", "utils", "ansible", "playbooks"), self.playbook
+		)
 
 	def _create_play_record(self) -> None:
 		"""Creates a Server Ansible Play record and associated Server Ansible Play Task records."""

@@ -56,7 +56,7 @@ def get_permitted_apps():
 
 	desk = {
 		"name": "frappe",
-		"logo": "/assets/mail/images/desk.png",
+		"logo": "/assets/suite/mail/images/desk.png",
 		"title": "Desk",
 		"route": "/app",
 	}

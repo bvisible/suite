@@ -66,8 +66,8 @@ class AssetManifestResolution(unittest.TestCase):
         from suite.sheets.www import sheets as www
 
         paths = www._asset_paths()
-        self.assertEqual(paths["js"], "/assets/sheets/sheets/index.ABCDEF.js")
-        self.assertEqual(paths["css"], ["/assets/sheets/sheets/index.GHIJKL.css"])
+        self.assertEqual(paths["js"], "/assets/suite/sheets/sheets/index.ABCDEF.js")
+        self.assertEqual(paths["css"], ["/assets/suite/sheets/sheets/index.GHIJKL.css"])
 
     def test_falls_back_to_legacy_filenames_when_manifest_is_missing(self):
         # Dev / unbuilt — vite serves the SPA itself, no manifest on disk.
@@ -75,8 +75,8 @@ class AssetManifestResolution(unittest.TestCase):
         from suite.sheets.www import sheets as www
 
         paths = www._asset_paths()
-        self.assertEqual(paths["js"], "/assets/sheets/sheets/index.js")
-        self.assertEqual(paths["css"], ["/assets/sheets/sheets/index.css"])
+        self.assertEqual(paths["js"], "/assets/suite/sheets/sheets/index.js")
+        self.assertEqual(paths["css"], ["/assets/suite/sheets/sheets/index.css"])
 
     def test_falls_back_when_manifest_is_malformed(self):
         with open(self.manifest_path, "w") as fh:

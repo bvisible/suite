@@ -32,7 +32,7 @@ app_include_js = ["ff_integration.bundle.js"]
 doctype_js = {"File": "public/js/file.js"}
 
 # mail — email-specific Tailwind CSS for email template rendering
-email_css = ["/assets/mail/css/email.css"]
+email_css = ["/assets/suite/mail/css/email.css"]
 
 # writer — SQLite full-text search provider
 sqlite_search = ["suite.writer.search.WriterSearch"]
@@ -40,18 +40,31 @@ sqlite_search = ["suite.writer.search.WriterSearch"]
 # ============================================================================
 # Website routing (concatenated from all apps)
 # ============================================================================
+# Unified SPA: every former-app prefix serves the single suite bootstrap
+# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)
+# Both the bare prefix and the sub-path are mapped so deep links + launcher
+# links (which use the bare prefix) both hit the SPA on first load.
 website_route_rules = [
-	{"from_route": "/drive/<path:app_path>", "to_route": "drive"},
-	{"from_route": "/slides/<path:app_path>", "to_route": "slides"},
-	{"from_route": "/writer/<path:app_path>", "to_route": "writer"},
-	{"from_route": "/meet/<path:app_path>", "to_route": "meet"},
-	{"from_route": "/mail/<path:app_path>", "to_route": "mail"},
-	{"from_route": "/calendar/<path:app_path>", "to_route": "calendar"},
+	{"from_route": "/suite/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/drive", "to_route": "suite"},
+	{"from_route": "/drive/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/slides", "to_route": "suite"},
+	{"from_route": "/slides/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/sheets", "to_route": "suite"},
+	{"from_route": "/sheets/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/writer", "to_route": "suite"},
+	{"from_route": "/writer/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/mail", "to_route": "suite"},
+	{"from_route": "/mail/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/meet", "to_route": "suite"},
+	{"from_route": "/meet/<path:app_path>", "to_route": "suite"},
+	{"from_route": "/calendar", "to_route": "suite"},
+	{"from_route": "/calendar/<path:app_path>", "to_route": "suite"},
 ]
 
 # mail — website redirects
 website_redirects = [
-	{"source": "/", "target": "/mail"},
+	{"source": "/", "target": "/suite"},
 	{
 		"source": "/auth/validate",
 		"target": "/api/method/suite.mail.api.auth.validate",
