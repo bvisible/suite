@@ -44,8 +44,10 @@ plus legacy redirects. **`isPublic`** (guest-shared links): `drive-Signup`, `g`,
   fetcher). Resources that relied on silent swallowing may now surface toasts/console
   errors — most drive resources define their own `onError`; restore per-resource (or a
   drive-local fetch wrapper) if needed.
-- **`utils/getIconUrl.js`** returns `/assets/drive/images/icons/*.svg` (a backend
-  static path). If the suite backend serves these under `/assets/suite/...`, repoint.
+- **`utils/getIconUrl.js`** returns `/assets/suite/drive/images/icons/*.svg`. The icon
+  SVGs were relocated into `suite/public/drive/images/icons/` (served at `/assets/suite/...`)
+  so the suite is self-contained once the standalone `drive` app is removed. (Drive fonts
+  used by Writer were likewise moved to `suite/public/drive/fonts/`.)
 
 ## Verify (Phase 6)
 Log in at `suite.localhost:8004/drive`. Confirm: file/folder listing + navigation;

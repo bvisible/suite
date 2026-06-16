@@ -94,6 +94,6 @@ Keep your work inside `src/apps/<your-app>/`.
 
 ## Known-deferred (suite-wide)
 
-Tracked for Phase 6/7, not yet done: suite-level PWA/FCM service worker (Mail push),
-a shared Sentry init hook, and a sweep of any remaining `/assets/<oldapp>/...` URLs.
+Tracked for Phase 6/7, not yet done: suite-level PWA/FCM service worker (Mail push)
+and a sweep of any remaining `/assets/<oldapp>/...` URLs.
 App-specific deferred items are listed in each app's `PORT-NOTES.md`.

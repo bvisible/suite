@@ -1,5 +1,5 @@
 export function getIconUrl(file_type) {
-  return `/assets/drive/images/icons/${file_type?.toLowerCase() || 'unknown'}.svg`
+  return `/assets/suite/drive/images/icons/${file_type?.toLowerCase() || 'unknown'}.svg`
 }
 
 export function getThumbnailUrl({ name, file_type, thumbnail, external }, view = 'list') {
