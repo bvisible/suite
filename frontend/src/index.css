@@ -1,0 +1,15 @@
+/* frappe-ui/style.css already provides @tailwind base/components/utilities + Inter.
+   Suite design tokens (bg-surface-*, text-ink-*, border-outline-*) are frappe-ui
+   CSS-layer classes in the beta line — use them in markup (see SuiteLayout.vue),
+   NOT via @apply (they are not registered Tailwind color utilities). */
+@import 'frappe-ui/style.css';
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}

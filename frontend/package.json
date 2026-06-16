@@ -1,0 +1,42 @@
+{
+  "name": "@suite/frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "comment": "Minimal foundation deps only \u2014 enough to build the shell+router+stubs (the Phase 5 foundation gate). The full 94+42 union merged from the 7 source apps is preserved in package.union.json; each per-app port re-adds its real deps from there.",
+  "dependencies": {
+    "@tanstack/vue-virtual": "^3.13.24",
+    "@tiptap/extension-bullet-list": "^3.11.0",
+    "@tiptap/extension-color": "^3.11.0",
+    "@tiptap/extension-list-item": "^3.11.0",
+    "@tiptap/extension-text-align": "^3.11.0",
+    "@tiptap/extension-text-style": "^3.11.0",
+    "@tiptap/extension-underline": "^3.11.0",
+    "@tiptap/pm": "^3.26.0",
+    "@tiptap/starter-kit": "^3.11.0",
+    "@tiptap/vue-3": "^3.26.0",
+    "dayjs": "^1.11.20",
+    "feather-icons": "^4.29.2",
+    "frappe-ui": "1.0.0-beta.9",
+    "lodash": "^4.17.21",
+    "lucide-vue-next": "^1.0.0",
+    "modern-screenshot": "^4.7.0",
+    "pinia": "^3.0.4",
+    "tinycolor2": "^1.6.0",
+    "uuid": "^14.0.0",
+    "vue": "^3.5.38",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "vite": "^8.0.16",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "tailwindcss": "^3.4.19",
+    "postcss": "^8.5.14",
+    "autoprefixer": "^10.4.20"
+  }
+}
