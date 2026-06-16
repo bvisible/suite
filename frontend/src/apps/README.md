@@ -2,7 +2,7 @@
 
 Your standalone app's frontend has been folded into **one unified Vue 3 SPA**
 (`apps/suite/frontend`). This guide orients you so you can verify your app and
-make changes. For the full migration story see `monorepo.md` (repo root),
+make changes. For the full migration story see `monorepo.md` (at the suite app root, `apps/suite/`),
 `apps/suite/frontend/PHASE5-PORT-CONTRACT.md` (the per-app port contract, with
 per-app breaking-change risks in §5), and `apps/suite/HISTORY-GRAFT.md` (how your
 original git authorship was preserved).
