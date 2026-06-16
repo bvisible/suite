@@ -9,7 +9,14 @@ declare module '*.vue' {
 declare global {
   interface Window {
     csrf_token?: string
+    /** Frappe translation map (message -> translated); populated per-app. */
+    translatedMessages?: Record<string, string>
+    /** Global translate helper installed by the suite translation plugin. */
+    __?: (message: string, replace?: Array<string | number>) => string
   }
+
+  /** Bare `__('text')` available in templates via globalProperties. */
+  const __: (message: string, replace?: Array<string | number>) => string
 }
 
 export {}

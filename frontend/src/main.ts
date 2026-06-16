@@ -8,6 +8,7 @@ import { pageMetaPlugin } from 'frappe-ui'
 import App from '@/App.vue'
 import router from '@/router'
 import { configureFrappeUI } from '@/boot/config'
+import { translationPlugin } from '@/boot/translation'
 
 // One frappe-ui resource/session configuration for the whole suite.
 configureFrappeUI()
@@ -18,6 +19,7 @@ app.use(createPinia())
 app.use(router)
 app.use(pageMetaPlugin)
 app.use(spritePlugin)
+app.use(translationPlugin)
 
 router.isReady().then(() => {
   app.mount('#app')
