@@ -1,5 +1,5 @@
 <template>
-	<div class="bg-surface-white sticky top-0 flex items-center border-b p-2.5 sm:px-5">
+	<div class="bg-surface-base sticky top-0 flex items-center border-b p-2.5 sm:px-5">
 		<Button
 			variant="ghost"
 			class="mr-2 shrink-0"
@@ -179,7 +179,7 @@ const threadActions = computed((): Action[] => [
 				thread.map((m) => m.id),
 				false,
 			),
-		icon: h(Star, { class: 'fill-ink-amber-2 text-ink-amber-2 stroke-ink-amber-2' }),
+		icon: h(Star, { class: 'fill-ink-amber-5 text-ink-amber-5 stroke-ink-amber-5' }),
 		condition: () => thread.every((m) => m.flagged),
 	},
 	{

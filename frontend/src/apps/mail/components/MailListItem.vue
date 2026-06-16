@@ -30,10 +30,10 @@
 			</div>
 			<div
 				v-else-if="isSelected"
-				class="bg-surface-gray-7 hitbox flex h-8 w-8 shrink-0 rounded-full"
+				class="bg-surface-gray-10 hitbox flex h-8 w-8 shrink-0 rounded-full"
 				@click.stop.prevent="emit('setSelected', false)"
 			>
-				<Check class="text-ink-white m-auto h-5 w-5 stroke-[3px]" />
+				<Check class="text-ink-base m-auto h-5 w-5 stroke-[3px]" />
 			</div>
 			<Avatar
 				v-show="!isSelected && isMobile"
@@ -343,6 +343,6 @@ const onTouchMove = (e: TouchEvent) => {
 
 .checkbox-hitbox:hover :deep(input[type='checkbox']) {
 	@apply shadow-sm;
-	border-color: var(--outline-gray-5);
+	border-color: var(--outline-gray-7);
 }
 </style>

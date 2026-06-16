@@ -1,9 +1,9 @@
 <template>
 	<div class="sm:bg-surface-gray-1 min-h-screen py-12">
-		<div class="bg-surface-white mx-auto space-y-8 rounded-md border p-12 sm:w-[75rem]">
+		<div class="bg-surface-base mx-auto space-y-8 rounded-md border p-12 sm:w-[75rem]">
 			<template v-if="mime.data">
 				<div class="flex items-center justify-between">
-					<h1 class="text-xl !font-medium">{{ __('MIME Message') }}</h1>
+					<h1 class="text-3xl !font-medium">{{ __('MIME Message') }}</h1>
 					<Button
 						:label="__('Copy to Clipboard')"
 						size="md"
@@ -27,7 +27,7 @@
 			</template>
 
 			<div v-else-if="mime.error" class="space-y-4 text-center">
-				<h1 class="text-xl !font-medium text-red-500">{{ __('Error') }}</h1>
+				<h1 class="text-3xl !font-medium text-red-500">{{ __('Error') }}</h1>
 				<div class="text-ink-gray-5" v-html="mime.error.messages[0]" />
 				<Button :label="__('Return to Home')" size="md" @click="$router.push({ name: 'mail-root-shortcut' })" />
 			</div>

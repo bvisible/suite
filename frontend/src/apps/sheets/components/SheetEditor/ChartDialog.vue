@@ -431,7 +431,7 @@ function _autoDetectRange() {
 .cd-type-btn {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   padding: 12px 8px; cursor: pointer;
-  background: var(--surface-white); border: 1px solid var(--outline-gray-2);
+  background: var(--surface-base); border: 1px solid var(--outline-gray-2);
   border-radius: 8px; font: inherit; font-size: 12px; color: var(--ink-gray-7);
   transition: background .12s, border-color .12s, color .12s;
 }
@@ -485,7 +485,7 @@ function _autoDetectRange() {
    between the master's border and the first option below it. */
 .cd-series-row--master {
   position: sticky; top: -6px;
-  background: var(--surface-modal, #fff);
+  background: var(--surface-elevation-2, #fff);
   border-bottom: 1px solid var(--outline-gray-2);
   box-shadow: 0 2px 4px -2px rgba(0, 0, 0, .08);
   margin: -6px -6px 4px;

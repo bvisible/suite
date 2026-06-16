@@ -25,7 +25,7 @@
 		<Button variant="solid" :loading="login.loading" :label="__('Log In')" type="submit" />
 	</form>
 	<div v-if="Number(signupSettings.data?.allow_signup)" class="mt-6 text-center">
-		<router-link class="text-center text-base font-medium hover:underline" :to="{ name: 'mail-signup' }">
+		<router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-signup' }">
 			{{ __('New member? Create an account.') }}
 		</router-link>
 	</div>

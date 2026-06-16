@@ -26,7 +26,7 @@
 			</Button>
 		</form>
 		<div class="mt-6 text-center">
-			<router-link class="text-center text-base font-medium hover:underline" :to="{ name: 'mail-login' }">
+			<router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-login' }">
 				{{ __('Remember your password? Log in.') }}
 			</router-link>
 		</div>

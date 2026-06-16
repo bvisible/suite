@@ -10,7 +10,7 @@
 			<div
 				class="h-1 rounded-full"
 				:class="
-					quota.data?.used_percentage > 80 ? 'bg-surface-red-6' : 'bg-surface-gray-7'
+					quota.data?.used_percentage > 80 ? 'bg-surface-red-8' : 'bg-surface-gray-10'
 				"
 				:style="{ width: `${quota.data?.used_percentage || 0}%`, maxWidth: '100%' }"
 			/>

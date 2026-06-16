@@ -217,7 +217,7 @@ onBeforeUnmount(close)
      below modal-blocking layers like global toasts. */
   position: fixed;
   z-index: 9500;
-  background: var(--surface-white, #ffffff);
+  background: var(--surface-base, #ffffff);
   border: 1px solid var(--outline-gray-2, #e5e5e5);
   border-radius: 8px;
   box-shadow:
@@ -245,7 +245,7 @@ onBeforeUnmount(close)
   padding: 7px 10px;
   border-bottom: 1px solid var(--outline-gray-2, #e5e5e5);
   flex-shrink: 0;
-  background: var(--surface-white, #ffffff);
+  background: var(--surface-base, #ffffff);
 }
 .pfp-search-icon { width: 13px; height: 13px; color: var(--ink-gray-4, #a3a3a3); flex-shrink: 0; }
 .pfp-search {

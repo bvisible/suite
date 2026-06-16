@@ -130,7 +130,7 @@
 					class="bg-surface-gray-1/90 text-ink-gray-3 absolute inset-0 z-50 flex flex-col items-center justify-center space-y-1 rounded"
 				>
 					<UploadCloud class="stroke-1.5 h-12 w-12" />
-					<p class="text-lg font-semibold">{{ __('Drop files to upload') }}</p>
+					<p class="text-xl-semibold">{{ __('Drop files to upload') }}</p>
 				</div>
 
 				<EditorContent :editor :class="{ 'opacity-30': isDragging }" @click.stop />

@@ -212,7 +212,7 @@ function shortUser(u) {
 	right:  0;
 	bottom: 0;
 	width:  320px;
-	background: var(--surface-white, #ffffff);
+	background: var(--surface-base, #ffffff);
 	border-left: 1px solid var(--outline-gray-2, #e5e5e5);
 	display: flex;
 	flex-direction: column;
@@ -309,7 +309,7 @@ function shortUser(u) {
 
 .sn-vh-menu-pop {
 	position: absolute;
-	background: var(--surface-white, #ffffff);
+	background: var(--surface-base, #ffffff);
 	border: 1px solid var(--outline-gray-2, #e5e5e5);
 	border-radius: 6px;
 	box-shadow: 0 4px 12px -4px rgba(0,0,0,0.12);

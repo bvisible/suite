@@ -52,7 +52,7 @@
 				<Switch
 					v-model="accountRequest.send_invite"
 					:label="__('Send Invite')"
-					class="hover:!bg-surface-white !cursor-default !p-0"
+					class="hover:!bg-surface-base !cursor-default !p-0"
 				/>
 				<FormControl
 					v-if="accountRequest.send_invite"

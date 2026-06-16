@@ -4501,7 +4501,7 @@ function toggleShowFormulas() {
    (--surface-*, --outline-*, --ink-*). No raw Tailwind hexes. */
 
 /* ── Root layout ─────────────────────────────────────────────────────────── */
-.sn-root { display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--surface-white); font-family:InterVar, ui-sans-serif, system-ui, sans-serif; color:var(--ink-gray-9); }
+.sn-root { display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--surface-base); font-family:InterVar, ui-sans-serif, system-ui, sans-serif; color:var(--ink-gray-9); }
 
 /* ── Canvas loading overlay ──────────────────────────────────────────────── */
 /* Sits inside .sn-grid-wrap. The canvas is mounted underneath (the grid
@@ -4510,7 +4510,7 @@ function toggleShowFormulas() {
 .sn-canvas-loading {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--surface-white);
+  background: var(--surface-base);
   z-index: 1;
   pointer-events: none;   /* don't intercept clicks if it lingers a frame */
 }
@@ -4527,7 +4527,7 @@ function toggleShowFormulas() {
 .sn-load-error-sub   { font-size: 13px; color: var(--ink-gray-6); margin: 0 0 8px; max-width: 360px; }
 
 /* ── Bar 1 · Identity / topbar ───────────────────────────────────────────── */
-.sn-topbar       { display:flex; align-items:center; justify-content:space-between; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-white); flex-shrink:0; }
+.sn-topbar       { display:flex; align-items:center; justify-content:space-between; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-base); flex-shrink:0; }
 /* Left cluster groups: brand+title tight (gap:4); status chips sit further away
    (gap:12) so the title reads as the focal point, not crowded by badges. */
 .sn-topbar-left  { display:flex; align-items:center; gap:8px; min-width:0; }
@@ -4546,7 +4546,7 @@ function toggleShowFormulas() {
 .sn-title-input { height:32px; border:1px solid transparent; border-radius:6px; padding:0 10px; font-size:15px; font-weight:600; color:var(--ink-gray-9); background:transparent; outline:none; font-family:inherit; letter-spacing:-.005em; transition:background-color .12s, border-color .12s, width .1s; }
 
 .sn-title-input:hover { background:var(--surface-gray-2); }
-.sn-title-input:focus { border-color:var(--outline-gray-4); background:var(--surface-white); box-shadow:0 0 0 2px rgba(23,23,23,.10); }
+.sn-title-input:focus { border-color:var(--outline-gray-4); background:var(--surface-base); box-shadow:0 0 0 2px rgba(23,23,23,.10); }
 
 /* Hairline between action buttons and avatar — groups the cluster without
    relying on extra padding. */
@@ -4567,14 +4567,14 @@ function toggleShowFormulas() {
      inner ring = the peer's cursor color so the avatar matches their
      cursor outline at a glance. `box-shadow` stacks two rings without
      pushing layout. */
-  box-shadow: 0 0 0 2px var(--surface-white),
+  box-shadow: 0 0 0 2px var(--surface-base),
               0 0 0 4px var(--rc, var(--outline-gray-2));
 }
 .sn-presence-avatar:first-child { margin-left:0; }
 .sn-presence-more {
   display:inline-flex; align-items:center; justify-content:center;
   width:26px; height:26px; border-radius:50%;
-  background:var(--surface-gray-3); border:2px solid var(--surface-white);
+  background:var(--surface-gray-3); border:2px solid var(--surface-base);
   margin-left:-6px; font-size:10px; font-weight:600; color:var(--ink-gray-7);
   flex-shrink:0; cursor:default;
 }
@@ -4590,7 +4590,7 @@ function toggleShowFormulas() {
 .sn-pivot-fab {
   position: absolute; z-index: 20;
   width: 28px; height: 28px; border-radius: 50%;
-  background: var(--surface-white);
+  background: var(--surface-base);
   border: 1px solid var(--outline-gray-2);
   box-shadow: 0 2px 8px rgba(0,0,0,.12);
   display: flex; align-items: center; justify-content: center;
@@ -4616,22 +4616,22 @@ function toggleShowFormulas() {
 
 /* ── Bar 2 · Formula bar ─────────────────────────────────────────────────── */
 
-.sn-formula-bar   { display:flex; align-items:center; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); gap:8px; flex-shrink:0; background:var(--surface-white); }
+.sn-formula-bar   { display:flex; align-items:center; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); gap:8px; flex-shrink:0; background:var(--surface-base); }
 /* Cell address tag */
-.sn-cell-ref      { box-sizing:border-box; min-width:50px; padding:0 8px; flex-shrink:0; text-align:center; font-size:12px; font-weight:600; letter-spacing:.04em; color:var(--ink-gray-7); background:var(--surface-white); border:1px solid var(--outline-gray-2); border-radius:6px; height:30px; line-height:1; display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums; font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; cursor:default; user-select:none; transition:border-color .12s, background-color .12s; }
+.sn-cell-ref      { box-sizing:border-box; min-width:50px; padding:0 8px; flex-shrink:0; text-align:center; font-size:12px; font-weight:600; letter-spacing:.04em; color:var(--ink-gray-7); background:var(--surface-base); border:1px solid var(--outline-gray-2); border-radius:6px; height:30px; line-height:1; display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums; font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; cursor:default; user-select:none; transition:border-color .12s, background-color .12s; }
 .sn-cell-ref:hover { border-color:var(--outline-gray-3); background:var(--surface-gray-3); }
 /* "fx" delimiter */
 .sn-fx-label      { font-size:14px; font-style:italic; font-weight:500; color:var(--ink-gray-4); letter-spacing:.02em; flex-shrink:0; padding:0 6px 0 2px; user-select:none; font-family:ui-serif, Georgia, "Times New Roman", serif; }
 .sn-formula-wrap  { position:relative; flex:1; display:flex; }
 .sn-formula-wrap .sn-formula-input { flex:1; }
-.sn-formula-input { box-sizing:border-box; width:100%; height:30px; line-height:1; border-radius:6px; outline:none; padding:0 10px; font-size:13px; color:var(--ink-gray-8); background:var(--surface-white); border:1px solid var(--outline-gray-2); font-family:'Fira Code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing:.005em; transition:background-color .15s, border-color .15s, box-shadow .15s; }
+.sn-formula-input { box-sizing:border-box; width:100%; height:30px; line-height:1; border-radius:6px; outline:none; padding:0 10px; font-size:13px; color:var(--ink-gray-8); background:var(--surface-base); border:1px solid var(--outline-gray-2); font-family:'Fira Code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing:.005em; transition:background-color .15s, border-color .15s, box-shadow .15s; }
 .sn-formula-input::placeholder { color:var(--ink-gray-3); font-style:italic; font-family:inherit; }
 .sn-formula-input:hover { background:var(--surface-gray-3); border-color:var(--outline-gray-3); }
-.sn-formula-input:focus { border-color:var(--outline-gray-4); background:var(--surface-white); box-shadow:0 0 0 2px rgba(23,23,23,.08); }
+.sn-formula-input:focus { border-color:var(--outline-gray-4); background:var(--surface-base); box-shadow:0 0 0 2px rgba(23,23,23,.08); }
 .sn-fbar-actions  { display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:4px; }
 
 /* Formula autocomplete — Frappe UI Autocomplete is form-field oriented, so the inline popover is bespoke but uses Espresso surfaces. */
-.sn-ac-list       { position:absolute; top:calc(100% + 4px); bottom:auto; left:0; right:0; background:var(--surface-modal); border:1px solid var(--outline-gray-2); border-radius:8px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); z-index:300; max-height:240px; overflow-y:auto; padding:4px; }
+.sn-ac-list       { position:absolute; top:calc(100% + 4px); bottom:auto; left:0; right:0; background:var(--surface-elevation-2); border:1px solid var(--outline-gray-2); border-radius:8px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); z-index:300; max-height:240px; overflow-y:auto; padding:4px; }
 .sn-ac-list--up   { top:auto; bottom:calc(100% + 4px); }
 .sn-ac-item  { display:flex; align-items:baseline; gap:10px; padding:6px 10px; cursor:pointer; white-space:nowrap; border-radius:4px; }
 .sn-ac-item:hover, .sn-ac-item.active { background:var(--surface-gray-2); }
@@ -4642,7 +4642,7 @@ function toggleShowFormulas() {
 .sn-vd-vals  { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
 /* ── Bar 3 · Formatting toolbar ──────────────────────────────────────────── */
-.sn-toolbar { display:flex; align-items:center; gap:2px; height:44px; padding:0 15px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-white); flex-shrink:0; }
+.sn-toolbar { display:flex; align-items:center; gap:2px; height:44px; padding:0 15px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-base); flex-shrink:0; }
 .sn-toolbar :deep(.fui-form-control) { width:auto; }
 .sn-toolbar :deep(select) { min-width:118px; }
 /* Font family dropdown — uses a Button trigger that hugs the short label. */
@@ -4687,7 +4687,7 @@ function toggleShowFormulas() {
 .sn-swatch-fill      { border:1px solid var(--outline-gray-2); }
 
 /* ── Canvas grid ─────────────────────────────────────────────────────────── */
-.sn-grid-wrap        { flex:1; overflow:hidden; position:relative; background:var(--surface-white); }
+.sn-grid-wrap        { flex:1; overflow:hidden; position:relative; background:var(--surface-base); }
 .sn-grid-wrap canvas { display:block; outline:none; }
 
 .sn-painting-format canvas { cursor: crosshair; }
@@ -4706,7 +4706,7 @@ function toggleShowFormulas() {
    the user scrolls past the header row. */
 .sn-filter-overlay { position:absolute; inset:0; pointer-events:none; overflow:hidden; clip-path:inset(24px 0 0 50px); }
 .sn-filter-btn     { position:absolute; border:1px solid var(--outline-gray-2); border-radius:4px; background:rgba(255,255,255,.92); cursor:pointer; pointer-events:all; padding:0; display:flex; align-items:center; justify-content:center; color:var(--ink-gray-7); box-shadow:0 1px 2px rgba(0,0,0,.05); transition:background-color .12s, border-color .12s, color .12s; }
-.sn-filter-btn:hover  { background:var(--surface-white); border-color:var(--outline-gray-4); color:var(--ink-gray-9); }
+.sn-filter-btn:hover  { background:var(--surface-base); border-color:var(--outline-gray-4); color:var(--ink-gray-9); }
 .sn-filter-btn.active { background:var(--surface-gray-4); border-color:var(--outline-gray-4); color:var(--ink-gray-9); }
 .sn-filter-btn-icon   { width:12px; height:12px; }
 
@@ -4729,17 +4729,17 @@ function toggleShowFormulas() {
 }
 .sn-remote-cursor-label {
   position:absolute; top:-18px; left:-1px;
-  background:var(--rc); color:var(--surface-white);
+  background:var(--rc); color:var(--surface-base);
   font-size:10px; font-weight:600;
   padding:1px 5px; border-radius:3px 3px 3px 0;
   white-space:nowrap; line-height:16px;
   max-width:140px; overflow:hidden; text-overflow:ellipsis;
 }
 
-.sn-filter-panel { position:absolute; z-index:100; background:var(--surface-modal); border:1px solid var(--outline-gray-modals); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:12px; width:260px; display:flex; flex-direction:column; gap:8px; }
+.sn-filter-panel { position:absolute; z-index:100; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:12px; width:260px; display:flex; flex-direction:column; gap:8px; }
 .sn-fp-title   { font-size:12px; font-weight:600; letter-spacing:.02em; color:var(--ink-gray-8); padding-bottom:2px; }
 .sn-fp-row     { display:flex; gap:4px; }
-.sn-fp-mode    { display:flex; gap:2px; padding:2px; border:1px solid var(--outline-gray-2); border-radius:8px; background:var(--surface-white); }
+.sn-fp-mode    { display:flex; gap:2px; padding:2px; border:1px solid var(--outline-gray-2); border-radius:8px; background:var(--surface-base); }
 .sn-fp-actions { display:flex; gap:4px; padding-top:2px; }
 .sn-fp-grow    { flex:1; }
 
@@ -4749,14 +4749,14 @@ function toggleShowFormulas() {
 .sn-fp-vlinks         { display:flex; align-items:center; gap:2px; }
 .sn-fp-count          { margin-left:auto; font-size:11px; letter-spacing:.02em; color:var(--ink-gray-5); }
 .sn-fp-search-icon    { width:13px; height:13px; color:var(--ink-gray-5); }
-.sn-fp-values         { max-height:200px; overflow-y:auto; border:1px solid var(--outline-gray-2); border-radius:8px; padding:4px 0; background:var(--surface-white); }
+.sn-fp-values         { max-height:200px; overflow-y:auto; border:1px solid var(--outline-gray-2); border-radius:8px; padding:4px 0; background:var(--surface-base); }
 .sn-fp-value-row      { display:flex; align-items:center; gap:8px; padding:5px 10px; cursor:pointer; font-size:13px; letter-spacing:.01em; color:var(--ink-gray-8); }
 .sn-fp-value-row:hover { background:var(--surface-gray-2); }
 .sn-fp-value-text     { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .sn-fp-empty          { padding:12px 10px; font-size:12px; color:var(--ink-gray-5); text-align:center; }
 
 /* ── Bottom · tabs + stats ───────────────────────────────────────────────── */
-.sn-bottom { display:flex; align-items:stretch; height:36px; border-top:1px solid var(--outline-gray-2); background:var(--surface-menu-bar); flex-shrink:0; overflow:hidden; }
+.sn-bottom { display:flex; align-items:stretch; height:36px; border-top:1px solid var(--outline-gray-2); background:var(--surface-sidebar); flex-shrink:0; overflow:hidden; }
 
 .sn-tabs-track {
   display:flex; align-items:stretch; flex:1; gap:0;
@@ -4816,7 +4816,7 @@ function toggleShowFormulas() {
 .sn-tab-peer-dot {
   display:inline-block; width:7px; height:7px;
   border-radius:50%; background:var(--rc);
-  box-shadow:0 0 0 1px var(--surface-white);
+  box-shadow:0 0 0 1px var(--surface-base);
 }
 .sn-tab-peer-more {
   font-size:9px; font-weight:600; color:var(--ink-gray-7);
@@ -4850,13 +4850,13 @@ function toggleShowFormulas() {
 .sn-stats { display:flex; align-items:center; gap:14px; padding:0 14px; font-size:11px; letter-spacing:.02em; color:var(--ink-gray-6); flex-shrink:0; white-space:nowrap; border-left:1px solid var(--outline-gray-2); height:100%; }
 
 /* ── Right-click context menu (positioned at cursor; uses Frappe UI Buttons inside) ── */
-.sn-ctx-menu { position:fixed; z-index:9000; background:var(--surface-modal); border:1px solid var(--outline-gray-modals); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:4px; min-width:208px; display:flex; flex-direction:column; gap:1px; overflow-y:auto; }
+.sn-ctx-menu { position:fixed; z-index:9000; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:4px; min-width:208px; display:flex; flex-direction:column; gap:1px; overflow-y:auto; }
 /* Frappe UI Button defaults to `justify-content:center`. Override inside
    context menus so every row's icon sits at the same left padding and the
    labels line up regardless of length. */
 .sn-ctx-menu :deep(button) { width:100%; justify-content:flex-start; padding-left:10px; padding-right:10px; }
 .sn-ctx-sep { height:1px; background:var(--outline-gray-1); margin:4px 0; border:none; }
-.sn-rename-err { margin:6px 0 0; font-size:12px; color:var(--ink-red-3); letter-spacing:.02em; }
+.sn-rename-err { margin:6px 0 0; font-size:12px; color:var(--ink-red-6); letter-spacing:.02em; }
 
 /* Keyboard-shortcut help dialog — two-column grid of grouped Espresso list rows. */
 .sn-help-grid    { display:grid; grid-template-columns:1fr 1fr; gap:20px 28px; }
@@ -4868,7 +4868,7 @@ function toggleShowFormulas() {
 .sn-help-keys    { display:inline-flex; align-items:center; gap:6px; color:var(--ink-gray-7); }
 .sn-help-keys :deep(> div) {
   padding:2px 6px; border:1px solid var(--outline-gray-2); border-radius:4px;
-  background:var(--surface-white); color:var(--ink-gray-8); min-height:20px;
+  background:var(--surface-base); color:var(--ink-gray-8); min-height:20px;
 }
 .sn-help-or      { font-size:11px; letter-spacing:.02em; color:var(--ink-gray-5); }
 
@@ -4881,13 +4881,13 @@ function toggleShowFormulas() {
 }
 
 /* Add-more-rows strip — sits between the canvas and the bottom bar. */
-.sn-addrows         { display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; border-top:1px solid var(--outline-gray-2); background:var(--surface-menu-bar); flex-shrink:0; }
+.sn-addrows         { display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; border-top:1px solid var(--outline-gray-2); background:var(--surface-sidebar); flex-shrink:0; }
 .sn-addrows-label   { font-size:12px; letter-spacing:.02em; color:var(--ink-gray-6); }
-.sn-addrows-input   { width:72px; height:24px; border:1px solid var(--outline-gray-2); border-radius:6px; padding:0 8px; font-size:12px; color:var(--ink-gray-9); background:var(--surface-white); font-family:inherit; outline:none; }
+.sn-addrows-input   { width:72px; height:24px; border:1px solid var(--outline-gray-2); border-radius:6px; padding:0 8px; font-size:12px; color:var(--ink-gray-9); background:var(--surface-base); font-family:inherit; outline:none; }
 .sn-addrows-input:focus { border-color:var(--outline-gray-4); box-shadow:0 0 0 2px rgba(23,23,23,.10); }
 
 /* Comment panel */
-.sn-comment-panel  { position:fixed; z-index:8500; background:var(--surface-modal); border:1px solid var(--outline-gray-modals); border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.14); padding:12px; min-width:240px; display:flex; flex-direction:column; gap:8px; }
+.sn-comment-panel  { position:fixed; z-index:8500; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.14); padding:12px; min-width:240px; display:flex; flex-direction:column; gap:8px; }
 .sn-comment-header { display:flex; align-items:center; justify-content:space-between; }
 .sn-comment-title  { font-size:12px; font-weight:600; letter-spacing:.04em; color:var(--ink-gray-7); text-transform:uppercase; }
 .sn-comment-close  { background:none; border:none; cursor:pointer; color:var(--ink-gray-5); font-size:14px; line-height:1; padding:2px 4px; }
@@ -4897,7 +4897,7 @@ function toggleShowFormulas() {
 
 /* Notes side panel — docks the right edge of sn-grid-wrap, same dock as
    Version History (only one of the two is open at a time). */
-.sn-notes-panel       { position:absolute; top:0; right:0; bottom:0; width:300px; background:var(--surface-white); border-left:1px solid var(--outline-gray-2); display:flex; flex-direction:column; z-index:30; box-shadow:-4px 0 12px -8px rgba(0,0,0,.08); animation:sn-notes-slide-in 160ms cubic-bezier(.2,.8,.25,1); }
+.sn-notes-panel       { position:absolute; top:0; right:0; bottom:0; width:300px; background:var(--surface-base); border-left:1px solid var(--outline-gray-2); display:flex; flex-direction:column; z-index:30; box-shadow:-4px 0 12px -8px rgba(0,0,0,.08); animation:sn-notes-slide-in 160ms cubic-bezier(.2,.8,.25,1); }
 @keyframes sn-notes-slide-in { from { transform:translateX(16px); opacity:0; } to { transform:translateX(0); opacity:1; } }
 .sn-notes-header      { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--outline-gray-2); }
 .sn-notes-title       { font-weight:600; color:var(--ink-gray-8); font-size:13px; display:flex; align-items:center; gap:6px; }
@@ -4916,7 +4916,7 @@ function toggleShowFormulas() {
 .sn-notes-row-text    { font-size:12px; color:var(--ink-gray-6); margin-top:2px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
 
 /* Validation dropdown panel */
-.sn-dropdown-panel { position:fixed; z-index:8500; background:var(--surface-modal); border:1px solid var(--outline-gray-modals); border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.12); min-width:120px; max-height:200px; overflow-y:auto; }
+.sn-dropdown-panel { position:fixed; z-index:8500; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.12); min-width:120px; max-height:200px; overflow-y:auto; }
 .sn-dropdown-opt   { padding:7px 14px; font-size:13px; color:var(--ink-gray-9); cursor:pointer; white-space:nowrap; }
 .sn-dropdown-opt:hover { background:var(--surface-gray-2); }
 
@@ -4936,14 +4936,14 @@ function toggleShowFormulas() {
 
 /* Data-bar preview rows — three bars at sample widths so users can sanity-check the colour. */
 .sn-cf-bar-preview    { display:flex; flex-direction:column; gap:4px; padding:6px; background:var(--surface-gray-1); border-radius:6px; border:1px solid var(--outline-gray-2); }
-.sn-cf-bar-row        { height:14px; background:var(--surface-white); border-radius:3px; overflow:hidden; }
+.sn-cf-bar-row        { height:14px; background:var(--surface-base); border-radius:3px; overflow:hidden; }
 .sn-cf-bar-fill       { height:100%; opacity:.55; }
 
 /* Existing-rules list at the top of the CF dialog. */
 .sn-cf-rule-list       { display:flex; flex-direction:column; gap:4px; padding:8px; background:var(--surface-gray-1); border:1px solid var(--outline-gray-2); border-radius:6px; }
 .sn-cf-rule-list-title { font-size:11px; font-weight:500; color:var(--ink-gray-6); text-transform:uppercase; letter-spacing:.04em; padding:2px 4px 4px; }
 .sn-cf-rule-row        { display:flex; align-items:center; gap:4px; }
-.sn-cf-rule-pick       { flex:1; text-align:left; font-size:12px; color:var(--ink-gray-8); background:var(--surface-white); border:1px solid var(--outline-gray-2); border-radius:5px; padding:6px 8px; cursor:pointer; }
+.sn-cf-rule-pick       { flex:1; text-align:left; font-size:12px; color:var(--ink-gray-8); background:var(--surface-base); border:1px solid var(--outline-gray-2); border-radius:5px; padding:6px 8px; cursor:pointer; }
 .sn-cf-rule-pick:hover { background:var(--surface-gray-2); }
 .sn-cf-rule-row--active .sn-cf-rule-pick { border-color:var(--ink-gray-9); }
 

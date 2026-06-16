@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col w-full bg-surface-white">
+  <div class="flex flex-col w-full bg-surface-base">
     <TextEditorFixedMenu v-if="editable && editor"
-      class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-gray-modals"
+      class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-elevation-2"
       :buttons="menuButtons" />
     <div class="flex flex-1 overflow-auto">
       <ToC v-if="editor" :editor :anchors />
@@ -19,7 +19,7 @@
             @keydown="onEditorKeydown">
             <template #editor="{ editor }">
               <EditorContent :editor="editor"
-                class="md:mx-auto bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
+                class="md:mx-auto bg-surface-base prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
                 :class="[
                   settings?.wide
                     ? 'md:min-w-[100ch] md:max-w-[100ch]'

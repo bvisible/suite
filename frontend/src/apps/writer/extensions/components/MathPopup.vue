@@ -4,7 +4,7 @@
     @click.stop
   >
     <div class="flex items-center justify-between px-3 border-b border-surface-gray-2">
-      <span class="text-xs font-medium text-gray-700">LaTeX</span>
+      <span class="text-xs-medium text-gray-700">LaTeX</span>
       <Button :icon="IconX" variant="ghost" @click="handleClose" tooltip="Close (Esc)" />
     </div>
 

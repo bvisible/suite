@@ -24,7 +24,7 @@
               draggable="false"
             />
           </div>
-          <div class="mt-3 text-sm font-medium leading-none text-ink-gray-9">{{ app.name }}</div>
+          <div class="mt-3 text-sm-medium leading-none text-ink-gray-9">{{ app.name }}</div>
         </router-link>
 
         <a
@@ -39,7 +39,7 @@
 </svg>
 
           </div>
-          <div class="mt-3 text-sm font-medium leading-none text-ink-gray-9">Settings</div>
+          <div class="mt-3 text-sm-medium leading-none text-ink-gray-9">Settings</div>
         </a>
       </div>
     </div>

@@ -20,7 +20,7 @@
 							:is="getFileIcon(currentAttachment?.type)"
 							class="h-4 w-4 shrink-0"
 						/>
-						<span class="truncate text-base font-medium">
+						<span class="truncate text-base-medium">
 							{{ currentAttachment?.filename }}
 						</span>
 					</div>

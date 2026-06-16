@@ -89,7 +89,7 @@ function onSaved(name) {
     gap: 16px;
     padding: 32px 24px;
     border-radius: 14px;
-    background: var(--surface-white, #ffffff);
+    background: var(--surface-base, #ffffff);
     border: 1px solid var(--outline-gray-2, #e2e2e2);
     box-shadow:
       0 0 1px rgba(0, 0, 0, 0.35),

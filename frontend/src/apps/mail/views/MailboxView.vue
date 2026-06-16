@@ -194,7 +194,7 @@
 							"
 						>
 							<div
-								class="text-ink-gray-6 group flex items-center border-b border-l-transparent p-3.5 text-xs font-semibold sm:border-l sm:px-5"
+								class="text-ink-gray-6 group flex items-center border-b border-l-transparent p-3.5 text-xs-semibold sm:border-l sm:px-5"
 								@click="toggleGroupCollapse(key)"
 							>
 								<div
@@ -278,13 +278,13 @@
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
 				<div
 					ref="resizer"
-					class="group-hover:bg-surface-gray-5 h-full rounded-full transition-all duration-300 ease-in-out"
+					class="group-hover:bg-surface-gray-8 h-full rounded-full transition-all duration-300 ease-in-out"
 				/>
 			</div>
 
 			<!-- Mail thread -->
 			<div
-				class="bg-surface-white overflow-y-auto"
+				class="bg-surface-base overflow-y-auto"
 				:class="{
 					'w-2/3': !isMobile && showReadingPane,
 					'absolute bottom-0 left-0 right-0 top-0': !isMobile && !showReadingPane,
@@ -1255,7 +1255,7 @@ const title = computed(() => {
 <style scoped>
 .checkbox-hitbox:hover :deep(input[type='checkbox']) {
 	@apply shadow-sm;
-	border-color: var(--outline-gray-5);
+	border-color: var(--outline-gray-7);
 }
 
 .loading-bar__fill {

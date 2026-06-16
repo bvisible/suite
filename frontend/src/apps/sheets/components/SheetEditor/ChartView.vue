@@ -97,7 +97,7 @@ onBeforeUnmount(() => cancelAnimationFrame(_rafId))
 <style scoped>
 .cv-wrap {
   position: relative;
-  background: var(--surface-white, #ffffff);
+  background: var(--surface-base, #ffffff);
   border-radius: 8px;
   overflow: hidden;
 }

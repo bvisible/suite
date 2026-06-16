@@ -18,7 +18,7 @@
 		v-model="customSelection"
 		:label="__('Custom Selection')"
 		:description="__('Apply filters to select specific emails for export.')"
-		class="hover:!bg-surface-white !cursor-default !p-0"
+		class="hover:!bg-surface-base !cursor-default !p-0"
 	/>
 	<template v-if="customSelection">
 		<FormControl

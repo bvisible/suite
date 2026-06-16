@@ -219,7 +219,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 </script>
 
 <template>
-	<div class="bg-surface-modal text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
+	<div class="bg-surface-elevation-2 text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
 		<!-- Header: title, date, and actions -->
 		<div class="flex justify-between border-b p-5">
 			<div class="space-y-2">
@@ -258,7 +258,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 						:key="location.uid"
 						class="mt-px min-w-0 break-words text-left text-sm"
 						:class="{
-							'text-ink-blue-3 cursor-pointer hover:underline': isUrl(
+							'text-ink-blue-6 cursor-pointer hover:underline': isUrl(
 								location._name,
 							),
 						}"
@@ -299,7 +299,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 					</span>
 					<button
 						v-if="isDescriptionClamped && !descriptionExpanded"
-						class="text-ink-blue-3 mt-0.5 block"
+						class="text-ink-blue-6 mt-0.5 block"
 						@click="descriptionExpanded = true"
 					>
 						{{ __('Show more') }}
@@ -319,7 +319,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 		<!-- RSVP -->
 		<div
 			v-if="userParticipant.expect_reply"
-			class="bg-surface-menu-bar flex items-center justify-between rounded-b border-t p-5"
+			class="bg-surface-sidebar flex items-center justify-between rounded-b border-t p-5"
 		>
 			<div class="text-left text-sm">{{ __('Are you attending?') }}</div>
 			<div class="flex gap-2">

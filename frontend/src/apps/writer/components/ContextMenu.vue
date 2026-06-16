@@ -38,7 +38,7 @@ function handleClick() {
 
     <ContextMenuPortal>
       <ContextMenuContent
-        class="min-w-[220px] z-30 bg-surface-modal rounded-lg p-1.5 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
+        class="min-w-[220px] z-30 bg-surface-elevation-2 rounded-lg p-1.5 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
         :side-offset="5"
       >
         <!-- New Tab -->
@@ -93,7 +93,7 @@ function handleClick() {
           </ContextMenuSubTrigger>
           <ContextMenuPortal>
             <ContextMenuSubContent
-              class="min-w-[220px] z-30 bg-surface-modal rounded-lg p-1.5 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
+              class="min-w-[220px] z-30 bg-surface-elevation-2 rounded-lg p-1.5 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
               :side-offset="2"
               :align-offset="-5"
             >

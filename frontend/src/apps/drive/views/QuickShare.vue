@@ -22,10 +22,10 @@
       <div
         v-for="file in transfers.data"
         :key="file.name"
-        class="flex justify-between rounded border border-outline-gray-modals p-3 shadow-sm"
+        class="flex justify-between rounded border border-outline-elevation-2 p-3 shadow-sm"
       >
         <div class="flex flex-col gap-2 justify-center">
-          <span class="text-sm font-medium text-ink-gray-9 truncate">
+          <span class="text-sm-medium text-ink-gray-9 truncate">
             {{ file.title }}
           </span>
           <span class="text-xs text-ink-gray-5">

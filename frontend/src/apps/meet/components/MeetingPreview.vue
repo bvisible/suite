@@ -45,7 +45,7 @@
 										:tiles="1"
 										class="mx-auto mb-4 w-20 h-20"
 									/>
-									<p class="text-xl font-medium">{{ currentUserName }}</p>
+									<p class="text-3xl-medium">{{ currentUserName }}</p>
 								</div>
 							</div>
 
@@ -77,12 +77,12 @@
 							</div>
 						</div>
 
-						<h2 class="text-3xl text-gray-900 mb-3">
+						<h2 class="text-5xl text-gray-900 mb-3">
 							<span class="text-gray-900"> Ready to join? </span>
 						</h2>
 
 						<div v-if="meetingTitle" class="bg-gray-50 rounded-lg px-4 py-3 mb-4">
-							<p class="text-lg font-medium text-gray-700 truncate">
+							<p class="text-xl-medium text-gray-700 truncate">
 								{{ meetingTitle }}
 							</p>
 						</div>

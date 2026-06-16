@@ -18,7 +18,7 @@
       />
     </template>
     <template #body>
-      <div ref="colorPicker" class="rounded-lg bg-surface-white p-3 shadow-lg">
+      <div ref="colorPicker" class="rounded-lg bg-surface-base p-3 shadow-lg">
         <div
           ref="colorMap"
           :style="{

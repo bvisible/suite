@@ -10,14 +10,14 @@
 			:to="{ name: 'slides-home' }"
 		>
 			<img :src="slidesLogo" class="h-7" />
-			<div class="text-base font-semibold">Slides</div>
+			<div class="text-base-semibold">Slides</div>
 		</router-link>
 
 		<Dropdown v-else :options="getContextMenuOptions()" :offset="16">
 			<template #default="{ open }">
 				<div class="flex cursor-pointer items-center gap-2">
 					<img :src="slidesLogo" class="h-7" />
-					<div class="text-base font-semibold">Slides</div>
+					<div class="text-base-semibold">Slides</div>
 					<LucideChevronUp v-if="open" class="w-4 stroke-[1.5]" />
 					<LucideChevronDown v-else class="w-4 stroke-[1.5]" />
 				</div>

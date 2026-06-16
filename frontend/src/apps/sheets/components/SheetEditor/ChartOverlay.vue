@@ -171,7 +171,7 @@ function _onLayerMousedown(e) {
   top: 0; left: 0;
   pointer-events: auto;
   cursor: move;
-  background: var(--surface-white, #ffffff);
+  background: var(--surface-base, #ffffff);
   border-radius: 10px;
   border: 1px solid var(--outline-gray-2, #e5e5e5);
   box-shadow:
@@ -193,7 +193,7 @@ function _onLayerMousedown(e) {
   right: 0;
   display: flex; gap: 4px;
   padding: 4px;
-  background: var(--surface-white);
+  background: var(--surface-base);
   border: 1px solid var(--outline-gray-2);
   border-radius: 8px;
   box-shadow: 0 4px 12px -4px rgba(0,0,0,.12);
@@ -215,7 +215,7 @@ function _onLayerMousedown(e) {
   width: 12px; height: 12px;
   border-radius: 50%;
   background: var(--ink-cyan-6, #0891B2);
-  border: 2px solid var(--surface-white);
+  border: 2px solid var(--surface-base);
   cursor: nwse-resize;
 }
 </style>

@@ -10,9 +10,9 @@
       :key="group"
     >
       <div
-        class="flex justify-between items-center sticky top-0 bg-surface-white h-8 z-10 mt-3 mb-1 -mx-3"
+        class="flex justify-between items-center sticky top-0 bg-surface-base h-8 z-10 mt-3 mb-1 -mx-3"
       >
-        <h2 class="text-sm font-medium text-ink-gray-5">
+        <h2 class="text-sm-medium text-ink-gray-5">
           {{ group }}
         </h2>
         <TabButtons
@@ -61,7 +61,7 @@
               </div>
               <div class="mt-3 flex justify-between items-center">
                 <div class="flex-grow w-full min-w-0">
-                  <h1 class="text-base truncate font-medium text-ink-gray-7">
+                  <h1 class="text-base-medium truncate text-ink-gray-7">
                     {{ row.file_name }}
                   </h1>
                 </div>
@@ -76,7 +76,7 @@
               class="group flex flex-col gap-2 md:flex-row p-3 md:items-center md:justify-between hover:bg-surface-gray-1 rounded cursor-pointer my-px -mx-3"
             >
               <p
-                class="text-base font-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip"
+                class="text-base-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip"
               >
                 {{ row.file_name }}
               </p>
@@ -129,7 +129,7 @@
     >
       <div class="flex flex-col gap-1.5 items-center">
         <LucideFileText class="size-8" />
-        <p class="text-base text-ink-gray-6 font-medium">
+        <p class="text-base-medium text-ink-gray-6">
           {{ __('No documents yet.') }}
         </p>
       </div>

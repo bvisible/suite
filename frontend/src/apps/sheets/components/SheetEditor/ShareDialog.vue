@@ -481,7 +481,7 @@ async function copyLink() {
 /* Individual chip pill */
 .sd-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  background: var(--surface-white);
+  background: var(--surface-base);
   border: 1px solid var(--outline-gray-2);
   border-radius: 999px;
   padding: 2px 6px 2px 4px;
@@ -506,7 +506,7 @@ async function copyLink() {
 /* Search results popover */
 .sd-results {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 500;
-  background: var(--surface-modal); border: 1px solid var(--outline-gray-modals);
+  background: var(--surface-elevation-2); border: 1px solid var(--outline-elevation-2);
   border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.12); padding: 4px;
 }
 .sd-result-row {

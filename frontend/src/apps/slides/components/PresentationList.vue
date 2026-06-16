@@ -1,7 +1,7 @@
 <template>
 	<div :class="backgroundClasses">
 		<!-- Header -->
-		<div class="cursor-default px-32 text-lg font-semibold text-gray-800 lg:px-40">
+		<div class="cursor-default px-32 text-xl-semibold text-gray-800 lg:px-40">
 			Presentations
 		</div>
 

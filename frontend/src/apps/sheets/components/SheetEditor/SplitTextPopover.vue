@@ -115,7 +115,7 @@ const style = computed(() => {
 <style scoped>
 .sn-sp-pop {
 	position: absolute;
-	background: var(--surface-white, #ffffff);
+	background: var(--surface-base, #ffffff);
 	border: 1px solid var(--outline-gray-2, #e5e5e5);
 	border-radius: 8px;
 	box-shadow: 0 4px 12px -4px rgba(0,0,0,0.12);

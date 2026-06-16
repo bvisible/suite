@@ -113,7 +113,7 @@ onMounted(() => {
    for these plugin-registered token classes). */
 .mail-app-root {
 	color: var(--ink-gray-8);
-	background-color: var(--surface-white);
+	background-color: var(--surface-base);
 }
 
 .icon {

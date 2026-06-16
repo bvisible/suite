@@ -1,7 +1,7 @@
 <template>
   <div
     ref="scrollContainer"
-    class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white w-72"
+    class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-base w-72"
   >
     <slot />
     <template
@@ -29,7 +29,7 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-white dark:border"
+        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-base dark:border"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
           comment.top
@@ -127,7 +127,7 @@
               <div class="w-8 flex justify-center">
                 <Avatar
                   size="xl"
-                  class="bg-surface-white"
+                  class="bg-surface-base"
                   :label="$user(reply.owner)?.full_name || reply.owner"
                   :image="$user(reply.owner)?.user_image"
                 />

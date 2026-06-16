@@ -11,7 +11,7 @@
 					class="w-full h-full object-cover"
 					draggable="false"
 				/>
-				<span v-else class="font-semibold text-sm select-none">
+				<span v-else class=" text-sm-semibold select-none">
 					{{ participant.initials }}
 				</span>
 			</div>
@@ -19,7 +19,7 @@
 
 		<div class="flex-1 min-w-0">
 			<div class="flex items-center gap-2">
-				<span class="text-sm font-medium text-ink-black truncate">
+				<span class="text-sm-medium text-ink-black truncate">
 					{{ participant.user_name }}
 				</span>
 				<span v-if="isCurrentUser" class="text-xs text-ink-gray-5">(You)</span>

@@ -14,7 +14,7 @@
     v-else
     id="drop-area"
     ref="container"
-    class="flex flex-col overflow-auto min-h-full bg-surface-white"
+    class="flex flex-col overflow-auto min-h-full bg-surface-base"
   >
     <DriveToolBar
       v-model:sort-order="sortOrder"
@@ -397,7 +397,7 @@ const actionItems = computed(() => {
       {
         label: __('Unfavourite'),
         icon: LucideStar,
-        class: 'text-ink-amber-3 stroke-current fill-current',
+        class: 'text-ink-amber-6 stroke-current fill-current',
         action: (entities) => {
           entities.forEach((e) => (e.is_favourite = false))
           props.getEntities.setData(props.getEntities.data)

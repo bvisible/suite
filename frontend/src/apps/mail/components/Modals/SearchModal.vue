@@ -5,7 +5,7 @@
 		:options="{ size: '2xl', paddingTop: '2%' }"
 	>
 		<template #body>
-			<div class="bg-surface-white">
+			<div class="bg-surface-base">
 				<div
 					class="flex items-center px-4 py-2"
 					:class="{ 'border-b': showAdvancedFilters || results?.data?.length }"
@@ -29,7 +29,7 @@
 					<div class="group">
 						<span
 							v-if="advancedFiltersLength"
-							class="bg-surface-gray-7 text-ink-gray-1 border-outline-white absolute right-4 top-3 flex h-3 w-3 items-center justify-center rounded-full border text-[6px] font-bold group-hover:invisible"
+							class="bg-surface-gray-10 text-ink-gray-1 border-outline-base absolute right-4 top-3 flex h-3 w-3 items-center justify-center rounded-full border text-[6px] font-bold group-hover:invisible"
 						>
 							{{ advancedFiltersLength }}
 						</span>
@@ -110,7 +110,7 @@
 						@click="openThread(result.thread_id)"
 					>
 						<div class="mr-2 space-y-1 truncate">
-							<p class="truncate text-base font-semibold">
+							<p class="truncate text-base-semibold">
 								{{ result.subject || __('[No subject]') }}
 							</p>
 							<p class="truncate text-sm">{{ getInterlocutors(result) }}</p>

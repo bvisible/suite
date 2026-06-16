@@ -77,9 +77,9 @@
           v-for="[title, group] in Object.entries(groupedVersions)"
           v-else
           :key="title"
-          class="flex flex-col gap-1 mb-2 justify-start bg-surface-white"
+          class="flex flex-col gap-1 mb-2 justify-start bg-surface-base"
         >
-          <div v-if="title !== 'Manual'" class="text-ink-gray-5 text-sm font-medium mb-1 my-2">
+          <div v-if="title !== 'Manual'" class="text-ink-gray-5 text-sm-medium mb-1 my-2">
             {{ title }}
           </div>
           <div class="grid grid-cols-3 gap-0.5">

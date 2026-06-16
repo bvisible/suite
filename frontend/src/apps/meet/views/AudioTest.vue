@@ -5,7 +5,7 @@
 		<div class="max-w-2xl mx-auto">
 			<div class="bg-white rounded-lg shadow-lg p-8">
 				<div class="text-center mb-8">
-					<h1 class="text-3xl font-bold text-gray-900 mb-2">Audio Notification Test</h1>
+					<h1 class="text-5xl-bold text-gray-900 mb-2">Audio Notification Test</h1>
 					<p class="text-gray-600">Test and tune the meeting notification sounds</p>
 				</div>
 

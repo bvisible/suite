@@ -12,7 +12,7 @@
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						<LucideEarth class="size-4 stroke-[1.5] text-gray-700" />
-						<div class="text-base font-medium text-gray-900">Allow Public Access</div>
+						<div class="text-base-medium text-gray-900">Allow Public Access</div>
 					</div>
 					<Switch
 						:modelValue="publicPresentation"

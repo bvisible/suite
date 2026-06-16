@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen flex-col bg-surface-white">
+  <div class="flex h-screen flex-col bg-surface-base">
     <!-- Top-nav: hidden on the '/suite' launcher (which is its own full-screen
          app switcher); shown inside every app with brand-logo tabs. -->
     <header
@@ -9,7 +9,7 @@
       <router-link
         to="/suite"
         title="Suite launcher"
-        class="mr-1 flex items-center rounded px-2 py-1 text-sm font-semibold text-ink-gray-9 hover:bg-surface-gray-2"
+        class="mr-1 flex items-center rounded px-2 py-1 text-sm-semibold text-ink-gray-9 hover:bg-surface-gray-2"
       >
         Suite
       </router-link>

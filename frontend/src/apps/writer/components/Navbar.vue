@@ -3,7 +3,7 @@
     id="navbar"
     ondragstart="return false;"
     ondrop="return false;"
-    class="bg-surface-white border-b pr-3 py-2.5 h-12 flex items-center justify-between"
+    class="bg-surface-base border-b pr-3 py-2.5 h-12 flex items-center justify-between"
   >
     <div class="pl-4 pr-1">
       <Dropdown

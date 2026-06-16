@@ -30,7 +30,7 @@
         </template>
       </FormControl>
 
-      <div v-if="createPresentation.error" class="pt-4 text-base font-sm text-ink-red-3">
+      <div v-if="createPresentation.error" class="pt-4 text-base font-sm text-ink-red-6">
         {{ createFolder.error.messages[0] }}
       </div>
     </template>

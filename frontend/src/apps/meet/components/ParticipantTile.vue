@@ -26,13 +26,13 @@
 			<lucide-monitor-up class="w-8 h-8 text-white mb-6" />
 			<div
 				v-if="showScreenShareCopy"
-				class="text-white font-medium text-lg mb-1"
+				class="text-white text-xl-medium mb-1"
 			>
 				You are sharing your screen
 			</div>
 			<div
 				v-if="showScreenShareCopy"
-				class="text-white font-medium text-sm"
+				class="text-white text-sm-medium"
 			>
 				Everyone else can see what you are presenting
 			</div>
@@ -59,12 +59,12 @@
 		<!-- Reaction -->
 		<div
 			v-if="showReaction && currentReaction"
-			class="absolute top-1 px-2 py-1 rounded-md text-xl pointer-events-none animate-pop"
+			class="absolute top-1 px-2 py-1 rounded-md text-3xl pointer-events-none animate-pop"
 			:class="{ 'left-2': !isHandRaised, 'left-10': isHandRaised }"
 			:aria-label="`Reaction ${currentReaction.emoji} from ${resolvedDisplayName}`"
 			role="img"
 		>
-			<span class="text-2xl">{{ currentReaction.emoji }}</span>
+			<span class="text-4xl">{{ currentReaction.emoji }}</span>
 		</div>
 
 		<!-- Raised Hand -->

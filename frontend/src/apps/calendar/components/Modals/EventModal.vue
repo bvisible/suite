@@ -409,7 +409,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 		<template #body-content>
 			<div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
 				<div class="col-span-7 space-y-4">
-					<h3 class="text-base font-medium">{{ __('Event Details') }}</h3>
+					<h3 class="text-base-medium">{{ __('Event Details') }}</h3>
 					<!-- Title -->
 					<FormControl
 						v-model="event.title"
@@ -544,7 +544,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 				<div class="col-span-4 flex h-full flex-col space-y-4 border-l pl-6">
 					<!-- RSVP -->
 					<template v-if="showRSVP">
-						<h3 class="text-base font-medium">{{ __('RSVP') }}</h3>
+						<h3 class="text-base-medium">{{ __('RSVP') }}</h3>
 						<FormControl
 							v-model="userParticipant.participation_status"
 							type="select"
@@ -555,7 +555,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 					</template>
 
 					<!-- Participants -->
-					<h3 class="text-base font-medium">{{ __('Participants') }}</h3>
+					<h3 class="text-base-medium">{{ __('Participants') }}</h3>
 					<Combobox
 						:options="mailContacts?.data || []"
 						:placeholder="__('Enter participants')"

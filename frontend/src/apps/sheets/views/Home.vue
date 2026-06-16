@@ -484,7 +484,7 @@ async function duplicate(sheet) {
      (the editor wants pixel-perfect viewport control). So Home owns its own
      scroll: a fixed-height column where the body region scrolls. */
   height: 100vh;
-  background: var(--surface-white);
+  background: var(--surface-base);
   font-family: InterVar, ui-sans-serif, system-ui, sans-serif;
   color: var(--ink-gray-9);
 }
@@ -495,7 +495,7 @@ async function duplicate(sheet) {
   gap: 16px;
   padding: 0 32px;
   height: 60px;
-  background: var(--surface-white);
+  background: var(--surface-base);
   border-bottom: 1px solid var(--outline-gray-2);
   flex-shrink: 0;
 }
@@ -568,7 +568,7 @@ async function duplicate(sheet) {
 }
 
 .home-card {
-  background: var(--surface-cards);
+  background: var(--surface-elevation-1);
   border: 1px solid var(--outline-gray-2);
   border-radius: 10px;
   overflow: hidden;
@@ -646,7 +646,7 @@ async function duplicate(sheet) {
   border: 1px solid var(--outline-gray-2);
   border-radius: 8px;
   padding: 2px;
-  background: var(--surface-white);
+  background: var(--surface-base);
   flex-shrink: 0;
 }
 

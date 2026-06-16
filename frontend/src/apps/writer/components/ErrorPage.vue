@@ -6,8 +6,8 @@
       <LucideFileUser v-if="error.type === 'PermissionError'" />
       <LucideFileQuestionMark v-else />
     </div>
-    <h1 class="text-3xl font-bold text-ink-gray-8 mt-4">Uh oh!</h1>
-    <p class="text-lg text-ink-gray-5 mt-4">
+    <h1 class="text-5xl-bold text-ink-gray-8 mt-4">Uh oh!</h1>
+    <p class="text-xl text-ink-gray-5 mt-4">
       <template v-if="typeof error === 'string'">{{ error }}</template>
       <template v-else>
         {{

@@ -25,9 +25,9 @@ const showRemoveParticipant = (participant: any) =>
 	!participant.isOrganizer && (isUserOrganizer.value || participant.isNew) && !dontShowRemove
 
 const getParticipantStatusValues = (status: string) => {
-	if (status === 'ACCEPTED') return { icon: Check, class: 'bg-surface-green-1 text-ink-green-3' }
+	if (status === 'ACCEPTED') return { icon: Check, class: 'bg-surface-green-1 text-ink-green-6' }
 	if (status === 'TENTATIVE') return { icon: Minus, class: 'bg-surface-gray-1 text-ink-gray-6' }
-	return { icon: X, class: 'bg-surface-red-1 text-ink-red-3' }
+	return { icon: X, class: 'bg-surface-red-1 text-ink-red-6' }
 }
 </script>
 <template>
@@ -37,7 +37,7 @@ const getParticipantStatusValues = (status: string) => {
 				<Avatar :image="p.user_image" :label="p._name || p.email" size="xl" />
 				<div class="flex flex-col space-y-0.5">
 					<div class="flex items-center space-x-1">
-						<span class="text-sm font-medium">
+						<span class="text-sm-medium">
 							{{ extractNameFromEmail(p._name || p.email) }}
 						</span>
 						<span v-if="p.email === organizer" class="text-ink-gray-4 text-xs">

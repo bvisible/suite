@@ -96,7 +96,7 @@
   <Tabs v-if="team" v-model="tabIndex" :tabs>
     <template #tab-panel="{ tab }">
       <template v-if="tab.label === 'Members'">
-        <div class="flex flex-col overflow-y-auto divide-y divide-outline-gray-modals">
+        <div class="flex flex-col overflow-y-auto divide-y divide-outline-elevation-2">
           <div
             v-for="user in teamUsers?.data"
             :key="user.user_name"
@@ -143,7 +143,7 @@
           No invites found.
         </div>
         <div v-for="(invite, index) in invites?.data" :key="invite.name">
-          <div v-if="index > 0" class="w-[95%] mx-auto h-px border-t border-outline-gray-modals" />
+          <div v-if="index > 0" class="w-[95%] mx-auto h-px border-t border-outline-elevation-2" />
           <div class="flex items-center justify-start py-2 pl-2 pr-4 gap-x-3">
             <div class="flex justify-between w-full">
               <div class="flex flex-col gap-0.5">
@@ -329,7 +329,7 @@
           />
         </template>
       </div>
-      <div v-if="createTeam.error" class="text-sm text-ink-red-3 my-3">
+      <div v-if="createTeam.error" class="text-sm text-ink-red-6 my-3">
         {{ createTeam.error.messages[0] }}
       </div>
     </template>
@@ -561,12 +561,12 @@ const accessOptions = [
   },
   {
     label: 'Remove',
-    class: 'text-ink-red-3',
+    class: 'text-ink-red-6',
     component: () =>
       h(
         'button',
         {
-          class: ['group flex w-full items-center text-ink-red-3 rounded-md px-2 py-2 text-sm'],
+          class: ['group flex w-full items-center text-ink-red-6 rounded-md px-2 py-2 text-sm'],
           onClick: () => (showRemove.value = true),
         },
         'Remove'

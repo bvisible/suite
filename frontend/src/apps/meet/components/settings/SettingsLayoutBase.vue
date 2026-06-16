@@ -2,7 +2,7 @@
   <div class="flex flex-col h-full">
     <div class="flex items-center justify-between border-outline-gray-2 px-10 py-8">
       <div class="flex flex-col gap-1">
-        <h1 class="text-lg font-semibold text-ink-gray-8">
+        <h1 class="text-xl-semibold text-ink-gray-8">
           <slot name="title">{{ title }}</slot>
         </h1>
         <p v-if="description" class="text-sm text-ink-gray-6">

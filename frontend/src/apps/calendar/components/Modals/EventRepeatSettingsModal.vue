@@ -248,7 +248,7 @@ const DIALOG_OPTIONS = {
 
 				<hr />
 
-				<div class="text-base font-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
+				<div class="text-base-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
 			</div>
 		</template>
 	</Dialog>

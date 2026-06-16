@@ -7,7 +7,7 @@
 			<div class="flex flex-col md:flex-row z-50" :style="{ height: 'calc(100vh - 8rem)' }">
 				<div class="w-full" v-if="isMobile()">
 					<h3
-						class="text-2xl font-semibold leading-6 text-ink-gray-9 px-4 py-6">
+						class="text-4xl-semibold leading-6 text-ink-gray-9 px-4 py-6">
 						Settings
 					</h3>
 					<FTabs :tabs="flatTabs" v-model="tabIndex" as="div">
@@ -21,7 +21,7 @@
 							</div>
 						</template>
 						<template #tab-panel="{ tab }">
-							<div class="flex flex-1 flex-col bg-surface-modal max-w-[816px] w-full">
+							<div class="flex flex-1 flex-col bg-surface-elevation-2 max-w-[816px] w-full">
 								<component
 									:is="tab.component"
 									class="h-full flex flex-col w-full"
@@ -37,13 +37,13 @@
 					<div
 						class="flex w-52 shrink-0 flex-col bg-surface-gray-1 p-2 md:overflow-y-auto hide-scrollbar border-outline-gray-2 border-r"
 					>
-						<h1 class="px-2 pt-2 text-lg font-semibold mb-2">
+						<h1 class="px-2 pt-2 text-xl-semibold mb-2">
 							Settings
 						</h1>
 						<div v-for="tab in tabs">
 							<div
 								v-if="!tab.hideLabel"
-								class="mb-2 ml-1 mt-3 hidden md:flex gap-1.5 px-1 text-base font-medium text-ink-gray-5"
+								class="mb-2 ml-1 mt-3 hidden md:flex gap-1.5 px-1 text-base-medium text-ink-gray-5"
 							>
 								<span>{{ tab.label }}</span>
 							</div>
@@ -55,7 +55,7 @@
 									class="flex h-7 w-full items-center gap-2 rounded px-2 py-1"
 									:class="[
 										activeTab?.label === item.label
-											? 'bg-surface-white shadow-sm'
+											? 'bg-surface-base shadow-sm'
 											: 'hover:bg-surface-gray-2',
 									]"
 									@click="() => onTabChange(item)"
@@ -68,7 +68,7 @@
 							</nav>
 						</div>
 					</div>
-					<div class="flex flex-1 flex-col bg-surface-modal max-w-[816px] w-full">
+					<div class="flex flex-1 flex-col bg-surface-elevation-2 max-w-[816px] w-full">
 						<component
 							:is="activeTab?.component"
 							v-if="activeTab"

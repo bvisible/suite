@@ -5,7 +5,7 @@
   <div class="flex justify-start w-full items-center gap-x-4">
     <Avatar :image="newImageUrl" size="3xl" :label="fullName" class="w-20 h-20" />
     <div class="flex flex-col">
-      <span class="text-xl font-semibold text-ink-gray-8">{{ fullName }}</span>
+      <span class="text-3xl-semibold text-ink-gray-8">{{ fullName }}</span>
       <span class="text-base text-ink-gray-6">{{ $store.state.user.id }}</span>
     </div>
     <Button class="ml-auto" @click="editProfileDialog = true">

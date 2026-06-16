@@ -22,7 +22,7 @@
 					</div>
 
 					<div class="flex-1 min-w-0">
-						<p class="text-sm font-medium text-white mb-1">
+						<p class="text-sm-medium text-white mb-1">
 							{{ notification.fromName || notification.fromUser }}
 						</p>
 						<p class="text-sm text-gray-300 break-words line-clamp-2">

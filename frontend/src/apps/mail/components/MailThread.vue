@@ -19,7 +19,7 @@
 		/>
 		<div ref="threadContainer" class="flex-1 overflow-y-auto">
 			<div v-if="isMobile && thread?.length" class="border-b px-3 py-3.5">
-				<h2 class="text-lg font-semibold leading-5">
+				<h2 class="text-xl-semibold leading-5">
 					{{ thread[0].subject || __('[No subject]') }}
 				</h2>
 			</div>
@@ -36,7 +36,7 @@
 					<template v-for="mail in group.mails" :key="mail.name">
 						<ThreadDivider
 							v-if="shouldShowUnseenMarker(mail.id)"
-							class="!text-ink-blue-2 [&_.border-t]:border-[var(--outline-blue-1)] [&_span:not(.border-t)]:border-[var(--outline-blue-1)]"
+							class="!text-ink-blue-5 [&_.border-t]:border-[var(--outline-blue-1)] [&_span:not(.border-t)]:border-[var(--outline-blue-1)]"
 							:message="unseenMessage"
 						/>
 
@@ -276,7 +276,7 @@
 					class="flex"
 					:class="
 						isMobile
-							? 'bg-surface-white absolute bottom-0 left-0 right-0 z-20 items-stretch border-t'
+							? 'bg-surface-base absolute bottom-0 left-0 right-0 z-20 items-stretch border-t'
 							: 'items-center space-x-2'
 					"
 				>
