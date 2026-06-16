@@ -1,0 +1,48 @@
+span[data-comment-id] {
+  border-bottom: 2px dashed var(--surface-blue-3);
+  user-select: text;
+  cursor: pointer;
+  scroll-margin: 4rem;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+span[data-comment-id].display:hover,
+span[data-comment-id].display.active {
+  background: var(--surface-blue-2);
+}
+
+span[data-comment-id]:not([data-resolved='true']) {
+  border-bottom: 2px dashed var(--outline-amber-2);
+  background: rgba(250, 204, 21, 0.25);
+}
+
+span[data-comment-id]:not([data-resolved='true']):hover,
+span[data-comment-id]:not([data-resolved='true']).active {
+  background: rgba(250, 204, 21, 0.5);
+}
+
+span[data-comment-name] {
+  border-bottom: 2px dashed var(--outline-amber-2);
+  background: rgba(250, 204, 21, 0.25);
+}
+
+span[data-comment-name]:hover,
+span[data-comment-name].active {
+  background: rgba(250, 204, 21, 0.5);
+}
+
+span[data-comment-name][data-resolved='true'] {
+  border-bottom: 2px dashed var(--surface-blue-3);
+  background: none;
+  user-select: text;
+  cursor: pointer;
+  scroll-margin: 4rem;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+span[data-comment-name][data-resolved='true']:hover,
+span[data-comment-name][data-resolved='true'].active {
+  background: var(--surface-blue-2);
+}

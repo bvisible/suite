@@ -1,21 +1,72 @@
 import type { RouteRecordRaw } from 'vue-router'
 
+import { createResource } from 'frappe-ui'
+
+// Boot side-effects that ran in the standalone app's main.ts / App.vue. The
+// suite's shared main.ts does not run them, so trigger them on writer module
+// load. Backend method paths preserved as-is.
+import { allUsers } from '@/apps/writer/ui/drive/js/resources'
+import { apps } from '@/apps/writer/resources/'
+
+allUsers.fetch()
+apps.fetch()
+
 /**
- * Writer route module — the CONTRACT a per-app port implements.
+ * Writer route module — mounted by the suite router under the '/writer' prefix.
+ * Paths are RELATIVE to '/writer' (no leading slash; the empty-path child '' is
+ * the app index). Route names are namespaced `writer-*` to avoid collisions in
+ * the single suite router.
  *
- * Export a `routes` array RELATIVE to the '/writer' prefix (paths WITHOUT a
- * leading slash; the empty-path child '' is the app index). The suite router
- * mounts this array under '/writer' lazily on first navigation. Add views under
- * src/apps/writer/views, components under src/apps/writer/components, composables
- * under src/apps/writer/composables, and any app store under
- * src/apps/writer/stores. Keep heavy deps lazy via `() => import(...)`.
+ * Name mapping from the standalone app:
+ *   Home     ('/')             -> writer-home       (Documents list, auth-gated)
+ *   Document ('/w/:id/:slug?') -> writer-document   (guest-reachable, isPublic)
+ *   Login    ('/login')        -> dropped (the suite auth gate redirects guests)
+ *
+ * All routes nest under WriterLayout, which provides the writer-local `inIframe`
+ * injection, applies the persisted theme, and wraps views in FrappeUIProvider +
+ * the FDialogs host (was the standalone App.vue).
+ *
+ * `writer-document` is marked `meta.isPublic` so the suite's auth guard lets
+ * guests reach shared documents (the standalone Document route had `allowGuest`).
+ * The standalone Home `beforeEnter` redirected logged-out users to /login; the
+ * suite router's own `beforeEach` already does this for non-public routes.
  */
 export const routes: RouteRecordRaw[] = [
   {
     path: '',
-    name: 'writer-home',
-    component: () => import('@/apps/writer/views/WriterStub.vue'),
+    component: () => import('@/apps/writer/views/WriterLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'writer-home',
+        component: () => import('@/apps/writer/views/Documents.vue'),
+      },
+      {
+        path: 'w/:id/:slug?',
+        name: 'writer-document',
+        component: () => import('@/apps/writer/views/Document.vue'),
+        props: true,
+        meta: { documentPage: true, isPublic: true },
+      },
+    ],
   },
 ]
 
 export default routes
+
+/* -------------------------------------------------------------------------- */
+/* Translations                                                                */
+/*                                                                             */
+/* The suite installs ONE global translation plugin (foundation                */
+/* src/boot/translation.ts) so bare `__('text')` works everywhere. We only     */
+/* need to populate `window.translatedMessages`. The standalone app fetched     */
+/* translations via `drive.api.product.get_translations` — preserved as-is.    */
+/* -------------------------------------------------------------------------- */
+
+const translations = createResource({
+  url: 'drive.api.product.get_translations',
+  cache: 'translations',
+  transform: (data) => (window.translatedMessages = data),
+})
+
+if (!window.translatedMessages) translations.fetch()
