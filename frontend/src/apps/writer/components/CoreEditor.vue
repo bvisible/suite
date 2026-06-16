@@ -274,7 +274,7 @@ const uploadFunction = (file) => {
   const fileUpload = useFileUpload()
   return fileUpload.upload(file, {
     params: { file_id: props.file.doc.name },
-    upload_endpoint: `/api/method/writer.api.embed.add`,
+    upload_endpoint: `/api/method/suite.writer.api.embed.add`,
   })
 }
 

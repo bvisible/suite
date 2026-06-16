@@ -38,7 +38,7 @@ export const userStore = defineStore('calendar-user', () => {
 	}
 
 	const userResource = createResource({
-		url: 'mail.api.account.get_user_info',
+		url: 'suite.mail.api.account.get_user_info',
 		onSuccess: (data) => resolveAccount(data?.accounts),
 		onError: (error) => {
 			if (error && error.exc_type === 'AuthenticationError')
@@ -52,7 +52,7 @@ export const userStore = defineStore('calendar-user', () => {
 	)
 
 	const identities = createResource({
-		url: 'mail.api.account.get_identities',
+		url: 'suite.mail.api.account.get_identities',
 		makeParams: () => ({ account: account.value }),
 		cache: ['identities', accountId.value],
 	})

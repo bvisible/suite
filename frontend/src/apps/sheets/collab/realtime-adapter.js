@@ -33,7 +33,7 @@ export function createRealtimeAdapter({
 	function publish(event, payload) {
 		// Fire-and-forget; the relay errors land in the console but never
 		// block typing.
-		return callFn('sheets.api.yjs_relay', {
+		return callFn('suite.sheets.api.yjs_relay', {
 			name:    sheetId,
 			event,
 			payload: JSON.stringify(payload ?? {}),

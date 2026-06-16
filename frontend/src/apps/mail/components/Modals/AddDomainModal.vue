@@ -66,7 +66,7 @@ watch(show, () => {
 })
 
 const addDomain = createResource({
-	url: 'mail.api.admin.add_domain',
+	url: 'suite.mail.api.admin.add_domain',
 	makeParams: () => ({
 		name: domainName.value,
 		description: domainDescription.value?.trim() || undefined,

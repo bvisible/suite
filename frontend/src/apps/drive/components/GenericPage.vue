@@ -345,7 +345,7 @@ const actionItems = computed(() => {
         icon: LucideCornerLeftUp,
         action: ([entity]) => {
           window.open(
-            '/api/method/drive.api.files.redirect_to_original?file_id=' +
+            '/api/method/suite.drive.api.files.redirect_to_original?file_id=' +
               entity.name,
             '_blank'
           )

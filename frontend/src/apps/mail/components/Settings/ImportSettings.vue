@@ -104,7 +104,7 @@ watch(
 )
 
 const createMailImport = createResource({
-	url: 'mail.api.account.create_mail_import',
+	url: 'suite.mail.api.account.create_mail_import',
 	makeParams: () => ({ account, ...mailImport }),
 	onSuccess: () => ongoingImport.reload(),
 })

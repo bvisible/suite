@@ -15,5 +15,5 @@ export function getThumbnailUrl({ name, file_type, thumbnail, external }, view =
   const is_image = IMAGE_THUMBNAILS.includes(file_type)
 
   if (!is_image && !HTML_THUMBNAILS.includes(file_type)) return [null, iconURL, true]
-  return [`/api/method/drive.api.files.get_thumbnail?entity_name=${name}`, iconURL, is_image]
+  return [`/api/method/suite.drive.api.files.get_thumbnail?entity_name=${name}`, iconURL, is_image]
 }

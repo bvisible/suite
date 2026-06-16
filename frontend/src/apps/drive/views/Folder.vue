@@ -29,7 +29,7 @@ store.commit('setCurrentFolder', { name: props.entityName })
 
 const getFolderContents = createResource({
   ...COMMON_OPTIONS,
-  url: 'drive.api.list.files',
+  url: 'suite.drive.api.list.files',
   makeParams: (params) => ({
     ...params,
     entity_name: props.entityName,
@@ -47,7 +47,7 @@ const onSuccess = (entity) => {
 
 const e = computed(() => props.entityName)
 const currentFolder = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
+  url: 'suite.drive.api.permissions.get_entity_with_permissions',
   transform(entity) {
     return prettyData([entity])[0]
   },

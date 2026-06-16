@@ -429,7 +429,7 @@ const onMailUpdateSuccess = ({
 // Resources
 
 const createMail = createResource({
-	url: 'mail.api.mail.create_mail',
+	url: 'suite.mail.api.mail.create_mail',
 	makeParams: ({ save_as_draft }: { save_as_draft: boolean }) => ({
 		account,
 		...mail,
@@ -442,7 +442,7 @@ const createMail = createResource({
 })
 
 const updateDraft = createResource({
-	url: 'mail.api.mail.update_draft_mail',
+	url: 'suite.mail.api.mail.update_draft_mail',
 	makeParams: ({ submit }: { submit: boolean }) => ({
 		account,
 		...mail,
@@ -455,7 +455,7 @@ const updateDraft = createResource({
 })
 
 const deleteMail = createResource({
-	url: 'mail.api.mail.delete_mail',
+	url: 'suite.mail.api.mail.delete_mail',
 	makeParams: () => ({ account, id: mail.id }),
 	onSuccess: () => {
 		reloadMails()
@@ -562,7 +562,7 @@ const uploadFunction = async (file: File) => {
 	return fileUpload.upload(file, {
 		private: true,
 		folder: 'Home/Frappe Mail',
-		upload_endpoint: '/api/method/mail.api.mail.upload_file',
+		upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
 	})
 }
 
@@ -672,7 +672,7 @@ const uploadFile = async (file: File) => {
 	const doc = (await fileUpload.upload(file, {
 		private: true,
 		folder: 'Home/Frappe Mail',
-		upload_endpoint: '/api/method/mail.api.mail.upload_file',
+		upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
 	})) as FileDoc
 
 	attachDoc(doc)

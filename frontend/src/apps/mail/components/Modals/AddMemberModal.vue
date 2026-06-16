@@ -134,7 +134,7 @@ watch(show, () => {
 })
 
 const addMember = createResource({
-	url: 'mail.api.admin.add_member',
+	url: 'suite.mail.api.admin.add_member',
 	makeParams: () => ({
 		...accountRequest,
 		is_admin: accountRequest.role === 'admin',

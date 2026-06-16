@@ -79,7 +79,7 @@ const props = defineProps({ entity: Object })
 const entity = computed(() => props.entity)
 
 const activityLog = createResource({
-  url: 'drive.api.activity.get_entity_activity_log',
+  url: 'suite.drive.api.activity.get_entity_activity_log',
   params: { entity_name: entity.value.name },
   onSuccess: groupAndTransform,
 })

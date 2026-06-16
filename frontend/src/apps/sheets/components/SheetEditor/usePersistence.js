@@ -16,7 +16,7 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
   async function loadSheet(name) {
     loadError.value = null
     try {
-      const doc    = await call('sheets.api.get_sheet', { name })
+      const doc    = await call('suite.sheets.api.get_sheet', { name })
       const saved  = JSON.parse(doc.sheets_data || '{}')
       if (saved.formats)    formats.restore(saved.formats)
       sheet.restore(saved.sheet ?? { sheets: { Sheet1: {} }, current: 'Sheet1' })
@@ -127,7 +127,7 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
           await new Promise(r => setTimeout(r, backoffMs[attempt]))
         }
         try {
-          const result = await call('sheets.api.save_sheet', args, { keepalive })
+          const result = await call('suite.sheets.api.save_sheet', args, { keepalive })
           currentTitle.value = title
           // First success clears any sticky error from a previous failure.
           saveError.value = ''

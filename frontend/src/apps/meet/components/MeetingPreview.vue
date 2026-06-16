@@ -191,7 +191,7 @@ onMounted(() => {
 const guestNameInputRef = ref<VideoElement | null>(null);
 
 const joinGuestAPI = createResource({
-	url: "meet.api.meeting.join_meeting_as_guest",
+	url: "suite.meet.api.meeting.join_meeting_as_guest",
 	makeParams: () => {
 		return {
 			meeting_id: props.meetingId,

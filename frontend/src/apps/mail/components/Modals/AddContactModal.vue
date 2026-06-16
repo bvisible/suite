@@ -72,7 +72,7 @@ const defaultContact = {
 const contact = reactive({ ...defaultContact })
 
 const createContact = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.add_contact_card',
+	url: 'suite.client.doctype.contact_card.contact_card.add_contact_card',
 	makeParams: () => contact,
 	onSuccess: (data: string) => {
 		raiseToast(__('Contact created.'))

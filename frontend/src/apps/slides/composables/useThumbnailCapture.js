@@ -78,7 +78,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 	}
 
 	const upload = (base64Data) => {
-		return call('slides.slides.doctype.presentation.presentation.save_presentation_thumbnail', {
+		return call('suite.slides.doctype.presentation.presentation.save_presentation_thumbnail', {
 			presentation_name: presentationName(),
 			base64_data: base64Data,
 		})

@@ -64,7 +64,7 @@ const password = ref('')
 const errorMessage = ref('')
 
 const getAccountRequest = createResource({
-	url: 'mail.api.account.get_account_request',
+	url: 'suite.mail.api.account.get_account_request',
 	makeParams: () => ({ request_key: requestKey }),
 	onSuccess: (data) => {
 		if ((data?.backup_email || data?.account) && !data?.is_verified && !data?.is_expired)
@@ -74,7 +74,7 @@ const getAccountRequest = createResource({
 })
 
 const createAccount = createResource({
-	url: 'mail.api.account.create_account',
+	url: 'suite.mail.api.account.create_account',
 	makeParams: () => ({
 		request_key: requestKey,
 		first_name: firstName.value,

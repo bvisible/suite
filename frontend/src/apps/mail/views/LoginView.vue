@@ -41,5 +41,5 @@ const { login } = sessionStore()
 const usr = ref('')
 const pwd = ref('')
 
-const signupSettings = createResource({ url: 'mail.api.get_signup_settings', auto: true })
+const signupSettings = createResource({ url: 'suite.mail.api.get_signup_settings', auto: true })
 </script>

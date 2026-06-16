@@ -84,7 +84,7 @@ const handleSave = () => {
 const original = reactive({})
 
 const vacationResponse = createResource({
-	url: 'mail.client.doctype.vacation_response.vacation_response.get_vacation_response',
+	url: 'suite.client.doctype.vacation_response.vacation_response.get_vacation_response',
 	makeParams: () => ({ account: store.account }),
 	auto: true,
 	transform: (doc: VacationResponse) => {
@@ -97,7 +97,7 @@ const vacationResponse = createResource({
 })
 
 const updateVacationResponse = createResource({
-	url: 'mail.client.doctype.vacation_response.vacation_response.update_vacation_response',
+	url: 'suite.client.doctype.vacation_response.vacation_response.update_vacation_response',
 	makeParams: () => ({
 		account: store.account,
 		enabled: vacationResponse.data.enabled,

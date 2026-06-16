@@ -90,7 +90,7 @@ const enablePushNotifications = async () => {
 }
 
 const isPushNotificationRelayEnabled = createResource({
-	url: 'mail.api.account.is_push_notification_relay_enabled',
+	url: 'suite.mail.api.account.is_push_notification_relay_enabled',
 	cache: 'mail:push_notifications_enabled',
 	auto: true,
 })

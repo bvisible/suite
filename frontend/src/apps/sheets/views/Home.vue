@@ -403,7 +403,7 @@ onMounted(fetchSheets)
 async function fetchSheets() {
   loading.value = true
   try {
-    sheets.value = await call('sheets.api.list_sheets')
+    sheets.value = await call('suite.sheets.api.list_sheets')
   } finally {
     loading.value = false
   }
@@ -429,7 +429,7 @@ async function doDelete() {
   if (!deleteTarget.value) return
   deleting.value = true
   try {
-    await call('sheets.api.delete_sheet', { name: deleteTarget.value.name })
+    await call('suite.sheets.api.delete_sheet', { name: deleteTarget.value.name })
     sheets.value = sheets.value.filter(s => s.name !== deleteTarget.value.name)
     showDeleteDialog.value = false
   } catch (err) {
@@ -452,7 +452,7 @@ async function confirmRename() {
   if (!target || !title) return
   renaming.value = true
   try {
-    await call('sheets.api.rename_sheet', { name: target.name, title })
+    await call('suite.sheets.api.rename_sheet', { name: target.name, title })
     const found = sheets.value.find(s => s.name === target.name)
     if (found) found.title = title
     showRenameDialog.value = false
@@ -463,7 +463,7 @@ async function confirmRename() {
 
 async function duplicate(sheet) {
   try {
-    await call('sheets.api.duplicate_sheet', { name: sheet.name })
+    await call('suite.sheets.api.duplicate_sheet', { name: sheet.name })
     // Refresh the listing so the new doc shows up with its modified timestamp.
     await fetchSheets()
   } catch (err) {

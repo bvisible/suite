@@ -844,7 +844,7 @@ const syncDisplayedPage = () => {
 }
 
 const searchResults = createResource({
-	url: 'mail.api.mail.search_mails',
+	url: 'suite.mail.api.mail.search_mails',
 	makeParams: () => ({
 		account: store.account,
 		filter: route.query,
@@ -881,7 +881,7 @@ const filter = ref<string | null>(
 const isMailboxLoaded = ref(false)
 
 const threads = createResource({
-	url: 'mail.api.mail.get_threads',
+	url: 'suite.mail.api.mail.get_threads',
 	makeParams: () => ({
 		account: store.account,
 		mailbox,
@@ -1148,7 +1148,7 @@ const {
 const showEmptyMailbox = ref(false)
 
 const emptyMailbox = createResource({
-	url: 'mail.api.mail.empty_user_mailbox',
+	url: 'suite.mail.api.mail.empty_user_mailbox',
 	makeParams: () => ({ account: store.account, mailbox }),
 	onSuccess: () => {
 		threadsResource.value.data = []

@@ -114,11 +114,11 @@ const onSuccess = async (entity) => {
 }
 
 const trackVisit = createResource({
-  url: 'drive.api.files.track_visit',
+  url: 'suite.drive.api.files.track_visit',
 })
 
 const file = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
+  url: 'suite.drive.api.permissions.get_entity_with_permissions',
   params: { entity_name: props.entityName },
   transform(entity) {
     store.commit('setActiveEntity', entity)

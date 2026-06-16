@@ -541,7 +541,7 @@ async function uploadImage(file, params) {
   const uploader = useFileUpload()
   const upload = uploader.upload(file, {
     params,
-    upload_endpoint: '/api/method/drive.api.files.upload_file',
+    upload_endpoint: '/api/method/suite.drive.api.files.upload_file',
   })
   let entity = await new Promise((resolve) => {
     upload.then((data) => {

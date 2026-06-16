@@ -107,7 +107,7 @@ const user = reactive({
 })
 
 createResource({
-	url: 'mail.api.get_signup_settings',
+	url: 'suite.mail.api.get_signup_settings',
 	auto: true,
 	onSuccess: (data) => {
 		if (!Number(data.allow_signup)) {
@@ -117,13 +117,13 @@ createResource({
 })
 
 const signupDomains = createResource({
-	url: 'mail.api.get_signup_domains',
+	url: 'suite.mail.api.get_signup_domains',
 	auto: true,
 	onSuccess: (data) => (user.domain = data[0]),
 })
 
 const validateUsername = createResource({
-	url: 'mail.api.account.validate_email_assigned',
+	url: 'suite.mail.api.account.validate_email_assigned',
 	makeParams: () => ({ email: `${user.username}@${user.domain}` }),
 	onSuccess: () => {
 		usernameVerified.value = true
@@ -132,7 +132,7 @@ const validateUsername = createResource({
 })
 
 const signup = createResource({
-	url: 'mail.api.account.signup',
+	url: 'suite.mail.api.account.signup',
 	makeParams: () => ({ ...user }),
 	onSuccess: () => login.submit({ usr: `${user.username}@${user.domain}`, pwd: user.password }),
 })

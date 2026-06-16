@@ -641,7 +641,7 @@ onMounted(async () => {
 	if (!session.isLoggedIn) {
 		try {
 			const accessData = await frappeRequest({
-				url: "meet.api.meeting.check_meeting_access",
+				url: "suite.meet.api.meeting.check_meeting_access",
 				params: {
 					meeting_id: meetingId.value,
 				},

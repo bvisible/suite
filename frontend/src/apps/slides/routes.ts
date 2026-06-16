@@ -81,7 +81,7 @@ let currentEditorAccess = 'none'
 const getEditorAccess = async (presentationId: string) => {
   try {
     const response = await createResource({
-      url: 'slides.slides.doctype.presentation.presentation.get_editor_access',
+      url: 'suite.slides.doctype.presentation.presentation.get_editor_access',
       method: 'GET',
     }).submit({
       doctype: 'Presentation',

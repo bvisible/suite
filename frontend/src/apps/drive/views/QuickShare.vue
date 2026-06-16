@@ -67,7 +67,7 @@ const transform = (data) => {
 }
 
 const transfers = createResource({
-  url: "drive.api.list.get_transfers",
+  url: "suite.drive.api.list.get_transfers",
   auto: true,
   transform,
 })

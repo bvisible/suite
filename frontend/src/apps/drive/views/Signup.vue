@@ -202,7 +202,7 @@ const getReferrerIfAny = () => {
 }
 
 const signup = createResource({
-  url: "drive.api.product.signup",
+  url: "suite.drive.api.product.signup",
   makeParams: () => ({
     account_request: account_request.value,
     first_name: first_name.value,
@@ -226,7 +226,7 @@ const signup = createResource({
 })
 
 const sendOTP = createResource({
-  url: "drive.api.product.send_otp",
+  url: "suite.drive.api.product.send_otp",
   onSuccess(data) {
     otpRequested.value = true
     otpResendCountdown.value = 30
@@ -236,7 +236,7 @@ const sendOTP = createResource({
 })
 
 const verifyOTP = createResource({
-  url: "drive.api.product.verify_otp",
+  url: "suite.drive.api.product.verify_otp",
   onSuccess: () => {
     otpValidated.value = true
     settings.fetch()

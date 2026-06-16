@@ -460,7 +460,7 @@ async function uploadImage(file, params) {
   const uploader = useFileUpload()
   const upload = uploader.upload(file, {
     params,
-    upload_endpoint: '/api/method//api/method/drive.api.files.upload_file',
+    upload_endpoint: '/api/method//api/method/suite.drive.api.files.upload_file',
   })
   let entity = await new Promise((resolve) => {
     upload.then((data) => {
@@ -667,7 +667,7 @@ export async function downloadMD(editor, foldername) {
   const zip = new JSZip()
   const urls = editor.value.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: 'writer.api.docs.get_extension',
+    url: 'suite.writer.api.docs.get_extension',
   })
   const parent = router.currentRoute.value.params.entityName
   const markdown = turndownService.turndown(html)
@@ -683,10 +683,10 @@ export async function downloadMD(editor, foldername) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
     const title = `${urls[i].title}.${ext}`
     html = html.replace(
-      `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+      `src="/api/method/suite.writer.api.embed.get?id=${urls[i].name}"`,
       `src="./${title}"`,
     )
-    const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+    const fileUrl = `/api/method/suite.writer.api.embed.get?id=${urls[i].name}`
     const blob = await (await fetch(fileUrl)).blob()
     zip.file(title, blob)
   }
@@ -707,17 +707,17 @@ export function downloadZippedHTML(editor, foldername, settings = {}) {
       zip.file(`${foldername}.html`, html)
       const urls = editor.value.commands.getEmbedUrls()
       const getExtension = createResource({
-        url: 'writer.api.docs.get_extension',
+        url: 'suite.writer.api.docs.get_extension',
       })
 
       for (const i in urls) {
         const ext = await getExtension.fetch({ entity_name: urls[i].name })
         const title = `${urls[i].title}.${ext}`
         html = html.replace(
-          `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+          `src="/api/method/suite.writer.api.embed.get?id=${urls[i].name}"`,
           `src="./${title}"`,
         )
-        const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+        const fileUrl = `/api/method/suite.writer.api.embed.get?id=${urls[i].name}`
         const blob = await (await fetch(fileUrl)).blob()
         zip.file(title, blob)
       }

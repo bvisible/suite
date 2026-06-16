@@ -34,7 +34,7 @@ export async function uploadDriveEntity(file, team, doc_name) {
       }
       const data = await response.json()
       // New method - pass only name without extension, check for permissions, and get the embed
-      return `/api/method/drive.api.embed.get_file_content?embed_name=${data.message.name}&parent_entity_name=${doc_name}`
+      return `/api/method/suite.drive.api.embed.get_file_content?embed_name=${data.message.name}&parent_entity_name=${doc_name}`
     }
 
     chunkByteOffset += chunkSize
@@ -70,7 +70,7 @@ async function uploadChunk(
   formData.append('personal', store.state.breadcrumbs[0].name == 'drive-Home' ? 1 : 0)
 
   formData.append('uuid', fileUuid)
-  const response = await fetch(window.location.origin + '/api/method/drive.api.files.upload_file', {
+  const response = await fetch(window.location.origin + '/api/method/suite.drive.api.files.upload_file', {
     method: 'POST',
     body: formData,
     headers: {

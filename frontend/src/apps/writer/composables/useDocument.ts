@@ -4,7 +4,7 @@ import { prettyData } from '@/apps/writer/ui/drive/js/utils'
 import { getDocuments } from '@/apps/writer/resources/'
 
 const trackVisit = createResource({
-  url: 'drive.api.files.track_visit',
+  url: 'suite.drive.api.files.track_visit',
   makeParams: (entity_name: string) => ({ entity_name }),
 })
 
@@ -15,7 +15,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
     doctype: 'File',
     name,
     url:
-      '/api/method/drive.api.permissions.get_entity_with_permissions?entity_name=' +
+      '/api/method/suite.drive.api.permissions.get_entity_with_permissions?entity_name=' +
       name,
     transform: (doc) => {
       return prettyData(doc)

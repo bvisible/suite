@@ -69,7 +69,7 @@ const dialogAction = ref('')
 const presentationList = ref([])
 
 const presentationListResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_presentations',
+	url: 'suite.slides.doctype.presentation.presentation.get_presentations',
 	method: 'GET',
 	auto: true,
 	cache: 'presentations',

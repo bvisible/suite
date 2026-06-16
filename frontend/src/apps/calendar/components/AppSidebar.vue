@@ -39,7 +39,7 @@ const subtitle = computed(() => {
 })
 
 const apps = createResource({
-	url: 'mail.api.get_permitted_apps',
+	url: 'suite.mail.api.get_permitted_apps',
 	cache: 'otherApps',
 	auto: true,
 	transform: (data) => data.filter((app) => app.name !== 'calendar_app'),

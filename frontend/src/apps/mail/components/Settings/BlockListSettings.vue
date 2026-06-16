@@ -68,7 +68,7 @@ const showUnblockModal = ref(false)
 const rows = computed(() => blockedAddresses.data.map((address: string) => ({ name: address })))
 
 const blockEmailAddress = createResource({
-	url: 'mail.api.mail.block_email_address',
+	url: 'suite.mail.api.mail.block_email_address',
 	makeParams: () => ({ account: store.account, email: email.value }),
 	onSuccess: () => {
 		raiseToast(__('Email address blocked.'))
@@ -78,7 +78,7 @@ const blockEmailAddress = createResource({
 })
 
 const unblockEmailAddresses = createResource({
-	url: 'mail.api.mail.unblock_email_addresses',
+	url: 'suite.mail.api.mail.unblock_email_addresses',
 	makeParams: () => ({
 		account: store.account,
 		emails: Array.from(listViewRef.value?.selections),

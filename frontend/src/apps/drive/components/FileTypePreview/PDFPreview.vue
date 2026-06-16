@@ -48,7 +48,7 @@ const props = defineProps({
   previewEntity: Object,
 })
 const src = computed(
-  () => `/api/method/drive.api.files.get_file_content?entity_name=${props.previewEntity.name}`
+  () => `/api/method/suite.drive.api.files.get_file_content?entity_name=${props.previewEntity.name}`
 )
 
 let page, pages, pdf, scale

@@ -74,7 +74,7 @@ const message = computed(() => {
 })
 
 const setScriptState = createResource({
-	url: 'mail.api.sieve.update_sieve_script',
+	url: 'suite.mail.api.sieve.update_sieve_script',
 	makeParams: () => ({ ...script, active: !script.active }),
 	onSuccess: () => {
 		raiseToast(

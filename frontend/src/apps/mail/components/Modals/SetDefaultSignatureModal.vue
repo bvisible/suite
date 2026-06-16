@@ -63,7 +63,7 @@ const addSignatureOptions = computed(() => ({
 }))
 
 const setSignature = createResource({
-	url: 'mail.api.account.set_signature',
+	url: 'suite.mail.api.account.set_signature',
 	makeParams: () => ({ identity: identity.value, signature }),
 	onSuccess: () => {
 		raiseToast(__('Identity updated.'))

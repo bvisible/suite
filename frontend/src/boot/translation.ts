@@ -13,7 +13,7 @@ import type { App } from 'vue'
  * This boot is intentionally endpoint-agnostic: `translate()` only looks up
  * `window.translatedMessages`. WHO populates that map is an app concern — an app
  * route module can fetch its own translations on load (e.g. mail/calendar's
- * `mail.api.get_translations`) and assign the result to `window.translatedMessages`.
+ * `suite.mail.api.get_translations`) and assign the result to `window.translatedMessages`.
  * Until then `translate()` is an identity function, so untranslated UI still
  * renders the source string.
  */

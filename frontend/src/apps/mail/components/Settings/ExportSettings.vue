@@ -131,7 +131,7 @@ const sortOptions = computed(() => [
 ])
 
 const createMailExport = createResource({
-	url: 'mail.api.account.create_mail_export',
+	url: 'suite.mail.api.account.create_mail_export',
 	makeParams: () => {
 		const cleanedFilter = Object.fromEntries(
 			Object.entries(filter)

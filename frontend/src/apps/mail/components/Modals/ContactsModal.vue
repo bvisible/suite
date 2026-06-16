@@ -82,7 +82,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contacts',
+	url: 'suite.mail.api.contacts.get_contacts',
 	auto: true,
 	makeParams: () => {
 		const filters = []

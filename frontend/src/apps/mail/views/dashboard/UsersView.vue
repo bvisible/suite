@@ -118,7 +118,7 @@ const listView = useTemplateRef<{
 }>('listView')
 
 const members = createResource({
-	url: 'mail.api.admin.get_members',
+	url: 'suite.mail.api.admin.get_members',
 	makeParams: () => {
 		const params: { search: string; is_admin?: boolean } = {
 			search: search.value,
@@ -169,7 +169,7 @@ const LIST_OPTIONS = {
 }
 
 const deleteMembers = createResource({
-	url: 'mail.api.admin.delete_members',
+	url: 'suite.mail.api.admin.delete_members',
 	makeParams: () => ({ names: Array.from(listView.value?.selections || []) }),
 	onSuccess: () => {
 		members.reload()

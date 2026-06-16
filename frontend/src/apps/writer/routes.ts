@@ -60,11 +60,11 @@ export default routes
 /* The suite installs ONE global translation plugin (foundation                */
 /* src/boot/translation.ts) so bare `__('text')` works everywhere. We only     */
 /* need to populate `window.translatedMessages`. The standalone app fetched     */
-/* translations via `drive.api.product.get_translations` — preserved as-is.    */
+/* translations via `suite.drive.api.product.get_translations` — preserved as-is.    */
 /* -------------------------------------------------------------------------- */
 
 const translations = createResource({
-  url: 'drive.api.product.get_translations',
+  url: 'suite.drive.api.product.get_translations',
   cache: 'translations',
   transform: (data) => (window.translatedMessages = data),
 })

@@ -100,7 +100,7 @@ export default routes
 /* -------------------------------------------------------------------------- */
 
 const translations = createResource({
-	url: 'mail.api.get_translations',
+	url: 'suite.mail.api.get_translations',
 	cache: 'translations',
 	transform: (data) => (window.translatedMessages = data),
 })

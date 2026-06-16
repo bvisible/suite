@@ -82,7 +82,7 @@ const search = ref('')
 const status = ref<'All' | 'Enabled' | 'Disabled'>('All')
 
 const domains = createResource({
-	url: 'mail.api.admin.get_domains',
+	url: 'suite.mail.api.admin.get_domains',
 	auto: true,
 	makeParams: () => ({
 		txt: search.value,

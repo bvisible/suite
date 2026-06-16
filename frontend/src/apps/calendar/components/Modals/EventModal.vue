@@ -242,7 +242,7 @@ const handleSuccess = () => {
 }
 
 const createEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.add_calendar_event',
+	url: 'suite.client.doctype.calendar_event.calendar_event.add_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.account,
 		...eventParams.value,
@@ -252,7 +252,7 @@ const createEvent = createResource({
 })
 
 const editEventInstance = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.account,
 		master_id: selectedEvent.calendarEvent.master_id,
@@ -264,7 +264,7 @@ const editEventInstance = createResource({
 })
 
 const editEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.account,
 		id: selectedEvent.calendarEvent.master_id,
@@ -344,7 +344,7 @@ const addAlertOptions = computed(() => [
 // --- Contacts search ---
 
 const mailContacts = createResource({
-	url: 'mail.api.contacts.get_contacts',
+	url: 'suite.mail.api.contacts.get_contacts',
 	makeParams: (text: string) => ({
 		account: store.account,
 		filter: { operator: 'OR', conditions: [{ text }, { email: text }] },

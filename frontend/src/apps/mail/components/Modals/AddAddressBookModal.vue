@@ -59,7 +59,7 @@ const defaultAddressBook = {
 const addressBook = reactive({ ...defaultAddressBook })
 
 const createAddressBook = createResource({
-	url: 'mail.client.doctype.address_book.address_book.add_address_book',
+	url: 'suite.client.doctype.address_book.address_book.add_address_book',
 	makeParams: () => addressBook,
 	onSuccess: (data: string) => {
 		raiseToast(__('Address book created.'))

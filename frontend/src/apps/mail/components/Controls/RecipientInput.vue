@@ -213,7 +213,7 @@ const handleDrop = (e: DragEvent) => {
 }
 
 const mailContacts = createResource({
-	url: 'mail.api.contacts.get_contacts',
+	url: 'suite.mail.api.contacts.get_contacts',
 	auto: false,
 	makeParams: (text: string) => ({
 		account: store.account,

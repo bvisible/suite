@@ -38,7 +38,7 @@ export function useMeetingPreviewPresence(meetingId: string) {
 	};
 
 	const fetchPresenceToken = createResource({
-		url: "meet.api.meeting.get_sfu_presence_preview_token",
+		url: "suite.meet.api.meeting.get_sfu_presence_preview_token",
 		params: { meeting_id: meetingId },
 		auto: false,
 		onSuccess(data: PresenceTokenResponse) {

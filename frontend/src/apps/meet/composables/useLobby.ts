@@ -17,7 +17,7 @@ export function useLobby(deps: {
 	const approveUser = async (userId: string) => {
 		try {
 			await frappeRequest({
-				url: "meet.api.meeting.approve_join_request",
+				url: "suite.meet.api.meeting.approve_join_request",
 				params: {
 					meeting_id: meetingId,
 					user_id: userId,
@@ -34,7 +34,7 @@ export function useLobby(deps: {
 	const approveAllUsers = async () => {
 		try {
 			await frappeRequest({
-				url: "meet.api.meeting.approve_all_join_requests",
+				url: "suite.meet.api.meeting.approve_all_join_requests",
 				params: {
 					meeting_id: meetingId,
 				},
@@ -50,7 +50,7 @@ export function useLobby(deps: {
 	const rejectUser = async (userId: string) => {
 		try {
 			await frappeRequest({
-				url: "meet.api.meeting.reject_join_request",
+				url: "suite.meet.api.meeting.reject_join_request",
 				params: {
 					meeting_id: meetingId,
 					user_id: userId,

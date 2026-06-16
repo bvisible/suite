@@ -227,7 +227,7 @@ const showVersions = defineModel('showVersions')
 
 const file = inject('file')
 const versions = createResource({
-  url: 'writer.api.general.get_versions',
+  url: 'suite.writer.api.general.get_versions',
   params: { id: file.doc.name },
   cache: ['versions', file.doc?.name],
   initialData: [],

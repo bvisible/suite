@@ -359,7 +359,7 @@ const createPresentation = async (theme) => {
 
 	if (isDriveInstalled) {
 		const parent = route.query.parent || ''
-		call('slides.api.file.create_drive_file', {
+		call('suite.slides.api.file.create_drive_file', {
 			name: name,
 			parent: parent,
 		})

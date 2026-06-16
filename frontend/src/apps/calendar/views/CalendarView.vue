@@ -117,7 +117,7 @@ const getEventRole = (event) => {
 }
 
 const calendars = createResource({
-	url: 'calendar_app.api.get_calendars',
+	url: 'suite.calendar.api.get_calendars',
 	makeParams: () => ({ account: store.account }),
 	auto: true,
 	onSuccess: (data) => (visibleCalendars.value = data.map((cal) => cal.name)),
@@ -127,7 +127,7 @@ const calendars = createResource({
 const visibleCalendars = ref<string[]>([])
 
 const events = createResource({
-	url: 'calendar_app.api.get_calendar_events',
+	url: 'suite.calendar.api.get_calendar_events',
 	makeParams: () => {
 		const date = dayjs()
 			.year(calendarRef.value?.currentYear)
@@ -215,7 +215,7 @@ const submitEvent = (sendEmail: boolean) => {
 }
 
 const editEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		...eventToBeUpdated,
 		id: eventToBeUpdated.master_id,

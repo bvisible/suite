@@ -34,7 +34,7 @@ const { isCollapsed } = defineProps<{ isCollapsed: boolean }>()
 const store = userStore()
 
 const quota = createResource({
-	url: 'mail.api.account.get_quota',
+	url: 'suite.mail.api.account.get_quota',
 	auto: true,
 	makeParams: () => ({ account: store.account }),
 	cache: ['quota', store.account],

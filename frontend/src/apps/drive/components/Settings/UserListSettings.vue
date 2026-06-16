@@ -467,11 +467,11 @@ const tabIndex = ref(0)
 getTeams.fetch()
 getDiskSettings.fetch()
 const invites = createResource({
-  url: 'drive.api.product.get_team_invites',
+  url: 'suite.drive.api.product.get_team_invites',
 })
 
 const isAdmin = createResource({
-  url: 'drive.api.permissions.is_admin',
+  url: 'suite.drive.api.permissions.is_admin',
 })
 
 const team = ref(route.params.team || (getTeams.data ? Object.keys(getTeams.data)[0] : null))
@@ -511,10 +511,10 @@ watch(showEditTeam, (val) => {
   }
 })
 const editTeam = createResource({
-  url: 'drive.api.product.edit_team',
+  url: 'suite.drive.api.product.edit_team',
 })
 const leaveTeam = createResource({
-  url: 'drive.api.product.leave_team',
+  url: 'suite.drive.api.product.leave_team',
   onSuccess: () => {
     getTeams.fetch(null, {
       onSuccess: () => {
@@ -589,7 +589,7 @@ function extractEmails() {
 }
 
 const inviteUsers = createResource({
-  url: 'drive.api.product.invite_users',
+  url: 'suite.drive.api.product.invite_users',
   onSuccess: () => {
     invites.fetch()
     toast('Invite sent!')
@@ -600,10 +600,10 @@ getInvites.fetch()
 const invite = computed(() => (getInvites.data?.length ? getInvites.data[0] : null))
 
 const removeUser = createResource({
-  url: 'drive.api.product.remove_user',
+  url: 'suite.drive.api.product.remove_user',
 })
 
 const updateUserAccess = createResource({
-  url: 'drive.api.product.set_user_access',
+  url: 'suite.drive.api.product.set_user_access',
 })
 </script>

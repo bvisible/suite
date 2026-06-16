@@ -92,7 +92,7 @@ getTeams.fetch()
 apps.fetch()
 
 const teamExists = createResource({
-  url: 'drive.utils.get_default_team',
+  url: 'suite.drive.utils.get_default_team',
   auto: true,
   onSuccess: (d) => !d && router.replace({ name: 'drive-Setup' }),
 })

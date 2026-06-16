@@ -7,7 +7,7 @@ import editorStyle from '@/apps/writer/styles/editor.css?inline'
 import globalStyle from '@/apps/writer/styles/index.css?inline'
 
 async function getPdfFromDoc(entity_name, settings = {}) {
-  const res = await fetch(`/api/method/drive.api.files.get_file_content?entity_name=${entity_name}`)
+  const res = await fetch(`/api/method/suite.drive.api.files.get_file_content?entity_name=${entity_name}`)
   const raw_html = (await res.json()).message
   const applyWatermark = settings?.apply_watermark || false
   const watermark = {
@@ -58,7 +58,7 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
         return emitter.emit('print-file')
       }
       return fetch(
-        `/api/method/drive.api.files.get_file_content?entity_name=${entities[0].name}`,
+        `/api/method/suite.drive.api.files.get_file_content?entity_name=${entities[0].name}`,
       ).then(async (data) => {
         const raw_html = (await data.json()).message
         printDoc(raw_html, settings)
@@ -66,7 +66,7 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
     }
     return entities[0].is_folder
       ? folderDownload(team, entities[0])
-      : (window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${
+      : (window.location.href = `/api/method/suite.drive.api.files.get_file_content?entity_name=${
           entities[0].name
         }&trigger_download=1${transfer ? '&transfer=1' : ''}`)
   }
@@ -170,7 +170,7 @@ function temp(team, entity_name, parentZip) {
 function get_file_content(entity) {
   const fileUrl =
     entity.src ||
-    '/api/method/' + `/api/method/drive.api.files.get_file_content?entity_name=${entity.name}`
+    '/api/method/' + `/api/method/suite.drive.api.files.get_file_content?entity_name=${entity.name}`
 
   return fetch(fileUrl).then((response) => {
     if (response.ok) {
@@ -185,7 +185,7 @@ function get_file_content(entity) {
 
 function get_children(team, entity_name) {
   const url =
-    '/api/method/' + `/api/method/drive.api.list.files?team=${team}&entity_name=${entity_name}`
+    '/api/method/' + `/api/method/suite.drive.api.list.files?team=${team}&entity_name=${entity_name}`
   return fetch(url, {
     method: 'GET',
     headers: {

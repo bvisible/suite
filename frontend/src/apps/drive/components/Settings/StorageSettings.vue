@@ -124,7 +124,7 @@ const spaceLimit = ref(0)
 const route = useRoute()
 
 const storageBreakdown = createResource({
-  url: 'drive.api.storage.storage_breakdown',
+  url: 'suite.drive.api.storage.storage_breakdown',
   makeParams: (p) => p,
   onSuccess(data) {
     const res = {}

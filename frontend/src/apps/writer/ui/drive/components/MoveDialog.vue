@@ -288,7 +288,7 @@ const tabs = [
 ]
 
 const folderContents = createResource({
-  url: 'drive.api.list.files',
+  url: 'suite.drive.api.list.files',
   makeParams: (params) => ({
     ...params,
     team: chosenTeam.value,
@@ -322,7 +322,7 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
 }
 
 const selectedPerms = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
+  url: 'suite.drive.api.permissions.get_entity_with_permissions',
   makeParams: () => ({
     entity_name: selected.value,
   }),
@@ -392,7 +392,7 @@ const dropDownBreadcrumbs = computed(() => {
 // New folder logic
 const createdNode = ref(null)
 const createFolder = createResource({
-  url: 'drive.api.files.create_folder',
+  url: 'suite.drive.api.files.create_folder',
   makeParams(params) {
     return {
       ...params,

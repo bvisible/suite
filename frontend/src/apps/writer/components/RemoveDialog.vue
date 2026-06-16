@@ -37,7 +37,7 @@ const dialogData = computed(() => {
       message: `will be restored to ${
         props.entities.length === 1 ? 'its original location' : 'their original locations'
       }.`,
-      url: 'drive.api.files.remove_or_restore',
+      url: 'suite.drive.api.files.remove_or_restore',
       button: {
         variant: 'solid',
         label: 'Restore',
@@ -49,7 +49,7 @@ const dialogData = computed(() => {
       title: `Move ${itemString} to Trash`,
       message:
         'will be moved to Trash.<br/><br/> Items in trash are deleted forever after 30 days.',
-      url: 'drive.api.files.remove_or_restore',
+      url: 'suite.drive.api.files.remove_or_restore',
       button: {
         label: 'Move to Trash',
         theme: 'red',

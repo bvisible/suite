@@ -251,7 +251,7 @@ const generalPerms = ref('reader')
 const chosenTeam = ref()
 
 const getGeneralAccess = createResource({
-  url: 'drive.api.permissions.get_user_access',
+  url: 'suite.drive.api.permissions.get_user_access',
   makeParams: (params) => ({
     ...params,
     entity: props.entity.name,

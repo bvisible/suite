@@ -74,7 +74,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contact_cards',
+	url: 'suite.mail.api.contacts.get_contact_cards',
 	auto: true,
 	makeParams: () => ({
 		account: store.account,
@@ -114,7 +114,7 @@ const loadMoreContacts = useDebounceFn((e) => {
 }, 500)
 
 const deleteContacts = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.delete_contact_cards',
+	url: 'suite.client.doctype.contact_card.contact_card.delete_contact_cards',
 	makeParams: () => ({ account: store.account, ids: Array.from(listView.value?.selections) }),
 	onSuccess: () => {
 		contacts.reload()

@@ -223,7 +223,7 @@ const mailboxOptions = computed(() =>
 )
 
 const results = createResource({
-	url: 'mail.api.mail.search_mails',
+	url: 'suite.mail.api.mail.search_mails',
 	makeParams: () => ({ account, filter: filteredFilter.value }),
 })
 

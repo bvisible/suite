@@ -59,7 +59,7 @@ const file_name = ref('')
 const link = ref(localStorage.getItem('prevClip') || '')
 
 const createLink = createResource({
-  url: 'drive.api.files.create_link',
+  url: 'suite.drive.api.files.create_link',
   makeParams: () => ({
     file_name: file_name.value.trim(),
     link: link.value.trim(),

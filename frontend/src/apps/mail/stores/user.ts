@@ -46,7 +46,7 @@ export const userStore = defineStore('mail-user', () => {
 	}
 
 	const userResource: UserResource = createResource({
-		url: 'mail.api.account.get_user_info',
+		url: 'suite.mail.api.account.get_user_info',
 		onSuccess: (data) => {
 			if (data?.is_mail_admin) domains.fetch()
 			resolveAccount(data?.accounts)
@@ -63,7 +63,7 @@ export const userStore = defineStore('mail-user', () => {
 	)
 
 	const mailboxes = createResource({
-		url: 'mail.api.mail.get_mailboxes',
+		url: 'suite.mail.api.mail.get_mailboxes',
 		makeParams: () => ({ account: account.value }),
 		cache: ['mailboxes', accountId.value],
 	})
@@ -85,30 +85,30 @@ export const userStore = defineStore('mail-user', () => {
 	})
 
 	const addressBooks = createResource({
-		url: 'mail.api.contacts.get_address_books',
+		url: 'suite.mail.api.contacts.get_address_books',
 		makeParams: () => ({ account: account.value }),
 		cache: ['addressBooks', accountId.value],
 	})
 
 	const identities = createResource({
-		url: 'mail.api.account.get_identities',
+		url: 'suite.mail.api.account.get_identities',
 		makeParams: () => ({ account: account.value }),
 		cache: ['identities', accountId.value],
 	})
 
 	const blockedAddresses = createResource({
-		url: 'mail.api.mail.get_blocked_addresses',
+		url: 'suite.mail.api.mail.get_blocked_addresses',
 		makeParams: () => ({ account: account.value }),
 		cache: ['blockedAddresses', accountId.value],
 	})
 
 	const sieveScripts = createResource({
-		url: 'mail.api.sieve.get_sieve_scripts',
+		url: 'suite.mail.api.sieve.get_sieve_scripts',
 		makeParams: () => ({ account: account.value }),
 		cache: ['sieveScripts', accountId.value],
 	})
 
-	const domains = createResource({ url: 'mail.api.admin.get_enabled_domains' })
+	const domains = createResource({ url: 'suite.mail.api.admin.get_enabled_domains' })
 
 	return {
 		accountId,

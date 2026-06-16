@@ -457,7 +457,7 @@ const goToMailbox = () => router.push({ name: 'mail-mailbox', params: { mailbox 
 const thread = ref<Mail[]>([])
 
 const threadFallback = createResource({
-	url: 'mail.api.mail.get_thread',
+	url: 'suite.mail.api.mail.get_thread',
 	makeParams: () => ({ account: store.account, thread_id: threadID }),
 	onSuccess: (mails: Mail[]) => {
 		// Thread no longer exists (e.g. deleted) — bail to the mailbox instead of a blank page.
@@ -640,7 +640,7 @@ watch(
 onMounted(() => loadThread())
 
 const unblockEmailAddress = createResource({
-	url: 'mail.api.mail.unblock_email_addresses',
+	url: 'suite.mail.api.mail.unblock_email_addresses',
 	makeParams: (email) => ({ account: store.account, emails: [email] }),
 	onSuccess: () => {
 		raiseToast(__('Email address unblocked.'))

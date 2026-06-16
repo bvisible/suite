@@ -113,7 +113,7 @@ const open = defineModel()
 const searchResults = createResource({
   auto: false,
   method: 'POST',
-  url: 'drive.api.files.search',
+  url: 'suite.drive.api.files.search',
 })
 
 watch(search, (val) => {

@@ -65,7 +65,7 @@ interface Mime {
 }
 
 const mime = createResource({
-	url: 'mail.api.mail.get_mime_message',
+	url: 'suite.mail.api.mail.get_mime_message',
 	auto: true,
 	makeParams: () => ({ name: route.params.id }),
 	transform: (data: Mime) => {

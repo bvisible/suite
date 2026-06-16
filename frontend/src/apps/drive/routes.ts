@@ -134,7 +134,7 @@ export const routes: RouteRecordRaw[] = [
         meta: { isPublic: true },
         beforeEnter: async (to) => {
           const entity = createResource({
-            url: '/api/method/drive.api.files.get_entity_type',
+            url: '/api/method/suite.drive.api.files.get_entity_type',
             method: 'GET',
             params: {
               entity_name: to.params.entityName,
@@ -256,7 +256,7 @@ setupTheme()
 // The suite installs ONE global translation plugin so bare `__()` works. We
 // only need to populate `window.translatedMessages`. Backend path preserved.
 const translations = createResource({
-  url: 'drive.api.product.get_translations',
+  url: 'suite.drive.api.product.get_translations',
   cache: 'translations',
   transform: (data: unknown) => ((window as any).translatedMessages = data),
 })

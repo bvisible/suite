@@ -90,7 +90,7 @@ const isNotDirty = computed(
 )
 
 const createScript = createResource({
-	url: 'mail.api.sieve.create_sieve_script',
+	url: 'suite.mail.api.sieve.create_sieve_script',
 	makeParams: () => ({ account: store.account, ...script }),
 	onSuccess: () => {
 		raiseToast(__('Sieve script created.'))
@@ -101,7 +101,7 @@ const createScript = createResource({
 })
 
 const updateScript = createResource({
-	url: 'mail.api.sieve.update_sieve_script',
+	url: 'suite.mail.api.sieve.update_sieve_script',
 	makeParams: () => ({ account: store.account, id: selectedScript!.id, ...script }),
 	onSuccess: () => {
 		raiseToast(__('Sieve script updated.'))

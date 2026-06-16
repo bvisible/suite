@@ -310,7 +310,7 @@ const addTextElement = async (text, position) => {
 }
 
 const savePoster = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.save_base64_image',
+	url: 'suite.slides.doctype.presentation.presentation.save_base64_image',
 	makeParams: (posterDataUrl) => ({
 		presentation_name: presentationId.value,
 		base64_data: posterDataUrl,

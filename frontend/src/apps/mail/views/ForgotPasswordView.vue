@@ -40,7 +40,7 @@ const email = ref('')
 const user = ref('')
 
 const sendResetLink = createResource({
-	url: 'mail.api.account.send_reset_password_link',
+	url: 'suite.mail.api.account.send_reset_password_link',
 	onSuccess: (data: string) => (user.value = data),
 })
 </script>

@@ -234,7 +234,7 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 	const handlePromoteToCohost = async (participantId: string) => {
 		try {
 			const response = await frappeRequest({
-				url: "meet.api.meeting.promote_to_cohost",
+				url: "suite.meet.api.meeting.promote_to_cohost",
 				params: {
 					meeting_id: deps.meetingId,
 					user_id: participantId,

@@ -151,7 +151,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contact_cards',
+	url: 'suite.mail.api.contacts.get_contact_cards',
 	auto: true,
 	makeParams: () => ({
 		account: store.account,
@@ -173,7 +173,7 @@ const contacts = createResource({
 })
 
 const totalContacts = createResource({
-	url: 'mail.api.contacts.get_address_book_contact_count',
+	url: 'suite.mail.api.contacts.get_address_book_contact_count',
 	auto: true,
 	makeParams: () => ({ account: store.account, address_book: addressBookName }),
 	cache: ['addressBookContactCount', addressBookName],
@@ -203,7 +203,7 @@ const breadcrumbs = computed(() => [
 ])
 
 const deleteAddressBook = createResource({
-	url: 'mail.client.doctype.address_book.address_book.delete_address_books',
+	url: 'suite.client.doctype.address_book.address_book.delete_address_books',
 	makeParams: () => ({ account: store.account, ids: [addressBookName] }),
 	onSuccess: () => {
 		showDeleteAddressBook.value = false
@@ -220,7 +220,7 @@ const deleteAddressBook = createResource({
 const listView = useTemplateRef('listView')
 
 const addContacts = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.contact_card_add_to_address_book',
+	url: 'suite.client.doctype.contact_card.contact_card.contact_card_add_to_address_book',
 	makeParams: (ids) => ({ account: store.account, ids, address_book_id: addressBookName }),
 	onSuccess: () => {
 		raiseToast(__('Contacts added.'))
@@ -231,7 +231,7 @@ const addContacts = createResource({
 })
 
 const removeContacts = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.contact_card_remove_from_address_book',
+	url: 'suite.client.doctype.contact_card.contact_card.contact_card_remove_from_address_book',
 	makeParams: () => ({
 		account: store.account,
 		ids: Array.from(listView.value?.selections),

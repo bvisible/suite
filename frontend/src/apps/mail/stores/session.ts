@@ -45,7 +45,7 @@ export const sessionStore = defineStore('mail-session', () => {
 	})
 
 	const branding = createResource({
-		url: 'mail.api.get_branding',
+		url: 'suite.mail.api.get_branding',
 		cache: 'brand',
 		auto: true,
 		onSuccess: (data) => (document.querySelector("link[rel='icon']").href = data.favicon),
