@@ -1,0 +1,58 @@
+<template>
+  <GenericPage
+    :verify="currentFolder"
+    :get-entities="getFolderContents"
+    :empty="{
+      icon: LucideFolderClosed,
+      title: 'Nothing here',
+      description: 'Add files to this folder.',
+    }"
+  />
+</template>
+
+<script setup>
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
+import { watch, computed } from 'vue'
+import store from '@/apps/drive/store'
+import { createResource } from 'frappe-ui'
+import { COMMON_OPTIONS } from '@/apps/drive/resources/files'
+import { setBreadCrumbs, prettyData, setCache, updateURLSlug } from '@/apps/drive/utils/files'
+import router from '@/apps/drive/router'
+import LucideFolderClosed from '~icons/lucide/folder-closed'
+
+
+const props = defineProps({
+  entityName: String,
+  slug: String,
+})
+store.commit('setCurrentFolder', { name: props.entityName })
+
+const getFolderContents = createResource({
+  ...COMMON_OPTIONS,
+  url: 'drive.api.list.files',
+  makeParams: (params) => ({
+    ...params,
+    entity_name: props.entityName,
+  }),
+  cache: ['folder', props.entityName],
+})
+setCache(getFolderContents, ['folder', props.entityName])
+
+const onSuccess = (entity) => {
+  if (router.currentRoute.value.params.entityName !== entity.name) return
+  document.title = 'Folder - ' + entity.file_name
+  setBreadCrumbs(entity)
+  updateURLSlug(entity.file_name)
+}
+
+const e = computed(() => props.entityName)
+const currentFolder = createResource({
+  url: 'drive.api.permissions.get_entity_with_permissions',
+  transform(entity) {
+    return prettyData([entity])[0]
+  },
+  onSuccess,
+})
+store.commit('setCurrentResource', currentFolder)
+watch(e, (v) => currentFolder.fetch({ entity_name: v }), { immediate: true })
+</script>
