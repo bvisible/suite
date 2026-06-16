@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2025-11-11 11:00:06.375307",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "content",
+  "html",
+  "settings",
+  "updates",
+  "ycomments",
+  "versions",
+  "collab"
+ ],
+ "fields": [
+  {
+   "default": "AAA=",
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "label": "Content"
+  },
+  {
+   "default": "{}",
+   "fieldname": "settings",
+   "fieldtype": "JSON",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "versions",
+   "fieldtype": "Table",
+   "label": "Versions",
+   "options": "Writer Doc Version"
+  },
+  {
+   "fieldname": "updates",
+   "fieldtype": "Table",
+   "label": "Updates",
+   "options": "Writer Document Update"
+  },
+  {
+   "fieldname": "ycomments",
+   "fieldtype": "Long Text",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "Long Text",
+   "label": "HTML"
+  },
+  {
+   "default": "1",
+   "fieldname": "collab",
+   "fieldtype": "Check",
+   "label": "Collab"
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2025-12-18 14:21:53.667962",
+ "modified_by": "Administrator",
+ "module": "Writer",
+ "name": "Writer Document",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

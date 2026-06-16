@@ -1,0 +1,35 @@
+<table
+	class="sm:bg-white bg-gray-100"
+	cellpadding="0"
+	cellspacing="0"
+	role="presentation"
+	width="100%"
+>
+	<tr>
+		<td align="center" valign="top">
+			<table cellpadding="0" cellspacing="0" role="presentation" width="600px">
+				<tbody>
+					<tr>
+						<td class="px-8 pt-10 pb-8 text-center text-gray-900">
+							<div>
+								<img
+									src="https://github.com/frappe/gameplan/assets/9355208/447035d0-0686-41d2-910a-a3d21928ab94"
+									alt="Frappe Logo"
+									class="h-6 mx-auto"
+								/>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						{% block content %}{% endblock %}
+					</tr>
+					<tr>
+						<td class="py-8 text-center text-gray-500 text-sm">
+							This email was sent by Frappe Mail
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</td>
+	</tr>
+</table>

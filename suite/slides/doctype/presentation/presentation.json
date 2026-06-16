@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "creation": "2024-09-03 19:11:55.640617",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "slug",
+  "is_composite",
+  "column_break_axws",
+  "theme",
+  "thumbnail",
+  "is_template",
+  "is_public",
+  "slides_section",
+  "slides",
+  "reference_section",
+  "reference_presentations"
+ ],
+ "fields": [
+  {
+   "fieldname": "slides",
+   "fieldtype": "Table",
+   "label": "Slides",
+   "options": "Slide"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Slug"
+  },
+  {
+   "depends_on": "eval:!doc.is_composite",
+   "fieldname": "theme",
+   "fieldtype": "Data",
+   "label": "Theme"
+  },
+  {
+   "depends_on": "eval:!doc.is_composite",
+   "fieldname": "thumbnail",
+   "fieldtype": "Attach Image",
+   "label": "Thumbnail"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.is_composite",
+   "fieldname": "is_template",
+   "fieldtype": "Check",
+   "label": "Is Template"
+  },
+  {
+   "fieldname": "column_break_axws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.is_composite",
+   "fieldname": "slides_section",
+   "fieldtype": "Section Break",
+   "label": "Slides"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.is_composite",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "label": "Is Public"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_composite",
+   "fieldtype": "Check",
+   "label": "Is Composite"
+  },
+  {
+   "fieldname": "reference_presentations",
+   "fieldtype": "Table",
+   "label": "Reference Presentations",
+   "options": "Reference Presentation"
+  },
+  {
+   "depends_on": "is_composite",
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-24 14:22:31.171442",
+ "modified_by": "Administrator",
+ "module": "Slides",
+ "name": "Presentation",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "All",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Guest"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}

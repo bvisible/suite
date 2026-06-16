@@ -1,0 +1,140 @@
+<template>
+	<div :style="elementStyle">
+		<component
+			:is="getDynamicComponent(element.type)"
+			:key="getElementKey(element)"
+			:element="element"
+			:mode="mode"
+			:elementOffset="elementOffset"
+			@clearTimeouts="$emit('clearTimeouts')"
+			:transitionStyles="transitionStyles"
+		/>
+	</div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+
+import TextElement from '@/apps/slides/components/TextElement.vue'
+import ImageElement from '@/apps/slides/components/ImageElement.vue'
+import VideoElement from '@/apps/slides/components/VideoElement.vue'
+import ShapeElement from '@/apps/slides/components/ShapeElement.vue'
+
+import { activeElementIds } from '@/apps/slides/stores/element'
+
+import { slideBounds } from '@/apps/slides/stores/slide'
+
+const props = defineProps({
+	mode: {
+		type: String,
+		default: 'editor',
+	},
+	highlight: {
+		type: Boolean,
+		default: false,
+	},
+	elementOffset: {
+		type: Object,
+		default: () => ({ left: 0, top: 0 }),
+	},
+	transitionStyles: {
+		type: Object,
+		default: () => ({}),
+	},
+	rotationDelta: {
+		type: Number,
+		default: 0,
+	},
+})
+
+const emit = defineEmits(['clearTimeouts'])
+
+const getElementKey = (element) => {
+	const id = element.refId || element.id
+	return `${props.mode}-${id}`
+}
+
+const isActive = computed(() => {
+	return activeElementIds.value.includes(element.value.id)
+})
+
+const element = defineModel('element', {
+	type: Object,
+	default: null,
+})
+
+const elementStyle = computed(() => {
+	const offsetLeft = isActive.value ? props.elementOffset.left : 0
+	const offsetTop = isActive.value ? props.elementOffset.top : 0
+	const offsetWidth = isActive.value ? props.elementOffset.width : 0
+	const offsetHeight = isActive.value ? props.elementOffset.height : 0
+
+	const elementLeft = element.value.left + offsetLeft
+	const elementTop = element.value.top + offsetTop
+
+	let elementWidth = element.value.width
+	if (elementWidth) {
+		elementWidth = `${elementWidth + offsetWidth}px`
+	} else {
+		elementWidth = 'auto'
+	}
+
+	let elementHeight = element.value.height
+	if (element.value.type == 'shape' && ['line'].includes(element.value.shapeType)) {
+		elementHeight = `${element.value.strokeWidth}px`
+	} else if (elementHeight) {
+		elementHeight = `${elementHeight + offsetHeight}px`
+	} else {
+		elementHeight = 'auto'
+	}
+
+	const elementRotation = element.value.rotation || 0
+	const rotation =
+		isActive.value && isRotatable.value
+			? elementRotation + props.rotationDelta
+			: elementRotation
+
+	return {
+		position: 'absolute',
+		width: elementWidth,
+		height: elementHeight,
+		left: `${elementLeft}px`,
+		top: `${elementTop}px`,
+		outline: props.highlight ? `#70B6F092 solid ${2 / slideBounds.scale}px` : 'none',
+		boxSizing: 'border-box',
+		zIndex: element.value.zIndex,
+		transform: getTransform(rotation),
+		transformOrigin: getTransformOrigin(),
+		minWidth: element.value.type == 'text' ? '2px' : '',
+	}
+})
+
+const isRotatable = computed(() => {
+	return ['shape', 'image'].includes(element.value.type)
+})
+
+const getTransform = (rotation) => {
+	if (element.value.type == 'text') return element.value.transform
+	if (!isRotatable.value) return ''
+	return `rotate(${rotation}deg)`
+}
+
+const getTransformOrigin = () => {
+	if (element.value.type == 'text') return element.value.transformOrigin
+	if (!isRotatable.value) return ''
+	return 'center center'
+}
+
+const getDynamicComponent = (type) => {
+	switch (type) {
+		case 'image':
+			return ImageElement
+		case 'video':
+			return VideoElement
+		case 'shape':
+			return ShapeElement
+		default:
+			return TextElement
+	}
+}
+</script>
