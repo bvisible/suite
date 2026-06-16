@@ -1,0 +1,688 @@
+<template>
+	<TextEditor
+		ref="textEditor"
+		editor-class="prose-sm max-w-none"
+		:extensions="[CustomImageExtension, CustomParagraphExtension]"
+		:content="mail.html_body.replaceAll('<div><br></div>', '<div></div>')"
+		:upload-function
+		class="flex flex-col max-sm:overflow-y-auto"
+		:class="{ 'pointer-events-none opacity-50': !show, 'sm:h-[75vh]': !isInThread }"
+		:style="isMobile && { height: editorHeight }"
+		@change="
+			(val: string) => (mail.html_body = val.replaceAll('<div></div>', '<div><br></div>'))
+		"
+		@dragenter.prevent="handleDragEnter"
+		@dragover.prevent="handleDragOver"
+		@dragleave.prevent="handleDragLeave"
+		@drop.prevent="handleDrop"
+	>
+		<template #top>
+			<div
+				class="flex flex-col gap-2.5 border-b pb-2.5 max-sm:px-3 max-sm:pt-2.5"
+				:class="{ 'border-transparent': isDragging }"
+			>
+				<div v-if="!mailDetails?.type || isMobile" class="flex justify-between gap-2">
+					<div class="flex items-center gap-2">
+						<span class="text-ink-gray-4 text-sm">{{ __('From') }}</span>
+						<Combobox
+							v-model="mail.from_email"
+							:options="
+								identities.data.map((i: Identity) => ({
+									label: `${i._name} <${i.email}>`,
+									value: i.email,
+								})) || []
+							"
+							:open-on-click="true"
+							class="min-w-64"
+						/>
+					</div>
+					<Button
+						v-if="isInThread"
+						variant="ghost"
+						:disabled="isLoading || isDraftUpdated"
+						@click="emit('popOut', mail)"
+					>
+						<template #icon>
+							<component :is="ExternalLink" class="text-ink-gray-5 h-4 w-4" />
+						</template>
+					</Button>
+				</div>
+				<div class="flex items-start gap-2">
+					<Dropdown v-if="isInThread && mailDetails?.type" :options="localDraftActions">
+						<Button variant="ghost" :icon="TYPE_ICON_MAP[mailDetails.type]"> </Button>
+					</Dropdown>
+					<div class="flex flex-1 flex-col gap-2.5">
+						<div class="flex gap-2">
+							<Tooltip :text="__('Select from contacts')">
+								<span
+									class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
+									@click="insertContacts('to')"
+								>
+									{{ __('To') }}
+								</span>
+							</Tooltip>
+							<RecipientInput
+								ref="toInput"
+								v-model="mail.to"
+								@show-cc-bcc="showCcBcc = true"
+							/>
+							<div class="flex gap-1.5">
+								<Button
+									v-if="!(mail.cc?.length || mail.bcc?.length)"
+									variant="ghost"
+									@click="toggleCcBcc"
+								>
+									<template #icon>
+										<component
+											:is="showCcBcc ? ChevronUp : ChevronDown"
+											class="text-ink-gray-5 h-4 w-4"
+										/>
+									</template>
+								</Button>
+							</div>
+						</div>
+						<template v-if="showCcBcc">
+							<div class="flex gap-2">
+								<Tooltip :text="__('Select from contacts')">
+									<span
+										class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
+										@click="insertContacts('cc')"
+									>
+										{{ __('Cc') }}
+									</span>
+								</Tooltip>
+								<RecipientInput ref="ccInput" v-model="mail.cc" />
+							</div>
+							<div class="flex gap-2">
+								<Tooltip :text="__('Select from contacts')">
+									<span
+										class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
+										@click="insertContacts('bcc')"
+									>
+										{{ __('Bcc') }}
+									</span>
+								</Tooltip>
+								<RecipientInput v-model="mail.bcc" />
+							</div>
+						</template>
+					</div>
+				</div>
+				<div v-if="!mailDetails?.type || isMobile" class="flex items-center gap-2">
+					<span class="text-ink-gray-4 text-sm">{{ __('Subject') }}</span>
+					<input
+						v-model="mail.subject"
+						class="flex-1 border-none bg-inherit text-base focus-visible:!ring-0"
+					/>
+				</div>
+			</div>
+		</template>
+		<template #editor="{ editor }">
+			<div
+				class="relative flex flex-1 cursor-text flex-col border-2 border-transparent py-2.5 text-sm max-sm:px-3 sm:overflow-y-auto"
+				:class="{
+					'max-h-96 min-h-32': isInThread,
+					'!border-outline-gray-3 rounded border-dashed': isDragging,
+				}"
+				@click="editor.commands.focus('end')"
+			>
+				<div
+					v-if="isDragging"
+					class="bg-surface-gray-1/90 text-ink-gray-3 absolute inset-0 z-50 flex flex-col items-center justify-center space-y-1 rounded"
+				>
+					<UploadCloud class="stroke-1.5 h-12 w-12" />
+					<p class="text-lg font-semibold">{{ __('Drop files to upload') }}</p>
+				</div>
+
+				<EditorContent :editor :class="{ 'opacity-30': isDragging }" @click.stop />
+
+				<div
+					class="mt-auto cursor-default space-y-2.5 pt-2.5"
+					:class="{ 'opacity-30': isDragging }"
+					@click.stop
+				>
+					<!-- Show quoted content -->
+					<Button
+						v-if="mail?.quoted_content"
+						label="&middot;&middot;&middot;"
+						class="max-h-4 w-fit"
+						@click="openQuotedContent"
+					/>
+
+					<!-- Attachments -->
+					<a
+						v-for="(file, index) in mail.attachments.filter(
+							(file: Attachment) => file.disposition === 'attachment',
+						)"
+						:key="index"
+						class="bg-surface-gray-2 text-ink-gray-6 flex cursor-pointer items-center rounded p-2.5"
+						:href="file.file_url"
+						target="_blank"
+						@click="openAttachment(file.blob_id, file.type)"
+					>
+						<span class="mr-1 font-medium">
+							{{ file.file_name || file.filename || file.name }}
+						</span>
+						<span class="mr-1 font-extralight">
+							({{ formatBytes(file.file_size || file.size) }})
+						</span>
+						<FeatherIcon
+							class="ml-auto h-3.5 w-3.5"
+							name="x"
+							@click.stop.prevent="mail.attachments.splice(index, 1)"
+						/>
+					</a>
+
+					<div
+						v-for="(fileUpload, id) in fileUploads.filter((fu) => fu.isUploading)"
+						:key="id"
+						class="bg-surface-gray-2 text-ink-gray-6 mb-2 rounded p-2.5 text-sm"
+					>
+						<div class="mb-1.5 flex items-center">
+							<span class="mr-1 font-medium"> {{ fileUpload.name }} </span>
+							<span class="font-extralight">
+								({{ formatBytes(fileUpload.size) }})
+							</span>
+						</div>
+						<Progress :value="fileUpload.progress" />
+					</div>
+				</div>
+			</div>
+		</template>
+		<template #bottom>
+			<ComposeMailToolbar
+				:is-recipients-empty
+				class="border-t"
+				:class="{ 'border-transparent': isDragging }"
+				@select-files="(files: File[]) => uploadFiles(files)"
+				@append-emoji="(emoji: string) => appendEmoji(emoji)"
+				@discard-mail="discardMail"
+				@send-mail="sendMail"
+			/>
+		</template>
+	</TextEditor>
+
+	<ContactsModal
+		v-model="showContactsModal"
+		@insert="(selections) => mail[insertContactsInto].push(...selections)"
+	/>
+</template>
+
+<script setup lang="ts">
+import {
+	computed,
+	inject,
+	nextTick,
+	onMounted,
+	onUnmounted,
+	reactive,
+	ref,
+	useTemplateRef,
+	watch,
+} from 'vue'
+import { EditorContent } from '@tiptap/vue-3'
+import { watchDebounced } from '@vueuse/core'
+import {
+	ChevronDown,
+	ChevronUp,
+	ExternalLink,
+	Forward,
+	Reply,
+	ReplyAll,
+	UploadCloud,
+} from 'lucide-vue-next'
+import {
+	Button,
+	Combobox,
+	Dropdown,
+	FeatherIcon,
+	ImageExtension,
+	Progress,
+	TextEditor,
+	Tooltip,
+	createResource,
+	useFileUpload,
+} from 'frappe-ui'
+
+import { getAttachmentUrl } from '@/apps/mail/resources'
+import {
+	formatBytes,
+	isOverlayPresent,
+	processInlineImages,
+	raiseToast,
+	randomString,
+} from '@/apps/mail/utils'
+import { useScreenSize, useVisualViewport } from '@/apps/mail/utils/composables'
+import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
+import { userStore } from '@/apps/mail/stores/user'
+import ComposeMailToolbar from '@/apps/mail/components/ComposeMailToolbar.vue'
+
+import type { Attachment, ComposeMailData, File as FileDoc, Identity, UserResource } from '@/apps/mail/types'
+
+import RecipientInput from './Controls/RecipientInput.vue'
+import ContactsModal from './Modals/ContactsModal.vue'
+
+const show = defineModel<boolean>()
+
+const {
+	reloadMails,
+	mailDetails,
+	isInThread = false,
+} = defineProps<{
+	reloadMails: () => void
+	mailDetails?: ComposeMailData
+	isInThread?: boolean
+}>()
+
+const emit = defineEmits(['discardMail', 'reply', 'replyAll', 'forward', 'popOut'])
+
+const { account, identities } = userStore()
+
+const getIdentity = (email: string) =>
+	identities.data?.find((identity: Identity) => identity.email === email)
+
+// Editor
+
+const { isMobile } = useScreenSize()
+
+const textEditor = useTemplateRef('textEditor')
+const toInput = useTemplateRef('toInput')
+const ccInput = useTemplateRef('ccInput')
+
+const showContactsModal = ref(false)
+const insertContactsInto = ref('')
+
+const insertContacts = (insertInto: string) => {
+	insertContactsInto.value = insertInto
+	showContactsModal.value = true
+}
+
+const showCcBcc = ref(!!mailDetails?.cc?.length || !!mailDetails?.bcc?.length)
+const toggleCcBcc = () => {
+	showCcBcc.value = !showCcBcc.value
+	if (showCcBcc.value) nextTick(() => ccInput.value?.setFocus())
+}
+
+const appendEmoji = (emoji: string) => {
+	textEditor.value.editor.commands.insertContent(emoji)
+	textEditor.value.editor.commands.focus()
+}
+
+const editorHeight = useVisualViewport(
+	(viewport) => `${viewport.height - viewport.offsetTop - 113}px`,
+)
+
+// Setup & hooks
+
+const user = inject('$user') as UserResource
+
+const getDefaultFromEmail = () => {
+	const identityEmails = identities.data?.map((i: Identity) => i.email) ?? []
+
+	return (
+		identityEmails.find((e) => e === mailDetails?.from_email) ??
+		identityEmails.find((e) => e === user.data.default_outgoing_email) ??
+		identityEmails[0] ??
+		user.data.name
+	)
+}
+
+const mail = reactive<ComposeMailData>({
+	name: mailDetails?.name || '',
+	id: mailDetails?.id || '',
+	from_email: getDefaultFromEmail(),
+	to: mailDetails?.to || [],
+	cc: mailDetails?.cc || [],
+	bcc: mailDetails?.bcc || [],
+	attachments: mailDetails?.attachments || [],
+	subject: mailDetails?.subject || '',
+	html_body: mailDetails?.html_body || '',
+	quoted_content: mailDetails?.quoted_content || '',
+	in_reply_to: mailDetails?.in_reply_to || '',
+	in_reply_to_id: mailDetails?.in_reply_to_id || '',
+	forwarded_from_id: mailDetails?.forwarded_from_id || '',
+})
+
+const originalMail = ref<ComposeMailData>()
+const updateOriginalMail = () => (originalMail.value = JSON.parse(JSON.stringify(mail)))
+const isDraftUpdated = computed(() => JSON.stringify(mail) !== JSON.stringify(originalMail.value))
+
+onMounted(() => {
+	updateOriginalMail()
+	if (!mailDetails?.in_reply_to) setTimeout(() => toInput.value?.setFocus(), 50)
+	else textEditor.value.editor.commands.focus()
+})
+
+onUnmounted(() => saveDraft())
+
+watchDebounced(mail, () => saveDraft(), { debounce: 2000 })
+
+// Actions
+
+const isSavingDraft = ref(false)
+
+const saveDraft = async () => {
+	if (!isDraftUpdated.value || isLoading.value || isDiscarding.value) return
+
+	isSavingDraft.value = true
+	if (mail.id) await updateDraft.submit({ submit: false })
+	else if (!isMailEmpty.value) await createMail.submit({ save_as_draft: true })
+	isSavingDraft.value = false
+}
+
+const sendMail = async () => {
+	if (deleteMail.loading) return
+
+	if (isRecipientsEmpty.value)
+		return raiseToast(__('Please add at least one recipient.'), 'error')
+
+	isSavingDraft.value = false
+	show.value = false
+	if (createMail.loading) await createMail.promise
+	if (updateDraft.loading) await updateDraft.promise
+
+	if (mail.id) updateDraft.submit({ submit: true })
+	else createMail.submit({ save_as_draft: false })
+}
+
+const isDiscarding = ref(false)
+
+const discardMail = async () => {
+	if (deleteMail.loading) return
+
+	isDiscarding.value = true
+	show.value = false
+	if (createMail.loading) await createMail.promise
+	if (updateDraft.loading) await updateDraft.promise
+	if (mail.id) deleteMail.submit()
+	else emit('discardMail')
+}
+
+watch(show, (val) => {
+	if (val) return
+	isDiscarding.value = false
+	isSavingDraft.value = false
+})
+
+defineExpose({ sendMail, discardMail })
+
+const onMailUpdateSuccess = ({
+	id,
+	status,
+	error,
+}: {
+	id: string
+	status: string
+	error: string
+}) => {
+	if (id) mail.id = id
+	updateOriginalMail()
+	if (error) return raiseToast(error, 'error')
+	if (isDiscarding.value) return
+
+	if (!isInThread || status === 'Submitted') reloadMails()
+	if (show.value) return
+
+	if (status === 'Drafted' && isSavingDraft.value) raiseToast(__('Draft saved.'))
+	else if (status === 'Submitted') raiseToast(__('Message sent.'))
+}
+
+// Resources
+
+const createMail = createResource({
+	url: 'mail.api.mail.create_mail',
+	makeParams: ({ save_as_draft }: { save_as_draft: boolean }) => ({
+		account,
+		...mail,
+		...processInlineImages(mail),
+		from_name: getIdentity(mail.from_email!)._name,
+		save_as_draft,
+	}),
+	onSuccess: onMailUpdateSuccess,
+	onError: (error) => raiseToast(error.message, 'error'),
+})
+
+const updateDraft = createResource({
+	url: 'mail.api.mail.update_draft_mail',
+	makeParams: ({ submit }: { submit: boolean }) => ({
+		account,
+		...mail,
+		...processInlineImages(mail),
+		from_name: getIdentity(mail.from_email!)._name,
+		submit,
+	}),
+	onSuccess: onMailUpdateSuccess,
+	onError: (error) => raiseToast(error.message, 'error'),
+})
+
+const deleteMail = createResource({
+	url: 'mail.api.mail.delete_mail',
+	makeParams: () => ({ account, id: mail.id }),
+	onSuccess: () => {
+		reloadMails()
+		raiseToast(__('Draft discarded.'))
+	},
+	onError: (error) => raiseToast(error.message, 'error'),
+})
+
+const isLoading = computed(() => createMail.loading || updateDraft.loading || deleteMail.loading)
+
+// Local draft actions
+
+const localDraftActions = computed(() => [
+	{
+		group: '',
+		items: [
+			{ label: __('Reply'), icon: Reply, onClick: () => emit('reply') },
+			{
+				label: __('Reply All'),
+				icon: ReplyAll,
+				onClick: () => emit('replyAll'),
+			},
+			{
+				label: __('Forward'),
+				icon: Forward,
+				onClick: () => emit('forward'),
+			},
+		],
+	},
+	{
+		group: '',
+		items: [
+			{
+				label: __('Pop Out'),
+				icon: ExternalLink,
+				onClick: () => emit('popOut', mail),
+				condition: () => !isLoading.value,
+			},
+		],
+	},
+])
+
+// Mail content
+
+const isRecipientsEmpty = computed(() => [mail.to, mail.cc, mail.bcc].every((d) => !d.length))
+
+const isBodyEmpty = computed(() => {
+	if (!mail.html_body) return true
+
+	const element = document.createElement('div')
+	element.innerHTML = mail.html_body
+
+	const hasText = element.textContent?.trim()
+	const hasMedia = element.querySelector('img, video, svg') !== null
+
+	return !hasText && !hasMedia
+})
+
+const isMailEmpty = computed(() => {
+	const isSubjectEmpty = !mail.subject
+	const isQuotedContentEmpty = !mail.quoted_content
+	const isAttachmentsEmpty = !mail.attachments?.length
+
+	return (
+		isSubjectEmpty &&
+		isQuotedContentEmpty &&
+		isRecipientsEmpty.value &&
+		isAttachmentsEmpty &&
+		isBodyEmpty.value
+	)
+})
+
+const openQuotedContent = () => {
+	mail.html_body += `<br>${mail.quoted_content}`
+	mail.quoted_content = ''
+}
+
+watch(
+	() => mail.from_email,
+	(val) => {
+		if (isBodyEmpty.value) {
+			const identity = getIdentity(val!)
+			mail.html_body = identity?.text_signature
+				? `<div><br></div><div><br></div>${identity.html_signature}`
+				: ''
+		}
+	},
+	{ immediate: true },
+)
+
+// Attachments
+
+const openAttachment = async (blob_id?: string, type?: string) => {
+	if (!blob_id) return
+
+	const url = await getAttachmentUrl(blob_id, type)
+	window.open(url, '_blank')
+}
+
+// Custom Extensions
+
+const uploadFunction = async (file: File) => {
+	const fileUpload = useFileUpload()
+	return fileUpload.upload(file, {
+		private: true,
+		folder: 'Home/Frappe Mail',
+		upload_endpoint: '/api/method/mail.api.mail.upload_file',
+	})
+}
+
+const CustomImageExtension = ImageExtension.extend({
+	addAttributes() {
+		return {
+			...this.parent?.(),
+			'data-cid': {
+				default: null,
+				parseHTML: (element) => element.getAttribute('data-cid'),
+				renderHTML: (attributes) => {
+					const src = attributes.src || ''
+					if (
+						!attributes['data-cid'] &&
+						(src.startsWith('/files') || src.startsWith('/private/files'))
+					)
+						attributes['data-cid'] = randomString(10)
+					return { 'data-cid': attributes['data-cid'] }
+				},
+			},
+		}
+	},
+}).configure({
+	HTMLAttributes: { width: '600', style: 'max-width:100%; height:auto' },
+	uploadFunction,
+})
+
+const TYPE_ICON_MAP = {
+	reply: Reply,
+	replyAll: ReplyAll,
+	forward: Forward,
+}
+
+// Shortcuts
+
+const handleKeydown = (e: KeyboardEvent) => {
+	if (!show.value || (isInThread && isOverlayPresent())) return
+
+	handleSendShortcut(e)
+	handleDiscardShortcut(e)
+}
+
+const handleSendShortcut = (e: KeyboardEvent) => {
+	if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+		e.preventDefault()
+		sendMail()
+	}
+}
+
+const handleDiscardShortcut = (e: KeyboardEvent) => {
+	if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+		e.preventDefault()
+		discardMail()
+	}
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeydown, true))
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown, true))
+
+// Drag and drop file upload
+
+const isDragging = ref(false)
+let dragCounter = 0
+
+const handleDragEnter = (e: DragEvent) => {
+	e.preventDefault()
+	dragCounter++
+	if (e.dataTransfer?.types.includes('Files')) isDragging.value = true
+}
+
+const handleDragOver = (e: DragEvent) => {
+	e.preventDefault()
+	if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
+}
+
+const handleDragLeave = (e: DragEvent) => {
+	e.preventDefault()
+	dragCounter--
+	if (dragCounter === 0) isDragging.value = false
+}
+
+const handleDrop = (e: DragEvent) => {
+	e.preventDefault()
+	isDragging.value = false
+	dragCounter = 0
+
+	const files = Array.from(e.dataTransfer?.files ?? [])
+	uploadFiles(files)
+}
+
+const fileUploads = ref<ReturnType<typeof useFileUpload>[]>([])
+
+const uploadFiles = async (files: File[]) => {
+	if (!files.length) return
+
+	const results = await Promise.allSettled(files.map(uploadFile))
+	results.forEach((res, i) => {
+		if (res.status === 'rejected')
+			raiseToast(__('Failed to upload {0}', [files[i].name]), 'error')
+	})
+}
+
+const uploadFile = async (file: File) => {
+	const fileUpload = useFileUpload()
+	fileUploads.value.push({ name: file.name, size: file.size, ...fileUpload })
+
+	const doc = (await fileUpload.upload(file, {
+		private: true,
+		folder: 'Home/Frappe Mail',
+		upload_endpoint: '/api/method/mail.api.mail.upload_file',
+	})) as FileDoc
+
+	attachDoc(doc)
+}
+
+const attachDoc = (doc: FileDoc) =>
+	mail.attachments.push({
+		file_name: doc.file_name,
+		file_url: doc.file_url,
+		file_size: doc.file_size,
+		disposition: 'attachment',
+	})
+</script>
