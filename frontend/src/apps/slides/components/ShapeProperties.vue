@@ -1,0 +1,116 @@
+<template>
+	<CollapsibleSection title="Style">
+		<template #default>
+			<div
+				class="flex items-center justify-between"
+				v-if="activeElement.shapeType == 'rectangle'"
+			>
+				<div :class="fieldLabelClasses">Border Radius</div>
+				<div class="w-28">
+					<NumberInput
+						:modelValue="activeElement.borderRadius"
+						@update:modelValue="(val) => setProperty('borderRadius', val)"
+						suffix="px"
+						:rangeStart="0"
+						:rangeEnd="50"
+						:rangeStep="0.5"
+					/>
+				</div>
+			</div>
+
+			<div v-if="activeElement.shapeType == 'line'" class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Arrows</div>
+				<div class="w-28">
+					<FormControl
+						type="select"
+						:modelValue="arrowDirection"
+						:options="arrowOptions"
+						@update:modelValue="updateArrowDirection"
+					/>
+				</div>
+			</div>
+
+			<div class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Stroke Width</div>
+				<div class="w-28">
+					<NumberInput
+						:modelValue="activeElement.strokeWidth"
+						@update:modelValue="(val) => setProperty('strokeWidth', val)"
+						suffix="px"
+						:rangeStart="0"
+						:rangeEnd="50"
+						:rangeStep="0.5"
+					/>
+				</div>
+			</div>
+
+			<div v-if="activeElement.shapeType != 'line'" class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Fill Color</div>
+				<ColorPicker
+					v-model="activeElement.fillColor"
+					@colordown="onFillColorUpdateStart"
+					@colorup="onFillColorUpdateEnd"
+				/>
+			</div>
+
+			<div class="flex items-center justify-between">
+				<div :class="fieldLabelClasses">Stroke Color</div>
+
+				<ColorPicker
+					v-model="activeElement.strokeColor"
+					@colordown="onStrokeColorUpdateStart"
+					@colorup="onStrokeColorUpdateEnd"
+				/>
+			</div>
+		</template>
+	</CollapsibleSection>
+
+	<ShadowProperties />
+</template>
+
+<script setup>
+import { computed, inject } from 'vue'
+import { FormControl } from 'frappe-ui'
+
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
+import ColorPicker from '@/apps/slides/components/controls/ColorPicker.vue'
+import NumberInput from '@/apps/slides/components/controls/NumberInput.vue'
+import ShadowProperties from '@/apps/slides/components/ShadowProperties.vue'
+
+import { activeElement } from '@/apps/slides/stores/element'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
+
+const setProperty = inject('setProperty')
+const setPropertyDeferred = inject('setPropertyDeferred')
+
+const arrowDirection = computed(() => {
+	const el = activeElement.value
+	if (!el) return 'none'
+	if (el.markerStart && el.markerEnd) return 'both'
+	if (el.markerStart) return 'left'
+	if (el.markerEnd) return 'right'
+	return 'none'
+})
+
+const arrowOptions = [
+	{ label: 'None', value: 'none' },
+	{ label: 'Left', value: 'left' },
+	{ label: 'Right', value: 'right' },
+	{ label: 'Both', value: 'both' },
+]
+
+const updateArrowDirection = (val) => {
+	setProperty('markerStart', val === 'left' || val === 'both')
+	setProperty('markerEnd', val === 'right' || val === 'both')
+}
+
+const { onStart: onFillColorUpdateStart, onEnd: onFillColorUpdateEnd } = setPropertyDeferred(
+	'element',
+	'fillColor',
+)
+
+const { onStart: onStrokeColorUpdateStart, onEnd: onStrokeColorUpdateEnd } = setPropertyDeferred(
+	'element',
+	'strokeColor',
+)
+</script>
